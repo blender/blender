@@ -105,7 +105,6 @@ bool GeometryComponent::is_empty() const
 /** \name Geometry Set
  * \{ */
 
-/* The methods are defaulted here so that they are not instantiated in every translation unit. */
 GeometrySet::GeometrySet() = default;
 GeometrySet::GeometrySet(const GeometrySet &other) = default;
 GeometrySet::GeometrySet(GeometrySet &&other) = default;
@@ -113,36 +112,24 @@ GeometrySet::~GeometrySet() = default;
 GeometrySet &GeometrySet::operator=(const GeometrySet &other) = default;
 GeometrySet &GeometrySet::operator=(GeometrySet &&other) = default;
 
-/* This method can only be used when the geometry set is mutable. It returns a mutable geometry
- * component of the given type.
- */
 GeometryComponent &GeometrySet::get_component_for_write(GeometryComponentType component_type)
 {
-  return components_.add_or_modify(
-      component_type,
-      [&](GeometryComponentPtr *value_ptr) -> GeometryComponent & {
-        /* If the component did not exist before, create a new one. */
-        new (value_ptr) GeometryComponentPtr(GeometryComponent::create(component_type));
-        return **value_ptr;
-      },
-      [&](GeometryComponentPtr *value_ptr) -> GeometryComponent & {
-        GeometryComponentPtr &value = *value_ptr;
-        if (value->is_mutable()) {
-          /* If the referenced component is already mutable, return it directly. */
-          return *value;
-        }
-        /* If the referenced component is shared, make a copy. The copy is not shared and is
-         * therefore mutable. */
-        GeometryComponent *copied_component = value->copy();
-        value = GeometryComponentPtr{copied_component};
-        return *copied_component;
-      });
+  GeometryComponentPtr &component_ptr = components_[component_type];
+  if (!component_ptr) {
+    /* If the component did not exist before, create a new one. */
+    component_ptr = GeometryComponent::create(component_type);
+    return *component_ptr;
+  }
+  if (component_ptr->is_mutable()) {
+    /* If the referenced component is already mutable, return it directly. */
+    return *component_ptr;
+  }
+  /* If the referenced component is shared, make a copy. The copy is not shared and is
+   * therefore mutable. */
+  component_ptr = component_ptr->copy();
+  return *component_ptr;
 }
 
-/**
- * Retrieve the pointer to a component without creating it if it does not exist,
- * unlike #get_component_for_write.
- */
 GeometryComponent *GeometrySet::get_component_ptr(GeometryComponentType type)
 {
   if (this->has(type)) {
@@ -151,56 +138,47 @@ GeometryComponent *GeometrySet::get_component_ptr(GeometryComponentType type)
   return nullptr;
 }
 
-/* Get the component of the given type. Might return null if the component does not exist yet. */
 const GeometryComponent *GeometrySet::get_component_for_read(
     GeometryComponentType component_type) const
 {
-  const GeometryComponentPtr *component = components_.lookup_ptr(component_type);
-  if (component != nullptr) {
-    return component->get();
-  }
-  return nullptr;
+  return components_[component_type].get();
 }
 
 bool GeometrySet::has(const GeometryComponentType component_type) const
 {
-  return components_.contains(component_type);
+  return components_[component_type].has_value();
 }
 
 void GeometrySet::remove(const GeometryComponentType component_type)
 {
-  components_.remove(component_type);
+  components_[component_type].reset();
 }
 
-/**
- * Remove all geometry components with types that are not in the provided list.
- */
 void GeometrySet::keep_only(const blender::Span<GeometryComponentType> component_types)
 {
-  for (auto it = components_.keys().begin(); it != components_.keys().end(); ++it) {
-    const GeometryComponentType type = *it;
-    if (!component_types.contains(type)) {
-      components_.remove(it);
+  for (GeometryComponentPtr &component_ptr : components_) {
+    if (component_ptr) {
+      if (!component_types.contains(component_ptr->type())) {
+        component_ptr.reset();
+      }
     }
   }
 }
 
 void GeometrySet::add(const GeometryComponent &component)
 {
-  BLI_assert(!components_.contains(component.type()));
+  BLI_assert(!components_[component.type()]);
   component.user_add();
-  GeometryComponentPtr component_ptr{const_cast<GeometryComponent *>(&component)};
-  components_.add_new(component.type(), std::move(component_ptr));
+  components_[component.type()] = const_cast<GeometryComponent *>(&component);
 }
 
-/**
- * Get all geometry components in this geometry set for read-only access.
- */
 Vector<const GeometryComponent *> GeometrySet::get_components_for_read() const
 {
   Vector<const GeometryComponent *> components;
-  for (const GeometryComponentPtr &ptr : components_.values()) {
-    components.append(ptr.get());
+  for (const GeometryComponentPtr &component_ptr : components_) {
+    if (component_ptr) {
+      components.append(component_ptr.get());
+    }
   }
   return components;
 }
@@ -233,122 +211,111 @@ std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
   return stream;
 }
 
-/* Remove all geometry components from the geometry set. */
 void GeometrySet::clear()
 {
-  components_.clear();
+  for (GeometryComponentPtr &component_ptr : components_) {
+    component_ptr.reset();
+  }
 }
 
-/* Make sure that the geometry can be cached. This does not ensure ownership of object/collection
- * instances. */
 void GeometrySet::ensure_owns_direct_data()
 {
-  for (GeometryComponentType type : components_.keys()) {
-    const GeometryComponent *component = this->get_component_for_read(type);
-    if (!component->owns_direct_data()) {
-      GeometryComponent &component_for_write = this->get_component_for_write(type);
-      component_for_write.ensure_owns_direct_data();
+  for (GeometryComponentPtr &component_ptr : components_) {
+    if (!component_ptr) {
+      continue;
     }
+    if (component_ptr->owns_direct_data()) {
+      continue;
+    }
+    GeometryComponent &component_for_write = this->get_component_for_write(component_ptr->type());
+    component_for_write.ensure_owns_direct_data();
   }
 }
 
 bool GeometrySet::owns_direct_data() const
 {
-  for (const GeometryComponentPtr &component : components_.values()) {
-    if (!component->owns_direct_data()) {
-      return false;
+  for (const GeometryComponentPtr &component_ptr : components_) {
+    if (component_ptr) {
+      if (!component_ptr->owns_direct_data()) {
+        return false;
+      }
     }
   }
   return true;
 }
 
-/* Returns a read-only mesh or null. */
 const Mesh *GeometrySet::get_mesh_for_read() const
 {
   const MeshComponent *component = this->get_component_for_read<MeshComponent>();
   return (component == nullptr) ? nullptr : component->get_for_read();
 }
 
-/* Returns true when the geometry set has a mesh component that has a mesh. */
 bool GeometrySet::has_mesh() const
 {
   const MeshComponent *component = this->get_component_for_read<MeshComponent>();
   return component != nullptr && component->has_mesh();
 }
 
-/* Returns a read-only point cloud of null. */
 const PointCloud *GeometrySet::get_pointcloud_for_read() const
 {
   const PointCloudComponent *component = this->get_component_for_read<PointCloudComponent>();
   return (component == nullptr) ? nullptr : component->get_for_read();
 }
 
-/* Returns a read-only volume or null. */
 const Volume *GeometrySet::get_volume_for_read() const
 {
   const VolumeComponent *component = this->get_component_for_read<VolumeComponent>();
   return (component == nullptr) ? nullptr : component->get_for_read();
 }
 
-/* Returns a read-only curve or null. */
 const CurveEval *GeometrySet::get_curve_for_read() const
 {
   const CurveComponent *component = this->get_component_for_read<CurveComponent>();
   return (component == nullptr) ? nullptr : component->get_for_read();
 }
 
-/* Returns true when the geometry set has a point cloud component that has a point cloud. */
 bool GeometrySet::has_pointcloud() const
 {
   const PointCloudComponent *component = this->get_component_for_read<PointCloudComponent>();
   return component != nullptr && component->has_pointcloud();
 }
 
-/* Returns true when the geometry set has an instances component that has at least one instance. */
 bool GeometrySet::has_instances() const
 {
   const InstancesComponent *component = this->get_component_for_read<InstancesComponent>();
   return component != nullptr && component->instances_amount() >= 1;
 }
 
-/* Returns true when the geometry set has a volume component that has a volume. */
 bool GeometrySet::has_volume() const
 {
   const VolumeComponent *component = this->get_component_for_read<VolumeComponent>();
   return component != nullptr && component->has_volume();
 }
 
-/* Returns true when the geometry set has a curve component that has a curve. */
 bool GeometrySet::has_curve() const
 {
   const CurveComponent *component = this->get_component_for_read<CurveComponent>();
   return component != nullptr && component->has_curve();
 }
 
-/* Returns true when the geometry set has any data that is not an instance. */
 bool GeometrySet::has_realized_data() const
 {
-  if (components_.is_empty()) {
-    return false;
+  for (const GeometryComponentPtr &component_ptr : components_) {
+    if (component_ptr) {
+      if (component_ptr->type() != GEO_COMPONENT_TYPE_INSTANCES) {
+        return true;
+      }
+    }
   }
-  if (components_.size() > 1) {
-    return true;
-  }
-  /* Check if the only component is an #InstancesComponent. */
-  return this->get_component_for_read<InstancesComponent>() == nullptr;
+  return false;
 }
 
-/* Return true if the geometry set has any component that isn't empty. */
 bool GeometrySet::is_empty() const
 {
-  if (components_.is_empty()) {
-    return true;
-  }
-  return !(this->has_mesh() || this->has_curve() || this->has_pointcloud() ||
+  return !(this->has_mesh() || this->has_curve() || this->has_pointcloud() || this->has_volume() ||
            this->has_instances());
 }
 
-/* Create a new geometry set that only contains the given mesh. */
 GeometrySet GeometrySet::create_with_mesh(Mesh *mesh, GeometryOwnershipType ownership)
 {
   GeometrySet geometry_set;
@@ -359,7 +326,6 @@ GeometrySet GeometrySet::create_with_mesh(Mesh *mesh, GeometryOwnershipType owne
   return geometry_set;
 }
 
-/* Create a new geometry set that only contains the given point cloud. */
 GeometrySet GeometrySet::create_with_pointcloud(PointCloud *pointcloud,
                                                 GeometryOwnershipType ownership)
 {
@@ -371,7 +337,6 @@ GeometrySet GeometrySet::create_with_pointcloud(PointCloud *pointcloud,
   return geometry_set;
 }
 
-/* Create a new geometry set that only contains the given curve. */
 GeometrySet GeometrySet::create_with_curve(CurveEval *curve, GeometryOwnershipType ownership)
 {
   GeometrySet geometry_set;
@@ -382,76 +347,80 @@ GeometrySet GeometrySet::create_with_curve(CurveEval *curve, GeometryOwnershipTy
   return geometry_set;
 }
 
-/* Clear the existing mesh and replace it with the given one. */
 void GeometrySet::replace_mesh(Mesh *mesh, GeometryOwnershipType ownership)
 {
   if (mesh == nullptr) {
     this->remove<MeshComponent>();
+    return;
   }
-  else {
-    MeshComponent &component = this->get_component_for_write<MeshComponent>();
-    component.replace(mesh, ownership);
+  if (mesh == this->get_mesh_for_read()) {
+    return;
   }
+  this->remove<MeshComponent>();
+  MeshComponent &component = this->get_component_for_write<MeshComponent>();
+  component.replace(mesh, ownership);
 }
 
-/* Clear the existing curve and replace it with the given one. */
 void GeometrySet::replace_curve(CurveEval *curve, GeometryOwnershipType ownership)
 {
   if (curve == nullptr) {
     this->remove<CurveComponent>();
+    return;
   }
-  else {
-    CurveComponent &component = this->get_component_for_write<CurveComponent>();
-    component.replace(curve, ownership);
+  if (curve == this->get_curve_for_read()) {
+    return;
   }
+  this->remove<CurveComponent>();
+  CurveComponent &component = this->get_component_for_write<CurveComponent>();
+  component.replace(curve, ownership);
 }
 
-/* Clear the existing point cloud and replace with the given one. */
 void GeometrySet::replace_pointcloud(PointCloud *pointcloud, GeometryOwnershipType ownership)
 {
   if (pointcloud == nullptr) {
     this->remove<PointCloudComponent>();
+    return;
   }
-  else {
-    PointCloudComponent &component = this->get_component_for_write<PointCloudComponent>();
-    component.replace(pointcloud, ownership);
+  if (pointcloud == this->get_pointcloud_for_read()) {
+    return;
   }
+  this->remove<PointCloudComponent>();
+  PointCloudComponent &component = this->get_component_for_write<PointCloudComponent>();
+  component.replace(pointcloud, ownership);
 }
 
-/* Clear the existing volume and replace with the given one. */
 void GeometrySet::replace_volume(Volume *volume, GeometryOwnershipType ownership)
 {
   if (volume == nullptr) {
     this->remove<VolumeComponent>();
+    return;
   }
-  else {
-    VolumeComponent &component = this->get_component_for_write<VolumeComponent>();
-    component.replace(volume, ownership);
+  if (volume == this->get_volume_for_read()) {
+    return;
   }
+  this->remove<VolumeComponent>();
+  VolumeComponent &component = this->get_component_for_write<VolumeComponent>();
+  component.replace(volume, ownership);
 }
 
-/* Returns a mutable mesh or null. No ownership is transferred. */
 Mesh *GeometrySet::get_mesh_for_write()
 {
   MeshComponent *component = this->get_component_ptr<MeshComponent>();
   return component == nullptr ? nullptr : component->get_for_write();
 }
 
-/* Returns a mutable point cloud or null. No ownership is transferred. */
 PointCloud *GeometrySet::get_pointcloud_for_write()
 {
   PointCloudComponent *component = this->get_component_ptr<PointCloudComponent>();
   return component == nullptr ? nullptr : component->get_for_write();
 }
 
-/* Returns a mutable volume or null. No ownership is transferred. */
 Volume *GeometrySet::get_volume_for_write()
 {
   VolumeComponent *component = this->get_component_ptr<VolumeComponent>();
   return component == nullptr ? nullptr : component->get_for_write();
 }
 
-/* Returns a mutable curve or null. No ownership is transferred. */
 CurveEval *GeometrySet::get_curve_for_write()
 {
   CurveComponent *component = this->get_component_ptr<CurveComponent>();
@@ -581,10 +550,6 @@ static void gather_mutable_geometry_sets(GeometrySet &geometry_set,
   }
 }
 
-/**
- * Modify every (recursive) instance separately. This is often more efficient than realizing all
- * instances just to change the same thing on all of them.
- */
 void GeometrySet::modify_geometry_sets(ForeachSubGeometryCallback callback)
 {
   Vector<GeometrySet *> geometry_sets;

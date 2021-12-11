@@ -27,6 +27,8 @@
 
 namespace blender::nodes::node_geo_mesh_primitive_circle_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryMeshCircle)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Vertices"))
@@ -199,11 +201,8 @@ static Mesh *create_circle_mesh(const float radius,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const bNode &node = params.node();
-  const NodeGeometryMeshCircle &storage = *(const NodeGeometryMeshCircle *)node.storage;
-
-  const GeometryNodeMeshCircleFillType fill_type = (const GeometryNodeMeshCircleFillType)
-                                                       storage.fill_type;
+  const NodeGeometryMeshCircle &storage = node_storage(params.node());
+  const GeometryNodeMeshCircleFillType fill = (GeometryNodeMeshCircleFillType)storage.fill_type;
 
   const float radius = params.extract_input<float>("Radius");
   const int verts_num = params.extract_input<int>("Vertices");
@@ -213,7 +212,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  Mesh *mesh = create_circle_mesh(radius, verts_num, fill_type);
+  Mesh *mesh = create_circle_mesh(radius, verts_num, fill);
 
   BLI_assert(BKE_mesh_is_valid(mesh));
 

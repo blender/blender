@@ -63,11 +63,6 @@ struct DynStr {
 
 /***/
 
-/**
- * Create a new DynStr.
- *
- * \return Pointer to a new DynStr.
- */
 DynStr *BLI_dynstr_new(void)
 {
   DynStr *ds = MEM_mallocN(sizeof(*ds), "DynStr");
@@ -78,11 +73,6 @@ DynStr *BLI_dynstr_new(void)
   return ds;
 }
 
-/**
- * Create a new DynStr.
- *
- * \return Pointer to a new DynStr.
- */
 DynStr *BLI_dynstr_new_memarena(void)
 {
   DynStr *ds = MEM_mallocN(sizeof(*ds), "DynStr");
@@ -98,12 +88,6 @@ BLI_INLINE void *dynstr_alloc(DynStr *__restrict ds, size_t size)
   return ds->memarena ? BLI_memarena_alloc(ds->memarena, size) : malloc(size);
 }
 
-/**
- * Append a c-string to a DynStr.
- *
- * \param ds: The DynStr to append to.
- * \param cstr: The c-string to append.
- */
 void BLI_dynstr_append(DynStr *__restrict ds, const char *cstr)
 {
   DynStrElem *dse = dynstr_alloc(ds, sizeof(*dse));
@@ -123,13 +107,6 @@ void BLI_dynstr_append(DynStr *__restrict ds, const char *cstr)
   ds->curlen += cstrlen;
 }
 
-/**
- * Append a length clamped c-string to a DynStr.
- *
- * \param ds: The DynStr to append to.
- * \param cstr: The c-string to append.
- * \param len: The maximum length of the c-string to copy.
- */
 void BLI_dynstr_nappend(DynStr *__restrict ds, const char *cstr, int len)
 {
   DynStrElem *dse = dynstr_alloc(ds, sizeof(*dse));
@@ -209,12 +186,6 @@ void BLI_dynstr_vappendf(DynStr *__restrict ds, const char *__restrict format, v
   }
 }
 
-/**
- * Append a c-string to a DynStr, but with formatting like printf.
- *
- * \param ds: The DynStr to append to.
- * \param format: The printf format string to use.
- */
 void BLI_dynstr_appendf(DynStr *__restrict ds, const char *__restrict format, ...)
 {
   va_list args;
@@ -277,25 +248,11 @@ void BLI_dynstr_appendf(DynStr *__restrict ds, const char *__restrict format, ..
   }
 }
 
-/**
- * Find the length of a DynStr.
- *
- * \param ds: The DynStr of interest.
- * \return The length of \a ds.
- */
 int BLI_dynstr_get_len(const DynStr *ds)
 {
   return ds->curlen;
 }
 
-/**
- * Get a DynStr's contents as a c-string.
- * The \a rets argument must be allocated to be at
- * least the size of `BLI_dynstr_get_len(ds) + 1`.
- *
- * \param ds: The DynStr of interest.
- * \param rets: The string to fill.
- */
 void BLI_dynstr_get_cstring_ex(const DynStr *__restrict ds, char *__restrict rets)
 {
   char *s;
@@ -312,14 +269,6 @@ void BLI_dynstr_get_cstring_ex(const DynStr *__restrict ds, char *__restrict ret
   rets[ds->curlen] = '\0';
 }
 
-/**
- * Get a DynStr's contents as a c-string.
- * <i> The returned c-string should be freed
- * using MEM_freeN. </i>
- *
- * \param ds: The DynStr of interest.
- * \return The contents of \a ds as a c-string.
- */
 char *BLI_dynstr_get_cstring(const DynStr *ds)
 {
   char *rets = MEM_mallocN(ds->curlen + 1, "dynstr_cstring");
@@ -327,11 +276,6 @@ char *BLI_dynstr_get_cstring(const DynStr *ds)
   return rets;
 }
 
-/**
- * Clear the DynStr
- *
- * \param ds: The DynStr to clear.
- */
 void BLI_dynstr_clear(DynStr *ds)
 {
   if (ds->memarena) {
@@ -350,11 +294,6 @@ void BLI_dynstr_clear(DynStr *ds)
   ds->curlen = 0;
 }
 
-/**
- * Free the DynStr
- *
- * \param ds: The DynStr to free.
- */
 void BLI_dynstr_free(DynStr *ds)
 {
   if (ds->memarena) {

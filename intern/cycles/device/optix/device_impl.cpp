@@ -46,14 +46,14 @@
 CCL_NAMESPACE_BEGIN
 
 OptiXDevice::Denoiser::Denoiser(OptiXDevice *device)
-    : device(device), queue(device), state(device, "__denoiser_state")
+    : device(device), queue(device), state(device, "__denoiser_state", true)
 {
 }
 
 OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
     : CUDADevice(info, stats, profiler),
       sbt_data(this, "__sbt", MEM_READ_ONLY),
-      launch_params(this, "__params"),
+      launch_params(this, "__params", false),
       denoiser_(this)
 {
   /* Make the CUDA context current. */
@@ -523,7 +523,7 @@ class OptiXDevice::DenoiseContext {
       : denoise_params(task.params),
         render_buffers(task.render_buffers),
         buffer_params(task.buffer_params),
-        guiding_buffer(device, "denoiser guiding passes buffer"),
+        guiding_buffer(device, "denoiser guiding passes buffer", true),
         num_samples(task.num_samples)
   {
     num_input_passes = 1;
@@ -538,9 +538,9 @@ class OptiXDevice::DenoiseContext {
       }
     }
 
-    const int num_guiding_passes = num_input_passes - 1;
+    use_guiding_passes = (num_input_passes - 1) > 0;
 
-    if (num_guiding_passes) {
+    if (use_guiding_passes) {
       if (task.allow_inplace_modification) {
         guiding_params.device_pointer = render_buffers->buffer.device_pointer;
 
@@ -593,6 +593,7 @@ class OptiXDevice::DenoiseContext {
 
   /* Number of input passes. Including the color and extra auxiliary passes. */
   int num_input_passes = 0;
+  bool use_guiding_passes = false;
   bool use_pass_albedo = false;
   bool use_pass_normal = false;
 
@@ -724,7 +725,7 @@ void OptiXDevice::denoise_pass(DenoiseContext &context, PassType pass_type)
       return;
     }
   }
-  else if (!context.albedo_replaced_with_fake) {
+  else if (context.use_guiding_passes && !context.albedo_replaced_with_fake) {
     context.albedo_replaced_with_fake = true;
     if (!denoise_filter_guiding_set_fake_albedo(context)) {
       LOG(ERROR) << "Error replacing real albedo with the fake one.";
@@ -1015,6 +1016,13 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
                                   const OptixBuildInput &build_input,
                                   uint16_t num_motion_steps)
 {
+  /* Allocate and build acceleration structures only one at a time, to prevent parallel builds
+   * from running out of memory (since both original and compacted acceleration structure memory
+   * may be allocated at the same time for the duration of this function). The builds would
+   * otherwise happen on the same CUDA stream anyway. */
+  static thread_mutex mutex;
+  thread_scoped_lock lock(mutex);
+
   const CUDAContextScope scope(this);
 
   const bool use_fast_trace_bvh = (bvh->params.bvh_type == BVH_TYPE_STATIC);
@@ -1040,13 +1048,14 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
   optix_assert(optixAccelComputeMemoryUsage(context, &options, &build_input, 1, &sizes));
 
   /* Allocate required output buffers. */
-  device_only_memory<char> temp_mem(this, "optix temp as build mem");
+  device_only_memory<char> temp_mem(this, "optix temp as build mem", true);
   temp_mem.alloc_to_device(align_up(sizes.tempSizeInBytes, 8) + 8);
   if (!temp_mem.device_pointer) {
     /* Make sure temporary memory allocation succeeded. */
     return false;
   }
 
+  /* Acceleration structure memory has to be allocated on the device (not allowed on the host). */
   device_only_memory<char> &out_data = *bvh->as_data;
   if (operation == OPTIX_BUILD_OPERATION_BUILD) {
     assert(out_data.device == this);
@@ -1095,12 +1104,13 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
 
     /* There is no point compacting if the size does not change. */
     if (compacted_size < sizes.outputSizeInBytes) {
-      device_only_memory<char> compacted_data(this, "optix compacted as");
+      device_only_memory<char> compacted_data(this, "optix compacted as", false);
       compacted_data.alloc_to_device(compacted_size);
-      if (!compacted_data.device_pointer)
+      if (!compacted_data.device_pointer) {
         /* Do not compact if memory allocation for compacted acceleration structure fails.
          * Can just use the uncompacted one then, so succeed here regardless. */
         return !have_error();
+      }
 
       optix_assert(optixAccelCompact(
           context, NULL, out_handle, compacted_data.device_pointer, compacted_size, &out_handle));
@@ -1111,6 +1121,8 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
 
       std::swap(out_data.device_size, compacted_data.device_size);
       std::swap(out_data.device_pointer, compacted_data.device_pointer);
+      /* Original acceleration structure memory is freed when 'compacted_data' goes out of scope.
+       */
     }
   }
 
@@ -1208,7 +1220,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
               const float4 pw = make_float4(
                   curve_radius[ka], curve_radius[k0], curve_radius[k1], curve_radius[kb]);
 
-              /* Convert Catmull-Rom data to Bezier spline. */
+              /* Convert Catmull-Rom data to B-spline. */
               static const float4 cr2bsp0 = make_float4(+7, -4, +5, -2) / 6.f;
               static const float4 cr2bsp1 = make_float4(-2, 11, -4, +1) / 6.f;
               static const float4 cr2bsp2 = make_float4(+1, -4, 11, -2) / 6.f;

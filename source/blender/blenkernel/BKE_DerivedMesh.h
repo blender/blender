@@ -242,8 +242,17 @@ struct DerivedMesh {
   void (*release)(DerivedMesh *dm);
 };
 
+/**
+ * Utility function to initialize a #DerivedMesh's function pointers to
+ * the default implementation (for those functions which have a default).
+ */
 void DM_init_funcs(DerivedMesh *dm);
 
+/**
+ * Utility function to initialize a #DerivedMesh for the desired number
+ * of vertices, edges and faces (doesn't allocate memory for them, just
+ * sets up the custom data layers)>
+ */
 void DM_init(DerivedMesh *dm,
              DerivedMeshType type,
              int numVerts,
@@ -252,6 +261,10 @@ void DM_init(DerivedMesh *dm,
              int numLoops,
              int numPolys);
 
+/**
+ * Utility function to initialize a DerivedMesh for the desired number
+ * of vertices, edges and faces, with a layer setup copied from source
+ */
 void DM_from_template_ex(DerivedMesh *dm,
                          DerivedMesh *source,
                          DerivedMeshType type,
@@ -276,43 +289,61 @@ void DM_from_template(DerivedMesh *dm,
  */
 bool DM_release(DerivedMesh *dm);
 
+/**
+ * set the #CD_FLAG_NOCOPY flag in custom data layers where the mask is
+ * zero for the layer type, so only layer types specified by the mask
+ * will be copied
+ */
 void DM_set_only_copy(DerivedMesh *dm, const struct CustomData_MeshMasks *mask);
 
-/* adds a vertex/edge/face custom data layer to a DerivedMesh, optionally
+/* Adds a vertex/edge/face custom data layer to a DerivedMesh, optionally
  * backed by an external data array
  * alloctype defines how the layer is allocated or copied, and how it is
- * freed, see BKE_customdata.h for the different options
- */
+ * freed, see BKE_customdata.h for the different options. */
+
 void DM_add_vert_layer(struct DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer);
 void DM_add_edge_layer(struct DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer);
 void DM_add_tessface_layer(struct DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer);
 void DM_add_loop_layer(DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer);
 void DM_add_poly_layer(struct DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer);
 
-/* custom data access functions
- * return pointer to data from first layer which matches type
- * if they return NULL for valid indices, data doesn't exist
- * note these return pointers - any change modifies the internals of the mesh
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Custom Data Access Functions
+ *
+ * \return pointer to data from first layer which matches type
+ * if they return NULL for valid indices, data doesn't exist.
+ * \note these return pointers - any change modifies the internals of the mesh.
+ * \{ */
+
 void *DM_get_vert_data(struct DerivedMesh *dm, int index, int type);
 void *DM_get_edge_data(struct DerivedMesh *dm, int index, int type);
 void *DM_get_tessface_data(struct DerivedMesh *dm, int index, int type);
 void *DM_get_poly_data(struct DerivedMesh *dm, int index, int type);
 
-/* custom data layer access functions
- * return pointer to first data layer which matches type (a flat array)
- * if they return NULL, data doesn't exist
- * note these return pointers - any change modifies the internals of the mesh
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Custom Data Layer Access Functions
+ *
+ * \return pointer to first data layer which matches type (a flat array)
+ * if they return NULL, data doesn't exist.
+ * \note these return pointers - any change modifies the internals of the mesh.
+ * \{ */
+
 void *DM_get_vert_data_layer(struct DerivedMesh *dm, int type);
 void *DM_get_edge_data_layer(struct DerivedMesh *dm, int type);
 void *DM_get_tessface_data_layer(struct DerivedMesh *dm, int type);
 void *DM_get_poly_data_layer(struct DerivedMesh *dm, int type);
 void *DM_get_loop_data_layer(struct DerivedMesh *dm, int type);
 
-/* custom data copy functions
+/** \} */
+
+/**
+ * Custom data copy functions
  * copy count elements from source_index in source to dest_index in dest
- * these copy all layers for which the CD_FLAG_NOCOPY flag is not set
+ * these copy all layers for which the CD_FLAG_NOCOPY flag is not set.
  */
 void DM_copy_vert_data(struct DerivedMesh *source,
                        struct DerivedMesh *dest,
@@ -320,13 +351,26 @@ void DM_copy_vert_data(struct DerivedMesh *source,
                        int dest_index,
                        int count);
 
-/* Sets up mpolys for a DM based on face iterators in source. */
+/**
+ * Sets up mpolys for a DM based on face iterators in source.
+ */
 void DM_DupPolys(DerivedMesh *source, DerivedMesh *target);
 
 void DM_ensure_normals(DerivedMesh *dm);
 
+/**
+ * Ensure the array is large enough.
+ *
+ * \note This function must always be thread-protected by caller.
+ * It should only be used by internal code.
+ */
 void DM_ensure_looptri_data(DerivedMesh *dm);
 
+/**
+ * Interpolates vertex data from the vertices indexed by `src_indices` in the
+ * source mesh using the given weights and stores the result in the vertex
+ * indexed by `dest_index` in the `dest` mesh.
+ */
 void DM_interp_vert_data(struct DerivedMesh *source,
                          struct DerivedMesh *dest,
                          int *src_indices,
@@ -336,7 +380,9 @@ void DM_interp_vert_data(struct DerivedMesh *source,
 
 void mesh_get_mapped_verts_coords(struct Mesh *me_eval, float (*r_cos)[3], const int totcos);
 
-/* same as above but won't use render settings */
+/**
+ * Same as above but won't use render settings.
+ */
 struct Mesh *editbmesh_get_eval_cage(struct Depsgraph *depsgraph,
                                      struct Scene *scene,
                                      struct Object *,

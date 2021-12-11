@@ -29,6 +29,8 @@
 
 namespace blender::nodes::node_geo_proximity_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryProximity)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Target"))
@@ -216,7 +218,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const NodeGeometryProximity &storage = *(const NodeGeometryProximity *)params.node().storage;
+  const NodeGeometryProximity &storage = node_storage(params.node());
   Field<float3> position_field = params.extract_input<Field<float3>>("Source Position");
 
   auto proximity_fn = std::make_unique<ProximityFunction>(

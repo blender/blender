@@ -1314,9 +1314,6 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 
 /* Public Curve-Drawing API  ---------------- */
 
-/* Draw the 'ghost' F-Curves (i.e. snapshots of the curve)
- * NOTE: unit mapping has already been applied to the values, so do not try and apply again
- */
 void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region)
 {
   FCurve *fcu;
@@ -1364,9 +1361,6 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region
   GPU_blend(GPU_BLEND_NONE);
 }
 
-/* This is called twice from space_graph.c -> graph_main_region_draw()
- * Unselected then selected F-Curves are drawn so that they do not occlude each other.
- */
 void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, short sel)
 {
   ListBase anim_data = {NULL, NULL};
@@ -1408,7 +1402,6 @@ void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, shor
 /** \name Channel List
  * \{ */
 
-/* left hand part */
 void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
 {
   ListBase anim_data = {NULL, NULL};

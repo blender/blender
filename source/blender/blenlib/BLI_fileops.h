@@ -45,19 +45,40 @@ extern "C" {
 #  define PATH_MAX 4096
 #endif
 
-/* Common */
+/* -------------------------------------------------------------------- */
+/** \name Common
+ * \{ */
 
+/**
+ * Returns the st_mode from stat-ing the specified path name, or 0 if stat fails
+ * (most likely doesn't exist or no access).
+ */
 int BLI_exists(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int BLI_copy(const char *file, const char *to) ATTR_NONNULL();
+/**
+ * \return zero on success (matching 'rename' behavior).
+ */
 int BLI_rename(const char *from, const char *to) ATTR_NONNULL();
+/**
+ * Deletes the specified file or directory (depending on dir), optionally
+ * doing recursive delete of directory contents.
+ *
+ * \return zero on success (matching 'remove' behavior).
+ */
 int BLI_delete(const char *file, bool dir, bool recursive) ATTR_NONNULL();
+/**
+ * Soft deletes the specified file or directory (depending on dir) by moving the files to the
+ * recycling bin, optionally doing recursive delete of directory contents.
+ *
+ * \return zero on success (matching 'remove' behavior).
+ */
 int BLI_delete_soft(const char *file, const char **error_message) ATTR_NONNULL();
 #if 0 /* Unused */
 int BLI_move(const char *path, const char *to) ATTR_NONNULL();
 int BLI_create_symlink(const char *path, const char *to) ATTR_NONNULL();
 #endif
 
-/* keep in sync with the definition of struct direntry in BLI_fileops_types.h */
+/* Keep in sync with the definition of struct `direntry` in `BLI_fileops_types.h`. */
 #ifdef WIN32
 #  if defined(_MSC_VER)
 typedef struct _stat64 BLI_stat_t;
@@ -101,40 +122,102 @@ typedef enum eFileAttributes {
   (FILE_ATTR_ALIAS | FILE_ATTR_REPARSE_POINT | FILE_ATTR_SYMLINK | FILE_ATTR_JUNCTION_POINT | \
    FILE_ATTR_MOUNT_POINT | FILE_ATTR_HARDLINK)
 
-/* Directories */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Directories
+ * \{ */
 
 struct direntry;
 
+/**
+ * Does the specified path point to a directory?
+ * \note Would be better in `fileops.c` except that it needs `stat.h` so add here.
+ */
 bool BLI_is_dir(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+/**
+ * Does the specified path point to a non-directory?
+ */
 bool BLI_is_file(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+/**
+ * \return true on success (i.e. given path now exists on FS), false otherwise.
+ */
 bool BLI_dir_create_recursive(const char *dir) ATTR_NONNULL();
+/**
+ * Returns the number of free bytes on the volume containing the specified pathname.
+ *
+ * \note Not actually used anywhere.
+ */
 double BLI_dir_free_space(const char *dir) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+/**
+ * Copies the current working directory into *dir (max size maxncpy), and
+ * returns a pointer to same.
+ *
+ * \note can return NULL when the size is not big enough
+ */
 char *BLI_current_working_dir(char *dir, const size_t maxncpy) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 eFileAttributes BLI_file_attributes(const char *path);
 
-/* Filelist */
+/** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name File-List
+ * \{ */
+
+/**
+ * Scans the contents of the directory named *dirname, and allocates and fills in an
+ * array of entries describing them in *filelist.
+ *
+ * \return The length of filelist array.
+ */
 unsigned int BLI_filelist_dir_contents(const char *dir, struct direntry **r_filelist);
+/**
+ * Deep-duplicate of a single direntry.
+ */
 void BLI_filelist_entry_duplicate(struct direntry *dst, const struct direntry *src);
+/**
+ * Deep-duplicate of a #direntry array including the array itself.
+ */
 void BLI_filelist_duplicate(struct direntry **dest_filelist,
                             struct direntry *const src_filelist,
                             const unsigned int nrentries);
+/**
+ * Frees storage for a single direntry, not the direntry itself.
+ */
 void BLI_filelist_entry_free(struct direntry *entry);
+/**
+ * Frees storage for an array of #direntry, including the array itself.
+ */
 void BLI_filelist_free(struct direntry *filelist, const unsigned int nrentries);
 
+/**
+ * Convert given entry's size into human-readable strings.
+ */
 void BLI_filelist_entry_size_to_string(const struct stat *st,
                                        const uint64_t sz,
                                        const bool compact,
                                        char r_size[FILELIST_DIRENTRY_SIZE_LEN]);
+/**
+ * Convert given entry's modes into human-readable strings.
+ */
 void BLI_filelist_entry_mode_to_string(const struct stat *st,
                                        const bool compact,
                                        char r_mode1[FILELIST_DIRENTRY_MODE_LEN],
                                        char r_mode2[FILELIST_DIRENTRY_MODE_LEN],
                                        char r_mode3[FILELIST_DIRENTRY_MODE_LEN]);
+/**
+ * Convert given entry's owner into human-readable strings.
+ */
 void BLI_filelist_entry_owner_to_string(const struct stat *st,
                                         const bool compact,
                                         char r_owner[FILELIST_DIRENTRY_OWNER_LEN]);
+/**
+ * Convert given entry's time into human-readable strings.
+ *
+ * \param r_is_today: optional, returns true if the date matches today's.
+ * \param r_is_yesterday: optional, returns true if the date matches yesterday's.
+ */
 void BLI_filelist_entry_datetime_to_string(const struct stat *st,
                                            const int64_t ts,
                                            const bool compact,
@@ -143,14 +226,28 @@ void BLI_filelist_entry_datetime_to_string(const struct stat *st,
                                            bool *r_is_today,
                                            bool *r_is_yesterday);
 
-/* Files */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Files
+ * \{ */
 
 FILE *BLI_fopen(const char *filename, const char *mode) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void *BLI_gzopen(const char *filename, const char *mode) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int BLI_open(const char *filename, int oflag, int pmode) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int BLI_access(const char *filename, int mode) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
+/**
+ * Returns true if the file with the specified name can be written.
+ * This implementation uses access(2), which makes the check according
+ * to the real UID and GID of the process, not its effective UID and GID.
+ * This shouldn't matter for Blender, which is not going to run privileged anyway.
+ */
 bool BLI_file_is_writable(const char *file) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+/**
+ * Creates the file with nothing in it, or updates its last-modified date if it already exists.
+ * Returns true if successful (like the unix touch command).
+ */
 bool BLI_file_touch(const char *file) ATTR_NONNULL();
 bool BLI_file_alias_target(const char *filepath, char *r_targetpath) ATTR_WARN_UNUSED_RESULT;
 
@@ -165,23 +262,67 @@ size_t BLI_file_unzstd_to_mem_at_pos(void *buf, size_t len, FILE *file, size_t f
     ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 bool BLI_file_magic_is_zstd(const char header[4]);
 
+/**
+ * Returns the file size of an opened file descriptor.
+ */
 size_t BLI_file_descriptor_size(int file) ATTR_WARN_UNUSED_RESULT;
+/**
+ * Returns the size of a file.
+ */
 size_t BLI_file_size(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-/* compare if one was last modified before the other */
+/**
+ * Compare if one was last modified before the other.
+ *
+ * \return true when is `file1` older than `file2`.
+ */
 bool BLI_file_older(const char *file1, const char *file2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-/* read ascii file as lines, empty list if reading fails */
+/**
+ * Reads the contents of a text file.
+ *
+ * \return the lines in a linked list (an empty list when file reading fails).
+ */
 struct LinkNode *BLI_file_read_as_lines(const char *file) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size);
+/**
+ * Return the text file data with:
+
+ * - Newlines replaced with '\0'.
+ * - Optionally trim white-space, replacing trailing <space> & <tab> with '\0'.
+ *
+ * This is an alternative to using #BLI_file_read_as_lines,
+ * allowing us to loop over lines without converting it into a linked list
+ * with individual allocations.
+ *
+ * \param trim_trailing_space: Replace trailing spaces & tabs with nil.
+ * This arguments prevents the caller from counting blank lines (if that's important).
+ * \param pad_bytes: When this is non-zero, the first byte is set to nil,
+ * to simplify parsing the file.
+ * It's recommended to pass in 1, so all text is nil terminated.
+ *
+ * Example looping over lines:
+ *
+ * \code{.c}
+ * size_t data_len;
+ * char *data = BLI_file_read_text_as_mem_with_newline_as_nil(filepath, true, 1, &data_len);
+ * char *data_end = data + data_len;
+ * for (char *line = data; line != data_end; line = strlen(line) + 1) {
+ *  printf("line='%s'\n", line);
+ * }
+ * \endcode
+ */
 void *BLI_file_read_text_as_mem_with_newline_as_nil(const char *filepath,
                                                     bool trim_trailing_space,
                                                     size_t pad_bytes,
                                                     size_t *r_size);
 void *BLI_file_read_binary_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size);
+/**
+ * Frees memory from a previous call to #BLI_file_read_as_lines.
+ */
 void BLI_file_free_lines(struct LinkNode *lines);
 
-/* this weirdo pops up in two places ... */
+/* This weirdo pops up in two places. */
 #if !defined(WIN32)
 #  ifndef O_BINARY
 #    define O_BINARY 0
@@ -189,6 +330,8 @@ void BLI_file_free_lines(struct LinkNode *lines);
 #else
 void BLI_get_short_name(char short_name[256], const char *filename);
 #endif
+
+/** \} */
 
 #ifdef __cplusplus
 }

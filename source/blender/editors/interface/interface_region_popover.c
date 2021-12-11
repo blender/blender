@@ -340,12 +340,6 @@ int UI_popover_panel_invoke(bContext *C, const char *idname, bool keep_open, Rep
 /** \name Popup Menu API with begin & end
  * \{ */
 
-/**
- * Only return handler, and set optional title.
- *
- * \param from_active_button: Use the active button for positioning,
- * use when the popover is activated from an operator instead of directly from the button.
- */
 uiPopover *UI_popover_begin(bContext *C, int ui_menu_width, bool from_active_button)
 {
   uiPopover *pup = MEM_callocN(sizeof(uiPopover), "popover menu");
@@ -383,7 +377,6 @@ static void popover_keymap_fn(wmKeyMap *UNUSED(keymap), wmKeyMapItem *UNUSED(kmi
   pup->block->handle->menuretval = UI_RETURN_OK;
 }
 
-/* set the whole structure to work */
 void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
 {
   wmWindow *window = CTX_wm_window(C);

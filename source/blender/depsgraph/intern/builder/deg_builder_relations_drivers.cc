@@ -83,7 +83,6 @@ bool DriverDescriptor::is_array() const
   return is_array_;
 }
 
-/* Assumes that 'other' comes from the same RNA group, that is, has the same RNA path prefix. */
 bool DriverDescriptor::is_same_array_as(const DriverDescriptor &other) const
 {
   if (!is_array_ || !other.is_array_) {

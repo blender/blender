@@ -25,6 +25,8 @@
 
 namespace blender::nodes::node_geo_curve_sample_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryCurveSample)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve"))
@@ -53,8 +55,8 @@ static void node_type_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  const NodeGeometryCurveSample &node_storage = *(NodeGeometryCurveSample *)node->storage;
-  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
+  const NodeGeometryCurveSample &storage = node_storage(*node);
+  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)storage.mode;
 
   bNodeSocket *factor = ((bNodeSocket *)node->inputs.first)->next;
   bNodeSocket *length = factor->next;
@@ -200,8 +202,8 @@ class SampleCurveFunction : public fn::MultiFunction {
 static Field<float> get_length_input_field(const GeoNodeExecParams &params,
                                            const float curve_total_length)
 {
-  const NodeGeometryCurveSample &node_storage = *(NodeGeometryCurveSample *)params.node().storage;
-  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)node_storage.mode;
+  const NodeGeometryCurveSample &storage = node_storage(params.node());
+  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)storage.mode;
 
   if (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) {
     /* Just make sure the length is in bounds of the curve. */

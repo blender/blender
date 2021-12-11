@@ -47,7 +47,6 @@
 /** \name Buffer of select ID's
  * \{ */
 
-/* Main function to read a block of pixels from the select frame buffer. */
 uint *DRW_select_buffer_read(struct Depsgraph *depsgraph,
                              struct ARegion *region,
                              struct View3D *v3d,
@@ -122,10 +121,6 @@ uint *DRW_select_buffer_read(struct Depsgraph *depsgraph,
  *
  * \{ */
 
-/**
- * \param rect: The rectangle to sample indices from (min/max inclusive).
- * \returns a #BLI_bitmap the length of \a bitmap_len or NULL on failure.
- */
 uint *DRW_select_buffer_bitmap_from_rect(struct Depsgraph *depsgraph,
                                          struct ARegion *region,
                                          struct View3D *v3d,
@@ -165,12 +160,6 @@ uint *DRW_select_buffer_bitmap_from_rect(struct Depsgraph *depsgraph,
   return bitmap_buf;
 }
 
-/**
- * \param center: Circle center.
- * \param radius: Circle radius.
- * \param r_bitmap_len: Number of indices in the selection id buffer.
- * \returns a #BLI_bitmap the length of \a r_bitmap_len or NULL on failure.
- */
 uint *DRW_select_buffer_bitmap_from_circle(struct Depsgraph *depsgraph,
                                            struct ARegion *region,
                                            struct View3D *v3d,
@@ -235,12 +224,6 @@ static void drw_select_mask_px_cb(int x, int x_end, int y, void *user_data)
   } while (++x != x_end);
 }
 
-/**
- * \param poly: The polygon coordinates.
- * \param poly_len: Length of the polygon.
- * \param rect: Polygon boundaries.
- * \returns a #BLI_bitmap.
- */
 uint *DRW_select_buffer_bitmap_from_poly(struct Depsgraph *depsgraph,
                                          struct ARegion *region,
                                          struct View3D *v3d,
@@ -309,9 +292,6 @@ uint *DRW_select_buffer_bitmap_from_poly(struct Depsgraph *depsgraph,
  *
  * \{ */
 
-/**
- * Samples a single pixel.
- */
 uint DRW_select_buffer_sample_point(struct Depsgraph *depsgraph,
                                     struct ARegion *region,
                                     struct View3D *v3d,
@@ -357,11 +337,6 @@ static bool select_buffer_test_fn(const void *__restrict value, void *__restrict
   return false;
 }
 
-/**
- * Find the selection id closest to \a center.
- * \param dist: Use to initialize the distance,
- * when found, this value is set to the distance of the selection that's returned.
- */
 uint DRW_select_buffer_find_nearest_to_point(struct Depsgraph *depsgraph,
                                              struct ARegion *region,
                                              struct View3D *v3d,

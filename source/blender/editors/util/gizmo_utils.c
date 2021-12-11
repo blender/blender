@@ -70,7 +70,6 @@ bool ED_gizmo_poll_or_unlink_delayed_from_tool_ex(const bContext *C,
   return true;
 }
 
-/** Can use this as poll function directly. */
 bool ED_gizmo_poll_or_unlink_delayed_from_tool(const bContext *C, wmGizmoGroupType *gzgt)
 {
   return ED_gizmo_poll_or_unlink_delayed_from_tool_ex(C, gzgt, gzgt->idname);

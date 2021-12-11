@@ -36,11 +36,6 @@
 
 #include "BLI_strict_flags.h"
 
-/* implementation */
-
-/**
- * moves the entire contents of \a src onto the end of \a dst.
- */
 void BLI_movelisttolist(ListBase *dst, ListBase *src)
 {
   if (src->first == NULL) {
@@ -59,9 +54,6 @@ void BLI_movelisttolist(ListBase *dst, ListBase *src)
   src->first = src->last = NULL;
 }
 
-/**
- * moves the entire contents of \a src at the beginning of \a dst.
- */
 void BLI_movelisttolist_reverse(ListBase *dst, ListBase *src)
 {
   if (src->first == NULL) {
@@ -81,9 +73,6 @@ void BLI_movelisttolist_reverse(ListBase *dst, ListBase *src)
   src->first = src->last = NULL;
 }
 
-/**
- * Prepends \a vlink (assumed to begin with a Link) onto listbase.
- */
 void BLI_addhead(ListBase *listbase, void *vlink)
 {
   Link *link = vlink;
@@ -104,9 +93,6 @@ void BLI_addhead(ListBase *listbase, void *vlink)
   listbase->first = link;
 }
 
-/**
- * Appends \a vlink (assumed to begin with a Link) onto listbase.
- */
 void BLI_addtail(ListBase *listbase, void *vlink)
 {
   Link *link = vlink;
@@ -127,9 +113,6 @@ void BLI_addtail(ListBase *listbase, void *vlink)
   listbase->last = link;
 }
 
-/**
- * Removes \a vlink from \a listbase. Assumes it is linked into there!
- */
 void BLI_remlink(ListBase *listbase, void *vlink)
 {
   Link *link = vlink;
@@ -153,9 +136,6 @@ void BLI_remlink(ListBase *listbase, void *vlink)
   }
 }
 
-/**
- * Checks that \a vlink is linked into listbase, removing it from there if so.
- */
 bool BLI_remlink_safe(ListBase *listbase, void *vlink)
 {
   if (BLI_findindex(listbase, vlink) != -1) {
@@ -166,9 +146,6 @@ bool BLI_remlink_safe(ListBase *listbase, void *vlink)
   return false;
 }
 
-/**
- * Swaps \a vlinka and \a vlinkb in the list. Assumes they are both already in the list!
- */
 void BLI_listbase_swaplinks(ListBase *listbase, void *vlinka, void *vlinkb)
 {
   Link *linka = vlinka;
@@ -222,10 +199,6 @@ void BLI_listbase_swaplinks(ListBase *listbase, void *vlinka, void *vlinkb)
   }
 }
 
-/**
- * Swaps \a vlinka and \a vlinkb from their respective lists.
- * Assumes they are both already in their \a listbasea!
- */
 void BLI_listbases_swaplinks(ListBase *listbasea, ListBase *listbaseb, void *vlinka, void *vlinkb)
 {
   Link *linka = vlinka;
@@ -251,9 +224,6 @@ void BLI_listbases_swaplinks(ListBase *listbasea, ListBase *listbaseb, void *vli
   BLI_remlink(listbasea, &linkc);
 }
 
-/**
- * Removes the head from \a listbase and returns it.
- */
 void *BLI_pophead(ListBase *listbase)
 {
   Link *link;
@@ -263,9 +233,6 @@ void *BLI_pophead(ListBase *listbase)
   return link;
 }
 
-/**
- * Removes the tail from \a listbase and returns it.
- */
 void *BLI_poptail(ListBase *listbase)
 {
   Link *link;
@@ -275,9 +242,6 @@ void *BLI_poptail(ListBase *listbase)
   return link;
 }
 
-/**
- * Removes \a vlink from listbase and disposes of it. Assumes it is linked into there!
- */
 void BLI_freelinkN(ListBase *listbase, void *vlink)
 {
   Link *link = vlink;
@@ -320,11 +284,6 @@ static void listbase_double_from_single(Link *iter, ListBase *listbase)
 
 #undef SORT_IMPL_LINKTYPE
 
-/**
- * Sorts the elements of listbase into the order defined by cmp
- * (which should return 1 if its first arg should come after its second arg).
- * This uses insertion sort, so NOT ok for large list.
- */
 void BLI_listbase_sort(ListBase *listbase, int (*cmp)(const void *, const void *))
 {
   if (listbase->first != listbase->last) {
@@ -345,10 +304,6 @@ void BLI_listbase_sort_r(ListBase *listbase,
   }
 }
 
-/**
- * Inserts \a vnewlink immediately following \a vprevlink in \a listbase.
- * Or, if \a vprevlink is NULL, puts \a vnewlink at the front of the list.
- */
 void BLI_insertlinkafter(ListBase *listbase, void *vprevlink, void *vnewlink)
 {
   Link *prevlink = vprevlink;
@@ -388,10 +343,6 @@ void BLI_insertlinkafter(ListBase *listbase, void *vprevlink, void *vnewlink)
   }
 }
 
-/**
- * Inserts \a vnewlink immediately preceding \a vnextlink in listbase.
- * Or, if \a vnextlink is NULL, puts \a vnewlink at the end of the list.
- */
 void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
 {
   Link *nextlink = vnextlink;
@@ -431,13 +382,6 @@ void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
   }
 }
 
-/**
- * Insert a link in place of another, without changing its position in the list.
- *
- * Puts `vnewlink` in the position of `vreplacelink`, removing `vreplacelink`.
- * - `vreplacelink` *must* be in the list.
- * - `vnewlink` *must not* be in the list.
- */
 void BLI_insertlinkreplace(ListBase *listbase, void *vreplacelink, void *vnewlink)
 {
   Link *l_old = vreplacelink;
@@ -464,14 +408,6 @@ void BLI_insertlinkreplace(ListBase *listbase, void *vreplacelink, void *vnewlin
   }
 }
 
-/**
- * Reinsert \a vlink relative to its current position but offset by \a step. Doesn't move
- * item if new position would exceed list (could optionally move to head/tail).
- *
- * \param step: Absolute value defines step size, sign defines direction. E.g pass -1
- *              to move \a vlink before previous, or 1 to move behind next.
- * \return If position of \a vlink has changed.
- */
 bool BLI_listbase_link_move(ListBase *listbase, void *vlink, int step)
 {
   Link *link = vlink;
@@ -503,11 +439,6 @@ bool BLI_listbase_link_move(ListBase *listbase, void *vlink, int step)
   return true;
 }
 
-/**
- * Move the link at the index \a from to the position at index \a to.
- *
- * \return If the move was successful.
- */
 bool BLI_listbase_move_index(ListBase *listbase, int from, int to)
 {
   if (from == to) {
@@ -524,9 +455,6 @@ bool BLI_listbase_move_index(ListBase *listbase, int from, int to)
   return BLI_listbase_link_move(listbase, link, to - from);
 }
 
-/**
- * Removes and disposes of the entire contents of listbase using direct free(3).
- */
 void BLI_freelist(ListBase *listbase)
 {
   Link *link, *next;
@@ -541,9 +469,6 @@ void BLI_freelist(ListBase *listbase)
   BLI_listbase_clear(listbase);
 }
 
-/**
- * Removes and disposes of the entire contents of \a listbase using guardedalloc.
- */
 void BLI_freelistN(ListBase *listbase)
 {
   Link *link, *next;
@@ -558,11 +483,6 @@ void BLI_freelistN(ListBase *listbase)
   BLI_listbase_clear(listbase);
 }
 
-/**
- * Returns the number of elements in \a listbase, up until (and including count_max)
- *
- * \note Use to avoid redundant looping.
- */
 int BLI_listbase_count_at_most(const ListBase *listbase, const int count_max)
 {
   Link *link;
@@ -575,9 +495,6 @@ int BLI_listbase_count_at_most(const ListBase *listbase, const int count_max)
   return count;
 }
 
-/**
- * Returns the number of elements in \a listbase.
- */
 int BLI_listbase_count(const ListBase *listbase)
 {
   Link *link;
@@ -590,9 +507,6 @@ int BLI_listbase_count(const ListBase *listbase)
   return count;
 }
 
-/**
- * Returns the nth element of \a listbase, numbering from 0.
- */
 void *BLI_findlink(const ListBase *listbase, int number)
 {
   Link *link = NULL;
@@ -608,9 +522,6 @@ void *BLI_findlink(const ListBase *listbase, int number)
   return link;
 }
 
-/**
- * Returns the nth-last element of \a listbase, numbering from 0.
- */
 void *BLI_rfindlink(const ListBase *listbase, int number)
 {
   Link *link = NULL;
@@ -626,9 +537,6 @@ void *BLI_rfindlink(const ListBase *listbase, int number)
   return link;
 }
 
-/**
- * Returns the position of \a vlink within \a listbase, numbering from 0, or -1 if not found.
- */
 int BLI_findindex(const ListBase *listbase, const void *vlink)
 {
   Link *link = NULL;
@@ -651,10 +559,6 @@ int BLI_findindex(const ListBase *listbase, const void *vlink)
   return -1;
 }
 
-/**
- * Finds the first element of \a listbase which contains the null-terminated
- * string \a id at the specified offset, returning NULL if not found.
- */
 void *BLI_findstring(const ListBase *listbase, const char *id, const int offset)
 {
   Link *link = NULL;
@@ -674,13 +578,10 @@ void *BLI_findstring(const ListBase *listbase, const char *id, const int offset)
 
   return NULL;
 }
-/* same as above but find reverse */
-/**
- * Finds the last element of \a listbase which contains the
- * null-terminated string \a id at the specified offset, returning NULL if not found.
- */
 void *BLI_rfindstring(const ListBase *listbase, const char *id, const int offset)
 {
+  /* Same as #BLI_findstring but find reverse. */
+
   Link *link = NULL;
   const char *id_iter;
 
@@ -695,10 +596,6 @@ void *BLI_rfindstring(const ListBase *listbase, const char *id, const int offset
   return NULL;
 }
 
-/**
- * Finds the first element of \a listbase which contains a pointer to the
- * null-terminated string \a id at the specified offset, returning NULL if not found.
- */
 void *BLI_findstring_ptr(const ListBase *listbase, const char *id, const int offset)
 {
   Link *link = NULL;
@@ -715,13 +612,10 @@ void *BLI_findstring_ptr(const ListBase *listbase, const char *id, const int off
 
   return NULL;
 }
-/* same as above but find reverse */
-/**
- * Finds the last element of \a listbase which contains a pointer to the
- * null-terminated string \a id at the specified offset, returning NULL if not found.
- */
 void *BLI_rfindstring_ptr(const ListBase *listbase, const char *id, const int offset)
 {
+  /* Same as #BLI_findstring_ptr but find reverse. */
+
   Link *link = NULL;
   const char *id_iter;
 
@@ -737,10 +631,6 @@ void *BLI_rfindstring_ptr(const ListBase *listbase, const char *id, const int of
   return NULL;
 }
 
-/**
- * Finds the first element of listbase which contains the specified pointer value
- * at the specified offset, returning NULL if not found.
- */
 void *BLI_findptr(const ListBase *listbase, const void *ptr, const int offset)
 {
   Link *link = NULL;
@@ -757,13 +647,10 @@ void *BLI_findptr(const ListBase *listbase, const void *ptr, const int offset)
 
   return NULL;
 }
-/* same as above but find reverse */
-/**
- * Finds the last element of listbase which contains the specified pointer value
- * at the specified offset, returning NULL if not found.
- */
 void *BLI_rfindptr(const ListBase *listbase, const void *ptr, const int offset)
 {
+  /* Same as #BLI_findptr but find reverse. */
+
   Link *link = NULL;
   const void *ptr_iter;
 
@@ -779,10 +666,6 @@ void *BLI_rfindptr(const ListBase *listbase, const void *ptr, const int offset)
   return NULL;
 }
 
-/**
- * Finds the first element of listbase which contains the specified bytes
- * at the specified offset, returning NULL if not found.
- */
 void *BLI_listbase_bytes_find(const ListBase *listbase,
                               const void *bytes,
                               const size_t bytes_size,
@@ -801,16 +684,13 @@ void *BLI_listbase_bytes_find(const ListBase *listbase,
 
   return NULL;
 }
-/* same as above but find reverse */
-/**
- * Finds the last element of listbase which contains the specified bytes
- * at the specified offset, returning NULL if not found.
- */
 void *BLI_listbase_bytes_rfind(const ListBase *listbase,
                                const void *bytes,
                                const size_t bytes_size,
                                const int offset)
 {
+  /* Same as #BLI_listbase_bytes_find but find reverse. */
+
   Link *link = NULL;
   const void *ptr_iter;
 
@@ -825,13 +705,6 @@ void *BLI_listbase_bytes_rfind(const ListBase *listbase,
   return NULL;
 }
 
-/**
- * Find the first item in the list that matches the given string, or the given index as fallback.
- *
- * \note The string is only used is non-NULL and non-empty.
- *
- * \return The found item, or NULL.
- */
 void *BLI_listbase_string_or_index_find(const ListBase *listbase,
                                         const char *string,
                                         const size_t string_offset,
@@ -856,10 +729,6 @@ void *BLI_listbase_string_or_index_find(const ListBase *listbase,
   return link_at_index;
 }
 
-/**
- * Returns the 0-based index of the first element of listbase which contains the specified
- * null-terminated string at the specified offset, or -1 if not found.
- */
 int BLI_findstringindex(const ListBase *listbase, const char *id, const int offset)
 {
   Link *link = NULL;
@@ -880,9 +749,6 @@ int BLI_findstringindex(const ListBase *listbase, const char *id, const int offs
   return -1;
 }
 
-/**
- * Sets dst to a duplicate of the entire contents of src. dst may be the same as src.
- */
 void BLI_duplicatelist(ListBase *dst, const ListBase *src)
 {
   struct Link *dst_link, *src_link;
@@ -918,9 +784,6 @@ void BLI_listbase_reverse(ListBase *lb)
   lb->last = curr;
 }
 
-/**
- * \param vlink: Link to make first.
- */
 void BLI_listbase_rotate_first(ListBase *lb, void *vlink)
 {
   /* make circular */
@@ -934,9 +797,6 @@ void BLI_listbase_rotate_first(ListBase *lb, void *vlink)
   ((Link *)lb->last)->next = NULL;
 }
 
-/**
- * \param vlink: Link to make last.
- */
 void BLI_listbase_rotate_last(ListBase *lb, void *vlink)
 {
   /* make circular */
@@ -950,7 +810,6 @@ void BLI_listbase_rotate_last(ListBase *lb, void *vlink)
   ((Link *)lb->last)->next = NULL;
 }
 
-/* create a generic list node containing link to provided data */
 LinkData *BLI_genericNodeN(void *data)
 {
   LinkData *ld;

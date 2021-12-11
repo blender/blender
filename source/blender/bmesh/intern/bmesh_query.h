@@ -173,6 +173,30 @@ BMLoop *BM_loop_other_vert_loop_by_edge(BMLoop *l, BMEdge *e) ATTR_WARN_UNUSED_R
  * </pre>
  */
 BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+/**
+ * Utility function to step around a fan of loops,
+ * using an edge to mark the previous side.
+ *
+ * \note all edges must be manifold,
+ * once a non manifold edge is hit, return NULL.
+ *
+ * \code{.unparsed}
+ *                ,.,-->|
+ *            _,-'      |
+ *          ,'          | (notice how 'e_step'
+ *         /            |  and 'l' define the
+ *        /             |  direction the arrow
+ *       |     return   |  points).
+ *       |     loop --> |
+ * ---------------------+---------------------
+ *         ^      l --> |
+ *         |            |
+ *  assign e_step       |
+ *                      |
+ *   begin e_step ----> |
+ *                      |
+ * \endcode
+ */
 BMLoop *BM_vert_step_fan_loop(BMLoop *l, BMEdge **e_step) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /**
@@ -470,6 +494,18 @@ float BM_edge_calc_face_angle_with_imat3(const BMEdge *e,
                                          const float imat3[3][3]) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 float BM_edge_calc_face_angle_signed(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+/**
+ * \brief BMESH EDGE/FACE TANGENT
+ *
+ * Calculate the tangent at this loop corner or fallback to the face normal on straight lines.
+ * This vector always points inward into the face.
+ *
+ * \brief BM_edge_calc_face_tangent
+ * \param e:
+ * \param e_loop: The loop to calculate the tangent at,
+ * used to get the face and winding direction.
+ * \param r_tangent: The loop corner tangent to set
+ */
 void BM_edge_calc_face_tangent(const BMEdge *e, const BMLoop *e_loop, float r_tangent[3])
     ATTR_NONNULL();
 float BM_vert_calc_edge_angle(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
@@ -725,7 +761,7 @@ int BM_mesh_calc_face_groups(BMesh *bm,
  * Calculate isolated groups of edges with optional filtering.
  *
  * \param bm: the BMesh.
- * \param r_groups_array: Array of ints to fill in, length of bm->totedge
+ * \param r_groups_array: Array of ints to fill in, length of `bm->totedge`
  *        (or when hflag_test is set, the number of flagged edges).
  * \param r_group_index: index, length pairs into \a r_groups_array, size of return value
  *        int pairs: (array_start, array_length).

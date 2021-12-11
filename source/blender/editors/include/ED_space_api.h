@@ -30,12 +30,18 @@ extern "C" {
 struct ARegionType;
 struct bContext;
 
+/* Only called once on startup. storage is global in BKE kernel listbase. */
 void ED_spacetypes_init(void);
 void ED_spacemacros_init(void);
 
 /* the pluginnable API for export to editors */
 
-/* calls for registering default spaces */
+/* -------------------------------------------------------------------- */
+/** \name Calls for registering default spaces
+ *
+ * Calls for registering default spaces, only called once, from #ED_spacetypes_init
+ * \{ */
+
 void ED_spacetype_outliner(void);
 void ED_spacetype_view3d(void);
 void ED_spacetype_ipo(void);
@@ -57,11 +63,17 @@ void ED_spacetype_statusbar(void);
 void ED_spacetype_topbar(void);
 void ED_spacetype_spreadsheet(void);
 
-/* calls for instancing and freeing spacetype static data
- * called in WM_init_exit */
-/* in space_file.c */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Spacetype Static Data
+ * Calls for instancing and freeing space-type static data called in #WM_init_exit
+ * \{ */
+
 void ED_file_init(void);
 void ED_file_exit(void);
+
+/** \} */
 
 #define REGION_DRAW_POST_VIEW 0
 #define REGION_DRAW_POST_PIXEL 1

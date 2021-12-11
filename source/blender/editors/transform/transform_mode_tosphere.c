@@ -194,7 +194,7 @@ static void applyToSphere(TransInfo *t, const int UNUSED(mval[2]))
   int i;
   char str[UI_MAX_DRAW_STR];
 
-  ratio = t->values[0];
+  ratio = t->values[0] + t->values_modal_offset[0];
 
   transform_snap_increment(t, &ratio);
 

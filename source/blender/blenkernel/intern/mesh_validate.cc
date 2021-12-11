@@ -220,9 +220,6 @@ static void clear_hash_tables(MutableSpan<EdgeMap> edge_maps)
 
 }  // namespace blender::bke::calc_edges
 
-/**
- * Calculate edges from polygons.
- */
 void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select_new_edges)
 {
   using namespace blender;

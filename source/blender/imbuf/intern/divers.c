@@ -102,13 +102,11 @@ MINLINE void float_to_byte_dither_v4(
   b[3] = unit_float_to_uchar_clamp(f[3]);
 }
 
-/* Test if colorspace conversions of pixels in buffer need to take into account alpha. */
 bool IMB_alpha_affects_rgb(const ImBuf *ibuf)
 {
   return (ibuf->flags & IB_alphamode_channel_packed) == 0;
 }
 
-/* float to byte pixels, output 4-channel RGBA */
 void IMB_buffer_byte_from_float(uchar *rect_to,
                                 const float *rect_from,
                                 int channels_from,
@@ -275,7 +273,6 @@ void IMB_buffer_byte_from_float(uchar *rect_to,
   }
 }
 
-/* float to byte pixels, output 4-channel RGBA */
 void IMB_buffer_byte_from_float_mask(uchar *rect_to,
                                      const float *rect_from,
                                      int channels_from,
@@ -366,7 +363,6 @@ void IMB_buffer_byte_from_float_mask(uchar *rect_to,
   }
 }
 
-/* Byte to float pixels, input and output 4-channel RGBA. */
 void IMB_buffer_float_from_byte(float *rect_to,
                                 const uchar *rect_from,
                                 int profile_to,
@@ -386,7 +382,7 @@ void IMB_buffer_float_from_byte(float *rect_to,
 
   /* RGBA input */
   for (y = 0; y < height; y++) {
-    const uchar *from = rect_from + stride_from * y * 4;
+    const uchar *from = rect_from + ((size_t)stride_from) * y * 4;
     float *to = rect_to + ((size_t)stride_to) * y * 4;
 
     if (profile_to == profile_from) {
@@ -426,7 +422,6 @@ void IMB_buffer_float_from_byte(float *rect_to,
   }
 }
 
-/* float to float pixels, output 4-channel RGBA */
 void IMB_buffer_float_from_float(float *rect_to,
                                  const float *rect_from,
                                  int channels_from,
@@ -592,7 +587,6 @@ void IMB_buffer_float_from_float_threaded(float *rect_to,
   }
 }
 
-/* float to float pixels, output 4-channel RGBA */
 void IMB_buffer_float_from_float_mask(float *rect_to,
                                       const float *rect_from,
                                       int channels_from,
@@ -646,7 +640,6 @@ void IMB_buffer_float_from_float_mask(float *rect_to,
   }
 }
 
-/* byte to byte pixels, input and output 4-channel RGBA */
 void IMB_buffer_byte_from_byte(uchar *rect_to,
                                const uchar *rect_from,
                                int profile_to,
@@ -791,17 +784,14 @@ void IMB_float_from_rect(ImBuf *ibuf)
    */
   rect_float = ibuf->rect_float;
   if (rect_float == NULL) {
-    size_t size;
-
-    size = ((size_t)ibuf->x) * ibuf->y;
-    size = sizeof(float[4]) * size;
-    ibuf->channels = 4;
-
+    const size_t size = IMB_get_rect_len(ibuf) * sizeof(float[4]);
     rect_float = MEM_callocN(size, "IMB_float_from_rect");
 
     if (rect_float == NULL) {
       return;
     }
+
+    ibuf->channels = 4;
   }
 
   /* first, create float buffer in non-linear space */
@@ -837,7 +827,6 @@ void IMB_float_from_rect(ImBuf *ibuf)
 /** \name Color to Grayscale
  * \{ */
 
-/* no profile conversion */
 void IMB_color_to_bw(ImBuf *ibuf)
 {
   float *rct_fl = ibuf->rect_float;
@@ -845,13 +834,13 @@ void IMB_color_to_bw(ImBuf *ibuf)
   size_t i;
 
   if (rct_fl) {
-    for (i = ((size_t)ibuf->x) * ibuf->y; i > 0; i--, rct_fl += 4) {
+    for (i = IMB_get_rect_len(ibuf); i > 0; i--, rct_fl += 4) {
       rct_fl[0] = rct_fl[1] = rct_fl[2] = IMB_colormanagement_get_luminance(rct_fl);
     }
   }
 
   if (rct) {
-    for (i = ((size_t)ibuf->x * ibuf->y); i > 0; i--, rct += 4) {
+    for (i = IMB_get_rect_len(ibuf); i > 0; i--, rct += 4) {
       rct[0] = rct[1] = rct[2] = IMB_colormanagement_get_luminance_byte(rct);
     }
   }
@@ -892,7 +881,7 @@ void IMB_saturation(ImBuf *ibuf, float sat)
 
   if (rct) {
     float rgb[3];
-    for (i = ((size_t)ibuf->x) * ibuf->y; i > 0; i--, rct += 4) {
+    for (i = IMB_get_rect_len(ibuf); i > 0; i--, rct += 4) {
       rgb_uchar_to_float(rgb, rct);
       rgb_to_hsv_v(rgb, hsv);
       hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rgb, rgb + 1, rgb + 2);
@@ -901,7 +890,7 @@ void IMB_saturation(ImBuf *ibuf, float sat)
   }
 
   if (rct_fl) {
-    for (i = ((size_t)ibuf->x) * ibuf->y; i > 0; i--, rct_fl += 4) {
+    for (i = IMB_get_rect_len(ibuf); i > 0; i--, rct_fl += 4) {
       rgb_to_hsv_v(rct_fl, hsv);
       hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rct_fl, rct_fl + 1, rct_fl + 2);
     }

@@ -33,6 +33,8 @@
 
 namespace blender::nodes::node_geo_curve_fill_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryCurveFill)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
@@ -151,7 +153,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
-  const NodeGeometryCurveFill &storage = *(const NodeGeometryCurveFill *)params.node().storage;
+  const NodeGeometryCurveFill &storage = node_storage(params.node());
   const GeometryNodeCurveFillMode mode = (GeometryNodeCurveFillMode)storage.mode;
 
   geometry_set.modify_geometry_sets(

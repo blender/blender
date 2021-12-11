@@ -784,6 +784,7 @@ void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
 }
 
 /* Bake */
+
 void RE_bake_engine_set_engine_parameters(Render *re, Main *bmain, Scene *scene)
 {
   re->scene = scene;

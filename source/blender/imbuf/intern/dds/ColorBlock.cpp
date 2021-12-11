@@ -46,7 +46,6 @@ inline static uint colorDistance(Color32 c0, Color32 c1)
 }
 #endif
 
-/** Init the color block from an array of colors. */
 ColorBlock::ColorBlock(const uint *linearImage)
 {
   for (uint i = 0; i < 16; i++) {
@@ -54,7 +53,6 @@ ColorBlock::ColorBlock(const uint *linearImage)
   }
 }
 
-/** Init the color block with the contents of the given block. */
 ColorBlock::ColorBlock(const ColorBlock &block)
 {
   for (uint i = 0; i < 16; i++) {
@@ -62,7 +60,6 @@ ColorBlock::ColorBlock(const ColorBlock &block)
   }
 }
 
-/** Initialize this color block. */
 ColorBlock::ColorBlock(const Image *img, uint x, uint y)
 {
   init(img, x, y);
@@ -153,7 +150,6 @@ void ColorBlock::swizzle(uint x, uint y, uint z, uint w)
   }
 }
 
-/** Returns true if the block has a single color. */
 bool ColorBlock::isSingleColor(Color32 mask /*= Color32(0xFF, 0xFF, 0xFF, 0x00) */) const
 {
   uint u = m_color[0].u & mask.u;
@@ -234,7 +230,6 @@ Color32 ColorBlock::averageColor() const
 }
 #endif
 
-/** Return true if the block is not fully opaque. */
 bool ColorBlock::hasAlpha() const
 {
   for (const auto &i : m_color) {

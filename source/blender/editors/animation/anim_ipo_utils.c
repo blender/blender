@@ -43,14 +43,6 @@
 
 /* ----------------------- Getter functions ----------------------- */
 
-/**
- * Write into "name" buffer, the name of the property
- * (retrieved using RNA from the curve's settings),
- * and return the icon used for the struct that this property refers to
- *
- * \warning name buffer we're writing to cannot exceed 256 chars
- * (check anim_channels_defines.c for details).
- */
 int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 {
   int icon = 0;

@@ -75,6 +75,9 @@ void BPY_thread_restore(BPy_ThreadStatePtr tstate);
   (void)0
 
 void BPY_text_free_code(struct Text *text);
+/**
+ * Needed so the #Main pointer in `bpy.data` doesn't become out of date.
+ */
 void BPY_modules_update(void);
 void BPY_modules_load_user(struct bContext *C);
 
@@ -103,6 +106,9 @@ int BPY_context_member_get(struct bContext *C,
                            const char *member,
                            struct bContextDataResult *result);
 void BPY_context_set(struct bContext *C);
+/**
+ * Use for updating while a python script runs - in case of file load.
+ */
 void BPY_context_update(struct bContext *C);
 
 #define BPY_context_dict_clear_members(C, ...) \
@@ -127,6 +133,9 @@ void BPY_context_dict_clear_members_array(void **dict_p,
 
 void BPY_id_release(struct ID *id);
 
+/**
+ * Avoids duplicating keyword list.
+ */
 bool BPY_string_is_keyword(const char *str);
 
 /* bpy_rna_callback.c */

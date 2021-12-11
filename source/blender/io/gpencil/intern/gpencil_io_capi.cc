@@ -177,7 +177,6 @@ static bool gpencil_io_export_frame_svg(GpencilExporterSVG *exporter,
 }
 #endif
 
-/* Main import entry point function. */
 bool gpencil_io_import(const char *filename, GpencilIOParams *iparams)
 {
   GpencilImporterSVG importer = GpencilImporterSVG(filename, iparams);
@@ -185,7 +184,6 @@ bool gpencil_io_import(const char *filename, GpencilIOParams *iparams)
   return gpencil_io_import_frame(&importer, *iparams);
 }
 
-/* Main export entry point function. */
 bool gpencil_io_export(const char *filename, GpencilIOParams *iparams)
 {
   Depsgraph *depsgraph_ = CTX_data_depsgraph_pointer(iparams->C);

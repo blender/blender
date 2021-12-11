@@ -68,6 +68,10 @@ bool data_transfer_layersmapping_vgroups(struct ListBase *r_map,
                                          const int tolayers);
 
 /* Defined in customdata.c */
+
+/**
+ * Normals are special, we need to take care of source & destination spaces.
+ */
 void customdata_data_transfer_interp_normal_normals(const CustomDataTransferLayerMap *laymap,
                                                     void *data_dst,
                                                     const void **sources,

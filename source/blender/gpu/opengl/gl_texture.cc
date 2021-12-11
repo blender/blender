@@ -62,7 +62,6 @@ GLTexture::~GLTexture()
   GLContext::tex_free(tex_id_);
 }
 
-/* Return true on success. */
 bool GLTexture::init_internal()
 {
   if ((format_ == GPU_DEPTH24_STENCIL8) && GPU_depth_blitting_workaround()) {
@@ -100,7 +99,6 @@ bool GLTexture::init_internal()
   return true;
 }
 
-/* Return true on success. */
 bool GLTexture::init_internal(GPUVertBuf *vbo)
 {
   GLVertBuf *gl_vbo = static_cast<GLVertBuf *>(unwrap(vbo));
@@ -123,7 +121,6 @@ bool GLTexture::init_internal(GPUVertBuf *vbo)
   return true;
 }
 
-/* Will create enough mipmaps up to get to the given level. */
 void GLTexture::ensure_mipmaps(int miplvl)
 {
   int effective_h = (type_ == GPU_TEXTURE_1D_ARRAY) ? 0 : h_;

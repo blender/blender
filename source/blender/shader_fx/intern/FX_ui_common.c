@@ -93,9 +93,6 @@ static void set_shaderfx_expand_flag(const bContext *UNUSED(C), Panel *panel, sh
 /** \name ShaderFx Panel Layouts
  * \{ */
 
-/**
- * Draw shaderfx error message.
- */
 void shaderfx_panel_end(uiLayout *layout, PointerRNA *ptr)
 {
   ShaderFxData *fx = ptr->data;
@@ -105,9 +102,6 @@ void shaderfx_panel_end(uiLayout *layout, PointerRNA *ptr)
   }
 }
 
-/**
- * Gets RNA pointers for the active object and the panel's shaderfx data.
- */
 PointerRNA *shaderfx_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_ptr)
 {
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
@@ -236,9 +230,6 @@ static bool shaderfx_ui_poll(const bContext *C, PanelType *UNUSED(pt))
   return (ob != NULL) && (ob->type == OB_GPENCIL);
 }
 
-/**
- * Create a panel in the context's region
- */
 PanelType *shaderfx_panel_register(ARegionType *region_type, ShaderFxType type, PanelDrawFn draw)
 {
   PanelType *panel_type = MEM_callocN(sizeof(PanelType), __func__);
@@ -264,12 +255,6 @@ PanelType *shaderfx_panel_register(ARegionType *region_type, ShaderFxType type, 
   return panel_type;
 }
 
-/**
- * Add a child panel to the parent.
- *
- * \note To create the panel type's idname, it appends the \a name argument to the \a parent's
- * idname.
- */
 PanelType *shaderfx_subpanel_register(ARegionType *region_type,
                                       const char *name,
                                       const char *label,

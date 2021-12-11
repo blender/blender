@@ -18,6 +18,10 @@
 
 #include "BLI_sys_types.h"
 
-/* flip compressed DXT image vertically to fit OpenGL convention */
+/**
+ * Flips a DXTC image, by flipping and swapping DXTC blocks as appropriate.
+ *
+ * Use to flip vertically to fit OpenGL convention.
+ */
 int FlipDXTCImage(
     unsigned int width, unsigned int height, unsigned int levels, int fourcc, uint8_t *data);

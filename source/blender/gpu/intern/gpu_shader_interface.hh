@@ -130,7 +130,9 @@ class ShaderInterface {
 
   inline uint32_t set_input_name(ShaderInput *input, char *name, uint32_t name_len) const;
 
-  /* Finalize interface construction by sorting the ShaderInputs for faster lookups. */
+  /**
+   * Finalize interface construction by sorting the #ShaderInputs for faster lookups.
+   */
   void sort_inputs(void);
 
  private:

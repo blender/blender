@@ -244,22 +244,10 @@ static void calc_node_transforms(const tinygltf::Node &gltf_node,
    * both. */
   if (gltf_node.matrix.size() == 16) {
     const std::vector<double> &dm = gltf_node.matrix;
-    float m[4][4] = {(float)dm[0],
-                     (float)dm[1],
-                     (float)dm[2],
-                     (float)dm[3],
-                     (float)dm[4],
-                     (float)dm[5],
-                     (float)dm[6],
-                     (float)dm[7],
-                     (float)dm[8],
-                     (float)dm[9],
-                     (float)dm[10],
-                     (float)dm[11],
-                     (float)dm[12],
-                     (float)dm[13],
-                     (float)dm[14],
-                     (float)dm[15]};
+    float m[4][4] = {{(float)dm[0], (float)dm[1], (float)dm[2], (float)dm[3]},
+                     {(float)dm[4], (float)dm[5], (float)dm[6], (float)dm[7]},
+                     {(float)dm[8], (float)dm[9], (float)dm[10], (float)dm[11]},
+                     {(float)dm[12], (float)dm[13], (float)dm[14], (float)dm[15]}};
     memcpy(r_local_transform, m, sizeof(float) * 16);
   }
   else {
@@ -534,7 +522,7 @@ void GHOST_XrControllerModel::loadControllerModel(XrSession session)
       (gltf_model.defaultScene == -1) ? 0 : gltf_model.defaultScene);
   const int32_t root_idx = -1;
   const std::string root_name = "";
-  float root_transform[4][4] = {0};
+  float root_transform[4][4] = {{0}};
   root_transform[0][0] = root_transform[1][1] = root_transform[2][2] = root_transform[3][3] = 1.0f;
 
   for (const int node_id : default_scene.nodes) {

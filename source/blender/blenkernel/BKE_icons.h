@@ -97,76 +97,135 @@ enum eIconSizes;
 
 void BKE_icons_init(int first_dyn_id);
 
-/* return icon id for library object or create new icon if not found */
+/**
+ * Return icon id for library object or create new icon if not found.
+ */
 int BKE_icon_id_ensure(struct ID *id);
 
-/* return icon id for Grease Pencil layer (color preview) or create new icon if not found */
+/**
+ * Return icon id for Grease Pencil layer (color preview) or create new icon if not found.
+ */
 int BKE_icon_gplayer_color_ensure(struct bGPDlayer *gpl);
 
+/**
+ * Return icon id of given preview, or create new icon if not found.
+ */
 int BKE_icon_preview_ensure(struct ID *id, struct PreviewImage *preview);
 
+/**
+ * Create an icon as owner or \a ibuf. The icon-ID is not stored in \a ibuf,
+ * it needs to be stored separately.
+ * \note Transforms ownership of \a ibuf to the newly created icon.
+ */
 int BKE_icon_imbuf_create(struct ImBuf *ibuf) ATTR_WARN_UNUSED_RESULT;
 struct ImBuf *BKE_icon_imbuf_get_buffer(int icon_id) ATTR_WARN_UNUSED_RESULT;
 
-/* retrieve icon for id */
+/**
+ * Retrieve icon for id.
+ */
 struct Icon *BKE_icon_get(const int icon_id);
 
-/* set icon for id if not already defined */
-/* used for inserting the internal icons */
+/**
+ * Set icon for id if not already defined.
+ * Used for inserting the internal icons.
+ */
 void BKE_icon_set(const int icon_id, struct Icon *icon);
 
-/* remove icon and free data if library object becomes invalid */
+/**
+ * Remove icon and free data if library object becomes invalid.
+ */
 void BKE_icon_id_delete(struct ID *id);
 
+/**
+ * Remove icon and free data.
+ */
 bool BKE_icon_delete(const int icon_id);
 bool BKE_icon_delete_unmanaged(const int icon_id);
 
-/* report changes - icon needs to be recalculated */
+/**
+ * Report changes - icon needs to be recalculated.
+ */
 void BKE_icon_changed(const int icon_id);
 
-/* free all icons */
+/**
+ * Free all icons.
+ */
 void BKE_icons_free(void);
 
-/* free all icons marked for deferred deletion */
+/**
+ * Free all icons marked for deferred deletion.
+ */
 void BKE_icons_deferred_free(void);
 
-/* free the preview image for use in list */
+/**
+ * Free the preview image for use in list.
+ */
 void BKE_previewimg_freefunc(void *link);
 
-/* free the preview image */
+/**
+ * Free the preview image.
+ */
 void BKE_previewimg_free(struct PreviewImage **prv);
 
-/* clear the preview image or icon, but does not free it */
+/**
+ * Clear the preview image or icon, but does not free it.
+ */
 void BKE_previewimg_clear(struct PreviewImage *prv);
 
-/* clear the preview image or icon at a specific size */
+/**
+ * Clear the preview image or icon at a specific size.
+ */
 void BKE_previewimg_clear_single(struct PreviewImage *prv, enum eIconSizes size);
 
-/* get the preview from any pointer */
+/**
+ * Get the preview from any pointer.
+ */
 struct PreviewImage **BKE_previewimg_id_get_p(const struct ID *id);
 struct PreviewImage *BKE_previewimg_id_get(const struct ID *id);
 
 bool BKE_previewimg_id_supports_jobs(const struct ID *id);
 
-/* Trigger deferred loading of a custom image file into the preview buffer. */
+/**
+ * Trigger deferred loading of a custom image file into the preview buffer.
+ */
 void BKE_previewimg_id_custom_set(struct ID *id, const char *path);
 
-/* free the preview image belonging to the id */
+/**
+ * Free the preview image belonging to the id.
+ */
 void BKE_previewimg_id_free(struct ID *id);
 
-/* create a new preview image */
+/**
+ * Create a new preview image.
+ */
 struct PreviewImage *BKE_previewimg_create(void);
 
-/* create a copy of the preview image */
+/**
+ * Create a copy of the preview image.
+ */
 struct PreviewImage *BKE_previewimg_copy(const struct PreviewImage *prv);
 
+/**
+ * Duplicate preview image from \a id and clear icon_id,
+ * to be used by data-block copy functions.
+ */
 void BKE_previewimg_id_copy(struct ID *new_id, const struct ID *old_id);
 
-/* retrieve existing or create new preview image */
+/**
+ * Retrieve existing or create new preview image.
+ */
 struct PreviewImage *BKE_previewimg_id_ensure(struct ID *id);
 
+/**
+ * Handle deferred (lazy) loading/generation of preview image, if needed.
+ * For now, only used with file thumbnails.
+ */
 void BKE_previewimg_ensure(struct PreviewImage *prv, const int size);
 
+/**
+ * Create an #ImBuf holding a copy of the preview image buffer in \a prv.
+ * \note The returned image buffer has to be free'd (#IMB_freeImBuf()).
+ */
 struct ImBuf *BKE_previewimg_to_imbuf(struct PreviewImage *prv, const int size);
 
 void BKE_previewimg_finish(struct PreviewImage *prv, const int size);
@@ -174,8 +233,15 @@ bool BKE_previewimg_is_finished(const struct PreviewImage *prv, const int size);
 
 struct PreviewImage *BKE_previewimg_cached_get(const char *name);
 
+/**
+ * Generate an empty #PreviewImage, if not yet existing.
+ */
 struct PreviewImage *BKE_previewimg_cached_ensure(const char *name);
 
+/**
+ * Generate a #PreviewImage from given file path, using thumbnails management, if not yet existing.
+ * Does not actually generate the preview, #BKE_previewimg_ensure() must be called for that.
+ */
 struct PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
                                                           const char *path,
                                                           const int source,

@@ -190,17 +190,6 @@ void GPU_vertformat_alias_add(GPUVertFormat *format, const char *alias)
   attr->names[attr->name_len++] = copy_attr_name(format, alias);
 }
 
-/**
- * Makes vertex attribute from the next vertices to be accessible in the vertex shader.
- * For an attribute named "attr" you can access the next nth vertex using "attr{number}".
- * Use this function after specifying all the attributes in the format.
- *
- * NOTE: This does NOT work when using indexed rendering.
- * NOTE: Only works for first attribute name. (this limitation can be changed if needed)
- *
- * WARNING: this function creates a lot of aliases/attributes, make sure to keep the attribute
- * name short to avoid overflowing the name-buffer.
- */
 void GPU_vertformat_multiload_enable(GPUVertFormat *format, int load_count)
 {
   /* Sanity check. Maximum can be upgraded if needed. */
@@ -271,8 +260,6 @@ static void safe_bytes(char out[11], const char data[8])
   }
 }
 
-/* Warning: Always add a prefix to the result of this function as
- * the generated string can start with a number and not be a valid attribute name. */
 void GPU_vertformat_safe_attr_name(const char *attr_name, char *r_safe_name, uint UNUSED(max_len))
 {
   char data[8] = {0};
@@ -306,20 +293,6 @@ void GPU_vertformat_safe_attr_name(const char *attr_name, char *r_safe_name, uin
 #endif
 }
 
-/**
- * Make attribute layout non-interleaved.
- * Warning! This does not change data layout!
- * Use direct buffer access to fill the data.
- * This is for advanced usage.
- *
- * De-interleaved data means all attribute data for each attribute
- * is stored continuously like this:
- * 000011112222
- * instead of:
- * 012012012012
- *
- * \note This is per attribute de-interleaving, NOT per component.
- */
 void GPU_vertformat_deinterleave(GPUVertFormat *format)
 {
   /* Ideally we should change the stride and offset here. This would allow

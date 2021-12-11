@@ -218,15 +218,6 @@ static void graph_key_shortest_dist(
   }
 }
 
-/**
- * It is important to note that this doesn't always act on the selection (like it's usually done),
- * it acts on a subset of it. E.g. the selection code may leave a hint that we just dragged on a
- * left or right handle (SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT/RIGHT) and then we only transform the
- * selected left or right handles accordingly.
- * The points to be transformed are tagged with BEZT_FLAG_TEMP_TAG; some lower level curve
- * functions may need to be made aware of this. It's ugly that these act based on selection state
- * anyway.
- */
 void createTransGraphEditData(bContext *C, TransInfo *t)
 {
   SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
@@ -913,7 +904,6 @@ static void remake_graph_transdata(TransInfo *t, ListBase *anim_data)
   }
 }
 
-/* helper for recalcData() - for Graph Editor transforms */
 void recalcData_graphedit(TransInfo *t)
 {
   SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;

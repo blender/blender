@@ -489,7 +489,6 @@ bool ED_mask_feather_find_nearest(const bContext *C,
   return false;
 }
 
-/* takes event->mval */
 void ED_mask_mouse_pos(ScrArea *area, ARegion *region, const int mval[2], float co[2])
 {
   if (area) {
@@ -523,8 +522,6 @@ void ED_mask_mouse_pos(ScrArea *area, ARegion *region, const int mval[2], float 
   }
 }
 
-/* input:  x/y   - mval space
- * output: xr/yr - mask point space */
 void ED_mask_point_pos(ScrArea *area, ARegion *region, float x, float y, float *xr, float *yr)
 {
   float co[2];

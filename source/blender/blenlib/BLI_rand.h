@@ -31,7 +31,8 @@
 extern "C" {
 #endif
 
-/* RNG is an abstract random number generator type that avoids using globals.
+/**
+ * RNG is an abstract random number generator type that avoids using globals.
  * Always use this instead of the global RNG unless you have a good reason,
  * the global RNG is not thread safe and will not give repeatable results.
  */
@@ -42,19 +43,34 @@ struct RNG_THREAD_ARRAY;
 typedef struct RNG_THREAD_ARRAY RNG_THREAD_ARRAY;
 
 struct RNG *BLI_rng_new(unsigned int seed);
+/**
+ * A version of #BLI_rng_new that hashes the seed.
+ */
 struct RNG *BLI_rng_new_srandom(unsigned int seed);
 struct RNG *BLI_rng_copy(struct RNG *rng) ATTR_NONNULL(1);
 void BLI_rng_free(struct RNG *rng) ATTR_NONNULL(1);
 
 void BLI_rng_seed(struct RNG *rng, unsigned int seed) ATTR_NONNULL(1);
+/**
+ * Use a hash table to create better seed.
+ */
 void BLI_rng_srandom(struct RNG *rng, unsigned int seed) ATTR_NONNULL(1);
 void BLI_rng_get_char_n(RNG *rng, char *bytes, size_t bytes_len) ATTR_NONNULL(1, 2);
 int BLI_rng_get_int(struct RNG *rng) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 unsigned int BLI_rng_get_uint(struct RNG *rng) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+/**
+ * \return Random value (0..1), but never 1.0.
+ */
 double BLI_rng_get_double(struct RNG *rng) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+/**
+ * \return Random value (0..1), but never 1.0.
+ */
 float BLI_rng_get_float(struct RNG *rng) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 void BLI_rng_get_float_unit_v2(struct RNG *rng, float v[2]) ATTR_NONNULL(1, 2);
 void BLI_rng_get_float_unit_v3(struct RNG *rng, float v[3]) ATTR_NONNULL(1, 2);
+/**
+ * Generate a random point inside given tri.
+ */
 void BLI_rng_get_tri_sample_float_v2(struct RNG *rng,
                                      const float v1[2],
                                      const float v2[2],
@@ -75,9 +91,16 @@ void BLI_rng_shuffle_bitmap(struct RNG *rng, unsigned int *bitmap, unsigned int 
     ATTR_NONNULL(1, 2);
 
 /** Note that skipping is as slow as generating n numbers! */
+/**
+ * Simulate getting \a n random values.
+ *
+ * \note Useful when threaded code needs consistent values, independent of task division.
+ */
 void BLI_rng_skip(struct RNG *rng, int n) ATTR_NONNULL(1);
 
-/* fill an array with random numbers */
+/**
+ * Fill an array with random numbers.
+ */
 void BLI_array_frand(float *ar, int count, unsigned int seed);
 
 /** Return a pseudo-random (hash) float from an integer value */

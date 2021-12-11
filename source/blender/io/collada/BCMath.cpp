@@ -183,8 +183,6 @@ void BCMatrix::unit()
   quat_to_eul(this->rot, this->q);
 }
 
-/* We need double here because the OpenCollada API needs it.
- * precision = -1 indicates to not limit the precision. */
 void BCMatrix::get_matrix(DMatrix &mat, const bool transposed, const int precision) const
 {
   for (int i = 0; i < 4; i++) {

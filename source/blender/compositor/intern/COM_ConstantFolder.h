@@ -42,10 +42,18 @@ class ConstantFolder {
   rcti first_elem_area_;
 
  public:
+  /**
+   * \param operations_builder: Contains all operations to fold.
+   * \param exec_system: Execution system.
+   */
   ConstantFolder(NodeOperationBuilder &operations_builder);
+  /**
+   * Evaluate operations with constant elements into primitive constant operations.
+   */
   int fold_operations();
 
  private:
+  /** Returns constant operations resulted from folded operations. */
   Vector<ConstantOperation *> try_fold_operations(Span<NodeOperation *> operations);
   ConstantOperation *fold_operation(NodeOperation *operation);
 

@@ -30,9 +30,6 @@
 
 #include "BLI_strict_flags.h"
 
-/**
- * Check if memory is zeroed, as with `memset(arr, 0, arr_size)`.
- */
 bool BLI_memory_is_zero(const void *arr, const size_t arr_size)
 {
   const char *arr_byte = arr;

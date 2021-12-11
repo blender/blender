@@ -31,12 +31,6 @@ bool bc_is_base_node(LinkNode *export_set, Object *ob, ViewLayer *view_layer)
   return (root == ob);
 }
 
-/**
- * Returns the highest selected ancestor
- * returns NULL if no ancestor is selected
- * IMPORTANT: This function expects that all exported objects have set:
- * ob->id.tag & LIB_TAG_DOIT
- */
 Object *bc_get_highest_exported_ancestor_or_self(LinkNode *export_set,
                                                  Object *ob,
                                                  ViewLayer *view_layer)

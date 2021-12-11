@@ -367,15 +367,6 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   }
 }
 
-/**
- * Update defaults in startup.blend, without having to save and embed the file.
- * This function can be emptied each time the startup.blend is updated.
- *
- * \note Screen data may be cleared at this point, this will happen in the case
- * an app-template's data needs to be versioned when read-file is called with "Load UI" disabled.
- * Versioning the screen data can be safely skipped without "Load UI" since the screen data
- * will have been versioned when it was first loaded.
- */
 void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 {
   /* For all app templates. */

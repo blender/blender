@@ -175,7 +175,6 @@ void DRW_viewport_colormanagement_set(GPUViewport *viewport)
   blender::draw::color_management::viewport_color_management_set(*viewport);
 }
 
-/* Draw texture to framebuffer without any color transforms */
 void DRW_transform_none(GPUTexture *tex)
 {
   drw_state_set(DRW_STATE_WRITE_COLOR);

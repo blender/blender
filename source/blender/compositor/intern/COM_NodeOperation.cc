@@ -37,14 +37,12 @@ NodeOperation::NodeOperation()
   btree_ = nullptr;
 }
 
-/** Get constant value when operation is constant, otherwise return default_value. */
 float NodeOperation::get_constant_value_default(float default_value)
 {
   BLI_assert(outputs_.size() > 0 && get_output_socket()->get_data_type() == DataType::Value);
   return *get_constant_elem_default(&default_value);
 }
 
-/** Get constant elem when operation is constant, otherwise return default_elem. */
 const float *NodeOperation::get_constant_elem_default(const float *default_elem)
 {
   BLI_assert(outputs_.size() > 0);
@@ -55,11 +53,6 @@ const float *NodeOperation::get_constant_elem_default(const float *default_elem)
   return default_elem;
 }
 
-/**
- * Generate a hash that identifies the operation result in the current execution.
- * Requires `hash_output_params` to be implemented, otherwise `std::nullopt` is returned.
- * If the operation parameters or its linked inputs change, the hash must be re-generated.
- */
 std::optional<NodeOperationHash> NodeOperation::generate_hash()
 {
   params_hash_ = get_default_hash_2(canvas_.xmin, canvas_.xmax);
@@ -213,10 +206,6 @@ const rcti &NodeOperation::get_canvas() const
   return canvas_;
 }
 
-/**
- * Mainly used for re-determining canvas of constant operations in cases where preferred canvas
- * depends on the constant element.
- */
 void NodeOperation::unset_canvas()
 {
   BLI_assert(inputs_.size() == 0);
@@ -275,18 +264,6 @@ bool NodeOperation::determine_depending_area_of_interest(rcti *input,
 /** \name Full Frame Methods
  * \{ */
 
-/**
- * \brief Get input operation area being read by this operation on rendering given output area.
- *
- * Implementation don't need to ensure r_input_area is within input operation bounds. The
- * caller must clamp it.
- * TODO: See if it's possible to use parameter overloading (input_id for example).
- *
- * \param input_idx: Input operation index for which we want to calculate the area being read.
- * \param output_area: Area being rendered by this operation.
- * \param r_input_area: Returned input operation area that needs to be read in order to render
- * given output area.
- */
 void NodeOperation::get_area_of_interest(const int input_idx,
                                          const rcti &output_area,
                                          rcti &r_input_area)
@@ -315,12 +292,6 @@ void NodeOperation::get_area_of_interest(NodeOperation *input_op,
   BLI_assert_msg(0, "input_op is not an input operation.");
 }
 
-/**
- * Executes operation image manipulation algorithm rendering given areas.
- * \param output_buf: Buffer to write result to.
- * \param areas: Areas within this operation bounds to render.
- * \param inputs_bufs: Inputs operations buffers.
- */
 void NodeOperation::render(MemoryBuffer *output_buf,
                            Span<rcti> areas,
                            Span<MemoryBuffer *> inputs_bufs)
@@ -333,9 +304,6 @@ void NodeOperation::render(MemoryBuffer *output_buf,
   }
 }
 
-/**
- * Renders given areas using operations full frame implementation.
- */
 void NodeOperation::render_full_frame(MemoryBuffer *output_buf,
                                       Span<rcti> areas,
                                       Span<MemoryBuffer *> inputs_bufs)
@@ -347,9 +315,6 @@ void NodeOperation::render_full_frame(MemoryBuffer *output_buf,
   deinit_execution();
 }
 
-/**
- * Renders given areas using operations tiled implementation.
- */
 void NodeOperation::render_full_frame_fallback(MemoryBuffer *output_buf,
                                                Span<rcti> areas,
                                                Span<MemoryBuffer *> inputs_bufs)
@@ -405,9 +370,6 @@ void NodeOperation::render_tile(MemoryBuffer *output_buf, rcti *tile_rect)
   }
 }
 
-/**
- * \return Replaced inputs links.
- */
 Vector<NodeOperationOutput *> NodeOperation::replace_inputs_with_buffers(
     Span<MemoryBuffer *> inputs_bufs)
 {
@@ -461,9 +423,6 @@ SocketReader *NodeOperationInput::get_reader()
   return nullptr;
 }
 
-/**
- * \return Whether canvas area could be determined.
- */
 bool NodeOperationInput::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   if (link_) {

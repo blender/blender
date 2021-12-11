@@ -158,7 +158,6 @@ uint BlockDXT1::evaluatePaletteNV5x(Color32 color_array[4]) const
   return 3;
 }
 
-/* Evaluate palette assuming 3 color block. */
 void BlockDXT1::evaluatePalette3(Color32 color_array[4]) const
 {
   color_array[0].b = (col0.b << 3) | (col0.b >> 2);
@@ -184,7 +183,6 @@ void BlockDXT1::evaluatePalette3(Color32 color_array[4]) const
   color_array[3].a = 0x00;
 }
 
-/* Evaluate palette assuming 4 color block. */
 void BlockDXT1::evaluatePalette4(Color32 color_array[4]) const
 {
   color_array[0].b = (col0.b << 3) | (col0.b >> 2);
@@ -247,14 +245,12 @@ void BlockDXT1::setIndices(const int *idx)
   }
 }
 
-/** Flip DXT1 block vertically. */
 inline void BlockDXT1::flip4()
 {
   swap(row[0], row[3]);
   swap(row[1], row[2]);
 }
 
-/** Flip half DXT1 block vertically. */
 inline void BlockDXT1::flip2()
 {
   swap(row[0], row[1]);
@@ -299,27 +295,23 @@ void AlphaBlockDXT3::decodeBlock(ColorBlock *block) const
   block->color(0xF).a = (alphaF << 4) | alphaF;
 }
 
-/** Flip DXT3 alpha block vertically. */
 void AlphaBlockDXT3::flip4()
 {
   swap(row[0], row[3]);
   swap(row[1], row[2]);
 }
 
-/** Flip half DXT3 alpha block vertically. */
 void AlphaBlockDXT3::flip2()
 {
   swap(row[0], row[1]);
 }
 
-/** Flip DXT3 block vertically. */
 void BlockDXT3::flip4()
 {
   alpha.flip4();
   color.flip4();
 }
 
-/** Flip half DXT3 block vertically. */
 void BlockDXT3::flip2()
 {
   alpha.flip2();
@@ -458,21 +450,18 @@ void BlockDXT5::decodeBlockNV5x(ColorBlock *block) const
   alpha.decodeBlock(block);
 }
 
-/** Flip DXT5 block vertically. */
 void BlockDXT5::flip4()
 {
   alpha.flip4();
   color.flip4();
 }
 
-/** Flip half DXT5 block vertically. */
 void BlockDXT5::flip2()
 {
   alpha.flip2();
   color.flip2();
 }
 
-/** Decode ATI1 block. */
 void BlockATI1::decodeBlock(ColorBlock *block) const
 {
   uint8 alpha_array[8];
@@ -488,19 +477,16 @@ void BlockATI1::decodeBlock(ColorBlock *block) const
   }
 }
 
-/** Flip ATI1 block vertically. */
 void BlockATI1::flip4()
 {
   alpha.flip4();
 }
 
-/** Flip half ATI1 block vertically. */
 void BlockATI1::flip2()
 {
   alpha.flip2();
 }
 
-/** Decode ATI2 block. */
 void BlockATI2::decodeBlock(ColorBlock *block) const
 {
   uint8 alpha_array[8];
@@ -525,14 +511,12 @@ void BlockATI2::decodeBlock(ColorBlock *block) const
   }
 }
 
-/** Flip ATI2 block vertically. */
 void BlockATI2::flip4()
 {
   x.flip4();
   y.flip4();
 }
 
-/** Flip half ATI2 block vertically. */
 void BlockATI2::flip2()
 {
   x.flip2();
@@ -586,14 +570,12 @@ void BlockCTX1::setIndices(const int *idx)
   }
 }
 
-/** Flip CTX1 block vertically. */
 inline void BlockCTX1::flip4()
 {
   swap(row[0], row[3]);
   swap(row[1], row[2]);
 }
 
-/** Flip half CTX1 block vertically. */
 inline void BlockCTX1::flip2()
 {
   swap(row[0], row[1]);

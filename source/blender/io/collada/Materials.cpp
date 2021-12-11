@@ -91,7 +91,6 @@ void MaterialNode::setShaderType()
 #endif
 }
 
-/* returns null if material already has a node tree */
 bNodeTree *MaterialNode::prepare_material_nodetree()
 {
   if (material->nodetree) {

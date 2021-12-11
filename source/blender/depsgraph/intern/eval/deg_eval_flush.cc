@@ -346,9 +346,6 @@ void invalidate_tagged_evaluated_data(Depsgraph *graph)
 
 }  // namespace
 
-/* Flush updates from tagged nodes outwards until all affected nodes
- * are tagged.
- */
 void deg_graph_flush_updates(Depsgraph *graph)
 {
   /* Sanity checks. */
@@ -395,7 +392,6 @@ void deg_graph_flush_updates(Depsgraph *graph)
   invalidate_tagged_evaluated_data(graph);
 }
 
-/* Clear tags from all operation nodes. */
 void deg_graph_clear_tags(Depsgraph *graph)
 {
   /* Go over all operation nodes, clearing tags. */

@@ -71,7 +71,13 @@ typedef enum eCurveElem_Types {
 } eCurveElem_Types;
 
 /* internal select utils */
+/**
+ * Returns 1 in case (de)selection was successful.
+ */
 bool select_beztriple(BezTriple *bezt, bool selstatus, uint8_t flag, eVisible_Types hidden);
+/**
+ * Returns 1 in case (de)selection was successful.
+ */
 bool select_bpoint(BPoint *bp, bool selstatus, uint8_t flag, bool hidden);
 
 void FONT_OT_text_insert(struct wmOperatorType *ot);
@@ -146,7 +152,14 @@ void ed_editnurb_translate_flag(struct ListBase *editnurb,
                                 uint8_t flag,
                                 const float vec[3],
                                 bool is_2d);
+/**
+ * Only for #OB_SURF.
+ */
 bool ed_editnurb_extrude_flag(struct EditNurb *editnurb, const uint8_t flag);
+/**
+ * \param axis: is in world-space.
+ * \param cent: is in object-space.
+ */
 bool ed_editnurb_spin(float viewmat[4][4],
                       struct View3D *v3d,
                       struct Object *obedit,

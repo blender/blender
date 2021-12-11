@@ -33,9 +33,16 @@ typedef struct ZSpan {
   float *span1, *span2;
 } ZSpan;
 
+/**
+ * Each Z-buffer has coordinates transformed to local rect coordinates, so we can simply clip.
+ */
 void zbuf_alloc_span(struct ZSpan *zspan, int rectx, int recty);
 void zbuf_free_span(struct ZSpan *zspan);
 
+/**
+ * Scan-convert for strand triangles, calls function for each x, y coordinate
+ * and gives UV barycentrics and z.
+ */
 void zspan_scanconvert(struct ZSpan *zspan,
                        void *handle,
                        float *v1,

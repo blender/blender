@@ -115,6 +115,7 @@ set(SRC
   nodes/node_geo_distribute_points_on_faces.cc
   nodes/node_geo_dual_mesh.cc
   nodes/node_geo_edge_split.cc
+  nodes/node_geo_geometry_to_instance.cc
   nodes/node_geo_image_texture.cc
   nodes/node_geo_input_curve_handles.cc
   nodes/node_geo_input_curve_tilt.cc
@@ -122,9 +123,16 @@ set(SRC
   nodes/node_geo_input_index.cc
   nodes/node_geo_input_material_index.cc
   nodes/node_geo_input_material.cc
+  nodes/node_geo_input_mesh_edge_neighbors.cc
+  nodes/node_geo_input_mesh_edge_vertices.cc
+  nodes/node_geo_input_mesh_face_area.cc
+  nodes/node_geo_input_mesh_face_neighbors.cc
+  nodes/node_geo_input_mesh_island.cc
+  nodes/node_geo_input_mesh_vertex_neighbors.cc
   nodes/node_geo_input_normal.cc
   nodes/node_geo_input_position.cc
   nodes/node_geo_input_radius.cc
+  nodes/node_geo_input_scene_time.cc
   nodes/node_geo_input_shade_smooth.cc
   nodes/node_geo_input_spline_cyclic.cc
   nodes/node_geo_input_spline_length.cc

@@ -41,9 +41,6 @@
 
 #define EPS_SATURATION 0.0005f
 
-/**
- * Apply callback to each vertex of the active vertex color layer.
- */
 bool ED_vpaint_color_transform(struct Object *ob,
                                VPaintTransform_Callback vpaint_tx_fn,
                                const void *user_data)
@@ -610,9 +607,6 @@ BLI_INLINE uint mcol_alpha_sub(uint col_src, int fac)
   return col_mix;
 }
 
-/**
- * \note weight-paint has an equivalent function: #ED_wpaint_blend_tool
- */
 uint ED_vpaint_blend_tool(const int tool, const uint col, const uint paintcol, const int alpha_i)
 {
   switch ((IMB_BlendMode)tool) {

@@ -69,6 +69,12 @@ struct BlenderCamera {
   float pole_merge_angle_from;
   float pole_merge_angle_to;
 
+  float fisheye_polynomial_k0;
+  float fisheye_polynomial_k1;
+  float fisheye_polynomial_k2;
+  float fisheye_polynomial_k3;
+  float fisheye_polynomial_k4;
+
   enum { AUTO, HORIZONTAL, VERTICAL } sensor_fit;
   float sensor_width;
   float sensor_height;
@@ -199,6 +205,12 @@ static void blender_camera_from_object(BlenderCamera *bcam,
     bcam->latitude_max = RNA_float_get(&ccamera, "latitude_max");
     bcam->longitude_min = RNA_float_get(&ccamera, "longitude_min");
     bcam->longitude_max = RNA_float_get(&ccamera, "longitude_max");
+
+    bcam->fisheye_polynomial_k0 = RNA_float_get(&ccamera, "fisheye_polynomial_k0");
+    bcam->fisheye_polynomial_k1 = RNA_float_get(&ccamera, "fisheye_polynomial_k1");
+    bcam->fisheye_polynomial_k2 = RNA_float_get(&ccamera, "fisheye_polynomial_k2");
+    bcam->fisheye_polynomial_k3 = RNA_float_get(&ccamera, "fisheye_polynomial_k3");
+    bcam->fisheye_polynomial_k4 = RNA_float_get(&ccamera, "fisheye_polynomial_k4");
 
     bcam->interocular_distance = b_camera.stereo().interocular_distance();
     if (b_camera.stereo().convergence_mode() == BL::CameraStereoData::convergence_mode_PARALLEL) {
@@ -422,7 +434,8 @@ static void blender_camera_sync(Camera *cam,
   cam->set_full_height(height);
 
   /* panorama sensor */
-  if (bcam->type == CAMERA_PANORAMA && bcam->panorama_type == PANORAMA_FISHEYE_EQUISOLID) {
+  if (bcam->type == CAMERA_PANORAMA && (bcam->panorama_type == PANORAMA_FISHEYE_EQUISOLID ||
+                                        bcam->panorama_type == PANORAMA_FISHEYE_LENS_POLYNOMIAL)) {
     float fit_xratio = (float)bcam->render_width * bcam->pixelaspect.x;
     float fit_yratio = (float)bcam->render_height * bcam->pixelaspect.y;
     bool horizontal_fit;
@@ -464,6 +477,12 @@ static void blender_camera_sync(Camera *cam,
   cam->set_fisheye_lens(bcam->fisheye_lens);
   cam->set_latitude_min(bcam->latitude_min);
   cam->set_latitude_max(bcam->latitude_max);
+
+  cam->set_fisheye_polynomial_k0(bcam->fisheye_polynomial_k0);
+  cam->set_fisheye_polynomial_k1(bcam->fisheye_polynomial_k1);
+  cam->set_fisheye_polynomial_k2(bcam->fisheye_polynomial_k2);
+  cam->set_fisheye_polynomial_k3(bcam->fisheye_polynomial_k3);
+  cam->set_fisheye_polynomial_k4(bcam->fisheye_polynomial_k4);
 
   cam->set_longitude_min(bcam->longitude_min);
   cam->set_longitude_max(bcam->longitude_max);

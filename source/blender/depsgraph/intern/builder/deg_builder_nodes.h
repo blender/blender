@@ -102,6 +102,10 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void begin_build();
   virtual void end_build();
 
+  /**
+   * `id_cow_self` is the user of `id_pointer`,
+   * see also `LibraryIDLinkCallbackData` struct definition.
+   */
   int foreach_id_cow_detect_need_for_update_callback(ID *id_cow_self, ID *id_pointer);
 
   IDNode *add_id_node(ID *id);
@@ -199,10 +203,23 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_rigidbody(Scene *scene);
   virtual void build_particle_systems(Object *object, bool is_object_visible);
   virtual void build_particle_settings(ParticleSettings *part);
+  /**
+   * Build graph nodes for #AnimData block and any animated images used.
+   * \param id: ID-Block which hosts the #AnimData
+   */
   virtual void build_animdata(ID *id);
   virtual void build_animdata_nlastrip_targets(ListBase *strips);
+  /**
+   * Build graph nodes to update the current frame in image users.
+   */
   virtual void build_animation_images(ID *id);
   virtual void build_action(bAction *action);
+  /**
+   * Build graph node(s) for Driver
+   * \param id: ID-Block that driver is attached to
+   * \param fcu: Driver-FCurve
+   * \param driver_index: Index in animation data drivers list
+   */
   virtual void build_driver(ID *id, FCurve *fcurve, int driver_index);
   virtual void build_driver_variables(ID *id, FCurve *fcurve);
   virtual void build_driver_id_property(ID *id, const char *rna_path);
@@ -280,6 +297,10 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
                               void *user_data);
 
   void tag_previously_tagged_nodes();
+  /**
+   * Check for IDs that need to be flushed (COW-updated)
+   * because the depsgraph itself created or removed some of their evaluated dependencies.
+   */
   void update_invalid_cow_pointers();
 
   /* State which demotes currently built entities. */

@@ -529,12 +529,10 @@ void ANIM_OT_keying_set_active_set(wmOperatorType *ot)
 /* Keying Set Type Info declarations */
 static ListBase keyingset_type_infos = {NULL, NULL};
 
-/* Built-In Keying Sets (referencing type information). */
 ListBase builtin_keyingsets = {NULL, NULL};
 
 /* --------------- */
 
-/* Find KeyingSet type info given a name. */
 KeyingSetInfo *ANIM_keyingset_info_find_name(const char name[])
 {
   /* sanity checks */
@@ -546,7 +544,6 @@ KeyingSetInfo *ANIM_keyingset_info_find_name(const char name[])
   return BLI_findstring(&keyingset_type_infos, name, offsetof(KeyingSetInfo, idname));
 }
 
-/* Find builtin KeyingSet by name. */
 KeyingSet *ANIM_builtin_keyingset_get_named(KeyingSet *prevKS, const char name[])
 {
   KeyingSet *ks, *first = NULL;
@@ -582,8 +579,6 @@ KeyingSet *ANIM_builtin_keyingset_get_named(KeyingSet *prevKS, const char name[]
 
 /* --------------- */
 
-/* Add the given KeyingSetInfo to the list of type infos,
- * and create an appropriate builtin set too. */
 void ANIM_keyingset_info_register(KeyingSetInfo *ksi)
 {
   KeyingSet *ks;
@@ -603,8 +598,6 @@ void ANIM_keyingset_info_register(KeyingSetInfo *ksi)
   BLI_addtail(&keyingset_type_infos, ksi);
 }
 
-/* Remove the given KeyingSetInfo from the list of type infos,
- * and also remove the builtin set if appropriate. */
 void ANIM_keyingset_info_unregister(Main *bmain, KeyingSetInfo *ksi)
 {
   KeyingSet *ks, *ksn;
@@ -633,8 +626,6 @@ void ANIM_keyingset_info_unregister(Main *bmain, KeyingSetInfo *ksi)
   BLI_freelinkN(&keyingset_type_infos, ksi);
 }
 
-/* --------------- */
-
 void ANIM_keyingset_infos_exit(void)
 {
   KeyingSetInfo *ksi, *next;
@@ -654,7 +645,6 @@ void ANIM_keyingset_infos_exit(void)
   BKE_keyingsets_free(&builtin_keyingsets);
 }
 
-/* Check if the ID appears in the paths specified by the KeyingSet */
 bool ANIM_keyingset_find_id(KeyingSet *ks, ID *id)
 {
   /* sanity checks */
@@ -670,7 +660,6 @@ bool ANIM_keyingset_find_id(KeyingSet *ks, ID *id)
 
 /* Getters for Active/Indices ----------------------------- */
 
-/* Get the active Keying Set for the Scene provided */
 KeyingSet *ANIM_scene_get_active_keyingset(const Scene *scene)
 {
   /* if no scene, we've got no hope of finding the Keying Set */
@@ -689,7 +678,6 @@ KeyingSet *ANIM_scene_get_active_keyingset(const Scene *scene)
   return BLI_findlink(&builtin_keyingsets, (-scene->active_keyingset) - 1);
 }
 
-/* Get the index of the Keying Set provided, for the given Scene */
 int ANIM_scene_get_keyingset_index(Scene *scene, KeyingSet *ks)
 {
   int index;
@@ -721,7 +709,6 @@ int ANIM_scene_get_keyingset_index(Scene *scene, KeyingSet *ks)
   return 0;
 }
 
-/* Get Keying Set to use for Auto-Keyframing some transforms */
 KeyingSet *ANIM_get_keyingset_for_autokeying(const Scene *scene, const char *transformKSName)
 {
   /* get KeyingSet to use
@@ -739,7 +726,6 @@ KeyingSet *ANIM_get_keyingset_for_autokeying(const Scene *scene, const char *tra
 
 /* Menu of All Keying Sets ----------------------------- */
 
-/* Dynamically populate an enum of Keying Sets */
 const EnumPropertyItem *ANIM_keying_sets_enum_itemf(bContext *C,
                                                     PointerRNA *UNUSED(ptr),
                                                     PropertyRNA *UNUSED(prop),
@@ -808,14 +794,6 @@ const EnumPropertyItem *ANIM_keying_sets_enum_itemf(bContext *C,
   return item;
 }
 
-/**
- * Get the keying set from enum values generated in #ANIM_keying_sets_enum_itemf.
- *
- * Type is the Keying Set the user specified to use when calling the operator:
- * - type == 0: use scene's active Keying Set
- * - type > 0: use a user-defined Keying Set from the active scene
- * - type < 0: use a builtin Keying Set
- */
 KeyingSet *ANIM_keyingset_get_from_enum_type(Scene *scene, int type)
 {
   KeyingSet *ks = NULL;
@@ -847,7 +825,6 @@ KeyingSet *ANIM_keyingset_get_from_idname(Scene *scene, const char *idname)
 
 /* Polling API ----------------------------------------------- */
 
-/* Check if KeyingSet can be used in the current context */
 bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks)
 {
   if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
@@ -894,7 +871,6 @@ static void RKS_ITER_overrides_list(KeyingSetInfo *ksi,
   }
 }
 
-/* Add new data source for relative Keying Sets */
 void ANIM_relative_keyingset_add_source(ListBase *dsources, ID *id, StructRNA *srna, void *data)
 {
   tRKS_DSource *ds;
@@ -925,14 +901,6 @@ void ANIM_relative_keyingset_add_source(ListBase *dsources, ID *id, StructRNA *s
 
 /* KeyingSet Operations (Insert/Delete Keyframes) ------------ */
 
-/**
- * Given a KeyingSet and context info, validate Keying Set's paths.
- * This is only really necessary with relative/built-in KeyingSets
- * where their list of paths is dynamically generated based on the
- * current context info.
- *
- * Returns 0 if succeeded, otherwise an error code: eModifyKey_Returns
- */
 eModifyKey_Returns ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
 {
   /* sanity check */
@@ -1017,14 +985,6 @@ static eInsertKeyFlags keyingset_apply_keying_flags(const eInsertKeyFlags base_f
   return result;
 }
 
-/**
- * Given a KeyingSet and context info (if required),
- * modify keyframes for the channels specified by the KeyingSet.
- * This takes into account many of the different combinations of using KeyingSets.
- *
- * \returns the number of channels that key-frames were added or
- * an #eModifyKey_Returns value (always a negative number).
- */
 int ANIM_apply_keyingset(
     bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
 {

@@ -63,15 +63,6 @@ std::string get_valid_abc_name(const char *name)
   return name_string;
 }
 
-/**
- * \brief get_object_dag_path_name returns the name under which the object
- *  will be exported in the Alembic file. It is of the form
- *  "[../grandparent/]parent/object" if dupli_parent is NULL, or
- *  "dupli_parent/[../grandparent/]parent/object" otherwise.
- * \param ob:
- * \param dupli_parent:
- * \return
- */
 std::string get_object_dag_path_name(const Object *const ob, Object *dupli_parent)
 {
   std::string name = get_id_name(ob);

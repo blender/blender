@@ -64,13 +64,11 @@ void hsl_to_rgb(float h, float s, float l, float *r_r, float *r_g, float *r_b)
   *r_b = (nb - 0.5f) * chroma + l;
 }
 
-/* convenience function for now */
 void hsv_to_rgb_v(const float hsv[3], float r_rgb[3])
 {
   hsv_to_rgb(hsv[0], hsv[1], hsv[2], &r_rgb[0], &r_rgb[1], &r_rgb[2]);
 }
 
-/* convenience function for now */
 void hsl_to_rgb_v(const float hsl[3], float r_rgb[3])
 {
   hsl_to_rgb(hsl[0], hsl[1], hsl[2], &r_rgb[0], &r_rgb[1], &r_rgb[2]);
@@ -124,9 +122,6 @@ void yuv_to_rgb(float y, float u, float v, float *r_r, float *r_g, float *r_b, i
   *r_b = b;
 }
 
-/* The RGB inputs are supposed gamma corrected and in the range 0 - 1.0f
- *
- * Output YCC have a range of 16-235 and 16-240 except with JFIF_0_255 where the range is 0-255 */
 void rgb_to_ycc(float r, float g, float b, float *r_y, float *r_cb, float *r_cr, int colorspace)
 {
   float sr, sg, sb;
@@ -162,12 +157,14 @@ void rgb_to_ycc(float r, float g, float b, float *r_y, float *r_cb, float *r_cr,
   *r_cr = cr;
 }
 
-/* YCC input have a range of 16-235 and 16-240 except with JFIF_0_255 where the range is 0-255 */
-/* RGB outputs are in the range 0 - 1.0f */
-
-/* FIXME comment above must be wrong because BLI_YCC_ITU_BT601 y 16.0 cr 16.0 -> r -0.7009 */
 void ycc_to_rgb(float y, float cb, float cr, float *r_r, float *r_g, float *r_b, int colorspace)
 {
+  /* FIXME the following comment must be wrong because:
+   * BLI_YCC_ITU_BT601 y 16.0 cr 16.0 -> r -0.7009. */
+
+  /* YCC input have a range of 16-235 and 16-240 except with JFIF_0_255 where the range is 0-255
+   * RGB outputs are in the range 0 - 1.0f. */
+
   float r = 128.0f, g = 128.0f, b = 128.0f;
 
   switch (colorspace) {
@@ -250,7 +247,6 @@ void rgb_to_hsv(float r, float g, float b, float *r_h, float *r_s, float *r_v)
   *r_v = r;
 }
 
-/* convenience function for now */
 void rgb_to_hsv_v(const float rgb[3], float r_hsv[3])
 {
   rgb_to_hsv(rgb[0], rgb[1], rgb[2], &r_hsv[0], &r_hsv[1], &r_hsv[2]);
@@ -311,7 +307,6 @@ void rgb_to_hsl_compat_v(const float rgb[3], float r_hsl[3])
   rgb_to_hsl_compat(rgb[0], rgb[1], rgb[2], &r_hsl[0], &r_hsl[1], &r_hsl[2]);
 }
 
-/* convenience function for now */
 void rgb_to_hsl_v(const float rgb[3], float r_hsl[3])
 {
   rgb_to_hsl(rgb[0], rgb[1], rgb[2], &r_hsl[0], &r_hsl[1], &r_hsl[2]);
@@ -338,13 +333,11 @@ void rgb_to_hsv_compat(float r, float g, float b, float *r_h, float *r_s, float 
   }
 }
 
-/* convenience function for now */
 void rgb_to_hsv_compat_v(const float rgb[3], float r_hsv[3])
 {
   rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], &r_hsv[0], &r_hsv[1], &r_hsv[2]);
 }
 
-/* clamp hsv to usable values */
 void hsv_clamp_v(float hsv[3], float v_max)
 {
   if (UNLIKELY(hsv[0] < 0.0f || hsv[0] > 1.0f)) {
@@ -354,12 +347,6 @@ void hsv_clamp_v(float hsv[3], float v_max)
   CLAMP(hsv[2], 0.0f, v_max);
 }
 
-/**
- * We define a 'cpack' here as a (3 byte color code)
- * number that can be expressed like 0xFFAA66 or so.
- * For that reason it is sensitive for endianness... with this function it works correctly.
- * \see #imm_cpack
- */
 unsigned int hsv_to_cpack(float h, float s, float v)
 {
   unsigned int r, g, b;
@@ -473,12 +460,6 @@ void minmax_rgb(short c[3])
   }
 }
 
-/* If the requested RGB shade contains a negative weight for
- * one of the primaries, it lies outside the color gamut
- * accessible from the given triple of primaries.  Desaturate
- * it by adding white, equal quantities of R, G, and B, enough
- * to make RGB all positive.  The function returns 1 if the
- * components were modified, zero otherwise. */
 int constrain_rgb(float *r, float *g, float *b)
 {
   /* Amount of white needed */
@@ -520,7 +501,6 @@ void lift_gamma_gain_to_asc_cdl(const float *lift,
 
 /* ************************************* other ************************************************* */
 
-/* Applies an hue offset to a float rgb color */
 void rgb_float_set_hue_float_offset(float rgb[3], float hue_offset)
 {
   float hsv[3];
@@ -538,7 +518,6 @@ void rgb_float_set_hue_float_offset(float rgb[3], float hue_offset)
   hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb + 1, rgb + 2);
 }
 
-/* Applies an hue offset to a byte rgb color */
 void rgb_byte_set_hue_float_offset(unsigned char rgb[3], float hue_offset)
 {
   float rgb_float[3];

@@ -1093,6 +1093,8 @@ static const char *device_type_for_description(const DeviceType type)
       return "Dummy";
     case DEVICE_MULTI:
       return "Multi";
+    case DEVICE_METAL:
+      return "Metal";
   }
 
   return "UNKNOWN";

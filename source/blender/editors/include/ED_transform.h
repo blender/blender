@@ -146,6 +146,15 @@ void Transform_Properties(struct wmOperatorType *ot, int flags);
 
 /* *** transform_orientations.c *** */
 void ED_transform_calc_orientation_from_type(const struct bContext *C, float r_mat[3][3]);
+/**
+ * \note The resulting matrix may not be orthogonal,
+ * callers that depend on `r_mat` to be orthogonal should use #orthogonalize_m3.
+ *
+ * A non orthogonal matrix may be returned when:
+ * - #V3D_ORIENT_GIMBAL the result won't be orthogonal unless the object has no rotation.
+ * - #V3D_ORIENT_LOCAL may contain shear from non-uniform scale in parent/child relationships.
+ * - #V3D_ORIENT_CUSTOM may have been created from #V3D_ORIENT_LOCAL.
+ */
 short ED_transform_calc_orientation_from_type_ex(const struct Scene *scene,
                                                  struct ViewLayer *view_layer,
                                                  const struct View3D *v3d,
@@ -159,6 +168,9 @@ short ED_transform_calc_orientation_from_type_ex(const struct Scene *scene,
 /* transform gizmos */
 
 void VIEW3D_GGT_xform_gizmo(struct wmGizmoGroupType *gzgt);
+/**
+ * Only poll, flag & gzmap_params differ.
+ */
 void VIEW3D_GGT_xform_gizmo_context(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_xform_cage(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_xform_shear(struct wmGizmoGroupType *gzgt);
@@ -196,6 +208,11 @@ struct TransformCalcParams {
   /* Use 'Scene.orientation_type' when zero, otherwise subtract one and use. */
   ushort orientation_index;
 };
+/**
+ * Centroid, bound-box, of selection.
+ *
+ * Returns total items selected.
+ */
 int ED_transform_calc_gizmo_stats(const struct bContext *C,
                                   const struct TransformCalcParams *params,
                                   struct TransformBounds *tbounds);

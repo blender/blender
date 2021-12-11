@@ -461,8 +461,6 @@ static void do_version_constraints_245(ListBase *lb)
   }
 }
 
-/* NOTE: this version patch is intended for versions < 2.52.2,
- * but was initially introduced in 2.27 already. */
 void blo_do_version_old_trackto_to_constraints(Object *ob)
 {
   /* create new trackto constraint from the relationship */

@@ -23,6 +23,8 @@
 
 namespace blender::nodes::node_geo_set_curve_handles_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometrySetCurveHandlePositions)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
@@ -75,7 +77,7 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
     if (spline->type() == Spline::Type::Bezier) {
       BezierSpline &bezier = static_cast<BezierSpline &>(*spline);
       for (int i : bezier.positions().index_range()) {
-        if (selection[current_mask] == current_point) {
+        if (current_mask < selection.size() && selection[current_mask] == current_point) {
           if (mode & GEO_NODE_CURVE_HANDLE_LEFT) {
             if (bezier.handle_types_left()[i] == BezierSpline::HandleType::Vector) {
               bezier.ensure_auto_handles();
@@ -103,7 +105,7 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
     }
     else {
       for (int UNUSED(i) : spline->positions().index_range()) {
-        if (selection[current_mask] == current_point) {
+        if (current_mask < selection.size() && selection[current_mask] == current_point) {
           current_mask++;
         }
         current_point++;
@@ -132,9 +134,8 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const NodeGeometrySetCurveHandlePositions *node_storage =
-      (NodeGeometrySetCurveHandlePositions *)params.node().storage;
-  const GeometryNodeCurveHandleMode mode = (GeometryNodeCurveHandleMode)node_storage->mode;
+  const NodeGeometrySetCurveHandlePositions &storage = node_storage(params.node());
+  const GeometryNodeCurveHandleMode mode = (GeometryNodeCurveHandleMode)storage.mode;
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");

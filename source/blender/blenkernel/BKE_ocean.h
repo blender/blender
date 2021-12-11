@@ -74,12 +74,21 @@ struct Ocean *BKE_ocean_add(void);
 void BKE_ocean_free_data(struct Ocean *oc);
 void BKE_ocean_free(struct Ocean *oc);
 bool BKE_ocean_ensure(struct OceanModifierData *omd, const int resolution);
+/**
+ * Return true if the ocean data is valid and can be used.
+ */
 bool BKE_ocean_init_from_modifier(struct Ocean *ocean,
                                   struct OceanModifierData const *omd,
                                   const int resolution);
 
+/**
+ * Return true if the ocean is valid and can be used.
+ */
 bool BKE_ocean_is_valid(const struct Ocean *o);
 
+/**
+ * Return true if the ocean data is valid and can be used.
+ */
 bool BKE_ocean_init(struct Ocean *o,
                     int M,
                     int N,
@@ -104,15 +113,26 @@ bool BKE_ocean_init(struct Ocean *o,
                     int seed);
 void BKE_ocean_simulate(struct Ocean *o, float t, float scale, float chop_amount);
 
-/* sampling the ocean surface */
 float BKE_ocean_jminus_to_foam(float jminus, float coverage);
+/**
+ * Sampling the ocean surface.
+ */
 void BKE_ocean_eval_uv(struct Ocean *oc, struct OceanResult *ocr, float u, float v);
+/**
+ * Use catmullrom interpolation rather than linear.
+ */
 void BKE_ocean_eval_uv_catrom(struct Ocean *oc, struct OceanResult *ocr, float u, float v);
 void BKE_ocean_eval_xz(struct Ocean *oc, struct OceanResult *ocr, float x, float z);
 void BKE_ocean_eval_xz_catrom(struct Ocean *oc, struct OceanResult *ocr, float x, float z);
+/**
+ * Note that this doesn't wrap properly for i, j < 0, but its not really meant for that being
+ * just a way to get the raw data out to save in some image format.
+ */
 void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i, int j);
 
-/* ocean cache handling */
+/**
+ * Ocean cache handling.
+ */
 struct OceanCache *BKE_ocean_init_cache(const char *bakepath,
                                         const char *relbase,
                                         int start,
@@ -136,8 +156,26 @@ void BKE_ocean_free_cache(struct OceanCache *och);
 void BKE_ocean_free_modifier_cache(struct OceanModifierData *omd);
 
 /* ocean_spectrum.c */
+
+/**
+ * Pierson-Moskowitz model, 1964, assumes waves reach equilibrium with wind.
+ * Model is intended for large area 'fully developed' sea, where winds have been steadily blowing
+ * for days over an area that includes hundreds of wavelengths on a side.
+ */
 float BLI_ocean_spectrum_piersonmoskowitz(const struct Ocean *oc, const float kx, const float kz);
+/**
+ * TMA extends the JONSWAP spectrum.
+ * This spectral model is best suited to shallow water.
+ */
 float BLI_ocean_spectrum_texelmarsenarsloe(const struct Ocean *oc, const float kx, const float kz);
+/**
+ * Hasselmann et al, 1973. This model extends the Pierson-Moskowitz model with a peak sharpening
+ * function This enhancement is an artificial construct to address the problem that the wave
+ * spectrum is never fully developed.
+ *
+ * The fetch parameter represents the distance from a lee shore,
+ * called the fetch, or the distance over which the wind blows with constant velocity.
+ */
 float BLI_ocean_spectrum_jonswap(const struct Ocean *oc, const float kx, const float kz);
 
 #ifdef __cplusplus

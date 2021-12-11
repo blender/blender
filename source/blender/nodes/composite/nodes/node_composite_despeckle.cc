@@ -42,7 +42,7 @@ static void node_composit_init_despeckle(bNodeTree *UNUSED(ntree), bNode *node)
   node->custom4 = 0.5f;
 }
 
-void register_node_type_cmp_despeckle(void)
+void register_node_type_cmp_despeckle()
 {
   static bNodeType ntype;
 

@@ -74,28 +74,17 @@ static void mesh_runtime_free_mutexes(Mesh *mesh)
   }
 }
 
-/**
- * \brief Initialize the runtime of the given mesh.
- *
- * Function expects that the runtime is already cleared.
- */
 void BKE_mesh_runtime_init_data(Mesh *mesh)
 {
   mesh_runtime_init_mutexes(mesh);
 }
 
-/**
- * \brief Free all data (and mutexes) inside the runtime of the given mesh.
- */
 void BKE_mesh_runtime_free_data(Mesh *mesh)
 {
   BKE_mesh_runtime_clear_cache(mesh);
   mesh_runtime_free_mutexes(mesh);
 }
 
-/* Clear all pointers which we don't want to be shared on copying the datablock.
- * However, keep all the flags which defines what the mesh is (for example, that
- * it's deformed only, or that its custom data layers are out of date.) */
 void BKE_mesh_runtime_reset_on_copy(Mesh *mesh, const int UNUSED(flag))
 {
   Mesh_Runtime *runtime = &mesh->runtime;
@@ -111,11 +100,6 @@ void BKE_mesh_runtime_reset_on_copy(Mesh *mesh, const int UNUSED(flag))
   mesh_runtime_init_mutexes(mesh);
 }
 
-/**
- * \brief This function clears runtime cache of the given mesh.
- *
- * Call this function to recalculate runtime data when used.
- */
 void BKE_mesh_runtime_clear_cache(Mesh *mesh)
 {
   if (mesh->runtime.mesh_eval != NULL) {
@@ -128,7 +112,6 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
   BKE_mesh_runtime_clear_edit_data(mesh);
 }
 
-/* This is a ported copy of DM_ensure_looptri_data(dm) */
 /**
  * Ensure the array is large enough
  *
@@ -137,6 +120,7 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
  */
 static void mesh_ensure_looptri_data(Mesh *mesh)
 {
+  /* This is a ported copy of `DM_ensure_looptri_data(dm)`. */
   const uint totpoly = mesh->totpoly;
   const int looptris_len = poly_to_tri_count(totpoly, mesh->totloop);
 
@@ -162,7 +146,6 @@ static void mesh_ensure_looptri_data(Mesh *mesh)
   }
 }
 
-/* This is a ported copy of CDDM_recalc_looptri(dm). */
 void BKE_mesh_runtime_looptri_recalc(Mesh *mesh)
 {
   mesh_ensure_looptri_data(mesh);
@@ -182,9 +165,9 @@ void BKE_mesh_runtime_looptri_recalc(Mesh *mesh)
   mesh->runtime.looptris.array_wip = NULL;
 }
 
-/* This is a ported copy of dm_getNumLoopTri(dm). */
 int BKE_mesh_runtime_looptri_len(const Mesh *mesh)
 {
+  /* This is a ported copy of `dm_getNumLoopTri(dm)`. */
   const int looptri_len = poly_to_tri_count(mesh->totpoly, mesh->totloop);
   BLI_assert(ELEM(mesh->runtime.looptris.len, 0, looptri_len));
   return looptri_len;
@@ -196,11 +179,6 @@ static void mesh_runtime_looptri_recalc_isolated(void *userdata)
   BKE_mesh_runtime_looptri_recalc(mesh);
 }
 
-/**
- * \note This function only fills a cache, and therefore the mesh argument can
- * be considered logically const. Concurrent access is protected by a mutex.
- * \note This is a ported copy of dm_getLoopTriArray(dm).
- */
 const MLoopTri *BKE_mesh_runtime_looptri_ensure(const Mesh *mesh)
 {
   ThreadMutex *mesh_eval_mutex = (ThreadMutex *)mesh->runtime.eval_mutex;
@@ -222,7 +200,6 @@ const MLoopTri *BKE_mesh_runtime_looptri_ensure(const Mesh *mesh)
   return looptri;
 }
 
-/* This is a copy of DM_verttri_from_looptri(). */
 void BKE_mesh_runtime_verttri_from_looptri(MVertTri *r_verttri,
                                            const MLoop *mloop,
                                            const MLoopTri *looptri,
@@ -412,7 +389,6 @@ void BKE_mesh_runtime_debug_print(Mesh *me_eval)
   MEM_freeN(str);
 }
 
-/* XXX Should go in customdata file? */
 void BKE_mesh_runtime_debug_print_cdlayers(CustomData *data)
 {
   int i;

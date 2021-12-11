@@ -180,13 +180,6 @@ bool BLI_file_magic_is_zstd(const char header[4])
   return false;
 }
 
-/**
- * Returns true if the file with the specified name can be written.
- * This implementation uses access(2), which makes the check according
- * to the real UID and GID of the process, not its effective UID and GID.
- * This shouldn't matter for Blender, which is not going to run privileged
- * anyway.
- */
 bool BLI_file_is_writable(const char *filename)
 {
   bool writable;
@@ -212,10 +205,6 @@ bool BLI_file_is_writable(const char *filename)
   return writable;
 }
 
-/**
- * Creates the file with nothing in it, or updates its last-modified date if it already exists.
- * Returns true if successful (like the unix touch command).
- */
 bool BLI_file_touch(const char *file)
 {
   FILE *f = BLI_fopen(file, "r+b");
@@ -954,12 +943,6 @@ int BLI_access(const char *filename, int mode)
   return access(filename, mode);
 }
 
-/**
- * Deletes the specified file or directory (depending on dir), optionally
- * doing recursive delete of directory contents.
- *
- * \return zero on success (matching 'remove' behavior).
- */
 int BLI_delete(const char *file, bool dir, bool recursive)
 {
   BLI_assert(!BLI_path_is_rel(file));
@@ -973,12 +956,6 @@ int BLI_delete(const char *file, bool dir, bool recursive)
   return remove(file);
 }
 
-/**
- * Soft deletes the specified file or directory (depending on dir) by moving the files to the
- * recycling bin, optionally doing recursive delete of directory contents.
- *
- * \return zero on success (matching 'remove' behavior).
- */
 int BLI_delete_soft(const char *file, const char **error_message)
 {
   BLI_assert(!BLI_path_is_rel(file));
@@ -1251,7 +1228,6 @@ int BLI_create_symlink(const char *file, const char *to)
 }
 #  endif
 
-/** \return true on success (i.e. given path now exists on FS), false otherwise. */
 bool BLI_dir_create_recursive(const char *dirname)
 {
   char *lslash;
@@ -1301,9 +1277,6 @@ bool BLI_dir_create_recursive(const char *dirname)
   return ret;
 }
 
-/**
- * \return zero on success (matching 'rename' behavior).
- */
 int BLI_rename(const char *from, const char *to)
 {
   if (!BLI_exists(from)) {

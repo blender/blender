@@ -153,7 +153,6 @@ static void imb_global_cache_tile_unload(ImGlobalTile *gtile)
   GLOBAL_CACHE.totmem -= sizeof(unsigned int) * ibuf->tilex * ibuf->tiley;
 }
 
-/* external free */
 void imb_tile_cache_tile_free(ImBuf *ibuf, int tx, int ty)
 {
   ImGlobalTile *gtile, lookuptile;
@@ -248,7 +247,6 @@ void imb_tile_cache_exit(void)
   }
 }
 
-/* presumed to be called when no threads are running */
 void IMB_tile_cache_params(int totthread, int maxmem)
 {
   int a;

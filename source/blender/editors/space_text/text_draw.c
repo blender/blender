@@ -200,7 +200,6 @@ int wrap_width(const SpaceText *st, ARegion *region)
   return max > 8 ? max : 8;
 }
 
-/* Sets (offl, offc) for transforming (line, curs) to its wrapped position */
 void wrap_offset(
     const SpaceText *st, ARegion *region, TextLine *linein, int cursin, int *offl, int *offc)
 {
@@ -305,7 +304,6 @@ void wrap_offset(
   }
 }
 
-/* cursin - mem, offc - view */
 void wrap_offset_in_line(
     const SpaceText *st, ARegion *region, TextLine *linein, int cursin, int *offl, int *offc)
 {
@@ -1754,8 +1752,6 @@ bool ED_text_activate_in_screen(bContext *C, Text *text)
   return false;
 }
 
-/* Moves the view to the cursor location,
- * also used to make sure the view isn't outside the file */
 void ED_text_scroll_to_cursor(SpaceText *st, ARegion *region, const bool center)
 {
   Text *text;
@@ -1823,7 +1819,6 @@ void ED_text_scroll_to_cursor(SpaceText *st, ARegion *region, const bool center)
   st->runtime.scroll_ofs_px[1] = 0;
 }
 
-/* takes an area instead of a region, use for listeners */
 void text_scroll_to_cursor__area(SpaceText *st, ScrArea *area, const bool center)
 {
   ARegion *region;
@@ -1847,9 +1842,6 @@ void text_update_cursor_moved(bContext *C)
   text_scroll_to_cursor__area(st, area, true);
 }
 
-/**
- * Takes a cursor (row, character) and returns x,y pixel coords.
- */
 bool ED_text_region_location_from_cursor(SpaceText *st,
                                          ARegion *region,
                                          const int cursor_co[2],

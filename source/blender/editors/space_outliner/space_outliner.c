@@ -449,7 +449,6 @@ static void outliner_deactivate(struct ScrArea *area)
   ED_region_tag_redraw_no_rebuild(BKE_area_find_region_type(area, RGN_TYPE_WINDOW));
 }
 
-/* only called once, from space_api/spacetypes.c */
 void ED_spacetype_outliner(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype time");

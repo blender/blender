@@ -47,7 +47,10 @@ struct bGPdata;
 extern "C" {
 #endif
 
-/* Expose via BKE callbacks */
+/* -------------------------------------------------------------------- */
+/** \name Expose via BKE callbacks
+ * \{ */
+
 void DRW_mball_batch_cache_dirty_tag(struct MetaBall *mb, int mode);
 void DRW_mball_batch_cache_validate(struct MetaBall *mb);
 void DRW_mball_batch_cache_free(struct MetaBall *mb);
@@ -82,15 +85,34 @@ void DRW_volume_batch_cache_dirty_tag(struct Volume *volume, int mode);
 void DRW_volume_batch_cache_validate(struct Volume *volume);
 void DRW_volume_batch_cache_free(struct Volume *volume);
 
-/* Garbage collection */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Garbage Collection
+ * \{ */
+
 void DRW_batch_cache_free_old(struct Object *ob, int ctime);
 
+/**
+ * Thread safety need to be assured by caller. Don't call this during drawing.
+ * \note For now this only free the shading batches / VBO if any cd layers is not needed anymore.
+ */
 void DRW_mesh_batch_cache_free_old(struct Mesh *me, int ctime);
 
-/* Generic */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generic
+ * \{ */
+
 void DRW_vertbuf_create_wiredata(struct GPUVertBuf *vbo, const int vert_len);
 
-/* Curve */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Curve
+ * \{ */
+
 void DRW_curve_batch_cache_create_requested(struct Object *ob, const struct Scene *scene);
 
 int DRW_curve_material_count_get(struct Curve *cu);
@@ -107,7 +129,12 @@ struct GPUBatch **DRW_curve_batch_cache_get_surface_shaded(struct Curve *cu,
                                                            uint gpumat_array_len);
 struct GPUBatch *DRW_curve_batch_cache_get_wireframes_face(struct Curve *cu);
 
-/* Metaball */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Metaball
+ * \{ */
+
 int DRW_metaball_material_count_get(struct MetaBall *mb);
 
 struct GPUBatch *DRW_metaball_batch_cache_get_triangles_with_normals(struct Object *ob);
@@ -119,7 +146,12 @@ struct GPUBatch *DRW_metaball_batch_cache_get_wireframes_face(struct Object *ob)
 struct GPUBatch *DRW_metaball_batch_cache_get_edge_detection(struct Object *ob,
                                                              bool *r_is_manifold);
 
-/* DispList */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name DispList
+ * \{ */
+
 void DRW_displist_vertbuf_create_pos_and_nor(struct ListBase *lb,
                                              struct GPUVertBuf *vbo,
                                              const struct Scene *scene);
@@ -138,17 +170,32 @@ void DRW_displist_indexbuf_create_edges_adjacency_lines(struct ListBase *lb,
                                                         struct GPUIndexBuf *ibo,
                                                         bool *r_is_manifold);
 
-/* Lattice */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Lattice
+ * \{ */
+
 struct GPUBatch *DRW_lattice_batch_cache_get_all_edges(struct Lattice *lt,
                                                        bool use_weight,
                                                        const int actdef);
 struct GPUBatch *DRW_lattice_batch_cache_get_all_verts(struct Lattice *lt);
 struct GPUBatch *DRW_lattice_batch_cache_get_edit_verts(struct Lattice *lt);
 
-/* Hair */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hair
+ * \{ */
+
 int DRW_hair_material_count_get(struct Hair *hair);
 
-/* PointCloud */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name PointCloud
+ * \{ */
+
 int DRW_pointcloud_material_count_get(struct PointCloud *pointcloud);
 
 struct GPUBatch *DRW_pointcloud_batch_cache_get_dots(struct Object *ob);
@@ -157,13 +204,26 @@ struct GPUBatch **DRW_cache_pointcloud_surface_shaded_get(struct Object *ob,
                                                           struct GPUMaterial **gpumat_array,
                                                           uint gpumat_array_len);
 
-/* Volume */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Volume
+ * \{ */
+
 int DRW_volume_material_count_get(struct Volume *volume);
 
 struct GPUBatch *DRW_volume_batch_cache_get_wireframes_face(struct Volume *volume);
 struct GPUBatch *DRW_volume_batch_cache_get_selection_surface(struct Volume *volume);
 
-/* Mesh */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mesh
+ * \{ */
+
+/**
+ * Can be called for any surface type. Mesh *me is the final mesh.
+ */
 void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                            struct Object *ob,
                                            struct Mesh *me,
@@ -186,7 +246,13 @@ struct GPUBatch *DRW_mesh_batch_cache_get_surface_vertpaint(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_sculpt(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_weights(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_sculpt_overlays(struct Mesh *me);
-/* edit-mesh drawing */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit-Mesh Drawing
+ * \{ */
+
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_triangles(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_vertices(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_edges(struct Mesh *me);
@@ -194,14 +260,39 @@ struct GPUBatch *DRW_mesh_batch_cache_get_edit_vnors(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_lnors(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_facedots(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_skin_roots(struct Mesh *me);
-/* edit-mesh selection */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit-mesh Selection
+ * \{ */
+
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_id(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_facedots_with_select_id(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edges_with_select_id(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_verts_with_select_id(struct Mesh *me);
-/* Object mode Wireframe overlays */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object Mode Wireframe Overlays
+ * \{ */
+
 struct GPUBatch *DRW_mesh_batch_cache_get_wireframes_face(struct Mesh *me);
-/* edit-mesh UV editor */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit-mesh UV Editor
+ * \{ */
+
+/**
+ * Creates the #GPUBatch for drawing the UV Stretching Area Overlay.
+ * Optional retrieves the total area or total uv area of the mesh.
+ *
+ * The `cache->tot_area` and cache->tot_uv_area` update are calculation are
+ * only valid after calling `DRW_mesh_batch_cache_create_requested`.
+ */
 struct GPUBatch *DRW_mesh_batch_cache_get_edituv_faces_stretch_area(struct Mesh *me,
                                                                     float **tot_area,
                                                                     float **tot_uv_area);
@@ -210,11 +301,22 @@ struct GPUBatch *DRW_mesh_batch_cache_get_edituv_faces(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edituv_edges(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edituv_verts(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edituv_facedots(struct Mesh *me);
-/* For Image UV editor. */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name For Image UV Editor
+ * \{ */
+
 struct GPUBatch *DRW_mesh_batch_cache_get_uv_edges(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_mesh_analysis(struct Mesh *me);
 
-/* For direct data access. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name For Direct Data Access
+ * \{ */
+
 struct GPUVertBuf *DRW_mesh_batch_cache_pos_vertbuf_get(struct Mesh *me);
 struct GPUVertBuf *DRW_curve_batch_cache_pos_vertbuf_get(struct Curve *cu);
 struct GPUVertBuf *DRW_mball_batch_cache_pos_vertbuf_get(struct Object *ob);
@@ -250,7 +352,12 @@ enum {
   /* Beware to not go over 1 << 7 (it's a byte flag). */
 };
 
-/* Particles */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Particles
+ * \{ */
+
 struct GPUBatch *DRW_particles_batch_cache_get_hair(struct Object *object,
                                                     struct ParticleSystem *psys,
                                                     struct ModifierData *md);
@@ -266,6 +373,9 @@ struct GPUBatch *DRW_particles_batch_cache_get_edit_inner_points(struct Object *
 struct GPUBatch *DRW_particles_batch_cache_get_edit_tip_points(struct Object *object,
                                                                struct ParticleSystem *psys,
                                                                struct PTCacheEdit *edit);
+
+/** \} */
+
 #ifdef __cplusplus
 }
 #endif

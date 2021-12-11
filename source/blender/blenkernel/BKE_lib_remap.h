@@ -97,8 +97,13 @@ enum {
   ID_REMAP_FORCE_OBDATA_IN_EDITMODE = 1 << 9,
 };
 
-/* NOTE: Requiring new_id to be non-null, this *may* not be the case ultimately,
- * but makes things simpler for now. */
+/**
+ * Replace all references in given Main to \a old_id by \a new_id
+ * (if \a new_id is NULL, it unlinks \a old_id).
+ *
+ * \note Requiring new_id to be non-null, this *may* not be the case ultimately,
+ * but makes things simpler for now.
+ */
 void BKE_libblock_remap_locked(struct Main *bmain,
                                void *old_idv,
                                void *new_idv,
@@ -106,17 +111,42 @@ void BKE_libblock_remap_locked(struct Main *bmain,
 void BKE_libblock_remap(struct Main *bmain, void *old_idv, void *new_idv, const short remap_flags)
     ATTR_NONNULL(1, 2);
 
+/**
+ * Unlink given \a id from given \a bmain
+ * (does not touch to indirect, i.e. library, usages of the ID).
+ *
+ * \param do_flag_never_null: If true, all IDs using \a idv in a 'non-NULL' way are flagged by
+ * #LIB_TAG_DOIT flag (quite obviously, 'non-NULL' usages can never be unlinked by this function).
+ */
 void BKE_libblock_unlink(struct Main *bmain,
                          void *idv,
                          const bool do_flag_never_null,
                          const bool do_skip_indirect) ATTR_NONNULL();
 
+/**
+ * Similar to libblock_remap, but only affects IDs used by given \a idv ID.
+ *
+ * \param old_idv: Unlike BKE_libblock_remap, can be NULL,
+ * in which case all ID usages by given \a idv will be cleared.
+ * \param us_min_never_null: If \a true and new_id is NULL,
+ * 'NEVER_NULL' ID usages keep their old id, but this one still gets its user count decremented
+ * (needed when given \a idv is going to be deleted right after being unlinked).
+ */
 void BKE_libblock_relink_ex(struct Main *bmain,
                             void *idv,
                             void *old_idv,
                             void *new_idv,
                             const short remap_flags) ATTR_NONNULL(1, 2);
 
+/**
+ * Remaps ID usages of given ID to their `id->newid` pointer if not None, and proceeds recursively
+ * in the dependency tree of IDs for all data-blocks tagged with `LIB_TAG_NEW`.
+ *
+ * \note `LIB_TAG_NEW` is cleared.
+ *
+ * Very specific usage, not sure we'll keep it on the long run,
+ * currently only used in Object/Collection duplication code.
+ */
 void BKE_libblock_relink_to_newid(struct Main *bmain, struct ID *id, const int remap_flag)
     ATTR_NONNULL();
 

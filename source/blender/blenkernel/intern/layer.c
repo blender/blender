@@ -117,8 +117,6 @@ static Base *object_base_new(Object *ob)
 
 /* RenderLayer */
 
-/* Returns the default view layer to view in workspaces if there is
- * none linked to the workspace yet. */
 ViewLayer *BKE_view_layer_default_view(const Scene *scene)
 {
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
@@ -131,7 +129,6 @@ ViewLayer *BKE_view_layer_default_view(const Scene *scene)
   return scene->view_layers.first;
 }
 
-/* Returns the default view layer to render if we need to render just one. */
 ViewLayer *BKE_view_layer_default_render(const Scene *scene)
 {
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
@@ -144,7 +141,6 @@ ViewLayer *BKE_view_layer_default_render(const Scene *scene)
   return scene->view_layers.first;
 }
 
-/* Returns view layer with matching name, or NULL if not found. */
 ViewLayer *BKE_view_layer_find(const Scene *scene, const char *layer_name)
 {
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
@@ -156,11 +152,6 @@ ViewLayer *BKE_view_layer_find(const Scene *scene, const char *layer_name)
   return NULL;
 }
 
-/**
- * This is a placeholder to know which areas of the code need to be addressed
- * for the Workspace changes. Never use this, you should typically get the
- * active layer from the context or window.
- */
 ViewLayer *BKE_view_layer_context_active_PLACEHOLDER(const Scene *scene)
 {
   BLI_assert(scene->view_layers.first);
@@ -198,10 +189,6 @@ static void layer_collection_exclude_all(LayerCollection *layer_collection)
   }
 }
 
-/**
- * Add a new view layer
- * by default, a view layer has the master collection
- */
 ViewLayer *BKE_view_layer_add(Scene *scene,
                               const char *name,
                               ViewLayer *view_layer_source,
@@ -261,9 +248,6 @@ void BKE_view_layer_free(ViewLayer *view_layer)
   BKE_view_layer_free_ex(view_layer, true);
 }
 
-/**
- * Free (or release) any data used by this ViewLayer.
- */
 void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
 {
   view_layer->basact = NULL;
@@ -304,9 +288,6 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
   MEM_freeN(view_layer);
 }
 
-/**
- * Tag all the selected objects of a render-layer.
- */
 void BKE_view_layer_selected_objects_tag(ViewLayer *view_layer, const int tag)
 {
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
@@ -332,13 +313,6 @@ static bool find_scene_collection_in_scene_collections(ListBase *lb, const Layer
   return false;
 }
 
-/**
- * Fallback for when a Scene has no camera to use
- *
- * \param view_layer: in general you want to use the same ViewLayer that is used
- * for depsgraph. If rendering you pass the scene active layer, when viewing in the viewport
- * you want to get ViewLayer from context.
- */
 Object *BKE_view_layer_camera_find(ViewLayer *view_layer)
 {
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
@@ -350,9 +324,6 @@ Object *BKE_view_layer_camera_find(ViewLayer *view_layer)
   return NULL;
 }
 
-/**
- * Find the ViewLayer a LayerCollection belongs to
- */
 ViewLayer *BKE_view_layer_find_from_collection(const Scene *scene, LayerCollection *lc)
 {
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
@@ -471,11 +442,6 @@ static void layer_collections_copy_data(ViewLayer *view_layer_dst,
   }
 }
 
-/**
- * Only copy internal data of ViewLayer from source to already allocated/initialized destination.
- *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
- */
 void BKE_view_layer_copy_data(Scene *scene_dst,
                               const Scene *UNUSED(scene_src),
                               ViewLayer *view_layer_dst,
@@ -620,26 +586,17 @@ static bool layer_collection_hidden(ViewLayer *view_layer, LayerCollection *lc)
   return false;
 }
 
-/**
- * Get the collection for a given index
- */
 LayerCollection *BKE_layer_collection_from_index(ViewLayer *view_layer, const int index)
 {
   int i = 0;
   return collection_from_index(&view_layer->layer_collections, index, &i);
 }
 
-/**
- * Get the active collection
- */
 LayerCollection *BKE_layer_collection_get_active(ViewLayer *view_layer)
 {
   return view_layer->active_collection;
 }
 
-/*
- * Activate collection
- */
 bool BKE_layer_collection_activate(ViewLayer *view_layer, LayerCollection *lc)
 {
   if (lc->flag & LAYER_COLLECTION_EXCLUDE) {
@@ -650,9 +607,6 @@ bool BKE_layer_collection_activate(ViewLayer *view_layer, LayerCollection *lc)
   return true;
 }
 
-/**
- * Activate first parent collection
- */
 LayerCollection *BKE_layer_collection_activate_parent(ViewLayer *view_layer, LayerCollection *lc)
 {
   CollectionParent *parent = lc->collection->parents.first;
@@ -690,10 +644,6 @@ static int collection_count(const ListBase *lb)
   return i;
 }
 
-/**
- * Get the total number of collections
- * (including all the nested collections)
- */
 int BKE_layer_collection_count(const ViewLayer *view_layer)
 {
   return collection_count(&view_layer->layer_collections);
@@ -721,9 +671,6 @@ static int index_from_collection(ListBase *lb, const LayerCollection *lc, int *i
   return -1;
 }
 
-/**
- * Return -1 if not found
- */
 int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection *lc)
 {
   int i = 0;
@@ -1220,11 +1167,6 @@ static bool view_layer_objects_base_cache_validate(ViewLayer *UNUSED(view_layer)
 }
 #endif
 
-/**
- * Update view layer collection tree from collections used in the scene.
- * This is used when collections are removed or added, both while editing
- * and on file loaded in case linked data changed or went missing.
- */
 void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 {
   if (no_resync) {
@@ -1379,12 +1321,6 @@ void BKE_main_collection_sync_remap(const Main *bmain)
 
 /* ---------------------------------------------------------------------- */
 
-/**
- * Select all the objects of this layer collection
- *
- * It also select the objects that are in nested collections.
- * \note Recursive
- */
 bool BKE_layer_collection_objects_select(ViewLayer *view_layer, LayerCollection *lc, bool deselect)
 {
   if (lc->collection->flag & COLLECTION_HIDE_SELECT) {
@@ -1463,7 +1399,6 @@ bool BKE_layer_collection_has_layer_collection(LayerCollection *lc_parent,
 
 /* ---------------------------------------------------------------------- */
 
-/* Update after toggling visibility of an object base. */
 void BKE_base_set_visible(Scene *scene, ViewLayer *view_layer, Base *base, bool extend)
 {
   if (!extend) {
@@ -1552,14 +1487,6 @@ static void layer_collection_flag_unset_recursive(LayerCollection *lc, const int
   }
 }
 
-/**
- * Isolate the collection - hide all other collections but this one.
- * Make sure to show all the direct parents and all children of the layer collection as well.
- * When extending we simply show the collections and its direct family.
- *
- * If the collection or any of its parents is disabled, make it enabled.
- * Don't change the children disable state though.
- */
 void BKE_layer_collection_isolate_global(Scene *scene,
                                          ViewLayer *view_layer,
                                          LayerCollection *lc,
@@ -1668,9 +1595,6 @@ void BKE_layer_collection_local_sync(ViewLayer *view_layer, const View3D *v3d)
   }
 }
 
-/**
- * Sync the local collection for all the 3D Viewports.
- */
 void BKE_layer_collection_local_sync_all(const Main *bmain)
 {
   if (no_resync) {
@@ -1694,11 +1618,6 @@ void BKE_layer_collection_local_sync_all(const Main *bmain)
   }
 }
 
-/**
- * Isolate the collection locally
- *
- * Same as BKE_layer_collection_isolate_local but for a viewport
- */
 void BKE_layer_collection_isolate_local(ViewLayer *view_layer,
                                         const View3D *v3d,
                                         LayerCollection *lc,
@@ -1771,11 +1690,6 @@ static void layer_collection_bases_hide_recursive(ViewLayer *view_layer, LayerCo
   }
 }
 
-/**
- * Hide/show all the elements of a collection.
- * Don't change the collection children enable/disable state,
- * but it may change it for the collection itself.
- */
 void BKE_layer_collection_set_visible(ViewLayer *view_layer,
                                       LayerCollection *lc,
                                       const bool visible,
@@ -1862,9 +1776,6 @@ static LayerCollection *find_layer_collection_by_scene_collection(LayerCollectio
   return NULL;
 }
 
-/**
- * Return the first matching LayerCollection in the ViewLayer for the Collection.
- */
 LayerCollection *BKE_layer_collection_first_from_scene_collection(const ViewLayer *view_layer,
                                                                   const Collection *collection)
 {
@@ -1878,17 +1789,11 @@ LayerCollection *BKE_layer_collection_first_from_scene_collection(const ViewLaye
   return NULL;
 }
 
-/**
- * See if view layer has the scene collection linked directly, or indirectly (nested)
- */
 bool BKE_view_layer_has_collection(const ViewLayer *view_layer, const Collection *collection)
 {
   return BKE_layer_collection_first_from_scene_collection(view_layer, collection) != NULL;
 }
 
-/**
- * See if the object is in any of the scene layers of the scene
- */
 bool BKE_scene_has_object(Scene *scene, Object *ob)
 {
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
@@ -2190,9 +2095,6 @@ void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
 
 /* Evaluation. */
 
-/* Applies object's restrict flags on top of flags coming from the collection
- * and stores those in base->flag. BASE_VISIBLE_DEPSGRAPH ignores viewport flags visibility
- * (i.e., restriction and local collection). */
 void BKE_base_eval_flags(Base *base)
 {
   /* Apply collection flags. */
@@ -2455,12 +2357,6 @@ static void bke_view_layer_verify_aov_cb(void *userdata,
   }
 }
 
-/* Update the naming and conflicts of the AOVs.
- *
- * Name must be unique between all AOVs.
- * Conflicts with render passes will show a conflict icon. Reason is that switching a render
- * engine or activating a render pass could lead to other conflicts that wouldn't be that clear
- * for the user. */
 void BKE_view_layer_verify_aov(struct RenderEngine *engine,
                                struct Scene *scene,
                                struct ViewLayer *view_layer)
@@ -2478,7 +2374,6 @@ void BKE_view_layer_verify_aov(struct RenderEngine *engine,
   BLI_ghash_free(name_count, MEM_freeN, NULL);
 }
 
-/* Check if the given view layer has at least one valid AOV. */
 bool BKE_view_layer_has_valid_aov(ViewLayer *view_layer)
 {
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {

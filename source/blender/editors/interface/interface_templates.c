@@ -585,7 +585,6 @@ static uiBlock *id_search_menu(bContext *C, ARegion *region, void *arg_litem)
 
 /* This is for browsing and editing the ID-blocks used */
 
-/* for new/open operators */
 void UI_context_active_but_prop_get_templateID(bContext *C,
                                                PointerRNA *r_ptr,
                                                PropertyRNA **r_prop)
@@ -1556,9 +1555,6 @@ void uiTemplateGpencilColorPreview(uiLayout *layout,
                  false);
 }
 
-/**
- * Version of #uiTemplateID using tabs.
- */
 void uiTemplateIDTabs(uiLayout *layout,
                       bContext *C,
                       PointerRNA *ptr,
@@ -1592,14 +1588,6 @@ void uiTemplateIDTabs(uiLayout *layout,
 /** \name ID Chooser Template
  * \{ */
 
-/**
- * This is for selecting the type of ID-block to use,
- * and then from the relevant type choosing the block to use.
- *
- * \param propname: property identifier for property that ID-pointer gets stored to.
- * \param proptypename: property identifier for property
- * used to determine the type of ID-pointer that can be used.
- */
 void uiTemplateAnyID(uiLayout *layout,
                      PointerRNA *ptr,
                      const char *propname,
@@ -1855,10 +1843,6 @@ static TemplateSearch *template_search_setup(PointerRNA *ptr,
   return template_search;
 }
 
-/**
- * Search menu to pick an item from a collection.
- * A version of uiTemplateID that works for non-ID types.
- */
 void uiTemplateSearch(uiLayout *layout,
                       bContext *C,
                       PointerRNA *ptr,
@@ -1909,13 +1893,6 @@ void uiTemplateSearchPreview(uiLayout *layout,
 
 /* ---------- */
 
-/**
- * This is creating/editing RNA-Paths
- *
- * - ptr: struct which holds the path property
- * - propname: property identifier for property that path gets stored to
- * - root_ptr: struct that path gets built from
- */
 void uiTemplatePathBuilder(uiLayout *layout,
                            PointerRNA *ptr,
                            const char *propname,
@@ -2102,9 +2079,6 @@ static void bone_constraint_panel_id(void *md_link, char *r_name)
   strcat(r_name, cti->structName);
 }
 
-/**
- * Check if the constraint panels don't match the data and rebuild the panels if so.
- */
 void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_constraints)
 {
   ARegion *region = CTX_wm_region(C);
@@ -2280,9 +2254,6 @@ static void shaderfx_panel_id(void *fx_v, char *r_idname)
   BKE_shaderfxType_panel_id(fx->type, r_idname);
 }
 
-/**
- * Check if the shader effect panels don't match the data and rebuild the panels if so.
- */
 void uiTemplateShaderFx(uiLayout *UNUSED(layout), bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
@@ -2564,11 +2535,6 @@ static bool ui_layout_operator_properties_only_booleans(const bContext *C,
   return true;
 }
 
-/**
- * Draw Operator property buttons for redoing execution with different settings.
- * This function does not initialize the layout,
- * functions can be called on the layout before and after.
- */
 void uiTemplateOperatorPropertyButs(
     const bContext *C, uiLayout *layout, wmOperator *op, eButLabelAlign label_align, short flag)
 {
@@ -3537,9 +3503,6 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, const char *propname
 /** \name Icon Template
  * \{ */
 
-/**
- * \param icon_scale: Scale of the icon, 1x == button height.
- */
 void uiTemplateIcon(uiLayout *layout, int icon_value, float icon_scale)
 {
   uiBlock *block = uiLayoutAbsoluteBlock(layout);
@@ -3648,9 +3611,6 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
   return block;
 }
 
-/**
- * \param icon_scale: Scale of the icon, 1x == button height.
- */
 void uiTemplateIconView(uiLayout *layout,
                         PointerRNA *ptr,
                         const char *propname,
@@ -5218,10 +5178,6 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
   UI_block_funcN_set(block, NULL, NULL, NULL);
 }
 
-/**
- * Template for a path creation widget intended for custom bevel profiles.
- * This section is quite similar to #uiTemplateCurveMapping, but with reduced complexity.
- */
 void uiTemplateCurveProfile(uiLayout *layout, PointerRNA *ptr, const char *propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
@@ -5268,7 +5224,6 @@ void uiTemplateCurveProfile(uiLayout *layout, PointerRNA *ptr, const char *propn
 
 #define WHEEL_SIZE (5 * U.widget_unit)
 
-/* This template now follows User Preference for type - name is not correct anymore... */
 void uiTemplateColorPicker(uiLayout *layout,
                            PointerRNA *ptr,
                            const char *propname,
@@ -5659,10 +5614,6 @@ static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
   /* see view3d_header.c */
 }
 
-/**
- * \todo for now, grouping of layers is determined by dividing up the length of
- * the array of layer bitflags
- */
 void uiTemplateLayers(uiLayout *layout,
                       PointerRNA *ptr,
                       const char *propname,

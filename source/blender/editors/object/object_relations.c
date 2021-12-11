@@ -1788,8 +1788,6 @@ static void single_object_users(
   BKE_main_collection_sync_remap(bmain);
 }
 
-/* not an especially efficient function, only added so the single user
- * button can be functional. */
 void ED_object_single_user(Main *bmain, Scene *scene, Object *ob)
 {
   FOREACH_SCENE_OBJECT_BEGIN (scene, ob_iter) {
@@ -2737,7 +2735,6 @@ bool ED_operator_drop_material_poll(bContext *C)
  * Used for drop-box.
  * Assigns to object under cursor, only first material slot.
  */
-
 void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 {
   /* identifiers */
@@ -2796,9 +2793,6 @@ static int object_unlink_data_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/**
- * \note Only for empty-image objects, this operator is needed
- */
 void OBJECT_OT_unlink_data(wmOperatorType *ot)
 {
   /* identifiers */

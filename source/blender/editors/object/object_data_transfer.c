@@ -603,7 +603,6 @@ static bool data_transfer_poll_property(const bContext *UNUSED(C),
   return true;
 }
 
-/* Transfer mesh data from active to selected objects. */
 void OBJECT_OT_data_transfer(wmOperatorType *ot)
 {
   PropertyRNA *prop;

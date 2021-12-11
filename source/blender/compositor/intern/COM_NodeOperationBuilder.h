@@ -169,6 +169,7 @@ class NodeOperationBuilder {
  private:
   PreviewOperation *make_preview_operation() const;
   void unlink_inputs_and_relink_outputs(NodeOperation *unlinked_op, NodeOperation *linked_op);
+  /** Merge operations with same type, inputs and parameters that produce the same result. */
   void merge_equal_operations();
   void merge_equal_operations(NodeOperation *from, NodeOperation *into);
   void save_graphviz(StringRefNull name = "");
@@ -177,6 +178,7 @@ class NodeOperationBuilder {
 #endif
 };
 
+/** Create a graphviz representation of the NodeOperationBuilder. */
 std::ostream &operator<<(std::ostream &os, const NodeOperationBuilder &builder);
 std::ostream &operator<<(std::ostream &os, const NodeOperationBuilder::Link &link);
 

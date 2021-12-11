@@ -71,7 +71,7 @@ def expect_exception_or_abort(*, fn, ex):
     print_fail_msg_and_exit("test failed")
 
 
-def expect_ouput_or_abort(*, fn, match_stderr=None, match_stdout=None):
+def expect_output_or_abort(*, fn, match_stderr=None, match_stdout=None):
 
     stdout, stderr = io.StringIO(), io.StringIO()
 
@@ -278,7 +278,7 @@ def test_restrictions1():
             expect_false_or_abort(not hasattr(op, "id_prop"))
 
     bpy.utils.register_class(TEST_PT_DatablockProp)
-    expect_ouput_or_abort(
+    expect_output_or_abort(
         fn=lambda: bpy.utils.register_class(TEST_Op),
         match_stderr="^ValueError: bpy_struct \"SCENE_OT_test_op\" registration error:",
     )

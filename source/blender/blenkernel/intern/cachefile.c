@@ -420,12 +420,6 @@ float BKE_cachefile_time_offset(const CacheFile *cache_file, const float time, c
   return cache_file->is_sequence ? frame : frame / fps - time_offset;
 }
 
-/**
- * Determine whether the #CacheFile should use a render engine procedural. If so, data is not read
- * from the file and bounding boxes are used to represent the objects in the Scene.
- * Render engines will receive the bounding box as a placeholder but can instead
- * load the data directly if they support it.
- */
 bool BKE_cache_file_uses_render_procedural(const CacheFile *cache_file,
                                            Scene *scene,
                                            const int dag_eval_mode)

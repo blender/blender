@@ -829,7 +829,6 @@ static void graph_space_subtype_item_extend(bContext *UNUSED(C),
   RNA_enum_items_add(item, totitem, rna_enum_space_graph_mode_items);
 }
 
-/* only called once, from space/spacetypes.c */
 void ED_spacetype_ipo(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype ipo");

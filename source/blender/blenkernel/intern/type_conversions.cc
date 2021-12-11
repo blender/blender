@@ -14,7 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "NOD_type_conversions.hh"
+#include "BKE_type_conversions.hh"
 
 #include "FN_multi_function_builder.hh"
 
@@ -22,7 +22,7 @@
 #include "BLI_float2.hh"
 #include "BLI_float3.hh"
 
-namespace blender::nodes {
+namespace blender::bke {
 
 using fn::MFDataType;
 
@@ -344,4 +344,4 @@ fn::GVMutableArray DataTypeConversions::try_convert(fn::GVMutableArray varray,
       std::move(varray), to_type, *this);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::bke

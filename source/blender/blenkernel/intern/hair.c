@@ -408,6 +408,7 @@ void BKE_hair_data_update(struct Depsgraph *depsgraph, struct Scene *scene, Obje
 }
 
 /* Draw Cache */
+
 void (*BKE_hair_batch_cache_dirty_tag_cb)(Hair *hair, int mode) = NULL;
 void (*BKE_hair_batch_cache_free_cb)(Hair *hair) = NULL;
 

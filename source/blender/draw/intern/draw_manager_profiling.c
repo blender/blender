@@ -129,8 +129,6 @@ static void drw_stats_timer_start_ex(const char *name, const bool is_query)
   }
 }
 
-/* Use this to group the queries. It does NOT keep track
- * of the time, it only sum what the queries inside it. */
 void DRW_stats_group_start(const char *name)
 {
   drw_stats_timer_start_ex(name, false);
@@ -147,7 +145,6 @@ void DRW_stats_group_end(void)
   }
 }
 
-/* NOTE: Only call this when no sub timer will be called. */
 void DRW_stats_query_start(const char *name)
 {
   GPU_debug_group_begin(name);

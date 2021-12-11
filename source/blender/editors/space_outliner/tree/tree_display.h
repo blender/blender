@@ -49,12 +49,20 @@ ListBase outliner_tree_display_build_tree(TreeDisplay *tree_display, TreeSourceD
 
 /* The following functions are needed to build the tree. They are calls back into C; the way
  * elements are created should be refactored and ported to C++ with a new design/API too. */
+/**
+ * TODO: this function needs to be split up! It's getting a bit too large...
+ *
+ * \note "ID" is not always a real ID.
+ * \note If child items are only added to the tree if the item is open,
+ * the `TSE_` type _must_ be added to #outliner_element_needs_rebuild_on_open_change().
+ */
 struct TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                                          ListBase *lb,
                                          void *idv,
                                          struct TreeElement *parent,
                                          short type,
                                          short index);
+/* make sure elements are correctly nested */
 void outliner_make_object_parent_hierarchy(ListBase *lb);
 bool outliner_animdata_test(const struct AnimData *adt);
 TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outliner,

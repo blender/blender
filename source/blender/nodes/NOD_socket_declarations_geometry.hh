@@ -52,7 +52,3 @@ class GeometryBuilder : public SocketDeclarationBuilder<Geometry> {
 };
 
 }  // namespace blender::nodes::decl
-
-namespace blender::nodes {
-MAKE_EXTERN_SOCKET_DECLARATION(decl::Geometry)
-}

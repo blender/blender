@@ -97,6 +97,11 @@ def use_cpu(context):
     return (get_device_type(context) == 'NONE' or cscene.device == 'CPU')
 
 
+def use_metal(context):
+    cscene = context.scene.cycles
+
+    return (get_device_type(context) == 'METAL' and cscene.device == 'GPU')
+
 def use_cuda(context):
     cscene = context.scene.cycles
 

@@ -40,6 +40,15 @@ typedef struct GapInfo {
   int gap_length;      /* Length of the gap. */
   bool gap_exists;     /* False if there are no gaps. */
 } GapInfo;
+
+/**
+ * Find first gap between strips after initial_frame and describe it by filling data of r_gap_info
+ *
+ * \param scene: Scene in which strips are located.
+ * \param seqbase: ListBase in which strips are located.
+ * \param initial_frame: frame on timeline from where gaps are searched for.
+ * \param r_gap_info: data structure describing gap, that will be filled in by this function.
+ */
 void seq_time_gap_info_get(const struct Scene *scene,
                            struct ListBase *seqbase,
                            const int initial_frame,

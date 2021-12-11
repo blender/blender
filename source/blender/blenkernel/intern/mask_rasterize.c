@@ -1474,9 +1474,6 @@ static void maskrasterize_buffer_cb(void *__restrict userdata,
   }
 }
 
-/**
- * \brief Rasterize a buffer from a single mask (threaded execution).
- */
 void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
                               const unsigned int width,
                               const unsigned int height,

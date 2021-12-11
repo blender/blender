@@ -237,7 +237,7 @@ struct AssetEntryWriter {
     char idcode_prefix[2];
     /* Similar to `BKE_libblock_alloc`. */
     *((short *)idcode_prefix) = idcode;
-    std::string name_with_idcode = std::string(idcode_prefix) + name;
+    std::string name_with_idcode = std::string(idcode_prefix, sizeof(idcode_prefix)) + name;
 
     attributes.append_as(std::pair(ATTRIBUTE_ENTRIES_NAME, new StringValue(name_with_idcode)));
   }

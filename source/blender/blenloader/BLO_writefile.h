@@ -64,12 +64,18 @@ struct BlendFileWriteParams {
   const struct BlendThumbnail *thumb;
 };
 
+/**
+ * \return Success.
+ */
 extern bool BLO_write_file(struct Main *mainvar,
                            const char *filepath,
                            const int write_flags,
                            const struct BlendFileWriteParams *params,
                            struct ReportList *reports);
 
+/**
+ * \return Success.
+ */
 extern bool BLO_write_file_mem(struct Main *mainvar,
                                struct MemFile *compare,
                                struct MemFile *current,

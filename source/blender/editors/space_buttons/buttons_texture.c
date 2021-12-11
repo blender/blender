@@ -667,7 +667,6 @@ static void template_texture_show(bContext *C, void *data_p, void *prop_p)
   }
 }
 
-/* Button to quickly show texture in Properties Editor texture tab. */
 void uiTemplateTextureShow(uiLayout *layout, const bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {
   /* Only show the button if there is actually a texture assigned. */

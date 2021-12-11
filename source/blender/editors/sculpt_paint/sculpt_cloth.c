@@ -2181,7 +2181,6 @@ static void cloth_sim_initialize_default_node_state(SculptSession *ss,
   MEM_SAFE_FREE(nodes);
 }
 
-/* Public functions. */
 SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
                                                             Object *ob,
                                                             const float cloth_mass,
@@ -2364,7 +2363,6 @@ static void sculpt_cloth_ensure_constraints_in_simulation_area(Sculpt *sd,
       sd, ob, nodes, totnode, ss->cache->cloth_sim, sim_location, limit);
 }
 
-/* Main Brush Function. */
 void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;

@@ -29,13 +29,13 @@ namespace blender {
 namespace deg {
 
 struct RootPChanMap {
-  /* Debug contents of map. */
+  /** Debug contents of map. */
   void print_debug();
 
-  /* Add a mapping. */
+  /** Add a mapping. */
   void add_bone(const char *bone, const char *root);
 
-  /* Check if there's a common root bone between two bones. */
+  /** Check if there's a common root bone between two bones. */
   bool has_common_root(const char *bone1, const char *bone2) const;
 
  protected:

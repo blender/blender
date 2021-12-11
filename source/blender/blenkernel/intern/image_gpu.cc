@@ -61,7 +61,6 @@ struct ImagePartialRefresh {
   int tile_y;
 };
 
-/* Is the alpha of the `GPUTexture` for a given image/ibuf premultiplied. */
 bool BKE_image_has_gpu_texture_premultiplied_alpha(Image *image, ImBuf *ibuf)
 {
   if (image) {
@@ -598,7 +597,6 @@ void BKE_image_free_all_gputextures(Main *bmain)
   }
 }
 
-/* same as above but only free animated images */
 void BKE_image_free_anim_gputextures(Main *bmain)
 {
   if (bmain) {
@@ -901,8 +899,6 @@ static void image_update_gputexture_ex(
   }
 }
 
-/* Partial update of texture for texture painting. This is often much
- * quicker than fully updating the texture for high resolution images. */
 void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int w, int h)
 {
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, nullptr);
@@ -916,10 +912,6 @@ void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int
   BKE_image_release_ibuf(ima, ibuf, nullptr);
 }
 
-/* Mark areas on the GPUTexture that needs to be updated. The areas are marked in chunks.
- * The next time the GPUTexture is used these tiles will be refreshes. This saves time
- * when writing to the same place multiple times This happens for during foreground
- * rendering. */
 void BKE_image_update_gputexture_delayed(
     struct Image *ima, struct ImBuf *ibuf, int x, int y, int w, int h)
 {
@@ -993,10 +985,6 @@ void BKE_image_update_gputexture_delayed(
   }
 }
 
-/* these two functions are called on entering and exiting texture paint mode,
- * temporary disabling/enabling mipmapping on all images for quick texture
- * updates with glTexSubImage2D. images that didn't change don't have to be
- * re-uploaded to OpenGL */
 void BKE_image_paint_set_mipmap(Main *bmain, bool mipmap)
 {
   LISTBASE_FOREACH (Image *, ima, &bmain->images) {

@@ -247,6 +247,12 @@ PointerRNA CTX_data_pointer_get_type_silent(const bContext *C,
                                             const char *member,
                                             StructRNA *type);
 ListBase CTX_data_collection_get(const bContext *C, const char *member);
+/**
+ * \param C: Context.
+ * \param use_store: Use 'C->wm.store'.
+ * \param use_rna: Use Include the properties from 'RNA_Context'.
+ * \param use_all: Don't skip values (currently only "scene").
+ */
 ListBase CTX_data_dir_get_ex(const bContext *C,
                              const bool use_store,
                              const bool use_rna,
@@ -297,6 +303,13 @@ int ctx_data_list_count(const bContext *C, int (*func)(const bContext *, ListBas
 
 struct Main *CTX_data_main(const bContext *C);
 struct Scene *CTX_data_scene(const bContext *C);
+/**
+ * This is tricky. Sometimes the user overrides the render_layer
+ * but not the scene_collection. In this case what to do?
+ *
+ * If the scene_collection is linked to the #ViewLayer we use it.
+ * Otherwise we fallback to the active one of the #ViewLayer.
+ */
 struct LayerCollection *CTX_data_layer_collection(const bContext *C);
 struct Collection *CTX_data_collection(const bContext *C);
 struct ViewLayer *CTX_data_view_layer(const bContext *C);
@@ -367,28 +380,34 @@ struct AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid);
 
 bool CTX_wm_interface_locked(const bContext *C);
 
-/* Gets pointer to the dependency graph.
+/**
+ * Gets pointer to the dependency graph.
  * If it doesn't exist yet, it will be allocated.
  *
  * The result dependency graph is NOT guaranteed to be up-to-date neither from relation nor from
  * evaluated data points of view.
  *
- * NOTE: Can not be used if access to a fully evaluated datablock is needed. */
+ * \note Can not be used if access to a fully evaluated data-block is needed.
+ */
 struct Depsgraph *CTX_data_depsgraph_pointer(const bContext *C);
 
-/* Get dependency graph which is expected to be fully evaluated.
+/**
+ * Get dependency graph which is expected to be fully evaluated.
  *
  * In the release builds it is the same as CTX_data_depsgraph_pointer(). In the debug builds extra
  * sanity checks are done. Additionally, this provides more semantic meaning to what is exactly
- * expected to happen. */
+ * expected to happen.
+ */
 struct Depsgraph *CTX_data_expect_evaluated_depsgraph(const bContext *C);
 
-/* Gets fully updated and evaluated dependency graph.
+/**
+ * Gets fully updated and evaluated dependency graph.
  *
  * All the relations and evaluated objects are guaranteed to be up to date.
  *
- * NOTE: Will be expensive if there are relations or objects tagged for update.
- * NOTE: If there are pending updates depsgraph hooks will be invoked. */
+ * \note Will be expensive if there are relations or objects tagged for update.
+ * \note If there are pending updates depsgraph hooks will be invoked.
+ */
 struct Depsgraph *CTX_data_ensure_evaluated_depsgraph(const bContext *C);
 
 /* Will Return NULL if depsgraph is not allocated yet.

@@ -369,11 +369,6 @@ static bool scanfill_preprocess_self_isect(ScanFillContext *sf_ctx,
   return true;
 }
 
-/**
- * Call before scanfill to remove self intersections.
- *
- * \return false if no changes were made.
- */
 bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
                                   ListBase *remvertbase,
                                   ListBase *remedgebase)

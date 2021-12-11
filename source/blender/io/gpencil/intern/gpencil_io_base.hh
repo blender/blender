@@ -87,11 +87,16 @@ class GpencilIO {
   float stroke_color_[4], fill_color_[4];
 
   /* Geometry functions. */
+  /** Convert to screenspace. */
   bool gpencil_3D_point_to_screen_space(const float3 co, float2 &r_co);
+  /** Convert to render space. */
   float2 gpencil_3D_point_to_render_space(const float3 co);
+  /** Convert to 2D. */
   float2 gpencil_3D_point_to_2D(const float3 co);
 
+  /** Get radius of point. */
   float stroke_point_radius_get(struct bGPDlayer *gpl, struct bGPDstroke *gps);
+  /** Create a list of selected objects sorted from back to front */
   void create_object_list();
 
   bool is_camera_mode();
@@ -101,8 +106,13 @@ class GpencilIO {
   void prepare_layer_export_matrix(struct Object *ob, struct bGPDlayer *gpl);
   void prepare_stroke_export_colors(struct Object *ob, struct bGPDstroke *gps);
 
+  /* Calculate selected strokes boundbox. */
   void selected_objects_boundbox_calc();
   void selected_objects_boundbox_get(rctf *boundbox);
+  /**
+   * Set file input_text full path.
+   * \param filename: Path of the file provided by save dialog.
+   */
   void filename_set(const char *filename);
 
  private:

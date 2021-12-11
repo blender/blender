@@ -221,8 +221,6 @@ MetaBall *BKE_mball_add(Main *bmain, const char *name)
   return mb;
 }
 
-/* most simple meta-element adding function
- * don't do context manipulation here (rna uses) */
 MetaElem *BKE_mball_element_add(MetaBall *mb, const int type)
 {
   MetaElem *ml = MEM_callocN(sizeof(MetaElem), "metaelem");
@@ -269,13 +267,6 @@ MetaElem *BKE_mball_element_add(MetaBall *mb, const int type)
 
   return ml;
 }
-/**
- * Compute bounding box of all #MetaElem / #MetaBall
- *
- * Bounding box is computed from polygonized surface. \a ob is
- * basic meta-balls (with name `Meta` for example). All other meta-ball objects
- * (with names `Meta.001`, `Meta.002`, etc) are included in this bounding-box.
- */
 void BKE_mball_texspace_calc(Object *ob)
 {
   DispList *dl;
@@ -319,7 +310,6 @@ void BKE_mball_texspace_calc(Object *ob)
   bb->flag &= ~BOUNDBOX_DIRTY;
 }
 
-/** Return or compute bbox for given metaball object. */
 BoundBox *BKE_mball_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_MBALL);
@@ -372,38 +362,29 @@ float *BKE_mball_make_orco(Object *ob, ListBase *dispbase)
   return orcodata;
 }
 
-/**
- * \brief Test, if \a ob is a basis meta-ball.
- *
- * It test last character of Object ID name. If last character
- * is digit it return 0, else it return 1.
- *
- *
- * Meta-Ball Basis Notes from Blender-2.5x
- * =======================================
- *
- * This is a can of worms.
- *
- * This really needs a rewrite/refactor its totally broken in anything other than basic cases
- * Multiple Scenes + Set Scenes & mixing meta-ball basis _should_ work but fails to update the
- * depsgraph on rename and linking into scenes or removal of basis meta-ball.
- * So take care when changing this code.
- *
- * Main idiot thing here is that the system returns #BKE_mball_basis_find()
- * objects which fail a #BKE_mball_is_basis() test.
- *
- * Not only that but the depsgraph and their areas depend on this behavior,
- * so making small fixes here isn't worth it.
- * - Campbell
- */
 bool BKE_mball_is_basis(Object *ob)
 {
-  /* just a quick test */
+  /* Meta-Ball Basis Notes from Blender-2.5x
+   * =======================================
+   *
+   * NOTE(@campbellbarton): This is a can of worms.
+   *
+   * This really needs a rewrite/refactor its totally broken in anything other than basic cases
+   * Multiple Scenes + Set Scenes & mixing meta-ball basis _should_ work but fails to update the
+   * depsgraph on rename and linking into scenes or removal of basis meta-ball.
+   * So take care when changing this code.
+   *
+   * Main idiot thing here is that the system returns #BKE_mball_basis_find()
+   * objects which fail a #BKE_mball_is_basis() test.
+   *
+   * Not only that but the depsgraph and their areas depend on this behavior,
+   * so making small fixes here isn't worth it. */
+
+  /* Just a quick test. */
   const int len = strlen(ob->id.name);
   return (!isdigit(ob->id.name[len - 1]));
 }
 
-/* return nonzero if ob1 is a basis mball for ob */
 bool BKE_mball_is_basis_for(Object *ob1, Object *ob2)
 {
   int basis1nr, basis2nr;
@@ -456,13 +437,6 @@ bool BKE_mball_is_any_unselected(const MetaBall *mb)
   return false;
 }
 
-/**
- * \brief copy some properties from object to other meta-ball object with same base name
- *
- * When some properties (wire-size, threshold, update flags) of meta-ball are changed, then this
- * properties are copied to all meta-balls in same "group" (meta-balls with same base name:
- * `MBall`, `MBall.001`, `MBall.002`, etc). The most important is to copy properties to the base
- * meta-ball, because this meta-ball influence polygonization of meta-balls. */
 void BKE_mball_properties_copy(Scene *scene, Object *active_object)
 {
   Scene *sce_iter = scene;
@@ -501,14 +475,6 @@ void BKE_mball_properties_copy(Scene *scene, Object *active_object)
   }
 }
 
-/** \brief This function finds the basis MetaBall.
- *
- * Basis meta-ball doesn't include any number at the end of
- * its name. All meta-balls with same base of name can be
- * blended. meta-balls with different basic name can't be blended.
- *
- * \warning #BKE_mball_is_basis() can fail on returned object, see function docs for details.
- */
 Object *BKE_mball_basis_find(Scene *scene, Object *object)
 {
   Object *bob = object;
@@ -573,7 +539,6 @@ bool BKE_mball_minmax_ex(
   return changed;
 }
 
-/* basic vertex data functions */
 bool BKE_mball_minmax(const MetaBall *mb, float min[3], float max[3])
 {
   INIT_MINMAX(min, max);
@@ -648,7 +613,6 @@ void BKE_mball_translate(MetaBall *mb, const float offset[3])
   }
 }
 
-/* *** select funcs *** */
 int BKE_mball_select_count(const MetaBall *mb)
 {
   int sel = 0;

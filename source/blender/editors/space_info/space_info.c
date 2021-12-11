@@ -264,7 +264,6 @@ static void info_header_region_message_subscribe(const wmRegionMessageSubscribeP
   WM_msg_subscribe_rna_anon_prop(mbus, ViewLayer, name, &msg_sub_value_region_tag_redraw);
 }
 
-/* only called once, from space/spacetypes.c */
 void ED_spacetype_info(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype info");

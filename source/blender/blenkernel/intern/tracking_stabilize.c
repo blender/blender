@@ -1252,24 +1252,6 @@ static StabContext *init_stabilizer(MovieClip *clip, int size, float aspect)
 
 /* === public interface functions === */
 
-/* Get stabilization data (translation, scaling and angle) for a given frame.
- * Returned data describes how to compensate the detected movement, but with any
- * chosen scale factor already applied and any target frame position already
- * compensated. In case stabilization fails or is disabled, neutral values are
- * returned.
- *
- * framenr is a frame number, relative to the clip (not relative to the scene
- *         timeline)
- * width is an effective width of the canvas (square pixels), used to scale the
- *       determined translation
- *
- * Outputs:
- * - translation of the lateral shift, absolute canvas coordinates
- *   (square pixels).
- * - scale of the scaling to apply
- * - angle of the rotation angle, relative to the frame center
- */
-/* TODO(sergey): Use r_ prefix for output parameters here. */
 void BKE_tracking_stabilization_data_get(MovieClip *clip,
                                          int framenr,
                                          int width,
@@ -1336,12 +1318,6 @@ static void tracking_stabilize_frame_interpolation_cb(
   }
 }
 
-/* Stabilize given image buffer using stabilization data for a specified
- * frame number.
- *
- * NOTE: frame number should be in clip space, not scene space.
- */
-/* TODO(sergey): Use r_ prefix for output parameters here. */
 ImBuf *BKE_tracking_stabilize_frame(
     MovieClip *clip, int framenr, ImBuf *ibuf, float translation[2], float *scale, float *angle)
 {
@@ -1449,16 +1425,6 @@ ImBuf *BKE_tracking_stabilize_frame(
   return tmpibuf;
 }
 
-/* Build a 4x4 transformation matrix based on the given 2D stabilization data.
- * mat is a 4x4 matrix in homogeneous coordinates, adapted to the
- *     final image buffer size and compensated for pixel aspect ratio,
- *     ready for direct OpenGL drawing.
- *
- * TODO(sergey): The signature of this function should be changed. we actually
- *               don't need the dimensions of the image buffer. Instead we
- *               should consider to provide the pivot point of the rotation as a
- *               further stabilization data parameter.
- */
 void BKE_tracking_stabilization_data_to_mat4(int buffer_width,
                                              int buffer_height,
                                              float pixel_aspect,

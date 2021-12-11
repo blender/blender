@@ -39,7 +39,7 @@
 
 using namespace blender;
 
-AssetMetaData *BKE_asset_metadata_create(void)
+AssetMetaData *BKE_asset_metadata_create()
 {
   AssetMetaData *asset_data = (AssetMetaData *)MEM_callocN(sizeof(*asset_data), __func__);
   memcpy(asset_data, DNA_struct_default_get(AssetMetaData), sizeof(*asset_data));
@@ -78,9 +78,6 @@ AssetTag *BKE_asset_metadata_tag_add(AssetMetaData *asset_data, const char *name
   return tag;
 }
 
-/**
- * Make sure there is a tag with name \a name, create one if needed.
- */
 struct AssetTagEnsureResult BKE_asset_metadata_tag_ensure(AssetMetaData *asset_data,
                                                           const char *name)
 {

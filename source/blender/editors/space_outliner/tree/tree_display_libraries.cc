@@ -33,7 +33,6 @@
 
 namespace blender::ed::outliner {
 
-/* Convenience/readability. */
 template<typename T> using List = ListBaseWrapper<T>;
 
 TreeDisplayLibraries::TreeDisplayLibraries(SpaceOutliner &space_outliner)

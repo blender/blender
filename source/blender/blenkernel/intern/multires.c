@@ -341,9 +341,6 @@ MultiresModifierData *find_multires_modifier_before(Scene *scene, ModifierData *
   return NULL;
 }
 
-/* used for applying scale on mdisps layer and syncing subdivide levels when joining objects
- * use_first - return first multires modifier if all multires'es are disabled
- */
 MultiresModifierData *get_multires_modifier(Scene *scene, Object *ob, bool use_first)
 {
   ModifierData *md;
@@ -530,7 +527,6 @@ static int get_levels_from_disps(Object *ob)
   return totlvl;
 }
 
-/* reset the multires levels to match the number of mdisps */
 void multiresModifier_set_levels_from_disps(MultiresModifierData *mmd, Object *ob)
 {
   Mesh *me = ob->data;
@@ -723,7 +719,6 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
   multires_set_tot_level(ob, mmd, lvl);
 }
 
-/* (direction = 1) for delete higher, (direction = 0) for lower (not implemented yet) */
 void multiresModifier_del_levels(MultiresModifierData *mmd,
                                  Scene *scene,
                                  Object *ob,
@@ -1750,7 +1745,6 @@ DerivedMesh *multires_make_derived_from_derived(
   return result;
 }
 
-/* Adapted from sculptmode.c */
 void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u, float v)
 {
   int x, y, x2, y2;
@@ -1804,8 +1798,6 @@ void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u,
   add_v3_v3v3(out, d2[0], d2[1]);
 }
 
-/* If 'ob_src' and 'ob_dst' both have multires modifiers, synchronize them
- * such that 'ob_dst' has the same total number of levels as 'ob_src'. */
 void multiresModifier_sync_levels_ex(Object *ob_dst,
                                      MultiresModifierData *mmd_src,
                                      MultiresModifierData *mmd_dst)
@@ -1924,7 +1916,6 @@ void multiresModifier_prepare_join(struct Depsgraph *depsgraph,
   multires_apply_smat(depsgraph, scene, ob, mat);
 }
 
-/* update multires data after topology changing */
 void multires_topology_changed(Mesh *me)
 {
   MDisps *mdisp = NULL, *cur = NULL;
@@ -1959,11 +1950,6 @@ void multires_topology_changed(Mesh *me)
   }
 }
 
-/* Makes sure data from an external file is fully read.
- *
- * Since the multires data files only contain displacement vectors without knowledge about
- * subdivision level some extra work is needed. Namely make is to all displacement grids have
- * proper level and number of displacement vectors set. */
 void multires_ensure_external_read(struct Mesh *mesh, int top_level)
 {
   if (!CustomData_external_test(&mesh->ldata, CD_MDISPS)) {
@@ -1999,7 +1985,6 @@ void multiresModifier_ensure_external_read(struct Mesh *mesh, const MultiresModi
 
 /***************** Multires interpolation stuff *****************/
 
-/* Find per-corner coordinate with given per-face UV coord */
 int mdisp_rot_face_to_crn(struct MVert *UNUSED(mvert),
                           struct MPoly *mpoly,
                           struct MLoop *UNUSED(mloop),

@@ -274,12 +274,6 @@ void AbcCurveReader::read_curve_sample(Curve *cu,
   }
 }
 
-/* NOTE: Alembic only stores data about control points, but the Mesh
- * passed from the cache modifier contains the displist, which has more data
- * than the control points, so to avoid corrupting the displist we modify the
- * object directly and create a new Mesh from that. Also we might need to
- * create new or delete existing NURBS in the curve.
- */
 Mesh *AbcCurveReader::read_mesh(Mesh *existing_mesh,
                                 const ISampleSelector &sample_sel,
                                 int /*read_flag*/,

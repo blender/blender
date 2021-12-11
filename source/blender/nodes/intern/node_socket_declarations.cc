@@ -376,4 +376,29 @@ GeometryBuilder &GeometryBuilder::only_instances(bool value)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name #Shader
+ * \{ */
+
+bNodeSocket &Shader::build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const
+{
+  bNodeSocket &socket = *nodeAddSocket(
+      &ntree, &node, in_out, "NodeSocketShader", identifier_.c_str(), name_.c_str());
+  this->set_common_flags(socket);
+  return socket;
+}
+
+bool Shader::matches(const bNodeSocket &socket) const
+{
+  if (!this->matches_common_data(socket)) {
+    return false;
+  }
+  if (socket.type != SOCK_SHADER) {
+    return false;
+  }
+  return true;
+}
+
+/** \} */
+
 }  // namespace blender::nodes::decl

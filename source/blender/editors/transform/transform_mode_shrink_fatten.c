@@ -110,7 +110,7 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
   size_t ofs = 0;
   UnitSettings *unit = &t->scene->unit;
 
-  distance = t->values[0];
+  distance = t->values[0] + t->values_modal_offset[0];
 
   transform_snap_increment(t, &distance);
 

@@ -124,7 +124,6 @@ struct ExprPyLike_Parsed {
 /** \name Public API
  * \{ */
 
-/** Free the parsed data; NULL argument is ok. */
 void BLI_expr_pylike_free(ExprPyLike_Parsed *expr)
 {
   if (expr != NULL) {
@@ -132,19 +131,16 @@ void BLI_expr_pylike_free(ExprPyLike_Parsed *expr)
   }
 }
 
-/** Check if the parsing result is valid for evaluation. */
 bool BLI_expr_pylike_is_valid(ExprPyLike_Parsed *expr)
 {
   return expr != NULL && expr->ops_count > 0;
 }
 
-/** Check if the parsed expression always evaluates to the same value. */
 bool BLI_expr_pylike_is_constant(ExprPyLike_Parsed *expr)
 {
   return expr != NULL && expr->ops_count == 1 && expr->ops[0].opcode == OPCODE_CONST;
 }
 
-/** Check if the parsed expression uses the parameter with the given index. */
 bool BLI_expr_pylike_is_using_param(ExprPyLike_Parsed *expr, int index)
 {
   int i;
@@ -168,10 +164,6 @@ bool BLI_expr_pylike_is_using_param(ExprPyLike_Parsed *expr, int index)
 /** \name Stack Machine Evaluation
  * \{ */
 
-/**
- * Evaluate the expression with the given parameters.
- * The order and number of parameters must match the names given to parse.
- */
 eExprPyLike_EvalStatus BLI_expr_pylike_eval(ExprPyLike_Parsed *expr,
                                             const double *param_values,
                                             int param_values_len,
@@ -1073,12 +1065,6 @@ static bool parse_expr(ExprParseState *state)
 /** \name Main Parsing Function
  * \{ */
 
-/**
- * Compile the expression and return the result.
- *
- * Parse the expression for evaluation later.
- * Returns non-NULL even on failure; use is_valid to check.
- */
 ExprPyLike_Parsed *BLI_expr_pylike_parse(const char *expression,
                                          const char **param_names,
                                          int param_names_len)

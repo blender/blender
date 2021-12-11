@@ -115,12 +115,6 @@ static void set_tspace(const SMikkTSpaceContext *pContext,
   p_res[3] = face_sign;
 }
 
-/**
- * Compute simplified tangent space normals, i.e.
- * tangent vector + sign of bi-tangent one, which combined with
- * split normals can be used to recreate the full tangent space.
- * NOTE: * The mesh should be made of only tris and quads!
- */
 void BKE_mesh_calc_loop_tangent_single_ex(const MVert *mverts,
                                           const int UNUSED(numVerts),
                                           const MLoop *mloops,
@@ -172,12 +166,6 @@ void BKE_mesh_calc_loop_tangent_single_ex(const MVert *mverts,
   }
 }
 
-/**
- * Wrapper around BKE_mesh_calc_loop_tangent_single_ex, which takes care of most boiling code.
- * \note
- * - There must be a valid loop's CD_NORMALS available.
- * - The mesh should be made of only tris and quads!
- */
 void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
                                        const char *uvmap,
                                        float (*r_looptangents)[4],
@@ -485,12 +473,6 @@ void BKE_mesh_add_loop_tangent_named_layer_for_uv(CustomData *uv_data,
   }
 }
 
-/**
- * Here we get some useful information such as active uv layer name and
- * search if it is already in tangent_names.
- * Also, we calculate tangent_mask that works as a descriptor of tangents state.
- * If tangent_mask has changed, then recalculate tangents.
- */
 void BKE_mesh_calc_loop_tangent_step_0(const CustomData *loopData,
                                        bool calc_active_tangent,
                                        const char (*tangent_names)[MAX_NAME],
@@ -564,9 +546,6 @@ void BKE_mesh_calc_loop_tangent_step_0(const CustomData *loopData,
   }
 }
 
-/**
- * See: #BKE_editmesh_loop_tangent_calc (matching logic).
- */
 void BKE_mesh_calc_loop_tangent_ex(const MVert *mvert,
                                    const MPoly *mpoly,
                                    const uint mpoly_len,

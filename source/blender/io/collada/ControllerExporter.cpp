@@ -161,8 +161,6 @@ std::string ControllerExporter::get_controller_id(Key *key, Object *ob)
   return translate_id(id_name(ob)) + MORPH_CONTROLLER_ID_SUFFIX;
 }
 
-/* ob should be of type OB_MESH
- * both args are required */
 void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 {
   /* joint names
@@ -377,7 +375,6 @@ std::string ControllerExporter::add_morph_weights(Key *key, Object *ob)
   return source_id;
 }
 
-/* Added to implement support for animations. */
 void ControllerExporter::add_weight_extras(Key *key)
 {
   /* can also try the base element and param alternative */

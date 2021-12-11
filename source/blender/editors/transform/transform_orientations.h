@@ -25,6 +25,10 @@
 
 struct TransInfo;
 
+/**
+ * Sets the matrix of the specified space orientation.
+ * If the matrix cannot be obtained, an orientation different from the one informed is returned.
+ */
 short transform_orientation_matrix_get(struct bContext *C,
                                        struct TransInfo *t,
                                        short orient_index,
@@ -33,12 +37,19 @@ short transform_orientation_matrix_get(struct bContext *C,
 const char *transform_orientations_spacename_get(struct TransInfo *t, const short orient_type);
 void transform_orientations_current_set(struct TransInfo *t, const short orient_index);
 
-/* Those two fill in mat and return non-zero on success */
+/**
+ * Those two fill in mat and return non-zero on success.
+ */
 bool transform_orientations_create_from_axis(float mat[3][3],
                                              const float x[3],
                                              const float y[3],
                                              const float z[3]);
 bool createSpaceNormal(float mat[3][3], const float normal[3]);
+/**
+ * \note To recreate an orientation from the matrix:
+ * - (plane  == mat[1])
+ * - (normal == mat[2])
+ */
 bool createSpaceNormalTangent(float mat[3][3], const float normal[3], const float tangent[3]);
 
 struct TransformOrientation *addMatrixSpace(struct bContext *C,

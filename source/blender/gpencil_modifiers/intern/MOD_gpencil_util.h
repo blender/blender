@@ -29,6 +29,9 @@ struct Object;
 struct bGPDlayer;
 struct bGPDstroke;
 
+/**
+ * Verify if valid layer, material and pass index.
+ */
 bool is_stroke_affected_by_modifier(struct Object *ob,
                                     char *mlayername,
                                     const struct Material *material,
@@ -42,4 +45,7 @@ bool is_stroke_affected_by_modifier(struct Object *ob,
                                     const bool inv3,
                                     const bool inv4);
 
+/**
+ * Verify if valid vertex group *and return weight.
+ */
 float get_modifier_point_weight(struct MDeformVert *dvert, bool inverse, int def_nr);

@@ -56,7 +56,14 @@ void ED_render_view_layer_changed(struct Main *bmain, struct bScreen *screen);
 /* Callbacks handling data update events coming from depsgraph. */
 
 void ED_render_id_flush_update(const struct DEGEditorUpdateContext *update_ctx, struct ID *id);
+/**
+ * Update all 3D viewport render and draw engines on changes to the scene.
+ * This is called by the dependency graph when it detects changes.
+ */
 void ED_render_scene_update(const struct DEGEditorUpdateContext *update_ctx, const bool updated);
+/**
+ * Update 3D viewport render or draw engine on changes to the scene or view settings.
+ */
 void ED_render_view3d_update(struct Depsgraph *depsgraph,
                              struct wmWindow *window,
                              struct ScrArea *area,
@@ -83,6 +90,9 @@ typedef enum ePreviewRenderMethod {
 void ED_preview_ensure_dbase(void);
 void ED_preview_free_dbase(void);
 
+/**
+ * Check if \a id is supported by the automatic preview render.
+ */
 bool ED_preview_id_is_supported(const struct ID *id);
 
 void ED_preview_shader_job(const struct bContext *C,

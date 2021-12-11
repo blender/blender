@@ -480,7 +480,6 @@ static bool gpu_pbvh_is_looptri_visible(const MLoopTri *lt,
           sculpt_face_sets[lt->poly] > SCULPT_FACE_SET_NONE);
 }
 
-/* Threaded - do not call any functions that use OpenGL calls! */
 void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const MVert *mvert,
                                   const CustomData *vdata,
@@ -718,7 +717,6 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
   buffers->mvert = mvert;
 }
 
-/* Threaded - do not call any functions that use OpenGL calls! */
 GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const MPoly *mpoly,
                                               const MLoop *mloop,
                                               const MLoopTri *looptri,
@@ -965,7 +963,6 @@ void GPU_pbvh_grid_buffers_update_free(GPU_PBVH_Buffers *buffers,
   }
 }
 
-/* Threaded - do not call any functions that use OpenGL calls! */
 void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
                                   SubdivCCG *subdiv_ccg,
                                   CCGElem **grids,
@@ -1162,7 +1159,6 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
   buffers->show_overlay = (!empty_mask || !default_face_set) && !g_vbo_id.fast_mode;
 }
 
-/* Threaded - do not call any functions that use OpenGL calls! */
 GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, BLI_bitmap **grid_hidden)
 {
   GPU_PBVH_Buffers *buffers;
@@ -2412,7 +2408,6 @@ void GPU_pbvh_bmesh_buffers_update(PBVHGPUBuildArgs *args)
 /** \name Generic
  * \{ */
 
-/* Threaded - do not call any functions that use OpenGL calls! */
 GPU_PBVH_Buffers *GPU_pbvh_bmesh_buffers_build(bool smooth_shading)
 {
   GPU_PBVH_Buffers *buffers;

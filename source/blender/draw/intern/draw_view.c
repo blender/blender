@@ -236,9 +236,6 @@ static bool is_cursor_visible_2d(const DRWContextState *draw_ctx)
 /** \name Generic Cursor
  * \{ */
 
-/**
- * \note This doesn't require the draw context to be in use.
- */
 void DRW_draw_cursor_2d_ex(const ARegion *region, const float cursor[2])
 {
   int co[2];

@@ -159,7 +159,6 @@ void *GPU_vertbuf_unmap(const GPUVertBuf *verts, const void *mapped_data)
   return unwrap(verts)->unmap(mapped_data);
 }
 
-/** Same as discard but does not free. */
 void GPU_vertbuf_clear(GPUVertBuf *verts)
 {
   unwrap(verts)->clear();
@@ -183,21 +182,16 @@ void GPU_vertbuf_handle_ref_remove(GPUVertBuf *verts)
 
 /* -------- Data update -------- */
 
-/* create a new allocation, discarding any existing data */
 void GPU_vertbuf_data_alloc(GPUVertBuf *verts, uint v_len)
 {
   unwrap(verts)->allocate(v_len);
 }
 
-/* resize buffer keeping existing data */
 void GPU_vertbuf_data_resize(GPUVertBuf *verts, uint v_len)
 {
   unwrap(verts)->resize(v_len);
 }
 
-/* Set vertex count but does not change allocation.
- * Only this many verts will be uploaded to the GPU and rendered.
- * This is useful for streaming data. */
 void GPU_vertbuf_data_len_set(GPUVertBuf *verts_, uint v_len)
 {
   VertBuf *verts = unwrap(verts_);
@@ -229,7 +223,6 @@ void GPU_vertbuf_attr_fill(GPUVertBuf *verts_, uint a_idx, const void *data)
   GPU_vertbuf_attr_fill_stride(verts_, a_idx, stride, data);
 }
 
-/** Fills a whole vertex (all attributes). Data must match packed layout. */
 void GPU_vertbuf_vert_set(GPUVertBuf *verts_, uint v_idx, const void *data)
 {
   VertBuf *verts = unwrap(verts_);
@@ -284,15 +277,12 @@ void GPU_vertbuf_attr_get_raw_data(GPUVertBuf *verts_, uint a_idx, GPUVertBufRaw
 
 /* -------- Getters -------- */
 
-/* NOTE: Be careful when using this. The data needs to match the expected format. */
 void *GPU_vertbuf_get_data(const GPUVertBuf *verts)
 {
   /* TODO: Assert that the format has no padding. */
   return unwrap(verts)->data;
 }
 
-/* Returns the data buffer and set it to null internally to avoid freeing.
- * NOTE: Be careful when using this. The data needs to match the expected format. */
 void *GPU_vertbuf_steal_data(GPUVertBuf *verts_)
 {
   VertBuf *verts = unwrap(verts_);
@@ -328,7 +318,6 @@ uint GPU_vertbuf_get_memory_usage()
   return VertBuf::memory_usage;
 }
 
-/* Should be rename to GPU_vertbuf_data_upload */
 void GPU_vertbuf_use(GPUVertBuf *verts)
 {
   unwrap(verts)->upload();
@@ -339,8 +328,6 @@ void GPU_vertbuf_bind_as_ssbo(struct GPUVertBuf *verts, int binding)
   unwrap(verts)->bind_as_ssbo(binding);
 }
 
-/* XXX this is just a wrapper for the use of the Hair refine workaround.
- * To be used with GPU_vertbuf_use(). */
 void GPU_vertbuf_update_sub(GPUVertBuf *verts, uint start, uint len, void *data)
 {
   unwrap(verts)->update_sub(start, len, data);

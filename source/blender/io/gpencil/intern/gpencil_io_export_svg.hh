@@ -42,6 +42,16 @@ class GpencilExporterSVG : public GpencilExporter {
   bool write();
 
  protected:
+  /**
+   * Create a SVG rectangle
+   * \param node: Parent node
+   * \param x: X location
+   * \param y: Y location
+   * \param width: width of the rectangle
+   * \param height: Height of the rectangle
+   * \param thickness: Thickness of the line
+   * \param hexcolor: Color of the line
+   */
   static void add_rect(pugi::xml_node node,
                        float x,
                        float y,
@@ -50,6 +60,15 @@ class GpencilExporterSVG : public GpencilExporter {
                        float thickness,
                        std::string hexcolor);
 
+  /**
+   * Create SVG text
+   * \param node: Parent node
+   * \param x: X location
+   * \param y: Y location
+   * \param text: Text to include
+   * \param size: Size of the text
+   * \param hexcolor: Color of the text
+   */
   static void add_text(pugi::xml_node node,
                        float x,
                        float y,
@@ -58,31 +77,49 @@ class GpencilExporterSVG : public GpencilExporter {
                        std::string hexcolor);
 
  private:
-  /* XML doc. */
+  /** XML doc. */
   pugi::xml_document main_doc_;
-  /* Main document node. */
+  /** Main document node. */
   pugi::xml_node main_node_;
   /** Frame node. */
   pugi::xml_node frame_node_;
+  /** Create document header and main SVG node. */
   void create_document_header();
+  /** Main layer loop. */
   void export_gpencil_layers();
 
+  /**
+   * Export a stroke using SVG path
+   * \param node_gpl: Node of the layer.
+   * \param do_fill: True if the stroke is only fill
+   */
   void export_stroke_to_path(struct bGPDlayer *gpl,
                              struct bGPDstroke *gps,
                              pugi::xml_node node_gpl,
                              const bool do_fill);
 
+  /**
+   * Export a stroke using poly-line or polygon
+   * \param node_gpl: Node of the layer.
+   * \param do_fill: True if the stroke is only fill
+   */
   void export_stroke_to_polyline(struct bGPDlayer *gpl,
                                  struct bGPDstroke *gps,
                                  pugi::xml_node node_gpl,
                                  const bool is_stroke,
                                  const bool do_fill);
 
+  /**
+   * Set color SVG string for stroke
+   * \param node_gps: Stroke node.
+   * \param do_fill: True if the stroke is only fill.
+   */
   void color_string_set(struct bGPDlayer *gpl,
                         struct bGPDstroke *gps,
                         pugi::xml_node node_gps,
                         const bool do_fill);
 
+  /** Convert a color to Hex value (#FFFFFF). */
   std::string rgb_to_hexstr(const float color[3]);
 };
 

@@ -1000,11 +1000,6 @@ static bool bmesh_test_loose_edge(BMEdge *edge)
   return true;
 }
 
-/**
- * \param mtx: Measure distance in this space.
- * \param dists: Store the closest connected distance to selected vertices.
- * \param index: Optionally store the original index we're measuring the distance to (can be NULL).
- */
 void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
                                                   const float mtx[3][3],
                                                   float *dists,
@@ -1307,8 +1302,6 @@ void transform_convert_mesh_mirrordata_free(struct TransMirrorData *mirror_data)
 /** \name Crazy Space
  * \{ */
 
-/* Detect CrazySpace [tm].
- * Vertices with space affected by quats are marked with #BM_ELEM_TAG */
 void transform_convert_mesh_crazyspace_detect(TransInfo *t,
                                               struct TransDataContainer *tc,
                                               struct BMEditMesh *em,

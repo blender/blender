@@ -100,9 +100,6 @@ static void set_modifier_expand_flag(const bContext *UNUSED(C), Panel *panel, sh
 /** \name Modifier Panel Layouts
  * \{ */
 
-/**
- * Draw modifier error message.
- */
 void modifier_panel_end(uiLayout *layout, PointerRNA *ptr)
 {
   ModifierData *md = ptr->data;
@@ -137,9 +134,6 @@ PointerRNA *modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_
   return ptr;
 }
 
-/**
- * Helper function for modifier layouts to draw vertex group settings.
- */
 void modifier_vgroup_ui(uiLayout *layout,
                         PointerRNA *ptr,
                         PointerRNA *ob_ptr,
@@ -429,9 +423,6 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
 /** \name Modifier Registration Helpers
  * \{ */
 
-/**
- * Create a panel in the context's region
- */
 PanelType *modifier_panel_register(ARegionType *region_type, ModifierType type, PanelDrawFn draw)
 {
   PanelType *panel_type = MEM_callocN(sizeof(PanelType), __func__);
@@ -458,12 +449,6 @@ PanelType *modifier_panel_register(ARegionType *region_type, ModifierType type, 
   return panel_type;
 }
 
-/**
- * Add a child panel to the parent.
- *
- * \note To create the panel type's idname, it appends the \a name argument to the \a parent's
- * idname.
- */
 PanelType *modifier_subpanel_register(ARegionType *region_type,
                                       const char *name,
                                       const char *label,

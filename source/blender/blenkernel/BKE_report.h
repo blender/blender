@@ -35,9 +35,14 @@ extern "C" {
  * These functions also accept NULL in case no error reporting
  * is needed. */
 
-/* report structures are stored in DNA */
+/* Report structures are stored in DNA. */
 
 void BKE_reports_init(ReportList *reports, int flag);
+/**
+ * Only frees the list \a reports.
+ * To make displayed reports disappear, either remove window-manager reports
+ * (#wmWindowManager.reports, or #CTX_wm_reports()), or use #WM_report_banners_cancel().
+ */
 void BKE_reports_clear(ReportList *reports);
 
 void BKE_report(ReportList *reports, eReportType type, const char *message);

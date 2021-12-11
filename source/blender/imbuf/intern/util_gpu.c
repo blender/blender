@@ -162,8 +162,6 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
   return data_rect;
 }
 
-/* The ibuf is only here to detect the storage type. The produced texture will have undefined
- * content. It will need to be populated by using IMB_update_gpu_texture_sub(). */
 GPUTexture *IMB_touch_gpu_texture(
     const char *name, ImBuf *ibuf, int w, int h, int layers, bool use_high_bitdepth)
 {
@@ -183,9 +181,6 @@ GPUTexture *IMB_touch_gpu_texture(
   return tex;
 }
 
-/* Will update a GPUTexture using the content of the ImBuf. Only one layer will be updated.
- * Will resize the ibuf if needed.
- * z is the layer to update. Unused if the texture is 2D. */
 void IMB_update_gpu_texture_sub(GPUTexture *tex,
                                 ImBuf *ibuf,
                                 int x,

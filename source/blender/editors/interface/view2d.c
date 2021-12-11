@@ -228,16 +228,6 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
 /** \name View2D Refresh and Validation (Spatial)
  * \{ */
 
-/**
- * Initialize all relevant View2D data (including view rects if first time)
- * and/or refresh mask sizes after view resize.
- *
- * - For some of these presets, it is expected that the region will have defined some
- *   additional settings necessary for the customization of the 2D viewport to its requirements
- * - This function should only be called from region init() callbacks, where it is expected that
- *   this is called before #UI_view2d_size_update(),
- *   as this one checks that the rects are properly initialized.
- */
 void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
   bool tot_changed = false, do_init;
@@ -872,8 +862,6 @@ bool UI_view2d_area_supports_sync(ScrArea *area)
   return ELEM(area->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_SEQ, SPACE_CLIP, SPACE_GRAPH);
 }
 
-/* Called by menus to activate it, or by view2d operators
- * to make sure 'related' views stay in synchrony */
 void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 {
   /* don't continue if no view syncing to be done */
@@ -937,11 +925,6 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
   }
 }
 
-/**
- * Restore 'cur' rect to standard orientation (i.e. optimal maximum view of tot).
- * This does not take into account if zooming the view on an axis
- * will improve the view (if allowed).
- */
 void UI_view2d_curRect_reset(View2D *v2d)
 {
   float width, height;
@@ -991,7 +974,6 @@ void UI_view2d_curRect_reset(View2D *v2d)
 
 /* ------------------ */
 
-/* Change the size of the maximum viewable area (i.e. 'tot' rect) */
 void UI_view2d_totRect_set_resize(View2D *v2d, int width, int height, bool resize)
 {
   /* don't do anything if either value is 0 */
@@ -1110,7 +1092,6 @@ static void view2d_map_cur_using_mask(const View2D *v2d, rctf *r_curmasked)
   }
 }
 
-/* Set view matrices to use 'cur' rect as viewing frame for View2D drawing */
 void UI_view2d_view_ortho(const View2D *v2d)
 {
   rctf curmasked;
@@ -1152,12 +1133,6 @@ void UI_view2d_view_ortho(const View2D *v2d)
   wmOrtho2(curmasked.xmin, curmasked.xmax, curmasked.ymin, curmasked.ymax);
 }
 
-/**
- * Set view matrices to only use one axis of 'cur' only
- *
- * \param xaxis: if non-zero, only use cur x-axis,
- * otherwise use cur-yaxis (mostly this will be used for x).
- */
 void UI_view2d_view_orthoSpecial(ARegion *region, View2D *v2d, const bool xaxis)
 {
   rctf curmasked;
@@ -1184,7 +1159,6 @@ void UI_view2d_view_orthoSpecial(ARegion *region, View2D *v2d, const bool xaxis)
   }
 }
 
-/* Restore view matrices after drawing */
 void UI_view2d_view_restore(const bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
@@ -1203,7 +1177,6 @@ void UI_view2d_view_restore(const bContext *C)
 /** \name Grid-Line Drawing
  * \{ */
 
-/* Draw a multi-level grid in given 2d-region */
 void UI_view2d_multi_grid_draw(
     const View2D *v2d, int colorid, float step, int level_size, int totlevels)
 {
@@ -1335,14 +1308,6 @@ static const DotGridLevelInfo level_info[9] = {
     {0.025f, 0.6f, 0.9f},
 };
 
-/**
- * Draw a multi-level grid of dots, with a dynamic number of levels based on the fading.
- *
- * \param grid_color_id: The theme color used for the points. Faded dynamically based on zoom.
- * \param min_step: The base size of the grid. At different zoom levels, the visible grid may have
- * a larger step size.
- * \param grid_levels: The maximum grid depth. Larger grid levels will subdivide the grid more.
- */
 void UI_view2d_dot_grid_draw(const View2D *v2d,
                              const int grid_color_id,
                              const float min_step,
@@ -1414,6 +1379,8 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
  */
 struct View2DScrollers {
   /* focus bubbles */
+  /* focus bubbles */
+  /* focus bubbles */
   int vert_min, vert_max; /* vertical scrollbar */
   int hor_min, hor_max;   /* horizontal scrollbar */
 
@@ -1423,7 +1390,6 @@ struct View2DScrollers {
   /* int horfull, vertfull; */ /* UNUSED */
 };
 
-/* Calculate relevant scroller properties */
 void UI_view2d_scrollers_calc(View2D *v2d,
                               const rcti *mask_custom,
                               struct View2DScrollers *r_scrollers)
@@ -1550,7 +1516,6 @@ void UI_view2d_scrollers_calc(View2D *v2d,
   }
 }
 
-/* Draw scrollbars in the given 2d-region */
 void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
 {
   View2DScrollers scrollers;
@@ -1646,18 +1611,6 @@ void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
 /** \name List View Utilities
  * \{ */
 
-/**
- * Get the 'cell' (row, column) that the given 2D-view coordinates
- * (i.e. in 'tot' rect space) lie in.
- *
- * \param columnwidth, rowheight: size of each 'cell'
- * \param startx, starty: coordinates (in 'tot' rect space) that the list starts from.
- * This should be (0,0) for most views. However, for those where the starting row was offsetted
- * (like for Animation Editor channel lists, to make the first entry more visible), these will be
- * the min-coordinates of the first item.
- * \param viewx, viewy: 2D-coordinates (in 2D-view / 'tot' rect space) to get the cell for
- * \param r_column, r_row: the 'coordinates' of the relevant 'cell'
- */
 void UI_view2d_listview_view_to_cell(float columnwidth,
                                      float rowheight,
                                      float startx,
@@ -1705,12 +1658,6 @@ float UI_view2d_region_to_view_y(const struct View2D *v2d, float y)
           (BLI_rctf_size_y(&v2d->cur) * (y - v2d->mask.ymin) / BLI_rcti_size_y(&v2d->mask)));
 }
 
-/**
- * Convert from screen/region space to 2d-View space
- *
- * \param x, y: coordinates to convert
- * \param r_view_x, r_view_y: resultant coordinates
- */
 void UI_view2d_region_to_view(
     const View2D *v2d, float x, float y, float *r_view_x, float *r_view_y)
 {
@@ -1744,13 +1691,6 @@ float UI_view2d_view_to_region_y(const View2D *v2d, float y)
           (((y - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur)) * BLI_rcti_size_y(&v2d->mask)));
 }
 
-/**
- * Convert from 2d-View space to screen/region space
- * \note Coordinates are clamped to lie within bounds of region
- *
- * \param x, y: Coordinates to convert.
- * \param r_region_x, r_region_y: Resultant coordinates.
- */
 bool UI_view2d_view_to_region_clip(
     const View2D *v2d, float x, float y, int *r_region_x, int *r_region_y)
 {
@@ -1772,14 +1712,6 @@ bool UI_view2d_view_to_region_clip(
   return false;
 }
 
-/**
- * Convert from 2d-view space to screen/region space
- *
- * \note Coordinates are NOT clamped to lie within bounds of region.
- *
- * \param x, y: Coordinates to convert.
- * \param r_region_x, r_region_y: Resultant coordinates.
- */
 void UI_view2d_view_to_region(
     const View2D *v2d, float x, float y, int *r_region_x, int *r_region_y)
 {
@@ -1874,7 +1806,6 @@ bool UI_view2d_view_to_region_rcti_clip(const View2D *v2d, const rctf *rect_src,
 /** \name Utilities
  * \{ */
 
-/* View2D data by default resides in region, so get from region stored in context */
 View2D *UI_view2d_fromcontext(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
@@ -1889,7 +1820,6 @@ View2D *UI_view2d_fromcontext(const bContext *C)
   return &(region->v2d);
 }
 
-/* Same as above, but it returns region-window. Utility for pull-downs or buttons. */
 View2D *UI_view2d_fromcontext_rwin(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
@@ -1908,8 +1838,6 @@ View2D *UI_view2d_fromcontext_rwin(const bContext *C)
   return &(region->v2d);
 }
 
-/* Get scrollbar sizes of the current 2D view. The size will be zero if the view has its scrollbars
- * disabled. */
 void UI_view2d_scroller_size_get(const View2D *v2d, float *r_x, float *r_y)
 {
   const int scroll = view2d_scroll_mapped(v2d->scroll);
@@ -1933,14 +1861,6 @@ void UI_view2d_scroller_size_get(const View2D *v2d, float *r_x, float *r_y)
   }
 }
 
-/**
- * Calculate the scale per-axis of the drawing-area
- *
- * Is used to inverse correct drawing of icons, etc. that need to follow view
- * but not be affected by scale
- *
- * \param r_x, r_y: scale on each axis
- */
 void UI_view2d_scale_get(const View2D *v2d, float *r_x, float *r_y)
 {
   if (r_x) {
@@ -1958,9 +1878,6 @@ float UI_view2d_scale_get_y(const View2D *v2d)
 {
   return BLI_rcti_size_y(&v2d->mask) / BLI_rctf_size_y(&v2d->cur);
 }
-/**
- * Same as `UI_view2d_scale_get() - 1.0f / x, y`.
- */
 void UI_view2d_scale_get_inverse(const View2D *v2d, float *r_x, float *r_y)
 {
   if (r_x) {
@@ -1971,10 +1888,6 @@ void UI_view2d_scale_get_inverse(const View2D *v2d, float *r_x, float *r_y)
   }
 }
 
-/**
- * Simple functions for consistent center offset access.
- * Used by node editor to shift view center for each individual node tree.
- */
 void UI_view2d_center_get(const struct View2D *v2d, float *r_x, float *r_y)
 {
   /* get center */
@@ -1993,12 +1906,6 @@ void UI_view2d_center_set(struct View2D *v2d, float x, float y)
   UI_view2d_curRect_validate(v2d);
 }
 
-/**
- * Simple pan function
- *  (0.0, 0.0) bottom left
- *  (0.5, 0.5) center
- *  (1.0, 1.0) top right.
- */
 void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac)
 {
   if (xfac != -1.0f) {
@@ -2022,17 +1929,6 @@ void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac)
   UI_view2d_curRect_validate(v2d);
 }
 
-/**
- * Check if mouse is within scrollers
- *
- * \param x, y: Mouse coordinates in screen (not region) space.
- * \param r_scroll: Mapped view2d scroll flag.
- *
- * \return appropriate code for match.
- * - 'h' = in horizontal scroller.
- * - 'v' = in vertical scroller.
- * - 0 = not in scroller.
- */
 char UI_view2d_mouse_in_scrollers_ex(const ARegion *region,
                                      const View2D *v2d,
                                      const int xy[2],
@@ -2154,7 +2050,6 @@ void UI_view2d_text_cache_add(
   }
 }
 
-/* no clip (yet) */
 void UI_view2d_text_cache_add_rectf(
     View2D *v2d, const rctf *rect_view, const char *str, size_t str_len, const uchar col[4])
 {

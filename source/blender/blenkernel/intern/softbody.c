@@ -3112,7 +3112,6 @@ static void sb_new_scratch(SoftBody *sb)
 
 /* ************ Object level, exported functions *************** */
 
-/* allocates and initializes general main data */
 SoftBody *sbNew(void)
 {
   SoftBody *sb;
@@ -3162,7 +3161,6 @@ SoftBody *sbNew(void)
   return sb;
 }
 
-/* frees all */
 void sbFree(Object *ob)
 {
   SoftBody *sb = ob->soft;
@@ -3193,7 +3191,6 @@ void sbFreeSimulation(SoftBody *sb)
   free_softbody_intern(sb);
 }
 
-/* makes totally fresh start situation */
 void sbObjectToSoftbody(Object *ob)
 {
   // ob->softflag |= OB_SB_REDO;
@@ -3213,7 +3210,6 @@ static bool object_has_edges(const Object *ob)
   return false;
 }
 
-/* SB global visible functions */
 void sbSetInterruptCallBack(int (*f)(void))
 {
   SB_localInterruptCallBack = f;
@@ -3243,20 +3239,6 @@ static void softbody_update_positions(Object *ob,
     copy_v3_v3(bp->origT, bp->origE);
   }
 }
-
-/* void SB_estimate_transform */
-/* input   Object *ob out (says any object that can do SB like mesh, lattice, curve )
- * output  float lloc[3], float lrot[3][3], float lscale[3][3]
- * that is:
- * a precise position vector denoting the motion of the center of mass
- * give a rotation/scale matrix using averaging method, that's why estimate and not calculate
- * see: this is kind of reverse engineering: having to states of a point cloud and recover what
- * happened our advantage here we know the identity of the vertex there are others methods giving
- * other results. lloc, lrot, lscale are allowed to be NULL, just in case you don't need it.
- * should be pretty useful for pythoneers :)
- * not! velocity .. 2nd order stuff
- * vcloud_estimate_transform_v3 see
- */
 
 void SB_estimate_transform(Object *ob, float lloc[3], float lrot[3][3], float lscale[3][3])
 {
@@ -3523,7 +3505,6 @@ static void sbStoreLastFrame(struct Depsgraph *depsgraph, Object *object, float 
   object_orig->soft->last_frame = framenr;
 }
 
-/* simulates one step. framenr is in frames */
 void sbObjectStep(struct Depsgraph *depsgraph,
                   Scene *scene,
                   Object *ob,

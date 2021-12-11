@@ -62,6 +62,7 @@ class ArmatureExporter : public COLLADASW::LibraryControllers,
   {
   }
 
+  /* write bone nodes */
   void add_armature_bones(Object *ob_arm,
                           ViewLayer *view_layer,
                           SceneExporter *se,
@@ -83,8 +84,11 @@ class ArmatureExporter : public COLLADASW::LibraryControllers,
   void find_objects_using_armature(Object *ob_arm, std::vector<Object *> &objects, Scene *sce);
 #endif
 
-  /* Scene, SceneExporter and the list of child_objects
-   * are required for writing bone parented objects */
+  /**
+   * Scene, SceneExporter and the list of child_objects
+   * are required for writing bone parented objects.
+   * \param parent_mat: is armature-space.
+   */
   void add_bone_node(Bone *bone,
                      Object *ob_arm,
                      SceneExporter *se,

@@ -327,7 +327,6 @@ static int dynamicPaint_surfaceNumOfPoints(DynamicPaintSurface *surface)
   return 0;
 }
 
-/* get currently active surface (in user interface) */
 DynamicPaintSurface *get_activeSurface(DynamicPaintCanvasSettings *canvas)
 {
   return BLI_findlink(&canvas->surfaces, canvas->active_sur);
@@ -420,7 +419,6 @@ void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, const char 
       surface_duplicateNameExists, surface, name, '.', surface->name, sizeof(surface->name));
 }
 
-/* change surface data to defaults on new type */
 void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface)
 {
   if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
@@ -855,7 +853,6 @@ static void surfaceGenerateGrid(struct DynamicPaintSurface *surface)
 
 /***************************** Freeing data ******************************/
 
-/* Free brush data */
 void dynamicPaint_freeBrush(struct DynamicPaintModifierData *pmd)
 {
   if (pmd->brush) {
@@ -992,7 +989,6 @@ void dynamicPaint_freeSurface(const DynamicPaintModifierData *pmd, DynamicPaintS
   MEM_freeN(surface);
 }
 
-/* Free canvas data */
 void dynamicPaint_freeCanvas(DynamicPaintModifierData *pmd)
 {
   if (pmd->canvas) {
@@ -1011,7 +1007,6 @@ void dynamicPaint_freeCanvas(DynamicPaintModifierData *pmd)
   }
 }
 
-/* Free whole dp modifier */
 void dynamicPaint_Modifier_free(DynamicPaintModifierData *pmd)
 {
   if (pmd == NULL) {
@@ -1024,11 +1019,6 @@ void dynamicPaint_Modifier_free(DynamicPaintModifierData *pmd)
 
 /***************************** Initialize and reset ******************************/
 
-/*
- * Creates a new surface and adds it to the list
- * If scene is null, frame range of 1-250 is used
- * A pointer to this surface is returned
- */
 DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *canvas,
                                                    Scene *scene)
 {
@@ -1106,9 +1096,6 @@ DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *c
   return surface;
 }
 
-/*
- * Initialize modifier data
- */
 bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, struct Scene *scene)
 {
   if (pmd) {
@@ -1721,7 +1708,6 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
   }
 }
 
-/* clears surface data back to zero */
 void dynamicPaint_clearSurface(const Scene *scene, DynamicPaintSurface *surface)
 {
   PaintSurfaceData *sData = surface->data;
@@ -1751,7 +1737,6 @@ void dynamicPaint_clearSurface(const Scene *scene, DynamicPaintSurface *surface)
   }
 }
 
-/* Completely (re)initializes surface (only for point cache types). */
 bool dynamicPaint_resetSurface(const Scene *scene, DynamicPaintSurface *surface)
 {
   int numOfPoints = dynamicPaint_surfaceNumOfPoints(surface);
@@ -2079,7 +2064,6 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
   return result;
 }
 
-/* update cache frame range */
 void dynamicPaint_cacheUpdateFrames(DynamicPaintSurface *surface)
 {
   if (surface->pointcache) {
@@ -2189,7 +2173,6 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd,
   }
 }
 
-/* Modifier call. Processes dynamic paint modifier step. */
 Mesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd,
                                struct Depsgraph *depsgraph,
                                Scene *scene,
@@ -6369,9 +6352,6 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
   return ret;
 }
 
-/**
- * Calculate a single frame and included sub-frames for surface.
- */
 int dynamicPaint_calculateFrame(DynamicPaintSurface *surface,
                                 struct Depsgraph *depsgraph,
                                 Scene *scene,

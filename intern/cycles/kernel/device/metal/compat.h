@@ -117,7 +117,7 @@ struct kernel_gpu_##name \
            uint simd_group_index, \
            uint num_simd_groups) ccl_global const; \
 }; \
-kernel void kernel_metal_##name(device const kernel_gpu_##name *params_struct, \
+kernel void cycles_metal_##name(device const kernel_gpu_##name *params_struct, \
                                 constant KernelParamsMetal &ccl_restrict   _launch_params_metal, \
                                 constant MetalAncillaries *_metal_ancillaries, \
                                 threadgroup int *simdgroup_offset[[ threadgroup(0) ]], \

@@ -52,7 +52,7 @@ static void applyBoneRoll(TransInfo *t, const int UNUSED(mval[2]))
 
   float final;
 
-  final = t->values[0];
+  final = t->values[0] + t->values_modal_offset[0];
 
   transform_snap_increment(t, &final);
 

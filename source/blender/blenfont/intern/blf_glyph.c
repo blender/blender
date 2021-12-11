@@ -73,9 +73,6 @@ static FT_Fixed to_16dot16(double val)
 /** \name Glyph Cache
  * \{ */
 
-/**
- * Find a glyph cache that matches a size, DPI & styles.
- */
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, float size, unsigned int dpi)
 {
   GlyphCacheBLF *gc = (GlyphCacheBLF *)font->cache.first;
@@ -89,9 +86,6 @@ GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, float size, unsigned int dpi)
   return NULL;
 }
 
-/**
- * Create a new glyph cache for the current size, DPI & styles.
- */
 GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 {
   GlyphCacheBLF *gc = (GlyphCacheBLF *)MEM_callocN(sizeof(GlyphCacheBLF), "blf_glyph_cache_new");
@@ -451,9 +445,6 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
   return NULL;
 }
 
-/**
- * Create (or load from cache) a fully-rendered bitmap glyph.
- */
 GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, uint charcode)
 {
   GlyphBLF *g = blf_glyph_cache_find_glyph(gc, charcode);

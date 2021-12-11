@@ -617,7 +617,7 @@ static void spreadsheet_right_region_listener(const wmRegionListenerParams *UNUS
 {
 }
 
-void ED_spacetype_spreadsheet(void)
+void ED_spacetype_spreadsheet()
 {
   SpaceType *st = (SpaceType *)MEM_callocN(sizeof(SpaceType), "spacetype spreadsheet");
   ARegionType *art;

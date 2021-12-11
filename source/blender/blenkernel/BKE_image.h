@@ -50,9 +50,16 @@ struct anim;
 void BKE_image_free_packedfiles(struct Image *image);
 void BKE_image_free_views(struct Image *image);
 void BKE_image_free_buffers(struct Image *image);
+/**
+ * Simply free the image data from memory,
+ * on display the image can load again (except for render buffers).
+ */
 void BKE_image_free_buffers_ex(struct Image *image, bool do_lock);
 void BKE_image_free_gputextures(struct Image *ima);
-/* call from library */
+/**
+ * Free (or release) any data used by this image (does not free the image itself).
+ * \note Call from library.
+ */
 void BKE_image_free_data(struct Image *image);
 
 typedef void(StampCallback)(void *data, const char *propname, char *propvalue, int len);
@@ -66,6 +73,9 @@ void BKE_render_result_stamp_info(struct Scene *scene,
  * The caller is responsible for freeing the allocated memory.
  */
 struct StampData *BKE_stamp_info_from_scene_static(const struct Scene *scene);
+/**
+ * Check whether the given metadata field name translates to a known field of a stamp.
+ */
 bool BKE_stamp_is_known_field(const char *field_name);
 void BKE_imbuf_stamp_info(struct RenderResult *rr, struct ImBuf *ibuf);
 void BKE_stamp_info_from_imbuf(struct RenderResult *rr, struct ImBuf *ibuf);
@@ -90,8 +100,15 @@ int BKE_imbuf_write_stamp(struct Scene *scene,
                           struct ImBuf *ibuf,
                           const char *name,
                           const struct ImageFormatData *imf);
+/**
+ * \note imf->planes is ignored here, its assumed the image channels are already set.
+ */
 void BKE_imbuf_write_prepare(struct ImBuf *ibuf, const struct ImageFormatData *imf);
 int BKE_imbuf_write(struct ImBuf *ibuf, const char *name, const struct ImageFormatData *imf);
+/**
+ * Same as #BKE_imbuf_write() but crappy workaround not to permanently modify _some_,
+ * values in the imbuf.
+ */
 int BKE_imbuf_write_as(struct ImBuf *ibuf,
                        const char *name,
                        struct ImageFormatData *imf,
@@ -125,11 +142,18 @@ bool BKE_imtype_requires_linear_float(const char imtype);
 char BKE_imtype_valid_channels(const char imtype, bool write_file);
 char BKE_imtype_valid_depths(const char imtype);
 
+/**
+ * String is from command line `--render-format` argument,
+ * keep in sync with `creator_args.c` help info.
+ */
 char BKE_imtype_from_arg(const char *arg);
 
 void BKE_imformat_defaults(struct ImageFormatData *im_format);
 void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const struct ImBuf *imbuf);
 
+/**
+ * Used by sequencer too.
+ */
 struct anim *openanim(const char *name,
                       int flags,
                       int streamindex,
@@ -164,11 +188,18 @@ struct RenderResult;
 #define IMA_CHAN_FLAG_RGB 2
 #define IMA_CHAN_FLAG_ALPHA 4
 
-/* checks whether there's an image buffer for given image and user */
+/**
+ * Checks whether there's an image buffer for given image and user.
+ */
 bool BKE_image_has_ibuf(struct Image *ima, struct ImageUser *iuser);
 
-/* same as above, but can be used to retrieve images being rendered in
- * a thread safe way, always call both acquire and release */
+/**
+ * Return image buffer for given image and user:
+ * - will lock render result if image type is render result and lock is not NULL
+ * - will return NULL if image is NULL or image type is render or composite result and lock is NULL
+ *
+ * References the result, #BKE_image_release_ibuf should be used to de-reference.
+ */
 struct ImBuf *BKE_image_acquire_ibuf(struct Image *ima, struct ImageUser *iuser, void **r_lock);
 void BKE_image_release_ibuf(struct Image *ima, struct ImBuf *ibuf, void *lock);
 
@@ -179,17 +210,28 @@ struct ImBuf *BKE_image_pool_acquire_ibuf(struct Image *ima,
                                           struct ImagePool *pool);
 void BKE_image_pool_release_ibuf(struct Image *ima, struct ImBuf *ibuf, struct ImagePool *pool);
 
-/* set an alpha mode based on file extension */
+/**
+ * Set an alpha mode based on file extension.
+ */
 char BKE_image_alpha_mode_from_extension_ex(const char *filepath);
 void BKE_image_alpha_mode_from_extension(struct Image *image);
 
-/* returns a new image or NULL if it can't load */
+/**
+ * Returns a new image or NULL if it can't load.
+ */
 struct Image *BKE_image_load(struct Main *bmain, const char *filepath);
-/* returns existing Image when filename/type is same (frame optional) */
+/**
+ * Returns existing Image when filename/type is same.
+ *
+ * Checks if image was already loaded, then returns same image otherwise creates new
+ * (does not load ibuf itself).
+ */
 struct Image *BKE_image_load_exists_ex(struct Main *bmain, const char *filepath, bool *r_exists);
 struct Image *BKE_image_load_exists(struct Main *bmain, const char *filepath);
 
-/* adds image, adds ibuf, generates color or pattern */
+/**
+ * Adds new image block, creates ImBuf and initializes color.
+ */
 struct Image *BKE_image_add_generated(struct Main *bmain,
                                       unsigned int width,
                                       unsigned int height,
@@ -201,10 +243,15 @@ struct Image *BKE_image_add_generated(struct Main *bmain,
                                       const bool stereo3d,
                                       const bool is_data,
                                       const bool tiled);
-/* adds image from imbuf, owns imbuf */
+/**
+ * Create an image from ibuf. The reference-count of ibuf is increased,
+ * caller should take care to drop its reference by calling #IMB_freeImBuf if needed.
+ */
 struct Image *BKE_image_add_from_imbuf(struct Main *bmain, struct ImBuf *ibuf, const char *name);
 
-/* for reload, refresh, pack */
+/**
+ * For reload, refresh, pack.
+ */
 void BKE_imageuser_default(struct ImageUser *iuser);
 void BKE_image_init_imageuser(struct Image *ima, struct ImageUser *iuser);
 void BKE_image_signal(struct Main *bmain, struct Image *ima, struct ImageUser *iuser, int signal);
@@ -216,61 +263,100 @@ void BKE_image_walk_all_users(const struct Main *mainp,
                                             struct ImageUser *iuser,
                                             void *customdata));
 
-/* ensures an Image exists for viewing nodes or render */
+/**
+ * Ensures an Image exists for viewing nodes or render
+ * forces existence of 1 Image for render-output or nodes, returns Image.
+ *
+ * \param name: Only for default, when making new one.
+ */
 struct Image *BKE_image_ensure_viewer(struct Main *bmain, int type, const char *name);
-/* ensures the view node cache is compatible with the scene views */
+/**
+ * Ensures the view node cache is compatible with the scene views.
+ * Reset the image cache and views when the Viewer Nodes views don't match the scene views.
+ */
 void BKE_image_ensure_viewer_views(const struct RenderData *rd,
                                    struct Image *ima,
                                    struct ImageUser *iuser);
 
-/* called on frame change or before render */
+/**
+ * Called on frame change or before render.
+ */
 void BKE_image_user_frame_calc(struct Image *ima, struct ImageUser *iuser, int cfra);
 int BKE_image_user_frame_get(const struct ImageUser *iuser, int cfra, bool *r_is_in_range);
 void BKE_image_user_file_path(struct ImageUser *iuser, struct Image *ima, char *path);
 void BKE_image_editors_update_frame(const struct Main *bmain, int cfra);
 
-/* dependency graph update for image user users */
+/**
+ * Dependency graph update for image user users.
+ */
 bool BKE_image_user_id_has_animation(struct ID *id);
 void BKE_image_user_id_eval_animation(struct Depsgraph *depsgraph, struct ID *id);
 
-/* sets index offset for multilayer files */
+/**
+ * Sets index offset for multi-layer files and because rendered results use fake layer/passes,
+ * don't correct for wrong indices here.
+ */
 struct RenderPass *BKE_image_multilayer_index(struct RenderResult *rr, struct ImageUser *iuser);
 
-/* sets index offset for multiview files */
+/**
+ * Sets index offset for multi-view files.
+ */
 void BKE_image_multiview_index(struct Image *ima, struct ImageUser *iuser);
 
-/* for multilayer images as well as for render-viewer */
+/**
+ * For multi-layer images as well as for render-viewer
+ * and because rendered results use fake layer/passes, don't correct for wrong indices here.
+ */
 bool BKE_image_is_multilayer(struct Image *ima);
 bool BKE_image_is_multiview(struct Image *ima);
 bool BKE_image_is_stereo(struct Image *ima);
 struct RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, struct Image *ima);
 void BKE_image_release_renderresult(struct Scene *scene, struct Image *ima);
 
-/* For multi-layer images as well as for single-layer. */
+/**
+ * For multi-layer images as well as for single-layer.
+ */
 bool BKE_image_is_openexr(struct Image *ima);
 
-/* For multiple slot render, call this before render. */
+/**
+ * For multiple slot render, call this before render.
+ */
 void BKE_image_backup_render(struct Scene *scene, struct Image *ima, bool free_current_slot);
 
-/* For single-layer OpenEXR saving */
+/**
+ * For single-layer OpenEXR saving.
+ */
 bool BKE_image_save_openexr_multiview(struct Image *ima,
                                       struct ImBuf *ibuf,
                                       const char *filepath,
                                       const int flags);
 
-/* goes over all textures that use images */
+/**
+ * Goes over all textures that use images.
+ */
 void BKE_image_free_all_textures(struct Main *bmain);
 
-/* does one image! */
+/**
+ * Operates on one image only!
+ * \param except_frame: This is weak, only works for sequences without offset.
+ */
 void BKE_image_free_anim_ibufs(struct Image *ima, int except_frame);
 
-/* does all images with type MOVIE or SEQUENCE */
+/**
+ * Does all images with type MOVIE or SEQUENCE.
+ */
 void BKE_image_all_free_anim_ibufs(struct Main *bmain, int cfra);
 
 void BKE_image_free_all_gputextures(struct Main *bmain);
+/**
+ * Same as above but only free animated images.
+ */
 void BKE_image_free_anim_gputextures(struct Main *bmain);
 void BKE_image_free_old_gputextures(struct Main *bmain);
 
+/**
+ * Pack image to memory.
+ */
 bool BKE_image_memorypack(struct Image *ima);
 void BKE_image_packfiles(struct ReportList *reports, struct Image *ima, const char *basepath);
 void BKE_image_packfiles_from_mem(struct ReportList *reports,
@@ -278,22 +364,34 @@ void BKE_image_packfiles_from_mem(struct ReportList *reports,
                                   char *data,
                                   const size_t data_len);
 
-/* Prints memory statistics for images. */
+/**
+ * Prints memory statistics for images.
+ */
 void BKE_image_print_memlist(struct Main *bmain);
 
-/* Merge source into dest, and free source. */
+/**
+ * Merge source into `dest`, and free `source`.
+ */
 void BKE_image_merge(struct Main *bmain, struct Image *dest, struct Image *source);
 
-/* Scale the image. */
+/**
+ * Scale the image.
+ */
 bool BKE_image_scale(struct Image *image, int width, int height);
 
-/* Check if texture has alpha (depth=32). */
+/**
+ * Check if texture has alpha (depth=32).
+ */
 bool BKE_image_has_alpha(struct Image *image);
 
-/* Check if texture has GPU texture code. */
+/**
+ * Check if texture has GPU texture code.
+ */
 bool BKE_image_has_opengl_texture(struct Image *ima);
 
-/* Get tile index for tiled images. */
+/**
+ * Get tile index for tiled images.
+ */
 void BKE_image_get_tile_label(struct Image *ima,
                               struct ImageTile *tile,
                               char *label,
@@ -320,6 +418,9 @@ int BKE_image_get_tile_from_pos(struct Image *ima,
                                 const float uv[2],
                                 float r_uv[2],
                                 float r_ofs[2]);
+/**
+ * Return the tile_number for the closest UDIM tile.
+ */
 int BKE_image_find_nearest_tile(const struct Image *image, const float co[2]);
 
 void BKE_image_get_size(struct Image *image, struct ImageUser *iuser, int *r_width, int *r_height);
@@ -327,6 +428,7 @@ void BKE_image_get_size_fl(struct Image *image, struct ImageUser *iuser, float r
 void BKE_image_get_aspect(struct Image *image, float *r_aspx, float *r_aspy);
 
 /* image_gen.c */
+
 void BKE_image_buf_fill_color(
     unsigned char *rect, float *rect_float, int width, int height, const float color[4]);
 void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int width, int height);
@@ -336,36 +438,64 @@ void BKE_image_buf_fill_checker_color(unsigned char *rect,
                                       int height);
 
 /* Cycles hookup */
+
 unsigned char *BKE_image_get_pixels_for_frame(struct Image *image, int frame, int tile);
 float *BKE_image_get_float_pixels_for_frame(struct Image *image, int frame, int tile);
 
 /* Image modifications */
+
 bool BKE_image_is_dirty(struct Image *image);
 void BKE_image_mark_dirty(struct Image *image, struct ImBuf *ibuf);
 bool BKE_image_buffer_format_writable(struct ImBuf *ibuf);
+
 bool BKE_image_is_dirty_writable(struct Image *image, bool *is_format_writable);
 
-/* Guess offset for the first frame in the sequence */
+/**
+ * Guess offset for the first frame in the sequence.
+ */
 int BKE_image_sequence_guess_offset(struct Image *image);
 bool BKE_image_has_anim(struct Image *image);
 bool BKE_image_has_packedfile(const struct Image *image);
 bool BKE_image_has_filepath(struct Image *ima);
+/**
+ * Checks the image buffer changes with time (not keyframed values).
+ */
 bool BKE_image_is_animated(struct Image *image);
+/**
+ * Checks whether the image consists of multiple buffers.
+ */
 bool BKE_image_has_multiple_ibufs(struct Image *image);
 void BKE_image_file_format_set(struct Image *image,
                                int ftype,
                                const struct ImbFormatOptions *options);
 bool BKE_image_has_loaded_ibuf(struct Image *image);
+/**
+ * References the result, #BKE_image_release_ibuf is to be called to de-reference.
+ * Use lock=NULL when calling #BKE_image_release_ibuf().
+ */
 struct ImBuf *BKE_image_get_ibuf_with_name(struct Image *image, const char *name);
+/**
+ * References the result, #BKE_image_release_ibuf is to be called to de-reference.
+ * Use lock=NULL when calling #BKE_image_release_ibuf().
+ *
+ * TODO(sergey): This is actually "get first item from the cache", which is
+ *               not so much predictable. But using first loaded image buffer
+ *               was also malicious logic and all the areas which uses this
+ *               function are to be re-considered.
+ */
 struct ImBuf *BKE_image_get_first_ibuf(struct Image *image);
 
-/* Not to be use directly. */
+/**
+ * Not to be use directly.
+ */
 struct GPUTexture *BKE_image_create_gpu_texture_from_ibuf(struct Image *image, struct ImBuf *ibuf);
 
-/* Get the #GPUTexture for a given `Image`.
+/**
+ * Get the #GPUTexture for a given `Image`.
  *
  * `iuser` and `ibuf` are mutual exclusive parameters. The caller can pass the `ibuf` when already
- * available. It is also required when requesting the #GPUTexture for a render result. */
+ * available. It is also required when requesting the #GPUTexture for a render result.
+ */
 struct GPUTexture *BKE_image_get_gpu_texture(struct Image *image,
                                              struct ImageUser *iuser,
                                              struct ImBuf *ibuf);
@@ -375,14 +505,33 @@ struct GPUTexture *BKE_image_get_gpu_tiles(struct Image *image,
 struct GPUTexture *BKE_image_get_gpu_tilemap(struct Image *image,
                                              struct ImageUser *iuser,
                                              struct ImBuf *ibuf);
+/**
+ * Is the alpha of the `GPUTexture` for a given image/ibuf premultiplied.
+ */
 bool BKE_image_has_gpu_texture_premultiplied_alpha(struct Image *image, struct ImBuf *ibuf);
+/**
+ * Partial update of texture for texture painting.
+ * This is often much quicker than fully updating the texture for high resolution images.
+ */
 void BKE_image_update_gputexture(
     struct Image *ima, struct ImageUser *iuser, int x, int y, int w, int h);
+/**
+ * Mark areas on the #GPUTexture that needs to be updated. The areas are marked in chunks.
+ * The next time the #GPUTexture is used these tiles will be refreshes. This saves time
+ * when writing to the same place multiple times This happens for during foreground rendering.
+ */
 void BKE_image_update_gputexture_delayed(
     struct Image *ima, struct ImBuf *ibuf, int x, int y, int w, int h);
+/**
+ * Called on entering and exiting texture paint mode,
+ * temporary disabling/enabling mipmapping on all images for quick texture
+ * updates with glTexSubImage2D. images that didn't change don't have to be re-uploaded to OpenGL.
+ */
 void BKE_image_paint_set_mipmap(struct Main *bmain, bool mipmap);
 
-/* Delayed free of OpenGL buffers by main thread */
+/**
+ * Delayed free of OpenGL buffers by main thread.
+ */
 void BKE_image_free_unused_gpu_textures(void);
 
 struct RenderSlot *BKE_image_add_renderslot(struct Image *ima, const char *name);

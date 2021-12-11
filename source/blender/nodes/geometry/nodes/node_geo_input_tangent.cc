@@ -85,8 +85,7 @@ static Array<float3> curve_tangent_point_domain(const CurveEval &curve)
 }
 
 static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &component,
-                                                      const AttributeDomain domain,
-                                                      ResourceScope &UNUSED(scope))
+                                                      const AttributeDomain domain)
 {
   const CurveEval *curve = component.get_for_read();
   if (curve == nullptr) {
@@ -118,27 +117,20 @@ static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &comp
   return nullptr;
 }
 
-class TangentFieldInput final : public fn::FieldInput {
+class TangentFieldInput final : public GeometryFieldInput {
  public:
-  TangentFieldInput() : fn::FieldInput(CPPType::get<float3>(), "Tangent node")
+  TangentFieldInput() : GeometryFieldInput(CPPType::get<float3>(), "Tangent node")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask UNUSED(mask),
-                                 ResourceScope &scope) const final
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask UNUSED(mask)) const final
   {
-    if (const GeometryComponentFieldContext *geometry_context =
-            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-
-      const GeometryComponent &component = geometry_context->geometry_component();
-      const AttributeDomain domain = geometry_context->domain();
-
-      if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-        const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-        return construct_curve_tangent_gvarray(curve_component, domain, scope);
-      }
+    if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
+      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+      return construct_curve_tangent_gvarray(curve_component, domain);
     }
     return {};
   }

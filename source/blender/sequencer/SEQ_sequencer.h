@@ -69,12 +69,43 @@ struct SequencerToolSettings *SEQ_tool_settings_copy(struct SequencerToolSetting
 struct Editing *SEQ_editing_get(const struct Scene *scene);
 struct Editing *SEQ_editing_ensure(struct Scene *scene);
 void SEQ_editing_free(struct Scene *scene, const bool do_id_user);
+/**
+ * Get seqbase that is being viewed currently. This can be main seqbase or meta strip seqbase
+ *
+ * \param ed: sequence editor data
+ * \return pointer to active seqbase. returns NULL if ed is NULL
+ */
 struct ListBase *SEQ_active_seqbase_get(const struct Editing *ed);
+/**
+ * Set seqbase that is being viewed currently. This can be main seqbase or meta strip seqbase
+ *
+ * \param ed: sequence editor data
+ * \param seqbase: ListBase with strips
+ */
 void SEQ_seqbase_active_set(struct Editing *ed, struct ListBase *seqbase);
 struct Sequence *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int type);
 void SEQ_sequence_free(struct Scene *scene, struct Sequence *seq, const bool do_clean_animdata);
+/**
+ * Create and initialize #MetaStack, append it to `ed->metastack` ListBase
+ *
+ * \param ed: sequence editor data
+ * \param seq_meta: meta strip
+ * \return pointer to created meta stack
+ */
 struct MetaStack *SEQ_meta_stack_alloc(struct Editing *ed, struct Sequence *seq_meta);
+/**
+ * Get #MetaStack that corresponds to current level that is being viewed
+ *
+ * \param ed: sequence editor data
+ * \return pointer to meta stack
+ */
 struct MetaStack *SEQ_meta_stack_active_get(const struct Editing *ed);
+/**
+ * Free #MetaStack and remove it from `ed->metastack` ListBase.
+ *
+ * \param ed: sequence editor data
+ * \param ms: meta stack
+ */
 void SEQ_meta_stack_free(struct Editing *ed, struct MetaStack *ms);
 void SEQ_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
 void SEQ_dupe_animdata(struct Scene *scene, const char *name_src, const char *name_dst);
@@ -91,7 +122,9 @@ void SEQ_sequence_base_dupli_recursive(const struct Scene *scene_src,
                                        const int flag);
 bool SEQ_valid_strip_channel(struct Sequence *seq);
 
-/* Read and Write functions for .blend file data */
+/**
+ * Read and Write functions for `.blend` file data.
+ */
 void SEQ_blend_write(struct BlendWriter *writer, struct ListBase *seqbase);
 void SEQ_blend_read(struct BlendDataReader *reader, struct ListBase *seqbase);
 
@@ -101,7 +134,13 @@ void SEQ_blend_read_lib(struct BlendLibReader *reader,
 
 void SEQ_blend_read_expand(struct BlendExpander *expander, struct ListBase *seqbase);
 
-/* Depsgraph update function */
+/* Depsgraph update function. */
+
+/**
+ * Evaluate parts of sequences which needs to be done as a part of a dependency graph evaluation.
+ * This does NOT include actual rendering of the strips, but rather makes them up-to-date for
+ * animation playback and makes them ready for the sequencer's rendering pipeline to render them.
+ */
 void SEQ_eval_sequences(struct Depsgraph *depsgraph,
                         struct Scene *scene,
                         struct ListBase *seqbase);
@@ -112,8 +151,29 @@ typedef enum eSequenceLookupTag {
   SEQ_LOOKUP_TAG_INVALID = (1 << 0),
 } eSequenceLookupTag;
 
+/**
+ * Find a sequence with a given name.
+ * If lookup hash doesn't exist, it will be created. If hash is tagged as invalid, it will be
+ * rebuilt.
+ *
+ * \param scene: scene that owns lookup hash
+ * \param key: Sequence name without SQ prefix (seq->name + 2)
+ *
+ * \return pointer to Sequence
+ */
 struct Sequence *SEQ_sequence_lookup_by_name(const struct Scene *scene, const char *key);
+/**
+ * Free lookup hash data.
+ *
+ * \param scene: scene that owns lookup hash
+ */
 void SEQ_sequence_lookup_free(const struct Scene *scene);
+/**
+ * Find a sequence with a given name.
+ *
+ * \param scene: scene that owns lookup hash
+ * \param tag: tag to set
+ */
 void SEQ_sequence_lookup_tag(const struct Scene *scene, eSequenceLookupTag tag);
 
 #ifdef __cplusplus

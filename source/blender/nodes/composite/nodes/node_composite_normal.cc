@@ -40,7 +40,7 @@ static void cmp_node_normal_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_normal(void)
+void register_node_type_cmp_normal()
 {
   static bNodeType ntype;
 

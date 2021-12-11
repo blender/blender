@@ -29,7 +29,6 @@
 
 namespace blender::ed::outliner {
 
-/* Convenience/readability. */
 template<typename T> using List = ListBaseWrapper<T>;
 
 TreeDisplayScenes::TreeDisplayScenes(SpaceOutliner &space_outliner)

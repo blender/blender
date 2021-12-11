@@ -182,6 +182,9 @@ class MultiDevice : public Device {
         else if (bvh->params.bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE)
           params.bvh_layout = sub.device->info.type == DEVICE_OPTIX ? BVH_LAYOUT_OPTIX :
                                                                       BVH_LAYOUT_EMBREE;
+        else if (bvh->params.bvh_layout == BVH_LAYOUT_MULTI_METAL_EMBREE)
+          params.bvh_layout = sub.device->info.type == DEVICE_METAL ? BVH_LAYOUT_METAL :
+                                                                      BVH_LAYOUT_EMBREE;
 
         /* Skip building a bottom level acceleration structure for non-instanced geometry on Embree
          * (since they are put into the top level directly, see bvh_embree.cpp) */

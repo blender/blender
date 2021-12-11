@@ -83,7 +83,6 @@ static const ColorTemplate gp_stroke_material_black = {
 /* ***************************************************************** */
 /* LineArt API */
 
-/* Add a Simple LineArt setup. */
 void ED_gpencil_create_lineart(bContext *C, Object *ob)
 {
   Main *bmain = CTX_data_main(C);

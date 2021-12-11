@@ -180,7 +180,6 @@ static ImBuf *tracking_context_get_reference_ibuf(MovieClip *clip,
   return ibuf;
 }
 
-/* Fill in libmv tracker options structure with settings need to be used to perform track. */
 void tracking_configure_tracker(const MovieTrackingTrack *track,
                                 float *mask,
                                 const bool is_backwards,
@@ -311,11 +310,6 @@ static bool refine_marker_reference_frame_get(MovieTrackingTrack *track,
   return (reference->flag & MARKER_DISABLED) == 0;
 }
 
-/* Refine marker's position using previously known keyframe.
- * Direction of searching for a keyframe depends on backwards flag,
- * which means if backwards is false, previous keyframe will be as
- * reference.
- */
 void BKE_tracking_refine_marker(MovieClip *clip,
                                 MovieTrackingTrack *track,
                                 MovieTrackingMarker *marker,

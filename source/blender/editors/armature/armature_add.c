@@ -64,8 +64,6 @@
 
 /* *************** Adding stuff in editmode *************** */
 
-/* default bone add, returns it selected, but without tail set */
-/* XXX should be used everywhere, now it mallocs bones still locally in functions */
 EditBone *ED_armature_ebone_add(bArmature *arm, const char *name)
 {
   EditBone *bone = MEM_callocN(sizeof(EditBone), "eBone");
@@ -274,7 +272,6 @@ void ARMATURE_OT_click_extrude(wmOperatorType *ot)
   /* props */
 }
 
-/* adds an EditBone between the nominated locations (should be in the right space) */
 EditBone *add_points_bone(Object *obedit, float head[3], float tail[3])
 {
   EditBone *ebo;
@@ -302,7 +299,6 @@ static EditBone *get_named_editbone(ListBase *edbo, const char *name)
   return NULL;
 }
 
-/* Call this before doing any duplications. */
 void preEditBoneDuplicate(ListBase *editbones)
 {
   /* clear temp */
@@ -1317,9 +1313,10 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/* following conventions from #MESH_OT_symmetrize */
 void ARMATURE_OT_symmetrize(wmOperatorType *ot)
 {
+  /* NOTE: following conventions from #MESH_OT_symmetrize */
+
   /* subset of 'rna_enum_symmetrize_direction_items' */
   static const EnumPropertyItem arm_symmetrize_direction_items[] = {
       {-1, "NEGATIVE_X", 0, "-X to +X", ""},

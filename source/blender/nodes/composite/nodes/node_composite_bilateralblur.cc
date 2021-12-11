@@ -46,7 +46,7 @@ static void node_composit_init_bilateralblur(bNodeTree *UNUSED(ntree), bNode *no
   nbbd->sigma_space = 5.0;
 }
 
-void register_node_type_cmp_bilateralblur(void)
+void register_node_type_cmp_bilateralblur()
 {
   static bNodeType ntype;
 

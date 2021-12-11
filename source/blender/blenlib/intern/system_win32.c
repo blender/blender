@@ -373,6 +373,9 @@ static void bli_load_symbols()
   }
 }
 
+/**
+ * Write a backtrace into a file for systems which support it.
+ */
 void BLI_system_backtrace(FILE *fp)
 {
   SymInitialize(GetCurrentProcess(), NULL, TRUE);

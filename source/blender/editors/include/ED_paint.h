@@ -54,11 +54,21 @@ void ED_imapaint_bucket_fill(struct bContext *C,
                              const int mouse[2]);
 
 /* paint_image_proj.c */
+
 void ED_paint_data_warning(struct ReportList *reports, bool uvs, bool mat, bool tex, bool stencil);
+/**
+ * Make sure that active object has a material,
+ * and assign UVs and image layers if they do not exist.
+ */
 bool ED_paint_proj_mesh_data_check(
     struct Scene *scene, struct Object *ob, bool *uvs, bool *mat, bool *tex, bool *stencil);
 
 /* image_undo.c */
+
+/**
+ * The caller is responsible for running #ED_image_undo_push_end,
+ * failure to do so causes an invalid state for the undo system.
+ */
 void ED_image_undo_push_begin(const char *name, int paint_mode);
 void ED_image_undo_push_begin_with_image(const char *name,
                                          struct Image *image,
@@ -66,8 +76,12 @@ void ED_image_undo_push_begin_with_image(const char *name,
                                          struct ImageUser *iuser);
 
 void ED_image_undo_push_end(void);
+/**
+ * Restore painting image to previous state. Used for anchored and drag-dot style brushes.
+ */
 void ED_image_undo_restore(struct UndoStep *us);
 
+/** Export for ED_undo_sys. */
 void ED_image_undosys_type(struct UndoType *ut);
 
 void *ED_image_paint_tile_find(struct ListBase *paint_tiles,
@@ -100,9 +114,11 @@ struct ListBase *ED_image_paint_tile_list_get(void);
   (((size) + ED_IMAGE_UNDO_TILE_SIZE - 1) >> ED_IMAGE_UNDO_TILE_BITS)
 
 /* paint_curve_undo.c */
+
 void ED_paintcurve_undo_push_begin(const char *name);
 void ED_paintcurve_undo_push_end(struct bContext *C);
 
+/** Export for ED_undo_sys. */
 void ED_paintcurve_undosys_type(struct UndoType *ut);
 
 #ifdef __cplusplus

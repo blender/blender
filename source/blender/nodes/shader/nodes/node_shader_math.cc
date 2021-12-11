@@ -161,7 +161,7 @@ static void sh_node_math_build_multi_function(blender::nodes::NodeMultiFunctionB
   }
 }
 
-void register_node_type_sh_math(void)
+void register_node_type_sh_math()
 {
   static bNodeType ntype;
 

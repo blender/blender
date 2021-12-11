@@ -2073,7 +2073,8 @@ void DepsgraphRelationBuilder::build_shapekeys(Key *key)
  *        and also for the links coming from the shapekey data-blocks
  * - Animation/Drivers affecting the parameters of the geometry are made to
  *   trigger updates on the obdata geometry component, which then trigger
- *   downstream re-evaluation of the individual instances of this geometry. */
+ *   downstream re-evaluation of the individual instances of this geometry.
+ */
 void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 {
   ID *obdata = (ID *)object->data;
@@ -2868,7 +2869,8 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations()
   }
 }
 
-/* Nested datablocks (node trees, shape keys) requires special relation to
+/**
+ * Nested datablocks (node trees, shape keys) requires special relation to
  * ensure owner's datablock remapping happens after node tree itself is ready.
  *
  * This is similar to what happens in ntree_hack_remap_pointers().

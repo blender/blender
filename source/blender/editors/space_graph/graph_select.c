@@ -346,17 +346,6 @@ static tNearestVertInfo *find_nearest_fcurve_vert(bAnimContext *ac, const int mv
  * 3) (de)select all - no testing is done; only for use internal tools as normal function...
  * \{ */
 
-/**
- * Deselects keyframes in the Graph Editor
- * - This is called by the deselect all operator, as well as other ones!
- *
- * - test: check if select or deselect all
- * - sel: how to select keyframes
- *   0 = deselect
- *   1 = select
- *   2 = invert
- * - do_channels: whether to affect selection status of channels
- */
 void deselect_graph_keys(bAnimContext *ac, bool test, short sel, bool do_channels)
 {
   ListBase anim_data = {NULL, NULL};

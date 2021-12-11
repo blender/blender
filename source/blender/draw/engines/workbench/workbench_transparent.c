@@ -149,8 +149,6 @@ void workbench_transparent_cache_init(WORKBENCH_Data *vedata)
   }
 }
 
-/* Redraw the transparent passes but with depth test
- * to output correct outline IDs and depth. */
 void workbench_transparent_draw_depth_pass(WORKBENCH_Data *data)
 {
   WORKBENCH_PrivateData *wpd = data->stl->wpd;

@@ -36,7 +36,9 @@ struct Volume;
 struct VolumeGrid;
 struct bGPDstroke;
 
-/* Shape resolution level of detail */
+/**
+ * Shape resolution level of detail.
+ */
 typedef enum eDRWLevelOfDetail {
   DRW_LOD_LOW = 0,
   DRW_LOD_MEDIUM = 1,
@@ -52,9 +54,15 @@ struct GPUBatch *DRW_cache_cursor_get(bool crosshair_lines);
 
 /* Common Shapes */
 struct GPUBatch *DRW_cache_groundline_get(void);
+/* Grid */
 struct GPUBatch *DRW_cache_grid_get(void);
+/**
+ * Use this one for rendering full-screen passes. For 3D objects use #DRW_cache_quad_get().
+ */
 struct GPUBatch *DRW_cache_fullscreen_quad_get(void);
+/* Just a regular quad with 4 vertices. */
 struct GPUBatch *DRW_cache_quad_get(void);
+/* Just a regular quad with 4 vertices - wires. */
 struct GPUBatch *DRW_cache_quad_wires_get(void);
 struct GPUBatch *DRW_cache_cube_get(void);
 struct GPUBatch *DRW_cache_normal_arrow_get(void);
@@ -62,9 +70,11 @@ struct GPUBatch *DRW_cache_normal_arrow_get(void);
 struct GPUBatch *DRW_cache_sphere_get(const eDRWLevelOfDetail level_of_detail);
 
 /* Dummy VBOs */
+
 struct GPUBatch *DRW_gpencil_dummy_buffer_get(void);
 
 /* Common Object */
+
 struct GPUBatch *DRW_cache_object_all_edges_get(struct Object *ob);
 struct GPUBatch *DRW_cache_object_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 struct GPUBatch *DRW_cache_object_surface_get(struct Object *ob);
@@ -75,6 +85,9 @@ struct GPUBatch **DRW_cache_object_surface_material_get(struct Object *ob,
 struct GPUBatch *DRW_cache_object_face_wireframe_get(struct Object *ob);
 int DRW_cache_object_material_count_get(struct Object *ob);
 
+/**
+ * Returns the vertbuf used by shaded surface batch.
+ */
 struct GPUVertBuf *DRW_cache_object_pos_vertbuf_get(struct Object *ob);
 
 /* Empties */
@@ -89,15 +102,23 @@ struct GPUBatch *DRW_cache_empty_capsule_cap_get(void);
 struct GPUBatch *DRW_cache_empty_capsule_body_get(void);
 
 /* Force Field */
+
 struct GPUBatch *DRW_cache_field_wind_get(void);
 struct GPUBatch *DRW_cache_field_force_get(void);
 struct GPUBatch *DRW_cache_field_vortex_get(void);
+
+/* Screen-aligned circle. */
+
 struct GPUBatch *DRW_cache_field_curve_get(void);
 struct GPUBatch *DRW_cache_field_tube_limit_get(void);
 struct GPUBatch *DRW_cache_field_cone_limit_get(void);
+
+/* Screen-aligned dashed circle */
+
 struct GPUBatch *DRW_cache_field_sphere_limit_get(void);
 
 /* Lights */
+
 struct GPUBatch *DRW_cache_light_point_lines_get(void);
 struct GPUBatch *DRW_cache_light_sun_lines_get(void);
 struct GPUBatch *DRW_cache_light_spot_lines_get(void);
@@ -106,6 +127,7 @@ struct GPUBatch *DRW_cache_light_area_square_lines_get(void);
 struct GPUBatch *DRW_cache_light_spot_volume_get(void);
 
 /* Camera */
+
 struct GPUBatch *DRW_cache_camera_frame_get(void);
 struct GPUBatch *DRW_cache_camera_volume_get(void);
 struct GPUBatch *DRW_cache_camera_volume_wire_get(void);
@@ -114,14 +136,17 @@ struct GPUBatch *DRW_cache_camera_tria_get(void);
 struct GPUBatch *DRW_cache_camera_distances_get(void);
 
 /* Speaker */
+
 struct GPUBatch *DRW_cache_speaker_get(void);
 
 /* Probe */
+
 struct GPUBatch *DRW_cache_lightprobe_cube_get(void);
 struct GPUBatch *DRW_cache_lightprobe_grid_get(void);
 struct GPUBatch *DRW_cache_lightprobe_planar_get(void);
 
 /* Bones */
+
 struct GPUBatch *DRW_cache_bone_octahedral_get(void);
 struct GPUBatch *DRW_cache_bone_octahedral_wire_get(void);
 struct GPUBatch *DRW_cache_bone_box_get(void);
@@ -136,15 +161,22 @@ struct GPUBatch *DRW_cache_bone_dof_sphere_get(void);
 struct GPUBatch *DRW_cache_bone_dof_lines_get(void);
 
 /* Meshes */
+
 struct GPUBatch *DRW_cache_mesh_all_verts_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_all_edges_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_loose_edges_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 struct GPUBatch *DRW_cache_mesh_surface_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_edges_get(struct Object *ob);
+/**
+ * Return list of batches with length equal to `max(1, totcol)`.
+ */
 struct GPUBatch **DRW_cache_mesh_surface_shaded_get(struct Object *ob,
                                                     struct GPUMaterial **gpumat_array,
                                                     uint gpumat_array_len);
+/**
+ * Return list of batches with length equal to `max(1, totcol)`.
+ */
 struct GPUBatch **DRW_cache_mesh_surface_texpaint_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_texpaint_single_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_vertpaint_get(struct Object *ob);
@@ -154,19 +186,27 @@ struct GPUBatch *DRW_cache_mesh_surface_mesh_analysis_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_face_wireframe_get(struct Object *ob);
 
 /* Curve */
+
 struct GPUBatch *DRW_cache_curve_edge_wire_get(struct Object *ob);
+
 /* edit-mode */
+
 struct GPUBatch *DRW_cache_curve_edge_normal_get(struct Object *ob);
 struct GPUBatch *DRW_cache_curve_edge_overlay_get(struct Object *ob);
 struct GPUBatch *DRW_cache_curve_vert_overlay_get(struct Object *ob);
 
 /* Font */
+
 struct GPUBatch *DRW_cache_text_edge_wire_get(struct Object *ob);
 
 /* Surface */
+
 struct GPUBatch *DRW_cache_surf_surface_get(struct Object *ob);
 struct GPUBatch *DRW_cache_surf_edge_wire_get(struct Object *ob);
 struct GPUBatch *DRW_cache_surf_loose_edges_get(struct Object *ob);
+
+/* Return list of batches */
+
 struct GPUBatch **DRW_cache_surf_surface_shaded_get(struct Object *ob,
                                                     struct GPUMaterial **gpumat_array,
                                                     uint gpumat_array_len);
@@ -174,11 +214,13 @@ struct GPUBatch *DRW_cache_surf_face_wireframe_get(struct Object *ob);
 struct GPUBatch *DRW_cache_surf_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 
 /* Lattice */
+
 struct GPUBatch *DRW_cache_lattice_verts_get(struct Object *ob);
 struct GPUBatch *DRW_cache_lattice_wire_get(struct Object *ob, bool use_weight);
 struct GPUBatch *DRW_cache_lattice_vert_overlay_get(struct Object *ob);
 
 /* Particles */
+
 struct GPUBatch *DRW_cache_particles_get_hair(struct Object *object,
                                               struct ParticleSystem *psys,
                                               struct ModifierData *md);
@@ -196,6 +238,7 @@ struct GPUBatch *DRW_cache_particles_get_edit_tip_points(struct Object *object,
 struct GPUBatch *DRW_cache_particles_get_prim(int type);
 
 /* Metaball */
+
 struct GPUBatch *DRW_cache_mball_surface_get(struct Object *ob);
 struct GPUBatch **DRW_cache_mball_surface_shaded_get(struct Object *ob,
                                                      struct GPUMaterial **gpumat_array,
@@ -204,6 +247,7 @@ struct GPUBatch *DRW_cache_mball_face_wireframe_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mball_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 
 /* Hair */
+
 struct GPUBatch *DRW_cache_hair_surface_get(struct Object *ob);
 struct GPUBatch **DRW_cache_hair_surface_shaded_get(struct Object *ob,
                                                     struct GPUMaterial **gpumat_array,
@@ -212,10 +256,12 @@ struct GPUBatch *DRW_cache_hair_face_wireframe_get(struct Object *ob);
 struct GPUBatch *DRW_cache_hair_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 
 /* PointCloud */
+
 struct GPUBatch *DRW_cache_pointcloud_get_dots(struct Object *obj);
 struct GPUBatch *DRW_cache_pointcloud_surface_get(struct Object *obj);
 
 /* Volume */
+
 typedef struct DRWVolumeGrid {
   struct DRWVolumeGrid *next, *prev;
 
@@ -240,6 +286,7 @@ struct GPUBatch *DRW_cache_volume_face_wireframe_get(struct Object *ob);
 struct GPUBatch *DRW_cache_volume_selection_surface_get(struct Object *ob);
 
 /* GPencil */
+
 struct GPUBatch *DRW_cache_gpencil_strokes_get(struct Object *ob, int cfra);
 struct GPUBatch *DRW_cache_gpencil_fills_get(struct Object *ob, int cfra);
 struct GPUBatch *DRW_cache_gpencil_edit_lines_get(struct Object *ob, int cfra);
@@ -252,6 +299,9 @@ struct GPUBatch *DRW_cache_gpencil_sbuffer_fill_get(struct Object *ob);
 struct GPUBatch *DRW_cache_gpencil_face_wireframe_get(struct Object *ob);
 
 struct bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(struct Object *ob);
+/**
+ * Sbuffer batches are temporary. We need to clear it after drawing.
+ */
 void DRW_cache_gpencil_sbuffer_clear(struct Object *ob);
 
 #ifdef __cplusplus

@@ -302,10 +302,6 @@ blender::Array<unsigned int> ExecutionGroup::get_execution_order() const
   return chunk_order;
 }
 
-/**
- * this method is called for the top execution groups. containing the compositor node or the
- * preview node or the viewer node)
- */
 void ExecutionGroup::execute(ExecutionSystem *graph)
 {
   const CompositorContext &context = graph->get_context();

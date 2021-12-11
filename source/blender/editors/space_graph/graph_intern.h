@@ -34,12 +34,23 @@ struct bContext;
 
 /* ***************************************** */
 /* graph_draw.c */
+/**
+ * Left hand part.
+ */
 void graph_draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct ARegion *region);
 
+/**
+ * This is called twice from space_graph.c -> graph_main_region_draw()
+ * Unselected then selected F-Curves are drawn so that they do not occlude each other.
+ */
 void graph_draw_curves(struct bAnimContext *ac,
                        struct SpaceGraph *sipo,
                        struct ARegion *region,
                        short sel);
+/**
+ * Draw the 'ghost' F-Curves (i.e. snapshots of the curve)
+ * \note unit mapping has already been applied to the values, so do not try and apply again.
+ */
 void graph_draw_ghost_curves(struct bAnimContext *ac,
                              struct SpaceGraph *sipo,
                              struct ARegion *region);
@@ -47,6 +58,17 @@ void graph_draw_ghost_curves(struct bAnimContext *ac,
 /* ***************************************** */
 /* graph_select.c */
 
+/**
+ * Deselects keyframes in the Graph Editor
+ * - This is called by the deselect all operator, as well as other ones!
+ *
+ * - test: check if select or deselect all
+ * - sel: how to select keyframes
+ *   0 = deselect
+ *   1 = select
+ *   2 = invert
+ * - do_channels: whether to affect selection status of channels
+ */
 void deselect_graph_keys(struct bAnimContext *ac, bool test, short sel, bool do_channels);
 
 void GRAPH_OT_select_all(struct wmOperatorType *ot);
@@ -78,6 +100,10 @@ enum eGraphKeys_ColumnSelect_Mode {
 /* ***************************************** */
 /* graph_edit.c */
 
+/**
+ * Get the min/max keyframes.
+ * \note it should return total bound-box, filter for selection only can be argument.
+ */
 void get_graph_keyframe_extents(struct bAnimContext *ac,
                                 float *xmin,
                                 float *xmax,
@@ -166,12 +192,36 @@ void graph_buttons_register(struct ARegionType *art);
 /* ***************************************** */
 /* graph_utils.c */
 
+/**
+ * Find 'active' F-Curve.
+ * It must be editable, since that's the purpose of these buttons (subject to change).
+ * We return the 'wrapper' since it contains valuable context info (about hierarchy),
+ * which will need to be freed when the caller is done with it.
+ *
+ * \note curve-visible flag isn't included,
+ * otherwise selecting a curve via list to edit is too cumbersome.
+ */
 struct bAnimListElem *get_active_fcurve_channel(struct bAnimContext *ac);
 
+/**
+ * Check if there are any visible keyframes (for selection tools).
+ */
 bool graphop_visible_keyframes_poll(struct bContext *C);
+/**
+ * Check if there are any visible + editable keyframes (for editing tools).
+ */
 bool graphop_editable_keyframes_poll(struct bContext *C);
+/**
+ * Has active F-Curve that's editable.
+ */
 bool graphop_active_fcurve_poll(struct bContext *C);
+/**
+ * Has active F-Curve in the context that's editable.
+ */
 bool graphop_active_editable_fcurve_ctx_poll(struct bContext *C);
+/**
+ * Has selected F-Curve that's editable.
+ */
 bool graphop_selected_fcurve_poll(struct bContext *C);
 
 /* ***************************************** */

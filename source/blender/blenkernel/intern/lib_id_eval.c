@@ -29,11 +29,6 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 
-/**
- * Copy relatives parameters, from `id` to `id_cow`.
- * Use handle the #ID_RECALC_PARAMETERS tag.
- * \note Keep in sync with #ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW.
- */
 void BKE_id_eval_properties_copy(ID *id_cow, ID *id)
 {
   const ID_Type id_type = GS(id->name);

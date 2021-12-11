@@ -24,7 +24,6 @@
 #include "DNA_node_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
@@ -445,7 +444,6 @@ static void sample_draw(const bContext *C, ARegion *region, void *arg_info)
   }
 }
 
-/* Returns mouse position in image space. */
 bool ED_space_node_get_position(
     Main *bmain, SpaceNode *snode, struct ARegion *region, const int mval[2], float fpos[2])
 {
@@ -473,9 +471,6 @@ bool ED_space_node_get_position(
   return true;
 }
 
-/* Returns color in linear space, matching ED_space_image_color_sample().
- * And here we've got recursion in the comments tips...
- */
 bool ED_space_node_color_sample(
     Main *bmain, SpaceNode *snode, ARegion *region, const int mval[2], float r_col[3])
 {

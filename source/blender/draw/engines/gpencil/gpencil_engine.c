@@ -990,6 +990,7 @@ DrawEngineType draw_engine_gpencil_type = {
     &GPENCIL_data_size,
     &GPENCIL_engine_init,
     &GPENCIL_engine_free,
+    NULL, /* instance_free */
     &GPENCIL_cache_init,
     &GPENCIL_cache_populate,
     &GPENCIL_cache_finish,

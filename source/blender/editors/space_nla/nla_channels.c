@@ -629,7 +629,6 @@ void NLA_OT_action_unlink(wmOperatorType *ot)
 /* ******************** Add Tracks Operator ***************************** */
 /* Add NLA Tracks to the same AnimData block as a selected track, or above the selected tracks */
 
-/* helper - add NLA Tracks alongside existing ones */
 bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel)
 {
   ListBase anim_data = {NULL, NULL};
@@ -678,7 +677,6 @@ bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel)
   return added;
 }
 
-/* helper - add NLA Tracks to empty (and selected) AnimData blocks */
 bool nlaedit_add_tracks_empty(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};

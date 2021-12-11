@@ -173,6 +173,9 @@ static void add_instances_from_component(InstancesComponent &instances,
   const AttributeDomain domain = ATTR_DOMAIN_POINT;
 
   const int domain_size = src_geometry.attribute_domain_size(domain);
+  if (domain_size == 0) {
+    return;
+  }
 
   VArray<float3> positions = src_geometry.attribute_get_for_read<float3>(
       "position", domain, {0, 0, 0});

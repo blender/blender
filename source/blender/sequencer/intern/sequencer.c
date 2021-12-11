@@ -227,8 +227,6 @@ void SEQ_sequence_free(Scene *scene, Sequence *seq, const bool do_clean_animdata
   seq_sequence_free_ex(scene, seq, true, true, do_clean_animdata);
 }
 
-/* cache must be freed before calling this function
- * since it leaves the seqbase in an invalid state */
 void seq_free_sequence_recurse(Scene *scene,
                                Sequence *seq,
                                const bool do_id_user,
@@ -388,12 +386,6 @@ int SEQ_tool_settings_pivot_point_get(Scene *scene)
   return tool_settings->pivot_point;
 }
 
-/**
- * Get seqbase that is being viewed currently. This can be main seqbase or meta strip seqbase
- *
- * \param ed: sequence editor data
- * \return pointer to active seqbase. returns NULL if ed is NULL
- */
 ListBase *SEQ_active_seqbase_get(const Editing *ed)
 {
   if (ed == NULL) {
@@ -403,24 +395,11 @@ ListBase *SEQ_active_seqbase_get(const Editing *ed)
   return ed->seqbasep;
 }
 
-/**
- * Set seqbase that is being viewed currently. This can be main seqbase or meta strip seqbase
- *
- * \param ed: sequence editor data
- * \param seqbase: ListBase with strips
- */
 void SEQ_seqbase_active_set(Editing *ed, ListBase *seqbase)
 {
   ed->seqbasep = seqbase;
 }
 
-/**
- * Create and initialize #MetaStack, append it to `ed->metastack` ListBase
- *
- * \param ed: sequence editor data
- * \param seq_meta: meta strip
- * \return pointer to created meta stack
- */
 MetaStack *SEQ_meta_stack_alloc(Editing *ed, Sequence *seq_meta)
 {
   MetaStack *ms = MEM_mallocN(sizeof(MetaStack), "metastack");
@@ -431,24 +410,12 @@ MetaStack *SEQ_meta_stack_alloc(Editing *ed, Sequence *seq_meta)
   return ms;
 }
 
-/**
- * Free #MetaStack and remove it from `ed->metastack` ListBase.
- *
- * \param ed: sequence editor data
- * \param ms: meta stack
- */
 void SEQ_meta_stack_free(Editing *ed, MetaStack *ms)
 {
   BLI_remlink(&ed->metastack, ms);
   MEM_freeN(ms);
 }
 
-/**
- * Get #MetaStack that corresponds to current level that is being viewed
- *
- * \param ed: sequence editor data
- * \return pointer to meta stack
- */
 MetaStack *SEQ_meta_stack_active_get(const Editing *ed)
 {
   return ed->metastack.last;
@@ -662,9 +629,11 @@ static size_t sequencer_rna_path_prefix(char str[SEQ_RNAPATH_MAXSTR], const char
       str, SEQ_RNAPATH_MAXSTR, "sequence_editor.sequences_all[\"%s\"]", name_esc);
 }
 
-/* XXX: hackish function needed for transforming strips! TODO: have some better solution. */
 void SEQ_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 {
+  /* XXX: hackish function needed for transforming strips!
+   * TODO: have some better solution. */
+
   char str[SEQ_RNAPATH_MAXSTR];
   size_t str_len;
   FCurve *fcu;
@@ -1069,10 +1038,6 @@ static bool seq_update_seq_cb(Sequence *seq, void *user_data)
   return true;
 }
 
-/* Evaluate parts of sequences which needs to be done as a part of a dependency graph evaluation.
- * This does NOT include actual rendering of the strips, but rather makes them up-to-date for
- * animation playback and makes them ready for the sequencer's rendering pipeline to render them.
- */
 void SEQ_eval_sequences(Depsgraph *depsgraph, Scene *scene, ListBase *seqbase)
 {
   DEG_debug_print_eval(depsgraph, __func__, scene->id.name, scene);

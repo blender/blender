@@ -629,6 +629,7 @@ DrawEngineType draw_engine_eevee_type = {
     &eevee_data_size,
     &eevee_engine_init,
     &eevee_engine_free,
+    NULL, /* instance_free */
     &eevee_cache_init,
     &EEVEE_cache_populate,
     &eevee_cache_finish,

@@ -753,10 +753,6 @@ void RNA_define_verify_sdna(bool verify)
   DefRNA.verify = verify;
 }
 
-/**
- * Properties defined when this is enabled are lib-overridable by default (except for Pointer
- * ones).
- */
 void RNA_define_lib_overridable(const bool make_overridable)
 {
   DefRNA.make_overridable = make_overridable;
@@ -915,7 +911,6 @@ static StructDefRNA *rna_find_def_struct(StructRNA *srna)
   return NULL;
 }
 
-/* Struct Definition */
 StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRNA *srnafrom)
 {
   StructRNA *srna;
@@ -1243,9 +1238,6 @@ void RNA_def_struct_identifier(BlenderRNA *brna, StructRNA *srna, const char *id
   srna->identifier = identifier;
 }
 
-/**
- * Only used in one case when we name the struct for the purpose of useful error messages.
- */
 void RNA_def_struct_identifier_no_struct_map(StructRNA *srna, const char *identifier)
 {
   if (DefRNA.preprocess) {
@@ -1532,13 +1524,6 @@ void RNA_def_property_override_clear_flag(PropertyRNA *prop, PropertyOverrideFla
   prop->flag_override &= ~flag;
 }
 
-/**
- * Add the property-tags passed as \a tags to \a prop (if valid).
- *
- * \note Multiple tags can be set by passing them within \a tags (using bitflags).
- * \note Doesn't do any type-checking with the tags defined in the parent StructRNA
- *       of \a prop. This should be done before (e.g. see #WM_operatortype_prop_tag).
- */
 void RNA_def_property_tags(PropertyRNA *prop, int tags)
 {
   prop->tags |= tags;
@@ -1616,12 +1601,10 @@ void RNA_def_property_array(PropertyRNA *prop, int length)
   }
 }
 
-/* common args for defaults. */
 const float rna_default_quaternion[4] = {1, 0, 0, 0};
 const float rna_default_axis_angle[4] = {0, 0, 1, 0};
 const float rna_default_scale_3d[3] = {1, 1, 1};
 
-/* common args for length */
 const int rna_matrix_dimsize_3x3[] = {3, 3};
 const int rna_matrix_dimsize_4x4[] = {4, 4};
 const int rna_matrix_dimsize_4x2[] = {4, 2};
@@ -1692,17 +1675,6 @@ void RNA_def_property_ui_icon(PropertyRNA *prop, int icon, int consecutive)
   }
 }
 
-/**
- * The values hare are a little confusing:
- *
- * \param step: Used as the value to increase/decrease when clicking on number buttons,
- * as well as scaling mouse input for click-dragging number buttons.
- * For floats this is (step * UI_PRECISION_FLOAT_SCALE), why? - nobody knows.
- * For ints, whole values are used.
- *
- * \param precision: The number of zeros to show
- * (as a whole number - common range is 1 - 6), see UI_PRECISION_FLOAT_MAX
- */
 void RNA_def_property_ui_range(
     PropertyRNA *prop, double min, double max, double step, int precision)
 {
@@ -2082,7 +2054,6 @@ void RNA_def_property_float_default(PropertyRNA *prop, float value)
       break;
   }
 }
-/* array must remain valid after this function finishes */
 void RNA_def_property_float_array_default(PropertyRNA *prop, const float *array)
 {
   StructRNA *srna = DefRNA.laststruct;
@@ -2920,11 +2891,6 @@ void RNA_def_property_editable_array_func(PropertyRNA *prop, const char *editabl
   }
 }
 
-/**
- * Set custom callbacks for override operations handling.
- *
- * \note \a diff callback will also be used by RNA comparison/equality functions.
- */
 void RNA_def_property_override_funcs(PropertyRNA *prop,
                                      const char *diff,
                                      const char *store,
@@ -3813,7 +3779,6 @@ PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_,
   return prop;
 }
 
-/* same as above but sets 'PROP_ENUM_FLAG' before setting the default value */
 PropertyRNA *RNA_def_enum_flag(StructOrFunctionRNA *cont_,
                                const char *identifier,
                                const EnumPropertyItem *items,
@@ -4320,7 +4285,6 @@ FunctionRNA *RNA_def_function_runtime(StructRNA *srna, const char *identifier, C
   return func;
 }
 
-/* C return value only!, multiple RNA returns can be done with RNA_def_function_output */
 void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret)
 {
   if (ret->flag & PROP_DYNAMIC) {

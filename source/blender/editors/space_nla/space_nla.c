@@ -591,7 +591,6 @@ static void nla_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID
   }
 }
 
-/* only called once, from space/spacetypes.c */
 void ED_spacetype_nla(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype nla");

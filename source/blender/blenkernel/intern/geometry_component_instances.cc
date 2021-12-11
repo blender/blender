@@ -64,12 +64,6 @@ void InstancesComponent::reserve(int min_capacity)
   attributes_.reallocate(min_capacity);
 }
 
-/**
- * Resize the transform, handles, and ID vectors to the specified capacity.
- *
- * \note This function should be used carefully, only when it's guaranteed
- * that the data will be filled.
- */
 void InstancesComponent::resize(int capacity)
 {
   instance_reference_handles_.resize(capacity);
@@ -113,11 +107,6 @@ blender::Span<blender::float4x4> InstancesComponent::instance_transforms() const
   return instance_transforms_;
 }
 
-/**
- * With write access to the instances component, the data in the instanced geometry sets can be
- * changed. This is a function on the component rather than each reference to ensure `const`
- * correctness for that reason.
- */
 GeometrySet &InstancesComponent::geometry_set_from_reference(const int reference_index)
 {
   /* If this assert fails, it means #ensure_geometry_instances must be called first or that the
@@ -129,11 +118,6 @@ GeometrySet &InstancesComponent::geometry_set_from_reference(const int reference
   return const_cast<GeometrySet &>(references_[reference_index].geometry_set());
 }
 
-/**
- * Returns a handle for the given reference.
- * If the reference exists already, the handle of the existing reference is returned.
- * Otherwise a new handle is added.
- */
 int InstancesComponent::add_reference(const InstanceReference &reference)
 {
   return references_.index_of_or_add_as(reference);

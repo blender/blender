@@ -23,7 +23,7 @@
 
 static IOCIOImpl *impl = NULL;
 
-void OCIO_init(void)
+void OCIO_init()
 {
 #ifdef WITH_OCIO
   impl = new OCIOImpl();
@@ -32,18 +32,18 @@ void OCIO_init(void)
 #endif
 }
 
-void OCIO_exit(void)
+void OCIO_exit()
 {
   delete impl;
   impl = NULL;
 }
 
-OCIO_ConstConfigRcPtr *OCIO_getCurrentConfig(void)
+OCIO_ConstConfigRcPtr *OCIO_getCurrentConfig()
 {
   return impl->getCurrentConfig();
 }
 
-OCIO_ConstConfigRcPtr *OCIO_configCreateFallback(void)
+OCIO_ConstConfigRcPtr *OCIO_configCreateFallback()
 {
   delete impl;
   impl = new FallbackImpl();
@@ -56,7 +56,7 @@ void OCIO_setCurrentConfig(const OCIO_ConstConfigRcPtr *config)
   impl->setCurrentConfig(config);
 }
 
-OCIO_ConstConfigRcPtr *OCIO_configCreateFromEnv(void)
+OCIO_ConstConfigRcPtr *OCIO_configCreateFromEnv()
 {
   return impl->configCreateFromEnv();
 }
@@ -308,22 +308,22 @@ bool OCIO_gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
                                     use_overlay);
 }
 
-void OCIO_gpuDisplayShaderUnbind(void)
+void OCIO_gpuDisplayShaderUnbind()
 {
   impl->gpuDisplayShaderUnbind();
 }
 
-void OCIO_gpuCacheFree(void)
+void OCIO_gpuCacheFree()
 {
   impl->gpuCacheFree();
 }
 
-const char *OCIO_getVersionString(void)
+const char *OCIO_getVersionString()
 {
   return impl->getVersionString();
 }
 
-int OCIO_getVersionHex(void)
+int OCIO_getVersionHex()
 {
   return impl->getVersionHex();
 }

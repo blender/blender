@@ -35,12 +35,15 @@ enum MergeChannelOp {
   MERGE_CHANNEL_NOP,
   MERGE_CHANNEL_COPY,
   MERGE_CHANNEL_SUM,
-  MERGE_CHANNEL_AVERAGE
+  MERGE_CHANNEL_AVERAGE,
+  MERGE_CHANNEL_SAMPLES,
 };
 
 struct MergeImagePass {
   /* Full channel name. */
   string channel_name;
+  /* Pass name. */
+  string name;
   /* Channel format in the file. */
   TypeDesc format;
   /* Type of operation to perform when merging. */
@@ -51,6 +54,13 @@ struct MergeImagePass {
   int merge_offset;
 };
 
+struct SampleCount {
+  /* Total number of samples. */
+  int total;
+  /* Buffer for actual number of samples rendered per pixel. */
+  array<float> per_pixel;
+};
+
 struct MergeImageLayer {
   /* Layer name. */
   string name;
@@ -58,6 +68,10 @@ struct MergeImageLayer {
   vector<MergeImagePass> passes;
   /* Sample amount that was used for rendering this layer. */
   int samples;
+  /* Indicates if this layer has "Debug Sample Count" pass. */
+  bool has_sample_pass;
+  /* Offset of the "Debug Sample Count" pass if it exists. */
+  int sample_pass_offset;
 };
 
 /* Merge Image */
@@ -83,6 +97,9 @@ static MergeChannelOp parse_channel_operation(const string &pass_name)
            string_startswith(pass_name, "Debug Ray") ||
            string_startswith(pass_name, "Debug Render Time")) {
     return MERGE_CHANNEL_SUM;
+  }
+  else if (string_startswith(pass_name, "Debug Sample Count")) {
+    return MERGE_CHANNEL_SAMPLES;
   }
   else {
     return MERGE_CHANNEL_AVERAGE;
@@ -148,11 +165,11 @@ static bool parse_channels(const ImageSpec &in_spec,
     pass.offset = i;
     pass.merge_offset = i;
 
-    string layername, passname, channelname;
+    string layername, channelname;
     if (parse_channel_name(
-            pass.channel_name, layername, passname, channelname, multiview_channels)) {
+            pass.channel_name, layername, pass.name, channelname, multiview_channels)) {
       /* Channel part of a render layer. */
-      pass.op = parse_channel_operation(passname);
+      pass.op = parse_channel_operation(pass.name);
     }
     else {
       /* Other channels are added in unnamed layer. */
@@ -183,10 +200,7 @@ static bool parse_channels(const ImageSpec &in_spec,
 
   /* Loop over all detected render-layers, check whether they contain a full set of input
    * channels. Any channels that won't be processed internally are also passed through. */
-  for (auto &i : file_layers) {
-    const string &name = i.first;
-    MergeImageLayer &layer = i.second;
-
+  for (auto &[name, layer] : file_layers) {
     layer.name = name;
     layer.samples = 0;
 
@@ -209,6 +223,19 @@ static bool parse_channels(const ImageSpec &in_spec,
           "No sample number specified in the file for layer %s or on the command line",
           name.c_str());
       return false;
+    }
+
+    /* Check if the layer has "Debug Sample Count" pass. */
+    auto sample_pass_it = find_if(
+        layer.passes.begin(), layer.passes.end(), [](const MergeImagePass &pass) {
+          return pass.name == "Debug Sample Count";
+        });
+    if (sample_pass_it != layer.passes.end()) {
+      layer.has_sample_pass = true;
+      layer.sample_pass_offset = distance(layer.passes.begin(), sample_pass_it);
+    }
+    else {
+      layer.has_sample_pass = false;
     }
 
     layers.push_back(layer);
@@ -301,9 +328,7 @@ static void merge_layer_render_time(ImageSpec &spec,
   spec.attribute(name, TypeDesc::STRING, time_human_readable_from_seconds(time));
 }
 
-static void merge_channels_metadata(vector<MergeImage> &images,
-                                    ImageSpec &out_spec,
-                                    vector<int> &channel_total_samples)
+static void merge_channels_metadata(vector<MergeImage> &images, ImageSpec &out_spec)
 {
   /* Based on first image. */
   out_spec = images[0].in->spec();
@@ -317,25 +342,23 @@ static void merge_channels_metadata(vector<MergeImage> &images,
     for (MergeImageLayer &layer : image.layers) {
       for (MergeImagePass &pass : layer.passes) {
         /* Test if matching channel already exists in merged image. */
-        bool found = false;
+        auto channel = find_if(
+            out_spec.channelnames.begin(),
+            out_spec.channelnames.end(),
+            [&pass](const auto &channel_name) { return pass.channel_name == channel_name; });
 
-        for (size_t i = 0; i < out_spec.nchannels; i++) {
-          if (pass.channel_name == out_spec.channelnames[i]) {
-            pass.merge_offset = i;
-            channel_total_samples[i] += layer.samples;
-            /* First image wins for channels that can't be averaged or summed. */
-            if (pass.op == MERGE_CHANNEL_COPY) {
-              pass.op = MERGE_CHANNEL_NOP;
-            }
-            found = true;
-            break;
+        if (channel != out_spec.channelnames.end()) {
+          int index = distance(out_spec.channelnames.begin(), channel);
+          pass.merge_offset = index;
+
+          /* First image wins for channels that can't be averaged or summed. */
+          if (pass.op == MERGE_CHANNEL_COPY) {
+            pass.op = MERGE_CHANNEL_NOP;
           }
         }
-
-        if (!found) {
+        else {
           /* Add new channel. */
           pass.merge_offset = out_spec.nchannels;
-          channel_total_samples.push_back(layer.samples);
 
           out_spec.channelnames.push_back(pass.channel_name);
           out_spec.channelformats.push_back(pass.format);
@@ -357,13 +380,13 @@ static void merge_channels_metadata(vector<MergeImage> &images,
     }
   }
 
-  for (const auto &i : layer_num_samples) {
-    string name = "cycles." + i.first + ".samples";
-    out_spec.attribute(name, TypeDesc::STRING, string_printf("%d", i.second));
+  for (const auto &[layer_name, layer_samples] : layer_num_samples) {
+    string name = "cycles." + layer_name + ".samples";
+    out_spec.attribute(name, TypeDesc::STRING, to_string(layer_samples));
 
-    merge_layer_render_time(out_spec, images, i.first, "total_time", false);
-    merge_layer_render_time(out_spec, images, i.first, "render_time", false);
-    merge_layer_render_time(out_spec, images, i.first, "synchronization_time", true);
+    merge_layer_render_time(out_spec, images, layer_name, "total_time", false);
+    merge_layer_render_time(out_spec, images, layer_name, "render_time", false);
+    merge_layer_render_time(out_spec, images, layer_name, "synchronization_time", true);
   }
 }
 
@@ -373,13 +396,13 @@ static void alloc_pixels(const ImageSpec &spec, array<float> &pixels)
   const size_t height = spec.height;
   const size_t num_channels = spec.nchannels;
 
-  const size_t num_pixels = (size_t)width * (size_t)height;
+  const size_t num_pixels = width * height;
   pixels.resize(num_pixels * num_channels);
 }
 
 static bool merge_pixels(const vector<MergeImage> &images,
                          const ImageSpec &out_spec,
-                         const vector<int> &channel_total_samples,
+                         const unordered_map<string, SampleCount> &layer_samples,
                          array<float> &out_pixels,
                          string &error)
 {
@@ -397,9 +420,7 @@ static bool merge_pixels(const vector<MergeImage> &images,
       return false;
     }
 
-    for (size_t li = 0; li < image.layers.size(); li++) {
-      const MergeImageLayer &layer = image.layers[li];
-
+    for (const MergeImageLayer &layer : image.layers) {
       const size_t stride = image.in->spec().nchannels;
       const size_t out_stride = out_spec.nchannels;
       const size_t num_pixels = pixels.size();
@@ -421,16 +442,36 @@ static bool merge_pixels(const vector<MergeImage> &images,
               out_pixels[out_offset] += pixels[offset];
             }
             break;
-          case MERGE_CHANNEL_AVERAGE:
-            /* Weights based on sample metadata. Per channel since not
+          case MERGE_CHANNEL_AVERAGE: {
+            /* Weights based on sample count passes and sample metadata. Per channel since not
              * all files are guaranteed to have the same channels. */
-            const int total_samples = channel_total_samples[out_offset];
-            const float t = (float)layer.samples / (float)total_samples;
+            size_t sample_pass_offset = layer.sample_pass_offset;
+            const auto &samples = layer_samples.at(layer.name);
 
-            for (; offset < num_pixels; offset += stride, out_offset += out_stride) {
-              out_pixels[out_offset] += t * pixels[offset];
+            for (size_t i = 0; offset < num_pixels;
+                 offset += stride, sample_pass_offset += stride, out_offset += out_stride, i++) {
+              const float total_samples = samples.per_pixel[i];
+
+              float layer_samples;
+              if (layer.has_sample_pass) {
+                layer_samples = pixels[sample_pass_offset] * layer.samples;
+              }
+              else {
+                layer_samples = layer.samples;
+              }
+
+              out_pixels[out_offset] += pixels[offset] * (1.0f * layer_samples / total_samples);
             }
             break;
+          }
+          case MERGE_CHANNEL_SAMPLES: {
+            const auto &samples = layer_samples.at(layer.name);
+            for (size_t i = 0; offset < num_pixels;
+                 offset += stride, out_offset += out_stride, i++) {
+              out_pixels[out_offset] = 1.0f * samples.per_pixel[i] / samples.total;
+            }
+            break;
+          }
         }
       }
     }
@@ -489,6 +530,49 @@ static bool save_output(const string &filepath,
   return ok;
 }
 
+static void read_layer_samples(vector<MergeImage> &images,
+                               unordered_map<string, SampleCount> &layer_samples)
+{
+  for (auto &image : images) {
+    const ImageSpec &in_spec = image.in->spec();
+
+    for (auto &layer : image.layers) {
+      bool initialize = (layer_samples.count(layer.name) == 0);
+      auto &current_layer_samples = layer_samples[layer.name];
+
+      if (initialize) {
+        current_layer_samples.total = 0;
+        current_layer_samples.per_pixel.resize(in_spec.width * in_spec.height);
+        std::fill(
+            current_layer_samples.per_pixel.begin(), current_layer_samples.per_pixel.end(), 0);
+      }
+
+      if (layer.has_sample_pass) {
+        /* Load the "Debug Sample Count" pass and add the samples to the layer's sample count. */
+        array<float> sample_count_buffer;
+        sample_count_buffer.resize(in_spec.width * in_spec.height);
+        image.in->read_image(0,
+                             0,
+                             layer.sample_pass_offset,
+                             layer.sample_pass_offset,
+                             TypeDesc::FLOAT,
+                             (void *)sample_count_buffer.data());
+
+        for (size_t i = 0; i < current_layer_samples.per_pixel.size(); i++) {
+          current_layer_samples.per_pixel[i] += sample_count_buffer[i] * layer.samples;
+        }
+      }
+      else {
+        /* Use sample count from metadata if there's no "Debug Sample Count" pass. */
+        for (size_t i = 0; i < current_layer_samples.per_pixel.size(); i++) {
+          current_layer_samples.per_pixel[i] += layer.samples;
+        }
+      }
+
+      current_layer_samples.total += layer.samples;
+    }
+  }
+}
 /* Image Merger */
 
 ImageMerger::ImageMerger()
@@ -512,14 +596,17 @@ bool ImageMerger::run()
     return false;
   }
 
+  /* Load and sum sample count for each render layer. */
+  unordered_map<string, SampleCount> layer_samples;
+  read_layer_samples(images, layer_samples);
+
   /* Merge metadata and setup channels and offsets. */
   ImageSpec out_spec;
-  vector<int> channel_total_samples;
-  merge_channels_metadata(images, out_spec, channel_total_samples);
+  merge_channels_metadata(images, out_spec);
 
   /* Merge pixels. */
   array<float> out_pixels;
-  if (!merge_pixels(images, out_spec, channel_total_samples, out_pixels, error)) {
+  if (!merge_pixels(images, out_spec, layer_samples, out_pixels, error)) {
     return false;
   }
 

@@ -118,9 +118,6 @@ void ExecutionSystem::execute()
   execution_model_->execute(*this);
 }
 
-/**
- * Multi-threadedly execute given work function passing work_rect splits as argument.
- */
 void ExecutionSystem::execute_work(const rcti &work_rect,
                                    std::function<void(const rcti &split_rect)> work_func)
 {

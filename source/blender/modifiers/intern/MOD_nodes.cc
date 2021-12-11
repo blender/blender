@@ -268,6 +268,38 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
+static bool checkForTimeNode(bNodeTree *tree, Set<bNodeTree *> &r_checked_trees)
+{
+  if (!r_checked_trees.add(tree)) {
+    return false;
+  }
+  LISTBASE_FOREACH (bNode *, node, &tree->nodes) {
+    if (node->type == GEO_NODE_INPUT_SCENE_TIME) {
+      return true;
+    }
+    if (node->type == NODE_GROUP) {
+      bNodeTree *subtree = (bNodeTree *)node->id;
+      if (checkForTimeNode(subtree, r_checked_trees)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+static bool dependsOnTime(struct Scene *UNUSED(scene),
+                          ModifierData *md,
+                          const int UNUSED(dag_eval_mode))
+{
+  NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+  bNodeTree *tree = nmd->node_group;
+  if (tree == nullptr) {
+    return false;
+  }
+  Set<bNodeTree *> checked_trees;
+  return checkForTimeNode(tree, checked_trees);
+}
+
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
@@ -561,11 +593,6 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
   }
 }
 
-/**
- * Rebuild the list of properties based on the sockets exposed as the modifier's node group
- * inputs. If any properties correspond to the old properties by name and type, carry over
- * the values.
- */
 void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
 {
   if (nmd->node_group == nullptr) {
@@ -1595,7 +1622,7 @@ ModifierTypeInfo modifierType_Nodes = {
     /* freeData */ freeData,
     /* isDisabled */ isDisabled,
     /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ nullptr,
+    /* dependsOnTime */ dependsOnTime,
     /* dependsOnNormals */ nullptr,
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ foreachTexLink,

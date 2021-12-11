@@ -165,11 +165,6 @@ void GPU_depth_range(float near, float far)
   copy_v2_fl2(state.depth_range, near, far);
 }
 
-/**
- * \note By convention, this is set as needed and not reset back to 1.0.
- * This means code that draws lines must always set the line width beforehand,
- * but is not expected to restore it's previous value.
- */
 void GPU_line_width(float width)
 {
   width = max_ff(1.0f, width * PIXELSIZE);
@@ -184,10 +179,6 @@ void GPU_point_size(float size)
   state.point_size = size * ((state.point_size > 0.0) ? 1.0f : -1.0f);
 }
 
-/* Programmable point size
- * - shaders set their own point size when enabled
- * - use GPU_point_size when disabled */
-/* TODO: remove and use program point size everywhere. */
 void GPU_program_point_size(bool enable)
 {
   StateManager *stack = Context::get()->state_manager;
@@ -264,7 +255,6 @@ eGPUStencilTest GPU_stencil_test_get()
   return (eGPUStencilTest)state.stencil_test;
 }
 
-/* NOTE: Already premultiplied by U.pixelsize. */
 float GPU_line_width_get()
 {
   const GPUStateMutable &state = Context::get()->state_manager->mutable_state;
@@ -363,7 +353,6 @@ void GPU_bgl_start()
   }
 }
 
-/* Just turn off the bgl safeguard system. Can be called even without GPU_bgl_start. */
 void GPU_bgl_end()
 {
   Context *ctx = Context::get();

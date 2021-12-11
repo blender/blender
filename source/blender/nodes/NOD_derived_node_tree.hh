@@ -72,8 +72,10 @@ class DTreeContext {
   bool is_root() const;
 };
 
-/* A (nullable) reference to a node and the context it is in. It is unique within an entire nested
- * node group hierarchy. This type is small and can be passed around by value. */
+/**
+ * A (nullable) reference to a node and the context it is in. It is unique within an entire nested
+ * node group hierarchy. This type is small and can be passed around by value.
+ */
 class DNode {
  private:
   const DTreeContext *context_ = nullptr;
@@ -100,11 +102,13 @@ class DNode {
   DOutputSocket output_by_identifier(StringRef identifier) const;
 };
 
-/* A (nullable) reference to a socket and the context it is in. It is unique within an entire
+/**
+ * A (nullable) reference to a socket and the context it is in. It is unique within an entire
  * nested node group hierarchy. This type is small and can be passed around by value.
  *
  * A #DSocket can represent an input or an output socket. If the type of a socket is known at
- * compile time is preferable to use #DInputSocket or #DOutputSocket instead. */
+ * compile time is preferable to use #DInputSocket or #DOutputSocket instead.
+ */
 class DSocket {
  protected:
   const DTreeContext *context_ = nullptr;
@@ -129,7 +133,7 @@ class DSocket {
   DNode node() const;
 };
 
-/* A (nullable) reference to an input socket and the context it is in. */
+/** A (nullable) reference to an input socket and the context it is in. */
 class DInputSocket : public DSocket {
  public:
   DInputSocket() = default;
@@ -142,10 +146,15 @@ class DInputSocket : public DSocket {
   DOutputSocket get_corresponding_group_node_output() const;
   Vector<DOutputSocket, 4> get_corresponding_group_input_sockets() const;
 
+  /**
+   * Call `origin_fn` for every "real" origin socket. "Real" means that reroutes, muted nodes
+   * and node groups are handled by this function. Origin sockets are ones where a node gets its
+   * inputs from.
+   */
   void foreach_origin_socket(FunctionRef<void(DSocket)> origin_fn) const;
 };
 
-/* A (nullable) reference to an output socket and the context it is in. */
+/** A (nullable) reference to an output socket and the context it is in. */
 class DOutputSocket : public DSocket {
  public:
   DOutputSocket() = default;
@@ -166,6 +175,11 @@ class DOutputSocket : public DSocket {
   using ForeachTargetSocketFn =
       FunctionRef<void(DInputSocket, const TargetSocketPathInfo &path_info)>;
 
+  /**
+   * Calls `target_fn` for every "real" target socket. "Real" means that reroutes, muted nodes
+   * and node groups are handled by this function. Target sockets are on the nodes that use the
+   * value from this socket.
+   */
   void foreach_target_socket(ForeachTargetSocketFn target_fn) const;
 
  private:
@@ -180,16 +194,27 @@ class DerivedNodeTree {
   VectorSet<const NodeTreeRef *> used_node_tree_refs_;
 
  public:
+  /**
+   * Construct a new derived node tree for a given root node tree. The generated derived node tree
+   * does not own the used node tree refs (so that those can be used by others as well). The caller
+   * has to make sure that the node tree refs added to #node_tree_refs live at least as long as the
+   * derived node tree.
+   */
   DerivedNodeTree(bNodeTree &btree, NodeTreeRefMap &node_tree_refs);
   ~DerivedNodeTree();
 
   const DTreeContext &root_context() const;
   Span<const NodeTreeRef *> used_node_tree_refs() const;
 
+  /**
+   * \return True when there is a link cycle. Unavailable sockets are ignored.
+   */
   bool has_link_cycles() const;
   bool has_undefined_nodes_or_sockets() const;
+  /** Calls the given callback on all nodes in the (possibly nested) derived node tree. */
   void foreach_node(FunctionRef<void(DNode)> callback) const;
 
+  /** Generates a graph in dot format. The generated graph has all node groups inlined. */
   std::string to_dot() const;
 
  private:

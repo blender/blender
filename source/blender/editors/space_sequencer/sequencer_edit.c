@@ -127,7 +127,6 @@ bool ED_space_sequencer_maskedit_poll(bContext *C)
   return false;
 }
 
-/* Are we displaying the seq output (not channels or histogram). */
 bool ED_space_sequencer_check_show_imbuf(SpaceSeq *sseq)
 {
   return (sseq->mainb == SEQ_DRAW_IMG_IMBUF) &&
@@ -152,12 +151,6 @@ static bool sequencer_fcurves_targets_color_strip(const FCurve *fcurve)
   return true;
 }
 
-/*
- * Check if there is animation shown during playback.
- *
- * - Colors of color strips are displayed on the strip itself.
- * - Backdrop is drawn.
- */
 bool ED_space_sequencer_has_playback_animation(const struct SpaceSeq *sseq,
                                                const struct Scene *scene)
 {
@@ -187,7 +180,6 @@ bool ED_space_sequencer_has_playback_animation(const struct SpaceSeq *sseq,
 /** \name Shared Poll Functions
  * \{ */
 
-/* Operator functions. */
 bool sequencer_edit_poll(bContext *C)
 {
   return (SEQ_editing_get(CTX_data_scene(C)) != NULL);

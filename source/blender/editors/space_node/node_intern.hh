@@ -80,53 +80,45 @@ struct SpaceNode_Runtime {
   struct NodeInsertOfsData *iofsd;
 };
 
-/* Transform between View2Ds in the tree path. */
+enum NodeResizeDirection {
+  NODE_RESIZE_NONE = 0,
+  NODE_RESIZE_TOP = (1 << 0),
+  NODE_RESIZE_BOTTOM = (1 << 1),
+  NODE_RESIZE_RIGHT = (1 << 2),
+  NODE_RESIZE_LEFT = (1 << 3),
+};
+ENUM_OPERATORS(NodeResizeDirection, NODE_RESIZE_LEFT);
+
+/**
+ * Transform between View2Ds in the tree path.
+ */
 blender::float2 space_node_group_offset(const SpaceNode &snode);
 
 float node_socket_calculate_height(const bNodeSocket &socket);
-void node_link_calculate_multi_input_position(const float socket_x,
-                                              const float socket_y,
-                                              const int index,
-                                              const int total_inputs,
-                                              float r[2]);
+blender::float2 node_link_calculate_multi_input_position(const blender::float2 &socket_position,
+                                                         int index,
+                                                         int total_inputs);
 
 int node_get_colorid(bNode &node);
-void node_draw_extra_info_panel(const SpaceNode &snode, const bNode &node);
 int node_get_resize_cursor(NodeResizeDirection directions);
-void node_draw_shadow(const SpaceNode &snode, const bNode &node, float radius, float alpha);
-void node_draw_default(const bContext *C,
-                       ARegion *region,
-                       SpaceNode *snode,
-                       bNodeTree *ntree,
-                       bNode *node,
-                       bNodeInstanceKey key);
-void node_draw_sockets(const View2D &v2d,
-                       const bContext &C,
-                       bNodeTree &ntree,
-                       bNode &node,
-                       const bool draw_outputs,
-                       const bool select_all);
-void node_update_default(const bContext *C, bNodeTree *ntree, bNode *node);
-int node_select_area_default(bNode *node, int x, int y);
-int node_tweak_area_default(bNode *node, int x, int y);
+NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, const int y);
+/**
+ * Usual convention here would be #node_socket_get_color(),
+ * but that's already used (for setting a color property socket).
+ */
 void node_socket_color_get(const bContext &C,
                            const bNodeTree &ntree,
                            PointerRNA &node_ptr,
                            const bNodeSocket &sock,
                            float r_color[4]);
 void node_update_nodetree(const bContext &C, bNodeTree &ntree);
-void node_draw_nodetree(const bContext &C,
-                        ARegion &region,
-                        SpaceNode &snode,
-                        bNodeTree &ntree,
-                        bNodeInstanceKey parent_key);
 void node_draw_space(const bContext &C, ARegion &region);
 
 void node_set_cursor(wmWindow &win, SpaceNode &snode, const blender::float2 &cursor);
 /* DPI scaled coords */
-void node_to_view(const bNode &node, float x, float y, float *rx, float *ry);
+blender::float2 node_to_view(const bNode &node, const blender::float2 &co);
 void node_to_updated_rect(const bNode &node, rctf &r_rect);
-void node_from_view(const bNode &node, float x, float y, float *rx, float *ry);
+blender::float2 node_from_view(const bNode &node, const blender::float2 &co);
 
 void node_toolbar_register(ARegionType *art);
 
@@ -166,10 +158,16 @@ void NODE_OT_backimage_sample(wmOperatorType *ot);
 void nodelink_batch_start(SpaceNode &snode);
 void nodelink_batch_end(SpaceNode &snode);
 
+/**
+ * \note this is used for fake links in groups too.
+ */
 void node_draw_link(const bContext &C,
                     const View2D &v2d,
                     const SpaceNode &snode,
                     const bNodeLink &link);
+/**
+ * Don't do shadows if th_col3 is -1.
+ */
 void node_draw_link_bezier(const bContext &C,
                            const View2D &v2d,
                            const SpaceNode &snode,
@@ -177,11 +175,15 @@ void node_draw_link_bezier(const bContext &C,
                            int th_col1,
                            int th_col2,
                            int th_col3);
+/** If v2d not nullptr, it clips and returns 0 if not visible. */
 bool node_link_bezier_points(const View2D *v2d,
                              const SpaceNode *snode,
                              const bNodeLink &link,
                              float coord_array[][2],
                              const int resol);
+/**
+ * Return quadratic beziers points for a given nodelink and clip if v2d is not nullptr.
+ */
 bool node_link_bezier_handles(const View2D *v2d,
                               const SpaceNode *snode,
                               const bNodeLink &ink,
@@ -191,6 +193,11 @@ void draw_nodespace_back_pix(const bContext &C,
                              SpaceNode &snode,
                              bNodeInstanceKey parent_key);
 
+/**
+ * XXX Does some additional initialization on top of #nodeAddNode
+ * Can be used with both custom and static nodes,
+ * if `idname == nullptr` the static int type will be used instead.
+ */
 bNode *node_add_node(const bContext &C, const char *idname, int type, float locx, float locy);
 void NODE_OT_add_reroute(wmOperatorType *ot);
 void NODE_OT_add_group(wmOperatorType *ot);
@@ -234,12 +241,15 @@ void snode_dag_update(bContext &C, SpaceNode &snode);
 void snode_set_context(const bContext &C);
 
 void snode_update(SpaceNode &snode, bNode *node);
+/** Operator poll callback. */
 bool composite_node_active(bContext *C);
+/** Operator poll callback. */
 bool composite_node_editable(bContext *C);
 
 bool node_has_hidden_sockets(bNode *node);
 void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set);
 int node_render_changed_exec(bContext *, wmOperator *);
+/** Type is #SOCK_IN and/or #SOCK_OUT. */
 bool node_find_indicated_socket(SpaceNode &snode,
                                 bNode **nodep,
                                 bNodeSocket **sockp,
@@ -269,7 +279,9 @@ void NODE_OT_output_file_move_active_socket(wmOperatorType *ot);
 
 void NODE_OT_switch_view_update(wmOperatorType *ot);
 
-/* NOTE: clipboard_cut is a simple macro of copy + delete. */
+/**
+ * \note clipboard_cut is a simple macro of copy + delete.
+ */
 void NODE_OT_clipboard_copy(wmOperatorType *ot);
 void NODE_OT_clipboard_paste(wmOperatorType *ot);
 

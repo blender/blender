@@ -142,7 +142,6 @@ typedef enum eWalkLockState {
   WALK_AXISLOCK_STATE_DONE = 3,
 } eWalkLockState;
 
-/* Called in transform_ops.c, on each regeneration of key-maps. */
 void walk_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {

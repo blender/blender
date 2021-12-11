@@ -377,6 +377,9 @@ class AssetCatalogDefinitionFile {
   /* For now this is the only version of the catalog definition files that is supported.
    * Later versioning code may be added to handle older files. */
   const static int SUPPORTED_VERSION;
+  /* String that's matched in the catalog definition file to know that the line is the version
+   * declaration. It has to start with a space to ensure it won't match any hypothetical future
+   * field that starts with "VERSION". */
   const static std::string VERSION_MARKER;
   const static std::string HEADER;
 

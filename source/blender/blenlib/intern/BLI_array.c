@@ -54,11 +54,6 @@
 
 #include "MEM_guardedalloc.h"
 
-/**
- * This function is only to be called via macros.
- *
- * \note The caller must adjust \a arr_len
- */
 void _bli_array_grow_func(void **arr_p,
                           const void *arr_static,
                           const int sizeof_arr_p,

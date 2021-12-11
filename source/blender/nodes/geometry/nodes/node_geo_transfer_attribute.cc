@@ -38,6 +38,8 @@ namespace blender::nodes::node_geo_transfer_attribute_cc {
 using namespace blender::bke::mesh_surface_sample;
 using blender::fn::GArray;
 
+NODE_STORAGE_FUNCS(NodeGeometryTransferAttribute)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Target"))
@@ -65,9 +67,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   const bNode &node = *static_cast<const bNode *>(ptr->data);
-  const NodeGeometryTransferAttribute &data = *static_cast<const NodeGeometryTransferAttribute *>(
-      node.storage);
-  const GeometryNodeAttributeTransferMode mapping = (GeometryNodeAttributeTransferMode)data.mode;
+  const NodeGeometryTransferAttribute &storage = node_storage(node);
+  const GeometryNodeAttributeTransferMode mapping = (GeometryNodeAttributeTransferMode)
+                                                        storage.mode;
 
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
   uiItemR(layout, ptr, "mapping", 0, "", ICON_NONE);
@@ -87,10 +89,10 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  const NodeGeometryTransferAttribute &data = *(const NodeGeometryTransferAttribute *)
-                                                   node->storage;
-  const CustomDataType data_type = static_cast<CustomDataType>(data.data_type);
-  const GeometryNodeAttributeTransferMode mapping = (GeometryNodeAttributeTransferMode)data.mode;
+  const NodeGeometryTransferAttribute &storage = node_storage(*node);
+  const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
+  const GeometryNodeAttributeTransferMode mapping = (GeometryNodeAttributeTransferMode)
+                                                        storage.mode;
 
   bNodeSocket *socket_geometry = (bNodeSocket *)node->inputs.first;
   bNodeSocket *socket_vector = socket_geometry->next;
@@ -723,11 +725,11 @@ static void output_attribute_field(GeoNodeExecParams &params, GField field)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry = params.extract_input<GeometrySet>("Target");
-  const bNode &node = params.node();
-  const NodeGeometryTransferAttribute &data = *(const NodeGeometryTransferAttribute *)node.storage;
-  const GeometryNodeAttributeTransferMode mapping = (GeometryNodeAttributeTransferMode)data.mode;
-  const CustomDataType data_type = static_cast<CustomDataType>(data.data_type);
-  const AttributeDomain domain = static_cast<AttributeDomain>(data.domain);
+  const NodeGeometryTransferAttribute &storage = node_storage(params.node());
+  const GeometryNodeAttributeTransferMode mapping = (GeometryNodeAttributeTransferMode)
+                                                        storage.mode;
+  const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
+  const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
 
   GField field = get_input_attribute_field(params, data_type);
 

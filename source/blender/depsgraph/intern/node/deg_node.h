@@ -201,6 +201,7 @@ struct Node {
   Node();
   virtual ~Node();
 
+  /** Generic identifier for Depsgraph Nodes. */
   virtual string identifier() const;
 
   virtual void init(const ID * /*id*/, const char * /*subdata*/)

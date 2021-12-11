@@ -664,9 +664,6 @@ void SMAABlendingWeightCalculationOperation::get_area_of_interest(const int UNUS
 /*-----------------------------------------------------------------------------*/
 /* Diagonal Search Functions */
 
-/**
- * These functions allows to perform diagonal pattern searches.
- */
 int SMAABlendingWeightCalculationOperation::search_diag1(int x, int y, int dir, bool *found)
 {
   float e[4];
@@ -714,9 +711,6 @@ int SMAABlendingWeightCalculationOperation::search_diag2(int x, int y, int dir, 
   return x - dir;
 }
 
-/**
- * This searches for diagonal patterns and returns the corresponding weights.
- */
 void SMAABlendingWeightCalculationOperation::calculate_diag_weights(int x,
                                                                     int y,
                                                                     const float edges[2],

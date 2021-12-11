@@ -62,9 +62,6 @@ static SplinePtr create_spline(const Spline::Type type)
   return {};
 }
 
-/**
- * Return a new spline with the same data, settings, and attributes.
- */
 SplinePtr Spline::copy() const
 {
   SplinePtr dst = this->copy_without_attributes();
@@ -72,9 +69,6 @@ SplinePtr Spline::copy() const
   return dst;
 }
 
-/**
- * Return a new spline with the same type and settings like "cyclic", but without any data.
- */
 SplinePtr Spline::copy_only_settings() const
 {
   SplinePtr dst = create_spline(type_);
@@ -83,9 +77,6 @@ SplinePtr Spline::copy_only_settings() const
   return dst;
 }
 
-/**
- * The same as #copy, but skips copying dynamic attributes to the new spline.
- */
 SplinePtr Spline::copy_without_attributes() const
 {
   SplinePtr dst = this->copy_only_settings();
@@ -185,12 +176,6 @@ static void accumulate_lengths(Span<float3> positions,
   }
 }
 
-/**
- * Return non-owning access to the cache of accumulated lengths along the spline. Each item is the
- * length of the subsequent segment, i.e. the first value is the length of the first segment rather
- * than 0. This calculation is rather trivial, and only depends on the evaluated positions.
- * However, the results are used often, and it is necessarily single threaded, so it is cached.
- */
 Span<float> Spline::evaluated_lengths() const
 {
   if (!length_cache_dirty_) {
@@ -252,9 +237,6 @@ static void calculate_tangents(Span<float3> positions,
   }
 }
 
-/**
- * Return non-owning access to the direction of the curve at each evaluated point.
- */
 Span<float3> Spline::evaluated_tangents() const
 {
   if (!tangent_cache_dirty_) {
@@ -375,10 +357,6 @@ static void calculate_normals_minimum(Span<float3> tangents,
   }
 }
 
-/**
- * Return non-owning access to the direction vectors perpendicular to the tangents at every
- * evaluated point. The method used to generate the normal vectors depends on Spline.normal_mode.
- */
 Span<float3> Spline::evaluated_normals() const
 {
   if (!normal_cache_dirty_) {
@@ -428,9 +406,6 @@ Spline::LookupResult Spline::lookup_evaluated_factor(const float factor) const
   return this->lookup_evaluated_length(this->length() * factor);
 }
 
-/**
- * \note This does not support extrapolation currently.
- */
 Spline::LookupResult Spline::lookup_evaluated_length(const float length) const
 {
   BLI_assert(length >= 0.0f && length <= this->length());
@@ -447,11 +422,6 @@ Spline::LookupResult Spline::lookup_evaluated_length(const float length) const
   return LookupResult{index, next_index, factor};
 }
 
-/**
- * Return an array of evenly spaced samples along the length of the spline. The samples are indices
- * and factors to the next index encoded in floats. The logic for converting from the float values
- * to interpolation data is in #lookup_data_from_index_factor.
- */
 Array<float> Spline::sample_uniform_index_factors(const int samples_size) const
 {
   const Span<float> lengths = this->evaluated_lengths();
@@ -532,11 +502,6 @@ GVArray Spline::interpolate_to_evaluated(GSpan data) const
   return this->interpolate_to_evaluated(GVArray::ForSpan(data));
 }
 
-/**
- * Sample any input data with a value for each evaluated point (already interpolated to evaluated
- * points) to arbitrary parameters in between the evaluated points. The interpolation is quite
- * simple, but this handles the cyclic and end point special cases.
- */
 void Spline::sample_with_index_factors(const GVArray &src,
                                        Span<float> index_factors,
                                        GMutableSpan dst) const

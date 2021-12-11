@@ -63,7 +63,6 @@
 /* *************************************************** */
 /* CURRENT FRAME DRAWING */
 
-/* General call for drawing current frame indicator in animation editor */
 void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
 {
   Scene *scene = CTX_data_scene(C);
@@ -92,7 +91,6 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
 /* PREVIEW RANGE 'CURTAINS' */
 /* NOTE: 'Preview Range' tools are defined in `anim_ops.c`. */
 
-/* Draw preview range 'curtains' for highlighting where the animation data is */
 void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 {
   Scene *scene = CTX_data_scene(C);
@@ -127,11 +125,6 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 /* *************************************************** */
 /* SCENE FRAME RANGE */
 
-/**
- * Draw frame range guides (for scene frame range) in background.
- *
- * TODO: Should we still show these when preview range is enabled?
- */
 void ANIM_draw_framerange(Scene *scene, View2D *v2d)
 {
   /* draw darkened area outside of active timeline frame range */
@@ -168,10 +161,6 @@ void ANIM_draw_framerange(Scene *scene, View2D *v2d)
   immUnbindProgram();
 }
 
-/**
- * Draw manually set intended playback frame range guides for the action in the background.
- * Allows specifying a subset of the Y range of the view.
- */
 void ANIM_draw_action_framerange(
     AnimData *adt, bAction *action, View2D *v2d, float ymin, float ymax)
 {
@@ -239,11 +228,6 @@ void ANIM_draw_action_framerange(
 /* *************************************************** */
 /* NLA-MAPPING UTILITIES (required for drawing and also editing keyframes). */
 
-/**
- * Obtain the AnimData block providing NLA-mapping for the given channel (if applicable).
- *
- * TODO: do not supply return this if the animdata tells us that there is no mapping to perform.
- */
 AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 {
   /* sanity checks */
@@ -319,10 +303,6 @@ static short bezt_nlamapping_apply(KeyframeEditData *ked, BezTriple *bezt)
   return 0;
 }
 
-/* Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve
- * - restore = whether to map points back to non-mapped time
- * - only_keys = whether to only adjust the location of the center point of beztriples
- */
 void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, bool only_keys)
 {
   KeyframeEditData ked = {{NULL}};
@@ -350,7 +330,6 @@ void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, boo
 /* *************************************************** */
 /* UNITS CONVERSION MAPPING (required for drawing and editing keyframes) */
 
-/* Get flags used for normalization in ANIM_unit_mapping_get_factor. */
 short ANIM_get_normalization_flags(bAnimContext *ac)
 {
   if (ac->sl->spacetype == SPACE_GRAPH) {
@@ -518,7 +497,6 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
   return factor;
 }
 
-/* Get unit conversion factor for given ID + F-Curve */
 float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag, float *r_offset)
 {
   if (flag & ANIM_UNITCONV_NORMALIZE) {

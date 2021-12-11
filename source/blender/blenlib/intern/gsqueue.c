@@ -101,9 +101,6 @@ static void queue_free_chunk(struct QueueChunk *data)
   }
 }
 
-/**
- * Free the queue's data and the queue itself
- */
 void BLI_gsqueue_free(GSQueue *queue)
 {
   queue_free_chunk(queue->chunk_first);
@@ -111,14 +108,6 @@ void BLI_gsqueue_free(GSQueue *queue)
   MEM_freeN(queue);
 }
 
-/**
- * Copies the source value onto the end of the queue
- *
- * \note This copies #GSQueue.elem_size bytes from \a item,
- * (the pointer itself is not stored).
- *
- * \param item: source data to be copied to the queue.
- */
 void BLI_gsqueue_push(GSQueue *queue, const void *item)
 {
   queue->chunk_last_index++;
@@ -153,12 +142,6 @@ void BLI_gsqueue_push(GSQueue *queue, const void *item)
   memcpy(queue_get_last_elem(queue), item, queue->elem_size);
 }
 
-/**
- * Retrieves and removes the first element from the queue.
- * The value is copies to \a r_item, which must be at least \a elem_size bytes.
- *
- * Does not reduce amount of allocated memory.
- */
 void BLI_gsqueue_pop(GSQueue *queue, void *r_item)
 {
   BLI_assert(BLI_gsqueue_is_empty(queue) == false);
@@ -187,9 +170,6 @@ size_t BLI_gsqueue_len(const GSQueue *queue)
   return queue->totelem;
 }
 
-/**
- * Returns true if the queue is empty, false otherwise
- */
 bool BLI_gsqueue_is_empty(const GSQueue *queue)
 {
   return (queue->chunk_first == NULL);

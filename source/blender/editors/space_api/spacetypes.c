@@ -70,7 +70,6 @@
 
 #include "io_ops.h"
 
-/* Only called once on startup. storage is global in BKE kernel listbase. */
 void ED_spacetypes_init(void)
 {
   /* UI unit is a variable, may be used in some space type inits. */
@@ -186,10 +185,6 @@ void ED_spacemacros_init(void)
   }
 }
 
-/**
- * \note Keymap definitions are registered only once per WM initialize,
- * usually on file read, using the keymap the actual areas/regions add the handlers.
- * \note Called in wm.c. */
 void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 {
   ED_keymap_screen(keyconf);

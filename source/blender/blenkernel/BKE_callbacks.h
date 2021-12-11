@@ -133,6 +133,9 @@ void BKE_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt);
 void BKE_callback_remove(bCallbackFuncStore *funcstore, eCbEvent evt);
 
 void BKE_callback_global_init(void);
+/**
+ * Call on application exit.
+ */
 void BKE_callback_global_finalize(void);
 
 #ifdef __cplusplus

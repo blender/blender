@@ -172,7 +172,7 @@ static void sh_node_valtorgb_build_multi_function(
   builder.construct_and_set_matching_fn<ColorBandFunction>(*color_band);
 }
 
-void register_node_type_sh_valtorgb(void)
+void register_node_type_sh_valtorgb()
 {
   static bNodeType ntype;
 
@@ -222,7 +222,7 @@ static int gpu_shader_rgbtobw(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "rgbtobw", in, out);
 }
 
-void register_node_type_sh_rgbtobw(void)
+void register_node_type_sh_rgbtobw()
 {
   static bNodeType ntype;
 

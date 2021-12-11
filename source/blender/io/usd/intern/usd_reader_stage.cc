@@ -110,11 +110,6 @@ USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim)
   return nullptr;
 }
 
-/* Returns true if the given prim should be included in the
- * traversal based on the import options and the prim's visibility
- * attribute.  Note that the prim will be trivially included
- * if it has no visibility attribute or if the visibility
- * is inherited. */
 bool USDStageReader::include_by_visibility(const pxr::UsdGeomImageable &imageable) const
 {
   if (!params_.import_visible_only) {
@@ -140,11 +135,6 @@ bool USDStageReader::include_by_visibility(const pxr::UsdGeomImageable &imageabl
   return visibility != pxr::UsdGeomTokens->invisible;
 }
 
-/* Returns true if the given prim should be included in the
- * traversal based on the import options and the prim's purpose
- * attribute. E.g., return false (to exclude the prim) if the prim
- * represents guide geometry and the 'Import Guide' option is
- * toggled off. */
 bool USDStageReader::include_by_purpose(const pxr::UsdGeomImageable &imageable) const
 {
   if (params_.import_guide && params_.import_proxy && params_.import_render) {

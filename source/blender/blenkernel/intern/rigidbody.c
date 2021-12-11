@@ -103,7 +103,6 @@ static void RB_constraint_delete(void *UNUSED(con))
 
 #endif
 
-/* Free rigidbody world */
 void BKE_rigidbody_free_world(Scene *scene)
 {
   bool is_orig = (scene->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0;
@@ -160,7 +159,6 @@ void BKE_rigidbody_free_world(Scene *scene)
   MEM_freeN(rbw);
 }
 
-/* Free RigidBody settings and sim instances */
 void BKE_rigidbody_free_object(Object *ob, RigidBodyWorld *rbw)
 {
   bool is_orig = (ob->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0;
@@ -208,7 +206,6 @@ void BKE_rigidbody_free_object(Object *ob, RigidBodyWorld *rbw)
   ob->rigidbody_object = NULL;
 }
 
-/* Free RigidBody constraint and sim instance */
 void BKE_rigidbody_free_constraint(Object *ob)
 {
   RigidBodyCon *rbc = (ob) ? ob->rigidbody_constraint : NULL;
@@ -637,8 +634,6 @@ static void rigidbody_validate_sim_shape(RigidBodyWorld *rbw, Object *ob, bool r
 
 /* --------------------- */
 
-/* helper function to calculate volume of rigidbody object */
-/* TODO: allow a parameter to specify method used to calculate this? */
 void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 {
   RigidBodyOb *rbo = ob->rigidbody_object;
@@ -1133,12 +1128,6 @@ static void rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, b
 
 /* --------------------- */
 
-/**
- * Create physics sim world given RigidBody world settings
- *
- * \note this does NOT update object references that the scene uses,
- * in case those aren't ready yet!
- */
 void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, bool rebuild)
 {
   /* sanity checks */
@@ -1161,7 +1150,6 @@ void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, bool re
 /* ************************************** */
 /* Setup Utilities - Create Settings Blocks */
 
-/* Set up RigidBody world */
 RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene)
 {
   /* try to get whatever RigidBody world that might be representing this already */
@@ -1246,7 +1234,6 @@ void BKE_rigidbody_world_id_loop(RigidBodyWorld *rbw, RigidbodyWorldIDFunc func,
   }
 }
 
-/* Add rigid body settings to the specified object */
 RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
 {
   RigidBodyOb *rbo;
@@ -1309,7 +1296,6 @@ RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
   return rbo;
 }
 
-/* Add rigid body constraint to the specified object */
 RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short type)
 {
   RigidBodyCon *rbc;
@@ -1429,11 +1415,6 @@ void BKE_rigidbody_main_collection_object_add(Main *bmain, Collection *collectio
 /* ************************************** */
 /* Utilities API */
 
-/**
- * Get RigidBody world for the given scene, creating one if needed
- *
- * \param scene: Scene to find active Rigid Body world for.
- */
 RigidBodyWorld *BKE_rigidbody_get_world(Scene *scene)
 {
   /* sanity check */
@@ -2058,7 +2039,6 @@ bool BKE_rigidbody_check_sim_running(RigidBodyWorld *rbw, float ctime)
   return (rbw && (rbw->flag & RBW_FLAG_MUTED) == 0 && ctime > rbw->shared->pointcache->startframe);
 }
 
-/* Sync rigid body and object transformations */
 void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
 {
   if (!BKE_rigidbody_is_affected_by_simulation(ob)) {
@@ -2089,7 +2069,6 @@ void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
   }
 }
 
-/* Used when canceling transforms - return rigidbody and object to initial states */
 void BKE_rigidbody_aftertrans_update(
     Object *ob, float loc[3], float rot[3], float quat[4], float rotAxis[3], float rotAngle)
 {
@@ -2168,8 +2147,6 @@ void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw)
 
 /* ------------------ */
 
-/* Rebuild rigid body world */
-/* NOTE: this needs to be called before frame update to work correctly */
 void BKE_rigidbody_rebuild_world(Depsgraph *depsgraph, Scene *scene, float ctime)
 {
   RigidBodyWorld *rbw = scene->rigidbody_world;
@@ -2209,7 +2186,6 @@ void BKE_rigidbody_rebuild_world(Depsgraph *depsgraph, Scene *scene, float ctime
   }
 }
 
-/* Run RigidBody simulation for the specified physics world */
 void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime)
 {
   RigidBodyWorld *rbw = scene->rigidbody_world;
@@ -2307,6 +2283,7 @@ void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src
 void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, bool rebuild)
 {
 }
+
 void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 {
   if (r_vol) {

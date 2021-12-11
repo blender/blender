@@ -48,7 +48,7 @@ static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node
   node->id = (ID *)BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
 }
 
-void register_node_type_cmp_splitviewer(void)
+void register_node_type_cmp_splitviewer()
 {
   static bNodeType ntype;
 

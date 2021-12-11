@@ -213,7 +213,6 @@ void clear_global_id_map()
   global_id_map.clear();
 }
 
-/** Look at documentation of translate_map */
 std::string translate_id(const char *idString)
 {
   std::string id = std::string(idString);

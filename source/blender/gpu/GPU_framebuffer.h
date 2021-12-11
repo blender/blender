@@ -62,6 +62,9 @@ typedef struct GPUOffScreen GPUOffScreen;
 GPUFrameBuffer *GPU_framebuffer_create(const char *name);
 void GPU_framebuffer_free(GPUFrameBuffer *fb);
 void GPU_framebuffer_bind(GPUFrameBuffer *fb);
+/**
+ * Workaround for binding a SRGB frame-buffer without doing the SRGB transform.
+ */
 void GPU_framebuffer_bind_no_srgb(GPUFrameBuffer *fb);
 void GPU_framebuffer_restore(void);
 
@@ -69,6 +72,9 @@ bool GPU_framebuffer_bound(GPUFrameBuffer *fb);
 bool GPU_framebuffer_check_valid(GPUFrameBuffer *fb, char err_out[256]);
 
 GPUFrameBuffer *GPU_framebuffer_active_get(void);
+/**
+ * Returns the default frame-buffer. Will always exists even if it's just a dummy.
+ */
 GPUFrameBuffer *GPU_framebuffer_back_get(void);
 
 #define GPU_FRAMEBUFFER_FREE_SAFE(fb) \
@@ -113,6 +119,12 @@ void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, struct GPUTexture *tex);
     GPU_framebuffer_config_array(*(_fb), config, (sizeof(config) / sizeof(GPUAttachment))); \
   } while (0)
 
+/**
+ * First #GPUAttachment in *config is always the depth/depth_stencil buffer.
+ * Following #GPUAttachments are color buffers.
+ * Setting #GPUAttachment.mip to -1 will leave the texture in this slot.
+ * Setting #GPUAttachment.tex to NULL will detach the texture in this slot.
+ */
 void GPU_framebuffer_config_array(GPUFrameBuffer *fb, const GPUAttachment *config, int config_len);
 
 #define GPU_ATTACHMENT_NONE \
@@ -156,8 +168,16 @@ void GPU_framebuffer_texture_cubeface_attach(
 
 /* Frame-buffer operations. */
 
+/**
+ * Viewport and scissor size is stored per frame-buffer.
+ * It is only reset to its original dimensions explicitly OR when binding the frame-buffer after
+ * modifying its attachments.
+ */
 void GPU_framebuffer_viewport_set(GPUFrameBuffer *fb, int x, int y, int w, int h);
 void GPU_framebuffer_viewport_get(GPUFrameBuffer *fb, int r_viewport[4]);
+/**
+ * Reset to its attachment(s) size.
+ */
 void GPU_framebuffer_viewport_reset(GPUFrameBuffer *fb);
 
 void GPU_framebuffer_clear(GPUFrameBuffer *fb,
@@ -184,6 +204,9 @@ void GPU_framebuffer_clear(GPUFrameBuffer *fb,
 #define GPU_framebuffer_clear_color_depth_stencil(fb, col, depth, stencil) \
   GPU_framebuffer_clear(fb, GPU_COLOR_BIT | GPU_DEPTH_BIT | GPU_STENCIL_BIT, col, depth, stencil)
 
+/**
+ * Clear all textures attached to this frame-buffer with a different color.
+ */
 void GPU_framebuffer_multi_clear(GPUFrameBuffer *fb, const float (*clear_cols)[4]);
 
 void GPU_framebuffer_read_depth(
@@ -198,6 +221,9 @@ void GPU_framebuffer_read_color(GPUFrameBuffer *fb,
                                 eGPUDataFormat format,
                                 void *data);
 
+/**
+ * Read_slot and write_slot are only used for color buffers.
+ */
 void GPU_framebuffer_blit(GPUFrameBuffer *fb_read,
                           int read_slot,
                           GPUFrameBuffer *fb_write,
@@ -233,6 +259,9 @@ int GPU_offscreen_width(const GPUOffScreen *ofs);
 int GPU_offscreen_height(const GPUOffScreen *ofs);
 struct GPUTexture *GPU_offscreen_color_texture(const GPUOffScreen *ofs);
 
+/**
+ * \note only to be used by viewport code!
+ */
 void GPU_offscreen_viewport_data_get(GPUOffScreen *ofs,
                                      GPUFrameBuffer **r_fb,
                                      struct GPUTexture **r_color,

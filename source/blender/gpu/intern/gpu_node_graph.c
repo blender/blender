@@ -793,7 +793,6 @@ static void gpu_node_free(GPUNode *node)
   MEM_freeN(node);
 }
 
-/* Free intermediate node graph. */
 void gpu_node_graph_free_nodes(GPUNodeGraph *graph)
 {
   GPUNode *node;
@@ -805,7 +804,6 @@ void gpu_node_graph_free_nodes(GPUNodeGraph *graph)
   graph->outlink = NULL;
 }
 
-/* Free both node graph and requested attributes and textures. */
 void gpu_node_graph_free(GPUNodeGraph *graph)
 {
   BLI_freelistN(&graph->outlink_aovs);

@@ -72,11 +72,17 @@ class GLStateManager : public StateManager {
   GLStateManager();
 
   void apply_state(void) override;
+  /**
+   * Will set all the states regardless of the current ones.
+   */
   void force_state(void) override;
 
   void issue_barrier(eGPUBarrier barrier_bits) override;
 
   void texture_bind(Texture *tex, eGPUSamplerState sampler, int unit) override;
+  /**
+   * Bind the texture to slot 0 for editing purpose. Used by legacy pipeline.
+   */
   void texture_bind_temp(GLTexture *tex);
   void texture_unbind(Texture *tex) override;
   void texture_unbind_all(void) override;

@@ -61,9 +61,6 @@
 /* ************************************************** */
 /* Animation Data Validation */
 
-/* Get (or add relevant data to be able to do so) F-Curve from the driver stack,
- * for the given Animation Data block. This assumes that all the destinations are valid.
- */
 FCurve *verify_driver_fcurve(ID *id,
                              const char rna_path[],
                              const int array_index,
@@ -295,17 +292,6 @@ static int add_driver_with_target(ReportList *UNUSED(reports),
   return (fcu != NULL);
 }
 
-/* Main Driver Management API calls:
- * Add a new driver for the specified property on the given ID block,
- * and make it be driven by the specified target.
- *
- * This is intended to be used in conjunction with a modal "eyedropper"
- * for picking the variable that is going to be used to drive this one.
- *
- * - flag: eCreateDriverFlags
- * - driver_type: eDriver_Types
- * - mapping_type: eCreateDriver_MappingTypes
- */
 int ANIM_add_driver_with_target(ReportList *reports,
                                 ID *dst_id,
                                 const char dst_path[],
@@ -420,10 +406,6 @@ int ANIM_add_driver_with_target(ReportList *reports,
 
 /* --------------------------------- */
 
-/**
- * Main Driver Management API calls:
- * Add a new driver for the specified property on the given ID block
- */
 int ANIM_add_driver(
     ReportList *reports, ID *id, const char rna_path[], int array_index, short flag, int type)
 {
@@ -546,9 +528,6 @@ int ANIM_add_driver(
   return done_tot;
 }
 
-/* Main Driver Management API calls:
- * Remove the driver for the specified property on the given ID block (if available)
- */
 bool ANIM_remove_driver(ReportList *UNUSED(reports),
                         ID *id,
                         const char rna_path[],
@@ -603,7 +582,6 @@ bool ANIM_remove_driver(ReportList *UNUSED(reports),
 /* Copy/Paste Buffer for Driver Data... */
 static FCurve *channeldriver_copypaste_buf = NULL;
 
-/* This function frees any MEM_calloc'ed copy/paste buffer data */
 void ANIM_drivers_copybuf_free(void)
 {
   /* free the buffer F-Curve if it exists, as if it were just another F-Curve */
@@ -613,7 +591,6 @@ void ANIM_drivers_copybuf_free(void)
   channeldriver_copypaste_buf = NULL;
 }
 
-/* Checks if there is a driver in the copy/paste buffer */
 bool ANIM_driver_can_paste(void)
 {
   return (channeldriver_copypaste_buf != NULL);
@@ -621,9 +598,6 @@ bool ANIM_driver_can_paste(void)
 
 /* ------------------- */
 
-/* Main Driver Management API calls:
- *  Make a copy of the driver for the specified property on the given ID block
- */
 bool ANIM_copy_driver(
     ReportList *reports, ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {
@@ -672,10 +646,6 @@ bool ANIM_copy_driver(
   return 0;
 }
 
-/* Main Driver Management API calls:
- * Add a new driver for the specified property on the given ID block or replace an existing one
- * with the driver + driver-curve data from the buffer
- */
 bool ANIM_paste_driver(
     ReportList *reports, ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {
@@ -733,7 +703,6 @@ bool ANIM_paste_driver(
 /* Copy/Paste Buffer for Driver Variables... */
 static ListBase driver_vars_copybuf = {NULL, NULL};
 
-/* This function frees any MEM_calloc'ed copy/paste buffer data */
 void ANIM_driver_vars_copybuf_free(void)
 {
   /* Free the driver variables kept in the buffer */
@@ -750,7 +719,6 @@ void ANIM_driver_vars_copybuf_free(void)
   BLI_listbase_clear(&driver_vars_copybuf);
 }
 
-/* Checks if there are driver variables in the copy/paste buffer */
 bool ANIM_driver_vars_can_paste(void)
 {
   return (BLI_listbase_is_empty(&driver_vars_copybuf) == false);
@@ -758,7 +726,6 @@ bool ANIM_driver_vars_can_paste(void)
 
 /* -------------------------------------------------- */
 
-/* Copy the given driver's variables to the buffer */
 bool ANIM_driver_vars_copy(ReportList *reports, FCurve *fcu)
 {
   /* sanity checks */
@@ -781,7 +748,6 @@ bool ANIM_driver_vars_copy(ReportList *reports, FCurve *fcu)
   return (BLI_listbase_is_empty(&driver_vars_copybuf) == false);
 }
 
-/* Paste the variables in the buffer to the given FCurve */
 bool ANIM_driver_vars_paste(ReportList *reports, FCurve *fcu, bool replace)
 {
   ChannelDriver *driver = (fcu) ? fcu->driver : NULL;
@@ -837,8 +803,6 @@ bool ANIM_driver_vars_paste(ReportList *reports, FCurve *fcu, bool replace)
 
 /* -------------------------------------------------- */
 
-/* Create a driver & variable that reads the specified property,
- * and store it in the buffers for Paste Driver and Paste Variables. */
 void ANIM_copy_as_driver(struct ID *target_id, const char *target_path, const char *var_name)
 {
   /* Clear copy/paste buffer first (for consistency with other copy/paste buffers). */
@@ -882,13 +846,8 @@ void ANIM_copy_as_driver(struct ID *target_id, const char *target_path, const ch
 
 /* Add Driver - Enum Defines ------------------------- */
 
-/**
- * Mapping Types enum for operators.
- * \note Used by #ANIM_OT_driver_button_add and #UI_OT_eyedropper_driver.
- *
- * XXX: These names need reviewing.
- */
 EnumPropertyItem prop_driver_create_mapping_types[] = {
+    /* XXX: These names need reviewing. */
     {CREATEDRIVER_MAPPING_1_N,
      "SINGLE_MANY",
      0,

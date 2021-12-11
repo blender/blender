@@ -806,7 +806,6 @@ wmJob *EEVEE_lightbake_job_create(struct wmWindowManager *wm,
   return wm_job;
 }
 
-/* MUST run on the main thread. */
 void *EEVEE_lightbake_job_data_alloc(struct Main *bmain,
                                      struct ViewLayer *view_layer,
                                      struct Scene *scene,
@@ -1484,8 +1483,6 @@ void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float
   EEVEE_volumes_free_smoke_textures();
 }
 
-/* This is to update the world irradiance and reflection contribution from
- * within the viewport drawing (does not have the overhead of a full light cache rebuild.) */
 void EEVEE_lightbake_update_world_quick(EEVEE_ViewLayerData *sldata,
                                         EEVEE_Data *vedata,
                                         const Scene *scene)

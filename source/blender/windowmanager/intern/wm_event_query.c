@@ -71,7 +71,6 @@ static void event_ids_from_type_and_value(const short type,
   }
 }
 
-/* for debugging only, getting inspecting events manually is tedious */
 void WM_event_print(const wmEvent *event)
 {
   if (event) {
@@ -218,7 +217,6 @@ bool WM_event_type_mask_test(const int event_type, const enum eEventType_Mask ma
 /** \name Event Motion Queries
  * \{ */
 
-/* for modal callbacks, check configuration for how to interpret exit with tweaks. */
 bool WM_event_is_modal_tweak_exit(const wmEvent *event, int tweak_event)
 {
   /* if the release-confirm userpref setting is enabled,
@@ -276,20 +274,6 @@ bool WM_event_is_mouse_drag_or_press(const wmEvent *event)
          (ISMOUSE_BUTTON(event->type) && (event->val == KM_PRESS));
 }
 
-/**
- * Detect motion between selection (callers should only use this for selection picking),
- * typically mouse press/click events.
- *
- * \param mval: Region relative coordinates, call with (-1, -1) resets the last cursor location.
- * \returns True when there was motion since last called.
- *
- * NOTE(@campbellbarton): The logic used here isn't foolproof.
- * It's possible that users move the cursor past #WM_EVENT_CURSOR_MOTION_THRESHOLD then back to
- * a position within the threshold (between mouse clicks).
- * In practice users never reported this since the threshold is very small (a few pixels).
- * To prevent the unlikely case of values matching from another region,
- * changing regions resets this value to (-1, -1).
- */
 bool WM_cursor_test_motion_and_update(const int mval[2])
 {
   static int mval_prev[2] = {-1, -1};
@@ -360,11 +344,6 @@ int WM_userdef_event_map(int kmitype)
   return kmitype;
 }
 
-/**
- * Use so we can check if 'wmEvent.type' is released in modal operators.
- *
- * An alternative would be to add a 'wmEvent.type_nokeymap'... or similar.
- */
 int WM_userdef_event_type_from_keymap_type(int kmitype)
 {
   switch (kmitype) {
@@ -447,7 +426,6 @@ bool WM_event_is_xr(const struct wmEvent *event)
 /** \name Event Tablet Input Access
  * \{ */
 
-/* applies the global tablet pressure correction curve */
 float wm_pressure_curve(float pressure)
 {
   if (U.pressure_threshold_max != 0.0f) {
@@ -463,8 +441,6 @@ float wm_pressure_curve(float pressure)
   return pressure;
 }
 
-/* if this is a tablet event, return tablet pressure and set *pen_flip
- * to 1 if the eraser tool is being used, 0 otherwise */
 float WM_event_tablet_data(const wmEvent *event, int *pen_flip, float tilt[2])
 {
   if (tilt) {

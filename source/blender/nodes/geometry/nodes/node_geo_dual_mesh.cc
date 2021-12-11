@@ -133,18 +133,18 @@ static void copy_data_based_on_new_to_old_map(Span<T> data,
 
 /**
  * Transfers the attributes from the original mesh to the new mesh using the following logic:
- *  - If the attribute was on the face domain it is now on the point domain, and this is true
- *    for all faces, so we can just copy these.
- *  - If the attribute was on the vertex domain there are three cases:
- *    - It was a 'bad' vertex so it is not in the dual mesh, and we can just ignore it
- *    - It was a normal vertex so it has a corresponding face in the dual mesh to which we can
- *      transfer.
- *    - It was a boundary vertex so it has a corresponding face, if keep_boundaries is true.
- *      Otherwise we can just ignore it.
- *  - If the attribute was on the edge domain we lookup for the new edges which edge it originated
- *    from using `new_to_old_edges_map`. We have to do it in this reverse order, because there can
- *    be more edges in the new mesh if keep boundaries is on.
- *  - We do the same thing for face corners as we do for edges.
+ * - If the attribute was on the face domain it is now on the point domain, and this is true
+ *   for all faces, so we can just copy these.
+ * - If the attribute was on the vertex domain there are three cases:
+ *   - It was a 'bad' vertex so it is not in the dual mesh, and we can just ignore it
+ *   - It was a normal vertex so it has a corresponding face in the dual mesh to which we can
+ *     transfer.
+ *   - It was a boundary vertex so it has a corresponding face, if keep_boundaries is true.
+ *     Otherwise we can just ignore it.
+ * - If the attribute was on the edge domain we lookup for the new edges which edge it originated
+ *   from using `new_to_old_edges_map`. We have to do it in this reverse order, because there can
+ *   be more edges in the new mesh if keep boundaries is on.
+ * - We do the same thing for face corners as we do for edges.
  *
  * Some of the vertices (on the boundary) in the dual mesh don't come from faces, but from edges or
  * vertices. For these the `boundary_vertex_to_relevant_face_map` is used, which maps them to the
@@ -292,6 +292,7 @@ static void create_vertex_poly_map(const Mesh &mesh,
  * (For this explanation we'll assume all faces are oriented clockwise)
  * (The vertex whose connected polygons we need to sort is "v0")
  *
+ * \code{.unparsed}
  *     Normal case:                    Boundary Vertex case:
  *       v1 ----- v2 ----- v3              |       |             |
  *       |   f3   |   f0   |               v2 ---- v4 --------- v3---
@@ -302,36 +303,37 @@ static void create_vertex_poly_map(const Mesh &mesh,
  *       v7 ----- v6 ----- v5              |  /  ,-'     f2      |
  *                                         | /,-'                |
  *                                         v0 ------------------ v1---
+ * \endcode
  *
  * - First we get the two corners of each face that have an edge which contains v0. A corner is
- * simply a vertex followed by an edge. In this case for the face "f0" for example, we'd end up
- * with the corners (v: v4, e: v4<->v0) and (v: v0, e: v0<->v2). Note that if the face was oriented
- * counter-clockwise we'd end up with the corners (v: v0, e: v0<->v4) and (v: v2, e: v0<->v2)
- * instead.
+ *   simply a vertex followed by an edge. In this case for the face "f0" for example, we'd end up
+ *   with the corners (v: v4, e: v4<->v0) and (v: v0, e: v0<->v2). Note that if the face was
+ *   oriented counter-clockwise we'd end up with the corners (v: v0, e: v0<->v4) and (v: v2, e:
+ *   v0<->v2) instead.
  * - Then we need to choose one polygon as our first. If "v0" is not on a boundary we can just
- * choose any polygon. If it is on a boundary some more care needs to be taken. Here we need to
- * pick a polygon which lies on the boundary (in the diagram either f0 or f2). To choose between
- * the two we need the next step.
+ *   choose any polygon. If it is on a boundary some more care needs to be taken. Here we need to
+ *   pick a polygon which lies on the boundary (in the diagram either f0 or f2). To choose between
+ *   the two we need the next step.
  * - In the normal case we use this polygon to set `shared_edge_i` which indicates the index of the
- * shared edge between this polygon and the next one. There are two possible choices: v0<->v4 and
- * v2<->v0. To choose we look at the corners. Since the edge v0<->v2 lies on the corner which has
- * v0, we set `shared_edge_i` to the other edge (v0<->v4), such that the next face will be "f1"
- * which is the next face in clockwise order.
+ *   shared edge between this polygon and the next one. There are two possible choices: v0<->v4 and
+ *   v2<->v0. To choose we look at the corners. Since the edge v0<->v2 lies on the corner which has
+ *   v0, we set `shared_edge_i` to the other edge (v0<->v4), such that the next face will be "f1"
+ *   which is the next face in clockwise order.
  * - In the boundary vertex case, we do something similar, but we are also forced to choose the
- * edge which is not on the boundary. If this doesn't line up with orientation of the polygon, we
- * know we'll need to choose the other boundary polygon as our first polygon. If the orientations
- * don't line up there as well, it means that the mesh normals are not consistent, and we just have
- * to force an orientation for ourselves. (Imagine if f0 is oriented counter-clockwise and f2 is
- * oriented clockwise for example)
+ *   edge which is not on the boundary. If this doesn't line up with orientation of the polygon, we
+ *   know we'll need to choose the other boundary polygon as our first polygon. If the orientations
+ *   don't line up there as well, it means that the mesh normals are not consistent, and we just
+ *   have to force an orientation for ourselves. (Imagine if f0 is oriented counter-clockwise and
+ *   f2 is oriented clockwise for example)
  * - Next comes a loop where we look at the other faces and find the one which has the shared
- * edge. Then we set the next shared edge to the other edge on the polygon connected to "v0", and
- * continue. Because of the way we've chosen the first shared edge the order of the faces will have
- * the same orientation as that of the first polygon. (In this case we'd have f0 -> f1 -> f2 -> f3
- * which also goes around clockwise).
+ *   edge. Then we set the next shared edge to the other edge on the polygon connected to "v0", and
+ *   continue. Because of the way we've chosen the first shared edge the order of the faces will
+ *   have the same orientation as that of the first polygon.
+ *   (In this case we'd have f0 -> f1 -> f2 -> f3 which also goes around clockwise).
  * - Every time we determine a shared edge, we can also add a corner to `r_sorted_corners`. This
- * will simply be the corner which doesn't contain the shared edge.
+ *   will simply be the corner which doesn't contain the shared edge.
  * - Finally if we are in the normal case we also need to add the last "shared edge" to close the
- * loop.
+ *   loop.
  */
 static void sort_vertex_polys(const Mesh &mesh,
                               const int vertex_index,
@@ -544,7 +546,7 @@ static void add_edge(const Mesh &mesh,
  * For the dual mesh of a manifold input mesh:
  * - The vertices are at the centers of the faces of the input mesh.
  * - The edges connect the two vertices created from the two faces next to the edge in the input
- * mesh.
+ *   mesh.
  * - The faces are at the vertices of the input mesh.
  *
  * Some special cases are needed for boundaries and non-manifold geometry.
@@ -675,15 +677,17 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
        * midpoint of e2 (computed in a previous step), from this midpoint to V, from V to the
        * midpoint of e1 and from the midpoint of e1 to f1.
        *
+       * \code{.unparsed}
        *       |       |             |                    |       |            |
        *       v2 ---- v3 --------- v4---                 v2 ---- v3 -------- v4---
        *       | f3   /          ,-' |                    |      /          ,-'|
        *       |     /   f2   ,-'    |                    |     /        ,-'   |
-       *    e2 |    /e3    ,-' e4    |       ====>        M1-f3-/--f2-.,-'      |
+       *    e2 |    /e3    ,-' e4    |       ====>       M1-f3-/--f2-.,-'      |
        *       |   /    ,-'          |       ====>        |   /    ,-'\        |
        *       |  /  ,-'     f1      |                    |  /  ,-'    f1      |
        *       | /,-'                |                    | /,-'        |      |
        *       V-------------------- v5---                V------------M2----- v5---
+       * \endcode
        */
 
       /* Add the edges in between the polys. */

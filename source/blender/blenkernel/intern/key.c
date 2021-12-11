@@ -246,7 +246,6 @@ typedef struct WeightsArrayCache {
   float **defgroup_weights;
 } WeightsArrayCache;
 
-/** Free (or release) any data used by this shapekey (does not free the key itself). */
 void BKE_key_free_data(Key *key)
 {
   shapekey_free_data(&key->id);
@@ -316,11 +315,6 @@ Key *BKE_key_add(Main *bmain, ID *id) /* common function */
   return key;
 }
 
-/**
- * Sort shape keys after a change.
- * This assumes that at most one key was moved,
- * which is a valid assumption for the places it's currently being called.
- */
 void BKE_key_sort(Key *key)
 {
   KeyBlock *kb;
@@ -394,7 +388,6 @@ void key_curve_position_weights(float t, float data[4], int type)
   }
 }
 
-/* first derivative */
 void key_curve_tangent_weights(float t, float data[4], int type)
 {
   float t2, fc;
@@ -433,7 +426,6 @@ void key_curve_tangent_weights(float t, float data[4], int type)
   }
 }
 
-/* second derivative */
 void key_curve_normal_weights(float t, float data[4], int type)
 {
   float fc;
@@ -1524,7 +1516,6 @@ static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
   }
 }
 
-/* returns key coordinates (+ tilt) when key applied, NULL otherwise */
 float *BKE_key_evaluate_object_ex(Object *ob, int *r_totelem, float *arr, size_t arr_size)
 {
   Key *key = BKE_key_from_object(ob);
@@ -1626,9 +1617,6 @@ float *BKE_key_evaluate_object(Object *ob, int *r_totelem)
   return BKE_key_evaluate_object_ex(ob, r_totelem, NULL, 0);
 }
 
-/**
- * \param shape_index: The index to use or all (when -1).
- */
 int BKE_keyblock_element_count_from_shape(const Key *key, const int shape_index)
 {
   int result = 0;
@@ -1646,9 +1634,6 @@ int BKE_keyblock_element_count(const Key *key)
   return BKE_keyblock_element_count_from_shape(key, -1);
 }
 
-/**
- * \param shape_index: The index to use or all (when -1).
- */
 size_t BKE_keyblock_element_calc_size_from_shape(const Key *key, const int shape_index)
 {
   return (size_t)BKE_keyblock_element_count_from_shape(key, shape_index) * key->elemsize;
@@ -1666,9 +1651,6 @@ size_t BKE_keyblock_element_calc_size(const Key *key)
  * use #BKE_keyblock_element_calc_size to allocate the size of the data needed.
  * \{ */
 
-/**
- * \param shape_index: The index to use or all (when -1).
- */
 void BKE_keyblock_data_get_from_shape(const Key *key, float (*arr)[3], const int shape_index)
 {
   uint8_t *elements = (uint8_t *)arr;
@@ -1687,9 +1669,6 @@ void BKE_keyblock_data_get(const Key *key, float (*arr)[3])
   BKE_keyblock_data_get_from_shape(key, arr, -1);
 }
 
-/**
- * Set the data to all key-blocks (or shape_index if != -1).
- */
 void BKE_keyblock_data_set_with_mat4(Key *key,
                                      const int shape_index,
                                      const float (*coords)[3],
@@ -1717,10 +1696,6 @@ void BKE_keyblock_data_set_with_mat4(Key *key,
   }
 }
 
-/**
- * Set the data for all key-blocks (or shape_index if != -1),
- * transforming by \a mat.
- */
 void BKE_keyblock_curve_data_set_with_mat4(
     Key *key, const ListBase *nurb, const int shape_index, const void *data, const float mat[4][4])
 {
@@ -1736,9 +1711,6 @@ void BKE_keyblock_curve_data_set_with_mat4(
   }
 }
 
-/**
- * Set the data for all key-blocks (or shape_index if != -1).
- */
 void BKE_keyblock_data_set(Key *key, const int shape_index, const void *data)
 {
   const uint8_t *elements = data;
@@ -1870,14 +1842,6 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
   return kb;
 }
 
-/**
- * \note sorting is a problematic side effect in some cases,
- * better only do this explicitly by having its own function,
- *
- * \param key: The key datablock to add to.
- * \param name: Optional name for the new keyblock.
- * \param do_force: always use ctime even for relative keys.
- */
 KeyBlock *BKE_keyblock_add_ctime(Key *key, const char *name, const bool do_force)
 {
   KeyBlock *kb = BKE_keyblock_add(key, name);
@@ -1906,7 +1870,6 @@ KeyBlock *BKE_keyblock_add_ctime(Key *key, const char *name, const bool do_force
   return kb;
 }
 
-/* Only the active key-block. */
 KeyBlock *BKE_keyblock_from_object(Object *ob)
 {
   Key *key = BKE_key_from_object(ob);
@@ -1930,7 +1893,6 @@ KeyBlock *BKE_keyblock_from_object_reference(Object *ob)
   return NULL;
 }
 
-/* get the appropriate KeyBlock given an index */
 KeyBlock *BKE_keyblock_from_key(Key *key, int index)
 {
   if (key) {
@@ -1948,15 +1910,11 @@ KeyBlock *BKE_keyblock_from_key(Key *key, int index)
   return NULL;
 }
 
-/* get the appropriate KeyBlock given a name to search for */
 KeyBlock *BKE_keyblock_find_name(Key *key, const char name[])
 {
   return BLI_findstring(&key->block, name, offsetof(KeyBlock, name));
 }
 
-/**
- * \brief copy shape-key attributes, but not key data.or name/uid
- */
 void BKE_keyblock_copy_settings(KeyBlock *kb_dst, const KeyBlock *kb_src)
 {
   kb_dst->pos = kb_src->pos;
@@ -1968,9 +1926,6 @@ void BKE_keyblock_copy_settings(KeyBlock *kb_dst, const KeyBlock *kb_src)
   kb_dst->slidermax = kb_src->slidermax;
 }
 
-/* Get RNA-Path for 'value' setting of the given ShapeKey
- * NOTE: the user needs to free the returned string once they're finish with it
- */
 char *BKE_keyblock_curval_rnapath_get(Key *key, KeyBlock *kb)
 {
   PointerRNA ptr;
@@ -1993,6 +1948,7 @@ char *BKE_keyblock_curval_rnapath_get(Key *key, KeyBlock *kb)
 /* conversion functions */
 
 /************************* Lattice ************************/
+
 void BKE_keyblock_update_from_lattice(Lattice *lt, KeyBlock *kb)
 {
   BPoint *bp;
@@ -2193,6 +2149,7 @@ void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nu
 }
 
 /************************* Mesh ************************/
+
 void BKE_keyblock_update_from_mesh(Mesh *me, KeyBlock *kb)
 {
   MVert *mvert;
@@ -2245,15 +2202,6 @@ void BKE_keyblock_convert_to_mesh(KeyBlock *kb, Mesh *me)
   }
 }
 
-/**
- * Computes normals (vertices, polygons and/or loops ones) of given mesh for given shape key.
- *
- * \param kb: the KeyBlock to use to compute normals.
- * \param mesh: the Mesh to apply key-block to.
- * \param r_vertnors: if non-NULL, an array of vectors, same length as number of vertices.
- * \param r_polynors: if non-NULL, an array of vectors, same length as number of polygons.
- * \param r_loopnors: if non-NULL, an array of vectors, same length as number of loops.
- */
 void BKE_keyblock_mesh_calc_normals(struct KeyBlock *kb,
                                     struct Mesh *mesh,
                                     float (*r_vertnors)[3],
@@ -2318,6 +2266,7 @@ void BKE_keyblock_mesh_calc_normals(struct KeyBlock *kb,
 }
 
 /************************* raw coords ************************/
+
 void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
 {
   const float(*co)[3] = vertCos;
@@ -2471,6 +2420,7 @@ float (*BKE_keyblock_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
 }
 
 /************************* raw coord offsets ************************/
+
 void BKE_keyblock_update_from_offset(Object *ob, KeyBlock *kb, const float (*ofs)[3])
 {
   int a;
@@ -2508,15 +2458,6 @@ void BKE_keyblock_update_from_offset(Object *ob, KeyBlock *kb, const float (*ofs
 
 /* ==========================================================*/
 
-/**
- * Move shape key from org_index to new_index. Safe, clamps index to valid range,
- * updates reference keys, the object's active shape index,
- * the 'frame' value in case of absolute keys, etc.
- * Note indices are expected in real values (not 'fake' shapenr +1 ones).
- *
- * \param org_index: if < 0, current object's active shape will be used as skey to move.
- * \return true if something was done, else false.
- */
 bool BKE_keyblock_move(Object *ob, int org_index, int new_index)
 {
   Key *key = BKE_key_from_object(ob);
@@ -2595,9 +2536,6 @@ bool BKE_keyblock_move(Object *ob, int org_index, int new_index)
   return true;
 }
 
-/**
- * Check if given key-block (as index) is used as basis by others in given key.
- */
 bool BKE_keyblock_is_basis(Key *key, const int index)
 {
   KeyBlock *kb;

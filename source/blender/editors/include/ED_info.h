@@ -39,6 +39,11 @@ const char *ED_info_statistics_string(struct Main *bmain,
                                       struct Scene *scene,
                                       struct ViewLayer *view_layer);
 
+/**
+ * \param v3d_local: Pass this argument to calculate view-port local statistics.
+ * Note that this must only be used for local-view, otherwise report specific statistics
+ * will be written into the global scene statistics giving incorrect results.
+ */
 void ED_info_draw_stats(struct Main *bmain,
                         struct Scene *scene,
                         struct ViewLayer *view_layer,

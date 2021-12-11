@@ -1876,9 +1876,10 @@ static void execute_scene(struct Depsgraph *depsgraph,
   }
 }
 
-/*---------------------------------------------------
- * plugin interface
- */
+/* -------------------------------------------------------------------- */
+/** \name Plugin Interface
+ * \{ */
+
 void itasc_initialize_tree(struct Depsgraph *depsgraph,
                            struct Scene *scene,
                            Object *ob,
@@ -2012,3 +2013,5 @@ void itasc_test_constraint(struct Object *ob, struct bConstraint *cons)
       break;
   }
 }
+
+/** \} */

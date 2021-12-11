@@ -121,7 +121,6 @@ void USDAbstractWriter::write_visibility(const HierarchyContext &context,
   usd_value_writer_.SetAttribute(attr_visibility, pxr::VtValue(visibility), timecode);
 }
 
-/* Reference the original data instead of writing a copy. */
 bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const pxr::UsdPrim &prim)
 {
   BLI_assert(context.is_instance());

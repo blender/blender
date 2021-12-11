@@ -441,9 +441,6 @@ static bool has_link_cycles_recursive(const NodeRef &node,
   return false;
 }
 
-/**
- * \return True when there is a link cycle. Unavailable sockets are ignored.
- */
 bool NodeTreeRef::has_link_cycles() const
 {
   const int node_amount = nodes_by_id_.size();
@@ -570,10 +567,6 @@ static void toposort_from_start_node(const NodeTreeRef::ToposortDirection direct
   }
 }
 
-/**
- * Sort nodes topologically from left to right or right to left.
- * In the future the result if this could be cached on #NodeTreeRef.
- */
 NodeTreeRef::ToposortResult NodeTreeRef::toposort(const ToposortDirection direction) const
 {
   ToposortResult result;

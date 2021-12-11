@@ -589,9 +589,10 @@ void DRW_fluid_ensure_range_field(FluidModifierData *fmd)
 #endif /* WITH_FLUID */
 }
 
-/* TODO: Unify with the other #GPU_free_smoke. */
 void DRW_smoke_free_velocity(FluidModifierData *fmd)
 {
+  /* TODO: Unify with the other #GPU_free_smoke. */
+
   if (fmd->type & MOD_FLUID_TYPE_DOMAIN && fmd->domain) {
     if (fmd->domain->tex_velocity_x) {
       GPU_texture_free(fmd->domain->tex_velocity_x);

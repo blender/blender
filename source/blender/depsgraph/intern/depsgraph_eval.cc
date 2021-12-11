@@ -60,7 +60,6 @@ static void deg_flush_updates_and_refresh(deg::Depsgraph *deg_graph)
   deg::deg_evaluate_on_refresh(deg_graph);
 }
 
-/* Evaluate all nodes tagged for updating. */
 void DEG_evaluate_on_refresh(Depsgraph *graph)
 {
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(graph);
@@ -77,7 +76,6 @@ void DEG_evaluate_on_refresh(Depsgraph *graph)
   deg_flush_updates_and_refresh(deg_graph);
 }
 
-/* Frame-change happened for root scene that graph belongs to. */
 void DEG_evaluate_on_framechange(Depsgraph *graph, float frame)
 {
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(graph);

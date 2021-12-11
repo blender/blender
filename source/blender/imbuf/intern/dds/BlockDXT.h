@@ -69,7 +69,9 @@ struct BlockDXT1 {
   uint evaluatePalette(Color32 color_array[4]) const;
   uint evaluatePaletteNV5x(Color32 color_array[4]) const;
 
+  /** Evaluate palette assuming 3 color block. */
   void evaluatePalette3(Color32 color_array[4]) const;
+  /** Evaluate palette assuming 4 color block. */
   void evaluatePalette4(Color32 color_array[4]) const;
 
   void decodeBlock(ColorBlock *block) const;
@@ -77,7 +79,9 @@ struct BlockDXT1 {
 
   void setIndices(const int *idx);
 
+  /** Flip DXT1 block vertically. */
   void flip4();
+  /** Flip half DXT1 block vertically. */
   void flip2();
 };
 
@@ -113,7 +117,9 @@ struct AlphaBlockDXT3 {
 
   void decodeBlock(ColorBlock *block) const;
 
+  /** Flip DXT3 alpha block vertically. */
   void flip4();
+  /** Flip half DXT3 alpha block vertically. */
   void flip2();
 };
 
@@ -125,7 +131,9 @@ struct BlockDXT3 {
   void decodeBlock(ColorBlock *block) const;
   void decodeBlockNV5x(ColorBlock *block) const;
 
+  /** Flip DXT3 block vertically. */
   void flip4();
+  /** Flip half DXT3 block vertically. */
   void flip2();
 };
 
@@ -253,7 +261,9 @@ struct BlockDXT5 {
   void decodeBlock(ColorBlock *block) const;
   void decodeBlockNV5x(ColorBlock *block) const;
 
+  /** Flip DXT5 block vertically. */
   void flip4();
+  /** Flip half DXT5 block vertically. */
   void flip2();
 };
 
@@ -261,9 +271,12 @@ struct BlockDXT5 {
 struct BlockATI1 {
   AlphaBlockDXT5 alpha;
 
+  /** Decode ATI1 block. */
   void decodeBlock(ColorBlock *block) const;
 
+  /** Flip ATI1 block vertically. */
   void flip4();
+  /** Flip half ATI1 block vertically. */
   void flip2();
 };
 
@@ -272,9 +285,12 @@ struct BlockATI2 {
   AlphaBlockDXT5 x;
   AlphaBlockDXT5 y;
 
+  /** Decode ATI2 block. */
   void decodeBlock(ColorBlock *block) const;
 
+  /** Flip ATI2 block vertically. */
   void flip4();
+  /** Flip half ATI2 block vertically. */
   void flip2();
 };
 
@@ -292,7 +308,9 @@ struct BlockCTX1 {
 
   void decodeBlock(ColorBlock *block) const;
 
+  /** Flip CTX1 block vertically. */
   void flip4();
+  /** Flip half CTX1 block vertically. */
   void flip2();
 };
 

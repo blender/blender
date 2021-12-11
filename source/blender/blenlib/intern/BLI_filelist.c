@@ -229,12 +229,6 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
   }
 }
 
-/**
- * Scans the contents of the directory named *dirname, and allocates and fills in an
- * array of entries describing them in *filelist.
- *
- * \return The length of filelist array.
- */
 unsigned int BLI_filelist_dir_contents(const char *dirname, struct direntry **r_filelist)
 {
   struct BuildDirCtx dir_ctx;
@@ -256,9 +250,6 @@ unsigned int BLI_filelist_dir_contents(const char *dirname, struct direntry **r_
   return dir_ctx.nrfiles;
 }
 
-/**
- * Convert given entry's size into human-readable strings.
- */
 void BLI_filelist_entry_size_to_string(const struct stat *st,
                                        const uint64_t sz,
                                        /* Used to change MB -> M, etc. - is that really useful? */
@@ -278,9 +269,6 @@ void BLI_filelist_entry_size_to_string(const struct stat *st,
 #endif
 }
 
-/**
- * Convert given entry's modes into human-readable strings.
- */
 void BLI_filelist_entry_mode_to_string(const struct stat *st,
                                        const bool UNUSED(compact),
                                        char r_mode1[FILELIST_DIRENTRY_MODE_LEN],
@@ -328,9 +316,6 @@ void BLI_filelist_entry_mode_to_string(const struct stat *st,
 #endif
 }
 
-/**
- * Convert given entry's owner into human-readable strings.
- */
 void BLI_filelist_entry_owner_to_string(const struct stat *st,
                                         const bool UNUSED(compact),
                                         char r_owner[FILELIST_DIRENTRY_OWNER_LEN])
@@ -349,12 +334,6 @@ void BLI_filelist_entry_owner_to_string(const struct stat *st,
 #endif
 }
 
-/**
- * Convert given entry's time into human-readable strings.
- *
- * \param r_is_today: optional, returns true if the date matches today's.
- * \param r_is_yesterday: optional, returns true if the date matches yesterday's.
- */
 void BLI_filelist_entry_datetime_to_string(const struct stat *st,
                                            const int64_t ts,
                                            const bool compact,
@@ -417,9 +396,6 @@ void BLI_filelist_entry_datetime_to_string(const struct stat *st,
   }
 }
 
-/**
- * Deep-duplicate of a single direntry.
- */
 void BLI_filelist_entry_duplicate(struct direntry *dst, const struct direntry *src)
 {
   *dst = *src;
@@ -431,9 +407,6 @@ void BLI_filelist_entry_duplicate(struct direntry *dst, const struct direntry *s
   }
 }
 
-/**
- * Deep-duplicate of a #direntry array including the array itself.
- */
 void BLI_filelist_duplicate(struct direntry **dest_filelist,
                             struct direntry *const src_filelist,
                             const unsigned int nrentries)
@@ -448,9 +421,6 @@ void BLI_filelist_duplicate(struct direntry **dest_filelist,
   }
 }
 
-/**
- * frees storage for a single direntry, not the direntry itself.
- */
 void BLI_filelist_entry_free(struct direntry *entry)
 {
   if (entry->relname) {
@@ -461,9 +431,6 @@ void BLI_filelist_entry_free(struct direntry *entry)
   }
 }
 
-/**
- * Frees storage for an array of #direntry, including the array itself.
- */
 void BLI_filelist_free(struct direntry *filelist, const unsigned int nrentries)
 {
   unsigned int i;

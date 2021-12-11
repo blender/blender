@@ -53,7 +53,7 @@ static void init(const bContext *C, PointerRNA *ptr)
   user->framenr = 1;
 }
 
-void register_node_type_cmp_movieclip(void)
+void register_node_type_cmp_movieclip()
 {
   static bNodeType ntype;
 

@@ -69,6 +69,9 @@ void WM_toolsystem_unlink(struct bContext *C, struct WorkSpace *workspace, const
 void WM_toolsystem_refresh(struct bContext *C, struct WorkSpace *workspace, const bToolKey *tkey);
 void WM_toolsystem_reinit(struct bContext *C, struct WorkSpace *workspace, const bToolKey *tkey);
 
+/**
+ * Operate on all active tools.
+ */
 void WM_toolsystem_unlink_all(struct bContext *C, struct WorkSpace *workspace);
 void WM_toolsystem_refresh_all(struct bContext *C, struct WorkSpace *workspace);
 void WM_toolsystem_reinit_all(struct bContext *C, struct wmWindow *win);
@@ -79,6 +82,12 @@ void WM_toolsystem_ref_set_from_runtime(struct bContext *C,
                                         const struct bToolRef_Runtime *tref_rt,
                                         const char *idname);
 
+/**
+ * Sync the internal active state of a tool back into the tool system,
+ * this is needed for active brushes where the real active state is not stored in the tool system.
+ *
+ * \see #toolsystem_ref_link
+ */
 void WM_toolsystem_ref_sync_from_context(struct Main *bmain,
                                          struct WorkSpace *workspace,
                                          struct bToolRef *tref);
@@ -98,8 +107,12 @@ void WM_toolsystem_update_from_context(struct bContext *C,
                                        struct ViewLayer *view_layer,
                                        struct ScrArea *area);
 
+/**
+ * For paint modes to support non-brush tools.
+ */
 bool WM_toolsystem_active_tool_is_brush(const struct bContext *C);
 
+/** Follow #wmMsgNotifyFn spec. */
 void WM_toolsystem_do_msg_notify_tag_refresh(struct bContext *C,
                                              struct wmMsgSubscribeKey *msg_key,
                                              struct wmMsgSubscribeValue *msg_val);
@@ -129,6 +142,14 @@ void WM_toolsystem_ref_properties_init_for_keymap(struct bToolRef *tref,
                                                   struct PointerRNA *src_ptr,
                                                   struct wmOperatorType *ot);
 
+/**
+ * Use to update the active tool (shown in the top bar) in the least disruptive way.
+ *
+ * This is a little involved since there may be multiple valid active tools
+ * depending on the mode and space type.
+ *
+ * Used when undoing since the active mode may have changed.
+ */
 void WM_toolsystem_refresh_active(struct bContext *C);
 
 void WM_toolsystem_refresh_screen_area(struct WorkSpace *workspace,

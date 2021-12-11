@@ -1279,6 +1279,8 @@ void separate_geometry(GeometrySet &geometry_set,
 
 namespace blender::nodes::node_geo_delete_geometry_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryDeleteGeometry)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
@@ -1293,7 +1295,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   const bNode *node = static_cast<bNode *>(ptr->data);
-  const NodeGeometryDeleteGeometry &storage = *(const NodeGeometryDeleteGeometry *)node->storage;
+  const NodeGeometryDeleteGeometry &storage = node_storage(*node);
   const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
 
   uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
@@ -1319,11 +1321,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
-  const bNode &node = params.node();
-  const NodeGeometryDeleteGeometry &storage = *(const NodeGeometryDeleteGeometry *)node.storage;
+  const NodeGeometryDeleteGeometry &storage = node_storage(params.node());
   const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
-  const GeometryNodeDeleteGeometryMode mode = static_cast<GeometryNodeDeleteGeometryMode>(
-      storage.mode);
+  const GeometryNodeDeleteGeometryMode mode = (GeometryNodeDeleteGeometryMode)storage.mode;
 
   bool all_is_error = false;
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {

@@ -1061,7 +1061,6 @@ static int boid_condition_is_true(BoidCondition *cond)
 }
 #endif
 
-/* determines the velocity the boid wants to have */
 void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 {
   BoidRule *rule;
@@ -1218,7 +1217,6 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
     }
   }
 }
-/* tries to realize the wanted velocity taking all constraints into account */
 void boid_body(BoidBrainData *bbd, ParticleData *pa)
 {
   BoidSettings *boids = bbd->part->boids;

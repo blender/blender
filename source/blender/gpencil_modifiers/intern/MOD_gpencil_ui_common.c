@@ -203,9 +203,6 @@ void gpencil_modifier_curve_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiTemplateCurveMapping(layout, ptr, "curve", 0, false, false, false, false);
 }
 
-/**
- * Draw modifier error message.
- */
 void gpencil_modifier_panel_end(uiLayout *layout, PointerRNA *ptr)
 {
   GpencilModifierData *md = ptr->data;
@@ -360,9 +357,6 @@ static void gpencil_modifier_panel_header(const bContext *UNUSED(C), Panel *pane
 /** \name Modifier Registration Helpers
  * \{ */
 
-/**
- * Create a panel in the context's region
- */
 PanelType *gpencil_modifier_panel_register(ARegionType *region_type,
                                            GpencilModifierType type,
                                            PanelDrawFn draw)
@@ -390,12 +384,6 @@ PanelType *gpencil_modifier_panel_register(ARegionType *region_type,
   return panel_type;
 }
 
-/**
- * Add a child panel to the parent.
- *
- * \note To create the panel type's idname, it appends the \a name argument to the \a parent's
- * idname.
- */
 PanelType *gpencil_modifier_subpanel_register(ARegionType *region_type,
                                               const char *name,
                                               const char *label,

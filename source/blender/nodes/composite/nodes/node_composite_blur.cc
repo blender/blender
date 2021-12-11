@@ -44,7 +44,7 @@ static void node_composit_init_blur(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-void register_node_type_cmp_blur(void)
+void register_node_type_cmp_blur()
 {
   static bNodeType ntype;
 

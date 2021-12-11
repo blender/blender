@@ -1981,7 +1981,6 @@ void clip_draw_cache_and_notes(const bContext *C, SpaceClip *sc, ARegion *region
   }
 }
 
-/* draw grease pencil */
 void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);

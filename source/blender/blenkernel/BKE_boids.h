@@ -51,7 +51,13 @@ typedef struct BoidBrainData {
 } BoidBrainData;
 
 void boids_precalc_rules(struct ParticleSettings *part, float cfra);
+/**
+ * Determines the velocity the boid wants to have.
+ */
 void boid_brain(BoidBrainData *bbd, int p, struct ParticleData *pa);
+/**
+ * Tries to realize the wanted velocity taking all constraints into account.
+ */
 void boid_body(BoidBrainData *bbd, struct ParticleData *pa);
 void boid_default_settings(struct BoidSettings *boids);
 struct BoidRule *boid_new_rule(int type);

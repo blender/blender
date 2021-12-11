@@ -276,7 +276,7 @@ static void ED_OT_flush_edits(wmOperatorType *ot)
 
 /** \} */
 
-void ED_operatortypes_edutils(void)
+void ED_operatortypes_edutils()
 {
   WM_operatortype_append(ED_OT_lib_id_load_custom_preview);
   WM_operatortype_append(ED_OT_lib_id_generate_preview);

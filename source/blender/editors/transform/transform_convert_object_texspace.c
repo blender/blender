@@ -51,7 +51,7 @@ void createTransTexspace(TransInfo *t)
   TransData *td;
   Object *ob;
   ID *id;
-  short *texflag;
+  char *texflag;
 
   ob = OBACT(view_layer);
 
@@ -102,7 +102,6 @@ void createTransTexspace(TransInfo *t)
 /** \name Recalc Data object
  * \{ */
 
-/* helper for recalcData() - for object transforms, typically in the 3D view */
 void recalcData_texspace(TransInfo *t)
 {
 

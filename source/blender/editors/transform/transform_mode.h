@@ -42,12 +42,24 @@ typedef struct TransDataGenericSlideVert {
 /* transform_mode.c */
 int transform_mode_really_used(struct bContext *C, int mode);
 bool transdata_check_local_center(const TransInfo *t, short around);
+/**
+ * Informs if the mode can be switched during modal.
+ */
 bool transform_mode_is_changeable(const int mode);
 void protectedTransBits(short protectflag, float vec[3]);
 void protectedSizeBits(short protectflag, float size[3]);
 void constraintTransLim(const TransInfo *t, TransData *td);
 void constraintSizeLim(const TransInfo *t, TransData *td);
+/**
+ * Used by Transform Rotation and Transform Normal Rotation.
+ */
 void headerRotation(TransInfo *t, char *str, int str_size, float final);
+/**
+ * Applies values of rotation to `td->loc` and `td->ext->quat`
+ * based on a rotation matrix (mat) and a pivot (center).
+ *
+ * Protected axis and other transform settings are taken into account.
+ */
 void ElementRotation_ex(const TransInfo *t,
                         const TransDataContainer *tc,
                         TransData *td,
@@ -64,6 +76,9 @@ void ElementResize(const TransInfo *t,
                    TransData *td,
                    const float mat[3][3]);
 void transform_mode_init(TransInfo *t, struct wmOperator *op, const int mode);
+/**
+ * When in modal and not set, initializes a default orientation for the mode.
+ */
 void transform_mode_default_modal_orientation_set(TransInfo *t, int type);
 
 /* transform_mode_align.c */

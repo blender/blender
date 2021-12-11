@@ -50,7 +50,7 @@ static void node_composit_init_glare(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = ndg;
 }
 
-void register_node_type_cmp_glare(void)
+void register_node_type_cmp_glare()
 {
   static bNodeType ntype;
 

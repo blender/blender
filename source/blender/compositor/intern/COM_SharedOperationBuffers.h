@@ -50,17 +50,46 @@ class SharedOperationBuffers {
   blender::Map<NodeOperation *, BufferData> buffers_;
 
  public:
+  /**
+   * Whether given operation area to render is already registered.
+   */
   bool is_area_registered(NodeOperation *op, const rcti &area_to_render);
+  /**
+   * Registers an operation area to render.
+   */
   void register_area(NodeOperation *op, const rcti &area_to_render);
 
+  /**
+   * Whether given operation has any registered reads (other operation registered it depends on
+   * given operation).
+   */
   bool has_registered_reads(NodeOperation *op);
+  /**
+   * Registers an operation read (other operation depends on given operation).
+   */
   void register_read(NodeOperation *read_op);
 
+  /**
+   * Get registered areas given operation needs to render.
+   */
   Vector<rcti> get_areas_to_render(NodeOperation *op, int offset_x, int offset_y);
+  /**
+   * Whether this operation buffer has already been rendered.
+   */
   bool is_operation_rendered(NodeOperation *op);
+  /**
+   * Stores given operation rendered buffer.
+   */
   void set_rendered_buffer(NodeOperation *op, std::unique_ptr<MemoryBuffer> buffer);
+  /**
+   * Get given operation rendered buffer.
+   */
   MemoryBuffer *get_rendered_buffer(NodeOperation *op);
 
+  /**
+   * Reports an operation has finished reading given operation. If all given operation dependencies
+   * have finished its buffer will be disposed.
+   */
   void read_finished(NodeOperation *read_op);
 
  private:

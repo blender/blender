@@ -112,7 +112,7 @@ void ABCPointsWriter::do_write(HierarchyContext &context)
     }
 
     state.time = DEG_get_ctime(args_.depsgraph);
-    if (psys_get_particle_state(&sim, p, &state, 0) == 0) {
+    if (psys_get_particle_state(&sim, p, &state, false) == 0) {
       continue;
     }
 

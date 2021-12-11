@@ -83,6 +83,9 @@ enum eSDNA_StructCompare {
   SDNA_CMP_UNKNOWN = 3,
 };
 
+/**
+ * Constructs and returns a decoded SDNA structure from the given encoded SDNA data block.
+ */
 struct SDNA *DNA_sdna_from_data(const void *data,
                                 const int data_len,
                                 bool do_endian_swap,
@@ -97,22 +100,58 @@ const struct SDNA *DNA_sdna_current_get(void);
 void DNA_sdna_current_free(void);
 
 struct DNA_ReconstructInfo;
+/**
+ * Pre-process information about how structs in \a newsdna can be reconstructed from structs in
+ * \a oldsdna. This information is then used to speedup #DNA_struct_reconstruct.
+ */
 struct DNA_ReconstructInfo *DNA_reconstruct_info_create(const struct SDNA *oldsdna,
                                                         const struct SDNA *newsdna,
                                                         const char *compare_flags);
 void DNA_reconstruct_info_free(struct DNA_ReconstructInfo *reconstruct_info);
 
+/**
+ * Returns the index of the struct info for the struct with the specified name.
+ */
 int DNA_struct_find_nr_ex(const struct SDNA *sdna, const char *str, unsigned int *index_last);
 int DNA_struct_find_nr(const struct SDNA *sdna, const char *str);
+/**
+ * Does endian swapping on the fields of a struct value.
+ *
+ * \param sdna: SDNA of the struct_nr belongs to
+ * \param struct_nr: Index of struct info within sdna
+ * \param data: Struct data that is to be converted
+ */
 void DNA_struct_switch_endian(const struct SDNA *sdna, int struct_nr, char *data);
+/**
+ * Constructs and returns an array of byte flags with one element for each struct in oldsdna,
+ * indicating how it compares to newsdna.
+ */
 const char *DNA_struct_get_compareflags(const struct SDNA *sdna, const struct SDNA *newsdna);
+/**
+ * \param reconstruct_info: Information preprocessed by #DNA_reconstruct_info_create.
+ * \param old_struct_nr: Index of struct info within oldsdna.
+ * \param blocks: The number of array elements.
+ * \param old_blocks: Array of struct data.
+ * \return An allocated reconstructed struct.
+ */
 void *DNA_struct_reconstruct(const struct DNA_ReconstructInfo *reconstruct_info,
                              int old_struct_nr,
                              int blocks,
                              const void *old_blocks);
 
+/**
+ * Returns the offset of the field with the specified name and type within the specified
+ * struct type in #SDNA, -1 on failure.
+ */
 int DNA_elem_offset(struct SDNA *sdna, const char *stype, const char *vartype, const char *name);
 
+/**
+ * Returns the size of struct fields of the specified type and name.
+ *
+ * \param type: Index into sdna->types/types_size
+ * \param name: Index into sdna->names,
+ * needed to extract possible pointer/array information.
+ */
 int DNA_elem_size_nr(const struct SDNA *sdna, short type, short name);
 
 bool DNA_struct_find(const struct SDNA *sdna, const char *stype);
@@ -121,11 +160,22 @@ bool DNA_struct_elem_find(const struct SDNA *sdna,
                           const char *vartype,
                           const char *name);
 
+/**
+ * Returns the size in bytes of a primitive type.
+ */
 int DNA_elem_type_size(const eSDNA_Type elem_nr);
 
+/**
+ * Rename a struct
+ */
 bool DNA_sdna_patch_struct(struct SDNA *sdna,
                            const char *struct_name_old,
                            const char *struct_name_new);
+/**
+ * Replace \a elem_old with \a elem_new for struct \a struct_name
+ * handles search & replace, maintaining surrounding non-identifier characters
+ * such as pointer & array size.
+ */
 bool DNA_sdna_patch_struct_member(struct SDNA *sdna,
                                   const char *struct_name,
                                   const char *elem_old,
@@ -134,14 +184,28 @@ bool DNA_sdna_patch_struct_member(struct SDNA *sdna,
 void DNA_sdna_alias_data_ensure(struct SDNA *sdna);
 
 /* Alias lookups (using runtime struct member names). */
+
+/**
+ * \note requires #DNA_sdna_alias_data_ensure_structs_map to be called.
+ */
 int DNA_struct_alias_find_nr_ex(const struct SDNA *sdna,
                                 const char *str,
                                 unsigned int *index_last);
+/**
+ * \note requires #DNA_sdna_alias_data_ensure_structs_map to be called.
+ */
 int DNA_struct_alias_find_nr(const struct SDNA *sdna, const char *str);
+/**
+ * \note requires #DNA_sdna_alias_data_ensure_structs_map to be called.
+ */
 bool DNA_struct_alias_elem_find(const struct SDNA *sdna,
                                 const char *stype,
                                 const char *vartype,
                                 const char *name);
+/**
+ * Separated from #DNA_sdna_alias_data_ensure because it's not needed
+ * unless we want to lookup aliased struct names (#DNA_struct_alias_find_nr and friends).
+ */
 void DNA_sdna_alias_data_ensure_structs_map(struct SDNA *sdna);
 
 #ifdef __cplusplus

@@ -650,8 +650,6 @@ void DRW_shader_library_add_file(DRWShaderLibrary *lib, char *lib_code, const ch
   }
 }
 
-/* Return an allocN'ed string containing the shader code with its dependencies prepended.
- * Caller must free the string with MEM_freeN after use. */
 char *DRW_shader_library_create_shader_string(const DRWShaderLibrary *lib, const char *shader_code)
 {
   uint32_t deps = drw_shader_dependencies_get(lib, shader_code);

@@ -31,7 +31,10 @@ extern "C" {
 
 struct GPUShader;
 
-void GPU_matrix_reset(void); /* to Identity transform & empty stack */
+/**
+ * To Identity transform & empty stack.
+ */
+void GPU_matrix_reset(void);
 
 /* ModelView Matrix (2D or 3D) */
 
@@ -52,9 +55,13 @@ void GPU_matrix_translate_3fv(const float vec[3]);
 void GPU_matrix_scale_3f(float x, float y, float z);
 void GPU_matrix_scale_3fv(const float vec[3]);
 
-/* Axis of rotation should be a unit vector. */
+/**
+ * Axis of rotation should be a unit vector.
+ */
 void GPU_matrix_rotate_3f(float deg, float x, float y, float z);
-/* Axis of rotation should be a unit vector. */
+/**
+ * Axis of rotation should be a unit vector.
+ */
 void GPU_matrix_rotate_3fv(float deg, const float axis[3]);
 
 void GPU_matrix_rotate_axis(float deg, char axis); /* TODO: enum for axis? */
@@ -78,12 +85,12 @@ void GPU_matrix_scale_2f(float x, float y);
 void GPU_matrix_scale_2fv(const float vec[2]);
 void GPU_matrix_rotate_2d(float deg);
 
-/* Projection Matrix (2D or 3D) */
+/* Projection Matrix (2D or 3D). */
 
 void GPU_matrix_push_projection(void);
 void GPU_matrix_pop_projection(void);
 
-/* 3D Projection Matrix */
+/* 3D Projection Matrix. */
 
 void GPU_matrix_identity_projection_set(void);
 void GPU_matrix_projection_set(const float m[4][4]);
@@ -136,11 +143,12 @@ bool GPU_matrix_unproject_3fv(const float win[3],
                               const int view[4],
                               float r_world[3]);
 
-/* 2D Projection Matrix */
+/* 2D Projection Matrix. */
 
 void GPU_matrix_ortho_2d_set(float left, float right, float bottom, float top);
 
-/* functions to get matrix values */
+/* Functions to get matrix values. */
+
 const float (*GPU_matrix_model_view_get(float m[4][4]))[4];
 const float (*GPU_matrix_projection_get(float m[4][4]))[4];
 const float (*GPU_matrix_model_view_projection_get(float m[4][4]))[4];
@@ -148,12 +156,19 @@ const float (*GPU_matrix_model_view_projection_get(float m[4][4]))[4];
 const float (*GPU_matrix_normal_get(float m[3][3]))[3];
 const float (*GPU_matrix_normal_inverse_get(float m[3][3]))[3];
 
-/* set uniform values for currently bound shader */
+/**
+ * Set uniform values for currently bound shader.
+ */
 void GPU_matrix_bind(struct GPUShader *shader);
 bool GPU_matrix_dirty_get(void); /* since last bind */
 
-/* own working polygon offset */
+/**
+ * Own working polygon offset.
+ */
 float GPU_polygon_offset_calc(const float (*winmat)[4], float viewdist, float dist);
+/**
+ * \note \a viewdist is only for orthographic projections at the moment.
+ */
 void GPU_polygon_offset(float viewdist, float dist);
 
 /* Python API needs to be able to inspect the stack so errors raise exceptions

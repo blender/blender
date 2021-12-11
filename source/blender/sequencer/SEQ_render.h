@@ -63,12 +63,20 @@ typedef struct SeqRenderData {
   // bool gpu_full_samples;
 } SeqRenderData;
 
+/**
+ * \return The image buffer or NULL.
+ *
+ * \note The returned #ImBuf has its reference increased, free after usage!
+ */
 struct ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context,
                                    float timeline_frame,
                                    int chanshown);
 struct ImBuf *SEQ_render_give_ibuf_direct(const SeqRenderData *context,
                                           float timeline_frame,
                                           struct Sequence *seq);
+/**
+ * Render the series of thumbnails and store in cache.
+ */
 void SEQ_render_thumbnails(const struct SeqRenderData *context,
                            struct Sequence *seq,
                            struct Sequence *seq_orig,
@@ -76,12 +84,22 @@ void SEQ_render_thumbnails(const struct SeqRenderData *context,
                            float frame_step,
                            rctf *view_area,
                            const short *stop);
+/**
+ * Get cached thumbnails.
+ */
 struct ImBuf *SEQ_get_thumbnail(const struct SeqRenderData *context,
                                 struct Sequence *seq,
                                 float timeline_frame,
                                 rcti *crop,
                                 bool clipped);
+/**
+ * Get frame step for equally spaced thumbnails. These thumbnails should always be present in
+ * memory, so they can be used when zooming.
+ */
 int SEQ_render_thumbnails_guaranteed_set_frame_step_get(const struct Sequence *seq);
+/**
+ * Render set of evenly spaced thumbnails that are drawn when zooming..
+ */
 void SEQ_render_thumbnails_base_set(const struct SeqRenderData *context,
                                     struct Sequence *seq,
                                     struct Sequence *seq_orig,

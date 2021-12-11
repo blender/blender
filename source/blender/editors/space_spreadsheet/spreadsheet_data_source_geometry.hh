@@ -82,6 +82,10 @@ class GeometryDataSource : public DataSource {
     return object_eval_;
   }
 
+  /**
+   * Only data sets corresponding to mesh objects in edit mode currently support selection
+   * filtering.
+   */
   bool has_selection_filter() const override;
   void apply_selection_filter(MutableSpan<bool> rows_included) const;
 

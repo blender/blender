@@ -31,7 +31,6 @@
 
 namespace blender::ed::outliner {
 
-/* Convenience/readability. */
 template<typename T> using List = ListBaseWrapper<T>;
 
 TreeDisplayIDOrphans::TreeDisplayIDOrphans(SpaceOutliner &space_outliner)

@@ -77,7 +77,6 @@ FCurve *BKE_fcurve_create(void)
 /** \name F-Curve Data Free
  * \{ */
 
-/* Frees the F-Curve itself too, so make sure BLI_remlink is called before calling this... */
 void BKE_fcurve_free(FCurve *fcu)
 {
   if (fcu == NULL) {
@@ -99,7 +98,6 @@ void BKE_fcurve_free(FCurve *fcu)
   MEM_freeN(fcu);
 }
 
-/* Frees a list of F-Curves. */
 void BKE_fcurves_free(ListBase *list)
 {
   FCurve *fcu, *fcn;
@@ -128,7 +126,6 @@ void BKE_fcurves_free(ListBase *list)
 /** \name F-Curve Data Copy
  * \{ */
 
-/* Duplicate a F-Curve. */
 FCurve *BKE_fcurve_copy(const FCurve *fcu)
 {
   FCurve *fcu_d;
@@ -161,7 +158,6 @@ FCurve *BKE_fcurve_copy(const FCurve *fcu)
   return fcu_d;
 }
 
-/* Duplicate a list of F-Curves. */
 void BKE_fcurves_copy(ListBase *dst, ListBase *src)
 {
   FCurve *dfcu, *sfcu;
@@ -181,10 +177,6 @@ void BKE_fcurves_copy(ListBase *dst, ListBase *src)
   }
 }
 
-/**
- * Callback used by lib_query to walk over all ID usages (mimics `foreach_id` callback of
- * `IDTypeInfo` structure).
- */
 void BKE_fcurve_foreach_id(FCurve *fcu, LibraryForeachIDData *data)
 {
   ChannelDriver *driver = fcu->driver;
@@ -221,7 +213,6 @@ void BKE_fcurve_foreach_id(FCurve *fcu, LibraryForeachIDData *data)
 
 /* ----------------- Finding F-Curves -------------------------- */
 
-/* High level function to get an fcurve from C without having the RNA. */
 FCurve *id_data_find_fcurve(
     ID *id, void *data, StructRNA *type, const char *prop_name, int index, bool *r_driven)
 {
@@ -273,8 +264,6 @@ FCurve *id_data_find_fcurve(
   return fcu;
 }
 
-/* Find the F-Curve affecting the given RNA-access path + index,
- * in the list of F-Curves provided. */
 FCurve *BKE_fcurve_find(ListBase *list, const char rna_path[], const int array_index)
 {
   FCurve *fcu;
@@ -304,7 +293,6 @@ FCurve *BKE_fcurve_find(ListBase *list, const char rna_path[], const int array_i
 /** \name FCurve Iteration
  * \{ */
 
-/* Quick way to loop over all fcurves of a given 'path'. */
 FCurve *BKE_fcurve_iter_step(FCurve *fcu_iter, const char rna_path[])
 {
   FCurve *fcu;
@@ -325,18 +313,6 @@ FCurve *BKE_fcurve_iter_step(FCurve *fcu_iter, const char rna_path[])
   return NULL;
 }
 
-/**
- * Get list of LinkData's containing pointers to the F-Curves
- * which control the types of data indicated.
- *
- * Lists...
- * - dst: list of LinkData's matching the criteria returned.
- *   List must be freed after use, and is assumed to be empty when passed.
- * - src: list of F-Curves to search through
- * Filters...
- * - dataPrefix: i.e. 'pose.bones[' or 'nodes['
- * - dataName: name of entity within "" immediately following the prefix
- */
 int BKE_fcurves_filter(ListBase *dst, ListBase *src, const char *dataPrefix, const char *dataName)
 {
   FCurve *fcu;
@@ -601,9 +577,6 @@ static int BKE_fcurve_bezt_binarysearch_index_ex(const BezTriple array[],
   return start;
 }
 
-/* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_fcurve)
- * Returns the index to insert at (data already at that index will be offset if replace is 0)
- */
 int BKE_fcurve_bezt_binarysearch_index(const BezTriple array[],
                                        const float frame,
                                        const int arraylen,
@@ -667,7 +640,6 @@ static short get_fcurve_end_keyframes(FCurve *fcu,
   return found;
 }
 
-/* Calculate the extents of F-Curve's data. */
 bool BKE_fcurve_calc_bounds(FCurve *fcu,
                             float *xmin,
                             float *xmax,
@@ -798,7 +770,6 @@ bool BKE_fcurve_calc_bounds(FCurve *fcu,
   return foundvert;
 }
 
-/* Calculate the extents of F-Curve's keyframes. */
 bool BKE_fcurve_calc_range(
     FCurve *fcu, float *start, float *end, const bool do_sel_only, const bool do_min_length)
 {
@@ -846,14 +817,6 @@ bool BKE_fcurve_calc_range(
   return foundvert;
 }
 
-/**
- * Return an array of keyed frames, rounded to `interval`.
- *
- * \param interval: Set to 1.0 to round to whole keyframes, 0.5 for in-between key-frames, etc.
- *
- * \note An interval of zero could be supported (this implies no rounding at all),
- * however this risks very small differences in float values being treated as separate keyframes.
- */
 float *BKE_fcurves_calc_keyed_frames_ex(FCurve **fcurve_array,
                                         int fcurve_array_len,
                                         const float interval,
@@ -902,10 +865,6 @@ float *BKE_fcurves_calc_keyed_frames(FCurve **fcurve_array,
 /** \name Active Keyframe
  * \{ */
 
-/**
- * Set the index that stores the FCurve's active keyframe, assuming that \a active_bezt
- * is already part of `fcu->bezt`. If NULL, set active keyframe index to "none."
- */
 void BKE_fcurve_active_keyframe_set(FCurve *fcu, const BezTriple *active_bezt)
 {
   if (active_bezt == NULL) {
@@ -927,9 +886,6 @@ void BKE_fcurve_active_keyframe_set(FCurve *fcu, const BezTriple *active_bezt)
   fcu->active_keyframe_index = (int)offset;
 }
 
-/**
- * Get the active keyframe index, with sanity checks for point bounds.
- */
 int BKE_fcurve_active_keyframe_index(const FCurve *fcu)
 {
   const int active_keyframe_index = fcu->active_keyframe_index;
@@ -963,10 +919,6 @@ void BKE_fcurve_keyframe_move_value_with_handles(struct BezTriple *keyframe, con
 /** \name Status Checks
  * \{ */
 
-/* Are keyframes on F-Curve of any use?
- * Usability of keyframes refers to whether they should be displayed,
- * and also whether they will have any influence on the final result.
- */
 bool BKE_fcurve_are_keyframes_usable(FCurve *fcu)
 {
   /* F-Curve must exist. */
@@ -1032,9 +984,6 @@ bool BKE_fcurve_is_protected(FCurve *fcu)
   return ((fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)));
 }
 
-/* Can keyframes be added to F-Curve?
- * Keyframes can only be added if they are already visible.
- */
 bool BKE_fcurve_is_keyframable(FCurve *fcu)
 {
   /* F-Curve's keyframes must be "usable" (i.e. visible + have an effect on final result) */
@@ -1057,7 +1006,6 @@ bool BKE_fcurve_is_keyframable(FCurve *fcu)
 /** \name Keyframe Column Tools
  * \{ */
 
-/* Add a BezTriple to a column. */
 static void UNUSED_FUNCTION(bezt_add_to_cfra_elem)(ListBase *lb, BezTriple *bezt)
 {
   CfraElem *ce, *cen;
@@ -1100,18 +1048,12 @@ static void UNUSED_FUNCTION(bezt_add_to_cfra_elem)(ListBase *lb, BezTriple *bezt
  * which BezTriples/Keyframe data are ill equipped to do.
  */
 
-/* Basic sampling callback which acts as a wrapper for evaluate_fcurve()
- * 'data' arg here is unneeded here...
- */
 float fcurve_samplingcb_evalcurve(FCurve *fcu, void *UNUSED(data), float evaltime)
 {
   /* Assume any interference from drivers on the curve is intended... */
   return evaluate_fcurve(fcu, evaltime);
 }
 
-/* Main API function for creating a set of sampled curve data, given some callback function
- * used to retrieve the values to store.
- */
 void fcurve_store_samples(FCurve *fcu, void *data, int start, int end, FcuSampleFunc sample_cb)
 {
   FPoint *fpt, *new_fpt;
@@ -1159,7 +1101,6 @@ static void init_unbaked_bezt_data(BezTriple *bezt)
   bezt->h1 = bezt->h2 = HD_AUTO_ANIM;
 }
 
-/* Convert baked/sampled fcurves into bezt/regular fcurves. */
 void fcurve_samples_to_keyframes(FCurve *fcu, const int start, const int end)
 {
 
@@ -1235,7 +1176,6 @@ void fcurve_samples_to_keyframes(FCurve *fcu, const int start, const int end)
  * that the handles are correct.
  */
 
-/* Checks if the F-Curve has a Cycles modifier, and returns the type of the cycle behavior. */
 eFCU_Cycle_Type BKE_fcurve_get_cycle_type(FCurve *fcu)
 {
   FModifier *fcm = fcu->modifiers.first;
@@ -1269,8 +1209,6 @@ eFCU_Cycle_Type BKE_fcurve_get_cycle_type(FCurve *fcu)
   return FCU_CYCLE_NONE;
 }
 
-/* Checks if the F-Curve has a Cycles modifier with simple settings
- * that warrant transition smoothing. */
 bool BKE_fcurve_is_cyclic(FCurve *fcu)
 {
   return BKE_fcurve_get_cycle_type(fcu) != FCU_CYCLE_NONE;
@@ -1299,13 +1237,6 @@ static BezTriple *cycle_offset_triple(
   return out;
 }
 
-/**
- * Variant of #calchandles_fcurve() that allows calculating based on a different select flag.
- *
- * \param handle_sel_flag: The flag (bezt.f1/2/3) value to use to determine selection.
- * Usually `SELECT`, but may want to use a different one at times
- * (if caller does not operate on selection).
- */
 void calchandles_fcurve_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
 {
   BezTriple *bezt, *prev, *next;
@@ -1389,28 +1320,11 @@ void calchandles_fcurve_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
   }
 }
 
-/**
- * This function recalculates the handles of an F-Curve. Acts based on selection with `SELECT`
- * flag. To use a different flag, use #calchandles_fcurve_ex().
- *
- * If the BezTriples have been rearranged, sort them first before using this.
- */
 void calchandles_fcurve(FCurve *fcu)
 {
   calchandles_fcurve_ex(fcu, SELECT);
 }
 
-/**
- * Update handles, making sure the handle-types are valid (e.g. correctly deduced from an "Auto"
- * type), and recalculating their position vectors.
- * Use when something has changed handle positions.
- *
- * \param sel_flag: The flag (bezt.f1/2/3) value to use to determine selection. Usually `SELECT`,
- *                  but may want to use a different one at times (if caller does not operate on
- *                  selection).
- * \param use_handle: Check selection state of individual handles, otherwise always update both
- *                    handles if the key is selected.
- */
 void testhandles_fcurve(FCurve *fcu, eBezTriple_Flag sel_flag, const bool use_handle)
 {
   BezTriple *bezt;
@@ -1430,9 +1344,6 @@ void testhandles_fcurve(FCurve *fcu, eBezTriple_Flag sel_flag, const bool use_ha
   calchandles_fcurve_ex(fcu, sel_flag);
 }
 
-/* This function sorts BezTriples so that they are arranged in chronological order,
- * as tools working on F-Curves expect that the BezTriples are in order.
- */
 void sort_time_fcurve(FCurve *fcu)
 {
   if (fcu->bezt == NULL) {
@@ -1475,7 +1386,6 @@ void sort_time_fcurve(FCurve *fcu)
   }
 }
 
-/* This function tests if any BezTriples are out of order, thus requiring a sort. */
 bool test_time_fcurve(FCurve *fcu)
 {
   unsigned int a;
@@ -1517,14 +1427,6 @@ bool test_time_fcurve(FCurve *fcu)
 /** \name F-Curve Calculations
  * \{ */
 
-/**
- * The length of each handle is not allowed to be more
- * than the horizontal distance between (v1-v4).
- * This is to prevent curve loops.
- *
- * This function is very similar to BKE_curve_correct_bezpart(), but allows a steeper tangent for
- * more snappy animations. This is not desired for other areas in which curves are used, though.
- */
 void BKE_fcurve_correct_bezpart(const float v1[2], float v2[2], float v3[2], const float v4[2])
 {
   float h1[2], h2[2], len1, len2, len, fac;
@@ -1709,14 +1611,6 @@ static void berekeny(float f1, float f2, float f3, float f4, float *o, int b)
   }
 }
 
-/**
- * Adjust Bezier handles of all three given BezTriples, so that `bezt` can be inserted between
- * `prev` and `next` without changing the resulting curve shape.
- *
- * \param r_pdelta: return Y difference between `bezt` and the original curve value at its X
- * position.
- * \return Whether the split was successful.
- */
 bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
                                        struct BezTriple *prev,
                                        struct BezTriple *next,
@@ -2252,14 +2146,12 @@ float evaluate_fcurve_driver(PathResolvedRNA *anim_rna,
   return evaluate_fcurve_ex(fcu, evaltime, cvalue);
 }
 
-/* Checks if the curve has valid keys, drivers or modifiers that produce an actual curve. */
 bool BKE_fcurve_is_empty(FCurve *fcu)
 {
   return (fcu->totvert == 0) && (fcu->driver == NULL) &&
          !list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE);
 }
 
-/* Calculate the value of the given F-Curve at the given frame, and set its curval. */
 float calculate_fcurve(PathResolvedRNA *anim_rna,
                        FCurve *fcu,
                        const AnimationEvalContext *anim_eval_context)

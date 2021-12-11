@@ -326,6 +326,7 @@ static int do_step_cloth(
 /************************************************
  * clothModifier_do - main simulation function
  ************************************************/
+
 void clothModifier_do(ClothModifierData *clmd,
                       Depsgraph *depsgraph,
                       Scene *scene,
@@ -433,7 +434,6 @@ void clothModifier_do(ClothModifierData *clmd,
   clmd->clothObject->last_frame = framenr;
 }
 
-/* frees all */
 void cloth_free_modifier(ClothModifierData *clmd)
 {
   Cloth *cloth = NULL;
@@ -504,7 +504,6 @@ void cloth_free_modifier(ClothModifierData *clmd)
   }
 }
 
-/* frees all */
 void cloth_free_modifier_extern(ClothModifierData *clmd)
 {
   Cloth *cloth = NULL;

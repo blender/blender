@@ -58,8 +58,15 @@ LinkNode *BLI_linklist_find_last(LinkNode *list) ATTR_WARN_UNUSED_RESULT;
 
 void BLI_linklist_reverse(LinkNode **listp) ATTR_NONNULL(1);
 
+/**
+ * Move an item from its current position to a new one inside a single-linked list.
+ * \note `*listp` may be modified.
+ */
 void BLI_linklist_move_item(LinkNode **listp, int curr_index, int new_index) ATTR_NONNULL(1);
 
+/**
+ * A version of #BLI_linklist_prepend that takes the allocated link.
+ */
 void BLI_linklist_prepend_nlink(LinkNode **listp, void *ptr, LinkNode *nlink) ATTR_NONNULL(1, 3);
 void BLI_linklist_prepend(LinkNode **listp, void *ptr) ATTR_NONNULL(1);
 void BLI_linklist_prepend_arena(LinkNode **listp, void *ptr, struct MemArena *ma)
@@ -67,7 +74,11 @@ void BLI_linklist_prepend_arena(LinkNode **listp, void *ptr, struct MemArena *ma
 void BLI_linklist_prepend_pool(LinkNode **listp, void *ptr, struct BLI_mempool *mempool)
     ATTR_NONNULL(1, 3);
 
-/* use LinkNodePair to avoid full search */
+/* Use #LinkNodePair to avoid full search. */
+
+/**
+ * A version of append that takes the allocated link.
+ */
 void BLI_linklist_append_nlink(LinkNodePair *list_pair, void *ptr, LinkNode *nlink)
     ATTR_NONNULL(1, 3);
 void BLI_linklist_append(LinkNodePair *list_pair, void *ptr) ATTR_NONNULL(1);

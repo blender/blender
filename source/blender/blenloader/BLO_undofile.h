@@ -87,14 +87,31 @@ void BLO_memfile_write_finalize(MemFileWriteData *mem_data);
 void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t size);
 
 /* exports */
+
+/**
+ * Not memfile itself.
+ */
 extern void BLO_memfile_free(MemFile *memfile);
+/**
+ * Result is that 'first' is being freed.
+ * to keep list of memfiles consistent, 'first' is always first in list.
+ */
 extern void BLO_memfile_merge(MemFile *first, MemFile *second);
+/**
+ * Clear is_identical_future before adding next memfile.
+ */
 extern void BLO_memfile_clear_future(MemFile *memfile);
 
-/* utilities */
+/* Utilities. */
+
 extern struct Main *BLO_memfile_main_get(struct MemFile *memfile,
                                          struct Main *bmain,
                                          struct Scene **r_scene);
+/**
+ * Saves .blend using undo buffer.
+ *
+ * \return success.
+ */
 extern bool BLO_memfile_write_file(struct MemFile *memfile, const char *filename);
 
 FileReader *BLO_memfile_new_filereader(MemFile *memfile, int undo_direction);

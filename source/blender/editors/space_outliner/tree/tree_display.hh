@@ -148,6 +148,9 @@ class TreeDisplaySequencer final : public AbstractTreeDisplay {
 
  private:
   TreeElement *add_sequencer_contents() const;
+  /**
+   * Helped function to put duplicate sequence in the same tree.
+   */
   SequenceAddOp need_add_seq_dup(Sequence *seq) const;
   void add_seq_dup(Sequence *seq, TreeElement *te, short index) const;
 };

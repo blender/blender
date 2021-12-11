@@ -53,7 +53,6 @@
 
 #include "object_intern.h"
 
-/* called while not in editmode */
 void ED_object_facemap_face_add(Object *ob, bFaceMap *fmap, int facenum)
 {
   int fmap_nr;
@@ -77,7 +76,6 @@ void ED_object_facemap_face_add(Object *ob, bFaceMap *fmap, int facenum)
   }
 }
 
-/* called while not in editmode */
 void ED_object_facemap_face_remove(Object *ob, bFaceMap *fmap, int facenum)
 {
   int fmap_nr;

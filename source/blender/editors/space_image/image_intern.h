@@ -36,11 +36,13 @@ struct wmOperatorType;
 extern const char *image_context_dir[]; /* doc access */
 
 /* image_draw.c */
+
 void draw_image_main_helpers(const struct bContext *C, struct ARegion *region);
 void draw_image_cache(const struct bContext *C, struct ARegion *region);
 void draw_image_sample_line(struct SpaceImage *sima);
 
 /* image_ops.c */
+
 bool space_image_main_region_poll(struct bContext *C);
 bool space_image_view_center_cursor_poll(struct bContext *C);
 
@@ -59,7 +61,13 @@ void IMAGE_OT_view_ndof(struct wmOperatorType *ot);
 #endif
 
 void IMAGE_OT_new(struct wmOperatorType *ot);
+/**
+ * Called by other space types too.
+ */
 void IMAGE_OT_open(struct wmOperatorType *ot);
+/**
+ * Called by other space types too.
+ */
 void IMAGE_OT_match_movie_length(struct wmOperatorType *ot);
 void IMAGE_OT_replace(struct wmOperatorType *ot);
 void IMAGE_OT_reload(struct wmOperatorType *ot);
@@ -94,5 +102,9 @@ void IMAGE_OT_tile_remove(struct wmOperatorType *ot);
 void IMAGE_OT_tile_fill(struct wmOperatorType *ot);
 
 /* image_panels.c */
+
+/**
+ * Gets active viewer user.
+ */
 struct ImageUser *ntree_get_active_iuser(struct bNodeTree *ntree);
 void image_buttons_register(struct ARegionType *art);

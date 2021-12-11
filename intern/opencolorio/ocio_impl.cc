@@ -580,8 +580,8 @@ void OCIOImpl::cpuProcessorApply_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_proc
       assert(img->isFloat());
       float *pixels = (float *)img->getData();
 
-      int width = img->getWidth();
-      int height = img->getHeight();
+      size_t width = img->getWidth();
+      size_t height = img->getHeight();
 
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {

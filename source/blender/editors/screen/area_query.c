@@ -140,10 +140,6 @@ bool ED_region_overlap_isect_xy_with_margin(const ARegion *region,
           ED_region_overlap_isect_y_with_margin(region, event_xy[1], margin));
 }
 
-/**
- * \note: This may return true for multiple overlapping regions. If it matters, check overlapped
- *        regions first (#ARegion.overlap).
- */
 bool ED_region_contains_xy(const ARegion *region, const int event_xy[2])
 {
   /* Only use the margin when inside the region. */
@@ -193,13 +189,6 @@ bool ED_region_contains_xy(const ARegion *region, const int event_xy[2])
   return false;
 }
 
-/**
- * Similar to #BKE_area_find_region_xy() but when \a event_xy intersects an overlapping region,
- * this returns the region that is visually under the cursor. E.g. when over the
- * transparent part of the region, it returns the region underneath.
- *
- * The overlapping region is determined using the #ED_region_contains_xy() query.
- */
 ARegion *ED_area_find_region_xy_visual(const ScrArea *area,
                                        const int regiontype,
                                        const int event_xy[2])

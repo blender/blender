@@ -72,7 +72,6 @@ static const EnumPropertyItem *wm_operator_properties_filesel_sort_items_itemf(
   return items;
 }
 
-/* default properties for fileselect */
 void WM_operator_properties_filesel(wmOperatorType *ot,
                                     int filter,
                                     short type,
@@ -262,9 +261,6 @@ void WM_operator_properties_select_action(wmOperatorType *ot, int default_action
   wm_operator_properties_select_action_ex(ot, default_action, select_actions, hide_gui);
 }
 
-/**
- * only SELECT/DESELECT
- */
 void WM_operator_properties_select_action_simple(wmOperatorType *ot,
                                                  int default_action,
                                                  bool hide_gui)
@@ -278,10 +274,6 @@ void WM_operator_properties_select_action_simple(wmOperatorType *ot,
   wm_operator_properties_select_action_ex(ot, default_action, select_actions, hide_gui);
 }
 
-/**
- * Use for all select random operators.
- * Adds properties: percent, seed, action.
- */
 void WM_operator_properties_select_random(wmOperatorType *ot)
 {
   RNA_def_float_factor(ot->srna,
@@ -357,9 +349,6 @@ void WM_operator_properties_border_to_rctf(struct wmOperator *op, rctf *rect)
   BLI_rctf_rcti_copy(rect, &rect_i);
 }
 
-/**
- * Use with #WM_gesture_box_invoke
- */
 void WM_operator_properties_gesture_box_ex(wmOperatorType *ot, bool deselect, bool extend)
 {
   PropertyRNA *prop;
@@ -381,10 +370,6 @@ void WM_operator_properties_gesture_box_ex(wmOperatorType *ot, bool deselect, bo
   }
 }
 
-/**
- * Disable using cursor position,
- * use when view operators are initialized from buttons.
- */
 void WM_operator_properties_use_cursor_init(wmOperatorType *ot)
 {
   PropertyRNA *prop = RNA_def_boolean(ot->srna,
@@ -418,7 +403,6 @@ void WM_operator_properties_select_operation(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* Some tools don't support XOR/AND. */
 void WM_operator_properties_select_operation_simple(wmOperatorType *ot)
 {
   static const EnumPropertyItem select_mode_items[] = {
@@ -450,31 +434,6 @@ void WM_operator_properties_select_walk_direction(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/**
- * Selecting and tweaking items are overlapping operations. Getting both to work without conflicts
- * requires special care. See
- * https://wiki.blender.org/wiki/Human_Interface_Guidelines/Selection#Select-tweaking for the
- * desired behavior.
- *
- * For default click selection (with no modifier keys held), the select operators can do the
- * following:
- * - On a mouse press on an unselected item, change selection and finish immediately after.
- *   This sends an undo push and allows transform to take over should a tweak event be caught now.
- * - On a mouse press on a selected item, don't change selection state, but start modal execution
- *   of the operator. Idea is that we wait with deselecting other items until we know that the
- *   intention wasn't to tweak (mouse press+drag) all selected items.
- * - If a tweak is recognized before the release event happens, cancel the operator, so that
- *   transform can take over and no undo-push is sent.
- * - If the release event occurs rather than a tweak one, deselect all items but the one under the
- *   cursor, and finish the modal operator.
- *
- * This utility, together with #WM_generic_select_invoke() and #WM_generic_select_modal() should
- * help getting the wanted behavior to work. Most generic logic should be handled in these, so that
- * the select operators only have to care for the case dependent handling.
- *
- * Every select operator has slightly different requirements, e.g. sequencer strip selection
- * also needs to account for handle selection. This should be the baseline behavior though.
- */
 void WM_operator_properties_generic_select(wmOperatorType *ot)
 {
   /* On the initial mouse press, this is set by #WM_generic_select_modal() to let the select
@@ -499,9 +458,6 @@ void WM_operator_properties_gesture_box_zoom(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
-/**
- * Use with #WM_gesture_lasso_invoke
- */
 void WM_operator_properties_gesture_lasso(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -509,9 +465,6 @@ void WM_operator_properties_gesture_lasso(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
-/**
- * Use with #WM_gesture_straightline_invoke
- */
 void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor)
 {
   PropertyRNA *prop;
@@ -541,9 +494,6 @@ void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor)
   }
 }
 
-/**
- * Use with #WM_gesture_circle_invoke
- */
 void WM_operator_properties_gesture_circle(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -582,9 +532,6 @@ void WM_operator_properties_mouse_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/**
- * \param nth_can_disable: Enable if we want to be able to select no interval at all.
- */
 void WM_operator_properties_checker_interval(wmOperatorType *ot, bool nth_can_disable)
 {
   const int nth_default = nth_can_disable ? 0 : 1;

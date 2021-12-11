@@ -140,7 +140,7 @@ struct ThreadSlot {
   int avail;
 };
 
-void BLI_threadapi_init(void)
+void BLI_threadapi_init()
 {
   mainid = pthread_self();
   if (numaAPI_Initialize() == NUMAAPI_SUCCESS) {
@@ -148,13 +148,9 @@ void BLI_threadapi_init(void)
   }
 }
 
-void BLI_threadapi_exit(void)
+void BLI_threadapi_exit()
 {
 }
-
-/* tot = 0 only initializes malloc mutex in a safe way (see sequence.c)
- * problem otherwise: scene render will kill of the mutex!
- */
 
 void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 {
@@ -189,7 +185,6 @@ void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int t
   }
 }
 
-/* amount of available threads */
 int BLI_available_threads(ListBase *threadbase)
 {
   int counter = 0;
@@ -203,7 +198,6 @@ int BLI_available_threads(ListBase *threadbase)
   return counter;
 }
 
-/* returns thread number, for sample patterns or threadsafe tables */
 int BLI_threadpool_available_thread_index(ListBase *threadbase)
 {
   int counter = 0;
@@ -231,7 +225,7 @@ static void *tslot_thread_start(void *tslot_p)
   return tslot->do_thread(tslot->callerdata);
 }
 
-int BLI_thread_is_main(void)
+int BLI_thread_is_main()
 {
   return pthread_equal(pthread_self(), mainid);
 }
@@ -305,8 +299,7 @@ void BLI_threadpool_end(ListBase *threadbase)
 
 /* System Information */
 
-/* how many threads are native on this system? */
-int BLI_system_thread_count(void)
+int BLI_system_thread_count()
 {
   static int t = -1;
 
@@ -347,7 +340,7 @@ void BLI_system_num_threads_override_set(int num)
   num_threads_override = num;
 }
 
-int BLI_system_num_threads_override_get(void)
+int BLI_system_num_threads_override_get()
 {
   return num_threads_override;
 }
@@ -418,7 +411,7 @@ void BLI_mutex_end(ThreadMutex *mutex)
   pthread_mutex_destroy(mutex);
 }
 
-ThreadMutex *BLI_mutex_alloc(void)
+ThreadMutex *BLI_mutex_alloc()
 {
   ThreadMutex *mutex = static_cast<ThreadMutex *>(MEM_callocN(sizeof(ThreadMutex), "ThreadMutex"));
   BLI_mutex_init(mutex);
@@ -533,7 +526,7 @@ void BLI_rw_mutex_end(ThreadRWMutex *mutex)
   pthread_rwlock_destroy(mutex);
 }
 
-ThreadRWMutex *BLI_rw_mutex_alloc(void)
+ThreadRWMutex *BLI_rw_mutex_alloc()
 {
   ThreadRWMutex *mutex = static_cast<ThreadRWMutex *>(
       MEM_callocN(sizeof(ThreadRWMutex), "ThreadRWMutex"));
@@ -555,7 +548,7 @@ struct TicketMutex {
   unsigned int queue_head, queue_tail;
 };
 
-TicketMutex *BLI_ticket_mutex_alloc(void)
+TicketMutex *BLI_ticket_mutex_alloc()
 {
   TicketMutex *ticket = static_cast<TicketMutex *>(
       MEM_callocN(sizeof(TicketMutex), "TicketMutex"));
@@ -640,7 +633,7 @@ struct ThreadQueue {
   volatile int canceled;
 };
 
-ThreadQueue *BLI_thread_queue_init(void)
+ThreadQueue *BLI_thread_queue_init()
 {
   ThreadQueue *queue;
 
@@ -818,8 +811,7 @@ void BLI_thread_queue_wait_finish(ThreadQueue *queue)
 /* **** Special functions to help performance on crazy NUMA setups. **** */
 
 #if 0  /* UNUSED */
-static bool check_is_threadripper2_alike_topology(void)
-{
+static bool check_is_threadripper2_alike_topology(){
   /* NOTE: We hope operating system does not support CPU hot-swap to
    * a different brand. And that SMP of different types is also not
    * encouraged by the system. */
@@ -860,8 +852,7 @@ static bool check_is_threadripper2_alike_topology(void)
   return is_threadripper2;
 }
 
-static void threadripper_put_process_on_fast_node(void)
-{
+static void threadripper_put_process_on_fast_node(){
   if (!is_numa_available) {
     return;
   }
@@ -880,8 +871,7 @@ static void threadripper_put_process_on_fast_node(void)
   numaAPI_RunProcessOnNode(0);
 }
 
-static void threadripper_put_thread_on_fast_node(void)
-{
+static void threadripper_put_thread_on_fast_node(){
   if (!is_numa_available) {
     return;
   }
@@ -899,7 +889,7 @@ static void threadripper_put_thread_on_fast_node(void)
 }
 #endif /* UNUSED */
 
-void BLI_thread_put_process_on_fast_node(void)
+void BLI_thread_put_process_on_fast_node()
 {
   /* Disabled for now since this causes only 16 threads to be used on a
    * thread-ripper for computations like sculpting and fluid sim. The problem
@@ -915,7 +905,7 @@ void BLI_thread_put_process_on_fast_node(void)
 #endif
 }
 
-void BLI_thread_put_thread_on_fast_node(void)
+void BLI_thread_put_thread_on_fast_node()
 {
   /* Disabled for now, see comment above. */
 #if 0

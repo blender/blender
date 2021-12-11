@@ -105,11 +105,6 @@ DEBUG_FUNC_DECLARE(PFNGLUSEPROGRAMPROC, void, glUseProgram, GLuint, program);
 
 #undef DEBUG_FUNC_DECLARE
 
-/**
- * Initialize a fallback layer (to KHR_debug) that covers only some functions.
- * We override the functions pointers by our own implementation that just checks #glGetError.
- * Some additional functions (not overridable) are covered inside the header using wrappers.
- */
 void init_debug_layer()
 {
 #define DEBUG_WRAP(function) \

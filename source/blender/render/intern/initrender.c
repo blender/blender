@@ -121,7 +121,6 @@ static float filt_mitchell(float x) /* Mitchell & Netravali's two-param cubic */
   return 0.0f;
 }
 
-/* x ranges from -1 to 1 */
 float RE_filter_value(int type, float x)
 {
   float gaussfac = 1.6f;
@@ -163,6 +162,7 @@ float RE_filter_value(int type, float x)
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 struct Object *RE_GetCamera(Render *re)
 {
   Object *camera = re->camera_override ? re->camera_override : re->scene->camera;
@@ -174,11 +174,6 @@ void RE_SetOverrideCamera(Render *re, Object *cam_ob)
   re->camera_override = cam_ob;
 }
 
-/**
- * Per render, there's one persistent view-plane. Parts will set their own view-planes.
- *
- * \note call this after #RE_InitState().
- */
 void RE_SetCamera(Render *re, Object *cam_ob)
 {
   CameraParams params;
@@ -205,7 +200,6 @@ void RE_GetCameraWindow(struct Render *re, struct Object *camera, float r_winmat
   copy_m4_m4(r_winmat, re->winmat);
 }
 
-/* Must be called after RE_GetCameraWindow(), does not change re->winmat. */
 void RE_GetCameraWindowWithOverscan(struct Render *re, float overscan, float r_winmat[4][4])
 {
   CameraParams params;

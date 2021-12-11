@@ -64,6 +64,10 @@ typedef struct bMovieHandle {
 } bMovieHandle;
 
 bMovieHandle *BKE_movie_handle_get(const char imtype);
+
+/**
+ * \note Similar to #BKE_image_path_from_imformat()
+ */
 void BKE_movie_filepath_get(char *string,
                             const struct RenderData *rd,
                             bool preview,

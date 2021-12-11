@@ -39,7 +39,7 @@ static void cmp_node_map_range_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_map_range(void)
+void register_node_type_cmp_map_range()
 {
   static bNodeType ntype;
 

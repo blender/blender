@@ -143,17 +143,6 @@ void immRecti_complete(int x1, int y1, int x2, int y2, const float color[4])
 }
 #endif
 
-/**
- * Pack color into 3 bytes
- *
- * This define converts a numerical value to the equivalent 24-bit
- * color, while not being endian-sensitive. On little-endian, this
- * is the same as doing a 'naive' indexing, on big-endian, it is not!
- *
- * \note BGR format (i.e. 0xBBGGRR)...
- *
- * \param x: color.
- */
 void imm_cpack(uint x)
 {
   immUniformColor3ub(((x)&0xFF), (((x) >> 8) & 0xFF), (((x) >> 16) & 0xFF));
@@ -175,31 +164,11 @@ static void imm_draw_circle(GPUPrimType prim_type,
   immEnd();
 }
 
-/**
- * Draw a circle outline with the given \a radius.
- * The circle is centered at \a x, \a y and drawn in the XY plane.
- *
- * \param shdr_pos: The vertex attribute number for position.
- * \param x: Horizontal center.
- * \param y: Vertical center.
- * \param rad: The circle's radius.
- * \param nsegments: The number of segments to use in drawing (more = smoother).
- */
 void imm_draw_circle_wire_2d(uint shdr_pos, float x, float y, float rad, int nsegments)
 {
   imm_draw_circle(GPU_PRIM_LINE_LOOP, shdr_pos, x, y, rad, rad, nsegments);
 }
 
-/**
- * Draw a filled circle with the given \a radius.
- * The circle is centered at \a x, \a y and drawn in the XY plane.
- *
- * \param shdr_pos: The vertex attribute number for position.
- * \param x: Horizontal center.
- * \param y: Vertical center.
- * \param rad: The circle's radius.
- * \param nsegments: The number of segments to use in drawing (more = smoother).
- */
 void imm_draw_circle_fill_2d(uint shdr_pos, float x, float y, float rad, int nsegments)
 {
   imm_draw_circle(GPU_PRIM_TRI_FAN, shdr_pos, x, y, rad, rad, nsegments);
@@ -274,21 +243,6 @@ static void imm_draw_disk_partial(GPUPrimType prim_type,
   immEnd();
 }
 
-/**
- * Draw a filled arc with the given inner and outer radius.
- * The circle is centered at \a x, \a y and drawn in the XY plane.
- *
- * \note Arguments are `gluPartialDisk` compatible.
- *
- * \param pos: The vertex attribute number for position.
- * \param x: Horizontal center.
- * \param y: Vertical center.
- * \param rad_inner: The inner circle's radius.
- * \param rad_outer: The outer circle's radius (can be zero).
- * \param nsegments: The number of segments to use in drawing (more = smoother).
- * \param start: Specifies the starting angle, in degrees, of the disk portion.
- * \param sweep: Specifies the sweep angle, in degrees, of the disk portion.
- */
 void imm_draw_disk_partial_fill_2d(uint pos,
                                    float x,
                                    float y,
@@ -328,15 +282,6 @@ void imm_draw_circle_fill_3d(uint pos, float x, float y, float rad, int nsegment
   imm_draw_circle_3D(GPU_PRIM_TRI_FAN, pos, x, y, rad, nsegments);
 }
 
-/**
- * Draw a lined box.
- *
- * \param pos: The vertex attribute number for position.
- * \param x1: left.
- * \param y1: bottom.
- * \param x2: right.
- * \param y2: top.
- */
 void imm_draw_box_wire_2d(uint pos, float x1, float y1, float x2, float y2)
 {
   immBegin(GPU_PRIM_LINE_LOOP, 4);
@@ -358,9 +303,6 @@ void imm_draw_box_wire_3d(uint pos, float x1, float y1, float x2, float y2)
   immEnd();
 }
 
-/**
- * Draw a standard checkerboard to indicate transparent backgrounds.
- */
 void imm_draw_box_checker_2d_ex(float x1,
                                 float y1,
                                 float x2,
@@ -458,18 +400,6 @@ void imm_draw_cube_corners_3d(uint pos,
   immEnd();
 }
 
-/**
- * Draw a cylinder. Replacement for gluCylinder.
- * _warning_ : Slow, better use it only if you no other choices.
- *
- * \param pos: The vertex attribute number for position.
- * \param nor: The vertex attribute number for normal.
- * \param base: Specifies the radius of the cylinder at z = 0.
- * \param top: Specifies the radius of the cylinder at z = height.
- * \param height: Specifies the height of the cylinder.
- * \param slices: Specifies the number of subdivisions around the z axis.
- * \param stacks: Specifies the number of subdivisions along the z axis.
- */
 void imm_draw_cylinder_fill_normal_3d(
     uint pos, uint nor, float base, float top, float height, int slices, int stacks)
 {

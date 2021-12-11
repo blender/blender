@@ -52,13 +52,15 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
 
   virtual void write(HierarchyContext &context) override;
 
-  /* Returns true if the data to be written is actually supported. This would, for example, allow a
+  /**
+   * Returns true if the data to be written is actually supported. This would, for example, allow a
    * hypothetical camera writer accept a perspective camera but reject an orthogonal one.
    *
    * Returning false from a transform writer will prevent the object and all its descendants from
    * being exported. Returning false from a data writer (object data, hair, or particles) will
    * only prevent that data from being written (and thus cause the object to be exported as an
-   * Empty). */
+   * Empty).
+   */
   virtual bool is_supported(const HierarchyContext *context) const;
 
   const pxr::SdfPath &usd_path() const;
@@ -73,8 +75,12 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
                         const pxr::UsdTimeCode timecode,
                         pxr::UsdGeomImageable &usd_geometry);
 
-  /* Turn `prim` into an instance referencing `context.original_export_path`.
-   * Return true when the instancing was successful, false otherwise. */
+  /**
+   * Turn `prim` into an instance referencing `context.original_export_path`.
+   * Return true when the instancing was successful, false otherwise.
+   *
+   * Reference the original data instead of writing a copy.
+   */
   virtual bool mark_as_instance(const HierarchyContext &context, const pxr::UsdPrim &prim);
 };
 

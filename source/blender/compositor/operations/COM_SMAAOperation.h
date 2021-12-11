@@ -111,8 +111,14 @@ class SMAABlendingWeightCalculationOperation : public MultiThreadedOperation {
 
  private:
   /* Diagonal Search Functions */
+  /**
+   * These functions allows to perform diagonal pattern searches.
+   */
   int search_diag1(int x, int y, int dir, bool *found);
   int search_diag2(int x, int y, int dir, bool *found);
+  /**
+   * This searches for diagonal patterns and returns the corresponding weights.
+   */
   void calculate_diag_weights(int x, int y, const float edges[2], float weights[2]);
   bool is_vertical_search_unneeded(int x, int y);
 

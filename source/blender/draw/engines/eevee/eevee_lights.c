@@ -28,7 +28,6 @@
 
 #include "eevee_private.h"
 
-/* Reconstruct local obmat from EEVEE_light. (normalized) */
 void eevee_light_matrix_get(const EEVEE_Light *evli, float r_mat[4][4])
 {
   copy_v3_v3(r_mat[0], evli->rightvec);

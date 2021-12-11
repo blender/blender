@@ -1777,7 +1777,6 @@ static ImageUser *paint_2d_get_tile_iuser(ImagePaintState *s, int tile_number)
   return iuser;
 }
 
-/* this function expects linear space color values */
 void paint_2d_bucket_fill(const bContext *C,
                           const float color[3],
                           Brush *br,

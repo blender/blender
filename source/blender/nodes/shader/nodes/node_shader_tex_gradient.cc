@@ -160,7 +160,7 @@ static void sh_node_gradient_tex_build_multi_function(
 
 }  // namespace blender::nodes
 
-void register_node_type_sh_tex_gradient(void)
+void register_node_type_sh_tex_gradient()
 {
   static bNodeType ntype;
 

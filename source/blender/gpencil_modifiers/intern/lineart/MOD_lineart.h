@@ -649,9 +649,18 @@ void MOD_lineart_destroy_render_data(struct LineartGpencilModifierData *lmd);
 
 void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb);
 void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb);
+/**
+ * This function only connects two different chains. It will not do any clean up or smart chaining.
+ * So no: removing overlapping chains, removal of short isolated segments, and no loop reduction is
+ * implemented yet.
+ */
 void MOD_lineart_chain_connect(LineartRenderBuffer *rb);
 void MOD_lineart_chain_discard_short(LineartRenderBuffer *rb, const float threshold);
 void MOD_lineart_chain_clip_at_border(LineartRenderBuffer *rb);
+/**
+ * This should always be the last stage!, see the end of
+ * #MOD_lineart_chain_split_for_fixed_occlusion().
+ */
 void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshold_rad);
 void MOD_lineart_smooth_chains(LineartRenderBuffer *rb, float tolerance);
 void MOD_lineart_chain_offset_towards_camera(LineartRenderBuffer *rb,
@@ -661,6 +670,11 @@ void MOD_lineart_chain_offset_towards_camera(LineartRenderBuffer *rb,
 int MOD_lineart_chain_count(const LineartEdgeChain *ec);
 void MOD_lineart_chain_clear_picked_flag(LineartCache *lc);
 
+/**
+ * This is the entry point of all line art calculations.
+ *
+ * \return True when a change is made.
+ */
 bool MOD_lineart_compute_feature_lines(struct Depsgraph *depsgraph,
                                        struct LineartGpencilModifierData *lmd,
                                        struct LineartCache **cached_result,
@@ -668,15 +682,24 @@ bool MOD_lineart_compute_feature_lines(struct Depsgraph *depsgraph,
 
 struct Scene;
 
+/**
+ * This only gets initial "biggest" tile.
+ */
 LineartBoundingArea *MOD_lineart_get_parent_bounding_area(LineartRenderBuffer *rb,
                                                           double x,
                                                           double y);
 
+/**
+ * Wrapper for more convenience.
+ */
 LineartBoundingArea *MOD_lineart_get_bounding_area(LineartRenderBuffer *rb, double x, double y);
 
 struct bGPDframe;
 struct bGPDlayer;
 
+/**
+ * Wrapper for external calls.
+ */
 void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   struct Depsgraph *depsgraph,
                                   struct Object *ob,
@@ -697,6 +720,9 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   const char *vgname,
                                   int modifier_flags);
 
+/**
+ * Length is in image space.
+ */
 float MOD_lineart_chain_compute_length(LineartEdgeChain *ec);
 
 void ED_operatortypes_lineart(void);

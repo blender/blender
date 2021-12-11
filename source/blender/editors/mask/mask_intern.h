@@ -32,13 +32,18 @@ struct wmOperatorType;
 /* internal exports only */
 
 /* mask_add.c */
+
 void MASK_OT_add_vertex(struct wmOperatorType *ot);
 void MASK_OT_add_feather_vertex(struct wmOperatorType *ot);
 void MASK_OT_primitive_circle_add(struct wmOperatorType *ot);
 void MASK_OT_primitive_square_add(struct wmOperatorType *ot);
 
 /* mask_ops.c */
+
 struct Mask *ED_mask_new(struct bContext *C, const char *name);
+/**
+ * Get active layer. Will create mask/layer to be sure there's an active layer.
+ */
 struct MaskLayer *ED_mask_layer_ensure(struct bContext *C, bool *r_added_mask);
 
 void MASK_OT_new(struct wmOperatorType *ot);
@@ -55,6 +60,7 @@ void MASK_OT_hide_view_clear(struct wmOperatorType *ot);
 void MASK_OT_hide_view_set(struct wmOperatorType *ot);
 void MASK_OT_feather_weight_clear(struct wmOperatorType *ot);
 void MASK_OT_switch_direction(struct wmOperatorType *ot);
+/* Named to match mesh recalculate normals. */
 void MASK_OT_normals_make_consistent(struct wmOperatorType *ot);
 
 void MASK_OT_handle_type_set(struct wmOperatorType *ot);
@@ -66,10 +72,13 @@ void MASK_OT_copy_splines(struct wmOperatorType *ot);
 void MASK_OT_paste_splines(struct wmOperatorType *ot);
 
 /* mask_relationships.c */
+
+/** based on #OBJECT_OT_parent_set */
 void MASK_OT_parent_set(struct wmOperatorType *ot);
 void MASK_OT_parent_clear(struct wmOperatorType *ot);
 
 /* mask_select.c */
+
 void MASK_OT_select(struct wmOperatorType *ot);
 void MASK_OT_select_all(struct wmOperatorType *ot);
 
@@ -81,6 +90,7 @@ void MASK_OT_select_linked(struct wmOperatorType *ot);
 void MASK_OT_select_more(struct wmOperatorType *ot);
 void MASK_OT_select_less(struct wmOperatorType *ot);
 
+/* 'check' select */
 bool ED_mask_spline_select_check(const struct MaskSpline *spline);
 bool ED_mask_layer_select_check(const struct MaskLayer *mask_layer);
 bool ED_mask_select_check(const struct Mask *mask);
@@ -91,6 +101,7 @@ void ED_mask_select_toggle_all(struct Mask *mask, int action);
 void ED_mask_select_flush_all(struct Mask *mask);
 
 /* mask_editor.c */
+
 bool ED_maskedit_poll(struct bContext *C);
 bool ED_maskedit_mask_poll(struct bContext *C);
 
@@ -108,6 +119,7 @@ void ED_mask_view_lock_state_restore_no_jump(const struct bContext *C,
                                              const MaskViewLockState *state);
 
 /* mask_query.c */
+
 bool ED_mask_find_nearest_diff_point(const struct bContext *C,
                                      struct Mask *mask,
                                      const float normal_co[2],

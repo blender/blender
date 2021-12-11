@@ -299,6 +299,7 @@ static int box_select_exec(bContext *C, wmOperator *op)
 }
 
 /* ****** Box Select ****** */
+
 void INFO_OT_select_box(wmOperatorType *ot)
 {
   /* identifiers */

@@ -114,7 +114,6 @@ void BB_expand(BB *bb, const float co[3])
   }
 }
 
-/* Expand the bounding box to include another bounding box */
 void BB_expand_with_bb(BB *bb, BB *bb2)
 {
   for (int i = 0; i < 3; i++) {
@@ -123,7 +122,6 @@ void BB_expand_with_bb(BB *bb, BB *bb2)
   }
 }
 
-/* Return 0, 1, or 2 to indicate the widest axis of the bounding box */
 int BB_widest_axis(const BB *bb)
 {
   float dim[3];
@@ -436,7 +434,6 @@ static void update_vb(PBVH *pbvh, PBVHNode *node, BBC *prim_bbc, int offset, int
   node->orig_vb = node->vb;
 }
 
-/* Returns the number of visible quads in the nodes' grids. */
 int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
                               const int *grid_indices,
                               int totgrid,
@@ -650,12 +647,6 @@ static void pbvh_build(PBVH *pbvh, BB *cb, BBC *prim_bbc, int totprim)
   build_sub(pbvh, 0, cb, prim_bbc, 0, totprim, 0);
 }
 
-/**
- * Do a full rebuild with on Mesh data structure.
- *
- * \note Unlike mpoly/mloop/verts, looptri is **totally owned** by PBVH
- * (which means it may rewrite it if needed, see #BKE_pbvh_vert_coords_apply().
- */
 void BKE_pbvh_build_mesh(PBVH *pbvh,
                          const Mesh *mesh,
                          const MPoly *mpoly,
@@ -729,7 +720,6 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
   MEM_freeN(pbvh->vert_bitmap);
 }
 
-/* Do a full rebuild with on Grids data structure */
 void BKE_pbvh_build_grids(PBVH *pbvh,
                           CCGElem **grids,
                           int totgrid,

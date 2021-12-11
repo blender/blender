@@ -223,7 +223,6 @@ void ED_space_clip_get_aspect_dimension_aware(SpaceClip *sc, float *aspx, float 
   }
 }
 
-/* return current frame number in clip space */
 int ED_space_clip_get_clip_frame_number(SpaceClip *sc)
 {
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -288,7 +287,6 @@ bool ED_space_clip_get_position(struct SpaceClip *sc,
   return true;
 }
 
-/* Returns color in linear space, matching ED_space_image_color_sample(). */
 bool ED_space_clip_color_sample(SpaceClip *sc, ARegion *region, int mval[2], float r_col[3])
 {
   ImBuf *ibuf;
@@ -511,10 +509,6 @@ void ED_clip_point_stable_pos(
   }
 }
 
-/**
- * \brief the reverse of #ED_clip_point_stable_pos(), gets the marker region coords.
- * better name here? view_to_track / track_to_view or so?
- */
 void ED_clip_point_stable_pos__reverse(SpaceClip *sc,
                                        ARegion *region,
                                        const float co[2],
@@ -539,7 +533,6 @@ void ED_clip_point_stable_pos__reverse(SpaceClip *sc,
   r_co[1] = (pos[1] * height * zoomy) + (float)sy;
 }
 
-/* takes event->mval */
 void ED_clip_mouse_pos(SpaceClip *sc, ARegion *region, const int mval[2], float co[2])
 {
   ED_clip_point_stable_pos(sc, region, mval[0], mval[1], &co[0], &co[1]);

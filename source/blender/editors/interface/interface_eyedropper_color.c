@@ -322,13 +322,6 @@ static bool eyedropper_cryptomatte_sample_fl(
   return false;
 }
 
-/**
- * \brief get the color from the screen.
- *
- * Special check for image or nodes where we MAY have HDR pixels which don't display.
- *
- * \note Exposed by 'interface_eyedropper_intern.h' for use with color band picking.
- */
 void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3])
 {
   /* we could use some clever */

@@ -80,45 +80,67 @@ extern "C" {
 /* ************************************************ */
 /* Depsgraph API */
 
-/* CRUD ------------------------------------------- */
+/* -------------------------------------------------------------------- */
+/** \name CRUD
+ * \{ */
 
 /* Get main depsgraph instance from context! */
 
-/* Create new Depsgraph instance */
-/* TODO: what args are needed here? What's the building-graph entry point? */
+/**
+ * Create new Depsgraph instance.
+ *
+ * TODO: what arguments are needed here? What's the building-graph entry point?
+ */
 Depsgraph *DEG_graph_new(struct Main *bmain,
                          struct Scene *scene,
                          struct ViewLayer *view_layer,
                          eEvaluationMode mode);
 
+/**
+ * Replace the "owner" pointers (currently Main/Scene/ViewLayer) of this depsgraph.
+ * Used for:
+ * - Undo steps when we do want to re-use the old depsgraph data as much as possible.
+ * - Rendering where we want to re-use objects between different view layers.
+ */
 void DEG_graph_replace_owners(struct Depsgraph *depsgraph,
                               struct Main *bmain,
                               struct Scene *scene,
                               struct ViewLayer *view_layer);
 
-/* Free Depsgraph itself and all its data */
+/** Free graph's contents and graph itself. */
 void DEG_graph_free(Depsgraph *graph);
 
-/* Node Types Registry ---------------------------- */
+/** \} */
 
-/* Register all node types */
+/* -------------------------------------------------------------------- */
+/** \name Node Types Registry
+ * \{ */
+
+/** Register all node types. */
 void DEG_register_node_types(void);
 
-/* Free node type registry on exit */
+/** Free node type registry on exit. */
 void DEG_free_node_types(void);
 
-/* Update Tagging -------------------------------- */
+/** \} */
 
-/* Tag dependency graph for updates when visible scenes/layers changes. */
+/* -------------------------------------------------------------------- */
+/** \name Update Tagging
+ * \{ */
+
+/** Tag dependency graph for updates when visible scenes/layers changes. */
 void DEG_graph_tag_on_visible_update(Depsgraph *depsgraph, const bool do_time);
 
-/* Tag all dependency graphs for update when visible scenes/layers changes. */
+/** Tag all dependency graphs for update when visible scenes/layers changes. */
 void DEG_tag_on_visible_update(struct Main *bmain, const bool do_time);
 
-/* NOTE: Will return NULL if the flag is not known, allowing to gracefully handle situations
- * when recalc flag has been removed. */
+/**
+ * \note Will return NULL if the flag is not known, allowing to gracefully handle situations
+ * when recalc flag has been removed.
+ */
 const char *DEG_update_tag_as_string(IDRecalcFlag flag);
 
+/** Tag given ID for an update in all the dependency graphs. */
 void DEG_id_tag_update(struct ID *id, int flag);
 void DEG_id_tag_update_ex(struct Main *bmain, struct ID *id, int flag);
 
@@ -127,48 +149,68 @@ void DEG_graph_id_tag_update(struct Main *bmain,
                              struct ID *id,
                              int flag);
 
-/* Tag all dependency graphs when time has changed. */
+/** Tag all dependency graphs when time has changed. */
 void DEG_time_tag_update(struct Main *bmain);
 
-/* Tag a dependency graph when time has changed. */
+/** Tag a dependency graph when time has changed. */
 void DEG_graph_time_tag_update(struct Depsgraph *depsgraph);
 
-/* Mark a particular datablock type as having changing. This does
- * not cause any updates but is used by external render engines to detect if for
- * example a datablock was removed. */
+/**
+ * Mark a particular data-block type as having changing.
+ * This does not cause any updates but is used by external
+ * render engines to detect if for example a data-block was removed.
+ */
 void DEG_graph_id_type_tag(struct Depsgraph *depsgraph, short id_type);
 void DEG_id_type_tag(struct Main *bmain, short id_type);
 
-/* Set a depsgraph to flush updates to editors. This would be done
- * for viewport depsgraphs, but not render or export depsgraph for example. */
+/**
+ * Set a depsgraph to flush updates to editors. This would be done
+ * for viewport depsgraphs, but not render or export depsgraph for example.
+ */
 void DEG_enable_editors_update(struct Depsgraph *depsgraph);
 
-/* Check if something was changed in the database and inform editors about this. */
+/** Check if something was changed in the database and inform editors about this. */
 void DEG_editors_update(struct Depsgraph *depsgraph, bool time);
 
-/* Clear recalc flags after editors or renderers have handled updates. */
+/** Clear recalc flags after editors or renderers have handled updates. */
 void DEG_ids_clear_recalc(Depsgraph *depsgraph, const bool backup);
 
-/* Restore recalc flags, backed up by a previous call to DEG_ids_clear_recalc.
- * This also clears the backup. */
+/**
+ * Restore recalc flags, backed up by a previous call to #DEG_ids_clear_recalc.
+ * This also clears the backup.
+ */
 void DEG_ids_restore_recalc(Depsgraph *depsgraph);
+
+/** \} */
 
 /* ************************************************ */
 /* Evaluation Engine API */
 
-/* Graph Evaluation  ----------------------------- */
+/* -------------------------------------------------------------------- */
+/** \name Graph Evaluation
+ * \{ */
 
-/* Frame changed recalculation entry point. */
+/**
+ * Frame changed recalculation entry point.
+ *
+ * \note The frame-change happened for root scene that graph belongs to.
+ */
 void DEG_evaluate_on_framechange(Depsgraph *graph, float frame);
 
-/* Data changed recalculation entry point. */
+/**
+ * Data changed recalculation entry point.
+ * Evaluate all nodes tagged for updating.
+ */
 void DEG_evaluate_on_refresh(Depsgraph *graph);
 
-/* Editors Integration  -------------------------- */
+/** \} */
 
-/* Mechanism to allow editors to be informed of depsgraph updates,
+/* -------------------------------------------------------------------- */
+/** \name Editors Integration
+ *
+ * Mechanism to allow editors to be informed of depsgraph updates,
  * to do their own updates based on changes.
- */
+ * \{ */
 
 typedef struct DEGEditorUpdateContext {
   struct Main *bmain;
@@ -181,10 +223,14 @@ typedef void (*DEG_EditorUpdateIDCb)(const DEGEditorUpdateContext *update_ctx, s
 typedef void (*DEG_EditorUpdateSceneCb)(const DEGEditorUpdateContext *update_ctx,
                                         const bool updated);
 
-/* Set callbacks which are being called when depsgraph changes. */
+/** Set callbacks which are being called when depsgraph changes. */
 void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func, DEG_EditorUpdateSceneCb scene_func);
 
-/* Evaluation  ----------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Evaluation
+ * \{ */
 
 bool DEG_is_evaluating(const struct Depsgraph *depsgraph);
 
@@ -192,7 +238,11 @@ bool DEG_is_active(const struct Depsgraph *depsgraph);
 void DEG_make_active(struct Depsgraph *depsgraph);
 void DEG_make_inactive(struct Depsgraph *depsgraph);
 
-/* Evaluation Debug ------------------------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Evaluation Debug
+ * \{ */
 
 void DEG_debug_print_begin(struct Depsgraph *depsgraph);
 
@@ -231,6 +281,8 @@ void DEG_debug_print_eval_time(struct Depsgraph *depsgraph,
                                const char *object_name,
                                const void *object_address,
                                float time);
+
+/** \} */
 
 #ifdef __cplusplus
 } /* extern "C" */

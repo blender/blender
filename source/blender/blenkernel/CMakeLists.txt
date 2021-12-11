@@ -147,7 +147,6 @@ set(SRC
   intern/editmesh_cache.c
   intern/editmesh_tangent.c
   intern/effect.c
-  intern/extern_implementations.cc
   intern/fcurve.c
   intern/fcurve_cache.c
   intern/fcurve_driver.c
@@ -235,6 +234,7 @@ set(SRC
   intern/multires_versioning.c
   intern/nla.c
   intern/node.cc
+  intern/type_conversions.cc
   intern/object.cc
   intern/object_deform.c
   intern/object_dupli.cc
@@ -468,6 +468,7 @@ set(SRC
   BKE_text_suggestions.h
   BKE_texture.h
   BKE_tracking.h
+  BKE_type_conversions.hh
   BKE_undo_system.h
   BKE_unit.h
   BKE_vfont.h

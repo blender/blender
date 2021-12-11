@@ -142,9 +142,10 @@ static const EnumPropertyItem event_ndof_type_items[] = {
 };
 #endif /* RNA_RUNTIME */
 
-/* not returned: CAPSLOCKKEY, UNKNOWNKEY */
 const EnumPropertyItem rna_enum_event_type_items[] = {
-    /* Note we abuse 'tooltip' message here to store a 'compact' form of some (too) long names. */
+    /* - Note we abuse 'tooltip' message here to store a 'compact' form of some (too) long names.
+     * - Intentionally excluded: #CAPSLOCKKEY, #UNKNOWNKEY.
+     */
     {0, "NONE", 0, "", ""},
     {LEFTMOUSE, "LEFTMOUSE", 0, "Left Mouse", "LMB"},
     {MIDDLEMOUSE, "MIDDLEMOUSE", 0, "Middle Mouse", "MMB"},

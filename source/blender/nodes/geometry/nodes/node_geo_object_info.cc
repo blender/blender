@@ -23,6 +23,8 @@
 
 namespace blender::nodes::node_geo_object_info_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryObjectInfo)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Object>(N_("Object")).hide_label();
@@ -42,9 +44,8 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const bNode &bnode = params.node();
-  NodeGeometryObjectInfo *node_storage = (NodeGeometryObjectInfo *)bnode.storage;
-  const bool transform_space_relative = (node_storage->transform_space ==
+  const NodeGeometryObjectInfo &storage = node_storage(params.node());
+  const bool transform_space_relative = (storage.transform_space ==
                                          GEO_NODE_TRANSFORM_SPACE_RELATIVE);
 
   Object *object = params.get_input<Object *>("Object");

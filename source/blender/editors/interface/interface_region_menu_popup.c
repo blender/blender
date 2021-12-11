@@ -384,10 +384,6 @@ uiPopupBlockHandle *ui_popup_menu_create(
 /** \name Popup Menu API with begin & end
  * \{ */
 
-/**
- * Only return handler, and set optional title.
- * \param block_name: Assigned to uiBlock.name (useful info for debugging).
- */
 uiPopupMenu *UI_popup_menu_begin_ex(bContext *C,
                                     const char *title,
                                     const char *block_name,
@@ -450,16 +446,12 @@ uiPopupMenu *UI_popup_menu_begin(bContext *C, const char *title, int icon)
   return UI_popup_menu_begin_ex(C, title, __func__, icon);
 }
 
-/**
- * Setting the button makes the popup open from the button instead of the cursor.
- */
 void UI_popup_menu_but_set(uiPopupMenu *pup, struct ARegion *butregion, uiBut *but)
 {
   pup->but = but;
   pup->butregion = butregion;
 }
 
-/* set the whole structure to work */
 void UI_popup_menu_end(bContext *C, uiPopupMenu *pup)
 {
   wmWindow *window = CTX_wm_window(C);

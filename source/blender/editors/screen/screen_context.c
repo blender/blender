@@ -1283,7 +1283,6 @@ static void ensure_ed_screen_context_functions(void)
   register_context_function("ui_list", screen_ctx_ui_list);
 }
 
-/* Entry point for the screen context. */
 int ed_screen_context(const bContext *C, const char *member, bContextDataResult *result)
 {
   if (CTX_data_dir(member)) {

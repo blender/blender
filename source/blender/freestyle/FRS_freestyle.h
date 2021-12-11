@@ -59,6 +59,10 @@ void FRS_exit(void);
 void FRS_copy_active_lineset(struct FreestyleConfig *config);
 void FRS_paste_active_lineset(struct FreestyleConfig *config);
 void FRS_delete_active_lineset(struct FreestyleConfig *config);
+/**
+ * Reinsert the active lineset at an offset \a direction from current position.
+ * \return if position of active lineset has changed.
+ */
 bool FRS_move_active_lineset(struct FreestyleConfig *config, int direction);
 
 /* Testing */

@@ -1125,7 +1125,7 @@ context_type_map = {
     "soft_body": ("SoftBodyModifier", False),
     "speaker": ("Speaker", False),
     "texture": ("Texture", False),
-    "texture_slot": ("MaterialTextureSlot", False),
+    "texture_slot": ("TextureSlot", False),
     "texture_user": ("ID", False),
     "texture_user_property": ("Property", False),
     "ui_list": ("UIList", False),

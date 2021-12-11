@@ -123,7 +123,7 @@ static void sh_node_tex_checker_build_multi_function(
 
 }  // namespace blender::nodes
 
-void register_node_type_sh_tex_checker(void)
+void register_node_type_sh_tex_checker()
 {
   static bNodeType ntype;
 

@@ -191,7 +191,7 @@ static void sh_node_noise_build_multi_function(blender::nodes::NodeMultiFunction
 
 }  // namespace blender::nodes
 
-void register_node_type_sh_tex_white_noise(void)
+void register_node_type_sh_tex_white_noise()
 {
   static bNodeType ntype;
 

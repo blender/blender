@@ -40,7 +40,6 @@ void seq_anim_add_suffix(Scene *scene, struct anim *anim, const int view_id)
   IMB_suffix_anim(anim, suffix);
 }
 
-/* the number of files will vary according to the stereo format */
 int seq_num_files(Scene *scene, char views_format, const bool is_multiview)
 {
   if (!is_multiview) {

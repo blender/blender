@@ -72,7 +72,7 @@ struct Depsgraph {
   IDNode *add_id_node(ID *id, ID *id_cow_hint = nullptr);
   void clear_id_nodes();
 
-  /* Add new relationship between two nodes. */
+  /** Add new relationship between two nodes. */
   Relation *add_new_relation(Node *from, Node *to, const char *description, int flags = 0);
 
   /* Check whether two nodes are connected by relation with given

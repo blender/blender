@@ -686,8 +686,6 @@ static float *mask_rasterize(Mask *mask, const int width, const int height)
   return buffer;
 }
 
-/* sets up the opengl context.
- * width, height are to match the values from ED_mask_get_size() */
 void ED_mask_draw_region(
     Depsgraph *depsgraph,
     Mask *mask_,

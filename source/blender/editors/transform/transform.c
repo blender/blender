@@ -668,7 +668,6 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
   return true;
 }
 
-/* Called in transform_ops.c, on each regeneration of key-maps. */
 wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
@@ -1449,9 +1448,6 @@ static void drawTransformPixel(const struct bContext *C, ARegion *region, void *
   }
 }
 
-/**
- * \see #initTransform which reads values from the operator.
- */
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 {
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -1670,11 +1666,6 @@ static void initSnapSpatial(TransInfo *t, float r_snap[2])
   }
 }
 
-/**
- * \note  caller needs to free 't' on a 0 return
- * \warning \a event might be NULL (when tweaking from redo panel)
- * \see #saveTransform which writes these values back.
- */
 bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event, int mode)
 {
   int options = 0;
@@ -1987,7 +1978,6 @@ int transformEnd(bContext *C, TransInfo *t)
   return exit_code;
 }
 
-/* TODO: move to: `transform_query.c`. */
 bool checkUseAxisMatrix(TransInfo *t)
 {
   /* currently only checks for editmode */

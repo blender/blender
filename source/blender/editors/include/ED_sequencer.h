@@ -40,8 +40,18 @@ bool ED_space_sequencer_maskedit_mask_poll(struct bContext *C);
 bool ED_space_sequencer_check_show_maskedit(struct SpaceSeq *sseq, struct Scene *scene);
 bool ED_space_sequencer_maskedit_poll(struct bContext *C);
 
+/**
+ * Are we displaying the seq output (not channels or histogram).
+ */
 bool ED_space_sequencer_check_show_imbuf(struct SpaceSeq *sseq);
+
 bool ED_space_sequencer_check_show_strip(struct SpaceSeq *sseq);
+/**
+ * Check if there is animation shown during playback.
+ *
+ * - Colors of color strips are displayed on the strip itself.
+ * - Backdrop is drawn.
+ */
 bool ED_space_sequencer_has_playback_animation(const struct SpaceSeq *sseq,
                                                const struct Scene *scene);
 

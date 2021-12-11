@@ -716,9 +716,6 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
   td->con = pchan->constraints.first;
 }
 
-/**
- * When objects array is NULL, use 't->data_container' as is.
- */
 void createTransPose(TransInfo *t)
 {
   Main *bmain = CTX_data_main(t->context);
@@ -1502,10 +1499,6 @@ static void bone_children_clear_transflag(int mode, short around, ListBase *lb)
   }
 }
 
-/**
- * Sets transform flags in the bones.
- * Returns total number of bones with #BONE_TRANSFORM.
- */
 int transform_convert_pose_transflags_update(Object *ob,
                                              const int mode,
                                              const short around,

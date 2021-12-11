@@ -176,9 +176,6 @@ static wmGizmoMap *wm_gizmomap_new_from_type_ex(struct wmGizmoMapType *gzmap_typ
   return gzmap;
 }
 
-/**
- * Creates a gizmo-map with all registered gizmos for that type
- */
 wmGizmoMap *WM_gizmomap_new_from_type(const struct wmGizmoMapType_Params *gzmap_params)
 {
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(gzmap_params);
@@ -207,7 +204,6 @@ void wm_gizmomap_remove(wmGizmoMap *gzmap)
   MEM_freeN(gzmap);
 }
 
-/** Re-create the gizmos (use when changing theme settings). */
 void WM_gizmomap_reinit(wmGizmoMap *gzmap)
 {
   wmGizmoMapType *gzmap_type = gzmap->type;
@@ -246,9 +242,6 @@ bool WM_gizmomap_is_any_selected(const wmGizmoMap *gzmap)
   return gzmap->gzmap_context.select.len != 0;
 }
 
-/**
- * \note We could use a callback to define bounds, for now just use matrix location.
- */
 bool WM_gizmomap_minmax(const wmGizmoMap *gzmap,
                         bool UNUSED(use_hidden),
                         bool use_select,
@@ -713,10 +706,6 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
   return result;
 }
 
-/**
- * Try to find a gizmo under the mouse position. 2D intersections have priority over
- * 3D ones (could check for smallest screen-space distance but not needed right now).
- */
 wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
                                     bContext *C,
                                     const wmEvent *event,
@@ -843,10 +832,6 @@ void wm_gizmomaps_handled_modal_update(bContext *C, wmEvent *event, wmEventHandl
   CTX_wm_region_set(C, region);
 }
 
-/**
- * Deselect all selected gizmos in \a gzmap.
- * \return if selection has changed.
- */
 bool wm_gizmomap_deselect_all(wmGizmoMap *gzmap)
 {
   wmGizmoMapSelectState *msel = &gzmap->gzmap_context.select;
@@ -903,12 +888,6 @@ static bool wm_gizmomap_select_all_intern(bContext *C, wmGizmoMap *gzmap)
   return changed;
 }
 
-/**
- * Select/Deselect all selectable gizmos in \a gzmap.
- * \return if selection has changed.
- *
- * TODO: select all by type.
- */
 bool WM_gizmomap_select_all(bContext *C, wmGizmoMap *gzmap, const int action)
 {
   bool changed = false;
@@ -932,10 +911,6 @@ bool WM_gizmomap_select_all(bContext *C, wmGizmoMap *gzmap, const int action)
   return changed;
 }
 
-/**
- * Prepare context for gizmo handling (but only if area/region is
- * part of screen). Version of #wm_handler_op_context for gizmos.
- */
 void wm_gizmomap_handler_context_op(bContext *C, wmEventHandler_Op *handler)
 {
   bScreen *screen = CTX_wm_screen(C);
@@ -1037,9 +1012,6 @@ wmGizmo *wm_gizmomap_highlight_get(wmGizmoMap *gzmap)
   return gzmap->gzmap_context.highlight;
 }
 
-/**
- * Caller should call exit when (enable == False).
- */
 void wm_gizmomap_modal_set(
     wmGizmoMap *gzmap, bContext *C, wmGizmo *gz, const wmEvent *event, bool enable)
 {
@@ -1247,9 +1219,6 @@ void wm_gizmomaptypes_free(void)
   }
 }
 
-/**
- * Initialize keymaps for all existing gizmo-groups
- */
 void wm_gizmos_keymap(wmKeyConfig *keyconf)
 {
   LISTBASE_FOREACH (wmGizmoMapType *, gzmap_type, &gizmomaptypes) {
@@ -1293,10 +1262,6 @@ void WM_gizmoconfig_update_tag_group_remove(wmGizmoMap *gzmap)
   wm_gzmap_type_update_flag |= WM_GIZMOTYPE_GLOBAL_UPDATE_REMOVE;
 }
 
-/**
- * Run in case new types have been added (runs often, early exit where possible).
- * Follows #WM_keyconfig_update conventions.
- */
 void WM_gizmoconfig_update(struct Main *bmain)
 {
   if (G.background) {

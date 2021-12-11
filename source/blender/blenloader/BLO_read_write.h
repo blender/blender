@@ -58,8 +58,8 @@ struct BlendFileReadReport;
 struct Main;
 struct ReportList;
 
-/* Blend Write API
- * ===============
+/* -------------------------------------------------------------------- */
+/** \name Blend Write API
  *
  * Most functions fall into one of two categories. Either they write a DNA struct or a raw memory
  * buffer to the .blend file.
@@ -91,19 +91,25 @@ struct ReportList;
  * The code that reads this data might have to correct its byte-order. For the common cases
  * there are convenience functions that write and read arrays of simple types such as `int32`.
  * Those will correct endianness automatically.
- */
+ * \{ */
 
-/* Mapping between names and ids. */
+/**
+ * Mapping between names and ids.
+ */
 int BLO_get_struct_id_by_name(BlendWriter *writer, const char *struct_name);
 #define BLO_get_struct_id(writer, struct_name) SDNA_TYPE_FROM_STRUCT(struct_name)
 
-/* Write single struct. */
+/**
+ * Write single struct.
+ */
 void BLO_write_struct_by_name(BlendWriter *writer, const char *struct_name, const void *data_ptr);
 void BLO_write_struct_by_id(BlendWriter *writer, int struct_id, const void *data_ptr);
 #define BLO_write_struct(writer, struct_name, data_ptr) \
   BLO_write_struct_by_id(writer, BLO_get_struct_id(writer, struct_name), data_ptr)
 
-/* Write single struct at address. */
+/**
+ * Write single struct at address.
+ */
 void BLO_write_struct_at_address_by_id(BlendWriter *writer,
                                        int struct_id,
                                        const void *address,
@@ -112,7 +118,9 @@ void BLO_write_struct_at_address_by_id(BlendWriter *writer,
   BLO_write_struct_at_address_by_id( \
       writer, BLO_get_struct_id(writer, struct_name), address, data_ptr)
 
-/* Write single struct at address and specify a filecode. */
+/**
+ * Write single struct at address and specify a file-code.
+ */
 void BLO_write_struct_at_address_by_id_with_filecode(
     BlendWriter *writer, int filecode, int struct_id, const void *address, const void *data_ptr);
 #define BLO_write_struct_at_address_with_filecode( \
@@ -120,7 +128,9 @@ void BLO_write_struct_at_address_by_id_with_filecode(
   BLO_write_struct_at_address_by_id_with_filecode( \
       writer, filecode, BLO_get_struct_id(writer, struct_name), address, data_ptr)
 
-/* Write struct array. */
+/**
+ * Write struct array.
+ */
 void BLO_write_struct_array_by_name(BlendWriter *writer,
                                     const char *struct_name,
                                     int array_size,
@@ -133,14 +143,18 @@ void BLO_write_struct_array_by_id(BlendWriter *writer,
   BLO_write_struct_array_by_id( \
       writer, BLO_get_struct_id(writer, struct_name), array_size, data_ptr)
 
-/* Write struct array at address. */
+/**
+ * Write struct array at address.
+ */
 void BLO_write_struct_array_at_address_by_id(
     BlendWriter *writer, int struct_id, int array_size, const void *address, const void *data_ptr);
 #define BLO_write_struct_array_at_address(writer, struct_name, array_size, address, data_ptr) \
   BLO_write_struct_array_at_address_by_id( \
       writer, BLO_get_struct_id(writer, struct_name), array_size, address, data_ptr)
 
-/* Write struct list. */
+/**
+ * Write struct list.
+ */
 void BLO_write_struct_list_by_name(BlendWriter *writer,
                                    const char *struct_name,
                                    struct ListBase *list);
@@ -148,7 +162,9 @@ void BLO_write_struct_list_by_id(BlendWriter *writer, int struct_id, struct List
 #define BLO_write_struct_list(writer, struct_name, list_ptr) \
   BLO_write_struct_list_by_id(writer, BLO_get_struct_id(writer, struct_name), list_ptr)
 
-/* Write id struct. */
+/**
+ * Write id struct.
+ */
 void blo_write_id_struct(BlendWriter *writer,
                          int struct_id,
                          const void *id_address,
@@ -156,7 +172,9 @@ void blo_write_id_struct(BlendWriter *writer,
 #define BLO_write_id_struct(writer, struct_name, id_address, id) \
   blo_write_id_struct(writer, BLO_get_struct_id(writer, struct_name), id_address, id)
 
-/* Write raw data. */
+/**
+ * Write raw data.
+ */
 void BLO_write_raw(BlendWriter *writer, size_t size_in_bytes, const void *data_ptr);
 void BLO_write_int32_array(BlendWriter *writer, uint num, const int32_t *data_ptr);
 void BLO_write_uint32_array(BlendWriter *writer, uint num, const uint32_t *data_ptr);
@@ -164,13 +182,23 @@ void BLO_write_float_array(BlendWriter *writer, uint num, const float *data_ptr)
 void BLO_write_double_array(BlendWriter *writer, uint num, const double *data_ptr);
 void BLO_write_float3_array(BlendWriter *writer, uint num, const float *data_ptr);
 void BLO_write_pointer_array(BlendWriter *writer, uint num, const void *data_ptr);
+/**
+ * Write a null terminated string.
+ */
 void BLO_write_string(BlendWriter *writer, const char *data_ptr);
 
 /* Misc. */
+
+/**
+ * Sometimes different data is written depending on whether the file is saved to disk or used for
+ * undo. This function returns true when the current file-writing is done for undo.
+ */
 bool BLO_write_is_undo(BlendWriter *writer);
 
-/* Blend Read Data API
- * ===================
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Blend Read Data API
  *
  * Generally, for every BLO_write_* call there should be a corresponding BLO_read_* call.
  *
@@ -181,15 +209,18 @@ bool BLO_write_is_undo(BlendWriter *writer);
  * updated to be NULL. When it was pointing to NULL before, it will stay that way.
  *
  * Examples of matching calls:
- *   BLO_write_struct(writer, ClothSimSettings, clmd->sim_parms);
- *   BLO_read_data_address(reader, &clmd->sim_parms);
  *
- *   BLO_write_struct_list(writer, TimeMarker, &action->markers);
- *   BLO_read_list(reader, &action->markers);
+ * \code{.c}
+ * BLO_write_struct(writer, ClothSimSettings, clmd->sim_parms);
+ * BLO_read_data_address(reader, &clmd->sim_parms);
  *
- *   BLO_write_int32_array(writer, hmd->totindex, hmd->indexar);
- *   BLO_read_int32_array(reader, hmd->totindex, &hmd->indexar);
- */
+ * BLO_write_struct_list(writer, TimeMarker, &action->markers);
+ * BLO_read_list(reader, &action->markers);
+ *
+ * BLO_write_int32_array(writer, hmd->totindex, hmd->indexar);
+ * BLO_read_int32_array(reader, hmd->totindex, &hmd->indexar);
+ * \endcode
+ * \{ */
 
 void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_address);
 void *BLO_read_get_new_data_address_no_us(BlendDataReader *reader, const void *old_address);
@@ -201,10 +232,16 @@ void *BLO_read_get_new_packed_address(BlendDataReader *reader, const void *old_a
   *((void **)ptr_p) = BLO_read_get_new_packed_address((reader), *(ptr_p))
 
 typedef void (*BlendReadListFn)(BlendDataReader *reader, void *data);
+/**
+ * Updates all ->prev and ->next pointers of the list elements.
+ * Updates the list->first and list->last pointers.
+ * When not NULL, calls the callback on every element.
+ */
 void BLO_read_list_cb(BlendDataReader *reader, struct ListBase *list, BlendReadListFn callback);
 void BLO_read_list(BlendDataReader *reader, struct ListBase *list);
 
 /* Update data pointers and correct byte-order if necessary. */
+
 void BLO_read_int32_array(BlendDataReader *reader, int array_size, int32_t **ptr_p);
 void BLO_read_uint32_array(BlendDataReader *reader, int array_size, uint32_t **ptr_p);
 void BLO_read_float_array(BlendDataReader *reader, int array_size, float **ptr_p);
@@ -213,18 +250,21 @@ void BLO_read_double_array(BlendDataReader *reader, int array_size, double **ptr
 void BLO_read_pointer_array(BlendDataReader *reader, void **ptr_p);
 
 /* Misc. */
+
 bool BLO_read_requires_endian_switch(BlendDataReader *reader);
 bool BLO_read_data_is_undo(BlendDataReader *reader);
 void BLO_read_data_globmap_add(BlendDataReader *reader, void *oldaddr, void *newaddr);
 void BLO_read_glob_list(BlendDataReader *reader, struct ListBase *list);
 struct BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader);
 
-/* Blend Read Lib API
- * ===================
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Blend Read Lib API
  *
- * This API does almost the same as the Blend Read Data API. However, now only pointers to ID data
- * blocks are updated.
- */
+ * This API does almost the same as the Blend Read Data API.
+ * However, now only pointers to ID data blocks are updated.
+ * \{ */
 
 ID *BLO_read_get_new_id_address(BlendLibReader *reader, struct Library *lib, struct ID *id);
 
@@ -232,29 +272,43 @@ ID *BLO_read_get_new_id_address(BlendLibReader *reader, struct Library *lib, str
   *((void **)id_ptr_p) = (void *)BLO_read_get_new_id_address((reader), (lib), (ID *)*(id_ptr_p))
 
 /* Misc. */
+
 bool BLO_read_lib_is_undo(BlendLibReader *reader);
 struct Main *BLO_read_lib_get_main(BlendLibReader *reader);
 struct BlendFileReadReport *BLO_read_lib_reports(BlendLibReader *reader);
 
-/* Blend Expand API
- * ===================
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Blend Expand API
  *
  * BLO_expand has to be called for every data block that should be loaded. If the data block is in
- * a separate .blend file, it will be pulled from there.
- */
+ * a separate `.blend` file, it will be pulled from there.
+ * \{ */
 
 void BLO_expand_id(BlendExpander *expander, struct ID *id);
 
 #define BLO_expand(expander, id) BLO_expand_id(expander, (struct ID *)id)
 
-/* Report API
- * ===================
- */
+/** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Report API
+ * \{ */
+
+/**
+ * This function ensures that reports are printed,
+ * in the case of library linking errors this is important!
+ *
+ * bit kludge but better than doubling up on prints,
+ * we could alternatively have a versions of a report function which forces printing - campbell
+ */
 void BLO_reportf_wrap(struct BlendFileReadReport *reports,
                       eReportType type,
                       const char *format,
                       ...) ATTR_PRINTF_FORMAT(3, 4);
+
+/** \} */
 
 #ifdef __cplusplus
 }

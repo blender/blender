@@ -223,7 +223,7 @@ bool USD_export(bContext *C,
   return export_ok;
 }
 
-int USD_get_version(void)
+int USD_get_version()
 {
   /* USD 19.11 defines:
    *

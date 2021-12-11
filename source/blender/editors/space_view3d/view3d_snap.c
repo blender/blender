@@ -1013,10 +1013,6 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 /** \name Min/Max Object Vertices Utility
  * \{ */
 
-/**
- * Calculates the bounding box corners (min and max) for \a obedit.
- * The returned values are in global space.
- */
 bool ED_view3d_minmax_verts(Object *obedit, float r_min[3], float r_max[3])
 {
   TransVertStore tvs = {NULL};

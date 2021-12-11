@@ -119,9 +119,10 @@ float ED_view3d_select_dist_px(void)
   return 75.0f * U.pixelsize;
 }
 
-/* TODO: should return whether there is valid context to continue */
 void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc, Depsgraph *depsgraph)
 {
+  /* TODO: should return whether there is valid context to continue. */
+
   memset(vc, 0, sizeof(ViewContext));
   vc->C = C;
   vc->region = CTX_wm_region(C);
@@ -2195,7 +2196,6 @@ static Base *ed_view3d_give_base_under_cursor_ex(bContext *C,
   return basact;
 }
 
-/* mval comes from event->mval, only use within region handlers */
 Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 {
   return ed_view3d_give_base_under_cursor_ex(C, mval, NULL);

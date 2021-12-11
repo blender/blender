@@ -108,9 +108,6 @@
 /** \name General Functions
  * \{ */
 
-/**
- * \note keep this synced with #ED_view3d_mats_rv3d_backup/#ED_view3d_mats_rv3d_restore
- */
 void ED_view3d_update_viewmat(Depsgraph *depsgraph,
                               const Scene *scene,
                               View3D *v3d,
@@ -355,9 +352,6 @@ static void view3d_xr_mirror_setup(const wmWindowManager *wm,
 }
 #endif /* WITH_XR_OPENXR */
 
-/**
- * Set the correct matrices
- */
 void ED_view3d_draw_setup_view(const wmWindowManager *wm,
                                wmWindow *win,
                                Depsgraph *depsgraph,
@@ -848,7 +842,6 @@ static void drawrenderborder(ARegion *region, View3D *v3d)
 /** \name Other Elements
  * \{ */
 
-/** could move this elsewhere, but tied into #ED_view3d_grid_scale */
 float ED_scene_grid_scale(const Scene *scene, const char **r_grid_unit)
 {
   /* apply units */
@@ -921,9 +914,6 @@ void ED_view3d_grid_steps(const Scene *scene,
   }
 }
 
-/* Simulates the grid scale that is actually viewed.
- * The actual code is seen in `object_grid_frag.glsl` (see `grid_res`).
- * Currently the simulation is only done when RV3D_VIEW_IS_AXIS. */
 float ED_view3d_grid_view_scale(Scene *scene,
                                 View3D *v3d,
                                 ARegion *region,
@@ -1472,9 +1462,6 @@ static void draw_grid_unit_name(
   }
 }
 
-/**
- * Information drawn on top of the solid plates and composed data
- */
 void view3d_draw_region_info(const bContext *C, ARegion *region)
 {
   RegionView3D *rv3d = region->regiondata;
@@ -1751,10 +1738,6 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
   G.f &= ~G_FLAG_RENDER_VIEWPORT;
 }
 
-/**
- * Creates own fake 3d views (wrapping #ED_view3d_draw_offscreen). Similar too
- * #ED_view_draw_offscreen_imbuf_simple, but takes view/projection matrices as arguments.
- */
 void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                                      Scene *scene,
                                      View3DShading *shading_override,
@@ -1853,12 +1836,6 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                            viewport);
 }
 
-/**
- * Utility func for ED_view3d_draw_offscreen
- *
- * \param ofs: Optional off-screen buffer, can be NULL.
- * (avoids re-creating when doing multiple GL renders).
- */
 ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                                       Scene *scene,
                                       eDrawType drawtype,
@@ -2008,14 +1985,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
   return ibuf;
 }
 
-/**
- * Creates own fake 3d views (wrapping #ED_view3d_draw_offscreen_imbuf)
- *
- * \param ofs: Optional off-screen buffer can be NULL.
- * (avoids re-creating when doing multiple GL renders).
- *
- * \note used by the sequencer
- */
 ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
                                              Scene *scene,
                                              View3DShading *shading_override,
@@ -2146,15 +2115,6 @@ static bool view3d_clipping_test(const float co[3], const float clip[6][4])
   return true;
 }
 
-/**
- * Return true when `co` is hidden by the 3D views clipping planes.
- *
- * \param local: When true use local (object-space) #ED_view3d_clipping_local must run first,
- * then all comparisons can be done in local-space.
- * \return True when `co` is outside all clipping planes.
- *
- * \note Callers should check #RV3D_CLIPPING_ENABLED first.
- */
 bool ED_view3d_clipping_test(const RegionView3D *rv3d, const float co[3], const bool is_local)
 {
   return view3d_clipping_test(co, is_local ? rv3d->clip_local : rv3d->clip);
@@ -2240,10 +2200,6 @@ void ED_view3d_select_id_validate(ViewContext *vc)
   validate_object_select_id(vc->depsgraph, vc->view_layer, vc->region, vc->v3d, vc->obact);
 }
 
-/**
- * allow for small values [0.5 - 2.5],
- * and large values, FLT_MAX by clamping by the area size
- */
 int ED_view3d_backbuf_sample_size_clamp(ARegion *region, const float dist)
 {
   return (int)min_ff(ceilf(dist), (float)max_ii(region->winx, region->winx));
@@ -2320,7 +2276,6 @@ static ViewDepths *view3d_depths_create(ARegion *region)
   return d;
 }
 
-/* Utility function to find the closest Z value, use for auto-depth. */
 float view3d_depth_near(ViewDepths *d)
 {
   /* Convert to float for comparisons. */
@@ -2344,14 +2299,6 @@ float view3d_depth_near(ViewDepths *d)
   return far == far_real ? FLT_MAX : far;
 }
 
-/**
- * Redraw the viewport depth buffer.
- *
- * \param mode: V3D_DEPTH_NO_GPENCIL - Redraw viewport without Grease Pencil and Annotations.
- *              V3D_DEPTH_GPENCIL_ONLY - Redraw viewport with Grease Pencil and Annotations only.
- *              V3D_DEPTH_OBJECT_ONLY - Redraw viewport with active object only.
- * \param update_cache: If true, store the entire depth buffer in #rv3d->depths.
- */
 void ED_view3d_depth_override(Depsgraph *depsgraph,
                               ARegion *region,
                               View3D *v3d,
@@ -2466,7 +2413,6 @@ void ED_view3d_datamask(const bContext *C,
   }
 }
 
-/* Goes over all modes and view3d settings. */
 void ED_view3d_screen_datamask(const bContext *C,
                                const Scene *scene,
                                const bScreen *screen,
@@ -2536,10 +2482,6 @@ void ED_view3d_mats_rv3d_restore(struct RegionView3D *rv3d, struct RV3DMatrixSto
 /** \name FPS Drawing
  * \{ */
 
-/**
- * \note The info that this uses is updated in #ED_refresh_viewport_fps,
- * which currently gets called during #SCREEN_OT_animation_step.
- */
 void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
 {
   ScreenFrameRateInfo *fpsi = scene->fps_info;

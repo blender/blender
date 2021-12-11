@@ -39,7 +39,6 @@ void BCSample::add_bone_matrix(Bone *bone, Matrix &mat)
   bonemats[bone] = matrix;
 }
 
-/* Get channel value */
 bool BCSample::get_value(std::string channel_target, const int array_index, float *val) const
 {
   std::string bname = bc_string_before(channel_target, ".");

@@ -61,7 +61,7 @@ def blender_extract_info(blender_bin: str) -> Dict[str, str]:
         stdout=subprocess.PIPE,
     ).stdout.decode(encoding="utf-8")
 
-    blender_version_ouput = subprocess.run(
+    blender_version_output = subprocess.run(
         [blender_bin, "--version"],
         env=blender_env,
         check=True,
@@ -73,7 +73,7 @@ def blender_extract_info(blender_bin: str) -> Dict[str, str]:
     # check for each lines prefix to ensure these aren't included.
     blender_version = ""
     blender_date = ""
-    for l in blender_version_ouput.split("\n"):
+    for l in blender_version_output.split("\n"):
         if l.startswith("Blender "):
             # Remove 'Blender' prefix.
             blender_version = l.split(" ", 1)[1].strip()

@@ -88,20 +88,12 @@ static void drawArrow(const uint pos_id, const enum eArrowDirection dir)
   immEnd();
 }
 
-/**
- * Poll callback for cursor drawing:
- * #WM_paint_cursor_activate
- */
 bool transform_draw_cursor_poll(bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
   return (region && ELEM(region->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_PREVIEW)) ? 1 : 0;
 }
 
-/**
- * Cursor and help-line drawing, callback for:
- * #WM_paint_cursor_activate
- */
 void transform_draw_cursor_draw(bContext *UNUSED(C), int x, int y, void *customdata)
 {
   TransInfo *t = (TransInfo *)customdata;

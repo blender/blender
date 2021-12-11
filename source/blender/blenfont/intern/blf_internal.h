@@ -37,6 +37,10 @@ unsigned int blf_next_p2(unsigned int x);
 unsigned int blf_hash(unsigned int val);
 
 char *blf_dir_search(const char *file);
+/**
+ * Some font have additional file with metrics information,
+ * in general, the extension of the file is: `.afm` or `.pfm`
+ */
 char *blf_dir_metrics_search(const char *filename);
 /* int blf_dir_split(const char *str, char *file, int *size); */ /* UNUSED */
 
@@ -65,6 +69,9 @@ void blf_font_draw_ascii(struct FontBLF *font,
                          const char *str,
                          size_t str_len,
                          struct ResultBLF *r_info);
+/**
+ * Use fixed column width, but an utf8 character may occupy multiple columns.
+ */
 int blf_font_draw_mono(struct FontBLF *font, const char *str, size_t str_len, int cwidth);
 void blf_font_draw_buffer(struct FontBLF *font,
                           const char *str,
@@ -130,13 +137,22 @@ int blf_font_count_missing_chars(struct FontBLF *font,
 
 void blf_font_free(struct FontBLF *font);
 
+/**
+ * Find a glyph cache that matches a size, DPI & styles.
+ */
 struct GlyphCacheBLF *blf_glyph_cache_find(struct FontBLF *font, float size, unsigned int dpi);
+/**
+ * Create a new glyph cache for the current size, DPI & styles.
+ */
 struct GlyphCacheBLF *blf_glyph_cache_new(struct FontBLF *font);
 struct GlyphCacheBLF *blf_glyph_cache_acquire(struct FontBLF *font);
 void blf_glyph_cache_release(struct FontBLF *font);
 void blf_glyph_cache_clear(struct FontBLF *font);
 void blf_glyph_cache_free(struct GlyphCacheBLF *gc);
 
+/**
+ * Create (or load from cache) a fully-rendered bitmap glyph.
+ */
 struct GlyphBLF *blf_glyph_ensure(struct FontBLF *font, struct GlyphCacheBLF *gc, uint charcode);
 
 void blf_glyph_free(struct GlyphBLF *g);

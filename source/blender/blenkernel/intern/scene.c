@@ -1729,7 +1729,6 @@ static void remove_sequencer_fcurves(Scene *sce)
   }
 }
 
-/* flag -- copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more). */
 ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
 {
   if (toolsettings == NULL) {
@@ -2069,9 +2068,6 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
   return sce;
 }
 
-/**
- * Check if there is any instance of the object in the scene
- */
 bool BKE_scene_object_find(Scene *scene, Object *ob)
 {
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
@@ -2094,12 +2090,6 @@ Object *BKE_scene_object_find_by_name(const Scene *scene, const char *name)
   return NULL;
 }
 
-/**
- * Sets the active scene, mainly used when running in background mode
- * (`--scene` command line argument).
- * This is also called to set the scene directly, bypassing windowing code.
- * Otherwise #WM_window_set_active_scene is used when changing scenes by the user.
- */
 void BKE_scene_set_background(Main *bmain, Scene *scene)
 {
   Object *ob;
@@ -2124,7 +2114,6 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
    * (render code calls own animation updates). */
 }
 
-/* called from creator_args.c */
 Scene *BKE_scene_set_name(Main *bmain, const char *name)
 {
   Scene *sce = (Scene *)BKE_libblock_find_name(bmain, ID_SCE, name);
@@ -2138,8 +2127,6 @@ Scene *BKE_scene_set_name(Main *bmain, const char *name)
   return NULL;
 }
 
-/* Used by meta-balls, return *all* objects (including duplis)
- * existing in the scene (including scene's sets). */
 int BKE_scene_base_iter_next(
     Depsgraph *depsgraph, SceneBaseIter *iter, Scene **scene, int val, Base **base, Object **ob)
 {
@@ -2364,8 +2351,6 @@ const char *BKE_scene_find_marker_name(const Scene *scene, int frame)
   return NULL;
 }
 
-/* return the current marker for this frame,
- * we can have more than 1 marker per frame, this just returns the first :/ */
 const char *BKE_scene_find_last_marker_name(const Scene *scene, int frame)
 {
   const TimeMarker *marker, *best_marker = NULL;
@@ -2409,7 +2394,6 @@ void BKE_scene_remove_rigidbody_object(struct Main *bmain,
   }
 }
 
-/* checks for cycle, returns 1 if it's all OK */
 bool BKE_scene_validate_setscene(Main *bmain, Scene *sce)
 {
   Scene *sce_iter;
@@ -2432,16 +2416,11 @@ bool BKE_scene_validate_setscene(Main *bmain, Scene *sce)
   return true;
 }
 
-/* Return fractional frame number taking into account subframes and time
- * remapping. This the time value used by animation, modifiers and physics
- * evaluation. */
 float BKE_scene_ctime_get(const Scene *scene)
 {
   return BKE_scene_frame_to_ctime(scene, scene->r.cfra);
 }
 
-/* Convert integer frame number to fractional frame number taking into account
- * subframes and time remapping. */
 float BKE_scene_frame_to_ctime(const Scene *scene, const int frame)
 {
   float ctime = frame;
@@ -2451,13 +2430,11 @@ float BKE_scene_frame_to_ctime(const Scene *scene, const int frame)
   return ctime;
 }
 
-/* Get current fractional frame based on frame and subframe. */
 float BKE_scene_frame_get(const Scene *scene)
 {
   return scene->r.cfra + scene->r.subframe;
 }
 
-/* Set current frame and subframe based on a fractional frame. */
 void BKE_scene_frame_set(Scene *scene, float frame)
 {
   double intpart;
@@ -2494,12 +2471,6 @@ TransformOrientationSlot *BKE_scene_orientation_slot_get_from_flag(Scene *scene,
   return BKE_scene_orientation_slot_get(scene, slot_index);
 }
 
-/**
- * Activate a transform orientation in a 3D view based on an enum value.
- *
- * \param orientation: If this is #V3D_ORIENT_CUSTOM or greater, the custom transform orientation
- * with index \a orientation - #V3D_ORIENT_CUSTOM gets activated.
- */
 void BKE_scene_orientation_slot_set_index(TransformOrientationSlot *orient_slot, int orientation)
 {
   const bool is_custom = orientation >= V3D_ORIENT_CUSTOM;
@@ -2707,7 +2678,6 @@ void BKE_scene_graph_evaluated_ensure(Depsgraph *depsgraph, Main *bmain)
   scene_graph_update_tagged(depsgraph, bmain, true);
 }
 
-/* applies changes right away, does all sets too */
 void BKE_scene_graph_update_for_newframe_ex(Depsgraph *depsgraph, const bool clear_recalc)
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
@@ -2783,12 +2753,6 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph)
   BKE_scene_graph_update_for_newframe_ex(depsgraph, true);
 }
 
-/**
- * Ensures given scene/view_layer pair has a valid, up-to-date depsgraph.
- *
- * \warning Sets matching depsgraph as active,
- * so should only be called from the active editing context (usually, from operators).
- */
 void BKE_scene_view_layer_graph_evaluated_ensure(Main *bmain, Scene *scene, ViewLayer *view_layer)
 {
   Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
@@ -2796,7 +2760,6 @@ void BKE_scene_view_layer_graph_evaluated_ensure(Main *bmain, Scene *scene, View
   BKE_scene_graph_update_tagged(depsgraph, bmain);
 }
 
-/* return default view */
 SceneRenderView *BKE_scene_add_render_view(Scene *sce, const char *name)
 {
   SceneRenderView *srv;
@@ -2866,12 +2829,6 @@ int get_render_child_particle_number(const RenderData *r, int num, bool for_rend
   return num;
 }
 
-/**
- * Helper function for the SETLOOPER and SETLOOPER_VIEW_LAYER macros
- *
- * It iterates over the bases of the active layer and then the bases
- * of the active layer of the background (set) scenes recursively.
- */
 Base *_setlooper_base_step(Scene **sce_iter, ViewLayer *view_layer, Base *base)
 {
   if (base && base->next) {
@@ -2936,7 +2893,6 @@ typedef enum eCyclesFeatureSet {
   CYCLES_FEATURES_EXPERIMENTAL = 1,
 } eCyclesFeatureSet;
 
-/* We cannot use const as RNA_id_pointer_create is not using a const ID. */
 bool BKE_scene_uses_cycles_experimental_features(Scene *scene)
 {
   BLI_assert(BKE_scene_uses_cycles(scene));
@@ -2962,16 +2918,6 @@ void BKE_scene_base_flag_to_objects(ViewLayer *view_layer)
   }
 }
 
-/**
- * Synchronize object base flags
- *
- * This is usually handled by the depsgraph.
- * However, in rare occasions we need to use the latest object flags
- * before depsgraph is fully updated.
- *
- * It should (ideally) only run for copy-on-written objects since this is
- * runtime data generated per-viewlayer.
- */
 void BKE_scene_object_base_flag_sync_from_base(Base *base)
 {
   Object *ob = base->object;
@@ -3044,10 +2990,6 @@ int BKE_render_preview_pixel_size(const RenderData *r)
   return r->preview_pixel_size;
 }
 
-/**
- * Apply the needed correction factor to value, based on unit_type
- * (only length-related are affected currently) and unit->scale_length.
- */
 double BKE_scene_unit_scale(const UnitSettings *unit, const int unit_type, double value)
 {
   if (unit->system == USER_UNIT_NONE) {
@@ -3122,7 +3064,6 @@ bool BKE_scene_multiview_is_stereo3d(const RenderData *rd)
           ((srv[1]->viewflag & SCE_VIEW_DISABLE) == 0));
 }
 
-/* return whether to render this SceneRenderView */
 bool BKE_scene_multiview_is_render_view_active(const RenderData *rd, const SceneRenderView *srv)
 {
   if (srv == NULL) {
@@ -3149,7 +3090,6 @@ bool BKE_scene_multiview_is_render_view_active(const RenderData *rd, const Scene
   return false;
 }
 
-/* return true if viewname is the first or if the name is NULL or not found */
 bool BKE_scene_multiview_is_render_view_first(const RenderData *rd, const char *viewname)
 {
   SceneRenderView *srv;
@@ -3171,7 +3111,6 @@ bool BKE_scene_multiview_is_render_view_first(const RenderData *rd, const char *
   return true;
 }
 
-/* return true if viewname is the last or if the name is NULL or not found */
 bool BKE_scene_multiview_is_render_view_last(const RenderData *rd, const char *viewname)
 {
   SceneRenderView *srv;
@@ -3255,12 +3194,6 @@ void BKE_scene_multiview_filepath_get(SceneRenderView *srv, const char *filepath
   BLI_path_suffix(r_filepath, FILE_MAX, srv->suffix, "");
 }
 
-/**
- * When multiview is not used the filepath is as usual (e.g., `Image.jpg`).
- * When multiview is on, even if only one view is enabled the view is incorporated
- * into the file name (e.g., `Image_L.jpg`). That allows for the user to re-render
- * individual views.
- */
 void BKE_scene_multiview_view_filepath_get(const RenderData *rd,
                                            const char *filepath,
                                            const char *viewname,
@@ -3648,10 +3581,6 @@ TransformOrientation *BKE_scene_transform_orientation_find(const Scene *scene, c
   return BLI_findlink(&scene->transform_spaces, index);
 }
 
-/**
- * \return the index that \a orientation has within \a scene's transform-orientation list
- * or -1 if not found.
- */
 int BKE_scene_transform_orientation_get_index(const Scene *scene,
                                               const TransformOrientation *orientation)
 {

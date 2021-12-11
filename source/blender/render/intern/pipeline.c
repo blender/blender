@@ -338,7 +338,6 @@ Render *RE_GetRender(const char *name)
   return re;
 }
 
-/* if you want to know exactly what has been done */
 RenderResult *RE_AcquireResultRead(Render *re)
 {
   if (re) {
@@ -383,7 +382,6 @@ void RE_ReleaseResult(Render *re)
   }
 }
 
-/* displist.c util.... */
 Scene *RE_GetScene(Render *re)
 {
   if (re) {
@@ -399,11 +397,6 @@ void RE_SetScene(Render *re, Scene *sce)
   }
 }
 
-/**
- * Same as #RE_AcquireResultImage but creating the necessary views to store the result
- * fill provided result struct with a copy of thew views of what is done so far the
- * #RenderResult.views #ListBase needs to be freed after with #RE_ReleaseResultImageViews
- */
 void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
 {
   memset(rr, 0, sizeof(RenderResult));
@@ -449,7 +442,6 @@ void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
   }
 }
 
-/* clear temporary renderresult struct */
 void RE_ReleaseResultImageViews(Render *re, RenderResult *rr)
 {
   if (re) {
@@ -460,9 +452,6 @@ void RE_ReleaseResultImageViews(Render *re, RenderResult *rr)
   }
 }
 
-/* fill provided result struct with what's currently active or done */
-/* this RenderResult struct is the only exception to the rule of a RenderResult */
-/* always having at least one RenderView */
 void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
 {
   memset(rr, 0, sizeof(RenderResult));
@@ -516,7 +505,6 @@ void RE_ReleaseResultImage(Render *re)
   }
 }
 
-/* caller is responsible for allocating rect in correct size! */
 void RE_ResultGet32(Render *re, unsigned int *rect)
 {
   RenderResult rres;
@@ -533,8 +521,6 @@ void RE_ResultGet32(Render *re, unsigned int *rect)
   RE_ReleaseResultImageViews(re, &rres);
 }
 
-/* caller is responsible for allocating rect in correct size! */
-/* Only for acquired results, for lock */
 void RE_AcquiredResultGet32(Render *re,
                             RenderResult *result,
                             unsigned int *rect,
@@ -603,8 +589,6 @@ Render *RE_NewSceneRender(const Scene *scene)
   return RE_NewRender(render_name);
 }
 
-/* called for new renders and when finishing rendering so
- * we always have valid callbacks on a render */
 void RE_InitRenderCB(Render *re)
 {
   /* set default empty callbacks */
@@ -624,7 +608,6 @@ void RE_InitRenderCB(Render *re)
   re->dih = re->dch = re->duh = re->sdh = re->prh = re->tbh = NULL;
 }
 
-/* only call this while you know it will remove the link too */
 void RE_FreeRender(Render *re)
 {
   if (re->engine) {
@@ -655,7 +638,6 @@ void RE_FreeRender(Render *re)
   MEM_freeN(re);
 }
 
-/* exit blender */
 void RE_FreeAllRender(void)
 {
   while (RenderGlobal.renderlist.first) {
@@ -668,7 +650,6 @@ void RE_FreeAllRender(void)
 #endif
 }
 
-/* on file load, free all re */
 void RE_FreeAllRenderResults(void)
 {
   Render *re;
@@ -769,8 +750,6 @@ void render_copy_renderdata(RenderData *to, RenderData *from)
   BKE_curvemapping_copy_data(&to->mblur_shutter_curve, &from->mblur_shutter_curve);
 }
 
-/* what doesn't change during entire render sequence */
-/* disprect is optional, if NULL it assumes full window render */
 void RE_InitState(Render *re,
                   Render *source,
                   RenderData *rd,
@@ -874,8 +853,6 @@ void RE_InitState(Render *re,
   RE_point_density_fix_linking();
 }
 
-/* update some variables that can be animated, and otherwise wouldn't be due to
- * RenderData getting copied once at the start of animation render */
 void render_update_anim_renderdata(Render *re, RenderData *rd, ListBase *render_layers)
 {
   /* filter */
@@ -897,7 +874,6 @@ void render_update_anim_renderdata(Render *re, RenderData *rd, ListBase *render_
   BLI_duplicatelist(&re->r.views, &rd->views);
 }
 
-/* image and movie output has to move to either imbuf or kernel */
 void RE_display_init_cb(Render *re, void *handle, void (*f)(void *handle, RenderResult *rr))
 {
   re->display_init = f;
@@ -1834,7 +1810,6 @@ static void render_pipeline_free(Render *re)
   }
 }
 
-/* general Blender frame render call */
 void RE_RenderFrame(Render *re,
                     Main *bmain,
                     Scene *scene,
@@ -2280,7 +2255,6 @@ static void re_movie_free_all(Render *re, bMovieHandle *mh, int totvideos)
   MEM_SAFE_FREE(re->movie_ctx_arr);
 }
 
-/* saves images to disk */
 void RE_RenderAnim(Render *re,
                    Main *bmain,
                    Scene *scene,
@@ -2583,7 +2557,6 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 
 /* NOTE: repeated win/disprect calc... solve that nicer, also in compo. */
 
-/* only the temp file! */
 bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
 {
   Render *re;
@@ -2635,8 +2608,6 @@ void RE_init_threadcount(Render *re)
   re->r.threads = BKE_render_num_threads(&re->r);
 }
 
-/* loads in image into a result, size must match
- * x/y offsets are only used on a partial copy when dimensions don't match */
 void RE_layer_load_from_file(
     RenderLayer *layer, ReportList *reports, const char *filename, int x, int y)
 {
@@ -2712,7 +2683,6 @@ void RE_result_load_from_file(RenderResult *result, ReportList *reports, const c
   }
 }
 
-/* Used in the interface to decide whether to show layers or passes. */
 bool RE_layers_have_name(struct RenderResult *rr)
 {
   switch (BLI_listbase_count_at_most(&rr->layers, 2)) {
@@ -2754,7 +2724,6 @@ RenderPass *RE_pass_find_by_name(volatile RenderLayer *rl, const char *name, con
   return rp;
 }
 
-/* Only provided for API compatibility, don't use this in new code! */
 RenderPass *RE_pass_find_by_type(volatile RenderLayer *rl, int passtype, const char *viewname)
 {
 #define CHECK_PASS(NAME) \
@@ -2793,7 +2762,6 @@ RenderPass *RE_pass_find_by_type(volatile RenderLayer *rl, int passtype, const c
   return NULL;
 }
 
-/* create a renderlayer and renderpass for grease pencil layer */
 RenderPass *RE_create_gp_pass(RenderResult *rr, const char *layername, const char *viewname)
 {
   RenderLayer *rl = BLI_findstring(&rr->layers, layername, offsetof(RenderLayer, name));

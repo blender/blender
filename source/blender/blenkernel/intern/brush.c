@@ -646,10 +646,6 @@ static void brush_defaults(Brush *brush)
 
 /* Datablock add/copy/free/make_local */
 
-/**
- * \note Resulting brush will have two users: one as a fake user,
- * another is assumed to be used by the caller.
- */
 Brush *BKE_brush_add(Main *bmain, const char *name, const eObjectMode ob_mode)
 {
   Brush *brush;
@@ -661,7 +657,6 @@ Brush *BKE_brush_add(Main *bmain, const char *name, const eObjectMode ob_mode)
   return brush;
 }
 
-/* add grease pencil settings */
 void BKE_brush_init_gpencil_settings(Brush *brush)
 {
   if (brush->gpencil_settings == NULL) {
@@ -689,7 +684,6 @@ void BKE_brush_init_gpencil_settings(Brush *brush)
   brush->gpencil_settings->curve_rand_value = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-/* add a new gp-brush */
 Brush *BKE_brush_add_gpencil(Main *bmain, ToolSettings *ts, const char *name, eObjectMode mode)
 {
   Paint *paint = NULL;
@@ -729,7 +723,6 @@ Brush *BKE_brush_add_gpencil(Main *bmain, ToolSettings *ts, const char *name, eO
   return brush;
 }
 
-/* Delete a Brush. */
 bool BKE_brush_delete(Main *bmain, Brush *brush)
 {
   if (brush->id.tag & LIB_TAG_INDIRECT) {
@@ -1463,7 +1456,6 @@ static Brush *gpencil_brush_ensure(
   return brush;
 }
 
-/* Create a set of grease pencil Drawing presets. */
 void BKE_brush_gpencil_paint_presets(Main *bmain, ToolSettings *ts, const bool reset)
 {
   bool r_new = false;
@@ -1565,7 +1557,6 @@ void BKE_brush_gpencil_paint_presets(Main *bmain, ToolSettings *ts, const bool r
   }
 }
 
-/* Create a set of grease pencil Vertex Paint presets. */
 void BKE_brush_gpencil_vertex_presets(Main *bmain, ToolSettings *ts, const bool reset)
 {
   bool r_new = false;
@@ -1612,7 +1603,6 @@ void BKE_brush_gpencil_vertex_presets(Main *bmain, ToolSettings *ts, const bool 
   }
 }
 
-/* Create a set of grease pencil Sculpt Paint presets. */
 void BKE_brush_gpencil_sculpt_presets(Main *bmain, ToolSettings *ts, const bool reset)
 {
   bool r_new = false;
@@ -1687,7 +1677,6 @@ void BKE_brush_gpencil_sculpt_presets(Main *bmain, ToolSettings *ts, const bool 
   }
 }
 
-/* Create a set of grease pencil Weight Paint presets. */
 void BKE_brush_gpencil_weight_presets(Main *bmain, ToolSettings *ts, const bool reset)
 {
   bool r_new = false;
@@ -2212,9 +2201,6 @@ void BKE_brush_sculpt_reset(Brush *br)
   }
 }
 
-/**
- * Library Operations
- */
 void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset)
 {
   CurveMapping *cumap = NULL;
@@ -2232,10 +2218,6 @@ void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset)
   BKE_curvemapping_changed(cumap, false);
 }
 
-/* Generic texture sampler for 3D painting systems. point has to be either in
- * region space mouse coordinates, or 3d world coordinates for 3D mapping.
- *
- * rgba outputs straight alpha. */
 float BKE_brush_sample_tex_3d(const Scene *scene,
                               const Brush *br,
                               const float point[3],
@@ -2759,7 +2741,6 @@ void BKE_brush_weight_set(const Scene *scene, Brush *brush, float value)
   }
 }
 
-/* scale unprojected radius to reflect a change in the brush's 2D size */
 void BKE_brush_scale_unprojected_radius(float *unprojected_radius,
                                         int new_brush_size,
                                         int old_brush_size)
@@ -2772,7 +2753,6 @@ void BKE_brush_scale_unprojected_radius(float *unprojected_radius,
   (*unprojected_radius) *= scale;
 }
 
-/* scale brush size to reflect a change in the brush's unprojected radius */
 void BKE_brush_scale_size(int *r_brush_size,
                           float new_unprojected_radius,
                           float old_unprojected_radius)
@@ -2873,13 +2853,12 @@ float BKE_brush_curve_strength_ex(int curve_preset,
   return strength;
 }
 
-/* Uses the brush curve control to find a strength value */
+/* Uses the brush curve control to find a strength value between 0 and 1 */
 float BKE_brush_curve_strength(const Brush *br, float p, const float len)
 {
   return BKE_brush_curve_strength_ex(br->curve_preset, br->curve, p, len);
 }
 
-/* Uses the brush curve control to find a strength value between 0 and 1 */
 float BKE_brush_curve_strength_clamped(const Brush *br, float p, const float len)
 {
   float strength = BKE_brush_curve_strength(br, p, len);
@@ -2922,7 +2901,6 @@ unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side, bool use_sec
   return texcache;
 }
 
-/**** Radial Control ****/
 struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool display_gradient)
 {
   ImBuf *im = MEM_callocN(sizeof(ImBuf), "radial control texture");

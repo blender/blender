@@ -1095,10 +1095,6 @@ static void singleuser_world_fn(bContext *C,
   }
 }
 
-/**
- * \param recurse_selected: Set to false for operations which are already
- * recursively operating on their children.
- */
 void outliner_do_object_operation_ex(bContext *C,
                                      ReportList *reports,
                                      Scene *scene_act,
@@ -2984,7 +2980,6 @@ static int outliner_operation(bContext *C, wmOperator *op, const wmEvent *event)
   return do_outliner_operation_event(C, op->reports, region, space_outliner, hovered_te);
 }
 
-/* Menu only! Calls other operators */
 void OUTLINER_OT_operation(wmOperatorType *ot)
 {
   ot->name = "Context Menu";

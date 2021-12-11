@@ -199,7 +199,6 @@ static void userpref_execute_region_listener(const wmRegionListenerParams *UNUSE
 {
 }
 
-/* only called once, from space/spacetypes.c */
 void ED_spacetype_userpref(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype userpref");

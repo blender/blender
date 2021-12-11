@@ -75,7 +75,6 @@ bNodeSocket *node_group_find_output_socket(bNode *groupnode, const char *identif
   return nullptr;
 }
 
-/* groups display their internal tree name as label */
 void node_group_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
 {
   BLI_strncpy(label, (node->id) ? node->id->name + 2 : IFACE_("Missing Data-Block"), maxlen);
@@ -124,39 +123,46 @@ bool nodeGroupPoll(bNodeTree *nodetree, bNodeTree *grouptree, const char **r_dis
 /* used for both group nodes and interface nodes */
 static bNodeSocket *group_verify_socket(bNodeTree *ntree,
                                         bNode *gnode,
-                                        bNodeSocket *iosock,
+                                        const bNodeSocket *interface_socket,
                                         ListBase *verify_lb,
                                         eNodeSocketInOut in_out)
 {
   bNodeSocket *sock;
 
   for (sock = (bNodeSocket *)verify_lb->first; sock; sock = sock->next) {
-    if (STREQ(sock->identifier, iosock->identifier)) {
+    if (STREQ(sock->identifier, interface_socket->identifier)) {
       break;
     }
   }
   if (sock) {
-    strcpy(sock->name, iosock->name);
+    strcpy(sock->name, interface_socket->name);
 
     const int mask = SOCK_HIDE_VALUE;
-    sock->flag = (sock->flag & ~mask) | (iosock->flag & mask);
+    sock->flag = (sock->flag & ~mask) | (interface_socket->flag & mask);
 
     /* Update socket type if necessary */
-    if (sock->typeinfo != iosock->typeinfo) {
-      nodeModifySocketType(ntree, gnode, sock, iosock->idname);
+    if (sock->typeinfo != interface_socket->typeinfo) {
+      nodeModifySocketType(ntree, gnode, sock, interface_socket->idname);
       /* Flag the tree to make sure link validity is updated after type changes. */
       ntree->update |= NTREE_UPDATE_LINKS;
     }
 
-    if (iosock->typeinfo->interface_verify_socket) {
-      iosock->typeinfo->interface_verify_socket(ntree, iosock, gnode, sock, "interface");
+    if (interface_socket->typeinfo->interface_verify_socket) {
+      interface_socket->typeinfo->interface_verify_socket(
+          ntree, interface_socket, gnode, sock, "interface");
     }
   }
   else {
-    sock = nodeAddSocket(ntree, gnode, in_out, iosock->idname, iosock->identifier, iosock->name);
+    sock = nodeAddSocket(ntree,
+                         gnode,
+                         in_out,
+                         interface_socket->idname,
+                         interface_socket->identifier,
+                         interface_socket->name);
 
-    if (iosock->typeinfo->interface_init_socket) {
-      iosock->typeinfo->interface_init_socket(ntree, iosock, gnode, sock, "interface");
+    if (interface_socket->typeinfo->interface_init_socket) {
+      interface_socket->typeinfo->interface_init_socket(
+          ntree, interface_socket, gnode, sock, "interface");
     }
   }
 
@@ -197,7 +203,6 @@ static void group_verify_socket_list(bNodeTree *ntree,
   }
 }
 
-/* make sure all group node in ntree, which use ngroup, are sync'd */
 void node_group_update(struct bNodeTree *ntree, struct bNode *node)
 {
   /* check inputs and outputs, and remove or insert them */
@@ -305,9 +310,6 @@ static void propagate_reroute_type_from_start_socket(
   }
 }
 
-/* Global update function for Reroute node types.
- * This depends on connected nodes, so must be done as a tree-wide update.
- */
 void ntree_update_reroute_nodes(bNodeTree *ntree)
 {
   /* Contains nodes that are linked to at least one reroute node. */

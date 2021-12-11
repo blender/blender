@@ -249,36 +249,114 @@ typedef struct GpencilModifierTypeInfo {
 
 #define GPENCIL_MODIFIER_TYPE_PANEL_PREFIX "MOD_PT_gpencil_"
 
-/* Initialize modifier's global data (type info and some common global storage). */
+/**
+ * Initialize modifier's global data (type info and some common global storage).
+ */
 void BKE_gpencil_modifier_init(void);
 
+/**
+ * Get the idname of the modifier type's panel, which was defined in the #panelRegister callback.
+ *
+ * \param type: Type of modifier.
+ * \param r_idname: ID name.
+ */
 void BKE_gpencil_modifierType_panel_id(GpencilModifierType type, char *r_idname);
 void BKE_gpencil_modifier_panel_expand(struct GpencilModifierData *md);
+/**
+ * Get grease pencil modifier information.
+ * \param type: Type of modifier.
+ * \return Pointer to type
+ */
 const GpencilModifierTypeInfo *BKE_gpencil_modifier_get_info(GpencilModifierType type);
+/**
+ * Create new grease pencil modifier.
+ * \param type: Type of modifier.
+ * \return New modifier pointer.
+ */
 struct GpencilModifierData *BKE_gpencil_modifier_new(int type);
+/**
+ * Free grease pencil modifier data
+ * \param md: Modifier data.
+ * \param flag: Flags.
+ */
 void BKE_gpencil_modifier_free_ex(struct GpencilModifierData *md, const int flag);
+/**
+ * Free grease pencil modifier data
+ * \param md: Modifier data.
+ */
 void BKE_gpencil_modifier_free(struct GpencilModifierData *md);
+/* check unique name */
 bool BKE_gpencil_modifier_unique_name(struct ListBase *modifiers, struct GpencilModifierData *gmd);
+/**
+ * Check if grease pencil modifier depends on time.
+ * \param md: Modifier data.
+ * \return True if depends on time.
+ */
 bool BKE_gpencil_modifier_depends_ontime(struct GpencilModifierData *md);
 struct GpencilModifierData *BKE_gpencil_modifiers_findby_type(struct Object *ob,
                                                               GpencilModifierType type);
+/**
+ * Find grease pencil modifier by name.
+ * \param ob: Grease pencil object.
+ * \param name: Name to find.
+ * \return Pointer to modifier.
+ */
 struct GpencilModifierData *BKE_gpencil_modifiers_findby_name(struct Object *ob, const char *name);
+/**
+ * Generic grease pencil modifier copy data.
+ * \param md_src: Source modifier data.
+ * \param md_dst: Target modifier data.
+ */
 void BKE_gpencil_modifier_copydata_generic(const struct GpencilModifierData *md_src,
                                            struct GpencilModifierData *md_dst);
+/**
+ * Copy grease pencil modifier data.
+ * \param md: Source modifier data.
+ * \param target: Target modifier data.
+ */
 void BKE_gpencil_modifier_copydata(struct GpencilModifierData *md,
                                    struct GpencilModifierData *target);
+/**
+ * Copy grease pencil modifier data.
+ * \param md: Source modifier data.
+ * \param target: Target modifier data.
+ * \param flag: Flags.
+ */
 void BKE_gpencil_modifier_copydata_ex(struct GpencilModifierData *md,
                                       struct GpencilModifierData *target,
                                       const int flag);
+/**
+ * Set grease pencil modifier error.
+ * \param md: Modifier data.
+ * \param _format: Format.
+ */
 void BKE_gpencil_modifier_set_error(struct GpencilModifierData *md, const char *format, ...)
     ATTR_PRINTF_FORMAT(2, 3);
+/**
+ * Link grease pencil modifier related IDs.
+ * \param ob: Grease pencil object.
+ * \param walk: Walk option.
+ * \param userData: User data.
+ */
 void BKE_gpencil_modifiers_foreach_ID_link(struct Object *ob,
                                            GreasePencilIDWalkFunc walk,
                                            void *userData);
+/**
+ * Link grease pencil modifier related Texts.
+ * \param ob: Grease pencil object.
+ * \param walk: Walk option.
+ * \param userData: User data.
+ */
 void BKE_gpencil_modifiers_foreach_tex_link(struct Object *ob,
                                             GreasePencilTexWalkFunc walk,
                                             void *userData);
 
+/**
+ * Check whether given modifier is not local (i.e. from linked data) when the object is a library
+ * override.
+ *
+ * \param gmd: May be NULL, in which case we consider it as a non-local modifier case.
+ */
 bool BKE_gpencil_modifier_is_nonlocal_in_liboverride(const struct Object *ob,
                                                      const struct GpencilModifierData *gmd);
 
@@ -287,11 +365,30 @@ typedef struct GpencilVirtualModifierData {
   LatticeGpencilModifierData lmd;
 } GpencilVirtualModifierData;
 
+/**
+ * This is to include things that are not modifiers in the evaluation of the modifier stack,
+ * for example parenting to an armature or lattice without having a real modifier.
+ */
 struct GpencilModifierData *BKE_gpencil_modifiers_get_virtual_modifierlist(
     const struct Object *ob, struct GpencilVirtualModifierData *data);
 
+/**
+ * Check if object has grease pencil Geometry modifiers.
+ * \param ob: Grease pencil object.
+ * \return True if exist.
+ */
 bool BKE_gpencil_has_geometry_modifiers(struct Object *ob);
+/**
+ * Check if object has grease pencil Time modifiers.
+ * \param ob: Grease pencil object.
+ * \return True if exist.
+ */
 bool BKE_gpencil_has_time_modifiers(struct Object *ob);
+/**
+ * Check if object has grease pencil transform stroke modifiers.
+ * \param ob: Grease pencil object.
+ * \return True if exist.
+ */
 bool BKE_gpencil_has_transform_modifiers(struct Object *ob);
 
 /* Stores the maximum calculation range in the whole modifier stack for line art so the cache can
@@ -310,21 +407,52 @@ void BKE_gpencil_set_lineart_modifier_limits(struct GpencilModifierData *md,
 bool BKE_gpencil_is_first_lineart_in_stack(const struct Object *ob,
                                            const struct GpencilModifierData *md);
 
+/**
+ * Init grease pencil lattice deform data.
+ * \param ob: Grease pencil object.
+ */
 void BKE_gpencil_lattice_init(struct Object *ob);
+/**
+ * Clear grease pencil lattice deform data.
+ * \param ob: Grease pencil object.
+ */
 void BKE_gpencil_lattice_clear(struct Object *ob);
 
+/**
+ * Calculate grease-pencil modifiers.
+ * \param depsgraph: Current depsgraph.
+ * \param scene: Current scene.
+ * \param ob: Grease pencil object.
+ */
 void BKE_gpencil_modifiers_calc(struct Depsgraph *depsgraph,
                                 struct Scene *scene,
                                 struct Object *ob);
 
+/**
+ * Prepare grease pencil eval data for modifiers
+ * \param depsgraph: Current depsgraph.
+ * \param scene: Current scene.
+ * \param ob: Grease pencil object.
+ */
 void BKE_gpencil_prepare_eval_data(struct Depsgraph *depsgraph,
                                    struct Scene *scene,
                                    struct Object *ob);
 
+/**
+ * Get the current frame re-timed with time modifiers.
+ * \param depsgraph: Current depsgraph.
+ * \param scene: Current scene.
+ * \param ob: Grease pencil object.
+ * \param gpl: Grease pencil layer.
+ * \return New frame number.
+ */
 struct bGPDframe *BKE_gpencil_frame_retime_get(struct Depsgraph *depsgraph,
                                                struct Scene *scene,
                                                struct Object *ob,
                                                struct bGPDlayer *gpl);
+/**
+ * Get Time modifier frame number.
+ */
 int BKE_gpencil_time_modifier_cfra(struct Depsgraph *depsgraph,
                                    struct Scene *scene,
                                    struct Object *ob,

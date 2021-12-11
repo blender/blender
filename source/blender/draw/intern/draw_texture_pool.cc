@@ -40,7 +40,7 @@ struct DRWTexturePool {
   int last_user_id = -1;
 };
 
-DRWTexturePool *DRW_texture_pool_create(void)
+DRWTexturePool *DRW_texture_pool_create()
 {
   return new DRWTexturePool();
 }
@@ -53,10 +53,6 @@ void DRW_texture_pool_free(DRWTexturePool *pool)
   delete pool;
 }
 
-/**
- * Try to find a texture corresponding to params into the texture pool.
- * If no texture was found, create one and add it to the pool.
- */
 GPUTexture *DRW_texture_pool_query(
     DRWTexturePool *pool, int width, int height, eGPUTextureFormat format, void *user)
 {
@@ -113,7 +109,6 @@ GPUTexture *DRW_texture_pool_query(
   return handle.texture;
 }
 
-/* Resets the user bits for each texture in the pool and delete unused ones. */
 void DRW_texture_pool_reset(DRWTexturePool *pool)
 {
   pool->last_user_id = -1;

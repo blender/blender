@@ -452,14 +452,6 @@ static void handle_subversion_warning(Main *main, BlendFileReadReport *reports)
   }
 }
 
-/**
- * Shared setup function that makes the data from `bfd` into the current blend file,
- * replacing the contents of #G.main.
- * This uses the bfd #BKE_blendfile_read and similarly named functions.
- *
- * This is done in a separate step so the caller may perform actions after it is known the file
- * loaded correctly but before the file replaces the existing blend file contents.
- */
 void BKE_blendfile_read_setup_ex(bContext *C,
                                  BlendFileData *bfd,
                                  const struct BlendFileReadParams *params,
@@ -485,9 +477,6 @@ void BKE_blendfile_read_setup(bContext *C,
   BKE_blendfile_read_setup_ex(C, bfd, params, reports, false, NULL);
 }
 
-/**
- * \return Blend file data, this must be passed to #BKE_blendfile_read_setup when non-NULL.
- */
 struct BlendFileData *BKE_blendfile_read(const char *filepath,
                                          const struct BlendFileReadParams *params,
                                          BlendFileReadReport *reports)
@@ -507,9 +496,6 @@ struct BlendFileData *BKE_blendfile_read(const char *filepath,
   return bfd;
 }
 
-/**
- * \return Blend file data, this must be passed to #BKE_blendfile_read_setup when non-NULL.
- */
 struct BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
                                                      int filelength,
                                                      const struct BlendFileReadParams *params,
@@ -525,10 +511,6 @@ struct BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
   return bfd;
 }
 
-/**
- * \return Blend file data, this must be passed to #BKE_blendfile_read_setup when non-NULL.
- * \note `memfile` is the undo buffer.
- */
 struct BlendFileData *BKE_blendfile_read_from_memfile(Main *bmain,
                                                       struct MemFile *memfile,
                                                       const struct BlendFileReadParams *params,
@@ -551,10 +533,6 @@ struct BlendFileData *BKE_blendfile_read_from_memfile(Main *bmain,
   return bfd;
 }
 
-/**
- * Utility to make a file 'empty' used for startup to optionally give an empty file.
- * Handy for tests.
- */
 void BKE_blendfile_read_make_empty(bContext *C)
 {
   Main *bmain = CTX_data_main(C);
@@ -573,7 +551,6 @@ void BKE_blendfile_read_make_empty(bContext *C)
   FOREACH_MAIN_LISTBASE_END;
 }
 
-/* only read the userdef from a .blend */
 UserDef *BKE_blendfile_userdef_read(const char *filepath, ReportList *reports)
 {
   BlendFileData *bfd;
@@ -676,10 +653,6 @@ UserDef *BKE_blendfile_userdef_from_defaults(void)
   return userdef;
 }
 
-/**
- * Only write the userdef in a .blend
- * \return success
- */
 bool BKE_blendfile_userdef_write(const char *filepath, ReportList *reports)
 {
   Main *mainb = MEM_callocN(sizeof(Main), "empty main");
@@ -700,13 +673,6 @@ bool BKE_blendfile_userdef_write(const char *filepath, ReportList *reports)
   return ok;
 }
 
-/**
- * Only write the userdef in a .blend, merging with the existing blend file.
- * \return success
- *
- * \note In the future we should re-evaluate user preferences,
- * possibly splitting out system/hardware specific prefs.
- */
 bool BKE_blendfile_userdef_write_app_template(const char *filepath, ReportList *reports)
 {
   /* if it fails, overwrite is OK. */
@@ -877,10 +843,6 @@ static void blendfile_write_partial_cb(void *UNUSED(handle), Main *UNUSED(bmain)
   }
 }
 
-/**
- * \param remap_mode: Choose the kind of path remapping or none #eBLO_WritePathRemap.
- * \return Success.
- */
 bool BKE_blendfile_write_partial(Main *bmain_src,
                                  const char *filepath,
                                  const int write_flags,

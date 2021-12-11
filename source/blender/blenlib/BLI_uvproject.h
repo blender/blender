@@ -26,16 +26,26 @@ extern "C" {
 struct Object;
 struct ProjCameraInfo;
 
-/* create uv info from the camera, needs to be freed */
+/**
+ * Create UV info from the camera, needs to be freed.
+ *
+ * \param rotmat: can be `obedit->obmat` when uv project is used.
+ * \param winx, winy: can be from `scene->r.xsch / ysch`.
+ */
 struct ProjCameraInfo *BLI_uvproject_camera_info(struct Object *ob,
                                                  float rotmat[4][4],
                                                  float winx,
                                                  float winy);
 
-/* apply uv from uvinfo (camera) */
+/**
+ * Apply UV from uvinfo (camera).
+ */
 void BLI_uvproject_from_camera(float target[2], float source[3], struct ProjCameraInfo *uci);
 
-/* apply uv from perspective matrix */
+/**
+ * Apply uv from perspective matrix.
+ * \param persmat: Can be `rv3d->persmat`.
+ */
 void BLI_uvproject_from_view(float target[2],
                              float source[3],
                              float persmat[4][4],
@@ -43,10 +53,14 @@ void BLI_uvproject_from_view(float target[2],
                              float winx,
                              float winy);
 
-/* apply ortho uv's */
+/**
+ * Apply orthographic UV's.
+ */
 void BLI_uvproject_from_view_ortho(float target[2], float source[3], const float rotmat[4][4]);
 
-/* so we can adjust scale with keeping the struct private */
+/**
+ * So we can adjust scale with keeping the struct private.
+ */
 void BLI_uvproject_camera_info_scale(struct ProjCameraInfo *uci, float scale_x, float scale_y);
 
 #ifdef __cplusplus

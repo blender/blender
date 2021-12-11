@@ -61,11 +61,19 @@ void color3ubv_from_seq(const struct Scene *curscene,
                         uchar r_col[3]);
 
 void sequencer_special_update_set(Sequence *seq);
+/* Get handle width in 2d-View space. */
 float sequence_handle_size_get_clamped(struct Sequence *seq, const float pixelx);
 
 /* UNUSED */
 /* void seq_reset_imageofs(struct SpaceSeq *sseq); */
 
+/**
+ * Rendering using opengl will change the current viewport/context.
+ * This is why we need the \a region, to set back the render area.
+ *
+ * TODO: do not rely on such hack and just update the \a ibuf outside of
+ * the UI drawing code.
+ */
 struct ImBuf *sequencer_ibuf_get(struct Main *bmain,
                                  struct ARegion *region,
                                  struct Depsgraph *depsgraph,

@@ -42,9 +42,11 @@
 
 // #define DEBUG_STRSIZE
 
-/* array copied from glib's gutf8.c, */
-/* NOTE: last two values (0xfe and 0xff) are forbidden in utf-8,
- * so they are considered 1 byte length too. */
+/**
+ * Array copied from GLIB's `gutf8.c`.
+ * \note last two values (0xfe and 0xff) are forbidden in UTF-8,
+ * so they are considered 1 byte length too.
+ */
 static const size_t utf8_skip_data[256] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -56,22 +58,18 @@ static const size_t utf8_skip_data[256] = {
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 1, 1,
 };
 
-/* from libswish3, originally called u8_isvalid(),
- * modified to return the index of the bad character (byte index not utf).
- * http://svn.swish-e.org/libswish3/trunk/src/libswish3/utf8.c r3044 - campbell */
-
-/* based on the valid_utf8 routine from the PCRE library by Philip Hazel
- *
- * length is in bytes, since without knowing whether the string is valid
- * it's hard to know how many characters there are! */
-
-/**
- * Find first utf-8 invalid byte in given \a str, of \a length bytes.
- *
- * \return the offset of the first invalid byte.
- */
 ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
 {
+  /* NOTE(@campbellbarton): from libswish3, originally called u8_isvalid(),
+   * modified to return the index of the bad character (byte index not UTF).
+   * http://svn.swish-e.org/libswish3/trunk/src/libswish3/utf8.c r3044.
+   *
+   * Comment from code in: `libswish3`.
+   * Based on the `valid_utf8` routine from the PCRE library by Philip Hazel
+   *
+   * length is in bytes, since without knowing whether the string is valid
+   * it's hard to know how many characters there are! */
+
   const unsigned char *p, *perr, *pend = (const unsigned char *)str + length;
   unsigned char c;
   int ab;
@@ -195,11 +193,6 @@ utf8_error:
   return ((const char *)perr - (const char *)str);
 }
 
-/**
- * Remove any invalid utf-8 byte (taking into account multi-bytes sequence of course).
- *
- * \return number of stripped bytes.
- */
 int BLI_str_utf8_invalid_strip(char *str, size_t length)
 {
   ptrdiff_t bad_char;
@@ -312,7 +305,6 @@ size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
   return len;
 }
 
-/* wchar len in utf8 */
 size_t BLI_wstrlen_utf8(const wchar_t *src)
 {
   size_t len = 0;
@@ -362,11 +354,6 @@ size_t BLI_strnlen_utf8_ex(const char *strc, const size_t maxlen, size_t *r_len_
   return len;
 }
 
-/**
- * \param strc: the string to measure the length.
- * \param maxlen: the string length (in bytes)
- * \return the unicode length (not in bytes!)
- */
 size_t BLI_strnlen_utf8(const char *strc, const size_t maxlen)
 {
   size_t len_bytes;
@@ -388,8 +375,6 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
 
 /* end wchar_t / utf8 functions */
 /* --------------------------------------------------------------------------*/
-
-/* count columns that character/string occupies, based on wcwidth.c */
 
 int BLI_wcwidth(char32_t ucs)
 {
@@ -475,10 +460,10 @@ int BLI_str_utf8_char_width_safe(const char *p)
   } \
   (void)0
 
-/* uses glib functions but not from glib */
-/* gets the size of a single utf8 char */
 int BLI_str_utf8_size(const char *p)
 {
+  /* NOTE: uses glib functions but not from GLIB. */
+
   int mask = 0, len;
   const unsigned char c = (unsigned char)*p;
 
@@ -489,7 +474,6 @@ int BLI_str_utf8_size(const char *p)
   return len;
 }
 
-/* use when we want to skip errors */
 int BLI_str_utf8_size_safe(const char *p)
 {
   int mask = 0, len;
@@ -502,21 +486,10 @@ int BLI_str_utf8_size_safe(const char *p)
   return len;
 }
 
-/* was g_utf8_get_char */
-/**
- * BLI_str_utf8_as_unicode:
- * \param p: a pointer to Unicode character encoded as UTF-8
- *
- * Converts a sequence of bytes encoded as UTF-8 to a Unicode character.
- * If \a p does not point to a valid UTF-8 encoded character, results are
- * undefined. If you are not sure that the bytes are complete
- * valid Unicode characters, you should use g_utf8_get_char_validated()
- * instead.
- *
- * Return value: the resulting character
- */
 uint BLI_str_utf8_as_unicode(const char *p)
 {
+  /* Originally `g_utf8_get_char` in GLIB. */
+
   int i, len;
   uint mask = 0;
   uint result;
@@ -531,19 +504,6 @@ uint BLI_str_utf8_as_unicode(const char *p)
   return result;
 }
 
-/**
- * UTF8 decoding that steps over the index (unless an error is encountered).
- *
- * \param p: The text to step over.
- * \param p_len: The length of `p`.
- * \param index: Index of `p` to step over.
- * \return the code-point or #BLI_UTF8_ERR if there is a decoding error.
- *
- * \note The behavior for clipped text (where `p_len` limits decoding trailing bytes)
- * must have the same behavior is encountering a nil byte,
- * so functions that only use the first part of a string has matching behavior to functions
- * that null terminate the text.
- */
 uint BLI_str_utf8_as_unicode_step_or_error(const char *__restrict p,
                                            const size_t p_len,
                                            size_t *__restrict index)
@@ -569,16 +529,6 @@ uint BLI_str_utf8_as_unicode_step_or_error(const char *__restrict p,
   return result;
 }
 
-/**
- * UTF8 decoding that steps over the index (unless an error is encountered).
- *
- * \param p: The text to step over.
- * \param p_len: The length of `p`.
- * \param index: Index of `p` to step over.
- * \return the code-point `(p + *index)` if there is a decoding error.
- *
- * \note Falls back to `LATIN1` for text drawing.
- */
 uint BLI_str_utf8_as_unicode_step(const char *__restrict p,
                                   const size_t p_len,
                                   size_t *__restrict index)
@@ -633,18 +583,6 @@ size_t BLI_str_utf8_from_unicode_len(const uint c)
   return len;
 }
 
-/**
- * BLI_str_utf8_from_unicode:
- *
- * \param c: a Unicode character code
- * \param outbuf: output buffer, must have at least `outbuf_len` bytes of space.
- * If the length required by `c` exceeds `outbuf_len`,
- * the bytes available bytes will be zeroed and `outbuf_len` returned.
- *
- * Converts a single character to UTF-8.
- *
- * \return number of bytes written.
- */
 size_t BLI_str_utf8_from_unicode(uint c, char *outbuf, const size_t outbuf_len)
 
 {
@@ -724,7 +662,6 @@ size_t BLI_str_utf32_as_utf8(char *__restrict dst,
   return len;
 }
 
-/* utf32 len in utf8 */
 size_t BLI_str_utf32_as_utf8_len(const char32_t *src)
 {
   size_t len = 0;
@@ -736,24 +673,10 @@ size_t BLI_str_utf32_as_utf8_len(const char32_t *src)
   return len;
 }
 
-/* was g_utf8_find_prev_char */
-/**
- * BLI_str_find_prev_char_utf8:
- * \param str: pointer to the beginning of a UTF-8 encoded string
- * \param p: pointer to some position within \a str
- *
- * Given a position \a p with a UTF-8 encoded string \a str, find the start
- * of the previous UTF-8 character starting before. \a p Returns \a str_start if no
- * UTF-8 characters are present in \a str_start before \a p.
- *
- * \a p does not have to be at the beginning of a UTF-8 character. No check
- * is made to see if the character found is actually valid other than
- * it starts with an appropriate byte.
- *
- * \return A pointer to the found character.
- */
 const char *BLI_str_find_prev_char_utf8(const char *p, const char *str_start)
 {
+  /* Originally `g_utf8_find_prev_char` in GLIB. */
+
   BLI_assert(p >= str_start);
   if (str_start < p) {
     for (--p; p >= str_start; p--) {
@@ -765,22 +688,10 @@ const char *BLI_str_find_prev_char_utf8(const char *p, const char *str_start)
   return p;
 }
 
-/* was g_utf8_find_next_char */
-/**
- * BLI_str_find_next_char_utf8:
- * \param p: a pointer to a position within a UTF-8 encoded string
- * \param end: a pointer to the byte following the end of the string.
- *
- * Finds the start of the next UTF-8 character in the string after \a p
- *
- * \a p does not have to be at the beginning of a UTF-8 character. No check
- * is made to see if the character found is actually valid other than
- * it starts with an appropriate byte.
- *
- * \return a pointer to the found character or a pointer to the null terminating character '\0'.
- */
 const char *BLI_str_find_next_char_utf8(const char *p, const char *str_end)
 {
+  /* Originally `g_utf8_find_next_char` in GLIB. */
+
   BLI_assert(p <= str_end);
   if ((p < str_end) && (*p != '\0')) {
     for (++p; p < str_end && (*p & 0xc0) == 0x80; p++) {

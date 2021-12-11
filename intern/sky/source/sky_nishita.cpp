@@ -26,7 +26,6 @@ static const float sqr_G = mie_G * mie_G;        // squared aerosols anisotropy
 static const float earth_radius = 6360e3f;       // radius of Earth (m)
 static const float atmosphere_radius = 6420e3f;  // radius of atmosphere (m)
 static const int steps = 32;                     // segments of primary ray
-static const int steps_light = 16;               // segments of sun connection ray
 static const int num_wavelengths = 21;           // number of wavelengths
 static const int min_wavelength = 380;           // lowest sampled wavelength (nm)
 static const int max_wavelength = 780;           // highest sampled wavelength (nm)
@@ -81,6 +80,34 @@ static const float cmf_xyz[][3] = {{0.00136800000f, 0.00003900000f, 0.0064500010
                                    {0.00069007860f, 0.00024920000f, 0.00000000000f},
                                    {0.00016615050f, 0.00006000000f, 0.00000000000f},
                                    {0.00004150994f, 0.00001499000f, 0.00000000000f}};
+
+/* Parameters for optical depth quadrature.
+ * See the comment in ray_optical_depth for more detail.
+ * Computed using sympy and following Python code:
+ * # from sympy.integrals.quadrature import gauss_laguerre
+ * # from sympy import exp
+ * # x, w = gauss_laguerre(8, 50)
+ * # xend = 25
+ * # print([(xi / xend).evalf(10) for xi in x])
+ * # print([(wi * exp(xi) / xend).evalf(10) for xi, wi in zip(x, w)])
+ */
+static const int quadrature_steps = 8;
+static const float quadrature_nodes[] = {0.006811185292f,
+                                         0.03614807107f,
+                                         0.09004346519f,
+                                         0.1706680068f,
+                                         0.2818362161f,
+                                         0.4303406404f,
+                                         0.6296271457f,
+                                         0.9145252695f};
+static const float quadrature_weights[] = {0.01750893642f,
+                                           0.04135477391f,
+                                           0.06678839063f,
+                                           0.09507698807f,
+                                           0.1283416365f,
+                                           0.1707430204f,
+                                           0.2327233347f,
+                                           0.3562490486f};
 
 static float3 geographical_to_direction(float lat, float lon)
 {
@@ -157,14 +184,19 @@ static float3 atmosphere_intersection(float3 pos, float3 dir)
 
 static float3 ray_optical_depth(float3 ray_origin, float3 ray_dir)
 {
-  /* this code computes the optical depth along a ray through the atmosphere */
+  /* This function computes the optical depth along a ray.
+   * Instead of using classic ray marching, the code is based on Gauss-Laguerre quadrature,
+   * which is designed to compute the integral of f(x)*exp(-x) from 0 to infinity.
+   * This works well here, since the optical depth along the ray tends to decrease exponentially.
+   * By setting f(x) = g(x) exp(x), the exponentials cancel out and we get the integral of g(x).
+   * The nodes and weights used here are the standard n=6 Gauss-Laguerre values, except that
+   * the exp(x) scaling factor is already included in the weights.
+   * The parametrization along the ray is scaled so that the last quadrature node is still within
+   * the atmosphere. */
   float3 ray_end = atmosphere_intersection(ray_origin, ray_dir);
   float ray_length = distance(ray_origin, ray_end);
 
-  /* to compute the optical depth, we step along the ray in segments and
-   * accumulate the optical depth along each segment */
-  float segment_length = ray_length / steps_light;
-  float3 segment = segment_length * ray_dir;
+  float3 segment = ray_length * ray_dir;
 
   /* instead of tracking the transmission spectrum across all wavelengths directly,
    * we use the fact that the density always has the same spectrum for each type of
@@ -172,23 +204,18 @@ static float3 ray_optical_depth(float3 ray_origin, float3 ray_dir)
    * only track the factors */
   float3 optical_depth = make_float3(0.0f, 0.0f, 0.0f);
 
-  /* the density of each segment is evaluated at its middle */
-  float3 P = ray_origin + 0.5f * segment;
+  for (int i = 0; i < quadrature_steps; i++) {
+    float3 P = ray_origin + quadrature_nodes[i] * segment;
 
-  for (int i = 0; i < steps_light; i++) {
     /* height above sea level */
     float height = len(P) - earth_radius;
 
-    /* accumulate optical depth of this segment (density is assumed to be constant along it) */
     float3 density = make_float3(
         density_rayleigh(height), density_mie(height), density_ozone(height));
-    optical_depth += density;
-
-    /* advance along ray */
-    P += segment;
+    optical_depth += density * quadrature_weights[i];
   }
 
-  return optical_depth * segment_length;
+  return optical_depth * ray_length;
 }
 
 static void single_scattering(float3 ray_dir,

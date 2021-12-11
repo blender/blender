@@ -74,8 +74,6 @@ StringRefNull AssetCatalogPath::name() const
   return StringRefNull(this->path_.c_str() + last_sep_index + 1);
 }
 
-/* In-class operators, because of the implicit `AssetCatalogPath(StringRef)` constructor.
- * Otherwise `string == string` could cast both sides to `AssetCatalogPath`. */
 bool AssetCatalogPath::operator==(const AssetCatalogPath &other_path) const
 {
   return this->path_ == other_path.path_;

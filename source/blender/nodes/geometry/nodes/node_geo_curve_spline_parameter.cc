@@ -202,29 +202,22 @@ static VArray<int> construct_index_on_spline_varray(const CurveEval &curve,
   return {};
 }
 
-class CurveParameterFieldInput final : public fn::FieldInput {
+class CurveParameterFieldInput final : public GeometryFieldInput {
  public:
-  CurveParameterFieldInput() : fn::FieldInput(CPPType::get<float>(), "Curve Parameter node")
+  CurveParameterFieldInput() : GeometryFieldInput(CPPType::get<float>(), "Curve Parameter node")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask mask,
-                                 ResourceScope &UNUSED(scope)) const final
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask mask) const final
   {
-    if (const GeometryComponentFieldContext *geometry_context =
-            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-
-      const GeometryComponent &component = geometry_context->geometry_component();
-      const AttributeDomain domain = geometry_context->domain();
-
-      if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-        const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-        const CurveEval *curve = curve_component.get_for_read();
-        if (curve) {
-          return construct_curve_parameter_varray(*curve, mask, domain);
-        }
+    if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
+      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+      const CurveEval *curve = curve_component.get_for_read();
+      if (curve) {
+        return construct_curve_parameter_varray(*curve, mask, domain);
       }
     }
     return {};
@@ -242,28 +235,22 @@ class CurveParameterFieldInput final : public fn::FieldInput {
   }
 };
 
-class CurveLengthFieldInput final : public fn::FieldInput {
+class CurveLengthFieldInput final : public GeometryFieldInput {
  public:
-  CurveLengthFieldInput() : fn::FieldInput(CPPType::get<float>(), "Curve Length node")
+  CurveLengthFieldInput() : GeometryFieldInput(CPPType::get<float>(), "Curve Length node")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask mask,
-                                 ResourceScope &UNUSED(scope)) const final
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask mask) const final
   {
-    if (const GeometryComponentFieldContext *geometry_context =
-            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-
-      const GeometryComponent &component = geometry_context->geometry_component();
-      const AttributeDomain domain = geometry_context->domain();
-      if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-        const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-        const CurveEval *curve = curve_component.get_for_read();
-        if (curve) {
-          return construct_curve_length_varray(*curve, mask, domain);
-        }
+    if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
+      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+      const CurveEval *curve = curve_component.get_for_read();
+      if (curve) {
+        return construct_curve_length_varray(*curve, mask, domain);
       }
     }
     return {};
@@ -281,28 +268,22 @@ class CurveLengthFieldInput final : public fn::FieldInput {
   }
 };
 
-class IndexOnSplineFieldInput final : public fn::FieldInput {
+class IndexOnSplineFieldInput final : public GeometryFieldInput {
  public:
-  IndexOnSplineFieldInput() : fn::FieldInput(CPPType::get<int>(), "Spline Index")
+  IndexOnSplineFieldInput() : GeometryFieldInput(CPPType::get<int>(), "Spline Index")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask mask,
-                                 ResourceScope &UNUSED(scope)) const final
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask mask) const final
   {
-    if (const GeometryComponentFieldContext *geometry_context =
-            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-
-      const GeometryComponent &component = geometry_context->geometry_component();
-      const AttributeDomain domain = geometry_context->domain();
-      if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-        const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-        const CurveEval *curve = curve_component.get_for_read();
-        if (curve) {
-          return construct_index_on_spline_varray(*curve, mask, domain);
-        }
+    if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
+      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+      const CurveEval *curve = curve_component.get_for_read();
+      if (curve) {
+        return construct_index_on_spline_varray(*curve, mask, domain);
       }
     }
     return {};

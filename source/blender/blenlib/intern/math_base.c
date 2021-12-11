@@ -42,10 +42,10 @@ int pow_i(int base, int exp)
   return result;
 }
 
-/* from python 3.1 floatobject.c
- * ndigits must be between 0 and 21 */
 double double_round(double x, int ndigits)
 {
+  /* From Python 3.1 `floatobject.c`. */
+
   double pow1, pow2, y, z;
   if (ndigits >= 0) {
     pow1 = pow(10.0, (double)ndigits);
@@ -79,15 +79,6 @@ double double_round(double x, int ndigits)
   return z;
 }
 
-/**
- * Floor to the nearest power of 10, e.g.:
- * - 15.0 -> 10.0
- * - 0.015 -> 0.01
- * - 1.0 -> 1.0
- *
- * \param f: Value to floor, must be over 0.0.
- * \note If we wanted to support signed values we could if this becomes necessary.
- */
 float floor_power_of_10(float f)
 {
   BLI_assert(!(f < 0.0f));
@@ -97,15 +88,6 @@ float floor_power_of_10(float f)
   return 0.0f;
 }
 
-/**
- * Ceiling to the nearest power of 10, e.g.:
- * - 15.0 -> 100.0
- * - 0.015 -> 0.1
- * - 1.0 -> 1.0
- *
- * \param f: Value to ceiling, must be over 0.0.
- * \note If we wanted to support signed values we could if this becomes necessary.
- */
 float ceil_power_of_10(float f)
 {
   BLI_assert(!(f < 0.0f));

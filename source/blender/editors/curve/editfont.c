@@ -2199,9 +2199,6 @@ void FONT_OT_unlink(wmOperatorType *ot)
   ot->exec = font_unlink_exec;
 }
 
-/**
- * TextBox selection
- */
 bool ED_curve_editfont_select_pick(
     bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {

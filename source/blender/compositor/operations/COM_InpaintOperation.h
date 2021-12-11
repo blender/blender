@@ -39,6 +39,7 @@ class InpaintSimpleOperation : public NodeOperation {
   short *manhattan_distance_;
 
  public:
+  /** In-paint (simple convolve using average of known pixels). */
   InpaintSimpleOperation();
 
   /**

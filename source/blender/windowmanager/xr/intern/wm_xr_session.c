@@ -154,10 +154,6 @@ void wm_xr_session_toggle(wmWindowManager *wm,
   }
 }
 
-/**
- * Check if the XR-Session was triggered.
- * If an error happened while trying to start a session, this returns false too.
- */
 bool WM_xr_session_exists(const wmXrData *xr)
 {
   return xr->runtime && xr->runtime->context && xr->runtime->session_state.is_started;
@@ -168,9 +164,6 @@ void WM_xr_session_base_pose_reset(wmXrData *xr)
   xr->runtime->session_state.force_reset_to_base_pose = true;
 }
 
-/**
- * Check if the session is running, according to the OpenXR definition.
- */
 bool WM_xr_session_is_ready(const wmXrData *xr)
 {
   return WM_xr_session_exists(xr) && GHOST_XrSessionIsRunning(xr->runtime->context);
@@ -354,11 +347,6 @@ void wm_xr_session_draw_data_update(wmXrSessionState *state,
   }
 }
 
-/**
- * Update information that is only stored for external state queries. E.g. for Python API to
- * request the current (as in, last known) viewer pose.
- * Controller data and action sets will be updated separately via wm_xr_session_actions_update().
- */
 void wm_xr_session_state_update(const XrSessionSettings *settings,
                                 const wmXrDrawData *draw_data,
                                 const GHOST_XrDrawViewInfo *draw_view,

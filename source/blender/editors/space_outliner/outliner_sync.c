@@ -52,7 +52,6 @@
 
 #include "outliner_intern.h"
 
-/* Functions for tagging outliner selection syncing is dirty from operators */
 void ED_outliner_select_sync_from_object_tag(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -89,7 +88,6 @@ bool ED_outliner_select_sync_is_dirty(const bContext *C)
   return wm->outliner_sync_select_dirty & WM_OUTLINER_SYNC_SELECT_FROM_ALL;
 }
 
-/* Copy sync select dirty flag from window manager to all outliners to be synced lazily on draw */
 void ED_outliner_select_sync_flag_outliners(const bContext *C)
 {
   Main *bmain = CTX_data_main(C);
@@ -352,7 +350,6 @@ static void outliner_sync_selection_from_outliner(Scene *scene,
   }
 }
 
-/* Set clean outliner and mark other outliners for syncing */
 void ED_outliner_select_sync_from_outliner(bContext *C, SpaceOutliner *space_outliner)
 {
   /* Don't sync if not checked or in certain outliner display modes */
@@ -547,7 +544,6 @@ static void get_sync_select_active_data(const bContext *C, SyncSelectActiveData 
   active_data->sequence = SEQ_select_active_get(scene);
 }
 
-/* If outliner is dirty sync selection from view layer and sequencer. */
 void outliner_sync_selection(const bContext *C, SpaceOutliner *space_outliner)
 {
   /* Set which types of data to sync from sync dirty flag and outliner display mode */

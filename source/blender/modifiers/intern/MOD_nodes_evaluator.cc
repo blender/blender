@@ -16,9 +16,10 @@
 
 #include "MOD_nodes_evaluator.hh"
 
+#include "BKE_type_conversions.hh"
+
 #include "NOD_geometry_exec.hh"
 #include "NOD_socket_declarations.hh"
-#include "NOD_type_conversions.hh"
 
 #include "DEG_depsgraph_query.h"
 
@@ -449,7 +450,7 @@ class GeometryNodesEvaluator {
   TaskPool *task_pool_ = nullptr;
 
   GeometryNodesEvaluationParams &params_;
-  const blender::nodes::DataTypeConversions &conversions_;
+  const blender::bke::DataTypeConversions &conversions_;
 
   friend NodeParamsProvider;
 
@@ -457,7 +458,7 @@ class GeometryNodesEvaluator {
   GeometryNodesEvaluator(GeometryNodesEvaluationParams &params)
       : outer_allocator_(params.allocator),
         params_(params),
-        conversions_(blender::nodes::get_implicit_type_conversions())
+        conversions_(blender::bke::get_implicit_type_conversions())
   {
   }
 

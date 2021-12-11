@@ -46,11 +46,6 @@
 
 #include "gpencil_trace.h"
 
-/**
- * Print trace bitmap for debugging.
- * \param f: Output handle. Use `stderr` for printing
- * \param bm: Trace bitmap
- */
 void ED_gpencil_trace_bitmap_print(FILE *f, const potrace_bitmap_t *bm)
 {
   int32_t x, y;
@@ -77,12 +72,6 @@ void ED_gpencil_trace_bitmap_print(FILE *f, const potrace_bitmap_t *bm)
   }
 }
 
-/**
- * Return new un-initialized trace bitmap
- * \param w: Width in pixels
- * \param h: Height in pixels
- * \return Trace bitmap
- */
 potrace_bitmap_t *ED_gpencil_trace_bitmap_new(int32_t w, int32_t h)
 {
   potrace_bitmap_t *bm;
@@ -104,10 +93,6 @@ potrace_bitmap_t *ED_gpencil_trace_bitmap_new(int32_t w, int32_t h)
   return bm;
 }
 
-/**
- * Free a trace bitmap
- * \param bm: Trace bitmap
- */
 void ED_gpencil_trace_bitmap_free(const potrace_bitmap_t *bm)
 {
   if (bm != NULL) {
@@ -116,10 +101,6 @@ void ED_gpencil_trace_bitmap_free(const potrace_bitmap_t *bm)
   MEM_SAFE_FREE(bm);
 }
 
-/**
- * Invert the given bitmap (Black to White)
- * \param bm: Trace bitmap
- */
 void ED_gpencil_trace_bitmap_invert(const potrace_bitmap_t *bm)
 {
   int32_t dy = bm->dy;
@@ -162,11 +143,6 @@ static void pixel_at_index(const ImBuf *ibuf, const int32_t idx, float r_col[4])
   }
 }
 
-/**
- * Convert image to BW bitmap for tracing
- * \param ibuf: ImBuf of the image
- * \param bm: Trace bitmap
- */
 void ED_gpencil_trace_image_to_bitmap(ImBuf *ibuf,
                                       const potrace_bitmap_t *bm,
                                       const float threshold)
@@ -231,14 +207,6 @@ static void add_bezier(bGPDstroke *gps,
   }
 }
 
-/**
- * Convert Potrace Bitmap to Grease Pencil strokes
- * \param st: Data with traced data
- * \param ob: Target grease pencil object
- * \param offset: Offset to center
- * \param scale: Scale of the output
- * \param sample: Sample distance to distribute points
- */
 void ED_gpencil_trace_data_to_strokes(Main *bmain,
                                       potrace_state_t *st,
                                       Object *ob,

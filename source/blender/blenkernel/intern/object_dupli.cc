@@ -1499,7 +1499,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
       else {
         /* First key. */
         state.time = ctime;
-        if (psys_get_particle_state(&sim, a, &state, 0) == 0) {
+        if (psys_get_particle_state(&sim, a, &state, false) == 0) {
           continue;
         }
 
@@ -1678,9 +1678,6 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
 /** \name Dupli-Container Implementation
  * \{ */
 
-/**
- * \return a #ListBase of #DupliObject.
- */
 ListBase *object_duplilist(Depsgraph *depsgraph, Scene *sce, Object *ob)
 {
   ListBase *duplilist = (ListBase *)MEM_callocN(sizeof(ListBase), "duplilist");

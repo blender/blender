@@ -331,5 +331,8 @@ FileReader *BLI_filereader_new_zstd(FileReader *base)
   }
   zstd->reader.close = zstd_close;
 
+  /* Rewind after the seek table check so that zstd_read starts at the file's start. */
+  zstd->base->seek(zstd->base, 0, SEEK_SET);
+
   return (FileReader *)zstd;
 }

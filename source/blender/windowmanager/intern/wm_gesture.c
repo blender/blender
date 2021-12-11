@@ -50,7 +50,6 @@
 
 #include "BIF_glutil.h"
 
-/* context checked on having screen, window and area */
 wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent *event, int type)
 {
   wmGesture *gesture = MEM_callocN(sizeof(wmGesture), "new gesture");
@@ -129,7 +128,6 @@ bool WM_gesture_is_modal_first(const wmGesture *gesture)
   return (gesture->is_active_prev == false);
 }
 
-/* tweak and line gestures */
 int wm_gesture_evaluate(wmGesture *gesture, const wmEvent *event)
 {
   if (gesture->type == WM_GESTURE_TWEAK) {
@@ -515,7 +513,6 @@ static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
   immUnbindProgram();
 }
 
-/* called in wm_draw.c */
 void wm_gesture_draw(wmWindow *win)
 {
   wmGesture *gt = (wmGesture *)win->gesture.first;

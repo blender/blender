@@ -1,7 +1,8 @@
 void node_tex_magic(
     vec3 co, float scale, float distortion, float depth, out vec4 color, out float fac)
 {
-  vec3 p = co * scale;
+  vec3 p = mod(co * scale, 2.0 * M_PI);
+
   float x = sin((p.x + p.y + p.z) * 5.0);
   float y = cos((-p.x + p.y - p.z) * 5.0);
   float z = -cos((-p.x - p.y + p.z) * 5.0);

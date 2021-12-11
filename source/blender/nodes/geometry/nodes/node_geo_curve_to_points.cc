@@ -42,6 +42,8 @@ void curve_create_default_rotation_attribute(Span<float3> tangents,
 
 namespace blender::nodes::node_geo_curve_to_points_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryCurveToPoints)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
@@ -69,8 +71,8 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  NodeGeometryCurveToPoints &node_storage = *(NodeGeometryCurveToPoints *)node->storage;
-  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)node_storage.mode;
+  const NodeGeometryCurveToPoints &storage = node_storage(*node);
+  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)storage.mode;
 
   bNodeSocket *count_socket = ((bNodeSocket *)node->inputs.first)->next;
   bNodeSocket *length_socket = count_socket->next;
@@ -305,8 +307,8 @@ static void copy_spline_domain_attributes(const CurveEval &curve,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  NodeGeometryCurveToPoints &node_storage = *(NodeGeometryCurveToPoints *)params.node().storage;
-  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)node_storage.mode;
+  const NodeGeometryCurveToPoints &storage = node_storage(params.node());
+  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)storage.mode;
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
   AnonymousAttributeIDs attribute_outputs;

@@ -115,7 +115,6 @@ void BKE_callback_global_init(void)
   callbacks_initialized = true;
 }
 
-/* call on application exit */
 void BKE_callback_global_finalize(void)
 {
   eCbEvent evt;

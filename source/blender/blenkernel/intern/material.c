@@ -389,7 +389,6 @@ short *BKE_object_material_len_p(Object *ob)
   return NULL;
 }
 
-/* same as above but for ID's */
 Material ***BKE_id_material_array_p(ID *id)
 {
   /* ensure we don't try get materials from non-obdata */
@@ -728,13 +727,6 @@ static ID *get_evaluated_object_data_with_materials(Object *ob)
   return data;
 }
 
-/**
- * On evaluated objects the number of materials on an object and its data might go out of sync.
- * This is because during evaluation materials can be added/removed on the object data.
- *
- * For rendering or exporting we generally use the materials on the object data. However, some
- * material indices might be overwritten by the object.
- */
 Material *BKE_object_material_get_eval(Object *ob, short act)
 {
   BLI_assert(DEG_is_evaluated_object(ob));
@@ -808,10 +800,6 @@ void BKE_id_material_eval_assign(ID *id, int slot, Material *material)
   (*materials_ptr)[slot_index] = material;
 }
 
-/**
- * Add an empty material slot if the id has no material slots. This material slot allows the
- * material to be overwritten by object-linked materials.
- */
 void BKE_id_material_eval_ensure_default_slot(ID *id)
 {
   short *len_ptr = BKE_id_material_len_p(id);
@@ -1101,12 +1089,6 @@ void BKE_object_material_remap(Object *ob, const unsigned int *remap)
   }
 }
 
-/**
- * Calculate a material remapping from \a ob_src to \a ob_dst.
- *
- * \param remap_src_to_dst: An array the size of `ob_src->totcol`
- * where index values are filled in which map to \a ob_dst materials.
- */
 void BKE_object_material_remap_calc(Object *ob_dst, Object *ob_src, short *remap_src_to_dst)
 {
   if (ob_src->totcol == 0) {
@@ -1155,9 +1137,6 @@ void BKE_object_material_remap_calc(Object *ob_dst, Object *ob_src, short *remap
   BLI_ghash_free(gh_mat_map, NULL, NULL);
 }
 
-/**
- * Copy materials from evaluated geometry to the original geometry of an object.
- */
 void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, ID *data_eval)
 {
   ID *data_orig = ob_orig->data;
@@ -1192,7 +1171,6 @@ void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, ID *data_e
   BKE_object_materials_test(bmain, ob_orig, data_orig);
 }
 
-/* XXX: this calls many more update calls per object then are needed, could be optimized. */
 void BKE_object_material_array_assign(Main *bmain,
                                       struct Object *ob,
                                       struct Material ***matar,
@@ -1555,7 +1533,6 @@ bNode *BKE_texpaint_slot_material_find_node(Material *ma, short texpaint_slot)
   return find_data.r_node;
 }
 
-/* r_col = current value, col = new value, (fac == 0) is no change */
 void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
 {
   float tmp, facm = 1.0f - fac;

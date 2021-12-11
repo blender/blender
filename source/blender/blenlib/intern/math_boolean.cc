@@ -33,10 +33,6 @@
 namespace blender {
 
 #ifdef WITH_GMP
-/**
- * Return +1 if a, b, c are in CCW order around a circle in the plane.
- * Return -1 if they are in CW order, and 0 if they are in line.
- */
 int orient2d(const mpq2 &a, const mpq2 &b, const mpq2 &c)
 {
   mpq_class detleft = (a[0] - c[0]) * (b[1] - c[1]);
@@ -45,11 +41,6 @@ int orient2d(const mpq2 &a, const mpq2 &b, const mpq2 &c)
   return sgn(det);
 }
 
-/**
-   Return +1 if d is in the oriented circle through a, b, and c.
- * The oriented circle goes CCW through a, b, and c.
- * Return -1 if d is outside, and 0 if it is on the circle.
- */
 int incircle(const mpq2 &a, const mpq2 &b, const mpq2 &c, const mpq2 &d)
 {
   mpq_class adx = a[0] - d[0];
@@ -76,12 +67,6 @@ int incircle(const mpq2 &a, const mpq2 &b, const mpq2 &c, const mpq2 &d)
   return sgn(det);
 }
 
-/**
- * Return +1 if d is below the plane containing a, b, c (which appear
- * CCW when viewed from above the plane).
- * Return -1 if d is above the plane.
- * Return 0 if it is on the plane.
- */
 int orient3d(const mpq3 &a, const mpq3 &b, const mpq3 &c, const mpq3 &d)
 {
   mpq_class adx = a[0] - d[0];

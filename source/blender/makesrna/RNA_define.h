@@ -49,6 +49,10 @@ void RNA_free(BlenderRNA *brna);
 void RNA_define_verify_sdna(bool verify);
 void RNA_define_animate_sdna(bool animate);
 void RNA_define_fallback_property_update(int noteflag, const char *updatefunc);
+/**
+ * Properties defined when this is enabled are lib-overridable by default
+ * (except for Pointer ones).
+ */
 void RNA_define_lib_overridable(const bool make_overridable);
 
 void RNA_init(void);
@@ -56,6 +60,9 @@ void RNA_exit(void);
 
 /* Struct */
 
+/**
+ * Struct Definition.
+ */
 StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRNA *srnafrom);
 StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *from);
 void RNA_def_struct_sdna(StructRNA *srna, const char *structname);
@@ -72,6 +79,9 @@ void RNA_def_struct_register_funcs(StructRNA *srna,
                                    const char *unreg,
                                    const char *instance);
 void RNA_def_struct_path_func(StructRNA *srna, const char *path);
+/**
+ * Only used in one case when we name the struct for the purpose of useful error messages.
+ */
 void RNA_def_struct_identifier_no_struct_map(StructRNA *srna, const char *identifier);
 void RNA_def_struct_identifier(BlenderRNA *brna, StructRNA *srna, const char *identifier);
 void RNA_def_struct_ui_text(StructRNA *srna, const char *name, const char *description);
@@ -176,6 +186,9 @@ PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont,
                           int default_value,
                           const char *ui_name,
                           const char *ui_description);
+/**
+ * Same as above but sets #PROP_ENUM_FLAG before setting the default value.
+ */
 PropertyRNA *RNA_def_enum_flag(StructOrFunctionRNA *cont,
                                const char *identifier,
                                const EnumPropertyItem *items,
@@ -362,6 +375,13 @@ void RNA_def_property_flag(PropertyRNA *prop, PropertyFlag flag);
 void RNA_def_property_clear_flag(PropertyRNA *prop, PropertyFlag flag);
 void RNA_def_property_override_flag(PropertyRNA *prop, PropertyOverrideFlag flag);
 void RNA_def_property_override_clear_flag(PropertyRNA *prop, PropertyOverrideFlag flag);
+/**
+ * Add the property-tags passed as \a tags to \a prop (if valid).
+ *
+ * \note Multiple tags can be set by passing them within \a tags (using bit-flags).
+ * \note Doesn't do any type-checking with the tags defined in the parent #StructRNA
+ * of \a prop. This should be done before (e.g. see #WM_operatortype_prop_tag).
+ */
 void RNA_def_property_tags(PropertyRNA *prop, int tags);
 void RNA_def_property_subtype(PropertyRNA *prop, PropertySubType subtype);
 void RNA_def_property_array(PropertyRNA *prop, int length);
@@ -381,11 +401,25 @@ void RNA_def_property_boolean_array_default(PropertyRNA *prop, const bool *array
 void RNA_def_property_int_default(PropertyRNA *prop, int value);
 void RNA_def_property_int_array_default(PropertyRNA *prop, const int *array);
 void RNA_def_property_float_default(PropertyRNA *prop, float value);
+/**
+ * Array must remain valid after this function finishes.
+ */
 void RNA_def_property_float_array_default(PropertyRNA *prop, const float *array);
 void RNA_def_property_enum_default(PropertyRNA *prop, int value);
 void RNA_def_property_string_default(PropertyRNA *prop, const char *value);
 
 void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *description);
+/**
+ * The values hare are a little confusing:
+ *
+ * \param step: Used as the value to increase/decrease when clicking on number buttons,
+ * as well as scaling mouse input for click-dragging number buttons.
+ * For floats this is (step * UI_PRECISION_FLOAT_SCALE), why? - nobody knows.
+ * For ints, whole values are used.
+ *
+ * \param precision: The number of zeros to show
+ * (as a whole number - common range is 1 - 6), see UI_PRECISION_FLOAT_MAX
+ */
 void RNA_def_property_ui_range(
     PropertyRNA *prop, double min, double max, double step, int precision);
 void RNA_def_property_ui_scale_type(PropertyRNA *prop, PropertyScaleType scale_type);
@@ -395,6 +429,11 @@ void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *update
 void RNA_def_property_editable_func(PropertyRNA *prop, const char *editable);
 void RNA_def_property_editable_array_func(PropertyRNA *prop, const char *editable);
 
+/**
+ * Set custom callbacks for override operations handling.
+ *
+ * \note \a diff callback will also be used by RNA comparison/equality functions.
+ */
 void RNA_def_property_override_funcs(PropertyRNA *prop,
                                      const char *diff,
                                      const char *store,
@@ -472,6 +511,9 @@ void RNA_def_property_translation_context(PropertyRNA *prop, const char *context
 
 FunctionRNA *RNA_def_function(StructRNA *srna, const char *identifier, const char *call);
 FunctionRNA *RNA_def_function_runtime(StructRNA *srna, const char *identifier, CallFunc call);
+/**
+ * C return value only! multiple RNA returns can be done with #RNA_def_function_output.
+ */
 void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret);
 void RNA_def_function_output(FunctionRNA *func, PropertyRNA *ret);
 void RNA_def_function_flag(FunctionRNA *func, int flag);
@@ -514,7 +556,8 @@ void RNA_def_property_free_identifier_deferred_finish(StructOrFunctionRNA *cont_
 void RNA_def_property_free_pointers_set_py_data_callback(
     void (*py_data_clear_fn)(PropertyRNA *prop));
 
-/* utilities */
+/* Utilities. */
+
 const char *RNA_property_typename(PropertyType type);
 #define IS_DNATYPE_FLOAT_COMPAT(_str) (strcmp(_str, "float") == 0 || strcmp(_str, "double") == 0)
 #define IS_DNATYPE_INT_COMPAT(_str) \
@@ -525,16 +568,19 @@ const char *RNA_property_typename(PropertyType type);
 
 void RNA_identifier_sanitize(char *identifier, int property);
 
+/* Common arguments for length. */
+
 extern const int rna_matrix_dimsize_3x3[];
 extern const int rna_matrix_dimsize_4x4[];
 extern const int rna_matrix_dimsize_4x2[];
+
+/* Common arguments for defaults. */
 
 extern const float rna_default_axis_angle[4];
 extern const float rna_default_quaternion[4];
 extern const float rna_default_scale_3d[3];
 
-/* max size for dynamic defined type descriptors,
- * this value is arbitrary */
+/** Maximum size for dynamic defined type descriptors, this value is arbitrary. */
 #define RNA_DYN_DESCR_MAX 240
 
 #ifdef __cplusplus

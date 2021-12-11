@@ -62,10 +62,6 @@ bUserAssetLibrary *BKE_preferences_asset_library_add(UserDef *userdef,
   return library;
 }
 
-/**
- * Unlink and free a library preference member.
- * \note Free's \a library itself.
- */
 void BKE_preferences_asset_library_remove(UserDef *userdef, bUserAssetLibrary *library)
 {
   BLI_freelinkN(&userdef->asset_libraries, library);
@@ -84,10 +80,6 @@ void BKE_preferences_asset_library_name_set(UserDef *userdef,
                  sizeof(library->name));
 }
 
-/* Set the library path, ensuring it is pointing to a directory.
- * Single blend files can only act as "Current File" library; libraries on disk
- * should always be directories. If the path does not exist, that's fine; it can
- * created as directory if necessary later. */
 void BKE_preferences_asset_library_path_set(bUserAssetLibrary *library, const char *path)
 {
   BLI_strncpy(library->path, path, sizeof(library->path));

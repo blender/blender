@@ -928,9 +928,6 @@ static void point_density_sample_func(void *__restrict data_v,
   }
 }
 
-/* NOTE 1: Requires RE_point_density_cache() to be called first.
- * NOTE 2: Frees point density structure after sampling.
- */
 void RE_point_density_sample(Depsgraph *depsgraph,
                              PointDensity *pd,
                              const int resolution,

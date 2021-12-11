@@ -56,9 +56,6 @@ template<class T> T *get_view_from_link(ViewLink &link)
   return t_uptr ? t_uptr->get() : nullptr;
 }
 
-/**
- * Override this for all available tree types.
- */
 AbstractTreeView *UI_block_add_view(uiBlock &block,
                                     StringRef idname,
                                     std::unique_ptr<AbstractTreeView> tree_view)
@@ -79,9 +76,6 @@ void ui_block_free_views(uiBlock *block)
   }
 }
 
-/**
- * \param x, y: Coordinate to find a tree-row item at, in window space.
- */
 uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const ARegion *region, const int xy[2])
 {
   uiButTreeRow *tree_row_but = (uiButTreeRow *)ui_tree_row_find_mouse_over(region, xy);

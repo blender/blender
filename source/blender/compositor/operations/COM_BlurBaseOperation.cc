@@ -111,8 +111,6 @@ __m128 *BlurBaseOperation::convert_gausstab_sse(const float *gausstab, int size)
 }
 #endif
 
-/* normalized distance from the current (inverted so 1.0 is close and 0.0 is far)
- * 'ease' is applied after, looks nicer */
 float *BlurBaseOperation::make_dist_fac_inverse(float rad, int size, int falloff)
 {
   float *dist_fac_invert, val;

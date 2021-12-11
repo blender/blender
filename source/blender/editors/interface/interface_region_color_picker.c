@@ -115,8 +115,6 @@ void ui_color_picker_hsv_to_rgb(const float r_cp[3], float rgb[3])
   }
 }
 
-/* Returns true if the button is for a color with gamma baked in,
- * or if it's a color picker for such a button. */
 bool ui_but_is_color_gamma(uiBut *but)
 {
   if (but->rnaprop) {
@@ -183,7 +181,6 @@ static void ui_color_picker_update_hsv(ColorPicker *cpicker,
   cpicker->is_init = true;
 }
 
-/* for picker, while editing hsv */
 void ui_but_hsv_set(uiBut *but)
 {
   float rgb_perceptual[3];

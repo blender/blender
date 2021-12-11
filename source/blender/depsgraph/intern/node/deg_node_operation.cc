@@ -218,8 +218,6 @@ string OperationNode::identifier() const
   return string(operationCodeAsString(opcode)) + "(" + name + ")";
 }
 
-/* Full node identifier, including owner name.
- * used for logging and debug prints. */
 string OperationNode::full_identifier() const
 {
   string owner_str = owner->owner->name;

@@ -51,7 +51,7 @@ static void node_composit_init_huecorrect(bNodeTree *UNUSED(ntree), bNode *node)
   cumapping->cur = 1;
 }
 
-void register_node_type_cmp_huecorrect(void)
+void register_node_type_cmp_huecorrect()
 {
   static bNodeType ntype;
 

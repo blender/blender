@@ -46,9 +46,6 @@ void file_tile_boundbox(const ARegion *region, FileLayout *layout, const int fil
                 ymax);
 }
 
-/**
- * If \a path leads to a .blend, remove the trailing slash (if needed).
- */
 void file_path_to_ui_path(const char *path, char *r_path, int max_size)
 {
   char tmp_path[PATH_MAX];

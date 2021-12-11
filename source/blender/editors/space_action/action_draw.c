@@ -63,7 +63,6 @@
 /* ************************************************************************* */
 /* Channel List */
 
-/* left hand part */
 void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
 {
   ListBase anim_data = {NULL, NULL};
@@ -179,7 +178,6 @@ static void draw_channel_action_ranges(bAnimContext *ac, ListBase *anim_data, Vi
   }
 }
 
-/* draw keyframes in each channel */
 void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region)
 {
   ListBase anim_data = {NULL, NULL};

@@ -769,10 +769,6 @@ void FRS_delete_active_lineset(FreestyleConfig *config)
   }
 }
 
-/**
- * Reinsert the active lineset at an offset \a direction from current position.
- * \return if position of active lineset has changed.
- */
 bool FRS_move_active_lineset(FreestyleConfig *config, int direction)
 {
   FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);

@@ -104,6 +104,12 @@ static SnapCursorDataIntern g_data_intern = {
                       .draw_point = true}};
 
 /**
+ * Dot products below this will be considered view aligned.
+ * In this case we can't usefully project the mouse cursor onto the plane.
+ */
+static const float eps_view_align = 1e-2f;
+
+/**
  * Calculate a 3x3 orientation matrix from the surface under the cursor.
  */
 static void v3d_cursor_poject_surface_normal(const float normal[3],
@@ -714,14 +720,19 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   float *co_depth = snap_elem ? co : scene->cursor.location;
   snap_elem &= ~data_intern->snap_elem_hidden;
   if (snap_elem == 0) {
-    float plane[4];
-    if (state->plane_depth != V3D_PLACE_DEPTH_CURSOR_VIEW) {
-      const float *plane_normal = omat[state->plane_axis];
+    RegionView3D *rv3d = region->regiondata;
+    const float *plane_normal = omat[state->plane_axis];
+    bool do_plane_isect = (state->plane_depth != V3D_PLACE_DEPTH_CURSOR_VIEW) &&
+                          (rv3d->is_persp ||
+                           (fabsf(dot_v3v3(plane_normal, rv3d->viewinv[2])) > eps_view_align));
+
+    if (do_plane_isect) {
+      float plane[4];
       plane_from_point_normal_v3(plane, co_depth, plane_normal);
+      do_plane_isect = ED_view3d_win_to_3d_on_plane(region, plane, mval_fl, rv3d->is_persp, co);
     }
 
-    if ((state->plane_depth == V3D_PLACE_DEPTH_CURSOR_VIEW) ||
-        !ED_view3d_win_to_3d_on_plane(region, plane, mval_fl, true, co)) {
+    if (!do_plane_isect) {
       ED_view3d_win_to_3d(v3d, region, co_depth, mval_fl, co);
     }
 
@@ -919,6 +930,14 @@ static void v3d_cursor_snap_free(void)
 void ED_view3d_cursor_snap_state_default_set(V3DSnapCursorState *state)
 {
   g_data_intern.state_default = *state;
+
+  /* These values are temporarily set by the tool.
+   * They are not convenient as default values.
+   * So reset to null. */
+  g_data_intern.state_default.gzgrp_type = NULL;
+  g_data_intern.state_default.prevpoint = NULL;
+  g_data_intern.state_default.draw_plane = false;
+  g_data_intern.state_default.draw_box = false;
 }
 
 V3DSnapCursorState *ED_view3d_cursor_snap_active(void)

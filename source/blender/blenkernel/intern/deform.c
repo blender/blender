@@ -107,11 +107,6 @@ bDeformGroup *BKE_defgroup_duplicate(const bDeformGroup *ingroup)
   return outgroup;
 }
 
-/**
- * Overwrite weights filtered by vgroup_subset.
- * - do nothing if neither are set.
- * - add destination weight if needed
- */
 void BKE_defvert_copy_subset(MDeformVert *dvert_dst,
                              const MDeformVert *dvert_src,
                              const bool *vgroup_subset,
@@ -125,11 +120,6 @@ void BKE_defvert_copy_subset(MDeformVert *dvert_dst,
   }
 }
 
-/**
- * Overwrite weights filtered by vgroup_subset and with mirroring specified by the flip map
- * - do nothing if neither are set.
- * - add destination weight if needed
- */
 void BKE_defvert_mirror_subset(MDeformVert *dvert_dst,
                                const MDeformVert *dvert_src,
                                const bool *vgroup_subset,
@@ -168,11 +158,6 @@ void BKE_defvert_copy(MDeformVert *dvert_dst, const MDeformVert *dvert_src)
   }
 }
 
-/**
- * Copy an index from one dvert to another.
- * - do nothing if neither are set.
- * - add destination weight if needed.
- */
 void BKE_defvert_copy_index(MDeformVert *dvert_dst,
                             const int defgroup_dst,
                             const MDeformVert *dvert_src,
@@ -197,10 +182,6 @@ void BKE_defvert_copy_index(MDeformVert *dvert_dst,
   }
 }
 
-/**
- * Only sync over matching weights, don't add or remove groups
- * warning, loop within loop.
- */
 void BKE_defvert_sync(MDeformVert *dvert_dst, const MDeformVert *dvert_src, const bool use_ensure)
 {
   if (dvert_src->totweight && dvert_dst->totweight) {
@@ -221,9 +202,6 @@ void BKE_defvert_sync(MDeformVert *dvert_dst, const MDeformVert *dvert_src, cons
   }
 }
 
-/**
- * be sure all flip_map values are valid
- */
 void BKE_defvert_sync_mapped(MDeformVert *dvert_dst,
                              const MDeformVert *dvert_src,
                              const int *flip_map,
@@ -250,9 +228,6 @@ void BKE_defvert_sync_mapped(MDeformVert *dvert_dst,
   }
 }
 
-/**
- * be sure all flip_map values are valid
- */
 void BKE_defvert_remap(MDeformVert *dvert, const int *map, const int map_len)
 {
   MDeformWeight *dw = dvert->dw;
@@ -265,9 +240,6 @@ void BKE_defvert_remap(MDeformVert *dvert, const int *map, const int map_len)
   }
 }
 
-/**
- * Same as #BKE_defvert_normalize but takes a bool array.
- */
 void BKE_defvert_normalize_subset(MDeformVert *dvert,
                                   const bool *vgroup_subset,
                                   const int vgroup_tot)
@@ -334,9 +306,6 @@ void BKE_defvert_normalize(MDeformVert *dvert)
   }
 }
 
-/**
- * Same as BKE_defvert_normalize() if the locked vgroup is not a member of the subset
- */
 void BKE_defvert_normalize_lock_single(MDeformVert *dvert,
                                        const bool *vgroup_subset,
                                        const int vgroup_tot,
@@ -391,9 +360,6 @@ void BKE_defvert_normalize_lock_single(MDeformVert *dvert,
   }
 }
 
-/**
- * Same as BKE_defvert_normalize() if no locked vgroup is a member of the subset
- */
 void BKE_defvert_normalize_lock_map(MDeformVert *dvert,
                                     const bool *vgroup_subset,
                                     const int vgroup_tot,
@@ -610,17 +576,11 @@ int BKE_object_defgroup_count(const Object *ob)
   return BLI_listbase_count(BKE_object_defgroup_list(ob));
 }
 
-/**
- * \note For historical reasons, the index starts at 1 rather than 0.
- */
 int BKE_object_defgroup_active_index_get(const Object *ob)
 {
   return *object_defgroup_active_index_get_p(ob);
 }
 
-/**
- * \note For historical reasons, the index starts at 1 rather than 0.
- */
 void BKE_object_defgroup_active_index_set(Object *ob, const int new_index)
 {
   /* Cast away const just for the accessor. */
@@ -628,9 +588,6 @@ void BKE_object_defgroup_active_index_set(Object *ob, const int new_index)
   *index = new_index;
 }
 
-/**
- * \note caller must free.
- */
 int *BKE_object_defgroup_flip_map(const Object *ob, int *flip_map_len, const bool use_default)
 {
   const ListBase *defbase = BKE_object_defgroup_list(ob);
@@ -670,9 +627,6 @@ int *BKE_object_defgroup_flip_map(const Object *ob, int *flip_map_len, const boo
   return map;
 }
 
-/**
- * \note caller must free.
- */
 int *BKE_object_defgroup_flip_map_single(const Object *ob,
                                          int *flip_map_len,
                                          const bool use_default,
@@ -769,13 +723,6 @@ float BKE_defvert_find_weight(const struct MDeformVert *dvert, const int defgrou
   return dw ? dw->weight : 0.0f;
 }
 
-/**
- * Take care with this the rationale is:
- * - if the object has no vertex group. act like vertex group isn't set and return 1.0,
- * - if the vertex group exists but the 'defgroup' isn't found on this vertex, _still_ return 0.0
- *
- * This is a bit confusing, just saves some checks from the caller.
- */
 float BKE_defvert_array_find_weight_safe(const struct MDeformVert *dvert,
                                          const int index,
                                          const int defgroup)
@@ -814,11 +761,6 @@ MDeformWeight *BKE_defvert_find_index(const MDeformVert *dvert, const int defgro
   return NULL;
 }
 
-/**
- * Ensures that mv has a deform weight entry for the specified defweight group.
- *
- * \note this function is mirrored in editmesh_tools.c, for use for editvertices.
- */
 MDeformWeight *BKE_defvert_ensure_index(MDeformVert *dvert, const int defgroup)
 {
   MDeformWeight *dw_new;
@@ -850,15 +792,10 @@ MDeformWeight *BKE_defvert_ensure_index(MDeformVert *dvert, const int defgroup)
   return dw_new;
 }
 
-/* TODO: merge with code above! */
-
-/**
- * Adds the given vertex to the specified vertex group, with given weight.
- *
- * \warning this does NOT check for existing, assume caller already knows its not there.
- */
 void BKE_defvert_add_index_notest(MDeformVert *dvert, int defgroup, const float weight)
 {
+  /* TODO: merge with #BKE_defvert_ensure_index! */
+
   MDeformWeight *dw_new;
 
   /* do this check always, this function is used to check for it */
@@ -880,11 +817,6 @@ void BKE_defvert_add_index_notest(MDeformVert *dvert, int defgroup, const float 
   dvert->totweight++;
 }
 
-/**
- * Removes the given vertex from the vertex group.
- *
- * \warning This function frees the given MDeformWeight, do not use it afterward!
- */
 void BKE_defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
 {
   if (dvert && dw) {
@@ -923,10 +855,6 @@ void BKE_defvert_clear(MDeformVert *dvert)
   dvert->totweight = 0;
 }
 
-/**
- * \return The first group index shared by both deform verts
- * or -1 if none are found.
- */
 int BKE_defvert_find_shared(const MDeformVert *dvert_a, const MDeformVert *dvert_b)
 {
   if (dvert_a->totweight && dvert_b->totweight) {
@@ -943,9 +871,6 @@ int BKE_defvert_find_shared(const MDeformVert *dvert_a, const MDeformVert *dvert
   return -1;
 }
 
-/**
- * return true if has no weights
- */
 bool BKE_defvert_is_weight_zero(const struct MDeformVert *dvert, const int defgroup_tot)
 {
   MDeformWeight *dw = dvert->dw;
@@ -960,9 +885,6 @@ bool BKE_defvert_is_weight_zero(const struct MDeformVert *dvert, const int defgr
   return true;
 }
 
-/**
- * \return The total weight in all groups marked in the selection mask.
- */
 float BKE_defvert_total_selected_weight(const struct MDeformVert *dv,
                                         int defbase_tot,
                                         const bool *defbase_sel)
@@ -985,14 +907,6 @@ float BKE_defvert_total_selected_weight(const struct MDeformVert *dv,
   return total;
 }
 
-/**
- * \return The representative weight of a multipaint group, used for
- * viewport colors and actual painting.
- *
- * Result equal to sum of weights with auto normalize, and average otherwise.
- * Value is not clamped, since painting relies on multiplication being always
- * commutative with the collective weight function.
- */
 float BKE_defvert_multipaint_collective_weight(const struct MDeformVert *dv,
                                                int defbase_tot,
                                                const bool *defbase_sel,
@@ -1010,11 +924,6 @@ float BKE_defvert_multipaint_collective_weight(const struct MDeformVert *dv,
   return total;
 }
 
-/**
- * Computes the display weight for the lock relative weight paint mode.
- *
- * \return weight divided by 1-locked_weight with division by zero check
- */
 float BKE_defvert_calc_lock_relative_weight(float weight,
                                             float locked_weight,
                                             float unlocked_weight)
@@ -1043,11 +952,6 @@ float BKE_defvert_calc_lock_relative_weight(float weight,
   return weight / (1.0f - locked_weight);
 }
 
-/**
- * Computes the display weight for the lock relative weight paint mode, using weight data.
- *
- * \return weight divided by unlocked, or 1-locked_weight with division by zero check.
- */
 float BKE_defvert_lock_relative_weight(float weight,
                                        const struct MDeformVert *dv,
                                        int defbase_tot,
@@ -1139,10 +1043,6 @@ void BKE_defvert_extract_vgroup_to_vertweights(MDeformVert *dvert,
   }
 }
 
-/**
- * The following three make basic interpolation,
- * using temp vert_weights array to avoid looking up same weight several times.
- */
 void BKE_defvert_extract_vgroup_to_edgeweights(MDeformVert *dvert,
                                                const int defgroup,
                                                const int num_verts,

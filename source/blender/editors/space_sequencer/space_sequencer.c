@@ -1005,7 +1005,6 @@ static void sequencer_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_
 
 /* ************************************* */
 
-/* Only called once, from space/spacetypes.c. */
 void ED_spacetype_sequencer(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype sequencer");

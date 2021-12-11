@@ -1674,7 +1674,6 @@ GPUBatch *DRW_particles_batch_cache_get_edit_tip_points(Object *object,
   return cache->edit_tip_points;
 }
 
-/* Ensure all textures and buffers needed for GPU accelerated drawing. */
 bool particles_ensure_procedural_data(Object *object,
                                       ParticleSystem *psys,
                                       ModifierData *md,

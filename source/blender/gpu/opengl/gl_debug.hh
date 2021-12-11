@@ -88,8 +88,16 @@ namespace debug {
 void raise_gl_error(const char *info);
 void check_gl_error(const char *info);
 void check_gl_resources(const char *info);
+/**
+ * This function needs to be called once per context.
+ */
 void init_gl_callbacks(void);
 
+/**
+ * Initialize a fallback layer (to KHR_debug) that covers only some functions.
+ * We override the functions pointers by our own implementation that just checks #glGetError.
+ * Some additional functions (not overridable) are covered inside the header using wrappers.
+ */
 void init_debug_layer(void);
 
 void object_label(GLenum type, GLuint object, const char *name);

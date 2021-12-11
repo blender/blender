@@ -788,7 +788,6 @@ static void annotation_draw_data_all(Scene *scene,
 
 /* ----- Annotation Sketches Drawing API ------ */
 
-/* draw grease-pencil sketches to specified 2d-view that uses ibuf corrections */
 void ED_annotation_draw_2dimage(const bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -857,13 +856,6 @@ void ED_annotation_draw_2dimage(const bContext *C)
   annotation_draw_data_all(scene, gpd, offsx, offsy, sizex, sizey, CFRA, dflag, area->spacetype);
 }
 
-/**
- * Draw grease-pencil sketches to specified 2d-view
- * assuming that matrices are already set correctly.
- *
- * \note This gets called twice - first time with onlyv2d=true to draw 'canvas' strokes,
- * second time with onlyv2d=false for screen-aligned strokes.
- */
 void ED_annotation_draw_view2d(const bContext *C, bool onlyv2d)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -900,9 +892,6 @@ void ED_annotation_draw_view2d(const bContext *C, bool onlyv2d)
       scene, gpd, 0, 0, region->winx, region->winy, CFRA, dflag, area->spacetype);
 }
 
-/* draw annotations sketches to specified 3d-view assuming that matrices are already set
- * correctly NOTE: this gets called twice - first time with only3d=true to draw 3d-strokes,
- * second time with only3d=false for screen-aligned strokes */
 void ED_annotation_draw_view3d(
     Scene *scene, struct Depsgraph *depsgraph, View3D *v3d, ARegion *region, bool only3d)
 {

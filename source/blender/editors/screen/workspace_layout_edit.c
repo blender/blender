@@ -37,9 +37,6 @@
 
 #include "screen_intern.h"
 
-/**
- * Empty screen, with 1 dummy area without space-data. Uses window size.
- */
 WorkSpaceLayout *ED_workspace_layout_add(Main *bmain,
                                          WorkSpace *workspace,
                                          wmWindow *win,
@@ -129,10 +126,6 @@ static WorkSpaceLayout *workspace_layout_delete_find_new(const WorkSpaceLayout *
   return NULL;
 }
 
-/**
- * \warning Only call outside of area/region loops!
- * \return true if succeeded.
- */
 bool ED_workspace_layout_delete(WorkSpace *workspace, WorkSpaceLayout *layout_old, bContext *C)
 {
   const bScreen *screen_old = BKE_workspace_layout_screen_get(layout_old);
@@ -183,12 +176,6 @@ static bool screen_is_used_by_other_window(const wmWindow *win, const bScreen *s
   return BKE_screen_is_used(screen) && (screen->winid != win->winid);
 }
 
-/**
- * Make sure there is a non-fullscreen layout to switch to that is not used yet by an other window.
- * Needed for workspace or screen switching to ensure valid screens.
- *
- * \param layout_fallback_base: As last resort, this layout is duplicated and returned.
- */
 WorkSpaceLayout *ED_workspace_screen_change_ensure_unused_layout(
     Main *bmain,
     WorkSpace *workspace,

@@ -1065,10 +1065,6 @@ static void fmods_init_typeinfo(void)
   fmodifiersTypeInfo[9] = &FMI_STEPPED; /* Stepped F-Curve Modifier */
 }
 
-/**
- * This function should be used for getting the appropriate type-info when only
- * a F-Curve modifier type is known.
- */
 const FModifierTypeInfo *get_fmodifier_typeinfo(const int type)
 {
   /* initialize the type-info list? */
@@ -1088,10 +1084,6 @@ const FModifierTypeInfo *get_fmodifier_typeinfo(const int type)
   return NULL;
 }
 
-/**
- * This function should always be used to get the appropriate type-info,
- * as it has checks which prevent segfaults in some weird cases.
- */
 const FModifierTypeInfo *fmodifier_get_typeinfo(const FModifier *fcm)
 {
   /* only return typeinfo for valid modifiers */
@@ -1108,9 +1100,6 @@ const FModifierTypeInfo *fmodifier_get_typeinfo(const FModifier *fcm)
 /** \name F-Curve Modifier Public API
  * \{ */
 
-/**
- * Add a new F-Curve Modifier to the given F-Curve of a certain type.
- */
 FModifier *add_fmodifier(ListBase *modifiers, int type, FCurve *owner_fcu)
 {
   const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(type);
@@ -1161,9 +1150,6 @@ FModifier *add_fmodifier(ListBase *modifiers, int type, FCurve *owner_fcu)
   return fcm;
 }
 
-/**
- * Make a copy of the specified F-Modifier.
- */
 FModifier *copy_fmodifier(const FModifier *src)
 {
   const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(src);
@@ -1191,9 +1177,6 @@ FModifier *copy_fmodifier(const FModifier *src)
   return dst;
 }
 
-/**
- * Duplicate all of the F-Modifiers in the Modifier stacks.
- */
 void copy_fmodifiers(ListBase *dst, const ListBase *src)
 {
   FModifier *fcm, *srcfcm;
@@ -1220,9 +1203,6 @@ void copy_fmodifiers(ListBase *dst, const ListBase *src)
   }
 }
 
-/**
- * Remove and free the given F-Modifier from the given stack.
- */
 bool remove_fmodifier(ListBase *modifiers, FModifier *fcm)
 {
   const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
@@ -1263,9 +1243,6 @@ bool remove_fmodifier(ListBase *modifiers, FModifier *fcm)
   return false;
 }
 
-/**
- * Remove all of a given F-Curve's modifiers.
- */
 void free_fmodifiers(ListBase *modifiers)
 {
   FModifier *fcm, *fmn;
@@ -1282,9 +1259,6 @@ void free_fmodifiers(ListBase *modifiers)
   }
 }
 
-/**
- * Find the active F-Modifier.
- */
 FModifier *find_active_fmodifier(ListBase *modifiers)
 {
   FModifier *fcm;
@@ -1305,9 +1279,6 @@ FModifier *find_active_fmodifier(ListBase *modifiers)
   return NULL;
 }
 
-/**
- * Set the active F-Modifier.
- */
 void set_active_fmodifier(ListBase *modifiers, FModifier *fcm)
 {
   FModifier *fm;
@@ -1328,12 +1299,6 @@ void set_active_fmodifier(ListBase *modifiers, FModifier *fcm)
   }
 }
 
-/**
- * Do we have any modifiers which match certain criteria.
- *
- * \param mtype: Type of modifier (if 0, doesn't matter).
- * \param acttype: Type of action to perform (if -1, doesn't matter).
- */
 bool list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype)
 {
   FModifier *fcm;
@@ -1443,19 +1408,6 @@ static float eval_fmodifier_influence(FModifier *fcm, float evaltime)
   return influence;
 }
 
-/**
- * Evaluate time modifications imposed by some F-Curve Modifiers.
- *
- * - This step acts as an optimization to prevent the F-Curve stack being evaluated
- *   several times by modifiers requesting the time be modified, as the final result
- *   would have required using the modified time
- * - Modifiers only ever receive the unmodified time, as subsequent modifiers should be
- *   working on the 'global' result of the modified curve, not some localized segment,
- *   so \a evaltime gets set to whatever the last time-modifying modifier likes.
- * - We start from the end of the stack, as only the last one matters for now.
- *
- * \param fcu: Can be NULL.
- */
 float evaluate_time_fmodifiers(FModifiersStackStorage *storage,
                                ListBase *modifiers,
                                FCurve *fcu,
@@ -1513,10 +1465,6 @@ float evaluate_time_fmodifiers(FModifiersStackStorage *storage,
   return evaltime;
 }
 
-/**
- * Evaluates the given set of F-Curve Modifiers using the given data
- * Should only be called after evaluate_time_fmodifiers() has been called.
- */
 void evaluate_value_fmodifiers(FModifiersStackStorage *storage,
                                ListBase *modifiers,
                                FCurve *fcu,
@@ -1565,10 +1513,6 @@ void evaluate_value_fmodifiers(FModifiersStackStorage *storage,
 
 /* ---------- */
 
-/**
- * Bake modifiers for given F-Curve to curve sample data, in the frame range defined
- * by start and end (inclusive).
- */
 void fcurve_bake_modifiers(FCurve *fcu, int start, int end)
 {
   ChannelDriver *driver;

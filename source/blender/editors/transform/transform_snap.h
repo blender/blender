@@ -76,18 +76,30 @@ void removeSnapPoint(TransInfo *t);
 float transform_snap_distance_len_squared_fn(TransInfo *t, const float p1[3], const float p2[3]);
 
 /* transform_snap_sequencer.c */
+
 struct TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t);
 void transform_snap_sequencer_data_free(struct TransSeqSnapData *data);
 bool transform_snap_sequencer_calc(struct TransInfo *t);
 void transform_snap_sequencer_apply_translate(TransInfo *t, float *vec);
 
 /* transform_snap_animation.c */
+
+/**
+ * This function returns the snapping 'mode' for Animation Editors only.
+ * We cannot use the standard snapping due to NLA-strip scaling complexities.
+ *
+ * TODO: these modifier checks should be accessible from the key-map.
+ */
 short getAnimEdit_SnapMode(TransInfo *t);
 void snapFrameTransform(TransInfo *t,
                         const eAnimEdit_AutoSnap autosnap,
                         const float val_initial,
                         const float val_final,
                         float *r_val_final);
+/**
+ * This function is used by Animation Editor specific transform functions to do
+ * the Snap Keyframe to Nearest Frame/Marker
+ */
 void transform_snap_anim_flush_data(TransInfo *t,
                                     TransData *td,
                                     const eAnimEdit_AutoSnap autosnap,

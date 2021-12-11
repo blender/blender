@@ -37,8 +37,6 @@ void interp_v2_v2v2(float r[2], const float a[2], const float b[2], const float 
   r[1] = s * a[1] + t * b[1];
 }
 
-/* weight 3 2D vectors,
- * 'w' must be unit length but is not a vector, just 3 weights */
 void interp_v2_v2v2v2(
     float r[2], const float a[2], const float b[2], const float c[2], const float t[3])
 {
@@ -65,12 +63,6 @@ void interp_v4_v4v4(float r[4], const float a[4], const float b[4], const float 
   r[3] = s * a[3] + t * b[3];
 }
 
-/**
- * slerp, treat vectors as spherical coordinates
- * \see #interp_qt_qtqt
- *
- * \return success
- */
 bool interp_v3_v3v3_slerp(float target[3], const float a[3], const float b[3], const float t)
 {
   float cosom, w[2];
@@ -115,9 +107,6 @@ bool interp_v2_v2v2_slerp(float target[2], const float a[2], const float b[2], c
   return true;
 }
 
-/**
- * Same as #interp_v3_v3v3_slerp but uses fallback values for opposite vectors.
- */
 void interp_v3_v3v3_slerp_safe(float target[3], const float a[3], const float b[3], const float t)
 {
   if (UNLIKELY(!interp_v3_v3v3_slerp(target, a, b, t))) {
@@ -186,8 +175,6 @@ void interp_v2_v2v2v2v2_cubic(float p[2],
 
 /** \} */
 
-/* weight 3 vectors,
- * 'w' must be unit length but is not a vector, just 3 weights */
 void interp_v3_v3v3v3(
     float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3])
 {
@@ -196,8 +183,6 @@ void interp_v3_v3v3v3(
   p[2] = v1[2] * w[0] + v2[2] * w[1] + v3[2] * w[2];
 }
 
-/* weight 3 vectors,
- * 'w' must be unit length but is not a vector, just 4 weights */
 void interp_v3_v3v3v3v3(float p[3],
                         const float v1[3],
                         const float v2[3],
@@ -311,18 +296,6 @@ void mid_v3_v3_array(float r[3], const float (*vec_arr)[3], const uint nbr)
   }
 }
 
-/**
- * Specialized function for calculating normals.
- * Fast-path for:
- *
- * \code{.c}
- * add_v3_v3v3(r, a, b);
- * normalize_v3(r)
- * mul_v3_fl(r, angle_normalized_v3v3(a, b) / M_PI_2);
- * \endcode
- *
- * We can use the length of (a + b) to calculate the angle.
- */
 void mid_v3_v3v3_angle_weighted(float r[3], const float a[3], const float b[3])
 {
   /* trick, we want the middle of 2 normals as well as the angle between them
@@ -341,10 +314,6 @@ void mid_v3_v3v3_angle_weighted(float r[3], const float a[3], const float b[3])
           acosf(normalize_v3(r) / 2.0f);
   mul_v3_fl(r, angle);
 }
-/**
- * Same as mid_v3_v3v3_angle_weighted
- * but \a r is assumed to be accumulated normals, divided by their total.
- */
 void mid_v3_angle_weighted(float r[3])
 {
   /* trick, we want the middle of 2 normals as well as the angle between them
@@ -407,13 +376,6 @@ bool is_finite_v4(const float v[4])
 
 /********************************** Angles ***********************************/
 
-/* Return the angle in radians between vecs 1-2 and 2-3 in radians
- * If v1 is a shoulder, v2 is the elbow and v3 is the hand,
- * this would return the angle at the elbow.
- *
- * note that when v1/v2/v3 represent 3 points along a straight line
- * that the angle returned will be pi (180deg), rather than 0.0
- */
 float angle_v3v3v3(const float a[3], const float b[3], const float c[3])
 {
   float vec1[3], vec2[3];
@@ -426,7 +388,6 @@ float angle_v3v3v3(const float a[3], const float b[3], const float c[3])
   return angle_normalized_v3v3(vec1, vec2);
 }
 
-/* Quicker than full angle computation */
 float cos_v3v3v3(const float p1[3], const float p2[3], const float p3[3])
 {
   float vec1[3], vec2[3];
@@ -439,7 +400,6 @@ float cos_v3v3v3(const float p1[3], const float p2[3], const float p3[3])
   return dot_v3v3(vec1, vec2);
 }
 
-/* Return the shortest angle in radians between the 2 vectors */
 float angle_v3v3(const float a[3], const float b[3])
 {
   float vec1[3], vec2[3];
@@ -466,7 +426,6 @@ float angle_v2v2v2(const float a[2], const float b[2], const float c[2])
   return angle_normalized_v2v2(vec1, vec2);
 }
 
-/* Quicker than full angle computation */
 float cos_v2v2v2(const float p1[2], const float p2[2], const float p3[2])
 {
   float vec1[2], vec2[2];
@@ -479,7 +438,6 @@ float cos_v2v2v2(const float p1[2], const float p2[2], const float p3[2])
   return dot_v2v2(vec1, vec2);
 }
 
-/* Return the shortest angle in radians between the 2 vectors */
 float angle_v2v2(const float a[2], const float b[2])
 {
   float vec1[2], vec2[2];
@@ -534,9 +492,6 @@ float angle_normalized_v2v2(const float a[2], const float b[2])
   return (float)M_PI - 2.0f * saasin(len_v2v2(a, v2_n) / 2.0f);
 }
 
-/**
- * Angle between 2 vectors, about an axis (axis can be considered a plane).
- */
 float angle_on_axis_v3v3_v3(const float v1[3], const float v2[3], const float axis[3])
 {
   float v1_proj[3], v2_proj[3];
@@ -568,9 +523,6 @@ float angle_signed_on_axis_v3v3_v3(const float v1[3], const float v2[3], const f
   return angle;
 }
 
-/**
- * Angle between 2 vectors defined by 3 coords, about an axis (axis can be considered a plane).
- */
 float angle_on_axis_v3v3v3_v3(const float v1[3],
                               const float v2[3],
                               const float v3[3],
@@ -652,9 +604,6 @@ void angle_poly_v3(float *angles, const float *verts[3], int len)
 
 /********************************* Geometry **********************************/
 
-/**
- * Project \a p onto \a v_proj
- */
 void project_v2_v2v2(float out[2], const float p[2], const float v_proj[2])
 {
   if (UNLIKELY(is_zero_v2(v_proj))) {
@@ -666,9 +615,6 @@ void project_v2_v2v2(float out[2], const float p[2], const float v_proj[2])
   mul_v2_v2fl(out, v_proj, mul);
 }
 
-/**
- * Project \a p onto \a v_proj
- */
 void project_v3_v3v3(float out[3], const float p[3], const float v_proj[3])
 {
   if (UNLIKELY(is_zero_v3(v_proj))) {
@@ -691,9 +637,6 @@ void project_v3_v3v3_db(double out[3], const double p[3], const double v_proj[3]
   mul_v3_v3db_db(out, v_proj, mul);
 }
 
-/**
- * Project \a p onto a unit length \a v_proj
- */
 void project_v2_v2v2_normalized(float out[2], const float p[2], const float v_proj[2])
 {
   BLI_ASSERT_UNIT_V2(v_proj);
@@ -702,9 +645,6 @@ void project_v2_v2v2_normalized(float out[2], const float p[2], const float v_pr
   mul_v2_v2fl(out, v_proj, mul);
 }
 
-/**
- * Project \a p onto a unit length \a v_proj
- */
 void project_v3_v3v3_normalized(float out[3], const float p[3], const float v_proj[3])
 {
   BLI_ASSERT_UNIT_V3(v_proj);
@@ -713,19 +653,6 @@ void project_v3_v3v3_normalized(float out[3], const float p[3], const float v_pr
   mul_v3_v3fl(out, v_proj, mul);
 }
 
-/**
- * In this case plane is a 3D vector only (no 4th component).
- *
- * Projecting will make \a out a copy of \a p orthogonal to \a v_plane.
- *
- * \note If \a p is exactly perpendicular to \a v_plane, \a out will just be a copy of \a p.
- *
- * \note This function is a convenience to call:
- * \code{.c}
- * project_v3_v3v3(out, p, v_plane);
- * sub_v3_v3v3(out, p, out);
- * \endcode
- */
 void project_plane_v3_v3v3(float out[3], const float p[3], const float v_plane[3])
 {
   const float mul = dot_v3v3(p, v_plane) / dot_v3v3(v_plane, v_plane);
@@ -756,7 +683,6 @@ void project_plane_normalized_v2_v2v2(float out[2], const float p[2], const floa
   madd_v2_v2v2fl(out, p, v_plane, -mul);
 }
 
-/* project a vector on a plane defined by normal and a plane point p */
 void project_v3_plane(float out[3], const float plane_no[3], const float plane_co[3])
 {
   float vector[3];
@@ -769,7 +695,6 @@ void project_v3_plane(float out[3], const float plane_no[3], const float plane_c
   madd_v3_v3fl(out, plane_no, -mul);
 }
 
-/* Returns a vector bisecting the angle at b formed by a, b and c */
 void bisect_v3_v3v3v3(float r[3], const float a[3], const float b[3], const float c[3])
 {
   float d_12[3], d_23[3];
@@ -781,22 +706,6 @@ void bisect_v3_v3v3v3(float r[3], const float a[3], const float b[3], const floa
   normalize_v3(r);
 }
 
-/**
- * Returns a reflection vector from a vector and a normal vector
- * reflect = vec - ((2 * dot(vec, mirror)) * mirror).
- *
- * <pre>
- * v
- * +  ^
- *  \ |
- *   \|
- *    + normal: axis of reflection
- *   /
- *  /
- * +
- * out: result (negate for a 'bounce').
- * </pre>
- */
 void reflect_v3_v3v3(float out[3], const float v[3], const float normal[3])
 {
   BLI_ASSERT_UNIT_V3(normal);
@@ -813,11 +722,6 @@ void reflect_v3_v3v3_db(double out[3], const double v[3], const double normal[3]
   madd_v3_v3v3db_db(out, v, normal, -dot2);
 }
 
-/**
- * Takes a vector and computes 2 orthogonal directions.
- *
- * \note if \a n is n unit length, computed values will be too.
- */
 void ortho_basis_v3v3_v3(float r_n1[3], float r_n2[3], const float n[3])
 {
   const float eps = FLT_EPSILON;
@@ -843,11 +747,6 @@ void ortho_basis_v3v3_v3(float r_n1[3], float r_n2[3], const float n[3])
   }
 }
 
-/**
- * Calculates \a p - a perpendicular vector to \a v
- *
- * \note return vector won't maintain same length.
- */
 void ortho_v3_v3(float out[3], const float v[3])
 {
   const int axis = axis_dominant_v3_single(v);
@@ -873,9 +772,6 @@ void ortho_v3_v3(float out[3], const float v[3])
   }
 }
 
-/**
- * no brainer compared to v3, just have for consistency.
- */
 void ortho_v2_v2(float out[2], const float v[2])
 {
   BLI_assert(out != v);
@@ -884,9 +780,6 @@ void ortho_v2_v2(float out[2], const float v[2])
   out[1] = v[0];
 }
 
-/**
- * Rotate a point \a p by \a angle around origin (0, 0)
- */
 void rotate_v2_v2fl(float r[2], const float p[2], const float angle)
 {
   const float co = cosf(angle);
@@ -898,10 +791,6 @@ void rotate_v2_v2fl(float r[2], const float p[2], const float angle)
   r[1] = si * p[0] + co * p[1];
 }
 
-/**
- * Rotate a point \a p by \a angle around an arbitrary unit length \a axis.
- * http://local.wasp.uwa.edu.au/~pbourke/geometry/
- */
 void rotate_normalized_v3_v3v3fl(float out[3],
                                  const float p[3],
                                  const float axis[3],
@@ -1040,7 +929,6 @@ void minmax_v3v3_v3_array(float r_min[3], float r_max[3], const float (*vec_arr)
   }
 }
 
-/** ensure \a v1 is \a dist from \a v2 */
 void dist_ensure_v3_v3fl(float v1[3], const float v2[3], const float dist)
 {
   if (!equals_v3v3(v2, v1)) {

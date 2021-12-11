@@ -268,7 +268,7 @@ static void sh_node_brick_build_multi_function(blender::nodes::NodeMultiFunction
 
 }  // namespace blender::nodes
 
-void register_node_type_sh_tex_brick(void)
+void register_node_type_sh_tex_brick()
 {
   static bNodeType ntype;
 

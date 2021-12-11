@@ -565,9 +565,6 @@ static bool bmbvh_overlap_cb(void *userdata, int index_a, int index_b, int UNUSE
           ((verts_shared == 0) || (len_squared_v3v3(ix_pair[0], ix_pair[1]) > data->epsilon)));
 }
 
-/**
- * Overlap indices reference the looptri's
- */
 BVHTreeOverlap *BKE_bmbvh_overlap(const BMBVHTree *bmtree_a,
                                   const BMBVHTree *bmtree_b,
                                   unsigned int *r_overlap_tot)
@@ -591,9 +588,6 @@ static bool bmbvh_overlap_self_cb(void *userdata, int index_a, int index_b, int 
   return false;
 }
 
-/**
- * Overlap indices reference the looptri's
- */
 BVHTreeOverlap *BKE_bmbvh_overlap_self(const BMBVHTree *bmtree, unsigned int *r_overlap_tot)
 {
   struct BMBVHTree_OverlapData data;

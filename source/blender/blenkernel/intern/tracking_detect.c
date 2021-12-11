@@ -148,7 +148,6 @@ static void run_configured_detector(MovieTracking *tracking,
   }
 }
 
-/* Detect features using FAST detector */
 void BKE_tracking_detect_fast(MovieTracking *tracking,
                               ListBase *tracksbase,
                               ImBuf *ibuf,
@@ -170,7 +169,6 @@ void BKE_tracking_detect_fast(MovieTracking *tracking,
       tracking, tracksbase, ibuf, framenr, layer, place_outside_layer, &options);
 }
 
-/* Detect features using Harris detector */
 void BKE_tracking_detect_harris(MovieTracking *tracking,
                                 ListBase *tracksbase,
                                 ImBuf *ibuf,

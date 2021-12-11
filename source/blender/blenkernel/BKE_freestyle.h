@@ -47,6 +47,10 @@ void BKE_freestyle_config_copy(struct FreestyleConfig *new_config,
 struct FreestyleModuleConfig *BKE_freestyle_module_add(struct FreestyleConfig *config);
 bool BKE_freestyle_module_delete(struct FreestyleConfig *config,
                                  struct FreestyleModuleConfig *module_conf);
+/**
+ * Reinsert \a module_conf offset by \a direction from current position.
+ * \return if position of \a module_conf changed.
+ */
 bool BKE_freestyle_module_move(struct FreestyleConfig *config,
                                struct FreestyleModuleConfig *module_conf,
                                int direction);

@@ -814,10 +814,6 @@ static void normal_compress(float out[3],
   }
 }
 
-/**
- * This function converts an object space normal map
- * to a tangent space normal map for a given low poly mesh.
- */
 void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
                                      const size_t num_pixels,
                                      const int depth,

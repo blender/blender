@@ -19,6 +19,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 add_subdirectory(geometry)
+add_subdirectory(shader)
 
 set(INC
   .
@@ -45,7 +46,6 @@ set(INC
   ../../../intern/glew-mx
   ../../../intern/atomic
   ../../../intern/guardedalloc
-  ../../../intern/sky/include
 )
 
 
@@ -158,99 +158,6 @@ set(SRC
   function/nodes/node_fn_value_to_string.cc
   function/node_function_util.cc
 
-  shader/nodes/node_shader_add_shader.c
-  shader/nodes/node_shader_ambient_occlusion.c
-  shader/nodes/node_shader_attribute.c
-  shader/nodes/node_shader_background.c
-  shader/nodes/node_shader_bevel.c
-  shader/nodes/node_shader_blackbody.c
-  shader/nodes/node_shader_brightness.c
-  shader/nodes/node_shader_bsdf_anisotropic.c
-  shader/nodes/node_shader_bsdf_diffuse.c
-  shader/nodes/node_shader_bsdf_glass.c
-  shader/nodes/node_shader_bsdf_glossy.c
-  shader/nodes/node_shader_bsdf_hair.c
-  shader/nodes/node_shader_bsdf_hair_principled.c
-  shader/nodes/node_shader_bsdf_principled.c
-  shader/nodes/node_shader_bsdf_refraction.c
-  shader/nodes/node_shader_bsdf_toon.c
-  shader/nodes/node_shader_bsdf_translucent.c
-  shader/nodes/node_shader_bsdf_transparent.c
-  shader/nodes/node_shader_bsdf_velvet.c
-  shader/nodes/node_shader_bump.c
-  shader/nodes/node_shader_camera.c
-  shader/nodes/node_shader_clamp.cc
-  shader/nodes/node_shader_common.c
-  shader/nodes/node_shader_curves.cc
-  shader/nodes/node_shader_displacement.c
-  shader/nodes/node_shader_eevee_specular.c
-  shader/nodes/node_shader_emission.c
-  shader/nodes/node_shader_fresnel.c
-  shader/nodes/node_shader_gamma.c
-  shader/nodes/node_shader_geometry.c
-  shader/nodes/node_shader_hair_info.c
-  shader/nodes/node_shader_holdout.c
-  shader/nodes/node_shader_hueSatVal.c
-  shader/nodes/node_shader_ies_light.c
-  shader/nodes/node_shader_invert.c
-  shader/nodes/node_shader_layer_weight.c
-  shader/nodes/node_shader_light_falloff.c
-  shader/nodes/node_shader_light_path.c
-  shader/nodes/node_shader_map_range.cc
-  shader/nodes/node_shader_mapping.c
-  shader/nodes/node_shader_math.cc
-  shader/nodes/node_shader_mixRgb.cc
-  shader/nodes/node_shader_mix_shader.c
-  shader/nodes/node_shader_normal.c
-  shader/nodes/node_shader_normal_map.c
-  shader/nodes/node_shader_object_info.c
-  shader/nodes/node_shader_output_aov.c
-  shader/nodes/node_shader_output_light.c
-  shader/nodes/node_shader_output_linestyle.c
-  shader/nodes/node_shader_output_material.c
-  shader/nodes/node_shader_output_world.c
-  shader/nodes/node_shader_particle_info.c
-  shader/nodes/node_shader_rgb.c
-  shader/nodes/node_shader_script.c
-  shader/nodes/node_shader_sepcombHSV.c
-  shader/nodes/node_shader_sepcombRGB.cc
-  shader/nodes/node_shader_sepcombXYZ.cc
-  shader/nodes/node_shader_shaderToRgb.c
-  shader/nodes/node_shader_squeeze.c
-  shader/nodes/node_shader_subsurface_scattering.c
-  shader/nodes/node_shader_tangent.c
-  shader/nodes/node_shader_tex_brick.cc
-  shader/nodes/node_shader_tex_checker.cc
-  shader/nodes/node_shader_tex_coord.c
-  shader/nodes/node_shader_tex_environment.c
-  shader/nodes/node_shader_tex_gradient.cc
-  shader/nodes/node_shader_tex_image.cc
-  shader/nodes/node_shader_tex_magic.cc
-  shader/nodes/node_shader_tex_musgrave.cc
-  shader/nodes/node_shader_tex_noise.cc
-  shader/nodes/node_shader_tex_pointdensity.c
-  shader/nodes/node_shader_tex_sky.c
-  shader/nodes/node_shader_tex_voronoi.cc
-  shader/nodes/node_shader_tex_wave.cc
-  shader/nodes/node_shader_tex_white_noise.cc
-  shader/nodes/node_shader_uvAlongStroke.c
-  shader/nodes/node_shader_uvmap.c
-  shader/nodes/node_shader_valToRgb.cc
-  shader/nodes/node_shader_value.cc
-  shader/nodes/node_shader_vectTransform.c
-  shader/nodes/node_shader_vector_displacement.c
-  shader/nodes/node_shader_vector_math.cc
-  shader/nodes/node_shader_vector_rotate.cc
-  shader/nodes/node_shader_vertex_color.c
-  shader/nodes/node_shader_volume_absorption.c
-  shader/nodes/node_shader_volume_info.c
-  shader/nodes/node_shader_volume_principled.c
-  shader/nodes/node_shader_volume_scatter.c
-  shader/nodes/node_shader_wavelength.c
-  shader/nodes/node_shader_wireframe.c
-  shader/node_shader_tree.c
-  shader/node_shader_util.cc
-
   texture/nodes/node_texture_at.c
   texture/nodes/node_texture_bricks.c
   texture/nodes/node_texture_checker.c
@@ -278,7 +185,6 @@ set(SRC
   texture/node_texture_util.c
 
   intern/derived_node_tree.cc
-  intern/extern_implementations.cc
   intern/geometry_nodes_eval_log.cc
   intern/math_functions.cc
   intern/node_common.cc
@@ -290,11 +196,9 @@ set(SRC
   intern/node_socket_declarations.cc
   intern/node_tree_ref.cc
   intern/node_util.c
-  intern/type_conversions.cc
 
   composite/node_composite_util.hh
   function/node_function_util.hh
-  shader/node_shader_util.h
   texture/node_texture_util.h
 
   NOD_common.h
@@ -314,7 +218,6 @@ set(SRC
   NOD_socket_declarations_geometry.hh
   NOD_static_types.h
   NOD_texture.h
-  NOD_type_conversions.hh
   intern/node_common.h
   intern/node_exec.h
   intern/node_util.h
@@ -323,8 +226,8 @@ set(SRC
 set(LIB
   bf_bmesh
   bf_functions
-  bf_intern_sky
   bf_nodes_geometry
+  bf_nodes_shader
 )
 
 if(WITH_BULLET)

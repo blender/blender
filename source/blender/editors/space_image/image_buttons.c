@@ -63,7 +63,6 @@
 #define B_NOP -1
 #define MAX_IMAGE_INFO_LEN 128
 
-/* gets active viewer user */
 struct ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
 {
   bNode *node;

@@ -46,7 +46,7 @@ static void node_composit_init_distance_matte(bNodeTree *UNUSED(ntree), bNode *n
   c->t2 = 0.1f;
 }
 
-void register_node_type_cmp_distance_matte(void)
+void register_node_type_cmp_distance_matte()
 {
   static bNodeType ntype;
 

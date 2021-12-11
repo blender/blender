@@ -162,7 +162,6 @@ static void script_main_region_listener(const wmRegionListenerParams *UNUSED(par
 #endif
 }
 
-/* only called once, from space/spacetypes.c */
 void ED_spacetype_script(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype script");

@@ -547,36 +547,28 @@ void GVArrayCommon::move_from(GVArrayCommon &&other) noexcept
   other.impl_ = nullptr;
 }
 
-/* Returns true when the virtual array is stored as a span internally. */
 bool GVArrayCommon::is_span() const
 {
   return impl_->is_span();
 }
 
-/* Returns the internally used span of the virtual array. This invokes undefined behavior is the
- * virtual array is not stored as a span internally. */
 GSpan GVArrayCommon::get_internal_span() const
 {
   BLI_assert(this->is_span());
   return impl_->get_internal_span();
 }
 
-/* Returns true when the virtual array returns the same value for every index. */
 bool GVArrayCommon::is_single() const
 {
   return impl_->is_single();
 }
 
-/* Copies the value that is used for every element into `r_value`, which is expected to point to
- * initialized memory. This invokes undefined behavior if the virtual array would not return the
- * same value for every index. */
 void GVArrayCommon::get_internal_single(void *r_value) const
 {
   BLI_assert(this->is_single());
   impl_->get_internal_single(r_value);
 }
 
-/* Same as `get_internal_single`, but `r_value` points to initialized memory. */
 void GVArrayCommon::get_internal_single_to_uninitialized(void *r_value) const
 {
   impl_->type().default_construct(r_value);
@@ -729,7 +721,6 @@ GVMutableArrayImpl *GVMutableArray::get_implementation() const
   return this->get_impl();
 }
 
-/* Copy the values from the source buffer to all elements in the virtual array. */
 void GVMutableArray::set_all(const void *src)
 {
   this->get_impl()->set_all(src);

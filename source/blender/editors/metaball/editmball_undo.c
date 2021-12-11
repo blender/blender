@@ -253,7 +253,6 @@ static void mball_undosys_foreach_ID_ref(UndoStep *us_p,
   }
 }
 
-/* Export for ED_undo_sys. */
 void ED_mball_undosys_type(UndoType *ut)
 {
   ut->name = "Edit MBall";

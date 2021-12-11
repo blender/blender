@@ -44,9 +44,6 @@
 /** \name Data Handling
  * \{ */
 
-/**
- * Returns a pointer to a newly allocated curve profile, using the given preset.
- */
 struct CurveProfile *BKE_curveprofile_add(eCurveProfilePresets preset)
 {
   CurveProfile *profile = (CurveProfile *)MEM_callocN(sizeof(CurveProfile), __func__);
@@ -104,7 +101,6 @@ void BKE_curveprofile_blend_write(struct BlendWriter *writer, const struct Curve
   BLO_write_struct_array(writer, CurveProfilePoint, profile->path_len, profile->path);
 }
 
-/* Expects that the curve profile itself has been read already. */
 void BKE_curveprofile_blend_read(struct BlendDataReader *reader, struct CurveProfile *profile)
 {
   BLO_read_data_address(reader, &profile->path);
@@ -125,14 +121,6 @@ void BKE_curveprofile_blend_read(struct BlendDataReader *reader, struct CurvePro
 /** \name Editing
  * \{ */
 
-/**
- * Move a point's handle, accounting for the alignment of handles with the #HD_ALIGN type.
- *
- * \param handle_1: Whether to move the 1st or 2nd control point.
- * \param delta: The *relative* change in the handle's position.
- * \note Requires #BKE_curveprofile_update call after.
- * \return Whether the handle moved from its start position.
- */
 bool BKE_curveprofile_move_handle(struct CurveProfilePoint *point,
                                   const bool handle_1,
                                   const bool snap,
@@ -173,14 +161,6 @@ bool BKE_curveprofile_move_handle(struct CurveProfilePoint *point,
   return false;
 }
 
-/**
- * Moves a control point, accounting for clipping and snapping, and moving free handles.
- *
- * \param snap: Whether to snap the point to the grid
- * \param delta: The *relative* change of the point's location.
- * \return Whether the point moved from its start position.
- * \note Requires #BKE_curveprofile_update call after.
- */
 bool BKE_curveprofile_move_point(struct CurveProfile *profile,
                                  struct CurveProfilePoint *point,
                                  const bool snap,
@@ -228,10 +208,6 @@ bool BKE_curveprofile_move_point(struct CurveProfile *profile,
   return false;
 }
 
-/**
- * Removes a specific point from the path of control points.
- * \note Requires #BKE_curveprofile_update call after.
- */
 bool BKE_curveprofile_remove_point(CurveProfile *profile, CurveProfilePoint *point)
 {
   /* Must have 2 points minimum. */
@@ -262,13 +238,6 @@ bool BKE_curveprofile_remove_point(CurveProfile *profile, CurveProfilePoint *poi
   return true;
 }
 
-/**
- * Removes every point in the widget with the supplied flag set, except for the first and last.
- *
- * \param flag: #CurveProfilePoint.flag.
- *
- * \note Requires #BKE_curveprofile_update call after.
- */
 void BKE_curveprofile_remove_by_flag(CurveProfile *profile, const short flag)
 {
   /* Copy every point without the flag into the new path. */
@@ -308,13 +277,6 @@ static void point_init(CurveProfilePoint *point, float x, float y, short flag, c
   point->h2 = h2;
 }
 
-/**
- * Adds a new point at the specified location. The choice for which points to place the new vertex
- * between is made by checking which control point line segment is closest to the new point and
- * placing the new vertex in between that segment's points.
- *
- * \note Requires #BKE_curveprofile_update call after.
- */
 CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float y)
 {
   const float new_loc[2] = {x, y};
@@ -370,11 +332,6 @@ CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float
   return new_pt;
 }
 
-/**
- * Sets the handle type of the selected control points.
- * \param type_1, type_2: Handle type for the first handle. HD_VECT, HD_AUTO, HD_FREE, or HD_ALIGN.
- * \note Requires #BKE_curveprofile_update call after.
- */
 void BKE_curveprofile_selected_handle_set(CurveProfile *profile, int type_1, int type_2)
 {
   for (int i = 0; i < profile->path_len; i++) {
@@ -397,11 +354,6 @@ static CurveProfilePoint mirror_point(const CurveProfilePoint *point)
   return new_point;
 }
 
-/**
- * Flips the profile across the diagonal so that its orientation is reversed.
- *
- * \note Requires #BKE_curveprofile_update call after.
- */
 void BKE_curveprofile_reverse(CurveProfile *profile)
 {
   /* When there are only two points, reversing shouldn't do anything. */
@@ -478,19 +430,11 @@ static void curveprofile_build_steps(CurveProfile *profile)
   }
 }
 
-/**
- * Reset the view to the clipping rectangle.
- */
 void BKE_curveprofile_reset_view(CurveProfile *profile)
 {
   profile->view_rect = profile->clip_rect;
 }
 
-/**
- * Resets the profile to the current preset.
- *
- * \note Requires #BKE_curveprofile_update call after.
- */
 void BKE_curveprofile_reset(CurveProfile *profile)
 {
   MEM_SAFE_FREE(profile->path);
@@ -871,10 +815,6 @@ static void create_samples(CurveProfile *profile,
   MEM_freeN(n_samples);
 }
 
-/**
- * Sets the default settings and clip range for the profile widget.
- * Does not generate either table.
- */
 void BKE_curveprofile_set_defaults(CurveProfile *profile)
 {
   profile->flag = PROF_USE_CLIP;
@@ -895,12 +835,6 @@ void BKE_curveprofile_set_defaults(CurveProfile *profile)
   profile->changed_timestamp = 0;
 }
 
-/**
- * Refreshes the higher resolution table sampled from the input points. A call to this or
- * #BKE_curveprofile_update is needed before evaluation functions that use the table.
- * Also sets the number of segments used for the display preview of the locations
- * of the sampled points.
- */
 void BKE_curveprofile_init(CurveProfile *profile, short segments_len)
 {
   if (segments_len != profile->segments_len) {
@@ -1044,12 +978,6 @@ static void curveprofile_make_segments_table(CurveProfile *profile)
   profile->segments = new_table;
 }
 
-/**
- * Should be called after the widget is changed. Does profile and remove double checks and more
- * importantly, recreates the display / evaluation and segments tables.
- * \param update_flags: Bitfield with fields defined in header file. Controls removing doubles and
- * clipping.
- */
 void BKE_curveprofile_update(CurveProfile *profile, const int update_flags)
 {
   CurveProfilePoint *points = profile->path;
@@ -1105,13 +1033,6 @@ void BKE_curveprofile_update(CurveProfile *profile, const int update_flags)
   }
 }
 
-/**
- * Does a single evaluation along the profile's path.
- * Travels down (length_portion * path) length and returns the position at that point.
- *
- * \param length_portion: The portion (0 to 1) of the path's full length to sample at.
- * \note Requires #BKE_curveprofile_init or #BKE_curveprofile_update call before to fill table.
- */
 void BKE_curveprofile_evaluate_length_portion(const CurveProfile *profile,
                                               float length_portion,
                                               float *x_out,

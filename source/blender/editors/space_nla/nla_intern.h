@@ -75,6 +75,9 @@ enum eNlaEdit_Snap_Mode {
 
 /* --- */
 
+/**
+ * NLA Editor internal API function for exiting tweak-mode.
+ */
 bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo);
 
 void NLA_OT_tweakmode_enter(wmOperatorType *ot);
@@ -121,7 +124,13 @@ void NLA_OT_fmodifier_paste(wmOperatorType *ot);
 /* **************************************** */
 /* nla_channels.c */
 
+/**
+ * Helper - add NLA Tracks alongside existing ones.
+ */
 bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel);
+/**
+ * helper - add NLA Tracks to empty (and selected) AnimData blocks.
+ */
 bool nlaedit_add_tracks_empty(bAnimContext *ac);
 
 /* --- */
@@ -139,9 +148,18 @@ void NLA_OT_selected_objects_add(wmOperatorType *ot);
 /* **************************************** */
 /* nla_ops.c */
 
+/**
+ * Tweak-mode is NOT enabled.
+ */
 bool nlaop_poll_tweakmode_off(bContext *C);
+/**
+ * Tweak-mode IS enabled.
+ */
 bool nlaop_poll_tweakmode_on(bContext *C);
 
+/**
+ * Is tweak-mode enabled - for use in NLA operator code.
+ */
 bool nlaedit_is_tweakmode_on(bAnimContext *ac);
 
 /* --- */

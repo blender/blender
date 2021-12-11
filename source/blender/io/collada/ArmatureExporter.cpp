@@ -40,7 +40,6 @@
 #include "GeometryExporter.h"
 #include "SceneExporter.h"
 
-/* write bone nodes */
 void ArmatureExporter::add_armature_bones(Object *ob_arm,
                                           ViewLayer *view_layer,
                                           SceneExporter *se,
@@ -144,7 +143,6 @@ void ArmatureExporter::find_objects_using_armature(Object *ob_arm,
 }
 #endif
 
-/* parent_mat is armature-space */
 void ArmatureExporter::add_bone_node(Bone *bone,
                                      Object *ob_arm,
                                      SceneExporter *se,

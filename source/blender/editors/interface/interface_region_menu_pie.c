@@ -372,9 +372,6 @@ static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
   UI_pie_menu_end(C, pie);
 }
 
-/**
- * Set up data for defining a new pie menu level and add button that invokes it.
- */
 void ui_pie_menu_level_create(uiBlock *block,
                               wmOperatorType *ot,
                               const char *propname,

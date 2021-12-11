@@ -603,12 +603,6 @@ void read_custom_data(const std::string &iobject_full_name,
   }
 }
 
-/* UVs can be defined per-loop (one value per vertex per face), or per-vertex (one value per
- * vertex). The first case is the most common, as this is the standard way of storing this data
- * given that some vertices might be on UV seams and have multiple possible UV coordinates; the
- * second case can happen when the mesh is split according to the UV islands, in which case storing
- * a single UV value per vertex allows to deduplicate data and thus to reduce the file size since
- * vertices are guaranteed to only have a single UV coordinate. */
 AbcUvScope get_uv_scope(const Alembic::AbcGeom::GeometryScope scope,
                         const CDStreamConfig &config,
                         const Alembic::AbcGeom::UInt32ArraySamplePtr &indices)

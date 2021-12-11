@@ -62,9 +62,6 @@ int ED_gpencil_session_active(void)
   return (BLI_listbase_is_empty(&undo_nodes) == false);
 }
 
-/**
- * \param step: eUndoStepDir.
- */
 int ED_undo_gpencil_step(bContext *C, const int step)
 {
   bGPdata **gpd_ptr = NULL, *new_gpd = NULL;

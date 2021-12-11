@@ -789,7 +789,6 @@ static void flushTransSeq(TransInfo *t)
   SEQ_collection_free(transformed_strips);
 }
 
-/* helper for recalcData() - for sequencer transforms */
 void recalcData_sequencer(TransInfo *t)
 {
   TransData *td;

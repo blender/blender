@@ -56,9 +56,6 @@
 
 /* **************************** depsgraph tagging ******************************** */
 
-/* tags the given anim list element for refreshes (if applicable)
- * due to Animation Editor editing
- */
 void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
 {
   ID *id;
@@ -114,8 +111,6 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
   }
 }
 
-/* tags the given ID block for refreshes (if applicable) due to
- * Animation Editor editing */
 void ANIM_id_update(Main *bmain, ID *id)
 {
   if (id) {
@@ -276,7 +271,6 @@ static void animchan_sync_gplayer(bAnimListElem *ale)
 
 /* ---------------- */
 
-/* Main call to be exported to animation editors */
 void ANIM_sync_animchannels_to_data(const bContext *C)
 {
   bAnimContext ac;

@@ -272,10 +272,6 @@ void BLI_edgehash_print(EdgeHash *eh)
   }
 }
 
-/**
- * Insert edge (\a v0, \a v1) into hash with given value, does
- * not check for duplicates.
- */
 void BLI_edgehash_insert(EdgeHash *eh, uint v0, uint v1, void *value)
 {
   edgehash_ensure_can_insert(eh);
@@ -283,9 +279,6 @@ void BLI_edgehash_insert(EdgeHash *eh, uint v0, uint v1, void *value)
   edgehash_insert(eh, edge, value);
 }
 
-/**
- * Assign a new value to a key that may already be in edgehash.
- */
 bool BLI_edgehash_reinsert(EdgeHash *eh, uint v0, uint v1, void *value)
 {
   Edge edge = init_edge(v0, v1);
@@ -307,51 +300,24 @@ bool BLI_edgehash_reinsert(EdgeHash *eh, uint v0, uint v1, void *value)
   }
 }
 
-/**
- * A version of #BLI_edgehash_lookup which accepts a fallback argument.
- */
 void *BLI_edgehash_lookup_default(const EdgeHash *eh, uint v0, uint v1, void *default_value)
 {
   EdgeHashEntry *entry = edgehash_lookup_entry(eh, v0, v1);
   return entry ? entry->value : default_value;
 }
 
-/**
- * Return value for given edge (\a v0, \a v1), or NULL if
- * if key does not exist in hash. (If need exists
- * to differentiate between key-value being NULL and
- * lack of key then see #BLI_edgehash_lookup_p().
- */
 void *BLI_edgehash_lookup(const EdgeHash *eh, uint v0, uint v1)
 {
   EdgeHashEntry *entry = edgehash_lookup_entry(eh, v0, v1);
   return entry ? entry->value : NULL;
 }
 
-/**
- * Return pointer to value for given edge (\a v0, \a v1),
- * or NULL if key does not exist in hash.
- */
 void **BLI_edgehash_lookup_p(EdgeHash *eh, uint v0, uint v1)
 {
   EdgeHashEntry *entry = edgehash_lookup_entry(eh, v0, v1);
   return entry ? &entry->value : NULL;
 }
 
-/**
- * Ensure \a (v0, v1) is exists in \a eh.
- *
- * This handles the common situation where the caller needs ensure a key is added to \a eh,
- * constructing a new value in the case the key isn't found.
- * Otherwise use the existing value.
- *
- * Such situations typically incur multiple lookups, however this function
- * avoids them by ensuring the key is added,
- * returning a pointer to the value so it can be used or initialized by the caller.
- *
- * \returns true when the value didn't need to be added.
- * (when false, the caller _must_ initialize the value).
- */
 bool BLI_edgehash_ensure_p(EdgeHash *eh, uint v0, uint v1, void ***r_value)
 {
   Edge edge = init_edge(v0, v1);
@@ -373,13 +339,6 @@ bool BLI_edgehash_ensure_p(EdgeHash *eh, uint v0, uint v1, void ***r_value)
   }
 }
 
-/**
- * Remove \a key (v0, v1) from \a eh, or return false if the key wasn't found.
- *
- * \param v0, v1: The key to remove.
- * \param free_value: Optional callback to free the value.
- * \return true if \a key was removed from \a eh.
- */
 bool BLI_edgehash_remove(EdgeHash *eh, uint v0, uint v1, EdgeHashFreeFP free_value)
 {
   uint old_length = eh->length;
@@ -390,16 +349,11 @@ bool BLI_edgehash_remove(EdgeHash *eh, uint v0, uint v1, EdgeHashFreeFP free_val
   return old_length > eh->length;
 }
 
-/* same as above but return the value,
- * no free value argument since it will be returned */
-/**
- * Remove \a key (v0, v1) from \a eh, returning the value or NULL if the key wasn't found.
- *
- * \param v0, v1: The key to remove.
- * \return the value of \a key int \a eh or NULL.
- */
 void *BLI_edgehash_popkey(EdgeHash *eh, uint v0, uint v1)
 {
+  /* Same as #BLI_edgehash_remove but return the value,
+   * no free value argument since it will be returned */
+
   Edge edge = init_edge(v0, v1);
 
   ITER_SLOTS (eh, edge, slot, index) {
@@ -420,25 +374,16 @@ void *BLI_edgehash_popkey(EdgeHash *eh, uint v0, uint v1)
   }
 }
 
-/**
- * Return boolean true/false if edge (v0,v1) in hash.
- */
 bool BLI_edgehash_haskey(const EdgeHash *eh, uint v0, uint v1)
 {
   return edgehash_lookup_entry(eh, v0, v1) != NULL;
 }
 
-/**
- * Return number of keys in hash.
- */
 int BLI_edgehash_len(const EdgeHash *eh)
 {
   return (int)eh->length;
 }
 
-/**
- * Remove all edges from hash.
- */
 void BLI_edgehash_clear_ex(EdgeHash *eh, EdgeHashFreeFP free_value, const uint UNUSED(reserve))
 {
   /* TODO: handle reserve */
@@ -449,9 +394,6 @@ void BLI_edgehash_clear_ex(EdgeHash *eh, EdgeHashFreeFP free_value, const uint U
   CLEAR_MAP(eh);
 }
 
-/**
- * Wraps #BLI_edgehash_clear_ex with zero entries reserved.
- */
 void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP free_value)
 {
   BLI_edgehash_clear_ex(eh, free_value, 0);
@@ -463,11 +405,6 @@ void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP free_value)
 /** \name Edge Hash Iterator API
  * \{ */
 
-/**
- * Create a new EdgeHashIterator. The hash table must not be mutated
- * while the iterator is in use, and the iterator will step exactly
- * BLI_edgehash_len(eh) times before becoming done.
- */
 EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh)
 {
   EdgeHashIterator *ehi = MEM_mallocN(sizeof(EdgeHashIterator), __func__);
@@ -475,14 +412,6 @@ EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh)
   return ehi;
 }
 
-/**
- * Init an already allocated EdgeHashIterator. The hash table must not
- * be mutated while the iterator is in use, and the iterator will
- * step exactly BLI_edgehash_len(eh) times before becoming done.
- *
- * \param ehi: The EdgeHashIterator to initialize.
- * \param eh: The EdgeHash to iterate over.
- */
 void BLI_edgehashIterator_init(EdgeHashIterator *ehi, EdgeHash *eh)
 {
   ehi->entries = eh->entries;
@@ -490,9 +419,6 @@ void BLI_edgehashIterator_init(EdgeHashIterator *ehi, EdgeHash *eh)
   ehi->index = 0;
 }
 
-/**
- * Free an EdgeHashIterator.
- */
 void BLI_edgehashIterator_free(EdgeHashIterator *ehi)
 {
   MEM_freeN(ehi);
@@ -569,12 +495,6 @@ BLI_INLINE void edgeset_insert_at_slot(EdgeSet *es, uint slot, Edge edge)
   es->length++;
 }
 
-/**
- * A version of BLI_edgeset_insert which checks first if the key is in the set.
- * \returns true if a new key has been added.
- *
- * \note EdgeHash has no equivalent to this because typically the value would be different.
- */
 bool BLI_edgeset_add(EdgeSet *es, uint v0, uint v1)
 {
   edgeset_ensure_can_insert(es);
@@ -591,10 +511,6 @@ bool BLI_edgeset_add(EdgeSet *es, uint v0, uint v1)
   }
 }
 
-/**
- * Adds the key to the set (no checks for unique keys!).
- * Matching #BLI_edgehash_insert
- */
 void BLI_edgeset_insert(EdgeSet *es, uint v0, uint v1)
 {
   edgeset_ensure_can_insert(es);

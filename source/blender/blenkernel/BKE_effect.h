@@ -113,16 +113,27 @@ struct PartDeflect *BKE_partdeflect_new(int type);
 struct PartDeflect *BKE_partdeflect_copy(const struct PartDeflect *pd_src);
 void BKE_partdeflect_free(struct PartDeflect *pd);
 
+/**
+ * Create list of effector relations in the collection or entire scene.
+ * This is used by the depsgraph to build relations, as well as faster
+ * lookup of effectors during evaluation.
+ */
 struct ListBase *BKE_effector_relations_create(struct Depsgraph *depsgraph,
                                                struct ViewLayer *view_layer,
                                                struct Collection *collection);
 void BKE_effector_relations_free(struct ListBase *lb);
 
+/**
+ * Create effective list of effectors from relations built beforehand.
+ */
 struct ListBase *BKE_effectors_create(struct Depsgraph *depsgraph,
                                       struct Object *ob_src,
                                       struct ParticleSystem *psys_src,
                                       struct EffectorWeights *weights,
                                       bool use_rotation);
+/**
+ * Generic force/speed system, now used for particles, soft-bodies & dynamic-paint.
+ */
 void BKE_effectors_apply(struct ListBase *effectors,
                          struct ListBase *colliders,
                          struct EffectorWeights *weights,
@@ -146,15 +157,15 @@ float effector_falloff(struct EffectorCache *eff,
                        struct EffectorData *efd,
                        struct EffectedPoint *point,
                        struct EffectorWeights *weights);
-int closest_point_on_surface(struct SurfaceModifierData *surmd,
-                             const float co[3],
-                             float surface_co[3],
-                             float surface_nor[3],
-                             float surface_vel[3]);
-int get_effector_data(struct EffectorCache *eff,
-                      struct EffectorData *efd,
-                      struct EffectedPoint *point,
-                      int real_velocity);
+bool closest_point_on_surface(struct SurfaceModifierData *surmd,
+                              const float co[3],
+                              float surface_co[3],
+                              float surface_nor[3],
+                              float surface_vel[3]);
+bool get_effector_data(struct EffectorCache *eff,
+                       struct EffectorData *efd,
+                       struct EffectedPoint *point,
+                       int real_velocity);
 
 /* required for particle_system.c */
 #if 0

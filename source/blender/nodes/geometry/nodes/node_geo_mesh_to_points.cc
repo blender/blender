@@ -28,6 +28,8 @@ using blender::Array;
 
 namespace blender::nodes::node_geo_mesh_to_points_cc {
 
+NODE_STORAGE_FUNCS(NodeGeometryMeshToPoints)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
@@ -144,8 +146,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       FieldOperation(max_zero_fn, {std::move(radius)}));
   Field<float> positive_radius(std::move(max_zero_op), 0);
 
-  const NodeGeometryMeshToPoints &storage =
-      *(const NodeGeometryMeshToPoints *)params.node().storage;
+  const NodeGeometryMeshToPoints &storage = node_storage(params.node());
   const GeometryNodeMeshToPointsMode mode = (GeometryNodeMeshToPointsMode)storage.mode;
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {

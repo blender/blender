@@ -335,9 +335,6 @@ static int *mesh_render_data_mat_tri_len_build(MeshRenderData *mr)
 /** \name Mesh/BMesh Interface (indirect, partially cached access to complex data).
  * \{ */
 
-/**
- * Part of the creation of the #MeshRenderData that happens in a thread.
- */
 void mesh_render_data_update_looptris(MeshRenderData *mr,
                                       const eMRIterType iter_type,
                                       const eMRDataType data_flag)
@@ -440,10 +437,6 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
   }
 }
 
-/**
- * \param is_mode_active: When true, use the modifiers from the edit-data,
- * otherwise don't use modifiers as they are not from this object.
- */
 MeshRenderData *mesh_render_data_create(Mesh *me,
                                         const bool is_editmode,
                                         const bool is_paint_mode,

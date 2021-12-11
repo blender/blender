@@ -552,10 +552,6 @@ static ID *wm_file_link_append_datablock_ex(Main *bmain,
   return id;
 }
 
-/*
- * NOTE: `scene` (and related `view_layer` and `v3d`) pointers may be NULL, in which case no
- * instantiation of linked objects, collections etc. will be performed.
- */
 ID *WM_file_link_datablock(Main *bmain,
                            Scene *scene,
                            ViewLayer *view_layer,
@@ -570,10 +566,6 @@ ID *WM_file_link_datablock(Main *bmain,
       bmain, scene, view_layer, v3d, filepath, id_code, id_name, flag);
 }
 
-/*
- * NOTE: `scene` (and related `view_layer` and `v3d`) pointers may be NULL, in which case no
- * instantiation of appended objects, collections etc. will be performed.
- */
 ID *WM_file_append_datablock(Main *bmain,
                              Scene *scene,
                              ViewLayer *view_layer,

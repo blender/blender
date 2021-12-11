@@ -78,6 +78,10 @@ class BCMatrix {
   BCMatrix(Object *ob);
   BCMatrix();
 
+  /**
+   * We need double here because the OpenCollada API needs it.
+   * precision = -1 indicates to not limit the precision.
+   */
   void get_matrix(DMatrix &matrix, const bool transposed = false, const int precision = -1) const;
   void get_matrix(Matrix &matrix,
                   const bool transposed = false,

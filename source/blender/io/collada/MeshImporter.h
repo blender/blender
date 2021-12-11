@@ -122,23 +122,60 @@ class MeshImporter : public MeshImporterBase {
   void print_index_list(COLLADAFW::IndexList &index_list);
 #endif
 
+  /** Checks if mesh has supported primitive types: lines, polylist, triangles, triangle_fans. */
   bool is_nice_mesh(COLLADAFW::Mesh *mesh);
 
   void read_vertices(COLLADAFW::Mesh *mesh, Mesh *me);
 
+  /**
+   * Condition 1: The Primitive has normals
+   * condition 2: The number of normals equals the number of faces.
+   * return true if both conditions apply.
+   * return false otherwise.
+   */
   bool primitive_has_useable_normals(COLLADAFW::MeshPrimitive *mp);
+  /**
+   * Assume that only TRIANGLES, TRIANGLE_FANS, POLYLIST and POLYGONS
+   * have faces. (to be verified).
+   */
   bool primitive_has_faces(COLLADAFW::MeshPrimitive *mp);
 
+  /**
+   * This function is copied from source/blender/editors/mesh/mesh_data.c
+   *
+   * TODO: (As discussed with sergey-) :
+   * Maybe move this function to `blenderkernel/intern/mesh.c`.
+   * and add definition to BKE_mesh.c.
+   */
   static void mesh_add_edges(Mesh *mesh, int len);
 
   unsigned int get_loose_edge_count(COLLADAFW::Mesh *mesh);
 
   CustomData create_edge_custom_data(EdgeHash *eh);
 
+  /**
+   * Return the number of faces by summing up
+   * the face-counts of the parts.
+   * hint: This is done because `mesh->getFacesCount()` does
+   * count loose edges as extra faces, which is not what we want here.
+   */
   void allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me);
 
   /* TODO: import uv set names */
+  /**
+   * Read all faces from TRIANGLES, TRIANGLE_FANS, POLYLIST, POLYGON
+   * Important: This function MUST be called before read_lines()
+   * Otherwise we will lose all edges from faces (see read_lines() above)
+   *
+   * TODO: import uv set names.
+   */
   void read_polys(COLLADAFW::Mesh *mesh, Mesh *me);
+  /**
+   * Read all loose edges.
+   * Important: This function assumes that all edges from existing
+   * faces have already been generated and added to me->medge
+   * So this function MUST be called after read_faces() (see below)
+   */
   void read_lines(COLLADAFW::Mesh *mesh, Mesh *me);
   unsigned int get_vertex_count(COLLADAFW::Polygons *mp, int index);
 
@@ -146,6 +183,11 @@ class MeshImporter : public MeshImporterBase {
 
   bool is_flat_face(unsigned int *nind, COLLADAFW::MeshVertexData &nor, int count);
 
+  /**
+   * Returns the list of Users of the given Mesh object.
+   * NOTE: This function uses the object user flag to control
+   * which objects have already been processed.
+   */
   std::vector<Object *> get_all_users_of(Mesh *reference_mesh);
 
  public:
@@ -159,8 +201,34 @@ class MeshImporter : public MeshImporterBase {
 
   virtual Mesh *get_mesh_by_geom_uid(const COLLADAFW::UniqueId &geom_uid);
 
+  /**
+   *
+   * During import all materials have been assigned to Object.
+   * Now we iterate over the imported objects and optimize
+   * the assignments as follows:
+   *
+   * for each imported geometry:
+   *     if number of users is 1:
+   *         get the user (object)
+   *         move the materials from Object to Data
+   *     else:
+   *         determine which materials are assigned to the first user
+   *         check if all other users have the same materials in the same order
+   *         if the check is positive:
+   *             Add the materials of the first user to the geometry
+   *             adjust all other users accordingly.
+   *
+   */
   void optimize_material_assignements();
 
+  /**
+   * We do not know in advance which objects will share geometries.
+   * And we do not know either if the objects which share geometries
+   * come along with different materials. So we first create the objects
+   * and assign the materials to Object, then in a later cleanup we decide
+   * which materials shall be moved to the created geometries. Also see
+   * optimize_material_assignements() above.
+   */
   void assign_material_to_geom(COLLADAFW::MaterialBinding cmaterial,
                                std::map<COLLADAFW::UniqueId, Material *> &uid_material_map,
                                Object *ob,
@@ -172,7 +240,7 @@ class MeshImporter : public MeshImporterBase {
                              bool isController,
                              std::map<COLLADAFW::UniqueId, Material *> &uid_material_map);
 
-  /* create a mesh storing a pointer in a map so it can be retrieved later by geometry UID */
+  /** Create a mesh storing a pointer in a map so it can be retrieved later by geometry UID. */
   bool write_geometry(const COLLADAFW::Geometry *geom);
   std::string *get_geometry_name(const std::string &mesh_name);
 };

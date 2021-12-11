@@ -182,7 +182,6 @@ static void multires_reshape_vertcos_foreach_vertex_every_edge(
   multires_reshape_vertcos_foreach_vertex(foreach_context, &ptex_coord, subdiv_vertex_index);
 }
 
-/* Set displacement grids values at a reshape level to a object coordinates of the given source. */
 bool multires_reshape_assign_final_coords_from_vertcos(
     const MultiresReshapeContext *reshape_context,
     const float (*vert_coords)[3],

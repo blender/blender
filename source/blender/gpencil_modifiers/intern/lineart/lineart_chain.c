@@ -794,11 +794,6 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
   return closest_cre;
 }
 
-/**
- * This function only connects two different chains. It will not do any clean up or smart chaining.
- * So no: removing overlapping chains, removal of short isolated segments, and no loop reduction is
- * implemented yet.
- */
 void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
 {
   LineartEdgeChain *ec;
@@ -881,9 +876,6 @@ void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
   }
 }
 
-/**
- * Length is in image space.
- */
 float MOD_lineart_chain_compute_length(LineartEdgeChain *ec)
 {
   LineartEdgeChainItem *eci;
@@ -1072,10 +1064,6 @@ void MOD_lineart_chain_clip_at_border(LineartRenderBuffer *rb)
   }
 }
 
-/**
- * This should always be the last stage!, see the end of
- * #MOD_lineart_chain_split_for_fixed_occlusion().
- */
 void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshold_rad)
 {
   LineartEdgeChain *ec, *new_ec;

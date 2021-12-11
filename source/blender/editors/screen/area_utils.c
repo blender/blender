@@ -40,9 +40,6 @@
 /** \name Generic Tool System Region Callbacks
  * \{ */
 
-/**
- * Callback for #ARegionType.message_subscribe
- */
 void ED_region_generic_tools_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
@@ -56,9 +53,6 @@ void ED_region_generic_tools_region_message_subscribe(const wmRegionMessageSubsc
   WM_msg_subscribe_rna_anon_prop(mbus, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
 }
 
-/**
- * Callback for #ARegionType.snap_size
- */
 int ED_region_generic_tools_region_snap_size(const ARegion *region, int size, int axis)
 {
   if (axis == 0) {

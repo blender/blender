@@ -633,9 +633,6 @@ BLI_INLINE void hair_volume_eval_grid_vertex_sample(HairGridVert *vert,
   }
 }
 
-/* XXX simplified test implementation using a series of discrete sample along the segment,
- * instead of finding the closest point for all affected grid vertices.
- */
 void SIM_hair_volume_add_segment(HairGrid *grid,
                                  const float UNUSED(x1[3]),
                                  const float UNUSED(v1[3]),
@@ -649,6 +646,9 @@ void SIM_hair_volume_add_segment(HairGrid *grid,
                                  const float UNUSED(dir2[3]),
                                  const float UNUSED(dir3[3]))
 {
+  /* XXX simplified test implementation using a series of discrete sample along the segment,
+   * instead of finding the closest point for all affected grid vertices. */
+
   const float radius = 1.5f;
   const float dist_scale = grid->inv_cellsize;
 

@@ -719,6 +719,20 @@ ccl_device_inline float pow22(float a)
   return sqr(a * sqr(sqr(sqr(a)) * a));
 }
 
+#ifdef __KERNEL_METAL__
+ccl_device_inline float lgammaf(float x)
+{
+  /* Nemes, Gergő (2010), "New asymptotic expansion for the Gamma function", Archiv der Mathematik
+   */
+  const float _1_180 = 1.0f / 180.0f;
+  const float log2pi = 1.83787706641f;
+  const float logx = log(x);
+  return (log2pi - logx +
+          x * (logx * 2.0f + log(x * sinh(1.0f / x) + (_1_180 / pow(x, 6.0f))) - 2.0f)) *
+         0.5f;
+}
+#endif
+
 ccl_device_inline float beta(float x, float y)
 {
   return expf(lgammaf(x) + lgammaf(y) - lgammaf(x + y));

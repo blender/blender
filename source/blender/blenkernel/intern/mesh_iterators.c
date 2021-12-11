@@ -34,7 +34,6 @@
 
 #include "MEM_guardedalloc.h"
 
-/* Copied from cdDM_foreachMappedVert */
 void BKE_mesh_foreach_mapped_vert(Mesh *mesh,
                                   void (*func)(void *userData,
                                                int index,
@@ -95,11 +94,6 @@ void BKE_mesh_foreach_mapped_vert(Mesh *mesh,
   }
 }
 
-/**
- * Copied from #cdDM_foreachMappedEdge.
- * \param tot_edges: Number of original edges. Used to avoid calling the callback with invalid
- * edge indices.
- */
 void BKE_mesh_foreach_mapped_edge(
     Mesh *mesh,
     const int tot_edges,
@@ -151,7 +145,6 @@ void BKE_mesh_foreach_mapped_edge(
   }
 }
 
-/* Copied from cdDM_foreachMappedLoop */
 void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
                                   void (*func)(void *userData,
                                                int vertex_index,
@@ -232,7 +225,6 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
   }
 }
 
-/* Copied from cdDM_foreachMappedFaceCenter */
 void BKE_mesh_foreach_mapped_face_center(
     Mesh *mesh,
     void (*func)(void *userData, int index, const float cent[3], const float no[3]),
@@ -309,7 +301,6 @@ void BKE_mesh_foreach_mapped_face_center(
   }
 }
 
-/* Copied from cdDM_foreachMappedFaceCenter */
 void BKE_mesh_foreach_mapped_subdiv_face_center(
     Mesh *mesh,
     void (*func)(void *userData, int index, const float cent[3], const float no[3]),

@@ -1694,9 +1694,6 @@ void file_operator_to_sfile(Main *bmain, SpaceFile *sfile, wmOperator *op)
   /* XXX, files and dirs updates missing, not really so important though */
 }
 
-/**
- * Use to set the file selector path from some arbitrary source.
- */
 void file_sfile_filepath_set(SpaceFile *sfile, const char *filepath)
 {
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
@@ -1746,7 +1743,6 @@ void file_draw_check(bContext *C)
   file_draw_check_ex(C, area);
 }
 
-/* for use with; UI_block_func_set */
 void file_draw_check_cb(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
 {
   file_draw_check(C);
@@ -1907,10 +1903,6 @@ static int file_execute_mouse_invoke(bContext *C, wmOperator *UNUSED(op), const 
   return OPERATOR_FINISHED;
 }
 
-/**
- * Variation of #FILE_OT_execute that accounts for some mouse specific handling. Otherwise calls
- * the same logic.
- */
 void FILE_OT_mouse_execute(wmOperatorType *ot)
 {
   /* identifiers */

@@ -168,7 +168,6 @@ static void FlipDXT5BlockHalf(uint8_t *block)
   FlipDXT1BlockHalf(block + 8);
 }
 
-/* Flips a DXTC image, by flipping and swapping DXTC blocks as appropriate. */
 int FlipDXTCImage(
     unsigned int width, unsigned int height, unsigned int levels, int fourcc, uint8_t *data)
 {

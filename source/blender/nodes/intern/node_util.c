@@ -301,11 +301,6 @@ static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree,
   return NULL;
 }
 
-/**
- * The idea behind this is: When a user connects an input to a socket that is
- * already linked (and if its not an Multi Input Socket), we try to find a replacement socket for
- * the link that we try to overwrite and connect that previous link to the new socket.
- */
 void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
 {
   bNodeSocket *socket = link->tosock;

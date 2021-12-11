@@ -79,6 +79,9 @@ class GLFrameBuffer : public FrameBuffer {
 
   void bind(bool enabled_srgb) override;
 
+  /**
+   * This is a rather slow operation. Don't check in normal cases.
+   */
   bool check(char err_out[256]) override;
 
   void clear(eGPUFrameBufferBits buffers,
@@ -97,6 +100,9 @@ class GLFrameBuffer : public FrameBuffer {
             int slot,
             void *r_data) override;
 
+  /**
+   * Copy \a src at the give offset inside \a dst.
+   */
   void blit_to(eGPUFrameBufferBits planes,
                int src_slot,
                FrameBuffer *dst,

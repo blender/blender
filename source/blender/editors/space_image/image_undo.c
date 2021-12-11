@@ -989,7 +989,6 @@ static void image_undosys_foreach_ID_ref(UndoStep *us_p,
   }
 }
 
-/* Export for ED_undo_sys. */
 void ED_image_undosys_type(UndoType *ut)
 {
   ut->name = "Image";
@@ -1040,7 +1039,6 @@ ListBase *ED_image_paint_tile_list_get(void)
   return &us->paint_tiles;
 }
 
-/* Restore painting image to previous state. Used for anchored and drag-dot style brushes. */
 void ED_image_undo_restore(UndoStep *us)
 {
   ListBase *paint_tiles = &((ImageUndoStep *)us)->paint_tiles;
@@ -1059,10 +1057,6 @@ static ImageUndoStep *image_undo_push_begin(const char *name, int paint_mode)
   return us;
 }
 
-/**
- * The caller is responsible for running #ED_image_undo_push_end,
- * failure to do so causes an invalid state for the undo system.
- */
 void ED_image_undo_push_begin(const char *name, int paint_mode)
 {
   image_undo_push_begin(name, paint_mode);

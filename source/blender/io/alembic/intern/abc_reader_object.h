@@ -171,6 +171,7 @@ class AbcObjectReader {
   void read_matrix(float r_mat[4][4], const float time, const float scale, bool &is_constant);
 
  protected:
+  /** Determine whether we can inherit our parent's XForm. */
   void determine_inherits_xform();
 };
 

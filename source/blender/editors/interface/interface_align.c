@@ -377,13 +377,6 @@ static void ui_block_align_but_to_region(uiBut *but, const ARegion *region)
   }
 }
 
-/**
- * Compute the alignment of all 'align groups' of buttons in given block.
- *
- * This is using an order-independent algorithm,
- * i.e. alignment of buttons should be OK regardless of order in which
- * they are added to the block.
- */
 void ui_block_align_calc(uiBlock *block, const ARegion *region)
 {
   int num_buttons = 0;

@@ -3135,8 +3135,6 @@ static FCurve *seq_effect_speed_speed_factor_curve_get(Scene *scene, Sequence *s
   return id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_factor", 0, NULL);
 }
 
-/* Build frame map when speed in mode #SEQ_SPEED_MULTIPLY is animated.
- * This is, because `target_frame` value is integrated over time. */
 void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq)
 {
   if ((seq->seq1 == NULL) || (seq->len < 1)) {
@@ -3175,7 +3173,6 @@ static void seq_effect_speed_frame_map_ensure(Scene *scene, Sequence *seq)
   seq_effect_speed_rebuild_map(scene, seq);
 }
 
-/* Override timeline_frame when rendering speed effect input. */
 float seq_speed_effect_target_frame_get(Scene *scene,
                                         Sequence *seq_speed,
                                         float timeline_frame,

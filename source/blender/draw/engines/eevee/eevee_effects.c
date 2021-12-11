@@ -411,9 +411,6 @@ static void downsample_radiance_cb(void *vedata, int level)
   DRW_draw_pass(psl->color_downsample_ps);
 }
 
-/**
- * Simple down-sampling algorithm. Reconstruct mip chain up to mip level.
- */
 void EEVEE_effects_downsample_radiance_buffer(EEVEE_Data *vedata, GPUTexture *texture_src)
 {
   EEVEE_PassList *psl = vedata->psl;
@@ -430,9 +427,6 @@ void EEVEE_effects_downsample_radiance_buffer(EEVEE_Data *vedata, GPUTexture *te
   DRW_stats_group_end();
 }
 
-/**
- * Simple down-sampling algorithm for cube-map. Reconstruct mip chain up to mip level.
- */
 void EEVEE_downsample_cube_buffer(EEVEE_Data *vedata, GPUTexture *texture_src, int level)
 {
   EEVEE_FramebufferList *fbl = vedata->fbl;

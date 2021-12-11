@@ -203,7 +203,6 @@ static ParticleHairCache *drw_hair_particle_cache_get(Object *object,
   return cache;
 }
 
-/* NOTE: Only valid after DRW_hair_update(). */
 GPUVertBuf *DRW_hair_pos_buffer_get(Object *object, ParticleSystem *psys, ModifierData *md)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();

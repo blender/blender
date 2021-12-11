@@ -216,6 +216,10 @@ class LocalGeoLogger {
   void log_multi_value_socket(DSocket socket, Span<GPointer> values);
   void log_node_warning(DNode node, NodeWarningType type, std::string message);
   void log_execution_time(DNode node, std::chrono::microseconds exec_time);
+  /**
+   * Log a message that will be displayed in the node editor next to the node.
+   * This should only be used for debugging purposes and not to display information to users.
+   */
   void log_debug_message(DNode node, std::string message);
 };
 

@@ -154,9 +154,6 @@ void OUTLINER_OT_highlight_update(wmOperatorType *ot)
 /** \name Toggle Open/Closed Operator
  * \{ */
 
-/**
- * Open or close a tree element, optionally toggling all children recursively.
- */
 void outliner_item_openclose(SpaceOutliner *space_outliner,
                              TreeElement *te,
                              bool open,
@@ -964,9 +961,6 @@ void OUTLINER_OT_lib_relocate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* XXX This does not work with several items
- * (it is only called once in the end, due to the 'deferred'
- * file-browser invocation through event system...). */
 void lib_relocate_fn(bContext *C,
                      ReportList *UNUSED(reports),
                      Scene *UNUSED(scene),
@@ -975,6 +969,10 @@ void lib_relocate_fn(bContext *C,
                      TreeStoreElem *tselem,
                      void *UNUSED(user_data))
 {
+  /* XXX: This does not work with several items
+   * (it is only called once in the end, due to the 'deferred'
+   * file-browser invocation through event system...). */
+
   wmOperatorType *ot = WM_operatortype_find("WM_OT_lib_relocate", false);
 
   lib_relocate(C, te, tselem, ot, false);
@@ -1068,10 +1066,6 @@ int outliner_flag_is_any_test(ListBase *lb, short flag, const int curlevel)
   return 0;
 }
 
-/**
- * Set or unset \a flag for all outliner elements in \a lb and sub-trees.
- * \return if any flag was modified.
- */
 bool outliner_flag_set(ListBase *lb, short flag, short set)
 {
   bool changed = false;
@@ -1225,7 +1219,6 @@ static void outliner_set_coordinates_element_recursive(SpaceOutliner *space_outl
   }
 }
 
-/* to retrieve coordinates with redrawing the entire tree */
 void outliner_set_coordinates(ARegion *region, SpaceOutliner *space_outliner)
 {
   int starty = (int)(region->v2d.tot.ymax) - UI_UNIT_Y;

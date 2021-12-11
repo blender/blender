@@ -34,11 +34,11 @@ extern "C" {
  * Shrinkwrap is composed by a set of functions and options that define the type of shrink.
  *
  * 3 modes are available:
- * - Nearest vertex
- * - Nearest surface
- * - Normal projection
+ * - Nearest vertex.
+ * - Nearest surface.
+ * - Normal projection.
  *
- * ShrinkwrapCalcData encapsulates all needed data for shrinkwrap functions.
+ * #ShrinkwrapCalcData encapsulates all needed data for shrink-wrap functions.
  * (So that you don't have to pass an enormous amount of arguments to functions)
  */
 
@@ -74,6 +74,9 @@ typedef struct ShrinkwrapBoundaryData {
   const ShrinkwrapBoundaryVertData *boundary_verts;
 } ShrinkwrapBoundaryData;
 
+/**
+ * Free boundary data for target project.
+ */
 void BKE_shrinkwrap_discard_boundary_data(struct Mesh *mesh);
 void BKE_shrinkwrap_compute_boundary_data(struct Mesh *mesh);
 
@@ -89,20 +92,28 @@ typedef struct ShrinkwrapTreeData {
   ShrinkwrapBoundaryData *boundary;
 } ShrinkwrapTreeData;
 
-/* Checks if the modifier needs target normals with these settings. */
+/**
+ * Checks if the modifier needs target normals with these settings.
+ */
 bool BKE_shrinkwrap_needs_normals(int shrinkType, int shrinkMode);
 
-/* Initializes the mesh data structure from the given mesh and settings. */
+/**
+ * Initializes the mesh data structure from the given mesh and settings.
+ */
 bool BKE_shrinkwrap_init_tree(struct ShrinkwrapTreeData *data,
                               Mesh *mesh,
                               int shrinkType,
                               int shrinkMode,
                               bool force_normals);
 
-/* Frees the tree data if necessary. */
+/**
+ * Frees the tree data if necessary.
+ */
 void BKE_shrinkwrap_free_tree(struct ShrinkwrapTreeData *data);
 
-/* Implementation of the Shrinkwrap modifier */
+/**
+ * Main shrink-wrap function (implementation of the shrink-wrap modifier).
+ */
 void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd,
                                const struct ModifierEvalContext *ctx,
                                struct Scene *scene,
@@ -113,26 +124,36 @@ void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd,
                                float (*vertexCos)[3],
                                int numVerts);
 
-/* Used in editmesh_mask_extract.c to shrinkwrap the extracted mesh to the sculpt */
+/**
+ * Used in `editmesh_mask_extract.c` to shrink-wrap the extracted mesh to the sculpt.
+ */
 void BKE_shrinkwrap_mesh_nearest_surface_deform(struct bContext *C,
                                                 struct Object *ob_source,
                                                 struct Object *ob_target);
 
-/* Used in object_remesh.cc to preserve the details and volume in the voxel remesher */
+/**
+ * Used in `object_remesh.cc` to preserve the details and volume in the voxel remesher.
+ */
 void BKE_shrinkwrap_remesh_target_project(struct Mesh *src_me,
                                           struct Mesh *target_me,
                                           struct Object *ob_target);
 
-/*
- * This function casts a ray in the given BVHTree.
- * but it takes into consideration the space_transform, that is:
+/**
+ * This function ray-cast a single vertex and updates the hit if the "hit" is considered valid.
  *
- * if transf was configured with "SPACE_TRANSFORM_SETUP( &transf,  ob1, ob2 )"
- * then the input (vert, dir, BVHTreeRayHit) must be defined in ob1 coordinates space
- * and the BVHTree must be built in ob2 coordinate space.
+ * \param options: Opts control whether an hit is valid or not.
+ * Supported options are:
+ * - #MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE (front faces hits are ignored)
+ * - #MOD_SHRINKWRAP_CULL_TARGET_BACKFACE (back faces hits are ignored)
  *
+ * \param transf: Take into consideration the space_transform, that is:
+ * if `transf` was configured with `SPACE_TRANSFORM_SETUP( &transf,  ob1, ob2)`
+ * then the input (vert, dir, #BVHTreeRayHit) must be defined in ob1 coordinates space
+ * and the #BVHTree must be built in ob2 coordinate space.
  * Thus it provides an easy way to cast the same ray across several trees
- * (where each tree was built on its own coords space)
+ * (where each tree was built on its own coords space).
+ *
+ * \return true if "hit" was updated.
  */
 bool BKE_shrinkwrap_project_normal(char options,
                                    const float vert[3],
@@ -142,14 +163,21 @@ bool BKE_shrinkwrap_project_normal(char options,
                                    struct ShrinkwrapTreeData *tree,
                                    BVHTreeRayHit *hit);
 
-/* Maps the point to the nearest surface, either by simple nearest,
- * or by target normal projection. */
+/**
+ * Maps the point to the nearest surface, either by simple nearest, or by target normal projection.
+ */
 void BKE_shrinkwrap_find_nearest_surface(struct ShrinkwrapTreeData *tree,
                                          struct BVHTreeNearest *nearest,
                                          float co[3],
                                          int type);
 
-/* Computes a smooth normal of the target (if applicable) at the hit location. */
+/**
+ * Compute a smooth normal of the target (if applicable) at the hit location.
+ *
+ * \param tree: information about the mesh.
+ * \param transform: transform from the hit coordinate space to the object space; may be null.
+ * \param r_no: output in hit coordinate space; may be shared with inputs.
+ */
 void BKE_shrinkwrap_compute_smooth_normal(const struct ShrinkwrapTreeData *tree,
                                           const struct SpaceTransform *transform,
                                           int looptri_idx,
@@ -157,7 +185,13 @@ void BKE_shrinkwrap_compute_smooth_normal(const struct ShrinkwrapTreeData *tree,
                                           const float hit_no[3],
                                           float r_no[3]);
 
-/* Apply the shrink to surface modes to the given original coordinates and nearest point. */
+/**
+ * Apply the shrink to surface modes to the given original coordinates and nearest point.
+ *
+ * \param tree: mesh data for smooth normals.
+ * \param transform: transform from the hit coordinate space to the object space; may be null.
+ * \param r_point_co: may be the same memory location as `point_co`, `hit_co`, or `hit_no`.
+ */
 void BKE_shrinkwrap_snap_point_to_surface(const struct ShrinkwrapTreeData *tree,
                                           const struct SpaceTransform *transform,
                                           int mode,

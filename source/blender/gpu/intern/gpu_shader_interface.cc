@@ -65,11 +65,12 @@ static void sort_input_list(MutableSpan<ShaderInput> dst)
   }
 }
 
-/* Sorts all inputs inside their respective array.
- * This is to allow fast hash collision detection.
- * See ShaderInterface::input_lookup for more details. */
 void ShaderInterface::sort_inputs()
 {
+  /* Sorts all inputs inside their respective array.
+   * This is to allow fast hash collision detection.
+   * See `ShaderInterface::input_lookup` for more details. */
+
   sort_input_list(MutableSpan<ShaderInput>(inputs_, attr_len_));
   sort_input_list(MutableSpan<ShaderInput>(inputs_ + attr_len_, ubo_len_));
   sort_input_list(MutableSpan<ShaderInput>(inputs_ + attr_len_ + ubo_len_, uniform_len_));

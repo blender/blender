@@ -32,13 +32,6 @@
 
 /********************************** Eigen Solvers *********************************/
 
-/**
- * \brief Compute the eigen values and/or vectors of given 3D symmetric (aka adjoint) matrix.
- *
- * \param m3: the 3D symmetric matrix.
- * \return r_eigen_values the computed eigen values (NULL if not needed).
- * \return r_eigen_vectors the computed eigen vectors (NULL if not needed).
- */
 bool BLI_eigen_solve_selfadjoint_m3(const float m3[3][3],
                                     float r_eigen_values[3],
                                     float r_eigen_vectors[3][3])
@@ -54,14 +47,6 @@ bool BLI_eigen_solve_selfadjoint_m3(const float m3[3][3],
       3, (const float *)m3, r_eigen_values, (float *)r_eigen_vectors);
 }
 
-/**
- * \brief Compute the SVD (Singular Values Decomposition) of given 3D matrix (m3 = USV*).
- *
- * \param m3: the matrix to decompose.
- * \return r_U the computed left singular vector of \a m3 (NULL if not needed).
- * \return r_S the computed singular values of \a m3 (NULL if not needed).
- * \return r_V the computed right singular vector of \a m3 (NULL if not needed).
- */
 void BLI_svd_m3(const float m3[3][3], float r_U[3][3], float r_S[3], float r_V[3][3])
 {
   EIG_svd_square_matrix(3, (const float *)m3, (float *)r_U, (float *)r_S, (float *)r_V);
@@ -69,16 +54,6 @@ void BLI_svd_m3(const float m3[3][3], float r_U[3][3], float r_S[3], float r_V[3
 
 /***************************** Simple Solvers ************************************/
 
-/**
- * \brief Solve a tridiagonal system of equations:
- *
- * a[i] * r_x[i-1] + b[i] * r_x[i] + c[i] * r_x[i+1] = d[i]
- *
- * Ignores a[0] and c[count-1]. Uses the Thomas algorithm, e.g. see wiki.
- *
- * \param r_x: output vector, may be shared with any of the input ones
- * \return true if success
- */
 bool BLI_tridiagonal_solve(
     const float *a, const float *b, const float *c, const float *d, float *r_x, const int count)
 {
@@ -124,12 +99,6 @@ bool BLI_tridiagonal_solve(
   return isfinite(x_prev);
 }
 
-/**
- * \brief Solve a possibly cyclic tridiagonal system using the Sherman-Morrison formula.
- *
- * \param r_x: output vector, may be shared with any of the input ones
- * \return true if success
- */
 bool BLI_tridiagonal_solve_cyclic(
     const float *a, const float *b, const float *c, const float *d, float *r_x, const int count)
 {
@@ -194,21 +163,6 @@ bool BLI_tridiagonal_solve_cyclic(
   return success;
 }
 
-/**
- * \brief Solve a generic f(x) = 0 equation using Newton's method.
- *
- * \param func_delta: Callback computing the value of f(x).
- * \param func_jacobian: Callback computing the Jacobian matrix of the function at x.
- * \param func_correction: Callback for forcing the search into an arbitrary custom domain.
- * May be NULL.
- * \param userdata: Data for the callbacks.
- * \param epsilon: Desired precision.
- * \param max_iterations: Limit on the iterations.
- * \param trace: Enables logging to console.
- * \param x_init: Initial solution vector.
- * \param result: Final result.
- * \return true if success
- */
 bool BLI_newton3d_solve(Newton3D_DeltaFunc func_delta,
                         Newton3D_JacobianFunc func_jacobian,
                         Newton3D_CorrectionFunc func_correction,

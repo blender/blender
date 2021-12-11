@@ -77,10 +77,6 @@ Scene *ED_scene_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod me
   return scene_new;
 }
 
-/**
- * \note Only call outside of area/region loops
- * \return true if successful
- */
 bool ED_scene_delete(bContext *C, Main *bmain, Scene *scene)
 {
   Scene *scene_new;
@@ -113,7 +109,6 @@ bool ED_scene_delete(bContext *C, Main *bmain, Scene *scene)
   return true;
 }
 
-/* Depsgraph updates after scene becomes active in a window. */
 void ED_scene_change_update(Main *bmain, Scene *scene, ViewLayer *layer)
 {
   Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, layer);

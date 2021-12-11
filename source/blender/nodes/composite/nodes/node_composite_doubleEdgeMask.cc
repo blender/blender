@@ -35,7 +35,7 @@ static void cmp_node_double_edge_mask_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_doubleedgemask(void)
+void register_node_type_cmp_doubleedgemask()
 {
   static bNodeType ntype; /* Allocate a node type data structure. */
 

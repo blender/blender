@@ -283,6 +283,7 @@ extern IDTypeInfo IDType_ID_PT;
 extern IDTypeInfo IDType_ID_VO;
 extern IDTypeInfo IDType_ID_SIM;
 
+/** Empty shell mostly, but needed for read code. */
 extern IDTypeInfo IDType_ID_LINK_PLACEHOLDER;
 
 /* ********** Helpers/Utils API. ********** */
@@ -294,32 +295,101 @@ void BKE_idtype_init(void);
 const struct IDTypeInfo *BKE_idtype_get_info_from_idcode(const short id_code);
 const struct IDTypeInfo *BKE_idtype_get_info_from_id(const struct ID *id);
 
+/**
+ * Convert an \a idcode into a name.
+ *
+ * \param idcode: The code to convert.
+ * \return A static string representing the name of the code.
+ */
 const char *BKE_idtype_idcode_to_name(const short idcode);
+/**
+ * Convert an \a idcode into a name (plural).
+ *
+ * \param idcode: The code to convert.
+ * \return A static string representing the name of the code.
+ */
 const char *BKE_idtype_idcode_to_name_plural(const short idcode);
+/**
+ * Convert an \a idcode into its translations' context.
+ *
+ * \param idcode: The code to convert.
+ * \return A static string representing the i18n context of the code.
+ */
 const char *BKE_idtype_idcode_to_translation_context(const short idcode);
 
+/**
+ * Return if the ID code is a valid ID code.
+ *
+ * \param idcode: The code to check.
+ * \return Boolean, 0 when invalid.
+ */
 bool BKE_idtype_idcode_is_valid(const short idcode);
 
+/**
+ * Check if an ID type is linkable.
+ *
+ * \param idcode: The IDType code to check.
+ * \return Boolean, false when non linkable, true otherwise.
+ */
 bool BKE_idtype_idcode_is_linkable(const short idcode);
+/**
+ * Check if an ID type is only appendable.
+ *
+ * \param idcode: The IDType code to check.
+ * \return Boolean, false when also linkable, true when only appendable.
+ */
 bool BKE_idtype_idcode_is_only_appendable(const short idcode);
+/**
+ * Check if an ID type can try to reuse and existing matching local one when being appended again.
+ *
+ * \param idcode: The IDType code to check.
+ * \return Boolean, false when it cannot be re-used, true otherwise.
+ */
 bool BKE_idtype_idcode_append_is_reusable(const short idcode);
 /* Macro currently, since any linkable IDtype should be localizable. */
 #define BKE_idtype_idcode_is_localizable BKE_idtype_idcode_is_linkable
 
+/**
+ * Convert an ID-type name into an \a idcode (ie. #ID_SCE)
+ *
+ * \param idtype_name: The ID-type's "user visible name" to convert.
+ * \return The \a idcode for the name, or 0 if invalid.
+ */
 short BKE_idtype_idcode_from_name(const char *idtype_name);
 
+/**
+ * Convert an \a idcode into an \a idfilter (e.g. #ID_OB -> #FILTER_ID_OB).
+ */
 uint64_t BKE_idtype_idcode_to_idfilter(const short idcode);
+/**
+ * Convert an \a idfilter into an \a idcode (e.g. #FILTER_ID_OB -> #ID_OB).
+ */
 short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter);
 
+/**
+ * Convert an \a idcode into an index (e.g. #ID_OB -> #INDEX_ID_OB).
+ */
 int BKE_idtype_idcode_to_index(const short idcode);
+/**
+ * Get an \a idcode from an index (e.g. #INDEX_ID_OB -> #ID_OB).
+ */
 short BKE_idtype_idcode_from_index(const int index);
 
+/**
+ * Return an ID code and steps the index forward 1.
+ *
+ * \param index: start as 0.
+ * \return the code, 0 when all codes have been returned.
+ */
 short BKE_idtype_idcode_iter_step(int *index);
 
 /* Some helpers/wrappers around callbacks defined in #IDTypeInfo, dealing e.g. with embedded IDs.
  * XXX Ideally those would rather belong to #BKE_lib_id, but using callback function pointers makes
  * this hard to do properly if we want to avoid headers includes in headers. */
 
+/**
+ * Wrapper around #IDTypeInfo foreach_cache that also handles embedded IDs.
+ */
 void BKE_idtype_id_foreach_cache(struct ID *id,
                                  IDTypeForeachCacheFunctionCallback function_callback,
                                  void *user_data);

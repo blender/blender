@@ -671,7 +671,6 @@ GPUBatch *DRW_cache_gpencil_sbuffer_fill_get(Object *ob)
   return gpd->runtime.sbuffer_fill_batch;
 }
 
-/* Sbuffer batches are temporary. We need to clear it after drawing */
 void DRW_cache_gpencil_sbuffer_clear(Object *ob)
 {
   bGPdata *gpd = (bGPdata *)ob->data;

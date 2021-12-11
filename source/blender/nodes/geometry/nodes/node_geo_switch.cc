@@ -28,6 +28,8 @@
 
 namespace blender::nodes::node_geo_switch_cc {
 
+NODE_STORAGE_FUNCS(NodeSwitch)
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Bool>(N_("Switch")).default_value(false).supports_field();
@@ -97,18 +99,13 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  NodeSwitch *node_storage = (NodeSwitch *)node->storage;
+  const NodeSwitch &storage = node_storage(*node);
   int index = 0;
   bNodeSocket *field_switch = (bNodeSocket *)node->inputs.first;
   bNodeSocket *non_field_switch = (bNodeSocket *)field_switch->next;
 
-  const bool fields_type = ELEM((eNodeSocketDatatype)node_storage->input_type,
-                                SOCK_FLOAT,
-                                SOCK_INT,
-                                SOCK_BOOLEAN,
-                                SOCK_VECTOR,
-                                SOCK_RGBA,
-                                SOCK_STRING);
+  const bool fields_type = ELEM(
+      storage.input_type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA, SOCK_STRING);
 
   nodeSetSocketAvailability(ntree, field_switch, fields_type);
   nodeSetSocketAvailability(ntree, non_field_switch, !fields_type);
@@ -117,13 +114,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
     if (index <= 1) {
       continue;
     }
-    nodeSetSocketAvailability(
-        ntree, socket, socket->type == (eNodeSocketDatatype)node_storage->input_type);
+    nodeSetSocketAvailability(ntree, socket, socket->type == storage.input_type);
   }
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-    nodeSetSocketAvailability(
-        ntree, socket, socket->type == (eNodeSocketDatatype)node_storage->input_type);
+    nodeSetSocketAvailability(ntree, socket, socket->type == storage.input_type);
   }
 }
 
@@ -234,7 +229,7 @@ template<typename T> void switch_no_fields(GeoNodeExecParams &params, const Stri
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const NodeSwitch &storage = *(const NodeSwitch *)params.node().storage;
+  const NodeSwitch &storage = node_storage(params.node());
   const eNodeSocketDatatype data_type = static_cast<eNodeSocketDatatype>(storage.input_type);
 
   switch (data_type) {

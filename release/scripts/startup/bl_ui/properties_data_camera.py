@@ -110,6 +110,14 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
                     sub = col.column(align=True)
                     sub.prop(ccam, "longitude_min", text="Longitude Min")
                     sub.prop(ccam, "longitude_max", text="Max")
+                elif ccam.panorama_type == 'FISHEYE_LENS_POLYNOMIAL':
+                    col.prop(ccam, "fisheye_fov")
+                    col.prop(ccam, "fisheye_polynomial_k0", text="K0")
+                    col.prop(ccam, "fisheye_polynomial_k1", text="K1")
+                    col.prop(ccam, "fisheye_polynomial_k2", text="K2")
+                    col.prop(ccam, "fisheye_polynomial_k3", text="K3")
+                    col.prop(ccam, "fisheye_polynomial_k4", text="K4")
+
             elif engine in {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}:
                 if cam.lens_unit == 'MILLIMETERS':
                     col.prop(cam, "lens")

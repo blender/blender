@@ -397,17 +397,11 @@ tSlider *ED_slider_create(struct bContext *C)
   return slider;
 }
 
-/**
- * For modal operations so the percentage doesn't pop on the first mouse movement.
- */
 void ED_slider_init(struct tSlider *slider, const wmEvent *event)
 {
   copy_v2fl_v2i(slider->last_cursor, event->xy);
 }
 
-/**
- * Calculate slider factor based on mouse position.
- */
 bool ED_slider_modal(tSlider *slider, const wmEvent *event)
 {
   bool event_handled = true;
@@ -441,9 +435,6 @@ bool ED_slider_modal(tSlider *slider, const wmEvent *event)
   return event_handled;
 }
 
-/**
- * Return string based on the current state of the slider.
- */
 void ED_slider_status_string_get(const struct tSlider *slider,
                                  char *status_string,
                                  const size_t size_of_status_string)
@@ -523,9 +514,6 @@ void ED_slider_allow_overshoot_set(struct tSlider *slider, const bool value)
 
 /** \} */
 
-/**
- * Callback that draws a line between the mouse and a position given as the initial argument.
- */
 void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *region, void *arg_info)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -776,9 +764,6 @@ static float metadata_box_height_get(ImBuf *ibuf, int fontid, const bool is_top)
   return 0;
 }
 
-/**
- * \note Keep in sync with #BKE_image_stamp_buf.
- */
 void ED_region_image_metadata_draw(
     int x, int y, ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy)
 {

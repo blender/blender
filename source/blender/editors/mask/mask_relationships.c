@@ -168,7 +168,6 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-/** based on #OBJECT_OT_parent_set */
 void MASK_OT_parent_set(wmOperatorType *ot)
 {
   /* identifiers */

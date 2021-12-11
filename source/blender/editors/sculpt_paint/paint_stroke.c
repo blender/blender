@@ -1066,7 +1066,6 @@ static void stroke_done(bContext *C, wmOperator *op)
   paint_stroke_free(C, op);
 }
 
-/* Returns zero if the stroke dots should not be spaced, non-zero otherwise */
 bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
 {
   if ((br->flag & BRUSH_SPACE) == 0) {
@@ -1101,7 +1100,6 @@ static bool sculpt_is_grab_tool(Brush *br)
               SCULPT_TOOL_SNAKE_HOOK);
 }
 
-/* return true if the brush size can change during paint (normally used for pressure) */
 bool paint_supports_dynamic_size(Brush *br, ePaintMode mode)
 {
   if (br->flag & BRUSH_ANCHORED) {
@@ -1157,7 +1155,6 @@ bool paint_supports_texture(ePaintMode mode)
       mode, PAINT_MODE_SCULPT, PAINT_MODE_VERTEX, PAINT_MODE_TEXTURE_3D, PAINT_MODE_TEXTURE_2D);
 }
 
-/* return true if the brush size can change during paint (normally used for pressure) */
 bool paint_supports_dynamic_tex_coords(Brush *br, ePaintMode mode)
 {
   if (br->flag & BRUSH_ANCHORED) {
@@ -1178,7 +1175,6 @@ bool paint_supports_dynamic_tex_coords(Brush *br, ePaintMode mode)
 
 #define PAINT_STROKE_MODAL_CANCEL 1
 
-/* Called in paint_ops.c, on each regeneration of key-maps. */
 struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
 {
   static struct EnumPropertyItem modal_items[] = {

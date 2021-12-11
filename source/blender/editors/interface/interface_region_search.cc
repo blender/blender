@@ -106,17 +106,6 @@ struct uiSearchboxData {
 
 #define SEARCH_ITEMS 10
 
-/**
- * Public function exported for functions that use #UI_BTYPE_SEARCH_MENU.
- *
- * \param items: Stores the items.
- * \param name: Text to display for the item.
- * \param poin: Opaque pointer (for use by the caller).
- * \param iconid: The icon, #ICON_NONE for no icon.
- * \param state: The buttons state flag, compatible with #uiBut.flag,
- * typically #UI_BUT_DISABLED / #UI_BUT_INACTIVE.
- * \return false if there is nothing to add.
- */
 bool UI_search_item_add(uiSearchItems *items,
                         const char *name,
                         void *poin,
@@ -126,7 +115,7 @@ bool UI_search_item_add(uiSearchItems *items,
 {
   /* hijack for autocomplete */
   if (items->autocpl) {
-    UI_autocomplete_update_name(items->autocpl, name);
+    UI_autocomplete_update_name(items->autocpl, name + name_prefix_offset);
     return true;
   }
 
@@ -186,12 +175,12 @@ bool UI_search_item_add(uiSearchItems *items,
   return true;
 }
 
-int UI_searchbox_size_y(void)
+int UI_searchbox_size_y()
 {
   return SEARCH_ITEMS * UI_UNIT_Y + 2 * UI_POPUP_MENU_TOP;
 }
 
-int UI_searchbox_size_x(void)
+int UI_searchbox_size_x()
 {
   return 12 * UI_UNIT_X;
 }
@@ -289,7 +278,6 @@ int ui_searchbox_find_index(ARegion *region, const char *name)
   return UI_search_items_find_index(&data->items, name);
 }
 
-/* x and y in screen-coords. */
 bool ui_searchbox_inside(ARegion *region, const int xy[2])
 {
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
@@ -297,7 +285,6 @@ bool ui_searchbox_inside(ARegion *region, const int xy[2])
   return BLI_rcti_isect_pt(&data->bbox, xy[0] - region->winrct.xmin, xy[1] - region->winrct.ymin);
 }
 
-/* string validated to be of correct length (but->hardmax) */
 bool ui_searchbox_apply(uiBut *but, ARegion *region)
 {
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
@@ -323,13 +310,6 @@ bool ui_searchbox_apply(uiBut *but, ARegion *region)
     }
 
     search_but->item_active = data->items.pointers[data->active];
-
-    return true;
-  }
-  if (but->flag & UI_BUT_VALUE_CLEAR) {
-    /* It is valid for _VALUE_CLEAR flavor to have no active element
-     * (it's a valid way to unlink). */
-    but->editstr[0] = '\0';
 
     return true;
   }
@@ -477,7 +457,6 @@ static void ui_searchbox_update_fn(bContext *C,
   search_but->items_update_fn(C, search_but->arg, str, items, is_first_search);
 }
 
-/* region is the search box itself */
 void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool reset)
 {
   uiButSearch *search_but = (uiButSearch *)but;
@@ -1032,8 +1011,6 @@ ARegion *ui_searchbox_create_menu(bContext *C, ARegion *butregion, uiButSearch *
   return region;
 }
 
-/* sets red alert if button holds a string it can't find */
-/* XXX weak: search_func adds all partial matches... */
 void ui_but_search_refresh(uiButSearch *search_but)
 {
   uiBut *but = &search_but->but;

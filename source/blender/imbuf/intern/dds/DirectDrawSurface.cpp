@@ -1107,8 +1107,6 @@ void DirectDrawSurface::mipmap(Image *img, uint face, uint mipmap)
   }
 }
 
-/* It was easier to copy this function from upstream than to resync.
- * This should be removed if a resync ever occurs. */
 void *DirectDrawSurface::readData(uint &rsize)
 {
   uint header_size = 128;  // sizeof(DDSHeader);

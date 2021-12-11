@@ -109,7 +109,6 @@ bool GpencilExporterPDF::write()
   return (res == 0) ? true : false;
 }
 
-/* Create pdf document. */
 bool GpencilExporterPDF::create_document()
 {
   pdf_ = HPDF_New(error_handler, nullptr);
@@ -120,7 +119,6 @@ bool GpencilExporterPDF::create_document()
   return true;
 }
 
-/* Add page. */
 bool GpencilExporterPDF::add_page()
 {
   /* Add a new page object. */
@@ -136,7 +134,6 @@ bool GpencilExporterPDF::add_page()
   return true;
 }
 
-/* Main layer loop. */
 void GpencilExporterPDF::export_gpencil_layers()
 {
   /* If is doing a set of frames, the list of objects can change for each frame. */
@@ -229,10 +226,6 @@ void GpencilExporterPDF::export_gpencil_layers()
   }
 }
 
-/**
- * Export a stroke using polyline or polygon
- * \param do_fill: True if the stroke is only fill
- */
 void GpencilExporterPDF::export_stroke_to_polyline(bGPDlayer *gpl,
                                                    bGPDstroke *gps,
                                                    const bool is_stroke,
@@ -288,10 +281,6 @@ void GpencilExporterPDF::export_stroke_to_polyline(bGPDlayer *gpl,
   HPDF_Page_GRestore(page_);
 }
 
-/**
- * Set color.
- * \param do_fill: True if the stroke is only fill.
- */
 void GpencilExporterPDF::color_set(bGPDlayer *gpl, const bool do_fill)
 {
   const float fill_opacity = fill_color_[3] * gpl->opacity;

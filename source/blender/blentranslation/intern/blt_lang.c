@@ -282,7 +282,6 @@ void BLT_lang_set(const char *str)
   IMB_thumb_clear_translations();
 }
 
-/* Get the current locale (short code, e.g. es_ES). */
 const char *BLT_lang_get(void)
 {
 #ifdef WITH_INTERNATIONAL
@@ -303,15 +302,6 @@ const char *BLT_lang_get(void)
 #undef LOCALE
 #undef ULANGUAGE
 
-/**
- * Get locale's elements (if relevant pointer is not NULL and element actually exists, e.g.
- * if there is no variant,
- * *variant and *language_variant will always be NULL).
- * Non-null elements are always MEM_mallocN'ed, it's the caller's responsibility to free them.
- *
- * \note Keep that one always available, you never know,
- * may become useful even in no #WITH_INTERNATIONAL context.
- */
 void BLT_lang_locale_explode(const char *locale,
                              char **language,
                              char **country,
@@ -372,9 +362,6 @@ void BLT_lang_locale_explode(const char *locale,
   }
 }
 
-/* Note that "lang" here is the _output_ display language. We used to restrict
- * IME for keyboard _input_ language because our multilingual font was only used
- * when some output languages were selected. That font is used all the time now. */
 bool BLT_lang_is_ime_supported(void)
 {
 #ifdef WITH_INPUT_IME

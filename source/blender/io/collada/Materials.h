@@ -45,6 +45,7 @@ class MaterialNode {
   bNode *shader_node;
   bNode *output_node;
 
+  /** Returns null if material already has a node tree. */
   bNodeTree *prepare_material_nodetree();
   bNode *add_node(int node_type, int locx, int locy, std::string label);
   void add_link(bNode *from_node, int from_index, bNode *to_node, int to_index);

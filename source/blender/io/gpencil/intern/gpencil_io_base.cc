@@ -145,7 +145,6 @@ void GpencilIO::prepare_camera_params(Scene *scene, const GpencilIOParams *ipara
   }
 }
 
-/** Create a list of selected objects sorted from back to front */
 void GpencilIO::create_object_list()
 {
   ViewLayer *view_layer = CTX_data_view_layer(params_.C);
@@ -194,17 +193,12 @@ void GpencilIO::create_object_list()
   });
 }
 
-/**
- * Set file input_text full path.
- * \param filename: Path of the file provided by save dialog.
- */
 void GpencilIO::filename_set(const char *filename)
 {
   BLI_strncpy(filename_, filename, FILE_MAX);
   BLI_path_abs(filename_, BKE_main_blendfile_path(bmain_));
 }
 
-/** Convert to screenspace. */
 bool GpencilIO::gpencil_3D_point_to_screen_space(const float3 co, float2 &r_co)
 {
   float3 parent_co = diff_mat_ * co;
@@ -244,7 +238,6 @@ bool GpencilIO::gpencil_3D_point_to_screen_space(const float3 co, float2 &r_co)
   return false;
 }
 
-/** Convert to render space. */
 float2 GpencilIO::gpencil_3D_point_to_render_space(const float3 co)
 {
   float3 parent_co = diff_mat_ * co;
@@ -266,7 +259,6 @@ float2 GpencilIO::gpencil_3D_point_to_render_space(const float3 co)
   return r_co;
 }
 
-/** Convert to 2D. */
 float2 GpencilIO::gpencil_3D_point_to_2D(const float3 co)
 {
   const bool is_camera = (bool)(rv3d_->persp == RV3D_CAMOB);
@@ -278,7 +270,6 @@ float2 GpencilIO::gpencil_3D_point_to_2D(const float3 co)
   return result;
 }
 
-/** Get radius of point. */
 float GpencilIO::stroke_point_radius_get(bGPDlayer *gpl, bGPDstroke *gps)
 {
   bGPDspoint *pt = &gps->points[0];
@@ -338,7 +329,6 @@ bool GpencilIO::is_camera_mode()
   return is_camera_;
 }
 
-/* Calculate selected strokes boundbox. */
 void GpencilIO::selected_objects_boundbox_calc()
 {
   const float gap = 10.0f;

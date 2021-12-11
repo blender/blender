@@ -54,7 +54,7 @@ typedef struct GPUMaterial GPUMaterial;
 typedef struct GPUNode GPUNode;
 typedef struct GPUNodeLink GPUNodeLink;
 
-/* Functions to create GPU Materials nodes */
+/* Functions to create GPU Materials nodes. */
 
 typedef enum eGPUType {
   /* Keep in sync with GPU_DATATYPE_STR */
@@ -180,10 +180,17 @@ struct GPUUniformBuf *GPU_material_sss_profile_get(GPUMaterial *material,
                                                    int sample_len,
                                                    struct GPUTexture **tex_profile);
 
-/* High level functions to create and use GPU materials */
+/**
+ * High level functions to create and use GPU materials.
+ */
 GPUMaterial *GPU_material_from_nodetree_find(struct ListBase *gpumaterials,
                                              const void *engine_type,
                                              int options);
+/**
+ * \note Caller must use #GPU_material_from_nodetree_find to re-use existing materials,
+ * This is enforced since constructing other arguments to this function may be expensive
+ * so only do this when they are needed.
+ */
 GPUMaterial *GPU_material_from_nodetree(struct Scene *scene,
                                         struct Material *ma,
                                         struct bNodeTree *ntree,
@@ -205,10 +212,21 @@ void GPU_materials_free(struct Main *bmain);
 struct Scene *GPU_material_scene(GPUMaterial *material);
 struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
 struct GPUShader *GPU_material_get_shader(GPUMaterial *material);
+/**
+ * Return can be NULL if it's a world material.
+ */
 struct Material *GPU_material_get_material(GPUMaterial *material);
+/**
+ * Return true if the material compilation has not yet begin or begin.
+ */
 eGPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 
 struct GPUUniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material);
+/**
+ * Create dynamic UBO from parameters
+ *
+ * \param inputs: Items are #LinkData, data is #GPUInput (`BLI_genericNodeN(GPUInput)`).
+ */
 void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs);
 struct GPUUniformBuf *GPU_material_create_sss_profile_ubo(void);
 

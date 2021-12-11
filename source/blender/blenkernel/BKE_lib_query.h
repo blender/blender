@@ -143,6 +143,10 @@ enum {
 
 typedef struct LibraryForeachIDData LibraryForeachIDData;
 
+/**
+ * Check whether current iteration over ID usages should be stopped or not.
+ * \return true if the iteration should be stopped, false otherwise.
+ */
 bool BKE_lib_query_foreachid_iter_stop(struct LibraryForeachIDData *data);
 void BKE_lib_query_foreachid_process(struct LibraryForeachIDData *data,
                                      struct ID **id_pp,
@@ -181,25 +185,77 @@ int BKE_lib_query_foreachid_process_callback_flag_override(struct LibraryForeach
   } \
   ((void)0)
 
+/**
+ * Process embedded ID pointers (root node-trees, master collections, ...).
+ *
+ * Those require specific care, since they are technically sub-data of their owner, yet in some
+ * cases they still behave as regular IDs.
+ */
 void BKE_library_foreach_ID_embedded(struct LibraryForeachIDData *data, struct ID **id_pp);
 void BKE_lib_query_idpropertiesForeachIDLink_callback(struct IDProperty *id_prop, void *user_data);
 
-/* Loop over all of the ID's this datablock links to. */
+/**
+ * Loop over all of the ID's this data-block links to.
+ */
 void BKE_library_foreach_ID_link(
     struct Main *bmain, struct ID *id, LibraryIDLinkCallback callback, void *user_data, int flag);
+/**
+ * Re-usable function, use when replacing ID's.
+ */
 void BKE_library_update_ID_link_user(struct ID *id_dst, struct ID *id_src, const int cb_flag);
 
+/**
+ * Return the number of times given \a id_user uses/references \a id_used.
+ *
+ * \note This only checks for pointer references of an ID, shallow usages
+ * (like e.g. by RNA paths, as done for FCurves) are not detected at all.
+ *
+ * \param id_user: the ID which is supposed to use (reference) \a id_used.
+ * \param id_used: the ID which is supposed to be used (referenced) by \a id_user.
+ * \return the number of direct usages/references of \a id_used by \a id_user.
+ */
 int BKE_library_ID_use_ID(struct ID *id_user, struct ID *id_used);
 
+/**
+ * Say whether given \a id_owner may use (in any way) a data-block of \a id_type_used.
+ *
+ * This is a 'simplified' abstract version of #BKE_library_foreach_ID_link() above,
+ * quite useful to reduce useless iterations in some cases.
+ */
 bool BKE_library_id_can_use_idtype(struct ID *id_owner, const short id_type_used);
 
+/**
+ * Check whether given ID is used locally (i.e. by another non-linked ID).
+ */
 bool BKE_library_ID_is_locally_used(struct Main *bmain, void *idv);
+/**
+ * Check whether given ID is used indirectly (i.e. by another linked ID).
+ */
 bool BKE_library_ID_is_indirectly_used(struct Main *bmain, void *idv);
+/**
+ * Combine #BKE_library_ID_is_locally_used() and #BKE_library_ID_is_indirectly_used()
+ * in a single call.
+ */
 void BKE_library_ID_test_usages(struct Main *bmain,
                                 void *idv,
                                 bool *is_used_local,
                                 bool *is_used_linked);
 
+/**
+ * Tag all unused IDs (a.k.a 'orphaned').
+ *
+ * By default only tag IDs with `0` user count.
+ * If `do_tag_recursive` is set, it will check dependencies to detect all IDs that are not actually
+ * used in current file, including 'archipelagos` (i.e. set of IDs referencing each other in
+ * loops, but without any 'external' valid usages.
+ *
+ * Valid usages here are defined as ref-counting usages, which are not towards embedded or
+ * loop-back data.
+ *
+ * \param r_num_tagged: If non-NULL, must be a zero-initialized array of #INDEX_ID_MAX integers.
+ * Number of tagged-as-unused IDs is then set for each type, and as total in
+ * #INDEX_ID_NULL item.
+ */
 void BKE_lib_query_unused_ids_tag(struct Main *bmain,
                                   const int tag,
                                   const bool do_local_ids,
@@ -207,7 +263,24 @@ void BKE_lib_query_unused_ids_tag(struct Main *bmain,
                                   const bool do_tag_recursive,
                                   int *r_num_tagged);
 
+/**
+ * Detect orphaned linked data blocks (i.e. linked data not used (directly or indirectly)
+ * in any way by any local data), including complex cases like 'linked archipelagoes', i.e.
+ * linked data-blocks that use each other in loops,
+ * which prevents their deletion by 'basic' usage checks.
+ *
+ * \param do_init_tag: if \a true, all linked data are checked, if \a false,
+ * only linked data-blocks already tagged with #LIB_TAG_DOIT are checked.
+ */
 void BKE_library_unused_linked_data_set_tag(struct Main *bmain, const bool do_init_tag);
+/**
+ * Untag linked data blocks used by other untagged linked data-blocks.
+ * Used to detect data-blocks that we can forcefully make local
+ * (instead of copying them to later get rid of original):
+ * All data-blocks we want to make local are tagged by caller,
+ * after this function has ran caller knows data-blocks still tagged can directly be made local,
+ * since they are only used by other data-blocks that will also be made fully local.
+ */
 void BKE_library_indirectly_used_data_tag_clear(struct Main *bmain);
 
 #ifdef __cplusplus

@@ -80,7 +80,8 @@ void SIM_mass_spring_get_motion_state(struct Implicit_Data *data,
 void SIM_mass_spring_get_position(struct Implicit_Data *data, int index, float x[3]);
 void SIM_mass_spring_get_velocity(struct Implicit_Data *data, int index, float v[3]);
 
-/* access to modified motion state during solver step */
+/* Access to modified motion state during solver step. */
+
 void SIM_mass_spring_get_new_position(struct Implicit_Data *data, int index, float x[3]);
 void SIM_mass_spring_set_new_position(struct Implicit_Data *data, int index, const float x[3]);
 void SIM_mass_spring_get_new_velocity(struct Implicit_Data *data, int index, float v[3]);
@@ -106,44 +107,64 @@ bool SIM_mass_spring_solve_velocities(struct Implicit_Data *data,
 bool SIM_mass_spring_solve_positions(struct Implicit_Data *data, float dt);
 void SIM_mass_spring_apply_result(struct Implicit_Data *data);
 
-/* Clear the force vector at the beginning of the time step */
+/**
+ * Clear the force vector at the beginning of the time step.
+ */
 void SIM_mass_spring_clear_forces(struct Implicit_Data *data);
-/* Fictitious forces introduced by moving coordinate systems */
+/**
+ * Fictitious forces introduced by moving coordinate systems.
+ */
 void SIM_mass_spring_force_reference_frame(struct Implicit_Data *data,
                                            int index,
                                            const float acceleration[3],
                                            const float omega[3],
                                            const float domega_dt[3],
                                            float mass);
-/* Simple uniform gravity force */
+/**
+ * Simple uniform gravity force.
+ */
 void SIM_mass_spring_force_gravity(struct Implicit_Data *data,
                                    int index,
                                    float mass,
                                    const float g[3]);
-/* Global drag force (velocity damping) */
+/**
+ * Global drag force (velocity damping).
+ */
 void SIM_mass_spring_force_drag(struct Implicit_Data *data, float drag);
-/* Custom external force */
+/**
+ * Custom external force.
+ */
 void SIM_mass_spring_force_extern(
     struct Implicit_Data *data, int i, const float f[3], float dfdx[3][3], float dfdv[3][3]);
-/* Wind force, acting on a face (only generates pressure from the normal component) */
+/**
+ * Wind force, acting on a face (only generates pressure from the normal component).
+ */
 void SIM_mass_spring_force_face_wind(
     struct Implicit_Data *data, int v1, int v2, int v3, const float (*winvec)[3]);
-/* Arbitrary per-unit-area vector force field acting on a face. */
+/**
+ * Arbitrary per-unit-area vector force field acting on a face..
+ */
 void SIM_mass_spring_force_face_extern(
     struct Implicit_Data *data, int v1, int v2, int v3, const float (*forcevec)[3]);
-/* Wind force, acting on an edge */
+/**
+ * Wind force, acting on an edge.
+ */
 void SIM_mass_spring_force_edge_wind(struct Implicit_Data *data,
                                      int v1,
                                      int v2,
                                      float radius1,
                                      float radius2,
                                      const float (*winvec)[3]);
-/* Wind force, acting on a vertex */
+/**
+ * Wind force, acting on a vertex.
+ */
 void SIM_mass_spring_force_vertex_wind(struct Implicit_Data *data,
                                        int v,
                                        float radius,
                                        const float (*winvec)[3]);
-/* Linear spring force between two points */
+/**
+ * Linear spring force between two points.
+ */
 bool SIM_mass_spring_force_spring_linear(struct Implicit_Data *data,
                                          int i,
                                          int j,
@@ -155,7 +176,9 @@ bool SIM_mass_spring_force_spring_linear(struct Implicit_Data *data,
                                          bool resist_compress,
                                          bool new_compress,
                                          float clamp_force);
-/* Angular spring force between two polygons */
+/**
+ * Angular spring force between two polygons.
+ */
 bool SIM_mass_spring_force_spring_angular(struct Implicit_Data *data,
                                           int i,
                                           int j,
@@ -166,10 +189,14 @@ bool SIM_mass_spring_force_spring_angular(struct Implicit_Data *data,
                                           float restang,
                                           float stiffness,
                                           float damping);
-/* Bending force, forming a triangle at the base of two structural springs */
+/**
+ * Bending force, forming a triangle at the base of two structural springs.
+ */
 bool SIM_mass_spring_force_spring_bending(
     struct Implicit_Data *data, int i, int j, float restlen, float kb, float cb);
-/* Angular bending force based on local target vectors */
+/**
+ * Angular bending force based on local target vectors.
+ */
 bool SIM_mass_spring_force_spring_bending_hair(struct Implicit_Data *data,
                                                int i,
                                                int j,
@@ -177,7 +204,9 @@ bool SIM_mass_spring_force_spring_bending_hair(struct Implicit_Data *data,
                                                const float target[3],
                                                float stiffness,
                                                float damping);
-/* Global goal spring */
+/**
+ * Global goal spring.
+ */
 bool SIM_mass_spring_force_spring_goal(struct Implicit_Data *data,
                                        int i,
                                        const float goal_x[3],
@@ -242,13 +271,15 @@ void SIM_hair_volume_grid_interpolate(struct HairGrid *grid,
                                       float density_gradient[3],
                                       float velocity_gradient[3][3]);
 
-/* Effect of fluid simulation grid on velocities.
+/**
+ * Effect of fluid simulation grid on velocities.
  * fluid_factor controls blending between PIC (Particle-in-Cell)
  *     and FLIP (Fluid-Implicit-Particle) methods (0 = only PIC, 1 = only FLIP)
  */
 void SIM_hair_volume_grid_velocity(
     struct HairGrid *grid, const float x[3], const float v[3], float fluid_factor, float r_v[3]);
-/* XXX Warning: expressing grid effects on velocity as a force is not very stable,
+/**
+ * WARNING: expressing grid effects on velocity as a force is not very stable,
  * due to discontinuities in interpolated values!
  * Better use hybrid approaches such as described in
  * "Detail Preserving Continuum Simulation of Straight Hair"

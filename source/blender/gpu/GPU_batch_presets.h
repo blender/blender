@@ -35,7 +35,8 @@ extern "C" {
 
 /* gpu_batch_presets.c */
 
-/* Replacement for gluSphere */
+/* Replacement for #gluSphere */
+
 struct GPUBatch *GPU_batch_preset_sphere(int lod) ATTR_WARN_UNUSED_RESULT;
 struct GPUBatch *GPU_batch_preset_sphere_wire(int lod) ATTR_WARN_UNUSED_RESULT;
 struct GPUBatch *GPU_batch_preset_panel_drag_widget(const float pixelsize,
@@ -43,6 +44,9 @@ struct GPUBatch *GPU_batch_preset_panel_drag_widget(const float pixelsize,
                                                     const float col_dark[4],
                                                     const float width) ATTR_WARN_UNUSED_RESULT;
 
+/**
+ * To be used with procedural placement inside shader.
+ */
 struct GPUBatch *GPU_batch_preset_quad(void);
 
 void gpu_batch_presets_init(void);

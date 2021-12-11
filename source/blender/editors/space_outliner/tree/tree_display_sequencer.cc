@@ -31,7 +31,6 @@
 
 namespace blender::ed::outliner {
 
-/* Convenience/readability. */
 template<typename T> using List = ListBaseWrapper<T>;
 
 TreeDisplaySequencer::TreeDisplaySequencer(SpaceOutliner &space_outliner)
@@ -63,7 +62,6 @@ ListBase TreeDisplaySequencer::buildTree(const TreeSourceData &source_data)
   return tree;
 }
 
-/* Helped function to put duplicate sequence in the same tree. */
 SequenceAddOp TreeDisplaySequencer::need_add_seq_dup(Sequence *seq) const
 {
   if ((!seq->strip) || (!seq->strip->stripdata)) {

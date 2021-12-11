@@ -253,7 +253,6 @@ bool ED_uvedit_minmax(const Scene *scene, Object *obedit, float r_min[2], float 
   return ED_uvedit_minmax_multi(scene, &obedit, 1, r_min, r_max);
 }
 
-/* Be careful when using this, it bypasses all synchronization options */
 void ED_uvedit_select_all(BMesh *bm)
 {
   BMFace *efa;

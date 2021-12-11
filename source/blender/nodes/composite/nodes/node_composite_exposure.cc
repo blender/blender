@@ -36,7 +36,7 @@ static void cmp_node_exposure_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_exposure(void)
+void register_node_type_cmp_exposure()
 {
   static bNodeType ntype;
 

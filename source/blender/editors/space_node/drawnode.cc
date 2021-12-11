@@ -29,7 +29,6 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_text_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
@@ -250,11 +249,39 @@ static void node_buts_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *pt
   uiItemR(layout, ptr, "use_clamp", DEFAULT_FLAGS, nullptr, ICON_NONE);
 }
 
-static NodeResizeDirection node_resize_area_default(const bNode *node, const int x, const int y)
+NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, const int y)
 {
+  if (node->type == NODE_FRAME) {
+    const float size = 10.0f;
+    NodeFrame *data = (NodeFrame *)node->storage;
+
+    /* shrinking frame size is determined by child nodes */
+    if (!(data->flag & NODE_FRAME_RESIZEABLE)) {
+      return NODE_RESIZE_NONE;
+    }
+
+    NodeResizeDirection dir = NODE_RESIZE_NONE;
+
+    const rctf &totr = node->totr;
+    if (x >= totr.xmax - size && x < totr.xmax && y >= totr.ymin && y < totr.ymax) {
+      dir |= NODE_RESIZE_RIGHT;
+    }
+    if (x >= totr.xmin && x < totr.xmin + size && y >= totr.ymin && y < totr.ymax) {
+      dir |= NODE_RESIZE_LEFT;
+    }
+    if (x >= totr.xmin && x < totr.xmax && y >= totr.ymax - size && y < totr.ymax) {
+      dir |= NODE_RESIZE_TOP;
+    }
+    if (x >= totr.xmin && x < totr.xmax && y >= totr.ymin && y < totr.ymin + size) {
+      dir |= NODE_RESIZE_BOTTOM;
+    }
+
+    return dir;
+  }
+
   if (node->flag & NODE_HIDDEN) {
-    rctf totr = node->totr;
     /* right part of node */
+    rctf totr = node->totr;
     totr.xmin = node->totr.xmax - 1.0f * U.widget_unit;
     if (BLI_rctf_isect_pt(&totr, x, y)) {
       return NODE_RESIZE_RIGHT;
@@ -284,322 +311,11 @@ static void node_draw_buttons_group(uiLayout *layout, bContext *C, PointerRNA *p
       layout, C, ptr, "node_tree", nullptr, nullptr, nullptr, UI_TEMPLATE_ID_FILTER_ALL, nullptr);
 }
 
-/* XXX Does a bounding box update by iterating over all children.
- * Not ideal to do this in every draw call, but doing as transform callback doesn't work,
- * since the child node totr rects are not updated properly at that point.
- */
-static void node_draw_frame_prepare(const bContext *UNUSED(C), bNodeTree *ntree, bNode *node)
-{
-  const float margin = 1.5f * U.widget_unit;
-  NodeFrame *data = (NodeFrame *)node->storage;
-
-  /* init rect from current frame size */
-  rctf rect;
-  node_to_view(*node, node->offsetx, node->offsety, &rect.xmin, &rect.ymax);
-  node_to_view(
-      *node, node->offsetx + node->width, node->offsety - node->height, &rect.xmax, &rect.ymin);
-
-  /* frame can be resized manually only if shrinking is disabled or no children are attached */
-  data->flag |= NODE_FRAME_RESIZEABLE;
-  /* for shrinking bbox, initialize the rect from first child node */
-  bool bbinit = (data->flag & NODE_FRAME_SHRINK);
-  /* fit bounding box to all children */
-  LISTBASE_FOREACH (bNode *, tnode, &ntree->nodes) {
-    if (tnode->parent != node) {
-      continue;
-    }
-
-    /* add margin to node rect */
-    rctf noderect = tnode->totr;
-    noderect.xmin -= margin;
-    noderect.xmax += margin;
-    noderect.ymin -= margin;
-    noderect.ymax += margin;
-
-    /* first child initializes frame */
-    if (bbinit) {
-      bbinit = false;
-      rect = noderect;
-      data->flag &= ~NODE_FRAME_RESIZEABLE;
-    }
-    else {
-      BLI_rctf_union(&rect, &noderect);
-    }
-  }
-
-  /* now adjust the frame size from view-space bounding box */
-  node_from_view(*node, rect.xmin, rect.ymax, &node->offsetx, &node->offsety);
-  float xmax, ymax;
-  node_from_view(*node, rect.xmax, rect.ymin, &xmax, &ymax);
-  node->width = xmax - node->offsetx;
-  node->height = -ymax + node->offsety;
-
-  node->totr = rect;
-}
-
-static void node_draw_frame_label(bNodeTree &ntree, bNode &node, SpaceNode &snode)
-{
-  const float aspect = snode.runtime->aspect;
-  /* XXX font id is crap design */
-  const int fontid = UI_style_get()->widgetlabel.uifont_id;
-  NodeFrame *data = (NodeFrame *)node.storage;
-  const float font_size = data->label_size / aspect;
-
-  char label[MAX_NAME];
-  nodeLabel(&ntree, &node, label, sizeof(label));
-
-  BLF_enable(fontid, BLF_ASPECT);
-  BLF_aspect(fontid, aspect, aspect, 1.0f);
-  /* clamp otherwise it can suck up a LOT of memory */
-  BLF_size(fontid, MIN2(24.0f, font_size), U.dpi);
-
-  /* title color */
-  int color_id = node_get_colorid(node);
-  uchar color[3];
-  UI_GetThemeColorBlendShade3ubv(TH_TEXT, color_id, 0.4f, 10, color);
-  BLF_color3ubv(fontid, color);
-
-  const float margin = (float)(NODE_DY / 4);
-  const float width = BLF_width(fontid, label, sizeof(label));
-  const float ascender = BLF_ascender(fontid);
-  const int label_height = ((margin / aspect) + (ascender * aspect));
-
-  /* 'x' doesn't need aspect correction */
-  const rctf &rct = node.totr;
-  /* XXX a bit hacky, should use separate align values for x and y */
-  float x = BLI_rctf_cent_x(&rct) - (0.5f * width);
-  float y = rct.ymax - label_height;
-
-  /* label */
-  const bool has_label = node.label[0] != '\0';
-  if (has_label) {
-    BLF_position(fontid, x, y, 0);
-    BLF_draw(fontid, label, BLF_DRAW_STR_DUMMY_MAX);
-  }
-
-  /* draw text body */
-  if (node.id) {
-    Text *text = (Text *)node.id;
-    const int line_height_max = BLF_height_max(fontid);
-    const float line_spacing = (line_height_max * aspect);
-    const float line_width = (BLI_rctf_size_x(&rct) - margin) / aspect;
-
-    /* 'x' doesn't need aspect correction */
-    x = rct.xmin + margin;
-    y = rct.ymax - label_height - (has_label ? line_spacing : 0);
-
-    /* early exit */
-    int y_min = y + ((margin * 2) - (y - rct.ymin));
-
-    BLF_enable(fontid, BLF_CLIPPING | BLF_WORD_WRAP);
-    BLF_clipping(fontid,
-                 rct.xmin,
-                 /* round to avoid clipping half-way through a line */
-                 y - (floorf(((y - rct.ymin) - (margin * 2)) / line_spacing) * line_spacing),
-                 rct.xmin + line_width,
-                 rct.ymax);
-
-    BLF_wordwrap(fontid, line_width);
-
-    LISTBASE_FOREACH (TextLine *, line, &text->lines) {
-      struct ResultBLF info;
-      if (line->line[0]) {
-        BLF_position(fontid, x, y, 0);
-        BLF_draw_ex(fontid, line->line, line->len, &info);
-        y -= line_spacing * info.lines;
-      }
-      else {
-        y -= line_spacing;
-      }
-      if (y < y_min) {
-        break;
-      }
-    }
-
-    BLF_disable(fontid, BLF_CLIPPING | BLF_WORD_WRAP);
-  }
-
-  BLF_disable(fontid, BLF_ASPECT);
-}
-
-static void node_draw_frame(const bContext *C,
-                            ARegion *region,
-                            SpaceNode *snode,
-                            bNodeTree *ntree,
-                            bNode *node,
-                            bNodeInstanceKey UNUSED(key))
-{
-
-  /* skip if out of view */
-  if (BLI_rctf_isect(&node->totr, &region->v2d.cur, nullptr) == false) {
-    UI_block_end(C, node->block);
-    node->block = nullptr;
-    return;
-  }
-
-  float color[4];
-  UI_GetThemeColor4fv(TH_NODE_FRAME, color);
-  const float alpha = color[3];
-
-  /* shadow */
-  node_draw_shadow(*snode, *node, BASIS_RAD, alpha);
-
-  /* body */
-  if (node->flag & NODE_CUSTOM_COLOR) {
-    rgba_float_args_set(color, node->color[0], node->color[1], node->color[2], alpha);
-  }
-  else {
-    UI_GetThemeColor4fv(TH_NODE_FRAME, color);
-  }
-
-  const rctf &rct = node->totr;
-  UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_4fv(&rct, true, BASIS_RAD, color);
-
-  /* outline active and selected emphasis */
-  if (node->flag & SELECT) {
-    if (node->flag & NODE_ACTIVE) {
-      UI_GetThemeColorShadeAlpha4fv(TH_ACTIVE, 0, -40, color);
-    }
-    else {
-      UI_GetThemeColorShadeAlpha4fv(TH_SELECT, 0, -40, color);
-    }
-
-    UI_draw_roundbox_aa(&rct, false, BASIS_RAD, color);
-  }
-
-  /* label and text */
-  node_draw_frame_label(*ntree, *node, *snode);
-
-  node_draw_extra_info_panel(*snode, *node);
-
-  UI_block_end(C, node->block);
-  UI_block_draw(C, node->block);
-  node->block = nullptr;
-}
-
-static NodeResizeDirection node_resize_area_frame(const bNode *node, const int x, const int y)
-{
-  const float size = 10.0f;
-  NodeFrame *data = (NodeFrame *)node->storage;
-  rctf totr = node->totr;
-
-  /* shrinking frame size is determined by child nodes */
-  if (!(data->flag & NODE_FRAME_RESIZEABLE)) {
-    return NODE_RESIZE_NONE;
-  }
-
-  NodeResizeDirection dir = NODE_RESIZE_NONE;
-
-  if (x >= totr.xmax - size && x < totr.xmax && y >= totr.ymin && y < totr.ymax) {
-    dir |= NODE_RESIZE_RIGHT;
-  }
-  if (x >= totr.xmin && x < totr.xmin + size && y >= totr.ymin && y < totr.ymax) {
-    dir |= NODE_RESIZE_LEFT;
-  }
-  if (x >= totr.xmin && x < totr.xmax && y >= totr.ymax - size && y < totr.ymax) {
-    dir |= NODE_RESIZE_TOP;
-  }
-  if (x >= totr.xmin && x < totr.xmax && y >= totr.ymin && y < totr.ymin + size) {
-    dir |= NODE_RESIZE_BOTTOM;
-  }
-
-  return dir;
-}
-
 static void node_buts_frame_ex(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "label_size", DEFAULT_FLAGS, IFACE_("Label Size"), ICON_NONE);
   uiItemR(layout, ptr, "shrink", DEFAULT_FLAGS, IFACE_("Shrink"), ICON_NONE);
   uiItemR(layout, ptr, "text", DEFAULT_FLAGS, nullptr, ICON_NONE);
-}
-
-#define NODE_REROUTE_SIZE 8.0f
-
-static void node_draw_reroute_prepare(const bContext *UNUSED(C),
-                                      bNodeTree *UNUSED(ntree),
-                                      bNode *node)
-{
-  /* get "global" coords */
-  float locx, locy;
-  node_to_view(*node, 0.0f, 0.0f, &locx, &locy);
-
-  /* reroute node has exactly one input and one output, both in the same place */
-  bNodeSocket *nsock = (bNodeSocket *)node->outputs.first;
-  nsock->locx = locx;
-  nsock->locy = locy;
-
-  nsock = (bNodeSocket *)node->inputs.first;
-  nsock->locx = locx;
-  nsock->locy = locy;
-
-  const float size = NODE_REROUTE_SIZE;
-  node->width = size * 2;
-  node->totr.xmin = locx - size;
-  node->totr.xmax = locx + size;
-  node->totr.ymax = locy + size;
-  node->totr.ymin = locy - size;
-}
-
-static void node_draw_reroute(const bContext *C,
-                              ARegion *region,
-                              SpaceNode *UNUSED(snode),
-                              bNodeTree *ntree,
-                              bNode *node,
-                              bNodeInstanceKey UNUSED(key))
-{
-  char showname[128]; /* 128 used below */
-  const rctf &rct = node->totr;
-
-  /* skip if out of view */
-  if (rct.xmax < region->v2d.cur.xmin || rct.xmin > region->v2d.cur.xmax ||
-      rct.ymax < region->v2d.cur.ymin || node->totr.ymin > region->v2d.cur.ymax) {
-    UI_block_end(C, node->block);
-    node->block = nullptr;
-    return;
-  }
-
-  if (node->label[0] != '\0') {
-    /* draw title (node label) */
-    BLI_strncpy(showname, node->label, sizeof(showname));
-    uiDefBut(node->block,
-             UI_BTYPE_LABEL,
-             0,
-             showname,
-             (int)(rct.xmin - NODE_DYS),
-             (int)(rct.ymax),
-             (short)512,
-             (short)NODE_DY,
-             nullptr,
-             0,
-             0,
-             0,
-             0,
-             nullptr);
-  }
-
-  /* only draw input socket. as they all are placed on the same position.
-   * highlight also if node itself is selected, since we don't display the node body separately!
-   */
-  node_draw_sockets(region->v2d, *C, *ntree, *node, false, node->flag & SELECT);
-
-  UI_block_end(C, node->block);
-  UI_block_draw(C, node->block);
-  node->block = nullptr;
-}
-
-/* Special tweak area for reroute node.
- * Since this node is quite small, we use a larger tweak area for grabbing than for selection.
- */
-static int node_tweak_area_reroute(bNode *node, int x, int y)
-{
-  /* square of tweak radius */
-  const float tweak_radius_sq = square_f(24.0f);
-
-  bNodeSocket *sock = (bNodeSocket *)node->inputs.first;
-  float dx = sock->locx - x;
-  float dy = sock->locy - y;
-  return (dx * dx + dy * dy <= tweak_radius_sq);
 }
 
 static void node_common_set_butfunc(bNodeType *ntype)
@@ -609,15 +325,7 @@ static void node_common_set_butfunc(bNodeType *ntype)
       ntype->draw_buttons = node_draw_buttons_group;
       break;
     case NODE_FRAME:
-      ntype->draw_nodetype = node_draw_frame;
-      ntype->draw_nodetype_prepare = node_draw_frame_prepare;
       ntype->draw_buttons_ex = node_buts_frame_ex;
-      ntype->resize_area_func = node_resize_area_frame;
-      break;
-    case NODE_REROUTE:
-      ntype->draw_nodetype = node_draw_reroute;
-      ntype->draw_nodetype_prepare = node_draw_reroute_prepare;
-      ntype->tweak_area_func = node_tweak_area_reroute;
       break;
   }
 }
@@ -2745,11 +2453,6 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
   }
 }
 
-static void node_composit_buts_cornerpin(uiLayout *UNUSED(layout),
-                                         bContext *UNUSED(C),
-                                         PointerRNA *UNUSED(ptr))
-{
-}
 
 static void node_composit_buts_sunbeams(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -3084,9 +2787,6 @@ static void node_composit_set_butfunc(bNodeType *ntype)
     case CMP_NODE_PLANETRACKDEFORM:
       ntype->draw_buttons = node_composit_buts_planetrackdeform;
       break;
-    case CMP_NODE_CORNERPIN:
-      ntype->draw_buttons = node_composit_buts_cornerpin;
-      break;
     case CMP_NODE_SUNBEAMS:
       ntype->draw_buttons = node_composit_buts_sunbeams;
       break;
@@ -3364,20 +3064,14 @@ static void node_socket_undefined_interface_draw_color(bContext *UNUSED(C),
 
 /** \} */
 
-void ED_node_init_butfuncs(void)
+void ED_node_init_butfuncs()
 {
   /* Fallback types for undefined tree, nodes, sockets
    * Defined in blenkernel, but not registered in type hashes.
    */
 
-  /* default ui functions */
-  NodeTypeUndefined.draw_nodetype = node_draw_default;
-  NodeTypeUndefined.draw_nodetype_prepare = node_update_default;
-  NodeTypeUndefined.select_area_func = node_select_area_default;
-  NodeTypeUndefined.tweak_area_func = node_tweak_area_default;
   NodeTypeUndefined.draw_buttons = nullptr;
   NodeTypeUndefined.draw_buttons_ex = nullptr;
-  NodeTypeUndefined.resize_area_func = node_resize_area_default;
 
   NodeSocketTypeUndefined.draw = node_socket_undefined_draw;
   NodeSocketTypeUndefined.draw_color = node_socket_undefined_draw_color;
@@ -3386,13 +3080,6 @@ void ED_node_init_butfuncs(void)
 
   /* node type ui functions */
   NODE_TYPES_BEGIN (ntype) {
-    /* default ui functions */
-    ntype->draw_nodetype = node_draw_default;
-    ntype->draw_nodetype_prepare = node_update_default;
-    ntype->select_area_func = node_select_area_default;
-    ntype->tweak_area_func = node_tweak_area_default;
-    ntype->resize_area_func = node_resize_area_default;
-
     node_common_set_butfunc(ntype);
 
     node_composit_set_butfunc(ntype);
@@ -3411,19 +3098,12 @@ void ED_node_init_butfuncs(void)
   ntreeType_Geometry->ui_icon = ICON_NODETREE;
 }
 
-void ED_init_custom_node_type(bNodeType *ntype)
+void ED_init_custom_node_type(bNodeType *UNUSED(ntype))
 {
-  /* default ui functions */
-  ntype->draw_nodetype = node_draw_default;
-  ntype->draw_nodetype_prepare = node_update_default;
-  ntype->resize_area_func = node_resize_area_default;
-  ntype->select_area_func = node_select_area_default;
-  ntype->tweak_area_func = node_tweak_area_default;
 }
 
 void ED_init_custom_node_socket_type(bNodeSocketType *stype)
 {
-  /* default ui functions */
   stype->draw = node_socket_button_label;
 }
 
@@ -3819,7 +3499,6 @@ void draw_nodespace_back_pix(const bContext &C,
   GPU_matrix_pop();
 }
 
-/* return quadratic beziers points for a given nodelink and clip if v2d is not nullptr. */
 bool node_link_bezier_handles(const View2D *v2d,
                               const SpaceNode *snode,
                               const bNodeLink &link,
@@ -3840,11 +3519,11 @@ bool node_link_bezier_handles(const View2D *v2d,
     vec[0][0] = link.fromsock->locx;
     vec[0][1] = link.fromsock->locy;
     if (link.fromsock->flag & SOCK_MULTI_INPUT) {
-      node_link_calculate_multi_input_position(link.fromsock->locx,
-                                               link.fromsock->locy,
-                                               link.fromsock->total_inputs - 1,
-                                               link.fromsock->total_inputs,
-                                               vec[0]);
+      const float2 position = node_link_calculate_multi_input_position(
+          {link.fromsock->locx, link.fromsock->locy},
+          link.fromsock->total_inputs - 1,
+          link.fromsock->total_inputs);
+      copy_v2_v2(vec[0], position);
     }
     fromreroute = (link.fromnode && link.fromnode->type == NODE_REROUTE);
   }
@@ -3859,11 +3538,11 @@ bool node_link_bezier_handles(const View2D *v2d,
     vec[3][0] = link.tosock->locx;
     vec[3][1] = link.tosock->locy;
     if (!(link.tonode->flag & NODE_HIDDEN) && link.tosock->flag & SOCK_MULTI_INPUT) {
-      node_link_calculate_multi_input_position(link.tosock->locx,
-                                               link.tosock->locy,
-                                               link.multi_input_socket_index,
-                                               link.tosock->total_inputs,
-                                               vec[3]);
+      const float2 position = node_link_calculate_multi_input_position(
+          {link.tosock->locx, link.tosock->locy},
+          link.multi_input_socket_index,
+          link.tosock->total_inputs);
+      copy_v2_v2(vec[3], position);
     }
     toreroute = (link.tonode && link.tonode->type == NODE_REROUTE);
   }
@@ -3928,7 +3607,6 @@ bool node_link_bezier_handles(const View2D *v2d,
   return true;
 }
 
-/* if v2d not nullptr, it clips and returns 0 if not visible */
 bool node_link_bezier_points(const View2D *v2d,
                              const SpaceNode *snode,
                              const bNodeLink &link,
@@ -4245,7 +3923,6 @@ static void nodelink_batch_add_link(const SpaceNode &snode,
   }
 }
 
-/* don't do shadows if th_col3 is -1. */
 void node_draw_link_bezier(const bContext &C,
                            const View2D &v2d,
                            const SpaceNode &snode,
@@ -4371,7 +4048,6 @@ void node_draw_link_bezier(const bContext &C,
   }
 }
 
-/* NOTE: this is used for fake links in groups too. */
 void node_draw_link(const bContext &C,
                     const View2D &v2d,
                     const SpaceNode &snode,

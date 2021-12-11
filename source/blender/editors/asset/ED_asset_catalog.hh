@@ -16,6 +16,11 @@
 
 /** \file
  * \ingroup edasset
+ *
+ * UI/Editor level API for catalog operations, creating richer functionality than the BKE catalog
+ * API provides (which this uses internally).
+ *
+ * Note that `ED_asset_catalog.h` is part of this API.
  */
 
 #pragma once

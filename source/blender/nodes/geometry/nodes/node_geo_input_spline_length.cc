@@ -31,8 +31,7 @@ static void node_declare(NodeDeclarationBuilder &b)
  */
 
 static VArray<float> construct_spline_length_gvarray(const CurveComponent &component,
-                                                     const AttributeDomain domain,
-                                                     ResourceScope &UNUSED(scope))
+                                                     const AttributeDomain domain)
 {
   const CurveEval *curve = component.get_for_read();
   if (curve == nullptr) {
@@ -54,26 +53,20 @@ static VArray<float> construct_spline_length_gvarray(const CurveComponent &compo
   return {};
 }
 
-class SplineLengthFieldInput final : public fn::FieldInput {
+class SplineLengthFieldInput final : public GeometryFieldInput {
  public:
-  SplineLengthFieldInput() : fn::FieldInput(CPPType::get<float>(), "Spline Length node")
+  SplineLengthFieldInput() : GeometryFieldInput(CPPType::get<float>(), "Spline Length node")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask UNUSED(mask),
-                                 ResourceScope &scope) const final
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask UNUSED(mask)) const final
   {
-    if (const GeometryComponentFieldContext *geometry_context =
-            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-
-      const GeometryComponent &component = geometry_context->geometry_component();
-      const AttributeDomain domain = geometry_context->domain();
-      if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-        const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-        return construct_spline_length_gvarray(curve_component, domain, scope);
-      }
+    if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
+      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+      return construct_spline_length_gvarray(curve_component, domain);
     }
     return {};
   }
@@ -95,8 +88,7 @@ class SplineLengthFieldInput final : public fn::FieldInput {
  */
 
 static VArray<int> construct_spline_count_gvarray(const CurveComponent &component,
-                                                  const AttributeDomain domain,
-                                                  ResourceScope &UNUSED(scope))
+                                                  const AttributeDomain domain)
 {
   const CurveEval *curve = component.get_for_read();
   if (curve == nullptr) {
@@ -118,26 +110,20 @@ static VArray<int> construct_spline_count_gvarray(const CurveComponent &componen
   return {};
 }
 
-class SplineCountFieldInput final : public fn::FieldInput {
+class SplineCountFieldInput final : public GeometryFieldInput {
  public:
-  SplineCountFieldInput() : fn::FieldInput(CPPType::get<int>(), "Spline Point Count")
+  SplineCountFieldInput() : GeometryFieldInput(CPPType::get<int>(), "Spline Point Count")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask UNUSED(mask),
-                                 ResourceScope &scope) const final
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask UNUSED(mask)) const final
   {
-    if (const GeometryComponentFieldContext *geometry_context =
-            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-
-      const GeometryComponent &component = geometry_context->geometry_component();
-      const AttributeDomain domain = geometry_context->domain();
-      if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-        const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-        return construct_spline_count_gvarray(curve_component, domain, scope);
-      }
+    if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
+      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+      return construct_spline_count_gvarray(curve_component, domain);
     }
     return {};
   }

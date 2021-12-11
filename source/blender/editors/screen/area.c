@@ -140,7 +140,6 @@ void ED_region_pixelspace(const ARegion *region)
   GPU_matrix_identity_set();
 }
 
-/* only exported for WM */
 void ED_region_do_listen(wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
@@ -169,7 +168,6 @@ void ED_region_do_listen(wmRegionListenerParams *params)
   }
 }
 
-/* only exported for WM */
 void ED_area_do_listen(wmSpaceTypeListenerParams *params)
 {
   /* no generic notes? */
@@ -178,7 +176,6 @@ void ED_area_do_listen(wmSpaceTypeListenerParams *params)
   }
 }
 
-/* only exported for WM */
 void ED_area_do_refresh(bContext *C, ScrArea *area)
 {
   /* no generic notes? */
@@ -443,7 +440,6 @@ void ED_area_do_msg_notify_tag_refresh(
   ED_area_tag_refresh(area);
 }
 
-/* Follow ARegionType.message_subscribe */
 void ED_area_do_mgs_subscribe_for_tool_header(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
@@ -507,7 +503,6 @@ static bool area_is_pseudo_minimized(const ScrArea *area)
   return (area->winx < 3) || (area->winy < 3);
 }
 
-/* only exported for WM */
 void ED_region_do_layout(bContext *C, ARegion *region)
 {
   /* This is optional, only needed for dynamically sized regions. */
@@ -531,7 +526,6 @@ void ED_region_do_layout(bContext *C, ARegion *region)
   region->flag &= ~RGN_FLAG_SEARCH_FILTER_UPDATE;
 }
 
-/* only exported for WM */
 void ED_region_do_draw(bContext *C, ARegion *region)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -705,10 +699,6 @@ void ED_region_tag_refresh_ui(ARegion *region)
   }
 }
 
-/**
- * Tag editor overlays to be redrawn. If in doubt about which parts need to be redrawn (partial
- * clipping rectangle set), redraw everything.
- */
 void ED_region_tag_redraw_editor_overlays(struct ARegion *region)
 {
   if (region && !(region->do_draw & (RGN_DRAWING | RGN_DRAW))) {
@@ -786,9 +776,6 @@ void ED_area_tag_refresh(ScrArea *area)
 
 /* *************************************************************** */
 
-/**
- * Returns the search string if the space type and region type support property search.
- */
 const char *ED_area_region_search_filter_get(const ScrArea *area, const ARegion *region)
 {
   /* Only the properties editor has a search string for now. */
@@ -802,9 +789,6 @@ const char *ED_area_region_search_filter_get(const ScrArea *area, const ARegion 
   return NULL;
 }
 
-/**
- * Set the temporary update flag for property search.
- */
 void ED_region_search_filter_update(const ScrArea *area, ARegion *region)
 {
   region->flag |= RGN_FLAG_SEARCH_FILTER_UPDATE;
@@ -817,7 +801,6 @@ void ED_region_search_filter_update(const ScrArea *area, ARegion *region)
 
 /* *************************************************************** */
 
-/* use NULL to disable it */
 void ED_area_status_text(ScrArea *area, const char *str)
 {
   /* happens when running transform operators in background mode */
@@ -1271,7 +1254,6 @@ static void region_overlap_fix(ScrArea *area, ARegion *region)
   }
 }
 
-/* overlapping regions only in the following restricted cases */
 bool ED_region_is_overlap(int spacetype, int regiontype)
 {
   if (regiontype == RGN_TYPE_HUD) {
@@ -1926,7 +1908,6 @@ bool ED_area_has_shared_border(struct ScrArea *a, struct ScrArea *b)
   return area_getorientation(a, b) != -1;
 }
 
-/* called in screen_refresh, or screens_init, also area size changes */
 void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
 {
   WorkSpace *workspace = WM_window_get_active_workspace(win);
@@ -2076,15 +2057,11 @@ static void region_update_rect(ARegion *region)
   BLI_rcti_init(&region->v2d.mask, 0, region->winx - 1, 0, region->winy - 1);
 }
 
-/**
- * Call to move a popup window (keep OpenGL context free!)
- */
 void ED_region_update_rect(ARegion *region)
 {
   region_update_rect(region);
 }
 
-/* externally called for floating regions like menus */
 void ED_region_floating_init(ARegion *region)
 {
   BLI_assert(region->alignment == RGN_ALIGN_FLOAT);
@@ -2114,7 +2091,6 @@ void ED_region_cursor_set(wmWindow *win, ScrArea *area, ARegion *region)
   WM_cursor_set(win, WM_CURSOR_DEFAULT);
 }
 
-/* for use after changing visibility of regions */
 void ED_region_visibility_change_update(bContext *C, ScrArea *area, ARegion *region)
 {
   if (region->flag & RGN_FLAG_HIDDEN) {
@@ -2131,7 +2107,6 @@ void ED_region_visibility_change_update(bContext *C, ScrArea *area, ARegion *reg
   ED_area_tag_redraw(area);
 }
 
-/* for quick toggle, can skip fades */
 void region_toggle_hidden(bContext *C, ARegion *region, const bool do_fade)
 {
   ScrArea *area = CTX_wm_area(C);
@@ -2147,15 +2122,11 @@ void region_toggle_hidden(bContext *C, ARegion *region, const bool do_fade)
   }
 }
 
-/* exported to all editors, uses fading default */
 void ED_region_toggle_hidden(bContext *C, ARegion *region)
 {
   region_toggle_hidden(C, region, true);
 }
 
-/**
- * we swap spaces for fullscreen to keep all allocated data area vertices were set
- */
 void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, const bool do_free)
 {
   const char spacetype = area_dst->spacetype;
@@ -2461,9 +2432,6 @@ void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
   ED_area_tag_refresh(sa2);
 }
 
-/**
- * \param skip_region_exit: Skip calling area exit callback. Set for opening temp spaces.
- */
 void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_region_exit)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -2628,7 +2596,6 @@ void ED_area_prevspace(bContext *C, ScrArea *area)
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CHANGED, area);
 }
 
-/* returns offset for next button in header */
 int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 {
   ScrArea *area = CTX_wm_area(C);
@@ -2950,11 +2917,6 @@ static int panel_draw_width_from_max_width_get(const ARegion *region,
              max_width;
 }
 
-/**
- * \param contexts: A NULL terminated array of context strings to match against.
- * Matching against any of these strings will draw the panel.
- * Can be NULL to skip context checks.
- */
 void ED_region_panels_layout_ex(const bContext *C,
                                 ARegion *region,
                                 ListBase *paneltypes,
@@ -3266,10 +3228,6 @@ static bool panel_property_search(const bContext *C,
   return false;
 }
 
-/**
- * Build the same panel list as #ED_region_panels_layout_ex and checks whether any
- * of the panels contain a search result based on the area / region's search filter.
- */
 bool ED_region_property_search(const bContext *C,
                                ARegion *region,
                                ListBase *paneltypes,
@@ -3475,9 +3433,6 @@ int ED_area_footersize(void)
   return ED_area_headersize();
 }
 
-/**
- * \return the final height of a global \a area, accounting for DPI.
- */
 int ED_area_global_size_y(const ScrArea *area)
 {
   BLI_assert(ED_area_is_global(area));
@@ -3527,12 +3482,6 @@ ScrArea *ED_screen_areas_iter_next(const bScreen *screen, const ScrArea *area)
   return screen->areabase.first;
 }
 
-/**
- * For now we just assume all global areas are made up out of horizontal bars
- * with the same size. A fixed size could be stored in ARegion instead if needed.
- *
- * \return the DPI aware height of a single bar/region in global areas.
- */
 int ED_region_global_size_y(void)
 {
   return ED_area_headersize(); /* same size as header */
@@ -3858,9 +3807,6 @@ void ED_region_cache_draw_cached_segments(
   }
 }
 
-/**
- * Generate subscriptions for this region.
- */
 void ED_region_message_subscribe(wmRegionMessageSubscribeParams *params)
 {
   ARegion *region = params->region;

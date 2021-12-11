@@ -140,10 +140,6 @@ void BKE_paint_toolslots_brush_update(Paint *paint)
   BKE_paint_toolslots_brush_update_ex(paint, paint->brush);
 }
 
-/**
- * Run this to ensure brush types are set for each slot on entering modes
- * (for new scenes for example).
- */
 void BKE_paint_toolslots_brush_validate(Main *bmain, Paint *paint)
 {
   /* Clear slots with invalid slots or mode (unlikely but possible). */

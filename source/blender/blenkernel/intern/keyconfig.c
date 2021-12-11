@@ -121,7 +121,6 @@ void BKE_keyconfig_pref_type_free(void)
 /** \name Key-Config Versioning
  * \{ */
 
-/* Set select mouse, for versioning code. */
 void BKE_keyconfig_pref_set_select_mouse(UserDef *userdef, int value, bool override)
 {
   wmKeyConfigPref *kpt = BKE_keyconfig_pref_ensure(userdef, WM_KEYCONFIG_STR_DEFAULT);
@@ -201,10 +200,6 @@ void BKE_keyconfig_keymap_filter_item(wmKeyMap *keymap,
   }
 }
 
-/**
- * Filter & optionally remove key-map items,
- * intended for versioning, but may be used in other situations too.
- */
 void BKE_keyconfig_pref_filter_items(struct UserDef *userdef,
                                      const struct wmKeyConfigFilterItemParams *params,
                                      bool (*filter_fn)(wmKeyMapItem *kmi, void *user_data),

@@ -338,11 +338,6 @@ static void search_pixel_to_marker_unified(int frame_width,
   sub_v2_v2v2(marker_unified, frame_unified, marker->pos);
 }
 
-/* Each marker has 5 coordinates associated with it that get warped with
- * tracking: the four corners ("pattern_corners"), and the center ("pos").
- * This function puts those 5 points into the appropriate frame for tracking
- * (the "search" coordinate frame).
- */
 void tracking_get_marker_coords_for_tracking(int frame_width,
                                              int frame_height,
                                              const MovieTrackingMarker *marker,
@@ -369,7 +364,6 @@ void tracking_get_marker_coords_for_tracking(int frame_width,
   search_pixel_y[4] = pixel_coords[1] - 0.5f;
 }
 
-/* Inverse of above. */
 void tracking_set_marker_coords_from_tracking(int frame_width,
                                               int frame_height,
                                               MovieTrackingMarker *marker,
@@ -411,15 +405,6 @@ void tracking_set_marker_coords_from_tracking(int frame_width,
 /** \name General Purpose Utility Functions
  * \{ */
 
-/* Place a disabled marker before or after specified ref_marker.
- *
- * If before is truth, disabled marker is placed before reference
- * one, and it's placed after it otherwise.
- *
- * If there's already a marker at the frame where disabled one
- * is expected to be placed, nothing will happen if overwrite
- * is false.
- */
 void tracking_marker_insert_disabled(MovieTrackingTrack *track,
                                      const MovieTrackingMarker *ref_marker,
                                      bool before,
@@ -526,7 +511,6 @@ static void distortion_model_parameters_from_options(
   BLI_assert_msg(0, "Unknown distortion model");
 }
 
-/* Fill in Libmv C-API camera intrinsics options from tracking structure. */
 void tracking_cameraIntrinscisOptionsFromTracking(
     MovieTracking *tracking,
     int calibration_width,
@@ -563,7 +547,6 @@ void tracking_trackingCameraFromIntrinscisOptions(
   distortion_model_parameters_from_options(camera_intrinsics_options, camera);
 }
 
-/* Get previous keyframed marker. */
 MovieTrackingMarker *tracking_get_keyframed_marker(MovieTrackingTrack *track,
                                                    int current_frame,
                                                    bool backwards)

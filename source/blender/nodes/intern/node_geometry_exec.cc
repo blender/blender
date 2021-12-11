@@ -18,8 +18,9 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "BKE_type_conversions.hh"
+
 #include "NOD_geometry_exec.hh"
-#include "NOD_type_conversions.hh"
 
 #include "node_geometry_util.hh"
 
@@ -149,7 +150,7 @@ GVArray GeoNodeExecParams::get_input_attribute(const StringRef name,
     }
     return GVArray::ForSingle(*cpp_type, domain_size, default_value);
   }
-  const DataTypeConversions &conversions = get_implicit_type_conversions();
+  const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
   if (found_socket->type == SOCK_FLOAT) {
     const float value = this->get_input<float>(found_socket->identifier);
     BUFFER_FOR_CPP_TYPE_VALUE(*cpp_type, buffer);
@@ -215,11 +216,6 @@ CustomDataType GeoNodeExecParams::get_input_attribute_data_type(
   return default_type;
 }
 
-/**
- * If any of the corresponding input sockets are attributes instead of single values,
- * use the highest priority attribute domain from among them.
- * Otherwise return the default domain.
- */
 AttributeDomain GeoNodeExecParams::get_highest_priority_input_domain(
     Span<std::string> names,
     const GeometryComponent &component,

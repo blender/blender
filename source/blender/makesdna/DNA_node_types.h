@@ -304,8 +304,6 @@ typedef struct bNode {
 
   /** Entire boundbox (world-space). */
   rctf totr;
-  /** Optional buttons area. */
-  rctf butr;
   /** Optional preview area. */
   rctf prvr;
   /**
@@ -375,8 +373,7 @@ typedef struct bNode {
 /* node is disabled */
 #define NODE_MUTED 512
 // #define NODE_CUSTOM_NAME 1024    /* deprecated! */
-/* group node types: use const outputs by default */
-#define NODE_CONST_OUTPUT (1 << 11)
+// #define NODE_CONST_OUTPUT (1 << 11) /* deprecated */
 /* node is always behind others */
 #define NODE_BACKGROUND (1 << 12)
 /* automatic flag for nodes included in transforms */

@@ -862,7 +862,6 @@ static void action_space_subtype_item_extend(bContext *UNUSED(C),
   RNA_enum_items_add(item, totitem, rna_enum_space_action_mode_items);
 }
 
-/* only called once, from space/spacetypes.c */
 void ED_spacetype_action(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype action");

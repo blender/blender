@@ -489,10 +489,6 @@ void LocalGeoLogger::log_execution_time(DNode node, std::chrono::microseconds ex
   node_exec_times_.append({node, exec_time});
 }
 
-/**
- * Log a message that will be displayed in the node editor next to the node. This should only be
- * used for debugging purposes and not to display information to users.
- */
 void LocalGeoLogger::log_debug_message(DNode node, std::string message)
 {
   node_debug_messages_.append({node, std::move(message)});

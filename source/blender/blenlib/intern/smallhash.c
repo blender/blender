@@ -295,7 +295,6 @@ void BLI_smallhash_init(SmallHash *sh)
   BLI_smallhash_init_ex(sh, 0);
 }
 
-/* NOTE: does *not* free *sh itself!  only the direct data! */
 void BLI_smallhash_release(SmallHash *sh)
 {
   check_stack_move(sh);
@@ -381,13 +380,6 @@ void BLI_smallhash_insert(SmallHash *sh, uintptr_t key, void *item)
   e->val = item;
 }
 
-/**
- * Inserts a new value to a key that may already be in ghash.
- *
- * Avoids #BLI_smallhash_remove, #BLI_smallhash_insert calls (double lookups)
- *
- * \returns true if a new key has been added.
- */
 bool BLI_smallhash_reinsert(SmallHash *sh, uintptr_t key, void *item)
 {
   SmallHashEntry *e = smallhash_lookup(sh, key);
@@ -586,12 +578,6 @@ void BLI_smallhash_print(SmallHash *sh)
 #endif
 
 #ifdef DEBUG
-/**
- * Measure how well the hash function performs
- * (1.0 is perfect - no stepping needed).
- *
- * Smaller is better!
- */
 double BLI_smallhash_calc_quality(SmallHash *sh)
 {
   uint64_t sum = 0;

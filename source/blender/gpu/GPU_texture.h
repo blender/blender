@@ -32,7 +32,8 @@ struct GPUVertBuf;
 /** Opaque type hiding blender::gpu::Texture. */
 typedef struct GPUTexture GPUTexture;
 
-/* GPU Samplers state
+/**
+ * GPU Samplers state
  * - Specify the sampler state to bind a texture with.
  * - Internally used by textures.
  * - All states are created at startup to avoid runtime costs.
@@ -60,8 +61,9 @@ typedef enum eGPUSamplerState {
     } \
   } while (0)
 
-/* `GPU_SAMPLER_MAX` is not a valid enum value, but only a limit.
- * It also creates a bad mask for the `NOT` operator in `ENUM_OPERATORS`.
+/**
+ * #GPU_SAMPLER_MAX is not a valid enum value, but only a limit.
+ * It also creates a bad mask for the `NOT` operator in #ENUM_OPERATORS.
  */
 static const int GPU_SAMPLER_MAX = (GPU_SAMPLER_ICON + 1);
 ENUM_OPERATORS(eGPUSamplerState, GPU_SAMPLER_ICON)
@@ -70,6 +72,9 @@ ENUM_OPERATORS(eGPUSamplerState, GPU_SAMPLER_ICON)
 extern "C" {
 #endif
 
+/**
+ * Update user defined sampler states.
+ */
 void GPU_samplers_update(void);
 
 /* GPU Texture
@@ -84,11 +89,13 @@ void GPU_samplers_update(void);
  * - if created with from_blender, will not free the texture
  */
 
-/* Wrapper to supported OpenGL/Vulkan texture internal storage
+/**
+ * Wrapper to supported OpenGL/Vulkan texture internal storage
  * If you need a type just un-comment it. Be aware that some formats
  * are not supported by render-buffers. All of the following formats
  * are part of the OpenGL 3.3 core
- * specification. */
+ * specification.
+ */
 typedef enum eGPUTextureFormat {
   /* Formats texture & render-buffer. */
   GPU_RGBA8UI,
@@ -221,12 +228,19 @@ GPUTexture *GPU_texture_create_cube_array(
     const char *name, int w, int d, int mip_len, eGPUTextureFormat format, const float *data);
 
 /* Special textures. */
+
 GPUTexture *GPU_texture_create_from_vertbuf(const char *name, struct GPUVertBuf *vert);
 /**
  * \a data should hold all the data for all mipmaps.
  */
+/**
+ * DDS texture loading. Return NULL if support is not available.
+ */
 GPUTexture *GPU_texture_create_compressed_2d(
     const char *name, int w, int h, int miplen, eGPUTextureFormat format, const void *data);
+/**
+ * Create an error texture that will bind an invalid texture (pink) at draw time.
+ */
 GPUTexture *GPU_texture_create_error(int dimension, bool array);
 
 void GPU_texture_update_mipmap(GPUTexture *tex,
@@ -234,6 +248,9 @@ void GPU_texture_update_mipmap(GPUTexture *tex,
                                eGPUDataFormat gpu_data_format,
                                const void *pixels);
 
+/**
+ * \note Updates only mip 0.
+ */
 void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void *data);
 void GPU_texture_update_sub(GPUTexture *tex,
                             eGPUDataFormat data_format,
@@ -244,9 +261,20 @@ void GPU_texture_update_sub(GPUTexture *tex,
                             int width,
                             int height,
                             int depth);
+/**
+ * Makes data interpretation aware of the source layout.
+ * Skipping pixels correctly when changing rows when doing partial update.
+ */
 void GPU_unpack_row_length_set(uint len);
 
 void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat data_format, int miplvl);
+/**
+ * Fills the whole texture with the same data for all pixels.
+ * \warning Only work for 2D texture for now.
+ * \warning Only clears the mip 0 of the texture.
+ * \param data_format: data format of the pixel data.
+ * \param data: 1 pixel worth of data to fill the texture with.
+ */
 void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat data_format, const void *data);
 
 void GPU_texture_free(GPUTexture *tex);
@@ -261,6 +289,9 @@ void GPU_texture_image_bind(GPUTexture *tex, int unit);
 void GPU_texture_image_unbind(GPUTexture *tex);
 void GPU_texture_image_unbind_all(void);
 
+/**
+ * Copy a texture content to a similar texture. Only MIP 0 is copied.
+ */
 void GPU_texture_copy(GPUTexture *dst, GPUTexture *src);
 
 void GPU_texture_generate_mipmap(GPUTexture *tex);
@@ -292,7 +323,8 @@ int GPU_texture_opengl_bindcode(const GPUTexture *tex);
 
 void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size);
 
-/* utilities */
+/* Utilities. */
+
 size_t GPU_texture_component_len(eGPUTextureFormat format);
 size_t GPU_texture_dataformat_size(eGPUDataFormat data_format);
 

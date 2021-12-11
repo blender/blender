@@ -64,7 +64,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-/* Filter orientation utils. */
 void SCULPT_filter_to_orientation_space(float r_v[3], struct FilterCache *filter_cache)
 {
   switch (filter_cache->orientation) {

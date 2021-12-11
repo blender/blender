@@ -749,9 +749,6 @@ static void bm_face_attrs_copy(
   bm_restore_id(bm_dst, (BMElem *)f_dst, id);
 }
 
-/* BMESH_TODO: Special handling for hide flags? */
-/* BMESH_TODO: swap src/dst args, everywhere else in bmesh does other way round */
-
 void BM_elem_attrs_copy_ex(BMesh *bm_src,
                            BMesh *bm_dst,
                            const void *ele_src_v,
@@ -759,6 +756,9 @@ void BM_elem_attrs_copy_ex(BMesh *bm_src,
                            const char hflag_mask,
                            const uint64_t cd_mask_exclude)
 {
+  /* TODO: Special handling for hide flags? */
+  /* TODO: swap src/dst args, everywhere else in bmesh does other way round. */
+
   const BMHeader *ele_src = ele_src_v;
   BMHeader *ele_dst = ele_dst_v;
 

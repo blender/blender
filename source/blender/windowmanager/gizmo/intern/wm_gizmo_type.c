@@ -78,7 +78,6 @@ const wmGizmoType *WM_gizmotype_find(const char *idname, bool quiet)
   return NULL;
 }
 
-/* caller must free */
 void WM_gizmotype_iter(GHashIterator *ghi)
 {
   BLI_ghashIterator_init(ghi, global_gizmotype_hash);
@@ -118,9 +117,6 @@ void WM_gizmotype_append_ptr(void (*gtfunc)(struct wmGizmoType *, void *), void 
   wm_gizmotype_append__end(mt);
 }
 
-/**
- * Free but don't remove from ghash.
- */
 void WM_gizmotype_free_ptr(wmGizmoType *gzt)
 {
   if (gzt->rna_ext.srna) { /* python gizmo, allocs own string */
@@ -195,7 +191,6 @@ void wm_gizmotype_free(void)
   global_gizmotype_hash = NULL;
 }
 
-/* called on initialize WM_init() */
 void wm_gizmotype_init(void)
 {
   /* reserve size is set based on blender default setup */

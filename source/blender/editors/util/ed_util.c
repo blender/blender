@@ -195,7 +195,6 @@ void ED_editors_init(bContext *C)
   wm->op_undo_depth--;
 }
 
-/* frees all editmode stuff */
 void ED_editors_exit(Main *bmain, bool do_undo_system)
 {
   if (!bmain) {
@@ -291,8 +290,6 @@ bool ED_editors_flush_edits_for_object(Main *bmain, Object *ob)
   return ED_editors_flush_edits_for_object_ex(bmain, ob, false, false);
 }
 
-/* flush any temp data from object editing to DNA before writing files,
- * rendering, copying, etc. */
 bool ED_editors_flush_edits_ex(Main *bmain, bool for_render, bool check_needs_flush)
 {
   bool has_edited = false;
@@ -317,11 +314,6 @@ bool ED_editors_flush_edits(Main *bmain)
 
 /* ***** XXX: functions are using old blender names, cleanup later ***** */
 
-/**
- * Now only used in 2D spaces, like time, f-curve, NLA, image, etc.
- *
- * \note Shift/Control are not configurable key-bindings.
- */
 void apply_keyb_grid(
     int shift, int ctrl, float *val, float fac1, float fac2, float fac3, int invert)
 {
@@ -441,11 +433,6 @@ void unpack_menu(bContext *C,
   UI_popup_menu_end(C, pup);
 }
 
-/**
- * Use to free ID references within runtime data (stored outside of DNA)
- *
- * \param new_id: may be NULL to unlink \a old_id.
- */
 void ED_spacedata_id_remap(struct ScrArea *area, struct SpaceLink *sl, ID *old_id, ID *new_id)
 {
   SpaceType *st = BKE_spacetype_from_id(sl->spacetype);

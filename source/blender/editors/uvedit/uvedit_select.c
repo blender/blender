@@ -148,10 +148,6 @@ BMLoop *ED_uvedit_active_edge_loop_get(BMesh *bm)
 /** \name Visibility and Selection Utilities
  * \{ */
 
-/**
- * Intentionally don't return #UV_SELECT_ISLAND as it's not an element type.
- * In this case return #UV_SELECT_VERTEX as a fallback.
- */
 char ED_uvedit_select_mode_get(const Scene *scene)
 {
   const ToolSettings *ts = scene->toolsettings;
@@ -719,15 +715,6 @@ bool uv_find_nearest_edge_multi(
   return found;
 }
 
-/**
- * \param only_in_face: when true, only hit faces which `co` is inside.
- * This gives users a result they might expect, especially when zoomed in.
- *
- * \note Concave faces can cause odd behavior, although in practice this isn't often an issue.
- * The center can be outside the face, in this case the distance to the center
- * could cause the face to be considered too far away.
- * If this becomes an issue we could track the distance to the faces closest edge.
- */
 bool uv_find_nearest_face_ex(
     Scene *scene, Object *obedit, const float co[2], UvNearestHit *hit, const bool only_in_face)
 {
@@ -1542,10 +1529,6 @@ static void uv_select_linked_multi(Scene *scene,
   }
 }
 
-/**
- * \warning This returns first selected UV,
- * not ideal in many cases since there could be multiple.
- */
 const float *uvedit_first_selected_uv_from_vertex(Scene *scene,
                                                   BMVert *eve,
                                                   const int cd_loop_uv_offset)

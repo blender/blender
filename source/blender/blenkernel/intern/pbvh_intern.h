@@ -234,9 +234,18 @@ struct PBVH {
 
 /* pbvh.c */
 void BB_reset(BB *bb);
+/**
+ * Expand the bounding box to include a new coordinate.
+ */
 void BB_expand(BB *bb, const float co[3]);
+/**
+ * Expand the bounding box to include another bounding box.
+ */
 void BB_expand_with_bb(BB *bb, BB *bb2);
 void BBC_update_centroid(BBC *bbc);
+/**
+ * Return 0, 1, or 2 to indicate the widest axis of the bounding box.
+ */
 int BB_widest_axis(const BB *bb);
 void BB_intersect(BB *r_out, BB *a, BB *b);
 float BB_volume(const BB *bb);

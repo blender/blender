@@ -369,12 +369,6 @@ int BezierSpline::evaluated_points_size() const
   return this->control_point_offsets().last();
 }
 
-/**
- * If the spline is not cyclic, the direction for the first and last points is just the
- * direction formed by the corresponding handles and control points. In the unlikely situation
- * that the handles define a zero direction, fallback to using the direction defined by the
- * first and last evaluated segments already calculated in #Spline::evaluated_tangents().
- */
 void BezierSpline::correct_end_tangents() const
 {
   if (is_cyclic_) {

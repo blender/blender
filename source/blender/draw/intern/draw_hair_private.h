@@ -93,6 +93,9 @@ typedef struct ParticleHairCache {
 
 void particle_batch_cache_clear_hair(struct ParticleHairCache *hair_cache);
 
+/**
+ * Ensure all textures and buffers needed for GPU accelerated drawing.
+ */
 bool particles_ensure_procedural_data(struct Object *object,
                                       struct ParticleSystem *psys,
                                       struct ModifierData *md,
@@ -101,6 +104,9 @@ bool particles_ensure_procedural_data(struct Object *object,
                                       int subdiv,
                                       int thickness_res);
 
+/**
+ * Ensure all textures and buffers needed for GPU accelerated drawing.
+ */
 bool hair_ensure_procedural_data(struct Object *object,
                                  struct ParticleHairCache **r_hair_cache,
                                  struct GPUMaterial *gpu_material,

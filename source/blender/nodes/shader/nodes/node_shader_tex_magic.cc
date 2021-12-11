@@ -181,7 +181,7 @@ static void sh_node_magic_tex_build_multi_function(
 
 }  // namespace blender::nodes
 
-void register_node_type_sh_tex_magic(void)
+void register_node_type_sh_tex_magic()
 {
   static bNodeType ntype;
 

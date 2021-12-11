@@ -35,7 +35,7 @@ static void cmp_node_pixelate_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_pixelate(void)
+void register_node_type_cmp_pixelate()
 {
   static bNodeType ntype;
 

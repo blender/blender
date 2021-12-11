@@ -111,15 +111,14 @@ float node_socket_calculate_height(const bNodeSocket &socket)
   return sock_height;
 }
 
-void node_link_calculate_multi_input_position(const float socket_x,
-                                              const float socket_y,
-                                              const int index,
-                                              const int total_inputs,
-                                              float r[2])
+float2 node_link_calculate_multi_input_position(const float2 &socket_position,
+                                                const int index,
+                                                const int total_inputs)
 {
-  float offset = (total_inputs * NODE_MULTI_INPUT_LINK_GAP - NODE_MULTI_INPUT_LINK_GAP) * 0.5;
-  r[0] = socket_x - NODE_SOCKSIZE * 0.5f;
-  r[1] = socket_y - offset + (index * NODE_MULTI_INPUT_LINK_GAP);
+  const float offset = (total_inputs * NODE_MULTI_INPUT_LINK_GAP - NODE_MULTI_INPUT_LINK_GAP) *
+                       0.5f;
+  return {socket_position.x - NODE_SOCKSIZE * 0.5f,
+          socket_position.y - offset + index * NODE_MULTI_INPUT_LINK_GAP};
 }
 
 static void compo_tag_output_nodes(bNodeTree *nodetree, int recalc_flags)
@@ -319,13 +318,6 @@ static void compo_startjob(void *cjv,
   ntree->progress = nullptr;
 }
 
-/**
- * \param scene_owner: is the owner of the job,
- * we don't use it for anything else currently so could also be a void pointer,
- * but for now keep it an 'Scene' for consistency.
- *
- * \note only call from spaces `refresh` callbacks, not direct! - use with care.
- */
 void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene *scene_owner)
 {
   Main *bmain = CTX_data_main(C);
@@ -369,7 +361,6 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 
 /* ***************************************** */
 
-/* operator poll callback */
 bool composite_node_active(bContext *C)
 {
   if (ED_operator_node_active(C)) {
@@ -381,7 +372,6 @@ bool composite_node_active(bContext *C)
   return false;
 }
 
-/* operator poll callback */
 bool composite_node_editable(bContext *C)
 {
   if (ED_operator_node_editable(C)) {
@@ -469,8 +459,6 @@ bool ED_node_is_geometry(struct SpaceNode *snode)
   return STREQ(snode->tree_idname, ntreeType_Geometry->idname);
 }
 
-/* assumes nothing being done in ntree yet, sets the default in/out node */
-/* called from shading buttons or header */
 void ED_node_shader_default(const bContext *C, ID *id)
 {
   Main *bmain = CTX_data_main(C);
@@ -537,8 +525,6 @@ void ED_node_shader_default(const bContext *C, ID *id)
   }
 }
 
-/* assumes nothing being done in ntree yet, sets the default in/out node */
-/* called from shading buttons or header */
 void ED_node_composit_default(const bContext *C, struct Scene *sce)
 {
   /* but lets check it anyway */
@@ -572,8 +558,6 @@ void ED_node_composit_default(const bContext *C, struct Scene *sce)
   ntreeUpdateTree(CTX_data_main(C), sce->nodetree);
 }
 
-/* assumes nothing being done in ntree yet, sets the default in/out node */
-/* called from shading buttons or header */
 void ED_node_texture_default(const bContext *C, Tex *tex)
 {
   /* but lets check it anyway */
@@ -602,7 +586,9 @@ void ED_node_texture_default(const bContext *C, Tex *tex)
   ntreeUpdateTree(CTX_data_main(C), tex->nodetree);
 }
 
-/* Here we set the active tree(s), even called for each redraw now, so keep it fast :) */
+/**
+ * Here we set the active tree(s), even called for each redraw now, so keep it fast :)
+ */
 void snode_set_context(const bContext &C)
 {
   SpaceNode *snode = CTX_wm_space_node(&C);
@@ -1099,7 +1085,7 @@ static int node_resize_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   /* convert mouse coordinates to v2d space */
   float cursor[2];
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
-  const NodeResizeDirection dir = node->typeinfo->resize_area_func(node, cursor[0], cursor[1]);
+  const NodeResizeDirection dir = node_get_resize_direction(node, cursor[0], cursor[1]);
   if (dir == NODE_RESIZE_NONE) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
@@ -1193,7 +1179,6 @@ static bool cursor_isect_multi_input_socket(const float cursor[2], const bNodeSo
   return false;
 }
 
-/* type is SOCK_IN and/or SOCK_OUT */
 bool node_find_indicated_socket(SpaceNode &snode,
                                 bNode **nodep,
                                 bNodeSocket **sockp,

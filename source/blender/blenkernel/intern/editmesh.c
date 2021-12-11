@@ -39,10 +39,6 @@
 #include "BKE_mesh_wrapper.h"
 #include "BKE_object.h"
 
-/**
- * \note The caller is responsible for ensuring triangulation data,
- * typically by calling #BKE_editmesh_looptri_calc.
- */
 BMEditMesh *BKE_editmesh_create(BMesh *bm)
 {
   BMEditMesh *em = MEM_callocN(sizeof(BMEditMesh), __func__);
@@ -75,12 +71,6 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
   return em_copy;
 }
 
-/**
- * \brief Return the BMEditMesh for a given object
- *
- * \note this function assumes this is a mesh object,
- * don't add NULL data check here. caller must do that
- */
 BMEditMesh *BKE_editmesh_from_object(Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
@@ -158,10 +148,6 @@ void BKE_editmesh_looptri_calc(BMEditMesh *em)
                                });
 }
 
-/**
- * Performing the face normal calculation at the same time as tessellation
- * gives a reasonable performance boost (approx ~20% faster).
- */
 void BKE_editmesh_looptri_and_normals_calc(BMEditMesh *em)
 {
   BKE_editmesh_looptri_calc_ex(em,
@@ -221,7 +207,6 @@ void BKE_editmesh_free_derived_caches(BMEditMesh *em)
   MEM_SAFE_FREE(em->bb_cage);
 }
 
-/* Does not free the #BMEditMesh struct itself. */
 void BKE_editmesh_free_data(BMEditMesh *em)
 {
   BKE_editmesh_free_derived_caches(em);
@@ -342,7 +327,6 @@ void BKE_editmesh_lnorspace_update(BMEditMesh *em, Mesh *me)
   BM_lnorspace_update(bm);
 }
 
-/* If autosmooth not already set, set it */
 void BKE_editmesh_ensure_autosmooth(BMEditMesh *em, Mesh *me)
 {
   if (!(me->flag & ME_AUTOSMOOTH)) {

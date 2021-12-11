@@ -42,7 +42,7 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-void register_node_type_cmp_sunbeams(void)
+void register_node_type_cmp_sunbeams()
 {
   static bNodeType ntype;
 

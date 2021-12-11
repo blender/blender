@@ -23,6 +23,7 @@
 #include "DNA_windowmanager_types.h"
 
 /* Operator types should be in exposed header. */
+
 void OBJECT_OT_lineart_bake_strokes(struct wmOperatorType *ot);
 void OBJECT_OT_lineart_bake_strokes_all(struct wmOperatorType *ot);
 void OBJECT_OT_lineart_clear(struct wmOperatorType *ot);

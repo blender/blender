@@ -171,9 +171,6 @@ void WM_file_tag_modified(void)
   }
 }
 
-/**
- * Check if there is data that would be lost when closing the current file without saving.
- */
 bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWindowManager *wm)
 {
   return !wm->file_saved || ED_image_should_save_modified(bmain) ||
@@ -1035,12 +1032,6 @@ static struct {
   bool override;
 } wm_init_state_app_template = {{0}};
 
-/**
- * Used for setting app-template from the command line:
- * - non-empty string: overrides.
- * - empty string: override, using no app template.
- * - NULL: clears override.
- */
 void WM_init_state_app_template_set(const char *app_template)
 {
   if (app_template) {
@@ -1064,16 +1055,6 @@ const char *WM_init_state_app_template_get(void)
 /** \name Read Startup & Preferences Blend-File API
  * \{ */
 
-/**
- * Called on startup, (context entirely filled with NULLs)
- * or called for 'New File' both `startup.blend` and `userpref.blend` are checked.
- *
- * \param r_params_file_read_post: Support postponed initialization,
- * needed for initial startup when only some sub-systems have been initialized.
- * When non-null, #wm_file_read_post doesn't run, instead it's arguments are stored
- * in this return argument.
- * The caller is responsible for calling #wm_homefile_read_post with this return argument.
- */
 void wm_homefile_read_ex(bContext *C,
                          const struct wmHomeFileRead_Params *params_homefile,
                          ReportList *reports,
@@ -1409,10 +1390,6 @@ void wm_homefile_read(bContext *C,
   wm_homefile_read_ex(C, params_homefile, reports, NULL);
 }
 
-/**
- * Special case, support deferred execution of #wm_file_read_post,
- * Needed when loading for the first time to workaround order of initialization bug, see T89046.
- */
 void wm_homefile_read_post(struct bContext *C,
                            const struct wmFileReadPost_Params *params_file_read_post)
 {
@@ -1724,7 +1701,6 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
   return ibuf;
 }
 
-/* easy access from gdb */
 bool write_crash_blend(void)
 {
   char path[FILE_MAX];
@@ -2009,9 +1985,6 @@ void WM_autosave_init(wmWindowManager *wm)
   wm_autosave_timer_begin(wm);
 }
 
-/**
- * Run the auto-save timer action.
- */
 void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
 {
   wm_autosave_timer_end(wm);
@@ -3813,10 +3786,6 @@ static void wm_free_operator_properties_callback(void *user_data)
   IDP_FreeProperty(properties);
 }
 
-/**
- * \return True if the dialog was created, the calling operator should return #OPERATOR_INTERFACE
- *         then.
- */
 bool wm_operator_close_file_dialog_if_needed(bContext *C,
                                              wmOperator *op,
                                              wmGenericCallbackFn post_action_fn)
