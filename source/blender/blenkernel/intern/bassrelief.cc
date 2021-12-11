@@ -250,40 +250,40 @@ struct ReliefOptimizer {
 #if 1
     /* sort vertex neighbors geometrically */
     for (int i = 0; i < totvert; i++) {
-      ReliefVertex *rv = verts + i;
+      ReliefVertex *rv1 = verts + i;
       float start[3];
 
-      if (!rv->totneighbor) {
+      if (!rv1->totneighbor) {
         continue;
       }
 
-      copy_v3_v3(start, rv->neighbors[0]->co);
+      copy_v3_v3(start, rv1->neighbors[0]->co);
 
-      for (int j = 0; j < rv->totneighbor; j++) {
-        ReliefVertex *rv2 = rv->neighbors[j];
+      for (int j = 0; j < rv1->totneighbor; j++) {
+        ReliefVertex *rv2 = rv1->neighbors[j];
 
-        rv2->angle = angle_signed_on_axis_v3v3_v3(start, rv2->co, rv->no);
+        rv2->angle = angle_signed_on_axis_v3v3_v3(start, rv2->co, rv1->no);
       }
 
       /* insertion sort */
-      for (int j = 0; j < rv->totneighbor; j++) {
-        ReliefVertex *rv2 = rv->neighbors[j];
+      for (int j = 0; j < rv1->totneighbor; j++) {
+        ReliefVertex *rv2 = rv1->neighbors[j];
 
         int cur = 0;
 
         for (int k = 0; k < j; k++, cur++) {
-          if (rv2->angle > rv->neighbors[k]->angle) {
+          if (rv2->angle > rv1->neighbors[k]->angle) {
             break;
           }
         }
 
         for (int k = j; k > cur; k--) {
-          rv->neighbors[k] = rv->neighbors[k - 1];
-          rv->neighbors[k]->i = k;
+          rv1->neighbors[k] = rv1->neighbors[k - 1];
+          rv1->neighbors[k]->i = k;
         }
 
         rv2->i = cur;
-        rv->neighbors[cur] = rv2;
+        rv1->neighbors[cur] = rv2;
       }
     }
 #endif
