@@ -397,16 +397,11 @@ MINLINE float safe_shell_angle_to_dist(const float angle)
   return (UNLIKELY(angle < 1.e-8f)) ? 1.0f : fabsf(1.0f / th);
 }
 
-void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
-                                             float result[3],
-                                             SculptVertRef vertex,
-                                             SculptSmoothArgs *args)
+static void SCULPT_neighbor_coords_average_interior_boundary(SculptSession *ss,
+                                                             float result[3],
+                                                             SculptVertRef vertex,
+                                                             SculptSmoothArgs *args)
 {
-  if (args->do_origco) {
-    // copy_v3_v3(result, SCULPT_vertex_co_get(ss, vertex));
-    // return;
-  }
-
   float avg[3] = {0.0f, 0.0f, 0.0f};
 
   const float bevel_smooth_factor = 1.0f - args->bevel_smooth_factor;
@@ -467,39 +462,32 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
   // bool have_bmesh = ss->bm;
 
-  if (weighted || bound_scl) {
-    int val = SCULPT_vertex_valence_get(ss, vertex);
-    areas = BLI_array_alloca(areas, val);
+  int val = SCULPT_vertex_valence_get(ss, vertex);
+  areas = BLI_array_alloca(areas, val);
 
-    BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, val);
+  BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, val);
 
-    /* normalize areas, then apply a 0.25/val floor */
+  /* normalize areas, then apply a 0.25/val floor */
 
-    float totarea = 0.0f;
+  float totarea = 0.0f;
 
-    for (int i = 0; i < val; i++) {
-      totarea += areas[i];
-    }
+  for (int i = 0; i < val; i++) {
+    totarea += areas[i];
+  }
 
-    totarea = totarea != 0.0f ? 1.0f / totarea : 0.0f;
+  totarea = totarea != 0.0f ? 1.0f / totarea : 0.0f;
 
-    float df = 0.25f / (float)val;
+  float df = 0.25f / (float)val;
 
-    for (int i = 0; i < val; i++) {
-      areas[i] = (areas[i] * totarea) + df;
-    }
+  for (int i = 0; i < val; i++) {
+    areas[i] = (areas[i] * totarea) + df;
   }
 
   float *b1 = NULL, btot = 0.0f, b1_orig;
 
-  if (bound_scl) {
-    b1 = SCULPT_temp_cdata_get(vertex, bound_scl);
-    b1_orig = *b1;
-
-    if (1 || is_boundary) {
-      *b1 = 0.0f;
-    }
-  }
+  b1 = SCULPT_temp_cdata_get(vertex, bound_scl);
+  b1_orig = *b1;
+  *b1 = 0.0f;
 
   float vel[3] = {0.0f, 0.0f, 0.0f};
   int totvel = 0;
@@ -508,13 +496,6 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
     MSculptVert *mv2 = SCULPT_vertex_get_sculptvert(ss, ni.vertex);
     const float *co2;
-
-    if (args->vel_scl) {
-      // propagate velocities
-      float *vel2 = SCULPT_temp_cdata_get(ni.vertex, args->vel_scl);
-      add_v3_v3(vel, vel2);
-      totvel++;
-    }
 
     if (!do_origco || mv2->stroke_id != ss->stroke_id) {
       co2 = SCULPT_vertex_co_get(ss, ni.vertex);
@@ -562,12 +543,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     do_diffuse = bound_scl != NULL;
 
     if (final_boundary) {
-      if (totbound == 0) {
-        copy_v3_v3(bound1, co2);
-      }
-      else {
-        copy_v3_v3(bound2, co2);
-      }
+      copy_v3_v3(!totbound ? bound1 : bound2, co2);
 
       totbound++;
     }
@@ -661,11 +637,6 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       SCULPT_vertex_color_set(ss, ni.vertex, color);
 #endif
 
-      /* jump above the v,no2 plane, using distance from plane (which doubles after this)*/
-      // sub_v3_v3(tmp, co);
-      // madd_v3_v3fl(tmp, no2, th * dot_v3v3(no2, tmp));
-      // add_v3_v3(tmp, co);
-
       float th = min_ff(b1_orig / radius, bevel_smooth_factor);
 
       /*smooth bevel edges slightly to avoid artifacts.
@@ -702,7 +673,6 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
   if (btot != 0.0f) {
     *b1 /= btot;
-    //*b1 += (b1_orig - *b1) * 0.95f;
   }
   else if (b1) {
     *b1 = b1_orig;
@@ -720,24 +690,9 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     cross_v3_v3v3(tan, bound, no);
     normalize_v3(tan);
 
-#if 0
-    float tan1[3],tan2[3];
-    cross_v3_v3v3(tan1,bound1,no);
-    cross_v3_v3v3(tan2,bound2,no);
-
-    normalize_v3(tan1);
-    normalize_v3(tan2);
-
-    interp_v3_v3v3(tan1,tan1,tan,0.5f);
-    interp_v3_v3v3(tan2,tan2,tan,0.5f);
-
-    madd_v3_v3fl(avg,tan1,-dot_v3v3(bound1,tan) * 0.975);
-    madd_v3_v3fl(avg,tan2,dot_v3v3(bound2,tan) * 0.975);
-#else
     // project to plane, remember we negated bound2 earlier
     madd_v3_v3fl(avg, tan, -dot_v3v3(bound1, tan) * 0.75);
     madd_v3_v3fl(avg, tan, dot_v3v3(bound2, tan) * 0.75);
-#endif
   }
 
   if (args->vel_scl && totvel > 1) {
@@ -777,7 +732,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   }
 
   if (c & (SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM | SCULPT_CORNER_UV)) {
-    corner_smooth = MAX2(slide_fset, bound_smooth);
+    corner_smooth = MAX2(slide_fset, 2.0f * bound_smooth);
   }
   else {
     corner_smooth = 2.0f * bound_smooth;
@@ -785,6 +740,267 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
   interp_v3_v3v3(result, result, co, 1.0f - corner_smooth);
   PBVH_CHECK_NAN(co);
+}
+
+void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
+                                             float result[3],
+                                             SculptVertRef vertex,
+                                             SculptSmoothArgs *args)
+{
+  if (args->bound_smooth > 0.0f && args->bound_scl) {
+    SCULPT_neighbor_coords_average_interior_boundary(ss, result, vertex, args);
+    return;
+  }
+
+  float avg[3] = {0.0f, 0.0f, 0.0f};
+
+  float projection = args->projection;
+  float slide_fset = args->slide_fset;
+  float bound_smooth = args->bound_smooth;
+  bool do_origco = args->do_origco;
+
+  MSculptVert *mv = SCULPT_vertex_get_sculptvert(ss, vertex);
+
+  float bound1[3], bound2[3];
+  int totbound = 0;
+
+  if (do_origco) {
+    SCULPT_vertex_check_origdata(ss, vertex);
+  }
+
+  float total = 0.0f;
+  int neighbor_count = 0;
+  bool check_fsets = args->preserve_fset_boundaries;
+
+  int bflag = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP;
+
+  slide_fset = MAX2(slide_fset, bound_smooth);
+
+  if (check_fsets) {
+    bflag |= SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV;
+  }
+
+  const SculptBoundaryType is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bflag);
+
+  const float *co = do_origco ? mv->origco : SCULPT_vertex_co_get(ss, vertex);
+  float no[3];
+
+  PBVH_CHECK_NAN(co);
+
+  if (do_origco) {
+    copy_v3_v3(no, mv->origno);
+  }
+  else {
+    SCULPT_vertex_normal_get(ss, vertex, no);
+  }
+
+  float startco[3], startno[3];
+  copy_v3_v3(startco, co);
+  copy_v3_v3(startno, no);
+
+  const bool weighted = args->do_weighted_smooth && !is_boundary;
+  float *areas = NULL;
+
+  SculptCornerType ctype = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP;
+  if (check_fsets) {
+    ctype |= SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM | SCULPT_CORNER_UV;
+  }
+
+  if (weighted) {
+    int val = SCULPT_vertex_valence_get(ss, vertex);
+    areas = BLI_array_alloca(areas, val);
+
+    BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, val);
+
+    /* normalize areas, then apply a 0.25/val floor */
+
+    float totarea = 0.0f;
+
+    for (int i = 0; i < val; i++) {
+      totarea += areas[i];
+    }
+
+    totarea = totarea != 0.0f ? 1.0f / totarea : 0.0f;
+
+    float df = 0.25f / (float)val;
+
+    for (int i = 0; i < val; i++) {
+      areas[i] = (areas[i] * totarea) + df;
+    }
+  }
+
+  float vel[3] = {0.0f, 0.0f, 0.0f};
+  int totvel = 0;
+
+  SculptVertexNeighborIter ni;
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+    MSculptVert *mv2 = SCULPT_vertex_get_sculptvert(ss, ni.vertex);
+    const float *co2;
+
+    if (args->vel_scl) {
+      /* propagate velocities */
+      float *vel2 = SCULPT_temp_cdata_get(ni.vertex, args->vel_scl);
+      add_v3_v3(vel, vel2);
+      totvel++;
+    }
+
+    if (!do_origco || mv2->stroke_id != ss->stroke_id) {
+      co2 = SCULPT_vertex_co_get(ss, ni.vertex);
+    }
+    else {
+      co2 = mv2->origco;
+    }
+
+    neighbor_count++;
+
+    float tmp[3], w;
+    bool ok = false;
+
+    if (weighted) {
+      w = areas[ni.i];
+    }
+    else {
+      w = 1.0f;
+    }
+
+    /* use the new edge api if edges are available, if not estimate boundary
+       from verts
+     */
+    SculptBoundaryType final_boundary = 0;
+
+    if (ni.has_edge) {
+      final_boundary = SCULPT_edge_is_boundary(ss, ni.edge, bflag);
+
+#ifdef SCULPT_DIAGONAL_EDGE_MARKS
+      if (ss->bm) {
+        BMEdge *e = (BMEdge *)ni.edge.i;
+        if (!(e->head.hflag & BM_ELEM_DRAW)) {
+          neighbor_count--;
+          continue;
+        }
+      }
+#endif
+    }
+    else {
+      final_boundary = is_boundary & SCULPT_vertex_is_boundary(ss, ni.vertex, bflag);
+    }
+
+    if (final_boundary) {
+      copy_v3_v3(!totbound ? bound1 : bound2, co2);
+      totbound++;
+    }
+
+    if (is_boundary) {
+      /*
+      Boundary rules:
+
+      Hard edges: Boundary vertices use only other boundary vertices.
+      Slide: Boundary vertices use normal component of non-boundary vertices
+      */
+
+      bool slide = slide_fset > 0.0f &&
+                   (is_boundary &
+                    (SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV));
+      slide = slide && !final_boundary;
+
+      if (slide) {
+        /* project non-boundary offset onto boundary normal*/
+        float t[3];
+
+        w *= slide_fset;
+
+        sub_v3_v3v3(t, co2, co);
+        madd_v3_v3v3fl(tmp, co, no, dot_v3v3(t, no));
+        ok = true;
+      }
+      else if (final_boundary & is_boundary) {
+        copy_v3_v3(tmp, co2);
+        ok = true;
+      }
+      else {
+        ok = false;
+      }
+    }
+    else {
+      copy_v3_v3(tmp, co2);
+      ok = true;
+    }
+
+    if (!ok) {
+      continue;
+    }
+
+    if (projection > 0.0f) {
+      sub_v3_v3(tmp, co);
+      float fac = dot_v3v3(tmp, no);
+      madd_v3_v3fl(tmp, no, -fac * projection);
+      madd_v3_v3fl(avg, tmp, w);
+    }
+    else {
+      madd_v3_v3fl(avg, tmp, w);
+    }
+
+    total += w;
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+  PBVH_CHECK_NAN(co);
+  PBVH_CHECK_NAN(avg);
+
+  /*try to prevent shrinkage of smooth closed boundaries like circles*/
+  if (totbound == 2) {
+    /* find tangent to boundary */
+    sub_v3_v3(bound1, co);
+    sub_v3_v3(bound2, co);
+
+    negate_v3(bound2);
+
+    float bound[3];
+    add_v3_v3v3(bound, bound1, bound2);
+    float tan[3];
+
+    cross_v3_v3v3(tan, bound, no);
+    normalize_v3(tan);
+
+    /* project to plane, remember we negated bound2 earlier */
+    madd_v3_v3fl(avg, tan, -dot_v3v3(bound1, tan) * 0.75);
+    madd_v3_v3fl(avg, tan, dot_v3v3(bound2, tan) * 0.75);
+  }
+
+  if (args->vel_scl && totvel > 1) {
+    float *final_vel = SCULPT_temp_cdata_get(vertex, args->vel_scl);
+    mul_v3_fl(vel, 1.0f / (float)totvel);
+
+    interp_v3_v3v3(final_vel, final_vel, vel, args->vel_smooth_fac);
+  }
+
+  /* Do not modify corner vertices. */
+  if (total == 0.0f || (neighbor_count <= 2 && is_boundary)) {
+    copy_v3_v3(result, co);
+    return;
+  }
+
+  mul_v3_v3fl(result, avg, 1.0f / total);
+
+  PBVH_CHECK_NAN(co);
+
+  if (projection > 0.0f) {
+    add_v3_v3(result, co);
+  }
+
+  PBVH_CHECK_NAN(co);
+
+  SculptCornerType c = SCULPT_vertex_is_corner(ss, vertex, ctype);
+
+  if (!c) {
+    return;
+  }
+
+  if (c & (SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM | SCULPT_CORNER_UV)) {
+    interp_v3_v3v3(result, result, co, 1.0f - slide_fset);
+  }
+
+  PBVH_CHECK_NAN(result);
 }
 
 int closest_vec_to_perp(float dir[3], float r_dir2[3], float no[3], float *buckets, float w)

@@ -112,7 +112,7 @@ namespace bassrelief {
 struct ReliefVertex {
   float co[3], origco[3];
   float no[3], origno[3];
-  int index;
+  uint index;
   float targetco[3];
   float targetno[3];
   float ray[3], ray_dist, origray[3], origray_dist;
@@ -148,23 +148,23 @@ struct ReliefOptimizer {
   float normalScale, boundWidth;
 
   ReliefOptimizer(const float (*cos)[3],
-                  const MVert *mvert,
-                  int totvert,
-                  MEdge *medge,
-                  int totedge,
+                  const MVert *mvert_,
+                  int totvert_,
+                  MEdge *medge_,
+                  int totedge_,
                   MPropCol *_debugColors[MAX_BASSRELIEF_DEBUG_COLORS],
                   const MLoopTri *_mlooptri,
-                  int totlooptri,
-                  const MLoop *mloop,
+                  int totlooptri_,
+                  const MLoop *mloop_,
                   float optimizeNormalsScale,
-                  float boundSmoothScale,
-                  int boundSmoothSteps)
-      : totvert(totvert),
-        totlooptri(totlooptri),
-        mloop(mloop),
-        boundSmoothSteps(boundSmoothSteps),
+                  float boundSmoothScale_,
+                  int boundSmoothSteps_)
+      : totvert(totvert_),
+        totlooptri(totlooptri_),
+        mloop(mloop_),
+        boundSmoothSteps(boundSmoothSteps_),
         normalScale(optimizeNormalsScale),
-        boundWidth(boundSmoothScale)
+        boundWidth(boundSmoothScale_)
   {
     rmindis = rmaxdis = bmindis = bmaxdis = 0.0f;
     rdis_scale = bdis_scale = 0.0f;
@@ -185,10 +185,10 @@ struct ReliefOptimizer {
     verts = new ReliefVertex[totvert];
     compress_ratio = 0.5f;
 
-    const MVert *mv = mvert;
+    const MVert *mv = mvert_;
     ReliefVertex *rv = verts;
 
-    for (int i = 0; i < totvert; i++, rv++, mv++) {
+    for (uint i = 0; i < (uint)totvert; i++, rv++, mv++) {
       memset(static_cast<void *>(rv), 0, sizeof(ReliefVertex));
 
       copy_v3_v3(rv->co, cos[i]);
@@ -213,8 +213,8 @@ struct ReliefOptimizer {
       rv->flag = 0;
     }
 
-    const MEdge *me = medge;
-    for (int i = 0; i < totedge; i++, me++) {
+    const MEdge *me = medge_;
+    for (int i = 0; i < totedge_; i++, me++) {
       verts[me->v1].totneighbor++;
       verts[me->v2].totneighbor++;
     }
@@ -227,8 +227,8 @@ struct ReliefOptimizer {
           BLI_memarena_alloc(arena, sizeof(float) * rv->totneighbor * 2));
     }
 
-    me = medge;
-    for (int i = 0; i < totedge; i++, me++) {
+    me = medge_;
+    for (int i = 0; i < totedge_; i++, me++) {
       for (int j = 0; j < 2; j++) {
         ReliefVertex *rv = j ? verts + me->v2 : verts + me->v1;
         ReliefVertex *rv_other = j ? verts + me->v1 : verts + me->v2;
@@ -579,7 +579,7 @@ struct ReliefOptimizer {
 
   void smooth_geodesic()
   {
-    std::vector<float> dists(totvert);
+    std::vector<float> dists((size_t)totvert);
 
     blender::threading::parallel_for(IndexRange(totvert), 512, [&](IndexRange subrange) {
       for (auto i : subrange) {
@@ -619,7 +619,7 @@ struct ReliefOptimizer {
 
   void smooth_tangent_field()
   {
-    std::vector<float> dists(totvert);
+    std::vector<float> dists((size_t)totvert);
 
     blender::threading::parallel_for(IndexRange(totvert), 512, [&](IndexRange subrange) {
       for (auto i : subrange) {
