@@ -7947,7 +7947,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   /* Update the active vertex of the SculptSession. */
   ss->active_vertex_index = srd.active_vertex_index;
 
-  SCULPT_vertex_random_access_ensure(ss);
+  //SCULPT_vertex_random_access_ensure(ss);
   copy_v3_v3(out->active_vertex_co, SCULPT_active_vertex_co_get(ss));
 
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -9428,11 +9428,13 @@ void SCULPT_connected_components_ensure(Object *ob)
   }
 }
 
+/* builds topological boundary bitmap. TODO: eliminate this function
+   and just used modern boundary API */
 void SCULPT_boundary_info_ensure(Object *object)
 {
   SculptSession *ss = object->sculpt;
 
-  // PBVH_BMESH now handles itself
+  // PBVH_BMESH now handles boundaries itself
   if (ss->bm) {
     return;
   }

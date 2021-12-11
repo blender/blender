@@ -1056,7 +1056,9 @@ void vec_transform(float r_dir2[3], float no[3], int bits)
 }
 
 /* For bmesh: Average surrounding verts based on an orthogonality measure.
- * Naturally converges to a quad-like structure. */
+ * Naturally converges to a quad-like structure. Builds a simple cross
+ * field combining either mesh curvature principle direction or
+   stroke direction, and edge boundaries. */
 void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
                                         float avg[3],
                                         float direction[3],
@@ -1156,19 +1158,13 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
       no2 = mv2->origno;
     }
 
-    // bool bound = (mv2->flag &
-    //             (SCULPTVERT_BOUNDARY));  // | SCULPTVERT_FSET_BOUNDARY |
-    //             SCULPTVERT_SHARP_BOUNDARY));
-    // bool bound2 = (mv2->flag &
-    //               (SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_SHARP_BOUNDARY));
-
     SculptBoundaryType bflag = SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_MESH |
                                SCULPT_BOUNDARY_SHARP | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV;
 
     int bound = SCULPT_edge_is_boundary(ss, (SculptEdgeRef){.i = (intptr_t)e}, bflag);
     float dirw = 1.0f;
 
-    if (bound) {  // || v_other->head.hflag & BM_ELEM_SELECT) {  // XXX
+    if (bound) {
       had_bound = true;
 
       sub_v3_v3v3(dir2, co2, co1);
@@ -1580,6 +1576,8 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", &scl, &params);
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+    SCULPT_vertex_random_access_ensure(ss);
+
     const int totvert = SCULPT_vertex_count_get(ss);
 
     for (int i = 0; i < totvert; i++) {
@@ -2022,7 +2020,6 @@ void SCULPT_smooth(Sculpt *sd,
     return;
   }
 
-  SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
 
   float bound_smooth = SCULPT_get_float(ss, boundary_smooth, sd, brush);
