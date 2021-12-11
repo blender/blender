@@ -75,7 +75,7 @@ bNodeSocket *node_group_find_output_socket(bNode *groupnode, const char *identif
   return nullptr;
 }
 
-void node_group_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
+void node_group_label(const bNodeTree *UNUSED(ntree), const bNode *node, char *label, int maxlen)
 {
   BLI_strncpy(label, (node->id) ? node->id->name + 2 : IFACE_("Missing Data-Block"), maxlen);
 }

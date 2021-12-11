@@ -75,11 +75,26 @@ void node_sock_label_clear(struct bNodeSocket *sock);
 void node_math_update(struct bNodeTree *ntree, struct bNode *node);
 
 /**** Labels ****/
-void node_blend_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
-void node_image_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
-void node_math_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
-void node_vector_math_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
-void node_filter_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
+void node_blend_label(const struct bNodeTree *ntree,
+                      const struct bNode *node,
+                      char *label,
+                      int maxlen);
+void node_image_label(const struct bNodeTree *ntree,
+                      const struct bNode *node,
+                      char *label,
+                      int maxlen);
+void node_math_label(const struct bNodeTree *ntree,
+                     const struct bNode *node,
+                     char *label,
+                     int maxlen);
+void node_vector_math_label(const struct bNodeTree *ntree,
+                            const struct bNode *node,
+                            char *label,
+                            int maxlen);
+void node_filter_label(const struct bNodeTree *ntree,
+                       const struct bNode *node,
+                       char *label,
+                       int maxlen);
 
 /*** Link Handling */
 

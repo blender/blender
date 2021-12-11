@@ -42,7 +42,7 @@ void register_node_type_cmp_filter()
 
   cmp_node_type_base(&ntype, CMP_NODE_FILTER, "Filter", NODE_CLASS_OP_FILTER, NODE_PREVIEW);
   ntype.declare = blender::nodes::cmp_node_filter_declare;
-  node_type_label(&ntype, node_filter_label);
+  ntype.labelfunc = node_filter_label;
 
   nodeRegisterType(&ntype);
 }

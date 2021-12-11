@@ -451,7 +451,7 @@ void register_node_type_cmp_image()
   node_type_init(&ntype, node_composit_init_image);
   node_type_storage(&ntype, "ImageUser", node_composit_free_image, node_composit_copy_image);
   node_type_update(&ntype, cmp_node_image_update);
-  node_type_label(&ntype, node_image_label);
+  ntype.labelfunc = node_image_label;
 
   nodeRegisterType(&ntype);
 }

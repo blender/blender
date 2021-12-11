@@ -5180,7 +5180,7 @@ void nodeUpdateInternalLinks(bNodeTree *ntree, bNode *node)
 
 /* ************* node type access ********** */
 
-void nodeLabel(bNodeTree *ntree, bNode *node, char *label, int maxlen)
+void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, int maxlen)
 {
   label[0] = '\0';
 
@@ -5398,13 +5398,6 @@ void node_type_storage(bNodeType *ntype,
   }
   ntype->copyfunc = copyfunc;
   ntype->freefunc = freefunc;
-}
-
-void node_type_label(
-    struct bNodeType *ntype,
-    void (*labelfunc)(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen))
-{
-  ntype->labelfunc = labelfunc;
 }
 
 void node_type_update(struct bNodeType *ntype,

@@ -39,7 +39,10 @@ static void fn_node_float_to_int_layout(uiLayout *layout, bContext *UNUSED(C), P
   uiItemR(layout, ptr, "rounding_mode", 0, "", ICON_NONE);
 }
 
-static void node_float_to_int_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
+static void node_float_to_int_label(const bNodeTree *UNUSED(ntree),
+                                    const bNode *node,
+                                    char *label,
+                                    int maxlen)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_float_to_int_items, node->custom1, &name);
@@ -86,7 +89,7 @@ void register_node_type_fn_float_to_int()
 
   fn_node_type_base(&ntype, FN_NODE_FLOAT_TO_INT, "Float to Integer", NODE_CLASS_CONVERTER, 0);
   ntype.declare = blender::nodes::fn_node_float_to_int_declare;
-  node_type_label(&ntype, blender::nodes::node_float_to_int_label);
+  ntype.labelfunc = blender::nodes::node_float_to_int_label;
   ntype.build_multi_function = blender::nodes::fn_node_float_to_int_build_multi_function;
   ntype.draw_buttons = blender::nodes::fn_node_float_to_int_layout;
   nodeRegisterType(&ntype);

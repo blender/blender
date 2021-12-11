@@ -1891,7 +1891,7 @@ static void rna_Node_draw_buttons_ext(struct uiLayout *layout, bContext *C, Poin
   RNA_parameter_list_free(&list);
 }
 
-static void rna_Node_draw_label(bNodeTree *ntree, bNode *node, char *label, int maxlen)
+static void rna_Node_draw_label(const bNodeTree *ntree, const bNode *node, char *label, int maxlen)
 {
   extern FunctionRNA rna_Node_draw_label_func;
 
@@ -1903,7 +1903,7 @@ static void rna_Node_draw_label(bNodeTree *ntree, bNode *node, char *label, int 
 
   func = &rna_Node_draw_label_func; /* RNA_struct_find_function(&ptr, "draw_label"); */
 
-  RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
+  RNA_pointer_create((ID *)&ntree->id, &RNA_Node, (bNode *)node, &ptr);
   RNA_parameter_list_create(&list, &ptr, func);
   node->typeinfo->rna_ext.call(NULL, &ptr, func, &list);
 

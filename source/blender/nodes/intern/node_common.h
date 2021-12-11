@@ -32,7 +32,10 @@ extern "C" {
 struct bNodeTree;
 
 /** Groups display their internal tree name as label. */
-void node_group_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
+void node_group_label(const struct bNodeTree *ntree,
+                      const struct bNode *node,
+                      char *label,
+                      int maxlen);
 bool node_group_poll_instance(struct bNode *node,
                               struct bNodeTree *nodetree,
                               const char **r_disabled_hint);

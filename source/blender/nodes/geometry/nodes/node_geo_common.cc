@@ -37,7 +37,7 @@ void register_node_type_geo_group()
 
   node_type_socket_templates(&ntype, nullptr, nullptr);
   node_type_size(&ntype, 140, 60, 400);
-  node_type_label(&ntype, node_group_label);
+  ntype.labelfunc = node_group_label;
   node_type_group_update(&ntype, node_group_update);
 
   nodeRegisterType(&ntype);

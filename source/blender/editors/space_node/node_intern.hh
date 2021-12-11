@@ -99,7 +99,6 @@ blender::float2 node_link_calculate_multi_input_position(const blender::float2 &
                                                          int index,
                                                          int total_inputs);
 
-int node_get_colorid(bNode &node);
 int node_get_resize_cursor(NodeResizeDirection directions);
 NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, const int y);
 /**
