@@ -222,20 +222,20 @@ struct ReliefOptimizer {
     rv = verts;
     for (int i = 0; i < totvert; i++, rv++) {
       rv->neighbors = reinterpret_cast<ReliefVertex **>(
-          BLI_memarena_alloc(arena, sizeof(void *) * rv->totneighbor * 2));
+          BLI_memarena_alloc(arena, sizeof(void *) * (size_t)rv->totneighbor * 2ULL));
       rv->neighbor_restlens = reinterpret_cast<float *>(
-          BLI_memarena_alloc(arena, sizeof(float) * rv->totneighbor * 2));
+          BLI_memarena_alloc(arena, sizeof(float) * (size_t)rv->totneighbor * 2ULL));
     }
 
     me = medge_;
     for (int i = 0; i < totedge_; i++, me++) {
       for (int j = 0; j < 2; j++) {
-        ReliefVertex *rv = j ? verts + me->v2 : verts + me->v1;
+        ReliefVertex *rv2 = j ? verts + me->v2 : verts + me->v1;
         ReliefVertex *rv_other = j ? verts + me->v1 : verts + me->v2;
 
-        rv->neighbors[rv->i] = rv_other;
-        rv->neighbor_restlens[rv->i] = len_v3v3(rv_other->co, rv->co);
-        rv->i++;
+        rv2->neighbors[rv2->i] = rv_other;
+        rv2->neighbor_restlens[rv2->i] = len_v3v3(rv_other->co, rv2->co);
+        rv2->i++;
       }
     }
 
@@ -586,7 +586,7 @@ struct ReliefOptimizer {
         float f = verts[i].bound_dist;
         // f = (f - bmindis) * bdis_scale;
 
-        dists[i] = f;
+        dists[(size_t)i] = f;
       }
     });
 
@@ -623,7 +623,7 @@ struct ReliefOptimizer {
 
     blender::threading::parallel_for(IndexRange(totvert), 512, [&](IndexRange subrange) {
       for (auto i : subrange) {
-        dists[i] = verts[i].tan_field;
+        dists[(size_t)i] = verts[i].tan_field;
       }
     });
 
