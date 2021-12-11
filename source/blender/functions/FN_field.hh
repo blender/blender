@@ -49,6 +49,7 @@
 #include "BLI_function_ref.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "FN_generic_virtual_array.hh"
 #include "FN_multi_function_builder.hh"
@@ -59,6 +60,7 @@
 namespace blender::fn {
 
 class FieldInput;
+class FieldInputs;
 
 /**
  * A node in a field-tree. It has at least one output that can be referenced by fields.
@@ -66,18 +68,18 @@ class FieldInput;
 class FieldNode {
  private:
   bool is_input_;
+
+ protected:
   /**
-   * True when this node is a #FieldInput or (potentially indirectly) depends on one. This could
-   * always be derived again later by traversing the field-tree, but keeping track of it while the
-   * field is built is cheaper.
-   *
-   * If this is false, the field is constant. Note that even when this is true, the field may be
-   * constant when all inputs are constant.
+   * Keeps track of the inputs that this node depends on. This avoids recomputing it every time the
+   * data is required. It is a shared pointer, because very often multiple nodes depend on the same
+   * inputs.
+   * Might contain null.
    */
-  bool depends_on_input_;
+  std::shared_ptr<const FieldInputs> field_inputs_;
 
  public:
-  FieldNode(bool is_input, bool depends_on_input);
+  FieldNode(bool is_input);
 
   virtual ~FieldNode() = default;
 
@@ -87,11 +89,7 @@ class FieldNode {
   bool is_operation() const;
   bool depends_on_input() const;
 
-  /**
-   * Invoke callback for every field input. It might be called multiple times for the same input.
-   * The caller is responsible for deduplication if required.
-   */
-  virtual void foreach_field_input(FunctionRef<void(const FieldInput &)> foreach_fn) const = 0;
+  const std::shared_ptr<const FieldInputs> &field_inputs() const;
 
   virtual uint64_t hash() const;
   virtual bool is_equal_to(const FieldNode &other) const;
@@ -231,7 +229,6 @@ class FieldOperation : public FieldNode {
   const MultiFunction &multi_function() const;
 
   const CPPType &output_cpp_type(int output_index) const override;
-  void foreach_field_input(FunctionRef<void(const FieldInput &)> foreach_fn) const override;
 };
 
 class FieldContext;
@@ -271,7 +268,19 @@ class FieldInput : public FieldNode {
   Category category() const;
 
   const CPPType &output_cpp_type(int output_index) const override;
-  void foreach_field_input(FunctionRef<void(const FieldInput &)> foreach_fn) const override;
+};
+
+/**
+ * Keeps track of the inputs of a field.
+ */
+struct FieldInputs {
+  /** All #FieldInput nodes that a field (possibly indirectly) depends on. */
+  VectorSet<const FieldInput *> nodes;
+  /**
+   * Same as above but the inputs are deduplicated. For example, when there are two separate index
+   * input nodes, only one will show up in this list.
+   */
+  VectorSet<std::reference_wrapper<const FieldInput>> deduplicated_nodes;
 };
 
 /**
@@ -529,8 +538,7 @@ template<typename T> struct ValueOrField {
 /** \name #FieldNode Inline Methods
  * \{ */
 
-inline FieldNode::FieldNode(bool is_input, bool depends_on_input)
-    : is_input_(is_input), depends_on_input_(depends_on_input)
+inline FieldNode::FieldNode(bool is_input) : is_input_(is_input)
 {
 }
 
@@ -546,7 +554,12 @@ inline bool FieldNode::is_operation() const
 
 inline bool FieldNode::depends_on_input() const
 {
-  return depends_on_input_;
+  return field_inputs_ && !field_inputs_->nodes.is_empty();
+}
+
+inline const std::shared_ptr<const FieldInputs> &FieldNode::field_inputs() const
+{
+  return field_inputs_;
 }
 
 inline uint64_t FieldNode::hash() const
