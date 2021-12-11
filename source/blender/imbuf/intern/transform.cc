@@ -21,6 +21,8 @@
  * \ingroup imbuf
  */
 
+#include <type_traits>
+
 #include "BLI_math.h"
 #include "BLI_rect.h"
 
