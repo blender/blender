@@ -519,6 +519,7 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
 /* Node Access */
 
 void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node);
+void BKE_pbvh_face_areas_begin(PBVH *pbvh);
 
 // updates boundaries and valences for whole mesh
 void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh);

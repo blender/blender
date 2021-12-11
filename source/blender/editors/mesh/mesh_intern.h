@@ -294,3 +294,4 @@ void MESH_OT_customdata_skin_clear(struct wmOperatorType *ot);
 void MESH_OT_customdata_custom_splitnormals_add(struct wmOperatorType *ot);
 void MESH_OT_customdata_custom_splitnormals_clear(struct wmOperatorType *ot);
 void MESH_OT_dump_mres_grids(struct wmOperatorType *ot);
+void MESH_OT_customdata_ids_clear(struct wmOperatorType *ot);

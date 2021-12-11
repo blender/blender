@@ -2665,6 +2665,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
                                                         .create_shapekey_layers = true,
                                                         .ignore_id_layers = false,
                                                         .copy_temp_cdlayers = true,
+
                                                         .cd_mask_extra = CD_MASK_DYNTOPO_VERT}));
 
       BKE_sculptsession_bmesh_add_layers(ob);

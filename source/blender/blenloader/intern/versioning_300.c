@@ -84,6 +84,17 @@
 
 static CLG_LogRef LOG = {"blo.readfile.doversion"};
 
+static void _brush_channel_transfer(BrushChannelSet *dst, BrushChannelSet *src, const char *idname)
+{
+  BrushChannel *ch_dst = BKE_brush_channelset_lookup(dst, idname);
+  BrushChannel *ch_src = BKE_brush_channelset_lookup(src, idname);
+
+  BKE_brush_channel_copy_data(ch_dst, ch_src, false, false);
+}
+
+#define brush_channel_transfer(dst, src, idname) \
+  _brush_channel_transfer(dst, src, MAKE_BUILTIN_CH_NAME(idname))
+
 static IDProperty *idproperty_find_ui_container(IDProperty *idprop_group)
 {
   LISTBASE_FOREACH (IDProperty *, prop, &idprop_group->data.group) {
@@ -2952,6 +2963,59 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       ch->flag |= BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU | BRUSH_CHANNEL_SHOW_IN_WORKSPACE;
     }
   }
+
+  if (!DNA_struct_elem_find(fd->filesdna, "Brush", "BrushChannelSet", "*channels")) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (!brush->sculpt_tool) {
+        continue;
+      }
+
+      if (!brush->channels) {
+        brush->channels = BKE_brush_channelset_create(__func__);
+      }
+
+      BKE_brush_builtin_patch(brush, brush->sculpt_tool);
+      BKE_brush_channelset_compat_load(brush->channels, brush, true);
+
+      Brush temp = *brush;
+      temp.channels = NULL;
+
+      BKE_brush_builtin_create(&temp, brush->sculpt_tool);
+
+      /* set dyntopo settings */
+      LISTBASE_FOREACH (BrushChannel *, ch, &temp.channels->channels) {
+        if (BLI_str_startswith(ch->idname, "dyntopo_")) {
+          BrushChannel *dst = BKE_brush_channelset_lookup(brush->channels, ch->idname);
+          BKE_brush_channel_copy_data(dst, ch, false, false);
+        }
+      }
+
+      brush_channel_transfer(brush->channels, temp.channels, use_weighted_smooth);
+      brush_channel_transfer(brush->channels, temp.channels, preserve_faceset_boundary);
+      brush_channel_transfer(brush->channels, temp.channels, hard_edge_mode);
+      brush_channel_transfer(brush->channels, temp.channels, fset_slide);
+
+      brush_channel_transfer(brush->channels, temp.channels, topology_rake_mode);
+      brush_channel_transfer(brush->channels, temp.channels, topology_rake_use_spacing);
+      brush_channel_transfer(brush->channels, temp.channels, autosmooth_use_spacing);
+      brush_channel_transfer(brush->channels, temp.channels, topology_rake_spacing);
+      brush_channel_transfer(brush->channels, temp.channels, autosmooth_spacing);
+      brush_channel_transfer(brush->channels, temp.channels, topology_rake_mode);
+
+      /* set defaults that have changed */
+      switch (brush->sculpt_tool) {
+        case SCULPT_TOOL_SIMPLIFY:
+          brush_channel_transfer(brush->channels, temp.channels, topology_rake);
+          brush_channel_transfer(brush->channels, temp.channels, autosmooth);
+          brush_channel_transfer(brush->channels, temp.channels, projection);
+          brush_channel_transfer(brush->channels, temp.channels, smooth_deform_type);
+          break;
+      }
+
+      BKE_brush_channelset_free(temp.channels);
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

@@ -595,6 +595,8 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         else:
             col.operator("mesh.customdata_custom_splitnormals_add", icon='ADD')
 
+        col.operator("mesh.customdata_ids_clear", icon='X')
+
         col = layout.column(heading="Store")
 
         col.enabled = obj is not None and obj.mode != 'EDIT'

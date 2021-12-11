@@ -731,6 +731,8 @@ void BM_mesh_bm_from_me(Object *ob,
   }
 
   if (check_id_unqiue) {
+    bm_update_idmap_cdlayers(bm);
+
     // validate IDs
 
     // first clear idmap, we want it to have the first elements
@@ -846,6 +848,7 @@ void BM_mesh_bm_from_me(Object *ob,
 #ifdef WITH_BM_ID_FREELIST
   /*ensure correct id freelist*/
   if (bm->idmap.flag & BM_HAS_IDS) {
+    bm_update_idmap_cdlayers(bm);
     bm_free_ids_check(bm, bm->idmap.maxid);
 
     MEM_SAFE_FREE(bm->idmap.freelist);
@@ -867,10 +870,24 @@ void BM_mesh_bm_from_me(Object *ob,
       BLI_mempool_iternew(pool, &miter);
       BMElem *elem = (BMElem *)BLI_mempool_iterstep(&miter);
 
+#  if 0
       for (; elem; elem = (BMElem *)BLI_mempool_iterstep(&miter)) {
         uint id = (uint)BM_ELEM_GET_ID(bm, elem);
 
-        BLI_BITMAP_SET(bm->idmap.free_ids, id, true);
+        if (id > bm->idmap.maxid) {
+          printf("%s: corrupted id: %d > maxid(%d)\n", __func__, (int)id, (int)bm->idmap.maxid);
+          //BM_ELEM_CD_SET_INT(elem, bm->idmap.cd_id_off[elem->head.htype], 0);
+          bm_alloc_id(bm, elem);
+        }
+      }
+#  endif
+
+      for (; elem; elem = (BMElem *)BLI_mempool_iterstep(&miter)) {
+        uint id = (uint)BM_ELEM_GET_ID(bm, elem);
+
+        if ((id >> 2UL) < bm->idmap.free_ids_size) {
+          BLI_BITMAP_SET(bm->idmap.free_ids, id, true);
+        }
       }
     }
 

@@ -76,6 +76,7 @@ extern StructRNA RNA_AssetLibraryReference;
 extern StructRNA RNA_AssetMetaData;
 extern StructRNA RNA_AssetTag;
 extern StructRNA RNA_BackgroundImage;
+extern StructRNA RNA_BassReliefModifier;
 extern StructRNA RNA_BevelModifier;
 extern StructRNA RNA_BezierSplinePoint;
 extern StructRNA RNA_BlendData;

@@ -31,6 +31,10 @@ struct ModifierData;
 struct ModifierEvalContext;
 struct Object;
 
+#ifdef _cplusplus
+extern "C" {
+#endif
+
 void MOD_init_texture(struct MappingInfoModifierData *dmd, const struct ModifierEvalContext *ctx);
 void MOD_get_texture_coords(struct MappingInfoModifierData *dmd,
                             const struct ModifierEvalContext *ctx,
@@ -59,3 +63,6 @@ void MOD_depsgraph_update_object_bone_relation(struct DepsNodeHandle *node,
                                                struct Object *object,
                                                const char *bonename,
                                                const char *description);
+#ifdef _cplusplus
+};
+#endif

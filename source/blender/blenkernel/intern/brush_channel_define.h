@@ -331,7 +331,7 @@ MAKE_ENUM(blend,"Blending Mode","Brush blending mode",IMB_BLEND_MIX,{\
   MAKE_BOOL(original_normal,"Original Normal","When locked keep using normal of surface where stroke was initiated",false)
   MAKE_BOOL(original_plane,"Original Plane","When locked keep using the plane origin of surface where stroke was initiated",false)
   MAKE_BOOL(use_weighted_smooth,"Weight By Area","Weight by face area to get a smoother result",true)
-  MAKE_BOOL_EX(preserve_faceset_boundary,"Preserve Faceset Boundary","Preserve face set boundaries",true,BRUSH_CHANNEL_INHERIT)
+  MAKE_BOOL_EX(preserve_faceset_boundary,"Preserve Faceset Boundary","Preserve face set boundaries",true,0)
   MAKE_BOOL_EX(hard_edge_mode,"Hard Edge Mode","Treat face set boundaries as hard edges",false,BRUSH_CHANNEL_INHERIT)
   MAKE_BOOL(grab_silhouette,"Grab Silhouette","Grabs trying to automask the silhouette of the object",false)
   MAKE_BOOL(use_grab_active_vertex,"Grab Active Vertex",

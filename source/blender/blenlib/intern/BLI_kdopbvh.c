@@ -1825,7 +1825,7 @@ static float fast_ray_nearest_hit(const BVHRayCastData *data, const BVHNode *nod
   return max_fff(t1x, t1y, t1z);
 }
 
-static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
+ATTR_NO_OPT static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 {
   int i;
 

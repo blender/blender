@@ -32,6 +32,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_bassrelief.h"
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
@@ -40,7 +41,6 @@
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
-#include "BKE_shrinkwrap.h"
 
 #include "BLI_math.h"
 
@@ -62,28 +62,22 @@ static bool dependsOnNormals(ModifierData *md);
 
 static void initData(ModifierData *md)
 {
-  ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+  BassReliefModifierData *smd = (BassReliefModifierData *)md;
 
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(smd, modifier));
 
-  MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(ShrinkwrapModifierData), modifier);
+  MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(BassReliefModifierData), modifier);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),
                              ModifierData *md,
                              CustomData_MeshMasks *r_cddata_masks)
 {
-  ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+  BassReliefModifierData *smd = (BassReliefModifierData *)md;
 
   /* ask for vertexgroups if we need them */
   if (smd->vgroup_name[0] != '\0') {
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
-  }
-
-  if ((smd->shrinkType == MOD_SHRINKWRAP_PROJECT) &&
-      (smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)) {
-    /* XXX Really? These should always be present, always... */
-    r_cddata_masks->vmask |= CD_MASK_MVERT;
   }
 }
 
@@ -91,28 +85,26 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
                        ModifierData *md,
                        bool UNUSED(useRenderParams))
 {
-  ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+  BassReliefModifierData *smd = (BassReliefModifierData *)md;
 
   /* The object type check is only needed here in case we have a placeholder
    * object assigned (because the library containing the mesh is missing).
    *
    * In other cases it should be impossible to have a type mismatch.
    */
-  if (!smd->target || smd->target->type != OB_MESH) {
-    return true;
-  }
-  if (smd->auxTarget && smd->auxTarget->type != OB_MESH) {
-    return true;
-  }
-  return false;
+
+  bool ok = smd->target && smd->target->type == OB_MESH;
+  ok = ok || smd->collection;
+
+  return !ok;
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
-  ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+  BassReliefModifierData *smd = (BassReliefModifierData *)md;
 
   walk(userData, ob, (ID **)&smd->target, IDWALK_CB_NOP);
-  walk(userData, ob, (ID **)&smd->auxTarget, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&smd->collection, IDWALK_CB_NOP);
 }
 
 #ifndef DEBUG_VIS_COLORS
@@ -122,7 +114,7 @@ static void deformVerts(ModifierData *md,
                         float (*vertexCos)[3],
                         int numVerts)
 {
-  ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
+  BassReliefModifierData *swmd = (BassReliefModifierData *)md;
   struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   Mesh *mesh_src = NULL;
 
@@ -156,7 +148,7 @@ static void deformVertsEM(ModifierData *md,
                           float (*vertexCos)[3],
                           int numVerts)
 {
-  ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
+  BassReliefModifierData *swmd = (BassReliefModifierData *)md;
   struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   Mesh *mesh_src = NULL;
 
@@ -187,22 +179,22 @@ static void deformVertsEM(ModifierData *md,
   }
 }
 #else
-ATTR_NO_OPT static Mesh *modifyMeshDebug(struct ModifierData *md,
-                            const struct ModifierEvalContext *ctx,
-                            struct Mesh *mesh)
+static Mesh *modifyMeshDebug(struct ModifierData *md,
+                             const struct ModifierEvalContext *ctx,
+                             struct Mesh *mesh)
 {
   struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
   CustomData_duplicate_referenced_layers(&mesh->vdata, mesh->totvert);
   BKE_mesh_update_customdata_pointers(mesh, false);
 
-  //mesh = BKE_mesh_copy_for_eval(mesh, false);
+  // mesh = BKE_mesh_copy_for_eval(mesh, false);
   BKE_mesh_ensure_normals(mesh);
 
-  MPropCol *colors[MAX_SHRINKWRAP_DEBUG_COLORS];
+  MPropCol *colors[MAX_BASSRELIEF_DEBUG_COLORS];
   char name[MAX_CUSTOMDATA_LAYER_NAME];
 
-  for (int i = 0; i < MAX_SHRINKWRAP_DEBUG_COLORS; i++) {
+  for (int i = 0; i < MAX_BASSRELIEF_DEBUG_COLORS; i++) {
     sprintf(name, "debug%d", i + 1);
     colors[i] = CustomData_get_layer_named(&mesh->vdata, CD_PROP_COLOR, name);
   }
@@ -213,18 +205,10 @@ ATTR_NO_OPT static Mesh *modifyMeshDebug(struct ModifierData *md,
     copy_v3_v3(cos[i], mesh->mvert[i].co);
   }
 
-  ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
+  BassReliefModifierData *swmd = (BassReliefModifierData *)md;
 
   if (swmd->rayShrinkRatio == 0.0f) {
     swmd->rayShrinkRatio = 1.0f;
-  }
-
-  if (swmd->optimizeNormalsScale == 0.0f) {
-    swmd->optimizeNormalsScale = 1.5f;
-  }
-
-  if (swmd->boundSmoothScale == 0.0f) {
-    swmd->boundSmoothScale = 3.0f;
   }
 
   struct MDeformVert *dvert = NULL;
@@ -233,7 +217,7 @@ ATTR_NO_OPT static Mesh *modifyMeshDebug(struct ModifierData *md,
     MOD_get_vgroup(ctx->object, mesh, swmd->vgroup_name, &dvert, &defgrp_index);
   }
 
-  shrinkwrapModifier_deform(
+  bassReliefModifier_deform(
       swmd, ctx, scene, ctx->object, mesh, dvert, defgrp_index, cos, mesh->totvert, colors);
 
   for (int i = 0; i < mesh->totvert; i++) {
@@ -250,44 +234,29 @@ ATTR_NO_OPT static Mesh *modifyMeshDebug(struct ModifierData *md,
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+  BassReliefModifierData *smd = (BassReliefModifierData *)md;
   CustomData_MeshMasks mask = {0};
 
-  if (BKE_shrinkwrap_needs_normals(smd->shrinkType, smd->shrinkMode)) {
-    mask.vmask |= CD_MASK_NORMAL;
-    mask.lmask |= CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL;
-  }
+  mask.vmask |= CD_MASK_NORMAL;
+  mask.lmask |= CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL;
 
   if (smd->target != NULL) {
-    DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
-    DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_GEOMETRY, "Shrinkwrap Modifier");
+    DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_TRANSFORM, "Bass Relief Modifier");
+    DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_GEOMETRY, "Bass Relief Modifier");
     DEG_add_customdata_mask(ctx->node, smd->target, &mask);
-    if (smd->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
-      DEG_add_special_eval_flag(ctx->node, &smd->target->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
-    }
+    DEG_add_special_eval_flag(ctx->node, &smd->target->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
   }
-  if (smd->auxTarget != NULL) {
-    DEG_add_object_relation(
-        ctx->node, smd->auxTarget, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
-    DEG_add_object_relation(
-        ctx->node, smd->auxTarget, DEG_OB_COMP_GEOMETRY, "Shrinkwrap Modifier");
-    DEG_add_customdata_mask(ctx->node, smd->auxTarget, &mask);
-    if (smd->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
-      DEG_add_special_eval_flag(ctx->node, &smd->auxTarget->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
-    }
+
+  if (smd->collection != NULL) {
+    DEG_add_collection_geometry_relation(ctx->node, smd->collection, "Bass Relief Modifier");
   }
-  DEG_add_modifier_to_transform_relation(ctx->node, "Shrinkwrap Modifier");
+
+  DEG_add_modifier_to_transform_relation(ctx->node, "Bass Relief Modifier");
 }
 
 static bool dependsOnNormals(ModifierData *md)
 {
-  ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
-
-  if (smd->target && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
-    return (smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL);
-  }
-
-  return false;
+  return true;
 }
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -301,69 +270,49 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  int wrap_method = RNA_enum_get(ptr, "wrap_method");
+  uiItemR(layout, ptr, "project_limit", 0, IFACE_("Limit"), ICON_NONE);
 
-  uiItemR(layout, ptr, "wrap_method", 0, NULL, ICON_NONE);
+  col = uiLayoutColumn(layout, false);
+  row = uiLayoutRowWithHeading(col, true, IFACE_("Axis"));
+  uiItemR(row, ptr, "use_project_x", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_project_y", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_project_z", toggles_flag, NULL, ICON_NONE);
 
-  if (ELEM(wrap_method,
-           MOD_SHRINKWRAP_PROJECT,
-           MOD_SHRINKWRAP_NEAREST_SURFACE,
-           MOD_SHRINKWRAP_TARGET_PROJECT)) {
-    uiItemR(layout, ptr, "wrap_mode", 0, NULL, ICON_NONE);
-  }
+  uiItemR(col, ptr, "use_negative_direction", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_positive_direction", 0, NULL, ICON_NONE);
 
-  if (wrap_method == MOD_SHRINKWRAP_PROJECT) {
-    uiItemR(layout, ptr, "project_limit", 0, IFACE_("Limit"), ICON_NONE);
-    uiItemR(layout, ptr, "subsurf_levels", 0, NULL, ICON_NONE);
-
-    col = uiLayoutColumn(layout, false);
-    row = uiLayoutRowWithHeading(col, true, IFACE_("Axis"));
-    uiItemR(row, ptr, "use_project_x", toggles_flag, NULL, ICON_NONE);
-    uiItemR(row, ptr, "use_project_y", toggles_flag, NULL, ICON_NONE);
-    uiItemR(row, ptr, "use_project_z", toggles_flag, NULL, ICON_NONE);
-
-    uiItemR(col, ptr, "use_negative_direction", 0, NULL, ICON_NONE);
-    uiItemR(col, ptr, "use_positive_direction", 0, NULL, ICON_NONE);
-
-    uiItemR(layout, ptr, "cull_face", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-    col = uiLayoutColumn(layout, false);
-    uiLayoutSetActive(col,
-                      RNA_boolean_get(ptr, "use_negative_direction") &&
-                          RNA_enum_get(ptr, "cull_face") != 0);
-    uiItemR(col, ptr, "use_invert_cull", 0, NULL, ICON_NONE);
-  }
+  uiItemR(layout, ptr, "cull_face", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetActive(
+      col, RNA_boolean_get(ptr, "use_negative_direction") && RNA_enum_get(ptr, "cull_face") != 0);
+  uiItemR(col, ptr, "use_invert_cull", 0, NULL, ICON_NONE);
 
   uiItemR(layout, ptr, "target", 0, NULL, ICON_NONE);
-  if (wrap_method == MOD_SHRINKWRAP_PROJECT) {
-    uiItemR(layout, ptr, "auxiliary_target", 0, NULL, ICON_NONE);
-  }
+  uiItemR(layout, ptr, "collection", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "offset", 0, NULL, ICON_NONE);
-  
-#if 1
+
   col = uiLayoutColumn(layout, false);
   uiItemR(col, ptr, "ray_shrink_ratio", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_normal_optimizer", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "normal_optimizer_scale", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "normal_optimizer_steps", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "boundary_smooth_scale", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "detail_scale", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "optimizer_steps", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "boundary_smooth_falloff", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "boundary_smooth_steps", 0, NULL, ICON_NONE);
-#endif
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
-
   modifier_panel_end(layout, ptr);
 }
 
 static void panelRegister(ARegionType *region_type)
 {
-  modifier_panel_register(region_type, eModifierType_Shrinkwrap, panel_draw);
+  modifier_panel_register(region_type, eModifierType_BassRelief, panel_draw);
 }
 
-ModifierTypeInfo modifierType_Shrinkwrap = {
-    /* name */ "Shrinkwrap",
-    /* structName */ "ShrinkwrapModifierData",
-    /* structSize */ sizeof(ShrinkwrapModifierData),
-    /* srna */ &RNA_ShrinkwrapModifier,
+ModifierTypeInfo modifierType_BassRelief = {
+    /* name */ "Bass Relief",
+    /* structName */ "BassReliefModifierData",
+    /* structSize */ sizeof(BassReliefModifierData),
+    /* srna */ &RNA_BassReliefModifier,
 #ifndef DEBUG_VIS_COLORS
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */

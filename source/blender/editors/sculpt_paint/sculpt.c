@@ -5851,6 +5851,9 @@ static void SCULPT_run_command(
 
   if (cmd->tool == SCULPT_TOOL_SMOOTH) {
     ss->cache->bstrength = BRUSHSET_GET_FLOAT(cmd->params_mapped, strength, NULL);
+    if (ss->cache->invert) {
+      ss->cache->bstrength = -ss->cache->bstrength;
+    }
   }
   else {
     ss->cache->bstrength = brush_strength(

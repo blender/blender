@@ -63,6 +63,8 @@ set(INC_SYS
 
   # For `vfontdata_freetype.c`.
   ${FREETYPE_INCLUDE_DIRS}
+
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -95,6 +97,7 @@ set(SRC
   intern/attribute_access.cc
   intern/attribute_math.cc
   intern/autoexec.c
+  intern/bassrelief.cc
   intern/blender.c
   intern/blender_copybuffer.c
   intern/blender_undo.c
@@ -327,6 +330,7 @@ set(SRC
   BKE_attribute_access.hh
   BKE_attribute_math.hh
   BKE_autoexec.h
+  BKE_bassrelief.h
   BKE_blender.h
   BKE_blender_copybuffer.h
   BKE_blender_undo.h

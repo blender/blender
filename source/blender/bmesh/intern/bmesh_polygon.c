@@ -1302,26 +1302,6 @@ void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4])
   r_verts[3] = l->v;
 }
 
-<<<<<<< HEAD
-/**
- * faster alternative to:
- * BM_iter_as_array(bm, BM_LOOPS_OF_FACE, f, (void **)l, 4);
- */
-=======
-void BM_face_as_array_loop_tri(BMFace *f, BMLoop *r_loops[3])
-{
-  BMLoop *l = BM_FACE_FIRST_LOOP(f);
-
-  BLI_assert(f->len == 3);
-
-  r_loops[0] = l;
-  l = l->next;
-  r_loops[1] = l;
-  l = l->next;
-  r_loops[2] = l;
-}
-
->>>>>>> master
 void BM_face_as_array_loop_quad(BMFace *f, BMLoop *r_loops[4])
 {
   BMLoop *l = BM_FACE_FIRST_LOOP(f);

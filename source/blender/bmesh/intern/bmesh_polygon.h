@@ -254,7 +254,7 @@ void BM_face_splits_check_optimal(BMFace *f, BMLoop *(*loops)[2], int len) ATTR_
  * faster alternative to:
  * BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void **)v, 3);
  */
-BLI_INLINE void BM_face_as_array_vert_tri(BMFace *f, BMVert *r_verts[3]) ATTR_NONNULL();
+BLI_INLINE void BM_face_as_array_vert_tri(BMFace *f, BMVert *r_verts[3]) ATTR_NONNULL()
 {
   BMLoop *l = BM_FACE_FIRST_LOOP(f);
 
@@ -291,19 +291,10 @@ BLI_INLINE void BM_face_as_array_loop_tri(BMFace *f, BMLoop *r_loops[3])
  * BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void **)v, 4);
  */
 void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4]) ATTR_NONNULL();
-
-/**
- * Small utility functions for fast access
- *
- * faster alternative to:
- * BM_iter_as_array(bm, BM_LOOPS_OF_FACE, f, (void **)l, 3);
- */
-void BM_face_as_array_loop_tri(BMFace *f, BMLoop *r_loops[3]) ATTR_NONNULL();
 /**
  * faster alternative to:
  * BM_iter_as_array(bm, BM_LOOPS_OF_FACE, f, (void **)l, 4);
  */
->>>>>>> master
 void BM_face_as_array_loop_quad(BMFace *f, BMLoop *r_loops[4]) ATTR_NONNULL();
 
 /**

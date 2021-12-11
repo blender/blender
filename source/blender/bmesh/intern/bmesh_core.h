@@ -27,10 +27,11 @@ typedef enum eBMCreateFlag {
   BM_CREATE_NOP = 0,
   /** Faces and edges only. */
   BM_CREATE_NO_DOUBLE = (1 << 1),
-<<<<<<< HEAD
-  /* Skip CustomData - for all element types data,
-   * use if we immediately write customdata into the element so this skips copying from 'example'
-   * args or setting defaults, speeds up conversion when data is converted all at once. */
+  /**
+   * Skip custom-data - for all element types data,
+   * use if we immediately write custom-data into the element so this skips copying from 'example'
+   * arguments or setting defaults, speeds up conversion when data is converted all at once.
+   */
   BM_CREATE_SKIP_CD = (1 << 2), /* if true, you must call bm_elem_check_toolflags(bm, elem) later
                                    if toolflags are on */
   BM_CREATE_SKIP_ID = (1 << 3)
@@ -39,19 +40,9 @@ typedef enum eBMCreateFlag {
 /* if toolflags are enabled, checks that internal pointer to toolflags it not null */
 void bm_elem_check_toolflags(BMesh *bm, BMElem *elem);
 
-=======
-  /**
-   * Skip custom-data - for all element types data,
-   * use if we immediately write custom-data into the element so this skips copying from 'example'
-   * arguments or setting defaults, speeds up conversion when data is converted all at once.
-   */
-  BM_CREATE_SKIP_CD = (1 << 2),
-} eBMCreateFlag;
-
 /**
  * \brief Main function for creating a new vertex.
  */
->>>>>>> master
 BMVert *BM_vert_create(BMesh *bm,
                        const float co[3],
                        const BMVert *v_example,
@@ -119,9 +110,6 @@ void BM_edge_kill(BMesh *bm, BMEdge *e);
  */
 void BM_vert_kill(BMesh *bm, BMVert *v);
 
-<<<<<<< HEAD
-bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src, bool combine_flags);
-=======
 /**
  * \brief Splice Edge
  *
@@ -132,7 +120,8 @@ bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src, bool combine_flags)
  *
  * \note Edges must already have the same vertices.
  */
-bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src);
+bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src, bool combine_flags);
+
 /**
  * \brief Splice Vert
  *
@@ -145,7 +134,6 @@ bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src);
  * where \a v and \a vtarget are connected by an edge
  * (assert checks for this case).
  */
->>>>>>> master
 bool BM_vert_splice(BMesh *bm, BMVert *v_dst, BMVert *v_src);
 /**
  * Check if splicing vertices would create any double edges.
@@ -348,17 +336,6 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
                                          const bool check_edge_exists,
                                          const bool kill_degenerate_faces,
                                          const bool kill_duplicate_faces);
-<<<<<<< HEAD
-BMVert *bmesh_kernel_join_vert_kill_edge(
-    BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool do_del, const bool combine_flags);
-BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
-                                              BMEdge *e_kill,
-                                              BMVert *v_kill,
-                                              const bool do_del,
-                                              const bool check_edge_exists,
-                                              const bool kill_degenerate_faces,
-                                              const bool combine_flags);
-=======
 /**
  * \brief Join Vert Kill Edge (JVKE)
  *
@@ -377,12 +354,16 @@ BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
  * +-+-+-+    +-+-+-+
  * </pre>
  */
-BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
-                                         BMEdge *e_kill,
-                                         BMVert *v_kill,
-                                         const bool do_del,
-                                         const bool check_edge_exists,
-                                         const bool kill_degenerate_faces);
+BMVert *bmesh_kernel_join_vert_kill_edge(
+    BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool do_del, const bool combine_flags);
+BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
+                                              BMEdge *e_kill,
+                                              BMVert *v_kill,
+                                              const bool do_del,
+                                              const bool check_edge_exists,
+                                              const bool kill_degenerate_faces,
+                                              const bool combine_flags);
+
 /**
  * \brief Join Face Kill Edge (JFKE)
  *
@@ -414,7 +395,6 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
  *
  * \return A BMFace pointer
  */
->>>>>>> master
 BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e);
 
 /**

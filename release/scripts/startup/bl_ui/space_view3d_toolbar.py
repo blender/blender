@@ -515,6 +515,9 @@ class VIEW3D_PT_tools_persistent_base_channels(Panel, View3DPaintPanel):
     @classmethod
     def poll(cls, context):
         settings = cls.paint_settings(context)
+        if not settings:
+            return False
+
         brush = settings.brush
 
         ch = UnifiedPaintPanel.get_channel(context, brush, "use_persistent")

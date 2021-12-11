@@ -50,6 +50,7 @@ set(INC_SYS
 set(SRC
   intern/MOD_armature.c
   intern/MOD_array.c
+  intern/MOD_bassrelief.c
   intern/MOD_bevel.c
   intern/MOD_boolean.cc
   intern/MOD_build.c

@@ -98,6 +98,7 @@ typedef enum ModifierType {
   eModifierType_MeshToVolume = 58,
   eModifierType_VolumeDisplace = 59,
   eModifierType_VolumeToMesh = 60,
+  eModifierType_BassRelief = 61,
   NUM_MODIFIER_TYPES,
 } ModifierType;
 
@@ -1147,7 +1148,16 @@ typedef struct ShrinkwrapModifierData {
    */
   char subsurfLevels;
 
-  char _pad[2];
+  char optimizeNormalSteps;
+  char optimizeNormals;
+
+  float rayShrinkRatio;
+
+  char boundSmoothSteps;
+  char _pad2[3];
+
+  float boundSmoothScale; /* width of smoothed boundary is divided by this */
+  float optimizeNormalsScale;
 } ShrinkwrapModifierData;
 
 /* Shrinkwrap->shrinkType */
@@ -1203,6 +1213,66 @@ enum {
   MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS = (1 << 0),
   MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS = (1 << 1),
   MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS = (1 << 2),
+};
+
+
+typedef struct BassReliefModifierData {
+  ModifierData modifier;
+
+  /** Shrink target. */
+  struct Object *target;
+  /** Shrink target collection */
+  struct Collection *collection;
+
+  /** Optional vertexgroup name, MAX_VGROUP_NAME. */
+  char vgroup_name[64];
+  /** Distance offset to keep from mesh/projection point. */
+  float keepDist;
+
+  /** Shrink options. */
+  char shrinkOpts;
+  /** Axis to project over. */
+  char projAxis;
+
+  char optimizeSteps;
+  char boundSmoothSteps;
+
+  float boundSmoothFalloff; /* width of smoothed boundary is divided by this */
+  float detailScale;
+
+  /** Limit the projection ray cast. */
+  float projLimit;
+  float rayShrinkRatio;
+} BassReliefModifierData;
+
+/* BassReliefModifier->shrinkOpts */
+enum {
+  /** allow shrinkwrap to move the vertex in the positive direction of axis */
+  MOD_BASSRELIEF_PROJECT_ALLOW_POS_DIR = (1 << 0),
+  /** allow shrinkwrap to move the vertex in the negative direction of axis */
+  MOD_BASSRELIEF_PROJECT_ALLOW_NEG_DIR = (1 << 1),
+
+  /** ignore vertex moves if a vertex ends projected on a front face of the target */
+  MOD_BASSRELIEF_CULL_TARGET_FRONTFACE = (1 << 3),
+  /** ignore vertex moves if a vertex ends projected on a back face of the target */
+  MOD_BASSRELIEF_CULL_TARGET_BACKFACE = (1 << 4),
+
+  MOD_BASSRELIEF_INVERT_VGROUP = (1 << 5),
+  MOD_BASSRELIEF_INVERT_CULL_TARGET = (1 << 6),
+
+  MOD_BASSRELIEF_OPTIMIZE = (1<<7)
+};
+
+#define MOD_BASSRELIEF_CULL_TARGET_MASK \
+  (MOD_BASSRELIEF_CULL_TARGET_FRONTFACE | MOD_BASSRELIEF_CULL_TARGET_BACKFACE)
+
+/* Shrinkwrap->projAxis */
+enum {
+  /** projection over normal is used if no axis is selected */
+  MOD_BASSRELIEF_PROJECT_OVER_NORMAL = 0,
+  MOD_BASSRELIEF_PROJECT_OVER_X_AXIS = (1 << 0),
+  MOD_BASSRELIEF_PROJECT_OVER_Y_AXIS = (1 << 1),
+  MOD_BASSRELIEF_PROJECT_OVER_Z_AXIS = (1 << 2),
 };
 
 typedef struct SimpleDeformModifierData {

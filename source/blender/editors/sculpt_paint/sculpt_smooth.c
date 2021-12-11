@@ -1149,18 +1149,23 @@ void SCULPT_neighbor_coords_average(SculptSession *ss,
                                     bool weighted)
 {
   if (check_fsets) {
-    sculpt_neighbor_coords_average_fset(ss, result, vertex, projection, weighted);
-    return;
+    // sculpt_neighbor_coords_average_fset(ss, result, vertex, projection, weighted);
+    // return;
   }
 
   float avg[3] = {0.0f, 0.0f, 0.0f};
   float *co, no[3];
   float total = 0.0f;
+  int bound_mask = SCULPT_BOUNDARY_ALL;
 
-  if (projection > 0.0f) {
-    co = (float *)SCULPT_vertex_co_get(ss, vertex);
-    SCULPT_vertex_normal_get(ss, vertex, no);
+  if (!check_fsets) {
+    bound_mask &= ~SCULPT_BOUNDARY_FACE_SET;
   }
+
+  bool boundary = SCULPT_vertex_is_boundary(ss, vertex, bound_mask);
+
+  co = (float *)SCULPT_vertex_co_get(ss, vertex);
+  SCULPT_vertex_normal_get(ss, vertex, no);
 
   float *areas;
 
@@ -1181,6 +1186,22 @@ void SCULPT_neighbor_coords_average(SculptSession *ss,
     }
     else {
       w = 1.0f;
+    }
+
+    if (boundary) {
+      bool boundary2 = SCULPT_vertex_is_boundary(ss, ni.vertex, bound_mask);
+
+      if (!boundary2 && (boundary & SCULPT_BOUNDARY_FACE_SET)) {
+        float tmp[3];
+
+        sub_v3_v3v3(tmp, co2, co);
+        madd_v3_v3fl(avg, no, dot_v3v3(tmp, no) * w);
+        total += w;
+        continue;
+      }
+      else if (!boundary2) {
+        continue;
+      }
     }
 
     if (projection > 0.0f) {
@@ -1232,20 +1253,24 @@ float SCULPT_neighbor_mask_average(SculptSession *ss, SculptVertRef index)
 void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], SculptVertRef vertex)
 {
   float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  int total = 0;
+  float total = 0.0f;
+
+  AutomaskingCache *automasking = SCULPT_automasking_active_cache_get(ss);
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
     float tmp[4] = {0};
 
+    float w = automasking ? SCULPT_automasking_factor_get(automasking, ss, ni.vertex) : 1.0f;
+
     SCULPT_vertex_color_get(ss, ni.vertex, tmp);
 
-    add_v4_v4(avg, tmp);
-    total++;
+    madd_v4_v4fl(avg, tmp, w);
+    total += w;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-  if (total > 0) {
+  if (total > 0.0f) {
     mul_v4_v4fl(result, avg, 1.0f / total);
   }
   else {
@@ -1308,6 +1333,27 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
+  bool use_area_weights = (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT);
+
+  if (use_area_weights) {
+    if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+      BKE_pbvh_update_all_tri_areas(ss->pbvh);
+      PBVHNode **nodes;
+      int totnode;
+
+      BKE_pbvh_get_nodes(ss->pbvh, PBVH_Leaf, &nodes, &totnode);
+      for (int i = 0; i < totnode; i++) {
+        BKE_pbvh_check_tri_areas(ss->pbvh, nodes[i]);
+      }
+    }
+    else {
+      BKE_pbvh_face_areas_begin(ss->pbvh);
+    }
+  }
+
+  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_boundary_info_ensure(ob);
+
   SculptCustomLayer scl;
   SculptLayerParams params = {.permanent = false, .simple_array = false};
   bool weighted = SCULPT_get_int(ss, use_weighted_smooth, sd, brush);
@@ -1317,14 +1363,6 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
   SCULPT_temp_customlayer_get(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", &scl, &params);
 
-  if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
-      (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT)) {
-    BKE_pbvh_update_all_tri_areas(ss->pbvh);
-  }
-
-  SCULPT_vertex_random_access_ensure(ss);
-  SCULPT_boundary_info_ensure(ob);
-
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
     const int totvert = SCULPT_vertex_count_get(ss);
 
@@ -1332,10 +1370,65 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
       float avg[3];
       SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
       float *dir = SCULPT_temp_cdata_get(vertex, &scl);
+      float no[3];
+
+      SCULPT_vertex_normal_get(ss, vertex, no);
 
       SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, false, weighted);
       sub_v3_v3v3(dir, avg, SCULPT_vertex_co_get(ss, vertex));
+
+      /* get rid of tangential displacement */
+      float fac = dot_v3v3(dir, no);
+      copy_v3_v3(dir, no);
+      mul_v3_fl(dir, fac);
     }
+
+    int lastvalence = 5;
+    float *areas = MEM_malloc_arrayN(lastvalence, sizeof(float), __func__);
+
+    /* smooth offsets */
+    for (int i = 0; i < totvert; i++) {
+      float avg[3] = {0.0f, 0.0f, 0.0f};
+      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      float *dir = SCULPT_temp_cdata_get(vertex, &scl);
+      float tot = 0.0f;
+      float *areas = NULL;
+      int valence;
+
+      if (use_area_weights) {
+        valence = SCULPT_vertex_valence_get(ss, vertex);
+
+        if (valence > lastvalence) {
+          areas = MEM_reallocN(areas, sizeof(float) * valence);
+        }
+
+        areas = MEM_callocN(sizeof(float) * valence * 4, "sdaf");
+        // BLI_array_alloca(areas, valence * 4);
+
+        BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, valence);
+      }
+      SculptVertexNeighborIter ni;
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+        float *dir2 = SCULPT_temp_cdata_get(ni.vertex, &scl);
+
+        float w = 1.0f;
+
+        if (use_area_weights) {
+          w = areas[ni.i];
+        }
+
+        madd_v3_v3fl(avg, dir2, w);
+        tot += w;
+      }
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+      if (tot > 0.0f) {
+        mul_v3_fl(avg, 1.0f / tot);
+        interp_v3_v3v3(dir, dir, avg, 0.5f);
+      }
+    }
+
+    MEM_freeN(areas);
   }
 
   SculptThreadedTaskData data = {.sd = sd, .ob = ob, .brush = brush, .nodes = nodes, .scl = &scl};
@@ -1661,7 +1754,6 @@ void SCULPT_smooth(Sculpt *sd,
       BKE_pbvh_update_all_tri_areas(ss->pbvh);
     }
     else {
-      void BKE_pbvh_face_areas_begin(PBVH * pbvh);
       BKE_pbvh_face_areas_begin(ss->pbvh);
     }
   }
