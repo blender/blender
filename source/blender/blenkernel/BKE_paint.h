@@ -713,6 +713,7 @@ typedef struct SculptSession {
 
   // for grids
   CustomData temp_vdata, temp_pdata;
+  int temp_vdata_elems, temp_pdata_elems;
 
   /* These contain the vertex and poly counts of the final mesh. */
   int totvert, totpoly;

@@ -630,6 +630,7 @@ MAKE_ENUM(blend,"Blending Mode","Brush blending mode",IMB_BLEND_MIX,{\
   MAKE_INT_EX(autofset_start,"Face Set Start","",2,1,1024,1,1024)
   MAKE_FLOAT_EX_FLAG(autofset_spacing,"Spacing","Spacing for auto face set",4,1,1000,1,300,false,0)
   MAKE_BOOL_EX(autofset_use_spacing,"Use Spacing","Use spacing for auto face set",false,0)
+  MAKE_INT_EX(enhance_detail_presteps, "Detail Filter", "", 1, 0, 50, 0, 50)
 
   //MAKE_FLOAT3_EX
 /* clang-format on */

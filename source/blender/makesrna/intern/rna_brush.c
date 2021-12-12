@@ -114,6 +114,7 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_CREASE, "CREASE", ICON_BRUSH_CREASE, "Crease", ""},
     {0, "", 0, NULL, NULL},
     {SCULPT_TOOL_SMOOTH, "SMOOTH", ICON_BRUSH_SMOOTH, "Smooth", ""},
+    {SCULPT_TOOL_ENHANCE_DETAILS, "ENHANCE_DETAILS", ICON_BRUSH_ENHANCE_DETAILS, "Enhance Details", ""},
     {SCULPT_TOOL_FLATTEN, "FLATTEN", ICON_BRUSH_FLATTEN, "Flatten", ""},
     {SCULPT_TOOL_FILL, "FILL", ICON_BRUSH_FILL, "Fill", ""},
     {SCULPT_TOOL_SCRAPE, "SCRAPE", ICON_BRUSH_SCRAPE, "Scrape", ""},
@@ -146,7 +147,7 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_ARRAY, "ARRAY", ICON_BRUSH_SCULPT_DRAW, "Array", ""},
     {SCULPT_TOOL_VCOL_BOUNDARY, "VCOL_BOUNDARY", ICON_BRUSH_VCOL_BOUNDARY, "Sharpen Color Boundary", ""},
     {SCULPT_TOOL_UV_SMOOTH, "UV_SMOOTH", ICON_BRUSH_GRAB, "UV Smooth", ""},
-        {0, NULL, 0, NULL, NULL},
+    {0, NULL, 0, NULL, NULL},
 };
 /* clang-format on */
 
@@ -724,7 +725,7 @@ static void rna_Brush_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 
 static void rna_Brush_dyntopo_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  //Brush *br = (Brush *)ptr->data;
+  // Brush *br = (Brush *)ptr->data;
 }
 
 static void rna_Brush_material_update(bContext *UNUSED(C), PointerRNA *UNUSED(ptr))

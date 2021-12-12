@@ -43,6 +43,7 @@
 #include "BKE_attribute.h"
 #include "BKE_brush.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
@@ -68,12 +69,7 @@
 
 #include "atomic_ops.h"
 #include "bmesh.h"
-#ifdef PROXY_ADVANCED
-/* clang-format off */
-#include "BKE_DerivedMesh.h"
-#include "../../blenkernel/intern/pbvh_intern.h"
-/* clang-format on */
-#endif
+
 #include <math.h>
 #include <stdlib.h>
 
@@ -477,7 +473,7 @@ static void SCULPT_neighbor_coords_average_interior_boundary(SculptSession *ss,
 
   totarea = totarea != 0.0f ? 1.0f / totarea : 0.0f;
 
-  float df = 0.25f / (float)val;
+  float df = 0.05f / (float)val;
 
   for (int i = 0; i < val; i++) {
     areas[i] = (areas[i] * totarea) + df;
@@ -815,12 +811,11 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     /* normalize areas, then apply a 0.25/val floor */
 
     float totarea = 0.0f;
-
     for (int i = 0; i < val; i++) {
       totarea += areas[i];
     }
 
-    totarea = totarea != 0.0f ? 1.0f / totarea : 0.0f;
+    totarea = totarea > 0.0f ? 1.0f / totarea : 0.0f;
 
     float df = 0.25f / (float)val;
 
@@ -830,18 +825,26 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   }
 
   float vel[3] = {0.0f, 0.0f, 0.0f};
-  int totvel = 0;
+  float totvel = 0.0f;
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
     MSculptVert *mv2 = SCULPT_vertex_get_sculptvert(ss, ni.vertex);
     const float *co2;
+    float w;
+
+    if (weighted) {
+      w = areas[ni.i];
+    }
+    else {
+      w = 1.0f;
+    }
 
     if (args->vel_scl) {
       /* propagate velocities */
       float *vel2 = SCULPT_temp_cdata_get(ni.vertex, args->vel_scl);
-      add_v3_v3(vel, vel2);
-      totvel++;
+      madd_v3_v3fl(vel, vel2, w);
+      totvel += w;
     }
 
     if (!do_origco || mv2->stroke_id != ss->stroke_id) {
@@ -853,15 +856,8 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
     neighbor_count++;
 
-    float tmp[3], w;
+    float tmp[3];
     bool ok = false;
-
-    if (weighted) {
-      w = areas[ni.i];
-    }
-    else {
-      w = 1.0f;
-    }
 
     /* use the new edge api if edges are available, if not estimate boundary
        from verts
@@ -967,9 +963,9 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     madd_v3_v3fl(avg, tan, dot_v3v3(bound2, tan) * 0.75);
   }
 
-  if (args->vel_scl && totvel > 1) {
+  if (args->vel_scl && totvel != 0.0f) {
     float *final_vel = SCULPT_temp_cdata_get(vertex, args->vel_scl);
-    mul_v3_fl(vel, 1.0f / (float)totvel);
+    mul_v3_fl(vel, 1.0f / totvel);
 
     interp_v3_v3v3(final_vel, final_vel, vel, args->vel_smooth_fac);
   }
@@ -1537,15 +1533,154 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void SCULPT_enhance_details_brush(Sculpt *sd,
-                                         Object *ob,
-                                         PBVHNode **nodes,
-                                         const int totnode)
+static void do_enhance_details_brush_dir_task_cb_ex(void *__restrict userdata,
+                                                    const int n,
+                                                    const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+
+  PBVHVertexIter vd;
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+
+  SculptCustomLayer *strokeid_scl = data->scl2;
+  SculptCustomLayer *scl = data->scl;
+
+  const uint current_stroke_id = (uint)ss->stroke_id;
+  bool modified = false;
+
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
+
+    uint *strokeid = SCULPT_temp_cdata_get(vd.vertex, strokeid_scl);
+
+    if ((*strokeid) >> 1UL != current_stroke_id) {
+      *strokeid = current_stroke_id << 1UL;
+      modified = true;
+
+      float avg[3];
+      float *dir = SCULPT_temp_cdata_get(vd.vertex, scl);
+      float no[3];
+
+      SCULPT_vertex_normal_get(ss, vd.vertex, no);
+
+      SCULPT_neighbor_coords_average(ss, avg, vd.vertex, 0.0f, false, data->use_area_cos);
+      sub_v3_v3v3(dir, avg, SCULPT_vertex_co_get(ss, vd.vertex));
+
+      /* get rid of tangential displacement */
+      float fac = dot_v3v3(dir, no);
+      copy_v3_v3(dir, no);
+      mul_v3_fl(dir, -fac);
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  /* tell main thread we modified something */
+  if (modified) {
+    atomic_add_and_fetch_uint32((uint32_t *)(&data->cd_temp), 1UL);
+  }
+}
+
+/* Diffuses detail directions */
+static void do_enhance_details_brush_dir2_task_cb_ex(void *__restrict userdata,
+                                                     const int n,
+                                                     const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+
+  PBVHVertexIter vd;
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+
+  // SculptCustomLayer *strokeid_scl = data->scl2;
+  SculptCustomLayer *scl = data->scl;
+  bool use_area_weights = data->use_area_cos;
+
+  // const uint current_stroke_id = (uint)ss->stroke_id;
+
+  int lastvalence = 8;
+  float *areas = MEM_malloc_arrayN(lastvalence, sizeof(float), __func__);
+
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
+
+    int valence;
+
+    if (use_area_weights) {
+      valence = SCULPT_vertex_valence_get(ss, vd.vertex);
+
+      if (valence > lastvalence) {
+        areas = MEM_reallocN(areas, sizeof(float) * valence);
+      }
+
+      BKE_pbvh_get_vert_face_areas(ss->pbvh, vd.vertex, areas, valence);
+    }
+
+    // uint *strokeid = SCULPT_temp_cdata_get(vd.vertex, strokeid_scl);
+
+    /* this check here is overly restrictive,
+       we already get filtered by whether stage
+       1 did anything */
+    if (1) {  //*strokeid == current_stroke_id << 1UL) {
+      // if (data->cd_temp2) {
+      //(*strokeid)++;
+      //}
+
+      float avg[3] = {0.0f, 0.0f, 0.0f};
+      float tot = 0.0f;
+
+      SculptVertexNeighborIter ni;
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
+        float *dir2 = SCULPT_temp_cdata_get(ni.vertex, scl);
+
+        float w = 1.0f;
+
+        if (use_area_weights) {
+          w = areas[ni.i];
+        }
+
+        madd_v3_v3fl(avg, dir2, w);
+        tot += w;
+      }
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+      if (tot == 0.0f) {
+        continue;
+      }
+
+      mul_v3_fl(avg, 1.0f / (float)tot);
+
+      float *dir = SCULPT_temp_cdata_get(vd.vertex, scl);
+      interp_v3_v3v3(dir, dir, avg, 0.5f);  // valence == 1 ? 0.5f : 0.75f);
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  MEM_freeN(areas);
+}
+
+void SCULPT_enhance_details_brush(
+    Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, int presteps)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
+  SculptCustomLayer strokeid_scl;
 
   bool use_area_weights = (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT);
+
+  if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+    SCULPT_vertex_random_access_ensure(ss);
+  }
 
   if (use_area_weights) {
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
@@ -1563,7 +1698,6 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
     }
   }
 
-  SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
 
   SculptCustomLayer scl;
@@ -1572,12 +1706,18 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
 
   SCULPT_temp_customlayer_ensure(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", &params);
+  SCULPT_temp_customlayer_ensure(
+      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, SCULPT_LAYER_STROKE_ID, &params);
+
   SCULPT_temp_customlayer_get(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", &scl, &params);
+  SCULPT_temp_customlayer_get(
+      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, SCULPT_LAYER_STROKE_ID, &strokeid_scl, &params);
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
     SCULPT_vertex_random_access_ensure(ss);
 
+#if 0
     const int totvert = SCULPT_vertex_count_get(ss);
 
     for (int i = 0; i < totvert; i++) {
@@ -1594,146 +1734,88 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
       /* get rid of tangential displacement */
       float fac = dot_v3v3(dir, no);
       copy_v3_v3(dir, no);
-      mul_v3_fl(dir, fac);
+      mul_v3_fl(dir, -fac);
     }
 
     int lastvalence = 5;
     float *areas = MEM_malloc_arrayN(lastvalence, sizeof(float), __func__);
 
     /* smooth offsets */
-    for (int i = 0; i < totvert; i++) {
-      float avg[3] = {0.0f, 0.0f, 0.0f};
-      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
-      float *dir = SCULPT_temp_cdata_get(vertex, &scl);
-      float tot = 0.0f;
-      float *areas = NULL;
-      int valence;
+    for (int step = 0; step < presteps; step++) {
+      for (int i = 0; i < totvert; i++) {
+        float avg[3] = {0.0f, 0.0f, 0.0f};
 
-      if (use_area_weights) {
-        valence = SCULPT_vertex_valence_get(ss, vertex);
-
-        if (valence > lastvalence) {
-          areas = MEM_reallocN(areas, sizeof(float) * valence);
-        }
-
-        areas = MEM_callocN(sizeof(float) * valence * 4, "sdaf");
-        // BLI_array_alloca(areas, valence * 4);
-
-        BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, valence);
-      }
-      SculptVertexNeighborIter ni;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-        float *dir2 = SCULPT_temp_cdata_get(ni.vertex, &scl);
-
-        float w = 1.0f;
+        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+        float *dir = SCULPT_temp_cdata_get(vertex, &scl);
+        float tot = 0.0f;
+        float *areas = NULL;
+        int valence;
 
         if (use_area_weights) {
-          w = areas[ni.i];
+          valence = SCULPT_vertex_valence_get(ss, vertex);
+
+          if (valence > lastvalence) {
+            areas = MEM_reallocN(areas, sizeof(float) * valence);
+          }
+
+          areas = MEM_callocN(sizeof(float) * valence * 4, "sdaf");
+          // BLI_array_alloca(areas, valence * 4);
+
+          BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, valence);
         }
 
-        madd_v3_v3fl(avg, dir2, w);
-        tot += w;
-      }
-      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+        SculptVertexNeighborIter ni;
+        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+          float *dir2 = SCULPT_temp_cdata_get(ni.vertex, &scl);
 
-      if (tot > 0.0f) {
-        mul_v3_fl(avg, 1.0f / tot);
-        interp_v3_v3v3(dir, dir, avg, 0.5f);
+          float w = 1.0f;
+
+          if (use_area_weights) {
+            w = areas[ni.i];
+          }
+
+          madd_v3_v3fl(avg, dir2, w);
+          tot += w;
+        }
+        SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+        if (tot > 0.0f) {
+          mul_v3_fl(avg, 1.0f / tot);
+          interp_v3_v3v3(dir, dir, avg, 0.75f);
+        }
       }
     }
-
     MEM_freeN(areas);
+#endif
   }
 
-  SculptThreadedTaskData data = {.sd = sd, .ob = ob, .brush = brush, .nodes = nodes, .scl = &scl};
+  SculptThreadedTaskData data = {.sd = sd,
+                                 .ob = ob,
+                                 .brush = brush,
+                                 .use_area_cos = weighted,
+                                 .cd_temp = 0,
+                                 .cd_temp2 = 0,
+                                 .nodes = nodes,
+                                 .scl = &scl,
+                                 .scl2 = &strokeid_scl};
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, do_enhance_details_brush_task_cb_ex, &settings);
-}
 
-#ifdef PROXY_ADVANCED
-static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
-                                       const int n,
-                                       const TaskParallelTLS *__restrict tls)
-{
-  SculptThreadedTaskData *data = userdata;
-  SculptSession *ss = data->ob->sculpt;
-  Sculpt *sd = data->sd;
-  const Brush *brush = data->brush;
-  const bool smooth_mask = data->smooth_mask;
-  float bstrength = data->strength;
-
-  PBVHVertexIter vd;
-
-  CLAMP(bstrength, 0.0f, 1.0f);
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
-
-  const int thread_id = BLI_task_parallel_thread_id(tls);
-
-  PBVHNode **nodes = data->nodes;
-  ProxyVertArray *p = &nodes[n]->proxyverts;
-
-  for (int i = 0; i < p->size; i++) {
-    float co[3] = {0.0f, 0.0f, 0.0f};
-    int ni = 0;
-
-#  if 1
-    if (sculpt_brush_test_sq_fn(&test, p->co[i])) {
-      const float fade = bstrength * SCULPT_brush_strength_factor(
-                                         ss,
-                                         brush,
-                                         p->co[i],
-                                         sqrtf(test.dist),
-                                         p->no[i],
-                                         p->fno[i],
-                                         smooth_mask ? 0.0f : (p->mask ? p->mask[i] : 0.0f),
-                                         p->index[i],
-                                         thread_id);
-#  else
-    if (1) {
-      const float fade = 1.0;
-#  endif
-
-      while (ni < MAX_PROXY_NEIGHBORS && p->neighbors[i][ni].node >= 0) {
-        ProxyKey *key = p->neighbors[i] + ni;
-        PBVHNode *n2 = ss->pbvh->nodes + key->node;
-
-        // printf("%d %d %d %p\n", key->node, key->pindex, ss->pbvh->totnode, n2);
-
-        if (key->pindex < 0 || key->pindex >= n2->proxyverts.size) {
-          printf("corruption!\n");
-          fflush(stdout);
-          ni++;
-          continue;
-        }
-
-        if (n2->proxyverts.co) {
-          add_v3_v3(co, n2->proxyverts.co[key->pindex]);
-          ni++;
-        }
+  BLI_task_parallel_range(0, totnode, &data, do_enhance_details_brush_dir_task_cb_ex, &settings);
+  if (data.cd_temp) { /* did something change? if so run diffuse task*/
+    for (int i = 0; i < presteps; i++) {
+      if (i == presteps - 1) {
+        data.cd_temp2 = 1;  // flag tasks to update to final stroke id
       }
 
-      // printf("ni %d\n", ni);
-
-      if (ni > 2) {
-        mul_v3_fl(co, 1.0f / (float)ni);
-      }
-      else {
-        copy_v3_v3(co, p->co[i]);
-      }
-
-      // printf("%f %f %f   ", co[0], co[1], co[2]);
-
-      interp_v3_v3v3(p->co[i], p->co[i], co, fade);
+      BLI_task_parallel_range(
+          0, totnode, &data, do_enhance_details_brush_dir2_task_cb_ex, &settings);
     }
   }
-}
 
-#else
+  BLI_task_parallel_range(0, totnode, &data, do_enhance_details_brush_task_cb_ex, &settings);
+}
 
 //#  define SMOOTH_ITER_IN_THREADS
 static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
@@ -1782,7 +1864,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 
   SculptCustomLayer *bound_scl = data->scl2;
   SculptCustomLayer *vel_scl = data->scl;
-#  ifdef SMOOTH_ITER_IN_THREADS
+#ifdef SMOOTH_ITER_IN_THREADS
   for (int iteration = 0; iteration < data->iterations; iteration++) {
     if (!data->nodes[n]) {
       break;
@@ -1794,7 +1876,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
     else {
       bstrength = 1.0f;
     }
-#  endif
+#endif
 
     BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
       if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -1823,7 +1905,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
         CLAMP(*vd.mask, 0.0f, 1.0f);
       }
       else {
-        float avg[3], val[3];
+        float avg[3], off[3];
 
         // if (SCULPT_vertex_is_corner(ss, vd.vertex, ctype) & ~SCULPT_CORNER_FACE_SET) {
         // continue;
@@ -1843,12 +1925,12 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 
           if (vel_scl) {
             float *vel = SCULPT_temp_cdata_get(vd.vertex, vel_scl);
-#  if 0
+#if 1
             if (isnan(dot_v3v3(vel, vel)) || !isfinite(dot_v3v3(vel, vel))) {
               printf("NaN!");
               zero_v3(vel);
             }
-#  endif
+#endif
 
             copy_v3_v3(startvel, vel);
           }
@@ -1869,27 +1951,31 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
                                    .preserve_fset_boundaries = ss->cache->brush->flag2 &
                                                                BRUSH_SMOOTH_PRESERVE_FACE_SETS}));
 
-          sub_v3_v3v3(val, avg, co);
+          sub_v3_v3v3(off, avg, co);
 
+          /* Apply velocity smooth.  The point of this is to
+             improve convergence for very high levels of smoothing*/
           if (vel_scl) {
             float *vel = SCULPT_temp_cdata_get(vd.vertex, vel_scl);
 
-            float blend_vel[3];
-            sub_v3_v3v3(blend_vel, vel, startvel);
+            float veltmp[3];
+            copy_v3_v3(veltmp, vel);
 
-            float oldval[3];
-            copy_v3_v3(oldval, val);
+            /* remove tangental component */
+            float fac = dot_v3v3(vel, startno);
+            mul_v3_v3fl(vel, startno, fac);
 
-            madd_v3_v3fl(val, vel, data->vel_smooth_fac);
+            /* note that "off" is interpreted here
+               as a force to update vel */
+            madd_v3_v3fl(vel, off, 0.2f);
+            mul_v3_fl(vel, 0.8f);
 
-            interp_v3_v3v3(vel, startvel, oldval, 0.9);
-            add_v3_v3(vel, blend_vel);
-
-            mul_v3_fl(vel, 0.9);
+            /* apply velocity */
+            add_v3_v3(off, veltmp);
           }
 
-          madd_v3_v3v3fl(val, co, val, fade);
-          SCULPT_clip(sd, ss, co, val);
+          madd_v3_v3v3fl(off, co, off, fade);
+          SCULPT_clip(sd, ss, co, off);
 
           if (step == 0) {
             SCULPT_reproject_cdata(ss, vd.vertex, startco, startno);
@@ -1913,11 +1999,10 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
       // not modified? remove from future iterations
       data->nodes[n] = NULL;
     }
-#  ifdef SMOOTH_ITER_IN_THREADS
+#ifdef SMOOTH_ITER_IN_THREADS
   }
-#  endif
-}
 #endif
+}
 
 void SCULPT_bound_smooth_ensure(SculptSession *ss, Object *ob)
 {
@@ -1950,7 +2035,7 @@ void SCULPT_smooth(Sculpt *sd,
   Brush *brush = ss->cache && ss->cache->brush ? ss->cache->brush : BKE_paint_brush(&sd->paint);
 
   const float vel_smooth_cutoff = 0.5;
-  const bool do_vel_smooth = bstrength > vel_smooth_cutoff;
+  const bool do_vel_smooth = bstrength > vel_smooth_cutoff && G.debug_value != 895;
 
   const int max_iterations = MAX2((int)(2.5f * ceilf(bstrength)), 1);
   const float fract = 1.0f / max_iterations;
@@ -2033,13 +2118,6 @@ void SCULPT_smooth(Sculpt *sd,
     SCULPT_bound_smooth_ensure(ss, ob);
   }
 
-#ifdef PROXY_ADVANCED
-  int datamask = PV_CO | PV_NEIGHBORS | PV_NO | PV_INDEX | PV_MASK;
-  BKE_pbvh_ensure_proxyarrays(ss, ss->pbvh, nodes, totnode, datamask);
-
-  BKE_pbvh_load_proxyarrays(ss->pbvh, nodes, totnode, PV_CO | PV_NO | PV_MASK);
-#endif
-
 #ifndef SMOOTH_ITER_IN_THREADS
   for (iteration = 0; iteration <= count; iteration++) {
     const float strength = (iteration != count) ? 1.0f : last;
@@ -2081,9 +2159,6 @@ void SCULPT_smooth(Sculpt *sd,
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
     BLI_task_parallel_range(0, totnode, &data, do_smooth_brush_task_cb_ex, &settings);
 
-#ifdef PROXY_ADVANCED
-    BKE_pbvh_gather_proxyarray(ss->pbvh, nodes, totnode);
-#endif
 #ifndef SMOOTH_ITER_IN_THREADS
   }
 #endif
@@ -2106,7 +2181,14 @@ void SCULPT_do_smooth_brush(
    * the middle of the stroke. */
   if (ss->cache->bstrength < 0.0f) {
     /* Invert mode, intensify details. */
-    SCULPT_enhance_details_brush(sd, ob, nodes, totnode);
+    ss->cache->bstrength = -ss->cache->bstrength;
+    SCULPT_enhance_details_brush(
+        sd,
+        ob,
+        nodes,
+        totnode,
+        SCULPT_get_int(ss, enhance_detail_presteps, sd, BKE_paint_brush(&sd->paint)));
+    ss->cache->bstrength = -ss->cache->bstrength;
   }
   else {
     /* Regular mode, smooth. */
@@ -2699,12 +2781,6 @@ void SCULPT_smooth_vcol_boundary(
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
 
-#ifdef PROXY_ADVANCED
-  int datamask = PV_CO | PV_NEIGHBORS | PV_NO | PV_INDEX | PV_MASK;
-  BKE_pbvh_ensure_proxyarrays(ss, ss->pbvh, nodes, totnode, datamask);
-
-  BKE_pbvh_load_proxyarrays(ss->pbvh, nodes, totnode, PV_CO | PV_NO | PV_MASK);
-#endif
   for (iteration = 0; iteration <= count; iteration++) {
     const float strength = (iteration != count) ? 1.0f : last;
 
@@ -2721,9 +2797,5 @@ void SCULPT_smooth_vcol_boundary(
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
     BLI_task_parallel_range(
         0, totnode, &data, do_smooth_vcol_boundary_brush_task_cb_ex, &settings);
-
-#ifdef PROXY_ADVANCED
-    BKE_pbvh_gather_proxyarray(ss->pbvh, nodes, totnode);
-#endif
   }
 }

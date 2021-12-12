@@ -757,6 +757,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.sculpt.draw_face_sets
   brush.sculpt.draw_sharp
   brush.sculpt.elastic_deform
+  brush.sculpt.enhance_details
   brush.sculpt.fairing
   brush.sculpt.fill
   brush.sculpt.flatten

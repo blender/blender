@@ -132,7 +132,8 @@ def mesh_data_lists_from_mesh(me, material_colors):
   
     tris_data = []
     
-    white = [1, 1, 1, 1]
+    class white:
+        color = [1, 1, 1, 1]
     
     for p in me_polys:
         # Note, all faces are handled, backfacing/zero area is checked just before writing.
@@ -162,7 +163,7 @@ def mesh_data_lists_from_mesh(me, material_colors):
               c1 = color_poly[i1]
               c2 = color_poly[i2]
             else:
-              c1 = c2 = c3 = white
+              c0 = c1 = c2 = white
               
             v0 = me_verts[l0.vertex_index]
             v1 = me_verts[l1.vertex_index]

@@ -1266,6 +1266,13 @@ def brush_settings(layout, context, brush, popover=False):
         capabilities = brush.sculpt_capabilities
         sculpt_tool = brush.sculpt_tool
 
+        if sculpt_tool in ["SMOOTH", "ENHANCE_DETAILS"]:
+            UnifiedPaintPanel.channel_unified(layout,
+                context,
+                brush,
+                "enhance_detail_presteps",
+                slider=False)
+
         if advanced:
             # normal_radius_factor
             UnifiedPaintPanel.prop_unified(layout,

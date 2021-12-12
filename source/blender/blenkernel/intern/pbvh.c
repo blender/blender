@@ -4553,13 +4553,56 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, SculptVertRef vertex, float *r_are
 
       break;
     }
-    default:
-      // not supported
-      for (int i = 0; i < valence; i++) {
+
+    case PBVH_GRIDS: { /* estimate from edge lengths */
+      int index = (int)vertex.i;
+
+      const CCGKey *key = BKE_pbvh_get_grid_key(pbvh);
+      const int grid_index = index / key->grid_area;
+      const int vertex_index = index - grid_index * key->grid_area;
+
+      SubdivCCGCoord coord = {.grid_index = grid_index,
+                              .x = vertex_index % key->grid_size,
+                              .y = vertex_index / key->grid_size};
+
+      SubdivCCGNeighbors neighbors;
+      BKE_subdiv_ccg_neighbor_coords_get(pbvh->subdiv_ccg, &coord, false, &neighbors);
+
+      float *co1 = CCG_elem_co(key, CCG_elem_offset(key, pbvh->grids[grid_index], vertex_index));
+      float totw = 0.0f;
+      int i = 0;
+
+      for (i = 0; i < neighbors.size; i++) {
+        SubdivCCGCoord *coord2 = neighbors.coords + i;
+
+        int vertex_index2 = coord2->y * key->grid_size + coord2->x;
+        int index2 = coord2->grid_index * key->grid_area + vertex_index2;
+
+        float *co2 = CCG_elem_co(
+            key, CCG_elem_offset(key, pbvh->grids[coord2->grid_index], vertex_index2));
+        float w = len_v3v3(co1, co2);
+        // w = sqrtf(w);
+        // w *= w;
+
+        r_areas[i] = w;
+        totw += w;
+      }
+
+      if (neighbors.size != valence) {
+        printf("%s: error!\n", __func__);
+      }
+      if (totw < 0.000001f) {
+        for (int i = 0; i < neighbors.size; i++) {
+          r_areas[i] = 1.0f;
+        }
+      }
+
+      for (; i < valence; i++) {
         r_areas[i] = 1.0f;
       }
 
       break;
+    }
   }
 }
 

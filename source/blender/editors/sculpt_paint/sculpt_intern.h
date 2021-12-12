@@ -178,7 +178,7 @@ struct _SculptNeighborRef {
   SculptEdgeRef edge;
 };
 
-#  define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 12
+#define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 12
 
 typedef struct SculptVertexNeighborIter {
   /* Storage */
@@ -209,47 +209,46 @@ void SCULPT_vertex_neighbors_get(const struct SculptSession *ss,
                                  SculptVertexNeighborIter *iter);
 
 /* Iterator over neighboring vertices. */
-#  define SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
-    SCULPT_vertex_neighbors_get(ss, v_index, false, &neighbor_iterator); \
-    for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.size; \
-         neighbor_iterator.i++) { \
-      neighbor_iterator.has_edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge.i != \
-                                   SCULPT_REF_NONE; \
-      neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i].vertex; \
-      neighbor_iterator.edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge; \
-      neighbor_iterator.index = neighbor_iterator.neighbor_indices[neighbor_iterator.i];
+#define SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
+  SCULPT_vertex_neighbors_get(ss, v_index, false, &neighbor_iterator); \
+  for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.size; \
+       neighbor_iterator.i++) { \
+    neighbor_iterator.has_edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge.i != \
+                                 SCULPT_REF_NONE; \
+    neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i].vertex; \
+    neighbor_iterator.edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge; \
+    neighbor_iterator.index = neighbor_iterator.neighbor_indices[neighbor_iterator.i];
 
 /* Iterate over neighboring and duplicate vertices (for PBVH_GRIDS). Duplicates come
  * first since they are nearest for floodfill. */
-#  define SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
-    SCULPT_vertex_neighbors_get(ss, v_index, true, &neighbor_iterator); \
-    for (neighbor_iterator.i = neighbor_iterator.size - 1; neighbor_iterator.i >= 0; \
-         neighbor_iterator.i--) { \
-      neighbor_iterator.has_edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge.i != \
-                                   SCULPT_REF_NONE; \
-      neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i].vertex; \
-      neighbor_iterator.edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge; \
-      neighbor_iterator.index = neighbor_iterator.neighbor_indices[neighbor_iterator.i]; \
-      neighbor_iterator.is_duplicate = (neighbor_iterator.i >= \
-                                        neighbor_iterator.size - \
-                                            neighbor_iterator.num_duplicates);
+#define SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
+  SCULPT_vertex_neighbors_get(ss, v_index, true, &neighbor_iterator); \
+  for (neighbor_iterator.i = neighbor_iterator.size - 1; neighbor_iterator.i >= 0; \
+       neighbor_iterator.i--) { \
+    neighbor_iterator.has_edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge.i != \
+                                 SCULPT_REF_NONE; \
+    neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i].vertex; \
+    neighbor_iterator.edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge; \
+    neighbor_iterator.index = neighbor_iterator.neighbor_indices[neighbor_iterator.i]; \
+    neighbor_iterator.is_duplicate = (neighbor_iterator.i >= \
+                                      neighbor_iterator.size - neighbor_iterator.num_duplicates);
 
-#  define SCULPT_VERTEX_NEIGHBORS_ITER_END(neighbor_iterator) \
-    } \
-    if (!neighbor_iterator.no_free && \
-        neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) { \
-      MEM_freeN(neighbor_iterator.neighbors); \
-      MEM_freeN(neighbor_iterator.neighbor_indices); \
-    } \
-    ((void)0)
+#define SCULPT_VERTEX_NEIGHBORS_ITER_END(neighbor_iterator) \
+  } \
+  if (!neighbor_iterator.no_free && \
+      neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) { \
+    MEM_freeN(neighbor_iterator.neighbors); \
+    MEM_freeN(neighbor_iterator.neighbor_indices); \
+  } \
+  ((void)0)
 
-#  define SCULPT_VERTEX_NEIGHBORS_ITER_FREE(neighbor_iterator) \
-    if (neighbor_iterator.neighbors && !neighbor_iterator.no_free && \
-        neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) { \
-      MEM_freeN(neighbor_iterator.neighbors); \
-      MEM_freeN(neighbor_iterator.neighbor_indices); \
-    } \
-    ((void)0)
+#define SCULPT_VERTEX_NEIGHBORS_ITER_FREE(neighbor_iterator) \
+  if (neighbor_iterator.neighbors && !neighbor_iterator.no_free && \
+      neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) { \
+    MEM_freeN(neighbor_iterator.neighbors); \
+    MEM_freeN(neighbor_iterator.neighbor_indices); \
+  } \
+  ((void)0)
 
 SculptVertRef SCULPT_active_vertex_get(SculptSession *ss);
 const float *SCULPT_active_vertex_co_get(SculptSession *ss);
@@ -265,7 +264,7 @@ struct MVert *SCULPT_mesh_deformed_mverts_get(SculptSession *ss);
 
 /* Fake Neighbors */
 
-#  define FAKE_NEIGHBOR_NONE -1
+#define FAKE_NEIGHBOR_NONE -1
 
 void SCULPT_fake_neighbors_ensure(struct Sculpt *sd, Object *ob, const float max_dist);
 void SCULPT_fake_neighbors_enable(Object *ob);
@@ -298,28 +297,28 @@ float SCULPT_get_float_intern(const SculptSession *ss,
                               const char *idname,
                               const Sculpt *sd,
                               const Brush *br);
-#  define SCULPT_get_float(ss, idname, sd, br) \
-    SCULPT_get_float_intern(ss, BRUSH_BUILTIN_##idname, sd, br)
+#define SCULPT_get_float(ss, idname, sd, br) \
+  SCULPT_get_float_intern(ss, BRUSH_BUILTIN_##idname, sd, br)
 
 int SCULPT_get_int_intern(const SculptSession *ss,
                           const char *idname,
                           const Sculpt *sd,
                           const Brush *br);
-#  define SCULPT_get_int(ss, idname, sd, br) \
-    SCULPT_get_int_intern(ss, BRUSH_BUILTIN_##idname, sd, br)
-#  define SCULPT_get_bool(ss, idname, sd, br) SCULPT_get_int(ss, idname, sd, br)
+#define SCULPT_get_int(ss, idname, sd, br) \
+  SCULPT_get_int_intern(ss, BRUSH_BUILTIN_##idname, sd, br)
+#define SCULPT_get_bool(ss, idname, sd, br) SCULPT_get_int(ss, idname, sd, br)
 
 int SCULPT_get_vector_intern(
     const SculptSession *ss, const char *idname, float out[4], const Sculpt *sd, const Brush *br);
-#  define SCULPT_get_vector(ss, idname, out, sd, br) \
-    SCULPT_get_vector_intern(ss, BRUSH_BUILTIN_##idname, out, sd, br)
+#define SCULPT_get_vector(ss, idname, out, sd, br) \
+  SCULPT_get_vector_intern(ss, BRUSH_BUILTIN_##idname, out, sd, br)
 
 BrushChannel *SCULPT_get_final_channel_intern(const SculptSession *ss,
                                               const char *idname,
                                               const Sculpt *sd,
                                               const Brush *br);
-#  define SCULPT_get_final_channel(ss, idname, sd, br) \
-    SCULPT_get_final_channel_intern(ss, BRUSH_BUILTIN_##idname, sd, br)
+#define SCULPT_get_final_channel(ss, idname, sd, br) \
+  SCULPT_get_final_channel_intern(ss, BRUSH_BUILTIN_##idname, sd, br)
 
 SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
                                          const SculptVertRef index,
@@ -1029,7 +1028,7 @@ typedef struct SculptUndoNode {
 
 /* Factor of brush to have rake point following behind
  * (could be configurable but this is reasonable default). */
-#  define SCULPT_RAKE_BRUSH_FACTOR 0.25f
+#define SCULPT_RAKE_BRUSH_FACTOR 0.25f
 
 struct SculptRakeData {
   float follow_dist;
@@ -1288,9 +1287,9 @@ bool SCULPT_pbvh_calc_area_normal(const struct Brush *brush,
  * For descriptions of these settings, check the operator properties.
  */
 
-#  define SCULPT_CLAY_STABILIZER_LEN 10
-#  define SCULPT_SPEED_MA_SIZE 4
-#  define GRAB_DELTA_MA_SIZE 3
+#define SCULPT_CLAY_STABILIZER_LEN 10
+#define SCULPT_SPEED_MA_SIZE 4
+#define GRAB_DELTA_MA_SIZE 3
 
 typedef struct AutomaskingSettings {
   /* Flags from eAutomasking_flag. */
@@ -1562,7 +1561,7 @@ typedef enum eSculptExpandRecursionType {
   SCULPT_EXPAND_RECURSION_GEODESICS,
 } eSculptExpandRecursionType;
 
-#  define EXPAND_SYMM_AREAS 8
+#define EXPAND_SYMM_AREAS 8
 
 typedef struct ExpandCache {
   /* Target data elements that the expand operation will affect. */
@@ -1987,14 +1986,14 @@ int SCULPT_dyntopo_get_templayer(SculptSession *ss, int type, const char *name);
 
 void SCULPT_ensure_persistent_layers(SculptSession *ss, struct Object *ob);
 
-#  define SCULPT_LAYER_PERS_CO "Persistent Base Co"
-#  define SCULPT_LAYER_PERS_NO "Persistent Base No"
-#  define SCULPT_LAYER_PERS_DISP "Persistent Base Height"
-#  define SCULPT_LAYER_DISP "__temp_layer_disp"
-#  define SCULPT_LAYER_STROKE_ID "__temp_layer_strokeid"
+#define SCULPT_LAYER_PERS_CO "Persistent Base Co"
+#define SCULPT_LAYER_PERS_NO "Persistent Base No"
+#define SCULPT_LAYER_PERS_DISP "Persistent Base Height"
+#define SCULPT_LAYER_DISP "__temp_layer_disp"
+#define SCULPT_LAYER_STROKE_ID "__temp_layer_strokeid"
 
 // these tools don't support dynamic pbvh splitting during the stroke
-#  define DYNTOPO_HAS_DYNAMIC_SPLIT(tool) true
+#define DYNTOPO_HAS_DYNAMIC_SPLIT(tool) true
 
 /*get current symmetry pass index inclusive of both
   mirror and radial symmetry*/
@@ -2116,7 +2115,7 @@ void SCULPT_cotangents_begin(struct Object *ob, SculptSession *ss);
 char SCULPT_mesh_fset_boundary_symmetry_get(struct Object *object);
 
 // exponent to make boundary_smooth_factor more user-friendly
-#  define BOUNDARY_SMOOTH_EXP 2.0
+#define BOUNDARY_SMOOTH_EXP 2.0
 
 // edges
 
@@ -2131,16 +2130,16 @@ SculptVertRef SCULPT_edge_other_vertex(const SculptSession *ss,
                                        const SculptEdgeRef edge,
                                        const SculptVertRef vertex);
 
-#  define SCULPT_REPLAY
-#  ifdef SCULPT_REPLAY
+#define SCULPT_REPLAY
+#ifdef SCULPT_REPLAY
 struct SculptReplayLog;
 struct SculptBrushSample;
 
-#    ifdef WIN32
-#      define REPLAY_EXPORT __declspec(dllexport)
-#    else
-#      define REPLAY_EXPORT
-#    endif
+#  ifdef WIN32
+#    define REPLAY_EXPORT __declspec(dllexport)
+#  else
+#    define REPLAY_EXPORT
+#  endif
 
 void SCULPT_replay_log_free(struct SculptReplayLog *log);
 struct SculptReplayLog *SCULPT_replay_log_create();
@@ -2150,7 +2149,7 @@ char *SCULPT_replay_serialize();
 void SCULPT_replay_log_append(struct Sculpt *sd, struct SculptSession *ss, struct Object *ob);
 void SCULPT_replay_test(void);
 
-#  endif
+#endif
 
 struct BMesh *SCULPT_dyntopo_empty_bmesh();
 
@@ -2158,15 +2157,15 @@ struct BMesh *SCULPT_dyntopo_empty_bmesh();
  * 0.0f*/
 void SCULPT_bound_smooth_ensure(SculptSession *ss, struct Object *ob);
 
-#  define SCULPT_stroke_needs_original(brush) \
-    ELEM(brush->sculpt_tool, \
-         SCULPT_TOOL_DRAW_SHARP, \
-         SCULPT_TOOL_GRAB, \
-         SCULPT_TOOL_ROTATE, \
-         SCULPT_TOOL_THUMB, \
-         SCULPT_TOOL_ELASTIC_DEFORM, \
-         SCULPT_TOOL_BOUNDARY, \
-         SCULPT_TOOL_POSE)
+#define SCULPT_stroke_needs_original(brush) \
+  ELEM(brush->sculpt_tool, \
+       SCULPT_TOOL_DRAW_SHARP, \
+       SCULPT_TOOL_GRAB, \
+       SCULPT_TOOL_ROTATE, \
+       SCULPT_TOOL_THUMB, \
+       SCULPT_TOOL_ELASTIC_DEFORM, \
+       SCULPT_TOOL_BOUNDARY, \
+       SCULPT_TOOL_POSE)
 
 void SCULPT_undo_ensure_bmlog(struct Object *ob);
 
@@ -2328,3 +2327,9 @@ typedef struct SculptFaceSetDrawData {
 void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                         const int n,
                                         const struct TaskParallelTLS *__restrict tls);
+
+void SCULPT_enhance_details_brush(struct Sculpt *sd,
+                                  struct Object *ob,
+                                  struct PBVHNode **nodes,
+                                  const int totnode,
+                                  int presteps);

@@ -424,7 +424,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   SCULPT_temp_customlayer_ensure(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &params);
   SCULPT_temp_customlayer_ensure(
-      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, "_paint_buffer_stroke_id", &params_id);
+      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, SCULPT_LAYER_STROKE_ID, &params_id);
 
   SCULPT_temp_customlayer_get(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &buffer_scl, &params);
@@ -432,7 +432,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
                               ob,
                               ATTR_DOMAIN_POINT,
                               CD_PROP_INT32,
-                              "_paint_buffer_stroke_id",
+                              SCULPT_LAYER_STROKE_ID,
                               &stroke_id_scl,
                               &params_id);
 

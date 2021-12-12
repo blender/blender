@@ -509,7 +509,8 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_TOPOLOGY_RAKE = 40,
   SCULPT_TOOL_DYNTOPO = 41,
   SCULPT_TOOL_AUTO_FSET = 42,
-  SCULPT_TOOL_RELAX = 43
+  SCULPT_TOOL_RELAX = 43,
+  SCULPT_TOOL_ENHANCE_DETAILS = 44
 } eBrushSculptTool;
 
 /* Brush.uv_sculpt_tool */

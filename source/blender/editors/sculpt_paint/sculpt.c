@@ -4068,6 +4068,7 @@ static float brush_strength(const Sculpt *sd,
         return 0.5f * alpha * flip * pressure * overlap * feather;
       }
 
+    case SCULPT_TOOL_ENHANCE_DETAILS:
     case SCULPT_TOOL_SMOOTH: {
       const float smooth_strength_base = flip * pressure * feather;
       // if (cache->alt_smooth) {
@@ -5479,6 +5480,9 @@ void do_brush_action(
     case SCULPT_TOOL_UV_SMOOTH:
       SCULPT_uv_brush(sd, ob, nodes, totnode);
       break;
+    case SCULPT_TOOL_ENHANCE_DETAILS:
+      SCULPT_enhance_details_brush(sd, ob, nodes, totnode, SCULPT_get_int(ss, enhance_detail_presteps, sd, brush));
+      break;
   }
 
   bool apply_autosmooth = !ELEM(SCULPT_get_tool(ss, brush),
@@ -6041,6 +6045,10 @@ static void SCULPT_run_command(
       break;
     case SCULPT_TOOL_AUTO_FSET:
       SCULPT_do_auto_face_set(sd, ob, nodes, totnode);
+      break;
+    case SCULPT_TOOL_ENHANCE_DETAILS:
+      SCULPT_enhance_details_brush(
+          sd, ob, nodes, totnode, SCULPT_get_int(ss, enhance_detail_presteps, sd, brush));
       break;
   }
 
@@ -7947,7 +7955,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   /* Update the active vertex of the SculptSession. */
   ss->active_vertex_index = srd.active_vertex_index;
 
-  //SCULPT_vertex_random_access_ensure(ss);
+  // SCULPT_vertex_random_access_ensure(ss);
   copy_v3_v3(out->active_vertex_co, SCULPT_active_vertex_co_get(ss));
 
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -8924,6 +8932,9 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   ob->sculpt->active_face_index.i = SCULPT_REF_NONE;
   ob->sculpt->active_vertex_index.i = SCULPT_REF_NONE;
 
+  CustomData_reset(&ob->sculpt->temp_vdata);
+  CustomData_reset(&ob->sculpt->temp_pdata);
+
   BKE_sculpt_ensure_orig_mesh_data(scene, ob);
 
   BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
@@ -9868,35 +9879,12 @@ static void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot)
 int SCULPT_vertex_valence_get(const struct SculptSession *ss, SculptVertRef vertex)
 {
   SculptVertexNeighborIter ni;
-  int tot = 0;
-
-#if 0
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    BMVert *v = (BMVert *)vertex.i;
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
-
-    if (mv->flag & SCULPTVERT_NEED_VALENCE) {
-      BKE_pbvh_bmesh_update_valence(ss->cd_sculpt_vert, vertex);
-    }
-
-    mval = mv->valence;
-
-#  ifdef NDEBUG
-    return mval;
-#  endif
-  }
-#else
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    BMVert *v = (BMVert *)vertex.i;
-
-    return BM_vert_edge_count(v);
-  }
-#endif
-
-  MSculptVert *mv = ss->mdyntopo_verts + vertex.i;
+  MSculptVert *mv = SCULPT_vertex_get_sculptvert(ss, vertex);
 
   if (mv->flag & SCULPTVERT_NEED_VALENCE) {
     mv->flag &= ~SCULPTVERT_NEED_VALENCE;
+
+    int tot = 0;
 
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
       tot++;

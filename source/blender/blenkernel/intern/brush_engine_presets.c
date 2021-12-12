@@ -301,6 +301,7 @@ static bool check_builtin_init()
     mdef->blendmode = MA_RAMP_ADD;
   }
 
+  //SETCAT(enhance_detail_presteps, "Enhancement");
   SETCAT(concave_mask_factor, "Automasking");
   SETCAT(automasking, "Automasking");
   SETCAT(automasking_boundary_edges_propagation_steps, "Automasking");
@@ -1203,7 +1204,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(cloth_use_collision);
   ADDCH(cloth_solve_bending);
   ADDCH(cloth_bending_stiffness);
-  
+
   switch (tool) {
     case SCULPT_TOOL_CLAY:
       if (set_mappings) {
@@ -1279,6 +1280,10 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
       break;
     case SCULPT_TOOL_CREASE:
       ADDCH(crease_pinch_factor);
+      break;
+    case SCULPT_TOOL_SMOOTH:
+    case SCULPT_TOOL_ENHANCE_DETAILS:
+      ADDCH(enhance_detail_presteps);
       break;
     case SCULPT_TOOL_POSE:
       ADDCH(deform_target);
@@ -1379,6 +1384,7 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
             SCULPT_TOOL_FAIRING,
             SCULPT_TOOL_DRAW_FACE_SETS,
             SCULPT_TOOL_SMOOTH,
+            SCULPT_TOOL_ENHANCE_DETAILS,
             SCULPT_TOOL_SIMPLIFY)) {
 
     SHOWALL(accumulate);
@@ -1434,7 +1440,13 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWCTX(autosmooth);
       SHOWALL(crease_pinch_factor);
       SHOWWRK(autosmooth);
+      break;
+    case SCULPT_TOOL_ENHANCE_DETAILS:
+      SHOWCTX(dyntopo_disabled);
+      SHOWALL(enhance_detail_presteps);
+      break;
     case SCULPT_TOOL_SMOOTH:
+      SHOWALL(enhance_detail_presteps);
       SHOWWRK(surface_smooth_shape_preservation);
       SHOWWRK(surface_smooth_current_vertex);
       SHOWWRK(surface_smooth_iterations);
@@ -1836,6 +1848,12 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
 
       break;
     }
+    case SCULPT_TOOL_ENHANCE_DETAILS:
+      BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
+      BRUSHSET_SET_BOOL(chset, dyntopo_disabled, true);
+      BRUSHSET_SET_FLOAT(chset, spacing, 5.0f);
+      BRUSHSET_SET_FLOAT(chset, strength, 0.3f);
+      break;
     case SCULPT_TOOL_SMOOTH:
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       BRUSHSET_SET_FLOAT(chset, spacing, 5.0f);

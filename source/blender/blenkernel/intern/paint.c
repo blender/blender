@@ -1510,6 +1510,9 @@ void BKE_sculptsession_free(Object *ob)
       BM_mesh_free(ss->bm);
     }
 
+    CustomData_free(&ss->temp_vdata, ss->temp_vdata_elems);
+    CustomData_free(&ss->temp_pdata, ss->temp_pdata_elems);
+
     sculptsession_free_pbvh(ob);
 
     for (int i = 0; i < SCULPT_SCL_LAYER_MAX; i++) {
@@ -2470,6 +2473,9 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
   MEM_SAFE_FREE(ss->face_areas);
   ss->face_areas = MEM_calloc_arrayN(totgridfaces, sizeof(float) * 2, "ss->face_areas");
 
+  CustomData_reset(&ob->sculpt->temp_vdata);
+  CustomData_reset(&ob->sculpt->temp_pdata);
+
   BKE_pbvh_build_grids(pbvh,
                        subdiv_ccg->grids,
                        subdiv_ccg->num_grids,
@@ -2480,10 +2486,14 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
                        ob->sculpt->fast_draw,
                        ss->face_areas);
 
+  ss->temp_vdata_elems = BKE_pbvh_get_grid_num_vertices(pbvh);
+  ss->temp_pdata_elems = ss->totfaces;
+
   BKE_sculptsession_check_mdyntopo(ob->sculpt, pbvh, BKE_pbvh_get_grid_num_vertices(pbvh));
 
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, ob->sculpt->show_face_sets);
+
   return pbvh;
 }
 
@@ -2671,6 +2681,8 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
   }
 
   ob->sculpt->pbvh = pbvh;
+
+  BKE_sculptsession_update_attr_refs(ob);
 
   if (pbvh) {
     SCULPT_update_flat_vcol_shading(ob, scene);
@@ -2995,10 +3007,6 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
           __func__);
       permanent = false;
     }
-
-    // customdata attribute layers not supported for grids
-    simple_array = true;
-    out->params.simple_array = true;
   }
 
   BLI_assert(!(simple_array && permanent));
@@ -3194,6 +3202,7 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
       out->cd_offset = -1;
       out->data = out->layer->data;
       out->elemsize = CustomData_get_elem_size(out->layer);
+
       break;
     }
     case PBVH_GRIDS: {
@@ -3208,8 +3217,8 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
           cdata = &ss->temp_vdata;
           break;
         case ATTR_DOMAIN_FACE:
-          // not supported
-          return false;
+          totelem = ss->totfaces;
+          cdata = &ss->temp_pdata;
         default:
           return false;
       }
@@ -3224,9 +3233,9 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
         CustomData_add_layer_named(cdata, proptype, CD_CALLOC, NULL, totelem, name);
         idx = CustomData_get_named_layer_index(cdata, proptype, name);
 
-        if (!permanent) {
+        //if (!permanent) {
           cdata->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
-        }
+        //}
       }
 
       if (nocopy) {
