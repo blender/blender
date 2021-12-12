@@ -4117,51 +4117,6 @@ static uiBlock *curvemap_tools_func(
                      0,
                      UICURVE_FUNC_RESET_VIEW,
                      "");
-    uiDefIconTextBut(block,
-                     UI_BTYPE_BUT_MENU,
-                     1,
-                     ICON_BLANK1,
-                     IFACE_("Vector Handle"),
-                     0,
-                     yco -= UI_UNIT_Y,
-                     menuwidth,
-                     UI_UNIT_Y,
-                     NULL,
-                     0.0,
-                     0.0,
-                     0,
-                     UICURVE_FUNC_HANDLE_VECTOR,
-                     "");
-    uiDefIconTextBut(block,
-                     UI_BTYPE_BUT_MENU,
-                     1,
-                     ICON_BLANK1,
-                     IFACE_("Auto Handle"),
-                     0,
-                     yco -= UI_UNIT_Y,
-                     menuwidth,
-                     UI_UNIT_Y,
-                     NULL,
-                     0.0,
-                     0.0,
-                     0,
-                     UICURVE_FUNC_HANDLE_AUTO,
-                     "");
-    uiDefIconTextBut(block,
-                     UI_BTYPE_BUT_MENU,
-                     1,
-                     ICON_BLANK1,
-                     IFACE_("Auto Clamped Handle"),
-                     0,
-                     yco -= UI_UNIT_Y,
-                     menuwidth,
-                     UI_UNIT_Y,
-                     NULL,
-                     0.0,
-                     0.0,
-                     0,
-                     UICURVE_FUNC_HANDLE_AUTO_ANIM,
-                     "");
   }
 
   if (show_extend) {
@@ -4241,6 +4196,21 @@ static uiBlock *curvemap_brush_tools_negslope_func(bContext *C, ARegion *region,
   return curvemap_tools_func(C, region, cumap_v, false, UICURVE_FUNC_RESET_POS);
 }
 
+static void curvemap_tools_handle_vector(bContext *C, void *cumap_v, void *UNUSED(arg))
+{
+  curvemap_tools_dofunc(C, cumap_v, UICURVE_FUNC_HANDLE_VECTOR);
+}
+
+static void curvemap_tools_handle_auto(bContext *C, void *cumap_v, void *UNUSED(arg))
+{
+  curvemap_tools_dofunc(C, cumap_v, UICURVE_FUNC_HANDLE_AUTO);
+}
+
+static void curvemap_tools_handle_auto_clamped(bContext *C, void *cumap_v, void *UNUSED(arg))
+{
+  curvemap_tools_dofunc(C, cumap_v, UICURVE_FUNC_HANDLE_AUTO_ANIM);
+}
+
 static void curvemap_buttons_redraw(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
 {
   ED_region_tag_redraw(CTX_wm_region(C));
@@ -4291,6 +4261,8 @@ static void curvemap_buttons_layout(uiLayout *layout,
   int bg = -1;
 
   uiBlock *block = uiLayoutGetBlock(layout);
+
+  UI_block_emboss_set(block, UI_EMBOSS);
 
   if (tone) {
     uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
@@ -4377,10 +4349,11 @@ static void curvemap_buttons_layout(uiLayout *layout,
   }
 
   /* operation buttons */
-  uiLayoutRow(row, true);
+  /* (Right aligned) */
+  uiLayout *sub = uiLayoutRow(row, true);
+  uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
 
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
-
+  /* Zoom in */
   bt = uiDefIconBut(block,
                     UI_BTYPE_BUT,
                     0,
@@ -4397,6 +4370,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
                     TIP_("Zoom in"));
   UI_but_func_set(bt, curvemap_buttons_zoom_in, cumap, NULL);
 
+  /* Zoom out */
   bt = uiDefIconBut(block,
                     UI_BTYPE_BUT,
                     0,
@@ -4413,96 +4387,52 @@ static void curvemap_buttons_layout(uiLayout *layout,
                     TIP_("Zoom out"));
   UI_but_func_set(bt, curvemap_buttons_zoom_out, cumap, NULL);
 
-  if (brush && neg_slope) {
-    bt = uiDefIconBlockBut(block,
-                           curvemap_brush_tools_negslope_func,
-                           cumap,
-                           0,
-                           ICON_DOWNARROW_HLT,
-                           0,
-                           0,
-                           dx,
-                           dx,
-                           TIP_("Tools"));
-  }
-  else if (brush) {
-    bt = uiDefIconBlockBut(block,
-                           curvemap_brush_tools_func,
-                           cumap,
-                           0,
-                           ICON_DOWNARROW_HLT,
-                           0,
-                           0,
-                           dx,
-                           dx,
-                           TIP_("Tools"));
-  }
-  else if (neg_slope) {
-    bt = uiDefIconBlockBut(block,
-                           curvemap_tools_negslope_func,
-                           cumap,
-                           0,
-                           ICON_DOWNARROW_HLT,
-                           0,
-                           0,
-                           dx,
-                           dx,
-                           TIP_("Tools"));
-  }
-  else {
-    bt = uiDefIconBlockBut(block,
-                           curvemap_tools_posslope_func,
-                           cumap,
-                           0,
-                           ICON_DOWNARROW_HLT,
-                           0,
-                           0,
-                           dx,
-                           dx,
-                           TIP_("Tools"));
-  }
-
-  UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
-
+  /* Clippoing button. */
   const int icon = (cumap->flag & CUMA_DO_CLIP) ? ICON_CLIPUV_HLT : ICON_CLIPUV_DEHLT;
   bt = uiDefIconBlockBut(
       block, curvemap_clipping_func, cumap, 0, icon, 0, 0, dx, dx, TIP_("Clipping Options"));
+  bt->drawflag &= ~UI_BUT_ICON_LEFT;
   UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
-  bt = uiDefIconBut(block,
-                    UI_BTYPE_BUT,
-                    0,
-                    ICON_X,
-                    0,
-                    0,
-                    dx,
-                    dx,
-                    NULL,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    TIP_("Delete points"));
-  UI_but_funcN_set(bt, curvemap_buttons_delete, MEM_dupallocN(cb), cumap);
-
-  UI_block_emboss_set(block, UI_EMBOSS);
+  if (brush && neg_slope) {
+    bt = uiDefIconBlockBut(
+        block, curvemap_brush_tools_negslope_func, cumap, 0, 0, 0, 0, dx, dx, TIP_("Tools"));
+  }
+  else if (brush) {
+    bt = uiDefIconBlockBut(
+        block, curvemap_brush_tools_func, cumap, 0, 0, 0, 0, dx, dx, TIP_("Tools"));
+  }
+  else if (neg_slope) {
+    bt = uiDefIconBlockBut(
+        block, curvemap_tools_negslope_func, cumap, 0, 0, 0, 0, dx, dx, TIP_("Tools"));
+  }
+  else {
+    bt = uiDefIconBlockBut(
+        block, curvemap_tools_posslope_func, cumap, 0, 0, 0, 0, dx, dx, TIP_("Tools"));
+  }
+  UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
   UI_block_funcN_set(block, rna_update_cb, MEM_dupallocN(cb), NULL);
 
-  /* curve itself */
+  /* Curve itself. */
   const int size = max_ii(uiLayoutGetWidth(layout), UI_UNIT_X);
   row = uiLayoutRow(layout, false);
   uiButCurveMapping *curve_but = (uiButCurveMapping *)uiDefBut(
-      block, UI_BTYPE_CURVE, 0, "", 0, 0, size, 8.0f * UI_UNIT_X, cumap, 0.0f, 1.0f, 0, 0, "");
+      block, UI_BTYPE_CURVE, 0, "", 0, 0, size, 8.0f * UI_UNIT_X, cumap, 0.0f, 1.0f, -1, 0, "");
   curve_but->gradient_type = bg;
 
-  /* sliders for selected point */
+  /* Sliders for selected curve point. */
+  int i;
   CurveMapPoint *cmp = NULL;
-  for (int i = 0; i < cm->totpoint; i++) {
+  bool point_last_or_first = false;
+  for (i = 0; i < cm->totpoint; i++) {
     if (cm->curve[i].flag & CUMA_SELECT) {
       cmp = &cm->curve[i];
       break;
     }
+  }
+  if (ELEM(i, 0, cm->totpoint - 1)) {
+    point_last_or_first = true;
   }
 
   if (cmp) {
@@ -4515,12 +4445,75 @@ static void curvemap_buttons_layout(uiLayout *layout,
       bounds.xmax = bounds.ymax = 1000.0;
     }
 
+    UI_block_emboss_set(block, UI_EMBOSS);
+
     uiLayoutRow(layout, true);
+
+    /* Curve handle buttons. */
+    bt = uiDefIconBut(block,
+                      UI_BTYPE_BUT,
+                      1,
+                      ICON_HANDLE_AUTO,
+                      0,
+                      UI_UNIT_Y,
+                      UI_UNIT_X,
+                      UI_UNIT_Y,
+                      NULL,
+                      0.0,
+                      0.0,
+                      0.0,
+                      0.0,
+                      TIP_("Auto Handle"));
+    UI_but_func_set(bt, curvemap_tools_handle_auto, cumap, NULL);
+    if (((cmp->flag & CUMA_HANDLE_AUTO_ANIM) == false) &&
+        ((cmp->flag & CUMA_HANDLE_VECTOR) == false)) {
+      bt->flag |= UI_SELECT_DRAW;
+    }
+
+    bt = uiDefIconBut(block,
+                      UI_BTYPE_BUT,
+                      1,
+                      ICON_HANDLE_VECTOR,
+                      0,
+                      UI_UNIT_Y,
+                      UI_UNIT_X,
+                      UI_UNIT_Y,
+                      NULL,
+                      0.0,
+                      0.0,
+                      0.0,
+                      0.0,
+                      TIP_("Vector Handle"));
+    UI_but_func_set(bt, curvemap_tools_handle_vector, cumap, NULL);
+    if (cmp->flag & CUMA_HANDLE_VECTOR) {
+      bt->flag |= UI_SELECT_DRAW;
+    }
+
+    bt = uiDefIconBut(block,
+                      UI_BTYPE_BUT,
+                      1,
+                      ICON_HANDLE_AUTOCLAMPED,
+                      0,
+                      UI_UNIT_Y,
+                      UI_UNIT_X,
+                      UI_UNIT_Y,
+                      NULL,
+                      0.0,
+                      0.0,
+                      0.0,
+                      0.0,
+                      TIP_("Auto Clamped"));
+    UI_but_func_set(bt, curvemap_tools_handle_auto_clamped, cumap, NULL);
+    if (cmp->flag & CUMA_HANDLE_AUTO_ANIM) {
+      bt->flag |= UI_SELECT_DRAW;
+    }
+
+    /* Curve handle position */
     UI_block_funcN_set(block, curvemap_buttons_update, MEM_dupallocN(cb), cumap);
     bt = uiDefButF(block,
                    UI_BTYPE_NUM,
                    0,
-                   "X",
+                   "X:",
                    0,
                    2 * UI_UNIT_Y,
                    UI_UNIT_X * 10,
@@ -4536,7 +4529,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
     bt = uiDefButF(block,
                    UI_BTYPE_NUM,
                    0,
-                   "Y",
+                   "Y:",
                    0,
                    1 * UI_UNIT_Y,
                    UI_UNIT_X * 10,
@@ -4549,6 +4542,26 @@ static void curvemap_buttons_layout(uiLayout *layout,
                    "");
     UI_but_number_step_size_set(bt, 1);
     UI_but_number_precision_set(bt, 5);
+
+    /* Curve handle delete point */
+    bt = uiDefIconBut(block,
+                      UI_BTYPE_BUT,
+                      0,
+                      ICON_X,
+                      0,
+                      0,
+                      dx,
+                      dx,
+                      NULL,
+                      0.0,
+                      0.0,
+                      0.0,
+                      0.0,
+                      TIP_("Delete points"));
+    UI_but_funcN_set(bt, curvemap_buttons_delete, MEM_dupallocN(cb), cumap);
+    if (point_last_or_first) {
+      UI_but_flag_enable(bt, UI_BUT_DISABLED);
+    }
   }
 
   /* black/white levels */
@@ -4995,11 +5008,6 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
   sub = uiLayoutRow(row, true);
   uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
 
-  /* Reset view, reset curve */
-  bt = uiDefIconBlockBut(
-      block, CurveProfile_buttons_tools, profile, 0, 0, 0, 0, UI_UNIT_X, UI_UNIT_X, TIP_("Tools"));
-  UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
-
   /* Flip path */
   bt = uiDefIconBut(block,
                     UI_BTYPE_BUT,
@@ -5034,6 +5042,11 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
                     0.0,
                     TIP_("Toggle Profile Clipping"));
   UI_but_funcN_set(bt, CurveProfile_clipping_toggle, MEM_dupallocN(cb), profile);
+
+  /* Reset view, reset curve */
+  bt = uiDefIconBlockBut(
+      block, CurveProfile_buttons_tools, profile, 0, 0, 0, 0, UI_UNIT_X, UI_UNIT_X, TIP_("Tools"));
+  UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
   UI_block_funcN_set(block, rna_update_cb, MEM_dupallocN(cb), NULL);
 
