@@ -60,7 +60,7 @@
 namespace blender::fn {
 
 class FieldInput;
-class FieldInputs;
+struct FieldInputs;
 
 /**
  * A node in a field-tree. It has at least one output that can be referenced by fields.
