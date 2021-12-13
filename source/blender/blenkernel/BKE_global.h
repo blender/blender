@@ -52,12 +52,6 @@ typedef struct Global {
 
   /** When set: `G_MAIN->filepath` contains valid relative base path. */
   bool relbase_valid;
-  /**
-   * When set:
-   * - Saving writes to `G_MAIN->filepath` without prompting for a file-path.
-   * - The title-bar displays `G_MAIN->filepath`.
-   */
-  bool save_over;
 
   /**
    * Strings of recently opened files to show in the file menu.

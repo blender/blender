@@ -957,11 +957,9 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
       /* When recovering a session from an unsaved file, this can have a blank path. */
       if (BKE_main_blendfile_path(bmain)[0] != '\0') {
-        G.save_over = 1;
         G.relbase_valid = 1;
       }
       else {
-        G.save_over = 0;
         G.relbase_valid = 0;
       }
 
@@ -1357,9 +1355,6 @@ void wm_homefile_read_ex(bContext *C,
     WM_check(C); /* opens window(s), checks keymaps */
 
     bmain->filepath[0] = '\0';
-
-    /* start with save preference untitled.blend */
-    G.save_over = 0;
   }
 
   {
@@ -1850,8 +1845,6 @@ static bool wm_file_write(bContext *C,
     if (use_save_as_copy == false) {
       G.relbase_valid = 1;
       STRNCPY(bmain->filepath, filepath); /* is guaranteed current file */
-
-      G.save_over = 1; /* disable untitled.blend convention */
     }
 
     SET_FLAG_FROM_TEST(G.fileflags, fileflags & G_FILE_COMPRESS, G_FILE_COMPRESS);
@@ -2126,7 +2119,6 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
 
   printf("ok\n");
   BKE_report(op->reports, RPT_INFO, "Startup file saved");
-  G.save_over = 0;
 
   BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_POST);
 
@@ -3011,7 +3003,7 @@ void WM_OT_recover_auto_save(wmOperatorType *ot)
 
 static void wm_filepath_default(char *filepath)
 {
-  if (G.save_over == false) {
+  if (G.relbase_valid == false) {
     BLI_path_filename_ensure(filepath, FILE_MAX, "untitled.blend");
   }
 }
@@ -3022,7 +3014,7 @@ static void save_set_compress(wmOperator *op)
 
   prop = RNA_struct_find_property(op->ptr, "compress");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    if (G.save_over) { /* keep flag for existing file */
+    if (G.relbase_valid) { /* keep flag for existing file */
       RNA_property_boolean_set(op->ptr, prop, (G.fileflags & G_FILE_COMPRESS) != 0);
     }
     else { /* use userdef for new file */
@@ -3210,7 +3202,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
     }
   }
 
-  if (G.save_over) {
+  if (G.relbase_valid) {
     char path[FILE_MAX];
 
     RNA_string_get(op->ptr, "filepath", path);

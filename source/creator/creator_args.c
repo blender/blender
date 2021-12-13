@@ -1996,7 +1996,6 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
        * save at the filename from the CLI. */
       STRNCPY(G_MAIN->filepath, filename);
       G.relbase_valid = true;
-      G.save_over = true;
       printf("... opened default scene instead; saving will write to: %s\n", filename);
     }
     else {
