@@ -38,6 +38,7 @@ set(SRC
   intern/multi_function_procedure.cc
   intern/multi_function_procedure_builder.cc
   intern/multi_function_procedure_executor.cc
+  intern/multi_function_procedure_optimization.cc
 
   FN_cpp_type.hh
   FN_cpp_type_make.hh
@@ -59,6 +60,7 @@ set(SRC
   FN_multi_function_procedure.hh
   FN_multi_function_procedure_builder.hh
   FN_multi_function_procedure_executor.hh
+  FN_multi_function_procedure_optimization.hh
   FN_multi_function_signature.hh
 )
 

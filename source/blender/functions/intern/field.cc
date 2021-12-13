@@ -21,6 +21,10 @@
 #include "BLI_vector_set.hh"
 
 #include "FN_field.hh"
+#include "FN_multi_function_procedure.hh"
+#include "FN_multi_function_procedure_builder.hh"
+#include "FN_multi_function_procedure_executor.hh"
+#include "FN_multi_function_procedure_optimization.hh"
 
 namespace blender::fn {
 
@@ -251,7 +255,9 @@ static void build_multi_function_procedure_for_fields(MFProcedure &procedure,
     builder.add_destruct(*variable);
   }
 
-  builder.add_return();
+  MFReturnInstruction &return_instr = builder.add_return();
+
+  procedure_optimization::move_destructs_up(procedure, return_instr);
 
   // std::cout << procedure.to_dot() << "\n";
   BLI_assert(procedure.validate());
