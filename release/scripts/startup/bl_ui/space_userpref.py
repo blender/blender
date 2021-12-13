@@ -596,9 +596,11 @@ class USERPREF_PT_system_cycles_devices(SystemPanel, CenterAlignMixIn, Panel):
 
     @classmethod
     def poll(cls, _context):
-        # No GPU rendering on macOS currently.
+        # No GPU rendering on macOS x86_64 currently.
+        import platform
         import sys
-        return bpy.app.build_options.cycles and sys.platform != "darwin"
+        return bpy.app.build_options.cycles and \
+               (sys.platform != "darwin" or platform.machine() == "arm64")
 
     def draw_centered(self, context, layout):
         prefs = context.preferences
