@@ -912,7 +912,10 @@ bool BKE_gpencil_stroke_shrink(bGPDstroke *gps, const float dist, const short mo
 
   return true;
 }
-bool BKE_gpencil_stroke_smooth_point(bGPDstroke *gps, int i, float inf)
+/**
+ * Apply smooth position to stroke point.
+ */
+bool BKE_gpencil_stroke_smooth_point(bGPDstroke *gps, int i, float inf, const bool smooth_caps)
 {
   bGPDspoint *pt = &gps->points[i];
   float sco[3] = {0.0f};
@@ -926,7 +929,7 @@ bool BKE_gpencil_stroke_smooth_point(bGPDstroke *gps, int i, float inf)
   /* Only affect endpoints by a fraction of the normal strength,
    * to prevent the stroke from shrinking too much
    */
-  if (!is_cyclic && ELEM(i, 0, gps->totpoints - 1)) {
+  if ((!smooth_caps) && (!is_cyclic && ELEM(i, 0, gps->totpoints - 1))) {
     inf *= 0.1f;
   }
 
@@ -3333,7 +3336,7 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
     for (i = start; i < end; i++) {
       pt = &gps_a->points[i];
       pt->pressure += (avg_pressure - pt->pressure) * ratio;
-      BKE_gpencil_stroke_smooth_point(gps_a, i, ratio * 0.6f);
+      BKE_gpencil_stroke_smooth_point(gps_a, i, ratio * 0.6f, false);
 
       ratio += step;
       /* In the center, reverse the ratio. */

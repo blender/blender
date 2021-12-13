@@ -61,6 +61,8 @@ DEF_ENUM(rna_enum_object_shaderfx_type_items)
 DEF_ENUM(rna_enum_modifier_triangulate_quad_method_items)
 DEF_ENUM(rna_enum_modifier_triangulate_ngon_method_items)
 DEF_ENUM(rna_enum_modifier_shrinkwrap_mode_items)
+DEF_ENUM(rna_enum_shrinkwrap_type_items)
+DEF_ENUM(rna_enum_shrinkwrap_face_cull_items)
 
 DEF_ENUM(rna_enum_image_type_items)
 DEF_ENUM(rna_enum_image_color_mode_items)

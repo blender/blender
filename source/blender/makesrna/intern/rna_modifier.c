@@ -381,6 +381,42 @@ const EnumPropertyItem rna_enum_modifier_shrinkwrap_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_shrinkwrap_type_items[] = {
+    {MOD_SHRINKWRAP_NEAREST_SURFACE,
+     "NEAREST_SURFACEPOINT",
+     0,
+     "Nearest Surface Point",
+     "Shrink the mesh to the nearest target surface"},
+    {MOD_SHRINKWRAP_PROJECT,
+     "PROJECT",
+     0,
+     "Project",
+     "Shrink the mesh to the nearest target surface along a given axis"},
+    {MOD_SHRINKWRAP_NEAREST_VERTEX,
+     "NEAREST_VERTEX",
+     0,
+     "Nearest Vertex",
+     "Shrink the mesh to the nearest target vertex"},
+    {MOD_SHRINKWRAP_TARGET_PROJECT,
+     "TARGET_PROJECT",
+     0,
+     "Target Normal Project",
+     "Shrink the mesh to the nearest target surface "
+     "along the interpolated vertex normals of the target"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_shrinkwrap_face_cull_items[] = {
+    {0, "OFF", 0, "Off", "No culling"},
+    {MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE,
+     "FRONT",
+     0,
+     "Front",
+     "No projection when in front of the face"},
+    {MOD_SHRINKWRAP_CULL_TARGET_BACKFACE, "BACK", 0, "Back", "No projection when behind the face"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifndef RNA_RUNTIME
 /* use eWarp_Falloff_*** & eHook_Falloff_***, they're in sync */
 static const EnumPropertyItem modifier_warp_falloff_items[] = {
@@ -4184,46 +4220,6 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem shrink_type_items[] = {
-      {MOD_SHRINKWRAP_NEAREST_SURFACE,
-       "NEAREST_SURFACEPOINT",
-       0,
-       "Nearest Surface Point",
-       "Shrink the mesh to the nearest target surface"},
-      {MOD_SHRINKWRAP_PROJECT,
-       "PROJECT",
-       0,
-       "Project",
-       "Shrink the mesh to the nearest target surface along a given axis"},
-      {MOD_SHRINKWRAP_NEAREST_VERTEX,
-       "NEAREST_VERTEX",
-       0,
-       "Nearest Vertex",
-       "Shrink the mesh to the nearest target vertex"},
-      {MOD_SHRINKWRAP_TARGET_PROJECT,
-       "TARGET_PROJECT",
-       0,
-       "Target Normal Project",
-       "Shrink the mesh to the nearest target surface "
-       "along the interpolated vertex normals of the target"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
-  static const EnumPropertyItem shrink_face_cull_items[] = {
-      {0, "OFF", 0, "Off", "No culling"},
-      {MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE,
-       "FRONT",
-       0,
-       "Front",
-       "No projection when in front of the face"},
-      {MOD_SHRINKWRAP_CULL_TARGET_BACKFACE,
-       "BACK",
-       0,
-       "Back",
-       "No projection when behind the face"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   srna = RNA_def_struct(brna, "ShrinkwrapModifier", "Modifier");
   RNA_def_struct_ui_text(srna,
                          "Shrinkwrap Modifier",
@@ -4235,7 +4231,7 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "wrap_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "shrinkType");
-  RNA_def_property_enum_items(prop, shrink_type_items);
+  RNA_def_property_enum_items(prop, rna_enum_shrinkwrap_type_items);
   RNA_def_property_ui_text(prop, "Wrap Method", "");
   RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
@@ -4248,7 +4244,7 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "cull_face", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "shrinkOpts");
-  RNA_def_property_enum_items(prop, shrink_face_cull_items);
+  RNA_def_property_enum_items(prop, rna_enum_shrinkwrap_face_cull_items);
   RNA_def_property_enum_funcs(
       prop, "rna_ShrinkwrapModifier_face_cull_get", "rna_ShrinkwrapModifier_face_cull_set", NULL);
   RNA_def_property_ui_text(

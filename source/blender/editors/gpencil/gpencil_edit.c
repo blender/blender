@@ -3949,7 +3949,7 @@ static void gpencil_smooth_stroke(bContext *C, wmOperator *op)
 
           /* perform smoothing */
           if (smooth_position) {
-            BKE_gpencil_stroke_smooth_point(gps, i, factor);
+            BKE_gpencil_stroke_smooth_point(gps, i, factor, false);
           }
           if (smooth_strength) {
             BKE_gpencil_stroke_smooth_strength(gps, i, factor);

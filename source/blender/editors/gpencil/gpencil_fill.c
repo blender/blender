@@ -1570,7 +1570,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   float smoothfac = 1.0f;
   for (int r = 0; r < 1; r++) {
     for (int i = 0; i < gps->totpoints; i++) {
-      BKE_gpencil_stroke_smooth_point(gps, i, smoothfac - reduce);
+      BKE_gpencil_stroke_smooth_point(gps, i, smoothfac - reduce, false);
     }
     reduce += 0.25f; /* reduce the factor */
   }

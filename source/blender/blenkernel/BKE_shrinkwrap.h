@@ -48,6 +48,7 @@ struct Mesh;
 struct ModifierEvalContext;
 struct Object;
 struct ShrinkwrapModifierData;
+struct ShrinkwrapGpencilModifierData;
 struct SpaceTransform;
 
 /* Information about boundary edges in the mesh. */
@@ -123,6 +124,13 @@ void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd,
                                const int defgrp_index,
                                float (*vertexCos)[3],
                                int numVerts);
+/* Implementation of the Shrinkwrap Grease Pencil modifier. */
+void shrinkwrapGpencilModifier_deform(struct ShrinkwrapGpencilModifierData *mmd,
+                                      struct Object *ob,
+                                      struct MDeformVert *dvert,
+                                      const int defgrp_index,
+                                      float (*vertexCos)[3],
+                                      int numVerts);
 
 /**
  * Used in `editmesh_mask_extract.c` to shrink-wrap the extracted mesh to the sculpt.

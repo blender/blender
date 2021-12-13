@@ -234,8 +234,12 @@ bool BKE_gpencil_stroke_sample(struct bGPdata *gpd,
  * \param gps: Stroke to smooth
  * \param i: Point index
  * \param inf: Amount of smoothing to apply
+ * \param smooth_caps: Apply smooth to stroke extremes
  */
-bool BKE_gpencil_stroke_smooth_point(struct bGPDstroke *gps, int i, float inf);
+bool BKE_gpencil_stroke_smooth_point(struct bGPDstroke *gps,
+                                     int i,
+                                     float inf,
+                                     const bool smooth_caps);
 /**
  * Apply smooth strength to stroke point.
  * \param gps: Stroke to smooth

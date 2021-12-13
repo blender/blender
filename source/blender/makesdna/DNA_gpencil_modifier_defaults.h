@@ -353,5 +353,26 @@
     .mat_nr = -1, \
   }
 
+#define _DNA_DEFAULT_ShrinkwrapGpencilModifierData \
+  { \
+    .target = NULL, \
+    .aux_target = NULL, \
+    .keep_dist = 0.05f, \
+    .shrink_type = MOD_SHRINKWRAP_NEAREST_SURFACE, \
+    .shrink_opts = MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR, \
+    .shrink_mode = 0, \
+    .proj_limit = 0.0f, \
+    .proj_axis = 0, \
+    .subsurf_levels = 0, \
+    .material = NULL, \
+    .layername = "", \
+    .vgname = "", \
+    .pass_index = 0, \
+    .flag = 0, \
+    .layer_pass = 0, \
+    .smooth_factor = 0.05f, \
+    .smooth_step = 1, \
+  }
+
 
 /* clang-format off */

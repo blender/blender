@@ -36,6 +36,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -50,7 +51,9 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_material.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_shrinkwrap.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -76,36 +79,84 @@ static GpencilVirtualModifierData virtualModifierCommonData;
  * each loop over all the geometry being evaluated.
  */
 
-void BKE_gpencil_lattice_init(Object *ob)
+/**
+ * Init grease pencil cache deform data.
+ * \param ob: Grease pencil object
+ */
+void BKE_gpencil_cache_data_init(Depsgraph *depsgraph, Object *ob)
 {
   LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
-    if (md->type == eGpencilModifierType_Lattice) {
-      LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;
-      Object *latob = NULL;
+    switch (md->type) {
+      case eGpencilModifierType_Lattice: {
+        LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;
+        Object *latob = NULL;
 
-      latob = mmd->object;
-      if ((!latob) || (latob->type != OB_LATTICE)) {
-        return;
+        latob = mmd->object;
+        if ((!latob) || (latob->type != OB_LATTICE)) {
+          return;
+        }
+        if (mmd->cache_data) {
+          BKE_lattice_deform_data_destroy(mmd->cache_data);
+        }
+
+        /* init deform data */
+        mmd->cache_data = BKE_lattice_deform_data_create(latob, ob);
+        break;
       }
-      if (mmd->cache_data) {
-        BKE_lattice_deform_data_destroy(mmd->cache_data);
+      case eGpencilModifierType_Shrinkwrap: {
+        ShrinkwrapGpencilModifierData *mmd = (ShrinkwrapGpencilModifierData *)md;
+        ob = mmd->target;
+        if (!ob) {
+          return;
+        }
+        if (mmd->cache_data) {
+          BKE_shrinkwrap_free_tree(mmd->cache_data);
+          MEM_SAFE_FREE(mmd->cache_data);
+        }
+        Object *ob_target = DEG_get_evaluated_object(depsgraph, ob);
+        Mesh *target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, false);
+        mmd->cache_data = MEM_callocN(sizeof(ShrinkwrapTreeData), __func__);
+        if (BKE_shrinkwrap_init_tree(
+                mmd->cache_data, target, mmd->shrink_type, mmd->shrink_mode, false)) {
+        }
+        else {
+          MEM_SAFE_FREE(mmd->cache_data);
+        }
+        break;
       }
 
-      /* init deform data */
-      mmd->cache_data = BKE_lattice_deform_data_create(latob, ob);
+      default:
+        break;
     }
   }
 }
 
-void BKE_gpencil_lattice_clear(Object *ob)
+/**
+ * Clear grease pencil cache deform data.
+ * \param ob: Grease pencil object
+ */
+void BKE_gpencil_cache_data_clear(Object *ob)
 {
   LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
-    if (md->type == eGpencilModifierType_Lattice) {
-      LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;
-      if ((mmd) && (mmd->cache_data)) {
-        BKE_lattice_deform_data_destroy(mmd->cache_data);
-        mmd->cache_data = NULL;
+    switch (md->type) {
+      case eGpencilModifierType_Lattice: {
+        LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;
+        if ((mmd) && (mmd->cache_data)) {
+          BKE_lattice_deform_data_destroy(mmd->cache_data);
+          mmd->cache_data = NULL;
+        }
+        break;
       }
+      case eGpencilModifierType_Shrinkwrap: {
+        ShrinkwrapGpencilModifierData *mmd = (ShrinkwrapGpencilModifierData *)md;
+        if ((mmd) && (mmd->cache_data)) {
+          BKE_shrinkwrap_free_tree(mmd->cache_data);
+          MEM_SAFE_FREE(mmd->cache_data);
+        }
+        break;
+      }
+      default:
+        break;
     }
   }
 }
@@ -699,7 +750,7 @@ void BKE_gpencil_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
   }
 
   /* Init general modifiers data. */
-  BKE_gpencil_lattice_init(ob);
+  BKE_gpencil_cache_data_init(depsgraph, ob);
 
   const bool time_remap = BKE_gpencil_has_time_modifiers(ob);
   bool is_first_lineart = true;
@@ -742,8 +793,8 @@ void BKE_gpencil_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
     }
   }
 
-  /* Clear any lattice data. */
-  BKE_gpencil_lattice_clear(ob);
+  /* Clear any cache data. */
+  BKE_gpencil_cache_data_clear(ob);
 
   MOD_lineart_clear_cache(&gpd->runtime.lineart_cache);
 }
@@ -900,6 +951,10 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
       for (int i = 0; i < gpmd->segments_len; i++) {
         gpmd->segments[i].dmd = gpmd;
       }
+    }
+    if (md->type == eGpencilModifierType_Shrinkwrap) {
+      ShrinkwrapGpencilModifierData *gpmd = (ShrinkwrapGpencilModifierData *)md;
+      gpmd->cache_data = NULL;
     }
   }
 }

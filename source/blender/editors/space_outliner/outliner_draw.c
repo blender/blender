@@ -2368,6 +2368,9 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
             case eGpencilModifierType_WeightAngle:
               data.icon = ICON_MOD_VERTEX_WEIGHT;
               break;
+            case eGpencilModifierType_Shrinkwrap:
+              data.icon = ICON_MOD_SHRINKWRAP;
+              break;
 
               /* Default */
             default:
