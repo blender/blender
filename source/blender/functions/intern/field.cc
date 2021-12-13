@@ -571,7 +571,7 @@ static std::shared_ptr<const FieldInputs> combine_field_inputs(Span<GField> fiel
     /* None of the field depends on an input. */
     return {};
   }
-  /* Check if all inputs are in the */
+  /* Check if all inputs are in the candidate. */
   Vector<const FieldInput *> inputs_not_in_candidate;
   for (const GField &field : fields) {
     const std::shared_ptr<const FieldInputs> &field_inputs = field.node().field_inputs();
@@ -604,7 +604,7 @@ static std::shared_ptr<const FieldInputs> combine_field_inputs(Span<GField> fiel
 FieldOperation::FieldOperation(const MultiFunction &function, Vector<GField> inputs)
     : FieldNode(false), function_(&function), inputs_(std::move(inputs))
 {
-  field_inputs_ = combine_field_inputs(inputs);
+  field_inputs_ = combine_field_inputs(inputs_);
 }
 
 /* --------------------------------------------------------------------
