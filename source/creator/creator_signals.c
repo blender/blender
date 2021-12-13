@@ -117,11 +117,11 @@ static void sig_handle_crash(int signum)
     if (memfile) {
       char fname[FILE_MAX];
 
-      if (!(G_MAIN && G_MAIN->name[0])) {
+      if (!(G_MAIN && G_MAIN->filepath[0])) {
         BLI_join_dirfile(fname, sizeof(fname), BKE_tempdir_base(), "crash.blend");
       }
       else {
-        BLI_strncpy(fname, G_MAIN->name, sizeof(fname));
+        STRNCPY(fname, G_MAIN->filepath);
         BLI_path_extension_replace(fname, sizeof(fname), ".crash.blend");
       }
 
@@ -138,11 +138,12 @@ static void sig_handle_crash(int signum)
 
   char fname[FILE_MAX];
 
-  if (!(G_MAIN && G_MAIN->name[0])) {
+  if (!(G_MAIN && G_MAIN->filepath[0])) {
     BLI_join_dirfile(fname, sizeof(fname), BKE_tempdir_base(), "blender.crash.txt");
   }
   else {
-    BLI_join_dirfile(fname, sizeof(fname), BKE_tempdir_base(), BLI_path_basename(G_MAIN->name));
+    BLI_join_dirfile(
+        fname, sizeof(fname), BKE_tempdir_base(), BLI_path_basename(G_MAIN->filepath));
     BLI_path_extension_replace(fname, sizeof(fname), ".crash.txt");
   }
 

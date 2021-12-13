@@ -74,7 +74,7 @@ typedef struct BlendFileData {
 
   int fileflags;
   int globalf;
-  char filename[1024]; /* 1024 = FILE_MAX */
+  char filepath[1024]; /* 1024 = FILE_MAX */
 
   struct bScreen *curscreen; /* TODO: think this isn't needed anymore? */
   struct Scene *curscene;

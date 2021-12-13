@@ -209,7 +209,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
     RNA_string_get(op->ptr, "directory", dir_only);
     if (relative) {
-      BLI_path_rel(dir_only, bmain->name);
+      BLI_path_rel(dir_only, bmain->filepath);
     }
 
     prop = RNA_struct_find_property(op->ptr, "files");
@@ -285,7 +285,7 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
   if (clip) {
     BLI_strncpy(path, clip->filepath, sizeof(path));
 
-    BLI_path_abs(path, CTX_data_main(C)->name);
+    BLI_path_abs(path, CTX_data_main(C)->filepath);
     BLI_path_parent_dir(path);
   }
   else {

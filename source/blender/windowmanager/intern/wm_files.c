@@ -1356,7 +1356,7 @@ void wm_homefile_read_ex(bContext *C,
   if (use_data) {
     WM_check(C); /* opens window(s), checks keymaps */
 
-    bmain->name[0] = '\0';
+    bmain->filepath[0] = '\0';
 
     /* start with save preference untitled.blend */
     G.save_over = 0;
@@ -1828,7 +1828,7 @@ static bool wm_file_write(bContext *C,
   /* First time saving. */
   /* XXX(ton): temp solution to solve bug, real fix coming. */
   if ((BKE_main_blendfile_path(bmain)[0] == '\0') && (use_save_as_copy == false)) {
-    BLI_strncpy(bmain->name, filepath, sizeof(bmain->name));
+    STRNCPY(bmain->filepath, filepath);
   }
 
   /* XXX(ton): temp solution to solve bug, real fix coming. */
@@ -1849,7 +1849,7 @@ static bool wm_file_write(bContext *C,
 
     if (use_save_as_copy == false) {
       G.relbase_valid = 1;
-      BLI_strncpy(bmain->name, filepath, sizeof(bmain->name)); /* is guaranteed current file */
+      STRNCPY(bmain->filepath, filepath); /* is guaranteed current file */
 
       G.save_over = 1; /* disable untitled.blend convention */
     }
@@ -3035,21 +3035,21 @@ static void save_set_filepath(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   PropertyRNA *prop;
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
 
   prop = RNA_struct_find_property(op->ptr, "filepath");
   if (!RNA_property_is_set(op->ptr, prop)) {
     /* if not saved before, get the name of the most recently used .blend file */
     if (BKE_main_blendfile_path(bmain)[0] == '\0' && G.recent_files.first) {
       struct RecentFile *recent = G.recent_files.first;
-      BLI_strncpy(name, recent->filepath, FILE_MAX);
+      STRNCPY(filepath, recent->filepath);
     }
     else {
-      BLI_strncpy(name, bmain->name, FILE_MAX);
+      STRNCPY(filepath, bmain->filepath);
     }
 
-    wm_filepath_default(name);
-    RNA_property_string_set(op->ptr, prop, name);
+    wm_filepath_default(filepath);
+    RNA_property_string_set(op->ptr, prop, filepath);
   }
 }
 

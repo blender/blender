@@ -148,7 +148,7 @@ bool seq_disk_cache_is_enabled(Main *bmain)
 {
   return (U.sequencer_disk_cache_dir[0] != '\0' && U.sequencer_disk_cache_size_limit != 0 &&
           (U.sequencer_disk_cache_flag & SEQ_CACHE_DISK_CACHE_ENABLE) != 0 &&
-          bmain->name[0] != '\0');
+          bmain->filepath[0] != '\0');
 }
 
 static DiskCacheFile *seq_disk_cache_add_file_to_list(SeqDiskCache *disk_cache, const char *path)

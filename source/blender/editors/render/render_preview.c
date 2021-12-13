@@ -461,7 +461,7 @@ static Scene *preview_prepare_scene(
   Scene *sce;
   Main *pr_main = sp->pr_main;
 
-  memcpy(pr_main->name, BKE_main_blendfile_path(bmain), sizeof(pr_main->name));
+  memcpy(pr_main->filepath, BKE_main_blendfile_path(bmain), sizeof(pr_main->filepath));
 
   sce = preview_get_scene(pr_main);
   if (sce) {

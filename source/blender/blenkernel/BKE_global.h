@@ -50,12 +50,12 @@ typedef struct Global {
   /** Last used location for library link/append. */
   char lib[1024];
 
-  /** When set: `G_MAIN->name` contains valid relative base path. */
+  /** When set: `G_MAIN->filepath` contains valid relative base path. */
   bool relbase_valid;
   /**
    * When set:
-   * - Saving writes to `G_MAIN->name` without prompting for a file-path.
-   * - The title-bar displays `G_MAIN->name`.
+   * - Saving writes to `G_MAIN->filepath` without prompting for a file-path.
+   * - The title-bar displays `G_MAIN->filepath`.
    */
   bool save_over;
 

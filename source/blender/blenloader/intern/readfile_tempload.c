@@ -39,7 +39,7 @@ TempLibraryContext *BLO_library_temp_load_id(struct Main *real_main,
   temp_lib_ctx->bf_reports.reports = reports;
 
   /* Copy the file path so any path remapping is performed properly. */
-  STRNCPY(temp_lib_ctx->bmain_base->name, real_main->name);
+  STRNCPY(temp_lib_ctx->bmain_base->filepath, real_main->filepath);
 
   temp_lib_ctx->blendhandle = BLO_blendhandle_from_file(blend_file_path,
                                                         &temp_lib_ctx->bf_reports);

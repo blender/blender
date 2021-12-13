@@ -116,12 +116,13 @@ enum {
 
 typedef struct Main {
   struct Main *next, *prev;
-  char name[1024];                   /* 1024 = FILE_MAX */
+  char filepath[1024];               /* 1024 = FILE_MAX */
   short versionfile, subversionfile; /* see BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION */
   short minversionfile, minsubversionfile;
   uint64_t build_commit_timestamp; /* commit's timestamp from buildinfo */
   char build_hash[16];             /* hash from buildinfo */
-  char recovered;                  /* indicate the main->name (file) is the recovered one */
+  /** Indicate the #Main.filepath (file) is the recovered one. */
+  char recovered;
   /** All current ID's exist in the last memfile undo step. */
   char is_memfile_undo_written;
   /**

@@ -314,9 +314,9 @@ void WM_init(bContext *C, int argc, const char **argv)
                       NULL,
                       &params_file_read_post);
 
-  /* NOTE: leave `G_MAIN->name` set to an empty string since this
+  /* NOTE: leave `G_MAIN->filepath` set to an empty string since this
    * matches behavior after loading a new file. */
-  BLI_assert(G_MAIN->name[0] == '\0');
+  BLI_assert(G_MAIN->filepath[0] == '\0');
 
   /* Call again to set from preferences. */
   BLT_lang_set(NULL);

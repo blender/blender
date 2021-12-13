@@ -50,7 +50,7 @@ typedef struct FileGlobal {
   /** Hash from buildinfo. */
   char build_hash[16];
   /** File path where this was saved, for recover (1024 = FILE_MAX). */
-  char filename[1024];
+  char filepath[1024];
 } FileGlobal;
 
 /* minversion: in file, the oldest past blender version you can use compliant */
