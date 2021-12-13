@@ -340,10 +340,6 @@ bool BPY_run_string_as_number(bContext *C,
   PyGILState_STATE gilstate;
   bool ok = true;
 
-  if (!r_value || !expr) {
-    return -1;
-  }
-
   if (expr[0] == '\0') {
     *r_value = 0.0;
     return ok;
@@ -369,7 +365,6 @@ bool BPY_run_string_as_string_and_size(bContext *C,
                                        char **r_value,
                                        size_t *r_value_size)
 {
-  BLI_assert(r_value && expr);
   PyGILState_STATE gilstate;
   bool ok = true;
 
@@ -407,7 +402,6 @@ bool BPY_run_string_as_intptr(bContext *C,
                               struct BPy_RunErrInfo *err_info,
                               intptr_t *r_value)
 {
-  BLI_assert(r_value && expr);
   PyGILState_STATE gilstate;
   bool ok = true;
 
