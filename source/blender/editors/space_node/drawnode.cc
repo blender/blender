@@ -2454,7 +2454,6 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
   }
 }
 
-
 static void node_composit_buts_sunbeams(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "source", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, "", ICON_NONE);

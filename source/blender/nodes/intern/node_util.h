@@ -23,20 +23,6 @@
 
 #pragma once
 
-#include "DNA_listBase.h"
-
-#include "BLI_utildefines.h"
-
-#include "BKE_node.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "NOD_socket.h"
-
-#include "GPU_material.h" /* For Shader muting GPU code... */
-
-#include "RNA_access.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,18 +42,18 @@ typedef struct bNodeExecData {
 
 /**** Storage Data ****/
 
-extern void node_free_curves(struct bNode *node);
-extern void node_free_standard_storage(struct bNode *node);
+void node_free_curves(struct bNode *node);
+void node_free_standard_storage(struct bNode *node);
 
-extern void node_copy_curves(struct bNodeTree *dest_ntree,
-                             struct bNode *dest_node,
-                             const struct bNode *src_node);
-extern void node_copy_standard_storage(struct bNodeTree *dest_ntree,
-                                       struct bNode *dest_node,
-                                       const struct bNode *src_node);
-extern void *node_initexec_curves(struct bNodeExecContext *context,
-                                  struct bNode *node,
-                                  bNodeInstanceKey key);
+void node_copy_curves(struct bNodeTree *dest_ntree,
+                      struct bNode *dest_node,
+                      const struct bNode *src_node);
+void node_copy_standard_storage(struct bNodeTree *dest_ntree,
+                                struct bNode *dest_node,
+                                const struct bNode *src_node);
+void *node_initexec_curves(struct bNodeExecContext *context,
+                           struct bNode *node,
+                           bNodeInstanceKey key);
 
 /**** Updates ****/
 void node_sock_label(struct bNodeSocket *sock, const char *name);
