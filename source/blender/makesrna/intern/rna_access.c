@@ -4987,6 +4987,10 @@ static char *rna_path_token_in_brackets(const char **path,
   return buf;
 }
 
+/**
+ * \return true when when the key in the path is correctly parsed and found in the collection
+ * or when the path is empty.
+ */
 static bool rna_path_parse_collection_key(const char **path,
                                           PointerRNA *ptr,
                                           PropertyRNA *prop,
@@ -5002,6 +5006,7 @@ static bool rna_path_parse_collection_key(const char **path,
     return true;
   }
 
+  bool found = false;
   if (**path == '[') {
     bool quoted;
     char *token;
@@ -5016,7 +5021,7 @@ static bool rna_path_parse_collection_key(const char **path,
     /* check for "" to see if it is a string */
     if (quoted) {
       if (RNA_property_collection_lookup_string(ptr, prop, token, r_nextptr)) {
-        /* pass */
+        found = true;
       }
       else {
         r_nextptr->data = NULL;
@@ -5029,7 +5034,7 @@ static bool rna_path_parse_collection_key(const char **path,
         return false; /* we can be sure the fixedbuf was used in this case */
       }
       if (RNA_property_collection_lookup_int(ptr, prop, intkey, r_nextptr)) {
-        /* pass */
+        found = true;
       }
       else {
         r_nextptr->data = NULL;
@@ -5042,7 +5047,7 @@ static bool rna_path_parse_collection_key(const char **path,
   }
   else {
     if (RNA_property_collection_type_get(ptr, prop, r_nextptr)) {
-      /* pass */
+      found = true;
     }
     else {
       /* ensure we quit on invalid values */
@@ -5050,7 +5055,7 @@ static bool rna_path_parse_collection_key(const char **path,
     }
   }
 
-  return true;
+  return found;
 }
 
 static bool rna_path_parse_array_index(const char **path,
