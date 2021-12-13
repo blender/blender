@@ -333,6 +333,11 @@
     .point_density = 30.0f,\
     .segment_influence = 0.0f,\
     .max_angle = DEG2RAD(170.0f),\
+    .rand_start_fac = 0.0f,\
+    .rand_end_fac = 0.0f,\
+    .rand_offset = 0.0f,\
+    .seed = 0,\
+    .step = 4,\
   }
 
 #define _DNA_DEFAULT_DashGpencilModifierData \

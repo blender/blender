@@ -3488,6 +3488,44 @@ static void rna_def_modifier_gpencillength(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "End Factor", "Absolute added length to the end of each stroke");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+  prop = RNA_def_property(srna, "random_start_factor", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "rand_start_fac");
+  RNA_def_property_ui_range(prop, -10.0f, 10.0f, 0.1, 1);
+  RNA_def_property_ui_text(prop,
+                           "Random Start Factor",
+                           "Size of random length added to the start of each stroke");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "random_end_factor", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "rand_end_fac");
+  RNA_def_property_ui_range(prop, -10.0f, 10.0f, 0.1, 1);
+  RNA_def_property_ui_text(
+      prop, "Random End Factor", "Size of random length added to the end of each stroke");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "random_offset", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "rand_offset");
+  RNA_def_property_ui_range(prop, 0.0f, 100.0f, 0.1, 3);
+  RNA_def_property_ui_text(
+      prop, "Random Noise Offset", "Smoothly offset each stroke's random value");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "use_random", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LENGTH_USE_RANDOM);
+  RNA_def_property_ui_text(prop, "Random", "Use random values over time");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "seed", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_ui_text(prop, "Seed", "Random seed");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "step", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "step");
+  RNA_def_property_range(prop, 1, 100);
+  RNA_def_property_ui_text(
+      prop, "Step", "Number of frames before recalculate random values again");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
   prop = RNA_def_property(srna, "overshoot_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "overshoot_fac");
   RNA_def_property_range(prop, 0.0f, 1.0f);
