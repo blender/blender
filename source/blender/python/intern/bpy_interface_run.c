@@ -80,6 +80,14 @@ typedef struct {
 } PyModuleObject;
 #endif
 
+/**
+ * Execute a file-path or text-block.
+ *
+ * \param reports: Report exceptions as errors (may be NULL).
+ * \param do_jump: See #BPY_run_text.
+ *
+ * \note Share a function for this since setup/cleanup logic is the same.
+ */
 static bool python_script_exec(
     bContext *C, const char *fn, struct Text *text, struct ReportList *reports, const bool do_jump)
 {
