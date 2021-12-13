@@ -141,8 +141,6 @@ const EnumPropertyItem rna_enum_beztriple_interpolation_mode_items[] = {
 static const EnumPropertyItem curve_type_items[] = {
     {CU_POLY, "POLY", 0, "Poly", ""},
     {CU_BEZIER, "BEZIER", 0, "Bezier", ""},
-    {CU_BSPLINE, "BSPLINE", 0, "BSpline", ""},
-    {CU_CARDINAL, "CARDINAL", 0, "Cardinal", ""},
     {CU_NURBS, "NURBS", 0, "Ease", ""},
     {0, NULL, 0, NULL, NULL},
 };
