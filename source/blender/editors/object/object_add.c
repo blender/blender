@@ -3101,11 +3101,11 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, NULL);
         newob = basen->object;
 
-        /* Decrement original point-cloud's usage count. */
+        /* Decrement original point cloud's usage count. */
         PointCloud *pointcloud = newob->data;
         id_us_min(&pointcloud->id);
 
-        /* Make a new copy of the point-cloud. */
+        /* Make a new copy of the point cloud. */
         newob->data = BKE_id_copy(bmain, &pointcloud->id);
       }
       else {

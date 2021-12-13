@@ -501,7 +501,7 @@ class NearestTransferFunction : public fn::MultiFunction {
     Array<int> mesh_indices;
     Array<float> mesh_distances;
 
-    /* If there is a point-cloud, find the closest points. */
+    /* If there is a point cloud, find the closest points. */
     if (use_points_) {
       point_indices.reinitialize(tot_samples);
       if (use_mesh_) {

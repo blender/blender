@@ -18,7 +18,7 @@
 
 /** \file
  * \ingroup bke
- * \brief General operations for point-clouds.
+ * \brief General operations for point clouds.
  */
 #ifdef __cplusplus
 extern "C" {
