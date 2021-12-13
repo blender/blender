@@ -6733,7 +6733,7 @@ static void operator_enum_search_update_fn(const struct bContext *C,
 
     StringSearch *search = BLI_string_search_new();
     for (const EnumPropertyItem *item = all_items; item->identifier; item++) {
-      BLI_string_search_add(search, item->name, (void *)item);
+      BLI_string_search_add(search, item->name, (void *)item, 0);
     }
 
     const EnumPropertyItem **filtered_items;
