@@ -1161,7 +1161,7 @@ float ED_view3d_offset_distance(const float mat[4][4],
 /**
  * Set the dist without moving the view (compensate with #RegionView3D.ofs)
  *
- * \note take care that viewinv is up to date, #ED_view3d_update_viewmat first.
+ * \note take care that #RegionView3d.viewinv is up to date, #ED_view3d_update_viewmat first.
  */
 void ED_view3d_distance_set(struct RegionView3D *rv3d, const float dist);
 /**

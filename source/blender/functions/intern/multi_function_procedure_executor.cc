@@ -682,8 +682,8 @@ class VariableState : NonCopyable, NonMovable {
 
   /**
    * Destruct the masked elements in this variable.
-   * \return True when all elements of this variable are unitialized and the variable state can be
-   *   released.
+   * \return True when all elements of this variable are initialized and the variable state can be
+   *  released.
    */
   bool destruct(IndexMask mask,
                 IndexMask full_mask,

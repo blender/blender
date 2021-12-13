@@ -229,7 +229,7 @@ void EDBM_select_mirrored(struct BMEditMesh *em,
  * actual distance.
  * \param use_select_bias:
  * - When true, selected vertices are given a 5 pixel bias
- *   to make them further than unselect verts.
+ *   to make them further than unselected vertices.
  * - When false, unselected vertices are given the bias.
  * \param use_cycle: Cycle over elements within #FIND_NEAR_CYCLE_THRESHOLD_MIN in order of index.
  */
@@ -570,7 +570,7 @@ bool ED_mesh_uv_texture_remove_active(struct Mesh *me);
 bool ED_mesh_uv_texture_remove_named(struct Mesh *me, const char *name);
 void ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me);
 /**
- * Without bContext, called in uvedit.
+ * Without a #bContext, called when UV-editing.
  */
 void ED_mesh_uv_loop_reset_ex(struct Mesh *me, const int layernum);
 bool ED_mesh_color_ensure(struct Mesh *me, const char *name);

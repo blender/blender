@@ -245,8 +245,6 @@ float musgrave_hybrid_multi_fractal(const float4 co,
  * \param H: fractal increment parameter.
  * \param lacunarity: gap between successive frequencies.
  * \param octaves: number of frequencies in the fBm.
- *
- * \param from "Texturing and Modelling: A procedural approach".
  */
 float musgrave_fBm(const float co, const float H, const float lacunarity, const float octaves);
 
@@ -256,8 +254,6 @@ float musgrave_fBm(const float co, const float H, const float lacunarity, const 
  * \param H: fractal increment parameter.
  * \param lacunarity: gap between successive frequencies.
  * \param octaves: number of frequencies in the fBm.
- *
- * \param from "Texturing and Modelling: A procedural approach".
  */
 float musgrave_fBm(const float2 co, const float H, const float lacunarity, const float octaves);
 /**
@@ -266,8 +262,6 @@ float musgrave_fBm(const float2 co, const float H, const float lacunarity, const
  * \param H: fractal increment parameter.
  * \param lacunarity: gap between successive frequencies.
  * \param octaves: number of frequencies in the fBm.
- *
- * \param from "Texturing and Modelling: A procedural approach".
  */
 float musgrave_fBm(const float3 co, const float H, const float lacunarity, const float octaves);
 /**
@@ -276,8 +270,6 @@ float musgrave_fBm(const float3 co, const float H, const float lacunarity, const
  * \param H: fractal increment parameter.
  * \param lacunarity: gap between successive frequencies.
  * \param octaves: number of frequencies in the fBm.
- *
- * \param from "Texturing and Modelling: A procedural approach".
  */
 float musgrave_fBm(const float4 co, const float H, const float lacunarity, const float octaves);
 
