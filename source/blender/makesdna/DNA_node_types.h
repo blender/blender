@@ -1204,6 +1204,16 @@ typedef struct NodeDenoise {
   char prefilter;
 } NodeDenoise;
 
+typedef struct NodeMapRange {
+  /* CustomDataType */
+  uint8_t data_type;
+
+  /* NodeMapRangeType. */
+  uint8_t interpolation_type;
+  uint8_t clamp;
+  char _pad[5];
+} NodeMapRange;
+
 typedef struct NodeAttributeClamp {
   /* CustomDataType. */
   uint8_t data_type;

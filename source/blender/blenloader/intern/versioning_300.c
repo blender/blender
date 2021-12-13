@@ -2432,6 +2432,22 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Add node storage for map range node. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type == SH_NODE_MAP_RANGE) {
+          if (node->storage == NULL) {
+            NodeMapRange *data = MEM_callocN(sizeof(NodeMapRange), __func__);
+            data->clamp = node->custom1;
+            data->data_type = CD_PROP_FLOAT;
+            data->interpolation_type = node->custom2;
+            node->storage = data;
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 301, 5)) {

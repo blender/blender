@@ -235,6 +235,7 @@ static void node_shader_buts_clamp(uiLayout *layout, bContext *UNUSED(C), Pointe
 
 static void node_shader_buts_map_range(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
+  uiItemR(layout, ptr, "data_type", DEFAULT_FLAGS, "", ICON_NONE);
   uiItemR(layout, ptr, "interpolation_type", DEFAULT_FLAGS, "", ICON_NONE);
   if (!ELEM(RNA_enum_get(ptr, "interpolation_type"),
             NODE_MAP_RANGE_SMOOTHSTEP,
