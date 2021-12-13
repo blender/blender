@@ -29,6 +29,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_session_uuid.h"
 
 #include "BKE_main.h"
@@ -281,14 +282,31 @@ void SEQ_relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
   }
 }
 
-static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int timeline_frame)
+static void sequencer_all_free_anim_ibufs(Editing *ed,
+                                          ListBase *seqbase,
+                                          int timeline_frame,
+                                          const int frame_range[2])
 {
   for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
-    if (!SEQ_time_strip_intersects_frame(seq, timeline_frame)) {
+    if (!SEQ_time_strip_intersects_frame(seq, timeline_frame) ||
+        !((frame_range[0] <= timeline_frame) && (frame_range[1] > timeline_frame))) {
       SEQ_relations_sequence_free_anim(seq);
     }
     if (seq->type == SEQ_TYPE_META) {
-      sequencer_all_free_anim_ibufs(&seq->seqbase, timeline_frame);
+      int meta_range[2];
+
+      MetaStack *ms = SEQ_meta_stack_active_get(ed);
+      if (ms != NULL && ms->parseq == seq) {
+        meta_range[0] = -MAXFRAME;
+        meta_range[1] = MAXFRAME;
+      }
+      else {
+        /* Limit frame range to meta strip. */
+        meta_range[0] = max_ii(frame_range[0], seq->startdisp);
+        meta_range[1] = min_ii(frame_range[1], seq->enddisp);
+      }
+
+      sequencer_all_free_anim_ibufs(ed, &seq->seqbase, timeline_frame, meta_range);
     }
   }
 }
@@ -299,7 +317,9 @@ void SEQ_relations_free_all_anim_ibufs(Scene *scene, int timeline_frame)
   if (ed == NULL) {
     return;
   }
-  sequencer_all_free_anim_ibufs(&ed->seqbase, timeline_frame);
+
+  const int frame_range[2] = {-MAXFRAME, MAXFRAME};
+  sequencer_all_free_anim_ibufs(ed, &ed->seqbase, timeline_frame, frame_range);
 }
 
 static Sequence *sequencer_check_scene_recursion(Scene *scene, ListBase *seqbase)
