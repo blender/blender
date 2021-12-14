@@ -152,44 +152,44 @@ static void imm_draw_circle(GPUPrimType prim_type,
                             const uint shdr_pos,
                             float x,
                             float y,
-                            float rad_x,
-                            float rad_y,
+                            float radius_x,
+                            float radius_y,
                             int nsegments)
 {
   immBegin(prim_type, nsegments);
   for (int i = 0; i < nsegments; i++) {
     const float angle = (float)(2 * M_PI) * ((float)i / (float)nsegments);
-    immVertex2f(shdr_pos, x + (rad_x * cosf(angle)), y + (rad_y * sinf(angle)));
+    immVertex2f(shdr_pos, x + (radius_x * cosf(angle)), y + (radius_y * sinf(angle)));
   }
   immEnd();
 }
 
-void imm_draw_circle_wire_2d(uint shdr_pos, float x, float y, float rad, int nsegments)
+void imm_draw_circle_wire_2d(uint shdr_pos, float x, float y, float radius, int nsegments)
 {
-  imm_draw_circle(GPU_PRIM_LINE_LOOP, shdr_pos, x, y, rad, rad, nsegments);
+  imm_draw_circle(GPU_PRIM_LINE_LOOP, shdr_pos, x, y, radius, radius, nsegments);
 }
 
-void imm_draw_circle_fill_2d(uint shdr_pos, float x, float y, float rad, int nsegments)
+void imm_draw_circle_fill_2d(uint shdr_pos, float x, float y, float radius, int nsegments)
 {
-  imm_draw_circle(GPU_PRIM_TRI_FAN, shdr_pos, x, y, rad, rad, nsegments);
+  imm_draw_circle(GPU_PRIM_TRI_FAN, shdr_pos, x, y, radius, radius, nsegments);
 }
 
 void imm_draw_circle_wire_aspect_2d(
-    uint shdr_pos, float x, float y, float rad_x, float rad_y, int nsegments)
+    uint shdr_pos, float x, float y, float radius_x, float radius_y, int nsegments)
 {
-  imm_draw_circle(GPU_PRIM_LINE_LOOP, shdr_pos, x, y, rad_x, rad_y, nsegments);
+  imm_draw_circle(GPU_PRIM_LINE_LOOP, shdr_pos, x, y, radius_x, radius_y, nsegments);
 }
 void imm_draw_circle_fill_aspect_2d(
-    uint shdr_pos, float x, float y, float rad_x, float rad_y, int nsegments)
+    uint shdr_pos, float x, float y, float radius_x, float radius_y, int nsegments)
 {
-  imm_draw_circle(GPU_PRIM_TRI_FAN, shdr_pos, x, y, rad_x, rad_y, nsegments);
+  imm_draw_circle(GPU_PRIM_TRI_FAN, shdr_pos, x, y, radius_x, radius_y, nsegments);
 }
 
 static void imm_draw_circle_partial(GPUPrimType prim_type,
                                     uint pos,
                                     float x,
                                     float y,
-                                    float rad,
+                                    float radius,
                                     int nsegments,
                                     float start,
                                     float sweep)
@@ -203,15 +203,15 @@ static void imm_draw_circle_partial(GPUPrimType prim_type,
     const float angle = interpf(angle_start, angle_end, ((float)i / (float)(nsegments - 1)));
     const float angle_sin = sinf(angle);
     const float angle_cos = cosf(angle);
-    immVertex2f(pos, x + rad * angle_cos, y + rad * angle_sin);
+    immVertex2f(pos, x + radius * angle_cos, y + radius * angle_sin);
   }
   immEnd();
 }
 
 void imm_draw_circle_partial_wire_2d(
-    uint pos, float x, float y, float rad, int nsegments, float start, float sweep)
+    uint pos, float x, float y, float radius, int nsegments, float start, float sweep)
 {
-  imm_draw_circle_partial(GPU_PRIM_LINE_STRIP, pos, x, y, rad, nsegments, start, sweep);
+  imm_draw_circle_partial(GPU_PRIM_LINE_STRIP, pos, x, y, radius, nsegments, start, sweep);
 }
 
 static void imm_draw_disk_partial(GPUPrimType prim_type,
@@ -257,29 +257,29 @@ void imm_draw_disk_partial_fill_2d(uint pos,
 }
 
 static void imm_draw_circle_3D(
-    GPUPrimType prim_type, uint pos, float x, float y, float rad, int nsegments)
+    GPUPrimType prim_type, uint pos, float x, float y, float radius, int nsegments)
 {
   immBegin(prim_type, nsegments);
   for (int i = 0; i < nsegments; i++) {
     float angle = (float)(2 * M_PI) * ((float)i / (float)nsegments);
-    immVertex3f(pos, x + rad * cosf(angle), y + rad * sinf(angle), 0.0f);
+    immVertex3f(pos, x + radius * cosf(angle), y + radius * sinf(angle), 0.0f);
   }
   immEnd();
 }
 
-void imm_draw_circle_wire_3d(uint pos, float x, float y, float rad, int nsegments)
+void imm_draw_circle_wire_3d(uint pos, float x, float y, float radius, int nsegments)
 {
-  imm_draw_circle_3D(GPU_PRIM_LINE_LOOP, pos, x, y, rad, nsegments);
+  imm_draw_circle_3D(GPU_PRIM_LINE_LOOP, pos, x, y, radius, nsegments);
 }
 
-void imm_draw_circle_dashed_3d(uint pos, float x, float y, float rad, int nsegments)
+void imm_draw_circle_dashed_3d(uint pos, float x, float y, float radius, int nsegments)
 {
-  imm_draw_circle_3D(GPU_PRIM_LINES, pos, x, y, rad, nsegments / 2);
+  imm_draw_circle_3D(GPU_PRIM_LINES, pos, x, y, radius, nsegments / 2);
 }
 
-void imm_draw_circle_fill_3d(uint pos, float x, float y, float rad, int nsegments)
+void imm_draw_circle_fill_3d(uint pos, float x, float y, float radius, int nsegments)
 {
-  imm_draw_circle_3D(GPU_PRIM_TRI_FAN, pos, x, y, rad, nsegments);
+  imm_draw_circle_3D(GPU_PRIM_TRI_FAN, pos, x, y, radius, nsegments);
 }
 
 void imm_draw_box_wire_2d(uint pos, float x1, float y1, float x2, float y2)
@@ -538,7 +538,7 @@ void imm_draw_cylinder_fill_3d(
 
 static void circball_array_fill(const float verts[CIRCLE_RESOL][3],
                                 const float cent[3],
-                                float rad,
+                                const float radius,
                                 const float tmat[4][4])
 {
   /* 32 values of sin function (still same result!) */
@@ -562,8 +562,8 @@ static void circball_array_fill(const float verts[CIRCLE_RESOL][3],
   float vx[3], vy[3];
   float *viter = (float *)verts;
 
-  mul_v3_v3fl(vx, tmat[0], rad);
-  mul_v3_v3fl(vy, tmat[1], rad);
+  mul_v3_v3fl(vx, tmat[0], radius);
+  mul_v3_v3fl(vy, tmat[1], radius);
 
   for (uint a = 0; a < CIRCLE_RESOL; a++, viter += 3) {
     viter[0] = cent[0] + sinval[a] * vx[0] + cosval[a] * vy[0];
@@ -572,11 +572,11 @@ static void circball_array_fill(const float verts[CIRCLE_RESOL][3],
   }
 }
 
-void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], uint pos)
+void imm_drawcircball(const float cent[3], float radius, const float tmat[4][4], uint pos)
 {
   float verts[CIRCLE_RESOL][3];
 
-  circball_array_fill(verts, cent, rad, tmat);
+  circball_array_fill(verts, cent, radius, tmat);
 
   immBegin(GPU_PRIM_LINE_LOOP, CIRCLE_RESOL);
   for (int i = 0; i < CIRCLE_RESOL; i++) {

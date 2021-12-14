@@ -176,7 +176,7 @@ char *BLI_str_replaceN(const char *__restrict str,
  * \param src: The character to replace.
  * \param dst: The character to replace with.
  */
-void BLI_str_replace_char(char *string, char src, char dst) ATTR_NONNULL();
+void BLI_str_replace_char(char *str, char src, char dst) ATTR_NONNULL();
 
 /**
  * Simple exact-match string replacement.

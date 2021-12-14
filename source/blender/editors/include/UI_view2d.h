@@ -198,7 +198,7 @@ void UI_view2d_multi_grid_draw(
  */
 void UI_view2d_dot_grid_draw(const struct View2D *v2d,
                              int grid_color_id,
-                             float step,
+                             float min_step,
                              int grid_levels);
 
 void UI_view2d_draw_lines_y__values(const struct View2D *v2d);
@@ -269,7 +269,7 @@ void UI_view2d_scrollers_draw(struct View2D *v2d, const struct rcti *mask_custom
  * (like for Animation Editor channel lists, to make the first entry more visible), these will be
  * the min-coordinates of the first item.
  * \param viewx, viewy: 2D-coordinates (in 2D-view / 'tot' rect space) to get the cell for
- * \param r_column, r_row: the 'coordinates' of the relevant 'cell'
+ * \param r_column, r_row: The 'coordinates' of the relevant 'cell'.
  */
 void UI_view2d_listview_view_to_cell(float columnwidth,
                                      float rowheight,
@@ -277,8 +277,8 @@ void UI_view2d_listview_view_to_cell(float columnwidth,
                                      float starty,
                                      float viewx,
                                      float viewy,
-                                     int *column,
-                                     int *row);
+                                     int *r_column,
+                                     int *r_row);
 
 /* Coordinate conversion. */
 
@@ -381,8 +381,8 @@ void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac);
 /**
  * Check if mouse is within scrollers
  *
- * \param x, y: Mouse coordinates in screen (not region) space.
- * \param r_scroll: Mapped view2d scroll flag.
+ * \param xy: Mouse coordinates in screen (not region) space.
+ * \param r_scroll: Return argument for the mapped view2d scroll flag.
  *
  * \return appropriate code for match.
  * - 'h' = in horizontal scroller.

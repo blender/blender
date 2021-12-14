@@ -301,10 +301,10 @@ extern "C" {
  * It can be executed during editing (blenkernel/node.cc) or rendering
  * (renderer/pipeline.c)
  *
- * \param rd: [struct RenderData]
+ * \param render_data: [struct RenderData]
  *   Render data for this composite, this won't always belong to a scene.
  *
- * \param editingtree: [struct bNodeTree]
+ * \param node_tree: [struct bNodeTree]
  *   reference to the compositor editing tree
  *
  * \param rendering: [true false]

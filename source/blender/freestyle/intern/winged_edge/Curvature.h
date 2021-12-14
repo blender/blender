@@ -124,7 +124,6 @@ class Face_Curvature_Info {
 
 /**
  * \param v: a #WVertex.
- * \param s: a #GtsSurface.
  * \param Kh: the Mean Curvature Normal at \a v.
  *
  * Computes the Discrete Mean Curvature Normal approximation at \a v.
@@ -147,7 +146,6 @@ bool gts_vertex_mean_curvature_normal(WVertex *v, Vec3r &Kh);
 
 /**
  * \param v: a #WVertex.
- * \param s: a #GtsSurface.
  * \param Kg: the Discrete Gaussian Curvature approximation at \a v.
  *
  * Computes the Discrete Gaussian Curvature approximation at \a v.
@@ -181,7 +179,6 @@ void gts_vertex_principal_curvatures(real Kh, real Kg, real *K1, real *K2);
 
 /**
  * \param v: a #WVertex.
- * \param s: a #GtsSurface.
  * \param Kh: mean curvature normal (a #Vec3r).
  * \param Kg: Gaussian curvature (a real).
  * \param e1: first principal curvature direction (direction of largest curvature).

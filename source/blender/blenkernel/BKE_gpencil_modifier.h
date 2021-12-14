@@ -328,7 +328,7 @@ void BKE_gpencil_modifier_copydata_ex(struct GpencilModifierData *md,
 /**
  * Set grease pencil modifier error.
  * \param md: Modifier data.
- * \param _format: Format.
+ * \param format: Format.
  */
 void BKE_gpencil_modifier_set_error(struct GpencilModifierData *md, const char *format, ...)
     ATTR_PRINTF_FORMAT(2, 3);

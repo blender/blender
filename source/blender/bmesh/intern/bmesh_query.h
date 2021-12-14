@@ -421,7 +421,7 @@ float BM_loop_calc_face_normal_safe(const BMLoop *l, float r_normal[3]) ATTR_NON
  * \param epsilon_sq: Value to avoid numeric errors (1e-5f works well).
  * \param r_normal: Resulting normal.
  */
-float BM_loop_calc_face_normal_safe_ex(const BMLoop *l, const float epsilon, float r_normal[3])
+float BM_loop_calc_face_normal_safe_ex(const BMLoop *l, const float epsilon_sq, float r_normal[3])
     ATTR_NONNULL();
 /**
  * A version of BM_loop_calc_face_normal_safe_ex which takes vertex coordinates.

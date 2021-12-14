@@ -44,7 +44,7 @@ typedef struct BLI_memiter BLI_memiter;
  *
  * Its intended that many elements can be stored per chunk.
  */
-BLI_memiter *BLI_memiter_create(unsigned int chunk_size)
+BLI_memiter *BLI_memiter_create(unsigned int chunk_size_min)
     ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 void *BLI_memiter_alloc(BLI_memiter *mi, unsigned int size)
     /* WARNING: `ATTR_MALLOC` attribute on #BLI_memiter_alloc causes crash, see: D2756. */

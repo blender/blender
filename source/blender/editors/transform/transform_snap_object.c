@@ -996,8 +996,6 @@ struct RaycastObjUserData {
 };
 
 /**
- * \param use_obedit: Uses the coordinates of BMesh (if any) to do the snapping;
- *
  * \note Duplicate args here are documented at #snapObjectsRay
  */
 static void raycast_obj_fn(SnapObjectContext *sctx,
@@ -2677,8 +2675,6 @@ struct SnapObjUserData {
 };
 
 /**
- * \param use_obedit: Uses the coordinates of BMesh (if any) to do the snapping;
- *
  * \note Duplicate args here are documented at #snapObjectsRay
  */
 static void snap_obj_fn(SnapObjectContext *sctx,

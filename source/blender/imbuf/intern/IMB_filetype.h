@@ -244,7 +244,7 @@ void imb_loadtiletiff(
  * not strictly correct, but are permitted anyhow.
  *
  * \param ibuf: Image buffer.
- * \param name: Name of the TIFF file to create.
+ * \param filepath: Name of the TIFF file to create.
  * \param flags: Currently largely ignored.
  *
  * \return 1 if the function is successful, 0 on failure.

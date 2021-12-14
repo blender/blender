@@ -132,7 +132,7 @@ bool SEQ_collection_has_strip(const struct Sequence *seq, const SeqCollection *c
  * \param collection: collection to which strip will be added
  * \return false if strip is already in set, otherwise true
  */
-bool SEQ_collection_append_strip(struct Sequence *seq, SeqCollection *data);
+bool SEQ_collection_append_strip(struct Sequence *seq, SeqCollection *collection);
 /**
  * Remove strip from collection.
  *
@@ -140,7 +140,7 @@ bool SEQ_collection_append_strip(struct Sequence *seq, SeqCollection *data);
  * \param collection: collection from which strip will be removed
  * \return true if strip exists in set and it was removed from set, otherwise false
  */
-bool SEQ_collection_remove_strip(struct Sequence *seq, SeqCollection *data);
+bool SEQ_collection_remove_strip(struct Sequence *seq, SeqCollection *collection);
 /**
  * Free strip collection.
  *
@@ -172,9 +172,9 @@ void SEQ_collection_exclude(SeqCollection *collection, SeqCollection *exclude_el
  */
 void SEQ_collection_expand(struct ListBase *seqbase,
                            SeqCollection *collection,
-                           void query_func(struct Sequence *seq_reference,
-                                           struct ListBase *seqbase,
-                                           SeqCollection *collection));
+                           void seq_query_func(struct Sequence *seq_reference,
+                                               struct ListBase *seqbase,
+                                               SeqCollection *collection));
 /**
  * Query strips from seqbase. seq_reference is used by query function as filter condition.
  *

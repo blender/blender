@@ -48,7 +48,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
                                            BMEdge **edge_net_init,
                                            const uint edge_net_init_len,
                                            bool use_partial_connect,
-                                           struct MemArena *arena,
+                                           struct MemArena *mem_arena,
                                            BMEdge ***r_edge_net_new,
                                            uint *r_edge_net_new_len) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2, 3, 6, 7, 8);

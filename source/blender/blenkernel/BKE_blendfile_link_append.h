@@ -38,9 +38,6 @@ typedef struct BlendfileLinkAppendContextItem BlendfileLinkAppendContextItem;
 
 /**
  * Allocate and initialize a new context to link/append data-blocks.
- *
- *  \param flag: A combination of #eFileSel_Params_Flag from DNA_space_types.h & #eBLOLibLinkFlags
- * from BLO_readfile.h
  */
 BlendfileLinkAppendContext *BKE_blendfile_link_append_context_new(
     struct LibraryLink_Params *params);
@@ -51,6 +48,9 @@ void BKE_blendfile_link_append_context_free(struct BlendfileLinkAppendContext *l
 /**
  * Set or clear flags in given \a lapp_context.
  *
+ * \param flag: A combination of:
+ * - #eFileSel_Params_Flag from `DNA_space_types.h` &
+ * - #eBLOLibLinkFlags * from `BLO_readfile.h`.
  * \param do_set: Set the given \a flag if true, clear it otherwise.
  */
 void BKE_blendfile_link_append_context_flag_set(struct BlendfileLinkAppendContext *lapp_context,

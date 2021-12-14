@@ -61,7 +61,7 @@ void imm_cpack(uint x);
  * \param shdr_pos: The vertex attribute number for position.
  * \param x: Horizontal center.
  * \param y: Vertical center.
- * \param rad: The circle's radius.
+ * \param radius: The circle's radius.
  * \param nsegments: The number of segments to use in drawing (more = smoother).
  */
 void imm_draw_circle_wire_2d(uint shdr_pos, float x, float y, float radius, int nsegments);
@@ -72,15 +72,15 @@ void imm_draw_circle_wire_2d(uint shdr_pos, float x, float y, float radius, int 
  * \param shdr_pos: The vertex attribute number for position.
  * \param x: Horizontal center.
  * \param y: Vertical center.
- * \param rad: The circle's radius.
+ * \param radius: The circle's radius.
  * \param nsegments: The number of segments to use in drawing (more = smoother).
  */
 void imm_draw_circle_fill_2d(uint shdr_pos, float x, float y, float radius, int nsegments);
 
 void imm_draw_circle_wire_aspect_2d(
-    uint shdr_pos, float x, float y, float rad_x, float rad_y, int nsegments);
+    uint shdr_pos, float x, float y, float radius_x, float radius_y, int nsegments);
 void imm_draw_circle_fill_aspect_2d(
-    uint shdr_pos, float x, float y, float rad_x, float rad_y, int nsegments);
+    uint shdr_pos, float x, float y, float radius_x, float radius_y, int nsegments);
 
 /**
  * Use this version when #GPUVertFormat has a vec3 position.
@@ -169,7 +169,7 @@ void imm_draw_cylinder_wire_3d(
 void imm_draw_cylinder_fill_3d(
     uint pos, float base, float top, float height, int slices, int stacks);
 
-void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], uint pos);
+void imm_drawcircball(const float cent[3], float radius, const float tmat[4][4], uint pos);
 #ifdef __cplusplus
 }
 #endif

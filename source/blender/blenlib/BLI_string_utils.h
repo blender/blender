@@ -163,7 +163,7 @@ bool BLI_uniquename(struct ListBase *list,
                     const char *defname,
                     char delim,
                     int name_offset,
-                    size_t len);
+                    size_t name_len);
 
 #ifdef __cplusplus
 }

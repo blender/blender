@@ -85,12 +85,12 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
  * since one side needs to have a different group to the other since a face that has vertices
  * attached to both won't have an affine transformation.
  *
- * \param verts_groups: Vertex aligned array of groups.
+ * \param verts_group: Vertex aligned array of groups.
  * Values are used as follows:
  * - >0: Each face is grouped with other faces of the same group.
  * -  0: Not in a group (don't handle these).
  * - -1: Don't use grouping logic (include any face that contains a vertex with this group).
- * \param verts_groups_count: The number of non-zero values in `verts_groups`.
+ * \param verts_group_count: The number of non-zero values in `verts_groups`.
  */
 BMPartialUpdate *BM_mesh_partial_create_from_verts_group_multi(
     BMesh *bm,

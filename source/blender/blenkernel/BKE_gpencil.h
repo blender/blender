@@ -471,7 +471,7 @@ struct Material *BKE_gpencil_brush_material_get(struct Brush *brush);
 /**
  * Set grease pencil brush material.
  * \param brush: Brush
- * \param ma: Material
+ * \param material: Material
  */
 void BKE_gpencil_brush_material_set(struct Brush *brush, struct Material *material);
 

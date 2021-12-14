@@ -45,7 +45,7 @@ size_t BLI_timecode_string_from_time(char *str,
                                      const size_t maxncpy,
                                      const int brevity_level,
                                      const float time_seconds,
-                                     const double scene_fps,
+                                     const double fps,
                                      const short timecode_style) ATTR_NONNULL();
 
 /**

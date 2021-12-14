@@ -666,7 +666,7 @@ void psys_calc_dmcache(struct Object *ob,
  */
 int psys_particle_dm_face_lookup(struct Mesh *mesh_final,
                                  struct Mesh *mesh_original,
-                                 int findex,
+                                 int findex_orig,
                                  const float fw[4],
                                  struct LinkNode **poly_nodes);
 

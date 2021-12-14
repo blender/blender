@@ -152,8 +152,6 @@ bool IMB_initImBuf(
  * Create a copy of a pixel buffer and wrap it to a new ImBuf
  * (transferring ownership to the in imbuf).
  * \attention Defined in allocimbuf.c
- *
- * \param take_ownership: When true, the buffers become owned by the resulting image.
  */
 struct ImBuf *IMB_allocFromBufferOwn(
     unsigned int *rect, float *rectf, unsigned int w, unsigned int h, unsigned int channels);
@@ -802,7 +800,7 @@ void IMB_freezbuffloatImBuf(struct ImBuf *ibuf);
  */
 /**
  * Replace pixels of entire image with solid color.
- * \param ibuf: An image to be filled with color. It must be 4 channel image.
+ * \param drect: An image to be filled with color. It must be 4 channel image.
  * \param col: RGBA color, which is assigned directly to both byte (via scaling) and float buffers.
  */
 void IMB_rectfill(struct ImBuf *drect, const float col[4]);

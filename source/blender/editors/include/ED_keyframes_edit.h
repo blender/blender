@@ -259,8 +259,7 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked,
                                  KeyframeEditFunc key_cb,
                                  FcuEditFunc fcu_cb);
 /**
- * Function for working with any type (i.e. one of the known types) of animation channel
- * \param filterflag: is bDopeSheet->flag (#DOPESHEET_FILTERFLAG).
+ * Function for working with any type (i.e. one of the known types) of animation channel.
  */
 short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
                                       struct bDopeSheet *ads,
@@ -269,8 +268,8 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
                                       KeyframeEditFunc key_cb,
                                       FcuEditFunc fcu_cb);
 /**
- * Same as above, except bAnimListElem wrapper is not needed...
- * \param keytype: is eAnim_KeyType.
+ * Same as above, except bAnimListElem wrapper is not needed.
+ * \param keytype: is #eAnim_KeyType.
  */
 short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked,
                                           struct bDopeSheet *ads,

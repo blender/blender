@@ -1202,8 +1202,6 @@ struct AssetMetaData *WM_drag_get_asset_meta_data(const struct wmDrag *drag, int
  *
  * Use #WM_drag_free_imported_drag_ID() as cancel callback of the drop-box, so that the asset
  * import is rolled back if the drop operator fails.
- *
- * \param flag: #eFileSel_Params_Flag passed to linking code.
  */
 struct ID *WM_drag_get_local_ID_or_import_from_asset(const struct wmDrag *drag, int idcode);
 

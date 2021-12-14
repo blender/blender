@@ -185,17 +185,16 @@ void ED_view3d_lastview_store(struct RegionView3D *rv3d);
 
 /* Depth buffer */
 typedef enum {
+  /** Redraw viewport without Grease Pencil and Annotations. */
   V3D_DEPTH_NO_GPENCIL = 0,
+  /** Redraw viewport with Grease Pencil and Annotations only. */
   V3D_DEPTH_GPENCIL_ONLY,
+  /** Redraw viewport with active object only. */
   V3D_DEPTH_OBJECT_ONLY,
+
 } eV3DDepthOverrideMode;
 /**
  * Redraw the viewport depth buffer.
- *
- * \param mode: V3D_DEPTH_NO_GPENCIL - Redraw viewport without Grease Pencil and Annotations.
- *              V3D_DEPTH_GPENCIL_ONLY - Redraw viewport with Grease Pencil and Annotations only.
- *              V3D_DEPTH_OBJECT_ONLY - Redraw viewport with active object only.
- * \param update_cache: If true, store the entire depth buffer in #rv3d->depths.
  */
 void ED_view3d_depth_override(struct Depsgraph *depsgraph,
                               struct ARegion *region,
@@ -549,19 +548,19 @@ bool ED_view3d_win_to_ray_clipped(struct Depsgraph *depsgraph,
                                   const struct ARegion *region,
                                   const struct View3D *v3d,
                                   const float mval[2],
-                                  float ray_start[3],
-                                  float ray_normal[3],
-                                  const bool do_clip);
+                                  float r_ray_start[3],
+                                  float r_ray_normal[3],
+                                  const bool do_clip_planes);
 /**
  * Calculate a 3d viewpoint and direction vector from 2d window coordinates.
- * This ray_start is located at the viewpoint, ray_normal is the direction towards mval.
+ * This ray_start is located at the viewpoint, ray_normal is the direction towards `mval`.
  * ray_start is clipped by the view near limit so points in front of it are always in view.
  * In orthographic view the resulting ray_normal will match the view vector.
  * This version also returns the ray_co point of the ray on window plane, useful to fix precision
- * issues esp. with ortho view, where default ray_start is set rather far away.
+ * issues especially with orthographic view, where default ray_start is set rather far away.
  * \param region: The region (used for the window width and height).
  * \param v3d: The 3d viewport (used for near clipping value).
- * \param mval: The area relative 2d location (such as event->mval, converted into float[2]).
+ * \param mval: The area relative 2d location (such as `event->mval`, converted into float[2]).
  * \param r_ray_co: The world-space point where the ray intersects the window plane.
  * \param r_ray_normal: The normalized world-space direction of towards mval.
  * \param r_ray_start: The world-space starting point of the ray.
@@ -575,12 +574,12 @@ bool ED_view3d_win_to_ray_clipped_ex(struct Depsgraph *depsgraph,
                                      float r_ray_co[3],
                                      float r_ray_normal[3],
                                      float r_ray_start[3],
-                                     bool do_clip);
+                                     bool do_clip_planes);
 /**
  * Calculate a 3d viewpoint and direction vector from 2d window coordinates.
- * This ray_start is located at the viewpoint, ray_normal is the direction towards mval.
+ * This ray_start is located at the viewpoint, ray_normal is the direction towards `mval`.
  * \param region: The region (used for the window width and height).
- * \param mval: The area relative 2d location (such as event->mval, converted into float[2]).
+ * \param mval: The area relative 2d location (such as `event->mval`, converted into float[2]).
  * \param r_ray_start: The world-space point where the ray intersects the window plane.
  * \param r_ray_normal: The normalized world-space direction of towards mval.
  *
@@ -605,7 +604,7 @@ void ED_view3d_global_to_vector(const struct RegionView3D *rv3d,
  * Calculate a 3d location from 2d window coordinates.
  * \param region: The region (used for the window width and height).
  * \param depth_pt: The reference location used to calculate the Z depth.
- * \param mval: The area relative location (such as event->mval converted to floats).
+ * \param mval: The area relative location (such as `event->mval` converted to floats).
  * \param r_out: The resulting world-space location.
  */
 void ED_view3d_win_to_3d(const struct View3D *v3d,
@@ -646,7 +645,7 @@ bool ED_view3d_win_to_3d_on_plane_int(const struct ARegion *region,
  * note that #ED_view3d_calc_zfac() must be called first to determine
  * the depth used to calculate the delta.
  * \param region: The region (used for the window width and height).
- * \param mval: The area relative 2d difference (such as event->mval[0] - other_x).
+ * \param mval: The area relative 2d difference (such as `event->mval[0] - other_x`).
  * \param out: The resulting world-space delta.
  */
 void ED_view3d_win_to_delta(const struct ARegion *region,
@@ -698,7 +697,7 @@ bool ED_view3d_win_to_segment_clipped(struct Depsgraph *depsgraph,
                                       const float mval[2],
                                       float r_ray_start[3],
                                       float r_ray_end[3],
-                                      const bool do_clip);
+                                      const bool do_clip_planes);
 void ED_view3d_ob_project_mat_get(const struct RegionView3D *v3d,
                                   const struct Object *ob,
                                   float r_pmat[4][4]);
@@ -791,7 +790,7 @@ void ED_view3d_clipping_local(struct RegionView3D *rv3d, const float mat[4][4]);
 /**
  * Return true when `co` is hidden by the 3D views clipping planes.
  *
- * \param local: When true use local (object-space) #ED_view3d_clipping_local must run first,
+ * \param is_local: When true use local (object-space) #ED_view3d_clipping_local must run first,
  * then all comparisons can be done in local-space.
  * \return True when `co` is outside all clipping planes.
  *

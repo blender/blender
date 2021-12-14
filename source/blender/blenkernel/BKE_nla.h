@@ -152,14 +152,14 @@ bool BKE_nlastrips_add_strip(ListBase *strips, struct NlaStrip *strip);
  * Convert 'islands' (i.e. continuous string of) selected strips to be
  * contained within 'Meta-Strips' which act as strips which contain strips.
  *
- * \param temp: are the meta-strips to be created 'temporary' ones used for transforms?
+ * \param is_temp: are the meta-strips to be created 'temporary' ones used for transforms?
  */
 void BKE_nlastrips_make_metas(ListBase *strips, bool is_temp);
 /**
  * Remove meta-strips (i.e. flatten the list of strips) from the top-level of the list of strips.
  *
- * \param sel: only consider selected meta-strips, otherwise all meta-strips are removed
- * \param onlyTemp: only remove the 'temporary' meta-strips used for transforms
+ * \param only_sel: only consider selected meta-strips, otherwise all meta-strips are removed
+ * \param only_temp: only remove the 'temporary' meta-strips used for transforms
  */
 void BKE_nlastrips_clear_metas(ListBase *strips, bool only_sel, bool only_temp);
 /**

@@ -128,9 +128,6 @@ void BKE_libblock_unlink(struct Main *bmain,
  *
  * \param old_idv: Unlike BKE_libblock_remap, can be NULL,
  * in which case all ID usages by given \a idv will be cleared.
- * \param us_min_never_null: If \a true and new_id is NULL,
- * 'NEVER_NULL' ID usages keep their old id, but this one still gets its user count decremented
- * (needed when given \a idv is going to be deleted right after being unlinked).
  */
 void BKE_libblock_relink_ex(struct Main *bmain,
                             void *idv,

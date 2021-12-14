@@ -536,14 +536,14 @@ GpencilModifierData *BKE_gpencil_modifiers_findby_type(Object *ob, GpencilModifi
   return md;
 }
 
-void BKE_gpencil_modifier_set_error(GpencilModifierData *md, const char *_format, ...)
+void BKE_gpencil_modifier_set_error(GpencilModifierData *md, const char *format, ...)
 {
   char buffer[512];
   va_list ap;
-  const char *format = TIP_(_format);
+  const char *format_tip = TIP_(format);
 
-  va_start(ap, _format);
-  vsnprintf(buffer, sizeof(buffer), format, ap);
+  va_start(ap, format);
+  vsnprintf(buffer, sizeof(buffer), format_tip, ap);
   va_end(ap);
   buffer[sizeof(buffer) - 1] = '\0';
 

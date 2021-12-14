@@ -476,7 +476,7 @@ void ED_gpencil_project_point_to_plane(const struct Scene *scene,
 void ED_gpencil_drawing_reference_get(const struct Scene *scene,
                                       const struct Object *ob,
                                       char align_flag,
-                                      float vec[3]);
+                                      float r_vec[3]);
 void ED_gpencil_project_stroke_to_view(struct bContext *C,
                                        struct bGPDlayer *gpl,
                                        struct bGPDstroke *gps);
