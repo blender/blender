@@ -71,13 +71,14 @@ void namestack_pop();
 /*
 Instructions to add a built-in channel:
 
-1. Add to brush_builtin_channels
+1. Add to brush_channel_define.h
 2. Add to BKE_brush_builtin_patch to insert it in old brushes (without converting data)
 
 To enable converting to/from old data:
 3. If not a boolean mapping to a bitflag: Add to brush_settings_map
 4. If a boolean mapping to a bitflag: Add to brush_flags_map_len.
 */
+
 #define ICON_NONE "NONE"
 
 /* clang-format off */

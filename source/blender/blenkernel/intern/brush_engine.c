@@ -1433,7 +1433,7 @@ int BKE_brush_channelset_get_vector(BrushChannelSet *chset,
 
   if (!ch) {
     printf("%s, unknown channel %s", __func__, idname);
-    return 0.0f;
+    return 0;
   }
 
   return BKE_brush_channel_get_vector(ch, r_vec, mapdata);

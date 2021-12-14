@@ -1204,6 +1204,7 @@ typedef struct UpdateNormalsTaskData {
   int tot_border_verts;
   int cd_sculpt_vert;
   int cd_vert_node_offset;
+  int cd_face_node_offset;
   int node_nr;
 } UpdateNormalsTaskData;
 
@@ -1215,26 +1216,59 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
   BMFace *f;
   UpdateNormalsTaskData *data = ((UpdateNormalsTaskData *)userdata) + n;
   PBVHNode *node = data->node;
-  int node_nr = data->node_nr;
+  const int node_nr = data->node_nr;
 
   BMVert **bordervs = NULL;
   BLI_array_declare(bordervs);
 
+  const int cd_face_node_offset = data->cd_face_node_offset;
+  const int cd_vert_node_offset = data->cd_vert_node_offset;
+
   node->flag |= PBVH_UpdateCurvatureDir;
 
-  TGSET_ITER (v, node->bm_unique_verts) {
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, v);
-    int ni2 = BM_ELEM_CD_GET_INT(v, data->cd_vert_node_offset);
-    bool bad = ni2 != node_nr || (mv->flag & SCULPTVERT_PBVH_BOUNDARY);
+#ifdef NORMAL_VERT_BAD
+#  undef NORMAL_VERT_BAD
+#endif
+#define NORMAL_VERT_BAD(v) \
+  (!v->e || BM_ELEM_CD_GET_INT((v), cd_vert_node_offset) != node_nr || \
+   (BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, (v))->flag & SCULPTVERT_PBVH_BOUNDARY))
 
+  const char tag = BM_ELEM_TAG_ALT;
+
+  TGSET_ITER (v, node->bm_unique_verts) {
     PBVH_CHECK_NAN(v->no);
 
-    if (bad) {
+    if (NORMAL_VERT_BAD(v)) {
+      v->head.hflag |= tag;
       BLI_array_append(bordervs, v);
+      continue;
     }
-    else {
-      zero_v3(v->no);
+
+    v->head.hflag &= ~tag;
+
+    BMEdge *e = v->e;
+    do {
+      BMLoop *l = e->l;
+
+      if (!l) {
+        continue;
+      }
+
+      do {
+        if (BM_ELEM_CD_GET_INT(l->f, cd_face_node_offset) != node_nr) {
+          v->head.hflag |= tag;
+          goto loop_exit;
+        }
+      } while ((l = l->radial_next) != e->l);
+    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+  loop_exit:
+
+    if (v->head.hflag & tag) {
+      BLI_array_append(bordervs, v);
+      continue;
     }
+
+    zero_v3(v->no);
   }
   TGSET_ITER_END
 
@@ -1245,13 +1279,9 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
 
     BMLoop *l = f->l_first;
     do {
-      MSculptVert *mv = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, l->v);
-      int ni2 = BM_ELEM_CD_GET_INT(l->v, data->cd_vert_node_offset);
-      bool bad = ni2 != node_nr || (mv->flag & SCULPTVERT_PBVH_BOUNDARY);
-
       PBVH_CHECK_NAN(l->v->no);
 
-      if (!bad) {
+      if (BM_ELEM_CD_GET_INT(l->v, cd_vert_node_offset) == node_nr && !(l->v->head.hflag & tag)) {
         add_v3_v3(l->v->no, f->no);
       }
     } while ((l = l->next) != f->l_first);
@@ -1259,13 +1289,14 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
   TGSET_ITER_END
 
   TGSET_ITER (v, node->bm_unique_verts) {
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(data->cd_sculpt_vert, v);
-    int ni2 = BM_ELEM_CD_GET_INT(v, data->cd_vert_node_offset);
-    bool bad = ni2 != node_nr || (mv->flag & SCULPTVERT_PBVH_BOUNDARY);
-
     PBVH_CHECK_NAN(v->no);
 
-    if (!bad) {
+    if (dot_v3v3(v->no, v->no) == 0.0f) {
+      BLI_array_append(bordervs, v);
+      continue;
+    }
+
+    if (!(v->head.hflag & tag)) {
       normalize_v3(v->no);
     }
   }
@@ -1281,12 +1312,12 @@ void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode)
 {
   TaskParallelSettings settings;
   UpdateNormalsTaskData *datas = MEM_calloc_arrayN(totnode, sizeof(*datas), "bmesh normal update");
-  BMesh *bm = pbvh->bm;
-
+  
   for (int i = 0; i < totnode; i++) {
     datas[i].node = nodes[i];
     datas[i].cd_sculpt_vert = pbvh->cd_sculpt_vert;
     datas[i].cd_vert_node_offset = pbvh->cd_vert_node_offset;
+    datas[i].cd_face_node_offset = pbvh->cd_face_node_offset;
     datas[i].node_nr = nodes[i] - pbvh->nodes;
 
     BKE_pbvh_bmesh_check_tris(pbvh, nodes[i]);
@@ -1295,8 +1326,11 @@ void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode)
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, datas, pbvh_update_normals_task_cb, &settings);
 
+  /* not sure it's worth calling BM_mesh_elem_index_ensure here */
+#if 0
   BLI_bitmap *visit = BLI_BITMAP_NEW(bm->totvert, "visit");
   BM_mesh_elem_index_ensure(bm, BM_VERT);
+#endif
 
   for (int i = 0; i < totnode; i++) {
     UpdateNormalsTaskData *data = datas + i;
@@ -1316,6 +1350,7 @@ void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode)
         continue;
       }
 
+#if 0
       if (v->head.index < 0 || v->head.index >= bm->totvert) {
         printf("%s: error, v->head.index was out of bounds!\n", __func__);
         continue;
@@ -1326,6 +1361,7 @@ void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode)
       }
 
       BLI_BITMAP_ENABLE(visit, v->head.index);
+#endif
 
       // manual iteration
       BMEdge *e = v->e;
@@ -1350,7 +1386,10 @@ void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode)
     MEM_SAFE_FREE(data->border_verts);
   }
 
+#if 0
   MEM_SAFE_FREE(visit);
+#endif
+
   MEM_SAFE_FREE(datas);
 }
 
