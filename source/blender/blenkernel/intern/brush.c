@@ -654,6 +654,10 @@ Brush *BKE_brush_add(Main *bmain, const char *name, const eObjectMode ob_mode)
 
   brush->ob_mode = ob_mode;
 
+  if (ob_mode & OB_MODE_SCULPT) {
+    BKE_brush_sculpt_reset(brush);
+  }
+
   return brush;
 }
 

@@ -237,7 +237,7 @@ MAKE_ENUM(blend,"Blending Mode","Brush blending mode",IMB_BLEND_MIX,{\
       {-1}
     })
 
-  MAKE_FLOAT_EX_EX(smooth_strength_factor,"Smooth Strength","Factor to control the strength of shift-smooth",0.1f,0.0f,10.0f,0.0f,2.0f,false,false,BRUSH_CHANNEL_INHERIT)
+  MAKE_FLOAT_EX_EX(smooth_strength_factor,"Smooth Strength","Factor to control the strength of shift-smooth",0.5f,0.0f,10.0f,0.0f,2.0f,false,false,BRUSH_CHANNEL_INHERIT)
   MAKE_FLOAT_EX_EX(smooth_strength_projection,"Smooth Projection","Factor to control the volume preservation of shift-smooth",0.0f,0.0f,1.0f,0.0f,1.0f,false,false,BRUSH_CHANNEL_INHERIT)
   MAKE_ENUM(smooth_deform_type,"Deformation","Deformation type that is used in the brush",BRUSH_SMOOTH_DEFORM_LAPLACIAN,{
       {BRUSH_SMOOTH_DEFORM_LAPLACIAN,
