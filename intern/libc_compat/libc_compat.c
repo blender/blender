@@ -21,6 +21,10 @@
  * incompatible with the system libraries that Blender is built on. To solve
  * this we add a few -ffast-math symbols that can be missing. */
 
+/** \file
+ * \ingroup intern_libc_compat
+ */
+
 #ifdef __linux__
 #  include <features.h>
 #  include <math.h>

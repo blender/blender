@@ -68,7 +68,7 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu,
                              bContext *C)
 {
   Main *bmain = CTX_data_main(C);
-  char mainstr[sizeof(bmain->name)];
+  char mainstr[sizeof(bmain->filepath)];
   int success = 0, fileflags;
 
   BLI_strncpy(mainstr, BKE_main_blendfile_path(bmain), sizeof(mainstr)); /* temporal store */
@@ -101,7 +101,7 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu,
 
   /* Restore, bmain has been re-allocated. */
   bmain = CTX_data_main(C);
-  BLI_strncpy(bmain->name, mainstr, sizeof(bmain->name));
+  STRNCPY(bmain->filepath, mainstr);
   G.fileflags = fileflags;
 
   if (success) {

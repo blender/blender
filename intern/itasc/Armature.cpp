@@ -1,5 +1,5 @@
 /** \file itasc/Armature.cpp
- * \ingroup itasc
+ * \ingroup intern_itasc
  */
 /*
  * Armature.cpp

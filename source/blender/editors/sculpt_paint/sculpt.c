@@ -258,13 +258,16 @@ BrushChannel *SCULPT_get_final_channel_intern(const SculptSession *ss,
   return ch;
 }
 
-/* Sculpt PBVH abstraction API
+/* -------------------------------------------------------------------- */
+/** \name Sculpt PBVH Abstraction API
+
  *
  * This is read-only, for writing use PBVH vertex iterators. There vd.index matches
  * the indices used here.
  *
  * For multi-resolution, the same vertex in multiple grids is counted multiple times, with
- * different index for each grid. */
+ * different index for each grid.
+ * \{ */
 
 void SCULPT_vertex_random_access_ensure(SculptSession *ss)
 {
@@ -2317,7 +2320,6 @@ void SCULPT_edge_get_verts(const SculptSession *ss,
                            const SculptEdgeRef edge,
                            SculptVertRef *r_v1,
                            SculptVertRef *r_v2)
-
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
@@ -2756,9 +2758,11 @@ void SCULPT_tag_update_overlays(bContext *C)
   }
 }
 
-/* Sculpt Flood Fill API
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Flood Fill API
  *
- * Iterate over connected vertices, starting from one or more initial vertices. */
+ * Iterate over connected vertices, starting from one or more initial vertices.
+ * \{ */
 
 void SCULPT_floodfill_init(SculptSession *ss, SculptFloodFill *flood)
 {
@@ -4434,6 +4438,7 @@ static void update_sculpt_normal(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 }
 
 static void calc_local_y(ViewContext *vc, const float center[3], float y[3])
+
 {
   Object *ob = vc->obact;
   float loc[3], mval_f[2] = {0.0f, 1.0f};
@@ -9904,3 +9909,5 @@ int SCULPT_vertex_valence_get(const struct SculptSession *ss, SculptVertRef vert
 
   return mv->valence;
 }
+
+/** \} */

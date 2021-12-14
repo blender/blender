@@ -132,7 +132,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
-  geometry_set = geometry_set_realize_instances(geometry_set);
+  geometry_set = geometry::realize_instances_legacy(geometry_set);
 
   const std::string result_name = params.extract_input<std::string>("Result");
   const std::string source_name = params.extract_input<std::string>("Attribute");

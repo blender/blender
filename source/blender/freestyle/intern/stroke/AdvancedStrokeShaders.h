@@ -119,7 +119,7 @@ class SmoothingShader : public StrokeShader {
    *    0.2
    *  \param iAnisoPoint:
    *    0
-   *  \param iAnisNormal:
+   *  \param iAnisoNormal:
    *    0
    *  \param iAnisoCurvature:
    *    0

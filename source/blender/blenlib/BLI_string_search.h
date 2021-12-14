@@ -26,8 +26,11 @@ StringSearch *BLI_string_search_new(void);
 /**
  * Add a new possible result to the search.
  * The caller keeps ownership of all parameters.
+ *
+ * \param weight: Can be used to customize the order when multiple items have the same match score.
  */
-void BLI_string_search_add(StringSearch *search, const char *str, void *user_data);
+void BLI_string_search_add(StringSearch *search, const char *str, void *user_data, int weight);
+
 /**
  * Filter and sort all previously added search items.
  * Returns an array containing the filtered user data.

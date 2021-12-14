@@ -634,6 +634,7 @@ void _va_mul_m3_series_9(float r[3][3],
   mul_m3_m3m3(r, r, m7);
   mul_m3_m3m3(r, r, m8);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -722,6 +723,7 @@ void _va_mul_m4_series_9(float r[4][4],
   mul_m4_m4m4(r, r, m7);
   mul_m4_m4m4(r, r, m8);
 }
+
 /** \} */
 
 void mul_v2_m3v2(float r[2], const float m[3][3], const float v[2])

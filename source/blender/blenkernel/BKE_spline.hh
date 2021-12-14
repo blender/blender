@@ -196,9 +196,16 @@ class Spline {
      */
     float factor;
   };
+  /**
+   * Find the position on the evaluated spline at the given portion of the total length.
+   * The return value is the indices of the two neighboring points at that location and the
+   * factor between them, which can be used to look up any attribute on the evaluated points.
+   * \note This does not support extrapolation.
+   */
   LookupResult lookup_evaluated_factor(const float factor) const;
   /**
-   * \note This does not support extrapolation currently.
+   * The same as #lookup_evaluated_factor, but looks up a length directly instead of
+   * a portion of the total.
    */
   LookupResult lookup_evaluated_length(const float length) const;
 
@@ -698,6 +705,7 @@ struct CurveEval {
    * \warning Call #reallocate on the spline's attributes after adding all splines.
    */
   void add_spline(SplinePtr spline);
+  void add_splines(blender::MutableSpan<SplinePtr> splines);
   void remove_splines(blender::IndexMask mask);
 
   void translate(const blender::float3 &translation);

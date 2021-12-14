@@ -103,8 +103,10 @@ wmKeyMap *eyedropper_colorband_modal_keymap(wmKeyConfig *keyconf)
 /* -------------------------------------------------------------------- */
 /* Utility Functions
  */
+
 /** \name Generic Shared Functions
  * \{ */
+
 static void eyedropper_draw_cursor_text_ex(const int x, const int y, const char *name)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;

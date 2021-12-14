@@ -149,6 +149,7 @@ static void wm_region_draw_overlay(bContext *C, ScrArea *area, ARegion *region)
 }
 
 /** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */

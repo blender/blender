@@ -20,6 +20,10 @@
 //
 // Author: Sergey Sharybin <sergey.vfx@gmail.com>
 
+/** \file
+ * \ingroup intern_numaapi
+ */
+
 #include "build_config.h"
 
 #if OS_WIN

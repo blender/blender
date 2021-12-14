@@ -51,7 +51,7 @@ static MetaData create_abc_metadata(const Main *bmain, double scene_fps)
 {
   MetaData abc_metadata;
 
-  std::string abc_user_description(bmain->name);
+  std::string abc_user_description(bmain->filepath);
   if (abc_user_description.empty()) {
     abc_user_description = "unknown";
   }

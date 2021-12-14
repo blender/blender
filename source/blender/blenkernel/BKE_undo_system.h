@@ -171,17 +171,20 @@ typedef enum eUndoTypeFlags {
   UNDOTYPE_FLAG_DECODE_ACTIVE_STEP = 1 << 1,
 } eUndoTypeFlags;
 
-/* Expose since we need to perform operations on specific undo types (rarely). */
+/* -------------------------------------------------------------------- */
 /** \name Public Undo Types
  *
- * Unfortunately we need this for a handful of places.
+ * Expose since we need to perform operations on specific undo types (rarely).
  * \{ */
+
 extern const UndoType *BKE_UNDOSYS_TYPE_IMAGE;
 extern const UndoType *BKE_UNDOSYS_TYPE_MEMFILE;
 extern const UndoType *BKE_UNDOSYS_TYPE_PAINTCURVE;
 extern const UndoType *BKE_UNDOSYS_TYPE_PARTICLE;
 extern const UndoType *BKE_UNDOSYS_TYPE_SCULPT;
 extern const UndoType *BKE_UNDOSYS_TYPE_TEXT;
+
+/** \} */
 
 #define BKE_UNDOSYS_TYPE_IS_MEMFILE_SKIP(ty) ELEM(ty, BKE_UNDOSYS_TYPE_IMAGE)
 

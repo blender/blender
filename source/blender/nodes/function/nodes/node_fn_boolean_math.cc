@@ -47,7 +47,10 @@ static void node_boolean_math_update(bNodeTree *ntree, bNode *node)
       ntree, sockB, ELEM(node->custom1, NODE_BOOLEAN_MATH_AND, NODE_BOOLEAN_MATH_OR));
 }
 
-static void node_boolean_math_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
+static void node_boolean_math_label(const bNodeTree *UNUSED(ntree),
+                                    const bNode *node,
+                                    char *label,
+                                    int maxlen)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_boolean_math_items, node->custom1, &name);
@@ -92,7 +95,7 @@ void register_node_type_fn_boolean_math()
 
   fn_node_type_base(&ntype, FN_NODE_BOOLEAN_MATH, "Boolean Math", NODE_CLASS_CONVERTER, 0);
   ntype.declare = blender::nodes::fn_node_boolean_math_declare;
-  node_type_label(&ntype, blender::nodes::node_boolean_math_label);
+  ntype.labelfunc = blender::nodes::node_boolean_math_label;
   node_type_update(&ntype, blender::nodes::node_boolean_math_update);
   ntype.build_multi_function = blender::nodes::fn_node_boolean_math_build_multi_function;
   ntype.draw_buttons = blender::nodes::fn_node_boolean_math_layout;

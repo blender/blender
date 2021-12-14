@@ -76,7 +76,7 @@ class BPathTest : public testing::Test {
   void SetUp() override
   {
     bmain = BKE_main_new();
-    BLI_strncpy(bmain->name, BLENDFILE_PATH, sizeof(bmain->name));
+    STRNCPY(bmain->filepath, BLENDFILE_PATH);
 
     BKE_id_new(bmain, ID_TXT, nullptr);
     BKE_id_new(bmain, ID_MC, nullptr);

@@ -285,8 +285,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Array<std::string> hit_names = {params.extract_input<std::string>("Target Attribute")};
   const Array<std::string> hit_output_names = {params.extract_input<std::string>("Hit Attribute")};
 
-  geometry_set = bke::geometry_set_realize_instances(geometry_set);
-  target_geometry_set = bke::geometry_set_realize_instances(target_geometry_set);
+  geometry_set = geometry::realize_instances_legacy(geometry_set);
+  target_geometry_set = geometry::realize_instances_legacy(target_geometry_set);
 
   static const Array<GeometryComponentType> types = {
       GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE};

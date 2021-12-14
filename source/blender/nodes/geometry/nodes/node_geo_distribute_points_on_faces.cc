@@ -399,16 +399,12 @@ static Array<float> calc_full_density_factors_with_selection(const MeshComponent
   GeometryComponentFieldContext field_context{component, attribute_domain};
   const int domain_size = component.attribute_domain_size(attribute_domain);
 
-  fn::FieldEvaluator selection_evaluator{field_context, domain_size};
-  selection_evaluator.add(selection_field);
-  selection_evaluator.evaluate();
-  const IndexMask selection_mask = selection_evaluator.get_evaluated_as_mask(0);
-
   Array<float> densities(domain_size, 0.0f);
 
-  fn::FieldEvaluator density_evaluator{field_context, &selection_mask};
-  density_evaluator.add_with_destination(density_field, densities.as_mutable_span());
-  density_evaluator.evaluate();
+  fn::FieldEvaluator evaluator{field_context, domain_size};
+  evaluator.set_selection(selection_field);
+  evaluator.add_with_destination(density_field, densities.as_mutable_span());
+  evaluator.evaluate();
   return densities;
 }
 

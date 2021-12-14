@@ -1,5 +1,5 @@
 /** \file itasc/eigen_types.cpp
- * \ingroup itasc
+ * \ingroup intern_itasc
  */
 /*
  * eigen_types.cpp

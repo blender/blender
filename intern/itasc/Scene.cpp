@@ -1,5 +1,5 @@
 /** \file itasc/Scene.cpp
- * \ingroup itasc
+ * \ingroup intern_itasc
  */
 /*
  * Scene.cpp

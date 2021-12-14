@@ -156,9 +156,6 @@ bool BKE_lib_override_library_proxy_convert(struct Main *bmain,
  * Convert all proxy objects into library overrides.
  *
  * \note Only affects local proxies, linked ones are not affected.
- *
- * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
- *                    which case \a scene's master collection children hierarchy is used instead).
  */
 void BKE_lib_override_library_main_proxy_convert(struct Main *bmain,
                                                  struct BlendFileReadReport *reports);

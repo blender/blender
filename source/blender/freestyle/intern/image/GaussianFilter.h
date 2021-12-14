@@ -37,14 +37,16 @@ namespace Freestyle {
 class GaussianFilter {
  protected:
   /* The mask is a symmetrical 2d array (with respect to the middle point).
-   * Thus, M(i,j) = M(-i,j) = M(i,-j) = M(-i,-j).
-   * For this reason, to represent a NxN array (N odd), we only store a ((N+1)/2)x((N+1)/2) array.
-   */
+   * Thus: `M(i,j) = M(-i,j) = M(i,-j) = M(-i,-j)`.
+   * For this reason, to represent a NxN array (N odd),
+   * we only store a `((N+1)/2)x((N+1)/2)` array. */
+
+  /** The sigma value of the gaussian function. */
   float _sigma;
   float *_mask;
   int _bound;
-  // the real mask size (must be odd)(the size of the mask we store is
-  // ((_maskSize+1)/2)*((_maskSize+1)/2))
+  /* the real mask size (must be odd)(the size of the mask we store is:
+   * `((_maskSize+1)/2)*((_maskSize+1)/2))`. */
   int _maskSize;
   int _storedMaskSize;  // (_maskSize+1)/2)
 
@@ -65,8 +67,6 @@ class GaussianFilter {
    *    The abscissa of the pixel where we want to evaluate the gaussian blur.
    *  \param y:
    *    The ordinate of the pixel where we want to evaluate the gaussian blur.
-   *  \param sigma:
-   *    The sigma value of the gaussian function.
    */
   template<class Map> float getSmoothedPixel(Map *map, int x, int y);
 

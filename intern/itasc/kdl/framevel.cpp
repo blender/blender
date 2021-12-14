@@ -1,5 +1,5 @@
 /** \file itasc/kdl/framevel.cpp
- * \ingroup itasc
+ * \ingroup intern_itasc
  */
 /*****************************************************************************
  *  	Erwin Aertbelien, Div. PMA, Dep. of Mech. Eng., K.U.Leuven

@@ -556,12 +556,17 @@ endif()
 ###########################################################################
 
 if(WITH_CYCLES_DEVICE_METAL)
-  FIND_LIBRARY(METAL_LIBRARY Metal)
-  if (METAL_LIBRARY)
-    message(STATUS "Found Metal: ${METAL_LIBRARY}")
-  else()
+  find_library(METAL_LIBRARY Metal)
+
+  # This file was added in the 12.0 SDK, use it as a way to detect the version.
+  if (METAL_LIBRARY AND NOT EXISTS "${METAL_LIBRARY}/Headers/MTLFunctionStitching.h")
+    message(STATUS "Metal version too old, must be SDK 12.0 or newer, disabling WITH_CYCLES_DEVICE_METAL")
+    set(WITH_CYCLES_DEVICE_METAL OFF)
+  elseif (NOT METAL_LIBRARY)
     message(STATUS "Metal not found, disabling WITH_CYCLES_DEVICE_METAL")
     set(WITH_CYCLES_DEVICE_METAL OFF)
+  else()
+    message(STATUS "Found Metal: ${METAL_LIBRARY}")
   endif()
 endif()
 

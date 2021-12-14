@@ -258,7 +258,10 @@ typedef struct bNodeType {
    * Optional custom label function for the node header.
    * \note Used as a fallback when #bNode.label isn't set.
    */
-  void (*labelfunc)(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
+  void (*labelfunc)(const struct bNodeTree *ntree,
+                    const struct bNode *node,
+                    char *label,
+                    int maxlen);
 
   /** Called when the node is updated in the editor. */
   void (*updatefunc)(struct bNodeTree *ntree, struct bNode *node);
@@ -538,6 +541,7 @@ void ntreeBlendReadExpand(struct BlendExpander *expander, struct bNodeTree *ntre
 /* -------------------------------------------------------------------- */
 /** \name Node Tree Interface
  * \{ */
+
 struct bNodeSocket *ntreeFindSocketInterface(struct bNodeTree *ntree,
                                              eNodeSocketInOut in_out,
                                              const char *identifier);
@@ -967,7 +971,7 @@ void BKE_node_preview_set_pixel(
 /** \name Node Type Access
  * \{ */
 
-void nodeLabel(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
+void nodeLabel(const struct bNodeTree *ntree, const struct bNode *node, char *label, int maxlen);
 /**
  * Get node socket label if it is set.
  */
@@ -1000,9 +1004,6 @@ void node_type_storage(struct bNodeType *ntype,
                        void (*copyfunc)(struct bNodeTree *dest_ntree,
                                         struct bNode *dest_node,
                                         const struct bNode *src_node));
-void node_type_label(
-    struct bNodeType *ntype,
-    void (*labelfunc)(struct bNodeTree *ntree, struct bNode *, char *label, int maxlen));
 void node_type_update(struct bNodeType *ntype,
                       void (*updatefunc)(struct bNodeTree *ntree, struct bNode *node));
 void node_type_group_update(struct bNodeType *ntype,
@@ -1108,6 +1109,7 @@ bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
   } \
   } \
   ((void)0)
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1568,6 +1570,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
                      int cfra,
                      int preview,
                      struct MTex *mtex);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1719,6 +1722,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_INPUT_MESH_EDGE_NEIGHBORS 1143
 #define GEO_NODE_INPUT_MESH_ISLAND 1144
 #define GEO_NODE_INPUT_SCENE_TIME 1145
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

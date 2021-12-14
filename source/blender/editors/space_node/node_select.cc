@@ -1204,7 +1204,7 @@ static void node_find_update_fn(const struct bContext *C,
   LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
     char name[256];
     node_find_create_label(node, name, ARRAY_SIZE(name));
-    BLI_string_search_add(search, name, node);
+    BLI_string_search_add(search, name, node, 0);
   }
 
   bNode **filtered_nodes;

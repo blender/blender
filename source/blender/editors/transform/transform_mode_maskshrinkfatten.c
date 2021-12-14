@@ -141,4 +141,5 @@ void initMaskShrinkFatten(TransInfo *t)
 
   t->flag |= T_NO_CONSTRAINT;
 }
+
 /** \} */

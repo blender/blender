@@ -15,7 +15,7 @@
  */
 
 /** \file
- * \ingroup memutil
+ * \ingroup intern_memutil
  */
 
 #ifndef __MEM_CACHELIMITERC_API_H__

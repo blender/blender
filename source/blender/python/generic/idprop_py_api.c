@@ -1968,6 +1968,8 @@ static PyBufferProcs BPy_IDArray_Buffer = {
     (releasebufferproc)BPy_IDArray_releasebuffer,
 };
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name ID Array Type
  * \{ */

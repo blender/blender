@@ -115,4 +115,5 @@ void initCurveShrinkFatten(TransInfo *t)
 
   t->flag |= T_NO_CONSTRAINT;
 }
+
 /** \} */

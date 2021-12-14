@@ -411,4 +411,5 @@ void EDBM_preselect_elem_update_preview(struct EditMesh_PreSelElem *psel,
       BLI_assert(0);
   }
 }
+
 /** \} */

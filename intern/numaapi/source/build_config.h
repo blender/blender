@@ -20,6 +20,10 @@
 //
 // Author: Sergey Sharybin <sergey.vfx@gmail.com>
 
+/** \file
+ * \ingroup intern_numaapi
+ */
+
 #ifndef __BUILD_CONFIG_H__
 #define __BUILD_CONFIG_H__
 

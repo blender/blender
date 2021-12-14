@@ -519,9 +519,12 @@ void constraintSizeLim(const TransInfo *t, TransData *td)
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Transform (Rotation Utils)
  * \{ */
+
 void headerRotation(TransInfo *t, char *str, const int str_size, float final)
 {
   size_t ofs = 0;
@@ -820,6 +823,7 @@ void ElementRotation(const TransInfo *t,
 
   ElementRotation_ex(t, tc, td, mat, center);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1266,4 +1270,5 @@ void transform_mode_default_modal_orientation_set(TransInfo *t, int type)
     transform_orientations_current_set(t, O_DEFAULT);
   }
 }
+
 /** \} */

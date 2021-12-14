@@ -389,6 +389,7 @@ struct SearchItem {
   blender::Span<blender::StringRef> normalized_words;
   int length;
   void *user_data;
+  int weight;
 };
 
 struct StringSearch {
@@ -401,14 +402,19 @@ StringSearch *BLI_string_search_new()
   return new StringSearch();
 }
 
-void BLI_string_search_add(StringSearch *search, const char *str, void *user_data)
+void BLI_string_search_add(StringSearch *search,
+                           const char *str,
+                           void *user_data,
+                           const int weight)
 {
   using namespace blender;
   Vector<StringRef, 64> words;
   StringRef str_ref{str};
   string_search::extract_normalized_words(str_ref, search->allocator, words);
-  search->items.append(
-      {search->allocator.construct_array_copy(words.as_span()), (int)str_ref.size(), user_data});
+  search->items.append({search->allocator.construct_array_copy(words.as_span()),
+                        (int)str_ref.size(),
+                        user_data,
+                        weight});
 }
 
 int BLI_string_search_query(StringSearch *search, const char *query, void ***r_data)
@@ -448,6 +454,11 @@ int BLI_string_search_query(StringSearch *search, const char *query, void ***r_d
        * a substring of another item. */
       std::sort(indices.begin(), indices.end(), [&](int a, int b) {
         return search->items[a].length < search->items[b].length;
+      });
+      /* Prefer items with larger weights. Use `stable_sort` so that if the weights are the same,
+       * the order won't be changed. */
+      std::stable_sort(indices.begin(), indices.end(), [&](int a, int b) {
+        return search->items[a].weight > search->items[b].weight;
       });
     }
     sorted_result_indices.extend(indices);

@@ -71,7 +71,7 @@ bool BKE_asset_library_find_suitable_root_path_from_path(const char *input_path,
 
 bool BKE_asset_library_find_suitable_root_path_from_main(const Main *bmain, char *r_library_path)
 {
-  return BKE_asset_library_find_suitable_root_path_from_path(bmain->name, r_library_path);
+  return BKE_asset_library_find_suitable_root_path_from_path(bmain->filepath, r_library_path);
 }
 
 blender::bke::AssetCatalogService *BKE_asset_library_get_catalog_service(
@@ -168,7 +168,7 @@ void AssetLibrary::on_blend_save_post(struct Main *main,
   }
 
   if (save_catalogs_when_file_is_saved) {
-    this->catalog_service->write_to_disk(main->name);
+    this->catalog_service->write_to_disk(main->filepath);
   }
 }
 

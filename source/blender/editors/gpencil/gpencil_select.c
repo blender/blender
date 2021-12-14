@@ -248,6 +248,7 @@ static void select_all_curve_points(bGPdata *gpd, bGPDstroke *gps, bGPDcurve *gp
 /* -------------------------------------------------------------------- */
 /** \name Select All Operator
  * \{ */
+
 static bool gpencil_select_all_poll(bContext *C)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);

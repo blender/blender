@@ -33,17 +33,15 @@ static void translate_instances(GeoNodeExecParams &params, InstancesComponent &i
 {
   GeometryComponentFieldContext field_context{instances_component, ATTR_DOMAIN_INSTANCE};
 
-  fn::FieldEvaluator selection_evaluator{field_context, instances_component.instances_amount()};
-  selection_evaluator.add(params.extract_input<Field<bool>>("Selection"));
-  selection_evaluator.evaluate();
-  const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
+  fn::FieldEvaluator evaluator{field_context, instances_component.instances_amount()};
+  evaluator.set_selection(params.extract_input<Field<bool>>("Selection"));
+  evaluator.add(params.extract_input<Field<float3>>("Translation"));
+  evaluator.add(params.extract_input<Field<bool>>("Local Space"));
+  evaluator.evaluate();
 
-  fn::FieldEvaluator transforms_evaluator{field_context, &selection};
-  transforms_evaluator.add(params.extract_input<Field<float3>>("Translation"));
-  transforms_evaluator.add(params.extract_input<Field<bool>>("Local Space"));
-  transforms_evaluator.evaluate();
-  const VArray<float3> &translations = transforms_evaluator.get_evaluated<float3>(0);
-  const VArray<bool> &local_spaces = transforms_evaluator.get_evaluated<bool>(1);
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+  const VArray<float3> &translations = evaluator.get_evaluated<float3>(0);
+  const VArray<bool> &local_spaces = evaluator.get_evaluated<bool>(1);
 
   MutableSpan<float4x4> instance_transforms = instances_component.instance_transforms();
 

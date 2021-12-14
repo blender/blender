@@ -298,6 +298,10 @@ HINT #1:   if you want to model the sky of an earth-like planet that orbits
            previous paragraph.
 */
 
+/** \file
+ * \ingroup intern_sky_modal
+ */
+
 #ifndef __SKY_MODEL_H__
 #define __SKY_MODEL_H__
 

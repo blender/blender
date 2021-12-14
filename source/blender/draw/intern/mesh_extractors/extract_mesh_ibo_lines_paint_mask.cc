@@ -103,8 +103,6 @@ static void extract_lines_paint_mask_finish(const MeshRenderData *UNUSED(mr),
   MEM_freeN(data->select_map);
 }
 
-/** \} */
-
 constexpr MeshExtract create_extractor_lines_paint_mask()
 {
   MeshExtract extractor = {nullptr};
@@ -118,10 +116,10 @@ constexpr MeshExtract create_extractor_lines_paint_mask()
   return extractor;
 }
 
+/** \} */
+
 }  // namespace blender::draw
 
 extern "C" {
 const MeshExtract extract_lines_paint_mask = blender::draw::create_extractor_lines_paint_mask();
 }
-
-/** \} */

@@ -360,12 +360,12 @@ static void setup_app_data(bContext *C,
 
   /* startup.blend or recovered startup */
   if (is_startup) {
-    bmain->name[0] = '\0';
+    bmain->filepath[0] = '\0';
   }
   else if (recover) {
-    /* In case of autosave or quit.blend, use original filename instead. */
+    /* In case of autosave or quit.blend, use original filepath instead. */
     bmain->recovered = 1;
-    BLI_strncpy(bmain->name, bfd->filename, FILE_MAX);
+    STRNCPY(bmain->filepath, bfd->filepath);
   }
 
   /* baseflags, groups, make depsgraph, etc */
@@ -858,8 +858,8 @@ bool BKE_blendfile_write_partial(Main *bmain_src,
                                             BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE);
 
   /* This is needed to be able to load that file as a real one later
-   * (otherwise main->name will not be set at read time). */
-  BLI_strncpy(bmain_dst->name, bmain_src->name, sizeof(bmain_dst->name));
+   * (otherwise `main->filepath` will not be set at read time). */
+  STRNCPY(bmain_dst->filepath, bmain_src->filepath);
 
   BLO_main_expander(blendfile_write_partial_cb);
   BLO_expand_main(NULL, bmain_src);

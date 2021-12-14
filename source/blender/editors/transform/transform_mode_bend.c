@@ -393,4 +393,5 @@ void initBend(TransInfo *t)
   t->custom.mode.data = data;
   t->custom.mode.use_free = true;
 }
+
 /** \} */

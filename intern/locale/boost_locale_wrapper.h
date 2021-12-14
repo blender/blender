@@ -18,8 +18,8 @@
  */
 
 /** \file
- * \ingroup locale
- *  A thin C wrapper around boost::locale...
+ * \ingroup intern_locale
+ *  A thin C wrapper around `boost::locale`.
  */
 
 #ifndef __BOOST_LOCALE_WRAPPER_H__

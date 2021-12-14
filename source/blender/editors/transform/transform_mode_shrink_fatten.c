@@ -216,4 +216,5 @@ void initShrinkFatten(TransInfo *t)
     }
   }
 }
+
 /** \} */

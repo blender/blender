@@ -121,6 +121,7 @@ constexpr MeshExtract create_extractor_lnor()
 }
 
 /** \} */
+
 /* ---------------------------------------------------------------------- */
 /** \name Extract HQ Loop Normal
  * \{ */

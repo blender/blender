@@ -32,6 +32,7 @@ namespace blender::draw {
 /* ---------------------------------------------------------------------- */
 /** \name Extract Point Indices
  * \{ */
+
 static void extract_points_init(const MeshRenderData *mr,
                                 struct MeshBatchCache *UNUSED(cache),
                                 void *UNUSED(buf),
@@ -173,10 +174,10 @@ constexpr MeshExtract create_extractor_points()
   return extractor;
 }
 
+/** \} */
+
 }  // namespace blender::draw
 
 extern "C" {
 const MeshExtract extract_points = blender::draw::create_extractor_points();
 }
-
-/** \} */

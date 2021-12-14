@@ -768,6 +768,8 @@ float musgrave_fBm(const float co,
                    const float lacunarity,
                    const float octaves_unclamped)
 {
+  /* From "Texturing and Modelling: A procedural approach". */
+
   float p = co;
   float value = 0.0f;
   float pwr = 1.0f;
@@ -917,6 +919,8 @@ float musgrave_fBm(const float2 co,
                    const float lacunarity,
                    const float octaves_unclamped)
 {
+  /* From "Texturing and Modelling: A procedural approach". */
+
   float2 p = co;
   float value = 0.0f;
   float pwr = 1.0f;
@@ -1067,6 +1071,8 @@ float musgrave_fBm(const float3 co,
                    const float lacunarity,
                    const float octaves_unclamped)
 {
+  /* From "Texturing and Modelling: A procedural approach". */
+
   float3 p = co;
   float value = 0.0f;
   float pwr = 1.0f;
@@ -1219,6 +1225,8 @@ float musgrave_fBm(const float4 co,
                    const float lacunarity,
                    const float octaves_unclamped)
 {
+  /* From "Texturing and Modelling: A procedural approach". */
+
   float4 p = co;
   float value = 0.0f;
   float pwr = 1.0f;

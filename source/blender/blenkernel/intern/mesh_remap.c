@@ -50,7 +50,7 @@
 static CLG_LogRef LOG = {"bke.mesh"};
 
 /* -------------------------------------------------------------------- */
-/** \name Some generic helpers.
+/** \name Some Generic Helpers
  * \{ */
 
 static bool mesh_remap_bvhtree_query_nearest(BVHTreeFromMesh *treedata,
@@ -117,8 +117,8 @@ static bool mesh_remap_bvhtree_query_raycast(BVHTreeFromMesh *treedata,
 
 /** \} */
 
-/**
- * \name Auto-match.
+/* -------------------------------------------------------------------- */
+/** \name Auto-match.
  *
  * Find transform of a mesh to get best match with another.
  * \{ */
@@ -315,7 +315,7 @@ void BKE_mesh_remap_find_best_match_from_mesh(const MVert *verts_dst,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Mesh to mesh mapping
+/** \name Mesh to Mesh Mapping
  * \{ */
 
 void BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(const int UNUSED(vert_mode),

@@ -168,7 +168,9 @@ BLI_INLINE const float *bm_face_no_get(const MeshRenderData *mr, const BMFace *e
 /* ---------------------------------------------------------------------- */
 /** \name Mesh Elements Extract Struct
  * \{ */
+
 /* TODO(jbakker): move parameters inside a struct. */
+
 typedef void(ExtractTriBMeshFn)(const MeshRenderData *mr,
                                 BMLoop **elt,
                                 const int elt_index,

@@ -62,6 +62,7 @@ set(SRC
   intern/MOD_gpencilnoise.c
   intern/MOD_gpenciloffset.c
   intern/MOD_gpencilopacity.c
+  intern/MOD_gpencilshrinkwrap.c
   intern/MOD_gpencilsimplify.c
   intern/MOD_gpencilsmooth.c
   intern/MOD_gpencilsubdiv.c

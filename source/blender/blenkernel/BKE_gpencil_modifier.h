@@ -328,7 +328,7 @@ void BKE_gpencil_modifier_copydata_ex(struct GpencilModifierData *md,
 /**
  * Set grease pencil modifier error.
  * \param md: Modifier data.
- * \param _format: Format.
+ * \param format: Format.
  */
 void BKE_gpencil_modifier_set_error(struct GpencilModifierData *md, const char *format, ...)
     ATTR_PRINTF_FORMAT(2, 3);
@@ -407,16 +407,8 @@ void BKE_gpencil_set_lineart_modifier_limits(struct GpencilModifierData *md,
 bool BKE_gpencil_is_first_lineart_in_stack(const struct Object *ob,
                                            const struct GpencilModifierData *md);
 
-/**
- * Init grease pencil lattice deform data.
- * \param ob: Grease pencil object.
- */
-void BKE_gpencil_lattice_init(struct Object *ob);
-/**
- * Clear grease pencil lattice deform data.
- * \param ob: Grease pencil object.
- */
-void BKE_gpencil_lattice_clear(struct Object *ob);
+void BKE_gpencil_cache_data_init(struct Depsgraph *depsgraph, struct Object *ob);
+void BKE_gpencil_cache_data_clear(struct Object *ob);
 
 /**
  * Calculate grease-pencil modifiers.

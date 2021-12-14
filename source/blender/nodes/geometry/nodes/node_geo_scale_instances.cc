@@ -37,19 +37,17 @@ static void scale_instances(GeoNodeExecParams &params, InstancesComponent &insta
 {
   GeometryComponentFieldContext field_context{instances_component, ATTR_DOMAIN_INSTANCE};
 
-  fn::FieldEvaluator selection_evaluator{field_context, instances_component.instances_amount()};
-  selection_evaluator.add(params.extract_input<Field<bool>>("Selection"));
-  selection_evaluator.evaluate();
-  const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
+  fn::FieldEvaluator evaluator{field_context, instances_component.instances_amount()};
+  evaluator.set_selection(params.extract_input<Field<bool>>("Selection"));
+  evaluator.add(params.extract_input<Field<float3>>("Scale"));
+  evaluator.add(params.extract_input<Field<float3>>("Center"));
+  evaluator.add(params.extract_input<Field<bool>>("Local Space"));
+  evaluator.evaluate();
 
-  fn::FieldEvaluator transforms_evaluator{field_context, &selection};
-  transforms_evaluator.add(params.extract_input<Field<float3>>("Scale"));
-  transforms_evaluator.add(params.extract_input<Field<float3>>("Center"));
-  transforms_evaluator.add(params.extract_input<Field<bool>>("Local Space"));
-  transforms_evaluator.evaluate();
-  const VArray<float3> &scales = transforms_evaluator.get_evaluated<float3>(0);
-  const VArray<float3> &pivots = transforms_evaluator.get_evaluated<float3>(1);
-  const VArray<bool> &local_spaces = transforms_evaluator.get_evaluated<bool>(2);
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+  const VArray<float3> &scales = evaluator.get_evaluated<float3>(0);
+  const VArray<float3> &pivots = evaluator.get_evaluated<float3>(1);
+  const VArray<bool> &local_spaces = evaluator.get_evaluated<bool>(2);
 
   MutableSpan<float4x4> instance_transforms = instances_component.instance_transforms();
 

@@ -80,6 +80,14 @@ typedef struct {
 } PyModuleObject;
 #endif
 
+/**
+ * Execute a file-path or text-block.
+ *
+ * \param reports: Report exceptions as errors (may be NULL).
+ * \param do_jump: See #BPY_run_text.
+ *
+ * \note Share a function for this since setup/cleanup logic is the same.
+ */
 static bool python_script_exec(
     bContext *C, const char *fn, struct Text *text, struct ReportList *reports, const bool do_jump)
 {
@@ -332,10 +340,6 @@ bool BPY_run_string_as_number(bContext *C,
   PyGILState_STATE gilstate;
   bool ok = true;
 
-  if (!r_value || !expr) {
-    return -1;
-  }
-
   if (expr[0] == '\0') {
     *r_value = 0.0;
     return ok;
@@ -361,7 +365,6 @@ bool BPY_run_string_as_string_and_size(bContext *C,
                                        char **r_value,
                                        size_t *r_value_size)
 {
-  BLI_assert(r_value && expr);
   PyGILState_STATE gilstate;
   bool ok = true;
 
@@ -399,7 +402,6 @@ bool BPY_run_string_as_intptr(bContext *C,
                               struct BPy_RunErrInfo *err_info,
                               intptr_t *r_value)
 {
-  BLI_assert(r_value && expr);
   PyGILState_STATE gilstate;
   bool ok = true;
 

@@ -151,4 +151,5 @@ void initTimeScale(TransInfo *t)
   t->num.unit_sys = t->scene->unit.system;
   t->num.unit_type[0] = B_UNIT_NONE;
 }
+
 /** \} */

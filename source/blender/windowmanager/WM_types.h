@@ -972,10 +972,10 @@ typedef void (*wmPaintCursorDraw)(struct bContext *C, int, int, void *customdata
 #define WM_DRAG_DATASTACK 8
 #define WM_DRAG_ASSET_CATALOG 9
 
-typedef enum wmDragFlags {
+typedef enum eWM_DragFlags {
   WM_DRAG_NOP = 0,
   WM_DRAG_FREE_DATA = 1,
-} wmDragFlags;
+} eWM_DragFlags;
 
 /* NOTE: structs need not exported? */
 
@@ -1070,7 +1070,7 @@ typedef struct wmDrag {
 
   wmDragActiveDropState drop_state;
 
-  unsigned int flags;
+  eWM_DragFlags flags;
 
   /** List of wmDragIDs, all are guaranteed to have the same ID type. */
   ListBase ids;

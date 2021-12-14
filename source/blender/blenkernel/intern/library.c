@@ -127,7 +127,7 @@ void BKE_library_filepath_set(Main *bmain, Library *lib, const char *filepath)
      */
     /* Never make paths relative to parent lib - reading code (blenloader) always set *all*
      * `lib->filepath` relative to current main, not to their parent for indirectly linked ones. */
-    const char *basepath = BKE_main_blendfile_path(bmain);
-    BLI_path_abs(lib->filepath_abs, basepath);
+    const char *blendfile_path = BKE_main_blendfile_path(bmain);
+    BLI_path_abs(lib->filepath_abs, blendfile_path);
   }
 }

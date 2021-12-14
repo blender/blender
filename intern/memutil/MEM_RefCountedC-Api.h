@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup memutil
+ * \ingroup intern_memutil
  *
  * Interface for C access to functionality relating to shared objects in the foundation library.
  */

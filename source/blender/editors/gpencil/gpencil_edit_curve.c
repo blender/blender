@@ -51,6 +51,10 @@
 
 #include "gpencil_intern.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Enter Edit-Mode
+ * \{ */
+
 /* Poll callback for checking if there is an active layer and we are in curve edit mode. */
 static bool gpencil_curve_edit_mode_poll(bContext *C)
 {
@@ -134,6 +138,12 @@ void GPENCIL_OT_stroke_enter_editcurve_mode(wmOperatorType *ot)
                        10.0f);
   RNA_def_property_ui_range(prop, FLT_MIN, 10.0f, 0.1f, 5);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Handle Type
+ * \{ */
 
 static int gpencil_editcurve_set_handle_type_exec(bContext *C, wmOperator *op)
 {

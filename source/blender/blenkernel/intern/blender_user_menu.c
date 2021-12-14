@@ -110,3 +110,5 @@ void BKE_blender_user_menu_item_free_list(ListBase *lb)
   }
   BLI_listbase_clear(lb);
 }
+
+/** \} */

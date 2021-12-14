@@ -307,8 +307,6 @@ void DM_add_tessface_layer(struct DerivedMesh *dm, int type, eCDAllocType alloct
 void DM_add_loop_layer(DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer);
 void DM_add_poly_layer(struct DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer);
 
-/** \} */
-
 /* -------------------------------------------------------------------- */
 /** \name Custom Data Access Functions
  *

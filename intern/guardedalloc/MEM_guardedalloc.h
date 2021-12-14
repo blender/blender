@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup MEM
+ * \ingroup intern_mem
  *
  * \brief Read \ref MEMPage
  *

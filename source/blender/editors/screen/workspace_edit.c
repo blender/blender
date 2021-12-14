@@ -373,7 +373,7 @@ static void workspace_append_button(uiLayout *layout,
                                     const Main *from_main)
 {
   const ID *id = (ID *)workspace;
-  const char *filepath = from_main->name;
+  const char *filepath = from_main->filepath;
 
   if (strlen(filepath) == 0) {
     filepath = BLO_EMBEDDED_STARTUP_BLEND;

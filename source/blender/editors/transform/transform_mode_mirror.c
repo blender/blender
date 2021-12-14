@@ -238,4 +238,5 @@ void initMirror(TransInfo *t)
 
   t->flag |= T_NULL_ONE;
 }
+
 /** \} */

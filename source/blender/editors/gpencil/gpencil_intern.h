@@ -361,7 +361,7 @@ void gpencil_stroke_convertcoords_tpoint(struct Scene *scene,
                                          struct Object *ob,
                                          const struct tGPspoint *point2D,
                                          float *depth,
-                                         float out[3]);
+                                         float r_out[3]);
 
 /* Poll Callbacks ------------------------------------ */
 /* gpencil_utils.c */

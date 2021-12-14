@@ -434,6 +434,10 @@ static PyObject *bpy_prop_deferred_data_CreatePyObject(PyObject *fn, PyObject *k
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Shared Property Utilities
+ * \{ */
+
 /* PyObject's */
 static PyObject *pymeth_BoolProperty = NULL;
 static PyObject *pymeth_BoolVectorProperty = NULL;

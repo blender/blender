@@ -4573,9 +4573,9 @@ void BKE_fluid_particle_system_destroy(struct Object *ob, const int particle_typ
   }
 }
 
-#endif /* WITH_FLUID */
-
 /** \} */
+
+#endif /* WITH_FLUID */
 
 /* -------------------------------------------------------------------- */
 /** \name Public Data Access API

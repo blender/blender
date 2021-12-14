@@ -14,6 +14,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/** \file
+ * \ingroup intern_sky_modal
+ */
+
 #ifndef __SKY_FLOAT3_H__
 #define __SKY_FLOAT3_H__
 

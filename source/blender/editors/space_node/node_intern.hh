@@ -99,7 +99,6 @@ blender::float2 node_link_calculate_multi_input_position(const blender::float2 &
                                                          int index,
                                                          int total_inputs);
 
-int node_get_colorid(bNode &node);
 int node_get_resize_cursor(NodeResizeDirection directions);
 NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, const int y);
 /**
@@ -111,7 +110,6 @@ void node_socket_color_get(const bContext &C,
                            PointerRNA &node_ptr,
                            const bNodeSocket &sock,
                            float r_color[4]);
-void node_update_nodetree(const bContext &C, bNodeTree &ntree);
 void node_draw_space(const bContext &C, ARegion &region);
 
 void node_set_cursor(wmWindow &win, SpaceNode &snode, const blender::float2 &cursor);

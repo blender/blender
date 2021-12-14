@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup iksolver
+ * \ingroup intern_iksolver
  */
 
 #include "IK_QSegment.h"

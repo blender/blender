@@ -1014,7 +1014,7 @@ static void menu_search_update_fn(const bContext *UNUSED(C),
   StringSearch *search = BLI_string_search_new();
 
   LISTBASE_FOREACH (MenuSearch_Item *, item, &data->items) {
-    BLI_string_search_add(search, item->drawwstr_full, item);
+    BLI_string_search_add(search, item->drawwstr_full, item, 0);
   }
 
   MenuSearch_Item **filtered_items;

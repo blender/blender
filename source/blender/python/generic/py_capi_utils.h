@@ -138,6 +138,14 @@ const char *PyC_UnicodeAsByteAndSize(PyObject *py_str, Py_ssize_t *size, PyObjec
  */
 PyObject *PyC_DefaultNameSpace(const char *filename);
 void PyC_RunQuicky(const char *filepath, int n, ...);
+/**
+ * Import `imports` into `py_dict`.
+ *
+ * \param py_dict: A Python dictionary, typically used as a name-space for script execution.
+ * \param imports: A NULL terminated array of strings.
+ * \return true when all modules import without errors, otherwise return false.
+ * The caller is expected to handle the exception.
+ */
 bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[]);
 
 /**

@@ -305,8 +305,7 @@ int UI_pie_menu_invoke_from_rna_enum(struct bContext *C,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/**
- * \name Pie Menu Levels
+/** \name Pie Menu Levels
  *
  * Pie menus can't contain more than 8 items (yet).
  * When using #uiItemsFullEnumO, a "More" button is created that calls
@@ -318,7 +317,6 @@ int UI_pie_menu_invoke_from_rna_enum(struct bContext *C,
  * Ideally we'd have some way of handling this for all kinds of pie items, but that's tricky.
  *
  * - Julian (Feb 2016)
- *
  * \{ */
 
 typedef struct PieMenuLevelData {

@@ -562,6 +562,9 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       case NODE_MAP_RANGE:
         offset = svm_node_map_range(kg, sd, stack, node.y, node.z, node.w, offset);
         break;
+      case NODE_VECTOR_MAP_RANGE:
+        offset = svm_node_vector_map_range(kg, sd, stack, node.y, node.z, node.w, offset);
+        break;
       case NODE_CLAMP:
         offset = svm_node_clamp(kg, sd, stack, node.y, node.z, node.w, offset);
         break;

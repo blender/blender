@@ -67,6 +67,7 @@ void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[])
   INIT_GP_TYPE(WeightProximity);
   INIT_GP_TYPE(Lineart);
   INIT_GP_TYPE(Dash);
+  INIT_GP_TYPE(Shrinkwrap);
 #undef INIT_GP_TYPE
 }
 

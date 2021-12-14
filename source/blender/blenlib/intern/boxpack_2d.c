@@ -120,6 +120,7 @@ static float box_ymax_get(const BoxPack *box)
 {
   return box->v[TR]->y;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -165,6 +166,7 @@ static void box_ymax_set(BoxPack *box, const float f)
   box->v[TR]->y = f;
   box_v34y_update(box);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -275,6 +277,7 @@ static int vertex_sort(const void *p1, const void *p2, void *vs_ctx_p)
   }
   return 0;
 }
+
 /** \} */
 
 void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r_tot_y)

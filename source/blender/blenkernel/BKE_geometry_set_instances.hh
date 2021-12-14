@@ -57,8 +57,6 @@ struct GeometryInstanceGroup {
 void geometry_set_gather_instances(const GeometrySet &geometry_set,
                                    Vector<GeometryInstanceGroup> &r_instance_groups);
 
-GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set);
-
 /**
  * Add information about all the attributes on every component of the type. The resulting info
  * will contain the highest complexity data type and the highest priority domain among every

@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup iksolver
+ * \ingroup intern_iksolver
  */
 
 #include <stdio.h>

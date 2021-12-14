@@ -2345,6 +2345,8 @@ void BKE_gpencil_visible_stroke_iter(bGPdata *gpd,
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Advanced Iterator
  *

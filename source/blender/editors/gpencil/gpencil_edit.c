@@ -3949,7 +3949,7 @@ static void gpencil_smooth_stroke(bContext *C, wmOperator *op)
 
           /* perform smoothing */
           if (smooth_position) {
-            BKE_gpencil_stroke_smooth_point(gps, i, factor);
+            BKE_gpencil_stroke_smooth_point(gps, i, factor, false);
           }
           if (smooth_strength) {
             BKE_gpencil_stroke_smooth_strength(gps, i, factor);
@@ -5337,6 +5337,7 @@ void GPENCIL_OT_stroke_merge_by_distance(wmOperatorType *ot)
       ot->srna, "use_unselected", 0, "Unselected", "Use whole stroke, not only selected points");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

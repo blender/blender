@@ -173,8 +173,6 @@ static void extract_lines_adjacency_finish(const MeshRenderData *UNUSED(mr),
 
 #undef NO_EDGE
 
-/** \} */
-
 constexpr MeshExtract create_extractor_lines_adjacency()
 {
   MeshExtract extractor = {nullptr};
@@ -189,10 +187,10 @@ constexpr MeshExtract create_extractor_lines_adjacency()
   return extractor;
 }
 
+/** \} */
+
 }  // namespace blender::draw
 
 extern "C" {
 const MeshExtract extract_lines_adjacency = blender::draw::create_extractor_lines_adjacency();
 }
-
-/** \} */

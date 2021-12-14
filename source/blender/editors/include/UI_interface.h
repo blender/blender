@@ -457,7 +457,7 @@ void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const flo
  * \note This function is to be used with the 2D dashed shader enabled.
  *
  * \param pos: is a #PRIM_FLOAT, 2, #GPU_FETCH_FLOAT vertex attribute.
- * \param x1, x2, y1, y2: The offsets for the view, not the zones.
+ * \param rect: The offsets for the view, not the zones.
  */
 void UI_draw_safe_areas(uint pos,
                         const struct rctf *rect,
@@ -1717,8 +1717,8 @@ uiBut *uiDefHotKeyevtButS(uiBlock *block,
                           const char *tip);
 
 /**
- * \param arg is pointer to string/name, use UI_but_func_search_set() below to make this work.
- * here a1 and a2, if set, control thumbnail preview rows/cols.
+ * \param arg: A pointer to string/name, use #UI_but_func_search_set() below to make this work.
+ * here `a1` and `a2`, if set, control thumbnail preview rows/cols.
  */
 uiBut *uiDefSearchBut(uiBlock *block,
                       void *arg,
@@ -3301,7 +3301,7 @@ void UI_tree_view_item_context_menu_build(struct bContext *C,
                                           uiLayout *column);
 
 /**
- * \param x, y: Coordinate to find a tree-row item at, in window space.
+ * \param xy: Coordinate to find a tree-row item at, in window space.
  */
 uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const struct ARegion *region,
                                                       const int xy[2]) ATTR_NONNULL(1, 2);

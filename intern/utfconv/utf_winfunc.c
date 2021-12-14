@@ -17,6 +17,10 @@
  * All rights reserved.
  */
 
+/** \file
+ * \ingroup intern_utf_conv
+ */
+
 #ifndef _WIN32_IE
 #  define _WIN32_IE 0x0501
 #endif

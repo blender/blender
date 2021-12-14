@@ -42,6 +42,10 @@
 
 // #define DEBUG_STRSIZE
 
+/* -------------------------------------------------------------------- */
+/** \name String Duplicate/Copy
+ * \{ */
+
 char *BLI_strdupn(const char *str, const size_t len)
 {
   char *n = MEM_mallocN(len + 1, "strdup");
@@ -150,6 +154,12 @@ size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src)
   return srclen;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Printing
+ * \{ */
+
 size_t BLI_vsnprintf(char *__restrict buffer,
                      size_t maxncpy,
                      const char *__restrict format,
@@ -246,6 +256,12 @@ char *BLI_sprintfN(const char *__restrict format, ...)
 
   return n;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Escape/Un-Escape
+ * \{ */
 
 size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const size_t dst_maxncpy)
 {
@@ -349,6 +365,12 @@ const char *BLI_str_escape_find_quote(const char *str)
   return (*str == '"') ? str : NULL;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Quote/Un-Quote
+ * \{ */
+
 bool BLI_str_quoted_substr_range(const char *__restrict str,
                                  const char *__restrict prefix,
                                  int *__restrict r_start,
@@ -432,6 +454,12 @@ bool BLI_str_quoted_substr(const char *__restrict str,
   return is_complete;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Replace
+ * \{ */
+
 char *BLI_str_replaceN(const char *__restrict str,
                        const char *__restrict substr_old,
                        const char *__restrict substr_new)
@@ -512,6 +540,10 @@ bool BLI_str_replace_table_exact(char *string,
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Comparison/Matching
+ * \{ */
 
 int BLI_strcaseeq(const char *a, const char *b)
 {
@@ -806,71 +838,11 @@ int BLI_strcmp_ignore_pad(const char *str1, const char *str2, const char pad)
   }
 }
 
-size_t BLI_strnlen(const char *s, const size_t maxlen)
-{
-  size_t len;
+/** \} */
 
-  for (len = 0; len < maxlen; len++, s++) {
-    if (!*s) {
-      break;
-    }
-  }
-  return len;
-}
-
-void BLI_str_tolower_ascii(char *str, const size_t len)
-{
-  size_t i;
-
-  for (i = 0; (i < len) && str[i]; i++) {
-    if (str[i] >= 'A' && str[i] <= 'Z') {
-      str[i] += 'a' - 'A';
-    }
-  }
-}
-
-void BLI_str_toupper_ascii(char *str, const size_t len)
-{
-  size_t i;
-
-  for (i = 0; (i < len) && str[i]; i++) {
-    if (str[i] >= 'a' && str[i] <= 'z') {
-      str[i] -= 'a' - 'A';
-    }
-  }
-}
-
-void BLI_str_rstrip(char *str)
-{
-  for (int i = (int)strlen(str) - 1; i >= 0; i--) {
-    if (isspace(str[i])) {
-      str[i] = '\0';
-    }
-    else {
-      break;
-    }
-  }
-}
-
-int BLI_str_rstrip_float_zero(char *str, const char pad)
-{
-  char *p = strchr(str, '.');
-  int totstrip = 0;
-  if (p) {
-    char *end_p;
-    p++;                         /* position at first decimal place */
-    end_p = p + (strlen(p) - 1); /* position at last character */
-    if (end_p > p) {
-      while (end_p != p && *end_p == '0') {
-        *end_p = pad;
-        end_p--;
-        totstrip++;
-      }
-    }
-  }
-
-  return totstrip;
-}
+/* -------------------------------------------------------------------- */
+/** \name String Comparison at Start/End
+ * \{ */
 
 int BLI_str_index_in_array_n(const char *__restrict str,
                              const char **__restrict str_array,
@@ -933,6 +905,96 @@ bool BLI_str_endswith(const char *__restrict str, const char *__restrict end)
   return BLI_strn_endswith(str, end, slength);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Length
+ * \{ */
+
+size_t BLI_strnlen(const char *s, const size_t maxlen)
+{
+  size_t len;
+
+  for (len = 0; len < maxlen; len++, s++) {
+    if (!*s) {
+      break;
+    }
+  }
+  return len;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Case Conversion
+ * \{ */
+
+void BLI_str_tolower_ascii(char *str, const size_t len)
+{
+  size_t i;
+
+  for (i = 0; (i < len) && str[i]; i++) {
+    if (str[i] >= 'A' && str[i] <= 'Z') {
+      str[i] += 'a' - 'A';
+    }
+  }
+}
+
+void BLI_str_toupper_ascii(char *str, const size_t len)
+{
+  size_t i;
+
+  for (i = 0; (i < len) && str[i]; i++) {
+    if (str[i] >= 'a' && str[i] <= 'z') {
+      str[i] -= 'a' - 'A';
+    }
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Stripping
+ * \{ */
+
+void BLI_str_rstrip(char *str)
+{
+  for (int i = (int)strlen(str) - 1; i >= 0; i--) {
+    if (isspace(str[i])) {
+      str[i] = '\0';
+    }
+    else {
+      break;
+    }
+  }
+}
+
+int BLI_str_rstrip_float_zero(char *str, const char pad)
+{
+  char *p = strchr(str, '.');
+  int totstrip = 0;
+  if (p) {
+    char *end_p;
+    p++;                         /* position at first decimal place */
+    end_p = p + (strlen(p) - 1); /* position at last character */
+    if (end_p > p) {
+      while (end_p != p && *end_p == '0') {
+        *end_p = pad;
+        end_p--;
+        totstrip++;
+      }
+    }
+  }
+
+  return totstrip;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Split (Partition)
+ * \{ */
+
 size_t BLI_str_partition(const char *str, const char delim[], const char **sep, const char **suf)
 {
   return BLI_str_partition_ex(str, NULL, delim, sep, suf, false);
@@ -992,6 +1054,47 @@ size_t BLI_str_partition_ex(const char *str,
 
   return end ? (size_t)(end - str) : strlen(str);
 }
+
+int BLI_string_find_split_words(
+    const char *str, const size_t len, const char delim, int r_words[][2], int words_max)
+{
+  int n = 0, i;
+  bool charsearch = true;
+
+  /* Skip leading spaces */
+  for (i = 0; (i < len) && (str[i] != '\0'); i++) {
+    if (str[i] != delim) {
+      break;
+    }
+  }
+
+  for (; (i < len) && (str[i] != '\0') && (n < words_max); i++) {
+    if ((str[i] != delim) && (charsearch == true)) {
+      r_words[n][0] = i;
+      charsearch = false;
+    }
+    else {
+      if ((str[i] == delim) && (charsearch == false)) {
+        r_words[n][1] = i - r_words[n][0];
+        n++;
+        charsearch = true;
+      }
+    }
+  }
+
+  if (charsearch == false) {
+    r_words[n][1] = i - r_words[n][0];
+    n++;
+  }
+
+  return n;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Formatting (Numeric)
+ * \{ */
 
 static size_t BLI_str_format_int_grouped_ex(char src[16], char dst[16], int num_len)
 {
@@ -1082,37 +1185,4 @@ void BLI_str_format_attribute_domain_size(char dst[7], int number_to_format)
   BLI_snprintf(dst, dst_len, "%.*f%s", decimals, number_to_format_converted, units[order]);
 }
 
-int BLI_string_find_split_words(
-    const char *str, const size_t len, const char delim, int r_words[][2], int words_max)
-{
-  int n = 0, i;
-  bool charsearch = true;
-
-  /* Skip leading spaces */
-  for (i = 0; (i < len) && (str[i] != '\0'); i++) {
-    if (str[i] != delim) {
-      break;
-    }
-  }
-
-  for (; (i < len) && (str[i] != '\0') && (n < words_max); i++) {
-    if ((str[i] != delim) && (charsearch == true)) {
-      r_words[n][0] = i;
-      charsearch = false;
-    }
-    else {
-      if ((str[i] == delim) && (charsearch == false)) {
-        r_words[n][1] = i - r_words[n][0];
-        n++;
-        charsearch = true;
-      }
-    }
-  }
-
-  if (charsearch == false) {
-    r_words[n][1] = i - r_words[n][0];
-    n++;
-  }
-
-  return n;
-}
+/** \} */

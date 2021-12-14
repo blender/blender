@@ -82,7 +82,7 @@ typedef void (*IDTypeCopyDataFunction)(struct Main *bmain,
 
 typedef void (*IDTypeFreeDataFunction)(struct ID *id);
 
-/** \param flag: See BKE_lib_id.h's LIB_ID_MAKELOCAL_... flags. */
+/** \param flags: See BKE_lib_id.h's LIB_ID_MAKELOCAL_... flags. */
 typedef void (*IDTypeMakeLocalFunction)(struct Main *bmain, struct ID *id, const int flags);
 
 typedef void (*IDTypeForeachIDFunction)(struct ID *id, struct LibraryForeachIDData *data);

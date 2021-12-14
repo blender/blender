@@ -4647,6 +4647,8 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
   return roundbox;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Public API
  * \{ */

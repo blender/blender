@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup iksolver
+ * \ingroup intern_iksolver
  */
 
 #include "../extern/IK_solver.h"

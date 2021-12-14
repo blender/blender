@@ -48,7 +48,7 @@ bool MetalInfo::device_version_check(id<MTLDevice> device)
   /* Metal Cycles doesn't work correctly on macOS versions older than 12.0 */
   if (@available(macos 12.0, *)) {
     MetalGPUVendor vendor = get_vendor_from_device_name([[device name] UTF8String]);
-    
+
     /* Metal Cycles works on Apple Silicon GPUs at present */
     return (vendor == METAL_GPU_APPLE);
   }

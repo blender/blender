@@ -46,7 +46,10 @@ static void node_composit_init_mask(bNodeTree *UNUSED(ntree), bNode *node)
   node->custom3 = 0.5f; /* shutter */
 }
 
-static void node_mask_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
+static void node_mask_label(const bNodeTree *UNUSED(ntree),
+                            const bNode *node,
+                            char *label,
+                            int maxlen)
 {
   if (node->id != nullptr) {
     BLI_strncpy(label, node->id->name + 2, maxlen);
@@ -63,7 +66,7 @@ void register_node_type_cmp_mask()
   cmp_node_type_base(&ntype, CMP_NODE_MASK, "Mask", NODE_CLASS_INPUT, 0);
   ntype.declare = blender::nodes::cmp_node_mask_declare;
   node_type_init(&ntype, node_composit_init_mask);
-  node_type_label(&ntype, node_mask_label);
+  ntype.labelfunc = node_mask_label;
 
   node_type_storage(&ntype, "NodeMask", node_free_standard_storage, node_copy_standard_storage);
 

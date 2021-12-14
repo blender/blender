@@ -98,6 +98,10 @@ the model.
 
 */
 
+/** \file
+ * \ingroup intern_sky_modal
+ */
+
 // Uses Sep 9 pattern / Aug 23 mean dataset
 
 static const double datasetXYZ1[] = {

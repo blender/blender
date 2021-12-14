@@ -28,12 +28,19 @@ extern "C" {
 /* Keep ascii art. */
 /* clang-format off */
 /**
+ *
  * \defgroup Model The data model of the compositor
+ * \ingroup compositor
  * \defgroup Memory The memory management stuff
+ * \ingroup compositor
  * \defgroup Execution The execution logic
+ * \ingroup compositor
  * \defgroup Conversion Conversion logic
+ * \ingroup compositor
  * \defgroup Node All nodes of the compositor
+ * \ingroup compositor
  * \defgroup Operation All operations of the compositor
+ * \ingroup compositor
  *
  * \page Introduction of the Blender Compositor
  *
@@ -301,10 +308,10 @@ extern "C" {
  * It can be executed during editing (blenkernel/node.cc) or rendering
  * (renderer/pipeline.c)
  *
- * \param rd: [struct RenderData]
+ * \param render_data: [struct RenderData]
  *   Render data for this composite, this won't always belong to a scene.
  *
- * \param editingtree: [struct bNodeTree]
+ * \param node_tree: [struct bNodeTree]
  *   reference to the compositor editing tree
  *
  * \param rendering: [true false]

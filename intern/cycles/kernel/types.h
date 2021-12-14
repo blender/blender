@@ -1224,7 +1224,8 @@ typedef enum KernelBVHLayout {
   BVH_LAYOUT_MULTI_OPTIX = (1 << 3),
   BVH_LAYOUT_MULTI_OPTIX_EMBREE = (1 << 4),
   BVH_LAYOUT_METAL = (1 << 5),
-  BVH_LAYOUT_MULTI_METAL_EMBREE = (1 << 6),
+  BVH_LAYOUT_MULTI_METAL = (1 << 6),
+  BVH_LAYOUT_MULTI_METAL_EMBREE = (1 << 7),
 
   /* Default BVH layout to use for CPU. */
   BVH_LAYOUT_AUTO = BVH_LAYOUT_EMBREE,

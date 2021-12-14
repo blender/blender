@@ -139,32 +139,36 @@ class VariableState;
  */
 class ValueAllocator : NonCopyable, NonMovable {
  private:
-  /* Allocate with 64 byte alignment for better reusability of buffers and improved cache
-   * performance. */
+  /**
+   * Allocate with 64 byte alignment for better reusability of buffers and improved cache
+   * performance.
+   */
   static constexpr inline int min_alignment = 64;
 
-  /* Use stacks so that the most recently used buffers are reused first. This improves cache
-   * efficiency. */
-  std::array<Stack<VariableValue *>, tot_variable_value_types> values_free_lists_;
-  /* The integer key is the size of one element (e.g. 4 for an integer buffer). All buffers are
-   * aligned to #min_alignment bytes. */
+  /** All buffers in the free-lists below have been allocated with this allocator. */
+  LinearAllocator<> &linear_allocator_;
+
+  /**
+   * Use stacks so that the most recently used buffers are reused first. This improves cache
+   * efficiency.
+   */
+  std::array<Stack<VariableValue *>, tot_variable_value_types> variable_value_free_lists_;
+
+  /**
+   * The integer key is the size of one element (e.g. 4 for an integer buffer). All buffers are
+   * aligned to #min_alignment bytes.
+   */
   Map<int, Stack<void *>> span_buffers_free_list_;
 
- public:
-  ValueAllocator() = default;
+  /** Cache buffers for single values of different types. */
+  Map<const CPPType *, Stack<void *>> single_value_free_lists_;
 
-  ~ValueAllocator()
+  /** The cached memory buffers can hold #VariableState values. */
+  Stack<void *> variable_state_free_list_;
+
+ public:
+  ValueAllocator(LinearAllocator<> &linear_allocator) : linear_allocator_(linear_allocator)
   {
-    for (Stack<VariableValue *> &stack : values_free_lists_) {
-      while (!stack.is_empty()) {
-        MEM_freeN(stack.pop());
-      }
-    }
-    for (Stack<void *> &stack : span_buffers_free_list_.values()) {
-      while (!stack.is_empty()) {
-        MEM_freeN(stack.pop());
-      }
-    }
   }
 
   template<typename... Args> VariableState *obtain_variable_state(Args &&...args);
@@ -190,17 +194,17 @@ class ValueAllocator : NonCopyable, NonMovable {
   {
     void *buffer = nullptr;
 
-    const int element_size = type.size();
-    const int alignment = type.alignment();
+    const int64_t element_size = type.size();
+    const int64_t alignment = type.alignment();
 
     if (alignment > min_alignment) {
       /* In this rare case we fallback to not reusing existing buffers. */
-      buffer = MEM_mallocN_aligned(element_size * size, alignment, __func__);
+      buffer = linear_allocator_.allocate(element_size * size, alignment);
     }
     else {
       Stack<void *> *stack = span_buffers_free_list_.lookup_ptr(element_size);
       if (stack == nullptr || stack->is_empty()) {
-        buffer = MEM_mallocN_aligned(element_size * size, min_alignment, __func__);
+        buffer = linear_allocator_.allocate(element_size * size, min_alignment);
       }
       else {
         /* Reuse existing buffer. */
@@ -224,7 +228,14 @@ class ValueAllocator : NonCopyable, NonMovable {
 
   VariableValue_OneSingle *obtain_OneSingle(const CPPType &type)
   {
-    void *buffer = MEM_mallocN_aligned(type.size(), type.alignment(), __func__);
+    Stack<void *> &stack = single_value_free_lists_.lookup_or_add_default(&type);
+    void *buffer;
+    if (stack.is_empty()) {
+      buffer = linear_allocator_.allocate(type.size(), type.alignment());
+    }
+    else {
+      buffer = stack.pop();
+    }
     return this->obtain<VariableValue_OneSingle>(buffer);
   }
 
@@ -262,11 +273,11 @@ class ValueAllocator : NonCopyable, NonMovable {
       }
       case ValueType::OneSingle: {
         auto *value_typed = static_cast<VariableValue_OneSingle *>(value);
+        const CPPType &type = data_type.single_type();
         if (value_typed->is_initialized) {
-          const CPPType &type = data_type.single_type();
           type.destruct(value_typed->data);
         }
-        MEM_freeN(value_typed->data);
+        single_value_free_lists_.lookup_or_add_default(&type).push(value_typed->data);
         break;
       }
       case ValueType::OneVector: {
@@ -276,7 +287,7 @@ class ValueAllocator : NonCopyable, NonMovable {
       }
     }
 
-    Stack<VariableValue *> &stack = values_free_lists_[(int)value->type];
+    Stack<VariableValue *> &stack = variable_value_free_lists_[(int)value->type];
     stack.push(value);
   }
 
@@ -284,9 +295,9 @@ class ValueAllocator : NonCopyable, NonMovable {
   template<typename T, typename... Args> T *obtain(Args &&...args)
   {
     static_assert(std::is_base_of_v<VariableValue, T>);
-    Stack<VariableValue *> &stack = values_free_lists_[(int)T::static_type];
+    Stack<VariableValue *> &stack = variable_value_free_lists_[(int)T::static_type];
     if (stack.is_empty()) {
-      void *buffer = MEM_mallocN(sizeof(T), __func__);
+      void *buffer = linear_allocator_.allocate(sizeof(T), alignof(T));
       return new (buffer) T(std::forward<Args>(args)...);
     }
     return new (stack.pop()) T(std::forward<Args>(args)...);
@@ -669,7 +680,12 @@ class VariableState : NonCopyable, NonMovable {
     tot_initialized_ += mask.size();
   }
 
-  void destruct(IndexMask mask,
+  /**
+   * Destruct the masked elements in this variable.
+   * \return True when all elements of this variable are initialized and the variable state can be
+   *  released.
+   */
+  bool destruct(IndexMask mask,
                 IndexMask full_mask,
                 const MFDataType &data_type,
                 ValueAllocator &value_allocator)
@@ -679,13 +695,12 @@ class VariableState : NonCopyable, NonMovable {
     /* Sanity check to make sure that enough indices can be destructed. */
     BLI_assert(new_tot_initialized >= 0);
 
+    bool do_destruct_self = false;
+
     switch (value_->type) {
       case ValueType::GVArray: {
         if (mask.size() == full_mask.size()) {
-          /* All elements are destructed. The elements are owned by the caller, so we don't
-           * actually destruct them. */
-          value_allocator.release_value(value_, data_type);
-          value_ = value_allocator.obtain_OneSingle(data_type.single_type());
+          do_destruct_self = true;
         }
         else {
           /* Not all elements are destructed. Since we can't work on the original array, we have to
@@ -701,18 +716,13 @@ class VariableState : NonCopyable, NonMovable {
         const CPPType &type = data_type.single_type();
         type.destruct_indices(this->value_as<VariableValue_Span>()->data, mask);
         if (new_tot_initialized == 0) {
-          /* Release span when all values are initialized. */
-          value_allocator.release_value(value_, data_type);
-          value_ = value_allocator.obtain_OneSingle(data_type.single_type());
+          do_destruct_self = true;
         }
         break;
       }
       case ValueType::GVVectorArray: {
         if (mask.size() == full_mask.size()) {
-          /* All elements are cleared. The elements are owned by the caller, so don't actually
-           * destruct them. */
-          value_allocator.release_value(value_, data_type);
-          value_ = value_allocator.obtain_OneVector(data_type.vector_base_type());
+          do_destruct_self = true;
         }
         else {
           /* Not all elements are cleared. Since we can't work on the original vector array, we
@@ -731,23 +741,24 @@ class VariableState : NonCopyable, NonMovable {
       case ValueType::OneSingle: {
         auto *value_typed = this->value_as<VariableValue_OneSingle>();
         BLI_assert(value_typed->is_initialized);
+        UNUSED_VARS_NDEBUG(value_typed);
         if (mask.size() == tot_initialized_) {
-          const CPPType &type = data_type.single_type();
-          type.destruct(value_typed->data);
-          value_typed->is_initialized = false;
+          do_destruct_self = true;
         }
         break;
       }
       case ValueType::OneVector: {
         auto *value_typed = this->value_as<VariableValue_OneVector>();
+        UNUSED_VARS(value_typed);
         if (mask.size() == tot_initialized_) {
-          value_typed->data.clear({0});
+          do_destruct_self = true;
         }
         break;
       }
     }
 
     tot_initialized_ = new_tot_initialized;
+    return do_destruct_self;
   }
 
   void indices_split(IndexMask mask, IndicesSplitVectors &r_indices)
@@ -801,12 +812,17 @@ class VariableState : NonCopyable, NonMovable {
 
 template<typename... Args> VariableState *ValueAllocator::obtain_variable_state(Args &&...args)
 {
-  return new VariableState(std::forward<Args>(args)...);
+  if (variable_state_free_list_.is_empty()) {
+    void *buffer = linear_allocator_.allocate(sizeof(VariableState), alignof(VariableState));
+    return new (buffer) VariableState(std::forward<Args>(args)...);
+  }
+  return new (variable_state_free_list_.pop()) VariableState(std::forward<Args>(args)...);
 }
 
 void ValueAllocator::release_variable_state(VariableState *state)
 {
-  delete state;
+  state->~VariableState();
+  variable_state_free_list_.push(state);
 }
 
 /** Keeps track of the states of all variables during evaluation. */
@@ -817,7 +833,8 @@ class VariableStates {
   IndexMask full_mask_;
 
  public:
-  VariableStates(IndexMask full_mask) : full_mask_(full_mask)
+  VariableStates(LinearAllocator<> &linear_allocator, IndexMask full_mask)
+      : value_allocator_(linear_allocator), full_mask_(full_mask)
   {
   }
 
@@ -939,7 +956,10 @@ class VariableStates {
   void destruct(const MFVariable &variable, const IndexMask &mask)
   {
     VariableState &variable_state = this->get_variable_state(variable);
-    variable_state.destruct(mask, full_mask_, variable.data_type(), value_allocator_);
+    if (variable_state.destruct(mask, full_mask_, variable.data_type(), value_allocator_)) {
+      variable_state.destruct_self(value_allocator_, variable.data_type());
+      variable_states_.remove_contained(&variable);
+    }
   }
 
   VariableState &get_variable_state(const MFVariable &variable)
@@ -1161,9 +1181,9 @@ void MFProcedureExecutor::call(IndexMask full_mask, MFParams params, MFContext c
 {
   BLI_assert(procedure_.validate());
 
-  LinearAllocator<> allocator;
+  LinearAllocator<> linear_allocator;
 
-  VariableStates variable_states{full_mask};
+  VariableStates variable_states{linear_allocator, full_mask};
   variable_states.add_initial_variable_states(*this, procedure_, params);
 
   InstructionScheduler scheduler;

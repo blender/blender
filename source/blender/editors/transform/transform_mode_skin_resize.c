@@ -180,4 +180,5 @@ void initSkinResize(TransInfo *t)
   t->num.unit_type[1] = B_UNIT_NONE;
   t->num.unit_type[2] = B_UNIT_NONE;
 }
+
 /** \} */

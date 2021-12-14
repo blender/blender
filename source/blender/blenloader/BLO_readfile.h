@@ -74,7 +74,7 @@ typedef struct BlendFileData {
 
   int fileflags;
   int globalf;
-  char filename[1024]; /* 1024 = FILE_MAX */
+  char filepath[1024]; /* 1024 = FILE_MAX */
 
   struct bScreen *curscreen; /* TODO: think this isn't needed anymore? */
   struct Scene *curscene;
@@ -226,8 +226,8 @@ BlendHandle *BLO_blendhandle_from_memory(const void *mem,
  *
  * \param bh: The blendhandle to access.
  * \param ofblocktype: The type of names to get.
- * \param tot_names: The length of the returned list.
  * \param use_assets_only: Only list IDs marked as assets.
+ * \param r_tot_names: The length of the returned list.
  * \return A BLI_linklist of strings. The string links should be freed with #MEM_freeN().
  */
 struct LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
@@ -242,7 +242,7 @@ struct LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
  * \param bh: The blendhandle to access.
  * \param ofblocktype: The type of names to get.
  * \param use_assets_only: Limit the result to assets only.
- * \param tot_info_items: The length of the returned list.
+ * \param r_tot_info_items: The length of the returned list.
  * \return A BLI_linklist of `BLODataBlockInfo *`.
  * The links and #BLODataBlockInfo.asset_data should be freed with MEM_freeN.
  */

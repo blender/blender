@@ -32,6 +32,10 @@
 extern "C" {
 #endif
 
+/* -------------------------------------------------------------------- */
+/** \name Conversion Defines
+ * \{ */
+
 #define RAD2DEG(_rad) ((_rad) * (180.0 / M_PI))
 #define DEG2RAD(_deg) ((_deg) * (M_PI / 180.0))
 
@@ -114,7 +118,7 @@ bool is_zero_qt(const float q[4]);
  * \param cosom: dot product from normalized vectors/quats.
  * \param r_w: calculated weights.
  */
-void interp_dot_slerp(const float t, const float cosom, float w[2]);
+void interp_dot_slerp(const float t, const float cosom, float r_w[2]);
 void interp_qt_qtqt(float q[4], const float a[4], const float b[4], const float t);
 void add_qt_qtqt(float q[4], const float a[4], const float b[4], const float t);
 

@@ -974,6 +974,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
   return OPERATOR_FINISHED;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1255,6 +1256,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
   return OPERATOR_FINISHED;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

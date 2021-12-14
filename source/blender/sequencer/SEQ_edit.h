@@ -37,13 +37,13 @@ int SEQ_edit_sequence_swap(struct Sequence *seq_a, struct Sequence *seq_b, const
  * Move sequence to seqbase.
  *
  * \param scene: Scene containing the editing
- * \param dst_seqbase: seqbase where `seq` is located
+ * \param seqbase: seqbase where `seq` is located
  * \param seq: Sequence to move
  * \param dst_seqbase: Target seqbase
  */
 bool SEQ_edit_move_strip_to_seqbase(struct Scene *scene,
                                     ListBase *seqbase,
-                                    struct Sequence *src_seq,
+                                    struct Sequence *seq,
                                     ListBase *dst_seqbase);
 /**
  * Move sequence to meta sequence.

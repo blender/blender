@@ -497,4 +497,5 @@ void DRW_select_buffer_context_create(Base **bases, const uint bases_len, short 
   select_ctx->select_mode = select_mode;
   memset(select_ctx->persmat, 0, sizeof(select_ctx->persmat));
 }
+
 /** \} */

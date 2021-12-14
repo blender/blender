@@ -29,6 +29,10 @@
 /* interface */
 #include "mikktspace.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Internal Types
+ * \{ */
+
 typedef struct {
   const DispList *dl;
   float (*tangent)[4]; /* destination */

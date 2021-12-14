@@ -546,7 +546,7 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
       cis->name_prefix_offset = name_prefix_offset;
       cis->has_sep_char = has_sep_char;
       if (!skip_filter) {
-        BLI_string_search_add(search, name, cis);
+        BLI_string_search_add(search, name, cis, 0);
       }
       BLI_addtail(items_list, cis);
       if (name != name_buf) {

@@ -150,7 +150,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   /* TODO: This is not necessary-- the input geometry set can be read only,
    * but it must be rewritten to handle instance groups. */
-  geometry_set = geometry_set_realize_instances(geometry_set);
+  geometry_set = geometry::realize_instances_legacy(geometry_set);
 
   if (params.lazy_output_is_required("Geometry 1")) {
     params.set_output("Geometry 1",

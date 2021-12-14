@@ -28,6 +28,7 @@
 #include <string.h>
 #include <time.h>
 
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -1480,6 +1481,55 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
   /* free memory */
   if (ss_mesh) {
     ss_mesh->release(ss_mesh);
+  }
+}
+
+void shrinkwrapGpencilModifier_deform(ShrinkwrapGpencilModifierData *mmd,
+                                      Object *ob,
+                                      MDeformVert *dvert,
+                                      const int defgrp_index,
+                                      float (*vertexCos)[3],
+                                      int numVerts)
+{
+
+  ShrinkwrapCalcData calc = NULL_ShrinkwrapCalcData;
+  /* Convert gpencil struct to use the same struct and function used with meshes. */
+  ShrinkwrapModifierData smd;
+  smd.target = mmd->target;
+  smd.auxTarget = mmd->aux_target;
+  smd.keepDist = mmd->keep_dist;
+  smd.shrinkType = mmd->shrink_type;
+  smd.shrinkOpts = mmd->shrink_opts;
+  smd.shrinkMode = mmd->shrink_mode;
+  smd.projLimit = mmd->proj_limit;
+  smd.projAxis = mmd->proj_axis;
+
+  /* Configure Shrinkwrap calc data. */
+  calc.smd = &smd;
+  calc.ob = ob;
+  calc.numVerts = numVerts;
+  calc.vertexCos = vertexCos;
+  calc.dvert = dvert;
+  calc.vgroup = defgrp_index;
+  calc.invert_vgroup = (mmd->flag & GP_SHRINKWRAP_INVERT_VGROUP) != 0;
+
+  BLI_SPACE_TRANSFORM_SETUP(&calc.local2target, ob, mmd->target);
+  calc.keepDist = mmd->keep_dist;
+  calc.tree = mmd->cache_data;
+
+  switch (mmd->shrink_type) {
+    case MOD_SHRINKWRAP_NEAREST_SURFACE:
+    case MOD_SHRINKWRAP_TARGET_PROJECT:
+      TIMEIT_BENCH(shrinkwrap_calc_nearest_surface_point(&calc), gpdeform_surface);
+      break;
+
+    case MOD_SHRINKWRAP_PROJECT:
+      TIMEIT_BENCH(shrinkwrap_calc_normal_projection(&calc), gpdeform_project);
+      break;
+
+    case MOD_SHRINKWRAP_NEAREST_VERTEX:
+      TIMEIT_BENCH(shrinkwrap_calc_nearest_vertex(&calc), gpdeform_vertex);
+      break;
   }
 }
 

@@ -89,4 +89,5 @@ void initAlign(TransInfo *t)
 
   initMouseInputMode(t, &t->mouse, INPUT_NONE);
 }
+
 /** \} */

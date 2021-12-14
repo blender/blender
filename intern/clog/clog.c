@@ -15,7 +15,7 @@
  */
 
 /** \file
- * \ingroup clog
+ * \ingroup intern_clog
  */
 
 #include <assert.h>

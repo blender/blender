@@ -71,7 +71,7 @@ class PythonInterpreter : public Interpreter {
     bool ok = BPY_run_filepath(_context, fn, reports);
 #else
     bool ok;
-    Text *text = BKE_text_load(&_freestyle_bmain, fn, G_MAIN->name);
+    Text *text = BKE_text_load(&_freestyle_bmain, fn, G_MAIN->filepath);
     if (text) {
       ok = BPY_run_text(_context, text, reports, false);
       BKE_id_delete(&_freestyle_bmain, text);

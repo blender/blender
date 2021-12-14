@@ -103,7 +103,10 @@ static void node_compare_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void node_compare_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
+static void node_compare_label(const bNodeTree *UNUSED(ntree),
+                               const bNode *node,
+                               char *label,
+                               int maxlen)
 {
   const NodeFunctionCompare *data = (NodeFunctionCompare *)node->storage;
   const char *name;
@@ -479,7 +482,7 @@ void register_node_type_fn_compare()
   static bNodeType ntype;
   fn_node_type_base(&ntype, FN_NODE_COMPARE, "Compare", NODE_CLASS_CONVERTER, 0);
   ntype.declare = file_ns::fn_node_compare_declare;
-  node_type_label(&ntype, file_ns::node_compare_label);
+  ntype.labelfunc = file_ns::node_compare_label;
   node_type_update(&ntype, file_ns::node_compare_update);
   node_type_init(&ntype, file_ns::node_compare_init);
   node_type_storage(

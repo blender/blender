@@ -77,7 +77,9 @@ static const short g_base_collection_flags = (BASE_VISIBLE_DEPSGRAPH | BASE_VISI
 /* prototype */
 static void object_bases_iterator_next(BLI_Iterator *iter, const int flag);
 
-/*********************** Layer Collections and bases *************************/
+/* -------------------------------------------------------------------- */
+/** \name Layer Collections and Bases
+ * \{ */
 
 static LayerCollection *layer_collection_add(ListBase *lb_parent, Collection *collection)
 {
@@ -113,7 +115,11 @@ static Base *object_base_new(Object *ob)
   return base;
 }
 
-/********************************* View Layer ********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Layer
+ * \{ */
 
 /* RenderLayer */
 
@@ -393,7 +399,12 @@ void BKE_view_layer_base_select_and_set_active(struct ViewLayer *view_layer, Bas
   }
 }
 
-/**************************** Copy View Layer and Layer Collections ***********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Copy View Layer and Layer Collections
+ * \{ */
+
 static void layer_aov_copy_data(ViewLayer *view_layer_dst,
                                 const ViewLayer *view_layer_src,
                                 ListBase *aovs_dst,
@@ -677,7 +688,10 @@ int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection 
   return index_from_collection(&view_layer->layer_collections, lc, &i);
 }
 
-/*********************************** Syncing *********************************
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Syncing
  *
  * The layer collection tree mirrors the scene collection tree. Whenever that
  * changes we need to synchronize them so that there is a corresponding layer
@@ -687,9 +701,9 @@ int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection 
  *
  * The view layer also contains a list of bases for each object that exists
  * in at least one layer collection. That list is also synchronized here, and
- * stores state like selection. */
-
-/* This API allows to temporarily forbid resync of LayerCollections.
+ * stores state like selection.
+ *
+ * This API allows to temporarily forbid resync of LayerCollections.
  *
  * This can greatly improve performances in cases where those functions get
  * called a lot (e.g. during massive remappings of IDs).
@@ -698,19 +712,20 @@ int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection 
  * code must ensures it resync LayerCollections before any UI/Event loop
  * handling can happen.
  *
- * WARNING: This is not threadsafe at all, only use from main thread.
+ * \warning This is not threadsafe at all, only use from main thread.
  *
- * NOTE: It is probably needed to use #BKE_main_collection_sync_remap instead
+ * \note It is probably needed to use #BKE_main_collection_sync_remap instead
  *       of just #BKE_main_collection_sync after disabling LayerCollection resync,
  *       unless it is absolutely certain that no ID remapping (or any other process
  *       that may invalidate the caches) will happen while it is disabled.
  *
- * NOTE: This is a quick and safe band-aid around the long-known issue
+ * \note This is a quick and safe band-aid around the long-known issue
  *       regarding this resync process.
  *       Proper fix would be to make resync itself lazy, i.e. only happen
  *       when actually needed.
  *       See also T73411.
- */
+ * \{ */
+
 static bool no_resync = false;
 
 void BKE_layer_collection_resync_forbid(void)
@@ -1319,7 +1334,11 @@ void BKE_main_collection_sync_remap(const Main *bmain)
   BKE_main_collection_sync(bmain);
 }
 
-/* ---------------------------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object Selection
+ * \{ */
 
 bool BKE_layer_collection_objects_select(ViewLayer *view_layer, LayerCollection *lc, bool deselect)
 {
@@ -1397,7 +1416,11 @@ bool BKE_layer_collection_has_layer_collection(LayerCollection *lc_parent,
   return false;
 }
 
-/* ---------------------------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object Visibility
+ * \{ */
 
 void BKE_base_set_visible(Scene *scene, ViewLayer *view_layer, Base *base, bool extend)
 {
@@ -1470,6 +1493,12 @@ bool BKE_object_is_visible_in_viewport(const View3D *v3d, const struct Object *o
 
   return true;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collection Isolation & Local View
+ * \{ */
 
 static void layer_collection_flag_set_recursive(LayerCollection *lc, const int flag)
 {
@@ -1904,6 +1933,8 @@ static void objects_iterator_end(BLI_Iterator *iter)
   object_bases_iterator_end(iter);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name BKE_view_layer_selected_objects_iterator
  * See: #FOREACH_SELECTED_OBJECT_BEGIN
@@ -2093,7 +2124,9 @@ void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
 
 /** \} */
 
-/* Evaluation. */
+/* -------------------------------------------------------------------- */
+/** \name Evaluation
+ * \{ */
 
 void BKE_base_eval_flags(Base *base)
 {
@@ -2152,6 +2185,12 @@ void BKE_layer_eval_view_layer_indexed(struct Depsgraph *depsgraph,
   BLI_assert(view_layer != NULL);
   layer_eval_view_layer(depsgraph, scene, view_layer);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Blend File I/O
+ * \{ */
 
 static void write_layer_collections(BlendWriter *writer, ListBase *lb)
 {
@@ -2272,6 +2311,8 @@ void BKE_view_layer_blend_read_lib(BlendLibReader *reader, Library *lib, ViewLay
 
   IDP_BlendReadLib(reader, view_layer->id_properties);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Shader AOV

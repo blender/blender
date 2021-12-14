@@ -92,6 +92,7 @@ set(SRC_OSL
   node_value.osl
   node_vector_curves.osl
   node_vector_math.osl
+  node_vector_map_range.osl
   node_vector_rotate.osl
   node_vector_transform.osl
   node_velvet_bsdf.osl

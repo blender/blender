@@ -463,6 +463,11 @@ if(NOT APPLE)
   mark_as_advanced(CYCLES_HIP_BINARIES_ARCH)
 endif()
 
+# Apple Metal
+if(APPLE)
+  option(WITH_CYCLES_DEVICE_METAL       "Enable Cycles Apple Metal compute support" ON)
+endif()
+
 # Draw Manager
 option(WITH_DRAW_DEBUG "Add extra debug capabilities to Draw Manager" OFF)
 mark_as_advanced(WITH_DRAW_DEBUG)

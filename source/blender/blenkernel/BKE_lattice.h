@@ -132,6 +132,7 @@ void BKE_lattice_deform_coords_with_editmesh(const struct Object *ob_lattice,
                                              const char *defgrp_name,
                                              const float fac,
                                              struct BMEditMesh *em_target);
+
 /** \} */
 
 #ifdef __cplusplus

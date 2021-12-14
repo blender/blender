@@ -56,6 +56,7 @@ static PyObject *pygpu_select_load_id(PyObject *UNUSED(self), PyObject *value)
   GPU_select_load_id(id);
   Py_RETURN_NONE;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

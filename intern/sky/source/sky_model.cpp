@@ -97,6 +97,10 @@ All instructions on how to use this code are in the accompanying header file.
 
 */
 
+/** \file
+ * \ingroup intern_sky_modal
+ */
+
 #include "sky_model.h"
 #include "sky_model_data.h"
 

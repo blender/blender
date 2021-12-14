@@ -125,8 +125,8 @@ size_t BLI_str_utf32_as_utf8_len(const char32_t *src) ATTR_WARN_UNUSED_RESULT AT
 
 /**
  * BLI_str_find_prev_char_utf8:
- * \param str: pointer to the beginning of a UTF-8 encoded string
  * \param p: pointer to some position within \a str
+ * \param str_start: pointer to the beginning of a UTF-8 encoded string
  *
  * Given a position \a p with a UTF-8 encoded string \a str, find the start
  * of the previous UTF-8 character starting before. \a p Returns \a str_start if no
@@ -142,7 +142,7 @@ const char *BLI_str_find_prev_char_utf8(const char *p, const char *str_start)
     ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL ATTR_NONNULL(1, 2);
 /**
  * \param p: a pointer to a position within a UTF-8 encoded string
- * \param end: a pointer to the byte following the end of the string.
+ * \param str_end: a pointer to the byte following the end of the string.
  *
  * Finds the start of the next UTF-8 character in the string after \a p
  *
@@ -224,8 +224,10 @@ int BLI_str_utf8_offset_from_column(const char *str, int column) ATTR_WARN_UNUSE
  * Avoid repeating destination with `sizeof(..)`.
  * \note `ARRAY_SIZE` allows pointers on some platforms.
  * \{ */
+
 #define STRNCPY_UTF8(dst, src) BLI_strncpy_utf8(dst, src, ARRAY_SIZE(dst))
 #define STRNCPY_UTF8_RLEN(dst, src) BLI_strncpy_utf8_rlen(dst, src, ARRAY_SIZE(dst))
+
 /** \} */
 
 #ifdef __cplusplus

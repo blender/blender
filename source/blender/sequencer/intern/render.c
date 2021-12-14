@@ -214,6 +214,7 @@ void SEQ_render_pixel_from_sequencer_space_v4(struct Scene *scene, float pixel[4
 /* -------------------------------------------------------------------- */
 /** \name Rendering utility functions
  * \{ */
+
 void SEQ_render_new_render_data(Main *bmain,
                                 struct Depsgraph *depsgraph,
                                 Scene *scene,
@@ -302,25 +303,24 @@ int seq_get_shown_sequences(ListBase *seqbase,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Preprocessing and effects
- * \{ */
-/*
- * input preprocessing for SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_MOVIECLIP and SEQ_TYPE_SCENE
+/** \name Preprocessing and Effects
+ *
+ * Input pre-processing for SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_MOVIECLIP and SEQ_TYPE_SCENE.
  *
  * Do all the things you can't really do afterwards using sequence effects
- * (read: before rescaling to render resolution has been done)
+ * (read: before re-scaling to render resolution has been done).
  *
  * Order is important!
  *
- * - Deinterlace
- * - Crop and transform in image source coordinate space
- * - Flip X + Flip Y (could be done afterwards, backward compatibility)
- * - Promote image to float data (affects pipeline operations afterwards)
+ * - De-interlace.
+ * - Crop and transform in image source coordinate space.
+ * - Flip X + Flip Y (could be done afterwards, backward compatibility).
+ * - Promote image to float data (affects pipeline operations afterwards).
  * - Color balance (is most efficient in the byte -> float
  *   (future: half -> float should also work fine!)
- *   case, if done on load, since we can use lookup tables)
- * - Premultiply
- */
+ *   case, if done on load, since we can use lookup tables).
+ * - Pre-multiply.
+ * \{ */
 
 static bool sequencer_use_transform(const Sequence *seq)
 {
@@ -868,11 +868,13 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
 
   return out;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Individual strip rendering functions
  * \{ */
+
 /**
  * Render individual view for multi-view or single (default view) for mono-view.
  */
@@ -1615,11 +1617,13 @@ static ImBuf *do_render_strip_seqbase(const SeqRenderData *context,
 
   return ibuf;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Strip stack rendering functions
+/** \name Strip Stack Rendering Functions
  * \{ */
+
 static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
                                        SeqRenderState *state,
                                        Sequence *seq,

@@ -447,7 +447,9 @@ static void ui_node_link(bContext *C, void *arg_p, void *event_p)
   ED_undo_push(C, "Node input modify");
 }
 
-static void ui_node_sock_name(bNodeTree *ntree, bNodeSocket *sock, char name[UI_MAX_NAME_STR])
+static void ui_node_sock_name(const bNodeTree *ntree,
+                              bNodeSocket *sock,
+                              char name[UI_MAX_NAME_STR])
 {
   if (sock->link && sock->link->fromnode) {
     bNode *node = sock->link->fromnode;

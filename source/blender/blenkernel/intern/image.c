@@ -908,7 +908,7 @@ Image *BKE_image_load_exists_ex(Main *bmain, const char *filepath, bool *r_exist
   char str[FILE_MAX], strtest[FILE_MAX];
 
   STRNCPY(str, filepath);
-  BLI_path_abs(str, bmain->name);
+  BLI_path_abs(str, bmain->filepath);
 
   /* first search an identical filepath */
   for (ima = bmain->images.first; ima; ima = ima->id.next) {

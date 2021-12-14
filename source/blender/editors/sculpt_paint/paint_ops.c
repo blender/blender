@@ -145,7 +145,6 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
   float scalar = RNA_float_get(op->ptr, "scalar");
 
   bool use_brush_channels = paint_use_channels(C);
-  Object *ob = CTX_data_active_object(C);
 
   if (brush) {
     /* pixel radius */
@@ -826,6 +825,7 @@ static int brush_select_exec(bContext *C, wmOperator *op)
   if (paint == NULL) {
     return OPERATOR_CANCELLED;
   }
+
   const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
   RNA_enum_name_from_value(items, tool, &tool_name);
 
@@ -865,7 +865,7 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna,
                          "create_missing",
-                         0,
+                         true,
                          "Create Missing",
                          "If the requested brush type does not exist, create a new brush");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);

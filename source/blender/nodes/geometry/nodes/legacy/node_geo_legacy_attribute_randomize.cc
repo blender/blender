@@ -296,7 +296,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const GeometryNodeAttributeRandomizeMode operation =
       static_cast<GeometryNodeAttributeRandomizeMode>(storage.operation);
 
-  geometry_set = geometry_set_realize_instances(geometry_set);
+  geometry_set = geometry::realize_instances_legacy(geometry_set);
 
   if (geometry_set.has<MeshComponent>()) {
     randomize_attribute_on_component(geometry_set.get_component_for_write<MeshComponent>(),

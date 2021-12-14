@@ -307,6 +307,7 @@ GHOST_XrSession::LifeExpectancy GHOST_XrSession::handleStateChangeEvent(
 
   return SESSION_KEEP_ALIVE;
 }
+
 /** \} */ /* State Management */
 
 /* -------------------------------------------------------------------- */

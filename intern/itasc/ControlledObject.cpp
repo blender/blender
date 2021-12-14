@@ -1,5 +1,5 @@
 /** \file itasc/ControlledObject.cpp
- * \ingroup itasc
+ * \ingroup intern_itasc
  */
 /*
  * ControlledObject.cpp

@@ -405,7 +405,7 @@ enum {
 #define _VA_IS_EVENT_MOD4(v, a, b, c) (_VA_IS_EVENT_MOD3(v, a, b) || ((v)->c))
 #define _VA_IS_EVENT_MOD5(v, a, b, c, d) (_VA_IS_EVENT_MOD4(v, a, b, c) || ((v)->d))
 
-/* reusable IS_EVENT_MOD(event, shift, ctrl, alt, oskey), macro */
+/** Reusable `IS_EVENT_MOD(event, shift, ctrl, alt, oskey)` macro. */
 #define IS_EVENT_MOD(...) VA_NARGS_CALL_OVERLOAD(_VA_IS_EVENT_MOD, __VA_ARGS__)
 
 enum eEventType_Mask {

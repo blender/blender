@@ -291,10 +291,10 @@ void BKE_mesh_batch_cache_free(Mesh *me)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Mesh runtime debug helpers.
+/** \name Mesh Runtime Debug Helpers
  * \{ */
-/* evaluated mesh info printing function,
- * to help track down differences output */
+
+/* Evaluated mesh info printing function, to help track down differences output. */
 
 #ifndef NDEBUG
 #  include "BLI_dynstr.h"

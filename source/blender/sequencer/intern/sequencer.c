@@ -426,6 +426,7 @@ MetaStack *SEQ_meta_stack_active_get(const Editing *ed)
 /* -------------------------------------------------------------------- */
 /** \name Duplicate Functions
  * \{ */
+
 static Sequence *seq_dupli(const Scene *scene_src,
                            Scene *scene_dst,
                            ListBase *new_seq_list,

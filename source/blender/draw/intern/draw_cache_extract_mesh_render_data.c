@@ -174,8 +174,8 @@ void mesh_render_data_update_loose_geom(MeshRenderData *mr,
 /** \name Polygons sorted per material
  *
  * Contains polygon indices sorted based on their material.
- *
  * \{ */
+
 static void mesh_render_data_polys_sorted_load(MeshRenderData *mr, const MeshBufferCache *cache);
 static void mesh_render_data_polys_sorted_ensure(MeshRenderData *mr, MeshBufferCache *cache);
 static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCache *cache);

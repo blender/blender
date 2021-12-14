@@ -283,6 +283,7 @@ void DRW_draw_cursor_2d(void)
     DRW_draw_cursor_2d_ex(region, sima->cursor);
   }
 }
+
 /** \} */
 
 /* **************************** 3D Gizmo ******************************** */

@@ -1,5 +1,5 @@
 /** \file itasc/FixedObject.cpp
- * \ingroup itasc
+ * \ingroup intern_itasc
  */
 /*
  * FixedObject.cpp

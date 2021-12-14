@@ -116,8 +116,6 @@
 
 #define UNDOCUMENTED_OPERATOR_TIP N_("(undocumented operator)")
 
-/** \} */
-
 /* -------------------------------------------------------------------- */
 /** \name Operator API
  * \{ */

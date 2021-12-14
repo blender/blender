@@ -181,6 +181,7 @@ static void bvhtree_balance(BVHTree *tree, const bool isolate)
 }
 
 /** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Local Callbacks
  * \{ */
@@ -1716,6 +1717,10 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Functions
+ * \{ */
 
 void free_bvhtree_from_editmesh(struct BVHTreeFromEditMesh *data)
 {

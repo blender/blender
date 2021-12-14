@@ -102,7 +102,7 @@ bool BKE_displist_surfindex_get(
  * \param normal_proj: Optional normal that's used to project the scan-fill verts into 2D coords.
  * Pass this along if known since it saves time calculating the normal.
  * This is also used to initialize #DispList.nors (one normal per display list).
- * \param flipnormal: Flip the normal (same as passing \a normal_proj negated).
+ * \param flip_normal: Flip the normal (same as passing \a normal_proj negated).
  */
 void BKE_displist_fill(const struct ListBase *dispbase,
                        struct ListBase *to,

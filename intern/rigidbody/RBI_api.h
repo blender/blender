@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup RigidBody
+ * \ingroup intern_rigidbody
  * \brief Rigid Body API for interfacing with external Physics Engines
  */
 

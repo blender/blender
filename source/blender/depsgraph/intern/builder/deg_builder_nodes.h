@@ -217,7 +217,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   /**
    * Build graph node(s) for Driver
    * \param id: ID-Block that driver is attached to
-   * \param fcu: Driver-FCurve
+   * \param fcurve: Driver-FCurve
    * \param driver_index: Index in animation data drivers list
    */
   virtual void build_driver(ID *id, FCurve *fcurve, int driver_index);

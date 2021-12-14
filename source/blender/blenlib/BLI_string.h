@@ -176,7 +176,7 @@ char *BLI_str_replaceN(const char *__restrict str,
  * \param src: The character to replace.
  * \param dst: The character to replace with.
  */
-void BLI_str_replace_char(char *string, char src, char dst) ATTR_NONNULL();
+void BLI_str_replace_char(char *str, char src, char dst) ATTR_NONNULL();
 
 /**
  * Simple exact-match string replacement.
@@ -491,6 +491,7 @@ int BLI_string_find_split_words(const char *str,
  * Avoid repeating destination with `sizeof(..)`.
  * \note `ARRAY_SIZE` allows pointers on some platforms.
  * \{ */
+
 #define STRNCPY(dst, src) BLI_strncpy(dst, src, ARRAY_SIZE(dst))
 #define STRNCPY_RLEN(dst, src) BLI_strncpy_rlen(dst, src, ARRAY_SIZE(dst))
 #define SNPRINTF(dst, format, ...) BLI_snprintf(dst, ARRAY_SIZE(dst), format, __VA_ARGS__)
@@ -500,6 +501,7 @@ int BLI_string_find_split_words(const char *str,
   len += BLI_strncpy_rlen(dst + len, suffix, ARRAY_SIZE(dst) - len)
 #define STR_CONCATF(dst, len, format, ...) \
   len += BLI_snprintf_rlen(dst + len, ARRAY_SIZE(dst) - len, format, __VA_ARGS__)
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

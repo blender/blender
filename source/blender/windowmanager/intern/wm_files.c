@@ -957,11 +957,9 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
       /* When recovering a session from an unsaved file, this can have a blank path. */
       if (BKE_main_blendfile_path(bmain)[0] != '\0') {
-        G.save_over = 1;
         G.relbase_valid = 1;
       }
       else {
-        G.save_over = 0;
         G.relbase_valid = 0;
       }
 
@@ -1356,10 +1354,7 @@ void wm_homefile_read_ex(bContext *C,
   if (use_data) {
     WM_check(C); /* opens window(s), checks keymaps */
 
-    bmain->name[0] = '\0';
-
-    /* start with save preference untitled.blend */
-    G.save_over = 0;
+    bmain->filepath[0] = '\0';
   }
 
   {
@@ -1396,6 +1391,8 @@ void wm_homefile_read_post(struct bContext *C,
   wm_file_read_post(C, params_file_read_post);
   MEM_freeN((void *)params_file_read_post);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Blend-File History API
@@ -1494,18 +1491,18 @@ static void wm_history_file_write(void)
 static void wm_history_file_update(void)
 {
   RecentFile *recent;
-  const char *blendfile_name = BKE_main_blendfile_path_from_global();
+  const char *blendfile_path = BKE_main_blendfile_path_from_global();
 
-  /* no write history for recovered startup files */
-  if (blendfile_name[0] == '\0') {
+  /* No write history for recovered startup files. */
+  if (blendfile_path[0] == '\0') {
     return;
   }
 
   recent = G.recent_files.first;
   /* refresh recent-files.txt of recent opened files, when current file was changed */
-  if (!(recent) || (BLI_path_cmp(recent->filepath, blendfile_name) != 0)) {
+  if (!(recent) || (BLI_path_cmp(recent->filepath, blendfile_path) != 0)) {
 
-    recent = wm_file_history_find(blendfile_name);
+    recent = wm_file_history_find(blendfile_path);
     if (recent) {
       BLI_remlink(&G.recent_files, recent);
     }
@@ -1516,7 +1513,7 @@ static void wm_history_file_update(void)
         recent_next = recent->next;
         wm_history_file_free(recent);
       }
-      recent = wm_history_file_new(blendfile_name);
+      recent = wm_history_file_new(blendfile_path);
     }
 
     /* add current file to the beginning of list */
@@ -1526,7 +1523,7 @@ static void wm_history_file_update(void)
     wm_history_file_write();
 
     /* also update most recent files on System */
-    GHOST_addToSystemRecentFiles(blendfile_name);
+    GHOST_addToSystemRecentFiles(blendfile_path);
   }
 }
 
@@ -1828,7 +1825,7 @@ static bool wm_file_write(bContext *C,
   /* First time saving. */
   /* XXX(ton): temp solution to solve bug, real fix coming. */
   if ((BKE_main_blendfile_path(bmain)[0] == '\0') && (use_save_as_copy == false)) {
-    BLI_strncpy(bmain->name, filepath, sizeof(bmain->name));
+    STRNCPY(bmain->filepath, filepath);
   }
 
   /* XXX(ton): temp solution to solve bug, real fix coming. */
@@ -1849,9 +1846,7 @@ static bool wm_file_write(bContext *C,
 
     if (use_save_as_copy == false) {
       G.relbase_valid = 1;
-      BLI_strncpy(bmain->name, filepath, sizeof(bmain->name)); /* is guaranteed current file */
-
-      G.save_over = 1; /* disable untitled.blend convention */
+      STRNCPY(bmain->filepath, filepath); /* is guaranteed current file */
     }
 
     SET_FLAG_FROM_TEST(G.fileflags, fileflags & G_FILE_COMPRESS, G_FILE_COMPRESS);
@@ -2126,7 +2121,6 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
 
   printf("ok\n");
   BKE_report(op->reports, RPT_INFO, "Startup file saved");
-  G.save_over = 0;
 
   BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_POST);
 
@@ -2613,7 +2607,7 @@ static int wm_open_mainfile__select_file_path(bContext *C, wmOperator *op)
   set_next_operator_state(op, OPEN_MAINFILE_STATE_OPEN);
 
   Main *bmain = CTX_data_main(C);
-  const char *openname = BKE_main_blendfile_path(bmain);
+  const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
   if (CTX_wm_window(C) == NULL) {
     /* in rare cases this could happen, when trying to invoke in background
@@ -2626,10 +2620,10 @@ static int wm_open_mainfile__select_file_path(bContext *C, wmOperator *op)
   /* if possible, get the name of the most recently used .blend file */
   if (G.recent_files.first) {
     struct RecentFile *recent = G.recent_files.first;
-    openname = recent->filepath;
+    blendfile_path = recent->filepath;
   }
 
-  RNA_string_set(op->ptr, "filepath", openname);
+  RNA_string_set(op->ptr, "filepath", blendfile_path);
   wm_open_init_load_ui(op, true);
   wm_open_init_use_scripts(op, true);
   op->customdata = NULL;
@@ -3011,7 +3005,7 @@ void WM_OT_recover_auto_save(wmOperatorType *ot)
 
 static void wm_filepath_default(char *filepath)
 {
-  if (G.save_over == false) {
+  if (G.relbase_valid == false) {
     BLI_path_filename_ensure(filepath, FILE_MAX, "untitled.blend");
   }
 }
@@ -3022,7 +3016,7 @@ static void save_set_compress(wmOperator *op)
 
   prop = RNA_struct_find_property(op->ptr, "compress");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    if (G.save_over) { /* keep flag for existing file */
+    if (G.relbase_valid) { /* keep flag for existing file */
       RNA_property_boolean_set(op->ptr, prop, (G.fileflags & G_FILE_COMPRESS) != 0);
     }
     else { /* use userdef for new file */
@@ -3035,21 +3029,21 @@ static void save_set_filepath(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   PropertyRNA *prop;
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
 
   prop = RNA_struct_find_property(op->ptr, "filepath");
   if (!RNA_property_is_set(op->ptr, prop)) {
     /* if not saved before, get the name of the most recently used .blend file */
     if (BKE_main_blendfile_path(bmain)[0] == '\0' && G.recent_files.first) {
       struct RecentFile *recent = G.recent_files.first;
-      BLI_strncpy(name, recent->filepath, FILE_MAX);
+      STRNCPY(filepath, recent->filepath);
     }
     else {
-      BLI_strncpy(name, bmain->name, FILE_MAX);
+      STRNCPY(filepath, bmain->filepath);
     }
 
-    wm_filepath_default(name);
-    RNA_property_string_set(op->ptr, prop, name);
+    wm_filepath_default(filepath);
+    RNA_property_string_set(op->ptr, prop, filepath);
   }
 }
 
@@ -3210,7 +3204,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
     }
   }
 
-  if (G.save_over) {
+  if (G.relbase_valid) {
     char path[FILE_MAX];
 
     RNA_string_get(op->ptr, "filepath", path);
@@ -3616,10 +3610,10 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   uiItemL_ex(layout, TIP_("Save changes before closing?"), ICON_NONE, true, false);
 
   /* Filename. */
-  const char *blendfile_pathpath = BKE_main_blendfile_path(CTX_data_main(C));
+  const char *blendfile_path = BKE_main_blendfile_path(CTX_data_main(C));
   char filename[FILE_MAX];
-  if (blendfile_pathpath[0] != '\0') {
-    BLI_split_file_part(blendfile_pathpath, filename, sizeof(filename));
+  if (blendfile_path[0] != '\0') {
+    BLI_split_file_part(blendfile_path, filename, sizeof(filename));
   }
   else {
     STRNCPY(filename, "untitled.blend");

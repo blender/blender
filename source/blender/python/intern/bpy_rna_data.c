@@ -177,7 +177,7 @@ static PyObject *bpy_rna_data_temp_data(PyObject *UNUSED(self), PyObject *args, 
 
   ret = PyObject_GC_New(BPy_DataContext, &bpy_rna_data_context_Type);
 
-  STRNCPY(ret->filepath, filepath ? filepath : G_MAIN->name);
+  STRNCPY(ret->filepath, filepath ? filepath : G_MAIN->filepath);
 
   return (PyObject *)ret;
 }

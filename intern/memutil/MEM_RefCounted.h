@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup memutil
+ * \ingroup intern_memutil
  *
  * Declaration of MEM_RefCounted class.
  */

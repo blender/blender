@@ -38,7 +38,7 @@ static void cmp_node_moviedistortion_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
-static void label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int maxlen)
+static void label(const bNodeTree *UNUSED(ntree), const bNode *node, char *label, int maxlen)
 {
   if (node->custom1 == 0) {
     BLI_strncpy(label, IFACE_("Undistortion"), maxlen);
@@ -79,7 +79,7 @@ void register_node_type_cmp_moviedistortion()
 
   cmp_node_type_base(&ntype, CMP_NODE_MOVIEDISTORTION, "Movie Distortion", NODE_CLASS_DISTORT, 0);
   ntype.declare = blender::nodes::cmp_node_moviedistortion_declare;
-  node_type_label(&ntype, label);
+  ntype.labelfunc = label;
 
   ntype.initfunc_api = init;
   node_type_storage(&ntype, nullptr, storage_free, storage_copy);

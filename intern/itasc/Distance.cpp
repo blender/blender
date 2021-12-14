@@ -1,5 +1,5 @@
 /** \file itasc/Distance.cpp
- * \ingroup itasc
+ * \ingroup intern_itasc
  */
 /*
  * Distance.cpp

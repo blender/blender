@@ -388,5 +388,3 @@ const MeshExtract extract_edituv_lines = blender::draw::create_extractor_edituv_
 const MeshExtract extract_edituv_points = blender::draw::create_extractor_edituv_points();
 const MeshExtract extract_edituv_fdots = blender::draw::create_extractor_edituv_fdots();
 }
-
-/** \} */

@@ -41,8 +41,9 @@
 
 static void metaball_batch_cache_clear(MetaBall *mb);
 
-/* ---------------------------------------------------------------------- */
-/* MetaBall GPUBatch Cache */
+/* -------------------------------------------------------------------- */
+/** \name MetaBall GPUBatch Cache
+ * \{ */
 
 typedef struct MetaBallBatchCache {
   GPUBatch *batch;
@@ -175,6 +176,8 @@ static GPUIndexBuf *mball_batch_cache_get_edges_adj_lines(Object *ob, MetaBallBa
   return cache->edges_adj_lines;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Public Object/MetaBall API
  * \{ */
@@ -303,3 +306,5 @@ int DRW_metaball_material_count_get(MetaBall *mb)
 {
   return max_ii(1, mb->totcol);
 }
+
+/** \} */

@@ -24,6 +24,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "GEO_realize_instances.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_join_geometry_cc {
@@ -190,7 +192,10 @@ static void join_component_type(Span<GeometrySet> src_geometry_sets, GeometrySet
       instances.add_instance(handle, float4x4::identity());
     }
 
-    GeometrySet joined_components = bke::geometry_set_realize_instances(instances_geometry_set);
+    geometry::RealizeInstancesOptions options;
+    options.keep_original_ids = true;
+    options.realize_instance_attributes = false;
+    GeometrySet joined_components = geometry::realize_instances(instances_geometry_set, options);
     result.add(joined_components.get_component_for_write<Component>());
   }
 }

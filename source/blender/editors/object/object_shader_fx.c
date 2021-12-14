@@ -402,6 +402,8 @@ void OBJECT_OT_shaderfx_add(wmOperatorType *ot)
   RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_ID);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Generic Functions for Operators Using Names and Data Context
  * \{ */

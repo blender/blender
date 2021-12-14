@@ -631,7 +631,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   //  printf("blo_find_main: converted to %s\n", name1);
 
   for (m = mainlist->first; m; m = m->next) {
-    const char *libname = (m->curlib) ? m->curlib->filepath_abs : m->name;
+    const char *libname = (m->curlib) ? m->curlib->filepath_abs : m->filepath;
 
     if (BLI_path_cmp(name1, libname) == 0) {
       if (G.debug & G_DEBUG) {
@@ -1138,6 +1138,10 @@ static int *read_file_thumbnail(FileData *fd)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name File Data API
+ * \{ */
 
 static FileData *filedata_new(BlendFileReadReport *reports)
 {
@@ -2848,7 +2852,7 @@ static void lib_link_library(BlendLibReader *UNUSED(reader), Library *UNUSED(lib
  * in relation to the blend file. */
 static void fix_relpaths_library(const char *basepath, Main *main)
 {
-  /* BLO_read_from_memory uses a blank filename */
+  /* #BLO_read_from_memory uses a blank file-path. */
   if (basepath == NULL || basepath[0] == '\0') {
     LISTBASE_FOREACH (Library *, lib, &main->libraries) {
       /* when loading a linked lib into a file which has not been saved,
@@ -3502,25 +3506,25 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
   bfd->fileflags = fg->fileflags;
   bfd->globalf = fg->globalf;
-  BLI_strncpy(bfd->filename, fg->filename, sizeof(bfd->filename));
+  STRNCPY(bfd->filepath, fg->filepath);
 
-  /* Error in 2.65 and older: main->name was not set if you save from startup
+  /* Error in 2.65 and older: `main->filepath` was not set if you save from startup
    * (not after loading file). */
-  if (bfd->filename[0] == 0) {
+  if (bfd->filepath[0] == 0) {
     if (fd->fileversion < 265 || (fd->fileversion == 265 && fg->subversion < 1)) {
       if ((G.fileflags & G_FILE_RECOVER_READ) == 0) {
-        BLI_strncpy(bfd->filename, BKE_main_blendfile_path(bfd->main), sizeof(bfd->filename));
+        STRNCPY(bfd->filepath, BKE_main_blendfile_path(bfd->main));
       }
     }
 
-    /* early 2.50 version patch - filename not in FileGlobal struct at all */
+    /* early 2.50 version patch - filepath not in FileGlobal struct at all */
     if (fd->fileversion <= 250) {
-      BLI_strncpy(bfd->filename, BKE_main_blendfile_path(bfd->main), sizeof(bfd->filename));
+      STRNCPY(bfd->filepath, BKE_main_blendfile_path(bfd->main));
     }
   }
 
   if (G.fileflags & G_FILE_RECOVER_READ) {
-    BLI_strncpy(fd->relabase, fg->filename, sizeof(fd->relabase));
+    BLI_strncpy(fd->relabase, fg->filepath, sizeof(fd->relabase));
   }
 
   bfd->curscreen = fg->curscreen;
@@ -3616,7 +3620,7 @@ static void do_versions_after_linking(Main *main, ReportList *reports)
   CLOG_INFO(&LOG,
             2,
             "Processing %s (%s), %d.%d",
-            main->curlib ? main->curlib->filepath : main->name,
+            main->curlib ? main->curlib->filepath : main->filepath,
             main->curlib ? "LIB" : "MAIN",
             main->versionfile,
             main->subversionfile);
@@ -3854,7 +3858,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   if ((fd->skip_flags & BLO_READ_SKIP_DATA) == 0) {
     BLI_addtail(&mainlist, bfd->main);
     fd->mainlist = &mainlist;
-    BLI_strncpy(bfd->main->name, filepath, sizeof(bfd->main->name));
+    STRNCPY(bfd->main->filepath, filepath);
   }
 
   if (G.background) {
@@ -4511,7 +4515,7 @@ static void split_main_newid(Main *mainptr, Main *main_newid)
   /* We only copy the necessary subset of data in this temp main. */
   main_newid->versionfile = mainptr->versionfile;
   main_newid->subversionfile = mainptr->subversionfile;
-  BLI_strncpy(main_newid->name, mainptr->name, sizeof(main_newid->name));
+  STRNCPY(main_newid->filepath, mainptr->filepath);
   main_newid->curlib = mainptr->curlib;
 
   ListBase *lbarray[INDEX_ID_MAX];

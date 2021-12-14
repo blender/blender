@@ -175,10 +175,12 @@ const char *BKE_appdir_folder_default_or_root(void)
 
 const char *BKE_appdir_folder_home(void)
 {
-#ifndef WIN32
-  return BLI_getenv("HOME");
-#else /* Windows */
+#ifdef WIN32
   return BLI_getenv("userprofile");
+#elif defined(__APPLE__)
+  return BLI_expand_tilde("~/");
+#else
+  return BLI_getenv("HOME");
 #endif
 }
 
@@ -248,10 +250,8 @@ bool BKE_appdir_font_folder_default(char *dir)
     BLI_strncpy_wchar_as_utf8(test_dir, wpath, sizeof(test_dir));
   }
 #elif defined(__APPLE__)
-  const char *home = BLI_getenv("HOME");
-  if (home) {
-    BLI_path_join(test_dir, sizeof(test_dir), home, "Library", "Fonts", NULL);
-  }
+  STRNCPY(test_dir, BLI_expand_tilde("~/Library/Fonts/"));
+  BLI_path_slash_ensure(test_dir);
 #else
   STRNCPY(test_dir, "/usr/share/fonts");
 #endif

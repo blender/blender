@@ -44,6 +44,10 @@
  * The Original Code is: adapted from jemalloc.
  */
 
+/** \file
+ * \ingroup intern_atomic
+ */
+
 #ifndef __ATOMIC_OPS_EXT_H__
 #define __ATOMIC_OPS_EXT_H__
 

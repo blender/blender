@@ -37,8 +37,6 @@
 extern "C" {
 #endif
 
-/** \} */
-
 /* -------------------------------------------------------------------- */
 /** \name Polygons
  * \{ */
@@ -333,8 +331,8 @@ double closest_to_line_v2_db(double r_close[2],
                              const double l1[2],
                              const double l2[2]);
 /**
- * Find closest point to p on line through (l1, l2) and return lambda,
- * where (0 <= lambda <= 1) when cp is in the line segment (l1, l2).
+ * Find closest point to p on line through (`l1`, `l2`) and return lambda,
+ * where (0 <= lambda <= 1) when `p` is in the line segment (`l1`, `l2`).
  */
 float closest_to_line_v3(float r_close[3], const float p[3], const float l1[3], const float l2[3]);
 /**

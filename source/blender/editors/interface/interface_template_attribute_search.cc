@@ -106,7 +106,7 @@ void attribute_search_add_items(StringRefNull str,
       continue;
     }
 
-    BLI_string_search_add(search, item->name.c_str(), (void *)item);
+    BLI_string_search_add(search, item->name.c_str(), (void *)item, 0);
   }
 
   GeometryAttributeInfo **filtered_items;

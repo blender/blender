@@ -1,5 +1,9 @@
 #include "boost_locale_wrapper.h"
 
+/** \file
+ * \ingroup intern_locale
+ */
+
 #import <Cocoa/Cocoa.h>
 
 #include <cstdlib>

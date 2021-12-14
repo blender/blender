@@ -5871,6 +5871,73 @@ void MapRangeNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_map_range");
 }
 
+/* Vector Map Range Node */
+
+NODE_DEFINE(VectorMapRangeNode)
+{
+  NodeType *type = NodeType::add("vector_map_range", create, NodeType::SHADER);
+
+  static NodeEnum type_enum;
+  type_enum.insert("linear", NODE_MAP_RANGE_LINEAR);
+  type_enum.insert("stepped", NODE_MAP_RANGE_STEPPED);
+  type_enum.insert("smoothstep", NODE_MAP_RANGE_SMOOTHSTEP);
+  type_enum.insert("smootherstep", NODE_MAP_RANGE_SMOOTHERSTEP);
+  SOCKET_ENUM(range_type, "Type", type_enum, NODE_MAP_RANGE_LINEAR);
+
+  SOCKET_IN_VECTOR(vector, "Vector", zero_float3());
+  SOCKET_IN_VECTOR(from_min, "From_Min_FLOAT3", zero_float3());
+  SOCKET_IN_VECTOR(from_max, "From_Max_FLOAT3", one_float3());
+  SOCKET_IN_VECTOR(to_min, "To_Min_FLOAT3", zero_float3());
+  SOCKET_IN_VECTOR(to_max, "To_Max_FLOAT3", one_float3());
+  SOCKET_IN_VECTOR(steps, "Steps_FLOAT3", make_float3(4.0f));
+  SOCKET_BOOLEAN(use_clamp, "Use Clamp", false);
+
+  SOCKET_OUT_VECTOR(vector, "Vector");
+
+  return type;
+}
+
+VectorMapRangeNode::VectorMapRangeNode() : ShaderNode(get_node_type())
+{
+}
+
+void VectorMapRangeNode::expand(ShaderGraph *graph)
+{
+}
+
+void VectorMapRangeNode::compile(SVMCompiler &compiler)
+{
+  ShaderInput *vector_in = input("Vector");
+  ShaderInput *from_min_in = input("From_Min_FLOAT3");
+  ShaderInput *from_max_in = input("From_Max_FLOAT3");
+  ShaderInput *to_min_in = input("To_Min_FLOAT3");
+  ShaderInput *to_max_in = input("To_Max_FLOAT3");
+  ShaderInput *steps_in = input("Steps_FLOAT3");
+  ShaderOutput *vector_out = output("Vector");
+
+  int value_stack_offset = compiler.stack_assign(vector_in);
+  int from_min_stack_offset = compiler.stack_assign(from_min_in);
+  int from_max_stack_offset = compiler.stack_assign(from_max_in);
+  int to_min_stack_offset = compiler.stack_assign(to_min_in);
+  int to_max_stack_offset = compiler.stack_assign(to_max_in);
+  int steps_stack_offset = compiler.stack_assign(steps_in);
+  int result_stack_offset = compiler.stack_assign(vector_out);
+
+  compiler.add_node(
+      NODE_VECTOR_MAP_RANGE,
+      value_stack_offset,
+      compiler.encode_uchar4(
+          from_min_stack_offset, from_max_stack_offset, to_min_stack_offset, to_max_stack_offset),
+      compiler.encode_uchar4(steps_stack_offset, use_clamp, range_type, result_stack_offset));
+}
+
+void VectorMapRangeNode::compile(OSLCompiler &compiler)
+{
+  compiler.parameter(this, "range_type");
+  compiler.parameter(this, "use_clamp");
+  compiler.add(this, "node_vector_map_range");
+}
+
 /* Clamp Node */
 
 NODE_DEFINE(ClampNode)

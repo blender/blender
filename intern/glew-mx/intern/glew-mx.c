@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup glew-mx
+ * \ingroup intern_glew-mx
  */
 
 #include "glew-mx.h"

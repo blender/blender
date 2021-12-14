@@ -127,4 +127,5 @@ void initGPShrinkFatten(TransInfo *t)
 
   t->flag |= T_NO_CONSTRAINT;
 }
+
 /** \} */

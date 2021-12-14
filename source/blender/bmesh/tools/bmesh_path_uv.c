@@ -198,6 +198,7 @@ struct LinkNode *BM_mesh_calc_path_uv_vert(BMesh *bm,
 /* -------------------------------------------------------------------- */
 /** \name BM_mesh_calc_path_uv_edge
  * \{ */
+
 /* TODO(campbell): not very urgent, since the operator fakes this using vertex path. */
 
 /** \} */

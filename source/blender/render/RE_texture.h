@@ -57,7 +57,7 @@ bool RE_texture_evaluate(const struct MTex *mtex,
  * \param in: Destination
  * \param tex: Texture.
  * \param out: Previous color.
- * \param fact Texture strength.
+ * \param fact: Texture strength.
  * \param facg: Button strength value.
  */
 void texture_rgb_blend(

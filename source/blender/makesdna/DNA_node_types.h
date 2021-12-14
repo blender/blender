@@ -323,8 +323,6 @@ typedef struct bNode {
   char branch_tag;
   /** Used at runtime when iterating over node branches. */
   char iter_flag;
-  /** Runtime during drawing. */
-  struct uiBlock *block;
 
   /**
    * XXX: eevee only, id of screen space reflection layer,
@@ -1205,6 +1203,16 @@ typedef struct NodeDenoise {
   char hdr;
   char prefilter;
 } NodeDenoise;
+
+typedef struct NodeMapRange {
+  /* CustomDataType */
+  uint8_t data_type;
+
+  /* NodeMapRangeType. */
+  uint8_t interpolation_type;
+  uint8_t clamp;
+  char _pad[5];
+} NodeMapRange;
 
 typedef struct NodeAttributeClamp {
   /* CustomDataType. */
@@ -2289,6 +2297,10 @@ typedef enum GeometryNodeDeleteGeometryMode {
   GEO_NODE_DELETE_GEOMETRY_MODE_EDGE_FACE = 1,
   GEO_NODE_DELETE_GEOMETRY_MODE_ONLY_FACE = 2,
 } GeometryNodeDeleteGeometryMode;
+
+typedef enum GeometryNodeRealizeInstancesFlag {
+  GEO_NODE_REALIZE_INSTANCES_LEGACY_BEHAVIOR = (1 << 0),
+} GeometryNodeRealizeInstancesFlag;
 
 #ifdef __cplusplus
 }

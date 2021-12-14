@@ -345,6 +345,7 @@ static IDProperty *IDP_CopyArray(const IDProperty *prop, const int flag)
 
   return newp;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -444,6 +445,7 @@ void IDP_FreeString(IDProperty *prop)
     MEM_freeN(prop->data.pointer);
   }
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -708,6 +710,7 @@ static void IDP_FreeGroup(IDProperty *prop, const bool do_id_user)
   }
   BLI_freelistN(&prop->data.group);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

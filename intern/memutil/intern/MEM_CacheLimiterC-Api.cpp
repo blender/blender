@@ -15,7 +15,7 @@
  */
 
 /** \file
- * \ingroup memutil
+ * \ingroup intern_memutil
  */
 
 #include <cstddef>

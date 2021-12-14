@@ -1,5 +1,5 @@
 /** \file itasc/ConstraintSet.cpp
- * \ingroup itasc
+ * \ingroup intern_itasc
  */
 /*
  * ConstraintSet.cpp

@@ -85,7 +85,7 @@ void SEQ_add_load_data_init(struct SeqLoadData *load_data,
  * Add image strip.
  * \note Use #SEQ_add_image_set_directory() and #SEQ_add_image_load_file() to load image sequences
  *
- * \param main: Main reference
+ * \param bmain: Main reference
  * \param scene: Scene where strips will be added
  * \param seqbase: ListBase where strips will be added
  * \param load_data: SeqLoadData with information necessary to create strip
@@ -99,7 +99,7 @@ struct Sequence *SEQ_add_image_strip(struct Main *bmain,
  * Add sound strip.
  * \note Use SEQ_add_image_set_directory() and SEQ_add_image_load_file() to load image sequences
  *
- * \param main: Main reference
+ * \param bmain: Main reference
  * \param scene: Scene where strips will be added
  * \param seqbase: ListBase where strips will be added
  * \param load_data: SeqLoadData with information necessary to create strip
@@ -124,7 +124,7 @@ struct Sequence *SEQ_add_meta_strip(struct Scene *scene,
 /**
  * Add movie strip.
  *
- * \param main: Main reference
+ * \param bmain: Main reference
  * \param scene: Scene where strips will be added
  * \param seqbase: ListBase where strips will be added
  * \param load_data: SeqLoadData with information necessary to create strip

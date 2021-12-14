@@ -78,8 +78,6 @@ static void outliner_show_active(SpaceOutliner *space_outliner,
                                  TreeElement *te,
                                  ID *id);
 
-/** \} */
-
 /* -------------------------------------------------------------------- */
 /** \name Highlight on Cursor Motion Operator
  * \{ */
@@ -2226,8 +2224,6 @@ static bool ed_operator_outliner_id_orphans_active(bContext *C)
   }
   return true;
 }
-
-/** \} */
 
 static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {

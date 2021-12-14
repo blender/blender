@@ -4748,7 +4748,9 @@ static void propagate_data_requirements_from_right_to_left(
       /* The output is required to be a single value when it is connected to any input that does
        * not support fields. */
       for (const InputSocketRef *target_socket : output_socket->directly_linked_sockets()) {
-        state.requires_single |= field_state_by_socket_id[target_socket->id()].requires_single;
+        if (target_socket->is_available()) {
+          state.requires_single |= field_state_by_socket_id[target_socket->id()].requires_single;
+        }
       }
 
       if (state.requires_single) {
@@ -5180,7 +5182,7 @@ void nodeUpdateInternalLinks(bNodeTree *ntree, bNode *node)
 
 /* ************* node type access ********** */
 
-void nodeLabel(bNodeTree *ntree, bNode *node, char *label, int maxlen)
+void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, int maxlen)
 {
   label[0] = '\0';
 
@@ -5398,13 +5400,6 @@ void node_type_storage(bNodeType *ntype,
   }
   ntype->copyfunc = copyfunc;
   ntype->freefunc = freefunc;
-}
-
-void node_type_label(
-    struct bNodeType *ntype,
-    void (*labelfunc)(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen))
-{
-  ntype->labelfunc = labelfunc;
 }
 
 void node_type_update(struct bNodeType *ntype,

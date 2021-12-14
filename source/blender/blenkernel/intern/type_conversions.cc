@@ -239,6 +239,23 @@ void DataTypeConversions::convert_to_uninitialized(const CPPType &from_type,
   functions->convert_single_to_uninitialized(from_value, to_value);
 }
 
+void DataTypeConversions::convert_to_initialized_n(fn::GSpan from_span,
+                                                   fn::GMutableSpan to_span) const
+{
+  const CPPType &from_type = from_span.type();
+  const CPPType &to_type = to_span.type();
+  BLI_assert(from_span.size() == to_span.size());
+  BLI_assert(this->is_convertible(from_type, to_type));
+  const fn::MultiFunction *fn = this->get_conversion_multi_function(
+      MFDataType::ForSingle(from_type), MFDataType::ForSingle(to_type));
+  fn::MFParamsBuilder params{*fn, from_span.size()};
+  params.add_readonly_single_input(from_span);
+  to_type.destruct_n(to_span.data(), to_span.size());
+  params.add_uninitialized_single_output(to_span);
+  fn::MFContextBuilder context;
+  fn->call_auto(IndexRange(from_span.size()), params, context);
+}
+
 class GVArray_For_ConvertedGVArray : public fn::GVArrayImpl {
  private:
   fn::GVArray varray_;

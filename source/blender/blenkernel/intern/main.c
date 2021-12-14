@@ -560,7 +560,7 @@ void BKE_main_thumbnail_create(struct Main *bmain)
 
 const char *BKE_main_blendfile_path(const Main *bmain)
 {
-  return bmain->name;
+  return bmain->filepath;
 }
 
 const char *BKE_main_blendfile_path_from_global(void)

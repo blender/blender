@@ -17,6 +17,10 @@
  * All rights reserved.
  */
 
+/** \file
+ * \ingroup intern_rigidbody
+ */
+
 #ifndef __RB_HULL_API_H__
 #define __RB_HULL_API_H__
 

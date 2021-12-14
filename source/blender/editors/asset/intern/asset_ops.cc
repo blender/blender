@@ -637,7 +637,7 @@ static bool asset_catalogs_save_poll(bContext *C)
   }
 
   const Main *bmain = CTX_data_main(C);
-  if (!bmain->name[0]) {
+  if (!bmain->filepath[0]) {
     CTX_wm_operator_poll_msg_set(C, "Cannot save asset catalogs before the Blender file is saved");
     return false;
   }
@@ -703,7 +703,7 @@ static bool asset_bundle_install_poll(bContext *C)
 
   /* Check whether this file is already located inside any asset library. */
   const struct bUserAssetLibrary *asset_lib = BKE_preferences_asset_library_containing_path(
-      &U, bmain->name);
+      &U, bmain->filepath);
   if (asset_lib) {
     return false;
   }
@@ -779,7 +779,7 @@ static int asset_bundle_install_exec(bContext *C, wmOperator *op)
   BKE_reportf(op->reports,
               RPT_INFO,
               R"(Saved "%s" to asset library "%s")",
-              BLI_path_basename(bmain->name),
+              BLI_path_basename(bmain->filepath),
               lib->name);
   return OPERATOR_FINISHED;
 }
@@ -830,7 +830,7 @@ static void ASSET_OT_bundle_install(struct wmOperatorType *ot)
  * referenced. */
 static bool could_be_asset_bundle(const Main *bmain)
 {
-  return fnmatch("*_bundle.blend", bmain->name, FNM_CASEFOLD) == 0;
+  return fnmatch("*_bundle.blend", bmain->filepath, FNM_CASEFOLD) == 0;
 }
 
 static const bUserAssetLibrary *selected_asset_library(struct wmOperator *op)
@@ -864,7 +864,7 @@ static bool set_filepath_for_asset_lib(const Main *bmain, struct wmOperator *op)
   }
 
   /* Concatenate the filename of the current blend file. */
-  const char *blend_filename = BLI_path_basename(bmain->name);
+  const char *blend_filename = BLI_path_basename(bmain->filepath);
   if (blend_filename == nullptr || blend_filename[0] == '\0') {
     return false;
   }
