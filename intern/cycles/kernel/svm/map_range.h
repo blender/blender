@@ -138,7 +138,7 @@ ccl_device_noinline int svm_node_vector_map_range(KernelGlobals kg,
     case NODE_MAP_RANGE_SMOOTHSTEP: {
       factor = safe_divide_float3_float3((value - from_min), (from_max - from_min));
       factor = clamp(factor, zero_float3(), one_float3());
-      factor = (make_float3(3.0f) - 2.0f * factor) * (factor * factor);
+      factor = (make_float3(3.0f, 3.0f, 3.0f) - 2.0f * factor) * (factor * factor);
       break;
     }
     case NODE_MAP_RANGE_SMOOTHERSTEP: {
