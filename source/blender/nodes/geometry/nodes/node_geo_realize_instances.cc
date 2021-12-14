@@ -16,6 +16,8 @@
 
 #include "node_geometry_util.hh"
 
+#include "GEO_realize_instances.hh"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -27,10 +29,20 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "legacy_behavior", 0, nullptr, ICON_NONE);
+}
+
 static void node_geo_exec(GeoNodeExecParams params)
 {
+  const bool legacy_behavior = params.node().custom1 & GEO_NODE_REALIZE_INSTANCES_LEGACY_BEHAVIOR;
+
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  geometry_set = bke::geometry_set_realize_instances(geometry_set);
+  geometry::RealizeInstancesOptions options;
+  options.keep_original_ids = legacy_behavior;
+  options.realize_instance_attributes = !legacy_behavior;
+  geometry_set = geometry::realize_instances(geometry_set, options);
   params.set_output("Geometry", std::move(geometry_set));
 }
 
@@ -45,6 +57,7 @@ void register_node_type_geo_realize_instances()
   geo_node_type_base(
       &ntype, GEO_NODE_REALIZE_INSTANCES, "Realize Instances", NODE_CLASS_GEOMETRY, 0);
   ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons_ex = file_ns::node_layout;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

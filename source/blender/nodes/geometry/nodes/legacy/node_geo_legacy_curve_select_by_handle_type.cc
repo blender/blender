@@ -101,7 +101,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const GeometryNodeCurveHandleMode mode = (GeometryNodeCurveHandleMode)storage->mode;
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  geometry_set = bke::geometry_set_realize_instances(geometry_set);
+  geometry_set = geometry::realize_instances_legacy(geometry_set);
 
   CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
   const CurveEval *curve = curve_component.get_for_read();

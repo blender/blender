@@ -30,6 +30,7 @@ set(INC
   ../depsgraph
   ../editors/include
   ../functions
+  ../geometry
   ../makesdna
   ../makesrna
   ../nodes

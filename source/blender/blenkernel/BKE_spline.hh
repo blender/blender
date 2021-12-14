@@ -705,6 +705,7 @@ struct CurveEval {
    * \warning Call #reallocate on the spline's attributes after adding all splines.
    */
   void add_spline(SplinePtr spline);
+  void add_splines(blender::MutableSpan<SplinePtr> splines);
   void remove_splines(blender::IndexMask mask);
 
   void translate(const blender::float3 &translation);

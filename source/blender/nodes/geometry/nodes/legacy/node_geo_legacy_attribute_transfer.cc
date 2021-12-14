@@ -487,8 +487,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  dst_geometry_set = bke::geometry_set_realize_instances(dst_geometry_set);
-  src_geometry_set = bke::geometry_set_realize_instances(src_geometry_set);
+  dst_geometry_set = geometry::realize_instances_legacy(dst_geometry_set);
+  src_geometry_set = geometry::realize_instances_legacy(src_geometry_set);
 
   if (dst_geometry_set.has<MeshComponent>()) {
     transfer_attribute(params,

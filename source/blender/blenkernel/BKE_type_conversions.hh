@@ -72,6 +72,8 @@ class DataTypeConversions {
                                 const void *from_value,
                                 void *to_value) const;
 
+  void convert_to_initialized_n(fn::GSpan from_span, fn::GMutableSpan to_span) const;
+
   fn::GVArray try_convert(fn::GVArray varray, const CPPType &to_type) const;
 
   fn::GVMutableArray try_convert(fn::GVMutableArray varray, const CPPType &to_type) const;

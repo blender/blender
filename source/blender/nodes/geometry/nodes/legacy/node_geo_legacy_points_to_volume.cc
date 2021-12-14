@@ -248,7 +248,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set_out;
 
   /* TODO: Read-only access to instances should be supported here, for now they are made real. */
-  geometry_set_in = geometry_set_realize_instances(geometry_set_in);
+  geometry_set_in = geometry::realize_instances_legacy(geometry_set_in);
 
 #ifdef WITH_OPENVDB
   initialize_volume_component_from_points(geometry_set_in, geometry_set_out, params);

@@ -229,7 +229,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   /* TODO: This node should be able to instance on the input instances component
    * rather than making the entire input geometry set real. */
-  geometry_set = geometry_set_realize_instances(geometry_set);
+  geometry_set = geometry::realize_instances_legacy(geometry_set);
 
   const Vector<InstanceReference> possible_references = get_instance_references(params);
   if (possible_references.is_empty()) {

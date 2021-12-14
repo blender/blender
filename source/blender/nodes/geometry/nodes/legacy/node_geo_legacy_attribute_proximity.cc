@@ -206,11 +206,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   GeometrySet geometry_set_target = params.extract_input<GeometrySet>("Target");
 
-  geometry_set = geometry_set_realize_instances(geometry_set);
+  geometry_set = geometry::realize_instances_legacy(geometry_set);
 
   /* This isn't required. This node should be rewritten to handle instances
    * for the target geometry set. However, the generic BVH API complicates this. */
-  geometry_set_target = geometry_set_realize_instances(geometry_set_target);
+  geometry_set_target = geometry::realize_instances_legacy(geometry_set_target);
 
   if (geometry_set.has<MeshComponent>()) {
     attribute_calc_proximity(

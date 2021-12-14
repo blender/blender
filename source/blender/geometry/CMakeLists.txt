@@ -31,7 +31,10 @@ set(INC
 
 set(SRC
   intern/mesh_to_curve_convert.cc
+  intern/realize_instances.cc
+
   GEO_mesh_to_curve.hh
+  GEO_realize_instances.hh
 )
 
 set(LIB

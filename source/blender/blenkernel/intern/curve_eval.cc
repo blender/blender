@@ -71,6 +71,13 @@ void CurveEval::add_spline(SplinePtr spline)
   splines_.append(std::move(spline));
 }
 
+void CurveEval::add_splines(MutableSpan<SplinePtr> splines)
+{
+  for (SplinePtr &spline : splines) {
+    this->add_spline(std::move(spline));
+  }
+}
+
 void CurveEval::remove_splines(blender::IndexMask mask)
 {
   for (int i = mask.size() - 1; i >= 0; i--) {

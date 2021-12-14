@@ -481,13 +481,18 @@ void GeometrySet::gather_attributes_for_propagation(
           return;
         }
 
+        AttributeDomain domain = meta_data.domain;
+        if (dst_component_type != GEO_COMPONENT_TYPE_INSTANCES && domain == ATTR_DOMAIN_INSTANCE) {
+          domain = ATTR_DOMAIN_POINT;
+        }
+
         auto add_info = [&](AttributeKind *attribute_kind) {
-          attribute_kind->domain = meta_data.domain;
+          attribute_kind->domain = domain;
           attribute_kind->data_type = meta_data.data_type;
         };
         auto modify_info = [&](AttributeKind *attribute_kind) {
           attribute_kind->domain = bke::attribute_domain_highest_priority(
-              {attribute_kind->domain, meta_data.domain});
+              {attribute_kind->domain, domain});
           attribute_kind->data_type = bke::attribute_data_type_highest_complexity(
               {attribute_kind->data_type, meta_data.data_type});
         };
