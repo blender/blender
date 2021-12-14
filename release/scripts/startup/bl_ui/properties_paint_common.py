@@ -1127,7 +1127,7 @@ class FalloffPanel(BrushPanel):
         settings = self.paint_settings(context)
         mode = self.get_brush_mode(context)
         brush = settings.brush
-
+        
         if mode == "SCULPT" and "falloff_curve" in brush.channels:
             layout.label(text="Falloff")
             ch = UnifiedPaintPanel.get_channel(context, brush, "falloff_curve")

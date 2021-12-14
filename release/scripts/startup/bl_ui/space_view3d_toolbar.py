@@ -810,7 +810,13 @@ class VIEW3D_PT_tools_weight_gradient(Panel, View3DPaintPanel):
 
     @classmethod
     def poll(cls, context):
+        if context.mode != "PAINT_WEIGHT":
+            return False
+
         settings = context.tool_settings.weight_paint
+        if not settings:
+            return False
+
         brush = settings.brush
         return brush is not None
 
@@ -845,6 +851,9 @@ class VIEW3D_PT_tools_brush_falloff(Panel, View3DPaintPanel, FalloffPanel):
 
 class VIEW3D_PT_tools_brush_falloff_popover(Panel, View3DPaintPanel, FalloffPanel):
     bl_context = ".brush_editor"  # dot on purpose (access from topbar)
+    bl_space_type = "TOPBAR"
+    bl_region_type = "HEADER"
+
     #bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = ""
     bl_options = {'DEFAULT_CLOSED'}
