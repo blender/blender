@@ -348,7 +348,8 @@ void BKE_pbvh_update_sculpt_verts(struct BMesh *bm,
                                   const int boundary_symmetry,
                                   const int vcol_type,
                                   const AttributeDomain vcol_domain,
-                                  const int cd_vcol_offset);
+                                  const int cd_vcol_offset,
+                                  bool do_uvs);
 
 /** update original data, only data whose r_** parameters are passed in will be updated*/
 void BKE_pbvh_bmesh_update_origvert(
@@ -905,7 +906,8 @@ void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    struct BMVert *v,
                                    int bound_symmetry,
                                    const CustomData *ldata,
-                                   const int totuv);
+                                   const int totuv,
+                                   const bool do_uvs);
 
 #define DYNTOPO_DYNAMIC_TESS
 
@@ -1133,3 +1135,5 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
                             bool *heap_alloc,
                             int **r_polys);
 void BKE_pbvh_set_vemap(PBVH *pbvh, struct MeshElemMap *vemap);
+
+void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value);

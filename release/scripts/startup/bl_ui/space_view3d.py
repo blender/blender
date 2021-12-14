@@ -78,13 +78,23 @@ class VIEW3D_HT_tool_header(Header):
         def draw_3d_brush_settings(layout, tool_mode):
             layout.popover("VIEW3D_PT_tools_brush_settings_channels", text="Brush")
 
-            if tool_mode != 'PAINT_WEIGHT':
+            if tool_mode not in ('PAINT_WEIGHT', 'SCULPT'):
                 layout.popover("VIEW3D_PT_tools_brush_texture")
+
             if tool_mode == 'PAINT_TEXTURE':
                 layout.popover("VIEW3D_PT_tools_mask_texture")
+
             layout.popover("VIEW3D_PT_tools_brush_stroke")
-            layout.popover("VIEW3D_PT_tools_brush_falloff")
-            layout.popover("VIEW3D_PT_tools_brush_display")
+
+            sub = layout.row()
+            sub.ui_units_x = 5
+            sub.popover("VIEW3D_PT_tools_brush_falloff_popover")
+
+            # why show this in the header? it takes up space - joeedh
+            #layout.popover("VIEW3D_PT_tools_brush_display")
+
+            if tool_mode == 'SCULPT':
+                layout.popover("VIEW3D_PT_tools_brush_texture")
 
         # Note: general mode options should be added to 'draw_mode_settings'.
         if tool_mode == 'SCULPT':

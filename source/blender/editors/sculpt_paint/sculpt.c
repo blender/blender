@@ -2457,7 +2457,8 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
                                       (BMVert *)vertex.i,
                                       ss->boundary_symmetry,
                                       &ss->bm->ldata,
-                                      ss->totuv);
+                                      ss->totuv,
+                                      !ss->ignore_uvs);
       }
 
       break;
@@ -2519,7 +2520,8 @@ SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
                                       (BMVert *)vertex.i,
                                       ss->boundary_symmetry,
                                       &ss->bm->ldata,
-                                      ss->totuv);
+                                      ss->totuv,
+                                      !ss->ignore_uvs);
       }
 
       break;
@@ -5481,7 +5483,8 @@ void do_brush_action(
       SCULPT_uv_brush(sd, ob, nodes, totnode);
       break;
     case SCULPT_TOOL_ENHANCE_DETAILS:
-      SCULPT_enhance_details_brush(sd, ob, nodes, totnode, SCULPT_get_int(ss, enhance_detail_presteps, sd, brush));
+      SCULPT_enhance_details_brush(
+          sd, ob, nodes, totnode, SCULPT_get_int(ss, enhance_detail_presteps, sd, brush));
       break;
   }
 
@@ -6817,6 +6820,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Auto Face Set";
     case SCULPT_TOOL_RELAX:
       return "Relax";
+    case SCULPT_TOOL_ENHANCE_DETAILS:
+      return "Enhance Details";
   }
 
   return "Sculpting";
@@ -7024,6 +7029,9 @@ static void sculpt_update_cache_invariants(
   float viewDir[3] = {0.0f, 0.0f, 1.0f};
   float max_scale;
   int mode;
+
+  Mesh *me = BKE_object_get_original_mesh(ob);
+  BKE_sculptsession_ignore_uvs_set(ob, me->flag & ME_SCULPT_IGNORE_UVS);
 
   cache->tool_override = RNA_enum_get(op->ptr, "tool_override");
 

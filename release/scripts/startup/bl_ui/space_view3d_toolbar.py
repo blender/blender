@@ -841,6 +841,25 @@ class VIEW3D_PT_tools_brush_falloff(Panel, View3DPaintPanel, FalloffPanel):
     bl_label = ""
     bl_options = {'DEFAULT_CLOSED'}
 
+class VIEW3D_PT_tools_brush_falloff_popover(Panel, View3DPaintPanel, FalloffPanel):
+    bl_context = ".brush_editor"  # dot on purpose (access from topbar)
+    #bl_parent_id = "VIEW3D_PT_tools_brush_settings"
+    bl_label = ""
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+        layout = self.layout
+        settings = self.paint_settings(context)
+        mode = self.get_brush_mode(context)
+        brush = settings.brush
+
+        if mode == "SCULPT" and "falloff_curve" in brush.channels:
+            #layout.label(text="Falloff")
+            ch = UnifiedPaintPanel.get_channel(context, brush, "falloff_curve")
+            layout.prop(ch.curve, "curve_preset", text="")
+        else:
+            layout.label(text="Falloff")
+            layout.prop(brush, "curve_preset", text="")
 
 class VIEW3D_PT_tools_brush_falloff_frontface(View3DPaintPanel, Panel):
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
@@ -1180,6 +1199,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         #col.prop(sculpt, "use_dyntopo_cleanup")
         col.prop(sculpt, "use_smooth_shading")
         col.prop(sculpt, "use_flat_vcol_shading")
+        col.prop(context.object.data, "sculpt_ignore_uvs")
 
         UnifiedPaintPanel.channel_unified(layout, context, brush, "dyntopo_spacing", slider=True, ui_editing=False)
         UnifiedPaintPanel.channel_unified(layout, context, brush, "dyntopo_radius_scale", slider=True, ui_editing=False)
@@ -1254,6 +1274,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "use_fast_draw")
         col.prop(sculpt, "use_deform_only")
         col.prop(sculpt, "show_sculpt_pivot")
+        col.prop(context.object.data, "sculpt_ignore_uvs")
 
         UnifiedPaintPanel.channel_unified(layout.column(),
             context,
@@ -2666,6 +2687,7 @@ classes = (VIEW3D_MT_brush_context_menu,
     VIEW3D_PT_tools_brush_stroke,
     VIEW3D_PT_tools_brush_stroke_smooth_stroke,
     VIEW3D_PT_tools_brush_falloff,
+    VIEW3D_PT_tools_brush_falloff_popover,
     VIEW3D_PT_tools_brush_falloff_frontface,
     VIEW3D_PT_tools_brush_falloff_normal,
     VIEW3D_PT_tools_brush_display,

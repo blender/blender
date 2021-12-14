@@ -703,7 +703,8 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
                                ss->boundary_symmetry,
                                ss->vcol_type,
                                ss->vcol_domain,
-                               ss->cd_vcol_offset);
+                               ss->cd_vcol_offset,
+                               !ss->ignore_uvs);
 
   /* Make sure the data for existing faces are initialized. */
   if (me->totpoly != ss->bm->totface) {

@@ -133,7 +133,8 @@ struct PBVHNode {
 
 typedef enum {
   PBVH_DYNTOPO_SMOOTH_SHADING = 1,
-  PBVH_FAST_DRAW = 2  // hides facesets/masks and forces smooth to save GPU bandwidth
+  PBVH_FAST_DRAW = 2,  // hides facesets/masks and forces smooth to save GPU bandwidth
+  PBVH_IGNORE_UVS = 4
 } PBVHFlags;
 
 typedef struct PBVHBMeshLog PBVHBMeshLog;
@@ -390,7 +391,7 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
                                   v,
                                   pbvh->boundary_symmetry,
                                   &pbvh->bm->ldata,
-                                  pbvh->totuv);
+                                  pbvh->flags & PBVH_IGNORE_UVS ? 0 : pbvh->totuv);
     return true;
   }
 

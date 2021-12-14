@@ -1148,11 +1148,11 @@ class FalloffPanel(BrushPanel):
         if mode == "SCULPT" and "falloff_curve" in brush.channels:
             ch, path = UnifiedPaintPanel.get_channel(context, brush, "falloff_curve", need_path=True)
             path += ".curve.curve"
-            template_curve(layout, ch.curve, "curve", path, True)
+
+            if ch.curve.curve_preset == "CUSTOM":
+                template_curve(layout, ch.curve, "curve", path, True)
 
             UnifiedPaintPanel.channel_unified(layout, context, brush, "falloff_shape", expand=True)
-            #layout.prop(brush, "falloff_shape", expand=True)
-
             return
 
         col = layout.column(align=True)

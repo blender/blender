@@ -3484,7 +3484,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     for (Mesh *me = bmain->meshes.first; me; me = me->id.next) {
       me->flag &= ~(ME_REMESH_REPROJECT_MATERIALS | ME_FLAG_UNUSED_1 | ME_FLAG_UNUSED_3 |
-                    ME_FLAG_UNUSED_4 | ME_FLAG_UNUSED_6 | ME_REMESH_REPROJECT_MATERIALS |
+                    ME_FLAG_UNUSED_4 | ME_SCULPT_IGNORE_UVS | ME_REMESH_REPROJECT_MATERIALS |
                     ME_REMESH_REPROJECT_VERTEX_COLORS);
     }
 

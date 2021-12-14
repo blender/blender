@@ -1670,6 +1670,14 @@ char BKE_get_fset_boundary_symflag(Object *object)
   return mesh->flag & ME_SCULPT_MIRROR_FSET_BOUNDARIES ? mesh->symmetry : 0;
 }
 
+void BKE_sculptsession_ignore_uvs_set(Object *ob, bool value)
+{
+  ob->sculpt->ignore_uvs = value;
+
+  if (ob->sculpt->pbvh) {
+    BKE_pbvh_ignore_uvs_set(ob->sculpt->pbvh, value);
+  }
+}
 /**
  * \param need_mask: So that the evaluated mesh that is returned has mask data.
  */
@@ -1690,6 +1698,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   ss->depsgraph = depsgraph;
 
   ss->bm_smooth_shading = scene->toolsettings->sculpt->flags & SCULPT_DYNTOPO_SMOOTH_SHADING;
+  ss->ignore_uvs = me->flag & ME_SCULPT_IGNORE_UVS;
 
   ss->deform_modifiers_active = sculpt_modifiers_active(scene, sd, ob);
   ss->show_mask = (sd->flags & SCULPT_HIDE_MASK) == 0;
@@ -3235,8 +3244,8 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
         CustomData_add_layer_named(cdata, proptype, CD_CALLOC, NULL, totelem, name);
         idx = CustomData_get_named_layer_index(cdata, proptype, name);
 
-        //if (!permanent) {
-          cdata->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
+        // if (!permanent) {
+        cdata->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
         //}
       }
 

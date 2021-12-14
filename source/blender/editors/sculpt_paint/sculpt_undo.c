@@ -807,7 +807,8 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
                                ss->boundary_symmetry,
                                ss->vcol_type,
                                ss->vcol_domain,
-                               ss->cd_vcol_offset);
+                               ss->cd_vcol_offset,
+                               !ss->ignore_uvs);
 
   if (!ss->bm_log) {
     /* Restore the BMLog using saved entries. */

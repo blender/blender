@@ -1312,7 +1312,7 @@ void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode)
 {
   TaskParallelSettings settings;
   UpdateNormalsTaskData *datas = MEM_calloc_arrayN(totnode, sizeof(*datas), "bmesh normal update");
-  
+
   for (int i = 0; i < totnode; i++) {
     datas[i].node = nodes[i];
     datas[i].cd_sculpt_vert = pbvh->cd_sculpt_vert;
@@ -1723,7 +1723,10 @@ int BKE_pbvh_do_fset_symmetry(int fset, const int symflag, const float *co)
     return 1;
   }
 
-  // surely we don't need more then 8 million face sets?
+  /*
+    flag symmetry by shifting by 24 bits;
+    surely we don't need more then 8 million face sets?
+  */
   if (co[0] < 0.0f) {
     fset |= (symflag & 1) << 24;
   }
@@ -2050,7 +2053,8 @@ void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    BMVert *v,
                                    int bound_symmetry,
                                    const CustomData *ldata,
-                                   const int totuv)
+                                   const int totuv,
+                                   const bool do_uvs)
 {
   bke_pbvh_update_vert_boundary(cd_sculpt_vert,
                                 cd_faceset_offset,
@@ -2060,7 +2064,7 @@ void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                 v,
                                 bound_symmetry,
                                 ldata,
-                                totuv);
+                                do_uvs ? totuv : 0);
 }
 
 /*Used by symmetrize to update boundary flags*/
@@ -2078,7 +2082,7 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
                                   v,
                                   pbvh->boundary_symmetry,
                                   &pbvh->bm->ldata,
-                                  pbvh->totuv);
+                                  pbvh->flags & PBVH_IGNORE_UVS ? 0 : pbvh->totuv);
   }
 }
 
@@ -2305,12 +2309,13 @@ void BKE_pbvh_update_sculpt_verts(BMesh *bm,
                                   const int boundary_symmetry,
                                   const int vcol_type,
                                   const AttributeDomain vcol_domain,
-                                  const int cd_vcol_offset)
+                                  const int cd_vcol_offset,
+                                  bool do_uvs)
 {
   BMVert *v;
   BMIter iter;
 
-  int totuv = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
+  int totuv = do_uvs ? CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV) : 0;
 
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
@@ -2499,7 +2504,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                                  pbvh->boundary_symmetry,
                                  pbvh->vcol_type,
                                  pbvh->vcol_domain,
-                                 pbvh->cd_vcol_offset);
+                                 pbvh->cd_vcol_offset,
+                                 !(pbvh->flags & PBVH_IGNORE_UVS));
   }
 
   pbvh_print_mem_size(pbvh);

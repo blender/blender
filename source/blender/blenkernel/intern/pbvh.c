@@ -4611,6 +4611,32 @@ void BKE_pbvh_set_stroke_id(PBVH *pbvh, int stroke_id)
   pbvh->stroke_id = stroke_id;
 }
 
+static void pbvh_boundaries_flag_update(PBVH *pbvh)
+{
+
+  if (pbvh->bm) {
+    BMVert *v;
+    BMIter iter;
+
+    BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+      MSculptVert *mv = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_sculpt_vert);
+
+      mv->flag |= SCULPTVERT_NEED_BOUNDARY;
+    }
+  }
+  else {
+    int totvert = pbvh->totvert;
+
+    if (BKE_pbvh_type(pbvh) == PBVH_GRIDS) {
+      totvert = BKE_pbvh_get_grid_num_vertices(pbvh);
+    }
+
+    for (int i = 0; i < totvert; i++) {
+      pbvh->mdyntopo_verts[i].flag |= SCULPTVERT_NEED_BOUNDARY;
+    }
+  }
+}
+
 void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry)
 {
   if (symmetry == pbvh->symmetry && boundary_symmetry == pbvh->boundary_symmetry) {
@@ -4620,16 +4646,7 @@ void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry)
   pbvh->symmetry = symmetry;
   pbvh->boundary_symmetry = boundary_symmetry;
 
-  if (pbvh->bm && BKE_pbvh_type(pbvh) == PBVH_BMESH) {
-    BMIter iter;
-    BMVert *v;
-
-    BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
-      MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-
-      MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
-    }
-  }
+  pbvh_boundaries_flag_update(pbvh);
 }
 
 void BKE_pbvh_set_mdyntopo_verts(PBVH *pbvh, struct MSculptVert *mdyntopoverts)
@@ -4751,4 +4768,20 @@ void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
   if (totseam > 2) {
     mv->flag |= SCULPTVERT_SEAM_CORNER;
   }
+}
+
+void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value)
+{
+  if (!!(pbvh->flags & PBVH_IGNORE_UVS) == value) {
+    return;  // no change
+  }
+
+  if (value) {
+    pbvh->flags |= PBVH_IGNORE_UVS;
+  }
+  else {
+    pbvh->flags &= ~PBVH_IGNORE_UVS;
+  }
+
+  pbvh_boundaries_flag_update(pbvh);
 }

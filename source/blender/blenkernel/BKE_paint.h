@@ -764,6 +764,8 @@ typedef struct SculptSession {
   int totuv;
 
   bool bm_smooth_shading;
+  bool ignore_uvs;
+
   /* Undo/redo log for dynamic topology sculpting */
   struct BMLog *bm_log;
 
@@ -936,8 +938,9 @@ bool BKE_sculptsession_customlayer_release(struct Object *ob, SculptCustomLayer 
 void BKE_sculptsession_bmesh_attr_update_internal(struct Object *ob);
 void BKE_sculptsession_update_attr_refs(struct Object *ob);
 int BKE_sculptsession_get_totvert(const SculptSession *ss);
+void BKE_sculptsession_ignore_uvs_set(struct Object *ob, bool value);
 
-/**
+    /**
  * Create new color layer on object if it doesn't have one and if experimental feature set has
  * sculpt vertex color enabled. Returns truth if new layer has been added, false otherwise.
  */
