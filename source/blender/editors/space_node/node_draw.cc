@@ -975,7 +975,6 @@ static void create_inspection_string_for_geometry(const geo_log::GeometryValueLo
 }
 
 static std::optional<std::string> create_socket_inspection_string(bContext *C,
-                                                                  bNodeTree &UNUSED(ntree),
                                                                   bNode &node,
                                                                   bNodeSocket &socket)
 {
@@ -1072,7 +1071,7 @@ static void node_socket_draw_nested(const bContext &C,
       [](bContext *C, void *argN, const char *UNUSED(tip)) {
         SocketTooltipData *data = (SocketTooltipData *)argN;
         std::optional<std::string> socket_inspection_str = create_socket_inspection_string(
-            C, *data->ntree, *data->node, *data->socket);
+            C, *data->node, *data->socket);
 
         std::stringstream output;
         if (data->socket->declaration != nullptr) {
@@ -2328,9 +2327,8 @@ static void count_multi_input_socket_links(bNodeTree &ntree, SpaceNode &snode)
 
 /* XXX Does a bounding box update by iterating over all children.
  * Not ideal to do this in every draw call, but doing as transform callback doesn't work,
- * since the child node totr rects are not updated properly at that point.
- */
-static void frame_node_prepare_for_draw(bNodeTree &ntree, bNode &node, Span<bNode *> nodes)
+ * since the child node totr rects are not updated properly at that point. */
+static void frame_node_prepare_for_draw(bNode &node, Span<bNode *> nodes)
 {
   const float margin = 1.5f * U.widget_unit;
   NodeFrame *data = (NodeFrame *)node.storage;
@@ -2416,7 +2414,7 @@ static void node_update_nodetree(const bContext &C,
     bNode &node = *nodes[i];
     uiBlock &block = *blocks[i];
     if (node.type == NODE_FRAME) {
-      frame_node_prepare_for_draw(ntree, node, nodes);
+      frame_node_prepare_for_draw(node, nodes);
     }
     else if (node.type == NODE_REROUTE) {
       reroute_node_prepare_for_draw(node);
