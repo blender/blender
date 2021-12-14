@@ -119,6 +119,9 @@ void wm_surface_add(wmSurface *surface)
 
 void wm_surface_remove(wmSurface *surface)
 {
+  if (surface == g_drawable) {
+    wm_surface_clear_drawable();
+  }
   BLI_remlink(&global_surface_list, surface);
   surface->free_data(surface);
   MEM_freeN(surface);
