@@ -39,6 +39,8 @@ typedef struct wmSurface {
   void *customdata;
 
   void (*draw)(struct bContext *);
+  /* To evaluate the surface's depsgraph. Called as part of the main loop. */
+  void (*do_depsgraph)(struct bContext *C);
   /** Free customdata, not the surface itself (done by wm_surface API) */
   void (*free_data)(struct wmSurface *);
 
@@ -55,6 +57,9 @@ void wm_surfaces_free(void);
 
 /* Utils */
 void wm_surfaces_iter(struct bContext *C, void (*cb)(struct bContext *, wmSurface *));
+
+/* Evaluation. */
+void wm_surfaces_do_depsgraph(struct bContext *C);
 
 /* Drawing */
 void wm_surface_make_drawable(wmSurface *surface);

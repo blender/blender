@@ -84,6 +84,7 @@
 #include "wm.h"
 #include "wm_event_system.h"
 #include "wm_event_types.h"
+#include "wm_surface.h"
 #include "wm_window.h"
 
 #include "DEG_depsgraph.h"
@@ -382,6 +383,8 @@ void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
     DEG_make_active(depsgraph);
     BKE_scene_graph_update_tagged(depsgraph, bmain);
   }
+
+  wm_surfaces_do_depsgraph(C);
 }
 
 void wm_event_do_refresh_wm_and_depsgraph(bContext *C)

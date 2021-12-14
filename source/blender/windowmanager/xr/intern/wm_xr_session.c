@@ -30,6 +30,7 @@
 #include "BLI_math.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_space_types.h"
@@ -243,10 +244,9 @@ wmWindow *wm_xr_session_root_window_or_fallback_get(const wmWindowManager *wm,
  * It's important that the VR session follows some existing window, otherwise it would need to have
  * an own depsgraph, which is an expense we should avoid.
  */
-static void wm_xr_session_scene_and_evaluated_depsgraph_get(Main *bmain,
-                                                            const wmWindowManager *wm,
-                                                            Scene **r_scene,
-                                                            Depsgraph **r_depsgraph)
+static void wm_xr_session_scene_and_depsgraph_get(const wmWindowManager *wm,
+                                                  Scene **r_scene,
+                                                  Depsgraph **r_depsgraph)
 {
   const wmWindow *root_win = wm_xr_session_root_window_or_fallback_get(wm, wm->xr.runtime);
 
@@ -256,7 +256,6 @@ static void wm_xr_session_scene_and_evaluated_depsgraph_get(Main *bmain,
 
   Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
   BLI_assert(scene && view_layer && depsgraph);
-  BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
   *r_scene = scene;
   *r_depsgraph = depsgraph;
 }
@@ -1302,7 +1301,6 @@ void wm_xr_session_controller_data_clear(wmXrSessionState *state)
 static void wm_xr_session_surface_draw(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  Main *bmain = CTX_data_main(C);
   wmXrDrawData draw_data;
 
   if (!WM_xr_session_is_ready(&wm->xr)) {
@@ -1311,12 +1309,29 @@ static void wm_xr_session_surface_draw(bContext *C)
 
   Scene *scene;
   Depsgraph *depsgraph;
-  wm_xr_session_scene_and_evaluated_depsgraph_get(bmain, wm, &scene, &depsgraph);
+  wm_xr_session_scene_and_depsgraph_get(wm, &scene, &depsgraph);
+  /* Might fail when force-redrawing windows with #WM_redraw_windows(), which is done on file
+   * writing for example. */
+  // BLI_assert(DEG_is_fully_evaluated(depsgraph));
   wm_xr_session_draw_data_populate(&wm->xr, scene, depsgraph, &draw_data);
 
   GHOST_XrSessionDrawViews(wm->xr.runtime->context, &draw_data);
 
   GPU_framebuffer_restore();
+}
+
+static void wm_xr_session_do_depsgraph(bContext *C)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+
+  if (!WM_xr_session_is_ready(&wm->xr)) {
+    return;
+  }
+
+  Scene *scene;
+  Depsgraph *depsgraph;
+  wm_xr_session_scene_and_depsgraph_get(wm, &scene, &depsgraph);
+  BKE_scene_graph_evaluated_ensure(depsgraph, CTX_data_main(C));
 }
 
 bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
@@ -1427,6 +1442,7 @@ static wmSurface *wm_xr_session_surface_create(void)
   data->controller_art = MEM_callocN(sizeof(*(data->controller_art)), "XrControllerRegionType");
 
   surface->draw = wm_xr_session_surface_draw;
+  surface->do_depsgraph = wm_xr_session_do_depsgraph;
   surface->free_data = wm_xr_session_surface_free_data;
   surface->activate = DRW_xr_drawing_begin;
   surface->deactivate = DRW_xr_drawing_end;

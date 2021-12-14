@@ -50,6 +50,18 @@ void wm_surfaces_iter(bContext *C, void (*cb)(bContext *C, wmSurface *))
   }
 }
 
+static void wm_surface_do_depsgraph_fn(bContext *C, wmSurface *surface)
+{
+  if (surface->do_depsgraph) {
+    surface->do_depsgraph(C);
+  }
+}
+
+void wm_surfaces_do_depsgraph(bContext *C)
+{
+  wm_surfaces_iter(C, wm_surface_do_depsgraph_fn);
+}
+
 void wm_surface_clear_drawable(void)
 {
   if (g_drawable) {
