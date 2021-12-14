@@ -323,8 +323,6 @@ typedef struct bNode {
   char branch_tag;
   /** Used at runtime when iterating over node branches. */
   char iter_flag;
-  /** Runtime during drawing. */
-  struct uiBlock *block;
 
   /**
    * XXX: eevee only, id of screen space reflection layer,

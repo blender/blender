@@ -110,7 +110,6 @@ void node_socket_color_get(const bContext &C,
                            PointerRNA &node_ptr,
                            const bNodeSocket &sock,
                            float r_color[4]);
-void node_update_nodetree(const bContext &C, bNodeTree &ntree);
 void node_draw_space(const bContext &C, ARegion &region);
 
 void node_set_cursor(wmWindow &win, SpaceNode &snode, const blender::float2 &cursor);
