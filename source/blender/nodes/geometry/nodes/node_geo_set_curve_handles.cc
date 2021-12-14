@@ -60,10 +60,12 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
     return;
   }
 
-  fn::FieldEvaluator selection_evaluator{field_context, domain_size};
-  selection_evaluator.add(selection_field);
-  selection_evaluator.evaluate();
-  const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
+  fn::FieldEvaluator evaluator{field_context, domain_size};
+  evaluator.set_selection(selection_field);
+  evaluator.add(position_field);
+  evaluator.add(offset_field);
+  evaluator.evaluate();
+  const IndexMask selection = evaluator.get_evaluated_as_mask(0);
 
   CurveComponent *curve_component = static_cast<CurveComponent *>(&component);
   CurveEval *curve = curve_component->get_for_write();
@@ -113,13 +115,8 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
     }
   }
 
-  fn::FieldEvaluator position_evaluator{field_context, &selection};
-  position_evaluator.add(position_field);
-  position_evaluator.add(offset_field);
-  position_evaluator.evaluate();
-
-  const VArray<float3> &positions_input = position_evaluator.get_evaluated<float3>(0);
-  const VArray<float3> &offsets_input = position_evaluator.get_evaluated<float3>(1);
+  const VArray<float3> &positions_input = evaluator.get_evaluated<float3>(0);
+  const VArray<float3> &offsets_input = evaluator.get_evaluated<float3>(1);
 
   OutputAttribute_Typed<float3> positions = component.attribute_try_get_for_output<float3>(
       side, ATTR_DOMAIN_POINT, {0, 0, 0});

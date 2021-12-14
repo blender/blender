@@ -36,16 +36,13 @@ static void set_material_index_in_component(GeometryComponent &component,
     return;
   }
 
-  fn::FieldEvaluator selection_evaluator{field_context, domain_size};
-  selection_evaluator.add(selection_field);
-  selection_evaluator.evaluate();
-  const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
-
   OutputAttribute_Typed<int> indices = component.attribute_try_get_for_output_only<int>(
       "material_index", ATTR_DOMAIN_FACE);
-  fn::FieldEvaluator material_evaluator{field_context, &selection};
-  material_evaluator.add_with_destination(index_field, indices.varray());
-  material_evaluator.evaluate();
+
+  fn::FieldEvaluator evaluator{field_context, domain_size};
+  evaluator.set_selection(selection_field);
+  evaluator.add_with_destination(index_field, indices.varray());
+  evaluator.evaluate();
   indices.save();
 }
 

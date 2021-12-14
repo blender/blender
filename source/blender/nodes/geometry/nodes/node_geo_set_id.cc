@@ -36,26 +36,24 @@ static void set_id_in_component(GeometryComponent &component,
     return;
   }
 
-  fn::FieldEvaluator selection_evaluator{field_context, domain_size};
-  selection_evaluator.add(selection_field);
-  selection_evaluator.evaluate();
-  const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
+  fn::FieldEvaluator evaluator{field_context, domain_size};
+  evaluator.set_selection(selection_field);
 
   /* Since adding the ID attribute can change the result of the field evaluation (the random value
    * node uses the index if the ID is unavailable), make sure that it isn't added before evaluating
    * the field. However, as an optimization, use a faster code path when it already exists. */
-  fn::FieldEvaluator id_evaluator{field_context, &selection};
   if (component.attribute_exists("id")) {
     OutputAttribute_Typed<int> id_attribute = component.attribute_try_get_for_output_only<int>(
         "id", ATTR_DOMAIN_POINT);
-    id_evaluator.add_with_destination(id_field, id_attribute.varray());
-    id_evaluator.evaluate();
+    evaluator.add_with_destination(id_field, id_attribute.varray());
+    evaluator.evaluate();
     id_attribute.save();
   }
   else {
-    id_evaluator.add(id_field);
-    id_evaluator.evaluate();
-    const VArray<int> &result_ids = id_evaluator.get_evaluated<int>(0);
+    evaluator.add(id_field);
+    evaluator.evaluate();
+    const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+    const VArray<int> &result_ids = evaluator.get_evaluated<int>(0);
     OutputAttribute_Typed<int> id_attribute = component.attribute_try_get_for_output_only<int>(
         "id", ATTR_DOMAIN_POINT);
     result_ids.materialize(selection, id_attribute.as_span());

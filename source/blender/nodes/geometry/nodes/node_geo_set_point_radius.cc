@@ -40,16 +40,14 @@ static void set_radius_in_component(GeometryComponent &component,
     return;
   }
 
-  fn::FieldEvaluator selection_evaluator{field_context, domain_size};
-  selection_evaluator.add(selection_field);
-  selection_evaluator.evaluate();
-  const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
-
   OutputAttribute_Typed<float> radii = component.attribute_try_get_for_output_only<float>(
       "radius", ATTR_DOMAIN_POINT);
-  fn::FieldEvaluator radii_evaluator{field_context, &selection};
-  radii_evaluator.add_with_destination(radius_field, radii.varray());
-  radii_evaluator.evaluate();
+
+  fn::FieldEvaluator evaluator{field_context, domain_size};
+  evaluator.set_selection(selection_field);
+  evaluator.add_with_destination(radius_field, radii.varray());
+  evaluator.evaluate();
+
   radii.save();
 }
 

@@ -65,12 +65,24 @@ static void add_instances_from_component(
   const AttributeDomain domain = ATTR_DOMAIN_POINT;
   const int domain_size = src_component.attribute_domain_size(domain);
 
+  VArray<bool> pick_instance;
+  VArray<int> indices;
+  VArray<float3> rotations;
+  VArray<float3> scales;
+
   GeometryComponentFieldContext field_context{src_component, domain};
   const Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
-  fn::FieldEvaluator selection_evaluator{field_context, domain_size};
-  selection_evaluator.add(selection_field);
-  selection_evaluator.evaluate();
-  const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
+  fn::FieldEvaluator evaluator{field_context, domain_size};
+  evaluator.set_selection(selection_field);
+  /* The evaluator could use the component's stable IDs as a destination directly, but only the
+   * selected indices should be copied. */
+  evaluator.add(params.get_input<Field<bool>>("Pick Instance"), &pick_instance);
+  evaluator.add(params.get_input<Field<int>>("Instance Index"), &indices);
+  evaluator.add(params.get_input<Field<float3>>("Rotation"), &rotations);
+  evaluator.add(params.get_input<Field<float3>>("Scale"), &scales);
+  evaluator.evaluate();
+
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
   /* The initial size of the component might be non-zero when this function is called for multiple
    * component types. */
@@ -82,19 +94,6 @@ static void add_instances_from_component(
                                                                                   select_len);
   MutableSpan<float4x4> dst_transforms = dst_component.instance_transforms().slice(start_len,
                                                                                    select_len);
-
-  FieldEvaluator field_evaluator{field_context, domain_size};
-  VArray<bool> pick_instance;
-  VArray<int> indices;
-  VArray<float3> rotations;
-  VArray<float3> scales;
-  /* The evaluator could use the component's stable IDs as a destination directly, but only the
-   * selected indices should be copied. */
-  field_evaluator.add(params.get_input<Field<bool>>("Pick Instance"), &pick_instance);
-  field_evaluator.add(params.get_input<Field<int>>("Instance Index"), &indices);
-  field_evaluator.add(params.get_input<Field<float3>>("Rotation"), &rotations);
-  field_evaluator.add(params.get_input<Field<float3>>("Scale"), &scales);
-  field_evaluator.evaluate();
 
   VArray<float3> positions = src_component.attribute_get_for_read<float3>(
       "position", domain, {0, 0, 0});

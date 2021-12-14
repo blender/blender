@@ -83,10 +83,15 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
     return;
   }
-  fn::FieldEvaluator selection_evaluator{field_context, domain_size};
-  selection_evaluator.add(selection_field);
-  selection_evaluator.evaluate();
-  const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
+  fn::FieldEvaluator evaluator{field_context, domain_size};
+  evaluator.set_selection(selection_field);
+  /* Evaluating directly into the point cloud doesn't work because we are not using the full
+   * "min_array_size" array but compressing the selected elements into the final array with no
+   * gaps. */
+  evaluator.add(position_field);
+  evaluator.add(radius_field);
+  evaluator.evaluate();
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
   uninitialized_fill_n(pointcloud->radius, pointcloud->totpoint, 0.05f);
@@ -94,13 +99,6 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   PointCloudComponent &point_component =
       geometry_set.get_component_for_write<PointCloudComponent>();
 
-  /* Evaluating directly into the point cloud doesn't work because we are not using the full
-   * "min_array_size" array but compressing the selected elements into the final array with no
-   * gaps. */
-  fn::FieldEvaluator evaluator{field_context, &selection};
-  evaluator.add(position_field);
-  evaluator.add(radius_field);
-  evaluator.evaluate();
   copy_attribute_to_points(evaluator.get_evaluated<float3>(0),
                            selection,
                            {(float3 *)pointcloud->co, pointcloud->totpoint});

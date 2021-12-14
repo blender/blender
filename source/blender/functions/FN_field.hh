@@ -313,6 +313,9 @@ class FieldEvaluator : NonMovable, NonCopyable {
   Vector<OutputPointerInfo> output_pointer_infos_;
   bool is_evaluated_ = false;
 
+  Field<bool> selection_field_;
+  IndexMask selection_mask_;
+
  public:
   /** Takes #mask by pointer because the mask has to live longer than the evaluator. */
   FieldEvaluator(const FieldContext &context, const IndexMask *mask)
@@ -330,6 +333,18 @@ class FieldEvaluator : NonMovable, NonCopyable {
     /* While this assert isn't strictly necessary, and could be replaced with a warning,
      * it will catch cases where someone forgets to call #evaluate(). */
     BLI_assert(is_evaluated_);
+  }
+
+  /**
+   * The selection field is evaluated first to determine which indices of the other fields should
+   * be evaluated. Calling this method multiple times will just replace the previously set
+   * selection field. Only the elements selected by both this selection and the selection provided
+   * in the constructor are calculated. If no selection field is set, it is assumed that all
+   * indices passed to the constructor are selected.
+   */
+  void set_selection(Field<bool> selection)
+  {
+    selection_field_ = std::move(selection);
   }
 
   /**
@@ -402,6 +417,8 @@ class FieldEvaluator : NonMovable, NonCopyable {
   {
     return this->get_evaluated(field_index).typed<T>();
   }
+
+  IndexMask get_evaluated_selection_as_mask();
 
   /**
    * Retrieve the output of an evaluated boolean field and convert it to a mask, which can be used
