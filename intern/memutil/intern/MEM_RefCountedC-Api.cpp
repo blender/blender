@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup memutil
+ * \ingroup intern_memutil
  */
 
 #include "MEM_RefCountedC-Api.h"

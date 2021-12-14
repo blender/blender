@@ -1,5 +1,5 @@
 /** \file itasc/Cache.cpp
- * \ingroup itasc
+ * \ingroup intern_itasc
  */
 /*
  * Cache.cpp

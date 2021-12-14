@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup MEM
+ * \ingroup intern_mem
  */
 
 #ifndef __MALLOCN_INTERN_H__

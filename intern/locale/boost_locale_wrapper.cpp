@@ -17,6 +17,10 @@
  * All rights reserved.
  */
 
+/** \file
+ * \ingroup intern_locale
+ */
+
 #include <boost/locale.hpp>
 #include <stdio.h>
 

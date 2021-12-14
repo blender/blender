@@ -26,6 +26,10 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/** \file
+ * \ingroup intern_atomic
+ */
+
 #ifndef __ATOMIC_OPS_MSVC_H__
 #define __ATOMIC_OPS_MSVC_H__
 

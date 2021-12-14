@@ -17,6 +17,10 @@
  * All rights reserved.
  */
 
+/** \file
+ * \ingroup intern_eigen
+ */
+
 #ifndef __EIGEN3_SVD_C_API_H__
 #define __EIGEN3_SVD_C_API_H__
 

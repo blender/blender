@@ -18,6 +18,10 @@
  * Original author: Laurence
  */
 
+/** \file
+ * \ingroup intern_iksolver
+ */
+
 #pragma once
 
 #include <Eigen/Core>

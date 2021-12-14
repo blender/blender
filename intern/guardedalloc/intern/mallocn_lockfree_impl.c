@@ -15,7 +15,7 @@
  */
 
 /** \file
- * \ingroup MEM
+ * \ingroup intern_mem
  *
  * Memory allocation which keeps track on allocated memory counters
  */

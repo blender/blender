@@ -15,7 +15,7 @@
  */
 
 /** \file
- * \ingroup MEM
+ * \ingroup intern_mem
  */
 
 #include <cstdio> /* Needed for `printf` on WIN32/APPLE. */

@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup mantaflow
+ * \ingroup intern_mantaflow
  */
 
 #ifndef MANTA_A_H

@@ -1,5 +1,5 @@
 /** \file itasc/kdl/jacobian.cpp
- * \ingroup itasc
+ * \ingroup intern_itasc
  */
 // Copyright  (C)  2007  Ruben Smits <ruben dot smits at mech dot kuleuven dot be>
 

@@ -15,7 +15,7 @@
  */
 
 /** \file
- * \ingroup MEM
+ * \ingroup intern_mem
  *
  * Guarded memory allocation, and boundary-write detection.
  */

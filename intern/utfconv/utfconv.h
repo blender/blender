@@ -15,7 +15,10 @@
  *
  * The Original Code is Copyright (C) 2012 Blender Foundation.
  * All rights reserved.
- *
+ */
+
+/** \file
+ * \ingroup intern_utf_conv
  */
 
 #ifndef __UTFCONV_H__

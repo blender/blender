@@ -19,7 +19,7 @@
  */
 
 /** \file
- * \ingroup iksolver
+ * \ingroup intern_iksolver
  */
 
 #pragma once

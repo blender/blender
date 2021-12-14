@@ -14,11 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __CLG_LOG_H__
-#define __CLG_LOG_H__
-
 /** \file
- * \ingroup clog
+ * \ingroup intern_clog
  *
  * C Logging Library (clog)
  * ========================
@@ -67,6 +64,9 @@
  *
  * - 4+: May be used for more details than 3, should be avoided but not prevented.
  */
+
+#ifndef __CLG_LOG_H__
+#define __CLG_LOG_H__
 
 #ifdef __cplusplus
 extern "C" {

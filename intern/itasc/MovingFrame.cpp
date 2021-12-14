@@ -1,5 +1,5 @@
 /** \file itasc/MovingFrame.cpp
- * \ingroup itasc
+ * \ingroup intern_itasc
  */
 /*
  * MovingFrame.cpp

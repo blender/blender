@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/** \file
+ * \ingroup intern_sky_modal
+ */
+
 #include "sky_float3.h"
 #include "sky_model.h"
 

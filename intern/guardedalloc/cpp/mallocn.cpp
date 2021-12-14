@@ -15,7 +15,7 @@
  */
 
 /** \file
- * \ingroup MEM
+ * \ingroup intern_mem
  */
 
 #include "../MEM_guardedalloc.h"

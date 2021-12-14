@@ -45,7 +45,7 @@
  */
 
 /** \file
- * \ingroup Atomic
+ * \ingroup intern_atomic
  *
  * \brief Provides wrapper around system-specific atomic primitives,
  * and some extensions (faked-atomic operations over float numbers).

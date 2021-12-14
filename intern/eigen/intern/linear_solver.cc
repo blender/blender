@@ -22,6 +22,10 @@
  *  and the reason for such modification.
  */
 
+/** \file
+ * \ingroup intern_eigen
+ */
+
 #include "linear_solver.h"
 
 #include <Eigen/Sparse>

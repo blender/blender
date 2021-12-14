@@ -20,6 +20,10 @@
 //
 // Author: Sergey Sharybin <sergey.vfx@gmail.com>
 
+/** \file
+ * \ingroup intern_numaapi
+ */
+
 #ifndef __LIBNUMAAPI_H__
 #define __LIBNUMAAPI_H__
 

@@ -22,6 +22,10 @@
  *  and the reason for such modification.
  */
 
+/** \file
+ * \ingroup intern_eigen
+ */
+
 #pragma once
 
 #include <stdbool.h>

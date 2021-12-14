@@ -17,6 +17,10 @@
  * All rights reserved.
  */
 
+/** \file
+ * \ingroup intern_rigidbody
+ */
+
 #include "LinearMath/btConvexHullComputer.h"
 #include "RBI_hull_api.h"
 

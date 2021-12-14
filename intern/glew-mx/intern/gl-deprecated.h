@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup glew-mx
+ * \ingroup intern_glew-mx
  *  Utility used to check for use of deprecated functions.
  */
 

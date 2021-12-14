@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup mantaflow
+ * \ingroup intern_mantaflow
  */
 
 #include "manta_python_API.h"
