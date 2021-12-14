@@ -1317,7 +1317,10 @@ static void wm_xr_session_surface_draw(bContext *C)
 
   GHOST_XrSessionDrawViews(wm->xr.runtime->context, &draw_data);
 
-  GPU_framebuffer_restore();
+  /* There's no active framebuffer if the session was cancelled (exception while drawing views). */
+  if (GPU_framebuffer_active_get()) {
+    GPU_framebuffer_restore();
+  }
 }
 
 static void wm_xr_session_do_depsgraph(bContext *C)
