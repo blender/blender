@@ -1793,8 +1793,9 @@ static bool wm_file_write(bContext *C,
 
       if (file_preview_type == USER_FILE_PREVIEW_AUTO) {
         Scene *scene = CTX_data_scene(C);
-        bool do_render = (scene != NULL && scene->camera != NULL &&
-                          (BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0) != NULL));
+        bScreen *screen = CTX_wm_screen(C);
+        bool do_render = (scene != NULL && scene->camera != NULL && screen != NULL &&
+                          (BKE_screen_find_big_area(screen, SPACE_VIEW3D, 0) != NULL));
         file_preview_type = do_render ? USER_FILE_PREVIEW_CAMERA : USER_FILE_PREVIEW_SCREENSHOT;
       }
 
