@@ -1300,32 +1300,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
                 smoothbrush,
                 "dyntopo_disabled", ui_editing=False, text="Disable Dyntopo For Smooth")
         """
-
-        col.separator()
-
-        UnifiedPaintPanel.channel_unified(layout.column(),
-            context,
-            brush,
-            "automasking", toolsettings_only=True, expand=True, ui_editing=False)
-        UnifiedPaintPanel.channel_unified(layout.column(),
-            context,
-            brush,
-            "automasking_boundary_edges_propagation_steps",
-            ui_editing=False)
-        UnifiedPaintPanel.channel_unified(layout.column(),
-            context,
-            brush,
-            "concave_mask_factor",
-            ui_editing=False, slider=True, show_mappings=True)
-
-        """
-        col = layout.column(heading="Auto-Masking", align=True)
-        col.prop(sculpt, "use_automasking_topology", text="Topology")
-        col.prop(sculpt, "use_automasking_face_sets", text="Face Sets")
-        col.prop(sculpt, "use_automasking_boundary_edges", text="Mesh Boundary")
-        col.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
-        """
-
+        
         col.separator()
 
         UnifiedPaintPanel.channel_unified(layout.column(),
@@ -1343,6 +1318,43 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.separator()
 
         col.operator("sculpt.set_limit_surface")
+
+
+# TODO, move to space_view3d.py
+class VIEW3D_PT_sculpt_automasking(Panel, View3DPaintPanel):
+    bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
+    bl_label = "Automasking"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 12
+
+    @classmethod
+    def poll(cls, context):
+        return (context.sculpt_object and context.tool_settings.sculpt)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        tool_settings = context.tool_settings
+        sculpt = tool_settings.sculpt
+        brush = sculpt.brush
+        
+        UnifiedPaintPanel.channel_unified(layout.column(),
+            context,
+            brush,
+            "automasking", toolsettings_only=True, expand=True,
+            ui_editing=False, text="Automasking (global)")
+        UnifiedPaintPanel.channel_unified(layout.column(),
+            context,
+            brush,
+            "automasking_boundary_edges_propagation_steps",
+            ui_editing=False)
+        UnifiedPaintPanel.channel_unified(layout.column(),
+            context,
+            brush,
+            "concave_mask_factor",
+            ui_editing=False, slider=True, show_mappings=True)
 
 
 class VIEW3D_PT_sculpt_options_gravity(Panel, View3DPaintPanel):
@@ -2699,6 +2711,7 @@ classes = (VIEW3D_MT_brush_context_menu,
     VIEW3D_PT_sculpt_symmetry_for_topbar,
     VIEW3D_PT_sculpt_options,
     VIEW3D_PT_sculpt_options_gravity,
+    VIEW3D_PT_sculpt_automasking,
 
     VIEW3D_PT_tools_weightpaint_symmetry,
     VIEW3D_PT_tools_weightpaint_symmetry_for_topbar,
