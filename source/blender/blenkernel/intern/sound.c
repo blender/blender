@@ -271,14 +271,11 @@ BLI_INLINE void sound_verify_evaluated_id(const ID *id)
 bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
 {
   bSound *sound;
-  const char *path;
+  const char *blendfile_path = BKE_main_blendfile_path(bmain);
   char str[FILE_MAX];
 
   BLI_strncpy(str, filepath, sizeof(str));
-
-  path = BKE_main_blendfile_path(bmain);
-
-  BLI_path_abs(str, path);
+  BLI_path_abs(str, blendfile_path);
 
   sound = BKE_libblock_alloc(bmain, ID_SO, BLI_path_basename(filepath), 0);
   BLI_strncpy(sound->filepath, filepath, FILE_MAX);
@@ -1249,15 +1246,14 @@ bool BKE_sound_stream_info_get(struct Main *main,
                                int stream,
                                SoundStreamInfo *sound_info)
 {
-  const char *path;
+  const char *blendfile_path = BKE_main_blendfile_path(main);
   char str[FILE_MAX];
   AUD_Sound *sound;
   AUD_StreamInfo *stream_infos;
   int stream_count;
 
   BLI_strncpy(str, filepath, sizeof(str));
-  path = BKE_main_blendfile_path(main);
-  BLI_path_abs(str, path);
+  BLI_path_abs(str, blendfile_path);
 
   sound = AUD_Sound_file(str);
   if (!sound) {

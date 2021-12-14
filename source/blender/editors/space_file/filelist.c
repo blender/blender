@@ -3859,8 +3859,8 @@ static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,
  */
 static bool filelist_contains_main(const FileList *filelist, const Main *bmain)
 {
-  const char *main_path = BKE_main_blendfile_path(bmain);
-  return main_path[0] && BLI_path_contains(filelist->filelist.root, main_path);
+  const char *blendfile_path = BKE_main_blendfile_path(bmain);
+  return blendfile_path[0] && BLI_path_contains(filelist->filelist.root, blendfile_path);
 }
 
 static void filelist_readjob_asset_library(FileListReadJob *job_params,

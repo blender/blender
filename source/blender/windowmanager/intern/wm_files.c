@@ -1491,18 +1491,18 @@ static void wm_history_file_write(void)
 static void wm_history_file_update(void)
 {
   RecentFile *recent;
-  const char *blendfile_name = BKE_main_blendfile_path_from_global();
+  const char *blendfile_path = BKE_main_blendfile_path_from_global();
 
-  /* no write history for recovered startup files */
-  if (blendfile_name[0] == '\0') {
+  /* No write history for recovered startup files. */
+  if (blendfile_path[0] == '\0') {
     return;
   }
 
   recent = G.recent_files.first;
   /* refresh recent-files.txt of recent opened files, when current file was changed */
-  if (!(recent) || (BLI_path_cmp(recent->filepath, blendfile_name) != 0)) {
+  if (!(recent) || (BLI_path_cmp(recent->filepath, blendfile_path) != 0)) {
 
-    recent = wm_file_history_find(blendfile_name);
+    recent = wm_file_history_find(blendfile_path);
     if (recent) {
       BLI_remlink(&G.recent_files, recent);
     }
@@ -1513,7 +1513,7 @@ static void wm_history_file_update(void)
         recent_next = recent->next;
         wm_history_file_free(recent);
       }
-      recent = wm_history_file_new(blendfile_name);
+      recent = wm_history_file_new(blendfile_path);
     }
 
     /* add current file to the beginning of list */
@@ -1523,7 +1523,7 @@ static void wm_history_file_update(void)
     wm_history_file_write();
 
     /* also update most recent files on System */
-    GHOST_addToSystemRecentFiles(blendfile_name);
+    GHOST_addToSystemRecentFiles(blendfile_path);
   }
 }
 
@@ -2607,7 +2607,7 @@ static int wm_open_mainfile__select_file_path(bContext *C, wmOperator *op)
   set_next_operator_state(op, OPEN_MAINFILE_STATE_OPEN);
 
   Main *bmain = CTX_data_main(C);
-  const char *openname = BKE_main_blendfile_path(bmain);
+  const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
   if (CTX_wm_window(C) == NULL) {
     /* in rare cases this could happen, when trying to invoke in background
@@ -2620,10 +2620,10 @@ static int wm_open_mainfile__select_file_path(bContext *C, wmOperator *op)
   /* if possible, get the name of the most recently used .blend file */
   if (G.recent_files.first) {
     struct RecentFile *recent = G.recent_files.first;
-    openname = recent->filepath;
+    blendfile_path = recent->filepath;
   }
 
-  RNA_string_set(op->ptr, "filepath", openname);
+  RNA_string_set(op->ptr, "filepath", blendfile_path);
   wm_open_init_load_ui(op, true);
   wm_open_init_use_scripts(op, true);
   op->customdata = NULL;
@@ -3610,10 +3610,10 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   uiItemL_ex(layout, TIP_("Save changes before closing?"), ICON_NONE, true, false);
 
   /* Filename. */
-  const char *blendfile_pathpath = BKE_main_blendfile_path(CTX_data_main(C));
+  const char *blendfile_path = BKE_main_blendfile_path(CTX_data_main(C));
   char filename[FILE_MAX];
-  if (blendfile_pathpath[0] != '\0') {
-    BLI_split_file_part(blendfile_pathpath, filename, sizeof(filename));
+  if (blendfile_path[0] != '\0') {
+    BLI_split_file_part(blendfile_path, filename, sizeof(filename));
   }
   else {
     STRNCPY(filename, "untitled.blend");
