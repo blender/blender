@@ -3775,9 +3775,6 @@ void BKE_object_apply_mat4_ex(Object *ob,
   /* BKE_object_mat3_to_rot handles delta rotations */
 }
 
-/**
- * XXX: should be removed after COW operators port to use BKE_object_apply_mat4_ex directly.
- */
 void BKE_object_apply_mat4(Object *ob,
                            const float mat[4][4],
                            const bool use_compat,

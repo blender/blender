@@ -274,10 +274,6 @@ void BKE_object_rot_to_mat3(const struct Object *ob, float r_mat[3][3], bool use
 void BKE_object_mat3_to_rot(struct Object *ob, float r_mat[3][3], bool use_compat);
 void BKE_object_to_mat3(struct Object *ob, float r_mat[3][3]);
 void BKE_object_to_mat4(struct Object *ob, float r_mat[4][4]);
-void BKE_object_apply_mat4(struct Object *ob,
-                           const float mat[4][4],
-                           const bool use_compat,
-                           const bool use_parent);
 /**
  * Applies the global transformation \a mat to the \a ob using a relative parent space if
  * supplied.
@@ -293,6 +289,11 @@ void BKE_object_apply_mat4_ex(struct Object *ob,
                               struct Object *parent,
                               const float parentinv[4][4],
                               const bool use_compat);
+/** See #BKE_object_apply_mat4_ex */
+void BKE_object_apply_mat4(struct Object *ob,
+                           const float mat[4][4],
+                           const bool use_compat,
+                           const bool use_parent);
 void BKE_object_matrix_local_get(struct Object *ob, float r_mat[4][4]);
 
 bool BKE_object_pose_context_check(const struct Object *ob);
