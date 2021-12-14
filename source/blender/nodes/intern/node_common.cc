@@ -32,6 +32,7 @@
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -50,29 +51,30 @@ using blender::Map;
 using blender::MultiValueMap;
 using blender::Set;
 using blender::Stack;
+using blender::StringRef;
 
 /* -------------------------------------------------------------------- */
 /** \name Node Group
  * \{ */
 
-bNodeSocket *node_group_find_input_socket(bNode *groupnode, const char *identifier)
+static bNodeSocket *find_matching_socket(ListBase &sockets, StringRef identifier)
 {
-  LISTBASE_FOREACH (bNodeSocket *, sock, &groupnode->inputs) {
-    if (STREQ(sock->identifier, identifier)) {
-      return sock;
+  LISTBASE_FOREACH (bNodeSocket *, socket, &sockets) {
+    if (socket->identifier == identifier) {
+      return socket;
     }
   }
   return nullptr;
 }
 
+bNodeSocket *node_group_find_input_socket(bNode *groupnode, const char *identifier)
+{
+  return find_matching_socket(groupnode->inputs, identifier);
+}
+
 bNodeSocket *node_group_find_output_socket(bNode *groupnode, const char *identifier)
 {
-  LISTBASE_FOREACH (bNodeSocket *, sock, &groupnode->outputs) {
-    if (STREQ(sock->identifier, identifier)) {
-      return sock;
-    }
-  }
-  return nullptr;
+  return find_matching_socket(groupnode->outputs, identifier);
 }
 
 void node_group_label(const bNodeTree *UNUSED(ntree), const bNode *node, char *label, int maxlen)
@@ -120,86 +122,81 @@ bool nodeGroupPoll(bNodeTree *nodetree, bNodeTree *grouptree, const char **r_dis
   return valid;
 }
 
-/* used for both group nodes and interface nodes */
-static bNodeSocket *group_verify_socket(bNodeTree *ntree,
-                                        bNode *gnode,
-                                        const bNodeSocket *interface_socket,
-                                        ListBase *verify_lb,
-                                        eNodeSocketInOut in_out)
+static void add_new_socket_from_interface(bNodeTree &node_tree,
+                                          bNode &node,
+                                          const bNodeSocket &interface_socket,
+                                          const eNodeSocketInOut in_out)
 {
-  bNodeSocket *sock;
+  bNodeSocket *socket = nodeAddSocket(&node_tree,
+                                      &node,
+                                      in_out,
+                                      interface_socket.idname,
+                                      interface_socket.identifier,
+                                      interface_socket.name);
 
-  for (sock = (bNodeSocket *)verify_lb->first; sock; sock = sock->next) {
-    if (STREQ(sock->identifier, interface_socket->identifier)) {
-      break;
-    }
+  if (interface_socket.typeinfo->interface_init_socket) {
+    interface_socket.typeinfo->interface_init_socket(
+        &node_tree, &interface_socket, &node, socket, "interface");
   }
-  if (sock) {
-    strcpy(sock->name, interface_socket->name);
-
-    const int mask = SOCK_HIDE_VALUE;
-    sock->flag = (sock->flag & ~mask) | (interface_socket->flag & mask);
-
-    /* Update socket type if necessary */
-    if (sock->typeinfo != interface_socket->typeinfo) {
-      nodeModifySocketType(ntree, gnode, sock, interface_socket->idname);
-      /* Flag the tree to make sure link validity is updated after type changes. */
-      ntree->update |= NTREE_UPDATE_LINKS;
-    }
-
-    if (interface_socket->typeinfo->interface_verify_socket) {
-      interface_socket->typeinfo->interface_verify_socket(
-          ntree, interface_socket, gnode, sock, "interface");
-    }
-  }
-  else {
-    sock = nodeAddSocket(ntree,
-                         gnode,
-                         in_out,
-                         interface_socket->idname,
-                         interface_socket->identifier,
-                         interface_socket->name);
-
-    if (interface_socket->typeinfo->interface_init_socket) {
-      interface_socket->typeinfo->interface_init_socket(
-          ntree, interface_socket, gnode, sock, "interface");
-    }
-  }
-
-  /* remove from list temporarily, to distinguish from orphaned sockets */
-  BLI_remlink(verify_lb, sock);
-
-  return sock;
 }
 
-/* used for both group nodes and interface nodes */
-static void group_verify_socket_list(bNodeTree *ntree,
-                                     bNode *gnode,
-                                     ListBase *iosock_lb,
-                                     ListBase *verify_lb,
-                                     eNodeSocketInOut in_out)
+static void update_socket_to_match_interface(bNodeTree &node_tree,
+                                             bNode &node,
+                                             bNodeSocket &socket_to_update,
+                                             const bNodeSocket &interface_socket)
 {
-  bNodeSocket *sock, *nextsock;
+  strcpy(socket_to_update.name, interface_socket.name);
 
-  /* step by step compare */
+  const int mask = SOCK_HIDE_VALUE;
+  socket_to_update.flag = (socket_to_update.flag & ~mask) | (interface_socket.flag & mask);
 
-  bNodeSocket *iosock = (bNodeSocket *)iosock_lb->first;
-  for (; iosock; iosock = iosock->next) {
-    /* abusing new_sock pointer for verification here! only used inside this function */
-    iosock->new_sock = group_verify_socket(ntree, gnode, iosock, verify_lb, in_out);
+  /* Update socket type if necessary */
+  if (socket_to_update.typeinfo != interface_socket.typeinfo) {
+    nodeModifySocketType(&node_tree, &node, &socket_to_update, interface_socket.idname);
+    /* Flag the tree to make sure link validity is updated after type changes. */
+    node_tree.update |= NTREE_UPDATE_LINKS;
   }
-  /* leftovers are removed */
-  for (sock = (bNodeSocket *)verify_lb->first; sock; sock = nextsock) {
-    nextsock = sock->next;
-    nodeRemoveSocket(ntree, gnode, sock);
+
+  if (interface_socket.typeinfo->interface_verify_socket) {
+    interface_socket.typeinfo->interface_verify_socket(
+        &node_tree, &interface_socket, &node, &socket_to_update, "interface");
   }
-  /* and we put back the verified sockets */
-  iosock = (bNodeSocket *)iosock_lb->first;
-  for (; iosock; iosock = iosock->next) {
-    if (iosock->new_sock) {
-      BLI_addtail(verify_lb, iosock->new_sock);
-      iosock->new_sock = nullptr;
+}
+
+/**
+ * Used for group nodes and group input/output nodes to update the list of input or output sockets
+ * on a node to match the provided interface. Assumes that \a verify_lb is the node's matching
+ * input or output socket list, depending on whether the node is a group input/output or a group
+ * node.
+ */
+static void group_verify_socket_list(bNodeTree &node_tree,
+                                     bNode &node,
+                                     const ListBase &interface_sockets,
+                                     ListBase &verify_lb,
+                                     const eNodeSocketInOut in_out)
+{
+  ListBase old_sockets = verify_lb;
+  BLI_listbase_clear(&verify_lb);
+
+  LISTBASE_FOREACH (const bNodeSocket *, interface_socket, &interface_sockets) {
+    bNodeSocket *matching_socket = find_matching_socket(old_sockets, interface_socket->identifier);
+    if (matching_socket) {
+      /* If a socket with the same identifier exists in the previous socket list, update it
+       * with the correct name, type, etc. Then move it from the old list to the new one. */
+      update_socket_to_match_interface(node_tree, node, *matching_socket, *interface_socket);
+      BLI_remlink(&old_sockets, matching_socket);
+      BLI_addtail(&verify_lb, matching_socket);
     }
+    else {
+      /* If there was no socket withe the same identifier already, simply create a new socket
+       * based on the interface socket, which will already add it to the new list. */
+      add_new_socket_from_interface(node_tree, node, *interface_socket, in_out);
+    }
+  }
+
+  /* Remove leftover sockets that didn't match the node group's interface. */
+  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, unused_socket, &old_sockets) {
+    nodeRemoveSocket(&node_tree, &node, unused_socket);
   }
 }
 
@@ -215,8 +212,8 @@ void node_group_update(struct bNodeTree *ntree, struct bNode *node)
   }
   else {
     bNodeTree *ngroup = (bNodeTree *)node->id;
-    group_verify_socket_list(ntree, node, &ngroup->inputs, &node->inputs, SOCK_IN);
-    group_verify_socket_list(ntree, node, &ngroup->outputs, &node->outputs, SOCK_OUT);
+    group_verify_socket_list(*ntree, *node, ngroup->inputs, node->inputs, SOCK_IN);
+    group_verify_socket_list(*ntree, *node, ngroup->outputs, node->outputs, SOCK_OUT);
   }
 }
 
@@ -499,7 +496,7 @@ void node_group_input_update(bNodeTree *ntree, bNode *node)
   /* check inputs and outputs, and remove or insert them */
   {
     /* value_in_out inverted for interface nodes to get correct socket value_property */
-    group_verify_socket_list(ntree, node, &ntree->inputs, &node->outputs, SOCK_OUT);
+    group_verify_socket_list(*ntree, *node, ntree->inputs, node->outputs, SOCK_OUT);
 
     /* add virtual extension socket */
     nodeAddSocket(ntree, node, SOCK_OUT, "NodeSocketVirtual", "__extend__", "");
@@ -597,7 +594,7 @@ void node_group_output_update(bNodeTree *ntree, bNode *node)
   /* check inputs and outputs, and remove or insert them */
   {
     /* value_in_out inverted for interface nodes to get correct socket value_property */
-    group_verify_socket_list(ntree, node, &ntree->outputs, &node->inputs, SOCK_IN);
+    group_verify_socket_list(*ntree, *node, ntree->outputs, node->inputs, SOCK_IN);
 
     /* add virtual extension socket */
     nodeAddSocket(ntree, node, SOCK_IN, "NodeSocketVirtual", "__extend__", "");
