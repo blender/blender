@@ -1717,8 +1717,8 @@ uiBut *uiDefHotKeyevtButS(uiBlock *block,
                           const char *tip);
 
 /**
- * \param arg is pointer to string/name, use UI_but_func_search_set() below to make this work.
- * here a1 and a2, if set, control thumbnail preview rows/cols.
+ * \param arg: A pointer to string/name, use #UI_but_func_search_set() below to make this work.
+ * here `a1` and `a2`, if set, control thumbnail preview rows/cols.
  */
 uiBut *uiDefSearchBut(uiBlock *block,
                       void *arg,

@@ -1392,6 +1392,8 @@ void wm_homefile_read_post(struct bContext *C,
   MEM_freeN((void *)params_file_read_post);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Blend-File History API
  * \{ */

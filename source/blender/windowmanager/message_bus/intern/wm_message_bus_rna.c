@@ -35,7 +35,9 @@
 
 #include "RNA_access.h"
 
-/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
 
 BLI_INLINE uint void_hash_uint(const void *key)
 {
@@ -208,7 +210,11 @@ void WM_msgtypeinfo_init_rna(wmMsgTypeInfo *msgtype_info)
   msgtype_info->msg_key_size = sizeof(wmMsgSubscribeKey_RNA);
 }
 
-/* -------------------------------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name RNA API
+ * \{ */
 
 wmMsgSubscribeKey_RNA *WM_msg_lookup_rna(struct wmMsgBus *mbus,
                                          const wmMsgParams_RNA *msg_key_params)

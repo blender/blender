@@ -43,6 +43,10 @@ extern "C" {
 #  endif
 #endif
 
+/* -------------------------------------------------------------------- */
+/** \name GHash Types
+ * \{ */
+
 typedef unsigned int (*GHashHashFP)(const void *key);
 /** returns false when equal */
 typedef bool (*GHashCmpFP)(const void *a, const void *b);
@@ -73,6 +77,8 @@ enum {
   GHASH_FLAG_IS_GSET = (1 << 16),
 #endif
 };
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name GHash API
@@ -340,12 +346,11 @@ BLI_INLINE bool BLI_ghashIterator_done(const GHashIterator *ghi)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name GSet API
+/** \name GSet Types
  * A 'set' implementation (unordered collection of unique elements).
  *
  * Internally this is a 'GHash' without any keys,
  * which is why this API's are in the same header & source file.
- *
  * \{ */
 
 typedef struct GSet GSet;
@@ -357,10 +362,13 @@ typedef GHashKeyCopyFP GSetKeyCopyFP;
 
 typedef GHashIterState GSetIterState;
 
+/** \} */
+
 /** \name GSet Public API
  *
  * Use ghash API to give 'set' functionality
  * \{ */
+
 GSet *BLI_gset_new_ex(GSetHashFP hashfp,
                       GSetCmpFP cmpfp,
                       const char *info,
@@ -521,6 +529,7 @@ double BLI_gset_calc_quality_ex(GSet *gs,
 double BLI_ghash_calc_quality(GHash *gh);
 double BLI_gset_calc_quality(GSet *gs);
 #endif /* GHASH_INTERNAL_API */
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

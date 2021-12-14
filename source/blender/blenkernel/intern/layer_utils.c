@@ -214,4 +214,5 @@ Object *BKE_view_layer_non_active_selected_object(struct ViewLayer *view_layer,
   FOREACH_SELECTED_OBJECT_END;
   return ob_result;
 }
+
 /** \} */

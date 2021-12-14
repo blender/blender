@@ -1365,6 +1365,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
 
   immUnbindProgram();
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

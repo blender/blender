@@ -38,8 +38,10 @@
 
 #include <optional>
 
+/* -------------------------------------------------------------------- */
 /** \name Cryptomatte
  * \{ */
+
 static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_node_render(
     const bNode &node, const bool use_meta_data)
 {
@@ -322,8 +324,10 @@ void register_node_type_cmp_cryptomatte()
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Cryptomatte Legacy
  * \{ */
+
 static void node_init_cryptomatte_legacy(bNodeTree *ntree, bNode *node)
 {
   node_init_cryptomatte(ntree, node);

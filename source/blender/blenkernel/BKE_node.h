@@ -541,6 +541,7 @@ void ntreeBlendReadExpand(struct BlendExpander *expander, struct bNodeTree *ntre
 /* -------------------------------------------------------------------- */
 /** \name Node Tree Interface
  * \{ */
+
 struct bNodeSocket *ntreeFindSocketInterface(struct bNodeTree *ntree,
                                              eNodeSocketInOut in_out,
                                              const char *identifier);
@@ -1108,6 +1109,7 @@ bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
   } \
   } \
   ((void)0)
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1568,6 +1570,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
                      int cfra,
                      int preview,
                      struct MTex *mtex);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1719,6 +1722,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_INPUT_MESH_EDGE_NEIGHBORS 1143
 #define GEO_NODE_INPUT_MESH_ISLAND 1144
 #define GEO_NODE_INPUT_SCENE_TIME 1145
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

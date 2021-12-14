@@ -2144,4 +2144,5 @@ void BKE_movieclip_free_gputexture(struct MovieClip *clip)
     MEM_freeN(tex);
   }
 }
+
 /** \} */

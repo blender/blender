@@ -302,6 +302,12 @@ void armature_select_mirrored(struct bArmature *arm);
 /** Only works when tagged. */
 void armature_tag_unselect(struct bArmature *arm);
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Selection Picking
+ * \{ */
+
 struct EditBone *ED_armature_pick_ebone(struct bContext *C,
                                         const int xy[2],
                                         bool findunsel,
@@ -337,6 +343,12 @@ struct Bone *ED_armature_pick_bone_from_selectbuffer(struct Base **bases,
                                                      bool do_nearest,
                                                      struct Base **r_base);
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Iteration
+ * \{ */
+
 /**
  * XXX: bone_looper is only to be used when we want to access settings
  * (i.e. editability/visibility/selected) that context doesn't offer.
@@ -345,3 +357,5 @@ int bone_looper(struct Object *ob,
                 struct Bone *bone,
                 void *data,
                 int (*bone_func)(struct Object *, struct Bone *, void *));
+
+/** \} */

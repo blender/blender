@@ -579,4 +579,5 @@ void initTranslation(TransInfo *t)
   t->custom.mode.data = custom_data;
   t->custom.mode.use_free = true;
 }
+
 /** \} */

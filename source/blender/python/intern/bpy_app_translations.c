@@ -69,11 +69,11 @@ static BlenderAppTranslations *_translations = NULL;
 
 /** \} */
 
-#ifdef WITH_INTERNATIONAL
-
 /* ------------------------------------------------------------------- */
 /** \name Helpers for GHash
  * \{ */
+
+#ifdef WITH_INTERNATIONAL
 
 typedef struct GHashKey {
   const char *msgctxt;

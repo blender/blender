@@ -59,6 +59,10 @@
 #include "../gizmo_geometry.h"
 #include "../gizmo_library_intern.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Internal Types
+ * \{ */
+
 typedef struct ButtonGizmo2D {
   wmGizmo gizmo;
   bool is_init;
@@ -69,7 +73,11 @@ typedef struct ButtonGizmo2D {
 
 #define CIRCLE_RESOLUTION 32
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
+/** \name Internal API
+ * \{ */
 
 static void button2d_geom_draw_backdrop(const wmGizmo *gz,
                                         const float color[4],

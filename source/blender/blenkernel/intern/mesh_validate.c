@@ -193,6 +193,7 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
   /* Else, sort on loopstart. */
   return sp1->loopstart > sp2->loopstart ? 1 : sp1->loopstart < sp2->loopstart ? -1 : 0;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1288,6 +1289,7 @@ void BKE_mesh_strip_loose_edges(Mesh *me)
 
   MEM_freeN(new_idx);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

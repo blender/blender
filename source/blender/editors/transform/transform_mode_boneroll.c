@@ -107,4 +107,5 @@ void initBoneRoll(TransInfo *t)
 
   t->flag |= T_NO_CONSTRAINT | T_NO_PROJECT;
 }
+
 /** \} */

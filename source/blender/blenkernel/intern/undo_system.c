@@ -61,13 +61,39 @@
 static CLG_LogRef LOG = {"bke.undosys"};
 
 /* -------------------------------------------------------------------- */
+/** \name Undo Types
+ * \{ */
+
+const UndoType *BKE_UNDOSYS_TYPE_IMAGE = NULL;
+const UndoType *BKE_UNDOSYS_TYPE_MEMFILE = NULL;
+const UndoType *BKE_UNDOSYS_TYPE_PAINTCURVE = NULL;
+const UndoType *BKE_UNDOSYS_TYPE_PARTICLE = NULL;
+const UndoType *BKE_UNDOSYS_TYPE_SCULPT = NULL;
+const UndoType *BKE_UNDOSYS_TYPE_TEXT = NULL;
+
+static ListBase g_undo_types = {NULL, NULL};
+
+static const UndoType *BKE_undosys_type_from_context(bContext *C)
+{
+  LISTBASE_FOREACH (const UndoType *, ut, &g_undo_types) {
+    /* No poll means we don't check context. */
+    if (ut->poll && ut->poll(C)) {
+      return ut;
+    }
+  }
+  return NULL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Internal Nested Undo Checks
  *
  * Make sure we're not running undo operations from 'step_encode', 'step_decode' callbacks.
  * bugs caused by this situation aren't _that_ hard to spot but aren't always so obvious.
  * Best we have a check which shows the problem immediately.
- *
  * \{ */
+
 #define WITH_NESTED_UNDO_CHECK
 
 #ifdef WITH_NESTED_UNDO_CHECK
@@ -90,31 +116,8 @@ static bool g_undo_callback_running = false;
 #  define UNDO_NESTED_CHECK_BEGIN ((void)0)
 #  define UNDO_NESTED_CHECK_END ((void)0)
 #endif
+
 /** \} */
-
-/* -------------------------------------------------------------------- */
-const UndoType *BKE_UNDOSYS_TYPE_IMAGE = NULL;
-const UndoType *BKE_UNDOSYS_TYPE_MEMFILE = NULL;
-const UndoType *BKE_UNDOSYS_TYPE_PAINTCURVE = NULL;
-const UndoType *BKE_UNDOSYS_TYPE_PARTICLE = NULL;
-const UndoType *BKE_UNDOSYS_TYPE_SCULPT = NULL;
-const UndoType *BKE_UNDOSYS_TYPE_TEXT = NULL;
-/** \} */
-
-/* UndoType */
-
-static ListBase g_undo_types = {NULL, NULL};
-
-static const UndoType *BKE_undosys_type_from_context(bContext *C)
-{
-  LISTBASE_FOREACH (const UndoType *, ut, &g_undo_types) {
-    /* No poll means we don't check context. */
-    if (ut->poll && ut->poll(C)) {
-      return ut;
-    }
-  }
-  return NULL;
-}
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Callback Wrappers
@@ -444,6 +447,10 @@ void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Undo Step
+ * \{ */
 
 UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack,
                                                bContext *C,

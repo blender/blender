@@ -28,6 +28,7 @@ namespace blender::draw {
 /* ---------------------------------------------------------------------- */
 /** \name Extract Face-dots Normal and edit flag
  * \{ */
+
 #define NOR_AND_FLAG_DEFAULT 0
 #define NOR_AND_FLAG_SELECT 1
 #define NOR_AND_FLAG_ACTIVE -1
@@ -114,6 +115,7 @@ constexpr MeshExtract create_extractor_fdots_nor()
 /* ---------------------------------------------------------------------- */
 /** \name Extract Face-dots High Quality Normal and edit flag
  * \{ */
+
 static void extract_fdots_nor_hq_init(const MeshRenderData *mr,
                                       struct MeshBatchCache *UNUSED(cache),
                                       void *buf,

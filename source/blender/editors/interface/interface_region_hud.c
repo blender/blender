@@ -57,6 +57,7 @@
 /* -------------------------------------------------------------------- */
 /** \name Utilities
  * \{ */
+
 struct HudRegionData {
   short regionid;
 };

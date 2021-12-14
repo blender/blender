@@ -363,7 +363,9 @@ static void weld_assert_poly_len(const WeldPoly *wp, const WeldLoop *wloop)
   uint max_len = wp->loop_end - wp->loop_start + 1;
   BLI_assert(len <= max_len);
 }
-#endif
+
+#endif /* USE_WELD_DEBUG */
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

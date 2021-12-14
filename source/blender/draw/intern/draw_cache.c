@@ -47,6 +47,10 @@
 #include "draw_cache_impl.h"
 #include "draw_manager.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Internal Defines
+ * \{ */
+
 #define VCLASS_LIGHT_AREA_SHAPE (1 << 0)
 #define VCLASS_LIGHT_SPOT_SHAPE (1 << 1)
 #define VCLASS_LIGHT_SPOT_BLEND (1 << 2)
@@ -76,6 +80,12 @@
 /* High */
 #define DRW_SPHERE_SHAPE_LATITUDE_HIGH 80
 #define DRW_SPHERE_SHAPE_LONGITUDE_HIGH 60
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Types
+ * \{ */
 
 typedef struct Vert {
   float pos[3];
@@ -162,6 +172,8 @@ void DRW_shape_cache_free(void)
     batch++;
   }
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Procedural Batches
@@ -764,6 +776,8 @@ GPUBatch *DRW_cache_normal_arrow_get(void)
   }
   return SHC.drw_normal_arrow;
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Dummy VBO's
@@ -3136,6 +3150,8 @@ GPUBatch *DRW_cache_pointcloud_surface_get(Object *object)
   BLI_assert(object->type == OB_POINTCLOUD);
   return DRW_pointcloud_batch_cache_get_surface(object);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Volume

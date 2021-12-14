@@ -375,3 +375,5 @@
   }
 
 /* clang-format off */
+
+/** \} */

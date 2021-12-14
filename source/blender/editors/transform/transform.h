@@ -298,6 +298,10 @@ enum {
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Transform Types
+ * \{ */
+
 typedef struct TransSnapPoint {
   struct TransSnapPoint *next, *prev;
   float co[3];

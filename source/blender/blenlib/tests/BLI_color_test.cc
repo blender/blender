@@ -6,8 +6,8 @@
 
 namespace blender::tests {
 
-/**
- * \name Conversions
+/* -------------------------------------------------------------------- */
+/** \name Conversions
  * \{ */
 
 TEST(color, ThemeByteToFloat)

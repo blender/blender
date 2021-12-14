@@ -67,7 +67,9 @@
 using blender::float3;
 using blender::Span;
 
-/* GP Object - Bound-box Support. */
+/* -------------------------------------------------------------------- */
+/** \name Grease Pencil Object: Bound-box Support
+ * \{ */
 
 bool BKE_gpencil_stroke_minmax(const bGPDstroke *gps,
                                const bool use_select,
@@ -190,7 +192,11 @@ BoundBox *BKE_gpencil_boundbox_get(Object *ob)
   return ob->runtime.bb;
 }
 
-/* ************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Stroke Sample
+ * \{ */
 
 static int stroke_march_next_point(const bGPDstroke *gps,
                                    const int index_next_pt,
@@ -736,6 +742,12 @@ bool BKE_gpencil_stroke_stretch(bGPDstroke *gps,
   return true;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Stroke Trim
+ * \{ */
+
 bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps, const int index_from, const int index_to)
 {
   bGPDspoint *pt = gps->points, *new_pt;
@@ -788,6 +800,12 @@ bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps, const int index_from, const
   return true;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Stroke Split
+ * \{ */
+
 bool BKE_gpencil_stroke_split(bGPdata *gpd,
                               bGPDframe *gpf,
                               bGPDstroke *gps,
@@ -839,6 +857,12 @@ bool BKE_gpencil_stroke_split(bGPdata *gpd,
   BKE_gpencil_stroke_geometry_update(gpd, gps);
   return true;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Stroke Shrink
+ * \{ */
 
 bool BKE_gpencil_stroke_shrink(bGPDstroke *gps, const float dist, const short mode)
 {
@@ -912,9 +936,13 @@ bool BKE_gpencil_stroke_shrink(bGPDstroke *gps, const float dist, const short mo
 
   return true;
 }
-/**
- * Apply smooth position to stroke point.
- */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Stroke Smooth Positions
+ * \{ */
+
 bool BKE_gpencil_stroke_smooth_point(bGPDstroke *gps, int i, float inf, const bool smooth_caps)
 {
   bGPDspoint *pt = &gps->points[i];
@@ -986,6 +1014,12 @@ bool BKE_gpencil_stroke_smooth_point(bGPDstroke *gps, int i, float inf, const bo
 
   return true;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Stroke Smooth Strength
+ * \{ */
 
 bool BKE_gpencil_stroke_smooth_strength(bGPDstroke *gps, int point_index, float influence)
 {
@@ -1059,6 +1093,12 @@ bool BKE_gpencil_stroke_smooth_strength(bGPDstroke *gps, int point_index, float 
   return true;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Stroke Smooth Thickness
+ * \{ */
+
 bool BKE_gpencil_stroke_smooth_thickness(bGPDstroke *gps, int point_index, float influence)
 {
   bGPDspoint *ptb = &gps->points[point_index];
@@ -1129,6 +1169,12 @@ bool BKE_gpencil_stroke_smooth_thickness(bGPDstroke *gps, int point_index, float
   CLAMP_MAX(ptb->pressure, max_pressure);
   return true;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Stroke Smooth UV
+ * \{ */
 
 bool BKE_gpencil_stroke_smooth_uv(bGPDstroke *gps, int point_index, float influence)
 {
@@ -1377,6 +1423,12 @@ static void gpencil_calc_stroke_fill_uv(const float (*points2d)[2],
     }
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Stroke Fill Triangulate
+ * \{ */
 
 void BKE_gpencil_stroke_fill_triangulate(bGPDstroke *gps)
 {
@@ -1713,6 +1765,12 @@ bool BKE_gpencil_stroke_close(bGPDstroke *gps)
   return true;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Dissolve Points
+ * \{ */
+
 void BKE_gpencil_dissolve_points(bGPdata *gpd, bGPDframe *gpf, bGPDstroke *gps, const short tag)
 {
   bGPDspoint *pt;
@@ -1795,6 +1853,12 @@ void BKE_gpencil_dissolve_points(bGPdata *gpd, bGPDframe *gpf, bGPDstroke *gps, 
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Normal Calculation
+ * \{ */
+
 void BKE_gpencil_stroke_normal(const bGPDstroke *gps, float r_normal[3])
 {
   if (gps->totpoints < 3) {
@@ -1825,7 +1889,11 @@ void BKE_gpencil_stroke_normal(const bGPDstroke *gps, float r_normal[3])
   normalize_v3(r_normal);
 }
 
-/* Stroke Simplify ------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Stroke Simplify
+ * \{ */
 
 void BKE_gpencil_stroke_simplify_adaptive(bGPdata *gpd, bGPDstroke *gps, float epsilon)
 {
@@ -2103,7 +2171,11 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
   BKE_gpencil_stroke_geometry_update(gpd, gps);
 }
 
-/* Merge by distance ------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Merge by Distance
+ * \{ */
 
 void BKE_gpencil_stroke_merge_distance(bGPdata *gpd,
                                        bGPDframe *gpf,
@@ -3386,7 +3458,11 @@ void BKE_gpencil_stroke_copy_to_keyframes(
   BLI_ghash_free(frame_list, nullptr, nullptr);
 }
 
-/* Stroke Uniform Subdivide  ------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Stroke Uniform Subdivide
+ * \{ */
 
 struct tSamplePoint {
   struct tSamplePoint *next, *prev;
@@ -3598,8 +3674,11 @@ void BKE_gpencil_stroke_from_view_space(RegionView3D *rv3d,
   }
 }
 
-/* ----------------------------------------------------------------------------- */
-/* Stroke to perimeter */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Stroke to Perimeter
+ * \{ */
 
 struct tPerimeterPoint {
   struct tPerimeterPoint *next, *prev;
@@ -4102,4 +4181,5 @@ bool BKE_gpencil_stroke_is_pressure_constant(bGPDstroke *gps)
 
   return true;
 }
+
 /** \} */

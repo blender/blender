@@ -213,6 +213,8 @@ DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree,
  */
 void BLI_dlrbTree_insert(DLRBT_Tree *tree, DLRBT_Node *node);
 
+/** \} */
+
 #ifdef __cplusplus
 }
 #endif

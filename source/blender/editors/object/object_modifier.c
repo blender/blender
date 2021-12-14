@@ -1679,6 +1679,8 @@ void OBJECT_OT_modifier_set_active(wmOperatorType *ot)
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------- */
 /** \name Copy Modifier To Selected Operator
  * \{ */
 
@@ -2678,6 +2680,7 @@ void OBJECT_OT_skin_armature_create(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
   edit_modifier_properties(ot);
 }
+
 /** \} */
 
 /* ------------------------------------------------------------------- */

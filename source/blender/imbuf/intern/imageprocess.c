@@ -357,6 +357,8 @@ void nearest_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xo
   nearest_interpolation_color(in, outI, outF, u, v);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Threaded Image Processing
  * \{ */

@@ -242,6 +242,7 @@ void gmp_blender_init_allocator()
   mp_set_memory_functions(gmp_alloc, gmp_realloc, gmp_free);
 }
 #endif
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

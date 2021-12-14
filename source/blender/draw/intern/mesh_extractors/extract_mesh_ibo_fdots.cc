@@ -110,10 +110,9 @@ constexpr MeshExtract create_extractor_fdots()
 }
 
 /** \} */
+
 }  // namespace blender::draw
 
 extern "C" {
 const MeshExtract extract_fdots = blender::draw::create_extractor_fdots();
 }
-
-/** \} */

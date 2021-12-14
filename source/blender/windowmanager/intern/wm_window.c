@@ -1851,6 +1851,7 @@ bool wm_window_get_swap_interval(wmWindow *win, int *intervalOut)
 /* -------------------------------------------------------------------- */
 /** \name Find Window Utility
  * \{ */
+
 static void wm_window_desktop_pos_get(const wmWindow *win,
                                       const int screen_pos[2],
                                       int r_desk_pos[2])
@@ -2390,4 +2391,5 @@ void WM_ghost_show_message_box(const char *title,
   BLI_assert(g_system);
   GHOST_ShowMessageBox(g_system, title, message, help_label, continue_label, link, dialog_options);
 }
+
 /** \} */

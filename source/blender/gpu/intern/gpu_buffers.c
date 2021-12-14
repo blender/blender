@@ -57,6 +57,10 @@
 /* XXX: the rest of the code in this file is used for optimized PBVH
  * drawing and doesn't interact at all with the buffer code above */
 
+/* -------------------------------------------------------------------- */
+/** \name Private Types
+ * \{ */
+
 struct GPU_PBVH_Buffers {
   GPUIndexBuf *index_buf, *index_buf_fast;
   GPUIndexBuf *index_lines_buf, *index_lines_buf_fast;

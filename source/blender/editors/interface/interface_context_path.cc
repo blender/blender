@@ -80,6 +80,6 @@ void template_breadcrumbs(uiLayout &layout, Span<ContextPathItem> context_path)
   }
 }
 
-}  // namespace blender::ui
-
 /** \} */
+
+}  // namespace blender::ui

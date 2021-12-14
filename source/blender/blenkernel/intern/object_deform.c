@@ -99,6 +99,7 @@ void BKE_object_defgroup_remap_update_users(Object *ob, const int *map)
     }
   }
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -140,6 +141,7 @@ MDeformVert *BKE_object_defgroup_data_create(ID *id)
 
   return NULL;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -232,6 +234,7 @@ bool BKE_object_defgroup_clear_all(Object *ob, const bool use_selection)
 
   return changed;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -531,6 +534,7 @@ bool BKE_object_defgroup_array_get(ID *id, MDeformVert **dvert_arr, int *dvert_t
   *dvert_tot = 0;
   return false;
 }
+
 /** \} */
 
 /* --- functions for getting vgroup aligned maps --- */

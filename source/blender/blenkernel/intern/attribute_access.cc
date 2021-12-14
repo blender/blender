@@ -1522,3 +1522,5 @@ bool AnonymousAttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
 }
 
 }  // namespace blender::bke
+
+/** \} */

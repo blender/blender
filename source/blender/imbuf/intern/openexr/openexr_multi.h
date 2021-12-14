@@ -45,7 +45,7 @@ void *IMB_exr_get_handle_name(const char *name);
 /**
  * Adds flattened #ExrChannel's
  * `xstride`, `ystride` and `rect` can be done in set_channel too, for tile writing.
- * \param passname does not include view.
+ * \param passname: Does not include view.
  */
 void IMB_exr_add_channel(void *handle,
                          const char *layname,
@@ -80,7 +80,7 @@ void IMB_exrtile_begin_write(
 /**
  * Still clumsy name handling, layers/channels can be ordered as list in list later.
  *
- * \param passname here is the raw channel name without the layer.
+ * \param passname: Here is the raw channel name without the layer.
  */
 void IMB_exr_set_channel(void *handle,
                          const char *layname,

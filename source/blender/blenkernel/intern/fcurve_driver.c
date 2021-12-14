@@ -1285,3 +1285,5 @@ float evaluate_driver(PathResolvedRNA *anim_rna,
   /* Return value for driver. */
   return driver->curval;
 }
+
+/** \} */

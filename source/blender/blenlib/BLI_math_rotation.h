@@ -32,6 +32,10 @@
 extern "C" {
 #endif
 
+/* -------------------------------------------------------------------- */
+/** \name Conversion Defines
+ * \{ */
+
 #define RAD2DEG(_rad) ((_rad) * (180.0 / M_PI))
 #define DEG2RAD(_deg) ((_deg) * (M_PI / 180.0))
 

@@ -580,4 +580,5 @@ LinkNode *BM_mesh_calc_path_face(BMesh *bm,
 
   return path;
 }
+
 /** \} */

@@ -527,6 +527,7 @@ PyTypeObject BPyGPUTexture_Type = {
 /* -------------------------------------------------------------------- */
 /** \name GPU Texture module
  * \{ */
+
 PyDoc_STRVAR(pygpu_texture_from_image_doc,
              ".. function:: from_image(image)\n"
              "\n"

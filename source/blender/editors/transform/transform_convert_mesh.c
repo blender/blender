@@ -2092,6 +2092,7 @@ void recalcData_mesh(TransInfo *t)
     tc_mesh_partial_update(t, tc, &partial_state);
   }
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2157,4 +2158,5 @@ void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
     break;
   }
 }
+
 /** \} */

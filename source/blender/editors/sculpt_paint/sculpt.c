@@ -102,13 +102,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Sculpt PBVH abstraction API
+/* -------------------------------------------------------------------- */
+/** \name Sculpt PBVH Abstraction API
  *
  * This is read-only, for writing use PBVH vertex iterators. There vd.index matches
  * the indices used here.
  *
  * For multi-resolution, the same vertex in multiple grids is counted multiple times, with
- * different index for each grid. */
+ * different index for each grid.
+ * \{ */
 
 void SCULPT_vertex_random_access_ensure(SculptSession *ss)
 {
@@ -1068,9 +1070,13 @@ void SCULPT_tag_update_overlays(bContext *C)
   }
 }
 
-/* Sculpt Flood Fill API
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Flood Fill API
  *
- * Iterate over connected vertices, starting from one or more initial vertices. */
+ * Iterate over connected vertices, starting from one or more initial vertices.
+ * \{ */
 
 void SCULPT_floodfill_init(SculptSession *ss, SculptFloodFill *flood)
 {
@@ -1181,12 +1187,13 @@ void SCULPT_floodfill_free(SculptFloodFill *flood)
   flood->queue = NULL;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Tool Capabilities
  *
  * Avoid duplicate checks, internal logic only,
  * share logic with #rna_def_sculpt_capabilities where possible.
- *
  * \{ */
 
 static bool sculpt_tool_needs_original(const char sculpt_tool)
@@ -1246,12 +1253,17 @@ static int sculpt_brush_needs_normal(const SculptSession *ss, const Brush *brush
           (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA)) ||
          sculpt_brush_use_topology_rake(ss, brush);
 }
-/** \} */
 
 static bool sculpt_brush_needs_rake_rotation(const Brush *brush)
 {
   return SCULPT_TOOL_HAS_RAKE(brush->sculpt_tool) && (brush->rake_factor != 0.0f);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Init/Update
+ * \{ */
 
 typedef enum StrokeFlags {
   CLIP_X = 1,
@@ -1374,11 +1386,12 @@ static void sculpt_project_v3_normal_align(SculptSession *ss,
       grab_delta, ss->cache->sculpt_normal_symm, (len_signed * normal_weight) * len_view_scale);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name SculptProjectVector
  *
  * Fast-path for #project_plane_v3_v3v3
- *
  * \{ */
 
 typedef struct SculptProjectVector {
@@ -1415,7 +1428,9 @@ static void sculpt_project_v3(const SculptProjectVector *spvc, const float vec[3
 
 /** \} */
 
-/**********************************************************************/
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Dynamic Topology
+ * \{ */
 
 bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush)
 {
@@ -1430,7 +1445,11 @@ bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *bru
           SCULPT_TOOL_HAS_DYNTOPO(brush->sculpt_tool));
 }
 
-/*** paint mesh ***/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Paint Mesh
+ * \{ */
 
 static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
                                           const int n,
@@ -1885,6 +1904,8 @@ static float calc_symmetry_feather(Sculpt *sd, StrokeCache *cache)
   return 1.0f / overlap;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Calculate Normal and Center
  *
@@ -2213,8 +2234,10 @@ bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
   return data.any_vertex_sampled;
 }
 
-/* This calculates flatten center and area normal together,
- * amortizing the memory bandwidth and loop overhead to calculate both at the same time. */
+/**
+ * This calculates flatten center and area normal together,
+ * amortizing the memory bandwidth and loop overhead to calculate both at the same time.
+ */
 static void calc_area_normal_and_center(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3], float r_area_co[3])
 {
@@ -2273,6 +2296,10 @@ static void calc_area_normal_and_center(
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generic Brush Utilities
+ * \{ */
 
 /**
  * Return modified brush strength. Includes the direction of the brush, positive
@@ -2827,6 +2854,12 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Topology Rake (Shared Utility)
+ * \{ */
+
 typedef struct {
   SculptSession *ss;
   const float *ray_start;
@@ -2939,6 +2972,12 @@ static void bmesh_topology_rake(
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Mask Brush
+ * \{ */
+
 static void do_mask_brush_draw_task_cb_ex(void *__restrict userdata,
                                           const int n,
                                           const TaskParallelTLS *__restrict tls)
@@ -3010,6 +3049,8 @@ static void do_mask_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Multires Displacement Eraser Brush
  * \{ */
@@ -3078,6 +3119,7 @@ static void do_displacement_eraser_brush(Sculpt *sd, Object *ob, PBVHNode **node
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Sculpt Multires Displacement Smear Brush
  * \{ */
 
@@ -3219,6 +3261,10 @@ static void do_displacement_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Draw Brush
+ * \{ */
 
 static void do_draw_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
@@ -3373,6 +3419,8 @@ static void do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_draw_sharp_brush_task_cb_ex, &settings);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Topology Brush
@@ -3697,6 +3745,10 @@ static void calc_sculpt_plane(
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Crease & Blob Brush
+ * \{ */
 
 /**
  * Used for 'SCULPT_TOOL_CREASE' and 'SCULPT_TOOL_BLOB'
@@ -4934,6 +4986,8 @@ static void do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
   BLI_task_parallel_range(0, totnode, &data, do_flatten_brush_task_cb_ex, &settings);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Clay Brush
  * \{ */
@@ -5466,6 +5520,8 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
   BLI_task_parallel_range(0, totnode, &data, do_scrape_brush_task_cb_ex, &settings);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Clay Thumb Brush
  * \{ */
@@ -5640,6 +5696,10 @@ static void do_clay_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Gravity Brush
+ * \{ */
+
 static void do_gravity_task_cb_ex(void *__restrict userdata,
                                   const int n,
                                   const TaskParallelTLS *__restrict tls)
@@ -5709,6 +5769,12 @@ static void do_gravity(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, fl
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_gravity_task_cb_ex, &settings);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Prush Utilities
+ * \{ */
 
 void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
 {
@@ -9346,6 +9412,12 @@ static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
                 1.0f);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Registration
+ * \{ */
+
 void ED_operatortypes_sculpt(void)
 {
   WM_operatortype_append(SCULPT_OT_brush_stroke);
@@ -9384,3 +9456,5 @@ void ED_operatortypes_sculpt(void)
 
   WM_operatortype_append(SCULPT_OT_expand);
 }
+
+/** \} */

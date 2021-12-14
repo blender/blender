@@ -335,10 +335,9 @@ bool wm_gizmogroup_is_any_selected(const wmGizmoGroup *gzgroup)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Gizmo operators
+/** \name Gizmo Operators
  *
  * Basic operators for gizmo interaction with user configurable keymaps.
- *
  * \{ */
 
 static int gizmo_select_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
@@ -631,8 +630,6 @@ void GIZMOGROUP_OT_gizmo_tweak(wmOperatorType *ot)
 #endif
 }
 
-/** \} */
-
 wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf)
 {
   wmKeyMap *keymap;
@@ -764,11 +761,12 @@ wmKeyMap *WM_gizmogroup_setup_keymap_generic_select(const wmGizmoGroupType *UNUS
   return WM_gizmogroup_keymap_template_select_ex(kc, "Generic Gizmo Select", &params);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name wmGizmo (Key-map access)
  *
  * Key config version so these can be called from #wmGizmoGroupFnSetupKeymap.
- *
  * \{ */
 
 struct wmKeyMap *WM_gizmo_keymap_generic_with_keyconfig(wmKeyConfig *kc)
@@ -999,7 +997,6 @@ void wm_gizmogrouptype_setup_keymap(wmGizmoGroupType *gzgt, wmKeyConfig *keyconf
  * but for general purpose API this is too detailed & annoying.
  *
  * \note We may want to return a value if there is nothing to remove.
- *
  * \{ */
 
 void WM_gizmo_group_type_add_ptr_ex(wmGizmoGroupType *gzgt, wmGizmoMapType *gzmap_type)

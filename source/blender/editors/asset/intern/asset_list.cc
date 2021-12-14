@@ -318,6 +318,7 @@ StringRef AssetList::filepath() const
 {
   return filelist_dir(filelist_);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -289,4 +289,5 @@ void initShear(TransInfo *t)
 
   transform_mode_default_modal_orientation_set(t, V3D_ORIENT_VIEW);
 }
+
 /** \} */

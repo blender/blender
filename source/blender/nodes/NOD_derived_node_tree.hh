@@ -271,6 +271,7 @@ inline bool DTreeContext::is_root() const
 {
   return parent_context_ == nullptr;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -337,6 +338,7 @@ inline DOutputSocket DNode::output_by_identifier(StringRef identifier) const
 {
   return {context_, &node_ref_->output_by_identifier(identifier)};
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -399,6 +401,7 @@ inline DNode DSocket::node() const
   BLI_assert(socket_ref_ != nullptr);
   return {context_, &socket_ref_->node()};
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -424,6 +427,7 @@ inline const InputSocketRef *DInputSocket::operator->() const
 {
   return (const InputSocketRef *)socket_ref_;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -449,6 +453,7 @@ inline const OutputSocketRef *DOutputSocket::operator->() const
 {
   return (const OutputSocketRef *)socket_ref_;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

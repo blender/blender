@@ -267,4 +267,5 @@ void initResize(TransInfo *t, float mouse_dir_constraint[3])
 
   transform_mode_default_modal_orientation_set(t, V3D_ORIENT_GLOBAL);
 }
+
 /** \} */

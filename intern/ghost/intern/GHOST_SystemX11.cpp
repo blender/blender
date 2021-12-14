@@ -2278,6 +2278,7 @@ void GHOST_SystemX11::putClipboard(const char *buffer, bool selection) const
 /* -------------------------------------------------------------------- */
 /** \name Message Box
  * \{ */
+
 class DialogData {
  public:
   /* Width of the dialog. */

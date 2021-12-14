@@ -130,6 +130,7 @@ bool ED_wpaint_ensure_data(bContext *C,
 
   return true;
 }
+
 /** \} */
 
 int ED_wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)

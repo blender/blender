@@ -88,7 +88,7 @@ static short plane_point_test_v3(const float plane[4],
  *
  * Hide flag access
  * (for more readable code since same flag is used differently for vert/edge-face).
- */
+ * \{ */
 
 /** Enable when vertex is in the center and its faces have been added to the stack. */
 BLI_INLINE void vert_is_center_enable(BMVert *v)

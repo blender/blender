@@ -2226,9 +2226,9 @@ void SCENE_OT_freestyle_stroke_material_create(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-#endif /* WITH_FREESTYLE */
-
 /** \} */
+
+#endif /* WITH_FREESTYLE */
 
 /* -------------------------------------------------------------------- */
 /** \name Texture Slot Move Operator

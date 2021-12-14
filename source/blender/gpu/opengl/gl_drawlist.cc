@@ -236,5 +236,3 @@ void GLDrawList::submit()
   /* Avoid keeping reference to the batch. */
   batch_ = nullptr;
 }
-
-/** \} */

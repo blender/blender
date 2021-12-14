@@ -967,6 +967,7 @@ static void eevee_lightbake_render_scene_to_planars(EEVEE_ViewLayerData *sldata,
                      sldata->probes->planar_data,
                      sldata->probes->num_planar);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

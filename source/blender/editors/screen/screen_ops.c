@@ -4405,6 +4405,7 @@ static void SCREEN_OT_region_context_menu(wmOperatorType *ot)
  *
  * Animation Step.
  * \{ */
+
 static bool screen_animation_region_supports_time_follow(eSpace_Type spacetype,
                                                          eRegion_Type regiontype)
 {

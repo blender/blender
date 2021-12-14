@@ -2234,8 +2234,6 @@ void uiTemplateGpencilModifiers(uiLayout *UNUSED(layout), bContext *C)
 
 /** \} */
 
-/** \} */
-
 #define ERROR_LIBDATA_MESSAGE TIP_("Can't edit external library data")
 
 /* -------------------------------------------------------------------- */

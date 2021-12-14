@@ -912,6 +912,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id,
 
 #undef ME_FGON
 }
+
 /** \} */
 
 void BKE_mesh_mdisp_flip(MDisps *md, const bool use_loop_mdisp_flip)
@@ -1181,6 +1182,7 @@ void BKE_mesh_flush_select_from_verts(Mesh *me)
   BKE_mesh_flush_select_from_verts_ex(
       me->mvert, me->totvert, me->mloop, me->medge, me->totedge, me->mpoly, me->totpoly);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1240,4 +1242,5 @@ void BKE_mesh_calc_relative_deform(const MPoly *mpoly,
 
   MEM_freeN(vert_accum);
 }
+
 /** \} */

@@ -42,7 +42,12 @@ extern "C" {
 
 /** \} */
 
-/** Explode given time value expressed in seconds, into a set of days, hours, minutes, seconds
+/* -------------------------------------------------------------------- */
+/** \name Time API
+ * \{ */
+
+/**
+ * Explode given time value expressed in seconds, into a set of days, hours, minutes, seconds
  * and/or milliseconds (depending on which return parameters are not NULL).
  *
  * \note The smallest given return parameter will get the potential fractional remaining time

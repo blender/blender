@@ -1223,6 +1223,7 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
 
   return e_pivot;
 }
+
 /** \} */
 
 #endif /* USE_PIVOT_SEARCH */

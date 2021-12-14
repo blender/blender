@@ -157,4 +157,5 @@ void initTimeTranslate(TransInfo *t)
   /* No time unit supporting frames currently... */
   t->num.unit_type[0] = B_UNIT_NONE;
 }
+
 /** \} */

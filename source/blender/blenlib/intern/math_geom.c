@@ -718,6 +718,7 @@ float dist_squared_ray_to_aabb_v3_simple(const float ray_origin[3],
   dist_squared_ray_to_aabb_v3_precalc(&data, ray_origin, ray_direction);
   return dist_squared_ray_to_aabb_v3(&data, bb_min, bb_max, r_point, r_depth);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -917,6 +918,7 @@ float dist_squared_to_projected_aabb_simple(const float projmat[4][4],
   bool dummy[3] = {true, true, true};
   return dist_squared_to_projected_aabb(&data, bbmin, bbmax, dummy);
 }
+
 /** \} */
 
 void closest_on_tri_to_point_v3(

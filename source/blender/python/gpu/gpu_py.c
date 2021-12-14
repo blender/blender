@@ -58,6 +58,7 @@ struct PyC_StringEnumItems bpygpu_dataformat_items[] = {
     {GPU_DATA_10_11_11_REV, "10_11_11_REV"},
     {0, NULL},
 };
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

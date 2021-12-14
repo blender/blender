@@ -84,8 +84,9 @@ bool BKE_image_has_gpu_texture_premultiplied_alpha(Image *image, ImBuf *ibuf)
 }
 
 /* -------------------------------------------------------------------- */
-/** \name UDIM gpu texture
+/** \name UDIM GPU Texture
  * \{ */
+
 static bool is_over_resolution_limit(int w, int h, bool limit_gl_texture_size)
 {
   return (w > GPU_texture_size_with_limit(w, limit_gl_texture_size) ||
@@ -643,6 +644,7 @@ void BKE_image_free_old_gputextures(Main *bmain)
     }
   }
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -124,6 +124,7 @@ static int UNUSED_FUNCTION(gesture_modal_state_from_operator)(wmOperator *op)
   }
   return GESTURE_MODAL_NOP;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

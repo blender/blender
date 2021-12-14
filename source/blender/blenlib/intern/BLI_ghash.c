@@ -949,6 +949,8 @@ void BLI_ghashIterator_free(GHashIterator *ghi)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name GSet Public API
+ * \{ */
 
 GSet *BLI_gset_new_ex(GSetHashFP hashfp,
                       GSetCmpFP cmpfp,

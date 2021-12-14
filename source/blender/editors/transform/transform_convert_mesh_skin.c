@@ -303,4 +303,5 @@ void recalcData_mesh_skin(TransInfo *t)
     BKE_editmesh_looptri_and_normals_calc(em);
   }
 }
+
 /** \} */

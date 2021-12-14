@@ -277,4 +277,5 @@ void initToSphere(TransInfo *t)
 
   to_sphere_radius_update(t);
 }
+
 /** \} */

@@ -407,6 +407,7 @@ void DRW_instance_data_list_resize(DRWInstanceDataList *idatalist)
 }
 
 /** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Sparse Uniform Buffer
  * \{ */

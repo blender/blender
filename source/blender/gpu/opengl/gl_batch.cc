@@ -272,6 +272,7 @@ GLuint GLVaoCache::vao_get(GPUBatch *batch)
 
   return vao_id_;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

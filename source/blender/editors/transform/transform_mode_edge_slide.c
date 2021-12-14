@@ -1567,4 +1567,5 @@ void initEdgeSlide(TransInfo *t)
 {
   initEdgeSlide_ex(t, true, false, false, true);
 }
+
 /** \} */

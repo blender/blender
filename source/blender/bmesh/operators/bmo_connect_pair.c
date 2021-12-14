@@ -120,19 +120,18 @@ typedef struct PathLinkState {
   float co_prev[3];
 } PathLinkState;
 
-/**
- * \name Min Dist Dir Util
+/* -------------------------------------------------------------------- */
+/** \name Min Dist Dir Util
  *
  * Simply getting the closest intersecting vert/edge is _not_ good enough. see T43792
  * we need to get the closest in both directions since the absolute closest may be a dead-end.
  *
  * Logic is simple:
  *
- * - first intersection, store the direction.
- * - successive intersections will update the first distance if its aligned with the first hit.
+ * - First intersection, store the direction.
+ * - Successive intersections will update the first distance if its aligned with the first hit.
  *   otherwise update the opposite distance.
- * - caller stores best outcome in both directions.
- *
+ * - Caller stores best outcome in both directions.
  * \{ */
 
 typedef struct MinDistDir {
