@@ -41,19 +41,19 @@ struct TransformUserData {
   float start_uv[2];
 
   /**
-   * \brief delta UV coordinates along the source image buffer, when moving a single texel in the X
+   * \brief delta UV coordinates along the source image buffer, when moving a single pixel in the X
    * axis of the dst image buffer.
    */
   float add_x[2];
 
   /**
-   * \brief delta UV coordinate along the source image buffer, when moving a single texel in the Y
+   * \brief delta UV coordinate along the source image buffer, when moving a single pixel in the Y
    * axes of the dst image buffer.
    */
   float add_y[2];
 
   /**
-   * \brief Cropping region in source image texel space.
+   * \brief Cropping region in source image pixel space.
    */
   rctf src_crop;
 
@@ -158,7 +158,7 @@ class NoDiscard : public BaseDiscard {
 };
 
 /**
- * \brief Pointer to a texel to write to in serial.
+ * \brief Pointer to a pixel to write to in serial.
  */
 template<
     /**
@@ -171,7 +171,7 @@ template<
      * \brief Number of channels of a single pixel.
      */
     int NumChannels = 4>
-class TexelPointer {
+class PixelPointer {
  public:
   static const int ChannelLen = NumChannels;
 
@@ -197,7 +197,7 @@ class TexelPointer {
   }
 
   /**
-   * \brief Get pointer to the current texel to write to.
+   * \brief Get pointer to the current pixel to write to.
    */
   StorageType *get_pointer()
   {
@@ -281,7 +281,7 @@ template<
     /** \brief Interpolation mode to use when sampling. */
     eIMBInterpolationFilterMode Filter,
 
-    /** \brief storage type of a single texel channel (unsigned char or float). */
+    /** \brief storage type of a single pixel channel (unsigned char or float). */
     typename StorageType,
     /**
      * \brief number of channels if the image to read.
@@ -382,7 +382,7 @@ class Sampler {
 /**
  * \brief Change the number of channels and store it.
  *
- * Template class to convert and store a sample in a TexelPointer.
+ * Template class to convert and store a sample in a PixelPointer.
  * It supports:
  * - 4 channel unsigned char -> 4 channel unsigned char.
  * - 4 channel float -> 4 channel float.
@@ -394,35 +394,35 @@ template<typename StorageType, int SourceNumChannels, int DestinationNumChannels
 class ChannelConverter {
  public:
   using SampleType = std::array<StorageType, SourceNumChannels>;
-  using TexelType = TexelPointer<StorageType, DestinationNumChannels>;
+  using PixelType = PixelPointer<StorageType, DestinationNumChannels>;
 
   /**
-   * \brief Convert the number of channels of the given sample to match the texel pointer and store
-   * it at the location the texel_pointer points at.
+   * \brief Convert the number of channels of the given sample to match the pixel pointer and store
+   * it at the location the pixel_pointer points at.
    */
-  void convert_and_store(const SampleType &sample, TexelType &texel_pointer)
+  void convert_and_store(const SampleType &sample, PixelType &pixel_pointer)
   {
     if constexpr (std::is_same_v<StorageType, unsigned char>) {
       BLI_STATIC_ASSERT(SourceNumChannels == 4, "Unsigned chars always have 4 channels.");
       BLI_STATIC_ASSERT(DestinationNumChannels == 4, "Unsigned chars always have 4 channels.");
 
-      copy_v4_v4_uchar(texel_pointer.get_pointer(), sample.begin());
+      copy_v4_v4_uchar(pixel_pointer.get_pointer(), sample.begin());
     }
     else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 4 &&
                        DestinationNumChannels == 4) {
-      copy_v4_v4(texel_pointer.get_pointer(), sample.begin());
+      copy_v4_v4(pixel_pointer.get_pointer(), sample.begin());
     }
     else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 3 &&
                        DestinationNumChannels == 4) {
-      copy_v4_fl4(texel_pointer.get_pointer(), sample[0], sample[1], sample[2], 1.0f);
+      copy_v4_fl4(pixel_pointer.get_pointer(), sample[0], sample[1], sample[2], 1.0f);
     }
     else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 2 &&
                        DestinationNumChannels == 4) {
-      copy_v4_fl4(texel_pointer.get_pointer(), sample[0], sample[1], 0.0f, 1.0f);
+      copy_v4_fl4(pixel_pointer.get_pointer(), sample[0], sample[1], 0.0f, 1.0f);
     }
     else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 1 &&
                        DestinationNumChannels == 4) {
-      copy_v4_fl4(texel_pointer.get_pointer(), sample[0], sample[0], sample[0], 1.0f);
+      copy_v4_fl4(pixel_pointer.get_pointer(), sample[0], sample[0], sample[0], 1.0f);
     }
     else {
       BLI_assert_unreachable();
@@ -448,12 +448,12 @@ template<
 
     /**
      * \brief Kernel to store to the destination buffer.
-     * Should be an TexelPointer
+     * Should be an PixelPointer
      */
-    typename OutputTexelPointer>
+    typename OutputPixelPointer>
 class ScanlineProcessor {
   Discard discarder;
-  OutputTexelPointer output;
+  OutputPixelPointer output;
   Sampler sampler;
 
   /**
@@ -462,7 +462,7 @@ class ScanlineProcessor {
    */
   ChannelConverter<typename Sampler::ChannelType,
                    Sampler::ChannelLen,
-                   OutputTexelPointer::ChannelLen>
+                   OutputPixelPointer::ChannelLen>
       channel_converter;
 
  public:
@@ -512,17 +512,17 @@ ScanlineThreadFunc get_scanline_function(const eIMBTransformMode mode)
       return transform_scanline_function<
           ScanlineProcessor<NoDiscard,
                             Sampler<Filter, StorageType, SourceNumChannels, PassThroughUV>,
-                            TexelPointer<StorageType, DestinationNumChannels>>>;
+                            PixelPointer<StorageType, DestinationNumChannels>>>;
     case IMB_TRANSFORM_MODE_CROP_SRC:
       return transform_scanline_function<
           ScanlineProcessor<CropSource,
                             Sampler<Filter, StorageType, SourceNumChannels, PassThroughUV>,
-                            TexelPointer<StorageType, DestinationNumChannels>>>;
+                            PixelPointer<StorageType, DestinationNumChannels>>>;
     case IMB_TRANSFORM_MODE_WRAP_REPEAT:
       return transform_scanline_function<
           ScanlineProcessor<NoDiscard,
                             Sampler<Filter, StorageType, SourceNumChannels, WrapRepeatUV>,
-                            TexelPointer<StorageType, DestinationNumChannels>>>;
+                            PixelPointer<StorageType, DestinationNumChannels>>>;
   }
 
   BLI_assert_unreachable();

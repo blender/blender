@@ -918,8 +918,8 @@ typedef enum eIMBTransformMode {
  * \param mode Cropping/Wrap repeat effect to apply during transformation.
  * \param filter Interpolation to use during sampling.
  * \param transform_matrix Transformation matrix to use.
- * The given matrix should transform between dst texel space to src texel space.
- * One unit is one texel.
+ * The given matrix should transform between dst pixel space to src pixel space.
+ * One unit is one pixel.
  * \param src_crop cropping region how to crop the source buffer. Should only be passed when mode
  * is set to IMB_TRANSFORM_MODE_CROP_SRC. For any other mode this should be empty.
  *
