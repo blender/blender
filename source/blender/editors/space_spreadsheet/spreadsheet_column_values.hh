@@ -20,33 +20,36 @@
 
 #include "BLI_string_ref.hh"
 
-#include "spreadsheet_cell_value.hh"
+#include "FN_generic_virtual_array.hh"
 
 namespace blender::ed::spreadsheet {
+
+struct CellDrawParams;
+
+eSpreadsheetColumnValueType cpp_type_to_column_type(const fn::CPPType &type);
 
 /**
  * This represents a column in a spreadsheet. It has a name and provides a value for all the cells
  * in the column.
  */
-class ColumnValues {
+class ColumnValues final {
  protected:
-  eSpreadsheetColumnValueType type_;
   std::string name_;
-  int size_;
+
+  fn::GVArray data_;
 
  public:
-  ColumnValues(const eSpreadsheetColumnValueType type, std::string name, const int size)
-      : type_(type), name_(std::move(name)), size_(size)
+  ColumnValues(std::string name, fn::GVArray data) : name_(std::move(name)), data_(std::move(data))
   {
+    /* The array should not be empty. */
+    BLI_assert(data_);
   }
 
   virtual ~ColumnValues() = default;
 
-  virtual void get_value(int index, CellValue &r_cell_value) const = 0;
-
   eSpreadsheetColumnValueType type() const
   {
-    return type_;
+    return cpp_type_to_column_type(data_.type());
   }
 
   StringRefNull name() const
@@ -56,45 +59,16 @@ class ColumnValues {
 
   int size() const
   {
-    return size_;
+    return data_.size();
+  }
+
+  const fn::GVArray &data() const
+  {
+    return data_;
   }
 
   /* The default width of newly created columns, in UI units. */
   float default_width = 0.0f;
 };
-
-/* Utility class for the function below. */
-template<typename GetValueF> class LambdaColumnValues : public ColumnValues {
- private:
-  GetValueF get_value_;
-
- public:
-  LambdaColumnValues(const eSpreadsheetColumnValueType type,
-                     std::string name,
-                     int size,
-                     GetValueF get_value)
-      : ColumnValues(type, std::move(name), size), get_value_(std::move(get_value))
-  {
-  }
-
-  void get_value(int index, CellValue &r_cell_value) const final
-  {
-    get_value_(index, r_cell_value);
-  }
-};
-
-/* Utility function that simplifies creating a spreadsheet column from a lambda function. */
-template<typename GetValueF>
-std::unique_ptr<ColumnValues> column_values_from_function(const eSpreadsheetColumnValueType type,
-                                                          std::string name,
-                                                          const int size,
-                                                          GetValueF get_value,
-                                                          const float default_width = 0.0f)
-{
-  std::unique_ptr<ColumnValues> column_values = std::make_unique<LambdaColumnValues<GetValueF>>(
-      type, std::move(name), size, std::move(get_value));
-  column_values->default_width = default_width;
-  return column_values;
-}
 
 }  // namespace blender::ed::spreadsheet

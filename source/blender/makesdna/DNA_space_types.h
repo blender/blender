@@ -2006,6 +2006,7 @@ typedef enum eSpaceSpreadsheet_ContextType {
 } eSpaceSpreadsheet_ContextType;
 
 typedef enum eSpreadsheetColumnValueType {
+  SPREADSHEET_VALUE_TYPE_UNKNOWN = -1,
   SPREADSHEET_VALUE_TYPE_BOOL = 0,
   SPREADSHEET_VALUE_TYPE_INT32 = 1,
   SPREADSHEET_VALUE_TYPE_FLOAT = 2,

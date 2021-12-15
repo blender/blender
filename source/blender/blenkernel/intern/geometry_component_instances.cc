@@ -31,6 +31,8 @@
 
 #include "attribute_access_intern.hh"
 
+#include "FN_cpp_type_make.hh"
+
 using blender::float4x4;
 using blender::Map;
 using blender::MutableSpan;
@@ -38,6 +40,8 @@ using blender::Set;
 using blender::Span;
 using blender::VectorSet;
 using blender::fn::GSpan;
+
+MAKE_CPP_TYPE(InstanceReference, InstanceReference, CPPTypeFlags::None)
 
 /* -------------------------------------------------------------------- */
 /** \name Geometry Component Implementation

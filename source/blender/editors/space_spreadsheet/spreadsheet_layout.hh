@@ -32,7 +32,7 @@ struct ColumnLayout {
 /* Layout information for the entire spreadsheet. */
 struct SpreadsheetLayout {
   Vector<ColumnLayout> columns;
-  Span<int64_t> row_indices;
+  IndexMask row_indices;
   int index_column_width = 100;
 };
 
