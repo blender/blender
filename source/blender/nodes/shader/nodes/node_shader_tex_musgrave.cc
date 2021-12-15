@@ -29,7 +29,10 @@ static void sh_node_tex_musgrave_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Vector>(N_("Vector")).hide_value().implicit_field();
-  b.add_input<decl::Float>(N_("W")).min(-1000.0f).max(1000.0f);
+  b.add_input<decl::Float>(N_("W")).min(-1000.0f).max(1000.0f).make_available([](bNode &node) {
+    /* Default to 1 instead of 4, because it is much faster. */
+    node_storage(node).dimensions = 1;
+  });
   b.add_input<decl::Float>(N_("Scale")).min(-1000.0f).max(1000.0f).default_value(5.0f);
   b.add_input<decl::Float>(N_("Detail")).min(0.0f).max(15.0f).default_value(2.0f);
   b.add_input<decl::Float>(N_("Dimension")).min(0.0f).max(1000.0f).default_value(2.0f);

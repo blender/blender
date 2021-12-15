@@ -22,6 +22,8 @@
 
 #include "BLI_math_base_safe.h"
 
+#include "NOD_socket_search_link.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_attribute_statistic_cc {
@@ -110,6 +112,54 @@ static void node_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, socket_vector_range, data_type == CD_PROP_FLOAT3);
   nodeSetSocketAvailability(ntree, socket_vector_std, data_type == CD_PROP_FLOAT3);
   nodeSetSocketAvailability(ntree, socket_vector_variance, data_type == CD_PROP_FLOAT3);
+}
+
+static std::optional<CustomDataType> node_type_from_other_socket(const bNodeSocket &socket)
+{
+  switch (socket.type) {
+    case SOCK_FLOAT:
+    case SOCK_BOOLEAN:
+    case SOCK_INT:
+      return CD_PROP_FLOAT;
+    case SOCK_VECTOR:
+    case SOCK_RGBA:
+      return CD_PROP_FLOAT3;
+    default:
+      return {};
+  }
+}
+
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const bNodeType &node_type = params.node_type();
+  const std::optional<CustomDataType> type = node_type_from_other_socket(params.other_socket());
+  if (params.in_out() == SOCK_IN) {
+    if (params.other_socket().type == SOCK_GEOMETRY) {
+      params.add_item(IFACE_("Geometry"), [node_type](LinkSearchOpParams &params) {
+        bNode &node = params.add_node(node_type);
+        params.connect_available_socket(node, "Geometry");
+      });
+    }
+    if (type) {
+      params.add_item(IFACE_("Attribute"), [&](LinkSearchOpParams &params) {
+        bNode &node = params.add_node(node_type);
+        node.custom1 = *type;
+        params.update_and_connect_available_socket(node, "Attribute");
+      });
+    }
+  }
+  else if (type) {
+    /* Only use the first 8 declarations since we set the type automatically. */
+    const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+    for (const SocketDeclarationPtr &socket_decl : declaration.outputs().take_front(8)) {
+      StringRefNull name = socket_decl->name();
+      params.add_item(IFACE_(name.c_str()), [node_type, name, type](LinkSearchOpParams &params) {
+        bNode &node = params.add_node(node_type);
+        node.custom1 = *type;
+        params.update_and_connect_available_socket(node, name);
+      });
+    }
+  }
 }
 
 template<typename T> static T compute_sum(const Span<T> data)
@@ -359,5 +409,6 @@ void register_node_type_geo_attribute_statistic()
   node_type_update(&ntype, file_ns::node_update);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
+  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   nodeRegisterType(&ntype);
 }

@@ -51,7 +51,9 @@ bNodeSocket &SocketDeclaration::update_or_build(bNodeTree &ntree,
                                                 bNodeSocket &socket) const
 {
   /* By default just rebuild. */
-  return this->build(ntree, node, (eNodeSocketInOut)socket.in_out);
+  BLI_assert(socket.in_out == in_out_);
+  UNUSED_VARS_NDEBUG(socket);
+  return this->build(ntree, node);
 }
 
 void SocketDeclaration::set_common_flags(bNodeSocket &socket) const

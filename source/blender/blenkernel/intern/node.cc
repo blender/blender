@@ -102,6 +102,7 @@ using blender::MutableSpan;
 using blender::Set;
 using blender::Span;
 using blender::Stack;
+using blender::StringRef;
 using blender::Vector;
 using blender::VectorSet;
 using blender::nodes::FieldInferencingInterface;
@@ -1521,6 +1522,33 @@ struct bNodeSocket *nodeFindSocket(const bNode *node,
   }
   return nullptr;
 }
+
+namespace blender::bke {
+
+bNodeSocket *node_find_enabled_socket(bNode &node,
+                                      const eNodeSocketInOut in_out,
+                                      const StringRef name)
+{
+  ListBase *sockets = (in_out == SOCK_IN) ? &node.inputs : &node.outputs;
+  LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
+    if (!(socket->flag & SOCK_UNAVAIL) && socket->name == name) {
+      return socket;
+    }
+  }
+  return nullptr;
+}
+
+bNodeSocket *node_find_enabled_input_socket(bNode &node, StringRef name)
+{
+  return node_find_enabled_socket(node, SOCK_IN, name);
+}
+
+bNodeSocket *node_find_enabled_output_socket(bNode &node, StringRef name)
+{
+  return node_find_enabled_socket(node, SOCK_OUT, name);
+}
+
+}  // namespace blender::bke
 
 /* find unique socket identifier */
 static bool unique_identifier_check(void *arg, const char *identifier)
@@ -4459,7 +4487,8 @@ static void ntree_validate_links(bNodeTree *ntree)
       link->flag &= ~NODE_LINK_VALID;
     }
     else if (ntree->typeinfo->validate_link) {
-      if (!ntree->typeinfo->validate_link(ntree, link)) {
+      if (!ntree->typeinfo->validate_link((eNodeSocketDatatype)link->fromsock->type,
+                                          (eNodeSocketDatatype)link->tosock->type)) {
         link->flag &= ~NODE_LINK_VALID;
       }
     }

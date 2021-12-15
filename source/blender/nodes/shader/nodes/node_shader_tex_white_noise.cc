@@ -27,7 +27,10 @@ static void sh_node_tex_white_noise_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Vector>(N_("Vector")).min(-10000.0f).max(10000.0f).implicit_field();
-  b.add_input<decl::Float>(N_("W")).min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>(N_("W")).min(-10000.0f).max(10000.0f).make_available([](bNode &node) {
+    /* Default to 1 instead of 4, because it is faster. */
+    node.custom1 = 1;
+  });
   b.add_output<decl::Float>(N_("Value"));
   b.add_output<decl::Color>(N_("Color"));
 };

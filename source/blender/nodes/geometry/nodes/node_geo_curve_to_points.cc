@@ -47,8 +47,18 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveToPoints)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Int>(N_("Count")).default_value(10).min(2).max(100000);
-  b.add_input<decl::Float>(N_("Length")).default_value(0.1f).min(0.001f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Int>(N_("Count"))
+      .default_value(10)
+      .min(2)
+      .max(100000)
+      .make_available(
+          [](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_RESAMPLE_COUNT; });
+  b.add_input<decl::Float>(N_("Length"))
+      .default_value(0.1f)
+      .min(0.001f)
+      .subtype(PROP_DISTANCE)
+      .make_available(
+          [](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_RESAMPLE_LENGTH; });
   b.add_output<decl::Geometry>(N_("Points"));
   b.add_output<decl::Vector>(N_("Tangent")).field_source();
   b.add_output<decl::Vector>(N_("Normal")).field_source();
@@ -401,6 +411,5 @@ void register_node_type_geo_curve_to_points()
       &ntype, "NodeGeometryCurveToPoints", node_free_standard_storage, node_copy_standard_storage);
   node_type_init(&ntype, file_ns::node_init);
   node_type_update(&ntype, file_ns::node_update);
-
   nodeRegisterType(&ntype);
 }

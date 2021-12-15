@@ -57,9 +57,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Text Box Height"))
       .default_value(0.0f)
       .min(0.0f)
-      .subtype(PROP_DISTANCE);
+      .subtype(PROP_DISTANCE)
+      .make_available([](bNode &node) {
+        node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_SCALE_TO_FIT;
+      });
   b.add_output<decl::Geometry>(N_("Curves"));
-  b.add_output<decl::String>(N_("Remainder"));
+  b.add_output<decl::String>(N_("Remainder")).make_available([](bNode &node) {
+    node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW;
+  });
 }
 
 static void node_layout(uiLayout *layout, struct bContext *C, PointerRNA *ptr)

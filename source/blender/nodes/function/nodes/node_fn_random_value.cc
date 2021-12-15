@@ -19,6 +19,8 @@
 
 #include "node_function_util.hh"
 
+#include "NOD_socket_search_link.hh"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -43,7 +45,8 @@ static void fn_node_random_value_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .default_value(0.5f)
       .subtype(PROP_FACTOR)
-      .supports_field();
+      .supports_field()
+      .make_available([](bNode &node) { node_storage(node).data_type = CD_PROP_BOOL; });
   b.add_input<decl::Int>(N_("ID")).implicit_field();
   b.add_input<decl::Int>(N_("Seed")).default_value(0).min(-10000).max(10000).supports_field();
 
@@ -95,6 +98,55 @@ static void fn_node_random_value_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, sock_out_float, data_type == CD_PROP_FLOAT);
   nodeSetSocketAvailability(ntree, sock_out_int, data_type == CD_PROP_INT32);
   nodeSetSocketAvailability(ntree, sock_out_bool, data_type == CD_PROP_BOOL);
+}
+
+static std::optional<CustomDataType> node_type_from_other_socket(const bNodeSocket &socket)
+{
+  switch (socket.type) {
+    case SOCK_FLOAT:
+      return CD_PROP_FLOAT;
+    case SOCK_BOOLEAN:
+      return CD_PROP_BOOL;
+    case SOCK_INT:
+      return CD_PROP_INT32;
+    case SOCK_VECTOR:
+      return CD_PROP_FLOAT3;
+    case SOCK_RGBA:
+      return CD_PROP_COLOR;
+    default:
+      return {};
+  }
+}
+
+static void fn_node_random_value_gather_link_search(GatherLinkSearchOpParams &params)
+{
+  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  const std::optional<CustomDataType> type = node_type_from_other_socket(params.other_socket());
+  if (!type) {
+    return;
+  }
+  if (params.in_out() == SOCK_IN) {
+    if (ELEM(*type, CD_PROP_INT32, CD_PROP_FLOAT3, CD_PROP_FLOAT)) {
+      params.add_item(IFACE_("Min"), [type](LinkSearchOpParams &params) {
+        bNode &node = params.add_node("FunctionNodeRandomValue");
+        node_storage(node).data_type = *type;
+        params.update_and_connect_available_socket(node, "Min");
+      });
+      params.add_item(IFACE_("Max"), [type](LinkSearchOpParams &params) {
+        bNode &node = params.add_node("FunctionNodeRandomValue");
+        node_storage(node).data_type = *type;
+        params.update_and_connect_available_socket(node, "Max");
+      });
+    }
+    search_link_ops_for_declarations(params, declaration.inputs().take_back(3));
+  }
+  else {
+    params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("FunctionNodeRandomValue");
+      node_storage(node).data_type = *type;
+      params.update_and_connect_available_socket(node, "Value");
+    });
+  }
 }
 
 class RandomVectorFunction : public fn::MultiFunction {
@@ -297,6 +349,7 @@ void register_node_type_fn_random_value()
   ntype.draw_buttons = blender::nodes::fn_node_random_value_layout;
   ntype.declare = blender::nodes::fn_node_random_value_declare;
   ntype.build_multi_function = blender::nodes::fn_node_random_value_build_multi_function;
+  ntype.gather_link_search_ops = blender::nodes::fn_node_random_value_gather_link_search;
   node_type_storage(
       &ntype, "NodeRandomValue", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);
