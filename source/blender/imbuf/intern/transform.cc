@@ -310,20 +310,20 @@ class Sampler {
 
     if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, float> &&
                   NumChannels == 4) {
-      bilinear_interpolation_color_fl(source, nullptr, r_sample.begin(), wrapped_u, wrapped_v);
+      bilinear_interpolation_color_fl(source, nullptr, &r_sample[0], wrapped_u, wrapped_v);
     }
     else if constexpr (Filter == IMB_FILTER_NEAREST &&
                        std::is_same_v<StorageType, unsigned char> && NumChannels == 4) {
-      nearest_interpolation_color_char(source, r_sample.begin(), nullptr, wrapped_u, wrapped_v);
+      nearest_interpolation_color_char(source, &r_sample[0], nullptr, wrapped_u, wrapped_v);
     }
     else if constexpr (Filter == IMB_FILTER_BILINEAR &&
                        std::is_same_v<StorageType, unsigned char> && NumChannels == 4) {
-      bilinear_interpolation_color_char(source, r_sample.begin(), nullptr, wrapped_u, wrapped_v);
+      bilinear_interpolation_color_char(source, &r_sample[0], nullptr, wrapped_u, wrapped_v);
     }
     else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, float>) {
       if constexpr (std::is_same_v<UVWrapping, WrapRepeatUV>) {
         BLI_bilinear_interpolation_wrap_fl(source->rect_float,
-                                           r_sample.begin(),
+                                           &r_sample[0],
                                            source->x,
                                            source->y,
                                            NumChannels,
@@ -334,7 +334,7 @@ class Sampler {
       }
       else {
         BLI_bilinear_interpolation_fl(source->rect_float,
-                                      r_sample.begin(),
+                                      &r_sample[0],
                                       source->x,
                                       source->y,
                                       NumChannels,
@@ -406,11 +406,11 @@ class ChannelConverter {
       BLI_STATIC_ASSERT(SourceNumChannels == 4, "Unsigned chars always have 4 channels.");
       BLI_STATIC_ASSERT(DestinationNumChannels == 4, "Unsigned chars always have 4 channels.");
 
-      copy_v4_v4_uchar(pixel_pointer.get_pointer(), sample.begin());
+      copy_v4_v4_uchar(pixel_pointer.get_pointer(), &sample[0]);
     }
     else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 4 &&
                        DestinationNumChannels == 4) {
-      copy_v4_v4(pixel_pointer.get_pointer(), sample.begin());
+      copy_v4_v4(pixel_pointer.get_pointer(), &sample[0]);
     }
     else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 3 &&
                        DestinationNumChannels == 4) {
