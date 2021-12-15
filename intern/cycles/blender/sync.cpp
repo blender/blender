@@ -95,6 +95,11 @@ void BlenderSync::reset(BL::BlendData &b_data, BL::Scene &b_scene)
   this->b_scene = b_scene;
 }
 
+void BlenderSync::tag_update()
+{
+  has_updates_ = true;
+}
+
 /* Sync */
 
 void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d)

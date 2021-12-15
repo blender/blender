@@ -396,6 +396,13 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
     /* set the current view */
     b_engine.active_view_set(b_rview_name.c_str());
 
+    /* Force update in this case, since the camera transform on each frame changes
+     * in different views. This could be optimized by somehow storing the animated
+     * camera transforms separate from the fixed stereo transform. */
+    if ((scene->need_motion() != Scene::MOTION_NONE) && view_index > 0) {
+      sync->tag_update();
+    }
+
     /* update scene */
     BL::Object b_camera_override(b_engine.camera_override());
     sync->sync_camera(b_render, b_camera_override, width, height, b_rview_name.c_str());

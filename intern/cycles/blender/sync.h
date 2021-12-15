@@ -66,6 +66,8 @@ class BlenderSync {
 
   void reset(BL::BlendData &b_data, BL::Scene &b_scene);
 
+  void tag_update();
+
   /* sync */
   void sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d);
   void sync_data(BL::RenderSettings &b_render,
@@ -267,7 +269,6 @@ class BlenderSync {
 
   Progress &progress;
 
- protected:
   /* Indicates that `sync_recalc()` detected changes in the scene.
    * If this flag is false then the data is considered to be up-to-date and will not be
    * synchronized at all. */
