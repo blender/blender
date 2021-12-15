@@ -55,6 +55,8 @@
 /* experimental (faster) normal calculation */
 // #define USE_ACCUM_NORMAL
 
+#define MBALL_ARRAY_LEN_INIT 4096
+
 /* Data types */
 
 typedef struct corner { /* corner of a cube */
@@ -448,7 +450,7 @@ static void make_face(PROCESS *process, int i1, int i2, int i3, int i4)
 #endif
 
   if (UNLIKELY(process->totindex == process->curindex)) {
-    process->totindex += 4096;
+    process->totindex = process->totindex ? (process->totindex * 2) : MBALL_ARRAY_LEN_INIT;
     process->indices = MEM_reallocN(process->indices, sizeof(int[4]) * process->totindex);
   }
 
@@ -946,8 +948,8 @@ static int getedge(EDGELIST *table[], int i1, int j1, int k1, int i2, int j2, in
  */
 static void addtovertices(PROCESS *process, const float v[3], const float no[3])
 {
-  if (process->curvertex == process->totvertex) {
-    process->totvertex += 4096;
+  if (UNLIKELY(process->curvertex == process->totvertex)) {
+    process->totvertex = process->totvertex ? process->totvertex * 2 : MBALL_ARRAY_LEN_INIT;
     process->co = MEM_reallocN(process->co, process->totvertex * sizeof(float[3]));
     process->no = MEM_reallocN(process->no, process->totvertex * sizeof(float[3]));
   }
@@ -1447,6 +1449,16 @@ void BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob, ListBa
 
       /* add resulting surface to displist */
       if (process.curindex) {
+
+        /* Avoid over-allocation since this is stored in the displist. */
+        if (process.curindex != process.totindex) {
+          process.indices = MEM_reallocN(process.indices, sizeof(int[4]) * process.curindex);
+        }
+        if (process.curvertex != process.totvertex) {
+          process.co = MEM_reallocN(process.co, process.curvertex * sizeof(float[3]));
+          process.no = MEM_reallocN(process.no, process.curvertex * sizeof(float[3]));
+        }
+
         dl = MEM_callocN(sizeof(DispList), "mballdisp");
         BLI_addtail(dispbase, dl);
         dl->type = DL_INDEX4;
