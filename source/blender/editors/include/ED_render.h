@@ -77,14 +77,12 @@ struct Scene *ED_render_job_get_current_scene(const struct bContext *C);
  * pr_method:
  * - PR_BUTS_RENDER: preview is rendered for buttons window
  * - PR_ICON_RENDER: preview is rendered for icons. hopefully fast enough for at least 32x32
- * - PR_NODE_RENDER: preview is rendered for node editor
  * - PR_ICON_DEFERRED: No render, we just ensure deferred icon data gets generated.
  */
 typedef enum ePreviewRenderMethod {
   PR_BUTS_RENDER = 0,
   PR_ICON_RENDER = 1,
-  PR_NODE_RENDER = 2,
-  PR_ICON_DEFERRED = 3,
+  PR_ICON_DEFERRED = 2,
 } ePreviewRenderMethod;
 
 void ED_preview_ensure_dbase(void);

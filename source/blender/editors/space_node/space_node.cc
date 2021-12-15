@@ -482,27 +482,7 @@ static void node_area_refresh(const struct bContext *C, ScrArea *area)
   snode_set_context(*C);
 
   if (snode->nodetree) {
-    if (snode->nodetree->type == NTREE_SHADER) {
-      if (GS(snode->id->name) == ID_MA) {
-        Material *ma = (Material *)snode->id;
-        if (ma->use_nodes) {
-          ED_preview_shader_job(C, area, snode->id, nullptr, nullptr, 100, 100, PR_NODE_RENDER);
-        }
-      }
-      else if (GS(snode->id->name) == ID_LA) {
-        Light *la = (Light *)snode->id;
-        if (la->use_nodes) {
-          ED_preview_shader_job(C, area, snode->id, nullptr, nullptr, 100, 100, PR_NODE_RENDER);
-        }
-      }
-      else if (GS(snode->id->name) == ID_WO) {
-        World *wo = (World *)snode->id;
-        if (wo->use_nodes) {
-          ED_preview_shader_job(C, area, snode->id, nullptr, nullptr, 100, 100, PR_NODE_RENDER);
-        }
-      }
-    }
-    else if (snode->nodetree->type == NTREE_COMPOSIT) {
+    if (snode->nodetree->type == NTREE_COMPOSIT) {
       Scene *scene = (Scene *)snode->id;
       if (scene->use_nodes) {
         /* recalc is set on 3d view changes for auto compo */
@@ -513,12 +493,6 @@ static void node_area_refresh(const struct bContext *C, ScrArea *area)
         else {
           ED_node_composite_job(C, snode->nodetree, scene);
         }
-      }
-    }
-    else if (snode->nodetree->type == NTREE_TEXTURE) {
-      Tex *tex = (Tex *)snode->id;
-      if (tex->use_nodes) {
-        ED_preview_shader_job(C, area, snode->id, nullptr, nullptr, 100, 100, PR_NODE_RENDER);
       }
     }
   }
