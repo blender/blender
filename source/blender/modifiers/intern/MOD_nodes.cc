@@ -280,7 +280,7 @@ static bool check_tree_for_time_node(const bNodeTree &tree,
     }
     if (node->type == NODE_GROUP) {
       const bNodeTree *sub_tree = reinterpret_cast<const bNodeTree *>(node->id);
-      if (check_tree_for_time_node(*sub_tree, r_checked_trees)) {
+      if (sub_tree && check_tree_for_time_node(*sub_tree, r_checked_trees)) {
         return true;
       }
     }
