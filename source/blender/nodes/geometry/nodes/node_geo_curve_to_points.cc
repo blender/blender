@@ -94,9 +94,14 @@ static Array<int> calculate_spline_point_offsets(GeoNodeExecParams &params,
         return {0};
       }
       Array<int> offsets(size + 1);
-      for (const int i : offsets.index_range()) {
-        offsets[i] = count * i;
+      int offset = 0;
+      for (const int i : IndexRange(size)) {
+        offsets[i] = offset;
+        if (splines[i]->evaluated_points_size() > 0) {
+          offset += count;
+        }
       }
+      offsets.last() = offset;
       return offsets;
     }
     case GEO_NODE_CURVE_RESAMPLE_LENGTH: {
@@ -106,7 +111,9 @@ static Array<int> calculate_spline_point_offsets(GeoNodeExecParams &params,
       int offset = 0;
       for (const int i : IndexRange(size)) {
         offsets[i] = offset;
-        offset += splines[i]->length() / resolution + 1;
+        if (splines[i]->evaluated_points_size() > 0) {
+          offset += splines[i]->length() / resolution + 1;
+        }
       }
       offsets.last() = offset;
       return offsets;
