@@ -25,6 +25,7 @@ MemoryProxy::MemoryProxy(DataType datatype)
 {
   write_buffer_operation_ = nullptr;
   executor_ = nullptr;
+  buffer_ = nullptr;
   datatype_ = datatype;
 }
 
