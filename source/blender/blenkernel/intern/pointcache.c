@@ -2626,8 +2626,6 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
   }
 #endif
 
-  // if (!G.relbase_valid) return; /* Save blend file before using pointcache. */
-
   /* clear all files in the temp dir with the prefix of the ID and the ".bphys" suffix */
   switch (mode) {
     case PTCACHE_CLEAR_ALL:
