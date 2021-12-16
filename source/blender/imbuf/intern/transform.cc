@@ -322,15 +322,8 @@ class Sampler {
     }
     else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, float>) {
       if constexpr (std::is_same_v<UVWrapping, WrapRepeatUV>) {
-        BLI_bilinear_interpolation_wrap_fl(source->rect_float,
-                                           &r_sample[0],
-                                           source->x,
-                                           source->y,
-                                           NumChannels,
-                                           u,
-                                           v,
-                                           true,
-                                           true);
+        BLI_bilinear_interpolation_wrap_fl(
+            source->rect_float, &r_sample[0], source->x, source->y, NumChannels, u, v, true, true);
       }
       else {
         BLI_bilinear_interpolation_fl(source->rect_float,
