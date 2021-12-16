@@ -21,10 +21,15 @@
  * \ingroup cmpnodes
  */
 
-#include "node_composite_util.hh"
-
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
+
+#include "RNA_access.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "node_composite_util.hh"
 
 namespace blender::nodes {
 
@@ -53,12 +58,53 @@ static void init(const bContext *C, PointerRNA *ptr)
   user->framenr = 1;
 }
 
+static void node_composit_buts_movieclip(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  uiTemplateID(layout,
+               C,
+               ptr,
+               "clip",
+               nullptr,
+               "CLIP_OT_open",
+               nullptr,
+               UI_TEMPLATE_ID_FILTER_ALL,
+               false,
+               nullptr);
+}
+
+static void node_composit_buts_movieclip_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  bNode *node = (bNode *)ptr->data;
+  PointerRNA clipptr;
+
+  uiTemplateID(layout,
+               C,
+               ptr,
+               "clip",
+               nullptr,
+               "CLIP_OT_open",
+               nullptr,
+               UI_TEMPLATE_ID_FILTER_ALL,
+               false,
+               nullptr);
+
+  if (!node->id) {
+    return;
+  }
+
+  clipptr = RNA_pointer_get(ptr, "clip");
+
+  uiTemplateColorspaceSettings(layout, &clipptr, "colorspace_settings");
+}
+
 void register_node_type_cmp_movieclip()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MOVIECLIP, "Movie Clip", NODE_CLASS_INPUT, NODE_PREVIEW);
   ntype.declare = blender::nodes::cmp_node_movieclip_declare;
+  ntype.draw_buttons = node_composit_buts_movieclip;
+  ntype.draw_buttons_ex = node_composit_buts_movieclip_ex;
   ntype.initfunc_api = init;
   node_type_storage(
       &ntype, "MovieClipUser", node_free_standard_storage, node_copy_standard_storage);

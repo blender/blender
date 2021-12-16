@@ -21,6 +21,11 @@
  * \ingroup cmpnodes
  */
 
+#include "RNA_access.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 namespace blender::nodes {
@@ -50,12 +55,51 @@ static void node_composit_init_glare(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = ndg;
 }
 
+static void node_composit_buts_glare(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "glare_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  uiItemR(layout, ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+
+  if (RNA_enum_get(ptr, "glare_type") != 1) {
+    uiItemR(layout, ptr, "iterations", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+    if (RNA_enum_get(ptr, "glare_type") != 0) {
+      uiItemR(layout,
+              ptr,
+              "color_modulation",
+              UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+              nullptr,
+              ICON_NONE);
+    }
+  }
+
+  uiItemR(layout, ptr, "mix", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "threshold", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+  if (RNA_enum_get(ptr, "glare_type") == 2) {
+    uiItemR(layout, ptr, "streaks", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "angle_offset", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+  if (RNA_enum_get(ptr, "glare_type") == 0 || RNA_enum_get(ptr, "glare_type") == 2) {
+    uiItemR(
+        layout, ptr, "fade", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+
+    if (RNA_enum_get(ptr, "glare_type") == 0) {
+      uiItemR(layout, ptr, "use_rotate_45", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    }
+  }
+  if (RNA_enum_get(ptr, "glare_type") == 1) {
+    uiItemR(layout, ptr, "size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+}
+
 void register_node_type_cmp_glare()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_GLARE, "Glare", NODE_CLASS_OP_FILTER, 0);
   ntype.declare = blender::nodes::cmp_node_glare_declare;
+  ntype.draw_buttons = node_composit_buts_glare;
   node_type_init(&ntype, node_composit_init_glare);
   node_type_storage(&ntype, "NodeGlare", node_free_standard_storage, node_copy_standard_storage);
 

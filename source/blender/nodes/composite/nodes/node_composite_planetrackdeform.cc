@@ -21,6 +21,11 @@
  * \ingroup cmpnodes
  */
 
+#include "RNA_access.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 namespace blender::nodes {
@@ -43,6 +48,55 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
+static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  bNode *node = (bNode *)ptr->data;
+  NodePlaneTrackDeformData *data = (NodePlaneTrackDeformData *)node->storage;
+
+  uiTemplateID(layout,
+               C,
+               ptr,
+               "clip",
+               nullptr,
+               "CLIP_OT_open",
+               nullptr,
+               UI_TEMPLATE_ID_FILTER_ALL,
+               false,
+               nullptr);
+
+  if (node->id) {
+    MovieClip *clip = (MovieClip *)node->id;
+    MovieTracking *tracking = &clip->tracking;
+    MovieTrackingObject *object;
+    uiLayout *col;
+    PointerRNA tracking_ptr;
+
+    RNA_pointer_create(&clip->id, &RNA_MovieTracking, tracking, &tracking_ptr);
+
+    col = uiLayoutColumn(layout, false);
+    uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
+
+    object = BKE_tracking_object_get_named(tracking, data->tracking_object);
+    if (object) {
+      PointerRNA object_ptr;
+
+      RNA_pointer_create(&clip->id, &RNA_MovieTrackingObject, object, &object_ptr);
+
+      uiItemPointerR(
+          col, ptr, "plane_track_name", &object_ptr, "plane_tracks", "", ICON_ANIM_DATA);
+    }
+    else {
+      uiItemR(layout, ptr, "plane_track_name", 0, "", ICON_ANIM_DATA);
+    }
+  }
+
+  uiItemR(layout, ptr, "use_motion_blur", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  if (data->flag & CMP_NODEFLAG_PLANETRACKDEFORM_MOTION_BLUR) {
+    uiItemR(layout, ptr, "motion_blur_samples", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "motion_blur_shutter", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+}
+
 void register_node_type_cmp_planetrackdeform()
 {
   static bNodeType ntype;
@@ -50,6 +104,7 @@ void register_node_type_cmp_planetrackdeform()
   cmp_node_type_base(
       &ntype, CMP_NODE_PLANETRACKDEFORM, "Plane Track Deform", NODE_CLASS_DISTORT, 0);
   ntype.declare = blender::nodes::cmp_node_planetrackdeform_declare;
+  ntype.draw_buttons = node_composit_buts_planetrackdeform;
   node_type_init(&ntype, init);
   node_type_storage(
       &ntype, "NodePlaneTrackDeformData", node_free_standard_storage, node_copy_standard_storage);

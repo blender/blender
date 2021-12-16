@@ -21,6 +21,11 @@
  * \ingroup cmpnodes
  */
 
+#include "RNA_access.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 namespace blender::nodes {
@@ -42,12 +47,61 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
+static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  bNode *node = (bNode *)ptr->data;
+
+  uiTemplateID(layout,
+               C,
+               ptr,
+               "clip",
+               nullptr,
+               "CLIP_OT_open",
+               nullptr,
+               UI_TEMPLATE_ID_FILTER_ALL,
+               false,
+               nullptr);
+
+  if (node->id) {
+    MovieClip *clip = (MovieClip *)node->id;
+    MovieTracking *tracking = &clip->tracking;
+    MovieTrackingObject *object;
+    uiLayout *col;
+    PointerRNA tracking_ptr;
+    NodeTrackPosData *data = (NodeTrackPosData *)node->storage;
+
+    RNA_pointer_create(&clip->id, &RNA_MovieTracking, tracking, &tracking_ptr);
+
+    col = uiLayoutColumn(layout, false);
+    uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
+
+    object = BKE_tracking_object_get_named(tracking, data->tracking_object);
+    if (object) {
+      PointerRNA object_ptr;
+
+      RNA_pointer_create(&clip->id, &RNA_MovieTrackingObject, object, &object_ptr);
+
+      uiItemPointerR(col, ptr, "track_name", &object_ptr, "tracks", "", ICON_ANIM_DATA);
+    }
+    else {
+      uiItemR(layout, ptr, "track_name", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_ANIM_DATA);
+    }
+
+    uiItemR(layout, ptr, "position", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+    if (ELEM(node->custom1, CMP_TRACKPOS_RELATIVE_FRAME, CMP_TRACKPOS_ABSOLUTE_FRAME)) {
+      uiItemR(layout, ptr, "frame_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    }
+  }
+}
+
 void register_node_type_cmp_trackpos()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_TRACKPOS, "Track Position", NODE_CLASS_INPUT, 0);
   ntype.declare = blender::nodes::cmp_node_trackpos_declare;
+  ntype.draw_buttons = node_composit_buts_trackpos;
   node_type_init(&ntype, init);
   node_type_storage(
       &ntype, "NodeTrackPosData", node_free_standard_storage, node_copy_standard_storage);

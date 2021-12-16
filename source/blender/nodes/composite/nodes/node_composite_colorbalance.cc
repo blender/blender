@@ -21,6 +21,11 @@
  * \ingroup cmpnodes
  */
 
+#include "RNA_access.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* ******************* Color Balance ********************************* */
@@ -79,12 +84,88 @@ static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode *nod
   node->storage = n;
 }
 
+static void node_composit_buts_colorbalance(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *split, *col, *row;
+
+  uiItemR(layout, ptr, "correction_method", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+  if (RNA_enum_get(ptr, "correction_method") == 0) {
+
+    split = uiLayoutSplit(layout, 0.0f, false);
+    col = uiLayoutColumn(split, false);
+    uiTemplateColorPicker(col, ptr, "lift", true, true, false, true);
+    row = uiLayoutRow(col, false);
+    uiItemR(row, ptr, "lift", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+    col = uiLayoutColumn(split, false);
+    uiTemplateColorPicker(col, ptr, "gamma", true, true, true, true);
+    row = uiLayoutRow(col, false);
+    uiItemR(row, ptr, "gamma", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+    col = uiLayoutColumn(split, false);
+    uiTemplateColorPicker(col, ptr, "gain", true, true, true, true);
+    row = uiLayoutRow(col, false);
+    uiItemR(row, ptr, "gain", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+  else {
+
+    split = uiLayoutSplit(layout, 0.0f, false);
+    col = uiLayoutColumn(split, false);
+    uiTemplateColorPicker(col, ptr, "offset", true, true, false, true);
+    row = uiLayoutRow(col, false);
+    uiItemR(row, ptr, "offset", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "offset_basis", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+    col = uiLayoutColumn(split, false);
+    uiTemplateColorPicker(col, ptr, "power", true, true, false, true);
+    row = uiLayoutRow(col, false);
+    uiItemR(row, ptr, "power", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+    col = uiLayoutColumn(split, false);
+    uiTemplateColorPicker(col, ptr, "slope", true, true, false, true);
+    row = uiLayoutRow(col, false);
+    uiItemR(row, ptr, "slope", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+}
+
+static void node_composit_buts_colorbalance_ex(uiLayout *layout,
+                                               bContext *UNUSED(C),
+                                               PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "correction_method", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+  if (RNA_enum_get(ptr, "correction_method") == 0) {
+
+    uiTemplateColorPicker(layout, ptr, "lift", true, true, false, true);
+    uiItemR(layout, ptr, "lift", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+    uiTemplateColorPicker(layout, ptr, "gamma", true, true, true, true);
+    uiItemR(layout, ptr, "gamma", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+    uiTemplateColorPicker(layout, ptr, "gain", true, true, true, true);
+    uiItemR(layout, ptr, "gain", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+  else {
+    uiTemplateColorPicker(layout, ptr, "offset", true, true, false, true);
+    uiItemR(layout, ptr, "offset", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+    uiTemplateColorPicker(layout, ptr, "power", true, true, false, true);
+    uiItemR(layout, ptr, "power", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+    uiTemplateColorPicker(layout, ptr, "slope", true, true, false, true);
+    uiItemR(layout, ptr, "slope", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+}
+
 void register_node_type_cmp_colorbalance()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_COLORBALANCE, "Color Balance", NODE_CLASS_OP_COLOR, 0);
   ntype.declare = blender::nodes::cmp_node_colorbalance_declare;
+  ntype.draw_buttons = node_composit_buts_colorbalance;
+  ntype.draw_buttons_ex = node_composit_buts_colorbalance_ex;
   node_type_size(&ntype, 400, 200, 400);
   node_type_init(&ntype, node_composit_init_colorbalance);
   node_type_storage(

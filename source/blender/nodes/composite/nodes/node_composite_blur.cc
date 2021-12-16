@@ -22,6 +22,11 @@
  * \ingroup cmpnodes
  */
 
+#include "RNA_access.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** BLUR ******************** */
@@ -44,12 +49,54 @@ static void node_composit_init_blur(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
+static void node_composit_buts_blur(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *col, *row;
+
+  col = uiLayoutColumn(layout, false);
+  const int filter = RNA_enum_get(ptr, "filter_type");
+  const int reference = RNA_boolean_get(ptr, "use_variable_size");
+
+  uiItemR(col, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  if (filter != R_FILTER_FAST_GAUSS) {
+    uiItemR(col, ptr, "use_variable_size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    if (!reference) {
+      uiItemR(col, ptr, "use_bokeh", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    }
+    uiItemR(col, ptr, "use_gamma_correction", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+
+  uiItemR(col, ptr, "use_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+  if (RNA_boolean_get(ptr, "use_relative")) {
+    uiItemL(col, IFACE_("Aspect Correction"), ICON_NONE);
+    row = uiLayoutRow(layout, true);
+    uiItemR(row,
+            ptr,
+            "aspect_correction",
+            UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
+            nullptr,
+            ICON_NONE);
+
+    col = uiLayoutColumn(layout, true);
+    uiItemR(col, ptr, "factor_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("X"), ICON_NONE);
+    uiItemR(col, ptr, "factor_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Y"), ICON_NONE);
+  }
+  else {
+    col = uiLayoutColumn(layout, true);
+    uiItemR(col, ptr, "size_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("X"), ICON_NONE);
+    uiItemR(col, ptr, "size_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Y"), ICON_NONE);
+  }
+  uiItemR(col, ptr, "use_extended_bounds", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_blur()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_BLUR, "Blur", NODE_CLASS_OP_FILTER, NODE_PREVIEW);
   ntype.declare = blender::nodes::cmp_node_blur_declare;
+  ntype.draw_buttons = node_composit_buts_blur;
   node_type_init(&ntype, node_composit_init_blur);
   node_type_storage(
       &ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);

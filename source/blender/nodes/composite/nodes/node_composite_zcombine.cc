@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** Z COMBINE ******************** */
@@ -39,12 +42,22 @@ static void cmp_node_zcombine_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
+static void node_composit_buts_zcombine(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *col;
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(col, ptr, "use_alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_antialias_z", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_zcombine()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_ZCOMBINE, "Z Combine", NODE_CLASS_OP_COLOR, 0);
   ntype.declare = blender::nodes::cmp_node_zcombine_declare;
+  ntype.draw_buttons = node_composit_buts_zcombine;
 
   nodeRegisterType(&ntype);
 }

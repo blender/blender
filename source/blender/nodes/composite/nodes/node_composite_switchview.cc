@@ -25,9 +25,13 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "../node_composite_util.hh"
 
 /* **************** SWITCH VIEW ******************** */
+
 static bNodeSocketTemplate cmp_node_switch_view_out[] = {
     {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
     {-1, ""},
@@ -137,13 +141,27 @@ static void init_switch_view(const bContext *C, PointerRNA *ptr)
   cmp_node_switch_view_sanitycheck(ntree, node);
 }
 
+static void node_composit_buts_switch_view_ex(uiLayout *layout,
+                                              bContext *UNUSED(C),
+                                              PointerRNA *UNUSED(ptr))
+{
+  uiItemFullO(layout,
+              "NODE_OT_switch_view_update",
+              "Update Views",
+              ICON_FILE_REFRESH,
+              nullptr,
+              WM_OP_INVOKE_DEFAULT,
+              0,
+              nullptr);
+}
+
 void register_node_type_cmp_switch_view()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, "Switch View", NODE_CLASS_CONVERTER, 0);
   node_type_socket_templates(&ntype, nullptr, cmp_node_switch_view_out);
-
+  ntype.draw_buttons_ex = node_composit_buts_switch_view_ex;
   ntype.initfunc_api = init_switch_view;
 
   node_type_update(&ntype, cmp_node_switch_view_update);

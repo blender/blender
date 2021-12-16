@@ -21,10 +21,15 @@
  * \ingroup cmpnodes
  */
 
-#include "node_composite_util.hh"
-
 #include "BKE_global.h"
 #include "BKE_image.h"
+
+#include "RNA_access.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "node_composite_util.hh"
 
 /* **************** VIEWER ******************** */
 
@@ -50,12 +55,32 @@ static void node_composit_init_viewer(bNodeTree *UNUSED(ntree), bNode *node)
   node->id = (ID *)BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
 }
 
+static void node_composit_buts_viewer(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "use_alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
+static void node_composit_buts_viewer_ex(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *col;
+
+  uiItemR(layout, ptr, "use_alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "tile_order", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  if (RNA_enum_get(ptr, "tile_order") == 0) {
+    col = uiLayoutColumn(layout, true);
+    uiItemR(col, ptr, "center_x", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "center_y", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+}
+
 void register_node_type_cmp_viewer()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW);
   ntype.declare = blender::nodes::cmp_node_viewer_declare;
+  ntype.draw_buttons = node_composit_buts_viewer;
+  ntype.draw_buttons_ex = node_composit_buts_viewer_ex;
   node_type_init(&ntype, node_composit_init_viewer);
   node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
 

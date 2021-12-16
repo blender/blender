@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** Translate ******************** */
@@ -44,12 +47,19 @@ static void node_composit_init_translate(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
+static void node_composit_buts_translate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "use_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "wrap_axis", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_translate()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_TRANSLATE, "Translate", NODE_CLASS_DISTORT, 0);
   ntype.declare = blender::nodes::cmp_node_translate_declare;
+  ntype.draw_buttons = node_composit_buts_translate;
   node_type_init(&ntype, node_composit_init_translate);
   node_type_storage(
       &ntype, "NodeTranslateData", node_free_standard_storage, node_copy_standard_storage);

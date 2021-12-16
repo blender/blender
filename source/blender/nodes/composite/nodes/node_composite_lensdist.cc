@@ -21,6 +21,11 @@
  * \ingroup cmpnodes
  */
 
+#include "RNA_access.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 namespace blender::nodes {
@@ -42,12 +47,26 @@ static void node_composit_init_lensdist(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = nld;
 }
 
+static void node_composit_buts_lensdist(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *col;
+
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, ptr, "use_projector", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+  col = uiLayoutColumn(col, false);
+  uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_projector") == false);
+  uiItemR(col, ptr, "use_jitter", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_fit", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_lensdist()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_LENSDIST, "Lens Distortion", NODE_CLASS_DISTORT, 0);
   ntype.declare = blender::nodes::cmp_node_lensdist_declare;
+  ntype.draw_buttons = node_composit_buts_lensdist;
   node_type_init(&ntype, node_composit_init_lensdist);
   node_type_storage(
       &ntype, "NodeLensDist", node_free_standard_storage, node_copy_standard_storage);

@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* ******************* channel Distance Matte ********************************* */
@@ -46,12 +49,30 @@ static void node_composit_init_distance_matte(bNodeTree *UNUSED(ntree), bNode *n
   c->t2 = 0.1f;
 }
 
+static void node_composit_buts_distance_matte(uiLayout *layout,
+                                              bContext *UNUSED(C),
+                                              PointerRNA *ptr)
+{
+  uiLayout *col, *row;
+
+  col = uiLayoutColumn(layout, true);
+
+  uiItemL(layout, IFACE_("Color Space:"), ICON_NONE);
+  row = uiLayoutRow(layout, false);
+  uiItemR(row, ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+
+  uiItemR(
+      col, ptr, "tolerance", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_distance_matte()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_DIST_MATTE, "Distance Key", NODE_CLASS_MATTE, NODE_PREVIEW);
   ntype.declare = blender::nodes::cmp_node_distance_matte_declare;
+  ntype.draw_buttons = node_composit_buts_distance_matte;
   node_type_init(&ntype, node_composit_init_distance_matte);
   node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
 

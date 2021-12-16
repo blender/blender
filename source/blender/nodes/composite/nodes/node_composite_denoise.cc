@@ -23,6 +23,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 namespace blender::nodes {
@@ -49,12 +52,31 @@ static void node_composit_init_denonise(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = ndg;
 }
 
+static void node_composit_buts_denoise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+#ifndef WITH_OPENIMAGEDENOISE
+  uiItemL(layout, IFACE_("Disabled, built without OpenImageDenoise"), ICON_ERROR);
+#else
+  /* Always supported through Accelerate framework BNNS on macOS. */
+#  ifndef __APPLE__
+  if (!BLI_cpu_support_sse41()) {
+    uiItemL(layout, IFACE_("Disabled, CPU with SSE4.1 is required"), ICON_ERROR);
+  }
+#  endif
+#endif
+
+  uiItemL(layout, IFACE_("Prefilter:"), ICON_NONE);
+  uiItemR(layout, ptr, "prefilter", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_hdr", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_denoise()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_DENOISE, "Denoise", NODE_CLASS_OP_FILTER, 0);
   ntype.declare = blender::nodes::cmp_node_denoise_declare;
+  ntype.draw_buttons = node_composit_buts_denoise;
   node_type_init(&ntype, node_composit_init_denonise);
   node_type_storage(&ntype, "NodeDenoise", node_free_standard_storage, node_copy_standard_storage);
 

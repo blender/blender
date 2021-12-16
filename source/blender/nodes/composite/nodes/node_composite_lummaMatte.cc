@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* ******************* Luma Matte Node ********************************* */
@@ -44,12 +47,24 @@ static void node_composit_init_luma_matte(bNodeTree *UNUSED(ntree), bNode *node)
   c->t2 = 0.0f;
 }
 
+static void node_composit_buts_luma_matte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *col;
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(
+      col, ptr, "limit_max", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(
+      col, ptr, "limit_min", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_luma_matte()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_LUMA_MATTE, "Luminance Key", NODE_CLASS_MATTE, NODE_PREVIEW);
   ntype.declare = blender::nodes::cmp_node_luma_matte_declare;
+  ntype.draw_buttons = node_composit_buts_luma_matte;
   node_type_init(&ntype, node_composit_init_luma_matte);
   node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
 

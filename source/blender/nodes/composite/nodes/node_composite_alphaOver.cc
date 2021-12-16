@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** ALPHAOVER ******************** */
@@ -42,12 +45,22 @@ static void node_alphaover_init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats");
 }
 
+static void node_composit_buts_alphaover(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *col;
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(col, ptr, "use_premultiply", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "premul", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_alphaover()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_ALPHAOVER, "Alpha Over", NODE_CLASS_OP_COLOR, 0);
   ntype.declare = blender::nodes::cmp_node_alphaover_declare;
+  ntype.draw_buttons = node_composit_buts_alphaover;
   node_type_init(&ntype, node_alphaover_init);
   node_type_storage(
       &ntype, "NodeTwoFloats", node_free_standard_storage, node_copy_standard_storage);

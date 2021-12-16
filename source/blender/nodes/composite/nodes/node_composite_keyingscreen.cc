@@ -26,6 +26,11 @@
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
 
+#include "RNA_access.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** Keying Screen  ******************** */
@@ -46,12 +51,40 @@ static void node_composit_init_keyingscreen(bNodeTree *UNUSED(ntree), bNode *nod
   node->storage = data;
 }
 
+static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  bNode *node = (bNode *)ptr->data;
+
+  uiTemplateID(layout,
+               C,
+               ptr,
+               "clip",
+               nullptr,
+               nullptr,
+               nullptr,
+               UI_TEMPLATE_ID_FILTER_ALL,
+               false,
+               nullptr);
+
+  if (node->id) {
+    MovieClip *clip = (MovieClip *)node->id;
+    uiLayout *col;
+    PointerRNA tracking_ptr;
+
+    RNA_pointer_create(&clip->id, &RNA_MovieTracking, &clip->tracking, &tracking_ptr);
+
+    col = uiLayoutColumn(layout, true);
+    uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
+  }
+}
+
 void register_node_type_cmp_keyingscreen()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_KEYINGSCREEN, "Keying Screen", NODE_CLASS_MATTE, 0);
   ntype.declare = blender::nodes::cmp_node_keyingscreen_declare;
+  ntype.draw_buttons = node_composit_buts_keyingscreen;
   node_type_init(&ntype, node_composit_init_keyingscreen);
   node_type_storage(
       &ntype, "NodeKeyingScreenData", node_free_standard_storage, node_copy_standard_storage);
