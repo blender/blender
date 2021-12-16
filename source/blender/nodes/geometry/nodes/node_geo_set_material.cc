@@ -21,6 +21,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_volume_types.h"
 
 #include "BKE_material.h"
@@ -30,7 +31,8 @@ namespace blender::nodes::node_geo_set_material_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"))
-      .supported_type({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_VOLUME});
+      .supported_type(
+          {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_VOLUME, GEO_COMPONENT_TYPE_POINT_CLOUD});
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
   b.add_input<decl::Material>(N_("Material")).hide_label();
   b.add_output<decl::Geometry>(N_("Geometry"));
@@ -66,7 +68,10 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
+  /* Only add the warnings once, even if there are many unique instances. */
+  bool point_selection_warning = false;
   bool volume_selection_warning = false;
+
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (geometry_set.has<MeshComponent>()) {
       MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
@@ -91,13 +96,26 @@ static void node_geo_exec(GeoNodeExecParams params)
 
       BKE_id_material_eval_assign(&volume.id, 1, material);
     }
+    if (geometry_set.has_pointcloud()) {
+      PointCloud &pointcloud = *geometry_set.get_pointcloud_for_write();
+
+      if (selection_field.node().depends_on_input()) {
+        point_selection_warning = true;
+      }
+
+      BKE_id_material_eval_assign(&pointcloud.id, 1, material);
+    }
   });
 
   if (volume_selection_warning) {
-    /* Only add the warning once, even if there are many unique volume instances. */
     params.error_message_add(
         NodeWarningType::Info,
         TIP_("Volumes only support a single material; selection input can not be a field"));
+  }
+  if (point_selection_warning) {
+    params.error_message_add(
+        NodeWarningType::Info,
+        TIP_("Point clouds only support a single material; selection input can not be a field"));
   }
 
   params.set_output("Geometry", std::move(geometry_set));
