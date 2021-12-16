@@ -3007,6 +3007,13 @@ bool UI_context_copy_to_selected_list(struct bContext *C,
                                       struct ListBase *r_lb,
                                       bool *r_use_path_from_id,
                                       char **r_path);
+bool UI_context_copy_to_selected_check(struct PointerRNA *ptr,
+                                       struct PointerRNA *ptr_link,
+                                       struct PropertyRNA *prop,
+                                       const char *path,
+                                       bool use_path_from_id,
+                                       struct PointerRNA *r_ptr,
+                                       struct PropertyRNA **r_prop);
 
 /* Helpers for Operators */
 uiBut *UI_context_active_but_get(const struct bContext *C);

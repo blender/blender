@@ -26,7 +26,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
-#include "DNA_object_types.h" /* for OB_DATA_SUPPORT_ID */
+#include "DNA_modifier_types.h" /* for handling geometry nodes properties */
+#include "DNA_object_types.h"   /* for OB_DATA_SUPPORT_ID */
 #include "DNA_screen_types.h"
 #include "DNA_text_types.h"
 
@@ -985,6 +986,61 @@ bool UI_context_copy_to_selected_list(bContext *C,
   return true;
 }
 
+bool UI_context_copy_to_selected_check(PointerRNA *ptr,
+                                       PointerRNA *ptr_link,
+                                       PropertyRNA *prop,
+                                       const char *path,
+                                       bool use_path_from_id,
+                                       PointerRNA *r_ptr,
+                                       PropertyRNA **r_prop)
+{
+  PointerRNA idptr;
+  PropertyRNA *lprop;
+  PointerRNA lptr;
+
+  if (ptr_link->data == ptr->data) {
+    return false;
+  }
+
+  if (use_path_from_id) {
+    /* Path relative to ID. */
+    lprop = NULL;
+    RNA_id_pointer_create(ptr_link->owner_id, &idptr);
+    RNA_path_resolve_property(&idptr, path, &lptr, &lprop);
+  }
+  else if (path) {
+    /* Path relative to elements from list. */
+    lprop = NULL;
+    RNA_path_resolve_property(ptr_link, path, &lptr, &lprop);
+  }
+  else {
+    lptr = *ptr_link;
+    lprop = prop;
+  }
+
+  if (lptr.data == ptr->data) {
+    /* temp_ptr might not be the same as ptr_link! */
+    return false;
+  }
+
+  if ((lprop != prop)) {
+    return false;
+  }
+
+  if (!RNA_property_editable(&lptr, lprop)) {
+    return false;
+  }
+
+  if (r_ptr) {
+    *r_ptr = lptr;
+  }
+  if (r_prop) {
+    *r_prop = lprop;
+  }
+
+  return true;
+}
+
 /**
  * Called from both exec & poll.
  *
@@ -995,7 +1051,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
 static bool copy_to_selected_button(bContext *C, bool all, bool poll)
 {
   Main *bmain = CTX_data_main(C);
-  PointerRNA ptr, lptr, idptr;
+  PointerRNA ptr, lptr;
   PropertyRNA *prop, *lprop;
   bool success = false;
   int index;
@@ -1025,32 +1081,8 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
       continue;
     }
 
-    if (use_path_from_id) {
-      /* Path relative to ID. */
-      lprop = NULL;
-      RNA_id_pointer_create(link->ptr.owner_id, &idptr);
-      RNA_path_resolve_property(&idptr, path, &lptr, &lprop);
-    }
-    else if (path) {
-      /* Path relative to elements from list. */
-      lprop = NULL;
-      RNA_path_resolve_property(&link->ptr, path, &lptr, &lprop);
-    }
-    else {
-      lptr = link->ptr;
-      lprop = prop;
-    }
-
-    if (lptr.data == ptr.data) {
-      /* lptr might not be the same as link->ptr! */
-      continue;
-    }
-
-    if (lprop != prop) {
-      continue;
-    }
-
-    if (!RNA_property_editable(&lptr, lprop)) {
+    if (!UI_context_copy_to_selected_check(
+            &ptr, &link->ptr, prop, path, use_path_from_id, &lptr, &lprop)) {
       continue;
     }
 
