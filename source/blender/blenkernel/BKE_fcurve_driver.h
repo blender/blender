@@ -100,7 +100,8 @@ void driver_free_variable_ex(struct ChannelDriver *driver, struct DriverVar *dva
  */
 void driver_change_variable_type(struct DriverVar *dvar, int type);
 /**
- * Validate driver name (after being renamed).
+ * Validate driver variable name (after being renamed).
+ *
  */
 void driver_variable_name_validate(struct DriverVar *dvar);
 /**
