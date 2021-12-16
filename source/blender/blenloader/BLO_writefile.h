@@ -60,11 +60,6 @@ struct BlendFileWriteParams {
   uint use_save_versions : 1;
   /** On write, restore paths after editing them (see #BLO_WRITE_PATH_REMAP_RELATIVE). */
   uint use_save_as_copy : 1;
-  /**
-   * Saving from the UI writes into the #Main.filepath, so a check for the `filepath`
-   * not having been set is needed.
-   */
-  uint use_save_first_time : 1;
   uint use_userdef : 1;
   const struct BlendThumbnail *thumb;
 };

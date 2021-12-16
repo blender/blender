@@ -1318,6 +1318,8 @@ bool BLO_write_file(Main *mainvar,
                     const struct BlendFileWriteParams *params,
                     ReportList *reports)
 {
+  BLI_assert(!BLI_path_is_rel(filepath));
+
   char tempname[FILE_MAX + 1];
   WriteWrap ww;
 
@@ -1326,8 +1328,7 @@ bool BLO_write_file(Main *mainvar,
   const bool use_save_as_copy = params->use_save_as_copy;
   const bool use_userdef = params->use_userdef;
   const BlendThumbnail *thumb = params->thumb;
-  const bool relbase_valid = (mainvar->filepath[0] != '\0') &&
-                             (params->use_save_first_time == false);
+  const bool relbase_valid = (mainvar->filepath[0] != '\0');
 
   /* path backup/restore */
   void *path_list_backup = NULL;
@@ -1351,6 +1352,13 @@ bool BLO_write_file(Main *mainvar,
     return 0;
   }
 
+  if (remap_mode == BLO_WRITE_PATH_REMAP_ABSOLUTE) {
+    /* Paths will already be absolute, no remapping to do. */
+    if (relbase_valid == false) {
+      remap_mode = BLO_WRITE_PATH_REMAP_NONE;
+    }
+  }
+
   /* Remapping of relative paths to new file location. */
   if (remap_mode != BLO_WRITE_PATH_REMAP_NONE) {
 
@@ -1361,14 +1369,20 @@ bool BLO_write_file(Main *mainvar,
       }
     }
 
+    /* The source path only makes sense to set if the file was saved (`relbase_valid`). */
     char dir_src[FILE_MAX];
     char dir_dst[FILE_MAX];
-    BLI_split_dir_part(mainvar->filepath, dir_src, sizeof(dir_src));
-    BLI_split_dir_part(filepath, dir_dst, sizeof(dir_dst));
 
-    /* Just in case there is some subtle difference. */
-    BLI_path_normalize(mainvar->filepath, dir_dst);
-    BLI_path_normalize(mainvar->filepath, dir_src);
+    /* Normalize the paths in case there is some subtle difference (so they can be compared). */
+    if (relbase_valid) {
+      BLI_split_dir_part(mainvar->filepath, dir_src, sizeof(dir_src));
+      BLI_path_normalize(NULL, dir_src);
+    }
+    else {
+      dir_src[0] = '\0';
+    }
+    BLI_split_dir_part(filepath, dir_dst, sizeof(dir_dst));
+    BLI_path_normalize(NULL, dir_dst);
 
     /* Only for relative, not relative-all, as this means making existing paths relative. */
     if (remap_mode == BLO_WRITE_PATH_REMAP_RELATIVE) {
@@ -1394,6 +1408,7 @@ bool BLO_write_file(Main *mainvar,
       switch (remap_mode) {
         case BLO_WRITE_PATH_REMAP_RELATIVE:
           /* Saved, make relative paths relative to new location (if possible). */
+          BLI_assert(relbase_valid);
           BKE_bpath_relative_rebase(mainvar, dir_src, dir_dst, NULL);
           break;
         case BLO_WRITE_PATH_REMAP_RELATIVE_ALL:
@@ -1402,6 +1417,7 @@ bool BLO_write_file(Main *mainvar,
           break;
         case BLO_WRITE_PATH_REMAP_ABSOLUTE:
           /* Make all absolute (when requested or unsaved). */
+          BLI_assert(relbase_valid);
           BKE_bpath_absolute_convert(mainvar, dir_src, NULL);
           break;
         case BLO_WRITE_PATH_REMAP_NONE:

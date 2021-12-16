@@ -1813,24 +1813,16 @@ static bool wm_file_write(bContext *C,
 
   ED_editors_flush_edits(bmain);
 
-  /* First time saving. */
-  /* XXX(ton): temp solution to solve bug, real fix coming. */
-  const bool relbase_valid = (bmain->filepath[0] != '\0');
-  if ((relbase_valid == false) && (use_save_as_copy == false)) {
-    STRNCPY(bmain->filepath, filepath);
-  }
-
   /* XXX(ton): temp solution to solve bug, real fix coming. */
   bmain->recovered = 0;
 
-  if (BLO_write_file(CTX_data_main(C),
+  if (BLO_write_file(bmain,
                      filepath,
                      fileflags,
                      &(const struct BlendFileWriteParams){
                          .remap_mode = remap_mode,
                          .use_save_versions = true,
                          .use_save_as_copy = use_save_as_copy,
-                         .use_save_first_time = !relbase_valid,
                          .thumb = thumb,
                      },
                      reports)) {
