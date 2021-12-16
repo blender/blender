@@ -118,7 +118,7 @@ set(SRC
   intern/context.c
   intern/crazyspace.c
   intern/cryptomatte.cc
-  intern/curve.c
+  intern/curve.cc
   intern/curve_bevel.c
   intern/curve_convert.c
   intern/curve_decimate.c
