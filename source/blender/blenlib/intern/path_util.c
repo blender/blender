@@ -1008,7 +1008,7 @@ bool BLI_path_is_abs_from_cwd(const char *path)
   const int path_len_clamp = BLI_strnlen(path, 3);
 
 #ifdef WIN32
-  if ((ppath_len_clamp >= 3 && BLI_path_is_abs(path)) || BLI_path_is_unc(path)) {
+  if ((path_len_clamp >= 3 && BLI_path_is_abs(path)) || BLI_path_is_unc(path)) {
     is_abs = true;
   }
 #else
