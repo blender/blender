@@ -460,6 +460,25 @@ typedef struct LibOverrideGroupTagData {
   MemArena *mem_arena;
 } LibOverrideGroupTagData;
 
+static void lib_override_group_tag_data_object_to_collection_init_collection_process(
+    LibOverrideGroupTagData *data, Collection *collection)
+{
+  LISTBASE_FOREACH (CollectionObject *, collection_object, &collection->gobject) {
+    Object *ob = collection_object->ob;
+    if (!ID_IS_LINKED(ob)) {
+      continue;
+    }
+
+    LinkNodePair **collections_linkedlist_p;
+    if (!BLI_ghash_ensure_p(
+            data->linked_object_to_instantiating_collections, ob, &collections_linkedlist_p)) {
+      *collections_linkedlist_p = BLI_memarena_calloc(data->mem_arena,
+                                                      sizeof(**collections_linkedlist_p));
+    }
+    BLI_linklist_append_arena(*collections_linkedlist_p, collection, data->mem_arena);
+  }
+}
+
 /* Initialize complex data, `data` is expected to be already initialized with basic pointers and
  * other simple data.
  *
@@ -471,21 +490,12 @@ static void lib_override_group_tag_data_object_to_collection_init(LibOverrideGro
 
   data->linked_object_to_instantiating_collections = BLI_ghash_new(
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
-  LISTBASE_FOREACH (Object *, ob, &data->bmain->objects) {
-    if (!ID_IS_LINKED(ob)) {
-      continue;
-    }
-
-    LinkNodePair collections_linkedlist = {NULL};
-    Collection *instantiating_collection = NULL;
-    while ((instantiating_collection = BKE_collection_object_find(
-                data->bmain, data->scene, instantiating_collection, ob)) != NULL) {
-      BLI_linklist_append_arena(
-          &collections_linkedlist, instantiating_collection, data->mem_arena);
-    }
-
-    BLI_ghash_insert(
-        data->linked_object_to_instantiating_collections, ob, collections_linkedlist.list);
+  if (data->scene != NULL) {
+    lib_override_group_tag_data_object_to_collection_init_collection_process(
+        data, data->scene->master_collection);
+  }
+  LISTBASE_FOREACH (Collection *, collection, &data->bmain->collections) {
+    lib_override_group_tag_data_object_to_collection_init_collection_process(data, collection);
   }
 }
 
@@ -651,23 +661,27 @@ static void lib_override_linked_group_tag(LibOverrideGroupTagData *data)
         Collection *instantiating_collection_override_candidate = NULL;
         /* Loop over all collections instantiating the object, if we already have a 'locale' one we
          * have nothing to do, otherwise try to find a 'linked' one that we can override too. */
-        LinkNode *instantiating_collection_linknode = BLI_ghash_lookup(
+        LinkNodePair *instantiating_collection_linklist = BLI_ghash_lookup(
             data->linked_object_to_instantiating_collections, ob);
-        for (; instantiating_collection_linknode != NULL;
-             instantiating_collection_linknode = instantiating_collection_linknode->next) {
-          instantiating_collection = instantiating_collection_linknode->link;
-          /* In (recursive) resync case, if a collection of a 'parent' lib instantiates the linked
-           * object, it is also fine. */
-          if (!ID_IS_LINKED(instantiating_collection) ||
-              (is_resync && ID_IS_LINKED(id_root) &&
-               instantiating_collection->id.lib->temp_index < id_root->lib->temp_index)) {
-            break;
+        if (instantiating_collection_linklist != NULL) {
+          for (LinkNode *instantiating_collection_linknode =
+                   instantiating_collection_linklist->list;
+               instantiating_collection_linknode != NULL;
+               instantiating_collection_linknode = instantiating_collection_linknode->next) {
+            instantiating_collection = instantiating_collection_linknode->link;
+            /* In (recursive) resync case, if a collection of a 'parent' lib instantiates the
+             * linked object, it is also fine. */
+            if (!ID_IS_LINKED(instantiating_collection) ||
+                (is_resync && ID_IS_LINKED(id_root) &&
+                 instantiating_collection->id.lib->temp_index < id_root->lib->temp_index)) {
+              break;
+            }
+            if (ID_IS_LINKED(instantiating_collection) &&
+                (!is_resync || instantiating_collection->id.lib == id_root->lib)) {
+              instantiating_collection_override_candidate = instantiating_collection;
+            }
+            instantiating_collection = NULL;
           }
-          if (ID_IS_LINKED(instantiating_collection) &&
-              (!is_resync || instantiating_collection->id.lib == id_root->lib)) {
-            instantiating_collection_override_candidate = instantiating_collection;
-          }
-          instantiating_collection = NULL;
         }
 
         if (instantiating_collection == NULL &&
