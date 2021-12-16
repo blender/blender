@@ -1322,10 +1322,11 @@ static int ptcache_frame_from_filename(const char *filename, const char *ext)
 
 static int ptcache_path(PTCacheID *pid, char *filename)
 {
+  const char *blendfile_path = BKE_main_blendfile_path_from_global();
   Library *lib = (pid->owner_id) ? pid->owner_id->lib : NULL;
   const char *blendfilename = (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH) == 0) ?
                                   lib->filepath_abs :
-                                  BKE_main_blendfile_path_from_global();
+                                  blendfile_path;
   size_t i;
 
   if (pid->cache->flag & PTCACHE_EXTERNAL) {
@@ -1337,7 +1338,7 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 
     return BLI_path_slash_ensure(filename); /* new strlen() */
   }
-  if (G.relbase_valid || lib) {
+  if ((blendfile_path[0] != '\0') || lib) {
     char file[MAX_PTCACHE_PATH]; /* we don't want the dir, only the file */
 
     BLI_split_file_part(blendfilename, file, sizeof(file));
@@ -1422,8 +1423,11 @@ static int ptcache_filename(PTCacheID *pid, char *filename, int cfra, short do_p
   filename[0] = '\0';
   newname = filename;
 
-  if (!G.relbase_valid && (pid->cache->flag & PTCACHE_EXTERNAL) == 0) {
-    return 0; /* save blend file before using disk pointcache */
+  if ((pid->cache->flag & PTCACHE_EXTERNAL) == 0) {
+    const char *blendfile_path = BKE_main_blendfile_path_from_global();
+    if (blendfile_path[0] == '\0') {
+      return 0; /* save blend file before using disk pointcache */
+    }
   }
 
   /* start with temp dir */
@@ -1469,8 +1473,11 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
     return NULL;
   }
 #endif
-  if (!G.relbase_valid && (pid->cache->flag & PTCACHE_EXTERNAL) == 0) {
-    return NULL; /* save blend file before using disk pointcache */
+  if ((pid->cache->flag & PTCACHE_EXTERNAL) == 0) {
+    const char *blendfile_path = BKE_main_blendfile_path_from_global();
+    if (blendfile_path[0] == '\0') {
+      return NULL; /* save blend file before using disk pointcache */
+    }
   }
 
   ptcache_filename(pid, filename, cfra, 1, 1);
@@ -3444,8 +3451,9 @@ void BKE_ptcache_toggle_disk_cache(PTCacheID *pid)
 {
   PointCache *cache = pid->cache;
   int last_exact = cache->last_exact;
+  const char *blendfile_path = BKE_main_blendfile_path_from_global();
 
-  if (!G.relbase_valid) {
+  if (blendfile_path[0] == '\0') {
     cache->flag &= ~PTCACHE_DISK_CACHE;
     if (G.debug & G_DEBUG) {
       printf("File must be saved before using disk cache!\n");

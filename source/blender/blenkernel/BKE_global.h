@@ -50,9 +50,6 @@ typedef struct Global {
   /** Last used location for library link/append. */
   char lib[1024];
 
-  /** When set: `G_MAIN->filepath` contains valid relative base path. */
-  bool relbase_valid;
-
   /**
    * Strings of recently opened files to show in the file menu.
    * A list of #RecentFile read from #BLENDER_HISTORY_FILE.

@@ -1326,6 +1326,8 @@ bool BLO_write_file(Main *mainvar,
   const bool use_save_as_copy = params->use_save_as_copy;
   const bool use_userdef = params->use_userdef;
   const BlendThumbnail *thumb = params->thumb;
+  const bool relbase_valid = (mainvar->filepath[0] != '\0') &&
+                             (params->use_save_first_time == false);
 
   /* path backup/restore */
   void *path_list_backup = NULL;
@@ -1353,9 +1355,8 @@ bool BLO_write_file(Main *mainvar,
   if (remap_mode != BLO_WRITE_PATH_REMAP_NONE) {
 
     if (remap_mode == BLO_WRITE_PATH_REMAP_RELATIVE) {
-      /* Make all relative as none of the existing paths can be relative in an unsaved document.
-       */
-      if (G.relbase_valid == false) {
+      /* Make all relative as none of the existing paths can be relative in an unsaved document. */
+      if (relbase_valid == false) {
         remap_mode = BLO_WRITE_PATH_REMAP_RELATIVE_ALL;
       }
     }
@@ -1371,13 +1372,13 @@ bool BLO_write_file(Main *mainvar,
 
     /* Only for relative, not relative-all, as this means making existing paths relative. */
     if (remap_mode == BLO_WRITE_PATH_REMAP_RELATIVE) {
-      if (G.relbase_valid && (BLI_path_cmp(dir_dst, dir_src) == 0)) {
+      if (relbase_valid && (BLI_path_cmp(dir_dst, dir_src) == 0)) {
         /* Saved to same path. Nothing to do. */
         remap_mode = BLO_WRITE_PATH_REMAP_NONE;
       }
     }
     else if (remap_mode == BLO_WRITE_PATH_REMAP_ABSOLUTE) {
-      if (G.relbase_valid == false) {
+      if (relbase_valid == false) {
         /* Unsaved, all paths are absolute.Even if the user manages to set a relative path,
          * there is no base-path that can be used to make it absolute. */
         remap_mode = BLO_WRITE_PATH_REMAP_NONE;

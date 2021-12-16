@@ -58,6 +58,7 @@
 #include "BKE_gpencil_modifier.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
@@ -553,7 +554,8 @@ int main(int argc,
   }
   else {
     /* When no file is loaded, show the splash screen. */
-    if (!G.relbase_valid) {
+    const char *blendfile_path = BKE_main_blendfile_path_from_global();
+    if (blendfile_path[0] == '\0') {
       WM_init_splash(C);
     }
     WM_main(C);

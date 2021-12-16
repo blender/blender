@@ -116,6 +116,7 @@ enum {
 
 typedef struct Main {
   struct Main *next, *prev;
+  /** The file-path of this blend file, an empty string indicates an unsaved file. */
   char filepath[1024];               /* 1024 = FILE_MAX */
   short versionfile, subversionfile; /* see BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION */
   short minversionfile, minsubversionfile;

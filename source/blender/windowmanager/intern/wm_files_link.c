@@ -113,12 +113,13 @@ static bool wm_link_append_poll(bContext *C)
 static int wm_link_append_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+    const char *blendfile_path = BKE_main_blendfile_path_from_global();
     if (G.lib[0] != '\0') {
       RNA_string_set(op->ptr, "filepath", G.lib);
     }
-    else if (G.relbase_valid) {
+    else if (blendfile_path[0] != '\0') {
       char path[FILE_MAX];
-      BLI_strncpy(path, BKE_main_blendfile_path_from_global(), sizeof(path));
+      STRNCPY(path, blendfile_path);
       BLI_path_parent_dir(path);
       RNA_string_set(op->ptr, "filepath", path);
     }
