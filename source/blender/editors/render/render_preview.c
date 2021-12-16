@@ -1795,7 +1795,7 @@ void ED_preview_shader_job(const bContext *C,
   wmJob *wm_job;
   ShaderPreview *sp;
   Scene *scene = CTX_data_scene(C);
-  short id_type = GS(id->name);
+  const ID_Type id_type = GS(id->name);
 
   BLI_assert(BKE_previewimg_id_supports_jobs(id));
 
@@ -1834,7 +1834,7 @@ void ED_preview_shader_job(const bContext *C,
    * once with custom preview .blend path for external engines */
 
   /* grease pencil use its own preview file */
-  if (GS(id->name) == ID_MA) {
+  if (id_type == ID_MA) {
     ma = (Material *)id;
   }
 
