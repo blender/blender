@@ -63,7 +63,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       });
   b.add_output<decl::Geometry>(N_("Curves"));
   b.add_output<decl::String>(N_("Remainder")).make_available([](bNode &node) {
-    node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW;
+    node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE;
   });
 }
 

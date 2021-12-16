@@ -159,15 +159,12 @@ class SocketSearchOp {
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
+  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   if (params.in_out() == SOCK_OUT) {
-    if (params.other_socket().type == SOCK_GEOMETRY) {
-      params.add_item(IFACE_("Curve"), [](LinkSearchOpParams &params) {
-        bNode &node = params.add_node("GeometryNodeCurvePrimitiveQuadrilateral");
-        params.connect_available_socket(node, "Curve");
-      });
-    }
+    search_link_ops_for_declarations(params, declaration.outputs());
   }
-  else {
+  else if (params.node_tree().typeinfo->validate_link(
+               static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_FLOAT)) {
     params.add_item(IFACE_("Width"),
                     SocketSearchOp{"Width", GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE});
     params.add_item(IFACE_("Height"),

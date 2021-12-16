@@ -42,10 +42,13 @@ static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
 static void sh_node_vector_math_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   /* For now, do something very basic (only exposing "Add", and a single "Vector" socket). */
-  params.add_item(IFACE_("Vector"), [](LinkSearchOpParams &params) {
-    bNode &node = params.add_node("ShaderNodeVectorMath");
-    params.update_and_connect_available_socket(node, "Vector");
-  });
+  if (params.node_tree().typeinfo->validate_link(
+          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_VECTOR)) {
+    params.add_item(IFACE_("Vector"), [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("ShaderNodeVectorMath");
+      params.update_and_connect_available_socket(node, "Vector");
+    });
+  }
 }
 
 }  // namespace blender::nodes

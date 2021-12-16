@@ -48,10 +48,13 @@ static void sh_node_math_declare(NodeDeclarationBuilder &b)
 static void sh_node_math_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   /* For now, do something very basic (only exposing "Add", and a single "Value" socket). */
-  params.add_item(IFACE_("Value"), [](LinkSearchOpParams &params) {
-    bNode &node = params.add_node("ShaderNodeMath");
-    params.update_and_connect_available_socket(node, "Value");
-  });
+  if (params.node_tree().typeinfo->validate_link(
+          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_FLOAT)) {
+    params.add_item(IFACE_("Value"), [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("ShaderNodeMath");
+      params.update_and_connect_available_socket(node, "Value");
+    });
+  }
 }
 
 }  // namespace blender::nodes

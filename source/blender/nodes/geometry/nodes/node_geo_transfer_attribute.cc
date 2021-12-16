@@ -136,19 +136,13 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  if (params.other_socket().type == SOCK_GEOMETRY) {
-    params.add_item(IFACE_("Target"), [](LinkSearchOpParams &params) {
-      bNode &node = params.add_node("GeometryNodeAttributeTransfer");
-      params.connect_available_socket(node, "Target");
-    });
-  }
-
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   search_link_ops_for_declarations(params, declaration.inputs().take_back(2));
+  search_link_ops_for_declarations(params, declaration.inputs().take_front(1));
 
   const std::optional<CustomDataType> type = node_data_type_to_custom_data_type(
       (eNodeSocketDatatype)params.other_socket().type);
-  if (type) {
+  if (type && *type != CD_PROP_STRING) {
     /* The input and output sockets have the same name. */
     params.add_item(IFACE_("Attribute"), [type](LinkSearchOpParams &params) {
       bNode &node = params.add_node("GeometryNodeAttributeTransfer");

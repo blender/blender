@@ -90,26 +90,28 @@ static void node_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, end_len, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
 }
 
+class SocketSearchOp {
+ public:
+  StringRef socket_name;
+  GeometryNodeCurveSampleMode mode;
+  void operator()(LinkSearchOpParams &params)
+  {
+    bNode &node = params.add_node("GeometryNodeTrimCurve");
+    node_storage(node).mode = mode;
+    params.update_and_connect_available_socket(node, socket_name);
+  }
+};
+
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  class SocketSearchOp {
-   public:
-    StringRef socket_name;
-    GeometryNodeCurveSampleMode mode;
-    void operator()(LinkSearchOpParams &params)
-    {
-      bNode &node = params.add_node("GeometryNodeTrimCurve");
-      node_storage(node).mode = mode;
-      params.update_and_connect_available_socket(node, socket_name);
-    }
-  };
+  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
 
-  if (params.in_out() == SOCK_OUT) {
-    params.add_item(IFACE_("Curve"), SocketSearchOp{"Curve", GEO_NODE_CURVE_SAMPLE_FACTOR});
-  }
-  else {
-    params.add_item(IFACE_("Curve"), SocketSearchOp{"Curve", GEO_NODE_CURVE_SAMPLE_FACTOR});
-    if (params.other_socket().type == SOCK_FLOAT) {
+  search_link_ops_for_declarations(params, declaration.outputs());
+  search_link_ops_for_declarations(params, declaration.inputs().take_front(1));
+
+  if (params.in_out() == SOCK_IN) {
+    if (params.node_tree().typeinfo->validate_link(
+            static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_FLOAT)) {
       params.add_item(IFACE_("Start (Factor)"),
                       SocketSearchOp{"Start", GEO_NODE_CURVE_SAMPLE_FACTOR});
       params.add_item(IFACE_("End (Factor)"), SocketSearchOp{"End", GEO_NODE_CURVE_SAMPLE_FACTOR});
