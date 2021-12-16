@@ -73,37 +73,29 @@ static void node_geo_exec(GeoNodeExecParams params)
   bool volume_selection_warning = false;
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (geometry_set.has<MeshComponent>()) {
+    if (geometry_set.has_mesh()) {
       MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-      Mesh *mesh = mesh_component.get_for_write();
-      if (mesh != nullptr) {
-        GeometryComponentFieldContext field_context{mesh_component, ATTR_DOMAIN_FACE};
+      Mesh &mesh = *mesh_component.get_for_write();
+      GeometryComponentFieldContext field_context{mesh_component, ATTR_DOMAIN_FACE};
 
-        fn::FieldEvaluator selection_evaluator{field_context, mesh->totpoly};
-        selection_evaluator.add(selection_field);
-        selection_evaluator.evaluate();
-        const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
+      fn::FieldEvaluator selection_evaluator{field_context, mesh.totpoly};
+      selection_evaluator.add(selection_field);
+      selection_evaluator.evaluate();
+      const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
 
-        assign_material_to_faces(*mesh, selection, material);
-      }
+      assign_material_to_faces(mesh, selection, material);
     }
-    if (geometry_set.has_volume()) {
-      Volume &volume = *geometry_set.get_volume_for_write();
-
+    if (Volume *volume = geometry_set.get_volume_for_write()) {
+      BKE_id_material_eval_assign(&volume->id, 1, material);
       if (selection_field.node().depends_on_input()) {
         volume_selection_warning = true;
       }
-
-      BKE_id_material_eval_assign(&volume.id, 1, material);
     }
-    if (geometry_set.has_pointcloud()) {
-      PointCloud &pointcloud = *geometry_set.get_pointcloud_for_write();
-
+    if (PointCloud *pointcloud = geometry_set.get_pointcloud_for_write()) {
+      BKE_id_material_eval_assign(&pointcloud->id, 1, material);
       if (selection_field.node().depends_on_input()) {
         point_selection_warning = true;
       }
-
-      BKE_id_material_eval_assign(&pointcloud.id, 1, material);
     }
   });
 
