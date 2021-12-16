@@ -374,6 +374,9 @@ static int ed_undo_step_by_index(bContext *C, const int undo_index, ReportList *
 
   wmWindowManager *wm = CTX_wm_manager(C);
   const int active_step_index = BLI_findindex(&wm->undo_stack->steps, wm->undo_stack->step_active);
+  if (undo_index == active_step_index) {
+    return OPERATOR_CANCELLED;
+  }
   const enum eUndoStepDir undo_dir = (undo_index < active_step_index) ? STEP_UNDO : STEP_REDO;
 
   CLOG_INFO(&LOG,
@@ -494,17 +497,28 @@ UndoStack *ED_undo_stack_get(void)
 /** \name Undo, Undo Push & Redo Operators
  * \{ */
 
+/**
+ * Refresh to run after user activated undo/redo actions.
+ */
+static void ed_undo_refresh_for_op(bContext *C)
+{
+  /* The "last operator" should disappear, later we can tie this with undo stack nicer. */
+  WM_operator_stack_clear(CTX_wm_manager(C));
+
+  /* Keep button under the cursor active. */
+  WM_event_add_mousemove(CTX_wm_window(C));
+
+  ED_outliner_select_sync_from_all_tag(C);
+}
+
 static int ed_undo_exec(bContext *C, wmOperator *op)
 {
   /* "last operator" should disappear, later we can tie this with undo stack nicer */
   WM_operator_stack_clear(CTX_wm_manager(C));
   int ret = ed_undo_step_direction(C, STEP_UNDO, op->reports);
   if (ret & OPERATOR_FINISHED) {
-    /* Keep button under the cursor active. */
-    WM_event_add_mousemove(CTX_wm_window(C));
+    ed_undo_refresh_for_op(C);
   }
-
-  ED_outliner_select_sync_from_all_tag(C);
   return ret;
 }
 
@@ -529,11 +543,8 @@ static int ed_redo_exec(bContext *C, wmOperator *op)
 {
   int ret = ed_undo_step_direction(C, STEP_REDO, op->reports);
   if (ret & OPERATOR_FINISHED) {
-    /* Keep button under the cursor active. */
-    WM_event_add_mousemove(CTX_wm_window(C));
+    ed_undo_refresh_for_op(C);
   }
-
-  ED_outliner_select_sync_from_all_tag(C);
   return ret;
 }
 
@@ -823,10 +834,13 @@ static int undo_history_exec(bContext *C, wmOperator *op)
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "item");
   if (RNA_property_is_set(op->ptr, prop)) {
     int item = RNA_property_int_get(op->ptr, prop);
-    WM_operator_stack_clear(CTX_wm_manager(C));
-    ed_undo_step_by_index(C, item, op->reports);
-    WM_event_add_notifier(C, NC_WINDOW, NULL);
-    return OPERATOR_FINISHED;
+    const int ret = ed_undo_step_by_index(C, item, op->reports);
+    if (ret & OPERATOR_FINISHED) {
+      ed_undo_refresh_for_op(C);
+
+      WM_event_add_notifier(C, NC_WINDOW, NULL);
+      return OPERATOR_FINISHED;
+    }
   }
   return OPERATOR_CANCELLED;
 }
