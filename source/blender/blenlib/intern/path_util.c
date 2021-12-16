@@ -144,8 +144,6 @@ void BLI_path_sequence_encode(
 
 static int BLI_path_unc_prefix_len(const char *path); /* defined below in same file */
 
-/* ******************** string encoding ***************** */
-
 void BLI_path_normalize(const char *relabase, char *path)
 {
   ptrdiff_t a;

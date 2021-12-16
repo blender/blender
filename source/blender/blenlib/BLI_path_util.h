@@ -207,6 +207,10 @@ bool BLI_path_extension_replace(char *path, size_t maxlen, const char *ext) ATTR
  * Strip's trailing '.'s and adds the extension only when needed
  */
 bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
+/**
+ * Ensure `filepath` has a file component, adding `filename` when it's empty or ends with a slash.
+ * \return true if the `filename` was appended to `filepath`.
+ */
 bool BLI_path_filename_ensure(char *filepath, size_t maxlen, const char *filename) ATTR_NONNULL();
 /**
  * Looks for a sequence of decimal digits in string, preceding any filename extension,
@@ -318,7 +322,13 @@ bool BLI_path_frame_range(char *path, int sta, int end, int digits) ATTR_NONNULL
  * Get the frame from a filename formatted by blender's frame scheme
  */
 bool BLI_path_frame_get(char *path, int *r_frame, int *numdigits) ATTR_NONNULL();
-void BLI_path_frame_strip(char *path, char *ext) ATTR_NONNULL();
+/**
+ * Given a `path` with digits representing frame numbers, replace the digits with the '#'
+ * character and extract the extension.
+ * So:      `/some/path_123.jpeg`
+ * Becomes: `/some/path_###` with `r_ext` set to `.jpeg`.
+ */
+void BLI_path_frame_strip(char *path, char *r_ext) ATTR_NONNULL();
 /**
  * Check if we have '#' chars, usable for #BLI_path_frame, #BLI_path_frame_range
  */
