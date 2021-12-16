@@ -1059,7 +1059,12 @@ static void rna_porperty_override_collection_subitem_lookup(
     *r_ptr_item_storage = private_ptr_item_storage;
   }
 
-  if ((*r_ptr_item_dst)->type == NULL) {
+  /* Note that there is no reason to report in case no item is expected, i.e. in case subitem name
+   * and index are invalid. This can often happen when inserting new items (constraint,
+   * modifier...) in a collection that supports it. */
+  if ((*r_ptr_item_dst)->type == NULL &&
+      ((opop->subitem_reference_name != NULL && opop->subitem_reference_name[0] != '\0') ||
+       opop->subitem_reference_index != -1)) {
     CLOG_INFO(&LOG,
               2,
               "Failed to find destination sub-item '%s' (%d) of '%s' in new override data '%s'",
@@ -1068,7 +1073,9 @@ static void rna_porperty_override_collection_subitem_lookup(
               op->rna_path,
               ptr_dst->owner_id->name);
   }
-  if ((*r_ptr_item_src)->type == NULL) {
+  if ((*r_ptr_item_src)->type == NULL &&
+      ((opop->subitem_local_name != NULL && opop->subitem_local_name[0] != '\0') ||
+       opop->subitem_local_index != -1)) {
     CLOG_INFO(&LOG,
               2,
               "Failed to find source sub-item '%s' (%d) of '%s' in old override data '%s'",
