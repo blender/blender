@@ -1319,6 +1319,7 @@ bool BLO_write_file(Main *mainvar,
                     ReportList *reports)
 {
   BLI_assert(!BLI_path_is_rel(filepath));
+  BLI_assert(BLI_path_is_abs_from_cwd(filepath));
 
   char tempname[FILE_MAX + 1];
   WriteWrap ww;

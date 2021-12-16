@@ -324,8 +324,14 @@ void BLI_path_frame_strip(char *path, char *ext) ATTR_NONNULL();
  */
 bool BLI_path_frame_check_chars(const char *path) ATTR_NONNULL();
 /**
+ * Checks for a relative path (ignoring Blender's "//") prefix
+ * (unlike `!BLI_path_is_rel(path)`).
+ * When false, #BLI_path_abs_from_cwd would expand the absolute path.
+ */
+bool BLI_path_is_abs_from_cwd(const char *path) ATTR_NONNULL();
+/**
  * Checks for relative path, expanding them relative to the current working directory.
- * Returns true if the expansion was performed.
+ * \returns true if the expansion was performed.
  *
  * \note Should only be called with command line paths.
  * This is _not_ something Blender's internal paths support, instead they use the "//" prefix.

@@ -3067,12 +3067,32 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
                                              BLO_WRITE_PATH_REMAP_NONE;
   save_set_compress(op);
 
-  if (RNA_struct_property_is_set(op->ptr, "filepath")) {
+  const bool is_filepath_set = RNA_struct_property_is_set(op->ptr, "filepath");
+  if (is_filepath_set) {
     RNA_string_get(op->ptr, "filepath", path);
   }
   else {
-    BLI_strncpy(path, BKE_main_blendfile_path(bmain), FILE_MAX);
-    wm_filepath_default(bmain, path);
+    STRNCPY(path, BKE_main_blendfile_path(bmain));
+  }
+
+  if (path[0] == '\0') {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Unable to save an unsaved file with an empty or unset \"filepath\" property");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* NOTE(@campbellbarton): only check this for file-path properties so saving an already
+   * saved file never fails with an error.
+   * Even though this should never happen, there may be some corner case where a malformed
+   * path is stored in `G.main->filepath`: when the file path is initialized from recovering
+   * a blend file - for example, so in this case failing to save isn't ideal. */
+  if (is_filepath_set && !BLI_path_is_abs_from_cwd(path)) {
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "The \"filepath\" property was not an absolute path: \"%s\"",
+                path);
+    return OPERATOR_CANCELLED;
   }
 
   const int fileflags_orig = G.fileflags;
