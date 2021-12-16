@@ -84,8 +84,8 @@ void RNA_api_texture(StructRNA *srna)
       NULL,
       -FLT_MAX,
       FLT_MAX,
-      "The result of the texture where (x,y,z,w) are (red, green, blue, intensity). For greyscale "
-      "textures, often intensity only will be used",
+      "The result of the texture where (x,y,z,w) are (red, green, blue, intensity). "
+      "For grayscale textures, often intensity only will be used",
       NULL,
       -1e4,
       1e4);

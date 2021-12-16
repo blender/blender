@@ -921,11 +921,11 @@ typedef enum eIMBTransformMode {
  * The given matrix should transform between dst pixel space to src pixel space.
  * One unit is one pixel.
  * \param src_crop cropping region how to crop the source buffer. Should only be passed when mode
- * is set to IMB_TRANSFORM_MODE_CROP_SRC. For any other mode this should be empty.
+ * is set to #IMB_TRANSFORM_MODE_CROP_SRC. For any other mode this should be empty.
  *
  * During transformation no data/color conversion will happens.
  * When transforming between float images the number of channels of the source buffer may be
- * between 1 and 4. When source buffer has one channel the data will be read as a grey scale value.
+ * between 1 and 4. When source buffer has one channel the data will be read as a gray scale value.
  */
 void IMB_transform(const struct ImBuf *src,
                    struct ImBuf *dst,

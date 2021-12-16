@@ -5773,7 +5773,7 @@ static void do_gravity(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, fl
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Sculpt Prush Utilities
+/** \name Sculpt Brush Utilities
  * \{ */
 
 void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
@@ -5980,8 +5980,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     }
   }
 
-  /* Initialize automasking cache. For anchored brushes with spherical falloff, we start off with
-   * zero radius, thus we have no pbvh nodes on the first brush step. */
+  /* Initialize auto-masking cache. For anchored brushes with spherical falloff,
+   * we start off with zero radius, thus we have no PBVH nodes on the first brush step. */
   if (totnode ||
       ((brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) && (brush->flag & BRUSH_ANCHORED))) {
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {

@@ -122,7 +122,7 @@ void search_link_ops_for_declarations(GatherLinkSearchOpParams &params,
     /* Give non-main sockets a lower weight so that they don't show up at the top of the search
      * when they are not explicitly searched for. The -1 is used to make sure that the first socket
      * has a smaller weight than zero so that it does not have the same weight as the main socket.
-     * Negative weights are used to avoid making the heighest weight dependent on the number of
+     * Negative weights are used to avoid making the highest weight dependent on the number of
      * sockets. */
     const int weight = (&socket == main_socket) ? 0 : -1 - i;
     params.add_item(
