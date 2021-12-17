@@ -89,8 +89,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryCurvePrimitiveQuad *data = (NodeGeometryCurvePrimitiveQuad *)MEM_callocN(
-      sizeof(NodeGeometryCurvePrimitiveQuad), __func__);
+  NodeGeometryCurvePrimitiveQuad *data = MEM_cnew<NodeGeometryCurvePrimitiveQuad>(__func__);
   data->mode = GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE;
   node->storage = data;
 }

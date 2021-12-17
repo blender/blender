@@ -88,8 +88,7 @@ static void node_layout(uiLayout *layout, struct bContext *C, PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeGeometryStringToCurves *data = (NodeGeometryStringToCurves *)MEM_callocN(
-      sizeof(NodeGeometryStringToCurves), __func__);
+  NodeGeometryStringToCurves *data = MEM_cnew<NodeGeometryStringToCurves>(__func__);
 
   data->overflow = GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW;
   data->align_x = GEO_NODE_STRING_TO_CURVES_ALIGN_X_LEFT;

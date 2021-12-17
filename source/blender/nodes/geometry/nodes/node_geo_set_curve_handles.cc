@@ -41,8 +41,8 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometrySetCurveHandlePositions *data = (NodeGeometrySetCurveHandlePositions *)MEM_callocN(
-      sizeof(NodeGeometrySetCurveHandlePositions), __func__);
+  NodeGeometrySetCurveHandlePositions *data = MEM_cnew<NodeGeometrySetCurveHandlePositions>(
+      __func__);
 
   data->mode = GEO_NODE_CURVE_HANDLE_LEFT;
   node->storage = data;

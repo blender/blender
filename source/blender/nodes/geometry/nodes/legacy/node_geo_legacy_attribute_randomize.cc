@@ -81,8 +81,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeAttributeRandomize *data = (NodeAttributeRandomize *)MEM_callocN(
-      sizeof(NodeAttributeRandomize), __func__);
+  NodeAttributeRandomize *data = MEM_cnew<NodeAttributeRandomize>(__func__);
   data->data_type = CD_PROP_FLOAT;
   data->domain = ATTR_DOMAIN_POINT;
   data->operation = GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE;

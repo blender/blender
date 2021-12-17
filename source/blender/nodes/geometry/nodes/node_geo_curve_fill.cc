@@ -48,8 +48,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeGeometryCurveFill *data = (NodeGeometryCurveFill *)MEM_callocN(sizeof(NodeGeometryCurveFill),
-                                                                     __func__);
+  NodeGeometryCurveFill *data = MEM_cnew<NodeGeometryCurveFill>(__func__);
 
   data->mode = GEO_NODE_CURVE_FILL_MODE_TRIANGULATED;
   node->storage = data;

@@ -94,7 +94,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeSwitch *data = (NodeSwitch *)MEM_callocN(sizeof(NodeSwitch), __func__);
+  NodeSwitch *data = MEM_cnew<NodeSwitch>(__func__);
   data->input_type = SOCK_GEOMETRY;
   node->storage = data;
 }

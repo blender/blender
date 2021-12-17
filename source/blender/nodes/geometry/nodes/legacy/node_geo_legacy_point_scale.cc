@@ -43,8 +43,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryPointScale *data = (NodeGeometryPointScale *)MEM_callocN(
-      sizeof(NodeGeometryPointScale), __func__);
+  NodeGeometryPointScale *data = MEM_cnew<NodeGeometryPointScale>(__func__);
 
   data->input_type = GEO_NODE_ATTRIBUTE_INPUT_VECTOR;
   node->storage = data;

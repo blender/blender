@@ -40,8 +40,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeAttributeColorRamp *node_storage = (NodeAttributeColorRamp *)MEM_callocN(
-      sizeof(NodeAttributeColorRamp), __func__);
+  NodeAttributeColorRamp *node_storage = MEM_cnew<NodeAttributeColorRamp>(__func__);
   BKE_colorband_init(&node_storage->color_ramp, true);
   node->storage = node_storage;
 }

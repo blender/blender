@@ -53,8 +53,8 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeGeometryAlignRotationToVector *node_storage = (NodeGeometryAlignRotationToVector *)
-      MEM_callocN(sizeof(NodeGeometryAlignRotationToVector), __func__);
+  NodeGeometryAlignRotationToVector *node_storage = MEM_cnew<NodeGeometryAlignRotationToVector>(
+      __func__);
 
   node_storage->axis = GEO_NODE_ALIGN_ROTATION_TO_VECTOR_AXIS_X;
   node_storage->input_type_factor = GEO_NODE_ATTRIBUTE_INPUT_FLOAT;

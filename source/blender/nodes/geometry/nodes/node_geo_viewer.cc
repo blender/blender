@@ -42,8 +42,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryViewer *data = (NodeGeometryViewer *)MEM_callocN(sizeof(NodeGeometryViewer),
-                                                               __func__);
+  NodeGeometryViewer *data = MEM_cnew<NodeGeometryViewer>(__func__);
   data->data_type = CD_PROP_FLOAT;
 
   node->storage = data;

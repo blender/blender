@@ -69,8 +69,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeGeometryVolumeToMesh *data = (NodeGeometryVolumeToMesh *)MEM_callocN(
-      sizeof(NodeGeometryVolumeToMesh), __func__);
+  NodeGeometryVolumeToMesh *data = MEM_cnew<NodeGeometryVolumeToMesh>(__func__);
   data->resolution_mode = VOLUME_TO_MESH_RESOLUTION_MODE_GRID;
   node->storage = data;
 }

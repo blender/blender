@@ -112,8 +112,7 @@ static float3 vector_rotate_around_axis(const float3 vector,
 
 static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeAttributeVectorRotate *node_storage = (NodeAttributeVectorRotate *)MEM_callocN(
-      sizeof(NodeAttributeVectorRotate), __func__);
+  NodeAttributeVectorRotate *node_storage = MEM_cnew<NodeAttributeVectorRotate>(__func__);
 
   node_storage->mode = GEO_NODE_VECTOR_ROTATE_TYPE_AXIS;
   node_storage->input_type_vector = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;

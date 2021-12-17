@@ -54,8 +54,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryAttributeCapture *data = (NodeGeometryAttributeCapture *)MEM_callocN(
-      sizeof(NodeGeometryAttributeCapture), __func__);
+  NodeGeometryAttributeCapture *data = MEM_cnew<NodeGeometryAttributeCapture>(__func__);
   data->data_type = CD_PROP_FLOAT;
   data->domain = ATTR_DOMAIN_POINT;
 

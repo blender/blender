@@ -39,8 +39,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeAttributeConvert *data = (NodeAttributeConvert *)MEM_callocN(sizeof(NodeAttributeConvert),
-                                                                   __func__);
+  NodeAttributeConvert *data = MEM_cnew<NodeAttributeConvert>(__func__);
 
   data->data_type = CD_AUTO_FROM_NAME;
   data->domain = ATTR_DOMAIN_AUTO;

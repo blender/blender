@@ -61,8 +61,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeAttributeMix *data = (NodeAttributeMix *)MEM_callocN(sizeof(NodeAttributeMix),
-                                                           "attribute mix node");
+  NodeAttributeMix *data = MEM_cnew<NodeAttributeMix>("attribute mix node");
   data->blend_type = MA_RAMP_BLEND;
   data->input_type_factor = GEO_NODE_ATTRIBUTE_INPUT_FLOAT;
   data->input_type_a = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;

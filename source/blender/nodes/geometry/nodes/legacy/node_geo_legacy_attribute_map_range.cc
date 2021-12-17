@@ -51,8 +51,7 @@ static void fn_attribute_map_range_layout(uiLayout *layout, bContext *UNUSED(C),
 
 static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeAttributeMapRange *data = (NodeAttributeMapRange *)MEM_callocN(sizeof(NodeAttributeMapRange),
-                                                                     __func__);
+  NodeAttributeMapRange *data = MEM_cnew<NodeAttributeMapRange>(__func__);
   data->data_type = CD_PROP_FLOAT;
   data->interpolation_type = NODE_MAP_RANGE_LINEAR;
 

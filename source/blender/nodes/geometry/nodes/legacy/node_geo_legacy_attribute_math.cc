@@ -121,7 +121,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeAttributeMath *data = (NodeAttributeMath *)MEM_callocN(sizeof(NodeAttributeMath), __func__);
+  NodeAttributeMath *data = MEM_cnew<NodeAttributeMath>(__func__);
 
   data->operation = NODE_MATH_ADD;
   data->input_type_a = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;

@@ -50,8 +50,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryAttributeTransfer *data = (NodeGeometryAttributeTransfer *)MEM_callocN(
-      sizeof(NodeGeometryAttributeTransfer), __func__);
+  NodeGeometryAttributeTransfer *data = MEM_cnew<NodeGeometryAttributeTransfer>(__func__);
   data->domain = ATTR_DOMAIN_AUTO;
   node->storage = data;
 }

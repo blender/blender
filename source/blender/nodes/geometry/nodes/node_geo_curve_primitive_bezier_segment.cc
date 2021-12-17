@@ -62,8 +62,8 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryCurvePrimitiveBezierSegment *data = (NodeGeometryCurvePrimitiveBezierSegment *)
-      MEM_callocN(sizeof(NodeGeometryCurvePrimitiveBezierSegment), __func__);
+  NodeGeometryCurvePrimitiveBezierSegment *data =
+      MEM_cnew<NodeGeometryCurvePrimitiveBezierSegment>(__func__);
 
   data->mode = GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_POSITION;
   node->storage = data;

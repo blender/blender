@@ -75,8 +75,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryRaycast *data = (NodeGeometryRaycast *)MEM_callocN(sizeof(NodeGeometryRaycast),
-                                                                 __func__);
+  NodeGeometryRaycast *data = MEM_cnew<NodeGeometryRaycast>(__func__);
   data->mapping = GEO_NODE_RAYCAST_INTERPOLATED;
   data->data_type = CD_PROP_FLOAT;
   node->storage = data;
