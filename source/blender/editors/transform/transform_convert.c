@@ -914,6 +914,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     case TC_SEQ_DATA:
       special_aftertrans_update__sequencer(C, t);
       break;
+    case TC_SEQ_IMAGE_DATA:
+      special_aftertrans_update__sequencer_image(C, t);
+      break;
     case TC_TRACKING_DATA:
       special_aftertrans_update__movieclip(C, t);
       break;
@@ -930,7 +933,6 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     case TC_OBJECT_TEXSPACE:
     case TC_PAINT_CURVE_VERTS:
     case TC_PARTICLE_VERTS:
-    case TC_SEQ_IMAGE_DATA:
     case TC_NONE:
     default:
       break;

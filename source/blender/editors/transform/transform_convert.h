@@ -304,6 +304,7 @@ void special_aftertrans_update__sequencer(bContext *C, TransInfo *t);
 /* transform_convert_sequencer_image.c */
 void createTransSeqImageData(TransInfo *t);
 void recalcData_sequencer_image(TransInfo *t);
+void special_aftertrans_update__sequencer_image(bContext *C, TransInfo *t);
 
 /* transform_convert_tracking.c */
 void createTransTrackingData(bContext *C, TransInfo *t);
