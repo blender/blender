@@ -2083,9 +2083,9 @@ compile_OIIO() {
     cmake_d="$cmake_d -D OPENEXR_VERSION=$OPENEXR_VERSION"
 
     if [ "$_with_built_openexr" = true ]; then
-      cmake_d="$cmake_d -D ILMBASE_HOME=$INST/openexr"
-      cmake_d="$cmake_d -D OPENEXR_HOME=$INST/openexr"
-      INFO "ILMBASE_HOME=$INST/openexr"
+      cmake_d="$cmake_d -D ILMBASE_ROOT=$INST/openexr"
+      cmake_d="$cmake_d -D OPENEXR_ROOT=$INST/openexr"
+      INFO "Ilmbase_ROOT=$INST/openexr"
     fi
 
     # ptex is only needed when nicholas bishop is ready
@@ -2374,9 +2374,9 @@ compile_OSL() {
     #~ cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
 
     if [ "$_with_built_openexr" = true ]; then
-      INFO "ILMBASE_HOME=$INST/openexr"
-      cmake_d="$cmake_d -D OPENEXR_ROOT_DIR=$INST/openexr"
-      cmake_d="$cmake_d -D ILMBASE_ROOT_DIR=$INST/openexr"
+      cmake_d="$cmake_d -D ILMBASE_ROOT=$INST/openexr"
+      cmake_d="$cmake_d -D OPENEXR_ROOT=$INST/openexr"
+      INFO "Ilmbase_ROOT=$INST/openexr"
       # XXX Temp workaround... sigh, ILMBase really messed the things up by defining their custom names ON by default :(
     fi
 
