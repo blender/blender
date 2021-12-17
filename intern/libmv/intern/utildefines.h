@@ -27,9 +27,21 @@
 
 #ifdef WITH_LIBMV_GUARDED_ALLOC
 #  include "MEM_guardedalloc.h"
-#  define LIBMV_OBJECT_NEW OBJECT_GUARDED_NEW
-#  define LIBMV_OBJECT_DELETE OBJECT_GUARDED_DELETE
-#  define LIBMV_OBJECT_DELETE OBJECT_GUARDED_DELETE
+#  if defined __GNUC__
+#    define LIBMV_OBJECT_NEW(type, args...)                                    \
+      new (MEM_mallocN(sizeof(type), __func__)) type(args)
+#  else
+#    define LIBMV_OBJECT_NEW(type, ...)                                        \
+      new (MEM_mallocN(sizeof(type), __FUNCTION__)) type(__VA_ARGS__)
+#  endif
+#  define LIBMV_OBJECT_DELETE(what, type)                                      \
+    {                                                                          \
+      if (what) {                                                              \
+        ((type*)what)->~type();                                                \
+        MEM_freeN(what);                                                       \
+      }                                                                        \
+    }                                                                          \
+    (void)0
 #  define LIBMV_STRUCT_NEW(type, count)                                        \
     (type*)MEM_mallocN(sizeof(type) * count, __func__)
 #  define LIBMV_STRUCT_DELETE(what) MEM_freeN(what)

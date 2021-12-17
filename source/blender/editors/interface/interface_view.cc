@@ -60,7 +60,7 @@ AbstractTreeView *UI_block_add_view(uiBlock &block,
                                     StringRef idname,
                                     std::unique_ptr<AbstractTreeView> tree_view)
 {
-  ViewLink *view_link = OBJECT_GUARDED_NEW(ViewLink);
+  ViewLink *view_link = MEM_new<ViewLink>(__func__);
   BLI_addtail(&block.views, view_link);
 
   view_link->view = std::move(tree_view);
@@ -72,7 +72,7 @@ AbstractTreeView *UI_block_add_view(uiBlock &block,
 void ui_block_free_views(uiBlock *block)
 {
   LISTBASE_FOREACH_MUTABLE (ViewLink *, link, &block->views) {
-    OBJECT_GUARDED_DELETE(link, ViewLink);
+    MEM_delete(link);
   }
 }
 

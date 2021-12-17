@@ -742,16 +742,15 @@ static void update_index(const char *filename, FileIndexerEntries *entries, void
 
 static void *init_user_data(const char *root_directory, size_t root_directory_maxlen)
 {
-  AssetLibraryIndex *library_index = OBJECT_GUARDED_NEW(
-      AssetLibraryIndex,
-      StringRef(root_directory, BLI_strnlen(root_directory, root_directory_maxlen)));
+  AssetLibraryIndex *library_index = MEM_new<AssetLibraryIndex>(
+      __func__, StringRef(root_directory, BLI_strnlen(root_directory, root_directory_maxlen)));
   library_index->init_unused_index_files();
   return library_index;
 }
 
 static void free_user_data(void *user_data)
 {
-  OBJECT_GUARDED_DELETE(user_data, AssetLibraryIndex);
+  MEM_delete((AssetLibraryIndex *)user_data);
 }
 
 static void filelist_finished(void *user_data)

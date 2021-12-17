@@ -537,7 +537,7 @@ static void volume_copy_data(Main *UNUSED(bmain),
 #ifdef WITH_OPENVDB
   if (volume_src->runtime.grids) {
     const VolumeGridVector &grids_src = *(volume_src->runtime.grids);
-    volume_dst->runtime.grids = OBJECT_GUARDED_NEW(VolumeGridVector, grids_src);
+    volume_dst->runtime.grids = MEM_new<VolumeGridVector>(__func__, grids_src);
   }
 #endif
 
@@ -551,7 +551,8 @@ static void volume_free_data(ID *id)
   BKE_volume_batch_cache_free(volume);
   MEM_SAFE_FREE(volume->mat);
 #ifdef WITH_OPENVDB
-  OBJECT_GUARDED_SAFE_DELETE(volume->runtime.grids, VolumeGridVector);
+  MEM_delete(volume->runtime.grids);
+  volume->runtime.grids = nullptr;
 #endif
 }
 
@@ -683,7 +684,7 @@ void BKE_volume_init_grids(Volume *volume)
 {
 #ifdef WITH_OPENVDB
   if (volume->runtime.grids == nullptr) {
-    volume->runtime.grids = OBJECT_GUARDED_NEW(VolumeGridVector);
+    volume->runtime.grids = MEM_new<VolumeGridVector>(__func__);
   }
 #else
   UNUSED_VARS(volume);
@@ -1129,16 +1130,16 @@ void BKE_volume_grids_backup_restore(Volume *volume, VolumeGridVector *grids, co
 
   if (!grids->is_loaded()) {
     /* No grids loaded in CoW datablock, nothing lost by discarding. */
-    OBJECT_GUARDED_DELETE(grids, VolumeGridVector);
+    MEM_delete(grids);
   }
   else if (!STREQ(volume->filepath, filepath)) {
     /* Filepath changed, discard grids from CoW datablock. */
-    OBJECT_GUARDED_DELETE(grids, VolumeGridVector);
+    MEM_delete(grids);
   }
   else {
     /* Keep grids from CoW datablock. We might still unload them a little
      * later in BKE_volume_eval_geometry if the frame changes. */
-    OBJECT_GUARDED_DELETE(volume->runtime.grids, VolumeGridVector);
+    MEM_delete(volume->runtime.grids);
     volume->runtime.grids = grids;
   }
 #else

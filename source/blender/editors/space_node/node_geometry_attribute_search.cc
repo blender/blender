@@ -125,8 +125,8 @@ void node_geometry_add_attribute_search_button(const bContext &UNUSED(C),
                                  0.0f,
                                  "");
 
-  AttributeSearchData *data = OBJECT_GUARDED_NEW(
-      AttributeSearchData, {&node_tree, &node, (bNodeSocket *)socket_ptr.data});
+  AttributeSearchData *data = MEM_new<AttributeSearchData>(
+      __func__, AttributeSearchData{&node_tree, &node, (bNodeSocket *)socket_ptr.data});
 
   UI_but_func_search_set_results_are_suggestions(but, true);
   UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);

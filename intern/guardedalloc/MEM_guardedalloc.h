@@ -259,6 +259,49 @@ void MEM_use_guarded_allocator(void);
 #endif /* __cplusplus */
 
 #ifdef __cplusplus
+
+#  include <type_traits>
+#  include <utility>
+
+/**
+ * Allocate new memory for and constructs an object of type #T.
+ * #MEM_delete should be used to delete the object. Just calling #MEM_freeN is not enough when #T
+ * is not a trivial type.
+ */
+template<typename T, typename... Args>
+inline T *MEM_new(const char *allocation_name, Args &&...args)
+{
+  void *buffer = MEM_mallocN(sizeof(T), allocation_name);
+  return new (buffer) T(std::forward<Args>(args)...);
+}
+
+/**
+ * Allocates zero-initialized memory for an object of type #T. The constructor of #T is not called,
+ * therefor this should only used with trivial types (like all C types).
+ * It's valid to call #MEM_freeN on a pointer returned by this, because a destructor call is not
+ * necessary, because the type is trivial.
+ */
+template<typename T> inline T *MEM_cnew(const char *allocation_name)
+{
+  static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new should be used.");
+  return static_cast<T *>(MEM_callocN(sizeof(T), allocation_name));
+}
+
+/**
+ * Destructs and deallocates an object previously allocated with any `MEM_*` function.
+ * Passing in null does nothing.
+ */
+template<typename T> inline void MEM_delete(const T *ptr)
+{
+  if (ptr == nullptr) {
+    /* Support #ptr being null, because C++ `delete` supports that as well. */
+    return;
+  }
+  /* C++ allows destruction of const objects, so the pointer is allowed to be const. */
+  ptr->~T();
+  MEM_freeN(const_cast<T *>(ptr));
+}
+
 /* Allocation functions (for C++ only). */
 #  define MEM_CXX_CLASS_ALLOC_FUNCS(_id) \
    public: \
@@ -292,36 +335,6 @@ void MEM_use_guarded_allocator(void);
     { \
     }
 
-/* Needed when type includes a namespace, then the namespace should not be
- * specified after ~, so using a macro fails. */
-template<class T> inline void OBJECT_GUARDED_DESTRUCTOR(T *what)
-{
-  what->~T();
-}
-
-#  if defined __GNUC__
-#    define OBJECT_GUARDED_NEW(type, args...) new (MEM_mallocN(sizeof(type), __func__)) type(args)
-#  else
-#    define OBJECT_GUARDED_NEW(type, ...) \
-      new (MEM_mallocN(sizeof(type), __FUNCTION__)) type(__VA_ARGS__)
-#  endif
-#  define OBJECT_GUARDED_DELETE(what, type) \
-    { \
-      if (what) { \
-        OBJECT_GUARDED_DESTRUCTOR((type *)what); \
-        MEM_freeN(what); \
-      } \
-    } \
-    (void)0
-#  define OBJECT_GUARDED_SAFE_DELETE(what, type) \
-    { \
-      if (what) { \
-        OBJECT_GUARDED_DESTRUCTOR((type *)what); \
-        MEM_freeN(what); \
-        what = NULL; \
-      } \
-    } \
-    (void)0
 #endif /* __cplusplus */
 
 #endif /* __MEM_GUARDEDALLOC_H__ */

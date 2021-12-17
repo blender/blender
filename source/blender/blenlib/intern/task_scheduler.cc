@@ -50,8 +50,8 @@ void BLI_task_scheduler_init()
   if (num_threads_override > 0) {
     /* Override number of threads. This settings is used within the lifetime
      * of tbb::global_control, so we allocate it on the heap. */
-    task_scheduler_global_control = OBJECT_GUARDED_NEW(
-        tbb::global_control, tbb::global_control::max_allowed_parallelism, num_threads_override);
+    task_scheduler_global_control = MEM_new<tbb::global_control>(
+        __func__, tbb::global_control::max_allowed_parallelism, num_threads_override);
     task_scheduler_num_threads = num_threads_override;
   }
   else {
@@ -69,7 +69,7 @@ void BLI_task_scheduler_init()
 void BLI_task_scheduler_exit()
 {
 #ifdef WITH_TBB_GLOBAL_CONTROL
-  OBJECT_GUARDED_DELETE(task_scheduler_global_control, tbb::global_control);
+  MEM_delete(task_scheduler_global_control);
 #endif
 }
 
