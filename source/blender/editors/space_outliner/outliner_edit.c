@@ -654,7 +654,7 @@ static int outliner_id_remap_invoke(bContext *C, wmOperator *op, const wmEvent *
     outliner_id_remap_find_tree_element(C, op, &space_outliner->tree, fmval[1]);
   }
 
-  return WM_operator_props_dialog_popup(C, op, 200);
+  return WM_operator_props_dialog_popup(C, op, 400);
 }
 
 static const EnumPropertyItem *outliner_id_itemf(bContext *C,
