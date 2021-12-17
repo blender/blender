@@ -46,8 +46,11 @@ ccl_device float point_attribute_float(KernelGlobals kg,
   }
 }
 
-ccl_device float2 point_attribute_float2(
-    KernelGlobals kg, const ShaderData *sd, const AttributeDescriptor desc, float2 *dx, float2 *dy)
+ccl_device float2 point_attribute_float2(KernelGlobals kg,
+                                         ccl_private const ShaderData *sd,
+                                         const AttributeDescriptor desc,
+                                         ccl_private float2 *dx,
+                                         ccl_private float2 *dy)
 {
 #  ifdef __RAY_DIFFERENTIALS__
   if (dx)
@@ -64,8 +67,11 @@ ccl_device float2 point_attribute_float2(
   }
 }
 
-ccl_device float3 point_attribute_float3(
-    KernelGlobals kg, const ShaderData *sd, const AttributeDescriptor desc, float3 *dx, float3 *dy)
+ccl_device float3 point_attribute_float3(KernelGlobals kg,
+                                         ccl_private const ShaderData *sd,
+                                         const AttributeDescriptor desc,
+                                         ccl_private float3 *dx,
+                                         ccl_private float3 *dy)
 {
 #  ifdef __RAY_DIFFERENTIALS__
   if (dx)
@@ -82,8 +88,11 @@ ccl_device float3 point_attribute_float3(
   }
 }
 
-ccl_device float4 point_attribute_float4(
-    KernelGlobals kg, const ShaderData *sd, const AttributeDescriptor desc, float4 *dx, float4 *dy)
+ccl_device float4 point_attribute_float4(KernelGlobals kg,
+                                         ccl_private const ShaderData *sd,
+                                         const AttributeDescriptor desc,
+                                         ccl_private float4 *dx,
+                                         ccl_private float4 *dy)
 {
 #  ifdef __RAY_DIFFERENTIALS__
   if (dx)
