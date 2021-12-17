@@ -30,6 +30,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -790,6 +791,32 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
+
+    { /* Ensure driver variable names are unique within the driver. */
+      ID *id;
+      FOREACH_MAIN_ID_BEGIN (bmain, id) {
+        AnimData *adt = BKE_animdata_from_id(id);
+        if (adt == NULL) {
+          continue;
+        }
+        LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
+          ChannelDriver *driver = fcu->driver;
+          /* Ensure the uniqueness front to back. Given a list of identically
+           * named variables, the last one gets to keep its original name. This
+           * matches the evaluation order, and thus shouldn't change the evaluated
+           * value of the driver expression. */
+          LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+            BLI_uniquename(&driver->variables,
+                           dvar,
+                           dvar->name,
+                           '_',
+                           offsetof(DriverVar, name),
+                           sizeof(dvar->name));
+          }
+        }
+      }
+      FOREACH_MAIN_ID_END;
+    }
   }
 }
 
