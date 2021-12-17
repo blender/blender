@@ -305,19 +305,22 @@ class Sampler {
 
   void sample(const ImBuf *source, const float u, const float v, SampleType &r_sample)
   {
-    const float wrapped_u = uv_wrapper.modify_u(source, u);
-    const float wrapped_v = uv_wrapper.modify_v(source, v);
-
     if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, float> &&
                   NumChannels == 4) {
+      const float wrapped_u = uv_wrapper.modify_u(source, u);
+      const float wrapped_v = uv_wrapper.modify_v(source, v);
       bilinear_interpolation_color_fl(source, nullptr, &r_sample[0], wrapped_u, wrapped_v);
     }
     else if constexpr (Filter == IMB_FILTER_NEAREST &&
                        std::is_same_v<StorageType, unsigned char> && NumChannels == 4) {
+      const float wrapped_u = uv_wrapper.modify_u(source, u);
+      const float wrapped_v = uv_wrapper.modify_v(source, v);
       nearest_interpolation_color_char(source, &r_sample[0], nullptr, wrapped_u, wrapped_v);
     }
     else if constexpr (Filter == IMB_FILTER_BILINEAR &&
                        std::is_same_v<StorageType, unsigned char> && NumChannels == 4) {
+      const float wrapped_u = uv_wrapper.modify_u(source, u);
+      const float wrapped_v = uv_wrapper.modify_v(source, v);
       bilinear_interpolation_color_char(source, &r_sample[0], nullptr, wrapped_u, wrapped_v);
     }
     else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, float>) {
@@ -326,6 +329,8 @@ class Sampler {
             source->rect_float, &r_sample[0], source->x, source->y, NumChannels, u, v, true, true);
       }
       else {
+        const float wrapped_u = uv_wrapper.modify_u(source, u);
+        const float wrapped_v = uv_wrapper.modify_v(source, v);
         BLI_bilinear_interpolation_fl(source->rect_float,
                                       &r_sample[0],
                                       source->x,
@@ -336,6 +341,8 @@ class Sampler {
       }
     }
     else if constexpr (Filter == IMB_FILTER_NEAREST && std::is_same_v<StorageType, float>) {
+      const float wrapped_u = uv_wrapper.modify_u(source, u);
+      const float wrapped_v = uv_wrapper.modify_v(source, v);
       sample_nearest_float(source, wrapped_u, wrapped_v, r_sample);
     }
     else {
