@@ -123,7 +123,7 @@ static ID *outliner_ID_drop_find(bContext *C, const wmEvent *event, short idcode
 
 /* Find tree element to drop into, with additional before and after reorder support. */
 static TreeElement *outliner_drop_insert_find(bContext *C,
-                                              const wmEvent *event,
+                                              const int xy[2],
                                               TreeElementInsertType *r_insert_type)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
@@ -136,8 +136,11 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
     return NULL;
   }
 
-  UI_view2d_region_to_view(
-      &region->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
+  int mval[2];
+  mval[0] = xy[0] - region->winrct.xmin;
+  mval[1] = xy[1] - region->winrct.ymin;
+
+  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
   te_hovered = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
 
   if (te_hovered) {
@@ -216,10 +219,10 @@ static bool is_pchan_element(TreeElement *te)
 }
 
 static TreeElement *outliner_drop_insert_collection_find(bContext *C,
-                                                         const wmEvent *event,
+                                                         const int xy[2],
                                                          TreeElementInsertType *r_insert_type)
 {
-  TreeElement *te = outliner_drop_insert_find(C, event, r_insert_type);
+  TreeElement *te = outliner_drop_insert_find(C, xy, r_insert_type);
   if (!te) {
     return NULL;
   }
@@ -707,7 +710,7 @@ static bool datastack_drop_init(bContext *C, const wmEvent *event, StackDropData
     return false;
   }
 
-  TreeElement *te_target = outliner_drop_insert_find(C, event, &drop_data->insert_type);
+  TreeElement *te_target = outliner_drop_insert_find(C, event->xy, &drop_data->insert_type);
   if (!te_target) {
     return false;
   }
@@ -1088,14 +1091,12 @@ static Collection *collection_parent_from_ID(ID *id)
   return NULL;
 }
 
-static bool collection_drop_init(bContext *C,
-                                 wmDrag *drag,
-                                 const wmEvent *event,
-                                 CollectionDrop *data)
+static bool collection_drop_init(
+    bContext *C, wmDrag *drag, const int xy[2], const bool is_link, CollectionDrop *data)
 {
   /* Get collection to drop into. */
   TreeElementInsertType insert_type;
-  TreeElement *te = outliner_drop_insert_collection_find(C, event, &insert_type);
+  TreeElement *te = outliner_drop_insert_collection_find(C, xy, &insert_type);
   if (!te) {
     return false;
   }
@@ -1123,7 +1124,7 @@ static bool collection_drop_init(bContext *C,
   /* Get collection to drag out of. */
   ID *parent = drag_id->from_parent;
   Collection *from_collection = collection_parent_from_ID(parent);
-  if (event->ctrl) {
+  if (is_link) {
     from_collection = NULL;
   }
 
@@ -1164,7 +1165,7 @@ static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
       &space_outliner->tree, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
 
   CollectionDrop data;
-  if (!event->shift && collection_drop_init(C, drag, event, &data)) {
+  if (!event->shift && collection_drop_init(C, drag, event->xy, event->ctrl, &data)) {
     TreeElement *te = data.te;
     TreeStoreElem *tselem = TREESTORE(te);
     if (!data.from || event->ctrl) {
@@ -1201,13 +1202,14 @@ static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
 
 static char *collection_drop_tooltip(bContext *C,
                                      wmDrag *drag,
-                                     const int UNUSED(xy[2]),
+                                     const int xy[2],
                                      wmDropBox *UNUSED(drop))
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
-  const wmEvent *event = wm->winactive ? wm->winactive->eventstate : NULL;
+  wmWindow *win = CTX_wm_window(C);
+  const wmEvent *event = win ? win->eventstate : NULL;
+
   CollectionDrop data;
-  if (event && !event->shift && collection_drop_init(C, drag, event, &data)) {
+  if (event && !event->shift && collection_drop_init(C, drag, xy, event->ctrl, &data)) {
     TreeElement *te = data.te;
     if (!data.from || event->ctrl) {
       return BLI_strdup(TIP_("Link inside Collection"));
@@ -1260,7 +1262,7 @@ static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
   wmDrag *drag = lb->first;
 
   CollectionDrop data;
-  if (!collection_drop_init(C, drag, event, &data)) {
+  if (!collection_drop_init(C, drag, event->xy, event->ctrl, &data)) {
     return OPERATOR_CANCELLED;
   }
 
