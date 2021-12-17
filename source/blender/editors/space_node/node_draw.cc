@@ -365,6 +365,10 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
   PointerRNA nodeptr;
   RNA_pointer_create(&ntree.id, &RNA_Node, &node, &nodeptr);
 
+  const bool node_options = node.typeinfo->draw_buttons && (node.flag & NODE_OPTIONS);
+  const bool inputs_first = node.inputs.first &&
+                            !(node.outputs.first || (node.flag & NODE_PREVIEW) || node_options);
+
   /* Get "global" coordinates. */
   float2 loc = node_to_view(node, float2(0));
   /* Round the node origin because text contents are always pixel-aligned. */
@@ -377,7 +381,7 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
   dy -= NODE_DY;
 
   /* Add a little bit of padding above the top socket. */
-  if (node.outputs.first || node.inputs.first) {
+  if (node.outputs.first || inputs_first) {
     dy -= NODE_DYS / 2;
   }
 
@@ -478,7 +482,7 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
   }
 
   /* Buttons rect? */
-  if (node.typeinfo->draw_buttons && (node.flag & NODE_OPTIONS)) {
+  if (node_options) {
     dy -= NODE_DYS / 2;
 
     uiLayout *layout = UI_block_layout(&block,
