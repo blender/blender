@@ -43,7 +43,7 @@
 #include "DNA_defaults.h"
 #include "DNA_material_types.h"
 
-/* for dereferencing pointers */
+/* For dereferencing pointers. */
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_vfont_types.h"
@@ -1438,7 +1438,7 @@ void BKE_nurb_makeFaces(const Nurb *nu, float *coord_array, int rowstride, int r
   jstart = (int *)MEM_malloc_arrayN(totv, sizeof(float), "makeNurbfaces4");
   jend = (int *)MEM_malloc_arrayN(totv, sizeof(float), "makeNurbfaces5");
 
-  /* precalculation of basisv and jstart, jend */
+  /* Pre-calculation of `basisv` and `jstart`, `jend`. */
   if (nu->flagv & CU_NURB_CYCLIC) {
     cycl = nu->orderv - 1;
   }
@@ -2104,10 +2104,10 @@ static void tilt_bezpart(const BezTriple *prevbezt,
   }
 }
 
-/* make_bevel_list_3D_* funcs, at a minimum these must
- * fill in the bezp->quat and bezp->dir values */
+/* `make_bevel_list_3D_*` functions, at a minimum these must
+ * fill in the #BevPoint.quat and #BevPoint.dir values. */
 
-/* utility for make_bevel_list_3D_* funcs */
+/** Utility for `make_bevel_list_3D_*` functions. */
 static void bevel_list_calc_bisect(BevList *bl)
 {
   BevPoint *bevp2, *bevp1, *bevp0;
@@ -2329,14 +2329,14 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
 
     /* Need to correct for the start/end points not matching
      * do this by calculating the tilt angle difference, then apply
-     * the rotation gradually over the entire curve
+     * the rotation gradually over the entire curve.
      *
-     * note that the split is between last and second last, rather than first/last as youd expect.
+     * Note that the split is between last and second last, rather than first/last as you'd expect.
      *
      * real order is like this
      * 0,1,2,3,4 --> 1,2,3,4,0
      *
-     * this is why we compare last with second last
+     * This is why we compare last with second last.
      */
     float vec_1[3] = {0, 1, 0}, vec_2[3] = {0, 1, 0}, angle, ang_fac, cross_tmp[3];
 
@@ -2614,14 +2614,13 @@ void BKE_curve_bevelList_free(ListBase *bev)
 
 void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_render)
 {
-  /*
-   * - convert all curves to polys, with indication of resol and flags for double-vertices
-   * - possibly; do a smart vertice removal (in case Nurb)
-   * - separate in individual blocks with BoundBox
-   * - AutoHole detection
+  /* - Convert all curves to polys, with indication of resolution and flags for double-vertices.
+   * - Possibly; do a smart vertex removal (in case #Nurb).
+   * - Separate in individual blocks with #BoundBox.
+   * - Auto-hole detection.
    */
 
-  /* this function needs an object, because of tflag and upflag */
+  /* This function needs an object, because of `tflag` and `upflag`. */
   Curve *cu = (Curve *)ob->data;
   BezTriple *bezt, *prevbezt;
   BPoint *bp;
@@ -2637,7 +2636,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
   bool is_editmode = false;
   ListBase *bev;
 
-  /* segbevcount alsp requires seglen. */
+  /* segbevcount also requires seglen. */
   const bool need_seglen = ELEM(
                                cu->bevfac1_mapping, CU_BEVFAC_MAP_SEGMENT, CU_BEVFAC_MAP_SPLINE) ||
                            ELEM(cu->bevfac2_mapping, CU_BEVFAC_MAP_SEGMENT, CU_BEVFAC_MAP_SPLINE);
@@ -2805,10 +2804,10 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
           }
         }
         else {
-          /* always do all three, to prevent data hanging around */
+          /* Always do all three, to prevent data hanging around. */
           int j;
 
-          /* BevPoint must stay aligned to 4 so sizeof(BevPoint)/sizeof(float) works */
+          /* #BevPoint must stay aligned to 4 so `sizeof(BevPoint) / sizeof(float)` works. */
           for (j = 0; j < 3; j++) {
             BKE_curve_forward_diff_bezier(prevbezt->vec[1][j],
                                           prevbezt->vec[2][j],
@@ -2819,7 +2818,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
                                           sizeof(BevPoint));
           }
 
-          /* if both arrays are nullptr do nothiong */
+          /* If both arrays are `nullptr` do nothing. */
           tilt_bezpart(prevbezt,
                        bezt,
                        nu,
@@ -2839,7 +2838,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
                                           sizeof(BevPoint));
           }
 
-          /* seglen */
+          /* `seglen`. */
           if (seglen != nullptr) {
             *seglen = 0;
             *segbevcount = 0;
@@ -2847,7 +2846,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
               bevp0 = bevp;
               bevp++;
               bevp->offset = len_v3v3(bevp0->vec, bevp->vec);
-              /* match seglen and segbevcount to the cleaned up bevel lists (see STEP 2) */
+              /* Match `seglen` and `segbevcount` to the cleaned up bevel lists (see STEP 2). */
               if (bevp->offset > threshold) {
                 *seglen += bevp->offset;
                 *segbevcount += 1;
@@ -2980,7 +2979,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
       continue;
     }
 
-    nr = bl->nr - bl->dupe_nr + 1; /* +1 because vectorbezier sets flag too */
+    nr = bl->nr - bl->dupe_nr + 1; /* +1 because vector-bezier sets flag too. */
     blnew = (BevList *)MEM_mallocN(sizeof(BevList), "makeBevelList4");
     memcpy(blnew, bl, sizeof(BevList));
     blnew->bevpoints = (BevPoint *)MEM_calloc_arrayN(nr, sizeof(BevPoint), "makeBevelPoints4");
@@ -2992,7 +2991,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
     blnew->seglen = bl->seglen;
     blnew->nr = 0;
     BLI_remlink(bev, bl);
-    BLI_insertlinkbefore(bev, bl->next, blnew); /* to make sure bevlist is tuned with nurblist */
+    BLI_insertlinkbefore(bev, bl->next, blnew); /* Ensure `bevlist` is tuned with `nurblist`. */
     bevp0 = bl->bevpoints;
     bevp1 = blnew->bevpoints;
     nr = bl->nr;
@@ -3114,7 +3113,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
         BevPoint *bevp = bl->bevpoints;
         unit_qt(bevp->quat);
       }
-      else if (bl->nr == 2) { /* 2 pnt, treat separate */
+      else if (bl->nr == 2) { /* 2 points, treat separately. */
         make_bevel_list_segment_2D(bl);
       }
       else {
@@ -3129,7 +3128,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
         BevPoint *bevp = bl->bevpoints;
         unit_qt(bevp->quat);
       }
-      else if (bl->nr == 2) { /* 2 pnt, treat separate */
+      else if (bl->nr == 2) { /* 2 points, treat separately. */
         make_bevel_list_segment_3D(bl);
       }
       else {
@@ -3321,13 +3320,13 @@ static void calchandleNurb_intern(BezTriple *bezt,
   }
 
   if (skip_align ||
-      /* when one handle is free, alignming makes no sense, see: T35952 */
+      /* When one handle is free, aligning makes no sense, see: T35952 */
       ELEM(HD_FREE, bezt->h1, bezt->h2) ||
-      /* also when no handles are aligned, skip this step */
+      /* Also when no handles are aligned, skip this step. */
       (!ELEM(HD_ALIGN, bezt->h1, bezt->h2) && !ELEM(HD_ALIGN_DOUBLESIDE, bezt->h1, bezt->h2))) {
-    /* handles need to be updated during animation and applying stuff like hooks,
+    /* Handles need to be updated during animation and applying stuff like hooks,
      * but in such situations it's quite difficult to distinguish in which order
-     * align handles should be aligned so skip them for now */
+     * align handles should be aligned so skip them for now. */
     return;
   }
 
@@ -3996,8 +3995,8 @@ void BKE_nurb_handle_smooth_fcurve(BezTriple *bezt, int total, bool cyclic)
     }
   }
 
-  /* Find continuous subsequences of free auto handles and smooth them, starting at
-   * search_base. In cyclic mode these subsequences can span the cycle boundary. */
+  /* Find continuous sub-sequences of free auto handles and smooth them, starting at search_base.
+   * In cyclic mode these sub-sequences can span the cycle boundary. */
   int start = search_base, count = 1;
 
   for (int i = 1, j = start + 1; i < total; i++, j++) {
@@ -4189,13 +4188,13 @@ void BKE_nurb_handles_autocalc(Nurb *nu, uint8_t flag)
     /* left handle: */
     if (flag == 0 || (bezt1->f1 & flag)) {
       bezt1->h1 = HD_FREE;
-      /* distance too short: vectorhandle */
+      /* Distance too short: vector-handle. */
       if (len_squared_v3v3(bezt1->vec[1], bezt0->vec[1]) < eps_sq) {
         bezt1->h1 = HD_VECT;
         leftsmall = true;
       }
       else {
-        /* aligned handle? */
+        /* Aligned handle? */
         if (dist_squared_to_line_v3(bezt1->vec[1], bezt1->vec[0], bezt1->vec[2]) < eps_sq) {
           align = true;
           bezt1->h1 = HD_ALIGN;
@@ -4209,13 +4208,13 @@ void BKE_nurb_handles_autocalc(Nurb *nu, uint8_t flag)
     /* right handle: */
     if (flag == 0 || (bezt1->f3 & flag)) {
       bezt1->h2 = HD_FREE;
-      /* distance too short: vectorhandle */
+      /* Distance too short: vector-handle. */
       if (len_squared_v3v3(bezt1->vec[1], bezt2->vec[1]) < eps_sq) {
         bezt1->h2 = HD_VECT;
         rightsmall = true;
       }
       else {
-        /* aligned handle? */
+        /* Aligned handle? */
         if (align) {
           bezt1->h2 = HD_ALIGN;
         }
@@ -4860,7 +4859,7 @@ bool BKE_nurb_type_convert(Nurb *nu,
   int a, c, nr;
 
   if (nu->type == CU_POLY) {
-    if (type == CU_BEZIER) { /* To Bezier with vecthandles. */
+    if (type == CU_BEZIER) { /* To Bezier with vector-handles. */
       nr = nu->pntsu;
       bezt = (BezTriple *)MEM_calloc_arrayN(nr, sizeof(BezTriple), "setsplinetype2");
       nu->bezt = bezt;

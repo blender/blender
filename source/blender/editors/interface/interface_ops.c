@@ -1023,8 +1023,8 @@ bool UI_context_copy_to_selected_check(PointerRNA *ptr,
     return false;
   }
 
-  /* Skip non-existing properties on link. This was previously covered with the lprop != prop check
-   * but we are now more permissive when it comes to ID properties, see below. */
+  /* Skip non-existing properties on link. This was previously covered with the `lprop != prop`
+   * check but we are now more permissive when it comes to ID properties, see below. */
   if (lprop == NULL) {
     return false;
   }
@@ -1033,19 +1033,19 @@ bool UI_context_copy_to_selected_check(PointerRNA *ptr,
     return false;
   }
 
-  /* Check property pointers matching
-   * For ID properties, these pointers match
-   * - if the property is API defined on an existing class (and they are equally named)
-   * - never for ID properties on specific ID (even if they are equally named)
-   * - never for NodesModifierSettings properties (even if they are equally named)
+  /* Check property pointers matching.
+   * For ID properties, these pointers match:
+   * - If the property is API defined on an existing class (and they are equally named).
+   * - Never for ID properties on specific ID (even if they are equally named).
+   * - Never for NodesModifierSettings properties (even if they are equally named).
    *
    * Be permissive on ID properties in the following cases:
-   * - NodesModifierSettings properties
-   *  - (special check: only if the nodegroup matches, since the 'Input_n' properties are name
-   *     based and similar on potentionally very different nodegroups)
+   * - #NodesModifierSettings properties
+   *   - (special check: only if the node-group matches, since the 'Input_n' properties are name
+   *      based and similar on potentially very different node-groups).
    * - ID properties on specific ID
-   *  - (no special check, copying seems OK [even if type does not match -- does not do anything
-   *     then])
+   *   - (no special check, copying seems OK [even if type does not match -- does not do anything
+   *      then])
    */
   bool ignore_prop_eq = RNA_property_is_idprop(lprop) && RNA_property_is_idprop(prop);
   if (RNA_struct_is_a(lptr.type, &RNA_NodesModifier) &&

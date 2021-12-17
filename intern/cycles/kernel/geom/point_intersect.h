@@ -43,7 +43,7 @@ ccl_device_forceinline bool point_intersect_test(
   const float t_front = projC0 - td;
   const bool valid_front = (0.0f <= t_front) & (t_front <= tmax);
 
-  /* Always backface culling for now. */
+  /* Always back-face culling for now. */
 #  if 0
   const float t_back = projC0 + td;
   const bool valid_back = (0.0f <= t_back) & (t_back <= tmax);
