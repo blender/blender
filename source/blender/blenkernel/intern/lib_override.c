@@ -470,8 +470,9 @@ static void lib_override_group_tag_data_object_to_collection_init_collection_pro
     }
 
     LinkNodePair **collections_linkedlist_p;
-    if (!BLI_ghash_ensure_p(
-            data->linked_object_to_instantiating_collections, ob, &collections_linkedlist_p)) {
+    if (!BLI_ghash_ensure_p(data->linked_object_to_instantiating_collections,
+                            ob,
+                            (void ***)&collections_linkedlist_p)) {
       *collections_linkedlist_p = BLI_memarena_calloc(data->mem_arena,
                                                       sizeof(**collections_linkedlist_p));
     }
