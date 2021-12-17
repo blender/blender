@@ -74,6 +74,8 @@ void ShaderInterface::sort_inputs()
   sort_input_list(MutableSpan<ShaderInput>(inputs_, attr_len_));
   sort_input_list(MutableSpan<ShaderInput>(inputs_ + attr_len_, ubo_len_));
   sort_input_list(MutableSpan<ShaderInput>(inputs_ + attr_len_ + ubo_len_, uniform_len_));
+  sort_input_list(
+      MutableSpan<ShaderInput>(inputs_ + attr_len_ + ubo_len_ + uniform_len_, ssbo_len_));
 }
 
 void ShaderInterface::debug_print()
