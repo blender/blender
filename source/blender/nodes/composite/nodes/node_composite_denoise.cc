@@ -23,6 +23,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_system.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
