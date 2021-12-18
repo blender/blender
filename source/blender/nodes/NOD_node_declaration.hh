@@ -288,10 +288,13 @@ class NodeDeclarationBuilder {
 
   /**
    * All inputs support fields, and all outputs are fields if any of the inputs is a field.
-   * Calling field status definitions on each socket is unnecessary.
+   * Calling field status definitions on each socket is unnecessary. Must be called before adding
+   * any sockets.
    */
   void is_function_node(bool value = true)
   {
+    BLI_assert_msg(declaration_.inputs().is_empty() && declaration_.outputs().is_empty(),
+                   "is_function_node() must be called before any socket is created");
     declaration_.is_function_node_ = value;
   }
 
@@ -476,6 +479,10 @@ inline typename DeclType::Builder &NodeDeclarationBuilder::add_socket(StringRef 
   socket_decl->name_ = name;
   socket_decl->identifier_ = identifier.is_empty() ? name : identifier;
   socket_decl->in_out_ = in_out;
+  if (declaration_.is_function_node()) {
+    socket_decl->input_field_type_ = InputSocketFieldType::IsSupported;
+    socket_decl->output_field_dependency_ = OutputFieldDependency::ForDependentField();
+  }
   declarations.append(std::move(socket_decl));
   Builder &socket_decl_builder_ref = *socket_decl_builder;
   builders_.append(std::move(socket_decl_builder));
