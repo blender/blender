@@ -1167,7 +1167,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
         const AttributeIDRef &attribute_id = ordered_attributes.ids[attribute_index];
         const void *attribute_fallback = task.attribute_fallbacks.array[attribute_index];
         const std::optional<GSpan> src_span_opt = src_point_attributes.get_for_read(attribute_id);
-        void *dst_buffer = MEM_malloc_arrayN(spline_size, cpp_type.size(), __func__);
+        void *dst_buffer = MEM_malloc_arrayN(spline_size, cpp_type.size(), "Curve Attribute");
         if (src_span_opt.has_value()) {
           const GSpan src_span = *src_span_opt;
           cpp_type.copy_construct_n(src_span.data(), dst_buffer, spline_size);
