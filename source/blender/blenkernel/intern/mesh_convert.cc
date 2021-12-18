@@ -917,7 +917,7 @@ static void curve_to_mesh_eval_ensure(Object &object)
    * will have no modifiers. */
   Object bevel_object = {{nullptr}};
   if (curve.bevobj != nullptr) {
-    bevel_object = *curve.bevobj;
+    memcpy(&bevel_object, curve.bevobj, sizeof(bevel_object));
     BLI_listbase_clear(&bevel_object.modifiers);
     BKE_object_runtime_reset(&bevel_object);
     curve.bevobj = &bevel_object;
@@ -926,7 +926,7 @@ static void curve_to_mesh_eval_ensure(Object &object)
   /* Same thing for taper. */
   Object taper_object = {{nullptr}};
   if (curve.taperobj != nullptr) {
-    taper_object = *curve.taperobj;
+    memcpy(&taper_object, curve.taperobj, sizeof(taper_object));
     BLI_listbase_clear(&taper_object.modifiers);
     BKE_object_runtime_reset(&taper_object);
     curve.taperobj = &taper_object;
@@ -1065,7 +1065,8 @@ static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph,
     return nullptr;
   }
 
-  Object object_for_eval = *object;
+  Object object_for_eval;
+  memcpy(&object_for_eval, object, sizeof(object_for_eval));
   if (object_for_eval.runtime.data_orig != nullptr) {
     object_for_eval.data = object_for_eval.runtime.data_orig;
   }
@@ -1440,7 +1441,8 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
   /* mesh_src might depend on mesh_dst, so we need to do everything with a local copy */
   /* TODO(Sybren): the above claim came from 2.7x derived-mesh code (DM_to_mesh);
    * check whether it is still true with Mesh */
-  Mesh tmp = *mesh_dst;
+  Mesh tmp;
+  memcpy(&tmp, mesh_dst, sizeof(tmp));
   int totvert, totedge /*, totface */ /* UNUSED */, totloop, totpoly;
   bool did_shapekeys = false;
   eCDAllocType alloctype = CD_DUPLICATE;

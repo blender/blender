@@ -231,7 +231,7 @@ class Shader : public SocketDeclaration {
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
-  bool can_connect(const bNodeSocket &socket) const;
+  bool can_connect(const bNodeSocket &socket) const override;
 };
 
 class ShaderBuilder : public SocketDeclarationBuilder<Shader> {

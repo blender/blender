@@ -979,8 +979,8 @@ static void do_mesh_separation(GeometrySet &geometry_set,
   /* Needed in all cases. */
   Vector<int> selected_poly_indices;
   Vector<int> new_loop_starts;
-  int num_selected_polys;
-  int num_selected_loops;
+  int num_selected_polys = 0;
+  int num_selected_loops = 0;
 
   const Mesh &mesh_in = *in_component.get_for_read();
   Mesh *mesh_out;
