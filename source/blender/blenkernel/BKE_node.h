@@ -960,10 +960,7 @@ bNodePreview *BKE_node_preview_verify(
     struct bNodeInstanceHash *previews, bNodeInstanceKey key, int xsize, int ysize, bool create);
 bNodePreview *BKE_node_preview_copy(struct bNodePreview *preview);
 void BKE_node_preview_free(struct bNodePreview *preview);
-void BKE_node_preview_init_tree(struct bNodeTree *ntree,
-                                int xsize,
-                                int ysize,
-                                bool create_previews);
+void BKE_node_preview_init_tree(struct bNodeTree *ntree, int xsize, int ysize);
 void BKE_node_preview_free_tree(struct bNodeTree *ntree);
 void BKE_node_preview_remove_unused(struct bNodeTree *ntree);
 void BKE_node_preview_clear(struct bNodePreview *preview);

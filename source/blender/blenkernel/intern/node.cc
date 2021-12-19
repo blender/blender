@@ -2843,8 +2843,11 @@ bool BKE_node_preview_used(const bNode *node)
   return (node->typeinfo->flag & NODE_PREVIEW) != 0;
 }
 
-bNodePreview *BKE_node_preview_verify(
-    bNodeInstanceHash *previews, bNodeInstanceKey key, int xsize, int ysize, bool create)
+bNodePreview *BKE_node_preview_verify(bNodeInstanceHash *previews,
+                                      bNodeInstanceKey key,
+                                      const int xsize,
+                                      const int ysize,
+                                      const bool create)
 {
   bNodePreview *preview = (bNodePreview *)BKE_node_instance_hash_lookup(previews, key);
   if (!preview) {
@@ -2901,9 +2904,8 @@ void BKE_node_preview_free(bNodePreview *preview)
 static void node_preview_init_tree_recursive(bNodeInstanceHash *previews,
                                              bNodeTree *ntree,
                                              bNodeInstanceKey parent_key,
-                                             int xsize,
-                                             int ysize,
-                                             bool create_previews)
+                                             const int xsize,
+                                             const int ysize)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     bNodeInstanceKey key = BKE_node_instance_key(parent_key, ntree, node);
@@ -2912,17 +2914,16 @@ static void node_preview_init_tree_recursive(bNodeInstanceHash *previews,
       node->preview_xsize = xsize;
       node->preview_ysize = ysize;
 
-      BKE_node_preview_verify(previews, key, xsize, ysize, create_previews);
+      BKE_node_preview_verify(previews, key, xsize, ysize, false);
     }
 
     if (node->type == NODE_GROUP && node->id) {
-      node_preview_init_tree_recursive(
-          previews, (bNodeTree *)node->id, key, xsize, ysize, create_previews);
+      node_preview_init_tree_recursive(previews, (bNodeTree *)node->id, key, xsize, ysize);
     }
   }
 }
 
-void BKE_node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize, bool create_previews)
+void BKE_node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize)
 {
   if (!ntree) {
     return;
@@ -2932,8 +2933,7 @@ void BKE_node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize, bool cre
     ntree->previews = BKE_node_instance_hash_new("node previews");
   }
 
-  node_preview_init_tree_recursive(
-      ntree->previews, ntree, NODE_INSTANCE_KEY_BASE, xsize, ysize, create_previews);
+  node_preview_init_tree_recursive(ntree->previews, ntree, NODE_INSTANCE_KEY_BASE, xsize, ysize);
 }
 
 static void node_preview_tag_used_recursive(bNodeInstanceHash *previews,
