@@ -397,51 +397,6 @@ static Image *imapaint_face_image(Object *ob, Mesh *me, int face_index)
   return ima;
 }
 
-void flip_v3_v3(float out[3], const float in[3], const ePaintSymmetryFlags symm)
-{
-  if (symm & PAINT_SYMM_X) {
-    out[0] = -in[0];
-  }
-  else {
-    out[0] = in[0];
-  }
-  if (symm & PAINT_SYMM_Y) {
-    out[1] = -in[1];
-  }
-  else {
-    out[1] = in[1];
-  }
-  if (symm & PAINT_SYMM_Z) {
-    out[2] = -in[2];
-  }
-  else {
-    out[2] = in[2];
-  }
-}
-
-void flip_qt_qt(float out[4], const float in[4], const ePaintSymmetryFlags symm)
-{
-  float axis[3], angle;
-
-  quat_to_axis_angle(axis, &angle, in);
-  normalize_v3(axis);
-
-  if (symm & PAINT_SYMM_X) {
-    axis[0] *= -1.0f;
-    angle *= -1.0f;
-  }
-  if (symm & PAINT_SYMM_Y) {
-    axis[1] *= -1.0f;
-    angle *= -1.0f;
-  }
-  if (symm & PAINT_SYMM_Z) {
-    axis[2] *= -1.0f;
-    angle *= -1.0f;
-  }
-
-  axis_angle_normalized_to_quat(out, axis, angle);
-}
-
 void paint_sample_color(
     bContext *C, ARegion *region, int x, int y, bool texpaint_proj, bool use_palette)
 {

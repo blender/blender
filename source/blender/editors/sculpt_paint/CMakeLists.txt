@@ -59,6 +59,7 @@ set(SRC
   sculpt.c
   sculpt_automasking.c
   sculpt_boundary.c
+  sculpt_brushes.c
   sculpt_cloth.c
   sculpt_detail.c
   sculpt_dyntopo.c
@@ -71,6 +72,7 @@ set(SRC
   sculpt_mask_expand.c
   sculpt_mask_init.c
   sculpt_multiplane_scrape.c
+  sculpt_ops.c
   sculpt_paint_color.c
   sculpt_pose.c
   sculpt_smooth.c

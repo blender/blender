@@ -29,12 +29,12 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_vec_types.h"
 
-#include "BLI_bitmap.h"
-#include "BLI_gsqueue.h"
-#include "BLI_threads.h"
-
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BLI_bitmap.h"
+#include "BLI_compiler_compat.h"
+#include "BLI_gsqueue.h"
+#include "BLI_threads.h"
 
 struct AutomaskingCache;
 struct KeyBlock;
@@ -300,6 +300,10 @@ void SCULPT_calc_brush_plane(struct Sculpt *sd,
 
 void SCULPT_calc_area_normal(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3]);
+void SCULPT_calc_area_normal_and_center(
+    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3], float r_area_co[3]);
+void SCULPT_calc_area_center(
+    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_co[3]);
 
 int SCULPT_nearest_vertex_get(struct Sculpt *sd,
                               struct Object *ob,
@@ -1506,3 +1510,115 @@ void SCULPT_OT_dyntopo_detail_size_edit(struct wmOperatorType *ot);
 /* Dyntopo. */
 
 void SCULPT_OT_dynamic_topology_toggle(struct wmOperatorType *ot);
+
+/* sculpt_brushes.c */
+
+float SCULPT_clay_thumb_get_stabilized_pressure(struct StrokeCache *cache);
+
+void SCULPT_do_draw_brush(struct Sculpt *sd,
+                          struct Object *ob,
+                          struct PBVHNode **nodes,
+                          int totnode);
+
+void SCULPT_do_fill_brush(struct Sculpt *sd,
+                          struct Object *ob,
+                          struct PBVHNode **nodes,
+                          int totnode);
+void SCULPT_do_scrape_brush(struct Sculpt *sd,
+                            struct Object *ob,
+                            struct PBVHNode **nodes,
+                            int totnode);
+void SCULPT_do_clay_thumb_brush(struct Sculpt *sd,
+                                struct Object *ob,
+                                struct PBVHNode **nodes,
+                                int totnode);
+void SCULPT_do_flatten_brush(struct Sculpt *sd,
+                             struct Object *ob,
+                             struct PBVHNode **nodes,
+                             int totnode);
+void SCULPT_do_clay_brush(struct Sculpt *sd,
+                          struct Object *ob,
+                          struct PBVHNode **nodes,
+                          int totnode);
+void SCULPT_do_clay_strips_brush(struct Sculpt *sd,
+                                 struct Object *ob,
+                                 struct PBVHNode **nodes,
+                                 int totnode);
+void SCULPT_do_snake_hook_brush(struct Sculpt *sd,
+                                struct Object *ob,
+                                struct PBVHNode **nodes,
+                                int totnode);
+void SCULPT_do_thumb_brush(struct Sculpt *sd,
+                           struct Object *ob,
+                           struct PBVHNode **nodes,
+                           int totnode);
+void SCULPT_do_rotate_brush(struct Sculpt *sd,
+                            struct Object *ob,
+                            struct PBVHNode **nodes,
+                            int totnode);
+void SCULPT_do_layer_brush(struct Sculpt *sd,
+                           struct Object *ob,
+                           struct PBVHNode **nodes,
+                           int totnode);
+void SCULPT_do_inflate_brush(struct Sculpt *sd,
+                             struct Object *ob,
+                             struct PBVHNode **nodes,
+                             int totnode);
+void SCULPT_do_nudge_brush(struct Sculpt *sd,
+                           struct Object *ob,
+                           struct PBVHNode **nodes,
+                           int totnode);
+void SCULPT_do_crease_brush(struct Sculpt *sd,
+                            struct Object *ob,
+                            struct PBVHNode **nodes,
+                            int totnode);
+void SCULPT_do_pinch_brush(struct Sculpt *sd,
+                           struct Object *ob,
+                           struct PBVHNode **nodes,
+                           int totnode);
+void SCULPT_do_grab_brush(struct Sculpt *sd,
+                          struct Object *ob,
+                          struct PBVHNode **nodes,
+                          int totnode);
+void SCULPT_do_elastic_deform_brush(struct Sculpt *sd,
+                                    struct Object *ob,
+                                    struct PBVHNode **nodes,
+                                    int totnode);
+void SCULPT_do_draw_sharp_brush(struct Sculpt *sd,
+                                struct Object *ob,
+                                struct PBVHNode **nodes,
+                                int totnode);
+void SCULPT_do_slide_relax_brush(struct Sculpt *sd,
+                                 struct Object *ob,
+                                 struct PBVHNode **nodes,
+                                 int totnode);
+
+void SCULPT_do_displacement_smear_brush(struct Sculpt *sd,
+                                        struct Object *ob,
+                                        struct PBVHNode **nodes,
+                                        int totnode);
+void SCULPT_do_displacement_eraser_brush(struct Sculpt *sd,
+                                         struct Object *ob,
+                                         struct PBVHNode **nodes,
+                                         int totnode);
+void SCULPT_do_mask_brush_draw(struct Sculpt *sd,
+                               struct Object *ob,
+                               struct PBVHNode **nodes,
+                               int totnode);
+void SCULPT_do_mask_brush(struct Sculpt *sd,
+                          struct Object *ob,
+                          struct PBVHNode **nodes,
+                          int totnode);
+
+void SCULPT_bmesh_topology_rake(struct Sculpt *sd,
+                                struct Object *ob,
+                                struct PBVHNode **nodes,
+                                const int totnode,
+                                float bstrength);
+
+/* end sculpt_brushes.c */
+
+/* sculpt_ops.c */
+void SCULPT_OT_brush_stroke(struct wmOperatorType *ot);
+
+/* end sculpt_ops.c */

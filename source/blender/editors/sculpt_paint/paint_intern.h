@@ -26,6 +26,8 @@
 #include "BKE_paint.h"
 
 #include "BLI_rect.h"
+#include "BLI_compiler_compat.h"
+#include "BLI_math.h"
 
 #include "DNA_scene_types.h"
 
@@ -404,8 +406,61 @@ bool facemask_paint_poll(struct bContext *C);
 /**
  * Uses symm to selectively flip any axis of a coordinate.
  */
-void flip_v3_v3(float out[3], const float in[3], const enum ePaintSymmetryFlags symm);
-void flip_qt_qt(float out[4], const float in[4], const enum ePaintSymmetryFlags symm);
+
+BLI_INLINE void flip_v3_v3(float out[3], const float in[3], const ePaintSymmetryFlags symm)
+{
+  if (symm & PAINT_SYMM_X) {
+    out[0] = -in[0];
+  }
+  else {
+    out[0] = in[0];
+  }
+  if (symm & PAINT_SYMM_Y) {
+    out[1] = -in[1];
+  }
+  else {
+    out[1] = in[1];
+  }
+  if (symm & PAINT_SYMM_Z) {
+    out[2] = -in[2];
+  }
+  else {
+    out[2] = in[2];
+  }
+}
+
+BLI_INLINE void flip_qt_qt(float out[4], const float in[4], const ePaintSymmetryFlags symm)
+{
+  float axis[3], angle;
+
+  quat_to_axis_angle(axis, &angle, in);
+  normalize_v3(axis);
+
+  if (symm & PAINT_SYMM_X) {
+    axis[0] *= -1.0f;
+    angle *= -1.0f;
+  }
+  if (symm & PAINT_SYMM_Y) {
+    axis[1] *= -1.0f;
+    angle *= -1.0f;
+  }
+  if (symm & PAINT_SYMM_Z) {
+    axis[2] *= -1.0f;
+    angle *= -1.0f;
+  }
+
+  axis_angle_normalized_to_quat(out, axis, angle);
+}
+
+BLI_INLINE void flip_v3(float v[3], const ePaintSymmetryFlags symm)
+{
+  flip_v3_v3(v, v, symm);
+}
+
+BLI_INLINE void flip_qt(float quat[4], const ePaintSymmetryFlags symm)
+{
+  flip_qt_qt(quat, quat, symm);
+}
 
 /* stroke operator */
 typedef enum BrushStrokeMode {
