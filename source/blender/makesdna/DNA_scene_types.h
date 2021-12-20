@@ -969,11 +969,9 @@ typedef struct ParticleEditSettings {
   struct Object *shape_object;
 } ParticleEditSettings;
 
-/* ------------------------------------------- */
-/* Sculpt */
-
 struct BrushChannelSet;
 
+/* ------------------------------------------- */
 /** Sculpt. */
 typedef struct Sculpt {
   Paint paint;
