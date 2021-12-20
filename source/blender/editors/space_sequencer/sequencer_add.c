@@ -627,6 +627,19 @@ static void seq_build_proxy(bContext *C, Sequence *seq)
   ED_area_tag_redraw(CTX_wm_area(C));
 }
 
+static void sequencer_add_movie_clamp_sound_strip_length(Scene *scene,
+                                                         ListBase *seqbase,
+                                                         Sequence *seq_movie,
+                                                         Sequence *seq_sound)
+{
+  if (ELEM(NULL, seq_movie, seq_sound) || seq_sound->len <= seq_movie->len) {
+    return;
+  }
+
+  SEQ_transform_set_right_handle_frame(seq_sound, SEQ_transform_get_right_handle_frame(seq_movie));
+  SEQ_time_update_sequence(scene, seqbase, seq_sound);
+}
+
 static void sequencer_add_movie_multiple_strips(bContext *C,
                                                 wmOperator *op,
                                                 SeqLoadData *load_data)
@@ -689,6 +702,7 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
       else {
         load_data->start_frame += seq_movie->enddisp - seq_movie->startdisp;
       }
+      sequencer_add_movie_clamp_sound_strip_length(scene, ed->seqbasep, seq_movie, seq_sound);
       seq_load_apply_generic_options(C, op, seq_sound);
       seq_load_apply_generic_options(C, op, seq_movie);
       seq_build_proxy(C, seq_movie);
@@ -740,6 +754,7 @@ static bool sequencer_add_movie_single_strip(bContext *C, wmOperator *op, SeqLoa
     load_data->start_frame += audio_frame_offset;
     seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data, audio_skip);
   }
+  sequencer_add_movie_clamp_sound_strip_length(scene, ed->seqbasep, seq_movie, seq_sound);
   seq_load_apply_generic_options(C, op, seq_sound);
   seq_load_apply_generic_options(C, op, seq_movie);
   seq_build_proxy(C, seq_movie);
