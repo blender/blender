@@ -30,6 +30,7 @@ extern "C" {
 #endif
 
 /* BLI_endian_switch_inline.h */
+
 BLI_INLINE void BLI_endian_switch_int16(short *val) ATTR_NONNULL(1);
 BLI_INLINE void BLI_endian_switch_uint16(unsigned short *val) ATTR_NONNULL(1);
 BLI_INLINE void BLI_endian_switch_int32(int *val) ATTR_NONNULL(1);
@@ -40,6 +41,7 @@ BLI_INLINE void BLI_endian_switch_uint64(uint64_t *val) ATTR_NONNULL(1);
 BLI_INLINE void BLI_endian_switch_double(double *val) ATTR_NONNULL(1);
 
 /* endian_switch.c */
+
 void BLI_endian_switch_int16_array(short *val, const int size) ATTR_NONNULL(1);
 void BLI_endian_switch_uint16_array(unsigned short *val, const int size) ATTR_NONNULL(1);
 void BLI_endian_switch_int32_array(int *val, const int size) ATTR_NONNULL(1);

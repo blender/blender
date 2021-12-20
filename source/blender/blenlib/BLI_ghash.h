@@ -450,7 +450,7 @@ void *BLI_gset_pop_key(GSet *gs, const void *key) ATTR_WARN_UNUSED_RESULT;
 
 /* rely on inline api for now */
 
-/* so we can cast but compiler sees as different */
+/** Use a GSet specific type so we can cast but compiler sees as different */
 typedef struct GSetIterator {
   GHashIterator _ghi
 #if defined(__GNUC__) && !defined(__clang__)

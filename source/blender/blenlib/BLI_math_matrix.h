@@ -56,16 +56,18 @@ void copy_m4_m2(float m1[4][4], const float m2[2][2]);
 void copy_m4_m4_db(double m1[4][4], const double m2[4][4]);
 
 /* double->float */
+
 void copy_m3_m3d(float m1[3][3], const double m2[3][3]);
 
 /* float->double */
+
 void copy_m3d_m3(double m1[3][3], const float m2[3][3]);
 void copy_m4d_m4(double m1[4][4], const float m2[4][4]);
 
 void swap_m3m3(float m1[3][3], float m2[3][3]);
 void swap_m4m4(float m1[4][4], float m2[4][4]);
 
-/* Build index shuffle matrix */
+/** Build index shuffle matrix. */
 void shuffle_m4(float R[4][4], const int index[4]);
 
 /** \} */
@@ -112,7 +114,8 @@ void mul_m4db_m4db_m4fl_uniq(double R[4][4], const double A[4][4], const float B
 void mul_m4_m4_pre(float R[4][4], const float A[4][4]);
 void mul_m4_m4_post(float R[4][4], const float B[4][4]);
 
-/* mul_m3_series */
+/* Implement #mul_m3_series macro. */
+
 void _va_mul_m3_series_3(float R[3][3], const float M1[3][3], const float M2[3][3]) ATTR_NONNULL();
 void _va_mul_m3_series_4(float R[3][3],
                          const float M1[3][3],
@@ -153,7 +156,9 @@ void _va_mul_m3_series_9(float R[3][3],
                          const float M6[3][3],
                          const float M7[3][3],
                          const float M8[3][3]) ATTR_NONNULL();
-/* mul_m4_series */
+
+/* Implement #mul_m4_series macro. */
+
 void _va_mul_m4_series_3(float R[4][4], const float M1[4][4], const float M2[4][4]) ATTR_NONNULL();
 void _va_mul_m4_series_4(float R[4][4],
                          const float M1[4][4],
@@ -266,11 +271,13 @@ bool invert_m4_m4(float R[4][4], const float A[4][4]);
  */
 bool invert_m4_m4_fallback(float R[4][4], const float A[4][4]);
 
-/* double arithmetic (mixed float/double) */
+/* Double arithmetic (mixed float/double). */
+
 void mul_m4_v4d(const float M[4][4], double r[4]);
 void mul_v4d_m4v4d(double r[4], const float M[4][4], const double v[4]);
 
-/* double matrix functions (no mixing types) */
+/* Double matrix functions (no mixing types). */
+
 void mul_v3_m3v3_db(double r[3], const double M[3][3], const double a[3]);
 void mul_m3_v3_db(const double M[3][3], double r[3]);
 
@@ -282,7 +289,9 @@ void mul_m3_v3_db(const double M[3][3], double r[3]);
 
 void transpose_m3(float R[3][3]);
 void transpose_m3_m3(float R[3][3], const float M[3][3]);
-/* seems obscure but in-fact a common operation */
+/**
+ * \note Seems obscure but in-fact a common operation.
+ */
 void transpose_m3_m4(float R[3][3], const float M[4][4]);
 void transpose_m4(float R[4][4]);
 void transpose_m4_m4(float R[4][4], const float M[4][4]);

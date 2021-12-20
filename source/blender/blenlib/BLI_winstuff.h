@@ -88,7 +88,7 @@ typedef SSIZE_T ssize_t;
 #  endif
 #endif
 
-/* Directory reading compatibility with UNIX. */
+/** Directory reading compatibility with UNIX. */
 struct dirent {
   int d_ino;
   int d_off;
@@ -96,7 +96,7 @@ struct dirent {
   char *d_name;
 };
 
-/* intentionally opaque to users */
+/** Intentionally opaque to users. */
 typedef struct __dirstream DIR;
 
 DIR *opendir(const char *path);
@@ -105,6 +105,7 @@ int closedir(DIR *dp);
 const char *dirname(char *path);
 
 /* Windows utility functions. */
+
 bool BLI_windows_register_blend_extension(const bool background);
 void BLI_windows_get_default_root_dir(char root_dir[4]);
 int BLI_windows_get_executable_dir(char *str);

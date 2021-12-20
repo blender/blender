@@ -48,18 +48,19 @@ typedef void (*LockfreeeLinkNodeFreeFP)(void *link);
 /* NOTE: These functions are NOT safe for use from threads. */
 /* NOTE: !!! I REPEAT: DO NOT USE THEM WITHOUT EXTERNAL LOCK !!! */
 
-/* Make list ready for lock-free access. */
+/** Make list ready for lock-free access. */
 void BLI_linklist_lockfree_init(LockfreeLinkList *list);
 
-/* Completely free the whole list, it is NOT re-usable after this. */
+/** Completely free the whole list, it is NOT re-usable after this. */
 void BLI_linklist_lockfree_free(LockfreeLinkList *list, LockfreeeLinkNodeFreeFP free_func);
 
-/* Remove all the elements from the list, keep it usable for further
- * inserts.
+/**
+ * Remove all the elements from the list, keep it usable for further inserts.
  */
 void BLI_linklist_lockfree_clear(LockfreeLinkList *list, LockfreeeLinkNodeFreeFP free_func);
 
-/* Begin iteration of lock-free linked list, starting with a
+/**
+ * Begin iteration of lock-free linked list, starting with a
  * first user=defined node. Will ignore the dummy node.
  */
 LockfreeLinkNode *BLI_linklist_lockfree_begin(LockfreeLinkList *list);

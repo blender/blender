@@ -33,18 +33,19 @@ extern "C" {
 
 #include "DNA_session_uuid_types.h"
 
-/* Generate new UUID which is unique throughout the Blender session. */
+/** Generate new UUID which is unique throughout the Blender session. */
 SessionUUID BLI_session_uuid_generate(void);
 
-/* Check whether the UUID is properly generated. */
+/** Check whether the UUID is properly generated. */
 bool BLI_session_uuid_is_generated(const SessionUUID *uuid);
 
-/* Check whether two UUIDs are identical. */
+/** Check whether two UUIDs are identical. */
 bool BLI_session_uuid_is_equal(const SessionUUID *lhs, const SessionUUID *rhs);
 
 uint64_t BLI_session_uuid_hash_uint64(const SessionUUID *uuid);
 
 /* Utility functions to make it possible to create GHash/GSet with UUID as a key. */
+
 uint BLI_session_uuid_ghash_hash(const void *uuid_v);
 bool BLI_session_uuid_ghash_compare(const void *lhs_v, const void *rhs_v);
 

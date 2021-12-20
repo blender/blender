@@ -29,8 +29,11 @@
 extern "C" {
 #endif
 
-/* ret < 0: the timer will be removed.
- * ret >= 0: the timer will be called again in ret seconds */
+/**
+ * \return A value of:
+ * - <  0: the timer will be removed.
+ * - >= 0: the timer will be called again in this number of seconds.
+ */
 typedef double (*BLI_timer_func)(uintptr_t uuid, void *user_data);
 typedef void (*BLI_timer_data_free)(uintptr_t uuid, void *user_data);
 
@@ -45,10 +48,10 @@ void BLI_timer_register(uintptr_t uuid,
 
 bool BLI_timer_is_registered(uintptr_t uuid);
 
-/* Returns False when the timer does not exist (anymore). */
+/** Returns False when the timer does not exist (anymore). */
 bool BLI_timer_unregister(uintptr_t uuid);
 
-/* Execute all registered functions that are due. */
+/** Execute all registered functions that are due. */
 void BLI_timer_execute(void);
 
 void BLI_timer_free(void);

@@ -40,7 +40,7 @@ extern "C" {
 /** \name Base Structs
  * \{ */
 
-/* Basic Layout for a Node */
+/** Basic Layout for a Node. */
 typedef struct DLRBT_Node {
   /* ListBase capabilities */
   struct DLRBT_Node *next, *prev;
@@ -53,7 +53,7 @@ typedef struct DLRBT_Node {
   /* ... for nice alignment, next item should usually be a char too... */
 } DLRBT_Node;
 
-/* Red/Black defines for tree_col */
+/** Red/Black defines for tree_col. */
 typedef enum eDLRBT_Colors {
   DLRBT_BLACK = 0,
   DLRBT_RED,
@@ -61,7 +61,7 @@ typedef enum eDLRBT_Colors {
 
 /* -------- */
 
-/* The Tree Data */
+/** The Tree Data. */
 typedef struct DLRBT_Tree {
   /* ListBase capabilities */
   void *first, *last; /* these should be based on DLRBT_Node-s */

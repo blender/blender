@@ -222,7 +222,7 @@ void BLI_delaunay_2d_cdt_free(CDT_result *result);
 
 namespace blender::meshintersect {
 
-/* vec2<Arith_t> is a 2d vector with Arith_t as the type for coordinates. */
+/** #vec2<Arith_t> is a 2d vector with #Arith_t as the type for coordinates. */
 template<typename Arith_t> struct vec2_impl;
 template<> struct vec2_impl<double> {
   typedef double2 type;

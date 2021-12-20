@@ -103,14 +103,14 @@ void BLI_mempool_set_memory_debug(void);
  * \note this may easy to produce bugs with.
  */
 
-/* Private structure. */
+/**  \note Private structure. */
 typedef struct BLI_mempool_iter {
   BLI_mempool *pool;
   struct BLI_mempool_chunk *curchunk;
   unsigned int curindex;
 } BLI_mempool_iter;
 
-/* flag */
+/** #BLI_mempool.flag */
 enum {
   BLI_MEMPOOL_NOP = 0,
   /** allow iterating on this mempool.

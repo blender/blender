@@ -30,6 +30,7 @@ extern "C" {
 #endif
 
 /* Utility functions. */
+
 void _BLI_assert_print_pos(const char *file, const int line, const char *function, const char *id);
 void _BLI_assert_print_extra(const char *str);
 void _BLI_assert_print_backtrace(void);
