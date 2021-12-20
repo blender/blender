@@ -258,6 +258,8 @@ static void ntree_free_data(ID *id)
 {
   bNodeTree *ntree = (bNodeTree *)id;
 
+  SCOPED_TIMER(ntree->id.name + 2);
+
   /* XXX hack! node trees should not store execution graphs at all.
    * This should be removed when old tree types no longer require it.
    * Currently the execution data for texture nodes remains in the tree
@@ -2010,10 +2012,7 @@ bNodeSocket *nodeInsertStaticSocket(bNodeTree *ntree,
   return sock;
 }
 
-static void node_socket_free(bNodeTree *UNUSED(ntree),
-                             bNodeSocket *sock,
-                             bNode *UNUSED(node),
-                             const bool do_id_user)
+static void node_socket_free(bNodeSocket *sock, const bool do_id_user)
 {
   if (sock->prop) {
     IDP_FreePropertyContent_ex(sock->prop, do_id_user);
@@ -2048,7 +2047,7 @@ void nodeRemoveSocketEx(struct bNodeTree *ntree,
   BLI_remlink(&node->inputs, sock);
   BLI_remlink(&node->outputs, sock);
 
-  node_socket_free(ntree, sock, node, do_id_user);
+  node_socket_free(sock, do_id_user);
   MEM_freeN(sock);
 
   node->update |= NODE_UPDATE;
@@ -2063,13 +2062,13 @@ void nodeRemoveAllSockets(bNodeTree *ntree, bNode *node)
   }
 
   LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->inputs) {
-    node_socket_free(ntree, sock, node, true);
+    node_socket_free(sock, true);
     MEM_freeN(sock);
   }
   BLI_listbase_clear(&node->inputs);
 
   LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->outputs) {
-    node_socket_free(ntree, sock, node, true);
+    node_socket_free(sock, true);
     MEM_freeN(sock);
   }
   BLI_listbase_clear(&node->outputs);
@@ -3144,12 +3143,12 @@ static void node_free_node(bNodeTree *ntree, bNode *node)
 
   LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->inputs) {
     /* Remember, no ID user refcount management here! */
-    node_socket_free(ntree, sock, node, false);
+    node_socket_free(sock, false);
     MEM_freeN(sock);
   }
   LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->outputs) {
     /* Remember, no ID user refcount management here! */
-    node_socket_free(ntree, sock, node, false);
+    node_socket_free(sock, false);
     MEM_freeN(sock);
   }
 
