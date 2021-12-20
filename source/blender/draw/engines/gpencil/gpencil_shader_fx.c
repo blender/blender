@@ -99,6 +99,11 @@ static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *it
     return;
   }
 
+  if ((fx->flag & FX_BLUR_DOF_MODE) && iter->pd->camera == NULL) {
+    /* No blur outside camera view (or when DOF is disabled on the camera). */
+    return;
+  }
+
   DRWShadingGroup *grp;
   const float s = sin(fx->rotation);
   const float c = cos(fx->rotation);
@@ -108,7 +113,7 @@ static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *it
   DRW_view_persmat_get(NULL, persmat, false);
   const float w = fabsf(mul_project_m4_v3_zfac(persmat, ob->obmat[3]));
 
-  if ((fx->flag & FX_BLUR_DOF_MODE) && iter->pd->camera != NULL) {
+  if ((fx->flag & FX_BLUR_DOF_MODE)) {
     /* Compute circle of confusion size. */
     float coc = (iter->pd->dof_params[0] / -w) - iter->pd->dof_params[1];
     copy_v2_fl(blur_size, fabsf(coc));
