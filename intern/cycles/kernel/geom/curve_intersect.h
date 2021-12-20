@@ -727,8 +727,6 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
     const float cosine = safe_sqrtf(1.0f - sine * sine);
 
     sd->N = normalize(sine * bitangent - cosine * normalize(cross(tangent, bitangent)));
-    sd->Ng = -D;
-
 #  if 0
     /* This approximates the position and geometric normal of a thick curve too,
      * but gives too many issues with wrong self intersections. */
@@ -744,25 +742,27 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
     /* NOTE: It is possible that P will be the same as P_inside (precision issues, or very small
      * radius). In this case use the view direction to approximate the normal. */
     const float3 P_inside = float4_to_float3(catmull_rom_basis_eval(P_curve, sd->u));
-    const float3 Ng = (!isequal_float3(P, P_inside)) ? normalize(P - P_inside) : -sd->I;
+    const float3 N = (!isequal_float3(P, P_inside)) ? normalize(P - P_inside) : -sd->I;
 
-    sd->N = Ng;
-    sd->Ng = Ng;
+    sd->N = N;
     sd->v = 0.0f;
   }
 
 #  ifdef __DPDU__
   /* dPdu/dPdv */
   sd->dPdu = dPdu;
-  sd->dPdv = cross(dPdu, sd->Ng);
 #  endif
 
+  /* Convert to world space. */
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    const Transform tfm = object_get_transform(kg, sd);
-    P = transform_point(&tfm, P);
+    object_position_transform_auto(kg, sd, &P);
+    object_normal_transform_auto(kg, sd, &sd->N);
+    object_dir_transform_auto(kg, sd, &sd->dPdu);
   }
 
   sd->P = P;
+  sd->Ng = (sd->type & PRIMITIVE_CURVE_RIBBON) ? sd->I : sd->N;
+  sd->dPdv = cross(sd->dPdu, sd->Ng);
   sd->shader = kernel_tex_fetch(__curves, sd->prim).shader_id;
 }
 
