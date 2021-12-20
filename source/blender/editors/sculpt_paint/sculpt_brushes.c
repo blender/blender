@@ -318,6 +318,96 @@ static void sculpt_project_v3_normal_align(SculptSession *ss,
 
 /************************************** Brushes ******************************/
 
+
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Draw Brush
+ * \{ */
+
+static void do_draw_brush_task_cb_ex(void *__restrict userdata,
+                                     const int n,
+                                     const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  const Brush *brush = data->brush;
+  const float *offset = data->offset;
+
+  PBVHVertexIter vd;
+  float(*proxy)[3];
+
+  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
+    /* Offset vertex. */
+    const float fade = SCULPT_brush_strength_factor(ss,
+                                                    brush,
+                                                    vd.co,
+                                                    sqrtf(test.dist),
+                                                    vd.no,
+                                                    vd.fno,
+                                                    vd.mask ? *vd.mask : 0.0f,
+                                                    vd.vertex,
+                                                    thread_id);
+
+    mul_v3_v3fl(proxy[vd.i], offset, fade);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+void SCULPT_do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+#if 0
+  if (BKE_pbvh_type(ob->sculpt->pbvh) == PBVH_BMESH) {
+    void cxx_do_draw_brush(Sculpt * sd, Object * ob, PBVHNode * *nodes, int totnode);
+
+    cxx_do_draw_brush(sd, ob, nodes, totnode);
+    return;
+  }
+#endif
+
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+  float offset[3];
+  const float bstrength = ss->cache->bstrength;
+
+  /* Offset with as much as possible factored in already. */
+  float effective_normal[3];
+  SCULPT_tilt_effective_normal_get(ss, brush, effective_normal);
+  mul_v3_v3fl(offset, effective_normal, ss->cache->radius);
+  mul_v3_v3(offset, ss->cache->scale);
+  mul_v3_fl(offset, bstrength);
+
+  /* XXX: this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
+   * initialize before threads so they can do curve mapping. */
+  BKE_curvemapping_init(brush->curve);
+
+  /* Threaded loop over nodes. */
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+      .offset = offset,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, do_draw_brush_task_cb_ex, &settings);
+}
+/** \} */
+
 /****** Twist Brush **********/
 
 static void do_twist_brush_task_cb_ex(void *__restrict userdata,
@@ -865,7 +955,7 @@ static void do_clay_thumb_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static float sculpt_clay_thumb_get_stabilized_pressure(StrokeCache *cache)
+float SCULPT_clay_thumb_get_stabilized_pressure(StrokeCache *cache)
 {
   float final_pressure = 0.0f;
   for (int i = 0; i < SCULPT_CLAY_STABILIZER_LEN; i++) {
@@ -942,7 +1032,7 @@ void SCULPT_do_clay_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   invert_m4_m4(mat, tmat);
 
   float clay_strength = ss->cache->bstrength *
-                        sculpt_clay_thumb_get_stabilized_pressure(ss->cache);
+                        SCULPT_clay_thumb_get_stabilized_pressure(ss->cache);
 
   SculptThreadedTaskData data = {
       .sd = sd,
@@ -3530,9 +3620,158 @@ void SCULPT_fairing_brush_exec_fairing_for_cache(Sculpt *sd, Object *ob)
 
 /** \} */
 
-/** \name Sculpt Multires Displacement Smear Brush
+
+/* -------------------------------------------------------------------- */
+
+void SCULPT_do_auto_face_set(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+#if 0
+  if (BKE_pbvh_type(ob->sculpt->pbvh) == PBVH_BMESH) {
+    void cxx_do_draw_brush(Sculpt * sd, Object * ob, PBVHNode * *nodes, int totnode);
+
+    cxx_do_draw_brush(sd, ob, nodes, totnode);
+    return;
+  }
+#endif
+
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  float directions[3][3];
+
+  for (int i = 0; i < 3; i++) {
+    float direction[3];
+
+    switch (i) {
+      case 0:
+        copy_v3_v3(direction, ss->cache->prev_grab_delta_symmetry);
+        break;
+      case 1:
+        copy_v3_v3(direction, ss->cache->grab_delta_symmetry);
+        break;
+      case 2:
+        copy_v3_v3(direction, ss->cache->next_grab_delta_symmetry);
+        break;
+    }
+
+    float tmp[3];
+    mul_v3_v3fl(
+        tmp, ss->cache->sculpt_normal_symm, dot_v3v3(ss->cache->sculpt_normal_symm, direction));
+    sub_v3_v3(direction, tmp);
+    normalize_v3(direction);
+
+    copy_v3_v3(directions[i], direction);
+  }
+
+  BrushChannel *curve_ch = SCULPT_get_final_channel(ss, autofset_curve, sd, brush);
+  CurveMapping *cuma = BKE_brush_channel_curvemapping_get(&curve_ch->curve, false);
+
+  if (cuma) {  // ensure cuma is ready for evaluation
+    BKE_curvemapping_init(cuma);
+  }
+
+  /* Cancel if there's no grab data. */
+  if (is_zero_v3(directions[1])) {
+    return;
+  }
+
+  /* XXX: this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
+   * initialize before threads so they can do curve mapping. */
+  BKE_curvemapping_init(brush->curve);
+
+  /* Threaded loop over nodes. */
+  SculptFaceSetDrawData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+      .totnode = totnode,
+      .use_fset_curve = true,
+      .use_fset_strength = false,
+      .bstrength = 1.0f,
+      .faceset = SCULPT_get_int(ss, autofset_start, sd, brush),
+      .count = SCULPT_get_int(ss, autofset_count, sd, brush),
+      .prev_stroke_direction = directions[0],
+      .stroke_direction = directions[1],
+      .next_stroke_direction = directions[2],
+      .curve_ch = curve_ch,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, do_draw_face_sets_brush_task_cb_ex, &settings);
+}
+
+/** \} */
+
+/** \name Sculpt Multires Displacement Eraser Brush
  * \{ */
 
+static void do_displacement_eraser_brush_task_cb_ex(void *__restrict userdata,
+                                                    const int n,
+                                                    const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  const Brush *brush = data->brush;
+  const float bstrength = clamp_f(ss->cache->bstrength, 0.0f, 1.0f);
+
+  float(*proxy)[3] = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
+    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                brush,
+                                                                vd.co,
+                                                                sqrtf(test.dist),
+                                                                vd.no,
+                                                                vd.fno,
+                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.vertex,
+                                                                thread_id);
+
+    float limit_co[3];
+    float disp[3];
+    SCULPT_vertex_limit_surface_get(ss, vd.vertex, limit_co);
+    sub_v3_v3v3(disp, limit_co, vd.co);
+    mul_v3_v3fl(proxy[vd.i], disp, fade);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+/** \} */
+
+void SCULPT_do_displacement_eraser_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+  Brush *brush = BKE_paint_brush(&sd->paint);
+  BKE_curvemapping_init(brush->curve);
+
+  /* Threaded loop over nodes. */
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, do_displacement_eraser_brush_task_cb_ex, &settings);
+}
+
+/** \name Sculpt Multires Displacement Smear Brush
+ * \{ */
 static void do_displacement_smear_brush_task_cb_ex(void *__restrict userdata,
                                                    const int n,
                                                    const TaskParallelTLS *__restrict tls)
@@ -3675,90 +3914,6 @@ void SCULPT_do_displacement_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes
 }
 
 /** \} */
-
-static void do_draw_brush_task_cb_ex(void *__restrict userdata,
-                                     const int n,
-                                     const TaskParallelTLS *__restrict tls)
-{
-  SculptThreadedTaskData *data = userdata;
-  SculptSession *ss = data->ob->sculpt;
-  const Brush *brush = data->brush;
-  const float *offset = data->offset;
-
-  PBVHVertexIter vd;
-  float(*proxy)[3];
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(tls);
-
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
-      continue;
-    }
-    /* Offset vertex. */
-    const float fade = SCULPT_brush_strength_factor(ss,
-                                                    brush,
-                                                    vd.co,
-                                                    sqrtf(test.dist),
-                                                    vd.no,
-                                                    vd.fno,
-                                                    vd.mask ? *vd.mask : 0.0f,
-                                                    vd.vertex,
-                                                    thread_id);
-
-    mul_v3_v3fl(proxy[vd.i], offset, fade);
-
-    if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
-void SCULPT_do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
-{
-#if 0
-  if (BKE_pbvh_type(ob->sculpt->pbvh) == PBVH_BMESH) {
-    void cxx_do_draw_brush(Sculpt * sd, Object * ob, PBVHNode * *nodes, int totnode);
-
-    cxx_do_draw_brush(sd, ob, nodes, totnode);
-    return;
-  }
-#endif
-
-  SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
-  float offset[3];
-  const float bstrength = ss->cache->bstrength;
-
-  /* Offset with as much as possible factored in already. */
-  float effective_normal[3];
-  SCULPT_tilt_effective_normal_get(ss, brush, effective_normal);
-  mul_v3_v3fl(offset, effective_normal, ss->cache->radius);
-  mul_v3_v3(offset, ss->cache->scale);
-  mul_v3_fl(offset, bstrength);
-
-  /* XXX: this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
-   * initialize before threads so they can do curve mapping. */
-  BKE_curvemapping_init(brush->curve);
-
-  /* Threaded loop over nodes. */
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .offset = offset,
-  };
-
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, do_draw_brush_task_cb_ex, &settings);
-}
 
 static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
                                               const int n,
@@ -4080,150 +4235,3 @@ void SCULPT_do_mask_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
       break;
   }
 }
-
-/* -------------------------------------------------------------------- */
-/** \name Sculpt Multires Displacement Eraser Brush
- * \{ */
-
-static void do_displacement_eraser_brush_task_cb_ex(void *__restrict userdata,
-                                                    const int n,
-                                                    const TaskParallelTLS *__restrict tls)
-{
-  SculptThreadedTaskData *data = userdata;
-  SculptSession *ss = data->ob->sculpt;
-  const Brush *brush = data->brush;
-  const float bstrength = clamp_f(ss->cache->bstrength, 0.0f, 1.0f);
-
-  float(*proxy)[3] = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
-
-  SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(tls);
-
-  PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
-      continue;
-    }
-    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                brush,
-                                                                vd.co,
-                                                                sqrtf(test.dist),
-                                                                vd.no,
-                                                                vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
-                                                                vd.vertex,
-                                                                thread_id);
-
-    float limit_co[3];
-    float disp[3];
-    SCULPT_vertex_limit_surface_get(ss, vd.vertex, limit_co);
-    sub_v3_v3v3(disp, limit_co, vd.co);
-    mul_v3_v3fl(proxy[vd.i], disp, fade);
-
-    if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
-void SCULPT_do_displacement_eraser_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
-{
-  Brush *brush = BKE_paint_brush(&sd->paint);
-  BKE_curvemapping_init(brush->curve);
-
-  /* Threaded loop over nodes. */
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
-
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, do_displacement_eraser_brush_task_cb_ex, &settings);
-}
-
-void SCULPT_do_auto_face_set(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
-{
-#if 0
-  if (BKE_pbvh_type(ob->sculpt->pbvh) == PBVH_BMESH) {
-    void cxx_do_draw_brush(Sculpt * sd, Object * ob, PBVHNode * *nodes, int totnode);
-
-    cxx_do_draw_brush(sd, ob, nodes, totnode);
-    return;
-  }
-#endif
-
-  SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
-
-  float directions[3][3];
-
-  for (int i = 0; i < 3; i++) {
-    float direction[3];
-
-    switch (i) {
-      case 0:
-        copy_v3_v3(direction, ss->cache->prev_grab_delta_symmetry);
-        break;
-      case 1:
-        copy_v3_v3(direction, ss->cache->grab_delta_symmetry);
-        break;
-      case 2:
-        copy_v3_v3(direction, ss->cache->next_grab_delta_symmetry);
-        break;
-    }
-
-    float tmp[3];
-    mul_v3_v3fl(
-        tmp, ss->cache->sculpt_normal_symm, dot_v3v3(ss->cache->sculpt_normal_symm, direction));
-    sub_v3_v3(direction, tmp);
-    normalize_v3(direction);
-
-    copy_v3_v3(directions[i], direction);
-  }
-
-  BrushChannel *curve_ch = SCULPT_get_final_channel(ss, autofset_curve, sd, brush);
-  CurveMapping *cuma = BKE_brush_channel_curvemapping_get(&curve_ch->curve, false);
-
-  if (cuma) {  // ensure cuma is ready for evaluation
-    BKE_curvemapping_init(cuma);
-  }
-
-  /* Cancel if there's no grab data. */
-  if (is_zero_v3(directions[1])) {
-    return;
-  }
-
-  /* XXX: this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
-   * initialize before threads so they can do curve mapping. */
-  BKE_curvemapping_init(brush->curve);
-
-  /* Threaded loop over nodes. */
-  SculptFaceSetDrawData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .totnode = totnode,
-      .use_fset_curve = true,
-      .use_fset_strength = false,
-      .bstrength = 1.0f,
-      .faceset = SCULPT_get_int(ss, autofset_start, sd, brush),
-      .count = SCULPT_get_int(ss, autofset_count, sd, brush),
-      .prev_stroke_direction = directions[0],
-      .stroke_direction = directions[1],
-      .next_stroke_direction = directions[2],
-      .curve_ch = curve_ch,
-  };
-
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, do_draw_face_sets_brush_task_cb_ex, &settings);
-}
-
-/** \} */

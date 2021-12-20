@@ -57,7 +57,6 @@
 
 #include "BKE_attribute.h"
 #include "BKE_brush.h"
-#include "BKE_brush_engine.h"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
