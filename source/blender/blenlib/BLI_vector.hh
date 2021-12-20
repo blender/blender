@@ -637,7 +637,7 @@ class Vector {
    * Insert values at the beginning of the vector. The has to move all the other elements, so it
    * has a linear running time.
    */
-  void prepend(const T &&value)
+  void prepend(const T &value)
   {
     this->insert(0, value);
   }
