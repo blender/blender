@@ -257,13 +257,13 @@ void NURBSpline::calculate_knots() const
 Span<float> NURBSpline::knots() const
 {
   if (!knots_dirty_) {
-    BLI_assert(knots_.size() == this->size() + order_);
+    BLI_assert(knots_.size() == this->knots_size());
     return knots_;
   }
 
   std::lock_guard lock{knots_mutex_};
   if (!knots_dirty_) {
-    BLI_assert(knots_.size() == this->size() + order_);
+    BLI_assert(knots_.size() == this->knots_size());
     return knots_;
   }
 
