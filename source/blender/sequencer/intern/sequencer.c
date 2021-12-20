@@ -419,6 +419,10 @@ void SEQ_meta_stack_free(Editing *ed, MetaStack *ms)
 
 MetaStack *SEQ_meta_stack_active_get(const Editing *ed)
 {
+  if (ed == NULL) {
+    return NULL;
+  }
+
   return ed->metastack.last;
 }
 
