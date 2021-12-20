@@ -141,7 +141,6 @@ Sequence *SEQ_add_scene_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDat
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_SCENE);
-  seq->blend_mode = SEQ_TYPE_ALPHAOVER;
   seq->scene = load_data->scene;
   seq->len = load_data->scene->r.efra - load_data->scene->r.sfra + 1;
   id_us_ensure_real((ID *)load_data->scene);
@@ -154,7 +153,6 @@ Sequence *SEQ_add_movieclip_strip(Scene *scene, ListBase *seqbase, struct SeqLoa
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_MOVIECLIP);
-  seq->blend_mode = SEQ_TYPE_ALPHAOVER;
   seq->clip = load_data->clip;
   seq->len = BKE_movieclip_get_duration(load_data->clip);
   id_us_ensure_real((ID *)load_data->clip);
@@ -167,7 +165,6 @@ Sequence *SEQ_add_mask_strip(Scene *scene, ListBase *seqbase, struct SeqLoadData
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_MASK);
-  seq->blend_mode = SEQ_TYPE_ALPHAOVER;
   seq->mask = load_data->mask;
   seq->len = BKE_mask_get_duration(load_data->mask);
   id_us_ensure_real((ID *)load_data->mask);
@@ -190,9 +187,6 @@ Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDa
 
   if (SEQ_effect_get_num_inputs(seq->type) == 1) {
     seq->blend_mode = seq->seq1->blend_mode;
-  }
-  else {
-    seq->blend_mode = SEQ_TYPE_ALPHAOVER;
   }
 
   if (!load_data->effect.seq1) {
@@ -250,7 +244,6 @@ Sequence *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_IMAGE);
-  seq->blend_mode = SEQ_TYPE_ALPHAOVER; /* so alpha adjustment fade to the strip below */
   seq->len = load_data->image.len;
   Strip *strip = seq->strip;
   strip->stripdata = MEM_callocN(load_data->image.len * sizeof(StripElem), "stripelem");
@@ -481,8 +474,6 @@ Sequence *SEQ_add_movie_strip(
       break;
     }
   }
-
-  seq->blend_mode = SEQ_TYPE_ALPHAOVER; /* so alpha adjustment fade to the strip below */
 
   if (anim_arr[0] != NULL) {
     seq->len = IMB_anim_get_duration(anim_arr[0], IMB_TC_RECORD_RUN);
