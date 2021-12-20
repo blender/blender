@@ -291,7 +291,7 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
 
   if (space == NODE_NORMAL_MAP_TANGENT) {
     /* tangent space */
-    if (sd->object == OBJECT_NONE || (sd->type & PRIMITIVE_ALL_TRIANGLE) == 0) {
+    if (sd->object == OBJECT_NONE || (sd->type & PRIMITIVE_TRIANGLE) == 0) {
       /* Fallback to unperturbed normal. */
       stack_store_float3(stack, normal_offset, sd->N);
       return;

@@ -656,24 +656,24 @@ bool BVHBuild::range_within_max_leaf_size(const BVHRange &range,
   for (int i = 0; i < size; i++) {
     const BVHReference &ref = references[range.start() + i];
 
-    if (ref.prim_type() & PRIMITIVE_ALL_CURVE) {
-      if (ref.prim_type() & PRIMITIVE_ALL_MOTION) {
+    if (ref.prim_type() & PRIMITIVE_CURVE) {
+      if (ref.prim_type() & PRIMITIVE_MOTION) {
         num_motion_curves++;
       }
       else {
         num_curves++;
       }
     }
-    else if (ref.prim_type() & PRIMITIVE_ALL_TRIANGLE) {
-      if (ref.prim_type() & PRIMITIVE_ALL_MOTION) {
+    else if (ref.prim_type() & PRIMITIVE_TRIANGLE) {
+      if (ref.prim_type() & PRIMITIVE_MOTION) {
         num_motion_triangles++;
       }
       else {
         num_triangles++;
       }
     }
-    else if (ref.prim_type() & PRIMITIVE_ALL_POINT) {
-      if (ref.prim_type() & PRIMITIVE_ALL_MOTION) {
+    else if (ref.prim_type() & PRIMITIVE_POINT) {
+      if (ref.prim_type() & PRIMITIVE_MOTION) {
         num_motion_points++;
       }
       else {
@@ -973,7 +973,7 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
   for (int i = 0; i < range.size(); i++) {
     const BVHReference &ref = references[range.start() + i];
     if (ref.prim_index() != -1) {
-      uint32_t type_index = bitscan((uint32_t)(ref.prim_type() & PRIMITIVE_ALL));
+      uint32_t type_index = PRIMITIVE_INDEX(ref.prim_type() & PRIMITIVE_ALL);
       p_ref[type_index].push_back(ref);
       p_type[type_index].push_back(ref.prim_type());
       p_index[type_index].push_back(ref.prim_index());

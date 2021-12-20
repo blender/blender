@@ -166,7 +166,7 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
             case PRIMITIVE_CURVE_RIBBON:
             case PRIMITIVE_MOTION_CURVE_RIBBON: {
               for (; prim_addr < prim_addr2; prim_addr++) {
-                if ((type & PRIMITIVE_ALL_MOTION) && kernel_data.bvh.use_bvh_steps) {
+                if ((type & PRIMITIVE_MOTION) && kernel_data.bvh.use_bvh_steps) {
                   const float2 prim_time = kernel_tex_fetch(__prim_time, prim_addr);
                   if (ray->time < prim_time.x || ray->time > prim_time.y) {
                     continue;
@@ -193,7 +193,7 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
             case PRIMITIVE_POINT:
             case PRIMITIVE_MOTION_POINT: {
               for (; prim_addr < prim_addr2; prim_addr++) {
-                if ((type & PRIMITIVE_ALL_MOTION) && kernel_data.bvh.use_bvh_steps) {
+                if ((type & PRIMITIVE_MOTION) && kernel_data.bvh.use_bvh_steps) {
                   const float2 prim_time = kernel_tex_fetch(__prim_time, prim_addr);
                   if (ray->time < prim_time.x || ray->time > prim_time.y) {
                     continue;

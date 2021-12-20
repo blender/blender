@@ -227,7 +227,7 @@ ccl_device_noinline void svm_node_hair_info(KernelGlobals kg,
 
   switch (type) {
     case NODE_INFO_CURVE_IS_STRAND: {
-      data = (sd->type & PRIMITIVE_ALL_CURVE) != 0;
+      data = (sd->type & PRIMITIVE_CURVE) != 0;
       stack_store_float(stack, out_offset, data);
       break;
     }

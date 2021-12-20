@@ -211,7 +211,7 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
   }
   
   /* Always use baked shadow transparency for curves. */
-  if (type & PRIMITIVE_ALL_CURVE) {
+  if (type & PRIMITIVE_CURVE) {
     float throughput = payload.throughput;
     throughput *= context.intersection_curve_shadow_transparency(nullptr, object, prim, u);
     payload.throughput = throughput;
@@ -476,7 +476,7 @@ __intersection__curve_ribbon(constant KernelParamsMetal &launch_params_metal [[b
   result.continue_search = true;
   result.distance = ray_tmax;
 
-  if (segment.type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON)) {
+  if (segment.type & PRIMITIVE_CURVE_RIBBON) {
     metalrt_intersection_curve(launch_params_metal, payload, object, segment.prim, segment.type, ray_origin, ray_direction,
 #  if defined(__METALRT_MOTION__)
                                payload.time,
@@ -507,7 +507,7 @@ __intersection__curve_ribbon_shadow(constant KernelParamsMetal &launch_params_me
   result.continue_search = true;
   result.distance = ray_tmax;
 
-  if (segment.type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON)) {
+  if (segment.type & PRIMITIVE_CURVE_RIBBON) {
     metalrt_intersection_curve_shadow(launch_params_metal, payload, object, segment.prim, segment.type, ray_origin, ray_direction,
 #  if defined(__METALRT_MOTION__)
                                payload.time,

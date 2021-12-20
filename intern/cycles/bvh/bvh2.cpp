@@ -387,7 +387,7 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
     }
     else {
       /* Primitives. */
-      if (pack.prim_type[prim] & PRIMITIVE_ALL_CURVE) {
+      if (pack.prim_type[prim] & PRIMITIVE_CURVE) {
         /* Curves. */
         const Hair *hair = static_cast<const Hair *>(ob->get_geometry());
         int prim_offset = (params.top_level) ? hair->prim_offset : 0;
@@ -410,7 +410,7 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
           }
         }
       }
-      else if (pack.prim_type[prim] & PRIMITIVE_ALL_POINT) {
+      else if (pack.prim_type[prim] & PRIMITIVE_POINT) {
         /* Points. */
         const PointCloud *pointcloud = static_cast<const PointCloud *>(ob->get_geometry());
         int prim_offset = (params.top_level) ? pointcloud->prim_offset : 0;
@@ -590,13 +590,7 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
       float2 *bvh_prim_time = bvh->pack.prim_time.size() ? &bvh->pack.prim_time[0] : NULL;
 
       for (size_t i = 0; i < bvh_prim_index_size; i++) {
-        if (bvh->pack.prim_type[i] & PRIMITIVE_ALL_CURVE) {
-          pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + geom_prim_offset;
-        }
-        else {
-          pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + geom_prim_offset;
-        }
-
+        pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + geom_prim_offset;
         pack_prim_type[pack_prim_index_offset] = bvh_prim_type[i];
         pack_prim_visibility[pack_prim_index_offset] = bvh_prim_visibility[i];
         pack_prim_object[pack_prim_index_offset] = 0;  // unused for instances

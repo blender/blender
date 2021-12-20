@@ -91,7 +91,7 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
       ++ctx->num_hits;
 
       /* Always use baked shadow transparency for curves. */
-      if (current_isect.type & PRIMITIVE_ALL_CURVE) {
+      if (current_isect.type & PRIMITIVE_CURVE) {
         ctx->throughput *= intersection_curve_shadow_transparency(
             kg, current_isect.object, current_isect.prim, current_isect.u);
 

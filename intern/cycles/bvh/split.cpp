@@ -535,15 +535,15 @@ void BVHSpatialSplit::split_reference(const BVHBuild &builder,
   /* loop over vertices/edges. */
   const Object *ob = builder.objects[ref.prim_object()];
 
-  if (ref.prim_type() & PRIMITIVE_ALL_TRIANGLE) {
+  if (ref.prim_type() & PRIMITIVE_TRIANGLE) {
     Mesh *mesh = static_cast<Mesh *>(ob->get_geometry());
     split_triangle_reference(ref, mesh, dim, pos, left_bounds, right_bounds);
   }
-  else if (ref.prim_type() & PRIMITIVE_ALL_CURVE) {
+  else if (ref.prim_type() & PRIMITIVE_CURVE) {
     Hair *hair = static_cast<Hair *>(ob->get_geometry());
     split_curve_reference(ref, hair, dim, pos, left_bounds, right_bounds);
   }
-  else if (ref.prim_type() & PRIMITIVE_ALL_POINT) {
+  else if (ref.prim_type() & PRIMITIVE_POINT) {
     PointCloud *pointcloud = static_cast<PointCloud *>(ob->get_geometry());
     split_point_reference(ref, pointcloud, dim, pos, left_bounds, right_bounds);
   }

@@ -960,13 +960,15 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
     return set_attribute_int(3, type, derivatives, val);
   }
   else if ((name == u_geom_trianglevertices || name == u_geom_polyvertices) &&
-           sd->type & PRIMITIVE_ALL_TRIANGLE) {
+           sd->type & PRIMITIVE_TRIANGLE) {
     float3 P[3];
 
-    if (sd->type & PRIMITIVE_TRIANGLE)
-      triangle_vertices(kg, sd->prim, P);
-    else
+    if (sd->type & PRIMITIVE_MOTION) {
       motion_triangle_vertices(kg, sd->object, sd->prim, sd->time, P);
+    }
+    else {
+      triangle_vertices(kg, sd->prim, P);
+    }
 
     if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
       object_position_transform(kg, sd, &P[0]);
@@ -986,7 +988,7 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
   }
   /* Hair Attributes */
   else if (name == u_is_curve) {
-    float f = (sd->type & PRIMITIVE_ALL_CURVE) != 0;
+    float f = (sd->type & PRIMITIVE_CURVE) != 0;
     return set_attribute_float(f, type, derivatives, val);
   }
   else if (name == u_curve_thickness) {
@@ -999,7 +1001,7 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
   }
   /* point attributes */
   else if (name == u_is_point) {
-    float f = (sd->type & PRIMITIVE_ALL_POINT) != 0;
+    float f = (sd->type & PRIMITIVE_POINT) != 0;
     return set_attribute_float(f, type, derivatives, val);
   }
   else if (name == u_point_radius) {
@@ -1007,7 +1009,7 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
     return set_attribute_float(f, type, derivatives, val);
   }
   else if (name == u_normal_map_normal) {
-    if (sd->type & PRIMITIVE_ALL_TRIANGLE) {
+    if (sd->type & PRIMITIVE_TRIANGLE) {
       float3 f = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
       return set_attribute_float3(f, type, derivatives, val);
     }

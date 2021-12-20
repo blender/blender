@@ -43,7 +43,7 @@ ccl_device_inline float wireframe(KernelGlobals kg,
                                   ccl_private float3 *P)
 {
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
-  if (sd->prim != PRIM_NONE && sd->type & PRIMITIVE_ALL_TRIANGLE)
+  if (sd->prim != PRIM_NONE && sd->type & PRIMITIVE_TRIANGLE)
 #else
   if (sd->prim != PRIM_NONE)
 #endif
@@ -54,10 +54,12 @@ ccl_device_inline float wireframe(KernelGlobals kg,
     /* Triangles */
     int np = 3;
 
-    if (sd->type & PRIMITIVE_TRIANGLE)
-      triangle_vertices(kg, sd->prim, Co);
-    else
+    if (sd->type & PRIMITIVE_MOTION) {
       motion_triangle_vertices(kg, sd->object, sd->prim, sd->time, Co);
+    }
+    else {
+      triangle_vertices(kg, sd->prim, Co);
+    }
 
     if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
       object_position_transform(kg, sd, &Co[0]);

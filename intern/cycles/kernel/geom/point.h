@@ -113,7 +113,7 @@ ccl_device float4 point_attribute_float4(KernelGlobals kg,
 
 ccl_device float point_radius(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
-  if (sd->type & PRIMITIVE_ALL_POINT) {
+  if (sd->type & PRIMITIVE_POINT) {
     return kernel_tex_fetch(__points, sd->prim).w;
   }
 

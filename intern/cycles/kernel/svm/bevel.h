@@ -206,12 +206,12 @@ ccl_device float3 svm_bevel(
     for (int hit = 0; hit < num_eval_hits; hit++) {
       /* Quickly retrieve P and Ng without setting up ShaderData. */
       float3 hit_P;
-      if (sd->type & PRIMITIVE_TRIANGLE) {
+      if (sd->type == PRIMITIVE_TRIANGLE) {
         hit_P = triangle_refine_local(
             kg, sd, ray.P, ray.D, ray.t, isect.hits[hit].object, isect.hits[hit].prim);
       }
 #  ifdef __OBJECT_MOTION__
-      else if (sd->type & PRIMITIVE_MOTION_TRIANGLE) {
+      else if (sd->type == PRIMITIVE_MOTION_TRIANGLE) {
         float3 verts[3];
         motion_triangle_vertices(kg, sd->object, isect.hits[hit].prim, sd->time, verts);
         hit_P = motion_triangle_refine_local(
@@ -236,11 +236,11 @@ ccl_device float3 svm_bevel(
         float u = isect.hits[hit].u;
         float v = isect.hits[hit].v;
 
-        if (sd->type & PRIMITIVE_TRIANGLE) {
+        if (sd->type == PRIMITIVE_TRIANGLE) {
           N = triangle_smooth_normal(kg, N, prim, u, v);
         }
 #  ifdef __OBJECT_MOTION__
-        else if (sd->type & PRIMITIVE_MOTION_TRIANGLE) {
+        else if (sd->type == PRIMITIVE_MOTION_TRIANGLE) {
           N = motion_triangle_smooth_normal(kg, N, sd->object, prim, u, v, sd->time);
         }
 #  endif /* __OBJECT_MOTION__ */

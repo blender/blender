@@ -194,7 +194,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
     type = kernel_tex_fetch(__objects, object).primitive_type;
   }
 #  ifdef __HAIR__
-  else if (optixGetHitKind() & PRIMITIVE_ALL_CURVE) {
+  else if ((optixGetHitKind() & (~PRIMITIVE_MOTION)) != PRIMITIVE_POINT) {
     u = __uint_as_float(optixGetAttribute_0());
     v = __uint_as_float(optixGetAttribute_1());
 
@@ -234,7 +234,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
   }
 
   /* Always use baked shadow transparency for curves. */
-  if (type & PRIMITIVE_ALL_CURVE) {
+  if (type & PRIMITIVE_CURVE) {
     float throughput = __uint_as_float(optixGetPayload_1());
     throughput *= intersection_curve_shadow_transparency(nullptr, object, prim, u);
     optixSetPayload_1(__float_as_uint(throughput));
@@ -320,7 +320,7 @@ extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
 {
 #ifdef __HAIR__
 #  if OPTIX_ABI_VERSION < 55
-  if (optixGetHitKind() & PRIMITIVE_ALL_CURVE) {
+  if (optixGetPrimitiveType() == OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BSPLINE) {
     /* Filter out curve endcaps. */
     const float u = __uint_as_float(optixGetAttribute_0());
     if (u == 0.0f || u == 1.0f) {
@@ -359,7 +359,7 @@ extern "C" __global__ void __closesthit__kernel_optix_hit()
     optixSetPayload_3(prim);
     optixSetPayload_5(kernel_tex_fetch(__objects, object).primitive_type);
   }
-  else if (optixGetHitKind() & PRIMITIVE_ALL_CURVE) {
+  else if ((optixGetHitKind() & (~PRIMITIVE_MOTION)) != PRIMITIVE_POINT) {
     const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, prim);
     optixSetPayload_1(optixGetAttribute_0()); /* Same as 'optixGetCurveParameter()' */
     optixSetPayload_2(optixGetAttribute_1());
@@ -406,6 +406,7 @@ ccl_device_inline void optix_intersection_curve(const int prim, const int type)
     isect.t *= len;
 
   if (curve_intersect(NULL, &isect, P, dir, isect.t, object, prim, time, type)) {
+    static_assert(PRIMITIVE_ALL < 128, "Values >= 128 are reserved for OptiX internal use");
     optixReportIntersection(isect.t / len,
                             type & PRIMITIVE_ALL,
                             __float_as_int(isect.u),  /* Attribute_0 */
@@ -418,7 +419,7 @@ extern "C" __global__ void __intersection__curve_ribbon()
   const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, optixGetPrimitiveIndex());
   const int prim = segment.prim;
   const int type = segment.type;
-  if (type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON)) {
+  if (type & PRIMITIVE_CURVE_RIBBON) {
     optix_intersection_curve(prim, type);
   }
 }
@@ -460,6 +461,7 @@ extern "C" __global__ void __intersection__point()
   }
 
   if (point_intersect(NULL, &isect, P, dir, isect.t, object, prim, time, type)) {
+    static_assert(PRIMITIVE_ALL < 128, "Values >= 128 are reserved for OptiX internal use");
     optixReportIntersection(isect.t / len, type & PRIMITIVE_ALL);
   }
 }

@@ -635,7 +635,7 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals kg,
                                             float time,
                                             int type)
 {
-  const bool is_motion = (type & PRIMITIVE_ALL_MOTION);
+  const bool is_motion = (type & PRIMITIVE_MOTION);
 
   KernelCurve kcurve = kernel_tex_fetch(__curves, prim);
 
@@ -655,7 +655,7 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals kg,
     motion_curve_keys(kg, object, prim, time, ka, k0, k1, kb, curve);
   }
 
-  if (type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON)) {
+  if (type & PRIMITIVE_CURVE_RIBBON) {
     /* todo: adaptive number of subdivisions could help performance here. */
     const int subdivisions = kernel_data.bvh.curve_subdivisions;
     if (ribbon_intersect(P, dir, tmax, subdivisions, curve, isect)) {
@@ -704,7 +704,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
 
   float4 P_curve[4];
 
-  if (!(sd->type & PRIMITIVE_ALL_MOTION)) {
+  if (!(sd->type & PRIMITIVE_MOTION)) {
     P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
     P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
     P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
@@ -719,7 +719,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
   const float4 dPdu4 = catmull_rom_basis_derivative(P_curve, sd->u);
   const float3 dPdu = float4_to_float3(dPdu4);
 
-  if (sd->type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON)) {
+  if (sd->type & PRIMITIVE_CURVE_RIBBON) {
     /* Rounded smooth normals for ribbons, to approximate thick curve shape. */
     const float3 tangent = normalize(dPdu);
     const float3 bitangent = normalize(cross(tangent, -D));

@@ -69,20 +69,20 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
   sd->I = -ray->D;
 
 #ifdef __HAIR__
-  if (sd->type & PRIMITIVE_ALL_CURVE) {
+  if (sd->type & PRIMITIVE_CURVE) {
     /* curve */
     curve_shader_setup(kg, sd, ray->P, ray->D, isect->t, isect->object, isect->prim);
   }
   else
 #endif
 #ifdef __POINTCLOUD__
-      if (sd->type & PRIMITIVE_ALL_POINT) {
+      if (sd->type & PRIMITIVE_POINT) {
     /* point */
     point_shader_setup(kg, sd, isect, ray);
   }
   else
 #endif
-      if (sd->type & PRIMITIVE_TRIANGLE) {
+      if (sd->type == PRIMITIVE_TRIANGLE) {
     /* static triangle */
     float3 Ng = triangle_normal(kg, sd);
     sd->shader = kernel_tex_fetch(__tri_shader, sd->prim);
@@ -201,7 +201,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
     object_dir_transform_auto(kg, sd, &sd->I);
   }
 
-  if (sd->type & PRIMITIVE_TRIANGLE) {
+  if (sd->type == PRIMITIVE_TRIANGLE) {
     /* smooth normal */
     if (sd->shader & SHADER_SMOOTH_NORMAL) {
       sd->N = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v);

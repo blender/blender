@@ -37,19 +37,19 @@ ccl_device_inline float primitive_surface_attribute_float(KernelGlobals kg,
                                                           ccl_private float *dx,
                                                           ccl_private float *dy)
 {
-  if (sd->type & PRIMITIVE_ALL_TRIANGLE) {
+  if (sd->type & PRIMITIVE_TRIANGLE) {
     if (subd_triangle_patch(kg, sd) == ~0)
       return triangle_attribute_float(kg, sd, desc, dx, dy);
     else
       return subd_triangle_attribute_float(kg, sd, desc, dx, dy);
   }
 #ifdef __HAIR__
-  else if (sd->type & PRIMITIVE_ALL_CURVE) {
+  else if (sd->type & PRIMITIVE_CURVE) {
     return curve_attribute_float(kg, sd, desc, dx, dy);
   }
 #endif
 #ifdef __POINTCLOUD__
-  else if (sd->type & PRIMITIVE_ALL_POINT) {
+  else if (sd->type & PRIMITIVE_POINT) {
     return point_attribute_float(kg, sd, desc, dx, dy);
   }
 #endif
@@ -68,19 +68,19 @@ ccl_device_inline float2 primitive_surface_attribute_float2(KernelGlobals kg,
                                                             ccl_private float2 *dx,
                                                             ccl_private float2 *dy)
 {
-  if (sd->type & PRIMITIVE_ALL_TRIANGLE) {
+  if (sd->type & PRIMITIVE_TRIANGLE) {
     if (subd_triangle_patch(kg, sd) == ~0)
       return triangle_attribute_float2(kg, sd, desc, dx, dy);
     else
       return subd_triangle_attribute_float2(kg, sd, desc, dx, dy);
   }
 #ifdef __HAIR__
-  else if (sd->type & PRIMITIVE_ALL_CURVE) {
+  else if (sd->type & PRIMITIVE_CURVE) {
     return curve_attribute_float2(kg, sd, desc, dx, dy);
   }
 #endif
 #ifdef __POINTCLOUD__
-  else if (sd->type & PRIMITIVE_ALL_POINT) {
+  else if (sd->type & PRIMITIVE_POINT) {
     return point_attribute_float2(kg, sd, desc, dx, dy);
   }
 #endif
@@ -99,19 +99,19 @@ ccl_device_inline float3 primitive_surface_attribute_float3(KernelGlobals kg,
                                                             ccl_private float3 *dx,
                                                             ccl_private float3 *dy)
 {
-  if (sd->type & PRIMITIVE_ALL_TRIANGLE) {
+  if (sd->type & PRIMITIVE_TRIANGLE) {
     if (subd_triangle_patch(kg, sd) == ~0)
       return triangle_attribute_float3(kg, sd, desc, dx, dy);
     else
       return subd_triangle_attribute_float3(kg, sd, desc, dx, dy);
   }
 #ifdef __HAIR__
-  else if (sd->type & PRIMITIVE_ALL_CURVE) {
+  else if (sd->type & PRIMITIVE_CURVE) {
     return curve_attribute_float3(kg, sd, desc, dx, dy);
   }
 #endif
 #ifdef __POINTCLOUD__
-  else if (sd->type & PRIMITIVE_ALL_POINT) {
+  else if (sd->type & PRIMITIVE_POINT) {
     return point_attribute_float3(kg, sd, desc, dx, dy);
   }
 #endif
@@ -130,19 +130,19 @@ ccl_device_forceinline float4 primitive_surface_attribute_float4(KernelGlobals k
                                                                  ccl_private float4 *dx,
                                                                  ccl_private float4 *dy)
 {
-  if (sd->type & PRIMITIVE_ALL_TRIANGLE) {
+  if (sd->type & PRIMITIVE_TRIANGLE) {
     if (subd_triangle_patch(kg, sd) == ~0)
       return triangle_attribute_float4(kg, sd, desc, dx, dy);
     else
       return subd_triangle_attribute_float4(kg, sd, desc, dx, dy);
   }
 #ifdef __HAIR__
-  else if (sd->type & PRIMITIVE_ALL_CURVE) {
+  else if (sd->type & PRIMITIVE_CURVE) {
     return curve_attribute_float4(kg, sd, desc, dx, dy);
   }
 #endif
 #ifdef __POINTCLOUD__
-  else if (sd->type & PRIMITIVE_ALL_POINT) {
+  else if (sd->type & PRIMITIVE_POINT) {
     return point_attribute_float4(kg, sd, desc, dx, dy);
   }
 #endif
@@ -246,7 +246,7 @@ ccl_device bool primitive_ptex(KernelGlobals kg,
 ccl_device float3 primitive_tangent(KernelGlobals kg, ccl_private ShaderData *sd)
 {
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
-  if (sd->type & (PRIMITIVE_ALL_CURVE | PRIMITIVE_ALL_POINT))
+  if (sd->type & (PRIMITIVE_CURVE | PRIMITIVE_POINT))
 #  ifdef __DPDU__
     return normalize(sd->dPdu);
 #  else
@@ -282,16 +282,16 @@ ccl_device_inline float4 primitive_motion_vector(KernelGlobals kg,
   float3 center;
 
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
-  bool is_curve_or_point = sd->type & (PRIMITIVE_ALL_CURVE | PRIMITIVE_ALL_POINT);
+  bool is_curve_or_point = sd->type & (PRIMITIVE_CURVE | PRIMITIVE_POINT);
   if (is_curve_or_point) {
     center = make_float3(0.0f, 0.0f, 0.0f);
 
-    if (sd->type & PRIMITIVE_ALL_CURVE) {
+    if (sd->type & PRIMITIVE_CURVE) {
 #  if defined(__HAIR__)
       center = curve_motion_center_location(kg, sd);
 #  endif
     }
-    else if (sd->type & PRIMITIVE_ALL_POINT) {
+    else if (sd->type & PRIMITIVE_POINT) {
 #  if defined(__POINTCLOUD__)
       center = point_motion_center_location(kg, sd);
 #  endif
@@ -331,7 +331,7 @@ ccl_device_inline float4 primitive_motion_vector(KernelGlobals kg,
     }
     else
 #endif
-        if (sd->type & PRIMITIVE_ALL_TRIANGLE) {
+        if (sd->type & PRIMITIVE_TRIANGLE) {
       /* Triangle */
       if (subd_triangle_patch(kg, sd) == ~0) {
         motion_pre = triangle_attribute_float3(kg, sd, desc, NULL, NULL);

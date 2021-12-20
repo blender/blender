@@ -118,16 +118,16 @@ ccl_device_forceinline int intersection_get_shader_flags(KernelGlobals kg,
 {
   int shader = 0;
 
-  if (type & PRIMITIVE_ALL_TRIANGLE) {
+  if (type & PRIMITIVE_TRIANGLE) {
     shader = kernel_tex_fetch(__tri_shader, prim);
   }
 #ifdef __POINTCLOUD__
-  else if (type & PRIMITIVE_ALL_POINT) {
+  else if (type & PRIMITIVE_POINT) {
     shader = kernel_tex_fetch(__points_shader, prim);
   }
 #endif
 #ifdef __HAIR__
-  else if (type & PRIMITIVE_ALL_CURVE) {
+  else if (type & PRIMITIVE_CURVE) {
     shader = kernel_tex_fetch(__curves, prim).shader_id;
   }
 #endif
@@ -141,16 +141,16 @@ ccl_device_forceinline int intersection_get_shader_from_isect_prim(KernelGlobals
 {
   int shader = 0;
 
-  if (isect_type & PRIMITIVE_ALL_TRIANGLE) {
+  if (isect_type & PRIMITIVE_TRIANGLE) {
     shader = kernel_tex_fetch(__tri_shader, prim);
   }
 #ifdef __POINTCLOUD__
-  else if (isect_type & PRIMITIVE_ALL_POINT) {
+  else if (isect_type & PRIMITIVE_POINT) {
     shader = kernel_tex_fetch(__points_shader, prim);
   }
 #endif
 #ifdef __HAIR__
-  else if (isect_type & PRIMITIVE_ALL_CURVE) {
+  else if (isect_type & PRIMITIVE_CURVE) {
     shader = kernel_tex_fetch(__curves, prim).shader_id;
   }
 #endif
