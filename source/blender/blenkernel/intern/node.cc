@@ -258,13 +258,10 @@ static void ntree_free_data(ID *id)
 {
   bNodeTree *ntree = (bNodeTree *)id;
 
-  SCOPED_TIMER(ntree->id.name + 2);
-
   /* XXX hack! node trees should not store execution graphs at all.
    * This should be removed when old tree types no longer require it.
    * Currently the execution data for texture nodes remains in the tree
-   * after execution, until the node tree is updated or freed.
-   */
+   * after execution, until the node tree is updated or freed. */
   if (ntree->execdata) {
     switch (ntree->type) {
       case NTREE_SHADER:
@@ -280,7 +277,7 @@ static void ntree_free_data(ID *id)
   /* XXX not nice, but needed to free localized node groups properly */
   free_localized_node_groups(ntree);
 
-  /* unregister associated RNA types */
+  /* Unregister associated RNA types. */
   ntreeInterfaceTypeFree(ntree);
 
   BLI_freelistN(&ntree->links); /* do first, then unlink_node goes fast */
@@ -524,7 +521,6 @@ static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *so
 
 static void write_node_socket(BlendWriter *writer, bNodeSocket *sock)
 {
-  /* actual socket writing */
   BLO_write_struct(writer, bNodeSocket, sock);
 
   if (sock->prop) {
@@ -535,7 +531,6 @@ static void write_node_socket(BlendWriter *writer, bNodeSocket *sock)
 }
 static void write_node_socket_interface(BlendWriter *writer, bNodeSocket *sock)
 {
-  /* actual socket writing */
   BLO_write_struct(writer, bNodeSocket, sock);
 
   if (sock->prop) {
@@ -548,8 +543,6 @@ static void write_node_socket_interface(BlendWriter *writer, bNodeSocket *sock)
 void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
 {
   BKE_id_blend_write(writer, &ntree->id);
-
-  /* for link_list() speed, we write per list */
 
   if (ntree->adt) {
     BKE_animdata_blend_write(writer, ntree->adt);
@@ -574,7 +567,6 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
     }
 
     if (node->storage) {
-      /* could be handlerized at some point, now only 1 exception still */
       if (ELEM(ntree->type, NTREE_SHADER, NTREE_GEOMETRY) &&
           ELEM(node->type, SH_NODE_CURVE_VEC, SH_NODE_CURVE_RGB, SH_NODE_CURVE_FLOAT)) {
         BKE_curvemapping_blend_write(writer, (const CurveMapping *)node->storage);
@@ -648,13 +640,13 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
     }
 
     if (node->type == CMP_NODE_OUTPUT_FILE) {
-      /* inputs have own storage data */
+      /* Inputs have their own storage data. */
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
         BLO_write_struct(writer, NodeImageMultiFileSocket, sock->storage);
       }
     }
     if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
-      /* write extra socket info */
+      /* Write extra socket info. */
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
         BLO_write_struct(writer, NodeImageLayer, sock->storage);
       }
@@ -750,7 +742,6 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
     }
 
     if (node->storage) {
-      /* could be handlerized at some point */
       switch (node->type) {
         case SH_NODE_CURVE_VEC:
         case SH_NODE_CURVE_RGB:
@@ -1098,21 +1089,18 @@ static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType 
     return;
   }
   bNodeSocketTemplate *sockdef;
-  /* bNodeSocket *sock; */ /* UNUSED */
 
   if (ntype->inputs) {
     sockdef = ntype->inputs;
     while (sockdef->type != -1) {
-      /* sock = */ node_add_socket_from_template(ntree, node, sockdef, SOCK_IN);
-
+      node_add_socket_from_template(ntree, node, sockdef, SOCK_IN);
       sockdef++;
     }
   }
   if (ntype->outputs) {
     sockdef = ntype->outputs;
     while (sockdef->type != -1) {
-      /* sock = */ node_add_socket_from_template(ntree, node, sockdef, SOCK_OUT);
-
+      node_add_socket_from_template(ntree, node, sockdef, SOCK_OUT);
       sockdef++;
     }
   }
@@ -1170,8 +1158,7 @@ static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
     RNA_pointer_create((ID *)ntree, &RNA_Node, node, &ptr);
 
     /* XXX Warning: context can be nullptr in case nodes are added in do_versions.
-     * Delayed init is not supported for nodes with context-based `initfunc_api` at the moment.
-     */
+     * Delayed init is not supported for nodes with context-based `initfunc_api` at the moment. */
     BLI_assert(C != nullptr);
     ntype->initfunc_api(C, &ptr);
   }
@@ -1582,7 +1569,7 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
     /* if no explicit identifier is given, assign a unique identifier based on the name */
     BLI_strncpy(auto_identifier, name, sizeof(auto_identifier));
   }
-  /* make the identifier unique */
+  /* Make the identifier unique. */
   BLI_uniquename_cb(
       unique_identifier_check, lb, "socket", '_', auto_identifier, sizeof(auto_identifier));
 
@@ -2235,9 +2222,8 @@ bNode *nodeAddStaticNode(const struct bContext *C, bNodeTree *ntree, int type)
   const char *idname = nullptr;
 
   NODE_TYPES_BEGIN (ntype) {
-    /* do an extra poll here, because some int types are used
-     * for multiple node types, this helps find the desired type
-     */
+    /* Do an extra poll here, because some int types are used
+     * for multiple node types, this helps find the desired type. */
     const char *disabled_hint;
     if (ntype->type == type && (!ntype->poll || ntype->poll(ntype, ntree, &disabled_hint))) {
       idname = ntype->idname;
@@ -2267,9 +2253,8 @@ static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src,
   }
 
   sock_dst->stack_index = 0;
-  /* XXX some compositor node (e.g. image, render layers) still store
-   * some persistent buffer data here, need to clear this to avoid dangling pointers.
-   */
+  /* XXX some compositor nodes (e.g. image, render layers) still store
+   * some persistent buffer data here, need to clear this to avoid dangling pointers. */
   sock_dst->cache = nullptr;
 }
 
@@ -2284,7 +2269,7 @@ bNode *BKE_node_copy_ex(bNodeTree *ntree,
 
   *node_dst = *node_src;
 
-  /* can be called for nodes outside a node tree (e.g. clipboard) */
+  /* Can be called for nodes outside a node tree (e.g. clipboard). */
   if (ntree) {
     if (unique_name) {
       nodeUniqueName(ntree, node_dst);
@@ -2421,7 +2406,7 @@ bNodeLink *nodeAddLink(
 {
   bNodeLink *link = nullptr;
 
-  /* test valid input */
+  /* Test valid input. */
   BLI_assert(fromnode);
   BLI_assert(tonode);
 
@@ -2460,7 +2445,7 @@ bNodeLink *nodeAddLink(
 
 void nodeRemLink(bNodeTree *ntree, bNodeLink *link)
 {
-  /* can be called for links outside a node tree (e.g. clipboard) */
+  /* Can be called for links outside a node tree (e.g. clipboard). */
   if (ntree) {
     BLI_remlink(&ntree->links, link);
   }
@@ -3244,8 +3229,7 @@ static void free_localized_node_groups(bNodeTree *ntree)
   /* Only localized node trees store a copy for each node group tree.
    * Each node group tree in a localized node tree can be freed,
    * since it is a localized copy itself (no risk of accessing free'd
-   * data in main, see T37939).
-   */
+   * data in main, see T37939). */
   if (!(ntree->id.tag & LIB_TAG_LOCALIZED)) {
     return;
   }
@@ -3441,7 +3425,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
     }
   }
 
-  /* ensures only a single output node is enabled */
+  /* Ensures only a single output node is enabled. */
   ntreeSetOutput(ntree);
 
   bNode *node_src = (bNode *)ntree->nodes.first;
