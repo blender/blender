@@ -36,7 +36,7 @@ static bNodeSocketTemplate outputs[] = {
 static void exec(void *data,
                  int UNUSED(thread),
                  bNode *UNUSED(node),
-                 bNodeExecData *execdata,
+                 bNodeExecData *UNUSED(execdata),
                  bNodeStack **in,
                  bNodeStack **UNUSED(out))
 {
@@ -48,7 +48,6 @@ static void exec(void *data,
     params_from_cdata(&params, cdata);
 
     tex_input_rgba(col, in[0], &params, cdata->thread);
-    tex_do_preview(execdata->preview, params.previewco, col, cdata->do_manage);
   }
 }
 

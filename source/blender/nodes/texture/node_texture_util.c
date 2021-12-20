@@ -63,10 +63,6 @@ static void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, sh
 {
   if (dg->node->need_exec) {
     dg->fn(out, params, dg->node, dg->in, thread);
-
-    if (dg->cdata->do_preview) {
-      tex_do_preview(dg->preview, params->previewco, out, dg->cdata->do_manage);
-    }
   }
 }
 
@@ -121,19 +117,6 @@ void params_from_cdata(TexParams *out, TexCallData *in)
   out->osatex = in->osatex;
   out->cfra = in->cfra;
   out->mtex = in->mtex;
-}
-
-void tex_do_preview(bNodePreview *preview,
-                    const float coord[2],
-                    const float col[4],
-                    bool do_manage)
-{
-  if (preview) {
-    int xs = ((coord[0] + 1.0f) * 0.5f) * preview->xsize;
-    int ys = ((coord[1] + 1.0f) * 0.5f) * preview->ysize;
-
-    BKE_node_preview_set_pixel(preview, col, xs, ys, do_manage);
-  }
 }
 
 void tex_output(bNode *node,

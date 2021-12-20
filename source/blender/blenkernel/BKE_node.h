@@ -971,14 +971,6 @@ void BKE_node_preview_merge_tree(struct bNodeTree *to_ntree,
                                  struct bNodeTree *from_ntree,
                                  bool remove_old);
 
-/**
- * Hack warning! this function is only used for shader previews,
- * and since it gets called multiple times per pixel for Z-transparency we only add the color once.
- * Preview gets cleared before it starts render though.
- */
-void BKE_node_preview_set_pixel(
-    struct bNodePreview *preview, const float col[4], int x, int y, bool do_manage);
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

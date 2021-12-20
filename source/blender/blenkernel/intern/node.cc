@@ -3069,27 +3069,6 @@ void BKE_node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, boo
   }
 }
 
-void BKE_node_preview_set_pixel(
-    bNodePreview *preview, const float col[4], int x, int y, bool do_manage)
-{
-  if (preview) {
-    if (x >= 0 && y >= 0) {
-      if (x < preview->xsize && y < preview->ysize) {
-        unsigned char *tar = preview->rect + 4 * ((preview->xsize * y) + x);
-
-        if (do_manage) {
-          linearrgb_to_srgb_uchar4(tar, col);
-        }
-        else {
-          rgba_float_to_uchar(tar, col);
-        }
-      }
-      // else printf("prv out bound x y %d %d\n", x, y);
-    }
-    // else printf("prv out bound x y %d %d\n", x, y);
-  }
-}
-
 /* ************** Free stuff ********** */
 
 void nodeUnlinkNode(bNodeTree *ntree, bNode *node)
