@@ -3485,15 +3485,6 @@ static bool sculpt_brush_test_cyl(SculptBrushTest *test,
 
 /* ===== Sculpting =====
  */
-void flip_v3(float v[3], const ePaintSymmetryFlags symm)
-{
-  flip_v3_v3(v, v, symm);
-}
-
-void flip_qt(float quat[4], const ePaintSymmetryFlags symm)
-{
-  flip_qt_qt(quat, quat, symm);
-}
 
 static float calc_overlap(StrokeCache *cache, const char symm, const char axis, const float angle)
 {
