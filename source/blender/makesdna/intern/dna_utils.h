@@ -60,7 +60,9 @@ char *DNA_elem_id_rename(struct MemArena *mem_arena,
                          const int elem_src_full_len,
                          const uint elem_src_full_offset_len);
 
-/* When requesting version info, support both directions. */
+/**
+ * When requesting version info, support both directions.
+ */
 enum eDNA_RenameDir {
   DNA_RENAME_STATIC_FROM_ALIAS = -1,
   DNA_RENAME_ALIAS_FROM_STATIC = 1,

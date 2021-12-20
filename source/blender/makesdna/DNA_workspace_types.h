@@ -60,7 +60,9 @@ typedef struct bToolRef_Runtime {
   int flag;
 } bToolRef_Runtime;
 
-/* Stored per mode. */
+/**
+ * \note Stored per mode.
+ */
 typedef struct bToolRef {
   struct bToolRef *next, *prev;
   char idname[64];

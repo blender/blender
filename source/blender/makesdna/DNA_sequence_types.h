@@ -47,6 +47,10 @@ struct SequenceLookup;
 struct VFont;
 struct bSound;
 
+/* -------------------------------------------------------------------- */
+/** \name Sequence & Editing Structs
+ * \{ */
+
 /* strlens; 256= FILE_MAXFILE, 768= FILE_MAXDIR */
 
 typedef struct StripAnim {
@@ -311,7 +315,12 @@ typedef struct Editing {
   void *_pad1;
 } Editing;
 
-/* ************* Effect Variable Structs ********* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Effect Variable Structs
+ * \{ */
+
 typedef struct WipeVars {
   float edgeWidth, angle;
   short forward, wipetype;
@@ -360,7 +369,7 @@ typedef struct SpeedControlVars {
   float speed_fader_frame_number;
 } SpeedControlVars;
 
-/* SpeedControlVars.speed_control_type */
+/** #SpeedControlVars.speed_control_type */
 enum {
   SEQ_SPEED_STRETCH = 0,
   SEQ_SPEED_MULTIPLY = 1,
@@ -387,7 +396,7 @@ typedef struct TextVars {
   char _pad[5];
 } TextVars;
 
-/* TextVars.flag */
+/** #TextVars.flag */
 enum {
   SEQ_TEXT_SHADOW = (1 << 0),
   SEQ_TEXT_BOX = (1 << 1),
@@ -395,14 +404,14 @@ enum {
   SEQ_TEXT_ITALIC = (1 << 3),
 };
 
-/* TextVars.align */
+/** #TextVars.align */
 enum {
   SEQ_TEXT_ALIGN_X_LEFT = 0,
   SEQ_TEXT_ALIGN_X_CENTER = 1,
   SEQ_TEXT_ALIGN_X_RIGHT = 2,
 };
 
-/* TextVars.align_y */
+/** #TextVars.align_y */
 enum {
   SEQ_TEXT_ALIGN_Y_TOP = 0,
   SEQ_TEXT_ALIGN_Y_CENTER = 1,
@@ -418,7 +427,11 @@ typedef struct ColorMixVars {
   float factor;
 } ColorMixVars;
 
-/* ***************** Sequence modifiers ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sequence Modifiers
+ * \{ */
 
 typedef struct SequenceModifierData {
   struct SequenceModifierData *next, *prev;
@@ -489,7 +502,11 @@ enum {
   SEQ_TONEMAP_RD_PHOTORECEPTOR = 1,
 };
 
-/* ***************** Scopes ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scopes
+ * \{ */
 
 typedef struct SequencerScopes {
   struct ImBuf *reference_ibuf;
@@ -522,10 +539,15 @@ typedef struct SequencerScopes {
 #define SEQ_SPEED_UNUSED_3 (1 << 2) /* cleared */
 #define SEQ_SPEED_USE_INTERPOLATION (1 << 3)
 
-/* ***************** SEQUENCE ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Flags & Types
+ * \{ */
+
 #define SEQ_NAME_MAXSTR 64
 
-/* seq->flag */
+/** #Sequence.flag */
 enum {
   /* SELECT */
   SEQ_LEFTSEL = (1 << 1),
@@ -568,7 +590,7 @@ enum {
   SEQ_INVALID_EFFECT = (1u << 31),
 };
 
-/* StripProxy->storage */
+/** #StripProxy.storage */
 enum {
   SEQ_STORAGE_PROXY_CUSTOM_FILE = (1 << 1), /* store proxy in custom directory */
   SEQ_STORAGE_PROXY_CUSTOM_DIR = (1 << 2),  /* store proxy in custom file */
@@ -601,18 +623,22 @@ enum {
 #define SEQ_PROXY_TC_RECORD_RUN_NO_GAPS 8
 #define SEQ_PROXY_TC_ALL 15
 
-/* SeqProxy->build_flags */
+/** SeqProxy.build_flags */
 enum {
   SEQ_PROXY_SKIP_EXISTING = 1,
 };
 
-/* seq->alpha_mode */
+/** #Sequence.alpha_mode */
 enum {
   SEQ_ALPHA_STRAIGHT = 0,
   SEQ_ALPHA_PREMUL = 1,
 };
 
-/* seq->type WATCH IT: SEQ_TYPE_EFFECT BIT is used to determine if this is an effect strip!!! */
+/**
+ * #Sequence.type
+ *
+ * \warning #SEQ_TYPE_EFFECT BIT is used to determine if this is an effect strip!
+ */
 enum {
   SEQ_TYPE_IMAGE = 0,
   SEQ_TYPE_META = 1,
@@ -681,7 +707,7 @@ enum {
 
 /* modifiers */
 
-/* SequenceModifierData->type */
+/** #SequenceModifierData.type */
 enum {
   seqModifierType_ColorBalance = 1,
   seqModifierType_Curves = 2,
@@ -694,7 +720,7 @@ enum {
   NUM_SEQUENCE_MODIFIER_TYPES,
 };
 
-/* SequenceModifierData->flag */
+/** #SequenceModifierData.flag */
 enum {
   SEQUENCE_MODIFIER_MUTE = (1 << 0),
   SEQUENCE_MODIFIER_EXPANDED = (1 << 1),
@@ -712,13 +738,14 @@ enum {
   SEQUENCE_MASK_TIME_ABSOLUTE = 1,
 };
 
-/* Sequence->cache_flag
- * SEQ_CACHE_STORE_RAW
- * SEQ_CACHE_STORE_PREPROCESSED
- * SEQ_CACHE_STORE_COMPOSITE
- * FINAL_OUT is ignored
+/**
+ * #Sequence.cache_flag
+ * - #SEQ_CACHE_STORE_RAW
+ * - #SEQ_CACHE_STORE_PREPROCESSED
+ * - #SEQ_CACHE_STORE_COMPOSITE
+ * - #FINAL_OUT is ignored
  *
- * Editing->cache_flag
+ * #Editing.cache_flag
  * all entries
  */
 enum {
@@ -745,7 +772,7 @@ enum {
   SEQ_CACHE_STORE_THUMBNAIL = (1 << 12),
 };
 
-/* Sequence->color_tag. */
+/** #Sequence.color_tag. */
 typedef enum SequenceColorTag {
   SEQUENCE_COLOR_NONE = -1,
   SEQUENCE_COLOR_01,

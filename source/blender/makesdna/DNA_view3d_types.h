@@ -245,7 +245,7 @@ typedef struct View3DOverlay {
   char _pad[4];
 } View3DOverlay;
 
-/* View3DOverlay->handle_display */
+/** #View3DOverlay.handle_display */
 typedef enum eHandleDisplay {
   /* Display only selected points. */
   CURVE_HANDLE_SELECTED = 0,

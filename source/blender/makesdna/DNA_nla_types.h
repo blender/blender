@@ -33,7 +33,7 @@ struct Ipo;
 struct Object;
 struct bAction;
 
-/* simple uniform modifier structure, assumed it can hold all type info */
+/** Simple uniform modifier structure, assumed it can hold all type info. */
 typedef struct bActionModifier {
   struct bActionModifier *next, *prev;
   short type, flag;
@@ -95,7 +95,7 @@ typedef struct bActionStrip {
 #define ACTSTRIPMODE_BLEND 0
 #define ACTSTRIPMODE_ADD 1
 
-/* strip->flag */
+/** #bActionStrip.flag */
 typedef enum eActStrip_Flag {
   ACTSTRIP_SELECT = (1 << 0),
   ACTSTRIP_USESTRIDE = (1 << 1),

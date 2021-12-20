@@ -38,7 +38,7 @@ typedef struct Simulation {
   char _pad[4];
 } Simulation;
 
-/* Simulation.flag */
+/** #Simulation.flag */
 enum {
   SIM_DS_EXPAND = (1 << 0),
 };

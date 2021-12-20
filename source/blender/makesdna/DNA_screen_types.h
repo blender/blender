@@ -244,7 +244,7 @@ typedef struct PanelCategoryDyn {
   rcti rect;
 } PanelCategoryDyn;
 
-/* region stack of active tabs */
+/** Region stack of active tabs. */
 typedef struct PanelCategoryStack {
   struct PanelCategoryStack *next, *prev;
   char idname[64];
@@ -654,8 +654,10 @@ enum {
 
 #define UILST_FLT_SORT_MASK (((unsigned int)(UILST_FLT_SORT_REVERSE | UILST_FLT_SORT_LOCK)) - 1)
 
-/* regiontype, first two are the default set */
-/* Do NOT change order, append on end. Types are hardcoded needed */
+/**
+ * regiontype, first two are the default set.
+ * \warning Do NOT change order, append on end. Types are hard-coded needed.
+ */
 typedef enum eRegion_Type {
   RGN_TYPE_WINDOW = 0,
   RGN_TYPE_HEADER = 1,

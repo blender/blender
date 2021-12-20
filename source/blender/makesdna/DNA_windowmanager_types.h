@@ -33,7 +33,8 @@
 extern "C" {
 #endif
 
-/* defined here: */
+/* Defined here: */
+
 struct wmWindow;
 struct wmWindowManager;
 
@@ -45,7 +46,8 @@ struct wmMsgBus;
 struct wmOperator;
 struct wmOperatorType;
 
-/* forwards */
+/* Forward declarations: */
+
 struct PointerRNA;
 struct Report;
 struct ReportList;
@@ -58,7 +60,7 @@ struct wmTimer;
 #define OP_MAX_TYPENAME 64
 #define KMAP_MAX_NAME 64
 
-/* keep in sync with 'rna_enum_wm_report_items' in wm_rna.c */
+/** Keep in sync with 'rna_enum_wm_report_items' in `wm_rna.c`. */
 typedef enum eReportType {
   RPT_DEBUG = (1 << 0),
   RPT_INFO = (1 << 1),
@@ -100,7 +102,9 @@ typedef struct Report {
   const char *message;
 } Report;
 
-/* saved in the wm, don't remove */
+/**
+ * \note Saved in the wm, don't remove.
+ */
 typedef struct ReportList {
   ListBase list;
   /** eReportType. */
@@ -133,7 +137,7 @@ typedef struct wmXrData {
 
 /* reports need to be before wmWindowManager */
 
-/* windowmanager is saved, tag WMAN */
+/** Window-manager is saved, tag WMAN. */
 typedef struct wmWindowManager {
   ID id;
 
@@ -204,13 +208,13 @@ typedef struct wmWindowManager {
   //#endif
 } wmWindowManager;
 
-/* wmWindowManager.initialized */
+/** #wmWindowManager.initialized */
 enum {
   WM_WINDOW_IS_INIT = (1 << 0),
   WM_KEYCONFIG_IS_INIT = (1 << 1),
 };
 
-/* wmWindowManager.outliner_sync_select_dirty */
+/** #wmWindowManager.outliner_sync_select_dirty */
 enum {
   WM_OUTLINER_SYNC_SELECT_FROM_OBJECT = (1 << 0),
   WM_OUTLINER_SYNC_SELECT_FROM_EDIT_BONE = (1 << 1),
@@ -231,7 +235,9 @@ enum {
 #  endif
 #endif
 
-/* the saveable part, rest of data is local in ghostwinlay */
+/**
+ * The saveable part, the rest of the data is local in GHOST.
+ */
 typedef struct wmWindow {
   struct wmWindow *next, *prev;
 
@@ -352,7 +358,9 @@ typedef struct wmOperatorTypeMacro {
   struct PointerRNA *ptr;
 } wmOperatorTypeMacro;
 
-/* Partial copy of the event, for matching by event handler. */
+/**
+ * Partial copy of the event, for matching by event handler.
+ */
 typedef struct wmKeyMapItem {
   struct wmKeyMapItem *next, *prev;
 
@@ -436,7 +444,9 @@ enum {
   KMI_TYPE_NDOF = 5,
 };
 
-/* stored in WM, the actively used keymaps */
+/**
+ * Stored in WM, the actively used key-maps.
+ */
 typedef struct wmKeyMap {
   struct wmKeyMap *next, *prev;
 
