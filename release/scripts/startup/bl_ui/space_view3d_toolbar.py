@@ -694,9 +694,15 @@ class VIEW3D_PT_tools_weight_gradient(Panel, View3DPaintPanel):
     #bl_context = ".weightpaint" # dot on purpose (access from topbar)
     bl_label = "Falloff"
     bl_options = {'DEFAULT_CLOSED'}
+    # also dont draw as an extra panel in the sidebar (already included in the Brush settings)
+    bl_space_type = 'TOPBAR'
+    bl_region_type = 'HEADER'
 
     @classmethod
     def poll(cls, context):
+        # since we dont give context above, check mode here (to not show in other modes like sculpt)
+        if context.mode != 'PAINT_WEIGHT':
+            return False
         settings = context.tool_settings.weight_paint
         if settings is None:
             return False
