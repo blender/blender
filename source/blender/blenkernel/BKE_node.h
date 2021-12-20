@@ -1159,7 +1159,6 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree,
 #define SH_NODE_SEPRGB 120
 #define SH_NODE_COMBRGB 121
 #define SH_NODE_HUE_SAT 122
-#define NODE_DYNAMIC 123
 
 #define SH_NODE_OUTPUT_MATERIAL 124
 #define SH_NODE_OUTPUT_WORLD 125

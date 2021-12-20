@@ -1372,18 +1372,6 @@ bNodeType *nodeTypeFind(const char *idname)
   return nullptr;
 }
 
-static void free_dynamic_typeinfo(bNodeType *ntype)
-{
-  if (ntype->type == NODE_DYNAMIC) {
-    if (ntype->inputs) {
-      MEM_freeN(ntype->inputs);
-    }
-    if (ntype->outputs) {
-      MEM_freeN(ntype->outputs);
-    }
-  }
-}
-
 /* callback for hash value free function */
 static void node_free_type(void *nodetype_v)
 {
@@ -1392,11 +1380,6 @@ static void node_free_type(void *nodetype_v)
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
   update_typeinfo(G_MAIN, nullptr, nullptr, nodetype, nullptr, true);
-
-  /* XXX deprecated */
-  if (nodetype->type == NODE_DYNAMIC) {
-    free_dynamic_typeinfo(nodetype);
-  }
 
   delete nodetype->fixed_declaration;
   nodetype->fixed_declaration = nullptr;
