@@ -69,48 +69,57 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
   sd->I = -ray->D;
 
 #ifdef __HAIR__
-  if (sd->type & PRIMITIVE_ALL_CURVE) {
+  if (sd->type & PRIMITIVE_CURVE) {
     /* curve */
     curve_shader_setup(kg, sd, ray->P, ray->D, isect->t, isect->object, isect->prim);
   }
   else
 #endif
-      if (sd->type & PRIMITIVE_TRIANGLE) {
-    /* static triangle */
-    float3 Ng = triangle_normal(kg, sd);
-    sd->shader = kernel_tex_fetch(__tri_shader, sd->prim);
+#ifdef __POINTCLOUD__
+      if (sd->type & PRIMITIVE_POINT) {
+    /* point */
+    point_shader_setup(kg, sd, isect, ray);
+  }
+  else
+#endif
+  {
+    if (sd->type == PRIMITIVE_TRIANGLE) {
+      /* static triangle */
+      float3 Ng = triangle_normal(kg, sd);
+      sd->shader = kernel_tex_fetch(__tri_shader, sd->prim);
 
-    /* vectors */
-    sd->P = triangle_refine(kg, sd, ray->P, ray->D, isect->t, isect->object, isect->prim);
-    sd->Ng = Ng;
-    sd->N = Ng;
+      /* vectors */
+      sd->P = triangle_refine(kg, sd, ray->P, ray->D, isect->t, isect->object, isect->prim);
+      sd->Ng = Ng;
+      sd->N = Ng;
 
-    /* smooth normal */
-    if (sd->shader & SHADER_SMOOTH_NORMAL)
-      sd->N = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v);
+      /* smooth normal */
+      if (sd->shader & SHADER_SMOOTH_NORMAL)
+        sd->N = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v);
 
 #ifdef __DPDU__
-    /* dPdu/dPdv */
-    triangle_dPdudv(kg, sd->prim, &sd->dPdu, &sd->dPdv);
+      /* dPdu/dPdv */
+      triangle_dPdudv(kg, sd->prim, &sd->dPdu, &sd->dPdv);
 #endif
-  }
-  else {
-    /* motion triangle */
-    motion_triangle_shader_setup(
-        kg, sd, ray->P, ray->D, isect->t, isect->object, isect->prim, false);
-  }
+    }
+    else {
+      /* motion triangle */
+      motion_triangle_shader_setup(
+          kg, sd, ray->P, ray->D, isect->t, isect->object, isect->prim, false);
+    }
 
-  sd->flag |= kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).flags;
-
-  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    /* instance transform */
-    object_normal_transform_auto(kg, sd, &sd->N);
-    object_normal_transform_auto(kg, sd, &sd->Ng);
+    if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+      /* instance transform */
+      object_normal_transform_auto(kg, sd, &sd->N);
+      object_normal_transform_auto(kg, sd, &sd->Ng);
 #ifdef __DPDU__
-    object_dir_transform_auto(kg, sd, &sd->dPdu);
-    object_dir_transform_auto(kg, sd, &sd->dPdv);
+      object_dir_transform_auto(kg, sd, &sd->dPdu);
+      object_dir_transform_auto(kg, sd, &sd->dPdv);
 #endif
+    }
   }
+
+  sd->flag = kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).flags;
 
   /* backfacing test */
   bool backfacing = (dot(sd->Ng, sd->I) < 0.0f);
@@ -194,7 +203,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
     object_dir_transform_auto(kg, sd, &sd->I);
   }
 
-  if (sd->type & PRIMITIVE_TRIANGLE) {
+  if (sd->type == PRIMITIVE_TRIANGLE) {
     /* smooth normal */
     if (sd->shader & SHADER_SMOOTH_NORMAL) {
       sd->N = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v);

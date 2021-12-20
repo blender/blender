@@ -23,6 +23,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "NOD_socket_search_link.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_mesh_primitive_line_cc {
@@ -65,8 +67,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeGeometryMeshLine *node_storage = (NodeGeometryMeshLine *)MEM_callocN(
-      sizeof(NodeGeometryMeshLine), __func__);
+  NodeGeometryMeshLine *node_storage = MEM_cnew<NodeGeometryMeshLine>(__func__);
 
   node_storage->mode = GEO_NODE_MESH_LINE_MODE_OFFSET;
   node_storage->count_mode = GEO_NODE_MESH_LINE_COUNT_TOTAL;
@@ -98,6 +99,43 @@ static void node_update(bNodeTree *ntree, bNode *node)
                             count_socket,
                             mode == GEO_NODE_MESH_LINE_MODE_OFFSET ||
                                 count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL);
+}
+
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  if (params.in_out() == SOCK_OUT) {
+    search_link_ops_for_declarations(params, declaration.outputs());
+    return;
+  }
+  else if (params.node_tree().typeinfo->validate_link(
+               static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_FLOAT)) {
+    params.add_item(IFACE_("Count"), [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("GeometryNodeMeshLine");
+      node_storage(node).mode = GEO_NODE_MESH_LINE_MODE_OFFSET;
+      params.connect_available_socket(node, "Count");
+    });
+    params.add_item(IFACE_("Resolution"), [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("GeometryNodeMeshLine");
+      node_storage(node).mode = GEO_NODE_MESH_LINE_MODE_OFFSET;
+      node_storage(node).count_mode = GEO_NODE_MESH_LINE_COUNT_RESOLUTION;
+      params.connect_available_socket(node, "Resolution");
+    });
+    params.add_item(IFACE_("Start Location"), [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("GeometryNodeMeshLine");
+      params.connect_available_socket(node, "Start Location");
+    });
+    params.add_item(IFACE_("Offset"), [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("GeometryNodeMeshLine");
+      params.connect_available_socket(node, "Offset");
+    });
+    /* The last socket is reused in end points mode. */
+    params.add_item(IFACE_("End Location"), [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("GeometryNodeMeshLine");
+      node_storage(node).mode = GEO_NODE_MESH_LINE_MODE_END_POINTS;
+      params.connect_available_socket(node, "Offset");
+    });
+  }
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -194,5 +232,6 @@ void register_node_type_geo_mesh_primitive_line()
       &ntype, "NodeGeometryMeshLine", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
+  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   nodeRegisterType(&ntype);
 }

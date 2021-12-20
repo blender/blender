@@ -24,6 +24,7 @@
 #include "node_shader_util.h"
 
 #include "NOD_math_functions.hh"
+#include "NOD_socket_search_link.hh"
 
 /* **************** SCALAR MATH ******************** */
 
@@ -43,6 +44,18 @@ static void sh_node_math_declare(NodeDeclarationBuilder &b)
       .max(10000.0f);
   b.add_output<decl::Float>(N_("Value"));
 };
+
+static void sh_node_math_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  /* For now, do something very basic (only exposing "Add", and a single "Value" socket). */
+  if (params.node_tree().typeinfo->validate_link(
+          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_FLOAT)) {
+    params.add_item(IFACE_("Value"), [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("ShaderNodeMath");
+      params.update_and_connect_available_socket(node, "Value");
+    });
+  }
+}
 
 }  // namespace blender::nodes
 
@@ -171,6 +184,7 @@ void register_node_type_sh_math()
   node_type_gpu(&ntype, gpu_shader_math);
   node_type_update(&ntype, node_math_update);
   ntype.build_multi_function = sh_node_math_build_multi_function;
+  ntype.gather_link_search_ops = blender::nodes::sh_node_math_gather_link_searches;
 
   nodeRegisterType(&ntype);
 }

@@ -174,6 +174,11 @@ class GVArrayCommon {
   void get_internal_single_to_uninitialized(void *r_value) const;
 
   void get(const int64_t index, void *r_value) const;
+  /**
+   * Returns a copy of the value at the given index. Usually a typed virtual array should
+   * be used instead, but sometimes this is simpler when only a few indices are needed.
+   */
+  template<typename T> T get(const int64_t index) const;
   void get_to_uninitialized(const int64_t index, void *r_value) const;
 };
 
@@ -689,6 +694,16 @@ inline void GVArrayCommon::get(const int64_t index, void *r_value) const
   BLI_assert(index >= 0);
   BLI_assert(index < this->size());
   impl_->get(index, r_value);
+}
+
+template<typename T> inline T GVArrayCommon::get(const int64_t index) const
+{
+  BLI_assert(index >= 0);
+  BLI_assert(index < this->size());
+  BLI_assert(this->type().is<T>());
+  T value{};
+  impl_->get(index, &value);
+  return value;
 }
 
 /* Same as `get`, but `r_value` is expected to point to uninitialized memory. */

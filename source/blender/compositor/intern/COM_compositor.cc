@@ -51,7 +51,7 @@ static void compositor_init_node_previews(const RenderData *render_data, bNodeTr
     preview_width = (int)(blender::compositor::COM_PREVIEW_SIZE / aspect);
     preview_height = blender::compositor::COM_PREVIEW_SIZE;
   }
-  BKE_node_preview_init_tree(node_tree, preview_width, preview_height, false);
+  BKE_node_preview_init_tree(node_tree, preview_width, preview_height);
 }
 
 static void compositor_reset_node_tree_status(bNodeTree *node_tree)

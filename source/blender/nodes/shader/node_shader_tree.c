@@ -148,16 +148,6 @@ static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
   }
 }
 
-static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
-{
-  BKE_node_preview_sync_tree(ntree, localtree);
-}
-
-static void local_merge(Main *UNUSED(bmain), bNodeTree *localtree, bNodeTree *ntree)
-{
-  BKE_node_preview_merge_tree(ntree, localtree, true);
-}
-
 static void update(bNodeTree *ntree)
 {
   ntreeSetOutput(ntree);
@@ -170,12 +160,12 @@ static void update(bNodeTree *ntree)
   }
 }
 
-static bool shader_validate_link(bNodeTree *UNUSED(ntree), bNodeLink *link)
+static bool shader_validate_link(eNodeSocketDatatype from, eNodeSocketDatatype to)
 {
   /* Can't connect shader into other socket types, other way around is fine
    * since it will be interpreted as emission. */
-  if (link->fromsock->type == SOCK_SHADER) {
-    return (link->tosock->type == SOCK_SHADER);
+  if (from == SOCK_SHADER) {
+    return to == SOCK_SHADER;
   }
   return true;
 }
@@ -202,8 +192,6 @@ void register_node_tree_type_sh(void)
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->localize = localize;
-  tt->local_sync = local_sync;
-  tt->local_merge = local_merge;
   tt->update = update;
   tt->poll = shader_tree_poll;
   tt->get_from_context = shader_get_from_context;

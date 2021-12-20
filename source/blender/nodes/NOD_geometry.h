@@ -16,11 +16,11 @@
 
 #pragma once
 
+#include "BKE_node.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BKE_node.h"
 
 extern struct bNodeTreeType *ntreeType_Geometry;
 

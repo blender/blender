@@ -21,6 +21,11 @@
  * \ingroup cmpnodes
  */
 
+#include "RNA_access.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** Dilate/Erode ******************** */
@@ -43,11 +48,26 @@ static void node_composit_init_dilateerode(bNodeTree *UNUSED(ntree), bNode *node
   node->storage = data;
 }
 
+static void node_composit_buts_dilateerode(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "distance", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  switch (RNA_enum_get(ptr, "mode")) {
+    case CMP_NODE_DILATEERODE_DISTANCE_THRESH:
+      uiItemR(layout, ptr, "edge", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+      break;
+    case CMP_NODE_DILATEERODE_DISTANCE_FEATHER:
+      uiItemR(layout, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+      break;
+  }
+}
+
 void register_node_type_cmp_dilateerode()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_DILATEERODE, "Dilate/Erode", NODE_CLASS_OP_FILTER, 0);
+  ntype.draw_buttons = node_composit_buts_dilateerode;
   ntype.declare = blender::nodes::cmp_node_dilate_declare;
   node_type_init(&ntype, node_composit_init_dilateerode);
   node_type_storage(

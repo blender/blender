@@ -408,13 +408,14 @@ void FILE_OT_unpack_item(wmOperatorType *ot)
 static int make_paths_relative_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
+  const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
-  if (!G.relbase_valid) {
+  if (blendfile_path[0] == '\0') {
     BKE_report(op->reports, RPT_WARNING, "Cannot set relative paths with an unsaved blend file");
     return OPERATOR_CANCELLED;
   }
 
-  BKE_bpath_relative_convert(bmain, BKE_main_blendfile_path(bmain), op->reports);
+  BKE_bpath_relative_convert(bmain, blendfile_path, op->reports);
 
   /* redraw everything so any changed paths register */
   WM_main_add_notifier(NC_WINDOW, NULL);
@@ -445,13 +446,14 @@ void FILE_OT_make_paths_relative(wmOperatorType *ot)
 static int make_paths_absolute_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
+  const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
-  if (!G.relbase_valid) {
+  if (blendfile_path[0] == '\0') {
     BKE_report(op->reports, RPT_WARNING, "Cannot set absolute paths with an unsaved blend file");
     return OPERATOR_CANCELLED;
   }
 
-  BKE_bpath_absolute_convert(bmain, BKE_main_blendfile_path(bmain), op->reports);
+  BKE_bpath_absolute_convert(bmain, blendfile_path, op->reports);
 
   /* redraw everything so any changed paths register */
   WM_main_add_notifier(NC_WINDOW, NULL);

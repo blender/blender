@@ -100,9 +100,17 @@ void driver_free_variable_ex(struct ChannelDriver *driver, struct DriverVar *dva
  */
 void driver_change_variable_type(struct DriverVar *dvar, int type);
 /**
- * Validate driver name (after being renamed).
+ * Validate driver variable name (after being renamed).
+ *
  */
 void driver_variable_name_validate(struct DriverVar *dvar);
+/**
+ * Ensure the driver variable's name is unique.
+ *
+ * Assumes the driver variable has already been assigned to the driver, so that
+ * the prev/next pointers can be used to find the other variables.
+ */
+void driver_variable_unique_name(struct DriverVar *dvar);
 /**
  * Add a new driver variable.
  */

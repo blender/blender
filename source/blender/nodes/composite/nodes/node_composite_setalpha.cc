@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** SET ALPHA ******************** */
@@ -43,12 +46,18 @@ static void node_composit_init_setalpha(bNodeTree *UNUSED(ntree), bNode *node)
   settings->mode = CMP_NODE_SETALPHA_MODE_APPLY;
 }
 
+static void node_composit_buts_set_alpha(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_setalpha()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SETALPHA, "Set Alpha", NODE_CLASS_CONVERTER, 0);
   ntype.declare = blender::nodes::cmp_node_setalpha_declare;
+  ntype.draw_buttons = node_composit_buts_set_alpha;
   node_type_init(&ntype, node_composit_init_setalpha);
   node_type_storage(
       &ntype, "NodeSetAlpha", node_free_standard_storage, node_copy_standard_storage);

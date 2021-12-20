@@ -29,7 +29,7 @@
 
 namespace blender {
 
-/* A readonly virtual array of vectors. */
+/** A read-only virtual array of vectors. */
 template<typename T> class VVectorArray {
  protected:
   int64_t size_;

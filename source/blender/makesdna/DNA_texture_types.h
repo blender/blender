@@ -98,8 +98,10 @@ typedef struct CBData {
   int cur;
 } CBData;
 
-/* 32 = MAXCOLORBAND */
-/* note that this has to remain a single struct, for UserDef */
+/**
+ * 32 = #MAXCOLORBAND
+ * \note that this has to remain a single struct, for UserDef.
+ */
 typedef struct ColorBand {
   short tot, cur;
   char ipotype, ipotype_hue;
@@ -454,14 +456,14 @@ typedef struct ColorMapping {
 
 /* **************** ColorBand ********************* */
 
-/* colormode */
+/** color-mode. */
 enum {
   COLBAND_BLEND_RGB = 0,
   COLBAND_BLEND_HSV = 1,
   COLBAND_BLEND_HSL = 2,
 };
 
-/* interpolation */
+/** Interpolation. */
 enum {
   COLBAND_INTERP_LINEAR = 0,
   COLBAND_INTERP_EASE = 1,
@@ -470,7 +472,7 @@ enum {
   COLBAND_INTERP_CONSTANT = 4,
 };
 
-/* color interpolation */
+/** Color interpolation. */
 enum {
   COLBAND_HUE_NEAR = 0,
   COLBAND_HUE_FAR = 1,
@@ -509,7 +511,7 @@ enum {
 /* #define TEX_PD_NOISE_AGE     2 */ /* Deprecated */
 /* #define TEX_PD_NOISE_TIME    3 */ /* Deprecated */
 
-/* color_source */
+/** color_source. */
 enum {
   TEX_PD_COLOR_CONSTANT = 0,
   /* color_source: particles */

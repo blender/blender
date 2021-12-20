@@ -194,6 +194,7 @@ set(SRC
   intern/node_multi_function.cc
   intern/node_socket.cc
   intern/node_socket_declarations.cc
+  intern/socket_search_link.cc
   intern/node_tree_ref.cc
   intern/node_util.c
 
@@ -215,6 +216,7 @@ set(SRC
   NOD_shader.h
   NOD_socket.h
   NOD_socket_declarations.hh
+  NOD_socket_search_link.hh
   NOD_socket_declarations_geometry.hh
   NOD_static_types.h
   NOD_texture.h
@@ -313,6 +315,10 @@ if(WITH_OPENVDB)
     ${OPENVDB_INCLUDE_DIRS}
   )
   add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
+endif()
+
+if(WITH_OPENIMAGEDENOISE)
+  add_definitions(-DWITH_OPENIMAGEDENOISE)
 endif()
 
 blender_add_lib(bf_nodes "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

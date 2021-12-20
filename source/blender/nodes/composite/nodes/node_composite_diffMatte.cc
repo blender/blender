@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* ******************* channel Difference Matte ********************************* */
@@ -45,6 +48,16 @@ static void node_composit_init_diff_matte(bNodeTree *UNUSED(ntree), bNode *node)
   c->t2 = 0.1f;
 }
 
+static void node_composit_buts_diff_matte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *col;
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(
+      col, ptr, "tolerance", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_diff_matte()
 {
   static bNodeType ntype;
@@ -52,6 +65,7 @@ void register_node_type_cmp_diff_matte()
   cmp_node_type_base(
       &ntype, CMP_NODE_DIFF_MATTE, "Difference Key", NODE_CLASS_MATTE, NODE_PREVIEW);
   ntype.declare = blender::nodes::cmp_node_diff_matte_declare;
+  ntype.draw_buttons = node_composit_buts_diff_matte;
   node_type_init(&ntype, node_composit_init_diff_matte);
   node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
 

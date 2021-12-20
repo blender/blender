@@ -537,6 +537,77 @@ static void add_edge(const Mesh &mesh,
   loop_edges.append(new_edge_i);
 }
 
+/* Returns true if the vertex is connected only to the two polygons and is not on the boundary. */
+static bool vertex_needs_dissolving(const int vertex,
+                                    const int first_poly_index,
+                                    const int second_poly_index,
+                                    const Span<VertexType> vertex_types,
+                                    const Span<Vector<int>> vertex_poly_indices)
+{
+  /* Order is guaranteed to be the same because 2poly verts that are not on the boundary are
+   * ignored in `sort_vertex_polys`. */
+  return (vertex_types[vertex] != VertexType::Boundary &&
+          vertex_poly_indices[vertex].size() == 2 &&
+          vertex_poly_indices[vertex][0] == first_poly_index &&
+          vertex_poly_indices[vertex][1] == second_poly_index);
+}
+
+/**
+ * Finds 'normal' vertices which are connected to only two polygons and marks them to not be
+ * used in the datastructures derived from the mesh. For each pair of polygons which has such a
+ * vertex, an edge is created for the dual mesh between the centers of those two polygons. All
+ * edges in the input mesh which contain such a vertex are marked as 'done' to prevent duplicate
+ * edges being created. (See T94144)
+ */
+static void dissolve_redundant_verts(const Mesh &mesh,
+                                     const Span<Vector<int>> vertex_poly_indices,
+                                     MutableSpan<VertexType> vertex_types,
+                                     MutableSpan<int> old_to_new_edges_map,
+                                     Vector<MEdge> &new_edges,
+                                     Vector<int> &new_to_old_edges_map)
+{
+  for (const int vert_i : IndexRange(mesh.totvert)) {
+    if (vertex_poly_indices[vert_i].size() != 2 || vertex_types[vert_i] != VertexType::Normal) {
+      continue;
+    }
+    const int first_poly_index = vertex_poly_indices[vert_i][0];
+    const int second_poly_index = vertex_poly_indices[vert_i][1];
+    const int new_edge_index = new_edges.size();
+    bool edge_created = false;
+    const MPoly &poly = mesh.mpoly[first_poly_index];
+    for (const MLoop &loop : Span<MLoop>(&mesh.mloop[poly.loopstart], poly.totloop)) {
+      const MEdge &edge = mesh.medge[loop.e];
+      const int v1 = edge.v1;
+      const int v2 = edge.v2;
+      bool mark_edge = false;
+      if (vertex_needs_dissolving(
+              v1, first_poly_index, second_poly_index, vertex_types, vertex_poly_indices)) {
+        /* This vertex is now 'removed' and should be ignored elsewhere. */
+        vertex_types[v1] = VertexType::Loose;
+        mark_edge = true;
+      }
+      if (vertex_needs_dissolving(
+              v2, first_poly_index, second_poly_index, vertex_types, vertex_poly_indices)) {
+        /* This vertex is now 'removed' and should be ignored elsewhere. */
+        vertex_types[v2] = VertexType::Loose;
+        mark_edge = true;
+      }
+      if (mark_edge) {
+        if (!edge_created) {
+          MEdge new_edge = MEdge(edge);
+          /* The vertex indices in the dual mesh are the polygon indices of the input mesh. */
+          new_edge.v1 = first_poly_index;
+          new_edge.v2 = second_poly_index;
+          new_to_old_edges_map.append(loop.e);
+          new_edges.append(new_edge);
+          edge_created = true;
+        }
+        old_to_new_edges_map[loop.e] = new_edge_index;
+      }
+    }
+  }
+}
+
 /**
  * Calculate the barycentric dual of a mesh. The dual is only "dual" in terms of connectivity,
  * i.e. applying the function twice will give the same vertices, edges, and faces, but not the
@@ -564,6 +635,9 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
   Array<VertexType> vertex_types(mesh_in.totvert);
   Array<EdgeType> edge_types(mesh_in.totedge);
   calc_boundaries(mesh_in, vertex_types, edge_types);
+  /* Stores the indices of the polygons connected to the vertex. Because the polygons are looped
+   * over in order of their indices, the polygon's indices will be sorted in ascending order.
+   (This can change once they are sorted using `sort_vertex_polys`). */
   Array<Vector<int>> vertex_poly_indices(mesh_in.totvert);
   Array<Array<int>> vertex_shared_edges(mesh_in.totvert);
   Array<Array<int>> vertex_corners(mesh_in.totvert);
@@ -632,6 +706,16 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
    * don't need a hashmap for that. */
   Array<int> old_to_new_edges_map(mesh_in.totedge);
   old_to_new_edges_map.fill(-1);
+
+  /* This is necessary to prevent duplicate edges from being created, but will likely not do
+   * anything for most meshes. */
+  dissolve_redundant_verts(mesh_in,
+                           vertex_poly_indices,
+                           vertex_types,
+                           old_to_new_edges_map,
+                           new_edges,
+                           new_to_old_edges_map);
+
   for (const int i : IndexRange(mesh_in.totvert)) {
     if (vertex_types[i] == VertexType::Loose || vertex_types[i] >= VertexType::NonManifold ||
         (!keep_boundaries && vertex_types[i] == VertexType::Boundary)) {

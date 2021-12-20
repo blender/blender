@@ -73,27 +73,27 @@ namespace blender {
  * - Add non RGB spaces/storages ColorXyz.
  */
 
-/* Enumeration containing the different alpha modes. */
+/** Enumeration containing the different alpha modes. */
 enum class eAlpha {
-  /* Color and alpha are unassociated. */
+  /** Color and alpha are unassociated. */
   Straight,
-  /* Color and alpha are associated. */
+  /** Color and alpha are associated. */
   Premultiplied,
 };
 std::ostream &operator<<(std::ostream &stream, const eAlpha &space);
 
-/* Enumeration containing internal spaces. */
+/** Enumeration containing internal spaces. */
 enum class eSpace {
-  /* Blender theme color space (sRGB). */
+  /** Blender theme color space (sRGB). */
   Theme,
-  /* Blender internal scene linear color space (maps to SceneReference role in OCIO). */
+  /** Blender internal scene linear color space (maps to SceneReference role in OCIO). */
   SceneLinear,
-  /* Blender internal scene linear color space compressed to be stored in 4 uint8_t. */
+  /** Blender internal scene linear color space compressed to be stored in 4 uint8_t. */
   SceneLinearByteEncoded,
 };
 std::ostream &operator<<(std::ostream &stream, const eSpace &space);
 
-/* Template class to store RGBA values with different precision, space and alpha association. */
+/** Template class to store RGBA values with different precision, space and alpha association. */
 template<typename ChannelStorageType, eSpace Space, eAlpha Alpha> class ColorRGBA {
  public:
   ChannelStorageType r, g, b, a;
@@ -153,11 +153,13 @@ template<typename ChannelStorageType, eSpace Space, eAlpha Alpha> class ColorRGB
 };
 
 /* Forward declarations of concrete color classes. */
+
 template<eAlpha Alpha> class ColorSceneLinear4f;
 template<eAlpha Alpha> class ColorSceneLinearByteEncoded4b;
 template<typename ChannelStorageType> class ColorTheme4;
 
 /* Forward declaration of precision conversion methods. */
+
 BLI_INLINE ColorTheme4<float> BLI_color_convert_to_theme4f(const ColorTheme4<uint8_t> &srgb4b);
 BLI_INLINE ColorTheme4<uint8_t> BLI_color_convert_to_theme4b(const ColorTheme4<float> &srgb4f);
 
@@ -354,6 +356,7 @@ BLI_color_convert_to_theme4b(const ColorSceneLinear4f<eAlpha::Straight> &scene_l
 }
 
 /* Internal roles. For convenience to shorten the type names and hide complexity. */
+
 using ColorGeometry4f = ColorSceneLinear4f<eAlpha::Premultiplied>;
 using ColorGeometry4b = ColorSceneLinearByteEncoded4b<eAlpha::Premultiplied>;
 

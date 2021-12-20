@@ -214,7 +214,7 @@ static bool check_engine_supports_preview(Scene *scene)
 
 static bool preview_method_is_render(int pr_method)
 {
-  return ELEM(pr_method, PR_ICON_RENDER, PR_BUTS_RENDER, PR_NODE_RENDER);
+  return ELEM(pr_method, PR_ICON_RENDER, PR_BUTS_RENDER);
 }
 
 void ED_preview_free_dbase(void)
@@ -528,15 +528,6 @@ static Scene *preview_prepare_scene(
                                               MA_SPHERE_A :
                                               mat->pr_type;
         set_preview_visibility(pr_main, sce, view_layer, preview_type, sp->pr_method);
-
-        if (sp->pr_method != PR_ICON_RENDER) {
-          if (mat->nodetree && sp->pr_method == PR_NODE_RENDER) {
-            /* two previews, they get copied by wmJob */
-            BKE_node_preview_init_tree(mat->nodetree, sp->sizex, sp->sizey, true);
-            /* WATCH: Accessing origmat is not safe! */
-            BKE_node_preview_init_tree(origmat->nodetree, sp->sizex, sp->sizey, true);
-          }
-        }
       }
       else {
         sce->display.render_aa = SCE_DISPLAY_AA_OFF;
@@ -572,13 +563,6 @@ static Scene *preview_prepare_scene(
         sp->id_copy = NULL;
         BLI_addtail(&pr_main->textures, tex);
       }
-
-      if (tex && tex->nodetree && sp->pr_method == PR_NODE_RENDER) {
-        /* two previews, they get copied by wmJob */
-        BKE_node_preview_init_tree(tex->nodetree, sp->sizex, sp->sizey, true);
-        /* WATCH: Accessing origtex is not safe! */
-        BKE_node_preview_init_tree(origtex->nodetree, sp->sizex, sp->sizey, true);
-      }
     }
     else if (id_type == ID_LA) {
       Light *la = NULL, *origla = (Light *)id;
@@ -608,13 +592,6 @@ static Scene *preview_prepare_scene(
           }
         }
       }
-
-      if (la && la->nodetree && sp->pr_method == PR_NODE_RENDER) {
-        /* two previews, they get copied by wmJob */
-        BKE_node_preview_init_tree(la->nodetree, sp->sizex, sp->sizey, true);
-        /* WATCH: Accessing origla is not safe! */
-        BKE_node_preview_init_tree(origla->nodetree, sp->sizex, sp->sizey, true);
-      }
     }
     else if (id_type == ID_WO) {
       World *wrld = NULL, *origwrld = (World *)id;
@@ -628,13 +605,6 @@ static Scene *preview_prepare_scene(
 
       set_preview_visibility(pr_main, sce, view_layer, MA_SKY, sp->pr_method);
       sce->world = wrld;
-
-      if (wrld && wrld->nodetree && sp->pr_method == PR_NODE_RENDER) {
-        /* two previews, they get copied by wmJob */
-        BKE_node_preview_init_tree(wrld->nodetree, sp->sizex, sp->sizey, true);
-        /* WATCH: Accessing origwrld is not safe! */
-        BKE_node_preview_init_tree(origwrld->nodetree, sp->sizex, sp->sizey, true);
-      }
     }
 
     return sce;
@@ -1037,41 +1007,8 @@ static int shader_preview_break(void *spv)
   return *(sp->stop);
 }
 
-/* outside thread, called before redraw notifiers, it moves finished preview over */
-static void shader_preview_updatejob(void *spv)
+static void shader_preview_updatejob(void *UNUSED(spv))
 {
-  ShaderPreview *sp = spv;
-
-  if (sp->pr_method == PR_NODE_RENDER) {
-    if (GS(sp->id->name) == ID_MA) {
-      Material *mat = (Material *)sp->id;
-
-      if (sp->matcopy && mat->nodetree && sp->matcopy->nodetree) {
-        ntreeLocalSync(sp->matcopy->nodetree, mat->nodetree);
-      }
-    }
-    else if (GS(sp->id->name) == ID_TE) {
-      Tex *tex = (Tex *)sp->id;
-
-      if (sp->texcopy && tex->nodetree && sp->texcopy->nodetree) {
-        ntreeLocalSync(sp->texcopy->nodetree, tex->nodetree);
-      }
-    }
-    else if (GS(sp->id->name) == ID_WO) {
-      World *wrld = (World *)sp->id;
-
-      if (sp->worldcopy && wrld->nodetree && sp->worldcopy->nodetree) {
-        ntreeLocalSync(sp->worldcopy->nodetree, wrld->nodetree);
-      }
-    }
-    else if (GS(sp->id->name) == ID_LA) {
-      Light *la = (Light *)sp->id;
-
-      if (sp->lampcopy && la->nodetree && sp->lampcopy->nodetree) {
-        ntreeLocalSync(sp->lampcopy->nodetree, la->nodetree);
-      }
-    }
-  }
 }
 
 /* Renders texture directly to render buffer. */
@@ -1187,21 +1124,12 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
     sce->r.scemode |= R_NO_IMAGE_LOAD;
     sce->display.render_aa = SCE_DISPLAY_AA_SAMPLES_8;
   }
-  else if (sp->pr_method == PR_NODE_RENDER) {
-    if (idtype == ID_MA) {
-      sce->r.scemode |= R_MATNODE_PREVIEW;
-    }
-    else if (idtype == ID_TE) {
-      sce->r.scemode |= R_TEXNODE_PREVIEW;
-    }
-    sce->display.render_aa = SCE_DISPLAY_AA_OFF;
-  }
   else { /* PR_BUTS_RENDER */
     sce->display.render_aa = SCE_DISPLAY_AA_SAMPLES_8;
   }
 
   /* Callbacks are cleared on GetRender(). */
-  if (ELEM(sp->pr_method, PR_BUTS_RENDER, PR_NODE_RENDER)) {
+  if (sp->pr_method == PR_BUTS_RENDER) {
     RE_display_update_cb(re, sp, shader_preview_update);
   }
   /* set this for all previews, default is react to G.is_break still */
@@ -1308,10 +1236,6 @@ static void shader_preview_free(void *customdata)
     BLI_assert(main_id_copy == NULL);
     main_id_copy = (ID *)sp->lampcopy;
     BLI_remlink(&pr_main->lights, sp->lampcopy);
-  }
-  if (main_id_copy || sp->id_copy) {
-    /* node previews */
-    shader_preview_updatejob(sp);
   }
   if (sp->own_id_copy) {
     if (sp->id_copy) {
@@ -1871,7 +1795,7 @@ void ED_preview_shader_job(const bContext *C,
   wmJob *wm_job;
   ShaderPreview *sp;
   Scene *scene = CTX_data_scene(C);
-  short id_type = GS(id->name);
+  const ID_Type id_type = GS(id->name);
 
   BLI_assert(BKE_previewimg_id_supports_jobs(id));
 
@@ -1879,11 +1803,6 @@ void ED_preview_shader_job(const bContext *C,
    * since the other previews are related to the datablock. */
 
   if (preview_method_is_render(method) && !check_engine_supports_preview(scene)) {
-    return;
-  }
-
-  /* Only texture node preview is supported with Cycles. */
-  if (method == PR_NODE_RENDER && id_type != ID_TE) {
     return;
   }
 
@@ -1915,7 +1834,7 @@ void ED_preview_shader_job(const bContext *C,
    * once with custom preview .blend path for external engines */
 
   /* grease pencil use its own preview file */
-  if (GS(id->name) == ID_MA) {
+  if (id_type == ID_MA) {
     ma = (Material *)id;
   }
 

@@ -14,8 +14,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "BKE_context.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "ED_node.h"
+#include "ED_spreadsheet.h"
+
+#include "NOD_socket_search_link.hh"
 
 #include "node_geometry_util.hh"
 
@@ -35,8 +42,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryViewer *data = (NodeGeometryViewer *)MEM_callocN(sizeof(NodeGeometryViewer),
-                                                               __func__);
+  NodeGeometryViewer *data = MEM_cnew<NodeGeometryViewer>(__func__);
   data->data_type = CD_PROP_FLOAT;
 
   node->storage = data;
@@ -80,6 +86,52 @@ static void node_update(bNodeTree *ntree, bNode *node)
   }
 }
 
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  auto set_active_fn = [](LinkSearchOpParams &params, bNode &viewer_node) {
+    /* Set this new viewer node active in spreadsheet editors. */
+    SpaceNode *snode = CTX_wm_space_node(&params.C);
+    Main *bmain = CTX_data_main(&params.C);
+    ED_node_set_active(bmain, snode, &params.node_tree, &viewer_node, nullptr);
+    ED_spreadsheet_context_paths_set_geometry_node(bmain, snode, &viewer_node);
+  };
+
+  const std::optional<CustomDataType> type = node_socket_to_custom_data_type(
+      params.other_socket());
+  if (params.in_out() == SOCK_OUT) {
+    /* The viewer node only has inputs. */
+    return;
+  }
+  if (params.other_socket().type == SOCK_GEOMETRY) {
+    params.add_item(IFACE_("Geometry"), [set_active_fn](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("GeometryNodeViewer");
+      params.connect_available_socket(node, "Geometry");
+      set_active_fn(params, node);
+    });
+  }
+  if (type &&
+      ELEM(type, CD_PROP_FLOAT, CD_PROP_BOOL, CD_PROP_INT32, CD_PROP_FLOAT3, CD_PROP_COLOR)) {
+    params.add_item(IFACE_("Value"), [type, set_active_fn](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("GeometryNodeViewer");
+      node_storage(node).data_type = *type;
+      params.update_and_connect_available_socket(node, "Value");
+
+      /* If the source node has a geometry socket, connect it to the new viewer node as well. */
+      LISTBASE_FOREACH (bNodeSocket *, socket, &params.node.outputs) {
+        if (socket->type == SOCK_GEOMETRY && !(socket->flag & (SOCK_UNAVAIL | SOCK_HIDDEN))) {
+          nodeAddLink(&params.node_tree,
+                      &params.node,
+                      socket,
+                      &node,
+                      static_cast<bNodeSocket *>(node.inputs.first));
+        }
+      }
+
+      set_active_fn(params, node);
+    });
+  }
+}
+
 }  // namespace blender::nodes::node_geo_viewer_cc
 
 void register_node_type_geo_viewer()
@@ -95,5 +147,6 @@ void register_node_type_geo_viewer()
   node_type_init(&ntype, file_ns::node_init);
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons_ex = file_ns::node_layout;
+  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   nodeRegisterType(&ntype);
 }

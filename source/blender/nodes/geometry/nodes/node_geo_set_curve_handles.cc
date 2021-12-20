@@ -41,8 +41,8 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometrySetCurveHandlePositions *data = (NodeGeometrySetCurveHandlePositions *)MEM_callocN(
-      sizeof(NodeGeometrySetCurveHandlePositions), __func__);
+  NodeGeometrySetCurveHandlePositions *data = MEM_cnew<NodeGeometrySetCurveHandlePositions>(
+      __func__);
 
   data->mode = GEO_NODE_CURVE_HANDLE_LEFT;
   node->storage = data;
@@ -65,7 +65,7 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
   evaluator.add(position_field);
   evaluator.add(offset_field);
   evaluator.evaluate();
-  const IndexMask selection = evaluator.get_evaluated_as_mask(0);
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
   CurveComponent *curve_component = static_cast<CurveComponent *>(&component);
   CurveEval *curve = curve_component->get_for_write();

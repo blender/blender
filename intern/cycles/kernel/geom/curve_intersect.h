@@ -635,7 +635,7 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals kg,
                                             float time,
                                             int type)
 {
-  const bool is_motion = (type & PRIMITIVE_ALL_MOTION);
+  const bool is_motion = (type & PRIMITIVE_MOTION);
 
   KernelCurve kcurve = kernel_tex_fetch(__curves, prim);
 
@@ -655,7 +655,7 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals kg,
     motion_curve_keys(kg, object, prim, time, ka, k0, k1, kb, curve);
   }
 
-  if (type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON)) {
+  if (type & PRIMITIVE_CURVE_RIBBON) {
     /* todo: adaptive number of subdivisions could help performance here. */
     const int subdivisions = kernel_data.bvh.curve_subdivisions;
     if (ribbon_intersect(P, dir, tmax, subdivisions, curve, isect)) {
@@ -704,7 +704,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
 
   float4 P_curve[4];
 
-  if (!(sd->type & PRIMITIVE_ALL_MOTION)) {
+  if (!(sd->type & PRIMITIVE_MOTION)) {
     P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
     P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
     P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
@@ -719,7 +719,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
   const float4 dPdu4 = catmull_rom_basis_derivative(P_curve, sd->u);
   const float3 dPdu = float4_to_float3(dPdu4);
 
-  if (sd->type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON)) {
+  if (sd->type & PRIMITIVE_CURVE_RIBBON) {
     /* Rounded smooth normals for ribbons, to approximate thick curve shape. */
     const float3 tangent = normalize(dPdu);
     const float3 bitangent = normalize(cross(tangent, -D));
@@ -727,8 +727,6 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
     const float cosine = safe_sqrtf(1.0f - sine * sine);
 
     sd->N = normalize(sine * bitangent - cosine * normalize(cross(tangent, bitangent)));
-    sd->Ng = -D;
-
 #  if 0
     /* This approximates the position and geometric normal of a thick curve too,
      * but gives too many issues with wrong self intersections. */
@@ -744,25 +742,27 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
     /* NOTE: It is possible that P will be the same as P_inside (precision issues, or very small
      * radius). In this case use the view direction to approximate the normal. */
     const float3 P_inside = float4_to_float3(catmull_rom_basis_eval(P_curve, sd->u));
-    const float3 Ng = (!isequal_float3(P, P_inside)) ? normalize(P - P_inside) : -sd->I;
+    const float3 N = (!isequal_float3(P, P_inside)) ? normalize(P - P_inside) : -sd->I;
 
-    sd->N = Ng;
-    sd->Ng = Ng;
+    sd->N = N;
     sd->v = 0.0f;
   }
 
 #  ifdef __DPDU__
   /* dPdu/dPdv */
   sd->dPdu = dPdu;
-  sd->dPdv = cross(dPdu, sd->Ng);
 #  endif
 
+  /* Convert to world space. */
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    const Transform tfm = object_get_transform(kg, sd);
-    P = transform_point(&tfm, P);
+    object_position_transform_auto(kg, sd, &P);
+    object_normal_transform_auto(kg, sd, &sd->N);
+    object_dir_transform_auto(kg, sd, &sd->dPdu);
   }
 
   sd->P = P;
+  sd->Ng = (sd->type & PRIMITIVE_CURVE_RIBBON) ? sd->I : sd->N;
+  sd->dPdv = cross(sd->dPdu, sd->Ng);
   sd->shader = kernel_tex_fetch(__curves, sd->prim).shader_id;
 }
 

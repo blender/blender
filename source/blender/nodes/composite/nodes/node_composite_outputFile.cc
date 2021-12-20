@@ -31,6 +31,11 @@
 
 #include "RNA_access.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "WM_api.h"
+
 #include "node_composite_util.hh"
 
 #include "intern/openexr/openexr_multi.h"
@@ -277,12 +282,169 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
   }
 }
 
+static void node_composit_buts_file_output(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  PointerRNA imfptr = RNA_pointer_get(ptr, "format");
+  const bool multilayer = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER;
+
+  if (multilayer) {
+    uiItemL(layout, IFACE_("Path:"), ICON_NONE);
+  }
+  else {
+    uiItemL(layout, IFACE_("Base Path:"), ICON_NONE);
+  }
+  uiItemR(layout, ptr, "base_path", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+}
+
+static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  Scene *scene = CTX_data_scene(C);
+  PointerRNA imfptr = RNA_pointer_get(ptr, "format");
+  PointerRNA active_input_ptr, op_ptr;
+  uiLayout *row, *col;
+  const bool multilayer = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER;
+  const bool is_exr = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_OPENEXR;
+  const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
+
+  node_composit_buts_file_output(layout, C, ptr);
+  uiTemplateImageSettings(layout, &imfptr, false);
+
+  /* disable stereo output for multilayer, too much work for something that no one will use */
+  /* if someone asks for that we can implement it */
+  if (is_multiview) {
+    uiTemplateImageFormatViews(layout, &imfptr, nullptr);
+  }
+
+  uiItemS(layout);
+
+  uiItemO(layout, IFACE_("Add Input"), ICON_ADD, "NODE_OT_output_file_add_socket");
+
+  row = uiLayoutRow(layout, false);
+  col = uiLayoutColumn(row, true);
+
+  const int active_index = RNA_int_get(ptr, "active_input_index");
+  /* using different collection properties if multilayer format is enabled */
+  if (multilayer) {
+    uiTemplateList(col,
+                   C,
+                   "UI_UL_list",
+                   "file_output_node",
+                   ptr,
+                   "layer_slots",
+                   ptr,
+                   "active_input_index",
+                   nullptr,
+                   0,
+                   0,
+                   0,
+                   0,
+                   UI_TEMPLATE_LIST_FLAG_NONE);
+    RNA_property_collection_lookup_int(
+        ptr, RNA_struct_find_property(ptr, "layer_slots"), active_index, &active_input_ptr);
+  }
+  else {
+    uiTemplateList(col,
+                   C,
+                   "UI_UL_list",
+                   "file_output_node",
+                   ptr,
+                   "file_slots",
+                   ptr,
+                   "active_input_index",
+                   nullptr,
+                   0,
+                   0,
+                   0,
+                   0,
+                   UI_TEMPLATE_LIST_FLAG_NONE);
+    RNA_property_collection_lookup_int(
+        ptr, RNA_struct_find_property(ptr, "file_slots"), active_index, &active_input_ptr);
+  }
+  /* XXX collection lookup does not return the ID part of the pointer,
+   * setting this manually here */
+  active_input_ptr.owner_id = ptr->owner_id;
+
+  col = uiLayoutColumn(row, true);
+  wmOperatorType *ot = WM_operatortype_find("NODE_OT_output_file_move_active_socket", false);
+  uiItemFullO_ptr(col, ot, "", ICON_TRIA_UP, nullptr, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+  RNA_enum_set(&op_ptr, "direction", 1);
+  uiItemFullO_ptr(col, ot, "", ICON_TRIA_DOWN, nullptr, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+  RNA_enum_set(&op_ptr, "direction", 2);
+
+  if (active_input_ptr.data) {
+    if (multilayer) {
+      col = uiLayoutColumn(layout, true);
+
+      uiItemL(col, IFACE_("Layer:"), ICON_NONE);
+      row = uiLayoutRow(col, false);
+      uiItemR(row, &active_input_ptr, "name", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+      uiItemFullO(row,
+                  "NODE_OT_output_file_remove_active_socket",
+                  "",
+                  ICON_X,
+                  nullptr,
+                  WM_OP_EXEC_DEFAULT,
+                  UI_ITEM_R_ICON_ONLY,
+                  nullptr);
+    }
+    else {
+      col = uiLayoutColumn(layout, true);
+
+      uiItemL(col, IFACE_("File Subpath:"), ICON_NONE);
+      row = uiLayoutRow(col, false);
+      uiItemR(row, &active_input_ptr, "path", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+      uiItemFullO(row,
+                  "NODE_OT_output_file_remove_active_socket",
+                  "",
+                  ICON_X,
+                  nullptr,
+                  WM_OP_EXEC_DEFAULT,
+                  UI_ITEM_R_ICON_ONLY,
+                  nullptr);
+
+      /* format details for individual files */
+      imfptr = RNA_pointer_get(&active_input_ptr, "format");
+
+      col = uiLayoutColumn(layout, true);
+      uiItemL(col, IFACE_("Format:"), ICON_NONE);
+      uiItemR(col,
+              &active_input_ptr,
+              "use_node_format",
+              UI_ITEM_R_SPLIT_EMPTY_NAME,
+              nullptr,
+              ICON_NONE);
+
+      const bool is_socket_exr = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_OPENEXR;
+      const bool use_node_format = RNA_boolean_get(&active_input_ptr, "use_node_format");
+
+      if ((!is_exr && use_node_format) || (!is_socket_exr && !use_node_format)) {
+        uiItemR(col,
+                &active_input_ptr,
+                "save_as_render",
+                UI_ITEM_R_SPLIT_EMPTY_NAME,
+                nullptr,
+                ICON_NONE);
+      }
+
+      col = uiLayoutColumn(layout, false);
+      uiLayoutSetActive(col, use_node_format == false);
+      uiTemplateImageSettings(col, &imfptr, false);
+
+      if (is_multiview) {
+        uiTemplateImageFormatViews(layout, &imfptr, nullptr);
+      }
+    }
+  }
+}
+
 void register_node_type_cmp_output_file()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_OUTPUT_FILE, "File Output", NODE_CLASS_OUTPUT, NODE_PREVIEW);
   node_type_socket_templates(&ntype, nullptr, nullptr);
+  ntype.draw_buttons = node_composit_buts_file_output;
+  ntype.draw_buttons_ex = node_composit_buts_file_output_ex;
   ntype.initfunc_api = init_output_file;
   node_type_storage(&ntype, "NodeImageMultiFile", free_output_file, copy_output_file);
   node_type_update(&ntype, update_output_file);

@@ -2062,9 +2062,10 @@ static void stampdata(
   time_t t;
 
   if (scene->r.stamp & R_STAMP_FILENAME) {
+    const char *blendfile_path = BKE_main_blendfile_path_from_global();
     SNPRINTF(stamp_data->file,
              do_prefix ? "File %s" : "%s",
-             G.relbase_valid ? BKE_main_blendfile_path_from_global() : "<untitled>");
+             (blendfile_path[0] != '\0') ? blendfile_path : "<untitled>");
   }
   else {
     stamp_data->file[0] = '\0';

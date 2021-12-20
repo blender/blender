@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** INVERT ******************** */
@@ -41,6 +44,15 @@ static void node_composit_init_invert(bNodeTree *UNUSED(ntree), bNode *node)
   node->custom1 |= CMP_CHAN_RGB;
 }
 
+static void node_composit_buts_invert(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *col;
+
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, ptr, "invert_rgb", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "invert_alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 /* custom1 = mix type */
 void register_node_type_cmp_invert()
 {
@@ -48,6 +60,7 @@ void register_node_type_cmp_invert()
 
   cmp_node_type_base(&ntype, CMP_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR, 0);
   ntype.declare = blender::nodes::cmp_node_invert_declare;
+  ntype.draw_buttons = node_composit_buts_invert;
   node_type_init(&ntype, node_composit_init_invert);
 
   nodeRegisterType(&ntype);

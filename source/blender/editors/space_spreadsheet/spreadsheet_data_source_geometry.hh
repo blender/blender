@@ -87,7 +87,7 @@ class GeometryDataSource : public DataSource {
    * filtering.
    */
   bool has_selection_filter() const override;
-  void apply_selection_filter(MutableSpan<bool> rows_included) const;
+  IndexMask apply_selection_filter(Vector<int64_t> &indices) const;
 
   void foreach_default_column_ids(
       FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const override;

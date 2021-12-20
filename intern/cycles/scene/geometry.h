@@ -55,6 +55,7 @@ class Geometry : public Node {
     MESH,
     HAIR,
     VOLUME,
+    POINTCLOUD,
   };
 
   Type geometry_type;
@@ -155,6 +156,11 @@ class Geometry : public Node {
     return geometry_type == HAIR;
   }
 
+  bool is_pointcloud() const
+  {
+    return geometry_type == POINTCLOUD;
+  }
+
   bool is_volume() const
   {
     return geometry_type == VOLUME;
@@ -181,12 +187,14 @@ class GeometryManager {
     MESH_REMOVED = (1 << 5),
     HAIR_ADDED = (1 << 6),
     HAIR_REMOVED = (1 << 7),
+    POINT_ADDED = (1 << 12),
+    POINT_REMOVED = (1 << 13),
 
     SHADER_ATTRIBUTE_MODIFIED = (1 << 8),
     SHADER_DISPLACEMENT_MODIFIED = (1 << 9),
 
-    GEOMETRY_ADDED = MESH_ADDED | HAIR_ADDED,
-    GEOMETRY_REMOVED = MESH_REMOVED | HAIR_REMOVED,
+    GEOMETRY_ADDED = MESH_ADDED | HAIR_ADDED | POINT_ADDED,
+    GEOMETRY_REMOVED = MESH_REMOVED | HAIR_REMOVED | POINT_REMOVED,
 
     TRANSFORM_MODIFIED = (1 << 10),
 

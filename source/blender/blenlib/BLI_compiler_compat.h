@@ -34,7 +34,7 @@
 
 #if (defined(__GNUC__) || defined(__clang__)) && defined(__cplusplus)
 extern "C++" {
-/* Some magic to be sure we don't have reference in the type. */
+/** Some magic to be sure we don't have reference in the type. */
 template<typename T> static inline T decltype_helper(T x)
 {
   return x;

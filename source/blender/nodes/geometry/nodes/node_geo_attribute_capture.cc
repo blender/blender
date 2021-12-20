@@ -19,6 +19,8 @@
 
 #include "BKE_attribute_math.hh"
 
+#include "NOD_socket_search_link.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_attribute_capture_cc {
@@ -52,8 +54,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryAttributeCapture *data = (NodeGeometryAttributeCapture *)MEM_callocN(
-      sizeof(NodeGeometryAttributeCapture), __func__);
+  NodeGeometryAttributeCapture *data = MEM_cnew<NodeGeometryAttributeCapture>(__func__);
   data->data_type = CD_PROP_FLOAT;
   data->domain = ATTR_DOMAIN_POINT;
 
@@ -90,6 +91,33 @@ static void node_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, out_socket_value_color4f, data_type == CD_PROP_COLOR);
   nodeSetSocketAvailability(ntree, out_socket_value_boolean, data_type == CD_PROP_BOOL);
   nodeSetSocketAvailability(ntree, out_socket_value_int32, data_type == CD_PROP_INT32);
+}
+
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  search_link_ops_for_declarations(params, declaration.inputs().take_front(1));
+  search_link_ops_for_declarations(params, declaration.outputs().take_front(1));
+
+  const bNodeType &node_type = params.node_type();
+  const std::optional<CustomDataType> type = node_data_type_to_custom_data_type(
+      (eNodeSocketDatatype)params.other_socket().type);
+  if (type && *type != CD_PROP_STRING) {
+    if (params.in_out() == SOCK_OUT) {
+      params.add_item(IFACE_("Attribute"), [node_type, type](LinkSearchOpParams &params) {
+        bNode &node = params.add_node(node_type);
+        node_storage(node).data_type = *type;
+        params.update_and_connect_available_socket(node, "Attribute");
+      });
+    }
+    else {
+      params.add_item(IFACE_("Value"), [node_type, type](LinkSearchOpParams &params) {
+        bNode &node = params.add_node(node_type);
+        node_storage(node).data_type = *type;
+        params.update_and_connect_available_socket(node, "Value");
+      });
+    }
+  }
 }
 
 static void try_capture_field_on_geometry(GeometryComponent &component,
@@ -216,5 +244,6 @@ void register_node_type_geo_attribute_capture()
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
+  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   nodeRegisterType(&ntype);
 }

@@ -268,18 +268,19 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static bool checkForTimeNode(bNodeTree *tree, Set<bNodeTree *> &r_checked_trees)
+static bool check_tree_for_time_node(const bNodeTree &tree,
+                                     Set<const bNodeTree *> &r_checked_trees)
 {
-  if (!r_checked_trees.add(tree)) {
+  if (!r_checked_trees.add(&tree)) {
     return false;
   }
-  LISTBASE_FOREACH (bNode *, node, &tree->nodes) {
+  LISTBASE_FOREACH (const bNode *, node, &tree.nodes) {
     if (node->type == GEO_NODE_INPUT_SCENE_TIME) {
       return true;
     }
     if (node->type == NODE_GROUP) {
-      bNodeTree *subtree = (bNodeTree *)node->id;
-      if (checkForTimeNode(subtree, r_checked_trees)) {
+      const bNodeTree *sub_tree = reinterpret_cast<const bNodeTree *>(node->id);
+      if (sub_tree && check_tree_for_time_node(*sub_tree, r_checked_trees)) {
         return true;
       }
     }
@@ -291,13 +292,13 @@ static bool dependsOnTime(struct Scene *UNUSED(scene),
                           ModifierData *md,
                           const int UNUSED(dag_eval_mode))
 {
-  NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-  bNodeTree *tree = nmd->node_group;
+  const NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+  const bNodeTree *tree = nmd->node_group;
   if (tree == nullptr) {
     return false;
   }
-  Set<bNodeTree *> checked_trees;
-  return checkForTimeNode(tree, checked_trees);
+  Set<const bNodeTree *> checked_trees;
+  return check_tree_for_time_node(*tree, checked_trees);
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
@@ -1293,7 +1294,7 @@ static void add_attribute_search_button(const bContext &C,
     return;
   }
 
-  AttributeSearchData *data = OBJECT_GUARDED_NEW(AttributeSearchData);
+  AttributeSearchData *data = MEM_new<AttributeSearchData>(__func__);
   data->object_session_uid = object->id.session_uuid;
   STRNCPY(data->modifier_name, nmd.modifier.name);
   STRNCPY(data->socket_identifier, socket.identifier);

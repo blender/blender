@@ -147,7 +147,7 @@ static void init_context(DupliContext *r_ctx,
 /**
  * Create sub-context for recursive duplis.
  */
-static void copy_dupli_context(
+static bool copy_dupli_context(
     DupliContext *r_ctx, const DupliContext *ctx, Object *ob, const float mat[4][4], int index)
 {
   *r_ctx = *ctx;
@@ -168,9 +168,11 @@ static void copy_dupli_context(
 
   if (r_ctx->level == MAX_DUPLI_RECUR - 1) {
     std::cerr << "Warning: Maximum instance recursion level reached.\n";
+    return false;
   }
 
   r_ctx->gen = get_dupli_generator(r_ctx);
+  return true;
 }
 
 /**
@@ -258,7 +260,9 @@ static void make_recursive_duplis(const DupliContext *ctx,
   /* Simple preventing of too deep nested collections with #MAX_DUPLI_RECUR. */
   if (ctx->level < MAX_DUPLI_RECUR) {
     DupliContext rctx;
-    copy_dupli_context(&rctx, ctx, ob, space_mat, index);
+    if (!copy_dupli_context(&rctx, ctx, ob, space_mat, index)) {
+      return;
+    }
     if (rctx.gen) {
       ctx->instance_stack->append(ob);
       rctx.gen->make_duplis(&rctx);
@@ -301,13 +305,13 @@ static void make_child_duplis(const DupliContext *ctx,
     FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (ctx->collection, ob, mode) {
       if ((ob != ctx->obedit) && is_child(ob, parent)) {
         DupliContext pctx;
-        copy_dupli_context(&pctx, ctx, ctx->object, nullptr, _base_id);
-
-        /* Meta-balls have a different dupli handling. */
-        if (ob->type != OB_MBALL) {
-          ob->flag |= OB_DONE; /* Doesn't render. */
+        if (copy_dupli_context(&pctx, ctx, ctx->object, nullptr, _base_id)) {
+          /* Meta-balls have a different dupli handling. */
+          if (ob->type != OB_MBALL) {
+            ob->flag |= OB_DONE; /* Doesn't render. */
+          }
+          make_child_duplis_cb(&pctx, userdata, ob);
         }
-        make_child_duplis_cb(&pctx, userdata, ob);
       }
     }
     FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
@@ -324,14 +328,14 @@ static void make_child_duplis(const DupliContext *ctx,
     DEG_OBJECT_ITER_BEGIN (ctx->depsgraph, ob, deg_objects_visibility_flags) {
       if ((ob != ctx->obedit) && is_child(ob, parent)) {
         DupliContext pctx;
-        copy_dupli_context(&pctx, ctx, ctx->object, nullptr, persistent_dupli_id);
+        if (copy_dupli_context(&pctx, ctx, ctx->object, nullptr, persistent_dupli_id)) {
+          /* Meta-balls have a different dupli-handling. */
+          if (ob->type != OB_MBALL) {
+            ob->flag |= OB_DONE; /* Doesn't render. */
+          }
 
-        /* Meta-balls have a different dupli-handling. */
-        if (ob->type != OB_MBALL) {
-          ob->flag |= OB_DONE; /* Doesn't render. */
+          make_child_duplis_cb(&pctx, userdata, ob);
         }
-
-        make_child_duplis_cb(&pctx, userdata, ob);
       }
       persistent_dupli_id++;
     }
@@ -893,7 +897,9 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
    * between the instances component below and the other components above. */
   DupliContext new_instances_ctx;
   if (creates_duplis_for_components) {
-    copy_dupli_context(&new_instances_ctx, ctx, ctx->object, nullptr, component_index);
+    if (!copy_dupli_context(&new_instances_ctx, ctx, ctx->object, nullptr, component_index)) {
+      return;
+    }
     instances_ctx = &new_instances_ctx;
   }
 
@@ -928,7 +934,9 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
         mul_m4_m4_pre(collection_matrix, parent_transform);
 
         DupliContext sub_ctx;
-        copy_dupli_context(&sub_ctx, instances_ctx, instances_ctx->object, nullptr, id);
+        if (!copy_dupli_context(&sub_ctx, instances_ctx, instances_ctx->object, nullptr, id)) {
+          break;
+        }
 
         eEvaluationMode mode = DEG_get_mode(instances_ctx->depsgraph);
         int object_id = 0;
@@ -951,8 +959,9 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
         mul_m4_m4m4(new_transform, parent_transform, instance_offset_matrices[i].values);
 
         DupliContext sub_ctx;
-        copy_dupli_context(&sub_ctx, instances_ctx, instances_ctx->object, nullptr, id);
-        make_duplis_geometry_set_impl(&sub_ctx, reference.geometry_set(), new_transform, true);
+        if (copy_dupli_context(&sub_ctx, instances_ctx, instances_ctx->object, nullptr, id)) {
+          make_duplis_geometry_set_impl(&sub_ctx, reference.geometry_set(), new_transform, true);
+        }
         break;
       }
       case InstanceReference::Type::None: {
@@ -1609,8 +1618,9 @@ static void make_duplis_particles(const DupliContext *ctx)
   LISTBASE_FOREACH_INDEX (ParticleSystem *, psys, &ctx->object->particlesystem, psysid) {
     /* Particles create one more level for persistent `psys` index. */
     DupliContext pctx;
-    copy_dupli_context(&pctx, ctx, ctx->object, nullptr, psysid);
-    make_duplis_particle_system(&pctx, psys);
+    if (copy_dupli_context(&pctx, ctx, ctx->object, nullptr, psysid)) {
+      make_duplis_particle_system(&pctx, psys);
+    }
   }
 }
 

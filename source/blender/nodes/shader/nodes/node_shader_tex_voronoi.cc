@@ -29,14 +29,22 @@ static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Vector>(N_("Vector")).hide_value().implicit_field();
-  b.add_input<decl::Float>(N_("W")).min(-1000.0f).max(1000.0f);
+  b.add_input<decl::Float>(N_("W")).min(-1000.0f).max(1000.0f).make_available([](bNode &node) {
+    /* Default to 1 instead of 4, because it is much faster. */
+    node_storage(node).dimensions = 1;
+  });
   b.add_input<decl::Float>(N_("Scale")).min(-1000.0f).max(1000.0f).default_value(5.0f);
   b.add_input<decl::Float>(N_("Smoothness"))
       .min(0.0f)
       .max(1.0f)
       .default_value(1.0f)
-      .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Exponent")).min(0.0f).max(32.0f).default_value(0.5f);
+      .subtype(PROP_FACTOR)
+      .make_available([](bNode &node) { node_storage(node).feature = SHD_VORONOI_SMOOTH_F1; });
+  b.add_input<decl::Float>(N_("Exponent"))
+      .min(0.0f)
+      .max(32.0f)
+      .default_value(0.5f)
+      .make_available([](bNode &node) { node_storage(node).distance = SHD_VORONOI_MINKOWSKI; });
   b.add_input<decl::Float>(N_("Randomness"))
       .min(0.0f)
       .max(1.0f)
@@ -45,8 +53,13 @@ static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Distance")).no_muted_links();
   b.add_output<decl::Color>(N_("Color")).no_muted_links();
   b.add_output<decl::Vector>(N_("Position")).no_muted_links();
-  b.add_output<decl::Float>(N_("W")).no_muted_links();
-  b.add_output<decl::Float>(N_("Radius")).no_muted_links();
+  b.add_output<decl::Float>(N_("W")).no_muted_links().make_available([](bNode &node) {
+    /* Default to 1 instead of 4, because it is much faster. */
+    node_storage(node).dimensions = 1;
+  });
+  b.add_output<decl::Float>(N_("Radius")).no_muted_links().make_available([](bNode &node) {
+    node_storage(node).feature = SHD_VORONOI_N_SPHERE_RADIUS;
+  });
 };
 
 }  // namespace blender::nodes

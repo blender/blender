@@ -77,7 +77,7 @@ typedef struct ShaderFxData {
   char *error;
 } ShaderFxData;
 
-/* Runtime temp data */
+/** Runtime temp data. */
 typedef struct ShaderFxData_Runtime {
   float loc[3];
   char _pad[4];

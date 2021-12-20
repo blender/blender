@@ -114,7 +114,7 @@ static void spreadsheet_free(SpaceLink *sl)
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
 
-  delete sspreadsheet->runtime;
+  MEM_delete(sspreadsheet->runtime);
 
   LISTBASE_FOREACH_MUTABLE (SpreadsheetRowFilter *, row_filter, &sspreadsheet->row_filters) {
     spreadsheet_row_filter_free(row_filter);
@@ -131,7 +131,7 @@ static void spreadsheet_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)area->spacedata.first;
   if (sspreadsheet->runtime == nullptr) {
-    sspreadsheet->runtime = new SpaceSpreadsheet_Runtime();
+    sspreadsheet->runtime = MEM_new<SpaceSpreadsheet_Runtime>(__func__);
   }
 }
 
@@ -140,10 +140,11 @@ static SpaceLink *spreadsheet_duplicate(SpaceLink *sl)
   const SpaceSpreadsheet *sspreadsheet_old = (SpaceSpreadsheet *)sl;
   SpaceSpreadsheet *sspreadsheet_new = (SpaceSpreadsheet *)MEM_dupallocN(sspreadsheet_old);
   if (sspreadsheet_old->runtime) {
-    sspreadsheet_new->runtime = new SpaceSpreadsheet_Runtime(*sspreadsheet_old->runtime);
+    sspreadsheet_new->runtime = MEM_new<SpaceSpreadsheet_Runtime>(__func__,
+                                                                  *sspreadsheet_old->runtime);
   }
   else {
-    sspreadsheet_new->runtime = new SpaceSpreadsheet_Runtime();
+    sspreadsheet_new->runtime = MEM_new<SpaceSpreadsheet_Runtime>(__func__);
   }
 
   BLI_listbase_clear(&sspreadsheet_new->row_filters);
@@ -323,6 +324,8 @@ static float get_default_column_width(const ColumnValues &values)
       return 8.0f;
     case SPREADSHEET_VALUE_TYPE_STRING:
       return 5.0f;
+    case SPREADSHEET_VALUE_TYPE_UNKNOWN:
+      return 2.0f;
   }
   return float_width;
 }

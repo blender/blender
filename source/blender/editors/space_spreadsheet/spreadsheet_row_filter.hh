@@ -23,10 +23,10 @@
 
 namespace blender::ed::spreadsheet {
 
-Span<int64_t> spreadsheet_filter_rows(const SpaceSpreadsheet &sspreadsheet,
-                                      const SpreadsheetLayout &spreadsheet_layout,
-                                      const DataSource &data_source,
-                                      ResourceScope &scope);
+IndexMask spreadsheet_filter_rows(const SpaceSpreadsheet &sspreadsheet,
+                                  const SpreadsheetLayout &spreadsheet_layout,
+                                  const DataSource &data_source,
+                                  ResourceScope &scope);
 
 SpreadsheetRowFilter *spreadsheet_row_filter_new();
 SpreadsheetRowFilter *spreadsheet_row_filter_copy(const SpreadsheetRowFilter *src_row_filter);

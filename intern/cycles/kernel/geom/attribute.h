@@ -36,7 +36,7 @@ ccl_device_inline uint subd_triangle_patch(KernelGlobals kg, ccl_private const S
 
 ccl_device_inline uint attribute_primitive_type(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
-  if ((sd->type & PRIMITIVE_ALL_TRIANGLE) && subd_triangle_patch(kg, sd) != ~0) {
+  if ((sd->type & PRIMITIVE_TRIANGLE) && subd_triangle_patch(kg, sd) != ~0) {
     return ATTR_PRIM_SUBD;
   }
   else {

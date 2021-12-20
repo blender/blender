@@ -144,8 +144,6 @@ void BLI_path_sequence_encode(
 
 static int BLI_path_unc_prefix_len(const char *path); /* defined below in same file */
 
-/* ******************** string encoding ***************** */
-
 void BLI_path_normalize(const char *relabase, char *path)
 {
   ptrdiff_t a;
@@ -1002,25 +1000,30 @@ bool BLI_path_abs(char *path, const char *basepath)
   return wasrelative;
 }
 
+bool BLI_path_is_abs_from_cwd(const char *path)
+{
+  bool is_abs = false;
+  const int path_len_clamp = BLI_strnlen(path, 3);
+
+#ifdef WIN32
+  if ((path_len_clamp >= 3 && BLI_path_is_abs(path)) || BLI_path_is_unc(path)) {
+    is_abs = true;
+  }
+#else
+  if (path_len_clamp >= 2 && path[0] == '/') {
+    is_abs = true;
+  }
+#endif
+  return is_abs;
+}
+
 bool BLI_path_abs_from_cwd(char *path, const size_t maxlen)
 {
 #ifdef DEBUG_STRSIZE
   memset(path, 0xff, sizeof(*path) * maxlen);
 #endif
-  bool wasrelative = true;
-  const int filelen = strlen(path);
 
-#ifdef WIN32
-  if ((filelen >= 3 && BLI_path_is_abs(path)) || BLI_path_is_unc(path)) {
-    wasrelative = false;
-  }
-#else
-  if (filelen >= 2 && path[0] == '/') {
-    wasrelative = false;
-  }
-#endif
-
-  if (wasrelative) {
+  if (!BLI_path_is_abs_from_cwd(path)) {
     char cwd[FILE_MAX];
     /* in case the full path to the blend isn't used */
     if (BLI_current_working_dir(cwd, sizeof(cwd))) {
@@ -1031,9 +1034,10 @@ bool BLI_path_abs_from_cwd(char *path, const size_t maxlen)
     else {
       printf("Could not get the current working directory - $PWD for an unknown reason.\n");
     }
+    return true;
   }
 
-  return wasrelative;
+  return false;
 }
 
 #ifdef _WIN32

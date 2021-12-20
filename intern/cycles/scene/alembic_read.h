@@ -122,6 +122,26 @@ void read_geometry_data(AlembicProcedural *proc,
                         const CurvesSchemaData &data,
                         Progress &progress);
 
+/* Data of a ICurvesSchema that we need to read. */
+struct PointsSchemaData {
+  Alembic::AbcGeom::TimeSamplingPtr time_sampling;
+  size_t num_samples;
+
+  float default_radius;
+  float radius_scale;
+
+  Alembic::AbcGeom::IP3fArrayProperty positions;
+  Alembic::AbcGeom::IInt32ArrayProperty num_points;
+  Alembic::AbcGeom::IFloatGeomParam radiuses;
+  // Those are unsupported for now.
+  Alembic::AbcGeom::IV3fArrayProperty velocities;
+};
+
+void read_geometry_data(AlembicProcedural *proc,
+                        CachedData &cached_data,
+                        const PointsSchemaData &data,
+                        Progress &progress);
+
 void read_attributes(AlembicProcedural *proc,
                      CachedData &cache,
                      const Alembic::AbcGeom::ICompoundProperty &arb_geom_params,

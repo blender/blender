@@ -649,6 +649,7 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
       integrator
       light
       mesh
+      pointcloud
       shader
       shadow_catcher
       sss

@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** Map UV  ******************** */
@@ -36,12 +39,18 @@ static void cmp_node_map_uv_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
+static void node_composit_buts_map_uv(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_mapuv()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MAP_UV, "Map UV", NODE_CLASS_DISTORT, 0);
   ntype.declare = blender::nodes::cmp_node_map_uv_declare;
+  ntype.draw_buttons = node_composit_buts_map_uv;
 
   nodeRegisterType(&ntype);
 }

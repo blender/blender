@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** LEVELS ******************** */
@@ -41,12 +44,18 @@ static void node_composit_init_view_levels(bNodeTree *UNUSED(ntree), bNode *node
   node->custom1 = 1; /* All channels. */
 }
 
+static void node_composit_buts_view_levels(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+}
+
 void register_node_type_cmp_view_levels()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_VIEW_LEVELS, "Levels", NODE_CLASS_OUTPUT, NODE_PREVIEW);
   ntype.declare = blender::nodes::cmp_node_levels_declare;
+  ntype.draw_buttons = node_composit_buts_view_levels;
   node_type_init(&ntype, node_composit_init_view_levels);
 
   nodeRegisterType(&ntype);

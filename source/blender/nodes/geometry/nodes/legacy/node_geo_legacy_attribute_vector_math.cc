@@ -103,8 +103,7 @@ static CustomDataType operation_get_read_type_c(const NodeVectorMathOperation op
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeAttributeVectorMath *data = (NodeAttributeVectorMath *)MEM_callocN(
-      sizeof(NodeAttributeVectorMath), __func__);
+  NodeAttributeVectorMath *data = MEM_cnew<NodeAttributeVectorMath>(__func__);
 
   data->operation = NODE_VECTOR_MATH_ADD;
   data->input_type_a = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;

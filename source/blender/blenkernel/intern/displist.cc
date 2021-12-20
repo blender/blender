@@ -1528,7 +1528,7 @@ void BKE_displist_minmax(const ListBase *dispbase, float min[3], float max[3])
   bool doit = false;
 
   LISTBASE_FOREACH (const DispList *, dl, dispbase) {
-    const int tot = (dl->type == DL_INDEX3) ? dl->nr : dl->nr * dl->parts;
+    const int tot = (ELEM(dl->type, DL_INDEX3, DL_INDEX4)) ? dl->nr : dl->nr * dl->parts;
     for (const int i : IndexRange(tot)) {
       minmax_v3v3_v3(min, max, &dl->verts[i * 3]);
     }

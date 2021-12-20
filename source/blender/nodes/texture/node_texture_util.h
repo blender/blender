@@ -121,10 +121,6 @@ void tex_output(bNode *node,
                 bNodeStack *out,
                 TexFn texfn,
                 TexCallData *data);
-void tex_do_preview(bNodePreview *preview,
-                    const float coord[2],
-                    const float col[4],
-                    bool do_manage);
 
 void params_from_cdata(TexParams *out, TexCallData *in);
 

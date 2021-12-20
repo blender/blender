@@ -76,8 +76,7 @@
 
 #if defined(__GNUC__)
 #  define NAN_FLT __builtin_nanf("")
-#else
-/* evil quiet NaN definition */
+#else /* evil quiet NaN definition */
 static const int NAN_INT = 0x7FC00000;
 #  define NAN_FLT (*((float *)(&NAN_INT)))
 #endif
@@ -97,7 +96,8 @@ extern "C" {
 
 /******************************* Float ******************************/
 
-/* powf is really slow for raising to integer powers. */
+/* `powf` is really slow for raising to integer powers. */
+
 MINLINE float pow2f(float x);
 MINLINE float pow3f(float x);
 MINLINE float pow4f(float x);

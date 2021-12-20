@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "../node_composite_util.hh"
 
 /* **************** SCALAR MATH ******************** */
@@ -48,12 +51,27 @@ static void node_composit_init_ellipsemask(bNodeTree *UNUSED(ntree), bNode *node
   node->storage = data;
 }
 
+static void node_composit_buts_ellipsemask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *row;
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, ptr, "x", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "y", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, ptr, "width", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "height", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+
+  uiItemR(layout, ptr, "rotation", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "mask_type", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_ellipsemask()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MASK_ELLIPSE, "Ellipse Mask", NODE_CLASS_MATTE, 0);
   ntype.declare = blender::nodes::cmp_node_ellipsemask_declare;
+  ntype.draw_buttons = node_composit_buts_ellipsemask;
   node_type_size(&ntype, 260, 110, 320);
   node_type_init(&ntype, node_composit_init_ellipsemask);
   node_type_storage(

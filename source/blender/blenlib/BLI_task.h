@@ -303,7 +303,7 @@ void BLI_task_parallel_mempool(struct BLI_mempool *mempool,
                                TaskParallelMempoolFunc func,
                                const TaskParallelSettings *settings);
 
-/* TODO(sergey): Think of a better place for this. */
+/** TODO(sergey): Think of a better place for this. */
 BLI_INLINE void BLI_parallel_range_settings_defaults(TaskParallelSettings *settings)
 {
   memset(settings, 0, sizeof(*settings));

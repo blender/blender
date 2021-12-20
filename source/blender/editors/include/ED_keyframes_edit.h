@@ -380,6 +380,11 @@ bool delete_fcurve_keys(struct FCurve *fcu);
 void clear_fcurve_keys(struct FCurve *fcu);
 void duplicate_fcurve_keys(struct FCurve *fcu);
 
+typedef struct FCurveSegment {
+  struct FCurveSegment *next, *prev;
+  int start_index, length;
+} FCurveSegment;
+ListBase find_fcurve_segments(struct FCurve *fcu);
 void clean_fcurve(struct bAnimContext *ac,
                   struct bAnimListElem *ale,
                   float thresh,

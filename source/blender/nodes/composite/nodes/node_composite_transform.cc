@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** Transform  ******************** */
@@ -43,12 +46,18 @@ static void cmp_node_transform_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
+static void node_composit_buts_transform(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+}
+
 void register_node_type_cmp_transform()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_TRANSFORM, "Transform", NODE_CLASS_DISTORT, 0);
   ntype.declare = blender::nodes::cmp_node_transform_declare;
+  ntype.draw_buttons = node_composit_buts_transform;
 
   nodeRegisterType(&ntype);
 }

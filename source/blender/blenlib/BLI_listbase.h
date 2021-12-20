@@ -46,6 +46,11 @@ int BLI_findstringindex(const struct ListBase *listbase,
                         const char *id,
                         const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
+/**
+ * Return a ListBase representing the entire list the given Link is in.
+ */
+ListBase BLI_listbase_from_link(struct Link *some_link);
+
 /* Find forwards. */
 
 /**
@@ -279,6 +284,23 @@ BLI_INLINE void BLI_listbase_clear(struct ListBase *lb)
 }
 
 /**
+ * Equality check for ListBase.
+ *
+ * This only shallowly compares the ListBase itself (so the first/last
+ * pointers), and does not do any equality checks on the list items.
+ */
+BLI_INLINE bool BLI_listbase_equal(const struct ListBase *a, const struct ListBase *b)
+{
+  if (a == NULL) {
+    return b == NULL;
+  }
+  if (b == NULL) {
+    return false;
+  }
+  return a->first == b->first && a->last == b->last;
+}
+
+/**
  * Create a generic list node containing link to provided data.
  */
 struct LinkData *BLI_genericNodeN(void *data);
@@ -351,5 +373,12 @@ struct LinkData *BLI_genericNodeN(void *data);
        var = var##_iter_prev)
 
 #ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
+BLI_INLINE bool operator==(const ListBase &a, const ListBase &b)
+{
+  return BLI_listbase_equal(&a, &b);
 }
 #endif

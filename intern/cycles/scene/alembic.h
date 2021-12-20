@@ -327,6 +327,11 @@ struct CachedData {
   DataStore<array<int>> curve_first_key;
   DataStore<array<int>> curve_shader;
 
+  /* point data */
+  DataStore<array<float3>> points;
+  DataStore<array<float>> radiuses;
+  DataStore<array<int>> points_shader;
+
   struct CachedAttribute {
     AttributeStandard std;
     AttributeElement element;
@@ -414,6 +419,7 @@ class AlembicObject : public Node {
     POLY_MESH,
     SUBD,
     CURVES,
+    POINTS,
   };
 
   bool need_shader_update = true;
@@ -549,6 +555,10 @@ class AlembicProcedural : public Procedural {
   /* Read the data for an ICurves at the specified frame_time. Creates corresponding Geometry and
    * Object Nodes in the Cycles scene if none exist yet. */
   void read_curves(AlembicObject *abc_object, Alembic::AbcGeom::Abc::chrono_t frame_time);
+
+  /* Read the data for an IPoints at the specified frame_time. Creates corresponding Geometry and
+   * Object Nodes in the Cycles scene if none exist yet. */
+  void read_points(AlembicObject *abc_object, Alembic::AbcGeom::Abc::chrono_t frame_time);
 
   /* Read the data for an ISubD at the specified frame_time. Creates corresponding Geometry and
    * Object Nodes in the Cycles scene if none exist yet. */

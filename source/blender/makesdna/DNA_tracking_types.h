@@ -462,7 +462,7 @@ typedef struct MovieTracking {
   MovieTrackingDopesheet dopesheet;
 } MovieTracking;
 
-/* MovieTrackingCamera->distortion_model */
+/** #MovieTrackingCamera.distortion_model */
 enum {
   TRACKING_DISTORTION_MODEL_POLYNOMIAL = 0,
   TRACKING_DISTORTION_MODEL_DIVISION = 1,
@@ -470,13 +470,13 @@ enum {
   TRACKING_DISTORTION_MODEL_BROWN = 3,
 };
 
-/* MovieTrackingCamera->units */
+/** #MovieTrackingCamera.units */
 enum {
   CAMERA_UNITS_PX = 0,
   CAMERA_UNITS_MM = 1,
 };
 
-/* MovieTrackingMarker->flag */
+/** #MovieTrackingMarker.flag */
 enum {
   MARKER_DISABLED = (1 << 0),
   MARKER_TRACKED = (1 << 1),
@@ -485,7 +485,7 @@ enum {
   MARKER_GRAPH_SEL = (MARKER_GRAPH_SEL_X | MARKER_GRAPH_SEL_Y),
 };
 
-/* MovieTrackingTrack->flag */
+/** #MovieTrackingTrack.flag */
 enum {
   TRACK_HAS_BUNDLE = (1 << 1),
   TRACK_DISABLE_RED = (1 << 2),
@@ -501,7 +501,7 @@ enum {
   TRACK_USE_2D_STAB_ROT = (1 << 12),
 };
 
-/* MovieTrackingTrack->motion_model */
+/** #MovieTrackingTrack.motion_model */
 enum {
   TRACK_MOTION_MODEL_TRANSLATION = 0,
   TRACK_MOTION_MODEL_TRANSLATION_ROTATION = 1,
@@ -511,27 +511,27 @@ enum {
   TRACK_MOTION_MODEL_HOMOGRAPHY = 5,
 };
 
-/* MovieTrackingTrack->algorithm_flag */
+/** #MovieTrackingTrack.algorithm_flag */
 enum {
   TRACK_ALGORITHM_FLAG_USE_BRUTE = (1 << 0),
   TRACK_ALGORITHM_FLAG_USE_NORMALIZATION = (1 << 2),
   TRACK_ALGORITHM_FLAG_USE_MASK = (1 << 3),
 };
 
-/* MovieTrackingTrack->pattern_match */
+/** #MovieTrackingTrack.pattern_match */
 typedef enum eTrackFrameMatch {
   TRACK_MATCH_KEYFRAME = 0,
   TRACK_MATCH_PREVIOS_FRAME = 1,
 } eTrackFrameMatch;
 
-/* MovieTrackingSettings->motion_flag */
+/** #MovieTrackingSettings.motion_flag */
 enum {
   TRACKING_MOTION_TRIPOD = (1 << 0),
 
   TRACKING_MOTION_MODAL = (TRACKING_MOTION_TRIPOD),
 };
 
-/* MovieTrackingSettings->speed */
+/** #MovieTrackingSettings.speed */
 enum {
   TRACKING_SPEED_FASTEST = 0,
   TRACKING_SPEED_REALTIME = 1,
@@ -540,13 +540,13 @@ enum {
   TRACKING_SPEED_DOUBLE = 5,
 };
 
-/* MovieTrackingSettings->reconstruction_flag */
+/** #MovieTrackingSettings.reconstruction_flag */
 enum {
   /* TRACKING_USE_FALLBACK_RECONSTRUCTION = (1 << 0), */ /* DEPRECATED */
   TRACKING_USE_KEYFRAME_SELECTION = (1 << 1),
 };
 
-/* MovieTrackingSettings->refine_camera_intrinsics */
+/** #MovieTrackingSettings.refine_camera_intrinsics */
 enum {
   REFINE_NO_INTRINSICS = (0),
 
@@ -556,7 +556,7 @@ enum {
   REFINE_TANGENTIAL_DISTORTION = (1 << 3),
 };
 
-/* MovieTrackingStabilization->flag */
+/** #MovieTrackingStabilization.flag */
 enum {
   TRACKING_2D_STABILIZATION = (1 << 0),
   TRACKING_AUTOSCALE = (1 << 1),
@@ -565,19 +565,19 @@ enum {
   TRACKING_SHOW_STAB_TRACKS = (1 << 5),
 };
 
-/* MovieTrackingStabilization->filter */
+/** #MovieTrackingStabilization.filter */
 enum {
   TRACKING_FILTER_NEAREST = 0,
   TRACKING_FILTER_BILINEAR = 1,
   TRACKING_FILTER_BICUBIC = 2,
 };
 
-/* MovieTrackingReconstruction->flag */
+/** #MovieTrackingReconstruction.flag */
 enum {
   TRACKING_RECONSTRUCTED = (1 << 0),
 };
 
-/* MovieTrackingObject->flag */
+/** #MovieTrackingObject.flag */
 enum {
   TRACKING_OBJECT_CAMERA = (1 << 0),
 };
@@ -588,7 +588,7 @@ enum {
   TRACKING_CLEAN_DELETE_SEGMENT = 2,
 };
 
-/* MovieTrackingDopesheet->sort_method */
+/** #MovieTrackingDopesheet.sort_method */
 enum {
   TRACKING_DOPE_SORT_NAME = 0,
   TRACKING_DOPE_SORT_LONGEST = 1,
@@ -598,27 +598,27 @@ enum {
   TRACKING_DOPE_SORT_END = 5,
 };
 
-/* MovieTrackingDopesheet->flag */
+/** #MovieTrackingDopesheet.flag */
 enum {
   TRACKING_DOPE_SORT_INVERSE = (1 << 0),
   TRACKING_DOPE_SELECTED_ONLY = (1 << 1),
   TRACKING_DOPE_SHOW_HIDDEN = (1 << 2),
 };
 
-/* MovieTrackingDopesheetCoverageSegment->trackness */
+/** #MovieTrackingDopesheetCoverageSegment.trackness */
 enum {
   TRACKING_COVERAGE_BAD = 0,
   TRACKING_COVERAGE_ACCEPTABLE = 1,
   TRACKING_COVERAGE_OK = 2,
 };
 
-/* MovieTrackingPlaneMarker->flag */
+/** #MovieTrackingPlaneMarker.flag */
 enum {
   PLANE_MARKER_DISABLED = (1 << 0),
   PLANE_MARKER_TRACKED = (1 << 1),
 };
 
-/* MovieTrackingPlaneTrack->flag */
+/** #MovieTrackingPlaneTrack.flag */
 enum {
   PLANE_TRACK_HIDDEN = (1 << 1),
   PLANE_TRACK_LOCKED = (1 << 2),

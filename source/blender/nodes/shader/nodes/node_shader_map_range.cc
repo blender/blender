@@ -56,7 +56,7 @@ static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
 {
   const NodeMapRange &storage = node_storage(*node);
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
-  const int type = (storage.data_type == CD_PROP_FLOAT) ? SOCK_FLOAT : SOCK_VECTOR;
+  const int type = (data_type == CD_PROP_FLOAT) ? SOCK_FLOAT : SOCK_VECTOR;
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
     nodeSetSocketAvailability(ntree, socket, socket->type == type);

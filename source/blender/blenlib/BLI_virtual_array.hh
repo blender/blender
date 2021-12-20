@@ -44,7 +44,7 @@
 
 namespace blender {
 
-/* Forward declarations for generic virtual arrays. */
+/** Forward declarations for generic virtual arrays. */
 namespace fn {
 class GVArray;
 class GVMutableArray;
@@ -194,7 +194,7 @@ template<typename T> class VArrayImpl {
   }
 };
 
-/* Similar to #VArrayImpl, but adds methods that allow modifying the referenced elements. */
+/** Similar to #VArrayImpl, but adds methods that allow modifying the referenced elements. */
 template<typename T> class VMutableArrayImpl : public VArrayImpl<T> {
  public:
   using VArrayImpl<T>::VArrayImpl;

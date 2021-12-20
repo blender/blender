@@ -33,6 +33,7 @@ extern "C" {
  * use bit shifting instead. */
 
 /* *** 16 *** */
+
 BLI_INLINE void BLI_endian_switch_int16(short *val)
 {
   BLI_endian_switch_uint16((unsigned short *)val);
@@ -48,6 +49,7 @@ BLI_INLINE void BLI_endian_switch_uint16(unsigned short *val)
 }
 
 /* *** 32 *** */
+
 BLI_INLINE void BLI_endian_switch_int32(int *val)
 {
   BLI_endian_switch_uint32((unsigned int *)val);
@@ -67,6 +69,7 @@ BLI_INLINE void BLI_endian_switch_float(float *val)
 }
 
 /* *** 64 *** */
+
 BLI_INLINE void BLI_endian_switch_int64(int64_t *val)
 {
   BLI_endian_switch_uint64((uint64_t *)val);

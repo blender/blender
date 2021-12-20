@@ -39,6 +39,7 @@
 #include "ED_node.h" /* own include */
 #include "ED_render.h"
 #include "ED_screen.h"
+#include "ED_space_api.h"
 #include "ED_spreadsheet.h"
 #include "ED_util.h"
 
@@ -50,6 +51,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "GPU_state.h"
+
+#include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -57,11 +61,15 @@
 
 #include "NOD_node_declaration.hh"
 #include "NOD_node_tree_ref.hh"
+#include "NOD_socket_declarations.hh"
+#include "NOD_socket_declarations_geometry.hh"
 
 #include "node_intern.hh" /* own include */
 
 using namespace blender::nodes::node_tree_ref_types;
 using blender::float2;
+using blender::StringRef;
+using blender::StringRefNull;
 using blender::Vector;
 
 /* -------------------------------------------------------------------- */
@@ -890,6 +898,83 @@ void NODE_OT_link_viewer(wmOperatorType *ot)
 /** \name Add Link Operator
  * \{ */
 
+/**
+ * Check if any of the dragged links are connected to a socket on the side that they are dragged
+ * from.
+ */
+static bool dragged_links_are_detached(const bNodeLinkDrag &nldrag)
+{
+  if (nldrag.in_out == SOCK_OUT) {
+    for (const bNodeLink *link : nldrag.links) {
+      if (link->tonode && link->tosock) {
+        return false;
+      }
+    }
+  }
+  else {
+    for (const bNodeLink *link : nldrag.links) {
+      if (link->fromnode && link->fromsock) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+static bool should_create_drag_link_search_menu(const bNodeTree &node_tree,
+                                                const bNodeLinkDrag &nldrag)
+{
+  /* Custom node trees aren't supported yet. */
+  if (node_tree.type == NTREE_CUSTOM) {
+    return false;
+  }
+  /* Only create the search menu when the drag has not already connected the links to a socket. */
+  if (!dragged_links_are_detached(nldrag)) {
+    return false;
+  }
+  /* Don't create the search menu if the drag is disconnecting a link from an input node. */
+  if (nldrag.start_socket->in_out == SOCK_IN && nldrag.start_link_count > 0) {
+    return false;
+  }
+  /* Don't allow a drag from the "new socket" of a group input node. Handling these
+   * properly in node callbacks increases the complexity too much for now. */
+  if (ELEM(nldrag.start_node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
+    if (nldrag.start_socket->type == SOCK_CUSTOM) {
+      return false;
+    }
+  }
+  return true;
+}
+
+static void draw_draglink_tooltip(const bContext *UNUSED(C), ARegion *UNUSED(region), void *arg)
+{
+  bNodeLinkDrag *nldrag = static_cast<bNodeLinkDrag *>(arg);
+
+  const uchar text_col[4] = {255, 255, 255, 255};
+  const int padding = 4 * UI_DPI_FAC;
+  const float x = nldrag->in_out == SOCK_IN ? nldrag->cursor[0] - 3.3f * padding :
+                                              nldrag->cursor[0];
+  const float y = nldrag->cursor[1] - 2.0f * UI_DPI_FAC;
+
+  UI_icon_draw_ex(x, y, ICON_ADD, U.inv_dpi_fac, 1.0f, 0.0f, text_col, false);
+}
+
+static void draw_draglink_tooltip_activate(const ARegion &region, bNodeLinkDrag &nldrag)
+{
+  if (nldrag.draw_handle == nullptr) {
+    nldrag.draw_handle = ED_region_draw_cb_activate(
+        region.type, draw_draglink_tooltip, &nldrag, REGION_DRAW_POST_PIXEL);
+  }
+}
+
+static void draw_draglink_tooltip_deactivate(const ARegion &region, bNodeLinkDrag &nldrag)
+{
+  if (nldrag.draw_handle) {
+    ED_region_draw_cb_exit(region.type, nldrag.draw_handle);
+    nldrag.draw_handle = nullptr;
+  }
+}
+
 static void node_link_update_header(bContext *C, bNodeLinkDrag *UNUSED(nldrag))
 {
   char header[UI_MAX_DRAW_STR];
@@ -952,12 +1037,11 @@ static void node_remove_extra_links(SpaceNode &snode, bNodeLink &link)
 static void node_link_exit(bContext &C, wmOperator &op, const bool apply_links)
 {
   Main *bmain = CTX_data_main(&C);
+  ARegion &region = *CTX_wm_region(&C);
   SpaceNode &snode = *CTX_wm_space_node(&C);
   bNodeTree &ntree = *snode.edittree;
   bNodeLinkDrag *nldrag = (bNodeLinkDrag *)op.customdata;
   bool do_tag_update = false;
-  /* View will be reset if no links connect. */
-  bool reset_view = true;
 
   /* avoid updates while applying links */
   ntree.is_updating = true;
@@ -995,8 +1079,6 @@ static void node_link_exit(bContext &C, wmOperator &op, const bool apply_links)
       if (link->tonode) {
         do_tag_update |= (do_tag_update || node_connected_to_output(*bmain, ntree, *link->tonode));
       }
-
-      reset_view = false;
     }
     else {
       nodeRemLink(&ntree, link);
@@ -1010,9 +1092,12 @@ static void node_link_exit(bContext &C, wmOperator &op, const bool apply_links)
     snode_dag_update(C, snode);
   }
 
-  if (reset_view) {
-    UI_view2d_edge_pan_cancel(&C, &nldrag->pan_data);
-  }
+  /* Ensure draglink tooltip is disabled. */
+  draw_draglink_tooltip_deactivate(*CTX_wm_region(&C), *nldrag);
+
+  ED_workspace_status_text(&C, nullptr);
+  ED_region_tag_redraw(&region);
+  clear_picking_highlight(&snode.edittree->links);
 
   snode.runtime->linkdrag.reset();
 }
@@ -1099,12 +1184,15 @@ static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cur
 static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   bNodeLinkDrag *nldrag = (bNodeLinkDrag *)op->customdata;
+  SpaceNode &snode = *CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
 
   UI_view2d_edge_pan_apply_event(C, &nldrag->pan_data, event);
 
   float2 cursor;
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
+  nldrag->cursor[0] = event->mval[0];
+  nldrag->cursor[1] = event->mval[1];
 
   switch (event->type) {
     case MOUSEMOVE:
@@ -1117,21 +1205,45 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
         node_link_update_header(C, nldrag);
         ED_region_tag_redraw(region);
       }
-      break;
 
+      if (should_create_drag_link_search_menu(*snode.edittree, *nldrag)) {
+        draw_draglink_tooltip_activate(*region, *nldrag);
+      }
+      else {
+        draw_draglink_tooltip_deactivate(*region, *nldrag);
+      }
+      break;
     case LEFTMOUSE:
+      if (event->val == KM_RELEASE) {
+        /* Add a search menu for compatible sockets if the drag released on empty space. */
+        if (should_create_drag_link_search_menu(*snode.edittree, *nldrag)) {
+          bNodeLink &link = *nldrag->links.first();
+          if (nldrag->in_out == SOCK_OUT) {
+            blender::ed::space_node::invoke_node_link_drag_add_menu(
+                *C, *link.fromnode, *link.fromsock, cursor);
+          }
+          else {
+            blender::ed::space_node::invoke_node_link_drag_add_menu(
+                *C, *link.tonode, *link.tosock, cursor);
+          }
+        }
+
+        /* Finish link. */
+        node_link_exit(*C, *op, true);
+        return OPERATOR_FINISHED;
+      }
+      break;
     case RIGHTMOUSE:
     case MIDDLEMOUSE: {
       if (event->val == KM_RELEASE) {
         node_link_exit(*C, *op, true);
-
-        ED_workspace_status_text(C, nullptr);
-        ED_region_tag_redraw(region);
-        SpaceNode &snode = *CTX_wm_space_node(C);
-        clear_picking_highlight(&snode.edittree->links);
         return OPERATOR_FINISHED;
       }
       break;
+    }
+    case EVT_ESCKEY: {
+      node_link_exit(*C, *op, true);
+      return OPERATOR_FINISHED;
     }
   }
 
@@ -1148,10 +1260,11 @@ static std::unique_ptr<bNodeLinkDrag> node_link_init(Main &bmain,
   bNodeSocket *sock;
   if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_OUT)) {
     std::unique_ptr<bNodeLinkDrag> nldrag = std::make_unique<bNodeLinkDrag>();
-
-    const int num_links = nodeCountSocketLinks(snode.edittree, sock);
+    nldrag->start_node = node;
+    nldrag->start_socket = sock;
+    nldrag->start_link_count = nodeCountSocketLinks(snode.edittree, sock);
     int link_limit = nodeSocketLinkLimit(sock);
-    if (num_links > 0 && (num_links >= link_limit || detach)) {
+    if (nldrag->start_link_count > 0 && (nldrag->start_link_count >= link_limit || detach)) {
       /* dragged links are fixed on input side */
       nldrag->in_out = SOCK_IN;
       /* detach current links and store them in the operator data */
@@ -1192,9 +1305,11 @@ static std::unique_ptr<bNodeLinkDrag> node_link_init(Main &bmain,
   if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_IN)) {
     std::unique_ptr<bNodeLinkDrag> nldrag = std::make_unique<bNodeLinkDrag>();
     nldrag->last_node_hovered_while_dragging_a_link = node;
+    nldrag->start_node = node;
+    nldrag->start_socket = sock;
 
-    const int num_links = nodeCountSocketLinks(snode.edittree, sock);
-    if (num_links > 0) {
+    nldrag->start_link_count = nodeCountSocketLinks(snode.edittree, sock);
+    if (nldrag->start_link_count > 0) {
       /* dragged links are fixed on output side */
       nldrag->in_out = SOCK_OUT;
       /* detach current links and store them in the operator data */
@@ -1260,6 +1375,10 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   if (nldrag) {
     UI_view2d_edge_pan_operator_init(C, &nldrag->pan_data, op);
 
+    /* Add "+" icon when the link is dragged in empty space. */
+    if (should_create_drag_link_search_menu(*snode.edittree, *nldrag)) {
+      draw_draglink_tooltip_activate(*CTX_wm_region(C), *nldrag);
+    }
     snode.runtime->linkdrag = std::move(nldrag);
     op->customdata = snode.runtime->linkdrag.get();
 

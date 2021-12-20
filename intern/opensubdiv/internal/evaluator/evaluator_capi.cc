@@ -156,7 +156,7 @@ void assignFunctionPointers(OpenSubdiv_Evaluator *evaluator)
 OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
     OpenSubdiv_TopologyRefiner *topology_refiner)
 {
-  OpenSubdiv_Evaluator *evaluator = OBJECT_GUARDED_NEW(OpenSubdiv_Evaluator);
+  OpenSubdiv_Evaluator *evaluator = MEM_new<OpenSubdiv_Evaluator>(__func__);
   assignFunctionPointers(evaluator);
   evaluator->impl = openSubdiv_createEvaluatorInternal(topology_refiner);
   return evaluator;
@@ -165,5 +165,5 @@ OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
 void openSubdiv_deleteEvaluator(OpenSubdiv_Evaluator *evaluator)
 {
   openSubdiv_deleteEvaluatorInternal(evaluator->impl);
-  OBJECT_GUARDED_DELETE(evaluator, OpenSubdiv_Evaluator);
+  MEM_delete(evaluator);
 }

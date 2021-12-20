@@ -58,8 +58,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryRaycast *data = (NodeGeometryRaycast *)MEM_callocN(sizeof(NodeGeometryRaycast),
-                                                                 __func__);
+  NodeGeometryRaycast *data = MEM_cnew<NodeGeometryRaycast>(__func__);
   data->input_type_ray_direction = GEO_NODE_ATTRIBUTE_INPUT_VECTOR;
   data->input_type_ray_length = GEO_NODE_ATTRIBUTE_INPUT_FLOAT;
   node->storage = data;

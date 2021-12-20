@@ -46,8 +46,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeAttributeClamp *data = (NodeAttributeClamp *)MEM_callocN(sizeof(NodeAttributeClamp),
-                                                               __func__);
+  NodeAttributeClamp *data = MEM_cnew<NodeAttributeClamp>(__func__);
   data->data_type = CD_PROP_FLOAT;
   data->operation = NODE_CLAMP_MINMAX;
   node->storage = data;

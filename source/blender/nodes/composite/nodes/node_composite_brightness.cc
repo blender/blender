@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** Bright and Contrast  ******************** */
@@ -42,12 +45,20 @@ static void node_composit_init_brightcontrast(bNodeTree *UNUSED(ntree), bNode *n
   node->custom1 = 1;
 }
 
+static void node_composit_buts_brightcontrast(uiLayout *layout,
+                                              bContext *UNUSED(C),
+                                              PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "use_premultiply", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_brightcontrast()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR, 0);
   ntype.declare = blender::nodes::cmp_node_brightcontrast_declare;
+  ntype.draw_buttons = node_composit_buts_brightcontrast;
   node_type_init(&ntype, node_composit_init_brightcontrast);
 
   nodeRegisterType(&ntype);

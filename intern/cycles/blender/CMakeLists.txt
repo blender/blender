@@ -40,6 +40,7 @@ set(SRC
   object_cull.cpp
   output_driver.cpp
   particles.cpp
+  pointcloud.cpp
   curves.cpp
   logging.cpp
   python.cpp

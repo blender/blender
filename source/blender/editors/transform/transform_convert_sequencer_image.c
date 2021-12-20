@@ -38,7 +38,11 @@
 #include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
+#include "ED_keyframing.h"
+
 #include "UI_view2d.h"
+
+#include "RNA_access.h"
 
 #include "transform.h"
 #include "transform_convert.h"
@@ -213,5 +217,46 @@ void recalcData_sequencer_image(TransInfo *t)
       transform->rotation = fmod(transform->rotation, DEG2RAD(360.0));
     }
     SEQ_relations_invalidate_cache_preprocessed(t->scene, seq);
+  }
+}
+
+void special_aftertrans_update__sequencer_image(bContext *UNUSED(C), TransInfo *t)
+{
+  if (t->state == TRANS_CANCEL) {
+    return;
+  }
+
+  TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
+  TransData *td = NULL;
+  TransData2D *td2d = NULL;
+  int i;
+
+  PointerRNA ptr;
+  PropertyRNA *prop;
+
+  for (i = 0, td = tc->data, td2d = tc->data_2d; i < tc->data_len; i++, td++, td2d++) {
+    TransDataSeq *tdseq = td->extra;
+    Sequence *seq = tdseq->seq;
+    StripTransform *transform = seq->strip->transform;
+    Scene *scene = t->scene;
+
+    RNA_pointer_create(&scene->id, &RNA_SequenceTransform, transform, &ptr);
+
+    if (t->mode == TFM_ROTATION) {
+      prop = RNA_struct_find_property(&ptr, "rotation");
+      ED_autokeyframe_property(t->context, scene, &ptr, prop, -1, CFRA);
+    }
+    if (t->mode == TFM_TRANSLATION) {
+      prop = RNA_struct_find_property(&ptr, "offset_x");
+      ED_autokeyframe_property(t->context, scene, &ptr, prop, -1, CFRA);
+      prop = RNA_struct_find_property(&ptr, "offset_y");
+      ED_autokeyframe_property(t->context, scene, &ptr, prop, -1, CFRA);
+    }
+    if (t->mode == TFM_RESIZE) {
+      prop = RNA_struct_find_property(&ptr, "scale_x");
+      ED_autokeyframe_property(t->context, scene, &ptr, prop, -1, CFRA);
+      prop = RNA_struct_find_property(&ptr, "scale_y");
+      ED_autokeyframe_property(t->context, scene, &ptr, prop, -1, CFRA);
+    }
   }
 }

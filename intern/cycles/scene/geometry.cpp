@@ -26,6 +26,7 @@
 #include "scene/light.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
+#include "scene/pointcloud.h"
 #include "scene/scene.h"
 #include "scene/shader.h"
 #include "scene/shader_nodes.h"
@@ -240,6 +241,7 @@ void Geometry::compute_bvh(
                                     params->use_bvh_unaligned_nodes;
       bparams.num_motion_triangle_steps = params->num_bvh_time_steps;
       bparams.num_motion_curve_steps = params->num_bvh_time_steps;
+      bparams.num_motion_point_steps = params->num_bvh_time_steps;
       bparams.bvh_type = params->bvh_type;
       bparams.curve_subdivisions = params->curve_subdivisions();
 
@@ -723,6 +725,12 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
       else if (element == ATTR_ELEMENT_CURVE_KEY_MOTION)
         offset -= hair->curve_key_offset;
     }
+    else if (geom->is_pointcloud()) {
+      if (element == ATTR_ELEMENT_VERTEX)
+        offset -= geom->prim_offset;
+      else if (element == ATTR_ELEMENT_VERTEX_MOTION)
+        offset -= geom->prim_offset;
+    }
   }
   else {
     /* attribute not found */
@@ -1006,6 +1014,8 @@ void GeometryManager::mesh_calc_offset(Scene *scene, BVHLayout bvh_layout)
   size_t curve_key_size = 0;
   size_t curve_segment_size = 0;
 
+  size_t point_size = 0;
+
   size_t patch_size = 0;
   size_t face_size = 0;
   size_t corner_size = 0;
@@ -1054,6 +1064,14 @@ void GeometryManager::mesh_calc_offset(Scene *scene, BVHLayout bvh_layout)
       curve_key_size += hair->get_curve_keys().size();
       curve_segment_size += hair->num_segments();
     }
+    else if (geom->is_pointcloud()) {
+      PointCloud *pointcloud = static_cast<PointCloud *>(geom);
+
+      prim_offset_changed = (pointcloud->prim_offset != point_size);
+
+      pointcloud->prim_offset = point_size;
+      point_size += pointcloud->num_points();
+    }
 
     if (prim_offset_changed) {
       /* Need to rebuild BVH in OptiX, since refit only allows modified mesh data there */
@@ -1078,6 +1096,8 @@ void GeometryManager::device_update_mesh(Device *,
   size_t curve_key_size = 0;
   size_t curve_size = 0;
   size_t curve_segment_size = 0;
+
+  size_t point_size = 0;
 
   size_t patch_size = 0;
 
@@ -1105,6 +1125,10 @@ void GeometryManager::device_update_mesh(Device *,
       curve_key_size += hair->get_curve_keys().size();
       curve_size += hair->num_curves();
       curve_segment_size += hair->num_segments();
+    }
+    else if (geom->is_pointcloud()) {
+      PointCloud *pointcloud = static_cast<PointCloud *>(geom);
+      point_size += pointcloud->num_points();
     }
   }
 
@@ -1201,6 +1225,26 @@ void GeometryManager::device_update_mesh(Device *,
     dscene->curve_segments.copy_to_device_if_modified();
   }
 
+  if (point_size != 0) {
+    progress.set_status("Updating Mesh", "Copying Point clouds to device");
+
+    float4 *points = dscene->points.alloc(point_size);
+    uint *points_shader = dscene->points_shader.alloc(point_size);
+
+    foreach (Geometry *geom, scene->geometry) {
+      if (geom->is_pointcloud()) {
+        PointCloud *pointcloud = static_cast<PointCloud *>(geom);
+        pointcloud->pack(
+            scene, &points[pointcloud->prim_offset], &points_shader[pointcloud->prim_offset]);
+        if (progress.get_cancel())
+          return;
+      }
+    }
+
+    dscene->points.copy_to_device();
+    dscene->points_shader.copy_to_device();
+  }
+
   if (patch_size != 0 && dscene->patches.need_realloc()) {
     progress.set_status("Updating Mesh", "Copying Patches to device");
 
@@ -1242,6 +1286,7 @@ void GeometryManager::device_update_bvh(Device *device,
                                 scene->params.use_bvh_unaligned_nodes;
   bparams.num_motion_triangle_steps = scene->params.num_bvh_time_steps;
   bparams.num_motion_curve_steps = scene->params.num_bvh_time_steps;
+  bparams.num_motion_point_steps = scene->params.num_bvh_time_steps;
   bparams.bvh_type = scene->params.bvh_type;
   bparams.curve_subdivisions = scene->params.curve_subdivisions();
 
@@ -1323,26 +1368,30 @@ void GeometryManager::device_update_bvh(Device *device,
 enum {
   DEVICE_CURVE_DATA_MODIFIED = (1 << 0),
   DEVICE_MESH_DATA_MODIFIED = (1 << 1),
+  DEVICE_POINT_DATA_MODIFIED = (1 << 2),
 
-  ATTR_FLOAT_MODIFIED = (1 << 2),
-  ATTR_FLOAT2_MODIFIED = (1 << 3),
-  ATTR_FLOAT3_MODIFIED = (1 << 4),
-  ATTR_FLOAT4_MODIFIED = (1 << 5),
-  ATTR_UCHAR4_MODIFIED = (1 << 6),
+  ATTR_FLOAT_MODIFIED = (1 << 3),
+  ATTR_FLOAT2_MODIFIED = (1 << 4),
+  ATTR_FLOAT3_MODIFIED = (1 << 5),
+  ATTR_FLOAT4_MODIFIED = (1 << 6),
+  ATTR_UCHAR4_MODIFIED = (1 << 7),
 
-  CURVE_DATA_NEED_REALLOC = (1 << 7),
-  MESH_DATA_NEED_REALLOC = (1 << 8),
+  CURVE_DATA_NEED_REALLOC = (1 << 8),
+  MESH_DATA_NEED_REALLOC = (1 << 9),
+  POINT_DATA_NEED_REALLOC = (1 << 10),
 
-  ATTR_FLOAT_NEEDS_REALLOC = (1 << 9),
-  ATTR_FLOAT2_NEEDS_REALLOC = (1 << 10),
-  ATTR_FLOAT3_NEEDS_REALLOC = (1 << 11),
-  ATTR_FLOAT4_NEEDS_REALLOC = (1 << 12),
-  ATTR_UCHAR4_NEEDS_REALLOC = (1 << 13),
+  ATTR_FLOAT_NEEDS_REALLOC = (1 << 11),
+  ATTR_FLOAT2_NEEDS_REALLOC = (1 << 12),
+  ATTR_FLOAT3_NEEDS_REALLOC = (1 << 13),
+  ATTR_FLOAT4_NEEDS_REALLOC = (1 << 14),
+
+  ATTR_UCHAR4_NEEDS_REALLOC = (1 << 15),
 
   ATTRS_NEED_REALLOC = (ATTR_FLOAT_NEEDS_REALLOC | ATTR_FLOAT2_NEEDS_REALLOC |
                         ATTR_FLOAT3_NEEDS_REALLOC | ATTR_FLOAT4_NEEDS_REALLOC |
                         ATTR_UCHAR4_NEEDS_REALLOC),
   DEVICE_MESH_DATA_NEEDS_REALLOC = (MESH_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
+  DEVICE_POINT_DATA_NEEDS_REALLOC = (POINT_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
   DEVICE_CURVE_DATA_NEEDS_REALLOC = (CURVE_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
 };
 
@@ -1529,6 +1578,17 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
         device_update_flags |= DEVICE_MESH_DATA_MODIFIED;
       }
     }
+
+    if (geom->is_pointcloud()) {
+      PointCloud *pointcloud = static_cast<PointCloud *>(geom);
+
+      if (pointcloud->need_update_rebuild) {
+        device_update_flags |= DEVICE_POINT_DATA_NEEDS_REALLOC;
+      }
+      else if (pointcloud->is_modified()) {
+        device_update_flags |= DEVICE_POINT_DATA_MODIFIED;
+      }
+    }
   }
 
   if (update_flags & (MESH_ADDED | MESH_REMOVED)) {
@@ -1539,10 +1599,15 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
     device_update_flags |= DEVICE_CURVE_DATA_NEEDS_REALLOC;
   }
 
+  if (update_flags & (POINT_ADDED | POINT_REMOVED)) {
+    device_update_flags |= DEVICE_POINT_DATA_NEEDS_REALLOC;
+  }
+
   /* tag the device arrays for reallocation or modification */
   DeviceScene *dscene = &scene->dscene;
 
-  if (device_update_flags & (DEVICE_MESH_DATA_NEEDS_REALLOC | DEVICE_CURVE_DATA_NEEDS_REALLOC)) {
+  if (device_update_flags & (DEVICE_MESH_DATA_NEEDS_REALLOC | DEVICE_CURVE_DATA_NEEDS_REALLOC |
+                             DEVICE_POINT_DATA_NEEDS_REALLOC)) {
     delete scene->bvh;
     scene->bvh = nullptr;
 
@@ -1569,6 +1634,11 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
       dscene->curves.tag_realloc();
       dscene->curve_keys.tag_realloc();
       dscene->curve_segments.tag_realloc();
+    }
+
+    if (device_update_flags & DEVICE_POINT_DATA_NEEDS_REALLOC) {
+      dscene->points.tag_realloc();
+      dscene->points_shader.tag_realloc();
     }
   }
 
@@ -1628,6 +1698,11 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
     dscene->curve_keys.tag_modified();
     dscene->curves.tag_modified();
     dscene->curve_segments.tag_modified();
+  }
+
+  if (device_update_flags & DEVICE_POINT_DATA_MODIFIED) {
+    dscene->points.tag_modified();
+    dscene->points_shader.tag_modified();
   }
 
   need_flags_update = false;
@@ -2064,6 +2139,8 @@ void GeometryManager::device_update(Device *device,
   dscene->curves.clear_modified();
   dscene->curve_keys.clear_modified();
   dscene->curve_segments.clear_modified();
+  dscene->points.clear_modified();
+  dscene->points_shader.clear_modified();
   dscene->patches.clear_modified();
   dscene->attributes_map.clear_modified();
   dscene->attributes_float.clear_modified();
@@ -2092,6 +2169,8 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
   dscene->curves.free_if_need_realloc(force_free);
   dscene->curve_keys.free_if_need_realloc(force_free);
   dscene->curve_segments.free_if_need_realloc(force_free);
+  dscene->points.free_if_need_realloc(force_free);
+  dscene->points_shader.free_if_need_realloc(force_free);
   dscene->patches.free_if_need_realloc(force_free);
   dscene->attributes_map.free_if_need_realloc(force_free);
   dscene->attributes_float.free_if_need_realloc(force_free);

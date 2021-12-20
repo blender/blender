@@ -28,6 +28,7 @@
  * without new features slowing things down.
  *
  * BVH_HAIR: hair curve rendering
+ * BVH_POINTCLOUD: point cloud rendering
  * BVH_MOTION: motion blur rendering
  */
 
@@ -165,7 +166,7 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
             case PRIMITIVE_CURVE_RIBBON:
             case PRIMITIVE_MOTION_CURVE_RIBBON: {
               for (; prim_addr < prim_addr2; prim_addr++) {
-                if ((type & PRIMITIVE_ALL_MOTION) && kernel_data.bvh.use_bvh_steps) {
+                if ((type & PRIMITIVE_MOTION) && kernel_data.bvh.use_bvh_steps) {
                   const float2 prim_time = kernel_tex_fetch(__prim_time, prim_addr);
                   if (ray->time < prim_time.x || ray->time > prim_time.y) {
                     continue;
@@ -188,6 +189,33 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
               break;
             }
 #endif /* BVH_FEATURE(BVH_HAIR) */
+#if BVH_FEATURE(BVH_POINTCLOUD)
+            case PRIMITIVE_POINT:
+            case PRIMITIVE_MOTION_POINT: {
+              for (; prim_addr < prim_addr2; prim_addr++) {
+                if ((type & PRIMITIVE_MOTION) && kernel_data.bvh.use_bvh_steps) {
+                  const float2 prim_time = kernel_tex_fetch(__prim_time, prim_addr);
+                  if (ray->time < prim_time.x || ray->time > prim_time.y) {
+                    continue;
+                  }
+                }
+
+                const int point_object = (object == OBJECT_NONE) ?
+                                             kernel_tex_fetch(__prim_object, prim_addr) :
+                                             object;
+                const int point_prim = kernel_tex_fetch(__prim_index, prim_addr);
+                const int point_type = kernel_tex_fetch(__prim_type, prim_addr);
+                const bool hit = point_intersect(
+                    kg, isect, P, dir, isect->t, point_object, point_prim, ray->time, point_type);
+                if (hit) {
+                  /* shadow ray early termination */
+                  if (visibility & PATH_RAY_SHADOW_OPAQUE)
+                    return true;
+                }
+              }
+              break;
+            }
+#endif /* BVH_FEATURE(BVH_POINTCLOUD) */
           }
         }
         else {

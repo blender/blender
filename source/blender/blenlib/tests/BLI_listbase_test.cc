@@ -154,6 +154,31 @@ TEST(listbase, FindLinkFromStringOrPointer)
   BLI_freelistN(&lb);
 }
 
+TEST(listbase, FromLink)
+{
+  ListBase lb = {nullptr, nullptr};
+  Link *link1 = static_cast<Link *>(MEM_callocN(sizeof(Link), "link1"));
+  Link *link2 = static_cast<Link *>(MEM_callocN(sizeof(Link), "link2"));
+  Link *link3 = static_cast<Link *>(MEM_callocN(sizeof(Link), "link3"));
+
+  /* NULL safety. */
+  EXPECT_EQ(lb, BLI_listbase_from_link(nullptr));
+
+  /* One link. */
+  BLI_addtail(&lb, link1);
+  EXPECT_EQ(lb, BLI_listbase_from_link(link1));
+
+  /* Two links. */
+  BLI_addtail(&lb, link2);
+  EXPECT_EQ(lb, BLI_listbase_from_link(link2));
+
+  /* Three links, search from middle. */
+  BLI_addtail(&lb, link3);
+  EXPECT_EQ(lb, BLI_listbase_from_link(link2));
+
+  BLI_freelistN(&lb);
+}
+
 /* -------------------------------------------------------------------- */
 /* Sort utilities & test */
 

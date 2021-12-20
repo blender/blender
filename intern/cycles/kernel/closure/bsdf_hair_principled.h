@@ -213,9 +213,7 @@ ccl_device int bsdf_principled_hair_setup(ccl_private ShaderData *sd,
 
   /* TODO: we convert this value to a cosine later and discard the sign, so
    * we could probably save some operations. */
-  float h = (sd->type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON)) ?
-                -sd->v :
-                dot(cross(sd->Ng, X), Z);
+  float h = (sd->type & PRIMITIVE_CURVE_RIBBON) ? -sd->v : dot(cross(sd->Ng, X), Z);
 
   kernel_assert(fabsf(h) < 1.0f + 1e-4f);
   kernel_assert(isfinite3_safe(Y));

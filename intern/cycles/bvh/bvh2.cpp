@@ -20,6 +20,7 @@
 #include "scene/hair.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
+#include "scene/pointcloud.h"
 
 #include "bvh/build.h"
 #include "bvh/node.h"
@@ -386,7 +387,7 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
     }
     else {
       /* Primitives. */
-      if (pack.prim_type[prim] & PRIMITIVE_ALL_CURVE) {
+      if (pack.prim_type[prim] & PRIMITIVE_CURVE) {
         /* Curves. */
         const Hair *hair = static_cast<const Hair *>(ob->get_geometry());
         int prim_offset = (params.top_level) ? hair->prim_offset : 0;
@@ -406,6 +407,30 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
 
             for (size_t i = 0; i < steps; i++)
               curve.bounds_grow(k, key_steps + i * hair_size, &hair->get_curve_radius()[0], bbox);
+          }
+        }
+      }
+      else if (pack.prim_type[prim] & PRIMITIVE_POINT) {
+        /* Points. */
+        const PointCloud *pointcloud = static_cast<const PointCloud *>(ob->get_geometry());
+        int prim_offset = (params.top_level) ? pointcloud->prim_offset : 0;
+        const float3 *points = &pointcloud->points[0];
+        const float *radius = &pointcloud->radius[0];
+        PointCloud::Point point = pointcloud->get_point(pidx - prim_offset);
+
+        point.bounds_grow(points, radius, bbox);
+
+        /* Motion points. */
+        if (pointcloud->get_use_motion_blur()) {
+          Attribute *attr = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
+          if (attr) {
+            size_t pointcloud_size = pointcloud->points.size();
+            size_t steps = pointcloud->get_motion_steps() - 1;
+            float3 *point_steps = attr->data_float3();
+
+            for (size_t i = 0; i < steps; i++)
+              point.bounds_grow(point_steps + i * pointcloud_size, radius, bbox);
           }
         }
       }
@@ -505,7 +530,8 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
   pack.leaf_nodes.resize(leaf_nodes_size);
   pack.object_node.resize(objects.size());
 
-  if (params.num_motion_curve_steps > 0 || params.num_motion_triangle_steps > 0) {
+  if (params.num_motion_curve_steps > 0 || params.num_motion_triangle_steps > 0 ||
+      params.num_motion_point_steps > 0) {
     pack.prim_time.resize(prim_index_size);
   }
 
@@ -564,13 +590,7 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
       float2 *bvh_prim_time = bvh->pack.prim_time.size() ? &bvh->pack.prim_time[0] : NULL;
 
       for (size_t i = 0; i < bvh_prim_index_size; i++) {
-        if (bvh->pack.prim_type[i] & PRIMITIVE_ALL_CURVE) {
-          pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + geom_prim_offset;
-        }
-        else {
-          pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + geom_prim_offset;
-        }
-
+        pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + geom_prim_offset;
         pack_prim_type[pack_prim_index_offset] = bvh_prim_type[i];
         pack_prim_visibility[pack_prim_index_offset] = bvh_prim_visibility[i];
         pack_prim_object[pack_prim_index_offset] = 0;  // unused for instances

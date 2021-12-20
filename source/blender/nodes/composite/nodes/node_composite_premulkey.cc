@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** Premul and Key Alpha Convert ******************** */
@@ -35,12 +38,18 @@ static void cmp_node_premulkey_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
+static void node_composit_buts_premulkey(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "mapping", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+}
+
 void register_node_type_cmp_premulkey()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_PREMULKEY, "Alpha Convert", NODE_CLASS_CONVERTER, 0);
   ntype.declare = blender::nodes::cmp_node_premulkey_declare;
+  ntype.draw_buttons = node_composit_buts_premulkey;
 
   nodeRegisterType(&ntype);
 }

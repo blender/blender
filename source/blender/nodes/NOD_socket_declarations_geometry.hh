@@ -35,8 +35,9 @@ class Geometry : public SocketDeclaration {
  public:
   using Builder = GeometryBuilder;
 
-  bNodeSocket &build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const override;
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
 
   Span<GeometryComponentType> supported_types() const;
   bool only_realized_data() const;

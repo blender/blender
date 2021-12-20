@@ -75,8 +75,7 @@ static void node_copy_storage(bNodeTree *UNUSED(dest_ntree),
 
 static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeAttributeCurveMap *data = (NodeAttributeCurveMap *)MEM_callocN(sizeof(NodeAttributeCurveMap),
-                                                                     __func__);
+  NodeAttributeCurveMap *data = MEM_cnew<NodeAttributeCurveMap>(__func__);
 
   data->data_type = CD_PROP_FLOAT;
   data->curve_vec = BKE_curvemapping_add(4, -1.0f, -1.0f, 1.0f, 1.0f);

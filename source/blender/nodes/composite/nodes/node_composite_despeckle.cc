@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** FILTER  ******************** */
@@ -42,12 +45,22 @@ static void node_composit_init_despeckle(bNodeTree *UNUSED(ntree), bNode *node)
   node->custom4 = 0.5f;
 }
 
+static void node_composit_buts_despeckle(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *col;
+
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, ptr, "threshold", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "threshold_neighbor", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_despeckle()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_DESPECKLE, "Despeckle", NODE_CLASS_OP_FILTER, NODE_PREVIEW);
   ntype.declare = blender::nodes::cmp_node_despeckle_declare;
+  ntype.draw_buttons = node_composit_buts_despeckle;
   node_type_init(&ntype, node_composit_init_despeckle);
 
   nodeRegisterType(&ntype);

@@ -819,6 +819,9 @@ void BKE_undosys_step_load_from_index(UndoStack *ustack, bContext *C, const int 
 {
   UndoStep *us_target = BLI_findlink(&ustack->steps, index);
   BLI_assert(us_target->skip == false);
+  if (us_target == ustack->step_active) {
+    return;
+  }
   BKE_undosys_step_load_data(ustack, C, us_target);
 }
 

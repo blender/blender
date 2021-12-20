@@ -28,6 +28,7 @@
 #include "scene/colorspace.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
+#include "scene/pointcloud.h"
 #include "scene/scene.h"
 
 #include "kernel/osl/closures.h"
@@ -113,6 +114,8 @@ ustring OSLRenderServices::u_curve_thickness("geom:curve_thickness");
 ustring OSLRenderServices::u_curve_length("geom:curve_length");
 ustring OSLRenderServices::u_curve_tangent_normal("geom:curve_tangent_normal");
 ustring OSLRenderServices::u_curve_random("geom:curve_random");
+ustring OSLRenderServices::u_is_point("geom:is_point");
+ustring OSLRenderServices::u_point_radius("geom:point_radius");
 ustring OSLRenderServices::u_normal_map_normal("geom:normal_map_normal");
 ustring OSLRenderServices::u_path_ray_length("path:ray_length");
 ustring OSLRenderServices::u_path_ray_depth("path:ray_depth");
@@ -957,13 +960,15 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
     return set_attribute_int(3, type, derivatives, val);
   }
   else if ((name == u_geom_trianglevertices || name == u_geom_polyvertices) &&
-           sd->type & PRIMITIVE_ALL_TRIANGLE) {
+           sd->type & PRIMITIVE_TRIANGLE) {
     float3 P[3];
 
-    if (sd->type & PRIMITIVE_TRIANGLE)
-      triangle_vertices(kg, sd->prim, P);
-    else
+    if (sd->type & PRIMITIVE_MOTION) {
       motion_triangle_vertices(kg, sd->object, sd->prim, sd->time, P);
+    }
+    else {
+      triangle_vertices(kg, sd->prim, P);
+    }
 
     if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
       object_position_transform(kg, sd, &P[0]);
@@ -983,7 +988,7 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
   }
   /* Hair Attributes */
   else if (name == u_is_curve) {
-    float f = (sd->type & PRIMITIVE_ALL_CURVE) != 0;
+    float f = (sd->type & PRIMITIVE_CURVE) != 0;
     return set_attribute_float(f, type, derivatives, val);
   }
   else if (name == u_curve_thickness) {
@@ -994,8 +999,17 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
     float3 f = curve_tangent_normal(kg, sd);
     return set_attribute_float3(f, type, derivatives, val);
   }
+  /* point attributes */
+  else if (name == u_is_point) {
+    float f = (sd->type & PRIMITIVE_POINT) != 0;
+    return set_attribute_float(f, type, derivatives, val);
+  }
+  else if (name == u_point_radius) {
+    float f = point_radius(kg, sd);
+    return set_attribute_float(f, type, derivatives, val);
+  }
   else if (name == u_normal_map_normal) {
-    if (sd->type & PRIMITIVE_ALL_TRIANGLE) {
+    if (sd->type & PRIMITIVE_TRIANGLE) {
       float3 f = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
       return set_attribute_float3(f, type, derivatives, val);
     }

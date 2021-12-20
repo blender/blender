@@ -56,9 +56,10 @@ static void rna_Main_use_autopack_set(PointerRNA *UNUSED(ptr), bool value)
   }
 }
 
-static bool rna_Main_is_saved_get(PointerRNA *UNUSED(ptr))
+static bool rna_Main_is_saved_get(PointerRNA *ptr)
 {
-  return G.relbase_valid;
+  const Main *bmain = (Main *)ptr->data;
+  return (bmain->filepath[0] != '\0');
 }
 
 static bool rna_Main_is_dirty_get(PointerRNA *ptr)

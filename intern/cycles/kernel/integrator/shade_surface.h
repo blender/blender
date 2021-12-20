@@ -82,7 +82,7 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
 
 #  ifdef __HAIR__
   if (!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_USE_MIS) &&
-      (sd->type & PRIMITIVE_ALL_TRIANGLE))
+      (sd->type & PRIMITIVE_TRIANGLE))
 #  else
   if (!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_USE_MIS))
 #  endif

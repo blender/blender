@@ -160,7 +160,7 @@ typedef struct MovieClipScopes {
   float slide_scale[2];
 } MovieClipScopes;
 
-/* MovieClipProxy->build_size_flag */
+/** #MovieClipProxy.build_size_flag */
 enum {
   MCLIP_PROXY_SIZE_25 = (1 << 0),
   MCLIP_PROXY_SIZE_50 = (1 << 1),
@@ -172,13 +172,13 @@ enum {
   MCLIP_PROXY_UNDISTORTED_SIZE_100 = (1 << 7),
 };
 
-/* MovieClip->source */
+/** #MovieClip.source */
 enum {
   MCLIP_SRC_SEQUENCE = 1,
   MCLIP_SRC_MOVIE = 2,
 };
 
-/* MovieClip->flag */
+/** #MovieClip.flag */
 enum {
   MCLIP_USE_PROXY = (1 << 0),
   MCLIP_USE_PROXY_CUSTOM_DIR = (1 << 1),
@@ -188,7 +188,7 @@ enum {
   MCLIP_TIMECODE_FLAGS = (MCLIP_USE_PROXY | MCLIP_USE_PROXY_CUSTOM_DIR),
 };
 
-/* MovieClip->render_size */
+/** #MovieClip.render_size */
 enum {
   MCLIP_PROXY_RENDER_SIZE_FULL = 0,
   MCLIP_PROXY_RENDER_SIZE_25 = 1,
@@ -197,7 +197,7 @@ enum {
   MCLIP_PROXY_RENDER_SIZE_100 = 4,
 };
 
-/* MovieClip->render_flag */
+/** #MovieClip.render_flag */
 enum {
   MCLIP_PROXY_RENDER_UNDISTORT = 1,
   /** Use original, if proxy is not found. */

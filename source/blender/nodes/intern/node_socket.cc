@@ -191,7 +191,6 @@ static void refresh_socket_list(bNodeTree &ntree,
                                 bNode &node,
                                 ListBase &sockets,
                                 Span<SocketDeclarationPtr> socket_decls,
-                                const eNodeSocketInOut in_out,
                                 const bool do_id_user)
 {
   Vector<bNodeSocket *> old_sockets = sockets;
@@ -210,7 +209,7 @@ static void refresh_socket_list(bNodeTree &ntree,
     bNodeSocket *new_socket = nullptr;
     if (old_socket_with_same_identifier == nullptr) {
       /* Create a completely new socket. */
-      new_socket = &socket_decl->build(ntree, node, in_out);
+      new_socket = &socket_decl->build(ntree, node);
     }
     else {
       STRNCPY(old_socket_with_same_identifier->name, socket_decl->name().c_str());
@@ -258,8 +257,8 @@ static void refresh_node(bNodeTree &ntree,
                          blender::nodes::NodeDeclaration &node_decl,
                          bool do_id_user)
 {
-  refresh_socket_list(ntree, node, node.inputs, node_decl.inputs(), SOCK_IN, do_id_user);
-  refresh_socket_list(ntree, node, node.outputs, node_decl.outputs(), SOCK_OUT, do_id_user);
+  refresh_socket_list(ntree, node, node.inputs, node_decl.inputs(), do_id_user);
+  refresh_socket_list(ntree, node, node.outputs, node_decl.outputs(), do_id_user);
 }
 
 void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user)

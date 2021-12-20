@@ -24,6 +24,7 @@
 #include "node_shader_util.h"
 
 #include "NOD_math_functions.hh"
+#include "NOD_socket_search_link.hh"
 
 namespace blender::nodes {
 
@@ -37,6 +38,18 @@ static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Vector"));
   b.add_output<decl::Float>(N_("Value"));
 };
+
+static void sh_node_vector_math_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  /* For now, do something very basic (only exposing "Add", and a single "Vector" socket). */
+  if (params.node_tree().typeinfo->validate_link(
+          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_VECTOR)) {
+    params.add_item(IFACE_("Vector"), [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("ShaderNodeVectorMath");
+      params.update_and_connect_available_socket(node, "Vector");
+    });
+  }
+}
 
 }  // namespace blender::nodes
 
@@ -289,6 +302,7 @@ void register_node_type_sh_vect_math()
   node_type_gpu(&ntype, gpu_shader_vector_math);
   node_type_update(&ntype, node_shader_update_vector_math);
   ntype.build_multi_function = sh_node_vector_math_build_multi_function;
+  ntype.gather_link_search_ops = blender::nodes::sh_node_vector_math_gather_link_searches;
 
   nodeRegisterType(&ntype);
 }

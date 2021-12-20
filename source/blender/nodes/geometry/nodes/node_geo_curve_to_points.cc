@@ -47,8 +47,18 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveToPoints)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Int>(N_("Count")).default_value(10).min(2).max(100000);
-  b.add_input<decl::Float>(N_("Length")).default_value(0.1f).min(0.001f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Int>(N_("Count"))
+      .default_value(10)
+      .min(2)
+      .max(100000)
+      .make_available(
+          [](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_RESAMPLE_COUNT; });
+  b.add_input<decl::Float>(N_("Length"))
+      .default_value(0.1f)
+      .min(0.001f)
+      .subtype(PROP_DISTANCE)
+      .make_available(
+          [](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_RESAMPLE_LENGTH; });
   b.add_output<decl::Geometry>(N_("Points"));
   b.add_output<decl::Vector>(N_("Tangent")).field_source();
   b.add_output<decl::Vector>(N_("Normal")).field_source();
@@ -62,8 +72,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryCurveToPoints *data = (NodeGeometryCurveToPoints *)MEM_callocN(
-      sizeof(NodeGeometryCurveToPoints), __func__);
+  NodeGeometryCurveToPoints *data = MEM_cnew<NodeGeometryCurveToPoints>(__func__);
 
   data->mode = GEO_NODE_CURVE_RESAMPLE_COUNT;
   node->storage = data;
@@ -94,9 +103,14 @@ static Array<int> calculate_spline_point_offsets(GeoNodeExecParams &params,
         return {0};
       }
       Array<int> offsets(size + 1);
-      for (const int i : offsets.index_range()) {
-        offsets[i] = count * i;
+      int offset = 0;
+      for (const int i : IndexRange(size)) {
+        offsets[i] = offset;
+        if (splines[i]->evaluated_points_size() > 0) {
+          offset += count;
+        }
       }
+      offsets.last() = offset;
       return offsets;
     }
     case GEO_NODE_CURVE_RESAMPLE_LENGTH: {
@@ -106,7 +120,9 @@ static Array<int> calculate_spline_point_offsets(GeoNodeExecParams &params,
       int offset = 0;
       for (const int i : IndexRange(size)) {
         offsets[i] = offset;
-        offset += splines[i]->length() / resolution + 1;
+        if (splines[i]->evaluated_points_size() > 0) {
+          offset += splines[i]->length() / resolution + 1;
+        }
       }
       offsets.last() = offset;
       return offsets;
@@ -394,6 +410,5 @@ void register_node_type_geo_curve_to_points()
       &ntype, "NodeGeometryCurveToPoints", node_free_standard_storage, node_copy_standard_storage);
   node_type_init(&ntype, file_ns::node_init);
   node_type_update(&ntype, file_ns::node_update);
-
   nodeRegisterType(&ntype);
 }

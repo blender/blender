@@ -41,8 +41,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryCurveSplineType *data = (NodeGeometryCurveSplineType *)MEM_callocN(
-      sizeof(NodeGeometryCurveSplineType), __func__);
+  NodeGeometryCurveSplineType *data = MEM_cnew<NodeGeometryCurveSplineType>(__func__);
 
   data->spline_type = GEO_NODE_SPLINE_TYPE_POLY;
   node->storage = data;

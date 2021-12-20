@@ -34,6 +34,7 @@ CCL_NAMESPACE_BEGIN
 
 #define BVH_MOTION 1
 #define BVH_HAIR 2
+#define BVH_POINTCLOUD 4
 
 #define BVH_NAME_JOIN(x, y) x##_##y
 #define BVH_NAME_EVAL(x, y) BVH_NAME_JOIN(x, y)

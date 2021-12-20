@@ -26,6 +26,7 @@ CCL_NAMESPACE_BEGIN
 class BVHBuild;
 class Hair;
 class Mesh;
+class PointCloud;
 struct Transform;
 
 /* Object Split */
@@ -123,6 +124,13 @@ class BVHSpatialSplit {
                              float pos,
                              BoundBox &left_bounds,
                              BoundBox &right_bounds);
+  void split_point_primitive(const PointCloud *pointcloud,
+                             const Transform *tfm,
+                             int prim_index,
+                             int dim,
+                             float pos,
+                             BoundBox &left_bounds,
+                             BoundBox &right_bounds);
 
   /* Lower-level functions which calculates boundaries of left and right nodes
    * needed for spatial split.
@@ -137,6 +145,12 @@ class BVHSpatialSplit {
                                 BoundBox &right_bounds);
   void split_curve_reference(const BVHReference &ref,
                              const Hair *hair,
+                             int dim,
+                             float pos,
+                             BoundBox &left_bounds,
+                             BoundBox &right_bounds);
+  void split_point_reference(const BVHReference &ref,
+                             const PointCloud *pointcloud,
                              int dim,
                              float pos,
                              BoundBox &left_bounds,

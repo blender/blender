@@ -287,8 +287,6 @@ static Mesh *create_uv_sphere_mesh(const float radius, const int segments, const
 
   calculate_sphere_uvs(mesh, segments, rings);
 
-  BLI_assert(BKE_mesh_is_valid(mesh));
-
   return mesh;
 }
 

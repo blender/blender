@@ -23,6 +23,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** Anti-Aliasing (SMAA 1x) ******************** */
@@ -49,6 +52,17 @@ static void node_composit_init_antialiasing(bNodeTree *UNUSED(ntree), bNode *nod
   node->storage = data;
 }
 
+static void node_composit_buts_antialiasing(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *col;
+
+  col = uiLayoutColumn(layout, false);
+
+  uiItemR(col, ptr, "threshold", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "contrast_limit", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "corner_rounding", 0, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_antialiasing()
 {
   static bNodeType ntype;
@@ -56,6 +70,7 @@ void register_node_type_cmp_antialiasing()
   cmp_node_type_base(
       &ntype, CMP_NODE_ANTIALIASING, "Anti-Aliasing", NODE_CLASS_OP_FILTER, NODE_PREVIEW);
   ntype.declare = blender::nodes::cmp_node_antialiasing_declare;
+  ntype.draw_buttons = node_composit_buts_antialiasing;
   node_type_size(&ntype, 170, 140, 200);
   node_type_init(&ntype, node_composit_init_antialiasing);
   node_type_storage(

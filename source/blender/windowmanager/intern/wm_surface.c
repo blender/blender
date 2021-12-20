@@ -45,7 +45,8 @@ static wmSurface *g_drawable = NULL;
 
 void wm_surfaces_iter(bContext *C, void (*cb)(bContext *C, wmSurface *))
 {
-  LISTBASE_FOREACH (wmSurface *, surf, &global_surface_list) {
+  /* Mutable iterator in case a surface is freed. */
+  LISTBASE_FOREACH_MUTABLE (wmSurface *, surf, &global_surface_list) {
     cb(C, surf);
   }
 }

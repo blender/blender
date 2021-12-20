@@ -22,6 +22,8 @@
 
 #include "BLI_math_base_safe.h"
 
+#include "NOD_socket_search_link.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_attribute_statistic_cc {
@@ -29,6 +31,7 @@ namespace blender::nodes::node_geo_attribute_statistic_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
   b.add_input<decl::Float>(N_("Attribute")).hide_value().supports_field();
   b.add_input<decl::Vector>(N_("Attribute"), "Attribute_001").hide_value().supports_field();
 
@@ -66,7 +69,8 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *socket_geo = (bNodeSocket *)node->inputs.first;
-  bNodeSocket *socket_float_attr = socket_geo->next;
+  bNodeSocket *socket_selection = socket_geo->next;
+  bNodeSocket *socket_float_attr = socket_selection->next;
   bNodeSocket *socket_float3_attr = socket_float_attr->next;
 
   bNodeSocket *socket_float_mean = (bNodeSocket *)node->outputs.first;
@@ -110,6 +114,54 @@ static void node_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, socket_vector_variance, data_type == CD_PROP_FLOAT3);
 }
 
+static std::optional<CustomDataType> node_type_from_other_socket(const bNodeSocket &socket)
+{
+  switch (socket.type) {
+    case SOCK_FLOAT:
+    case SOCK_BOOLEAN:
+    case SOCK_INT:
+      return CD_PROP_FLOAT;
+    case SOCK_VECTOR:
+    case SOCK_RGBA:
+      return CD_PROP_FLOAT3;
+    default:
+      return {};
+  }
+}
+
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const bNodeType &node_type = params.node_type();
+  const std::optional<CustomDataType> type = node_type_from_other_socket(params.other_socket());
+  if (params.in_out() == SOCK_IN) {
+    if (params.other_socket().type == SOCK_GEOMETRY) {
+      params.add_item(IFACE_("Geometry"), [node_type](LinkSearchOpParams &params) {
+        bNode &node = params.add_node(node_type);
+        params.connect_available_socket(node, "Geometry");
+      });
+    }
+    if (type) {
+      params.add_item(IFACE_("Attribute"), [&](LinkSearchOpParams &params) {
+        bNode &node = params.add_node(node_type);
+        node.custom1 = *type;
+        params.update_and_connect_available_socket(node, "Attribute");
+      });
+    }
+  }
+  else if (type) {
+    /* Only use the first 8 declarations since we set the type automatically. */
+    const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+    for (const SocketDeclarationPtr &socket_decl : declaration.outputs().take_front(8)) {
+      StringRefNull name = socket_decl->name();
+      params.add_item(IFACE_(name.c_str()), [node_type, name, type](LinkSearchOpParams &params) {
+        bNode &node = params.add_node(node_type);
+        node.custom1 = *type;
+        params.update_and_connect_available_socket(node, name);
+      });
+    }
+  }
+}
+
 template<typename T> static T compute_sum(const Span<T> data)
 {
   return std::accumulate(data.begin(), data.end(), T());
@@ -148,38 +200,36 @@ static float median_of_sorted_span(const Span<float> data)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.get_input<GeometrySet>("Geometry");
-
   const bNode &node = params.node();
   const CustomDataType data_type = static_cast<CustomDataType>(node.custom1);
   const AttributeDomain domain = static_cast<AttributeDomain>(node.custom2);
-
-  int64_t total_size = 0;
   Vector<const GeometryComponent *> components = geometry_set.get_components_for_read();
 
-  for (const GeometryComponent *component : components) {
-    if (component->attribute_domain_supported(domain)) {
-      total_size += component->attribute_domain_size(domain);
-    }
-  }
-  if (total_size == 0) {
-    params.set_default_remaining_outputs();
-    return;
-  }
+  const Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
 
   switch (data_type) {
     case CD_PROP_FLOAT: {
       const Field<float> input_field = params.get_input<Field<float>>("Attribute");
-      Array<float> data = Array<float>(total_size);
-      int offset = 0;
+      Vector<float> data;
       for (const GeometryComponent *component : components) {
         if (component->attribute_domain_supported(domain)) {
           GeometryComponentFieldContext field_context{*component, domain};
           const int domain_size = component->attribute_domain_size(domain);
+
           fn::FieldEvaluator data_evaluator{field_context, domain_size};
-          MutableSpan<float> component_result = data.as_mutable_span().slice(offset, domain_size);
-          data_evaluator.add_with_destination(input_field, component_result);
+          data_evaluator.add(input_field);
+          data_evaluator.set_selection(selection_field);
           data_evaluator.evaluate();
-          offset += domain_size;
+          const VArray<float> &component_data = data_evaluator.get_evaluated<float>(0);
+          const IndexMask selection = data_evaluator.get_evaluated_selection_as_mask();
+
+          const int next_data_index = data.size();
+          data.resize(next_data_index + selection.size());
+          MutableSpan<float> selected_data = data.as_mutable_span().slice(next_data_index,
+                                                                          selection.size());
+          for (const int i : selection.index_range()) {
+            selected_data[i] = component_data[selection[i]];
+          }
         }
       }
 
@@ -200,7 +250,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       const bool variance_required = params.output_is_required("Standard Deviation") ||
                                      params.output_is_required("Variance");
 
-      if (total_size != 0) {
+      if (data.size() != 0) {
         if (sort_required) {
           std::sort(data.begin(), data.end());
           median = median_of_sorted_span(data);
@@ -211,7 +261,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         }
         if (sum_required || variance_required) {
           sum = compute_sum<float>(data);
-          mean = sum / total_size;
+          mean = sum / data.size();
 
           if (variance_required) {
             variance = compute_variance(data, mean);
@@ -238,18 +288,26 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     case CD_PROP_FLOAT3: {
       const Field<float3> input_field = params.get_input<Field<float3>>("Attribute_001");
-
-      Array<float3> data = Array<float3>(total_size);
-      int offset = 0;
+      Vector<float3> data;
       for (const GeometryComponent *component : components) {
         if (component->attribute_domain_supported(domain)) {
           GeometryComponentFieldContext field_context{*component, domain};
           const int domain_size = component->attribute_domain_size(domain);
+
           fn::FieldEvaluator data_evaluator{field_context, domain_size};
-          MutableSpan<float3> component_result = data.as_mutable_span().slice(offset, domain_size);
-          data_evaluator.add_with_destination(input_field, component_result);
+          data_evaluator.add(input_field);
+          data_evaluator.set_selection(selection_field);
           data_evaluator.evaluate();
-          offset += domain_size;
+          const VArray<float3> &component_data = data_evaluator.get_evaluated<float3>(0);
+          const IndexMask selection = data_evaluator.get_evaluated_selection_as_mask();
+
+          const int next_data_index = data.size();
+          data.resize(data.size() + selection.size());
+          MutableSpan<float3> selected_data = data.as_mutable_span().slice(next_data_index,
+                                                                           selection.size());
+          for (const int i : selection.index_range()) {
+            selected_data[i] = component_data[selection[i]];
+          }
         }
       }
 
@@ -274,9 +332,9 @@ static void node_geo_exec(GeoNodeExecParams params)
       Array<float> data_y;
       Array<float> data_z;
       if (sort_required || variance_required) {
-        data_x.reinitialize(total_size);
-        data_y.reinitialize(total_size);
-        data_z.reinitialize(total_size);
+        data_x.reinitialize(data.size());
+        data_y.reinitialize(data.size());
+        data_z.reinitialize(data.size());
         for (const int i : data.index_range()) {
           data_x[i] = data[i].x;
           data_y[i] = data[i].y;
@@ -284,7 +342,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         }
       }
 
-      if (total_size != 0) {
+      if (data.size() != 0) {
         if (sort_required) {
           std::sort(data_x.begin(), data_x.end());
           std::sort(data_y.begin(), data_y.end());
@@ -301,7 +359,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         }
         if (sum_required || variance_required) {
           sum = compute_sum(data.as_span());
-          mean = sum / total_size;
+          mean = sum / data.size();
 
           if (variance_required) {
             const float x_variance = compute_variance(data_x, mean.x);
@@ -351,5 +409,6 @@ void register_node_type_geo_attribute_statistic()
   node_type_update(&ntype, file_ns::node_update);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
+  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   nodeRegisterType(&ntype);
 }

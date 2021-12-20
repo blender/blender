@@ -64,6 +64,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -374,6 +375,9 @@ static int ed_undo_step_by_index(bContext *C, const int undo_index, ReportList *
 
   wmWindowManager *wm = CTX_wm_manager(C);
   const int active_step_index = BLI_findindex(&wm->undo_stack->steps, wm->undo_stack->step_active);
+  if (undo_index == active_step_index) {
+    return OPERATOR_CANCELLED;
+  }
   const enum eUndoStepDir undo_dir = (undo_index < active_step_index) ? STEP_UNDO : STEP_REDO;
 
   CLOG_INFO(&LOG,
@@ -494,17 +498,28 @@ UndoStack *ED_undo_stack_get(void)
 /** \name Undo, Undo Push & Redo Operators
  * \{ */
 
+/**
+ * Refresh to run after user activated undo/redo actions.
+ */
+static void ed_undo_refresh_for_op(bContext *C)
+{
+  /* The "last operator" should disappear, later we can tie this with undo stack nicer. */
+  WM_operator_stack_clear(CTX_wm_manager(C));
+
+  /* Keep button under the cursor active. */
+  WM_event_add_mousemove(CTX_wm_window(C));
+
+  ED_outliner_select_sync_from_all_tag(C);
+}
+
 static int ed_undo_exec(bContext *C, wmOperator *op)
 {
   /* "last operator" should disappear, later we can tie this with undo stack nicer */
   WM_operator_stack_clear(CTX_wm_manager(C));
   int ret = ed_undo_step_direction(C, STEP_UNDO, op->reports);
   if (ret & OPERATOR_FINISHED) {
-    /* Keep button under the cursor active. */
-    WM_event_add_mousemove(CTX_wm_window(C));
+    ed_undo_refresh_for_op(C);
   }
-
-  ED_outliner_select_sync_from_all_tag(C);
   return ret;
 }
 
@@ -529,11 +544,8 @@ static int ed_redo_exec(bContext *C, wmOperator *op)
 {
   int ret = ed_undo_step_direction(C, STEP_REDO, op->reports);
   if (ret & OPERATOR_FINISHED) {
-    /* Keep button under the cursor active. */
-    WM_event_add_mousemove(CTX_wm_window(C));
+    ed_undo_refresh_for_op(C);
   }
-
-  ED_outliner_select_sync_from_all_tag(C);
   return ret;
 }
 
@@ -748,97 +760,36 @@ void ED_undo_operator_repeat_cb_evt(bContext *C, void *arg_op, int UNUSED(arg_un
 
 /* -------------------------------------------------------------------- */
 /** \name Undo History Operator
+ *
+ * See `TOPBAR_MT_undo_history` which is used to access this operator.
  * \{ */
-
-/* create enum based on undo items */
-static const EnumPropertyItem *rna_undo_itemf(bContext *C, int *totitem)
-{
-  EnumPropertyItem item_tmp = {0}, *item = NULL;
-  int i = 0;
-
-  wmWindowManager *wm = CTX_wm_manager(C);
-  if (wm->undo_stack == NULL) {
-    return NULL;
-  }
-
-  for (UndoStep *us = wm->undo_stack->steps.first; us; us = us->next, i++) {
-    if (us->skip == false) {
-      item_tmp.identifier = us->name;
-      item_tmp.name = IFACE_(us->name);
-      if (us == wm->undo_stack->step_active) {
-        item_tmp.icon = ICON_LAYER_ACTIVE;
-      }
-      else {
-        item_tmp.icon = ICON_NONE;
-      }
-      item_tmp.value = i;
-      RNA_enum_item_add(&item, totitem, &item_tmp);
-    }
-  }
-  RNA_enum_item_end(&item, totitem);
-
-  return item;
-}
-
-static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-  int totitem = 0;
-
-  {
-    const EnumPropertyItem *item = rna_undo_itemf(C, &totitem);
-
-    if (totitem > 0) {
-      uiPopupMenu *pup = UI_popup_menu_begin(
-          C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
-      uiLayout *layout = UI_popup_menu_layout(pup);
-      uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
-      uiLayout *column = NULL;
-      const int col_size = 20 + totitem / 12;
-      int i, c;
-      bool add_col = true;
-
-      for (c = 0, i = totitem; i--;) {
-        if (add_col && !(c % col_size)) {
-          column = uiLayoutColumn(split, false);
-          add_col = false;
-        }
-        if (item[i].identifier) {
-          uiItemIntO(column, item[i].name, item[i].icon, op->type->idname, "item", item[i].value);
-          c++;
-          add_col = true;
-        }
-      }
-
-      MEM_freeN((void *)item);
-
-      UI_popup_menu_end(C, pup);
-    }
-  }
-  return OPERATOR_CANCELLED;
-}
 
 /* NOTE: also check #ed_undo_step() in top if you change notifiers. */
 static int undo_history_exec(bContext *C, wmOperator *op)
 {
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "item");
   if (RNA_property_is_set(op->ptr, prop)) {
-    int item = RNA_property_int_get(op->ptr, prop);
-    WM_operator_stack_clear(CTX_wm_manager(C));
-    ed_undo_step_by_index(C, item, op->reports);
-    WM_event_add_notifier(C, NC_WINDOW, NULL);
-    return OPERATOR_FINISHED;
+    const int item = RNA_property_int_get(op->ptr, prop);
+    const int ret = ed_undo_step_by_index(C, item, op->reports);
+    if (ret & OPERATOR_FINISHED) {
+      ed_undo_refresh_for_op(C);
+
+      WM_event_add_notifier(C, NC_WINDOW, NULL);
+      return OPERATOR_FINISHED;
+    }
   }
   return OPERATOR_CANCELLED;
 }
 
-static bool undo_history_poll(bContext *C)
+static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (!ed_undo_is_init_and_screenactive_poll(C)) {
-    return false;
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "item");
+  if (RNA_property_is_set(op->ptr, prop)) {
+    return undo_history_exec(C, op);
   }
-  UndoStack *undo_stack = CTX_wm_manager(C)->undo_stack;
-  /* More than just original state entry. */
-  return BLI_listbase_count_at_most(&undo_stack->steps, 2) > 1;
+
+  WM_menu_name_call(C, "TOPBAR_MT_undo_history", WM_OP_INVOKE_DEFAULT);
+  return OPERATOR_FINISHED;
 }
 
 void ED_OT_undo_history(wmOperatorType *ot)
@@ -851,7 +802,7 @@ void ED_OT_undo_history(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = undo_history_invoke;
   ot->exec = undo_history_exec;
-  ot->poll = undo_history_poll;
+  ot->poll = ed_undo_is_init_and_screenactive_poll;
 
   RNA_def_int(ot->srna, "item", 0, 0, INT_MAX, "Item", "", 0, INT_MAX);
 }

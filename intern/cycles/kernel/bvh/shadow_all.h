@@ -28,6 +28,7 @@
  * without new features slowing things down.
  *
  * BVH_HAIR: hair curve rendering
+ * BVH_POINTCLOUD: point cloud rendering
  * BVH_MOTION: motion blur rendering
  */
 
@@ -173,7 +174,7 @@ ccl_device_inline
               case PRIMITIVE_MOTION_CURVE_THICK:
               case PRIMITIVE_CURVE_RIBBON:
               case PRIMITIVE_MOTION_CURVE_RIBBON: {
-                if ((type & PRIMITIVE_ALL_MOTION) && kernel_data.bvh.use_bvh_steps) {
+                if ((type & PRIMITIVE_MOTION) && kernel_data.bvh.use_bvh_steps) {
                   const float2 prim_time = kernel_tex_fetch(__prim_time, prim_addr);
                   if (ray->time < prim_time.x || ray->time > prim_time.y) {
                     hit = false;
@@ -199,6 +200,34 @@ ccl_device_inline
                 break;
               }
 #endif
+#if BVH_FEATURE(BVH_POINTCLOUD)
+              case PRIMITIVE_POINT:
+              case PRIMITIVE_MOTION_POINT: {
+                if ((type & PRIMITIVE_MOTION) && kernel_data.bvh.use_bvh_steps) {
+                  const float2 prim_time = kernel_tex_fetch(__prim_time, prim_addr);
+                  if (ray->time < prim_time.x || ray->time > prim_time.y) {
+                    hit = false;
+                    break;
+                  }
+                }
+
+                const int point_object = (object == OBJECT_NONE) ?
+                                             kernel_tex_fetch(__prim_object, prim_addr) :
+                                             object;
+                const int point_prim = kernel_tex_fetch(__prim_index, prim_addr);
+                const int point_type = kernel_tex_fetch(__prim_type, prim_addr);
+                hit = point_intersect(kg,
+                                      &isect,
+                                      P,
+                                      dir,
+                                      t_max_current,
+                                      point_object,
+                                      point_prim,
+                                      ray->time,
+                                      point_type);
+                break;
+              }
+#endif /* BVH_FEATURE(BVH_POINTCLOUD) */
               default: {
                 hit = false;
                 break;
@@ -226,7 +255,7 @@ ccl_device_inline
               bool record_intersection = true;
 
               /* Always use baked shadow transparency for curves. */
-              if (isect.type & PRIMITIVE_ALL_CURVE) {
+              if (isect.type & PRIMITIVE_CURVE) {
                 *throughput *= intersection_curve_shadow_transparency(
                     kg, isect.object, isect.prim, isect.u);
 

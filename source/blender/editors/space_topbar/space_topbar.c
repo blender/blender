@@ -35,6 +35,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
+#include "BKE_undo_system.h"
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -236,6 +237,59 @@ static void recent_files_menu_register(void)
   WM_menutype_add(mt);
 }
 
+static void undo_history_draw_menu(const bContext *C, Menu *menu)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  if (wm->undo_stack == NULL) {
+    return;
+  }
+  int undo_step_count = 0;
+  for (UndoStep *us = wm->undo_stack->steps.first; us; us = us->next) {
+    if (us->skip) {
+      continue;
+    }
+    undo_step_count += 1;
+  }
+
+  uiLayout *split = uiLayoutSplit(menu->layout, 0.0f, false);
+  uiLayout *column = NULL;
+
+  const int col_size = 20 + (undo_step_count / 12);
+  int i = 0;
+
+  undo_step_count = 0;
+  for (UndoStep *us = wm->undo_stack->steps.first; us; us = us->next, i++) {
+    if (us->skip) {
+      continue;
+    }
+    if (!(undo_step_count % col_size)) {
+      column = uiLayoutColumn(split, false);
+    }
+    const bool is_active = (us == wm->undo_stack->step_active);
+    uiLayout *row = uiLayoutRow(column, false);
+    uiLayoutSetEnabled(row, !is_active);
+    uiItemIntO(row,
+               IFACE_(us->name),
+               is_active ? ICON_LAYER_ACTIVE : ICON_NONE,
+               "ED_OT_undo_history",
+               "item",
+               i);
+    undo_step_count += 1;
+  }
+}
+
+static void undo_history_menu_register(void)
+{
+  MenuType *mt;
+
+  mt = MEM_callocN(sizeof(MenuType), __func__);
+  strcpy(mt->idname, "TOPBAR_MT_undo_history");
+  strcpy(mt->label, N_("Undo History"));
+  strcpy(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  mt->draw = undo_history_draw_menu;
+  WM_menutype_add(mt);
+}
+
 void ED_spacetype_topbar(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype topbar");
@@ -278,6 +332,7 @@ void ED_spacetype_topbar(void)
   BLI_addhead(&st->regiontypes, art);
 
   recent_files_menu_register();
+  undo_history_menu_register();
 
   BKE_spacetype_register(st);
 }

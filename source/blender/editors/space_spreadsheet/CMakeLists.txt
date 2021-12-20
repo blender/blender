@@ -49,7 +49,6 @@ set(SRC
   spreadsheet_row_filter_ui.cc
 
   spreadsheet_cache.hh
-  spreadsheet_cell_value.hh
   spreadsheet_column.hh
   spreadsheet_column_values.hh
   spreadsheet_context.hh

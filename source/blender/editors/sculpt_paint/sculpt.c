@@ -3946,6 +3946,10 @@ void SCULPT_calc_area_normal_and_center(
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Generic Brush Utilities
+ * \{ */
+
 /**
  * Return modified brush strength. Includes the direction of the brush, positive
  * values pull vertices, negative values push. Uses tablet pressure and a
@@ -5669,8 +5673,8 @@ static void get_nodes_undo(Sculpt *sd,
     }
   }
 
-  /* Initialize automasking cache. For anchored brushes with spherical falloff, we start off with
-   * zero radius, thus we have no pbvh nodes on the first brush step. */
+  /* Initialize auto-masking cache. For anchored brushes with spherical falloff,
+   * we start off with zero radius, thus we have no PBVH nodes on the first brush step. */
   if (totnode ||
       ((brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) && (brush->flag & BRUSH_ANCHORED))) {
     if (SCULPT_is_automasking_enabled(sd, ss, brush)) {

@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** CURVE Time  ******************** */
@@ -72,12 +75,18 @@ static void node_composit_init_curve_vec(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = BKE_curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 }
 
+static void node_buts_curvevec(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiTemplateCurveMapping(layout, ptr, "mapping", 'v', false, false, false, false);
+}
+
 void register_node_type_cmp_curve_vec()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR, 0);
   ntype.declare = blender::nodes::cmp_node_curve_vec_declare;
+  ntype.draw_buttons = node_buts_curvevec;
   node_type_size(&ntype, 200, 140, 320);
   node_type_init(&ntype, node_composit_init_curve_vec);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);

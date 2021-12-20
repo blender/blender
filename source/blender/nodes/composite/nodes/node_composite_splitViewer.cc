@@ -21,10 +21,13 @@
  * \ingroup cmpnodes
  */
 
-#include "node_composite_util.hh"
-
 #include "BKE_global.h"
 #include "BKE_image.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "node_composite_util.hh"
 
 /* **************** SPLIT VIEWER ******************** */
 
@@ -48,6 +51,16 @@ static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node
   node->id = (ID *)BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
 }
 
+static void node_composit_buts_splitviewer(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *row, *col;
+
+  col = uiLayoutColumn(layout, false);
+  row = uiLayoutRow(col, false);
+  uiItemR(row, ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "factor", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_splitviewer()
 {
   static bNodeType ntype;
@@ -55,6 +68,7 @@ void register_node_type_cmp_splitviewer()
   cmp_node_type_base(
       &ntype, CMP_NODE_SPLITVIEWER, "Split Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW);
   ntype.declare = blender::nodes::cmp_node_split_viewer_declare;
+  ntype.draw_buttons = node_composit_buts_splitviewer;
   node_type_init(&ntype, node_composit_init_splitviewer);
   node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
 

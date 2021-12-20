@@ -2463,9 +2463,10 @@ static void file_expand_directory(bContext *C)
   if (params) {
     if (BLI_path_is_rel(params->dir)) {
       /* Use of 'default' folder here is just to avoid an error message on '//' prefix. */
+      const char *blendfile_path = BKE_main_blendfile_path(bmain);
       BLI_path_abs(params->dir,
-                   G.relbase_valid ? BKE_main_blendfile_path(bmain) :
-                                     BKE_appdir_folder_default_or_root());
+                   (blendfile_path[0] != '\0') ? blendfile_path :
+                                                 BKE_appdir_folder_default_or_root());
     }
     else if (params->dir[0] == '~') {
       char tmpstr[sizeof(params->dir) - 1];

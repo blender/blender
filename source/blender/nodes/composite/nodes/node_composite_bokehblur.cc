@@ -22,6 +22,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "../node_composite_util.hh"
 
 /* **************** BLUR ******************** */
@@ -45,12 +48,21 @@ static void node_composit_init_bokehblur(bNodeTree *UNUSED(ntree), bNode *node)
   node->custom4 = 16.0f;
 }
 
+static void node_composit_buts_bokehblur(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "use_variable_size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  // uiItemR(layout, ptr, "f_stop", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE); /* UNUSED */
+  uiItemR(layout, ptr, "blur_max", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_extended_bounds", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_bokehblur()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_BOKEHBLUR, "Bokeh Blur", NODE_CLASS_OP_FILTER, 0);
   ntype.declare = blender::nodes::cmp_node_bokehblur_declare;
+  ntype.draw_buttons = node_composit_buts_bokehblur;
   node_type_init(&ntype, node_composit_init_bokehblur);
 
   nodeRegisterType(&ntype);

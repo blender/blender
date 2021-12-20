@@ -749,6 +749,26 @@ int BLI_findstringindex(const ListBase *listbase, const char *id, const int offs
   return -1;
 }
 
+ListBase BLI_listbase_from_link(Link *some_link)
+{
+  ListBase list = {some_link, some_link};
+  if (some_link == NULL) {
+    return list;
+  }
+
+  /* Find the first element. */
+  while (((Link *)list.first)->prev != NULL) {
+    list.first = ((Link *)list.first)->prev;
+  }
+
+  /* Find the last element. */
+  while (((Link *)list.last)->next != NULL) {
+    list.last = ((Link *)list.last)->next;
+  }
+
+  return list;
+}
+
 void BLI_duplicatelist(ListBase *dst, const ListBase *src)
 {
   struct Link *dst_link, *src_link;

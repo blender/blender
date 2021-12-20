@@ -21,6 +21,9 @@
  * \ingroup cmpnodes
  */
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_composite_util.hh"
 
 /* **************** Inpaint/ ******************** */
@@ -35,12 +38,18 @@ static void cmp_node_inpaint_declare(NodeDeclarationBuilder &b)
 
 }  // namespace blender::nodes
 
+static void node_composit_buts_inpaint(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "distance", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 void register_node_type_cmp_inpaint()
 {
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_INPAINT, "Inpaint", NODE_CLASS_OP_FILTER, 0);
   ntype.declare = blender::nodes::cmp_node_inpaint_declare;
+  ntype.draw_buttons = node_composit_buts_inpaint;
 
   nodeRegisterType(&ntype);
 }

@@ -908,6 +908,25 @@ typedef enum eIMBTransformMode {
   IMB_TRANSFORM_MODE_WRAP_REPEAT = 2,
 } eIMBTransformMode;
 
+/**
+ * \brief Transform source image buffer onto destination image buffer using a transform matrix.
+ *
+ * \param src Image buffer to read from.
+ * \param dst Image buffer to write to. rect or rect_float must already be initialized.
+ * - dst buffer must be a 4 channel buffers.
+ * - Only one data type buffer will be used (rect_float has priority over rect)
+ * \param mode Cropping/Wrap repeat effect to apply during transformation.
+ * \param filter Interpolation to use during sampling.
+ * \param transform_matrix Transformation matrix to use.
+ * The given matrix should transform between dst pixel space to src pixel space.
+ * One unit is one pixel.
+ * \param src_crop cropping region how to crop the source buffer. Should only be passed when mode
+ * is set to #IMB_TRANSFORM_MODE_CROP_SRC. For any other mode this should be empty.
+ *
+ * During transformation no data/color conversion will happens.
+ * When transforming between float images the number of channels of the source buffer may be
+ * between 1 and 4. When source buffer has one channel the data will be read as a gray scale value.
+ */
 void IMB_transform(const struct ImBuf *src,
                    struct ImBuf *dst,
                    const eIMBTransformMode mode,

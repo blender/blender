@@ -34,6 +34,10 @@
 #include "RNA_types.h"
 
 #ifdef __cplusplus
+#  include "BLI_string_ref.hh"
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -114,6 +118,7 @@ namespace nodes {
 class NodeMultiFunctionBuilder;
 class GeoNodeExecParams;
 class NodeDeclarationBuilder;
+class GatherLinkSearchOpParams;
 }  // namespace nodes
 namespace fn {
 class CPPType;
@@ -129,10 +134,15 @@ using SocketGetCPPValueFunction = void (*)(const struct bNodeSocket &socket, voi
 using SocketGetGeometryNodesCPPValueFunction = void (*)(const struct bNodeSocket &socket,
                                                         void *r_value);
 
+/* Adds socket link operations that are specific to this node type. */
+using NodeGatherSocketLinkOperationsFunction =
+    void (*)(blender::nodes::GatherLinkSearchOpParams &params);
+
 #else
 typedef void *NodeMultiFunctionBuildFunction;
 typedef void *NodeGeometryExecFunction;
 typedef void *NodeDeclareFunction;
+typedef void *NodeGatherSocketLinkOperationsFunction;
 typedef void *SocketGetCPPTypeFunction;
 typedef void *SocketGetGeometryNodesCPPTypeFunction;
 typedef void *SocketGetGeometryNodesCPPValueFunction;
@@ -284,7 +294,7 @@ typedef struct bNodeType {
 
   /**
    * Can this node type be added to a node tree?
-   * \param r_disabled_hint: Optional hint to display in the UI when the poll fails.
+   * \param r_disabled_hint: Hint to display in the UI when the poll fails.
    *                         The callback can set this to a static string without having to
    *                         null-check it (or without setting it to null if it's not used).
    *                         The caller must pass a valid `const char **` and null-initialize it
@@ -324,6 +334,13 @@ typedef struct bNodeType {
   bool declaration_is_dynamic;
   /* Declaration to be used when it is not dynamic. */
   NodeDeclarationHandle *fixed_declaration;
+
+  /**
+   * Add to the list of search names and operations gathered by node link drag searching.
+   * Usually it isn't necessary to override the default behavior here, but a node type can have
+   * custom behavior here like adding custom search items.
+   */
+  NodeGatherSocketLinkOperationsFunction gather_link_search_ops;
 
   /** True when the node cannot be muted. */
   bool no_muting;
@@ -402,7 +419,7 @@ typedef struct bNodeTreeType {
   /* Tree update. Overrides `nodetype->updatetreefunc` ! */
   void (*update)(struct bNodeTree *ntree);
 
-  bool (*validate_link)(struct bNodeTree *ntree, struct bNodeLink *link);
+  bool (*validate_link)(eNodeSocketDatatype from, eNodeSocketDatatype to);
 
   void (*node_add_init)(struct bNodeTree *ntree, struct bNode *bnode);
 
@@ -943,10 +960,7 @@ bNodePreview *BKE_node_preview_verify(
     struct bNodeInstanceHash *previews, bNodeInstanceKey key, int xsize, int ysize, bool create);
 bNodePreview *BKE_node_preview_copy(struct bNodePreview *preview);
 void BKE_node_preview_free(struct bNodePreview *preview);
-void BKE_node_preview_init_tree(struct bNodeTree *ntree,
-                                int xsize,
-                                int ysize,
-                                bool create_previews);
+void BKE_node_preview_init_tree(struct bNodeTree *ntree, int xsize, int ysize);
 void BKE_node_preview_free_tree(struct bNodeTree *ntree);
 void BKE_node_preview_remove_unused(struct bNodeTree *ntree);
 void BKE_node_preview_clear(struct bNodePreview *preview);
@@ -956,14 +970,6 @@ void BKE_node_preview_sync_tree(struct bNodeTree *to_ntree, struct bNodeTree *fr
 void BKE_node_preview_merge_tree(struct bNodeTree *to_ntree,
                                  struct bNodeTree *from_ntree,
                                  bool remove_old);
-
-/**
- * Hack warning! this function is only used for shader previews,
- * and since it gets called multiple times per pixel for Z-transparency we only add the color once.
- * Preview gets cleared before it starts render though.
- */
-void BKE_node_preview_set_pixel(
-    struct bNodePreview *preview, const float col[4], int x, int y, bool do_manage);
 
 /** \} */
 
@@ -1153,7 +1159,6 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree,
 #define SH_NODE_SEPRGB 120
 #define SH_NODE_COMBRGB 121
 #define SH_NODE_HUE_SAT 122
-#define NODE_DYNAMIC 123
 
 #define SH_NODE_OUTPUT_MATERIAL 124
 #define SH_NODE_OUTPUT_WORLD 125
@@ -1766,6 +1771,18 @@ extern struct bNodeSocketType NodeSocketTypeUndefined;
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+
+namespace blender::bke {
+
+bNodeSocket *node_find_enabled_socket(bNode &node, eNodeSocketInOut in_out, StringRef name);
+bNodeSocket *node_find_enabled_input_socket(bNode &node, StringRef name);
+bNodeSocket *node_find_enabled_output_socket(bNode &node, StringRef name);
+
+}  // namespace blender::bke
+
 #endif
 
 #define NODE_STORAGE_FUNCS(StorageT) \

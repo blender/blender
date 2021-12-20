@@ -133,4 +133,7 @@ void curve_create_default_rotation_attribute(Span<float3> tangents,
                                              Span<float3> normals,
                                              MutableSpan<float3> rotations);
 
+std::optional<CustomDataType> node_data_type_to_custom_data_type(eNodeSocketDatatype type);
+std::optional<CustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket);
+
 }  // namespace blender::nodes

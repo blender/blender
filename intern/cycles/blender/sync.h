@@ -66,6 +66,8 @@ class BlenderSync {
 
   void reset(BL::BlendData &b_data, BL::Scene &b_scene);
 
+  void tag_update();
+
   /* sync */
   void sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d);
   void sync_data(BL::RenderSettings &b_render,
@@ -167,12 +169,16 @@ class BlenderSync {
       Hair *hair, BL::Mesh &b_mesh, BObjectInfo &b_ob_info, bool motion, int motion_step = 0);
   bool object_has_particle_hair(BL::Object b_ob);
 
+  /* Point Cloud */
+  void sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info);
+  void sync_pointcloud_motion(PointCloud *pointcloud, BObjectInfo &b_ob_info, int motion_step = 0);
+
   /* Camera */
   void sync_camera_motion(
       BL::RenderSettings &b_render, BL::Object &b_ob, int width, int height, float motion_time);
 
   /* Geometry */
-  Geometry *sync_geometry(BL::Depsgraph &b_depsgrpah,
+  Geometry *sync_geometry(BL::Depsgraph &b_depsgraph,
                           BObjectInfo &b_ob_info,
                           bool object_updated,
                           bool use_particle_hair,
@@ -267,7 +273,6 @@ class BlenderSync {
 
   Progress &progress;
 
- protected:
   /* Indicates that `sync_recalc()` detected changes in the scene.
    * If this flag is false then the data is considered to be up-to-date and will not be
    * synchronized at all. */

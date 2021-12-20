@@ -933,7 +933,7 @@ const char *BKE_modifier_path_relbase(Main *bmain, Object *ob)
    * - Else if the file has been saved return the blend file path.
    * - Else if the file isn't saved and the ID isn't from a library, return the temp dir.
    */
-  if (G.relbase_valid || ID_IS_LINKED(ob)) {
+  if ((bmain->filepath[0] != '\0') || ID_IS_LINKED(ob)) {
     return ID_BLEND_PATH(bmain, &ob->id);
   }
 
@@ -948,7 +948,8 @@ const char *BKE_modifier_path_relbase_from_global(Object *ob)
 
 void BKE_modifier_path_init(char *path, int path_maxlen, const char *name)
 {
-  BLI_join_dirfile(path, path_maxlen, G.relbase_valid ? "//" : BKE_tempdir_session(), name);
+  const char *blendfile_path = BKE_main_blendfile_path_from_global();
+  BLI_join_dirfile(path, path_maxlen, blendfile_path[0] ? "//" : BKE_tempdir_session(), name);
 }
 
 /**

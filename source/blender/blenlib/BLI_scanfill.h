@@ -91,6 +91,7 @@ typedef struct ScanFillFace {
 } ScanFillFace;
 
 /* scanfill.c */
+
 struct ScanFillVert *BLI_scanfill_vert_add(ScanFillContext *sf_ctx, const float vec[3]);
 struct ScanFillEdge *BLI_scanfill_edge_add(ScanFillContext *sf_ctx,
                                            struct ScanFillVert *v1,

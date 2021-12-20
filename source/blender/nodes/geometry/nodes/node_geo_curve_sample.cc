@@ -32,9 +32,17 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>(N_("Curve"))
       .only_realized_data()
       .supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Float>(N_("Factor")).min(0.0f).max(1.0f).subtype(PROP_FACTOR).supports_field();
-  b.add_input<decl::Float>(N_("Length")).min(0.0f).subtype(PROP_DISTANCE).supports_field();
-
+  b.add_input<decl::Float>(N_("Factor"))
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .supports_field()
+      .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR; });
+  b.add_input<decl::Float>(N_("Length"))
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .supports_field()
+      .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH; });
   b.add_output<decl::Vector>(N_("Position")).dependent_field();
   b.add_output<decl::Vector>(N_("Tangent")).dependent_field();
   b.add_output<decl::Vector>(N_("Normal")).dependent_field();

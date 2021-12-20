@@ -44,8 +44,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryCurveSubdivide *data = (NodeGeometryCurveSubdivide *)MEM_callocN(
-      sizeof(NodeGeometryCurveSubdivide), __func__);
+  NodeGeometryCurveSubdivide *data = MEM_cnew<NodeGeometryCurveSubdivide>(__func__);
 
   data->cuts_type = GEO_NODE_ATTRIBUTE_INPUT_INTEGER;
   node->storage = data;

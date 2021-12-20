@@ -609,6 +609,55 @@ void read_geometry_data(AlembicProcedural *proc,
   read_data_loop(proc, cached_data, data, read_curves_data, progress);
 }
 
+/* Points Geometries. */
+
+static void read_points_data(CachedData &cached_data, const PointsSchemaData &data, chrono_t time)
+{
+  const ISampleSelector iss = ISampleSelector(time);
+
+  const P3fArraySamplePtr position = data.positions.getValue(iss);
+  FloatArraySamplePtr radiuses;
+
+  array<float3> a_positions;
+  array<float> a_radius;
+  array<int> a_shader;
+  a_positions.reserve(position->size());
+  a_radius.reserve(position->size());
+  a_shader.reserve(position->size());
+
+  if (data.radiuses.valid()) {
+    IFloatGeomParam::Sample wsample = data.radiuses.getExpandedValue(iss);
+    radiuses = wsample.getVals();
+  }
+
+  const bool do_radius = (radiuses != nullptr) && (radiuses->size() > 1);
+  float radius = (radiuses && radiuses->size() == 1) ? (*radiuses)[0] : data.default_radius;
+
+  int offset = 0;
+  for (size_t i = 0; i < position->size(); i++) {
+    const V3f &f = position->get()[offset + i];
+    a_positions.push_back_slow(make_float3_from_yup(f));
+
+    if (do_radius) {
+      radius = (*radiuses)[offset + i];
+      a_radius.push_back_slow(radius);
+    }
+
+    a_shader.push_back_slow((int)0);
+  }
+
+  cached_data.points.add_data(a_positions, time);
+  cached_data.radiuses.add_data(a_radius, time);
+  cached_data.points_shader.add_data(a_shader, time);
+}
+
+void read_geometry_data(AlembicProcedural *proc,
+                        CachedData &cached_data,
+                        const PointsSchemaData &data,
+                        Progress &progress)
+{
+  read_data_loop(proc, cached_data, data, read_points_data, progress);
+}
 /* Attributes conversions. */
 
 /* Type traits for converting between Alembic and Cycles types.

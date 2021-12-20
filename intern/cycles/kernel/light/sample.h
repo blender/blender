@@ -191,7 +191,7 @@ ccl_device_inline float3 shadow_ray_offset(KernelGlobals kg,
   float3 Ng = (transmit ? -sd->Ng : sd->Ng);
   float3 P = ray_offset(sd->P, Ng);
 
-  if ((sd->type & PRIMITIVE_ALL_TRIANGLE) && (sd->shader & SHADER_SMOOTH_NORMAL)) {
+  if ((sd->type & PRIMITIVE_TRIANGLE) && (sd->shader & SHADER_SMOOTH_NORMAL)) {
     const float offset_cutoff =
         kernel_tex_fetch(__objects, sd->object).shadow_terminator_geometry_offset;
     /* Do ray offset (heavy stuff) only for close to be terminated triangles:

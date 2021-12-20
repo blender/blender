@@ -88,12 +88,13 @@ AssetTempIDConsumer *ED_asset_temp_id_consumer_create(const AssetHandle *handle)
   }
   BLI_assert(handle->file_data->asset_data != nullptr);
   return reinterpret_cast<AssetTempIDConsumer *>(
-      OBJECT_GUARDED_NEW(AssetTemporaryIDConsumer, *handle));
+      MEM_new<AssetTemporaryIDConsumer>(__func__, *handle));
 }
 
 void ED_asset_temp_id_consumer_free(AssetTempIDConsumer **consumer)
 {
-  OBJECT_GUARDED_SAFE_DELETE(*consumer, AssetTemporaryIDConsumer);
+  MEM_delete(reinterpret_cast<AssetTemporaryIDConsumer *>(*consumer));
+  *consumer = nullptr;
 }
 
 ID *ED_asset_temp_id_consumer_ensure_local_id(AssetTempIDConsumer *consumer_,

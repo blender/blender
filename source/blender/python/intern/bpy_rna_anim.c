@@ -401,6 +401,10 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
     return NULL;
   }
 
+  if (result) {
+    WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+  }
+
   return PyBool_FromLong(result);
 }
 

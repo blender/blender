@@ -180,8 +180,9 @@ static int screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     /* extension is added by 'screenshot_check' after */
     char filepath[FILE_MAX] = "//screen";
-    if (G.relbase_valid) {
-      BLI_strncpy(filepath, BKE_main_blendfile_path_from_global(), sizeof(filepath));
+    const char *blendfile_path = BKE_main_blendfile_path_from_global();
+    if (blendfile_path[0] != '\0') {
+      BLI_strncpy(filepath, blendfile_path, sizeof(filepath));
       BLI_path_extension_replace(filepath, sizeof(filepath), ""); /* strip '.blend' */
     }
     RNA_string_set(op->ptr, "filepath", filepath);

@@ -40,9 +40,11 @@ typedef enum eGPUBarrier {
   GPU_BARRIER_SHADER_IMAGE_ACCESS = (1 << 0),
   GPU_BARRIER_TEXTURE_FETCH = (1 << 1),
   GPU_BARRIER_SHADER_STORAGE = (1 << 2),
+  GPU_BARRIER_VERTEX_ATTRIB_ARRAY = (1 << 3),
+  GPU_BARRIER_ELEMENT_ARRAY = (1 << 4),
 } eGPUBarrier;
 
-ENUM_OPERATORS(eGPUBarrier, GPU_BARRIER_SHADER_STORAGE)
+ENUM_OPERATORS(eGPUBarrier, GPU_BARRIER_ELEMENT_ARRAY)
 
 /**
  * Defines the fixed pipeline blending equation.
