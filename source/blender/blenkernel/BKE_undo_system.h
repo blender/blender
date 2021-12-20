@@ -91,7 +91,7 @@ typedef struct UndoStep {
   /** When this is true, undo/memfile read code is allowed to re-use old data-blocks for unchanged
    * IDs, and existing depsgraphes. This has to be forbidden in some cases (like renamed IDs). */
   bool use_old_bmain_data;
-  /** For use by undo systems that accumulate changes (text editor, painting). */
+  /** For use by undo systems that accumulate changes (mesh-sculpt & image-painting). */
   bool is_applied;
   /* Over alloc 'type->struct_size'. */
 } UndoStep;
