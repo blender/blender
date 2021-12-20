@@ -293,7 +293,6 @@ static void sculpt_project_v3_normal_align(SculptSession *ss,
       grab_delta, ss->cache->sculpt_normal_symm, (len_signed * normal_weight) * len_view_scale);
 }
 
-
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Draw Brush
  * \{ */
@@ -2676,7 +2675,6 @@ void SCULPT_do_displacement_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes
 }
 
 /** \} */
-
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Topology Rake (Shared Utility)

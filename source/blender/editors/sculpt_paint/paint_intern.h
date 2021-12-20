@@ -25,9 +25,9 @@
 
 #include "BKE_paint.h"
 
-#include "BLI_rect.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_math.h"
+#include "BLI_rect.h"
 
 #include "DNA_scene_types.h"
 

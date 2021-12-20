@@ -2775,7 +2775,6 @@ typedef struct {
   bool original;
 } SculptFindNearestToRayData;
 
-
 ePaintSymmetryAreas SCULPT_get_vertex_symm_area(const float co[3])
 {
   ePaintSymmetryAreas symm_area = PAINT_SYMM_AREA_DEFAULT;
