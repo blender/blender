@@ -213,8 +213,6 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   Mesh *mesh = create_circle_mesh(radius, verts_num, fill);
 
-  BLI_assert(BKE_mesh_is_valid(mesh));
-
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
