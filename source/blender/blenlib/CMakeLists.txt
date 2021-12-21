@@ -76,6 +76,7 @@ set(SRC
   intern/endian_switch.c
   intern/expr_pylike_eval.c
   intern/fileops.c
+  intern/fileops.cc
   intern/filereader_file.c
   intern/filereader_gzip.c
   intern/filereader_memory.c
@@ -204,6 +205,7 @@ set(SRC
   BLI_enumerable_thread_specific.hh
   BLI_expr_pylike_eval.h
   BLI_fileops.h
+  BLI_fileops.hh
   BLI_fileops_types.h
   BLI_filereader.h
   BLI_float2.hh
@@ -422,6 +424,7 @@ if(WITH_GTESTS)
     tests/BLI_edgehash_test.cc
     tests/BLI_expr_pylike_eval_test.cc
     tests/BLI_function_ref_test.cc
+    tests/BLI_fileops_test.cc
     tests/BLI_ghash_test.cc
     tests/BLI_hash_mm2a_test.cc
     tests/BLI_heap_simple_test.cc

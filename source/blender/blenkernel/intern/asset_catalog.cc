@@ -24,7 +24,7 @@
 #include "BKE_asset_catalog.hh"
 #include "BKE_asset_library.h"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 #include "BLI_path_util.h"
 
 /* For S_ISREG() and S_ISDIR() on Windows. */
@@ -830,7 +830,7 @@ void AssetCatalogDefinitionFile::parse_catalog_file(
     const CatalogFilePath &catalog_definition_file_path,
     AssetCatalogParsedFn catalog_loaded_callback)
 {
-  std::fstream infile(catalog_definition_file_path);
+  fstream infile(catalog_definition_file_path, std::ios::in);
 
   if (!infile.is_open()) {
     CLOG_ERROR(&LOG, "%s: unable to open file", catalog_definition_file_path.c_str());
@@ -966,7 +966,7 @@ bool AssetCatalogDefinitionFile::write_to_disk_unsafe(const CatalogFilePath &des
     return false;
   }
 
-  std::ofstream output(dest_file_path);
+  fstream output(dest_file_path, std::ios::out);
 
   /* TODO(@sybren): remember the line ending style that was originally read, then use that to write
    * the file again. */

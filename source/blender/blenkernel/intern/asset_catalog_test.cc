@@ -563,6 +563,30 @@ TEST_F(AssetCatalogTest, write_single_file)
   /* TODO(@sybren): test ordering of catalogs in the file. */
 }
 
+TEST_F(AssetCatalogTest, read_write_unicode_filepath)
+{
+  TestableAssetCatalogService service(asset_library_root_);
+  const CatalogFilePath load_from_path = asset_library_root_ + "/новый/" +
+                                         AssetCatalogService::DEFAULT_CATALOG_FILENAME;
+  service.load_from_disk(load_from_path);
+
+  const CatalogFilePath save_to_path = use_temp_path() + "новый.cats.txt";
+  AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
+  ASSERT_NE(nullptr, cdf) << "unable to load " << load_from_path;
+  EXPECT_TRUE(cdf->write_to_disk(save_to_path));
+
+  AssetCatalogService loaded_service(save_to_path);
+  loaded_service.load_from_disk();
+
+  /* Test that the file was loaded correctly. */
+  const bUUID materials_uuid("a2151dff-dead-4f29-b6bc-b2c7d6cccdb4");
+  const AssetCatalog *cat = loaded_service.find_catalog(materials_uuid);
+  ASSERT_NE(nullptr, cat);
+  EXPECT_EQ(materials_uuid, cat->catalog_id);
+  EXPECT_EQ(AssetCatalogPath("Материалы"), cat->path);
+  EXPECT_EQ("Russian Materials", cat->simple_name);
+}
+
 TEST_F(AssetCatalogTest, no_writing_empty_files)
 {
   const CatalogFilePath temp_lib_root = create_temp_path();
