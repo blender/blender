@@ -216,11 +216,19 @@ class SequencerFadesAdd(Operator):
             scene.animation_data.action = action
 
         sequences = context.selected_sequences
+
+        if not sequences:
+            self.report({'ERROR'}, "No sequences selected")
+            return {'CANCELLED'}
+
         if self.type in {'CURSOR_TO', 'CURSOR_FROM'}:
             sequences = [
                 strip for strip in sequences
                 if strip.frame_final_start < scene.frame_current < strip.frame_final_end
             ]
+            if not sequences:
+                self.report({'ERROR'}, "Current frame not within strip framerange")
+                return {'CANCELLED'}
 
         max_duration = min(sequences, key=lambda strip: strip.frame_final_duration).frame_final_duration
         max_duration = floor(max_duration / 2.0) if self.type == 'IN_OUT' else max_duration
