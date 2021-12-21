@@ -281,7 +281,7 @@ static void ntree_free_data(ID *id)
   /* Unregister associated RNA types. */
   ntreeInterfaceTypeFree(ntree);
 
-  BLI_freelistN(&ntree->links); /* do first, then unlink_node goes fast */
+  BLI_freelistN(&ntree->links);
 
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
     node_free_node(ntree, node);
@@ -3080,10 +3080,6 @@ static void node_free_node(bNodeTree *ntree, bNode *node)
 
   /* can be called for nodes outside a node tree (e.g. clipboard) */
   if (ntree) {
-    /* remove all references to this node */
-    nodeUnlinkNode(ntree, node);
-    node_unlink_attached(ntree, node);
-
     BLI_remlink(&ntree->nodes, node);
 
     if (ntree->typeinfo->free_node_cache) {
@@ -3135,6 +3131,12 @@ void ntreeFreeLocalNode(bNodeTree *ntree, bNode *node)
 {
   /* For removing nodes while editing localized node trees. */
   BLI_assert((ntree->id.tag & LIB_TAG_LOCALIZED) != 0);
+
+  /* These two lines assume the caller might want to free a single node and maintain
+   * a valid state in the node tree. */
+  nodeUnlinkNode(ntree, node);
+  node_unlink_attached(ntree, node);
+
   node_free_node(ntree, node);
 }
 
@@ -3178,6 +3180,9 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
       DEG_relations_tag_update(bmain);
     }
   }
+
+  nodeUnlinkNode(ntree, node);
+  node_unlink_attached(ntree, node);
 
   /* Free node itself. */
   node_free_node(ntree, node);
