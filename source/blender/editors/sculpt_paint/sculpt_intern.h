@@ -2333,3 +2333,7 @@ void SCULPT_enhance_details_brush(struct Sculpt *sd,
                                   struct PBVHNode **nodes,
                                   const int totnode,
                                   int presteps);
+void SCULPT_do_displacement_heal_brush(struct Sculpt *sd,
+                                       struct Object *ob,
+                                       struct PBVHNode **nodes,
+                                       int totnode);

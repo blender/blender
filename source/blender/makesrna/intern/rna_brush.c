@@ -147,6 +147,7 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_ARRAY, "ARRAY", ICON_BRUSH_SCULPT_DRAW, "Array", ""},
     {SCULPT_TOOL_VCOL_BOUNDARY, "VCOL_BOUNDARY", ICON_BRUSH_VCOL_BOUNDARY, "Sharpen Color Boundary", ""},
     {SCULPT_TOOL_UV_SMOOTH, "UV_SMOOTH", ICON_BRUSH_GRAB, "UV Smooth", ""},
+    {SCULPT_TOOL_DISPLACEMENT_HEAL, "DISPLACEMENT_HEAL", ICON_BRUSH_GRAB, "Displacement Heal", ""},
     {0, NULL, 0, NULL, NULL},
 };
 /* clang-format on */

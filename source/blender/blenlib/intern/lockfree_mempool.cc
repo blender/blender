@@ -202,13 +202,13 @@ extern "C" {
 
 BLI_lfmempool *BLI_lfmempool_create(int esize, int psize)
 {
-  LockFreePool *pool = OBJECT_GUARDED_NEW(LockFreePool, esize, psize);
+  LockFreePool *pool = MEM_new<LockFreePool>(__func__, esize, psize);
   return reinterpret_cast<BLI_lfmempool *>(pool);
 }
 
 void BLI_lfmempool_destroy(BLI_lfmempool *pool)
 {
-  OBJECT_GUARDED_DELETE(cast_pool(pool), LockFreePool);
+  MEM_delete<LockFreePool>(cast_pool(pool));
 }
 
 void *BLI_lfmempool_alloc(BLI_lfmempool *pool)

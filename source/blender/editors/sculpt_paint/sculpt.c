@@ -3986,6 +3986,7 @@ static float brush_strength(const Sculpt *sd,
     case SCULPT_TOOL_LAYER:
     case SCULPT_TOOL_SYMMETRIZE:
       return alpha * flip * pressure * overlap * feather;
+    case SCULPT_TOOL_DISPLACEMENT_HEAL:
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
       return alpha * pressure * overlap * feather;
     case SCULPT_TOOL_FAIRING:
@@ -4122,15 +4123,15 @@ static float brush_strength(const Sculpt *sd,
   }
 }
 
-float SCULPT_brush_strength_factor(SculptSession *ss,
-                                   const Brush *br,
-                                   const float brush_point[3],
-                                   const float len,
-                                   const short vno[3],
-                                   const float fno[3],
-                                   const float mask,
-                                   const SculptVertRef vertex_index,
-                                   const int thread_id)
+ATTR_NO_OPT float SCULPT_brush_strength_factor(SculptSession *ss,
+                                               const Brush *br,
+                                               const float brush_point[3],
+                                               const float len,
+                                               const short vno[3],
+                                               const float fno[3],
+                                               const float mask,
+                                               const SculptVertRef vertex_index,
+                                               const int thread_id)
 {
   StrokeCache *cache = ss->cache;
   const Scene *scene = cache->vc->scene;
@@ -5486,6 +5487,9 @@ void do_brush_action(
       SCULPT_enhance_details_brush(
           sd, ob, nodes, totnode, SCULPT_get_int(ss, enhance_detail_presteps, sd, brush));
       break;
+    case SCULPT_TOOL_DISPLACEMENT_HEAL:
+      SCULPT_do_displacement_heal_brush(sd, ob, nodes, totnode);
+      break;
   }
 
   bool apply_autosmooth = !ELEM(SCULPT_get_tool(ss, brush),
@@ -6052,6 +6056,8 @@ static void SCULPT_run_command(
     case SCULPT_TOOL_ENHANCE_DETAILS:
       SCULPT_enhance_details_brush(
           sd, ob, nodes, totnode, SCULPT_get_int(ss, enhance_detail_presteps, sd, brush));
+    case SCULPT_TOOL_DISPLACEMENT_HEAL:
+      SCULPT_do_displacement_heal_brush(sd, ob, nodes, totnode);
       break;
   }
 
