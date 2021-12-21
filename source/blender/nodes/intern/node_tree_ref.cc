@@ -70,6 +70,8 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
           break;
         }
       }
+      BLI_assert(internal_link.from_ != nullptr);
+      BLI_assert(internal_link.to_ != nullptr);
       node.internal_links_.append(&internal_link);
     }
 

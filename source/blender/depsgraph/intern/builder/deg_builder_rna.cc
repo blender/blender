@@ -351,7 +351,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     return node_identifier;
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {
-    node_identifier.type = NodeType::SHADING;
+    node_identifier.type = NodeType::NTREE_OUTPUT;
     return node_identifier;
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_ShaderNode)) {

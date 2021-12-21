@@ -313,6 +313,19 @@ static void node_init(struct wmWindowManager *UNUSED(wm), ScrArea *area)
   }
 }
 
+static bool any_node_uses_id(const bNodeTree *ntree, const ID *id)
+{
+  if (ELEM(nullptr, ntree, id)) {
+    return false;
+  }
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->id == id) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static void node_area_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
@@ -436,10 +449,9 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
     case NC_IMAGE:
       if (wmn->action == NA_EDITED) {
         if (ED_node_is_compositor(snode)) {
-          /* note that nodeUpdateID is already called by BKE_image_signal() on all
-           * scenes so really this is just to know if the images is used in the compo else
-           * painting on images could become very slow when the compositor is open. */
-          if (nodeUpdateID(snode->nodetree, (ID *)wmn->reference)) {
+          /* Without this check drawing on an image could become very slow when the compositor is
+           * open. */
+          if (any_node_uses_id(snode->nodetree, (ID *)wmn->reference)) {
             ED_area_tag_refresh(area);
           }
         }
@@ -449,7 +461,7 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
     case NC_MOVIECLIP:
       if (wmn->action == NA_EDITED) {
         if (ED_node_is_compositor(snode)) {
-          if (nodeUpdateID(snode->nodetree, (ID *)wmn->reference)) {
+          if (any_node_uses_id(snode->nodetree, (ID *)wmn->reference)) {
             ED_area_tag_refresh(area);
           }
         }

@@ -135,11 +135,6 @@ static void localize(bNodeTree *UNUSED(localtree), bNodeTree *UNUSED(ntree))
 static void update(bNodeTree *ntree)
 {
   ntree_update_reroute_nodes(ntree);
-
-  if (ntree->update & NTREE_UPDATE_NODES) {
-    /* clean up preview cache, in case nodes have been removed */
-    BKE_node_preview_remove_unused(ntree);
-  }
 }
 
 static bool texture_node_tree_socket_type_valid(bNodeTreeType *UNUSED(ntreetype),

@@ -232,6 +232,10 @@ void depsgraph_tag_to_component_opcode(const ID *id,
       break;
     case ID_RECALC_TAG_FOR_UNDO:
       break; /* Must be ignored by depsgraph. */
+    case ID_RECALC_NTREE_OUTPUT:
+      *component_type = NodeType::NTREE_OUTPUT;
+      *operation_code = OperationCode::NTREE_OUTPUT;
+      break;
   }
 }
 
@@ -749,6 +753,8 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
       return "ALL";
     case ID_RECALC_TAG_FOR_UNDO:
       return "TAG_FOR_UNDO";
+    case ID_RECALC_NTREE_OUTPUT:
+      return "ID_RECALC_NTREE_OUTPUT";
   }
   return nullptr;
 }

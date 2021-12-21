@@ -472,12 +472,7 @@ void special_aftertrans_update__mask(bContext *C, TransInfo *t)
   }
 
   if (t->scene->nodetree) {
-    /* tracks can be used for stabilization nodes,
-     * flush update for such nodes */
-    // if (nodeUpdateID(t->scene->nodetree, &mask->id))
-    {
-      WM_event_add_notifier(C, NC_MASK | ND_DATA, &mask->id);
-    }
+    WM_event_add_notifier(C, NC_MASK | ND_DATA, &mask->id);
   }
 
   /* TODO: don't key all masks. */

@@ -6623,7 +6623,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
       }
     }
 
-    ntreeUpdateTree(CTX_data_main(C), ntree);
+    ED_node_tree_propagate_change(C, bmain, ntree);
     /* In case we added more than one node, position them too. */
     nodePositionPropagate(out_node);
 

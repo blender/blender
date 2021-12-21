@@ -299,7 +299,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_scene_speakers(Scene *scene, ViewLayer *view_layer);
   virtual void build_vfont(VFont *vfont);
 
-  virtual void build_nested_datablock(ID *owner, ID *id);
+  virtual void build_nested_datablock(ID *owner, ID *id, bool flush_cow_changes);
   virtual void build_nested_nodetree(ID *owner, bNodeTree *ntree);
   virtual void build_nested_shapekey(ID *owner, Key *key);
 

@@ -236,6 +236,14 @@ static void refresh_socket_list(bNodeTree &ntree,
               link->tosock = new_socket;
             }
           }
+          LISTBASE_FOREACH (bNodeLink *, internal_link, &node.internal_links) {
+            if (internal_link->fromsock == old_socket_with_same_identifier) {
+              internal_link->fromsock = new_socket;
+            }
+            else if (internal_link->tosock == old_socket_with_same_identifier) {
+              internal_link->tosock = new_socket;
+            }
+          }
         }
       }
     }

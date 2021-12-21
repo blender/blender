@@ -31,6 +31,7 @@
 
 #include "BKE_context.h"
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 #include "BKE_report.h"
 
 #include "ED_node.h"
@@ -246,7 +247,7 @@ void special_aftertrans_update__node(bContext *C, TransInfo *t)
           nodeRemoveNode(bmain, ntree, node, true);
         }
       }
-      ntreeUpdateTree(bmain, ntree);
+      ED_node_tree_propagate_change(C, bmain, ntree);
     }
   }
 

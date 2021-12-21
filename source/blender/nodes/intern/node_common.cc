@@ -38,6 +38,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 
 #include "RNA_types.h"
 
@@ -153,8 +154,6 @@ static void update_socket_to_match_interface(bNodeTree &node_tree,
   /* Update socket type if necessary */
   if (socket_to_update.typeinfo != interface_socket.typeinfo) {
     nodeModifySocketType(&node_tree, &node, &socket_to_update, interface_socket.idname);
-    /* Flag the tree to make sure link validity is updated after type changes. */
-    node_tree.update |= NTREE_UPDATE_LINKS;
   }
 
   if (interface_socket.typeinfo->interface_verify_socket) {

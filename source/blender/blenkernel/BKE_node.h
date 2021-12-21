@@ -501,16 +501,13 @@ void ntreeFreeLocalTree(struct bNodeTree *ntree);
 struct bNode *ntreeFindType(const struct bNodeTree *ntree, int type);
 bool ntreeHasType(const struct bNodeTree *ntree, int type);
 bool ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup);
-void ntreeUpdateTree(struct Main *main, struct bNodeTree *ntree);
 void ntreeUpdateAllNew(struct Main *main);
-/**
- * \param tree_update_flag: #eNodeTreeUpdate enum.
- */
-void ntreeUpdateAllUsers(struct Main *main, struct ID *id, int tree_update_flag);
+void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
 
 void ntreeGetDependencyList(struct bNodeTree *ntree,
                             struct bNode ***r_deplist,
                             int *r_deplist_len);
+void ntreeUpdateNodeLevels(struct bNodeTree *ntree);
 
 /**
  * XXX: old trees handle output flags automatically based on special output
@@ -832,10 +829,6 @@ void nodeClearActive(struct bNodeTree *ntree);
  */
 void nodeClearActiveID(struct bNodeTree *ntree, short idtype);
 struct bNode *nodeGetActiveTexture(struct bNodeTree *ntree);
-
-void nodeUpdate(struct bNodeTree *ntree, struct bNode *node);
-bool nodeUpdateID(struct bNodeTree *ntree, struct ID *id);
-void nodeUpdateInternalLinks(struct bNodeTree *ntree, struct bNode *node);
 
 int nodeSocketIsHidden(const struct bNodeSocket *sock);
 void ntreeTagUsedSockets(struct bNodeTree *ntree);

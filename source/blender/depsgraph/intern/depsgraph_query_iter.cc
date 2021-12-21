@@ -334,10 +334,13 @@ static void DEG_iterator_ids_step(BLI_Iterator *iter, deg::IDNode *id_node, bool
     return;
   }
   if (only_updated && !(id_cow->recalc & ID_RECALC_ALL)) {
-    bNodeTree *ntree = ntreeFromID(id_cow);
-
     /* Node-tree is considered part of the data-block. */
-    if (!(ntree && (ntree->id.recalc & ID_RECALC_ALL))) {
+    bNodeTree *ntree = ntreeFromID(id_cow);
+    if (ntree == nullptr) {
+      iter->skip = true;
+      return;
+    }
+    if ((ntree->id.recalc & ID_RECALC_NTREE_OUTPUT) == 0) {
       iter->skip = true;
       return;
     }

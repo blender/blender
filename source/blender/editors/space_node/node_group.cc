@@ -40,6 +40,7 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_node_tree_update.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph_build.h"
@@ -258,6 +259,7 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     /* migrate node */
     BLI_remlink(&wgroup->nodes, node);
     BLI_addtail(&ntree->nodes, node);
+    BKE_ntree_update_tag_node_new(ntree, node);
 
     /* ensure unique node name in the node tree */
     nodeUniqueName(ntree, node);
@@ -284,6 +286,7 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &wgroup->links) {
     BLI_remlink(&wgroup->links, link);
     BLI_addtail(&ntree->links, link);
+    BKE_ntree_update_tag_link_added(ntree, link);
   }
 
   bNodeLink *glinks_last = (bNodeLink *)ntree->links.last;
@@ -393,8 +396,6 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
   /* delete the group instance and dereference group tree */
   nodeRemoveNode(bmain, ntree, gnode, true);
 
-  ntree->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
-
   return 1;
 }
 
@@ -412,15 +413,12 @@ static int node_group_ungroup_exec(bContext *C, wmOperator *op)
   }
 
   if (gnode->id && node_group_ungroup(bmain, snode->edittree, gnode)) {
-    ntreeUpdateTree(bmain, snode->nodetree);
+    ED_node_tree_propagate_change(C, CTX_data_main(C), nullptr);
   }
   else {
     BKE_report(op->reports, RPT_WARNING, "Cannot ungroup");
     return OPERATOR_CANCELLED;
   }
-
-  snode_notify(*C, *snode);
-  snode_dag_update(*C, *snode);
 
   return OPERATOR_FINISHED;
 }
@@ -558,9 +556,9 @@ static bool node_group_separate_selected(
     }
   }
 
-  ntree.update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
+  BKE_ntree_update_tag_all(&ntree);
   if (!make_copy) {
-    ngroup.update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
+    BKE_ntree_update_tag_all(&ngroup);
   }
 
   return true;
@@ -614,10 +612,7 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
   /* switch to parent tree */
   ED_node_tree_pop(snode);
 
-  ntreeUpdateTree(CTX_data_main(C), snode->nodetree);
-
-  snode_notify(*C, *snode);
-  snode_dag_update(*C, *snode);
+  ED_node_tree_propagate_change(C, CTX_data_main(C), nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -812,6 +807,8 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
       /* change node-collection membership */
       BLI_remlink(&ntree.nodes, node);
       BLI_addtail(&ngroup->nodes, node);
+      BKE_ntree_update_tag_node_removed(&ntree);
+      BKE_ntree_update_tag_node_new(ngroup, node);
 
       /* ensure unique node name in the ngroup */
       nodeUniqueName(ngroup, node);
@@ -983,11 +980,6 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
       }
     }
   }
-
-  /* update of the group tree */
-  ngroup->update |= NTREE_UPDATE | NTREE_UPDATE_LINKS;
-  /* update of the tree containing the group instance node */
-  ntree.update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
 }
 
 static bNode *node_group_make_from_selected(const bContext &C,
@@ -1015,9 +1007,6 @@ static bNode *node_group_make_from_selected(const bContext &C,
   gnode->locy = 0.5f * (min[1] + max[1]);
 
   node_group_make_insert_selected(C, ntree, gnode);
-
-  /* update of the tree containing the group instance node */
-  ntree.update |= NTREE_UPDATE_NODES;
 
   return gnode;
 }
@@ -1047,14 +1036,10 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
       LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
         sort_multi_input_socket_links(snode, *node, nullptr, nullptr);
       }
-      ntreeUpdateTree(bmain, ngroup);
     }
   }
 
-  ntreeUpdateTree(bmain, &ntree);
-
-  snode_notify(*C, snode);
-  snode_dag_update(*C, snode);
+  ED_node_tree_propagate_change(C, bmain, nullptr);
 
   /* We broke relations in node tree, need to rebuild them in the graphs. */
   DEG_relations_tag_update(bmain);
@@ -1107,12 +1092,7 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
 
   nodeSetActive(ntree, gnode);
   ED_node_tree_push(snode, ngroup, gnode);
-  ntreeUpdateTree(bmain, ngroup);
-
-  ntreeUpdateTree(bmain, ntree);
-
-  snode_notify(*C, *snode);
-  snode_dag_update(*C, *snode);
+  ED_node_tree_propagate_change(C, bmain, nullptr);
 
   return OPERATOR_FINISHED;
 }

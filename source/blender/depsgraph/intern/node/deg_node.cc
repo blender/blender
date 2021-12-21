@@ -116,6 +116,8 @@ const char *nodeTypeAsString(NodeType type)
       return "VISIBILITY";
     case NodeType::SIMULATION:
       return "SIMULATION";
+    case NodeType::NTREE_OUTPUT:
+      return "NTREE_OUTPUT";
 
     /* Total number of meaningful node types. */
     case NodeType::NUM_TYPES:
@@ -174,6 +176,7 @@ eDepsSceneComponentType nodeTypeToSceneComponent(NodeType type)
     case NodeType::CACHE:
     case NodeType::PROXY:
     case NodeType::SIMULATION:
+    case NodeType::NTREE_OUTPUT:
       return DEG_SCENE_COMP_PARAMETERS;
 
     case NodeType::VISIBILITY:
@@ -251,6 +254,7 @@ eDepsObjectComponentType nodeTypeToObjectComponent(NodeType type)
     case NodeType::DUPLI:
     case NodeType::SYNCHRONIZATION:
     case NodeType::SIMULATION:
+    case NodeType::NTREE_OUTPUT:
     case NodeType::UNDEFINED:
     case NodeType::NUM_TYPES:
       return DEG_OB_COMP_PARAMETERS;

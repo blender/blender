@@ -50,6 +50,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -725,7 +726,8 @@ static void render_endjob(void *rjv)
   rj->scene->r.scemode &= ~R_NO_FRAME_UPDATE;
 
   if (rj->single_layer) {
-    nodeUpdateID(rj->scene->nodetree, &rj->scene->id);
+    BKE_ntree_update_tag_id_changed(rj->main, &rj->scene->id);
+    BKE_ntree_update_main(rj->main, NULL);
     WM_main_add_notifier(NC_NODE | NA_EDITED, rj->scene);
   }
 

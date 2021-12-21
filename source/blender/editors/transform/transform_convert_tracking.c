@@ -29,8 +29,10 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
+#include "BKE_main.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 #include "BKE_tracking.h"
 
 #include "ED_clip.h"
@@ -793,8 +795,12 @@ void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
     /* Tracks can be used for stabilization nodes,
      * flush update for such nodes.
      */
-    nodeUpdateID(t->scene->nodetree, &clip->id);
-    WM_event_add_notifier(C, NC_SCENE | ND_NODES, NULL);
+    if (t->context != NULL) {
+      Main *bmain = CTX_data_main(C);
+      BKE_ntree_update_tag_id_changed(bmain, &clip->id);
+      BKE_ntree_update_main(bmain, NULL);
+      WM_event_add_notifier(C, NC_SCENE | ND_NODES, NULL);
+    }
   }
 }
 

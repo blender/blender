@@ -33,6 +33,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 #include "BKE_tracking.h"
 
 #include "node_common.h"
@@ -186,11 +187,6 @@ static void update(bNodeTree *ntree)
   ntreeSetOutput(ntree);
 
   ntree_update_reroute_nodes(ntree);
-
-  if (ntree->update & NTREE_UPDATE_NODES) {
-    /* clean up preview cache, in case nodes have been removed */
-    BKE_node_preview_remove_unused(ntree);
-  }
 }
 
 static void composite_node_add_init(bNodeTree *UNUSED(bnodetree), bNode *bnode)
@@ -301,14 +297,15 @@ void ntreeCompositTagRender(Scene *scene)
     if (sce_iter->nodetree) {
       LISTBASE_FOREACH (bNode *, node, &sce_iter->nodetree->nodes) {
         if (node->id == (ID *)scene || node->type == CMP_NODE_COMPOSITE) {
-          nodeUpdate(sce_iter->nodetree, node);
+          BKE_ntree_update_tag_node_property(sce_iter->nodetree, node);
         }
         else if (node->type == CMP_NODE_TEXTURE) /* uses scene size_x/size_y */ {
-          nodeUpdate(sce_iter->nodetree, node);
+          BKE_ntree_update_tag_node_property(sce_iter->nodetree, node);
         }
       }
     }
   }
+  BKE_ntree_update_main(G_MAIN, nullptr);
 }
 
 /* XXX after render animation system gets a refresh, this call allows composite to end clean */

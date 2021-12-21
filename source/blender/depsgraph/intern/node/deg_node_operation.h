@@ -177,6 +177,9 @@ enum class OperationCode {
   LIGHT_UPDATE,
   WORLD_UPDATE,
 
+  /* Node Tree. ----------------------------------------------------------- */
+  NTREE_OUTPUT,
+
   /* Batch caches. -------------------------------------------------------- */
   GEOMETRY_SELECT_UPDATE,
 

@@ -159,7 +159,7 @@ typedef struct bNodeSocket {
    * restores pointer from matching own_index. */
   struct bNodeSocket *groupsock DNA_DEPRECATED;
 
-  /** A link pointer, set in ntreeUpdateTree. */
+  /** A link pointer, set in #BKE_ntree_update_main. */
   struct bNodeLink *link;
 
   /* XXX deprecated, socket input values are stored in default_value now.
@@ -172,6 +172,10 @@ typedef struct bNodeSocket {
    * data. It has to be updated when the node declaration changes.
    */
   const SocketDeclarationHandle *declaration;
+
+  /** #eNodeTreeChangedFlag. */
+  uint32_t changed_flag;
+  char _pad[4];
 } bNodeSocket;
 
 /** #bNodeSocket.type & #bNodeSocketType.type */
@@ -260,8 +264,9 @@ typedef struct bNode {
 
   /** Used as a boolean for execution. */
   uint8_t need_exec;
-
-  char _pad[1];
+  char _pad2[5];
+  /** #eNodeTreeChangedFlag. */
+  uint32_t changed_flag;
 
   /** Custom user-defined color. */
   float color[3];
@@ -400,10 +405,6 @@ typedef struct bNode {
 #define __NODE_ACTIVE_PREVIEW (1 << 18) /* deprecated */
 
 /* node->update */
-/* XXX NODE_UPDATE is a generic update flag. More fine-grained updates
- * might be used in the future, but currently all work the same way.
- */
-#define NODE_UPDATE 0xFFFF     /* generic update flag (includes all others) */
 #define NODE_UPDATE_ID 1       /* associated id data block has changed */
 #define NODE_UPDATE_OPERATOR 2 /* node update triggered from update operator */
 
@@ -511,8 +512,12 @@ typedef struct bNodeTree {
    */
   int cur_index;
   int flag;
-  /** Update flags. */
-  int update;
+  /**
+   * Keeps track of what changed in the node tree until the next update.
+   * Should not be changed directly, instead use the functions in `BKE_node_tree_update.h`.
+   * #eNodeTreeChangedFlag.
+   */
+  uint32_t changed_flag;
   /** Flag to prevent re-entrant update calls. */
   short is_updating;
   /** Generic temporary flag for recursion check (DFS/BFS). */
@@ -546,7 +551,11 @@ typedef struct bNodeTree {
    * in case multiple different editors are used and make context ambiguous.
    */
   bNodeInstanceKey active_viewer_key;
-  char _pad[4];
+  /**
+   * A hash of the topology of the node tree leading up to the outputs. This is used to determine
+   * of the node tree changed in a way that requires updating geometry nodes or shaders.
+   */
+  uint32_t output_topology_hash;
 
   /** Execution data.
    *
@@ -594,21 +603,7 @@ typedef struct bNodeTree {
 /* tree is localized copy, free when deleting node groups */
 /* #define NTREE_IS_LOCALIZED           (1 << 5) */
 
-/** #NodeTree.update */
-typedef enum eNodeTreeUpdate {
-  NTREE_UPDATE = 0xFFFF,             /* generic update flag (includes all others) */
-  NTREE_UPDATE_LINKS = (1 << 0),     /* links have been added or removed */
-  NTREE_UPDATE_NODES = (1 << 1),     /* nodes or sockets have been added or removed */
-  NTREE_UPDATE_GROUP_IN = (1 << 4),  /* group inputs have changed */
-  NTREE_UPDATE_GROUP_OUT = (1 << 5), /* group outputs have changed */
-  /* The field interface has changed. So e.g. an output that was always a field before is not
-   * anymore. This implies that the field type inferencing has to be done again. */
-  NTREE_UPDATE_FIELD_INFERENCING = (1 << 6),
-  /* group has changed (generic flag including all other group flags) */
-  NTREE_UPDATE_GROUP = (NTREE_UPDATE_GROUP_IN | NTREE_UPDATE_GROUP_OUT),
-} eNodeTreeUpdate;
-
-/** #NodeTree.execution_mode */
+/* tree->execution_mode */
 typedef enum eNodeTreeExecutionMode {
   NTREE_EXECUTION_MODE_TILED = 0,
   NTREE_EXECUTION_MODE_FULL_FRAME = 1,

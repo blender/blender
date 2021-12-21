@@ -100,6 +100,8 @@ struct bNodeSocket *version_node_add_socket_if_not_exist(struct bNodeTree *ntree
                                                          const char *identifier,
                                                          const char *name);
 
+void version_socket_update_is_used(bNodeTree *ntree);
+
 #ifdef __cplusplus
 }
 #endif

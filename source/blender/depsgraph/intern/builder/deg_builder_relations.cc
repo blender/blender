@@ -1770,7 +1770,7 @@ void DepsgraphRelationBuilder::build_world(World *world)
   if (world->nodetree != nullptr) {
     build_nodetree(world->nodetree);
     OperationKey ntree_key(
-        &world->nodetree->id, NodeType::SHADING, OperationCode::MATERIAL_UPDATE);
+        &world->nodetree->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
     add_relation(ntree_key, world_key, "World's NTree");
     build_nested_nodetree(&world->id, world->nodetree);
   }
@@ -2381,17 +2381,17 @@ void DepsgraphRelationBuilder::build_light(Light *lamp)
 
   ComponentKey lamp_parameters_key(&lamp->id, NodeType::PARAMETERS);
 
-  /* light's nodetree */
-  if (lamp->nodetree != nullptr) {
-    build_nodetree(lamp->nodetree);
-    ComponentKey nodetree_key(&lamp->nodetree->id, NodeType::SHADING);
-    add_relation(nodetree_key, lamp_parameters_key, "NTree->Light Parameters");
-    build_nested_nodetree(&lamp->id, lamp->nodetree);
-  }
-
   /* For allowing drivers on lamp properties. */
   ComponentKey shading_key(&lamp->id, NodeType::SHADING);
   add_relation(lamp_parameters_key, shading_key, "Light Shading Parameters");
+
+  /* light's nodetree */
+  if (lamp->nodetree != nullptr) {
+    build_nodetree(lamp->nodetree);
+    ComponentKey nodetree_key(&lamp->nodetree->id, NodeType::NTREE_OUTPUT);
+    add_relation(nodetree_key, shading_key, "NTree->Light Parameters");
+    build_nested_nodetree(&lamp->id, lamp->nodetree);
+  }
 }
 
 void DepsgraphRelationBuilder::build_nodetree_socket(bNodeSocket *socket)
@@ -2441,7 +2441,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
   build_idproperties(ntree->id.properties);
   build_animdata(&ntree->id);
   build_parameters(&ntree->id);
-  ComponentKey shading_key(&ntree->id, NodeType::SHADING);
+  OperationKey ntree_output_key(&ntree->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
   /* nodetree's nodes... */
   LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
     build_idproperties(bnode->prop);
@@ -2460,25 +2460,25 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
     if (id_type == ID_MA) {
       build_material((Material *)bnode->id);
       ComponentKey material_key(id, NodeType::SHADING);
-      add_relation(material_key, shading_key, "Material -> Node");
+      add_relation(material_key, ntree_output_key, "Material -> Node");
     }
     else if (id_type == ID_TE) {
       build_texture((Tex *)bnode->id);
       ComponentKey texture_key(id, NodeType::GENERIC_DATABLOCK);
-      add_relation(texture_key, shading_key, "Texture -> Node");
+      add_relation(texture_key, ntree_output_key, "Texture -> Node");
     }
     else if (id_type == ID_IM) {
       build_image((Image *)bnode->id);
       ComponentKey image_key(id, NodeType::GENERIC_DATABLOCK);
-      add_relation(image_key, shading_key, "Image -> Node");
+      add_relation(image_key, ntree_output_key, "Image -> Node");
     }
     else if (id_type == ID_OB) {
       build_object((Object *)id);
       ComponentKey object_transform_key(id, NodeType::TRANSFORM);
-      add_relation(object_transform_key, shading_key, "Object Transform -> Node");
+      add_relation(object_transform_key, ntree_output_key, "Object Transform -> Node");
       if (object_have_geometry_component(reinterpret_cast<Object *>(id))) {
         ComponentKey object_geometry_key(id, NodeType::GEOMETRY);
-        add_relation(object_geometry_key, shading_key, "Object Geometry -> Node");
+        add_relation(object_geometry_key, ntree_output_key, "Object Geometry -> Node");
       }
     }
     else if (id_type == ID_SCE) {
@@ -2498,23 +2498,28 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
     else if (id_type == ID_MSK) {
       build_mask((Mask *)id);
       OperationKey mask_key(id, NodeType::PARAMETERS, OperationCode::MASK_EVAL);
-      add_relation(mask_key, shading_key, "Mask -> Node");
+      add_relation(mask_key, ntree_output_key, "Mask -> Node");
     }
     else if (id_type == ID_MC) {
       build_movieclip((MovieClip *)id);
       OperationKey clip_key(id, NodeType::PARAMETERS, OperationCode::MOVIECLIP_EVAL);
-      add_relation(clip_key, shading_key, "Clip -> Node");
+      add_relation(clip_key, ntree_output_key, "Clip -> Node");
     }
     else if (id_type == ID_VF) {
       build_vfont((VFont *)id);
       ComponentKey vfont_key(id, NodeType::GENERIC_DATABLOCK);
-      add_relation(vfont_key, shading_key, "VFont -> Node");
+      add_relation(vfont_key, ntree_output_key, "VFont -> Node");
     }
     else if (ELEM(bnode->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
       bNodeTree *group_ntree = (bNodeTree *)id;
       build_nodetree(group_ntree);
-      ComponentKey group_shading_key(&group_ntree->id, NodeType::SHADING);
-      add_relation(group_shading_key, shading_key, "Group Node");
+      ComponentKey group_output_key(&group_ntree->id, NodeType::NTREE_OUTPUT);
+      /* The output of the current tree does not necessarily change when the output of the group
+       * changed. The parent node group is currently explicitly tagged for update in
+       * #ED_node_tree_propagate_change. In the future we could move this relation to the
+       * depsgraph, but then the depsgraph has to do some more static analysis of the node tree to
+       * see which groups the output actually depends on. */
+      add_relation(group_output_key, ntree_output_key, "Group Node", RELATION_FLAG_NO_FLUSH);
     }
     else {
       BLI_assert_msg(0, "Unknown ID type used for node");
@@ -2528,14 +2533,10 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
     build_idproperties(socket->prop);
   }
 
-  OperationKey shading_update_key(&ntree->id, NodeType::SHADING, OperationCode::MATERIAL_UPDATE);
-
   if (check_id_has_anim_component(&ntree->id)) {
     ComponentKey animation_key(&ntree->id, NodeType::ANIMATION);
-    add_relation(animation_key, shading_update_key, "NTree Shading Parameters");
+    add_relation(animation_key, ntree_output_key, "NTree Shading Parameters");
   }
-  ComponentKey parameters_key(&ntree->id, NodeType::PARAMETERS);
-  add_relation(parameters_key, shading_update_key, "NTree Shading Parameters");
 }
 
 /* Recursively build graph for material */
@@ -2558,7 +2559,7 @@ void DepsgraphRelationBuilder::build_material(Material *material)
   if (material->nodetree != nullptr) {
     build_nodetree(material->nodetree);
     OperationKey ntree_key(
-        &material->nodetree->id, NodeType::SHADING, OperationCode::MATERIAL_UPDATE);
+        &material->nodetree->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
     add_relation(ntree_key, material_key, "Material's NTree");
     build_nested_nodetree(&material->id, material->nodetree);
   }
@@ -2587,8 +2588,13 @@ void DepsgraphRelationBuilder::build_texture(Tex *texture)
   build_parameters(&texture->id);
 
   /* texture's nodetree */
-  build_nodetree(texture->nodetree);
-  build_nested_nodetree(&texture->id, texture->nodetree);
+  if (texture->nodetree) {
+    build_nodetree(texture->nodetree);
+    OperationKey ntree_key(
+        &texture->nodetree->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
+    add_relation(ntree_key, texture_key, "Texture's NTree");
+    build_nested_nodetree(&texture->id, texture->nodetree);
+  }
 
   /* Special cases for different IDs which texture uses. */
   if (texture->type == TEX_IMAGE) {
@@ -2875,12 +2881,16 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations()
  *
  * This is similar to what happens in ntree_hack_remap_pointers().
  */
-void DepsgraphRelationBuilder::build_nested_datablock(ID *owner, ID *id)
+void DepsgraphRelationBuilder::build_nested_datablock(ID *owner, ID *id, bool flush_cow_changes)
 {
+  int relation_flag = 0;
+  if (!flush_cow_changes) {
+    relation_flag |= RELATION_FLAG_NO_FLUSH;
+  }
   OperationKey owner_copy_on_write_key(
       owner, NodeType::COPY_ON_WRITE, OperationCode::COPY_ON_WRITE);
   OperationKey id_copy_on_write_key(id, NodeType::COPY_ON_WRITE, OperationCode::COPY_ON_WRITE);
-  add_relation(id_copy_on_write_key, owner_copy_on_write_key, "Eval Order");
+  add_relation(id_copy_on_write_key, owner_copy_on_write_key, "Eval Order", relation_flag);
 }
 
 void DepsgraphRelationBuilder::build_nested_nodetree(ID *owner, bNodeTree *ntree)
@@ -2888,7 +2898,10 @@ void DepsgraphRelationBuilder::build_nested_nodetree(ID *owner, bNodeTree *ntree
   if (ntree == nullptr) {
     return;
   }
-  build_nested_datablock(owner, &ntree->id);
+  /* Don't flush cow changes, because the node tree may change in ways that do not affect the
+   * owner data block (e.g. when a node is deleted that is not connected to any output).
+   * Data blocks owning node trees should add a relation to the `NTREE_OUTPUT` node instead. */
+  build_nested_datablock(owner, &ntree->id, false);
 }
 
 void DepsgraphRelationBuilder::build_nested_shapekey(ID *owner, Key *key)
@@ -2896,7 +2909,7 @@ void DepsgraphRelationBuilder::build_nested_shapekey(ID *owner, Key *key)
   if (key == nullptr) {
     return;
   }
-  build_nested_datablock(owner, &key->id);
+  build_nested_datablock(owner, &key->id, true);
 }
 
 void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)

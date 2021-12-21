@@ -29,6 +29,8 @@
 
 #include "WM_api.h"
 
+#include "ED_node.h"
+
 #include "node_intern.hh"
 
 using blender::nodes::SocketLinkOperation;
@@ -77,7 +79,7 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
   bNode &group_input = params.add_node("NodeGroupInput");
 
   /* This is necessary to create the new sockets in the other input nodes. */
-  ntreeUpdateTree(CTX_data_main(&params.C), &params.node_tree);
+  ED_node_tree_propagate_change(&params.C, CTX_data_main(&params.C), &params.node_tree);
 
   /* Hide the new input in all other group input nodes, to avoid making them taller. */
   LISTBASE_FOREACH (bNode *, node, &params.node_tree.nodes) {
@@ -203,9 +205,7 @@ static void link_drag_search_exec_fn(bContext *C, void *arg1, void *arg2)
 
   /* Ideally it would be possible to tag the node tree in some way so it updates only after the
    * translate operation is finished, but normally moving nodes around doesn't cause updates. */
-  ntreeUpdateTree(&bmain, snode.edittree);
-  snode_notify(*C, snode);
-  snode_dag_update(*C, snode);
+  ED_node_tree_propagate_change(C, &bmain, snode.edittree);
 
   /* Start translation operator with the new node. */
   wmOperatorType *ot = WM_operatortype_find("TRANSFORM_OT_translate", true);

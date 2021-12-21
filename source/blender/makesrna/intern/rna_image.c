@@ -168,7 +168,7 @@ static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
   if (id) {
     if (GS(id->name) == ID_NT) {
       /* Special update for nodetrees to find parent datablock. */
-      ED_node_tag_update_nodetree(bmain, (bNodeTree *)id, NULL);
+      ED_node_tree_propagate_change(NULL, bmain, NULL);
     }
     else {
       /* Update material or texture for render preview. */

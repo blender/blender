@@ -593,7 +593,7 @@ static bNodeTree *add_realize_node_tree(Main *bmain)
     nodeSetSelected(node, false);
   }
 
-  ntreeUpdateTree(bmain, node_tree);
+  version_socket_update_is_used(node_tree);
   return node_tree;
 }
 
@@ -2441,7 +2441,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             data->data_type = SOCK_FLOAT;
             data->operation = node->custom1;
             strcpy(node->idname, "FunctionNodeCompare");
-            node->update = NODE_UPDATE;
             node->storage = data;
           }
         }

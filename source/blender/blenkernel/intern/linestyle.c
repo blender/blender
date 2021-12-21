@@ -50,6 +50,7 @@
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 #include "BKE_texture.h"
 
 #include "BLO_read_write.h"
@@ -2085,5 +2086,5 @@ void BKE_linestyle_default_shader(const bContext *C, FreestyleLineStyle *linesty
   tosock = BLI_findlink(&output_linestyle->inputs, 0); /* Color */
   nodeAddLink(ntree, input_texure, fromsock, output_linestyle, tosock);
 
-  ntreeUpdateTree(CTX_data_main(C), ntree);
+  BKE_ntree_update_main_tree(CTX_data_main(C), ntree, NULL);
 }

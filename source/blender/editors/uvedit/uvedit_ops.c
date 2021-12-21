@@ -180,7 +180,7 @@ void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *i
 
   if (node && is_image_texture_node(node)) {
     node->id = &ima->id;
-    ED_node_tag_update_nodetree(bmain, ma->nodetree, node);
+    ED_node_tree_propagate_change(NULL, bmain, ma->nodetree);
   }
 }
 

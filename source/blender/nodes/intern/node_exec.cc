@@ -28,6 +28,7 @@
 
 #include "BKE_global.h"
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -170,7 +171,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
   /* Using global main here is likely totally wrong, not sure what to do about that one though...
    * We cannot even check ntree is in global main,
    * since most of the time it won't be (thanks to ntree design)!!! */
-  ntreeUpdateTree(G.main, ntree);
+  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
 
   /* get a dependency-sorted list of nodes */
   ntreeGetDependencyList(ntree, &nodelist, &totnodes);
