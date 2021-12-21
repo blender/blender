@@ -1210,7 +1210,7 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
           BLI_assert(p_ctx_a > i);
           BLI_assert(p_ctx_a == p_ctx_b);
           BLI_assert(wp_tmp->poly_dst == OUT_OF_CONTEXT);
-          BLI_assert(wp_tmp != wp);
+          BLI_assert(wp_tmp != &wp);
           wp_tmp->poly_dst = wp.poly_orig;
           loop_kill_len += wp_tmp->len;
           poly_kill_len++;
