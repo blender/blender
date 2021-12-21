@@ -705,7 +705,8 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
 
   prop = RNA_def_enum(ot->srna, "id_type", rna_enum_id_type_items, ID_OB, "ID Type", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
-  /* Changing ID type wont make sense, would return early with "Invalid old/new ID pair" anyways. */
+  /* Changing ID type wont make sense, would return early with "Invalid old/new ID pair" anyways.
+   */
   RNA_def_property_flag(prop, PROP_HIDDEN);
 
   prop = RNA_def_enum(ot->srna, "old_id", DummyRNA_NULL_items, 0, "Old ID", "Old ID to replace");
