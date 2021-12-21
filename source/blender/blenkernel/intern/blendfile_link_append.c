@@ -743,6 +743,8 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
    * if you want it do it at the editor level. */
   const bool object_set_active = false;
 
+  const bool is_linking = (lapp_context->params->flag & FILE_LINK) != 0;
+
   /* NOTE: For objects we only view_layer-instantiate duplicated objects that are not yet used
    * anywhere. */
   LinkNode *itemlink;
@@ -750,6 +752,17 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
     BlendfileLinkAppendContextItem *item = itemlink->link;
     ID *id = loose_data_instantiate_process_check(instantiate_context, item);
     if (id == NULL || GS(id->name) != ID_OB) {
+      continue;
+    }
+
+    /* In linking case, never instantiate stray objects that are not directly linked.
+     *
+     * While this is not ideal (in theory no object should remain un-owned), in case of indirectly
+     * linked objects, the other solution would be to add them to a local collection, which would
+     * make them directly linked. Think for now keeping them indirectly linked is more important.
+     * Ref. T93757.
+     */
+    if (is_linking && (item->tag & LINK_APPEND_TAG_INDIRECT) != 0) {
       continue;
     }
 
