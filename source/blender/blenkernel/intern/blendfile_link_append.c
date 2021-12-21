@@ -440,6 +440,16 @@ static bool object_in_any_collection(Main *bmain, Object *ob)
   return false;
 }
 
+static bool collection_instantiated_by_any_object(Main *bmain, Collection *collection)
+{
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+    if (ob->type == OB_EMPTY && ob->instance_collection == collection) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static ID *loose_data_instantiate_process_check(LooseDataInstantiateContext *instantiate_context,
                                                 BlendfileLinkAppendContextItem *item)
 {
@@ -633,12 +643,19 @@ static void loose_data_instantiate_collection_process(
      * children.
      */
     Collection *collection = (Collection *)id;
+    /* The collection could be linked/appended together with an Empty object instantiating it,
+     * better not instantiate the collection in the viewlayer in that case.
+     *
+     * Can easily happen when copy/pasting such instantiating empty, see T93839. */
+    const bool collection_is_instantiated = collection_instantiated_by_any_object(bmain,
+                                                                                  collection);
     /* Always consider adding collections directly selected by the user. */
-    bool do_add_collection = (item->tag & LINK_APPEND_TAG_INDIRECT) == 0;
+    bool do_add_collection = (item->tag & LINK_APPEND_TAG_INDIRECT) == 0 &&
+                             !collection_is_instantiated;
     /* In linking case, do not enforce instantiating non-directly linked collections/objects.
      * This avoids cluttering the ViewLayers, user can instantiate themselves specific collections
      * or objects easily from the Outliner if needed. */
-    if (!do_add_collection && do_append) {
+    if (!do_add_collection && do_append && !collection_is_instantiated) {
       LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
         Object *ob = coll_ob->ob;
         if (!object_in_any_scene(bmain, ob)) {
