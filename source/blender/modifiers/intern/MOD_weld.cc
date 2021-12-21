@@ -560,8 +560,7 @@ static void weld_edge_ctx_setup(MutableSpan<WeldGroup> r_vlinks,
   *r_edge_kiil_len = edge_kill_len;
 }
 
-static Vector<WeldEdge> weld_edge_ctx_alloc(const MEdge *medge,
-                                            const int medge_len,
+static Vector<WeldEdge> weld_edge_ctx_alloc(Span<MEdge> medge,
                                             Span<int> vert_dest_map,
                                             MutableSpan<int> r_edge_dest_map,
                                             MutableSpan<int> r_edge_ctx_map)
@@ -570,9 +569,9 @@ static Vector<WeldEdge> weld_edge_ctx_alloc(const MEdge *medge,
   int wedge_len = 0;
 
   Vector<WeldEdge> wedge;
-  wedge.reserve(medge_len);
+  wedge.reserve(medge.size());
 
-  for (const int i : IndexRange(medge_len)) {
+  for (const int i : medge.index_range()) {
     int v1 = medge[i].v1;
     int v2 = medge[i].v2;
     int v_dest_1 = vert_dest_map[v1];
@@ -604,7 +603,6 @@ static void weld_edge_groups_setup(const int medge_len,
                                    Array<int> &r_edge_groups_buffer,
                                    Array<WeldGroupEdge> &r_edge_groups)
 {
-
   /* Get weld edge groups. */
 
   struct WeldGroupEdge *wegrp_iter;
@@ -1257,19 +1255,17 @@ static void weld_mesh_context_create(const Mesh *mesh,
                                      const int vert_kill_len,
                                      WeldMesh *r_weld_mesh)
 {
+  Span<MEdge> medge{mesh->medge, mesh->totedge};
   Span<MPoly> mpoly{mesh->mpoly, mesh->totpoly};
   Span<MLoop> mloop{mesh->mloop, mesh->totloop};
-  const MEdge *medge = mesh->medge;
   const int mvert_len = mesh->totvert;
-  const int medge_len = mesh->totedge;
 
   Vector<WeldVert> wvert = weld_vert_ctx_alloc_and_setup(vert_dest_map);
   r_weld_mesh->vert_kill_len = vert_kill_len;
 
-  Array<int> edge_dest_map(medge_len);
-  Array<int> edge_ctx_map(medge_len);
-  Vector<WeldEdge> wedge = weld_edge_ctx_alloc(
-      medge, medge_len, vert_dest_map, edge_dest_map, edge_ctx_map);
+  Array<int> edge_dest_map(medge.size());
+  Array<int> edge_ctx_map(medge.size());
+  Vector<WeldEdge> wedge = weld_edge_ctx_alloc(medge, vert_dest_map, edge_dest_map, edge_ctx_map);
 
   Array<WeldGroup> v_links(mvert_len, {0, 0});
   weld_edge_ctx_setup(v_links, edge_dest_map, wedge, &r_weld_mesh->edge_kill_len);
@@ -1293,7 +1289,7 @@ static void weld_mesh_context_create(const Mesh *mesh,
                          r_weld_mesh->vert_groups_buffer,
                          r_weld_mesh->vert_groups);
 
-  weld_edge_groups_setup(medge_len,
+  weld_edge_groups_setup(medge.size(),
                          r_weld_mesh->edge_kill_len,
                          wedge,
                          edge_ctx_map,
