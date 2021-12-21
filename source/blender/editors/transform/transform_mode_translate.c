@@ -225,11 +225,12 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
     if (t->spacetype == SPACE_GRAPH) {
       /* WORKAROUND:
        * Special case where snapping is done in #recalData.
-       * Update the header based on the first element. */
+       * Update the header based on the #center_local. */
       const short autosnap = getAnimEdit_SnapMode(t);
-      float ival = TRANS_DATA_CONTAINER_FIRST_OK(t)->data->ival;
+      float ival = TRANS_DATA_CONTAINER_FIRST_OK(t)->center_local[0];
       float val = ival + dvec[0];
-      snapFrameTransform(t, autosnap, ival, val, &dvec[0]);
+      snapFrameTransform(t, autosnap, ival, val, &val);
+      dvec[0] = val - ival;
     }
 
     if (t->con.mode & CON_APPLY) {

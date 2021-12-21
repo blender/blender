@@ -62,27 +62,28 @@ static void headerTimeTranslate(TransInfo *t, char str[UI_MAX_DRAW_STR])
     float ival = TRANS_DATA_CONTAINER_FIRST_OK(t)->data->ival;
     float val = ival + t->values_final[0];
 
-    float snap_val = val;
-    snapFrameTransform(t, autosnap, ival, val, &snap_val);
+    snapFrameTransform(t, autosnap, ival, val, &val);
+    float delta_x = val - ival;
 
     if (ELEM(autosnap, SACTSNAP_SECOND, SACTSNAP_TSTEP)) {
       /* Convert to seconds. */
       const Scene *scene = t->scene;
       const double secf = FPS;
-      snap_val /= secf;
+      delta_x /= secf;
+      val /= secf;
     }
 
     if (autosnap == SACTSNAP_FRAME) {
-      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.2f (%.4f)", snap_val, val);
+      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.2f (%.4f)", delta_x, val);
     }
     else if (autosnap == SACTSNAP_SECOND) {
-      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.2f sec (%.4f)", snap_val, val);
+      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.2f sec (%.4f)", delta_x, val);
     }
     else if (autosnap == SACTSNAP_TSTEP) {
-      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f sec", snap_val);
+      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f sec", delta_x);
     }
     else {
-      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", snap_val);
+      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", delta_x);
     }
   }
 
