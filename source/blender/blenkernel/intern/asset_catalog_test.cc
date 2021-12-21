@@ -27,6 +27,8 @@
 #include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
 
+#include "CLG_log.h"
+
 #include "testing/testing.h"
 
 namespace blender::bke::tests {
@@ -92,6 +94,18 @@ class AssetCatalogTest : public testing::Test {
  protected:
   CatalogFilePath asset_library_root_;
   CatalogFilePath temp_library_path_;
+
+  static void SetUpTestSuite()
+  {
+    testing::Test::SetUpTestSuite();
+    CLG_init();
+  }
+
+  static void TearDownTestSuite()
+  {
+    CLG_exit();
+    testing::Test::TearDownTestSuite();
+  }
 
   void SetUp() override
   {

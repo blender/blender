@@ -32,6 +32,10 @@
 #  include "BLI_winstuff.h"
 #endif
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"bke.asset_service"};
+
 namespace blender::bke {
 
 const CatalogFilePath AssetCatalogService::DEFAULT_CATALOG_FILENAME = "blender_assets.cats.txt";
@@ -311,6 +315,7 @@ void AssetCatalogService::load_from_disk(const CatalogFilePath &file_or_director
   BLI_stat_t status;
   if (BLI_stat(file_or_directory_path.data(), &status) == -1) {
     /* TODO(@sybren): throw an appropriate exception. */
+    CLOG_WARN(&LOG, "path not found: %s", file_or_directory_path.data());
     return;
   }
 
@@ -337,6 +342,7 @@ void AssetCatalogService::load_directory_recursive(const CatalogFilePath &direct
 
   if (!BLI_exists(file_path.data())) {
     /* No file to be loaded is perfectly fine. */
+    CLOG_INFO(&LOG, 2, "path not found: %s", file_path.data());
     return;
   }
 
@@ -826,6 +832,10 @@ void AssetCatalogDefinitionFile::parse_catalog_file(
 {
   std::fstream infile(catalog_definition_file_path);
 
+  if (!infile.is_open()) {
+    CLOG_ERROR(&LOG, "%s: unable to open file", catalog_definition_file_path.c_str());
+    return;
+  }
   bool seen_version_number = false;
   std::string line;
   while (std::getline(infile, line)) {
