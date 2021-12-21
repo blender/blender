@@ -419,7 +419,7 @@ void ED_node_tree_propagate_change(const bContext *C, Main *bmain, bNodeTree *ro
     }
   }
 
-  NodeTreeUpdateExtraParams params = {0};
+  NodeTreeUpdateExtraParams params = {nullptr};
   params.tree_changed_fn = [](ID *id, bNodeTree *ntree, void *UNUSED(user_data)) {
     send_notifiers_after_tree_change(id, ntree);
   };
