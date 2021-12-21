@@ -193,6 +193,10 @@ static void seq_time_update_meta_strip(Scene *scene, Sequence *seq_meta)
 
 void SEQ_time_update_meta_strip_range(Scene *scene, Sequence *seq_meta)
 {
+  if (seq_meta == NULL) {
+    return;
+  }
+
   seq_time_update_meta_strip(scene, seq_meta);
 
   /* Prevent meta-strip to move in timeline. */

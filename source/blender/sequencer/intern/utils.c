@@ -446,7 +446,7 @@ Sequence *SEQ_get_meta_by_seqbase(ListBase *seqbase_main, ListBase *meta_seqbase
 {
   SeqCollection *strips = SEQ_query_all_strips_recursive(seqbase_main);
 
-  Sequence *seq;
+  Sequence *seq = NULL;
   SEQ_ITERATOR_FOREACH (seq, strips) {
     if (seq->type == SEQ_TYPE_META && &seq->seqbase == meta_seqbase) {
       break;

@@ -489,21 +489,27 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
   ListBase right_strips = {NULL, NULL};
   SEQ_sequence_base_dupli_recursive(scene, scene, &right_strips, &left_strips, SEQ_DUPE_ALL, 0);
 
-  /* Split strips. */
   Sequence *left_seq = left_strips.first;
   Sequence *right_seq = right_strips.first;
-  Sequence *return_seq = right_strips.first;
+  Sequence *return_seq = NULL;
 
-  /* Strips can't be tagged while in detached `seqbase`. Collect all strips which needs to be
-   * deleted and delay tagging until they are moved back to `seqbase` in `Editing`. */
-  SeqCollection *strips_to_delete = SEQ_collection_create(__func__);
+  /* Move strips from detached `ListBase`, otherwise they can't be flagged for removal,
+   * SEQ_time_update_sequence can fail to update meta strips and they can't be renamed.
+   * This is because these functions check all strips in `Editing` to manage relationships. */
+  BLI_movelisttolist(seqbase, &left_strips);
+  BLI_movelisttolist(seqbase, &right_strips);
 
+  /* Split strips. */
   while (left_seq && right_seq) {
     if (left_seq->startdisp >= timeline_frame) {
-      SEQ_collection_append_strip(left_seq, strips_to_delete);
+      SEQ_edit_flag_for_removal(scene, seqbase, left_seq);
     }
     if (right_seq->enddisp <= timeline_frame) {
-      SEQ_collection_append_strip(right_seq, strips_to_delete);
+      SEQ_edit_flag_for_removal(scene, seqbase, right_seq);
+    }
+    else if (return_seq == NULL) {
+      /* Store return value - pointer to strip that will not be removed. */
+      return_seq = right_seq;
     }
 
     seq_edit_split_handle_strip_offsets(
@@ -512,20 +518,14 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
     right_seq = right_seq->next;
   }
 
-  seq = right_strips.first;
-  BLI_movelisttolist(seqbase, &left_strips);
-  BLI_movelisttolist(seqbase, &right_strips);
-
-  for (; seq; seq = seq->next) {
-    SEQ_ensure_unique_name(seq, scene);
-  }
-
-  Sequence *seq_delete;
-  SEQ_ITERATOR_FOREACH (seq_delete, strips_to_delete) {
-    SEQ_edit_flag_for_removal(scene, seqbase, seq_delete);
-  }
   SEQ_edit_remove_flagged_sequences(scene, seqbase);
-  SEQ_collection_free(strips_to_delete);
+
+  /* Rename duplicated strips. */
+  Sequence *seq_rename = return_seq;
+  for (; seq_rename; seq_rename = seq_rename->next) {
+    SEQ_ensure_unique_name(seq_rename, scene);
+  }
+
   return return_seq;
 }
 
