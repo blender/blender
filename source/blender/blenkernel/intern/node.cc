@@ -4304,26 +4304,6 @@ void ntreeUpdateNodeLevels(bNodeTree *ntree)
   }
 }
 
-void ntreeTagUsedSockets(bNodeTree *ntree)
-{
-  /* first clear data */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      sock->flag &= ~SOCK_IN_USE;
-    }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      sock->flag &= ~SOCK_IN_USE;
-    }
-  }
-
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    link->fromsock->flag |= SOCK_IN_USE;
-    if (!(link->flag & NODE_LINK_MUTED)) {
-      link->tosock->flag |= SOCK_IN_USE;
-    }
-  }
-}
-
 void ntreeUpdateAllNew(Main *main)
 {
   Vector<bNodeTree *> new_ntrees;

@@ -2380,7 +2380,6 @@ static void node_update_nodetree(const bContext &C,
 {
   /* Make sure socket "used" tags are correct, for displaying value buttons. */
   SpaceNode *snode = CTX_wm_space_node(&C);
-  ntreeTagUsedSockets(&ntree);
 
   count_multi_input_socket_links(ntree, *snode);
 
