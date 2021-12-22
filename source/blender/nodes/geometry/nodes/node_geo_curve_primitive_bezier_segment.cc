@@ -79,44 +79,29 @@ static std::unique_ptr<CurveEval> create_bezier_segment_curve(
 {
   std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
   std::unique_ptr<BezierSpline> spline = std::make_unique<BezierSpline>();
+  spline->set_resolution(resolution);
+
+  spline->resize(2);
+  MutableSpan<float3> positions = spline->positions();
+  spline->handle_types_left().fill(BezierSpline::HandleType::Align);
+  spline->handle_types_right().fill(BezierSpline::HandleType::Align);
+  spline->radii().fill(1.0f);
+  spline->tilts().fill(0.0f);
+
+  positions.first() = start;
+  positions.last() = end;
 
   if (mode == GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_POSITION) {
-    spline->add_point(start,
-                      BezierSpline::HandleType::Align,
-                      2.0f * start - start_handle_right,
-                      BezierSpline::HandleType::Align,
-                      start_handle_right,
-                      1.0f,
-                      0.0f);
-    spline->add_point(end,
-                      BezierSpline::HandleType::Align,
-                      end_handle_left,
-                      BezierSpline::HandleType::Align,
-                      2.0f * end - end_handle_left,
-                      1.0f,
-                      0.0f);
+    spline->set_handle_position_right(0, start_handle_right);
+    spline->set_handle_position_left(1, end_handle_left);
   }
   else {
-    spline->add_point(start,
-                      BezierSpline::HandleType::Align,
-                      start - start_handle_right,
-                      BezierSpline::HandleType::Align,
-                      start + start_handle_right,
-                      1.0f,
-                      0.0f);
-    spline->add_point(end,
-                      BezierSpline::HandleType::Align,
-                      end + end_handle_left,
-                      BezierSpline::HandleType::Align,
-                      end - end_handle_left,
-                      1.0f,
-                      0.0f);
+    spline->set_handle_position_right(0, start + start_handle_right);
+    spline->set_handle_position_left(1, end + end_handle_left);
   }
 
-  spline->set_resolution(resolution);
-  spline->attributes.reallocate(spline->size());
   curve->add_spline(std::move(spline));
-  curve->attributes.reallocate(curve->splines().size());
+  curve->attributes.reallocate(1);
   return curve;
 }
 
