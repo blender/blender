@@ -343,7 +343,7 @@ ViewLayer *BKE_view_layer_find_from_collection(const Scene *scene, LayerCollecti
 
 /* Base */
 
-static void view_layer_bases_hash_create(ViewLayer *view_layer)
+static void view_layer_bases_hash_create(ViewLayer *view_layer, const bool do_base_duplicates_fix)
 {
   static ThreadMutex hash_lock = BLI_MUTEX_INITIALIZER;
 
@@ -353,14 +353,28 @@ static void view_layer_bases_hash_create(ViewLayer *view_layer)
     if (view_layer->object_bases_hash == NULL) {
       GHash *hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
 
-      LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+      LISTBASE_FOREACH_MUTABLE (Base *, base, &view_layer->object_bases) {
         if (base->object) {
-          /* Some processes, like ID remapping, may lead to having several bases with the same
-           * object. So just take the first one here, and ignore all others
-           * (#BKE_layer_collection_sync will clean this up anyway). */
           void **val_pp;
           if (!BLI_ghash_ensure_p(hash, base->object, &val_pp)) {
             *val_pp = base;
+          }
+          /* The same object has several bases.
+           *
+           * In normal cases this is a serious bug, but this is a common situation when remapping
+           * an object into another one already present in the same View Layer. While ideally we
+           * would process this case separately, for performances reasons it makes more sense to
+           * tackle it here. */
+          else if (do_base_duplicates_fix) {
+            if (view_layer->basact == base) {
+              view_layer->basact = NULL;
+            }
+            BLI_freelinkN(&view_layer->object_bases, base);
+          }
+          else {
+            CLOG_FATAL(&LOG,
+                       "Object '%s' has more than one entry in view layer's object bases listbase",
+                       base->object->id.name + 2);
           }
         }
       }
@@ -376,7 +390,7 @@ static void view_layer_bases_hash_create(ViewLayer *view_layer)
 Base *BKE_view_layer_base_find(ViewLayer *view_layer, Object *ob)
 {
   if (!view_layer->object_bases_hash) {
-    view_layer_bases_hash_create(view_layer);
+    view_layer_bases_hash_create(view_layer, false);
   }
 
   return BLI_ghash_lookup(view_layer->object_bases_hash, ob);
@@ -1204,7 +1218,7 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 
   /* Create object to base hash if it does not exist yet. */
   if (!view_layer->object_bases_hash) {
-    view_layer_bases_hash_create(view_layer);
+    view_layer_bases_hash_create(view_layer, false);
   }
 
   /* Clear visible and selectable flags to be reset. */
@@ -1317,6 +1331,11 @@ void BKE_main_collection_sync_remap(const Main *bmain)
       if (view_layer->object_bases_hash) {
         BLI_ghash_free(view_layer->object_bases_hash, NULL, NULL);
         view_layer->object_bases_hash = NULL;
+
+        /* Directly re-create the mapping here, so that we can also deal with duplicates in
+         * `view_layer->object_bases` list of bases properly. This is the only place where such
+         * duplicates should be fixed, and not considered as a critical error. */
+        view_layer_bases_hash_create(view_layer, true);
       }
     }
 
