@@ -186,7 +186,7 @@ static ID *collection_owner_get(Main *bmain, ID *id)
   Collection *master_collection = (Collection *)id;
   BLI_assert((master_collection->flag & COLLECTION_IS_MASTER) != 0);
 
-  for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->master_collection == master_collection) {
       return &scene->id;
     }
@@ -1205,9 +1205,7 @@ static void collection_object_remove_nulls(Collection *collection)
 {
   bool changed = false;
 
-  for (CollectionObject *cob = collection->gobject.first, *cob_next = NULL; cob; cob = cob_next) {
-    cob_next = cob->next;
-
+  LISTBASE_FOREACH_MUTABLE (CollectionObject *, cob, &collection->gobject) {
     if (cob->ob == NULL) {
       BLI_freelinkN(&collection->gobject, cob);
       changed = true;
@@ -1221,12 +1219,11 @@ static void collection_object_remove_nulls(Collection *collection)
 
 void BKE_collections_object_remove_nulls(Main *bmain)
 {
-  for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     collection_object_remove_nulls(scene->master_collection);
   }
 
-  for (Collection *collection = bmain->collections.first; collection;
-       collection = collection->id.next) {
+  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
     collection_object_remove_nulls(collection);
   }
 }
@@ -1265,22 +1262,18 @@ void BKE_collections_object_remove_duplicates(struct Main *bmain)
     ob->runtime.collection_management = false;
   }
 
-  for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     collection_object_remove_duplicates(scene->master_collection);
   }
 
-  for (Collection *collection = bmain->collections.first; collection;
-       collection = collection->id.next) {
+  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
     collection_object_remove_duplicates(collection);
   }
 }
 
 static void collection_null_children_remove(Collection *collection)
 {
-  for (CollectionChild *child = collection->children.first, *child_next = NULL; child;
-       child = child_next) {
-    child_next = child->next;
-
+  LISTBASE_FOREACH_MUTABLE (CollectionChild *, child, &collection->children) {
     if (child->collection == NULL) {
       BLI_freelinkN(&collection->children, child);
     }
@@ -1289,9 +1282,7 @@ static void collection_null_children_remove(Collection *collection)
 
 static void collection_missing_parents_remove(Collection *collection)
 {
-  for (CollectionParent *parent = collection->parents.first, *parent_next; parent != NULL;
-       parent = parent_next) {
-    parent_next = parent->next;
+  LISTBASE_FOREACH_MUTABLE (CollectionParent *, parent, &collection->parents) {
     if ((parent->collection == NULL) || !collection_find_child(parent->collection, collection)) {
       BLI_freelinkN(&collection->parents, parent);
     }
@@ -1311,28 +1302,23 @@ void BKE_collections_child_remove_nulls(Main *bmain,
        * otherwise we can miss some cases...
        * Also, master collections are not in bmain, so we also need to loop over scenes.
        */
-      for (child_collection = bmain->collections.first; child_collection != NULL;
-           child_collection = child_collection->id.next) {
-        collection_null_children_remove(child_collection);
+      LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
+        collection_null_children_remove(collection);
       }
-      for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         collection_null_children_remove(scene->master_collection);
       }
     }
 
-    for (child_collection = bmain->collections.first; child_collection != NULL;
-         child_collection = child_collection->id.next) {
-      collection_missing_parents_remove(child_collection);
+    LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
+      collection_missing_parents_remove(collection);
     }
-    for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       collection_missing_parents_remove(scene->master_collection);
     }
   }
   else {
-    for (CollectionParent *parent = child_collection->parents.first, *parent_next; parent;
-         parent = parent_next) {
-      parent_next = parent->next;
-
+    LISTBASE_FOREACH_MUTABLE (CollectionParent *, parent, &child_collection->parents) {
       collection_null_children_remove(parent->collection);
 
       if (!collection_find_child(parent->collection, child_collection)) {
@@ -1630,7 +1616,7 @@ static void collection_parents_rebuild_recursive(Collection *collection)
   BKE_collection_parent_relations_rebuild(collection);
   collection->tag &= ~COLLECTION_TAG_RELATION_REBUILD;
 
-  for (CollectionChild *child = collection->children.first; child != NULL; child = child->next) {
+  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
     /* See comment above in `BKE_collection_parent_relations_rebuild`. */
     if ((collection->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_WRITE)) != 0) {
       continue;
@@ -1642,8 +1628,7 @@ static void collection_parents_rebuild_recursive(Collection *collection)
 void BKE_main_collections_parent_relations_rebuild(Main *bmain)
 {
   /* Only collections not in bmain (master ones in scenes) have no parent... */
-  for (Collection *collection = bmain->collections.first; collection != NULL;
-       collection = collection->id.next) {
+  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
     BLI_freelistN(&collection->parents);
 
     collection->tag |= COLLECTION_TAG_RELATION_REBUILD;
@@ -1651,7 +1636,7 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
 
   /* Scene's master collections will be 'root' parent of most of our collections, so start with
    * them. */
-  for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     /* This function can be called from readfile.c, when this pointer is not guaranteed to be NULL.
      */
     if (scene->master_collection != NULL) {
@@ -1663,8 +1648,7 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
 
   /* We may have parent chains outside of scene's master_collection context? At least, readfile's
    * lib_link_collection_data() seems to assume that, so do the same here. */
-  for (Collection *collection = bmain->collections.first; collection != NULL;
-       collection = collection->id.next) {
+  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
     if (collection->tag & COLLECTION_TAG_RELATION_REBUILD) {
       /* NOTE: we do not have easy access to 'which collections is root' info in that case, which
        * means test for cycles in collection relationships may fail here. I don't think that is an
