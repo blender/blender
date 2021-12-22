@@ -1734,6 +1734,7 @@ static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
   LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
     if ((node->flag & SELECT) && !node->typeinfo->no_muting) {
       node->flag ^= NODE_MUTED;
+      BKE_ntree_update_tag_node_mute(snode->edittree, node);
     }
   }
 
