@@ -181,11 +181,14 @@ struct ReadAttributeLookup {
  * Used when looking up a "plain attribute" based on a name for reading from it and writing to it.
  */
 struct WriteAttributeLookup {
-  /* The virtual array that is used to read from and write to the attribute. */
+  /** The virtual array that is used to read from and write to the attribute. */
   GVMutableArray varray;
-  /* Domain the attributes lives on in the geometry. */
+  /** Domain the attributes lives on in the geometry component. */
   AttributeDomain domain;
-  /* Call this after changing the attribute to invalidate caches that depend on this attribute. */
+  /**
+   * Call this after changing the attribute to invalidate caches that depend on this attribute.
+   * \note Do not call this after the component the attribute is from has been destructed.
+   */
   std::function<void()> tag_modified_fn;
 
   /* Convenience function to check if the attribute has been found. */
@@ -205,6 +208,10 @@ struct WriteAttributeLookup {
  *   VMutableArray_Span in many cases).
  * - An output attribute can live side by side with an existing attribute with a different domain
  *   or data type. The old attribute will only be overwritten when the #save function is called.
+ *
+ * \note The lifetime of an output attribute should not be longer than the the lifetime of the
+ * geometry component it comes from, since it can keep a reference to the component for use in
+ * the #save method.
  */
 class OutputAttribute {
  public:
