@@ -629,8 +629,6 @@ static bool outliner_id_remap_find_tree_element(bContext *C,
       TreeStoreElem *tselem = TREESTORE(te);
 
       if ((tselem->type == TSE_SOME_ID) && tselem->id) {
-        printf("found id %s (%p)!\n", tselem->id->name, tselem->id);
-
         RNA_enum_set(op->ptr, "id_type", GS(tselem->id->name));
         RNA_enum_set_identifier(C, op->ptr, "new_id", tselem->id->name + 2);
         RNA_enum_set_identifier(C, op->ptr, "old_id", tselem->id->name + 2);
