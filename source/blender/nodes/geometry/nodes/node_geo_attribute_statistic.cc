@@ -136,16 +136,18 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   search_link_ops_for_declarations(params, declaration.inputs().take_front(2));
 
   const std::optional<CustomDataType> type = node_type_from_other_socket(params.other_socket());
-  if (params.in_out() == SOCK_IN) {
-    if (type) {
-      params.add_item(IFACE_("Attribute"), [node_type, type](LinkSearchOpParams &params) {
-        bNode &node = params.add_node(node_type);
-        node.custom1 = *type;
-        params.update_and_connect_available_socket(node, "Attribute");
-      });
-    }
+  if (!type) {
+    return;
   }
-  else if (type) {
+
+  if (params.in_out() == SOCK_IN) {
+    params.add_item(IFACE_("Attribute"), [node_type, type](LinkSearchOpParams &params) {
+      bNode &node = params.add_node(node_type);
+      node.custom1 = *type;
+      params.update_and_connect_available_socket(node, "Attribute");
+    });
+  }
+  else {
     for (const SocketDeclarationPtr &socket_decl : declaration.outputs()) {
       StringRefNull name = socket_decl->name();
       params.add_item(IFACE_(name.c_str()), [node_type, name, type](LinkSearchOpParams &params) {
