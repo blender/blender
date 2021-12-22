@@ -158,8 +158,9 @@ static void ntree_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
 
   BLI_listbase_clear(&ntree_dst->nodes);
   LISTBASE_FOREACH (const bNode *, src_node, &ntree_src->nodes) {
+    /* Don't find a unique name for every node, since they should have valid names already. */
     bNode *new_node = blender::bke::node_copy_with_mapping(
-        ntree_dst, *src_node, flag_subdata, true, socket_map);
+        ntree_dst, *src_node, flag_subdata, false, socket_map);
     node_map.add(src_node, new_node);
   }
 

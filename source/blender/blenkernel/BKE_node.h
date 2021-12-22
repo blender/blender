@@ -702,7 +702,8 @@ namespace blender::bke {
 
 /**
  * \note keeps socket list order identical, for copying links.
- * \note `unique_name` needs to be true. It's only disabled for speed when doing GPUnodetrees.
+ * \note `unique_name` should usually be true, unless the \a dst_tree is temporary,
+ * or the names can already be assumed valid.
  */
 bNode *node_copy_with_mapping(bNodeTree *dst_tree,
                               const bNode &node_src,
