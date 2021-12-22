@@ -45,14 +45,6 @@ int PolySpline::size() const
   return size;
 }
 
-void PolySpline::add_point(const float3 position, const float radius, const float tilt)
-{
-  positions_.append(position);
-  radii_.append(radius);
-  tilts_.append(tilt);
-  this->mark_cache_invalid();
-}
-
 void PolySpline::resize(const int size)
 {
   positions_.resize(size);

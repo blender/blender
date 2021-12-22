@@ -762,7 +762,10 @@ static CurveEval get_curve_single_vert()
 {
   CurveEval curve;
   std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
-  spline->add_point(float3(0), 0, 0.0f);
+  spline->resize(1.0f);
+  spline->positions().fill(float3(0));
+  spline->radii().fill(1.0f);
+  spline->tilts().fill(0.0f);
   curve.add_spline(std::move(spline));
 
   return curve;

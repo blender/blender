@@ -70,24 +70,6 @@ void BezierSpline::set_resolution(const int value)
   this->mark_cache_invalid();
 }
 
-void BezierSpline::add_point(const float3 position,
-                             const HandleType handle_type_left,
-                             const float3 handle_position_left,
-                             const HandleType handle_type_right,
-                             const float3 handle_position_right,
-                             const float radius,
-                             const float tilt)
-{
-  handle_types_left_.append(handle_type_left);
-  handle_positions_left_.append(handle_position_left);
-  positions_.append(position);
-  handle_types_right_.append(handle_type_right);
-  handle_positions_right_.append(handle_position_right);
-  radii_.append(radius);
-  tilts_.append(tilt);
-  this->mark_cache_invalid();
-}
-
 void BezierSpline::resize(const int size)
 {
   handle_types_left_.resize(size);
