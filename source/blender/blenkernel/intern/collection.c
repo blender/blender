@@ -1231,6 +1231,50 @@ void BKE_collections_object_remove_nulls(Main *bmain)
   }
 }
 
+/*
+ * Remove all duplicate objects from collections.
+ * This is used for library remapping, happens when remapping an object to another one already
+ * present in the collection. Otherwise this should never happen.
+ */
+static void collection_object_remove_duplicates(Collection *collection)
+{
+  bool changed = false;
+
+  LISTBASE_FOREACH_MUTABLE (CollectionObject *, cob, &collection->gobject) {
+    if (cob->ob->runtime.collection_management) {
+      BLI_freelinkN(&collection->gobject, cob);
+      changed = true;
+      continue;
+    }
+    cob->ob->runtime.collection_management = true;
+  }
+
+  /* Cleanup. */
+  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+    cob->ob->runtime.collection_management = false;
+  }
+
+  if (changed) {
+    BKE_collection_object_cache_free(collection);
+  }
+}
+
+void BKE_collections_object_remove_duplicates(struct Main *bmain)
+{
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+    ob->runtime.collection_management = false;
+  }
+
+  for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+    collection_object_remove_duplicates(scene->master_collection);
+  }
+
+  for (Collection *collection = bmain->collections.first; collection;
+       collection = collection->id.next) {
+    collection_object_remove_duplicates(collection);
+  }
+}
+
 static void collection_null_children_remove(Collection *collection)
 {
   for (CollectionChild *child = collection->children.first, *child_next = NULL; child;
