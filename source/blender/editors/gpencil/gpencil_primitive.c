@@ -423,6 +423,7 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
   Scene *scene = tgpi->scene;
   char status_str[UI_MAX_DRAW_STR];
   char msg_str[UI_MAX_DRAW_STR];
+  const int cur_subdiv = tgpi->type == GP_STROKE_BOX ? tgpi->tot_edges - 1 : tgpi->tot_edges - 2;
 
   if (tgpi->type == GP_STROKE_LINE) {
     BLI_strncpy(msg_str,
@@ -480,7 +481,7 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
                      sizeof(status_str),
                      "%s: %d (%d, %d) (%d, %d)",
                      msg_str,
-                     tgpi->tot_edges,
+                     cur_subdiv,
                      (int)tgpi->start[0],
                      (int)tgpi->start[1],
                      (int)tgpi->end[0],
@@ -491,7 +492,7 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
                      sizeof(status_str),
                      "%s: %d (%d, %d)",
                      msg_str,
-                     tgpi->tot_edges,
+                     cur_subdiv,
                      (int)tgpi->end[0],
                      (int)tgpi->end[1]);
       }
@@ -503,7 +504,7 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
                    sizeof(status_str),
                    "%s: %d (%d, %d) (%d, %d)",
                    msg_str,
-                   tgpi->tot_edges,
+                   cur_subdiv,
                    (int)tgpi->start[0],
                    (int)tgpi->start[1],
                    (int)tgpi->end[0],
@@ -726,7 +727,6 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
   const bool is_camera = is_lock_axis_view && (tgpi->rv3d->persp == RV3D_CAMOB) && (!is_depth);
 
   if (tgpi->type == GP_STROKE_BOX) {
-    tgpi->tot_edges--;
     gps->totpoints = (tgpi->tot_edges * 4 + tgpi->tot_stored_edges);
   }
   else {
@@ -1254,7 +1254,7 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
   tgpi->tot_stored_edges = 0;
 
   tgpi->subdiv = RNA_int_get(op->ptr, "subdivision");
-  RNA_int_set(op->ptr, "edges", tgpi->subdiv + 2);
+  RNA_int_set(op->ptr, "edges", tgpi->type == GP_STROKE_BOX ? tgpi->subdiv + 1 : tgpi->subdiv + 2);
   tgpi->tot_edges = RNA_int_get(op->ptr, "edges");
   tgpi->flag = IDLE;
   tgpi->lock_axis = ts->gp_sculpt.lock_axis;
@@ -1720,7 +1720,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
       case WHEELUPMOUSE: {
         if ((event->val != KM_RELEASE)) {
           tgpi->tot_edges = tgpi->tot_edges + 1;
-          CLAMP(tgpi->tot_edges, MIN_EDGES, MAX_EDGES);
+          CLAMP(tgpi->tot_edges, tgpi->type == GP_STROKE_BOX ? 1 : MIN_EDGES, MAX_EDGES);
           RNA_int_set(op->ptr, "edges", tgpi->tot_edges);
           gpencil_primitive_update(C, op, tgpi);
         }
@@ -1730,7 +1730,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
       case WHEELDOWNMOUSE: {
         if ((event->val != KM_RELEASE)) {
           tgpi->tot_edges = tgpi->tot_edges - 1;
-          CLAMP(tgpi->tot_edges, MIN_EDGES, MAX_EDGES);
+          CLAMP(tgpi->tot_edges, tgpi->type == GP_STROKE_BOX ? 1 : MIN_EDGES, MAX_EDGES);
           RNA_int_set(op->ptr, "edges", tgpi->tot_edges);
           gpencil_primitive_update(C, op, tgpi);
         }
@@ -1886,7 +1886,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     case WHEELUPMOUSE: {
       if ((event->val != KM_RELEASE)) {
         tgpi->tot_edges = tgpi->tot_edges + 1;
-        CLAMP(tgpi->tot_edges, MIN_EDGES, MAX_EDGES);
+        CLAMP(tgpi->tot_edges, tgpi->type == GP_STROKE_BOX ? 1 : MIN_EDGES, MAX_EDGES);
         RNA_int_set(op->ptr, "edges", tgpi->tot_edges);
 
         /* update screen */
@@ -1898,7 +1898,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     case WHEELDOWNMOUSE: {
       if ((event->val != KM_RELEASE)) {
         tgpi->tot_edges = tgpi->tot_edges - 1;
-        CLAMP(tgpi->tot_edges, MIN_EDGES, MAX_EDGES);
+        CLAMP(tgpi->tot_edges, tgpi->type == GP_STROKE_BOX ? 1 : MIN_EDGES, MAX_EDGES);
         RNA_int_set(op->ptr, "edges", tgpi->tot_edges);
 
         /* update screen */
@@ -2038,15 +2038,8 @@ static void gpencil_primitive_common_props(wmOperatorType *ot, int subdiv, int t
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   /* Internal prop. */
-  prop = RNA_def_int(ot->srna,
-                     "edges",
-                     MIN_EDGES,
-                     MIN_EDGES,
-                     MAX_EDGES,
-                     "Edges",
-                     "Number of points by edge",
-                     MIN_EDGES,
-                     MAX_EDGES);
+  prop = RNA_def_int(
+      ot->srna, "edges", 1, 1, MAX_EDGES, "Edges", "Number of points by edge", 1, MAX_EDGES);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 
   RNA_def_enum(ot->srna, "type", gpencil_primitive_type, type, "Type", "Type of shape");
