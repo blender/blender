@@ -199,7 +199,7 @@ void BLI_str_cursor_step_utf8(const char *str,
         const int pos_prev = *pos;
         if (BLI_str_cursor_step_prev_utf8(str, maxlen, pos)) {
           if ((jump != STRCUR_JUMP_ALL) &&
-              (delim_type != cursor_delim_type_utf8(str, maxlen, (size_t)*pos))) {
+              (delim_type != cursor_delim_type_utf8(str, maxlen, *pos))) {
             /* left only: compensate for index/change in direction */
             if ((pos_orig - (*pos)) >= 1) {
               *pos = pos_prev;
