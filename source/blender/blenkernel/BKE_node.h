@@ -34,6 +34,7 @@
 #include "RNA_types.h"
 
 #ifdef __cplusplus
+#  include "BLI_map.hh"
 #  include "BLI_string_ref.hh"
 #endif
 
@@ -518,8 +519,6 @@ void ntreeSetOutput(struct bNodeTree *ntree);
 
 void ntreeFreeCache(struct bNodeTree *ntree);
 
-bool ntreeNodeExists(const struct bNodeTree *ntree, const struct bNode *testnode);
-bool ntreeOutputExists(const struct bNode *node, const struct bNodeSocket *testsock);
 void ntreeNodeFlagSet(const bNodeTree *ntree, const int flag, const bool enable);
 /**
  * Returns localized tree for execution in threads.
@@ -697,31 +696,27 @@ void nodeRemoveNode(struct Main *bmain,
                     struct bNode *node,
                     bool do_id_user);
 
-/**
- * \param ntree: is the target tree.
- *
- * \note keep socket list order identical, for copying links.
- * \note `unique_name` needs to be true. It's only disabled for speed when doing GPUnodetrees.
- */
-struct bNode *BKE_node_copy_ex(struct bNodeTree *ntree,
-                               const struct bNode *node_src,
-                               const int flag,
-                               const bool unique_name);
+#ifdef __cplusplus
+
+namespace blender::bke {
 
 /**
- * Same as #BKE_node_copy_ex but stores pointers to a new node and its sockets in the source node.
- *
- * NOTE: DANGER ZONE!
- *
- * TODO(sergey): Maybe it's better to make BKE_node_copy_ex() return a mapping from old node and
- * sockets to new one.
+ * \note keeps socket list order identical, for copying links.
+ * \note `unique_name` needs to be true. It's only disabled for speed when doing GPUnodetrees.
  */
-struct bNode *BKE_node_copy_store_new_pointers(struct bNodeTree *ntree,
-                                               struct bNode *node_src,
-                                               const int flag);
-struct bNodeTree *ntreeCopyTree_ex_new_pointers(const struct bNodeTree *ntree,
-                                                struct Main *bmain,
-                                                const bool do_id_user);
+bNode *node_copy_with_mapping(bNodeTree *dst_tree,
+                              const bNode &node_src,
+                              int flag,
+                              bool unique_name,
+                              Map<const bNodeSocket *, bNodeSocket *> &new_socket_map);
+
+bNode *node_copy(bNodeTree *dst_tree, const bNode &src_node, int flag, bool unique_name);
+
+}  // namespace blender::bke
+
+#endif
+
+bNode *BKE_node_copy(bNodeTree *dst_tree, const bNode *src_node, int flag, bool unique_name);
 
 /**
  * Also used via RNA API, so we check for proper input output direction.

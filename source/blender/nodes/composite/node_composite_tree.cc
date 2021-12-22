@@ -118,19 +118,6 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
       }
     }
 
-    bNodeSocket *output_sock = (bNodeSocket *)node->outputs.first;
-    bNodeSocket *local_output_sock = (bNodeSocket *)local_node->outputs.first;
-    while (output_sock != nullptr) {
-      local_output_sock->cache = output_sock->cache;
-      output_sock->cache = nullptr;
-      /* This is actually link to original: someone was just lazy enough and tried to save few
-       * bytes in the cost of readability. */
-      local_output_sock->new_sock = output_sock;
-
-      output_sock = output_sock->next;
-      local_output_sock = local_output_sock->next;
-    }
-
     node = node->next;
     local_node = local_node->next;
   }
@@ -150,11 +137,11 @@ static void local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
   BKE_node_preview_merge_tree(ntree, localtree, true);
 
   for (lnode = (bNode *)localtree->nodes.first; lnode; lnode = lnode->next) {
-    if (ntreeNodeExists(ntree, lnode->new_node)) {
+    if (bNode *orig_node = nodeFindNodebyName(ntree, lnode->name)) {
       if (ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
         if (lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
           /* image_merge does sanity check for pointers */
-          BKE_image_merge(bmain, (Image *)lnode->new_node->id, (Image *)lnode->id);
+          BKE_image_merge(bmain, (Image *)orig_node->id, (Image *)lnode->id);
         }
       }
       else if (lnode->type == CMP_NODE_MOVIEDISTORTION) {
@@ -162,20 +149,19 @@ static void local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
          * and to achieve much better performance on further calls this context should be
          * copied back to original node */
         if (lnode->storage) {
-          if (lnode->new_node->storage) {
-            BKE_tracking_distortion_free((MovieDistortion *)lnode->new_node->storage);
+          if (orig_node->storage) {
+            BKE_tracking_distortion_free((MovieDistortion *)orig_node->storage);
           }
 
-          lnode->new_node->storage = BKE_tracking_distortion_copy(
-              (MovieDistortion *)lnode->storage);
+          orig_node->storage = BKE_tracking_distortion_copy((MovieDistortion *)lnode->storage);
         }
       }
 
       for (lsock = (bNodeSocket *)lnode->outputs.first; lsock; lsock = lsock->next) {
-        if (ntreeOutputExists(lnode->new_node, lsock->new_sock)) {
-          lsock->new_sock->cache = lsock->cache;
+        if (bNodeSocket *orig_socket = nodeFindSocket(orig_node, SOCK_OUT, lsock->identifier)) {
+          orig_socket->cache = lsock->cache;
           lsock->cache = nullptr;
-          lsock->new_sock = nullptr;
+          orig_socket = nullptr;
         }
       }
     }

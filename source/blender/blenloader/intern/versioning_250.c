@@ -580,7 +580,6 @@ static bNodeSocket *do_versions_node_group_add_socket_2_56_2(bNodeTree *ngroup,
   gsock->type = type;
 
   gsock->next = gsock->prev = NULL;
-  gsock->new_sock = NULL;
   gsock->link = NULL;
   /* assign new unique index */
   gsock->own_index = ngroup->cur_index++;

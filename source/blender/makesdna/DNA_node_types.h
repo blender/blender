@@ -95,7 +95,7 @@ typedef struct SocketDeclarationHandle SocketDeclarationHandle;
 #endif
 
 typedef struct bNodeSocket {
-  struct bNodeSocket *next, *prev, *new_sock;
+  struct bNodeSocket *next, *prev;
 
   /** User-defined properties. */
   IDProperty *prop;
@@ -245,7 +245,7 @@ typedef enum eNodeSocketFlag {
 
 /** TODO: Limit data in #bNode to what we want to see saved. */
 typedef struct bNode {
-  struct bNode *next, *prev, *new_node;
+  struct bNode *next, *prev;
 
   /** User-defined properties. */
   IDProperty *prop;

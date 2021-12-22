@@ -99,6 +99,7 @@
 #define NODE_DEFAULT_MAX_WIDTH 700
 
 using blender::Array;
+using blender::Map;
 using blender::MutableSpan;
 using blender::Set;
 using blender::Span;
@@ -152,62 +153,41 @@ static void ntree_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
   BLI_listbase_clear(&ntree_dst->nodes);
   BLI_listbase_clear(&ntree_dst->links);
 
-  /* Since source nodes and sockets are unique pointers we can put everything in a single map. */
-  GHash *new_pointers = BLI_ghash_ptr_new(__func__);
+  Map<const bNode *, bNode *> node_map;
+  Map<const bNodeSocket *, bNodeSocket *> socket_map;
 
-  LISTBASE_FOREACH (const bNode *, node_src, &ntree_src->nodes) {
-    bNode *new_node = BKE_node_copy_ex(ntree_dst, node_src, flag_subdata, true);
-    BLI_ghash_insert(new_pointers, (void *)node_src, new_node);
-    /* Store mapping to inputs. */
-    bNodeSocket *new_input_sock = (bNodeSocket *)new_node->inputs.first;
-    const bNodeSocket *input_sock_src = (const bNodeSocket *)node_src->inputs.first;
-    while (new_input_sock != nullptr) {
-      BLI_ghash_insert(new_pointers, (void *)input_sock_src, new_input_sock);
-      new_input_sock = new_input_sock->next;
-      input_sock_src = input_sock_src->next;
-    }
-    /* Store mapping to outputs. */
-    bNodeSocket *new_output_sock = (bNodeSocket *)new_node->outputs.first;
-    const bNodeSocket *output_sock_src = (const bNodeSocket *)node_src->outputs.first;
-    while (new_output_sock != nullptr) {
-      BLI_ghash_insert(new_pointers, (void *)output_sock_src, new_output_sock);
-      new_output_sock = new_output_sock->next;
-      output_sock_src = output_sock_src->next;
-    }
+  BLI_listbase_clear(&ntree_dst->nodes);
+  LISTBASE_FOREACH (const bNode *, src_node, &ntree_src->nodes) {
+    bNode *new_node = blender::bke::node_copy_with_mapping(
+        ntree_dst, *src_node, flag_subdata, true, socket_map);
+    node_map.add(src_node, new_node);
   }
 
   /* copy links */
-  BLI_duplicatelist(&ntree_dst->links, &ntree_src->links);
-  LISTBASE_FOREACH (bNodeLink *, link_dst, &ntree_dst->links) {
-    link_dst->fromnode = (bNode *)BLI_ghash_lookup_default(
-        new_pointers, link_dst->fromnode, nullptr);
-    link_dst->fromsock = (bNodeSocket *)BLI_ghash_lookup_default(
-        new_pointers, link_dst->fromsock, nullptr);
-    link_dst->tonode = (bNode *)BLI_ghash_lookup_default(new_pointers, link_dst->tonode, nullptr);
-    link_dst->tosock = (bNodeSocket *)BLI_ghash_lookup_default(
-        new_pointers, link_dst->tosock, nullptr);
-    /* update the link socket's pointer */
-    if (link_dst->tosock) {
-      link_dst->tosock->link = link_dst;
-    }
+  BLI_listbase_clear(&ntree_dst->links);
+  LISTBASE_FOREACH (const bNodeLink *, src_link, &ntree_src->links) {
+    bNodeLink *dst_link = (bNodeLink *)MEM_dupallocN(src_link);
+    dst_link->fromnode = node_map.lookup(src_link->fromnode);
+    dst_link->fromsock = socket_map.lookup(src_link->fromsock);
+    dst_link->tonode = node_map.lookup(src_link->tonode);
+    dst_link->tosock = socket_map.lookup(src_link->tosock);
+    BLI_assert(dst_link->tosock);
+    dst_link->tosock->link = dst_link;
+    BLI_addtail(&ntree_dst->links, dst_link);
   }
 
   /* copy interface sockets */
-  BLI_duplicatelist(&ntree_dst->inputs, &ntree_src->inputs);
-  bNodeSocket *sock_dst, *sock_src;
-  for (sock_dst = (bNodeSocket *)ntree_dst->inputs.first,
-      sock_src = (bNodeSocket *)ntree_src->inputs.first;
-       sock_dst != nullptr;
-       sock_dst = (bNodeSocket *)sock_dst->next, sock_src = (bNodeSocket *)sock_src->next) {
-    node_socket_copy(sock_dst, sock_src, flag_subdata);
+  BLI_listbase_clear(&ntree_dst->inputs);
+  LISTBASE_FOREACH (const bNodeSocket *, src_socket, &ntree_src->inputs) {
+    bNodeSocket *dst_socket = (bNodeSocket *)MEM_dupallocN(src_socket);
+    node_socket_copy(dst_socket, src_socket, flag_subdata);
+    BLI_addtail(&ntree_dst->inputs, dst_socket);
   }
-
-  BLI_duplicatelist(&ntree_dst->outputs, &ntree_src->outputs);
-  for (sock_dst = (bNodeSocket *)ntree_dst->outputs.first,
-      sock_src = (bNodeSocket *)ntree_src->outputs.first;
-       sock_dst != nullptr;
-       sock_dst = (bNodeSocket *)sock_dst->next, sock_src = (bNodeSocket *)sock_src->next) {
-    node_socket_copy(sock_dst, sock_src, flag_subdata);
+  BLI_listbase_clear(&ntree_dst->outputs);
+  LISTBASE_FOREACH (const bNodeSocket *, src_socket, &ntree_src->outputs) {
+    bNodeSocket *dst_socket = (bNodeSocket *)MEM_dupallocN(src_socket);
+    node_socket_copy(dst_socket, src_socket, flag_subdata);
+    BLI_addtail(&ntree_dst->outputs, dst_socket);
   }
 
   /* copy preview hash */
@@ -227,18 +207,11 @@ static void ntree_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
   }
 
   /* update node->parent pointers */
-  for (bNode *node_dst = (bNode *)ntree_dst->nodes.first,
-             *node_src = (bNode *)ntree_src->nodes.first;
-       node_dst;
-       node_dst = (bNode *)node_dst->next, node_src = (bNode *)node_src->next) {
-    if (node_dst->parent) {
-      node_dst->parent = (bNode *)BLI_ghash_lookup_default(
-          new_pointers, node_dst->parent, nullptr);
+  LISTBASE_FOREACH (bNode *, new_node, &ntree_dst->nodes) {
+    if (new_node->parent) {
+      new_node->parent = node_map.lookup(new_node->parent);
     }
   }
-
-  BLI_ghash_free(new_pointers, nullptr, nullptr);
-
   /* node tree will generate its own interface type */
   ntree_dst->interface_type = nullptr;
 
@@ -2238,136 +2211,100 @@ static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src,
   sock_dst->cache = nullptr;
 }
 
-bNode *BKE_node_copy_ex(bNodeTree *ntree,
-                        const bNode *node_src,
-                        const int flag,
-                        const bool unique_name)
-{
-  bNode *node_dst = (bNode *)MEM_callocN(sizeof(bNode), "dupli node");
-  bNodeSocket *sock_dst, *sock_src;
-  bNodeLink *link_dst, *link_src;
+namespace blender::bke {
 
-  *node_dst = *node_src;
+bNode *node_copy_with_mapping(bNodeTree *dst_tree,
+                              const bNode &node_src,
+                              const int flag,
+                              const bool unique_name,
+                              Map<const bNodeSocket *, bNodeSocket *> &socket_map)
+{
+  bNode *node_dst = (bNode *)MEM_mallocN(sizeof(bNode), __func__);
+  *node_dst = node_src;
 
   /* Can be called for nodes outside a node tree (e.g. clipboard). */
-  if (ntree) {
+  if (dst_tree) {
     if (unique_name) {
-      nodeUniqueName(ntree, node_dst);
+      nodeUniqueName(dst_tree, node_dst);
     }
-
-    BLI_addtail(&ntree->nodes, node_dst);
+    BLI_addtail(&dst_tree->nodes, node_dst);
   }
 
-  BLI_duplicatelist(&node_dst->inputs, &node_src->inputs);
-  for (sock_dst = (bNodeSocket *)node_dst->inputs.first,
-      sock_src = (bNodeSocket *)node_src->inputs.first;
-       sock_dst != nullptr;
-       sock_dst = (bNodeSocket *)sock_dst->next, sock_src = (bNodeSocket *)sock_src->next) {
-    node_socket_copy(sock_dst, sock_src, flag);
+  BLI_listbase_clear(&node_dst->inputs);
+  LISTBASE_FOREACH (const bNodeSocket *, src_socket, &node_src.inputs) {
+    bNodeSocket *dst_socket = (bNodeSocket *)MEM_dupallocN(src_socket);
+    node_socket_copy(dst_socket, src_socket, flag);
+    BLI_addtail(&node_dst->inputs, dst_socket);
+    socket_map.add_new(src_socket, dst_socket);
   }
 
-  BLI_duplicatelist(&node_dst->outputs, &node_src->outputs);
-  for (sock_dst = (bNodeSocket *)node_dst->outputs.first,
-      sock_src = (bNodeSocket *)node_src->outputs.first;
-       sock_dst != nullptr;
-       sock_dst = (bNodeSocket *)sock_dst->next, sock_src = (bNodeSocket *)sock_src->next) {
-    node_socket_copy(sock_dst, sock_src, flag);
+  BLI_listbase_clear(&node_dst->outputs);
+  LISTBASE_FOREACH (const bNodeSocket *, src_socket, &node_src.outputs) {
+    bNodeSocket *dst_socket = (bNodeSocket *)MEM_dupallocN(src_socket);
+    node_socket_copy(dst_socket, src_socket, flag);
+    BLI_addtail(&node_dst->outputs, dst_socket);
+    socket_map.add_new(src_socket, dst_socket);
   }
 
-  if (node_src->prop) {
-    node_dst->prop = IDP_CopyProperty_ex(node_src->prop, flag);
+  if (node_src.prop) {
+    node_dst->prop = IDP_CopyProperty_ex(node_src.prop, flag);
   }
 
-  BLI_duplicatelist(&node_dst->internal_links, &node_src->internal_links);
-  for (link_dst = (bNodeLink *)node_dst->internal_links.first,
-      link_src = (bNodeLink *)node_src->internal_links.first;
-       link_dst != nullptr;
-       link_dst = (bNodeLink *)link_dst->next, link_src = (bNodeLink *)link_src->next) {
-    /* This is a bit annoying to do index lookups in a list, but is likely to be faster than
-     * trying to create a hash-map. At least for usual nodes, which only have so much sockets
-     * and internal links. */
-    const int from_sock_index = BLI_findindex(&node_src->inputs, link_src->fromsock);
-    const int to_sock_index = BLI_findindex(&node_src->outputs, link_src->tosock);
-    BLI_assert(from_sock_index != -1);
-    BLI_assert(to_sock_index != -1);
-    link_dst->fromnode = node_dst;
-    link_dst->tonode = node_dst;
-    link_dst->fromsock = (bNodeSocket *)BLI_findlink(&node_dst->inputs, from_sock_index);
-    link_dst->tosock = (bNodeSocket *)BLI_findlink(&node_dst->outputs, to_sock_index);
+  BLI_listbase_clear(&node_dst->internal_links);
+  LISTBASE_FOREACH (const bNodeLink *, src_link, &node_src.internal_links) {
+    bNodeLink *dst_link = (bNodeLink *)MEM_dupallocN(src_link);
+    dst_link->fromnode = node_dst;
+    dst_link->tonode = node_dst;
+    dst_link->fromsock = socket_map.lookup(src_link->fromsock);
+    dst_link->tosock = socket_map.lookup(src_link->tosock);
+    BLI_addtail(&node_dst->internal_links, dst_link);
   }
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
     id_us_plus(node_dst->id);
   }
 
-  if (node_src->typeinfo->copyfunc) {
-    node_src->typeinfo->copyfunc(ntree, node_dst, node_src);
+  if (node_src.typeinfo->copyfunc) {
+    node_src.typeinfo->copyfunc(dst_tree, node_dst, &node_src);
   }
-
-  node_dst->new_node = nullptr;
 
   /* Only call copy function when a copy is made for the main database, not
    * for cases like the dependency graph and localization. */
   if (node_dst->typeinfo->copyfunc_api && !(flag & LIB_ID_CREATE_NO_MAIN)) {
     PointerRNA ptr;
-    RNA_pointer_create((ID *)ntree, &RNA_Node, node_dst, &ptr);
+    RNA_pointer_create((ID *)dst_tree, &RNA_Node, node_dst, &ptr);
 
-    node_dst->typeinfo->copyfunc_api(&ptr, node_src);
+    node_dst->typeinfo->copyfunc_api(&ptr, &node_src);
   }
 
-  if (ntree) {
-    BKE_ntree_update_tag_node_new(ntree, node_dst);
+  if (dst_tree) {
+    BKE_ntree_update_tag_node_new(dst_tree, node_dst);
   }
 
   /* Reset the declaration of the new node. */
   node_dst->declaration = nullptr;
-  nodeDeclarationEnsure(ntree, node_dst);
+  nodeDeclarationEnsure(dst_tree, node_dst);
 
   return node_dst;
 }
 
-static void node_set_new_pointers(bNode *node_src, bNode *new_node)
+bNode *node_copy(bNodeTree *dst_tree,
+                 const bNode &src_node,
+                 const int flag,
+                 const bool unique_name)
 {
-  /* Store mapping to the node itself. */
-  node_src->new_node = new_node;
-  /* Store mapping to inputs. */
-  bNodeSocket *new_input_sock = (bNodeSocket *)new_node->inputs.first;
-  bNodeSocket *input_sock_src = (bNodeSocket *)node_src->inputs.first;
-  while (new_input_sock != nullptr) {
-    input_sock_src->new_sock = new_input_sock;
-    new_input_sock = new_input_sock->next;
-    input_sock_src = input_sock_src->next;
-  }
-  /* Store mapping to outputs. */
-  bNodeSocket *new_output_sock = (bNodeSocket *)new_node->outputs.first;
-  bNodeSocket *output_sock_src = (bNodeSocket *)node_src->outputs.first;
-  while (new_output_sock != nullptr) {
-    output_sock_src->new_sock = new_output_sock;
-    new_output_sock = new_output_sock->next;
-    output_sock_src = output_sock_src->next;
-  }
+  Map<const bNodeSocket *, bNodeSocket *> socket_map;
+  return node_copy_with_mapping(dst_tree, src_node, flag, unique_name, socket_map);
 }
 
-bNode *BKE_node_copy_store_new_pointers(bNodeTree *ntree, bNode *node_src, const int flag)
-{
-  bNode *new_node = BKE_node_copy_ex(ntree, node_src, flag, true);
-  node_set_new_pointers(node_src, new_node);
-  return new_node;
-}
+}  // namespace blender::bke
 
-bNodeTree *ntreeCopyTree_ex_new_pointers(const bNodeTree *ntree,
-                                         Main *bmain,
-                                         const bool do_id_user)
+bNode *BKE_node_copy(bNodeTree *dst_tree,
+                     const bNode *src_node,
+                     const int flag,
+                     const bool unique_name)
 {
-  bNodeTree *new_ntree = ntreeCopyTree_ex(ntree, bmain, do_id_user);
-  bNode *new_node = (bNode *)new_ntree->nodes.first;
-  bNode *node_src = (bNode *)ntree->nodes.first;
-  while (new_node != nullptr) {
-    node_set_new_pointers(node_src, new_node);
-    new_node = new_node->next;
-    node_src = node_src->next;
-  }
-  return new_ntree;
+  return blender::bke::node_copy(dst_tree, *src_node, flag, unique_name);
 }
 
 static int node_count_links(const bNodeTree *ntree, const bNodeSocket *socket)
@@ -3352,26 +3289,6 @@ bNodeTree *ntreeFromID(ID *id)
 {
   bNodeTree **nodetree = BKE_ntree_ptr_from_id(id);
   return (nodetree != nullptr) ? *nodetree : nullptr;
-}
-
-bool ntreeNodeExists(const bNodeTree *ntree, const bNode *testnode)
-{
-  LISTBASE_FOREACH (const bNode *, node, &ntree->nodes) {
-    if (node == testnode) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool ntreeOutputExists(const bNode *node, const bNodeSocket *testsock)
-{
-  LISTBASE_FOREACH (const bNodeSocket *, sock, &node->outputs) {
-    if (sock == testsock) {
-      return true;
-    }
-  }
-  return false;
 }
 
 void ntreeNodeFlagSet(const bNodeTree *ntree, const int flag, const bool enable)

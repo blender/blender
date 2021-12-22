@@ -62,6 +62,7 @@
 #include "node_intern.hh" /* own include */
 
 using blender::float2;
+using blender::Map;
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -220,21 +221,15 @@ static void animation_basepath_change_free(AnimationBasePathChange *basepath_cha
 /* returns 1 if its OK */
 static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 {
-  /* Clear new pointers, set in #ntreeCopyTree_ex_new_pointers. */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    node->new_node = nullptr;
-  }
-
   ListBase anim_basepaths = {nullptr, nullptr};
   LinkNode *nodes_delayed_free = nullptr;
-  bNodeTree *ngroup = (bNodeTree *)gnode->id;
 
   /* wgroup is a temporary copy of the NodeTree we're merging in
    * - all of wgroup's nodes are copied across to their new home
    * - ngroup (i.e. the source NodeTree) is left unscathed
    * - temp copy. do change ID usercount for the copies
    */
-  bNodeTree *wgroup = ntreeCopyTree_ex_new_pointers(ngroup, bmain, true);
+  bNodeTree *wgroup = ntreeCopyTree(bmain, ntree);
 
   /* Add the nodes into the ntree */
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &wgroup->nodes) {
@@ -455,12 +450,10 @@ static bool node_group_separate_selected(
     nodeSetSelected(node, false);
   }
 
-  /* clear new pointers, set in BKE_node_copy_ex(). */
-  LISTBASE_FOREACH (bNode *, node, &ngroup.nodes) {
-    node->new_node = nullptr;
-  }
-
   ListBase anim_basepaths = {nullptr, nullptr};
+
+  Map<const bNode *, bNode *> node_map;
+  Map<const bNodeSocket *, bNodeSocket *> socket_map;
 
   /* add selected nodes into the ntree */
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ngroup.nodes) {
@@ -477,7 +470,9 @@ static bool node_group_separate_selected(
     bNode *newnode;
     if (make_copy) {
       /* make a copy */
-      newnode = BKE_node_copy_store_new_pointers(&ngroup, node, LIB_ID_COPY_DEFAULT);
+      newnode = blender::bke::node_copy_with_mapping(
+          &ngroup, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
+      node_map.add_new(node, newnode);
     }
     else {
       /* use the existing node */
@@ -526,10 +521,10 @@ static bool node_group_separate_selected(
       /* make a copy of internal links */
       if (fromselect && toselect) {
         nodeAddLink(&ntree,
-                    link->fromnode->new_node,
-                    link->fromsock->new_sock,
-                    link->tonode->new_node,
-                    link->tosock->new_sock);
+                    node_map.lookup(link->fromnode),
+                    socket_map.lookup(link->fromsock),
+                    node_map.lookup(link->tonode),
+                    socket_map.lookup(link->tosock));
       }
     }
     else {
