@@ -698,6 +698,8 @@ class VIEW3D_PT_tools_weight_gradient(Panel, View3DPaintPanel):
     @classmethod
     def poll(cls, context):
         settings = context.tool_settings.weight_paint
+        if settings is None:
+            return False
         brush = settings.brush
         return brush is not None
 
