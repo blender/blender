@@ -1335,7 +1335,7 @@ class BONE_PT_bLockTrackConstraint(BoneConstraintPanel, ConstraintButtonsPanel, 
         self.draw_lock_track(context)
 
 
-# Disance Limit Constraint
+# Distance Limit Constraint
 
 class OBJECT_PT_bDistLimitConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
     def draw(self, context):
