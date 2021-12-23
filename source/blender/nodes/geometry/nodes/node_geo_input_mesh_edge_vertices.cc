@@ -50,12 +50,11 @@ static VArray<int> construct_edge_vertices_gvarray(const MeshComponent &componen
     return {};
   }
   if (domain == ATTR_DOMAIN_EDGE) {
-
     if (vertex == VERTEX_ONE) {
-      return VArray<int>::ForFunc(mesh->totpoly,
+      return VArray<int>::ForFunc(mesh->totedge,
                                   [mesh](const int i) -> int { return mesh->medge[i].v1; });
     }
-    return VArray<int>::ForFunc(mesh->totpoly,
+    return VArray<int>::ForFunc(mesh->totedge,
                                 [mesh](const int i) -> int { return mesh->medge[i].v2; });
   }
   return {};
