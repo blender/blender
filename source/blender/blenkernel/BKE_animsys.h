@@ -186,11 +186,6 @@ void BKE_animdata_transfer_by_basepath(struct Main *bmain,
                                        struct ID *dstID,
                                        struct ListBase *basepaths);
 
-char *BKE_animdata_driver_path_hack(struct bContext *C,
-                                    struct PointerRNA *ptr,
-                                    struct PropertyRNA *prop,
-                                    char *base_path);
-
 /* ************************************* */
 /* Batch AnimData API */
 

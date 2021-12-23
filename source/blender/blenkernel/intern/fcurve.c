@@ -412,7 +412,7 @@ FCurve *BKE_fcurve_find_by_rna_context_ui(bContext *C,
     char *path = NULL;
 
     if (!adt && C) {
-      path = BKE_animdata_driver_path_hack(C, &tptr, prop, NULL);
+      path = RNA_path_from_ID_to_property(&tptr, prop);
       adt = BKE_animdata_from_id(tptr.owner_id);
       step--;
     }
@@ -463,7 +463,7 @@ FCurve *BKE_fcurve_find_by_rna_context_ui(bContext *C,
       }
 
       if (step) {
-        char *tpath = BKE_animdata_driver_path_hack(C, &tptr, prop, path);
+        char *tpath = path ? path : RNA_path_from_ID_to_property(&tptr, prop);
         if (tpath && tpath != path) {
           MEM_freeN(path);
           path = tpath;

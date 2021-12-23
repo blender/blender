@@ -961,7 +961,7 @@ static int add_driver_button_none(bContext *C, wmOperator *op, short mapping_typ
   }
 
   if (ptr.owner_id && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
-    char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
+    char *path = RNA_path_from_ID_to_property(&ptr, prop);
     short flags = CREATEDRIVER_WITH_DEFAULT_DVAR;
 
     if (path) {
@@ -1055,7 +1055,7 @@ static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent *
 
   if (ptr.owner_id && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
     /* 1) Create a new "empty" driver for this property */
-    char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
+    char *path = RNA_path_from_ID_to_property(&ptr, prop);
     short flags = CREATEDRIVER_WITH_DEFAULT_DVAR;
     bool changed = false;
 
@@ -1115,7 +1115,7 @@ static int remove_driver_button_exec(bContext *C, wmOperator *op)
   }
 
   if (ptr.owner_id && ptr.data && prop) {
-    char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
+    char *path = RNA_path_from_ID_to_property(&ptr, prop);
 
     if (path) {
       changed = ANIM_remove_driver(op->reports, ptr.owner_id, path, index, 0);
@@ -1200,7 +1200,7 @@ static int copy_driver_button_exec(bContext *C, wmOperator *op)
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (ptr.owner_id && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
-    char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
+    char *path = RNA_path_from_ID_to_property(&ptr, prop);
 
     if (path) {
       /* only copy the driver for the button that this was involved for */
@@ -1244,7 +1244,7 @@ static int paste_driver_button_exec(bContext *C, wmOperator *op)
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (ptr.owner_id && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
-    char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
+    char *path = RNA_path_from_ID_to_property(&ptr, prop);
 
     if (path) {
       /* only copy the driver for the button that this was involved for */

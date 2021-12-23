@@ -107,7 +107,7 @@ static void driverdropper_sample(bContext *C, wmOperator *op, const wmEvent *eve
   char *target_path = RNA_path_from_ID_to_property(target_ptr, target_prop);
 
   /* ... and destination */
-  char *dst_path = BKE_animdata_driver_path_hack(C, &ddr->ptr, ddr->prop, NULL);
+  char *dst_path = RNA_path_from_ID_to_property(&ddr->ptr, ddr->prop);
 
   /* Now create driver(s) */
   if (target_path && dst_path) {
