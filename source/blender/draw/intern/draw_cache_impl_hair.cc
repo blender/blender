@@ -23,7 +23,7 @@
  * \brief Hair API for render engines
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -49,27 +49,28 @@ static void hair_batch_cache_clear(Hair *hair);
 /* ---------------------------------------------------------------------- */
 /* Hair GPUBatch Cache */
 
-typedef struct HairBatchCache {
+struct HairBatchCache {
   ParticleHairCache hair;
 
   /* settings to determine if cache is invalid */
   bool is_dirty;
-} HairBatchCache;
+};
 
 /* GPUBatch cache management. */
 
 static bool hair_batch_cache_valid(Hair *hair)
 {
-  HairBatchCache *cache = hair->batch_cache;
+  HairBatchCache *cache = static_cast<HairBatchCache *>(hair->batch_cache);
   return (cache && cache->is_dirty == false);
 }
 
 static void hair_batch_cache_init(Hair *hair)
 {
-  HairBatchCache *cache = hair->batch_cache;
+  HairBatchCache *cache = static_cast<HairBatchCache *>(hair->batch_cache);
 
   if (!cache) {
-    cache = hair->batch_cache = MEM_callocN(sizeof(*cache), __func__);
+    cache = MEM_cnew<HairBatchCache>(__func__);
+    hair->batch_cache = cache;
   }
   else {
     memset(cache, 0, sizeof(*cache));
@@ -89,13 +90,13 @@ void DRW_hair_batch_cache_validate(Hair *hair)
 static HairBatchCache *hair_batch_cache_get(Hair *hair)
 {
   DRW_hair_batch_cache_validate(hair);
-  return hair->batch_cache;
+  return static_cast<HairBatchCache *>(hair->batch_cache);
 }
 
 void DRW_hair_batch_cache_dirty_tag(Hair *hair, int mode)
 {
-  HairBatchCache *cache = hair->batch_cache;
-  if (cache == NULL) {
+  HairBatchCache *cache = static_cast<HairBatchCache *>(hair->batch_cache);
+  if (cache == nullptr) {
     return;
   }
   switch (mode) {
@@ -109,7 +110,7 @@ void DRW_hair_batch_cache_dirty_tag(Hair *hair, int mode)
 
 static void hair_batch_cache_clear(Hair *hair)
 {
-  HairBatchCache *cache = hair->batch_cache;
+  HairBatchCache *cache = static_cast<HairBatchCache *>(hair->batch_cache);
   if (!cache) {
     return;
   }
@@ -125,8 +126,8 @@ void DRW_hair_batch_cache_free(Hair *hair)
 
 static void ensure_seg_pt_count(Hair *hair, ParticleHairCache *hair_cache)
 {
-  if ((hair_cache->pos != NULL && hair_cache->indices != NULL) ||
-      (hair_cache->proc_point_buf != NULL)) {
+  if ((hair_cache->pos != nullptr && hair_cache->indices != nullptr) ||
+      (hair_cache->proc_point_buf != nullptr)) {
     return;
   }
 
@@ -153,7 +154,7 @@ static void hair_batch_cache_fill_segments_proc_pos(Hair *hair,
   for (int i = 0; i < num_curves; i++, curve++) {
     float(*curve_co)[3] = hair->co + curve->firstpoint;
     float total_len = 0.0f;
-    float *co_prev = NULL, *seg_data_first;
+    float *co_prev = nullptr, *seg_data_first;
     for (int j = 0; j < curve->numpoints; j++) {
       float *seg_data = (float *)GPU_vertbuf_raw_step(attr_step);
       copy_v3_v3(seg_data, curve_co[j]);
@@ -181,7 +182,7 @@ static void hair_batch_cache_ensure_procedural_pos(Hair *hair,
                                                    ParticleHairCache *cache,
                                                    GPUMaterial *gpu_material)
 {
-  if (cache->proc_point_buf == NULL) {
+  if (cache->proc_point_buf == nullptr) {
     /* initialize vertex format */
     GPUVertFormat format = {0};
     uint pos_id = GPU_vertformat_attr_add(&format, "posTime", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
@@ -209,7 +210,7 @@ static void hair_batch_cache_ensure_procedural_pos(Hair *hair,
     cache->point_tex = GPU_texture_create_from_vertbuf("hair_point", cache->proc_point_buf);
   }
 
-  if (gpu_material && cache->proc_length_buf != NULL && cache->length_tex) {
+  if (gpu_material && cache->proc_length_buf != nullptr && cache->length_tex) {
     ListBase gpu_attrs = GPU_material_attributes(gpu_material);
     LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &gpu_attrs) {
       if (attr->type == CD_HAIRLENGTH) {
@@ -306,7 +307,7 @@ static void hair_batch_cache_ensure_procedural_indices(Hair *hair,
 {
   BLI_assert(thickness_res <= MAX_THICKRES); /* Cylinder strip not currently supported. */
 
-  if (cache->final[subdiv].proc_hairs[thickness_res - 1] != NULL) {
+  if (cache->final[subdiv].proc_hairs[thickness_res - 1] != nullptr) {
     return;
   }
 
@@ -340,7 +341,7 @@ bool hair_ensure_procedural_data(Object *object,
                                  int thickness_res)
 {
   bool need_ft_update = false;
-  Hair *hair = object->data;
+  Hair *hair = static_cast<Hair *>(object->data);
 
   HairBatchCache *cache = hair_batch_cache_get(hair);
   *r_hair_cache = &cache->hair;
@@ -349,23 +350,23 @@ bool hair_ensure_procedural_data(Object *object,
   (*r_hair_cache)->final[subdiv].strands_res = 1 << (steps + subdiv);
 
   /* Refreshed on combing and simulation. */
-  if ((*r_hair_cache)->proc_point_buf == NULL) {
+  if ((*r_hair_cache)->proc_point_buf == nullptr) {
     ensure_seg_pt_count(hair, &cache->hair);
     hair_batch_cache_ensure_procedural_pos(hair, &cache->hair, gpu_material);
     need_ft_update = true;
   }
 
   /* Refreshed if active layer or custom data changes. */
-  if ((*r_hair_cache)->strand_tex == NULL) {
+  if ((*r_hair_cache)->strand_tex == nullptr) {
     hair_batch_cache_ensure_procedural_strand_data(hair, &cache->hair);
   }
 
   /* Refreshed only on subdiv count change. */
-  if ((*r_hair_cache)->final[subdiv].proc_buf == NULL) {
+  if ((*r_hair_cache)->final[subdiv].proc_buf == nullptr) {
     hair_batch_cache_ensure_procedural_final_points(&cache->hair, subdiv);
     need_ft_update = true;
   }
-  if ((*r_hair_cache)->final[subdiv].proc_hairs[thickness_res - 1] == NULL) {
+  if ((*r_hair_cache)->final[subdiv].proc_hairs[thickness_res - 1] == nullptr) {
     hair_batch_cache_ensure_procedural_indices(hair, &cache->hair, thickness_res, subdiv);
   }
 
