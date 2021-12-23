@@ -93,13 +93,18 @@ static std::unique_ptr<CurveEval> create_curve_from_vert_indices(
     }
   }
 
+  VArray<float3> mesh_positions = mesh_component.attribute_get_for_read(
+      "position", ATTR_DOMAIN_POINT, float3(0));
+  threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
+    for (const int i : range) {
+      copy_attribute_to_points(mesh_positions, vert_indices[i], splines[i]->positions());
+    }
+  });
+
   for (const bke::AttributeIDRef &attribute_id : source_attribute_ids) {
     if (mesh_component.attribute_is_builtin(attribute_id)) {
-      /* Don't copy attributes that are built-in on meshes but not on curves,
-       * except for the position attribute. */
-      if (!(attribute_id == "position")) {
-        continue;
-      }
+      /* Don't copy attributes that are built-in on meshes but not on curves. */
+      continue;
     }
 
     if (!attribute_id.should_be_kept()) {
