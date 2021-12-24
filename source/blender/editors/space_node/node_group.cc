@@ -223,13 +223,14 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 {
   ListBase anim_basepaths = {nullptr, nullptr};
   LinkNode *nodes_delayed_free = nullptr;
+  const bNodeTree *ngroup = reinterpret_cast<const bNodeTree *>(gnode->id);
 
   /* wgroup is a temporary copy of the NodeTree we're merging in
    * - all of wgroup's nodes are copied across to their new home
    * - ngroup (i.e. the source NodeTree) is left unscathed
    * - temp copy. do change ID usercount for the copies
    */
-  bNodeTree *wgroup = ntreeCopyTree(bmain, ntree);
+  bNodeTree *wgroup = ntreeCopyTree(bmain, ngroup);
 
   /* Add the nodes into the ntree */
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &wgroup->nodes) {
