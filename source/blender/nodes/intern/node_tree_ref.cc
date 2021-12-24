@@ -117,6 +117,22 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
     const bNodeType *nodetype = node->bnode_->typeinfo;
     nodes_by_type_.add(nodetype, node);
   }
+
+  const Span<const NodeRef *> group_output_nodes = this->nodes_by_type("NodeGroupOutput");
+  if (group_output_nodes.is_empty()) {
+    group_output_node_ = nullptr;
+  }
+  else if (group_output_nodes.size() == 1) {
+    group_output_node_ = group_output_nodes.first();
+  }
+  else {
+    for (const NodeRef *group_output : group_output_nodes) {
+      if (group_output->bnode_->flag & NODE_DO_OUTPUT) {
+        group_output_node_ = group_output;
+        break;
+      }
+    }
+  }
 }
 
 NodeTreeRef::~NodeTreeRef()

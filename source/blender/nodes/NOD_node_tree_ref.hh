@@ -262,6 +262,7 @@ class NodeTreeRef : NonCopyable, NonMovable {
   Vector<LinkRef *> links_;
   MultiValueMap<const bNodeType *, NodeRef *> nodes_by_type_;
   Vector<std::unique_ptr<SocketIndexByIdentifierMap>> owned_identifier_maps_;
+  const NodeRef *group_output_node_ = nullptr;
 
  public:
   NodeTreeRef(bNodeTree *btree);
@@ -278,6 +279,11 @@ class NodeTreeRef : NonCopyable, NonMovable {
   Span<const LinkRef *> links() const;
 
   const NodeRef *find_node(const bNode &bnode) const;
+
+  /**
+   * This is the active group output node if there are multiple.
+   */
+  const NodeRef *group_output_node() const;
 
   /**
    * \return True when there is a link cycle. Unavailable sockets are ignored.
@@ -757,6 +763,11 @@ inline Span<const OutputSocketRef *> NodeTreeRef::output_sockets() const
 inline Span<const LinkRef *> NodeTreeRef::links() const
 {
   return links_;
+}
+
+inline const NodeRef *NodeTreeRef::group_output_node() const
+{
+  return group_output_node_;
 }
 
 inline bNodeTree *NodeTreeRef::btree() const
