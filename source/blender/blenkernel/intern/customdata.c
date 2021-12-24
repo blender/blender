@@ -1685,8 +1685,6 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     {sizeof(float[3]), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
     /* 24: CD_RECAST */
     {sizeof(MRecast), "MRecast", 1, N_("Recast"), NULL, NULL, NULL, NULL},
-
-    /* BMESH ONLY */
     /* 25: CD_MPOLY */
     {sizeof(MPoly), "MPoly", 1, N_("NGon Face"), NULL, NULL, NULL, NULL, NULL},
     /* 26: CD_MLOOP */
@@ -1743,9 +1741,6 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      NULL,
      NULL,
      NULL},
-
-    /* END BMESH ONLY */
-
     /* 34: CD_PAINT_MASK */
     {sizeof(float), "", 0, NULL, NULL, NULL, layerInterp_paint_mask, NULL, NULL},
     /* 35: CD_GRID_PAINT_MASK */
