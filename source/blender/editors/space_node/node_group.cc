@@ -32,6 +32,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_vector.hh"
 
 #include "BLT_translation.h"
 
@@ -63,6 +64,7 @@
 
 using blender::float2;
 using blender::Map;
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -218,11 +220,13 @@ static void animation_basepath_change_free(AnimationBasePathChange *basepath_cha
   MEM_freeN(basepath_change);
 }
 
-/* returns 1 if its OK */
-static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
+/**
+ * \return True if successful.
+ */
+static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 {
   ListBase anim_basepaths = {nullptr, nullptr};
-  LinkNode *nodes_delayed_free = nullptr;
+  Vector<bNode *> nodes_delayed_free;
   const bNodeTree *ngroup = reinterpret_cast<const bNodeTree *>(gnode->id);
 
   /* wgroup is a temporary copy of the NodeTree we're merging in
@@ -239,7 +243,7 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
      */
     if (ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
       /* We must delay removal since sockets will reference this node. see: T52092 */
-      BLI_linklist_prepend(&nodes_delayed_free, node);
+      nodes_delayed_free.append(node);
     }
 
     /* keep track of this node's RNA "base" path (the part of the path identifying the node)
@@ -384,15 +388,14 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     }
   }
 
-  while (nodes_delayed_free) {
-    bNode *node = (bNode *)BLI_linklist_pop(&nodes_delayed_free);
+  for (bNode *node : nodes_delayed_free) {
     nodeRemoveNode(bmain, ntree, node, false);
   }
 
   /* delete the group instance and dereference group tree */
   nodeRemoveNode(bmain, ntree, gnode, true);
 
-  return 1;
+  return true;
 }
 
 static int node_group_ungroup_exec(bContext *C, wmOperator *op)
