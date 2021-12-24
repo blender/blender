@@ -58,7 +58,7 @@ set(SRC
   nodes/node_shader_bsdf_translucent.c
   nodes/node_shader_bsdf_transparent.c
   nodes/node_shader_bsdf_velvet.c
-  nodes/node_shader_bump.c
+  nodes/node_shader_bump.cc
   nodes/node_shader_camera.c
   nodes/node_shader_clamp.cc
   nodes/node_shader_common.c
