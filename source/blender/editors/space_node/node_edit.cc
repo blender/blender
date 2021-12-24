@@ -423,6 +423,7 @@ void ED_node_tree_propagate_change(const bContext *C, Main *bmain, bNodeTree *ro
   NodeTreeUpdateExtraParams params = {nullptr};
   params.tree_changed_fn = [](ID *id, bNodeTree *ntree, void *UNUSED(user_data)) {
     send_notifiers_after_tree_change(id, ntree);
+    DEG_id_tag_update(&ntree->id, ID_RECALC_COPY_ON_WRITE);
   };
   params.tree_output_changed_fn = [](ID *UNUSED(id), bNodeTree *ntree, void *UNUSED(user_data)) {
     DEG_id_tag_update(&ntree->id, ID_RECALC_NTREE_OUTPUT);

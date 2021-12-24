@@ -695,7 +695,7 @@ static int link_socket_to_viewer(const bContext &C,
     ED_spreadsheet_context_paths_set_geometry_node(CTX_data_main(&C), &snode, viewer_bnode);
   }
 
-  BKE_ntree_update_main_tree(CTX_data_main(&C), &btree, nullptr);
+  ED_node_tree_propagate_change(&C, CTX_data_main(&C), &btree);
   return OPERATOR_FINISHED;
 }
 
