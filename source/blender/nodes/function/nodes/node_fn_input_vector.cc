@@ -44,8 +44,7 @@ static void fn_node_input_vector_build_multi_function(NodeMultiFunctionBuilder &
 
 static void fn_node_input_vector_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeInputVector *data = (NodeInputVector *)MEM_callocN(sizeof(NodeInputVector),
-                                                         "input vector node");
+  NodeInputVector *data = MEM_cnew<NodeInputVector>(__func__);
   node->storage = data;
 }
 

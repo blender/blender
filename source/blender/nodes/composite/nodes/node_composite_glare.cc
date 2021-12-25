@@ -40,7 +40,7 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_glare(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeGlare *ndg = (NodeGlare *)MEM_callocN(sizeof(NodeGlare), "node glare data");
+  NodeGlare *ndg = MEM_cnew<NodeGlare>(__func__);
   ndg->quality = 1;
   ndg->type = 2;
   ndg->iter = 3;

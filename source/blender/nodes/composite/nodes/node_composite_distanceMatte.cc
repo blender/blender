@@ -42,7 +42,7 @@ static void cmp_node_distance_matte_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_distance_matte(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeChroma *c = (NodeChroma *)MEM_callocN(sizeof(NodeChroma), "node chroma");
+  NodeChroma *c = MEM_cnew<NodeChroma>(__func__);
   node->storage = c;
   c->channel = 1;
   c->t1 = 0.1f;

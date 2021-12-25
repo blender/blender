@@ -43,7 +43,7 @@ static void fn_node_input_bool_build_multi_function(NodeMultiFunctionBuilder &bu
 
 static void fn_node_input_bool_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeInputBool *data = (NodeInputBool *)MEM_callocN(sizeof(NodeInputBool), __func__);
+  NodeInputBool *data = MEM_cnew<NodeInputBool>(__func__);
   node->storage = data;
 }
 

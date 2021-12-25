@@ -42,7 +42,7 @@ static void cmp_node_diff_matte_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_diff_matte(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeChroma *c = (NodeChroma *)MEM_callocN(sizeof(NodeChroma), "node chroma");
+  NodeChroma *c = MEM_cnew<NodeChroma>(__func__);
   node->storage = c;
   c->t1 = 0.1f;
   c->t2 = 0.1f;

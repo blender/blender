@@ -43,7 +43,7 @@ static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeColorspill *ncs = (NodeColorspill *)MEM_callocN(sizeof(NodeColorspill), "node colorspill");
+  NodeColorspill *ncs = MEM_cnew<NodeColorspill>(__func__);
   node->storage = ncs;
   node->custom1 = 2;    /* green channel */
   node->custom2 = 0;    /* simple limit algorithm */

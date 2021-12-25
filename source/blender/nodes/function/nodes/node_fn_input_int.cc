@@ -43,7 +43,7 @@ static void fn_node_input_int_build_multi_function(NodeMultiFunctionBuilder &bui
 
 static void fn_node_input_int_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeInputInt *data = (NodeInputInt *)MEM_callocN(sizeof(NodeInputInt), __func__);
+  NodeInputInt *data = MEM_cnew<NodeInputInt>(__func__);
   node->storage = data;
 }
 

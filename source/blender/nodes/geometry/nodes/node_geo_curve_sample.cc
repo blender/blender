@@ -55,8 +55,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_type_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryCurveSample *data = (NodeGeometryCurveSample *)MEM_callocN(
-      sizeof(NodeGeometryCurveSample), __func__);
+  NodeGeometryCurveSample *data = MEM_cnew<NodeGeometryCurveSample>(__func__);
   data->mode = GEO_NODE_CURVE_SAMPLE_LENGTH;
   node->storage = data;
 }

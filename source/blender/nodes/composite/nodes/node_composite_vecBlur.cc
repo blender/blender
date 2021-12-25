@@ -46,7 +46,7 @@ static void cmp_node_vec_blur_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_vecblur(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeBlurData *nbd = (NodeBlurData *)MEM_callocN(sizeof(NodeBlurData), "node blur data");
+  NodeBlurData *nbd = MEM_cnew<NodeBlurData>(__func__);
   node->storage = nbd;
   nbd->samples = 32;
   nbd->fac = 1.0f;

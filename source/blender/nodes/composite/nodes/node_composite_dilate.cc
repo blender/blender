@@ -42,8 +42,7 @@ static void cmp_node_dilate_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_dilateerode(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeDilateErode *data = (NodeDilateErode *)MEM_callocN(sizeof(NodeDilateErode),
-                                                         "NodeDilateErode");
+  NodeDilateErode *data = MEM_cnew<NodeDilateErode>(__func__);
   data->falloff = PROP_SMOOTH;
   node->storage = data;
 }

@@ -46,8 +46,7 @@ static void sh_node_tex_musgrave_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_init_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexMusgrave *tex = (NodeTexMusgrave *)MEM_callocN(sizeof(NodeTexMusgrave),
-                                                        "NodeTexMusgrave");
+  NodeTexMusgrave *tex = MEM_cnew<NodeTexMusgrave>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->musgrave_type = SHD_MUSGRAVE_FBM;

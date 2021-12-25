@@ -198,8 +198,7 @@ bNodeTreeType *ntreeType_Composite;
 
 void register_node_tree_type_cmp()
 {
-  bNodeTreeType *tt = ntreeType_Composite = (bNodeTreeType *)MEM_callocN(
-      sizeof(bNodeTreeType), "compositor node tree type");
+  bNodeTreeType *tt = ntreeType_Composite = MEM_cnew<bNodeTreeType>(__func__);
 
   tt->type = NTREE_COMPOSIT;
   strcpy(tt->idname, "CompositorNodeTree");

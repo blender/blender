@@ -35,7 +35,7 @@ static void sh_node_tex_magic_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_init_tex_magic(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexMagic *tex = (NodeTexMagic *)MEM_callocN(sizeof(NodeTexMagic), "NodeTexMagic");
+  NodeTexMagic *tex = MEM_cnew<NodeTexMagic>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->depth = 2;

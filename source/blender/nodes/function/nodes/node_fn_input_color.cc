@@ -43,7 +43,7 @@ static void fn_node_input_color_build_multi_function(
 
 static void fn_node_input_color_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeInputColor *data = (NodeInputColor *)MEM_callocN(sizeof(NodeInputColor), __func__);
+  NodeInputColor *data = MEM_cnew<NodeInputColor>(__func__);
   copy_v4_fl4(data->color, 0.5f, 0.5f, 0.5f, 1.0f);
   node->storage = data;
 }

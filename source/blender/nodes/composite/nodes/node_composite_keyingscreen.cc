@@ -46,8 +46,7 @@ static void cmp_node_keyingscreen_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_keyingscreen(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeKeyingScreenData *data = (NodeKeyingScreenData *)MEM_callocN(sizeof(NodeKeyingScreenData),
-                                                                   "node keyingscreen data");
+  NodeKeyingScreenData *data = MEM_cnew<NodeKeyingScreenData>(__func__);
   node->storage = data;
 }
 

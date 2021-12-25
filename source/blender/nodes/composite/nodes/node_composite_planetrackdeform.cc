@@ -41,8 +41,7 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodePlaneTrackDeformData *data = (NodePlaneTrackDeformData *)MEM_callocN(
-      sizeof(NodePlaneTrackDeformData), "node plane track deform data");
+  NodePlaneTrackDeformData *data = MEM_cnew<NodePlaneTrackDeformData>(__func__);
   data->motion_blur_samples = 16;
   data->motion_blur_shutter = 0.5f;
   node->storage = data;

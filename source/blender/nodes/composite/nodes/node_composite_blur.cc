@@ -44,7 +44,7 @@ static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_blur(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeBlurData *data = (NodeBlurData *)MEM_callocN(sizeof(NodeBlurData), "node blur data");
+  NodeBlurData *data = MEM_cnew<NodeBlurData>(__func__);
   data->filtertype = R_FILTER_GAUSS;
   node->storage = data;
 }

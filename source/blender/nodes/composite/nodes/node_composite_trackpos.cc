@@ -41,8 +41,7 @@ static void cmp_node_trackpos_declare(NodeDeclarationBuilder &b)
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTrackPosData *data = (NodeTrackPosData *)MEM_callocN(sizeof(NodeTrackPosData),
-                                                           "node track position data");
+  NodeTrackPosData *data = MEM_cnew<NodeTrackPosData>(__func__);
 
   node->storage = data;
 }

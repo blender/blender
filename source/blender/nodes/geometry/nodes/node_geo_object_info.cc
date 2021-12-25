@@ -102,8 +102,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryObjectInfo *data = (NodeGeometryObjectInfo *)MEM_callocN(
-      sizeof(NodeGeometryObjectInfo), __func__);
+  NodeGeometryObjectInfo *data = MEM_cnew<NodeGeometryObjectInfo>(__func__);
   data->transform_space = GEO_NODE_TRANSFORM_SPACE_ORIGINAL;
   node->storage = data;
 }

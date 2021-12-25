@@ -41,7 +41,7 @@ static void cmp_node_luma_matte_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_luma_matte(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeChroma *c = (NodeChroma *)MEM_callocN(sizeof(NodeChroma), "node chroma");
+  NodeChroma *c = MEM_cnew<NodeChroma>(__func__);
   node->storage = c;
   c->t1 = 1.0f;
   c->t2 = 0.0f;

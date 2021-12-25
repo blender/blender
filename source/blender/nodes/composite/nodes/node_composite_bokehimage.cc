@@ -39,7 +39,7 @@ static void cmp_node_bokehimage_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_bokehimage(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeBokehImage *data = (NodeBokehImage *)MEM_callocN(sizeof(NodeBokehImage), "NodeBokehImage");
+  NodeBokehImage *data = MEM_cnew<NodeBokehImage>(__func__);
   data->angle = 0.0f;
   data->flaps = 5;
   data->rounding = 0.0f;

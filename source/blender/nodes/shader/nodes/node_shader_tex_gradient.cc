@@ -33,8 +33,7 @@ static void sh_node_tex_gradient_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_init_tex_gradient(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexGradient *tex = (NodeTexGradient *)MEM_callocN(sizeof(NodeTexGradient),
-                                                        "NodeTexGradient");
+  NodeTexGradient *tex = MEM_cnew<NodeTexGradient>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->gradient_type = SHD_BLEND_LINEAR;

@@ -48,8 +48,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void geo_proximity_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeGeometryProximity *node_storage = (NodeGeometryProximity *)MEM_callocN(
-      sizeof(NodeGeometryProximity), __func__);
+  NodeGeometryProximity *node_storage = MEM_cnew<NodeGeometryProximity>(__func__);
   node_storage->target_element = GEO_NODE_PROX_TARGET_FACES;
   node->storage = node_storage;
 }
