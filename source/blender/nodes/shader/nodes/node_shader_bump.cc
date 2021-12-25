@@ -24,19 +24,27 @@
 #include "node_shader_util.h"
 
 /* **************** BUMP ******************** */
-/* clang-format off */
-static bNodeSocketTemplate sh_node_bump_in[] = {
-    {SOCK_FLOAT, N_("Strength"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Distance"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {SOCK_FLOAT, N_("Height"), 1.0f, 1.0f, 1.0f, 1.0f, -1000.0f, 1000.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {SOCK_FLOAT, N_("Height_dx"), 1.0f, 1.0f, 1.0f, 1.0f, -1000.0f, 1000.0f, PROP_NONE, SOCK_UNAVAIL},
-    {SOCK_FLOAT, N_("Height_dy"), 1.0f, 1.0f, 1.0f, 1.0f, -1000.0f, 1000.0f, PROP_NONE, SOCK_UNAVAIL},
-    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {-1, ""}
-};
-/* clang-format on */
 
-static bNodeSocketTemplate sh_node_bump_out[] = {{SOCK_VECTOR, "Normal"}, {-1, ""}};
+namespace blender::nodes::node_shader_bump_cc {
+
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>(N_("Strength"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Distance")).default_value(1.0f).min(0.0f).max(1000.0f);
+  b.add_input<decl::Float>(N_("Height"))
+      .default_value(1.0f)
+      .min(-1000.0f)
+      .max(1000.0f)
+      .hide_value();
+  b.add_input<decl::Float>(N_("Height_dx")).default_value(1.0f).unavailable();
+  b.add_input<decl::Float>(N_("Height_dy")).default_value(1.0f).unavailable();
+  b.add_input<decl::Vector>(N_("Normal")).min(-1.0f).max(1.0f).hide_value();
+  b.add_output<decl::Vector>(N_("Normal"));
+}
 
 static int gpu_shader_bump(GPUMaterial *mat,
                            bNode *node,
@@ -54,15 +62,19 @@ static int gpu_shader_bump(GPUMaterial *mat,
       mat, node, "node_bump", in, out, GPU_builtin(GPU_VIEW_POSITION), GPU_constant(&invert));
 }
 
+}  // namespace blender::nodes::node_shader_bump_cc
+
 /* node type definition */
 void register_node_type_sh_bump()
 {
+  namespace file_ns = blender::nodes::node_shader_bump_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BUMP, "Bump", NODE_CLASS_OP_VECTOR, 0);
-  node_type_socket_templates(&ntype, sh_node_bump_in, sh_node_bump_out);
+  ntype.declare = file_ns::node_declare;
   node_type_storage(&ntype, "", nullptr, nullptr);
-  node_type_gpu(&ntype, gpu_shader_bump);
+  node_type_gpu(&ntype, file_ns::gpu_shader_bump);
 
   nodeRegisterType(&ntype);
 }
