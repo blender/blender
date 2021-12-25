@@ -263,12 +263,12 @@ static bool eyedropper_cryptomatte_sample_fl(
   }
 
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *sa = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mx, my);
+  ScrArea *sa = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, (const int[2]){mx, my});
   if (!sa || !ELEM(sa->spacetype, SPACE_IMAGE, SPACE_NODE, SPACE_CLIP)) {
     return false;
   }
 
-  ARegion *region = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my);
+  ARegion *region = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, (const int[2]){mx, my});
   if (!region) {
     return false;
   }
@@ -337,7 +337,7 @@ void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3])
 
   if (area) {
     if (area->spacetype == SPACE_IMAGE) {
-      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval[0], mval[1]);
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval);
       if (region) {
         SpaceImage *sima = area->spacedata.first;
         int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};
@@ -348,7 +348,7 @@ void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3])
       }
     }
     else if (area->spacetype == SPACE_NODE) {
-      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval[0], mval[1]);
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval);
       if (region) {
         SpaceNode *snode = area->spacedata.first;
         int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};
@@ -359,7 +359,7 @@ void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3])
       }
     }
     else if (area->spacetype == SPACE_CLIP) {
-      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval[0], mval[1]);
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval);
       if (region) {
         SpaceClip *sc = area->spacedata.first;
         int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};

@@ -248,8 +248,10 @@ static int sample_detail(bContext *C, int mx, int my, int mode)
 {
   /* Find 3D view to pick from. */
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_VIEW3D, mx, my);
-  ARegion *region = (area) ? BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mx, my) : NULL;
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_VIEW3D, (const int[2]){mx, my});
+  ARegion *region = (area) ?
+                        BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, (const int[2]){mx, my}) :
+                        NULL;
   if (region == NULL) {
     return OPERATOR_CANCELLED;
   }

@@ -388,8 +388,7 @@ static int face_set_extract_modal(bContext *C, wmOperator *op, const wmEvent *ev
          * that the mouse clicked in a viewport region and its coordinates can be used to ray-cast
          * the PBVH and update the active Face Set ID. */
         bScreen *screen = CTX_wm_screen(C);
-        ARegion *region = BKE_screen_find_main_region_at_xy(
-            screen, SPACE_VIEW3D, event->xy[0], event->xy[1]);
+        ARegion *region = BKE_screen_find_main_region_at_xy(screen, SPACE_VIEW3D, event->xy);
 
         if (!region) {
           return OPERATOR_CANCELLED;

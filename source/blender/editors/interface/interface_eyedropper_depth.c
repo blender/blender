@@ -157,7 +157,7 @@ static void depthdropper_depth_sample_pt(
 {
   /* we could use some clever */
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mx, my);
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, (const int[2]){mx, my});
   Scene *scene = CTX_data_scene(C);
 
   ScrArea *area_prev = CTX_wm_area(C);
@@ -167,7 +167,7 @@ static void depthdropper_depth_sample_pt(
 
   if (area) {
     if (area->spacetype == SPACE_VIEW3D) {
-      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mx, my);
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, (const int[2]){mx, my});
       if (region) {
         struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
         View3D *v3d = area->spacedata.first;

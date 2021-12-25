@@ -1128,8 +1128,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
                  AREAMAP_FROM_SCREEN(screen), &screen_rect, event->xy[0], event->xy[1]) == NULL)) {
 
           /* What area are we now in? */
-          ScrArea *area = BKE_screen_find_area_xy(
-              screen, SPACE_TYPE_ANY, event->xy[0], event->xy[1]);
+          ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy);
 
           if (area == sad->sa1) {
             /* Same area, so possible split. */
@@ -1173,7 +1172,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
       /* gesture is large enough? */
       if (is_gesture) {
         /* second area, for join when (sa1 != sa2) */
-        sad->sa2 = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy[0], event->xy[1]);
+        sad->sa2 = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy);
         /* apply sends event */
         actionzone_apply(C, op, sad->az->type);
         actionzone_exit(op);
@@ -1241,12 +1240,16 @@ static ScrEdge *screen_area_edge_from_cursor(const bContext *C,
   int borderwidth = (4 * UI_DPI_FAC);
   ScrArea *sa1, *sa2;
   if (screen_geom_edge_is_horizontal(actedge)) {
-    sa1 = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, cursor[0], cursor[1] + borderwidth);
-    sa2 = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, cursor[0], cursor[1] - borderwidth);
+    sa1 = BKE_screen_find_area_xy(
+        screen, SPACE_TYPE_ANY, (const int[2]){cursor[0], cursor[1] + borderwidth});
+    sa2 = BKE_screen_find_area_xy(
+        screen, SPACE_TYPE_ANY, (const int[2]){cursor[0], cursor[1] - borderwidth});
   }
   else {
-    sa1 = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, cursor[0] + borderwidth, cursor[1]);
-    sa2 = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, cursor[0] - borderwidth, cursor[1]);
+    sa1 = BKE_screen_find_area_xy(
+        screen, SPACE_TYPE_ANY, (const int[2]){cursor[0] + borderwidth, cursor[1]});
+    sa2 = BKE_screen_find_area_xy(
+        screen, SPACE_TYPE_ANY, (const int[2]){cursor[0] - borderwidth, cursor[1]});
   }
   bool isGlobal = ((sa1 && ED_area_is_global(sa1)) || (sa2 && ED_area_is_global(sa2)));
   if (!isGlobal) {
@@ -1334,8 +1337,7 @@ static int area_swap_modal(bContext *C, wmOperator *op, const wmEvent *event)
   switch (event->type) {
     case MOUSEMOVE:
       /* second area, for join */
-      sad->sa2 = BKE_screen_find_area_xy(
-          CTX_wm_screen(C), SPACE_TYPE_ANY, event->xy[0], event->xy[1]);
+      sad->sa2 = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, event->xy);
       break;
     case LEFTMOUSE: /* release LMB */
       if (event->val == KM_RELEASE) {
@@ -2508,8 +2510,7 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
         ED_area_tag_redraw(sd->sarea);
       }
       /* area context not set */
-      sd->sarea = BKE_screen_find_area_xy(
-          CTX_wm_screen(C), SPACE_TYPE_ANY, event->xy[0], event->xy[1]);
+      sd->sarea = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, event->xy);
 
       if (sd->sarea) {
         ScrArea *area = sd->sarea;
@@ -3517,7 +3518,7 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
   switch (event->type) {
 
     case MOUSEMOVE: {
-      ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy[0], event->xy[1]);
+      ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy);
       jd->dir = area_getorientation(jd->sa1, jd->sa2);
 
       if (area == jd->sa1) {
