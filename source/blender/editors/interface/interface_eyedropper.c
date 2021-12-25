@@ -163,7 +163,7 @@ void datadropper_win_area_find(
   bScreen *screen = CTX_wm_screen(C);
 
   *r_win = CTX_wm_window(C);
-  *r_area = BKE_screen_find_area_xy(screen, -1, mval);
+  *r_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mval);
   if (*r_area == NULL) {
     wmWindowManager *wm = CTX_wm_manager(C);
     *r_win = WM_window_find_under_cursor(wm, NULL, *r_win, mval, r_mval);
