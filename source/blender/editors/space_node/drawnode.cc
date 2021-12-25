@@ -1654,12 +1654,6 @@ void ED_node_init_butfuncs()
     node_template_properties_update(ntype);
   }
   NODE_TYPES_END;
-
-  /* tree type icons */
-  ntreeType_Composite->ui_icon = ICON_NODE_COMPOSITING;
-  ntreeType_Shader->ui_icon = ICON_NODE_MATERIAL;
-  ntreeType_Texture->ui_icon = ICON_NODE_TEXTURE;
-  ntreeType_Geometry->ui_icon = ICON_NODETREE;
 }
 
 void ED_init_custom_node_type(bNodeType *UNUSED(ntype))

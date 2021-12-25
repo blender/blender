@@ -53,6 +53,8 @@
 
 #include "RE_texture.h"
 
+#include "UI_resources.h"
+
 #include "NOD_common.h"
 
 #include "node_common.h"
@@ -183,7 +185,7 @@ void register_node_tree_type_sh(void)
   tt->type = NTREE_SHADER;
   strcpy(tt->idname, "ShaderNodeTree");
   strcpy(tt->ui_name, N_("Shader Editor"));
-  tt->ui_icon = 0; /* Defined in `drawnode.c`. */
+  tt->ui_icon = ICON_NODE_MATERIAL;
   strcpy(tt->ui_description, N_("Shader nodes"));
 
   tt->foreach_nodeclass = foreach_nodeclass;

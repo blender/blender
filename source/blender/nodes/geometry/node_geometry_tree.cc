@@ -32,6 +32,8 @@
 
 #include "RNA_access.h"
 
+#include "UI_resources.h"
+
 #include "node_common.h"
 
 bNodeTreeType *ntreeType_Geometry;
@@ -121,7 +123,7 @@ void register_node_tree_type_geo()
   tt->type = NTREE_GEOMETRY;
   strcpy(tt->idname, "GeometryNodeTree");
   strcpy(tt->ui_name, N_("Geometry Node Editor"));
-  tt->ui_icon = 0; /* Defined in `drawnode.c`. */
+  tt->ui_icon = ICON_NODETREE;
   strcpy(tt->ui_description, N_("Geometry nodes"));
   tt->rna_ext.srna = &RNA_GeometryNodeTree;
   tt->update = geometry_node_tree_update;

@@ -36,6 +36,8 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_tracking.h"
 
+#include "UI_resources.h"
+
 #include "node_common.h"
 #include "node_util.h"
 
@@ -202,7 +204,7 @@ void register_node_tree_type_cmp()
   tt->type = NTREE_COMPOSIT;
   strcpy(tt->idname, "CompositorNodeTree");
   strcpy(tt->ui_name, N_("Compositor"));
-  tt->ui_icon = 0; /* Defined in `drawnode.c`. */
+  tt->ui_icon = ICON_NODE_COMPOSITING;
   strcpy(tt->ui_description, N_("Compositing nodes"));
 
   tt->free_cache = free_cache;
