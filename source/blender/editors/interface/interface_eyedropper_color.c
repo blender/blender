@@ -263,32 +263,32 @@ static bool eyedropper_cryptomatte_sample_fl(
   }
 
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *sa = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, (const int[2]){mx, my});
-  if (!sa || !ELEM(sa->spacetype, SPACE_IMAGE, SPACE_NODE, SPACE_CLIP)) {
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, (const int[2]){mx, my});
+  if (!area || !ELEM(area->spacetype, SPACE_IMAGE, SPACE_NODE, SPACE_CLIP)) {
     return false;
   }
 
-  ARegion *region = BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, (const int[2]){mx, my});
+  ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, (const int[2]){mx, my});
   if (!region) {
     return false;
   }
 
   int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
   float fpos[2] = {-1.0f, -1.0};
-  switch (sa->spacetype) {
+  switch (area->spacetype) {
     case SPACE_IMAGE: {
-      SpaceImage *sima = sa->spacedata.first;
+      SpaceImage *sima = area->spacedata.first;
       ED_space_image_get_position(sima, region, mval, fpos);
       break;
     }
     case SPACE_NODE: {
       Main *bmain = CTX_data_main(C);
-      SpaceNode *snode = sa->spacedata.first;
+      SpaceNode *snode = area->spacedata.first;
       ED_space_node_get_position(bmain, snode, region, mval, fpos);
       break;
     }
     case SPACE_CLIP: {
-      SpaceClip *sc = sa->spacedata.first;
+      SpaceClip *sc = area->spacedata.first;
       ED_space_clip_get_position(sc, region, mval, fpos);
       break;
     }
