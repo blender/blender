@@ -3793,7 +3793,7 @@ BoundBox *BKE_boundbox_alloc_unit()
 {
   const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
 
-  BoundBox *bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), "OB-BoundBox");
+  BoundBox *bb = MEM_cnew<BoundBox>("OB-BoundBox");
   BKE_boundbox_init_from_minmax(bb, min, max);
 
   return bb;
@@ -3903,7 +3903,7 @@ void BKE_object_boundbox_calc_from_mesh(Object *ob, const Mesh *me_eval)
   }
 
   if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), "DM-BoundBox");
+    ob->runtime.bb = MEM_cnew<BoundBox>("DM-BoundBox");
   }
 
   BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
@@ -3932,7 +3932,7 @@ bool BKE_object_boundbox_calc_from_evaluated_geometry(Object *ob)
   }
 
   if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), __func__);
+    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
   }
 
   BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
@@ -4108,7 +4108,7 @@ void BKE_object_empty_draw_type_set(Object *ob, const int value)
 
   if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
     if (!ob->iuser) {
-      ob->iuser = (ImageUser *)MEM_callocN(sizeof(ImageUser), "image user");
+      ob->iuser = MEM_cnew<ImageUser>("image user");
       ob->iuser->flag |= IMA_ANIM_ALWAYS;
       ob->iuser->frames = 100;
       ob->iuser->sfra = 1;
@@ -4447,7 +4447,7 @@ void BKE_object_handle_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
 void BKE_object_sculpt_data_create(Object *ob)
 {
   BLI_assert((ob->sculpt == nullptr) && (ob->mode & OB_MODE_ALL_SCULPT));
-  ob->sculpt = (SculptSession *)MEM_callocN(sizeof(SculptSession), __func__);
+  ob->sculpt = MEM_cnew<SculptSession>(__func__);
   ob->sculpt->mode_type = (eObjectMode)ob->mode;
 }
 
@@ -4621,7 +4621,7 @@ int BKE_object_insert_ptcache(Object *ob)
     }
   }
 
-  link = (LinkData *)MEM_callocN(sizeof(LinkData), "PCLink");
+  link = MEM_cnew<LinkData>("PCLink");
   link->data = POINTER_FROM_INT(i);
   BLI_addtail(&ob->pc_ids, link);
 

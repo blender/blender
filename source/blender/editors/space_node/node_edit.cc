@@ -344,7 +344,7 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
                               "Compositing",
                               WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS,
                               WM_JOB_TYPE_COMPOSITE);
-  CompoJob *cj = (CompoJob *)MEM_callocN(sizeof(CompoJob), "compo job");
+  CompoJob *cj = MEM_cnew<CompoJob>("compo job");
 
   /* customdata for preview thread */
   cj->bmain = bmain;
@@ -908,7 +908,7 @@ static void node_resize_init(bContext *C,
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  NodeSizeWidget *nsw = (NodeSizeWidget *)MEM_callocN(sizeof(NodeSizeWidget), __func__);
+  NodeSizeWidget *nsw = MEM_cnew<NodeSizeWidget>(__func__);
 
   op->customdata = nsw;
   nsw->mxstart = snode->runtime->cursor[0] * UI_DPI_FAC;
@@ -1308,7 +1308,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
      */
     if (link->tonode && (link->tonode->flag & NODE_SELECT) &&
         (keep_inputs || (link->fromnode && (link->fromnode->flag & NODE_SELECT)))) {
-      bNodeLink *newlink = (bNodeLink *)MEM_callocN(sizeof(bNodeLink), "bNodeLink");
+      bNodeLink *newlink = MEM_cnew<bNodeLink>("bNodeLink");
       newlink->flag = link->flag;
       newlink->tonode = node_map.lookup(link->tonode);
       newlink->tosock = socket_map.lookup(link->tosock);
@@ -2138,7 +2138,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
     BLI_assert(link->tonode);
     BLI_assert(link->fromnode);
     if (link->tonode->flag & NODE_SELECT && link->fromnode->flag & NODE_SELECT) {
-      bNodeLink *newlink = (bNodeLink *)MEM_callocN(sizeof(bNodeLink), __func__);
+      bNodeLink *newlink = MEM_cnew<bNodeLink>(__func__);
       newlink->flag = link->flag;
       newlink->tonode = node_map.lookup(link->tonode);
       newlink->tosock = socket_map.lookup(link->tosock);

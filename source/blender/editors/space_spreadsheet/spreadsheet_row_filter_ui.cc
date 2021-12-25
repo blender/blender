@@ -331,7 +331,7 @@ static void set_filter_expand_flag(const bContext *UNUSED(C), Panel *panel, shor
 void register_row_filter_panels(ARegionType &region_type)
 {
   {
-    PanelType *panel_type = (PanelType *)MEM_callocN(sizeof(PanelType), __func__);
+    PanelType *panel_type = MEM_cnew<PanelType>(__func__);
     strcpy(panel_type->idname, "SPREADSHEET_PT_row_filters");
     strcpy(panel_type->label, N_("Filters"));
     strcpy(panel_type->category, "Filters");
@@ -342,7 +342,7 @@ void register_row_filter_panels(ARegionType &region_type)
   }
 
   {
-    PanelType *panel_type = (PanelType *)MEM_callocN(sizeof(PanelType), __func__);
+    PanelType *panel_type = MEM_cnew<PanelType>(__func__);
     strcpy(panel_type->idname, "SPREADSHEET_PT_filter");
     strcpy(panel_type->label, "");
     strcpy(panel_type->category, "Filters");

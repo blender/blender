@@ -145,7 +145,7 @@ void BKE_gpencil_stroke_boundingbox_calc(bGPDstroke *gps)
 static void boundbox_gpencil(Object *ob)
 {
   if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), "GPencil boundbox");
+    ob->runtime.bb = MEM_cnew<BoundBox>("GPencil boundbox");
   }
 
   BoundBox *bb = ob->runtime.bb;
@@ -182,7 +182,7 @@ BoundBox *BKE_gpencil_boundbox_get(Object *ob)
    * to keep both values synchronized. */
   if (!ELEM(ob_orig, nullptr, ob)) {
     if (ob_orig->runtime.bb == nullptr) {
-      ob_orig->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), "GPencil boundbox");
+      ob_orig->runtime.bb = MEM_cnew<BoundBox>("GPencil boundbox");
     }
     for (int i = 0; i < 8; i++) {
       copy_v3_v3(ob_orig->runtime.bb->vec[i], ob->runtime.bb->vec[i]);
@@ -364,7 +364,7 @@ static void stroke_defvert_create_nr_list(MDeformVert *dv_list,
         }
       }
       if (!found) {
-        ld = (LinkData *)MEM_callocN(sizeof(LinkData), "def_nr_item");
+        ld = MEM_cnew<LinkData>("def_nr_item");
         ld->data = POINTER_FROM_INT(dw->def_nr);
         BLI_addtail(result, ld);
         tw++;
@@ -3482,7 +3482,7 @@ struct tSampleEdge {
 /* Helper: creates a tSamplePoint from a bGPDspoint and (optionally) a MDeformVert. */
 static tSamplePoint *new_sample_point_from_gp_point(const bGPDspoint *pt, const MDeformVert *dvert)
 {
-  tSamplePoint *new_pt = (tSamplePoint *)MEM_callocN(sizeof(tSamplePoint), __func__);
+  tSamplePoint *new_pt = MEM_cnew<tSamplePoint>(__func__);
   copy_v3_v3(&new_pt->x, &pt->x);
   new_pt->pressure = pt->pressure;
   new_pt->strength = pt->strength;
@@ -3505,7 +3505,7 @@ static tSamplePoint *new_sample_point_from_gp_point(const bGPDspoint *pt, const 
  * the edge. */
 static tSampleEdge *new_sample_edge_from_sample_points(tSamplePoint *from, tSamplePoint *to)
 {
-  tSampleEdge *new_edge = (tSampleEdge *)MEM_callocN(sizeof(tSampleEdge), __func__);
+  tSampleEdge *new_edge = MEM_cnew<tSampleEdge>(__func__);
   new_edge->from = from;
   new_edge->to = to;
   new_edge->length_sq = len_squared_v3v3(&from->x, &to->x);
@@ -3561,7 +3561,7 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
     tSamplePoint *sp_next = se->to;
 
     /* Subdivide the edge. */
-    tSamplePoint *new_sp = (tSamplePoint *)MEM_callocN(sizeof(tSamplePoint), __func__);
+    tSamplePoint *new_sp = MEM_cnew<tSamplePoint>(__func__);
     interp_v3_v3v3(&new_sp->x, &sp->x, &sp_next->x, 0.5f);
     new_sp->pressure = interpf(sp->pressure, sp_next->pressure, 0.5f);
     new_sp->strength = interpf(sp->strength, sp_next->strength, 0.5f);
@@ -3687,7 +3687,7 @@ struct tPerimeterPoint {
 
 static tPerimeterPoint *new_perimeter_point(const float pt[3])
 {
-  tPerimeterPoint *new_pt = (tPerimeterPoint *)MEM_callocN(sizeof(tPerimeterPoint), __func__);
+  tPerimeterPoint *new_pt = MEM_cnew<tPerimeterPoint>(__func__);
   copy_v3_v3(&new_pt->x, pt);
   return new_pt;
 }
@@ -3856,8 +3856,8 @@ static ListBase *gpencil_stroke_perimeter_ex(const bGPdata *gpd,
   float defaultpixsize = 1000.0f / gpd->pixfactor;
   float stroke_radius = ((gps->thickness + gpl->line_change) / defaultpixsize) / 2.0f;
 
-  ListBase *perimeter_right_side = (ListBase *)MEM_callocN(sizeof(ListBase), __func__);
-  ListBase *perimeter_left_side = (ListBase *)MEM_callocN(sizeof(ListBase), __func__);
+  ListBase *perimeter_right_side = MEM_cnew<ListBase>(__func__);
+  ListBase *perimeter_left_side = MEM_cnew<ListBase>(__func__);
   int num_perimeter_points = 0;
 
   bGPDspoint *first = &gps->points[0];

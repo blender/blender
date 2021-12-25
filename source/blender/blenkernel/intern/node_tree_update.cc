@@ -1219,7 +1219,7 @@ class NodeTreeMainUpdater {
     for (const auto &item : links) {
       bNodeSocket *from_socket = item.first;
       bNodeSocket *to_socket = item.second;
-      bNodeLink *link = (bNodeLink *)MEM_callocN(sizeof(bNodeLink), __func__);
+      bNodeLink *link = MEM_cnew<bNodeLink>(__func__);
       link->fromnode = &node;
       link->fromsock = from_socket;
       link->tonode = &node;

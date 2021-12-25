@@ -683,7 +683,7 @@ static bool imb_exr_multilayer_parse_channels_from_file(ExrHandle *data);
 
 void *IMB_exr_get_handle(void)
 {
-  ExrHandle *data = (ExrHandle *)MEM_callocN(sizeof(ExrHandle), "exr handle");
+  ExrHandle *data = MEM_cnew<ExrHandle>("exr handle");
   data->multiView = new StringVector();
 
   BLI_addtail(&exrhandles, data);
@@ -789,7 +789,7 @@ void IMB_exr_add_channel(void *handle,
   ExrHandle *data = (ExrHandle *)handle;
   ExrChannel *echan;
 
-  echan = (ExrChannel *)MEM_callocN(sizeof(ExrChannel), "exr channel");
+  echan = MEM_cnew<ExrChannel>("exr channel");
   echan->m = new MultiViewChannelName();
 
   if (layname && layname[0] != '\0') {
@@ -1496,7 +1496,7 @@ static ExrLayer *imb_exr_get_layer(ListBase *lb, char *layname)
   ExrLayer *lay = (ExrLayer *)BLI_findstring(lb, layname, offsetof(ExrLayer, name));
 
   if (lay == nullptr) {
-    lay = (ExrLayer *)MEM_callocN(sizeof(ExrLayer), "exr layer");
+    lay = MEM_cnew<ExrLayer>("exr layer");
     BLI_addtail(lb, lay);
     BLI_strncpy(lay->name, layname, EXR_LAY_MAXNAME);
   }
@@ -1509,7 +1509,7 @@ static ExrPass *imb_exr_get_pass(ListBase *lb, char *passname)
   ExrPass *pass = (ExrPass *)BLI_findstring(lb, passname, offsetof(ExrPass, name));
 
   if (pass == nullptr) {
-    pass = (ExrPass *)MEM_callocN(sizeof(ExrPass), "exr pass");
+    pass = MEM_cnew<ExrPass>("exr pass");
 
     if (STREQ(passname, "Combined")) {
       BLI_addhead(lb, pass);

@@ -130,7 +130,7 @@ static bNodeSocketLink *add_reroute_insert_socket_link(ListBase *lb,
 {
   bNodeSocketLink *socklink, *prev;
 
-  socklink = (bNodeSocketLink *)MEM_callocN(sizeof(bNodeSocketLink), "socket link");
+  socklink = MEM_cnew<bNodeSocketLink>("socket link");
   socklink->sock = sock;
   socklink->link = link;
   copy_v2_v2(socklink->point, point);

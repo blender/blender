@@ -102,7 +102,7 @@ static void clear_picking_highlight(ListBase *links)
 
 static bNodeLink *create_drag_link(bNode &node, bNodeSocket &sock)
 {
-  bNodeLink *oplink = (bNodeLink *)MEM_callocN(sizeof(bNodeLink), __func__);
+  bNodeLink *oplink = MEM_cnew<bNodeLink>(__func__);
   if (sock.in_out == SOCK_OUT) {
     oplink->fromnode = &node;
     oplink->fromsock = &sock;
@@ -1123,7 +1123,7 @@ static std::unique_ptr<bNodeLinkDrag> node_link_init(SpaceNode &snode,
       /* detach current links and store them in the operator data */
       LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &snode.edittree->links) {
         if (link->fromsock == sock) {
-          bNodeLink *oplink = (bNodeLink *)MEM_callocN(sizeof(bNodeLink), "drag link op link");
+          bNodeLink *oplink = MEM_cnew<bNodeLink>("drag link op link");
           *oplink = *link;
           oplink->next = oplink->prev = nullptr;
           oplink->flag |= NODE_LINK_VALID;
@@ -1166,7 +1166,7 @@ static std::unique_ptr<bNodeLinkDrag> node_link_init(SpaceNode &snode,
       }
 
       if (link_to_pick != nullptr && !nldrag->from_multi_input_socket) {
-        bNodeLink *oplink = (bNodeLink *)MEM_callocN(sizeof(bNodeLink), "drag link op link");
+        bNodeLink *oplink = MEM_cnew<bNodeLink>("drag link op link");
         *oplink = *link_to_pick;
         oplink->next = oplink->prev = nullptr;
         oplink->flag |= NODE_LINK_VALID;
@@ -2465,8 +2465,7 @@ void ED_node_link_insert(Main *bmain, ScrArea *area)
 
       /* set up insert offset data, it needs stuff from here */
       if ((snode->flag & SNODE_SKIP_INSOFFSET) == 0) {
-        NodeInsertOfsData *iofsd = (NodeInsertOfsData *)MEM_callocN(sizeof(NodeInsertOfsData),
-                                                                    __func__);
+        NodeInsertOfsData *iofsd = MEM_cnew<NodeInsertOfsData>(__func__);
 
         iofsd->insert = select;
         iofsd->prev = link->fromnode;

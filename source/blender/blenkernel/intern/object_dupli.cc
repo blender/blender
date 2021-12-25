@@ -190,7 +190,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
 
   /* Add a #DupliObject instance to the result container. */
   if (ctx->duplilist) {
-    dob = (DupliObject *)MEM_callocN(sizeof(DupliObject), "dupli object");
+    dob = MEM_cnew<DupliObject>("dupli object");
     BLI_addtail(ctx->duplilist, dob);
   }
   else {
@@ -1690,7 +1690,7 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
 
 ListBase *object_duplilist(Depsgraph *depsgraph, Scene *sce, Object *ob)
 {
-  ListBase *duplilist = (ListBase *)MEM_callocN(sizeof(ListBase), "duplilist");
+  ListBase *duplilist = MEM_cnew<ListBase>("duplilist");
   DupliContext ctx;
   Vector<Object *> instance_stack;
   instance_stack.append(ob);

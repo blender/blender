@@ -127,7 +127,7 @@ bool bvhcache_has_tree(const BVHCache *bvh_cache, const BVHTree *tree)
 
 BVHCache *bvhcache_init()
 {
-  BVHCache *cache = (BVHCache *)MEM_callocN(sizeof(BVHCache), __func__);
+  BVHCache *cache = MEM_cnew<BVHCache>(__func__);
   BLI_mutex_init(&cache->mutex);
   return cache;
 }

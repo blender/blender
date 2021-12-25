@@ -699,7 +699,7 @@ void uiTemplateNodeLink(
   uiBut *but;
   float socket_col[4];
 
-  arg = (NodeLinkArg *)MEM_callocN(sizeof(NodeLinkArg), "NodeLinkArg");
+  arg = MEM_new<NodeLinkArg>("NodeLinkArg");
   arg->ntree = ntree;
   arg->node = node;
   arg->sock = input;

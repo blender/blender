@@ -1529,7 +1529,7 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
   BLI_uniquename_cb(
       unique_identifier_check, lb, "socket", '_', auto_identifier, sizeof(auto_identifier));
 
-  bNodeSocket *sock = (bNodeSocket *)MEM_callocN(sizeof(bNodeSocket), "sock");
+  bNodeSocket *sock = MEM_cnew<bNodeSocket>("sock");
   sock->in_out = in_out;
 
   BLI_strncpy(sock->identifier, auto_identifier, NODE_MAXSTR);
@@ -2160,7 +2160,7 @@ void nodeUniqueName(bNodeTree *ntree, bNode *node)
 
 bNode *nodeAddNode(const struct bContext *C, bNodeTree *ntree, const char *idname)
 {
-  bNode *node = (bNode *)MEM_callocN(sizeof(bNode), "new node");
+  bNode *node = MEM_cnew<bNode>("new node");
   BLI_addtail(&ntree->nodes, node);
 
   BLI_strncpy(node->idname, idname, sizeof(node->idname));
@@ -2329,7 +2329,7 @@ bNodeLink *nodeAddLink(
   BLI_assert(tonode);
 
   if (fromsock->in_out == SOCK_OUT && tosock->in_out == SOCK_IN) {
-    link = (bNodeLink *)MEM_callocN(sizeof(bNodeLink), "link");
+    link = MEM_cnew<bNodeLink>("link");
     if (ntree) {
       BLI_addtail(&ntree->links, link);
     }
@@ -2340,7 +2340,7 @@ bNodeLink *nodeAddLink(
   }
   else if (fromsock->in_out == SOCK_IN && tosock->in_out == SOCK_OUT) {
     /* OK but flip */
-    link = (bNodeLink *)MEM_callocN(sizeof(bNodeLink), "link");
+    link = MEM_cnew<bNodeLink>("link");
     if (ntree) {
       BLI_addtail(&ntree->links, link);
     }
@@ -2752,7 +2752,7 @@ bNodePreview *BKE_node_preview_verify(bNodeInstanceHash *previews,
   bNodePreview *preview = (bNodePreview *)BKE_node_instance_hash_lookup(previews, key);
   if (!preview) {
     if (create) {
-      preview = (bNodePreview *)MEM_callocN(sizeof(bNodePreview), "node preview");
+      preview = MEM_cnew<bNodePreview>("node preview");
       BKE_node_instance_hash_insert(previews, key, preview);
     }
     else {
@@ -3374,7 +3374,7 @@ static bNodeSocket *make_socket_interface(bNodeTree *ntree,
     return nullptr;
   }
 
-  bNodeSocket *sock = (bNodeSocket *)MEM_callocN(sizeof(bNodeSocket), "socket template");
+  bNodeSocket *sock = MEM_cnew<bNodeSocket>("socket template");
   BLI_strncpy(sock->idname, stype->idname, sizeof(sock->idname));
   node_socket_set_typeinfo(ntree, sock, stype);
   sock->in_out = in_out;

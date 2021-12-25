@@ -177,7 +177,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
   ntreeGetDependencyList(ntree, &nodelist, &totnodes);
 
   /* XXX could let callbacks do this for specialized data */
-  exec = (bNodeTreeExec *)MEM_callocN(sizeof(bNodeTreeExec), "node tree execution data");
+  exec = MEM_cnew<bNodeTreeExec>("node tree execution data");
   /* backpointer to node tree */
   exec->nodetree = ntree;
 
@@ -292,7 +292,7 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
   }
 
   if (!nts) {
-    nts = (bNodeThreadStack *)MEM_callocN(sizeof(bNodeThreadStack), "bNodeThreadStack");
+    nts = MEM_cnew<bNodeThreadStack>("bNodeThreadStack");
     nts->stack = (bNodeStack *)MEM_dupallocN(exec->stack);
     nts->used = true;
     BLI_addtail(lb, nts);
