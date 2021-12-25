@@ -1364,14 +1364,15 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, struct GPUMaterial
     if (tex->ima) {
       /* Image */
       GPUTexture *gputex;
+      ImageUser *iuser = tex->iuser_available ? &tex->iuser : NULL;
       if (tex->tiled_mapping_name[0]) {
-        gputex = BKE_image_get_gpu_tiles(tex->ima, tex->iuser, NULL);
+        gputex = BKE_image_get_gpu_tiles(tex->ima, iuser, NULL);
         drw_shgroup_material_texture(grp, gputex, tex->sampler_name, tex->sampler_state);
-        gputex = BKE_image_get_gpu_tilemap(tex->ima, tex->iuser, NULL);
+        gputex = BKE_image_get_gpu_tilemap(tex->ima, iuser, NULL);
         drw_shgroup_material_texture(grp, gputex, tex->tiled_mapping_name, tex->sampler_state);
       }
       else {
-        gputex = BKE_image_get_gpu_texture(tex->ima, tex->iuser, NULL);
+        gputex = BKE_image_get_gpu_texture(tex->ima, iuser, NULL);
         drw_shgroup_material_texture(grp, gputex, tex->sampler_name, tex->sampler_state);
       }
     }

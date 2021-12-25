@@ -439,7 +439,10 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
   if (tex == NULL) {
     tex = MEM_callocN(sizeof(*tex), __func__);
     tex->ima = ima;
-    tex->iuser = iuser;
+    if (iuser != NULL) {
+      tex->iuser = *iuser;
+      tex->iuser_available = true;
+    }
     tex->colorband = colorband;
     tex->sampler_state = sampler_state;
     BLI_snprintf(tex->sampler_name, sizeof(tex->sampler_name), "samp%d", num_textures);

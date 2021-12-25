@@ -24,6 +24,7 @@
 #pragma once
 
 #include "DNA_customdata_types.h" /* for CustomDataType */
+#include "DNA_image_types.h"
 #include "DNA_listBase.h"
 
 #include "BLI_sys_types.h" /* for bool */
@@ -256,7 +257,8 @@ typedef struct GPUMaterialAttribute {
 typedef struct GPUMaterialTexture {
   struct GPUMaterialTexture *next, *prev;
   struct Image *ima;
-  struct ImageUser *iuser;
+  struct ImageUser iuser;
+  bool iuser_available;
   struct GPUTexture **colorband;
   char sampler_name[32];       /* Name of sampler in GLSL. */
   char tiled_mapping_name[32]; /* Name of tile mapping sampler in GLSL. */
