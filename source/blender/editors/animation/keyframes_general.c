@@ -400,6 +400,18 @@ void blend_to_neighbor_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const
 
 /* ---------------- */
 
+void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
+{
+  BezTriple left_bezt = fcurve_segment_start_get(fcu, segment->start_index);
+  BezTriple right_bezt = fcurve_segment_end_get(fcu, segment->start_index + segment->length);
+
+  for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
+    fcu->bezt[i].vec[1][1] = interpf(right_bezt.vec[1][1], left_bezt.vec[1][1], factor);
+  }
+}
+
+/* ---------------- */
+
 /* Check if the keyframe interpolation type is supported */
 static bool prepare_for_decimate(FCurve *fcu, int i)
 {

@@ -392,6 +392,9 @@ void clean_fcurve(struct bAnimContext *ac,
 void blend_to_neighbor_fcurve_segment(struct FCurve *fcu,
                                       struct FCurveSegment *segment,
                                       const float factor);
+void breakdown_fcurve_segment(struct FCurve *fcu,
+                              struct FCurveSegment *segment,
+                              const float factor);
 bool decimate_fcurve(struct bAnimListElem *ale, float remove_ratio, float error_sq_max);
 /**
  * Use a weighted moving-means method to reduce intensity of fluctuations.
