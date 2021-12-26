@@ -661,8 +661,43 @@ static float ui_but_get_float_precision(uiBut *but)
   return but->a2;
 }
 
+static float ui_but_get_float_step_size(uiBut *but)
+{
+  if (but->type == UI_BTYPE_NUM) {
+    return ((uiButNumber *)but)->step_size;
+  }
+
+  return but->a1;
+}
+
+static bool ui_but_hide_fraction(uiBut *but, double value)
+{
+  /* Hide the fraction if both the value and the step are exact integers. */
+  if (floor(value) == value) {
+    const float step = ui_but_get_float_step_size(but) * UI_PRECISION_FLOAT_SCALE;
+
+    if (floorf(step) == step) {
+      /* Don't hide if it has any unit except frame count. */
+      switch (UI_but_unit_type_get(but)) {
+        case PROP_UNIT_NONE:
+        case PROP_UNIT_TIME:
+          return true;
+
+        default:
+          return false;
+      }
+    }
+  }
+
+  return false;
+}
+
 static int ui_but_calc_float_precision(uiBut *but, double value)
 {
+  if (ui_but_hide_fraction(but, value)) {
+    return 0;
+  }
+
   int prec = (int)ui_but_get_float_precision(but);
 
   /* first check for various special cases:
@@ -2813,8 +2848,14 @@ void ui_but_string_get_ex(uiBut *but,
     }
 
     if (ui_but_is_float(but)) {
-      int prec = (float_precision == -1) ? ui_but_calc_float_precision(but, value) :
-                                           float_precision;
+      int prec = float_precision;
+
+      if (float_precision == -1) {
+        prec = ui_but_calc_float_precision(but, value);
+      }
+      else if (!use_exp_float && ui_but_hide_fraction(but, value)) {
+        prec = 0;
+      }
 
       if (ui_but_is_unit(but)) {
         ui_get_but_string_unit(but, str, maxlen, value, false, prec);

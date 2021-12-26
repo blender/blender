@@ -2609,7 +2609,9 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "   :type step: int\n"
 
 #define BPY_PROPDEF_FLOAT_PREC_DOC \
-  "   :arg precision: Maximum number of decimal digits to display, in [0, 6].\n" \
+  "   :arg precision: Maximum number of decimal digits to display, in [0, 6]. Fraction is " \
+  "automatically hidden for exact integer values of fields with unit 'NONE' or 'TIME' (frame " \
+  "count) and step divisible by 100.\n" \
   "   :type precision: int\n"
 
 #define BPY_PROPDEF_UPDATE_DOC \
