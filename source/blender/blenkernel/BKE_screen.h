@@ -467,7 +467,7 @@ struct ARegion *BKE_area_find_region_type(const struct ScrArea *area, int type);
 struct ARegion *BKE_area_find_region_active_win(struct ScrArea *area);
 struct ARegion *BKE_area_find_region_xy(struct ScrArea *area,
                                         const int regiontype,
-                                        const int xy[2]) ATTR_NONNULL(1, 3);
+                                        const int xy[2]) ATTR_NONNULL(3);
 /**
  * \note This is only for screen level regions (typically menus/popups).
  */
