@@ -642,7 +642,7 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_
       float(*tpoints2d)[2] = MEM_mallocN(sizeof(*tpoints2d) * vert_len, __func__);
       /* Triangulate in 2D. */
       for (int i = 0; i < vert_len; i++) {
-        copy_v2_v2(tpoints2d[i], &tpoints[i].x);
+        copy_v2_v2(tpoints2d[i], tpoints[i].m_xy);
       }
       /* Compute directly inside the IBO data buffer. */
       /* OPTI: This is a bottleneck if the stroke is very long. */

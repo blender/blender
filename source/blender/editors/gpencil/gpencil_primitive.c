@@ -541,7 +541,7 @@ static void gpencil_primitive_rectangle(tGPDprimitive *tgpi, tGPspoint *points2D
   if (tgpi->tot_edges == 1) {
     for (int j = 0; j < 4; j++) {
       tGPspoint *p2d = &points2D[j];
-      copy_v2_v2(&p2d->x, coords[j]);
+      copy_v2_v2(p2d->m_xy, coords[j]);
     }
   }
   else {
@@ -551,7 +551,7 @@ static void gpencil_primitive_rectangle(tGPDprimitive *tgpi, tGPspoint *points2D
       float a = 0.0f;
       for (int k = 0; k < tgpi->tot_edges; k++) {
         tGPspoint *p2d = &points2D[i];
-        interp_v2_v2v2(&p2d->x, coords[j], coords[j + 1], a);
+        interp_v2_v2v2(p2d->m_xy, coords[j], coords[j + 1], a);
         a += step;
         i++;
       }
@@ -582,7 +582,7 @@ static void gpencil_primitive_line(tGPDprimitive *tgpi, tGPspoint *points2D, boo
 
   for (int i = tgpi->tot_stored_edges; i < totpoints; i++) {
     tGPspoint *p2d = &points2D[i];
-    interp_v2_v2v2(&p2d->x, tgpi->start, tgpi->end, a);
+    interp_v2_v2v2(p2d->m_xy, tgpi->start, tgpi->end, a);
     a += step;
   }
 
@@ -628,8 +628,8 @@ static void gpencil_primitive_arc(tGPDprimitive *tgpi, tGPspoint *points2D)
 
   for (int i = tgpi->tot_stored_edges; i < totpoints; i++) {
     tGPspoint *p2d = &points2D[i];
-    p2d->x = corner[0] + (end[0] - corner[0]) * sinf(a) + (start[0] - corner[0]) * cosf(a);
-    p2d->y = corner[1] + (end[1] - corner[1]) * sinf(a) + (start[1] - corner[1]) * cosf(a);
+    p2d->m_xy[0] = corner[0] + (end[0] - corner[0]) * sinf(a) + (start[0] - corner[0]) * cosf(a);
+    p2d->m_xy[1] = corner[1] + (end[1] - corner[1]) * sinf(a) + (start[1] - corner[1]) * cosf(a);
     a += step;
   }
   float color[4];
@@ -664,7 +664,7 @@ static void gpencil_primitive_bezier(tGPDprimitive *tgpi, tGPspoint *points2D)
 
   for (int i = tgpi->tot_stored_edges; i < totpoints; i++) {
     tGPspoint *p2d = &points2D[i];
-    interp_v2_v2v2v2v2_cubic(&p2d->x, bcp1, bcp2, bcp3, bcp4, a);
+    interp_v2_v2v2v2v2_cubic(p2d->m_xy, bcp1, bcp2, bcp3, bcp4, a);
     a += step;
   }
   float color[4];
@@ -698,8 +698,8 @@ static void gpencil_primitive_circle(tGPDprimitive *tgpi, tGPspoint *points2D)
 
   for (int i = tgpi->tot_stored_edges; i < totpoints; i++) {
     tGPspoint *p2d = &points2D[i];
-    p2d->x = (center[0] + cosf(a) * radius[0]);
-    p2d->y = (center[1] + sinf(a) * radius[1]);
+    p2d->m_xy[0] = (center[0] + cosf(a) * radius[0]);
+    p2d->m_xy[1] = (center[1] + sinf(a) * radius[1]);
     a += step;
   }
   float color[4];
@@ -801,7 +801,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
     const ViewDepths *depths = tgpi->depths;
     tGPspoint *ptc = &points2D[0];
     for (int i = 0; i < gps->totpoints; i++, ptc++) {
-      round_v2i_v2fl(mval_i, &ptc->x);
+      round_v2i_v2fl(mval_i, ptc->m_xy);
       if ((ED_view3d_depth_read_cached(depths, mval_i, depth_margin, depth_arr + i) == 0) &&
           (i && (ED_view3d_depth_read_cached_seg(
                      depths, mval_i, mval_prev, depth_margin + 1, depth_arr + i) == 0))) {
@@ -894,7 +894,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 
     /* Store original points */
     float tmp_xyp[2];
-    copy_v2_v2(tmp_xyp, &p2d->x);
+    copy_v2_v2(tmp_xyp, p2d->m_xy);
 
     /* calc pressure */
     float curve_pressure = 1.0;
@@ -926,8 +926,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
       /* vector */
       float mvec[2], svec[2];
       if (i > 0) {
-        mvec[0] = (p2d->x - (p2d - 1)->x);
-        mvec[1] = (p2d->y - (p2d - 1)->y);
+        sub_v2_v2v2(mvec, p2d->m_xy, (p2d - 1)->m_xy);
         normalize_v2(mvec);
       }
       else {
@@ -942,7 +941,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
       else {
         mul_v2_fl(svec, fac);
       }
-      add_v2_v2(&p2d->x, svec);
+      add_v2_v2(p2d->m_xy, svec);
     }
 
     /* color strength */
@@ -992,7 +991,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
       }
     }
 
-    copy_v2_v2(&tpt->x, &p2d->x);
+    copy_v2_v2(tpt->m_xy, p2d->m_xy);
 
     tpt->pressure = pressure;
     tpt->strength = strength;
@@ -1064,7 +1063,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
     }
 
     /* Restore original points */
-    copy_v2_v2(&p2d->x, tmp_xyp);
+    copy_v2_v2(p2d->m_xy, tmp_xyp);
   }
 
   /* store cps and convert coords */
@@ -1617,7 +1616,7 @@ static void gpencil_primitive_move(tGPDprimitive *tgpi, bool reset)
 
   for (int i = 0; i < gps->totpoints; i++) {
     tGPspoint *p2d = &points2D[i];
-    add_v2_v2(&p2d->x, move);
+    add_v2_v2(p2d->m_xy, move);
   }
 
   add_v2_v2(tgpi->start, move);

@@ -870,7 +870,7 @@ void gpencil_stroke_convertcoords_tpoint(Scene *scene,
   }
 
   int mval_i[2];
-  round_v2i_v2fl(mval_i, &point2D->x);
+  round_v2i_v2fl(mval_i, point2D->m_xy);
 
   if ((depth != NULL) && (ED_view3d_autodist_simple(region, mval_i, r_out, 0, depth))) {
     /* projecting onto 3D-Geometry
@@ -878,7 +878,7 @@ void gpencil_stroke_convertcoords_tpoint(Scene *scene,
      */
   }
   else {
-    float mval_f[2] = {point2D->x, point2D->y};
+    float mval_f[2] = {UNPACK2(point2D->m_xy)};
     float mval_prj[2];
     float rvec[3], dvec[3];
     float zfac;
@@ -2020,7 +2020,7 @@ static void gpencil_stroke_convertcoords(ARegion *region,
                                          const float origin[3],
                                          float out[3])
 {
-  float mval_f[2] = {(float)point2D->x, (float)point2D->y};
+  float mval_f[2] = {UNPACK2(point2D->m_xy)};
   float mval_prj[2];
   float rvec[3], dvec[3];
   float zfac;
@@ -2808,8 +2808,8 @@ static void gpencil_sbuffer_vertex_color_random(
   if (brush_settings->flag & GP_BRUSH_GROUP_RANDOM) {
     int seed = ((uint)(ceil(PIL_check_seconds_timer())) + 1) % 128;
 
-    int ix = (int)(tpt->x * seed);
-    int iy = (int)(tpt->y * seed);
+    int ix = (int)(tpt->m_xy[0] * seed);
+    int iy = (int)(tpt->m_xy[1] * seed);
     int iz = ix + iy * seed;
     float hsv[3];
     float factor_value[3];
