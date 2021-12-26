@@ -916,11 +916,11 @@ ARegion *BKE_area_find_region_xy(ScrArea *area, const int regiontype, const int 
   return NULL;
 }
 
-ARegion *BKE_screen_find_region_xy(bScreen *screen, const int regiontype, int x, int y)
+ARegion *BKE_screen_find_region_xy(bScreen *screen, const int regiontype, const int xy[2])
 {
   LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
     if (ELEM(regiontype, RGN_TYPE_ANY, region->regiontype)) {
-      if (BLI_rcti_isect_pt(&region->winrct, x, y)) {
+      if (BLI_rcti_isect_pt_v(&region->winrct, xy)) {
         return region;
       }
     }

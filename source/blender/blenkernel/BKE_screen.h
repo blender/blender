@@ -473,8 +473,8 @@ struct ARegion *BKE_area_find_region_xy(struct ScrArea *area,
  */
 struct ARegion *BKE_screen_find_region_xy(struct bScreen *screen,
                                           const int regiontype,
-                                          int x,
-                                          int y) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+                                          const int xy[2]) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1, 3);
 
 struct ARegion *BKE_screen_find_main_region_at_xy(struct bScreen *screen,
                                                   const int space_type,
