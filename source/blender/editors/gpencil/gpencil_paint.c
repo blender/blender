@@ -585,7 +585,7 @@ static void gpencil_smooth_buffer(tGPsdata *p, float inf, int idx)
     strength += pta->strength * average_fac;
   }
   if (ptb) {
-    copy_v2_v2(b, &ptb->m_xy);
+    copy_v2_v2(b, ptb->m_xy);
     madd_v2_v2fl(sco, b, average_fac);
     pressure += ptb->pressure * average_fac;
     strength += ptb->strength * average_fac;
