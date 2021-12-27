@@ -23,7 +23,7 @@
 
 #include "node_shader_util.h"
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_sepcomb_xyz_cc {
 
 static void sh_node_sepxyz_declare(NodeDeclarationBuilder &b)
 {
@@ -33,8 +33,6 @@ static void sh_node_sepxyz_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Y"));
   b.add_output<decl::Float>(N_("Z"));
 };
-
-}  // namespace blender::nodes
 
 static int gpu_shader_sepxyz(GPUMaterial *mat,
                              bNode *node,
@@ -88,19 +86,23 @@ static void sh_node_sepxyz_build_multi_function(blender::nodes::NodeMultiFunctio
   builder.set_matching_fn(separate_fn);
 }
 
+}  // namespace blender::nodes::node_shader_sepcomb_xyz_cc
+
 void register_node_type_sh_sepxyz()
 {
+  namespace file_ns = blender::nodes::node_shader_sepcomb_xyz_cc;
+
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_SEPXYZ, "Separate XYZ", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::sh_node_sepxyz_declare;
-  node_type_gpu(&ntype, gpu_shader_sepxyz);
-  ntype.build_multi_function = sh_node_sepxyz_build_multi_function;
+  ntype.declare = file_ns::sh_node_sepxyz_declare;
+  node_type_gpu(&ntype, file_ns::gpu_shader_sepxyz);
+  ntype.build_multi_function = file_ns::sh_node_sepxyz_build_multi_function;
 
   nodeRegisterType(&ntype);
 }
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_sepcomb_xyz_cc {
 
 static void sh_node_combxyz_declare(NodeDeclarationBuilder &b)
 {
@@ -110,8 +112,6 @@ static void sh_node_combxyz_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Z")).min(-10000.0f).max(10000.0f);
   b.add_output<decl::Vector>(N_("Vector"));
 };
-
-}  // namespace blender::nodes
 
 static int gpu_shader_combxyz(GPUMaterial *mat,
                               bNode *node,
@@ -129,14 +129,18 @@ static void sh_node_combxyz_build_multi_function(blender::nodes::NodeMultiFuncti
   builder.set_matching_fn(fn);
 }
 
+}  // namespace blender::nodes::node_shader_sepcomb_xyz_cc
+
 void register_node_type_sh_combxyz()
 {
+  namespace file_ns = blender::nodes::node_shader_sepcomb_xyz_cc;
+
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_COMBXYZ, "Combine XYZ", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::sh_node_combxyz_declare;
-  node_type_gpu(&ntype, gpu_shader_combxyz);
-  ntype.build_multi_function = sh_node_combxyz_build_multi_function;
+  ntype.declare = file_ns::sh_node_combxyz_declare;
+  node_type_gpu(&ntype, file_ns::gpu_shader_combxyz);
+  ntype.build_multi_function = file_ns::sh_node_combxyz_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

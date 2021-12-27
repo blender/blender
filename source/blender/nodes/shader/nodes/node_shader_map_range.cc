@@ -31,7 +31,7 @@
 
 NODE_STORAGE_FUNCS(NodeMapRange)
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_map_range_cc {
 
 static void sh_node_map_range_declare(NodeDeclarationBuilder &b)
 {
@@ -149,8 +149,6 @@ static void node_map_range_gather_link_searches(GatherLinkSearchOpParams &params
   }
 }
 
-}  // namespace blender::nodes
-
 static const char *gpu_shader_get_name(int mode, bool use_vector)
 {
   if (use_vector) {
@@ -204,8 +202,6 @@ static int gpu_shader_map_range(GPUMaterial *mat,
   }
   return ret;
 }
-
-namespace blender::nodes {
 
 static inline float clamp_range(const float value, const float min, const float max)
 {
@@ -644,20 +640,22 @@ static void sh_node_map_range_build_multi_function(
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_shader_map_range_cc
 
 void register_node_type_sh_map_range()
 {
+  namespace file_ns = blender::nodes::node_shader_map_range_cc;
+
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_MAP_RANGE, "Map Range", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::sh_node_map_range_declare;
-  node_type_init(&ntype, blender::nodes::node_shader_init_map_range);
+  ntype.declare = file_ns::sh_node_map_range_declare;
+  node_type_init(&ntype, file_ns::node_shader_init_map_range);
   node_type_storage(
       &ntype, "NodeMapRange", node_free_standard_storage, node_copy_standard_storage);
-  node_type_update(&ntype, blender::nodes::node_shader_update_map_range);
-  node_type_gpu(&ntype, gpu_shader_map_range);
-  ntype.build_multi_function = blender::nodes::sh_node_map_range_build_multi_function;
-  ntype.gather_link_search_ops = blender::nodes::node_map_range_gather_link_searches;
+  node_type_update(&ntype, file_ns::node_shader_update_map_range);
+  node_type_gpu(&ntype, file_ns::gpu_shader_map_range);
+  ntype.build_multi_function = file_ns::sh_node_map_range_build_multi_function;
+  ntype.gather_link_search_ops = file_ns::node_map_range_gather_link_searches;
   nodeRegisterType(&ntype);
 }

@@ -23,7 +23,7 @@
 
 #include "node_shader_util.h"
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_sepcomb_rgb_cc {
 
 static void sh_node_seprgb_declare(NodeDeclarationBuilder &b)
 {
@@ -33,8 +33,6 @@ static void sh_node_seprgb_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("G"));
   b.add_output<decl::Float>(N_("B"));
 };
-
-}  // namespace blender::nodes
 
 static void node_shader_exec_seprgb(void *UNUSED(data),
                                     int UNUSED(thread),
@@ -103,20 +101,24 @@ static void sh_node_seprgb_build_multi_function(blender::nodes::NodeMultiFunctio
   builder.set_matching_fn(fn);
 }
 
+}  // namespace blender::nodes::node_shader_sepcomb_rgb_cc
+
 void register_node_type_sh_seprgb()
 {
+  namespace file_ns = blender::nodes::node_shader_sepcomb_rgb_cc;
+
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_SEPRGB, "Separate RGB", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::sh_node_seprgb_declare;
-  node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_seprgb);
-  node_type_gpu(&ntype, gpu_shader_seprgb);
-  ntype.build_multi_function = sh_node_seprgb_build_multi_function;
+  ntype.declare = file_ns::sh_node_seprgb_declare;
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_seprgb);
+  node_type_gpu(&ntype, file_ns::gpu_shader_seprgb);
+  ntype.build_multi_function = file_ns::sh_node_seprgb_build_multi_function;
 
   nodeRegisterType(&ntype);
 }
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_sepcomb_rgb_cc {
 
 static void sh_node_combrgb_declare(NodeDeclarationBuilder &b)
 {
@@ -126,8 +128,6 @@ static void sh_node_combrgb_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("B")).min(0.0f).max(1.0f);
   b.add_output<decl::Color>(N_("Image"));
 };
-
-}  // namespace blender::nodes
 
 static void node_shader_exec_combrgb(void *UNUSED(data),
                                      int UNUSED(thread),
@@ -163,15 +163,19 @@ static void sh_node_combrgb_build_multi_function(blender::nodes::NodeMultiFuncti
   builder.set_matching_fn(fn);
 }
 
+}  // namespace blender::nodes::node_shader_sepcomb_rgb_cc
+
 void register_node_type_sh_combrgb()
 {
+  namespace file_ns = blender::nodes::node_shader_sepcomb_rgb_cc;
+
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_COMBRGB, "Combine RGB", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::sh_node_combrgb_declare;
-  node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_combrgb);
-  node_type_gpu(&ntype, gpu_shader_combrgb);
-  ntype.build_multi_function = sh_node_combrgb_build_multi_function;
+  ntype.declare = file_ns::sh_node_combrgb_declare;
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_combrgb);
+  node_type_gpu(&ntype, file_ns::gpu_shader_combrgb);
+  ntype.build_multi_function = file_ns::sh_node_combrgb_build_multi_function;
 
   nodeRegisterType(&ntype);
 }
