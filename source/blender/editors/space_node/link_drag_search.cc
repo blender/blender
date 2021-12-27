@@ -105,6 +105,26 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
   nodeAddLink(&params.node_tree, &group_input, socket, &params.node, &params.socket);
 }
 
+static void add_existing_group_input_fn(nodes::LinkSearchOpParams &params,
+                                        const bNodeSocket &interface_socket)
+{
+  const int group_input_index = BLI_findindex(&params.node_tree.inputs, &interface_socket);
+  bNode &group_input = params.add_node("NodeGroupInput");
+
+  LISTBASE_FOREACH (bNodeSocket *, socket, &group_input.outputs) {
+    socket->flag |= SOCK_HIDDEN;
+  }
+
+  bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&group_input.outputs, group_input_index);
+  if (socket == nullptr) {
+    /* Adding sockets can fail in some cases. There's no good reason not to be safe here. */
+    return;
+  }
+
+  socket->flag &= ~SOCK_HIDDEN;
+  nodeAddLink(&params.node_tree, &group_input, socket, &params.node, &params.socket);
+}
+
 /**
  * Call the callback to gather compatible socket connections for all node types, and the operations
  * that will actually make the connections. Also add some custom operations like connecting a group
@@ -136,6 +156,22 @@ static void gather_socket_link_operations(bNodeTree &node_tree,
 
   if (is_node_group && socket.in_out == SOCK_IN) {
     search_link_ops.append({IFACE_("Group Input"), add_group_input_node_fn});
+
+    int weight = -1;
+    LISTBASE_FOREACH (const bNodeSocket *, interface_socket, &node_tree.inputs) {
+      eNodeSocketDatatype from = (eNodeSocketDatatype)interface_socket->type;
+      eNodeSocketDatatype to = (eNodeSocketDatatype)socket.type;
+      if (node_tree.typeinfo->validate_link && !node_tree.typeinfo->validate_link(from, to)) {
+        continue;
+      }
+      search_link_ops.append(
+          {std::string(IFACE_("Group Input ")) + UI_MENU_ARROW_SEP + interface_socket->name,
+           [interface_socket](nodes::LinkSearchOpParams &params) {
+             add_existing_group_input_fn(params, *interface_socket);
+           },
+           weight});
+      weight--;
+    }
   }
 }
 
