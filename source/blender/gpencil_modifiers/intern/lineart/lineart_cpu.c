@@ -327,7 +327,12 @@ BLI_INLINE bool lineart_occlusion_is_adjacent_intersection(LineartEdge *e, Linea
 static void lineart_bounding_area_triangle_add(LineartRenderBuffer *rb,
                                                LineartBoundingArea *ba,
                                                LineartTriangle *tri)
-{
+{ /* In case of too many triangles concentrating in one point, do not add anymore, these triangles
+   * will be either narrower than a single pixel, or will still be added into the list of other
+   * less dense areas. */
+  if (ba->triangle_count >= 65535) {
+    return;
+  }
   if (ba->triangle_count >= ba->max_triangle_count) {
     LineartTriangle **new_array = lineart_mem_acquire(
         &rb->render_data_pool, sizeof(LineartTriangle *) * ba->max_triangle_count * 2);
@@ -343,6 +348,12 @@ static void lineart_bounding_area_line_add(LineartRenderBuffer *rb,
                                            LineartBoundingArea *ba,
                                            LineartEdge *e)
 {
+  /* In case of too many lines concentrating in one point, do not add anymore, these lines will
+   * be either shorter than a single pixel, or will still be added into the list of other less
+   * dense areas. */
+  if (ba->line_count >= 65535) {
+    return;
+  }
   if (ba->line_count >= ba->max_line_count) {
     LineartEdge **new_array = lineart_mem_acquire(&rb->render_data_pool,
                                                   sizeof(LineartEdge *) * ba->max_line_count * 2);
