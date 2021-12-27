@@ -736,7 +736,8 @@ static void gpencil_apply_randomness(tGPsdata *p,
   /* Apply randomness to uv texture rotation. */
   if ((brush_settings->uv_random > 0.0f) && (uv)) {
     if ((brush_settings->flag2 & GP_BRUSH_USE_UV_AT_STROKE) == 0) {
-      float rand = BLI_hash_int_01(BLI_hash_int_2d((int)pt->m_xy[0], gpd->runtime.sbuffer_used)) * 2.0f -
+      float rand = BLI_hash_int_01(BLI_hash_int_2d((int)pt->m_xy[0], gpd->runtime.sbuffer_used)) *
+                       2.0f -
                    1.0f;
       value = rand * M_PI_2 * brush_settings->uv_random;
     }
