@@ -260,6 +260,7 @@ void MEM_use_guarded_allocator(void);
 
 #ifdef __cplusplus
 
+#  include <new>
 #  include <type_traits>
 #  include <utility>
 
