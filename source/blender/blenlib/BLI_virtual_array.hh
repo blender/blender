@@ -477,9 +477,9 @@ template<typename T> struct VArrayAnyExtraInfo {
   template<typename StorageT> static VArrayAnyExtraInfo get()
   {
     /* These are the only allowed types in the #Any. */
-    static_assert(std::is_base_of_v<VArrayImpl<T>, StorageT> ||
-                  std::is_same_v<StorageT, const VArrayImpl<T> *> ||
-                  std::is_same_v<StorageT, std::shared_ptr<const VArrayImpl<T>>>);
+    static_assert(
+        std::is_base_of_v<VArrayImpl<T>, StorageT> ||
+        is_same_any_v<StorageT, const VArrayImpl<T> *, std::shared_ptr<const VArrayImpl<T>>>);
 
     /* Depending on how the virtual array implementation is stored in the #Any, a different
      * #get_varray function is required. */
