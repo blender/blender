@@ -2930,15 +2930,7 @@ static LineartEdge *lineart_triangle_intersect(LineartRenderBuffer *rb,
   result->intersection_mask = (tri->intersection_mask | testing->intersection_mask);
 
   lineart_prepend_edge_direct(&rb->intersection.first, result);
-  int r1, r2, c1, c2, row, col;
-  if (lineart_get_edge_bounding_areas(rb, result, &r1, &r2, &c1, &c2)) {
-    for (row = r1; row != r2 + 1; row++) {
-      for (col = c1; col != c2 + 1; col++) {
-        lineart_bounding_area_link_edge(
-            rb, &rb->initial_bounding_areas[row * LRT_BA_ROWS + col], result);
-      }
-    }
-  }
+
   return result;
 }
 
@@ -3409,7 +3401,6 @@ static void lineart_bounding_area_split(LineartRenderBuffer *rb,
   LineartBoundingArea *ba = lineart_mem_acquire(&rb->render_data_pool,
                                                 sizeof(LineartBoundingArea) * 4);
   LineartTriangle *tri;
-  LineartEdge *e;
 
   ba[0].l = root->cx;
   ba[0].r = root->r;
@@ -3473,11 +3464,6 @@ static void lineart_bounding_area_split(LineartRenderBuffer *rb,
     if (LRT_BOUND_AREA_CROSSES(b, &cba[3].l)) {
       lineart_bounding_area_link_triangle(rb, &cba[3], tri, b, 0, recursive_level + 1, false);
     }
-  }
-
-  for (int i = 0; i < root->line_count; i++) {
-    e = root->linked_lines[i];
-    lineart_bounding_area_link_edge(rb, root, e);
   }
 
   rb->bounding_area_count += 3;
