@@ -282,8 +282,9 @@ bool CTX_data_dir(const char *member);
     ListBase ctx_data_list; \
     CollectionPointerLink *ctx_link; \
     CTX_data_##member(C, &ctx_data_list); \
-    for (ctx_link = ctx_data_list.first; ctx_link; ctx_link = ctx_link->next) { \
-      Type instance = ctx_link->ptr.data;
+    for (ctx_link = (CollectionPointerLink *)ctx_data_list.first; ctx_link; \
+         ctx_link = ctx_link->next) { \
+      Type instance = (Type)ctx_link->ptr.data;
 
 #define CTX_DATA_END \
   } \

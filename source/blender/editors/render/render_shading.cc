@@ -96,7 +96,7 @@
 
 #include "engines/eevee/eevee_lightcache.h"
 
-#include "render_intern.h" /* own include */
+#include "render_intern.hh" /* own include */
 
 static bool object_materials_supported_poll_ex(bContext *C, const Object *ob);
 
@@ -106,7 +106,7 @@ static bool object_materials_supported_poll_ex(bContext *C, const Object *ob);
 
 static bool object_array_for_shading_edit_mode_enabled_filter(const Object *ob, void *user_data)
 {
-  bContext *C = user_data;
+  bContext *C = static_cast<bContext *>(user_data);
   if (object_materials_supported_poll_ex(C, ob)) {
     if (BKE_object_is_in_editmode(ob) == true) {
       return true;
@@ -123,7 +123,7 @@ static Object **object_array_for_shading_edit_mode_enabled(bContext *C, uint *r_
 
 static bool object_array_for_shading_edit_mode_disabled_filter(const Object *ob, void *user_data)
 {
-  bContext *C = user_data;
+  bContext *C = static_cast<bContext *>(user_data);
   if (object_materials_supported_poll_ex(C, ob)) {
     if (BKE_object_is_in_editmode(ob) == false) {
       return true;
@@ -159,7 +159,7 @@ static bool object_materials_supported_poll_ex(bContext *C, const Object *ob)
   }
 
   /* Material linked to obdata. */
-  const ID *data = ob->data;
+  const ID *data = static_cast<ID *>(ob->data);
   return (data && !ID_IS_LINKED(data) && !ID_IS_OVERRIDE_LIBRARY(data));
 }
 
@@ -328,7 +328,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
       ListBase *nurbs = BKE_curve_editNurbs_get((Curve *)ob->data);
 
       if (nurbs) {
-        for (nu = nurbs->first; nu; nu = nu->next) {
+        for (nu = static_cast<Nurb *>(nurbs->first); nu; nu = nu->next) {
           if (ED_curve_nurb_select_check(v3d, nu)) {
             changed = true;
             nu->mat_nr = mat_nr_active;
@@ -432,7 +432,7 @@ static int material_slot_de_select(bContext *C, bool select)
       int a;
 
       if (nurbs) {
-        for (nu = nurbs->first; nu; nu = nu->next) {
+        for (nu = static_cast<Nurb *>(nurbs->first); nu; nu = nu->next) {
           if (nu->mat_nr == mat_nr_active) {
             if (nu->bezt) {
               a = nu->pntsu;
@@ -477,7 +477,7 @@ static int material_slot_de_select(bContext *C, bool select)
 
     if (changed) {
       changed_multi = true;
-      DEG_id_tag_update(ob->data, ID_RECALC_SELECT);
+      DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
     }
   }
@@ -545,7 +545,8 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
 
   Material ***matar_object = &ob->mat;
 
-  Material **matar = MEM_callocN(sizeof(*matar) * (size_t)ob->totcol, __func__);
+  Material **matar = static_cast<Material **>(
+      MEM_callocN(sizeof(*matar) * (size_t)ob->totcol, __func__));
   for (int i = ob->totcol; i--;) {
     matar[i] = ob->matbits[i] ? (*matar_object)[i] : (*matar_obdata)[i];
   }
@@ -620,7 +621,7 @@ static int material_slot_move_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  slot_remap = MEM_mallocN(sizeof(uint) * ob->totcol, __func__);
+  slot_remap = static_cast<uint *>(MEM_mallocN(sizeof(uint) * ob->totcol, __func__));
 
   range_vn_u(slot_remap, ob->totcol, 0);
 
@@ -749,7 +750,8 @@ void OBJECT_OT_material_slot_remove_unused(wmOperatorType *ot)
 
 static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  Material *ma = CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
+  Material *ma = static_cast<Material *>(
+      CTX_data_pointer_get_type(C, "material", &RNA_Material).data);
   Main *bmain = CTX_data_main(C);
   PointerRNA ptr, idptr;
   PropertyRNA *prop;
@@ -757,7 +759,8 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
   /* hook into UI */
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
-  Object *ob = (prop && RNA_struct_is_a(ptr.type, &RNA_Object)) ? ptr.data : NULL;
+  Object *ob = static_cast<Object *>((prop && RNA_struct_is_a(ptr.type, &RNA_Object)) ? ptr.data :
+                                                                                        NULL);
 
   /* add or copy material */
   if (ma) {
@@ -823,7 +826,7 @@ void MATERIAL_OT_new(wmOperatorType *ot)
 
 static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+  Tex *tex = static_cast<Tex *>(CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data);
   Main *bmain = CTX_data_main(C);
   PointerRNA ptr, idptr;
   PropertyRNA *prop;
@@ -876,7 +879,7 @@ void TEXTURE_OT_new(wmOperatorType *ot)
 
 static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  World *wo = CTX_data_pointer_get_type(C, "world", &RNA_World).data;
+  World *wo = static_cast<World *>(CTX_data_pointer_get_type(C, "world", &RNA_World).data);
   Main *bmain = CTX_data_main(C);
   PointerRNA ptr, idptr;
   PropertyRNA *prop;
@@ -1389,7 +1392,8 @@ void SCENE_OT_render_view_add(wmOperatorType *ot)
 static int render_view_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
-  SceneRenderView *rv = BLI_findlink(&scene->r.views, scene->r.actview);
+  SceneRenderView *rv = static_cast<SceneRenderView *>(
+      BLI_findlink(&scene->r.views, scene->r.actview));
 
   if (!BKE_scene_remove_render_view(scene, rv)) {
     return OPERATOR_CANCELLED;
@@ -1444,7 +1448,7 @@ static bool freestyle_linestyle_check_report(FreestyleLineSet *lineset, ReportLi
 static bool freestyle_active_module_poll(bContext *C)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
-  FreestyleModuleConfig *module = ptr.data;
+  FreestyleModuleConfig *module = static_cast<FreestyleModuleConfig *>(ptr.data);
 
   return module != NULL;
 }
@@ -1486,7 +1490,7 @@ static int freestyle_module_remove_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
-  FreestyleModuleConfig *module = ptr.data;
+  FreestyleModuleConfig *module = static_cast<FreestyleModuleConfig *>(ptr.data);
 
   BKE_freestyle_module_delete(&view_layer->freestyle_config, module);
 
@@ -1516,7 +1520,7 @@ static int freestyle_module_move_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
-  FreestyleModuleConfig *module = ptr.data;
+  FreestyleModuleConfig *module = static_cast<FreestyleModuleConfig *>(ptr.data);
   int dir = RNA_enum_get(op->ptr, "direction");
 
   if (BKE_freestyle_module_move(&view_layer->freestyle_config, module, dir)) {
@@ -2014,7 +2018,7 @@ static int freestyle_modifier_remove_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&view_layer->freestyle_config);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_LineStyleModifier);
-  LineStyleModifier *modifier = ptr.data;
+  LineStyleModifier *modifier = static_cast<LineStyleModifier *>(ptr.data);
 
   if (!freestyle_linestyle_check_report(lineset, op->reports)) {
     return OPERATOR_CANCELLED;
@@ -2070,7 +2074,7 @@ static int freestyle_modifier_copy_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&view_layer->freestyle_config);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_LineStyleModifier);
-  LineStyleModifier *modifier = ptr.data;
+  LineStyleModifier *modifier = static_cast<LineStyleModifier *>(ptr.data);
 
   if (!freestyle_linestyle_check_report(lineset, op->reports)) {
     return OPERATOR_CANCELLED;
@@ -2126,7 +2130,7 @@ static int freestyle_modifier_move_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&view_layer->freestyle_config);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_LineStyleModifier);
-  LineStyleModifier *modifier = ptr.data;
+  LineStyleModifier *modifier = static_cast<LineStyleModifier *>(ptr.data);
   int dir = RNA_enum_get(op->ptr, "direction");
   bool changed = false;
 
@@ -2311,7 +2315,8 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 /* material copy/paste */
 static int copy_material_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  Material *ma = CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
+  Material *ma = static_cast<Material *>(
+      CTX_data_pointer_get_type(C, "material", &RNA_Material).data);
 
   if (ma == NULL) {
     return OPERATOR_CANCELLED;
@@ -2345,7 +2350,8 @@ void MATERIAL_OT_copy(wmOperatorType *ot)
 
 static int paste_material_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  Material *ma = CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
+  Material *ma = static_cast<Material *>(
+      CTX_data_pointer_get_type(C, "material", &RNA_Material).data);
 
   if (ma == NULL) {
     return OPERATOR_CANCELLED;
@@ -2433,7 +2439,7 @@ static void paste_mtex_copybuf(ID *id)
 
   if (mtex) {
     if (*mtex == NULL) {
-      *mtex = MEM_mallocN(sizeof(MTex), "mtex copy");
+      *mtex = MEM_new<MTex>("mtex copy");
     }
     else if ((*mtex)->tex) {
       id_us_min(&(*mtex)->tex->id);
@@ -2500,13 +2506,14 @@ static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
   ID *id = CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).owner_id;
 
   if (id == NULL) {
-    Material *ma = CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
-    Light *la = CTX_data_pointer_get_type(C, "light", &RNA_Light).data;
-    World *wo = CTX_data_pointer_get_type(C, "world", &RNA_World).data;
-    ParticleSystem *psys =
-        CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data;
-    FreestyleLineStyle *linestyle =
-        CTX_data_pointer_get_type(C, "line_style", &RNA_FreestyleLineStyle).data;
+    Material *ma = static_cast<Material *>(
+        CTX_data_pointer_get_type(C, "material", &RNA_Material).data);
+    Light *la = static_cast<Light *>(CTX_data_pointer_get_type(C, "light", &RNA_Light).data);
+    World *wo = static_cast<World *>(CTX_data_pointer_get_type(C, "world", &RNA_World).data);
+    ParticleSystem *psys = static_cast<ParticleSystem *>(
+        CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data);
+    FreestyleLineStyle *linestyle = static_cast<FreestyleLineStyle *>(
+        CTX_data_pointer_get_type(C, "line_style", &RNA_FreestyleLineStyle).data);
 
     if (ma) {
       id = &ma->id;

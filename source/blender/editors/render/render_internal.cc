@@ -78,7 +78,7 @@
 
 #include "SEQ_relations.h"
 
-#include "render_intern.h"
+#include "render_intern.hh"
 
 /* Render Callbacks */
 static int render_break(void *rjv);
@@ -384,7 +384,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 
 static void render_freejob(void *rjv)
 {
-  RenderJob *rj = rjv;
+  RenderJob *rj = static_cast<RenderJob *>(rjv);
 
   BKE_color_managed_view_settings_free(&rj->view_settings);
   MEM_freeN(rj);
@@ -472,7 +472,7 @@ static void make_renderinfo_string(const RenderStats *rs,
 
 static void image_renderinfo_cb(void *rjv, RenderStats *rs)
 {
-  RenderJob *rj = rjv;
+  RenderJob *rj = static_cast<RenderJob *>(rjv);
   RenderResult *rr;
 
   rr = RE_AcquireResultRead(rj->re);
@@ -480,7 +480,7 @@ static void image_renderinfo_cb(void *rjv, RenderStats *rs)
   if (rr) {
     /* malloc OK here, stats_draw is not in tile threads */
     if (rr->text == NULL) {
-      rr->text = MEM_callocN(IMA_MAX_RENDER_TEXT, "rendertext");
+      rr->text = static_cast<char *>(MEM_callocN(IMA_MAX_RENDER_TEXT, "rendertext"));
     }
 
     make_renderinfo_string(rs, rj->scene, rj->v3d_override, rr->error, rr->text);
@@ -494,7 +494,7 @@ static void image_renderinfo_cb(void *rjv, RenderStats *rs)
 
 static void render_progress_update(void *rjv, float progress)
 {
-  RenderJob *rj = rjv;
+  RenderJob *rj = static_cast<RenderJob *>(rjv);
 
   if (rj->progress && *rj->progress != progress) {
     *rj->progress = progress;
@@ -515,14 +515,16 @@ static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, 
   ScrArea *first_area = NULL, *matched_area = NULL;
 
   /* image window, compo node users */
-  for (wm = rj->main->wm.first; wm && matched_area == NULL; wm = wm->id.next) { /* only 1 wm */
+  for (wm = static_cast<wmWindowManager *>(rj->main->wm.first); wm && matched_area == NULL;
+       wm = static_cast<wmWindowManager *>(wm->id.next)) { /* only 1 wm */
     wmWindow *win;
-    for (win = wm->windows.first; win && matched_area == NULL; win = win->next) {
+    for (win = static_cast<wmWindow *>(wm->windows.first); win && matched_area == NULL;
+         win = win->next) {
       const bScreen *screen = WM_window_get_active_screen(win);
 
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         if (area->spacetype == SPACE_IMAGE) {
-          SpaceImage *sima = area->spacedata.first;
+          SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
           /* area->spacedata might be empty when toggling full-screen mode. */
           if (sima != NULL && sima->image == rj->image) {
             if (first_area == NULL) {
@@ -543,7 +545,7 @@ static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, 
   }
 
   if (matched_area) {
-    SpaceImage *sima = matched_area->spacedata.first;
+    SpaceImage *sima = static_cast<SpaceImage *>(matched_area->spacedata.first);
     RenderResult *main_rr = RE_AcquireResultRead(rj->re);
 
     /* TODO(sergey): is there faster way to get the layer index? */
@@ -563,7 +565,7 @@ static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, 
 
 static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrect)
 {
-  RenderJob *rj = rjv;
+  RenderJob *rj = static_cast<RenderJob *>(rjv);
   Image *ima = rj->image;
   ImBuf *ibuf;
   void *lock;
@@ -623,14 +625,14 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 
 static void current_scene_update(void *rjv, Scene *scene)
 {
-  RenderJob *rj = rjv;
+  RenderJob *rj = static_cast<RenderJob *>(rjv);
   rj->current_scene = scene;
   rj->iuser.scene = scene;
 }
 
 static void render_startjob(void *rjv, short *stop, short *do_update, float *progress)
 {
-  RenderJob *rj = rjv;
+  RenderJob *rj = static_cast<RenderJob *>(rjv);
 
   rj->stop = stop;
   rj->do_update = do_update;
@@ -666,15 +668,16 @@ static void render_image_restore_layer(RenderJob *rj)
   wmWindowManager *wm;
 
   /* image window, compo node users */
-  for (wm = rj->main->wm.first; wm; wm = wm->id.next) { /* only 1 wm */
+  for (wm = static_cast<wmWindowManager *>(rj->main->wm.first); wm;
+       wm = static_cast<wmWindowManager *>(wm->id.next)) { /* only 1 wm */
     wmWindow *win;
-    for (win = wm->windows.first; win; win = win->next) {
+    for (win = static_cast<wmWindow *>(wm->windows.first); win; win = win->next) {
       const bScreen *screen = WM_window_get_active_screen(win);
 
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         if (area == rj->area) {
           if (area->spacetype == SPACE_IMAGE) {
-            SpaceImage *sima = area->spacedata.first;
+            SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
 
             if (RE_HasSingleLayer(rj->re)) {
               /* For single layer renders keep the active layer
@@ -700,7 +703,7 @@ static void render_image_restore_layer(RenderJob *rj)
 
 static void render_endjob(void *rjv)
 {
-  RenderJob *rj = rjv;
+  RenderJob *rj = static_cast<RenderJob *>(rjv);
 
   /* this render may be used again by the sequencer without the active
    * 'Render' where the callbacks would be re-assigned. assign dummy callbacks
@@ -774,7 +777,7 @@ static void render_endjob(void *rjv)
      * and using one from Global will unlock exactly the same manager as
      * was locked before running the job.
      */
-    WM_set_locked_interface(G_MAIN->wm.first, false);
+    WM_set_locked_interface(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
     DEG_tag_on_visible_update(G_MAIN, false);
   }
 }
@@ -782,7 +785,7 @@ static void render_endjob(void *rjv)
 /* called by render, check job 'stop' value or the global */
 static int render_breakjob(void *rjv)
 {
-  RenderJob *rj = rjv;
+  RenderJob *rj = static_cast<RenderJob *>(rjv);
 
   if (G.is_break) {
     return 1;
@@ -809,7 +812,7 @@ static int render_break(void *UNUSED(rjv))
 /* maybe need a way to get job send notifier? */
 static void render_drawlock(void *rjv, bool lock)
 {
-  RenderJob *rj = rjv;
+  RenderJob *rj = static_cast<RenderJob *>(rjv);
 
   /* If interface is locked, renderer callback shall do nothing. */
   if (!rj->interface_locked) {
@@ -871,11 +874,12 @@ static void clean_viewport_memory(Main *bmain, Scene *scene)
   BKE_main_id_tag_listbase(&bmain->objects, LIB_TAG_DOIT, true);
 
   /* Go over all the visible objects. */
-  for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
+  for (wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first); wm;
+       wm = static_cast<wmWindowManager *>(wm->id.next)) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 
-      for (base = view_layer->object_bases.first; base; base = base->next) {
+      for (base = static_cast<Base *>(view_layer->object_bases.first); base; base = base->next) {
         clean_viewport_memory_base(base);
       }
     }
@@ -964,7 +968,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   area = render_view_open(C, event->xy[0], event->xy[1], op->reports);
 
   /* job custom data */
-  rj = MEM_callocN(sizeof(RenderJob), "render job");
+  rj = MEM_cnew<RenderJob>("render job");
   rj->main = bmain;
   rj->scene = scene;
   rj->current_scene = rj->scene;
@@ -988,7 +992,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   BKE_color_managed_view_settings_copy(&rj->view_settings, &scene->view_settings);
 
   if (area) {
-    SpaceImage *sima = area->spacedata.first;
+    SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
     rj->orig_layer = sima->iuser.layer;
   }
 

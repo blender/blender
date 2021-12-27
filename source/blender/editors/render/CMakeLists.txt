@@ -36,15 +36,15 @@ set(INC
 )
 
 set(SRC
-  render_internal.c
-  render_opengl.c
-  render_ops.c
-  render_preview.c
-  render_shading.c
-  render_update.c
-  render_view.c
+  render_internal.cc
+  render_opengl.cc
+  render_ops.cc
+  render_preview.cc
+  render_shading.cc
+  render_update.cc
+  render_view.cc
 
-  render_intern.h
+  render_intern.hh
 )
 
 set(LIB
