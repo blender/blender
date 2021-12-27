@@ -48,6 +48,7 @@ struct RegionView3D;
 struct RigidBodyWorld;
 struct Scene;
 struct ShaderFxData;
+struct SubsurfModifierData;
 struct View3D;
 struct ViewLayer;
 
@@ -512,6 +513,7 @@ bool BKE_object_obdata_texspace_get(struct Object *ob,
                                     float **r_loc,
                                     float **r_size);
 
+struct Mesh *BKE_object_get_evaluated_mesh_no_subsurf(const struct Object *object);
 /** Get evaluated mesh for given object. */
 struct Mesh *BKE_object_get_evaluated_mesh(const struct Object *object);
 /**
@@ -711,6 +713,15 @@ void BKE_object_modifiers_lib_link_common(void *userData,
                                           struct Object *ob,
                                           struct ID **idpoin,
                                           int cb_flag);
+
+/**
+ * Return the last subsurf modifier of an object, this does not check whether modifiers on top of
+ * it are disabled. Return NULL if no such modifier is found.
+ *
+ * This does not check if the modifier is enabled as it is assumed that the caller verified that it
+ * is enabled for its evaluation mode.
+ */
+struct SubsurfModifierData *BKE_object_get_last_subsurf_modifier(const struct Object *ob);
 
 void BKE_object_replace_data_on_shallow_copy(struct Object *ob, struct ID *new_data);
 

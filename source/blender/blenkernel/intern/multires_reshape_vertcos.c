@@ -114,7 +114,8 @@ static bool multires_reshape_vertcos_foreach_topology_info(
     const int num_vertices,
     const int UNUSED(num_edges),
     const int UNUSED(num_loops),
-    const int UNUSED(num_polygons))
+    const int UNUSED(num_polygons),
+    const int *UNUSED(subdiv_polygon_offset))
 {
   MultiresReshapeAssignVertcosContext *reshape_vertcos_context = foreach_context->user_data;
   if (num_vertices != reshape_vertcos_context->num_vert_coords) {

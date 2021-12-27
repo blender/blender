@@ -39,6 +39,8 @@
 extern "C" {
 #endif
 
+struct DRWSubdivCache;
+
 #define MIN_RANGE_LEN 1024
 
 /* ---------------------------------------------------------------------- */
@@ -203,6 +205,11 @@ typedef void(ExtractLVertMeshFn)(const MeshRenderData *mr,
                                  const MVert *mv,
                                  const int lvert_index,
                                  void *data);
+typedef void(ExtractLooseGeomSubdivFn)(const struct DRWSubdivCache *subdiv_cache,
+                                       const MeshRenderData *mr,
+                                       const MeshExtractLooseGeom *loose_geom,
+                                       void *buffer,
+                                       void *data);
 typedef void(ExtractInitFn)(const MeshRenderData *mr,
                             struct MeshBatchCache *cache,
                             void *buffer,
@@ -212,6 +219,18 @@ typedef void(ExtractFinishFn)(const MeshRenderData *mr,
                               void *buffer,
                               void *data);
 typedef void(ExtractTaskReduceFn)(void *userdata, void *task_userdata);
+
+typedef void(ExtractInitSubdivFn)(const struct DRWSubdivCache *subdiv_cache,
+                                  const MeshRenderData *mr,
+                                  struct MeshBatchCache *cache,
+                                  void *buf,
+                                  void *data);
+typedef void(ExtractIterSubdivFn)(const struct DRWSubdivCache *subdiv_cache,
+                                  const MeshRenderData *mr,
+                                  void *data);
+typedef void(ExtractFinishSubdivFn)(const struct DRWSubdivCache *subdiv_cache,
+                                    void *buf,
+                                    void *data);
 
 typedef struct MeshExtract {
   /** Executed on main thread and return user data for iteration functions. */
@@ -225,9 +244,14 @@ typedef struct MeshExtract {
   ExtractLEdgeMeshFn *iter_ledge_mesh;
   ExtractLVertBMeshFn *iter_lvert_bm;
   ExtractLVertMeshFn *iter_lvert_mesh;
+  ExtractLooseGeomSubdivFn *iter_loose_geom_subdiv;
   /** Executed on one worker thread after all elements iterations. */
   ExtractTaskReduceFn *task_reduce;
   ExtractFinishFn *finish;
+  /** Executed on main thread for subdivision evaluation. */
+  ExtractInitSubdivFn *init_subdiv;
+  ExtractIterSubdivFn *iter_subdiv;
+  ExtractFinishSubdivFn *finish_subdiv;
   /** Used to request common data. */
   eMRDataType data_type;
   size_t data_size;

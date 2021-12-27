@@ -49,6 +49,10 @@ void GLVertBuf::resize_data()
 
 void GLVertBuf::release_data()
 {
+  if (is_wrapper_) {
+    return;
+  }
+
   if (vbo_id_ != 0) {
     GLContext::buf_free(vbo_id_);
     vbo_id_ = 0;
@@ -137,6 +141,16 @@ void *GLVertBuf::unmap(const void *mapped_data) const
   return result;
 }
 
+void GLVertBuf::wrap_handle(uint64_t handle)
+{
+  BLI_assert(vbo_id_ == 0);
+  BLI_assert(glIsBuffer(static_cast<uint>(handle)));
+  is_wrapper_ = true;
+  vbo_id_ = static_cast<uint>(handle);
+  /* We assume the data is already on the device, so no need to allocate or send it. */
+  flag = GPU_VERTBUF_DATA_UPLOADED;
+}
+
 bool GLVertBuf::is_active() const
 {
   if (!vbo_id_) {
@@ -147,7 +161,7 @@ bool GLVertBuf::is_active() const
   return vbo_id_ == active_vbo_id;
 }
 
-void GLVertBuf::update_sub(uint start, uint len, void *data)
+void GLVertBuf::update_sub(uint start, uint len, const void *data)
 {
   glBufferSubData(GL_ARRAY_BUFFER, start, len, data);
 }

@@ -772,6 +772,17 @@ class USERPREF_PT_viewport_selection(ViewportPanel, CenterAlignMixIn, Panel):
         layout.prop(system, "use_select_pick_depth")
 
 
+class USERPREF_PT_viewport_subdivision(ViewportPanel, CenterAlignMixIn, Panel):
+    bl_label = "Subdivision"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        system = prefs.system
+
+        layout.prop(system, "use_gpu_subdivision")
+
+
 # -----------------------------------------------------------------------------
 # Theme Panels
 
@@ -2342,6 +2353,7 @@ classes = (
     USERPREF_PT_viewport_quality,
     USERPREF_PT_viewport_textures,
     USERPREF_PT_viewport_selection,
+    USERPREF_PT_viewport_subdivision,
 
     USERPREF_PT_edit_objects,
     USERPREF_PT_edit_objects_new,

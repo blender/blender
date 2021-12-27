@@ -27,6 +27,8 @@
 
 #include "extract_mesh.h"
 
+#include "draw_subdivision.h"
+
 namespace blender::draw {
 
 /* ---------------------------------------------------------------------- */
@@ -63,14 +65,12 @@ BLI_INLINE float area_ratio_to_stretch(float ratio, float tot_ratio, float inv_t
   return (ratio > 1.0f) ? (1.0f / ratio) : ratio;
 }
 
-static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
-                                               struct MeshBatchCache *cache,
-                                               void *buf,
-                                               void *UNUSED(data))
+static void compute_area_ratio(const MeshRenderData *mr,
+                               float *r_area_ratio,
+                               float &r_tot_area,
+                               float &r_tot_uv_area)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   float tot_area = 0.0f, tot_uv_area = 0.0f;
-  float *area_ratio = static_cast<float *>(MEM_mallocN(sizeof(float) * mr->poly_len, __func__));
 
   if (mr->extract_type == MR_EXTRACT_BMESH) {
     CustomData *cd_ldata = &mr->bm->ldata;
@@ -84,7 +84,7 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
       float uvarea = BM_face_calc_area_uv(efa, uv_ofs);
       tot_area += area;
       tot_uv_area += uvarea;
-      area_ratio[f] = area_ratio_get(area, uvarea);
+      r_area_ratio[f] = area_ratio_get(area, uvarea);
     }
   }
   else {
@@ -96,12 +96,22 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
       float uvarea = BKE_mesh_calc_poly_uv_area(mp, uv_data);
       tot_area += area;
       tot_uv_area += uvarea;
-      area_ratio[mp_index] = area_ratio_get(area, uvarea);
+      r_area_ratio[mp_index] = area_ratio_get(area, uvarea);
     }
   }
 
-  cache->tot_area = tot_area;
-  cache->tot_uv_area = tot_uv_area;
+  r_tot_area = tot_area;
+  r_tot_uv_area = tot_uv_area;
+}
+
+static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
+                                               struct MeshBatchCache *cache,
+                                               void *buf,
+                                               void *UNUSED(data))
+{
+  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  float *area_ratio = static_cast<float *>(MEM_mallocN(sizeof(float) * mr->poly_len, __func__));
+  compute_area_ratio(mr, area_ratio, cache->tot_area, cache->tot_uv_area);
 
   /* Convert in place to avoid an extra allocation */
   uint16_t *poly_stretch = (uint16_t *)area_ratio;
@@ -135,11 +145,46 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
   MEM_freeN(area_ratio);
 }
 
+static void extract_edituv_stretch_area_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                                    const MeshRenderData *mr,
+                                                    struct MeshBatchCache *cache,
+                                                    void *buffer,
+                                                    void *UNUSED(data))
+{
+
+  /* Initialise final buffer. */
+  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "ratio", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  }
+
+  GPU_vertbuf_init_build_on_device(vbo, &format, subdiv_cache->num_subdiv_loops);
+
+  /* Initialize coarse data buffer. */
+
+  GPUVertBuf *coarse_data = GPU_vertbuf_calloc();
+
+  /* We use the same format as we just copy data around. */
+  GPU_vertbuf_init_with_format(coarse_data, &format);
+  GPU_vertbuf_data_alloc(coarse_data, mr->loop_len);
+
+  compute_area_ratio(mr,
+                     static_cast<float *>(GPU_vertbuf_get_data(coarse_data)),
+                     cache->tot_area,
+                     cache->tot_uv_area);
+
+  draw_subdiv_build_edituv_stretch_area_buffer(subdiv_cache, coarse_data, vbo);
+
+  GPU_vertbuf_discard(coarse_data);
+}
+
 constexpr MeshExtract create_extractor_edituv_stretch_area()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_edituv_stretch_area_init;
   extractor.finish = extract_edituv_stretch_area_finish;
+  extractor.init_subdiv = extract_edituv_stretch_area_init_subdiv;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = 0;
   extractor.use_threading = false;

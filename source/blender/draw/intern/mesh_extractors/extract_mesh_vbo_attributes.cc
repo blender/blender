@@ -32,6 +32,7 @@
 
 #include "BKE_attribute.h"
 
+#include "draw_subdivision.h"
 #include "extract_mesh.h"
 
 namespace blender::draw {
@@ -153,7 +154,9 @@ static GPUVertCompType get_comp_type_for_type(CustomDataType type)
 
 static void init_vbo_for_attribute(const MeshRenderData *mr,
                                    GPUVertBuf *vbo,
-                                   const DRW_AttributeRequest &request)
+                                   const DRW_AttributeRequest &request,
+                                   bool build_on_device,
+                                   uint32_t len)
 {
   GPUVertCompType comp_type = get_comp_type_for_type(request.cd_type);
   GPUVertFetchMode fetch_mode = get_fetch_mode_for_type(request.cd_type);
@@ -184,8 +187,13 @@ static void init_vbo_for_attribute(const MeshRenderData *mr,
     }
   }
 
-  GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, static_cast<uint32_t>(mr->loop_len));
+  if (build_on_device) {
+    GPU_vertbuf_init_build_on_device(vbo, &format, len);
+  }
+  else {
+    GPU_vertbuf_init_with_format(vbo, &format);
+    GPU_vertbuf_data_alloc(vbo, len);
+  }
 }
 
 template<typename AttributeType, typename VBOType>
@@ -309,7 +317,7 @@ static void extract_attr_init(const MeshRenderData *mr,
 
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
 
-  init_vbo_for_attribute(mr, vbo, request);
+  init_vbo_for_attribute(mr, vbo, request, false, static_cast<uint32_t>(mr->loop_len));
 
   /* TODO(kevindietrich) : float3 is used for scalar attributes as the implicit conversion done by
    * OpenGL to vec4 for a scalar `s` will produce a `vec4(s, 0, 0, 1)`. However, following the
@@ -346,6 +354,68 @@ static void extract_attr_init(const MeshRenderData *mr,
   }
 }
 
+static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                     const MeshRenderData *mr,
+                                     MeshBatchCache *cache,
+                                     void *buffer,
+                                     void *UNUSED(tls_data),
+                                     int index)
+{
+  const DRW_MeshAttributes *attrs_used = &cache->attr_used;
+  const DRW_AttributeRequest &request = attrs_used->requests[index];
+
+  Mesh *coarse_mesh = subdiv_cache->mesh;
+
+  const uint32_t dimensions = gpu_component_size_for_attribute_type(request.cd_type);
+
+  /* Prepare VBO for coarse data. The compute shader only expects floats. */
+  GPUVertBuf *src_data = GPU_vertbuf_calloc();
+  static GPUVertFormat coarse_format = {0};
+  GPU_vertformat_attr_add(&coarse_format, "data", GPU_COMP_F32, dimensions, GPU_FETCH_FLOAT);
+  GPU_vertbuf_init_with_format_ex(src_data, &coarse_format, GPU_USAGE_STATIC);
+  GPU_vertbuf_data_alloc(src_data, static_cast<uint32_t>(coarse_mesh->totloop));
+
+  switch (request.cd_type) {
+    case CD_PROP_BOOL: {
+      extract_attr_generic<bool, float3>(mr, src_data, request);
+      break;
+    }
+    case CD_PROP_INT32: {
+      extract_attr_generic<int32_t, float3>(mr, src_data, request);
+      break;
+    }
+    case CD_PROP_FLOAT: {
+      extract_attr_generic<float, float3>(mr, src_data, request);
+      break;
+    }
+    case CD_PROP_FLOAT2: {
+      extract_attr_generic<float2>(mr, src_data, request);
+      break;
+    }
+    case CD_PROP_FLOAT3: {
+      extract_attr_generic<float3>(mr, src_data, request);
+      break;
+    }
+    case CD_PROP_COLOR: {
+      extract_attr_generic<MPropCol, gpuMeshCol>(mr, src_data, request);
+      break;
+    }
+    default: {
+      BLI_assert(false);
+    }
+  }
+
+  GPUVertBuf *dst_buffer = static_cast<GPUVertBuf *>(buffer);
+  init_vbo_for_attribute(mr, dst_buffer, request, true, subdiv_cache->num_subdiv_loops);
+
+  /* Ensure data is uploaded properly. */
+  GPU_vertbuf_tag_dirty(src_data);
+  draw_subdiv_interp_custom_data(
+      subdiv_cache, src_data, dst_buffer, static_cast<int>(dimensions), 0);
+
+  GPU_vertbuf_discard(src_data);
+}
+
 /* Wrappers around extract_attr_init so we can pass the index of the attribute that we want to
  * extract. The overall API does not allow us to pass this in a convenient way. */
 #define EXTRACT_INIT_WRAPPER(index) \
@@ -353,6 +423,14 @@ static void extract_attr_init(const MeshRenderData *mr,
       const MeshRenderData *mr, struct MeshBatchCache *cache, void *buf, void *tls_data) \
   { \
     extract_attr_init(mr, cache, buf, tls_data, index); \
+  } \
+  static void extract_attr_init_subdiv##index(const DRWSubdivCache *subdiv_cache, \
+                                              const MeshRenderData *mr, \
+                                              struct MeshBatchCache *cache, \
+                                              void *buf, \
+                                              void *tls_data) \
+  { \
+    extract_attr_init_subdiv(subdiv_cache, mr, cache, buf, tls_data, index); \
   }
 
 EXTRACT_INIT_WRAPPER(0)
@@ -371,10 +449,12 @@ EXTRACT_INIT_WRAPPER(12)
 EXTRACT_INIT_WRAPPER(13)
 EXTRACT_INIT_WRAPPER(14)
 
-template<int index> constexpr MeshExtract create_extractor_attr(ExtractInitFn fn)
+template<int index>
+constexpr MeshExtract create_extractor_attr(ExtractInitFn fn, ExtractInitSubdivFn subdiv_fn)
 {
   MeshExtract extractor = {nullptr};
   extractor.init = fn;
+  extractor.init_subdiv = subdiv_fn;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = 0;
   extractor.use_threading = false;
@@ -388,7 +468,8 @@ template<int index> constexpr MeshExtract create_extractor_attr(ExtractInitFn fn
 
 extern "C" {
 #define CREATE_EXTRACTOR_ATTR(index) \
-  blender::draw::create_extractor_attr<index>(blender::draw::extract_attr_init##index)
+  blender::draw::create_extractor_attr<index>(blender::draw::extract_attr_init##index, \
+                                              blender::draw::extract_attr_init_subdiv##index)
 
 const MeshExtract extract_attr[GPU_MAX_ATTR] = {
     CREATE_EXTRACTOR_ATTR(0),

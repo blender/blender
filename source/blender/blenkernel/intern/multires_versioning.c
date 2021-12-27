@@ -61,7 +61,7 @@ static Subdiv *subdiv_for_simple_to_catmull_clark(Object *object, MultiresModifi
   Subdiv *subdiv = BKE_subdiv_new_from_converter(&subdiv_settings, &converter);
   BKE_subdiv_converter_free(&converter);
 
-  if (!BKE_subdiv_eval_begin_from_mesh(subdiv, base_mesh, NULL)) {
+  if (!BKE_subdiv_eval_begin_from_mesh(subdiv, base_mesh, NULL, SUBDIV_EVALUATOR_TYPE_CPU, NULL)) {
     BKE_subdiv_free(subdiv);
     return NULL;
   }

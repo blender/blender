@@ -21,6 +21,7 @@
  * \ingroup draw
  */
 
+#include "draw_subdivision.h"
 #include "extract_mesh.h"
 
 namespace blender::draw {
@@ -196,12 +197,104 @@ static void extract_vert_idx_iter_lvert_mesh(const MeshRenderData *mr,
   (*(uint32_t **)data)[offset + lvert_index] = v_orig;
 }
 
+static void extract_vert_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                         const MeshRenderData *mr,
+                                         MeshBatchCache *UNUSED(cache),
+                                         void *buf,
+                                         void *UNUSED(data))
+{
+  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  /* Each element points to an element in the ibo.points. */
+  draw_subdiv_init_origindex_buffer(vbo,
+                                    subdiv_cache->subdiv_loop_subdiv_vert_index,
+                                    subdiv_cache->num_subdiv_loops,
+                                    mr->loop_loose_len);
+}
+
+static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
+                                               const MeshRenderData *UNUSED(mr),
+                                               const MeshExtractLooseGeom *loose_geom,
+                                               void *buffer,
+                                               void *UNUSED(data))
+{
+  const int loop_loose_len = loose_geom->edge_len + loose_geom->vert_len;
+  if (loop_loose_len == 0) {
+    return;
+  }
+
+  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+  uint *vert_idx_data = (uint *)GPU_vertbuf_get_data(vbo);
+  const Mesh *coarse_mesh = subdiv_cache->mesh;
+  const MEdge *coarse_edges = coarse_mesh->medge;
+  uint offset = subdiv_cache->num_subdiv_loops;
+
+  for (int i = 0; i < loose_geom->edge_len; i++) {
+    const MEdge *loose_edge = &coarse_edges[loose_geom->edges[i]];
+    vert_idx_data[offset] = loose_edge->v1;
+    vert_idx_data[offset + 1] = loose_edge->v2;
+    offset += 2;
+  }
+
+  for (int i = 0; i < loose_geom->vert_len; i++) {
+    vert_idx_data[offset] = loose_geom->verts[i];
+    offset += 1;
+  }
+}
+
+static void extract_edge_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                         const MeshRenderData *mr,
+                                         MeshBatchCache *UNUSED(cache),
+                                         void *buf,
+                                         void *UNUSED(data))
+{
+  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  draw_subdiv_init_origindex_buffer(
+      vbo,
+      static_cast<int *>(GPU_vertbuf_get_data(subdiv_cache->edges_orig_index)),
+      subdiv_cache->num_subdiv_loops,
+      mr->edge_loose_len * 2);
+}
+
+static void extract_edge_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
+                                               const MeshRenderData *UNUSED(mr),
+                                               const MeshExtractLooseGeom *loose_geom,
+                                               void *buffer,
+                                               void *UNUSED(data))
+{
+  const int loop_loose_len = loose_geom->edge_len + loose_geom->vert_len;
+  if (loop_loose_len == 0) {
+    return;
+  }
+
+  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+  uint *vert_idx_data = (uint *)GPU_vertbuf_get_data(vbo);
+  uint offset = subdiv_cache->num_subdiv_loops;
+
+  for (int i = 0; i < loose_geom->edge_len; i++) {
+    vert_idx_data[offset] = loose_geom->edges[i];
+    vert_idx_data[offset + 1] = loose_geom->edges[i];
+    offset += 2;
+  }
+}
+
+static void extract_poly_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                         const MeshRenderData *UNUSED(mr),
+                                         MeshBatchCache *UNUSED(cache),
+                                         void *buf,
+                                         void *UNUSED(data))
+{
+  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  draw_subdiv_init_origindex_buffer(
+      vbo, subdiv_cache->subdiv_loop_poly_index, subdiv_cache->num_subdiv_loops, 0);
+}
+
 constexpr MeshExtract create_extractor_poly_idx()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_select_idx_init;
   extractor.iter_poly_bm = extract_poly_idx_iter_poly_bm;
   extractor.iter_poly_mesh = extract_poly_idx_iter_poly_mesh;
+  extractor.init_subdiv = extract_poly_idx_init_subdiv;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(uint32_t *);
   extractor.use_threading = true;
@@ -217,6 +310,8 @@ constexpr MeshExtract create_extractor_edge_idx()
   extractor.iter_poly_mesh = extract_edge_idx_iter_poly_mesh;
   extractor.iter_ledge_bm = extract_edge_idx_iter_ledge_bm;
   extractor.iter_ledge_mesh = extract_edge_idx_iter_ledge_mesh;
+  extractor.init_subdiv = extract_edge_idx_init_subdiv;
+  extractor.iter_loose_geom_subdiv = extract_edge_idx_loose_geom_subdiv;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(uint32_t *);
   extractor.use_threading = true;
@@ -234,6 +329,8 @@ constexpr MeshExtract create_extractor_vert_idx()
   extractor.iter_ledge_mesh = extract_vert_idx_iter_ledge_mesh;
   extractor.iter_lvert_bm = extract_vert_idx_iter_lvert_bm;
   extractor.iter_lvert_mesh = extract_vert_idx_iter_lvert_mesh;
+  extractor.init_subdiv = extract_vert_idx_init_subdiv;
+  extractor.iter_loose_geom_subdiv = extract_vert_idx_loose_geom_subdiv;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(uint32_t *);
   extractor.use_threading = true;

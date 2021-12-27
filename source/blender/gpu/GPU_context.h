@@ -40,6 +40,8 @@ typedef enum eGPUBackendType {
 void GPU_backend_init(eGPUBackendType backend);
 void GPU_backend_exit(void);
 
+eGPUBackendType GPU_backend_get_type(void);
+
 /** Opaque type hiding blender::gpu::Context. */
 typedef struct GPUContext GPUContext;
 

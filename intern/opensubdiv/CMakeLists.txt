@@ -72,9 +72,20 @@ if(WITH_OPENSUBDIV)
     internal/device/device_context_openmp.h
 
     # Evaluator.
+    internal/evaluator/eval_output.cc
+    internal/evaluator/eval_output.h
+    internal/evaluator/eval_output_cpu.cc
+    internal/evaluator/eval_output_cpu.h
+    internal/evaluator/eval_output_gpu.cc
+    internal/evaluator/eval_output_gpu.h
+    internal/evaluator/evaluator_cache_impl.cc
+    internal/evaluator/evaluator_cache_impl.h
     internal/evaluator/evaluator_capi.cc
     internal/evaluator/evaluator_impl.cc
     internal/evaluator/evaluator_impl.h
+    internal/evaluator/patch_map.cc
+    internal/evaluator/patch_map.h
+
 
     # Topology.
     internal/topology/mesh_topology.cc

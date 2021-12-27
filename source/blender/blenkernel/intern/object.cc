@@ -1773,8 +1773,9 @@ static void object_update_from_subsurf_ccg(Object *object)
   if (!object->runtime.is_data_eval_owned) {
     return;
   }
-  /* Object was never evaluated, so can not have CCG subdivision surface. */
-  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(object);
+  /* Object was never evaluated, so can not have CCG subdivision surface. If it were evaluated, do
+   * not try to compute OpenSubDiv on the CPU as it is not needed here. */
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(object);
   if (mesh_eval == nullptr) {
     return;
   }
@@ -4496,7 +4497,7 @@ bool BKE_object_obdata_texspace_get(Object *ob, char **r_texflag, float **r_loc,
   return true;
 }
 
-Mesh *BKE_object_get_evaluated_mesh(const Object *object)
+Mesh *BKE_object_get_evaluated_mesh_no_subsurf(const Object *object)
 {
   /* First attempt to retrieve the evaluated mesh from the evaluated geometry set. Most
    * object types either store it there or add a reference to it if it's owned elsewhere. */
@@ -4521,6 +4522,20 @@ Mesh *BKE_object_get_evaluated_mesh(const Object *object)
   }
 
   return nullptr;
+}
+
+Mesh *BKE_object_get_evaluated_mesh(const Object *object)
+{
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(object);
+  if (!mesh) {
+    return nullptr;
+  }
+
+  if (object->data && GS(((const ID *)object->data)->name) == ID_ME) {
+    mesh = BKE_mesh_wrapper_ensure_subdivision(object, mesh);
+  }
+
+  return mesh;
 }
 
 Mesh *BKE_object_get_pre_modified_mesh(const Object *object)
@@ -5777,6 +5792,21 @@ void BKE_object_modifiers_lib_link_common(void *userData,
   if (*idpoin != nullptr && (cb_flag & IDWALK_CB_USER) != 0) {
     id_us_plus_no_lib(*idpoin);
   }
+}
+
+SubsurfModifierData *BKE_object_get_last_subsurf_modifier(const Object *ob)
+{
+  ModifierData *md = (ModifierData *)(ob->modifiers.last);
+
+  while (md) {
+    if (md->type == eModifierType_Subsurf) {
+      break;
+    }
+
+    md = md->prev;
+  }
+
+  return (SubsurfModifierData *)(md);
 }
 
 void BKE_object_replace_data_on_shallow_copy(Object *ob, ID *new_data)

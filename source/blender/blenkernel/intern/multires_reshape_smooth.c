@@ -566,7 +566,8 @@ static bool foreach_topology_info(const SubdivForeachContext *foreach_context,
                                   const int num_vertices,
                                   const int num_edges,
                                   const int num_loops,
-                                  const int num_polygons)
+                                  const int num_polygons,
+                                  const int *UNUSED(subdiv_polygon_offset))
 {
   MultiresReshapeSmoothContext *reshape_smooth_context = foreach_context->user_data;
   const int max_edges = reshape_smooth_context->smoothing_type == MULTIRES_SUBDIVIDE_LINEAR ?
@@ -1037,7 +1038,7 @@ static void reshape_subdiv_create(MultiresReshapeSmoothContext *reshape_smooth_c
   converter_init(reshape_smooth_context, &converter);
 
   Subdiv *reshape_subdiv = BKE_subdiv_new_from_converter(settings, &converter);
-  BKE_subdiv_eval_begin(reshape_subdiv);
+  BKE_subdiv_eval_begin(reshape_subdiv, SUBDIV_EVALUATOR_TYPE_CPU, NULL);
 
   reshape_smooth_context->reshape_subdiv = reshape_subdiv;
 

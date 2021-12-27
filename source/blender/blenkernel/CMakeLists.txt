@@ -275,6 +275,7 @@ set(SRC
   intern/subdiv_eval.c
   intern/subdiv_foreach.c
   intern/subdiv_mesh.c
+  intern/subdiv_modifier.c
   intern/subdiv_stats.c
   intern/subdiv_topology.c
   intern/subsurf_ccg.c
@@ -453,6 +454,7 @@ set(SRC
   BKE_subdiv_eval.h
   BKE_subdiv_foreach.h
   BKE_subdiv_mesh.h
+  BKE_subdiv_modifier.h
   BKE_subdiv_topology.h
   BKE_subsurf.h
   BKE_text.h

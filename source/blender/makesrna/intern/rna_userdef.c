@@ -182,6 +182,7 @@ static const EnumPropertyItem rna_enum_userdef_viewport_aa_items[] = {
 #  include "BKE_image.h"
 #  include "BKE_main.h"
 #  include "BKE_mesh_runtime.h"
+#  include "BKE_object.h"
 #  include "BKE_paint.h"
 #  include "BKE_pbvh.h"
 #  include "BKE_preferences.h"
@@ -576,6 +577,20 @@ static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 static PointerRNA rna_UserDef_apps_get(PointerRNA *ptr)
 {
   return rna_pointer_inherit_refine(ptr, &RNA_PreferencesApps, ptr->data);
+}
+
+/* Reevaluate objects with a subsurf modifier as the last in their modifiers stacks. */
+static void rna_UserDef_subdivision_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  Object *ob;
+
+  for (ob = bmain->objects.first; ob; ob = ob->id.next) {
+    if (BKE_object_get_last_subsurf_modifier(ob) != NULL) {
+      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    }
+  }
+
+  rna_userdef_update(bmain, scene, ptr);
 }
 
 static void rna_UserDef_audio_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
@@ -5650,6 +5665,16 @@ static void rna_def_userdef_system(BlenderRNA *brna)
                            "OpenGL Depth Picking",
                            "Use the depth buffer for picking 3D View selection "
                            "(without this the front most object may not be selected first)");
+
+  /* GPU subdivision evaluation. */
+
+  prop = RNA_def_property(srna, "use_gpu_subdivision", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "gpu_flag", USER_GPU_FLAG_SUBDIVISION_EVALUATION);
+  RNA_def_property_ui_text(prop,
+                           "GPU Subdivision",
+                           "Enable GPU acceleration for evaluating the last subdivision surface "
+                           "modifiers in the stack");
+  RNA_def_property_update(prop, 0, "rna_UserDef_subdivision_update");
 
   /* Audio */
 

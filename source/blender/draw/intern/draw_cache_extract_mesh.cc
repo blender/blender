@@ -42,6 +42,7 @@
 
 #include "draw_cache_extract.h"
 #include "draw_cache_inline.h"
+#include "draw_subdivision.h"
 
 #include "mesh_extractors/extract_mesh.h"
 
@@ -783,6 +784,99 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
 
 /** \} */
 
+/* ---------------------------------------------------------------------- */
+/** \name Subdivision Extract Loop
+ * \{ */
+
+static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
+                                                      MeshBufferCache *mbc,
+                                                      DRWSubdivCache *subdiv_cache,
+                                                      const ToolSettings *ts)
+{
+  /* Create an array containing all the extractors that needs to be executed. */
+  ExtractorRunDatas extractors;
+
+  MeshBufferList *mbuflist = &mbc->buff;
+
+#define EXTRACT_ADD_REQUESTED(type, name) \
+  do { \
+    if (DRW_##type##_requested(mbuflist->type.name)) { \
+      const MeshExtract *extractor = &extract_##name; \
+      extractors.append(extractor); \
+    } \
+  } while (0)
+
+  /* The order in which extractors are added to the list matters somewhat, as some buffers are
+   * reused when building others. */
+  EXTRACT_ADD_REQUESTED(ibo, tris);
+  EXTRACT_ADD_REQUESTED(vbo, pos_nor);
+  EXTRACT_ADD_REQUESTED(vbo, lnor);
+  for (int i = 0; i < GPU_MAX_ATTR; i++) {
+    EXTRACT_ADD_REQUESTED(vbo, attr[i]);
+  }
+
+  /* We use only one extractor for face dots, as the work is done in a single compute shader. */
+  if (DRW_vbo_requested(mbuflist->vbo.fdots_nor) || DRW_vbo_requested(mbuflist->vbo.fdots_pos) ||
+      DRW_ibo_requested(mbuflist->ibo.fdots)) {
+    extractors.append(&extract_fdots_pos);
+  }
+
+  EXTRACT_ADD_REQUESTED(ibo, lines);
+  EXTRACT_ADD_REQUESTED(ibo, edituv_points);
+  EXTRACT_ADD_REQUESTED(ibo, edituv_tris);
+  EXTRACT_ADD_REQUESTED(ibo, edituv_lines);
+  EXTRACT_ADD_REQUESTED(vbo, vert_idx);
+  EXTRACT_ADD_REQUESTED(vbo, edge_idx);
+  EXTRACT_ADD_REQUESTED(vbo, poly_idx);
+  EXTRACT_ADD_REQUESTED(vbo, edge_fac);
+  EXTRACT_ADD_REQUESTED(ibo, points);
+  EXTRACT_ADD_REQUESTED(vbo, edit_data);
+  EXTRACT_ADD_REQUESTED(vbo, edituv_data);
+  /* Make sure UVs are computed before edituv stuffs. */
+  EXTRACT_ADD_REQUESTED(vbo, uv);
+  EXTRACT_ADD_REQUESTED(vbo, edituv_stretch_area);
+  EXTRACT_ADD_REQUESTED(vbo, edituv_stretch_angle);
+  EXTRACT_ADD_REQUESTED(ibo, lines_adjacency);
+  EXTRACT_ADD_REQUESTED(vbo, vcol);
+  EXTRACT_ADD_REQUESTED(vbo, weights);
+  EXTRACT_ADD_REQUESTED(vbo, sculpt_data);
+
+#undef EXTRACT_ADD_REQUESTED
+
+  if (extractors.is_empty()) {
+    return;
+  }
+
+  MeshRenderData mr;
+  draw_subdiv_init_mesh_render_data(subdiv_cache, &mr, ts);
+  mesh_render_data_update_loose_geom(&mr, mbc, MR_ITER_LEDGE | MR_ITER_LVERT, MR_DATA_LOOSE_GEOM);
+
+  void *data_stack = MEM_mallocN(extractors.data_size_total(), __func__);
+  uint32_t data_offset = 0;
+  for (const ExtractorRunData &run_data : extractors) {
+    const MeshExtract *extractor = run_data.extractor;
+    void *buffer = mesh_extract_buffer_get(extractor, mbuflist);
+    void *data = POINTER_OFFSET(data_stack, data_offset);
+
+    extractor->init_subdiv(subdiv_cache, &mr, cache, buffer, data);
+
+    if (extractor->iter_subdiv) {
+      extractor->iter_subdiv(subdiv_cache, &mr, data);
+    }
+
+    if (extractor->iter_loose_geom_subdiv) {
+      extractor->iter_loose_geom_subdiv(subdiv_cache, &mr, &mbc->loose_geom, buffer, data);
+    }
+
+    if (extractor->finish_subdiv) {
+      extractor->finish_subdiv(subdiv_cache, buffer, data);
+    }
+  }
+  MEM_freeN(data_stack);
+}
+
+/** \} */
+
 }  // namespace blender::draw
 
 extern "C" {
@@ -816,6 +910,14 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                                     scene,
                                                     ts,
                                                     use_hide);
+}
+
+void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
+                                               MeshBufferCache *mbc,
+                                               DRWSubdivCache *subdiv_cache,
+                                               const ToolSettings *ts)
+{
+  blender::draw::mesh_buffer_cache_create_requested_subdiv(cache, mbc, subdiv_cache, ts);
 }
 
 }  // extern "C"

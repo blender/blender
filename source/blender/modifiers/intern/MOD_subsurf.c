@@ -39,6 +39,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
+#include "BKE_editmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -46,6 +47,7 @@
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subdiv_deform.h"
 #include "BKE_subdiv_mesh.h"
+#include "BKE_subdiv_modifier.h"
 #include "BKE_subsurf.h"
 
 #include "UI_interface.h"
@@ -64,11 +66,6 @@
 #include "BLO_read_write.h"
 
 #include "intern/CCGSubSurf.h"
-
-typedef struct SubsurfRuntimeData {
-  /* Cached subdivision surface descriptor, with topology and settings. */
-  struct Subdiv *subdiv;
-} SubsurfRuntimeData;
 
 static void initData(ModifierData *md)
 {
@@ -155,37 +152,6 @@ static int subdiv_levels_for_modifier_get(const SubsurfModifierData *smd,
   return get_render_subsurf_level(&scene->r, requested_levels, use_render_params);
 }
 
-static void subdiv_settings_init(SubdivSettings *settings,
-                                 const SubsurfModifierData *smd,
-                                 const ModifierEvalContext *ctx)
-{
-  const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
-  const int requested_levels = (use_render_params) ? smd->renderLevels : smd->levels;
-
-  settings->is_simple = (smd->subdivType == SUBSURF_TYPE_SIMPLE);
-  settings->is_adaptive = !(smd->flags & eSubsurfModifierFlag_UseRecursiveSubdivision);
-  settings->level = settings->is_simple ?
-                        1 :
-                        (settings->is_adaptive ? smd->quality : requested_levels);
-  settings->use_creases = (smd->flags & eSubsurfModifierFlag_UseCrease);
-  settings->vtx_boundary_interpolation = BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
-      smd->boundary_smooth);
-  settings->fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(
-      smd->uv_smooth);
-}
-
-/* Main goal of this function is to give usable subdivision surface descriptor
- * which matches settings and topology. */
-static Subdiv *subdiv_descriptor_ensure(SubsurfModifierData *smd,
-                                        const SubdivSettings *subdiv_settings,
-                                        const Mesh *mesh)
-{
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
-  Subdiv *subdiv = BKE_subdiv_update_from_mesh(runtime_data->subdiv, subdiv_settings, mesh);
-  runtime_data->subdiv = subdiv;
-  return subdiv;
-}
-
 /* Subdivide into fully qualified mesh. */
 
 static void subdiv_mesh_settings_init(SubdivToMeshSettings *settings,
@@ -240,14 +206,17 @@ static Mesh *subdiv_as_ccg(SubsurfModifierData *smd,
   return result;
 }
 
-static SubsurfRuntimeData *subsurf_ensure_runtime(SubsurfModifierData *smd)
+/* Cache settings for lazy CPU evaluation. */
+
+static void subdiv_cache_cpu_evaluation_settings(const ModifierEvalContext *ctx,
+                                                 Mesh *me,
+                                                 SubsurfModifierData *smd)
 {
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
-  if (runtime_data == NULL) {
-    runtime_data = MEM_callocN(sizeof(*runtime_data), "subsurf runtime");
-    smd->modifier.runtime = runtime_data;
-  }
-  return runtime_data;
+  SubdivToMeshSettings mesh_settings;
+  subdiv_mesh_settings_init(&mesh_settings, smd, ctx);
+  me->runtime.subsurf_apply_render = (ctx->flag & MOD_APPLY_RENDER) != 0;
+  me->runtime.subsurf_resolution = mesh_settings.resolution;
+  me->runtime.subsurf_use_optimal_display = mesh_settings.use_optimal_display;
 }
 
 /* Modifier itself. */
@@ -261,12 +230,30 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 #endif
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
   SubdivSettings subdiv_settings;
-  subdiv_settings_init(&subdiv_settings, smd, ctx);
+  BKE_subsurf_modifier_subdiv_settings_init(
+      &subdiv_settings, smd, (ctx->flag & MOD_APPLY_RENDER) != 0);
   if (subdiv_settings.level == 0) {
     return result;
   }
-  SubsurfRuntimeData *runtime_data = subsurf_ensure_runtime(smd);
-  Subdiv *subdiv = subdiv_descriptor_ensure(smd, &subdiv_settings, mesh);
+  SubsurfRuntimeData *runtime_data = BKE_subsurf_modifier_ensure_runtime(smd);
+
+  /* Delay evaluation to the draw code if possible, provided we do not have to apply the modifier.
+   */
+  if ((ctx->flag & MOD_APPLY_TO_BASE_MESH) == 0) {
+    Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+    const bool is_render_mode = (ctx->flag & MOD_APPLY_RENDER) != 0;
+    /* Same check as in `DRW_mesh_batch_cache_create_requested` to keep both code coherent. */
+    const bool is_editmode = (mesh->edit_mesh != NULL) &&
+                             (mesh->edit_mesh->mesh_eval_final != NULL);
+    const int required_mode = BKE_subsurf_modifier_eval_required_mode(is_render_mode, is_editmode);
+    if (BKE_subsurf_modifier_can_do_gpu_subdiv_ex(scene, ctx->object, smd, required_mode, false)) {
+      subdiv_cache_cpu_evaluation_settings(ctx, mesh, smd);
+      return result;
+    }
+  }
+
+  Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(
+      smd, &subdiv_settings, mesh, false);
   if (subdiv == NULL) {
     /* Happens on bad topology, but also on empty input mesh. */
     return result;
@@ -320,12 +307,14 @@ static void deformMatrices(ModifierData *md,
 
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
   SubdivSettings subdiv_settings;
-  subdiv_settings_init(&subdiv_settings, smd, ctx);
+  BKE_subsurf_modifier_subdiv_settings_init(
+      &subdiv_settings, smd, (ctx->flag & MOD_APPLY_RENDER) != 0);
   if (subdiv_settings.level == 0) {
     return;
   }
-  SubsurfRuntimeData *runtime_data = subsurf_ensure_runtime(smd);
-  Subdiv *subdiv = subdiv_descriptor_ensure(smd, &subdiv_settings, mesh);
+  SubsurfRuntimeData *runtime_data = BKE_subsurf_modifier_ensure_runtime(smd);
+  Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(
+      smd, &subdiv_settings, mesh, false);
   if (subdiv == NULL) {
     /* Happens on bad topology, but also on empty input mesh. */
     return;

@@ -91,6 +91,8 @@ void GPU_vertbuf_handle_ref_remove(GPUVertBuf *verts);
 
 void GPU_vertbuf_init_with_format_ex(GPUVertBuf *, const GPUVertFormat *, GPUUsageType);
 
+void GPU_vertbuf_init_build_on_device(GPUVertBuf *verts, GPUVertFormat *format, uint v_len);
+
 #define GPU_vertbuf_init_with_format(verts, format) \
   GPU_vertbuf_init_with_format_ex(verts, format, GPU_USAGE_STATIC)
 
@@ -172,6 +174,7 @@ const GPUVertFormat *GPU_vertbuf_get_format(const GPUVertBuf *verts);
 uint GPU_vertbuf_get_vertex_alloc(const GPUVertBuf *verts);
 uint GPU_vertbuf_get_vertex_len(const GPUVertBuf *verts);
 GPUVertBufStatus GPU_vertbuf_get_status(const GPUVertBuf *verts);
+void GPU_vertbuf_tag_dirty(GPUVertBuf *verts);
 
 /**
  * Should be rename to #GPU_vertbuf_data_upload.
@@ -179,12 +182,14 @@ GPUVertBufStatus GPU_vertbuf_get_status(const GPUVertBuf *verts);
 void GPU_vertbuf_use(GPUVertBuf *);
 void GPU_vertbuf_bind_as_ssbo(struct GPUVertBuf *verts, int binding);
 
+void GPU_vertbuf_wrap_handle(GPUVertBuf *verts, uint64_t handle);
+
 /**
  * XXX: do not use!
  * This is just a wrapper for the use of the Hair refine workaround.
  * To be used with #GPU_vertbuf_use().
  */
-void GPU_vertbuf_update_sub(GPUVertBuf *verts, uint start, uint len, void *data);
+void GPU_vertbuf_update_sub(GPUVertBuf *verts, uint start, uint len, const void *data);
 
 /* Metrics */
 uint GPU_vertbuf_get_memory_usage(void);

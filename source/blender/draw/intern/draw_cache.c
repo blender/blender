@@ -923,7 +923,7 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
 
 GPUVertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
 {
-  Mesh *me = BKE_object_get_evaluated_mesh(ob);
+  Mesh *me = BKE_object_get_evaluated_mesh_no_subsurf(ob);
   short type = (me != NULL) ? OB_MESH : ob->type;
 
   switch (type) {
@@ -950,7 +950,7 @@ int DRW_cache_object_material_count_get(struct Object *ob)
 {
   short type = ob->type;
 
-  Mesh *me = BKE_object_get_evaluated_mesh(ob);
+  Mesh *me = BKE_object_get_evaluated_mesh_no_subsurf(ob);
   if (me != NULL && type != OB_POINTCLOUD) {
     /* Some object types can have one data type in ob->data, but will be rendered as mesh.
      * For point clouds this never happens. Ideally this check would happen at another level
@@ -3021,7 +3021,7 @@ GPUBatch *DRW_cache_surf_surface_get(Object *ob)
   BLI_assert(ob->type == OB_SURF);
 
   struct Curve *cu = ob->data;
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_surface(mesh_eval);
   }
@@ -3034,7 +3034,7 @@ GPUBatch *DRW_cache_surf_edge_wire_get(Object *ob)
   BLI_assert(ob->type == OB_SURF);
 
   struct Curve *cu = ob->data;
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_loose_edges(mesh_eval);
   }
@@ -3047,7 +3047,7 @@ GPUBatch *DRW_cache_surf_face_wireframe_get(Object *ob)
   BLI_assert(ob->type == OB_SURF);
 
   struct Curve *cu = ob->data;
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_wireframes_face(mesh_eval);
   }
@@ -3059,7 +3059,7 @@ GPUBatch *DRW_cache_surf_edge_detection_get(Object *ob, bool *r_is_manifold)
 {
   BLI_assert(ob->type == OB_SURF);
   struct Curve *cu = ob->data;
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_edge_detection(mesh_eval, r_is_manifold);
   }
@@ -3072,7 +3072,7 @@ GPUBatch *DRW_cache_surf_loose_edges_get(Object *ob)
   BLI_assert(ob->type == OB_SURF);
 
   struct Curve *cu = ob->data;
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_loose_edges(mesh_eval);
   }
@@ -3089,7 +3089,7 @@ GPUBatch **DRW_cache_surf_surface_shaded_get(Object *ob,
   BLI_assert(ob->type == OB_SURF);
 
   struct Curve *cu = ob->data;
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
   if (mesh_eval != NULL) {
     return DRW_mesh_batch_cache_get_surface_shaded(mesh_eval, gpumat_array, gpumat_array_len);
   }
@@ -3382,7 +3382,7 @@ GPUBatch *DRW_cache_cursor_get(bool crosshair_lines)
 
 void drw_batch_cache_validate(Object *ob)
 {
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
   switch (ob->type) {
     case OB_MESH:
       DRW_mesh_batch_cache_validate((Mesh *)ob->data);
@@ -3431,7 +3431,7 @@ void drw_batch_cache_generate_requested(Object *ob)
                            DRW_object_use_hide_faces(ob)) ||
                           ((mode == CTX_MODE_EDIT_MESH) && DRW_object_is_in_edit_mode(ob))));
 
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
   switch (ob->type) {
     case OB_MESH:
       DRW_mesh_batch_cache_create_requested(
@@ -3470,7 +3470,7 @@ void drw_batch_cache_generate_requested_evaluated_mesh(Object *ob)
                            DRW_object_use_hide_faces(ob)) ||
                           ((mode == CTX_MODE_EDIT_MESH) && DRW_object_is_in_edit_mode(ob))));
 
-  Mesh *mesh = BKE_object_get_evaluated_mesh(ob);
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(ob);
   DRW_mesh_batch_cache_create_requested(DST.task_graph, ob, mesh, scene, is_paint_mode, use_hide);
 }
 
@@ -3481,7 +3481,7 @@ void drw_batch_cache_generate_requested_delayed(Object *ob)
 
 void DRW_batch_cache_free_old(Object *ob, int ctime)
 {
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
 
   switch (ob->type) {
     case OB_MESH:
