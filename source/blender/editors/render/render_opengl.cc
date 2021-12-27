@@ -21,9 +21,9 @@
  * \ingroup render
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -95,7 +95,7 @@
  * For really highres renders it might fail still. */
 #define MAX_SCHEDULED_FRAMES 8
 
-typedef struct OGLRender {
+struct OGLRender {
   Main *bmain;
   Render *re;
   Scene *scene;
@@ -159,7 +159,7 @@ typedef struct OGLRender {
 #ifdef DEBUG_TIME
   double time_start;
 #endif
-} OGLRender;
+};
 
 static bool screen_opengl_is_multiview(OGLRender *oglrender)
 {
@@ -167,12 +167,12 @@ static bool screen_opengl_is_multiview(OGLRender *oglrender)
   RegionView3D *rv3d = oglrender->rv3d;
   RenderData *rd = &oglrender->scene->r;
 
-  if ((rd == NULL) || ((v3d != NULL) && (rv3d == NULL))) {
+  if ((rd == nullptr) || ((v3d != nullptr) && (rv3d == nullptr))) {
     return false;
   }
 
   return (rd->scemode & R_MULTIVIEW) &&
-         ((v3d == NULL) || (rv3d->persp == RV3D_CAMOB && v3d->camera));
+         ((v3d == nullptr) || (rv3d->persp == RV3D_CAMOB && v3d->camera));
 }
 
 static void screen_opengl_views_setup(OGLRender *oglrender)
@@ -194,7 +194,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
     /* we only have one view when multiview is off */
     rv = static_cast<RenderView *>(rr->views.first);
 
-    if (rv == NULL) {
+    if (rv == nullptr) {
       rv = MEM_cnew<RenderView>("new opengl render view");
       BLI_addtail(&rr->views, rv);
     }
@@ -262,7 +262,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
       rv = static_cast<RenderView *>(
           BLI_findstring(&rr->views, srv->name, offsetof(SceneRenderView, name)));
 
-      if (rv == NULL) {
+      if (rv == nullptr) {
         rv = MEM_cnew<RenderView>("new opengl render view");
         BLI_strncpy(rv->name, srv->name, sizeof(rv->name));
         BLI_addtail(&rr->views, rv);
@@ -293,19 +293,19 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
   ARegion *region = oglrender->region;
   View3D *v3d = oglrender->v3d;
   RegionView3D *rv3d = oglrender->rv3d;
-  Object *camera = NULL;
+  Object *camera = nullptr;
   int sizex = oglrender->sizex;
   int sizey = oglrender->sizey;
-  const short view_context = (v3d != NULL);
+  const short view_context = (v3d != nullptr);
   bool draw_sky = (scene->r.alphamode == R_ADDSKY);
-  float *rectf = NULL;
-  uchar *rect = NULL;
+  float *rectf = nullptr;
+  uchar *rect = nullptr;
   const char *viewname = RE_GetActiveRenderView(oglrender->re);
-  ImBuf *ibuf_result = NULL;
+  ImBuf *ibuf_result = nullptr;
 
   if (oglrender->is_sequencer) {
     SpaceSeq *sseq = oglrender->sseq;
-    struct bGPdata *gpd = (sseq && (sseq->flag & SEQ_PREVIEW_SHOW_GPENCIL)) ? sseq->gpd : NULL;
+    struct bGPdata *gpd = (sseq && (sseq->flag & SEQ_PREVIEW_SHOW_GPENCIL)) ? sseq->gpd : nullptr;
 
     /* use pre-calculated ImBuf (avoids deadlock), see: */
     ImBuf *ibuf = oglrender->seq_data.ibufs_arr[oglrender->view_id];
@@ -320,7 +320,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
        * TODO(sergey): In the case of output to float container (EXR)
        * it actually makes sense to keep float buffer instead.
        */
-      if (out->rect_float != NULL) {
+      if (out->rect_float != nullptr) {
         IMB_rect_from_float(out);
         imb_freerectfloatImBuf(out);
       }
@@ -395,7 +395,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
     else {
       ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(depsgraph,
                                                         scene,
-                                                        NULL,
+                                                        nullptr,
                                                         OB_SOLID,
                                                         scene->camera,
                                                         oglrender->sizex,
@@ -423,9 +423,9 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
     }
   }
 
-  if (ibuf_result != NULL) {
+  if (ibuf_result != nullptr) {
     if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW)) {
-      BKE_image_stamp_buf(scene, camera, NULL, rect, rectf, rr->rectx, rr->recty, 4);
+      BKE_image_stamp_buf(scene, camera, nullptr, rect, rectf, rr->rectx, rr->recty, 4);
     }
     RE_render_result_rect_from_ibuf(rr, &scene->r, ibuf_result, oglrender->view_id);
     IMB_freeImBuf(ibuf_result);
@@ -448,7 +448,7 @@ static void screen_opengl_render_write(OGLRender *oglrender)
                                &scene->r.im_format,
                                (scene->r.scemode & R_EXTENSION) != 0,
                                false,
-                               NULL);
+                               nullptr);
 
   /* write images as individual images or stereo */
   BKE_render_result_stamp_info(scene, scene->camera, rr, false);
@@ -534,7 +534,7 @@ static void screen_opengl_render_apply(const bContext *C, OGLRender *oglrender)
 
 static void gather_frames_to_render_for_adt(const OGLRender *oglrender, const AnimData *adt)
 {
-  if (adt == NULL || adt->action == NULL) {
+  if (adt == nullptr || adt->action == nullptr) {
     return;
   }
 
@@ -543,7 +543,7 @@ static void gather_frames_to_render_for_adt(const OGLRender *oglrender, const An
   int frame_end = PEFRA;
 
   LISTBASE_FOREACH (FCurve *, fcu, &adt->action->curves) {
-    if (fcu->driver != NULL || fcu->fpt != NULL) {
+    if (fcu->driver != nullptr || fcu->fpt != nullptr) {
       /* Drivers have values for any point in time, so to get "the keyed frames" they are
        * useless. Same for baked FCurves, they also have keys for every frame, which is not
        * useful for rendering the keyed subset of the frames. */
@@ -572,7 +572,7 @@ static void gather_frames_to_render_for_adt(const OGLRender *oglrender, const An
 static void gather_frames_to_render_for_grease_pencil(const OGLRender *oglrender,
                                                       const bGPdata *gp)
 {
-  if (gp == NULL) {
+  if (gp == nullptr) {
     return;
   }
 
@@ -593,7 +593,7 @@ static void gather_frames_to_render_for_grease_pencil(const OGLRender *oglrender
 static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
 {
   ID **id_p = cb_data->id_pointer;
-  if (*id_p == NULL) {
+  if (*id_p == nullptr) {
     return IDWALK_RET_NOP;
   }
   ID *id = *id_p;
@@ -703,7 +703,7 @@ static void gather_frames_to_render(bContext *C, OGLRender *oglrender)
 
     /* Gather the frames from linked data-blocks (materials, shape-keys, etc.). */
     BKE_library_foreach_ID_link(
-        NULL, id, gather_frames_to_render_for_id, oglrender, IDWALK_RECURSE);
+        nullptr, id, gather_frames_to_render_for_id, oglrender, IDWALK_RECURSE);
   }
   CTX_DATA_END;
 }
@@ -751,7 +751,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
       is_view_context = false;
     }
 
-    if (!is_view_context && scene->camera == NULL) {
+    if (!is_view_context && scene->camera == nullptr) {
       BKE_report(op->reports, RPT_ERROR, "Scene has no camera");
       return false;
     }
@@ -837,13 +837,14 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 
   /* create image and image user */
   oglrender->ima = BKE_image_ensure_viewer(oglrender->bmain, IMA_TYPE_R_RESULT, "Render Result");
-  BKE_image_signal(oglrender->bmain, oglrender->ima, NULL, IMA_SIGNAL_FREE);
+  BKE_image_signal(oglrender->bmain, oglrender->ima, nullptr, IMA_SIGNAL_FREE);
   BKE_image_backup_render(oglrender->scene, oglrender->ima, true);
 
   oglrender->iuser.scene = scene;
 
   /* create render result */
-  RE_InitState(oglrender->re, NULL, &scene->r, &scene->view_layers, NULL, sizex, sizey, NULL);
+  RE_InitState(
+      oglrender->re, nullptr, &scene->r, &scene->view_layers, nullptr, sizex, sizey, nullptr);
 
   /* create render views */
   screen_opengl_views_setup(oglrender);
@@ -853,8 +854,8 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   oglrender->win = win;
 
   oglrender->totvideos = 0;
-  oglrender->mh = NULL;
-  oglrender->movie_ctx_arr = NULL;
+  oglrender->mh = nullptr;
+  oglrender->movie_ctx_arr = nullptr;
 
   if (is_animation) {
     if (is_render_keyed_only) {
@@ -871,7 +872,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
     BLI_spin_init(&oglrender->reports_lock);
   }
   else {
-    oglrender->task_pool = NULL;
+    oglrender->task_pool = nullptr;
   }
   oglrender->num_scheduled_frames = 0;
   BLI_mutex_init(&oglrender->task_mutex);
@@ -988,7 +989,7 @@ static bool screen_opengl_render_anim_init(bContext *C, wmOperator *op)
         &scene->r, oglrender->sizex, oglrender->sizey, &width, &height);
     oglrender->mh = BKE_movie_handle_get(scene->r.im_format.imtype);
 
-    if (oglrender->mh == NULL) {
+    if (oglrender->mh == nullptr) {
       BKE_report(oglrender->reports, RPT_ERROR, "Movie format unsupported");
       screen_opengl_render_end(C, oglrender);
       return false;
@@ -1023,10 +1024,10 @@ static bool screen_opengl_render_anim_init(bContext *C, wmOperator *op)
   return true;
 }
 
-typedef struct WriteTaskData {
+struct WriteTaskData {
   RenderResult *rr;
   Scene tmp_scene;
-} WriteTaskData;
+};
 
 static void write_result_func(TaskPool *__restrict pool, void *task_data_v)
 {
@@ -1079,17 +1080,17 @@ static void write_result_func(TaskPool *__restrict pool, void *task_data_v)
                                  &scene->r.im_format,
                                  (scene->r.scemode & R_EXTENSION) != 0,
                                  true,
-                                 NULL);
+                                 nullptr);
 
     BKE_render_result_stamp_info(scene, scene->camera, rr, false);
-    ok = RE_WriteRenderViewsImage(NULL, rr, scene, true, name);
+    ok = RE_WriteRenderViewsImage(nullptr, rr, scene, true, name);
     if (!ok) {
       BKE_reportf(&reports, RPT_ERROR, "Write error: cannot save %s", name);
     }
   }
-  if (reports.list.first != NULL) {
+  if (reports.list.first != nullptr) {
     BLI_spin_lock(&oglrender->reports_lock);
-    for (Report *report = static_cast<Report *>(reports.list.first); report != NULL;
+    for (Report *report = static_cast<Report *>(reports.list.first); report != nullptr;
          report = report->next) {
       BKE_report(oglrender->reports, static_cast<eReportType>(report->type), report->message);
     }
@@ -1121,7 +1122,7 @@ static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
     BLI_condition_wait(&oglrender->task_condition, &oglrender->task_mutex);
   }
   BLI_mutex_unlock(&oglrender->task_mutex);
-  BLI_task_pool_push(oglrender->task_pool, write_result_func, task_data, true, NULL);
+  BLI_task_pool_push(oglrender->task_pool, write_result_func, task_data, true, nullptr);
   return true;
 }
 
@@ -1132,7 +1133,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = oglrender->depsgraph;
   char name[FILE_MAX];
   bool ok = false;
-  const bool view_context = (oglrender->v3d != NULL);
+  const bool view_context = (oglrender->v3d != nullptr);
   bool is_movie;
   RenderResult *rr;
 
@@ -1155,7 +1156,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
                                  &scene->r.im_format,
                                  (scene->r.scemode & R_EXTENSION) != 0,
                                  true,
-                                 NULL);
+                                 nullptr);
 
     if ((scene->r.mode & R_NO_OVERWRITE) && BLI_exists(name)) {
       BLI_spin_lock(&oglrender->reports_lock);
@@ -1184,7 +1185,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
     BKE_scene_camera_switch_update(scene);
   }
 
-  if (oglrender->render_frames == NULL ||
+  if (oglrender->render_frames == nullptr ||
       BLI_BITMAP_TEST_BOOL(oglrender->render_frames, CFRA - PSFRA)) {
     /* render into offscreen buffer */
     screen_opengl_render_apply(C, oglrender);
@@ -1207,10 +1208,10 @@ finally: /* Step the frame and bail early if needed */
   /* stop at the end or on error */
   if (CFRA >= PEFRA || !ok) {
     screen_opengl_render_end(C, static_cast<OGLRender *>(op->customdata));
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 static int screen_opengl_render_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1321,7 +1322,7 @@ static char *screen_opengl_render_description(struct bContext *UNUSED(C),
                                               struct PointerRNA *ptr)
 {
   if (!RNA_boolean_get(ptr, "animation")) {
-    return NULL;
+    return nullptr;
   }
 
   if (RNA_boolean_get(ptr, "render_keyed_only")) {
@@ -1353,32 +1354,32 @@ void RENDER_OT_opengl(wmOperatorType *ot)
 
   prop = RNA_def_boolean(ot->srna,
                          "animation",
-                         0,
+                         false,
                          "Animation",
                          "Render files from the animation range of this scene");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna,
                          "render_keyed_only",
-                         0,
+                         false,
                          "Render Keyframes Only",
                          "Render only those frames where selected objects have a key in their "
                          "animation data. Only used when rendering animation");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(
-      ot->srna, "sequencer", 0, "Sequencer", "Render using the sequencer's OpenGL display");
+      ot->srna, "sequencer", false, "Sequencer", "Render using the sequencer's OpenGL display");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna,
       "write_still",
-      0,
+      false,
       "Write Image",
       "Save rendered the image to the output path (used only when animation is disabled)");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna,
                          "view_context",
-                         1,
+                         true,
                          "View Context",
                          "Use the current 3D view for rendering, else use scene settings");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);

@@ -109,7 +109,7 @@ static void mesh_render_data_vert_flag(const MeshRenderData *mr,
   }
 }
 
-static GPUVertFormat *get_edit_data_format(void)
+static GPUVertFormat *get_edit_data_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {

@@ -20,8 +20,8 @@
  * \ingroup edrend
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -188,8 +188,8 @@ static int material_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 
   if (ob->mode & OB_MODE_TEXTURE_PAINT) {
     Scene *scene = CTX_data_scene(C);
-    ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
-    WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
+    ED_paint_proj_mesh_data_check(scene, ob, nullptr, nullptr, nullptr, nullptr);
+    WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, nullptr);
   }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -238,8 +238,8 @@ static int material_slot_remove_exec(bContext *C, wmOperator *op)
 
   if (ob->mode & OB_MODE_TEXTURE_PAINT) {
     Scene *scene = CTX_data_scene(C);
-    ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
-    WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
+    ED_paint_proj_mesh_data_check(scene, ob, nullptr, nullptr, nullptr, nullptr);
+    WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, nullptr);
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -277,7 +277,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
   bool changed_multi = false;
 
   Object *obact = CTX_data_active_object(C);
-  const Material *mat_active = obact ? BKE_object_material_get(obact, obact->actcol) : NULL;
+  const Material *mat_active = obact ? BKE_object_material_get(obact, obact->actcol) : nullptr;
 
   uint objects_len = 0;
   Object **objects = object_array_for_shading_edit_mode_enabled(C, &objects_len);
@@ -384,7 +384,7 @@ static int material_slot_de_select(bContext *C, bool select)
 {
   bool changed_multi = false;
   Object *obact = CTX_data_active_object(C);
-  const Material *mat_active = obact ? BKE_object_material_get(obact, obact->actcol) : NULL;
+  const Material *mat_active = obact ? BKE_object_material_get(obact, obact->actcol) : nullptr;
 
   uint objects_len = 0;
   Object **objects = object_array_for_shading_edit_mode_enabled(C, &objects_len);
@@ -644,7 +644,7 @@ void OBJECT_OT_material_slot_move(wmOperatorType *ot)
   static const EnumPropertyItem material_slot_move[] = {
       {1, "UP", 0, "Up", ""},
       {-1, "DOWN", 0, "Down", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */
@@ -716,8 +716,8 @@ static int material_slot_remove_unused_exec(bContext *C, wmOperator *op)
 
   if (ob_active->mode & OB_MODE_TEXTURE_PAINT) {
     Scene *scene = CTX_data_scene(C);
-    ED_paint_proj_mesh_data_check(scene, ob_active, NULL, NULL, NULL, NULL);
-    WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
+    ED_paint_proj_mesh_data_check(scene, ob_active, nullptr, nullptr, nullptr, nullptr);
+    WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, nullptr);
   }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob_active);
@@ -760,17 +760,17 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
   Object *ob = static_cast<Object *>((prop && RNA_struct_is_a(ptr.type, &RNA_Object)) ? ptr.data :
-                                                                                        NULL);
+                                                                                        nullptr);
 
   /* add or copy material */
   if (ma) {
     Material *new_ma = (Material *)BKE_id_copy_ex(
-        bmain, &ma->id, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
+        bmain, &ma->id, nullptr, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
     ma = new_ma;
   }
   else {
     const char *name = DATA_("Material");
-    if (!(ob != NULL && ob->type == OB_GPENCIL)) {
+    if (!(ob != nullptr && ob->type == OB_GPENCIL)) {
       ma = BKE_material_add(bmain, name);
     }
     else {
@@ -781,10 +781,10 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   if (prop) {
-    if (ob != NULL) {
+    if (ob != nullptr) {
       /* Add slot follows user-preferences for creating new slots,
        * RNA pointer assignment doesn't, see: T60014. */
-      if (BKE_object_material_get_p(ob, ob->actcol) == NULL) {
+      if (BKE_object_material_get_p(ob, ob->actcol) == nullptr) {
         BKE_object_material_slot_add(bmain, ob);
       }
     }
@@ -794,7 +794,7 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
     id_us_min(&ma->id);
 
     RNA_id_pointer_create(&ma->id, &idptr);
-    RNA_property_pointer_set(&ptr, prop, idptr, NULL);
+    RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
     RNA_property_update(C, &ptr, prop);
   }
 
@@ -848,7 +848,7 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
     id_us_min(&tex->id);
 
     RNA_id_pointer_create(&tex->id, &idptr);
-    RNA_property_pointer_set(&ptr, prop, idptr, NULL);
+    RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
     RNA_property_update(C, &ptr, prop);
   }
 
@@ -887,7 +887,7 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
   /* add or copy world */
   if (wo) {
     World *new_wo = (World *)BKE_id_copy_ex(
-        bmain, &wo->id, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
+        bmain, &wo->id, nullptr, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
     wo = new_wo;
   }
   else {
@@ -905,7 +905,7 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
     id_us_min(&wo->id);
 
     RNA_id_pointer_create(&wo->id, &idptr);
-    RNA_property_pointer_set(&ptr, prop, idptr, NULL);
+    RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
     RNA_property_update(C, &ptr, prop);
   }
 
@@ -963,7 +963,7 @@ void SCENE_OT_view_layer_add(wmOperatorType *ot)
        0,
        "Blank",
        "Add a new view layer with all collections disabled"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */
@@ -1000,7 +1000,7 @@ static int view_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  if (!ED_scene_view_layer_delete(bmain, scene, view_layer, NULL)) {
+  if (!ED_scene_view_layer_delete(bmain, scene, view_layer, nullptr)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1044,7 +1044,7 @@ static int view_layer_add_aov_exec(bContext *C, wmOperator *UNUSED(op))
       BKE_view_layer_verify_aov(engine, scene, view_layer);
     }
     RE_engine_free(engine);
-    engine = NULL;
+    engine = nullptr;
   }
 
   if (scene->nodetree) {
@@ -1083,7 +1083,7 @@ static int view_layer_remove_aov_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  if (view_layer->active_aov == NULL) {
+  if (view_layer->active_aov == nullptr) {
     return OPERATOR_FINISHED;
   }
 
@@ -1096,7 +1096,7 @@ static int view_layer_remove_aov_exec(bContext *C, wmOperator *UNUSED(op))
       BKE_view_layer_verify_aov(engine, scene, view_layer);
     }
     RE_engine_free(engine);
-    engine = NULL;
+    engine = nullptr;
   }
 
   if (scene->nodetree) {
@@ -1138,7 +1138,7 @@ enum {
 
 static void light_cache_bake_tag_cache(Scene *scene, wmOperator *op)
 {
-  if (scene->eevee.light_cache_data != NULL) {
+  if (scene->eevee.light_cache_data != nullptr) {
     int subset = RNA_enum_get(op->ptr, "subset");
     switch (subset) {
       case LIGHTCACHE_SUBSET_ALL:
@@ -1264,7 +1264,7 @@ void SCENE_OT_light_cache_bake(wmOperatorType *ot)
        0,
        "Cubemaps Only",
        "Try to only bake reflection cubemaps if irradiance grids are up to date"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */
@@ -1320,7 +1320,7 @@ static int light_cache_free_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   EEVEE_lightcache_free(scene->eevee.light_cache_data);
-  scene->eevee.light_cache_data = NULL;
+  scene->eevee.light_cache_data = nullptr;
 
   EEVEE_lightcache_info_update(&scene->eevee);
 
@@ -1361,7 +1361,7 @@ static int render_view_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
 
-  BKE_scene_add_render_view(scene, NULL);
+  BKE_scene_add_render_view(scene, nullptr);
   scene->r.actview = BLI_listbase_count(&scene->r.views) - 1;
 
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
@@ -1450,7 +1450,7 @@ static bool freestyle_active_module_poll(bContext *C)
   PointerRNA ptr = CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
   FreestyleModuleConfig *module = static_cast<FreestyleModuleConfig *>(ptr.data);
 
-  return module != NULL;
+  return module != nullptr;
 }
 
 static int freestyle_module_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1542,7 +1542,7 @@ void SCENE_OT_freestyle_module_move(wmOperatorType *ot)
   static const EnumPropertyItem direction_items[] = {
       {-1, "UP", 0, "Up", ""},
       {1, "DOWN", 0, "Down", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */
@@ -1578,7 +1578,7 @@ static int freestyle_lineset_add_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  BKE_freestyle_lineset_add(bmain, &view_layer->freestyle_config, NULL);
+  BKE_freestyle_lineset_add(bmain, &view_layer->freestyle_config, nullptr);
 
   DEG_id_tag_update(&scene->id, 0);
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
@@ -1614,7 +1614,7 @@ static bool freestyle_active_lineset_poll(bContext *C)
     return false;
   }
 
-  return BKE_freestyle_lineset_get_active(&view_layer->freestyle_config) != NULL;
+  return BKE_freestyle_lineset_get_active(&view_layer->freestyle_config) != nullptr;
 }
 
 static int freestyle_lineset_copy_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1734,7 +1734,7 @@ void SCENE_OT_freestyle_lineset_move(wmOperatorType *ot)
   static const EnumPropertyItem direction_items[] = {
       {-1, "UP", 0, "Up", ""},
       {1, "DOWN", 0, "Down", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */
@@ -1818,7 +1818,7 @@ static int freestyle_color_modifier_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (BKE_linestyle_color_modifier_add(lineset->linestyle, NULL, type) == NULL) {
+  if (BKE_linestyle_color_modifier_add(lineset->linestyle, nullptr, type) == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Unknown line color modifier type");
     return OPERATOR_CANCELLED;
   }
@@ -1865,7 +1865,7 @@ static int freestyle_alpha_modifier_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (BKE_linestyle_alpha_modifier_add(lineset->linestyle, NULL, type) == NULL) {
+  if (BKE_linestyle_alpha_modifier_add(lineset->linestyle, nullptr, type) == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Unknown alpha transparency modifier type");
     return OPERATOR_CANCELLED;
   }
@@ -1912,7 +1912,7 @@ static int freestyle_thickness_modifier_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (BKE_linestyle_thickness_modifier_add(lineset->linestyle, NULL, type) == NULL) {
+  if (BKE_linestyle_thickness_modifier_add(lineset->linestyle, nullptr, type) == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Unknown line thickness modifier type");
     return OPERATOR_CANCELLED;
   }
@@ -1959,7 +1959,7 @@ static int freestyle_geometry_modifier_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (BKE_linestyle_geometry_modifier_add(lineset->linestyle, NULL, type) == NULL) {
+  if (BKE_linestyle_geometry_modifier_add(lineset->linestyle, nullptr, type) == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Unknown stroke geometry modifier type");
     return OPERATOR_CANCELLED;
   }
@@ -2170,7 +2170,7 @@ void SCENE_OT_freestyle_modifier_move(wmOperatorType *ot)
   static const EnumPropertyItem direction_items[] = {
       {-1, "UP", 0, "Up", ""},
       {1, "DOWN", 0, "Down", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */
@@ -2256,9 +2256,12 @@ static int texture_slot_move_exec(bContext *C, wmOperator *op)
         mtex_ar[act] = mtex_ar[act - 1];
         mtex_ar[act - 1] = mtexswap;
 
-        BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, act - 1, -1, 0);
-        BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, act, act - 1, 0);
-        BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, -1, act, 0);
+        BKE_animdata_fix_paths_rename(
+            id, adt, nullptr, "texture_slots", nullptr, nullptr, act - 1, -1, false);
+        BKE_animdata_fix_paths_rename(
+            id, adt, nullptr, "texture_slots", nullptr, nullptr, act, act - 1, false);
+        BKE_animdata_fix_paths_rename(
+            id, adt, nullptr, "texture_slots", nullptr, nullptr, -1, act, false);
 
         set_active_mtex(id, act - 1);
       }
@@ -2269,9 +2272,12 @@ static int texture_slot_move_exec(bContext *C, wmOperator *op)
         mtex_ar[act] = mtex_ar[act + 1];
         mtex_ar[act + 1] = mtexswap;
 
-        BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, act + 1, -1, 0);
-        BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, act, act + 1, 0);
-        BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, -1, act, 0);
+        BKE_animdata_fix_paths_rename(
+            id, adt, nullptr, "texture_slots", nullptr, nullptr, act + 1, -1, false);
+        BKE_animdata_fix_paths_rename(
+            id, adt, nullptr, "texture_slots", nullptr, nullptr, act, act + 1, false);
+        BKE_animdata_fix_paths_rename(
+            id, adt, nullptr, "texture_slots", nullptr, nullptr, -1, act, false);
 
         set_active_mtex(id, act + 1);
       }
@@ -2289,7 +2295,7 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
   static const EnumPropertyItem slot_move[] = {
       {-1, "UP", 0, "Up", ""},
       {1, "DOWN", 0, "Down", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */
@@ -2318,7 +2324,7 @@ static int copy_material_exec(bContext *C, wmOperator *UNUSED(op))
   Material *ma = static_cast<Material *>(
       CTX_data_pointer_get_type(C, "material", &RNA_Material).data);
 
-  if (ma == NULL) {
+  if (ma == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2353,7 +2359,7 @@ static int paste_material_exec(bContext *C, wmOperator *UNUSED(op))
   Material *ma = static_cast<Material *>(
       CTX_data_pointer_get_type(C, "material", &RNA_Material).data);
 
-  if (ma == NULL) {
+  if (ma == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2395,7 +2401,7 @@ void ED_render_clear_mtex_copybuf(void)
 
 static void copy_mtex_copybuf(ID *id)
 {
-  MTex **mtex = NULL;
+  MTex **mtex = nullptr;
 
   switch (GS(id->name)) {
     case ID_PA:
@@ -2419,9 +2425,9 @@ static void copy_mtex_copybuf(ID *id)
 
 static void paste_mtex_copybuf(ID *id)
 {
-  MTex **mtex = NULL;
+  MTex **mtex = nullptr;
 
-  if (mtexcopied == 0 || mtexcopybuf.tex == NULL) {
+  if (mtexcopied == 0 || mtexcopybuf.tex == nullptr) {
     return;
   }
 
@@ -2438,7 +2444,7 @@ static void paste_mtex_copybuf(ID *id)
   }
 
   if (mtex) {
-    if (*mtex == NULL) {
+    if (*mtex == nullptr) {
       *mtex = MEM_new<MTex>("mtex copy");
     }
     else if ((*mtex)->tex) {
@@ -2461,7 +2467,7 @@ static int copy_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ID *id = CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).owner_id;
 
-  if (id == NULL) {
+  if (id == nullptr) {
     /* copying empty slot */
     ED_render_clear_mtex_copybuf();
     return OPERATOR_CANCELLED;
@@ -2476,7 +2482,7 @@ static bool copy_mtex_poll(bContext *C)
 {
   ID *id = CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).owner_id;
 
-  return (id != NULL);
+  return (id != nullptr);
 }
 
 void TEXTURE_OT_slot_copy(wmOperatorType *ot)
@@ -2505,7 +2511,7 @@ static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ID *id = CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).owner_id;
 
-  if (id == NULL) {
+  if (id == nullptr) {
     Material *ma = static_cast<Material *>(
         CTX_data_pointer_get_type(C, "material", &RNA_Material).data);
     Light *la = static_cast<Light *>(CTX_data_pointer_get_type(C, "light", &RNA_Light).data);
@@ -2531,14 +2537,14 @@ static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
       id = &linestyle->id;
     }
 
-    if (id == NULL) {
+    if (id == nullptr) {
       return OPERATOR_CANCELLED;
     }
   }
 
   paste_mtex_copybuf(id);
 
-  WM_event_add_notifier(C, NC_TEXTURE | ND_SHADING_LINKS, NULL);
+  WM_event_add_notifier(C, NC_TEXTURE | ND_SHADING_LINKS, nullptr);
 
   return OPERATOR_FINISHED;
 }

@@ -20,8 +20,8 @@
  * \ingroup edrend
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_cachefile_types.h"
 #include "DNA_light_types.h"
@@ -62,7 +62,7 @@
 
 #include "WM_api.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 /* -------------------------------------------------------------------- */
 /** \name Render Engines
@@ -111,7 +111,7 @@ void ED_render_view3d_update(Depsgraph *depsgraph,
     else {
       RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
       if (updated) {
-        DRWUpdateContext drw_context = {0};
+        DRWUpdateContext drw_context = {nullptr};
         drw_context.bmain = bmain;
         drw_context.depsgraph = depsgraph;
         drw_context.scene = scene;
@@ -189,9 +189,9 @@ void ED_render_engine_changed(Main *bmain, const bool update_scene_data)
       ED_render_engine_area_exit(bmain, area);
     }
   }
-  RE_FreePersistentData(NULL);
+  RE_FreePersistentData(nullptr);
   /* Inform all render engines and draw managers. */
-  DEGEditorUpdateContext update_ctx = {NULL};
+  DEGEditorUpdateContext update_ctx = {nullptr};
   update_ctx.bmain = bmain;
   for (Scene *scene = static_cast<Scene *>(bmain->scenes.first); scene;
        scene = static_cast<Scene *>(scene->id.next)) {
@@ -309,7 +309,7 @@ static void scene_changed(Main *bmain, Scene *scene)
        ob = static_cast<Object *>(ob->id.next)) {
     if (ob->mode & OB_MODE_TEXTURE_PAINT) {
       BKE_texpaint_slots_refresh_object(scene, ob);
-      ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+      ED_paint_proj_mesh_data_check(scene, ob, nullptr, nullptr, nullptr, nullptr);
     }
   }
 }

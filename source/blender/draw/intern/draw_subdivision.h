@@ -182,7 +182,7 @@ void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
 
 void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
                                     struct GPUVertBuf *src_data,
-                                    struct GPUVertBuf *dst_buffer,
+                                    struct GPUVertBuf *dst_data,
                                     int dimensions,
                                     int dst_offset);
 

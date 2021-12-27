@@ -276,7 +276,7 @@ static GPUShader *get_subdiv_shader(int shader_type, const char *defines)
 /** Vertex formats used for data transfer from OpenSubdiv, and for data processing on our side.
  * \{ */
 
-static GPUVertFormat *get_uvs_format(void)
+static GPUVertFormat *get_uvs_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -286,7 +286,7 @@ static GPUVertFormat *get_uvs_format(void)
 }
 
 /* Vertex format for `OpenSubdiv::Osd::PatchArray`. */
-static GPUVertFormat *get_patch_array_format(void)
+static GPUVertFormat *get_patch_array_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -301,7 +301,7 @@ static GPUVertFormat *get_patch_array_format(void)
 }
 
 /* Vertex format used for the `PatchTable::PatchHandle`. */
-static GPUVertFormat *get_patch_handle_format(void)
+static GPUVertFormat *get_patch_handle_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -313,7 +313,7 @@ static GPUVertFormat *get_patch_handle_format(void)
 }
 
 /* Vertex format used for the quad-tree nodes of the PatchMap. */
-static GPUVertFormat *get_quadtree_format(void)
+static GPUVertFormat *get_quadtree_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -324,7 +324,7 @@ static GPUVertFormat *get_quadtree_format(void)
 
 /* Vertex format for `OpenSubdiv::Osd::PatchParam`, not really used, it is only for making sure
  * that the #GPUVertBuf used to wrap the OpenSubdiv patch param buffer is valid. */
-static GPUVertFormat *get_patch_param_format(void)
+static GPUVertFormat *get_patch_param_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -334,7 +334,7 @@ static GPUVertFormat *get_patch_param_format(void)
 }
 
 /* Vertex format for the patches' vertices index buffer. */
-static GPUVertFormat *get_patch_index_format(void)
+static GPUVertFormat *get_patch_index_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -344,7 +344,7 @@ static GPUVertFormat *get_patch_index_format(void)
 }
 
 /* Vertex format for the OpenSubdiv vertex buffer. */
-static GPUVertFormat *get_subdiv_vertex_format(void)
+static GPUVertFormat *get_subdiv_vertex_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -355,11 +355,11 @@ static GPUVertFormat *get_subdiv_vertex_format(void)
   return &format;
 }
 
-typedef struct CompressedPatchCoord {
+struct CompressedPatchCoord {
   int ptex_face_index;
   /* UV coordinate encoded as u << 16 | v, where u and v are quantized on 16-bits. */
   unsigned int encoded_uv;
-} CompressedPatchCoord;
+};
 
 MINLINE CompressedPatchCoord make_patch_coord(int ptex_face_index, float u, float v)
 {
@@ -371,7 +371,7 @@ MINLINE CompressedPatchCoord make_patch_coord(int ptex_face_index, float u, floa
 }
 
 /* Vertex format used for the #CompressedPatchCoord. */
-static GPUVertFormat *get_blender_patch_coords_format(void)
+static GPUVertFormat *get_blender_patch_coords_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -382,7 +382,7 @@ static GPUVertFormat *get_blender_patch_coords_format(void)
   return &format;
 }
 
-static GPUVertFormat *get_origindex_format(void)
+static GPUVertFormat *get_origindex_format()
 {
   static GPUVertFormat format;
   if (format.attr_len == 0) {
@@ -677,7 +677,7 @@ static DRWSubdivCache *mesh_batch_cache_ensure_subdiv_cache(MeshBatchCache *mbc)
  * reevaluations, as long as the topology does not change.
  * \{ */
 
-typedef struct DRWCacheBuildingContext {
+struct DRWCacheBuildingContext {
   const Mesh *coarse_mesh;
   const SubdivToMeshSettings *settings;
 
@@ -700,7 +700,7 @@ typedef struct DRWCacheBuildingContext {
    * the shaders. */
   int *v_origindex;
   int *e_origindex;
-} DRWCacheBuildingContext;
+};
 
 static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_context,
                                          const int num_vertices,
@@ -1037,7 +1037,7 @@ static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
  * Common uniforms for the various shaders.
  * \{ */
 
-typedef struct DRWSubdivUboStorage {
+struct DRWSubdivUboStorage {
   /* Offsets in the buffers data where the source and destination data start. */
   int src_offset;
   int dst_offset;
@@ -1073,7 +1073,7 @@ typedef struct DRWSubdivUboStorage {
    * final vertex count, depending on which compute pass we do). This is used to early out in case
    * of out of bond accesses as compute dispatch are of fixed size. */
   uint total_dispatch_size;
-} DRWSubdivUboStorage;
+};
 
 static_assert((sizeof(DRWSubdivUboStorage) % 16) == 0,
               "DRWSubdivUboStorage is not padded to a multiple of the size of vec4");

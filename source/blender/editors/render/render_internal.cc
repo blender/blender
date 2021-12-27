@@ -21,9 +21,9 @@
  * \ingroup edrend
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -83,7 +83,7 @@
 /* Render Callbacks */
 static int render_break(void *rjv);
 
-typedef struct RenderJob {
+struct RenderJob {
   Main *main;
   Scene *scene;
   ViewLayer *single_layer;
@@ -110,7 +110,7 @@ typedef struct RenderJob {
   ColorManagedDisplaySettings display_settings;
   bool supports_glsl_draw;
   bool interface_locked;
-} RenderJob;
+};
 
 /* called inside thread! */
 static bool image_buffer_calc_tile_rect(const RenderResult *rr,
@@ -122,11 +122,11 @@ static bool image_buffer_calc_tile_rect(const RenderResult *rr,
 {
   int tile_y, tile_height, tile_x, tile_width;
 
-  /* When `renrect` argument is not NULL, we only refresh scan-lines. */
+  /* When `renrect` argument is not nullptr, we only refresh scan-lines. */
   if (renrect) {
     /* if (tile_height == recty), rendering of layer is ready,
      * we should not draw, other things happen... */
-    if (rr->renlay == NULL || renrect->ymax >= rr->recty) {
+    if (rr->renlay == nullptr || renrect->ymax >= rr->recty) {
       return false;
     }
 
@@ -190,7 +190,7 @@ static void image_buffer_rect_update(RenderJob *rj,
                                      const char *viewname)
 {
   Scene *scene = rj->scene;
-  const float *rectf = NULL;
+  const float *rectf = nullptr;
   int linear_stride, linear_offset_x, linear_offset_y;
   ColorManagedViewSettings *view_settings;
   ColorManagedDisplaySettings *display_settings;
@@ -231,12 +231,12 @@ static void image_buffer_rect_update(RenderJob *rj,
         ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
         return;
       }
-      if (rr->renlay == NULL) {
+      if (rr->renlay == nullptr) {
         return;
       }
       rectf = RE_RenderLayerGetPass(rr->renlay, RE_PASSNAME_COMBINED, viewname);
     }
-    if (rectf == NULL) {
+    if (rectf == nullptr) {
       return;
     }
 
@@ -257,7 +257,7 @@ static void image_buffer_rect_update(RenderJob *rj,
 
   IMB_partial_display_buffer_update(ibuf,
                                     rectf,
-                                    NULL,
+                                    nullptr,
                                     linear_stride,
                                     linear_offset_x,
                                     linear_offset_y,
@@ -316,17 +316,17 @@ static int screen_render_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   RenderEngineType *re_type = RE_engines_find(scene->r.engine);
   ViewLayer *active_layer = CTX_data_view_layer(C);
-  ViewLayer *single_layer = NULL;
+  ViewLayer *single_layer = nullptr;
   Render *re;
   Image *ima;
   View3D *v3d = CTX_wm_view3d(C);
   Main *mainp = CTX_data_main(C);
   const bool is_animation = RNA_boolean_get(op->ptr, "animation");
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
-  struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
+  struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : nullptr;
 
   /* Cannot do render if there is not this function. */
-  if (re_type->render == NULL) {
+  if (re_type->render == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -343,11 +343,11 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 
   G.is_break = false;
 
-  RE_draw_lock_cb(re, NULL, NULL);
-  RE_test_break_cb(re, NULL, render_break);
+  RE_draw_lock_cb(re, nullptr, nullptr);
+  RE_test_break_cb(re, nullptr, render_break);
 
   ima = BKE_image_ensure_viewer(mainp, IMA_TYPE_R_RESULT, "Render Result");
-  BKE_image_signal(mainp, ima, NULL, IMA_SIGNAL_FREE);
+  BKE_image_signal(mainp, ima, nullptr, IMA_SIGNAL_FREE);
   BKE_image_backup_render(scene, ima, true);
 
   /* cleanup sequencer caches before starting user triggered render.
@@ -372,7 +372,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
     RE_RenderFrame(re, mainp, scene, single_layer, camera_override, scene->r.cfra, is_write_still);
   }
 
-  RE_SetReports(re, NULL);
+  RE_SetReports(re, nullptr);
 
   /* No redraw needed, we leave state as we entered it. */
   ED_update_for_newframe(mainp, CTX_data_depsgraph_pointer(C));
@@ -479,7 +479,7 @@ static void image_renderinfo_cb(void *rjv, RenderStats *rs)
 
   if (rr) {
     /* malloc OK here, stats_draw is not in tile threads */
-    if (rr->text == NULL) {
+    if (rr->text == nullptr) {
       rr->text = static_cast<char *>(MEM_callocN(IMA_MAX_RENDER_TEXT, "rendertext"));
     }
 
@@ -512,13 +512,13 @@ static void render_progress_update(void *rjv, float progress)
 static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, ImageUser *iuser)
 {
   wmWindowManager *wm;
-  ScrArea *first_area = NULL, *matched_area = NULL;
+  ScrArea *first_area = nullptr, *matched_area = nullptr;
 
   /* image window, compo node users */
-  for (wm = static_cast<wmWindowManager *>(rj->main->wm.first); wm && matched_area == NULL;
+  for (wm = static_cast<wmWindowManager *>(rj->main->wm.first); wm && matched_area == nullptr;
        wm = static_cast<wmWindowManager *>(wm->id.next)) { /* only 1 wm */
     wmWindow *win;
-    for (win = static_cast<wmWindow *>(wm->windows.first); win && matched_area == NULL;
+    for (win = static_cast<wmWindow *>(wm->windows.first); win && matched_area == nullptr;
          win = win->next) {
       const bScreen *screen = WM_window_get_active_screen(win);
 
@@ -526,8 +526,8 @@ static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, 
         if (area->spacetype == SPACE_IMAGE) {
           SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
           /* area->spacedata might be empty when toggling full-screen mode. */
-          if (sima != NULL && sima->image == rj->image) {
-            if (first_area == NULL) {
+          if (sima != nullptr && sima->image == rj->image) {
+            if (first_area == nullptr) {
               first_area = area;
             }
             if (area == rj->area) {
@@ -540,7 +540,7 @@ static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, 
     }
   }
 
-  if (matched_area == NULL) {
+  if (matched_area == nullptr) {
     matched_area = first_area;
   }
 
@@ -587,7 +587,7 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
     return;
   }
 
-  if (rr == NULL) {
+  if (rr == nullptr) {
     return;
   }
 
@@ -660,7 +660,7 @@ static void render_startjob(void *rjv, short *stop, short *do_update, float *pro
                    rj->write_still);
   }
 
-  RE_SetReports(rj->re, NULL);
+  RE_SetReports(rj->re, nullptr);
 }
 
 static void render_image_restore_layer(RenderJob *rj)
@@ -730,7 +730,7 @@ static void render_endjob(void *rjv)
 
   if (rj->single_layer) {
     BKE_ntree_update_tag_id_changed(rj->main, &rj->scene->id);
-    BKE_ntree_update_main(rj->main, NULL);
+    BKE_ntree_update_main(rj->main, nullptr);
     WM_main_add_notifier(NC_NODE | NA_EDITED, rj->scene);
   }
 
@@ -740,7 +740,7 @@ static void render_endjob(void *rjv)
 
   /* XXX render stability hack */
   G.is_rendering = false;
-  WM_main_add_notifier(NC_SCENE | ND_RENDER_RESULT, NULL);
+  WM_main_add_notifier(NC_SCENE | ND_RENDER_RESULT, nullptr);
 
   /* Partial render result will always update display buffer
    * for first render layer only. This is nice because you'll
@@ -897,7 +897,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *active_layer = CTX_data_view_layer(C);
-  ViewLayer *single_layer = NULL;
+  ViewLayer *single_layer = nullptr;
   RenderEngineType *re_type = RE_engines_find(scene->r.engine);
   Render *re;
   wmJob *wm_job;
@@ -906,13 +906,13 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   const bool is_animation = RNA_boolean_get(op->ptr, "animation");
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
   const bool use_viewport = RNA_boolean_get(op->ptr, "use_viewport");
-  View3D *v3d = use_viewport ? CTX_wm_view3d(C) : NULL;
-  struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
+  View3D *v3d = use_viewport ? CTX_wm_view3d(C) : nullptr;
+  struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : nullptr;
   const char *name;
   ScrArea *area;
 
   /* Cannot do render if there is not this function. */
-  if (re_type->render == NULL) {
+  if (re_type->render == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1036,7 +1036,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
                        WM_JOB_TYPE_RENDER);
   WM_jobs_customdata_set(wm_job, rj, render_freejob);
   WM_jobs_timer(wm_job, 0.2, NC_SCENE | ND_RENDER_RESULT, 0);
-  WM_jobs_callbacks(wm_job, render_startjob, NULL, NULL, render_endjob);
+  WM_jobs_callbacks(wm_job, render_startjob, nullptr, nullptr, render_endjob);
 
   if (RNA_struct_property_is_set(op->ptr, "layer")) {
     WM_jobs_delay_start(wm_job, 0.2);
@@ -1044,7 +1044,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   /* get a render result image, and make sure it is empty */
   ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result");
-  BKE_image_signal(rj->main, ima, NULL, IMA_SIGNAL_FREE);
+  BKE_image_signal(rj->main, ima, nullptr, IMA_SIGNAL_FREE);
   BKE_image_backup_render(rj->scene, ima, true);
   rj->image = ima;
 
@@ -1104,32 +1104,32 @@ void RENDER_OT_render(wmOperatorType *ot)
 
   prop = RNA_def_boolean(ot->srna,
                          "animation",
-                         0,
+                         false,
                          "Animation",
                          "Render files from the animation range of this scene");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   RNA_def_boolean(
       ot->srna,
       "write_still",
-      0,
+      false,
       "Write Image",
       "Save rendered the image to the output path (used only when animation is disabled)");
   prop = RNA_def_boolean(ot->srna,
                          "use_viewport",
-                         0,
+                         false,
                          "Use 3D Viewport",
                          "When inside a 3D viewport, use layers and camera of the viewport");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_string(ot->srna,
                         "layer",
-                        NULL,
+                        nullptr,
                         RE_MAXNAME,
                         "Render Layer",
                         "Single render layer to re-render (used only when animation is disabled)");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_string(ot->srna,
                         "scene",
-                        NULL,
+                        nullptr,
                         MAX_ID_NAME - 2,
                         "Scene",
                         "Scene to render, current scene if not specified");
@@ -1145,7 +1145,7 @@ Scene *ED_render_job_get_scene(const bContext *C)
     return rj->scene;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 Scene *ED_render_job_get_current_scene(const bContext *C)
@@ -1155,7 +1155,7 @@ Scene *ED_render_job_get_current_scene(const bContext *C)
   if (rj) {
     return rj->current_scene;
   }
-  return NULL;
+  return nullptr;
 }
 
 /* Motion blur curve preset */
@@ -1186,7 +1186,7 @@ void RENDER_OT_shutter_curve_preset(wmOperatorType *ot)
       {CURVE_PRESET_LINE, "LINE", 0, "Line", ""},
       {CURVE_PRESET_ROUND, "ROUND", 0, "Round", ""},
       {CURVE_PRESET_ROOT, "ROOT", 0, "Root", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   ot->name = "Shutter Curve Preset";

@@ -71,7 +71,7 @@ static void init_vcol_format(GPUVertFormat *format,
 
 /* Vertex format for vertex colors, only used during the coarse data upload for the subdivision
  * case. */
-static GPUVertFormat *get_coarse_vcol_format(void)
+static GPUVertFormat *get_coarse_vcol_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {

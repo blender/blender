@@ -21,8 +21,8 @@
  * \ingroup edrend
  */
 
-#include <stddef.h>
-#include <string.h>
+#include <cstddef>
+#include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
@@ -59,7 +59,7 @@
 static ScrArea *biggest_non_image_area(bContext *C)
 {
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area, *big = NULL;
+  ScrArea *area, *big = nullptr;
   int size, maxsize = 0, bwmaxsize = 0;
   short foundwin = 0;
 
@@ -86,7 +86,7 @@ static ScrArea *biggest_non_image_area(bContext *C)
 static ScrArea *find_area_showing_r_result(bContext *C, Scene *scene, wmWindow **win)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  ScrArea *area = NULL;
+  ScrArea *area = nullptr;
   SpaceImage *sima;
 
   /* find an imagewindow showing render result */
@@ -136,13 +136,13 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  wmWindow *win = NULL;
-  ScrArea *area = NULL;
+  wmWindow *win = nullptr;
+  ScrArea *area = nullptr;
   SpaceImage *sima;
   bool area_was_image = false;
 
   if (U.render_display_type == USER_RENDER_DISPLAY_NONE) {
-    return NULL;
+    return nullptr;
   }
 
   if (U.render_display_type == USER_RENDER_DISPLAY_WINDOW) {
@@ -168,9 +168,9 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
                        true,
                        false,
                        true,
-                       WIN_ALIGN_LOCATION_CENTER) == NULL) {
+                       WIN_ALIGN_LOCATION_CENTER) == nullptr) {
       BKE_report(reports, RPT_ERROR, "Failed to open window!");
-      return NULL;
+      return nullptr;
     }
 
     area = CTX_wm_area(C);
@@ -185,7 +185,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
     /* If the active screen is already in full-screen mode, skip this and
      * unset the area, so that the full-screen area is just changed later. */
     if (area && area->full) {
-      area = NULL;
+      area = nullptr;
     }
     else {
       if (area && area->spacetype == SPACE_IMAGE) {
@@ -199,7 +199,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 
   if (!area) {
     area = find_area_showing_r_result(C, scene, &win);
-    if (area == NULL) {
+    if (area == nullptr) {
       area = find_area_image_empty(C);
     }
 
@@ -208,7 +208,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
       wm_window_raise(win);
     }
 
-    if (area == NULL) {
+    if (area == nullptr) {
       /* find largest open non-image area */
       area = biggest_non_image_area(C);
       if (area) {
