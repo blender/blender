@@ -3498,6 +3498,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "effector_weights", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "EffectorWeights");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Effector Weights", "");
 
   /* animation here? */
@@ -3507,12 +3508,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "pd");
   RNA_def_property_struct_type(prop, "FieldSettings");
   RNA_def_property_pointer_funcs(prop, "rna_Particle_field1_get", NULL, NULL, NULL);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Force Field 1", "");
 
   prop = RNA_def_property(srna, "force_field_2", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "pd2");
   RNA_def_property_struct_type(prop, "FieldSettings");
   RNA_def_property_pointer_funcs(prop, "rna_Particle_field2_get", NULL, NULL, NULL);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Force Field 2", "");
 
   /* twist */

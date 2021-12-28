@@ -589,6 +589,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
   prop = RNA_def_property(srna, "effector_weights", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "EffectorWeights");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Effector Weights", "");
 
   prop = RNA_def_property(srna, "drip_velocity", PROP_FLOAT, PROP_NONE);
