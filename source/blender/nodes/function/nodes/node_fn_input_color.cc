@@ -19,7 +19,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-namespace blender::nodes {
+namespace blender::nodes::node_fn_input_color_cc {
 
 static void fn_node_input_color_declare(NodeDeclarationBuilder &b)
 {
@@ -48,18 +48,20 @@ static void fn_node_input_color_init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_fn_input_color_cc
 
 void register_node_type_fn_input_color()
 {
+  namespace file_ns = blender::nodes::node_fn_input_color_cc;
+
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_INPUT_COLOR, "Color", NODE_CLASS_INPUT, 0);
-  ntype.declare = blender::nodes::fn_node_input_color_declare;
-  node_type_init(&ntype, blender::nodes::fn_node_input_color_init);
+  ntype.declare = file_ns::fn_node_input_color_declare;
+  node_type_init(&ntype, file_ns::fn_node_input_color_init);
   node_type_storage(
       &ntype, "NodeInputColor", node_free_standard_storage, node_copy_standard_storage);
-  ntype.build_multi_function = blender::nodes::fn_node_input_color_build_multi_function;
-  ntype.draw_buttons = blender::nodes::fn_node_input_color_layout;
+  ntype.build_multi_function = file_ns::fn_node_input_color_build_multi_function;
+  ntype.draw_buttons = file_ns::fn_node_input_color_layout;
   nodeRegisterType(&ntype);
 }

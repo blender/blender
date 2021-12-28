@@ -25,7 +25,7 @@
 
 #include "node_function_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_fn_float_to_int_cc {
 
 static void fn_node_float_to_int_declare(NodeDeclarationBuilder &b)
 {
@@ -81,16 +81,18 @@ static void fn_node_float_to_int_build_multi_function(NodeMultiFunctionBuilder &
   builder.set_matching_fn(fn);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_fn_float_to_int_cc
 
 void register_node_type_fn_float_to_int()
 {
+  namespace file_ns = blender::nodes::node_fn_float_to_int_cc;
+
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_FLOAT_TO_INT, "Float to Integer", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::fn_node_float_to_int_declare;
-  ntype.labelfunc = blender::nodes::node_float_to_int_label;
-  ntype.build_multi_function = blender::nodes::fn_node_float_to_int_build_multi_function;
-  ntype.draw_buttons = blender::nodes::fn_node_float_to_int_layout;
+  ntype.declare = file_ns::fn_node_float_to_int_declare;
+  ntype.labelfunc = file_ns::node_float_to_int_label;
+  ntype.build_multi_function = file_ns::fn_node_float_to_int_build_multi_function;
+  ntype.draw_buttons = file_ns::fn_node_float_to_int_layout;
   nodeRegisterType(&ntype);
 }

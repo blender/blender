@@ -24,7 +24,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-namespace blender::nodes {
+namespace blender::nodes::node_fn_random_value_cc {
 
 NODE_STORAGE_FUNCS(NodeRandomValue)
 
@@ -338,18 +338,21 @@ static void fn_node_random_value_build_multi_function(NodeMultiFunctionBuilder &
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_fn_random_value_cc
 
 void register_node_type_fn_random_value()
 {
+  namespace file_ns = blender::nodes::node_fn_random_value_cc;
+
   static bNodeType ntype;
+
   fn_node_type_base(&ntype, FN_NODE_RANDOM_VALUE, "Random Value", NODE_CLASS_CONVERTER, 0);
-  node_type_init(&ntype, blender::nodes::fn_node_random_value_init);
-  node_type_update(&ntype, blender::nodes::fn_node_random_value_update);
-  ntype.draw_buttons = blender::nodes::fn_node_random_value_layout;
-  ntype.declare = blender::nodes::fn_node_random_value_declare;
-  ntype.build_multi_function = blender::nodes::fn_node_random_value_build_multi_function;
-  ntype.gather_link_search_ops = blender::nodes::fn_node_random_value_gather_link_search;
+  node_type_init(&ntype, file_ns::fn_node_random_value_init);
+  node_type_update(&ntype, file_ns::fn_node_random_value_update);
+  ntype.draw_buttons = file_ns::fn_node_random_value_layout;
+  ntype.declare = file_ns::fn_node_random_value_declare;
+  ntype.build_multi_function = file_ns::fn_node_random_value_build_multi_function;
+  ntype.gather_link_search_ops = file_ns::fn_node_random_value_gather_link_search;
   node_type_storage(
       &ntype, "NodeRandomValue", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);
