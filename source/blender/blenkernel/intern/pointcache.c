@@ -3505,6 +3505,11 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
   char old_path_full[MAX_PTCACHE_FILE];
   char ext[MAX_PTCACHE_PATH];
 
+  /* If both names are the same, there is nothing to do. */
+  if (STREQ(name_src, name_dst)) {
+    return;
+  }
+
   /* save old name */
   BLI_strncpy(old_name, pid->cache->name, sizeof(old_name));
 
