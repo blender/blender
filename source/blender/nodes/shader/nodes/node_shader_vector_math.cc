@@ -26,6 +26,8 @@
 #include "NOD_math_functions.hh"
 #include "NOD_socket_search_link.hh"
 
+#include "RNA_enum_types.h"
+
 namespace blender::nodes::node_shader_vector_math_cc {
 
 static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
@@ -39,15 +41,44 @@ static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Value"));
 };
 
+class SocketSearchOp {
+ public:
+  std::string socket_name;
+  NodeVectorMathOperation mode = NODE_VECTOR_MATH_ADD;
+  void operator()(LinkSearchOpParams &params)
+  {
+    bNode &node = params.add_node("ShaderNodeVectorMath");
+    node.custom1 = mode;
+    params.update_and_connect_available_socket(node, socket_name);
+  }
+};
+
 static void sh_node_vector_math_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  /* For now, do something very basic (only exposing "Add", and a single "Vector" socket). */
-  if (params.node_tree().typeinfo->validate_link(
-          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_VECTOR)) {
-    params.add_item(IFACE_("Vector"), [](LinkSearchOpParams &params) {
-      bNode &node = params.add_node("ShaderNodeVectorMath");
-      params.update_and_connect_available_socket(node, "Vector");
-    });
+  if (!ELEM(params.other_socket().type,
+            SOCK_FLOAT,
+            SOCK_BOOLEAN,
+            SOCK_INT,
+            SOCK_VECTOR,
+            SOCK_RGBA)) {
+    return;
+  }
+
+  for (const EnumPropertyItem *item = rna_enum_node_vec_math_items; item->identifier != nullptr;
+       item++) {
+    if (item->name != nullptr) {
+      if ((params.in_out() == SOCK_OUT) && ELEM(item->value,
+                                                NODE_VECTOR_MATH_LENGTH,
+                                                NODE_VECTOR_MATH_DISTANCE,
+                                                NODE_VECTOR_MATH_DOT_PRODUCT)) {
+        params.add_item(IFACE_(item->name),
+                        SocketSearchOp{"Value", (NodeVectorMathOperation)item->value});
+      }
+      else {
+        params.add_item(IFACE_(item->name),
+                        SocketSearchOp{"Vector", (NodeVectorMathOperation)item->value});
+      }
+    }
   }
 }
 

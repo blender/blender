@@ -26,6 +26,8 @@
 #include "NOD_math_functions.hh"
 #include "NOD_socket_search_link.hh"
 
+#include "RNA_enum_types.h"
+
 /* **************** SCALAR MATH ******************** */
 
 namespace blender::nodes::node_shader_math_cc {
@@ -45,15 +47,36 @@ static void sh_node_math_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Value"));
 };
 
+class SocketSearchOp {
+ public:
+  std::string socket_name;
+  NodeMathOperation mode = NODE_MATH_ADD;
+  void operator()(LinkSearchOpParams &params)
+  {
+    bNode &node = params.add_node("ShaderNodeMath");
+    node.custom1 = mode;
+    params.update_and_connect_available_socket(node, socket_name);
+  }
+};
+
 static void sh_node_math_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  /* For now, do something very basic (only exposing "Add", and a single "Value" socket). */
+  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  if (params.in_out() == SOCK_OUT) {
+    search_link_ops_for_declarations(params, declaration.outputs());
+    return;
+  }
+
+  /* Expose first Value socket. */
   if (params.node_tree().typeinfo->validate_link(
           static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_FLOAT)) {
-    params.add_item(IFACE_("Value"), [](LinkSearchOpParams &params) {
-      bNode &node = params.add_node("ShaderNodeMath");
-      params.update_and_connect_available_socket(node, "Value");
-    });
+    for (const EnumPropertyItem *item = rna_enum_node_math_items; item->identifier != nullptr;
+         item++) {
+      if (item->name != nullptr) {
+        params.add_item(IFACE_(item->name),
+                        SocketSearchOp{"Value", (NodeMathOperation)item->value});
+      }
+    }
   }
 }
 
