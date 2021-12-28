@@ -374,6 +374,7 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
 
   group_node->id = &node_group->id;
   id_us_plus(group_node->id);
+  BKE_ntree_update_tag_node_property(snode->edittree, group_node);
 
   nodeSetActive(ntree, group_node);
   ED_node_tree_propagate_change(C, bmain, nullptr);
