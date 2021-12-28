@@ -206,15 +206,9 @@ static void init_alpha_over_or_under(Sequence *seq)
   seq->seq1 = seq2;
 }
 
-static void do_alphaover_effect_byte(float facf0,
-                                     float facf1,
-                                     int x,
-                                     int y,
-                                     unsigned char *rect1,
-                                     unsigned char *rect2,
-                                     unsigned char *out)
+static void do_alphaover_effect_byte(
+    float fac, int x, int y, unsigned char *rect1, unsigned char *rect2, unsigned char *out)
 {
-  float fac2, mfac, fac, fac4;
   int xo;
   unsigned char *cp1, *cp2, *rt;
   float tempc[4], rt1[4], rt2[4];
@@ -224,9 +218,6 @@ static void do_alphaover_effect_byte(float facf0,
   cp2 = rect2;
   rt = out;
 
-  fac2 = facf0;
-  fac4 = facf1;
-
   while (y--) {
     x = xo;
     while (x--) {
@@ -235,8 +226,7 @@ static void do_alphaover_effect_byte(float facf0,
       straight_uchar_to_premul_float(rt1, cp1);
       straight_uchar_to_premul_float(rt2, cp2);
 
-      fac = fac2;
-      mfac = 1.0f - fac2 * rt1[3];
+      float mfac = 1.0f - fac * rt1[3];
 
       if (fac <= 0.0f) {
         *((unsigned int *)rt) = *((unsigned int *)cp2);
@@ -267,8 +257,7 @@ static void do_alphaover_effect_byte(float facf0,
       straight_uchar_to_premul_float(rt1, cp1);
       straight_uchar_to_premul_float(rt2, cp2);
 
-      fac = fac4;
-      mfac = 1.0f - (fac4 * rt1[3]);
+      float mfac = 1.0f - (fac * rt1[3]);
 
       if (fac <= 0.0f) {
         *((unsigned int *)rt) = *((unsigned int *)cp2);
@@ -292,9 +281,8 @@ static void do_alphaover_effect_byte(float facf0,
 }
 
 static void do_alphaover_effect_float(
-    float facf0, float facf1, int x, int y, float *rect1, float *rect2, float *out)
+    float fac, int x, int y, float *rect1, float *rect2, float *out)
 {
-  float fac2, mfac, fac, fac4;
   int xo;
   float *rt1, *rt2, *rt;
 
@@ -303,16 +291,12 @@ static void do_alphaover_effect_float(
   rt2 = rect2;
   rt = out;
 
-  fac2 = facf0;
-  fac4 = facf1;
-
   while (y--) {
     x = xo;
     while (x--) {
       /* rt = rt1 over rt2  (alpha from rt1) */
 
-      fac = fac2;
-      mfac = 1.0f - (fac2 * rt1[3]);
+      float mfac = 1.0f - (fac * rt1[3]);
 
       if (fac <= 0.0f) {
         memcpy(rt, rt2, sizeof(float[4]));
@@ -338,8 +322,7 @@ static void do_alphaover_effect_float(
 
     x = xo;
     while (x--) {
-      fac = fac4;
-      mfac = 1.0f - (fac4 * rt1[3]);
+      float mfac = 1.0f - (fac * rt1[3]);
 
       if (fac <= 0.0f) {
         memcpy(rt, rt2, sizeof(float[4]));
@@ -363,8 +346,7 @@ static void do_alphaover_effect_float(
 static void do_alphaover_effect(const SeqRenderData *context,
                                 Sequence *UNUSED(seq),
                                 float UNUSED(timeline_frame),
-                                float facf0,
-                                float facf1,
+                                float fac,
                                 ImBuf *ibuf1,
                                 ImBuf *ibuf2,
                                 ImBuf *UNUSED(ibuf3),
@@ -378,7 +360,7 @@ static void do_alphaover_effect(const SeqRenderData *context,
     slice_get_float_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_alphaover_effect_float(facf0, facf1, context->rectx, total_lines, rect1, rect2, rect_out);
+    do_alphaover_effect_float(fac, context->rectx, total_lines, rect1, rect2, rect_out);
   }
   else {
     unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
@@ -386,21 +368,15 @@ static void do_alphaover_effect(const SeqRenderData *context,
     slice_get_byte_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_alphaover_effect_byte(facf0, facf1, context->rectx, total_lines, rect1, rect2, rect_out);
+    do_alphaover_effect_byte(fac, context->rectx, total_lines, rect1, rect2, rect_out);
   }
 }
 
 /*********************** Alpha Under *************************/
 
-static void do_alphaunder_effect_byte(float facf0,
-                                      float facf1,
-                                      int x,
-                                      int y,
-                                      unsigned char *rect1,
-                                      unsigned char *rect2,
-                                      unsigned char *out)
+static void do_alphaunder_effect_byte(
+    float fac, int x, int y, unsigned char *rect1, unsigned char *rect2, unsigned char *out)
 {
-  float fac2, fac, fac4;
   int xo;
   unsigned char *cp1, *cp2, *rt;
   float tempc[4], rt1[4], rt2[4];
@@ -409,9 +385,6 @@ static void do_alphaunder_effect_byte(float facf0,
   cp1 = rect1;
   cp2 = rect2;
   rt = out;
-
-  fac2 = facf0;
-  fac4 = facf1;
 
   while (y--) {
     x = xo;
@@ -423,23 +396,23 @@ static void do_alphaunder_effect_byte(float facf0,
       /* this complex optimization is because the
        * 'skybuf' can be crossed in
        */
-      if (rt2[3] <= 0.0f && fac2 >= 1.0f) {
+      if (rt2[3] <= 0.0f && fac >= 1.0f) {
         *((unsigned int *)rt) = *((unsigned int *)cp1);
       }
       else if (rt2[3] >= 1.0f) {
         *((unsigned int *)rt) = *((unsigned int *)cp2);
       }
       else {
-        fac = (fac2 * (1.0f - rt2[3]));
+        float temp_fac = (fac * (1.0f - rt2[3]));
 
         if (fac <= 0) {
           *((unsigned int *)rt) = *((unsigned int *)cp2);
         }
         else {
-          tempc[0] = (fac * rt1[0] + rt2[0]);
-          tempc[1] = (fac * rt1[1] + rt2[1]);
-          tempc[2] = (fac * rt1[2] + rt2[2]);
-          tempc[3] = (fac * rt1[3] + rt2[3]);
+          tempc[0] = (temp_fac * rt1[0] + rt2[0]);
+          tempc[1] = (temp_fac * rt1[1] + rt2[1]);
+          tempc[2] = (temp_fac * rt1[2] + rt2[2]);
+          tempc[3] = (temp_fac * rt1[3] + rt2[3]);
 
           premul_float_to_straight_uchar(rt, tempc);
         }
@@ -459,23 +432,23 @@ static void do_alphaunder_effect_byte(float facf0,
       straight_uchar_to_premul_float(rt1, cp1);
       straight_uchar_to_premul_float(rt2, cp2);
 
-      if (rt2[3] <= 0.0f && fac4 >= 1.0f) {
+      if (rt2[3] <= 0.0f && fac >= 1.0f) {
         *((unsigned int *)rt) = *((unsigned int *)cp1);
       }
       else if (rt2[3] >= 1.0f) {
         *((unsigned int *)rt) = *((unsigned int *)cp2);
       }
       else {
-        fac = (fac4 * (1.0f - rt2[3]));
+        float temp_fac = (fac * (1.0f - rt2[3]));
 
         if (fac <= 0) {
           *((unsigned int *)rt) = *((unsigned int *)cp2);
         }
         else {
-          tempc[0] = (fac * rt1[0] + rt2[0]);
-          tempc[1] = (fac * rt1[1] + rt2[1]);
-          tempc[2] = (fac * rt1[2] + rt2[2]);
-          tempc[3] = (fac * rt1[3] + rt2[3]);
+          tempc[0] = (temp_fac * rt1[0] + rt2[0]);
+          tempc[1] = (temp_fac * rt1[1] + rt2[1]);
+          tempc[2] = (temp_fac * rt1[2] + rt2[2]);
+          tempc[3] = (temp_fac * rt1[3] + rt2[3]);
 
           premul_float_to_straight_uchar(rt, tempc);
         }
@@ -488,9 +461,8 @@ static void do_alphaunder_effect_byte(float facf0,
 }
 
 static void do_alphaunder_effect_float(
-    float facf0, float facf1, int x, int y, float *rect1, float *rect2, float *out)
+    float fac, int x, int y, float *rect1, float *rect2, float *out)
 {
-  float fac2, fac, fac4;
   int xo;
   float *rt1, *rt2, *rt;
 
@@ -498,9 +470,6 @@ static void do_alphaunder_effect_float(
   rt1 = rect1;
   rt2 = rect2;
   rt = out;
-
-  fac2 = facf0;
-  fac4 = facf1;
 
   while (y--) {
     x = xo;
@@ -510,23 +479,23 @@ static void do_alphaunder_effect_float(
       /* this complex optimization is because the
        * 'skybuf' can be crossed in
        */
-      if (rt2[3] <= 0 && fac2 >= 1.0f) {
+      if (rt2[3] <= 0 && fac >= 1.0f) {
         memcpy(rt, rt1, sizeof(float[4]));
       }
       else if (rt2[3] >= 1.0f) {
         memcpy(rt, rt2, sizeof(float[4]));
       }
       else {
-        fac = fac2 * (1.0f - rt2[3]);
+        float temp_fac = fac * (1.0f - rt2[3]);
 
         if (fac == 0) {
           memcpy(rt, rt2, sizeof(float[4]));
         }
         else {
-          rt[0] = fac * rt1[0] + rt2[0];
-          rt[1] = fac * rt1[1] + rt2[1];
-          rt[2] = fac * rt1[2] + rt2[2];
-          rt[3] = fac * rt1[3] + rt2[3];
+          rt[0] = temp_fac * rt1[0] + rt2[0];
+          rt[1] = temp_fac * rt1[1] + rt2[1];
+          rt[2] = temp_fac * rt1[2] + rt2[2];
+          rt[3] = temp_fac * rt1[3] + rt2[3];
         }
       }
       rt1 += 4;
@@ -541,23 +510,23 @@ static void do_alphaunder_effect_float(
 
     x = xo;
     while (x--) {
-      if (rt2[3] <= 0 && fac4 >= 1.0f) {
+      if (rt2[3] <= 0 && fac >= 1.0f) {
         memcpy(rt, rt1, sizeof(float[4]));
       }
       else if (rt2[3] >= 1.0f) {
         memcpy(rt, rt2, sizeof(float[4]));
       }
       else {
-        fac = fac4 * (1.0f - rt2[3]);
+        float temp_fac = fac * (1.0f - rt2[3]);
 
         if (fac == 0) {
           memcpy(rt, rt2, sizeof(float[4]));
         }
         else {
-          rt[0] = fac * rt1[0] + rt2[0];
-          rt[1] = fac * rt1[1] + rt2[1];
-          rt[2] = fac * rt1[2] + rt2[2];
-          rt[3] = fac * rt1[3] + rt2[3];
+          rt[0] = temp_fac * rt1[0] + rt2[0];
+          rt[1] = temp_fac * rt1[1] + rt2[1];
+          rt[2] = temp_fac * rt1[2] + rt2[2];
+          rt[3] = temp_fac * rt1[3] + rt2[3];
         }
       }
       rt1 += 4;
@@ -570,8 +539,7 @@ static void do_alphaunder_effect_float(
 static void do_alphaunder_effect(const SeqRenderData *context,
                                  Sequence *UNUSED(seq),
                                  float UNUSED(timeline_frame),
-                                 float facf0,
-                                 float facf1,
+                                 float fac,
                                  ImBuf *ibuf1,
                                  ImBuf *ibuf2,
                                  ImBuf *UNUSED(ibuf3),
@@ -585,7 +553,7 @@ static void do_alphaunder_effect(const SeqRenderData *context,
     slice_get_float_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_alphaunder_effect_float(facf0, facf1, context->rectx, total_lines, rect1, rect2, rect_out);
+    do_alphaunder_effect_float(fac, context->rectx, total_lines, rect1, rect2, rect_out);
   }
   else {
     unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
@@ -593,21 +561,15 @@ static void do_alphaunder_effect(const SeqRenderData *context,
     slice_get_byte_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_alphaunder_effect_byte(facf0, facf1, context->rectx, total_lines, rect1, rect2, rect_out);
+    do_alphaunder_effect_byte(fac, context->rectx, total_lines, rect1, rect2, rect_out);
   }
 }
 
 /*********************** Cross *************************/
 
-static void do_cross_effect_byte(float facf0,
-                                 float facf1,
-                                 int x,
-                                 int y,
-                                 unsigned char *rect1,
-                                 unsigned char *rect2,
-                                 unsigned char *out)
+static void do_cross_effect_byte(
+    float fac, int x, int y, unsigned char *rect1, unsigned char *rect2, unsigned char *out)
 {
-  int fac1, fac2, fac3, fac4;
   int xo;
   unsigned char *rt1, *rt2, *rt;
 
@@ -616,18 +578,16 @@ static void do_cross_effect_byte(float facf0,
   rt2 = rect2;
   rt = out;
 
-  fac2 = (int)(256.0f * facf0);
-  fac1 = 256 - fac2;
-  fac4 = (int)(256.0f * facf1);
-  fac3 = 256 - fac4;
+  int temp_fac = (int)(256.0f * fac);
+  int temp_mfac = 256 - temp_fac;
 
   while (y--) {
     x = xo;
     while (x--) {
-      rt[0] = (fac1 * rt1[0] + fac2 * rt2[0]) >> 8;
-      rt[1] = (fac1 * rt1[1] + fac2 * rt2[1]) >> 8;
-      rt[2] = (fac1 * rt1[2] + fac2 * rt2[2]) >> 8;
-      rt[3] = (fac1 * rt1[3] + fac2 * rt2[3]) >> 8;
+      rt[0] = (temp_mfac * rt1[0] + temp_fac * rt2[0]) >> 8;
+      rt[1] = (temp_mfac * rt1[1] + temp_fac * rt2[1]) >> 8;
+      rt[2] = (temp_mfac * rt1[2] + temp_fac * rt2[2]) >> 8;
+      rt[3] = (temp_mfac * rt1[3] + temp_fac * rt2[3]) >> 8;
 
       rt1 += 4;
       rt2 += 4;
@@ -641,10 +601,10 @@ static void do_cross_effect_byte(float facf0,
 
     x = xo;
     while (x--) {
-      rt[0] = (fac3 * rt1[0] + fac4 * rt2[0]) >> 8;
-      rt[1] = (fac3 * rt1[1] + fac4 * rt2[1]) >> 8;
-      rt[2] = (fac3 * rt1[2] + fac4 * rt2[2]) >> 8;
-      rt[3] = (fac3 * rt1[3] + fac4 * rt2[3]) >> 8;
+      rt[0] = (temp_mfac * rt1[0] + temp_fac * rt2[0]) >> 8;
+      rt[1] = (temp_mfac * rt1[1] + temp_fac * rt2[1]) >> 8;
+      rt[2] = (temp_mfac * rt1[2] + temp_fac * rt2[2]) >> 8;
+      rt[3] = (temp_mfac * rt1[3] + temp_fac * rt2[3]) >> 8;
 
       rt1 += 4;
       rt2 += 4;
@@ -653,10 +613,8 @@ static void do_cross_effect_byte(float facf0,
   }
 }
 
-static void do_cross_effect_float(
-    float facf0, float facf1, int x, int y, float *rect1, float *rect2, float *out)
+static void do_cross_effect_float(float fac, int x, int y, float *rect1, float *rect2, float *out)
 {
-  float fac1, fac2, fac3, fac4;
   int xo;
   float *rt1, *rt2, *rt;
 
@@ -665,18 +623,15 @@ static void do_cross_effect_float(
   rt2 = rect2;
   rt = out;
 
-  fac2 = facf0;
-  fac1 = 1.0f - fac2;
-  fac4 = facf1;
-  fac3 = 1.0f - fac4;
+  float mfac = 1.0f - fac;
 
   while (y--) {
     x = xo;
     while (x--) {
-      rt[0] = fac1 * rt1[0] + fac2 * rt2[0];
-      rt[1] = fac1 * rt1[1] + fac2 * rt2[1];
-      rt[2] = fac1 * rt1[2] + fac2 * rt2[2];
-      rt[3] = fac1 * rt1[3] + fac2 * rt2[3];
+      rt[0] = mfac * rt1[0] + fac * rt2[0];
+      rt[1] = mfac * rt1[1] + fac * rt2[1];
+      rt[2] = mfac * rt1[2] + fac * rt2[2];
+      rt[3] = mfac * rt1[3] + fac * rt2[3];
 
       rt1 += 4;
       rt2 += 4;
@@ -690,10 +645,10 @@ static void do_cross_effect_float(
 
     x = xo;
     while (x--) {
-      rt[0] = fac3 * rt1[0] + fac4 * rt2[0];
-      rt[1] = fac3 * rt1[1] + fac4 * rt2[1];
-      rt[2] = fac3 * rt1[2] + fac4 * rt2[2];
-      rt[3] = fac3 * rt1[3] + fac4 * rt2[3];
+      rt[0] = mfac * rt1[0] + fac * rt2[0];
+      rt[1] = mfac * rt1[1] + fac * rt2[1];
+      rt[2] = mfac * rt1[2] + fac * rt2[2];
+      rt[3] = mfac * rt1[3] + fac * rt2[3];
 
       rt1 += 4;
       rt2 += 4;
@@ -705,8 +660,7 @@ static void do_cross_effect_float(
 static void do_cross_effect(const SeqRenderData *context,
                             Sequence *UNUSED(seq),
                             float UNUSED(timeline_frame),
-                            float facf0,
-                            float facf1,
+                            float fac,
                             ImBuf *ibuf1,
                             ImBuf *ibuf2,
                             ImBuf *UNUSED(ibuf3),
@@ -720,7 +674,7 @@ static void do_cross_effect(const SeqRenderData *context,
     slice_get_float_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_cross_effect_float(facf0, facf1, context->rectx, total_lines, rect1, rect2, rect_out);
+    do_cross_effect_float(fac, context->rectx, total_lines, rect1, rect2, rect_out);
   }
   else {
     unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
@@ -728,7 +682,7 @@ static void do_cross_effect(const SeqRenderData *context,
     slice_get_byte_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_cross_effect_byte(facf0, facf1, context->rectx, total_lines, rect1, rect2, rect_out);
+    do_cross_effect_byte(fac, context->rectx, total_lines, rect1, rect2, rect_out);
   }
 }
 
@@ -888,15 +842,9 @@ static void free_gammacross(Sequence *UNUSED(seq), const bool UNUSED(do_id_user)
 {
 }
 
-static void do_gammacross_effect_byte(float facf0,
-                                      float UNUSED(facf1),
-                                      int x,
-                                      int y,
-                                      unsigned char *rect1,
-                                      unsigned char *rect2,
-                                      unsigned char *out)
+static void do_gammacross_effect_byte(
+    float fac, int x, int y, unsigned char *rect1, unsigned char *rect2, unsigned char *out)
 {
-  float fac1, fac2;
   int xo;
   unsigned char *cp1, *cp2, *rt;
   float rt1[4], rt2[4], tempc[4];
@@ -906,8 +854,7 @@ static void do_gammacross_effect_byte(float facf0,
   cp2 = rect2;
   rt = out;
 
-  fac2 = facf0;
-  fac1 = 1.0f - fac2;
+  float mfac = 1.0f - fac;
 
   while (y--) {
     x = xo;
@@ -915,10 +862,10 @@ static void do_gammacross_effect_byte(float facf0,
       straight_uchar_to_premul_float(rt1, cp1);
       straight_uchar_to_premul_float(rt2, cp2);
 
-      tempc[0] = gammaCorrect(fac1 * invGammaCorrect(rt1[0]) + fac2 * invGammaCorrect(rt2[0]));
-      tempc[1] = gammaCorrect(fac1 * invGammaCorrect(rt1[1]) + fac2 * invGammaCorrect(rt2[1]));
-      tempc[2] = gammaCorrect(fac1 * invGammaCorrect(rt1[2]) + fac2 * invGammaCorrect(rt2[2]));
-      tempc[3] = gammaCorrect(fac1 * invGammaCorrect(rt1[3]) + fac2 * invGammaCorrect(rt2[3]));
+      tempc[0] = gammaCorrect(mfac * invGammaCorrect(rt1[0]) + fac * invGammaCorrect(rt2[0]));
+      tempc[1] = gammaCorrect(mfac * invGammaCorrect(rt1[1]) + fac * invGammaCorrect(rt2[1]));
+      tempc[2] = gammaCorrect(mfac * invGammaCorrect(rt1[2]) + fac * invGammaCorrect(rt2[2]));
+      tempc[3] = gammaCorrect(mfac * invGammaCorrect(rt1[3]) + fac * invGammaCorrect(rt2[3]));
 
       premul_float_to_straight_uchar(rt, tempc);
       cp1 += 4;
@@ -936,10 +883,10 @@ static void do_gammacross_effect_byte(float facf0,
       straight_uchar_to_premul_float(rt1, cp1);
       straight_uchar_to_premul_float(rt2, cp2);
 
-      tempc[0] = gammaCorrect(fac1 * invGammaCorrect(rt1[0]) + fac2 * invGammaCorrect(rt2[0]));
-      tempc[1] = gammaCorrect(fac1 * invGammaCorrect(rt1[1]) + fac2 * invGammaCorrect(rt2[1]));
-      tempc[2] = gammaCorrect(fac1 * invGammaCorrect(rt1[2]) + fac2 * invGammaCorrect(rt2[2]));
-      tempc[3] = gammaCorrect(fac1 * invGammaCorrect(rt1[3]) + fac2 * invGammaCorrect(rt2[3]));
+      tempc[0] = gammaCorrect(mfac * invGammaCorrect(rt1[0]) + fac * invGammaCorrect(rt2[0]));
+      tempc[1] = gammaCorrect(mfac * invGammaCorrect(rt1[1]) + fac * invGammaCorrect(rt2[1]));
+      tempc[2] = gammaCorrect(mfac * invGammaCorrect(rt1[2]) + fac * invGammaCorrect(rt2[2]));
+      tempc[3] = gammaCorrect(mfac * invGammaCorrect(rt1[3]) + fac * invGammaCorrect(rt2[3]));
 
       premul_float_to_straight_uchar(rt, tempc);
       cp1 += 4;
@@ -950,9 +897,8 @@ static void do_gammacross_effect_byte(float facf0,
 }
 
 static void do_gammacross_effect_float(
-    float facf0, float UNUSED(facf1), int x, int y, float *rect1, float *rect2, float *out)
+    float fac, int x, int y, float *rect1, float *rect2, float *out)
 {
-  float fac1, fac2;
   int xo;
   float *rt1, *rt2, *rt;
 
@@ -961,13 +907,12 @@ static void do_gammacross_effect_float(
   rt2 = rect2;
   rt = out;
 
-  fac2 = facf0;
-  fac1 = 1.0f - fac2;
+  float mfac = 1.0f - fac;
 
   while (y--) {
     x = xo * 4;
     while (x--) {
-      *rt = gammaCorrect(fac1 * invGammaCorrect(*rt1) + fac2 * invGammaCorrect(*rt2));
+      *rt = gammaCorrect(mfac * invGammaCorrect(*rt1) + fac * invGammaCorrect(*rt2));
       rt1++;
       rt2++;
       rt++;
@@ -980,7 +925,7 @@ static void do_gammacross_effect_float(
 
     x = xo * 4;
     while (x--) {
-      *rt = gammaCorrect(fac1 * invGammaCorrect(*rt1) + fac2 * invGammaCorrect(*rt2));
+      *rt = gammaCorrect(mfac * invGammaCorrect(*rt1) + fac * invGammaCorrect(*rt2));
 
       rt1++;
       rt2++;
@@ -1003,8 +948,7 @@ static struct ImBuf *gammacross_init_execution(const SeqRenderData *context,
 static void do_gammacross_effect(const SeqRenderData *context,
                                  Sequence *UNUSED(seq),
                                  float UNUSED(timeline_frame),
-                                 float facf0,
-                                 float facf1,
+                                 float fac,
                                  ImBuf *ibuf1,
                                  ImBuf *ibuf2,
                                  ImBuf *UNUSED(ibuf3),
@@ -1018,7 +962,7 @@ static void do_gammacross_effect(const SeqRenderData *context,
     slice_get_float_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_gammacross_effect_float(facf0, facf1, context->rectx, total_lines, rect1, rect2, rect_out);
+    do_gammacross_effect_float(fac, context->rectx, total_lines, rect1, rect2, rect_out);
   }
   else {
     unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
@@ -1026,21 +970,16 @@ static void do_gammacross_effect(const SeqRenderData *context,
     slice_get_byte_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_gammacross_effect_byte(facf0, facf1, context->rectx, total_lines, rect1, rect2, rect_out);
+    do_gammacross_effect_byte(fac, context->rectx, total_lines, rect1, rect2, rect_out);
   }
 }
 
 /*********************** Add *************************/
 
-static void do_add_effect_byte(float facf0,
-                               float facf1,
-                               int x,
-                               int y,
-                               unsigned char *rect1,
-                               unsigned char *rect2,
-                               unsigned char *out)
+static void do_add_effect_byte(
+    float fac, int x, int y, unsigned char *rect1, unsigned char *rect2, unsigned char *out)
 {
-  int xo, fac1, fac3;
+  int xo;
   unsigned char *cp1, *cp2, *rt;
 
   xo = x;
@@ -1048,14 +987,13 @@ static void do_add_effect_byte(float facf0,
   cp2 = rect2;
   rt = out;
 
-  fac1 = (int)(256.0f * facf0);
-  fac3 = (int)(256.0f * facf1);
+  int temp_fac = (int)(256.0f * fac);
 
   while (y--) {
     x = xo;
 
     while (x--) {
-      const int m = fac1 * (int)cp2[3];
+      const int m = temp_fac * (int)cp2[3];
       rt[0] = min_ii(cp1[0] + ((m * cp2[0]) >> 16), 255);
       rt[1] = min_ii(cp1[1] + ((m * cp2[1]) >> 16), 255);
       rt[2] = min_ii(cp1[2] + ((m * cp2[2]) >> 16), 255);
@@ -1073,7 +1011,7 @@ static void do_add_effect_byte(float facf0,
 
     x = xo;
     while (x--) {
-      const int m = fac3 * (int)cp2[3];
+      const int m = temp_fac * (int)cp2[3];
       rt[0] = min_ii(cp1[0] + ((m * cp2[0]) >> 16), 255);
       rt[1] = min_ii(cp1[1] + ((m * cp2[1]) >> 16), 255);
       rt[2] = min_ii(cp1[2] + ((m * cp2[2]) >> 16), 255);
@@ -1086,11 +1024,9 @@ static void do_add_effect_byte(float facf0,
   }
 }
 
-static void do_add_effect_float(
-    float facf0, float facf1, int x, int y, float *rect1, float *rect2, float *out)
+static void do_add_effect_float(float fac, int x, int y, float *rect1, float *rect2, float *out)
 {
   int xo;
-  float fac1, fac3;
   float *rt1, *rt2, *rt;
 
   xo = x;
@@ -1098,13 +1034,10 @@ static void do_add_effect_float(
   rt2 = rect2;
   rt = out;
 
-  fac1 = facf0;
-  fac3 = facf1;
-
   while (y--) {
     x = xo;
     while (x--) {
-      const float m = (1.0f - (rt1[3] * (1.0f - fac1))) * rt2[3];
+      const float m = (1.0f - (rt1[3] * (1.0f - fac))) * rt2[3];
       rt[0] = rt1[0] + m * rt2[0];
       rt[1] = rt1[1] + m * rt2[1];
       rt[2] = rt1[2] + m * rt2[2];
@@ -1122,7 +1055,7 @@ static void do_add_effect_float(
 
     x = xo;
     while (x--) {
-      const float m = (1.0f - (rt1[3] * (1.0f - fac3))) * rt2[3];
+      const float m = (1.0f - (rt1[3] * (1.0f - fac))) * rt2[3];
       rt[0] = rt1[0] + m * rt2[0];
       rt[1] = rt1[1] + m * rt2[1];
       rt[2] = rt1[2] + m * rt2[2];
@@ -1138,8 +1071,7 @@ static void do_add_effect_float(
 static void do_add_effect(const SeqRenderData *context,
                           Sequence *UNUSED(seq),
                           float UNUSED(timeline_frame),
-                          float facf0,
-                          float facf1,
+                          float fac,
                           ImBuf *ibuf1,
                           ImBuf *ibuf2,
                           ImBuf *UNUSED(ibuf3),
@@ -1153,7 +1085,7 @@ static void do_add_effect(const SeqRenderData *context,
     slice_get_float_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_add_effect_float(facf0, facf1, context->rectx, total_lines, rect1, rect2, rect_out);
+    do_add_effect_float(fac, context->rectx, total_lines, rect1, rect2, rect_out);
   }
   else {
     unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
@@ -1161,21 +1093,16 @@ static void do_add_effect(const SeqRenderData *context,
     slice_get_byte_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_add_effect_byte(facf0, facf1, context->rectx, total_lines, rect1, rect2, rect_out);
+    do_add_effect_byte(fac, context->rectx, total_lines, rect1, rect2, rect_out);
   }
 }
 
 /*********************** Sub *************************/
 
-static void do_sub_effect_byte(float facf0,
-                               float facf1,
-                               int x,
-                               int y,
-                               unsigned char *rect1,
-                               unsigned char *rect2,
-                               unsigned char *out)
+static void do_sub_effect_byte(
+    float fac, int x, int y, unsigned char *rect1, unsigned char *rect2, unsigned char *out)
 {
-  int xo, fac1, fac3;
+  int xo;
   unsigned char *cp1, *cp2, *rt;
 
   xo = x;
@@ -1183,13 +1110,12 @@ static void do_sub_effect_byte(float facf0,
   cp2 = rect2;
   rt = out;
 
-  fac1 = (int)(256.0f * facf0);
-  fac3 = (int)(256.0f * facf1);
+  int temp_fac = (int)(256.0f * fac);
 
   while (y--) {
     x = xo;
     while (x--) {
-      const int m = fac1 * (int)cp2[3];
+      const int m = temp_fac * (int)cp2[3];
       rt[0] = max_ii(cp1[0] - ((m * cp2[0]) >> 16), 0);
       rt[1] = max_ii(cp1[1] - ((m * cp2[1]) >> 16), 0);
       rt[2] = max_ii(cp1[2] - ((m * cp2[2]) >> 16), 0);
@@ -1207,7 +1133,7 @@ static void do_sub_effect_byte(float facf0,
 
     x = xo;
     while (x--) {
-      const int m = fac3 * (int)cp2[3];
+      const int m = temp_fac * (int)cp2[3];
       rt[0] = max_ii(cp1[0] - ((m * cp2[0]) >> 16), 0);
       rt[1] = max_ii(cp1[1] - ((m * cp2[1]) >> 16), 0);
       rt[2] = max_ii(cp1[2] - ((m * cp2[2]) >> 16), 0);
@@ -1220,11 +1146,10 @@ static void do_sub_effect_byte(float facf0,
   }
 }
 
-static void do_sub_effect_float(
-    float UNUSED(facf0), float facf1, int x, int y, float *rect1, float *rect2, float *out)
+static void do_sub_effect_float(float fac, int x, int y, float *rect1, float *rect2, float *out)
 {
   int xo;
-  float /* fac1, */ fac3_inv;
+
   float *rt1, *rt2, *rt;
 
   xo = x;
@@ -1232,14 +1157,12 @@ static void do_sub_effect_float(
   rt2 = rect2;
   rt = out;
 
-  /* UNUSED */
-  // fac1 = facf0;
-  fac3_inv = 1.0f - facf1;
+  float mfac = 1.0f - fac;
 
   while (y--) {
     x = xo;
     while (x--) {
-      const float m = (1.0f - (rt1[3] * fac3_inv)) * rt2[3];
+      const float m = (1.0f - (rt1[3] * mfac)) * rt2[3];
       rt[0] = max_ff(rt1[0] - m * rt2[0], 0.0f);
       rt[1] = max_ff(rt1[1] - m * rt2[1], 0.0f);
       rt[2] = max_ff(rt1[2] - m * rt2[2], 0.0f);
@@ -1257,7 +1180,7 @@ static void do_sub_effect_float(
 
     x = xo;
     while (x--) {
-      const float m = (1.0f - (rt1[3] * fac3_inv)) * rt2[3];
+      const float m = (1.0f - (rt1[3] * mfac)) * rt2[3];
       rt[0] = max_ff(rt1[0] - m * rt2[0], 0.0f);
       rt[1] = max_ff(rt1[1] - m * rt2[1], 0.0f);
       rt[2] = max_ff(rt1[2] - m * rt2[2], 0.0f);
@@ -1273,8 +1196,7 @@ static void do_sub_effect_float(
 static void do_sub_effect(const SeqRenderData *context,
                           Sequence *UNUSED(seq),
                           float UNUSED(timeline_frame),
-                          float facf0,
-                          float facf1,
+                          float fac,
                           ImBuf *ibuf1,
                           ImBuf *ibuf2,
                           ImBuf *UNUSED(ibuf3),
@@ -1288,7 +1210,7 @@ static void do_sub_effect(const SeqRenderData *context,
     slice_get_float_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_sub_effect_float(facf0, facf1, context->rectx, total_lines, rect1, rect2, rect_out);
+    do_sub_effect_float(fac, context->rectx, total_lines, rect1, rect2, rect_out);
   }
   else {
     unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
@@ -1296,7 +1218,7 @@ static void do_sub_effect(const SeqRenderData *context,
     slice_get_byte_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_sub_effect_byte(facf0, facf1, context->rectx, total_lines, rect1, rect2, rect_out);
+    do_sub_effect_byte(fac, context->rectx, total_lines, rect1, rect2, rect_out);
   }
 }
 
@@ -1306,52 +1228,36 @@ static void do_sub_effect(const SeqRenderData *context,
 #define XOFF 8
 #define YOFF 8
 
-static void do_drop_effect_byte(float facf0,
-                                float facf1,
-                                int x,
-                                int y,
-                                unsigned char *rect2i,
-                                unsigned char *rect1i,
-                                unsigned char *outi)
+static void do_drop_effect_byte(
+    float fac, int x, int y, unsigned char *rect2i, unsigned char *rect1i, unsigned char *outi)
 {
-  int temp, fac, fac1, fac2;
   unsigned char *rt1, *rt2, *out;
-  int field = 1;
 
   const int width = x;
   const int height = y;
   const int xoff = min_ii(XOFF, width);
   const int yoff = min_ii(YOFF, height);
 
-  fac1 = (int)(70.0f * facf0);
-  fac2 = (int)(70.0f * facf1);
+  int temp_fac = (int)(70.0f * fac);
 
   rt2 = rect2i + yoff * 4 * width;
   rt1 = rect1i;
   out = outi;
   for (y = 0; y < height - yoff; y++) {
-    if (field) {
-      fac = fac1;
-    }
-    else {
-      fac = fac2;
-    }
-    field = !field;
-
     memcpy(out, rt1, sizeof(*out) * xoff * 4);
     rt1 += xoff * 4;
     out += xoff * 4;
 
     for (x = xoff; x < width; x++) {
-      temp = ((fac * rt2[3]) >> 8);
+      int temp_fac2 = ((temp_fac * rt2[3]) >> 8);
 
-      *(out++) = MAX2(0, *rt1 - temp);
+      *(out++) = MAX2(0, *rt1 - temp_fac2);
       rt1++;
-      *(out++) = MAX2(0, *rt1 - temp);
+      *(out++) = MAX2(0, *rt1 - temp_fac2);
       rt1++;
-      *(out++) = MAX2(0, *rt1 - temp);
+      *(out++) = MAX2(0, *rt1 - temp_fac2);
       rt1++;
-      *(out++) = MAX2(0, *rt1 - temp);
+      *(out++) = MAX2(0, *rt1 - temp_fac2);
       rt1++;
       rt2 += 4;
     }
@@ -1361,46 +1267,35 @@ static void do_drop_effect_byte(float facf0,
 }
 
 static void do_drop_effect_float(
-    float facf0, float facf1, int x, int y, float *rect2i, float *rect1i, float *outi)
+    float fac, int x, int y, float *rect2i, float *rect1i, float *outi)
 {
-  float temp, fac, fac1, fac2;
   float *rt1, *rt2, *out;
-  int field = 1;
 
   const int width = x;
   const int height = y;
   const int xoff = min_ii(XOFF, width);
   const int yoff = min_ii(YOFF, height);
 
-  fac1 = 70.0f * facf0;
-  fac2 = 70.0f * facf1;
+  float temp_fac = 70.0f * fac;
 
   rt2 = rect2i + yoff * 4 * width;
   rt1 = rect1i;
   out = outi;
   for (y = 0; y < height - yoff; y++) {
-    if (field) {
-      fac = fac1;
-    }
-    else {
-      fac = fac2;
-    }
-    field = !field;
-
     memcpy(out, rt1, sizeof(*out) * xoff * 4);
     rt1 += xoff * 4;
     out += xoff * 4;
 
     for (x = xoff; x < width; x++) {
-      temp = fac * rt2[3];
+      float temp_fac2 = temp_fac * rt2[3];
 
-      *(out++) = MAX2(0.0f, *rt1 - temp);
+      *(out++) = MAX2(0.0f, *rt1 - temp_fac2);
       rt1++;
-      *(out++) = MAX2(0.0f, *rt1 - temp);
+      *(out++) = MAX2(0.0f, *rt1 - temp_fac2);
       rt1++;
-      *(out++) = MAX2(0.0f, *rt1 - temp);
+      *(out++) = MAX2(0.0f, *rt1 - temp_fac2);
       rt1++;
-      *(out++) = MAX2(0.0f, *rt1 - temp);
+      *(out++) = MAX2(0.0f, *rt1 - temp_fac2);
       rt1++;
       rt2 += 4;
     }
@@ -1411,15 +1306,10 @@ static void do_drop_effect_float(
 
 /*********************** Mul *************************/
 
-static void do_mul_effect_byte(float facf0,
-                               float facf1,
-                               int x,
-                               int y,
-                               unsigned char *rect1,
-                               unsigned char *rect2,
-                               unsigned char *out)
+static void do_mul_effect_byte(
+    float fac, int x, int y, unsigned char *rect1, unsigned char *rect2, unsigned char *out)
 {
-  int xo, fac1, fac3;
+  int xo;
   unsigned char *rt1, *rt2, *rt;
 
   xo = x;
@@ -1427,8 +1317,7 @@ static void do_mul_effect_byte(float facf0,
   rt2 = rect2;
   rt = out;
 
-  fac1 = (int)(256.0f * facf0);
-  fac3 = (int)(256.0f * facf1);
+  int temp_fac = (int)(256.0f * fac);
 
   /* Formula:
    * `fac * (a * b) + (1 - fac) * a => fac * a * (b - 1) + axaux = c * px + py * s;` // + centx
@@ -1439,10 +1328,10 @@ static void do_mul_effect_byte(float facf0,
     x = xo;
     while (x--) {
 
-      rt[0] = rt1[0] + ((fac1 * rt1[0] * (rt2[0] - 255)) >> 16);
-      rt[1] = rt1[1] + ((fac1 * rt1[1] * (rt2[1] - 255)) >> 16);
-      rt[2] = rt1[2] + ((fac1 * rt1[2] * (rt2[2] - 255)) >> 16);
-      rt[3] = rt1[3] + ((fac1 * rt1[3] * (rt2[3] - 255)) >> 16);
+      rt[0] = rt1[0] + ((temp_fac * rt1[0] * (rt2[0] - 255)) >> 16);
+      rt[1] = rt1[1] + ((temp_fac * rt1[1] * (rt2[1] - 255)) >> 16);
+      rt[2] = rt1[2] + ((temp_fac * rt1[2] * (rt2[2] - 255)) >> 16);
+      rt[3] = rt1[3] + ((temp_fac * rt1[3] * (rt2[3] - 255)) >> 16);
 
       rt1 += 4;
       rt2 += 4;
@@ -1457,10 +1346,10 @@ static void do_mul_effect_byte(float facf0,
     x = xo;
     while (x--) {
 
-      rt[0] = rt1[0] + ((fac3 * rt1[0] * (rt2[0] - 255)) >> 16);
-      rt[1] = rt1[1] + ((fac3 * rt1[1] * (rt2[1] - 255)) >> 16);
-      rt[2] = rt1[2] + ((fac3 * rt1[2] * (rt2[2] - 255)) >> 16);
-      rt[3] = rt1[3] + ((fac3 * rt1[3] * (rt2[3] - 255)) >> 16);
+      rt[0] = rt1[0] + ((temp_fac * rt1[0] * (rt2[0] - 255)) >> 16);
+      rt[1] = rt1[1] + ((temp_fac * rt1[1] * (rt2[1] - 255)) >> 16);
+      rt[2] = rt1[2] + ((temp_fac * rt1[2] * (rt2[2] - 255)) >> 16);
+      rt[3] = rt1[3] + ((temp_fac * rt1[3] * (rt2[3] - 255)) >> 16);
 
       rt1 += 4;
       rt2 += 4;
@@ -1469,11 +1358,9 @@ static void do_mul_effect_byte(float facf0,
   }
 }
 
-static void do_mul_effect_float(
-    float facf0, float facf1, int x, int y, float *rect1, float *rect2, float *out)
+static void do_mul_effect_float(float fac, int x, int y, float *rect1, float *rect2, float *out)
 {
   int xo;
-  float fac1, fac3;
   float *rt1, *rt2, *rt;
 
   xo = x;
@@ -1481,19 +1368,16 @@ static void do_mul_effect_float(
   rt2 = rect2;
   rt = out;
 
-  fac1 = facf0;
-  fac3 = facf1;
-
   /* Formula:
    * `fac * (a * b) + (1 - fac) * a => fac * a * (b - 1) + a`. */
 
   while (y--) {
     x = xo;
     while (x--) {
-      rt[0] = rt1[0] + fac1 * rt1[0] * (rt2[0] - 1.0f);
-      rt[1] = rt1[1] + fac1 * rt1[1] * (rt2[1] - 1.0f);
-      rt[2] = rt1[2] + fac1 * rt1[2] * (rt2[2] - 1.0f);
-      rt[3] = rt1[3] + fac1 * rt1[3] * (rt2[3] - 1.0f);
+      rt[0] = rt1[0] + fac * rt1[0] * (rt2[0] - 1.0f);
+      rt[1] = rt1[1] + fac * rt1[1] * (rt2[1] - 1.0f);
+      rt[2] = rt1[2] + fac * rt1[2] * (rt2[2] - 1.0f);
+      rt[3] = rt1[3] + fac * rt1[3] * (rt2[3] - 1.0f);
 
       rt1 += 4;
       rt2 += 4;
@@ -1507,10 +1391,10 @@ static void do_mul_effect_float(
 
     x = xo;
     while (x--) {
-      rt[0] = rt1[0] + fac3 * rt1[0] * (rt2[0] - 1.0f);
-      rt[1] = rt1[1] + fac3 * rt1[1] * (rt2[1] - 1.0f);
-      rt[2] = rt1[2] + fac3 * rt1[2] * (rt2[2] - 1.0f);
-      rt[3] = rt1[3] + fac3 * rt1[3] * (rt2[3] - 1.0f);
+      rt[0] = rt1[0] + fac * rt1[0] * (rt2[0] - 1.0f);
+      rt[1] = rt1[1] + fac * rt1[1] * (rt2[1] - 1.0f);
+      rt[2] = rt1[2] + fac * rt1[2] * (rt2[2] - 1.0f);
+      rt[3] = rt1[3] + fac * rt1[3] * (rt2[3] - 1.0f);
 
       rt1 += 4;
       rt2 += 4;
@@ -1522,8 +1406,7 @@ static void do_mul_effect_float(
 static void do_mul_effect(const SeqRenderData *context,
                           Sequence *UNUSED(seq),
                           float UNUSED(timeline_frame),
-                          float facf0,
-                          float facf1,
+                          float fac,
                           ImBuf *ibuf1,
                           ImBuf *ibuf2,
                           ImBuf *UNUSED(ibuf3),
@@ -1537,7 +1420,7 @@ static void do_mul_effect(const SeqRenderData *context,
     slice_get_float_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_mul_effect_float(facf0, facf1, context->rectx, total_lines, rect1, rect2, rect_out);
+    do_mul_effect_float(fac, context->rectx, total_lines, rect1, rect2, rect_out);
   }
   else {
     unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
@@ -1545,7 +1428,7 @@ static void do_mul_effect(const SeqRenderData *context,
     slice_get_byte_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_mul_effect_byte(facf0, facf1, context->rectx, total_lines, rect1, rect2, rect_out);
+    do_mul_effect_byte(fac, context->rectx, total_lines, rect1, rect2, rect_out);
   }
 }
 
@@ -1555,8 +1438,7 @@ typedef void (*IMB_blend_func_byte)(unsigned char *dst,
                                     const unsigned char *src2);
 typedef void (*IMB_blend_func_float)(float *dst, const float *src1, const float *src2);
 
-BLI_INLINE void apply_blend_function_byte(float facf0,
-                                          float facf1,
+BLI_INLINE void apply_blend_function_byte(float fac,
                                           int x,
                                           int y,
                                           unsigned char *rect1,
@@ -1574,7 +1456,7 @@ BLI_INLINE void apply_blend_function_byte(float facf0,
   while (y--) {
     for (x = xo; x > 0; x--) {
       achannel = rt1[3];
-      rt1[3] = (unsigned int)achannel * facf0;
+      rt1[3] = (unsigned int)achannel * fac;
       blend_function(rt, rt1, rt2);
       rt1[3] = achannel;
       rt[3] = rt1[3];
@@ -1588,7 +1470,7 @@ BLI_INLINE void apply_blend_function_byte(float facf0,
     y--;
     for (x = xo; x > 0; x--) {
       achannel = rt1[3];
-      rt1[3] = (unsigned int)achannel * facf1;
+      rt1[3] = (unsigned int)achannel * fac;
       blend_function(rt, rt1, rt2);
       rt1[3] = achannel;
       rt[3] = rt1[3];
@@ -1599,8 +1481,7 @@ BLI_INLINE void apply_blend_function_byte(float facf0,
   }
 }
 
-BLI_INLINE void apply_blend_function_float(float facf0,
-                                           float facf1,
+BLI_INLINE void apply_blend_function_float(float fac,
                                            int x,
                                            int y,
                                            float *rect1,
@@ -1618,7 +1499,7 @@ BLI_INLINE void apply_blend_function_float(float facf0,
   while (y--) {
     for (x = xo; x > 0; x--) {
       achannel = rt1[3];
-      rt1[3] = achannel * facf0;
+      rt1[3] = achannel * fac;
       blend_function(rt, rt1, rt2);
       rt1[3] = achannel;
       rt[3] = rt1[3];
@@ -1632,7 +1513,7 @@ BLI_INLINE void apply_blend_function_float(float facf0,
     y--;
     for (x = xo; x > 0; x--) {
       achannel = rt1[3];
-      rt1[3] = achannel * facf1;
+      rt1[3] = achannel * fac;
       blend_function(rt, rt1, rt2);
       rt1[3] = achannel;
       rt[3] = rt1[3];
@@ -1644,89 +1525,78 @@ BLI_INLINE void apply_blend_function_float(float facf0,
 }
 
 static void do_blend_effect_float(
-    float facf0, float facf1, int x, int y, float *rect1, float *rect2, int btype, float *out)
+    float fac, int x, int y, float *rect1, float *rect2, int btype, float *out)
 {
   switch (btype) {
     case SEQ_TYPE_ADD:
-      apply_blend_function_float(facf0, facf1, x, y, rect1, rect2, out, blend_color_add_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_add_float);
       break;
     case SEQ_TYPE_SUB:
-      apply_blend_function_float(facf0, facf1, x, y, rect1, rect2, out, blend_color_sub_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_sub_float);
       break;
     case SEQ_TYPE_MUL:
-      apply_blend_function_float(facf0, facf1, x, y, rect1, rect2, out, blend_color_mul_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_mul_float);
       break;
     case SEQ_TYPE_DARKEN:
-      apply_blend_function_float(facf0, facf1, x, y, rect1, rect2, out, blend_color_darken_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_darken_float);
       break;
     case SEQ_TYPE_COLOR_BURN:
-      apply_blend_function_float(facf0, facf1, x, y, rect1, rect2, out, blend_color_burn_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_burn_float);
       break;
     case SEQ_TYPE_LINEAR_BURN:
-      apply_blend_function_float(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_linearburn_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_linearburn_float);
       break;
     case SEQ_TYPE_SCREEN:
-      apply_blend_function_float(facf0, facf1, x, y, rect1, rect2, out, blend_color_screen_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_screen_float);
       break;
     case SEQ_TYPE_LIGHTEN:
-      apply_blend_function_float(facf0, facf1, x, y, rect1, rect2, out, blend_color_lighten_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_lighten_float);
       break;
     case SEQ_TYPE_DODGE:
-      apply_blend_function_float(facf0, facf1, x, y, rect1, rect2, out, blend_color_dodge_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_dodge_float);
       break;
     case SEQ_TYPE_OVERLAY:
-      apply_blend_function_float(facf0, facf1, x, y, rect1, rect2, out, blend_color_overlay_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_overlay_float);
       break;
     case SEQ_TYPE_SOFT_LIGHT:
-      apply_blend_function_float(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_softlight_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_softlight_float);
       break;
     case SEQ_TYPE_HARD_LIGHT:
-      apply_blend_function_float(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_hardlight_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_hardlight_float);
       break;
     case SEQ_TYPE_PIN_LIGHT:
-      apply_blend_function_float(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_pinlight_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_pinlight_float);
       break;
     case SEQ_TYPE_LIN_LIGHT:
-      apply_blend_function_float(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_linearlight_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_linearlight_float);
       break;
     case SEQ_TYPE_VIVID_LIGHT:
-      apply_blend_function_float(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_vividlight_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_vividlight_float);
       break;
     case SEQ_TYPE_BLEND_COLOR:
-      apply_blend_function_float(facf0, facf1, x, y, rect1, rect2, out, blend_color_color_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_color_float);
       break;
     case SEQ_TYPE_HUE:
-      apply_blend_function_float(facf0, facf1, x, y, rect1, rect2, out, blend_color_hue_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_hue_float);
       break;
     case SEQ_TYPE_SATURATION:
-      apply_blend_function_float(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_saturation_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_saturation_float);
       break;
     case SEQ_TYPE_VALUE:
-      apply_blend_function_float(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_luminosity_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_luminosity_float);
       break;
     case SEQ_TYPE_DIFFERENCE:
-      apply_blend_function_float(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_difference_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_difference_float);
       break;
     case SEQ_TYPE_EXCLUSION:
-      apply_blend_function_float(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_exclusion_float);
+      apply_blend_function_float(fac, x, y, rect1, rect2, out, blend_color_exclusion_float);
       break;
     default:
       break;
   }
 }
 
-static void do_blend_effect_byte(float facf0,
-                                 float facf1,
+static void do_blend_effect_byte(float fac,
                                  int x,
                                  int y,
                                  unsigned char *rect1,
@@ -1736,73 +1606,67 @@ static void do_blend_effect_byte(float facf0,
 {
   switch (btype) {
     case SEQ_TYPE_ADD:
-      apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_add_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_add_byte);
       break;
     case SEQ_TYPE_SUB:
-      apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_sub_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_sub_byte);
       break;
     case SEQ_TYPE_MUL:
-      apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_mul_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_mul_byte);
       break;
     case SEQ_TYPE_DARKEN:
-      apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_darken_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_darken_byte);
       break;
     case SEQ_TYPE_COLOR_BURN:
-      apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_burn_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_burn_byte);
       break;
     case SEQ_TYPE_LINEAR_BURN:
-      apply_blend_function_byte(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_linearburn_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_linearburn_byte);
       break;
     case SEQ_TYPE_SCREEN:
-      apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_screen_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_screen_byte);
       break;
     case SEQ_TYPE_LIGHTEN:
-      apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_lighten_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_lighten_byte);
       break;
     case SEQ_TYPE_DODGE:
-      apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_dodge_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_dodge_byte);
       break;
     case SEQ_TYPE_OVERLAY:
-      apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_overlay_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_overlay_byte);
       break;
     case SEQ_TYPE_SOFT_LIGHT:
-      apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_softlight_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_softlight_byte);
       break;
     case SEQ_TYPE_HARD_LIGHT:
-      apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_hardlight_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_hardlight_byte);
       break;
     case SEQ_TYPE_PIN_LIGHT:
-      apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_pinlight_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_pinlight_byte);
       break;
     case SEQ_TYPE_LIN_LIGHT:
-      apply_blend_function_byte(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_linearlight_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_linearlight_byte);
       break;
     case SEQ_TYPE_VIVID_LIGHT:
-      apply_blend_function_byte(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_vividlight_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_vividlight_byte);
       break;
     case SEQ_TYPE_BLEND_COLOR:
-      apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_color_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_color_byte);
       break;
     case SEQ_TYPE_HUE:
-      apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_hue_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_hue_byte);
       break;
     case SEQ_TYPE_SATURATION:
-      apply_blend_function_byte(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_saturation_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_saturation_byte);
       break;
     case SEQ_TYPE_VALUE:
-      apply_blend_function_byte(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_luminosity_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_luminosity_byte);
       break;
     case SEQ_TYPE_DIFFERENCE:
-      apply_blend_function_byte(
-          facf0, facf1, x, y, rect1, rect2, out, blend_color_difference_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_difference_byte);
       break;
     case SEQ_TYPE_EXCLUSION:
-      apply_blend_function_byte(facf0, facf1, x, y, rect1, rect2, out, blend_color_exclusion_byte);
+      apply_blend_function_byte(fac, x, y, rect1, rect2, out, blend_color_exclusion_byte);
       break;
     default:
       break;
@@ -1812,8 +1676,7 @@ static void do_blend_effect_byte(float facf0,
 static void do_blend_mode_effect(const SeqRenderData *context,
                                  Sequence *seq,
                                  float UNUSED(timeline_frame),
-                                 float facf0,
-                                 float facf1,
+                                 float fac,
                                  ImBuf *ibuf1,
                                  ImBuf *ibuf2,
                                  ImBuf *UNUSED(ibuf3),
@@ -1826,14 +1689,14 @@ static void do_blend_mode_effect(const SeqRenderData *context,
     slice_get_float_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
     do_blend_effect_float(
-        facf0, facf1, context->rectx, total_lines, rect1, rect2, seq->blend_mode, rect_out);
+        fac, context->rectx, total_lines, rect1, rect2, seq->blend_mode, rect_out);
   }
   else {
     unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
     slice_get_byte_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
     do_blend_effect_byte(
-        facf0, facf1, context->rectx, total_lines, rect1, rect2, seq->blend_mode, rect_out);
+        fac, context->rectx, total_lines, rect1, rect2, seq->blend_mode, rect_out);
   }
 }
 /*********************** Color Mix Effect  *************************/
@@ -1853,8 +1716,7 @@ static void init_colormix_effect(Sequence *seq)
 static void do_colormix_effect(const SeqRenderData *context,
                                Sequence *seq,
                                float UNUSED(timeline_frame),
-                               float UNUSED(facf0),
-                               float UNUSED(facf1),
+                               float UNUSED(fac),
                                ImBuf *ibuf1,
                                ImBuf *ibuf2,
                                ImBuf *UNUSED(ibuf3),
@@ -1862,24 +1724,24 @@ static void do_colormix_effect(const SeqRenderData *context,
                                int total_lines,
                                ImBuf *out)
 {
-  float facf;
+  float fac;
 
   ColorMixVars *data = seq->effectdata;
-  facf = data->factor;
+  fac = data->factor;
 
   if (out->rect_float) {
     float *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
     slice_get_float_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
     do_blend_effect_float(
-        facf, facf, context->rectx, total_lines, rect1, rect2, data->blend_effect, rect_out);
+        fac, context->rectx, total_lines, rect1, rect2, data->blend_effect, rect_out);
   }
   else {
     unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
     slice_get_byte_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
     do_blend_effect_byte(
-        facf, facf, context->rectx, total_lines, rect1, rect2, data->blend_effect, rect_out);
+        fac, context->rectx, total_lines, rect1, rect2, data->blend_effect, rect_out);
   }
 }
 
@@ -1930,7 +1792,7 @@ static float in_band(float width, float dist, int side, int dir)
   return alpha;
 }
 
-static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float facf0)
+static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float fac)
 {
   float posx, posy, hyp, hyp2, angle, hwidth, b1, b2, b3, pointdist;
   /* some future stuff */
@@ -1950,18 +1812,18 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
   angle = wipezone->angle;
 
   if (wipe->forward) {
-    posx = facf0 * xo;
-    posy = facf0 * yo;
+    posx = fac * xo;
+    posy = fac * yo;
   }
   else {
-    posx = xo - facf0 * xo;
-    posy = yo - facf0 * yo;
+    posx = xo - fac * xo;
+    posy = yo - fac * yo;
   }
 
   switch (wipe->wipetype) {
     case DO_SINGLE_WIPE:
-      width = min_ii(wipezone->width, facf0 * yo);
-      width = min_ii(width, yo - facf0 * yo);
+      width = min_ii(wipezone->width, fac * yo);
+      width = min_ii(width, yo - fac * yo);
 
       if (angle == 0.0f) {
         b1 = posy;
@@ -2000,7 +1862,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 
     case DO_DOUBLE_WIPE:
       if (!wipe->forward) {
-        facf0 = 1.0f - facf0; /* Go the other direction */
+        fac = 1.0f - fac; /* Go the other direction */
       }
 
       width = wipezone->width; /* calculate the blur width */
@@ -2053,9 +1915,9 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
        * temp3: angle of low side of blur
        * temp4: angle of high side of blur
        */
-      output = 1.0f - facf0;
+      output = 1.0f - fac;
       widthf = wipe->edgeWidth * 2.0f * (float)M_PI;
-      temp1 = 2.0f * (float)M_PI * facf0;
+      temp1 = 2.0f * (float)M_PI * fac;
 
       if (wipe->forward) {
         temp1 = 2.0f * (float)M_PI - temp1;
@@ -2076,12 +1938,12 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
       }
 
       if (wipe->forward) {
-        temp3 = temp1 - (widthf * 0.5f) * facf0;
-        temp4 = temp1 + (widthf * 0.5f) * (1 - facf0);
+        temp3 = temp1 - (widthf * 0.5f) * fac;
+        temp4 = temp1 + (widthf * 0.5f) * (1 - fac);
       }
       else {
-        temp3 = temp1 - (widthf * 0.5f) * (1 - facf0);
-        temp4 = temp1 + (widthf * 0.5f) * facf0;
+        temp3 = temp1 - (widthf * 0.5f) * (1 - fac);
+        temp4 = temp1 + (widthf * 0.5f) * fac;
       }
       if (temp3 < 0) {
         temp3 = 0;
@@ -2118,13 +1980,13 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
       }
 
       if (!wipe->forward) {
-        facf0 = 1 - facf0;
+        fac = 1 - fac;
       }
 
       width = wipezone->width;
       hwidth = width * 0.5f;
 
-      temp1 = (halfx - (halfx)*facf0);
+      temp1 = (halfx - (halfx)*fac);
       pointdist = hypotf(temp1, temp1);
 
       temp2 = hypotf(halfx - x, halfy - y);
@@ -2175,8 +2037,7 @@ static void copy_wipe_effect(Sequence *dst, Sequence *src, const int UNUSED(flag
 }
 
 static void do_wipe_effect_byte(Sequence *seq,
-                                float facf0,
-                                float UNUSED(facf1),
+                                float fac,
                                 int x,
                                 int y,
                                 unsigned char *rect1,
@@ -2198,7 +2059,7 @@ static void do_wipe_effect_byte(Sequence *seq,
   yo = y;
   for (y = 0; y < yo; y++) {
     for (x = 0; x < xo; x++) {
-      float check = check_zone(&wipezone, x, y, seq, facf0);
+      float check = check_zone(&wipezone, x, y, seq, fac);
       if (check) {
         if (cp1) {
           float rt1[4], rt2[4], tempc[4];
@@ -2246,14 +2107,8 @@ static void do_wipe_effect_byte(Sequence *seq,
   }
 }
 
-static void do_wipe_effect_float(Sequence *seq,
-                                 float facf0,
-                                 float UNUSED(facf1),
-                                 int x,
-                                 int y,
-                                 float *rect1,
-                                 float *rect2,
-                                 float *out)
+static void do_wipe_effect_float(
+    Sequence *seq, float fac, int x, int y, float *rect1, float *rect2, float *out)
 {
   WipeZone wipezone;
   WipeVars *wipe = (WipeVars *)seq->effectdata;
@@ -2270,7 +2125,7 @@ static void do_wipe_effect_float(Sequence *seq,
   yo = y;
   for (y = 0; y < yo; y++) {
     for (x = 0; x < xo; x++) {
-      float check = check_zone(&wipezone, x, y, seq, facf0);
+      float check = check_zone(&wipezone, x, y, seq, fac);
       if (check) {
         if (rt1) {
           rt[0] = rt1[0] * check + rt2[0] * (1 - check);
@@ -2314,8 +2169,7 @@ static void do_wipe_effect_float(Sequence *seq,
 static ImBuf *do_wipe_effect(const SeqRenderData *context,
                              Sequence *seq,
                              float UNUSED(timeline_frame),
-                             float facf0,
-                             float facf1,
+                             float fac,
                              ImBuf *ibuf1,
                              ImBuf *ibuf2,
                              ImBuf *ibuf3)
@@ -2324,8 +2178,7 @@ static ImBuf *do_wipe_effect(const SeqRenderData *context,
 
   if (out->rect_float) {
     do_wipe_effect_float(seq,
-                         facf0,
-                         facf1,
+                         fac,
                          context->rectx,
                          context->recty,
                          ibuf1->rect_float,
@@ -2334,8 +2187,7 @@ static ImBuf *do_wipe_effect(const SeqRenderData *context,
   }
   else {
     do_wipe_effect_byte(seq,
-                        facf0,
-                        facf1,
+                        fac,
                         context->rectx,
                         context->recty,
                         (unsigned char *)ibuf1->rect,
@@ -2442,8 +2294,7 @@ static void transform_image(int x,
 static void do_transform_effect(const SeqRenderData *context,
                                 Sequence *seq,
                                 float UNUSED(timeline_frame),
-                                float UNUSED(facf0),
-                                float UNUSED(facf1),
+                                float UNUSED(fac),
                                 ImBuf *ibuf1,
                                 ImBuf *UNUSED(ibuf2),
                                 ImBuf *UNUSED(ibuf3),
@@ -2731,8 +2582,7 @@ static void copy_glow_effect(Sequence *dst, Sequence *src, const int UNUSED(flag
 
 static void do_glow_effect_byte(Sequence *seq,
                                 int render_size,
-                                float facf0,
-                                float UNUSED(facf1),
+                                float fac,
                                 int x,
                                 int y,
                                 unsigned char *rect1,
@@ -2749,7 +2599,7 @@ static void do_glow_effect_byte(Sequence *seq,
   IMB_buffer_float_premultiply(inbuf, x, y);
 
   RVIsolateHighlights_float(
-      inbuf, outbuf, x, y, glow->fMini * 3.0f, glow->fBoost * facf0, glow->fClamp);
+      inbuf, outbuf, x, y, glow->fMini * 3.0f, glow->fBoost * fac, glow->fClamp);
   RVBlurBitmap2_float(outbuf, x, y, glow->dDist * (render_size / 100.0f), glow->dQuality);
   if (!glow->bNoComp) {
     RVAddBitmaps_float(inbuf, outbuf, outbuf, x, y);
@@ -2765,8 +2615,7 @@ static void do_glow_effect_byte(Sequence *seq,
 
 static void do_glow_effect_float(Sequence *seq,
                                  int render_size,
-                                 float facf0,
-                                 float UNUSED(facf1),
+                                 float fac,
                                  int x,
                                  int y,
                                  float *rect1,
@@ -2778,7 +2627,7 @@ static void do_glow_effect_float(Sequence *seq,
   GlowVars *glow = (GlowVars *)seq->effectdata;
 
   RVIsolateHighlights_float(
-      inbuf, outbuf, x, y, glow->fMini * 3.0f, glow->fBoost * facf0, glow->fClamp);
+      inbuf, outbuf, x, y, glow->fMini * 3.0f, glow->fBoost * fac, glow->fClamp);
   RVBlurBitmap2_float(outbuf, x, y, glow->dDist * (render_size / 100.0f), glow->dQuality);
   if (!glow->bNoComp) {
     RVAddBitmaps_float(inbuf, outbuf, outbuf, x, y);
@@ -2788,8 +2637,7 @@ static void do_glow_effect_float(Sequence *seq,
 static ImBuf *do_glow_effect(const SeqRenderData *context,
                              Sequence *seq,
                              float UNUSED(timeline_frame),
-                             float facf0,
-                             float facf1,
+                             float fac,
                              ImBuf *ibuf1,
                              ImBuf *ibuf2,
                              ImBuf *ibuf3)
@@ -2801,8 +2649,7 @@ static ImBuf *do_glow_effect(const SeqRenderData *context,
   if (out->rect_float) {
     do_glow_effect_float(seq,
                          render_size,
-                         facf0,
-                         facf1,
+                         fac,
                          context->rectx,
                          context->recty,
                          ibuf1->rect_float,
@@ -2812,8 +2659,7 @@ static ImBuf *do_glow_effect(const SeqRenderData *context,
   else {
     do_glow_effect_byte(seq,
                         render_size,
-                        facf0,
-                        facf1,
+                        fac,
                         context->rectx,
                         context->recty,
                         (unsigned char *)ibuf1->rect,
@@ -2855,7 +2701,7 @@ static void copy_solid_color(Sequence *dst, Sequence *src, const int UNUSED(flag
   dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
-static int early_out_color(Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))
+static int early_out_color(Sequence *UNUSED(seq), float UNUSED(fac))
 {
   return EARLY_NO_INPUT;
 }
@@ -2863,8 +2709,7 @@ static int early_out_color(Sequence *UNUSED(seq), float UNUSED(facf0), float UNU
 static ImBuf *do_solid_color(const SeqRenderData *context,
                              Sequence *seq,
                              float UNUSED(timeline_frame),
-                             float facf0,
-                             float facf1,
+                             float fac,
                              ImBuf *ibuf1,
                              ImBuf *ibuf2,
                              ImBuf *ibuf3)
@@ -2882,13 +2727,13 @@ static ImBuf *do_solid_color(const SeqRenderData *context,
     unsigned char col0[3];
     unsigned char col1[3];
 
-    col0[0] = facf0 * cv->col[0] * 255;
-    col0[1] = facf0 * cv->col[1] * 255;
-    col0[2] = facf0 * cv->col[2] * 255;
+    col0[0] = fac * cv->col[0] * 255;
+    col0[1] = fac * cv->col[1] * 255;
+    col0[2] = fac * cv->col[2] * 255;
 
-    col1[0] = facf1 * cv->col[0] * 255;
-    col1[1] = facf1 * cv->col[1] * 255;
-    col1[2] = facf1 * cv->col[2] * 255;
+    col1[0] = fac * cv->col[0] * 255;
+    col1[1] = fac * cv->col[1] * 255;
+    col1[2] = fac * cv->col[2] * 255;
 
     rect = (unsigned char *)out->rect;
 
@@ -2914,13 +2759,13 @@ static ImBuf *do_solid_color(const SeqRenderData *context,
     float col0[3];
     float col1[3];
 
-    col0[0] = facf0 * cv->col[0];
-    col0[1] = facf0 * cv->col[1];
-    col0[2] = facf0 * cv->col[2];
+    col0[0] = fac * cv->col[0];
+    col0[1] = fac * cv->col[1];
+    col0[2] = fac * cv->col[2];
 
-    col1[0] = facf1 * cv->col[0];
-    col1[1] = facf1 * cv->col[1];
-    col1[2] = facf1 * cv->col[2];
+    col1[0] = fac * cv->col[0];
+    col1[1] = fac * cv->col[1];
+    col1[2] = fac * cv->col[2];
 
     rect_float = out->rect_float;
 
@@ -2956,7 +2801,7 @@ static int num_inputs_multicam(void)
   return 0;
 }
 
-static int early_out_multicam(Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))
+static int early_out_multicam(Sequence *UNUSED(seq), float UNUSED(fac))
 {
   return EARLY_NO_INPUT;
 }
@@ -2964,8 +2809,7 @@ static int early_out_multicam(Sequence *UNUSED(seq), float UNUSED(facf0), float 
 static ImBuf *do_multicam(const SeqRenderData *context,
                           Sequence *seq,
                           float timeline_frame,
-                          float UNUSED(facf0),
-                          float UNUSED(facf1),
+                          float UNUSED(fac),
                           ImBuf *UNUSED(ibuf1),
                           ImBuf *UNUSED(ibuf2),
                           ImBuf *UNUSED(ibuf3))
@@ -3000,7 +2844,7 @@ static int num_inputs_adjustment(void)
   return 0;
 }
 
-static int early_out_adjustment(Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))
+static int early_out_adjustment(Sequence *UNUSED(seq), float UNUSED(fac))
 {
   return EARLY_NO_INPUT;
 }
@@ -3044,8 +2888,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
 static ImBuf *do_adjustment(const SeqRenderData *context,
                             Sequence *seq,
                             float timeline_frame,
-                            float UNUSED(facf0),
-                            float UNUSED(facf1),
+                            float UNUSED(fac),
                             ImBuf *UNUSED(ibuf1),
                             ImBuf *UNUSED(ibuf2),
                             ImBuf *UNUSED(ibuf3))
@@ -3111,7 +2954,7 @@ static void copy_speed_effect(Sequence *dst, Sequence *src, const int UNUSED(fla
   v->frameMap = NULL;
 }
 
-static int early_out_speed(Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))
+static int early_out_speed(Sequence *UNUSED(seq), float UNUSED(fac))
 {
   return EARLY_DO_EFFECT;
 }
@@ -3243,8 +3086,7 @@ static float speed_effect_interpolation_ratio_get(Scene *scene,
 static ImBuf *do_speed_effect(const SeqRenderData *context,
                               Sequence *seq,
                               float timeline_frame,
-                              float facf0,
-                              float facf1,
+                              float fac,
                               ImBuf *ibuf1,
                               ImBuf *ibuf2,
                               ImBuf *ibuf3)
@@ -3255,10 +3097,10 @@ static ImBuf *do_speed_effect(const SeqRenderData *context,
 
   if (s->flags & SEQ_SPEED_USE_INTERPOLATION) {
     out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
-    facf0 = facf1 = speed_effect_interpolation_ratio_get(context->scene, seq, timeline_frame);
+    fac = speed_effect_interpolation_ratio_get(context->scene, seq, timeline_frame);
     /* Current frame is ibuf1, next frame is ibuf2. */
     out = seq_render_effect_execute_threaded(
-        &cross_effect, context, NULL, timeline_frame, facf0, facf1, ibuf1, ibuf2, ibuf3);
+        &cross_effect, context, NULL, timeline_frame, fac, ibuf1, ibuf2, ibuf3);
     return out;
   }
 
@@ -3271,8 +3113,7 @@ static ImBuf *do_speed_effect(const SeqRenderData *context,
 static void do_overdrop_effect(const SeqRenderData *context,
                                Sequence *UNUSED(seq),
                                float UNUSED(timeline_frame),
-                               float facf0,
-                               float facf1,
+                               float fac,
                                ImBuf *ibuf1,
                                ImBuf *ibuf2,
                                ImBuf *UNUSED(ibuf3),
@@ -3289,8 +3130,8 @@ static void do_overdrop_effect(const SeqRenderData *context,
     slice_get_float_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_drop_effect_float(facf0, facf1, x, y, rect1, rect2, rect_out);
-    do_alphaover_effect_float(facf0, facf1, x, y, rect1, rect2, rect_out);
+    do_drop_effect_float(fac, x, y, rect1, rect2, rect_out);
+    do_alphaover_effect_float(fac, x, y, rect1, rect2, rect_out);
   }
   else {
     unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
@@ -3298,8 +3139,8 @@ static void do_overdrop_effect(const SeqRenderData *context,
     slice_get_byte_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-    do_drop_effect_byte(facf0, facf1, x, y, rect1, rect2, rect_out);
-    do_alphaover_effect_byte(facf0, facf1, x, y, rect1, rect2, rect_out);
+    do_drop_effect_byte(fac, x, y, rect1, rect2, rect_out);
+    do_alphaover_effect_byte(fac, x, y, rect1, rect2, rect_out);
   }
 }
 
@@ -3337,7 +3178,7 @@ static void copy_gaussian_blur_effect(Sequence *dst, Sequence *src, const int UN
   dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
-static int early_out_gaussian_blur(Sequence *seq, float UNUSED(facf0), float UNUSED(facf1))
+static int early_out_gaussian_blur(Sequence *seq, float UNUSED(fac))
 {
   GaussianBlurVars *data = seq->effectdata;
   if (data->size_x == 0.0f && data->size_y == 0) {
@@ -3691,8 +3532,7 @@ static void *render_effect_execute_do_y_thread(void *thread_data_v)
 static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
                                       Sequence *seq,
                                       float UNUSED(timeline_frame),
-                                      float UNUSED(facf0),
-                                      float UNUSED(facf1),
+                                      float UNUSED(fac),
                                       ImBuf *ibuf1,
                                       ImBuf *UNUSED(ibuf2),
                                       ImBuf *UNUSED(ibuf3))
@@ -3839,7 +3679,7 @@ static int num_inputs_text(void)
   return 0;
 }
 
-static int early_out_text(Sequence *seq, float UNUSED(facf0), float UNUSED(facf1))
+static int early_out_text(Sequence *seq, float UNUSED(fac))
 {
   TextVars *data = seq->effectdata;
   if (data->text[0] == 0 || data->text_size < 1.0f ||
@@ -3853,8 +3693,7 @@ static int early_out_text(Sequence *seq, float UNUSED(facf0), float UNUSED(facf1
 static ImBuf *do_text_effect(const SeqRenderData *context,
                              Sequence *seq,
                              float UNUSED(timeline_frame),
-                             float UNUSED(facf0),
-                             float UNUSED(facf1),
+                             float UNUSED(fac),
                              ImBuf *ibuf1,
                              ImBuf *ibuf2,
                              ImBuf *ibuf3)
@@ -4000,52 +3839,47 @@ static void free_effect_default(Sequence *seq, const bool UNUSED(do_id_user))
   MEM_SAFE_FREE(seq->effectdata);
 }
 
-static int early_out_noop(Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))
+static int early_out_noop(Sequence *UNUSED(seq), float UNUSED(fac))
 {
   return EARLY_DO_EFFECT;
 }
 
-static int early_out_fade(Sequence *UNUSED(seq), float facf0, float facf1)
+static int early_out_fade(Sequence *UNUSED(seq), float fac)
 {
-  if (facf0 == 0.0f && facf1 == 0.0f) {
+  if (fac == 0.0f) {
     return EARLY_USE_INPUT_1;
   }
-  if (facf0 == 1.0f && facf1 == 1.0f) {
+  if (fac == 1.0f) {
     return EARLY_USE_INPUT_2;
   }
   return EARLY_DO_EFFECT;
 }
 
-static int early_out_mul_input2(Sequence *UNUSED(seq), float facf0, float facf1)
+static int early_out_mul_input2(Sequence *UNUSED(seq), float fac)
 {
-  if (facf0 == 0.0f && facf1 == 0.0f) {
+  if (fac == 0.0f) {
     return EARLY_USE_INPUT_1;
   }
   return EARLY_DO_EFFECT;
 }
 
-static int early_out_mul_input1(Sequence *UNUSED(seq), float facf0, float facf1)
+static int early_out_mul_input1(Sequence *UNUSED(seq), float fac)
 {
-  if (facf0 == 0.0f && facf1 == 0.0f) {
+  if (fac == 0.0f) {
     return EARLY_USE_INPUT_2;
   }
   return EARLY_DO_EFFECT;
 }
 
-static void get_default_fac_noop(Sequence *UNUSED(seq),
-                                 float UNUSED(timeline_frame),
-                                 float *facf0,
-                                 float *facf1)
+static void get_default_fac_noop(Sequence *UNUSED(seq), float UNUSED(timeline_frame), float *fac)
 {
-  *facf0 = *facf1 = 1.0;
+  *fac = 1.0f;
 }
 
-static void get_default_fac_fade(Sequence *seq, float timeline_frame, float *facf0, float *facf1)
+static void get_default_fac_fade(Sequence *seq, float timeline_frame, float *fac)
 {
-  *facf0 = (float)(timeline_frame - seq->startdisp);
-  *facf1 = (float)(*facf0 + 0.5f);
-  *facf0 /= seq->len;
-  *facf1 /= seq->len;
+  *fac = (float)(timeline_frame - seq->startdisp);
+  *fac /= seq->len;
 }
 
 static struct ImBuf *init_execution(const SeqRenderData *context,
