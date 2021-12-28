@@ -19,6 +19,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 add_subdirectory(composite)
+add_subdirectory(function)
 add_subdirectory(geometry)
 add_subdirectory(shader)
 
@@ -50,26 +51,6 @@ set(INC
 
 
 set(SRC
-  function/nodes/legacy/node_fn_random_float.cc
-
-  function/nodes/node_fn_align_euler_to_vector.cc
-  function/nodes/node_fn_boolean_math.cc
-  function/nodes/node_fn_compare.cc
-  function/nodes/node_fn_float_to_int.cc
-  function/nodes/node_fn_input_bool.cc
-  function/nodes/node_fn_input_color.cc
-  function/nodes/node_fn_input_int.cc
-  function/nodes/node_fn_input_special_characters.cc
-  function/nodes/node_fn_input_string.cc
-  function/nodes/node_fn_input_vector.cc
-  function/nodes/node_fn_random_value.cc
-  function/nodes/node_fn_replace_string.cc
-  function/nodes/node_fn_rotate_euler.cc
-  function/nodes/node_fn_slice_string.cc
-  function/nodes/node_fn_string_length.cc
-  function/nodes/node_fn_value_to_string.cc
-  function/node_function_util.cc
-
   texture/nodes/node_texture_at.c
   texture/nodes/node_texture_bricks.c
   texture/nodes/node_texture_checker.c
@@ -110,7 +91,6 @@ set(SRC
   intern/node_tree_ref.cc
   intern/node_util.c
 
-  function/node_function_util.hh
   texture/node_texture_util.h
 
   NOD_common.h
@@ -140,6 +120,7 @@ set(LIB
   bf_bmesh
   bf_functions
   bf_nodes_composite
+  bf_nodes_function
   bf_nodes_geometry
   bf_nodes_shader
 )
