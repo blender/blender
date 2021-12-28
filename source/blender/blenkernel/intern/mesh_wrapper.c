@@ -336,6 +336,7 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   SubdivSettings subdiv_settings;
   BKE_subsurf_modifier_subdiv_settings_init(&subdiv_settings, smd, apply_render);
   if (subdiv_settings.level == 0) {
+    BLI_mutex_unlock(mesh_eval_mutex);
     return me;
   }
 
@@ -344,6 +345,7 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(smd, &subdiv_settings, me, false);
   if (subdiv == NULL) {
     /* Happens on bad topology, but also on empty input mesh. */
+    BLI_mutex_unlock(mesh_eval_mutex);
     return me;
   }
 
@@ -352,6 +354,7 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   mesh_settings.use_optimal_display = me->runtime.subsurf_use_optimal_display;
 
   if (mesh_settings.resolution < 3) {
+    BLI_mutex_unlock(mesh_eval_mutex);
     return me;
   }
 
