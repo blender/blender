@@ -612,6 +612,42 @@ static void lib_override_linked_group_tag_recursive(LibOverrideGroupTagData *dat
   }
 }
 
+static void lib_override_linked_group_tag_clear_boneshapes_objects(LibOverrideGroupTagData *data)
+{
+  Main *bmain = data->bmain;
+
+  /* Remove (untag) bone shape objects, they shall never need to be to directly/explicitly
+   * overridden. */
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+    if (ob->type == OB_ARMATURE && ob->pose != NULL && (ob->id.tag & data->tag)) {
+      for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan != NULL; pchan = pchan->next) {
+        if (pchan->custom != NULL) {
+          pchan->custom->id.tag &= ~data->tag;
+        }
+      }
+    }
+  }
+
+  /* Remove (untag) collections if they do not own any tagged object (either themselves, or in
+   * their children collections). */
+  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
+    if ((collection->id.tag & data->tag) == 0) {
+      continue;
+    }
+    bool keep_tagged = false;
+    const ListBase object_bases = BKE_collection_object_cache_get(collection);
+    LISTBASE_FOREACH (Base *, base, &object_bases) {
+      if ((base->object->id.tag & data->tag) != 0) {
+        keep_tagged = true;
+        break;
+      }
+    }
+    if (!keep_tagged) {
+      collection->id.tag &= ~data->tag;
+    }
+  }
+}
+
 /* This will tag at least all 'boundary' linked IDs for a potential override group.
  *
  * Requires existing `Main.relations`.
@@ -640,17 +676,8 @@ static void lib_override_linked_group_tag(LibOverrideGroupTagData *data)
     /* Tag all collections and objects. */
     lib_override_linked_group_tag_recursive(data);
 
-    /* Then, we remove (untag) bone shape objects, you shall never want to directly/explicitly
-     * override those. */
-    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      if (ob->type == OB_ARMATURE && ob->pose != NULL && (ob->id.tag & data->tag)) {
-        for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan != NULL; pchan = pchan->next) {
-          if (pchan->custom != NULL) {
-            pchan->custom->id.tag &= ~(data->tag | data->missing_tag);
-          }
-        }
-      }
-    }
+    /* Do not override objects used as bone shapes, nor their collections if possible. */
+    lib_override_linked_group_tag_clear_boneshapes_objects(data);
 
     /* For each object tagged for override, ensure we get at least one local or liboverride
      * collection to host it. Avoids getting a bunch of random object in the scene's master
