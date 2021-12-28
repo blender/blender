@@ -1693,17 +1693,18 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd,
   Mesh *result = BKE_mesh_new_nomain_from_template(
       mesh, result_nverts, result_nedges, 0, result_nloops, result_npolys);
 
-  /* Vertices */
+  /* Vertices. */
 
-  int *vert_final = vert_dest_map.data();
-  int *index_iter = &vert_final[0];
+  /* Be careful when editing this array, to avoid new allocations it uses the same buffer as
+   * #vert_dest_map. This map will be used to adjust the edges, polys and loops. */
+  MutableSpan<int> vert_final = vert_dest_map;
+
   int dest_index = 0;
-  for (int i = 0; i < totvert; i++, index_iter++) {
+  for (int i = 0; i < totvert; i++) {
     int source_index = i;
     int count = 0;
-    while (i < totvert && *index_iter == OUT_OF_CONTEXT) {
-      *index_iter = dest_index + count;
-      index_iter++;
+    while (i < totvert && vert_dest_map[i] == OUT_OF_CONTEXT) {
+      vert_final[i] = dest_index + count;
       count++;
       i++;
     }
@@ -1714,31 +1715,32 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd,
     if (i == totvert) {
       break;
     }
-    if (*index_iter != ELEM_MERGED) {
-      struct WeldGroup *wgroup = &weld_mesh.vert_groups[*index_iter];
+    if (vert_dest_map[i] != ELEM_MERGED) {
+      struct WeldGroup *wgroup = &weld_mesh.vert_groups[vert_dest_map[i]];
       customdata_weld(&mesh->vdata,
                       &result->vdata,
                       &weld_mesh.vert_groups_buffer[wgroup->ofs],
                       wgroup->len,
                       dest_index);
-      *index_iter = dest_index;
+      vert_final[i] = dest_index;
       dest_index++;
     }
   }
 
   BLI_assert(dest_index == result_nverts);
 
-  /* Edges */
+  /* Edges. */
 
-  int *edge_final = weld_mesh.edge_groups_map.data();
-  index_iter = &edge_final[0];
+  /* Be careful when editing this array, to avoid new allocations it uses the same buffer as
+   * #edge_groups_map. This map will be used to adjust the polys and loops. */
+  MutableSpan<int> edge_final = weld_mesh.edge_groups_map;
+
   dest_index = 0;
-  for (int i = 0; i < totedge; i++, index_iter++) {
+  for (int i = 0; i < totedge; i++) {
     int source_index = i;
     int count = 0;
-    while (i < totedge && *index_iter == OUT_OF_CONTEXT) {
-      *index_iter = dest_index + count;
-      index_iter++;
+    while (i < totedge && weld_mesh.edge_groups_map[i] == OUT_OF_CONTEXT) {
+      edge_final[i] = dest_index + count;
       count++;
       i++;
     }
@@ -1754,8 +1756,8 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd,
     if (i == totedge) {
       break;
     }
-    if (*index_iter != ELEM_MERGED) {
-      struct WeldGroupEdge *wegrp = &weld_mesh.edge_groups[*index_iter];
+    if (weld_mesh.edge_groups_map[i] != ELEM_MERGED) {
+      struct WeldGroupEdge *wegrp = &weld_mesh.edge_groups[weld_mesh.edge_groups_map[i]];
       customdata_weld(&mesh->edata,
                       &result->edata,
                       &weld_mesh.edge_groups_buffer[wegrp->group.ofs],
@@ -1766,14 +1768,14 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd,
       me->v2 = vert_final[wegrp->v2];
       me->flag |= ME_LOOSEEDGE;
 
-      *index_iter = dest_index;
+      edge_final[i] = dest_index;
       dest_index++;
     }
   }
 
   BLI_assert(dest_index == result_nedges);
 
-  /* Polys/Loops */
+  /* Polys/Loops. */
 
   MPoly *r_mp = &result->mpoly[0];
   MLoop *r_ml = &result->mloop[0];
@@ -1862,7 +1864,8 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd,
   BLI_assert((int)r_i == result_npolys);
   BLI_assert(loop_cur == result_nloops);
 
-  /* is this needed? */
+  /* We could only update the normals of the elements in context, but the next modifier can make it
+   * dirty anyway which would make the work useless. */
   BKE_mesh_normals_tag_dirty(result);
 
   return result;
