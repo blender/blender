@@ -1475,15 +1475,17 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd,
                                  const ModifierEvalContext *UNUSED(ctx),
                                  Mesh *mesh)
 {
-  Mesh *result = mesh;
-
   BLI_bitmap *v_mask = nullptr;
   int v_mask_act = 0;
 
   Span<MVert> mvert{mesh->mvert, mesh->totvert};
-  int totvert, totedge, totloop, totpoly;
-
-  totvert = mesh->totvert;
+  Span<MEdge> medge{mesh->medge, mesh->totedge};
+  Span<MPoly> mpoly{mesh->mpoly, mesh->totpoly};
+  Span<MLoop> mloop{mesh->mloop, mesh->totloop};
+  const int totvert = mesh->totvert;
+  const int totedge = mesh->totedge;
+  const int totloop = mesh->totloop;
+  const int totpoly = mesh->totpoly;
 
   /* Vertex Group. */
   const int defgrp_index = BKE_id_defgroup_name_index(&mesh->id, wmd->defgrp_name);
@@ -1606,10 +1608,6 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd,
   else {
     BLI_assert(wmd->mode == MOD_WELD_MODE_CONNECTED);
 
-    Span<MEdge> medge{mesh->medge, mesh->totedge};
-
-    totvert = mesh->totvert;
-
     Array<WeldVertexCluster> vert_clusters(totvert);
 
     for (const int i : mvert.index_range()) {
@@ -1680,162 +1678,123 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd,
     MEM_freeN(v_mask);
   }
 
-  if (vert_kill_len) {
-    WeldMesh weld_mesh;
-    weld_mesh_context_create(mesh, vert_dest_map, vert_kill_len, &weld_mesh);
+  if (vert_kill_len == 0) {
+    return mesh;
+  }
 
-    Span<MLoop> mloop{mesh->mloop, mesh->totloop};
-    Span<MPoly> mpoly{mesh->mpoly, mesh->totpoly};
+  WeldMesh weld_mesh;
+  weld_mesh_context_create(mesh, vert_dest_map, vert_kill_len, &weld_mesh);
 
-    totedge = mesh->totedge;
-    totloop = mesh->totloop;
-    totpoly = mesh->totpoly;
+  const int result_nverts = totvert - weld_mesh.vert_kill_len;
+  const int result_nedges = totedge - weld_mesh.edge_kill_len;
+  const int result_nloops = totloop - weld_mesh.loop_kill_len;
+  const int result_npolys = totpoly - weld_mesh.poly_kill_len + weld_mesh.wpoly_new_len;
 
-    const int result_nverts = totvert - weld_mesh.vert_kill_len;
-    const int result_nedges = totedge - weld_mesh.edge_kill_len;
-    const int result_nloops = totloop - weld_mesh.loop_kill_len;
-    const int result_npolys = totpoly - weld_mesh.poly_kill_len + weld_mesh.wpoly_new_len;
+  Mesh *result = BKE_mesh_new_nomain_from_template(
+      mesh, result_nverts, result_nedges, 0, result_nloops, result_npolys);
 
-    result = BKE_mesh_new_nomain_from_template(
-        mesh, result_nverts, result_nedges, 0, result_nloops, result_npolys);
+  /* Vertices */
 
-    /* Vertices */
+  int *vert_final = vert_dest_map.data();
+  int *index_iter = &vert_final[0];
+  int dest_index = 0;
+  for (int i = 0; i < totvert; i++, index_iter++) {
+    int source_index = i;
+    int count = 0;
+    while (i < totvert && *index_iter == OUT_OF_CONTEXT) {
+      *index_iter = dest_index + count;
+      index_iter++;
+      count++;
+      i++;
+    }
+    if (count) {
+      CustomData_copy_data(&mesh->vdata, &result->vdata, source_index, dest_index, count);
+      dest_index += count;
+    }
+    if (i == totvert) {
+      break;
+    }
+    if (*index_iter != ELEM_MERGED) {
+      struct WeldGroup *wgroup = &weld_mesh.vert_groups[*index_iter];
+      customdata_weld(&mesh->vdata,
+                      &result->vdata,
+                      &weld_mesh.vert_groups_buffer[wgroup->ofs],
+                      wgroup->len,
+                      dest_index);
+      *index_iter = dest_index;
+      dest_index++;
+    }
+  }
 
-    int *vert_final = vert_dest_map.data();
-    int *index_iter = &vert_final[0];
-    int dest_index = 0;
-    for (int i = 0; i < totvert; i++, index_iter++) {
-      int source_index = i;
-      int count = 0;
-      while (i < totvert && *index_iter == OUT_OF_CONTEXT) {
-        *index_iter = dest_index + count;
-        index_iter++;
-        count++;
-        i++;
-      }
-      if (count) {
-        CustomData_copy_data(&mesh->vdata, &result->vdata, source_index, dest_index, count);
-        dest_index += count;
-      }
-      if (i == totvert) {
-        break;
-      }
-      if (*index_iter != ELEM_MERGED) {
-        struct WeldGroup *wgroup = &weld_mesh.vert_groups[*index_iter];
-        customdata_weld(&mesh->vdata,
-                        &result->vdata,
-                        &weld_mesh.vert_groups_buffer[wgroup->ofs],
-                        wgroup->len,
-                        dest_index);
-        *index_iter = dest_index;
-        dest_index++;
+  BLI_assert(dest_index == result_nverts);
+
+  /* Edges */
+
+  int *edge_final = weld_mesh.edge_groups_map.data();
+  index_iter = &edge_final[0];
+  dest_index = 0;
+  for (int i = 0; i < totedge; i++, index_iter++) {
+    int source_index = i;
+    int count = 0;
+    while (i < totedge && *index_iter == OUT_OF_CONTEXT) {
+      *index_iter = dest_index + count;
+      index_iter++;
+      count++;
+      i++;
+    }
+    if (count) {
+      CustomData_copy_data(&mesh->edata, &result->edata, source_index, dest_index, count);
+      MEdge *me = &result->medge[dest_index];
+      dest_index += count;
+      for (; count--; me++) {
+        me->v1 = vert_final[me->v1];
+        me->v2 = vert_final[me->v2];
       }
     }
+    if (i == totedge) {
+      break;
+    }
+    if (*index_iter != ELEM_MERGED) {
+      struct WeldGroupEdge *wegrp = &weld_mesh.edge_groups[*index_iter];
+      customdata_weld(&mesh->edata,
+                      &result->edata,
+                      &weld_mesh.edge_groups_buffer[wegrp->group.ofs],
+                      wegrp->group.len,
+                      dest_index);
+      MEdge *me = &result->medge[dest_index];
+      me->v1 = vert_final[wegrp->v1];
+      me->v2 = vert_final[wegrp->v2];
+      me->flag |= ME_LOOSEEDGE;
 
-    BLI_assert(dest_index == result_nverts);
+      *index_iter = dest_index;
+      dest_index++;
+    }
+  }
 
-    /* Edges */
+  BLI_assert(dest_index == result_nedges);
 
-    int *edge_final = weld_mesh.edge_groups_map.data();
-    index_iter = &edge_final[0];
-    dest_index = 0;
-    for (int i = 0; i < totedge; i++, index_iter++) {
-      int source_index = i;
-      int count = 0;
-      while (i < totedge && *index_iter == OUT_OF_CONTEXT) {
-        *index_iter = dest_index + count;
-        index_iter++;
-        count++;
-        i++;
-      }
-      if (count) {
-        CustomData_copy_data(&mesh->edata, &result->edata, source_index, dest_index, count);
-        MEdge *me = &result->medge[dest_index];
-        dest_index += count;
-        for (; count--; me++) {
-          me->v1 = vert_final[me->v1];
-          me->v2 = vert_final[me->v2];
-        }
-      }
-      if (i == totedge) {
-        break;
-      }
-      if (*index_iter != ELEM_MERGED) {
-        struct WeldGroupEdge *wegrp = &weld_mesh.edge_groups[*index_iter];
-        customdata_weld(&mesh->edata,
-                        &result->edata,
-                        &weld_mesh.edge_groups_buffer[wegrp->group.ofs],
-                        wegrp->group.len,
-                        dest_index);
-        MEdge *me = &result->medge[dest_index];
-        me->v1 = vert_final[wegrp->v1];
-        me->v2 = vert_final[wegrp->v2];
-        me->flag |= ME_LOOSEEDGE;
+  /* Polys/Loops */
 
-        *index_iter = dest_index;
-        dest_index++;
+  MPoly *r_mp = &result->mpoly[0];
+  MLoop *r_ml = &result->mloop[0];
+  int r_i = 0;
+  int loop_cur = 0;
+  Array<int, 64> group_buffer(weld_mesh.max_poly_len);
+  for (const int i : mpoly.index_range()) {
+    const MPoly &mp = mpoly[i];
+    int loop_start = loop_cur;
+    int poly_ctx = weld_mesh.poly_map[i];
+    if (poly_ctx == OUT_OF_CONTEXT) {
+      int mp_loop_len = mp.totloop;
+      CustomData_copy_data(&mesh->ldata, &result->ldata, mp.loopstart, loop_cur, mp_loop_len);
+      loop_cur += mp_loop_len;
+      for (; mp_loop_len--; r_ml++) {
+        r_ml->v = vert_final[r_ml->v];
+        r_ml->e = edge_final[r_ml->e];
       }
     }
-
-    BLI_assert(dest_index == result_nedges);
-
-    /* Polys/Loops */
-
-    MPoly *r_mp = &result->mpoly[0];
-    MLoop *r_ml = &result->mloop[0];
-    int r_i = 0;
-    int loop_cur = 0;
-    Array<int, 64> group_buffer(weld_mesh.max_poly_len);
-    for (const int i : mpoly.index_range()) {
-      const MPoly &mp = mpoly[i];
-      int loop_start = loop_cur;
-      int poly_ctx = weld_mesh.poly_map[i];
-      if (poly_ctx == OUT_OF_CONTEXT) {
-        int mp_loop_len = mp.totloop;
-        CustomData_copy_data(&mesh->ldata, &result->ldata, mp.loopstart, loop_cur, mp_loop_len);
-        loop_cur += mp_loop_len;
-        for (; mp_loop_len--; r_ml++) {
-          r_ml->v = vert_final[r_ml->v];
-          r_ml->e = edge_final[r_ml->e];
-        }
-      }
-      else {
-        const WeldPoly &wp = weld_mesh.wpoly[poly_ctx];
-        WeldLoopOfPolyIter iter;
-        if (!weld_iter_loop_of_poly_begin(
-                &iter, wp, weld_mesh.wloop, mloop, weld_mesh.loop_map, group_buffer.data())) {
-          continue;
-        }
-
-        if (wp.poly_dst != OUT_OF_CONTEXT) {
-          continue;
-        }
-        while (weld_iter_loop_of_poly_next(&iter)) {
-          customdata_weld(
-              &mesh->ldata, &result->ldata, group_buffer.data(), iter.group_len, loop_cur);
-          int v = vert_final[iter.v];
-          int e = edge_final[iter.e];
-          r_ml->v = v;
-          r_ml->e = e;
-          r_ml++;
-          loop_cur++;
-          if (iter.type) {
-            result->medge[e].flag &= ~ME_LOOSEEDGE;
-          }
-          BLI_assert((result->medge[e].flag & ME_LOOSEEDGE) == 0);
-        }
-      }
-
-      CustomData_copy_data(&mesh->pdata, &result->pdata, i, r_i, 1);
-      r_mp->loopstart = loop_start;
-      r_mp->totloop = loop_cur - loop_start;
-      r_mp++;
-      r_i++;
-    }
-
-    for (const int i : IndexRange(weld_mesh.wpoly_new_len)) {
-      const WeldPoly &wp = weld_mesh.wpoly_new[i];
-      int loop_start = loop_cur;
+    else {
+      const WeldPoly &wp = weld_mesh.wpoly[poly_ctx];
       WeldLoopOfPolyIter iter;
       if (!weld_iter_loop_of_poly_begin(
               &iter, wp, weld_mesh.wloop, mloop, weld_mesh.loop_map, group_buffer.data())) {
@@ -1859,19 +1818,52 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd,
         }
         BLI_assert((result->medge[e].flag & ME_LOOSEEDGE) == 0);
       }
-
-      r_mp->loopstart = loop_start;
-      r_mp->totloop = loop_cur - loop_start;
-      r_mp++;
-      r_i++;
     }
 
-    BLI_assert((int)r_i == result_npolys);
-    BLI_assert(loop_cur == result_nloops);
-
-    /* is this needed? */
-    BKE_mesh_normals_tag_dirty(result);
+    CustomData_copy_data(&mesh->pdata, &result->pdata, i, r_i, 1);
+    r_mp->loopstart = loop_start;
+    r_mp->totloop = loop_cur - loop_start;
+    r_mp++;
+    r_i++;
   }
+
+  for (const int i : IndexRange(weld_mesh.wpoly_new_len)) {
+    const WeldPoly &wp = weld_mesh.wpoly_new[i];
+    int loop_start = loop_cur;
+    WeldLoopOfPolyIter iter;
+    if (!weld_iter_loop_of_poly_begin(
+            &iter, wp, weld_mesh.wloop, mloop, weld_mesh.loop_map, group_buffer.data())) {
+      continue;
+    }
+
+    if (wp.poly_dst != OUT_OF_CONTEXT) {
+      continue;
+    }
+    while (weld_iter_loop_of_poly_next(&iter)) {
+      customdata_weld(&mesh->ldata, &result->ldata, group_buffer.data(), iter.group_len, loop_cur);
+      int v = vert_final[iter.v];
+      int e = edge_final[iter.e];
+      r_ml->v = v;
+      r_ml->e = e;
+      r_ml++;
+      loop_cur++;
+      if (iter.type) {
+        result->medge[e].flag &= ~ME_LOOSEEDGE;
+      }
+      BLI_assert((result->medge[e].flag & ME_LOOSEEDGE) == 0);
+    }
+
+    r_mp->loopstart = loop_start;
+    r_mp->totloop = loop_cur - loop_start;
+    r_mp++;
+    r_i++;
+  }
+
+  BLI_assert((int)r_i == result_npolys);
+  BLI_assert(loop_cur == result_nloops);
+
+  /* is this needed? */
+  BKE_mesh_normals_tag_dirty(result);
 
   return result;
 }
