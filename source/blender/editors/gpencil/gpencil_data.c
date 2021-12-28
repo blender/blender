@@ -1468,6 +1468,10 @@ static int gpencil_layer_change_invoke(bContext *C, wmOperator *op, const wmEven
 static int gpencil_layer_change_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = CTX_data_gpencil_data(C);
+  if (gpd == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+
   bGPDlayer *gpl = NULL;
   int layer_num = RNA_enum_get(op->ptr, "layer");
 

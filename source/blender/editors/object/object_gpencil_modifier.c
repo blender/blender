@@ -533,6 +533,10 @@ static GpencilModifierData *gpencil_edit_modifier_property_get(wmOperator *op,
                                                                Object *ob,
                                                                int type)
 {
+  if (ob == NULL) {
+    return NULL;
+  }
+
   char modifier_name[MAX_NAME];
   GpencilModifierData *md;
   RNA_string_get(op->ptr, "modifier", modifier_name);
