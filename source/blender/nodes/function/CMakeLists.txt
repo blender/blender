@@ -68,3 +68,8 @@ if(WITH_INTERNATIONAL)
 endif()
 
 blender_add_lib(bf_nodes_function "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+if(WITH_UNITY_BUILD)
+  set_target_properties(bf_nodes_function PROPERTIES UNITY_BUILD ON)
+  set_target_properties(bf_nodes_function PROPERTIES UNITY_BUILD_BATCH_SIZE 10)
+endif()
