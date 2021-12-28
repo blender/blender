@@ -85,9 +85,8 @@ static SpaceLink *spreadsheet_create(const ScrArea *UNUSED(area), const Scene *U
     /* Dataset Region */
     ARegion *region = MEM_cnew<ARegion>("spreadsheet dataset region");
     BLI_addtail(&spreadsheet_space->regionbase, region);
-    region->regiontype = RGN_TYPE_CHANNELS;
+    region->regiontype = RGN_TYPE_TOOLS;
     region->alignment = RGN_ALIGN_LEFT;
-    region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
   }
 
   {
@@ -688,9 +687,9 @@ void ED_spacetype_spreadsheet()
 
   /* regions: channels */
   art = MEM_cnew<ARegionType>("spreadsheet dataset region");
-  art->regionid = RGN_TYPE_CHANNELS;
+  art->regionid = RGN_TYPE_TOOLS;
   art->prefsizex = 150 + V2D_SCROLL_WIDTH;
-  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
+  art->keymapflag = ED_KEYMAP_UI;
   art->init = ED_region_panels_init;
   art->draw = spreadsheet_dataset_region_draw;
   art->listener = spreadsheet_dataset_region_listener;
