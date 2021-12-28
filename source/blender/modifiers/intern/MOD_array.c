@@ -279,7 +279,8 @@ static void mesh_merge_transform(Mesh *result,
                                  int cap_nloops,
                                  int cap_npolys,
                                  int *remap,
-                                 int remap_len)
+                                 int remap_len,
+                                 const bool recalc_normals_later)
 {
   int *index_orig;
   int i;
@@ -299,6 +300,15 @@ static void mesh_merge_transform(Mesh *result,
     mul_m4_v3(cap_offset, mv->co);
     /* Reset MVert flags for caps */
     mv->flag = mv->bweight = 0;
+
+    /* We have to correct normals too, if we do not tag them as dirty later! */
+    if (!recalc_normals_later) {
+      float no[3];
+      normal_short_to_float_v3(no, mv->no);
+      mul_mat3_m4_v3(cap_offset, no);
+      normalize_v3(no);
+      normal_float_to_short_v3(mv->no, no);
+    }
   }
 
   /* remap the vertex groups if necessary */
@@ -703,7 +713,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
                          start_cap_nloops,
                          start_cap_npolys,
                          vgroup_start_cap_remap,
-                         vgroup_start_cap_remap_len);
+                         vgroup_start_cap_remap_len,
+                         use_recalc_normals);
     /* Identify doubles with first chunk */
     if (use_merge) {
       dm_mvert_map_doubles(full_doubles_map,
@@ -732,7 +743,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
                          end_cap_nloops,
                          end_cap_npolys,
                          vgroup_end_cap_remap,
-                         vgroup_end_cap_remap_len);
+                         vgroup_end_cap_remap_len,
+                         use_recalc_normals);
     /* Identify doubles with last chunk */
     if (use_merge) {
       dm_mvert_map_doubles(full_doubles_map,
