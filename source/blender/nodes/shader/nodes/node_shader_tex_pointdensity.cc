@@ -21,6 +21,8 @@
 
 #include "RE_texture.h"
 
+namespace blender::nodes::node_shader_tex_pointdensity_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_tex_pointdensity_in[] = {
@@ -36,8 +38,7 @@ static bNodeSocketTemplate sh_node_tex_pointdensity_out[] = {
 
 static void node_shader_init_tex_pointdensity(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeShaderTexPointDensity *point_density = MEM_callocN(sizeof(NodeShaderTexPointDensity),
-                                                         "new pd node");
+  NodeShaderTexPointDensity *point_density = MEM_cnew<NodeShaderTexPointDensity>("new pd node");
   point_density->resolution = 100;
   point_density->radius = 0.3f;
   point_density->space = SHD_POINTDENSITY_SPACE_OBJECT;
@@ -47,7 +48,7 @@ static void node_shader_init_tex_pointdensity(bNodeTree *UNUSED(ntree), bNode *n
 
 static void node_shader_free_tex_pointdensity(bNode *node)
 {
-  NodeShaderTexPointDensity *point_density = node->storage;
+  NodeShaderTexPointDensity *point_density = (NodeShaderTexPointDensity *)node->storage;
   PointDensity *pd = &point_density->pd;
   RE_point_density_free(pd);
   BKE_texture_pointdensity_free_data(pd);
@@ -60,23 +61,28 @@ static void node_shader_copy_tex_pointdensity(bNodeTree *UNUSED(dest_ntree),
                                               const bNode *src_node)
 {
   dest_node->storage = MEM_dupallocN(src_node->storage);
-  NodeShaderTexPointDensity *point_density = dest_node->storage;
+  NodeShaderTexPointDensity *point_density = (NodeShaderTexPointDensity *)dest_node->storage;
   PointDensity *pd = &point_density->pd;
   memset(pd, 0, sizeof(*pd));
 }
 
+}  // namespace blender::nodes::node_shader_tex_pointdensity_cc
+
 /* node type definition */
-void register_node_type_sh_tex_pointdensity(void)
+void register_node_type_sh_tex_pointdensity()
 {
+  namespace file_ns = blender::nodes::node_shader_tex_pointdensity_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_POINTDENSITY, "Point Density", NODE_CLASS_TEXTURE, 0);
-  node_type_socket_templates(&ntype, sh_node_tex_pointdensity_in, sh_node_tex_pointdensity_out);
-  node_type_init(&ntype, node_shader_init_tex_pointdensity);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_tex_pointdensity_in, file_ns::sh_node_tex_pointdensity_out);
+  node_type_init(&ntype, file_ns::node_shader_init_tex_pointdensity);
   node_type_storage(&ntype,
                     "NodeShaderTexPointDensity",
-                    node_shader_free_tex_pointdensity,
-                    node_shader_copy_tex_pointdensity);
+                    file_ns::node_shader_free_tex_pointdensity,
+                    file_ns::node_shader_copy_tex_pointdensity);
 
   nodeRegisterType(&ntype);
 }

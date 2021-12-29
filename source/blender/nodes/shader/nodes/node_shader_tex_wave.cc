@@ -21,7 +21,7 @@
 
 #include "BLI_noise.hh"
 
-namespace blender::nodes::node_shader_wave_cc {
+namespace blender::nodes::node_shader_tex_wave_cc {
 
 static void sh_node_tex_wave_declare(NodeDeclarationBuilder &b)
 {
@@ -212,11 +212,11 @@ static void sh_node_wave_tex_build_multi_function(
       tex->wave_type, tex->bands_direction, tex->rings_direction, tex->wave_profile);
 }
 
-}  // namespace blender::nodes::node_shader_wave_cc
+}  // namespace blender::nodes::node_shader_tex_wave_cc
 
 void register_node_type_sh_tex_wave()
 {
-  namespace file_ns = blender::nodes::node_shader_wave_cc;
+  namespace file_ns = blender::nodes::node_shader_tex_wave_cc;
 
   static bNodeType ntype;
 

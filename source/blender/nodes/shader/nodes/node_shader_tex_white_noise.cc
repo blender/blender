@@ -21,7 +21,7 @@
 
 #include "BLI_noise.hh"
 
-namespace blender::nodes::node_shader_white_noise_cc {
+namespace blender::nodes::node_shader_tex_white_noise_cc {
 
 static void sh_node_tex_white_noise_declare(NodeDeclarationBuilder &b)
 {
@@ -188,11 +188,11 @@ static void sh_node_noise_build_multi_function(blender::nodes::NodeMultiFunction
   builder.construct_and_set_matching_fn<WhiteNoiseFunction>((int)node.custom1);
 }
 
-}  // namespace blender::nodes::node_shader_white_noise_cc
+}  // namespace blender::nodes::node_shader_tex_white_noise_cc
 
 void register_node_type_sh_tex_white_noise()
 {
-  namespace file_ns = blender::nodes::node_shader_white_noise_cc;
+  namespace file_ns = blender::nodes::node_shader_tex_white_noise_cc;
 
   static bNodeType ntype;
 

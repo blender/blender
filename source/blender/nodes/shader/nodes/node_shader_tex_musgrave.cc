@@ -23,7 +23,7 @@
 
 NODE_STORAGE_FUNCS(NodeTexMusgrave)
 
-namespace blender::nodes::node_shader_musgrave_cc {
+namespace blender::nodes::node_shader_tex_musgrave_cc {
 
 static void sh_node_tex_musgrave_declare(NodeDeclarationBuilder &b)
 {
@@ -529,11 +529,11 @@ static void sh_node_musgrave_build_multi_function(
   builder.construct_and_set_matching_fn<MusgraveFunction>(tex->dimensions, tex->musgrave_type);
 }
 
-}  // namespace blender::nodes::node_shader_musgrave_cc
+}  // namespace blender::nodes::node_shader_tex_musgrave_cc
 
 void register_node_type_sh_tex_musgrave()
 {
-  namespace file_ns = blender::nodes::node_shader_musgrave_cc;
+  namespace file_ns = blender::nodes::node_shader_tex_musgrave_cc;
 
   static bNodeType ntype;
 

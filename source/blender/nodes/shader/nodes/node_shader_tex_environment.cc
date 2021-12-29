@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_tex_environment_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_tex_environment_in[] = {
@@ -33,7 +35,7 @@ static bNodeSocketTemplate sh_node_tex_environment_out[] = {
 
 static void node_shader_init_tex_environment(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexEnvironment *tex = MEM_callocN(sizeof(NodeTexEnvironment), "NodeTexEnvironment");
+  NodeTexEnvironment *tex = MEM_cnew<NodeTexEnvironment>("NodeTexEnvironment");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->projection = SHD_PROJ_EQUIRECTANGULAR;
@@ -49,12 +51,12 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
                                            GPUNodeStack *out)
 {
   Image *ima = (Image *)node->id;
-  NodeTexEnvironment *tex = node->storage;
+  NodeTexEnvironment *tex = (NodeTexEnvironment *)node->storage;
 
   /* We get the image user from the original node, since GPU image keeps
    * a pointer to it and the dependency refreshes the original. */
   bNode *node_original = node->original ? node->original : node;
-  NodeTexImage *tex_original = node_original->storage;
+  NodeTexImage *tex_original = (NodeTexImage *)node_original->storage;
   ImageUser *iuser = &tex_original->iuser;
   eGPUSamplerState sampler = GPU_SAMPLER_REPEAT | GPU_SAMPLER_ANISO | GPU_SAMPLER_FILTER;
   /* TODO(fclem): For now assume mipmap is always enabled. */
@@ -132,17 +134,22 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
   return true;
 }
 
+}  // namespace blender::nodes::node_shader_tex_environment_cc
+
 /* node type definition */
-void register_node_type_sh_tex_environment(void)
+void register_node_type_sh_tex_environment()
 {
+  namespace file_ns = blender::nodes::node_shader_tex_environment_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_ENVIRONMENT, "Environment Texture", NODE_CLASS_TEXTURE, 0);
-  node_type_socket_templates(&ntype, sh_node_tex_environment_in, sh_node_tex_environment_out);
-  node_type_init(&ntype, node_shader_init_tex_environment);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_tex_environment_in, file_ns::sh_node_tex_environment_out);
+  node_type_init(&ntype, file_ns::node_shader_init_tex_environment);
   node_type_storage(
       &ntype, "NodeTexEnvironment", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, node_shader_gpu_tex_environment);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_environment);
   ntype.labelfunc = node_image_label;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 

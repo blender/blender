@@ -74,7 +74,7 @@ set(SRC
   nodes/node_shader_hair_info.c
   nodes/node_shader_holdout.c
   nodes/node_shader_hueSatVal.c
-  nodes/node_shader_ies_light.c
+  nodes/node_shader_ies_light.cc
   nodes/node_shader_invert.c
   nodes/node_shader_layer_weight.c
   nodes/node_shader_light_falloff.c
@@ -106,14 +106,14 @@ set(SRC
   nodes/node_shader_tex_brick.cc
   nodes/node_shader_tex_checker.cc
   nodes/node_shader_tex_coord.c
-  nodes/node_shader_tex_environment.c
+  nodes/node_shader_tex_environment.cc
   nodes/node_shader_tex_gradient.cc
   nodes/node_shader_tex_image.cc
   nodes/node_shader_tex_magic.cc
   nodes/node_shader_tex_musgrave.cc
   nodes/node_shader_tex_noise.cc
-  nodes/node_shader_tex_pointdensity.c
-  nodes/node_shader_tex_sky.c
+  nodes/node_shader_tex_pointdensity.cc
+  nodes/node_shader_tex_sky.cc
   nodes/node_shader_tex_voronoi.cc
   nodes/node_shader_tex_wave.cc
   nodes/node_shader_tex_white_noise.cc

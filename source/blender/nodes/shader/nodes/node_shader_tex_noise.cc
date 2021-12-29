@@ -23,7 +23,7 @@
 
 NODE_STORAGE_FUNCS(NodeTexNoise)
 
-namespace blender::nodes::node_shader_noise_cc {
+namespace blender::nodes::node_shader_tex_noise_cc {
 
 static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
 {
@@ -246,11 +246,11 @@ static void sh_node_noise_build_multi_function(blender::nodes::NodeMultiFunction
   builder.construct_and_set_matching_fn<NoiseFunction>(storage.dimensions);
 }
 
-}  // namespace blender::nodes::node_shader_noise_cc
+}  // namespace blender::nodes::node_shader_tex_noise_cc
 
 void register_node_type_sh_tex_noise()
 {
-  namespace file_ns = blender::nodes::node_shader_noise_cc;
+  namespace file_ns = blender::nodes::node_shader_tex_noise_cc;
 
   static bNodeType ntype;
 

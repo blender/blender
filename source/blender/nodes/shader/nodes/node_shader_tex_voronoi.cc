@@ -21,9 +21,9 @@
 
 #include "BLI_noise.hh"
 
-NODE_STORAGE_FUNCS(NodeTexVoronoi)
+namespace blender::nodes::node_shader_tex_voronoi_cc {
 
-namespace blender::nodes::node_shader_voronoi_cc {
+NODE_STORAGE_FUNCS(NodeTexVoronoi)
 
 static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
 {
@@ -1336,11 +1336,11 @@ static void sh_node_voronoi_build_multi_function(blender::nodes::NodeMultiFuncti
   }
 }
 
-}  // namespace blender::nodes::node_shader_voronoi_cc
+}  // namespace blender::nodes::node_shader_tex_voronoi_cc
 
 void register_node_type_sh_tex_voronoi()
 {
-  namespace file_ns = blender::nodes::node_shader_voronoi_cc;
+  namespace file_ns = blender::nodes::node_shader_tex_voronoi_cc;
 
   static bNodeType ntype;
 
