@@ -40,25 +40,25 @@ set(INC
 
 
 set(SRC
-  nodes/node_shader_add_shader.c
+  nodes/node_shader_add_shader.cc
   nodes/node_shader_ambient_occlusion.c
   nodes/node_shader_attribute.c
   nodes/node_shader_background.c
   nodes/node_shader_bevel.c
   nodes/node_shader_blackbody.c
   nodes/node_shader_brightness.c
-  nodes/node_shader_bsdf_anisotropic.c
-  nodes/node_shader_bsdf_diffuse.c
-  nodes/node_shader_bsdf_glass.c
-  nodes/node_shader_bsdf_glossy.c
-  nodes/node_shader_bsdf_hair.c
-  nodes/node_shader_bsdf_hair_principled.c
-  nodes/node_shader_bsdf_principled.c
-  nodes/node_shader_bsdf_refraction.c
-  nodes/node_shader_bsdf_toon.c
-  nodes/node_shader_bsdf_translucent.c
-  nodes/node_shader_bsdf_transparent.c
-  nodes/node_shader_bsdf_velvet.c
+  nodes/node_shader_bsdf_anisotropic.cc
+  nodes/node_shader_bsdf_diffuse.cc
+  nodes/node_shader_bsdf_glass.cc
+  nodes/node_shader_bsdf_glossy.cc
+  nodes/node_shader_bsdf_hair.cc
+  nodes/node_shader_bsdf_hair_principled.cc
+  nodes/node_shader_bsdf_principled.cc
+  nodes/node_shader_bsdf_refraction.cc
+  nodes/node_shader_bsdf_toon.cc
+  nodes/node_shader_bsdf_translucent.cc
+  nodes/node_shader_bsdf_transparent.cc
+  nodes/node_shader_bsdf_velvet.cc
   nodes/node_shader_bump.cc
   nodes/node_shader_camera.c
   nodes/node_shader_clamp.cc
@@ -83,7 +83,7 @@ set(SRC
   nodes/node_shader_mapping.c
   nodes/node_shader_math.cc
   nodes/node_shader_mix_rgb.cc
-  nodes/node_shader_mix_shader.c
+  nodes/node_shader_mix_shader.cc
   nodes/node_shader_normal.c
   nodes/node_shader_normal_map.c
   nodes/node_shader_object_info.c
@@ -99,9 +99,9 @@ set(SRC
   nodes/node_shader_sepcomb_hsv.c
   nodes/node_shader_sepcomb_rgb.cc
   nodes/node_shader_sepcomb_xyz.cc
-  nodes/node_shader_shader_to_rgb.c
+  nodes/node_shader_shader_to_rgb.cc
   nodes/node_shader_squeeze.c
-  nodes/node_shader_subsurface_scattering.c
+  nodes/node_shader_subsurface_scattering.cc
   nodes/node_shader_tangent.c
   nodes/node_shader_tex_brick.cc
   nodes/node_shader_tex_checker.cc
@@ -125,10 +125,10 @@ set(SRC
   nodes/node_shader_vector_rotate.cc
   nodes/node_shader_vector_transform.c
   nodes/node_shader_vertex_color.c
-  nodes/node_shader_volume_absorption.c
+  nodes/node_shader_volume_absorption.cc
   nodes/node_shader_volume_info.c
-  nodes/node_shader_volume_principled.c
-  nodes/node_shader_volume_scatter.c
+  nodes/node_shader_volume_principled.cc
+  nodes/node_shader_volume_scatter.cc
   nodes/node_shader_wavelength.c
   nodes/node_shader_wireframe.c
 

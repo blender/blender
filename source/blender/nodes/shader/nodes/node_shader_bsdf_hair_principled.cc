@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_bsdf_hair_principled_cc {
+
 /* **************** OUTPUT ******************** */
 
 /* Color, melanin and absorption coefficient default to approximately same brownish hair. */
@@ -61,10 +63,9 @@ static void node_shader_init_hair_principled(bNodeTree *UNUSED(ntree), bNode *no
 /* Triggers (in)visibility of some sockets when changing Parametrization. */
 static void node_shader_update_hair_principled(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sock;
   int parametrization = node->custom1;
 
-  for (sock = node->inputs.first; sock; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (STREQ(sock->name, "Color")) {
       nodeSetSocketAvailability(ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_REFLECTANCE);
     }
@@ -91,19 +92,23 @@ static void node_shader_update_hair_principled(bNodeTree *ntree, bNode *node)
   }
 }
 
+}  // namespace blender::nodes::node_shader_bsdf_hair_principled_cc
+
 /* node type definition */
-void register_node_type_sh_bsdf_hair_principled(void)
+void register_node_type_sh_bsdf_hair_principled()
 {
+  namespace file_ns = blender::nodes::node_shader_bsdf_hair_principled_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(
       &ntype, SH_NODE_BSDF_HAIR_PRINCIPLED, "Principled Hair BSDF", NODE_CLASS_SHADER, 0);
   node_type_socket_templates(
-      &ntype, sh_node_bsdf_hair_principled_in, sh_node_bsdf_hair_principled_out);
+      &ntype, file_ns::sh_node_bsdf_hair_principled_in, file_ns::sh_node_bsdf_hair_principled_out);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_init(&ntype, node_shader_init_hair_principled);
-  node_type_storage(&ntype, "", NULL, NULL);
-  node_type_update(&ntype, node_shader_update_hair_principled);
+  node_type_init(&ntype, file_ns::node_shader_init_hair_principled);
+  node_type_storage(&ntype, "", nullptr, nullptr);
+  node_type_update(&ntype, file_ns::node_shader_update_hair_principled);
 
   nodeRegisterType(&ntype);
 }

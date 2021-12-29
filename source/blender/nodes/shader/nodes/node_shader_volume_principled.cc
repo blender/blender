@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_volume_principled_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_volume_principled_in[] = {
@@ -64,14 +66,14 @@ static int node_shader_gpu_volume_principled(GPUMaterial *mat,
   bool use_blackbody = (in[8].link || in[8].vec[0] != 0.0f);
 
   /* Get volume attributes. */
-  GPUNodeLink *density = NULL, *color = NULL, *temperature = NULL;
+  GPUNodeLink *density = nullptr, *color = nullptr, *temperature = nullptr;
 
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (sock->typeinfo->type != SOCK_STRING) {
       continue;
     }
 
-    bNodeSocketValueString *value = sock->default_value;
+    bNodeSocketValueString *value = (bNodeSocketValueString *)sock->default_value;
     const char *attribute_name = value->value;
     if (attribute_name[0] == '\0') {
       continue;
@@ -106,11 +108,11 @@ static int node_shader_gpu_volume_principled(GPUMaterial *mat,
   const int size = CM_TABLE + 1;
   float *data, layer;
   if (use_blackbody) {
-    data = MEM_mallocN(sizeof(float) * size * 4, "blackbody texture");
+    data = (float *)MEM_mallocN(sizeof(float) * size * 4, "blackbody texture");
     blackbody_temperature_to_rgb_table(data, size, 965.0f, 12000.0f);
   }
   else {
-    data = MEM_callocN(sizeof(float) * size * 4, "blackbody black");
+    data = (float *)MEM_callocN(sizeof(float) * size * 4, "blackbody black");
   }
   GPUNodeLink *spectrummap = GPU_color_band(mat, size, data, &layer);
 
@@ -126,17 +128,22 @@ static int node_shader_gpu_volume_principled(GPUMaterial *mat,
                         GPU_constant(&layer));
 }
 
+}  // namespace blender::nodes::node_shader_volume_principled_cc
+
 /* node type definition */
-void register_node_type_sh_volume_principled(void)
+void register_node_type_sh_volume_principled()
 {
+  namespace file_ns = blender::nodes::node_shader_volume_principled_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_VOLUME_PRINCIPLED, "Principled Volume", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(&ntype, sh_node_volume_principled_in, sh_node_volume_principled_out);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_volume_principled_in, file_ns::sh_node_volume_principled_out);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_init(&ntype, node_shader_init_volume_principled);
-  node_type_storage(&ntype, "", NULL, NULL);
-  node_type_gpu(&ntype, node_shader_gpu_volume_principled);
+  node_type_init(&ntype, file_ns::node_shader_init_volume_principled);
+  node_type_storage(&ntype, "", nullptr, nullptr);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_volume_principled);
 
   nodeRegisterType(&ntype);
 }

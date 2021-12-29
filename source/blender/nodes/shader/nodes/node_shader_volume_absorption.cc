@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_volume_absorption_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_volume_absorption_in[] = {
@@ -41,16 +43,21 @@ static int node_shader_gpu_volume_absorption(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_volume_absorption", in, out);
 }
 
+}  // namespace blender::nodes::node_shader_volume_absorption_cc
+
 /* node type definition */
-void register_node_type_sh_volume_absorption(void)
+void register_node_type_sh_volume_absorption()
 {
+  namespace file_ns = blender::nodes::node_shader_volume_absorption_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_VOLUME_ABSORPTION, "Volume Absorption", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(&ntype, sh_node_volume_absorption_in, sh_node_volume_absorption_out);
-  node_type_init(&ntype, NULL);
-  node_type_storage(&ntype, "", NULL, NULL);
-  node_type_gpu(&ntype, node_shader_gpu_volume_absorption);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_volume_absorption_in, file_ns::sh_node_volume_absorption_out);
+  node_type_init(&ntype, nullptr);
+  node_type_storage(&ntype, "", nullptr, nullptr);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_volume_absorption);
 
   nodeRegisterType(&ntype);
 }

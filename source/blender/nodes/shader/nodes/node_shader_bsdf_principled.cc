@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_bsdf_principled_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_bsdf_principled_in[] = {
@@ -122,8 +124,8 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
 
   /* SSS Profile */
   if (use_subsurf) {
-    bNodeSocket *socket = BLI_findlink(&node->original->inputs, 2);
-    bNodeSocketValueRGBA *socket_data = socket->default_value;
+    bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&node->original->inputs, 2);
+    bNodeSocketValueRGBA *socket_data = (bNodeSocketValueRGBA *)socket->default_value;
     /* For some reason it seems that the socket value is in ARGB format. */
     GPU_material_sss_profile_create(mat, &socket_data->value[1]);
   }
@@ -151,7 +153,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   float f_use_refraction = use_refract ? 1.0f : 0.0f;
   float use_multi_scatter = (node->custom1 == SHD_GLOSSY_MULTI_GGX) ? 1.0f : 0.0f;
 
-  GPU_material_flag_set(mat, flag);
+  GPU_material_flag_set(mat, (eGPUMatFlag)flag);
 
   return GPU_stack_link(mat,
                         node,
@@ -172,7 +174,7 @@ static void node_shader_update_principled(bNodeTree *ntree, bNode *node)
   const int distribution = node->custom1;
   const int sss_method = node->custom2;
 
-  for (bNodeSocket *sock = node->inputs.first; sock; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (STREQ(sock->name, "Transmission Roughness")) {
       nodeSetSocketAvailability(ntree, sock, distribution == SHD_GLOSSY_GGX);
     }
@@ -183,18 +185,23 @@ static void node_shader_update_principled(bNodeTree *ntree, bNode *node)
   }
 }
 
+}  // namespace blender::nodes::node_shader_bsdf_principled_cc
+
 /* node type definition */
-void register_node_type_sh_bsdf_principled(void)
+void register_node_type_sh_bsdf_principled()
 {
+  namespace file_ns = blender::nodes::node_shader_bsdf_principled_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BSDF_PRINCIPLED, "Principled BSDF", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(&ntype, sh_node_bsdf_principled_in, sh_node_bsdf_principled_out);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_bsdf_principled_in, file_ns::sh_node_bsdf_principled_out);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_init(&ntype, node_shader_init_principled);
-  node_type_storage(&ntype, "", NULL, NULL);
-  node_type_gpu(&ntype, node_shader_gpu_bsdf_principled);
-  node_type_update(&ntype, node_shader_update_principled);
+  node_type_init(&ntype, file_ns::node_shader_init_principled);
+  node_type_storage(&ntype, "", nullptr, nullptr);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_principled);
+  node_type_update(&ntype, file_ns::node_shader_update_principled);
 
   nodeRegisterType(&ntype);
 }

@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_subsurface_scattering_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_subsurface_scattering_in[] = {
@@ -53,14 +55,14 @@ static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat,
   }
 
   if (node->sss_id > 0) {
-    bNodeSocket *socket = BLI_findlink(&node->original->inputs, 2);
-    bNodeSocketValueRGBA *socket_data = socket->default_value;
+    bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&node->original->inputs, 2);
+    bNodeSocketValueRGBA *socket_data = (bNodeSocketValueRGBA *)socket->default_value;
     /* For some reason it seems that the socket value is in ARGB format. */
     GPU_material_sss_profile_create(mat, &socket_data->value[1]);
 
     /* sss_id is 0 only the node is not connected to any output.
      * In this case flagging the material would trigger a bug (see T68736). */
-    GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_SSS);
+    GPU_material_flag_set(mat, (eGPUMatFlag)(GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_SSS));
   }
 
   return GPU_stack_link(
@@ -71,27 +73,32 @@ static void node_shader_update_subsurface_scattering(bNodeTree *ntree, bNode *no
 {
   const int sss_method = node->custom1;
 
-  for (bNodeSocket *sock = node->inputs.first; sock; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (STR_ELEM(sock->name, "IOR", "Anisotropy")) {
       nodeSetSocketAvailability(ntree, sock, sss_method != SHD_SUBSURFACE_BURLEY);
     }
   }
 }
 
+}  // namespace blender::nodes::node_shader_subsurface_scattering_cc
+
 /* node type definition */
-void register_node_type_sh_subsurface_scattering(void)
+void register_node_type_sh_subsurface_scattering()
 {
+  namespace file_ns = blender::nodes::node_shader_subsurface_scattering_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(
       &ntype, SH_NODE_SUBSURFACE_SCATTERING, "Subsurface Scattering", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(
-      &ntype, sh_node_subsurface_scattering_in, sh_node_subsurface_scattering_out);
+  node_type_socket_templates(&ntype,
+                             file_ns::sh_node_subsurface_scattering_in,
+                             file_ns::sh_node_subsurface_scattering_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, node_shader_init_subsurface_scattering);
-  node_type_storage(&ntype, "", NULL, NULL);
-  node_type_gpu(&ntype, node_shader_gpu_subsurface_scattering);
-  node_type_update(&ntype, node_shader_update_subsurface_scattering);
+  node_type_init(&ntype, file_ns::node_shader_init_subsurface_scattering);
+  node_type_storage(&ntype, "", nullptr, nullptr);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_subsurface_scattering);
+  node_type_update(&ntype, file_ns::node_shader_update_subsurface_scattering);
 
   nodeRegisterType(&ntype);
 }
