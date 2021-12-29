@@ -243,6 +243,16 @@ uint64_t get_default_hash_3(const T1 &v1, const T2 &v2, const T3 &v3)
   return h1 ^ (h2 * 19349669) ^ (h3 * 83492791);
 }
 
+template<typename T1, typename T2, typename T3, typename T4>
+uint64_t get_default_hash_4(const T1 &v1, const T2 &v2, const T3 &v3, const T4 &v4)
+{
+  const uint64_t h1 = get_default_hash(v1);
+  const uint64_t h2 = get_default_hash(v2);
+  const uint64_t h3 = get_default_hash(v3);
+  const uint64_t h4 = get_default_hash(v4);
+  return h1 ^ (h2 * 19349669) ^ (h3 * 83492791) ^ (h4 * 3632623);
+}
+
 template<typename T> struct DefaultHash<std::unique_ptr<T>> {
   uint64_t operator()(const std::unique_ptr<T> &value) const
   {

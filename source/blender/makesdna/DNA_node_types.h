@@ -1264,6 +1264,13 @@ typedef struct NodeRandomValue {
   uint8_t data_type;
 } NodeRandomValue;
 
+typedef struct NodeAccumulateField {
+  /* CustomDataType. */
+  uint8_t data_type;
+  /* AttributeDomain. */
+  uint8_t domain;
+} NodeAccumulateField;
+
 typedef struct NodeAttributeRandomize {
   /* CustomDataType. */
   uint8_t data_type;
