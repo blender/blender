@@ -456,14 +456,14 @@ static int customdata_compare(
 
   for (int i = 0; i < c1->totlayer; i++) {
     l1 = &c1->layers[i];
-    if (CD_TYPE_AS_MASK(l1->type) & cd_mask_all_attr && l1->anonymous_id != nullptr) {
+    if ((CD_TYPE_AS_MASK(l1->type) & cd_mask_all_attr) && l1->anonymous_id == nullptr) {
       layer_count1++;
     }
   }
 
   for (int i = 0; i < c2->totlayer; i++) {
     l2 = &c2->layers[i];
-    if (CD_TYPE_AS_MASK(l1->type) & cd_mask_all_attr && l2->anonymous_id != nullptr) {
+    if ((CD_TYPE_AS_MASK(l2->type) & cd_mask_all_attr) && l2->anonymous_id == nullptr) {
       layer_count2++;
     }
   }
