@@ -65,6 +65,7 @@
 #include "BKE_animsys.h"
 #include "BKE_bpath.h"
 #include "BKE_colortools.h"
+#include "BKE_context.h"
 #include "BKE_cryptomatte.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -2167,6 +2168,10 @@ bNode *nodeAddNode(const struct bContext *C, bNodeTree *ntree, const char *idnam
   node_set_typeinfo(C, ntree, node, nodeTypeFind(idname));
 
   BKE_ntree_update_tag_node_new(ntree, node);
+
+  if (node->type == GEO_NODE_INPUT_SCENE_TIME) {
+    DEG_relations_tag_update(CTX_data_main(C));
+  }
 
   return node;
 }

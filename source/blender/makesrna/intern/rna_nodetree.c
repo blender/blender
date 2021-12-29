@@ -1273,10 +1273,6 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
   ED_node_tree_propagate_change(C, bmain, ntree);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 
-  if (node->type == GEO_NODE_INPUT_SCENE_TIME) {
-    DEG_relations_tag_update(bmain);
-  }
-
   return node;
 }
 
