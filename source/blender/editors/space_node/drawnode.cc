@@ -138,9 +138,9 @@ static void node_buts_time(uiLayout *layout, bContext *UNUSED(C), PointerRNA *pt
 {
   uiTemplateCurveMapping(layout, ptr, "curve", 's', false, false, false, false);
 
-  uiLayout *row = uiLayoutRow(layout, true);
-  uiItemR(row, ptr, "frame_start", DEFAULT_FLAGS, IFACE_("Start"), ICON_NONE);
-  uiItemR(row, ptr, "frame_end", DEFAULT_FLAGS, IFACE_("End"), ICON_NONE);
+  uiLayout *col = uiLayoutColumn(layout, true);
+  uiItemR(col, ptr, "frame_start", DEFAULT_FLAGS, IFACE_("Start"), ICON_NONE);
+  uiItemR(col, ptr, "frame_end", DEFAULT_FLAGS, IFACE_("End"), ICON_NONE);
 }
 
 static void node_buts_colorramp(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
