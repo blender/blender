@@ -31,6 +31,8 @@
 //#define USE_WELD_NORMALS
 //#define USE_BVHTREEKDOP
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
@@ -376,10 +378,11 @@ static void weld_assert_poly_len(const WeldPoly *wp, const Span<WeldLoop> wloop)
 /** \name Weld Vert API
  * \{ */
 
-static Vector<WeldVert> weld_vert_ctx_alloc_and_setup(Span<int> vert_dest_map)
+static Vector<WeldVert> weld_vert_ctx_alloc_and_setup(Span<int> vert_dest_map,
+                                                      const int vert_kill_len)
 {
   Vector<WeldVert> wvert;
-  wvert.reserve(vert_dest_map.size());
+  wvert.reserve(std::min<int>(2 * vert_kill_len, vert_dest_map.size()));
 
   for (const int i : vert_dest_map.index_range()) {
     if (vert_dest_map[i] != OUT_OF_CONTEXT) {
@@ -1260,7 +1263,7 @@ static void weld_mesh_context_create(const Mesh *mesh,
   Span<MLoop> mloop{mesh->mloop, mesh->totloop};
   const int mvert_len = mesh->totvert;
 
-  Vector<WeldVert> wvert = weld_vert_ctx_alloc_and_setup(vert_dest_map);
+  Vector<WeldVert> wvert = weld_vert_ctx_alloc_and_setup(vert_dest_map, vert_kill_len);
   r_weld_mesh->vert_kill_len = vert_kill_len;
 
   Array<int> edge_dest_map(medge.size());
