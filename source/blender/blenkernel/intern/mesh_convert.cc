@@ -901,6 +901,20 @@ static Object *object_for_curve_to_mesh_create(const Object *object)
   return temp_object;
 }
 
+static void object_for_curve_to_mesh_free(Object *temp_object)
+{
+  /* Clear edit mode pointers that were explicitly copied to the temporary curve. */
+  ID *final_object_data = static_cast<ID *>(temp_object->data);
+  if (GS(final_object_data->name) == ID_CU) {
+    Curve &curve = *reinterpret_cast<Curve *>(final_object_data);
+    curve.editfont = nullptr;
+    curve.editnurb = nullptr;
+  }
+
+  BKE_id_free(nullptr, temp_object->data);
+  BKE_id_free(nullptr, temp_object);
+}
+
 /**
  * Populate `object->runtime.curve_cache` which is then used to create the mesh.
  */
@@ -1003,8 +1017,7 @@ static Mesh *mesh_new_from_curve_type_object(const Object *object)
 
   Mesh *mesh = mesh_new_from_evaluated_curve_type_object(temp_object);
 
-  BKE_id_free(nullptr, temp_object->data);
-  BKE_id_free(nullptr, temp_object);
+  object_for_curve_to_mesh_free(temp_object);
 
   return mesh;
 }
