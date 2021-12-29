@@ -1040,9 +1040,9 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
 
   if (remain_edge_ctx_len) {
 
-    /* Setup Poly/Loop. */
-
-    for (WeldPoly &wp : wpoly) {
+    /* Setup Poly/Loop. Note that `wpoly_len` may be different than `wpoly.size()` here. */
+    for (const int i : IndexRange(wpoly_len)) {
+      WeldPoly &wp = wpoly[i];
       const int ctx_loops_len = wp.loops.len;
       const int ctx_loops_ofs = wp.loops.ofs;
 
