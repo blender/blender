@@ -529,6 +529,30 @@ static void separate_point_cloud_selection(GeometrySet &geometry_set,
   geometry_set.replace_pointcloud(pointcloud);
 }
 
+static void separate_instance_selection(GeometrySet &geometry_set,
+                                        const Field<bool> &selection_field,
+                                        const bool invert)
+{
+  InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
+  GeometryComponentFieldContext field_context{instances, ATTR_DOMAIN_INSTANCE};
+
+  const int domain_size = instances.attribute_domain_size(ATTR_DOMAIN_INSTANCE);
+  fn::FieldEvaluator evaluator{field_context, domain_size};
+  evaluator.add(selection_field);
+  evaluator.evaluate();
+  const VArray_Span<bool> &selection = evaluator.get_evaluated<bool>(0);
+
+  Vector<int64_t> indices;
+  const IndexMask mask = index_mask_indices(selection, invert, indices);
+
+  if (mask.size() == 0) {
+    geometry_set.remove<InstancesComponent>();
+    return;
+  }
+
+  instances.remove_instances(mask);
+}
+
 static void compute_selected_vertices_from_vertex_selection(const Span<bool> vertex_selection,
                                                             const bool invert,
                                                             MutableSpan<int> r_vertex_map,
@@ -1261,7 +1285,7 @@ void separate_geometry(GeometrySet &geometry_set,
     }
   }
   if (geometry_set.has_mesh()) {
-    if (domain != ATTR_DOMAIN_CURVE) {
+    if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER)) {
       separate_mesh_selection(geometry_set, selection_field, domain, mode, invert);
       some_valid_domain = true;
     }
@@ -1269,6 +1293,12 @@ void separate_geometry(GeometrySet &geometry_set,
   if (geometry_set.has_curve()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
       separate_curve_selection(geometry_set, selection_field, domain, invert);
+      some_valid_domain = true;
+    }
+  }
+  if (geometry_set.has_instances()) {
+    if (domain == ATTR_DOMAIN_INSTANCE) {
+      separate_instance_selection(geometry_set, selection_field, invert);
       some_valid_domain = true;
     }
   }

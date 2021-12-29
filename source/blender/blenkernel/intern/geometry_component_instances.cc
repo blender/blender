@@ -17,6 +17,7 @@
 #include <mutex>
 
 #include "BLI_float4x4.hh"
+#include "BLI_index_mask.hh"
 #include "BLI_map.hh"
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
@@ -26,6 +27,8 @@
 
 #include "DNA_collection_types.h"
 
+#include "BKE_attribute_access.hh"
+#include "BKE_attribute_math.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
 
@@ -34,6 +37,7 @@
 #include "FN_cpp_type_make.hh"
 
 using blender::float4x4;
+using blender::IndexMask;
 using blender::Map;
 using blender::MutableSpan;
 using blender::Set;
@@ -130,6 +134,62 @@ int InstancesComponent::add_reference(const InstanceReference &reference)
 blender::Span<InstanceReference> InstancesComponent::references() const
 {
   return references_;
+}
+
+template<typename T>
+static void copy_data_based_on_mask(Span<T> src, MutableSpan<T> dst, IndexMask mask)
+{
+  BLI_assert(src.data() != dst.data());
+  using namespace blender;
+  threading::parallel_for(mask.index_range(), 1024, [&](IndexRange range) {
+    for (const int i : range) {
+      dst[i] = src[mask[i]];
+    }
+  });
+}
+
+void InstancesComponent::remove_instances(const IndexMask selection)
+{
+  using namespace blender;
+  if (selection.is_range() && selection.index_range().first() == 0) {
+    /* Deleting from the end of the array can be much faster since no data has to be shifted. */
+    this->resize(selection.size());
+    this->remove_unused_references();
+    return;
+  }
+
+  Vector<int> new_handles(selection.size());
+  copy_data_based_on_mask<int>(this->instance_reference_handles(), new_handles, selection);
+  instance_reference_handles_ = std::move(new_handles);
+  Vector<float4x4> new_transforms(selection.size());
+  copy_data_based_on_mask<float4x4>(this->instance_transforms(), new_transforms, selection);
+  instance_transforms_ = std::move(new_transforms);
+
+  const bke::CustomDataAttributes &src_attributes = attributes_;
+
+  bke::CustomDataAttributes dst_attributes;
+  dst_attributes.reallocate(selection.size());
+
+  src_attributes.foreach_attribute(
+      [&](const bke::AttributeIDRef &id, const AttributeMetaData &meta_data) {
+        if (!id.should_be_kept()) {
+          return true;
+        }
+
+        GSpan src = *src_attributes.get_for_read(id);
+        dst_attributes.create(id, meta_data.data_type);
+        fn::GMutableSpan dst = *dst_attributes.get_for_write(id);
+
+        attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
+          using T = decltype(dummy);
+          copy_data_based_on_mask<T>(src.typed<T>(), dst.typed<T>(), selection);
+        });
+        return true;
+      },
+      ATTR_DOMAIN_INSTANCE);
+
+  attributes_ = std::move(dst_attributes);
+  this->remove_unused_references();
 }
 
 void InstancesComponent::remove_unused_references()
