@@ -2899,40 +2899,6 @@ void BKE_node_preview_clear_tree(bNodeTree *ntree)
   }
 }
 
-static void node_preview_sync(bNodePreview *to, bNodePreview *from)
-{
-  /* sizes should have been initialized by BKE_node_preview_init_tree */
-  BLI_assert(to->xsize == from->xsize && to->ysize == from->ysize);
-
-  /* copy over contents of previews */
-  if (to->rect && from->rect) {
-    int xsize = to->xsize;
-    int ysize = to->ysize;
-    memcpy(to->rect, from->rect, xsize * ysize * sizeof(char[4]));
-  }
-}
-
-void BKE_node_preview_sync_tree(bNodeTree *to_ntree, bNodeTree *from_ntree)
-{
-  bNodeInstanceHash *from_previews = from_ntree->previews;
-  bNodeInstanceHash *to_previews = to_ntree->previews;
-
-  if (!from_previews || !to_previews) {
-    return;
-  }
-
-  bNodeInstanceHashIterator iter;
-  NODE_INSTANCE_HASH_ITER (iter, from_previews) {
-    bNodeInstanceKey key = BKE_node_instance_hash_iterator_get_key(&iter);
-    bNodePreview *from = (bNodePreview *)BKE_node_instance_hash_iterator_get_value(&iter);
-    bNodePreview *to = (bNodePreview *)BKE_node_instance_hash_lookup(to_previews, key);
-
-    if (from && to) {
-      node_preview_sync(to, from);
-    }
-  }
-}
-
 void BKE_node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, bool remove_old)
 {
   if (remove_old || !to_ntree->previews) {
@@ -3339,15 +3305,6 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
   }
 
   return ltree;
-}
-
-void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
-{
-  if (localtree && ntree) {
-    if (ntree->typeinfo->local_sync) {
-      ntree->typeinfo->local_sync(localtree, ntree);
-    }
-  }
 }
 
 void ntreeLocalMerge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)

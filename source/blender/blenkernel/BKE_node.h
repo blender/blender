@@ -414,7 +414,6 @@ typedef struct bNodeTreeType {
 
   /* calls allowing threaded composite */
   void (*localize)(struct bNodeTree *localtree, struct bNodeTree *ntree);
-  void (*local_sync)(struct bNodeTree *localtree, struct bNodeTree *ntree);
   void (*local_merge)(struct Main *bmain, struct bNodeTree *localtree, struct bNodeTree *ntree);
 
   /* Tree update. Overrides `nodetype->updatetreefunc` ! */
@@ -524,13 +523,6 @@ void ntreeNodeFlagSet(const bNodeTree *ntree, const int flag, const bool enable)
  * Returns localized tree for execution in threads.
  */
 struct bNodeTree *ntreeLocalize(struct bNodeTree *ntree);
-/**
- * Sync local composite with real tree.
- * The local tree is supposed to be running, be careful moving previews!
- *
- * Is called by jobs manager, outside threads, so it doesn't happen during draw.
- */
-void ntreeLocalSync(struct bNodeTree *localtree, struct bNodeTree *ntree);
 /**
  * Merge local tree results back, and free local tree.
  *
@@ -954,7 +946,6 @@ void BKE_node_preview_remove_unused(struct bNodeTree *ntree);
 void BKE_node_preview_clear(struct bNodePreview *preview);
 void BKE_node_preview_clear_tree(struct bNodeTree *ntree);
 
-void BKE_node_preview_sync_tree(struct bNodeTree *to_ntree, struct bNodeTree *from_ntree);
 void BKE_node_preview_merge_tree(struct bNodeTree *to_ntree,
                                  struct bNodeTree *from_ntree,
                                  bool remove_old);
