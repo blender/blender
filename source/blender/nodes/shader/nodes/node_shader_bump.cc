@@ -73,7 +73,6 @@ void register_node_type_sh_bump()
 
   sh_node_type_base(&ntype, SH_NODE_BUMP, "Bump", NODE_CLASS_OP_VECTOR, 0);
   ntype.declare = file_ns::node_declare;
-  node_type_storage(&ntype, "", nullptr, nullptr);
   node_type_gpu(&ntype, file_ns::gpu_shader_bump);
 
   nodeRegisterType(&ntype);

@@ -89,8 +89,6 @@ void register_node_type_sh_tex_coord(void)
 
   sh_node_type_base(&ntype, SH_NODE_TEX_COORD, "Texture Coordinate", NODE_CLASS_INPUT, 0);
   node_type_socket_templates(&ntype, NULL, sh_node_tex_coord_out);
-  node_type_init(&ntype, NULL);
-  node_type_storage(&ntype, "", NULL, NULL);
   node_type_gpu(&ntype, node_shader_gpu_tex_coord);
 
   nodeRegisterType(&ntype);

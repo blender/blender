@@ -81,7 +81,6 @@ void register_node_type_sh_bsdf_glossy()
       &ntype, file_ns::sh_node_bsdf_glossy_in, file_ns::sh_node_bsdf_glossy_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_init(&ntype, file_ns::node_shader_init_glossy);
-  node_type_storage(&ntype, "", nullptr, nullptr);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_glossy);
 
   nodeRegisterType(&ntype);

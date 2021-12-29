@@ -96,7 +96,6 @@ void register_node_type_sh_subsurface_scattering()
                              file_ns::sh_node_subsurface_scattering_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_init(&ntype, file_ns::node_shader_init_subsurface_scattering);
-  node_type_storage(&ntype, "", nullptr, nullptr);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_subsurface_scattering);
   node_type_update(&ntype, file_ns::node_shader_update_subsurface_scattering);
 

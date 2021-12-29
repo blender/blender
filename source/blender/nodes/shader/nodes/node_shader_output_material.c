@@ -80,8 +80,6 @@ void register_node_type_sh_output_material(void)
 
   sh_node_type_base(&ntype, SH_NODE_OUTPUT_MATERIAL, "Material Output", NODE_CLASS_OUTPUT, 0);
   node_type_socket_templates(&ntype, sh_node_output_material_in, NULL);
-  node_type_init(&ntype, NULL);
-  node_type_storage(&ntype, "", NULL, NULL);
   node_type_gpu(&ntype, node_shader_gpu_output_material);
 
   ntype.no_muting = true;

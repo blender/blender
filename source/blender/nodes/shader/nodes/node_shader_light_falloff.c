@@ -53,8 +53,6 @@ void register_node_type_sh_light_falloff(void)
   sh_node_type_base(&ntype, SH_NODE_LIGHT_FALLOFF, "Light Falloff", NODE_CLASS_OP_COLOR, 0);
   node_type_socket_templates(&ntype, sh_node_light_falloff_in, sh_node_light_falloff_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, NULL);
-  node_type_storage(&ntype, "", NULL, NULL);
   node_type_gpu(&ntype, node_shader_gpu_light_falloff);
 
   nodeRegisterType(&ntype);

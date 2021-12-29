@@ -62,7 +62,6 @@ void register_node_type_sh_bevel(void)
   sh_node_type_base(&ntype, SH_NODE_BEVEL, "Bevel", NODE_CLASS_INPUT, 0);
   node_type_socket_templates(&ntype, sh_node_bevel_in, sh_node_bevel_out);
   node_type_init(&ntype, node_shader_init_bevel);
-  node_type_storage(&ntype, "", NULL, NULL);
   node_type_gpu(&ntype, gpu_shader_bevel);
 
   nodeRegisterType(&ntype);

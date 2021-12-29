@@ -55,8 +55,6 @@ void register_node_type_sh_add_shader()
   sh_node_type_base(&ntype, SH_NODE_ADD_SHADER, "Add Shader", NODE_CLASS_SHADER, 0);
   node_type_socket_templates(
       &ntype, file_ns::sh_node_add_shader_in, file_ns::sh_node_add_shader_out);
-  node_type_init(&ntype, nullptr);
-  node_type_storage(&ntype, "", nullptr, nullptr);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_add_shader);
 
   nodeRegisterType(&ntype);

@@ -64,8 +64,6 @@ void register_node_type_sh_bsdf_toon()
   node_type_socket_templates(
       &ntype, file_ns::sh_node_bsdf_toon_in, file_ns::sh_node_bsdf_toon_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, nullptr);
-  node_type_storage(&ntype, "", nullptr, nullptr);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_toon);
 
   nodeRegisterType(&ntype);
