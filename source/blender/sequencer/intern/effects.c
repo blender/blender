@@ -1072,10 +1072,10 @@ BLI_INLINE void apply_blend_function_byte(float fac,
 
   for (int i = 0; i < y; i++) {
     for (int j = 0; j < x; j++) {
-      unsigned int achannel = rt1[3];
-      rt1[3] = (unsigned int)achannel * fac;
+      unsigned int achannel = rt2[3];
+      rt2[3] = (unsigned int)achannel * fac;
       blend_function(rt, rt1, rt2);
-      rt1[3] = achannel;
+      rt2[3] = achannel;
       rt[3] = rt1[3];
       rt1 += 4;
       rt2 += 4;
@@ -1098,10 +1098,10 @@ BLI_INLINE void apply_blend_function_float(float fac,
 
   for (int i = 0; i < y; i++) {
     for (int j = 0; j < x; j++) {
-      float achannel = rt1[3];
-      rt1[3] = achannel * fac;
+      float achannel = rt2[3];
+      rt2[3] = achannel * fac;
       blend_function(rt, rt1, rt2);
-      rt1[3] = achannel;
+      rt2[3] = achannel;
       rt[3] = rt1[3];
       rt1 += 4;
       rt2 += 4;
