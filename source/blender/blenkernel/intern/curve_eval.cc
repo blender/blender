@@ -100,11 +100,17 @@ void CurveEval::transform(const float4x4 &matrix)
   }
 }
 
-void CurveEval::bounds_min_max(float3 &min, float3 &max, const bool use_evaluated) const
+bool CurveEval::bounds_min_max(float3 &min, float3 &max, const bool use_evaluated) const
 {
+  bool have_minmax = false;
   for (const SplinePtr &spline : this->splines()) {
-    spline->bounds_min_max(min, max, use_evaluated);
+    if (spline->size()) {
+      spline->bounds_min_max(min, max, use_evaluated);
+      have_minmax = true;
+    }
   }
+
+  return have_minmax;
 }
 
 float CurveEval::total_length() const

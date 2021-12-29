@@ -41,7 +41,7 @@ void *BKE_pointcloud_add_default(struct Main *bmain, const char *name);
 struct PointCloud *BKE_pointcloud_new_nomain(const int totpoint);
 
 struct BoundBox *BKE_pointcloud_boundbox_get(struct Object *ob);
-void BKE_pointcloud_minmax(const struct PointCloud *pointcloud, float r_min[3], float r_max[3]);
+bool BKE_pointcloud_minmax(const struct PointCloud *pointcloud, float r_min[3], float r_max[3]);
 
 void BKE_pointcloud_update_customdata_pointers(struct PointCloud *pointcloud);
 bool BKE_pointcloud_customdata_required(struct PointCloud *pointcloud,

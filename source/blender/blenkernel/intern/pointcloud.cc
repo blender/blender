@@ -261,8 +261,12 @@ PointCloud *BKE_pointcloud_new_nomain(const int totpoint)
   return pointcloud;
 }
 
-void BKE_pointcloud_minmax(const struct PointCloud *pointcloud, float r_min[3], float r_max[3])
+bool BKE_pointcloud_minmax(const struct PointCloud *pointcloud, float r_min[3], float r_max[3])
 {
+  if (!pointcloud->totpoint) {
+    return false;
+  }
+
   float(*pointcloud_co)[3] = pointcloud->co;
   float *pointcloud_radius = pointcloud->radius;
   for (int a = 0; a < pointcloud->totpoint; a++) {
@@ -273,6 +277,7 @@ void BKE_pointcloud_minmax(const struct PointCloud *pointcloud, float r_min[3], 
     DO_MIN(co_min, r_min);
     DO_MAX(co_max, r_max);
   }
+  return true;
 }
 
 BoundBox *BKE_pointcloud_boundbox_get(Object *ob)

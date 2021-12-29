@@ -372,7 +372,7 @@ struct GeometrySet {
    */
   blender::Vector<const GeometryComponent *> get_components_for_read() const;
 
-  void compute_boundbox_without_instances(blender::float3 *r_min, blender::float3 *r_max) const;
+  bool compute_boundbox_without_instances(blender::float3 *r_min, blender::float3 *r_max) const;
 
   friend std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set);
 

@@ -3918,11 +3918,15 @@ bool BKE_object_boundbox_calc_from_evaluated_geometry(Object *ob)
   INIT_MINMAX(min, max);
 
   if (ob->runtime.geometry_set_eval) {
-    ob->runtime.geometry_set_eval->compute_boundbox_without_instances(&min, &max);
+    if (!ob->runtime.geometry_set_eval->compute_boundbox_without_instances(&min, &max)) {
+      zero_v3(min);
+      zero_v3(max);
+    }
   }
   else if (const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob)) {
     if (!BKE_mesh_wrapper_minmax(mesh_eval, min, max)) {
-      return false;
+      zero_v3(min);
+      zero_v3(max);
     }
   }
   else if (ob->runtime.curve_cache) {

@@ -686,7 +686,7 @@ struct CurveEval {
 
   void translate(const blender::float3 &translation);
   void transform(const blender::float4x4 &matrix);
-  void bounds_min_max(blender::float3 &min, blender::float3 &max, const bool use_evaluated) const;
+  bool bounds_min_max(blender::float3 &min, blender::float3 &max, const bool use_evaluated) const;
 
   /**
    * Return the start indices for each of the curve spline's control points, if they were part
