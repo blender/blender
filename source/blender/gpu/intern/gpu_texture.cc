@@ -190,7 +190,7 @@ using namespace blender::gpu;
 
 /* ------ Memory Management ------ */
 
-uint GPU_texture_memory_usage_get(void)
+uint GPU_texture_memory_usage_get()
 {
   /* TODO(fclem): Do that inside the new Texture class. */
   return 0;
@@ -424,7 +424,7 @@ void GPU_texture_unbind(GPUTexture *tex_)
   Context::get()->state_manager->texture_unbind(tex);
 }
 
-void GPU_texture_unbind_all(void)
+void GPU_texture_unbind_all()
 {
   Context::get()->state_manager->texture_unbind_all();
 }
@@ -439,7 +439,7 @@ void GPU_texture_image_unbind(GPUTexture *tex)
   Context::get()->state_manager->image_unbind(unwrap(tex));
 }
 
-void GPU_texture_image_unbind_all(void)
+void GPU_texture_image_unbind_all()
 {
   Context::get()->state_manager->image_unbind_all();
 }
@@ -613,7 +613,7 @@ void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *r_size)
  * Override texture sampler state for one sampler unit only.
  * \{ */
 
-void GPU_samplers_update(void)
+void GPU_samplers_update()
 {
   GPUBackend::get()->samplers_update();
 }

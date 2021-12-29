@@ -339,7 +339,7 @@ void GPU_shader_bind(GPUShader *gpu_shader)
   }
 }
 
-void GPU_shader_unbind(void)
+void GPU_shader_unbind()
 {
 #ifndef NDEBUG
   Context *ctx = Context::get();

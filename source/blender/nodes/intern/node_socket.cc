@@ -872,7 +872,7 @@ static bNodeSocketType *make_socket_type_material()
   return socktype;
 }
 
-void register_standard_node_socket_types(void)
+void register_standard_node_socket_types()
 {
   /* Draw callbacks are set in `drawnode.c` to avoid bad-level calls. */
 

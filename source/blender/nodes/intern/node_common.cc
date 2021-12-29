@@ -232,7 +232,7 @@ static void node_frame_init(bNodeTree *UNUSED(ntree), bNode *node)
   data->label_size = 20;
 }
 
-void register_node_type_frame(void)
+void register_node_type_frame()
 {
   /* frame type is used for all tree types, needs dynamic allocation */
   bNodeType *ntype = MEM_cnew<bNodeType>("frame node type");
@@ -261,7 +261,7 @@ static void node_reroute_init(bNodeTree *ntree, bNode *node)
   nodeAddStaticSocket(ntree, node, SOCK_OUT, SOCK_RGBA, PROP_NONE, "Output", "Output");
 }
 
-void register_node_type_reroute(void)
+void register_node_type_reroute()
 {
   /* frame type is used for all tree types, needs dynamic allocation */
   bNodeType *ntype = MEM_cnew<bNodeType>("frame node type");
@@ -502,7 +502,7 @@ void node_group_input_update(bNodeTree *ntree, bNode *node)
   }
 }
 
-void register_node_type_group_input(void)
+void register_node_type_group_input()
 {
   /* used for all tree types, needs dynamic allocation */
   bNodeType *ntype = MEM_cnew<bNodeType>("node type");
@@ -600,7 +600,7 @@ void node_group_output_update(bNodeTree *ntree, bNode *node)
   }
 }
 
-void register_node_type_group_output(void)
+void register_node_type_group_output()
 {
   /* used for all tree types, needs dynamic allocation */
   bNodeType *ntype = MEM_cnew<bNodeType>("node type");

@@ -61,11 +61,11 @@
 namespace blender::meshintersect {
 
 #  ifdef PERFDEBUG
-static void perfdata_init(void);
+static void perfdata_init();
 static void incperfcount(int countnum);
 static void bumpperfcount(int countnum, int amt);
 static void doperfmax(int maxnum, int val);
-static void dump_perfdata(void);
+static void dump_perfdata();
 #  endif
 
 /** For debugging, can disable threading in intersect code with this static constant. */
