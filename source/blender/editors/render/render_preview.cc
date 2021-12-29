@@ -193,7 +193,7 @@ static Main *load_main_from_memory(const void *blend, int blend_size)
 }
 #endif
 
-void ED_preview_ensure_dbase(void)
+void ED_preview_ensure_dbase()
 {
 #ifndef WITH_HEADLESS
   static bool base_initialized = false;
@@ -218,7 +218,7 @@ static bool preview_method_is_render(const ePreviewRenderMethod pr_method)
   return ELEM(pr_method, PR_ICON_RENDER, PR_BUTS_RENDER);
 }
 
-void ED_preview_free_dbase(void)
+void ED_preview_free_dbase()
 {
   if (G_pr_main) {
     BKE_main_free(G_pr_main);
@@ -1900,7 +1900,7 @@ struct PreviewRestartQueueEntry {
 
 static ListBase /* #PreviewRestartQueueEntry */ G_restart_previews_queue;
 
-void ED_preview_restart_queue_free(void)
+void ED_preview_restart_queue_free()
 {
   BLI_freelistN(&G_restart_previews_queue);
 }

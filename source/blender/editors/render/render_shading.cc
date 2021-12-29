@@ -2394,7 +2394,7 @@ void MATERIAL_OT_paste(wmOperatorType *ot)
 static short mtexcopied = 0; /* must be reset on file load */
 static MTex mtexcopybuf;
 
-void ED_render_clear_mtex_copybuf(void)
+void ED_render_clear_mtex_copybuf()
 { /* use for file reload */
   mtexcopied = 0;
 }

@@ -21,7 +21,7 @@
  * \ingroup edrend
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "BLI_utildefines.h"
 
@@ -33,7 +33,7 @@
 
 /***************************** render ***********************************/
 
-void ED_operatortypes_render(void)
+void ED_operatortypes_render()
 {
   WM_operatortype_append(OBJECT_OT_material_slot_add);
   WM_operatortype_append(OBJECT_OT_material_slot_remove);
