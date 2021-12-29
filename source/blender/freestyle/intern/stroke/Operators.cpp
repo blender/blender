@@ -885,7 +885,7 @@ static int __recursiveSplit(Chain *_curve,
 #endif
   real _min = FLT_MAX;
   ++it;
-  real mean = 0.0f;
+  // real mean = 0.0f;
   // soc unused - real variance                              = 0.0f;
   unsigned count = 0;
   CurveInternal::CurvePointIterator next = it;
@@ -904,14 +904,14 @@ static int __recursiveSplit(Chain *_curve,
     if (func(it0d) < 0) {
       return -1;
     }
-    mean += func.result;
+    // mean += func.result;
     if (func.result < _min) {
       _min = func.result;
       split = it;
       bsplit = true;
     }
   }
-  mean /= (float)count;
+  // mean /= (float)count;
 
   // if ((!bsplit) || (mean - _min > mean)) { // we didn't find any minimum
   if (!bsplit) {  // we didn't find any minimum
