@@ -413,14 +413,6 @@ void DM_calc_loop_tangents(DerivedMesh *dm,
                            const char (*tangent_names)[MAX_NAME],
                            int tangent_names_len);
 
-/* debug only */
-#ifndef NDEBUG
-char *DM_debug_info(DerivedMesh *dm);
-void DM_debug_print(DerivedMesh *dm);
-
-bool DM_is_valid(DerivedMesh *dm);
-#endif
-
 #ifdef __cplusplus
 }
 #endif

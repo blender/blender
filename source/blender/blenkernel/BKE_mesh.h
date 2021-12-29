@@ -867,15 +867,12 @@ void BKE_mesh_calc_relative_deform(const struct MPoly *mpoly,
 bool BKE_mesh_validate(struct Mesh *me, const bool do_verbose, const bool cddata_check_mask);
 /**
  * Checks if a Mesh is valid without any modification. This is always verbose.
- *
- * \see  #DM_is_valid to call on derived meshes
- *
- * \returns is_valid.
+ * \returns True if the mesh is valid.
  */
 bool BKE_mesh_is_valid(struct Mesh *me);
 /**
  * Check all material indices of polygons are valid, invalid ones are set to 0.
- * \returns is_valid.
+ * \returns True if the material indices are valid.
  */
 bool BKE_mesh_validate_material_indices(struct Mesh *me);
 
