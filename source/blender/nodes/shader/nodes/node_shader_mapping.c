@@ -37,21 +37,29 @@ static bNodeSocketTemplate sh_node_mapping_out[] = {
     {-1, ""},
 };
 
+static const char *gpu_shader_get_name(int mode)
+{
+  switch (mode) {
+    case NODE_MAPPING_TYPE_POINT:
+      return "mapping_point";
+    case NODE_MAPPING_TYPE_TEXTURE:
+      return "mapping_texture";
+    case NODE_MAPPING_TYPE_VECTOR:
+      return "mapping_vector";
+    case NODE_MAPPING_TYPE_NORMAL:
+      return "mapping_normal";
+  }
+  return NULL;
+}
+
 static int gpu_shader_mapping(GPUMaterial *mat,
                               bNode *node,
                               bNodeExecData *UNUSED(execdata),
                               GPUNodeStack *in,
                               GPUNodeStack *out)
 {
-  static const char *names[] = {
-      [NODE_MAPPING_TYPE_POINT] = "mapping_point",
-      [NODE_MAPPING_TYPE_TEXTURE] = "mapping_texture",
-      [NODE_MAPPING_TYPE_VECTOR] = "mapping_vector",
-      [NODE_MAPPING_TYPE_NORMAL] = "mapping_normal",
-  };
-
-  if (node->custom1 < ARRAY_SIZE(names) && names[node->custom1]) {
-    return GPU_stack_link(mat, node, names[node->custom1], in, out);
+  if (gpu_shader_get_name(node->custom1)) {
+    return GPU_stack_link(mat, node, gpu_shader_get_name(node->custom1), in, out);
   }
 
   return 0;
