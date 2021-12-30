@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_background_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_background_in[] = {
@@ -41,14 +43,19 @@ static int node_shader_gpu_background(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_background", in, out);
 }
 
+}  // namespace blender::nodes::node_shader_background_cc
+
 /* node type definition */
-void register_node_type_sh_background(void)
+void register_node_type_sh_background()
 {
+  namespace file_ns = blender::nodes::node_shader_background_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BACKGROUND, "Background", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(&ntype, sh_node_background_in, sh_node_background_out);
-  node_type_gpu(&ntype, node_shader_gpu_background);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_background_in, file_ns::sh_node_background_out);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_background);
 
   nodeRegisterType(&ntype);
 }

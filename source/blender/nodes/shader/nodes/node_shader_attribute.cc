@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_attribute_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_attribute_out[] = {
@@ -31,7 +33,7 @@ static bNodeSocketTemplate sh_node_attribute_out[] = {
 
 static void node_shader_init_attribute(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeShaderAttribute *attr = MEM_callocN(sizeof(NodeShaderAttribute), "NodeShaderAttribute");
+  NodeShaderAttribute *attr = MEM_cnew<NodeShaderAttribute>("NodeShaderAttribute");
   node->storage = attr;
 }
 
@@ -41,7 +43,7 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {
-  NodeShaderAttribute *attr = node->storage;
+  NodeShaderAttribute *attr = static_cast<NodeShaderAttribute *>(node->storage);
   bool is_varying = attr->type == SHD_ATTRIBUTE_GEOMETRY;
 
   if (GPU_material_is_volume_shader(mat) && is_varying) {
@@ -81,17 +83,21 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
   return 1;
 }
 
+}  // namespace blender::nodes::node_shader_attribute_cc
+
 /* node type definition */
-void register_node_type_sh_attribute(void)
+void register_node_type_sh_attribute()
 {
+  namespace file_ns = blender::nodes::node_shader_attribute_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_ATTRIBUTE, "Attribute", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, NULL, sh_node_attribute_out);
-  node_type_init(&ntype, node_shader_init_attribute);
+  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_attribute_out);
+  node_type_init(&ntype, file_ns::node_shader_init_attribute);
   node_type_storage(
       &ntype, "NodeShaderAttribute", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, node_shader_gpu_attribute);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_attribute);
 
   nodeRegisterType(&ntype);
 }

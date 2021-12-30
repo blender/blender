@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_ambient_occlusion_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_ambient_occlusion_in[] = {
@@ -64,15 +66,20 @@ static void node_shader_init_ambient_occlusion(bNodeTree *UNUSED(ntree), bNode *
   node->custom2 = 0;
 }
 
+}  // namespace blender::nodes::node_shader_ambient_occlusion_cc
+
 /* node type definition */
-void register_node_type_sh_ambient_occlusion(void)
+void register_node_type_sh_ambient_occlusion()
 {
+  namespace file_ns = blender::nodes::node_shader_ambient_occlusion_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_AMBIENT_OCCLUSION, "Ambient Occlusion", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, sh_node_ambient_occlusion_in, sh_node_ambient_occlusion_out);
-  node_type_init(&ntype, node_shader_init_ambient_occlusion);
-  node_type_gpu(&ntype, node_shader_gpu_ambient_occlusion);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_ambient_occlusion_in, file_ns::sh_node_ambient_occlusion_out);
+  node_type_init(&ntype, file_ns::node_shader_init_ambient_occlusion);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_ambient_occlusion);
 
   nodeRegisterType(&ntype);
 }

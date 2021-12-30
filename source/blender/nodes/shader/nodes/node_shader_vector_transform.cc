@@ -23,6 +23,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_vector_transform_cc {
+
 /* **************** Vector Transform ******************** */
 static bNodeSocketTemplate sh_node_vect_transform_in[] = {
     {SOCK_VECTOR, N_("Vector"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE}, {-1, ""}};
@@ -34,8 +36,7 @@ static bNodeSocketTemplate sh_node_vect_transform_out[] = {
 
 static void node_shader_init_vect_transform(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeShaderVectTransform *vect = MEM_callocN(sizeof(NodeShaderVectTransform),
-                                              "NodeShaderVectTransform");
+  NodeShaderVectTransform *vect = MEM_cnew<NodeShaderVectTransform>("NodeShaderVectTransform");
 
   /* Convert World into Object Space per default */
   vect->convert_to = 1;
@@ -58,7 +59,7 @@ static GPUNodeLink *get_gpulink_matrix_from_to(short from, short to)
     case SHD_VECT_TRANSFORM_SPACE_OBJECT:
       switch (to) {
         case SHD_VECT_TRANSFORM_SPACE_OBJECT:
-          return NULL;
+          return nullptr;
         case SHD_VECT_TRANSFORM_SPACE_WORLD:
           return GPU_builtin(GPU_OBJECT_MATRIX);
         case SHD_VECT_TRANSFORM_SPACE_CAMERA:
@@ -68,7 +69,7 @@ static GPUNodeLink *get_gpulink_matrix_from_to(short from, short to)
     case SHD_VECT_TRANSFORM_SPACE_WORLD:
       switch (to) {
         case SHD_VECT_TRANSFORM_SPACE_WORLD:
-          return NULL;
+          return nullptr;
         case SHD_VECT_TRANSFORM_SPACE_CAMERA:
           return GPU_builtin(GPU_VIEW_MATRIX);
         case SHD_VECT_TRANSFORM_SPACE_OBJECT:
@@ -78,7 +79,7 @@ static GPUNodeLink *get_gpulink_matrix_from_to(short from, short to)
     case SHD_VECT_TRANSFORM_SPACE_CAMERA:
       switch (to) {
         case SHD_VECT_TRANSFORM_SPACE_CAMERA:
-          return NULL;
+          return nullptr;
         case SHD_VECT_TRANSFORM_SPACE_WORLD:
           return GPU_builtin(GPU_INVERSE_VIEW_MATRIX);
         case SHD_VECT_TRANSFORM_SPACE_OBJECT:
@@ -86,7 +87,7 @@ static GPUNodeLink *get_gpulink_matrix_from_to(short from, short to)
       }
       break;
   }
-  return NULL;
+  return nullptr;
 }
 static int gpu_shader_vect_transform(GPUMaterial *mat,
                                      bNode *node,
@@ -137,17 +138,22 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
   return true;
 }
 
-void register_node_type_sh_vect_transform(void)
+}  // namespace blender::nodes::node_shader_vector_transform_cc
+
+void register_node_type_sh_vect_transform()
 {
+  namespace file_ns = blender::nodes::node_shader_vector_transform_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_VECT_TRANSFORM, "Vector Transform", NODE_CLASS_OP_VECTOR, 0);
-  node_type_init(&ntype, node_shader_init_vect_transform);
-  node_type_socket_templates(&ntype, sh_node_vect_transform_in, sh_node_vect_transform_out);
+  node_type_init(&ntype, file_ns::node_shader_init_vect_transform);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_vect_transform_in, file_ns::sh_node_vect_transform_out);
   node_type_storage(
       &ntype, "NodeShaderVectTransform", node_free_standard_storage, node_copy_standard_storage);
-  node_type_exec(&ntype, NULL, NULL, node_shader_exec_vect_transform);
-  node_type_gpu(&ntype, gpu_shader_vect_transform);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_vect_transform);
+  node_type_gpu(&ntype, file_ns::gpu_shader_vect_transform);
 
   nodeRegisterType(&ntype);
 }

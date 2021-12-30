@@ -21,6 +21,8 @@
 
 #include "DNA_customdata_types.h"
 
+namespace blender::nodes::node_shader_tex_coord_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_tex_coord_out[] = {
@@ -42,11 +44,12 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat,
 {
   Object *ob = (Object *)node->id;
 
-  GPUNodeLink *inv_obmat = (ob != NULL) ? GPU_uniform(&ob->imat[0][0]) :
-                                          GPU_builtin(GPU_INVERSE_OBJECT_MATRIX);
+  GPUNodeLink *inv_obmat = (ob != nullptr) ? GPU_uniform(&ob->imat[0][0]) :
+                                             GPU_builtin(GPU_INVERSE_OBJECT_MATRIX);
 
   /* Opti: don't request orco if not needed. */
-  GPUNodeLink *orco = (!out[0].hasoutput) ? GPU_constant((float[4]){0.0f, 0.0f, 0.0f, 0.0f}) :
+  const float default_coords[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  GPUNodeLink *orco = (!out[0].hasoutput) ? GPU_constant(default_coords) :
                                             GPU_attribute(mat, CD_ORCO, "");
   GPUNodeLink *mtface = GPU_attribute(mat, CD_MTFACE, "");
   GPUNodeLink *viewpos = GPU_builtin(GPU_VIEW_POSITION);
@@ -75,21 +78,25 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat,
                out[i].link,
                out[i].link,
                &out[i].link,
-               NULL);
+               nullptr);
     }
   }
 
   return 1;
 }
 
+}  // namespace blender::nodes::node_shader_tex_coord_cc
+
 /* node type definition */
-void register_node_type_sh_tex_coord(void)
+void register_node_type_sh_tex_coord()
 {
+  namespace file_ns = blender::nodes::node_shader_tex_coord_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_COORD, "Texture Coordinate", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, NULL, sh_node_tex_coord_out);
-  node_type_gpu(&ntype, node_shader_gpu_tex_coord);
+  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_tex_coord_out);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_coord);
 
   nodeRegisterType(&ntype);
 }

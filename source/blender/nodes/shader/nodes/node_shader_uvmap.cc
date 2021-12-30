@@ -21,6 +21,8 @@
 
 #include "DNA_customdata_types.h"
 
+namespace blender::nodes::node_shader_uvmap_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_uvmap_out[] = {
@@ -30,7 +32,7 @@ static bNodeSocketTemplate sh_node_uvmap_out[] = {
 
 static void node_shader_init_uvmap(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeShaderUVMap *attr = MEM_callocN(sizeof(NodeShaderUVMap), "NodeShaderUVMap");
+  NodeShaderUVMap *attr = MEM_cnew<NodeShaderUVMap>("NodeShaderUVMap");
   node->storage = attr;
 }
 
@@ -40,7 +42,7 @@ static int node_shader_gpu_uvmap(GPUMaterial *mat,
                                  GPUNodeStack *in,
                                  GPUNodeStack *out)
 {
-  NodeShaderUVMap *attr = node->storage;
+  NodeShaderUVMap *attr = static_cast<NodeShaderUVMap *>(node->storage);
   GPUNodeLink *mtface = GPU_attribute(mat, CD_MTFACE, attr->uv_map);
 
   GPU_stack_link(mat, node, "node_uvmap", in, out, mtface);
@@ -50,18 +52,22 @@ static int node_shader_gpu_uvmap(GPUMaterial *mat,
   return 1;
 }
 
+}  // namespace blender::nodes::node_shader_uvmap_cc
+
 /* node type definition */
-void register_node_type_sh_uvmap(void)
+void register_node_type_sh_uvmap()
 {
+  namespace file_ns = blender::nodes::node_shader_uvmap_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_UVMAP, "UV Map", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, NULL, sh_node_uvmap_out);
+  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_uvmap_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, node_shader_init_uvmap);
+  node_type_init(&ntype, file_ns::node_shader_init_uvmap);
   node_type_storage(
       &ntype, "NodeShaderUVMap", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, node_shader_gpu_uvmap);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_uvmap);
 
   nodeRegisterType(&ntype);
 }

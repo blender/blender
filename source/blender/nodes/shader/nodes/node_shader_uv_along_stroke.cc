@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_uv_along_stroke_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_uvalongstroke_out[] = {
@@ -26,13 +28,17 @@ static bNodeSocketTemplate sh_node_uvalongstroke_out[] = {
     {-1, ""},
 };
 
+}  // namespace blender::nodes::node_shader_uv_along_stroke_cc
+
 /* node type definition */
-void register_node_type_sh_uvalongstroke(void)
+void register_node_type_sh_uvalongstroke()
 {
+  namespace file_ns = blender::nodes::node_shader_uv_along_stroke_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_UVALONGSTROKE, "UV Along Stroke", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, NULL, sh_node_uvalongstroke_out);
+  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_uvalongstroke_out);
 
   nodeRegisterType(&ntype);
 }

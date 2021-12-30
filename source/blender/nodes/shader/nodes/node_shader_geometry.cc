@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_geometry_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_geometry_out[] = {
@@ -79,21 +81,25 @@ static int node_shader_gpu_geometry(GPUMaterial *mat,
                out[i].link,
                out[i].link,
                &out[i].link,
-               NULL);
+               nullptr);
     }
   }
 
   return success;
 }
 
+}  // namespace blender::nodes::node_shader_geometry_cc
+
 /* node type definition */
-void register_node_type_sh_geometry(void)
+void register_node_type_sh_geometry()
 {
+  namespace file_ns = blender::nodes::node_shader_geometry_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_NEW_GEOMETRY, "Geometry", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, NULL, sh_node_geometry_out);
-  node_type_gpu(&ntype, node_shader_gpu_geometry);
+  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_geometry_out);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_geometry);
 
   nodeRegisterType(&ntype);
 }

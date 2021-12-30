@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_fresnel_cc {
+
 /* **************** Fresnel ******************** */
 static bNodeSocketTemplate sh_node_fresnel_in[] = {
     {SOCK_FLOAT, N_("IOR"), 1.45f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
@@ -57,15 +59,19 @@ static void node_shader_exec_fresnel(void *UNUSED(data),
 {
 }
 
+}  // namespace blender::nodes::node_shader_fresnel_cc
+
 /* node type definition */
-void register_node_type_sh_fresnel(void)
+void register_node_type_sh_fresnel()
 {
+  namespace file_ns = blender::nodes::node_shader_fresnel_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_FRESNEL, "Fresnel", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, sh_node_fresnel_in, sh_node_fresnel_out);
-  node_type_gpu(&ntype, node_shader_gpu_fresnel);
-  node_type_exec(&ntype, NULL, NULL, node_shader_exec_fresnel);
+  node_type_socket_templates(&ntype, file_ns::sh_node_fresnel_in, file_ns::sh_node_fresnel_out);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_fresnel);
+  node_type_exec(&ntype, NULL, NULL, file_ns::node_shader_exec_fresnel);
 
   nodeRegisterType(&ntype);
 }

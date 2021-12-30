@@ -19,6 +19,8 @@
 
 #include "node_shader_util.h"
 
+namespace blender::nodes::node_shader_brightness_cc {
+
 /* **************** Bright and contrast  ******************** */
 
 static bNodeSocketTemplate sh_node_brightcontrast_in[] = {
@@ -42,13 +44,18 @@ static int gpu_shader_brightcontrast(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "brightness_contrast", in, out);
 }
 
-void register_node_type_sh_brightcontrast(void)
+}  // namespace blender::nodes::node_shader_brightness_cc
+
+void register_node_type_sh_brightcontrast()
 {
+  namespace file_ns = blender::nodes::node_shader_brightness_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR, 0);
-  node_type_socket_templates(&ntype, sh_node_brightcontrast_in, sh_node_brightcontrast_out);
-  node_type_gpu(&ntype, gpu_shader_brightcontrast);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_brightcontrast_in, file_ns::sh_node_brightcontrast_out);
+  node_type_gpu(&ntype, file_ns::gpu_shader_brightcontrast);
 
   nodeRegisterType(&ntype);
 }
