@@ -1408,6 +1408,19 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
                   sub_v3_v3(mpt, offset_local);
                   mul_v3_m4v3(&pt->x, diff_mat, mpt);
                 }
+
+                /* Apply transform to editcurve*/
+                if (gps->editcurve != NULL) {
+                  for (i = 0; i < gps->editcurve->tot_curve_points; i++) {
+                    BezTriple *bezt = &gps->editcurve->curve_points[i].bezt;
+                    for (int j = 0; j < 3; j++) {
+                      float mpt[3];
+                      mul_v3_m4v3(mpt, inverse_diff_mat, bezt->vec[j]);
+                      sub_v3_v3(mpt, offset_local);
+                      mul_v3_m4v3(bezt->vec[j], diff_mat, mpt);
+                    }
+                  }
+                }
               }
             }
           }
