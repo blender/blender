@@ -64,6 +64,8 @@ static void sh_node_vector_math_gather_link_searches(GatherLinkSearchOpParams &p
     return;
   }
 
+  const int weight = ELEM(params.other_socket().type, SOCK_VECTOR, SOCK_RGBA) ? 0 : -1;
+
   for (const EnumPropertyItem *item = rna_enum_node_vec_math_items; item->identifier != nullptr;
        item++) {
     if (item->name != nullptr && item->identifier != "") {
@@ -72,11 +74,13 @@ static void sh_node_vector_math_gather_link_searches(GatherLinkSearchOpParams &p
                                                 NODE_VECTOR_MATH_DISTANCE,
                                                 NODE_VECTOR_MATH_DOT_PRODUCT)) {
         params.add_item(IFACE_(item->name),
-                        SocketSearchOp{"Value", (NodeVectorMathOperation)item->value});
+                        SocketSearchOp{"Value", (NodeVectorMathOperation)item->value},
+                        weight);
       }
       else {
         params.add_item(IFACE_(item->name),
-                        SocketSearchOp{"Vector", (NodeVectorMathOperation)item->value});
+                        SocketSearchOp{"Vector", (NodeVectorMathOperation)item->value},
+                        weight);
       }
     }
   }
