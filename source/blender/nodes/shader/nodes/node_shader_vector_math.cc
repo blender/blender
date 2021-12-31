@@ -68,7 +68,7 @@ static void sh_node_vector_math_gather_link_searches(GatherLinkSearchOpParams &p
 
   for (const EnumPropertyItem *item = rna_enum_node_vec_math_items; item->identifier != nullptr;
        item++) {
-    if (item->name != nullptr && item->identifier != "") {
+    if (item->name != nullptr && item->identifier[0] != '\0') {
       if ((params.in_out() == SOCK_OUT) && ELEM(item->value,
                                                 NODE_VECTOR_MATH_LENGTH,
                                                 NODE_VECTOR_MATH_DISTANCE,
