@@ -98,6 +98,7 @@
 
 #include "SEQ_utils.h" /* SEQ_get_topmost_sequence() */
 
+#include "GPU_material.h"
 #include "GPU_texture.h"
 
 #include "BLI_sys_types.h" /* for intptr_t support */
@@ -3364,6 +3365,23 @@ static void image_walk_ntree_all_users(
   }
 }
 
+static void image_walk_gpu_materials(
+    ID *id,
+    ListBase *gpu_materials,
+    void *customdata,
+    void callback(Image *ima, ID *iuser_id, ImageUser *iuser, void *customdata))
+{
+  LISTBASE_FOREACH (LinkData *, link, gpu_materials) {
+    GPUMaterial *gpu_material = (GPUMaterial *)link->data;
+    ListBase textures = GPU_material_textures(gpu_material);
+    LISTBASE_FOREACH (GPUMaterialTexture *, gpu_material_texture, &textures) {
+      if (gpu_material_texture->iuser_available) {
+        callback(gpu_material_texture->ima, id, &gpu_material_texture->iuser, customdata);
+      }
+    }
+  }
+}
+
 static void image_walk_id_all_users(
     ID *id,
     bool skip_nested_nodes,
@@ -3383,6 +3401,7 @@ static void image_walk_id_all_users(
       if (ma->nodetree && ma->use_nodes && !skip_nested_nodes) {
         image_walk_ntree_all_users(ma->nodetree, &ma->id, customdata, callback);
       }
+      image_walk_gpu_materials(id, &ma->gpumaterial, customdata, callback);
       break;
     }
     case ID_LA: {
@@ -3397,6 +3416,7 @@ static void image_walk_id_all_users(
       if (world->nodetree && world->use_nodes && !skip_nested_nodes) {
         image_walk_ntree_all_users(world->nodetree, &world->id, customdata, callback);
       }
+      image_walk_gpu_materials(id, &world->gpumaterial, customdata, callback);
       break;
     }
     case ID_TE: {

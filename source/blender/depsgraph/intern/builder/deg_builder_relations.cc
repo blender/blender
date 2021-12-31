@@ -1466,8 +1466,11 @@ void DepsgraphRelationBuilder::build_animdata_drivers(ID *id)
 
 void DepsgraphRelationBuilder::build_animation_images(ID *id)
 {
+  /* See #DepsgraphNodeBuilder::build_animation_images. */
+  const bool can_have_gpu_material = ELEM(GS(id->name), ID_MA, ID_WO);
+
   /* TODO: can we check for existence of node for performance? */
-  if (BKE_image_user_id_has_animation(id)) {
+  if (BKE_image_user_id_has_animation(id) || can_have_gpu_material) {
     OperationKey image_animation_key(
         id, NodeType::IMAGE_ANIMATION, OperationCode::IMAGE_ANIMATION);
     TimeSourceKey time_src_key;
