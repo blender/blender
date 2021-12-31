@@ -72,7 +72,7 @@ static void sh_node_math_gather_link_searches(GatherLinkSearchOpParams &params)
           static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_FLOAT)) {
     for (const EnumPropertyItem *item = rna_enum_node_math_items; item->identifier != nullptr;
          item++) {
-      if (item->name != nullptr) {
+      if (item->name != nullptr && item->identifier != "") {
         params.add_item(IFACE_(item->name),
                         SocketSearchOp{"Value", (NodeMathOperation)item->value});
       }
