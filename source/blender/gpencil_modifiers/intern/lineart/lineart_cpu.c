@@ -1970,13 +1970,12 @@ static uchar lineart_intersection_mask_check(Collection *c, Object *ob)
     }
   }
 
-  if (c->children.first == NULL) {
-    if (BKE_collection_has_object(c, (Object *)(ob->id.orig_id))) {
-      if (c->lineart_flags & COLLECTION_LRT_USE_INTERSECTION_MASK) {
-        return c->lineart_intersection_mask;
-      }
+  if (BKE_collection_has_object(c, (Object *)(ob->id.orig_id))) {
+    if (c->lineart_flags & COLLECTION_LRT_USE_INTERSECTION_MASK) {
+      return c->lineart_intersection_mask;
     }
   }
+
   return 0;
 }
 
