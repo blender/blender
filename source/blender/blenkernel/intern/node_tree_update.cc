@@ -1366,6 +1366,11 @@ class NodeTreeMainUpdater {
   uint32_t get_combined_socket_topology_hash(const NodeTreeRef &tree,
                                              Span<const SocketRef *> sockets)
   {
+    if (tree.has_link_cycles()) {
+      /* Return dummy value when the link has any cycles. The algorithm below could be improved to
+       * handle cycles more gracefully. */
+      return 0;
+    }
     Array<uint32_t> hashes = this->get_socket_topology_hashes(tree, sockets);
     uint32_t combined_hash = 0;
     for (uint32_t hash : hashes) {
@@ -1377,6 +1382,7 @@ class NodeTreeMainUpdater {
   Array<uint32_t> get_socket_topology_hashes(const NodeTreeRef &tree,
                                              Span<const SocketRef *> sockets)
   {
+    BLI_assert(!tree.has_link_cycles());
     Array<std::optional<uint32_t>> hash_by_socket_id(tree.sockets().size());
     Stack<const SocketRef *> sockets_to_check = sockets;
 
