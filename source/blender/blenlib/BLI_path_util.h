@@ -254,6 +254,10 @@ void BLI_path_normalize_dir(const char *relabase, char *dir) ATTR_NONNULL(2);
 /**
  * Make given name safe to be used in paths.
  *
+ * \param allow_tokens: Permit the usage of '<' and '>' characters. This can be
+ * leveraged by higher layers to support "virtual filenames" which contain
+ * substitution markers delineated between the two characters.
+ *
  * \return true if \a fname was changed, false otherwise.
  *
  * For now, simply replaces reserved chars (as listed in
@@ -273,7 +277,9 @@ void BLI_path_normalize_dir(const char *relabase, char *dir) ATTR_NONNULL(2);
  * \note On Windows, it also checks for forbidden names
  * (see https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx ).
  */
+bool BLI_filename_make_safe_ex(char *fname, bool allow_tokens) ATTR_NONNULL(1);
 bool BLI_filename_make_safe(char *fname) ATTR_NONNULL(1);
+
 /**
  * Make given path OS-safe.
  *

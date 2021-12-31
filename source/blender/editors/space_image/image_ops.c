@@ -1499,6 +1499,13 @@ static void image_open_draw(bContext *UNUSED(C), wmOperator *op)
   }
 }
 
+static void image_operator_prop_allow_tokens(wmOperatorType *ot)
+{
+  PropertyRNA *prop = RNA_def_boolean(
+      ot->srna, "allow_path_tokens", true, "", "Allow the path to contain substitution tokens");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+}
+
 void IMAGE_OT_open(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1516,6 +1523,7 @@ void IMAGE_OT_open(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
+  image_operator_prop_allow_tokens(ot);
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_IMAGE | FILE_TYPE_MOVIE,
                                  FILE_SPECIAL,
@@ -1767,7 +1775,13 @@ static int image_save_options_init(Main *bmain,
       opts->im_format.views_format = ima->views_format;
     }
 
-    BLI_strncpy(opts->filepath, ibuf->name, sizeof(opts->filepath));
+    if (ima->source == IMA_SRC_TILED) {
+      BLI_strncpy(opts->filepath, ima->filepath, sizeof(opts->filepath));
+      BLI_path_abs(opts->filepath, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
+    }
+    else {
+      BLI_strncpy(opts->filepath, ibuf->name, sizeof(opts->filepath));
+    }
 
     /* sanitize all settings */
 
@@ -1804,14 +1818,10 @@ static int image_save_options_init(Main *bmain,
         BLI_path_abs(opts->filepath, is_prev_save ? G.ima : BKE_main_blendfile_path(bmain));
       }
 
-      /* append UDIM numbering if not present */
-      if (ima->source == IMA_SRC_TILED) {
-        char udim[6];
-        ImageTile *tile = ima->tiles.first;
-        BLI_snprintf(udim, sizeof(udim), ".%d", tile->tile_number);
-
+      /* append UDIM marker if not present */
+      if (ima->source == IMA_SRC_TILED && strstr(opts->filepath, "<UDIM>") == NULL) {
         int len = strlen(opts->filepath);
-        STR_CONCAT(opts->filepath, len, udim);
+        STR_CONCAT(opts->filepath, len, ".<UDIM>");
       }
     }
 
@@ -2070,6 +2080,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
                   "Copy",
                   "Create a new image file without modifying the current image in blender");
 
+  image_operator_prop_allow_tokens(ot);
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_IMAGE | FILE_TYPE_MOVIE,
                                  FILE_SPECIAL,

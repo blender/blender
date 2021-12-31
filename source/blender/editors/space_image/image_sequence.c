@@ -115,79 +115,17 @@ static int image_cmp_frame(const void *a, const void *b)
   return 0;
 }
 
-/*
- * Checks whether the given filepath refers to a UDIM texture.
- * If yes, the range from 1001 to the highest tile is returned, otherwise 0.
- *
- * If the result is positive, the filepath will be overwritten with that of
- * the 1001 tile.
- *
- * udim_tiles may get filled even if the result ultimately is false!
- */
-static bool image_get_udim(char *filepath, ListBase *udim_tiles, int *udim_start, int *udim_range)
-{
-  char filename[FILE_MAX], dirname[FILE_MAXDIR];
-  BLI_split_dirfile(filepath, dirname, filename, sizeof(dirname), sizeof(filename));
-
-  ushort digits;
-  char base_head[FILE_MAX], base_tail[FILE_MAX];
-  int id = BLI_path_sequence_decode(filename, base_head, base_tail, &digits);
-
-  if (id < 1001 || id > IMA_UDIM_MAX) {
-    return false;
-  }
-
-  bool is_udim = true;
-  int min_udim = IMA_UDIM_MAX + 1;
-  int max_udim = 0;
-
-  struct direntry *dir;
-  uint totfile = BLI_filelist_dir_contents(dirname, &dir);
-  for (int i = 0; i < totfile; i++) {
-    if (!(dir[i].type & S_IFREG)) {
-      continue;
-    }
-    char head[FILE_MAX], tail[FILE_MAX];
-    id = BLI_path_sequence_decode(dir[i].relname, head, tail, &digits);
-
-    if (digits > 4 || !(STREQLEN(base_head, head, FILE_MAX)) ||
-        !(STREQLEN(base_tail, tail, FILE_MAX))) {
-      continue;
-    }
-
-    if (id < 1001 || id > IMA_UDIM_MAX) {
-      is_udim = false;
-      break;
-    }
-
-    BLI_addtail(udim_tiles, BLI_genericNodeN(POINTER_FROM_INT(id)));
-    min_udim = min_ii(min_udim, id);
-    max_udim = max_ii(max_udim, id);
-  }
-  BLI_filelist_free(dir, totfile);
-
-  if (is_udim && min_udim <= IMA_UDIM_MAX) {
-    char primary_filename[FILE_MAX];
-    BLI_path_sequence_encode(primary_filename, base_head, base_tail, digits, min_udim);
-    BLI_join_dirfile(filepath, FILE_MAX, dirname, primary_filename);
-
-    *udim_start = min_udim;
-    *udim_range = max_udim - min_udim + 1;
-    return true;
-  }
-  return false;
-}
-
 /**
  * From a list of frames, compute the start (offset) and length of the sequence
- * of contiguous frames. If UDIM is detect, it will return UDIM tiles as well.
+ * of contiguous frames. If `detect_udim` is set, it will return UDIM tiles as well.
  */
 static void image_detect_frame_range(ImageFrameRange *range, const bool detect_udim)
 {
   /* UDIM */
   if (detect_udim) {
     int udim_start, udim_range;
-    bool result = image_get_udim(range->filepath, &range->udim_tiles, &udim_start, &udim_range);
+    bool result = BKE_image_get_tile_info(
+        range->filepath, &range->udim_tiles, &udim_start, &udim_range);
 
     if (result) {
       range->offset = udim_start;

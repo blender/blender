@@ -49,6 +49,8 @@ typedef enum eBPathForeachFlag {
   BKE_BPATH_FOREACH_PATH_SKIP_LINKED = (1 << 1),
   /** Skip paths when their matching data is packed. */
   BKE_BPATH_FOREACH_PATH_SKIP_PACKED = (1 << 2),
+  /** Resolve tokens within a virtual filepath to a single, concrete, filepath. */
+  BKE_BPATH_FOREACH_PATH_RESOLVE_TOKEN = (1 << 3),
   /* Skip weak reference paths. Those paths are typically 'nice to have' extra information, but are
    * not used as actual source of data by the current .blend file.
    *

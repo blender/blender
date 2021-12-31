@@ -58,6 +58,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_idprop.h"
+#include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
@@ -816,6 +817,13 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
         }
       }
       FOREACH_MAIN_ID_END;
+    }
+
+    /* Ensure tiled image sources contain a UDIM token. */
+    LISTBASE_FOREACH (Image *, ima, &bmain->images) {
+      if (ima->source == IMA_SRC_TILED) {
+        BKE_image_ensure_tile_token(ima->filepath);
+      }
     }
   }
 }
@@ -2062,7 +2070,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
               SpaceFile *sfile = (SpaceFile *)sl;
               if (sfile->params) {
                 sfile->params->flag &= ~(FILE_PARAMS_FLAG_UNUSED_1 | FILE_PARAMS_FLAG_UNUSED_2 |
-                                         FILE_PARAMS_FLAG_UNUSED_3 | FILE_PARAMS_FLAG_UNUSED_4);
+                                         FILE_PARAMS_FLAG_UNUSED_3 | FILE_PATH_TOKENS_ALLOW);
               }
 
               /* New default import type: Append with reuse. */

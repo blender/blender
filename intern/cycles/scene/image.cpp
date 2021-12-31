@@ -381,8 +381,15 @@ ImageHandle ImageManager::add_image(const string &filename,
 
   foreach (int tile, tiles) {
     string tile_filename = filename;
+
+    /* Since we don't have information about the exact tile format used in this code location,
+     * just attempt all replacement patterns that Blender supports. */
     if (tile != 0) {
       string_replace(tile_filename, "<UDIM>", string_printf("%04d", tile));
+
+      int u = ((tile - 1001) % 10);
+      int v = ((tile - 1001) / 10);
+      string_replace(tile_filename, "<UVTILE>", string_printf("u%d_v%d", u + 1, v + 1));
     }
     const int slot = add_image_slot(new OIIOImageLoader(tile_filename), params, false);
     handle.tile_slots.push_back(slot);
