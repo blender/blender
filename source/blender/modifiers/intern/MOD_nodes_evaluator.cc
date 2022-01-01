@@ -235,9 +235,10 @@ struct NodeState {
   MutableSpan<OutputState> outputs;
 
   /**
-   * Nodes that don't support laziness have some special handling the first time they are executed.
+   * Most nodes have inputs that are always required. Those have special handling to avoid an extra
+   * call to the node execution function.
    */
-  bool non_lazy_node_is_initialized = false;
+  bool non_lazy_inputs_handled = false;
 
   /**
    * Used to check that nodes that don't support laziness do not run more than once.
@@ -801,12 +802,12 @@ class GeometryNodesEvaluator {
       if (!this->prepare_node_outputs_for_execution(locked_node)) {
         return;
       }
-      /* Initialize nodes that don't support laziness. This is done after at least one output is
+      /* Initialize inputs that don't support laziness. This is done after at least one output is
        * required and before we check that all required inputs are provided. This reduces the
        * number of "round-trips" through the task pool by one for most nodes. */
-      if (!node_state.non_lazy_node_is_initialized && !node_supports_laziness(node)) {
-        this->initialize_non_lazy_node(locked_node);
-        node_state.non_lazy_node_is_initialized = true;
+      if (!node_state.non_lazy_inputs_handled) {
+        this->require_non_lazy_inputs(locked_node);
+        node_state.non_lazy_inputs_handled = true;
       }
       /* Prepare inputs and check if all required inputs are provided. */
       if (!this->prepare_node_inputs_for_execution(locked_node)) {
@@ -880,17 +881,27 @@ class GeometryNodesEvaluator {
     return execution_is_necessary;
   }
 
-  void initialize_non_lazy_node(LockedNode &locked_node)
+  void require_non_lazy_inputs(LockedNode &locked_node)
   {
+    this->foreach_non_lazy_input(locked_node, [&](const DInputSocket socket) {
+      this->set_input_required(locked_node, socket);
+    });
+  }
+
+  void foreach_non_lazy_input(LockedNode &locked_node, FunctionRef<void(DInputSocket socket)> fn)
+  {
+    if (node_supports_laziness(locked_node.node)) {
+      /* In the future only some of the inputs may support lazyness. */
+      return;
+    }
+    /* Nodes that don't support laziness require all inputs. */
     for (const int i : locked_node.node->inputs().index_range()) {
       InputState &input_state = locked_node.node_state.inputs[i];
       if (input_state.type == nullptr) {
         /* Ignore unavailable/non-data sockets. */
         continue;
       }
-      /* Nodes that don't support laziness require all inputs. */
-      const DInputSocket input_socket = locked_node.node.input(i);
-      this->set_input_required(locked_node, input_socket);
+      fn(locked_node.node.input(i));
     }
   }
 
