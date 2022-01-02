@@ -60,11 +60,21 @@ class FieldInput;
 struct FieldInputs;
 
 /**
+ * Have a fixed set of base node types, because all code that works with field nodes has to
+ * understand those.
+ */
+enum class FieldNodeType {
+  Input,
+  Operation,
+  Constant,
+};
+
+/**
  * A node in a field-tree. It has at least one output that can be referenced by fields.
  */
 class FieldNode {
  private:
-  bool is_input_;
+  FieldNodeType node_type_;
 
  protected:
   /**
@@ -76,14 +86,13 @@ class FieldNode {
   std::shared_ptr<const FieldInputs> field_inputs_;
 
  public:
-  FieldNode(bool is_input);
+  FieldNode(FieldNodeType node_type);
 
   virtual ~FieldNode() = default;
 
   virtual const CPPType &output_cpp_type(int output_index) const = 0;
 
-  bool is_input() const;
-  bool is_operation() const;
+  FieldNodeType node_type() const;
   bool depends_on_input() const;
 
   const std::shared_ptr<const FieldInputs> &field_inputs() const;
@@ -265,6 +274,20 @@ class FieldInput : public FieldNode {
   Category category() const;
 
   const CPPType &output_cpp_type(int output_index) const override;
+};
+
+class FieldConstant : public FieldNode {
+ private:
+  const CPPType &type_;
+  void *value_;
+
+ public:
+  FieldConstant(const CPPType &type, const void *value);
+  ~FieldConstant();
+
+  const CPPType &output_cpp_type(int output_index) const override;
+  const CPPType &type() const;
+  const GPointer value() const;
 };
 
 /**
@@ -468,9 +491,7 @@ template<typename T> T evaluate_constant_field(const Field<T> &field)
 
 template<typename T> Field<T> make_constant_field(T value)
 {
-  auto constant_fn = std::make_unique<fn::CustomMF_Constant<T>>(std::forward<T>(value));
-  auto operation = std::make_shared<FieldOperation>(std::move(constant_fn));
-  return Field<T>{GField{std::move(operation), 0}};
+  return make_constant_field(CPPType::get<T>(), &value);
 }
 
 GField make_constant_field(const CPPType &type, const void *value);
@@ -552,18 +573,13 @@ template<typename T> struct ValueOrField {
 /** \name #FieldNode Inline Methods
  * \{ */
 
-inline FieldNode::FieldNode(bool is_input) : is_input_(is_input)
+inline FieldNode::FieldNode(const FieldNodeType node_type) : node_type_(node_type)
 {
 }
 
-inline bool FieldNode::is_input() const
+inline FieldNodeType FieldNode::node_type() const
 {
-  return is_input_;
-}
-
-inline bool FieldNode::is_operation() const
-{
-  return !is_input_;
+  return node_type_;
 }
 
 inline bool FieldNode::depends_on_input() const
