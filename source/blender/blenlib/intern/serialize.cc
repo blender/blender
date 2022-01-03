@@ -46,7 +46,7 @@ const ArrayValue *Value::as_array_value() const
 
 const DictionaryValue *Value::as_object_value() const
 {
-  if (type_ != eValueType::Object) {
+  if (type_ != eValueType::Dictionary) {
     return nullptr;
   }
   return static_cast<const DictionaryValue *>(this);
@@ -98,7 +98,7 @@ static void convert_to_json(nlohmann::ordered_json &j, const Value &value)
       break;
     }
 
-    case eValueType::Object: {
+    case eValueType::Dictionary: {
       const DictionaryValue &object = *value.as_object_value();
       convert_to_json(j, object);
       break;
@@ -133,7 +133,8 @@ static std::unique_ptr<ArrayValue> convert_from_json_to_array(const nlohmann::or
   return array;
 }
 
-static std::unique_ptr<DictionaryValue> convert_from_json_to_object(const nlohmann::ordered_json &j)
+static std::unique_ptr<DictionaryValue> convert_from_json_to_object(
+    const nlohmann::ordered_json &j)
 {
   std::unique_ptr<DictionaryValue> object = std::make_unique<DictionaryValue>();
   DictionaryValue::Items &elements = object->elements();

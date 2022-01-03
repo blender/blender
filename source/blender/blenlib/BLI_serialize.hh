@@ -92,7 +92,7 @@ enum class eValueType {
   Null,
   Boolean,
   Double,
-  Object,
+  Dictionary,
 };
 
 class Value;
@@ -122,8 +122,8 @@ using ArrayValue = ContainerValue<Vector<std::shared_ptr<Value>>, eValueType::Ar
  * - `NullValue`: represents nothing (null pointer or optional).
  * - `BooleanValue`: contains a boolean (true/false).
  * - `DoubleValue`: contains a double precision floating point number.
- * - `DictionaryValue`: represents an object (key value pairs where keys are strings and values can be
- *   of different types.
+ * - `DictionaryValue`: represents an object (key value pairs where keys are strings and values can
+ * be of different types.
  *
  */
 class Value {
@@ -275,7 +275,7 @@ using ObjectElementType = std::pair<std::string, std::shared_ptr<Value>>;
  * Object is a key-value container where the key must be a std::string.
  * Internally it is stored in a blender::Vector to ensure the order of keys.
  */
-class DictionaryValue : public ContainerValue<Vector<ObjectElementType>, eValueType::Object> {
+class DictionaryValue : public ContainerValue<Vector<ObjectElementType>, eValueType::Dictionary> {
  public:
   using LookupValue = std::shared_ptr<Value>;
   using Lookup = Map<std::string, LookupValue>;
