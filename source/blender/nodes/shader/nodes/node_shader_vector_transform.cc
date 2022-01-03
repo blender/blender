@@ -100,7 +100,7 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
 
   const char *vtransform = "direction_transform_m4v3";
   const char *ptransform = "point_transform_m4v3";
-  const char *func_name = 0;
+  const char *func_name = nullptr;
 
   NodeShaderVectTransform *nodeprop = (NodeShaderVectTransform *)node->storage;
 

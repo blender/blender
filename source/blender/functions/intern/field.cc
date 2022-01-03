@@ -684,7 +684,7 @@ const CPPType &FieldConstant::type() const
   return type_;
 }
 
-const GPointer FieldConstant::value() const
+GPointer FieldConstant::value() const
 {
   return {type_, value_};
 }

@@ -71,7 +71,7 @@ void register_node_type_sh_fresnel()
   sh_node_type_base(&ntype, SH_NODE_FRESNEL, "Fresnel", NODE_CLASS_INPUT, 0);
   node_type_socket_templates(&ntype, file_ns::sh_node_fresnel_in, file_ns::sh_node_fresnel_out);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_fresnel);
-  node_type_exec(&ntype, NULL, NULL, file_ns::node_shader_exec_fresnel);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_fresnel);
 
   nodeRegisterType(&ntype);
 }

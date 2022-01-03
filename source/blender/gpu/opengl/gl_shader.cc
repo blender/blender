@@ -47,7 +47,7 @@ GLShader::GLShader(const char *name) : Shader(name)
 {
 #if 0 /* Would be nice to have, but for now the Deferred compilation \
        * does not have a GPUContext. */
-  BLI_assert(GLContext::get() != NULL);
+  BLI_assert(GLContext::get() != nullptr);
 #endif
   shader_program_ = glCreateProgram();
 
@@ -58,7 +58,7 @@ GLShader::~GLShader()
 {
 #if 0 /* Would be nice to have, but for now the Deferred compilation \
        * does not have a GPUContext. */
-  BLI_assert(GLContext::get() != NULL);
+  BLI_assert(GLContext::get() != nullptr);
 #endif
   /* Invalid handles are silently ignored. */
   glDeleteShader(vert_shader_);

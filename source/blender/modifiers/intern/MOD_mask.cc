@@ -702,7 +702,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
     Object *armature_ob = mmd->ob_arm;
 
     /* Return input mesh if there is no armature with bones. */
-    if (ELEM(NULL, armature_ob, armature_ob->pose)) {
+    if (ELEM(nullptr, armature_ob, armature_ob->pose)) {
       return mesh;
     }
 

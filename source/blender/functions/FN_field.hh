@@ -287,7 +287,7 @@ class FieldConstant : public FieldNode {
 
   const CPPType &output_cpp_type(int output_index) const override;
   const CPPType &type() const;
-  const GPointer value() const;
+  GPointer value() const;
 };
 
 /**
