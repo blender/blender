@@ -25,6 +25,20 @@ set(INC
   ../../io/alembic
   ../../io/collada
   ../../io/gpencil
+  ../../io/wavefront_obj
+  ../../io/usd
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../../../intern/guardedalloc
+)
+
+set(INC_SYS
+
+)
+
+set(SRC
+  io_alembic.c
   ../../io/usd
   ../../makesdna
   ../../makesrna
@@ -43,6 +57,7 @@ set(SRC
   io_gpencil_export.c
   io_gpencil_import.c
   io_gpencil_utils.c
+  io_obj.c
   io_ops.c
   io_usd.c
 
@@ -57,6 +72,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  bf_wavefront_obj
 )
 
 if(WITH_OPENCOLLADA)

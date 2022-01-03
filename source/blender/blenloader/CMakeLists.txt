@@ -26,6 +26,7 @@ set(INC
   ../blentranslation
   ../depsgraph
   ../draw
+  ../editors/include
   ../imbuf
   ../makesdna
   ../makesrna
