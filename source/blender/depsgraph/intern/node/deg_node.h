@@ -147,6 +147,8 @@ enum class NodeType {
   SYNCHRONIZATION,
   /* Simulation component. */
   SIMULATION,
+  /* Node tree output component. */
+  NTREE_OUTPUT,
 
   /* Total number of meaningful node types. */
   NUM_TYPES,

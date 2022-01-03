@@ -25,7 +25,7 @@ namespace blender::ed::spreadsheet {
 
 void spreadsheet_data_set_region_panels_register(ARegionType &region_type)
 {
-  PanelType *panel_type = (PanelType *)MEM_callocN(sizeof(PanelType), __func__);
+  PanelType *panel_type = MEM_cnew<PanelType>(__func__);
   strcpy(panel_type->idname, "SPREADSHEET_PT_data_set");
   strcpy(panel_type->label, N_("Data Set"));
   strcpy(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);

@@ -237,7 +237,7 @@ void AnimationImporter::add_fcurves_to_object(Main *bmain,
         /* no matching groups, so add one */
         if (grp == nullptr) {
           /* Add a new group, and make it active */
-          grp = (bActionGroup *)MEM_callocN(sizeof(bActionGroup), "bActionGroup");
+          grp = MEM_cnew<bActionGroup>("bActionGroup");
 
           grp->flag = AGRP_SELECTED;
           BLI_strncpy(grp->name, bone_name, sizeof(grp->name));
@@ -2177,7 +2177,7 @@ void AnimationImporter::add_bone_fcurve(Object *ob, COLLADAFW::Node *node, FCurv
   /* no matching groups, so add one */
   if (grp == nullptr) {
     /* Add a new group, and make it active */
-    grp = (bActionGroup *)MEM_callocN(sizeof(bActionGroup), "bActionGroup");
+    grp = MEM_cnew<bActionGroup>("bActionGroup");
 
     grp->flag = AGRP_SELECTED;
     BLI_strncpy(grp->name, bone_name, sizeof(grp->name));

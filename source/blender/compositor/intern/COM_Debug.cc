@@ -431,8 +431,9 @@ void DebugInfo::graphviz(const ExecutionSystem *system, StringRefNull name)
   if (!COM_EXPORT_GRAPHVIZ) {
     return;
   }
-  char str[1000000];
-  if (graphviz_system(system, str, sizeof(str) - 1)) {
+  const int max_textlength = 1000000;
+  char *str = (char *)MEM_mallocN(max_textlength, __func__);
+  if (graphviz_system(system, str, max_textlength - 1)) {
     char basename[FILE_MAX];
     char filename[FILE_MAX];
 
@@ -451,6 +452,7 @@ void DebugInfo::graphviz(const ExecutionSystem *system, StringRefNull name)
     fputs(str, fp);
     fclose(fp);
   }
+  MEM_freeN(str);
 }
 
 static std::string get_operations_export_dir()

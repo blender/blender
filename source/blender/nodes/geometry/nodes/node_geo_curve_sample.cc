@@ -55,8 +55,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_type_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryCurveSample *data = (NodeGeometryCurveSample *)MEM_callocN(
-      sizeof(NodeGeometryCurveSample), __func__);
+  NodeGeometryCurveSample *data = MEM_cnew<NodeGeometryCurveSample>(__func__);
   data->mode = GEO_NODE_CURVE_SAMPLE_LENGTH;
   node->storage = data;
 }
@@ -287,7 +286,7 @@ void register_node_type_geo_curve_sample()
 
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SAMPLE_CURVE, " Sample Curve", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_SAMPLE_CURVE, "Sample Curve", NODE_CLASS_GEOMETRY, 0);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
   node_type_init(&ntype, file_ns::node_type_init);

@@ -1667,7 +1667,7 @@ static bool event_in_markers_region(const ARegion *region, const wmEvent *event)
 {
   rcti rect = region->winrct;
   rect.ymax = rect.ymin + UI_MARKER_MARGIN_Y;
-  return BLI_rcti_isect_pt(&rect, event->xy[0], event->xy[1]);
+  return BLI_rcti_isect_pt_v(&rect, event->xy);
 }
 
 /**

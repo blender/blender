@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "DNA_ID_enums.h"
 #include "DNA_vec_types.h"
 
 #ifdef __cplusplus
@@ -41,7 +42,6 @@ struct bContext;
 struct bScreen;
 struct wmWindow;
 struct wmWindowManager;
-enum eIconSizes;
 
 /* render_ops.c */
 
@@ -100,7 +100,7 @@ void ED_preview_shader_job(const struct bContext *C,
                            struct MTex *slot,
                            int sizex,
                            int sizey,
-                           int method);
+                           ePreviewRenderMethod method);
 void ED_preview_icon_render(const struct bContext *C,
                             struct Scene *scene,
                             struct ID *id,

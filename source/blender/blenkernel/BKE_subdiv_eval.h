@@ -31,15 +31,25 @@ extern "C" {
 
 struct Mesh;
 struct Subdiv;
+struct OpenSubdiv_EvaluatorCache;
+
+typedef enum eSubdivEvaluatorType {
+  SUBDIV_EVALUATOR_TYPE_CPU,
+  SUBDIV_EVALUATOR_TYPE_GLSL_COMPUTE,
+} eSubdivEvaluatorType;
 
 /* Returns true if evaluator is ready for use. */
-bool BKE_subdiv_eval_begin(struct Subdiv *subdiv);
+bool BKE_subdiv_eval_begin(struct Subdiv *subdiv,
+                           eSubdivEvaluatorType evaluator_type,
+                           struct OpenSubdiv_EvaluatorCache *evaluator_cache);
 
 /* coarse_vertex_cos is an optional argument which allows to override coordinates of the coarse
  * mesh. */
 bool BKE_subdiv_eval_begin_from_mesh(struct Subdiv *subdiv,
                                      const struct Mesh *mesh,
-                                     const float (*coarse_vertex_cos)[3]);
+                                     const float (*coarse_vertex_cos)[3],
+                                     eSubdivEvaluatorType evaluator_type,
+                                     struct OpenSubdiv_EvaluatorCache *evaluator_cache);
 bool BKE_subdiv_eval_refine_from_mesh(struct Subdiv *subdiv,
                                       const struct Mesh *mesh,
                                       const float (*coarse_vertex_cos)[3]);

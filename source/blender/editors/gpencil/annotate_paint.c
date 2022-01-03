@@ -426,25 +426,25 @@ static void annotation_smooth_buffer(tGPsdata *p, float inf, int idx)
 
   /* Compute smoothed coordinate by taking the ones nearby */
   if (pta) {
-    copy_v2_v2(a, &pta->x);
+    copy_v2_v2(a, pta->m_xy);
     madd_v2_v2fl(sco, a, average_fac);
   }
   if (ptb) {
-    copy_v2_v2(b, &ptb->x);
+    copy_v2_v2(b, ptb->m_xy);
     madd_v2_v2fl(sco, b, average_fac);
   }
   if (ptc) {
-    copy_v2_v2(c, &ptc->x);
+    copy_v2_v2(c, ptc->m_xy);
     madd_v2_v2fl(sco, c, average_fac);
   }
   if (ptd) {
-    copy_v2_v2(d, &ptd->x);
+    copy_v2_v2(d, ptd->m_xy);
     madd_v2_v2fl(sco, d, average_fac);
   }
 
   /* Based on influence factor, blend between original and optimal smoothed coordinate */
   interp_v2_v2v2(c, c, sco, inf);
-  copy_v2_v2(&ptc->x, c);
+  copy_v2_v2(ptc->m_xy, c);
 }
 
 static void annotation_stroke_arrow_calc_points_segment(float stroke_points[8],
@@ -492,8 +492,8 @@ static void annotation_stroke_arrow_calc_points(tGPspoint *point,
     case GP_STROKE_ARROWSTYLE_CLOSED:
       mul_v2_fl(norm_dir, arrow_length);
       if (point != NULL) {
-        add_v2_v2(&point->x, norm_dir);
-        copy_v2_v2(corner, &point->x);
+        add_v2_v2(point->m_xy, norm_dir);
+        copy_v2_v2(corner, point->m_xy);
       }
       annotation_stroke_arrow_calc_points_segment(stroke_points,
                                                   corner,
@@ -507,8 +507,8 @@ static void annotation_stroke_arrow_calc_points(tGPspoint *point,
     case GP_STROKE_ARROWSTYLE_SQUARE:
       mul_v2_fl(norm_dir, arrow_length * 1.5f);
       if (point != NULL) {
-        add_v2_v2(&point->x, norm_dir);
-        copy_v2_v2(corner, &point->x);
+        add_v2_v2(point->m_xy, norm_dir);
+        copy_v2_v2(corner, point->m_xy);
       }
       annotation_stroke_arrow_calc_points_segment(stroke_points,
                                                   corner,
@@ -544,7 +544,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
       pt = (tGPspoint *)(gpd->runtime.sbuffer);
 
       /* store settings */
-      copy_v2_v2(&pt->x, mval);
+      copy_v2_v2(pt->m_xy, mval);
       /* T44932 - Pressure vals are unreliable, so ignore for now */
       pt->pressure = 1.0f;
       pt->strength = 1.0f;
@@ -560,7 +560,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
       pt = ((tGPspoint *)(gpd->runtime.sbuffer) + 1);
 
       /* store settings */
-      copy_v2_v2(&pt->x, mval);
+      copy_v2_v2(pt->m_xy, mval);
       /* T44932 - Pressure vals are unreliable, so ignore for now */
       pt->pressure = 1.0f;
       pt->strength = 1.0f;
@@ -573,10 +573,10 @@ static short annotation_stroke_addpoint(tGPsdata *p,
       if (gpd->runtime.sbuffer_sflag & (GP_STROKE_USE_ARROW_START | GP_STROKE_USE_ARROW_END)) {
         /* Store start and end point coords for arrows. */
         float end[2];
-        copy_v2_v2(end, &pt->x);
+        copy_v2_v2(end, pt->m_xy);
         pt = ((tGPspoint *)(gpd->runtime.sbuffer));
         float start[2];
-        copy_v2_v2(start, &pt->x);
+        copy_v2_v2(start, pt->m_xy);
 
         /* Arrow end corner. */
         if (gpd->runtime.sbuffer_sflag & GP_STROKE_USE_ARROW_END) {
@@ -609,7 +609,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
     pt = ((tGPspoint *)(gpd->runtime.sbuffer) + gpd->runtime.sbuffer_used);
 
     /* store settings */
-    copy_v2_v2(&pt->x, mval);
+    copy_v2_v2(pt->m_xy, mval);
     pt->pressure = pressure;
     /* Unused for annotations, but initialize for easier conversions to GP Object. */
     pt->strength = 1.0f;
@@ -636,7 +636,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
     pt = (tGPspoint *)gpd->runtime.sbuffer;
 
     /* store settings */
-    copy_v2_v2(&pt->x, mval);
+    copy_v2_v2(pt->m_xy, mval);
     /* T44932 - Pressure vals are unreliable, so ignore for now */
     pt->pressure = 1.0f;
     pt->strength = 1.0f;
@@ -678,7 +678,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
       }
 
       /* convert screen-coordinates to appropriate coordinates (and store them) */
-      annotation_stroke_convertcoords(p, &pt->x, &pts->x, NULL);
+      annotation_stroke_convertcoords(p, pt->m_xy, &pts->x, NULL);
 
       /* copy pressure and time */
       pts->pressure = pt->pressure;
@@ -717,8 +717,8 @@ static void annotation_stroke_arrow_init_point(
 {
   /* NOTE: provided co_idx should be always pair number as it's [x1, y1, x2, y2, x3, y3]. */
   const float real_co[2] = {co[co_idx], co[co_idx + 1]};
-  copy_v2_v2(&ptc->x, real_co);
-  annotation_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
+  copy_v2_v2(ptc->m_xy, real_co);
+  annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, NULL);
   annotation_stroke_arrow_init_point_default(pt);
 }
 
@@ -885,7 +885,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
       ptc = gpd->runtime.sbuffer;
 
       /* convert screen-coordinates to appropriate coordinates (and store them) */
-      annotation_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
+      annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, NULL);
 
       /* copy pressure and time */
       pt->pressure = ptc->pressure;
@@ -903,7 +903,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
       ptc = ((tGPspoint *)runtime.sbuffer) + (runtime.sbuffer_used - 1);
 
       /* Convert screen-coordinates to appropriate coordinates (and store them). */
-      annotation_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
+      annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, NULL);
 
       /* Copy pressure and time. */
       pt->pressure = ptc->pressure;
@@ -926,7 +926,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
 
         /* End point. */
         ptc = ((tGPspoint *)runtime.sbuffer) + (runtime.sbuffer_used - 1);
-        annotation_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
+        annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, NULL);
         annotation_stroke_arrow_init_point_default(pt);
 
         /* Fill and convert arrow points to create arrow shape. */
@@ -947,7 +947,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
 
         /* Start point. */
         ptc = runtime.sbuffer;
-        annotation_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
+        annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, NULL);
         annotation_stroke_arrow_init_point_default(pt);
 
         /* Fill and convert arrow points to create arrow shape. */
@@ -961,7 +961,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
     ptc = gpd->runtime.sbuffer;
 
     /* convert screen-coordinates to appropriate coordinates (and store them) */
-    annotation_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
+    annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, NULL);
 
     /* copy pressure and time */
     pt->pressure = ptc->pressure;
@@ -981,7 +981,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
 
       const ViewDepths *depths = p->depths;
       for (i = 0, ptc = gpd->runtime.sbuffer; i < gpd->runtime.sbuffer_used; i++, ptc++, pt++) {
-        round_v2i_v2fl(mval_i, &ptc->x);
+        round_v2i_v2fl(mval_i, ptc->m_xy);
 
         if ((ED_view3d_depth_read_cached(depths, mval_i, depth_margin, depth_arr + i) == 0) &&
             (i && (ED_view3d_depth_read_cached_seg(
@@ -1041,7 +1041,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
     for (i = 0, ptc = gpd->runtime.sbuffer; i < gpd->runtime.sbuffer_used && ptc;
          i++, ptc++, pt++) {
       /* convert screen-coordinates to appropriate coordinates (and store them) */
-      annotation_stroke_convertcoords(p, &ptc->x, &pt->x, depth_arr ? depth_arr + i : NULL);
+      annotation_stroke_convertcoords(p, ptc->m_xy, &pt->x, depth_arr ? depth_arr + i : NULL);
 
       /* copy pressure and time */
       pt->pressure = ptc->pressure;
@@ -1811,7 +1811,7 @@ static void annotation_draw_stabilizer(bContext *C, int x, int y, void *p_ptr)
   /* Rope Simple. */
   immUniformColor4f(color[0], color[1], color[2], 0.8f);
   immBegin(GPU_PRIM_LINES, 2);
-  immVertex2f(pos, pt->x + region->winrct.xmin, pt->y + region->winrct.ymin);
+  immVertex2f(pos, pt->m_xy[0] + region->winrct.xmin, pt->m_xy[1] + region->winrct.ymin);
   immVertex2f(pos, x, y);
   immEnd();
 
@@ -2575,8 +2575,7 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
        */
       if ((p->region) && (p->region->regiontype == RGN_TYPE_TOOLS)) {
         /* Change to whatever region is now under the mouse */
-        ARegion *current_region = BKE_area_find_region_xy(
-            p->area, RGN_TYPE_ANY, event->xy[0], event->xy[1]);
+        ARegion *current_region = BKE_area_find_region_xy(p->area, RGN_TYPE_ANY, event->xy);
 
         if (current_region) {
           /* Assume that since we found the cursor in here, it is in bounds

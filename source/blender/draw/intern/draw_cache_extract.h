@@ -22,6 +22,7 @@
 
 #pragma once
 
+struct DRWSubdivCache;
 struct TaskGraph;
 
 #include "DNA_customdata_types.h"
@@ -244,6 +245,13 @@ typedef enum DRWBatchFlag {
 
 BLI_STATIC_ASSERT(MBC_BATCH_LEN < 32, "Number of batches exceeded the limit of bit fields");
 
+typedef struct MeshExtractLooseGeom {
+  int edge_len;
+  int vert_len;
+  int *verts;
+  int *edges;
+} MeshExtractLooseGeom;
+
 /**
  * Data that are kept around between extractions to reduce rebuilding time.
  *
@@ -252,12 +260,7 @@ BLI_STATIC_ASSERT(MBC_BATCH_LEN < 32, "Number of batches exceeded the limit of b
 typedef struct MeshBufferCache {
   MeshBufferList buff;
 
-  struct {
-    int edge_len;
-    int vert_len;
-    int *verts;
-    int *edges;
-  } loose_geom;
+  MeshExtractLooseGeom loose_geom;
 
   struct {
     int *tri_first_index;
@@ -282,6 +285,8 @@ typedef struct MeshBatchCache {
   GPUIndexBuf **tris_per_mat;
 
   GPUBatch **surface_per_mat;
+
+  struct DRWSubdivCache *subdiv_cache;
 
   DRWBatchFlag batch_requested; /* DRWBatchFlag */
   DRWBatchFlag batch_ready;     /* DRWBatchFlag */
@@ -332,8 +337,13 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         const bool do_uvedit,
                                         const bool use_subsurf_fdots,
                                         const Scene *scene,
-                                        const ToolSettings *ts,
+                                        const struct ToolSettings *ts,
                                         const bool use_hide);
+
+void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
+                                               MeshBufferCache *mbc,
+                                               struct DRWSubdivCache *subdiv_cache,
+                                               const struct ToolSettings *ts);
 
 #ifdef __cplusplus
 }

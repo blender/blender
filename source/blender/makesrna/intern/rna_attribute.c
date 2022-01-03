@@ -424,6 +424,12 @@ static int rna_Attributes_layer_skip(CollectionPropertyIterator *UNUSED(iter), v
   return !(CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL);
 }
 
+static int rna_Attributes_noncolor_layer_skip(CollectionPropertyIterator *UNUSED(iter), void *data)
+{
+  CustomDataLayer *layer = (CustomDataLayer *)data;
+  return !(CD_TYPE_AS_MASK(layer->type) & (CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL));
+}
+
 /* Attributes are spread over multiple domains in separate CustomData, we use repeated
  * array iterators to loop over all. */
 static void rna_AttributeGroup_next_domain(ID *id,
@@ -476,6 +482,39 @@ int rna_AttributeGroup_length(PointerRNA *ptr)
   return BKE_id_attributes_length(ptr->owner_id, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
 }
 
+void rna_AttributeGroup_color_iterator_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  memset(&iter->internal.array, 0, sizeof(iter->internal.array));
+  rna_AttributeGroup_next_domain(ptr->owner_id, iter, rna_Attributes_noncolor_layer_skip);
+}
+
+void rna_AttributeGroup_color_iterator_next(CollectionPropertyIterator *iter)
+{
+  rna_iterator_array_next(iter);
+
+  if (!iter->valid) {
+    ID *id = iter->parent.owner_id;
+    rna_AttributeGroup_next_domain(id, iter, rna_Attributes_noncolor_layer_skip);
+  }
+}
+
+PointerRNA rna_AttributeGroup_color_iterator_get(CollectionPropertyIterator *iter)
+{
+  /* refine to the proper type */
+  CustomDataLayer *layer = rna_iterator_array_get(iter);
+  StructRNA *type = srna_by_custom_data_layer_type(layer->type);
+  if (type == NULL) {
+    return PointerRNA_NULL;
+  }
+  return rna_pointer_inherit_refine(&iter->parent, type, layer);
+}
+
+int rna_AttributeGroup_color_length(PointerRNA *ptr)
+{
+  return BKE_id_attributes_length(ptr->owner_id,
+                                  ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER,
+                                  CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL);
+}
 static int rna_AttributeGroup_active_index_get(PointerRNA *ptr)
 {
   int *active = BKE_id_attributes_active_index_p(ptr->owner_id);
@@ -580,8 +619,8 @@ static void rna_AttributeGroup_update_active_color(Main *bmain, Scene *scene, Po
 
   /* cheating way for importers to avoid slow updates */
   if (id->us > 0) {
-     DEG_id_tag_update(id, 0);
-     WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+    DEG_id_tag_update(id, 0);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, id);
   }
 }
 #else
@@ -992,6 +1031,20 @@ void rna_def_attributes_common(StructRNA *srna)
                                     NULL);
   RNA_def_property_struct_type(prop, "Attribute");
   RNA_def_property_ui_text(prop, "Attributes", "Geometry attributes");
+  RNA_def_property_srna(prop, "AttributeGroup");
+
+  prop = RNA_def_property(srna, "color_attributes", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_AttributeGroup_color_iterator_begin",
+                                    "rna_AttributeGroup_color_iterator_next",
+                                    "rna_iterator_array_end",
+                                    "rna_AttributeGroup_color_iterator_get",
+                                    "rna_AttributeGroup_color_length",
+                                    NULL,
+                                    NULL,
+                                    NULL);
+  RNA_def_property_struct_type(prop, "Attribute");
+  RNA_def_property_ui_text(prop, "Color Attributes", "Geometry color attributes");
   RNA_def_property_srna(prop, "AttributeGroup");
 }
 

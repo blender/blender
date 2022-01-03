@@ -1121,7 +1121,14 @@ void DepsgraphNodeBuilder::build_animdata_nlastrip_targets(ListBase *strips)
 
 void DepsgraphNodeBuilder::build_animation_images(ID *id)
 {
-  if (BKE_image_user_id_has_animation(id)) {
+  /* GPU materials might use an animated image. However, these materials have no been built yet. We
+   * could scan the entire node tree recursively to check if any texture node has a video. That is
+   * quite expensive. For now just always add this operation node, because it is very fast. */
+  /* TODO: Add a more precise check when it is cheaper to iterate over all image nodes in a node
+   * tree. */
+  const bool can_have_gpu_material = ELEM(GS(id->name), ID_MA, ID_WO);
+
+  if (BKE_image_user_id_has_animation(id) || can_have_gpu_material) {
     ID *id_cow = get_cow_id(id);
     add_operation_node(
         id,
@@ -1710,8 +1717,8 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
   build_idproperties(ntree->id.properties);
   /* Animation, */
   build_animdata(&ntree->id);
-  /* Shading update. */
-  add_operation_node(&ntree->id, NodeType::SHADING, OperationCode::MATERIAL_UPDATE);
+  /* Output update. */
+  add_operation_node(&ntree->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
   /* nodetree's nodes... */
   LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
     build_idproperties(bnode->prop);

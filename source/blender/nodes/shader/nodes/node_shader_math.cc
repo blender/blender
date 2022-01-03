@@ -26,9 +26,11 @@
 #include "NOD_math_functions.hh"
 #include "NOD_socket_search_link.hh"
 
+#include "RNA_enum_types.h"
+
 /* **************** SCALAR MATH ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_math_cc {
 
 static void sh_node_math_declare(NodeDeclarationBuilder &b)
 {
@@ -45,19 +47,49 @@ static void sh_node_math_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Value"));
 };
 
+class SocketSearchOp {
+ public:
+  std::string socket_name;
+  NodeMathOperation mode = NODE_MATH_ADD;
+  void operator()(LinkSearchOpParams &params)
+  {
+    bNode &node = params.add_node("ShaderNodeMath");
+    node.custom1 = mode;
+    params.update_and_connect_available_socket(node, socket_name);
+  }
+};
+
 static void sh_node_math_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  /* For now, do something very basic (only exposing "Add", and a single "Value" socket). */
+  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  if (params.in_out() == SOCK_OUT) {
+    search_link_ops_for_declarations(params, declaration.outputs());
+    return;
+  }
+
+  /* Expose first Value socket. */
   if (params.node_tree().typeinfo->validate_link(
           static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_FLOAT)) {
-    params.add_item(IFACE_("Value"), [](LinkSearchOpParams &params) {
-      bNode &node = params.add_node("ShaderNodeMath");
-      params.update_and_connect_available_socket(node, "Value");
-    });
+
+    const bool is_geometry_node_tree = params.node_tree().type == NTREE_GEOMETRY;
+    const int weight = ELEM(params.other_socket().type, SOCK_FLOAT, SOCK_BOOLEAN, SOCK_INT) ? 0 :
+                                                                                              -1;
+
+    for (const EnumPropertyItem *item = rna_enum_node_math_items; item->identifier != nullptr;
+         item++) {
+      if (item->name != nullptr && item->identifier[0] != '\0') {
+        const int gn_weight =
+            (is_geometry_node_tree &&
+             ELEM(item->value, NODE_MATH_COMPARE, NODE_MATH_GREATER_THAN, NODE_MATH_LESS_THAN)) ?
+                -1 :
+                weight;
+        params.add_item(IFACE_(item->name),
+                        SocketSearchOp{"Value", (NodeMathOperation)item->value},
+                        gn_weight);
+      }
+    }
   }
 }
-
-}  // namespace blender::nodes
 
 static const char *gpu_shader_get_name(int mode)
 {
@@ -174,17 +206,21 @@ static void sh_node_math_build_multi_function(blender::nodes::NodeMultiFunctionB
   }
 }
 
+}  // namespace blender::nodes::node_shader_math_cc
+
 void register_node_type_sh_math()
 {
+  namespace file_ns = blender::nodes::node_shader_math_cc;
+
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_MATH, "Math", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::sh_node_math_declare;
+  ntype.declare = file_ns::sh_node_math_declare;
   ntype.labelfunc = node_math_label;
-  node_type_gpu(&ntype, gpu_shader_math);
+  node_type_gpu(&ntype, file_ns::gpu_shader_math);
   node_type_update(&ntype, node_math_update);
-  ntype.build_multi_function = sh_node_math_build_multi_function;
-  ntype.gather_link_search_ops = blender::nodes::sh_node_math_gather_link_searches;
+  ntype.build_multi_function = file_ns::sh_node_math_build_multi_function;
+  ntype.gather_link_search_ops = file_ns::sh_node_math_gather_link_searches;
 
   nodeRegisterType(&ntype);
 }

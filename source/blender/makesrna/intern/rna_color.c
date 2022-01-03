@@ -321,7 +321,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
                    CMP_NODE_VALTORGB,
                    TEX_NODE_VALTORGB,
                    GEO_NODE_LEGACY_ATTRIBUTE_COLOR_RAMP)) {
-            ED_node_tag_update_nodetree(bmain, ntree, node);
+            ED_node_tree_propagate_change(NULL, bmain, ntree);
           }
         }
         break;

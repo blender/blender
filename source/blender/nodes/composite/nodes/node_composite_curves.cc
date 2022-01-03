@@ -51,7 +51,7 @@ void register_node_type_cmp_curve_time()
 
   cmp_node_type_base(&ntype, CMP_NODE_TIME, "Time", NODE_CLASS_INPUT, 0);
   ntype.declare = blender::nodes::cmp_node_time_declare;
-  node_type_size(&ntype, 140, 100, 320);
+  node_type_size(&ntype, 200, 140, 320);
   node_type_init(&ntype, node_composit_init_curves_time);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
 

@@ -498,6 +498,12 @@ inline constexpr bool is_span_convertible_pointer_v =
      std::is_same_v<To, const void *>);
 
 /**
+ * Same as #std::is_same_v but allows for checking multiple types at the same time.
+ */
+template<typename T, typename... Args>
+inline constexpr bool is_same_any_v = (std::is_same_v<T, Args> || ...);
+
+/**
  * Inline buffers for small-object-optimization should be disable by default. Otherwise we might
  * get large unexpected allocations on the stack.
  */

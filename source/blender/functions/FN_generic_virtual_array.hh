@@ -753,8 +753,7 @@ namespace detail {
 template<typename StorageT> inline GVArrayAnyExtraInfo GVArrayAnyExtraInfo::get()
 {
   static_assert(std::is_base_of_v<GVArrayImpl, StorageT> ||
-                std::is_same_v<StorageT, const GVArrayImpl *> ||
-                std::is_same_v<StorageT, std::shared_ptr<const GVArrayImpl>>);
+                is_same_any_v<StorageT, const GVArrayImpl *, std::shared_ptr<const GVArrayImpl>>);
 
   if constexpr (std::is_base_of_v<GVArrayImpl, StorageT>) {
     return {[](const void *buffer) {

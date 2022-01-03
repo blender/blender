@@ -222,6 +222,7 @@ DEG_COMPONENT_NODE_DECLARE_GENERIC(Armature);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(GenericDatablock);
 DEG_COMPONENT_NODE_DECLARE_NO_COW(Visibility);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Simulation);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(NTreeOutput);
 
 /* Bone Component */
 struct BoneComponentNode : public ComponentNode {

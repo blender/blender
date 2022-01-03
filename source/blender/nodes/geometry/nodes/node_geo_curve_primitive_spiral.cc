@@ -65,6 +65,11 @@ static std::unique_ptr<CurveEval> create_spiral_curve(const float rotations,
   const float delta_theta = (M_PI * 2 * rotations) / (float)totalpoints *
                             (direction ? 1.0f : -1.0f);
 
+  spline->resize(totalpoints + 1);
+  MutableSpan<float3> positions = spline->positions();
+  spline->radii().fill(1.0f);
+  spline->tilts().fill(0.0f);
+
   for (const int i : IndexRange(totalpoints + 1)) {
     const float theta = i * delta_theta;
     const float radius = start_radius + i * delta_radius;
@@ -72,10 +77,9 @@ static std::unique_ptr<CurveEval> create_spiral_curve(const float rotations,
     const float y = radius * sin(theta);
     const float z = delta_height * i;
 
-    spline->add_point(float3(x, y, z), 1.0f, 0.0f);
+    positions[i] = {x, y, z};
   }
 
-  spline->attributes.reallocate(spline->size());
   curve->add_spline(std::move(spline));
   curve->attributes.reallocate(curve->splines().size());
   return curve;

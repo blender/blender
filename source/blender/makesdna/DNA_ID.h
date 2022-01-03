@@ -802,6 +802,9 @@ typedef enum IDRecalcFlag {
    */
   ID_RECALC_TAG_FOR_UNDO = (1 << 24),
 
+  /* The node tree has changed in a way that affects its output nodes. */
+  ID_RECALC_NTREE_OUTPUT = (1 << 25),
+
   /***************************************************************************
    * Pseudonyms, to have more semantic meaning in the actual code without
    * using too much low-level and implementation specific tags. */

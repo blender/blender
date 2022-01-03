@@ -1861,8 +1861,7 @@ static void wm_handler_op_context(bContext *C, wmEventHandler_Op *handler, const
       CTX_wm_area_set(C, area);
 
       if (op && (op->flag & OP_IS_MODAL_CURSOR_REGION)) {
-        region = BKE_area_find_region_xy(
-            area, handler->context.region_type, event->xy[0], event->xy[1]);
+        region = BKE_area_find_region_xy(area, handler->context.region_type, event->xy);
         if (region) {
           handler->context.region = region;
         }

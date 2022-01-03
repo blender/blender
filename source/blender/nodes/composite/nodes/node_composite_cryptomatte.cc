@@ -136,8 +136,7 @@ static void cryptomatte_add(const Scene &scene,
     return;
   }
 
-  CryptomatteEntry *entry = static_cast<CryptomatteEntry *>(
-      MEM_callocN(sizeof(CryptomatteEntry), __func__));
+  CryptomatteEntry *entry = MEM_cnew<CryptomatteEntry>(__func__);
   entry->encoded_hash = encoded_hash;
   blender::bke::cryptomatte::CryptomatteSessionPtr session = cryptomatte_init_from_node(
       scene, node, true);
@@ -199,8 +198,7 @@ void ntreeCompositCryptomatteUpdateLayerNames(const Scene *scene, bNode *node)
   if (session) {
     for (blender::StringRef layer_name :
          blender::bke::cryptomatte::BKE_cryptomatte_layer_names_get(*session)) {
-      CryptomatteLayer *layer = static_cast<CryptomatteLayer *>(
-          MEM_callocN(sizeof(CryptomatteLayer), __func__));
+      CryptomatteLayer *layer = MEM_cnew<CryptomatteLayer>(__func__);
       layer_name.copy(layer->name);
       BLI_addtail(&n->runtime.layers, layer);
     }
@@ -245,8 +243,7 @@ CryptomatteSession *ntreeCompositCryptomatteSession(const Scene *scene, bNode *n
 
 static void node_init_cryptomatte(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeCryptomatte *user = static_cast<NodeCryptomatte *>(
-      MEM_callocN(sizeof(NodeCryptomatte), __func__));
+  NodeCryptomatte *user = MEM_cnew<NodeCryptomatte>(__func__);
   node->storage = user;
 }
 

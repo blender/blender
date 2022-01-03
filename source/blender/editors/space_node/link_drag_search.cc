@@ -29,6 +29,8 @@
 
 #include "WM_api.h"
 
+#include "ED_node.h"
+
 #include "node_intern.hh"
 
 using blender::nodes::SocketLinkOperation;
@@ -77,7 +79,7 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
   bNode &group_input = params.add_node("NodeGroupInput");
 
   /* This is necessary to create the new sockets in the other input nodes. */
-  ntreeUpdateTree(CTX_data_main(&params.C), &params.node_tree);
+  ED_node_tree_propagate_change(&params.C, CTX_data_main(&params.C), &params.node_tree);
 
   /* Hide the new input in all other group input nodes, to avoid making them taller. */
   LISTBASE_FOREACH (bNode *, node, &params.node_tree.nodes) {
@@ -99,6 +101,26 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
     return;
   }
   /* Unhide the socket for the new input in the new node and make a connection to it. */
+  socket->flag &= ~SOCK_HIDDEN;
+  nodeAddLink(&params.node_tree, &group_input, socket, &params.node, &params.socket);
+}
+
+static void add_existing_group_input_fn(nodes::LinkSearchOpParams &params,
+                                        const bNodeSocket &interface_socket)
+{
+  const int group_input_index = BLI_findindex(&params.node_tree.inputs, &interface_socket);
+  bNode &group_input = params.add_node("NodeGroupInput");
+
+  LISTBASE_FOREACH (bNodeSocket *, socket, &group_input.outputs) {
+    socket->flag |= SOCK_HIDDEN;
+  }
+
+  bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&group_input.outputs, group_input_index);
+  if (socket == nullptr) {
+    /* Adding sockets can fail in some cases. There's no good reason not to be safe here. */
+    return;
+  }
+
   socket->flag &= ~SOCK_HIDDEN;
   nodeAddLink(&params.node_tree, &group_input, socket, &params.node, &params.socket);
 }
@@ -134,6 +156,22 @@ static void gather_socket_link_operations(bNodeTree &node_tree,
 
   if (is_node_group && socket.in_out == SOCK_IN) {
     search_link_ops.append({IFACE_("Group Input"), add_group_input_node_fn});
+
+    int weight = -1;
+    LISTBASE_FOREACH (const bNodeSocket *, interface_socket, &node_tree.inputs) {
+      eNodeSocketDatatype from = (eNodeSocketDatatype)interface_socket->type;
+      eNodeSocketDatatype to = (eNodeSocketDatatype)socket.type;
+      if (node_tree.typeinfo->validate_link && !node_tree.typeinfo->validate_link(from, to)) {
+        continue;
+      }
+      search_link_ops.append(
+          {std::string(IFACE_("Group Input ")) + UI_MENU_ARROW_SEP + interface_socket->name,
+           [interface_socket](nodes::LinkSearchOpParams &params) {
+             add_existing_group_input_fn(params, *interface_socket);
+           },
+           weight});
+      weight--;
+    }
   }
 }
 
@@ -203,9 +241,7 @@ static void link_drag_search_exec_fn(bContext *C, void *arg1, void *arg2)
 
   /* Ideally it would be possible to tag the node tree in some way so it updates only after the
    * translate operation is finished, but normally moving nodes around doesn't cause updates. */
-  ntreeUpdateTree(&bmain, snode.edittree);
-  snode_notify(*C, snode);
-  snode_dag_update(*C, snode);
+  ED_node_tree_propagate_change(C, &bmain, snode.edittree);
 
   /* Start translation operator with the new node. */
   wmOperatorType *ot = WM_operatortype_find("TRANSFORM_OT_translate", true);

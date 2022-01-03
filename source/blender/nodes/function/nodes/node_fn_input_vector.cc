@@ -21,7 +21,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-namespace blender::nodes {
+namespace blender::nodes::node_fn_input_vector_cc {
 
 static void fn_node_input_vector_declare(NodeDeclarationBuilder &b)
 {
@@ -44,23 +44,24 @@ static void fn_node_input_vector_build_multi_function(NodeMultiFunctionBuilder &
 
 static void fn_node_input_vector_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeInputVector *data = (NodeInputVector *)MEM_callocN(sizeof(NodeInputVector),
-                                                         "input vector node");
+  NodeInputVector *data = MEM_cnew<NodeInputVector>(__func__);
   node->storage = data;
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_fn_input_vector_cc
 
 void register_node_type_fn_input_vector()
 {
+  namespace file_ns = blender::nodes::node_fn_input_vector_cc;
+
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_INPUT_VECTOR, "Vector", 0, 0);
-  ntype.declare = blender::nodes::fn_node_input_vector_declare;
-  node_type_init(&ntype, blender::nodes::fn_node_input_vector_init);
+  ntype.declare = file_ns::fn_node_input_vector_declare;
+  node_type_init(&ntype, file_ns::fn_node_input_vector_init);
   node_type_storage(
       &ntype, "NodeInputVector", node_free_standard_storage, node_copy_standard_storage);
-  ntype.build_multi_function = blender::nodes::fn_node_input_vector_build_multi_function;
-  ntype.draw_buttons = blender::nodes::fn_node_input_vector_layout;
+  ntype.build_multi_function = file_ns::fn_node_input_vector_build_multi_function;
+  ntype.draw_buttons = file_ns::fn_node_input_vector_layout;
   nodeRegisterType(&ntype);
 }

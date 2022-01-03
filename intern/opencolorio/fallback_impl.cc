@@ -485,8 +485,8 @@ OCIO_PackedImageDesc *FallbackImpl::createOCIO_PackedImageDesc(float *data,
                                                                long xStrideBytes,
                                                                long yStrideBytes)
 {
-  OCIO_PackedImageDescription *desc = (OCIO_PackedImageDescription *)MEM_callocN(
-      sizeof(OCIO_PackedImageDescription), "OCIO_PackedImageDescription");
+  OCIO_PackedImageDescription *desc = MEM_cnew<OCIO_PackedImageDescription>(
+      "OCIO_PackedImageDescription");
   desc->data = data;
   desc->width = width;
   desc->height = height;

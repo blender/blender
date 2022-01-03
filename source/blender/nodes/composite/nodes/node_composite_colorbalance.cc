@@ -71,8 +71,7 @@ void ntreeCompositColorBalanceSyncFromCDL(bNodeTree *UNUSED(ntree), bNode *node)
 
 static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeColorBalance *n = (NodeColorBalance *)MEM_callocN(sizeof(NodeColorBalance),
-                                                        "node colorbalance");
+  NodeColorBalance *n = MEM_cnew<NodeColorBalance>(__func__);
 
   n->lift[0] = n->lift[1] = n->lift[2] = 1.0f;
   n->gamma[0] = n->gamma[1] = n->gamma[2] = 1.0f;

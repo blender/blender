@@ -37,6 +37,7 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_node_tree_update.h"
 
 #include "RNA_access.h"
 
@@ -84,7 +85,7 @@ static void node_link_item_apply(Main *bmain, bNode *node, NodeLinkItem *item)
 {
   if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
     node->id = (ID *)item->ngroup;
-    ntreeUpdateTree(bmain, item->ngroup);
+    BKE_ntree_update_main_tree(bmain, item->ngroup, nullptr);
   }
   else {
     /* nothing to do for now */
@@ -179,10 +180,8 @@ static void node_socket_disconnect(Main *bmain,
   nodeRemLink(ntree, sock_to->link);
   sock_to->flag |= SOCK_COLLAPSED;
 
-  nodeUpdate(ntree, node_to);
-  ntreeUpdateTree(bmain, ntree);
-
-  ED_node_tag_update_nodetree(bmain, ntree, node_to);
+  BKE_ntree_update_tag_node_property(ntree, node_to);
+  ED_node_tree_propagate_change(nullptr, bmain, ntree);
 }
 
 /* remove all nodes connected to this socket, if they aren't connected to other nodes */
@@ -195,10 +194,8 @@ static void node_socket_remove(Main *bmain, bNodeTree *ntree, bNode *node_to, bN
   node_remove_linked(bmain, ntree, sock_to->link->fromnode);
   sock_to->flag |= SOCK_COLLAPSED;
 
-  nodeUpdate(ntree, node_to);
-  ntreeUpdateTree(bmain, ntree);
-
-  ED_node_tag_update_nodetree(bmain, ntree, node_to);
+  BKE_ntree_update_tag_node_property(ntree, node_to);
+  ED_node_tree_propagate_change(nullptr, bmain, ntree);
 }
 
 /* add new node connected to this socket, or replace an existing one */
@@ -299,11 +296,9 @@ static void node_socket_add_replace(const bContext *C,
     node_remove_linked(bmain, ntree, node_prev);
   }
 
-  nodeUpdate(ntree, node_from);
-  nodeUpdate(ntree, node_to);
-  ntreeUpdateTree(CTX_data_main(C), ntree);
-
-  ED_node_tag_update_nodetree(CTX_data_main(C), ntree, node_to);
+  BKE_ntree_update_tag_node_property(ntree, node_from);
+  BKE_ntree_update_tag_node_property(ntree, node_to);
+  ED_node_tree_propagate_change(nullptr, bmain, ntree);
 }
 
 /****************************** Node Link Menu *******************************/
@@ -704,7 +699,7 @@ void uiTemplateNodeLink(
   uiBut *but;
   float socket_col[4];
 
-  arg = (NodeLinkArg *)MEM_callocN(sizeof(NodeLinkArg), "NodeLinkArg");
+  arg = MEM_new<NodeLinkArg>("NodeLinkArg");
   arg->ntree = ntree;
   arg->node = node;
   arg->sock = input;

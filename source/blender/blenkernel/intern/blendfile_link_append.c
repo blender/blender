@@ -440,6 +440,16 @@ static bool object_in_any_collection(Main *bmain, Object *ob)
   return false;
 }
 
+static bool collection_instantiated_by_any_object(Main *bmain, Collection *collection)
+{
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+    if (ob->type == OB_EMPTY && ob->instance_collection == collection) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static ID *loose_data_instantiate_process_check(LooseDataInstantiateContext *instantiate_context,
                                                 BlendfileLinkAppendContextItem *item)
 {
@@ -633,12 +643,19 @@ static void loose_data_instantiate_collection_process(
      * children.
      */
     Collection *collection = (Collection *)id;
+    /* The collection could be linked/appended together with an Empty object instantiating it,
+     * better not instantiate the collection in the viewlayer in that case.
+     *
+     * Can easily happen when copy/pasting such instantiating empty, see T93839. */
+    const bool collection_is_instantiated = collection_instantiated_by_any_object(bmain,
+                                                                                  collection);
     /* Always consider adding collections directly selected by the user. */
-    bool do_add_collection = (item->tag & LINK_APPEND_TAG_INDIRECT) == 0;
+    bool do_add_collection = (item->tag & LINK_APPEND_TAG_INDIRECT) == 0 &&
+                             !collection_is_instantiated;
     /* In linking case, do not enforce instantiating non-directly linked collections/objects.
      * This avoids cluttering the ViewLayers, user can instantiate themselves specific collections
      * or objects easily from the Outliner if needed. */
-    if (!do_add_collection && do_append) {
+    if (!do_add_collection && do_append && !collection_is_instantiated) {
       LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
         Object *ob = coll_ob->ob;
         if (!object_in_any_scene(bmain, ob)) {
@@ -726,6 +743,8 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
    * if you want it do it at the editor level. */
   const bool object_set_active = false;
 
+  const bool is_linking = (lapp_context->params->flag & FILE_LINK) != 0;
+
   /* NOTE: For objects we only view_layer-instantiate duplicated objects that are not yet used
    * anywhere. */
   LinkNode *itemlink;
@@ -733,6 +752,17 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
     BlendfileLinkAppendContextItem *item = itemlink->link;
     ID *id = loose_data_instantiate_process_check(instantiate_context, item);
     if (id == NULL || GS(id->name) != ID_OB) {
+      continue;
+    }
+
+    /* In linking case, never instantiate stray objects that are not directly linked.
+     *
+     * While this is not ideal (in theory no object should remain un-owned), in case of indirectly
+     * linked objects, the other solution would be to add them to a local collection, which would
+     * make them directly linked. Think for now keeping them indirectly linked is more important.
+     * Ref. T93757.
+     */
+    if (is_linking && (item->tag & LINK_APPEND_TAG_INDIRECT) != 0) {
       continue;
     }
 

@@ -43,6 +43,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_blender_version.h"
 #include "BKE_context.h"
@@ -351,7 +352,7 @@ static void stats_object_pose(const Object *ob, SceneStats *stats)
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       stats->totbone++;
       if (pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
-        if (pchan->bone->layer & arm->layer) {
+        if (BKE_pose_is_layer_visible(arm, pchan)) {
           stats->totbonesel++;
         }
       }

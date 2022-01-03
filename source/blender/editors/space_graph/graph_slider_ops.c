@@ -313,8 +313,7 @@ static int graph_slider_invoke(bContext *C, wmOperator *op, const wmEvent *event
   ED_slider_init(gso->slider, event);
 
   if (gso->bezt_arr_list.first == NULL) {
-    WM_report(RPT_WARNING,
-              "Fcurve Slider: Can't work on baked channels. Unbake them and try again.");
+    WM_report(RPT_ERROR, "Cannot find keys to operate on.");
     graph_slider_exit(C, op);
     return OPERATOR_CANCELLED;
   }
@@ -549,6 +548,259 @@ void GRAPH_OT_decimate(wmOperatorType *ot)
                 "How much the new decimated curve is allowed to deviate from the original",
                 0.0f,
                 10.0f);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Blend To Neighbor Operator
+ * \{ */
+
+static void blend_to_neighbor_graph_keys(bAnimContext *ac, float factor)
+{
+  ListBase anim_data = {NULL, NULL};
+  ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
+
+  bAnimListElem *ale;
+
+  /* Loop through filtered data and blend keys. */
+
+  for (ale = anim_data.first; ale; ale = ale->next) {
+    FCurve *fcu = (FCurve *)ale->key_data;
+    ListBase segments = find_fcurve_segments(fcu);
+    LISTBASE_FOREACH (FCurveSegment *, segment, &segments) {
+      blend_to_neighbor_fcurve_segment(fcu, segment, factor);
+    }
+    BLI_freelistN(&segments);
+    ale->update |= ANIM_UPDATE_DEFAULT;
+  }
+
+  ANIM_animdata_update(ac, &anim_data);
+  ANIM_animdata_freelist(&anim_data);
+}
+
+static void blend_to_neighbor_draw_status_header(bContext *C, tGraphSliderOp *gso)
+{
+  char status_str[UI_MAX_DRAW_STR];
+  char mode_str[32];
+  char slider_string[UI_MAX_DRAW_STR];
+
+  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
+
+  strcpy(mode_str, TIP_("Blend To Neighbor"));
+
+  if (hasNumInput(&gso->num)) {
+    char str_ofs[NUM_STR_REP_LEN];
+
+    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
+
+    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, str_ofs);
+  }
+  else {
+    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, slider_string);
+  }
+
+  ED_workspace_status_text(C, status_str);
+}
+
+static void blend_to_neighbor_modal_update(bContext *C, wmOperator *op)
+{
+  tGraphSliderOp *gso = op->customdata;
+
+  blend_to_neighbor_draw_status_header(C, gso);
+
+  /* Reset keyframe data to the state at invoke. */
+  reset_bezts(gso);
+
+  const float factor = ED_slider_factor_get(gso->slider);
+  RNA_property_float_set(op->ptr, gso->factor_prop, factor);
+  blend_to_neighbor_graph_keys(&gso->ac, factor);
+
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+}
+
+static int blend_to_neighbor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const int invoke_result = graph_slider_invoke(C, op, event);
+
+  if (invoke_result == OPERATOR_CANCELLED) {
+    return invoke_result;
+  }
+
+  tGraphSliderOp *gso = op->customdata;
+  gso->modal_update = blend_to_neighbor_modal_update;
+  gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
+  blend_to_neighbor_draw_status_header(C, gso);
+
+  return invoke_result;
+}
+
+static int blend_to_neighbor_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const float factor = RNA_float_get(op->ptr, "factor");
+
+  blend_to_neighbor_graph_keys(&ac, factor);
+
+  /* Set notifier that keyframes have changed. */
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_blend_to_neighbor(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Blend To Neighbor";
+  ot->idname = "GRAPH_OT_blend_to_neighbor";
+  ot->description = "Blend selected keyframes to their left or right neighbor";
+
+  /* API callbacks. */
+  ot->invoke = blend_to_neighbor_invoke;
+  ot->modal = graph_slider_modal;
+  ot->exec = blend_to_neighbor_exec;
+  ot->poll = graphop_editable_keyframes_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_float_factor(ot->srna,
+                       "factor",
+                       1.0f / 3.0f,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Blend",
+                       "The blend factor with 0.5 being the current frame",
+                       0.0f,
+                       1.0f);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Breakdown Operator
+ * \{ */
+
+static void breakdown_graph_keys(bAnimContext *ac, float factor)
+{
+  ListBase anim_data = {NULL, NULL};
+  ANIM_animdata_filter(ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, ac->datatype);
+
+  bAnimListElem *ale;
+
+  for (ale = anim_data.first; ale; ale = ale->next) {
+    FCurve *fcu = (FCurve *)ale->key_data;
+    ListBase segments = find_fcurve_segments(fcu);
+    LISTBASE_FOREACH (FCurveSegment *, segment, &segments) {
+      breakdown_fcurve_segment(fcu, segment, factor);
+    }
+    BLI_freelistN(&segments);
+    ale->update |= ANIM_UPDATE_DEFAULT;
+  }
+
+  ANIM_animdata_update(ac, &anim_data);
+  ANIM_animdata_freelist(&anim_data);
+}
+
+static void breakdown_draw_status_header(bContext *C, tGraphSliderOp *gso)
+{
+  char status_str[UI_MAX_DRAW_STR];
+  char mode_str[32];
+  char slider_string[UI_MAX_DRAW_STR];
+
+  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
+
+  strcpy(mode_str, TIP_("Breakdown"));
+
+  if (hasNumInput(&gso->num)) {
+    char str_ofs[NUM_STR_REP_LEN];
+
+    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
+
+    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, str_ofs);
+  }
+  else {
+    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, slider_string);
+  }
+
+  ED_workspace_status_text(C, status_str);
+}
+
+static void breakdown_modal_update(bContext *C, wmOperator *op)
+{
+  tGraphSliderOp *gso = op->customdata;
+
+  breakdown_draw_status_header(C, gso);
+
+  /* Reset keyframe data to the state at invoke. */
+  reset_bezts(gso);
+  breakdown_graph_keys(&gso->ac, ED_slider_factor_get(gso->slider));
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+}
+
+static int breakdown_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const int invoke_result = graph_slider_invoke(C, op, event);
+
+  if (invoke_result == OPERATOR_CANCELLED) {
+    return invoke_result;
+  }
+
+  tGraphSliderOp *gso = op->customdata;
+  gso->modal_update = breakdown_modal_update;
+  breakdown_draw_status_header(C, gso);
+
+  return invoke_result;
+}
+
+static int breakdown_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const float factor = RNA_float_get(op->ptr, "factor");
+
+  breakdown_graph_keys(&ac, factor);
+
+  /* Set notifier that keyframes have changed. */
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_breakdown(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Breakdown";
+  ot->idname = "GRAPH_OT_breakdown";
+  ot->description = "Move selected keyframes to an inbetween position relative to adjacent keys";
+
+  /* API callbacks. */
+  ot->invoke = breakdown_invoke;
+  ot->modal = graph_slider_modal;
+  ot->exec = breakdown_exec;
+  ot->poll = graphop_editable_keyframes_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_float_factor(ot->srna,
+                       "factor",
+                       1.0f / 3.0f,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Factor",
+                       "Favor either the left or the right key",
+                       0.0f,
+                       1.0f);
 }
 
 /** \} */

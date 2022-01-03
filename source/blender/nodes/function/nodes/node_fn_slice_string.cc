@@ -18,7 +18,7 @@
 
 #include "node_function_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_fn_slice_string_cc {
 
 static void fn_node_slice_string_declare(NodeDeclarationBuilder &b)
 {
@@ -40,14 +40,16 @@ static void fn_node_slice_string_build_multi_function(NodeMultiFunctionBuilder &
   builder.set_matching_fn(&slice_fn);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_fn_slice_string_cc
 
 void register_node_type_fn_slice_string()
 {
+  namespace file_ns = blender::nodes::node_fn_slice_string_cc;
+
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_SLICE_STRING, "Slice String", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::fn_node_slice_string_declare;
-  ntype.build_multi_function = blender::nodes::fn_node_slice_string_build_multi_function;
+  ntype.declare = file_ns::fn_node_slice_string_declare;
+  ntype.build_multi_function = file_ns::fn_node_slice_string_build_multi_function;
   nodeRegisterType(&ntype);
 }

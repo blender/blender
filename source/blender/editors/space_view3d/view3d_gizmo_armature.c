@@ -134,7 +134,7 @@ static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmGizmoGroupType
     if (ob) {
       const bArmature *arm = ob->data;
       if (arm->drawtype == ARM_B_BONE) {
-        bPoseChannel *pchan = BKE_pose_channel_active(ob);
+        bPoseChannel *pchan = BKE_pose_channel_active_if_layer_visible(ob);
         if (pchan && pchan->bone->segments > 1) {
           return true;
         }
@@ -148,7 +148,7 @@ static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmGizmoGroup *g
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = BKE_object_pose_armature_get(OBACT(view_layer));
-  bPoseChannel *pchan = BKE_pose_channel_active(ob);
+  bPoseChannel *pchan = BKE_pose_channel_active_if_layer_visible(ob);
 
   const wmGizmoType *gzt_move = WM_gizmotype_find("GIZMO_GT_move_3d", true);
 
@@ -187,7 +187,7 @@ static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmGizmoGroup 
   }
 
   struct BoneSplineWidgetGroup *bspline_group = gzgroup->customdata;
-  bPoseChannel *pchan = BKE_pose_channel_active(ob);
+  bPoseChannel *pchan = BKE_pose_channel_active_if_layer_visible(ob);
 
   /* Handles */
   for (int i = 0; i < ARRAY_SIZE(bspline_group->handles); i++) {

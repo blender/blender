@@ -63,7 +63,7 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
   BLI_listbase_clear(&snode->treepath);
 
   if (ntree) {
-    bNodeTreePath *path = (bNodeTreePath *)MEM_callocN(sizeof(bNodeTreePath), "node tree path");
+    bNodeTreePath *path = MEM_cnew<bNodeTreePath>("node tree path");
     path->nodetree = ntree;
     path->parent_key = NODE_INSTANCE_KEY_BASE;
 
@@ -96,7 +96,7 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
 
 void ED_node_tree_push(SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
 {
-  bNodeTreePath *path = (bNodeTreePath *)MEM_callocN(sizeof(bNodeTreePath), "node tree path");
+  bNodeTreePath *path = MEM_cnew<bNodeTreePath>("node tree path");
   bNodeTreePath *prev_path = (bNodeTreePath *)snode->treepath.last;
   path->nodetree = ntree;
   if (gnode) {
@@ -220,7 +220,7 @@ float2 space_node_group_offset(const SpaceNode &snode)
 
 static SpaceLink *node_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
-  SpaceNode *snode = (SpaceNode *)MEM_callocN(sizeof(SpaceNode), "initnode");
+  SpaceNode *snode = MEM_cnew<SpaceNode>("initnode");
   snode->spacetype = SPACE_NODE;
 
   snode->flag = SNODE_SHOW_GPENCIL | SNODE_USE_ALPHA;
@@ -238,21 +238,21 @@ static SpaceLink *node_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   NODE_TREE_TYPES_END;
 
   /* header */
-  ARegion *region = (ARegion *)MEM_callocN(sizeof(ARegion), "header for node");
+  ARegion *region = MEM_cnew<ARegion>("header for node");
 
   BLI_addtail(&snode->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* buttons/list view */
-  region = (ARegion *)MEM_callocN(sizeof(ARegion), "buttons for node");
+  region = MEM_cnew<ARegion>("buttons for node");
 
   BLI_addtail(&snode->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_RIGHT;
 
   /* toolbar */
-  region = (ARegion *)MEM_callocN(sizeof(ARegion), "node tools");
+  region = MEM_cnew<ARegion>("node tools");
 
   BLI_addtail(&snode->regionbase, region);
   region->regiontype = RGN_TYPE_TOOLS;
@@ -261,7 +261,7 @@ static SpaceLink *node_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
-  region = (ARegion *)MEM_callocN(sizeof(ARegion), "main region for node");
+  region = MEM_cnew<ARegion>("main region for node");
 
   BLI_addtail(&snode->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
@@ -309,8 +309,21 @@ static void node_init(struct wmWindowManager *UNUSED(wm), ScrArea *area)
   SpaceNode *snode = (SpaceNode *)area->spacedata.first;
 
   if (snode->runtime == nullptr) {
-    snode->runtime = (SpaceNode_Runtime *)MEM_callocN(sizeof(SpaceNode_Runtime), __func__);
+    snode->runtime = MEM_new<SpaceNode_Runtime>(__func__);
   }
+}
+
+static bool any_node_uses_id(const bNodeTree *ntree, const ID *id)
+{
+  if (ELEM(nullptr, ntree, id)) {
+    return false;
+  }
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->id == id) {
+      return true;
+    }
+  }
+  return false;
 }
 
 static void node_area_listener(const wmSpaceTypeListenerParams *params)
@@ -436,10 +449,9 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
     case NC_IMAGE:
       if (wmn->action == NA_EDITED) {
         if (ED_node_is_compositor(snode)) {
-          /* note that nodeUpdateID is already called by BKE_image_signal() on all
-           * scenes so really this is just to know if the images is used in the compo else
-           * painting on images could become very slow when the compositor is open. */
-          if (nodeUpdateID(snode->nodetree, (ID *)wmn->reference)) {
+          /* Without this check drawing on an image could become very slow when the compositor is
+           * open. */
+          if (any_node_uses_id(snode->nodetree, (ID *)wmn->reference)) {
             ED_area_tag_refresh(area);
           }
         }
@@ -449,7 +461,7 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
     case NC_MOVIECLIP:
       if (wmn->action == NA_EDITED) {
         if (ED_node_is_compositor(snode)) {
-          if (nodeUpdateID(snode->nodetree, (ID *)wmn->reference)) {
+          if (any_node_uses_id(snode->nodetree, (ID *)wmn->reference)) {
             ED_area_tag_refresh(area);
           }
         }
@@ -971,7 +983,7 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
 
 void ED_spacetype_node()
 {
-  SpaceType *st = (SpaceType *)MEM_callocN(sizeof(SpaceType), "spacetype node");
+  SpaceType *st = MEM_cnew<SpaceType>("spacetype node");
   ARegionType *art;
 
   st->spaceid = SPACE_NODE;
@@ -994,7 +1006,7 @@ void ED_spacetype_node()
   st->space_subtype_set = node_space_subtype_set;
 
   /* regions: main window */
-  art = (ARegionType *)MEM_callocN(sizeof(ARegionType), "spacetype node region");
+  art = MEM_cnew<ARegionType>("spacetype node region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = node_main_region_init;
   art->draw = node_main_region_draw;
@@ -1008,7 +1020,7 @@ void ED_spacetype_node()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = (ARegionType *)MEM_callocN(sizeof(ARegionType), "spacetype node region");
+  art = MEM_cnew<ARegionType>("spacetype node region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
@@ -1019,7 +1031,7 @@ void ED_spacetype_node()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: listview/buttons */
-  art = (ARegionType *)MEM_callocN(sizeof(ARegionType), "spacetype node region");
+  art = MEM_cnew<ARegionType>("spacetype node region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
@@ -1030,7 +1042,7 @@ void ED_spacetype_node()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: toolbar */
-  art = (ARegionType *)MEM_callocN(sizeof(ARegionType), "spacetype view3d tools region");
+  art = MEM_cnew<ARegionType>("spacetype view3d tools region");
   art->regionid = RGN_TYPE_TOOLS;
   art->prefsizex = 58; /* XXX */
   art->prefsizey = 50; /* XXX */

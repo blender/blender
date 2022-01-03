@@ -186,6 +186,15 @@ void GPU_backend_exit()
   g_backend = nullptr;
 }
 
+eGPUBackendType GPU_backend_get_type()
+{
+  if (g_backend && dynamic_cast<GLBackend *>(g_backend) != nullptr) {
+    return GPU_BACKEND_OPENGL;
+  }
+
+  return GPU_BACKEND_NONE;
+}
+
 GPUBackend *GPUBackend::get()
 {
   return g_backend;

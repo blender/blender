@@ -39,10 +39,6 @@ struct ReportList;
 struct AttributeRef;
 
 /* Attribute.domain */
-/**
- * \warning Careful when changing existing items.
- * Arrays may be initialized from this (e.g. #DATASET_layout_hierarchy).
- */
 typedef enum AttributeDomain {
   ATTR_DOMAIN_AUTO = -1,    /* Use for nodes to choose automatically based on other data. */
   ATTR_DOMAIN_POINT = 0,    /* Mesh, Hair or PointCloud Point */
@@ -100,7 +96,9 @@ void BKE_id_attributes_active_set(struct ID *id, struct CustomDataLayer *layer);
 int *BKE_id_attributes_active_index_p(struct ID *id);
 
 CustomData *BKE_id_attributes_iterator_next_domain(struct ID *id, struct CustomDataLayer *layers);
-CustomDataLayer *BKE_id_attribute_from_index(const struct ID *id, int lookup_index, const AttributeDomainMask domain_mask);
+CustomDataLayer *BKE_id_attribute_from_index(const struct ID *id,
+                                             int lookup_index,
+                                             const AttributeDomainMask domain_mask);
 
 struct AttributeRef *BKE_id_attributes_active_color_ref_p(struct ID *id);
 void BKE_id_attributes_active_color_set(struct ID *id, struct CustomDataLayer *active_layer);
@@ -126,6 +124,10 @@ bool BKE_id_attribute_ref_from_index(struct ID *id,
                                      CustomDataMask type_filter,
                                      struct AttributeRef *r_ref);
 
+bool BKE_id_attribute_ref_equals(const struct AttributeRef *ref1, const struct AttributeRef *ref2);
+bool BKE_id_attribute_ref_layer_equals(const struct AttributeRef *ref,
+                                       const struct CustomDataLayer *layer,
+                                       const AttributeDomain domain);
 #ifdef __cplusplus
 }
 #endif

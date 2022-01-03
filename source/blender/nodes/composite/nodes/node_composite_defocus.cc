@@ -46,7 +46,7 @@ static void cmp_node_defocus_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_defocus(bNodeTree *UNUSED(ntree), bNode *node)
 {
   /* defocus node */
-  NodeDefocus *nbd = (NodeDefocus *)MEM_callocN(sizeof(NodeDefocus), "node defocus data");
+  NodeDefocus *nbd = MEM_cnew<NodeDefocus>(__func__);
   nbd->bktype = 0;
   nbd->rotation = 0.0f;
   nbd->preview = 1;

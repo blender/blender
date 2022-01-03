@@ -68,10 +68,10 @@ struct SeqEffectHandle {
    * 0: no early out,
    * 1: out = ibuf1,
    * 2: out = ibuf2 */
-  int (*early_out)(struct Sequence *seq, float facf0, float facf1);
+  int (*early_out)(struct Sequence *seq, float fac);
 
-  /* stores the default facf0 and facf1 if no IPO is present */
-  void (*get_default_fac)(struct Sequence *seq, float timeline_frame, float *facf0, float *facf1);
+  /* sets the default `fac` value */
+  void (*get_default_fac)(struct Sequence *seq, float timeline_frame, float *fac);
 
   /* execute the effect
    * sequence effects are only required to either support
@@ -81,8 +81,7 @@ struct SeqEffectHandle {
   struct ImBuf *(*execute)(const struct SeqRenderData *context,
                            struct Sequence *seq,
                            float timeline_frame,
-                           float facf0,
-                           float facf1,
+                           float fac,
                            struct ImBuf *ibuf1,
                            struct ImBuf *ibuf2,
                            struct ImBuf *ibuf3);
@@ -95,8 +94,7 @@ struct SeqEffectHandle {
   void (*execute_slice)(const struct SeqRenderData *context,
                         struct Sequence *seq,
                         float timeline_frame,
-                        float facf0,
-                        float facf1,
+                        float fac,
                         struct ImBuf *ibuf1,
                         struct ImBuf *ibuf2,
                         struct ImBuf *ibuf3,

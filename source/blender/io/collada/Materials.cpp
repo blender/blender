@@ -16,6 +16,8 @@
 
 #include "Materials.h"
 
+#include "BKE_node_tree_update.h"
+
 MaterialNode::MaterialNode(bContext *C, Material *ma, KeyImageMap &key_image_map)
     : mContext(C), material(ma), effect(nullptr), key_image_map(&key_image_map)
 {
@@ -106,7 +108,7 @@ bNodeTree *MaterialNode::prepare_material_nodetree()
 
 void MaterialNode::update_material_nodetree()
 {
-  ntreeUpdateTree(CTX_data_main(mContext), ntree);
+  BKE_ntree_update_main_tree(CTX_data_main(mContext), ntree, nullptr);
 }
 
 bNode *MaterialNode::add_node(int node_type, int locx, int locy, std::string label)

@@ -282,6 +282,11 @@ static void libblock_remap_data_postprocess_object_update(Main *bmain,
      * to remove the NULL children from collections not used in any scene. */
     BKE_collections_object_remove_nulls(bmain);
   }
+  else {
+    /* Remapping may have created duplicates of CollectionObject pointing to the same object within
+     * the same collection. */
+    BKE_collections_object_remove_duplicates(bmain);
+  }
 
   BKE_main_collection_sync_remap(bmain);
 
@@ -319,6 +324,7 @@ static void libblock_remap_data_postprocess_collection_update(Main *bmain,
   else {
     /* Temp safe fix, but a "tad" brute force... We should probably be able to use parents from
      * old_collection instead? */
+    /* NOTE: Also takes care of duplicated child collections that remapping may have created. */
     BKE_main_collections_parent_relations_rebuild(bmain);
   }
 
@@ -346,7 +352,7 @@ static void libblock_remap_data_postprocess_obdata_relink(Main *bmain, Object *o
 static void libblock_remap_data_postprocess_nodetree_update(Main *bmain, ID *new_id)
 {
   /* Update all group nodes using a node group. */
-  ntreeUpdateAllUsers(bmain, new_id, 0);
+  ntreeUpdateAllUsers(bmain, new_id);
 }
 
 /**

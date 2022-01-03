@@ -1773,8 +1773,9 @@ static void object_update_from_subsurf_ccg(Object *object)
   if (!object->runtime.is_data_eval_owned) {
     return;
   }
-  /* Object was never evaluated, so can not have CCG subdivision surface. */
-  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(object);
+  /* Object was never evaluated, so can not have CCG subdivision surface. If it were evaluated, do
+   * not try to compute OpenSubDiv on the CPU as it is not needed here. */
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(object);
   if (mesh_eval == nullptr) {
     return;
   }
@@ -3793,7 +3794,7 @@ BoundBox *BKE_boundbox_alloc_unit()
 {
   const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
 
-  BoundBox *bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), "OB-BoundBox");
+  BoundBox *bb = MEM_cnew<BoundBox>("OB-BoundBox");
   BKE_boundbox_init_from_minmax(bb, min, max);
 
   return bb;
@@ -3903,7 +3904,7 @@ void BKE_object_boundbox_calc_from_mesh(Object *ob, const Mesh *me_eval)
   }
 
   if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), "DM-BoundBox");
+    ob->runtime.bb = MEM_cnew<BoundBox>("DM-BoundBox");
   }
 
   BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
@@ -3917,11 +3918,15 @@ bool BKE_object_boundbox_calc_from_evaluated_geometry(Object *ob)
   INIT_MINMAX(min, max);
 
   if (ob->runtime.geometry_set_eval) {
-    ob->runtime.geometry_set_eval->compute_boundbox_without_instances(&min, &max);
+    if (!ob->runtime.geometry_set_eval->compute_boundbox_without_instances(&min, &max)) {
+      zero_v3(min);
+      zero_v3(max);
+    }
   }
   else if (const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob)) {
     if (!BKE_mesh_wrapper_minmax(mesh_eval, min, max)) {
-      return false;
+      zero_v3(min);
+      zero_v3(max);
     }
   }
   else if (ob->runtime.curve_cache) {
@@ -3932,7 +3937,7 @@ bool BKE_object_boundbox_calc_from_evaluated_geometry(Object *ob)
   }
 
   if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), __func__);
+    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
   }
 
   BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
@@ -4108,7 +4113,7 @@ void BKE_object_empty_draw_type_set(Object *ob, const int value)
 
   if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
     if (!ob->iuser) {
-      ob->iuser = (ImageUser *)MEM_callocN(sizeof(ImageUser), "image user");
+      ob->iuser = MEM_cnew<ImageUser>("image user");
       ob->iuser->flag |= IMA_ANIM_ALWAYS;
       ob->iuser->frames = 100;
       ob->iuser->sfra = 1;
@@ -4447,7 +4452,7 @@ void BKE_object_handle_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
 void BKE_object_sculpt_data_create(Object *ob)
 {
   BLI_assert((ob->sculpt == nullptr) && (ob->mode & OB_MODE_ALL_SCULPT));
-  ob->sculpt = (SculptSession *)MEM_callocN(sizeof(SculptSession), __func__);
+  ob->sculpt = MEM_cnew<SculptSession>(__func__);
   ob->sculpt->mode_type = (eObjectMode)ob->mode;
 }
 
@@ -4496,7 +4501,7 @@ bool BKE_object_obdata_texspace_get(Object *ob, char **r_texflag, float **r_loc,
   return true;
 }
 
-Mesh *BKE_object_get_evaluated_mesh(const Object *object)
+Mesh *BKE_object_get_evaluated_mesh_no_subsurf(const Object *object)
 {
   /* First attempt to retrieve the evaluated mesh from the evaluated geometry set. Most
    * object types either store it there or add a reference to it if it's owned elsewhere. */
@@ -4521,6 +4526,20 @@ Mesh *BKE_object_get_evaluated_mesh(const Object *object)
   }
 
   return nullptr;
+}
+
+Mesh *BKE_object_get_evaluated_mesh(const Object *object)
+{
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(object);
+  if (!mesh) {
+    return nullptr;
+  }
+
+  if (object->data && GS(((const ID *)object->data)->name) == ID_ME) {
+    mesh = BKE_mesh_wrapper_ensure_subdivision(object, mesh);
+  }
+
+  return mesh;
 }
 
 Mesh *BKE_object_get_pre_modified_mesh(const Object *object)
@@ -4621,7 +4640,7 @@ int BKE_object_insert_ptcache(Object *ob)
     }
   }
 
-  link = (LinkData *)MEM_callocN(sizeof(LinkData), "PCLink");
+  link = MEM_cnew<LinkData>("PCLink");
   link->data = POINTER_FROM_INT(i);
   BLI_addtail(&ob->pc_ids, link);
 
@@ -5777,6 +5796,21 @@ void BKE_object_modifiers_lib_link_common(void *userData,
   if (*idpoin != nullptr && (cb_flag & IDWALK_CB_USER) != 0) {
     id_us_plus_no_lib(*idpoin);
   }
+}
+
+SubsurfModifierData *BKE_object_get_last_subsurf_modifier(const Object *ob)
+{
+  ModifierData *md = (ModifierData *)(ob->modifiers.last);
+
+  while (md) {
+    if (md->type == eModifierType_Subsurf) {
+      break;
+    }
+
+    md = md->prev;
+  }
+
+  return (SubsurfModifierData *)(md);
 }
 
 void BKE_object_replace_data_on_shallow_copy(Object *ob, ID *new_data)

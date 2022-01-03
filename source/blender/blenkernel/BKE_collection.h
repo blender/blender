@@ -163,7 +163,21 @@ bool BKE_scene_collections_object_remove(struct Main *bmain,
                                          struct Scene *scene,
                                          struct Object *object,
                                          const bool free_us);
+
+/**
+ * Check all collections in \a bmain (including embedded ones in scenes) for CollectionObject with
+ * NULL object pointer, and remove them.
+ */
 void BKE_collections_object_remove_nulls(struct Main *bmain);
+
+/**
+ * Check all collections in \a bmain (including embedded ones in scenes) for duplicate
+ * CollectionObject with a same object pointer within a same object, and remove them.
+ *
+ * NOTE: Always keeps the first of the detected duplicates.
+ */
+void BKE_collections_object_remove_duplicates(struct Main *bmain);
+
 /**
  * Remove all NULL children from parent collections of changed \a collection.
  * This is used for library remapping, where these pointers have been set to NULL.

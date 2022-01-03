@@ -53,6 +53,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_pointcloud.h"
 #include "BKE_screen.h"
+#include "BKE_subdiv_modifier.h"
 #include "BKE_volume.h"
 
 #include "DNA_camera_types.h"
@@ -92,6 +93,7 @@
 #include "draw_manager_testing.h"
 #include "draw_manager_text.h"
 #include "draw_shader.h"
+#include "draw_subdivision.h"
 #include "draw_texture_pool.h"
 
 /* only for callbacks */
@@ -2977,6 +2979,8 @@ void DRW_engines_register(void)
 
     BKE_volume_batch_cache_dirty_tag_cb = DRW_volume_batch_cache_dirty_tag;
     BKE_volume_batch_cache_free_cb = DRW_volume_batch_cache_free;
+
+    BKE_subsurf_modifier_free_gpu_cache_cb = DRW_subdiv_cache_free;
   }
 }
 

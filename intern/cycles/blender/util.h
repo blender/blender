@@ -33,7 +33,7 @@
 
 extern "C" {
 void BKE_image_user_frame_calc(void *ima, void *iuser, int cfra);
-void BKE_image_user_file_path(void *iuser, void *ima, char *path);
+void BKE_image_user_file_path_ex(void *iuser, void *ima, char *path, bool resolve_udim);
 unsigned char *BKE_image_get_pixels_for_frame(void *image, int frame, int tile);
 float *BKE_image_get_float_pixels_for_frame(void *image, int frame, int tile);
 }
@@ -290,25 +290,14 @@ static inline int render_resolution_y(BL::RenderSettings &b_render)
   return b_render.resolution_y() * b_render.resolution_percentage() / 100;
 }
 
-static inline string image_user_file_path(BL::ImageUser &iuser,
-                                          BL::Image &ima,
-                                          int cfra,
-                                          bool load_tiled)
+static inline string image_user_file_path(BL::ImageUser &iuser, BL::Image &ima, int cfra)
 {
   char filepath[1024];
   iuser.tile(0);
   BKE_image_user_frame_calc(ima.ptr.data, iuser.ptr.data, cfra);
-  BKE_image_user_file_path(iuser.ptr.data, ima.ptr.data, filepath);
+  BKE_image_user_file_path_ex(iuser.ptr.data, ima.ptr.data, filepath, false);
 
-  string filepath_str = string(filepath);
-  if (load_tiled && ima.source() == BL::Image::source_TILED) {
-    string udim;
-    if (!ima.tiles.empty()) {
-      udim = to_string(ima.tiles[0].number());
-    }
-    string_replace(filepath_str, udim, "<UDIM>");
-  }
-  return filepath_str;
+  return string(filepath);
 }
 
 static inline int image_user_frame_number(BL::ImageUser &iuser, BL::Image &ima, int cfra)

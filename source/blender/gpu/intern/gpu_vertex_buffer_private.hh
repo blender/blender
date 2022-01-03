@@ -68,6 +68,8 @@ class VertBuf {
   void upload(void);
   virtual void bind_as_ssbo(uint binding) = 0;
 
+  virtual void wrap_handle(uint64_t handle) = 0;
+
   VertBuf *duplicate(void);
 
   /* Size of the data allocated. */
@@ -96,7 +98,7 @@ class VertBuf {
     }
   }
 
-  virtual void update_sub(uint start, uint len, void *data) = 0;
+  virtual void update_sub(uint start, uint len, const void *data) = 0;
   virtual const void *read() const = 0;
   virtual void *unmap(const void *mapped_data) const = 0;
 

@@ -162,7 +162,7 @@ static void datadropper_id_sample_pt(
 
   if (area) {
     if (ELEM(area->spacetype, SPACE_VIEW3D, SPACE_OUTLINER)) {
-      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mx, my);
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, (const int[2]){mx, my});
       if (region) {
         const int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
         Base *base;

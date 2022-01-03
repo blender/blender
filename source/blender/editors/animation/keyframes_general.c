@@ -367,6 +367,49 @@ ListBase find_fcurve_segments(FCurve *fcu)
   return segments;
 }
 
+static BezTriple fcurve_segment_start_get(FCurve *fcu, int index)
+{
+  BezTriple start_bezt = index - 1 >= 0 ? fcu->bezt[index - 1] : fcu->bezt[index];
+  return start_bezt;
+}
+
+static BezTriple fcurve_segment_end_get(FCurve *fcu, int index)
+{
+  BezTriple end_bezt = index < fcu->totvert ? fcu->bezt[index] : fcu->bezt[index - 1];
+  return end_bezt;
+}
+
+/* ---------------- */
+
+void blend_to_neighbor_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
+{
+  const float blend_factor = fabs(factor * 2 - 1);
+  BezTriple target_bezt;
+  /* Find which key to blend towards. */
+  if (factor < 0.5f) {
+    target_bezt = fcurve_segment_start_get(fcu, segment->start_index);
+  }
+  else {
+    target_bezt = fcurve_segment_end_get(fcu, segment->start_index + segment->length);
+  }
+  /* Blend each key individually. */
+  for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
+    fcu->bezt[i].vec[1][1] = interpf(target_bezt.vec[1][1], fcu->bezt[i].vec[1][1], blend_factor);
+  }
+}
+
+/* ---------------- */
+
+void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
+{
+  BezTriple left_bezt = fcurve_segment_start_get(fcu, segment->start_index);
+  BezTriple right_bezt = fcurve_segment_end_get(fcu, segment->start_index + segment->length);
+
+  for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
+    fcu->bezt[i].vec[1][1] = interpf(right_bezt.vec[1][1], left_bezt.vec[1][1], factor);
+  }
+}
+
 /* ---------------- */
 
 /* Check if the keyframe interpolation type is supported */

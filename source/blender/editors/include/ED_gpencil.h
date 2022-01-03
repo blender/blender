@@ -94,7 +94,7 @@ typedef enum eGP_TargetObjectMode {
  */
 typedef struct tGPspoint {
   /** Coordinates x and y of cursor (in relative to area). */
-  float x, y;
+  float m_xy[2];
   /** Pressure of tablet at this point. */
   float pressure;
   /** Pressure of tablet at this point for alpha factor. */

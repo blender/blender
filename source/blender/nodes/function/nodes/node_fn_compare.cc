@@ -97,8 +97,7 @@ static void node_compare_update(bNodeTree *ntree, bNode *node)
 
 static void node_compare_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeFunctionCompare *data = (NodeFunctionCompare *)MEM_callocN(sizeof(NodeFunctionCompare),
-                                                                 __func__);
+  NodeFunctionCompare *data = MEM_cnew<NodeFunctionCompare>(__func__);
   data->operation = NODE_COMPARE_GREATER_THAN;
   data->data_type = SOCK_FLOAT;
   data->mode = NODE_COMPARE_MODE_ELEMENT;
@@ -131,21 +130,33 @@ static void node_compare_gather_link_searches(GatherLinkSearchOpParams &params)
 
   const eNodeSocketDatatype type = static_cast<eNodeSocketDatatype>(params.other_socket().type);
 
-  if (ELEM(type, SOCK_FLOAT, SOCK_BOOLEAN, SOCK_RGBA, SOCK_VECTOR, SOCK_INT)) {
-    params.add_item(IFACE_("A"), SocketSearchOp{"A", type, NODE_COMPARE_GREATER_THAN});
-    params.add_item(IFACE_("B"), SocketSearchOp{"B", type, NODE_COMPARE_GREATER_THAN});
-    params.add_item(
-        IFACE_("C"),
-        SocketSearchOp{
-            "C", SOCK_VECTOR, NODE_COMPARE_GREATER_THAN, NODE_COMPARE_MODE_DOT_PRODUCT});
-    params.add_item(
-        IFACE_("Angle"),
-        SocketSearchOp{
-            "Angle", SOCK_VECTOR, NODE_COMPARE_GREATER_THAN, NODE_COMPARE_MODE_DIRECTION});
-  }
-  else if (type == SOCK_STRING) {
-    params.add_item(IFACE_("A"), SocketSearchOp{"A", type, NODE_COMPARE_EQUAL});
-    params.add_item(IFACE_("B"), SocketSearchOp{"B", type, NODE_COMPARE_EQUAL});
+  if (ELEM(type, SOCK_BOOLEAN, SOCK_FLOAT, SOCK_RGBA, SOCK_VECTOR, SOCK_INT, SOCK_STRING)) {
+    const eNodeSocketDatatype mode_type = (type == SOCK_BOOLEAN) ? SOCK_FLOAT : type;
+    const bool string_type = (type == SOCK_STRING);
+    /* Add socket A compare operations. */
+    for (const EnumPropertyItem *item = rna_enum_node_compare_operation_items;
+         item->identifier != nullptr;
+         item++) {
+      if (item->name != nullptr && item->identifier[0] != '\0') {
+        if (!string_type &&
+            ELEM(item->value, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER)) {
+          params.add_item(IFACE_(item->name),
+                          SocketSearchOp{"A", SOCK_RGBA, (NodeCompareOperation)item->value});
+        }
+        else if ((!string_type) ||
+                 (string_type && ELEM(item->value, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL))) {
+          params.add_item(IFACE_(item->name),
+                          SocketSearchOp{"A", mode_type, (NodeCompareOperation)item->value});
+        }
+      }
+    }
+    /* Add Angle socket. */
+    if (!string_type) {
+      params.add_item(
+          IFACE_("Angle"),
+          SocketSearchOp{
+              "Angle", SOCK_VECTOR, NODE_COMPARE_GREATER_THAN, NODE_COMPARE_MODE_DIRECTION});
+    }
   }
 }
 

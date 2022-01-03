@@ -270,6 +270,9 @@ void DOutputSocket::foreach_target_socket(ForeachTargetSocketFn target_fn,
       }
     }
     else if (linked_node->is_group_output_node()) {
+      if (linked_node.node_ref() != context_->tree().group_output_node()) {
+        continue;
+      }
       if (context_->is_root()) {
         /* This is a group output in the root node group. */
         path_info.sockets.append(linked_socket);

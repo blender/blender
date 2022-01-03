@@ -1581,6 +1581,7 @@ void view3d_main_region_draw(const bContext *C, ARegion *region)
 
   view3d_draw_view(C, region);
 
+  DRW_cache_free_old_subdiv();
   DRW_cache_free_old_batches(bmain);
   BKE_image_free_old_gputextures(bmain);
   GPU_pass_cache_garbage_collect();

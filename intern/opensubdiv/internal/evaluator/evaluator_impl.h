@@ -28,14 +28,17 @@
 
 #include "internal/base/memory.h"
 
+#include "opensubdiv_capi_type.h"
+
+struct OpenSubdiv_Buffer;
+struct OpenSubdiv_EvaluatorCacheImpl;
 struct OpenSubdiv_PatchCoord;
 struct OpenSubdiv_TopologyRefiner;
 
 namespace blender {
 namespace opensubdiv {
 
-// Anonymous forward declaration of actual evaluator implementation.
-class CpuEvalOutput;
+class PatchMap;
 
 // Wrapper around implementation, which defines API which we are capable to
 // provide over the implementation.
@@ -43,11 +46,15 @@ class CpuEvalOutput;
 // TODO(sergey):  It is almost the same as C-API object, so ideally need to
 // merge them somehow, but how to do this and keep files with all the templates
 // and such separate?
-class CpuEvalOutputAPI {
+class EvalOutputAPI {
  public:
-  // NOTE: API object becomes an owner of evaluator. Patch we are referencing.
-  CpuEvalOutputAPI(CpuEvalOutput *implementation, OpenSubdiv::Far::PatchMap *patch_map);
-  ~CpuEvalOutputAPI();
+  // Anonymous forward declaration of actual evaluator implementation.
+  class EvalOutput;
+
+  // NOTE: PatchMap is not owned, only referenced.
+  EvalOutputAPI(EvalOutput *implementation, PatchMap *patch_map);
+
+  ~EvalOutputAPI();
 
   // Set coarse positions from a continuous array of coordinates.
   void setCoarsePositions(const float *positions,
@@ -130,9 +137,47 @@ class CpuEvalOutputAPI {
                             float *dPdu,
                             float *dPdv);
 
+  // Fill the output buffers and variables with data from the PatchMap.
+  void getPatchMap(OpenSubdiv_Buffer *patch_map_handles,
+                   OpenSubdiv_Buffer *patch_map_quadtree,
+                   int *min_patch_face,
+                   int *max_patch_face,
+                   int *max_depth,
+                   int *patches_are_triangular);
+
+  // Copy the patch arrays buffer used by OpenSubDiv for the source data to the given buffer.
+  void fillPatchArraysBuffer(OpenSubdiv_Buffer *patch_arrays_buffer);
+
+  // Wrap the patch index buffer used by OpenSubDiv for the source data with the given buffer.
+  void wrapPatchIndexBuffer(OpenSubdiv_Buffer *patch_index_buffer);
+
+  // Wrap the patch param buffer used by OpenSubDiv for the source data with the given buffer.
+  void wrapPatchParamBuffer(OpenSubdiv_Buffer *patch_param_buffer);
+
+  // Wrap the buffer used by OpenSubDiv for the source data with the given buffer.
+  void wrapSrcBuffer(OpenSubdiv_Buffer *src_buffer);
+
+  // Copy the patch arrays buffer used by OpenSubDiv for the face varying channel with the given
+  // buffer.
+  void fillFVarPatchArraysBuffer(const int face_varying_channel,
+                                 OpenSubdiv_Buffer *patch_arrays_buffer);
+
+  // Wrap the patch index buffer used by OpenSubDiv for the face varying channel with the given
+  // buffer.
+  void wrapFVarPatchIndexBuffer(const int face_varying_channel,
+                                OpenSubdiv_Buffer *patch_index_buffer);
+
+  // Wrap the patch param buffer used by OpenSubDiv for the face varying channel with the given
+  // buffer.
+  void wrapFVarPatchParamBuffer(const int face_varying_channel,
+                                OpenSubdiv_Buffer *patch_param_buffer);
+
+  // Wrap thebuffer used by OpenSubDiv for the face varying channel with the given buffer.
+  void wrapFVarSrcBuffer(const int face_varying_channel, OpenSubdiv_Buffer *src_buffer);
+
  protected:
-  CpuEvalOutput *implementation_;
-  OpenSubdiv::Far::PatchMap *patch_map_;
+  PatchMap *patch_map_;
+  EvalOutput *implementation_;
 };
 
 }  // namespace opensubdiv
@@ -143,15 +188,17 @@ struct OpenSubdiv_EvaluatorImpl {
   OpenSubdiv_EvaluatorImpl();
   ~OpenSubdiv_EvaluatorImpl();
 
-  blender::opensubdiv::CpuEvalOutputAPI *eval_output;
-  const OpenSubdiv::Far::PatchMap *patch_map;
+  blender::opensubdiv::EvalOutputAPI *eval_output;
+  const blender::opensubdiv::PatchMap *patch_map;
   const OpenSubdiv::Far::PatchTable *patch_table;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("OpenSubdiv_EvaluatorImpl");
 };
 
 OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
-    struct OpenSubdiv_TopologyRefiner *topology_refiner);
+    struct OpenSubdiv_TopologyRefiner *topology_refiner,
+    eOpenSubdivEvaluator evaluator_type,
+    OpenSubdiv_EvaluatorCacheImpl *evaluator_cache_descr);
 
 void openSubdiv_deleteEvaluatorInternal(OpenSubdiv_EvaluatorImpl *evaluator);
 

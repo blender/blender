@@ -123,7 +123,7 @@ class GaussianFilter {
 
 template<class Map> float GaussianFilter::getSmoothedPixel(Map *map, int x, int y)
 {
-  float sum = 0.0f;
+  // float sum = 0.0f;
   float L = 0.0f;
   int w = (int)map->width();   // soc
   int h = (int)map->height();  // soc
@@ -142,7 +142,7 @@ template<class Map> float GaussianFilter::getSmoothedPixel(Map *map, int x, int 
       float tmpL = map->pixel(x + j, y + i);
       float m = _mask[abs(i) * _storedMaskSize + abs(j)];
       L += m * tmpL;
-      sum += m;
+      // sum += m;
     }
   }
   // L /= sum;

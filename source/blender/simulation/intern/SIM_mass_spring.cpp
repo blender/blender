@@ -1295,8 +1295,7 @@ int SIM_cloth_solve(
   BKE_sim_debug_data_clear_category("collision");
 
   if (!clmd->solver_result) {
-    clmd->solver_result = (ClothSolverResult *)MEM_callocN(sizeof(ClothSolverResult),
-                                                           "cloth solver result");
+    clmd->solver_result = MEM_cnew<ClothSolverResult>("cloth solver result");
   }
   cloth_clear_result(clmd);
 

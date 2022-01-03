@@ -36,6 +36,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_ghash.h"
@@ -50,8 +51,14 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
+#include "BKE_modifier.h"
+#include "BKE_object.h"
+#include "BKE_subdiv.h"
+#include "BKE_subdiv_mesh.h"
+#include "BKE_subdiv_modifier.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
                                                  const CustomData_MeshMasks *cd_mask_extra,
@@ -106,7 +113,8 @@ static void mesh_wrapper_ensure_mdata_isolated(void *userdata)
   me->runtime.wrapper_type = ME_WRAPPER_TYPE_MDATA;
 
   switch (geom_type_orig) {
-    case ME_WRAPPER_TYPE_MDATA: {
+    case ME_WRAPPER_TYPE_MDATA:
+    case ME_WRAPPER_TYPE_SUBD: {
       break; /* Quiet warning. */
     }
     case ME_WRAPPER_TYPE_BMESH: {
@@ -157,6 +165,7 @@ bool BKE_mesh_wrapper_minmax(const Mesh *me, float min[3], float max[3])
     case ME_WRAPPER_TYPE_BMESH:
       return BKE_editmesh_cache_calc_minmax(me->edit_mesh, me->runtime.edit_data, min, max);
     case ME_WRAPPER_TYPE_MDATA:
+    case ME_WRAPPER_TYPE_SUBD:
       return BKE_mesh_minmax(me, min, max);
   }
   BLI_assert_unreachable();
@@ -191,7 +200,8 @@ void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me,
       }
       return;
     }
-    case ME_WRAPPER_TYPE_MDATA: {
+    case ME_WRAPPER_TYPE_MDATA:
+    case ME_WRAPPER_TYPE_SUBD: {
       BLI_assert(vert_coords_len <= me->totvert);
       const MVert *mvert = me->mvert;
       for (int i = 0; i < vert_coords_len; i++) {
@@ -228,7 +238,8 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *me,
       }
       return;
     }
-    case ME_WRAPPER_TYPE_MDATA: {
+    case ME_WRAPPER_TYPE_MDATA:
+    case ME_WRAPPER_TYPE_SUBD: {
       BLI_assert(vert_coords_len == me->totvert);
       const MVert *mvert = me->mvert;
       for (int i = 0; i < vert_coords_len; i++) {
@@ -252,6 +263,7 @@ int BKE_mesh_wrapper_vert_len(const Mesh *me)
     case ME_WRAPPER_TYPE_BMESH:
       return me->edit_mesh->bm->totvert;
     case ME_WRAPPER_TYPE_MDATA:
+    case ME_WRAPPER_TYPE_SUBD:
       return me->totvert;
   }
   BLI_assert_unreachable();
@@ -264,6 +276,7 @@ int BKE_mesh_wrapper_edge_len(const Mesh *me)
     case ME_WRAPPER_TYPE_BMESH:
       return me->edit_mesh->bm->totedge;
     case ME_WRAPPER_TYPE_MDATA:
+    case ME_WRAPPER_TYPE_SUBD:
       return me->totedge;
   }
   BLI_assert_unreachable();
@@ -276,6 +289,7 @@ int BKE_mesh_wrapper_loop_len(const Mesh *me)
     case ME_WRAPPER_TYPE_BMESH:
       return me->edit_mesh->bm->totloop;
     case ME_WRAPPER_TYPE_MDATA:
+    case ME_WRAPPER_TYPE_SUBD:
       return me->totloop;
   }
   BLI_assert_unreachable();
@@ -288,10 +302,78 @@ int BKE_mesh_wrapper_poly_len(const Mesh *me)
     case ME_WRAPPER_TYPE_BMESH:
       return me->edit_mesh->bm->totface;
     case ME_WRAPPER_TYPE_MDATA:
+    case ME_WRAPPER_TYPE_SUBD:
       return me->totpoly;
   }
   BLI_assert_unreachable();
   return -1;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name CPU Subdivision Evaluation
+ * \{ */
+
+Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
+{
+  ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime.eval_mutex;
+  BLI_mutex_lock(mesh_eval_mutex);
+
+  if (me->runtime.wrapper_type == ME_WRAPPER_TYPE_SUBD) {
+    BLI_mutex_unlock(mesh_eval_mutex);
+    return me->runtime.mesh_eval;
+  }
+
+  SubsurfModifierData *smd = BKE_object_get_last_subsurf_modifier(ob);
+  if (!smd) {
+    BLI_mutex_unlock(mesh_eval_mutex);
+    return me;
+  }
+
+  const bool apply_render = me->runtime.subsurf_apply_render;
+
+  SubdivSettings subdiv_settings;
+  BKE_subsurf_modifier_subdiv_settings_init(&subdiv_settings, smd, apply_render);
+  if (subdiv_settings.level == 0) {
+    BLI_mutex_unlock(mesh_eval_mutex);
+    return me;
+  }
+
+  SubsurfRuntimeData *runtime_data = BKE_subsurf_modifier_ensure_runtime(smd);
+
+  Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(smd, &subdiv_settings, me, false);
+  if (subdiv == NULL) {
+    /* Happens on bad topology, but also on empty input mesh. */
+    BLI_mutex_unlock(mesh_eval_mutex);
+    return me;
+  }
+
+  SubdivToMeshSettings mesh_settings;
+  mesh_settings.resolution = me->runtime.subsurf_resolution;
+  mesh_settings.use_optimal_display = me->runtime.subsurf_use_optimal_display;
+
+  if (mesh_settings.resolution < 3) {
+    BLI_mutex_unlock(mesh_eval_mutex);
+    return me;
+  }
+
+  Mesh *subdiv_mesh = BKE_subdiv_to_mesh(subdiv, &mesh_settings, me);
+
+  if (subdiv != runtime_data->subdiv) {
+    BKE_subdiv_free(subdiv);
+  }
+
+  if (subdiv_mesh != me) {
+    if (me->runtime.mesh_eval != NULL) {
+      BKE_id_free(NULL, me->runtime.mesh_eval);
+    }
+    me->runtime.mesh_eval = subdiv_mesh;
+    me->runtime.wrapper_type = ME_WRAPPER_TYPE_SUBD;
+  }
+
+  BLI_mutex_unlock(mesh_eval_mutex);
+  return me->runtime.mesh_eval;
 }
 
 /** \} */

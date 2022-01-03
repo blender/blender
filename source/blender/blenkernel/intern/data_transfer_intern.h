@@ -25,6 +25,10 @@
 
 #include "BKE_customdata.h" /* For cd_datatransfer_interp */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct CustomData;
 struct CustomDataTransferLayerMap;
 struct ListBase;
@@ -78,3 +82,7 @@ void customdata_data_transfer_interp_normal_normals(const CustomDataTransferLaye
                                                     const float *weights,
                                                     const int count,
                                                     const float mix_factor);
+
+#ifdef __cplusplus
+}
+#endif

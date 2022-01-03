@@ -970,6 +970,7 @@ static void modwrap_dependsOnNormals(Mesh *me)
       }
       break;
     }
+    case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
       BKE_mesh_calc_normals(me);
       break;

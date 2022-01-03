@@ -401,10 +401,8 @@ struct ResultAttributes {
 };
 static ResultAttributes create_result_attributes(const CurveEval &curve,
                                                  const CurveEval &profile,
-                                                 Mesh &mesh)
+                                                 MeshComponent &mesh_component)
 {
-  MeshComponent mesh_component;
-  mesh_component.replace(&mesh, GeometryOwnershipType::Editable);
   Set<AttributeIDRef> curve_attributes;
 
   /* In order to prefer attributes on the main curve input when there are name collisions, first
@@ -708,7 +706,11 @@ Mesh *curve_to_mesh_sweep(const CurveEval &curve, const CurveEval &profile, cons
   mesh->smoothresh = DEG2RADF(180.0f);
   BKE_mesh_normals_tag_dirty(mesh);
 
-  ResultAttributes attributes = create_result_attributes(curve, profile, *mesh);
+  /* Create the mesh component for retrieving attributes at this scope, since output attributes
+   * can keep a reference to the component for updating after retrieving write access. */
+  MeshComponent mesh_component;
+  mesh_component.replace(mesh, GeometryOwnershipType::Editable);
+  ResultAttributes attributes = create_result_attributes(curve, profile, mesh_component);
 
   threading::parallel_for(curves.index_range(), 128, [&](IndexRange curves_range) {
     for (const int i_spline : curves_range) {
@@ -760,7 +762,10 @@ static CurveEval get_curve_single_vert()
 {
   CurveEval curve;
   std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
-  spline->add_point(float3(0), 0, 0.0f);
+  spline->resize(1.0f);
+  spline->positions().fill(float3(0));
+  spline->radii().fill(1.0f);
+  spline->tilts().fill(0.0f);
   curve.add_spline(std::move(spline));
 
   return curve;

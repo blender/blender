@@ -146,8 +146,8 @@ void eyedropper_draw_cursor_text_region(const int x, const int y, const char *na
 uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *event)
 {
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy[0], event->xy[1]);
-  const ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_ANY, event->xy[0], event->xy[1]);
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy);
+  const ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_ANY, event->xy);
 
   uiBut *but = ui_but_find_mouse_over(region, event);
 
@@ -163,13 +163,13 @@ void datadropper_win_area_find(
   bScreen *screen = CTX_wm_screen(C);
 
   *r_win = CTX_wm_window(C);
-  *r_area = BKE_screen_find_area_xy(screen, -1, mval[0], mval[1]);
+  *r_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mval);
   if (*r_area == NULL) {
     wmWindowManager *wm = CTX_wm_manager(C);
     *r_win = WM_window_find_under_cursor(wm, NULL, *r_win, mval, r_mval);
     if (*r_win) {
       screen = WM_window_get_active_screen(*r_win);
-      *r_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, r_mval[0], r_mval[1]);
+      *r_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, r_mval);
     }
   }
   else if (mval != r_mval) {

@@ -25,6 +25,7 @@
 
 #include "BKE_deform.h"
 
+#include "draw_subdivision.h"
 #include "extract_mesh.h"
 
 namespace blender::draw {
@@ -167,10 +168,57 @@ static void extract_weights_iter_poly_mesh(const MeshRenderData *mr,
   }
 }
 
+static void extract_weights_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                        const MeshRenderData *UNUSED(mr),
+                                        struct MeshBatchCache *cache,
+                                        void *buffer,
+                                        void *UNUSED(data))
+{
+  Mesh *coarse_mesh = subdiv_cache->mesh;
+  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  }
+  GPU_vertbuf_init_build_on_device(vbo, &format, subdiv_cache->num_subdiv_loops);
+
+  GPUVertBuf *coarse_weights = GPU_vertbuf_calloc();
+  GPU_vertbuf_init_with_format(coarse_weights, &format);
+  GPU_vertbuf_data_alloc(coarse_weights, coarse_mesh->totloop);
+  float *coarse_weights_data = static_cast<float *>(GPU_vertbuf_get_data(coarse_weights));
+
+  const DRW_MeshWeightState *wstate = &cache->weight_state;
+  const MDeformVert *dverts = static_cast<const MDeformVert *>(
+      CustomData_get_layer(&coarse_mesh->vdata, CD_MDEFORMVERT));
+
+  for (int i = 0; i < coarse_mesh->totpoly; i++) {
+    const MPoly *mpoly = &coarse_mesh->mpoly[i];
+
+    for (int loop_index = mpoly->loopstart; loop_index < mpoly->loopstart + mpoly->totloop;
+         loop_index++) {
+      const MLoop *ml = &coarse_mesh->mloop[loop_index];
+
+      if (dverts != nullptr) {
+        const MDeformVert *dvert = &dverts[ml->v];
+        coarse_weights_data[loop_index] = evaluate_vertex_weight(dvert, wstate);
+      }
+      else {
+        coarse_weights_data[loop_index] = evaluate_vertex_weight(nullptr, wstate);
+      }
+    }
+  }
+
+  draw_subdiv_interp_custom_data(subdiv_cache, coarse_weights, vbo, 1, 0);
+
+  GPU_vertbuf_discard(coarse_weights);
+}
+
 constexpr MeshExtract create_extractor_weights()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_weights_init;
+  extractor.init_subdiv = extract_weights_init_subdiv;
   extractor.iter_poly_bm = extract_weights_iter_poly_bm;
   extractor.iter_poly_mesh = extract_weights_iter_poly_mesh;
   extractor.data_type = MR_DATA_NONE;

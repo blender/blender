@@ -61,6 +61,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 #include "BKE_paint.h"
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
@@ -583,11 +584,11 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
           bNodeSocketValueFloat *roughness_data = roughness_socket->default_value;
           roughness_data->value = 0.4f;
           node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
-          nodeUpdate(ma->nodetree, node);
+          BKE_ntree_update_tag_node_property(ma->nodetree, node);
         }
         else if (node->type == SH_NODE_SUBSURFACE_SCATTERING) {
           node->custom1 = SHD_SUBSURFACE_RANDOM_WALK;
-          nodeUpdate(ma->nodetree, node);
+          BKE_ntree_update_tag_node_property(ma->nodetree, node);
         }
       }
     }

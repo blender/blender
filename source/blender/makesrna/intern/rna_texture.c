@@ -199,7 +199,7 @@ static void rna_Texture_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *pt
   }
   else if (GS(id->name) == ID_NT) {
     bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
-    ED_node_tag_update_nodetree(bmain, ntree, NULL);
+    ED_node_tree_propagate_change(NULL, bmain, ntree);
   }
 }
 

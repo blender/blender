@@ -81,19 +81,6 @@ void NURBSpline::set_order(const uint8_t value)
   this->mark_cache_invalid();
 }
 
-void NURBSpline::add_point(const float3 position,
-                           const float radius,
-                           const float tilt,
-                           const float weight)
-{
-  positions_.append(position);
-  radii_.append(radius);
-  tilts_.append(tilt);
-  weights_.append(weight);
-  knots_dirty_ = true;
-  this->mark_cache_invalid();
-}
-
 void NURBSpline::resize(const int size)
 {
   positions_.resize(size);

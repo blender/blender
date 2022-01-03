@@ -22,6 +22,7 @@
 struct BMEditMesh;
 struct CustomData_MeshMasks;
 struct Mesh;
+struct Object;
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,6 +51,8 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const struct Mesh *me,
                                                  float (*vert_coords)[3],
                                                  int vert_coords_len,
                                                  const float mat[4][4]);
+
+struct Mesh *BKE_mesh_wrapper_ensure_subdivision(const struct Object *ob, struct Mesh *me);
 
 #ifdef __cplusplus
 }

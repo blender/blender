@@ -27,6 +27,8 @@
 
 #include "extract_mesh.h"
 
+#include "draw_subdivision.h"
+
 namespace blender::draw {
 
 /* ---------------------------------------------------------------------- */
@@ -213,12 +215,69 @@ static void extract_edituv_stretch_angle_iter_poly_mesh(const MeshRenderData *mr
   }
 }
 
+static GPUVertFormat *get_edituv_stretch_angle_format_subdiv()
+{
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    /* Waning: adjust #UVStretchAngle struct accordingly. */
+    GPU_vertformat_attr_add(&format, "angle", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "uv_angles", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  }
+  return &format;
+}
+
+static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                                     const MeshRenderData *mr,
+                                                     struct MeshBatchCache *cache,
+                                                     void *buffer,
+                                                     void *UNUSED(tls_data))
+{
+  GPUVertBuf *refined_vbo = static_cast<GPUVertBuf *>(buffer);
+
+  GPU_vertbuf_init_build_on_device(
+      refined_vbo, get_edituv_stretch_angle_format_subdiv(), subdiv_cache->num_subdiv_loops);
+
+  GPUVertBuf *pos_nor = cache->final.buff.vbo.pos_nor;
+  GPUVertBuf *uvs = cache->final.buff.vbo.uv;
+
+  /* UVs are stored contiguouly so we need to compute the offset in the UVs buffer for the active
+   * UV layer. */
+  CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_MESH) ? &mr->me->ldata : &mr->bm->ldata;
+
+  uint32_t uv_layers = cache->cd_used.uv;
+  /* HACK to fix T68857 */
+  if (mr->extract_type == MR_EXTRACT_BMESH && cache->cd_used.edit_uv == 1) {
+    int layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+    if (layer != -1) {
+      uv_layers |= (1 << layer);
+    }
+  }
+
+  int uvs_offset = 0;
+  for (int i = 0; i < MAX_MTFACE; i++) {
+    if (uv_layers & (1 << i)) {
+      if (i == CustomData_get_active_layer(cd_ldata, CD_MLOOPUV)) {
+        break;
+      }
+
+      uvs_offset += 1;
+    }
+  }
+
+  /* The data is at `offset * num loops`, and we have 2 values per index. */
+  uvs_offset *= subdiv_cache->num_subdiv_loops * 2;
+
+  draw_subdiv_build_edituv_stretch_angle_buffer(
+      subdiv_cache, pos_nor, uvs, uvs_offset, refined_vbo);
+}
+
 constexpr MeshExtract create_extractor_edituv_edituv_stretch_angle()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_edituv_stretch_angle_init;
   extractor.iter_poly_bm = extract_edituv_stretch_angle_iter_poly_bm;
   extractor.iter_poly_mesh = extract_edituv_stretch_angle_iter_poly_mesh;
+  extractor.init_subdiv = extract_edituv_stretch_angle_init_subdiv;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_StretchAngle_Data);
   extractor.use_threading = false;

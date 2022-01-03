@@ -330,17 +330,6 @@ class BezierSpline final : public Spline {
   int resolution() const;
   void set_resolution(const int value);
 
-  /**
-   * \warning Call #reallocate on the spline's attributes after adding all points.
-   */
-  void add_point(const blender::float3 position,
-                 const HandleType handle_type_left,
-                 const blender::float3 handle_position_left,
-                 const HandleType handle_type_right,
-                 const blender::float3 handle_position_right,
-                 const float radius,
-                 const float tilt);
-
   void resize(const int size) final;
   blender::MutableSpan<blender::float3> positions() final;
   blender::Span<blender::float3> positions() const final;
@@ -567,14 +556,6 @@ class NURBSpline final : public Spline {
   uint8_t order() const;
   void set_order(const uint8_t value);
 
-  /**
-   * \warning Call #reallocate on the spline's attributes after adding all points.
-   */
-  void add_point(const blender::float3 position,
-                 const float radius,
-                 const float tilt,
-                 const float weight);
-
   bool check_valid_size_and_order() const;
   int knots_size() const;
 
@@ -633,11 +614,6 @@ class PolySpline final : public Spline {
   }
 
   int size() const final;
-
-  /**
-   * \warning Call #reallocate on the spline's attributes after adding all points.
-   */
-  void add_point(const blender::float3 position, const float radius, const float tilt);
 
   void resize(const int size) final;
   blender::MutableSpan<blender::float3> positions() final;
@@ -710,7 +686,7 @@ struct CurveEval {
 
   void translate(const blender::float3 &translation);
   void transform(const blender::float4x4 &matrix);
-  void bounds_min_max(blender::float3 &min, blender::float3 &max, const bool use_evaluated) const;
+  bool bounds_min_max(blender::float3 &min, blender::float3 &max, const bool use_evaluated) const;
 
   /**
    * Return the start indices for each of the curve spline's control points, if they were part

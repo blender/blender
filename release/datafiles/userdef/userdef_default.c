@@ -61,7 +61,7 @@ const UserDef U_default = {
                USER_HIDE_DOT | USER_SHOW_GIZMO_NAVIGATE | USER_SHOW_VIEWPORTNAME | USER_SHOW_FPS |
                USER_CONTINUOUS_MOUSE | USER_SAVE_PROMPT),
     .uiflag2 = USER_REGION_OVERLAP,
-    .gpu_flag = USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE,
+    .gpu_flag = USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE | USER_GPU_FLAG_SUBDIVISION_EVALUATION,
     .app_flag = 0,
     /** Default language of English (1), not Automatic (0). */
     .language = 1,

@@ -132,27 +132,24 @@ static std::optional<CustomDataType> node_type_from_other_socket(const bNodeSock
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeType &node_type = params.node_type();
+  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  search_link_ops_for_declarations(params, declaration.inputs().take_front(2));
+
   const std::optional<CustomDataType> type = node_type_from_other_socket(params.other_socket());
-  if (params.in_out() == SOCK_IN) {
-    if (params.other_socket().type == SOCK_GEOMETRY) {
-      params.add_item(IFACE_("Geometry"), [node_type](LinkSearchOpParams &params) {
-        bNode &node = params.add_node(node_type);
-        params.connect_available_socket(node, "Geometry");
-      });
-    }
-    if (type) {
-      params.add_item(IFACE_("Attribute"), [&](LinkSearchOpParams &params) {
-        bNode &node = params.add_node(node_type);
-        node.custom1 = *type;
-        params.update_and_connect_available_socket(node, "Attribute");
-      });
-    }
+  if (!type) {
+    return;
   }
-  else if (type) {
-    /* Only use the first 8 declarations since we set the type automatically. */
-    const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-    for (const SocketDeclarationPtr &socket_decl : declaration.outputs().take_front(8)) {
-      StringRefNull name = socket_decl->name();
+
+  if (params.in_out() == SOCK_IN) {
+    params.add_item(IFACE_("Attribute"), [node_type, type](LinkSearchOpParams &params) {
+      bNode &node = params.add_node(node_type);
+      node.custom1 = *type;
+      params.update_and_connect_available_socket(node, "Attribute");
+    });
+  }
+  else {
+    for (const StringRefNull name :
+         {"Mean", "Median", "Sum", "Min", "Max", "Range", "Standard Deviation", "Variance"}) {
       params.add_item(IFACE_(name.c_str()), [node_type, name, type](LinkSearchOpParams &params) {
         bNode &node = params.add_node(node_type);
         node.custom1 = *type;

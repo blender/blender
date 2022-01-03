@@ -582,7 +582,7 @@ static int add_hook_object(const bContext *C,
 
       BLI_strncpy(hmd->subtarget, arm->act_bone->name, sizeof(hmd->subtarget));
 
-      pchan_act = BKE_pose_channel_active(ob);
+      pchan_act = BKE_pose_channel_active_if_layer_visible(ob);
       if (LIKELY(pchan_act)) {
         invert_m4_m4(pose_mat, pchan_act->pose_mat);
         mul_v3_m4v3(cent, ob->obmat, pchan_act->pose_mat[3]);

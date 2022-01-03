@@ -66,8 +66,7 @@ eSpreadsheetColumnValueType cpp_type_to_column_type(const fn::CPPType &type)
 
 SpreadsheetColumnID *spreadsheet_column_id_new()
 {
-  SpreadsheetColumnID *column_id = (SpreadsheetColumnID *)MEM_callocN(sizeof(SpreadsheetColumnID),
-                                                                      __func__);
+  SpreadsheetColumnID *column_id = MEM_cnew<SpreadsheetColumnID>(__func__);
   return column_id;
 }
 
@@ -88,8 +87,7 @@ void spreadsheet_column_id_free(SpreadsheetColumnID *column_id)
 
 SpreadsheetColumn *spreadsheet_column_new(SpreadsheetColumnID *column_id)
 {
-  SpreadsheetColumn *column = (SpreadsheetColumn *)MEM_callocN(sizeof(SpreadsheetColumn),
-                                                               __func__);
+  SpreadsheetColumn *column = MEM_cnew<SpreadsheetColumn>(__func__);
   column->id = column_id;
   return column;
 }

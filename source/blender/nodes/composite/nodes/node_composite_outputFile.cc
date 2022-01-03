@@ -135,8 +135,7 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
       ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, nullptr, name);
 
   /* create format data for the input socket */
-  NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)MEM_callocN(
-      sizeof(NodeImageMultiFileSocket), "socket image format");
+  NodeImageMultiFileSocket *sockdata = MEM_cnew<NodeImageMultiFileSocket>(__func__);
   sock->storage = sockdata;
 
   BLI_strncpy_utf8(sockdata->path, name, sizeof(sockdata->path));
@@ -203,8 +202,7 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
   Scene *scene = CTX_data_scene(C);
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
   bNode *node = (bNode *)ptr->data;
-  NodeImageMultiFile *nimf = (NodeImageMultiFile *)MEM_callocN(sizeof(NodeImageMultiFile),
-                                                               "node image multi file");
+  NodeImageMultiFile *nimf = MEM_cnew<NodeImageMultiFile>(__func__);
   ImageFormatData *format = nullptr;
   node->storage = nimf;
 

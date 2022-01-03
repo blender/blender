@@ -117,7 +117,8 @@ static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_contex
                                       const int UNUSED(num_vertices),
                                       const int UNUSED(num_edges),
                                       const int UNUSED(num_loops),
-                                      const int UNUSED(num_polygons))
+                                      const int UNUSED(num_polygons),
+                                      const int *UNUSED(subdiv_polygon_offset))
 {
   SubdivDeformContext *subdiv_context = foreach_context->user_data;
   subdiv_mesh_prepare_accumulator(subdiv_context, subdiv_context->coarse_mesh->totvert);
@@ -202,7 +203,8 @@ void BKE_subdiv_deform_coarse_vertices(struct Subdiv *subdiv,
   BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
   /* Make sure evaluator is up to date with possible new topology, and that
    * is refined for the new positions of coarse vertices. */
-  if (!BKE_subdiv_eval_begin_from_mesh(subdiv, coarse_mesh, vertex_cos)) {
+  if (!BKE_subdiv_eval_begin_from_mesh(
+          subdiv, coarse_mesh, vertex_cos, SUBDIV_EVALUATOR_TYPE_CPU, NULL)) {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.
      * - Something totally bad happened, and OpenSubdiv rejected our

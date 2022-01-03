@@ -17,7 +17,7 @@
 #include "node_function_util.hh"
 #include <iomanip>
 
-namespace blender::nodes {
+namespace blender::nodes::node_fn_value_to_string_cc {
 
 static void fn_node_value_to_string_declare(NodeDeclarationBuilder &b)
 {
@@ -37,14 +37,16 @@ static void fn_node_value_to_string_build_multi_function(NodeMultiFunctionBuilde
   builder.set_matching_fn(&to_str_fn);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_fn_value_to_string_cc
 
 void register_node_type_fn_value_to_string()
 {
+  namespace file_ns = blender::nodes::node_fn_value_to_string_cc;
+
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_VALUE_TO_STRING, "Value to String", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::fn_node_value_to_string_declare;
-  ntype.build_multi_function = blender::nodes::fn_node_value_to_string_build_multi_function;
+  ntype.declare = file_ns::fn_node_value_to_string_declare;
+  ntype.build_multi_function = file_ns::fn_node_value_to_string_build_multi_function;
   nodeRegisterType(&ntype);
 }

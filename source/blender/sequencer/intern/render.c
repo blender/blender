@@ -683,7 +683,7 @@ typedef struct RenderEffectInitData {
   struct SeqEffectHandle *sh;
   const SeqRenderData *context;
   Sequence *seq;
-  float timeline_frame, facf0, facf1;
+  float timeline_frame, fac;
   ImBuf *ibuf1, *ibuf2, *ibuf3;
 
   ImBuf *out;
@@ -693,7 +693,7 @@ typedef struct RenderEffectThread {
   struct SeqEffectHandle *sh;
   const SeqRenderData *context;
   Sequence *seq;
-  float timeline_frame, facf0, facf1;
+  float timeline_frame, fac;
   ImBuf *ibuf1, *ibuf2, *ibuf3;
 
   ImBuf *out;
@@ -712,8 +712,7 @@ static void render_effect_execute_init_handle(void *handle_v,
   handle->context = init_data->context;
   handle->seq = init_data->seq;
   handle->timeline_frame = init_data->timeline_frame;
-  handle->facf0 = init_data->facf0;
-  handle->facf1 = init_data->facf1;
+  handle->fac = init_data->fac;
   handle->ibuf1 = init_data->ibuf1;
   handle->ibuf2 = init_data->ibuf2;
   handle->ibuf3 = init_data->ibuf3;
@@ -730,8 +729,7 @@ static void *render_effect_execute_do_thread(void *thread_data_v)
   thread_data->sh->execute_slice(thread_data->context,
                                  thread_data->seq,
                                  thread_data->timeline_frame,
-                                 thread_data->facf0,
-                                 thread_data->facf1,
+                                 thread_data->fac,
                                  thread_data->ibuf1,
                                  thread_data->ibuf2,
                                  thread_data->ibuf3,
@@ -746,8 +744,7 @@ ImBuf *seq_render_effect_execute_threaded(struct SeqEffectHandle *sh,
                                           const SeqRenderData *context,
                                           Sequence *seq,
                                           float timeline_frame,
-                                          float facf0,
-                                          float facf1,
+                                          float fac,
                                           ImBuf *ibuf1,
                                           ImBuf *ibuf2,
                                           ImBuf *ibuf3)
@@ -759,8 +756,7 @@ ImBuf *seq_render_effect_execute_threaded(struct SeqEffectHandle *sh,
   init_data.context = context;
   init_data.seq = seq;
   init_data.timeline_frame = timeline_frame;
-  init_data.facf0 = facf0;
-  init_data.facf1 = facf1;
+  init_data.fac = fac;
   init_data.ibuf1 = ibuf1;
   init_data.ibuf2 = ibuf2;
   init_data.ibuf3 = ibuf3;
@@ -781,7 +777,7 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
                                            float timeline_frame)
 {
   Scene *scene = context->scene;
-  float fac, facf;
+  float fac;
   int early_out;
   int i;
   struct SeqEffectHandle sh = SEQ_effect_handle_get(seq);
@@ -803,24 +799,23 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
   }
 
   if (seq->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
-    sh.get_default_fac(seq, timeline_frame, &fac, &facf);
-    facf = fac;
+    sh.get_default_fac(seq, timeline_frame, &fac);
   }
   else {
     fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "effect_fader", 0, NULL);
     if (fcu) {
-      fac = facf = evaluate_fcurve(fcu, timeline_frame);
+      fac = evaluate_fcurve(fcu, timeline_frame);
     }
     else {
-      fac = facf = seq->effect_fader;
+      fac = seq->effect_fader;
     }
   }
 
-  early_out = sh.early_out(seq, fac, facf);
+  early_out = sh.early_out(seq, fac);
 
   switch (early_out) {
     case EARLY_NO_INPUT:
-      out = sh.execute(context, seq, timeline_frame, fac, facf, NULL, NULL, NULL);
+      out = sh.execute(context, seq, timeline_frame, fac, NULL, NULL, NULL);
       break;
     case EARLY_DO_EFFECT:
       for (i = 0; i < 3; i++) {
@@ -839,10 +834,10 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
       if (ibuf[0] && (ibuf[1] || SEQ_effect_get_num_inputs(seq->type) == 1)) {
         if (sh.multithreaded) {
           out = seq_render_effect_execute_threaded(
-              &sh, context, seq, timeline_frame, fac, facf, ibuf[0], ibuf[1], ibuf[2]);
+              &sh, context, seq, timeline_frame, fac, ibuf[0], ibuf[1], ibuf[2]);
         }
         else {
-          out = sh.execute(context, seq, timeline_frame, fac, facf, ibuf[0], ibuf[1], ibuf[2]);
+          out = sh.execute(context, seq, timeline_frame, fac, ibuf[0], ibuf[1], ibuf[2]);
         }
       }
       break;
@@ -1774,8 +1769,8 @@ static bool seq_must_swap_input_in_blend_mode(Sequence *seq)
 static int seq_get_early_out_for_blend_mode(Sequence *seq)
 {
   struct SeqEffectHandle sh = seq_effect_get_sequence_blend(seq);
-  float facf = seq->blend_opacity / 100.0f;
-  int early_out = sh.early_out(seq, facf, facf);
+  float fac = seq->blend_opacity / 100.0f;
+  int early_out = sh.early_out(seq, fac);
 
   if (ELEM(early_out, EARLY_DO_EFFECT, EARLY_NO_INPUT)) {
     return early_out;
@@ -1797,25 +1792,25 @@ static ImBuf *seq_render_strip_stack_apply_effect(
 {
   ImBuf *out;
   struct SeqEffectHandle sh = seq_effect_get_sequence_blend(seq);
-  float facf = seq->blend_opacity / 100.0f;
+  float fac = seq->blend_opacity / 100.0f;
   int swap_input = seq_must_swap_input_in_blend_mode(seq);
 
   if (swap_input) {
     if (sh.multithreaded) {
       out = seq_render_effect_execute_threaded(
-          &sh, context, seq, timeline_frame, facf, facf, ibuf2, ibuf1, NULL);
+          &sh, context, seq, timeline_frame, fac, ibuf2, ibuf1, NULL);
     }
     else {
-      out = sh.execute(context, seq, timeline_frame, facf, facf, ibuf2, ibuf1, NULL);
+      out = sh.execute(context, seq, timeline_frame, fac, ibuf2, ibuf1, NULL);
     }
   }
   else {
     if (sh.multithreaded) {
       out = seq_render_effect_execute_threaded(
-          &sh, context, seq, timeline_frame, facf, facf, ibuf1, ibuf2, NULL);
+          &sh, context, seq, timeline_frame, fac, ibuf1, ibuf2, NULL);
     }
     else {
-      out = sh.execute(context, seq, timeline_frame, facf, facf, ibuf1, ibuf2, NULL);
+      out = sh.execute(context, seq, timeline_frame, fac, ibuf1, ibuf2, NULL);
     }
   }
 

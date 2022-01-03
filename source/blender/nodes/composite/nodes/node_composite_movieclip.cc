@@ -49,8 +49,7 @@ static void init(const bContext *C, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   Scene *scene = CTX_data_scene(C);
-  MovieClipUser *user = (MovieClipUser *)MEM_callocN(sizeof(MovieClipUser),
-                                                     "node movie clip user");
+  MovieClipUser *user = MEM_cnew<MovieClipUser>(__func__);
 
   node->id = (ID *)scene->clip;
   id_us_plus(node->id);

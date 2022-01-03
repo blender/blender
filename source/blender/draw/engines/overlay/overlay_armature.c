@@ -589,7 +589,7 @@ static void drw_shgroup_bone_custom_wire(ArmatureDrawContext *ctx,
                                          Object *custom)
 {
   /* See comments in #drw_shgroup_bone_custom_solid. */
-  Mesh *mesh = BKE_object_get_evaluated_mesh(custom);
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(custom);
   if (mesh == NULL) {
     return;
   }

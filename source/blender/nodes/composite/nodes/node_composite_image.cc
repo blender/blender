@@ -108,8 +108,7 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree,
       sock = nodeAddStaticSocket(ntree, node, SOCK_OUT, type, PROP_NONE, name, name);
     }
     /* extra socket info */
-    NodeImageLayer *sockdata = (NodeImageLayer *)MEM_callocN(sizeof(NodeImageLayer),
-                                                             "node image layer");
+    NodeImageLayer *sockdata = MEM_cnew<NodeImageLayer>(__func__);
     sock->storage = sockdata;
   }
 
@@ -412,7 +411,7 @@ static void cmp_node_image_update(bNodeTree *ntree, bNode *node)
 
 static void node_composit_init_image(bNodeTree *ntree, bNode *node)
 {
-  ImageUser *iuser = (ImageUser *)MEM_callocN(sizeof(ImageUser), "node image user");
+  ImageUser *iuser = MEM_cnew<ImageUser>(__func__);
   node->storage = iuser;
   iuser->frames = 1;
   iuser->sfra = 1;
@@ -489,8 +488,7 @@ static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
 
   for (bNodeSocket *sock = (bNodeSocket *)node->outputs.first; sock;
        sock = sock->next, sock_index++) {
-    NodeImageLayer *sockdata = (NodeImageLayer *)MEM_callocN(sizeof(NodeImageLayer),
-                                                             "node image layer");
+    NodeImageLayer *sockdata = MEM_cnew<NodeImageLayer>(__func__);
     sock->storage = sockdata;
 
     BLI_strncpy(sockdata->pass_name,

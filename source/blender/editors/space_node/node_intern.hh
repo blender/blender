@@ -235,7 +235,6 @@ void sort_multi_input_socket_links(SpaceNode &snode,
                                    bNode &node,
                                    bNodeLink *drag_link,
                                    const blender::float2 *cursor);
-bool node_connected_to_output(Main &bmain, bNodeTree &ntree, bNode &node);
 
 void NODE_OT_link(wmOperatorType *ot);
 void NODE_OT_link_make(wmOperatorType *ot);
@@ -252,12 +251,8 @@ void NODE_OT_link_viewer(wmOperatorType *ot);
 
 void NODE_OT_insert_offset(wmOperatorType *ot);
 
-void snode_notify(bContext &C, SpaceNode &snode);
-void snode_dag_update(bContext &C, SpaceNode &snode);
 void snode_set_context(const bContext &C);
 
-void snode_update(SpaceNode &snode, bNode *node);
-/** Operator poll callback. */
 bool composite_node_active(bContext *C);
 /** Operator poll callback. */
 bool composite_node_editable(bContext *C);

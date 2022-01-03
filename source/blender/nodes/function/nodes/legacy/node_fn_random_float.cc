@@ -18,7 +18,7 @@
 
 #include "BLI_hash.h"
 
-namespace blender::nodes {
+namespace blender::nodes::node_fn_random_float_cc {
 
 static void fn_node_legacy_random_float_declare(NodeDeclarationBuilder &b)
 {
@@ -28,8 +28,6 @@ static void fn_node_legacy_random_float_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Int>(N_("Seed")).min(-10000).max(10000);
   b.add_output<decl::Float>(N_("Value"));
 };
-
-}  // namespace blender::nodes
 
 class RandomFloatFunction : public blender::fn::MultiFunction {
  public:
@@ -75,12 +73,16 @@ static void fn_node_legacy_random_float_build_multi_function(
   builder.set_matching_fn(fn);
 }
 
+}  // namespace blender::nodes::node_fn_random_float_cc
+
 void register_node_type_fn_legacy_random_float()
 {
+  namespace file_ns = blender::nodes::node_fn_random_float_cc;
+
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_LEGACY_RANDOM_FLOAT, "Random Float", 0, 0);
-  ntype.declare = blender::nodes::fn_node_legacy_random_float_declare;
-  ntype.build_multi_function = fn_node_legacy_random_float_build_multi_function;
+  ntype.declare = file_ns::fn_node_legacy_random_float_declare;
+  ntype.build_multi_function = file_ns::fn_node_legacy_random_float_build_multi_function;
   nodeRegisterType(&ntype);
 }

@@ -23,6 +23,8 @@
 
 #include "extract_mesh.h"
 
+#include "draw_subdivision.h"
+
 namespace blender::draw {
 
 /* ---------------------------------------------------------------------- */
@@ -107,10 +109,34 @@ static void extract_lnor_iter_poly_mesh(const MeshRenderData *mr,
   }
 }
 
+static GPUVertFormat *get_subdiv_lnor_format()
+{
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    GPU_vertformat_alias_add(&format, "lnor");
+  }
+  return &format;
+}
+
+static void extract_lnor_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                     const MeshRenderData *UNUSED(mr),
+                                     struct MeshBatchCache *cache,
+                                     void *buffer,
+                                     void *UNUSED(data))
+{
+  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+  GPUVertBuf *pos_nor = cache->final.buff.vbo.pos_nor;
+  BLI_assert(pos_nor);
+  GPU_vertbuf_init_build_on_device(vbo, get_subdiv_lnor_format(), subdiv_cache->num_subdiv_loops);
+  draw_subdiv_build_lnor_buffer(subdiv_cache, pos_nor, vbo);
+}
+
 constexpr MeshExtract create_extractor_lnor()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_lnor_init;
+  extractor.init_subdiv = extract_lnor_init_subdiv;
   extractor.iter_poly_bm = extract_lnor_iter_poly_bm;
   extractor.iter_poly_mesh = extract_lnor_iter_poly_mesh;
   extractor.data_type = MR_DATA_LOOP_NOR;
@@ -210,6 +236,7 @@ constexpr MeshExtract create_extractor_lnor_hq()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_lnor_hq_init;
+  extractor.init_subdiv = extract_lnor_init_subdiv;
   extractor.iter_poly_bm = extract_lnor_hq_iter_poly_bm;
   extractor.iter_poly_mesh = extract_lnor_hq_iter_poly_mesh;
   extractor.data_type = MR_DATA_LOOP_NOR;

@@ -41,8 +41,7 @@ static void cmp_node_colorcorrection_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_colorcorrection(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeColorCorrection *n = (NodeColorCorrection *)MEM_callocN(sizeof(NodeColorCorrection),
-                                                              "node colorcorrection");
+  NodeColorCorrection *n = MEM_cnew<NodeColorCorrection>(__func__);
   n->startmidtones = 0.2f;
   n->endmidtones = 0.7f;
   n->master.contrast = 1.0f;

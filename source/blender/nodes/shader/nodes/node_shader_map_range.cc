@@ -27,9 +27,11 @@
 
 #include "BLI_math_base_safe.h"
 
+#include "NOD_socket_search_link.hh"
+
 NODE_STORAGE_FUNCS(NodeMapRange)
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_map_range_cc {
 
 static void sh_node_map_range_declare(NodeDeclarationBuilder &b)
 {
@@ -49,8 +51,6 @@ static void sh_node_map_range_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Result"));
   b.add_output<decl::Vector>(N_("Vector"));
 };
-
-}  // namespace blender::nodes
 
 static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
 {
@@ -80,13 +80,73 @@ static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
 
 static void node_shader_init_map_range(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeMapRange *data = (NodeMapRange *)MEM_callocN(sizeof(NodeMapRange), __func__);
+  NodeMapRange *data = MEM_cnew<NodeMapRange>(__func__);
   data->clamp = 1;
   data->data_type = CD_PROP_FLOAT;
   data->interpolation_type = NODE_MAP_RANGE_LINEAR;
   node->custom1 = true;                  /* use_clamp */
   node->custom2 = NODE_MAP_RANGE_LINEAR; /* interpolation */
   node->storage = data;
+}
+
+class SocketSearchOp {
+ public:
+  std::string socket_name;
+  CustomDataType data_type;
+  int interpolation_type = NODE_MAP_RANGE_LINEAR;
+
+  void operator()(LinkSearchOpParams &params)
+  {
+    bNode &node = params.add_node("ShaderNodeMapRange");
+    node_storage(node).data_type = data_type;
+    node_storage(node).interpolation_type = interpolation_type;
+    params.update_and_connect_available_socket(node, socket_name);
+  }
+};
+
+static std::optional<CustomDataType> node_type_from_other_socket(const bNodeSocket &socket)
+{
+  switch (socket.type) {
+    case SOCK_FLOAT:
+    case SOCK_BOOLEAN:
+    case SOCK_INT:
+      return CD_PROP_FLOAT;
+    case SOCK_VECTOR:
+    case SOCK_RGBA:
+      return CD_PROP_FLOAT3;
+    default:
+      return {};
+  }
+}
+
+static void node_map_range_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const std::optional<CustomDataType> type = node_type_from_other_socket(params.other_socket());
+  if (!type) {
+    return;
+  }
+
+  if (params.in_out() == SOCK_IN) {
+    if (*type == CD_PROP_FLOAT3) {
+      params.add_item(IFACE_("Vector"), SocketSearchOp{"Vector", *type}, 0);
+    }
+    else {
+      params.add_item(IFACE_("Value"), SocketSearchOp{"Value", *type}, 0);
+    }
+    params.add_item(IFACE_("From Min"), SocketSearchOp{"From Min", *type}, -1);
+    params.add_item(IFACE_("From Max"), SocketSearchOp{"From Max", *type}, -1);
+    params.add_item(IFACE_("To Min"), SocketSearchOp{"To Min", *type}, -2);
+    params.add_item(IFACE_("To Max"), SocketSearchOp{"To Max", *type}, -2);
+    params.add_item(IFACE_("Steps"), SocketSearchOp{"Steps", *type, NODE_MAP_RANGE_STEPPED}, -3);
+  }
+  else {
+    if (*type == CD_PROP_FLOAT3) {
+      params.add_item(IFACE_("Vector"), SocketSearchOp{"Vector", *type});
+    }
+    else {
+      params.add_item(IFACE_("Result"), SocketSearchOp{"Result", *type});
+    }
+  }
 }
 
 static const char *gpu_shader_get_name(int mode, bool use_vector)
@@ -142,8 +202,6 @@ static int gpu_shader_map_range(GPUMaterial *mat,
   }
   return ret;
 }
-
-namespace blender::nodes {
 
 static inline float clamp_range(const float value, const float min, const float max)
 {
@@ -582,20 +640,22 @@ static void sh_node_map_range_build_multi_function(
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_shader_map_range_cc
 
 void register_node_type_sh_map_range()
 {
+  namespace file_ns = blender::nodes::node_shader_map_range_cc;
+
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_MAP_RANGE, "Map Range", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::sh_node_map_range_declare;
-  node_type_init(&ntype, node_shader_init_map_range);
+  ntype.declare = file_ns::sh_node_map_range_declare;
+  node_type_init(&ntype, file_ns::node_shader_init_map_range);
   node_type_storage(
       &ntype, "NodeMapRange", node_free_standard_storage, node_copy_standard_storage);
-  node_type_update(&ntype, node_shader_update_map_range);
-  node_type_gpu(&ntype, gpu_shader_map_range);
-  ntype.build_multi_function = blender::nodes::sh_node_map_range_build_multi_function;
-
+  node_type_update(&ntype, file_ns::node_shader_update_map_range);
+  node_type_gpu(&ntype, file_ns::gpu_shader_map_range);
+  ntype.build_multi_function = file_ns::sh_node_map_range_build_multi_function;
+  ntype.gather_link_search_ops = file_ns::node_map_range_gather_link_searches;
   nodeRegisterType(&ntype);
 }

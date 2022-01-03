@@ -589,14 +589,14 @@ struct VertLink {
 
 static void prependPolyLineVert(ListBase *lb, uint index)
 {
-  VertLink *vl = (VertLink *)MEM_callocN(sizeof(VertLink), "VertLink");
+  VertLink *vl = MEM_cnew<VertLink>("VertLink");
   vl->index = index;
   BLI_addhead(lb, vl);
 }
 
 static void appendPolyLineVert(ListBase *lb, uint index)
 {
-  VertLink *vl = (VertLink *)MEM_callocN(sizeof(VertLink), "VertLink");
+  VertLink *vl = MEM_cnew<VertLink>("VertLink");
   vl->index = index;
   BLI_addtail(lb, vl);
 }
@@ -632,7 +632,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
   med = medge;
   for (i = 0; i < medge_len; i++, med++) {
     if (edge_users[i] == edge_users_test) {
-      EdgeLink *edl = (EdgeLink *)MEM_callocN(sizeof(EdgeLink), "EdgeLink");
+      EdgeLink *edl = MEM_cnew<EdgeLink>("EdgeLink");
       edl->edge = med;
 
       BLI_addtail(&edges, edl);
@@ -719,7 +719,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
         VertLink *vl;
 
         /* create new 'nurb' within the curve */
-        nu = (Nurb *)MEM_callocN(sizeof(Nurb), "MeshNurb");
+        nu = MEM_cnew<Nurb>("MeshNurb");
 
         nu->pntsu = totpoly;
         nu->pntsv = 1;
@@ -901,6 +901,20 @@ static Object *object_for_curve_to_mesh_create(const Object *object)
   return temp_object;
 }
 
+static void object_for_curve_to_mesh_free(Object *temp_object)
+{
+  /* Clear edit mode pointers that were explicitly copied to the temporary curve. */
+  ID *final_object_data = static_cast<ID *>(temp_object->data);
+  if (GS(final_object_data->name) == ID_CU) {
+    Curve &curve = *reinterpret_cast<Curve *>(final_object_data);
+    curve.editfont = nullptr;
+    curve.editnurb = nullptr;
+  }
+
+  BKE_id_free(nullptr, temp_object->data);
+  BKE_id_free(nullptr, temp_object);
+}
+
 /**
  * Populate `object->runtime.curve_cache` which is then used to create the mesh.
  */
@@ -1003,8 +1017,7 @@ static Mesh *mesh_new_from_curve_type_object(const Object *object)
 
   Mesh *mesh = mesh_new_from_evaluated_curve_type_object(temp_object);
 
-  BKE_id_free(nullptr, temp_object->data);
-  BKE_id_free(nullptr, temp_object);
+  object_for_curve_to_mesh_free(temp_object);
 
   return mesh;
 }

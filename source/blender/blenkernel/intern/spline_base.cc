@@ -417,7 +417,9 @@ Spline::LookupResult Spline::lookup_evaluated_length(const float length) const
   const int next_index = (index == this->evaluated_points_size() - 1) ? 0 : index + 1;
 
   const float previous_length = (index == 0) ? 0.0f : lengths[index - 1];
-  const float factor = (length - previous_length) / (lengths[index] - previous_length);
+  const float length_in_segment = length - previous_length;
+  const float segment_length = lengths[index] - previous_length;
+  const float factor = segment_length == 0.0f ? 0.0f : length_in_segment / segment_length;
 
   return LookupResult{index, next_index, factor};
 }

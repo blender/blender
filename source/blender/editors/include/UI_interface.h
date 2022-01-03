@@ -982,21 +982,6 @@ uiBut *uiDefButF(uiBlock *block,
                  float a1,
                  float a2,
                  const char *tip);
-uiBut *uiDefButBitF(uiBlock *block,
-                    int type,
-                    int bit,
-                    int retval,
-                    const char *str,
-                    int x,
-                    int y,
-                    short width,
-                    short height,
-                    float *poin,
-                    float min,
-                    float max,
-                    float a1,
-                    float a2,
-                    const char *tip);
 uiBut *uiDefButI(uiBlock *block,
                  int type,
                  int retval,
@@ -1154,35 +1139,6 @@ uiBut *uiDefIconBut(uiBlock *block,
                     float a1,
                     float a2,
                     const char *tip);
-uiBut *uiDefIconButF(uiBlock *block,
-                     int type,
-                     int retval,
-                     int icon,
-                     int x,
-                     int y,
-                     short width,
-                     short height,
-                     float *poin,
-                     float min,
-                     float max,
-                     float a1,
-                     float a2,
-                     const char *tip);
-uiBut *uiDefIconButBitF(uiBlock *block,
-                        int type,
-                        int bit,
-                        int retval,
-                        int icon,
-                        int x,
-                        int y,
-                        short width,
-                        short height,
-                        float *poin,
-                        float min,
-                        float max,
-                        float a1,
-                        float a2,
-                        const char *tip);
 uiBut *uiDefIconButI(uiBlock *block,
                      int type,
                      int retval,
@@ -1241,20 +1197,6 @@ uiBut *uiDefIconButBitS(uiBlock *block,
                         float a1,
                         float a2,
                         const char *tip);
-uiBut *uiDefIconButC(uiBlock *block,
-                     int type,
-                     int retval,
-                     int icon,
-                     int x,
-                     int y,
-                     short width,
-                     short height,
-                     char *poin,
-                     float min,
-                     float max,
-                     float a1,
-                     float a2,
-                     const char *tip);
 uiBut *uiDefIconButBitC(uiBlock *block,
                         int type,
                         int bit,
@@ -1356,22 +1298,6 @@ uiBut *uiDefIconTextButF(uiBlock *block,
                          float a1,
                          float a2,
                          const char *tip);
-uiBut *uiDefIconTextButBitF(uiBlock *block,
-                            int type,
-                            int bit,
-                            int retval,
-                            int icon,
-                            const char *str,
-                            int x,
-                            int y,
-                            short width,
-                            short height,
-                            float *poin,
-                            float min,
-                            float max,
-                            float a1,
-                            float a2,
-                            const char *tip);
 uiBut *uiDefIconTextButI(uiBlock *block,
                          int type,
                          int retval,
@@ -1387,84 +1313,6 @@ uiBut *uiDefIconTextButI(uiBlock *block,
                          float a1,
                          float a2,
                          const char *tip);
-uiBut *uiDefIconTextButBitI(uiBlock *block,
-                            int type,
-                            int bit,
-                            int retval,
-                            int icon,
-                            const char *str,
-                            int x,
-                            int y,
-                            short width,
-                            short height,
-                            int *poin,
-                            float min,
-                            float max,
-                            float a1,
-                            float a2,
-                            const char *tip);
-uiBut *uiDefIconTextButS(uiBlock *block,
-                         int type,
-                         int retval,
-                         int icon,
-                         const char *str,
-                         int x,
-                         int y,
-                         short width,
-                         short height,
-                         short *poin,
-                         float min,
-                         float max,
-                         float a1,
-                         float a2,
-                         const char *tip);
-uiBut *uiDefIconTextButBitS(uiBlock *block,
-                            int type,
-                            int bit,
-                            int retval,
-                            int icon,
-                            const char *str,
-                            int x,
-                            int y,
-                            short width,
-                            short height,
-                            short *poin,
-                            float min,
-                            float max,
-                            float a1,
-                            float a2,
-                            const char *tip);
-uiBut *uiDefIconTextButC(uiBlock *block,
-                         int type,
-                         int retval,
-                         int icon,
-                         const char *str,
-                         int x,
-                         int y,
-                         short width,
-                         short height,
-                         char *poin,
-                         float min,
-                         float max,
-                         float a1,
-                         float a2,
-                         const char *tip);
-uiBut *uiDefIconTextButBitC(uiBlock *block,
-                            int type,
-                            int bit,
-                            int retval,
-                            int icon,
-                            const char *str,
-                            int x,
-                            int y,
-                            short width,
-                            short height,
-                            char *poin,
-                            float min,
-                            float max,
-                            float a1,
-                            float a2,
-                            const char *tip);
 uiBut *uiDefIconTextButR(uiBlock *block,
                          int type,
                          int retval,
@@ -2544,10 +2392,41 @@ void uiTemplateComponentMenu(uiLayout *layout,
                              const char *propname,
                              const char *name);
 void uiTemplateNodeSocket(uiLayout *layout, struct bContext *C, float color[4]);
+
+/**
+ * Draw the main CacheFile properties and operators (file path, scale, etc.), that is those which
+ * do not have their own dedicated template functions.
+ */
 void uiTemplateCacheFile(uiLayout *layout,
                          const struct bContext *C,
                          struct PointerRNA *ptr,
                          const char *propname);
+
+/**
+ * Lookup the CacheFile PointerRNA of the given pointer and return it in the output parameter.
+ * Returns true if `ptr` has a RNACacheFile, false otherwise. If false, the output parameter is not
+ * initialized.
+ */
+bool uiTemplateCacheFilePointer(struct PointerRNA *ptr,
+                                const char *propname,
+                                struct PointerRNA *r_file_ptr);
+
+/**
+ * Draw the velocity related properties of the CacheFile.
+ */
+void uiTemplateCacheFileVelocity(uiLayout *layout, struct PointerRNA *fileptr);
+
+/**
+ * Draw the render procedural related properties of the CacheFile.
+ */
+void uiTemplateCacheFileProcedural(uiLayout *layout,
+                                   const struct bContext *C,
+                                   struct PointerRNA *fileptr);
+
+/**
+ * Draw the time related properties of the CacheFile.
+ */
+void uiTemplateCacheFileTimeSettings(uiLayout *layout, struct PointerRNA *fileptr);
 
 /* Default UIList class name, keep in sync with its declaration in bl_ui/__init__.py */
 #define UI_UL_DEFAULT_CLASS_NAME "UI_UL_list"

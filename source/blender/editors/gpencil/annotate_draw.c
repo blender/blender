@@ -165,7 +165,7 @@ static void annotation_draw_stroke_buffer(bGPdata *gps,
     immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
     immUniformColor3fvAlpha(ink, ink[3]);
     immBegin(GPU_PRIM_POINTS, 1);
-    immVertex2fv(pos, &pt->x);
+    immVertex2fv(pos, pt->m_xy);
   }
   else {
     float oldpressure = points[0].pressure;
@@ -191,7 +191,7 @@ static void annotation_draw_stroke_buffer(bGPdata *gps,
       if (fabsf(pt->pressure - oldpressure) > 0.2f) {
         /* need to have 2 points to avoid immEnd assert error */
         if (draw_points < 2) {
-          immVertex2fv(pos, &(pt - 1)->x);
+          immVertex2fv(pos, (pt - 1)->m_xy);
         }
 
         immEnd();
@@ -202,7 +202,7 @@ static void annotation_draw_stroke_buffer(bGPdata *gps,
 
         /* need to roll-back one point to ensure that there are no gaps in the stroke */
         if (i != 0) {
-          immVertex2fv(pos, &(pt - 1)->x);
+          immVertex2fv(pos, (pt - 1)->m_xy);
           draw_points++;
         }
 
@@ -210,12 +210,12 @@ static void annotation_draw_stroke_buffer(bGPdata *gps,
       }
 
       /* now the point we want */
-      immVertex2fv(pos, &pt->x);
+      immVertex2fv(pos, pt->m_xy);
       draw_points++;
     }
     /* need to have 2 points to avoid immEnd assert error */
     if (draw_points < 2) {
-      immVertex2fv(pos, &(pt - 1)->x);
+      immVertex2fv(pos, (pt - 1)->m_xy);
     }
   }
 
@@ -227,14 +227,14 @@ static void annotation_draw_stroke_buffer(bGPdata *gps,
     if ((sflag & GP_STROKE_USE_ARROW_END) &&
         (runtime.arrow_end_style != GP_STROKE_ARROWSTYLE_NONE)) {
       float end[2];
-      copy_v2_fl2(end, points[1].x, points[1].y);
+      copy_v2_v2(end, points[1].m_xy);
       annotation_draw_stroke_arrow_buffer(pos, end, runtime.arrow_end, runtime.arrow_end_style);
     }
     /* Draw starting arrow stroke. */
     if ((sflag & GP_STROKE_USE_ARROW_START) &&
         (runtime.arrow_start_style != GP_STROKE_ARROWSTYLE_NONE)) {
       float start[2];
-      copy_v2_fl2(start, points[0].x, points[0].y);
+      copy_v2_v2(start, points[0].m_xy);
       annotation_draw_stroke_arrow_buffer(
           pos, start, runtime.arrow_start, runtime.arrow_start_style);
     }

@@ -1131,7 +1131,7 @@ static void do_render_compositor_scenes(Render *re)
             render_scene_has_layers_to_render(scene, false)) {
           do_render_compositor_scene(re, scene, cfra);
           BLI_gset_add(scenes_rendered, scene);
-          nodeUpdate(restore_scene->nodetree, node);
+          node->typeinfo->updatefunc(restore_scene->nodetree, node);
         }
       }
     }

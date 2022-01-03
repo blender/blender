@@ -318,6 +318,10 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
       params->flag |= RNA_boolean_get(op->ptr, "active_collection") ? FILE_ACTIVE_COLLECTION : 0;
     }
 
+    if ((prop = RNA_struct_find_property(op->ptr, "allow_path_tokens"))) {
+      params->flag |= RNA_property_boolean_get(op->ptr, prop) ? FILE_PATH_TOKENS_ALLOW : 0;
+    }
+
     if ((prop = RNA_struct_find_property(op->ptr, "display_type"))) {
       params->display = RNA_property_enum_get(op->ptr, prop);
     }

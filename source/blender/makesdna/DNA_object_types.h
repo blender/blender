@@ -126,7 +126,12 @@ typedef struct Object_Runtime {
   /** Did last modifier stack generation need mapping support? */
   char last_need_mapping;
 
-  char _pad0[3];
+  /** Opaque data reserved for management of objects in collection context.
+   *  E.g. used currently to check for potential duplicates of objects in a collection, after
+   * remapping process. */
+  char collection_management;
+
+  char _pad0[2];
 
   /** Only used for drawing the parent/child help-line. */
   float parent_display_origin[3];

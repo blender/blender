@@ -95,6 +95,7 @@ class SocketDeclaration {
   bool compact_ = false;
   bool is_multi_input_ = false;
   bool no_mute_links_ = false;
+  bool is_unavailable_ = false;
   bool is_attribute_name_ = false;
   bool is_default_link_socket_ = false;
 
@@ -185,9 +186,20 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
     decl_->description_ = std::move(value);
     return *(Self *)this;
   }
+
   Self &no_muted_links(bool value = true)
   {
     decl_->no_mute_links_ = value;
+    return *(Self *)this;
+  }
+
+  /**
+   * Used for sockets that are always unavailable and should not be seen by the user.
+   * Ideally, no new calls to this method should be added over time.
+   */
+  Self &unavailable(bool value = true)
+  {
+    decl_->is_unavailable_ = value;
     return *(Self *)this;
   }
 

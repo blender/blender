@@ -64,17 +64,26 @@ static FieldTreeInfo preprocess_field_tree(Span<GFieldRef> entry_fields)
 
   while (!fields_to_check.is_empty()) {
     GFieldRef field = fields_to_check.pop();
-    if (field.node().is_input()) {
-      const FieldInput &field_input = static_cast<const FieldInput &>(field.node());
-      field_tree_info.deduplicated_field_inputs.add(field_input);
-      continue;
-    }
-    BLI_assert(field.node().is_operation());
-    const FieldOperation &operation = static_cast<const FieldOperation &>(field.node());
-    for (const GFieldRef operation_input : operation.inputs()) {
-      field_tree_info.field_users.add(operation_input, field);
-      if (handled_fields.add(operation_input)) {
-        fields_to_check.push(operation_input);
+    const FieldNode &field_node = field.node();
+    switch (field_node.node_type()) {
+      case FieldNodeType::Input: {
+        const FieldInput &field_input = static_cast<const FieldInput &>(field_node);
+        field_tree_info.deduplicated_field_inputs.add(field_input);
+        break;
+      }
+      case FieldNodeType::Operation: {
+        const FieldOperation &operation = static_cast<const FieldOperation &>(field_node);
+        for (const GFieldRef operation_input : operation.inputs()) {
+          field_tree_info.field_users.add(operation_input, field);
+          if (handled_fields.add(operation_input)) {
+            fields_to_check.push(operation_input);
+          }
+        }
+        break;
+      }
+      case FieldNodeType::Constant: {
+        /* Nothing to do. */
+        break;
       }
     }
   }
@@ -179,56 +188,71 @@ static void build_multi_function_procedure_for_fields(MFProcedure &procedure,
         fields_to_check.pop();
         continue;
       }
-      /* Field inputs should already be handled above. */
-      BLI_assert(field.node().is_operation());
+      const FieldNode &field_node = field.node();
+      switch (field_node.node_type()) {
+        case FieldNodeType::Input: {
+          /* Field inputs should already be handled above. */
+          break;
+        }
+        case FieldNodeType::Operation: {
+          const FieldOperation &operation_node = static_cast<const FieldOperation &>(field.node());
+          const Span<GField> operation_inputs = operation_node.inputs();
 
-      const FieldOperation &operation = static_cast<const FieldOperation &>(field.node());
-      const Span<GField> operation_inputs = operation.inputs();
-
-      if (field_with_index.current_input_index < operation_inputs.size()) {
-        /* Not all inputs are handled yet. Push the next input field to the stack and increment the
-         * input index. */
-        fields_to_check.push({operation_inputs[field_with_index.current_input_index]});
-        field_with_index.current_input_index++;
-      }
-      else {
-        /* All inputs variables are ready, now gather all variables that are used by the function
-         * and call it. */
-        const MultiFunction &multi_function = operation.multi_function();
-        Vector<MFVariable *> variables(multi_function.param_amount());
-
-        int param_input_index = 0;
-        int param_output_index = 0;
-        for (const int param_index : multi_function.param_indices()) {
-          const MFParamType param_type = multi_function.param_type(param_index);
-          const MFParamType::InterfaceType interface_type = param_type.interface_type();
-          if (interface_type == MFParamType::Input) {
-            const GField &input_field = operation_inputs[param_input_index];
-            variables[param_index] = variable_by_field.lookup(input_field);
-            param_input_index++;
-          }
-          else if (interface_type == MFParamType::Output) {
-            const GFieldRef output_field{operation, param_output_index};
-            const bool output_is_ignored =
-                field_tree_info.field_users.lookup(output_field).is_empty() &&
-                !output_fields.contains(output_field);
-            if (output_is_ignored) {
-              /* Ignored outputs don't need a variable. */
-              variables[param_index] = nullptr;
-            }
-            else {
-              /* Create a new variable for used outputs. */
-              MFVariable &new_variable = procedure.new_variable(param_type.data_type());
-              variables[param_index] = &new_variable;
-              variable_by_field.add_new(output_field, &new_variable);
-            }
-            param_output_index++;
+          if (field_with_index.current_input_index < operation_inputs.size()) {
+            /* Not all inputs are handled yet. Push the next input field to the stack and increment
+             * the input index. */
+            fields_to_check.push({operation_inputs[field_with_index.current_input_index]});
+            field_with_index.current_input_index++;
           }
           else {
-            BLI_assert_unreachable();
+            /* All inputs variables are ready, now gather all variables that are used by the
+             * function and call it. */
+            const MultiFunction &multi_function = operation_node.multi_function();
+            Vector<MFVariable *> variables(multi_function.param_amount());
+
+            int param_input_index = 0;
+            int param_output_index = 0;
+            for (const int param_index : multi_function.param_indices()) {
+              const MFParamType param_type = multi_function.param_type(param_index);
+              const MFParamType::InterfaceType interface_type = param_type.interface_type();
+              if (interface_type == MFParamType::Input) {
+                const GField &input_field = operation_inputs[param_input_index];
+                variables[param_index] = variable_by_field.lookup(input_field);
+                param_input_index++;
+              }
+              else if (interface_type == MFParamType::Output) {
+                const GFieldRef output_field{operation_node, param_output_index};
+                const bool output_is_ignored =
+                    field_tree_info.field_users.lookup(output_field).is_empty() &&
+                    !output_fields.contains(output_field);
+                if (output_is_ignored) {
+                  /* Ignored outputs don't need a variable. */
+                  variables[param_index] = nullptr;
+                }
+                else {
+                  /* Create a new variable for used outputs. */
+                  MFVariable &new_variable = procedure.new_variable(param_type.data_type());
+                  variables[param_index] = &new_variable;
+                  variable_by_field.add_new(output_field, &new_variable);
+                }
+                param_output_index++;
+              }
+              else {
+                BLI_assert_unreachable();
+              }
+            }
+            builder.add_call_with_all_variables(multi_function, variables);
           }
+          break;
         }
-        builder.add_call_with_all_variables(multi_function, variables);
+        case FieldNodeType::Constant: {
+          const FieldConstant &constant_node = static_cast<const FieldConstant &>(field_node);
+          const MultiFunction &fn = procedure.construct_function<CustomMF_GenericConstant>(
+              constant_node.type(), constant_node.value().get(), false);
+          MFVariable &new_variable = *builder.add_call<1>(fn)[0];
+          variable_by_field.add_new(field, &new_variable);
+          break;
+        }
       }
     }
   }
@@ -301,17 +325,29 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
   Vector<GVArray> field_context_inputs = get_field_context_inputs(
       scope, mask, context, field_tree_info.deduplicated_field_inputs);
 
-  /* Finish fields that output an input varray directly. For those we don't have to do any further
-   * processing. */
+  /* Finish fields that don't need any processing directly. */
   for (const int out_index : fields_to_evaluate.index_range()) {
     const GFieldRef &field = fields_to_evaluate[out_index];
-    if (!field.node().is_input()) {
-      continue;
+    const FieldNode &field_node = field.node();
+    switch (field_node.node_type()) {
+      case FieldNodeType::Input: {
+        const FieldInput &field_input = static_cast<const FieldInput &>(field.node());
+        const int field_input_index = field_tree_info.deduplicated_field_inputs.index_of(
+            field_input);
+        const GVArray &varray = field_context_inputs[field_input_index];
+        r_varrays[out_index] = varray;
+        break;
+      }
+      case FieldNodeType::Constant: {
+        const FieldConstant &field_constant = static_cast<const FieldConstant &>(field.node());
+        r_varrays[out_index] = GVArray::ForSingleRef(
+            field_constant.type(), mask.min_array_size(), field_constant.value().get());
+        break;
+      }
+      case FieldNodeType::Operation: {
+        break;
+      }
     }
-    const FieldInput &field_input = static_cast<const FieldInput &>(field.node());
-    const int field_input_index = field_tree_info.deduplicated_field_inputs.index_of(field_input);
-    const GVArray &varray = field_context_inputs[field_input_index];
-    r_varrays[out_index] = varray;
   }
 
   Set<GFieldRef> varying_fields = find_varying_fields(field_tree_info, field_context_inputs);
@@ -491,9 +527,8 @@ GField make_field_constant_if_possible(GField field)
 
 GField make_constant_field(const CPPType &type, const void *value)
 {
-  auto constant_fn = std::make_unique<CustomMF_GenericConstant>(type, value, true);
-  auto operation = std::make_shared<FieldOperation>(std::move(constant_fn));
-  return GField{std::move(operation), 0};
+  auto constant_node = std::make_shared<FieldConstant>(type, value);
+  return GField{std::move(constant_node)};
 }
 
 GVArray FieldContext::get_varray_for_input(const FieldInput &field_input,
@@ -602,7 +637,7 @@ static std::shared_ptr<const FieldInputs> combine_field_inputs(Span<GField> fiel
 }
 
 FieldOperation::FieldOperation(const MultiFunction &function, Vector<GField> inputs)
-    : FieldNode(false), function_(&function), inputs_(std::move(inputs))
+    : FieldNode(FieldNodeType::Operation), function_(&function), inputs_(std::move(inputs))
 {
   field_inputs_ = combine_field_inputs(inputs_);
 }
@@ -612,12 +647,46 @@ FieldOperation::FieldOperation(const MultiFunction &function, Vector<GField> inp
  */
 
 FieldInput::FieldInput(const CPPType &type, std::string debug_name)
-    : FieldNode(true), type_(&type), debug_name_(std::move(debug_name))
+    : FieldNode(FieldNodeType::Input), type_(&type), debug_name_(std::move(debug_name))
 {
   std::shared_ptr<FieldInputs> field_inputs = std::make_shared<FieldInputs>();
   field_inputs->nodes.add_new(this);
   field_inputs->deduplicated_nodes.add_new(*this);
   field_inputs_ = std::move(field_inputs);
+}
+
+/* --------------------------------------------------------------------
+ * FieldConstant.
+ */
+
+FieldConstant::FieldConstant(const CPPType &type, const void *value)
+    : FieldNode(FieldNodeType::Constant), type_(type)
+{
+  value_ = MEM_mallocN_aligned(type.size(), type.alignment(), __func__);
+  type.copy_construct(value, value_);
+}
+
+FieldConstant::~FieldConstant()
+{
+  type_.destruct(value_);
+  MEM_freeN(value_);
+}
+
+const CPPType &FieldConstant::output_cpp_type(int output_index) const
+{
+  BLI_assert(output_index == 0);
+  UNUSED_VARS_NDEBUG(output_index);
+  return type_;
+}
+
+const CPPType &FieldConstant::type() const
+{
+  return type_;
+}
+
+const GPointer FieldConstant::value() const
+{
+  return {type_, value_};
 }
 
 /* --------------------------------------------------------------------

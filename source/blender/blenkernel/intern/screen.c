@@ -900,7 +900,7 @@ ARegion *BKE_area_find_region_active_win(ScrArea *area)
   return BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 }
 
-ARegion *BKE_area_find_region_xy(ScrArea *area, const int regiontype, int x, int y)
+ARegion *BKE_area_find_region_xy(ScrArea *area, const int regiontype, const int xy[2])
 {
   if (area == NULL) {
     return NULL;
@@ -908,7 +908,7 @@ ARegion *BKE_area_find_region_xy(ScrArea *area, const int regiontype, int x, int
 
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     if (ELEM(regiontype, RGN_TYPE_ANY, region->regiontype)) {
-      if (BLI_rcti_isect_pt(&region->winrct, x, y)) {
+      if (BLI_rcti_isect_pt_v(&region->winrct, xy)) {
         return region;
       }
     }
@@ -916,11 +916,11 @@ ARegion *BKE_area_find_region_xy(ScrArea *area, const int regiontype, int x, int
   return NULL;
 }
 
-ARegion *BKE_screen_find_region_xy(bScreen *screen, const int regiontype, int x, int y)
+ARegion *BKE_screen_find_region_xy(bScreen *screen, const int regiontype, const int xy[2])
 {
   LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
     if (ELEM(regiontype, RGN_TYPE_ANY, region->regiontype)) {
-      if (BLI_rcti_isect_pt(&region->winrct, x, y)) {
+      if (BLI_rcti_isect_pt_v(&region->winrct, xy)) {
         return region;
       }
     }
@@ -961,11 +961,10 @@ ScrArea *BKE_screen_find_big_area(bScreen *screen, const int spacetype, const sh
 
 ScrArea *BKE_screen_area_map_find_area_xy(const ScrAreaMap *areamap,
                                           const int spacetype,
-                                          int x,
-                                          int y)
+                                          const int xy[2])
 {
   LISTBASE_FOREACH (ScrArea *, area, &areamap->areabase) {
-    if (BLI_rcti_isect_pt(&area->totrct, x, y)) {
+    if (BLI_rcti_isect_pt_v(&area->totrct, xy)) {
       if (ELEM(spacetype, SPACE_TYPE_ANY, area->spacetype)) {
         return area;
       }
@@ -974,9 +973,9 @@ ScrArea *BKE_screen_area_map_find_area_xy(const ScrAreaMap *areamap,
   }
   return NULL;
 }
-ScrArea *BKE_screen_find_area_xy(bScreen *screen, const int spacetype, int x, int y)
+ScrArea *BKE_screen_find_area_xy(bScreen *screen, const int spacetype, const int xy[2])
 {
-  return BKE_screen_area_map_find_area_xy(AREAMAP_FROM_SCREEN(screen), spacetype, x, y);
+  return BKE_screen_area_map_find_area_xy(AREAMAP_FROM_SCREEN(screen), spacetype, xy);
 }
 
 void BKE_screen_view3d_sync(View3D *v3d, struct Scene *scene)
@@ -1016,16 +1015,13 @@ void BKE_screen_view3d_shading_init(View3DShading *shading)
   memcpy(shading, shading_default, sizeof(*shading));
 }
 
-ARegion *BKE_screen_find_main_region_at_xy(bScreen *screen,
-                                           const int space_type,
-                                           const int x,
-                                           const int y)
+ARegion *BKE_screen_find_main_region_at_xy(bScreen *screen, const int space_type, const int xy[2])
 {
-  ScrArea *area = BKE_screen_find_area_xy(screen, space_type, x, y);
+  ScrArea *area = BKE_screen_find_area_xy(screen, space_type, xy);
   if (!area) {
     return NULL;
   }
-  return BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, x, y);
+  return BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, xy);
 }
 
 /* Magic zoom calculation, no idea what it signifies, if you find out, tell me! -zr

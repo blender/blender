@@ -725,7 +725,7 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
   region->type = &type;
 
   /* create searchbox data */
-  uiSearchboxData *data = (uiSearchboxData *)MEM_callocN(sizeof(uiSearchboxData), __func__);
+  uiSearchboxData *data = MEM_cnew<uiSearchboxData>(__func__);
 
   /* set font, get bb */
   data->fstyle = style->widget; /* copy struct */
@@ -1021,7 +1021,7 @@ void ui_but_search_refresh(uiButSearch *search_but)
     return;
   }
 
-  uiSearchItems *items = (uiSearchItems *)MEM_callocN(sizeof(uiSearchItems), __func__);
+  uiSearchItems *items = MEM_cnew<uiSearchItems>(__func__);
 
   /* setup search struct */
   items->maxitem = 10;

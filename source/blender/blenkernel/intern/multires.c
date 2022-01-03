@@ -1224,7 +1224,7 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
   // set up subdivision surface
   BKE_multires_subdiv_settings_init(&settings2, &mmdcpy);
   Subdiv *sd = BKE_subdiv_new_from_mesh(&settings2, me);
-  BKE_subdiv_eval_begin_from_mesh(sd, me, NULL);
+  BKE_subdiv_eval_begin_from_mesh(sd, me, NULL, SUBDIV_EVALUATOR_TYPE_CPU, NULL);
 
   // create a fake object with .sculpt set to NULL
   Object fakeob;

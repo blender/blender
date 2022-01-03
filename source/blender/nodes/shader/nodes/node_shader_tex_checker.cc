@@ -19,7 +19,7 @@
 
 #include "../node_shader_util.h"
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_tex_checker_cc {
 
 static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
 {
@@ -36,11 +36,9 @@ static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Fac"));
 };
 
-}  // namespace blender::nodes
-
 static void node_shader_init_tex_checker(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexChecker *tex = (NodeTexChecker *)MEM_callocN(sizeof(NodeTexChecker), "NodeTexChecker");
+  NodeTexChecker *tex = MEM_cnew<NodeTexChecker>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
 
@@ -58,8 +56,6 @@ static int node_shader_gpu_tex_checker(GPUMaterial *mat,
 
   return GPU_stack_link(mat, node, "node_tex_checker", in, out);
 }
-
-namespace blender::nodes {
 
 class NodeTexChecker : public fn::MultiFunction {
  public:
@@ -121,19 +117,21 @@ static void sh_node_tex_checker_build_multi_function(
   builder.set_matching_fn(fn);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_shader_tex_checker_cc
 
 void register_node_type_sh_tex_checker()
 {
+  namespace file_ns = blender::nodes::node_shader_tex_checker_cc;
+
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_CHECKER, "Checker Texture", NODE_CLASS_TEXTURE, 0);
-  ntype.declare = blender::nodes::sh_node_tex_checker_declare;
-  node_type_init(&ntype, node_shader_init_tex_checker);
+  ntype.declare = file_ns::sh_node_tex_checker_declare;
+  node_type_init(&ntype, file_ns::node_shader_init_tex_checker);
   node_type_storage(
       &ntype, "NodeTexChecker", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, node_shader_gpu_tex_checker);
-  ntype.build_multi_function = blender::nodes::sh_node_tex_checker_build_multi_function;
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_checker);
+  ntype.build_multi_function = file_ns::sh_node_tex_checker_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

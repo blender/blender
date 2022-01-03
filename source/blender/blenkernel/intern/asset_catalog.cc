@@ -24,13 +24,17 @@
 #include "BKE_asset_catalog.hh"
 #include "BKE_asset_library.h"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 #include "BLI_path_util.h"
 
 /* For S_ISREG() and S_ISDIR() on Windows. */
 #ifdef WIN32
 #  include "BLI_winstuff.h"
 #endif
+
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"bke.asset_service"};
 
 namespace blender::bke {
 
@@ -311,6 +315,7 @@ void AssetCatalogService::load_from_disk(const CatalogFilePath &file_or_director
   BLI_stat_t status;
   if (BLI_stat(file_or_directory_path.data(), &status) == -1) {
     /* TODO(@sybren): throw an appropriate exception. */
+    CLOG_WARN(&LOG, "path not found: %s", file_or_directory_path.data());
     return;
   }
 
@@ -337,6 +342,7 @@ void AssetCatalogService::load_directory_recursive(const CatalogFilePath &direct
 
   if (!BLI_exists(file_path.data())) {
     /* No file to be loaded is perfectly fine. */
+    CLOG_INFO(&LOG, 2, "path not found: %s", file_path.data());
     return;
   }
 
@@ -824,8 +830,12 @@ void AssetCatalogDefinitionFile::parse_catalog_file(
     const CatalogFilePath &catalog_definition_file_path,
     AssetCatalogParsedFn catalog_loaded_callback)
 {
-  std::fstream infile(catalog_definition_file_path);
+  fstream infile(catalog_definition_file_path, std::ios::in);
 
+  if (!infile.is_open()) {
+    CLOG_ERROR(&LOG, "%s: unable to open file", catalog_definition_file_path.c_str());
+    return;
+  }
   bool seen_version_number = false;
   std::string line;
   while (std::getline(infile, line)) {
@@ -956,7 +966,7 @@ bool AssetCatalogDefinitionFile::write_to_disk_unsafe(const CatalogFilePath &des
     return false;
   }
 
-  std::ofstream output(dest_file_path);
+  fstream output(dest_file_path, std::ios::out);
 
   /* TODO(@sybren): remember the line ending style that was originally read, then use that to write
    * the file again. */

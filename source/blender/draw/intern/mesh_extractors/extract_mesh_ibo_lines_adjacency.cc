@@ -26,6 +26,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "draw_subdivision.h"
 #include "extract_mesh.h"
 
 namespace blender::draw {
@@ -44,6 +45,18 @@ struct MeshExtract_LineAdjacency_Data {
   uint *vert_to_loop;
 };
 
+static void line_adjacency_data_init(MeshExtract_LineAdjacency_Data *data,
+                                     uint vert_len,
+                                     uint loop_len,
+                                     uint tess_edge_len)
+{
+  data->vert_to_loop = static_cast<uint *>(MEM_callocN(sizeof(uint) * vert_len, __func__));
+
+  GPU_indexbuf_init(&data->elb, GPU_PRIM_LINES_ADJ, tess_edge_len, loop_len);
+  data->eh = BLI_edgehash_new_ex(__func__, tess_edge_len);
+  data->is_manifold = true;
+}
+
 static void extract_lines_adjacency_init(const MeshRenderData *mr,
                                          struct MeshBatchCache *UNUSED(cache),
                                          void *UNUSED(buf),
@@ -55,11 +68,7 @@ static void extract_lines_adjacency_init(const MeshRenderData *mr,
   uint tess_edge_len = mr->loop_len + mr->tri_len - mr->poly_len;
 
   MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(tls_data);
-  data->vert_to_loop = static_cast<uint *>(MEM_callocN(sizeof(uint) * mr->vert_len, __func__));
-
-  GPU_indexbuf_init(&data->elb, GPU_PRIM_LINES_ADJ, tess_edge_len, mr->loop_len);
-  data->eh = BLI_edgehash_new_ex(__func__, tess_edge_len);
-  data->is_manifold = true;
+  line_adjacency_data_init(data, mr->vert_len, mr->loop_len, tess_edge_len);
 }
 
 BLI_INLINE void lines_adjacency_triangle(
@@ -171,6 +180,56 @@ static void extract_lines_adjacency_finish(const MeshRenderData *UNUSED(mr),
   MEM_freeN(data->vert_to_loop);
 }
 
+static void extract_lines_adjacency_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                                const MeshRenderData *UNUSED(mr),
+                                                struct MeshBatchCache *UNUSED(cache),
+                                                void *UNUSED(buf),
+                                                void *_data)
+{
+  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
+
+  /* For each polygon there is (loop + triangle - 1) edges. Since we only have quads, and a quad
+   * is split into 2 triangles, we have (loop + 2 - 1) = (loop + 1) edges for each quad, or in
+   * total: (number_of_loops + number_of_quads). */
+  const uint tess_len = subdiv_cache->num_subdiv_loops + subdiv_cache->num_subdiv_quads;
+  line_adjacency_data_init(
+      data, tess_len, subdiv_cache->num_subdiv_verts, subdiv_cache->num_subdiv_loops);
+}
+
+static void extract_lines_adjacency_iter_subdiv(const DRWSubdivCache *subdiv_cache,
+                                                const MeshRenderData *UNUSED(mr),
+                                                void *_data)
+{
+  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
+
+  for (uint i = 0; i < subdiv_cache->num_subdiv_quads; i++) {
+    const uint loop_index = i * 4;
+    const uint l0 = loop_index + 0;
+    const uint l1 = loop_index + 1;
+    const uint l2 = loop_index + 2;
+    const uint l3 = loop_index + 3;
+
+    const uint v0 = subdiv_cache->subdiv_loop_subdiv_vert_index[l0];
+    const uint v1 = subdiv_cache->subdiv_loop_subdiv_vert_index[l1];
+    const uint v2 = subdiv_cache->subdiv_loop_subdiv_vert_index[l2];
+    const uint v3 = subdiv_cache->subdiv_loop_subdiv_vert_index[l3];
+
+    lines_adjacency_triangle(v0, v1, v2, l0, l1, l2, data);
+    lines_adjacency_triangle(v0, v2, v3, l0, l2, l3, data);
+  }
+}
+
+static void extract_lines_adjacency_finish_subdiv(const DRWSubdivCache *UNUSED(subdiv_cache),
+                                                  void *buf,
+                                                  void *_data)
+{
+  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
+  GPU_indexbuf_build_in_place(&data->elb, ibo);
+  BLI_edgehash_free(data->eh, nullptr);
+  MEM_freeN(data->vert_to_loop);
+}
+
 #undef NO_EDGE
 
 constexpr MeshExtract create_extractor_lines_adjacency()
@@ -180,6 +239,9 @@ constexpr MeshExtract create_extractor_lines_adjacency()
   extractor.iter_looptri_bm = extract_lines_adjacency_iter_looptri_bm;
   extractor.iter_looptri_mesh = extract_lines_adjacency_iter_looptri_mesh;
   extractor.finish = extract_lines_adjacency_finish;
+  extractor.init_subdiv = extract_lines_adjacency_init_subdiv;
+  extractor.iter_subdiv = extract_lines_adjacency_iter_subdiv;
+  extractor.finish_subdiv = extract_lines_adjacency_finish_subdiv;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_LineAdjacency_Data);
   extractor.use_threading = false;

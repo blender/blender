@@ -24,6 +24,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_movieclip.h"
+#include "BKE_node_tree_update.h"
 #include "BKE_tracking.h"
 
 #include "RNA_access.h"
@@ -415,11 +416,12 @@ static void rna_tracking_stabRotTracks_active_index_range(
   *max = max_ii(0, clip->tracking.stabilization.tot_rot_track - 1);
 }
 
-static void rna_tracking_flushUpdate(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_tracking_flushUpdate(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
 
-  nodeUpdateID(scene->nodetree, &clip->id);
+  BKE_ntree_update_tag_id_changed(bmain, &clip->id);
+  BKE_ntree_update_main(bmain, NULL);
 
   WM_main_add_notifier(NC_SCENE | ND_NODES, NULL);
   WM_main_add_notifier(NC_SCENE, NULL);

@@ -44,9 +44,11 @@ set(INC
   ../../../intern/atomic
   ../../../intern/glew-mx
   ../../../intern/guardedalloc
+  ../../../intern/opensubdiv
 
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
+  ${OPENSUBDIV_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -85,12 +87,13 @@ set(SRC
   intern/draw_cache_impl_curve.cc
   intern/draw_cache_impl_displist.c
   intern/draw_cache_impl_gpencil.c
-  intern/draw_cache_impl_hair.c
+  intern/draw_cache_impl_hair.cc
   intern/draw_cache_impl_lattice.c
   intern/draw_cache_impl_mesh.c
   intern/draw_cache_impl_metaball.c
   intern/draw_cache_impl_particles.c
   intern/draw_cache_impl_pointcloud.c
+  intern/draw_cache_impl_subdivision.cc
   intern/draw_cache_impl_volume.c
   intern/draw_color_management.cc
   intern/draw_common.c
@@ -209,6 +212,7 @@ set(SRC
   intern/draw_manager_testing.h
   intern/draw_manager_text.h
   intern/draw_shader.h
+  intern/draw_subdivision.h
   intern/draw_texture_pool.h
   intern/draw_view.h
   intern/draw_view_data.h
@@ -372,6 +376,18 @@ data_to_c_simple(intern/shaders/common_view_lib.glsl SRC)
 data_to_c_simple(intern/shaders/common_fxaa_lib.glsl SRC)
 data_to_c_simple(intern/shaders/common_smaa_lib.glsl SRC)
 data_to_c_simple(intern/shaders/common_fullscreen_vert.glsl SRC)
+data_to_c_simple(intern/shaders/common_subdiv_custom_data_interp_comp.glsl SRC)
+data_to_c_simple(intern/shaders/common_subdiv_ibo_lines_comp.glsl SRC)
+data_to_c_simple(intern/shaders/common_subdiv_ibo_tris_comp.glsl SRC)
+data_to_c_simple(intern/shaders/common_subdiv_lib.glsl SRC)
+data_to_c_simple(intern/shaders/common_subdiv_normals_accumulate_comp.glsl SRC)
+data_to_c_simple(intern/shaders/common_subdiv_normals_finalize_comp.glsl SRC)
+data_to_c_simple(intern/shaders/common_subdiv_patch_evaluation_comp.glsl SRC)
+data_to_c_simple(intern/shaders/common_subdiv_vbo_edge_fac_comp.glsl SRC)
+data_to_c_simple(intern/shaders/common_subdiv_vbo_edituv_strech_angle_comp.glsl SRC)
+data_to_c_simple(intern/shaders/common_subdiv_vbo_edituv_strech_area_comp.glsl SRC)
+data_to_c_simple(intern/shaders/common_subdiv_vbo_lnor_comp.glsl SRC)
+data_to_c_simple(intern/shaders/common_subdiv_vbo_sculpt_data_comp.glsl SRC)
 
 data_to_c_simple(engines/gpencil/shaders/gpencil_frag.glsl SRC)
 data_to_c_simple(engines/gpencil/shaders/gpencil_vert.glsl SRC)

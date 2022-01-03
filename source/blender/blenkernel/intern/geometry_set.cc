@@ -183,25 +183,27 @@ Vector<const GeometryComponent *> GeometrySet::get_components_for_read() const
   return components;
 }
 
-void GeometrySet::compute_boundbox_without_instances(float3 *r_min, float3 *r_max) const
+bool GeometrySet::compute_boundbox_without_instances(float3 *r_min, float3 *r_max) const
 {
+  bool have_minmax = false;
   const PointCloud *pointcloud = this->get_pointcloud_for_read();
   if (pointcloud != nullptr) {
-    BKE_pointcloud_minmax(pointcloud, *r_min, *r_max);
+    have_minmax |= BKE_pointcloud_minmax(pointcloud, *r_min, *r_max);
   }
   const Mesh *mesh = this->get_mesh_for_read();
   if (mesh != nullptr) {
-    BKE_mesh_wrapper_minmax(mesh, *r_min, *r_max);
+    have_minmax |= BKE_mesh_wrapper_minmax(mesh, *r_min, *r_max);
   }
   const Volume *volume = this->get_volume_for_read();
   if (volume != nullptr) {
-    BKE_volume_min_max(volume, *r_min, *r_max);
+    have_minmax |= BKE_volume_min_max(volume, *r_min, *r_max);
   }
   const CurveEval *curve = this->get_curve_for_read();
   if (curve != nullptr) {
     /* Using the evaluated positions is somewhat arbitrary, but it is probably expected. */
-    curve->bounds_min_max(*r_min, *r_max, true);
+    have_minmax |= curve->bounds_min_max(*r_min, *r_max, true);
   }
+  return have_minmax;
 }
 
 std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)

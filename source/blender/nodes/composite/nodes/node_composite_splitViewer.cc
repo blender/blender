@@ -43,7 +43,7 @@ static void cmp_node_split_viewer_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  ImageUser *iuser = (ImageUser *)MEM_callocN(sizeof(ImageUser), "node image user");
+  ImageUser *iuser = MEM_cnew<ImageUser>(__func__);
   node->storage = iuser;
   iuser->sfra = 1;
   node->custom1 = 50; /* default 50% split */

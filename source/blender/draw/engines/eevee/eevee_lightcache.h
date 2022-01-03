@@ -33,6 +33,10 @@ struct Scene;
 struct SceneEEVEE;
 struct ViewLayer;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Light Bake.
  */
@@ -77,3 +81,7 @@ void EEVEE_lightcache_info_update(struct SceneEEVEE *eevee);
 
 void EEVEE_lightcache_blend_write(struct BlendWriter *writer, struct LightCache *cache);
 void EEVEE_lightcache_blend_read_data(struct BlendDataReader *reader, struct LightCache *cache);
+
+#ifdef __cplusplus
+}
+#endif

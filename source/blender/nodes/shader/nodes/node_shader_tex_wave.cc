@@ -21,7 +21,7 @@
 
 #include "BLI_noise.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_tex_wave_cc {
 
 static void sh_node_tex_wave_declare(NodeDeclarationBuilder &b)
 {
@@ -41,11 +41,9 @@ static void sh_node_tex_wave_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Fac")).no_muted_links();
 };
 
-}  // namespace blender::nodes
-
 static void node_shader_init_tex_wave(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexWave *tex = (NodeTexWave *)MEM_callocN(sizeof(NodeTexWave), "NodeTexWave");
+  NodeTexWave *tex = MEM_cnew<NodeTexWave>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->wave_type = SHD_WAVE_BANDS;
@@ -80,8 +78,6 @@ static int node_shader_gpu_tex_wave(GPUMaterial *mat,
                         GPU_constant(&rings_direction),
                         GPU_constant(&wave_profile));
 }
-
-namespace blender::nodes {
 
 class WaveFunction : public fn::MultiFunction {
  private:
@@ -216,19 +212,21 @@ static void sh_node_wave_tex_build_multi_function(
       tex->wave_type, tex->bands_direction, tex->rings_direction, tex->wave_profile);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_shader_tex_wave_cc
 
 void register_node_type_sh_tex_wave()
 {
+  namespace file_ns = blender::nodes::node_shader_tex_wave_cc;
+
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_WAVE, "Wave Texture", NODE_CLASS_TEXTURE, 0);
-  ntype.declare = blender::nodes::sh_node_tex_wave_declare;
+  ntype.declare = file_ns::sh_node_tex_wave_declare;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, node_shader_init_tex_wave);
+  node_type_init(&ntype, file_ns::node_shader_init_tex_wave);
   node_type_storage(&ntype, "NodeTexWave", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, node_shader_gpu_tex_wave);
-  ntype.build_multi_function = blender::nodes::sh_node_wave_tex_build_multi_function;
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_wave);
+  ntype.build_multi_function = file_ns::sh_node_wave_tex_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

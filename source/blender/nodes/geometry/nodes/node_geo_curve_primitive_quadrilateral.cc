@@ -112,35 +112,26 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *p3 = p2->next;
   bNodeSocket *p4 = p3->next;
 
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    nodeSetSocketAvailability(ntree, sock, false);
-  }
+  Vector<bNodeSocket *> available_sockets;
 
   if (mode == GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE) {
-    nodeSetSocketAvailability(ntree, width, true);
-    nodeSetSocketAvailability(ntree, height, true);
+    available_sockets.extend({width, height});
   }
   else if (mode == GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_PARALLELOGRAM) {
-    nodeSetSocketAvailability(ntree, width, true);
-    nodeSetSocketAvailability(ntree, height, true);
-    nodeSetSocketAvailability(ntree, offset, true);
+    available_sockets.extend({width, height, offset});
   }
   else if (mode == GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_TRAPEZOID) {
-    nodeSetSocketAvailability(ntree, bottom, true);
-    nodeSetSocketAvailability(ntree, top, true);
-    nodeSetSocketAvailability(ntree, offset, true);
-    nodeSetSocketAvailability(ntree, height, true);
+    available_sockets.extend({bottom, top, offset, height});
   }
   else if (mode == GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_KITE) {
-    nodeSetSocketAvailability(ntree, width, true);
-    nodeSetSocketAvailability(ntree, bottom_height, true);
-    nodeSetSocketAvailability(ntree, top_height, true);
+    available_sockets.extend({width, bottom_height, top_height});
   }
   else if (mode == GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_POINTS) {
-    nodeSetSocketAvailability(ntree, p1, true);
-    nodeSetSocketAvailability(ntree, p2, true);
-    nodeSetSocketAvailability(ntree, p3, true);
-    nodeSetSocketAvailability(ntree, p4, true);
+    available_sockets.extend({p1, p2, p3, p4});
+  }
+
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+    nodeSetSocketAvailability(ntree, sock, available_sockets.contains(sock));
   }
 }
 

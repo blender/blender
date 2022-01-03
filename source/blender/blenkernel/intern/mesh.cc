@@ -36,13 +36,16 @@
 #include "BLI_bitmap.h"
 #include "BLI_edgehash.h"
 #include "BLI_endian_switch.h"
+#include "BLI_float3.hh"
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
+#include "BLI_index_range.hh"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -457,14 +460,14 @@ static int customdata_compare(
 
   for (int i = 0; i < c1->totlayer; i++) {
     l1 = &c1->layers[i];
-    if (CD_TYPE_AS_MASK(l1->type) & cd_mask_all_attr && l1->anonymous_id != nullptr) {
+    if ((CD_TYPE_AS_MASK(l1->type) & cd_mask_all_attr) && l1->anonymous_id == nullptr) {
       layer_count1++;
     }
   }
 
   for (int i = 0; i < c2->totlayer; i++) {
     l2 = &c2->layers[i];
-    if (CD_TYPE_AS_MASK(l1->type) & cd_mask_all_attr && l2->anonymous_id != nullptr) {
+    if ((CD_TYPE_AS_MASK(l2->type) & cd_mask_all_attr) && l2->anonymous_id == nullptr) {
       layer_count2++;
     }
   }
@@ -1594,13 +1597,35 @@ void BKE_mesh_looptri_get_real_edges(const Mesh *mesh, const MLoopTri *looptri, 
 
 bool BKE_mesh_minmax(const Mesh *me, float r_min[3], float r_max[3])
 {
-  int i = me->totvert;
-  MVert *mvert;
-  for (mvert = me->mvert; i--; mvert++) {
-    minmax_v3v3_v3(r_min, r_max, mvert->co);
+  using namespace blender;
+  if (me->totvert == 0) {
+    return false;
   }
 
-  return (me->totvert != 0);
+  struct Result {
+    float3 min;
+    float3 max;
+  };
+
+  const Result minmax = threading::parallel_reduce(
+      IndexRange(me->totvert),
+      1024,
+      Result{float3(FLT_MAX), float3(-FLT_MAX)},
+      [&](IndexRange range, const Result &init) {
+        Result result = init;
+        for (const int i : range) {
+          float3::min_max(me->mvert[i].co, result.min, result.max);
+        }
+        return result;
+      },
+      [](const Result &a, const Result &b) {
+        return Result{float3::min(a.min, b.min), float3::max(a.max, b.max)};
+      });
+
+  copy_v3_v3(r_min, float3::min(minmax.min, r_min));
+  copy_v3_v3(r_max, float3::max(minmax.max, r_max));
+
+  return true;
 }
 
 void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)

@@ -20,7 +20,7 @@
 
 #include "node_function_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_fn_string_length_cc {
 
 static void fn_node_string_length_declare(NodeDeclarationBuilder &b)
 {
@@ -35,14 +35,16 @@ static void fn_node_string_length_build_multi_function(NodeMultiFunctionBuilder 
   builder.set_matching_fn(&str_len_fn);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_fn_string_length_cc
 
 void register_node_type_fn_string_length()
 {
+  namespace file_ns = blender::nodes::node_fn_string_length_cc;
+
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_STRING_LENGTH, "String Length", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::fn_node_string_length_declare;
-  ntype.build_multi_function = blender::nodes::fn_node_string_length_build_multi_function;
+  ntype.declare = file_ns::fn_node_string_length_declare;
+  ntype.build_multi_function = file_ns::fn_node_string_length_build_multi_function;
   nodeRegisterType(&ntype);
 }

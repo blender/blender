@@ -21,7 +21,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-namespace blender::nodes {
+namespace blender::nodes::node_fn_input_bool_cc {
 
 static void fn_node_input_bool_declare(NodeDeclarationBuilder &b)
 {
@@ -43,22 +43,24 @@ static void fn_node_input_bool_build_multi_function(NodeMultiFunctionBuilder &bu
 
 static void fn_node_input_bool_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeInputBool *data = (NodeInputBool *)MEM_callocN(sizeof(NodeInputBool), __func__);
+  NodeInputBool *data = MEM_cnew<NodeInputBool>(__func__);
   node->storage = data;
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_fn_input_bool_cc
 
 void register_node_type_fn_input_bool()
 {
+  namespace file_ns = blender::nodes::node_fn_input_bool_cc;
+
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_INPUT_BOOL, "Boolean", 0, 0);
-  ntype.declare = blender::nodes::fn_node_input_bool_declare;
-  node_type_init(&ntype, blender::nodes::fn_node_input_bool_init);
+  ntype.declare = file_ns::fn_node_input_bool_declare;
+  node_type_init(&ntype, file_ns::fn_node_input_bool_init);
   node_type_storage(
       &ntype, "NodeInputBool", node_free_standard_storage, node_copy_standard_storage);
-  ntype.build_multi_function = blender::nodes::fn_node_input_bool_build_multi_function;
-  ntype.draw_buttons = blender::nodes::fn_node_input_bool_layout;
+  ntype.build_multi_function = file_ns::fn_node_input_bool_build_multi_function;
+  ntype.draw_buttons = file_ns::fn_node_input_bool_layout;
   nodeRegisterType(&ntype);
 }

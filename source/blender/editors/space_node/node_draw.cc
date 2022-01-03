@@ -176,35 +176,6 @@ void ED_node_tag_update_id(ID *id)
   }
 }
 
-void ED_node_tag_update_nodetree(Main *bmain, bNodeTree *ntree, bNode *node)
-{
-  if (!ntree) {
-    return;
-  }
-
-  bool do_tag_update = true;
-  if (node != nullptr) {
-    if (!node_connected_to_output(*bmain, *ntree, *node)) {
-      do_tag_update = false;
-    }
-  }
-
-  /* Look through all datablocks to support groups. */
-  if (do_tag_update) {
-    FOREACH_NODETREE_BEGIN (bmain, tntree, id) {
-      /* Check if nodetree uses the group. */
-      if (ntreeHasTree(tntree, ntree)) {
-        ED_node_tag_update_id(id);
-      }
-    }
-    FOREACH_NODETREE_END;
-  }
-
-  if (ntree->type == NTREE_TEXTURE) {
-    ntreeTexCheckCyclics(ntree);
-  }
-}
-
 static bool compare_nodes(const bNode *a, const bNode *b)
 {
   /* These tell if either the node or any of the parent nodes is selected.
@@ -2409,7 +2380,6 @@ static void node_update_nodetree(const bContext &C,
 {
   /* Make sure socket "used" tags are correct, for displaying value buttons. */
   SpaceNode *snode = CTX_wm_space_node(&C);
-  ntreeTagUsedSockets(&ntree);
 
   count_multi_input_socket_links(ntree, *snode);
 

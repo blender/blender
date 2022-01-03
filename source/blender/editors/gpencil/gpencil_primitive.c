@@ -423,6 +423,7 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
   Scene *scene = tgpi->scene;
   char status_str[UI_MAX_DRAW_STR];
   char msg_str[UI_MAX_DRAW_STR];
+  const int cur_subdiv = tgpi->type == GP_STROKE_BOX ? tgpi->tot_edges - 1 : tgpi->tot_edges - 2;
 
   if (tgpi->type == GP_STROKE_LINE) {
     BLI_strncpy(msg_str,
@@ -480,7 +481,7 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
                      sizeof(status_str),
                      "%s: %d (%d, %d) (%d, %d)",
                      msg_str,
-                     tgpi->tot_edges,
+                     cur_subdiv,
                      (int)tgpi->start[0],
                      (int)tgpi->start[1],
                      (int)tgpi->end[0],
@@ -491,7 +492,7 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
                      sizeof(status_str),
                      "%s: %d (%d, %d)",
                      msg_str,
-                     tgpi->tot_edges,
+                     cur_subdiv,
                      (int)tgpi->end[0],
                      (int)tgpi->end[1]);
       }
@@ -503,7 +504,7 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
                    sizeof(status_str),
                    "%s: %d (%d, %d) (%d, %d)",
                    msg_str,
-                   tgpi->tot_edges,
+                   cur_subdiv,
                    (int)tgpi->start[0],
                    (int)tgpi->start[1],
                    (int)tgpi->end[0],
@@ -540,7 +541,7 @@ static void gpencil_primitive_rectangle(tGPDprimitive *tgpi, tGPspoint *points2D
   if (tgpi->tot_edges == 1) {
     for (int j = 0; j < 4; j++) {
       tGPspoint *p2d = &points2D[j];
-      copy_v2_v2(&p2d->x, coords[j]);
+      copy_v2_v2(p2d->m_xy, coords[j]);
     }
   }
   else {
@@ -550,7 +551,7 @@ static void gpencil_primitive_rectangle(tGPDprimitive *tgpi, tGPspoint *points2D
       float a = 0.0f;
       for (int k = 0; k < tgpi->tot_edges; k++) {
         tGPspoint *p2d = &points2D[i];
-        interp_v2_v2v2(&p2d->x, coords[j], coords[j + 1], a);
+        interp_v2_v2v2(p2d->m_xy, coords[j], coords[j + 1], a);
         a += step;
         i++;
       }
@@ -581,7 +582,7 @@ static void gpencil_primitive_line(tGPDprimitive *tgpi, tGPspoint *points2D, boo
 
   for (int i = tgpi->tot_stored_edges; i < totpoints; i++) {
     tGPspoint *p2d = &points2D[i];
-    interp_v2_v2v2(&p2d->x, tgpi->start, tgpi->end, a);
+    interp_v2_v2v2(p2d->m_xy, tgpi->start, tgpi->end, a);
     a += step;
   }
 
@@ -627,8 +628,8 @@ static void gpencil_primitive_arc(tGPDprimitive *tgpi, tGPspoint *points2D)
 
   for (int i = tgpi->tot_stored_edges; i < totpoints; i++) {
     tGPspoint *p2d = &points2D[i];
-    p2d->x = corner[0] + (end[0] - corner[0]) * sinf(a) + (start[0] - corner[0]) * cosf(a);
-    p2d->y = corner[1] + (end[1] - corner[1]) * sinf(a) + (start[1] - corner[1]) * cosf(a);
+    p2d->m_xy[0] = corner[0] + (end[0] - corner[0]) * sinf(a) + (start[0] - corner[0]) * cosf(a);
+    p2d->m_xy[1] = corner[1] + (end[1] - corner[1]) * sinf(a) + (start[1] - corner[1]) * cosf(a);
     a += step;
   }
   float color[4];
@@ -663,7 +664,7 @@ static void gpencil_primitive_bezier(tGPDprimitive *tgpi, tGPspoint *points2D)
 
   for (int i = tgpi->tot_stored_edges; i < totpoints; i++) {
     tGPspoint *p2d = &points2D[i];
-    interp_v2_v2v2v2v2_cubic(&p2d->x, bcp1, bcp2, bcp3, bcp4, a);
+    interp_v2_v2v2v2v2_cubic(p2d->m_xy, bcp1, bcp2, bcp3, bcp4, a);
     a += step;
   }
   float color[4];
@@ -697,8 +698,8 @@ static void gpencil_primitive_circle(tGPDprimitive *tgpi, tGPspoint *points2D)
 
   for (int i = tgpi->tot_stored_edges; i < totpoints; i++) {
     tGPspoint *p2d = &points2D[i];
-    p2d->x = (center[0] + cosf(a) * radius[0]);
-    p2d->y = (center[1] + sinf(a) * radius[1]);
+    p2d->m_xy[0] = (center[0] + cosf(a) * radius[0]);
+    p2d->m_xy[1] = (center[1] + sinf(a) * radius[1]);
     a += step;
   }
   float color[4];
@@ -726,7 +727,6 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
   const bool is_camera = is_lock_axis_view && (tgpi->rv3d->persp == RV3D_CAMOB) && (!is_depth);
 
   if (tgpi->type == GP_STROKE_BOX) {
-    tgpi->tot_edges--;
     gps->totpoints = (tgpi->tot_edges * 4 + tgpi->tot_stored_edges);
   }
   else {
@@ -801,7 +801,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
     const ViewDepths *depths = tgpi->depths;
     tGPspoint *ptc = &points2D[0];
     for (int i = 0; i < gps->totpoints; i++, ptc++) {
-      round_v2i_v2fl(mval_i, &ptc->x);
+      round_v2i_v2fl(mval_i, ptc->m_xy);
       if ((ED_view3d_depth_read_cached(depths, mval_i, depth_margin, depth_arr + i) == 0) &&
           (i && (ED_view3d_depth_read_cached_seg(
                      depths, mval_i, mval_prev, depth_margin + 1, depth_arr + i) == 0))) {
@@ -894,7 +894,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 
     /* Store original points */
     float tmp_xyp[2];
-    copy_v2_v2(tmp_xyp, &p2d->x);
+    copy_v2_v2(tmp_xyp, p2d->m_xy);
 
     /* calc pressure */
     float curve_pressure = 1.0;
@@ -926,8 +926,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
       /* vector */
       float mvec[2], svec[2];
       if (i > 0) {
-        mvec[0] = (p2d->x - (p2d - 1)->x);
-        mvec[1] = (p2d->y - (p2d - 1)->y);
+        sub_v2_v2v2(mvec, p2d->m_xy, (p2d - 1)->m_xy);
         normalize_v2(mvec);
       }
       else {
@@ -942,7 +941,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
       else {
         mul_v2_fl(svec, fac);
       }
-      add_v2_v2(&p2d->x, svec);
+      add_v2_v2(p2d->m_xy, svec);
     }
 
     /* color strength */
@@ -992,7 +991,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
       }
     }
 
-    copy_v2_v2(&tpt->x, &p2d->x);
+    copy_v2_v2(tpt->m_xy, p2d->m_xy);
 
     tpt->pressure = pressure;
     tpt->strength = strength;
@@ -1064,7 +1063,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
     }
 
     /* Restore original points */
-    copy_v2_v2(&p2d->x, tmp_xyp);
+    copy_v2_v2(p2d->m_xy, tmp_xyp);
   }
 
   /* store cps and convert coords */
@@ -1254,7 +1253,7 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
   tgpi->tot_stored_edges = 0;
 
   tgpi->subdiv = RNA_int_get(op->ptr, "subdivision");
-  RNA_int_set(op->ptr, "edges", tgpi->subdiv + 2);
+  RNA_int_set(op->ptr, "edges", tgpi->type == GP_STROKE_BOX ? tgpi->subdiv + 1 : tgpi->subdiv + 2);
   tgpi->tot_edges = RNA_int_get(op->ptr, "edges");
   tgpi->flag = IDLE;
   tgpi->lock_axis = ts->gp_sculpt.lock_axis;
@@ -1617,7 +1616,7 @@ static void gpencil_primitive_move(tGPDprimitive *tgpi, bool reset)
 
   for (int i = 0; i < gps->totpoints; i++) {
     tGPspoint *p2d = &points2D[i];
-    add_v2_v2(&p2d->x, move);
+    add_v2_v2(p2d->m_xy, move);
   }
 
   add_v2_v2(tgpi->start, move);
@@ -1720,7 +1719,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
       case WHEELUPMOUSE: {
         if ((event->val != KM_RELEASE)) {
           tgpi->tot_edges = tgpi->tot_edges + 1;
-          CLAMP(tgpi->tot_edges, MIN_EDGES, MAX_EDGES);
+          CLAMP(tgpi->tot_edges, tgpi->type == GP_STROKE_BOX ? 1 : MIN_EDGES, MAX_EDGES);
           RNA_int_set(op->ptr, "edges", tgpi->tot_edges);
           gpencil_primitive_update(C, op, tgpi);
         }
@@ -1730,7 +1729,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
       case WHEELDOWNMOUSE: {
         if ((event->val != KM_RELEASE)) {
           tgpi->tot_edges = tgpi->tot_edges - 1;
-          CLAMP(tgpi->tot_edges, MIN_EDGES, MAX_EDGES);
+          CLAMP(tgpi->tot_edges, tgpi->type == GP_STROKE_BOX ? 1 : MIN_EDGES, MAX_EDGES);
           RNA_int_set(op->ptr, "edges", tgpi->tot_edges);
           gpencil_primitive_update(C, op, tgpi);
         }
@@ -1886,7 +1885,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     case WHEELUPMOUSE: {
       if ((event->val != KM_RELEASE)) {
         tgpi->tot_edges = tgpi->tot_edges + 1;
-        CLAMP(tgpi->tot_edges, MIN_EDGES, MAX_EDGES);
+        CLAMP(tgpi->tot_edges, tgpi->type == GP_STROKE_BOX ? 1 : MIN_EDGES, MAX_EDGES);
         RNA_int_set(op->ptr, "edges", tgpi->tot_edges);
 
         /* update screen */
@@ -1898,7 +1897,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     case WHEELDOWNMOUSE: {
       if ((event->val != KM_RELEASE)) {
         tgpi->tot_edges = tgpi->tot_edges - 1;
-        CLAMP(tgpi->tot_edges, MIN_EDGES, MAX_EDGES);
+        CLAMP(tgpi->tot_edges, tgpi->type == GP_STROKE_BOX ? 1 : MIN_EDGES, MAX_EDGES);
         RNA_int_set(op->ptr, "edges", tgpi->tot_edges);
 
         /* update screen */
@@ -2038,15 +2037,8 @@ static void gpencil_primitive_common_props(wmOperatorType *ot, int subdiv, int t
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   /* Internal prop. */
-  prop = RNA_def_int(ot->srna,
-                     "edges",
-                     MIN_EDGES,
-                     MIN_EDGES,
-                     MAX_EDGES,
-                     "Edges",
-                     "Number of points by edge",
-                     MIN_EDGES,
-                     MAX_EDGES);
+  prop = RNA_def_int(
+      ot->srna, "edges", 1, 1, MAX_EDGES, "Edges", "Number of points by edge", 1, MAX_EDGES);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 
   RNA_def_enum(ot->srna, "type", gpencil_primitive_type, type, "Type", "Type of shape");

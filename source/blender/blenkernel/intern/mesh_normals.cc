@@ -319,6 +319,7 @@ void BKE_mesh_ensure_normals(Mesh *mesh)
 void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
 {
   switch ((eMeshWrapperType)mesh->runtime.wrapper_type) {
+    case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
       /* Run code below. */
       break;

@@ -23,7 +23,7 @@
 
 #include "node_shader_util.h"
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_mix_rgb_cc {
 
 static void sh_node_mix_rgb_declare(NodeDeclarationBuilder &b)
 {
@@ -33,8 +33,6 @@ static void sh_node_mix_rgb_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>(N_("Color2")).default_value({0.5f, 0.5f, 0.5f, 1.0f});
   b.add_output<decl::Color>(N_("Color"));
 };
-
-}  // namespace blender::nodes
 
 static void node_shader_exec_mix_rgb(void *UNUSED(data),
                                      int UNUSED(thread),
@@ -183,16 +181,20 @@ static void sh_node_mix_rgb_build_multi_function(blender::nodes::NodeMultiFuncti
   builder.construct_and_set_matching_fn<MixRGBFunction>(clamp, mix_type);
 }
 
+}  // namespace blender::nodes::node_shader_mix_rgb_cc
+
 void register_node_type_sh_mix_rgb()
 {
+  namespace file_ns = blender::nodes::node_shader_mix_rgb_cc;
+
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR, 0);
-  ntype.declare = blender::nodes::sh_node_mix_rgb_declare;
+  ntype.declare = file_ns::sh_node_mix_rgb_declare;
   ntype.labelfunc = node_blend_label;
-  node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_mix_rgb);
-  node_type_gpu(&ntype, gpu_shader_mix_rgb);
-  ntype.build_multi_function = sh_node_mix_rgb_build_multi_function;
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_mix_rgb);
+  node_type_gpu(&ntype, file_ns::gpu_shader_mix_rgb);
+  ntype.build_multi_function = file_ns::sh_node_mix_rgb_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

@@ -16,7 +16,7 @@
 
 #include "node_function_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_fn_input_special_characters_cc {
 
 static void fn_node_input_special_characters_declare(NodeDeclarationBuilder &b)
 {
@@ -59,16 +59,17 @@ static void fn_node_input_special_characters_build_multi_function(
   builder.set_matching_fn(special_characters_fn);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_fn_input_special_characters_cc
 
 void register_node_type_fn_input_special_characters()
 {
+  namespace file_ns = blender::nodes::node_fn_input_special_characters_cc;
+
   static bNodeType ntype;
 
   fn_node_type_base(
       &ntype, FN_NODE_INPUT_SPECIAL_CHARACTERS, "Special Characters", NODE_CLASS_INPUT, 0);
-  ntype.declare = blender::nodes::fn_node_input_special_characters_declare;
-  ntype.build_multi_function =
-      blender::nodes::fn_node_input_special_characters_build_multi_function;
+  ntype.declare = file_ns::fn_node_input_special_characters_declare;
+  ntype.build_multi_function = file_ns::fn_node_input_special_characters_build_multi_function;
   nodeRegisterType(&ntype);
 }

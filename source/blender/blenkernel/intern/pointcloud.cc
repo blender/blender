@@ -25,10 +25,13 @@
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "BLI_float3.hh"
+#include "BLI_index_range.hh"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_span.hh"
 #include "BLI_string.h"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.h"
@@ -50,6 +53,10 @@
 #include "DEG_depsgraph_query.h"
 
 #include "BLO_read_write.h"
+
+using blender::float3;
+using blender::IndexRange;
+using blender::Span;
 
 /* PointCloud datablock */
 
@@ -261,18 +268,64 @@ PointCloud *BKE_pointcloud_new_nomain(const int totpoint)
   return pointcloud;
 }
 
-void BKE_pointcloud_minmax(const struct PointCloud *pointcloud, float r_min[3], float r_max[3])
+struct MinMaxResult {
+  float3 min;
+  float3 max;
+};
+
+static MinMaxResult min_max_no_radii(Span<float3> positions)
 {
-  float(*pointcloud_co)[3] = pointcloud->co;
-  float *pointcloud_radius = pointcloud->radius;
-  for (int a = 0; a < pointcloud->totpoint; a++) {
-    float *co = pointcloud_co[a];
-    float radius = (pointcloud_radius) ? pointcloud_radius[a] : 0.0f;
-    const float co_min[3] = {co[0] - radius, co[1] - radius, co[2] - radius};
-    const float co_max[3] = {co[0] + radius, co[1] + radius, co[2] + radius};
-    DO_MIN(co_min, r_min);
-    DO_MAX(co_max, r_max);
+  return blender::threading::parallel_reduce(
+      positions.index_range(),
+      1024,
+      MinMaxResult{float3(FLT_MAX), float3(-FLT_MAX)},
+      [&](IndexRange range, const MinMaxResult &init) {
+        MinMaxResult result = init;
+        for (const int i : range) {
+          float3::min_max(positions[i], result.min, result.max);
+        }
+        return result;
+      },
+      [](const MinMaxResult &a, const MinMaxResult &b) {
+        return MinMaxResult{float3::min(a.min, b.min), float3::max(a.max, b.max)};
+      });
+}
+
+static MinMaxResult min_max_with_radii(Span<float3> positions, Span<float> radii)
+{
+  return blender::threading::parallel_reduce(
+      positions.index_range(),
+      1024,
+      MinMaxResult{float3(FLT_MAX), float3(-FLT_MAX)},
+      [&](IndexRange range, const MinMaxResult &init) {
+        MinMaxResult result = init;
+        for (const int i : range) {
+          result.min = float3::min(positions[i] - radii[i], result.min);
+          result.max = float3::max(positions[i] + radii[i], result.max);
+        }
+        return result;
+      },
+      [](const MinMaxResult &a, const MinMaxResult &b) {
+        return MinMaxResult{float3::min(a.min, b.min), float3::max(a.max, b.max)};
+      });
+}
+
+bool BKE_pointcloud_minmax(const PointCloud *pointcloud, float r_min[3], float r_max[3])
+{
+  if (!pointcloud->totpoint) {
+    return false;
   }
+
+  Span<float3> positions{reinterpret_cast<float3 *>(pointcloud->co), pointcloud->totpoint};
+  const MinMaxResult min_max = (pointcloud->radius) ?
+                                   min_max_with_radii(positions,
+                                                      {pointcloud->radius, pointcloud->totpoint}) :
+                                   min_max_no_radii(positions);
+
+  copy_v3_v3(r_min, float3::min(min_max.min, r_min));
+  copy_v3_v3(r_max, float3::max(min_max.max, r_max));
+
+  return true;
 }
 
 BoundBox *BKE_pointcloud_boundbox_get(Object *ob)

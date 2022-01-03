@@ -54,6 +54,7 @@
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_subdiv_modifier.h"
 
 #include "atomic_ops.h"
 
@@ -69,6 +70,7 @@
 
 #include "draw_cache_extract.h"
 #include "draw_cache_inline.h"
+#include "draw_subdivision.h"
 
 #include "draw_cache_impl.h" /* own include */
 
@@ -380,6 +382,7 @@ static void drw_mesh_attributes_add_request(DRW_MeshAttributes *attrs,
 BLI_INLINE const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *me)
 {
   switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+    case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
       return &me->ldata;
       break;
@@ -395,6 +398,7 @@ BLI_INLINE const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *me)
 BLI_INLINE const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *me)
 {
   switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+    case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
       return &me->pdata;
       break;
@@ -410,6 +414,7 @@ BLI_INLINE const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *me)
 BLI_INLINE const CustomData *mesh_cd_edata_get_from_mesh(const Mesh *me)
 {
   switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+    case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
       return &me->edata;
       break;
@@ -425,6 +430,7 @@ BLI_INLINE const CustomData *mesh_cd_edata_get_from_mesh(const Mesh *me)
 BLI_INLINE const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *me)
 {
   switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+    case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
       return &me->vdata;
       break;
@@ -493,11 +499,12 @@ static bool mesh_cd_calc_active_vcol_layer(Mesh *me, DRW_MeshAttributes *attrs_u
 static void mesh_cd_calc_active_mloopcol_layer(const Mesh *me, DRW_MeshCDMask *cd_used)
 {
   const Mesh *me_final = editmesh_final_or_this(me);
+  const CustomData *cd_vdata = mesh_cd_vdata_get_from_mesh(me_final);
   const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
 
-  int layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL);
+  int layer = mesh_cd_get_active_color_i(me_final, cd_vdata, cd_ldata);
   if (layer != -1) {
-    cd_used->vcol |= (1 << layer);
+    cd_used->vcol |= (1UL << (uint)layer);
   }
 }
 
@@ -530,10 +537,10 @@ static bool custom_data_match_attribute(const CustomData *custom_data,
   return false;
 }
 
-static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
-                                                   struct GPUMaterial **gpumat_array,
-                                                   int gpumat_array_len,
-                                                   DRW_MeshAttributes *attributes)
+ATTR_NO_OPT static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
+                                                               struct GPUMaterial **gpumat_array,
+                                                               int gpumat_array_len,
+                                                               DRW_MeshAttributes *attributes)
 {
   const Mesh *me_final = editmesh_final_or_this(me);
   const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
@@ -564,7 +571,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
           if (name[0] != '\0') {
             layer = CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name);
             type = CD_MTFACE;
-
+            
             if (layer == -1) {
               layer = CustomData_get_named_layer(cd_vdata, CD_PROP_COLOR, name);
               type = CD_PROP_COLOR;
@@ -643,27 +650,64 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
             }
             break;
           }
-          case CD_MCOL: {
-            const CustomData *cdata = domain == ATTR_DOMAIN_POINT ? cd_vdata : cd_ldata;
 
-            /* Vertex Color Data */
-            if (layer == -1) {
-              layer = (name[0] != '\0') ? CustomData_get_named_layer(cdata, CD_MLOOPCOL, name) :
-                                          CustomData_get_render_layer(cdata, CD_MLOOPCOL);
-            }
-            if (layer != -1) {
-              cd_used.vcol = 1;
-            }
-
-            break;
-          }
           case CD_ORCO: {
             cd_used.orco = 1;
             break;
           }
 
-          case CD_PROP_COLOR:
-            cd_used.vcol = 1;
+          case CD_MCOL:
+          case CD_MLOOPCOL:
+          case CD_PROP_COLOR: {
+            const AttributeRef *render = &me->attr_color_render;
+
+            if (domain == ATTR_DOMAIN_NUM) {
+              domain = render->domain;
+            }
+
+            if (layer == -1 && name[0] != '\0') {
+              layer = CustomData_get_named_layer_index(cd_ldata, type, name);
+
+              if (layer != -1) {
+                domain = ATTR_DOMAIN_CORNER;
+              }
+              else {
+                layer = CustomData_get_named_layer_index(cd_vdata, type, name);
+
+                if (layer != -1) {
+                  domain = ATTR_DOMAIN_POINT;
+                }
+              }
+
+              if (layer == -1) {
+                break;
+              }
+
+              AttributeRef ref;
+              const CustomData *cdata = domain == ATTR_DOMAIN_POINT ? cd_vdata : cd_ldata;
+              CustomDataLayer *clayer = cdata->layers + layer;
+
+              ref.domain = domain;
+              BLI_strncpy(ref.name, clayer->name, sizeof(ref.name));
+              ref.type = clayer->type;
+
+              int idx = (uint)mesh_cd_get_vcol_i(me, cd_vdata, cd_ldata, &ref);
+
+              if (idx >= 0) {
+                cd_used.vcol |= 1UL << (uint)idx;
+              }
+            }
+            else {
+              int idx = (uint)mesh_cd_get_vcol_i(me, cd_vdata, cd_ldata, render);
+
+              if (idx >= 0) {
+                cd_used.vcol |= 1UL << (uint)idx;
+              }
+            }
+
+            break;
+          }
+
             /* fallthrough */
           case CD_PROP_FLOAT3:
           case CD_PROP_BOOL:
@@ -1069,6 +1113,15 @@ static void mesh_buffer_cache_clear(MeshBufferCache *mbc)
   mbc->poly_sorted.visible_tri_len = 0;
 }
 
+static void mesh_batch_cache_free_subdiv_cache(MeshBatchCache *cache)
+{
+  if (cache->subdiv_cache) {
+    draw_subdiv_cache_free(cache->subdiv_cache);
+    MEM_freeN(cache->subdiv_cache);
+    cache->subdiv_cache = NULL;
+  }
+}
+
 static void mesh_batch_cache_clear(Mesh *me)
 {
   MeshBatchCache *cache = me->runtime.batch_cache;
@@ -1096,6 +1149,8 @@ static void mesh_batch_cache_clear(Mesh *me)
 
   cache->batch_ready = 0;
   drw_mesh_weight_state_clear(&cache->weight_state);
+
+  mesh_batch_cache_free_subdiv_cache(cache);
 }
 
 void DRW_mesh_batch_cache_free(Mesh *me)
@@ -1140,8 +1195,20 @@ static void sculpt_request_active_vcol(MeshBatchCache *cache, Mesh *me)
   DRW_MeshAttributes attrs_needed;
   drw_mesh_attributes_clear(&attrs_needed);
 
+  const Mesh *me_final = editmesh_final_or_this(me);
+  const CustomData *cd_vdata = mesh_cd_vdata_get_from_mesh(me_final);
+  const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
+
   if (mesh_cd_calc_active_vcol_layer(me, &attrs_needed)) {
-    cache->cd_used.vcol = 1;
+    int active = mesh_cd_get_active_color_i(me_final, cd_vdata, cd_ldata);
+    int render = mesh_cd_get_render_color_i(me_final, cd_vdata, cd_ldata);
+
+    if (active >= 0) {
+      cache->cd_used.vcol |= 1UL << (uint)active;
+    }
+    if (render >= 0) {
+      cache->cd_used.vcol |= 1UL << (uint)render;
+    }
   }
 
   BLI_assert(attrs_needed.num_requests != 0 &&
@@ -1729,6 +1796,10 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
 
   const bool do_uvcage = is_editmode && !me->edit_mesh->mesh_eval_final->runtime.is_original;
 
+  const int required_mode = BKE_subsurf_modifier_eval_required_mode(DRW_state_is_scene_render(),
+                                                                    is_editmode);
+  const bool do_subdivision = BKE_subsurf_modifier_can_do_gpu_subdiv(scene, ob, required_mode);
+
   MeshBufferList *mbuflist = &cache->final.buff;
 
   /* Initialize batches and request VBO's & IBO's. */
@@ -2072,6 +2143,15 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                        scene,
                                        ts,
                                        true);
+  }
+
+  if (do_subdivision) {
+    DRW_create_subdivision(scene, ob, me, cache, &cache->final, ts);
+  }
+  else {
+    /* The subsurf modifier may have been recently removed, or another modifier was added after it,
+     * so free any potential subdivision cache as it is not needed anymore. */
+    mesh_batch_cache_free_subdiv_cache(cache);
   }
 
   mesh_buffer_cache_create_requested(task_graph,

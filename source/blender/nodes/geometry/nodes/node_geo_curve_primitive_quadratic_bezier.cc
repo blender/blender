@@ -50,15 +50,19 @@ static std::unique_ptr<CurveEval> create_quadratic_bezier_curve(const float3 p1,
   std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
   std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
 
+  spline->resize(resolution + 1);
+  MutableSpan<float3> positions = spline->positions();
+  spline->radii().fill(1.0f);
+  spline->tilts().fill(0.0f);
+
   const float step = 1.0f / resolution;
-  for (int i : IndexRange(resolution + 1)) {
+  for (const int i : IndexRange(resolution + 1)) {
     const float factor = step * i;
     const float3 q1 = float3::interpolate(p1, p2, factor);
     const float3 q2 = float3::interpolate(p2, p3, factor);
-    const float3 out = float3::interpolate(q1, q2, factor);
-    spline->add_point(out, 1.0f, 0.0f);
+    positions[i] = float3::interpolate(q1, q2, factor);
   }
-  spline->attributes.reallocate(spline->size());
+
   curve->add_spline(std::move(spline));
   curve->attributes.reallocate(curve->splines().size());
   return curve;

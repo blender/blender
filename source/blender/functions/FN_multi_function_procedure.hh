@@ -268,6 +268,7 @@ class MFProcedure : NonCopyable, NonMovable {
   Vector<MFReturnInstruction *> return_instructions_;
   Vector<MFVariable *> variables_;
   Vector<MFParameter> params_;
+  Vector<destruct_ptr<MultiFunction>> owned_functions_;
   MFInstruction *entry_ = nullptr;
 
   friend class MFProcedureDotExport;
@@ -284,8 +285,9 @@ class MFProcedure : NonCopyable, NonMovable {
   MFReturnInstruction &new_return_instruction();
 
   void add_parameter(MFParamType::InterfaceType interface_type, MFVariable &variable);
-
   Span<ConstMFParameter> params() const;
+
+  template<typename T, typename... Args> const MultiFunction &construct_function(Args &&...args);
 
   MFInstruction *entry();
   const MFInstruction *entry() const;
@@ -548,6 +550,15 @@ inline Span<MFVariable *> MFProcedure::variables()
 inline Span<const MFVariable *> MFProcedure::variables() const
 {
   return variables_;
+}
+
+template<typename T, typename... Args>
+inline const MultiFunction &MFProcedure::construct_function(Args &&...args)
+{
+  destruct_ptr<T> fn = allocator_.construct<T>(std::forward<Args>(args)...);
+  const MultiFunction &fn_ref = *fn;
+  owned_functions_.append(std::move(fn));
+  return fn_ref;
 }
 
 /** \} */

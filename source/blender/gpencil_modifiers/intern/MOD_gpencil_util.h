@@ -34,7 +34,7 @@ struct bGPDstroke;
  */
 bool is_stroke_affected_by_modifier(struct Object *ob,
                                     char *mlayername,
-                                    const struct Material *material,
+                                    struct Material *material,
                                     const int mpassindex,
                                     const int gpl_passindex,
                                     const int minpoints,

@@ -36,6 +36,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
@@ -83,15 +84,8 @@ bNode *node_add_node(const bContext &C, const char *idname, int type, float locx
 
   nodeSetSelected(node, true);
 
-  ntreeUpdateTree(&bmain, snode.edittree);
   ED_node_set_active(&bmain, &snode, snode.edittree, node, nullptr);
-
-  snode_update(snode, node);
-
-  if (snode.nodetree->type == NTREE_TEXTURE) {
-    ntreeTexCheckCyclics(snode.edittree);
-  }
-
+  ED_node_tree_propagate_change(&C, &bmain, snode.edittree);
   return node;
 }
 
@@ -136,7 +130,7 @@ static bNodeSocketLink *add_reroute_insert_socket_link(ListBase *lb,
 {
   bNodeSocketLink *socklink, *prev;
 
-  socklink = (bNodeSocketLink *)MEM_callocN(sizeof(bNodeSocketLink), "socket link");
+  socklink = MEM_cnew<bNodeSocketLink>("socket link");
   socklink->sock = sock;
   socklink->link = link;
   copy_v2_v2(socklink->point, point);
@@ -281,10 +275,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     BLI_freelistN(&input_links);
 
     /* always last */
-    ntreeUpdateTree(CTX_data_main(C), &ntree);
-    snode_notify(*C, snode);
-    snode_dag_update(*C, snode);
-
+    ED_node_tree_propagate_change(C, CTX_data_main(C), &ntree);
     return OPERATOR_FINISHED;
   }
 
@@ -383,14 +374,10 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
 
   group_node->id = &node_group->id;
   id_us_plus(group_node->id);
+  BKE_ntree_update_tag_node_property(snode->edittree, group_node);
 
   nodeSetActive(ntree, group_node);
-  ntreeUpdateTree(bmain, node_group);
-  ntreeUpdateTree(bmain, ntree);
-
-  snode_notify(*C, *snode);
-  snode_dag_update(*C, *snode);
-
+  ED_node_tree_propagate_change(C, bmain, nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -479,12 +466,7 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
   id_us_plus(&object->id);
 
   nodeSetActive(ntree, object_node);
-  ntreeUpdateTree(bmain, ntree);
-
-  snode_notify(*C, *snode);
-  snode_dag_update(*C, *snode);
-
-  ED_node_tag_update_nodetree(bmain, ntree, object_node);
+  ED_node_tree_propagate_change(C, bmain, ntree);
   DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;
@@ -587,13 +569,8 @@ static int node_add_texture_exec(bContext *C, wmOperator *op)
   id_us_plus(&texture->id);
 
   nodeSetActive(ntree, texture_node);
-  ntreeUpdateTree(bmain, ntree);
-
-  snode_notify(*C, *snode);
-  snode_dag_update(*C, *snode);
+  ED_node_tree_propagate_change(C, bmain, ntree);
   DEG_relations_tag_update(bmain);
-
-  ED_node_tag_update_nodetree(bmain, ntree, texture_node);
 
   return OPERATOR_FINISHED;
 }
@@ -701,13 +678,8 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
   id_us_plus(&collection->id);
 
   nodeSetActive(ntree, collection_node);
-  ntreeUpdateTree(bmain, ntree);
-
-  snode_notify(*C, snode);
-  snode_dag_update(*C, snode);
+  ED_node_tree_propagate_change(C, bmain, ntree);
   DEG_relations_tag_update(bmain);
-
-  ED_node_tag_update_nodetree(bmain, ntree, collection_node);
 
   return OPERATOR_FINISHED;
 }
@@ -834,8 +806,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
   }
 
-  snode_notify(*C, snode);
-  snode_dag_update(*C, snode);
+  ED_node_tree_propagate_change(C, bmain, snode.edittree);
   DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;
@@ -937,8 +908,7 @@ static int node_add_mask_exec(bContext *C, wmOperator *op)
   node->id = mask;
   id_us_plus(mask);
 
-  snode_notify(*C, snode);
-  snode_dag_update(*C, snode);
+  ED_node_tree_propagate_change(C, bmain, snode.edittree);
   DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;

@@ -817,7 +817,7 @@ static void id_override_library_create_fn(bContext *C,
   ID *id_reference = NULL;
   bool is_override_instancing_object = false;
   if (tsep != NULL && tsep->type == TSE_SOME_ID && tsep->id != NULL &&
-      GS(tsep->id->name) == ID_OB) {
+      GS(tsep->id->name) == ID_OB && !ID_IS_OVERRIDE_LIBRARY(tsep->id)) {
     Object *ob = (Object *)tsep->id;
     if (ob->type == OB_EMPTY && &ob->instance_collection->id == id_root) {
       BLI_assert(GS(id_root->name) == ID_GR);

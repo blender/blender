@@ -179,7 +179,7 @@ uint GPU_vertformat_attr_add(GPUVertFormat *format,
   return attr_id;
 }
 
-void GPU_vertformat_alias_add(GPUVertFormat *format, const char *alias)
+ATTR_NO_OPT void GPU_vertformat_alias_add(GPUVertFormat *format, const char *alias)
 {
   GPUVertAttr *attr = &format->attrs[format->attr_len - 1];
 #if TRUST_NO_ONE

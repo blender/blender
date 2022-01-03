@@ -514,7 +514,8 @@ static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_contex
                                       const int num_vertices,
                                       const int num_edges,
                                       const int num_loops,
-                                      const int num_polygons)
+                                      const int num_polygons,
+                                      const int *UNUSED(subdiv_polygon_offset))
 {
   /* Multires grid data will be applied or become invalid after subdivision,
    * so don't try to preserve it and use memory. */
@@ -1193,7 +1194,8 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
   BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
   /* Make sure evaluator is up to date with possible new topology, and that
    * it is refined for the new positions of coarse vertices. */
-  if (!BKE_subdiv_eval_begin_from_mesh(subdiv, coarse_mesh, NULL)) {
+  if (!BKE_subdiv_eval_begin_from_mesh(
+          subdiv, coarse_mesh, NULL, SUBDIV_EVALUATOR_TYPE_CPU, NULL)) {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.
      * - Something totally bad happened, and OpenSubdiv rejected our

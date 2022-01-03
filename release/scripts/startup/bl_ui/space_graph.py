@@ -298,6 +298,8 @@ class GRAPH_MT_key(Menu):
         layout.operator("graph.decimate", text="Decimate (Allowed Change)").mode = 'ERROR'
         layout.operator_context = operator_context
 
+        layout.menu("GRAPH_MT_slider", text="Slider Operators")
+
         layout.operator("graph.clean").channels = False
         layout.operator("graph.clean", text="Clean Channels").channels = True
         layout.operator("graph.smooth")
@@ -336,6 +338,15 @@ class GRAPH_MT_key_snap(Menu):
         layout.separator()
         layout.operator("graph.frame_jump", text="Cursor to Selection")
         layout.operator("graph.snap_cursor_value", text="Cursor Value to Selection")
+
+class GRAPH_MT_slider(Menu):
+    bl_label = "Slider Operators"
+
+    def draw(self, _context):
+        layout = self.layout
+        
+        layout.operator("graph.breakdown", text="Breakdown")
+        layout.operator("graph.blend_to_neighbor", text="Blend To Neighbor")
 
 
 class GRAPH_MT_view_pie(Menu):
@@ -475,6 +486,7 @@ classes = (
     GRAPH_MT_key,
     GRAPH_MT_key_transform,
     GRAPH_MT_key_snap,
+    GRAPH_MT_slider,
     GRAPH_MT_delete,
     GRAPH_MT_context_menu,
     GRAPH_MT_channel_context_menu,

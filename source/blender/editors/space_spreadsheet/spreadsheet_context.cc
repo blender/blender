@@ -50,8 +50,7 @@ namespace blender::ed::spreadsheet {
 
 static SpreadsheetContextObject *spreadsheet_context_object_new()
 {
-  SpreadsheetContextObject *context = (SpreadsheetContextObject *)MEM_callocN(
-      sizeof(SpreadsheetContextObject), __func__);
+  SpreadsheetContextObject *context = MEM_cnew<SpreadsheetContextObject>(__func__);
   context->base.type = SPREADSHEET_CONTEXT_OBJECT;
   return context;
 }
@@ -77,8 +76,7 @@ static void spreadsheet_context_object_free(SpreadsheetContextObject *context)
 
 static SpreadsheetContextModifier *spreadsheet_context_modifier_new()
 {
-  SpreadsheetContextModifier *context = (SpreadsheetContextModifier *)MEM_callocN(
-      sizeof(SpreadsheetContextModifier), __func__);
+  SpreadsheetContextModifier *context = MEM_cnew<SpreadsheetContextModifier>(__func__);
   context->base.type = SPREADSHEET_CONTEXT_MODIFIER;
   return context;
 }
@@ -111,8 +109,7 @@ static void spreadsheet_context_modifier_free(SpreadsheetContextModifier *contex
 
 static SpreadsheetContextNode *spreadsheet_context_node_new()
 {
-  SpreadsheetContextNode *context = (SpreadsheetContextNode *)MEM_callocN(
-      sizeof(SpreadsheetContextNode), __func__);
+  SpreadsheetContextNode *context = MEM_cnew<SpreadsheetContextNode>(__func__);
   context->base.type = SPREADSHEET_CONTEXT_NODE;
   return context;
 }

@@ -24,7 +24,7 @@
 
 #include "node_function_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_fn_boolean_math_cc {
 
 static void fn_node_boolean_math_declare(NodeDeclarationBuilder &b)
 {
@@ -87,17 +87,19 @@ static void fn_node_boolean_math_build_multi_function(NodeMultiFunctionBuilder &
   builder.set_matching_fn(fn);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_fn_boolean_math_cc
 
 void register_node_type_fn_boolean_math()
 {
+  namespace file_ns = blender::nodes::node_fn_boolean_math_cc;
+
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_BOOLEAN_MATH, "Boolean Math", NODE_CLASS_CONVERTER, 0);
-  ntype.declare = blender::nodes::fn_node_boolean_math_declare;
-  ntype.labelfunc = blender::nodes::node_boolean_math_label;
-  node_type_update(&ntype, blender::nodes::node_boolean_math_update);
-  ntype.build_multi_function = blender::nodes::fn_node_boolean_math_build_multi_function;
-  ntype.draw_buttons = blender::nodes::fn_node_boolean_math_layout;
+  ntype.declare = file_ns::fn_node_boolean_math_declare;
+  ntype.labelfunc = file_ns::node_boolean_math_label;
+  node_type_update(&ntype, file_ns::node_boolean_math_update);
+  ntype.build_multi_function = file_ns::fn_node_boolean_math_build_multi_function;
+  ntype.draw_buttons = file_ns::fn_node_boolean_math_layout;
   nodeRegisterType(&ntype);
 }

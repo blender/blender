@@ -144,6 +144,12 @@ void GPU_vertbuf_init_with_format_ex(GPUVertBuf *verts_,
   unwrap(verts_)->init(format, usage);
 }
 
+void GPU_vertbuf_init_build_on_device(GPUVertBuf *verts, GPUVertFormat *format, uint v_len)
+{
+  GPU_vertbuf_init_with_format_ex(verts, format, GPU_USAGE_DEVICE_ONLY);
+  GPU_vertbuf_data_alloc(verts, v_len);
+}
+
 GPUVertBuf *GPU_vertbuf_duplicate(GPUVertBuf *verts_)
 {
   return wrap(unwrap(verts_)->duplicate());
@@ -313,6 +319,11 @@ GPUVertBufStatus GPU_vertbuf_get_status(const GPUVertBuf *verts)
   return unwrap(verts)->flag;
 }
 
+void GPU_vertbuf_tag_dirty(GPUVertBuf *verts)
+{
+  unwrap(verts)->flag |= GPU_VERTBUF_DATA_DIRTY;
+}
+
 uint GPU_vertbuf_get_memory_usage()
 {
   return VertBuf::memory_usage;
@@ -323,12 +334,17 @@ void GPU_vertbuf_use(GPUVertBuf *verts)
   unwrap(verts)->upload();
 }
 
+void GPU_vertbuf_wrap_handle(GPUVertBuf *verts, uint64_t handle)
+{
+  unwrap(verts)->wrap_handle(handle);
+}
+
 void GPU_vertbuf_bind_as_ssbo(struct GPUVertBuf *verts, int binding)
 {
   unwrap(verts)->bind_as_ssbo(binding);
 }
 
-void GPU_vertbuf_update_sub(GPUVertBuf *verts, uint start, uint len, void *data)
+void GPU_vertbuf_update_sub(GPUVertBuf *verts, uint start, uint len, const void *data)
 {
   unwrap(verts)->update_sub(start, len, data);
 }

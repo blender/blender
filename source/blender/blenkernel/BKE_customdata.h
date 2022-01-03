@@ -790,6 +790,10 @@ void CustomData_mark_temporary_nocopy(struct CustomData *data);
 int CustomData_get_elem_size(CustomDataLayer *layer);
 void CustomData_regen_active_refs(CustomData *data);
 
+void CustomData_bmesh_asan_poison(const CustomData *data, void *block);
+void CustomData_bmesh_asan_unpoison(const CustomData *data, void *block);
+int CustomData_get_named_offset(const CustomData *data, int type, const char *name);
+
 #ifdef __cplusplus
 }
 #endif

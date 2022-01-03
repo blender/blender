@@ -23,14 +23,12 @@
 
 #include "node_shader_util.h"
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_value_cc {
 
 static void sh_node_value_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Float>(N_("Value"));
 };
-
-}  // namespace blender::nodes
 
 static int gpu_shader_value(GPUMaterial *mat,
                             bNode *node,
@@ -49,14 +47,18 @@ static void sh_node_value_build_multi_function(blender::nodes::NodeMultiFunction
   builder.construct_and_set_matching_fn<blender::fn::CustomMF_Constant<float>>(value->value);
 }
 
+}  // namespace blender::nodes::node_shader_value_cc
+
 void register_node_type_sh_value()
 {
+  namespace file_ns = blender::nodes::node_shader_value_cc;
+
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_VALUE, "Value", NODE_CLASS_INPUT, 0);
-  ntype.declare = blender::nodes::sh_node_value_declare;
-  node_type_gpu(&ntype, gpu_shader_value);
-  ntype.build_multi_function = sh_node_value_build_multi_function;
+  ntype.declare = file_ns::sh_node_value_declare;
+  node_type_gpu(&ntype, file_ns::gpu_shader_value);
+  ntype.build_multi_function = file_ns::sh_node_value_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

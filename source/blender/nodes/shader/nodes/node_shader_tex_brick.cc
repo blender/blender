@@ -22,7 +22,7 @@
 #include "BLI_float2.hh"
 #include "BLI_float4.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_tex_brick_cc {
 
 static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
 {
@@ -57,11 +57,9 @@ static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Fac"));
 };
 
-}  // namespace blender::nodes
-
 static void node_shader_init_tex_brick(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexBrick *tex = (NodeTexBrick *)MEM_callocN(sizeof(NodeTexBrick), "NodeTexBrick");
+  NodeTexBrick *tex = MEM_cnew<NodeTexBrick>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
 
@@ -100,8 +98,6 @@ static int node_shader_gpu_tex_brick(GPUMaterial *mat,
                         GPU_uniform(&tex->squash),
                         GPU_constant(&squash_freq));
 }
-
-namespace blender::nodes {
 
 class BrickFunction : public fn::MultiFunction {
  private:
@@ -266,20 +262,22 @@ static void sh_node_brick_build_multi_function(blender::nodes::NodeMultiFunction
       tex->offset, tex->offset_freq, tex->squash, tex->squash_freq);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_shader_tex_brick_cc
 
 void register_node_type_sh_tex_brick()
 {
+  namespace file_ns = blender::nodes::node_shader_tex_brick_cc;
+
   static bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_BRICK, "Brick Texture", NODE_CLASS_TEXTURE, 0);
-  ntype.declare = blender::nodes::sh_node_tex_brick_declare;
+  ntype.declare = file_ns::sh_node_tex_brick_declare;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, node_shader_init_tex_brick);
+  node_type_init(&ntype, file_ns::node_shader_init_tex_brick);
   node_type_storage(
       &ntype, "NodeTexBrick", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, node_shader_gpu_tex_brick);
-  ntype.build_multi_function = blender::nodes::sh_node_brick_build_multi_function;
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_brick);
+  ntype.build_multi_function = file_ns::sh_node_brick_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

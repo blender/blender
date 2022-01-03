@@ -25,6 +25,8 @@
 
 #include "extract_mesh.h"
 
+#include "draw_subdivision.h"
+
 namespace blender::draw {
 
 /* ---------------------------------------------------------------------- */
@@ -194,6 +196,123 @@ static void extract_pos_nor_finish(const MeshRenderData *UNUSED(mr),
   MEM_freeN(data->normals);
 }
 
+static GPUVertFormat *get_pos_nor_format()
+{
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    GPU_vertformat_alias_add(&format, "vnor");
+  }
+  return &format;
+}
+
+static GPUVertFormat *get_normals_format()
+{
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    GPU_vertformat_alias_add(&format, "lnor");
+  }
+  return &format;
+}
+
+static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                        const MeshRenderData *mr,
+                                        struct MeshBatchCache *UNUSED(cache),
+                                        void *buffer,
+                                        void *UNUSED(data))
+{
+  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+  const bool do_limit_normals = subdiv_cache->do_limit_normals;
+
+  /* Initialize the vertex buffer, it was already allocated. */
+  GPU_vertbuf_init_build_on_device(
+      vbo, get_pos_nor_format(), subdiv_cache->num_subdiv_loops + mr->loop_loose_len);
+
+  draw_subdiv_extract_pos_nor(subdiv_cache, vbo, do_limit_normals);
+
+  if (!do_limit_normals) {
+    /* We cannot evaluate vertex normals using the limit surface, so compute them manually. */
+    GPUVertBuf *subdiv_loop_subdiv_vert_index = draw_subdiv_build_origindex_buffer(
+        subdiv_cache->subdiv_loop_subdiv_vert_index, subdiv_cache->num_subdiv_loops);
+
+    GPUVertBuf *vertex_normals = GPU_vertbuf_calloc();
+    GPU_vertbuf_init_build_on_device(
+        vertex_normals, get_normals_format(), subdiv_cache->num_subdiv_verts);
+
+    draw_subdiv_accumulate_normals(subdiv_cache,
+                                   vbo,
+                                   subdiv_cache->subdiv_vertex_face_adjacency_offsets,
+                                   subdiv_cache->subdiv_vertex_face_adjacency,
+                                   vertex_normals);
+
+    draw_subdiv_finalize_normals(subdiv_cache, vertex_normals, subdiv_loop_subdiv_vert_index, vbo);
+
+    GPU_vertbuf_discard(vertex_normals);
+    GPU_vertbuf_discard(subdiv_loop_subdiv_vert_index);
+  }
+}
+
+static void extract_pos_nor_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
+                                              const MeshRenderData *UNUSED(mr),
+                                              const MeshExtractLooseGeom *loose_geom,
+                                              void *buffer,
+                                              void *UNUSED(data))
+{
+  const int loop_loose_len = loose_geom->edge_len + loose_geom->vert_len;
+  if (loop_loose_len == 0) {
+    return;
+  }
+
+  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+  const Mesh *coarse_mesh = subdiv_cache->mesh;
+  const MEdge *coarse_edges = coarse_mesh->medge;
+  const MVert *coarse_verts = coarse_mesh->mvert;
+  uint offset = subdiv_cache->num_subdiv_loops;
+
+  /* TODO(kevindietrich) : replace this when compressed normals are supported. */
+  struct SubdivPosNorLoop {
+    float pos[3];
+    float nor[3];
+    float flag;
+  };
+
+  SubdivPosNorLoop edge_data[2];
+  for (int i = 0; i < loose_geom->edge_len; i++) {
+    const MEdge *loose_edge = &coarse_edges[loose_geom->edges[i]];
+    const MVert *loose_vert1 = &coarse_verts[loose_edge->v1];
+    const MVert *loose_vert2 = &coarse_verts[loose_edge->v2];
+
+    copy_v3_v3(edge_data[0].pos, loose_vert1->co);
+    normal_short_to_float_v3(edge_data[0].nor, loose_vert1->no);
+    edge_data[0].flag = 0.0f;
+
+    copy_v3_v3(edge_data[1].pos, loose_vert2->co);
+    normal_short_to_float_v3(edge_data[1].nor, loose_vert2->no);
+    edge_data[1].flag = 0.0f;
+
+    GPU_vertbuf_update_sub(
+        vbo, offset * sizeof(SubdivPosNorLoop), sizeof(SubdivPosNorLoop) * 2, &edge_data);
+
+    offset += 2;
+  }
+
+  SubdivPosNorLoop vert_data;
+  vert_data.flag = 0.0f;
+  for (int i = 0; i < loose_geom->vert_len; i++) {
+    const MVert *loose_vertex = &coarse_verts[loose_geom->verts[i]];
+
+    copy_v3_v3(vert_data.pos, loose_vertex->co);
+    normal_short_to_float_v3(vert_data.nor, loose_vertex->no);
+
+    GPU_vertbuf_update_sub(
+        vbo, offset * sizeof(SubdivPosNorLoop), sizeof(SubdivPosNorLoop), &vert_data);
+
+    offset += 1;
+  }
+}
+
 constexpr MeshExtract create_extractor_pos_nor()
 {
   MeshExtract extractor = {nullptr};
@@ -205,6 +324,8 @@ constexpr MeshExtract create_extractor_pos_nor()
   extractor.iter_lvert_bm = extract_pos_nor_iter_lvert_bm;
   extractor.iter_lvert_mesh = extract_pos_nor_iter_lvert_mesh;
   extractor.finish = extract_pos_nor_finish;
+  extractor.init_subdiv = extract_pos_nor_init_subdiv;
+  extractor.iter_loose_geom_subdiv = extract_pos_nor_loose_geom_subdiv;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_PosNor_Data);
   extractor.use_threading = true;
@@ -391,6 +512,7 @@ constexpr MeshExtract create_extractor_pos_nor_hq()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_pos_nor_hq_init;
+  extractor.init_subdiv = extract_pos_nor_init_subdiv;
   extractor.iter_poly_bm = extract_pos_nor_hq_iter_poly_bm;
   extractor.iter_poly_mesh = extract_pos_nor_hq_iter_poly_mesh;
   extractor.iter_ledge_bm = extract_pos_nor_hq_iter_ledge_bm;

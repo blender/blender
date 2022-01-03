@@ -41,7 +41,7 @@ static void cmp_node_mask_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_mask(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeMask *data = (NodeMask *)MEM_callocN(sizeof(NodeMask), "NodeMask");
+  NodeMask *data = MEM_cnew<NodeMask>(__func__);
   data->size_x = data->size_y = 256;
   node->storage = data;
 

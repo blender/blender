@@ -109,7 +109,7 @@ struct TaskNode {
 #endif
 };
 
-TaskGraph *BLI_task_graph_create(void)
+TaskGraph *BLI_task_graph_create()
 {
   return new TaskGraph();
 }

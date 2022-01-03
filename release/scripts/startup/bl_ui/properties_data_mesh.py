@@ -504,11 +504,10 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
         col.operator("geometry.color_attribute_add", icon='ADD', text="")
         col.operator("geometry.color_attribute_remove", icon='REMOVE', text="")
 
-        active = mesh.attributes.active
-        
-        if active and (active.domain == "POINT" and active.data_type == "FLOAT_COLOR"):
-            layout.operator("sculpt.vertex_to_loop_colors", text="Save To Corners")
-            layout.operator("sculpt.loop_to_vertex_colors", text="Load From Corners")
+        #active = mesh.attributes.active
+        #if active and (active.domain == "POINT" and active.data_type == "FLOAT_COLOR"):
+        #    layout.operator("sculpt.vertex_to_loop_colors", text="Save To Corners")
+        #    layout.operator("sculpt.loop_to_vertex_colors", text="Load From Corners")
 
         self.draw_attribute_warnings(context, layout)
 
