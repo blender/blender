@@ -34,6 +34,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_kdopbvh.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
@@ -5676,13 +5677,19 @@ bool BKE_constraint_apply_for_object(Depsgraph *depsgraph,
 
   const float ctime = BKE_scene_frame_get(scene);
 
-  bConstraint *new_con = BKE_constraint_duplicate_ex(con, 0, !ID_IS_LINKED(ob));
+  /* Do this all in the evaluated domain (e.g. shrinkwrap needs to access evaluated constraint
+   * target mesh). */
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  bConstraint *con_eval = BKE_constraints_find_name(&ob_eval->constraints, con->name);
+
+  bConstraint *new_con = BKE_constraint_duplicate_ex(con_eval, 0, !ID_IS_LINKED(ob));
   ListBase single_con = {new_con, new_con};
 
   bConstraintOb *cob = BKE_constraints_make_evalob(
-      depsgraph, scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+      depsgraph, scene_eval, ob_eval, NULL, CONSTRAINT_OBTYPE_OBJECT);
   /* Undo the effect of the current constraint stack evaluation. */
-  mul_m4_m4m4(cob->matrix, ob->constinv, cob->matrix);
+  mul_m4_m4m4(cob->matrix, ob_eval->constinv, cob->matrix);
 
   /* Evaluate single constraint. */
   BKE_constraints_solve(depsgraph, &single_con, cob, ctime);
@@ -5695,7 +5702,7 @@ bool BKE_constraint_apply_for_object(Depsgraph *depsgraph,
   BLI_freelinkN(&single_con, new_con);
 
   /* Apply transform from matrix. */
-  BKE_object_apply_mat4(ob, ob->obmat, true, true);
+  BKE_object_apply_mat4(ob, ob_eval->obmat, true, true);
 
   return true;
 }
@@ -5722,18 +5729,25 @@ bool BKE_constraint_apply_for_pose(
 
   const float ctime = BKE_scene_frame_get(scene);
 
-  bConstraint *new_con = BKE_constraint_duplicate_ex(con, 0, !ID_IS_LINKED(ob));
+  /* Do this all in the evaluated domain (e.g. shrinkwrap needs to access evaluated constraint
+   * target mesh). */
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
+  bConstraint *con_eval = BKE_constraints_find_name(&pchan_eval->constraints, con->name);
+
+  bConstraint *new_con = BKE_constraint_duplicate_ex(con_eval, 0, !ID_IS_LINKED(ob));
   ListBase single_con;
   single_con.first = new_con;
   single_con.last = new_con;
 
   float vec[3];
-  copy_v3_v3(vec, pchan->pose_mat[3]);
+  copy_v3_v3(vec, pchan_eval->pose_mat[3]);
 
   bConstraintOb *cob = BKE_constraints_make_evalob(
-      depsgraph, scene, ob, pchan, CONSTRAINT_OBTYPE_BONE);
+      depsgraph, scene_eval, ob_eval, pchan_eval, CONSTRAINT_OBTYPE_BONE);
   /* Undo the effects of currently applied constraints. */
-  mul_m4_m4m4(cob->matrix, pchan->constinv, cob->matrix);
+  mul_m4_m4m4(cob->matrix, pchan_eval->constinv, cob->matrix);
   /* Evaluate single constraint. */
   BKE_constraints_solve(depsgraph, &single_con, cob, ctime);
   BKE_constraints_clear_evalob(cob);
@@ -5744,12 +5758,12 @@ bool BKE_constraint_apply_for_pose(
 
   /* Prevent constraints breaking a chain. */
   if (pchan->bone->flag & BONE_CONNECTED) {
-    copy_v3_v3(pchan->pose_mat[3], vec);
+    copy_v3_v3(pchan_eval->pose_mat[3], vec);
   }
 
   /* Apply transform from matrix. */
   float mat[4][4];
-  BKE_armature_mat_pose_to_bone(pchan, pchan->pose_mat, mat);
+  BKE_armature_mat_pose_to_bone(pchan, pchan_eval->pose_mat, mat);
   BKE_pchan_apply_mat4(pchan, mat, true);
 
   return true;
