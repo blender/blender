@@ -5013,6 +5013,16 @@ static void sculpt_topology_update(Sculpt *sd,
 
   SCULPT_dyntopo_automasking_init(ss, sd, brush, ob, &mask_cb, &mask_cb_data);
 
+  int actv = -1, actf = -1;
+
+  if (ss->active_vertex_index.i != SCULPT_REF_NONE) {
+    actv = BM_ELEM_GET_ID(ss->bm, (BMElem *)ss->active_vertex_index.i);
+  }
+
+  if (ss->active_face_index.i != SCULPT_REF_NONE) {
+    actf = BM_ELEM_GET_ID(ss->bm, (BMElem *)ss->active_face_index.i);
+  }
+
   /* do nodes under the brush cursor */
   modified = BKE_pbvh_bmesh_update_topology_nodes(
       ss->pbvh,
@@ -5032,6 +5042,28 @@ static void sculpt_topology_update(Sculpt *sd,
       SCULPT_get_int(ss, dyntopo_disable_smooth, sd, brush));
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);
+
+  if (actv != -1) {
+    BMVert *v = (BMVert*)BM_ELEM_FROM_ID_SAFE(ss->bm, actv);
+
+    if (v && v->head.htype == BM_VERT) {
+      ss->active_vertex_index.i == (intptr_t)v;
+    }
+    else {
+      ss->active_vertex_index.i = SCULPT_REF_NONE;
+    }
+  }
+
+  if (actf != -1) {
+    BMFace *f = (BMFace*)BM_ELEM_FROM_ID_SAFE(ss->bm, actf);
+    
+    if (f && f->head.htype == BM_FACE) {
+      ss->active_face_index.i == (intptr_t)f;
+    }
+    else {
+      ss->active_face_index.i = SCULPT_REF_NONE;
+    }
+  }
 
   /* Update average stroke position. */
   copy_v3_v3(location, ss->cache->true_location);

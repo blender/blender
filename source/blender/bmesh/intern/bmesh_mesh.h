@@ -21,6 +21,7 @@
  */
 
 #include "bmesh_class.h"
+#include "BLI_compiler_compat.h"
 
 typedef enum {
   MULTIRES_SPACE_TANGENT,  // convert absolute to tangent
@@ -244,5 +245,7 @@ void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
   ((bm->idmap.flag & BM_NO_REUSE_IDS) ? \
        BLI_ghash_lookup(bm->idmap.ghash, POINTER_FROM_UINT(id)) : \
        bm->idmap.map[id])
+
+#define BM_ELEM_FROM_ID_SAFE(bm, id) (((id) >= 0 && (id) < (bm)->idmap.maxid) ? (BM_ELEM_FROM_ID(bm, id)) : NULL)
 
 bool BM_elem_is_free(BMElem *elem, int htype);

@@ -1822,7 +1822,7 @@ static void cloth_sort_constraints_for_tasks(SculptSession *ss,
   MEM_SAFE_FREE(vthreads);
 }
 
-static void cloth_brush_satisfy_constraints_intern(SculptSession *ss,
+ATTR_NO_OPT static void cloth_brush_satisfy_constraints_intern(SculptSession *ss,
                                                    Brush *brush,
                                                    SculptClothSimulation *cloth_sim,
                                                    SculptClothTaskData *task,
