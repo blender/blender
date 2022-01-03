@@ -69,10 +69,13 @@ class AnimatedPropertyStorage {
   bool isPropertyAnimated(const AnimatedPropertyID &property_id);
   bool isPropertyAnimated(const PointerRNA *pointer_rna, const PropertyRNA *property_rna);
 
+  bool isAnyPropertyAnimated(const PointerRNA *pointer_rna);
+
   /* The storage is fully initialized from all F-Curves from corresponding ID. */
   bool is_fully_initialized;
 
   /* indexed by PointerRNA.data. */
+  Set<void *> animated_objects_set;
   Set<AnimatedPropertyID> animated_properties_set;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("AnimatedPropertyStorage");
@@ -100,6 +103,13 @@ class DepsgraphBuilderCache {
     AnimatedPropertyStorage *animated_property_storage = ensureInitializedAnimatedPropertyStorage(
         id);
     return animated_property_storage->isPropertyAnimated(args...);
+  }
+
+  bool isAnyPropertyAnimated(const PointerRNA *ptr)
+  {
+    AnimatedPropertyStorage *animated_property_storage = ensureInitializedAnimatedPropertyStorage(
+        ptr->owner_id);
+    return animated_property_storage->isAnyPropertyAnimated(ptr);
   }
 
   Map<ID *, AnimatedPropertyStorage *> animated_property_storage_map_;

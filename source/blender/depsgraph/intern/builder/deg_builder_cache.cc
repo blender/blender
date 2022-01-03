@@ -127,6 +127,7 @@ void AnimatedPropertyStorage::initializeFromID(DepsgraphBuilderCache *builder_ca
 
 void AnimatedPropertyStorage::tagPropertyAsAnimated(const AnimatedPropertyID &property_id)
 {
+  animated_objects_set.add(property_id.data);
   animated_properties_set.add(property_id);
 }
 
@@ -145,6 +146,11 @@ bool AnimatedPropertyStorage::isPropertyAnimated(const PointerRNA *pointer_rna,
                                                  const PropertyRNA *property_rna)
 {
   return isPropertyAnimated(AnimatedPropertyID(pointer_rna, property_rna));
+}
+
+bool AnimatedPropertyStorage::isAnyPropertyAnimated(const PointerRNA *pointer_rna)
+{
+  return animated_objects_set.contains(pointer_rna->data);
 }
 
 /* Builder cache itself. */

@@ -49,6 +49,7 @@
 #include "DEG_depsgraph_build.h"
 
 #include "intern/builder/deg_builder.h"
+#include "intern/builder/deg_builder_cache.h"
 #include "intern/builder/deg_builder_pchanmap.h"
 #include "intern/debug/deg_debug.h"
 #include "intern/node/deg_node.h"
@@ -84,14 +85,21 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
   OperationKey solver_key(
       &object->id, NodeType::EVAL_POSE, rootchan->name, OperationCode::POSE_IK_SOLVER);
   OperationKey pose_cleanup_key(&object->id, NodeType::EVAL_POSE, OperationCode::POSE_CLEANUP);
-  add_relation(pchan_local_key, init_ik_key, "IK Constraint -> Init IK Tree");
+  /* If any of the constraint parameters are animated, connect the relation. Since there is only
+   * one Init IK node per armature, this link has quite high risk of spurious dependency cycles.
+   */
+  const bool is_itasc = (object->pose->iksolver == IKSOLVER_ITASC);
+  PointerRNA con_ptr;
+  RNA_pointer_create(&object->id, &RNA_Constraint, con, &con_ptr);
+  if (is_itasc || cache_->isAnyPropertyAnimated(&con_ptr)) {
+    add_relation(pchan_local_key, init_ik_key, "IK Constraint -> Init IK Tree");
+  }
   add_relation(init_ik_key, solver_key, "Init IK -> IK Solver");
   /* Never cleanup before solver is run. */
   add_relation(solver_key, pose_cleanup_key, "IK Solver -> Cleanup", RELATION_FLAG_GODMODE);
   /* The ITASC solver currently accesses the target transforms in init tree :(
    * TODO: Fix ITASC and remove this.
    */
-  bool is_itasc = (object->pose->iksolver == IKSOLVER_ITASC);
   OperationKey target_dependent_key = is_itasc ? init_ik_key : solver_key;
   /* IK target */
   /* TODO(sergey): This should get handled as part of the constraint code. */
@@ -100,6 +108,10 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
     if (data->tar != object) {
       ComponentKey target_key(&data->tar->id, NodeType::TRANSFORM);
       add_relation(target_key, target_dependent_key, con->name);
+      /* Ensure target CoW is ready by the time IK tree is built just in case. */
+      ComponentKey target_cow_key(&data->tar->id, NodeType::COPY_ON_WRITE);
+      add_relation(
+          target_cow_key, init_ik_key, "IK Target CoW -> Init IK Tree", RELATION_CHECK_BEFORE_ADD);
     }
     /* Subtarget references: */
     if ((data->tar->type == OB_ARMATURE) && (data->subtarget[0])) {
@@ -129,6 +141,10 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
     if (data->poletar != object) {
       ComponentKey target_key(&data->poletar->id, NodeType::TRANSFORM);
       add_relation(target_key, target_dependent_key, con->name);
+      /* Ensure target CoW is ready by the time IK tree is built just in case. */
+      ComponentKey target_cow_key(&data->poletar->id, NodeType::COPY_ON_WRITE);
+      add_relation(
+          target_cow_key, init_ik_key, "IK Target CoW -> Init IK Tree", RELATION_CHECK_BEFORE_ADD);
     }
     /* Subtarget references: */
     if ((data->poletar->type == OB_ARMATURE) && (data->polesubtarget[0])) {
