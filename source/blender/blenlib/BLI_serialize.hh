@@ -177,7 +177,7 @@ class Value {
    * Casts to an DictionaryValue.
    * Will return nullptr when it is a different type.
    */
-  const DictionaryValue *as_object_value() const;
+  const DictionaryValue *as_dictionary_value() const;
 };
 
 /**
@@ -269,13 +269,14 @@ class ContainerValue : public Value {
  * The elements are stored as an key value pair. The value is a shared pointer so it can be shared
  * when using `DictionaryValue::create_lookup`.
  */
-using ObjectElementType = std::pair<std::string, std::shared_ptr<Value>>;
+using DictionaryElementType = std::pair<std::string, std::shared_ptr<Value>>;
 
 /**
  * Object is a key-value container where the key must be a std::string.
  * Internally it is stored in a blender::Vector to ensure the order of keys.
  */
-class DictionaryValue : public ContainerValue<Vector<ObjectElementType>, eValueType::Dictionary> {
+class DictionaryValue
+    : public ContainerValue<Vector<DictionaryElementType>, eValueType::Dictionary> {
  public:
   using LookupValue = std::shared_ptr<Value>;
   using Lookup = Map<std::string, LookupValue>;

@@ -379,7 +379,7 @@ static int init_indexer_entries_from_value(FileIndexerEntries &indexer_entries,
   int num_entries_read = 0;
   const ArrayValue::Items elements = (*entries_value)->as_array_value()->elements();
   for (ArrayValue::Item element : elements) {
-    const AssetEntryReader asset_entry(*element->as_object_value());
+    const AssetEntryReader asset_entry(*element->as_dictionary_value());
 
     FileIndexerEntry *entry = static_cast<FileIndexerEntry *>(
         MEM_callocN(sizeof(FileIndexerEntry), __func__));
@@ -564,7 +564,7 @@ struct AssetIndex {
 
   int get_version() const
   {
-    const DictionaryValue *root = contents->as_object_value();
+    const DictionaryValue *root = contents->as_dictionary_value();
     if (root == nullptr) {
       return UNKNOWN_VERSION;
     }
@@ -588,7 +588,7 @@ struct AssetIndex {
    */
   int extract_into(FileIndexerEntries &indexer_entries) const
   {
-    const DictionaryValue *root = contents->as_object_value();
+    const DictionaryValue *root = contents->as_dictionary_value();
     const int num_entries_read = init_indexer_entries_from_value(indexer_entries, *root);
     return num_entries_read;
   }

@@ -44,7 +44,7 @@ const ArrayValue *Value::as_array_value() const
   return static_cast<const ArrayValue *>(this);
 }
 
-const DictionaryValue *Value::as_object_value() const
+const DictionaryValue *Value::as_dictionary_value() const
 {
   if (type_ != eValueType::Dictionary) {
     return nullptr;
@@ -99,7 +99,7 @@ static void convert_to_json(nlohmann::ordered_json &j, const Value &value)
     }
 
     case eValueType::Dictionary: {
-      const DictionaryValue &object = *value.as_object_value();
+      const DictionaryValue &object = *value.as_dictionary_value();
       convert_to_json(j, object);
       break;
     }
