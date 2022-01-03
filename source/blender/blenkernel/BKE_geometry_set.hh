@@ -923,9 +923,10 @@ class InstancesComponent : public GeometryComponent {
   int references_amount() const;
 
   /**
-   * Remove the indices in the selection mask and remove unused instance references afterwards.
+   * Remove the indices that are not contained in the mask input, and remove unused instance
+   * references afterwards.
    */
-  void remove_instances(const blender::IndexMask selection);
+  void remove_instances(const blender::IndexMask mask);
 
   blender::Span<int> almost_unique_ids() const;
 

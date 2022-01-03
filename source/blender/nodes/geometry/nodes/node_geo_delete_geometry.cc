@@ -545,7 +545,7 @@ static void separate_instance_selection(GeometrySet &geometry_set,
   Vector<int64_t> indices;
   const IndexMask mask = index_mask_indices(selection, invert, indices);
 
-  if (mask.size() == 0) {
+  if (mask.is_empty()) {
     geometry_set.remove<InstancesComponent>();
     return;
   }

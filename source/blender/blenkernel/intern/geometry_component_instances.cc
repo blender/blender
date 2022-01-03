@@ -148,27 +148,27 @@ static void copy_data_based_on_mask(Span<T> src, MutableSpan<T> dst, IndexMask m
   });
 }
 
-void InstancesComponent::remove_instances(const IndexMask selection)
+void InstancesComponent::remove_instances(const IndexMask mask)
 {
   using namespace blender;
-  if (selection.is_range() && selection.index_range().first() == 0) {
+  if (mask.is_range() && mask.as_range().start() == 0) {
     /* Deleting from the end of the array can be much faster since no data has to be shifted. */
-    this->resize(selection.size());
+    this->resize(mask.size());
     this->remove_unused_references();
     return;
   }
 
-  Vector<int> new_handles(selection.size());
-  copy_data_based_on_mask<int>(this->instance_reference_handles(), new_handles, selection);
+  Vector<int> new_handles(mask.size());
+  copy_data_based_on_mask<int>(this->instance_reference_handles(), new_handles, mask);
   instance_reference_handles_ = std::move(new_handles);
-  Vector<float4x4> new_transforms(selection.size());
-  copy_data_based_on_mask<float4x4>(this->instance_transforms(), new_transforms, selection);
+  Vector<float4x4> new_transforms(mask.size());
+  copy_data_based_on_mask<float4x4>(this->instance_transforms(), new_transforms, mask);
   instance_transforms_ = std::move(new_transforms);
 
   const bke::CustomDataAttributes &src_attributes = attributes_;
 
   bke::CustomDataAttributes dst_attributes;
-  dst_attributes.reallocate(selection.size());
+  dst_attributes.reallocate(mask.size());
 
   src_attributes.foreach_attribute(
       [&](const bke::AttributeIDRef &id, const AttributeMetaData &meta_data) {
@@ -182,7 +182,7 @@ void InstancesComponent::remove_instances(const IndexMask selection)
 
         attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
           using T = decltype(dummy);
-          copy_data_based_on_mask<T>(src.typed<T>(), dst.typed<T>(), selection);
+          copy_data_based_on_mask<T>(src.typed<T>(), dst.typed<T>(), mask);
         });
         return true;
       },
