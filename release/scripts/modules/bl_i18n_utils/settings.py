@@ -100,6 +100,7 @@ LANGUAGES = (
     (45, "Abkhaz (Аԥсуа бызшәа)", "ab"),
     (46, "Thai (ภาษาไทย)", "th_TH"),
     (47, "Slovak (Slovenčina)", "sk_SK"),
+    (48, "Georgian (ქართული)", "ka"),
 )
 
 # Default context, in py (keep in sync with `BLT_translation.h`)!
