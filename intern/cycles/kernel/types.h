@@ -202,7 +202,7 @@ enum SamplingPattern {
 
 /* These flags values correspond to `raytypes` in `osl.cpp`, so keep them in sync! */
 
-enum PathRayFlag {
+enum PathRayFlag : uint32_t {
   /* --------------------------------------------------------------------
    * Ray visibility.
    *
@@ -1559,7 +1559,7 @@ enum {
 
 /* Kernel Features */
 
-enum KernelFeatureFlag : unsigned int {
+enum KernelFeatureFlag : uint32_t {
   /* Shader nodes. */
   KERNEL_FEATURE_NODE_BSDF = (1U << 0U),
   KERNEL_FEATURE_NODE_EMISSION = (1U << 1U),
