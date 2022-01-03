@@ -13,35 +13,19 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
-/** \file
- * \ingroup busd
- */
-
-#ifndef __USD_MATERIAL_H__
-#define __USD_MATERIAL_H__
-
-#include <string>
-
-#ifdef _MSC_VER
-#  define USD_INLINE static __forceinline
-#else
-#  define USD_INLINE static inline
-#endif
+#pragma once
 
 #include <pxr/pxr.h>
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdShade/material.h>
 
-#include "usd.h"
-#include "usd_exporter_context.h"
-
 #include <string>
 
-struct Material;
 struct bNode;
 struct bNodeTree;
+struct Material;
+struct USDExportParams;
 
 namespace blender::io::usd {
 
@@ -51,7 +35,9 @@ T usd_define_or_over(pxr::UsdStageRefPtr stage, pxr::SdfPath path, bool as_overs
   return (as_overs) ? T(stage->OverridePrim(path)) : T::Define(stage, path);
 }
 
-void create_usd_preview_surface_material(USDExporterContext const &usd_export_context_,
+struct USDExporterContext;
+
+void create_usd_preview_surface_material(const USDExporterContext &usd_export_context,
                                          Material *material,
                                          pxr::UsdShadeMaterial &usd_material);
 void create_usd_cycles_material(pxr::UsdStageRefPtr a_stage,
@@ -62,7 +48,7 @@ void create_usd_cycles_material(pxr::UsdStageRefPtr a_stage,
                                 Material *material,
                                 pxr::UsdShadeMaterial &usd_material,
                                 const USDExportParams &export_params);
-void create_usd_viewport_material(USDExporterContext const &usd_export_context_,
+void create_usd_viewport_material(const USDExporterContext &usd_export_context,
                                   Material *material,
                                   pxr::UsdShadeMaterial &usd_material);
 void create_mdl_material(const USDExporterContext &usd_export_context,
@@ -82,5 +68,3 @@ std::string get_texture_filepath(const std::string &tex_filepath,
                                  const USDExportParams &export_params);
 
 }  // Namespace blender::io::usd
-
-#endif /* __USD_MATERIAL_H__ */

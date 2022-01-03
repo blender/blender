@@ -12,41 +12,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2019 Blender Foundation.
- * All rights reserved.
  */
+
 #include "usd_writer_material.h"
+
+#include "usd.h"
+#include "usd_exporter_context.h"
 #include "usd_umm.h"
 
-extern "C" {
-#include "BKE_animsys.h"
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
-#include "BKE_key.h"
-#include "BKE_node.h"
-
-#include "DNA_color_types.h"
-#include "DNA_light_types.h"
-#include "DNA_material_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_node_types.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
-
-#include "BKE_blender_version.h"
-#include "BKE_cachefile.h"
-#include "BKE_cdderivedmesh.h"
-#include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_scene.h"
-#include "BKE_world.h"
 
 #include "BLI_fileops.h"
 #include "BLI_linklist.h"
@@ -54,26 +34,17 @@ extern "C" {
 #include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
-}
+
+#include "DNA_material_types.h"
 
 #include "MEM_guardedalloc.h"
-#include "RNA_access.h"
-#include "RNA_types.h"
-
-#include <algorithm>
-#include <cctype>
-#include <iostream>
-#include <string>
-#include <utility>
 
 #include <pxr/base/tf/stringUtils.h>
 #include <pxr/pxr.h>
-#include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/scope.h>
 
-//#include <pxr/usdImaging/usdImaging/tokens.h> NOT INCLUDED IN BLENDER BUILD
+#include <cctype>
+#include <iostream>
 
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
@@ -1188,7 +1159,7 @@ bNode *traverse_channel(bNodeSocket *input, short target_type)
 }
 
 /* Creates a USD Preview Surface node based on given cycles shading node */
-pxr::UsdShadeShader create_usd_preview_shader_node(USDExporterContext const &usd_export_context_,
+pxr::UsdShadeShader create_usd_preview_shader_node(const USDExporterContext &usd_export_context,
                                                    pxr::UsdShadeMaterial &material,
                                                    const char *name,
                                                    int type,
@@ -1197,16 +1168,16 @@ pxr::UsdShadeShader create_usd_preview_shader_node(USDExporterContext const &usd
   pxr::SdfPath shader_path = material.GetPath()
                                  .AppendChild(usdtokens::preview)
                                  .AppendChild(pxr::TfToken(pxr::TfMakeValidIdentifier(name)));
-  pxr::UsdShadeShader shader = (usd_export_context_.export_params.export_as_overs) ?
+  pxr::UsdShadeShader shader = (usd_export_context.export_params.export_as_overs) ?
                                    pxr::UsdShadeShader(
-                                       usd_export_context_.stage->OverridePrim(shader_path)) :
-                                   pxr::UsdShadeShader::Define(usd_export_context_.stage,
+                                       usd_export_context.stage->OverridePrim(shader_path)) :
+                                   pxr::UsdShadeShader::Define(usd_export_context.stage,
                                                                shader_path);
   switch (type) {
     case SH_NODE_TEX_IMAGE: {
       shader.CreateIdAttr(pxr::VtValue(usdtokens::uv_texture));
       std::string imagePath = get_node_tex_image_filepath(
-          node, usd_export_context_.stage, usd_export_context_.export_params);
+          node, usd_export_context.stage, usd_export_context.export_params);
       if (!imagePath.empty()) {
         shader.CreateInput(usdtokens::file, pxr::SdfValueTypeNames->Asset)
             .Set(pxr::SdfAssetPath(imagePath));
@@ -1218,8 +1189,8 @@ pxr::UsdShadeShader create_usd_preview_shader_node(USDExporterContext const &usd
             .Set(colorSpace);
       }
 
-      if (usd_export_context_.export_params.export_textures) {
-        export_texture(node, usd_export_context_.stage);
+      if (usd_export_context.export_params.export_textures) {
+        export_texture(node, usd_export_context.stage);
       }
 
       break;
@@ -1878,16 +1849,16 @@ static pxr::UsdShadeShader create_cycles_shader_node(pxr::UsdStageRefPtr a_stage
  *  - Image Texture
  *  - Principled BSDF
  * More may be added in the future. */
-void create_usd_preview_surface_material(USDExporterContext const &usd_export_context_,
+void create_usd_preview_surface_material(const USDExporterContext &usd_export_context,
                                          Material *material,
                                          pxr::UsdShadeMaterial &usd_material)
 {
 
-  usd_define_or_over<pxr::UsdGeomScope>(usd_export_context_.stage,
+  usd_define_or_over<pxr::UsdGeomScope>(usd_export_context.stage,
                                         usd_material.GetPath().AppendChild(usdtokens::preview),
-                                        usd_export_context_.export_params.export_as_overs);
+                                        usd_export_context.export_params.export_as_overs);
 
-  pxr::TfToken defaultUVSampler = (usd_export_context_.export_params.convert_uv_to_st) ?
+  pxr::TfToken defaultUVSampler = (usd_export_context.export_params.convert_uv_to_st) ?
                                       usdtokens::st :
                                       cyclestokens::UVMap;
 
@@ -1897,7 +1868,7 @@ void create_usd_preview_surface_material(USDExporterContext const &usd_export_co
       // USD Preview surface has no concept of layering materials
 
       pxr::UsdShadeShader previewSurface = create_usd_preview_shader_node(
-          usd_export_context_, usd_material, node->name, node->type, node);
+          usd_export_context, usd_material, node->name, node->type, node);
 
       // @TODO: Maybe use this call: bNodeSocket *in_sock = nodeFindSocket(node, SOCK_IN, "Base
       // Color");
@@ -1911,7 +1882,7 @@ void create_usd_preview_surface_material(USDExporterContext const &usd_export_co
           found_node = traverse_channel(sock);
           if (found_node) {  // Create connection
             created_shader = create_usd_preview_shader_node(
-                usd_export_context_, usd_material, found_node->name, found_node->type, found_node);
+                usd_export_context, usd_material, found_node->name, found_node->type, found_node);
             previewSurface.CreateInput(usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3)
                 .ConnectToSource(created_shader, usdtokens::rgb);
           }
@@ -1928,7 +1899,7 @@ void create_usd_preview_surface_material(USDExporterContext const &usd_export_co
           found_node = traverse_channel(sock);
           if (found_node) {  // Create connection
             created_shader = create_usd_preview_shader_node(
-                usd_export_context_, usd_material, found_node->name, found_node->type, found_node);
+                usd_export_context, usd_material, found_node->name, found_node->type, found_node);
             previewSurface.CreateInput(usdtokens::roughness, pxr::SdfValueTypeNames->Float)
                 .ConnectToSource(created_shader, usdtokens::r);
           }
@@ -1944,7 +1915,7 @@ void create_usd_preview_surface_material(USDExporterContext const &usd_export_co
           found_node = traverse_channel(sock);
           if (found_node) {  // Set hardcoded value
             created_shader = create_usd_preview_shader_node(
-                usd_export_context_, usd_material, found_node->name, found_node->type, found_node);
+                usd_export_context, usd_material, found_node->name, found_node->type, found_node);
             previewSurface.CreateInput(usdtokens::metallic, pxr::SdfValueTypeNames->Float)
                 .ConnectToSource(created_shader, usdtokens::r);
           }
@@ -1960,7 +1931,7 @@ void create_usd_preview_surface_material(USDExporterContext const &usd_export_co
           found_node = traverse_channel(sock);
           if (found_node) {  // Set hardcoded value
             created_shader = create_usd_preview_shader_node(
-                usd_export_context_, usd_material, found_node->name, found_node->type, found_node);
+                usd_export_context, usd_material, found_node->name, found_node->type, found_node);
             previewSurface.CreateInput(usdtokens::specular, pxr::SdfValueTypeNames->Float)
                 .ConnectToSource(created_shader, usdtokens::r);
           }
@@ -1976,7 +1947,7 @@ void create_usd_preview_surface_material(USDExporterContext const &usd_export_co
           found_node = traverse_channel(sock);
           if (found_node) {  // Set hardcoded value
             created_shader = create_usd_preview_shader_node(
-                usd_export_context_, usd_material, found_node->name, found_node->type, found_node);
+                usd_export_context, usd_material, found_node->name, found_node->type, found_node);
             previewSurface.CreateInput(usdtokens::opacity, pxr::SdfValueTypeNames->Float)
                 .ConnectToSource(created_shader, usdtokens::r);
           }
@@ -2002,7 +1973,7 @@ void create_usd_preview_surface_material(USDExporterContext const &usd_export_co
           found_node = traverse_channel(sock);
           if (found_node) {
             created_shader = create_usd_preview_shader_node(
-                usd_export_context_, usd_material, found_node->name, found_node->type, found_node);
+                usd_export_context, usd_material, found_node->name, found_node->type, found_node);
             previewSurface.CreateInput(usdtokens::normal, pxr::SdfValueTypeNames->Float)
                 .ConnectToSource(created_shader, usdtokens::rgb);
           }
@@ -2032,7 +2003,7 @@ void create_usd_preview_surface_material(USDExporterContext const &usd_export_co
               continue;
 
             pxr::UsdShadeShader uvShader = create_usd_preview_shader_node(
-                usd_export_context_, usd_material, uvNode->name, uvNode->type, uvNode);
+                usd_export_context, usd_material, uvNode->name, uvNode->type, uvNode);
             if (!uvShader.GetPrim().IsValid())
               continue;
 
@@ -2044,7 +2015,7 @@ void create_usd_preview_surface_material(USDExporterContext const &usd_export_co
 
                 // We need to make valid here because actual uv primvar has been
                 std::string uv_set = pxr::TfMakeValidIdentifier(uvmap->uv_map);
-                if (usd_export_context_.export_params.convert_uv_to_st)
+                if (usd_export_context.export_params.convert_uv_to_st)
                   uv_set = "st";
 
                 uvShader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token)
@@ -2069,7 +2040,7 @@ void create_usd_preview_surface_material(USDExporterContext const &usd_export_co
 
           if (!found_uv_node) {
             pxr::UsdShadeShader uvShader = create_usd_preview_shader_node(
-                usd_export_context_,
+                usd_export_context,
                 usd_material,
                 "uvmap",
                 SH_NODE_TEX_COORD,
@@ -2269,16 +2240,16 @@ void create_usd_cycles_material(pxr::UsdStageRefPtr a_stage,
 }
 
 /* Entry point to create USD Shade Material network from Blender "Viewport Display" */
-void create_usd_viewport_material(USDExporterContext const &usd_export_context_,
+void create_usd_viewport_material(const USDExporterContext &usd_export_context,
                                   Material *material,
                                   pxr::UsdShadeMaterial &usd_material)
 {
   // Construct the shader.
   pxr::SdfPath shader_path = usd_material.GetPath().AppendChild(usdtokens::preview_shader);
-  pxr::UsdShadeShader shader = (usd_export_context_.export_params.export_as_overs) ?
+  pxr::UsdShadeShader shader = (usd_export_context.export_params.export_as_overs) ?
                                    pxr::UsdShadeShader(
-                                       usd_export_context_.stage->OverridePrim(shader_path)) :
-                                   pxr::UsdShadeShader::Define(usd_export_context_.stage,
+                                       usd_export_context.stage->OverridePrim(shader_path)) :
+                                   pxr::UsdShadeShader::Define(usd_export_context.stage,
                                                                shader_path);
   shader.CreateIdAttr(pxr::VtValue(usdtokens::preview_surface));
   shader.CreateInput(usdtokens::diffuse_color, pxr::SdfValueTypeNames->Color3f)
