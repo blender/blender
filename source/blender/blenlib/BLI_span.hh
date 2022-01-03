@@ -599,6 +599,11 @@ template<typename T> class MutableSpan {
     return MutableSpan(data_ + start, new_size);
   }
 
+  constexpr MutableSpan slice(IndexRange range) const
+  {
+    return this->slice(range.start(), range.size());
+  }
+
   /**
    * Returns a new MutableSpan with n elements removed from the beginning. This invokes
    * undefined behavior when n is negative.
