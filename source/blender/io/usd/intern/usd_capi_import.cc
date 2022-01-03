@@ -772,6 +772,8 @@ CacheArchiveHandle *USD_create_handle(struct Main * /*bmain*/,
                                       const char *filename,
                                       ListBase *object_paths)
 {
+  ensure_usd_plugin_path_registered();
+
   pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(filename);
 
   if (!stage) {
