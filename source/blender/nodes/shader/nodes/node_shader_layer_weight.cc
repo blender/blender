@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_layer_weight_cc {
+
 /* **************** Layer Weight ******************** */
 
 static bNodeSocketTemplate sh_node_layer_weight_in[] = {
@@ -59,15 +61,20 @@ static void node_shader_exec_layer_weight(void *UNUSED(data),
 {
 }
 
+}  // namespace blender::nodes::node_shader_layer_weight_cc
+
 /* node type definition */
-void register_node_type_sh_layer_weight(void)
+void register_node_type_sh_layer_weight()
 {
+  namespace file_ns = blender::nodes::node_shader_layer_weight_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_LAYER_WEIGHT, "Layer Weight", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, sh_node_layer_weight_in, sh_node_layer_weight_out);
-  node_type_gpu(&ntype, node_shader_gpu_layer_weight);
-  node_type_exec(&ntype, NULL, NULL, node_shader_exec_layer_weight);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_layer_weight_in, file_ns::sh_node_layer_weight_out);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_layer_weight);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_layer_weight);
 
   nodeRegisterType(&ntype);
 }

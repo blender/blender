@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_normal_map_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_normal_map_in[] = {
@@ -34,7 +36,7 @@ static bNodeSocketTemplate sh_node_normal_map_out[] = {
 
 static void node_shader_init_normal_map(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeShaderNormalMap *attr = MEM_callocN(sizeof(NodeShaderNormalMap), "NodeShaderNormalMap");
+  NodeShaderNormalMap *attr = MEM_cnew<NodeShaderNormalMap>("NodeShaderNormalMap");
   node->storage = attr;
 }
 
@@ -53,15 +55,16 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
                                  GPUNodeStack *in,
                                  GPUNodeStack *out)
 {
-  NodeShaderNormalMap *nm = node->storage;
+  NodeShaderNormalMap *nm = static_cast<NodeShaderNormalMap *>(node->storage);
 
   GPUNodeLink *strength;
   if (in[0].link) {
     strength = in[0].link;
   }
   else if (node->original) {
-    bNodeSocket *socket = BLI_findlink(&node->original->inputs, 0);
-    bNodeSocketValueFloat *socket_data = socket->default_value;
+    bNodeSocket *socket = static_cast<bNodeSocket *>(BLI_findlink(&node->original->inputs, 0));
+    bNodeSocketValueFloat *socket_data = static_cast<bNodeSocketValueFloat *>(
+        socket->default_value);
     strength = GPU_uniform(&socket_data->value);
   }
   else {
@@ -73,8 +76,8 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
     newnormal = in[1].link;
   }
   else if (node->original) {
-    bNodeSocket *socket = BLI_findlink(&node->original->inputs, 1);
-    bNodeSocketValueRGBA *socket_data = socket->default_value;
+    bNodeSocket *socket = static_cast<bNodeSocket *>(BLI_findlink(&node->original->inputs, 1));
+    bNodeSocketValueRGBA *socket_data = static_cast<bNodeSocketValueRGBA *>(socket->default_value);
     newnormal = GPU_uniform(socket_data->value);
   }
   else {
@@ -114,19 +117,24 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
   return true;
 }
 
+}  // namespace blender::nodes::node_shader_normal_map_cc
+
 /* node type definition */
-void register_node_type_sh_normal_map(void)
+void register_node_type_sh_normal_map()
 {
+  namespace file_ns = blender::nodes::node_shader_normal_map_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_NORMAL_MAP, "Normal Map", NODE_CLASS_OP_VECTOR, 0);
-  node_type_socket_templates(&ntype, sh_node_normal_map_in, sh_node_normal_map_out);
+  node_type_socket_templates(
+      &ntype, file_ns::sh_node_normal_map_in, file_ns::sh_node_normal_map_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, node_shader_init_normal_map);
+  node_type_init(&ntype, file_ns::node_shader_init_normal_map);
   node_type_storage(
       &ntype, "NodeShaderNormalMap", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, gpu_shader_normal_map);
-  node_type_exec(&ntype, NULL, NULL, node_shader_exec_normal_map);
+  node_type_gpu(&ntype, file_ns::gpu_shader_normal_map);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_normal_map);
 
   nodeRegisterType(&ntype);
 }

@@ -23,17 +23,19 @@
 
 #include "node_shader_util.h"
 
+namespace blender::nodes::node_shader_script_cc {
+
 /* **************** Script ******************** */
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeShaderScript *nss = MEM_callocN(sizeof(NodeShaderScript), "shader script node");
+  NodeShaderScript *nss = MEM_cnew<NodeShaderScript>("shader script node");
   node->storage = nss;
 }
 
 static void node_free_script(bNode *node)
 {
-  NodeShaderScript *nss = node->storage;
+  NodeShaderScript *nss = static_cast<NodeShaderScript *>(node->storage);
 
   if (nss) {
     if (nss->bytecode) {
@@ -48,23 +50,28 @@ static void node_copy_script(bNodeTree *UNUSED(dest_ntree),
                              bNode *dest_node,
                              const bNode *src_node)
 {
-  NodeShaderScript *src_nss = src_node->storage;
-  NodeShaderScript *dest_nss = MEM_dupallocN(src_nss);
+  NodeShaderScript *src_nss = static_cast<NodeShaderScript *>(src_node->storage);
+  NodeShaderScript *dest_nss = static_cast<NodeShaderScript *>(MEM_dupallocN(src_nss));
 
   if (src_nss->bytecode) {
-    dest_nss->bytecode = MEM_dupallocN(src_nss->bytecode);
+    dest_nss->bytecode = static_cast<char *>(MEM_dupallocN(src_nss->bytecode));
   }
 
   dest_node->storage = dest_nss;
 }
 
-void register_node_type_sh_script(void)
+}  // namespace blender::nodes::node_shader_script_cc
+
+void register_node_type_sh_script()
 {
+  namespace file_ns = blender::nodes::node_shader_script_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_SCRIPT, "Script", NODE_CLASS_SCRIPT, 0);
-  node_type_init(&ntype, init);
-  node_type_storage(&ntype, "NodeShaderScript", node_free_script, node_copy_script);
+  node_type_init(&ntype, file_ns::init);
+  node_type_storage(
+      &ntype, "NodeShaderScript", file_ns::node_free_script, file_ns::node_copy_script);
 
   nodeRegisterType(&ntype);
 }

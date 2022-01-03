@@ -23,6 +23,8 @@
 
 #include "node_shader_util.h"
 
+namespace blender::nodes::node_shader_hueSatVal_cc {
+
 /* **************** Hue Saturation ******************** */
 static bNodeSocketTemplate sh_node_hue_sat_in[] = {
     {SOCK_FLOAT, N_("Hue"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
@@ -85,15 +87,19 @@ static int gpu_shader_hue_sat(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "hue_sat", in, out);
 }
 
-void register_node_type_sh_hue_sat(void)
+}  // namespace blender::nodes::node_shader_hueSatVal_cc
+
+void register_node_type_sh_hue_sat()
 {
+  namespace file_ns = blender::nodes::node_shader_hueSatVal_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR, 0);
-  node_type_socket_templates(&ntype, sh_node_hue_sat_in, sh_node_hue_sat_out);
+  node_type_socket_templates(&ntype, file_ns::sh_node_hue_sat_in, file_ns::sh_node_hue_sat_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_exec(&ntype, NULL, NULL, node_shader_exec_hue_sat);
-  node_type_gpu(&ntype, gpu_shader_hue_sat);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_hue_sat);
+  node_type_gpu(&ntype, file_ns::gpu_shader_hue_sat);
 
   nodeRegisterType(&ntype);
 }

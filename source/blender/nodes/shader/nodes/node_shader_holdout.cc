@@ -17,15 +17,18 @@
  * All rights reserved.
  */
 
-/** \file
- * \ingroup shdnodes
- */
+#include "../node_shader_util.h"
 
-#include "node_shader_util.h"
+namespace blender::nodes::node_shader_holdout_cc {
 
-/* **************** RGB ******************** */
-static bNodeSocketTemplate sh_node_rgb_out[] = {
-    {SOCK_RGBA, N_("Color"), 0.5f, 0.5f, 0.5f, 1.0f},
+/* **************** OUTPUT ******************** */
+
+static bNodeSocketTemplate sh_node_holdout_in[] = {
+    {-1, ""},
+};
+
+static bNodeSocketTemplate sh_node_holdout_out[] = {
+    {SOCK_SHADER, N_("Holdout")},
     {-1, ""},
 };
 
@@ -35,17 +38,21 @@ static int gpu_shader_rgb(GPUMaterial *mat,
                           GPUNodeStack *in,
                           GPUNodeStack *out)
 {
-  GPUNodeLink *link = GPU_uniformbuf_link_out(mat, node, out, 0);
-  return GPU_stack_link(mat, node, "set_rgba", in, out, link);
+  return GPU_stack_link(mat, node, "node_holdout", in, out);
 }
 
-void register_node_type_sh_rgb(void)
+}  // namespace blender::nodes::node_shader_holdout_cc
+
+/* node type definition */
+void register_node_type_sh_holdout()
 {
+  namespace file_ns = blender::nodes::node_shader_holdout_cc;
+
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_RGB, "RGB", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, NULL, sh_node_rgb_out);
-  node_type_gpu(&ntype, gpu_shader_rgb);
+  sh_node_type_base(&ntype, SH_NODE_HOLDOUT, "Holdout", NODE_CLASS_SHADER, 0);
+  node_type_socket_templates(&ntype, file_ns::sh_node_holdout_in, file_ns::sh_node_holdout_out);
+  node_type_gpu(&ntype, file_ns::gpu_shader_rgb);
 
   nodeRegisterType(&ntype);
 }

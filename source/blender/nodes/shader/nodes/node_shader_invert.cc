@@ -23,6 +23,8 @@
 
 #include "node_shader_util.h"
 
+namespace blender::nodes::node_shader_invert_cc {
+
 /* **************** INVERT ******************** */
 static bNodeSocketTemplate sh_node_invert_in[] = {
     {SOCK_FLOAT, N_("Fac"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
@@ -65,14 +67,18 @@ static int gpu_shader_invert(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "invert", in, out);
 }
 
-void register_node_type_sh_invert(void)
+}  // namespace blender::nodes::node_shader_invert_cc
+
+void register_node_type_sh_invert()
 {
+  namespace file_ns = blender::nodes::node_shader_invert_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR, 0);
-  node_type_socket_templates(&ntype, sh_node_invert_in, sh_node_invert_out);
-  node_type_exec(&ntype, NULL, NULL, node_shader_exec_invert);
-  node_type_gpu(&ntype, gpu_shader_invert);
+  node_type_socket_templates(&ntype, file_ns::sh_node_invert_in, file_ns::sh_node_invert_out);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_invert);
+  node_type_gpu(&ntype, file_ns::gpu_shader_invert);
 
   nodeRegisterType(&ntype);
 }

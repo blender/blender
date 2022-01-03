@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_light_path_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_light_path_out[] = {
@@ -47,14 +49,18 @@ static int node_shader_gpu_light_path(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_light_path", in, out);
 }
 
+}  // namespace blender::nodes::node_shader_light_path_cc
+
 /* node type definition */
-void register_node_type_sh_light_path(void)
+void register_node_type_sh_light_path()
 {
+  namespace file_ns = blender::nodes::node_shader_light_path_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_LIGHT_PATH, "Light Path", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, NULL, sh_node_light_path_out);
-  node_type_gpu(&ntype, node_shader_gpu_light_path);
+  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_light_path_out);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_light_path);
 
   nodeRegisterType(&ntype);
 }

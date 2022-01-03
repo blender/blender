@@ -19,6 +19,8 @@
 
 #include "../node_shader_util.h"
 
+namespace blender::nodes::node_shader_object_info_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_object_info_out[] = {
@@ -49,13 +51,17 @@ static int node_shader_gpu_object_info(GPUMaterial *mat,
                         GPU_constant(&index));
 }
 
-void register_node_type_sh_object_info(void)
+}  // namespace blender::nodes::node_shader_object_info_cc
+
+void register_node_type_sh_object_info()
 {
+  namespace file_ns = blender::nodes::node_shader_object_info_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_OBJECT_INFO, "Object Info", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, NULL, sh_node_object_info_out);
-  node_type_gpu(&ntype, node_shader_gpu_object_info);
+  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_object_info_out);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_object_info);
 
   nodeRegisterType(&ntype);
 }

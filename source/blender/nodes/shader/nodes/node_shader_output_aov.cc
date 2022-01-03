@@ -21,6 +21,8 @@
 
 #include "BLI_hash.h"
 
+namespace blender::nodes::node_shader_output_aov_cc {
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_output_aov_in[] = {
@@ -31,7 +33,7 @@ static bNodeSocketTemplate sh_node_output_aov_in[] = {
 
 static void node_shader_init_output_aov(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeShaderOutputAOV *aov = MEM_callocN(sizeof(NodeShaderOutputAOV), "NodeShaderOutputAOV");
+  NodeShaderOutputAOV *aov = MEM_cnew<NodeShaderOutputAOV>("NodeShaderOutputAOV");
   node->storage = aov;
 }
 
@@ -52,17 +54,21 @@ static int node_shader_gpu_output_aov(GPUMaterial *mat,
   return true;
 }
 
+}  // namespace blender::nodes::node_shader_output_aov_cc
+
 /* node type definition */
-void register_node_type_sh_output_aov(void)
+void register_node_type_sh_output_aov()
 {
+  namespace file_ns = blender::nodes::node_shader_output_aov_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_OUTPUT_AOV, "AOV Output", NODE_CLASS_OUTPUT, 0);
-  node_type_socket_templates(&ntype, sh_node_output_aov_in, NULL);
-  node_type_init(&ntype, node_shader_init_output_aov);
+  node_type_socket_templates(&ntype, file_ns::sh_node_output_aov_in, nullptr);
+  node_type_init(&ntype, file_ns::node_shader_init_output_aov);
   node_type_storage(
       &ntype, "NodeShaderOutputAOV", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, node_shader_gpu_output_aov);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_output_aov);
 
   ntype.no_muting = true;
 

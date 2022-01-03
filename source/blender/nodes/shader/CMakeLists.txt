@@ -71,32 +71,32 @@ set(SRC
   nodes/node_shader_fresnel.cc
   nodes/node_shader_gamma.cc
   nodes/node_shader_geometry.cc
-  nodes/node_shader_hair_info.c
-  nodes/node_shader_holdout.c
-  nodes/node_shader_hueSatVal.c
+  nodes/node_shader_hair_info.cc
+  nodes/node_shader_holdout.cc
+  nodes/node_shader_hueSatVal.cc
   nodes/node_shader_ies_light.cc
-  nodes/node_shader_invert.c
-  nodes/node_shader_layer_weight.c
-  nodes/node_shader_light_falloff.c
-  nodes/node_shader_light_path.c
+  nodes/node_shader_invert.cc
+  nodes/node_shader_layer_weight.cc
+  nodes/node_shader_light_falloff.cc
+  nodes/node_shader_light_path.cc
   nodes/node_shader_map_range.cc
-  nodes/node_shader_mapping.c
+  nodes/node_shader_mapping.cc
   nodes/node_shader_math.cc
   nodes/node_shader_mix_rgb.cc
   nodes/node_shader_mix_shader.cc
-  nodes/node_shader_normal.c
-  nodes/node_shader_normal_map.c
-  nodes/node_shader_object_info.c
-  nodes/node_shader_output_aov.c
-  nodes/node_shader_output_light.c
-  nodes/node_shader_output_linestyle.c
-  nodes/node_shader_output_material.c
-  nodes/node_shader_output_world.c
-  nodes/node_shader_particle_info.c
+  nodes/node_shader_normal.cc
+  nodes/node_shader_normal_map.cc
+  nodes/node_shader_object_info.cc
+  nodes/node_shader_output_aov.cc
+  nodes/node_shader_output_light.cc
+  nodes/node_shader_output_linestyle.cc
+  nodes/node_shader_output_material.cc
+  nodes/node_shader_output_world.cc
+  nodes/node_shader_particle_info.cc
   nodes/node_shader_rgb_to_bw.cc
-  nodes/node_shader_rgb.c
-  nodes/node_shader_script.c
-  nodes/node_shader_sepcomb_hsv.c
+  nodes/node_shader_rgb.cc
+  nodes/node_shader_script.cc
+  nodes/node_shader_sepcomb_hsv.cc
   nodes/node_shader_sepcomb_rgb.cc
   nodes/node_shader_sepcomb_xyz.cc
   nodes/node_shader_shader_to_rgb.cc

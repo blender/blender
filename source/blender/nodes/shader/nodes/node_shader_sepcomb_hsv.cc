@@ -23,6 +23,8 @@
 
 #include "node_shader_util.h"
 
+namespace blender::nodes::node_shader_sepcomb_hsv_cc {
+
 /* **************** SEPARATE HSV ******************** */
 static bNodeSocketTemplate sh_node_sephsv_in[] = {
     {SOCK_RGBA, N_("Color"), 0.8f, 0.8f, 0.8f, 1.0f},
@@ -57,17 +59,23 @@ static int gpu_shader_sephsv(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "separate_hsv", in, out);
 }
 
-void register_node_type_sh_sephsv(void)
+}  // namespace blender::nodes::node_shader_sepcomb_hsv_cc
+
+void register_node_type_sh_sephsv()
 {
+  namespace file_ns = blender::nodes::node_shader_sepcomb_hsv_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_SEPHSV, "Separate HSV", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, sh_node_sephsv_in, sh_node_sephsv_out);
-  node_type_exec(&ntype, NULL, NULL, node_shader_exec_sephsv);
-  node_type_gpu(&ntype, gpu_shader_sephsv);
+  node_type_socket_templates(&ntype, file_ns::sh_node_sephsv_in, file_ns::sh_node_sephsv_out);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_sephsv);
+  node_type_gpu(&ntype, file_ns::gpu_shader_sephsv);
 
   nodeRegisterType(&ntype);
 }
+
+namespace blender::nodes::node_shader_sepcomb_hsv_cc {
 
 /* **************** COMBINE HSV ******************** */
 static bNodeSocketTemplate sh_node_combhsv_in[] = {
@@ -105,14 +113,18 @@ static int gpu_shader_combhsv(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "combine_hsv", in, out);
 }
 
-void register_node_type_sh_combhsv(void)
+}  // namespace blender::nodes::node_shader_sepcomb_hsv_cc
+
+void register_node_type_sh_combhsv()
 {
+  namespace file_ns = blender::nodes::node_shader_sepcomb_hsv_cc;
+
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_COMBHSV, "Combine HSV", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, sh_node_combhsv_in, sh_node_combhsv_out);
-  node_type_exec(&ntype, NULL, NULL, node_shader_exec_combhsv);
-  node_type_gpu(&ntype, gpu_shader_combhsv);
+  node_type_socket_templates(&ntype, file_ns::sh_node_combhsv_in, file_ns::sh_node_combhsv_out);
+  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_combhsv);
+  node_type_gpu(&ntype, file_ns::gpu_shader_combhsv);
 
   nodeRegisterType(&ntype);
 }
