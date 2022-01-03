@@ -2527,9 +2527,23 @@ void SCULPT_clip(Sculpt *sd, SculptSession *ss, float co[3], const float val[3])
       continue;
     }
 
-    if (ss->cache && (ss->cache->flag & (CLIP_X << i)) &&
-        (fabsf(co[i]) <= ss->cache->clip_tolerance[i])) {
-      co[i] = 0.0f;
+    bool do_clip = false;
+    float co_clip[3];
+    if (ss->cache && (ss->cache->flag & (CLIP_X << i))) {
+      /* Take possible mirror object into account. */
+      mul_v3_m4v3(co_clip, ss->cache->clip_mirror_mtx, co);
+
+      if (fabsf(co_clip[i]) <= ss->cache->clip_tolerance[i]) {
+        co_clip[i] = 0.0f;
+        float imtx[4][4];
+        invert_m4_m4(imtx, ss->cache->clip_mirror_mtx);
+        mul_m4_v3(imtx, co_clip);
+        do_clip = true;
+      }
+    }
+
+    if (do_clip) {
+      co[i] = co_clip[i];
     }
     else {
       co[i] = val[i];
@@ -3985,6 +3999,8 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 {
   ModifierData *md;
 
+  unit_m4(ss->cache->clip_mirror_mtx);
+
   for (md = ob->modifiers.first; md; md = md->next) {
     if (!(md->type == eModifierType_Mirror && (md->mode & eModifierMode_Realtime))) {
       continue;
@@ -4005,6 +4021,13 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
       /* Update the clip tolerance. */
       if (mmd->tolerance > ss->cache->clip_tolerance[i]) {
         ss->cache->clip_tolerance[i] = mmd->tolerance;
+      }
+
+      /* Store matrix for mirror object clipping. */
+      if (mmd->mirror_ob) {
+        float imtx_mirror_ob[4][4];
+        invert_m4_m4(imtx_mirror_ob, mmd->mirror_ob->obmat);
+        mul_m4_m4m4(ss->cache->clip_mirror_mtx, imtx_mirror_ob, ob->obmat);
       }
     }
   }

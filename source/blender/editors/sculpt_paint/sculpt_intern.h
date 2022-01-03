@@ -1029,6 +1029,7 @@ typedef struct StrokeCache {
   float scale[3];
   int flag;
   float clip_tolerance[3];
+  float clip_mirror_mtx[4][4];
   float initial_mouse[2];
 
   /* Variants */
