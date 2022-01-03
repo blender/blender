@@ -106,6 +106,7 @@ void register_node_type_geo_input_id(void);
 void register_node_type_geo_input_index(void);
 void register_node_type_geo_input_material_index(void);
 void register_node_type_geo_input_material(void);
+void register_node_type_geo_input_mesh_edge_angle(void);
 void register_node_type_geo_input_mesh_edge_neighbors(void);
 void register_node_type_geo_input_mesh_edge_vertices(void);
 void register_node_type_geo_input_mesh_face_area(void);
