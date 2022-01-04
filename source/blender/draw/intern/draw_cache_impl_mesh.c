@@ -537,10 +537,10 @@ static bool custom_data_match_attribute(const CustomData *custom_data,
   return false;
 }
 
-ATTR_NO_OPT static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
-                                                               struct GPUMaterial **gpumat_array,
-                                                               int gpumat_array_len,
-                                                               DRW_MeshAttributes *attributes)
+static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
+                                                   struct GPUMaterial **gpumat_array,
+                                                   int gpumat_array_len,
+                                                   DRW_MeshAttributes *attributes)
 {
   const Mesh *me_final = editmesh_final_or_this(me);
   const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
@@ -571,7 +571,7 @@ ATTR_NO_OPT static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
           if (name[0] != '\0') {
             layer = CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name);
             type = CD_MTFACE;
-            
+
             if (layer == -1) {
               layer = CustomData_get_named_layer(cd_vdata, CD_PROP_COLOR, name);
               type = CD_PROP_COLOR;

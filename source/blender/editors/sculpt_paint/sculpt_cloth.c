@@ -581,10 +581,33 @@ static bool cloth_brush_sim_has_bend_constraint(SculptClothSimulation *cloth_sim
   return BLI_edgeset_haskey(cloth_sim->created_bend_constraints, v1, v2);
 }
 
+typedef struct SculptClothTaskData {
+  SculptClothConstraint **constraints[TOT_CONSTRAINT_TYPES];
+  int tot_constraints[TOT_CONSTRAINT_TYPES];
+} SculptClothTaskData;
+
+static void cloth_free_tasks(SculptClothSimulation *cloth_sim)
+{
+  // printf("Freeing tasks %d\n", BLI_task_parallel_thread_id(NULL));
+
+  for (int i = 0; i < cloth_sim->tot_constraint_tasks; i++) {
+    for (int j = 0; j < TOT_CONSTRAINT_TYPES; j++) {
+      MEM_SAFE_FREE(cloth_sim->constraint_tasks[i].constraints[j]);
+    }
+  }
+
+  MEM_SAFE_FREE(cloth_sim->constraint_tasks);
+  cloth_sim->constraint_tasks = NULL;
+  cloth_sim->tot_constraint_tasks = 0;
+}
+
 static void cloth_brush_reallocate_constraints(SculptClothSimulation *cloth_sim)
 {
+  bool modified = false;
+
   for (int i = 0; i < TOT_CONSTRAINT_TYPES; i++) {
     if (cloth_sim->tot_constraints[i] >= cloth_sim->capacity_constraints[i]) {
+      modified = true;
       cloth_sim->capacity_constraints[i] += CLOTH_LENGTH_CONSTRAINTS_BLOCK;
 
       cloth_sim->constraints[i] = MEM_reallocN_id(cloth_sim->constraints[i],
@@ -592,6 +615,10 @@ static void cloth_brush_reallocate_constraints(SculptClothSimulation *cloth_sim)
                                                       constraint_types[i].size,
                                                   "cloth constraint array");
     }
+  }
+
+  if (modified && cloth_sim->constraint_tasks) {
+    cloth_free_tasks(cloth_sim);
   }
 }
 
@@ -1570,11 +1597,6 @@ static void cloth_simulation_noise_get(float *r_noise,
   }
 }
 
-typedef struct SculptClothTaskData {
-  SculptClothConstraint **constraints[TOT_CONSTRAINT_TYPES];
-  int tot_constraints[TOT_CONSTRAINT_TYPES];
-} SculptClothTaskData;
-
 static void do_cloth_brush_solve_simulation_task_cb_ex(
     void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
 {
@@ -1652,21 +1674,6 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
 
   /* Disable the simulation on this node, it needs to be enabled again to continue. */
   cloth_sim->node_state[node_index] = SCULPT_CLOTH_NODE_INACTIVE;
-}
-
-static void cloth_free_tasks(SculptClothSimulation *cloth_sim)
-{
-  // printf("Freeing tasks %d\n", BLI_task_parallel_thread_id(NULL));
-
-  for (int i = 0; i < cloth_sim->tot_constraint_tasks; i++) {
-    for (int j = 0; j < TOT_CONSTRAINT_TYPES; j++) {
-      MEM_SAFE_FREE(cloth_sim->constraint_tasks[i].constraints[j]);
-    }
-  }
-
-  MEM_SAFE_FREE(cloth_sim->constraint_tasks);
-  cloth_sim->constraint_tasks = NULL;
-  cloth_sim->tot_constraint_tasks = 0;
 }
 
 static void cloth_sort_constraints_for_tasks(SculptSession *ss,
@@ -1822,7 +1829,7 @@ static void cloth_sort_constraints_for_tasks(SculptSession *ss,
   MEM_SAFE_FREE(vthreads);
 }
 
-ATTR_NO_OPT static void cloth_brush_satisfy_constraints_intern(SculptSession *ss,
+static void cloth_brush_satisfy_constraints_intern(SculptSession *ss,
                                                    Brush *brush,
                                                    SculptClothSimulation *cloth_sim,
                                                    SculptClothTaskData *task,
@@ -2020,9 +2027,9 @@ static void cloth_brush_satisfy_constraints_task_cb(void *__restrict userdata,
   }
 }
 
-static void cloth_brush_satisfy_constraints(SculptSession *ss,
-                                            Brush *brush,
-                                            SculptClothSimulation *cloth_sim)
+void cloth_brush_satisfy_constraints(SculptSession *ss,
+                                     Brush *brush,
+                                     SculptClothSimulation *cloth_sim)
 {
   ConstraintThreadData data = {.cloth_sim = cloth_sim, .ss = ss, .brush = brush};
 

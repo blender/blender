@@ -3458,7 +3458,7 @@ void drw_batch_cache_validate(Object *ob)
   }
 }
 
-ATTR_NO_OPT void drw_batch_cache_generate_requested(Object *ob)
+void drw_batch_cache_generate_requested(Object *ob)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene = draw_ctx->scene;

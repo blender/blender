@@ -152,7 +152,7 @@ static GPUVertCompType get_comp_type_for_type(CustomDataType type)
   }
 }
 
-ATTR_NO_OPT static void init_vbo_for_attribute(const MeshRenderData *mr,
+static void init_vbo_for_attribute(const MeshRenderData *mr,
                                    GPUVertBuf *vbo,
                                    const DRW_AttributeRequest &request,
                                    bool build_on_device,

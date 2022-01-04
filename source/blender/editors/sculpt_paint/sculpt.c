@@ -4123,15 +4123,15 @@ static float brush_strength(const Sculpt *sd,
   }
 }
 
-ATTR_NO_OPT float SCULPT_brush_strength_factor(SculptSession *ss,
-                                               const Brush *br,
-                                               const float brush_point[3],
-                                               const float len,
-                                               const short vno[3],
-                                               const float fno[3],
-                                               const float mask,
-                                               const SculptVertRef vertex_index,
-                                               const int thread_id)
+float SCULPT_brush_strength_factor(SculptSession *ss,
+                                   const Brush *br,
+                                   const float brush_point[3],
+                                   const float len,
+                                   const short vno[3],
+                                   const float fno[3],
+                                   const float mask,
+                                   const SculptVertRef vertex_index,
+                                   const int thread_id)
 {
   StrokeCache *cache = ss->cache;
   const Scene *scene = cache->vc->scene;
@@ -5044,7 +5044,7 @@ static void sculpt_topology_update(Sculpt *sd,
   SCULPT_dyntopo_automasking_end(mask_cb_data);
 
   if (actv != -1) {
-    BMVert *v = (BMVert*)BM_ELEM_FROM_ID_SAFE(ss->bm, actv);
+    BMVert *v = (BMVert *)BM_ELEM_FROM_ID_SAFE(ss->bm, actv);
 
     if (v && v->head.htype == BM_VERT) {
       ss->active_vertex_index.i == (intptr_t)v;
@@ -5055,8 +5055,8 @@ static void sculpt_topology_update(Sculpt *sd,
   }
 
   if (actf != -1) {
-    BMFace *f = (BMFace*)BM_ELEM_FROM_ID_SAFE(ss->bm, actf);
-    
+    BMFace *f = (BMFace *)BM_ELEM_FROM_ID_SAFE(ss->bm, actf);
+
     if (f && f->head.htype == BM_FACE) {
       ss->active_face_index.i == (intptr_t)f;
     }

@@ -1205,9 +1205,9 @@ static void calc_clay_surface_reduce(const void *__restrict UNUSED(userdata),
   join->plane_dist[1] = MIN2(csd->plane_dist[1], join->plane_dist[1]);
 }
 
-ATTR_NO_OPT static void do_clay_brush_task_cb_ex(void *__restrict userdata,
-                                                 const int n,
-                                                 const TaskParallelTLS *__restrict tls)
+static void do_clay_brush_task_cb_ex(void *__restrict userdata,
+                                     const int n,
+                                     const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -1262,7 +1262,7 @@ ATTR_NO_OPT static void do_clay_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_node_mark_update(data->nodes[n]);
 }
 
-ATTR_NO_OPT void SCULPT_do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+void SCULPT_do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -4349,7 +4349,7 @@ static void do_displacement_heal_cb(void *__restrict userdata,
         float *co = (float *)SCULPT_vertex_co_get(ss, vertex);
 
         interp_v3_v3v3(co, co, tmp, bstrength);
-        //copy_v3_v3(co, tmp);
+        // copy_v3_v3(co, tmp);
       }
     }
   }

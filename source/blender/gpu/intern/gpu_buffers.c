@@ -146,18 +146,17 @@ typedef struct PBVHGPUFormat {
 static PBVHGPUFormat g_vbo_id = {{0}};
 
 static int gpu_pbvh_make_attr_offs(AttributeDomainMask domain_mask,
-                                       CustomDataMask type_mask,
-                                       const CustomData *vdata,
-                                       const CustomData *edata,
-                                       const CustomData *ldata,
-                                       const CustomData *pdata,
-                                       GPUAttrRef r_cd_vcols[MAX_GPU_ATTR],
-                                       bool active_only,
-                                       int active_type,
-                                       int active_domain,
-                                       const CustomDataLayer *active_vcol_layer,
-                                       const CustomDataLayer *render_vcol_layer);
-
+                                   CustomDataMask type_mask,
+                                   const CustomData *vdata,
+                                   const CustomData *edata,
+                                   const CustomData *ldata,
+                                   const CustomData *pdata,
+                                   GPUAttrRef r_cd_vcols[MAX_GPU_ATTR],
+                                   bool active_only,
+                                   int active_type,
+                                   int active_domain,
+                                   const CustomDataLayer *active_vcol_layer,
+                                   const CustomDataLayer *render_vcol_layer);
 
 /** \} */
 
@@ -272,30 +271,30 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
   GPUAttrRef cd_uvs[MAX_GPU_ATTR];
 
   int totcol = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER,
-                                           CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
-                                           vdata,
-                                           NULL,
-                                           ldata,
-                                           NULL,
-                                           vcol_refs,
-                                           g_vbo_id.active_vcol_only,
-                                           active_vcol_layer ? active_vcol_layer->type : -1,
-                                           active_vcol_domain,
-                                           active_vcol_layer,
-                                           render_vcol_layer);
+                                       CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
+                                       vdata,
+                                       NULL,
+                                       ldata,
+                                       NULL,
+                                       vcol_refs,
+                                       g_vbo_id.active_vcol_only,
+                                       active_vcol_layer ? active_vcol_layer->type : -1,
+                                       active_vcol_domain,
+                                       active_vcol_layer,
+                                       render_vcol_layer);
 
   int cd_uv_count = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_CORNER,
-                                                CD_MASK_MLOOPUV,
-                                                NULL,
-                                                NULL,
-                                                ldata,
-                                                NULL,
-                                                cd_uvs,
-                                                g_vbo_id.active_vcol_only,
-                                                CD_MLOOPUV,
-                                                ATTR_DOMAIN_CORNER,
-                                                get_active_layer(ldata, CD_MLOOPUV),
-                                                get_render_layer(ldata, CD_MLOOPUV));
+                                            CD_MASK_MLOOPUV,
+                                            NULL,
+                                            NULL,
+                                            ldata,
+                                            NULL,
+                                            cd_uvs,
+                                            g_vbo_id.active_vcol_only,
+                                            CD_MLOOPUV,
+                                            ATTR_DOMAIN_CORNER,
+                                            get_active_layer(ldata, CD_MLOOPUV),
+                                            get_render_layer(ldata, CD_MLOOPUV));
 
   const bool show_vcol = totcol > 0 && (update_flags & GPU_PBVH_BUFFERS_SHOW_VCOL) != 0;
 
@@ -1169,17 +1168,17 @@ void GPU_pbvh_bmesh_buffers_update_free(GPU_PBVH_Buffers *buffers)
 }
 
 static int gpu_pbvh_make_attr_offs(AttributeDomainMask domain_mask,
-                                       CustomDataMask type_mask,
-                                       const CustomData *vdata,
-                                       const CustomData *edata,
-                                       const CustomData *ldata,
-                                       const CustomData *pdata,
-                                       GPUAttrRef r_cd_vcols[MAX_GPU_ATTR],
-                                       bool active_only,
-                                       int active_type,
-                                       int active_domain,
-                                       const CustomDataLayer *active_vcol_layer,
-                                       const CustomDataLayer *render_vcol_layer)
+                                   CustomDataMask type_mask,
+                                   const CustomData *vdata,
+                                   const CustomData *edata,
+                                   const CustomData *ldata,
+                                   const CustomData *pdata,
+                                   GPUAttrRef r_cd_vcols[MAX_GPU_ATTR],
+                                   bool active_only,
+                                   int active_type,
+                                   int active_domain,
+                                   const CustomDataLayer *active_vcol_layer,
+                                   const CustomDataLayer *render_vcol_layer)
 {
   if (active_only) {
     const CustomData *cdata = active_domain == ATTR_DOMAIN_POINT ? vdata : ldata;
@@ -1211,7 +1210,7 @@ static int gpu_pbvh_make_attr_offs(AttributeDomainMask domain_mask,
     CustomDataLayer *cl = cdata->layers;
 
     for (int i = 0; count < MAX_GPU_ATTR && i < cdata->totlayer; i++, cl++) {
-      if (CD_TYPE_AS_MASK(cl->type) & type_mask && !(cl->flag & CD_FLAG_TEMPORARY)) {
+      if ((CD_TYPE_AS_MASK(cl->type) & type_mask) && !(cl->flag & CD_FLAG_TEMPORARY)) {
         GPUAttrRef *ref = r_cd_vcols + count;
 
         ref->cd_offset = cl->offset;
@@ -1319,17 +1318,17 @@ bool GPU_pbvh_update_attribute_names(CustomData *vdata,
 
       GPUAttrRef vcol_layers[MAX_GPU_ATTR];
       int totlayer = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER,
-                                                 CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
-                                                 vdata,
-                                                 NULL,
-                                                 ldata,
-                                                 NULL,
-                                                 vcol_layers,
-                                                 active_only,
-                                                 active_vcol_type,
-                                                 active_vcol_domain,
-                                                 active_vcol_layer,
-                                                 render_vcol_layer);
+                                             CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
+                                             vdata,
+                                             NULL,
+                                             ldata,
+                                             NULL,
+                                             vcol_layers,
+                                             active_only,
+                                             active_vcol_type,
+                                             active_vcol_domain,
+                                             active_vcol_layer,
+                                             render_vcol_layer);
 
       for (int i = 0; i < totlayer; i++) {
         GPUAttrRef *ref = vcol_layers + i;
@@ -1380,17 +1379,17 @@ bool GPU_pbvh_update_attribute_names(CustomData *vdata,
       }
 
       int totlayer = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_CORNER,
-                                                 CD_MASK_MLOOPUV,
-                                                 NULL,
-                                                 NULL,
-                                                 ldata,
-                                                 NULL,
-                                                 uv_layers,
-                                                 active_only,
-                                                 CD_MLOOPUV,
-                                                 ATTR_DOMAIN_CORNER,
-                                                 active,
-                                                 render);
+                                             CD_MASK_MLOOPUV,
+                                             NULL,
+                                             NULL,
+                                             ldata,
+                                             NULL,
+                                             uv_layers,
+                                             active_only,
+                                             CD_MLOOPUV,
+                                             ATTR_DOMAIN_CORNER,
+                                             active,
+                                             render);
 
       g_vbo_id.totuv = totlayer;
 
@@ -1483,31 +1482,31 @@ static void GPU_pbvh_bmesh_buffers_update_flat_vcol(GPU_PBVH_Buffers *buffers,
   GPUAttrRef cd_uvs[MAX_GPU_ATTR];
 
   const int cd_vcol_count = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_POINT |
-                                                            ATTR_DOMAIN_MASK_CORNER,
-                                                        CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
-                                                        &bm->vdata,
-                                                        NULL,
-                                                        &bm->ldata,
-                                                        NULL,
-                                                        cd_vcols,
-                                                        active_vcol_only,
-                                                        active_vcol_type,
-                                                        active_vcol_domain,
-                                                        active_vcol_layer,
-                                                        render_vcol_layer);
+                                                        ATTR_DOMAIN_MASK_CORNER,
+                                                    CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
+                                                    &bm->vdata,
+                                                    NULL,
+                                                    &bm->ldata,
+                                                    NULL,
+                                                    cd_vcols,
+                                                    active_vcol_only,
+                                                    active_vcol_type,
+                                                    active_vcol_domain,
+                                                    active_vcol_layer,
+                                                    render_vcol_layer);
 
   int cd_uv_count = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_CORNER,
-                                                CD_MASK_MLOOPUV,
-                                                NULL,
-                                                NULL,
-                                                &bm->ldata,
-                                                NULL,
-                                                cd_uvs,
-                                                active_vcol_only,
-                                                CD_MLOOPUV,
-                                                ATTR_DOMAIN_CORNER,
-                                                get_active_layer(&bm->ldata, CD_MLOOPUV),
-                                                get_render_layer(&bm->ldata, CD_MLOOPUV));
+                                            CD_MASK_MLOOPUV,
+                                            NULL,
+                                            NULL,
+                                            &bm->ldata,
+                                            NULL,
+                                            cd_uvs,
+                                            active_vcol_only,
+                                            CD_MLOOPUV,
+                                            ATTR_DOMAIN_CORNER,
+                                            get_active_layer(&bm->ldata, CD_MLOOPUV),
+                                            get_render_layer(&bm->ldata, CD_MLOOPUV));
   /* Count visible triangles */
   tottri = gpu_bmesh_face_visible_count(tribuf, mat_nr) * 6;
   totvert = tottri * 3;
@@ -1741,30 +1740,30 @@ static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
   GPUAttrRef cd_uvs[MAX_GPU_ATTR];
 
   int cd_vcol_count = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER,
-                                                  CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
-                                                  &bm->vdata,
-                                                  NULL,
-                                                  &bm->ldata,
-                                                  NULL,
-                                                  cd_vcols,
-                                                  active_vcol_only,
-                                                  active_vcol_type,
-                                                  active_vcol_domain,
-                                                  active_vcol_layer,
-                                                  render_vcol_layer);
+                                              CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
+                                              &bm->vdata,
+                                              NULL,
+                                              &bm->ldata,
+                                              NULL,
+                                              cd_vcols,
+                                              active_vcol_only,
+                                              active_vcol_type,
+                                              active_vcol_domain,
+                                              active_vcol_layer,
+                                              render_vcol_layer);
 
   int cd_uv_count = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_CORNER,
-                                                CD_MASK_MLOOPUV,
-                                                NULL,
-                                                NULL,
-                                                &bm->ldata,
-                                                NULL,
-                                                cd_uvs,
-                                                active_vcol_only,
-                                                CD_MLOOPUV,
-                                                ATTR_DOMAIN_CORNER,
-                                                get_active_layer(&bm->ldata, CD_MLOOPUV),
-                                                get_render_layer(&bm->ldata, CD_MLOOPUV));
+                                            CD_MASK_MLOOPUV,
+                                            NULL,
+                                            NULL,
+                                            &bm->ldata,
+                                            NULL,
+                                            cd_uvs,
+                                            active_vcol_only,
+                                            CD_MLOOPUV,
+                                            ATTR_DOMAIN_CORNER,
+                                            get_active_layer(&bm->ldata, CD_MLOOPUV),
+                                            get_render_layer(&bm->ldata, CD_MLOOPUV));
 
   /* Count visible triangles */
   tottri = gpu_bmesh_face_visible_count(tribuf, mat_nr);
@@ -1937,30 +1936,30 @@ void GPU_pbvh_bmesh_buffers_update(PBVHGPUBuildArgs *args)
   GPUAttrRef cd_uvs[MAX_GPU_ATTR];
 
   int cd_vcol_count = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER,
-                                                  CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
-                                                  &bm->vdata,
-                                                  NULL,
-                                                  &bm->ldata,
-                                                  NULL,
-                                                  cd_vcols,
-                                                  active_vcol_only,
-                                                  args->active_vcol_type,
-                                                  args->active_vcol_domain,
-                                                  args->active_vcol_layer,
-                                                  args->render_vcol_layer);
+                                              CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
+                                              &bm->vdata,
+                                              NULL,
+                                              &bm->ldata,
+                                              NULL,
+                                              cd_vcols,
+                                              active_vcol_only,
+                                              args->active_vcol_type,
+                                              args->active_vcol_domain,
+                                              args->active_vcol_layer,
+                                              args->render_vcol_layer);
 
   int cd_uv_count = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_CORNER,
-                                                CD_MASK_MLOOPUV,
-                                                NULL,
-                                                NULL,
-                                                &bm->ldata,
-                                                NULL,
-                                                cd_uvs,
-                                                active_vcol_only,
-                                                CD_MLOOPUV,
-                                                ATTR_DOMAIN_CORNER,
-                                                get_active_layer(&bm->ldata, CD_MLOOPUV),
-                                                get_render_layer(&bm->ldata, CD_MLOOPUV));
+                                            CD_MASK_MLOOPUV,
+                                            NULL,
+                                            NULL,
+                                            &bm->ldata,
+                                            NULL,
+                                            cd_uvs,
+                                            active_vcol_only,
+                                            CD_MLOOPUV,
+                                            ATTR_DOMAIN_CORNER,
+                                            get_active_layer(&bm->ldata, CD_MLOOPUV),
+                                            get_render_layer(&bm->ldata, CD_MLOOPUV));
   /* Count visible triangles */
   if (buffers->smooth) {
     GPU_pbvh_bmesh_buffers_update_indexed(buffers,

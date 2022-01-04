@@ -40,9 +40,9 @@ namespace blender::draw {
 /* get all vcol layers as AttributeRefs, filtered by vcol_layers.
  *  the casual use of std::vector should be okay here.
  */
-ATTR_NO_OPT static std::vector<AttributeRef> get_vcol_refs(const CustomData *cd_vdata,
-                                                           const CustomData *cd_ldata,
-                                                           const uint vcol_layers)
+static std::vector<AttributeRef> get_vcol_refs(const CustomData *cd_vdata,
+                                               const CustomData *cd_ldata,
+                                               const uint vcol_layers)
 {
   std::vector<AttributeRef> refs;
 
@@ -62,7 +62,7 @@ ATTR_NO_OPT static std::vector<AttributeRef> get_vcol_refs(const CustomData *cd_
       for (; i < cdata->totlayer && (CustomDataType)cdata->layers[i].type == type; i++, layeri++) {
         const CustomDataLayer *layer = cdata->layers + i;
 
-        if (/*!(vcol_layers & (1UL << layeri)) ||*/ (layer->flag & CD_FLAG_TEMPORARY)) {
+        if (!(vcol_layers & (1UL << layeri)) || (layer->flag & CD_FLAG_TEMPORARY)) {
           continue;
         }
 
@@ -111,12 +111,12 @@ extern "C" int mesh_cd_get_render_color_i(const Mesh *me,
 }
 
 /* Initialize the common vertex format for vcol for coarse and subdivided meshes. */
-ATTR_NO_OPT static void init_vcol_format(GPUVertFormat *format,
-                                         const MeshBatchCache *cache,
-                                         CustomData *cd_vdata,
-                                         CustomData *cd_ldata,
-                                         AttributeRef *attr_active,
-                                         AttributeRef *attr_render)
+static void init_vcol_format(GPUVertFormat *format,
+                             const MeshBatchCache *cache,
+                             CustomData *cd_vdata,
+                             CustomData *cd_ldata,
+                             AttributeRef *attr_active,
+                             AttributeRef *attr_render)
 {
   GPU_vertformat_deinterleave(format);
 
@@ -197,10 +197,10 @@ using gpuMeshVcol = struct gpuMeshVcol {
   ushort r, g, b, a;
 };
 
-ATTR_NO_OPT static void extract_vcol_init(const MeshRenderData *mr,
-                                          struct MeshBatchCache *cache,
-                                          void *buf,
-                                          void *UNUSED(tls_data))
+static void extract_vcol_init(const MeshRenderData *mr,
+                              struct MeshBatchCache *cache,
+                              void *buf,
+                              void *UNUSED(tls_data))
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   GPUVertFormat format = {0};
@@ -350,11 +350,11 @@ ATTR_NO_OPT static void extract_vcol_init(const MeshRenderData *mr,
   }
 }
 
-ATTR_NO_OPT static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                                 const MeshRenderData *UNUSED(mr),
-                                                 struct MeshBatchCache *cache,
-                                                 void *buffer,
-                                                 void *UNUSED(data))
+static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                     const MeshRenderData *UNUSED(mr),
+                                     struct MeshBatchCache *cache,
+                                     void *buffer,
+                                     void *UNUSED(data))
 {
   GPUVertBuf *dst_buffer = static_cast<GPUVertBuf *>(buffer);
   Mesh *coarse_mesh = subdiv_cache->mesh;
@@ -376,38 +376,71 @@ ATTR_NO_OPT static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_ca
 
   gpuMeshVcol *mesh_vcol = (gpuMeshVcol *)GPU_vertbuf_get_data(src_data);
 
+  const CustomData *cd_vdata = &coarse_mesh->vdata;
   const CustomData *cd_ldata = &coarse_mesh->ldata;
 
   const uint vcol_layers = cache->cd_used.vcol;
 
+  std::vector<AttributeRef> refs = get_vcol_refs(cd_vdata, cd_ldata, vcol_layers);
+
+  gpuMeshVcol *vcol = mesh_vcol;
+
   /* Index of the vertex color layer in the compact buffer. Used vertex color layers are stored in
    * a single buffer. */
   int pack_layer_index = 0;
-  for (int i = 0; i < MAX_MTFACE; i++) {
-    if (vcol_layers & (1 << i)) {
-      /* Include stride in offset, we use a stride of 2 since colors are packed into 2 uints. */
-      const int dst_offset = (int)subdiv_cache->num_subdiv_loops * 2 * pack_layer_index++;
-      const MLoopCol *mloopcol = (MLoopCol *)CustomData_get_layer_n(cd_ldata, CD_MLOOPCOL, i);
+  for (auto ref : refs) {
+    /* Include stride in offset, we use a stride of 2 since colors are packed into 2 uints. */
+    const int dst_offset = (int)subdiv_cache->num_subdiv_loops * 2 * pack_layer_index++;
 
-      gpuMeshVcol *vcol = mesh_vcol;
+    const CustomData *cdata = ref.domain == ATTR_DOMAIN_POINT ? cd_vdata : cd_ldata;
+    const MLoop *ml = coarse_mesh->mloop;
 
-      for (int ml_index = 0; ml_index < coarse_mesh->totloop; ml_index++, vcol++, mloopcol++) {
-        vcol->r = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->r]);
-        vcol->g = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->g]);
-        vcol->b = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->b]);
-        vcol->a = unit_float_to_ushort_clamp(mloopcol->a * (1.0f / 255.0f));
-      }
+    int layer_i = CustomData_get_named_layer_index(cdata, ref.type, ref.name);
 
-      /* Ensure data is uploaded properly. */
-      GPU_vertbuf_tag_dirty(src_data);
-      draw_subdiv_interp_custom_data(subdiv_cache, src_data, dst_buffer, 4, dst_offset);
+    if (layer_i == -1) {
+      printf("%s: missing color layer %s\n", __func__, ref.name);
+      vcol += coarse_mesh->totloop;
+      continue;
     }
+
+    MLoopCol *mcol = NULL;
+    MPropCol *pcol = NULL;
+
+    if (ref.type == CD_PROP_COLOR) {
+      pcol = static_cast<MPropCol *>(cdata->layers[layer_i].data);
+    }
+    else {
+      mcol = static_cast<MLoopCol *>(cdata->layers[layer_i].data);
+    }
+
+    const bool is_vert = ref.domain == ATTR_DOMAIN_POINT;
+
+    for (int ml_index = 0; ml_index < coarse_mesh->totloop; ml_index++, vcol++, ml++) {
+      int idx = is_vert ? ml->v : ml_index;
+
+      if (mcol) {
+        vcol->r = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol[idx].r]);
+        vcol->g = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol[idx].g]);
+        vcol->b = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol[idx].b]);
+        vcol->a = unit_float_to_ushort_clamp(mcol[idx].a * (1.0f / 255.0f));
+      }
+      else if (pcol) {
+        vcol->r = unit_float_to_ushort_clamp(pcol[idx].color[0]);
+        vcol->g = unit_float_to_ushort_clamp(pcol[idx].color[1]);
+        vcol->b = unit_float_to_ushort_clamp(pcol[idx].color[2]);
+        vcol->a = unit_float_to_ushort_clamp(pcol[idx].color[3]);
+      }
+    }
+
+    /* Ensure data is uploaded properly. */
+    GPU_vertbuf_tag_dirty(src_data);
+    draw_subdiv_interp_custom_data(subdiv_cache, src_data, dst_buffer, 4, dst_offset);
   }
 
   GPU_vertbuf_discard(src_data);
 }
 
-ATTR_NO_OPT constexpr MeshExtract create_extractor_vcol()
+constexpr MeshExtract create_extractor_vcol()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_vcol_init;

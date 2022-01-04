@@ -566,22 +566,21 @@ static struct TaskNode *mesh_extract_render_data_node_create(struct TaskGraph *t
 /* ---------------------------------------------------------------------- */
 /** \name Extract Loop
  * \{ */
+static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
+                                               MeshBatchCache *cache,
+                                               MeshBufferCache *mbc,
+                                               Mesh *me,
 
-ATTR_NO_OPT static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
-                                                           MeshBatchCache *cache,
-                                                           MeshBufferCache *mbc,
-                                                           Mesh *me,
-
-                                                           const bool is_editmode,
-                                                           const bool is_paint_mode,
-                                                           const bool is_mode_active,
-                                                           const float obmat[4][4],
-                                                           const bool do_final,
-                                                           const bool do_uvedit,
-                                                           const bool use_subsurf_fdots,
-                                                           const Scene *scene,
-                                                           const ToolSettings *ts,
-                                                           const bool use_hide)
+                                               const bool is_editmode,
+                                               const bool is_paint_mode,
+                                               const bool is_mode_active,
+                                               const float obmat[4][4],
+                                               const bool do_final,
+                                               const bool do_uvedit,
+                                               const bool use_subsurf_fdots,
+                                               const Scene *scene,
+                                               const ToolSettings *ts,
+                                               const bool use_hide)
 {
   /* For each mesh where batches needs to be updated a sub-graph will be added to the task_graph.
    * This sub-graph starts with an extract_render_data_node. This fills/converts the required
