@@ -1282,7 +1282,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
 
   /* Join with existing strokes. */
   if (ts->gpencil_flags & GP_TOOL_FLAG_AUTOMERGE_STROKE) {
-    if (gps->prev != NULL) {
+    if ((gps->prev != NULL) || (gps->next != NULL)) {
       BKE_gpencil_stroke_boundingbox_calc(gps);
       float diff_mat[4][4], ctrl1[2], ctrl2[2];
       BKE_gpencil_layer_transform_matrix_get(depsgraph, p->ob, gpl, diff_mat);
