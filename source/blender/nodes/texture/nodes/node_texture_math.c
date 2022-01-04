@@ -335,7 +335,7 @@ void register_node_type_tex_math(void)
 {
   static bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_MATH, "Math", NODE_CLASS_CONVERTER, 0);
+  tex_node_type_base(&ntype, TEX_NODE_MATH, "Math", NODE_CLASS_CONVERTER);
   node_type_socket_templates(&ntype, inputs, outputs);
   ntype.labelfunc = node_math_label;
   node_type_exec(&ntype, NULL, NULL, exec);

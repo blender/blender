@@ -44,7 +44,7 @@ void register_node_type_cmp_normal()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR);
   ntype.declare = blender::nodes::cmp_node_normal_declare;
 
   nodeRegisterType(&ntype);

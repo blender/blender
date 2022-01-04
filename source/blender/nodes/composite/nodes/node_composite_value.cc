@@ -38,7 +38,7 @@ void register_node_type_cmp_value()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_VALUE, "Value", NODE_CLASS_INPUT, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_VALUE, "Value", NODE_CLASS_INPUT);
   ntype.declare = blender::nodes::cmp_node_value_declare;
   node_type_size_preset(&ntype, NODE_SIZE_SMALL);
 

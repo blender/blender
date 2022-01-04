@@ -67,9 +67,10 @@ void register_node_type_cmp_bokehimage()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_BOKEHIMAGE, "Bokeh Image", NODE_CLASS_INPUT, NODE_PREVIEW);
+  cmp_node_type_base(&ntype, CMP_NODE_BOKEHIMAGE, "Bokeh Image", NODE_CLASS_INPUT);
   ntype.declare = blender::nodes::cmp_node_bokehimage_declare;
   ntype.draw_buttons = node_composit_buts_bokehimage;
+  ntype.flag |= NODE_PREVIEW;
   node_type_init(&ntype, node_composit_init_bokehimage);
   node_type_storage(
       &ntype, "NodeBokehImage", node_free_standard_storage, node_copy_standard_storage);

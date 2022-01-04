@@ -573,8 +573,7 @@ void register_node_type_geo_distribute_points_on_faces()
   geo_node_type_base(&ntype,
                      GEO_NODE_DISTRIBUTE_POINTS_ON_FACES,
                      "Distribute Points on Faces",
-                     NODE_CLASS_GEOMETRY,
-                     0);
+                     NODE_CLASS_GEOMETRY);
   node_type_update(&ntype, file_ns::node_point_distribute_points_on_faces_update);
   node_type_size(&ntype, 170, 100, 320);
   ntype.declare = file_ns::node_declare;

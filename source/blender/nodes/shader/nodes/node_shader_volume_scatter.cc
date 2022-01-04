@@ -53,7 +53,7 @@ void register_node_type_sh_volume_scatter()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_VOLUME_SCATTER, "Volume Scatter", NODE_CLASS_SHADER, 0);
+  sh_node_type_base(&ntype, SH_NODE_VOLUME_SCATTER, "Volume Scatter", NODE_CLASS_SHADER);
   node_type_socket_templates(
       &ntype, file_ns::sh_node_volume_scatter_in, file_ns::sh_node_volume_scatter_out);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_volume_scatter);

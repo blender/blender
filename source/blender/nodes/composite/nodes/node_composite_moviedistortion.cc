@@ -102,7 +102,7 @@ void register_node_type_cmp_moviedistortion()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_MOVIEDISTORTION, "Movie Distortion", NODE_CLASS_DISTORT, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_MOVIEDISTORTION, "Movie Distortion", NODE_CLASS_DISTORT);
   ntype.declare = blender::nodes::cmp_node_moviedistortion_declare;
   ntype.draw_buttons = node_composit_buts_moviedistortion;
   ntype.labelfunc = label;

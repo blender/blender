@@ -36,8 +36,7 @@
 
 #include "node_util.h"
 
-void geo_node_type_base(
-    struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
+void geo_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
 bool geo_node_poll_default(struct bNodeType *ntype,
                            struct bNodeTree *ntree,
                            const char **r_disabled_hint);

@@ -109,7 +109,7 @@ void register_node_type_sh_seprgb()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_SEPRGB, "Separate RGB", NODE_CLASS_CONVERTER, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_SEPRGB, "Separate RGB", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_seprgb_declare;
   node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_seprgb);
   node_type_gpu(&ntype, file_ns::gpu_shader_seprgb);
@@ -171,7 +171,7 @@ void register_node_type_sh_combrgb()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_COMBRGB, "Combine RGB", NODE_CLASS_CONVERTER, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_COMBRGB, "Combine RGB", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_combrgb_declare;
   node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_combrgb);
   node_type_gpu(&ntype, file_ns::gpu_shader_combrgb);

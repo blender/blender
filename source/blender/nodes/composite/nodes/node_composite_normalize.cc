@@ -39,7 +39,7 @@ void register_node_type_cmp_normalize()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_NORMALIZE, "Normalize", NODE_CLASS_OP_VECTOR, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_NORMALIZE, "Normalize", NODE_CLASS_OP_VECTOR);
   ntype.declare = blender::nodes::cmp_node_normalize_declare;
 
   nodeRegisterType(&ntype);

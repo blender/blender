@@ -161,7 +161,7 @@ void register_node_type_cmp_colorbalance()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_COLORBALANCE, "Color Balance", NODE_CLASS_OP_COLOR, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_COLORBALANCE, "Color Balance", NODE_CLASS_OP_COLOR);
   ntype.declare = blender::nodes::cmp_node_colorbalance_declare;
   ntype.draw_buttons = node_composit_buts_colorbalance;
   ntype.draw_buttons_ex = node_composit_buts_colorbalance_ex;

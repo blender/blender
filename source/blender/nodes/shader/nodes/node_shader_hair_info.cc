@@ -54,7 +54,7 @@ void register_node_type_sh_hair_info()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_HAIR_INFO, "Hair Info", NODE_CLASS_INPUT, 0);
+  sh_node_type_base(&ntype, SH_NODE_HAIR_INFO, "Hair Info", NODE_CLASS_INPUT);
   node_type_socket_templates(&ntype, nullptr, file_ns::outputs);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_hair_info);
 

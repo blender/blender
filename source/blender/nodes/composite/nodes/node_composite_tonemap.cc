@@ -80,7 +80,7 @@ void register_node_type_cmp_tonemap()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_TONEMAP, "Tonemap", NODE_CLASS_OP_COLOR, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_TONEMAP, "Tonemap", NODE_CLASS_OP_COLOR);
   ntype.declare = blender::nodes::cmp_node_tonemap_declare;
   ntype.draw_buttons = node_composit_buts_tonemap;
   node_type_init(&ntype, node_composit_init_tonemap);

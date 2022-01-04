@@ -53,7 +53,7 @@ void register_node_type_sh_mix_shader()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_MIX_SHADER, "Mix Shader", NODE_CLASS_SHADER, 0);
+  sh_node_type_base(&ntype, SH_NODE_MIX_SHADER, "Mix Shader", NODE_CLASS_SHADER);
   node_type_socket_templates(
       &ntype, file_ns::sh_node_mix_shader_in, file_ns::sh_node_mix_shader_out);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_mix_shader);

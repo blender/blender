@@ -333,7 +333,7 @@ void register_node_type_sh_vect_math()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_VECTOR_MATH, "Vector Math", NODE_CLASS_OP_VECTOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_VECTOR_MATH, "Vector Math", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::sh_node_vector_math_declare;
   ntype.labelfunc = node_vector_math_label;
   node_type_gpu(&ntype, file_ns::gpu_shader_vector_math);

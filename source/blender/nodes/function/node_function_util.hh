@@ -37,5 +37,4 @@
 
 #include "FN_multi_function_builder.hh"
 
-void fn_node_type_base(
-    struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
+void fn_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);

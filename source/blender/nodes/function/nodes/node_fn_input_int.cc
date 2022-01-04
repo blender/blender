@@ -55,7 +55,7 @@ void register_node_type_fn_input_int()
 
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_INPUT_INT, "Integer", 0, 0);
+  fn_node_type_base(&ntype, FN_NODE_INPUT_INT, "Integer", 0);
   ntype.declare = file_ns::fn_node_input_int_declare;
   node_type_init(&ntype, file_ns::fn_node_input_int_init);
   node_type_storage(

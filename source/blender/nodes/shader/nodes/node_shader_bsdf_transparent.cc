@@ -51,7 +51,7 @@ void register_node_type_sh_bsdf_transparent()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_BSDF_TRANSPARENT, "Transparent BSDF", NODE_CLASS_SHADER, 0);
+  sh_node_type_base(&ntype, SH_NODE_BSDF_TRANSPARENT, "Transparent BSDF", NODE_CLASS_SHADER);
   node_type_socket_templates(
       &ntype, file_ns::sh_node_bsdf_transparent_in, file_ns::sh_node_bsdf_transparent_out);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_transparent);

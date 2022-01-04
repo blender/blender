@@ -40,7 +40,7 @@ void register_node_type_sh_output_linestyle()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_OUTPUT_LINESTYLE, "Line Style Output", NODE_CLASS_OUTPUT, 0);
+  sh_node_type_base(&ntype, SH_NODE_OUTPUT_LINESTYLE, "Line Style Output", NODE_CLASS_OUTPUT);
   node_type_socket_templates(&ntype, file_ns::sh_node_output_linestyle_in, nullptr);
 
   ntype.no_muting = true;

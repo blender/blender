@@ -309,7 +309,7 @@ void register_node_type_cmp_cryptomatte()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CRYPTOMATTE, "Cryptomatte", NODE_CLASS_MATTE, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_CRYPTOMATTE, "Cryptomatte", NODE_CLASS_MATTE);
   node_type_socket_templates(&ntype, cmp_node_cryptomatte_in, cmp_node_cryptomatte_out);
   node_type_size(&ntype, 240, 100, 700);
   node_type_init(&ntype, node_init_cryptomatte);
@@ -366,7 +366,7 @@ void register_node_type_cmp_cryptomatte_legacy()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CRYPTOMATTE_LEGACY, "Cryptomatte", NODE_CLASS_MATTE, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_CRYPTOMATTE_LEGACY, "Cryptomatte", NODE_CLASS_MATTE);
   node_type_socket_templates(&ntype, nullptr, cmp_node_cryptomatte_out);
   node_type_init(&ntype, node_init_cryptomatte_legacy);
   node_type_storage(&ntype, "NodeCryptomatte", node_free_cryptomatte, node_copy_cryptomatte);

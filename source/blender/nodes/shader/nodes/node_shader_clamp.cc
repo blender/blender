@@ -81,7 +81,7 @@ void register_node_type_sh_clamp()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_CLAMP, "Clamp", NODE_CLASS_CONVERTER, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_CLAMP, "Clamp", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_clamp_declare;
   node_type_init(&ntype, file_ns::node_shader_init_clamp);
   node_type_gpu(&ntype, file_ns::gpu_shader_clamp);

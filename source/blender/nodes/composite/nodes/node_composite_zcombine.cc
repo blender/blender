@@ -55,7 +55,7 @@ void register_node_type_cmp_zcombine()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_ZCOMBINE, "Z Combine", NODE_CLASS_OP_COLOR, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_ZCOMBINE, "Z Combine", NODE_CLASS_OP_COLOR);
   ntype.declare = blender::nodes::cmp_node_zcombine_declare;
   ntype.draw_buttons = node_composit_buts_zcombine;
 

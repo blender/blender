@@ -64,7 +64,7 @@ void register_node_type_tex_translate(void)
 {
   static bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_TRANSLATE, "Translate", NODE_CLASS_DISTORT, 0);
+  tex_node_type_base(&ntype, TEX_NODE_TRANSLATE, "Translate", NODE_CLASS_DISTORT);
   node_type_socket_templates(&ntype, inputs, outputs);
   node_type_exec(&ntype, NULL, NULL, exec);
 

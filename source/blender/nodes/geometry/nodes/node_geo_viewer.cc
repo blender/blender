@@ -140,7 +140,7 @@ void register_node_type_geo_viewer()
 
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, 0);
+  geo_node_type_base(&ntype, GEO_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT);
   node_type_storage(
       &ntype, "NodeGeometryViewer", node_free_standard_storage, node_copy_standard_storage);
   node_type_update(&ntype, file_ns::node_update);

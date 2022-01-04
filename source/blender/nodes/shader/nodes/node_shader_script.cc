@@ -68,7 +68,7 @@ void register_node_type_sh_script()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_SCRIPT, "Script", NODE_CLASS_SCRIPT, 0);
+  sh_node_type_base(&ntype, SH_NODE_SCRIPT, "Script", NODE_CLASS_SCRIPT);
   node_type_init(&ntype, file_ns::init);
   node_type_storage(
       &ntype, "NodeShaderScript", file_ns::node_free_script, file_ns::node_copy_script);

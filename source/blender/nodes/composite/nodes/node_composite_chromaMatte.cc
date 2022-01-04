@@ -71,9 +71,10 @@ void register_node_type_cmp_chroma_matte()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CHROMA_MATTE, "Chroma Key", NODE_CLASS_MATTE, NODE_PREVIEW);
+  cmp_node_type_base(&ntype, CMP_NODE_CHROMA_MATTE, "Chroma Key", NODE_CLASS_MATTE);
   ntype.declare = blender::nodes::cmp_node_chroma_matte_declare;
   ntype.draw_buttons = node_composit_buts_chroma_matte;
+  ntype.flag |= NODE_PREVIEW;
   node_type_init(&ntype, node_composit_init_chroma_matte);
   node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
 

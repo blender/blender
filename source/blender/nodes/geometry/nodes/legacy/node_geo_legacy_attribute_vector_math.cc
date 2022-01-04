@@ -559,8 +559,7 @@ void register_node_type_geo_attribute_vector_math()
   geo_node_type_base(&ntype,
                      GEO_NODE_LEGACY_ATTRIBUTE_VECTOR_MATH,
                      "Attribute Vector Math",
-                     NODE_CLASS_ATTRIBUTE,
-                     0);
+                     NODE_CLASS_ATTRIBUTE);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;

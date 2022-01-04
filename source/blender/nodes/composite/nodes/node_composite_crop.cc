@@ -76,7 +76,7 @@ void register_node_type_cmp_crop()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CROP, "Crop", NODE_CLASS_DISTORT, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_CROP, "Crop", NODE_CLASS_DISTORT);
   ntype.declare = blender::nodes::cmp_node_crop_declare;
   ntype.draw_buttons = node_composit_buts_crop;
   node_type_init(&ntype, node_composit_init_crop);

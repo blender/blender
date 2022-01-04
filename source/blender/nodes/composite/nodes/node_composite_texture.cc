@@ -45,8 +45,9 @@ void register_node_type_cmp_texture()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT, NODE_PREVIEW);
+  cmp_node_type_base(&ntype, CMP_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT);
   ntype.declare = blender::nodes::cmp_node_texture_declare;
+  ntype.flag |= NODE_PREVIEW;
 
   nodeRegisterType(&ntype);
 }

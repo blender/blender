@@ -75,7 +75,7 @@ void register_node_type_sh_ambient_occlusion()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_AMBIENT_OCCLUSION, "Ambient Occlusion", NODE_CLASS_INPUT, 0);
+  sh_node_type_base(&ntype, SH_NODE_AMBIENT_OCCLUSION, "Ambient Occlusion", NODE_CLASS_INPUT);
   node_type_socket_templates(
       &ntype, file_ns::sh_node_ambient_occlusion_in, file_ns::sh_node_ambient_occlusion_out);
   node_type_init(&ntype, file_ns::node_shader_init_ambient_occlusion);

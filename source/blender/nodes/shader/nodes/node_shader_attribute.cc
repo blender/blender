@@ -92,7 +92,7 @@ void register_node_type_sh_attribute()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_ATTRIBUTE, "Attribute", NODE_CLASS_INPUT, 0);
+  sh_node_type_base(&ntype, SH_NODE_ATTRIBUTE, "Attribute", NODE_CLASS_INPUT);
   node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_attribute_out);
   node_type_init(&ntype, file_ns::node_shader_init_attribute);
   node_type_storage(

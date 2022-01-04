@@ -67,7 +67,7 @@ void register_node_type_sh_squeeze()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_SQUEEZE, "Squeeze Value", NODE_CLASS_CONVERTER, 0);
+  sh_node_type_base(&ntype, SH_NODE_SQUEEZE, "Squeeze Value", NODE_CLASS_CONVERTER);
   node_type_socket_templates(&ntype, file_ns::sh_node_squeeze_in, file_ns::sh_node_squeeze_out);
   node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_squeeze);
   node_type_gpu(&ntype, file_ns::gpu_shader_squeeze);

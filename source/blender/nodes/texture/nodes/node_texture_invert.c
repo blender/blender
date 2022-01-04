@@ -63,7 +63,7 @@ void register_node_type_tex_invert(void)
 {
   static bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR, 0);
+  tex_node_type_base(&ntype, TEX_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR);
   node_type_socket_templates(&ntype, inputs, outputs);
   node_type_exec(&ntype, NULL, NULL, exec);
 

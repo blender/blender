@@ -54,7 +54,7 @@ void register_node_type_cmp_cornerpin()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CORNERPIN, "Corner Pin", NODE_CLASS_DISTORT, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_CORNERPIN, "Corner Pin", NODE_CLASS_DISTORT);
   ntype.declare = blender::nodes::cmp_node_cornerpin_declare;
 
   nodeRegisterType(&ntype);

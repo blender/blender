@@ -75,7 +75,7 @@ void register_node_type_sh_invert()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR, 0);
+  sh_node_type_base(&ntype, SH_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR);
   node_type_socket_templates(&ntype, file_ns::sh_node_invert_in, file_ns::sh_node_invert_out);
   node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_invert);
   node_type_gpu(&ntype, file_ns::gpu_shader_invert);

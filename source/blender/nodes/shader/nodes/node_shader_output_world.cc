@@ -52,7 +52,7 @@ void register_node_type_sh_output_world()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_OUTPUT_WORLD, "World Output", NODE_CLASS_OUTPUT, 0);
+  sh_node_type_base(&ntype, SH_NODE_OUTPUT_WORLD, "World Output", NODE_CLASS_OUTPUT);
   node_type_socket_templates(&ntype, file_ns::sh_node_output_world_in, nullptr);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_output_world);
 

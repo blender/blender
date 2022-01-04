@@ -126,11 +126,8 @@ void register_node_type_geo_legacy_select_by_handle_type()
 
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype,
-                     GEO_NODE_LEGACY_CURVE_SELECT_HANDLES,
-                     "Select by Handle Type",
-                     NODE_CLASS_GEOMETRY,
-                     0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_LEGACY_CURVE_SELECT_HANDLES, "Select by Handle Type", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   node_type_init(&ntype, file_ns::node_init);

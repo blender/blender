@@ -74,7 +74,7 @@ void register_node_type_sh_normal()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, 0);
+  sh_node_type_base(&ntype, SH_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR);
   node_type_socket_templates(&ntype, file_ns::sh_node_normal_in, file_ns::sh_node_normal_out);
   node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_normal);
   node_type_gpu(&ntype, file_ns::gpu_shader_normal);

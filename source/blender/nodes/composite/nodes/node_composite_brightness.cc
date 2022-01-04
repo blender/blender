@@ -56,7 +56,7 @@ void register_node_type_cmp_brightcontrast()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR);
   ntype.declare = blender::nodes::cmp_node_brightcontrast_declare;
   ntype.draw_buttons = node_composit_buts_brightcontrast;
   node_type_init(&ntype, node_composit_init_brightcontrast);

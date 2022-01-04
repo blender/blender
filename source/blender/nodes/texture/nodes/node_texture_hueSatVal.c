@@ -107,7 +107,7 @@ void register_node_type_tex_hue_sat(void)
 {
   static bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR, 0);
+  tex_node_type_base(&ntype, TEX_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR);
   node_type_socket_templates(&ntype, inputs, outputs);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_exec(&ntype, NULL, NULL, exec);

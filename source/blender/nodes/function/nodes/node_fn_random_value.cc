@@ -346,7 +346,7 @@ void register_node_type_fn_random_value()
 
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_RANDOM_VALUE, "Random Value", NODE_CLASS_CONVERTER, 0);
+  fn_node_type_base(&ntype, FN_NODE_RANDOM_VALUE, "Random Value", NODE_CLASS_CONVERTER);
   node_type_init(&ntype, file_ns::fn_node_random_value_init);
   node_type_update(&ntype, file_ns::fn_node_random_value_update);
   ntype.draw_buttons = file_ns::fn_node_random_value_layout;

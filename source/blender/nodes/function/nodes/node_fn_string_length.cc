@@ -43,7 +43,7 @@ void register_node_type_fn_string_length()
 
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_STRING_LENGTH, "String Length", NODE_CLASS_CONVERTER, 0);
+  fn_node_type_base(&ntype, FN_NODE_STRING_LENGTH, "String Length", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::fn_node_string_length_declare;
   ntype.build_multi_function = file_ns::fn_node_string_length_build_multi_function;
   nodeRegisterType(&ntype);

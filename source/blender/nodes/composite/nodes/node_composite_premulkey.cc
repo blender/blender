@@ -47,7 +47,7 @@ void register_node_type_cmp_premulkey()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_PREMULKEY, "Alpha Convert", NODE_CLASS_CONVERTER, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_PREMULKEY, "Alpha Convert", NODE_CLASS_CONVERTER);
   ntype.declare = blender::nodes::cmp_node_premulkey_declare;
   ntype.draw_buttons = node_composit_buts_premulkey;
 

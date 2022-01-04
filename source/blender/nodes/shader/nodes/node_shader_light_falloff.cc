@@ -56,7 +56,7 @@ void register_node_type_sh_light_falloff()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_LIGHT_FALLOFF, "Light Falloff", NODE_CLASS_OP_COLOR, 0);
+  sh_node_type_base(&ntype, SH_NODE_LIGHT_FALLOFF, "Light Falloff", NODE_CLASS_OP_COLOR);
   node_type_socket_templates(
       &ntype, file_ns::sh_node_light_falloff_in, file_ns::sh_node_light_falloff_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);

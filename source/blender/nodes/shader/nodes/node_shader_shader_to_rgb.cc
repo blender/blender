@@ -56,7 +56,7 @@ void register_node_type_sh_shadertorgb()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_SHADERTORGB, "Shader to RGB", NODE_CLASS_CONVERTER, 0);
+  sh_node_type_base(&ntype, SH_NODE_SHADERTORGB, "Shader to RGB", NODE_CLASS_CONVERTER);
   node_type_socket_templates(
       &ntype, file_ns::sh_node_shadertorgb_in, file_ns::sh_node_shadertorgb_out);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_shadertorgb);

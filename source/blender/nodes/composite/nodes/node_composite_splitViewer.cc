@@ -65,10 +65,10 @@ void register_node_type_cmp_splitviewer()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(
-      &ntype, CMP_NODE_SPLITVIEWER, "Split Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW);
+  cmp_node_type_base(&ntype, CMP_NODE_SPLITVIEWER, "Split Viewer", NODE_CLASS_OUTPUT);
   ntype.declare = blender::nodes::cmp_node_split_viewer_declare;
   ntype.draw_buttons = node_composit_buts_splitviewer;
+  ntype.flag |= NODE_PREVIEW;
   node_type_init(&ntype, node_composit_init_splitviewer);
   node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
 

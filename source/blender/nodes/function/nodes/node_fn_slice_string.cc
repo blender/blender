@@ -48,7 +48,7 @@ void register_node_type_fn_slice_string()
 
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_SLICE_STRING, "Slice String", NODE_CLASS_CONVERTER, 0);
+  fn_node_type_base(&ntype, FN_NODE_SLICE_STRING, "Slice String", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::fn_node_slice_string_declare;
   ntype.build_multi_function = file_ns::fn_node_slice_string_build_multi_function;
   nodeRegisterType(&ntype);

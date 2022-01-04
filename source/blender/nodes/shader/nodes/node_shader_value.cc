@@ -55,7 +55,7 @@ void register_node_type_sh_value()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_VALUE, "Value", NODE_CLASS_INPUT, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_VALUE, "Value", NODE_CLASS_INPUT);
   ntype.declare = file_ns::sh_node_value_declare;
   node_type_gpu(&ntype, file_ns::gpu_shader_value);
   ntype.build_multi_function = file_ns::sh_node_value_build_multi_function;

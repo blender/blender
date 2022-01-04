@@ -314,7 +314,7 @@ void register_node_type_geo_legacy_raycast()
 
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_LEGACY_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_LEGACY_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_init(&ntype, file_ns::node_init);
   node_type_update(&ntype, file_ns::node_update);

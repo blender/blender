@@ -211,7 +211,7 @@ void register_node_type_sh_vector_rotate()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_VECTOR_ROTATE, "Vector Rotate", NODE_CLASS_OP_VECTOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_VECTOR_ROTATE, "Vector Rotate", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::sh_node_vector_rotate_declare;
   node_type_gpu(&ntype, file_ns::gpu_shader_vector_rotate);
   node_type_update(&ntype, file_ns::node_shader_update_vector_rotate);

@@ -45,7 +45,7 @@ void register_node_type_fn_value_to_string()
 
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_VALUE_TO_STRING, "Value to String", NODE_CLASS_CONVERTER, 0);
+  fn_node_type_base(&ntype, FN_NODE_VALUE_TO_STRING, "Value to String", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::fn_node_value_to_string_declare;
   ntype.build_multi_function = file_ns::fn_node_value_to_string_build_multi_function;
   nodeRegisterType(&ntype);

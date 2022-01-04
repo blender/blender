@@ -247,8 +247,7 @@ void register_node_type_geo_attribute_mix()
   namespace file_ns = blender::nodes::node_geo_legacy_attribute_mix_cc;
 
   static bNodeType ntype;
-  geo_node_type_base(
-      &ntype, GEO_NODE_LEGACY_ATTRIBUTE_MIX, "Attribute Mix", NODE_CLASS_ATTRIBUTE, 0);
+  geo_node_type_base(&ntype, GEO_NODE_LEGACY_ATTRIBUTE_MIX, "Attribute Mix", NODE_CLASS_ATTRIBUTE);
   node_type_init(&ntype, file_ns::node_init);
   node_type_update(&ntype, file_ns::node_update);
   ntype.declare = file_ns::node_declare;

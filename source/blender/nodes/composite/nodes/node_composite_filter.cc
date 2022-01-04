@@ -48,10 +48,11 @@ void register_node_type_cmp_filter()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_FILTER, "Filter", NODE_CLASS_OP_FILTER, NODE_PREVIEW);
+  cmp_node_type_base(&ntype, CMP_NODE_FILTER, "Filter", NODE_CLASS_OP_FILTER);
   ntype.declare = blender::nodes::cmp_node_filter_declare;
   ntype.draw_buttons = node_composit_buts_filter;
   ntype.labelfunc = node_filter_label;
+  ntype.flag |= NODE_PREVIEW;
 
   nodeRegisterType(&ntype);
 }

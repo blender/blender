@@ -100,8 +100,7 @@ void register_node_type_cmp_planetrackdeform()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(
-      &ntype, CMP_NODE_PLANETRACKDEFORM, "Plane Track Deform", NODE_CLASS_DISTORT, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_PLANETRACKDEFORM, "Plane Track Deform", NODE_CLASS_DISTORT);
   ntype.declare = blender::nodes::cmp_node_planetrackdeform_declare;
   ntype.draw_buttons = node_composit_buts_planetrackdeform;
   node_type_init(&ntype, init);

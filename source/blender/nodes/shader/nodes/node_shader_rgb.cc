@@ -49,7 +49,7 @@ void register_node_type_sh_rgb()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_RGB, "RGB", NODE_CLASS_INPUT, 0);
+  sh_node_type_base(&ntype, SH_NODE_RGB, "RGB", NODE_CLASS_INPUT);
   node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_rgb_out);
   node_type_gpu(&ntype, file_ns::gpu_shader_rgb);
 

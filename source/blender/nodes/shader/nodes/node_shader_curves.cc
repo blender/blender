@@ -158,7 +158,7 @@ void register_node_type_sh_curve_vec()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::sh_node_curve_vec_declare;
   node_type_init(&ntype, file_ns::node_shader_init_curve_vec);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
@@ -337,7 +337,7 @@ void register_node_type_sh_curve_rgb()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::sh_node_curve_rgb_declare;
   node_type_init(&ntype, file_ns::node_shader_init_curve_rgb);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
@@ -483,7 +483,7 @@ void register_node_type_sh_curve_float()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_CURVE_FLOAT, "Float Curve", NODE_CLASS_CONVERTER, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_CURVE_FLOAT, "Float Curve", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_curve_float_declare;
   node_type_init(&ntype, file_ns::node_shader_init_curve_float);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);

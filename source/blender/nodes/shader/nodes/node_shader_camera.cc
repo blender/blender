@@ -54,7 +54,7 @@ void register_node_type_sh_camera()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_CAMERA, "Camera Data", NODE_CLASS_INPUT, 0);
+  sh_node_type_base(&ntype, SH_NODE_CAMERA, "Camera Data", NODE_CLASS_INPUT);
   node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_camera_out);
   node_type_gpu(&ntype, file_ns::gpu_shader_camera);
 

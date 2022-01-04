@@ -48,7 +48,7 @@ void register_node_type_cmp_idmask()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_ID_MASK, "ID Mask", NODE_CLASS_CONVERTER, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_ID_MASK, "ID Mask", NODE_CLASS_CONVERTER);
   ntype.declare = blender::nodes::cmp_node_idmask_declare;
   ntype.draw_buttons = node_composit_buts_id_mask;
 

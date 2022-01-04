@@ -288,7 +288,7 @@ void register_node_type_cmp_colorcorrection()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_COLORCORRECTION, "Color Correction", NODE_CLASS_OP_COLOR, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_COLORCORRECTION, "Color Correction", NODE_CLASS_OP_COLOR);
   ntype.declare = blender::nodes::cmp_node_colorcorrection_declare;
   ntype.draw_buttons = node_composit_buts_colorcorrection;
   ntype.draw_buttons_ex = node_composit_buts_colorcorrection_ex;

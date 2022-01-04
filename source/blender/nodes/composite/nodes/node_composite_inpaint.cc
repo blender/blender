@@ -47,7 +47,7 @@ void register_node_type_cmp_inpaint()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_INPAINT, "Inpaint", NODE_CLASS_OP_FILTER, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_INPAINT, "Inpaint", NODE_CLASS_OP_FILTER);
   ntype.declare = blender::nodes::cmp_node_inpaint_declare;
   ntype.draw_buttons = node_composit_buts_inpaint;
 

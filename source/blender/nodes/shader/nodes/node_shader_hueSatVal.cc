@@ -95,7 +95,7 @@ void register_node_type_sh_hue_sat()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR, 0);
+  sh_node_type_base(&ntype, SH_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR);
   node_type_socket_templates(&ntype, file_ns::sh_node_hue_sat_in, file_ns::sh_node_hue_sat_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_hue_sat);

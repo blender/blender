@@ -108,8 +108,7 @@ typedef struct TexDelegate {
 bool tex_node_poll_default(struct bNodeType *ntype,
                            struct bNodeTree *ntree,
                            const char **r_disabled_hint);
-void tex_node_type_base(
-    struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
+void tex_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
 
 void tex_input_rgba(float *out, bNodeStack *in, TexParams *params, short thread);
 void tex_input_vec(float *out, bNodeStack *in, TexParams *params, short thread);

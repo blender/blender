@@ -81,7 +81,7 @@ void register_node_type_fn_legacy_random_float()
 
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_LEGACY_RANDOM_FLOAT, "Random Float", 0, 0);
+  fn_node_type_base(&ntype, FN_NODE_LEGACY_RANDOM_FLOAT, "Random Float", 0);
   ntype.declare = file_ns::fn_node_legacy_random_float_declare;
   ntype.build_multi_function = file_ns::fn_node_legacy_random_float_build_multi_function;
   nodeRegisterType(&ntype);

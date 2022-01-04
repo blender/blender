@@ -102,7 +102,7 @@ void register_node_type_cmp_color_spill()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_COLOR_SPILL, "Color Spill", NODE_CLASS_MATTE, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_COLOR_SPILL, "Color Spill", NODE_CLASS_MATTE);
   ntype.declare = blender::nodes::cmp_node_color_spill_declare;
   ntype.draw_buttons = node_composit_buts_color_spill;
   node_type_init(&ntype, node_composit_init_color_spill);

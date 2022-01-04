@@ -42,7 +42,7 @@ void register_node_type_cmp_sepyuva()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SEPYUVA, "Separate YUVA", NODE_CLASS_CONVERTER, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_SEPYUVA, "Separate YUVA", NODE_CLASS_CONVERTER);
   ntype.declare = blender::nodes::cmp_node_sepyuva_declare;
 
   nodeRegisterType(&ntype);
@@ -67,7 +67,7 @@ void register_node_type_cmp_combyuva()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_COMBYUVA, "Combine YUVA", NODE_CLASS_CONVERTER, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_COMBYUVA, "Combine YUVA", NODE_CLASS_CONVERTER);
   ntype.declare = blender::nodes::cmp_node_combyuva_declare;
 
   nodeRegisterType(&ntype);

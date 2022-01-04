@@ -89,7 +89,7 @@ void register_node_type_fn_float_to_int()
 
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_FLOAT_TO_INT, "Float to Integer", NODE_CLASS_CONVERTER, 0);
+  fn_node_type_base(&ntype, FN_NODE_FLOAT_TO_INT, "Float to Integer", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::fn_node_float_to_int_declare;
   ntype.labelfunc = file_ns::node_float_to_int_label;
   ntype.build_multi_function = file_ns::fn_node_float_to_int_build_multi_function;

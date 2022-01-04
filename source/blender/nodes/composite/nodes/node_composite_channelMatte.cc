@@ -101,10 +101,10 @@ void register_node_type_cmp_channel_matte()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(
-      &ntype, CMP_NODE_CHANNEL_MATTE, "Channel Key", NODE_CLASS_MATTE, NODE_PREVIEW);
+  cmp_node_type_base(&ntype, CMP_NODE_CHANNEL_MATTE, "Channel Key", NODE_CLASS_MATTE);
   ntype.declare = blender::nodes::cmp_node_channel_matte_declare;
   ntype.draw_buttons = node_composit_buts_channel_matte;
+  ntype.flag |= NODE_PREVIEW;
   node_type_init(&ntype, node_composit_init_channel_matte);
   node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
 

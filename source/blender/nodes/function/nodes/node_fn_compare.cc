@@ -537,7 +537,7 @@ void register_node_type_fn_compare()
   namespace file_ns = blender::nodes::node_fn_compare_cc;
 
   static bNodeType ntype;
-  fn_node_type_base(&ntype, FN_NODE_COMPARE, "Compare", NODE_CLASS_CONVERTER, 0);
+  fn_node_type_base(&ntype, FN_NODE_COMPARE, "Compare", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::fn_node_compare_declare;
   ntype.labelfunc = file_ns::node_compare_label;
   node_type_update(&ntype, file_ns::node_compare_update);

@@ -63,7 +63,7 @@ void register_node_type_sh_wireframe()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_WIREFRAME, "Wireframe", NODE_CLASS_INPUT, 0);
+  sh_node_type_base(&ntype, SH_NODE_WIREFRAME, "Wireframe", NODE_CLASS_INPUT);
   node_type_socket_templates(
       &ntype, file_ns::sh_node_wireframe_in, file_ns::sh_node_wireframe_out);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_wireframe);

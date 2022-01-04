@@ -76,7 +76,7 @@ void register_node_type_sh_bsdf_glossy()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_BSDF_GLOSSY, "Glossy BSDF", NODE_CLASS_SHADER, 0);
+  sh_node_type_base(&ntype, SH_NODE_BSDF_GLOSSY, "Glossy BSDF", NODE_CLASS_SHADER);
   node_type_socket_templates(
       &ntype, file_ns::sh_node_bsdf_glossy_in, file_ns::sh_node_bsdf_glossy_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);

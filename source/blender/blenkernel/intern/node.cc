@@ -4357,8 +4357,7 @@ static bool node_poll_instance_default(bNode *node, bNodeTree *ntree, const char
   return node->typeinfo->poll(node->typeinfo, ntree, disabled_hint);
 }
 
-/* NOLINTNEXTLINE: readability-function-size */
-void node_type_base(bNodeType *ntype, int type, const char *name, short nclass, short flag)
+void node_type_base(bNodeType *ntype, int type, const char *name, short nclass)
 {
   /* Use static type info header to map static int type to identifier string and RNA struct type.
    * Associate the RNA struct type with the bNodeType.
@@ -4385,7 +4384,6 @@ void node_type_base(bNodeType *ntype, int type, const char *name, short nclass, 
   ntype->type = type;
   BLI_strncpy(ntype->ui_name, name, sizeof(ntype->ui_name));
   ntype->nclass = nclass;
-  ntype->flag = flag;
 
   node_type_base_defaults(ntype);
 
@@ -4393,14 +4391,12 @@ void node_type_base(bNodeType *ntype, int type, const char *name, short nclass, 
   ntype->poll_instance = node_poll_instance_default;
 }
 
-void node_type_base_custom(
-    bNodeType *ntype, const char *idname, const char *name, short nclass, short flag)
+void node_type_base_custom(bNodeType *ntype, const char *idname, const char *name, short nclass)
 {
   BLI_strncpy(ntype->idname, idname, sizeof(ntype->idname));
   ntype->type = NODE_CUSTOM;
   BLI_strncpy(ntype->ui_name, name, sizeof(ntype->ui_name));
   ntype->nclass = nclass;
-  ntype->flag = flag;
 
   node_type_base_defaults(ntype);
 }
@@ -4576,7 +4572,7 @@ static void register_undefined_types()
   strcpy(NodeTreeTypeUndefined.ui_name, N_("Undefined"));
   strcpy(NodeTreeTypeUndefined.ui_description, N_("Undefined Node Tree Type"));
 
-  node_type_base_custom(&NodeTypeUndefined, "NodeUndefined", "Undefined", 0, 0);
+  node_type_base_custom(&NodeTypeUndefined, "NodeUndefined", "Undefined", 0);
   NodeTypeUndefined.poll = node_undefined_poll;
 
   BLI_strncpy(NodeSocketTypeUndefined.idname,

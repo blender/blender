@@ -63,7 +63,7 @@ void register_node_type_sh_output_aov()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_OUTPUT_AOV, "AOV Output", NODE_CLASS_OUTPUT, 0);
+  sh_node_type_base(&ntype, SH_NODE_OUTPUT_AOV, "AOV Output", NODE_CLASS_OUTPUT);
   node_type_socket_templates(&ntype, file_ns::sh_node_output_aov_in, nullptr);
   node_type_init(&ntype, file_ns::node_shader_init_output_aov);
   node_type_storage(

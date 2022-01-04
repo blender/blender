@@ -48,7 +48,7 @@ void register_node_type_cmp_mapuv()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_MAP_UV, "Map UV", NODE_CLASS_DISTORT, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_MAP_UV, "Map UV", NODE_CLASS_DISTORT);
   ntype.declare = blender::nodes::cmp_node_map_uv_declare;
   ntype.draw_buttons = node_composit_buts_map_uv;
 

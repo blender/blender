@@ -77,7 +77,7 @@ void register_node_type_geo_triangulate()
 
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_TRIANGULATE, "Triangulate", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_TRIANGULATE, "Triangulate", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   node_type_init(&ntype, file_ns::geo_triangulate_init);
   ntype.geometry_node_execute = file_ns::node_geo_exec;

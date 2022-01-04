@@ -53,9 +53,10 @@ void register_node_type_cmp_view_levels()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_VIEW_LEVELS, "Levels", NODE_CLASS_OUTPUT, NODE_PREVIEW);
+  cmp_node_type_base(&ntype, CMP_NODE_VIEW_LEVELS, "Levels", NODE_CLASS_OUTPUT);
   ntype.declare = blender::nodes::cmp_node_levels_declare;
   ntype.draw_buttons = node_composit_buts_view_levels;
+  ntype.flag |= NODE_PREVIEW;
   node_type_init(&ntype, node_composit_init_view_levels);
 
   nodeRegisterType(&ntype);

@@ -228,8 +228,7 @@ void register_node_type_geo_align_rotation_to_vector()
   geo_node_type_base(&ntype,
                      GEO_NODE_LEGACY_ALIGN_ROTATION_TO_VECTOR,
                      "Align Rotation to Vector",
-                     NODE_CLASS_GEOMETRY,
-                     0);
+                     NODE_CLASS_GEOMETRY);
   node_type_init(&ntype, file_ns::node_init);
   node_type_update(&ntype, file_ns::node_update);
   node_type_storage(&ntype,

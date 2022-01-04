@@ -58,7 +58,7 @@ void register_node_type_cmp_alphaover()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_ALPHAOVER, "Alpha Over", NODE_CLASS_OP_COLOR, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_ALPHAOVER, "Alpha Over", NODE_CLASS_OP_COLOR);
   ntype.declare = blender::nodes::cmp_node_alphaover_declare;
   ntype.draw_buttons = node_composit_buts_alphaover;
   node_type_init(&ntype, node_alphaover_init);

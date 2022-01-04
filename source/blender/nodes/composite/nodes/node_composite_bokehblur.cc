@@ -60,7 +60,7 @@ void register_node_type_cmp_bokehblur()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_BOKEHBLUR, "Bokeh Blur", NODE_CLASS_OP_FILTER, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_BOKEHBLUR, "Bokeh Blur", NODE_CLASS_OP_FILTER);
   ntype.declare = blender::nodes::cmp_node_bokehblur_declare;
   ntype.draw_buttons = node_composit_buts_bokehblur;
   node_type_init(&ntype, node_composit_init_bokehblur);

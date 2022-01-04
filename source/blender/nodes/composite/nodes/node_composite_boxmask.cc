@@ -70,7 +70,7 @@ void register_node_type_cmp_boxmask()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_MASK_BOX, "Box Mask", NODE_CLASS_MATTE, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_MASK_BOX, "Box Mask", NODE_CLASS_MATTE);
   ntype.declare = blender::nodes::cmp_node_boxmask_declare;
   ntype.draw_buttons = node_composit_buts_boxmask;
   node_type_init(&ntype, node_composit_init_boxmask);

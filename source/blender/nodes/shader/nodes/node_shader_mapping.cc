@@ -82,7 +82,7 @@ void register_node_type_sh_mapping()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_MAPPING, "Mapping", NODE_CLASS_OP_VECTOR, 0);
+  sh_node_type_base(&ntype, SH_NODE_MAPPING, "Mapping", NODE_CLASS_OP_VECTOR);
   node_type_socket_templates(&ntype, file_ns::sh_node_mapping_in, file_ns::sh_node_mapping_out);
   node_type_gpu(&ntype, file_ns::gpu_shader_mapping);
   node_type_update(&ntype, file_ns::node_shader_update_mapping);

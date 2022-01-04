@@ -84,10 +84,8 @@ extern "C" {
 bool sh_node_poll_default(struct bNodeType *ntype,
                           struct bNodeTree *ntree,
                           const char **r_disabled_hint);
-void sh_node_type_base(
-    struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
-void sh_fn_node_type_base(
-    struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
+void sh_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
+void sh_fn_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
 
 /* ********* exec data struct, remains internal *********** */
 

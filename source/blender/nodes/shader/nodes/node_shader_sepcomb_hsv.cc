@@ -67,7 +67,7 @@ void register_node_type_sh_sephsv()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_SEPHSV, "Separate HSV", NODE_CLASS_CONVERTER, 0);
+  sh_node_type_base(&ntype, SH_NODE_SEPHSV, "Separate HSV", NODE_CLASS_CONVERTER);
   node_type_socket_templates(&ntype, file_ns::sh_node_sephsv_in, file_ns::sh_node_sephsv_out);
   node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_sephsv);
   node_type_gpu(&ntype, file_ns::gpu_shader_sephsv);
@@ -121,7 +121,7 @@ void register_node_type_sh_combhsv()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_COMBHSV, "Combine HSV", NODE_CLASS_CONVERTER, 0);
+  sh_node_type_base(&ntype, SH_NODE_COMBHSV, "Combine HSV", NODE_CLASS_CONVERTER);
   node_type_socket_templates(&ntype, file_ns::sh_node_combhsv_in, file_ns::sh_node_combhsv_out);
   node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_combhsv);
   node_type_gpu(&ntype, file_ns::gpu_shader_combhsv);

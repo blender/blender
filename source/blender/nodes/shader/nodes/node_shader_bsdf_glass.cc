@@ -77,7 +77,7 @@ void register_node_type_sh_bsdf_glass()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_BSDF_GLASS, "Glass BSDF", NODE_CLASS_SHADER, 0);
+  sh_node_type_base(&ntype, SH_NODE_BSDF_GLASS, "Glass BSDF", NODE_CLASS_SHADER);
   node_type_socket_templates(
       &ntype, file_ns::sh_node_bsdf_glass_in, file_ns::sh_node_bsdf_glass_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);

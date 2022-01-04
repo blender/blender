@@ -216,7 +216,7 @@ void register_node_type_fn_align_euler_to_vector()
   static bNodeType ntype;
 
   fn_node_type_base(
-      &ntype, FN_NODE_ALIGN_EULER_TO_VECTOR, "Align Euler to Vector", NODE_CLASS_CONVERTER, 0);
+      &ntype, FN_NODE_ALIGN_EULER_TO_VECTOR, "Align Euler to Vector", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::fn_node_align_euler_to_vector_declare;
   ntype.draw_buttons = file_ns::fn_node_align_euler_to_vector_layout;
   ntype.build_multi_function = file_ns::fn_node_align_euler_to_vector_build_multi_function;

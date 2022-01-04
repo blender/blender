@@ -76,7 +76,7 @@ void register_node_type_cmp_denoise()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_DENOISE, "Denoise", NODE_CLASS_OP_FILTER, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_DENOISE, "Denoise", NODE_CLASS_OP_FILTER);
   ntype.declare = blender::nodes::cmp_node_denoise_declare;
   ntype.draw_buttons = node_composit_buts_denoise;
   node_type_init(&ntype, node_composit_init_denonise);

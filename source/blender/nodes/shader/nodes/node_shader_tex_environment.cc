@@ -143,7 +143,7 @@ void register_node_type_sh_tex_environment()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_TEX_ENVIRONMENT, "Environment Texture", NODE_CLASS_TEXTURE, 0);
+  sh_node_type_base(&ntype, SH_NODE_TEX_ENVIRONMENT, "Environment Texture", NODE_CLASS_TEXTURE);
   node_type_socket_templates(
       &ntype, file_ns::sh_node_tex_environment_in, file_ns::sh_node_tex_environment_out);
   node_type_init(&ntype, file_ns::node_shader_init_tex_environment);

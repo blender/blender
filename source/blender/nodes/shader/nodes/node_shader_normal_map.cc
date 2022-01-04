@@ -126,7 +126,7 @@ void register_node_type_sh_normal_map()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_NORMAL_MAP, "Normal Map", NODE_CLASS_OP_VECTOR, 0);
+  sh_node_type_base(&ntype, SH_NODE_NORMAL_MAP, "Normal Map", NODE_CLASS_OP_VECTOR);
   node_type_socket_templates(
       &ntype, file_ns::sh_node_normal_map_in, file_ns::sh_node_normal_map_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);

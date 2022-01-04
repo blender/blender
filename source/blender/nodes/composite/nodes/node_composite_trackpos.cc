@@ -98,7 +98,7 @@ void register_node_type_cmp_trackpos()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_TRACKPOS, "Track Position", NODE_CLASS_INPUT, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_TRACKPOS, "Track Position", NODE_CLASS_INPUT);
   ntype.declare = blender::nodes::cmp_node_trackpos_declare;
   ntype.draw_buttons = node_composit_buts_trackpos;
   node_type_init(&ntype, init);

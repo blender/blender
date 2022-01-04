@@ -84,7 +84,7 @@ void register_node_type_geo_legacy_edge_split()
 
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_LEGACY_EDGE_SPLIT, "Edge Split", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_LEGACY_EDGE_SPLIT, "Edge Split", NODE_CLASS_GEOMETRY);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);

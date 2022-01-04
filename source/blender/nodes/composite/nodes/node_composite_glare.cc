@@ -97,7 +97,7 @@ void register_node_type_cmp_glare()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_GLARE, "Glare", NODE_CLASS_OP_FILTER, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_GLARE, "Glare", NODE_CLASS_OP_FILTER);
   ntype.declare = blender::nodes::cmp_node_glare_declare;
   ntype.draw_buttons = node_composit_buts_glare;
   node_type_init(&ntype, node_composit_init_glare);

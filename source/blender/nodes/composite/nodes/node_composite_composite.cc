@@ -48,9 +48,10 @@ void register_node_type_cmp_composite()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_COMPOSITE, "Composite", NODE_CLASS_OUTPUT, NODE_PREVIEW);
+  cmp_node_type_base(&ntype, CMP_NODE_COMPOSITE, "Composite", NODE_CLASS_OUTPUT);
   ntype.declare = blender::nodes::cmp_node_composite_declare;
   ntype.draw_buttons = node_composit_buts_composite;
+  ntype.flag |= NODE_PREVIEW;
   ntype.no_muting = true;
 
   nodeRegisterType(&ntype);

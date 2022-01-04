@@ -46,7 +46,7 @@ void register_node_type_cmp_displace()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_DISPLACE, "Displace", NODE_CLASS_DISTORT, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_DISPLACE, "Displace", NODE_CLASS_DISTORT);
   ntype.declare = blender::nodes::cmp_node_displace_declare;
 
   nodeRegisterType(&ntype);

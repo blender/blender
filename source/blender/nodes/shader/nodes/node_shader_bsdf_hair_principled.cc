@@ -102,7 +102,7 @@ void register_node_type_sh_bsdf_hair_principled()
   static bNodeType ntype;
 
   sh_node_type_base(
-      &ntype, SH_NODE_BSDF_HAIR_PRINCIPLED, "Principled Hair BSDF", NODE_CLASS_SHADER, 0);
+      &ntype, SH_NODE_BSDF_HAIR_PRINCIPLED, "Principled Hair BSDF", NODE_CLASS_SHADER);
   node_type_socket_templates(
       &ntype, file_ns::sh_node_bsdf_hair_principled_in, file_ns::sh_node_bsdf_hair_principled_out);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);

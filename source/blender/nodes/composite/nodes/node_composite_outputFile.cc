@@ -439,11 +439,12 @@ void register_node_type_cmp_output_file()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_OUTPUT_FILE, "File Output", NODE_CLASS_OUTPUT, NODE_PREVIEW);
+  cmp_node_type_base(&ntype, CMP_NODE_OUTPUT_FILE, "File Output", NODE_CLASS_OUTPUT);
   node_type_socket_templates(&ntype, nullptr, nullptr);
   ntype.draw_buttons = node_composit_buts_file_output;
   ntype.draw_buttons_ex = node_composit_buts_file_output_ex;
   ntype.initfunc_api = init_output_file;
+  ntype.flag |= NODE_PREVIEW;
   node_type_storage(&ntype, "NodeImageMultiFile", free_output_file, copy_output_file);
   node_type_update(&ntype, update_output_file);
 

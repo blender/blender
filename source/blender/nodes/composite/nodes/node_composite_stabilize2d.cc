@@ -80,7 +80,7 @@ void register_node_type_cmp_stabilize2d()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_STABILIZE2D, "Stabilize 2D", NODE_CLASS_DISTORT, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_STABILIZE2D, "Stabilize 2D", NODE_CLASS_DISTORT);
   ntype.declare = blender::nodes::cmp_node_stabilize2d_declare;
   ntype.draw_buttons = node_composit_buts_stabilize2d;
   ntype.initfunc_api = init;

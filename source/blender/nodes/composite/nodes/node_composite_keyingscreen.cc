@@ -81,7 +81,7 @@ void register_node_type_cmp_keyingscreen()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_KEYINGSCREEN, "Keying Screen", NODE_CLASS_MATTE, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_KEYINGSCREEN, "Keying Screen", NODE_CLASS_MATTE);
   ntype.declare = blender::nodes::cmp_node_keyingscreen_declare;
   ntype.draw_buttons = node_composit_buts_keyingscreen;
   node_type_init(&ntype, node_composit_init_keyingscreen);

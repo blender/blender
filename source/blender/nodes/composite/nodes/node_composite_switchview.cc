@@ -159,7 +159,7 @@ void register_node_type_cmp_switch_view()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, "Switch View", NODE_CLASS_CONVERTER, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, "Switch View", NODE_CLASS_CONVERTER);
   node_type_socket_templates(&ntype, nullptr, cmp_node_switch_view_out);
   ntype.draw_buttons_ex = node_composit_buts_switch_view_ex;
   ntype.initfunc_api = init_switch_view;

@@ -1344,7 +1344,7 @@ void register_node_type_sh_tex_voronoi()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_TEX_VORONOI, "Voronoi Texture", NODE_CLASS_TEXTURE, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_TEX_VORONOI, "Voronoi Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_voronoi_declare;
   node_type_init(&ntype, file_ns::node_shader_init_tex_voronoi);
   node_type_storage(

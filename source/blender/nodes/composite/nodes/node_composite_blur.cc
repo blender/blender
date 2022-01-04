@@ -94,9 +94,10 @@ void register_node_type_cmp_blur()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_BLUR, "Blur", NODE_CLASS_OP_FILTER, NODE_PREVIEW);
+  cmp_node_type_base(&ntype, CMP_NODE_BLUR, "Blur", NODE_CLASS_OP_FILTER);
   ntype.declare = blender::nodes::cmp_node_blur_declare;
   ntype.draw_buttons = node_composit_buts_blur;
+  ntype.flag |= NODE_PREVIEW;
   node_type_init(&ntype, node_composit_init_blur);
   node_type_storage(
       &ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);

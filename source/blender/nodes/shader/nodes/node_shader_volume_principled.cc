@@ -137,7 +137,7 @@ void register_node_type_sh_volume_principled()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_VOLUME_PRINCIPLED, "Principled Volume", NODE_CLASS_SHADER, 0);
+  sh_node_type_base(&ntype, SH_NODE_VOLUME_PRINCIPLED, "Principled Volume", NODE_CLASS_SHADER);
   node_type_socket_templates(
       &ntype, file_ns::sh_node_volume_principled_in, file_ns::sh_node_volume_principled_out);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);

@@ -54,7 +54,7 @@ void register_node_type_cmp_map_range()
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_MAP_RANGE, "Map Range", NODE_CLASS_OP_VECTOR, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_MAP_RANGE, "Map Range", NODE_CLASS_OP_VECTOR);
   ntype.declare = blender::nodes::cmp_node_map_range_declare;
   ntype.draw_buttons = node_composit_buts_map_range;
 
