@@ -896,15 +896,9 @@ MINLINE void blend_color_softlight_float(float dst[4], const float src1[4], cons
     int i = 3;
 
     while (i--) {
-      float temp;
-
-      if (src1[i] < 0.5f) {
-        temp = (src2[i] + 0.5f) * src1[i];
-      }
-      else {
-        temp = 1.0f - ((1.0f - (src2[i] + 0.5f)) * (1.0f - src1[i]));
-      }
-      dst[i] = (temp * fac + src1[i] * mfac);
+      float screen = 1.0f - (1.0f - src1[i]) * (1.0f - src2[i]);
+      float soft_light = ((1.0f - src1[i]) * src2[i] + screen) * src1[i];
+      dst[i] = src1[i] * mfac + soft_light * fac;
     }
   }
   else {
