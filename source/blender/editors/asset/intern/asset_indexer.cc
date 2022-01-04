@@ -534,9 +534,9 @@ struct AssetIndex {
   /**
    * `blender::io::serialize::Value` representing the contents of an index file.
    *
-   * Value is used over #DictionaryValue as the contents of the index could be corrupted and doesn't
-   * represent an object. In case corrupted files are detected the `get_version` would return
-   * `UNKNOWN_VERSION`.
+   * Value is used over #DictionaryValue as the contents of the index could be corrupted and
+   * doesn't represent an object. In case corrupted files are detected the `get_version` would
+   * return `UNKNOWN_VERSION`.
    */
   std::unique_ptr<Value> contents;
 
