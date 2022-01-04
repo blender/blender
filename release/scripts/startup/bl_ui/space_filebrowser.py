@@ -850,7 +850,7 @@ classes = (
 def asset_path_str_get(self):
     asset_file_handle = bpy.context.asset_file_handle
     if asset_file_handle is None:
-        return None
+        return ""
 
     if asset_file_handle.local_id:
         return "Current File"
