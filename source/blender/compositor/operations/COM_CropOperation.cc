@@ -42,22 +42,22 @@ void CropBaseOperation::update_area()
       local_settings.y1 = height * local_settings.fac_y1;
       local_settings.y2 = height * local_settings.fac_y2;
     }
-    if (width <= local_settings.x1 + 1) {
-      local_settings.x1 = width - 1;
+    if (width < local_settings.x1) {
+      local_settings.x1 = width;
     }
-    if (height <= local_settings.y1 + 1) {
-      local_settings.y1 = height - 1;
+    if (height < local_settings.y1) {
+      local_settings.y1 = height;
     }
-    if (width <= local_settings.x2 + 1) {
-      local_settings.x2 = width - 1;
+    if (width < local_settings.x2) {
+      local_settings.x2 = width;
     }
-    if (height <= local_settings.y2 + 1) {
-      local_settings.y2 = height - 1;
+    if (height < local_settings.y2) {
+      local_settings.y2 = height;
     }
 
-    xmax_ = MAX2(local_settings.x1, local_settings.x2) + 1;
+    xmax_ = MAX2(local_settings.x1, local_settings.x2);
     xmin_ = MIN2(local_settings.x1, local_settings.x2);
-    ymax_ = MAX2(local_settings.y1, local_settings.y2) + 1;
+    ymax_ = MAX2(local_settings.y1, local_settings.y2);
     ymin_ = MIN2(local_settings.y1, local_settings.y2);
   }
   else {
@@ -98,10 +98,8 @@ void CropOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                  const rcti &area,
                                                  Span<MemoryBuffer *> inputs)
 {
-  rcti crop_area;
-  BLI_rcti_init(&crop_area, xmin_, xmax_, ymin_, ymax_);
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
-    if (BLI_rcti_isect_pt(&crop_area, it.x, it.y)) {
+    if ((it.x < xmax_ && it.x >= xmin_) && (it.y < ymax_ && it.y >= ymin_)) {
       copy_v4_v4(it.out, it.in(0));
     }
     else {
@@ -166,11 +164,11 @@ void CropImageOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                       const rcti &area,
                                                       Span<MemoryBuffer *> inputs)
 {
-  rcti op_area;
-  BLI_rcti_init(&op_area, 0, get_width(), 0, get_height());
   const MemoryBuffer *input = inputs[0];
+  const int width = get_width();
+  const int height = get_height();
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
-    if (BLI_rcti_isect_pt(&op_area, it.x, it.y)) {
+    if (it.x >= 0 && it.x < width && it.y >= 0 && it.y < height) {
       input->read_elem_checked(it.x + xmin_, it.y + ymin_, it.out);
     }
     else {
