@@ -21,7 +21,7 @@
  * \ingroup shdnodes
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.h"
 
 namespace blender::nodes::node_shader_vector_rotate_cc {
 

@@ -25,7 +25,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "../node_composite_util.hh"
+#include "node_composite_util.hh"
 
 /* **************** BLUR ******************** */
 
