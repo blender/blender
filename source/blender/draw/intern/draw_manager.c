@@ -757,8 +757,11 @@ static void duplidata_key_free(void *key)
   }
   else {
     Object temp_object = *dupli_key->ob;
+    /* Do not modify the original boundbox. */
+    temp_object.runtime.bb = NULL;
     BKE_object_replace_data_on_shallow_copy(&temp_object, dupli_key->ob_data);
     drw_batch_cache_generate_requested(&temp_object);
+    MEM_SAFE_FREE(temp_object.runtime.bb);
   }
   MEM_freeN(key);
 }
