@@ -1079,6 +1079,9 @@ static void graph_region_draw(const bContext *C, ARegion *region)
   /* time-scrubbing */
   ED_time_scrub_draw(region, scene, sc->flag & SC_SHOW_SECONDS, true);
 
+  /* current frame indicator */
+  ED_time_scrub_draw_current_frame(region, scene, sc->flag & SC_SHOW_SECONDS);
+
   /* scrollers */
   UI_view2d_scrollers_draw(v2d, NULL);
 
@@ -1125,6 +1128,9 @@ static void dopesheet_region_draw(const bContext *C, ARegion *region)
 
   /* time-scrubbing */
   ED_time_scrub_draw(region, scene, sc->flag & SC_SHOW_SECONDS, true);
+
+  /* current frame indicator */
+  ED_time_scrub_draw_current_frame(region, scene, sc->flag & SC_SHOW_SECONDS);
 
   /* scrollers */
   UI_view2d_scrollers_draw(v2d, NULL);
