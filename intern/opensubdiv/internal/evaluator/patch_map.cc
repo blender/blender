@@ -23,6 +23,7 @@
 // Modifications copyright 2021 Blender Foundation. All rights reserved.
 
 #include "internal/evaluator/patch_map.h"
+#include <algorithm>
 
 using OpenSubdiv::Far::ConstPatchParamArray;
 using OpenSubdiv::Far::Index;
