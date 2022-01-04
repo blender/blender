@@ -135,6 +135,13 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
 
   OperationNode *ensure_operation_node(ID *id,
                                        NodeType comp_type,
+                                       const char *comp_name,
+                                       OperationCode opcode,
+                                       const DepsEvalOperationCb &op = nullptr,
+                                       const char *name = "",
+                                       int name_tag = -1);
+  OperationNode *ensure_operation_node(ID *id,
+                                       NodeType comp_type,
                                        OperationCode opcode,
                                        const DepsEvalOperationCb &op = nullptr,
                                        const char *name = "",

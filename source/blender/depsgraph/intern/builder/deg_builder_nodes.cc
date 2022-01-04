@@ -271,6 +271,21 @@ OperationNode *DepsgraphNodeBuilder::add_operation_node(ID *id,
 
 OperationNode *DepsgraphNodeBuilder::ensure_operation_node(ID *id,
                                                            NodeType comp_type,
+                                                           const char *comp_name,
+                                                           OperationCode opcode,
+                                                           const DepsEvalOperationCb &op,
+                                                           const char *name,
+                                                           int name_tag)
+{
+  OperationNode *operation = find_operation_node(id, comp_type, comp_name, opcode, name, name_tag);
+  if (operation != nullptr) {
+    return operation;
+  }
+  return add_operation_node(id, comp_type, comp_name, opcode, op, name, name_tag);
+}
+
+OperationNode *DepsgraphNodeBuilder::ensure_operation_node(ID *id,
+                                                           NodeType comp_type,
                                                            OperationCode opcode,
                                                            const DepsEvalOperationCb &op,
                                                            const char *name,
@@ -1198,8 +1213,16 @@ void DepsgraphNodeBuilder::build_driver_id_property(ID *id, const char *rna_path
     return;
   }
   const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);
-  ensure_operation_node(
-      id, NodeType::PARAMETERS, OperationCode::ID_PROPERTY, nullptr, prop_identifier);
+  /* Custom properties of bones are placed in their components to improve granularity. */
+  if (RNA_struct_is_a(ptr.type, &RNA_PoseBone)) {
+    const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr.data);
+    ensure_operation_node(
+        id, NodeType::BONE, pchan->name, OperationCode::ID_PROPERTY, nullptr, prop_identifier);
+  }
+  else {
+    ensure_operation_node(
+        id, NodeType::PARAMETERS, OperationCode::ID_PROPERTY, nullptr, prop_identifier);
+  }
 }
 
 void DepsgraphNodeBuilder::build_parameters(ID *id)

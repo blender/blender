@@ -1729,8 +1729,17 @@ void DepsgraphRelationBuilder::build_driver_id_property(ID *id, const char *rna_
     return;
   }
   const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);
-  OperationKey id_property_key(
-      id, NodeType::PARAMETERS, OperationCode::ID_PROPERTY, prop_identifier);
+  /* Custom properties of bones are placed in their components to improve granularity. */
+  OperationKey id_property_key;
+  if (RNA_struct_is_a(ptr.type, &RNA_PoseBone)) {
+    const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr.data);
+    id_property_key = OperationKey(
+        id, NodeType::BONE, pchan->name, OperationCode::ID_PROPERTY, prop_identifier);
+  }
+  else {
+    id_property_key = OperationKey(
+        id, NodeType::PARAMETERS, OperationCode::ID_PROPERTY, prop_identifier);
+  }
   OperationKey parameters_exit_key(id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
   add_relation(
       id_property_key, parameters_exit_key, "ID Property -> Done", RELATION_CHECK_BEFORE_ADD);
