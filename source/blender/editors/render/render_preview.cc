@@ -848,7 +848,6 @@ static Scene *object_preview_scene_create(const struct ObjectPreviewData *previe
 static void object_preview_render(IconPreview *preview, IconPreviewSize *preview_sized)
 {
   Main *preview_main = BKE_main_new();
-  const float pixelsize_old = U.pixelsize;
   char err_out[256] = "unknown";
 
   BLI_assert(preview->id_copy && (preview->id_copy != preview->id));
@@ -866,8 +865,6 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
 
   /* Ownership is now ours. */
   preview->id_copy = nullptr;
-
-  U.pixelsize = 2.0f;
 
   View3DShading shading;
   BKE_screen_view3d_shading_init(&shading);
@@ -889,8 +886,6 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
       nullptr,
       err_out);
   /* TODO: color-management? */
-
-  U.pixelsize = pixelsize_old;
 
   if (ibuf) {
     icon_copy_rect(ibuf, preview_sized->sizex, preview_sized->sizey, preview_sized->rect);
