@@ -110,9 +110,8 @@ static std::optional<CustomDataType> node_type_from_other_socket(const bNodeSock
     case SOCK_INT:
       return CD_PROP_INT32;
     case SOCK_VECTOR:
-      return CD_PROP_FLOAT3;
     case SOCK_RGBA:
-      return CD_PROP_COLOR;
+      return CD_PROP_FLOAT3;
     default:
       return {};
   }
