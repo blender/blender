@@ -382,7 +382,7 @@ MINLINE void blend_color_pinlight_byte(uchar dst[4], const uchar src1[4], const 
       else {
         temp = min_ii(2 * src2[i], src1[i]);
       }
-      dst[i] = (uchar)((temp * fac + src1[i] * mfac) / 255);
+      dst[i] = (uchar)((min_ii(temp, 255) * fac + src1[i] * mfac) / 255);
     }
   }
   else {
@@ -473,7 +473,7 @@ MINLINE void blend_color_exclusion_byte(uchar dst[4], const uchar src1[4], const
     int i = 3;
 
     while (i--) {
-      const int temp = 127 - ((2 * (src1[i] - 127) * (src2[i] - 127)) / 255);
+      const int temp = 127 - min_ii(((2 * (src1[i] - 127) * (src2[i] - 127)) / 255), 127);
       dst[i] = (uchar)((temp * fac + src1[i] * mfac) / 255);
     }
   }
