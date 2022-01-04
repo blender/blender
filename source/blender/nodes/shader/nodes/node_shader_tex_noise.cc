@@ -21,9 +21,9 @@
 
 #include "BLI_noise.hh"
 
-NODE_STORAGE_FUNCS(NodeTexNoise)
-
 namespace blender::nodes::node_shader_tex_noise_cc {
+
+NODE_STORAGE_FUNCS(NodeTexNoise)
 
 static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
 {

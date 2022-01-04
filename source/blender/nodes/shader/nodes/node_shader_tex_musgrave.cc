@@ -21,9 +21,9 @@
 
 #include "BLI_noise.hh"
 
-NODE_STORAGE_FUNCS(NodeTexMusgrave)
-
 namespace blender::nodes::node_shader_tex_musgrave_cc {
+
+NODE_STORAGE_FUNCS(NodeTexMusgrave)
 
 static void sh_node_tex_musgrave_declare(NodeDeclarationBuilder &b)
 {

@@ -29,9 +29,9 @@
 
 #include "NOD_socket_search_link.hh"
 
-NODE_STORAGE_FUNCS(NodeMapRange)
-
 namespace blender::nodes::node_shader_map_range_cc {
+
+NODE_STORAGE_FUNCS(NodeMapRange)
 
 static void sh_node_map_range_declare(NodeDeclarationBuilder &b)
 {
