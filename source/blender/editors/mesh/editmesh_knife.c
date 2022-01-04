@@ -2605,6 +2605,7 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
 
 /**
  * Calculate the center and maximum excursion of mesh.
+ * (Considers all meshes in multi-object edit mode)
  */
 static void calc_ortho_extent(KnifeTool_OpData *kcd)
 {
@@ -2613,6 +2614,7 @@ static void calc_ortho_extent(KnifeTool_OpData *kcd)
   BMIter iter;
   BMVert *v;
   float min[3], max[3];
+  float ws[3];
   INIT_MINMAX(min, max);
 
   for (uint b = 0; b < kcd->objects_len; b++) {
@@ -2620,11 +2622,17 @@ static void calc_ortho_extent(KnifeTool_OpData *kcd)
     em = BKE_editmesh_from_object(ob);
 
     if (kcd->cagecos[b]) {
-      minmax_v3v3_v3_array(min, max, kcd->cagecos[b], em->bm->totvert);
+      for (int i = 0; i < em->bm->totvert; i++) {
+        copy_v3_v3(ws, kcd->cagecos[b][i]);
+        mul_m4_v3(ob->obmat, ws);
+        minmax_v3v3_v3(min, max, ws);
+      }
     }
     else {
       BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
-        minmax_v3v3_v3(min, max, v->co);
+        copy_v3_v3(ws, v->co);
+        mul_m4_v3(ob->obmat, ws);
+        minmax_v3v3_v3(min, max, ws);
       }
     }
   }
