@@ -21,7 +21,7 @@
  * \ingroup nodes
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_light_types.h"
 #include "DNA_linestyle_types.h"
@@ -62,9 +62,9 @@
 #include "node_shader_util.h"
 #include "node_util.h"
 
-typedef struct nTreeTags {
+struct nTreeTags {
   float ssr_id, sss_id;
-} nTreeTags;
+};
 
 static void ntree_shader_tag_nodes(bNodeTree *ntree, bNode *output_node, nTreeTags *tags);
 
@@ -94,7 +94,7 @@ static void shader_get_from_context(const bContext *C,
     if (ob) {
       *r_from = &ob->id;
       if (ob->type == OB_LAMP) {
-        *r_id = ob->data;
+        *r_id = static_cast<ID *>(ob->data);
         *r_ntree = ((Light *)ob->data)->nodetree;
       }
       else {
@@ -110,7 +110,7 @@ static void shader_get_from_context(const bContext *C,
   else if (snode->shaderfrom == SNODE_SHADER_LINESTYLE) {
     FreestyleLineStyle *linestyle = BKE_linestyle_active_from_view_layer(view_layer);
     if (linestyle) {
-      *r_from = NULL;
+      *r_from = nullptr;
       *r_id = &linestyle->id;
       *r_ntree = linestyle->nodetree;
     }
@@ -118,7 +118,7 @@ static void shader_get_from_context(const bContext *C,
 #endif
   else { /* SNODE_SHADER_WORLD */
     if (scene->world) {
-      *r_from = NULL;
+      *r_from = nullptr;
       *r_id = &scene->world->id;
       *r_ntree = scene->world->nodetree;
     }
@@ -177,10 +177,9 @@ static bool shader_node_tree_socket_type_valid(bNodeTreeType *UNUSED(ntreetype),
 
 bNodeTreeType *ntreeType_Shader;
 
-void register_node_tree_type_sh(void)
+void register_node_tree_type_sh()
 {
-  bNodeTreeType *tt = ntreeType_Shader = MEM_callocN(sizeof(bNodeTreeType),
-                                                     "shader node tree type");
+  bNodeTreeType *tt = ntreeType_Shader = MEM_cnew<bNodeTreeType>("shader node tree type");
 
   tt->type = NTREE_SHADER;
   strcpy(tt->idname, "ShaderNodeTree");
@@ -210,7 +209,7 @@ bNode *ntreeShaderOutputNode(bNodeTree *ntree, int target)
 
   /* Find output node that matches type and target. If there are
    * multiple, we prefer exact target match and active nodes. */
-  bNode *output_node = NULL;
+  bNode *output_node = nullptr;
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (!ELEM(node->type, SH_NODE_OUTPUT_MATERIAL, SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LIGHT)) {
@@ -218,7 +217,7 @@ bNode *ntreeShaderOutputNode(bNodeTree *ntree, int target)
     }
 
     if (node->custom1 == SHD_OUTPUT_ALL) {
-      if (output_node == NULL) {
+      if (output_node == nullptr) {
         output_node = node;
       }
       else if (output_node->custom1 == SHD_OUTPUT_ALL) {
@@ -228,7 +227,7 @@ bNode *ntreeShaderOutputNode(bNodeTree *ntree, int target)
       }
     }
     else if (node->custom1 == target) {
-      if (output_node == NULL) {
+      if (output_node == nullptr) {
         output_node = node;
       }
       else if (output_node->custom1 == SHD_OUTPUT_ALL) {
@@ -246,12 +245,12 @@ bNode *ntreeShaderOutputNode(bNodeTree *ntree, int target)
 /* Find socket with a specified identifier. */
 static bNodeSocket *ntree_shader_node_find_socket(ListBase *sockets, const char *identifier)
 {
-  for (bNodeSocket *sock = sockets->first; sock != NULL; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
     if (STREQ(sock->identifier, identifier)) {
       return sock;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 /* Find input socket with a specified identifier. */
@@ -280,37 +279,37 @@ static bool ntree_shader_expand_socket_default(bNodeTree *localtree,
 
   switch (socket->type) {
     case SOCK_VECTOR:
-      value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_RGB);
+      value_node = nodeAddStaticNode(nullptr, localtree, SH_NODE_RGB);
       value_socket = ntree_shader_node_find_output(value_node, "Color");
-      BLI_assert(value_socket != NULL);
-      src_vector = socket->default_value;
-      dst_rgba = value_socket->default_value;
+      BLI_assert(value_socket != nullptr);
+      src_vector = static_cast<bNodeSocketValueVector *>(socket->default_value);
+      dst_rgba = static_cast<bNodeSocketValueRGBA *>(value_socket->default_value);
       copy_v3_v3(dst_rgba->value, src_vector->value);
       dst_rgba->value[3] = 1.0f; /* should never be read */
       break;
     case SOCK_RGBA:
-      value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_RGB);
+      value_node = nodeAddStaticNode(nullptr, localtree, SH_NODE_RGB);
       value_socket = ntree_shader_node_find_output(value_node, "Color");
-      BLI_assert(value_socket != NULL);
-      src_rgba = socket->default_value;
-      dst_rgba = value_socket->default_value;
+      BLI_assert(value_socket != nullptr);
+      src_rgba = static_cast<bNodeSocketValueRGBA *>(socket->default_value);
+      dst_rgba = static_cast<bNodeSocketValueRGBA *>(value_socket->default_value);
       copy_v4_v4(dst_rgba->value, src_rgba->value);
       break;
     case SOCK_INT:
       /* HACK: Support as float. */
-      value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_VALUE);
+      value_node = nodeAddStaticNode(nullptr, localtree, SH_NODE_VALUE);
       value_socket = ntree_shader_node_find_output(value_node, "Value");
-      BLI_assert(value_socket != NULL);
-      src_int = socket->default_value;
-      dst_float = value_socket->default_value;
+      BLI_assert(value_socket != nullptr);
+      src_int = static_cast<bNodeSocketValueInt *>(socket->default_value);
+      dst_float = static_cast<bNodeSocketValueFloat *>(value_socket->default_value);
       dst_float->value = (float)(src_int->value);
       break;
     case SOCK_FLOAT:
-      value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_VALUE);
+      value_node = nodeAddStaticNode(nullptr, localtree, SH_NODE_VALUE);
       value_socket = ntree_shader_node_find_output(value_node, "Value");
-      BLI_assert(value_socket != NULL);
-      src_float = socket->default_value;
-      dst_float = value_socket->default_value;
+      BLI_assert(value_socket != nullptr);
+      src_float = static_cast<bNodeSocketValueFloat *>(socket->default_value);
+      dst_float = static_cast<bNodeSocketValueFloat *>(value_socket->default_value);
       dst_float->value = src_float->value;
       break;
     default:
@@ -323,11 +322,10 @@ static bool ntree_shader_expand_socket_default(bNodeTree *localtree,
 static void ntree_shader_unlink_hidden_value_sockets(bNode *group_node, bNodeSocket *isock)
 {
   bNodeTree *group_ntree = (bNodeTree *)group_node->id;
-  bNode *node;
   bool removed_link = false;
 
-  for (node = group_ntree->nodes.first; node; node = node->next) {
-    const bool is_group = ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && (node->id != NULL);
+  LISTBASE_FOREACH (bNode *, node, &group_ntree->nodes) {
+    const bool is_group = ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && (node->id != nullptr);
 
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
       if (!is_group && (sock->flag & SOCK_HIDE_VALUE) == 0) {
@@ -350,7 +348,7 @@ static void ntree_shader_unlink_hidden_value_sockets(bNode *group_node, bNodeSoc
   }
 
   if (removed_link) {
-    BKE_ntree_update_main_tree(G.main, group_ntree, NULL);
+    BKE_ntree_update_main_tree(G.main, group_ntree, nullptr);
   }
 }
 
@@ -361,7 +359,7 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
   bool link_added = false;
 
   LISTBASE_FOREACH (bNode *, node, &localtree->nodes) {
-    const bool is_group = ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && (node->id != NULL);
+    const bool is_group = ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && (node->id != nullptr);
     const bool is_group_output = node->type == NODE_GROUP_OUTPUT && (node->flag & NODE_DO_OUTPUT);
 
     if (is_group) {
@@ -371,25 +369,32 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
 
     if (is_group || is_group_output) {
       LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-        if (socket->link != NULL && !(socket->link->flag & NODE_LINK_MUTED)) {
+        if (socket->link != nullptr && !(socket->link->flag & NODE_LINK_MUTED)) {
           bNodeLink *link = socket->link;
           /* Fix the case where the socket is actually converting the data. (see T71374)
            * We only do the case of lossy conversion to float. */
           if ((socket->type == SOCK_FLOAT) && (link->fromsock->type != link->tosock->type)) {
             if (link->fromsock->type == SOCK_RGBA) {
-              bNode *tmp = nodeAddStaticNode(NULL, localtree, SH_NODE_RGBTOBW);
-              nodeAddLink(localtree, link->fromnode, link->fromsock, tmp, tmp->inputs.first);
-              nodeAddLink(localtree, tmp, tmp->outputs.first, node, socket);
+              bNode *tmp = nodeAddStaticNode(nullptr, localtree, SH_NODE_RGBTOBW);
+              nodeAddLink(localtree,
+                          link->fromnode,
+                          link->fromsock,
+                          tmp,
+                          static_cast<bNodeSocket *>(tmp->inputs.first));
+              nodeAddLink(
+                  localtree, tmp, static_cast<bNodeSocket *>(tmp->outputs.first), node, socket);
             }
             else if (link->fromsock->type == SOCK_VECTOR) {
-              bNode *tmp = nodeAddStaticNode(NULL, localtree, SH_NODE_VECTOR_MATH);
+              bNode *tmp = nodeAddStaticNode(nullptr, localtree, SH_NODE_VECTOR_MATH);
               tmp->custom1 = NODE_VECTOR_MATH_DOT_PRODUCT;
-              bNodeSocket *dot_input1 = tmp->inputs.first;
-              bNodeSocket *dot_input2 = dot_input1->next;
-              bNodeSocketValueVector *input2_socket_value = dot_input2->default_value;
+              bNodeSocket *dot_input1 = static_cast<bNodeSocket *>(tmp->inputs.first);
+              bNodeSocket *dot_input2 = static_cast<bNodeSocket *>(dot_input1->next);
+              bNodeSocketValueVector *input2_socket_value = static_cast<bNodeSocketValueVector *>(
+                  dot_input2->default_value);
               copy_v3_fl(input2_socket_value->value, 1.0f / 3.0f);
               nodeAddLink(localtree, link->fromnode, link->fromsock, tmp, dot_input1);
-              nodeAddLink(localtree, tmp, tmp->outputs.last, node, socket);
+              nodeAddLink(
+                  localtree, tmp, static_cast<bNodeSocket *>(tmp->outputs.last), node, socket);
             }
           }
           continue;
@@ -409,22 +414,17 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
   }
 
   if (link_added) {
-    BKE_ntree_update_main_tree(G.main, localtree, NULL);
+    BKE_ntree_update_main_tree(G.main, localtree, nullptr);
   }
 }
 
 static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
 {
-  bNodeLink *link, *linkn, *tlink;
-  bNode *node, *nextnode;
-  bNodeTree *ngroup;
-  LinkNode *group_interface_nodes = NULL;
-
-  ngroup = (bNodeTree *)gnode->id;
+  LinkNode *group_interface_nodes = nullptr;
+  bNodeTree *ngroup = (bNodeTree *)gnode->id;
 
   /* Add the nodes into the ntree */
-  for (node = ngroup->nodes.first; node; node = nextnode) {
-    nextnode = node->next;
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ngroup->nodes) {
     /* Remove interface nodes.
      * This also removes remaining links to and from interface nodes.
      * We must delay removal since sockets will reference this node. see: T52092 */
@@ -440,25 +440,26 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
   }
 
   /* Save first and last link to iterate over flattened group links. */
-  bNodeLink *glinks_first = ntree->links.last;
+  bNodeLink *glinks_first = static_cast<bNodeLink *>(ntree->links.last);
 
   /* Add internal links to the ntree */
-  for (link = ngroup->links.first; link; link = linkn) {
-    linkn = link->next;
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ngroup->links) {
     BLI_remlink(&ngroup->links, link);
     BLI_addtail(&ntree->links, link);
   }
 
-  bNodeLink *glinks_last = ntree->links.last;
+  bNodeLink *glinks_last = static_cast<bNodeLink *>(ntree->links.last);
 
   /* restore external links to and from the gnode */
-  if (glinks_first != NULL) {
+  if (glinks_first != nullptr) {
     /* input links */
-    for (link = glinks_first->next; link != glinks_last->next; link = link->next) {
+    for (bNodeLink *link = glinks_first->next; link != glinks_last->next; link = link->next) {
       if (link->fromnode->type == NODE_GROUP_INPUT) {
         const char *identifier = link->fromsock->identifier;
         /* find external links to this input */
-        for (tlink = ntree->links.first; tlink != glinks_first->next; tlink = tlink->next) {
+        for (bNodeLink *tlink = static_cast<bNodeLink *>(ntree->links.first);
+             tlink != glinks_first->next;
+             tlink = tlink->next) {
           if (tlink->tonode == gnode && STREQ(tlink->tosock->identifier, identifier)) {
             nodeAddLink(ntree, tlink->fromnode, tlink->fromsock, link->tonode, link->tosock);
           }
@@ -466,13 +467,15 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
       }
     }
     /* Also iterate over the new links to cover passthrough links. */
-    glinks_last = ntree->links.last;
+    glinks_last = static_cast<bNodeLink *>(ntree->links.last);
     /* output links */
-    for (tlink = ntree->links.first; tlink != glinks_first->next; tlink = tlink->next) {
+    for (bNodeLink *tlink = static_cast<bNodeLink *>(ntree->links.first);
+         tlink != glinks_first->next;
+         tlink = tlink->next) {
       if (tlink->fromnode == gnode) {
         const char *identifier = tlink->fromsock->identifier;
         /* find internal links to this output */
-        for (link = glinks_first->next; link != glinks_last->next; link = link->next) {
+        for (bNodeLink *link = glinks_first->next; link != glinks_last->next; link = link->next) {
           /* only use active output node */
           if (link->tonode->type == NODE_GROUP_OUTPUT && (link->tonode->flag & NODE_DO_OUTPUT)) {
             if (STREQ(link->tosock->identifier, identifier)) {
@@ -485,7 +488,7 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
   }
 
   while (group_interface_nodes) {
-    node = BLI_linklist_pop(&group_interface_nodes);
+    bNode *node = static_cast<bNode *>(BLI_linklist_pop(&group_interface_nodes));
     ntreeFreeLocalNode(ntree, node);
   }
 
@@ -497,8 +500,9 @@ static void ntree_shader_groups_flatten(bNodeTree *localtree)
 {
   /* This is effectively recursive as the flattened groups will add
    * nodes at the end of the list, which will also get evaluated. */
-  for (bNode *node = localtree->nodes.first, *node_next; node; node = node_next) {
-    if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id != NULL) {
+  for (bNode *node = static_cast<bNode *>(localtree->nodes.first), *node_next; node;
+       node = node_next) {
+    if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id != nullptr) {
       flatten_group_do(localtree, node);
       /* Continue even on new flattened nodes. */
       node_next = node->next;
@@ -514,7 +518,7 @@ static void ntree_shader_groups_flatten(bNodeTree *localtree)
     }
   }
 
-  BKE_ntree_update_main_tree(G.main, localtree, NULL);
+  BKE_ntree_update_main_tree(G.main, localtree, nullptr);
 }
 
 /* Check whether shader has a displacement.
@@ -529,20 +533,20 @@ static bool ntree_shader_has_displacement(bNodeTree *ntree,
                                           bNodeSocket **r_socket,
                                           bNodeLink **r_link)
 {
-  if (output_node == NULL) {
+  if (output_node == nullptr) {
     /* We can't have displacement without output node, apparently. */
     return false;
   }
   /* Make sure sockets links pointers are correct. */
-  BKE_ntree_update_main_tree(G.main, ntree, NULL);
+  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
   bNodeSocket *displacement = ntree_shader_node_find_input(output_node, "Displacement");
 
-  if (displacement == NULL) {
+  if (displacement == nullptr) {
     /* Non-cycles node is used as an output. */
     return false;
   }
 
-  if ((displacement->link != NULL) && !(displacement->link->flag & NODE_LINK_MUTED)) {
+  if ((displacement->link != nullptr) && !(displacement->link->flag & NODE_LINK_MUTED)) {
     *r_node = displacement->link->fromnode;
     *r_socket = displacement->link->fromsock;
     *r_link = displacement->link;
@@ -560,7 +564,7 @@ static void ntree_shader_relink_node_normal(bNodeTree *ntree,
    * matching?
    */
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (STREQ(sock->identifier, "Normal") && sock->link == NULL) {
+    if (STREQ(sock->identifier, "Normal") && sock->link == nullptr) {
       /* It's a normal input and nothing is connected to it. */
       nodeAddLink(ntree, node_from, socket_from, node, sock);
     }
@@ -580,7 +584,7 @@ static void ntree_shader_link_builtin_normal(bNodeTree *ntree,
                                              bNode *node_from,
                                              bNodeSocket *socket_from)
 {
-  for (bNode *node = ntree->nodes.first; node != NULL; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node == node_from) {
       /* Don't connect node itself! */
       continue;
@@ -605,7 +609,7 @@ static void ntree_shader_bypass_bump_link(bNodeTree *ntree, bNode *bump_node, bN
     fromnode = bump_normal_input->link->fromnode;
   }
   else {
-    fromnode = nodeAddStaticNode(NULL, ntree, SH_NODE_NEW_GEOMETRY);
+    fromnode = nodeAddStaticNode(nullptr, ntree, SH_NODE_NEW_GEOMETRY);
     fromsock = ntree_shader_node_find_output(fromnode, "Normal");
   }
   /* Bypass the bump node by creating a link between the previous and next node. */
@@ -623,7 +627,7 @@ static void ntree_shader_bypass_tagged_bump_nodes(bNodeTree *ntree)
       ntree_shader_bypass_bump_link(ntree, node, link);
     }
   }
-  BKE_ntree_update_main_tree(G.main, ntree, NULL);
+  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
 }
 
 static bool ntree_branch_count_and_tag_nodes(bNode *fromnode, bNode *tonode, void *userdata)
@@ -657,7 +661,7 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
   int node_count = 1;
   nodeChainIterBackwards(ntree, start_node, ntree_branch_count_and_tag_nodes, &node_count, 1);
   /* Make a full copy of the branch */
-  bNode **nodes_copy = MEM_mallocN(sizeof(bNode *) * node_count, __func__);
+  bNode **nodes_copy = static_cast<bNode **>(MEM_mallocN(sizeof(bNode *) * node_count, __func__));
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->tmp_flag >= 0) {
       int id = node->tmp_flag;
@@ -666,10 +670,10 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
       nodes_copy[id]->tmp_flag = -2; /* Copy */
       /* Make sure to clear all sockets links as they are invalid. */
       LISTBASE_FOREACH (bNodeSocket *, sock, &nodes_copy[id]->inputs) {
-        sock->link = NULL;
+        sock->link = nullptr;
       }
       LISTBASE_FOREACH (bNodeSocket *, sock, &nodes_copy[id]->outputs) {
-        sock->link = NULL;
+        sock->link = nullptr;
       }
     }
   }
@@ -702,13 +706,13 @@ static void ntree_shader_copy_branch_displacement(bNodeTree *ntree,
   /* Replace displacement socket/node/link. */
   bNode *tonode = displacement_link->tonode;
   bNodeSocket *tosock = displacement_link->tosock;
-  displacement_node = ntree_shader_copy_branch(ntree, displacement_node, NULL, 0);
+  displacement_node = ntree_shader_copy_branch(ntree, displacement_node, nullptr, 0);
   displacement_socket = ntree_shader_node_find_output(displacement_node,
                                                       displacement_socket->identifier);
   nodeRemLink(ntree, displacement_link);
   nodeAddLink(ntree, displacement_node, displacement_socket, tonode, tosock);
 
-  BKE_ntree_update_main_tree(G.main, ntree, NULL);
+  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
 }
 
 /* Re-link displacement output to unconnected normal sockets via bump node.
@@ -742,11 +746,11 @@ static void ntree_shader_relink_displacement(bNodeTree *ntree, bNode *output_nod
   nodeRemLink(ntree, displacement_link);
 
   /* Convert displacement vector to bump height. */
-  bNode *dot_node = nodeAddStaticNode(NULL, ntree, SH_NODE_VECTOR_MATH);
-  bNode *geo_node = nodeAddStaticNode(NULL, ntree, SH_NODE_NEW_GEOMETRY);
+  bNode *dot_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_VECTOR_MATH);
+  bNode *geo_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_NEW_GEOMETRY);
   bNodeSocket *normal_socket = ntree_shader_node_find_output(geo_node, "Normal");
-  bNodeSocket *dot_input1 = dot_node->inputs.first;
-  bNodeSocket *dot_input2 = dot_input1->next;
+  bNodeSocket *dot_input1 = static_cast<bNodeSocket *>(dot_node->inputs.first);
+  bNodeSocket *dot_input2 = static_cast<bNodeSocket *>(dot_input1->next);
   dot_node->custom1 = NODE_VECTOR_MATH_DOT_PRODUCT;
 
   nodeAddLink(ntree, displacement_node, displacement_socket, dot_node, dot_input1);
@@ -757,11 +761,11 @@ static void ntree_shader_relink_displacement(bNodeTree *ntree, bNode *output_nod
   /* We can't connect displacement to normal directly, use bump node for that
    * and hope that it gives good enough approximation.
    */
-  bNode *bump_node = nodeAddStaticNode(NULL, ntree, SH_NODE_BUMP);
+  bNode *bump_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_BUMP);
   bNodeSocket *bump_input_socket = ntree_shader_node_find_input(bump_node, "Height");
   bNodeSocket *bump_output_socket = ntree_shader_node_find_output(bump_node, "Normal");
-  BLI_assert(bump_input_socket != NULL);
-  BLI_assert(bump_output_socket != NULL);
+  BLI_assert(bump_input_socket != nullptr);
+  BLI_assert(bump_output_socket != nullptr);
   /* Connect bump node to where displacement output was originally
    * connected to.
    */
@@ -772,12 +776,12 @@ static void ntree_shader_relink_displacement(bNodeTree *ntree, bNode *output_nod
   geo_node->tmp_flag = -2;
   bump_node->tmp_flag = -2;
 
-  BKE_ntree_update_main_tree(G.main, ntree, NULL);
+  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
 
   /* Connect all free-standing Normal inputs and relink geometry/coordinate nodes. */
   ntree_shader_link_builtin_normal(ntree, bump_node, bump_output_socket);
   /* We modified the tree, it needs to be updated now. */
-  BKE_ntree_update_main_tree(G.main, ntree, NULL);
+  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
 }
 
 static void node_tag_branch_as_derivative(bNode *node, int dx)
@@ -853,11 +857,11 @@ static bool ntree_tag_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *user
  */
 void ntree_shader_tag_nodes(bNodeTree *ntree, bNode *output_node, nTreeTags *tags)
 {
-  if (output_node == NULL) {
+  if (output_node == nullptr) {
     return;
   }
   /* Make sure sockets links pointers are correct. */
-  BKE_ntree_update_main_tree(G.main, ntree, NULL);
+  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
 
   nodeChainIterBackwards(ntree, output_node, ntree_tag_bsdf_cb, tags, 0);
 }
@@ -875,7 +879,7 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree,
 
   ntree_shader_groups_flatten(localtree);
 
-  if (output == NULL) {
+  if (output == nullptr) {
     /* Search again, now including flattened nodes. */
     output = ntreeShaderOutputNode(localtree, SHD_OUTPUT_EEVEE);
   }
@@ -891,19 +895,17 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree,
   LISTBASE_FOREACH (bNode *, node, &localtree->nodes) {
     if (node->type == SH_NODE_OUTPUT_AOV) {
       nodeChainIterBackwards(localtree, node, ntree_shader_bump_branches, localtree, 0);
-      nTreeTags tags = {
-          .ssr_id = 1.0,
-          .sss_id = 1.0,
-      };
+      nTreeTags tags = {};
+      tags.ssr_id = 1.0;
+      tags.sss_id = 1.0;
       ntree_shader_tag_nodes(localtree, node, &tags);
     }
   }
 
   /* TODO(fclem): consider moving this to the gpu shader tree evaluation. */
-  nTreeTags tags = {
-      .ssr_id = 1.0,
-      .sss_id = 1.0,
-  };
+  nTreeTags tags = {};
+  tags.ssr_id = 1.0;
+  tags.sss_id = 1.0;
   ntree_shader_tag_nodes(localtree, output, &tags);
 
   exec = ntreeShaderBeginExecTree(localtree);
@@ -919,15 +921,15 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree,
   *has_surface_output = false;
   *has_volume_output = false;
 
-  if (output != NULL) {
+  if (output != nullptr) {
     bNodeSocket *surface_sock = ntree_shader_node_find_input(output, "Surface");
     bNodeSocket *volume_sock = ntree_shader_node_find_input(output, "Volume");
 
-    if (surface_sock != NULL) {
+    if (surface_sock != nullptr) {
       *has_surface_output = (nodeCountSocketLinks(localtree, surface_sock) > 0);
     }
 
-    if (volume_sock != NULL) {
+    if (volume_sock != nullptr) {
       *has_volume_output = (nodeCountSocketLinks(localtree, volume_sock) > 0);
     }
   }
@@ -937,19 +939,17 @@ bNodeTreeExec *ntreeShaderBeginExecTree_internal(bNodeExecContext *context,
                                                  bNodeTree *ntree,
                                                  bNodeInstanceKey parent_key)
 {
-  bNodeTreeExec *exec;
-  bNode *node;
-
   /* ensures only a single output node is enabled */
   ntreeSetOutput(ntree);
 
   /* common base initialization */
-  exec = ntree_exec_begin(context, ntree, parent_key);
+  bNodeTreeExec *exec = ntree_exec_begin(context, ntree, parent_key);
 
   /* allocate the thread stack listbase array */
-  exec->threadstack = MEM_callocN(BLENDER_MAX_THREADS * sizeof(ListBase), "thread stack array");
+  exec->threadstack = static_cast<ListBase *>(
+      MEM_callocN(BLENDER_MAX_THREADS * sizeof(ListBase), "thread stack array"));
 
-  for (node = exec->nodetree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &exec->nodetree->nodes) {
     node->need_exec = 1;
   }
 
@@ -982,12 +982,9 @@ bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree)
 
 void ntreeShaderEndExecTree_internal(bNodeTreeExec *exec)
 {
-  bNodeThreadStack *nts;
-  int a;
-
   if (exec->threadstack) {
-    for (a = 0; a < BLENDER_MAX_THREADS; a++) {
-      for (nts = exec->threadstack[a].first; nts; nts = nts->next) {
+    for (int a = 0; a < BLENDER_MAX_THREADS; a++) {
+      LISTBASE_FOREACH (bNodeThreadStack *, nts, &exec->threadstack[a]) {
         if (nts->stack) {
           MEM_freeN(nts->stack);
         }
@@ -996,7 +993,7 @@ void ntreeShaderEndExecTree_internal(bNodeTreeExec *exec)
     }
 
     MEM_freeN(exec->threadstack);
-    exec->threadstack = NULL;
+    exec->threadstack = nullptr;
   }
 
   ntree_exec_end(exec);
@@ -1010,6 +1007,6 @@ void ntreeShaderEndExecTree(bNodeTreeExec *exec)
     ntreeShaderEndExecTree_internal(exec);
 
     /* XXX clear nodetree backpointer to exec data, same problem as noted in ntreeBeginExecTree */
-    ntree->execdata = NULL;
+    ntree->execdata = nullptr;
   }
 }

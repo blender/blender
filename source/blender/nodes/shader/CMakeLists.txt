@@ -63,7 +63,7 @@ set(SRC
   nodes/node_shader_camera.cc
   nodes/node_shader_clamp.cc
   nodes/node_shader_color_ramp.cc
-  nodes/node_shader_common.c
+  nodes/node_shader_common.cc
   nodes/node_shader_curves.cc
   nodes/node_shader_displacement.cc
   nodes/node_shader_eevee_specular.cc
@@ -132,7 +132,7 @@ set(SRC
   nodes/node_shader_wavelength.cc
   nodes/node_shader_wireframe.cc
 
-  node_shader_tree.c
+  node_shader_tree.cc
   node_shader_util.cc
 
   node_shader_util.h
