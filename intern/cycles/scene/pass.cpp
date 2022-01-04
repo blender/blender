@@ -101,6 +101,7 @@ const NodeEnum *Pass::get_type_enum()
     pass_type_enum.insert("denoising_normal", PASS_DENOISING_NORMAL);
     pass_type_enum.insert("denoising_albedo", PASS_DENOISING_ALBEDO);
     pass_type_enum.insert("denoising_depth", PASS_DENOISING_DEPTH);
+    pass_type_enum.insert("denoising_previous", PASS_DENOISING_PREVIOUS);
 
     pass_type_enum.insert("shadow_catcher", PASS_SHADOW_CATCHER);
     pass_type_enum.insert("shadow_catcher_sample_count", PASS_SHADOW_CATCHER_SAMPLE_COUNT);
@@ -298,6 +299,10 @@ PassInfo Pass::get_info(const PassType type, const bool include_albedo)
       break;
     case PASS_DENOISING_DEPTH:
       pass_info.num_components = 1;
+      break;
+    case PASS_DENOISING_PREVIOUS:
+      pass_info.num_components = 3;
+      pass_info.use_exposure = true;
       break;
 
     case PASS_SHADOW_CATCHER:

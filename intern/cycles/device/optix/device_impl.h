@@ -104,6 +104,7 @@ class OptiXDevice : public CUDADevice {
 
     bool use_pass_albedo = false;
     bool use_pass_normal = false;
+    bool use_pass_flow = false;
   };
   Denoiser denoiser_;
 

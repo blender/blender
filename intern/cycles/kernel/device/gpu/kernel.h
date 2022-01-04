@@ -756,6 +756,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
                              int guiding_pass_stride,
                              int guiding_pass_albedo,
                              int guiding_pass_normal,
+                             int guiding_pass_flow,
                              ccl_global const float *render_buffer,
                              int render_offset,
                              int render_stride,
@@ -763,6 +764,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
                              int render_pass_sample_count,
                              int render_pass_denoising_albedo,
                              int render_pass_denoising_normal,
+                             int render_pass_motion,
                              int full_x,
                              int full_y,
                              int width,
@@ -813,6 +815,17 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     normal_out[0] = normal_in[0] * pixel_scale;
     normal_out[1] = normal_in[1] * pixel_scale;
     normal_out[2] = normal_in[2] * pixel_scale;
+  }
+
+  /* Flow pass. */
+  if (guiding_pass_flow != PASS_UNUSED) {
+    kernel_assert(render_pass_motion != PASS_UNUSED);
+
+    const float *motion_in = buffer + render_pass_motion;
+    float *flow_out = guiding_pixel + guiding_pass_flow;
+
+    flow_out[0] = -motion_in[0] * pixel_scale;
+    flow_out[1] = -motion_in[1] * pixel_scale;
   }
 }
 
@@ -899,7 +912,6 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   else {
     /* Assigning to zero since this is a default alpha value for 3-component passes, and it
      * is an opaque pixel for 4 component passes. */
-
     denoised_pixel[3] = 0;
   }
 }
