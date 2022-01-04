@@ -1086,40 +1086,6 @@ static void create_subd_mesh(Scene *scene,
 
 /* Sync */
 
-/* Check whether some of "built-in" motion-related attributes are needed to be exported (includes
- * things like velocity from cache modifier, fluid simulation).
- *
- * NOTE: This code is run prior to object motion blur initialization. so can not access properties
- * set by `sync_object_motion_init()`. */
-static bool mesh_need_motion_attribute(BObjectInfo &b_ob_info, Scene *scene)
-{
-  const Scene::MotionType need_motion = scene->need_motion();
-  if (need_motion == Scene::MOTION_NONE) {
-    /* Simple case: neither motion pass nor motion blur is needed, no need in the motion related
-     * attributes. */
-    return false;
-  }
-
-  if (need_motion == Scene::MOTION_BLUR) {
-    /* A bit tricky and implicit case:
-     * - Motion blur is enabled in the scene, which implies specific number of time steps for
-     *   objects.
-     * - If the object has motion blur disabled on it, it will have 0 time steps.
-     * - Motion attribute expects non-zero time steps.
-     *
-     * Avoid adding motion attributes if the motion blur will enforce 0 motion steps. */
-    PointerRNA cobject = RNA_pointer_get(&b_ob_info.real_object.ptr, "cycles");
-    const bool use_motion = get_boolean(cobject, "use_motion_blur");
-    if (!use_motion) {
-      return false;
-    }
-  }
-
-  /* Motion pass which implies 3 motion steps, or motion blur which is not disabled on object
-   * level. */
-  return true;
-}
-
 void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, Mesh *mesh)
 {
   /* make a copy of the shaders as the caller in the main thread still need them for syncing the
@@ -1144,7 +1110,7 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
 
     if (b_mesh) {
       /* Motion blur attribute is relative to seconds, we need it relative to frames. */
-      const bool need_motion = mesh_need_motion_attribute(b_ob_info, scene);
+      const bool need_motion = object_need_motion_attribute(b_ob_info, scene);
       const float motion_scale = (need_motion) ?
                                      scene->motion_shutter_time() /
                                          (b_scene.render().fps() / b_scene.render().fps_base()) :
