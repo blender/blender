@@ -350,6 +350,9 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
 
 void BKE_id_delete(Main *bmain, void *idv)
 {
+  BLI_assert_msg((((ID *)idv)->tag & LIB_TAG_NO_MAIN) == 0,
+                 "Cannot be used with IDs outside of Main");
+
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
   ((ID *)idv)->tag |= LIB_TAG_DOIT;
 
