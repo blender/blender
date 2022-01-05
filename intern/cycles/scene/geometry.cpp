@@ -1002,10 +1002,10 @@ void GeometryManager::device_update_attributes(Device *device,
 
   /* After mesh attributes and patch tables have been copied to device memory,
    * we need to update offsets in the objects. */
-  scene->object_manager->device_update_mesh_offsets(device, dscene, scene);
+  scene->object_manager->device_update_geom_offsets(device, dscene, scene);
 }
 
-void GeometryManager::mesh_calc_offset(Scene *scene, BVHLayout bvh_layout)
+void GeometryManager::geom_calc_offset(Scene *scene, BVHLayout bvh_layout)
 {
   size_t vert_size = 0;
   size_t tri_size = 0;
@@ -1922,7 +1922,7 @@ void GeometryManager::device_update(Device *device,
 
   const BVHLayout bvh_layout = BVHParams::best_bvh_layout(scene->params.bvh_layout,
                                                           device->get_bvh_layout_mask());
-  mesh_calc_offset(scene, bvh_layout);
+  geom_calc_offset(scene, bvh_layout);
   if (true_displacement_used || curve_shadow_transparency_used) {
     scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
