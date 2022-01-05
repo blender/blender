@@ -27,46 +27,6 @@ CCL_NAMESPACE_BEGIN
 
 /* Utility Functions */
 
-static void print_progress(int num, int total, int frame, int num_frames)
-{
-  const char *label = "Denoise Frame ";
-  int cols = system_console_width();
-
-  cols -= strlen(label);
-
-  int len = 1;
-  for (int x = total; x > 9; x /= 10) {
-    len++;
-  }
-
-  int bars = cols - 2 * len - 6;
-
-  printf("\r%s", label);
-
-  if (num_frames > 1) {
-    int frame_len = 1;
-    for (int x = num_frames - 1; x > 9; x /= 10) {
-      frame_len++;
-    }
-    bars -= frame_len + 2;
-    printf("%*d ", frame_len, frame);
-  }
-
-  int v = int(float(num) * bars / total);
-  printf("[");
-  for (int i = 0; i < v; i++) {
-    printf("=");
-  }
-  if (v < bars) {
-    printf(">");
-  }
-  for (int i = v + 1; i < bars; i++) {
-    printf(" ");
-  }
-  printf(string_printf("] %%%dd / %d", len, total).c_str(), num);
-  fflush(stdout);
-}
-
 /* Splits in at its last dot, setting suffix to the part after the dot and in to the part before
  * it. Returns whether a dot was found. */
 static bool split_last_dot(string &in, string &suffix)

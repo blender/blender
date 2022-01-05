@@ -676,7 +676,7 @@ static inline uint object_ray_visibility(BL::Object &b_ob)
  *
  * NOTE: This code is run prior to object motion blur initialization. so can not access properties
  * set by `sync_object_motion_init()`. */
-static bool object_need_motion_attribute(BObjectInfo &b_ob_info, Scene *scene)
+static inline bool object_need_motion_attribute(BObjectInfo &b_ob_info, Scene *scene)
 {
   const Scene::MotionType need_motion = scene->need_motion();
   if (need_motion == Scene::MOTION_NONE) {
