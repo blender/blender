@@ -55,12 +55,8 @@ class SocketSearchOp {
 
 static void sh_node_vector_math_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  if (!ELEM(params.other_socket().type,
-            SOCK_FLOAT,
-            SOCK_BOOLEAN,
-            SOCK_INT,
-            SOCK_VECTOR,
-            SOCK_RGBA)) {
+  if (!params.node_tree().typeinfo->validate_link(
+          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_VECTOR)) {
     return;
   }
 
