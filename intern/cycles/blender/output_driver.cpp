@@ -120,7 +120,7 @@ void BlenderOutputDriver::write_render_tile(const Tile &tile)
     b_pass.rect(&pixels[0]);
   }
 
-  b_engine_.end_result(b_rr, true, false, true);
+  b_engine_.end_result(b_rr, false, false, true);
 }
 
 CCL_NAMESPACE_END
