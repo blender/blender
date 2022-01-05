@@ -82,7 +82,7 @@ static void session_print_status()
   string status, substatus;
 
   /* get status */
-  float progress = options.session->progress.get_progress();
+  double progress = options.session->progress.get_progress();
   options.session->progress.get_status(status, substatus);
 
   if (substatus != "")
@@ -183,7 +183,7 @@ static void display_info(Progress &progress)
 
   progress.get_time(total_time, sample_time);
   progress.get_status(status, substatus);
-  float progress_val = progress.get_progress();
+  double progress_val = progress.get_progress();
 
   if (substatus != "")
     status += ": " + substatus;
