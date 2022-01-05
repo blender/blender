@@ -315,7 +315,21 @@ typedef struct IDOverrideLibrary {
   struct ID *storage;
 
   IDOverrideLibraryRuntime *runtime;
+
+  void *_pad_0;
+
+  unsigned int flag;
+  char _pad_1[4];
 } IDOverrideLibrary;
+
+/* IDOverrideLibrary->flag */
+enum {
+  /**
+   * The override data-block should not be considered as part of an override hierarchy (generally
+   * because it was created as an single override, outside of any hierarchy consideration).
+   */
+  IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY = 1 << 0,
+};
 
 /* watch it: Sequence has identical beginning. */
 /**

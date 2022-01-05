@@ -1095,6 +1095,13 @@ static void rna_property_override_check_resync(Main *bmain,
   ID *id_src = rna_property_override_property_real_id_owner(bmain, ptr_item_src, NULL, NULL);
   ID *id_dst = rna_property_override_property_real_id_owner(bmain, ptr_item_dst, NULL, NULL);
 
+  BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_owner));
+
+  /* If the owner ID is not part of an override hierarchy, there is no possible resync. */
+  if (id_owner->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY) {
+    return;
+  }
+
   /* If `id_src` is not a liboverride, we cannot perform any further 'need resync' checks from
    * here. */
   if (id_src != NULL && !ID_IS_OVERRIDE_LIBRARY_REAL(id_src)) {

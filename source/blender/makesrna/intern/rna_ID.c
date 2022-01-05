@@ -1808,6 +1808,14 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
   RNA_def_pointer(
       srna, "reference", "ID", "Reference ID", "Linked ID used as reference by this override");
 
+  prop = RNA_def_boolean(srna,
+                         "is_in_hierarchy",
+                         true,
+                         "Is In Hierarchy",
+                         "Whether this library override is defined as part of a library "
+                         "hierarchy, or as a single, isolated and autonomous override");
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY);
+
   prop = RNA_def_collection(srna,
                             "properties",
                             "IDOverrideLibraryProperty",

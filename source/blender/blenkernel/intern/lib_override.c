@@ -282,6 +282,10 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
   BLI_assert(ID_IS_LINKED(reference_id));
 
   ID *local_id = lib_override_library_create_from(bmain, reference_id, 0);
+  /* We cannot allow automatic hierarchy resync on this ID, it is highly likely to generate a giant
+   * mess in case there are a lot of hidden, non-instantiated, non-properly organized dependencies.
+   * Ref T94650. */
+  local_id->override_library->flag |= IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY;
 
   if (do_tagged_remap) {
     Key *reference_key, *local_key = NULL;
@@ -734,6 +738,11 @@ static void lib_override_overrides_group_tag_recursive(LibOverrideGroupTagData *
   ID *id_owner = data->id_root;
   BLI_assert(ID_IS_OVERRIDE_LIBRARY(id_owner));
   BLI_assert(data->is_override);
+
+  if (id_owner->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY) {
+    return;
+  }
+
   const uint tag = data->tag;
   const uint missing_tag = data->missing_tag;
 
@@ -1643,6 +1652,11 @@ static void lib_override_library_main_resync_on_library_indirect_level(
       continue;
     }
 
+    if (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY) {
+      /* This ID is not part of an override hierarchy. */
+      continue;
+    }
+
     data.id_root = id->override_library->reference;
     lib_override_linked_group_tag(&data);
     BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
@@ -1657,6 +1671,12 @@ static void lib_override_library_main_resync_on_library_indirect_level(
   BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      continue;
+    }
+
+    if (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY) {
+      /* This ID is not part of an override hierarchy. */
+      BLI_assert((id->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) == 0);
       continue;
     }
 

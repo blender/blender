@@ -84,6 +84,9 @@ bool BKE_lib_override_library_is_user_edited(struct ID *id);
 
 /**
  * Create an overridden local copy of linked reference.
+ *
+ * \note This function is very basic, low-level. It does not consider any hierarcical dependency,
+ * and also prevents any automatic resync of this local override.
  */
 struct ID *BKE_lib_override_library_create_from_id(struct Main *bmain,
                                                    struct ID *reference_id,
