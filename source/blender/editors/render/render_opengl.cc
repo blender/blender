@@ -781,7 +781,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   }
 
   /* allocate opengl render */
-  oglrender = MEM_cnew<OGLRender>("OGLRender");
+  oglrender = MEM_new<OGLRender>("OGLRender");
   op->customdata = oglrender;
 
   oglrender->ofs = ofs;
@@ -960,7 +960,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
   CTX_wm_area_set(C, oglrender->prevsa);
   CTX_wm_region_set(C, oglrender->prevar);
 
-  MEM_freeN(oglrender);
+  MEM_delete(oglrender);
 }
 
 static void screen_opengl_render_cancel(bContext *C, wmOperator *op)
