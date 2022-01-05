@@ -32,9 +32,13 @@ static bool validate_cpu_capabilities()
 #endif
 }
 
-#define VALIDATECPU \
+#define INIT_AVX_TEST \
   if (!validate_cpu_capabilities()) \
-    return;
+    return; \
+\
+  const avxf avxf_a(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f); \
+  const avxf avxf_b(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f); \
+  const avxf avxf_c(1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f);
 
 #define compare_vector_scalar(a, b) \
   for (size_t index = 0; index < a.size; index++) \
@@ -49,21 +53,18 @@ static bool validate_cpu_capabilities()
     EXPECT_NEAR(a[index], b[index], abserror);
 
 #define basic_test_vv(a, b, op) \
-  VALIDATECPU \
+  INIT_AVX_TEST \
   avxf c = a op b; \
   for (size_t i = 0; i < a.size; i++) \
     EXPECT_FLOAT_EQ(c[i], a[i] op b[i]);
 
 /* vector op float tests */
 #define basic_test_vf(a, b, op) \
-  VALIDATECPU \
+  INIT_AVX_TEST \
   avxf c = a op b; \
   for (size_t i = 0; i < a.size; i++) \
     EXPECT_FLOAT_EQ(c[i], a[i] op b);
 
-static const avxf avxf_a(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
-static const avxf avxf_b(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
-static const avxf avxf_c(1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f);
 static const float float_b = 1.5f;
 
 TEST(TEST_CATEGORY_NAME, avxf_add_vv){basic_test_vv(avxf_a, avxf_b, +)} TEST(TEST_CATEGORY_NAME,
@@ -78,7 +79,7 @@ TEST(TEST_CATEGORY_NAME, avxf_add_vv){basic_test_vv(avxf_a, avxf_b, +)} TEST(TES
 
 TEST(TEST_CATEGORY_NAME, avxf_ctor)
 {
-  VALIDATECPU
+  INIT_AVX_TEST
   compare_vector_scalar(avxf(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f),
                         static_cast<float>(index));
   compare_vector_scalar(avxf(1.0f), 1.0f);
@@ -91,28 +92,28 @@ TEST(TEST_CATEGORY_NAME, avxf_ctor)
 
 TEST(TEST_CATEGORY_NAME, avxf_sqrt)
 {
-  VALIDATECPU
+  INIT_AVX_TEST
   compare_vector_vector(mm256_sqrt(avxf(1.0f, 4.0f, 9.0f, 16.0f, 25.0f, 36.0f, 49.0f, 64.0f)),
                         avxf(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f));
 }
 
 TEST(TEST_CATEGORY_NAME, avxf_min_max)
 {
-  VALIDATECPU
+  INIT_AVX_TEST
   compare_vector_vector(min(avxf_a, avxf_b), avxf_a);
   compare_vector_vector(max(avxf_a, avxf_b), avxf_b);
 }
 
 TEST(TEST_CATEGORY_NAME, avxf_set_sign)
 {
-  VALIDATECPU
+  INIT_AVX_TEST
   avxf res = set_sign_bit<1, 0, 0, 0, 0, 0, 0, 0>(avxf_a);
   compare_vector_vector(res, avxf(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, -0.8f));
 }
 
 TEST(TEST_CATEGORY_NAME, avxf_msub)
 {
-  VALIDATECPU
+  INIT_AVX_TEST
   avxf res = msub(avxf_a, avxf_b, avxf_c);
   avxf exp = avxf((avxf_a[7] * avxf_b[7]) - avxf_c[7],
                   (avxf_a[6] * avxf_b[6]) - avxf_c[6],
@@ -127,7 +128,7 @@ TEST(TEST_CATEGORY_NAME, avxf_msub)
 
 TEST(TEST_CATEGORY_NAME, avxf_madd)
 {
-  VALIDATECPU
+  INIT_AVX_TEST
   avxf res = madd(avxf_a, avxf_b, avxf_c);
   avxf exp = avxf((avxf_a[7] * avxf_b[7]) + avxf_c[7],
                   (avxf_a[6] * avxf_b[6]) + avxf_c[6],
@@ -142,7 +143,7 @@ TEST(TEST_CATEGORY_NAME, avxf_madd)
 
 TEST(TEST_CATEGORY_NAME, avxf_nmadd)
 {
-  VALIDATECPU
+  INIT_AVX_TEST
   avxf res = nmadd(avxf_a, avxf_b, avxf_c);
   avxf exp = avxf(avxf_c[7] - (avxf_a[7] * avxf_b[7]),
                   avxf_c[6] - (avxf_a[6] * avxf_b[6]),
@@ -157,7 +158,7 @@ TEST(TEST_CATEGORY_NAME, avxf_nmadd)
 
 TEST(TEST_CATEGORY_NAME, avxf_compare)
 {
-  VALIDATECPU
+  INIT_AVX_TEST
   avxf a(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f);
   avxf b(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
   avxb res = a <= b;
@@ -176,28 +177,28 @@ TEST(TEST_CATEGORY_NAME, avxf_compare)
 
 TEST(TEST_CATEGORY_NAME, avxf_permute)
 {
-  VALIDATECPU
+  INIT_AVX_TEST
   avxf res = permute<3, 0, 1, 7, 6, 5, 2, 4>(avxf_b);
   compare_vector_vector(res, avxf(4.0f, 6.0f, 3.0f, 2.0f, 1.0f, 7.0f, 8.0f, 5.0f));
 }
 
 TEST(TEST_CATEGORY_NAME, avxf_blend)
 {
-  VALIDATECPU
+  INIT_AVX_TEST
   avxf res = blend<0, 0, 1, 0, 1, 0, 1, 0>(avxf_a, avxf_b);
   compare_vector_vector(res, avxf(0.1f, 0.2f, 3.0f, 0.4f, 5.0f, 0.6f, 7.0f, 0.8f));
 }
 
 TEST(TEST_CATEGORY_NAME, avxf_shuffle)
 {
-  VALIDATECPU
+  INIT_AVX_TEST
   avxf res = shuffle<0, 1, 2, 3, 1, 3, 2, 0>(avxf_a);
   compare_vector_vector(res, avxf(0.4f, 0.2f, 0.1f, 0.3f, 0.5f, 0.6f, 0.7f, 0.8f));
 }
 
 TEST(TEST_CATEGORY_NAME, avxf_cross)
 {
-  VALIDATECPU
+  INIT_AVX_TEST
   avxf res = cross(avxf_b, avxf_c);
   compare_vector_vector_near(res,
                              avxf(0.0f,
@@ -213,7 +214,7 @@ TEST(TEST_CATEGORY_NAME, avxf_cross)
 
 TEST(TEST_CATEGORY_NAME, avxf_dot3)
 {
-  VALIDATECPU
+  INIT_AVX_TEST
   float den, den2;
   dot3(avxf_a, avxf_b, den, den2);
   EXPECT_FLOAT_EQ(den, 14.9f);
