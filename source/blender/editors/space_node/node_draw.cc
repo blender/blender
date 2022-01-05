@@ -2270,6 +2270,13 @@ void node_set_cursor(wmWindow &win, SpaceNode &snode, const float2 &cursor)
   if (node) {
     NodeResizeDirection dir = node_get_resize_direction(node, cursor[0], cursor[1]);
     wmcursor = node_get_resize_cursor(dir);
+    /* We want to indicate that Frame nodes can be moved/selected on their borders. */
+    if (node->type == NODE_FRAME && dir == NODE_RESIZE_NONE) {
+      const rctf frame_inside = node_frame_rect_inside(*node);
+      if (!BLI_rctf_isect_pt(&frame_inside, cursor[0], cursor[1])) {
+        wmcursor = WM_CURSOR_NSEW_SCROLL;
+      }
+    }
   }
 
   WM_cursor_set(&win, wmcursor);

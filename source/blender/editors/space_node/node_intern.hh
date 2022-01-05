@@ -119,6 +119,8 @@ float2 node_link_calculate_multi_input_position(const float2 &socket_position,
                                                 int index,
                                                 int total_inputs);
 
+rctf node_frame_rect_inside(const bNode &node);
+
 int node_get_resize_cursor(NodeResizeDirection directions);
 NodeResizeDirection node_get_resize_direction(const bNode *node, int x, int y);
 /**
