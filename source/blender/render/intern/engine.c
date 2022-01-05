@@ -435,8 +435,6 @@ void RE_engine_end_result(
     return;
   }
 
-  re_ensure_passes_allocated_thread_safe(re);
-
   if (re->engine && (re->engine->flag & RE_ENGINE_HIGHLIGHT_TILES)) {
     const HighlightedTile tile = highlighted_tile_from_result_get(re, result);
 
@@ -445,6 +443,7 @@ void RE_engine_end_result(
 
   if (!cancel || merge_results) {
     if (!(re->test_break(re->tbh) && (re->r.scemode & R_BUTS_PREVIEW))) {
+      re_ensure_passes_allocated_thread_safe(re);
       render_result_merge(re->result, result);
     }
 
