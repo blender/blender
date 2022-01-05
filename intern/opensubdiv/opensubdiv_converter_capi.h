@@ -135,7 +135,7 @@ typedef struct OpenSubdiv_Converter {
   // specified in precalcUVLayer().
   int (*getNumUVCoordinates)(const struct OpenSubdiv_Converter *converter);
   // For the given face index and its corner (known as loop in Blender)
-  // get corrsponding UV coordinate index.
+  // get corresponding UV coordinate index.
   int (*getFaceCornerUVIndex)(const struct OpenSubdiv_Converter *converter,
                               const int face_index,
                               const int corner_index);

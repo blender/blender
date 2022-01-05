@@ -261,7 +261,7 @@ Mat3 RotationRodrigues(const Vec3& axis);
 // positive z-axis, and y is oriented close to up.
 Mat3 LookAt(Vec3 center);
 
-// Return a diagonal matrix from a vector containg the diagonal values.
+// Return a diagonal matrix from a vector containing the diagonal values.
 template <typename TVec>
 inline Mat Diag(const TVec& x) {
   return x.asDiagonal();

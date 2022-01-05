@@ -196,12 +196,12 @@ void IK_QJacobian::InvertSDLS()
   // Compute the dampeds least squeares pseudo inverse of J.
   //
   // Since J is usually not invertible (most of the times it's not even
-  // square), the psuedo inverse is used. This gives us a least squares
+  // square), the pseudo inverse is used. This gives us a least squares
   // solution.
   //
   // This is fine when the J*Jt is of full rank. When J*Jt is near to
   // singular the least squares inverse tries to minimize |J(dtheta) - dX)|
-  // and doesn't try to minimize  dTheta. This results in eratic changes in
+  // and doesn't try to minimize  dTheta. This results in erratic changes in
   // angle. The damped least squares minimizes |dtheta| to try and reduce this
   // erratic behavior.
   //
@@ -323,7 +323,7 @@ void IK_QJacobian::InvertDLS()
   // least squares solution. This is fine when the m_jjt is
   // of full rank. When m_jjt is near to singular the least squares
   // inverse tries to minimize |J(dtheta) - dX)| and doesn't
-  // try to minimize  dTheta. This results in eratic changes in angle.
+  // try to minimize  dTheta. This results in erratic changes in angle.
   // Damped least squares minimizes |dtheta| to try and reduce this
   // erratic behavior.
 

@@ -25,7 +25,7 @@
 
 namespace libmv {
 
-// A vector of elements with fixed lenght and deep copy semantics.
+// A vector of elements with fixed length and deep copy semantics.
 template <typename T, int N>
 class Tuple {
  public:

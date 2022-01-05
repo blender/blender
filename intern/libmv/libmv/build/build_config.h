@@ -239,7 +239,7 @@
 // Check what is the latest C++ specification the compiler supports.
 //
 // NOTE: Use explicit definition here to avoid expansion-to-defined warning from
-// being geenrated. While this will most likely a false-positive warning in this
+// being generated. While this will most likely a false-positive warning in this
 // particular case, that warning might be helpful to catch errors elsewhere.
 
 // C++11 check.
