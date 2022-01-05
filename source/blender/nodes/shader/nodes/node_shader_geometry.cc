@@ -21,20 +21,18 @@
 
 namespace blender::nodes::node_shader_geometry_cc {
 
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketTemplate sh_node_geometry_out[] = {
-    {SOCK_VECTOR, N_("Position"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Tangent"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("True Normal"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Incoming"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Parametric"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Backfacing"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Pointiness"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Random Per Island"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Vector>(N_("Position"));
+  b.add_output<decl::Vector>(N_("Normal"));
+  b.add_output<decl::Vector>(N_("Tangent"));
+  b.add_output<decl::Vector>(N_("True Normal"));
+  b.add_output<decl::Vector>(N_("Incoming"));
+  b.add_output<decl::Vector>(N_("Parametric"));
+  b.add_output<decl::Float>(N_("Backfacing"));
+  b.add_output<decl::Float>(N_("Pointiness"));
+  b.add_output<decl::Float>(N_("Random Per Island"));
+}
 
 static int node_shader_gpu_geometry(GPUMaterial *mat,
                                     bNode *node,
@@ -66,8 +64,8 @@ static int node_shader_gpu_geometry(GPUMaterial *mat,
                                       GPU_builtin(GPU_INVERSE_VIEW_MATRIX),
                                       bary_link);
 
-  /* for each output */
-  for (int i = 0; sh_node_geometry_out[i].type != -1; i++) {
+  int i;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, i) {
     node_shader_gpu_bump_tex_coord(mat, node, &out[i].link);
     /* Normalize some vectors after dFdx/dFdy offsets.
      * This is the case for interpolated, non linear functions.
@@ -98,7 +96,7 @@ void register_node_type_sh_geometry()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_NEW_GEOMETRY, "Geometry", NODE_CLASS_INPUT);
-  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_geometry_out);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::node_shader_gpu_geometry);
 
   nodeRegisterType(&ntype);
