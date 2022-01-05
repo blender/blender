@@ -87,6 +87,7 @@
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
+#include "BKE_crazyspace.h"
 #include "BKE_curve.h"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
@@ -1880,6 +1881,8 @@ void BKE_object_free_derived_caches(Object *ob)
   BKE_object_to_mesh_clear(ob);
   BKE_object_to_curve_clear(ob);
   BKE_object_free_curve_cache(ob);
+
+  BKE_crazyspace_api_eval_clear(ob);
 
   /* Clear grease pencil data. */
   if (ob->runtime.gpd_eval != nullptr) {
@@ -5219,6 +5222,9 @@ void BKE_object_runtime_reset_on_copy(Object *object, const int UNUSED(flag))
   runtime->object_as_temp_mesh = nullptr;
   runtime->object_as_temp_curve = nullptr;
   runtime->geometry_set_eval = nullptr;
+
+  runtime->crazyspace_deform_imats = nullptr;
+  runtime->crazyspace_deform_cos = nullptr;
 }
 
 void BKE_object_runtime_free_data(Object *object)

@@ -68,6 +68,7 @@ static const EnumPropertyItem space_items[] = {
 #  include "BKE_bvhutils.h"
 #  include "BKE_constraint.h"
 #  include "BKE_context.h"
+#  include "BKE_crazyspace.h"
 #  include "BKE_customdata.h"
 #  include "BKE_global.h"
 #  include "BKE_layer.h"
@@ -377,6 +378,39 @@ static void rna_Object_camera_fit_coords(
 {
   BKE_camera_view_frame_fit_to_coords(
       depsgraph, (const float(*)[3])cos, num_cos / 3, ob, co_ret, scale_ret);
+}
+
+static void rna_Object_crazyspace_eval(Object *object,
+                                       ReportList *reports,
+                                       Depsgraph *depsgraph,
+                                       Scene *scene)
+{
+  BKE_crazyspace_api_eval(depsgraph, scene, object, reports);
+}
+
+static void rna_Object_crazyspace_displacement_to_deformed(Object *object,
+                                                           ReportList *reports,
+                                                           const int vertex_index,
+                                                           float displacement[3],
+                                                           float r_displacement_deformed[3])
+{
+  BKE_crazyspace_api_displacement_to_deformed(
+      object, reports, vertex_index, displacement, r_displacement_deformed);
+}
+
+static void rna_Object_crazyspace_displacement_to_original(Object *object,
+                                                           ReportList *reports,
+                                                           const int vertex_index,
+                                                           float displacement_deformed[3],
+                                                           float r_displacement[3])
+{
+  BKE_crazyspace_api_displacement_to_original(
+      object, reports, vertex_index, displacement_deformed, r_displacement);
+}
+
+static void rna_Object_crazyspace_eval_clear(Object *object)
+{
+  BKE_crazyspace_api_eval_clear(object);
 }
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
@@ -977,6 +1011,52 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_property_ui_text(
       parm, "", "The ortho scale to aim to be able to see all given points (if relevant)");
   RNA_def_parameter_flags(parm, 0, PARM_OUTPUT);
+
+  /* Crazyspace access. */
+
+  func = RNA_def_function(srna, "crazyspace_eval", "rna_Object_crazyspace_eval");
+  RNA_def_function_ui_description(
+      func,
+      "Compute orientation mapping between vertices of an original object and object with shape "
+      "keys and deforming modifiers applied."
+      "The evaluation is to be freed with the crazyspace_eval_free function");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(
+      func, "depsgraph", "Depsgraph", "Dependency Graph", "Evaluated dependency graph");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "scene", "Scene", "Scene", "Scene of the object");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+  func = RNA_def_function(srna,
+                          "crazyspace_displacement_to_deformed",
+                          "rna_Object_crazyspace_displacement_to_deformed");
+  RNA_def_function_ui_description(
+      func, "Convert displacement vector from non-deformed object space to deformed object space");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_property(func, "vertex_index", PROP_INT, PROP_NONE);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_property(func, "displacement", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_array(parm, 3);
+  parm = RNA_def_property(func, "displacement_deformed", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_array(parm, 3);
+  RNA_def_function_output(func, parm);
+
+  func = RNA_def_function(srna,
+                          "crazyspace_displacement_to_original",
+                          "rna_Object_crazyspace_displacement_to_original");
+  RNA_def_function_ui_description(
+      func, "Convert displacement vector from deformed object space to non-deformed object space");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_property(func, "vertex_index", PROP_INT, PROP_NONE);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_property(func, "displacement", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_array(parm, 3);
+  parm = RNA_def_property(func, "displacement_original", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_array(parm, 3);
+  RNA_def_function_output(func, parm);
+
+  RNA_def_function(srna, "crazyspace_eval_clear", "rna_Object_crazyspace_eval_clear");
+  RNA_def_function_ui_description(func, "Free evaluated state of crazyspace");
 
   /* mesh */
   func = RNA_def_function(srna, "to_mesh", "rna_Object_to_mesh");

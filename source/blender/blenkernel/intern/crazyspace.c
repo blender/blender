@@ -41,6 +41,7 @@
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -516,3 +517,85 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph,
     }
   }
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Crazyspace API
+ * \{ */
+
+void BKE_crazyspace_api_eval(Depsgraph *depsgraph,
+                             Scene *scene,
+                             Object *object,
+                             struct ReportList *reports)
+{
+  if (object->runtime.crazyspace_deform_imats != NULL ||
+      object->runtime.crazyspace_deform_cos != NULL) {
+    return;
+  }
+
+  if (object->type != OB_MESH) {
+    BKE_report(reports,
+               RPT_ERROR,
+               "Crazyspace transformation is only available for Mesh type of objects");
+    return;
+  }
+
+  const Mesh *mesh = (const Mesh *)object->data;
+  object->runtime.crazyspace_num_verts = mesh->totvert;
+  BKE_crazyspace_build_sculpt(depsgraph,
+                              scene,
+                              object,
+                              &object->runtime.crazyspace_deform_imats,
+                              &object->runtime.crazyspace_deform_cos);
+}
+
+void BKE_crazyspace_api_displacement_to_deformed(struct Object *object,
+                                                 struct ReportList *reports,
+                                                 int vertex_index,
+                                                 float displacement[3],
+                                                 float r_displacement_deformed[3])
+{
+  if (vertex_index < 0 || vertex_index >= object->runtime.crazyspace_num_verts) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Invalid vertex index %d (expected to be within 0 to %d range)",
+                vertex_index,
+                object->runtime.crazyspace_num_verts);
+    return;
+  }
+
+  mul_v3_m3v3(r_displacement_deformed,
+              object->runtime.crazyspace_deform_imats[vertex_index],
+              displacement);
+}
+
+void BKE_crazyspace_api_displacement_to_original(struct Object *object,
+                                                 struct ReportList *reports,
+                                                 int vertex_index,
+                                                 float displacement_deformed[3],
+                                                 float r_displacement[3])
+{
+  if (vertex_index < 0 || vertex_index >= object->runtime.crazyspace_num_verts) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Invalid vertex index %d (expected to be within 0 to %d range))",
+                vertex_index,
+                object->runtime.crazyspace_num_verts);
+    return;
+  }
+
+  float mat[3][3];
+  if (!invert_m3_m3(mat, object->runtime.crazyspace_deform_imats[vertex_index])) {
+    copy_v3_v3(r_displacement, displacement_deformed);
+    return;
+  }
+
+  mul_v3_m3v3(r_displacement, mat, displacement_deformed);
+}
+
+void BKE_crazyspace_api_eval_clear(Object *object)
+{
+  MEM_SAFE_FREE(object->runtime.crazyspace_deform_imats);
+  MEM_SAFE_FREE(object->runtime.crazyspace_deform_cos);
+}
+
+/** \} */

@@ -216,6 +216,12 @@ typedef struct Object_Runtime {
 
   unsigned short local_collections_bits;
   short _pad2[3];
+
+  float (*crazyspace_deform_imats)[3][3];
+  float (*crazyspace_deform_cos)[3];
+  int crazyspace_num_verts;
+
+  int _pad3[3];
 } Object_Runtime;
 
 typedef struct ObjectLineArt {
