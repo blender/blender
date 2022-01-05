@@ -17,7 +17,7 @@
  * All rights reserved.
  */
 
-#include "node_shader_util.h"
+#include "node_shader_util.hh"
 #include "sky_model.h"
 
 namespace blender::nodes::node_shader_tex_sky_cc {

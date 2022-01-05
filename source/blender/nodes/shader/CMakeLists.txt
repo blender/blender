@@ -135,7 +135,7 @@ set(SRC
   node_shader_tree.cc
   node_shader_util.cc
 
-  node_shader_util.h
+  node_shader_util.hh
 )
 
 set(LIB

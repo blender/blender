@@ -23,11 +23,29 @@
 
 #pragma once
 
-#include <float.h>
-#include <math.h>
-#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <cstring>
 
-#include "MEM_guardedalloc.h"
+#include "BLI_blenlib.h"
+#include "BLI_color.hh"
+#include "BLI_float3.hh"
+#include "BLI_math.h"
+#include "BLI_math_base_safe.h"
+#include "BLI_rand.h"
+#include "BLI_threads.h"
+#include "BLI_utildefines.h"
+
+#include "BLT_translation.h"
+
+#include "BKE_colorband.h"
+#include "BKE_colortools.h"
+#include "BKE_global.h"
+#include "BKE_image.h"
+#include "BKE_main.h"
+#include "BKE_material.h"
+#include "BKE_node.h"
+#include "BKE_texture.h"
 
 #include "DNA_ID.h"
 #include "DNA_color_types.h"
@@ -39,47 +57,23 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_math_base_safe.h"
-#include "BLI_rand.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
-
-#include "BKE_colorband.h"
-#include "BKE_colortools.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_main.h"
-#include "BKE_material.h"
-#include "BKE_node.h"
-#include "BKE_texture.h"
-
-#include "NOD_shader.h"
-#include "node_util.h"
-
-#include "BLT_translation.h"
-
-#include "IMB_colormanagement.h"
-
-#include "RE_pipeline.h"
-#include "RE_texture.h"
+#include "FN_multi_function_builder.hh"
 
 #include "GPU_material.h"
 #include "GPU_texture.h"
 #include "GPU_uniform_buffer.h"
 
-#ifdef __cplusplus
-#  include "FN_multi_function_builder.hh"
+#include "IMB_colormanagement.h"
 
-#  include "NOD_multi_function.hh"
-#  include "NOD_socket_declarations.hh"
+#include "MEM_guardedalloc.h"
 
-#  include "BLI_color.hh"
-#  include "BLI_float3.hh"
+#include "NOD_multi_function.hh"
+#include "NOD_shader.h"
+#include "NOD_socket_declarations.hh"
+#include "node_util.h"
 
-extern "C" {
-#endif
+#include "RE_pipeline.h"
+#include "RE_texture.h"
 
 bool sh_node_poll_default(struct bNodeType *ntype,
                           struct bNodeTree *ntree,
@@ -89,15 +83,15 @@ void sh_fn_node_type_base(struct bNodeType *ntype, int type, const char *name, s
 
 /* ********* exec data struct, remains internal *********** */
 
-typedef struct ShaderCallData {
+struct ShaderCallData {
   /* Empty for now, may be reused if we convert shader to texture nodes. */
   int dummy;
-} ShaderCallData;
+};
 
-typedef struct XYZ_to_RGB /* Transposed #imbuf_xyz_to_rgb, passed as 3x vec3. */
+struct XYZ_to_RGB /* Transposed #imbuf_xyz_to_rgb, passed as 3x vec3. */
 {
   float r[3], g[3], b[3];
-} XYZ_to_RGB;
+};
 
 void nodestack_get_vec(float *in, short type_in, bNodeStack *ns);
 
@@ -118,7 +112,3 @@ void ntreeExecGPUNodes(struct bNodeTreeExec *exec,
                        struct GPUMaterial *mat,
                        struct bNode *output_node);
 void get_XYZ_to_RGB_for_gpu(XYZ_to_RGB *data);
-
-#ifdef __cplusplus
-}
-#endif
