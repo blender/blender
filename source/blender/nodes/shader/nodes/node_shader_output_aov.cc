@@ -23,12 +23,10 @@
 
 namespace blender::nodes::node_shader_output_aov_cc {
 
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketTemplate sh_node_output_aov_in[] = {
-    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, ""},
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Color")).default_value({0.0f, 0.0f, 0.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Value")).default_value(0.0f).min(0.0f).max(1.0f);
 };
 
 static void node_shader_init_output_aov(bNodeTree *UNUSED(ntree), bNode *node)
@@ -64,7 +62,7 @@ void register_node_type_sh_output_aov()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_OUTPUT_AOV, "AOV Output", NODE_CLASS_OUTPUT);
-  node_type_socket_templates(&ntype, file_ns::sh_node_output_aov_in, nullptr);
+  ntype.declare = file_ns::node_declare;
   node_type_init(&ntype, file_ns::node_shader_init_output_aov);
   node_type_storage(
       &ntype, "NodeShaderOutputAOV", node_free_standard_storage, node_copy_standard_storage);

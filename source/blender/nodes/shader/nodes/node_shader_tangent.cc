@@ -21,11 +21,9 @@
 
 namespace blender::nodes::node_shader_tangent_cc {
 
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketTemplate sh_node_tangent_out[] = {
-    {SOCK_VECTOR, N_("Tangent"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, ""},
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Vector>(N_("Tangent"));
 };
 
 static void node_shader_init_tangent(bNodeTree *UNUSED(ntree), bNode *node)
@@ -80,7 +78,7 @@ void register_node_type_sh_tangent()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TANGENT, "Tangent", NODE_CLASS_INPUT);
-  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_tangent_out);
+  ntype.declare = file_ns::node_declare;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_init(&ntype, file_ns::node_shader_init_tangent);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_tangent);

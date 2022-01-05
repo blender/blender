@@ -21,14 +21,24 @@
 
 namespace blender::nodes::node_shader_output_linestyle_cc {
 
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketTemplate sh_node_output_linestyle_in[] = {
-    {SOCK_RGBA, N_("Color"), 1.0f, 0.0f, 1.0f, 1.0f},
-    {SOCK_FLOAT, N_("Color Fac"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Alpha Fac"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {-1, ""},
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 0.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Color Fac"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Alpha"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Alpha Fac"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
 };
 
 }  // namespace blender::nodes::node_shader_output_linestyle_cc
@@ -41,8 +51,7 @@ void register_node_type_sh_output_linestyle()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_OUTPUT_LINESTYLE, "Line Style Output", NODE_CLASS_OUTPUT);
-  node_type_socket_templates(&ntype, file_ns::sh_node_output_linestyle_in, nullptr);
-
+  ntype.declare = file_ns::node_declare;
   ntype.no_muting = true;
 
   nodeRegisterType(&ntype);

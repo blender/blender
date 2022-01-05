@@ -21,13 +21,13 @@
 
 namespace blender::nodes::node_shader_volume_info_cc {
 
-static bNodeSocketTemplate sh_node_volume_info_out[] = {
-    {SOCK_RGBA, N_("Color")},
-    {SOCK_FLOAT, N_("Density")},
-    {SOCK_FLOAT, N_("Flame")},
-    {SOCK_FLOAT, N_("Temperature")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Color>(N_("Color"));
+  b.add_output<decl::Float>(N_("Density"));
+  b.add_output<decl::Float>(N_("Flame"));
+  b.add_output<decl::Float>(N_("Temperature"));
+}
 
 static int node_shader_gpu_volume_info(GPUMaterial *mat,
                                        bNode *UNUSED(node),
@@ -60,7 +60,7 @@ void register_node_type_sh_volume_info()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_VOLUME_INFO, "Volume Info", NODE_CLASS_INPUT);
-  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_volume_info_out);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::node_shader_gpu_volume_info);
 
   nodeRegisterType(&ntype);

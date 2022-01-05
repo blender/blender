@@ -25,13 +25,12 @@
 
 namespace blender::nodes::node_shader_camera_cc {
 
-/* **************** CAMERA INFO  ******************** */
-static bNodeSocketTemplate sh_node_camera_out[] = {
-    {SOCK_VECTOR, N_("View Vector")},
-    {SOCK_FLOAT, N_("View Z Depth")},
-    {SOCK_FLOAT, N_("View Distance")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Vector>(N_("View Vector"));
+  b.add_output<decl::Float>(N_("View Z Depth"));
+  b.add_output<decl::Float>(N_("View Distance"));
+}
 
 static int gpu_shader_camera(GPUMaterial *mat,
                              bNode *node,
@@ -55,7 +54,7 @@ void register_node_type_sh_camera()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_CAMERA, "Camera Data", NODE_CLASS_INPUT);
-  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_camera_out);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::gpu_shader_camera);
 
   nodeRegisterType(&ntype);

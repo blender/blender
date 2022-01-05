@@ -21,11 +21,11 @@
 
 namespace blender::nodes::node_shader_vertex_color_cc {
 
-static bNodeSocketTemplate sh_node_vertex_color_out[] = {
-    {SOCK_RGBA, N_("Color")},
-    {SOCK_FLOAT, N_("Alpha")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Color>(N_("Color"));
+  b.add_output<decl::Float>(N_("Alpha"));
+}
 
 static void node_shader_init_vertex_color(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -57,7 +57,7 @@ void register_node_type_sh_vertex_color()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_VERTEX_COLOR, "Vertex Color", NODE_CLASS_INPUT);
-  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_vertex_color_out);
+  ntype.declare = file_ns::node_declare;
   node_type_init(&ntype, file_ns::node_shader_init_vertex_color);
   node_type_storage(
       &ntype, "NodeShaderVertexColor", node_free_standard_storage, node_copy_standard_storage);

@@ -23,22 +23,11 @@
 
 namespace blender::nodes::node_shader_output_material_cc {
 
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketTemplate sh_node_output_material_in[] = {
-    {SOCK_SHADER, N_("Surface")},
-    {SOCK_SHADER, N_("Volume")},
-    {SOCK_VECTOR,
-     N_("Displacement"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     PROP_NONE,
-     SOCK_HIDE_VALUE},
-    {-1, ""},
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Shader>(N_("Surface"));
+  b.add_input<decl::Shader>(N_("Volume"));
+  b.add_input<decl::Vector>(N_("Displacement")).hide_value();
 };
 
 static int node_shader_gpu_output_material(GPUMaterial *mat,
@@ -85,7 +74,7 @@ void register_node_type_sh_output_material()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_OUTPUT_MATERIAL, "Material Output", NODE_CLASS_OUTPUT);
-  node_type_socket_templates(&ntype, file_ns::sh_node_output_material_in, nullptr);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::node_shader_gpu_output_material);
 
   ntype.no_muting = true;
