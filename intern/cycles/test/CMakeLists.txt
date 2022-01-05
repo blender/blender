@@ -108,7 +108,12 @@ CYCLES_TEST(util_path "cycles_util;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
 CYCLES_TEST(util_string "cycles_util;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
 CYCLES_TEST(util_task "cycles_util;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES};bf_intern_numaapi")
 CYCLES_TEST(util_time "cycles_util;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
-set_source_files_properties(util_avxf_avx_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
-CYCLES_TEST(util_avxf_avx "cycles_util;bf_intern_numaapi;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
-set_source_files_properties(util_avxf_avx2_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
-CYCLES_TEST(util_avxf_avx2 "cycles_util;bf_intern_numaapi;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
+
+# Disable AVX tests on macOS. Rosetta has problems running them, and other
+# platforms should be enough to verify AVX operations are implemented correctly.
+if(NOT APPLE)
+  set_source_files_properties(util_avxf_avx_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
+  CYCLES_TEST(util_avxf_avx "cycles_util;bf_intern_numaapi;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
+  set_source_files_properties(util_avxf_avx2_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
+  CYCLES_TEST(util_avxf_avx2 "cycles_util;bf_intern_numaapi;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
+endif()
