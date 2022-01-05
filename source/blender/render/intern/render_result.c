@@ -470,6 +470,12 @@ RenderResult *render_result_new(Render *re,
 
 void render_result_passes_allocated_ensure(RenderResult *rr)
 {
+  if (rr == NULL) {
+    /* Happens when the result was not yet allocated for the current scene or slot configuration.
+     */
+    return;
+  }
+
   LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
     LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
       if (rl->exrhandle != NULL && !STREQ(rp->name, RE_PASSNAME_COMBINED)) {
