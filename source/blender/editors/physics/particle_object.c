@@ -743,8 +743,10 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   invert_m4_m4(from_imat, from_mat);
   invert_m4_m4(to_imat, to_mat);
 
-  if (target_psmd->mesh_final->runtime.deformed_only) {
-    /* we don't want to mess up target_psmd->dm when converting to global coordinates below */
+  const bool use_dm_final_indices = (target_psys->part->use_modifier_stack &&
+                                     !target_psmd->mesh_final->runtime.deformed_only);
+
+  if (use_dm_final_indices) {
     mesh = target_psmd->mesh_final;
   }
   else {
@@ -755,6 +757,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
     return false;
   }
   /* don't modify the original vertices */
+  /* we don't want to mess up target_psmd->dm when converting to global coordinates below */
   mesh = (Mesh *)BKE_id_copy_ex(NULL, &mesh->id, NULL, LIB_ID_COPY_LOCALIZE);
 
   /* BMESH_ONLY, deform dm may not have tessface */
@@ -825,7 +828,13 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
       tpa->foffset = 0.0f;
 
       tpa->num = nearest.index;
-      tpa->num_dmcache = psys_particle_dm_face_lookup(target_mesh, mesh, tpa->num, tpa->fuv, NULL);
+      if (use_dm_final_indices) {
+        tpa->num_dmcache = DMCACHE_ISCHILD;
+      }
+      else {
+        tpa->num_dmcache = psys_particle_dm_face_lookup(
+            target_psmd->mesh_final, target_psmd->mesh_original, tpa->num, tpa->fuv, NULL);
+      }
     }
     else {
       me = &medge[nearest.index];
