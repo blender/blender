@@ -229,6 +229,7 @@ TEST(obj_exporter_writer, mtllib)
   }
   const std::string result = read_temp_file_in_string(out_file_path);
   ASSERT_EQ(result, "mtllib blah.mtl\nmtllib blah.mtl\n");
+  BLI_delete(out_file_path.c_str(), false, false);
 }
 
 /* Return true if string #a and string #b are equal after their first newline. */
@@ -286,7 +287,7 @@ class obj_exporter_regression_test : public obj_exporter_test {
     BKE_tempdir_init(NULL);
     std::string tempdir = std::string(BKE_tempdir_base());
     std::string out_file_path = tempdir + BLI_path_basename(golden_obj.c_str());
-    strncpy(params.filepath, out_file_path.c_str(), FILE_MAX);
+    strncpy(params.filepath, out_file_path.c_str(), FILE_MAX - 1);
     params.blen_filepath = blendfile.c_str();
     export_frame(depsgraph, params, out_file_path.c_str());
     std::string output_str = read_temp_file_in_string(out_file_path);
