@@ -69,9 +69,18 @@ GeometrySet object_get_evaluated_geometry_set(const Object &object)
   }
 
   /* Otherwise, construct a new geometry set with the component based on the object type. */
-  GeometrySet geometry_set;
   if (object.type == OB_MESH) {
+    GeometrySet geometry_set;
     add_final_mesh_as_geometry_component(object, geometry_set);
+    return geometry_set;
+  }
+  if (object.type == OB_EMPTY && object.instance_collection != nullptr) {
+    GeometrySet geometry_set;
+    Collection &collection = *object.instance_collection;
+    InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
+    const int handle = instances.add_reference(collection);
+    instances.add_instance(handle, float4x4::identity());
+    return geometry_set;
   }
 
   /* TODO: Cover the case of point clouds without modifiers-- they may not be covered by the
@@ -80,7 +89,7 @@ GeometrySet object_get_evaluated_geometry_set(const Object &object)
   /* TODO: Add volume support. */
 
   /* Return by value since there is not always an existing geometry set owned elsewhere to use. */
-  return geometry_set;
+  return {};
 }
 
 static void geometry_set_collect_recursive_collection_instance(
@@ -98,13 +107,6 @@ static void geometry_set_collect_recursive_object(const Object &object,
 {
   GeometrySet instance_geometry_set = object_get_evaluated_geometry_set(object);
   geometry_set_collect_recursive(instance_geometry_set, transform, r_sets);
-
-  if (object.type == OB_EMPTY) {
-    const Collection *collection_instance = object.instance_collection;
-    if (collection_instance != nullptr) {
-      geometry_set_collect_recursive_collection_instance(*collection_instance, transform, r_sets);
-    }
-  }
 }
 
 static void geometry_set_collect_recursive_collection(const Collection &collection,
