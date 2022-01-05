@@ -3017,6 +3017,12 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   for (val = BLI_smallhash_iternew(&kfes, &hiter, (uintptr_t *)&kfe); val;
        val = BLI_smallhash_iternext(&hiter, (uintptr_t *)&kfe)) {
 
+    /* If we intersect any of the vertices, don't attempt to intersect the edge. */
+    if (BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v1) ||
+        BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v2)) {
+      continue;
+    }
+
     knife_project_v2(kcd, kfe->v1->cageco, se1);
     knife_project_v2(kcd, kfe->v2->cageco, se2);
     int isect_kind = 1;
