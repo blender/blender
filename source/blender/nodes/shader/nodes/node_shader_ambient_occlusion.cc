@@ -21,20 +21,14 @@
 
 namespace blender::nodes::node_shader_ambient_occlusion_cc {
 
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketTemplate sh_node_ambient_occlusion_in[] = {
-    {SOCK_RGBA, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Distance"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_ambient_occlusion_out[] = {
-    {SOCK_RGBA, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("AO"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Distance")).default_value(1.0f).min(0.0f).max(1000.0f);
+  b.add_input<decl::Vector>(N_("Normal")).min(-1.0f).max(1.0f).hide_value();
+  b.add_output<decl::Color>(N_("Color"));
+  b.add_output<decl::Float>(N_("AO"));
+}
 
 static int node_shader_gpu_ambient_occlusion(GPUMaterial *mat,
                                              bNode *node,
@@ -76,8 +70,7 @@ void register_node_type_sh_ambient_occlusion()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_AMBIENT_OCCLUSION, "Ambient Occlusion", NODE_CLASS_INPUT);
-  node_type_socket_templates(
-      &ntype, file_ns::sh_node_ambient_occlusion_in, file_ns::sh_node_ambient_occlusion_out);
+  ntype.declare = file_ns::node_declare;
   node_type_init(&ntype, file_ns::node_shader_init_ambient_occlusion);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_ambient_occlusion);
 

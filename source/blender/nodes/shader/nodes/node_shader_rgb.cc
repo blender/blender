@@ -25,11 +25,10 @@
 
 namespace blender::nodes::node_shader_rgb_cc {
 
-/* **************** RGB ******************** */
-static bNodeSocketTemplate sh_node_rgb_out[] = {
-    {SOCK_RGBA, N_("Color"), 0.5f, 0.5f, 0.5f, 1.0f},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Color>(N_("Color")).default_value({0.5f, 0.5f, 0.5f, 1.0f});
+}
 
 static int gpu_shader_rgb(GPUMaterial *mat,
                           bNode *node,
@@ -50,7 +49,7 @@ void register_node_type_sh_rgb()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_RGB, "RGB", NODE_CLASS_INPUT);
-  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_rgb_out);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::gpu_shader_rgb);
 
   nodeRegisterType(&ntype);
