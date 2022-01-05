@@ -37,14 +37,6 @@ static bNodeSocketTemplate outputs[] = {
     {SOCK_VECTOR, "Angular Velocity"},
     {-1, ""},
 };
-static void node_shader_exec_particle_info(void *UNUSED(data),
-                                           int UNUSED(thread),
-                                           bNode *UNUSED(node),
-                                           bNodeExecData *UNUSED(execdata),
-                                           bNodeStack **UNUSED(in),
-                                           bNodeStack **UNUSED(out))
-{
-}
 
 static int gpu_shader_particle_info(GPUMaterial *mat,
                                     bNode *node,
@@ -75,7 +67,6 @@ void register_node_type_sh_particle_info()
 
   sh_node_type_base(&ntype, SH_NODE_PARTICLE_INFO, "Particle Info", NODE_CLASS_INPUT);
   node_type_socket_templates(&ntype, nullptr, file_ns::outputs);
-  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_particle_info);
   node_type_gpu(&ntype, file_ns::gpu_shader_particle_info);
 
   nodeRegisterType(&ntype);

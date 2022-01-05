@@ -39,45 +39,6 @@ static bNodeSocketTemplate sh_node_hue_sat_out[] = {
     {-1, ""},
 };
 
-/* NOTE: it would be possible to use CMP version for both nodes. */
-static void do_hue_sat_fac(
-    bNode *UNUSED(node), float *out, float hue, float sat, float val, const float in[4], float fac)
-{
-  if (fac != 0.0f && (hue != 0.5f || sat != 1.0f || val != 1.0f)) {
-    float col[3], hsv[3], mfac = 1.0f - fac;
-
-    rgb_to_hsv(in[0], in[1], in[2], hsv, hsv + 1, hsv + 2);
-    hsv[0] = fmodf(hsv[0] + hue + 0.5f, 1.0f);
-    hsv[1] = clamp_f(hsv[1] * sat, 0.0f, 1.0f);
-    hsv[2] *= val;
-    hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col + 1, col + 2);
-
-    out[0] = mfac * in[0] + fac * col[0];
-    out[1] = mfac * in[1] + fac * col[1];
-    out[2] = mfac * in[2] + fac * col[2];
-  }
-  else {
-    copy_v4_v4(out, in);
-  }
-}
-
-static void node_shader_exec_hue_sat(void *UNUSED(data),
-                                     int UNUSED(thread),
-                                     bNode *node,
-                                     bNodeExecData *UNUSED(execdata),
-                                     bNodeStack **in,
-                                     bNodeStack **out)
-{
-  float hue, sat, val, fac;
-  float col[4];
-  nodestack_get_vec(&hue, SOCK_FLOAT, in[0]);
-  nodestack_get_vec(&sat, SOCK_FLOAT, in[1]);
-  nodestack_get_vec(&val, SOCK_FLOAT, in[2]);
-  nodestack_get_vec(&fac, SOCK_FLOAT, in[3]);
-  nodestack_get_vec(col, SOCK_RGBA, in[4]);
-  do_hue_sat_fac(node, out[0]->vec, hue, sat, val, col, fac);
-}
-
 static int gpu_shader_hue_sat(GPUMaterial *mat,
                               bNode *node,
                               bNodeExecData *UNUSED(execdata),
@@ -98,7 +59,6 @@ void register_node_type_sh_hue_sat()
   sh_node_type_base(&ntype, SH_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR);
   node_type_socket_templates(&ntype, file_ns::sh_node_hue_sat_in, file_ns::sh_node_hue_sat_out);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_hue_sat);
   node_type_gpu(&ntype, file_ns::gpu_shader_hue_sat);
 
   nodeRegisterType(&ntype);

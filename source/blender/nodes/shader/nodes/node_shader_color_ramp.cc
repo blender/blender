@@ -37,25 +37,6 @@ static void sh_node_valtorgb_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Alpha"));
 };
 
-static void node_shader_exec_valtorgb(void *UNUSED(data),
-                                      int UNUSED(thread),
-                                      bNode *node,
-                                      bNodeExecData *UNUSED(execdata),
-                                      bNodeStack **in,
-                                      bNodeStack **out)
-{
-  /* stack order in: fac */
-  /* stack order out: col, alpha */
-
-  if (node->storage) {
-    float fac;
-    nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);
-
-    BKE_colorband_evaluate((ColorBand *)node->storage, fac, out[0]->vec);
-    out[1]->vec[0] = out[0]->vec[3];
-  }
-}
-
 static void node_shader_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node)
 {
   node->storage = BKE_colorband_add(true);
@@ -181,7 +162,6 @@ void register_node_type_sh_valtorgb()
   node_type_init(&ntype, file_ns::node_shader_init_valtorgb);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
-  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_valtorgb);
   node_type_gpu(&ntype, file_ns::gpu_shader_valtorgb);
   ntype.build_multi_function = file_ns::sh_node_valtorgb_build_multi_function;
 

@@ -33,21 +33,6 @@ static void sh_node_curve_vec_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Vector"));
 };
 
-static void node_shader_exec_curve_vec(void *UNUSED(data),
-                                       int UNUSED(thread),
-                                       bNode *node,
-                                       bNodeExecData *UNUSED(execdata),
-                                       bNodeStack **in,
-                                       bNodeStack **out)
-{
-  float vec[3];
-
-  /* stack order input:  vec */
-  /* stack order output: vec */
-  nodestack_get_vec(vec, SOCK_VECTOR, in[1]);
-  BKE_curvemapping_evaluate3F((CurveMapping *)node->storage, out[0]->vec, vec);
-}
-
 static void node_shader_init_curve_vec(bNodeTree *UNUSED(ntree), bNode *node)
 {
   node->storage = BKE_curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
@@ -163,7 +148,6 @@ void register_node_type_sh_curve_vec()
   node_type_init(&ntype, file_ns::node_shader_init_curve_vec);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  node_type_exec(&ntype, node_initexec_curves, nullptr, file_ns::node_shader_exec_curve_vec);
   node_type_gpu(&ntype, file_ns::gpu_shader_curve_vec);
   ntype.build_multi_function = file_ns::sh_node_curve_vec_build_multi_function;
 
@@ -181,26 +165,6 @@ static void sh_node_curve_rgb_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_output<decl::Color>(N_("Color"));
 };
-
-static void node_shader_exec_curve_rgb(void *UNUSED(data),
-                                       int UNUSED(thread),
-                                       bNode *node,
-                                       bNodeExecData *UNUSED(execdata),
-                                       bNodeStack **in,
-                                       bNodeStack **out)
-{
-  float vec[3];
-  float fac;
-
-  /* stack order input:  vec */
-  /* stack order output: vec */
-  nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);
-  nodestack_get_vec(vec, SOCK_VECTOR, in[1]);
-  BKE_curvemapping_evaluateRGBF((CurveMapping *)node->storage, out[0]->vec, vec);
-  if (fac != 1.0f) {
-    interp_v3_v3v3(out[0]->vec, vec, out[0]->vec, fac);
-  }
-}
 
 static void node_shader_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -342,7 +306,6 @@ void register_node_type_sh_curve_rgb()
   node_type_init(&ntype, file_ns::node_shader_init_curve_rgb);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  node_type_exec(&ntype, node_initexec_curves, nullptr, file_ns::node_shader_exec_curve_rgb);
   node_type_gpu(&ntype, file_ns::gpu_shader_curve_rgb);
   ntype.build_multi_function = file_ns::sh_node_curve_rgb_build_multi_function;
 
@@ -364,24 +327,6 @@ static void sh_node_curve_float_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Value")).default_value(1.0f).is_default_link_socket();
   b.add_output<decl::Float>(N_("Value"));
 };
-
-static void node_shader_exec_curve_float(void *UNUSED(data),
-                                         int UNUSED(thread),
-                                         bNode *node,
-                                         bNodeExecData *UNUSED(execdata),
-                                         bNodeStack **in,
-                                         bNodeStack **out)
-{
-  float value;
-  float fac;
-
-  nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);
-  nodestack_get_vec(&value, SOCK_FLOAT, in[1]);
-  out[0]->vec[0] = BKE_curvemapping_evaluateF((CurveMapping *)node->storage, 0, value);
-  if (fac != 1.0f) {
-    out[0]->vec[0] = (1.0f - fac) * value + fac * out[0]->vec[0];
-  }
-}
 
 static void node_shader_init_curve_float(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -488,7 +433,6 @@ void register_node_type_sh_curve_float()
   node_type_init(&ntype, file_ns::node_shader_init_curve_float);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  node_type_exec(&ntype, node_initexec_curves, nullptr, file_ns::node_shader_exec_curve_float);
   node_type_gpu(&ntype, file_ns::gpu_shader_curve_float);
   ntype.build_multi_function = file_ns::sh_node_curve_float_build_multi_function;
 

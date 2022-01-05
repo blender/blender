@@ -83,17 +83,10 @@ void sh_fn_node_type_base(struct bNodeType *ntype, int type, const char *name, s
 
 /* ********* exec data struct, remains internal *********** */
 
-struct ShaderCallData {
-  /* Empty for now, may be reused if we convert shader to texture nodes. */
-  int dummy;
-};
-
 struct XYZ_to_RGB /* Transposed #imbuf_xyz_to_rgb, passed as 3x vec3. */
 {
   float r[3], g[3], b[3];
 };
-
-void nodestack_get_vec(float *in, short type_in, bNodeStack *ns);
 
 void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, struct bNodeStack *ns);
 void node_data_from_gpu_stack(struct bNodeStack *ns, struct GPUNodeStack *gs);

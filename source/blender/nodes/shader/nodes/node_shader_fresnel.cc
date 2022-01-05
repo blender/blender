@@ -50,15 +50,6 @@ static int node_shader_gpu_fresnel(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_fresnel", in, out, GPU_builtin(GPU_VIEW_POSITION));
 }
 
-static void node_shader_exec_fresnel(void *UNUSED(data),
-                                     int UNUSED(thread),
-                                     bNode *UNUSED(node),
-                                     bNodeExecData *UNUSED(execdata),
-                                     bNodeStack **UNUSED(in),
-                                     bNodeStack **UNUSED(out))
-{
-}
-
 }  // namespace blender::nodes::node_shader_fresnel_cc
 
 /* node type definition */
@@ -71,7 +62,6 @@ void register_node_type_sh_fresnel()
   sh_node_type_base(&ntype, SH_NODE_FRESNEL, "Fresnel", NODE_CLASS_INPUT);
   node_type_socket_templates(&ntype, file_ns::sh_node_fresnel_in, file_ns::sh_node_fresnel_out);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_fresnel);
-  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_fresnel);
 
   nodeRegisterType(&ntype);
 }

@@ -34,22 +34,6 @@ static bNodeSocketTemplate sh_node_squeeze_in[] = {
 
 static bNodeSocketTemplate sh_node_squeeze_out[] = {{SOCK_FLOAT, N_("Value")}, {-1, ""}};
 
-static void node_shader_exec_squeeze(void *UNUSED(data),
-                                     int UNUSED(thread),
-                                     bNode *UNUSED(node),
-                                     bNodeExecData *UNUSED(execdata),
-                                     bNodeStack **in,
-                                     bNodeStack **out)
-{
-  float vec[3];
-
-  nodestack_get_vec(vec, SOCK_FLOAT, in[0]);
-  nodestack_get_vec(vec + 1, SOCK_FLOAT, in[1]);
-  nodestack_get_vec(vec + 2, SOCK_FLOAT, in[2]);
-
-  out[0]->vec[0] = 1.0f / (1.0f + powf(M_E, -((vec[0] - vec[2]) * vec[1])));
-}
-
 static int gpu_shader_squeeze(GPUMaterial *mat,
                               bNode *node,
                               bNodeExecData *UNUSED(execdata),
@@ -69,7 +53,6 @@ void register_node_type_sh_squeeze()
 
   sh_node_type_base(&ntype, SH_NODE_SQUEEZE, "Squeeze Value", NODE_CLASS_CONVERTER);
   node_type_socket_templates(&ntype, file_ns::sh_node_squeeze_in, file_ns::sh_node_squeeze_out);
-  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_squeeze);
   node_type_gpu(&ntype, file_ns::gpu_shader_squeeze);
 
   nodeRegisterType(&ntype);

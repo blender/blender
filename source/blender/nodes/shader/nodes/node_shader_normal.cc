@@ -37,25 +37,6 @@ static bNodeSocketTemplate sh_node_normal_out[] = {
     {-1, ""},
 };
 
-/* generates normal, does dot product */
-static void node_shader_exec_normal(void *UNUSED(data),
-                                    int UNUSED(thread),
-                                    bNode *UNUSED(node),
-                                    bNodeExecData *UNUSED(execdata),
-                                    bNodeStack **in,
-                                    bNodeStack **out)
-{
-  float vec[3];
-
-  /* stack order input:  normal */
-  /* stack order output: normal, value */
-
-  nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
-
-  /* render normals point inside... the widget points outside */
-  out[1]->vec[0] = -dot_v3v3(vec, out[0]->vec);
-}
-
 static int gpu_shader_normal(GPUMaterial *mat,
                              bNode *node,
                              bNodeExecData *UNUSED(execdata),
@@ -76,7 +57,6 @@ void register_node_type_sh_normal()
 
   sh_node_type_base(&ntype, SH_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR);
   node_type_socket_templates(&ntype, file_ns::sh_node_normal_in, file_ns::sh_node_normal_out);
-  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_normal);
   node_type_gpu(&ntype, file_ns::gpu_shader_normal);
 
   nodeRegisterType(&ntype);

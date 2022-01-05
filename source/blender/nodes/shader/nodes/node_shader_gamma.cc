@@ -34,23 +34,6 @@ static bNodeSocketTemplate sh_node_gamma_out[] = {
     {-1, ""},
 };
 
-static void node_shader_exec_gamma(void *UNUSED(data),
-                                   int UNUSED(thread),
-                                   bNode *UNUSED(node),
-                                   bNodeExecData *UNUSED(execdata),
-                                   bNodeStack **in,
-                                   bNodeStack **out)
-{
-  float col[3];
-  float gamma;
-  nodestack_get_vec(col, SOCK_VECTOR, in[0]);
-  nodestack_get_vec(&gamma, SOCK_FLOAT, in[1]);
-
-  out[0]->vec[0] = col[0] > 0.0f ? powf(col[0], gamma) : col[0];
-  out[0]->vec[1] = col[1] > 0.0f ? powf(col[1], gamma) : col[1];
-  out[0]->vec[2] = col[2] > 0.0f ? powf(col[2], gamma) : col[2];
-}
-
 static int node_shader_gpu_gamma(GPUMaterial *mat,
                                  bNode *node,
                                  bNodeExecData *UNUSED(execdata),
@@ -70,7 +53,6 @@ void register_node_type_sh_gamma()
 
   sh_node_type_base(&ntype, SH_NODE_GAMMA, "Gamma", NODE_CLASS_OP_COLOR);
   node_type_socket_templates(&ntype, file_ns::sh_node_gamma_in, file_ns::sh_node_gamma_out);
-  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_gamma);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_gamma);
 
   nodeRegisterType(&ntype);

@@ -52,15 +52,6 @@ static int node_shader_gpu_layer_weight(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_layer_weight", in, out, GPU_builtin(GPU_VIEW_POSITION));
 }
 
-static void node_shader_exec_layer_weight(void *UNUSED(data),
-                                          int UNUSED(thread),
-                                          bNode *UNUSED(node),
-                                          bNodeExecData *UNUSED(execdata),
-                                          bNodeStack **UNUSED(in),
-                                          bNodeStack **UNUSED(out))
-{
-}
-
 }  // namespace blender::nodes::node_shader_layer_weight_cc
 
 /* node type definition */
@@ -74,7 +65,6 @@ void register_node_type_sh_layer_weight()
   node_type_socket_templates(
       &ntype, file_ns::sh_node_layer_weight_in, file_ns::sh_node_layer_weight_out);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_layer_weight);
-  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_layer_weight);
 
   nodeRegisterType(&ntype);
 }

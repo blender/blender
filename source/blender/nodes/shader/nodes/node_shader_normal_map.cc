@@ -40,15 +40,6 @@ static void node_shader_init_normal_map(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = attr;
 }
 
-static void node_shader_exec_normal_map(void *UNUSED(data),
-                                        int UNUSED(thread),
-                                        bNode *UNUSED(node),
-                                        bNodeExecData *UNUSED(execdata),
-                                        bNodeStack **UNUSED(in),
-                                        bNodeStack **UNUSED(out))
-{
-}
-
 static int gpu_shader_normal_map(GPUMaterial *mat,
                                  bNode *node,
                                  bNodeExecData *UNUSED(execdata),
@@ -134,7 +125,6 @@ void register_node_type_sh_normal_map()
   node_type_storage(
       &ntype, "NodeShaderNormalMap", node_free_standard_storage, node_copy_standard_storage);
   node_type_gpu(&ntype, file_ns::gpu_shader_normal_map);
-  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_normal_map);
 
   nodeRegisterType(&ntype);
 }

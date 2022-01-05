@@ -33,21 +33,6 @@ static void sh_node_rgbtobw_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Val"));
 };
 
-static void node_shader_exec_rgbtobw(void *UNUSED(data),
-                                     int UNUSED(thread),
-                                     bNode *UNUSED(node),
-                                     bNodeExecData *UNUSED(execdata),
-                                     bNodeStack **in,
-                                     bNodeStack **out)
-{
-  /* Stack order out: BW. */
-  /* Stack order in: COL. */
-  float col[3];
-  nodestack_get_vec(col, SOCK_VECTOR, in[0]);
-
-  out[0]->vec[0] = IMB_colormanagement_get_luminance(col);
-}
-
 static int gpu_shader_rgbtobw(GPUMaterial *mat,
                               bNode *node,
                               bNodeExecData *UNUSED(execdata),
@@ -67,7 +52,6 @@ void register_node_type_sh_rgbtobw()
 
   sh_node_type_base(&ntype, SH_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_rgbtobw_declare;
-  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_rgbtobw);
   node_type_gpu(&ntype, file_ns::gpu_shader_rgbtobw);
 
   nodeRegisterType(&ntype);

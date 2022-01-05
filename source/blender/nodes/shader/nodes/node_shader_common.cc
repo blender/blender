@@ -35,126 +35,7 @@
 
 #include "RNA_access.h"
 
-static void copy_stack(bNodeStack *to, bNodeStack *from)
-{
-  if (to != from) {
-    copy_v4_v4(to->vec, from->vec);
-    to->data = from->data;
-    to->datatype = from->datatype;
-
-    /* tag as copy to prevent freeing */
-    to->is_copy = 1;
-  }
-}
-
-static void move_stack(bNodeStack *to, bNodeStack *from)
-{
-  if (to != from) {
-    copy_v4_v4(to->vec, from->vec);
-    to->data = from->data;
-    to->datatype = from->datatype;
-    to->is_copy = from->is_copy;
-
-    from->data = nullptr;
-    from->is_copy = 0;
-  }
-}
-
 /**** GROUP ****/
-
-static void *group_initexec(bNodeExecContext *context, bNode *node, bNodeInstanceKey key)
-{
-  bNodeTree *ngroup = (bNodeTree *)node->id;
-  bNodeTreeExec *exec;
-
-  if (!ngroup) {
-    return nullptr;
-  }
-
-  /* initialize the internal node tree execution */
-  exec = ntreeShaderBeginExecTree_internal(context, ngroup, key);
-
-  return exec;
-}
-
-static void group_freeexec(void *nodedata)
-{
-  bNodeTreeExec *gexec = (bNodeTreeExec *)nodedata;
-
-  if (gexec) {
-    ntreeShaderEndExecTree_internal(gexec);
-  }
-}
-
-/* Copy inputs to the internal stack.
- */
-static void group_copy_inputs(bNode *gnode, bNodeStack **in, bNodeStack *gstack)
-{
-  bNodeTree *ngroup = (bNodeTree *)gnode->id;
-
-  LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
-    if (node->type == NODE_GROUP_INPUT) {
-      int a;
-      LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, a) {
-        bNodeStack *ns = node_get_socket_stack(gstack, sock);
-        if (ns) {
-          copy_stack(ns, in[a]);
-        }
-      }
-    }
-  }
-}
-
-/* Copy internal results to the external outputs.
- */
-static void group_move_outputs(bNode *gnode, bNodeStack **out, bNodeStack *gstack)
-{
-  bNodeTree *ngroup = (bNodeTree *)gnode->id;
-
-  LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
-    if (node->type == NODE_GROUP_OUTPUT && (node->flag & NODE_DO_OUTPUT)) {
-      int a;
-      LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->inputs, a) {
-        bNodeStack *ns = node_get_socket_stack(gstack, sock);
-        if (ns) {
-          move_stack(out[a], ns);
-        }
-      }
-      break; /* only one active output node */
-    }
-  }
-}
-
-static void group_execute(void *data,
-                          int thread,
-                          struct bNode *node,
-                          bNodeExecData *execdata,
-                          struct bNodeStack **in,
-                          struct bNodeStack **out)
-{
-  bNodeTreeExec *exec = static_cast<bNodeTreeExec *>(execdata->data);
-
-  if (!exec) {
-    return;
-  }
-
-  /* XXX same behavior as trunk: all nodes inside group are executed.
-   * it's stupid, but just makes it work. compo redesign will do this better.
-   */
-  {
-    LISTBASE_FOREACH (bNode *, inode, &exec->nodetree->nodes) {
-      inode->need_exec = 1;
-    }
-  }
-
-  bNodeThreadStack *nts = ntreeGetThreadStack(exec, thread);
-
-  group_copy_inputs(node, in, nts->stack);
-  ntreeExecThreadNodes(exec, nts, data, thread);
-  group_move_outputs(node, out, nts->stack);
-
-  ntreeReleaseThreadStack(nts);
-}
 
 static void group_gpu_copy_inputs(bNode *gnode, GPUNodeStack *in, bNodeStack *gstack)
 {
@@ -231,7 +112,6 @@ void register_node_type_sh_group()
   node_type_size(&ntype, 140, 60, 400);
   ntype.labelfunc = node_group_label;
   node_type_group_update(&ntype, node_group_update);
-  node_type_exec(&ntype, group_initexec, group_freeexec, group_execute);
   node_type_gpu(&ntype, gpu_group_execute);
 
   nodeRegisterType(&ntype);
@@ -247,6 +127,5 @@ void register_node_type_sh_custom_group(bNodeType *ntype)
     ntype->insert_link = node_insert_link_default;
   }
 
-  node_type_exec(ntype, group_initexec, group_freeexec, group_execute);
   node_type_gpu(ntype, gpu_group_execute);
 }
