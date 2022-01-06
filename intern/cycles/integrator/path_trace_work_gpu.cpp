@@ -875,8 +875,10 @@ void PathTraceWorkGPU::copy_to_display_naive(PathTraceDisplay *display,
   const int final_width = buffers_->params.window_width;
   const int final_height = buffers_->params.window_height;
 
-  const int texture_x = full_x - effective_full_params_.full_x + effective_buffer_params_.window_x;
-  const int texture_y = full_y - effective_full_params_.full_y + effective_buffer_params_.window_y;
+  const int texture_x = full_x - effective_big_tile_params_.full_x +
+                        effective_buffer_params_.window_x - effective_big_tile_params_.window_x;
+  const int texture_y = full_y - effective_big_tile_params_.full_y +
+                        effective_buffer_params_.window_y - effective_big_tile_params_.window_y;
 
   /* Re-allocate display memory if needed, and make sure the device pointer is allocated.
    *
