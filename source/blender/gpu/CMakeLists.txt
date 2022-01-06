@@ -407,7 +407,7 @@ if(WITH_GTESTS)
       tests/gpu_testing.hh
     )
     set(TEST_INC
-      "../../../intern/ghost/"
+      ../../../intern/ghost
     )
     set(TEST_LIB
 

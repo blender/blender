@@ -20,7 +20,7 @@
 
 set(INC
   .
-  ../
+  ..
   ../intern
   ../../blenkernel
   ../../blenlib

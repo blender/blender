@@ -191,7 +191,7 @@ set(LIB
 if(WITH_BULLET)
   list(APPEND INC_SYS
     ${BULLET_INCLUDE_DIRS}
-    "../../../intern/rigidbody/"
+    ../../../intern/rigidbody
   )
   if(NOT WITH_SYSTEM_BULLET)
   list(APPEND LIB

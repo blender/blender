@@ -553,8 +553,8 @@ if(WITH_GTESTS)
       tests/draw_testing.hh
     )
     set(TEST_INC
-      "../../../intern/ghost/"
-      "../gpu/tests/"
+      ../../../intern/ghost
+      ../gpu/tests
     )
     set(TEST_LIB
     )
