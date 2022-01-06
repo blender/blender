@@ -3238,13 +3238,21 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     }
   }
 
-  /* Initialize auto-masking cache. For anchored brushes with spherical falloff,
-   * we start off with zero radius, thus we have no PBVH nodes on the first brush step. */
+  /* For anchored brushes with spherical falloff, we start off with zero radius, thus we have no
+   * PBVH nodes on the first brush step. */
   if (totnode ||
       ((brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) && (brush->flag & BRUSH_ANCHORED))) {
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+      /* Initialize auto-masking cache. */
       if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
         ss->cache->automasking = SCULPT_automasking_cache_init(sd, brush, ob);
+      }
+      /* Initialize surface smooth cache. */
+      if ((brush->sculpt_tool == SCULPT_TOOL_SMOOTH) &&
+          (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE)) {
+        BLI_assert(ss->cache->surface_smooth_laplacian_disp == NULL);
+        ss->cache->surface_smooth_laplacian_disp = MEM_callocN(
+            sizeof(float[3]) * SCULPT_vertex_count_get(ss), "HC smooth laplacian b");
       }
     }
   }
