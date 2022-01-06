@@ -193,7 +193,7 @@ static void extract_lines_adjacency_init_subdiv(const DRWSubdivCache *subdiv_cac
    * total: (number_of_loops + number_of_quads). */
   const uint tess_len = subdiv_cache->num_subdiv_loops + subdiv_cache->num_subdiv_quads;
   line_adjacency_data_init(
-      data, tess_len, subdiv_cache->num_subdiv_verts, subdiv_cache->num_subdiv_loops);
+      data, subdiv_cache->num_subdiv_verts, subdiv_cache->num_subdiv_loops, tess_len);
 }
 
 static void extract_lines_adjacency_iter_subdiv(const DRWSubdivCache *subdiv_cache,
