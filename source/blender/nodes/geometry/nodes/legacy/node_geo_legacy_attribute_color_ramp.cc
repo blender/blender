@@ -23,7 +23,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes::node_geo_legacy_attributes_color_ramp_cc {
+namespace blender::nodes::node_geo_legacy_attribute_color_ramp_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -116,11 +116,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_legacy_attributes_color_ramp_cc
+}  // namespace blender::nodes::node_geo_legacy_attribute_color_ramp_cc
 
 void register_node_type_geo_attribute_color_ramp()
 {
-  namespace file_ns = blender::nodes::node_geo_legacy_attributes_color_ramp_cc;
+  namespace file_ns = blender::nodes::node_geo_legacy_attribute_color_ramp_cc;
 
   static bNodeType ntype;
 

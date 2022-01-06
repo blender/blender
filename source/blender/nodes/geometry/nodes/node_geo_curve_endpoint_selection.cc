@@ -21,7 +21,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes::node_geo_curve_endpoint_select_cc {
+namespace blender::nodes::node_geo_curve_endpoint_selection_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -130,11 +130,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<bool> selection_field{std::make_shared<EndpointFieldInput>(start_size, end_size)};
   params.set_output("Selection", std::move(selection_field));
 }
-}  // namespace blender::nodes::node_geo_curve_endpoint_select_cc
+}  // namespace blender::nodes::node_geo_curve_endpoint_selection_cc
 
 void register_node_type_geo_curve_endpoint_selection()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_endpoint_select_cc;
+  namespace file_ns = blender::nodes::node_geo_curve_endpoint_selection_cc;
 
   static bNodeType ntype;
 
