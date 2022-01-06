@@ -91,15 +91,15 @@ class GLVaoCache {
    */
   void insert(const GLShaderInterface *interface, GLuint vao_id);
   void remove(const GLShaderInterface *interface);
-  void clear(void);
+  void clear();
 
  private:
-  void init(void);
+  void init();
   /**
    * The #GLVaoCache object is only valid for one #GLContext.
    * Reset the cache if trying to draw in another context;.
    */
-  void context_check(void);
+  void context_check();
 };
 
 class GLBatch : public Batch {
@@ -113,7 +113,7 @@ class GLBatch : public Batch {
 
   /* Convenience getters. */
 
-  GLIndexBuf *elem_(void) const
+  GLIndexBuf *elem_() const
   {
     return static_cast<GLIndexBuf *>(unwrap(elem));
   }

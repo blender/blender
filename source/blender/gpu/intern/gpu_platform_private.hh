@@ -49,7 +49,7 @@ class GPUPlatformGlobal {
             const char *renderer_str,
             const char *version_str);
 
-  void clear(void);
+  void clear();
 };
 
 extern GPUPlatformGlobal GPG;

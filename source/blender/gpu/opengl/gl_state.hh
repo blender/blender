@@ -71,11 +71,11 @@ class GLStateManager : public StateManager {
  public:
   GLStateManager();
 
-  void apply_state(void) override;
+  void apply_state() override;
   /**
    * Will set all the states regardless of the current ones.
    */
-  void force_state(void) override;
+  void force_state() override;
 
   void issue_barrier(eGPUBarrier barrier_bits) override;
 
@@ -85,16 +85,16 @@ class GLStateManager : public StateManager {
    */
   void texture_bind_temp(GLTexture *tex);
   void texture_unbind(Texture *tex) override;
-  void texture_unbind_all(void) override;
+  void texture_unbind_all() override;
 
   void image_bind(Texture *tex, int unit) override;
   void image_unbind(Texture *tex) override;
-  void image_unbind_all(void) override;
+  void image_unbind_all() override;
 
   void texture_unpack_row_length_set(uint len) override;
 
-  uint64_t bound_texture_slots(void);
-  uint8_t bound_image_slots(void);
+  uint64_t bound_texture_slots();
+  uint8_t bound_image_slots();
 
  private:
   static void set_write_mask(const eGPUWriteMask value);
@@ -112,8 +112,8 @@ class GLStateManager : public StateManager {
   void set_state(const GPUState &state);
   void set_mutable_state(const GPUStateMutable &state);
 
-  void texture_bind_apply(void);
-  void image_bind_apply(void);
+  void texture_bind_apply();
+  void image_bind_apply();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLStateManager")
 };

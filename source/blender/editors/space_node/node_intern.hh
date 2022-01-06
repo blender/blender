@@ -138,7 +138,7 @@ blender::float2 node_from_view(const bNode &node, const blender::float2 &co);
 
 void node_toolbar_register(ARegionType *art);
 
-void node_operatortypes(void);
+void node_operatortypes();
 void node_keymap(wmKeyConfig *keyconf);
 
 void node_deselect_all(SpaceNode &snode);

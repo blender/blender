@@ -46,7 +46,7 @@ class GLVertBuf : public VertBuf {
   size_t vbo_size_ = 0;
 
  public:
-  void bind(void);
+  void bind();
 
   void update_sub(uint start, uint len, const void *data) override;
 
@@ -56,10 +56,10 @@ class GLVertBuf : public VertBuf {
   void wrap_handle(uint64_t handle) override;
 
  protected:
-  void acquire_data(void) override;
-  void resize_data(void) override;
-  void release_data(void) override;
-  void upload_data(void) override;
+  void acquire_data() override;
+  void resize_data() override;
+  void release_data() override;
+  void upload_data() override;
   void duplicate_data(VertBuf *dst) override;
   void bind_as_ssbo(uint binding) override;
 

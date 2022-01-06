@@ -50,8 +50,8 @@ class GLQueryPool : public QueryPool {
 
   void init(GPUQueryType type) override;
 
-  void begin_query(void) override;
-  void end_query(void) override;
+  void begin_query() override;
+  void end_query() override;
 
   void get_occlusion_result(MutableSpan<uint32_t> r_values) override;
 };

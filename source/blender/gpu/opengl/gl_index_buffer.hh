@@ -42,7 +42,7 @@ class GLIndexBuf : public IndexBuf {
  public:
   ~GLIndexBuf();
 
-  void bind(void);
+  void bind();
   void bind_as_ssbo(uint binding) override;
 
   const uint32_t *read() const override;
@@ -56,12 +56,12 @@ class GLIndexBuf : public IndexBuf {
     return (GLushort *)0 + additional_vertex_offset;
   }
 
-  GLuint restart_index(void) const
+  GLuint restart_index() const
   {
     return (index_type_ == GPU_INDEX_U16) ? 0xFFFFu : 0xFFFFFFFFu;
   }
 
-  void upload_data(void) override;
+  void upload_data() override;
 
   void update_sub(uint start, uint len, const void *data) override;
 

@@ -39,7 +39,7 @@ struct SpaceSpreadsheet_Runtime {
 struct bContext;
 struct ARegionType;
 
-void spreadsheet_operatortypes(void);
+void spreadsheet_operatortypes();
 void spreadsheet_update_context_path(const bContext *C);
 Object *spreadsheet_get_object_eval(const SpaceSpreadsheet *sspreadsheet,
                                     const Depsgraph *depsgraph);

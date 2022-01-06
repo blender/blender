@@ -48,10 +48,10 @@ class GLUniformBuf : public UniformBuf {
 
   void update(const void *data) override;
   void bind(int slot) override;
-  void unbind(void) override;
+  void unbind() override;
 
  private:
-  void init(void);
+  void init();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLUniformBuf");
 };

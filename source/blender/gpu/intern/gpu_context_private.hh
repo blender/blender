@@ -75,22 +75,22 @@ class Context {
   Context();
   virtual ~Context();
 
-  static Context *get(void);
+  static Context *get();
 
-  virtual void activate(void) = 0;
-  virtual void deactivate(void) = 0;
+  virtual void activate() = 0;
+  virtual void deactivate() = 0;
 
   /* Will push all pending commands to the GPU. */
-  virtual void flush(void) = 0;
+  virtual void flush() = 0;
   /* Will wait until the GPU has finished executing all command. */
-  virtual void finish(void) = 0;
+  virtual void finish() = 0;
 
   virtual void memory_statistics_get(int *total_mem, int *free_mem) = 0;
 
   virtual void debug_group_begin(const char *, int){};
-  virtual void debug_group_end(void){};
+  virtual void debug_group_end(){};
 
-  bool is_active_on_thread(void);
+  bool is_active_on_thread();
 };
 
 /* Syntactic sugar. */

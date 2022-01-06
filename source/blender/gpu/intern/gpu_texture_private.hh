@@ -123,7 +123,7 @@ class Texture {
   bool init_cubemap(int w, int layers, eGPUTextureFormat format);
   bool init_buffer(GPUVertBuf *vbo, eGPUTextureFormat format);
 
-  virtual void generate_mipmap(void) = 0;
+  virtual void generate_mipmap() = 0;
   virtual void copy_to(Texture *tex) = 0;
   virtual void clear(eGPUDataFormat format, const void *data) = 0;
   virtual void swizzle_set(const char swizzle_mask[4]) = 0;
@@ -138,17 +138,17 @@ class Texture {
       int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data) = 0;
 
   /* TODO(fclem): Legacy. Should be removed at some point. */
-  virtual uint gl_bindcode_get(void) const = 0;
+  virtual uint gl_bindcode_get() const = 0;
 
-  int width_get(void) const
+  int width_get() const
   {
     return w_;
   }
-  int height_get(void) const
+  int height_get() const
   {
     return h_;
   }
-  int depth_get(void) const
+  int depth_get() const
   {
     return d_;
   }
@@ -188,7 +188,7 @@ class Texture {
   }
 
   /* Return number of dimension taking the array type into account. */
-  int dimensions_count(void) const
+  int dimensions_count() const
   {
     const int array = (type_ & GPU_TEXTURE_ARRAY) ? 1 : 0;
     switch (type_ & ~GPU_TEXTURE_ARRAY) {
@@ -205,7 +205,7 @@ class Texture {
     }
   }
   /* Return number of array layer (or face layer) for texture array or 1 for the others. */
-  int layer_count(void) const
+  int layer_count() const
   {
     switch (type_) {
       case GPU_TEXTURE_1D_ARRAY:
@@ -218,15 +218,15 @@ class Texture {
     }
   }
 
-  eGPUTextureFormat format_get(void) const
+  eGPUTextureFormat format_get() const
   {
     return format_;
   }
-  eGPUTextureFormatFlag format_flag_get(void) const
+  eGPUTextureFormatFlag format_flag_get() const
   {
     return format_flag_;
   }
-  eGPUTextureType type_get(void) const
+  eGPUTextureType type_get() const
   {
     return type_;
   }
@@ -248,7 +248,7 @@ class Texture {
   }
 
  protected:
-  virtual bool init_internal(void) = 0;
+  virtual bool init_internal() = 0;
   virtual bool init_internal(GPUVertBuf *vbo) = 0;
 };
 
