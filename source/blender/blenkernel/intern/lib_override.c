@@ -739,7 +739,8 @@ static void lib_override_overrides_group_tag_recursive(LibOverrideGroupTagData *
   BLI_assert(ID_IS_OVERRIDE_LIBRARY(id_owner));
   BLI_assert(data->is_override);
 
-  if (id_owner->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY) {
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(id_owner) &&
+      (id_owner->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY) != 0) {
     return;
   }
 
