@@ -545,6 +545,12 @@ void read_generated_coordinates(const ICompoundProperty &prop,
   const size_t totvert = abc_ocro.get()->size();
   Mesh *mesh = config.mesh;
 
+  if (totvert != mesh->totvert) {
+    /* Either the data is somehow corrupted, or we have a dynamic simulation where only the ORCOs
+     * for the first frame were exported. */
+    return;
+  }
+
   void *cd_data;
   if (CustomData_has_layer(&mesh->vdata, CD_ORCO)) {
     cd_data = CustomData_get_layer(&mesh->vdata, CD_ORCO);
