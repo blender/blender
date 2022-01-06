@@ -185,7 +185,7 @@ NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list,
                                         ListBase *strips,
                                         short index,
                                         const struct AnimationEvalContext *anim_eval_context,
-                                        const bool flush_to_original);
+                                        bool flush_to_original);
 /**
  * Evaluates the given evaluation strip.
  */
@@ -195,14 +195,14 @@ void nlastrip_evaluate(PointerRNA *ptr,
                        NlaEvalStrip *nes,
                        NlaEvalSnapshot *snapshot,
                        const struct AnimationEvalContext *anim_eval_context,
-                       const bool flush_to_original);
+                       bool flush_to_original);
 /**
  * write the accumulated settings to.
  */
 void nladata_flush_channels(PointerRNA *ptr,
                             NlaEvalData *channels,
                             NlaEvalSnapshot *snapshot,
-                            const bool flush_to_original);
+                            bool flush_to_original);
 
 void nlasnapshot_enable_all_blend_domain(NlaEvalSnapshot *snapshot);
 
@@ -219,8 +219,8 @@ void nlasnapshot_ensure_channels(NlaEvalData *eval_data, NlaEvalSnapshot *snapsh
 void nlasnapshot_blend(NlaEvalData *eval_data,
                        NlaEvalSnapshot *lower_snapshot,
                        NlaEvalSnapshot *upper_snapshot,
-                       const short upper_blendmode,
-                       const float upper_influence,
+                       short upper_blendmode,
+                       float upper_influence,
                        NlaEvalSnapshot *r_blended_snapshot);
 
 /**
@@ -234,8 +234,8 @@ void nlasnapshot_blend(NlaEvalData *eval_data,
 void nlasnapshot_blend_get_inverted_upper_snapshot(NlaEvalData *eval_data,
                                                    NlaEvalSnapshot *lower_snapshot,
                                                    NlaEvalSnapshot *blended_snapshot,
-                                                   const short upper_blendmode,
-                                                   const float upper_influence,
+                                                   short upper_blendmode,
+                                                   float upper_influence,
                                                    NlaEvalSnapshot *r_upper_snapshot);
 
 #ifdef __cplusplus

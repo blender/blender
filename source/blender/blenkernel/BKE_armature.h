@@ -152,13 +152,13 @@ typedef struct PoseTree {
 struct bArmature *BKE_armature_add(struct Main *bmain, const char *name);
 struct bArmature *BKE_armature_from_object(struct Object *ob);
 int BKE_armature_bonelist_count(const struct ListBase *lb);
-void BKE_armature_bonelist_free(struct ListBase *lb, const bool do_id_user);
-void BKE_armature_editbonelist_free(struct ListBase *lb, const bool do_id_user);
+void BKE_armature_bonelist_free(struct ListBase *lb, bool do_id_user);
+void BKE_armature_editbonelist_free(struct ListBase *lb, bool do_id_user);
 
 void BKE_armature_copy_bone_transforms(struct bArmature *armature_dst,
                                        const struct bArmature *armature_src);
 
-void BKE_armature_transform(struct bArmature *arm, const float mat[4][4], const bool do_props);
+void BKE_armature_transform(struct bArmature *arm, const float mat[4][4], bool do_props);
 
 /* Bounding box. */
 struct BoundBox *BKE_armature_boundbox_get(struct Object *ob);
@@ -206,7 +206,7 @@ void BKE_armature_where_is(struct bArmature *arm);
  */
 void BKE_armature_where_is_bone(struct Bone *bone,
                                 const struct Bone *bone_parent,
-                                const bool use_recursion);
+                                bool use_recursion);
 /**
  * Clear pointers of object's pose
  * (needed in remap case, since we cannot always wait for a complete pose rebuild).
@@ -217,7 +217,7 @@ void BKE_pose_remap_bone_pointers(struct bArmature *armature, struct bPose *pose
  * Update the links for the B-Bone handles from Bone data.
  */
 void BKE_pchan_rebuild_bbone_handles(struct bPose *pose, struct bPoseChannel *pchan);
-void BKE_pose_channels_clear_with_null_bone(struct bPose *pose, const bool do_id_user);
+void BKE_pose_channels_clear_with_null_bone(struct bPose *pose, bool do_id_user);
 /**
  * Only after leave edit-mode, duplicating, validating older files, library syncing.
  *
@@ -228,7 +228,7 @@ void BKE_pose_channels_clear_with_null_bone(struct bPose *pose, const bool do_id
 void BKE_pose_rebuild(struct Main *bmain,
                       struct Object *ob,
                       struct bArmature *arm,
-                      const bool do_id_user);
+                      bool do_id_user);
 /**
  * Ensures object's pose is rebuilt if needed.
  *
@@ -237,7 +237,7 @@ void BKE_pose_rebuild(struct Main *bmain,
 void BKE_pose_ensure(struct Main *bmain,
                      struct Object *ob,
                      struct bArmature *arm,
-                     const bool do_id_user);
+                     bool do_id_user);
 /**
  * \note This is the only function adding poses.
  * \note This only reads anim data from channels, and writes to channels.
@@ -279,12 +279,12 @@ void BKE_pose_apply_action_blend(struct Object *ob,
                                  struct AnimationEvalContext *anim_eval_context,
                                  float blend_factor);
 
-void vec_roll_to_mat3(const float vec[3], const float roll, float r_mat[3][3]);
+void vec_roll_to_mat3(const float vec[3], float roll, float r_mat[3][3]);
 
 /**
  * Calculates the rest matrix of a bone based on its vector and a roll around that vector.
  */
-void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float r_mat[3][3]);
+void vec_roll_to_mat3_normalized(const float nor[3], float roll, float r_mat[3][3]);
 /**
  * Computes vector and roll based on a rotation.
  * "mat" must contain only a rotation, and no scaling.
@@ -484,7 +484,7 @@ void BKE_pchan_bbone_handles_get(struct bPoseChannel *pchan,
  * Compute B-Bone spline parameters for the given channel.
  */
 void BKE_pchan_bbone_spline_params_get(struct bPoseChannel *pchan,
-                                       const bool rest,
+                                       bool rest,
                                        struct BBoneSplineParameters *r_param);
 
 /**
@@ -492,8 +492,8 @@ void BKE_pchan_bbone_spline_params_get(struct bPoseChannel *pchan,
  * This calculation is done within unit bone space.
  */
 void BKE_pchan_bbone_spline_setup(struct bPoseChannel *pchan,
-                                  const bool rest,
-                                  const bool for_deform,
+                                  bool rest,
+                                  bool for_deform,
                                   Mat4 *result_array);
 
 /**
@@ -511,7 +511,7 @@ void BKE_pchan_bbone_handles_compute(const BBoneSplineParameters *param,
  * This calculation is done within unit bone space.
  */
 int BKE_pchan_bbone_spline_compute(struct BBoneSplineParameters *param,
-                                   const bool for_deform,
+                                   bool for_deform,
                                    Mat4 *result_array);
 
 /**

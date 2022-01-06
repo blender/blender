@@ -184,9 +184,9 @@ void BKE_animdata_fix_paths_rename_all_ex(struct Main *bmain,
                                           const char *prefix,
                                           const char *oldName,
                                           const char *newName,
-                                          const int oldSubscript,
-                                          const int newSubscript,
-                                          const bool verify_paths);
+                                          int oldSubscript,
+                                          int newSubscript,
+                                          bool verify_paths);
 
 /** See #BKE_animdata_fix_paths_rename_all_ex */
 void BKE_animdata_fix_paths_rename_all(struct ID *ref_id,
@@ -299,13 +299,13 @@ typedef enum eAnimData_Recalc {
 
 bool BKE_animsys_rna_path_resolve(struct PointerRNA *ptr,
                                   const char *rna_path,
-                                  const int array_index,
+                                  int array_index,
                                   struct PathResolvedRNA *r_result);
 bool BKE_animsys_read_from_rna_path(struct PathResolvedRNA *anim_rna, float *r_value);
 /**
  * Write the given value to a setting using RNA, and return success.
  */
-bool BKE_animsys_write_to_rna_path(struct PathResolvedRNA *anim_rna, const float value);
+bool BKE_animsys_write_to_rna_path(struct PathResolvedRNA *anim_rna, float value);
 
 /**
  * Evaluation loop for evaluation animation data
@@ -318,7 +318,7 @@ void BKE_animsys_evaluate_animdata(struct ID *id,
                                    struct AnimData *adt,
                                    const struct AnimationEvalContext *anim_eval_context,
                                    eAnimData_Recalc recalc,
-                                   const bool flush_to_original);
+                                   bool flush_to_original);
 
 /**
  * Evaluation of all ID-blocks with Animation Data blocks - Animation Data Only

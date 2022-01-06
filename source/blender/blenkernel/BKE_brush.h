@@ -111,11 +111,11 @@ void BKE_brush_curve_preset(struct Brush *b, enum eCurveMappingPreset preset);
 /**
  * Uses the brush curve control to find a strength value between 0 and 1.
  */
-float BKE_brush_curve_strength_clamped(const struct Brush *br, float p, const float len);
+float BKE_brush_curve_strength_clamped(const struct Brush *br, float p, float len);
 /**
  * Uses the brush curve control to find a strength value.
  */
-float BKE_brush_curve_strength(const struct Brush *br, float p, const float len);
+float BKE_brush_curve_strength(const struct Brush *br, float p, float len);
 
 /* Sampling. */
 
