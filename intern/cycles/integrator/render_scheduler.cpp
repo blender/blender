@@ -406,9 +406,6 @@ bool RenderScheduler::set_postprocess_render_work(RenderWork *render_work)
     any_scheduled = true;
   }
 
-  /* Force update. */
-  any_scheduled = true;
-
   if (any_scheduled) {
     render_work->display.update = true;
   }
