@@ -48,7 +48,7 @@
  * Ideally this could be could be even closer to Python's enumerate(). We might get that in the
  * future with newer C++ versions.
  *
- * One other important feature is the as_span method. This method returns an Span<int64_t>
+ * One other important feature is the as_span method. This method returns a Span<int64_t>
  * that contains the interval as individual numbers.
  */
 

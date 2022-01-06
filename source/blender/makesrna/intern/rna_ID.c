@@ -1445,7 +1445,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
   RNA_def_struct_refine_func(srna, "rna_PropertyGroup_refine");
 
   /* important so python types can have their name used in list views
-   * however this isn't prefect because it overrides how python would set the name
+   * however this isn't perfect because it overrides how python would set the name
    * when we only really want this so RNA_def_struct_name_property() is set to something useful */
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);

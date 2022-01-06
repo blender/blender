@@ -113,7 +113,7 @@ struct KeyBlock *BKE_keyblock_find_name(struct Key *key, const char name[]);
 void BKE_keyblock_copy_settings(struct KeyBlock *kb_dst, const struct KeyBlock *kb_src);
 /**
  * Get RNA-Path for 'value' setting of the given shape-key.
- * \note the user needs to free the returned string once they're finish with it.
+ * \note the user needs to free the returned string once they're finished with it.
  */
 char *BKE_keyblock_curval_rnapath_get(struct Key *key, struct KeyBlock *kb);
 

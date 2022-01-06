@@ -62,7 +62,7 @@
  * then the function has to specify whether the referenced array is expected to be initialized or
  * not.
  *
- * Since the arrays are only referenced, it is generally unsafe to store an Span. When you
+ * Since the arrays are only referenced, it is generally unsafe to store a Span. When you
  * store one, you should know who owns the memory.
  *
  * Instances of Span and MutableSpan are small and should be passed by value.

@@ -1140,7 +1140,7 @@ void WM_redraw_windows(bContext *C)
  * This is needed for viewport drawing for operator use
  * (where the viewport may not have drawn yet).
  *
- * Otherwise avoid using these sine they're exposing low level logic externally.
+ * Otherwise avoid using these since they're exposing low level logic externally.
  *
  * \{ */
 
