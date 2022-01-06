@@ -513,7 +513,7 @@ void ED_gpencil_vgroup_remove(struct bContext *C, struct Object *ob);
  */
 void ED_gpencil_vgroup_select(struct bContext *C, struct Object *ob);
 /**
- * Unselect points of vertex group.
+ * Un-select points of vertex group.
  */
 void ED_gpencil_vgroup_deselect(struct bContext *C, struct Object *ob);
 

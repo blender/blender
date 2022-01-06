@@ -293,7 +293,7 @@ typedef struct Material {
 /* #define TEXCO_STRESS    (1 << 14) */ /* deprecated */
 /* #define TEXCO_SPEED     (1 << 15) */ /* deprecated */
 
-/* mapto */
+/** #MTex.mapto */
 #define MAP_COL (1 << 0)
 #define MAP_ALPHA (1 << 7)
 

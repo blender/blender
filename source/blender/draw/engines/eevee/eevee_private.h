@@ -192,8 +192,8 @@ enum {
 /* Material shader cache keys */
 enum {
   /* HACK: This assumes the struct GPUShader will never be smaller than our variations.
-   * This allow us to only keep one ghash and avoid bigger keys comparisons/hashing.
-   * We combine the GPUShader pointer with the key. */
+   * This allow us to only keep one #GHash and avoid bigger keys comparisons/hashing.
+   * We combine the #GPUShader pointer with the key. */
   KEY_CULL = (1 << 0),
   KEY_REFRACT = (1 << 1),
   KEY_HAIR = (1 << 2),

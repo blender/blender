@@ -263,7 +263,7 @@ static void wm_window_substitute_old(wmWindowManager *oldwm,
   win->eventstate = oldwin->eventstate;
   oldwin->eventstate = NULL;
 
-  /* ensure proper screen rescaling */
+  /* Ensure proper screen re-scaling. */
   win->sizex = oldwin->sizex;
   win->sizey = oldwin->sizey;
   win->posx = oldwin->posx;

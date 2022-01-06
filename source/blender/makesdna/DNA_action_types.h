@@ -468,7 +468,7 @@ typedef enum eRotationModes {
 typedef struct bPose {
   /** List of pose channels, PoseBones in RNA. */
   ListBase chanbase;
-  /** Ghash for quicker string lookups. */
+  /** Use a hash-table for quicker string lookups. */
   struct GHash *chanhash;
 
   /* Flat array of pose channels. It references pointers from

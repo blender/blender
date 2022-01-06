@@ -651,11 +651,12 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 /** \name String Macros
  * \{ */
 
-/* Macro to convert a value to string in the pre-processor:
+/* Macro to convert a value to string in the preprocessor:
  * - `STRINGIFY_ARG`: gives the argument as a string
  * - `STRINGIFY_APPEND`: appends any argument 'b' onto the string argument 'a',
- *   used by `STRINGIFY` because some preprocessors warn about zero arguments
+ *   used by `STRINGIFY` because some preprocessors warn about zero arguments.
  * - `STRINGIFY`: gives the argument's value as a string. */
+
 #define STRINGIFY_ARG(x) "" #x
 #define STRINGIFY_APPEND(a, b) "" a #b
 #define STRINGIFY(x) STRINGIFY_APPEND("", x)

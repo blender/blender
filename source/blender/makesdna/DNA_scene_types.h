@@ -1341,8 +1341,10 @@ typedef struct SequencerToolSettings {
   short snap_flag;
   /* eSeqOverlapMode */
   int overlap_mode;
-  /** When there are many snap points, 0-1 range corresponds to resolution from boundbox to all
-   * possible snap points. */
+  /**
+   * When there are many snap points,
+   * 0-1 range corresponds to resolution from bound-box to all possible snap points.
+   */
   int snap_distance;
   int pivot_point;
 } SequencerToolSettings;

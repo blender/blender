@@ -20,7 +20,7 @@ using array_float_3 = std::array<float, 3>;
 
 /**
  * This matches #OBJCurve's member functions, except that all the numbers and names are known
- * constants. Used to store expected values of NURBS Curve sobjects.
+ * constants. Used to store expected values of NURBS curves objects.
  */
 class NurbsObject {
  private:

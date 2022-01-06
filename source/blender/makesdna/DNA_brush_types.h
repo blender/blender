@@ -123,7 +123,7 @@ typedef struct BrushGpencilSettings {
   int sculpt_mode_flag;
   /** Preset type (used to reset brushes - internal). */
   short preset_type;
-  /** Brush preselected mode (Active/Material/Vertexcolor). */
+  /** Brush preselected mode (Active/Material/Vertex-color). */
   short brush_draw_mode;
 
   /** Randomness for Hue. */

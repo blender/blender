@@ -303,9 +303,9 @@ int seq_get_shown_sequences(ListBase *seqbase,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Preprocessing and Effects
+/** \name Preprocessing & Effects
  *
- * Input pre-processing for SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_MOVIECLIP and SEQ_TYPE_SCENE.
+ * Input preprocessing for SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_MOVIECLIP and SEQ_TYPE_SCENE.
  *
  * Do all the things you can't really do afterwards using sequence effects
  * (read: before re-scaling to render resolution has been done).

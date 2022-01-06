@@ -62,7 +62,7 @@ union GPUState {
     uint32_t polygon_smooth : 1;
     uint32_t line_smooth : 1;
   };
-  /* Here to allow fast bitwise ops. */
+  /* Here to allow fast bit-wise ops. */
   uint64_t data;
 };
 

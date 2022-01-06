@@ -348,7 +348,7 @@ typedef enum eDriverTarget_Flag {
   /** idtype can only be 'Object' */
   DTAR_FLAG_ID_OB_ONLY = (1 << 1),
 
-  /* "localspace" flags */
+  /* "local-space" flags. */
   /** base flag - basically "pre parent+constraints" */
   DTAR_FLAG_LOCALSPACE = (1 << 2),
   /** include constraints transformed to space including parents */

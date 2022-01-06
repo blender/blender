@@ -824,7 +824,7 @@ void IMB_float_from_rect(ImBuf *ibuf)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Color to Grayscale
+/** \name Color to Gray-Scale
  * \{ */
 
 void IMB_color_to_bw(ImBuf *ibuf)

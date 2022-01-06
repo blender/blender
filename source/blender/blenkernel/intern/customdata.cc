@@ -285,7 +285,7 @@ static void layerInterp_mdeformvert(const void **sources,
         tmp_dwlink->dw.def_nr = dw->def_nr;
         tmp_dwlink->dw.weight = weight;
 
-        /* inline linklist */
+        /* Inline linked-list. */
         tmp_dwlink->next = dest_dwlink;
         dest_dwlink = tmp_dwlink;
 

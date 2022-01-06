@@ -106,7 +106,7 @@ struct Render {
   struct RenderEngine *engine;
 
   /* NOTE: This is a minimal dependency graph and evaluated scene which is enough to access view
-   * layer visibility and use for post-precessing (compositor and sequencer). */
+   * layer visibility and use for postprocessing (compositor and sequencer). */
   Depsgraph *pipeline_depsgraph;
   Scene *pipeline_scene_eval;
 

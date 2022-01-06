@@ -173,11 +173,11 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
   BLF_enable(fs->uifont_id, font_flag);
 
   if (fs_params->word_wrap == 1) {
-    /* draw from boundbox top */
+    /* Draw from bound-box top. */
     yofs = BLI_rcti_size_y(rect) - BLF_height_max(fs->uifont_id);
   }
   else {
-    /* draw from boundbox center */
+    /* Draw from bound-box center. */
     const float height = BLF_ascender(fs->uifont_id) + BLF_descender(fs->uifont_id);
     yofs = ceil(0.5f * (BLI_rcti_size_y(rect) - height));
   }

@@ -783,7 +783,7 @@ class WXShape : public WShape {
    *   The list of normals, iNormalsList[i]
    *   corresponding to the normal of the vertex iVertexList[i] for that face.
    * - iTexCoordsList:
-   *   The list of tex coords, iTexCoordsList[i]
+   *   The list of texture coords, iTexCoordsList[i]
    *   corresponding to the normal of the vertex iVertexList[i] for that face.
    */
   virtual WFace *MakeFace(vector<WVertex *> &iVertexList,

@@ -301,7 +301,7 @@ template<eFileType filetype> class FileHandler : NonCopyable, NonMovable {
   template<typename T> using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
   /**
-   * Make #std::string etc., usable for fprintf-family.
+   * Make #std::string etc., usable for `fprintf` family.
    * \return: `const char *` or the original argument if the argument is
    * not related to #std::string.
    */

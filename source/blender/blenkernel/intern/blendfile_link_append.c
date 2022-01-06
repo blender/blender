@@ -644,7 +644,7 @@ static void loose_data_instantiate_collection_process(
      */
     Collection *collection = (Collection *)id;
     /* The collection could be linked/appended together with an Empty object instantiating it,
-     * better not instantiate the collection in the viewlayer in that case.
+     * better not instantiate the collection in the view-layer in that case.
      *
      * Can easily happen when copy/pasting such instantiating empty, see T93839. */
     const bool collection_is_instantiated = collection_instantiated_by_any_object(bmain,
@@ -653,7 +653,7 @@ static void loose_data_instantiate_collection_process(
     bool do_add_collection = (item->tag & LINK_APPEND_TAG_INDIRECT) == 0 &&
                              !collection_is_instantiated;
     /* In linking case, do not enforce instantiating non-directly linked collections/objects.
-     * This avoids cluttering the ViewLayers, user can instantiate themselves specific collections
+     * This avoids cluttering the view-layers, user can instantiate themselves specific collections
      * or objects easily from the Outliner if needed. */
     if (!do_add_collection && do_append && !collection_is_instantiated) {
       LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {

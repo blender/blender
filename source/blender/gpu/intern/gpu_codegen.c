@@ -65,7 +65,7 @@ extern char datatoc_gpu_shader_common_obinfos_lib_glsl[];
  * same for 2 different Materials. Unused GPUPasses are free by Garbage collection.
  */
 
-/* Only use one linklist that contains the GPUPasses grouped by hash. */
+/* Only use one linked-list that contains the GPUPasses grouped by hash. */
 static GPUPass *pass_cache = NULL;
 static SpinLock pass_cache_spin;
 

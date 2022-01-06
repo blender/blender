@@ -302,7 +302,7 @@ static SeqCollection *extract_standalone_strips(SeqCollection *transformed_strip
   return collection;
 }
 
-/* Query strips positioned after left edge of transformed strips boundbox. */
+/* Query strips positioned after left edge of transformed strips bound-box. */
 static SeqCollection *query_right_side_strips(ListBase *seqbase, SeqCollection *transformed_strips)
 {
   int minframe = MAXFRAME;
@@ -351,7 +351,7 @@ static ListBase *seqbase_active_get(const TransInfo *t)
   return SEQ_active_seqbase_get(ed);
 }
 
-/* Offset all strips positioned after left edge of transformed strips boundbox by amount equal
+/* Offset all strips positioned after left edge of transformed strips bound-box by amount equal
  * to overlap of transformed strips. */
 static void seq_transform_handle_expand_to_fit(TransInfo *t, SeqCollection *transformed_strips)
 {

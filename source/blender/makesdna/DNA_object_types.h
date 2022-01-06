@@ -152,7 +152,7 @@ typedef struct Object_Runtime {
   /** Start time of the mode transfer overlay animation. */
   double overlay_mode_transfer_start_time;
 
-  /** Axis aligned boundbox (in localspace). */
+  /** Axis aligned bound-box (in local-space). */
   struct BoundBox *bb;
 
   /**

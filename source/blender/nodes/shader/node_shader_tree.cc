@@ -845,7 +845,7 @@ static bool ntree_tag_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *user
     default:
       /* We could return false here but since we
        * allow the use of Closure as RGBA, we can have
-       * Bsdf nodes linked to other Bsdf nodes. */
+       * BSDF nodes linked to other BSDF nodes. */
       break;
   }
 
@@ -972,8 +972,8 @@ bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree)
 
   exec = ntreeShaderBeginExecTree_internal(&context, ntree, NODE_INSTANCE_KEY_BASE);
 
-  /* XXX this should not be necessary, but is still used for cmp/sha/tex nodes,
-   * which only store the ntree pointer. Should be fixed at some point!
+  /* XXX: this should not be necessary, but is still used for compositor/shader/texture nodes,
+   * which only store the `ntree` pointer. Should be fixed at some point!
    */
   ntree->execdata = exec;
 

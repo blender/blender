@@ -234,7 +234,7 @@ static bool wm_obj_export_check(bContext *C, wmOperator *op)
   /* Both forward and up axes cannot be the same (or same except opposite sign). */
   if (RNA_enum_get(op->ptr, "forward_axis") % TOTAL_AXES ==
       (RNA_enum_get(op->ptr, "up_axis") % TOTAL_AXES)) {
-    /* TODO (ankitm) Show a warning here. */
+    /* TODO(@ankitm): Show a warning here. */
     RNA_enum_set(op->ptr, "up_axis", RNA_enum_get(op->ptr, "up_axis") % TOTAL_AXES + 1);
     changed = true;
   }

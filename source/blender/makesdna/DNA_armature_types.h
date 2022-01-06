@@ -124,11 +124,11 @@ typedef struct bArmature {
 
   ListBase bonebase;
 
-  /** Ghash for quicker lookups of bones by name. */
+  /** Use a hash-table for quicker lookups of bones by name. */
   struct GHash *bonehash;
   void *_pad1;
 
-  /** Editbone listbase, we use pointer so we can check state. */
+  /** #EditBone list (use an allocated pointer so the state can be checked). */
   ListBase *edbo;
 
   /* active bones should work like active object where possible

@@ -60,13 +60,13 @@ struct wmOperator;
 /* editmesh_utils.c */
 
 /**
- * \param em: Editmesh.
+ * \param em: Edit-mesh used for generating mirror data.
  * \param use_self: Allow a vertex to point to its self (middle verts).
  * \param use_select: Restrict to selected verts.
  * \param respecthide: Skip hidden vertices.
  * \param use_topology: Use topology mirror.
  * \param maxdist: Distance for close point test.
- * \param r_index: Optional array to write into, as an alternative to a customdata layer
+ * \param r_index: Optional array to write into, as an alternative to a custom-data layer
  * (length of total verts).
  */
 void EDBM_verts_mirror_cache_begin_ex(struct BMEditMesh *em,
@@ -672,7 +672,7 @@ int *mesh_get_x_mirror_faces(struct Object *ob, struct BMEditMesh *em, struct Me
 /**
  * Wrapper for object-mode/edit-mode.
  *
- * call #BM_mesh_elem_table_ensure first for editmesh.
+ * call #BM_mesh_elem_table_ensure first for edit-mesh.
  */
 int ED_mesh_mirror_get_vert(struct Object *ob, int index);
 

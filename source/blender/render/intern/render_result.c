@@ -1238,7 +1238,7 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, const RenderData *rd, const 
     }
   }
 
-  /* color -> grayscale */
+  /* Color -> gray-scale. */
   /* editing directly would alter the render view */
   if (rd->im_format.planes == R_IMF_PLANES_BW) {
     ImBuf *ibuf_bw = IMB_dupImBuf(ibuf);

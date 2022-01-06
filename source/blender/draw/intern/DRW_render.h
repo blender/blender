@@ -351,7 +351,7 @@ typedef enum {
   DRW_STATE_BLEND_ADD_FULL = (2 << 11),
   /** Standard alpha blending. */
   DRW_STATE_BLEND_ALPHA = (3 << 11),
-  /** Use that if color is already premult by alpha. */
+  /** Use that if color is already pre-multiply by alpha. */
   DRW_STATE_BLEND_ALPHA_PREMUL = (4 << 11),
   DRW_STATE_BLEND_BACKGROUND = (5 << 11),
   DRW_STATE_BLEND_OIT = (6 << 11),

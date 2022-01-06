@@ -891,7 +891,7 @@ class GeometryNodesEvaluator {
   void foreach_non_lazy_input(LockedNode &locked_node, FunctionRef<void(DInputSocket socket)> fn)
   {
     if (node_supports_laziness(locked_node.node)) {
-      /* In the future only some of the inputs may support lazyness. */
+      /* In the future only some of the inputs may support laziness. */
       return;
     }
     /* Nodes that don't support laziness require all inputs. */

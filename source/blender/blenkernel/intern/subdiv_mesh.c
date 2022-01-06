@@ -517,7 +517,7 @@ static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_contex
                                       const int num_polygons,
                                       const int *UNUSED(subdiv_polygon_offset))
 {
-  /* Multires grid data will be applied or become invalid after subdivision,
+  /* Multi-resolution grid data will be applied or become invalid after subdivision,
    * so don't try to preserve it and use memory. */
   CustomData_MeshMasks mask = CD_MASK_EVERYTHING;
   mask.lmask &= ~CD_MASK_MULTIRES_GRIDS;

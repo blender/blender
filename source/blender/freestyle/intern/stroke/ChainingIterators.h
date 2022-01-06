@@ -198,7 +198,7 @@ class ChainingIterator : public ViewEdgeInternal::ViewEdgeIterator {
     return "ChainingIterator";
   }
 
-  /** Inits the iterator context.
+  /** Initializes the iterator context.
    *  This method is called each time a new chain is started.
    *  It can be used to reset some history information that you might want to keep.
    */
@@ -299,7 +299,7 @@ class ChainSilhouetteIterator : public ChainingIterator {
    */
   virtual int traverse(const AdjacencyIterator &it);
 
-  /** Inits the iterator context */
+  /** Initializes the iterator context */
   virtual int init()
   {
     return 0;
@@ -406,7 +406,7 @@ class ChainPredicateIterator : public ChainingIterator {
    */
   virtual int traverse(const AdjacencyIterator &it);
 
-  /** Inits the iterator context */
+  /** Initializes the iterator context. */
   virtual int init()
   {
     return 0;

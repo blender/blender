@@ -373,7 +373,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
   /* Show progress bar. */
   *(job->do_update) = true;
 
-  /* Set frame to start point (also inits modifier data) */
+  /* Set frame to start point (also initializes modifier data). */
   frame = surface->start_frame;
   orig_frame = input_scene->r.cfra;
   input_scene->r.cfra = (int)frame;

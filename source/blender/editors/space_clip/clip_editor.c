@@ -646,7 +646,7 @@ void ED_space_clip_set_mask(bContext *C, SpaceClip *sc, Mask *mask)
  * \{ */
 
 typedef struct PrefetchJob {
-  /* Clip into which cache the frames will be prefetched into. */
+  /** Clip into which cache the frames will be pre-fetched into. */
   MovieClip *clip;
 
   /* Local copy of the clip which is used to decouple reading in a way which does not require

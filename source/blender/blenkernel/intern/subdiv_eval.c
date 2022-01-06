@@ -264,8 +264,8 @@ void BKE_subdiv_eval_limit_point_and_derivatives(Subdiv *subdiv,
    * This happens, for example, in single vertex on Suzannne's nose (where two quads have 2 common
    * edges).
    *
-   * This makes tangent space displacement (such as multires) impossible to be used in those
-   * vertices, so those needs to be addressed in one way or another.
+   * This makes tangent space displacement (such as multi-resolution) impossible to be used in
+   * those vertices, so those needs to be addressed in one way or another.
    *
    * Simplest thing to do: step inside of the face a little bit, where there is known patch at
    * which there must be proper derivatives. This might break continuity of normals, but is better

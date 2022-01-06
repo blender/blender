@@ -42,7 +42,7 @@
 
 /* **** utility functions for tracking **** */
 
-/* convert from float and byte RGBA to grayscale. Supports different coefficients for RGB. */
+/** Convert from float and byte RGBA to gray-scale. Supports different coefficients for RGB. */
 static void float_rgba_to_gray(const float *rgba,
                                float *gray,
                                int num_pixels,
@@ -71,7 +71,7 @@ static void uint8_rgba_to_float_gray(const unsigned char *rgba,
   }
 }
 
-/* Get grayscale float search buffer for given marker and frame. */
+/** Get gray-scale float search buffer for given marker and frame. */
 static float *track_get_search_floatbuf(ImBuf *ibuf,
                                         MovieTrackingTrack *track,
                                         MovieTrackingMarker *marker,

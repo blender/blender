@@ -353,7 +353,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
   const DRWContextState *draw_ctx = DRW_context_state_get();
 
-  /* Create Material Ghash */
+  /* Create Material #GHash. */
   {
     stl->g_data->material_hash = BLI_ghash_ptr_new("Eevee_material ghash");
 

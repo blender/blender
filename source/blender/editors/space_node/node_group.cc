@@ -229,14 +229,14 @@ static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
   Vector<bNode *> nodes_delayed_free;
   const bNodeTree *ngroup = reinterpret_cast<const bNodeTree *>(gnode->id);
 
-  /* wgroup is a temporary copy of the NodeTree we're merging in
-   * - all of wgroup's nodes are copied across to their new home
-   * - ngroup (i.e. the source NodeTree) is left unscathed
-   * - temp copy. do change ID usercount for the copies
+  /* `wgroup` is a temporary copy of the #NodeTree we're merging in
+   * - All of wgroup's nodes are copied across to their new home.
+   * - `ngroup` (i.e. the source NodeTree) is left unscathed.
+   * - Temp copy. do change ID user-count for the copies.
    */
   bNodeTree *wgroup = ntreeCopyTree(bmain, ngroup);
 
-  /* Add the nodes into the ntree */
+  /* Add the nodes into the `ntree`. */
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &wgroup->nodes) {
     /* Remove interface nodes.
      * This also removes remaining links to and from interface nodes.
@@ -246,9 +246,8 @@ static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
       nodes_delayed_free.append(node);
     }
 
-    /* keep track of this node's RNA "base" path (the part of the path identifying the node)
-     * if the old nodetree has animation data which potentially covers this node
-     */
+    /* Keep track of this node's RNA "base" path (the part of the path identifying the node)
+     * if the old node-tree has animation data which potentially covers this node. */
     const char *old_animation_basepath = nullptr;
     if (wgroup->adt) {
       PointerRNA ptr;
@@ -483,9 +482,8 @@ static bool node_group_separate_selected(
       newnode = node;
     }
 
-    /* keep track of this node's RNA "base" path (the part of the path identifying the node)
-     * if the old nodetree has animation data which potentially covers this node
-     */
+    /* Keep track of this node's RNA "base" path (the part of the path identifying the node)
+     * if the old node-tree has animation data which potentially covers this node. */
     if (ngroup.adt) {
       PointerRNA ptr;
       char *path;
@@ -783,9 +781,8 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
   /* move nodes over */
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree.nodes) {
     if (node_group_make_use_node(*node, gnode)) {
-      /* keep track of this node's RNA "base" path (the part of the pat identifying the node)
-       * if the old nodetree has animation data which potentially covers this node
-       */
+      /* Keep track of this node's RNA "base" path (the part of the pat identifying the node)
+       * if the old node-tree has animation data which potentially covers this node. */
       if (ntree.adt) {
         PointerRNA ptr;
         char *path;
@@ -995,7 +992,7 @@ static bNode *node_group_make_from_selected(const bContext &C,
     return nullptr;
   }
 
-  /* new nodetree */
+  /* New node-tree. */
   bNodeTree *ngroup = ntreeAddTree(bmain, "NodeGroup", ntreetype);
 
   /* make group node */

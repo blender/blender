@@ -189,7 +189,7 @@ void OBJWriter::write_vertex_coords(const OBJMesh &obj_mesh_data) const
 }
 
 /**
- * Write UV vertex coordinates for all vertices as "vt u v".
+ * Write UV vertex coordinates for all vertices as `vt u v`.
  * \note UV indices are stored here, but written later.
  */
 void OBJWriter::write_uv_coords(OBJMesh &r_obj_mesh_data) const
@@ -430,7 +430,7 @@ void OBJWriter::write_nurbs_curve(const OBJCurve &obj_nurbs_data) const
     file_handler_->write<eOBJSyntaxElement::curve_element_end>();
 
     /**
-     * In "parm u 0 0.1 .." line:, (total control points + 2) equidistant numbers in the
+     * In `parm u 0 0.1 ..` line:, (total control points + 2) equidistant numbers in the
      * parameter range are inserted.
      */
     file_handler_->write<eOBJSyntaxElement::nurbs_parameter_begin>();
@@ -584,9 +584,9 @@ void MTLWriter::write_materials()
 }
 
 /**
- * Add the materials of the given object to MTLWriter, deduping
+ * Add the materials of the given object to #MTLWriter, de-duplicating
  * against ones that are already there.
- * Return a Vector of indices into mtlmaterials_ that hold the MTLMaterial
+ * Return a Vector of indices into mtlmaterials_ that hold the #MTLMaterial
  * that corresponds to each material slot, in order, of the given Object.
  * Indexes are returned rather than pointers to the MTLMaterials themselves
  * because the mtlmaterials_ Vector may move around when resized.

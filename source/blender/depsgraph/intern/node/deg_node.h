@@ -83,7 +83,7 @@ enum class NodeType {
   ANIMATION,
   /* Transform Component (Parenting/Constraints) */
   TRANSFORM,
-  /* Geometry Component (Mesh/Displist) */
+  /* Geometry Component (#Mesh / #DispList) */
   GEOMETRY,
   /* Sequencer Component (Scene Only) */
   SEQUENCER,

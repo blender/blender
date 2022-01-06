@@ -72,7 +72,7 @@ bool IMB_colormanagement_space_name_is_data(const char *name);
 /**
  * Convert a float RGB triplet to the correct luminance weighted average.
  *
- * Grayscale, or Luma is a distillation of RGB data values down to a weighted average
+ * Gray-scale, or Luma is a distillation of RGB data values down to a weighted average
  * based on the luminance positions of the red, green, and blue primaries.
  * Given that the internal reference space may be arbitrarily set, any
  * effort to glean the luminance coefficients must be aware of the reference

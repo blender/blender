@@ -199,7 +199,7 @@ void WM_gizmotype_append_ptr(void (*gtfunc)(struct wmGizmoType *, void *), void 
 bool WM_gizmotype_remove(struct bContext *C, struct Main *bmain, const char *idname);
 void WM_gizmotype_remove_ptr(struct bContext *C, struct Main *bmain, struct wmGizmoType *gzt);
 /**
- * Free but don't remove from ghash.
+ * Free but don't remove from #GHash.
  */
 void WM_gizmotype_free_ptr(struct wmGizmoType *gzt);
 /**

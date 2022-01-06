@@ -1010,7 +1010,7 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
     case ID_OB: {
       /* TODO(sergey): This workaround is only to prevent free derived
        * caches from modifying object->data. This is currently happening
-       * due to mesh/curve datablock boundbox tagging dirty. */
+       * due to mesh/curve data-block bound-box tagging dirty. */
       Object *ob_cow = (Object *)id_cow;
       ob_cow->data = nullptr;
       ob_cow->sculpt = nullptr;

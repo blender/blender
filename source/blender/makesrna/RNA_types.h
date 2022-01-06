@@ -265,7 +265,8 @@ typedef enum PropertyFlag {
    * This is crucial information for processes that walk the whole data of an ID e.g.
    * (like library override).
    * Note that all ID pointers are enforced to this by default,
-   * this probably will need to be rechecked (see ugly infamous NodeTrees of mat/tex/scene/etc.).
+   * this probably will need to be rechecked
+   * (see ugly infamous node-trees of material/texture/scene/etc.).
    */
   PROP_PTR_NO_OWNERSHIP = (1 << 7),
 

@@ -45,8 +45,8 @@ class AbcCurveReader final : public AbcObjectReader {
   void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel) override;
   /**
    * \note Alembic only stores data about control points, but the Mesh
-   * passed from the cache modifier contains the displist, which has more data
-   * than the control points, so to avoid corrupting the displist we modify the
+   * passed from the cache modifier contains the #DispList, which has more data
+   * than the control points, so to avoid corrupting the #DispList we modify the
    * object directly and create a new Mesh from that. Also we might need to
    * create new or delete existing NURBS in the curve.
    */

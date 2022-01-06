@@ -29,7 +29,7 @@
  * high-level routine that loads all images as 32-bit RGBA, handling all the
  * required conversions between many different TIFF types internally.
  *
- * Saving supports RGB, RGBA and BW (grayscale) images correctly, with
+ * Saving supports RGB, RGBA and BW (gray-scale) images correctly, with
  * 8 bits per channel in all cases.  The "deflate" compression algorithm is
  * used to compress images.
  */
@@ -488,7 +488,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
           if (chan == 3 && spp == 3) { /* fill alpha if only RGB TIFF */
             copy_vn_fl(fbuf, ibuf->x, 1.0f);
           }
-          else if (chan >= spp) { /* for grayscale, duplicate first channel into G and B */
+          else if (chan >= spp) { /* For gray-scale, duplicate first channel into G and B. */
             success |= TIFFReadScanline(image, fbuf, row, 0);
           }
           else {
@@ -500,7 +500,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
           if (chan == 3 && spp == 3) { /* fill alpha if only RGB TIFF */
             copy_vn_ushort(sbuf, ibuf->x, 65535);
           }
-          else if (chan >= spp) { /* for grayscale, duplicate first channel into G and B */
+          else if (chan >= spp) { /* For gray-scale, duplicate first channel into G and B. */
             success |= TIFFReadScanline(image, fbuf, row, 0);
           }
           else {
@@ -848,7 +848,7 @@ bool imb_savetiff(ImBuf *ibuf, const char *filepath, int flags)
     TIFFSetField(image, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
   }
   else if (samplesperpixel == 1) {
-    /* grayscale images, 1 channel */
+    /* Gray-scale images, 1 channel */
     TIFFSetField(image, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
   }
 

@@ -188,7 +188,7 @@ void ED_widgetgroup_gizmo2d_rotate_callbacks_set(struct wmGizmoGroupType *gzgt);
 
 struct TransformBounds {
   float center[3];      /* Center for transform widget. */
-  float min[3], max[3]; /* Boundbox of selection for transform widget. */
+  float min[3], max[3]; /* Bounding-box of selection for transform widget. */
 
   /* Normalized axis */
   float axis[3][3];

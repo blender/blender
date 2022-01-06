@@ -3755,7 +3755,7 @@ static void minmax_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
     copy_m4_m4(tarmat, ct->matrix);
 
     if (data->flag & MINMAX_USEROT) {
-      /* take rotation of target into account by doing the transaction in target's localspace */
+      /* Take rotation of target into account by doing the transaction in target's local-space. */
       invert_m4_m4(imat, tarmat);
       mul_m4_m4m4(tmat, imat, obmat);
       copy_m4_m4(obmat, tmat);
@@ -3800,7 +3800,7 @@ static void minmax_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
     if (val1 > val2) {
       obmat[3][index] = tarmat[3][index] + data->offset;
       if (data->flag & MINMAX_USEROT) {
-        /* get out of localspace */
+        /* Get out of local-space. */
         mul_m4_m4m4(tmat, ct->matrix, obmat);
         copy_m4_m4(cob->matrix, tmat);
       }

@@ -461,8 +461,6 @@ void RE_GetCameraWindow(struct Render *re, struct Object *camera, float mat[4][4
 void RE_GetCameraWindowWithOverscan(struct Render *re, float overscan, float r_winmat[4][4]);
 void RE_GetCameraModelMatrix(struct Render *re, struct Object *camera, float r_modelmat[4][4]);
 
-/* displist.c utility. */
-
 struct Scene *RE_GetScene(struct Render *re);
 void RE_SetScene(struct Render *re, struct Scene *sce);
 

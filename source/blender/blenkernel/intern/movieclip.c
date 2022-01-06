@@ -106,7 +106,7 @@ static void movie_clip_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_s
   MovieClip *movie_clip_dst = (MovieClip *)id_dst;
   const MovieClip *movie_clip_src = (const MovieClip *)id_src;
 
-  /* We never handle usercount here for own data. */
+  /* We never handle user-count here for own data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
   movie_clip_dst->anim = NULL;
@@ -1178,7 +1178,7 @@ static ImBuf *get_postprocessed_cached_frame(const MovieClip *clip,
     return NULL;
   }
 
-  /* postprocessing happened for other frame */
+  /* Postprocessing happened for other frame. */
   if (cache->postprocessed.framenr != framenr) {
     return NULL;
   }

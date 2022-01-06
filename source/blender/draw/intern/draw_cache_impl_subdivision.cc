@@ -1135,9 +1135,11 @@ static uint get_dispatch_size(uint elements)
   return divide_ceil_u(elements, SUBDIV_LOCAL_WORK_GROUP_SIZE);
 }
 
-/* Helper to ensure that the UBO is always initalized before dispatching computes and that the same
- * number of elements that need to be processed is used for the UBO and the dispatch size.
- * Use this instead of a raw call to #GPU_compute_dispatch. */
+/**
+ * Helper to ensure that the UBO is always initialized before dispatching computes and that the
+ * same number of elements that need to be processed is used for the UBO and the dispatch size.
+ * Use this instead of a raw call to #GPU_compute_dispatch.
+ */
 static void drw_subdiv_compute_dispatch(const DRWSubdivCache *cache,
                                         GPUShader *shader,
                                         const int src_offset,
@@ -1219,8 +1221,8 @@ void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache->num_subdiv_quads);
 
-  /* This generates a vertex buffer, so we need to put a barrier on the vertex attrib array. We
-   * also need it for subsequent compute shaders, so a barrier on the shader storage is also
+  /* This generates a vertex buffer, so we need to put a barrier on the vertex attribute array.
+   * We also need it for subsequent compute shaders, so a barrier on the shader storage is also
    * needed. */
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE | GPU_BARRIER_VERTEX_ATTRIB_ARRAY);
 
@@ -1389,8 +1391,8 @@ void draw_subdiv_accumulate_normals(const DRWSubdivCache *cache,
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache->num_subdiv_verts);
 
-  /* This generates a vertex buffer, so we need to put a barrier on the vertex attrib array. We
-   * also need it for subsequent compute shaders, so a barrier on the shader storage is also
+  /* This generates a vertex buffer, so we need to put a barrier on the vertex attribute array.
+   * We also need it for subsequent compute shaders, so a barrier on the shader storage is also
    * needed. */
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE | GPU_BARRIER_VERTEX_ATTRIB_ARRAY);
 
@@ -1413,8 +1415,8 @@ void draw_subdiv_finalize_normals(const DRWSubdivCache *cache,
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache->num_subdiv_quads);
 
-  /* This generates a vertex buffer, so we need to put a barrier on the vertex attrib array. We
-   * also need it for subsequent compute shaders, so a barrier on the shader storage is also
+  /* This generates a vertex buffer, so we need to put a barrier on the vertex attribute array.
+   * We also need it for subsequent compute shaders, so a barrier on the shader storage is also
    * needed. */
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE | GPU_BARRIER_VERTEX_ATTRIB_ARRAY);
 

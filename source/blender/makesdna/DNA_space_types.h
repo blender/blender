@@ -986,7 +986,7 @@ enum eFileDetails {
  */
 #define FILE_SELECT_MAX_RECURSIONS (FILE_MAX_LIBEXTRA / 2)
 
-/** Filesel types. */
+/** File selector types. */
 typedef enum eFileSelectType {
   FILE_LOADLIB = 1,
   FILE_MAIN = 2,
@@ -1000,7 +1000,7 @@ typedef enum eFileSelectType {
   FILE_SPECIAL = 9,
 } eFileSelectType;
 
-/** filesel op property -> action. */
+/** File-selector op property -> action. */
 typedef enum eFileSel_Action {
   FILE_OPENFILE = 0,
   FILE_SAVE = 1,
@@ -1755,7 +1755,7 @@ typedef struct SpaceClip {
    */
   float stabmat[4][4], unistabmat[4][4];
 
-  /* movie postprocessing */
+  /** Movie postprocessing. */
   int postproc_flag;
 
   /* grease pencil */

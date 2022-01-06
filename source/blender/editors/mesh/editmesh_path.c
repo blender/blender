@@ -377,7 +377,7 @@ static void edgetag_ensure_cd_flag(Mesh *me, const char edge_mode)
   }
 }
 
-/* mesh shortest path select, uses prev-selected edge */
+/* Mesh shortest path select, uses previously-selected edge. */
 
 /* since you want to create paths with multiple selects, it doesn't have extend option */
 static void mouse_mesh_shortest_path_edge(Scene *scene,

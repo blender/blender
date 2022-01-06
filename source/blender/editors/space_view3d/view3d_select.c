@@ -4040,7 +4040,9 @@ static bool lattice_circle_select(ViewContext *vc,
   return data.is_changed;
 }
 
-/* NOTE: pose-bone case is copied from editbone case... */
+/**
+ * \note logic is shared with the edit-bone case, see #armature_circle_doSelectJoint.
+ */
 static bool pchan_circle_doSelectJoint(void *userData,
                                        bPoseChannel *pchan,
                                        const float screen_co[2])
@@ -4137,6 +4139,9 @@ static bool pose_circle_select(ViewContext *vc,
   return data.is_changed;
 }
 
+/**
+ * \note logic is shared with the pose-bone case, see #pchan_circle_doSelectJoint.
+ */
 static bool armature_circle_doSelectJoint(void *userData,
                                           EditBone *ebone,
                                           const float screen_co[2],

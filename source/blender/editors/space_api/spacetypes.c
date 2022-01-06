@@ -72,7 +72,7 @@
 
 void ED_spacetypes_init(void)
 {
-  /* UI unit is a variable, may be used in some space type inits. */
+  /* UI unit is a variable, may be used in some space type initialization. */
   U.widget_unit = 20;
 
   /* Create space types. */

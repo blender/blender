@@ -800,7 +800,8 @@ typedef struct BMOIter {
   int cur;  // for arrays
   GHashIterator giter;
   void **val;
-  char restrictmask; /* bitwise '&' with BMHeader.htype */
+  /** Bit-wise '&' with #BMHeader.htype */
+  char restrictmask;
 } BMOIter;
 
 void *BMO_slot_buffer_get_first(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);

@@ -27,8 +27,8 @@ struct Object;
 struct bConstraint;
 
 #define TRANSDATABASIC \
-  /** Extra data (mirrored element pointer, in editmode mesh to BMVert) \
-   * (editbone for roll fixing) (...). */ \
+  /** Extra data (mirrored element pointer, in edit-mode mesh to #BMVert) \
+   * (edit-bone for roll fixing) (...). */ \
   void *extra; \
   /** Location of the data to transform. */ \
   float *loc; \

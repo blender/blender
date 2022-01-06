@@ -36,13 +36,13 @@
 #include "IO_wavefront_obj.h"
 
 namespace blender::io::obj {
-/* Denote absence for usually non-negative numbers. */
+/** Denote absence for usually non-negative numbers. */
 const int NOT_FOUND = -1;
-/* Any negative number other than `NOT_FOUND` to initialise usually non-negative numbers. */
+/** Any negative number other than `NOT_FOUND` to initialize usually non-negative numbers. */
 const int NEGATIVE_INIT = -10;
 
 /**
- * #std::unique_ptr deleter for BMesh.
+ * #std::unique_ptr than handles freeing #BMesh.
  */
 struct CustomBMeshDeleter {
   void operator()(BMesh *bmesh)

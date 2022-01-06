@@ -307,7 +307,7 @@ typedef struct bNode {
 
   char _pad1[4];
 
-  /** Entire boundbox (world-space). */
+  /** Entire bound-box (world-space). */
   rctf totr;
   /** Optional preview area. */
   rctf prvr;

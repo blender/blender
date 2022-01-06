@@ -410,8 +410,8 @@ static const char *preview_world_name(const Scene *sce,
    * material trick to show the floor in the reflections, but hide the floor for camera rays. For
    * Eevee we use a transparent world that has a projected grid.
    *
-   * In the future when Eevee supports vulkan raytracing we can re-evaluate and perhaps remove this
-   * approximation.
+   * In the future when Eevee supports VULKAN ray-tracing we can re-evaluate and perhaps remove
+   * this approximation.
    */
   if (id_type == ID_MA && pr_method == PR_ICON_RENDER &&
       !render_engine_supports_ray_visibility(sce)) {
@@ -1424,9 +1424,9 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
       iuser.framenr = 1;
       iuser.scene = sp->scene;
 
-      /* elubie: this needs to be changed: here image is always loaded if not
+      /* NOTE(@elubie): this needs to be changed: here image is always loaded if not
        * already there. Very expensive for large images. Need to find a way to
-       * only get existing ibuf */
+       * only get existing `ibuf`. */
       ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
       if (ibuf == nullptr || (ibuf->rect == nullptr && ibuf->rect_float == nullptr)) {
         BKE_image_release_ibuf(ima, ibuf, nullptr);
@@ -1507,7 +1507,7 @@ static void other_id_types_preview_render(IconPreview *ip,
   /* These types don't use the ShaderPreview mess, they have their own types and functions. */
   BLI_assert(!ip->id || !ELEM(GS(ip->id->name), ID_OB));
 
-  /* construct shader preview from image size and previewcustomdata */
+  /* Construct shader preview from image size and preview custom-data. */
   sp->scene = ip->scene;
   sp->owner = ip->owner;
   sp->sizex = cur_size->sizex;

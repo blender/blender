@@ -220,7 +220,7 @@ void register_node_type_sh_tex_sky()
   node_type_init(&ntype, file_ns::node_shader_init_tex_sky);
   node_type_storage(&ntype, "NodeTexSky", node_free_standard_storage, node_copy_standard_storage);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_sky);
-  /* remove Vector input for Nishita */
+  /* Remove vector input for Nishita sky model. */
   node_type_update(&ntype, file_ns::node_shader_update_sky);
 
   nodeRegisterType(&ntype);

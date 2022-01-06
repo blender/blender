@@ -377,7 +377,7 @@ void GLStateManager::set_blend(const eGPUBlend value)
       break;
     }
     case GPU_BLEND_ADDITIVE: {
-      /* Do not let alpha accumulate but premult the source RGB by it. */
+      /* Do not let alpha accumulate but pre-multiply the source RGB by it. */
       src_rgb = GL_SRC_ALPHA;
       dst_rgb = GL_ONE;
       src_alpha = GL_ZERO;

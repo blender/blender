@@ -439,7 +439,7 @@ static void bchunk_list_ensure_min_size_last(const BArrayInfo *info,
       if (data_merge_len <= info->chunk_byte_size_max) {
         /* we have enough space to merge */
 
-        /* remove last from linklist */
+        /* Remove last from the linked-list. */
         BLI_assert(chunk_list->chunk_refs.last != chunk_list->chunk_refs.first);
         cref->prev->next = NULL;
         chunk_list->chunk_refs.last = cref->prev;

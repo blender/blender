@@ -494,7 +494,7 @@ void BKE_object_handle_update(struct Depsgraph *depsgraph, struct Scene *scene, 
  *
  * Function below is polluted with proxy exceptions, cleanup will follow!
  *
- * The main object update call, for object matrix, constraints, keys and displist (modifiers)
+ * The main object update call, for object matrix, constraints, keys and #DispList (modifiers)
  * requires flags to be set!
  *
  * Ideally we shouldn't have to pass the rigid body world,

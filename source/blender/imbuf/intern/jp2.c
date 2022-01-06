@@ -424,13 +424,13 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
   h = image->comps[0].h;
 
   switch (image->numcomps) {
-    case 1: /* Grayscale */
-    case 3: /* Color */
+    case 1: /* Gray-scale. */
+    case 3: /* Color. */
       planes = 24;
       use_alpha = false;
       break;
-    default:       /* 2 or 4 - Grayscale or Color + alpha */
-      planes = 32; /* grayscale + alpha */
+    default:       /* 2 or 4 - Gray-scale or Color + alpha. */
+      planes = 32; /* Gray-scale + alpha. */
       use_alpha = true;
       break;
   }
@@ -529,7 +529,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
       r = image->comps[0].data;
       a = (use_alpha) ? image->comps[1].data : NULL;
 
-      /* grayscale */
+      /* Gray-scale. */
       if (use_alpha) {
         a = image->comps[3].data;
         PIXEL_LOOPER_BEGIN (rect_uchar) {
@@ -891,8 +891,8 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
       prec = 8;
     }
 
-    /* 32bit images == alpha channel */
-    /* grayscale not supported yet */
+    /* 32bit images == alpha channel. */
+    /* Gray-scale not supported yet. */
     numcomps = (ibuf->planes == 32) ? 4 : 3;
   }
 

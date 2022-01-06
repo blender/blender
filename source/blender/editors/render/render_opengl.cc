@@ -92,7 +92,7 @@
 #endif
 
 /* TODO(sergey): Find better approximation of the scheduled frames.
- * For really highres renders it might fail still. */
+ * For really high-resolution renders it might fail still. */
 #define MAX_SCHEDULED_FRAMES 8
 
 struct OGLRender {
@@ -141,7 +141,7 @@ struct OGLRender {
   wmWindowManager *wm;
   wmWindow *win;
 
-  /** Use to check if running modal or not (invoke'd or exec'd). */
+  /** Use to check if running modal or not (invoked or executed). */
   wmTimer *timer;
 
   void **movie_ctx_arr;

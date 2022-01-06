@@ -360,7 +360,7 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
   RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_SHAD_CONTACT);
   RNA_def_property_ui_text(prop,
                            "Contact Shadow",
-                           "Use screen space raytracing to have correct shadowing "
+                           "Use screen space ray-tracing to have correct shadowing "
                            "near occluder, or for small features that does not appear "
                            "in shadow maps");
   RNA_def_property_update(prop, 0, "rna_Light_update");

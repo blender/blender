@@ -147,7 +147,7 @@ typedef struct PolyFill {
 #endif
 } PolyFill;
 
-/* circular linklist */
+/** Circular double linked-list. */
 typedef struct PolyIndex {
   struct PolyIndex *next, *prev;
   uint index;

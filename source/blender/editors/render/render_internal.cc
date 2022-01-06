@@ -124,13 +124,13 @@ static bool image_buffer_calc_tile_rect(const RenderResult *rr,
 
   /* When `renrect` argument is not nullptr, we only refresh scan-lines. */
   if (renrect) {
-    /* if (tile_height == recty), rendering of layer is ready,
+    /* `if (tile_height == recty)`, rendering of layer is ready,
      * we should not draw, other things happen... */
     if (rr->renlay == nullptr || renrect->ymax >= rr->recty) {
       return false;
     }
 
-    /* tile_x here is first subrect x coord, tile_width defines subrect width */
+    /* `tile_x` here is first sub-rectangle x coord, tile_width defines sub-rectangle width. */
     tile_x = renrect->xmin;
     tile_width = renrect->xmax - tile_x;
     if (tile_width < 2) {
@@ -705,9 +705,9 @@ static void render_endjob(void *rjv)
 {
   RenderJob *rj = static_cast<RenderJob *>(rjv);
 
-  /* this render may be used again by the sequencer without the active
+  /* This render may be used again by the sequencer without the active
    * 'Render' where the callbacks would be re-assigned. assign dummy callbacks
-   * to avoid referencing freed renderjobs bug T24508. */
+   * to avoid referencing freed render-jobs bug T24508. */
   RE_InitRenderCB(rj->re);
 
   if (rj->main != G_MAIN) {
