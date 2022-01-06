@@ -87,9 +87,9 @@ set(SRC
   intern/node_multi_function.cc
   intern/node_socket.cc
   intern/node_socket_declarations.cc
-  intern/socket_search_link.cc
   intern/node_tree_ref.cc
   intern/node_util.c
+  intern/socket_search_link.cc
 
   texture/node_texture_util.h
 
@@ -107,8 +107,8 @@ set(SRC
   NOD_shader.h
   NOD_socket.h
   NOD_socket_declarations.hh
-  NOD_socket_search_link.hh
   NOD_socket_declarations_geometry.hh
+  NOD_socket_search_link.hh
   NOD_static_types.h
   NOD_texture.h
   intern/node_common.h

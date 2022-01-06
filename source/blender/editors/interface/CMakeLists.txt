@@ -24,8 +24,8 @@ set(INC
   ../../blentranslation
   ../../depsgraph
   ../../draw
-  ../../gpu
   ../../functions
+  ../../gpu
   ../../imbuf
   ../../makesdna
   ../../makesrna
@@ -71,8 +71,8 @@ set(SRC
   interface_regions.c
   interface_style.c
   interface_template_asset_view.cc
-  interface_template_list.cc
   interface_template_attribute_search.cc
+  interface_template_list.cc
   interface_template_search_menu.cc
   interface_template_search_operator.c
   interface_templates.c

@@ -16,8 +16,8 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-  ../include
   ../asset
+  ../include
   ../../blenfont
   ../../blenkernel
   ../../blenlib

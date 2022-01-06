@@ -25,8 +25,8 @@ set(INC
   ../../io/alembic
   ../../io/collada
   ../../io/gpencil
-  ../../io/wavefront_obj
   ../../io/usd
+  ../../io/wavefront_obj
   ../../makesdna
   ../../makesrna
   ../../windowmanager
