@@ -23,5 +23,10 @@
  *
  * Use to flip vertically to fit OpenGL convention.
  */
-int FlipDXTCImage(
-    unsigned int width, unsigned int height, unsigned int levels, int fourcc, uint8_t *data);
+int FlipDXTCImage(unsigned int width,
+                  unsigned int height,
+                  unsigned int levels,
+                  int fourcc,
+                  uint8_t *data,
+                  int data_size,
+                  unsigned int *r_num_valid_levels);

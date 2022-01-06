@@ -168,9 +168,16 @@ static void FlipDXT5BlockHalf(uint8_t *block)
   FlipDXT1BlockHalf(block + 8);
 }
 
-int FlipDXTCImage(
-    unsigned int width, unsigned int height, unsigned int levels, int fourcc, uint8_t *data)
+int FlipDXTCImage(unsigned int width,
+                  unsigned int height,
+                  unsigned int levels,
+                  int fourcc,
+                  uint8_t *data,
+                  int data_size,
+                  unsigned int *r_num_valid_levels)
 {
+  *r_num_valid_levels = 0;
+
   /* Must have valid dimensions. */
   if (width == 0 || height == 0) {
     return 0;
@@ -204,13 +211,24 @@ int FlipDXTCImage(
       return 0;
   }
 
+  *r_num_valid_levels = levels;
+
   unsigned int mip_width = width;
   unsigned int mip_height = height;
+
+  const uint8_t *data_end = data + data_size;
 
   for (unsigned int i = 0; i < levels; i++) {
     unsigned int blocks_per_row = (mip_width + 3) / 4;
     unsigned int blocks_per_col = (mip_height + 3) / 4;
     unsigned int blocks = blocks_per_row * blocks_per_col;
+
+    if (data + block_bytes * blocks > data_end) {
+      /* Stop flipping when running out of data to be modified, avoiding possible buffer overrun
+       * on a malformed files. */
+      *r_num_valid_levels = i;
+      break;
+    }
 
     if (mip_height == 1) {
       /* no flip to do, and we're done. */
