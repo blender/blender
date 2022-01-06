@@ -534,7 +534,7 @@ static Scene *preview_prepare_scene(
         const ePreviewType preview_type = static_cast<ePreviewType>(
             (sp->pr_method == PR_ICON_RENDER && sp->pr_main == G_pr_main_grease_pencil) ?
                 MA_SPHERE_A :
-                mat->pr_type);
+                (ePreviewType)mat->pr_type);
         set_preview_visibility(pr_main, sce, view_layer, preview_type, sp->pr_method);
       }
       else {

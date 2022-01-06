@@ -727,7 +727,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   const bool is_sequencer = RNA_boolean_get(op->ptr, "sequencer");
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
   const eImageFormatDepth color_depth = static_cast<eImageFormatDepth>(
-      (is_animation) ? scene->r.im_format.depth : R_IMF_CHAN_DEPTH_32);
+      (is_animation) ? (eImageFormatDepth)scene->r.im_format.depth : R_IMF_CHAN_DEPTH_32);
   char err_out[256] = "unknown";
 
   if (G.background) {
