@@ -49,8 +49,17 @@
 /* GSet for edge rotation */
 
 typedef struct EdRotState {
-  int v1, v2; /*  edge vert, small -> large */
-  int f1, f2; /*  face vert, small -> large */
+  /**
+   * Edge vert indices (ordered small -> large).
+   */
+  int v_pair[2];
+  /**
+   * Face vert indices (small -> large).
+   *
+   * Each face-vertex points to a connected triangles vertex
+   * that's isn't part of the edge defined by `v_pair`.
+   */
+  int f_pair[2];
 } EdRotState;
 
 #if 0
@@ -58,7 +67,7 @@ typedef struct EdRotState {
 static uint erot_gsetutil_hash(const void *ptr)
 {
   const EdRotState *e_state = (const EdRotState *)ptr;
-  return BLI_ghashutil_inthash_v4(&e_state->v1);
+  return BLI_ghashutil_inthash_v4(&e_state->v_pair[0]);
 }
 #endif
 #if 0
@@ -66,33 +75,31 @@ static int erot_gsetutil_cmp(const void *a, const void *b)
 {
   const EdRotState *e_state_a = (const EdRotState *)a;
   const EdRotState *e_state_b = (const EdRotState *)b;
-  if (e_state_a->v1 < e_state_b->v1) {
+  if (e_state_a->v_pair[0] < e_state_b->v_pair[0]) {
     return -1;
   }
-  else if (e_state_a->v1 > e_state_b->v1) {
+  if (e_state_a->v_pair[0] > e_state_b->v_pair[0]) {
     return 1;
   }
-  else if (e_state_a->v2 < e_state_b->v2) {
+  if (e_state_a->v_pair[1] < e_state_b->v_pair[1]) {
     return -1;
   }
-  else if (e_state_a->v2 > e_state_b->v2) {
+  if (e_state_a->v_pair[1] > e_state_b->v_pair[1]) {
     return 1;
   }
-  else if (e_state_a->f1 < e_state_b->f1) {
+  if (e_state_a->f_pair[0] < e_state_b->f_pair[0]) {
     return -1;
   }
-  else if (e_state_a->f1 > e_state_b->f1) {
+  if (e_state_a->f_pair[0] > e_state_b->f_pair[0]) {
     return 1;
   }
-  else if (e_state_a->f2 < e_state_b->f2) {
+  if (e_state_a->f_pair[1] < e_state_b->f_pair[1]) {
     return -1;
   }
-  else if (e_state_a->f2 > e_state_b->f2) {
+  if (e_state_a->f_pair[1] > e_state_b->f_pair[1]) {
     return 1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 #endif
 static GSet *erot_gset_new(void)
@@ -127,12 +134,12 @@ static void erot_state_ex(const BMEdge *e, int v_index[2], int f_index[2])
 
 static void erot_state_current(const BMEdge *e, EdRotState *e_state)
 {
-  erot_state_ex(e, &e_state->v1, &e_state->f1);
+  erot_state_ex(e, e_state->v_pair, e_state->f_pair);
 }
 
 static void erot_state_alternate(const BMEdge *e, EdRotState *e_state)
 {
-  erot_state_ex(e, &e_state->f1, &e_state->v1);
+  erot_state_ex(e, e_state->f_pair, e_state->v_pair);
 }
 
 /* -------------------------------------------------------------------- */
