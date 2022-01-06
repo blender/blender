@@ -139,6 +139,8 @@ static void extract_edituv_tris_iter_subdiv(const DRWSubdivCache *subdiv_cache,
 }
 
 static void extract_edituv_tris_finish_subdiv(const struct DRWSubdivCache *UNUSED(subdiv_cache),
+                                              const MeshRenderData *UNUSED(mr),
+                                              struct MeshBatchCache *UNUSED(cache),
                                               void *buf,
                                               void *_data)
 {
@@ -282,6 +284,8 @@ static void extract_edituv_lines_iter_subdiv(const DRWSubdivCache *subdiv_cache,
 }
 
 static void extract_edituv_lines_finish_subdiv(const struct DRWSubdivCache *UNUSED(subdiv_cache),
+                                               const MeshRenderData *UNUSED(mr),
+                                               struct MeshBatchCache *UNUSED(cache),
                                                void *buf,
                                                void *_data)
 {
@@ -413,6 +417,8 @@ static void extract_edituv_points_iter_subdiv(const DRWSubdivCache *subdiv_cache
 }
 
 static void extract_edituv_points_finish_subdiv(const struct DRWSubdivCache *UNUSED(subdiv_cache),
+                                                const MeshRenderData *UNUSED(mr),
+                                                struct MeshBatchCache *UNUSED(cache),
                                                 void *buf,
                                                 void *_data)
 {

@@ -869,7 +869,7 @@ static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
     }
 
     if (extractor->finish_subdiv) {
-      extractor->finish_subdiv(subdiv_cache, buffer, data);
+      extractor->finish_subdiv(subdiv_cache, &mr, cache, buffer, data);
     }
   }
   MEM_freeN(data_stack);

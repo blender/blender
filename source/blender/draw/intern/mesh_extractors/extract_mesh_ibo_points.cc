@@ -216,6 +216,8 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
 }
 
 static void extract_points_finish_subdiv(const DRWSubdivCache *UNUSED(subdiv_cache),
+                                         const MeshRenderData *UNUSED(mr),
+                                         struct MeshBatchCache *UNUSED(cache),
                                          void *buf,
                                          void *_userdata)
 {
