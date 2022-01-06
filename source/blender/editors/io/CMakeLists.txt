@@ -65,6 +65,7 @@ set(SRC
   io_cache.h
   io_collada.h
   io_gpencil.h
+  io_obj.h
   io_ops.h
   io_usd.h
 )
