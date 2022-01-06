@@ -39,19 +39,6 @@ set(INC_SYS
 
 set(SRC
   io_alembic.c
-  ../../io/usd
-  ../../makesdna
-  ../../makesrna
-  ../../windowmanager
-  ../../../../intern/guardedalloc
-)
-
-set(INC_SYS
-
-)
-
-set(SRC
-  io_alembic.c
   io_cache.c
   io_collada.c
   io_gpencil_export.c
