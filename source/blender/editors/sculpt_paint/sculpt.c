@@ -2128,10 +2128,6 @@ bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
   return data.any_vertex_sampled;
 }
 
-/**
- * This calculates flatten center and area normal together,
- * amortizing the memory bandwidth and loop overhead to calculate both at the same time.
- */
 void SCULPT_calc_area_normal_and_center(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3], float r_area_co[3])
 {
@@ -3963,8 +3959,7 @@ static const char *sculpt_tool_name(Sculpt *sd)
   return "Sculpting";
 }
 
-/**
- * Operator for applying a stroke (various attributes including mouse path)
+/* Operator for applying a stroke (various attributes including mouse path)
  * using the current brush. */
 
 void SCULPT_cache_free(StrokeCache *cache)

@@ -345,10 +345,6 @@ static bool find_fcurve_segment(FCurve *fcu,
   return in_segment;
 }
 
-/* Return a list of FCurveSegment with a start index and a length.
- * A segment is a continuous selection of keyframes.
- * Keys that have BEZT_FLAG_IGNORE_TAG set are treated as unselected.
- * The caller is responsible for freeing the memory. */
 ListBase find_fcurve_segments(FCurve *fcu)
 {
   ListBase segments = {NULL, NULL};

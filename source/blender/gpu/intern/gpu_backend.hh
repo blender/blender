@@ -42,7 +42,7 @@ class VertBuf;
 
 class GPUBackend {
  public:
-  virtual ~GPUBackend()= default;;
+  virtual ~GPUBackend() = default;
 
   static GPUBackend *get();
 

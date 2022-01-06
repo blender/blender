@@ -52,9 +52,6 @@ const char *DEFORM_GROUP_DISABLED = "off";
  * So an empty material name is written. */
 const char *MATERIAL_GROUP_DISABLED = "";
 
-/**
- * Write one line of polygon indices as "f v1/vt1/vn1 v2/vt2/vn2 ...".
- */
 void OBJWriter::write_vert_uv_normal_indices(Span<int> vert_indices,
                                              Span<int> uv_indices,
                                              Span<int> normal_indices) const
@@ -71,9 +68,6 @@ void OBJWriter::write_vert_uv_normal_indices(Span<int> vert_indices,
   file_handler_->write<eOBJSyntaxElement::poly_element_end>();
 }
 
-/**
- * Write one line of polygon indices as "f v1//vn1 v2//vn2 ...".
- */
 void OBJWriter::write_vert_normal_indices(Span<int> vert_indices,
                                           Span<int> /*uv_indices*/,
                                           Span<int> normal_indices) const
@@ -88,9 +82,6 @@ void OBJWriter::write_vert_normal_indices(Span<int> vert_indices,
   file_handler_->write<eOBJSyntaxElement::poly_element_end>();
 }
 
-/**
- * Write one line of polygon indices as "f v1/vt1 v2/vt2 ...".
- */
 void OBJWriter::write_vert_uv_indices(Span<int> vert_indices,
                                       Span<int> uv_indices,
                                       Span<int> /*normal_indices*/) const
@@ -105,9 +96,6 @@ void OBJWriter::write_vert_uv_indices(Span<int> vert_indices,
   file_handler_->write<eOBJSyntaxElement::poly_element_end>();
 }
 
-/**
- * Write one line of polygon indices as "f v1 v2 ...".
- */
 void OBJWriter::write_vert_indices(Span<int> vert_indices,
                                    Span<int> /*uv_indices*/,
                                    Span<int> /*normal_indices*/) const
@@ -128,9 +116,6 @@ void OBJWriter::write_header() const
   file_handler_->write<eOBJSyntaxElement::string>("# www.blender.org\n");
 }
 
-/**
- * Write file name of Material Library in .OBJ file.
- */
 void OBJWriter::write_mtllib_name(const StringRefNull mtl_filepath) const
 {
   /* Split .MTL file path into parent directory and filename. */
@@ -140,9 +125,6 @@ void OBJWriter::write_mtllib_name(const StringRefNull mtl_filepath) const
   file_handler_->write<eOBJSyntaxElement::mtllib>(mtl_file_name);
 }
 
-/**
- * Write an object's group with mesh and/or material name appended conditionally.
- */
 void OBJWriter::write_object_group(const OBJMesh &obj_mesh_data) const
 {
   /* "o object_name" is not mandatory. A valid .OBJ file may contain neither
@@ -163,9 +145,6 @@ void OBJWriter::write_object_group(const OBJMesh &obj_mesh_data) const
   file_handler_->write<eOBJSyntaxElement::object_group>(object_name + "_" + object_mesh_name);
 }
 
-/**
- * Write object's name or group.
- */
 void OBJWriter::write_object_name(const OBJMesh &obj_mesh_data) const
 {
   const char *object_name = obj_mesh_data.get_object_name();
@@ -176,9 +155,6 @@ void OBJWriter::write_object_name(const OBJMesh &obj_mesh_data) const
   file_handler_->write<eOBJSyntaxElement::object_name>(object_name);
 }
 
-/**
- * Write vertex coordinates for all vertices as "v x y z".
- */
 void OBJWriter::write_vertex_coords(const OBJMesh &obj_mesh_data) const
 {
   const int tot_vertices = obj_mesh_data.tot_vertices();
@@ -188,10 +164,6 @@ void OBJWriter::write_vertex_coords(const OBJMesh &obj_mesh_data) const
   }
 }
 
-/**
- * Write UV vertex coordinates for all vertices as `vt u v`.
- * \note UV indices are stored here, but written later.
- */
 void OBJWriter::write_uv_coords(OBJMesh &r_obj_mesh_data) const
 {
   Vector<std::array<float, 2>> uv_coords;
@@ -203,9 +175,6 @@ void OBJWriter::write_uv_coords(OBJMesh &r_obj_mesh_data) const
   }
 }
 
-/**
- * Write loop normals for smooth-shaded polygons, and polygon normals otherwise, as "vn x y z".
- */
 void OBJWriter::write_poly_normals(const OBJMesh &obj_mesh_data) const
 {
   obj_mesh_data.ensure_mesh_normals();
@@ -226,9 +195,6 @@ void OBJWriter::write_poly_normals(const OBJMesh &obj_mesh_data) const
   }
 }
 
-/**
- * Write smooth group if polygon at the given index is shaded smooth else "s 0"
- */
 int OBJWriter::write_smooth_group(const OBJMesh &obj_mesh_data,
                                   const int poly_index,
                                   const int last_poly_smooth_group) const
@@ -251,11 +217,6 @@ int OBJWriter::write_smooth_group(const OBJMesh &obj_mesh_data,
   return current_group;
 }
 
-/**
- * Write material name and material group of a polygon in the .OBJ file.
- * \return #mat_nr of the polygon at the given index.
- * \note It doesn't write to the material library.
- */
 int16_t OBJWriter::write_poly_material(const OBJMesh &obj_mesh_data,
                                        const int poly_index,
                                        const int16_t last_poly_mat_nr,
@@ -286,9 +247,6 @@ int16_t OBJWriter::write_poly_material(const OBJMesh &obj_mesh_data,
   return current_mat_nr;
 }
 
-/**
- * Write the name of the deform group of a polygon.
- */
 int16_t OBJWriter::write_vertex_group(const OBJMesh &obj_mesh_data,
                                       const int poly_index,
                                       const int16_t last_poly_vertex_group) const
@@ -311,9 +269,6 @@ int16_t OBJWriter::write_vertex_group(const OBJMesh &obj_mesh_data,
   return current_group;
 }
 
-/**
- * \return Writer function with appropriate polygon-element syntax.
- */
 OBJWriter::func_vert_uv_normal_indices OBJWriter::get_poly_element_writer(
     const int total_uv_vertices) const
 {
@@ -333,13 +288,6 @@ OBJWriter::func_vert_uv_normal_indices OBJWriter::get_poly_element_writer(
   return &OBJWriter::write_vert_indices;
 }
 
-/**
- * Write polygon elements with at least vertex indices, and conditionally with UV vertex
- * indices and polygon normal indices. Also write groups: smooth, vertex, material.
- * The matname_fn turns a 0-indexed material slot number in an Object into the
- * name used in the .obj file.
- * \note UV indices were stored while writing UV vertices.
- */
 void OBJWriter::write_poly_elements(const OBJMesh &obj_mesh_data,
                                     std::function<const char *(int)> matname_fn)
 {
@@ -374,9 +322,6 @@ void OBJWriter::write_poly_elements(const OBJMesh &obj_mesh_data,
   index_offsets_.normal_offset += per_object_tot_normals;
 }
 
-/**
- * Write loose edges of a mesh as "l v1 v2".
- */
 void OBJWriter::write_edges_indices(const OBJMesh &obj_mesh_data) const
 {
   obj_mesh_data.ensure_mesh_edges();
@@ -393,9 +338,6 @@ void OBJWriter::write_edges_indices(const OBJMesh &obj_mesh_data) const
   }
 }
 
-/**
- * Write a NURBS curve to the .OBJ file in parameter form.
- */
 void OBJWriter::write_nurbs_curve(const OBJCurve &obj_nurbs_data) const
 {
   const int total_splines = obj_nurbs_data.total_splines();
@@ -444,10 +386,6 @@ void OBJWriter::write_nurbs_curve(const OBJCurve &obj_nurbs_data) const
   }
 }
 
-/**
- * When there are multiple objects in a frame, the indices of previous objects' coordinates or
- * normals add up.
- */
 void OBJWriter::update_index_offsets(const OBJMesh &obj_mesh_data)
 {
   index_offsets_.vertex_offset += obj_mesh_data.tot_vertices();
@@ -470,9 +408,6 @@ static std::string float3_to_string(const float3 &numbers)
   return r_string.str();
 };
 
-/*
- * Create the .MTL file.
- */
 MTLWriter::MTLWriter(const char *obj_filepath) noexcept(false)
 {
   mtl_filepath_ = obj_filepath;
@@ -499,9 +434,6 @@ StringRefNull MTLWriter::mtl_file_path() const
   return mtl_filepath_;
 }
 
-/**
- * Write properties sourced from p-BSDF node or #Object.Material.
- */
 void MTLWriter::write_bsdf_properties(const MTLMaterial &mtl_material)
 {
   file_handler_->write<eMTLSyntaxElement::Ns>(mtl_material.Ns);
@@ -518,9 +450,6 @@ void MTLWriter::write_bsdf_properties(const MTLMaterial &mtl_material)
   file_handler_->write<eMTLSyntaxElement::illum>(mtl_material.illum);
 }
 
-/**
- * Write a texture map in the form "map_XX -s 1. 1. 1. -o 0. 0. 0. [-bm 1.] path/to/image".
- */
 void MTLWriter::write_texture_map(
     const MTLMaterial &mtl_material,
     const Map<const eMTLSyntaxElement, tex_map_XX>::Item &texture_map)
@@ -557,11 +486,6 @@ void MTLWriter::write_texture_map(
   BLI_assert(!"This map type was not written to the file.");
 }
 
-/**
- * Write all of the material specifications to the MTL file.
- * For consistency of output from run to run (useful for testing),
- * the materials are sorted by name before writing.
- */
 void MTLWriter::write_materials()
 {
   if (mtlmaterials_.size() == 0) {
@@ -583,14 +507,6 @@ void MTLWriter::write_materials()
   }
 }
 
-/**
- * Add the materials of the given object to #MTLWriter, de-duplicating
- * against ones that are already there.
- * Return a Vector of indices into mtlmaterials_ that hold the #MTLMaterial
- * that corresponds to each material slot, in order, of the given Object.
- * Indexes are returned rather than pointers to the MTLMaterials themselves
- * because the mtlmaterials_ Vector may move around when resized.
- */
 Vector<int> MTLWriter::add_materials(const OBJMesh &mesh_to_export)
 {
   Vector<int> r_mtl_indices;

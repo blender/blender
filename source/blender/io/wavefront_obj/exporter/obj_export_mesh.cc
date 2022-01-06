@@ -39,10 +39,6 @@
 #include "obj_export_mesh.hh"
 
 namespace blender::io::obj {
-/**
- * Store evaluated Object and Mesh pointers. Conditionally triangulate a mesh, or
- * create a new Mesh from a Curve.
- */
 OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Object *mesh_object)
 {
   export_object_eval_ = DEG_get_evaluated_object(depsgraph, mesh_object);
@@ -75,9 +71,6 @@ OBJMesh::~OBJMesh()
   }
 }
 
-/**
- * Free the mesh if _the exporter_ created it.
- */
 void OBJMesh::free_mesh_if_needed()
 {
   if (mesh_eval_needs_free_ && export_mesh_eval_) {
@@ -85,12 +78,6 @@ void OBJMesh::free_mesh_if_needed()
   }
 }
 
-/**
- * Allocate a new Mesh with triangulated polygons.
- *
- * The returned mesh can be the same as the old one.
- * \return Owning pointer to the new Mesh, and whether a new Mesh was created.
- */
 std::pair<Mesh *, bool> OBJMesh::triangulate_mesh_eval()
 {
   if (export_mesh_eval_->totpoly <= 0) {
@@ -119,9 +106,6 @@ std::pair<Mesh *, bool> OBJMesh::triangulate_mesh_eval()
   return {triangulated, true};
 }
 
-/**
- * Set the final transform after applying axes settings and an Object's world transform.
- */
 void OBJMesh::set_world_axes_transform(const eTransformAxisForward forward,
                                        const eTransformAxisUp up)
 {
@@ -157,17 +141,11 @@ int OBJMesh::tot_edges() const
   return export_mesh_eval_->totedge;
 }
 
-/**
- * \return Total materials in the object.
- */
 int16_t OBJMesh::tot_materials() const
 {
   return export_mesh_eval_->totcol;
 }
 
-/**
- * \return Smooth group of the polygon at the given index.
- */
 int OBJMesh::ith_smooth_group(const int poly_index) const
 {
   /* Calculate smooth groups first: #OBJMesh::calc_smooth_groups. */
@@ -188,10 +166,6 @@ void OBJMesh::ensure_mesh_edges() const
   BKE_mesh_calc_edges_loose(export_mesh_eval_);
 }
 
-/**
- * Calculate smooth groups of a smooth-shaded object.
- * \return A polygon aligned array of smooth group numbers.
- */
 void OBJMesh::calc_smooth_groups(const bool use_bitflags)
 {
   poly_smooth_groups_ = BKE_mesh_calc_smoothgroups(export_mesh_eval_->medge,
@@ -204,9 +178,6 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
                                                    use_bitflags);
 }
 
-/**
- * Return mat_nr-th material of the object. The given index should be zero-based.
- */
 const Material *OBJMesh::get_object_material(const int16_t mat_nr) const
 {
   /* "+ 1" as material getter needs one-based indices.  */
@@ -224,10 +195,6 @@ bool OBJMesh::is_ith_poly_smooth(const int poly_index) const
   return export_mesh_eval_->mpoly[poly_index].flag & ME_SMOOTH;
 }
 
-/**
- * Returns a zero-based index of a polygon's material indexing into
- * the Object's material slots.
- */
 int16_t OBJMesh::ith_poly_matnr(const int poly_index) const
 {
   BLI_assert(poly_index < export_mesh_eval_->totpoly);
@@ -235,25 +202,16 @@ int16_t OBJMesh::ith_poly_matnr(const int poly_index) const
   return r_mat_nr >= 0 ? r_mat_nr : NOT_FOUND;
 }
 
-/**
- * Get object name as it appears in the outliner.
- */
 const char *OBJMesh::get_object_name() const
 {
   return export_object_eval_->id.name + 2;
 }
 
-/**
- * Get Object's Mesh's name.
- */
 const char *OBJMesh::get_object_mesh_name() const
 {
   return export_mesh_eval_->id.name + 2;
 }
 
-/**
- * Get object's material (at the given index) name. The given index should be zero-based.
- */
 const char *OBJMesh::get_object_material_name(const int16_t mat_nr) const
 {
   const Material *mat = get_object_material(mat_nr);
@@ -263,9 +221,6 @@ const char *OBJMesh::get_object_material_name(const int16_t mat_nr) const
   return mat->id.name + 2;
 }
 
-/**
- * Calculate coordinates of the vertex at the given index.
- */
 float3 OBJMesh::calc_vertex_coords(const int vert_index, const float scaling_factor) const
 {
   float3 r_coords;
@@ -275,9 +230,6 @@ float3 OBJMesh::calc_vertex_coords(const int vert_index, const float scaling_fac
   return r_coords;
 }
 
-/**
- * Calculate vertex indices of all vertices of the polygon at the given index.
- */
 Vector<int> OBJMesh::calc_poly_vertex_indices(const int poly_index) const
 {
   const MPoly &mpoly = export_mesh_eval_->mpoly[poly_index];
@@ -290,11 +242,6 @@ Vector<int> OBJMesh::calc_poly_vertex_indices(const int poly_index) const
   return r_poly_vertex_indices;
 }
 
-/**
- * Calculate UV vertex coordinates of an Object.
- *
- * \note Also store the UV vertex indices in the member variable.
- */
 void OBJMesh::store_uv_coords_and_indices(Vector<std::array<float, 2>> &r_uv_coords)
 {
   const MPoly *mpoly = export_mesh_eval_->mpoly;
@@ -351,11 +298,6 @@ Span<int> OBJMesh::calc_poly_uv_indices(const int poly_index) const
   BLI_assert(poly_index < uv_indices_.size());
   return uv_indices_[poly_index];
 }
-/**
- * Calculate polygon normal of a polygon at given index.
- *
- * Should be used for flat-shaded polygons.
- */
 float3 OBJMesh::calc_poly_normal(const int poly_index) const
 {
   float3 r_poly_normal;
@@ -367,11 +309,6 @@ float3 OBJMesh::calc_poly_normal(const int poly_index) const
   return r_poly_normal;
 }
 
-/**
- * Calculate loop normals of a polygon at the given index.
- *
- * Should be used for smooth-shaded polygons.
- */
 void OBJMesh::calc_loop_normals(const int poly_index, Vector<float3> &r_loop_normals) const
 {
   r_loop_normals.clear();
@@ -386,11 +323,6 @@ void OBJMesh::calc_loop_normals(const int poly_index, Vector<float3> &r_loop_nor
   }
 }
 
-/**
- * Calculate a polygon's polygon/loop normal indices.
- * \param object_tot_prev_normals Number of normals of this Object written so far.
- * \return Number of distinct normal indices.
- */
 std::pair<int, Vector<int>> OBJMesh::calc_poly_normal_indices(
     const int poly_index, const int object_tot_prev_normals) const
 {
@@ -414,13 +346,6 @@ std::pair<int, Vector<int>> OBJMesh::calc_poly_normal_indices(
   return {1, r_poly_normal_indices};
 }
 
-/**
- * Find the index of the vertex group with the maximum number of vertices in a polygon.
- * The index indices into the #Object.defbase.
- *
- * If two or more groups have the same number of vertices (maximum), group name depends on the
- * implementation of #std::max_element.
- */
 int16_t OBJMesh::get_poly_deform_group_index(const int poly_index) const
 {
   BLI_assert(poly_index < export_mesh_eval_->totpoly);
@@ -464,10 +389,6 @@ int16_t OBJMesh::get_poly_deform_group_index(const int poly_index) const
   return max_idx;
 }
 
-/**
- * Find the name of the vertex deform group at the given index.
- * The index indices into the #Object.defbase.
- */
 const char *OBJMesh::get_poly_deform_group_name(const int16_t def_group_index) const
 {
   const bDeformGroup &vertex_group = *(static_cast<bDeformGroup *>(
@@ -475,9 +396,6 @@ const char *OBJMesh::get_poly_deform_group_name(const int16_t def_group_index) c
   return vertex_group.name;
 }
 
-/**
- * Calculate vertex indices of an edge's corners if it is a loose edge.
- */
 std::optional<std::array<int, 2>> OBJMesh::calc_loose_edge_vert_indices(const int edge_index) const
 {
   const MEdge &edge = export_mesh_eval_->medge[edge_index];

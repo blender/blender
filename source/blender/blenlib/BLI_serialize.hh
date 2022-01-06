@@ -123,7 +123,7 @@ using ArrayValue = ContainerValue<Vector<std::shared_ptr<Value>>, eValueType::Ar
  * - `BooleanValue`: contains a boolean (true/false).
  * - `DoubleValue`: contains a double precision floating point number.
  * - `DictionaryValue`: represents an object (key value pairs where keys are strings and values can
- * be of different types.
+ *   be of different types.
  *
  */
 class Value {

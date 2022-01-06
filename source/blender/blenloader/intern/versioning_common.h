@@ -100,6 +100,10 @@ struct bNodeSocket *version_node_add_socket_if_not_exist(struct bNodeTree *ntree
                                                          const char *identifier,
                                                          const char *name);
 
+/**
+ * The versioning code generally expects `SOCK_IN_USE` to be set correctly. This function updates
+ * the flag on all sockets after changes to the node tree.
+ */
 void version_socket_update_is_used(bNodeTree *ntree);
 
 #ifdef __cplusplus

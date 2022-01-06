@@ -43,14 +43,31 @@ class OBJCurve : NonCopyable {
 
   const char *get_curve_name() const;
   int total_splines() const;
+  /**
+   * \param spline_index: Zero-based index of spline of interest.
+   * \return: Total vertices in a spline.
+   */
   int total_spline_vertices(const int spline_index) const;
+  /**
+   * Get coordinates of the vertex at the given index on the given spline.
+   */
   float3 vertex_coordinates(const int spline_index,
                             const int vertex_index,
                             const float scaling_factor) const;
+  /**
+   * Get total control points of the NURBS spline at the given index. This is different than total
+   * vertices of a spline.
+   */
   int total_spline_control_points(const int spline_index) const;
+  /**
+   * Get the degree of the NURBS spline at the given index.
+   */
   int get_nurbs_degree(const int spline_index) const;
 
  private:
+  /**
+   * Set the final transform after applying axes settings and an Object's world transform.
+   */
   void set_world_axes_transform(const eTransformAxisForward forward, const eTransformAxisUp up);
 };
 

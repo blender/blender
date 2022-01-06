@@ -51,6 +51,9 @@ class OBJDepsgraph : NonMovable, NonCopyable {
  * Depending on whether or not `export_params.export_animation` is set, it writes
  * either one file per animation frame, or just one file.
  */
+/**
+ * Central internal function to call Scene update & writer functions.
+ */
 void exporter_main(bContext *C, const OBJExportParams &export_params);
 
 class OBJMesh;
@@ -61,6 +64,11 @@ class OBJCurve;
  * The frame state is given in `depsgraph`.
  * The output file name is given by `filepath`.
  * This function is normally called from `exporter_main`, but is exposed here for testing purposes.
+ */
+/**
+ * Export a single frame to a .OBJ file.
+ *
+ * Conditionally write a .MTL file also.
  */
 void export_frame(Depsgraph *depsgraph,
                   const OBJExportParams &export_params,
@@ -83,6 +91,11 @@ filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_par
  * Makes `r_filepath_with_frames` (which should point at a character array of size `FILE_MAX`)
  * be `filepath` with its "#" characters replaced by the number representing `frame`, and with
  * a .obj extension.
+ */
+/**
+ * Append the current frame number in the .OBJ file name.
+ *
+ * \return Whether the filepath is in #FILE_MAX limits.
  */
 bool append_frame_to_filename(const char *filepath, const int frame, char *r_filepath_with_frames);
 }  // namespace blender::io::obj

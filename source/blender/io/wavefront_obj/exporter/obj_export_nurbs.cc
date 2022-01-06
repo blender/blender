@@ -39,9 +39,6 @@ OBJCurve::OBJCurve(const Depsgraph *depsgraph,
   set_world_axes_transform(export_params.forward_axis, export_params.up_axis);
 }
 
-/**
- * Set the final transform after applying axes settings and an Object's world transform.
- */
 void OBJCurve::set_world_axes_transform(const eTransformAxisForward forward,
                                         const eTransformAxisUp up)
 {
@@ -67,19 +64,12 @@ int OBJCurve::total_splines() const
   return BLI_listbase_count(&export_curve_->nurb);
 }
 
-/**
- * \param spline_index: Zero-based index of spline of interest.
- * \return: Total vertices in a spline.
- */
 int OBJCurve::total_spline_vertices(const int spline_index) const
 {
   const Nurb *const nurb = static_cast<Nurb *>(BLI_findlink(&export_curve_->nurb, spline_index));
   return nurb->pntsu * nurb->pntsv;
 }
 
-/**
- * Get coordinates of the vertex at the given index on the given spline.
- */
 float3 OBJCurve::vertex_coordinates(const int spline_index,
                                     const int vertex_index,
                                     const float scaling_factor) const
@@ -93,10 +83,6 @@ float3 OBJCurve::vertex_coordinates(const int spline_index,
   return r_coord;
 }
 
-/**
- * Get total control points of the NURBS spline at the given index. This is different than total
- * vertices of a spline.
- */
 int OBJCurve::total_spline_control_points(const int spline_index) const
 {
   const Nurb *const nurb = static_cast<Nurb *>(BLI_findlink(&export_curve_->nurb, spline_index));
@@ -110,9 +96,6 @@ int OBJCurve::total_spline_control_points(const int spline_index) const
   return r_tot_control_points;
 }
 
-/**
- * Get the degree of the NURBS spline at the given index.
- */
 int OBJCurve::get_nurbs_degree(const int spline_index) const
 {
   const Nurb *const nurb = static_cast<Nurb *>(BLI_findlink(&export_curve_->nurb, spline_index));

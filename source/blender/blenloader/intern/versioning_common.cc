@@ -224,10 +224,6 @@ void version_node_socket_index_animdata(Main *bmain,
   }
 }
 
-/**
- * The versioning code generally expects `SOCK_IN_USE` to be set correctly. This function updates
- * the flag on all sockets after changes to the node tree.
- */
 void version_socket_update_is_used(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {

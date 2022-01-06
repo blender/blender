@@ -850,7 +850,6 @@ bool actkeyblock_is_valid(const ActKeyColumn *ac)
   return ac != nullptr && ac->next != nullptr && ac->totblock > 0;
 }
 
-/* Checks if ActKeyBlock should exist... */
 int actkeyblock_get_valid_hold(const ActKeyColumn *ac)
 {
   /* check that block is valid */

@@ -207,11 +207,6 @@ static void write_nurbs_curve_objects(const Vector<std::unique_ptr<OBJCurve>> &e
   }
 }
 
-/**
- * Export a single frame to a .OBJ file.
- *
- * Conditionally write a .MTL file also.
- */
 void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, const char *filepath)
 {
   std::unique_ptr<OBJWriter> frame_writer = nullptr;
@@ -250,11 +245,6 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
   write_nurbs_curve_objects(std::move(exportable_as_nurbs), *frame_writer);
 }
 
-/**
- * Append the current frame number in the .OBJ file name.
- *
- * \return Whether the filepath is in #FILE_MAX limits.
- */
 bool append_frame_to_filename(const char *filepath, const int frame, char *r_filepath_with_frames)
 {
   BLI_strncpy(r_filepath_with_frames, filepath, FILE_MAX);
@@ -264,9 +254,6 @@ bool append_frame_to_filename(const char *filepath, const int frame, char *r_fil
   return BLI_path_extension_replace(r_filepath_with_frames, FILE_MAX, ".obj");
 }
 
-/**
- * Central internal function to call Scene update & writer functions.
- */
 void exporter_main(bContext *C, const OBJExportParams &export_params)
 {
   ED_object_mode_set(C, OB_MODE_OBJECT);

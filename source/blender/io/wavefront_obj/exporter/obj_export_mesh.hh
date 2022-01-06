@@ -87,6 +87,10 @@ class OBJMesh : NonCopyable {
   int *poly_smooth_groups_ = nullptr;
 
  public:
+  /**
+   * Store evaluated Object and Mesh pointers. Conditionally triangulate a mesh, or
+   * create a new Mesh from a Curve.
+   */
   OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Object *mesh_object);
   ~OBJMesh();
 
@@ -95,37 +99,115 @@ class OBJMesh : NonCopyable {
   int tot_uv_vertices() const;
   int tot_edges() const;
 
+  /**
+   * \return Total materials in the object.
+   */
   int16_t tot_materials() const;
+  /**
+   * Return mat_nr-th material of the object. The given index should be zero-based.
+   */
   const Material *get_object_material(const int16_t mat_nr) const;
+  /**
+   * Returns a zero-based index of a polygon's material indexing into
+   * the Object's material slots.
+   */
   int16_t ith_poly_matnr(const int poly_index) const;
 
   void ensure_mesh_normals() const;
   void ensure_mesh_edges() const;
 
+  /**
+   * Calculate smooth groups of a smooth-shaded object.
+   * \return A polygon aligned array of smooth group numbers.
+   */
   void calc_smooth_groups(const bool use_bitflags);
+  /**
+   * \return Smooth group of the polygon at the given index.
+   */
   int ith_smooth_group(const int poly_index) const;
   bool is_ith_poly_smooth(const int poly_index) const;
 
+  /**
+   * Get object name as it appears in the outliner.
+   */
   const char *get_object_name() const;
+  /**
+   * Get Object's Mesh's name.
+   */
   const char *get_object_mesh_name() const;
+  /**
+   * Get object's material (at the given index) name. The given index should be zero-based.
+   */
   const char *get_object_material_name(const int16_t mat_nr) const;
 
+  /**
+   * Calculate coordinates of the vertex at the given index.
+   */
   float3 calc_vertex_coords(const int vert_index, const float scaling_factor) const;
+  /**
+   * Calculate vertex indices of all vertices of the polygon at the given index.
+   */
   Vector<int> calc_poly_vertex_indices(const int poly_index) const;
+  /**
+   * Calculate UV vertex coordinates of an Object.
+   *
+   * \note Also store the UV vertex indices in the member variable.
+   */
   void store_uv_coords_and_indices(Vector<std::array<float, 2>> &r_uv_coords);
   Span<int> calc_poly_uv_indices(const int poly_index) const;
+  /**
+   * Calculate polygon normal of a polygon at given index.
+   *
+   * Should be used for flat-shaded polygons.
+   */
   float3 calc_poly_normal(const int poly_index) const;
+  /**
+   * Calculate a polygon's polygon/loop normal indices.
+   * \param object_tot_prev_normals Number of normals of this Object written so far.
+   * \return Number of distinct normal indices.
+   */
   std::pair<int, Vector<int>> calc_poly_normal_indices(const int poly_index,
                                                        const int object_tot_prev_normals) const;
+  /**
+   * Calculate loop normals of a polygon at the given index.
+   *
+   * Should be used for smooth-shaded polygons.
+   */
   void calc_loop_normals(const int poly_index, Vector<float3> &r_loop_normals) const;
+  /**
+   * Find the index of the vertex group with the maximum number of vertices in a polygon.
+   * The index indices into the #Object.defbase.
+   *
+   * If two or more groups have the same number of vertices (maximum), group name depends on the
+   * implementation of #std::max_element.
+   */
   int16_t get_poly_deform_group_index(const int poly_index) const;
+  /**
+   * Find the name of the vertex deform group at the given index.
+   * The index indices into the #Object.defbase.
+   */
   const char *get_poly_deform_group_name(const int16_t def_group_index) const;
 
+  /**
+   * Calculate vertex indices of an edge's corners if it is a loose edge.
+   */
   std::optional<std::array<int, 2>> calc_loose_edge_vert_indices(const int edge_index) const;
 
  private:
+  /**
+   * Free the mesh if _the exporter_ created it.
+   */
   void free_mesh_if_needed();
+  /**
+   * Allocate a new Mesh with triangulated polygons.
+   *
+   * The returned mesh can be the same as the old one.
+   * \return Owning pointer to the new Mesh, and whether a new Mesh was created.
+   */
   std::pair<Mesh *, bool> triangulate_mesh_eval();
+  /**
+   * Set the final transform after applying axes settings and an Object's world transform.
+   */
   void set_world_axes_transform(const eTransformAxisForward forward, const eTransformAxisUp up);
 };
 }  // namespace blender::io::obj
