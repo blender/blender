@@ -255,6 +255,9 @@ static eSpace_Type rna_Space_refine_reverse(StructRNA *srna)
   if (srna == &RNA_SpaceClipEditor) {
     return SPACE_CLIP;
   }
+  if (srna == &RNA_SpaceSpreadsheet) {
+    return SPACE_SPREADSHEET;
+  }
   return SPACE_EMPTY;
 }
 
