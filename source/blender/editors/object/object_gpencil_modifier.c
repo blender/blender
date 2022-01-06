@@ -973,7 +973,7 @@ static int dash_segment_add_exec(bContext *C, wmOperator *op)
       op, ob, eGpencilModifierType_Dash);
 
   if (dmd == NULL) {
-    return OPERATOR_FINISHED;
+    return OPERATOR_CANCELLED;
   }
   const int new_active_index = dmd->segment_active_index + 1;
   DashGpencilModifierSegment *new_segments = MEM_malloc_arrayN(
@@ -1040,7 +1040,7 @@ static int dash_segment_remove_exec(bContext *C, wmOperator *op)
       op, ob, eGpencilModifierType_Dash);
 
   if (dmd == NULL) {
-    return OPERATOR_FINISHED;
+    return OPERATOR_CANCELLED;
   }
 
   if (dmd->segment_active_index < 0 || dmd->segment_active_index >= dmd->segments_len) {
@@ -1120,7 +1120,7 @@ static int dash_segment_move_exec(bContext *C, wmOperator *op)
       op, ob, eGpencilModifierType_Dash);
 
   if (dmd == NULL) {
-    return OPERATOR_FINISHED;
+    return OPERATOR_CANCELLED;
   }
 
   if (dmd->segments_len < 2) {
