@@ -25,7 +25,6 @@ set(INC
   ../../../intern/atomic
   ../../../intern/eigen
   ../../../intern/guardedalloc
-  ../../../intern/numaapi/include
   ../../../extern/wcwidth
   ../../../extern/json/include
 )
@@ -334,7 +333,6 @@ set(SRC
 set(LIB
   bf_intern_eigen
   bf_intern_guardedalloc
-  bf_intern_numaapi
   extern_wcwidth
 
   ${ZLIB_LIBRARIES}
