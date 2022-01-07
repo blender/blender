@@ -1211,6 +1211,83 @@ class _defs_particle:
             attr="tool",)
 
 
+def generate_from_enum_ex(_context, *,
+        idname_prefix,
+        icon_prefix,
+        type,
+        attr,
+        cursor='DEFAULT',
+        tooldef_keywords={},
+        exclude_filter={},
+        combine_map={}):
+    """
+    combine_map combines items, takes the form of a dict:
+
+        combine_map = {
+            "PARENT KEY" : (
+              "CHILD KEY"
+            )
+        }
+
+    """
+
+    combinekeys = {}
+    parentmap = {}
+
+    for k, v in combine_map.items():
+        combinekeys[k] = []
+
+        for child in v:
+            parentmap[child] = k
+
+    tool_defs = []
+
+    #build combine key owners first
+    for enum in type.bl_rna.properties[attr].enum_items_static:
+        name = enum.name
+        idname = enum.identifier
+        if idname in exclude_filter:
+            continue
+
+        if idname in combinekeys:
+            combinekeys[idname].append(ToolDef.from_dict(dict(idname=idname_prefix + name,
+                    label=name,
+                    icon=icon_prefix + idname.lower(),
+                    cursor=cursor,
+                    data_block=idname,
+                    **tooldef_keywords,)))
+
+    for enum in type.bl_rna.properties[attr].enum_items_static:
+        name = enum.name
+        idname = enum.identifier
+        if idname in exclude_filter:
+            continue
+
+        if idname in combinekeys:
+            tool_defs.append(combinekeys[idname])
+        elif idname in parentmap:
+            parentkey = parentmap[idname]
+
+            combinekeys[parentkey].append(ToolDef.from_dict(dict(idname=idname_prefix + name,
+                        label=name,
+                        icon=icon_prefix + idname.lower(),
+                        cursor=cursor,
+                        data_block=idname,
+                        **tooldef_keywords,)))
+        else:
+            tool_defs.append(ToolDef.from_dict(dict(idname=idname_prefix + name,
+                        label=name,
+                        icon=icon_prefix + idname.lower(),
+                        cursor=cursor,
+                        data_block=idname,
+                        **tooldef_keywords,)))
+
+    # finalize combined keys
+    for k, v in combinekeys.items():
+        tool_defs[tool_defs.index(v)] = tuple(v)
+
+    return tuple(tool_defs)
+
 class _defs_sculpt:
 
     @staticmethod
@@ -1229,12 +1306,32 @@ class _defs_sculpt:
             "SMOOTH" : ("ENHANCE_DETAILS",)
         }
 
+        def get_enabled(context, idname):
+            if "multires" in idname.lower() or idname.lower() == "builtin_brush.displacement heal":
+                print("IDNAME", idname)
+                have_multires = False;
+                ob = context.object
+
+                for mod in ob.modifiers:
+                    ok = mod.type == "MULTIRES"
+                    ok = ok and mod.sculpt_levels > 0
+                    ok = ok and mod.show_viewport
+
+                    if ok:
+                        have_multires = True
+                        break
+
+                return have_multires
+
+            return True
+
         return generate_from_enum_ex(context,
             idname_prefix="builtin_brush.",
             icon_prefix="brush.sculpt.",
             type=bpy.types.Brush,
             attr="sculpt_tool",
             exclude_filter=exclude_filter,
+            tooldef_keywords={"get_enabled" : get_enabled},
             combine_map=combine_map)
 
     @ToolDef.from_fn

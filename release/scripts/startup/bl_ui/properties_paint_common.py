@@ -2105,11 +2105,51 @@ def brush_settings_advanced(layout, context, brush, popover=False):
             context,
             brush,
             "automasking_boundary_edges_propagation_steps")
-        UnifiedPaintPanel.channel_unified(layout.column(),
+
+        flags = UnifiedPaintPanel.get_channel_value(context, brush, "automasking")
+
+        if "CONCAVITY" in flags:
+            UnifiedPaintPanel.channel_unified(layout.column(),
+                context,
+                brush,
+                "concave_mask_factor",
+                slider=True)
+
+        enable_orig_normal = False
+        
+        if "BRUSH_NORMAL" in flags:
+            UnifiedPaintPanel.channel_unified(layout.column(),
+                context,
+                brush,
+                "normal_mask_limit",
+                slider=True)
+            UnifiedPaintPanel.channel_unified(layout.column(),
+                context,
+                brush,
+                "normal_mask_falloff",
+                slider=True)
+            enable_orig_normal = True
+
+        if "VIEW_NORMAL" in flags:
+            UnifiedPaintPanel.channel_unified(layout.column(),
+                context,
+                brush,
+                "view_normal_mask_limit",
+                slider=True)
+            UnifiedPaintPanel.channel_unified(layout.column(),
+                context,
+                brush,
+                "view_normal_mask_falloff",
+                slider=True)
+            enable_orig_normal = True
+
+        sub = layout.row()
+        sub.enabled = enable_orig_normdal
+
+        UnifiedPaintPanel.channel_unified(sub,
             context,
             brush,
-            "concave_mask_factor",
-            slider=True)
+            "automasking_use_original_normal")
 
         """
         col = layout.column(heading="Auto-Masking", align=True)

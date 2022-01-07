@@ -574,12 +574,34 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
 
             if (layer == -1) {
               layer = CustomData_get_named_layer(cd_vdata, CD_PROP_COLOR, name);
-              type = CD_PROP_COLOR;
+              if (layer != -1) {
+                type = CD_PROP_COLOR;
+                domain = ATTR_DOMAIN_POINT;
+              }
+            }
+
+            if (layer == -1) {
+              layer = CustomData_get_named_layer(cd_ldata, CD_PROP_COLOR, name);
+              if (layer != -1) {
+                type = CD_PROP_COLOR;
+                domain = ATTR_DOMAIN_CORNER;
+              }
+            }
+
+            if (layer == -1) {
+              layer = CustomData_get_named_layer(cd_vdata, CD_MLOOPCOL, name);
+              if (layer != -1) {
+                type = CD_MLOOPCOL;
+                domain = ATTR_DOMAIN_POINT;
+              }
             }
 
             if (layer == -1) {
               layer = CustomData_get_named_layer(cd_ldata, CD_MLOOPCOL, name);
-              type = CD_MCOL;
+              if (layer != -1) {
+                type = CD_MLOOPCOL;
+                domain = ATTR_DOMAIN_CORNER;
+              }
             }
 
 #if 0 /* Tangents are always from UV's - this will never happen. */
@@ -656,7 +678,10 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
             break;
           }
 
-          case CD_MCOL:
+          /* note that attr->type will always be CD_PROP_COLOR event for
+             CD_MLOOPCOL layers, see node_shader_gpu_vertex_color in
+             node_shader_vertex_color.cc
+           */
           case CD_MLOOPCOL:
           case CD_PROP_COLOR: {
             const AttributeRef *render = &me->attr_color_render;
@@ -667,15 +692,28 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Mesh *me,
 
             if (layer == -1 && name[0] != '\0') {
               layer = CustomData_get_named_layer_index(cd_ldata, type, name);
+              domain = layer != -1 ? ATTR_DOMAIN_CORNER : domain;
 
-              if (layer != -1) {
-                domain = ATTR_DOMAIN_CORNER;
-              }
-              else {
+              if (layer == -1) {
                 layer = CustomData_get_named_layer_index(cd_vdata, type, name);
+                domain = layer != -1 ? ATTR_DOMAIN_POINT : domain;
+              }
+
+              if (layer == -1) {
+                layer = CustomData_get_named_layer_index(cd_ldata, CD_MLOOPCOL, name);
+
+                if (layer != -1) {
+                  domain = ATTR_DOMAIN_CORNER;
+                  type = CD_MLOOPCOL;
+                }
+              }
+
+              if (layer == -1) {
+                layer = CustomData_get_named_layer_index(cd_vdata, CD_MLOOPCOL, name);
 
                 if (layer != -1) {
                   domain = ATTR_DOMAIN_POINT;
+                  type = CD_MLOOPCOL;
                 }
               }
 

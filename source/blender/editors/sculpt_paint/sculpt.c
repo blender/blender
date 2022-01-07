@@ -56,6 +56,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BKE_attribute.h"
 #include "BKE_brush.h"
@@ -2943,6 +2944,8 @@ static int sculpt_brush_needs_normal(const SculptSession *ss, const Brush *brush
 {
   return ((SCULPT_TOOL_HAS_NORMAL_WEIGHT(SCULPT_get_tool(ss, brush)) &&
            (ss->cache->normal_weight > 0.0f)) ||
+
+          SCULPT_automasking_needs_normal(ss, brush) ||
 
           ELEM(SCULPT_get_tool(ss, brush),
                SCULPT_TOOL_BLOB,
@@ -8435,6 +8438,13 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
     Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
     Brush *brush = BKE_paint_brush(&sd->paint);
     Object *ob = CTX_data_active_object(C);
+
+    if (SCULPT_TOOL_NEEDS_COLOR(brush->sculpt_tool)) {
+      View3D *v3d = CTX_wm_view3d(C);
+      if (v3d) {
+        v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
+      }
+    }
 
     if (brush && brush->channels) {
       int tool = RNA_enum_get(op->ptr, "tool_override");

@@ -1361,11 +1361,50 @@ class VIEW3D_PT_sculpt_automasking(Panel, View3DPaintPanel):
             brush,
             "automasking_boundary_edges_propagation_steps",
             ui_editing=False)
-        UnifiedPaintPanel.channel_unified(layout.column(),
+
+        if "CONCAVITY" in sculpt.channels["automasking"].value:
+            UnifiedPaintPanel.channel_unified(layout.column(),
+                context,
+                brush,
+                "concave_mask_factor",
+                ui_editing=False, slider=True, show_mappings=True)
+
+        enable_orig_normal = False
+
+        if "BRUSH_NORMAL" in sculpt.channels["automasking"].value:
+            UnifiedPaintPanel.channel_unified(layout.column(),
+                context,
+                brush,
+                "normal_mask_limit",
+                ui_editing=False, slider=True, show_mappings=True)
+            UnifiedPaintPanel.channel_unified(layout.column(),
+                context,
+                brush,
+                "normal_mask_falloff",
+                ui_editing=False, slider=True, show_mappings=True)
+            enable_orig_normal = True
+
+        if "VIEW_NORMAL" in sculpt.channels["automasking"].value:
+            UnifiedPaintPanel.channel_unified(layout.column(),
+                context,
+                brush,
+                "view_normal_mask_limit",
+                ui_editing=False, slider=True, show_mappings=True)
+            UnifiedPaintPanel.channel_unified(layout.column(),
+                context,
+                brush,
+                "view_normal_mask_falloff",
+                ui_editing=False, slider=True, show_mappings=True)
+            enable_orig_normal = True
+
+        sub = layout.row()
+        sub.enabled = enable_orig_normal
+
+        UnifiedPaintPanel.channel_unified(sub,
             context,
             brush,
-            "concave_mask_factor",
-            ui_editing=False, slider=True, show_mappings=True)
+            "automasking_use_original_normal",
+            ui_editing=False, show_mappings=False)
 
 
 class VIEW3D_PT_sculpt_options_gravity(Panel, View3DPaintPanel):

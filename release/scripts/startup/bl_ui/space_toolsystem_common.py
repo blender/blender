@@ -120,6 +120,8 @@ ToolDef = namedtuple(
         "draw_cursor",
         # Various options, see: `bpy.types.WorkSpaceTool.setup` options argument.
         "options",
+        #get_enabled(ctx, idname) whether tool should be grayed out
+        "get_enabled"
     )
 )
 del namedtuple
@@ -143,6 +145,7 @@ def from_dict(kw_args):
         "operator": None,
         "draw_settings": None,
         "draw_cursor": None,
+        "get_enabled": None
     }
     kw.update(kw_args)
 
@@ -725,9 +728,14 @@ class ToolSelectPanelHelper:
             icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(item.icon)
 
             sub = ui_gen.send(False)
+            sub2 = sub
+
+            if item.get_enabled is not None:
+                sub2 = sub.row(align=False)
+                sub2.enabled = item.get_enabled(context, item.idname)
 
             if use_menu:
-                sub.operator_menu_hold(
+                sub2.operator_menu_hold(
                     "wm.tool_set_by_id",
                     text=item.label if show_text else "",
                     depress=is_active,
@@ -735,7 +743,7 @@ class ToolSelectPanelHelper:
                     icon_value=icon_value,
                 ).name = item.idname
             else:
-                sub.operator(
+                sub2.operator(
                     "wm.tool_set_by_id",
                     text=item.label if show_text else "",
                     depress=is_active,

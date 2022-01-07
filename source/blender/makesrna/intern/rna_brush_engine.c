@@ -125,6 +125,9 @@ struct StructRNA *rna_BrushChannel_refine(PointerRNA *ptr)
     case BRUSH_CHANNEL_PIXEL:
       subtype = PROP_PIXEL;
       break;
+    case BRUSH_CHANNEL_ANGLE:
+      subtype = PROP_ANGLE;
+      break;
     default:
       subtype = PROP_NONE;
       break;

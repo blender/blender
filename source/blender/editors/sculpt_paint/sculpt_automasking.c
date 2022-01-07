@@ -142,6 +142,50 @@ static bool SCULPT_automasking_needs_factors_cache(SculptSession *ss,
   return false;
 }
 
+bool SCULPT_automasking_needs_normal(const SculptSession *ss, const Brush *brush)
+{
+  int flags = SCULPT_get_int(ss, automasking, NULL, brush);
+
+  return flags & (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL);
+}
+
+static float sculpt_automasking_normal_calc(AutomaskingCache *automasking,
+                                            SculptSession *ss,
+                                            SculptVertRef vert,
+                                            float normal[3],
+                                            float limit,
+                                            float falloff)
+{
+  float normal_v[3];
+
+  if (automasking->settings.original_normal) {
+    SCULPT_vertex_check_origdata(ss, vert);
+    copy_v3_v3(normal_v, SCULPT_vertex_origno_get(ss, vert));
+  }
+  else {
+    SCULPT_vertex_normal_get(ss, vert, normal_v);
+  }
+
+  float angle = saacos(dot_v3v3(normal, normal_v)) / M_PI;
+  falloff *= 0.5;
+
+  /* note that limit is pre-divided by M_PI */
+
+  if (angle > limit - falloff && angle < limit + falloff) {
+    float t = 1.0f - (angle - (limit - falloff)) / (2.0 * falloff);
+
+    /* smoothstep */
+    t = t * t * (3.0 - 2.0 * t);
+
+    return t;
+  }
+  else if (angle > limit) {
+    return 0.0f;
+  }
+
+  return 1.0f;
+}
+
 float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
                                     SculptSession *ss,
                                     SculptVertRef vert)
@@ -193,6 +237,32 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
     if (SCULPT_vertex_is_boundary(ss, vert, SCULPT_BOUNDARY_FACE_SET)) {
       return 0.0f;
     }
+  }
+
+  if (ss->cache && (automasking->settings.flags & BRUSH_AUTOMASKING_BRUSH_NORMAL)) {
+    float normal[3];
+
+    copy_v3_v3(normal, ss->cache->initial_normal);
+
+    mask *= sculpt_automasking_normal_calc(automasking,
+                                           ss,
+                                           vert,
+                                           normal,
+                                           automasking->settings.normal_limit,
+                                           automasking->settings.normal_falloff);
+  }
+
+  if (ss->cache && (automasking->settings.flags & BRUSH_AUTOMASKING_VIEW_NORMAL)) {
+    float normal[3];
+
+    copy_v3_v3(normal, ss->cache->view_normal);
+
+    mask *= sculpt_automasking_normal_calc(automasking,
+                                           ss,
+                                           vert,
+                                           normal,
+                                           automasking->settings.view_normal_limit,
+                                           automasking->settings.view_normal_falloff);
   }
 
   return mask;
@@ -394,6 +464,19 @@ static void SCULPT_automasking_cache_settings_update(AutomaskingCache *automaski
 
   automasking->settings.initial_face_set = SCULPT_active_face_set_get(ss);
   automasking->settings.concave_factor = SCULPT_get_float(ss, concave_mask_factor, sd, brush);
+
+  /* pre-divide by M_PI */
+  automasking->settings.normal_limit = SCULPT_get_float(ss, normal_mask_limit, sd, brush) / M_PI;
+  automasking->settings.normal_falloff = SCULPT_get_float(ss, normal_mask_falloff, sd, brush);
+
+  automasking->settings.view_normal_limit = SCULPT_get_float(
+                                                ss, view_normal_mask_limit, sd, brush) /
+                                            M_PI;
+  automasking->settings.view_normal_falloff = SCULPT_get_float(
+      ss, view_normal_mask_falloff, sd, brush);
+
+  automasking->settings.original_normal = SCULPT_get_bool(
+      ss, automasking_use_original_normal, sd, brush);
 }
 
 void SCULPT_automasking_step_update(AutomaskingCache *automasking,

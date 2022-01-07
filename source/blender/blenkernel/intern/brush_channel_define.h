@@ -270,8 +270,18 @@ MAKE_ENUM(blend,"Blending Mode","Brush blending mode",IMB_BLEND_MIX,{\
          {BRUSH_AUTOMASKING_INVERT_CONCAVITY, "INVERT_CONCAVITY", "NONE", "Invert Cavity", "Invert Cavity Map"},
          {BRUSH_AUTOMASKING_FACE_SETS, "FACE_SETS", "NONE", "Face Sets", ""},
          {BRUSH_AUTOMASKING_TOPOLOGY, "TOPOLOGY", "NONE", "Topology", ""},
+         {BRUSH_AUTOMASKING_BRUSH_NORMAL, "BRUSH_NORMAL", "NONE", "Brush Normal", "Mask using normal at center of brush"},
+         {BRUSH_AUTOMASKING_VIEW_NORMAL, "VIEW_NORMAL", "NONE", "View Normal", "Mask using view normal"},
          {-1},
     })
+
+  MAKE_FLOAT(normal_mask_limit, "Brush Normal Limit", "", M_PI*0.5f, 0.0001f, M_PI)
+  MAKE_FLOAT(normal_mask_falloff, "Brush Normal Falloff", "", 0.1, 0.0, 1.0)
+
+  MAKE_FLOAT(view_normal_mask_limit, "View Limit", "", M_PI*0.5f, 0.0001f, M_PI)
+  MAKE_FLOAT(view_normal_mask_falloff, "View Falloff", "", 0.1, 0.0, 1.0)
+
+  MAKE_BOOL_EX(automasking_use_original_normal, "Original Normal", "Use original normal for automasking", true, BRUSH_CHANNEL_NO_MAPPINGS)
 
   MAKE_BOOL_EX(dyntopo_disabled,"Disable Dyntopo","",false,BRUSH_CHANNEL_NO_MAPPINGS)
   MAKE_FLAGS_EX(dyntopo_mode,"Dyntopo Operators","",DYNTOPO_COLLAPSE | DYNTOPO_CLEANUP | DYNTOPO_SUBDIVIDE,BRUSH_CHANNEL_INHERIT,{\

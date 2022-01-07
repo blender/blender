@@ -264,7 +264,9 @@ static bool check_builtin_init()
   //}
 
   SUBTYPE_SET(smooth_stroke_radius, BRUSH_CHANNEL_PIXEL);
-
+  SUBTYPE_SET(normal_mask_limit, BRUSH_CHANNEL_ANGLE);
+  SUBTYPE_SET(view_normal_mask_limit, BRUSH_CHANNEL_ANGLE);
+  
   SUBTYPE_SET(jitter_absolute, BRUSH_CHANNEL_PIXEL);
 
   SUBTYPE_SET(radius, BRUSH_CHANNEL_PIXEL);
@@ -306,6 +308,11 @@ static bool check_builtin_init()
   SETCAT(concave_mask_factor, "Automasking");
   SETCAT(automasking, "Automasking");
   SETCAT(automasking_boundary_edges_propagation_steps, "Automasking");
+  SETCAT(normal_mask_limit, "Automasking");
+  SETCAT(view_normal_mask_limit, "Automasking");
+  SETCAT(normal_mask_falloff, "Automasking");
+  SETCAT(view_normal_mask_falloff, "Automasking");
+  SETCAT(automasking_use_original_normal, "Automasking");
 
   def = GETDEF(concave_mask_factor);
   def->mappings.pressure.inv = true;
@@ -1144,6 +1151,11 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
   ADDCH(automasking);
   ADDCH(automasking_boundary_edges_propagation_steps);
   ADDCH(concave_mask_factor);
+  ADDCH(normal_mask_limit);
+  ADDCH(automasking_use_original_normal);
+  ADDCH(view_normal_mask_limit);
+  ADDCH(normal_mask_falloff);
+  ADDCH(view_normal_mask_falloff);
 
   ADDCH(dyntopo_disabled);
   ADDCH(dyntopo_disable_smooth);
@@ -2045,6 +2057,12 @@ void BKE_brush_check_toolsettings(Sculpt *sd)
   ADDCH(automasking_boundary_edges_propagation_steps);
   ADDCH(concave_mask_factor);
   ADDCH(automasking);
+  ADDCH(normal_mask_limit);
+  ADDCH(automasking_use_original_normal);
+  ADDCH(view_normal_mask_limit);
+  ADDCH(normal_mask_falloff);
+  ADDCH(view_normal_mask_falloff);
+
   ADDCH(topology_rake_mode);
 
   ADDCH(plane_offset);

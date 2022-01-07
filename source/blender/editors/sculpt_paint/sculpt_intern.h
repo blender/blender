@@ -577,8 +577,9 @@ void SCULPT_pbvh_clear(Object *ob);
 float SCULPT_automasking_factor_get(struct AutomaskingCache *automasking,
                                     SculptSession *ss,
                                     SculptVertRef vert);
+bool SCULPT_automasking_needs_normal(const SculptSession *ss, const Brush *brush);
 
-/* Returns the automasking cache depending on the active tool. Used for code that can run both for
+    /* Returns the automasking cache depending on the active tool. Used for code that can run both for
  * brushes and filter. */
 struct AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss);
 
@@ -1297,6 +1298,9 @@ typedef struct AutomaskingSettings {
   int initial_face_set;
   int current_face_set;  // used by faceset draw tool
   float concave_factor;
+  float normal_limit, normal_falloff;
+  float view_normal_limit, view_normal_falloff;
+  bool original_normal;
 } AutomaskingSettings;
 
 typedef struct AutomaskingCache {
@@ -1994,6 +1998,8 @@ void SCULPT_ensure_persistent_layers(SculptSession *ss, struct Object *ob);
 
 // these tools don't support dynamic pbvh splitting during the stroke
 #define DYNTOPO_HAS_DYNAMIC_SPLIT(tool) true
+
+#define SCULPT_TOOL_NEEDS_COLOR(tool) ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)
 
 /*get current symmetry pass index inclusive of both
   mirror and radial symmetry*/
