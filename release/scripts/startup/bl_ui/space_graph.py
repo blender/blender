@@ -344,7 +344,7 @@ class GRAPH_MT_slider(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        
+
         layout.operator("graph.breakdown", text="Breakdown")
         layout.operator("graph.blend_to_neighbor", text="Blend To Neighbor")
 
@@ -352,7 +352,7 @@ class GRAPH_MT_slider(Menu):
 class GRAPH_MT_view_pie(Menu):
     bl_label = "View"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         pie = layout.menu_pie()

@@ -6519,7 +6519,7 @@ class VIEW3D_PT_overlay_bones(Panel):
 
         mode = context.mode
 
-        if mode in ('POSE', 'PAINT_WEIGHT'):
+        if mode in {'POSE', 'PAINT_WEIGHT'}:
             armature = context.pose_object
         elif mode == 'EDIT_ARMATURE':
             armature = context.edit_object
@@ -6534,7 +6534,7 @@ class VIEW3D_PT_overlay_bones(Panel):
         return (
             (mode == 'POSE') or
             (mode == 'PAINT_WEIGHT' and context.pose_object) or
-            (mode in ('EDIT_ARMATURE', 'OBJECT') and
+            (mode in {'EDIT_ARMATURE', 'OBJECT'} and
              VIEW3D_PT_overlay_bones.is_using_wireframe(context))
         )
 
