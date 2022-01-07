@@ -1502,7 +1502,7 @@ void SCULPT_OT_dyntopo_detail_size_edit(struct wmOperatorType *ot);
 
 void SCULPT_OT_dynamic_topology_toggle(struct wmOperatorType *ot);
 
-/* sculpt_brushes.c */
+/* sculpt_brush_types.c */
 
 float SCULPT_clay_thumb_get_stabilized_pressure(struct StrokeCache *cache);
 
@@ -1604,7 +1604,7 @@ void SCULPT_do_mask_brush(struct Sculpt *sd,
 void SCULPT_bmesh_topology_rake(
     struct Sculpt *sd, struct Object *ob, struct PBVHNode **nodes, int totnode, float bstrength);
 
-/* end sculpt_brushes.c */
+/* end sculpt_brush_types.c */
 
 /* sculpt_ops.c */
 void SCULPT_OT_brush_stroke(struct wmOperatorType *ot);
