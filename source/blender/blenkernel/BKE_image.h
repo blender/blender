@@ -436,6 +436,7 @@ typedef enum {
 
 /**
  * Ensures that `filename` contains a UDIM token if we find a supported format pattern.
+ * \note This must only be the name component (without slashes).
  */
 void BKE_image_ensure_tile_token(char *filename);
 

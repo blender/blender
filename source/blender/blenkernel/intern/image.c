@@ -4062,9 +4062,8 @@ bool BKE_image_fill_tile(struct Image *ima,
 
 void BKE_image_ensure_tile_token(char *filename)
 {
-  if (filename == NULL) {
-    return;
-  }
+  BLI_assert_msg(BLI_path_slash_find(filename) == NULL,
+                 "Only the file-name component should be used!");
 
   /* Is there a '<' character in the filename? Assume tokens already present. */
   if (strstr(filename, "<") != NULL) {

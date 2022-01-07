@@ -142,7 +142,11 @@ bool BLI_path_contains(const char *container_path,
                        const char *containee_path) ATTR_WARN_UNUSED_RESULT;
 
 /**
- * Returns pointer to the rightmost path separator in string.
+ * \return pointer to the leftmost path separator in string (or NULL when not found).
+ */
+const char *BLI_path_slash_find(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+/**
+ * \return pointer to the rightmost path separator in string (or NULL when not found).
  */
 const char *BLI_path_slash_rfind(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 /**
@@ -154,10 +158,6 @@ int BLI_path_slash_ensure(char *string) ATTR_NONNULL();
  * Removes the last slash and everything after it to the end of string, if there is one.
  */
 void BLI_path_slash_rstrip(char *string) ATTR_NONNULL();
-/**
- * Returns pointer to the leftmost path separator in string. Not actually used anywhere.
- */
-const char *BLI_path_slash_find(const char *string) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 /**
  * Changes to the path separators to the native ones for this OS.
  */

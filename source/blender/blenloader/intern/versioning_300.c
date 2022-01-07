@@ -824,7 +824,8 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
     /* Ensure tiled image sources contain a UDIM token. */
     LISTBASE_FOREACH (Image *, ima, &bmain->images) {
       if (ima->source == IMA_SRC_TILED) {
-        BKE_image_ensure_tile_token(ima->filepath);
+        char *filename = (char *)BLI_path_basename(ima->filepath);
+        BKE_image_ensure_tile_token(filename);
       }
     }
   }
