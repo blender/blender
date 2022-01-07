@@ -427,11 +427,11 @@ void uiStyleInit(void)
   }
 
   if (U.font_path_ui[0]) {
-    BLI_strncpy(font_first->filename, U.font_path_ui, sizeof(font_first->filename));
+    BLI_strncpy(font_first->filepath, U.font_path_ui, sizeof(font_first->filepath));
     font_first->uifont_id = UIFONT_CUSTOM1;
   }
   else {
-    BLI_strncpy(font_first->filename, "default", sizeof(font_first->filename));
+    BLI_strncpy(font_first->filepath, "default", sizeof(font_first->filepath));
     font_first->uifont_id = UIFONT_DEFAULT;
   }
 
@@ -442,7 +442,7 @@ void uiStyleInit(void)
       font->blf_id = BLF_load_default(unique);
     }
     else {
-      font->blf_id = BLF_load(font->filename);
+      font->blf_id = BLF_load(font->filepath);
       if (font->blf_id == -1) {
         font->blf_id = BLF_load_default(unique);
       }
