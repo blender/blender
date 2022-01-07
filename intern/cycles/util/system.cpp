@@ -20,9 +20,8 @@
 #include "util/string.h"
 #include "util/types.h"
 
-#include <numaapi.h>
-
 #include <OpenImageIO/sysutil.h>
+
 OIIO_NAMESPACE_USING
 
 #ifdef _WIN32
@@ -41,83 +40,6 @@ OIIO_NAMESPACE_USING
 
 CCL_NAMESPACE_BEGIN
 
-bool system_cpu_ensure_initialized()
-{
-  static bool is_initialized = false;
-  static bool result = false;
-  if (is_initialized) {
-    return result;
-  }
-  is_initialized = true;
-  const NUMAAPI_Result numa_result = numaAPI_Initialize();
-  result = (numa_result == NUMAAPI_SUCCESS);
-  return result;
-}
-
-/* Fallback solution, which doesn't use NUMA/CPU groups. */
-static int system_cpu_thread_count_fallback()
-{
-#ifdef _WIN32
-  SYSTEM_INFO info;
-  GetSystemInfo(&info);
-  return info.dwNumberOfProcessors;
-#elif defined(__APPLE__)
-  int count;
-  size_t len = sizeof(count);
-  int mib[2] = {CTL_HW, HW_NCPU};
-  sysctl(mib, 2, &count, &len, NULL, 0);
-  return count;
-#else
-  return sysconf(_SC_NPROCESSORS_ONLN);
-#endif
-}
-
-int system_cpu_thread_count()
-{
-  const int num_nodes = system_cpu_num_numa_nodes();
-  int num_threads = 0;
-  for (int node = 0; node < num_nodes; ++node) {
-    if (!system_cpu_is_numa_node_available(node)) {
-      continue;
-    }
-    num_threads += system_cpu_num_numa_node_processors(node);
-  }
-  return num_threads;
-}
-
-int system_cpu_num_numa_nodes()
-{
-  if (!system_cpu_ensure_initialized()) {
-    /* Fallback to a single node with all the threads. */
-    return 1;
-  }
-  return numaAPI_GetNumNodes();
-}
-
-bool system_cpu_is_numa_node_available(int node)
-{
-  if (!system_cpu_ensure_initialized()) {
-    return true;
-  }
-  return numaAPI_IsNodeAvailable(node);
-}
-
-int system_cpu_num_numa_node_processors(int node)
-{
-  if (!system_cpu_ensure_initialized()) {
-    return system_cpu_thread_count_fallback();
-  }
-  return numaAPI_GetNumNodeProcessors(node);
-}
-
-bool system_cpu_run_thread_on_node(int node)
-{
-  if (!system_cpu_ensure_initialized()) {
-    return true;
-  }
-  return numaAPI_RunThreadOnNode(node);
-}
-
 int system_console_width()
 {
   int columns = 0;
@@ -135,14 +57,6 @@ int system_console_width()
 #endif
 
   return (columns > 0) ? columns : 80;
-}
-
-int system_cpu_num_active_group_processors()
-{
-  if (!system_cpu_ensure_initialized()) {
-    return system_cpu_thread_count_fallback();
-  }
-  return numaAPI_GetNumCurrentNodesProcessors();
 }
 
 /* Equivalent of Windows __cpuid for x86 processors on other platforms. */

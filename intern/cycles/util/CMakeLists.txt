@@ -53,16 +53,6 @@ if(WITH_CYCLES_STANDALONE)
   endif()
 endif()
 
-if(CYCLES_STANDALONE_REPOSITORY)
-  list(APPEND INC_SYS
-    ../../third_party/numaapi/include
-  )
-else()
-  list(APPEND INC_SYS
-    ../../numaapi/include
-  )
-endif()
-
 set(SRC_HEADERS
   algorithm.h
   aligned_malloc.h

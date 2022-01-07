@@ -168,12 +168,6 @@ macro(cycles_target_link_libraries target)
     target_link_libraries(${target} extern_hipew)
   endif()
 
-  if(CYCLES_STANDALONE_REPOSITORY)
-    target_link_libraries(${target} extern_numaapi)
-  else()
-    target_link_libraries(${target} bf_intern_numaapi)
-  endif()
-
   if(UNIX AND NOT APPLE)
     if(CYCLES_STANDALONE_REPOSITORY)
       target_link_libraries(${target} extern_libc_compat)
