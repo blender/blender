@@ -445,11 +445,20 @@ typedef struct Library {
 
   struct PackedFile *packedfile;
 
+  ushort tag;
+  char _pad_0[6];
+
   /* Temp data needed by read/write code, and liboverride recursive resync. */
   int temp_index;
   /** See BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION, needed for do_versions. */
   short versionfile, subversionfile;
 } Library;
+
+/* Library.tag */
+enum eLibrary_Tag {
+  /* Automatic recursive resync was needed when linking/loading data from that library. */
+  LIBRARY_TAG_RESYNC_REQUIRED = 1 << 0,
+};
 
 /**
  * A weak library/ID reference for local data that has been appended, to allow re-using that local

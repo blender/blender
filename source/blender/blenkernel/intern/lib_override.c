@@ -1733,6 +1733,10 @@ static void lib_override_library_main_resync_on_library_indirect_level(
           continue;
         }
 
+        if (ID_IS_LINKED(id)) {
+          id->lib->tag |= LIBRARY_TAG_RESYNC_REQUIRED;
+        }
+
         /* We cannot resync a scene that is currently active. */
         if (id == &scene->id) {
           id->tag &= ~LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
@@ -1888,6 +1892,16 @@ void BKE_lib_override_library_main_resync(Main *bmain,
 
   if (BKE_collection_is_empty(override_resync_residual_storage)) {
     BKE_collection_delete(bmain, override_resync_residual_storage, true);
+  }
+
+  LISTBASE_FOREACH (Library *, library, &bmain->libraries) {
+    if (library->tag & LIBRARY_TAG_RESYNC_REQUIRED) {
+      CLOG_INFO(&LOG,
+                2,
+                "library '%s' contains some linked overrides that required recursive resync, "
+                "consider updating it",
+                library->filepath);
+    }
   }
 }
 

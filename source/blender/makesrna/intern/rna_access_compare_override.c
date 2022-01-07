@@ -1127,6 +1127,9 @@ static void rna_property_override_check_resync(Main *bmain,
         * self-references updated to itself, instead of still pointing to its linked source. */
        (id_dst->lib == id_src->lib && id_dst != id_owner_dst))) {
     id_owner_dst->tag |= LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
+    if (ID_IS_LINKED(id_owner_src)) {
+      id_owner_src->lib->tag |= LIBRARY_TAG_RESYNC_REQUIRED;
+    }
     CLOG_INFO(&LOG, 3, "Local override %s detected as needing resync", id_owner_dst->name);
   }
 }
