@@ -821,8 +821,8 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   if (guiding_pass_flow != PASS_UNUSED) {
     kernel_assert(render_pass_motion != PASS_UNUSED);
 
-    const float *motion_in = buffer + render_pass_motion;
-    float *flow_out = guiding_pixel + guiding_pass_flow;
+    ccl_global const float *motion_in = buffer + render_pass_motion;
+    ccl_global float *flow_out = guiding_pixel + guiding_pass_flow;
 
     flow_out[0] = -motion_in[0] * pixel_scale;
     flow_out[1] = -motion_in[1] * pixel_scale;
