@@ -524,7 +524,7 @@ void NODE_OT_add_object(wmOperatorType *ot)
                      "Session UUID of the data-block to assign",
                      INT32_MIN,
                      INT32_MAX);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 /** \} */
@@ -631,7 +631,7 @@ void NODE_OT_add_texture(wmOperatorType *ot)
                      "Session UUID of the data-block to assign",
                      INT32_MIN,
                      INT32_MAX);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 /** \} */
@@ -743,7 +743,7 @@ void NODE_OT_add_collection(wmOperatorType *ot)
                      "Session UUID of the data-block to assign",
                      INT32_MIN,
                      INT32_MAX);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 /** \} */
@@ -949,7 +949,7 @@ void NODE_OT_add_mask(wmOperatorType *ot)
                      "Session UUID of the data-block to assign",
                      INT32_MIN,
                      INT32_MAX);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 /** \} */
