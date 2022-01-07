@@ -59,7 +59,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometrySeparateGeometry &storage = node_storage(params.node());
   const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
 
-  auto separate_geometry_maybe_recursively = [&](bool invert) {
+  auto separate_geometry_maybe_recursively = [&](GeometrySet &geometry_set, bool invert) {
     bool is_error;
     if (domain == ATTR_DOMAIN_INSTANCE) {
       /* Only delete top level instances. */
@@ -84,11 +84,11 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   GeometrySet second_set(geometry_set);
   if (params.output_is_required("Selection")) {
-    separate_geometry_maybe_recursively(false);
+    separate_geometry_maybe_recursively(geometry_set, false);
     params.set_output("Selection", std::move(geometry_set));
   }
   if (params.output_is_required("Inverted")) {
-    separate_geometry_maybe_recursively(true);
+    separate_geometry_maybe_recursively(second_set, true);
     params.set_output("Inverted", std::move(second_set));
   }
 }
