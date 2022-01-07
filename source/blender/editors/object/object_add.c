@@ -1742,15 +1742,16 @@ void OBJECT_OT_collection_instance_add(wmOperatorType *ot)
   ot->prop = prop;
   ED_object_add_generic_props(ot, false);
 
-  RNA_def_int(ot->srna,
-              "session_uuid",
-              0,
-              INT32_MIN,
-              INT32_MAX,
-              "Session UUID",
-              "Session UUID of the collection to add",
-              INT32_MIN,
-              INT32_MAX);
+  prop = RNA_def_int(ot->srna,
+                     "session_uuid",
+                     0,
+                     INT32_MIN,
+                     INT32_MAX,
+                     "Session UUID",
+                     "Session UUID of the collection to add",
+                     INT32_MIN,
+                     INT32_MAX);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 
   object_add_drop_xy_props(ot);
 }
