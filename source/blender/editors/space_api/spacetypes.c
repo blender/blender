@@ -248,15 +248,16 @@ void *ED_region_draw_cb_activate(ARegionType *art,
   return rdc;
 }
 
-void ED_region_draw_cb_exit(ARegionType *art, void *handle)
+bool ED_region_draw_cb_exit(ARegionType *art, void *handle)
 {
   LISTBASE_FOREACH (RegionDrawCB *, rdc, &art->drawcalls) {
     if (rdc == (RegionDrawCB *)handle) {
       BLI_remlink(&art->drawcalls, rdc);
       MEM_freeN(rdc);
-      return;
+      return true;
     }
   }
+  return false;
 }
 
 static void ed_region_draw_cb_draw(const bContext *C, ARegion *region, ARegionType *art, int type)
