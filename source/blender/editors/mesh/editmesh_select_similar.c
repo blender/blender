@@ -1334,6 +1334,33 @@ static const EnumPropertyItem *select_similar_type_itemf(bContext *C,
   return prop_similar_types;
 }
 
+static bool edbm_select_similar_poll_property(const bContext *UNUSED(C),
+                                              wmOperator *op,
+                                              const PropertyRNA *prop)
+{
+  const char *prop_id = RNA_property_identifier(prop);
+  const int type = RNA_enum_get(op->ptr, "type");
+
+  /* Only show threshold when it is used. */
+  if (STREQ(prop_id, "threshold")) {
+    if (!ELEM(type,
+              SIMVERT_NORMAL,
+              SIMEDGE_BEVEL,
+              SIMEDGE_CREASE,
+              SIMEDGE_DIR,
+              SIMEDGE_LENGTH,
+              SIMEDGE_FACE_ANGLE,
+              SIMFACE_AREA,
+              SIMFACE_PERIMETER,
+              SIMFACE_NORMAL,
+              SIMFACE_COPLANAR)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 void MESH_OT_select_similar(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -1347,6 +1374,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
   ot->invoke = WM_menu_invoke;
   ot->exec = edbm_select_similar_exec;
   ot->poll = ED_operator_editmesh;
+  ot->poll_property = edbm_select_similar_poll_property;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
