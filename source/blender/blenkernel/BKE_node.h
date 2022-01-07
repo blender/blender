@@ -357,22 +357,11 @@ typedef struct bNodeType {
 #define NODE_CLASS_OP_VECTOR 4
 #define NODE_CLASS_OP_FILTER 5
 #define NODE_CLASS_GROUP 6
-// #define NODE_CLASS_FILE              7
 #define NODE_CLASS_CONVERTER 8
 #define NODE_CLASS_MATTE 9
 #define NODE_CLASS_DISTORT 10
-// #define NODE_CLASS_OP_DYNAMIC        11 /* deprecated */
 #define NODE_CLASS_PATTERN 12
 #define NODE_CLASS_TEXTURE 13
-// #define NODE_CLASS_EXECUTION     14
-// #define NODE_CLASS_GETDATA           15
-// #define NODE_CLASS_SETDATA           16
-// #define NODE_CLASS_MATH              17
-// #define NODE_CLASS_MATH_VECTOR       18
-// #define NODE_CLASS_MATH_ROTATION 19
-// #define NODE_CLASS_PARTICLES     25
-// #define NODE_CLASS_TRANSFORM     30
-// #define NODE_CLASS_COMBINE           31
 #define NODE_CLASS_SCRIPT 32
 #define NODE_CLASS_INTERFACE 33
 #define NODE_CLASS_SHADER 40
@@ -499,7 +488,6 @@ struct bNodeTree *ntreeFromID(struct ID *id);
 void ntreeFreeLocalNode(struct bNodeTree *ntree, struct bNode *node);
 void ntreeFreeLocalTree(struct bNodeTree *ntree);
 struct bNode *ntreeFindType(const struct bNodeTree *ntree, int type);
-bool ntreeHasType(const struct bNodeTree *ntree, int type);
 bool ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup);
 void ntreeUpdateAllNew(struct Main *main);
 void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
@@ -634,13 +622,6 @@ struct bNodeSocket *nodeAddSocket(struct bNodeTree *ntree,
                                   const char *idname,
                                   const char *identifier,
                                   const char *name);
-struct bNodeSocket *nodeInsertSocket(struct bNodeTree *ntree,
-                                     struct bNode *node,
-                                     eNodeSocketInOut in_out,
-                                     const char *idname,
-                                     struct bNodeSocket *next_sock,
-                                     const char *identifier,
-                                     const char *name);
 struct bNodeSocket *nodeAddStaticSocket(struct bNodeTree *ntree,
                                         struct bNode *node,
                                         eNodeSocketInOut in_out,
@@ -648,14 +629,6 @@ struct bNodeSocket *nodeAddStaticSocket(struct bNodeTree *ntree,
                                         int subtype,
                                         const char *identifier,
                                         const char *name);
-struct bNodeSocket *nodeInsertStaticSocket(struct bNodeTree *ntree,
-                                           struct bNode *node,
-                                           eNodeSocketInOut in_out,
-                                           int type,
-                                           int subtype,
-                                           struct bNodeSocket *next_sock,
-                                           const char *identifier,
-                                           const char *name);
 void nodeRemoveSocket(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *sock);
 void nodeRemoveSocketEx(struct bNodeTree *ntree,
                         struct bNode *node,
@@ -708,8 +681,6 @@ bNode *node_copy(bNodeTree *dst_tree, const bNode &src_node, int flag, bool uniq
 }  // namespace blender::bke
 
 #endif
-
-bNode *BKE_node_copy(bNodeTree *dst_tree, const bNode *src_node, int flag, bool unique_name);
 
 /**
  * Also used via RNA API, so we check for proper input output direction.
@@ -941,7 +912,6 @@ bNodePreview *BKE_node_preview_verify(
 bNodePreview *BKE_node_preview_copy(struct bNodePreview *preview);
 void BKE_node_preview_free(struct bNodePreview *preview);
 void BKE_node_preview_init_tree(struct bNodeTree *ntree, int xsize, int ysize);
-void BKE_node_preview_free_tree(struct bNodeTree *ntree);
 void BKE_node_preview_remove_unused(struct bNodeTree *ntree);
 void BKE_node_preview_clear(struct bNodePreview *preview);
 void BKE_node_preview_clear_tree(struct bNodeTree *ntree);
@@ -1110,11 +1080,6 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
  * \{ */
 
 /* NOTE: types are needed to restore callbacks, don't change values. */
-/* range 1 - 100 is reserved for common nodes */
-/* using toolbox, we add node groups by assuming the values below
- * don't exceed NODE_GROUP_MENU for now. */
-
-//#define SH_NODE_OUTPUT        1
 
 //#define SH_NODE_MATERIAL  100
 #define SH_NODE_RGB 101
@@ -1220,11 +1185,6 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define SH_NODE_VECTOR_ROTATE 708
 #define SH_NODE_CURVE_FLOAT 709
 
-/* custom defines options for Material node */
-// #define SH_NODE_MAT_DIFF 1
-// #define SH_NODE_MAT_SPEC 2
-// #define SH_NODE_MAT_NEG 4
-
 /* API */
 
 struct bNodeTreeExec *ntreeShaderBeginExecTree(struct bNodeTree *ntree);
@@ -1258,36 +1218,6 @@ void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
 /* output socket defines */
 #define RRES_OUT_IMAGE 0
 #define RRES_OUT_ALPHA 1
-// #define RRES_OUT_Z 2
-// #define RRES_OUT_NORMAL 3
-// #define RRES_OUT_UV 4
-// #define RRES_OUT_VEC 5
-// #define RRES_OUT_RGBA 6
-#define RRES_OUT_DIFF 7
-// #define RRES_OUT_SPEC 8
-// #define RRES_OUT_SHADOW 9
-// #define RRES_OUT_AO 10
-// #define RRES_OUT_REFLECT 11
-// #define RRES_OUT_REFRACT 12
-// #define RRES_OUT_INDIRECT 13
-// #define RRES_OUT_INDEXOB 14
-// #define RRES_OUT_INDEXMA 15
-// #define RRES_OUT_MIST 16
-// #define RRES_OUT_EMIT 17
-// #define RRES_OUT_ENV 18
-// #define RRES_OUT_DIFF_DIRECT 19
-// #define RRES_OUT_DIFF_INDIRECT 20
-// #define RRES_OUT_DIFF_COLOR 21
-// #define RRES_OUT_GLOSSY_DIRECT 22
-// #define RRES_OUT_GLOSSY_INDIRECT 23
-// #define RRES_OUT_GLOSSY_COLOR 24
-// #define RRES_OUT_TRANSM_DIRECT 25
-// #define RRES_OUT_TRANSM_INDIRECT 26
-// #define RRES_OUT_TRANSM_COLOR 27
-// #define RRES_OUT_SUBSURFACE_DIRECT 28
-// #define RRES_OUT_SUBSURFACE_INDIRECT 29
-// #define RRES_OUT_SUBSURFACE_COLOR 30
-// #define RRES_OUT_DEBUG 31
 
 /* NOTE: types are needed to restore callbacks, don't change values. */
 #define CMP_NODE_VIEWER 201
@@ -1737,15 +1667,6 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 
 void BKE_node_system_init(void);
 void BKE_node_system_exit(void);
-
-/* -------------------------------------------------------------------- */
-/* evaluation support, */
-
-struct Depsgraph;
-
-void BKE_nodetree_shading_params_eval(struct Depsgraph *depsgraph,
-                                      struct bNodeTree *ntree_dst,
-                                      const struct bNodeTree *ntree_src);
 
 extern struct bNodeType NodeTypeUndefined;
 extern struct bNodeSocketType NodeSocketTypeUndefined;
