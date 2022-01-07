@@ -32,7 +32,7 @@
 
 void IMB_flipy(struct ImBuf *ibuf)
 {
-  int x, y;
+  size_t x_size, y_size;
 
   if (ibuf == NULL) {
     return;
@@ -41,21 +41,23 @@ void IMB_flipy(struct ImBuf *ibuf)
   if (ibuf->rect) {
     unsigned int *top, *bottom, *line;
 
-    x = ibuf->x;
-    y = ibuf->y;
+    x_size = ibuf->x;
+    y_size = ibuf->y;
+
+    const size_t stride = x_size * sizeof(int);
 
     top = ibuf->rect;
-    bottom = top + ((y - 1) * x);
-    line = MEM_mallocN(x * sizeof(int), "linebuf");
+    bottom = top + ((y_size - 1) * x_size);
+    line = MEM_mallocN(stride, "linebuf");
 
-    y >>= 1;
+    y_size >>= 1;
 
-    for (; y > 0; y--) {
-      memcpy(line, top, x * sizeof(int));
-      memcpy(top, bottom, x * sizeof(int));
-      memcpy(bottom, line, x * sizeof(int));
-      bottom -= x;
-      top += x;
+    for (; y_size > 0; y_size--) {
+      memcpy(line, top, stride);
+      memcpy(top, bottom, stride);
+      memcpy(bottom, line, stride);
+      bottom -= x_size;
+      top += x_size;
     }
 
     MEM_freeN(line);
@@ -64,21 +66,23 @@ void IMB_flipy(struct ImBuf *ibuf)
   if (ibuf->rect_float) {
     float *topf = NULL, *bottomf = NULL, *linef = NULL;
 
-    x = ibuf->x;
-    y = ibuf->y;
+    x_size = ibuf->x;
+    y_size = ibuf->y;
+
+    const size_t stride = x_size * 4 * sizeof(float);
 
     topf = ibuf->rect_float;
-    bottomf = topf + 4 * ((y - 1) * x);
-    linef = MEM_mallocN(4 * x * sizeof(float), "linebuf");
+    bottomf = topf + 4 * ((y_size - 1) * x_size);
+    linef = MEM_mallocN(stride, "linebuf");
 
-    y >>= 1;
+    y_size >>= 1;
 
-    for (; y > 0; y--) {
-      memcpy(linef, topf, 4 * x * sizeof(float));
-      memcpy(topf, bottomf, 4 * x * sizeof(float));
-      memcpy(bottomf, linef, 4 * x * sizeof(float));
-      bottomf -= 4 * x;
-      topf += 4 * x;
+    for (; y_size > 0; y_size--) {
+      memcpy(linef, topf, stride);
+      memcpy(topf, bottomf, stride);
+      memcpy(bottomf, linef, stride);
+      bottomf -= 4 * x_size;
+      topf += 4 * x_size;
     }
 
     MEM_freeN(linef);
@@ -99,20 +103,22 @@ void IMB_flipx(struct ImBuf *ibuf)
 
   if (ibuf->rect) {
     for (yi = y - 1; yi >= 0; yi--) {
+      const size_t x_offset = (size_t)x * yi;
       for (xr = x - 1, xl = 0; xr >= xl; xr--, xl++) {
-        SWAP(unsigned int, ibuf->rect[(x * yi) + xr], ibuf->rect[(x * yi) + xl]);
+        SWAP(unsigned int, ibuf->rect[x_offset + xr], ibuf->rect[x_offset + xl]);
       }
     }
   }
 
   if (ibuf->rect_float) {
     for (yi = y - 1; yi >= 0; yi--) {
+      const size_t x_offset = (size_t)x * yi;
       for (xr = x - 1, xl = 0; xr >= xl; xr--, xl++) {
-        memcpy(&px_f, &ibuf->rect_float[((x * yi) + xr) * 4], sizeof(float[4]));
-        memcpy(&ibuf->rect_float[((x * yi) + xr) * 4],
-               &ibuf->rect_float[((x * yi) + xl) * 4],
+        memcpy(&px_f, &ibuf->rect_float[(x_offset + xr) * 4], sizeof(float[4]));
+        memcpy(&ibuf->rect_float[(x_offset + xr) * 4],
+               &ibuf->rect_float[(x_offset + xl) * 4],
                sizeof(float[4]));
-        memcpy(&ibuf->rect_float[((x * yi) + xl) * 4], &px_f, sizeof(float[4]));
+        memcpy(&ibuf->rect_float[(x_offset + xl) * 4], &px_f, sizeof(float[4]));
       }
     }
   }
