@@ -52,7 +52,7 @@ void _bli_array_wrap(void *arr, uint arr_len, size_t arr_stride, int dir);
  * Access via #BLI_array_wrap
  */
 void _bli_array_permute(
-    void *arr, const uint arr_len, const size_t arr_stride, const uint *order, void *arr_temp);
+    void *arr, uint arr_len, const size_t arr_stride, const uint *order, void *arr_temp);
 #define BLI_array_permute(arr, arr_len, order) \
   _bli_array_permute(arr, arr_len, sizeof(*(arr)), order, NULL)
 #define BLI_array_permute_ex(arr, arr_len, order, arr_temp) \

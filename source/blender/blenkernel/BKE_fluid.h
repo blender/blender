@@ -49,7 +49,7 @@ void BKE_fluid_modifier_reset(struct FluidModifierData *fmd);
 void BKE_fluid_modifier_create_type_data(struct FluidModifierData *fmd);
 void BKE_fluid_modifier_copy(const struct FluidModifierData *fmd,
                              struct FluidModifierData *tfmd,
-                             const int flag);
+                             int flag);
 
 bool BKE_fluid_reallocate_fluid(struct FluidDomainSettings *fds, int res[3], int free_old);
 void BKE_fluid_reallocate_copy_fluid(struct FluidDomainSettings *fds,
@@ -76,8 +76,8 @@ void BKE_fluid_particle_system_create(struct Main *bmain,
                                       const char *pset_name,
                                       const char *parts_name,
                                       const char *psys_name,
-                                      const int psys_type);
-void BKE_fluid_particle_system_destroy(struct Object *ob, const int particle_type);
+                                      int psys_type);
+void BKE_fluid_particle_system_destroy(struct Object *ob, int particle_type);
 
 void BKE_fluid_cache_startframe_set(struct FluidDomainSettings *settings, int value);
 void BKE_fluid_cache_endframe_set(struct FluidDomainSettings *settings, int value);

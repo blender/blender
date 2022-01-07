@@ -127,9 +127,9 @@ class Spline {
   virtual int size() const = 0;
   int segments_size() const;
   bool is_cyclic() const;
-  void set_cyclic(const bool value);
+  void set_cyclic(bool value);
 
-  virtual void resize(const int size) = 0;
+  virtual void resize(int size) = 0;
   virtual blender::MutableSpan<blender::float3> positions() = 0;
   virtual blender::Span<blender::float3> positions() const = 0;
   virtual blender::MutableSpan<float> radii() = 0;
@@ -175,7 +175,7 @@ class Spline {
    */
   blender::Span<blender::float3> evaluated_normals() const;
 
-  void bounds_min_max(blender::float3 &min, blender::float3 &max, const bool use_evaluated) const;
+  void bounds_min_max(blender::float3 &min, blender::float3 &max, bool use_evaluated) const;
 
   struct LookupResult {
     /**
@@ -202,20 +202,20 @@ class Spline {
    * factor between them, which can be used to look up any attribute on the evaluated points.
    * \note This does not support extrapolation.
    */
-  LookupResult lookup_evaluated_factor(const float factor) const;
+  LookupResult lookup_evaluated_factor(float factor) const;
   /**
    * The same as #lookup_evaluated_factor, but looks up a length directly instead of
    * a portion of the total.
    */
-  LookupResult lookup_evaluated_length(const float length) const;
+  LookupResult lookup_evaluated_length(float length) const;
 
   /**
    * Return an array of evenly spaced samples along the length of the spline. The samples are
    * indices and factors to the next index encoded in floats. The logic for converting from the
    * float values to interpolation data is in #lookup_data_from_index_factor.
    */
-  blender::Array<float> sample_uniform_index_factors(const int samples_size) const;
-  LookupResult lookup_data_from_index_factor(const float index_factor) const;
+  blender::Array<float> sample_uniform_index_factors(int samples_size) const;
+  LookupResult lookup_data_from_index_factor(float index_factor) const;
 
   /**
    * Sample any input data with a value for each evaluated point (already interpolated to evaluated
@@ -328,9 +328,9 @@ class BezierSpline final : public Spline {
 
   int size() const final;
   int resolution() const;
-  void set_resolution(const int value);
+  void set_resolution(int value);
 
-  void resize(const int size) final;
+  void resize(int size) final;
   blender::MutableSpan<blender::float3> positions() final;
   blender::Span<blender::float3> positions() const final;
   blender::MutableSpan<float> radii() final;
@@ -370,14 +370,14 @@ class BezierSpline final : public Spline {
    * Set positions for the right handle of the control point, ensuring that
    * aligned handles stay aligned. Has no effect for auto and vector type handles.
    */
-  void set_handle_position_right(const int index, const blender::float3 &value);
+  void set_handle_position_right(int index, const blender::float3 &value);
   /**
    * Set positions for the left handle of the control point, ensuring that
    * aligned handles stay aligned. Has no effect for auto and vector type handles.
    */
-  void set_handle_position_left(const int index, const blender::float3 &value);
+  void set_handle_position_left(int index, const blender::float3 &value);
 
-  bool point_is_sharp(const int index) const;
+  bool point_is_sharp(int index) const;
 
   void mark_cache_invalid() final;
   int evaluated_points_size() const final;
@@ -414,18 +414,18 @@ class BezierSpline final : public Spline {
    * to interpolate data from control points to evaluated points between them. The next control
    * point index result will not overflow the size of the control point vectors.
    */
-  InterpolationData interpolation_data_from_index_factor(const float index_factor) const;
+  InterpolationData interpolation_data_from_index_factor(float index_factor) const;
 
   virtual blender::fn::GVArray interpolate_to_evaluated(
       const blender::fn::GVArray &src) const override;
 
-  void evaluate_segment(const int index,
-                        const int next_index,
+  void evaluate_segment(int index,
+                        int next_index,
                         blender::MutableSpan<blender::float3> positions) const;
   /**
    * \warning This functional assumes that the spline has more than one point.
    */
-  bool segment_is_vector(const int start_index) const;
+  bool segment_is_vector(int start_index) const;
 
   /** See comment and diagram for #calculate_segment_insertion. */
   struct InsertResult {
@@ -454,9 +454,7 @@ class BezierSpline final : public Spline {
    *       point_prev                  point_next
    * </pre>
    */
-  InsertResult calculate_segment_insertion(const int index,
-                                           const int next_index,
-                                           const float parameter);
+  InsertResult calculate_segment_insertion(int index, int next_index, float parameter);
 
  private:
   /**
@@ -552,14 +550,14 @@ class NURBSpline final : public Spline {
 
   int size() const final;
   int resolution() const;
-  void set_resolution(const int value);
+  void set_resolution(int value);
   uint8_t order() const;
-  void set_order(const uint8_t value);
+  void set_order(uint8_t value);
 
   bool check_valid_size_and_order() const;
   int knots_size() const;
 
-  void resize(const int size) final;
+  void resize(int size) final;
   blender::MutableSpan<blender::float3> positions() final;
   blender::Span<blender::float3> positions() const final;
   blender::MutableSpan<float> radii() final;
@@ -615,7 +613,7 @@ class PolySpline final : public Spline {
 
   int size() const final;
 
-  void resize(const int size) final;
+  void resize(int size) final;
   blender::MutableSpan<blender::float3> positions() final;
   blender::Span<blender::float3> positions() const final;
   blender::MutableSpan<float> radii() final;
@@ -676,7 +674,7 @@ struct CurveEval {
    */
   bool has_spline_with_type(const Spline::Type type) const;
 
-  void resize(const int size);
+  void resize(int size);
   /**
    * \warning Call #reallocate on the spline's attributes after adding all splines.
    */
@@ -686,7 +684,7 @@ struct CurveEval {
 
   void translate(const blender::float3 &translation);
   void transform(const blender::float4x4 &matrix);
-  bool bounds_min_max(blender::float3 &min, blender::float3 &max, const bool use_evaluated) const;
+  bool bounds_min_max(blender::float3 &min, blender::float3 &max, bool use_evaluated) const;
 
   /**
    * Return the start indices for each of the curve spline's control points, if they were part

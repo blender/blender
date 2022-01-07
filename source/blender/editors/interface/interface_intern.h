@@ -671,7 +671,7 @@ extern void ui_but_v3_get(uiBut *but, float vec[3]);
 extern void ui_but_v3_set(uiBut *but, const float vec[3]);
 
 extern void ui_hsvcircle_vals_from_pos(
-    const rcti *rect, const float mx, const float my, float *r_val_rad, float *r_val_dist);
+    const rcti *rect, float mx, float my, float *r_val_rad, float *r_val_dist);
 /**
  * Cursor in HSV circle, in float units -1 to 1, to map on radius.
  */
@@ -689,8 +689,8 @@ extern void ui_hsvcube_pos_from_vals(
 extern void ui_but_string_get_ex(uiBut *but,
                                  char *str,
                                  const size_t maxlen,
-                                 const int float_precision,
-                                 const bool use_exp_float,
+                                 int float_precision,
+                                 bool use_exp_float,
                                  bool *r_use_exp_float) ATTR_NONNULL(1, 2);
 extern void ui_but_string_get(uiBut *but, char *str, const size_t maxlen) ATTR_NONNULL();
 /**
@@ -722,7 +722,7 @@ extern void ui_but_active_string_clear_and_exit(struct bContext *C, uiBut *but) 
 extern void ui_but_set_string_interactive(struct bContext *C, uiBut *but, const char *value);
 extern uiBut *ui_but_drag_multi_edit_get(uiBut *but);
 
-void ui_def_but_icon(uiBut *but, const int icon, const int flag);
+void ui_def_but_icon(uiBut *but, int icon, int flag);
 /**
  * Avoid using this where possible since it's better not to ask for an icon in the first place.
  */
@@ -905,7 +905,7 @@ int ui_searchbox_find_index(struct ARegion *region, const char *name);
 /**
  * Region is the search box itself.
  */
-void ui_searchbox_update(struct bContext *C, struct ARegion *region, uiBut *but, const bool reset);
+void ui_searchbox_update(struct bContext *C, struct ARegion *region, uiBut *but, bool reset);
 int ui_searchbox_autocomplete(struct bContext *C, struct ARegion *region, uiBut *but, char *str);
 bool ui_searchbox_event(struct bContext *C,
                         struct ARegion *region,
@@ -1000,9 +1000,9 @@ extern int ui_handler_panel_region(struct bContext *C,
 extern void ui_draw_aligned_panel(const struct uiStyle *style,
                                   const uiBlock *block,
                                   const rcti *rect,
-                                  const bool show_pin,
-                                  const bool show_background,
-                                  const bool region_search_filter_active);
+                                  bool show_pin,
+                                  bool show_background,
+                                  bool region_search_filter_active);
 void ui_panel_tag_search_filter_match(struct Panel *panel);
 
 /* interface_draw.c */
@@ -1013,10 +1013,7 @@ extern void ui_draw_dropshadow(
 /**
  * Draws in resolution of 48x4 colors.
  */
-void ui_draw_gradient(const rcti *rect,
-                      const float hsv[3],
-                      const eButGradientType type,
-                      const float alpha);
+void ui_draw_gradient(const rcti *rect, const float hsv[3], eButGradientType type, float alpha);
 
 /* based on UI_draw_roundbox_gl_mode,
  * check on making a version which allows us to skip some sides */
@@ -1040,7 +1037,7 @@ void ui_draw_but_COLORBAND(uiBut *but, const struct uiWidgetColors *wcol, const 
 void ui_draw_but_UNITVEC(uiBut *but,
                          const struct uiWidgetColors *wcol,
                          const rcti *rect,
-                         const float radius);
+                         float radius);
 void ui_draw_but_CURVE(struct ARegion *region,
                        uiBut *but,
                        const struct uiWidgetColors *wcol,
@@ -1118,7 +1115,7 @@ extern void ui_but_active_free(const struct bContext *C, uiBut *but);
  */
 extern void ui_but_update_view_for_active(const struct bContext *C, const uiBlock *block);
 extern int ui_but_menu_direction(uiBut *but);
-extern void ui_but_text_password_hide(char password_str[128], uiBut *but, const bool restore);
+extern void ui_but_text_password_hide(char password_str[128], uiBut *but, bool restore);
 /**
  * Finds the pressed button in an aligned row (typically an expanded enum).
  *
@@ -1131,7 +1128,7 @@ float ui_block_calc_pie_segment(struct uiBlock *block, const float event_xy[2]);
 /* XXX, this code will shorten any allocated string to 'UI_MAX_NAME_STR'
  * since this is really long its unlikely to be an issue,
  * but this could be supported */
-void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_strip);
+void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, bool do_strip);
 void ui_but_clipboard_free(void);
 bool ui_but_rna_equals(const uiBut *a, const uiBut *b);
 bool ui_but_rna_equals_ex(const uiBut *but,
@@ -1272,8 +1269,8 @@ void uiStyleInit(void);
 
 /* interface_icons.c */
 
-void ui_icon_ensure_deferred(const struct bContext *C, const int icon_id, const bool big);
-int ui_id_icon_get(const struct bContext *C, struct ID *id, const bool big);
+void ui_icon_ensure_deferred(const struct bContext *C, int icon_id, bool big);
+int ui_id_icon_get(const struct bContext *C, struct ID *id, bool big);
 
 /* interface_icons_event.c */
 
@@ -1365,7 +1362,7 @@ bool ui_but_is_toggle(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
  * \note ctrl is kind of a hack currently,
  * so that non-embossed UI_BTYPE_TEXT button behaves as a label when ctrl is not pressed.
  */
-bool ui_but_is_interactive(const uiBut *but, const bool labeledit) ATTR_WARN_UNUSED_RESULT;
+bool ui_but_is_interactive(const uiBut *but, bool labeledit) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_is_popover_once_compat(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_has_array_value(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 int ui_but_icon(const uiBut *but);
@@ -1388,7 +1385,7 @@ uiBut *ui_list_find_from_row(const struct ARegion *region,
 uiBut *ui_list_row_find_mouse_over(const struct ARegion *region, const int xy[2])
     ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 uiBut *ui_list_row_find_from_index(const struct ARegion *region,
-                                   const int index,
+                                   int index,
                                    uiBut *listbox) ATTR_WARN_UNUSED_RESULT;
 uiBut *ui_tree_row_find_mouse_over(const struct ARegion *region, const int xy[2])
     ATTR_NONNULL(1, 2);
@@ -1400,7 +1397,7 @@ typedef bool (*uiButFindPollFn)(const uiBut *but, const void *customdata);
  */
 uiBut *ui_but_find_mouse_over_ex(const struct ARegion *region,
                                  const int xy[2],
-                                 const bool labeledit,
+                                 bool labeledit,
                                  const uiButFindPollFn find_poll,
                                  const void *find_custom_data)
     ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
@@ -1512,11 +1509,8 @@ typedef struct uiRNACollectionSearch {
   /* Block has to be stored for freeing butstore (uiBut.block doesn't work with undo). */
   uiBlock *butstore_block;
 } uiRNACollectionSearch;
-void ui_rna_collection_search_update_fn(const struct bContext *C,
-                                        void *arg,
-                                        const char *str,
-                                        uiSearchItems *items,
-                                        const bool is_first);
+void ui_rna_collection_search_update_fn(
+    const struct bContext *C, void *arg, const char *str, uiSearchItems *items, bool is_first);
 
 /* interface_ops.c */
 

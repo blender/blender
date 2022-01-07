@@ -96,7 +96,7 @@ void BKE_vfont_build_char(struct Curve *cu,
                           float ofsy,
                           float rot,
                           int charidx,
-                          const float fsize);
+                          float fsize);
 
 int BKE_vfont_select_get(struct Object *ob, int *r_start, int *r_end);
 void BKE_vfont_select_clamp(struct Object *ob);

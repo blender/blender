@@ -133,7 +133,7 @@ const char *BLI_path_basename(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_
  * Ignores multiple slashes at any point in the path (including start/end).
  */
 bool BLI_path_name_at_index(const char *__restrict path,
-                            const int index,
+                            int index,
                             int *__restrict r_offset,
                             int *__restrict r_len) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 

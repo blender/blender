@@ -32,10 +32,10 @@ struct BArrayStore_AtSize {
 };
 
 BArrayStore *BLI_array_store_at_size_ensure(struct BArrayStore_AtSize *bs_stride,
-                                            const int stride,
-                                            const int chunk_size);
+                                            int stride,
+                                            int chunk_size);
 
-BArrayStore *BLI_array_store_at_size_get(struct BArrayStore_AtSize *bs_stride, const int stride);
+BArrayStore *BLI_array_store_at_size_get(struct BArrayStore_AtSize *bs_stride, int stride);
 
 void BLI_array_store_at_size_clear(struct BArrayStore_AtSize *bs_stride);
 

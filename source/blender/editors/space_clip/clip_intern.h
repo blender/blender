@@ -184,7 +184,7 @@ void clip_delete_plane_track(struct bContext *C,
  * Calculate space clip offset to be centered at the given point.
  */
 void clip_view_offset_for_center_to_point(
-    SpaceClip *sc, const float x, const float y, float *r_offset_x, float *r_offset_y);
+    SpaceClip *sc, float x, float y, float *r_offset_x, float *r_offset_y);
 void clip_view_center_to_point(SpaceClip *sc, float x, float y);
 
 bool clip_view_calculate_view_selection(

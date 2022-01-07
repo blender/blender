@@ -64,7 +64,7 @@ class StringRefBase {
   const char *data_;
   int64_t size_;
 
-  constexpr StringRefBase(const char *data, const int64_t size);
+  constexpr StringRefBase(const char *data, int64_t size);
 
  public:
   /* Similar to string_view::npos, but signed. */
@@ -84,12 +84,12 @@ class StringRefBase {
   constexpr IndexRange index_range() const;
 
   void unsafe_copy(char *dst) const;
-  void copy(char *dst, const int64_t dst_size) const;
+  void copy(char *dst, int64_t dst_size) const;
   template<size_t N> void copy(char (&dst)[N]) const;
 
   constexpr bool startswith(StringRef prefix) const;
   constexpr bool endswith(StringRef suffix) const;
-  constexpr StringRef substr(int64_t start, const int64_t size) const;
+  constexpr StringRef substr(int64_t start, int64_t size) const;
 
   constexpr const char &front() const;
   constexpr const char &back() const;
@@ -123,11 +123,11 @@ class StringRefNull : public StringRefBase {
 
  public:
   constexpr StringRefNull();
-  constexpr StringRefNull(const char *str, const int64_t size);
+  constexpr StringRefNull(const char *str, int64_t size);
   StringRefNull(const char *str);
   StringRefNull(const std::string &str);
 
-  constexpr char operator[](const int64_t index) const;
+  constexpr char operator[](int64_t index) const;
   constexpr const char *c_str() const;
 };
 
@@ -139,14 +139,14 @@ class StringRef : public StringRefBase {
   constexpr StringRef();
   constexpr StringRef(StringRefNull other);
   constexpr StringRef(const char *str);
-  constexpr StringRef(const char *str, const int64_t length);
+  constexpr StringRef(const char *str, int64_t length);
   constexpr StringRef(const char *begin, const char *one_after_end);
   constexpr StringRef(std::string_view view);
   StringRef(const std::string &str);
 
-  constexpr StringRef drop_prefix(const int64_t n) const;
+  constexpr StringRef drop_prefix(int64_t n) const;
   constexpr StringRef drop_known_prefix(StringRef prefix) const;
-  constexpr StringRef drop_suffix(const int64_t n) const;
+  constexpr StringRef drop_suffix(int64_t n) const;
 
   constexpr char operator[](int64_t index) const;
 };

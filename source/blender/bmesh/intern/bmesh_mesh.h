@@ -74,14 +74,14 @@ void BM_mesh_clear(BMesh *bm);
  * the editing operations are done. These are called by the tools/operator
  * API for each time a tool is executed.
  */
-void bmesh_edit_begin(BMesh *bm, const BMOpTypeFlag type_flag);
+void bmesh_edit_begin(BMesh *bm, BMOpTypeFlag type_flag);
 /**
  * \brief BMesh End Edit
  */
-void bmesh_edit_end(BMesh *bm, const BMOpTypeFlag type_flag);
+void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag);
 
-void BM_mesh_elem_index_ensure_ex(BMesh *bm, const char htype, int elem_offset[4]);
-void BM_mesh_elem_index_ensure(BMesh *bm, const char htype);
+void BM_mesh_elem_index_ensure_ex(BMesh *bm, char htype, int elem_offset[4]);
+void BM_mesh_elem_index_ensure(BMesh *bm, char htype);
 /**
  * Array checking/setting macros.
  *
@@ -109,10 +109,10 @@ bool BM_mesh_elem_table_check(BMesh *bm);
  */
 void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags);
 
-void BM_mesh_elem_table_ensure(BMesh *bm, const char htype);
+void BM_mesh_elem_table_ensure(BMesh *bm, char htype);
 /* use BM_mesh_elem_table_ensure where possible to avoid full rebuild */
-void BM_mesh_elem_table_init(BMesh *bm, const char htype);
-void BM_mesh_elem_table_free(BMesh *bm, const char htype);
+void BM_mesh_elem_table_init(BMesh *bm, char htype);
+void BM_mesh_elem_table_free(BMesh *bm, char htype);
 
 BLI_INLINE BMVert *BM_vert_at_index(BMesh *bm, const int index)
 {
@@ -133,26 +133,26 @@ BLI_INLINE BMFace *BM_face_at_index(BMesh *bm, const int index)
   return bm->ftable[index];
 }
 
-BMVert *BM_vert_at_index_find(BMesh *bm, const int index);
-BMEdge *BM_edge_at_index_find(BMesh *bm, const int index);
-BMFace *BM_face_at_index_find(BMesh *bm, const int index);
-BMLoop *BM_loop_at_index_find(BMesh *bm, const int index);
+BMVert *BM_vert_at_index_find(BMesh *bm, int index);
+BMEdge *BM_edge_at_index_find(BMesh *bm, int index);
+BMFace *BM_face_at_index_find(BMesh *bm, int index);
+BMLoop *BM_loop_at_index_find(BMesh *bm, int index);
 
 /**
  * Use lookup table when available, else use slower find functions.
  *
  * \note Try to use #BM_mesh_elem_table_ensure instead.
  */
-BMVert *BM_vert_at_index_find_or_table(BMesh *bm, const int index);
-BMEdge *BM_edge_at_index_find_or_table(BMesh *bm, const int index);
-BMFace *BM_face_at_index_find_or_table(BMesh *bm, const int index);
+BMVert *BM_vert_at_index_find_or_table(BMesh *bm, int index);
+BMEdge *BM_edge_at_index_find_or_table(BMesh *bm, int index);
+BMFace *BM_face_at_index_find_or_table(BMesh *bm, int index);
 
 // XXX
 
 /**
  * Return the amount of element of type 'type' in a given bmesh.
  */
-int BM_mesh_elem_count(BMesh *bm, const char htype);
+int BM_mesh_elem_count(BMesh *bm, char htype);
 
 /**
  * Remaps the vertices, edges and/or faces of the bmesh as indicated by vert/edge/face_idx arrays

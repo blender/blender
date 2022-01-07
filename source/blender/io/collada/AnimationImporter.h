@@ -211,7 +211,7 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
    */
   void Assign_lens_animations(const COLLADAFW::UniqueId &listid,
                               ListBase *AnimCurves,
-                              const double aspect,
+                              double aspect,
                               Camera *cam,
                               const char *anim_type,
                               int fov_type);

@@ -59,10 +59,10 @@ void template_breadcrumbs(uiLayout &layout, Span<ContextPathItem> context_path);
 
 void attribute_search_add_items(
     StringRefNull str,
-    const bool is_output,
+    bool is_output,
     Span<const nodes::geometry_nodes_eval_log::GeometryAttributeInfo *> infos,
     uiSearchItems *items,
-    const bool is_first);
+    bool is_first);
 
 }  // namespace blender::ui
 

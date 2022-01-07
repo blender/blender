@@ -151,8 +151,8 @@ struct bGPDframe *BKE_gpencil_frame_addcopy(struct bGPDlayer *gpl, int cframe);
  */
 struct bGPDlayer *BKE_gpencil_layer_addnew(struct bGPdata *gpd,
                                            const char *name,
-                                           const bool setactive,
-                                           const bool add_to_header);
+                                           bool setactive,
+                                           bool add_to_header);
 /**
  * Add a new grease pencil data-block.
  * \param bmain: Main pointer
@@ -166,16 +166,15 @@ struct bGPdata *BKE_gpencil_data_addnew(struct Main *bmain, const char name[]);
  * \param gpf_src: Source grease pencil frame
  * \return Pointer to new frame
  */
-struct bGPDframe *BKE_gpencil_frame_duplicate(const struct bGPDframe *gpf_src,
-                                              const bool dup_strokes);
+struct bGPDframe *BKE_gpencil_frame_duplicate(const struct bGPDframe *gpf_src, bool dup_strokes);
 /**
  * Make a copy of a given gpencil layer.
  * \param gpl_src: Source grease pencil layer
  * \return Pointer to new layer
  */
 struct bGPDlayer *BKE_gpencil_layer_duplicate(const struct bGPDlayer *gpl_src,
-                                              const bool dup_frames,
-                                              const bool dup_strokes);
+                                              bool dup_frames,
+                                              bool dup_strokes);
 /**
  * Make a copy of a given gpencil layer settings.
  */
@@ -199,8 +198,8 @@ struct bGPDcurve *BKE_gpencil_stroke_curve_duplicate(struct bGPDcurve *gpc_src);
  * \return Pointer to new stroke.
  */
 struct bGPDstroke *BKE_gpencil_stroke_duplicate(struct bGPDstroke *gps_src,
-                                                const bool dup_points,
-                                                const bool dup_curve);
+                                                bool dup_points,
+                                                bool dup_curve);
 
 /**
  * Make a copy of a given gpencil data-block.
@@ -252,9 +251,9 @@ void BKE_gpencil_material_remap(struct bGPdata *gpd,
  * \return True if done.
  */
 bool BKE_gpencil_merge_materials_table_get(struct Object *ob,
-                                           const float hue_threshold,
-                                           const float sat_threshold,
-                                           const float val_threshold,
+                                           float hue_threshold,
+                                           float sat_threshold,
+                                           float val_threshold,
                                            struct GHash *r_mat_table);
 /**
  * Merge similar materials
@@ -266,9 +265,9 @@ bool BKE_gpencil_merge_materials_table_get(struct Object *ob,
  * \return True if done
  */
 bool BKE_gpencil_merge_materials(struct Object *ob,
-                                 const float hue_threshold,
-                                 const float sat_threshold,
-                                 const float val_threshold,
+                                 float hue_threshold,
+                                 float sat_threshold,
+                                 float val_threshold,
                                  int *r_removed);
 
 /* statistics functions */
@@ -296,7 +295,7 @@ struct bGPDstroke *BKE_gpencil_stroke_new(int mat_idx, int totpoints, short thic
  * \return Pointer to new stroke
  */
 struct bGPDstroke *BKE_gpencil_stroke_add(
-    struct bGPDframe *gpf, int mat_idx, int totpoints, short thickness, const bool insert_at_head);
+    struct bGPDframe *gpf, int mat_idx, int totpoints, short thickness, bool insert_at_head);
 
 /**
  * Add a stroke and copy the temporary drawing color value
@@ -314,7 +313,7 @@ struct bGPDstroke *BKE_gpencil_stroke_add_existing_style(struct bGPDframe *gpf,
                                                          int totpoints,
                                                          short thickness);
 
-struct bGPDcurve *BKE_gpencil_stroke_editcurve_new(const int tot_curve_points);
+struct bGPDcurve *BKE_gpencil_stroke_editcurve_new(int tot_curve_points);
 
 /* Stroke and Fill - Alpha Visibility Threshold */
 #define GPENCIL_ALPHA_OPACITY_THRESH 0.001f
@@ -398,7 +397,7 @@ void BKE_gpencil_layer_delete(struct bGPdata *gpd, struct bGPDlayer *gpl);
  * \param gpd: Grease pencil data-block
  * \param unlock: Unlock flag
  */
-void BKE_gpencil_layer_autolock_set(struct bGPdata *gpd, const bool unlock);
+void BKE_gpencil_layer_autolock_set(struct bGPdata *gpd, bool unlock);
 
 /**
  * Add grease pencil mask layer.
@@ -641,11 +640,8 @@ void BKE_gpencil_palette_ensure(struct Main *bmain, struct Scene *scene);
  * \param mask: Mask
  * \return  True if done
  */
-bool BKE_gpencil_from_image(struct SpaceImage *sima,
-                            struct bGPdata *gpd,
-                            struct bGPDframe *gpf,
-                            const float size,
-                            const bool mask);
+bool BKE_gpencil_from_image(
+    struct SpaceImage *sima, struct bGPdata *gpd, struct bGPDframe *gpf, float size, bool mask);
 
 /* Iterators */
 /**

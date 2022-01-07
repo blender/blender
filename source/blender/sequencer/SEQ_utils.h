@@ -66,11 +66,11 @@ struct Mask *SEQ_active_mask_get(struct Scene *scene);
 void SEQ_alpha_mode_from_file_extension(struct Sequence *seq);
 bool SEQ_sequence_has_source(const struct Sequence *seq);
 void SEQ_set_scale_to_fit(const struct Sequence *seq,
-                          const int image_width,
-                          const int image_height,
-                          const int preview_width,
-                          const int preview_height,
-                          const eSeqImageFitMethod fit_method);
+                          int image_width,
+                          int image_height,
+                          int preview_width,
+                          int preview_height,
+                          eSeqImageFitMethod fit_method);
 /**
  * Ensure, that provided Sequence has unique name. If animation data exists for this Sequence, it
  * will be duplicated and mapped onto new name

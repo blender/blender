@@ -90,8 +90,8 @@ class ScaleOperation : public BaseScaleOperation {
   static void scale_area(rcti &area, float relative_scale_x, float relative_scale_y);
   static void get_scale_area_of_interest(const rcti &input_canvas,
                                          const rcti &scale_canvas,
-                                         const float relative_scale_x,
-                                         const float relative_scale_y,
+                                         float relative_scale_x,
+                                         float relative_scale_y,
                                          const rcti &output_area,
                                          rcti &r_input_area);
   static void clamp_area_size_max(rcti &area, Size2f max_size);

@@ -54,8 +54,8 @@ void BKE_blendfile_link_append_context_free(struct BlendfileLinkAppendContext *l
  * \param do_set: Set the given \a flag if true, clear it otherwise.
  */
 void BKE_blendfile_link_append_context_flag_set(struct BlendfileLinkAppendContext *lapp_context,
-                                                const int flag,
-                                                const bool do_set);
+                                                int flag,
+                                                bool do_set);
 
 /**
  * Store reference to a Blender's embedded memfile into the context.
@@ -98,7 +98,7 @@ void BKE_blendfile_link_append_context_library_add(struct BlendfileLinkAppendCon
 struct BlendfileLinkAppendContextItem *BKE_blendfile_link_append_context_item_add(
     struct BlendfileLinkAppendContext *lapp_context,
     const char *idname,
-    const short idcode,
+    short idcode,
     void *userdata);
 
 #define BLENDFILE_LINK_APPEND_INVALID -1
@@ -119,8 +119,8 @@ struct BlendfileLinkAppendContextItem *BKE_blendfile_link_append_context_item_ad
 int BKE_blendfile_link_append_context_item_idtypes_from_library_add(
     struct BlendfileLinkAppendContext *lapp_context,
     struct ReportList *reports,
-    const uint64_t id_types_filter,
-    const int library_index);
+    uint64_t id_types_filter,
+    int library_index);
 
 /**
  * Enable search of the given \a item into the library stored at given index in the link/append
@@ -129,7 +129,7 @@ int BKE_blendfile_link_append_context_item_idtypes_from_library_add(
 void BKE_blendfile_link_append_context_item_library_index_enable(
     struct BlendfileLinkAppendContext *lapp_context,
     struct BlendfileLinkAppendContextItem *item,
-    const int library_index);
+    int library_index);
 /**
  * Check if given link/append context is empty (has no items to process) or not.
  */
@@ -175,7 +175,7 @@ typedef bool (*BKE_BlendfileLinkAppendContexteItemFunction)(
 void BKE_blendfile_link_append_context_item_foreach(
     struct BlendfileLinkAppendContext *lapp_context,
     BKE_BlendfileLinkAppendContexteItemFunction callback_function,
-    const eBlendfileLinkAppendForeachItemFlag flag,
+    eBlendfileLinkAppendForeachItemFlag flag,
     void *userdata);
 
 /**
@@ -215,7 +215,7 @@ void BKE_blendfile_link(struct BlendfileLinkAppendContext *lapp_context,
 void BKE_blendfile_library_relocate(struct BlendfileLinkAppendContext *lapp_context,
                                     struct ReportList *reports,
                                     struct Library *library,
-                                    const bool do_reload);
+                                    bool do_reload);
 
 #ifdef __cplusplus
 }

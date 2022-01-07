@@ -91,22 +91,22 @@ class OBJWriter : NonMovable, NonCopyable {
    */
   int write_smooth_group(const OBJMesh &obj_mesh_data,
                          int poly_index,
-                         const int last_poly_smooth_group) const;
+                         int last_poly_smooth_group) const;
   /**
    * Write material name and material group of a polygon in the .OBJ file.
    * \return #mat_nr of the polygon at the given index.
    * \note It doesn't write to the material library.
    */
   int16_t write_poly_material(const OBJMesh &obj_mesh_data,
-                              const int poly_index,
-                              const int16_t last_poly_mat_nr,
+                              int poly_index,
+                              int16_t last_poly_mat_nr,
                               std::function<const char *(int)> matname_fn) const;
   /**
    * Write the name of the deform group of a polygon.
    */
   int16_t write_vertex_group(const OBJMesh &obj_mesh_data,
-                             const int poly_index,
-                             const int16_t last_poly_vertex_group) const;
+                             int poly_index,
+                             int16_t last_poly_vertex_group) const;
   /**
    * Write polygon elements with at least vertex indices, and conditionally with UV vertex
    * indices and polygon normal indices. Also write groups: smooth, vertex, material.
@@ -138,7 +138,7 @@ class OBJWriter : NonMovable, NonCopyable {
   /**
    * \return Writer function with appropriate polygon-element syntax.
    */
-  func_vert_uv_normal_indices get_poly_element_writer(const int total_uv_vertices) const;
+  func_vert_uv_normal_indices get_poly_element_writer(int total_uv_vertices) const;
 
   /**
    * Write one line of polygon indices as "f v1/vt1/vn1 v2/vt2/vn2 ...".

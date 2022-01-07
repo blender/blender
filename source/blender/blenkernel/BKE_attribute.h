@@ -54,19 +54,16 @@ typedef enum AttributeDomain {
 
 bool BKE_id_attributes_supported(struct ID *id);
 
-struct CustomDataLayer *BKE_id_attribute_new(struct ID *id,
-                                             const char *name,
-                                             const int type,
-                                             const AttributeDomain domain,
-                                             struct ReportList *reports);
+struct CustomDataLayer *BKE_id_attribute_new(
+    struct ID *id, const char *name, int type, AttributeDomain domain, struct ReportList *reports);
 bool BKE_id_attribute_remove(struct ID *id,
                              struct CustomDataLayer *layer,
                              struct ReportList *reports);
 
 struct CustomDataLayer *BKE_id_attribute_find(const struct ID *id,
                                               const char *name,
-                                              const int type,
-                                              const AttributeDomain domain);
+                                              int type,
+                                              AttributeDomain domain);
 
 AttributeDomain BKE_id_attribute_domain(struct ID *id, struct CustomDataLayer *layer);
 int BKE_id_attribute_data_length(struct ID *id, struct CustomDataLayer *layer);

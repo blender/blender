@@ -65,33 +65,25 @@ void BKE_subdiv_eval_init_displacement(struct Subdiv *subdiv);
 /* Evaluate point at a limit surface, with optional derivatives and normal. */
 
 void BKE_subdiv_eval_limit_point(
-    struct Subdiv *subdiv, const int ptex_face_index, const float u, const float v, float r_P[3]);
+    struct Subdiv *subdiv, int ptex_face_index, float u, float v, float r_P[3]);
 void BKE_subdiv_eval_limit_point_and_derivatives(struct Subdiv *subdiv,
-                                                 const int ptex_face_index,
-                                                 const float u,
-                                                 const float v,
+                                                 int ptex_face_index,
+                                                 float u,
+                                                 float v,
                                                  float r_P[3],
                                                  float r_dPdu[3],
                                                  float r_dPdv[3]);
-void BKE_subdiv_eval_limit_point_and_normal(struct Subdiv *subdiv,
-                                            const int ptex_face_index,
-                                            const float u,
-                                            const float v,
-                                            float r_P[3],
-                                            float r_N[3]);
-void BKE_subdiv_eval_limit_point_and_short_normal(struct Subdiv *subdiv,
-                                                  const int ptex_face_index,
-                                                  const float u,
-                                                  const float v,
-                                                  float r_P[3],
-                                                  short r_N[3]);
+void BKE_subdiv_eval_limit_point_and_normal(
+    struct Subdiv *subdiv, int ptex_face_index, float u, float v, float r_P[3], float r_N[3]);
+void BKE_subdiv_eval_limit_point_and_short_normal(
+    struct Subdiv *subdiv, int ptex_face_index, float u, float v, float r_P[3], short r_N[3]);
 
 /* Evaluate face-varying layer (such as UV). */
 void BKE_subdiv_eval_face_varying(struct Subdiv *subdiv,
-                                  const int face_varying_channel,
-                                  const int ptex_face_index,
-                                  const float u,
-                                  const float v,
+                                  int face_varying_channel,
+                                  int ptex_face_index,
+                                  float u,
+                                  float v,
                                   float r_face_varying[2]);
 
 /* NOTE: Expects derivatives to be correct.
@@ -101,16 +93,16 @@ void BKE_subdiv_eval_face_varying(struct Subdiv *subdiv,
  * Would be nice to have displacement evaluation function which does not require
  * knowing derivatives ahead of a time. */
 void BKE_subdiv_eval_displacement(struct Subdiv *subdiv,
-                                  const int ptex_face_index,
-                                  const float u,
-                                  const float v,
+                                  int ptex_face_index,
+                                  float u,
+                                  float v,
                                   const float dPdu[3],
                                   const float dPdv[3],
                                   float r_D[3]);
 
 /* Evaluate point on a limit surface with displacement applied to it. */
 void BKE_subdiv_eval_final_point(
-    struct Subdiv *subdiv, const int ptex_face_index, const float u, const float v, float r_P[3]);
+    struct Subdiv *subdiv, int ptex_face_index, float u, float v, float r_P[3]);
 
 /* Patch queries at given resolution.
  *
@@ -119,41 +111,41 @@ void BKE_subdiv_eval_final_point(
  * goes as u in rows, v in columns. */
 
 void BKE_subdiv_eval_limit_patch_resolution_point(struct Subdiv *subdiv,
-                                                  const int ptex_face_index,
-                                                  const int resolution,
+                                                  int ptex_face_index,
+                                                  int resolution,
                                                   void *buffer,
-                                                  const int offset,
-                                                  const int stride);
+                                                  int offset,
+                                                  int stride);
 void BKE_subdiv_eval_limit_patch_resolution_point_and_derivatives(struct Subdiv *subdiv,
-                                                                  const int ptex_face_index,
-                                                                  const int resolution,
+                                                                  int ptex_face_index,
+                                                                  int resolution,
                                                                   void *point_buffer,
-                                                                  const int point_offset,
-                                                                  const int point_stride,
+                                                                  int point_offset,
+                                                                  int point_stride,
                                                                   void *du_buffer,
-                                                                  const int du_offset,
-                                                                  const int du_stride,
+                                                                  int du_offset,
+                                                                  int du_stride,
                                                                   void *dv_buffer,
-                                                                  const int dv_offset,
-                                                                  const int dv_stride);
+                                                                  int dv_offset,
+                                                                  int dv_stride);
 void BKE_subdiv_eval_limit_patch_resolution_point_and_normal(struct Subdiv *subdiv,
-                                                             const int ptex_face_index,
-                                                             const int resolution,
+                                                             int ptex_face_index,
+                                                             int resolution,
                                                              void *point_buffer,
-                                                             const int point_offset,
-                                                             const int point_stride,
+                                                             int point_offset,
+                                                             int point_stride,
                                                              void *normal_buffer,
-                                                             const int normal_offset,
-                                                             const int normal_stride);
+                                                             int normal_offset,
+                                                             int normal_stride);
 void BKE_subdiv_eval_limit_patch_resolution_point_and_short_normal(struct Subdiv *subdiv,
-                                                                   const int ptex_face_index,
-                                                                   const int resolution,
+                                                                   int ptex_face_index,
+                                                                   int resolution,
                                                                    void *point_buffer,
-                                                                   const int point_offset,
-                                                                   const int point_stride,
+                                                                   int point_offset,
+                                                                   int point_stride,
                                                                    void *normal_buffer,
-                                                                   const int normal_offset,
-                                                                   const int normal_stride);
+                                                                   int normal_offset,
+                                                                   int normal_stride);
 
 #ifdef __cplusplus
 }

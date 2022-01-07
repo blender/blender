@@ -60,7 +60,7 @@ void ED_sculpt_undo_geometry_end(struct Object *ob);
 /* Face sets. */
 
 int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh);
-void ED_sculpt_face_sets_initialize_none_to_id(struct Mesh *mesh, const int new_id);
+void ED_sculpt_face_sets_initialize_none_to_id(struct Mesh *mesh, int new_id);
 
 int ED_sculpt_face_sets_active_update_and_get(struct bContext *C,
                                               struct Object *ob,

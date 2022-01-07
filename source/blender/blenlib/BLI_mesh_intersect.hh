@@ -91,7 +91,7 @@ struct Plane {
 
   Plane() = default;
   Plane(const mpq3 &norm_exact, const mpq_class &d_exact);
-  Plane(const double3 &norm, const double d);
+  Plane(const double3 &norm, double d);
 
   /** Test equality on the exact fields. */
   bool operator==(const Plane &other) const;

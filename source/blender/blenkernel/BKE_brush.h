@@ -50,7 +50,7 @@ void BKE_brush_system_exit(void);
  * \note Resulting brush will have two users: one as a fake user,
  * another is assumed to be used by the caller.
  */
-struct Brush *BKE_brush_add(struct Main *bmain, const char *name, const eObjectMode ob_mode);
+struct Brush *BKE_brush_add(struct Main *bmain, const char *name, eObjectMode ob_mode);
 /**
  * Add a new gp-brush.
  */
@@ -66,35 +66,27 @@ bool BKE_brush_delete(struct Main *bmain, struct Brush *brush);
  * Add grease pencil settings.
  */
 void BKE_brush_init_gpencil_settings(struct Brush *brush);
-struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mode);
+struct Brush *BKE_brush_first_search(struct Main *bmain, eObjectMode ob_mode);
 
 void BKE_brush_sculpt_reset(struct Brush *brush);
 
 /**
  * Create a set of grease pencil Drawing presets.
  */
-void BKE_brush_gpencil_paint_presets(struct Main *bmain,
-                                     struct ToolSettings *ts,
-                                     const bool reset);
+void BKE_brush_gpencil_paint_presets(struct Main *bmain, struct ToolSettings *ts, bool reset);
 /**
  * Create a set of grease pencil Vertex Paint presets.
  */
-void BKE_brush_gpencil_vertex_presets(struct Main *bmain,
-                                      struct ToolSettings *ts,
-                                      const bool reset);
+void BKE_brush_gpencil_vertex_presets(struct Main *bmain, struct ToolSettings *ts, bool reset);
 /**
  * Create a set of grease pencil Sculpt Paint presets.
  */
-void BKE_brush_gpencil_sculpt_presets(struct Main *bmain,
-                                      struct ToolSettings *ts,
-                                      const bool reset);
+void BKE_brush_gpencil_sculpt_presets(struct Main *bmain, struct ToolSettings *ts, bool reset);
 /**
  * Create a set of grease pencil Weight Paint presets.
  */
-void BKE_brush_gpencil_weight_presets(struct Main *bmain,
-                                      struct ToolSettings *ts,
-                                      const bool reset);
-void BKE_gpencil_brush_preset_set(struct Main *bmain, struct Brush *brush, const short type);
+void BKE_brush_gpencil_weight_presets(struct Main *bmain, struct ToolSettings *ts, bool reset);
+void BKE_gpencil_brush_preset_set(struct Main *bmain, struct Brush *brush, short type);
 
 void BKE_brush_jitter_pos(const struct Scene *scene,
                           struct Brush *brush,
@@ -130,12 +122,12 @@ float BKE_brush_sample_tex_3d(const struct Scene *scene,
                               const struct Brush *br,
                               const float point[3],
                               float rgba[4],
-                              const int thread,
+                              int thread,
                               struct ImagePool *pool);
 float BKE_brush_sample_masktex(const struct Scene *scene,
                                struct Brush *br,
                                const float point[2],
-                               const int thread,
+                               int thread,
                                struct ImagePool *pool);
 
 /* Texture. */

@@ -47,12 +47,12 @@ int BLI_kdtree_nd_(find_nearest)(const KDTree *tree,
 int BLI_kdtree_nd_(find_nearest_n)(const KDTree *tree,
                                    const float co[KD_DIMS],
                                    KDTreeNearest *r_nearest,
-                                   const uint nearest_len_capacity) ATTR_NONNULL(1, 2, 3);
+                                   uint nearest_len_capacity) ATTR_NONNULL(1, 2, 3);
 
 int BLI_kdtree_nd_(range_search)(const KDTree *tree,
                                  const float co[KD_DIMS],
                                  KDTreeNearest **r_nearest,
-                                 const float range) ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
+                                 float range) ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 
 int BLI_kdtree_nd_(find_nearest_cb)(
     const KDTree *tree,
@@ -68,7 +68,7 @@ void BLI_kdtree_nd_(range_search_cb)(
     void *user_data);
 
 int BLI_kdtree_nd_(calc_duplicates_fast)(const KDTree *tree,
-                                         const float range,
+                                         float range,
                                          bool use_index_order,
                                          int *doubles);
 
@@ -79,7 +79,7 @@ int BLI_kdtree_nd_(find_nearest_n_with_len_squared_cb)(
     const KDTree *tree,
     const float co[KD_DIMS],
     KDTreeNearest *r_nearest,
-    const uint nearest_len_capacity,
+    uint nearest_len_capacity,
     float (*len_sq_fn)(const float co_search[KD_DIMS],
                        const float co_test[KD_DIMS],
                        const void *user_data),
@@ -88,7 +88,7 @@ int BLI_kdtree_nd_(range_search_with_len_squared_cb)(
     const KDTree *tree,
     const float co[KD_DIMS],
     KDTreeNearest **r_nearest,
-    const float range,
+    float range,
     float (*len_sq_fn)(const float co_search[KD_DIMS],
                        const float co_test[KD_DIMS],
                        const void *user_data),

@@ -51,7 +51,7 @@ typedef struct GapInfo {
  */
 void seq_time_gap_info_get(const struct Scene *scene,
                            struct ListBase *seqbase,
-                           const int initial_frame,
+                           int initial_frame,
                            struct GapInfo *r_gap_info);
 
 #ifdef __cplusplus

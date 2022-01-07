@@ -59,7 +59,7 @@ typedef struct BMPartialUpdate {
 BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
                                                    const BMPartialUpdate_Params *params,
                                                    const unsigned int *verts_mask,
-                                                   const int verts_mask_count)
+                                                   int verts_mask_count)
     ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
 
 /**
@@ -71,7 +71,7 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
     BMesh *bm,
     const BMPartialUpdate_Params *params,
     const unsigned int *verts_mask,
-    const int verts_mask_count) ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
+    int verts_mask_count) ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * All Connected, operate on all faces that have vertices in the same group.
@@ -93,9 +93,7 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
  * \param verts_group_count: The number of non-zero values in `verts_groups`.
  */
 BMPartialUpdate *BM_mesh_partial_create_from_verts_group_multi(
-    BMesh *bm,
-    const BMPartialUpdate_Params *params,
-    const int *verts_group,
-    const int verts_group_count) ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
+    BMesh *bm, const BMPartialUpdate_Params *params, const int *verts_group, int verts_group_count)
+    ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
 
 void BM_mesh_partial_destroy(BMPartialUpdate *bmpinfo) ATTR_NONNULL(1);

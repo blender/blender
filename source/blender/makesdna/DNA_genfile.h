@@ -87,7 +87,7 @@ enum eSDNA_StructCompare {
  * Constructs and returns a decoded SDNA structure from the given encoded SDNA data block.
  */
 struct SDNA *DNA_sdna_from_data(const void *data,
-                                const int data_len,
+                                int data_len,
                                 bool do_endian_swap,
                                 bool data_alloc,
                                 const char **r_error_message);
@@ -163,7 +163,7 @@ bool DNA_struct_elem_find(const struct SDNA *sdna,
 /**
  * Returns the size in bytes of a primitive type.
  */
-int DNA_elem_type_size(const eSDNA_Type elem_nr);
+int DNA_elem_type_size(eSDNA_Type elem_nr);
 
 /**
  * Rename a struct

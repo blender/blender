@@ -38,7 +38,7 @@ class OBJDepsgraph : NonMovable, NonCopyable {
   bool needs_free_ = false;
 
  public:
-  OBJDepsgraph(const bContext *C, const eEvaluationMode eval_mode);
+  OBJDepsgraph(const bContext *C, eEvaluationMode eval_mode);
   ~OBJDepsgraph();
 
   Depsgraph *get();
@@ -97,5 +97,5 @@ filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_par
  *
  * \return Whether the filepath is in #FILE_MAX limits.
  */
-bool append_frame_to_filename(const char *filepath, const int frame, char *r_filepath_with_frames);
+bool append_frame_to_filename(const char *filepath, int frame, char *r_filepath_with_frames);
 }  // namespace blender::io::obj

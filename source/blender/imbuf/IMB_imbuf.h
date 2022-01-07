@@ -378,7 +378,7 @@ struct IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
                                                          IMB_Timecode_Type tcs_in_use,
                                                          IMB_Proxy_Size proxy_sizes_in_use,
                                                          int quality,
-                                                         const bool overwrite,
+                                                         bool overwrite,
                                                          struct GSet *file_list);
 
 /**
@@ -536,7 +536,7 @@ void IMB_scaleImBuf_threaded(struct ImBuf *ibuf, unsigned int newx, unsigned int
  * \attention Defined in writeimage.c
  */
 bool IMB_saveiff(struct ImBuf *ibuf, const char *filepath, int flags);
-bool IMB_prepare_write_ImBuf(const bool isfloat, struct ImBuf *ibuf);
+bool IMB_prepare_write_ImBuf(bool isfloat, struct ImBuf *ibuf);
 
 /**
  *
@@ -837,7 +837,7 @@ void IMB_rectfill_area(struct ImBuf *ibuf,
  */
 void IMB_rectfill_area_replace(
     const struct ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2);
-void IMB_rectfill_alpha(struct ImBuf *ibuf, const float value);
+void IMB_rectfill_alpha(struct ImBuf *ibuf, float value);
 
 /**
  * This should not be here, really,
@@ -929,8 +929,8 @@ typedef enum eIMBTransformMode {
  */
 void IMB_transform(const struct ImBuf *src,
                    struct ImBuf *dst,
-                   const eIMBTransformMode mode,
-                   const eIMBInterpolationFilterMode filter,
+                   eIMBTransformMode mode,
+                   eIMBInterpolationFilterMode filter,
                    const float transform_matrix[4][4],
                    const struct rctf *src_crop);
 
@@ -972,14 +972,14 @@ void IMB_update_gpu_texture_sub(struct GPUTexture *tex,
 /**
  * \attention defined in stereoimbuf.c
  */
-void IMB_stereo3d_write_dimensions(const char mode,
-                                   const bool is_squeezed,
+void IMB_stereo3d_write_dimensions(char mode,
+                                   bool is_squeezed,
                                    const size_t width,
                                    const size_t height,
                                    size_t *r_width,
                                    size_t *r_height);
-void IMB_stereo3d_read_dimensions(const char mode,
-                                  const bool is_squeezed,
+void IMB_stereo3d_read_dimensions(char mode,
+                                  bool is_squeezed,
                                   const size_t width,
                                   const size_t height,
                                   size_t *r_width,

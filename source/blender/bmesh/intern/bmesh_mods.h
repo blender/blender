@@ -65,7 +65,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v);
  *
  * \return The combined face or NULL on failure.
  */
-BMFace *BM_faces_join_pair(BMesh *bm, BMLoop *l_a, BMLoop *l_b, const bool do_del);
+BMFace *BM_faces_join_pair(BMesh *bm, BMLoop *l_a, BMLoop *l_b, bool do_del);
 
 /** see: bmesh_polygon_edgenet.h for #BM_face_split_edgenet */
 
@@ -87,13 +87,8 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMLoop *l_a, BMLoop *l_b, const bool do_de
  * if the split is successful (and the original face will be the other side).
  * NULL if the split fails.
  */
-BMFace *BM_face_split(BMesh *bm,
-                      BMFace *f,
-                      BMLoop *l_a,
-                      BMLoop *l_b,
-                      BMLoop **r_l,
-                      BMEdge *example,
-                      const bool no_double);
+BMFace *BM_face_split(
+    BMesh *bm, BMFace *f, BMLoop *l_a, BMLoop *l_b, BMLoop **r_l, BMEdge *example, bool no_double);
 
 /**
  * \brief Face Split with intermediate points
@@ -149,10 +144,10 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm,
                                BMEdge *e_kill,
                                BMVert *v_kill,
                                float fac,
-                               const bool do_del,
-                               const bool join_faces,
-                               const bool kill_degenerate_faces,
-                               const bool kill_duplicate_faces);
+                               bool do_del,
+                               bool join_faces,
+                               bool kill_degenerate_faces,
+                               bool kill_duplicate_faces);
 /**
  * \brief Vert Collapse Faces
  *
@@ -163,18 +158,15 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm,
 BMEdge *BM_vert_collapse_edge(BMesh *bm,
                               BMEdge *e_kill,
                               BMVert *v_kill,
-                              const bool do_del,
-                              const bool kill_degenerate_faces,
-                              const bool kill_duplicate_faces);
+                              bool do_del,
+                              bool kill_degenerate_faces,
+                              bool kill_duplicate_faces);
 
 /**
  * Collapse and edge into a single vertex.
  */
-BMVert *BM_edge_collapse(BMesh *bm,
-                         BMEdge *e_kill,
-                         BMVert *v_kill,
-                         const bool do_del,
-                         const bool kill_degenerate_faces);
+BMVert *BM_edge_collapse(
+    BMesh *bm, BMEdge *e_kill, BMVert *v_kill, bool do_del, bool kill_degenerate_faces);
 
 /**
  * \brief Edge Split
@@ -227,7 +219,7 @@ bool BM_face_validate(BMFace *face, FILE *err);
  *
  * \note #BM_edge_rotate_check must have already run.
  */
-void BM_edge_calc_rotate(BMEdge *e, const bool ccw, BMLoop **r_l1, BMLoop **r_l2);
+void BM_edge_calc_rotate(BMEdge *e, bool ccw, BMLoop **r_l1, BMLoop **r_l2);
 /**
  * \brief Check if Rotate Edge is OK
  *
@@ -262,7 +254,7 @@ bool BM_edge_rotate_check_beauty(BMEdge *e, BMLoop *l1, BMLoop *l2);
  *
  * \see header definition for \a check_flag enum.
  */
-BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_flag);
+BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, bool ccw, short check_flag);
 
 /** Flags for #BM_edge_rotate */
 enum {

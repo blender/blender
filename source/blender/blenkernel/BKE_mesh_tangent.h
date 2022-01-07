@@ -32,14 +32,14 @@ struct ReportList;
  * NOTE: * The mesh should be made of only tris and quads!
  */
 void BKE_mesh_calc_loop_tangent_single_ex(const struct MVert *mverts,
-                                          const int numVerts,
+                                          int numVerts,
                                           const struct MLoop *mloops,
                                           float (*r_looptangent)[4],
                                           float (*loopnors)[3],
                                           const struct MLoopUV *loopuv,
-                                          const int numLoops,
+                                          int numLoops,
                                           const struct MPoly *mpolys,
-                                          const int numPolys,
+                                          int numPolys,
                                           struct ReportList *reports);
 /**
  * Wrapper around BKE_mesh_calc_loop_tangent_single_ex, which takes care of most boiling code.
@@ -57,10 +57,10 @@ void BKE_mesh_calc_loop_tangent_single(struct Mesh *mesh,
  */
 void BKE_mesh_calc_loop_tangent_ex(const struct MVert *mvert,
                                    const struct MPoly *mpoly,
-                                   const uint mpoly_len,
+                                   uint mpoly_len,
                                    const struct MLoop *mloop,
                                    const struct MLoopTri *looptri,
-                                   const uint looptri_len,
+                                   uint looptri_len,
 
                                    struct CustomData *loopdata,
                                    bool calc_active_tangent,
@@ -71,7 +71,7 @@ void BKE_mesh_calc_loop_tangent_ex(const struct MVert *mvert,
                                    const float (*vert_orco)[3],
                                    /* result */
                                    struct CustomData *loopdata_out,
-                                   const uint loopdata_out_len,
+                                   uint loopdata_out_len,
                                    short *tangent_mask_curr_p);
 
 void BKE_mesh_calc_loop_tangents(struct Mesh *me_eval,

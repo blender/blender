@@ -47,15 +47,15 @@ class GVArrayImpl {
   int64_t size_;
 
  public:
-  GVArrayImpl(const CPPType &type, const int64_t size);
+  GVArrayImpl(const CPPType &type, int64_t size);
   virtual ~GVArrayImpl() = default;
 
   const CPPType &type() const;
 
   int64_t size() const;
 
-  virtual void get(const int64_t index, void *r_value) const;
-  virtual void get_to_uninitialized(const int64_t index, void *r_value) const = 0;
+  virtual void get(int64_t index, void *r_value) const;
+  virtual void get_to_uninitialized(int64_t index, void *r_value) const = 0;
 
   virtual bool is_span() const;
   virtual GSpan get_internal_span() const;
@@ -73,11 +73,11 @@ class GVArrayImpl {
 /* A generic version of #VMutableArrayImpl. */
 class GVMutableArrayImpl : public GVArrayImpl {
  public:
-  GVMutableArrayImpl(const CPPType &type, const int64_t size);
+  GVMutableArrayImpl(const CPPType &type, int64_t size);
 
-  virtual void set_by_copy(const int64_t index, const void *value);
-  virtual void set_by_relocate(const int64_t index, void *value);
-  virtual void set_by_move(const int64_t index, void *value) = 0;
+  virtual void set_by_copy(int64_t index, const void *value);
+  virtual void set_by_relocate(int64_t index, void *value);
+  virtual void set_by_move(int64_t index, void *value) = 0;
 
   virtual void set_all(const void *src);
 
@@ -173,13 +173,13 @@ class GVArrayCommon {
    */
   void get_internal_single_to_uninitialized(void *r_value) const;
 
-  void get(const int64_t index, void *r_value) const;
+  void get(int64_t index, void *r_value) const;
   /**
    * Returns a copy of the value at the given index. Usually a typed virtual array should
    * be used instead, but sometimes this is simpler when only a few indices are needed.
    */
-  template<typename T> T get(const int64_t index) const;
-  void get_to_uninitialized(const int64_t index, void *r_value) const;
+  template<typename T> T get(int64_t index) const;
+  void get_to_uninitialized(int64_t index, void *r_value) const;
 };
 
 /** Generic version of #VArray. */
@@ -200,9 +200,9 @@ class GVArray : public GVArrayCommon {
 
   template<typename ImplT, typename... Args> static GVArray For(Args &&...args);
 
-  static GVArray ForSingle(const CPPType &type, const int64_t size, const void *value);
-  static GVArray ForSingleRef(const CPPType &type, const int64_t size, const void *value);
-  static GVArray ForSingleDefault(const CPPType &type, const int64_t size);
+  static GVArray ForSingle(const CPPType &type, int64_t size, const void *value);
+  static GVArray ForSingleRef(const CPPType &type, int64_t size, const void *value);
+  static GVArray ForSingleDefault(const CPPType &type, int64_t size);
   static GVArray ForSpan(GSpan span);
   static GVArray ForGArray(GArray<> array);
   static GVArray ForEmpty(const CPPType &type);
@@ -244,9 +244,9 @@ class GVMutableArray : public GVArrayCommon {
 
   template<typename T> bool try_assign_VMutableArray(VMutableArray<T> &varray) const;
 
-  void set_by_copy(const int64_t index, const void *value);
-  void set_by_move(const int64_t index, void *value);
-  void set_by_relocate(const int64_t index, void *value);
+  void set_by_copy(int64_t index, const void *value);
+  void set_by_move(int64_t index, void *value);
+  void set_by_relocate(int64_t index, void *value);
 
   void fill(const void *value);
   /**
@@ -593,15 +593,15 @@ class GVArrayImpl_For_GSpan : public GVMutableArrayImpl {
   GVArrayImpl_For_GSpan(const GMutableSpan span);
 
  protected:
-  GVArrayImpl_For_GSpan(const CPPType &type, const int64_t size);
+  GVArrayImpl_For_GSpan(const CPPType &type, int64_t size);
 
  public:
-  void get(const int64_t index, void *r_value) const override;
-  void get_to_uninitialized(const int64_t index, void *r_value) const override;
+  void get(int64_t index, void *r_value) const override;
+  void get_to_uninitialized(int64_t index, void *r_value) const override;
 
-  void set_by_copy(const int64_t index, const void *value) override;
-  void set_by_move(const int64_t index, void *value) override;
-  void set_by_relocate(const int64_t index, void *value) override;
+  void set_by_copy(int64_t index, const void *value) override;
+  void set_by_move(int64_t index, void *value) override;
+  void set_by_relocate(int64_t index, void *value) override;
 
   bool is_span() const override;
   GSpan get_internal_span() const override;

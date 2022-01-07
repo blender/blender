@@ -67,13 +67,13 @@ void BM_loops_calc_normal_vcos(BMesh *bm,
                                const float (*vcos)[3],
                                const float (*vnos)[3],
                                const float (*fnos)[3],
-                               const bool use_split_normals,
-                               const float split_angle,
+                               bool use_split_normals,
+                               float split_angle,
                                float (*r_lnos)[3],
                                struct MLoopNorSpaceArray *r_lnors_spacearr,
                                short (*clnors_data)[2],
-                               const int cd_loop_clnors_offset,
-                               const bool do_rebuild);
+                               int cd_loop_clnors_offset,
+                               bool do_rebuild);
 
 /**
  * Check whether given loop is part of an unknown-so-far cyclic smooth fan, or not.
@@ -82,21 +82,21 @@ void BM_loops_calc_normal_vcos(BMesh *bm,
  */
 bool BM_loop_check_cyclic_smooth_fan(BMLoop *l_curr);
 void BM_lnorspacearr_store(BMesh *bm, float (*r_lnors)[3]);
-void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all);
+void BM_lnorspace_invalidate(BMesh *bm, bool do_invalidate_all);
 void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor);
 /**
  * \warning This function sets #BM_ELEM_TAG on loops & edges via #bm_mesh_loops_calc_normals,
  * take care to run this before setting up tags.
  */
 void BM_lnorspace_update(BMesh *bm);
-void BM_normals_loops_edges_tag(BMesh *bm, const bool do_edges);
+void BM_normals_loops_edges_tag(BMesh *bm, bool do_edges);
 #ifndef NDEBUG
 void BM_lnorspace_err(BMesh *bm);
 #endif
 
 /* Loop Generics */
 struct BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm,
-                                                                  const bool do_all_loops_of_vert);
+                                                                  bool do_all_loops_of_vert);
 void BM_loop_normal_editdata_array_free(struct BMLoopNorEditDataArray *lnors_ed_arr);
 
 /**
@@ -112,4 +112,4 @@ void BM_custom_loop_normals_from_vector_layer(struct BMesh *bm, bool add_sharp_e
  * Used when defining an empty custom loop normals data layer,
  * to keep same shading as with auto-smooth!
  */
-void BM_edges_sharp_from_angle_set(BMesh *bm, const float split_angle);
+void BM_edges_sharp_from_angle_set(BMesh *bm, float split_angle);

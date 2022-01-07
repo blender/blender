@@ -202,8 +202,7 @@ size_t BLI_str_partition_ex_utf8(const char *str,
                                  const unsigned int delim[],
                                  const char **sep,
                                  const char **suf,
-                                 const bool from_right) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1, 3, 4, 5);
+                                 bool from_right) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3, 4, 5);
 
 int BLI_str_utf8_offset_to_index(const char *str, int offset) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);

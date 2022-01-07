@@ -53,7 +53,7 @@ void RNA_define_fallback_property_update(int noteflag, const char *updatefunc);
  * Properties defined when this is enabled are lib-overridable by default
  * (except for Pointer ones).
  */
-void RNA_define_lib_overridable(const bool make_overridable);
+void RNA_define_lib_overridable(bool make_overridable);
 
 void RNA_init(void);
 void RNA_exit(void);

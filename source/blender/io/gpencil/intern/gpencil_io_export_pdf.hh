@@ -61,16 +61,13 @@ class GpencilExporterPDF : public GpencilExporter {
    * Export a stroke using poly-line or polygon
    * \param do_fill: True if the stroke is only fill
    */
-  void export_stroke_to_polyline(bGPDlayer *gpl,
-                                 bGPDstroke *gps,
-                                 const bool is_stroke,
-                                 const bool do_fill,
-                                 const bool normalize);
+  void export_stroke_to_polyline(
+      bGPDlayer *gpl, bGPDstroke *gps, bool is_stroke, bool do_fill, bool normalize);
   /**
    * Set color.
    * \param do_fill: True if the stroke is only fill.
    */
-  void color_set(bGPDlayer *gpl, const bool do_fill);
+  void color_set(bGPDlayer *gpl, bool do_fill);
 };
 
 }  // namespace blender::io::gpencil

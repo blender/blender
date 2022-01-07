@@ -82,9 +82,9 @@ template<typename T> class VVectorArray {
   }
 
  protected:
-  virtual int64_t get_vector_size_impl(const int64_t index) const = 0;
+  virtual int64_t get_vector_size_impl(int64_t index) const = 0;
 
-  virtual T get_vector_element_impl(const int64_t index, const int64_t index_in_vetor) const = 0;
+  virtual T get_vector_element_impl(int64_t index, int64_t index_in_vetor) const = 0;
 
   virtual bool is_single_vector_impl() const
   {

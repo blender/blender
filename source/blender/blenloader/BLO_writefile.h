@@ -69,7 +69,7 @@ struct BlendFileWriteParams {
  */
 extern bool BLO_write_file(struct Main *mainvar,
                            const char *filepath,
-                           const int write_flags,
+                           int write_flags,
                            const struct BlendFileWriteParams *params,
                            struct ReportList *reports);
 

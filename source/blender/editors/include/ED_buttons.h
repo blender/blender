@@ -36,7 +36,7 @@ struct bContext;
  * \return The total number of items in the array returned.
  */
 int ED_buttons_tabs_list(struct SpaceProperties *sbuts, short *context_tabs_array);
-bool ED_buttons_tab_has_search_result(struct SpaceProperties *sbuts, const int index);
+bool ED_buttons_tab_has_search_result(struct SpaceProperties *sbuts, int index);
 
 void ED_buttons_search_string_set(struct SpaceProperties *sbuts, const char *value);
 int ED_buttons_search_string_length(struct SpaceProperties *sbuts);
@@ -48,7 +48,7 @@ bool ED_buttons_should_sync_with_outliner(const struct bContext *C,
 void ED_buttons_set_context(const struct bContext *C,
                             struct SpaceProperties *sbuts,
                             PointerRNA *ptr,
-                            const int context);
+                            int context);
 
 #ifdef __cplusplus
 }

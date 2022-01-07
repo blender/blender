@@ -137,8 +137,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           struct BMesh *bm,
                           bool smooth_shading,
                           struct BMLog *log,
-                          const int cd_vert_node_offset,
-                          const int cd_face_node_offset);
+                          int cd_vert_node_offset,
+                          int cd_face_node_offset);
 void BKE_pbvh_free(PBVH *pbvh);
 
 /* Hierarchical Search in the BVH, two methods:
@@ -279,8 +279,8 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     const float center[3],
                                     const float view_normal[3],
                                     float radius,
-                                    const bool use_frontface,
-                                    const bool use_projected);
+                                    bool use_frontface,
+                                    bool use_projected);
 
 /* Node Access */
 
@@ -361,7 +361,7 @@ void BKE_pbvh_respect_hide_set(PBVH *pbvh, bool respect_hide);
 /* Vertex Deformer. */
 
 float (*BKE_pbvh_vert_coords_alloc(struct PBVH *pbvh))[3];
-void BKE_pbvh_vert_coords_apply(struct PBVH *pbvh, const float (*vertCos)[3], const int totvert);
+void BKE_pbvh_vert_coords_apply(struct PBVH *pbvh, const float (*vertCos)[3], int totvert);
 bool BKE_pbvh_is_deformed(struct PBVH *pbvh);
 
 /* Vertex Iterator. */

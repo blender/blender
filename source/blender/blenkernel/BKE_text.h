@@ -52,7 +52,7 @@ bool BKE_text_reload(struct Text *text);
 struct Text *BKE_text_load_ex(struct Main *bmain,
                               const char *file,
                               const char *relpath,
-                              const bool is_internal);
+                              bool is_internal);
 /**
  * Load a text file.
  *
@@ -73,25 +73,25 @@ void BKE_text_file_modified_ignore(struct Text *text);
 
 char *txt_to_buf(struct Text *text, int *r_buf_strlen);
 void txt_clean_text(struct Text *text);
-void txt_order_cursors(struct Text *text, const bool reverse);
+void txt_order_cursors(struct Text *text, bool reverse);
 int txt_find_string(struct Text *text, const char *findstr, int wrap, int match_case);
 bool txt_has_sel(const struct Text *text);
 int txt_get_span(struct TextLine *from, struct TextLine *to);
-void txt_move_up(struct Text *text, const bool sel);
-void txt_move_down(struct Text *text, const bool sel);
-void txt_move_left(struct Text *text, const bool sel);
-void txt_move_right(struct Text *text, const bool sel);
-void txt_jump_left(struct Text *text, const bool sel, const bool use_init_step);
-void txt_jump_right(struct Text *text, const bool sel, const bool use_init_step);
-void txt_move_bof(struct Text *text, const bool sel);
-void txt_move_eof(struct Text *text, const bool sel);
-void txt_move_bol(struct Text *text, const bool sel);
-void txt_move_eol(struct Text *text, const bool sel);
-void txt_move_toline(struct Text *text, unsigned int line, const bool sel);
+void txt_move_up(struct Text *text, bool sel);
+void txt_move_down(struct Text *text, bool sel);
+void txt_move_left(struct Text *text, bool sel);
+void txt_move_right(struct Text *text, bool sel);
+void txt_jump_left(struct Text *text, bool sel, bool use_init_step);
+void txt_jump_right(struct Text *text, bool sel, bool use_init_step);
+void txt_move_bof(struct Text *text, bool sel);
+void txt_move_eof(struct Text *text, bool sel);
+void txt_move_bol(struct Text *text, bool sel);
+void txt_move_eol(struct Text *text, bool sel);
+void txt_move_toline(struct Text *text, unsigned int line, bool sel);
 /**
  * Moves to a certain byte in a line, not a certain utf8-character.
  */
-void txt_move_to(struct Text *text, unsigned int line, unsigned int ch, const bool sel);
+void txt_move_to(struct Text *text, unsigned int line, unsigned int ch, bool sel);
 void txt_pop_sel(struct Text *text);
 void txt_delete_char(struct Text *text);
 void txt_delete_word(struct Text *text);
@@ -117,7 +117,7 @@ bool txt_unindent(struct Text *text);
 void txt_comment(struct Text *text);
 void txt_indent(struct Text *text);
 bool txt_uncomment(struct Text *text);
-void txt_move_lines(struct Text *text, const int direction);
+void txt_move_lines(struct Text *text, int direction);
 void txt_duplicate_line(struct Text *text);
 int txt_setcurr_tab_spaces(struct Text *text, int space);
 bool txt_cursor_is_line_start(const struct Text *text);
@@ -129,17 +129,17 @@ int txt_calc_tab_right(struct TextLine *tl, int ch);
 /**
  * Utility functions, could be moved somewhere more generic but are python/text related.
  */
-int text_check_bracket(const char ch);
-bool text_check_delim(const char ch);
-bool text_check_digit(const char ch);
-bool text_check_identifier(const char ch);
-bool text_check_identifier_nodigit(const char ch);
-bool text_check_whitespace(const char ch);
+int text_check_bracket(char ch);
+bool text_check_delim(char ch);
+bool text_check_digit(char ch);
+bool text_check_identifier(char ch);
+bool text_check_identifier_nodigit(char ch);
+bool text_check_whitespace(char ch);
 int text_find_identifier_start(const char *str, int i);
 
 /* EVIL: defined in `bpy_interface.c`. */
-extern int text_check_identifier_unicode(const unsigned int ch);
-extern int text_check_identifier_nodigit_unicode(const unsigned int ch);
+extern int text_check_identifier_unicode(unsigned int ch);
+extern int text_check_identifier_nodigit_unicode(unsigned int ch);
 
 enum {
   TXT_MOVE_LINE_UP = -1,

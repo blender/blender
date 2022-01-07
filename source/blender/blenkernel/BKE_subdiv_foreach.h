@@ -35,77 +35,77 @@ struct SubdivForeachContext;
 struct SubdivToMeshSettings;
 
 typedef bool (*SubdivForeachTopologyInformationCb)(const struct SubdivForeachContext *context,
-                                                   const int num_vertices,
-                                                   const int num_edges,
-                                                   const int num_loops,
-                                                   const int num_polygons,
+                                                   int num_vertices,
+                                                   int num_edges,
+                                                   int num_loops,
+                                                   int num_polygons,
                                                    const int *subdiv_polygon_offset);
 
 typedef void (*SubdivForeachVertexFromCornerCb)(const struct SubdivForeachContext *context,
                                                 void *tls,
-                                                const int ptex_face_index,
-                                                const float u,
-                                                const float v,
-                                                const int coarse_vertex_index,
-                                                const int coarse_poly_index,
-                                                const int coarse_corner,
-                                                const int subdiv_vertex_index);
+                                                int ptex_face_index,
+                                                float u,
+                                                float v,
+                                                int coarse_vertex_index,
+                                                int coarse_poly_index,
+                                                int coarse_corner,
+                                                int subdiv_vertex_index);
 
 typedef void (*SubdivForeachVertexFromEdgeCb)(const struct SubdivForeachContext *context,
                                               void *tls,
-                                              const int ptex_face_index,
-                                              const float u,
-                                              const float v,
-                                              const int coarse_edge_index,
-                                              const int coarse_poly_index,
-                                              const int coarse_corner,
-                                              const int subdiv_vertex_index);
+                                              int ptex_face_index,
+                                              float u,
+                                              float v,
+                                              int coarse_edge_index,
+                                              int coarse_poly_index,
+                                              int coarse_corner,
+                                              int subdiv_vertex_index);
 
 typedef void (*SubdivForeachVertexInnerCb)(const struct SubdivForeachContext *context,
                                            void *tls,
-                                           const int ptex_face_index,
-                                           const float u,
-                                           const float v,
-                                           const int coarse_poly_index,
-                                           const int coarse_corner,
-                                           const int subdiv_vertex_index);
+                                           int ptex_face_index,
+                                           float u,
+                                           float v,
+                                           int coarse_poly_index,
+                                           int coarse_corner,
+                                           int subdiv_vertex_index);
 
 typedef void (*SubdivForeachEdgeCb)(const struct SubdivForeachContext *context,
                                     void *tls,
-                                    const int coarse_edge_index,
-                                    const int subdiv_edge_index,
-                                    const int subdiv_v1,
-                                    const int subdiv_v2);
+                                    int coarse_edge_index,
+                                    int subdiv_edge_index,
+                                    int subdiv_v1,
+                                    int subdiv_v2);
 
 typedef void (*SubdivForeachLoopCb)(const struct SubdivForeachContext *context,
                                     void *tls,
-                                    const int ptex_face_index,
-                                    const float u,
-                                    const float v,
-                                    const int coarse_loop_index,
-                                    const int coarse_poly_index,
-                                    const int coarse_corner,
-                                    const int subdiv_loop_index,
-                                    const int subdiv_vertex_index,
-                                    const int subdiv_edge_index);
+                                    int ptex_face_index,
+                                    float u,
+                                    float v,
+                                    int coarse_loop_index,
+                                    int coarse_poly_index,
+                                    int coarse_corner,
+                                    int subdiv_loop_index,
+                                    int subdiv_vertex_index,
+                                    int subdiv_edge_index);
 
 typedef void (*SubdivForeachPolygonCb)(const struct SubdivForeachContext *context,
                                        void *tls,
-                                       const int coarse_poly_index,
-                                       const int subdiv_poly_index,
-                                       const int start_loop_index,
-                                       const int num_loops);
+                                       int coarse_poly_index,
+                                       int subdiv_poly_index,
+                                       int start_loop_index,
+                                       int num_loops);
 
 typedef void (*SubdivForeachLooseCb)(const struct SubdivForeachContext *context,
                                      void *tls,
-                                     const int coarse_vertex_index,
-                                     const int subdiv_vertex_index);
+                                     int coarse_vertex_index,
+                                     int subdiv_vertex_index);
 
 typedef void (*SubdivForeachVertexOfLooseEdgeCb)(const struct SubdivForeachContext *context,
                                                  void *tls,
-                                                 const int coarse_edge_index,
-                                                 const float u,
-                                                 const int subdiv_vertex_index);
+                                                 int coarse_edge_index,
+                                                 float u,
+                                                 int subdiv_vertex_index);
 
 typedef struct SubdivForeachContext {
   /* Is called when topology information becomes available.

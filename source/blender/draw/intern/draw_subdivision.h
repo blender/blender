@@ -178,7 +178,7 @@ void draw_subdiv_finalize_normals(const DRWSubdivCache *cache,
 
 void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
                                  struct GPUVertBuf *pos_nor,
-                                 const bool do_limit_normals);
+                                 bool do_limit_normals);
 
 void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
                                     struct GPUVertBuf *src_data,
@@ -188,8 +188,8 @@ void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
 
 void draw_subdiv_extract_uvs(const DRWSubdivCache *cache,
                              struct GPUVertBuf *uvs,
-                             const int face_varying_channel,
-                             const int dst_offset);
+                             int face_varying_channel,
+                             int dst_offset);
 
 void draw_subdiv_build_edge_fac_buffer(const DRWSubdivCache *cache,
                                        struct GPUVertBuf *pos_nor,
@@ -198,7 +198,7 @@ void draw_subdiv_build_edge_fac_buffer(const DRWSubdivCache *cache,
 
 void draw_subdiv_build_tris_buffer(const DRWSubdivCache *cache,
                                    struct GPUIndexBuf *subdiv_tris,
-                                   const int material_count);
+                                   int material_count);
 
 void draw_subdiv_build_lines_buffer(const DRWSubdivCache *cache,
                                     struct GPUIndexBuf *lines_indices);

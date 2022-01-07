@@ -51,9 +51,9 @@ struct Mesh *MOD_deform_mesh_eval_get(struct Object *ob,
                                       struct BMEditMesh *em,
                                       struct Mesh *mesh,
                                       const float (*vertexCos)[3],
-                                      const int num_verts,
-                                      const bool use_normals,
-                                      const bool use_orco);
+                                      int num_verts,
+                                      bool use_normals,
+                                      bool use_orco);
 
 void MOD_get_vgroup(struct Object *ob,
                     struct Mesh *mesh,

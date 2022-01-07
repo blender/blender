@@ -68,7 +68,7 @@ int SEQ_tool_settings_pivot_point_get(struct Scene *scene);
 struct SequencerToolSettings *SEQ_tool_settings_copy(struct SequencerToolSettings *tool_settings);
 struct Editing *SEQ_editing_get(const struct Scene *scene);
 struct Editing *SEQ_editing_ensure(struct Scene *scene);
-void SEQ_editing_free(struct Scene *scene, const bool do_id_user);
+void SEQ_editing_free(struct Scene *scene, bool do_id_user);
 /**
  * Get seqbase that is being viewed currently. This can be main seqbase or meta strip seqbase
  *
@@ -84,7 +84,7 @@ struct ListBase *SEQ_active_seqbase_get(const struct Editing *ed);
  */
 void SEQ_seqbase_active_set(struct Editing *ed, struct ListBase *seqbase);
 struct Sequence *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int type);
-void SEQ_sequence_free(struct Scene *scene, struct Sequence *seq, const bool do_clean_animdata);
+void SEQ_sequence_free(struct Scene *scene, struct Sequence *seq, bool do_clean_animdata);
 /**
  * Create and initialize #MetaStack, append it to `ed->metastack` ListBase
  *
@@ -119,7 +119,7 @@ void SEQ_sequence_base_dupli_recursive(const struct Scene *scene_src,
                                        struct ListBase *nseqbase,
                                        const struct ListBase *seqbase,
                                        int dupe_flag,
-                                       const int flag);
+                                       int flag);
 bool SEQ_valid_strip_channel(struct Sequence *seq);
 
 /**

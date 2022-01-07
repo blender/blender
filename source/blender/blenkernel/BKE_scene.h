@@ -83,7 +83,7 @@ struct Scene *BKE_scene_add(struct Main *bmain, const char *name);
 void BKE_scene_remove_rigidbody_object(struct Main *bmain,
                                        struct Scene *scene,
                                        struct Object *ob,
-                                       const bool free_us);
+                                       bool free_us);
 
 /**
  * Check if there is any instance of the object in the scene.
@@ -141,7 +141,7 @@ struct Scene *BKE_scene_set_name(struct Main *bmain, const char *name);
 /**
  * \param flag: copying options (see BKE_lib_id.h's `LIB_ID_COPY_...` flags for more).
  */
-struct ToolSettings *BKE_toolsettings_copy(struct ToolSettings *toolsettings, const int flag);
+struct ToolSettings *BKE_toolsettings_copy(struct ToolSettings *toolsettings, int flag);
 void BKE_toolsettings_free(struct ToolSettings *toolsettings);
 
 struct Scene *BKE_scene_duplicate(struct Main *bmain, struct Scene *sce, eSceneCopyMethod type);
@@ -181,7 +181,7 @@ float BKE_scene_ctime_get(const struct Scene *scene);
  * Convert integer frame number to fractional frame number taking into account
  * sub-frames and time remapping.
  */
-float BKE_scene_frame_to_ctime(const struct Scene *scene, const int frame);
+float BKE_scene_frame_to_ctime(const struct Scene *scene, int frame);
 
 /**
  * Get current fractional frame based on frame and sub-frame.
@@ -220,7 +220,7 @@ void BKE_scene_graph_update_for_newframe(struct Depsgraph *depsgraph);
 /**
  * Applies changes right away, does all sets too.
  */
-void BKE_scene_graph_update_for_newframe_ex(struct Depsgraph *depsgraph, const bool clear_recalc);
+void BKE_scene_graph_update_for_newframe_ex(struct Depsgraph *depsgraph, bool clear_recalc);
 
 /**
  * Ensures given scene/view_layer pair has a valid, up-to-date depsgraph.
@@ -275,7 +275,7 @@ int BKE_render_preview_pixel_size(const struct RenderData *r);
  * Apply the needed correction factor to value, based on unit_type
  * (only length-related are affected currently) and `unit->scale_length`.
  */
-double BKE_scene_unit_scale(const struct UnitSettings *unit, const int unit_type, double value);
+double BKE_scene_unit_scale(const struct UnitSettings *unit, int unit_type, double value);
 
 /* Multi-view. */
 
@@ -295,9 +295,8 @@ bool BKE_scene_multiview_is_render_view_first(const struct RenderData *rd, const
 bool BKE_scene_multiview_is_render_view_last(const struct RenderData *rd, const char *viewname);
 int BKE_scene_multiview_num_views_get(const struct RenderData *rd);
 struct SceneRenderView *BKE_scene_multiview_render_view_findindex(const struct RenderData *rd,
-                                                                  const int view_id);
-const char *BKE_scene_multiview_render_view_name_get(const struct RenderData *rd,
-                                                     const int view_id);
+                                                                  int view_id);
+const char *BKE_scene_multiview_render_view_name_get(const struct RenderData *rd, int view_id);
 int BKE_scene_multiview_view_id_get(const struct RenderData *rd, const char *viewname);
 void BKE_scene_multiview_filepath_get(struct SceneRenderView *srv,
                                       const char *filepath,
@@ -313,7 +312,7 @@ void BKE_scene_multiview_view_filepath_get(const struct RenderData *rd,
                                            const char *view,
                                            char *r_filepath);
 const char *BKE_scene_multiview_view_suffix_get(const struct RenderData *rd, const char *viewname);
-const char *BKE_scene_multiview_view_id_suffix_get(const struct RenderData *rd, const int view_id);
+const char *BKE_scene_multiview_view_id_suffix_get(const struct RenderData *rd, int view_id);
 void BKE_scene_multiview_view_prefix_get(struct Scene *scene,
                                          const char *name,
                                          char *r_prefix,
@@ -349,7 +348,7 @@ void BKE_scene_undo_depsgraphs_restore(struct Main *bmain, struct GHash *depsgra
 void BKE_scene_transform_orientation_remove(struct Scene *scene,
                                             struct TransformOrientation *orientation);
 struct TransformOrientation *BKE_scene_transform_orientation_find(const struct Scene *scene,
-                                                                  const int index);
+                                                                  int index);
 /**
  * \return the index that \a orientation has within \a scene's transform-orientation list
  * or -1 if not found.

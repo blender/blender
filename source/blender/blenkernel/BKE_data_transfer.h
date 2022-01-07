@@ -63,19 +63,19 @@ enum {
   DT_TYPE_POLY_ALL = DT_TYPE_UV | DT_TYPE_SHARP_FACE | DT_TYPE_FREESTYLE_FACE,
 };
 
-void BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types,
+void BKE_object_data_transfer_dttypes_to_cdmask(int dtdata_types,
                                                 struct CustomData_MeshMasks *r_data_masks);
 /**
  * Check what can do each layer type
  * (if it is actually handled by transfer-data, if it supports advanced mixing.
  */
-bool BKE_object_data_transfer_get_dttypes_capacity(const int dtdata_types,
+bool BKE_object_data_transfer_get_dttypes_capacity(int dtdata_types,
                                                    bool *r_advanced_mixing,
                                                    bool *r_threshold);
-int BKE_object_data_transfer_get_dttypes_item_types(const int dtdata_types);
+int BKE_object_data_transfer_get_dttypes_item_types(int dtdata_types);
 
-int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type);
-int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type);
+int BKE_object_data_transfer_dttype_to_cdtype(int dtdata_type);
+int BKE_object_data_transfer_dttype_to_srcdst_index(int dtdata_type);
 
 #define DT_DATATYPE_IS_VERT(_dt) \
   ELEM(_dt, DT_TYPE_MDEFORMVERT, DT_TYPE_SHAPEKEY, DT_TYPE_SKIN, DT_TYPE_BWEIGHT_VERT)
@@ -136,8 +136,8 @@ void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
                                      struct Scene *scene,
                                      struct Object *ob_src,
                                      struct Object *ob_dst,
-                                     const int data_types,
-                                     const bool use_delete,
+                                     int data_types,
+                                     bool use_delete,
                                      const int fromlayers_select[DT_MULTILAYER_INDEX_MAX],
                                      const int tolayers_select[DT_MULTILAYER_INDEX_MAX]);
 
@@ -145,46 +145,46 @@ bool BKE_object_data_transfer_mesh(struct Depsgraph *depsgraph,
                                    struct Scene *scene,
                                    struct Object *ob_src,
                                    struct Object *ob_dst,
-                                   const int data_types,
-                                   const bool use_create,
-                                   const int map_vert_mode,
-                                   const int map_edge_mode,
-                                   const int map_loop_mode,
-                                   const int map_poly_mode,
+                                   int data_types,
+                                   bool use_create,
+                                   int map_vert_mode,
+                                   int map_edge_mode,
+                                   int map_loop_mode,
+                                   int map_poly_mode,
                                    struct SpaceTransform *space_transform,
-                                   const bool auto_transform,
-                                   const float max_distance,
-                                   const float ray_radius,
-                                   const float islands_handling_precision,
+                                   bool auto_transform,
+                                   float max_distance,
+                                   float ray_radius,
+                                   float islands_handling_precision,
                                    const int fromlayers_select[DT_MULTILAYER_INDEX_MAX],
                                    const int tolayers_select[DT_MULTILAYER_INDEX_MAX],
-                                   const int mix_mode,
-                                   const float mix_factor,
+                                   int mix_mode,
+                                   float mix_factor,
                                    const char *vgroup_name,
-                                   const bool invert_vgroup,
+                                   bool invert_vgroup,
                                    struct ReportList *reports);
 bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                  struct Scene *scene,
                                  struct Object *ob_src,
                                  struct Object *ob_dst,
                                  struct Mesh *me_dst,
-                                 const int data_types,
+                                 int data_types,
                                  bool use_create,
-                                 const int map_vert_mode,
-                                 const int map_edge_mode,
-                                 const int map_loop_mode,
-                                 const int map_poly_mode,
+                                 int map_vert_mode,
+                                 int map_edge_mode,
+                                 int map_loop_mode,
+                                 int map_poly_mode,
                                  struct SpaceTransform *space_transform,
-                                 const bool auto_transform,
-                                 const float max_distance,
-                                 const float ray_radius,
-                                 const float islands_handling_precision,
+                                 bool auto_transform,
+                                 float max_distance,
+                                 float ray_radius,
+                                 float islands_handling_precision,
                                  const int fromlayers_select[DT_MULTILAYER_INDEX_MAX],
                                  const int tolayers_select[DT_MULTILAYER_INDEX_MAX],
-                                 const int mix_mode,
-                                 const float mix_factor,
+                                 int mix_mode,
+                                 float mix_factor,
                                  const char *vgroup_name,
-                                 const bool invert_vgroup,
+                                 bool invert_vgroup,
                                  struct ReportList *reports);
 
 #ifdef __cplusplus

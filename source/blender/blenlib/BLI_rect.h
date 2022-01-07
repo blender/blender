@@ -101,16 +101,13 @@ void BLI_rctf_pad(struct rctf *rect, float pad_x, float pad_y);
 void BLI_rctf_resize(struct rctf *rect, float x, float y);
 void BLI_rctf_resize_x(struct rctf *rect, float x);
 void BLI_rctf_resize_y(struct rctf *rect, float y);
-void BLI_rcti_scale(rcti *rect, const float scale);
-void BLI_rctf_scale(rctf *rect, const float scale);
-void BLI_rctf_pad_y(struct rctf *rect,
-                    const float boundary_size,
-                    const float pad_min,
-                    const float pad_max);
+void BLI_rcti_scale(rcti *rect, float scale);
+void BLI_rctf_scale(rctf *rect, float scale);
+void BLI_rctf_pad_y(struct rctf *rect, float boundary_size, float pad_min, float pad_max);
 void BLI_rctf_interp(struct rctf *rect,
                      const struct rctf *rect_a,
                      const struct rctf *rect_b,
-                     const float fac);
+                     float fac);
 // void BLI_rcti_interp(struct rctf *rect, struct rctf *rect_a, struct rctf *rect_b, float fac);
 bool BLI_rctf_clamp_pt_v(const struct rctf *rect, float xy[2]);
 bool BLI_rcti_clamp_pt_v(const struct rcti *rect, int xy[2]);
@@ -124,7 +121,7 @@ bool BLI_rcti_clamp_pt_v(const struct rcti *rect, int xy[2]);
  */
 bool BLI_rctf_clamp(struct rctf *rect, const struct rctf *rect_bounds, float r_xy[2]);
 bool BLI_rcti_clamp(struct rcti *rect, const struct rcti *rect_bounds, int r_xy[2]);
-bool BLI_rctf_compare(const struct rctf *rect_a, const struct rctf *rect_b, const float limit);
+bool BLI_rctf_compare(const struct rctf *rect_a, const struct rctf *rect_b, float limit);
 bool BLI_rcti_compare(const struct rcti *rect_a, const struct rcti *rect_b);
 bool BLI_rctf_isect(const struct rctf *src1, const struct rctf *src2, struct rctf *dest);
 bool BLI_rcti_isect(const struct rcti *src1, const struct rcti *src2, struct rcti *dest);
@@ -132,28 +129,28 @@ bool BLI_rctf_isect_rect_x(const struct rctf *src1, const struct rctf *src2, flo
 bool BLI_rctf_isect_rect_y(const struct rctf *src1, const struct rctf *src2, float range_y[2]);
 bool BLI_rcti_isect_rect_x(const struct rcti *src1, const struct rcti *src2, int range_x[2]);
 bool BLI_rcti_isect_rect_y(const struct rcti *src1, const struct rcti *src2, int range_y[2]);
-bool BLI_rcti_isect_x(const rcti *rect, const int x);
-bool BLI_rcti_isect_y(const rcti *rect, const int y);
-bool BLI_rcti_isect_pt(const struct rcti *rect, const int x, const int y);
+bool BLI_rcti_isect_x(const rcti *rect, int x);
+bool BLI_rcti_isect_y(const rcti *rect, int y);
+bool BLI_rcti_isect_pt(const struct rcti *rect, int x, int y);
 bool BLI_rcti_isect_pt_v(const struct rcti *rect, const int xy[2]);
-bool BLI_rctf_isect_x(const rctf *rect, const float x);
-bool BLI_rctf_isect_y(const rctf *rect, const float y);
-bool BLI_rctf_isect_pt(const struct rctf *rect, const float x, const float y);
+bool BLI_rctf_isect_x(const rctf *rect, float x);
+bool BLI_rctf_isect_y(const rctf *rect, float y);
+bool BLI_rctf_isect_pt(const struct rctf *rect, float x, float y);
 bool BLI_rctf_isect_pt_v(const struct rctf *rect, const float xy[2]);
 /**
  * \returns shortest distance from \a rect to x (0 if inside)
  */
-int BLI_rcti_length_x(const rcti *rect, const int x);
+int BLI_rcti_length_x(const rcti *rect, int x);
 /**
  * \returns shortest distance from \a rect to y (0 if inside)
  */
-int BLI_rcti_length_y(const rcti *rect, const int y);
-float BLI_rctf_length_x(const rctf *rect, const float x);
-float BLI_rctf_length_y(const rctf *rect, const float y);
+int BLI_rcti_length_y(const rcti *rect, int y);
+float BLI_rctf_length_x(const rctf *rect, float x);
+float BLI_rctf_length_y(const rctf *rect, float y);
 bool BLI_rcti_isect_segment(const struct rcti *rect, const int s1[2], const int s2[2]);
 bool BLI_rctf_isect_segment(const struct rctf *rect, const float s1[2], const float s2[2]);
-bool BLI_rcti_isect_circle(const struct rcti *rect, const float xy[2], const float radius);
-bool BLI_rctf_isect_circle(const struct rctf *rect, const float xy[2], const float radius);
+bool BLI_rcti_isect_circle(const struct rcti *rect, const float xy[2], float radius);
+bool BLI_rctf_isect_circle(const struct rctf *rect, const float xy[2], float radius);
 bool BLI_rcti_inside_rcti(const rcti *rct_a, const rcti *rct_b);
 /**
  * is \a rct_b inside \a rct_a
@@ -169,7 +166,7 @@ void BLI_rcti_rctf_copy_round(struct rcti *dst, const struct rctf *src);
 /**
  * Expand the rectangle to fit a rotated \a src.
  */
-void BLI_rctf_rotate_expand(rctf *dst, const rctf *src, const float angle);
+void BLI_rctf_rotate_expand(rctf *dst, const rctf *src, float angle);
 
 void print_rctf(const char *str, const struct rctf *rect);
 void print_rcti(const char *str, const struct rcti *rect);

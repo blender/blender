@@ -58,7 +58,7 @@ void BKE_tracking_free(struct MovieTracking *tracking);
  */
 void BKE_tracking_copy(struct MovieTracking *tracking_dst,
                        const struct MovieTracking *tracking_src,
-                       const int flag);
+                       int flag);
 
 /**
  * Initialize motion tracking settings to default values,
@@ -177,7 +177,7 @@ void BKE_tracking_track_first_last_frame_get(const struct MovieTrackingTrack *tr
  * Find the minimum starting frame and maximum ending frame within given set of tracks.
  */
 void BKE_tracking_tracks_first_last_frame_minmax(/*const*/ struct MovieTrackingTrack **tracks,
-                                                 const int num_tracks,
+                                                 int num_tracks,
                                                  int *r_first_frame,
                                                  int *r_last_frame);
 
@@ -236,7 +236,7 @@ void BKE_tracking_tracks_join(struct MovieTracking *tracking,
 
 void BKE_tracking_tracks_average(struct MovieTrackingTrack *dst_track,
                                  /*const*/ struct MovieTrackingTrack **src_tracks,
-                                 const int num_src_tracks);
+                                 int num_src_tracks);
 
 struct MovieTrackingTrack *BKE_tracking_track_get_named(struct MovieTracking *tracking,
                                                         struct MovieTrackingObject *object,
@@ -301,7 +301,7 @@ struct MovieTrackingMarker *BKE_tracking_marker_ensure(struct MovieTrackingTrack
  * \returns truth if the result is usable.
  */
 bool BKE_tracking_marker_get_interpolated(struct MovieTrackingTrack *track,
-                                          const int framenr,
+                                          int framenr,
                                           struct MovieTrackingMarker *r_marker);
 
 void BKE_tracking_marker_pattern_minmax(const struct MovieTrackingMarker *marker,
@@ -525,7 +525,7 @@ void BKE_tracking_refine_marker(struct MovieClip *clip,
 
 struct AutoTrackContext *BKE_autotrack_context_new(struct MovieClip *clip,
                                                    struct MovieClipUser *user,
-                                                   const bool is_backwards);
+                                                   bool is_backwards);
 bool BKE_autotrack_context_step(struct AutoTrackContext *context);
 void BKE_autotrack_context_sync(struct AutoTrackContext *context);
 void BKE_autotrack_context_sync_user(struct AutoTrackContext *context, struct MovieClipUser *user);

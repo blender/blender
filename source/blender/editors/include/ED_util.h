@@ -108,7 +108,7 @@ float ED_slider_factor_get(struct tSlider *slider);
 void ED_slider_factor_set(struct tSlider *slider, float factor);
 
 bool ED_slider_allow_overshoot_get(struct tSlider *slider);
-void ED_slider_allow_overshoot_set(struct tSlider *slider, const bool value);
+void ED_slider_allow_overshoot_set(struct tSlider *slider, bool value);
 
 /* ************** XXX OLD CRUFT WARNING ************* */
 

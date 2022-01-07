@@ -137,12 +137,12 @@ class ShaderInterface {
 
  private:
   inline const ShaderInput *input_lookup(const ShaderInput *const inputs,
-                                         const uint inputs_len,
+                                         uint inputs_len,
                                          const char *name) const;
 
   inline const ShaderInput *input_lookup(const ShaderInput *const inputs,
-                                         const uint inputs_len,
-                                         const int binding) const;
+                                         uint inputs_len,
+                                         int binding) const;
 };
 
 inline const char *ShaderInterface::builtin_uniform_name(GPUUniformBuiltin u)

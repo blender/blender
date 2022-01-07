@@ -38,7 +38,7 @@ struct SubsurfModifierData;
 
 void BKE_subsurf_modifier_subdiv_settings_init(struct SubdivSettings *settings,
                                                const struct SubsurfModifierData *smd,
-                                               const bool use_render_params);
+                                               bool use_render_params);
 
 /* If skip_check_is_last is true, we assume that the modifier passed is the last enabled modifier
  * in the stack. */
@@ -50,7 +50,7 @@ bool BKE_subsurf_modifier_can_do_gpu_subdiv_ex(const struct Scene *scene,
 
 bool BKE_subsurf_modifier_can_do_gpu_subdiv(const struct Scene *scene,
                                             const struct Object *ob,
-                                            const int required_mode);
+                                            int required_mode);
 
 extern void (*BKE_subsurf_modifier_free_gpu_cache_cb)(struct Subdiv *subdiv);
 
@@ -58,7 +58,7 @@ struct Subdiv *BKE_subsurf_modifier_subdiv_descriptor_ensure(
     const struct SubsurfModifierData *smd,
     const struct SubdivSettings *subdiv_settings,
     const struct Mesh *mesh,
-    const bool for_draw_code);
+    bool for_draw_code);
 
 struct SubsurfRuntimeData *BKE_subsurf_modifier_ensure_runtime(struct SubsurfModifierData *smd);
 

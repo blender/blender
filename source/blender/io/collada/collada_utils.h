@@ -291,23 +291,23 @@ extern bool bc_has_animations(Object *ob);
 extern void bc_add_global_transform(Matrix &to_mat,
                                     const Matrix &from_mat,
                                     const BCMatrix &global_transform,
-                                    const bool invert = false);
+                                    bool invert = false);
 extern void bc_add_global_transform(Vector &to_vec,
                                     const Vector &from_vec,
                                     const BCMatrix &global_transform,
-                                    const bool invert = false);
+                                    bool invert = false);
 extern void bc_add_global_transform(Vector &to_vec,
                                     const BCMatrix &global_transform,
-                                    const bool invert = false);
+                                    bool invert = false);
 extern void bc_add_global_transform(Matrix &to_mat,
                                     const BCMatrix &global_transform,
-                                    const bool invert = false);
+                                    bool invert = false);
 extern void bc_apply_global_transform(Matrix &to_mat,
                                       const BCMatrix &global_transform,
-                                      const bool invert = false);
+                                      bool invert = false);
 extern void bc_apply_global_transform(Vector &to_vec,
                                       const BCMatrix &global_transform,
-                                      const bool invert = false);
+                                      bool invert = false);
 /**
  * Check if custom information about bind matrix exists and modify the from_mat
  * accordingly.
@@ -382,7 +382,7 @@ class BoneExtended {
   void set_name(char *aName);
   char *get_name();
 
-  void set_chain_length(const int aLength);
+  void set_chain_length(int aLength);
   int get_chain_length();
 
   void set_leaf_bone(bool state);

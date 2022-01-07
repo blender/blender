@@ -413,8 +413,8 @@ void ANIM_fcurves_copybuf_free(void);
 short copy_animedit_keys(struct bAnimContext *ac, ListBase *anim_data);
 short paste_animedit_keys(struct bAnimContext *ac,
                           ListBase *anim_data,
-                          const eKeyPasteOffset offset_mode,
-                          const eKeyMergeMode merge_mode,
+                          eKeyPasteOffset offset_mode,
+                          eKeyMergeMode merge_mode,
                           bool flip);
 
 /* ************************************************ */

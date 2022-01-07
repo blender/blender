@@ -107,7 +107,7 @@ MINLINE void linearrgb_to_srgb_v4(float srgb[4], const float linear[4]);
 MINLINE void srgb_to_linearrgb_predivide_v4(float linear[4], const float srgb[4]);
 MINLINE void linearrgb_to_srgb_predivide_v4(float srgb[4], const float linear[4]);
 
-MINLINE unsigned short to_srgb_table_lookup(const float f);
+MINLINE unsigned short to_srgb_table_lookup(float f);
 MINLINE void linearrgb_to_srgb_ushort4(unsigned short srgb[4], const float linear[4]);
 MINLINE void srgb_to_linearrgb_uchar4(float linear[4], const unsigned char srgb[4]);
 MINLINE void srgb_to_linearrgb_uchar4_predivide(float linear[4], const unsigned char srgb[4]);
@@ -182,7 +182,7 @@ void rgba_float_to_uchar(unsigned char r_col[4], const float col_f[4]);
 MINLINE float rgb_to_grayscale(const float rgb[3]);
 MINLINE unsigned char rgb_to_grayscale_byte(const unsigned char rgb[3]);
 
-MINLINE int compare_rgb_uchar(const unsigned char a[3], const unsigned char b[3], const int limit);
+MINLINE int compare_rgb_uchar(const unsigned char a[3], const unsigned char b[3], int limit);
 
 /**
  * Return triangle noise in [-0.5..1.5] range.
@@ -197,19 +197,12 @@ MINLINE void float_to_byte_dither_v3(
 #define rgba_float_args_set_ch(col, r, g, b, a) \
   rgba_float_args_set(col, (r) / 255.0f, (g) / 255.0f, (b) / 255.0f, (a) / 255.0f)
 
-MINLINE void rgba_uchar_args_set(unsigned char col[4],
-                                 const unsigned char r,
-                                 const unsigned char g,
-                                 const unsigned char b,
-                                 const unsigned char a);
-MINLINE void rgba_float_args_set(
-    float col[4], const float r, const float g, const float b, const float a);
-MINLINE void rgba_uchar_args_test_set(unsigned char col[4],
-                                      const unsigned char r,
-                                      const unsigned char g,
-                                      const unsigned char b,
-                                      const unsigned char a);
-MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack);
+MINLINE void rgba_uchar_args_set(
+    unsigned char col[4], unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+MINLINE void rgba_float_args_set(float col[4], float r, float g, float b, float a);
+MINLINE void rgba_uchar_args_test_set(
+    unsigned char col[4], unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+MINLINE void cpack_cpy_3ub(unsigned char r_col[3], unsigned int pack);
 
 void blackbody_temperature_to_rgb_table(float *r_table, int width, float min, float max);
 void wavelength_to_xyz_table(float *r_table, int width);

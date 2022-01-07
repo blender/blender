@@ -44,11 +44,11 @@ namespace Options {
 static const unsigned char FLOAT_VECTORS = 1;
 static const unsigned char NO_OCCLUDERS = 2;
 
-void setFlags(const unsigned char flags);
+void setFlags(unsigned char flags);
 
-void addFlags(const unsigned char flags);
+void addFlags(unsigned char flags);
 
-void rmFlags(const unsigned char flags);
+void rmFlags(unsigned char flags);
 
 unsigned char getFlags();
 

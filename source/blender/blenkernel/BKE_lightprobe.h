@@ -31,7 +31,7 @@ extern "C" {
 struct LightProbe;
 struct Main;
 
-void BKE_lightprobe_type_set(struct LightProbe *probe, const short lightprobe_type);
+void BKE_lightprobe_type_set(struct LightProbe *probe, short lightprobe_type);
 void *BKE_lightprobe_add(struct Main *bmain, const char *name);
 
 #ifdef __cplusplus

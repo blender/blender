@@ -78,12 +78,12 @@ typedef void (*IDTypeInitDataFunction)(struct ID *id);
 typedef void (*IDTypeCopyDataFunction)(struct Main *bmain,
                                        struct ID *id_dst,
                                        const struct ID *id_src,
-                                       const int flag);
+                                       int flag);
 
 typedef void (*IDTypeFreeDataFunction)(struct ID *id);
 
 /** \param flags: See BKE_lib_id.h's LIB_ID_MAKELOCAL_... flags. */
-typedef void (*IDTypeMakeLocalFunction)(struct Main *bmain, struct ID *id, const int flags);
+typedef void (*IDTypeMakeLocalFunction)(struct Main *bmain, struct ID *id, int flags);
 
 typedef void (*IDTypeForeachIDFunction)(struct ID *id, struct LibraryForeachIDData *data);
 
@@ -292,7 +292,7 @@ extern IDTypeInfo IDType_ID_LINK_PLACEHOLDER;
 void BKE_idtype_init(void);
 
 /* General helpers. */
-const struct IDTypeInfo *BKE_idtype_get_info_from_idcode(const short id_code);
+const struct IDTypeInfo *BKE_idtype_get_info_from_idcode(short id_code);
 const struct IDTypeInfo *BKE_idtype_get_info_from_id(const struct ID *id);
 
 /**
@@ -301,21 +301,21 @@ const struct IDTypeInfo *BKE_idtype_get_info_from_id(const struct ID *id);
  * \param idcode: The code to convert.
  * \return A static string representing the name of the code.
  */
-const char *BKE_idtype_idcode_to_name(const short idcode);
+const char *BKE_idtype_idcode_to_name(short idcode);
 /**
  * Convert an \a idcode into a name (plural).
  *
  * \param idcode: The code to convert.
  * \return A static string representing the name of the code.
  */
-const char *BKE_idtype_idcode_to_name_plural(const short idcode);
+const char *BKE_idtype_idcode_to_name_plural(short idcode);
 /**
  * Convert an \a idcode into its translations' context.
  *
  * \param idcode: The code to convert.
  * \return A static string representing the i18n context of the code.
  */
-const char *BKE_idtype_idcode_to_translation_context(const short idcode);
+const char *BKE_idtype_idcode_to_translation_context(short idcode);
 
 /**
  * Return if the ID code is a valid ID code.
@@ -323,7 +323,7 @@ const char *BKE_idtype_idcode_to_translation_context(const short idcode);
  * \param idcode: The code to check.
  * \return Boolean, 0 when invalid.
  */
-bool BKE_idtype_idcode_is_valid(const short idcode);
+bool BKE_idtype_idcode_is_valid(short idcode);
 
 /**
  * Check if an ID type is linkable.
@@ -331,21 +331,21 @@ bool BKE_idtype_idcode_is_valid(const short idcode);
  * \param idcode: The IDType code to check.
  * \return Boolean, false when non linkable, true otherwise.
  */
-bool BKE_idtype_idcode_is_linkable(const short idcode);
+bool BKE_idtype_idcode_is_linkable(short idcode);
 /**
  * Check if an ID type is only appendable.
  *
  * \param idcode: The IDType code to check.
  * \return Boolean, false when also linkable, true when only appendable.
  */
-bool BKE_idtype_idcode_is_only_appendable(const short idcode);
+bool BKE_idtype_idcode_is_only_appendable(short idcode);
 /**
  * Check if an ID type can try to reuse and existing matching local one when being appended again.
  *
  * \param idcode: The IDType code to check.
  * \return Boolean, false when it cannot be re-used, true otherwise.
  */
-bool BKE_idtype_idcode_append_is_reusable(const short idcode);
+bool BKE_idtype_idcode_append_is_reusable(short idcode);
 /* Macro currently, since any linkable IDtype should be localizable. */
 #define BKE_idtype_idcode_is_localizable BKE_idtype_idcode_is_linkable
 
@@ -360,20 +360,20 @@ short BKE_idtype_idcode_from_name(const char *idtype_name);
 /**
  * Convert an \a idcode into an \a idfilter (e.g. #ID_OB -> #FILTER_ID_OB).
  */
-uint64_t BKE_idtype_idcode_to_idfilter(const short idcode);
+uint64_t BKE_idtype_idcode_to_idfilter(short idcode);
 /**
  * Convert an \a idfilter into an \a idcode (e.g. #FILTER_ID_OB -> #ID_OB).
  */
-short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter);
+short BKE_idtype_idcode_from_idfilter(uint64_t idfilter);
 
 /**
  * Convert an \a idcode into an index (e.g. #ID_OB -> #INDEX_ID_OB).
  */
-int BKE_idtype_idcode_to_index(const short idcode);
+int BKE_idtype_idcode_to_index(short idcode);
 /**
  * Get an \a idcode from an index (e.g. #INDEX_ID_OB -> #ID_OB).
  */
-short BKE_idtype_idcode_from_index(const int index);
+short BKE_idtype_idcode_from_index(int index);
 
 /**
  * Return an ID code and steps the index forward 1.

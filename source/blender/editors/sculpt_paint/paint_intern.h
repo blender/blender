@@ -152,10 +152,7 @@ unsigned int vpaint_get_current_col(struct Scene *scene, struct VPaint *vp, bool
 /**
  * \note weight-paint has an equivalent function: #ED_wpaint_blend_tool
  */
-unsigned int ED_vpaint_blend_tool(const int tool,
-                                  const uint col,
-                                  const uint paintcol,
-                                  const int alpha_i);
+unsigned int ED_vpaint_blend_tool(int tool, uint col, uint paintcol, int alpha_i);
 /**
  * Apply callback to each vertex of the active vertex color layer.
  */
@@ -173,10 +170,7 @@ bool ED_vpaint_color_transform(struct Object *ob,
  *
  * \note vertex-paint has an equivalent function: #ED_vpaint_blend_tool
  */
-float ED_wpaint_blend_tool(const int tool,
-                           const float weight,
-                           const float paintval,
-                           const float alpha);
+float ED_wpaint_blend_tool(int tool, float weight, float paintval, float alpha);
 /* Utility for tools to ensure vertex groups exist before they begin. */
 enum eWPaintFlag {
   WPAINT_ENSURE_MIRROR = (1 << 0),
@@ -193,7 +187,7 @@ bool ED_wpaint_ensure_data(struct bContext *C,
                            enum eWPaintFlag flag,
                            struct WPaintVGroupIndex *vgroup_index);
 /** Return -1 when invalid. */
-int ED_wpaint_mirror_vgroup_ensure(struct Object *ob, const int vgroup_active);
+int ED_wpaint_mirror_vgroup_ensure(struct Object *ob, int vgroup_active);
 
 /* paint_vertex_color_ops.c */
 
@@ -246,7 +240,7 @@ void paint_2d_stroke_done(void *ps);
 void paint_2d_stroke(void *ps,
                      const float prev_mval[2],
                      const float mval[2],
-                     const bool eraser,
+                     bool eraser,
                      float pressure,
                      float distance,
                      float size);
@@ -269,7 +263,7 @@ void paint_proj_stroke(const struct bContext *C,
                        void *ps_handle_p,
                        const float prev_pos[2],
                        const float pos[2],
-                       const bool eraser,
+                       bool eraser,
                        float pressure,
                        float distance,
                        float size);
@@ -333,8 +327,8 @@ typedef struct CurveMaskCache {
 void paint_curve_mask_cache_free_data(CurveMaskCache *curve_mask_cache);
 void paint_curve_mask_cache_update(CurveMaskCache *curve_mask_cache,
                                    const struct Brush *brush,
-                                   const int diameter,
-                                   const float radius,
+                                   int diameter,
+                                   float radius,
                                    const float cursor_position[2]);
 
 /* sculpt_uv.c */

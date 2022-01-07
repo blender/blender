@@ -63,7 +63,7 @@ struct AssetLibrary {
   void on_blend_save_handler_register();
   void on_blend_save_handler_unregister();
 
-  void on_blend_save_post(struct Main *, struct PointerRNA **pointers, const int num_pointers);
+  void on_blend_save_post(struct Main *, struct PointerRNA **pointers, int num_pointers);
 
  private:
   bCallbackFuncStore on_save_callback_store_{};

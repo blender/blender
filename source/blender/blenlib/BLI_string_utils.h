@@ -50,7 +50,7 @@ typedef bool (*UniquenameCheckCallback)(void *arg, const char *name);
  * \param delim: Delimiter character`.
  * \return Length of \a left.
  */
-size_t BLI_split_name_num(char *left, int *nr, const char *name, const char delim);
+size_t BLI_split_name_num(char *left, int *nr, const char *name, char delim);
 bool BLI_string_is_decimal(const char *string) ATTR_NONNULL();
 
 /**
@@ -126,7 +126,7 @@ char *BLI_string_join_array_by_sep_char_with_tableN(char sep,
  */
 size_t BLI_string_flip_side_name(char *r_name,
                                  const char *from_name,
-                                 const bool strip_number,
+                                 bool strip_number,
                                  const size_t name_len);
 
 /**

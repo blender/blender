@@ -20,8 +20,7 @@
  * \ingroup bmesh
  */
 
-BMFace *BM_face_copy(
-    BMesh *bm_dst, BMesh *bm_src, BMFace *f, const bool copy_verts, const bool copy_edges);
+BMFace *BM_face_copy(BMesh *bm_dst, BMesh *bm_src, BMFace *f, bool copy_verts, bool copy_edges);
 
 typedef enum eBMCreateFlag {
   BM_CREATE_NOP = 0,
@@ -41,7 +40,7 @@ typedef enum eBMCreateFlag {
 BMVert *BM_vert_create(BMesh *bm,
                        const float co[3],
                        const BMVert *v_example,
-                       const eBMCreateFlag create_flag);
+                       eBMCreateFlag create_flag);
 /**
  * \brief Main function for creating a new edge.
  *
@@ -50,7 +49,7 @@ BMVert *BM_vert_create(BMesh *bm,
  * you should call with \a no_double = true.
  */
 BMEdge *BM_edge_create(
-    BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *e_example, const eBMCreateFlag create_flag);
+    BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *e_example, eBMCreateFlag create_flag);
 /**
  * Main face creation function
  *
@@ -63,18 +62,18 @@ BMEdge *BM_edge_create(
 BMFace *BM_face_create(BMesh *bm,
                        BMVert **verts,
                        BMEdge **edges,
-                       const int len,
+                       int len,
                        const BMFace *f_example,
-                       const eBMCreateFlag create_flag);
+                       eBMCreateFlag create_flag);
 /**
  * Wrapper for #BM_face_create when you don't have an edge array
  */
 BMFace *BM_face_create_verts(BMesh *bm,
                              BMVert **vert_arr,
-                             const int len,
+                             int len,
                              const BMFace *f_example,
-                             const eBMCreateFlag create_flag,
-                             const bool create_edges);
+                             eBMCreateFlag create_flag,
+                             bool create_edges);
 
 /**
  * Kills all edges associated with \a f, along with any other faces containing those edges.
@@ -147,8 +146,8 @@ bool BM_vert_splice_check_double(BMVert *v_a, BMVert *v_b);
  */
 void bmesh_kernel_loop_reverse(BMesh *bm,
                                BMFace *f,
-                               const int cd_loop_mdisp_offset,
-                               const bool use_loop_mdisp_flip);
+                               int cd_loop_mdisp_offset,
+                               bool use_loop_mdisp_flip);
 
 /**
  * Avoid calling this where possible,
@@ -171,7 +170,7 @@ void bmesh_face_swap_data(BMFace *f_a, BMFace *f_b);
  * \note this is a generic, flexible join faces function,
  * almost everything uses this, including #BM_faces_join_pair
  */
-BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del);
+BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, bool do_del);
 /**
  * High level function which wraps both #bmesh_kernel_vert_separate and #bmesh_kernel_edge_separate
  */
@@ -179,18 +178,14 @@ void BM_vert_separate(BMesh *bm,
                       BMVert *v,
                       BMEdge **e_in,
                       int e_in_len,
-                      const bool copy_select,
+                      bool copy_select,
                       BMVert ***r_vout,
                       int *r_vout_len);
 /**
  * A version of #BM_vert_separate which takes a flag.
  */
-void BM_vert_separate_hflag(BMesh *bm,
-                            BMVert *v,
-                            const char hflag,
-                            const bool copy_select,
-                            BMVert ***r_vout,
-                            int *r_vout_len);
+void BM_vert_separate_hflag(
+    BMesh *bm, BMVert *v, char hflag, bool copy_select, BMVert ***r_vout, int *r_vout_len);
 void BM_vert_separate_tested_edges(
     BMesh *bm, BMVert *v_dst, BMVert *v_src, bool (*testfn)(BMEdge *, void *arg), void *arg);
 
@@ -211,7 +206,7 @@ void BM_vert_separate_tested_edges(
  * \return Success
  */
 void bmesh_kernel_vert_separate(
-    BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len, const bool copy_select);
+    BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len, bool copy_select);
 /**
  * \brief Separate Edge
  *
@@ -223,7 +218,7 @@ void bmesh_kernel_vert_separate(
  * \note Does nothing if \a l_sep is already the only loop in the
  * edge radial.
  */
-void bmesh_kernel_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep, const bool copy_select);
+void bmesh_kernel_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep, bool copy_select);
 
 /**
  * \brief Split Face Make Edge (SFME)
@@ -272,7 +267,7 @@ BMFace *bmesh_kernel_split_face_make_edge(BMesh *bm,
                                           ListBase *holes,
 #endif
                                           BMEdge *example,
-                                          const bool no_double);
+                                          bool no_double);
 
 /**
  * \brief Split Edge Make Vert (SEMV)
@@ -326,10 +321,10 @@ BMVert *bmesh_kernel_split_edge_make_vert(BMesh *bm, BMVert *tv, BMEdge *e, BMEd
 BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
                                          BMEdge *e_kill,
                                          BMVert *v_kill,
-                                         const bool do_del,
-                                         const bool check_edge_exists,
-                                         const bool kill_degenerate_faces,
-                                         const bool kill_duplicate_faces);
+                                         bool do_del,
+                                         bool check_edge_exists,
+                                         bool kill_degenerate_faces,
+                                         bool kill_duplicate_faces);
 /**
  * \brief Join Vert Kill Edge (JVKE)
  *
@@ -351,9 +346,9 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
 BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
                                          BMEdge *e_kill,
                                          BMVert *v_kill,
-                                         const bool do_del,
-                                         const bool check_edge_exists,
-                                         const bool kill_degenerate_faces);
+                                         bool do_del,
+                                         bool check_edge_exists,
+                                         bool kill_degenerate_faces);
 /**
  * \brief Join Face Kill Edge (JFKE)
  *

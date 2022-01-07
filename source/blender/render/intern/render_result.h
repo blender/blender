@@ -107,7 +107,7 @@ struct RenderPass *render_layer_add_pass(struct RenderResult *rr,
                                          const char *name,
                                          const char *viewname,
                                          const char *chan_id,
-                                         const bool allocate);
+                                         bool allocate);
 
 /**
  * Called for reading temp files, and for external engines.
@@ -128,16 +128,16 @@ bool render_result_exr_file_cache_read(struct Render *re);
 
 struct ImBuf *render_result_rect_to_ibuf(struct RenderResult *rr,
                                          const struct RenderData *rd,
-                                         const int view_id);
+                                         int view_id);
 
-void render_result_rect_fill_zero(struct RenderResult *rr, const int view_id);
+void render_result_rect_fill_zero(struct RenderResult *rr, int view_id);
 void render_result_rect_get_pixels(struct RenderResult *rr,
                                    unsigned int *rect,
                                    int rectx,
                                    int recty,
                                    const struct ColorManagedViewSettings *view_settings,
                                    const struct ColorManagedDisplaySettings *display_settings,
-                                   const int view_id);
+                                   int view_id);
 
 /**
  * Create a new views #ListBase in rr without duplicating the memory pointers.

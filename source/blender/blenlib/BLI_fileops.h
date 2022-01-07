@@ -181,7 +181,7 @@ void BLI_filelist_entry_duplicate(struct direntry *dst, const struct direntry *s
  */
 void BLI_filelist_duplicate(struct direntry **dest_filelist,
                             struct direntry *const src_filelist,
-                            const unsigned int nrentries);
+                            unsigned int nrentries);
 /**
  * Frees storage for a single direntry, not the direntry itself.
  */
@@ -189,20 +189,20 @@ void BLI_filelist_entry_free(struct direntry *entry);
 /**
  * Frees storage for an array of #direntry, including the array itself.
  */
-void BLI_filelist_free(struct direntry *filelist, const unsigned int nrentries);
+void BLI_filelist_free(struct direntry *filelist, unsigned int nrentries);
 
 /**
  * Convert given entry's size into human-readable strings.
  */
 void BLI_filelist_entry_size_to_string(const struct stat *st,
-                                       const uint64_t sz,
-                                       const bool compact,
+                                       uint64_t sz,
+                                       bool compact,
                                        char r_size[FILELIST_DIRENTRY_SIZE_LEN]);
 /**
  * Convert given entry's modes into human-readable strings.
  */
 void BLI_filelist_entry_mode_to_string(const struct stat *st,
-                                       const bool compact,
+                                       bool compact,
                                        char r_mode1[FILELIST_DIRENTRY_MODE_LEN],
                                        char r_mode2[FILELIST_DIRENTRY_MODE_LEN],
                                        char r_mode3[FILELIST_DIRENTRY_MODE_LEN]);
@@ -210,7 +210,7 @@ void BLI_filelist_entry_mode_to_string(const struct stat *st,
  * Convert given entry's owner into human-readable strings.
  */
 void BLI_filelist_entry_owner_to_string(const struct stat *st,
-                                        const bool compact,
+                                        bool compact,
                                         char r_owner[FILELIST_DIRENTRY_OWNER_LEN]);
 /**
  * Convert given entry's time into human-readable strings.
@@ -219,8 +219,8 @@ void BLI_filelist_entry_owner_to_string(const struct stat *st,
  * \param r_is_yesterday: optional, returns true if the date matches yesterday's.
  */
 void BLI_filelist_entry_datetime_to_string(const struct stat *st,
-                                           const int64_t ts,
-                                           const bool compact,
+                                           int64_t ts,
+                                           bool compact,
                                            char r_time[FILELIST_DIRENTRY_TIME_LEN],
                                            char r_date[FILELIST_DIRENTRY_DATE_LEN],
                                            bool *r_is_today,

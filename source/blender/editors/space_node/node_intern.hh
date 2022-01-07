@@ -118,7 +118,7 @@ blender::float2 node_link_calculate_multi_input_position(const blender::float2 &
                                                          int total_inputs);
 
 int node_get_resize_cursor(NodeResizeDirection directions);
-NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, const int y);
+NodeResizeDirection node_get_resize_direction(const bNode *node, int x, int y);
 /**
  * Usual convention here would be #node_socket_get_color(),
  * but that's already used (for setting a color property socket).
@@ -143,9 +143,9 @@ void node_keymap(wmKeyConfig *keyconf);
 
 void node_deselect_all(SpaceNode &snode);
 void node_socket_select(bNode *node, bNodeSocket &sock);
-void node_socket_deselect(bNode *node, bNodeSocket &sock, const bool deselect_node);
-void node_deselect_all_input_sockets(SpaceNode &snode, const bool deselect_nodes);
-void node_deselect_all_output_sockets(SpaceNode &snode, const bool deselect_nodes);
+void node_socket_deselect(bNode *node, bNodeSocket &sock, bool deselect_node);
+void node_deselect_all_input_sockets(SpaceNode &snode, bool deselect_nodes);
+void node_deselect_all_output_sockets(SpaceNode &snode, bool deselect_nodes);
 void node_select_single(bContext &C, bNode &node);
 
 void NODE_OT_select(wmOperatorType *ot);
@@ -196,7 +196,7 @@ bool node_link_bezier_points(const View2D *v2d,
                              const SpaceNode *snode,
                              const bNodeLink &link,
                              float coord_array[][2],
-                             const int resol);
+                             int resol);
 /**
  * Return quadratic beziers points for a given nodelink and clip if v2d is not nullptr.
  */

@@ -97,17 +97,17 @@ class GLStateManager : public StateManager {
   uint8_t bound_image_slots();
 
  private:
-  static void set_write_mask(const eGPUWriteMask value);
-  static void set_depth_test(const eGPUDepthTest value);
-  static void set_stencil_test(const eGPUStencilTest test, const eGPUStencilOp operation);
-  static void set_stencil_mask(const eGPUStencilTest test, const GPUStateMutable state);
-  static void set_clip_distances(const int new_dist_len, const int old_dist_len);
-  static void set_logic_op(const bool enable);
-  static void set_facing(const bool invert);
-  static void set_backface_culling(const eGPUFaceCullTest test);
-  static void set_provoking_vert(const eGPUProvokingVertex vert);
-  static void set_shadow_bias(const bool enable);
-  static void set_blend(const eGPUBlend value);
+  static void set_write_mask(eGPUWriteMask value);
+  static void set_depth_test(eGPUDepthTest value);
+  static void set_stencil_test(eGPUStencilTest test, eGPUStencilOp operation);
+  static void set_stencil_mask(eGPUStencilTest test, const GPUStateMutable state);
+  static void set_clip_distances(int new_dist_len, int old_dist_len);
+  static void set_logic_op(bool enable);
+  static void set_facing(bool invert);
+  static void set_backface_culling(eGPUFaceCullTest test);
+  static void set_provoking_vert(eGPUProvokingVertex vert);
+  static void set_shadow_bias(bool enable);
+  static void set_blend(eGPUBlend value);
 
   void set_state(const GPUState &state);
   void set_mutable_state(const GPUStateMutable &state);

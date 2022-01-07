@@ -264,7 +264,7 @@ class OutputAttribute {
   OutputAttribute(GVMutableArray varray,
                   AttributeDomain domain,
                   SaveFn save,
-                  const bool ignore_old_values);
+                  bool ignore_old_values);
 
   ~OutputAttribute();
 
@@ -387,7 +387,7 @@ class CustomDataAttributes {
   CustomDataAttributes(CustomDataAttributes &&other);
   CustomDataAttributes &operator=(const CustomDataAttributes &other);
 
-  void reallocate(const int size);
+  void reallocate(int size);
 
   void clear();
 
@@ -423,8 +423,7 @@ class CustomDataAttributes {
    */
   void reorder(Span<AttributeIDRef> new_order);
 
-  bool foreach_attribute(const AttributeForeachCallback callback,
-                         const AttributeDomain domain) const;
+  bool foreach_attribute(const AttributeForeachCallback callback, AttributeDomain domain) const;
 };
 
 /* -------------------------------------------------------------------- */

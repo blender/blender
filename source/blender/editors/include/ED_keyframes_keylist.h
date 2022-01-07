@@ -140,12 +140,9 @@ typedef enum eKeyframeExtremeDrawOpts {
 struct AnimKeylist *ED_keylist_create(void);
 void ED_keylist_free(struct AnimKeylist *keylist);
 void ED_keylist_prepare_for_direct_access(struct AnimKeylist *keylist);
-const struct ActKeyColumn *ED_keylist_find_exact(const struct AnimKeylist *keylist,
-                                                 const float cfra);
-const struct ActKeyColumn *ED_keylist_find_next(const struct AnimKeylist *keylist,
-                                                const float cfra);
-const struct ActKeyColumn *ED_keylist_find_prev(const struct AnimKeylist *keylist,
-                                                const float cfra);
+const struct ActKeyColumn *ED_keylist_find_exact(const struct AnimKeylist *keylist, float cfra);
+const struct ActKeyColumn *ED_keylist_find_next(const struct AnimKeylist *keylist, float cfra);
+const struct ActKeyColumn *ED_keylist_find_prev(const struct AnimKeylist *keylist, float cfra);
 const struct ActKeyColumn *ED_keylist_find_any_between(const struct AnimKeylist *keylist,
                                                        const Range2f frame_range);
 bool ED_keylist_is_empty(const struct AnimKeylist *keylist);
@@ -160,41 +157,39 @@ int64_t ED_keylist_array_len(const struct AnimKeylist *keylist);
 void fcurve_to_keylist(struct AnimData *adt,
                        struct FCurve *fcu,
                        struct AnimKeylist *keylist,
-                       const int saction_flag);
+                       int saction_flag);
 /* Action Group */
 void agroup_to_keylist(struct AnimData *adt,
                        struct bActionGroup *agrp,
                        struct AnimKeylist *keylist,
-                       const int saction_flag);
+                       int saction_flag);
 /* Action */
 void action_to_keylist(struct AnimData *adt,
                        struct bAction *act,
                        struct AnimKeylist *keylist,
-                       const int saction_flag);
+                       int saction_flag);
 /* Object */
 void ob_to_keylist(struct bDopeSheet *ads,
                    struct Object *ob,
                    struct AnimKeylist *keylist,
-                   const int saction_flag);
+                   int saction_flag);
 /* Cache File */
 void cachefile_to_keylist(struct bDopeSheet *ads,
                           struct CacheFile *cache_file,
                           struct AnimKeylist *keylist,
-                          const int saction_flag);
+                          int saction_flag);
 /* Scene */
 void scene_to_keylist(struct bDopeSheet *ads,
                       struct Scene *sce,
                       struct AnimKeylist *keylist,
-                      const int saction_flag);
+                      int saction_flag);
 /* DopeSheet Summary */
-void summary_to_keylist(struct bAnimContext *ac,
-                        struct AnimKeylist *keylist,
-                        const int saction_flag);
+void summary_to_keylist(struct bAnimContext *ac, struct AnimKeylist *keylist, int saction_flag);
 /* Grease Pencil datablock summary */
 void gpencil_to_keylist(struct bDopeSheet *ads,
                         struct bGPdata *gpd,
                         struct AnimKeylist *keylist,
-                        const bool active);
+                        bool active);
 /* Grease Pencil Layer */
 void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct AnimKeylist *keylist);
 /* Mask */

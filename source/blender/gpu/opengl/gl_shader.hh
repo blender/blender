@@ -62,7 +62,7 @@ class GLShader : public Shader {
 
   /** Should be called before linking. */
   void transform_feedback_names_set(Span<const char *> name_list,
-                                    const eGPUShaderTFBType geom_type) override;
+                                    eGPUShaderTFBType geom_type) override;
   bool transform_feedback_enable(GPUVertBuf *buf) override;
   void transform_feedback_disable() override;
 

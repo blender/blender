@@ -31,11 +31,11 @@ extern "C" {
 
 /* Utility functions. */
 
-void _BLI_assert_print_pos(const char *file, const int line, const char *function, const char *id);
+void _BLI_assert_print_pos(const char *file, int line, const char *function, const char *id);
 void _BLI_assert_print_extra(const char *str);
 void _BLI_assert_print_backtrace(void);
 void _BLI_assert_abort(void);
-void _BLI_assert_unreachable_print(const char *file, const int line, const char *function);
+void _BLI_assert_unreachable_print(const char *file, int line, const char *function);
 
 #ifdef _MSC_VER
 #  include <crtdbg.h> /* for _STATIC_ASSERT */

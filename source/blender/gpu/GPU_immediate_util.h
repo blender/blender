@@ -148,7 +148,7 @@ void imm_draw_cube_wire_3d(uint pos, const float center[3], const float aspect[3
 void imm_draw_cube_corners_3d(uint pos,
                               const float center[3],
                               const float aspect[3],
-                              const float factor);
+                              float factor);
 
 /**
  * Draw a cylinder. Replacement for #gluCylinder.

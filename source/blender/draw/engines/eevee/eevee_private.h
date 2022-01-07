@@ -1499,7 +1499,7 @@ void EEVEE_temporal_sampling_create_view(EEVEE_Data *vedata);
 int EEVEE_temporal_sampling_sample_count_get(const Scene *scene, const EEVEE_StorageList *stl);
 int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_temporal_sampling_offset_calc(const double ht_point[2],
-                                         const float filter_size,
+                                         float filter_size,
                                          float r_offset[2]);
 void EEVEE_temporal_sampling_matrices_calc(EEVEE_EffectsInfo *effects, const double ht_point[2]);
 /**
@@ -1533,7 +1533,7 @@ void EEVEE_volumes_free(void);
 void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
                         EEVEE_Data *vedata,
                         Object *camera,
-                        const bool minimal);
+                        bool minimal);
 void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_effects_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 /**

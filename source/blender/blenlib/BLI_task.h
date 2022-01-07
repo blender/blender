@@ -157,7 +157,7 @@ typedef struct TaskParallelTLS {
 } TaskParallelTLS;
 
 typedef void (*TaskParallelRangeFunc)(void *__restrict userdata,
-                                      const int iter,
+                                      int iter,
                                       const TaskParallelTLS *__restrict tls);
 
 typedef void (*TaskParallelInitFunc)(const void *__restrict userdata, void *__restrict chunk);
@@ -210,8 +210,8 @@ typedef struct TaskParallelSettings {
 
 BLI_INLINE void BLI_parallel_range_settings_defaults(TaskParallelSettings *settings);
 
-void BLI_task_parallel_range(const int start,
-                             const int stop,
+void BLI_task_parallel_range(int start,
+                             int stop,
                              void *userdata,
                              TaskParallelRangeFunc func,
                              const TaskParallelSettings *settings);
@@ -262,8 +262,8 @@ typedef void (*TaskParallelIteratorFunc)(void *__restrict userdata,
 void BLI_task_parallel_iterator(void *userdata,
                                 TaskParallelIteratorIterFunc iter_func,
                                 void *init_item,
-                                const int init_index,
-                                const int tot_items,
+                                int init_index,
+                                int tot_items,
                                 TaskParallelIteratorFunc func,
                                 const TaskParallelSettings *settings);
 

@@ -82,12 +82,12 @@ Object **ED_object_array_in_mode_or_selected(struct bContext *C,
 
 /* object_utils.c */
 bool ED_object_calc_active_center_for_editmode(struct Object *obedit,
-                                               const bool select_only,
+                                               bool select_only,
                                                float r_center[3]);
 bool ED_object_calc_active_center_for_posemode(struct Object *ob,
-                                               const bool select_only,
+                                               bool select_only,
                                                float r_center[3]);
-bool ED_object_calc_active_center(struct Object *ob, const bool select_only, float r_center[3]);
+bool ED_object_calc_active_center(struct Object *ob, bool select_only, float r_center[3]);
 
 /* Object Data Container helper API. */
 struct XFormObjectData_Container;
@@ -189,10 +189,10 @@ bool ED_object_parent_set(struct ReportList *reports,
                           struct Object *const ob,
                           struct Object *const par,
                           int partype,
-                          const bool xmirror,
-                          const bool keep_transform,
+                          bool xmirror,
+                          bool keep_transform,
                           const int vert_par[3]);
-void ED_object_parent_clear(struct Object *ob, const int type);
+void ED_object_parent_clear(struct Object *ob, int type);
 
 /**
  * Simple API for object selection, rather than just using the flag
@@ -243,12 +243,9 @@ struct Base *ED_object_add_duplicate(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ViewLayer *view_layer,
                                      struct Base *base,
-                                     const eDupli_ID_Flags dupflag);
+                                     eDupli_ID_Flags dupflag);
 
-void ED_object_parent(struct Object *ob,
-                      struct Object *parent,
-                      const int type,
-                      const char *substr);
+void ED_object_parent(struct Object *ob, struct Object *parent, int type, const char *substr);
 char *ED_object_ot_drop_named_material_tooltip(struct bContext *C,
                                                struct PointerRNA *properties,
                                                const int mval[2]);
@@ -323,7 +320,7 @@ void ED_object_sculptmode_enter_ex(struct Main *bmain,
                                    struct Depsgraph *depsgraph,
                                    struct Scene *scene,
                                    struct Object *ob,
-                                   const bool force_dyntopo,
+                                   bool force_dyntopo,
                                    struct ReportList *reports);
 void ED_object_sculptmode_enter(struct bContext *C,
                                 struct Depsgraph *depsgraph,
@@ -335,8 +332,8 @@ void ED_object_sculptmode_exit_ex(struct Main *bmain,
 void ED_object_sculptmode_exit(struct bContext *C, struct Depsgraph *depsgraph);
 
 void ED_object_location_from_view(struct bContext *C, float loc[3]);
-void ED_object_rotation_from_quat(float rot[3], const float quat[4], const char align_axis);
-void ED_object_rotation_from_view(struct bContext *C, float rot[3], const char align_axis);
+void ED_object_rotation_from_quat(float rot[3], const float quat[4], char align_axis);
+void ED_object_rotation_from_view(struct bContext *C, float rot[3], char align_axis);
 void ED_object_base_init_transform_on_add(struct Object *object,
                                           const float loc[3],
                                           const float rot[3]);
@@ -363,7 +360,7 @@ void ED_object_add_generic_props(struct wmOperatorType *ot, bool do_editmode);
 void ED_object_add_mesh_props(struct wmOperatorType *ot);
 bool ED_object_add_generic_get_opts(struct bContext *C,
                                     struct wmOperator *op,
-                                    const char view_align_axis,
+                                    char view_align_axis,
                                     float r_loc[3],
                                     float r_rot[3],
                                     float r_scale[3],
@@ -378,20 +375,20 @@ bool ED_object_add_generic_get_opts(struct bContext *C,
  * \note Do not call undo push in this function (users of this function have to).
  */
 struct Object *ED_object_add_type_with_obdata(struct bContext *C,
-                                              const int type,
+                                              int type,
                                               const char *name,
                                               const float loc[3],
                                               const float rot[3],
-                                              const bool enter_editmode,
-                                              const ushort local_view_bits,
+                                              bool enter_editmode,
+                                              ushort local_view_bits,
                                               struct ID *obdata);
 struct Object *ED_object_add_type(struct bContext *C,
-                                  const int type,
+                                  int type,
                                   const char *name,
                                   const float loc[3],
                                   const float rot[3],
-                                  const bool enter_editmode,
-                                  const unsigned short local_view_bits)
+                                  bool enter_editmode,
+                                  unsigned short local_view_bits)
     ATTR_NONNULL(1) ATTR_RETURNS_NONNULL;
 
 /**
@@ -468,9 +465,7 @@ void ED_object_constraint_dependency_tag_update(struct Main *bmain,
                                                 struct Object *ob,
                                                 struct bConstraint *con);
 
-bool ED_object_constraint_move_to_index(struct Object *ob,
-                                        struct bConstraint *con,
-                                        const int index);
+bool ED_object_constraint_move_to_index(struct Object *ob, struct bConstraint *con, int index);
 void ED_object_constraint_link(struct Main *bmain,
                                struct Object *ob_dst,
                                struct ListBase *dst,
@@ -514,7 +509,7 @@ bool ED_object_mode_generic_has_data(struct Depsgraph *depsgraph, const struct O
 void ED_object_posemode_set_for_weight_paint(struct bContext *C,
                                              struct Main *bmain,
                                              struct Object *ob,
-                                             const bool is_mode_set);
+                                             bool is_mode_set);
 
 /* object_modifier.c */
 
@@ -550,7 +545,7 @@ bool ED_object_modifier_move_up(struct ReportList *reports,
 bool ED_object_modifier_move_to_index(struct ReportList *reports,
                                       struct Object *ob,
                                       struct ModifierData *md,
-                                      const int index);
+                                      int index);
 
 bool ED_object_modifier_convert(struct ReportList *reports,
                                 struct Main *bmain,
@@ -588,7 +583,7 @@ void ED_object_modifier_copy_to_object(struct bContext *C,
  */
 bool ED_object_iter_other(struct Main *bmain,
                           struct Object *orig_ob,
-                          const bool include_orig,
+                          bool include_orig,
                           bool (*callback)(struct Object *ob, void *callback_data),
                           void *callback_data);
 
@@ -619,7 +614,7 @@ bool ED_object_gpencil_modifier_move_up(struct ReportList *reports,
 bool ED_object_gpencil_modifier_move_to_index(struct ReportList *reports,
                                               struct Object *ob,
                                               struct GpencilModifierData *md,
-                                              const int index);
+                                              int index);
 bool ED_object_gpencil_modifier_apply(struct Main *bmain,
                                       struct ReportList *reports,
                                       struct Depsgraph *depsgraph,
@@ -653,7 +648,7 @@ int ED_object_shaderfx_move_up(struct ReportList *reports,
 bool ED_object_shaderfx_move_to_index(struct ReportList *reports,
                                       struct Object *ob,
                                       struct ShaderFxData *fx,
-                                      const int index);
+                                      int index);
 void ED_object_shaderfx_link(struct Object *dst, struct Object *src);
 void ED_object_shaderfx_copy(struct Object *dst, struct ShaderFxData *fx);
 
@@ -665,7 +660,7 @@ const struct EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(
     struct PointerRNA *ptr,
     struct PropertyRNA *prop,
     bool *r_free,
-    const unsigned int selection_mask);
+    unsigned int selection_mask);
 
 void ED_object_check_force_modifiers(struct Main *bmain,
                                      struct Scene *scene,
@@ -683,7 +678,7 @@ struct Base *ED_object_find_first_by_data_id(struct ViewLayer *view_layer, struc
  *
  * \returns false if not found in current view layer
  */
-bool ED_object_jump_to_object(struct bContext *C, struct Object *ob, const bool reveal_hidden);
+bool ED_object_jump_to_object(struct bContext *C, struct Object *ob, bool reveal_hidden);
 /**
  * Select and make the target object and bone active.
  * Switches to Pose mode if in Object mode so the selection is visible.
@@ -694,7 +689,7 @@ bool ED_object_jump_to_object(struct bContext *C, struct Object *ob, const bool 
 bool ED_object_jump_to_bone(struct bContext *C,
                             struct Object *ob,
                             const char *bone_name,
-                            const bool reveal_hidden);
+                            bool reveal_hidden);
 
 /* object_facemap_ops.c */
 

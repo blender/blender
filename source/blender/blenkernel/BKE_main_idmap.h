@@ -56,9 +56,9 @@ enum {
  * \param old_bmain: If not NULL, its IDs will be added the valid references set.
  */
 struct IDNameLib_Map *BKE_main_idmap_create(struct Main *bmain,
-                                            const bool create_valid_ids_set,
+                                            bool create_valid_ids_set,
                                             struct Main *old_bmain,
-                                            const int idmap_types) ATTR_WARN_UNUSED_RESULT
+                                            int idmap_types) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
 void BKE_main_idmap_destroy(struct IDNameLib_Map *id_map) ATTR_NONNULL();
 
@@ -78,8 +78,7 @@ struct ID *BKE_main_idmap_lookup_id(struct IDNameLib_Map *id_map,
     ATTR_NONNULL(1, 2);
 
 struct ID *BKE_main_idmap_lookup_uuid(struct IDNameLib_Map *id_map,
-                                      const uint session_uuid) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1);
+                                      uint session_uuid) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 #ifdef __cplusplus
 }

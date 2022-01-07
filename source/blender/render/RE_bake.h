@@ -81,25 +81,25 @@ bool RE_bake_has_engine(const struct Render *re);
 bool RE_bake_engine(struct Render *re,
                     struct Depsgraph *depsgraph,
                     struct Object *object,
-                    const int object_id,
+                    int object_id,
                     const BakePixel pixel_array[],
                     const BakeTargets *targets,
-                    const eScenePassType pass_type,
-                    const int pass_filter,
+                    eScenePassType pass_type,
+                    int pass_filter,
                     float result[]);
 
 /* bake.c */
-int RE_pass_depth(const eScenePassType pass_type);
+int RE_pass_depth(eScenePassType pass_type);
 
 bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
                                           BakePixel pixel_array_from[],
                                           BakePixel pixel_array_to[],
                                           BakeHighPolyData highpoly[],
-                                          const int tot_highpoly,
+                                          int tot_highpoly,
                                           const size_t num_pixels,
-                                          const bool is_custom_cage,
-                                          const float cage_extrusion,
-                                          const float max_ray_distance,
+                                          bool is_custom_cage,
+                                          float cage_extrusion,
+                                          float max_ray_distance,
                                           float mat_low[4][4],
                                           float mat_cage[4][4],
                                           struct Mesh *me_cage);
@@ -112,11 +112,11 @@ void RE_bake_pixels_populate(struct Mesh *me,
 
 void RE_bake_mask_fill(const BakePixel pixel_array[], const size_t num_pixels, char *mask);
 
-void RE_bake_margin(struct ImBuf *ibuf, char *mask, const int margin);
+void RE_bake_margin(struct ImBuf *ibuf, char *mask, int margin);
 
 void RE_bake_normal_world_to_object(const BakePixel pixel_array[],
                                     const size_t num_pixels,
-                                    const int depth,
+                                    int depth,
                                     float result[],
                                     struct Object *ob,
                                     const eBakeNormalSwizzle normal_swizzle[3]);
@@ -126,18 +126,18 @@ void RE_bake_normal_world_to_object(const BakePixel pixel_array[],
  */
 void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
                                      const size_t num_pixels,
-                                     const int depth,
+                                     int depth,
                                      float result[],
                                      struct Mesh *me,
                                      const eBakeNormalSwizzle normal_swizzle[3],
                                      float mat[4][4]);
 void RE_bake_normal_world_to_world(const BakePixel pixel_array[],
                                    const size_t num_pixels,
-                                   const int depth,
+                                   int depth,
                                    float result[],
                                    const eBakeNormalSwizzle normal_swizzle[3]);
 
-void RE_bake_ibuf_clear(struct Image *image, const bool is_tangent);
+void RE_bake_ibuf_clear(struct Image *image, bool is_tangent);
 
 #ifdef __cplusplus
 }

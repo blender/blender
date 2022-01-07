@@ -200,7 +200,7 @@ struct AssetMetaData *blo_bhead_id_asset_data_address(const FileData *fd, const 
  *
  * \attention ONLY USE THIS KIND OF VERSIONING WHEN `dna_rename_defs.h` ISN'T SUFFICIENT.
  */
-void blo_do_versions_dna(struct SDNA *sdna, const int versionfile, const int subversionfile);
+void blo_do_versions_dna(struct SDNA *sdna, int versionfile, int subversionfile);
 
 void blo_do_versions_oldnewmap_insert(struct OldNewMap *onm,
                                       const void *oldaddr,

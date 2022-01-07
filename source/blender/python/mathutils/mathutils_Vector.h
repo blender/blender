@@ -33,7 +33,7 @@ typedef struct {
 
 /*prototypes*/
 PyObject *Vector_CreatePyObject(const float *vec,
-                                const int size,
+                                int size,
                                 PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT;
 /**
  * Create a vector that wraps existing memory.
@@ -41,7 +41,7 @@ PyObject *Vector_CreatePyObject(const float *vec,
  * \param vec: Use this vector in-place.
  */
 PyObject *Vector_CreatePyObject_wrap(float *vec,
-                                     const int size,
+                                     int size,
                                      PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
 /**
@@ -56,6 +56,6 @@ PyObject *Vector_CreatePyObject_cb(PyObject *user,
  * \param vec: Initialized vector value to use in-place, allocated with #PyMem_Malloc
  */
 PyObject *Vector_CreatePyObject_alloc(float *vec,
-                                      const int size,
+                                      int size,
                                       PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);

@@ -43,7 +43,7 @@ bool ED_lattice_flags_set(struct Object *obedit, int flag);
 bool ED_lattice_select_pick(
     struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 
-bool ED_lattice_deselect_all_multi_ex(struct Base **bases, const uint bases_len);
+bool ED_lattice_deselect_all_multi_ex(struct Base **bases, uint bases_len);
 bool ED_lattice_deselect_all_multi(struct bContext *C);
 
 /* editlattice_undo.c */

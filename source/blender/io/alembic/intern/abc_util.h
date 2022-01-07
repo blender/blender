@@ -51,7 +51,7 @@ Imath::M44d convert_matrix_datatype(float mat[4][4]);
 /* Convert from Alembic to float matrix representations. Does NOT convert from Y-up to Z-up. */
 void convert_matrix_datatype(const Imath::M44d &xform, float r_mat[4][4]);
 
-void split(const std::string &s, const char delim, std::vector<std::string> &tokens);
+void split(const std::string &s, char delim, std::vector<std::string> &tokens);
 
 template<class TContainer> bool begins_with(const TContainer &input, const TContainer &match)
 {

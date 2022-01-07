@@ -70,9 +70,7 @@ class GlareBaseOperation : public SingleThreadedOperation {
                                             ReadBufferOperation *read_operation,
                                             rcti *output) override;
 
-  void get_area_of_interest(const int input_idx,
-                            const rcti &output_area,
-                            rcti &r_input_area) final;
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) final;
 
   void update_memory_buffer(MemoryBuffer *output,
                             const rcti &area,

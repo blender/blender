@@ -106,7 +106,7 @@ const char *dirname(char *path);
 
 /* Windows utility functions. */
 
-bool BLI_windows_register_blend_extension(const bool background);
+bool BLI_windows_register_blend_extension(bool background);
 void BLI_windows_get_default_root_dir(char root_dir[4]);
 int BLI_windows_get_executable_dir(char *str);
 

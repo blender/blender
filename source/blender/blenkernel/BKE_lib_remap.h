@@ -104,11 +104,9 @@ enum {
  * \note Requiring new_id to be non-null, this *may* not be the case ultimately,
  * but makes things simpler for now.
  */
-void BKE_libblock_remap_locked(struct Main *bmain,
-                               void *old_idv,
-                               void *new_idv,
-                               const short remap_flags) ATTR_NONNULL(1, 2);
-void BKE_libblock_remap(struct Main *bmain, void *old_idv, void *new_idv, const short remap_flags)
+void BKE_libblock_remap_locked(struct Main *bmain, void *old_idv, void *new_idv, short remap_flags)
+    ATTR_NONNULL(1, 2);
+void BKE_libblock_remap(struct Main *bmain, void *old_idv, void *new_idv, short remap_flags)
     ATTR_NONNULL(1, 2);
 
 /**
@@ -120,8 +118,8 @@ void BKE_libblock_remap(struct Main *bmain, void *old_idv, void *new_idv, const 
  */
 void BKE_libblock_unlink(struct Main *bmain,
                          void *idv,
-                         const bool do_flag_never_null,
-                         const bool do_skip_indirect) ATTR_NONNULL();
+                         bool do_flag_never_null,
+                         bool do_skip_indirect) ATTR_NONNULL();
 
 /**
  * Similar to libblock_remap, but only affects IDs used by given \a idv ID.
@@ -133,7 +131,7 @@ void BKE_libblock_relink_ex(struct Main *bmain,
                             void *idv,
                             void *old_idv,
                             void *new_idv,
-                            const short remap_flags) ATTR_NONNULL(1, 2);
+                            short remap_flags) ATTR_NONNULL(1, 2);
 
 /**
  * Remaps ID usages of given ID to their `id->newid` pointer if not None, and proceeds recursively
@@ -144,7 +142,7 @@ void BKE_libblock_relink_ex(struct Main *bmain,
  * Very specific usage, not sure we'll keep it on the long run,
  * currently only used in Object/Collection duplication code.
  */
-void BKE_libblock_relink_to_newid(struct Main *bmain, struct ID *id, const int remap_flag)
+void BKE_libblock_relink_to_newid(struct Main *bmain, struct ID *id, int remap_flag)
     ATTR_NONNULL();
 
 typedef void (*BKE_library_free_notifier_reference_cb)(const void *);

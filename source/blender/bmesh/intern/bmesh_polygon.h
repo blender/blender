@@ -35,7 +35,7 @@ struct Heap;
  * \param r_index: Store triangle triples, indices into \a r_loops,  `((f->len - 2) * 3)`
  */
 void BM_face_calc_tessellation(const BMFace *f,
-                               const bool use_fixed_quad,
+                               bool use_fixed_quad,
                                BMLoop **r_loops,
                                uint (*r_index)[3]);
 /**
@@ -164,7 +164,7 @@ void BM_face_normal_update(BMFace *f) ATTR_NONNULL();
  */
 void BM_edge_normals_update(BMEdge *e) ATTR_NONNULL();
 
-bool BM_vert_calc_normal_ex(const BMVert *v, const char hflag, float r_no[3]);
+bool BM_vert_calc_normal_ex(const BMVert *v, char hflag, float r_no[3]);
 bool BM_vert_calc_normal(const BMVert *v, float r_no[3]);
 /**
  * update a vert normal (but not the faces incident on it)
@@ -180,8 +180,8 @@ void BM_vert_normal_update_all(BMVert *v) ATTR_NONNULL();
  */
 void BM_face_normal_flip_ex(BMesh *bm,
                             BMFace *f,
-                            const int cd_loop_mdisp_offset,
-                            const bool use_loop_mdisp_flip) ATTR_NONNULL();
+                            int cd_loop_mdisp_offset,
+                            bool use_loop_mdisp_flip) ATTR_NONNULL();
 void BM_face_normal_flip(BMesh *bm, BMFace *f) ATTR_NONNULL();
 /**
  * BM POINT IN FACE
@@ -226,9 +226,9 @@ void BM_face_triangulate(BMesh *bm,
                          BMEdge **r_edges_new,
                          int *r_edges_new_tot,
                          struct LinkNode **r_faces_double,
-                         const int quad_method,
-                         const int ngon_method,
-                         const bool use_tag,
+                         int quad_method,
+                         int ngon_method,
+                         bool use_tag,
                          struct MemArena *pf_arena,
                          struct Heap *pf_heap) ATTR_NONNULL(1, 2);
 

@@ -47,7 +47,7 @@ BLI_INLINE BMEdge *bmesh_disk_edge_next(const BMEdge *e, const BMVert *v) ATTR_W
     ATTR_NONNULL();
 BLI_INLINE BMEdge *bmesh_disk_edge_prev(const BMEdge *e, const BMVert *v) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
-int bmesh_disk_facevert_count_at_most(const BMVert *v, const int count_max) ATTR_WARN_UNUSED_RESULT
+int bmesh_disk_facevert_count_at_most(const BMVert *v, int count_max) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 /**
  * \brief DISK COUNT FACE VERT
@@ -106,8 +106,7 @@ void bmesh_radial_loop_unlink(BMLoop *l) ATTR_NONNULL();
 
 int bmesh_radial_facevert_count_at_most(const BMLoop *l,
                                         const BMVert *v,
-                                        const int count_max) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
+                                        int count_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /**
  * \brief RADIAL COUNT FACE VERT
  *

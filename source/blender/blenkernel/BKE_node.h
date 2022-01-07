@@ -481,7 +481,7 @@ void ntreeFreeTree(struct bNodeTree *ntree);
 void ntreeFreeEmbeddedTree(struct bNodeTree *ntree);
 struct bNodeTree *ntreeCopyTree_ex(const struct bNodeTree *ntree,
                                    struct Main *bmain,
-                                   const bool do_id_user);
+                                   bool do_id_user);
 struct bNodeTree *ntreeCopyTree(struct Main *bmain, const struct bNodeTree *ntree);
 
 /**
@@ -518,7 +518,7 @@ void ntreeSetOutput(struct bNodeTree *ntree);
 
 void ntreeFreeCache(struct bNodeTree *ntree);
 
-void ntreeNodeFlagSet(const bNodeTree *ntree, const int flag, const bool enable);
+void ntreeNodeFlagSet(const bNodeTree *ntree, int flag, bool enable);
 /**
  * Returns localized tree for execution in threads.
  */
@@ -770,7 +770,7 @@ void nodeChainIter(const bNodeTree *ntree,
                    const bNode *node_start,
                    bool (*callback)(bNode *, bNode *, void *, const bool),
                    void *userdata,
-                   const bool reversed);
+                   bool reversed);
 /**
  * Iterate over a chain of nodes, starting with \a node_start, executing
  * \a callback for each node (which can return false to end iterator).
@@ -1103,9 +1103,7 @@ bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
 /** \name Node Tree
  */
 
-void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree,
-                                 struct Scene *scene,
-                                 const int layer_index);
+void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, int layer_index);
 
 /* -------------------------------------------------------------------- */
 /** \name Shader Nodes
@@ -1550,7 +1548,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
                      float dxt[3],
                      float dyt[3],
                      int osatex,
-                     const short thread,
+                     short thread,
                      const struct Tex *tex,
                      short which_output,
                      int cfra,

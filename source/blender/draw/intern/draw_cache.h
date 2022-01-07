@@ -67,7 +67,7 @@ struct GPUBatch *DRW_cache_quad_wires_get(void);
 struct GPUBatch *DRW_cache_cube_get(void);
 struct GPUBatch *DRW_cache_normal_arrow_get(void);
 
-struct GPUBatch *DRW_cache_sphere_get(const eDRWLevelOfDetail level_of_detail);
+struct GPUBatch *DRW_cache_sphere_get(eDRWLevelOfDetail level_of_detail);
 
 /* Dummy VBOs */
 

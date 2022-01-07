@@ -56,7 +56,7 @@ typedef struct VChar {
  * \retval A new #VFontData structure, or NULL if unable to load.
  */
 VFontData *BKE_vfontdata_from_freetypefont(struct PackedFile *pf);
-VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, const int flag);
+VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, int flag);
 
 VChar *BKE_vfontdata_char_from_freetypefont(struct VFont *vfont, unsigned long character);
 VChar *BKE_vfontdata_char_copy(const VChar *vchar_src);

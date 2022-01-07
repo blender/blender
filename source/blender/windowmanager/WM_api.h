@@ -118,7 +118,7 @@ void WM_init(struct bContext *C, int argc, const char **argv);
 /**
  * \note doesn't run exit() call #WM_exit() for that.
  */
-void WM_exit_ex(struct bContext *C, const bool do_python);
+void WM_exit_ex(struct bContext *C, bool do_python);
 
 /**
  * \brief Main exit function to close Blender ordinarily.
@@ -277,7 +277,7 @@ struct ID *WM_file_link_datablock(struct Main *bmain,
                                   struct ViewLayer *view_layer,
                                   struct View3D *v3d,
                                   const char *filepath,
-                                  const short id_code,
+                                  short id_code,
                                   const char *id_name,
                                   int flag);
 /**
@@ -289,7 +289,7 @@ struct ID *WM_file_append_datablock(struct Main *bmain,
                                     struct ViewLayer *view_layer,
                                     struct View3D *v3d,
                                     const char *filepath,
-                                    const short id_code,
+                                    short id_code,
                                     const char *id_name,
                                     int flag);
 void WM_lib_reload(struct Library *lib, struct bContext *C, struct ReportList *reports);
@@ -404,7 +404,7 @@ struct wmEventHandler_UI *WM_event_add_ui_handler(const struct bContext *C,
                                                   wmUIHandlerFunc handle_fn,
                                                   wmUIHandlerRemoveFunc remove_fn,
                                                   void *user_data,
-                                                  const char flag);
+                                                  char flag);
 /**
  * \param postpone: Enable for `win->modalhandlers`,
  * this is in a running for () loop in wm_handlers_do().
@@ -413,7 +413,7 @@ void WM_event_remove_ui_handler(ListBase *handlers,
                                 wmUIHandlerFunc handle_fn,
                                 wmUIHandlerRemoveFunc remove_fn,
                                 void *user_data,
-                                const bool postpone);
+                                bool postpone);
 void WM_event_remove_area_handler(struct ListBase *handlers, void *area);
 void WM_event_free_ui_handler_all(struct bContext *C,
                                   ListBase *handlers,
@@ -605,7 +605,7 @@ int WM_operator_ui_popup(struct bContext *C, struct wmOperator *op, int width);
 int WM_operator_confirm_message_ex(struct bContext *C,
                                    struct wmOperator *op,
                                    const char *title,
-                                   const int icon,
+                                   int icon,
                                    const char *message,
                                    const wmOperatorCallContext opcontext);
 int WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, const char *message);
@@ -638,7 +638,7 @@ bool WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, sho
  *
  * \warning do not use this within an operator to call its self! T29537.
  */
-int WM_operator_call_ex(struct bContext *C, struct wmOperator *op, const bool store);
+int WM_operator_call_ex(struct bContext *C, struct wmOperator *op, bool store);
 int WM_operator_call(struct bContext *C, struct wmOperator *op);
 /**
  * This is intended to be used when an invoke operator wants to call exec on its self
@@ -688,7 +688,7 @@ int WM_operator_call_py(struct bContext *C,
                         wmOperatorCallContext context,
                         struct PointerRNA *properties,
                         struct ReportList *reports,
-                        const bool is_undo);
+                        bool is_undo);
 
 void WM_operator_name_call_ptr_with_depends_on_cursor(struct bContext *C,
                                                       wmOperatorType *ot,
@@ -706,7 +706,7 @@ void WM_operator_properties_alloc(struct PointerRNA **ptr,
 /**
  * Make props context sensitive or not.
  */
-void WM_operator_properties_sanitize(struct PointerRNA *ptr, const bool no_context);
+void WM_operator_properties_sanitize(struct PointerRNA *ptr, bool no_context);
 
 /**
  * Set all props to their default.
@@ -716,7 +716,7 @@ void WM_operator_properties_sanitize(struct PointerRNA *ptr, const bool no_conte
  * \note There's nothing specific to operators here.
  * This could be made a general function.
  */
-bool WM_operator_properties_default(struct PointerRNA *ptr, const bool do_update);
+bool WM_operator_properties_default(struct PointerRNA *ptr, bool do_update);
 /**
  * Remove all props without #PROP_SKIP_SAVE.
  */
@@ -738,7 +738,7 @@ wmOperator *WM_operator_last_redo(const struct bContext *C);
 /**
  * Use for drag & drop a path or name with operators invoke() function.
  */
-ID *WM_operator_drop_load_path(struct bContext *C, struct wmOperator *op, const short idcode);
+ID *WM_operator_drop_load_path(struct bContext *C, struct wmOperator *op, short idcode);
 
 bool WM_operator_last_properties_init(struct wmOperator *op);
 bool WM_operator_last_properties_store(struct wmOperator *op);
@@ -870,14 +870,14 @@ bool WM_operator_properties_checker_interval_test(const struct CheckerIntervalPa
  */
 char *WM_operator_pystring_ex(struct bContext *C,
                               struct wmOperator *op,
-                              const bool all_args,
-                              const bool macro_args,
+                              bool all_args,
+                              bool macro_args,
                               struct wmOperatorType *ot,
                               struct PointerRNA *opptr);
 char *WM_operator_pystring(struct bContext *C,
                            struct wmOperator *op,
-                           const bool all_args,
-                           const bool macro_args);
+                           bool all_args,
+                           bool macro_args);
 /**
  * \return true if the string was shortened.
  */
@@ -1243,7 +1243,7 @@ void wmOrtho2(float x1, float x2, float y1, float y2);
  * Default pixel alignment for regions.
  */
 void wmOrtho2_region_pixelspace(const struct ARegion *region);
-void wmOrtho2_pixelspace(const float x, const float y);
+void wmOrtho2_pixelspace(float x, float y);
 void wmGetProjectionMatrix(float mat[4][4], const struct rcti *winrct);
 
 /* threaded Jobs Manager */
@@ -1481,9 +1481,7 @@ int WM_userdef_event_map(int kmitype);
 int WM_userdef_event_type_from_keymap_type(int kmitype);
 
 #ifdef WITH_INPUT_NDOF
-void WM_event_ndof_pan_get(const struct wmNDOFMotionData *ndof,
-                           float r_pan[3],
-                           const bool use_zoom);
+void WM_event_ndof_pan_get(const struct wmNDOFMotionData *ndof, float r_pan[3], bool use_zoom);
 void WM_event_ndof_rotate_get(const struct wmNDOFMotionData *ndof, float r_rot[3]);
 
 float WM_event_ndof_to_axis_angle(const struct wmNDOFMotionData *ndof, float axis[3]);

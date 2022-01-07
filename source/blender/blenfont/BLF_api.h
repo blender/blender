@@ -124,7 +124,7 @@ int BLF_draw_mono(int fontid, const char *str, size_t str_len, int cwidth) ATTR_
 typedef bool (*BLF_GlyphBoundsFn)(const char *str,
                                   const size_t str_step_ofs,
                                   const struct rcti *glyph_step_bounds,
-                                  const int glyph_advance_x,
+                                  int glyph_advance_x,
                                   const struct rctf *glyph_bounds,
                                   const int glyph_bearing[2],
                                   void *user_data);
@@ -298,9 +298,9 @@ void BLF_dir_free(char **dirs, int count) ATTR_NONNULL();
 void BLF_thumb_preview(const char *filename,
                        const char **draw_str,
                        const char **i18n_draw_str,
-                       const unsigned char draw_str_lines,
+                       unsigned char draw_str_lines,
                        const float font_color[4],
-                       const int font_size,
+                       int font_size,
                        unsigned char *buf,
                        int w,
                        int h,
@@ -326,8 +326,8 @@ int BLF_set_default(void);
 
 /* blf_font_default.c */
 
-int BLF_load_default(const bool unique);
-int BLF_load_mono_default(const bool unique);
+int BLF_load_default(bool unique);
+int BLF_load_mono_default(bool unique);
 
 #ifdef DEBUG
 void BLF_state_print(int fontid);

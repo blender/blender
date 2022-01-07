@@ -121,14 +121,14 @@ void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd,
                                struct Object *ob,
                                struct Mesh *mesh,
                                struct MDeformVert *dvert,
-                               const int defgrp_index,
+                               int defgrp_index,
                                float (*vertexCos)[3],
                                int numVerts);
 /* Implementation of the Shrinkwrap Grease Pencil modifier. */
 void shrinkwrapGpencilModifier_deform(struct ShrinkwrapGpencilModifierData *mmd,
                                       struct Object *ob,
                                       struct MDeformVert *dvert,
-                                      const int defgrp_index,
+                                      int defgrp_index,
                                       float (*vertexCos)[3],
                                       int numVerts);
 
@@ -166,7 +166,7 @@ void BKE_shrinkwrap_remesh_target_project(struct Mesh *src_me,
 bool BKE_shrinkwrap_project_normal(char options,
                                    const float vert[3],
                                    const float dir[3],
-                                   const float ray_radius,
+                                   float ray_radius,
                                    const struct SpaceTransform *transf,
                                    struct ShrinkwrapTreeData *tree,
                                    BVHTreeRayHit *hit);

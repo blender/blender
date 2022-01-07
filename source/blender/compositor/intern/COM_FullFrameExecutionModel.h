@@ -75,10 +75,8 @@ class FullFrameExecutionModel : public ExecutionModel {
    * Returns input buffers with an offset relative to given output coordinates.
    * Returned memory buffers must be deleted.
    */
-  Vector<MemoryBuffer *> get_input_buffers(NodeOperation *op,
-                                           const int output_x,
-                                           const int output_y);
-  MemoryBuffer *create_operation_buffer(NodeOperation *op, const int output_x, const int output_y);
+  Vector<MemoryBuffer *> get_input_buffers(NodeOperation *op, int output_x, int output_y);
+  MemoryBuffer *create_operation_buffer(NodeOperation *op, int output_x, int output_y);
   void render_operation(NodeOperation *op);
 
   void operation_finished(NodeOperation *operation);

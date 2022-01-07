@@ -502,7 +502,7 @@ int UI_ThemeMenuShadowWidth(void);
  */
 const unsigned char *UI_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);
 
-void UI_make_axis_color(const unsigned char src_col[3], unsigned char dst_col[3], const char axis);
+void UI_make_axis_color(const unsigned char src_col[3], unsigned char dst_col[3], char axis);
 
 #ifdef __cplusplus
 }

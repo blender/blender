@@ -53,7 +53,7 @@ typedef struct {
   unsigned int i;
 } SmallHashIter;
 
-void BLI_smallhash_init_ex(SmallHash *sh, const unsigned int nentries_reserve) ATTR_NONNULL(1);
+void BLI_smallhash_init_ex(SmallHash *sh, unsigned int nentries_reserve) ATTR_NONNULL(1);
 void BLI_smallhash_init(SmallHash *sh) ATTR_NONNULL(1);
 /**
  * \note does *not* free *sh itself! only the direct data!

@@ -58,7 +58,7 @@ typedef struct BoxPack {
  * \param len: the number of boxes in the array.
  * \param r_tot_x, r_tot_y: set so you can normalize the data.
  */
-void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *r_tot_x, float *r_tot_y);
+void BLI_box_pack_2d(BoxPack *boxarray, unsigned int len, float *r_tot_x, float *r_tot_y);
 
 typedef struct FixedSizeBoxPack {
   struct FixedSizeBoxPack *next, *prev;

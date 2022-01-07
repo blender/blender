@@ -57,7 +57,7 @@ class OutputSingleLayerOperation : public MultiThreadedOperation {
                              const ColorManagedViewSettings *view_settings,
                              const ColorManagedDisplaySettings *display_settings,
                              const char *view_name,
-                             const bool save_as_render);
+                             bool save_as_render);
 
   void execute_region(rcti *rect, unsigned int tile_number) override;
   bool is_output_operation(bool /*rendering*/) const override

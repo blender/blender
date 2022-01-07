@@ -594,7 +594,7 @@ int BLI_kdtree_nd_(find_nearest_n_with_len_squared_cb)(
 int BLI_kdtree_nd_(find_nearest_n)(const KDTree *tree,
                                    const float co[KD_DIMS],
                                    KDTreeNearest r_nearest[],
-                                   const uint nearest_len_capacity)
+                                   uint nearest_len_capacity)
 {
   return BLI_kdtree_nd_(find_nearest_n_with_len_squared_cb)(
       tree, co, r_nearest, nearest_len_capacity, NULL, NULL);
@@ -726,7 +726,7 @@ int BLI_kdtree_nd_(range_search_with_len_squared_cb)(
 int BLI_kdtree_nd_(range_search)(const KDTree *tree,
                                  const float co[KD_DIMS],
                                  KDTreeNearest **r_nearest,
-                                 const float range)
+                                 float range)
 {
   return BLI_kdtree_nd_(range_search_with_len_squared_cb)(tree, co, r_nearest, range, NULL, NULL);
 }

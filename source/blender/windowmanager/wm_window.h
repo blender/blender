@@ -58,19 +58,13 @@ wmWindow *wm_window_new(const struct Main *bmain,
 /**
  * Part of `wm_window.c` API.
  */
-wmWindow *wm_window_copy(struct Main *bmain,
-                         wmWindowManager *wm,
-                         wmWindow *win_src,
-                         const bool duplicate_layout,
-                         const bool child);
+wmWindow *wm_window_copy(
+    struct Main *bmain, wmWindowManager *wm, wmWindow *win_src, bool duplicate_layout, bool child);
 /**
  * A higher level version of copy that tests the new window can be added.
  * (called from the operator directly).
  */
-wmWindow *wm_window_copy_test(bContext *C,
-                              wmWindow *win_src,
-                              const bool duplicate_layout,
-                              const bool child);
+wmWindow *wm_window_copy_test(bContext *C, wmWindow *win_src, bool duplicate_layout, bool child);
 /**
  * Including window itself.
  * \param C: can be NULL.

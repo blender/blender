@@ -55,7 +55,7 @@ size_t bpygpu_Buffer_size(BPyGPUBuffer *buffer);
  * \param buffer: When not NULL holds a contiguous buffer
  * with the correct format from which the buffer will be initialized
  */
-BPyGPUBuffer *BPyGPU_Buffer_CreatePyObject(const int format,
+BPyGPUBuffer *BPyGPU_Buffer_CreatePyObject(int format,
                                            const Py_ssize_t *shape,
-                                           const int shape_len,
+                                           int shape_len,
                                            void *buffer);

@@ -53,9 +53,9 @@
  */
 void _bli_array_grow_func(void **arr_p,
                           const void *arr_static,
-                          const int sizeof_arr_p,
-                          const int arr_len,
-                          const int num,
+                          int sizeof_arr_p,
+                          int arr_len,
+                          int num,
                           const char *alloc_str);
 
 /* -------------------------------------------------------------------- */

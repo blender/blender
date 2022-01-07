@@ -51,7 +51,7 @@ void BKE_object_materials_test(struct Main *bmain, struct Object *ob, struct ID 
 void BKE_objects_materials_test_all(struct Main *bmain, struct ID *id);
 void BKE_object_material_resize(struct Main *bmain,
                                 struct Object *ob,
-                                const short totcol,
+                                short totcol,
                                 bool do_id_user);
 void BKE_object_material_remap(struct Object *ob, const unsigned int *remap);
 /**
@@ -110,7 +110,7 @@ void BKE_object_material_array_assign(struct Main *bmain,
                                       struct Object *ob,
                                       struct Material ***matar,
                                       int totcol,
-                                      const bool to_object_only);
+                                      bool to_object_only);
 
 short BKE_object_material_slot_find_index(struct Object *ob, struct Material *ma);
 bool BKE_object_material_slot_add(struct Main *bmain, struct Object *ob);
@@ -172,7 +172,7 @@ void BKE_id_material_eval_ensure_default_slot(struct ID *id);
  * \param col: new value.
  * \param fac: Zero for is no change.
  */
-void ramp_blend(int type, float r_col[3], const float fac, const float col[3]);
+void ramp_blend(int type, float r_col[3], float fac, const float col[3]);
 
 /** \} */
 

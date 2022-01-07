@@ -27,7 +27,7 @@
 
 bool peelObjectsTransform(struct TransInfo *t,
                           const float mval[2],
-                          const bool use_peel_object,
+                          bool use_peel_object,
                           /* return args */
                           float r_loc[3],
                           float r_no[3],
@@ -92,9 +92,9 @@ void transform_snap_sequencer_apply_translate(TransInfo *t, float *vec);
  */
 short getAnimEdit_SnapMode(TransInfo *t);
 void snapFrameTransform(TransInfo *t,
-                        const eAnimEdit_AutoSnap autosnap,
-                        const float val_initial,
-                        const float val_final,
+                        eAnimEdit_AutoSnap autosnap,
+                        float val_initial,
+                        float val_final,
                         float *r_val_final);
 /**
  * This function is used by Animation Editor specific transform functions to do
@@ -102,5 +102,5 @@ void snapFrameTransform(TransInfo *t,
  */
 void transform_snap_anim_flush_data(TransInfo *t,
                                     TransData *td,
-                                    const eAnimEdit_AutoSnap autosnap,
+                                    eAnimEdit_AutoSnap autosnap,
                                     float *r_val_final);

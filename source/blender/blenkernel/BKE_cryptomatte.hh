@@ -70,7 +70,7 @@ struct CryptomatteHash {
   uint32_t hash;
 
   CryptomatteHash(uint32_t hash);
-  CryptomatteHash(const char *name, const int name_len);
+  CryptomatteHash(const char *name, int name_len);
   static CryptomatteHash from_hex_encoded(blender::StringRef hex_encoded);
 
   std::string hex_encoded() const;

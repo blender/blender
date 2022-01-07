@@ -30,19 +30,19 @@ struct Mesh;
  *
  * \returns false if any verts aren't found.
  */
-bool BM_verts_from_edges(BMVert **vert_arr, BMEdge **edge_arr, const int len);
+bool BM_verts_from_edges(BMVert **vert_arr, BMEdge **edge_arr, int len);
 
 /**
  * Fill in an edge array from a vertex array (connected polygon loop).
  *
  * \returns false if any edges aren't found.
  */
-bool BM_edges_from_verts(BMEdge **edge_arr, BMVert **vert_arr, const int len);
+bool BM_edges_from_verts(BMEdge **edge_arr, BMVert **vert_arr, int len);
 /**
  * Fill in an edge array from a vertex array (connected polygon loop).
  * Creating edges as-needed.
  */
-void BM_edges_from_verts_ensure(BMesh *bm, BMEdge **edge_arr, BMVert **vert_arr, const int len);
+void BM_edges_from_verts_ensure(BMesh *bm, BMEdge **edge_arr, BMVert **vert_arr, int len);
 
 /**
  * Makes an NGon from an un-ordered set of verts.
@@ -82,7 +82,7 @@ BMFace *BM_face_create_quad_tri(BMesh *bm,
                                 BMVert *v3,
                                 BMVert *v4,
                                 const BMFace *f_example,
-                                const eBMCreateFlag create_flag);
+                                eBMCreateFlag create_flag);
 
 /**
  * \brief copies face loop data from shared adjacent faces.
@@ -114,9 +114,9 @@ BMFace *BM_face_create_ngon(BMesh *bm,
                             BMVert *v1,
                             BMVert *v2,
                             BMEdge **edges,
-                            const int len,
+                            int len,
                             const BMFace *f_example,
-                            const eBMCreateFlag create_flag);
+                            eBMCreateFlag create_flag);
 /**
  * Create an ngon from an array of sorted verts
  *
@@ -127,11 +127,11 @@ BMFace *BM_face_create_ngon(BMesh *bm,
  */
 BMFace *BM_face_create_ngon_verts(BMesh *bm,
                                   BMVert **vert_arr,
-                                  const int len,
+                                  int len,
                                   const BMFace *f_example,
-                                  const eBMCreateFlag create_flag,
-                                  const bool calc_winding,
-                                  const bool create_edges);
+                                  eBMCreateFlag create_flag,
+                                  bool calc_winding,
+                                  bool create_edges);
 
 /**
  * Copies attributes, e.g. customdata, header flags, etc, from one element
@@ -141,8 +141,8 @@ void BM_elem_attrs_copy_ex(BMesh *bm_src,
                            BMesh *bm_dst,
                            const void *ele_src_v,
                            void *ele_dst_v,
-                           const char hflag_mask,
-                           const uint64_t cd_mask_exclude);
+                           char hflag_mask,
+                           uint64_t cd_mask_exclude);
 void BM_elem_attrs_copy(BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, void *ele_dst_v);
 void BM_elem_select_copy(BMesh *bm_dst, void *ele_dst_v, const void *ele_src_v);
 
@@ -163,14 +163,14 @@ void BM_mesh_copy_init_customdata(BMesh *bm_dst,
  */
 void BM_mesh_copy_init_customdata_all_layers(BMesh *bm_dst,
                                              BMesh *bm_src,
-                                             const char htype,
+                                             char htype,
                                              const struct BMAllocTemplate *allocsize);
 BMesh *BM_mesh_copy(BMesh *bm_old);
 
-char BM_face_flag_from_mflag(const char mflag);
-char BM_edge_flag_from_mflag(const short mflag);
+char BM_face_flag_from_mflag(char mflag);
+char BM_edge_flag_from_mflag(short mflag);
 /* ME -> BM */
-char BM_vert_flag_from_mflag(const char mflag);
+char BM_vert_flag_from_mflag(char mflag);
 char BM_face_flag_to_mflag(BMFace *f);
 short BM_edge_flag_to_mflag(BMEdge *e);
 /* BM -> ME */

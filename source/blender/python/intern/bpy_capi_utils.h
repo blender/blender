@@ -32,15 +32,15 @@ struct EnumPropertyItem;
 struct ReportList;
 
 /* error reporting */
-short BPy_reports_to_error(struct ReportList *reports, PyObject *exception, const bool clear);
+short BPy_reports_to_error(struct ReportList *reports, PyObject *exception, bool clear);
 /**
  * A version of #BKE_report_write_file_fp that uses Python's stdout.
  */
 void BPy_reports_write_stdout(const struct ReportList *reports, const char *header);
 bool BPy_errors_to_report_ex(struct ReportList *reports,
                              const char *error_prefix,
-                             const bool use_full,
-                             const bool use_location);
+                             bool use_full,
+                             bool use_location);
 bool BPy_errors_to_report_brief_with_prefix(struct ReportList *reports, const char *error_prefix);
 bool BPy_errors_to_report(struct ReportList *reports);
 

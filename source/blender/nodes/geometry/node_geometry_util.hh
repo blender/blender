@@ -52,11 +52,11 @@ namespace blender::nodes {
 void update_attribute_input_socket_availabilities(bNodeTree &ntree,
                                                   bNode &node,
                                                   const StringRef name,
-                                                  const GeometryNodeAttributeInputMode mode,
-                                                  const bool name_is_available = true);
+                                                  GeometryNodeAttributeInputMode mode,
+                                                  bool name_is_available = true);
 
 Array<uint32_t> get_geometry_element_ids_as_uints(const GeometryComponent &component,
-                                                  const AttributeDomain domain);
+                                                  AttributeDomain domain);
 
 void transform_mesh(Mesh &mesh,
                     const float3 translation,
@@ -67,12 +67,9 @@ void transform_geometry_set(GeometrySet &geometry,
                             const float4x4 &transform,
                             const Depsgraph &depsgraph);
 
-Mesh *create_line_mesh(const float3 start, const float3 delta, const int count);
+Mesh *create_line_mesh(const float3 start, const float3 delta, int count);
 
-Mesh *create_grid_mesh(const int verts_x,
-                       const int verts_y,
-                       const float size_x,
-                       const float size_y);
+Mesh *create_grid_mesh(int verts_x, int verts_y, float size_x, float size_y);
 
 struct ConeAttributeOutputs {
   StrongAnonymousAttributeID top_id;
@@ -80,12 +77,12 @@ struct ConeAttributeOutputs {
   StrongAnonymousAttributeID side_id;
 };
 
-Mesh *create_cylinder_or_cone_mesh(const float radius_top,
-                                   const float radius_bottom,
-                                   const float depth,
-                                   const int circle_segments,
-                                   const int side_segments,
-                                   const int fill_segments,
+Mesh *create_cylinder_or_cone_mesh(float radius_top,
+                                   float radius_bottom,
+                                   float depth,
+                                   int circle_segments,
+                                   int side_segments,
+                                   int fill_segments,
                                    const GeometryNodeMeshCircleFillType fill_type,
                                    ConeAttributeOutputs &attribute_outputs);
 
@@ -97,17 +94,17 @@ Mesh *create_cuboid_mesh(float3 size, int verts_x, int verts_y, int verts_z);
 void copy_point_attributes_based_on_mask(const GeometryComponent &in_component,
                                          GeometryComponent &result_component,
                                          Span<bool> masks,
-                                         const bool invert);
+                                         bool invert);
 /**
  * Returns the parts of the geometry that are on the selection for the given domain. If the domain
  * is not applicable for the component, e.g. face domain for point cloud, nothing happens to that
  * component. If no component can work with the domain, then `error_message` is set to true.
  */
 void separate_geometry(GeometrySet &geometry_set,
-                       const AttributeDomain domain,
-                       const GeometryNodeDeleteGeometryMode mode,
+                       AttributeDomain domain,
+                       GeometryNodeDeleteGeometryMode mode,
                        const Field<bool> &selection_field,
-                       const bool invert,
+                       bool invert,
                        bool &r_is_error);
 
 struct CurveToPointsResults {

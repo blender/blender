@@ -155,7 +155,7 @@ void ed_editnurb_translate_flag(struct ListBase *editnurb,
 /**
  * Only for #OB_SURF.
  */
-bool ed_editnurb_extrude_flag(struct EditNurb *editnurb, const uint8_t flag);
+bool ed_editnurb_extrude_flag(struct EditNurb *editnurb, uint8_t flag);
 /**
  * \param axis: is in world-space.
  * \param cent: is in object-space.

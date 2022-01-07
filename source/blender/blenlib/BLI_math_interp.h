@@ -81,10 +81,10 @@ void BLI_ewa_imp2radangle(
  * TODO(sergey): Consider making this function inlined, so the pixel read callback
  * could also be inlined in order to avoid per-pixel function calls.
  */
-void BLI_ewa_filter(const int width,
-                    const int height,
-                    const bool intpol,
-                    const bool use_alpha,
+void BLI_ewa_filter(int width,
+                    int height,
+                    bool intpol,
+                    bool use_alpha,
                     const float uv[2],
                     const float du[2],
                     const float dv[2],

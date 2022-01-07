@@ -71,10 +71,10 @@ typedef enum eScreenAxis {
 /**
  * we swap spaces for fullscreen to keep all allocated data area vertices were set
  */
-void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, const bool do_free);
+void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, bool do_free);
 void ED_area_data_swap(ScrArea *area_dst, ScrArea *area_src);
 /* for quick toggle, can skip fades */
-void region_toggle_hidden(struct bContext *C, ARegion *region, const bool do_fade);
+void region_toggle_hidden(struct bContext *C, ARegion *region, bool do_fade);
 
 /* screen_draw.c */
 
@@ -85,7 +85,7 @@ void region_toggle_hidden(struct bContext *C, ARegion *region, const bool do_fad
  * \param sa2: Target area that will be replaced.
  */
 void screen_draw_join_highlight(struct ScrArea *sa1, struct ScrArea *sa2);
-void screen_draw_split_preview(struct ScrArea *area, const eScreenAxis dir_axis, const float fac);
+void screen_draw_split_preview(struct ScrArea *area, eScreenAxis dir_axis, float fac);
 
 /* screen_edit.c */
 
@@ -111,9 +111,9 @@ void screen_change_prepare(bScreen *screen_old,
 ScrArea *area_split(const wmWindow *win,
                     bScreen *screen,
                     ScrArea *area,
-                    const eScreenAxis dir_axis,
-                    const float fac,
-                    const bool merge);
+                    eScreenAxis dir_axis,
+                    float fac,
+                    bool merge);
 /**
  * Join any two neighboring areas. Might involve complex changes.
  */
@@ -127,8 +127,7 @@ eScreenDir area_getorientation(ScrArea *sa_a, ScrArea *sa_b);
 /**
  * Get alignment offset of adjacent areas. 'dir' value is like #area_getorientation().
  */
-void area_getoffsets(
-    ScrArea *sa_a, ScrArea *sa_b, const eScreenDir dir, int *r_offset1, int *r_offset2);
+void area_getoffsets(ScrArea *sa_a, ScrArea *sa_b, eScreenDir dir, int *r_offset1, int *r_offset2);
 /**
  * Close a screen area, allowing most-aligned neighbor to take its place.
  */
@@ -150,15 +149,15 @@ bool screen_geom_edge_is_horizontal(ScrEdge *se);
  */
 ScrEdge *screen_geom_area_map_find_active_scredge(const struct ScrAreaMap *area_map,
                                                   const rcti *bounds_rect,
-                                                  const int mx,
-                                                  const int my);
+                                                  int mx,
+                                                  int my);
 /**
  * Need win size to make sure not to include edges along screen edge.
  */
 ScrEdge *screen_geom_find_active_scredge(const wmWindow *win,
                                          const bScreen *screen,
-                                         const int mx,
-                                         const int my);
+                                         int mx,
+                                         int my);
 /**
  * \brief Main screen-layout calculation function.
  *
@@ -172,7 +171,7 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen);
  */
 short screen_geom_find_area_split_point(const ScrArea *area,
                                         const rcti *window_rect,
-                                        const eScreenAxis dir_axis,
+                                        eScreenAxis dir_axis,
                                         float fac);
 /**
  * Select all edges that are directly or indirectly connected to \a edge.

@@ -296,7 +296,7 @@ void outliner_collection_isolate_flag(struct Scene *scene,
                                       struct Collection *collection,
                                       struct PropertyRNA *layer_or_collection_prop,
                                       const char *propname,
-                                      const bool value);
+                                      bool value);
 
 /**
  * Return the index to use based on the TreeElement ID and object type
@@ -314,7 +314,7 @@ void tree_element_type_active_set(struct bContext *C,
                                   const TreeViewContext *tvc,
                                   TreeElement *te,
                                   TreeStoreElem *tselem,
-                                  const eOLSetState set,
+                                  eOLSetState set,
                                   bool recursive);
 /**
  * Generic call for non-id data to check the active state in UI.
@@ -329,8 +329,8 @@ eOLDrawState tree_element_type_active_state_get(const struct bContext *C,
 void tree_element_activate(struct bContext *C,
                            const TreeViewContext *tvc,
                            TreeElement *te,
-                           const eOLSetState set,
-                           const bool handle_all_types);
+                           eOLSetState set,
+                           bool handle_all_types);
 eOLDrawState tree_element_active_state_get(const TreeViewContext *tvc,
                                            const TreeElement *te,
                                            const TreeStoreElem *tselem);
@@ -343,7 +343,7 @@ struct bPoseChannel *outliner_find_parent_bone(TreeElement *te, TreeElement **r_
 void outliner_item_select(struct bContext *C,
                           struct SpaceOutliner *space_outliner,
                           struct TreeElement *te,
-                          const short select_flag);
+                          short select_flag);
 
 /**
  * Find if x coordinate is over an icon or name.
@@ -366,7 +366,7 @@ bool outliner_is_co_within_mode_column(SpaceOutliner *space_outliner, const floa
 void outliner_item_mode_toggle(struct bContext *C,
                                TreeViewContext *tvc,
                                TreeElement *te,
-                               const bool do_extend);
+                               bool do_extend);
 
 /* outliner_edit.c ---------------------------------------------- */
 typedef void (*outliner_operation_fn)(struct bContext *C,
@@ -396,7 +396,7 @@ void outliner_do_object_operation(struct bContext *C,
                                   struct ListBase *lb,
                                   outliner_operation_fn operation_fn);
 
-int outliner_flag_is_any_test(ListBase *lb, short flag, const int curlevel);
+int outliner_flag_is_any_test(ListBase *lb, short flag, int curlevel);
 /**
  * Set or unset \a flag for all outliner elements in \a lb and sub-trees.
  * \return if any flag was modified.

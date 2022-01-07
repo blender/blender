@@ -115,8 +115,8 @@ struct wmNDOFMotionData;
 void view3d_ndof_fly(const struct wmNDOFMotionData *ndof,
                      struct View3D *v3d,
                      struct RegionView3D *rv3d,
-                     const bool use_precision,
-                     const short protectflag,
+                     bool use_precision,
+                     short protectflag,
                      bool *r_has_translate,
                      bool *r_has_rotate);
 #endif /* WITH_INPUT_NDOF */
@@ -203,13 +203,13 @@ void ED_view3d_smooth_view_ex(const struct Depsgraph *depsgraph,
                               struct ScrArea *area,
                               struct View3D *v3d,
                               struct ARegion *region,
-                              const int smooth_viewtx,
+                              int smooth_viewtx,
                               const V3D_SmoothParams *sview);
 
 void ED_view3d_smooth_view(struct bContext *C,
                            struct View3D *v3d,
                            struct ARegion *region,
-                           const int smooth_viewtx,
+                           int smooth_viewtx,
                            const V3D_SmoothParams *sview);
 
 /**
@@ -274,17 +274,17 @@ struct View3DCameraControl *ED_view3d_cameracontrol_acquire(struct Depsgraph *de
  * Updates cameras from the `rv3d` values, optionally auto-keyframing.
  */
 void ED_view3d_cameracontrol_update(struct View3DCameraControl *vctrl,
-                                    const bool use_autokey,
+                                    bool use_autokey,
                                     struct bContext *C,
-                                    const bool do_rotate,
-                                    const bool do_translate);
+                                    bool do_rotate,
+                                    bool do_translate);
 /**
  * Release view control.
  *
  * \param restore: Sets the view state to the values that were set
  *                 before #ED_view3d_control_acquire was called.
  */
-void ED_view3d_cameracontrol_release(struct View3DCameraControl *vctrl, const bool restore);
+void ED_view3d_cameracontrol_release(struct View3DCameraControl *vctrl, bool restore);
 /**
  * Returns the object which is being manipulated or NULL.
  */

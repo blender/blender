@@ -114,10 +114,8 @@ enum {
   BLI_SCANFILL_CALC_LOOSE = (1 << 4),
 };
 void BLI_scanfill_begin(ScanFillContext *sf_ctx);
-unsigned int BLI_scanfill_calc(ScanFillContext *sf_ctx, const int flag);
-unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx,
-                                  const int flag,
-                                  const float nor_proj[3]);
+unsigned int BLI_scanfill_calc(ScanFillContext *sf_ctx, int flag);
+unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, int flag, const float nor_proj[3]);
 void BLI_scanfill_end(ScanFillContext *sf_ctx);
 
 void BLI_scanfill_begin_arena(ScanFillContext *sf_ctx, struct MemArena *arena);

@@ -53,20 +53,20 @@ struct OpenVDBMeshData {
 
 struct Mesh *volume_to_mesh(const openvdb::GridBase &grid,
                             const VolumeToMeshResolution &resolution,
-                            const float threshold,
-                            const float adaptivity);
+                            float threshold,
+                            float adaptivity);
 
 struct OpenVDBMeshData volume_to_mesh_data(const openvdb::GridBase &grid,
                                            const VolumeToMeshResolution &resolution,
-                                           const float threshold,
-                                           const float adaptivity);
+                                           float threshold,
+                                           float adaptivity);
 
 void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
                                  const Span<openvdb::Vec3I> vdb_tris,
                                  const Span<openvdb::Vec4I> vdb_quads,
-                                 const int vert_offset,
-                                 const int poly_offset,
-                                 const int loop_offset,
+                                 int vert_offset,
+                                 int poly_offset,
+                                 int loop_offset,
                                  MutableSpan<MVert> verts,
                                  MutableSpan<MPoly> polys,
                                  MutableSpan<MLoop> loops);

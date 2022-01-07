@@ -42,7 +42,7 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu,
                          const char *path,
                          const char *name,
                          int icon,
-                         const enum FSMenuInsert flag);
+                         enum FSMenuInsert flag);
 
 /** Refresh 'valid' status of given menu entry */
 void fsmenu_entry_refresh_valid(struct FSMenuEntry *fsentry);

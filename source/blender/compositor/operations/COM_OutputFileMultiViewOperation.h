@@ -41,7 +41,7 @@ class OutputOpenExrSingleLayerMultiViewOperation : public OutputSingleLayerOpera
                                              const ColorManagedViewSettings *view_settings,
                                              const ColorManagedDisplaySettings *display_settings,
                                              const char *view_name,
-                                             const bool save_as_render);
+                                             bool save_as_render);
 
   void *get_handle(const char *filename);
   void deinit_execution() override;
@@ -78,7 +78,7 @@ class OutputStereoOperation : public OutputSingleLayerOperation {
                         const ColorManagedViewSettings *view_settings,
                         const ColorManagedDisplaySettings *display_settings,
                         const char *view_name,
-                        const bool save_as_render);
+                        bool save_as_render);
   void *get_handle(const char *filename);
   void deinit_execution() override;
 };

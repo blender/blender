@@ -297,7 +297,7 @@ void armature_tag_select_mirrored(struct bArmature *arm);
  * Helper function for tools to work on mirrored parts.
  * it leaves mirrored bones selected then too, which is a good indication of what happened.
  */
-void armature_select_mirrored_ex(struct bArmature *arm, const int flag);
+void armature_select_mirrored_ex(struct bArmature *arm, int flag);
 void armature_select_mirrored(struct bArmature *arm);
 /** Only works when tagged. */
 void armature_tag_unselect(struct bArmature *arm);

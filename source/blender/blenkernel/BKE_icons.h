@@ -123,13 +123,13 @@ struct ImBuf *BKE_icon_imbuf_get_buffer(int icon_id) ATTR_WARN_UNUSED_RESULT;
 /**
  * Retrieve icon for id.
  */
-struct Icon *BKE_icon_get(const int icon_id);
+struct Icon *BKE_icon_get(int icon_id);
 
 /**
  * Set icon for id if not already defined.
  * Used for inserting the internal icons.
  */
-void BKE_icon_set(const int icon_id, struct Icon *icon);
+void BKE_icon_set(int icon_id, struct Icon *icon);
 
 /**
  * Remove icon and free data if library object becomes invalid.
@@ -139,13 +139,13 @@ void BKE_icon_id_delete(struct ID *id);
 /**
  * Remove icon and free data.
  */
-bool BKE_icon_delete(const int icon_id);
-bool BKE_icon_delete_unmanaged(const int icon_id);
+bool BKE_icon_delete(int icon_id);
+bool BKE_icon_delete_unmanaged(int icon_id);
 
 /**
  * Report changes - icon needs to be recalculated.
  */
-void BKE_icon_changed(const int icon_id);
+void BKE_icon_changed(int icon_id);
 
 /**
  * Free all icons.
@@ -220,16 +220,16 @@ struct PreviewImage *BKE_previewimg_id_ensure(struct ID *id);
  * Handle deferred (lazy) loading/generation of preview image, if needed.
  * For now, only used with file thumbnails.
  */
-void BKE_previewimg_ensure(struct PreviewImage *prv, const int size);
+void BKE_previewimg_ensure(struct PreviewImage *prv, int size);
 
 /**
  * Create an #ImBuf holding a copy of the preview image buffer in \a prv.
  * \note The returned image buffer has to be free'd (#IMB_freeImBuf()).
  */
-struct ImBuf *BKE_previewimg_to_imbuf(struct PreviewImage *prv, const int size);
+struct ImBuf *BKE_previewimg_to_imbuf(struct PreviewImage *prv, int size);
 
-void BKE_previewimg_finish(struct PreviewImage *prv, const int size);
-bool BKE_previewimg_is_finished(const struct PreviewImage *prv, const int size);
+void BKE_previewimg_finish(struct PreviewImage *prv, int size);
+bool BKE_previewimg_is_finished(const struct PreviewImage *prv, int size);
 
 struct PreviewImage *BKE_previewimg_cached_get(const char *name);
 
@@ -244,7 +244,7 @@ struct PreviewImage *BKE_previewimg_cached_ensure(const char *name);
  */
 struct PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
                                                           const char *path,
-                                                          const int source,
+                                                          int source,
                                                           bool force_update);
 
 void BKE_previewimg_cached_release(const char *name);
@@ -259,8 +259,8 @@ struct Icon_Geom *BKE_icon_geom_from_memory(uchar *data, size_t data_len);
 struct Icon_Geom *BKE_icon_geom_from_file(const char *filename);
 
 struct ImBuf *BKE_icon_geom_rasterize(const struct Icon_Geom *geom,
-                                      const unsigned int size_x,
-                                      const unsigned int size_y);
+                                      unsigned int size_x,
+                                      unsigned int size_y);
 void BKE_icon_geom_invert_lightness(struct Icon_Geom *geom);
 
 int BKE_icon_ensure_studio_light(struct StudioLight *sl, int id_type);

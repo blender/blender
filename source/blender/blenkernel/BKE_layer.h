@@ -71,7 +71,7 @@ struct ViewLayer *BKE_view_layer_find(const struct Scene *scene, const char *lay
 struct ViewLayer *BKE_view_layer_add(struct Scene *scene,
                                      const char *name,
                                      struct ViewLayer *view_layer_source,
-                                     const int type);
+                                     int type);
 
 /* DEPRECATED */
 /**
@@ -85,12 +85,12 @@ void BKE_view_layer_free(struct ViewLayer *view_layer);
 /**
  * Free (or release) any data used by this #ViewLayer.
  */
-void BKE_view_layer_free_ex(struct ViewLayer *view_layer, const bool do_id_user);
+void BKE_view_layer_free_ex(struct ViewLayer *view_layer, bool do_id_user);
 
 /**
  * Tag all the selected objects of a render-layer.
  */
-void BKE_view_layer_selected_objects_tag(struct ViewLayer *view_layer, const int tag);
+void BKE_view_layer_selected_objects_tag(struct ViewLayer *view_layer, int tag);
 
 /**
  * Fallback for when a Scene has no camera to use.
@@ -119,7 +119,7 @@ void BKE_view_layer_copy_data(struct Scene *scene_dst,
                               const struct Scene *scene_src,
                               struct ViewLayer *view_layer_dst,
                               const struct ViewLayer *view_layer_src,
-                              const int flag);
+                              int flag);
 
 void BKE_view_layer_rename(struct Main *bmain,
                            struct Scene *scene,
@@ -148,8 +148,7 @@ int BKE_layer_collection_count(const struct ViewLayer *view_layer);
 /**
  * Get the collection for a given index.
  */
-struct LayerCollection *BKE_layer_collection_from_index(struct ViewLayer *view_layer,
-                                                        const int index);
+struct LayerCollection *BKE_layer_collection_from_index(struct ViewLayer *view_layer, int index);
 /**
  * \return -1 if not found.
  */
@@ -242,9 +241,9 @@ void BKE_layer_collection_isolate_local(struct ViewLayer *view_layer,
  */
 void BKE_layer_collection_set_visible(struct ViewLayer *view_layer,
                                       struct LayerCollection *lc,
-                                      const bool visible,
-                                      const bool hierarchy);
-void BKE_layer_collection_set_flag(struct LayerCollection *lc, const int flag, const bool value);
+                                      bool visible,
+                                      bool hierarchy);
+void BKE_layer_collection_set_flag(struct LayerCollection *lc, int flag, bool value);
 
 /* Evaluation. */
 

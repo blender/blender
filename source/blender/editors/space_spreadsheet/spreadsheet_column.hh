@@ -44,7 +44,7 @@ void spreadsheet_column_id_free(SpreadsheetColumnID *column_id);
 SpreadsheetColumn *spreadsheet_column_new(SpreadsheetColumnID *column_id);
 SpreadsheetColumn *spreadsheet_column_copy(const SpreadsheetColumn *src_column);
 void spreadsheet_column_assign_runtime_data(SpreadsheetColumn *column,
-                                            const eSpreadsheetColumnValueType data_type,
+                                            eSpreadsheetColumnValueType data_type,
                                             const StringRefNull display_name);
 void spreadsheet_column_free(SpreadsheetColumn *column);
 

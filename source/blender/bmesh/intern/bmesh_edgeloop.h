@@ -48,16 +48,14 @@ void BM_mesh_edgeloops_calc_normal(BMesh *bm, struct ListBase *eloops);
 void BM_mesh_edgeloops_calc_normal_aligned(BMesh *bm,
                                            struct ListBase *eloops,
                                            const float no_align[3]);
-void BM_mesh_edgeloops_calc_order(BMesh *bm, ListBase *eloops, const bool use_normals);
+void BM_mesh_edgeloops_calc_order(BMesh *bm, ListBase *eloops, bool use_normals);
 
 /**
  * Copy a single edge-loop.
  * \return new edge-loops.
  */
 struct BMEdgeLoopStore *BM_edgeloop_copy(struct BMEdgeLoopStore *el_store);
-struct BMEdgeLoopStore *BM_edgeloop_from_verts(BMVert **v_arr,
-                                               const int v_arr_tot,
-                                               bool is_closed);
+struct BMEdgeLoopStore *BM_edgeloop_from_verts(BMVert **v_arr, int v_arr_tot, bool is_closed);
 
 void BM_edgeloop_free(struct BMEdgeLoopStore *el_store);
 bool BM_edgeloop_is_closed(struct BMEdgeLoopStore *el_store);

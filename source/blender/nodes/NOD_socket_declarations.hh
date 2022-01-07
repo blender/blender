@@ -47,9 +47,9 @@ class Float : public SocketDeclaration {
 
 class FloatBuilder : public SocketDeclarationBuilder<Float> {
  public:
-  FloatBuilder &min(const float value);
-  FloatBuilder &max(const float value);
-  FloatBuilder &default_value(const float value);
+  FloatBuilder &min(float value);
+  FloatBuilder &max(float value);
+  FloatBuilder &default_value(float value);
   FloatBuilder &subtype(PropertySubType subtype);
 };
 
@@ -75,9 +75,9 @@ class Int : public SocketDeclaration {
 
 class IntBuilder : public SocketDeclarationBuilder<Int> {
  public:
-  IntBuilder &min(const int value);
-  IntBuilder &max(const int value);
-  IntBuilder &default_value(const int value);
+  IntBuilder &min(int value);
+  IntBuilder &max(int value);
+  IntBuilder &default_value(int value);
   IntBuilder &subtype(PropertySubType subtype);
 };
 
@@ -105,8 +105,8 @@ class VectorBuilder : public SocketDeclarationBuilder<Vector> {
  public:
   VectorBuilder &default_value(const float3 value);
   VectorBuilder &subtype(PropertySubType subtype);
-  VectorBuilder &min(const float min);
-  VectorBuilder &max(const float max);
+  VectorBuilder &min(float min);
+  VectorBuilder &max(float max);
   VectorBuilder &compact();
 };
 
@@ -127,7 +127,7 @@ class Bool : public SocketDeclaration {
 
 class BoolBuilder : public SocketDeclarationBuilder<Bool> {
  public:
-  BoolBuilder &default_value(const bool value);
+  BoolBuilder &default_value(bool value);
 };
 
 class ColorBuilder;

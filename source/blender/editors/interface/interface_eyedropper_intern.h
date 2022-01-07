@@ -25,7 +25,7 @@
 /* interface_eyedropper.c */
 
 void eyedropper_draw_cursor_text_window(const struct wmWindow *window, const char *name);
-void eyedropper_draw_cursor_text_region(const int x, const int y, const char *name);
+void eyedropper_draw_cursor_text_region(int x, int y, const char *name);
 /**
  * Utility to retrieve a button representing a RNA property that is currently under the cursor.
  *

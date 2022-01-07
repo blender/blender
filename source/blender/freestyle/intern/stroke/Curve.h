@@ -540,7 +540,7 @@ class Curve : public Interface1D {
   }
 
   const SShape *occluded_shape() const;
-  const bool occludee_empty() const;
+  bool occludee_empty() const;
   real z_discontinuity(int iCombination = 0) const;
   int shape_id() const;
   const SShape *shape() const;

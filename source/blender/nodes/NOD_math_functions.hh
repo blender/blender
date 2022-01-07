@@ -36,9 +36,9 @@ struct FloatMathOperationInfo {
   }
 };
 
-const FloatMathOperationInfo *get_float_math_operation_info(const int operation);
-const FloatMathOperationInfo *get_float3_math_operation_info(const int operation);
-const FloatMathOperationInfo *get_float_compare_operation_info(const int operation);
+const FloatMathOperationInfo *get_float_math_operation_info(int operation);
+const FloatMathOperationInfo *get_float3_math_operation_info(int operation);
+const FloatMathOperationInfo *get_float_compare_operation_info(int operation);
 
 /**
  * This calls the `callback` with two arguments:

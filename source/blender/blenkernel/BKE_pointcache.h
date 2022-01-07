@@ -363,7 +363,7 @@ void BKE_ptcache_free_list(struct ListBase *ptcaches);
 /* returns first point cache */
 struct PointCache *BKE_ptcache_copy_list(struct ListBase *ptcaches_new,
                                          const struct ListBase *ptcaches_old,
-                                         const int flag);
+                                         int flag);
 
 /********************** Baking *********************/
 

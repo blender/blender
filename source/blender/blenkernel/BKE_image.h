@@ -113,35 +113,35 @@ int BKE_imbuf_write(struct ImBuf *ibuf, const char *name, const struct ImageForm
 int BKE_imbuf_write_as(struct ImBuf *ibuf,
                        const char *name,
                        struct ImageFormatData *imf,
-                       const bool save_copy);
+                       bool save_copy);
 void BKE_image_path_from_imformat(char *string,
                                   const char *base,
                                   const char *relbase,
                                   int frame,
                                   const struct ImageFormatData *im_format,
-                                  const bool use_ext,
-                                  const bool use_frames,
+                                  bool use_ext,
+                                  bool use_frames,
                                   const char *suffix);
 void BKE_image_path_from_imtype(char *string,
                                 const char *base,
                                 const char *relbase,
                                 int frame,
-                                const char imtype,
-                                const bool use_ext,
-                                const bool use_frames,
+                                char imtype,
+                                bool use_ext,
+                                bool use_frames,
                                 const char *suffix);
 int BKE_image_path_ensure_ext_from_imformat(char *string, const struct ImageFormatData *im_format);
-int BKE_image_path_ensure_ext_from_imtype(char *string, const char imtype);
-char BKE_image_ftype_to_imtype(const int ftype, const struct ImbFormatOptions *options);
-int BKE_image_imtype_to_ftype(const char imtype, struct ImbFormatOptions *r_options);
+int BKE_image_path_ensure_ext_from_imtype(char *string, char imtype);
+char BKE_image_ftype_to_imtype(int ftype, const struct ImbFormatOptions *options);
+int BKE_image_imtype_to_ftype(char imtype, struct ImbFormatOptions *r_options);
 
-bool BKE_imtype_is_movie(const char imtype);
-bool BKE_imtype_supports_zbuf(const char imtype);
-bool BKE_imtype_supports_compress(const char imtype);
-bool BKE_imtype_supports_quality(const char imtype);
-bool BKE_imtype_requires_linear_float(const char imtype);
-char BKE_imtype_valid_channels(const char imtype, bool write_file);
-char BKE_imtype_valid_depths(const char imtype);
+bool BKE_imtype_is_movie(char imtype);
+bool BKE_imtype_supports_zbuf(char imtype);
+bool BKE_imtype_supports_compress(char imtype);
+bool BKE_imtype_supports_quality(char imtype);
+bool BKE_imtype_requires_linear_float(char imtype);
+char BKE_imtype_valid_channels(char imtype, bool write_file);
+char BKE_imtype_valid_depths(char imtype);
 
 /**
  * String is from command line `--render-format` argument,
@@ -241,9 +241,9 @@ struct Image *BKE_image_add_generated(struct Main *bmain,
                                       int floatbuf,
                                       short gen_type,
                                       const float color[4],
-                                      const bool stereo3d,
-                                      const bool is_data,
-                                      const bool tiled);
+                                      bool stereo3d,
+                                      bool is_data,
+                                      bool tiled);
 /**
  * Create an image from ibuf. The reference-count of ibuf is increased,
  * caller should take care to drop its reference by calling #IMB_freeImBuf if needed.
@@ -334,7 +334,7 @@ void BKE_image_backup_render(struct Scene *scene, struct Image *ima, bool free_c
 bool BKE_image_save_openexr_multiview(struct Image *ima,
                                       struct ImBuf *ibuf,
                                       const char *filepath,
-                                      const int flags);
+                                      int flags);
 
 /**
  * Goes over all textures that use images.

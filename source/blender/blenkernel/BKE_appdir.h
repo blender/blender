@@ -88,26 +88,21 @@ bool BKE_appdir_folder_caches(char *r_path, size_t path_len);
  * this may contain path separators but must resolve to a directory, checked with #BLI_is_dir.
  * \return The path if found, NULL string if not.
  */
-bool BKE_appdir_folder_id_ex(const int folder_id,
-                             const char *subfolder,
-                             char *path,
-                             size_t path_len);
-const char *BKE_appdir_folder_id(const int folder_id, const char *subfolder);
+bool BKE_appdir_folder_id_ex(int folder_id, const char *subfolder, char *path, size_t path_len);
+const char *BKE_appdir_folder_id(int folder_id, const char *subfolder);
 /**
  * Returns the path to a folder in the user area, creating it if it doesn't exist.
  */
-const char *BKE_appdir_folder_id_create(const int folder_id, const char *subfolder);
+const char *BKE_appdir_folder_id_create(int folder_id, const char *subfolder);
 /**
  * Returns the path to a folder in the user area without checking that it actually exists first.
  */
-const char *BKE_appdir_folder_id_user_notest(const int folder_id, const char *subfolder);
+const char *BKE_appdir_folder_id_user_notest(int folder_id, const char *subfolder);
 /**
  * Returns the path of the top-level version-specific local, user or system directory.
  * If check_is_dir, then the result will be NULL if the directory doesn't exist.
  */
-const char *BKE_appdir_folder_id_version(const int folder_id,
-                                         const int version,
-                                         const bool check_is_dir);
+const char *BKE_appdir_folder_id_version(int folder_id, int version, bool check_is_dir);
 
 /**
  * Check if this is an install with user files kept together
@@ -146,8 +141,8 @@ bool BKE_appdir_font_folder_default(char *dir);
  */
 bool BKE_appdir_program_python_search(char *fullpath,
                                       const size_t fullpath_len,
-                                      const int version_major,
-                                      const int version_minor);
+                                      int version_major,
+                                      int version_minor);
 
 /**
  * Initialize path to temporary directory.

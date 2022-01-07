@@ -105,7 +105,7 @@ void DRW_mesh_batch_cache_free_old(struct Mesh *me, int ctime);
 /** \name Generic
  * \{ */
 
-void DRW_vertbuf_create_wiredata(struct GPUVertBuf *vbo, const int vert_len);
+void DRW_vertbuf_create_wiredata(struct GPUVertBuf *vbo, int vert_len);
 
 /** \} */
 
@@ -178,7 +178,7 @@ void DRW_displist_indexbuf_create_edges_adjacency_lines(struct ListBase *lb,
 
 struct GPUBatch *DRW_lattice_batch_cache_get_all_edges(struct Lattice *lt,
                                                        bool use_weight,
-                                                       const int actdef);
+                                                       int actdef);
 struct GPUBatch *DRW_lattice_batch_cache_get_all_verts(struct Lattice *lt);
 struct GPUBatch *DRW_lattice_batch_cache_get_edit_verts(struct Lattice *lt);
 
@@ -228,8 +228,8 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                            struct Object *ob,
                                            struct Mesh *me,
                                            const struct Scene *scene,
-                                           const bool is_paint_mode,
-                                           const bool use_hide);
+                                           bool is_paint_mode,
+                                           bool use_hide);
 
 struct GPUBatch *DRW_mesh_batch_cache_get_all_verts(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_all_edges(struct Mesh *me);

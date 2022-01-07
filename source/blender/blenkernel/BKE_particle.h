@@ -294,10 +294,8 @@ int count_particles_mod(struct ParticleSystem *psys, int totgr, int cur);
 
 int psys_get_child_number(struct Scene *scene,
                           struct ParticleSystem *psys,
-                          const bool use_render_params);
-int psys_get_tot_child(struct Scene *scene,
-                       struct ParticleSystem *psys,
-                       const bool use_render_params);
+                          bool use_render_params);
+int psys_get_tot_child(struct Scene *scene, struct ParticleSystem *psys, bool use_render_params);
 
 /**
  * Get object's active particle system safely.
@@ -329,9 +327,7 @@ struct ParticleSystem *psys_eval_get(struct Depsgraph *depsgraph,
                                      struct ParticleSystem *psys);
 
 bool psys_in_edit_mode(struct Depsgraph *depsgraph, const struct ParticleSystem *psys);
-bool psys_check_enabled(struct Object *ob,
-                        struct ParticleSystem *psys,
-                        const bool use_render_params);
+bool psys_check_enabled(struct Object *ob, struct ParticleSystem *psys, bool use_render_params);
 bool psys_check_edited(struct ParticleSystem *psys);
 
 void psys_find_group_weights(struct ParticleSettings *part);
@@ -392,7 +388,7 @@ void object_remove_particle_system(struct Main *bmain,
 struct ParticleSettings *BKE_particlesettings_add(struct Main *bmain, const char *name);
 void psys_reset(struct ParticleSystem *psys, int mode);
 
-void psys_find_parents(struct ParticleSimulationData *sim, const bool use_render_params);
+void psys_find_parents(struct ParticleSimulationData *sim, bool use_render_params);
 
 void psys_unique_name(struct Object *object, struct ParticleSystem *psys, const char *defname);
 
@@ -402,19 +398,17 @@ void psys_unique_name(struct Object *object, struct ParticleSystem *psys, const 
  * - Makes child strands possible and creates them too into the cache.
  * - Cached path data is also used to determine cut position for the edit-mode tool.
  */
-void psys_cache_paths(struct ParticleSimulationData *sim,
-                      float cfra,
-                      const bool use_render_params);
+void psys_cache_paths(struct ParticleSimulationData *sim, float cfra, bool use_render_params);
 void psys_cache_edit_paths(struct Depsgraph *depsgraph,
                            struct Scene *scene,
                            struct Object *ob,
                            struct PTCacheEdit *edit,
                            float cfra,
-                           const bool use_render_params);
+                           bool use_render_params);
 void psys_cache_child_paths(struct ParticleSimulationData *sim,
                             float cfra,
-                            const bool editupdate,
-                            const bool use_render_params);
+                            bool editupdate,
+                            bool use_render_params);
 int do_guides(struct Depsgraph *depsgraph,
               struct ParticleSettings *part,
               struct ListBase *effectors,
@@ -438,7 +432,7 @@ float psys_get_child_size(struct ParticleSystem *psys,
 void psys_get_particle_on_path(struct ParticleSimulationData *sim,
                                int pa_num,
                                struct ParticleKey *state,
-                               const bool vel);
+                               bool vel);
 /**
  * Gets particle's state at a time.
  * \return true if particle exists and can be seen and false if not.
@@ -446,7 +440,7 @@ void psys_get_particle_on_path(struct ParticleSimulationData *sim,
 bool psys_get_particle_state(struct ParticleSimulationData *sim,
                              int p,
                              struct ParticleKey *state,
-                             const bool always);
+                             bool always);
 
 /* Child paths. */
 
@@ -539,7 +533,7 @@ void particle_system_update(struct Depsgraph *depsgraph,
                             struct Scene *scene,
                             struct Object *ob,
                             struct ParticleSystem *psys,
-                            const bool use_render_params);
+                            bool use_render_params);
 
 /**
  * Callback format for performing operations on ID-pointers for particle systems.
@@ -678,8 +672,7 @@ void reset_particle(struct ParticleSimulationData *sim,
                     float dtime,
                     float cfra);
 
-float psys_get_current_display_percentage(struct ParticleSystem *psys,
-                                          const bool use_render_params);
+float psys_get_current_display_percentage(struct ParticleSystem *psys, bool use_render_params);
 
 /* psys_reset */
 #define PSYS_RESET_ALL 1

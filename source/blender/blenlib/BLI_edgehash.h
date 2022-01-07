@@ -54,7 +54,7 @@ enum {
   EDGEHASH_FLAG_ALLOW_DUPES = (1 << 0),
 };
 
-EdgeHash *BLI_edgehash_new_ex(const char *info, const unsigned int nentries_reserve);
+EdgeHash *BLI_edgehash_new_ex(const char *info, unsigned int nentries_reserve);
 EdgeHash *BLI_edgehash_new(const char *info) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP free_value);
 void BLI_edgehash_print(EdgeHash *eh);
@@ -138,7 +138,7 @@ int BLI_edgehash_len(const EdgeHash *eh) ATTR_WARN_UNUSED_RESULT;
 /**
  * Remove all edges from hash.
  */
-void BLI_edgehash_clear_ex(EdgeHash *eh, EdgeHashFreeFP free_value, const uint reserve);
+void BLI_edgehash_clear_ex(EdgeHash *eh, EdgeHashFreeFP free_value, uint reserve);
 /**
  * Wraps #BLI_edgehash_clear_ex with zero entries reserved.
  */
@@ -207,8 +207,8 @@ typedef struct EdgeSetIterator {
   uint index;
 } EdgeSetIterator;
 
-EdgeSet *BLI_edgeset_new_ex(const char *info, const unsigned int nentries_reserve)
-    ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
+EdgeSet *BLI_edgeset_new_ex(const char *info,
+                            unsigned int nentries_reserve) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 EdgeSet *BLI_edgeset_new(const char *info) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 int BLI_edgeset_len(const EdgeSet *es) ATTR_WARN_UNUSED_RESULT;
 /**

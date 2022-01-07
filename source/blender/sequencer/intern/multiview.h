@@ -36,9 +36,9 @@ struct Scene;
  * **********************************************************************
  */
 
-void seq_anim_add_suffix(struct Scene *scene, struct anim *anim, const int view_id);
+void seq_anim_add_suffix(struct Scene *scene, struct anim *anim, int view_id);
 void seq_multiview_name(struct Scene *scene,
-                        const int view_id,
+                        int view_id,
                         const char *prefix,
                         const char *ext,
                         char *r_path,
@@ -46,7 +46,7 @@ void seq_multiview_name(struct Scene *scene,
 /**
  * The number of files will vary according to the stereo format.
  */
-int seq_num_files(struct Scene *scene, char views_format, const bool is_multiview);
+int seq_num_files(struct Scene *scene, char views_format, bool is_multiview);
 
 #ifdef __cplusplus
 }

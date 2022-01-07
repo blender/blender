@@ -148,14 +148,14 @@ bool BKE_palette_is_empty(const struct Palette *palette);
 void BKE_palette_color_remove(struct Palette *palette, struct PaletteColor *color);
 void BKE_palette_clear(struct Palette *palette);
 
-void BKE_palette_sort_hsv(struct tPaletteColorHSV *color_array, const int totcol);
-void BKE_palette_sort_svh(struct tPaletteColorHSV *color_array, const int totcol);
-void BKE_palette_sort_vhs(struct tPaletteColorHSV *color_array, const int totcol);
-void BKE_palette_sort_luminance(struct tPaletteColorHSV *color_array, const int totcol);
+void BKE_palette_sort_hsv(struct tPaletteColorHSV *color_array, int totcol);
+void BKE_palette_sort_svh(struct tPaletteColorHSV *color_array, int totcol);
+void BKE_palette_sort_vhs(struct tPaletteColorHSV *color_array, int totcol);
+void BKE_palette_sort_luminance(struct tPaletteColorHSV *color_array, int totcol);
 bool BKE_palette_from_hash(struct Main *bmain,
                            struct GHash *color_table,
                            const char *name,
-                           const bool linear);
+                           bool linear);
 
 /* Paint curves. */
 
@@ -172,7 +172,7 @@ void BKE_paint_free(struct Paint *p);
  * #id_us_plus(), rather than if we were copying between 2 existing scenes where a matching
  * value should decrease the existing user count as with #paint_brush_set()
  */
-void BKE_paint_copy(struct Paint *src, struct Paint *tar, const int flag);
+void BKE_paint_copy(struct Paint *src, struct Paint *tar, int flag);
 
 void BKE_paint_runtime_init(const struct ToolSettings *ts, struct Paint *paint);
 
@@ -183,7 +183,7 @@ bool BKE_paint_ensure_from_paintmode(struct Scene *sce, ePaintMode mode);
 struct Paint *BKE_paint_get_active_from_paintmode(struct Scene *sce, ePaintMode mode);
 const struct EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode);
 const char *BKE_paint_get_tool_prop_id_from_paintmode(ePaintMode mode);
-uint BKE_paint_get_brush_tool_offset_from_paintmode(const ePaintMode mode);
+uint BKE_paint_get_brush_tool_offset_from_paintmode(ePaintMode mode);
 struct Paint *BKE_paint_get_active(struct Scene *sce, struct ViewLayer *view_layer);
 struct Paint *BKE_paint_get_active_from_context(const struct bContext *C);
 ePaintMode BKE_paintmode_get_active_from_context(const struct bContext *C);
@@ -193,7 +193,7 @@ void BKE_paint_brush_set(struct Paint *paint, struct Brush *br);
 struct Palette *BKE_paint_palette(struct Paint *paint);
 void BKE_paint_palette_set(struct Paint *p, struct Palette *palette);
 void BKE_paint_curve_set(struct Brush *br, struct PaintCurve *pc);
-void BKE_paint_curve_clamp_endpoint_add_index(struct PaintCurve *pc, const int add_index);
+void BKE_paint_curve_clamp_endpoint_add_index(struct PaintCurve *pc, int add_index);
 
 /**
  * Return true when in vertex/weight/texture paint + face-select mode?
@@ -231,7 +231,7 @@ bool paint_is_bmesh_face_hidden(struct BMFace *f);
 
 float paint_grid_paint_mask(const struct GridPaintMask *gpm, uint level, uint x, uint y);
 
-void BKE_paint_face_set_overlay_color_get(const int face_set, const int seed, uchar r_color[4]);
+void BKE_paint_face_set_overlay_color_get(int face_set, int seed, uchar r_color[4]);
 
 /* Stroke related. */
 

@@ -64,9 +64,9 @@ MINLINE void copy_v2_v2_uchar(unsigned char r[2], const unsigned char a[2]);
 MINLINE void copy_v3_v3_uchar(unsigned char r[3], const unsigned char a[3]);
 MINLINE void copy_v4_v4_uchar(unsigned char r[4], const unsigned char a[4]);
 
-MINLINE void copy_v2_uchar(unsigned char r[2], const unsigned char a);
-MINLINE void copy_v3_uchar(unsigned char r[3], const unsigned char a);
-MINLINE void copy_v4_uchar(unsigned char r[4], const unsigned char a);
+MINLINE void copy_v2_uchar(unsigned char r[2], unsigned char a);
+MINLINE void copy_v3_uchar(unsigned char r[3], unsigned char a);
+MINLINE void copy_v4_uchar(unsigned char r[4], unsigned char a);
 
 /* char */
 
@@ -303,18 +303,18 @@ MINLINE float len_v3v3(const float a[3], const float b[3]) ATTR_WARN_UNUSED_RESU
 
 MINLINE double len_v3_db(const double a[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE double len_squared_v3_db(const double v[3]) ATTR_WARN_UNUSED_RESULT;
-MINLINE float normalize_v2_length(float r[2], const float unit_scale);
+MINLINE float normalize_v2_length(float r[2], float unit_scale);
 /**
  * \note any vectors containing `nan` will be zeroed out.
  */
-MINLINE float normalize_v2_v2_length(float r[2], const float a[2], const float unit_scale);
-MINLINE float normalize_v3_length(float r[3], const float unit_scale);
+MINLINE float normalize_v2_v2_length(float r[2], const float a[2], float unit_scale);
+MINLINE float normalize_v3_length(float r[3], float unit_scale);
 /**
  * \note any vectors containing `nan` will be zeroed out.
  */
-MINLINE float normalize_v3_v3_length(float r[3], const float a[3], const float unit_scale);
-MINLINE double normalize_v3_length_db(double n[3], const double unit_scale);
-MINLINE double normalize_v3_v3_length_db(double r[3], const double a[3], const double unit_scale);
+MINLINE float normalize_v3_v3_length(float r[3], const float a[3], float unit_scale);
+MINLINE double normalize_v3_length_db(double n[3], double unit_scale);
+MINLINE double normalize_v3_v3_length_db(double r[3], const double a[3], double unit_scale);
 
 MINLINE float normalize_v2(float r[2]);
 MINLINE float normalize_v2_v2(float r[2], const float a[2]);
@@ -329,16 +329,16 @@ MINLINE double normalize_v3_db(double n[3]);
 /** \name Interpolation
  * \{ */
 
-void interp_v2_v2v2(float r[2], const float a[2], const float b[2], const float t);
-void interp_v2_v2v2_db(double target[2], const double a[2], const double b[2], const double t);
+void interp_v2_v2v2(float r[2], const float a[2], const float b[2], float t);
+void interp_v2_v2v2_db(double target[2], const double a[2], const double b[2], double t);
 /**
  * Weight 3 2D vectors,
  * 'w' must be unit length but is not a vector, just 3 weights.
  */
 void interp_v2_v2v2v2(
     float r[2], const float a[2], const float b[2], const float c[2], const float t[3]);
-void interp_v3_v3v3(float r[3], const float a[3], const float b[3], const float t);
-void interp_v3_v3v3_db(double target[3], const double a[3], const double b[3], const double t);
+void interp_v3_v3v3(float r[3], const float a[3], const float b[3], float t);
+void interp_v3_v3v3_db(double target[3], const double a[3], const double b[3], double t);
 /**
  * Weight 3 vectors,
  * 'w' must be unit length but is not a vector, just 3 weights.
@@ -355,7 +355,7 @@ void interp_v3_v3v3v3v3(float p[3],
                         const float v3[3],
                         const float v4[3],
                         const float w[4]);
-void interp_v4_v4v4(float r[4], const float a[4], const float b[4], const float t);
+void interp_v4_v4v4(float r[4], const float a[4], const float b[4], float t);
 void interp_v4_v4v4v4(
     float p[4], const float v1[4], const float v2[4], const float v3[4], const float w[3]);
 void interp_v4_v4v4v4v4(float p[4],
@@ -373,34 +373,34 @@ void interp_v3_v3v3v3_uv(
  *
  * \return success
  */
-bool interp_v3_v3v3_slerp(float target[3], const float a[3], const float b[3], const float t)
+bool interp_v3_v3v3_slerp(float target[3], const float a[3], const float b[3], float t)
     ATTR_WARN_UNUSED_RESULT;
-bool interp_v2_v2v2_slerp(float target[2], const float a[2], const float b[2], const float t)
+bool interp_v2_v2v2_slerp(float target[2], const float a[2], const float b[2], float t)
     ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Same as #interp_v3_v3v3_slerp but uses fallback values for opposite vectors.
  */
-void interp_v3_v3v3_slerp_safe(float target[3], const float a[3], const float b[3], const float t);
-void interp_v2_v2v2_slerp_safe(float target[2], const float a[2], const float b[2], const float t);
+void interp_v3_v3v3_slerp_safe(float target[3], const float a[3], const float b[3], float t);
+void interp_v2_v2v2_slerp_safe(float target[2], const float a[2], const float b[2], float t);
 
 void interp_v2_v2v2v2v2_cubic(float p[2],
                               const float v1[2],
                               const float v2[2],
                               const float v3[2],
                               const float v4[2],
-                              const float u);
+                              float u);
 
-void interp_v3_v3v3_char(char target[3], const char a[3], const char b[3], const float t);
+void interp_v3_v3v3_char(char target[3], const char a[3], const char b[3], float t);
 void interp_v3_v3v3_uchar(unsigned char target[3],
                           const unsigned char a[3],
                           const unsigned char b[3],
-                          const float t);
-void interp_v4_v4v4_char(char target[4], const char a[4], const char b[4], const float t);
+                          float t);
+void interp_v4_v4v4_char(char target[4], const char a[4], const char b[4], float t);
 void interp_v4_v4v4_uchar(unsigned char target[4],
                           const unsigned char a[4],
                           const unsigned char b[4],
-                          const float t);
+                          float t);
 
 void mid_v3_v3v3(float r[3], const float a[3], const float b[3]);
 void mid_v2_v2v2(float r[2], const float a[2], const float b[2]);
@@ -408,7 +408,7 @@ void mid_v3_v3v3v3(float v[3], const float v1[3], const float v2[3], const float
 void mid_v2_v2v2v2(float v[2], const float v1[2], const float v2[2], const float v3[2]);
 void mid_v3_v3v3v3v3(
     float v[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
-void mid_v3_v3_array(float r[3], const float (*vec_arr)[3], const unsigned int nbr);
+void mid_v3_v3_array(float r[3], const float (*vec_arr)[3], unsigned int nbr);
 
 /**
  * Specialized function for calculating normals.
@@ -461,36 +461,24 @@ MINLINE bool equals_v2v2_int(const int v1[2], const int v2[2]) ATTR_WARN_UNUSED_
 MINLINE bool equals_v3v3_int(const int v1[3], const int v2[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE bool equals_v4v4_int(const int v1[4], const int v2[4]) ATTR_WARN_UNUSED_RESULT;
 
-MINLINE bool compare_v2v2(const float a[2],
-                          const float b[2],
-                          const float limit) ATTR_WARN_UNUSED_RESULT;
-MINLINE bool compare_v3v3(const float a[3],
-                          const float b[3],
-                          const float limit) ATTR_WARN_UNUSED_RESULT;
-MINLINE bool compare_v4v4(const float a[4],
-                          const float b[4],
-                          const float limit) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool compare_v2v2(const float a[2], const float b[2], float limit) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool compare_v3v3(const float a[3], const float b[3], float limit) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool compare_v4v4(const float a[4], const float b[4], float limit) ATTR_WARN_UNUSED_RESULT;
 
-MINLINE bool compare_v2v2_relative(const float a[2],
-                                   const float b[2],
-                                   const float limit,
-                                   const int max_ulps) ATTR_WARN_UNUSED_RESULT;
-MINLINE bool compare_v3v3_relative(const float a[3],
-                                   const float b[3],
-                                   const float limit,
-                                   const int max_ulps) ATTR_WARN_UNUSED_RESULT;
-MINLINE bool compare_v4v4_relative(const float a[4],
-                                   const float b[4],
-                                   const float limit,
-                                   const int max_ulps) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool compare_v2v2_relative(const float a[2], const float b[2], float limit, int max_ulps)
+    ATTR_WARN_UNUSED_RESULT;
+MINLINE bool compare_v3v3_relative(const float a[3], const float b[3], float limit, int max_ulps)
+    ATTR_WARN_UNUSED_RESULT;
+MINLINE bool compare_v4v4_relative(const float a[4], const float b[4], float limit, int max_ulps)
+    ATTR_WARN_UNUSED_RESULT;
 
 MINLINE bool compare_len_v3v3(const float a[3],
                               const float b[3],
-                              const float limit) ATTR_WARN_UNUSED_RESULT;
+                              float limit) ATTR_WARN_UNUSED_RESULT;
 
 MINLINE bool compare_size_v3v3(const float a[3],
                                const float b[3],
-                               const float limit) ATTR_WARN_UNUSED_RESULT;
+                               float limit) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * <pre>
@@ -658,16 +646,13 @@ void bisect_v3_v3v3v3(float r[3], const float a[3], const float b[3], const floa
 /**
  * Rotate a point \a p by \a angle around origin (0, 0)
  */
-void rotate_v2_v2fl(float r[2], const float p[2], const float angle);
-void rotate_v3_v3v3fl(float r[3], const float p[3], const float axis[3], const float angle);
+void rotate_v2_v2fl(float r[2], const float p[2], float angle);
+void rotate_v3_v3v3fl(float r[3], const float p[3], const float axis[3], float angle);
 /**
  * Rotate a point \a p by \a angle around an arbitrary unit length \a axis.
  * http://local.wasp.uwa.edu.au/~pbourke/geometry/
  */
-void rotate_normalized_v3_v3v3fl(float out[3],
-                                 const float p[3],
-                                 const float axis[3],
-                                 const float angle);
+void rotate_normalized_v3_v3v3fl(float out[3], const float p[3], const float axis[3], float angle);
 
 /** \} */
 
@@ -678,7 +663,7 @@ void rotate_normalized_v3_v3v3fl(float out[3],
 void print_v2(const char *str, const float v[2]);
 void print_v3(const char *str, const float v[3]);
 void print_v4(const char *str, const float v[4]);
-void print_vn(const char *str, const float v[], const int n);
+void print_vn(const char *str, const float v[], int n);
 
 #define print_v2_id(v) print_v2(STRINGIFY(v), v)
 #define print_v3_id(v) print_v3(STRINGIFY(v), v)
@@ -697,14 +682,14 @@ void minmax_v2v2_v2(float min[2], float max[2], const float vec[2]);
 void minmax_v3v3_v3_array(float r_min[3], float r_max[3], const float (*vec_arr)[3], int nbr);
 
 /** ensure \a v1 is \a dist from \a v2 */
-void dist_ensure_v3_v3fl(float v1[3], const float v2[3], const float dist);
-void dist_ensure_v2_v2fl(float v1[2], const float v2[2], const float dist);
+void dist_ensure_v3_v3fl(float v1[3], const float v2[3], float dist);
+void dist_ensure_v2_v2fl(float v1[2], const float v2[2], float dist);
 
 void axis_sort_v3(const float axis_values[3], int r_axis_order[3]);
 
-MINLINE void clamp_v2(float vec[2], const float min, const float max);
-MINLINE void clamp_v3(float vec[3], const float min, const float max);
-MINLINE void clamp_v4(float vec[4], const float min, const float max);
+MINLINE void clamp_v2(float vec[2], float min, float max);
+MINLINE void clamp_v3(float vec[3], float min, float max);
+MINLINE void clamp_v4(float vec[4], float min, float max);
 MINLINE void clamp_v2_v2v2(float vec[2], const float min[2], const float max[2]);
 MINLINE void clamp_v3_v3v3(float vec[3], const float min[3], const float max[3]);
 MINLINE void clamp_v4_v4v4(float vec[4], const float min[4], const float max[4]);
@@ -721,57 +706,42 @@ MINLINE void clamp_v4_v4v4(float vec[4], const float min[4], const float max[4])
 
 double dot_vn_vn(const float *array_src_a,
                  const float *array_src_b,
-                 const int size) ATTR_WARN_UNUSED_RESULT;
-double len_squared_vn(const float *array, const int size) ATTR_WARN_UNUSED_RESULT;
-float normalize_vn_vn(float *array_tar, const float *array_src, const int size);
-float normalize_vn(float *array_tar, const int size);
-void range_vn_i(int *array_tar, const int size, const int start);
-void range_vn_u(unsigned int *array_tar, const int size, const unsigned int start);
-void range_vn_fl(float *array_tar, const int size, const float start, const float step);
-void negate_vn(float *array_tar, const int size);
-void negate_vn_vn(float *array_tar, const float *array_src, const int size);
-void mul_vn_vn(float *array_tar, const float *array_src, const int size);
-void mul_vn_vnvn(float *array_tar,
-                 const float *array_src_a,
-                 const float *array_src_b,
-                 const int size);
-void mul_vn_fl(float *array_tar, const int size, const float f);
-void mul_vn_vn_fl(float *array_tar, const float *array_src, const int size, const float f);
-void add_vn_vn(float *array_tar, const float *array_src, const int size);
-void add_vn_vnvn(float *array_tar,
-                 const float *array_src_a,
-                 const float *array_src_b,
-                 const int size);
-void madd_vn_vn(float *array_tar, const float *array_src, const float f, const int size);
-void madd_vn_vnvn(float *array_tar,
-                  const float *array_src_a,
-                  const float *array_src_b,
-                  const float f,
-                  const int size);
-void sub_vn_vn(float *array_tar, const float *array_src, const int size);
-void sub_vn_vnvn(float *array_tar,
-                 const float *array_src_a,
-                 const float *array_src_b,
-                 const int size);
-void msub_vn_vn(float *array_tar, const float *array_src, const float f, const int size);
-void msub_vn_vnvn(float *array_tar,
-                  const float *array_src_a,
-                  const float *array_src_b,
-                  const float f,
-                  const int size);
-void interp_vn_vn(float *array_tar, const float *array_src, const float t, const int size);
-void copy_vn_i(int *array_tar, const int size, const int val);
-void copy_vn_short(short *array_tar, const int size, const short val);
-void copy_vn_ushort(unsigned short *array_tar, const int size, const unsigned short val);
-void copy_vn_uchar(unsigned char *array_tar, const int size, const unsigned char val);
-void copy_vn_fl(float *array_tar, const int size, const float val);
+                 int size) ATTR_WARN_UNUSED_RESULT;
+double len_squared_vn(const float *array, int size) ATTR_WARN_UNUSED_RESULT;
+float normalize_vn_vn(float *array_tar, const float *array_src, int size);
+float normalize_vn(float *array_tar, int size);
+void range_vn_i(int *array_tar, int size, int start);
+void range_vn_u(unsigned int *array_tar, int size, unsigned int start);
+void range_vn_fl(float *array_tar, int size, float start, float step);
+void negate_vn(float *array_tar, int size);
+void negate_vn_vn(float *array_tar, const float *array_src, int size);
+void mul_vn_vn(float *array_tar, const float *array_src, int size);
+void mul_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_src_b, int size);
+void mul_vn_fl(float *array_tar, int size, float f);
+void mul_vn_vn_fl(float *array_tar, const float *array_src, int size, float f);
+void add_vn_vn(float *array_tar, const float *array_src, int size);
+void add_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_src_b, int size);
+void madd_vn_vn(float *array_tar, const float *array_src, float f, int size);
+void madd_vn_vnvn(
+    float *array_tar, const float *array_src_a, const float *array_src_b, float f, int size);
+void sub_vn_vn(float *array_tar, const float *array_src, int size);
+void sub_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_src_b, int size);
+void msub_vn_vn(float *array_tar, const float *array_src, float f, int size);
+void msub_vn_vnvn(
+    float *array_tar, const float *array_src_a, const float *array_src_b, float f, int size);
+void interp_vn_vn(float *array_tar, const float *array_src, float t, int size);
+void copy_vn_i(int *array_tar, int size, int val);
+void copy_vn_short(short *array_tar, int size, short val);
+void copy_vn_ushort(unsigned short *array_tar, int size, unsigned short val);
+void copy_vn_uchar(unsigned char *array_tar, int size, unsigned char val);
+void copy_vn_fl(float *array_tar, int size, float val);
 
-void add_vn_vn_d(double *array_tar, const double *array_src, const int size);
+void add_vn_vn_d(double *array_tar, const double *array_src, int size);
 void add_vn_vnvn_d(double *array_tar,
                    const double *array_src_a,
                    const double *array_src_b,
-                   const int size);
-void mul_vn_db(double *array_tar, const int size, const double f);
+                   int size);
+void mul_vn_db(double *array_tar, int size, double f);
 
 /** \} */
 

@@ -73,7 +73,7 @@ int PyC_AsArray_Multi_FAST(void *array,
                            const size_t array_item_size,
                            PyObject *value_fast,
                            const int *dims,
-                           const int dims_len,
+                           int dims_len,
                            const PyTypeObject *type,
                            const char *error_prefix);
 
@@ -81,7 +81,7 @@ int PyC_AsArray_Multi(void *array,
                       const size_t array_item_size,
                       PyObject *value,
                       const int *dims,
-                      const int dims_len,
+                      int dims_len,
                       const PyTypeObject *type,
                       const char *error_prefix);
 
@@ -102,10 +102,10 @@ PyObject *PyC_Tuple_PackArray_Bool(const bool *array, uint len);
 #define PyC_Tuple_Pack_Bool(...) \
   PyC_Tuple_PackArray_Bool(((const bool[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 
-PyObject *PyC_Tuple_PackArray_Multi_F32(const float *array, const int dims[], const int dims_len);
-PyObject *PyC_Tuple_PackArray_Multi_F64(const double *array, const int dims[], const int dims_len);
-PyObject *PyC_Tuple_PackArray_Multi_I32(const int *array, const int dims[], const int dims_len);
-PyObject *PyC_Tuple_PackArray_Multi_Bool(const bool *array, const int dims[], const int dims_len);
+PyObject *PyC_Tuple_PackArray_Multi_F32(const float *array, const int dims[], int dims_len);
+PyObject *PyC_Tuple_PackArray_Multi_F64(const double *array, const int dims[], int dims_len);
+PyObject *PyC_Tuple_PackArray_Multi_I32(const int *array, const int dims[], int dims_len);
+PyObject *PyC_Tuple_PackArray_Multi_Bool(const bool *array, const int dims[], int dims_len);
 
 /**
  * Caller needs to ensure tuple is uninitialized.
@@ -219,8 +219,7 @@ struct PyC_StringEnum {
  * Use with PyArg_ParseTuple's "O&" formatting.
  */
 int PyC_ParseStringEnum(PyObject *o, void *p);
-const char *PyC_StringEnum_FindIDFromValue(const struct PyC_StringEnumItems *items,
-                                           const int value);
+const char *PyC_StringEnum_FindIDFromValue(const struct PyC_StringEnumItems *items, int value);
 
 int PyC_CheckArgs_DeepCopy(PyObject *args);
 

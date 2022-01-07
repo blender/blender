@@ -82,10 +82,7 @@ typedef struct SELECTID_Context {
 
 /* draw_select_buffer.c */
 
-bool DRW_select_buffer_elem_get(const uint sel_id,
-                                uint *r_elem,
-                                uint *r_base_index,
-                                char *r_elem_type);
+bool DRW_select_buffer_elem_get(uint sel_id, uint *r_elem, uint *r_base_index, char *r_elem_type);
 uint DRW_select_buffer_context_offset_for_object_elem(struct Depsgraph *depsgraph,
                                                       struct Object *object,
                                                       char elem_type);
@@ -116,7 +113,7 @@ uint *DRW_select_buffer_bitmap_from_circle(struct Depsgraph *depsgraph,
                                            struct ARegion *region,
                                            struct View3D *v3d,
                                            const int center[2],
-                                           const int radius,
+                                           int radius,
                                            uint *r_bitmap_len);
 /**
  * \param poly: The polygon coordinates.
@@ -128,7 +125,7 @@ uint *DRW_select_buffer_bitmap_from_poly(struct Depsgraph *depsgraph,
                                          struct ARegion *region,
                                          struct View3D *v3d,
                                          const int poly[][2],
-                                         const int poly_len,
+                                         int poly_len,
                                          const struct rcti *rect,
                                          uint *r_bitmap_len);
 /**
@@ -147,9 +144,7 @@ uint DRW_select_buffer_find_nearest_to_point(struct Depsgraph *depsgraph,
                                              struct ARegion *region,
                                              struct View3D *v3d,
                                              const int center[2],
-                                             const uint id_min,
-                                             const uint id_max,
+                                             uint id_min,
+                                             uint id_max,
                                              uint *dist);
-void DRW_select_buffer_context_create(struct Base **bases,
-                                      const uint bases_len,
-                                      short select_mode);
+void DRW_select_buffer_context_create(struct Base **bases, uint bases_len, short select_mode);

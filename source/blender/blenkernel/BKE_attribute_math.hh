@@ -141,7 +141,7 @@ inline ColorGeometry4f mix3(const float3 &weights,
  * This is just basic linear interpolation.
  * \{ */
 
-template<typename T> T mix2(const float factor, const T &a, const T &b);
+template<typename T> T mix2(float factor, const T &a, const T &b);
 
 template<> inline bool mix2(const float factor, const bool &a, const bool &b)
 {
@@ -287,7 +287,7 @@ class ColorGeometryMixer {
  public:
   ColorGeometryMixer(MutableSpan<ColorGeometry4f> buffer,
                      ColorGeometry4f default_color = ColorGeometry4f(0.0f, 0.0f, 0.0f, 1.0f));
-  void mix_in(const int64_t index, const ColorGeometry4f &color, const float weight = 1.0f);
+  void mix_in(int64_t index, const ColorGeometry4f &color, float weight = 1.0f);
   void finalize();
 };
 
