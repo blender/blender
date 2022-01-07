@@ -37,6 +37,7 @@
 #include "util/math.h"
 #include "util/string.h"
 #include "util/system.h"
+#include "util/task.h"
 #include "util/time.h"
 #include "util/types.h"
 #include "util/vector.h"
@@ -333,7 +334,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
     /* Ensure CPU device does not slow down GPU. */
     if (device.type == DEVICE_CPU && subdevices.size() > 1) {
       if (background) {
-        int orig_cpu_threads = (threads) ? threads : system_cpu_thread_count();
+        int orig_cpu_threads = (threads) ? threads : TaskScheduler::num_threads();
         int cpu_threads = max(orig_cpu_threads - (subdevices.size() - 1), 0);
 
         VLOG(1) << "CPU render threads reduced from " << orig_cpu_threads << " to " << cpu_threads

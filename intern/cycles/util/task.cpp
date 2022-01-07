@@ -89,7 +89,7 @@ void TaskScheduler::init(int num_threads)
     active_num_threads = num_threads;
   }
   else {
-    active_num_threads = system_cpu_thread_count();
+    active_num_threads = tbb::this_task_arena::max_concurrency();
   }
 }
 
