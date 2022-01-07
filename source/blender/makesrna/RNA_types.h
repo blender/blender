@@ -23,6 +23,7 @@
 #define __RNA_TYPES_H__
 
 #include "../blenlib/BLI_sys_types.h"
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -314,6 +315,7 @@ typedef enum PropertyFlag {
    */
   PROP_NO_DEG_UPDATE = (1 << 30),
 } PropertyFlag;
+ENUM_OPERATORS(PropertyFlag, PROP_TEXTEDIT_UPDATE);
 
 /**
  * Flags related to comparing and overriding RNA properties.
