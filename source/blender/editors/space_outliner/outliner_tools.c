@@ -959,7 +959,6 @@ static void id_override_library_resync_fn(bContext *C,
                                     id_root,
                                     NULL,
                                     do_hierarchy_enforce,
-                                    true,
                                     &(struct BlendFileReadReport){.reports = reports});
 
     WM_event_add_notifier(C, NC_WINDOW, NULL);

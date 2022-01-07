@@ -164,9 +164,9 @@ void BKE_lib_override_library_main_proxy_convert(struct Main *bmain,
  * Advanced 'smart' function to resync, re-create fully functional overrides up-to-date with linked
  * data, from an existing override hierarchy.
  *
- * \param id_root: The root liboverride ID to resync from.
  * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
  *                    which case \a scene's master collection children hierarchy is used instead).
+ * \param id_root: The root liboverride ID to resync from.
  * \return true if override was successfully resynced.
  */
 bool BKE_lib_override_library_resync(struct Main *bmain,
@@ -175,7 +175,6 @@ bool BKE_lib_override_library_resync(struct Main *bmain,
                                      struct ID *id_root,
                                      struct Collection *override_resync_residual_storage,
                                      bool do_hierarchy_enforce,
-                                     bool do_post_process,
                                      struct BlendFileReadReport *reports);
 /**
  * Detect and handle required resync of overrides data, when relations between reference linked IDs
