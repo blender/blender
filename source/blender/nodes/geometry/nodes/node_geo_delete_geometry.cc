@@ -1354,16 +1354,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
   const GeometryNodeDeleteGeometryMode mode = (GeometryNodeDeleteGeometryMode)storage.mode;
 
-  bool all_is_error = false;
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    bool this_is_error = false;
-    /* Invert here because we want to keep the things not in the selection. */
-    separate_geometry(geometry_set, domain, mode, selection_field, true, this_is_error);
-    all_is_error &= this_is_error;
-  });
-  if (all_is_error) {
-    /* Only show this if none of the instances/components actually changed. */
-    params.error_message_add(NodeWarningType::Info, TIP_("No geometry with given domain"));
+  if (domain == ATTR_DOMAIN_INSTANCE) {
+    bool is_error;
+    separate_geometry(geometry_set, domain, mode, selection_field, true, is_error);
+  }
+  else {
+    geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+      bool is_error;
+      /* Invert here because we want to keep the things not in the selection. */
+      separate_geometry(geometry_set, domain, mode, selection_field, true, is_error);
+    });
   }
 
   params.set_output("Geometry", std::move(geometry_set));
