@@ -258,10 +258,11 @@ static GPUShader *get_patch_evaluation_shader(int shader_type)
 
 static GPUShader *get_subdiv_shader(int shader_type, const char *defines)
 {
-  if (shader_type == SHADER_PATCH_EVALUATION ||
-      shader_type == SHADER_PATCH_EVALUATION_LIMIT_NORMALS ||
-      shader_type == SHADER_PATCH_EVALUATION_FVAR ||
-      shader_type == SHADER_PATCH_EVALUATION_FACE_DOTS) {
+  if (ELEM(shader_type,
+           SHADER_PATCH_EVALUATION,
+           SHADER_PATCH_EVALUATION_LIMIT_NORMALS,
+           SHADER_PATCH_EVALUATION_FVAR,
+           SHADER_PATCH_EVALUATION_FACE_DOTS)) {
     return get_patch_evaluation_shader(shader_type);
   }
   if (g_subdiv_shaders[shader_type] == nullptr) {

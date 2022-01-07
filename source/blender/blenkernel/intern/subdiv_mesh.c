@@ -1118,7 +1118,7 @@ static void subdiv_mesh_vertex_of_loose_edge(const struct SubdivForeachContext *
   find_edge_neighbors(ctx, coarse_edge, neighbors);
   /* Interpolate custom data when not an end point.
    * This data has already been copied from the original vertex by #subdiv_mesh_vertex_loose. */
-  if (u != 0.0 && u != 1.0) {
+  if (!ELEM(u, 0.0, 1.0)) {
     subdiv_mesh_vertex_of_loose_edge_interpolate(ctx, coarse_edge, u, subdiv_vertex_index);
   }
   /* Interpolate coordinate. */

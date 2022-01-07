@@ -956,7 +956,7 @@ static int wm_xr_navigation_fly_modal(bContext *C, wmOperator *op, const wmEvent
   const double time_now = PIL_check_seconds_timer();
 
   mode = (eXrFlyMode)RNA_enum_get(op->ptr, "mode");
-  turn = (mode == XR_FLY_TURNLEFT || mode == XR_FLY_TURNRIGHT);
+  turn = (ELEM(mode, XR_FLY_TURNLEFT, XR_FLY_TURNRIGHT));
 
   locz_lock = RNA_boolean_get(op->ptr, "lock_location_z");
   dir_lock = RNA_boolean_get(op->ptr, "lock_direction");
