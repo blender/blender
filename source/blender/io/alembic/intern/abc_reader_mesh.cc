@@ -463,12 +463,16 @@ static void read_velocity(const V3fArraySamplePtr &velocities,
                           const CDStreamConfig &config,
                           const float velocity_scale)
 {
+  const int num_velocity_vectors = static_cast<int>(velocities->size());
+  if (num_velocity_vectors != config.mesh->totvert) {
+    /* Files containing videogrammetry data may be malformed and export velocity data on missing
+     * frames (most likely by copying the last valid data). */
+    return;
+  }
+
   CustomDataLayer *velocity_layer = BKE_id_attribute_new(
       &config.mesh->id, "velocity", CD_PROP_FLOAT3, ATTR_DOMAIN_POINT, nullptr);
   float(*velocity)[3] = (float(*)[3])velocity_layer->data;
-
-  const int num_velocity_vectors = static_cast<int>(velocities->size());
-  BLI_assert(num_velocity_vectors == config.mesh->totvert);
 
   for (int i = 0; i < num_velocity_vectors; i++) {
     const Imath::V3f &vel_in = (*velocities)[i];
