@@ -1947,6 +1947,14 @@ void nodeRemoveSocketEx(struct bNodeTree *ntree,
     }
   }
 
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &node->internal_links) {
+    if (link->fromsock == sock || link->tosock == sock) {
+      BLI_remlink(&node->internal_links, link);
+      MEM_freeN(link);
+      BKE_ntree_update_tag_node_internal_link(ntree, node);
+    }
+  }
+
   /* this is fast, this way we don't need an in_out argument */
   BLI_remlink(&node->inputs, sock);
   BLI_remlink(&node->outputs, sock);
