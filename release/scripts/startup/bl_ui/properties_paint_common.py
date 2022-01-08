@@ -2144,7 +2144,7 @@ def brush_settings_advanced(layout, context, brush, popover=False):
             enable_orig_normal = True
 
         sub = layout.row()
-        sub.enabled = enable_orig_normdal
+        sub.enabled = enable_orig_normal
 
         UnifiedPaintPanel.channel_unified(sub,
             context,
