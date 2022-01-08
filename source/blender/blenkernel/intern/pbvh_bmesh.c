@@ -1760,6 +1760,19 @@ static int color_boundary_key(float col[4])
 }
 #endif
 
+/* calls atomic_cas_uint32 on two adjacent (and int aligned) shorts */
+BLI_INLINE void atomic_cas_short2(ushort *base, ushort olda, ushort oldb, ushort newa, ushort newb) {
+  uint oldi, newi;
+
+  ((ushort *)&oldi)[0] = olda;
+  ((ushort *)&oldi)[1] = oldb;
+
+  ((ushort *)&newi)[0] = newa;
+  ((ushort *)&newi)[1] = newb;
+
+  atomic_cas_uint32((uint32_t *)base, oldi, newi);
+}
+
 void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_faceset_offset,
                                    int cd_vert_node_offset,
@@ -1774,16 +1787,25 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
 
   float curv = 0.0f, totcurv = 0.0f;
 
+  int newflag = mv->flag;
+  int oldflag = newflag;
+  int oldval = mv->valence;
+
   BMEdge *e = v->e;
-  mv->flag &= ~(SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_NEED_BOUNDARY |
+  newflag &= ~(SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_NEED_BOUNDARY |
                 SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_FSET_CORNER | SCULPTVERT_CORNER |
                 SCULPTVERT_NEED_VALENCE | SCULPTVERT_SEAM_BOUNDARY | SCULPTVERT_SHARP_BOUNDARY |
                 SCULPTVERT_SEAM_CORNER | SCULPTVERT_SHARP_CORNER | SCULPTVERT_PBVH_BOUNDARY |
                 SCULPTVERT_UV_BOUNDARY | SCULPTVERT_UV_CORNER);
 
+  ushort stroke_id = (ushort)mv->stroke_id;
+
   if (!e) {
-    mv->flag |= SCULPTVERT_BOUNDARY;
-    mv->valence = 0;
+    newflag |= SCULPTVERT_BOUNDARY;
+
+    atomic_cas_int32(&mv->flag, oldflag, newflag);
+    atomic_cas_short2(&mv->valence, (ushort)oldval, stroke_id, 0, stroke_id); 
+    
     return;
   }
 
@@ -1838,15 +1860,15 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
 #endif
 
     if (BM_ELEM_CD_GET_INT(v2, cd_vert_node_offset) != ni) {
-      mv->flag |= SCULPTVERT_PBVH_BOUNDARY;
+      newflag |= SCULPTVERT_PBVH_BOUNDARY;
     }
 
     if (e->head.hflag & BM_ELEM_SEAM) {
-      mv->flag |= SCULPTVERT_SEAM_BOUNDARY;
+      newflag |= SCULPTVERT_SEAM_BOUNDARY;
       seamcount++;
 
       if (seamcount > 2) {
-        mv->flag |= SCULPTVERT_SEAM_CORNER;
+        newflag |= SCULPTVERT_SEAM_CORNER;
       }
     }
 
@@ -1863,17 +1885,17 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
       int colorkey2 = color_boundary_key(color2);
 
       if (colorkey1 != colorkey2) {
-        mv->flag |= SCULPTVERT_FSET_BOUNDARY;
+        newflag |= SCULPTVERT_FSET_BOUNDARY;
       }
     }
 #endif
 
     if (!(e->head.hflag & BM_ELEM_SMOOTH)) {
-      mv->flag |= SCULPTVERT_SHARP_BOUNDARY;
+      newflag |= SCULPTVERT_SHARP_BOUNDARY;
       sharpcount++;
 
       if (sharpcount > 2) {
-        mv->flag |= SCULPTVERT_SHARP_CORNER;
+        newflag |= SCULPTVERT_SHARP_CORNER;
       }
     }
 
@@ -1904,11 +1926,11 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
                           len_squared_v2v2(lastuv2[i], luv->uv) > uv_snap_limit;
 
             if (!same) {
-              mv->flag |= SCULPTVERT_UV_BOUNDARY;
+              newflag |= SCULPTVERT_UV_BOUNDARY;
             }
 
             if (corner) {
-              mv->flag |= SCULPTVERT_UV_CORNER;
+              newflag |= SCULPTVERT_UV_CORNER;
             }
 
             if (!same) {
@@ -1922,7 +1944,7 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
       }
 
       if (BM_ELEM_CD_GET_INT(e->l->f, cd_face_node_offset) != ni) {
-        mv->flag |= SCULPTVERT_PBVH_BOUNDARY;
+        newflag |= SCULPTVERT_PBVH_BOUNDARY;
       }
 
       if (e->l != e->l->radial_next) {
@@ -1935,7 +1957,7 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
         }
 
         if (BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_face_node_offset) != ni) {
-          mv->flag |= SCULPTVERT_PBVH_BOUNDARY;
+          newflag |= SCULPTVERT_PBVH_BOUNDARY;
         }
       }
 
@@ -1943,7 +1965,7 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
           BM_ELEM_CD_GET_INT(e->l->f, cd_faceset_offset), bound_symmetry, v2->co);
 
       if (e->l->f->len > 3) {
-        mv->flag |= SCULPTVERT_NEED_TRIANGULATE;
+        newflag |= SCULPTVERT_NEED_TRIANGULATE;
       }
 
       bool ok = true;
@@ -1983,37 +2005,36 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
         }
 
         if (e->l->radial_next->f->len > 3) {
-          mv->flag |= SCULPTVERT_NEED_TRIANGULATE;
+          newflag |= SCULPTVERT_NEED_TRIANGULATE;
         }
       }
     }
 
     if (!e->l || e->l->radial_next == e->l) {
-      mv->flag |= SCULPTVERT_BOUNDARY;
+      newflag |= SCULPTVERT_BOUNDARY;
     }
 
     val++;
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 
   if (BLI_array_len(fsets) > 1) {
-    mv->flag |= SCULPTVERT_FSET_BOUNDARY;
+    newflag |= SCULPTVERT_FSET_BOUNDARY;
   }
 
   if (BLI_array_len(fsets) > 2) {
-    mv->flag |= SCULPTVERT_FSET_CORNER;
+    newflag |= SCULPTVERT_FSET_CORNER;
   }
 
   if (sharpcount == 1) {
-    mv->flag |= SCULPTVERT_SHARP_CORNER;
+    newflag |= SCULPTVERT_SHARP_CORNER;
   }
 
   if (seamcount == 1) {
-    mv->flag |= SCULPTVERT_SEAM_CORNER;
+    newflag |= SCULPTVERT_SEAM_CORNER;
   }
 
-  mv->valence = val;
-  if ((mv->flag & SCULPTVERT_BOUNDARY) && quadcount >= 3) {
-    mv->flag |= SCULPTVERT_CORNER;
+  if ((newflag & SCULPTVERT_BOUNDARY) && quadcount >= 3) {
+    newflag |= SCULPTVERT_CORNER;
   }
 
 #if 0
@@ -2034,8 +2055,16 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
   }
 #endif
 
-  // mv->curv = (short)(fabsf(min_ff(curv * 50.0f, 1.0f)) * 32767.0f);
-  mv->curv = (short)(min_ff(fabsf(curv), 1.0f) * 65535.0f);
+  atomic_cas_int32(&mv->flag, oldflag, newflag);
+  atomic_cas_short2(&mv->valence, (ushort)oldval, stroke_id, (ushort)val, stroke_id); 
+
+  /* no atomic_cas_int16, so do origmask and curv at once */
+
+  ushort newcurv = (unsigned short)(min_ff(fabsf(curv), 1.0f) * 65535.0f);
+  ushort oldcurv = mv->curv;
+  ushort origmask = mv->origmask;
+
+  atomic_cas_short2(&mv->origmask, origmask, oldcurv, origmask, newcurv);
 
   BLI_array_free(fsets);
 }

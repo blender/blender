@@ -34,8 +34,9 @@
 
 #include <stdio.h>
 
-//#define DYNTOPO_REPORT
+#define DYNTOPO_REPORT
 //#define WITH_ADAPTIVE_CURVATURE
+//#define DYNTOPO_NO_THREADING
 
 #define SCULPTVERT_VALENCE_TEMP SCULPTVERT_SPLIT_TEMP
 
@@ -595,7 +596,7 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
   }
 
   if (mv1->flag & SCULPTVERT_NEED_BOUNDARY) {
-    return;  // can't update boundary in thread
+    pbvh_check_vert_boundary(pbvh, v);
   }
 
   // pbvh_check_vert_boundary(pbvh, v);
@@ -2843,8 +2844,12 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
   TaskParallelSettings settings;
 
   BLI_parallel_range_settings_defaults(&settings);
+#ifdef DYNTOPO_NO_THREADING
+  settings.use_threading = false;
+#endif
 
   BLI_task_parallel_range(0, count, tdata, long_edge_queue_task_cb, &settings);
+
   const int cd_sculpt_vert = pbvh->cd_sculpt_vert;
 
   for (int i = 0; i < count; i++) {
@@ -2967,6 +2972,10 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
   TaskParallelSettings settings;
 
   BLI_parallel_range_settings_defaults(&settings);
+#ifdef DYNTOPO_NO_THREADING
+  settings.use_threading = false;
+#endif
+
   BLI_task_parallel_range(0, count, tdata, short_edge_queue_task_cb_local, &settings);
 
   const int cd_sculpt_vert = pbvh->cd_sculpt_vert;
@@ -3240,6 +3249,10 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
   TaskParallelSettings settings;
 
   BLI_parallel_range_settings_defaults(&settings);
+#ifdef DYNTOPO_NO_THREADING
+  settings.use_threading = false;
+#endif
+
   BLI_task_parallel_range(0, count, tdata, short_edge_queue_task_cb, &settings);
 
   const int cd_sculpt_vert = pbvh->cd_sculpt_vert;
