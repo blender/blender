@@ -2202,10 +2202,11 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
           BLI_array_append(val34, l_iter->v);
         }
 
-        // try to improve convergence by applying a small amount of smoothing to topology,
-        // but tangentially to surface.
+        /* try to improve convergence by applying a small amount of smoothing to topology,
+           but tangentially to surface.
+         */
         int randval = (seed = dyntopo_thread_rand(seed)) & 255;
-
+        
         if (do_smooth && randval > 127) {
           surface_smooth_v_safe(tdata->pbvh, l_iter->v, eq_ctx->surface_smooth_fac);
         }
@@ -3964,7 +3965,6 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     BMLoop *lnext;
 
     do {
-      BMLoop *l2 = l->f->l_first;
       lnext = l->radial_next;
 
       bool fbad = false;
@@ -4716,7 +4716,6 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
 #ifdef DYNTOPO_REPORT
   {
-    size_t totmem;
     BMesh *bm = pbvh->bm;
 
     int vmem = (int)((size_t)bm->totvert * (sizeof(BMVert) + bm->vdata.totsize));

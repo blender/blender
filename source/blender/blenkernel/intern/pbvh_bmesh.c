@@ -1784,7 +1784,7 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    const int totuv)
 {
   MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
-
+  
   float curv = 0.0f, totcurv = 0.0f;
 
   int newflag = mv->flag;
