@@ -21,24 +21,22 @@
 
 namespace blender::nodes::node_shader_light_path_cc {
 
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketTemplate sh_node_light_path_out[] = {
-    {SOCK_FLOAT, N_("Is Camera Ray"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Is Shadow Ray"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Is Diffuse Ray"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Is Glossy Ray"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Is Singular Ray"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Is Reflection Ray"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Is Transmission Ray"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Ray Length"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Ray Depth"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Diffuse Depth"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Glossy Depth"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Transparent Depth"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Transmission Depth"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Float>(N_("Is Camera Ray"));
+  b.add_output<decl::Float>(N_("Is Shadow Ray"));
+  b.add_output<decl::Float>(N_("Is Diffuse Ray"));
+  b.add_output<decl::Float>(N_("Is Glossy Ray"));
+  b.add_output<decl::Float>(N_("Is Singular Ray"));
+  b.add_output<decl::Float>(N_("Is Reflection Ray"));
+  b.add_output<decl::Float>(N_("Is Transmission Ray"));
+  b.add_output<decl::Float>(N_("Ray Length"));
+  b.add_output<decl::Float>(N_("Ray Depth"));
+  b.add_output<decl::Float>(N_("Diffuse Depth"));
+  b.add_output<decl::Float>(N_("Glossy Depth"));
+  b.add_output<decl::Float>(N_("Transparent Depth"));
+  b.add_output<decl::Float>(N_("Transmission Depth"));
+}
 
 static int node_shader_gpu_light_path(GPUMaterial *mat,
                                       bNode *node,
@@ -59,7 +57,7 @@ void register_node_type_sh_light_path()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_LIGHT_PATH, "Light Path", NODE_CLASS_INPUT);
-  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_light_path_out);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::node_shader_gpu_light_path);
 
   nodeRegisterType(&ntype);

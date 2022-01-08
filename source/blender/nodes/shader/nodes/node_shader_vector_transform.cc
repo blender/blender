@@ -25,14 +25,14 @@
 
 namespace blender::nodes::node_shader_vector_transform_cc {
 
-/* **************** Vector Transform ******************** */
-static bNodeSocketTemplate sh_node_vect_transform_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE}, {-1, ""}};
-
-static bNodeSocketTemplate sh_node_vect_transform_out[] = {
-    {SOCK_VECTOR, N_("Vector")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Vector>(N_("Vector"))
+      .default_value({0.5f, 0.5f, 0.5f})
+      .min(-10000.0f)
+      .max(10000.0f);
+  b.add_output<decl::Vector>(N_("Vector"));
+}
 
 static void node_shader_init_vect_transform(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -139,8 +139,7 @@ void register_node_type_sh_vect_transform()
 
   sh_node_type_base(&ntype, SH_NODE_VECT_TRANSFORM, "Vector Transform", NODE_CLASS_OP_VECTOR);
   node_type_init(&ntype, file_ns::node_shader_init_vect_transform);
-  node_type_socket_templates(
-      &ntype, file_ns::sh_node_vect_transform_in, file_ns::sh_node_vect_transform_out);
+  ntype.declare = file_ns::node_declare;
   node_type_storage(
       &ntype, "NodeShaderVectTransform", node_free_standard_storage, node_copy_standard_storage);
   node_type_gpu(&ntype, file_ns::gpu_shader_vect_transform);

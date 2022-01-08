@@ -26,16 +26,14 @@
 namespace blender::nodes::node_shader_sepcomb_hsv_cc {
 
 /* **************** SEPARATE HSV ******************** */
-static bNodeSocketTemplate sh_node_sephsv_in[] = {
-    {SOCK_RGBA, N_("Color"), 0.8f, 0.8f, 0.8f, 1.0f},
-    {-1, ""},
-};
-static bNodeSocketTemplate sh_node_sephsv_out[] = {
-    {SOCK_FLOAT, N_("H")},
-    {SOCK_FLOAT, N_("S")},
-    {SOCK_FLOAT, N_("V")},
-    {-1, ""},
-};
+
+static void node_declare_sephsv(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Color")).default_value({0.8f, 0.8f, 0.8f, 1.0});
+  b.add_output<decl::Float>(N_("H"));
+  b.add_output<decl::Float>(N_("S"));
+  b.add_output<decl::Float>(N_("V"));
+}
 
 static int gpu_shader_sephsv(GPUMaterial *mat,
                              bNode *node,
@@ -55,7 +53,7 @@ void register_node_type_sh_sephsv()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_SEPHSV, "Separate HSV", NODE_CLASS_CONVERTER);
-  node_type_socket_templates(&ntype, file_ns::sh_node_sephsv_in, file_ns::sh_node_sephsv_out);
+  ntype.declare = file_ns::node_declare_sephsv;
   node_type_gpu(&ntype, file_ns::gpu_shader_sephsv);
 
   nodeRegisterType(&ntype);
@@ -64,16 +62,14 @@ void register_node_type_sh_sephsv()
 namespace blender::nodes::node_shader_sepcomb_hsv_cc {
 
 /* **************** COMBINE HSV ******************** */
-static bNodeSocketTemplate sh_node_combhsv_in[] = {
-    {SOCK_FLOAT, N_("H"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, N_("S"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
-    {SOCK_FLOAT, N_("V"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
-    {-1, ""},
-};
-static bNodeSocketTemplate sh_node_combhsv_out[] = {
-    {SOCK_RGBA, N_("Color")},
-    {-1, ""},
-};
+
+static void node_declare_combhsv(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>(N_("H")).default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_UNSIGNED);
+  b.add_input<decl::Float>(N_("S")).default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_UNSIGNED);
+  b.add_input<decl::Float>(N_("V")).default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_UNSIGNED);
+  b.add_output<decl::Color>(N_("Color"));
+}
 
 static int gpu_shader_combhsv(GPUMaterial *mat,
                               bNode *node,
@@ -93,7 +89,7 @@ void register_node_type_sh_combhsv()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_COMBHSV, "Combine HSV", NODE_CLASS_CONVERTER);
-  node_type_socket_templates(&ntype, file_ns::sh_node_combhsv_in, file_ns::sh_node_combhsv_out);
+  ntype.declare = file_ns::node_declare_combhsv;
   node_type_gpu(&ntype, file_ns::gpu_shader_combhsv);
 
   nodeRegisterType(&ntype);
