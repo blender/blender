@@ -76,7 +76,8 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
   GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);
 
   /* for each output. */
-  for (int i = 0; sh_node_attribute_out[i].type != -1; i++) {
+  int i;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, i) {
     node_shader_gpu_bump_tex_coord(mat, node, &out[i].link);
   }
 
