@@ -53,7 +53,7 @@ static void sh_node_map_range_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>(N_("Steps"), "Steps_FLOAT3").default_value(float3(4.0f));
   b.add_output<decl::Float>(N_("Result"));
   b.add_output<decl::Vector>(N_("Vector"));
-};
+}
 
 static void node_shader_buts_map_range(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {

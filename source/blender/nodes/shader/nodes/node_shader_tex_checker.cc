@@ -34,7 +34,7 @@ static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
       .no_muted_links();
   b.add_output<decl::Color>(N_("Color"));
   b.add_output<decl::Float>(N_("Fac"));
-};
+}
 
 static void node_shader_init_tex_checker(bNodeTree *UNUSED(ntree), bNode *node)
 {

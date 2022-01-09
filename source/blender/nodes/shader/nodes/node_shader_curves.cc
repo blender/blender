@@ -31,7 +31,7 @@ static void sh_node_curve_vec_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Fac")).min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
   b.add_input<decl::Vector>(N_("Vector")).min(-1.0f).max(1.0f);
   b.add_output<decl::Vector>(N_("Vector"));
-};
+}
 
 static void node_shader_init_curve_vec(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -164,7 +164,7 @@ static void sh_node_curve_rgb_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Fac")).min(0.0f).max(1.0f).default_value(1.0f).subtype(PROP_FACTOR);
   b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_output<decl::Color>(N_("Color"));
-};
+}
 
 static void node_shader_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -326,7 +326,7 @@ static void sh_node_curve_float_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR);
   b.add_input<decl::Float>(N_("Value")).default_value(1.0f).is_default_link_socket();
   b.add_output<decl::Float>(N_("Value"));
-};
+}
 
 static void node_shader_init_curve_float(bNodeTree *UNUSED(ntree), bNode *node)
 {

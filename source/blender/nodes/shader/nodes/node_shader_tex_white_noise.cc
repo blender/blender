@@ -36,7 +36,7 @@ static void sh_node_tex_white_noise_declare(NodeDeclarationBuilder &b)
   });
   b.add_output<decl::Float>(N_("Value"));
   b.add_output<decl::Color>(N_("Color"));
-};
+}
 
 static void node_shader_buts_white_noise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {

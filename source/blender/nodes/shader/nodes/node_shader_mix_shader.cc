@@ -27,7 +27,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Shader>(N_("Shader"));
   b.add_input<decl::Shader>(N_("Shader"), "Shader_001");
   b.add_output<decl::Shader>(N_("Shader"));
-};
+}
 
 static int node_shader_gpu_mix_shader(GPUMaterial *mat,
                                       bNode *node,

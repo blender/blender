@@ -32,7 +32,7 @@ static void sh_node_seprgb_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("R"));
   b.add_output<decl::Float>(N_("G"));
   b.add_output<decl::Float>(N_("B"));
-};
+}
 
 static int gpu_shader_seprgb(GPUMaterial *mat,
                              bNode *node,
@@ -111,7 +111,7 @@ static void sh_node_combrgb_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("G")).min(0.0f).max(1.0f);
   b.add_input<decl::Float>(N_("B")).min(0.0f).max(1.0f);
   b.add_output<decl::Color>(N_("Image"));
-};
+}
 
 static int gpu_shader_combrgb(GPUMaterial *mat,
                               bNode *node,

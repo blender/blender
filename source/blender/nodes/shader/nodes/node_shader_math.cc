@@ -45,7 +45,7 @@ static void sh_node_math_declare(NodeDeclarationBuilder &b)
       .min(-10000.0f)
       .max(10000.0f);
   b.add_output<decl::Float>(N_("Value"));
-};
+}
 
 class SocketSearchOp {
  public:

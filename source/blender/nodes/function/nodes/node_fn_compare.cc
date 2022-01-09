@@ -55,7 +55,7 @@ static void fn_node_compare_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Epsilon")).default_value(0.001).min(-10000.0f).max(10000.0f);
 
   b.add_output<decl::Bool>(N_("Result"));
-};
+}
 
 static void geo_node_compare_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {

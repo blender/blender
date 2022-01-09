@@ -32,7 +32,7 @@ static void sh_node_mix_rgb_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>(N_("Color1")).default_value({0.5f, 0.5f, 0.5f, 1.0f});
   b.add_input<decl::Color>(N_("Color2")).default_value({0.5f, 0.5f, 0.5f, 1.0f});
   b.add_output<decl::Color>(N_("Color"));
-};
+}
 
 static const char *gpu_shader_get_name(int mode)
 {

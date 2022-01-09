@@ -63,7 +63,7 @@ static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Radius")).no_muted_links().make_available([](bNode &node) {
     node_storage(node).feature = SHD_VORONOI_N_SPHERE_RADIUS;
   });
-};
+}
 
 static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {

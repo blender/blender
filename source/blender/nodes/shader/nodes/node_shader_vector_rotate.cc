@@ -37,7 +37,7 @@ static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Angle")).subtype(PROP_ANGLE);
   b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER);
   b.add_output<decl::Vector>(N_("Vector"));
-};
+}
 
 static void node_shader_buts_vector_rotate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {

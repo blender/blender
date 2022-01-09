@@ -35,7 +35,7 @@ static void sh_node_valtorgb_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Fac")).default_value(0.5f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
   b.add_output<decl::Color>(N_("Color"));
   b.add_output<decl::Float>(N_("Alpha"));
-};
+}
 
 static void node_shader_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node)
 {

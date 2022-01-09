@@ -28,7 +28,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>(N_("Pivot Point")).subtype(PROP_TRANSLATION).supports_field();
   b.add_input<decl::Bool>(N_("Local Space")).default_value(true).supports_field();
   b.add_output<decl::Geometry>(N_("Instances"));
-};
+}
 
 static void rotate_instances(GeoNodeExecParams &params, InstancesComponent &instances_component)
 {

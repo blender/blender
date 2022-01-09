@@ -32,7 +32,7 @@ static void sh_node_sepxyz_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("X"));
   b.add_output<decl::Float>(N_("Y"));
   b.add_output<decl::Float>(N_("Z"));
-};
+}
 
 static int gpu_shader_sepxyz(GPUMaterial *mat,
                              bNode *node,
@@ -111,7 +111,7 @@ static void sh_node_combxyz_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Y")).min(-10000.0f).max(10000.0f);
   b.add_input<decl::Float>(N_("Z")).min(-10000.0f).max(10000.0f);
   b.add_output<decl::Vector>(N_("Vector"));
-};
+}
 
 static int gpu_shader_combxyz(GPUMaterial *mat,
                               bNode *node,

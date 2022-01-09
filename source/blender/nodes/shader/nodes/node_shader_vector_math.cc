@@ -42,7 +42,7 @@ static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Scale")).default_value(1.0f).min(-10000.0f).max(10000.0f);
   b.add_output<decl::Vector>(N_("Vector"));
   b.add_output<decl::Float>(N_("Value"));
-};
+}
 
 static void node_shader_buts_vect_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {

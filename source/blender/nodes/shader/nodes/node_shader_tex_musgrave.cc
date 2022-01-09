@@ -43,7 +43,7 @@ static void sh_node_tex_musgrave_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Offset")).min(-1000.0f).max(1000.0f);
   b.add_input<decl::Float>(N_("Gain")).min(0.0f).max(1000.0f).default_value(1.0f);
   b.add_output<decl::Float>(N_("Fac")).no_muted_links();
-};
+}
 
 static void node_shader_buts_tex_musgrave(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {

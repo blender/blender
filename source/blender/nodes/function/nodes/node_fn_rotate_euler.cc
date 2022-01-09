@@ -34,7 +34,7 @@ static void fn_node_rotate_euler_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>(N_("Axis")).default_value({0.0, 0.0, 1.0}).subtype(PROP_XYZ);
   b.add_input<decl::Float>(N_("Angle")).subtype(PROP_ANGLE);
   b.add_output<decl::Vector>(N_("Rotation"));
-};
+}
 
 static void fn_node_rotate_euler_update(bNodeTree *ntree, bNode *node)
 {

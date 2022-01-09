@@ -30,7 +30,7 @@ static void sh_node_tex_gradient_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>(N_("Vector")).hide_value().implicit_field();
   b.add_output<decl::Color>(N_("Color")).no_muted_links();
   b.add_output<decl::Float>(N_("Fac")).no_muted_links();
-};
+}
 
 static void node_shader_buts_tex_gradient(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {

@@ -32,7 +32,7 @@ static void sh_node_tex_magic_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Distortion")).min(-1000.0f).max(1000.0f).default_value(1.0f);
   b.add_output<decl::Color>(N_("Color")).no_muted_links();
   b.add_output<decl::Float>(N_("Fac")).no_muted_links();
-};
+}
 
 static void node_shader_buts_tex_magic(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {

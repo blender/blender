@@ -26,7 +26,7 @@ static void fn_node_string_length_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::String>(N_("String"));
   b.add_output<decl::Int>(N_("Length"));
-};
+}
 
 static void fn_node_string_length_build_multi_function(NodeMultiFunctionBuilder &builder)
 {

@@ -24,7 +24,7 @@ namespace blender::nodes::node_shader_output_light_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Shader>(N_("Surface"));
-};
+}
 
 }  // namespace blender::nodes::node_shader_output_light_cc
 

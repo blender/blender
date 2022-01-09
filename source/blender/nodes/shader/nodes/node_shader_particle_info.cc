@@ -36,7 +36,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Size"));
   b.add_output<decl::Vector>(N_("Velocity"));
   b.add_output<decl::Vector>(N_("Angular Velocity"));
-};
+}
 
 static int gpu_shader_particle_info(GPUMaterial *mat,
                                     bNode *node,

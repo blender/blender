@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Shader>(N_("Surface"));
   b.add_input<decl::Shader>(N_("Volume"));
-};
+}
 
 static int node_shader_gpu_output_world(GPUMaterial *mat,
                                         bNode *node,

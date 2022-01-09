@@ -23,7 +23,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::String>(N_("Delimiter"));
   b.add_input<decl::String>(N_("Strings")).multi_input().hide_value();
   b.add_output<decl::String>(N_("String"));
-};
+}
 
 static void node_geo_exec(GeoNodeExecParams params)
 {

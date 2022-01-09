@@ -22,7 +22,7 @@ static void fn_node_input_special_characters_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::String>(N_("Line Break"));
   b.add_output<decl::String>(N_("Tab"));
-};
+}
 
 class MF_SpecialCharacters : public fn::MultiFunction {
  public:

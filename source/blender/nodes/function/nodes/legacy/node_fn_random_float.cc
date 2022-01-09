@@ -27,7 +27,7 @@ static void fn_node_legacy_random_float_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Max")).default_value(1.0f).min(-10000.0f).max(10000.0f);
   b.add_input<decl::Int>(N_("Seed")).min(-10000).max(10000);
   b.add_output<decl::Float>(N_("Value"));
-};
+}
 
 class RandomFloatFunction : public blender::fn::MultiFunction {
  public:

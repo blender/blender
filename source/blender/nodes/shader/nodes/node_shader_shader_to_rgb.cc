@@ -26,7 +26,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Shader>(N_("Shader"));
   b.add_output<decl::Color>(N_("Color"));
   b.add_output<decl::Float>(N_("Alpha"));
-};
+}
 
 static int node_shader_gpu_shadertorgb(GPUMaterial *mat,
                                        bNode *node,
