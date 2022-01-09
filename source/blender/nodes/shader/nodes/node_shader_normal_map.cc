@@ -21,18 +21,12 @@
 
 namespace blender::nodes::node_shader_normal_map_cc {
 
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketTemplate sh_node_normal_map_in[] = {
-    {SOCK_FLOAT, N_("Strength"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 10.0f},
-    {SOCK_RGBA, N_("Color"), 0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_normal_map_out[] = {
-    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>(N_("Strength")).default_value(1.0f).min(0.0f).max(10.0f);
+  b.add_input<decl::Color>(N_("Color")).default_value({0.5f, 0.5f, 1.0f, 1.0f});
+  b.add_output<decl::Vector>(N_("Normal"));
+}
 
 static void node_shader_init_normal_map(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -118,8 +112,7 @@ void register_node_type_sh_normal_map()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_NORMAL_MAP, "Normal Map", NODE_CLASS_OP_VECTOR);
-  node_type_socket_templates(
-      &ntype, file_ns::sh_node_normal_map_in, file_ns::sh_node_normal_map_out);
+  ntype.declare = file_ns::node_declare;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_init(&ntype, file_ns::node_shader_init_normal_map);
   node_type_storage(

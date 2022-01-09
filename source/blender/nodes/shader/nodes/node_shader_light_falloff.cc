@@ -21,22 +21,14 @@
 
 namespace blender::nodes::node_shader_light_falloff_cc {
 
-/* **************** INPUT ********************* */
-
-static bNodeSocketTemplate sh_node_light_falloff_in[] = {
-    {SOCK_FLOAT, N_("Strength"), 100.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f},
-    {SOCK_FLOAT, N_("Smooth"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {-1, ""},
-};
-
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketTemplate sh_node_light_falloff_out[] = {
-    {SOCK_FLOAT, N_("Quadratic"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Linear"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Constant"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>(N_("Strength")).default_value(100.0f).min(0.0f).max(1000000.0f);
+  b.add_input<decl::Float>(N_("Smooth")).default_value(0.0f).min(0.0f).max(1000.0f);
+  b.add_output<decl::Float>(N_("Quadratic"));
+  b.add_output<decl::Float>(N_("Linear"));
+  b.add_output<decl::Float>(N_("Constant"));
+}
 
 static int node_shader_gpu_light_falloff(GPUMaterial *mat,
                                          bNode *node,
@@ -57,8 +49,7 @@ void register_node_type_sh_light_falloff()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_LIGHT_FALLOFF, "Light Falloff", NODE_CLASS_OP_COLOR);
-  node_type_socket_templates(
-      &ntype, file_ns::sh_node_light_falloff_in, file_ns::sh_node_light_falloff_out);
+  ntype.declare = file_ns::node_declare;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_light_falloff);
 

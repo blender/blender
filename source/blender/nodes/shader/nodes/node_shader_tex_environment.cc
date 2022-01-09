@@ -21,17 +21,11 @@
 
 namespace blender::nodes::node_shader_tex_environment_cc {
 
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketTemplate sh_node_tex_environment_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_tex_environment_out[] = {
-    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Vector>(N_("Vector")).hide_value();
+  b.add_output<decl::Color>(N_("Color")).no_muted_links();
+}
 
 static void node_shader_init_tex_environment(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -144,8 +138,7 @@ void register_node_type_sh_tex_environment()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_ENVIRONMENT, "Environment Texture", NODE_CLASS_TEXTURE);
-  node_type_socket_templates(
-      &ntype, file_ns::sh_node_tex_environment_in, file_ns::sh_node_tex_environment_out);
+  ntype.declare = file_ns::node_declare;
   node_type_init(&ntype, file_ns::node_shader_init_tex_environment);
   node_type_storage(
       &ntype, "NodeTexEnvironment", node_free_standard_storage, node_copy_standard_storage);

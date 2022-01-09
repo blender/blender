@@ -23,18 +23,16 @@
 
 namespace blender::nodes::node_shader_tex_coord_cc {
 
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketTemplate sh_node_tex_coord_out[] = {
-    {SOCK_VECTOR, N_("Generated"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("UV"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Object"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Camera"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Window"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Reflection"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Vector>(N_("Generated"));
+  b.add_output<decl::Vector>(N_("Normal"));
+  b.add_output<decl::Vector>(N_("UV"));
+  b.add_output<decl::Vector>(N_("Object"));
+  b.add_output<decl::Vector>(N_("Camera"));
+  b.add_output<decl::Vector>(N_("Window"));
+  b.add_output<decl::Vector>(N_("Reflection"));
+}
 
 static int node_shader_gpu_tex_coord(GPUMaterial *mat,
                                      bNode *node,
@@ -95,7 +93,7 @@ void register_node_type_sh_tex_coord()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_COORD, "Texture Coordinate", NODE_CLASS_INPUT);
-  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_tex_coord_out);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_coord);
 
   nodeRegisterType(&ntype);

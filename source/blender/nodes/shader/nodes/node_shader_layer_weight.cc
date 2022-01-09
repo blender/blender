@@ -21,19 +21,13 @@
 
 namespace blender::nodes::node_shader_layer_weight_cc {
 
-/* **************** Layer Weight ******************** */
-
-static bNodeSocketTemplate sh_node_layer_weight_in[] = {
-    {SOCK_FLOAT, N_("Blend"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_layer_weight_out[] = {
-    {SOCK_FLOAT, N_("Fresnel"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Facing"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>(N_("Blend")).default_value(0.5f).min(0.0f).max(1.0f);
+  b.add_input<decl::Vector>(N_("Normal")).hide_value();
+  b.add_output<decl::Float>(N_("Fresnel"));
+  b.add_output<decl::Float>(N_("Facing"));
+}
 
 static int node_shader_gpu_layer_weight(GPUMaterial *mat,
                                         bNode *node,
@@ -62,8 +56,7 @@ void register_node_type_sh_layer_weight()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_LAYER_WEIGHT, "Layer Weight", NODE_CLASS_INPUT);
-  node_type_socket_templates(
-      &ntype, file_ns::sh_node_layer_weight_in, file_ns::sh_node_layer_weight_out);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::node_shader_gpu_layer_weight);
 
   nodeRegisterType(&ntype);

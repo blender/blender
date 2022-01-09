@@ -25,19 +25,29 @@
 
 namespace blender::nodes::node_shader_mapping_cc {
 
-/* **************** MAPPING  ******************** */
-static bNodeSocketTemplate sh_node_mapping_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_NONE},
-    {SOCK_VECTOR, N_("Location"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Rotation"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_EULER},
-    {SOCK_VECTOR, N_("Scale"), 1.0f, 1.0f, 1.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_XYZ},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_mapping_out[] = {
-    {SOCK_VECTOR, N_("Vector")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Vector>(N_("Vector"))
+      .default_value({0.0f, 0.0f, 0.0f})
+      .min(-FLT_MAX)
+      .max(FLT_MAX);
+  b.add_input<decl::Vector>(N_("Location"))
+      .default_value({0.0f, 0.0f, 0.0f})
+      .min(-FLT_MAX)
+      .max(FLT_MAX)
+      .subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>(N_("Rotation"))
+      .default_value({0.0f, 0.0f, 0.0f})
+      .min(-FLT_MAX)
+      .max(FLT_MAX)
+      .subtype(PROP_EULER);
+  b.add_input<decl::Vector>(N_("Scale"))
+      .default_value({1.0f, 1.0f, 1.0f})
+      .min(-FLT_MAX)
+      .max(FLT_MAX)
+      .subtype(PROP_XYZ);
+  b.add_output<decl::Vector>(N_("Vector"));
+}
 
 static const char *gpu_shader_get_name(int mode)
 {
@@ -83,7 +93,7 @@ void register_node_type_sh_mapping()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_MAPPING, "Mapping", NODE_CLASS_OP_VECTOR);
-  node_type_socket_templates(&ntype, file_ns::sh_node_mapping_in, file_ns::sh_node_mapping_out);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::gpu_shader_mapping);
   node_type_update(&ntype, file_ns::node_shader_update_mapping);
 

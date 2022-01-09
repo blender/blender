@@ -25,19 +25,15 @@
 
 namespace blender::nodes::node_shader_hueSatVal_cc {
 
-/* **************** Hue Saturation ******************** */
-static bNodeSocketTemplate sh_node_hue_sat_in[] = {
-    {SOCK_FLOAT, N_("Hue"), 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Saturation"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Value"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Fac"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, N_("Color"), 0.8f, 0.8f, 0.8f, 1.0f},
-    {-1, ""},
-};
-static bNodeSocketTemplate sh_node_hue_sat_out[] = {
-    {SOCK_RGBA, N_("Color")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>(N_("Hue")).default_value(0.5f).min(0.0f).max(1.0f);
+  b.add_input<decl::Float>(N_("Saturation")).default_value(1.0f).min(0.0f).max(2.0f);
+  b.add_input<decl::Float>(N_("Value")).default_value(1.0f).min(0.0f).max(2.0f);
+  b.add_input<decl::Float>(N_("Fac")).default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Color>(N_("Color")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_output<decl::Color>(N_("Color"));
+}
 
 static int gpu_shader_hue_sat(GPUMaterial *mat,
                               bNode *node,
@@ -57,7 +53,7 @@ void register_node_type_sh_hue_sat()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR);
-  node_type_socket_templates(&ntype, file_ns::sh_node_hue_sat_in, file_ns::sh_node_hue_sat_out);
+  ntype.declare = file_ns::node_declare;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_gpu(&ntype, file_ns::gpu_shader_hue_sat);
 
