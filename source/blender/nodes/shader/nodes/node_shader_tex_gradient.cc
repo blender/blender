@@ -19,6 +19,9 @@
 
 #include "node_shader_util.hh"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 namespace blender::nodes::node_shader_tex_gradient_cc {
 
 static void sh_node_tex_gradient_declare(NodeDeclarationBuilder &b)
@@ -28,6 +31,11 @@ static void sh_node_tex_gradient_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Color")).no_muted_links();
   b.add_output<decl::Float>(N_("Fac")).no_muted_links();
 };
+
+static void node_shader_buts_tex_gradient(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "gradient_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+}
 
 static void node_shader_init_tex_gradient(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -163,6 +171,7 @@ void register_node_type_sh_tex_gradient()
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_GRADIENT, "Gradient Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_gradient_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_tex_gradient;
   node_type_init(&ntype, file_ns::node_shader_init_tex_gradient);
   node_type_storage(
       &ntype, "NodeTexGradient", node_free_standard_storage, node_copy_standard_storage);

@@ -23,9 +23,42 @@
 
 #include "node_shader_util.hh"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 namespace blender::nodes::node_shader_script_cc {
 
-/* **************** Script ******************** */
+static void node_shader_buts_script(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *row;
+
+  row = uiLayoutRow(layout, false);
+  uiItemR(row, ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+
+  row = uiLayoutRow(layout, true);
+
+  if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_INTERNAL) {
+    uiItemR(row, ptr, "script", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  }
+  else {
+    uiItemR(row, ptr, "filepath", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  }
+
+  uiItemO(row, "", ICON_FILE_REFRESH, "node.shader_script_update");
+}
+
+static void node_shader_buts_script_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  uiItemS(layout);
+
+  node_shader_buts_script(layout, C, ptr);
+
+#if 0 /* not implemented yet */
+  if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_EXTERNAL) {
+    uiItemR(layout, ptr, "use_auto_update", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+#endif
+}
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -69,6 +102,8 @@ void register_node_type_sh_script()
   static bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_SCRIPT, "Script", NODE_CLASS_SCRIPT);
+  ntype.draw_buttons = file_ns::node_shader_buts_script;
+  ntype.draw_buttons_ex = file_ns::node_shader_buts_script_ex;
   node_type_init(&ntype, file_ns::init);
   node_type_storage(
       &ntype, "NodeShaderScript", file_ns::node_free_script, file_ns::node_copy_script);

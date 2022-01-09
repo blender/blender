@@ -19,6 +19,9 @@
 
 #include "node_shader_util.hh"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 namespace blender::nodes::node_shader_tex_magic_cc {
 
 static void sh_node_tex_magic_declare(NodeDeclarationBuilder &b)
@@ -30,6 +33,11 @@ static void sh_node_tex_magic_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Color")).no_muted_links();
   b.add_output<decl::Float>(N_("Fac")).no_muted_links();
 };
+
+static void node_shader_buts_tex_magic(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "turbulence_depth", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
 
 static void node_shader_init_tex_magic(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -185,6 +193,7 @@ void register_node_type_sh_tex_magic()
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_MAGIC, "Magic Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_magic_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_tex_magic;
   node_type_init(&ntype, file_ns::node_shader_init_tex_magic);
   node_type_storage(
       &ntype, "NodeTexMagic", node_free_standard_storage, node_copy_standard_storage);

@@ -19,12 +19,43 @@
 
 #include "node_shader_util.hh"
 
+#include "BKE_context.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 namespace blender::nodes::node_shader_tangent_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Vector>(N_("Tangent"));
 };
+
+static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  uiLayout *split, *row;
+
+  split = uiLayoutSplit(layout, 0.0f, false);
+
+  uiItemR(split, ptr, "direction_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", 0);
+
+  row = uiLayoutRow(split, false);
+
+  if (RNA_enum_get(ptr, "direction_type") == SHD_TANGENT_UVMAP) {
+    PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
+
+    if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
+      PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
+      uiItemPointerR(row, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
+    }
+    else {
+      uiItemR(row, ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, "", 0);
+    }
+  }
+  else {
+    uiItemR(row, ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, nullptr, 0);
+  }
+}
 
 static void node_shader_init_tangent(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -79,6 +110,7 @@ void register_node_type_sh_tangent()
 
   sh_node_type_base(&ntype, SH_NODE_TANGENT, "Tangent", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_tangent;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_init(&ntype, file_ns::node_shader_init_tangent);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_tangent);

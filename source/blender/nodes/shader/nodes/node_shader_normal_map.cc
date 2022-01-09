@@ -19,6 +19,11 @@
 
 #include "node_shader_util.hh"
 
+#include "BKE_context.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 namespace blender::nodes::node_shader_normal_map_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -26,6 +31,23 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Strength")).default_value(1.0f).min(0.0f).max(10.0f);
   b.add_input<decl::Color>(N_("Color")).default_value({0.5f, 0.5f, 1.0f, 1.0f});
   b.add_output<decl::Vector>(N_("Normal"));
+}
+
+static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "space", UI_ITEM_R_SPLIT_EMPTY_NAME, "", 0);
+
+  if (RNA_enum_get(ptr, "space") == SHD_SPACE_TANGENT) {
+    PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
+
+    if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
+      PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
+      uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
+    }
+    else {
+      uiItemR(layout, ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, "", 0);
+    }
+  }
 }
 
 static void node_shader_init_normal_map(bNodeTree *UNUSED(ntree), bNode *node)
@@ -113,6 +135,7 @@ void register_node_type_sh_normal_map()
 
   sh_node_type_base(&ntype, SH_NODE_NORMAL_MAP, "Normal Map", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_normal_map;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_init(&ntype, file_ns::node_shader_init_normal_map);
   node_type_storage(

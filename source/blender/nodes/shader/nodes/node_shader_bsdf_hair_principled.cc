@@ -19,6 +19,9 @@
 
 #include "node_shader_util.hh"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 namespace blender::nodes::node_shader_bsdf_hair_principled_cc {
 
 /* Color, melanin and absorption coefficient default to approximately same brownish hair. */
@@ -76,6 +79,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>(N_("BSDF"));
 }
 
+static void node_shader_buts_principled_hair(uiLayout *layout,
+                                             bContext *UNUSED(C),
+                                             PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "parametrization", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+}
+
 /* Initialize the custom Parametrization property to Color. */
 static void node_shader_init_hair_principled(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -126,6 +136,7 @@ void register_node_type_sh_bsdf_hair_principled()
   sh_node_type_base(
       &ntype, SH_NODE_BSDF_HAIR_PRINCIPLED, "Principled Hair BSDF", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_principled_hair;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_init(&ntype, file_ns::node_shader_init_hair_principled);
   node_type_update(&ntype, file_ns::node_shader_update_hair_principled);

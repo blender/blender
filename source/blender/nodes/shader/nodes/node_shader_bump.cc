@@ -23,6 +23,9 @@
 
 #include "node_shader_util.hh"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 /* **************** BUMP ******************** */
 
 namespace blender::nodes::node_shader_bump_cc {
@@ -44,6 +47,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Height_dy")).default_value(1.0f).unavailable();
   b.add_input<decl::Vector>(N_("Normal")).min(-1.0f).max(1.0f).hide_value();
   b.add_output<decl::Vector>(N_("Normal"));
+}
+
+static void node_shader_buts_bump(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "invert", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
 }
 
 static int gpu_shader_bump(GPUMaterial *mat,
@@ -73,6 +81,7 @@ void register_node_type_sh_bump()
 
   sh_node_type_base(&ntype, SH_NODE_BUMP, "Bump", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_bump;
   node_type_gpu(&ntype, file_ns::gpu_shader_bump);
 
   nodeRegisterType(&ntype);

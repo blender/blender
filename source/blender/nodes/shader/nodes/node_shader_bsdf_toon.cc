@@ -19,6 +19,9 @@
 
 #include "node_shader_util.hh"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 namespace blender::nodes::node_shader_bsdf_toon_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -36,6 +39,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR);
   b.add_input<decl::Vector>(N_("Normal")).hide_value();
   b.add_output<decl::Shader>(N_("BSDF"));
+}
+
+static void node_shader_buts_toon(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "component", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static int node_shader_gpu_bsdf_toon(GPUMaterial *mat,
@@ -64,6 +72,7 @@ void register_node_type_sh_bsdf_toon()
 
   sh_node_type_base(&ntype, SH_NODE_BSDF_TOON, "Toon BSDF", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_toon;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_toon);
 

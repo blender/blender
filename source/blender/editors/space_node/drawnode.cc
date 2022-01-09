@@ -216,22 +216,6 @@ static void node_buts_texture(uiLayout *layout, bContext *UNUSED(C), PointerRNA 
   }
 }
 
-static void node_shader_buts_clamp(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "clamp_type", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_shader_buts_map_range(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "data_type", DEFAULT_FLAGS, "", ICON_NONE);
-  uiItemR(layout, ptr, "interpolation_type", DEFAULT_FLAGS, "", ICON_NONE);
-  if (!ELEM(RNA_enum_get(ptr, "interpolation_type"),
-            NODE_MAP_RANGE_SMOOTHSTEP,
-            NODE_MAP_RANGE_SMOOTHERSTEP)) {
-    uiItemR(layout, ptr, "clamp", DEFAULT_FLAGS, nullptr, ICON_NONE);
-  }
-}
-
 static void node_buts_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", DEFAULT_FLAGS, "", ICON_NONE);
@@ -380,40 +364,6 @@ static void node_buts_image_user(uiLayout *layout,
   }
 }
 
-static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "vector_type", DEFAULT_FLAGS, nullptr, ICON_NONE);
-}
-
-static void node_shader_buts_vector_rotate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "rotation_type", DEFAULT_FLAGS, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "invert", DEFAULT_FLAGS, nullptr, 0);
-}
-
-static void node_shader_buts_vect_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "operation", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_shader_buts_vect_transform(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "vector_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "convert_from", DEFAULT_FLAGS, "", ICON_NONE);
-  uiItemR(layout, ptr, "convert_to", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_shader_buts_attribute(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "attribute_type", DEFAULT_FLAGS, IFACE_("Type"), ICON_NONE);
-  uiItemR(layout, ptr, "attribute_name", DEFAULT_FLAGS, IFACE_("Name"), ICON_NONE);
-}
-
-static void node_shader_buts_wireframe(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "use_pixel_size", DEFAULT_FLAGS, nullptr, 0);
-}
-
 static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
   PointerRNA imaptr = RNA_pointer_get(ptr, "image");
@@ -483,247 +433,9 @@ static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, P
   uiItemR(layout, ptr, "projection", DEFAULT_FLAGS, IFACE_("Projection"), ICON_NONE);
 }
 
-static void node_shader_buts_tex_sky(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "sky_type", DEFAULT_FLAGS, "", ICON_NONE);
-
-  if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_PREETHAM) {
-    uiItemR(layout, ptr, "sun_direction", DEFAULT_FLAGS, "", ICON_NONE);
-    uiItemR(layout, ptr, "turbidity", DEFAULT_FLAGS, nullptr, ICON_NONE);
-  }
-  if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_HOSEK) {
-    uiItemR(layout, ptr, "sun_direction", DEFAULT_FLAGS, "", ICON_NONE);
-    uiItemR(layout, ptr, "turbidity", DEFAULT_FLAGS, nullptr, ICON_NONE);
-    uiItemR(layout, ptr, "ground_albedo", DEFAULT_FLAGS, nullptr, ICON_NONE);
-  }
-  if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_NISHITA) {
-    Scene *scene = CTX_data_scene(C);
-    if (BKE_scene_uses_blender_eevee(scene)) {
-      uiItemL(layout, TIP_("Nishita not available in Eevee"), ICON_ERROR);
-    }
-    uiItemR(layout, ptr, "sun_disc", DEFAULT_FLAGS, nullptr, 0);
-
-    uiLayout *col;
-    if (RNA_boolean_get(ptr, "sun_disc")) {
-      col = uiLayoutColumn(layout, true);
-      uiItemR(col, ptr, "sun_size", DEFAULT_FLAGS, nullptr, ICON_NONE);
-      uiItemR(col, ptr, "sun_intensity", DEFAULT_FLAGS, nullptr, ICON_NONE);
-    }
-
-    col = uiLayoutColumn(layout, true);
-    uiItemR(col, ptr, "sun_elevation", DEFAULT_FLAGS, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "sun_rotation", DEFAULT_FLAGS, nullptr, ICON_NONE);
-
-    uiItemR(layout, ptr, "altitude", DEFAULT_FLAGS, nullptr, ICON_NONE);
-
-    col = uiLayoutColumn(layout, true);
-    uiItemR(col, ptr, "air_density", DEFAULT_FLAGS, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "dust_density", DEFAULT_FLAGS, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "ozone_density", DEFAULT_FLAGS, nullptr, ICON_NONE);
-  }
-}
-
-static void node_shader_buts_tex_gradient(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "gradient_type", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_shader_buts_tex_magic(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "turbulence_depth", DEFAULT_FLAGS, nullptr, ICON_NONE);
-}
-
-static void node_shader_buts_tex_brick(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiLayout *col;
-
-  col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "offset", DEFAULT_FLAGS | UI_ITEM_R_SLIDER, IFACE_("Offset"), ICON_NONE);
-  uiItemR(col, ptr, "offset_frequency", DEFAULT_FLAGS, IFACE_("Frequency"), ICON_NONE);
-
-  col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "squash", DEFAULT_FLAGS, IFACE_("Squash"), ICON_NONE);
-  uiItemR(col, ptr, "squash_frequency", DEFAULT_FLAGS, IFACE_("Frequency"), ICON_NONE);
-}
-
-static void node_shader_buts_tex_wave(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "wave_type", DEFAULT_FLAGS, "", ICON_NONE);
-  int type = RNA_enum_get(ptr, "wave_type");
-  if (type == SHD_WAVE_BANDS) {
-    uiItemR(layout, ptr, "bands_direction", DEFAULT_FLAGS, "", ICON_NONE);
-  }
-  else { /* SHD_WAVE_RINGS */
-    uiItemR(layout, ptr, "rings_direction", DEFAULT_FLAGS, "", ICON_NONE);
-  }
-
-  uiItemR(layout, ptr, "wave_profile", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_shader_buts_tex_musgrave(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "musgrave_dimensions", DEFAULT_FLAGS, "", ICON_NONE);
-  uiItemR(layout, ptr, "musgrave_type", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "voronoi_dimensions", DEFAULT_FLAGS, "", ICON_NONE);
-  uiItemR(layout, ptr, "feature", DEFAULT_FLAGS, "", ICON_NONE);
-  int feature = RNA_enum_get(ptr, "feature");
-  if (!ELEM(feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS) &&
-      RNA_enum_get(ptr, "voronoi_dimensions") != 1) {
-    uiItemR(layout, ptr, "distance", DEFAULT_FLAGS, "", ICON_NONE);
-  }
-}
-
-static void node_shader_buts_tex_noise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "noise_dimensions", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_shader_buts_tex_pointdensity(uiLayout *layout,
-                                              bContext *UNUSED(C),
-                                              PointerRNA *ptr)
-{
-  bNode *node = (bNode *)ptr->data;
-  NodeShaderTexPointDensity *shader_point_density = (NodeShaderTexPointDensity *)node->storage;
-  Object *ob = (Object *)node->id;
-
-  PointerRNA ob_ptr, obdata_ptr;
-  RNA_id_pointer_create((ID *)ob, &ob_ptr);
-  RNA_id_pointer_create(ob ? (ID *)ob->data : nullptr, &obdata_ptr);
-
-  uiItemR(layout, ptr, "point_source", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "object", DEFAULT_FLAGS, nullptr, ICON_NONE);
-
-  if (node->id && shader_point_density->point_source == SHD_POINTDENSITY_SOURCE_PSYS) {
-    PointerRNA dataptr;
-    RNA_id_pointer_create((ID *)node->id, &dataptr);
-    uiItemPointerR(
-        layout, ptr, "particle_system", &dataptr, "particle_systems", nullptr, ICON_NONE);
-  }
-
-  uiItemR(layout, ptr, "space", DEFAULT_FLAGS, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "radius", DEFAULT_FLAGS, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "interpolation", DEFAULT_FLAGS, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "resolution", DEFAULT_FLAGS, nullptr, ICON_NONE);
-  if (shader_point_density->point_source == SHD_POINTDENSITY_SOURCE_PSYS) {
-    uiItemR(layout, ptr, "particle_color_source", DEFAULT_FLAGS, nullptr, ICON_NONE);
-  }
-  else {
-    uiItemR(layout, ptr, "vertex_color_source", DEFAULT_FLAGS, nullptr, ICON_NONE);
-    if (shader_point_density->ob_color_source == SHD_POINTDENSITY_COLOR_VERTWEIGHT) {
-      if (ob_ptr.data) {
-        uiItemPointerR(
-            layout, ptr, "vertex_attribute_name", &ob_ptr, "vertex_groups", "", ICON_NONE);
-      }
-    }
-    if (shader_point_density->ob_color_source == SHD_POINTDENSITY_COLOR_VERTCOL) {
-      if (obdata_ptr.data) {
-        uiItemPointerR(
-            layout, ptr, "vertex_attribute_name", &obdata_ptr, "vertex_colors", "", ICON_NONE);
-      }
-    }
-  }
-}
-
-static void node_shader_buts_tex_coord(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "object", DEFAULT_FLAGS, nullptr, 0);
-  uiItemR(layout, ptr, "from_instancer", DEFAULT_FLAGS, nullptr, 0);
-}
-
-static void node_shader_buts_bump(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "invert", DEFAULT_FLAGS, nullptr, 0);
-}
-
-static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "from_instancer", DEFAULT_FLAGS, nullptr, 0);
-
-  if (!RNA_boolean_get(ptr, "from_instancer")) {
-    PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
-
-    if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
-      PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
-      uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
-    }
-  }
-}
-
-static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-  PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
-  if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
-    PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
-
-    if (U.experimental.use_sculpt_vertex_colors &&
-        RNA_collection_length(&dataptr, "sculpt_vertex_colors")) {
-      uiItemPointerR(
-          layout, ptr, "layer_name", &dataptr, "sculpt_vertex_colors", "", ICON_GROUP_VCOL);
-    }
-    else {
-      uiItemPointerR(layout, ptr, "layer_name", &dataptr, "vertex_colors", "", ICON_GROUP_VCOL);
-    }
-  }
-  else {
-    uiItemL(layout, TIP_("No mesh in active object"), ICON_ERROR);
-  }
-}
-
-static void node_shader_buts_uvalongstroke(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "use_tips", DEFAULT_FLAGS, nullptr, 0);
-}
-
-static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "space", DEFAULT_FLAGS, "", 0);
-
-  if (RNA_enum_get(ptr, "space") == SHD_SPACE_TANGENT) {
-    PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
-
-    if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
-      PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
-      uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
-    }
-    else {
-      uiItemR(layout, ptr, "uv_map", DEFAULT_FLAGS, "", 0);
-    }
-  }
-}
-
 static void node_shader_buts_displacement(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "space", DEFAULT_FLAGS, "", 0);
-}
-
-static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-  uiLayout *split, *row;
-
-  split = uiLayoutSplit(layout, 0.0f, false);
-
-  uiItemR(split, ptr, "direction_type", DEFAULT_FLAGS, "", 0);
-
-  row = uiLayoutRow(split, false);
-
-  if (RNA_enum_get(ptr, "direction_type") == SHD_TANGENT_UVMAP) {
-    PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
-
-    if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
-      PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
-      uiItemPointerR(row, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
-    }
-    else {
-      uiItemR(row, ptr, "uv_map", DEFAULT_FLAGS, "", 0);
-    }
-  }
-  else {
-    uiItemR(row, ptr, "axis", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, nullptr, 0);
-  }
 }
 
 static void node_shader_buts_glossy(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -731,125 +443,9 @@ static void node_shader_buts_glossy(uiLayout *layout, bContext *UNUSED(C), Point
   uiItemR(layout, ptr, "distribution", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_shader_buts_principled(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "distribution", DEFAULT_FLAGS, "", ICON_NONE);
-  uiItemR(layout, ptr, "subsurface_method", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_shader_buts_anisotropic(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "distribution", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_shader_buts_subsurface(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "falloff", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_shader_buts_toon(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "component", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_shader_buts_hair(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "component", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_shader_buts_principled_hair(uiLayout *layout,
-                                             bContext *UNUSED(C),
-                                             PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "parametrization", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_shader_buts_ies(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiLayout *row;
-
-  row = uiLayoutRow(layout, false);
-  uiItemR(row, ptr, "mode", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-
-  row = uiLayoutRow(layout, true);
-
-  if (RNA_enum_get(ptr, "mode") == NODE_IES_INTERNAL) {
-    uiItemR(row, ptr, "ies", DEFAULT_FLAGS, "", ICON_NONE);
-  }
-  else {
-    uiItemR(row, ptr, "filepath", DEFAULT_FLAGS, "", ICON_NONE);
-  }
-}
-
-static void node_shader_buts_script(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiLayout *row;
-
-  row = uiLayoutRow(layout, false);
-  uiItemR(row, ptr, "mode", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-
-  row = uiLayoutRow(layout, true);
-
-  if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_INTERNAL) {
-    uiItemR(row, ptr, "script", DEFAULT_FLAGS, "", ICON_NONE);
-  }
-  else {
-    uiItemR(row, ptr, "filepath", DEFAULT_FLAGS, "", ICON_NONE);
-  }
-
-  uiItemO(row, "", ICON_FILE_REFRESH, "node.shader_script_update");
-}
-
-static void node_shader_buts_script_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-  uiItemS(layout);
-
-  node_shader_buts_script(layout, C, ptr);
-
-#if 0 /* not implemented yet */
-  if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_EXTERNAL) {
-    uiItemR(layout, ptr, "use_auto_update", DEFAULT_FLAGS, nullptr, ICON_NONE);
-  }
-#endif
-}
-
 static void node_buts_output_shader(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "target", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_buts_output_linestyle(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiLayout *row, *col;
-
-  col = uiLayoutColumn(layout, false);
-  row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "blend_type", DEFAULT_FLAGS, "", ICON_NONE);
-  uiItemR(col, ptr, "use_clamp", DEFAULT_FLAGS, nullptr, ICON_NONE);
-}
-
-static void node_shader_buts_bevel(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "samples", DEFAULT_FLAGS, nullptr, ICON_NONE);
-}
-
-static void node_shader_buts_ambient_occlusion(uiLayout *layout,
-                                               bContext *UNUSED(C),
-                                               PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "samples", DEFAULT_FLAGS, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "inside", DEFAULT_FLAGS, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "only_local", DEFAULT_FLAGS, nullptr, ICON_NONE);
-}
-
-static void node_shader_buts_white_noise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "noise_dimensions", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_shader_buts_output_aov(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "name", DEFAULT_FLAGS, nullptr, ICON_NONE);
 }
 
 /* only once called */
@@ -868,9 +464,6 @@ static void node_shader_set_butfunc(bNodeType *ntype)
     case SH_NODE_CURVE_FLOAT:
       ntype->draw_buttons = node_buts_curvefloat;
       break;
-    case SH_NODE_MAPPING:
-      ntype->draw_buttons = node_shader_buts_mapping;
-      break;
     case SH_NODE_VALUE:
       ntype->draw_buttons = node_buts_value;
       break;
@@ -883,32 +476,8 @@ static void node_shader_set_butfunc(bNodeType *ntype)
     case SH_NODE_VALTORGB:
       ntype->draw_buttons = node_buts_colorramp;
       break;
-    case SH_NODE_CLAMP:
-      ntype->draw_buttons = node_shader_buts_clamp;
-      break;
-    case SH_NODE_MAP_RANGE:
-      ntype->draw_buttons = node_shader_buts_map_range;
-      break;
     case SH_NODE_MATH:
       ntype->draw_buttons = node_buts_math;
-      break;
-    case SH_NODE_VECTOR_MATH:
-      ntype->draw_buttons = node_shader_buts_vect_math;
-      break;
-    case SH_NODE_VECTOR_ROTATE:
-      ntype->draw_buttons = node_shader_buts_vector_rotate;
-      break;
-    case SH_NODE_VECT_TRANSFORM:
-      ntype->draw_buttons = node_shader_buts_vect_transform;
-      break;
-    case SH_NODE_ATTRIBUTE:
-      ntype->draw_buttons = node_shader_buts_attribute;
-      break;
-    case SH_NODE_WIREFRAME:
-      ntype->draw_buttons = node_shader_buts_wireframe;
-      break;
-    case SH_NODE_TEX_SKY:
-      ntype->draw_buttons = node_shader_buts_tex_sky;
       break;
     case SH_NODE_TEX_IMAGE:
       ntype->draw_buttons = node_shader_buts_tex_image;
@@ -918,104 +487,19 @@ static void node_shader_set_butfunc(bNodeType *ntype)
       ntype->draw_buttons = node_shader_buts_tex_environment;
       ntype->draw_buttons_ex = node_shader_buts_tex_environment_ex;
       break;
-    case SH_NODE_TEX_GRADIENT:
-      ntype->draw_buttons = node_shader_buts_tex_gradient;
-      break;
-    case SH_NODE_TEX_MAGIC:
-      ntype->draw_buttons = node_shader_buts_tex_magic;
-      break;
-    case SH_NODE_TEX_BRICK:
-      ntype->draw_buttons = node_shader_buts_tex_brick;
-      break;
-    case SH_NODE_TEX_WAVE:
-      ntype->draw_buttons = node_shader_buts_tex_wave;
-      break;
-    case SH_NODE_TEX_MUSGRAVE:
-      ntype->draw_buttons = node_shader_buts_tex_musgrave;
-      break;
-    case SH_NODE_TEX_VORONOI:
-      ntype->draw_buttons = node_shader_buts_tex_voronoi;
-      break;
-    case SH_NODE_TEX_NOISE:
-      ntype->draw_buttons = node_shader_buts_tex_noise;
-      break;
-    case SH_NODE_TEX_POINTDENSITY:
-      ntype->draw_buttons = node_shader_buts_tex_pointdensity;
-      break;
-    case SH_NODE_TEX_COORD:
-      ntype->draw_buttons = node_shader_buts_tex_coord;
-      break;
-    case SH_NODE_BUMP:
-      ntype->draw_buttons = node_shader_buts_bump;
-      break;
-    case SH_NODE_NORMAL_MAP:
-      ntype->draw_buttons = node_shader_buts_normal_map;
-      break;
     case SH_NODE_DISPLACEMENT:
     case SH_NODE_VECTOR_DISPLACEMENT:
       ntype->draw_buttons = node_shader_buts_displacement;
-      break;
-    case SH_NODE_TANGENT:
-      ntype->draw_buttons = node_shader_buts_tangent;
       break;
     case SH_NODE_BSDF_GLOSSY:
     case SH_NODE_BSDF_GLASS:
     case SH_NODE_BSDF_REFRACTION:
       ntype->draw_buttons = node_shader_buts_glossy;
       break;
-    case SH_NODE_BSDF_PRINCIPLED:
-      ntype->draw_buttons = node_shader_buts_principled;
-      break;
-    case SH_NODE_BSDF_ANISOTROPIC:
-      ntype->draw_buttons = node_shader_buts_anisotropic;
-      break;
-    case SH_NODE_SUBSURFACE_SCATTERING:
-      ntype->draw_buttons = node_shader_buts_subsurface;
-      break;
-    case SH_NODE_BSDF_TOON:
-      ntype->draw_buttons = node_shader_buts_toon;
-      break;
-    case SH_NODE_BSDF_HAIR:
-      ntype->draw_buttons = node_shader_buts_hair;
-      break;
-    case SH_NODE_BSDF_HAIR_PRINCIPLED:
-      ntype->draw_buttons = node_shader_buts_principled_hair;
-      break;
-    case SH_NODE_SCRIPT:
-      ntype->draw_buttons = node_shader_buts_script;
-      ntype->draw_buttons_ex = node_shader_buts_script_ex;
-      break;
-    case SH_NODE_UVMAP:
-      ntype->draw_buttons = node_shader_buts_uvmap;
-      break;
-    case SH_NODE_VERTEX_COLOR:
-      ntype->draw_buttons = node_shader_buts_vertex_color;
-      break;
-    case SH_NODE_UVALONGSTROKE:
-      ntype->draw_buttons = node_shader_buts_uvalongstroke;
-      break;
     case SH_NODE_OUTPUT_MATERIAL:
     case SH_NODE_OUTPUT_LIGHT:
     case SH_NODE_OUTPUT_WORLD:
       ntype->draw_buttons = node_buts_output_shader;
-      break;
-    case SH_NODE_OUTPUT_LINESTYLE:
-      ntype->draw_buttons = node_buts_output_linestyle;
-      break;
-    case SH_NODE_TEX_IES:
-      ntype->draw_buttons = node_shader_buts_ies;
-      break;
-    case SH_NODE_BEVEL:
-      ntype->draw_buttons = node_shader_buts_bevel;
-      break;
-    case SH_NODE_AMBIENT_OCCLUSION:
-      ntype->draw_buttons = node_shader_buts_ambient_occlusion;
-      break;
-    case SH_NODE_TEX_WHITE_NOISE:
-      ntype->draw_buttons = node_shader_buts_white_noise;
-      break;
-    case SH_NODE_OUTPUT_AOV:
-      ntype->draw_buttons = node_shader_buts_output_aov;
       break;
   }
 }

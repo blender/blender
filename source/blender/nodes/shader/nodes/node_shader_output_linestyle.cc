@@ -19,6 +19,9 @@
 
 #include "node_shader_util.hh"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 namespace blender::nodes::node_shader_output_linestyle_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -41,6 +44,16 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR);
 };
 
+static void node_buts_output_linestyle(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *row, *col;
+
+  col = uiLayoutColumn(layout, false);
+  row = uiLayoutRow(col, true);
+  uiItemR(row, ptr, "blend_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  uiItemR(col, ptr, "use_clamp", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
 }  // namespace blender::nodes::node_shader_output_linestyle_cc
 
 /* node type definition */
@@ -52,6 +65,7 @@ void register_node_type_sh_output_linestyle()
 
   sh_node_type_base(&ntype, SH_NODE_OUTPUT_LINESTYLE, "Line Style Output", NODE_CLASS_OUTPUT);
   ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_buts_output_linestyle;
   ntype.no_muting = true;
 
   nodeRegisterType(&ntype);

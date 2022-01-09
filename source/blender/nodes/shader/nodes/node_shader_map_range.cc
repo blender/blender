@@ -29,6 +29,9 @@
 
 #include "NOD_socket_search_link.hh"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 namespace blender::nodes::node_shader_map_range_cc {
 
 NODE_STORAGE_FUNCS(NodeMapRange)
@@ -51,6 +54,17 @@ static void sh_node_map_range_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Result"));
   b.add_output<decl::Vector>(N_("Vector"));
 };
+
+static void node_shader_buts_map_range(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "data_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  uiItemR(layout, ptr, "interpolation_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  if (!ELEM(RNA_enum_get(ptr, "interpolation_type"),
+            NODE_MAP_RANGE_SMOOTHSTEP,
+            NODE_MAP_RANGE_SMOOTHERSTEP)) {
+    uiItemR(layout, ptr, "clamp", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+}
 
 static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
 {
@@ -650,6 +664,7 @@ void register_node_type_sh_map_range()
 
   sh_fn_node_type_base(&ntype, SH_NODE_MAP_RANGE, "Map Range", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_map_range_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_map_range;
   node_type_init(&ntype, file_ns::node_shader_init_map_range);
   node_type_storage(
       &ntype, "NodeMapRange", node_free_standard_storage, node_copy_standard_storage);

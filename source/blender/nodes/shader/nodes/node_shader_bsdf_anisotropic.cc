@@ -19,6 +19,9 @@
 
 #include "node_shader_util.hh"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 namespace blender::nodes::node_shader_bsdf_anisotropic_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -38,6 +41,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>(N_("Normal")).hide_value();
   b.add_input<decl::Vector>(N_("Tangent")).hide_value();
   b.add_output<decl::Shader>(N_("BSDF"));
+}
+
+static void node_shader_buts_anisotropic(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "distribution", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_shader_init_anisotropic(bNodeTree *UNUSED(ntree), bNode *node)
@@ -79,6 +87,7 @@ void register_node_type_sh_bsdf_anisotropic()
 
   sh_node_type_base(&ntype, SH_NODE_BSDF_ANISOTROPIC, "Anisotropic BSDF", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_anisotropic;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_init(&ntype, file_ns::node_shader_init_anisotropic);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_anisotropic);

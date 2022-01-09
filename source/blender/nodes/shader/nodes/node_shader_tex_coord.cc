@@ -21,6 +21,9 @@
 
 #include "DNA_customdata_types.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 namespace blender::nodes::node_shader_tex_coord_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -32,6 +35,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Camera"));
   b.add_output<decl::Vector>(N_("Window"));
   b.add_output<decl::Vector>(N_("Reflection"));
+}
+
+static void node_shader_buts_tex_coord(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "object", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
+  uiItemR(layout, ptr, "from_instancer", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
 }
 
 static int node_shader_gpu_tex_coord(GPUMaterial *mat,
@@ -94,6 +103,7 @@ void register_node_type_sh_tex_coord()
 
   sh_node_type_base(&ntype, SH_NODE_TEX_COORD, "Texture Coordinate", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_tex_coord;
   node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_coord);
 
   nodeRegisterType(&ntype);
