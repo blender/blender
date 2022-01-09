@@ -36,7 +36,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_("Geometry that is instanced on the points"));
   b.add_input<decl::Bool>(N_("Pick Instance"))
       .supports_field()
-      .description("Place different instances on different points");
+      .description(N_("Place different instances on different points"));
   b.add_input<decl::Int>(N_("Instance Index"))
       .implicit_field()
       .description(N_(
