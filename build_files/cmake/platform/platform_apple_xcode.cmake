@@ -96,7 +96,7 @@ else()
     # Detect SDK version to use.
     if(NOT DEFINED OSX_SYSTEM)
       execute_process(
-          COMMAND xcrun --show-sdk-version
+          COMMAND xcrun --sdk macosx --show-sdk-version
           OUTPUT_VARIABLE OSX_SYSTEM
           OUTPUT_STRIP_TRAILING_WHITESPACE)
     endif()
