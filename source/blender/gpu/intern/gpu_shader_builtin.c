@@ -457,58 +457,6 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
             .defs = "#define USE_INSTANCE\n",
         },
 
-    [GPU_SHADER_2D_UV_UNIFORM_COLOR] =
-        {
-            .name = "GPU_SHADER_2D_UV_UNIFORM_COLOR",
-            .vert = datatoc_gpu_shader_2D_vert_glsl,
-            .frag = datatoc_gpu_shader_uniform_color_frag_glsl,
-            .defs = "#define UV_POS\n",
-        },
-    [GPU_SHADER_2D_UV_VERTS] =
-        {
-            .name = "GPU_SHADER_2D_UV_VERTS",
-            .vert = datatoc_gpu_shader_2D_edituvs_points_vert_glsl,
-            .frag = datatoc_gpu_shader_point_varying_color_varying_outline_aa_frag_glsl,
-        },
-    [GPU_SHADER_2D_UV_FACEDOTS] =
-        {
-            .name = "GPU_SHADER_2D_UV_FACEDOTS",
-            .vert = datatoc_gpu_shader_2D_edituvs_facedots_vert_glsl,
-            .frag = datatoc_gpu_shader_point_varying_color_frag_glsl,
-        },
-    [GPU_SHADER_2D_UV_EDGES] =
-        {
-            .name = "GPU_SHADER_2D_UV_EDGES",
-            .vert = datatoc_gpu_shader_2D_edituvs_edges_vert_glsl,
-            .frag = datatoc_gpu_shader_2D_edituvs_edges_frag_glsl,
-        },
-    [GPU_SHADER_2D_UV_EDGES_SMOOTH] =
-        {
-            .name = "GPU_SHADER_2D_UV_EDGES_SMOOTH",
-            .vert = datatoc_gpu_shader_2D_edituvs_edges_vert_glsl,
-            .frag = datatoc_gpu_shader_2D_edituvs_edges_frag_glsl,
-            .defs = "#define SMOOTH_COLOR\n",
-        },
-    [GPU_SHADER_2D_UV_FACES] =
-        {
-            .name = "GPU_SHADER_2D_UV_FACES",
-            .vert = datatoc_gpu_shader_2D_edituvs_faces_vert_glsl,
-            .frag = datatoc_gpu_shader_flat_color_frag_glsl,
-        },
-    [GPU_SHADER_2D_UV_FACES_STRETCH_AREA] =
-        {
-            .name = "GPU_SHADER_2D_UV_FACES_STRETCH_AREA",
-            .vert = datatoc_gpu_shader_2D_edituvs_stretch_vert_glsl,
-            .frag = datatoc_gpu_shader_2D_smooth_color_frag_glsl,
-        },
-    [GPU_SHADER_2D_UV_FACES_STRETCH_ANGLE] =
-        {
-            .name = "GPU_SHADER_2D_UV_FACES_STRETCH_ANGLE",
-            .vert = datatoc_gpu_shader_2D_edituvs_stretch_vert_glsl,
-            .frag = datatoc_gpu_shader_2D_smooth_color_frag_glsl,
-            .defs = "#define STRETCH_ANGLE\n",
-        },
-
     [GPU_SHADER_GPENCIL_STROKE] =
         {
             .name = "GPU_SHADER_GPENCIL_STROKE",

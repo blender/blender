@@ -79,14 +79,6 @@ static void test_shader_builtin()
   test_compile_builtin_shader(GPU_SHADER_2D_WIDGET_SHADOW, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_NODELINK, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_NODELINK_INST, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_UV_UNIFORM_COLOR, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_UV_VERTS, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_UV_FACEDOTS, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_UV_EDGES, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_UV_EDGES_SMOOTH, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_UV_FACES, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_UV_FACES_STRETCH_AREA, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_UV_FACES_STRETCH_ANGLE, GPU_SHADER_CFG_DEFAULT);
 }
 
 GPU_TEST(shader_builtin)
