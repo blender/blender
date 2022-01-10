@@ -52,8 +52,6 @@ static void test_shader_builtin()
   test_compile_builtin_shader(GPU_SHADER_2D_IMAGE_OVERLAYS_MERGE, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_IMAGE_OVERLAYS_STEREO_MERGE, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_POINT_FIXED_SIZE_UNIFORM_COLOR,
-                              GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA,
                               GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA,

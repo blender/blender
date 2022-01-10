@@ -245,7 +245,6 @@ data_to_c_simple(shaders/gpu_shader_3D_clipped_uniform_color_vert.glsl SRC)
 
 data_to_c_simple(shaders/gpu_shader_instance_variying_size_variying_color_vert.glsl SRC)
 
-data_to_c_simple(shaders/gpu_shader_point_uniform_color_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_point_uniform_color_aa_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_point_uniform_color_outline_aa_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_point_varying_color_varying_outline_aa_frag.glsl SRC)
