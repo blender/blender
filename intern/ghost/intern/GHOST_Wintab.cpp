@@ -298,14 +298,12 @@ GHOST_TabletData GHOST_Wintab::getLastTabletData()
 void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
 {
   const int numPackets = m_fpPacketsGet(m_context.get(), m_pkts.size(), m_pkts.data());
-  outWintabInfo.resize(numPackets);
-  size_t outExtent = 0;
+  outWintabInfo.reserve(numPackets);
 
   for (int i = 0; i < numPackets; i++) {
     PACKET pkt = m_pkts[i];
-    GHOST_WintabInfoWin32 &out = outWintabInfo[i + outExtent];
+    GHOST_WintabInfoWin32 out;
 
-    out.tabletData = GHOST_TABLET_DATA_NONE;
     /* % 3 for multiple devices ("DualTrack"). */
     switch (pkt.pkCursor % 3) {
       case 0:
@@ -328,12 +326,7 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
     }
 
     if ((m_maxAzimuth > 0) && (m_maxAltitude > 0)) {
-      ORIENTATION ort = pkt.pkOrientation;
-      float vecLen;
-      float altRad, azmRad; /* In radians. */
-
-      /*
-       * From the wintab spec:
+      /* From the wintab spec:
        * orAzimuth: Specifies the clockwise rotation of the cursor about the z axis through a
        * full circular range.
        * orAltitude: Specifies the angle with the x-y plane through a signed, semicircular range.
@@ -346,12 +339,14 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
        * value.
        */
 
+      ORIENTATION ort = pkt.pkOrientation;
+
       /* Convert raw fixed point data to radians. */
-      altRad = (float)((fabs((float)ort.orAltitude) / (float)m_maxAltitude) * M_PI / 2.0);
-      azmRad = (float)(((float)ort.orAzimuth / (float)m_maxAzimuth) * M_PI * 2.0);
+      float altRad = (float)((fabs((float)ort.orAltitude) / (float)m_maxAltitude) * M_PI / 2.0);
+      float azmRad = (float)(((float)ort.orAzimuth / (float)m_maxAzimuth) * M_PI * 2.0);
 
       /* Find length of the stylus' projected vector on the XY plane. */
-      vecLen = cos(altRad);
+      float vecLen = cos(altRad);
 
       /* From there calculate X and Y components based on azimuth. */
       out.tabletData.Xtilt = sin(azmRad) * vecLen;
@@ -362,13 +357,8 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
 
     /* Some Wintab libraries don't handle relative button input, so we track button presses
      * manually. */
-    out.button = GHOST_kButtonMaskNone;
-    out.type = GHOST_kEventCursorMove;
-
     DWORD buttonsChanged = m_buttons ^ pkt.pkButtons;
     WORD buttonIndex = 0;
-    GHOST_WintabInfoWin32 buttonRef = out;
-    int buttons = 0;
 
     while (buttonsChanged) {
       if (buttonsChanged & 1) {
@@ -376,23 +366,14 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
         GHOST_TButtonMask button = mapWintabToGhostButton(pkt.pkCursor, buttonIndex);
 
         if (button != GHOST_kButtonMaskNone) {
-          /* Extend output if multiple buttons are pressed. We don't extend input until we confirm
-           * a Wintab buttons maps to a system button. */
-          if (buttons > 0) {
-            outWintabInfo.resize(outWintabInfo.size() + 1);
-            outExtent++;
-            GHOST_WintabInfoWin32 &out = outWintabInfo[i + outExtent];
-            out = buttonRef;
+          /* If this is not the first button found, push info for the prior Wintab button. */
+          if (out.button != GHOST_kButtonMaskNone) {
+            outWintabInfo.push_back(out);
           }
-          buttons++;
 
           out.button = button;
-          if (buttonsChanged & pkt.pkButtons) {
-            out.type = GHOST_kEventButtonDown;
-          }
-          else {
-            out.type = GHOST_kEventButtonUp;
-          }
+          out.type = buttonsChanged & pkt.pkButtons ? GHOST_kEventButtonDown :
+                                                      GHOST_kEventButtonUp;
         }
 
         m_buttons ^= 1 << buttonIndex;
@@ -401,6 +382,8 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
       buttonsChanged >>= 1;
       buttonIndex++;
     }
+
+    outWintabInfo.push_back(out);
   }
 
   if (!outWintabInfo.empty()) {
