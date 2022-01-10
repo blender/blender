@@ -109,13 +109,6 @@ extern char datatoc_gpu_shader_2D_point_uniform_size_aa_vert_glsl[];
 extern char datatoc_gpu_shader_2D_point_uniform_size_outline_aa_vert_glsl[];
 extern char datatoc_gpu_shader_2D_point_uniform_size_varying_color_outline_aa_vert_glsl[];
 
-extern char datatoc_gpu_shader_2D_edituvs_points_vert_glsl[];
-extern char datatoc_gpu_shader_2D_edituvs_facedots_vert_glsl[];
-extern char datatoc_gpu_shader_2D_edituvs_edges_vert_glsl[];
-extern char datatoc_gpu_shader_2D_edituvs_edges_frag_glsl[];
-extern char datatoc_gpu_shader_2D_edituvs_faces_vert_glsl[];
-extern char datatoc_gpu_shader_2D_edituvs_stretch_vert_glsl[];
-
 extern char datatoc_gpu_shader_2D_line_dashed_uniform_color_vert_glsl[];
 extern char datatoc_gpu_shader_2D_line_dashed_frag_glsl[];
 extern char datatoc_gpu_shader_3D_line_dashed_uniform_color_vert_glsl[];
