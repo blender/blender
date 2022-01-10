@@ -29,7 +29,6 @@ static void test_shader_builtin()
   test_compile_builtin_shader(GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE);
   test_compile_builtin_shader(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
   test_compile_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
-  test_compile_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
 
   test_compile_builtin_shader(GPU_SHADER_TEXT, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_KEYFRAME_SHAPE, GPU_SHADER_CFG_DEFAULT);
