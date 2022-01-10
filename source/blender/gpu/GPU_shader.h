@@ -403,7 +403,7 @@ typedef enum eGPUBuiltinShader {
   /* grease pencil drawing */
   GPU_SHADER_GPENCIL_STROKE,
   /* specialized for widget drawing */
-  GPU_SHADER_2D_AREA_EDGES,
+  GPU_SHADER_2D_AREA_BORDERS,
   GPU_SHADER_2D_WIDGET_BASE,
   GPU_SHADER_2D_WIDGET_BASE_INST,
   GPU_SHADER_2D_WIDGET_SHADOW,

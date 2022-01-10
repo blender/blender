@@ -418,9 +418,9 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
             .defs = "#define UNIFORM_SCALE\n",
         },
 
-    [GPU_SHADER_2D_AREA_EDGES] =
+    [GPU_SHADER_2D_AREA_BORDERS] =
         {
-            .name = "GPU_SHADER_2D_AREA_EDGES",
+            .name = "GPU_SHADER_2D_AREA_BORDERS",
             .vert = datatoc_gpu_shader_2D_area_borders_vert_glsl,
             .frag = datatoc_gpu_shader_2D_area_borders_frag_glsl,
         },

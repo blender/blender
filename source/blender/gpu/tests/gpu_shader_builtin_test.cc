@@ -73,7 +73,7 @@ static void test_shader_builtin()
                               GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_GPENCIL_STROKE, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_AREA_EDGES, GPU_SHADER_CFG_DEFAULT);
+  test_compile_builtin_shader(GPU_SHADER_2D_AREA_BORDERS, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_WIDGET_BASE, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_WIDGET_BASE_INST, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_WIDGET_SHADOW, GPU_SHADER_CFG_DEFAULT);
