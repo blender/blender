@@ -325,17 +325,6 @@ typedef enum eGPUBuiltinShader {
    * Draw round points with a constant size and an outline.
    * Take a 2D position and a color for each vertex.
    *
-   * \param size: uniform float
-   * \param outlineWidth: uniform float
-   * \param outlineColor: uniform vec4
-   * \param color: in vec4
-   * \param pos: in vec2
-   */
-  GPU_SHADER_2D_POINT_UNIFORM_SIZE_VARYING_COLOR_OUTLINE_AA,
-  /**
-   * Draw round points with a constant size and an outline.
-   * Take a 2D position and a color for each vertex.
-   *
    * \param size: in float
    * \param color: in vec4
    * \param pos: in vec2

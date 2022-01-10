@@ -96,7 +96,6 @@ extern char datatoc_gpu_shader_instance_variying_size_variying_color_vert_glsl[]
 extern char datatoc_gpu_shader_point_uniform_color_frag_glsl[];
 extern char datatoc_gpu_shader_point_uniform_color_aa_frag_glsl[];
 extern char datatoc_gpu_shader_point_uniform_color_outline_aa_frag_glsl[];
-extern char datatoc_gpu_shader_point_varying_color_outline_aa_frag_glsl[];
 extern char datatoc_gpu_shader_point_varying_color_varying_outline_aa_frag_glsl[];
 extern char datatoc_gpu_shader_point_varying_color_frag_glsl[];
 extern char datatoc_gpu_shader_3D_point_fixed_size_varying_color_vert_glsl[];
@@ -105,7 +104,6 @@ extern char datatoc_gpu_shader_3D_point_uniform_size_aa_vert_glsl[];
 extern char datatoc_gpu_shader_2D_point_varying_size_varying_color_vert_glsl[];
 extern char datatoc_gpu_shader_2D_point_uniform_size_aa_vert_glsl[];
 extern char datatoc_gpu_shader_2D_point_uniform_size_outline_aa_vert_glsl[];
-extern char datatoc_gpu_shader_2D_point_uniform_size_varying_color_outline_aa_vert_glsl[];
 
 extern char datatoc_gpu_shader_2D_line_dashed_uniform_color_vert_glsl[];
 extern char datatoc_gpu_shader_2D_line_dashed_frag_glsl[];
@@ -357,12 +355,6 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
             .name = "GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA",
             .vert = datatoc_gpu_shader_2D_point_uniform_size_outline_aa_vert_glsl,
             .frag = datatoc_gpu_shader_point_uniform_color_outline_aa_frag_glsl,
-        },
-    [GPU_SHADER_2D_POINT_UNIFORM_SIZE_VARYING_COLOR_OUTLINE_AA] =
-        {
-            .name = "GPU_SHADER_2D_POINT_UNIFORM_SIZE_VARYING_COLOR_OUTLINE_AA",
-            .vert = datatoc_gpu_shader_2D_point_uniform_size_varying_color_outline_aa_vert_glsl,
-            .frag = datatoc_gpu_shader_point_varying_color_outline_aa_frag_glsl,
         },
     [GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR] =
         {
