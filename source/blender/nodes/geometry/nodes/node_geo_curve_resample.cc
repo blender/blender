@@ -188,8 +188,13 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveComponent *component
 
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
-        BLI_assert(mode_param.count);
-        output_splines[i] = resample_spline(*input_splines[i], std::max(cuts[i], 1));
+        if (input_splines[i]->evaluated_points_size() > 0) {
+          BLI_assert(mode_param.count);
+          output_splines[i] = resample_spline(*input_splines[i], std::max(cuts[i], 1));
+        }
+        else {
+          output_splines[i] = input_splines[i]->copy();
+        }
       }
     });
   }
@@ -201,18 +206,28 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveComponent *component
 
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
-        /* Don't allow asymptotic count increase for low resolution values. */
-        const float divide_length = std::max(lengths[i], 0.0001f);
-        const float spline_length = input_splines[i]->length();
-        const int count = std::max(int(spline_length / divide_length) + 1, 1);
-        output_splines[i] = resample_spline(*input_splines[i], count);
+        if (input_splines[i]->evaluated_points_size() > 0) {
+          /* Don't allow asymptotic count increase for low resolution values. */
+          const float divide_length = std::max(lengths[i], 0.0001f);
+          const float spline_length = input_splines[i]->length();
+          const int count = std::max(int(spline_length / divide_length) + 1, 1);
+          output_splines[i] = resample_spline(*input_splines[i], count);
+        }
+        else {
+          output_splines[i] = input_splines[i]->copy();
+        }
       }
     });
   }
   else if (mode_param.mode == GEO_NODE_CURVE_RESAMPLE_EVALUATED) {
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
-        output_splines[i] = resample_spline_evaluated(*input_splines[i]);
+        if (input_splines[i]->evaluated_points_size() > 0) {
+          output_splines[i] = resample_spline_evaluated(*input_splines[i]);
+        }
+        else {
+          output_splines[i] = input_splines[i]->copy();
+        }
       }
     });
   }
