@@ -281,10 +281,10 @@ class action_handlers:
         yield dict(type='RET', value='TAP')
 
     @staticmethod
-    def event(*, value, type, ctrl=False, alt=False, shift=False, repeat=1, only_validate=False):
+    def event(*, type, value, ctrl=False, alt=False, shift=False, repeat=1, only_validate=False):
         """
-        value: The event, typically key, e.g. 'ESC', 'RET', 'SPACE', 'A'.
-        type: The event type, valid values include: 'PRESS', 'RELEASE', 'TAP'.
+        type: The event, typically key, e.g. 'ESC', 'RET', 'SPACE', 'A'.
+        value: The event type, valid values include: 'PRESS', 'RELEASE', 'TAP'.
         ctrl: Control modifier.
         alt: Alt modifier.
         shift: Shift modifier.
