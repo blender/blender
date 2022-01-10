@@ -421,12 +421,12 @@ static StructRNA *rna_RenderEngine_refine(PointerRNA *ptr)
                                                         &RNA_RenderEngine;
 }
 
-static void rna_RenderEngine_tempdir_get(PointerRNA * /*ptr*/, char *value)
+static void rna_RenderEngine_tempdir_get(PointerRNA *UNUSED(ptr), char *value)
 {
   BLI_strncpy(value, BKE_tempdir_session(), FILE_MAX);
 }
 
-static int rna_RenderEngine_tempdir_length(PointerRNA * /*ptr*/)
+static int rna_RenderEngine_tempdir_length(PointerRNA *UNUSED(ptr))
 {
   return strlen(BKE_tempdir_session());
 }
