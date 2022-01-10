@@ -661,11 +661,6 @@ void ED_node_set_active(
 
     /* tree specific activate calls */
     if (ntree->type == NTREE_SHADER) {
-      /* when we select a material, active texture is cleared, for buttons */
-      if (node->id && ELEM(GS(node->id->name), ID_MA, ID_LA, ID_WO)) {
-        nodeClearActiveID(ntree, ID_TE);
-      }
-
       if (ELEM(node->type,
                SH_NODE_OUTPUT_MATERIAL,
                SH_NODE_OUTPUT_WORLD,

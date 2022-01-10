@@ -383,9 +383,6 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
         else if (wmn->data == ND_SHADING_LINKS) {
           ED_area_tag_refresh(area);
         }
-        else if (wmn->action == NA_ADDED && snode->edittree) {
-          nodeSetActiveID(snode->edittree, ID_MA, (ID *)wmn->reference);
-        }
       }
       break;
     case NC_TEXTURE:

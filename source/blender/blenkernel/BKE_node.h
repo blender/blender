@@ -777,16 +777,10 @@ void nodeSetSelected(struct bNode *node, bool select);
  */
 void nodeSetActive(struct bNodeTree *ntree, struct bNode *node);
 struct bNode *nodeGetActive(struct bNodeTree *ntree);
-/**
- * Two active flags, ID nodes have special flag for buttons display.
- */
-struct bNode *nodeGetActiveID(struct bNodeTree *ntree, short idtype);
-bool nodeSetActiveID(struct bNodeTree *ntree, short idtype, struct ID *id);
 void nodeClearActive(struct bNodeTree *ntree);
 /**
  * Two active flags, ID nodes have special flag for buttons display.
  */
-void nodeClearActiveID(struct bNodeTree *ntree, short idtype);
 struct bNode *nodeGetActiveTexture(struct bNodeTree *ntree);
 
 int nodeSocketIsHidden(const struct bNodeSocket *sock);

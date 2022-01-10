@@ -377,7 +377,7 @@ typedef struct bNode {
 #define NODE_PREVIEW 4
 #define NODE_HIDDEN 8
 #define NODE_ACTIVE 16
-#define NODE_ACTIVE_ID 32
+// #define NODE_ACTIVE_ID 32 /* deprecated */
 /* Used to indicate which group output node is used and which viewer node is active. */
 #define NODE_DO_OUTPUT 64
 #define __NODE_GROUP_EDIT 128 /* DEPRECATED */

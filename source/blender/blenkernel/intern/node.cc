@@ -3590,93 +3590,6 @@ bNode *nodeGetActive(bNodeTree *ntree)
   return nullptr;
 }
 
-static bNode *node_get_active_id_recursive(bNodeInstanceKey active_key,
-                                           bNodeInstanceKey parent_key,
-                                           bNodeTree *ntree,
-                                           short idtype)
-{
-  if (parent_key.value == active_key.value || active_key.value == 0) {
-    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->id && GS(node->id->name) == idtype) {
-        if (node->flag & NODE_ACTIVE_ID) {
-          return node;
-        }
-      }
-    }
-  }
-  else {
-    /* no node with active ID in this tree, look inside groups */
-    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->type == NODE_GROUP) {
-        bNodeTree *group = (bNodeTree *)node->id;
-        if (group) {
-          bNodeInstanceKey group_key = BKE_node_instance_key(parent_key, ntree, node);
-          bNode *tnode = node_get_active_id_recursive(active_key, group_key, group, idtype);
-          if (tnode) {
-            return tnode;
-          }
-        }
-      }
-    }
-  }
-  return nullptr;
-}
-
-bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
-{
-  if (ntree) {
-    return node_get_active_id_recursive(
-        ntree->active_viewer_key, NODE_INSTANCE_KEY_BASE, ntree, idtype);
-  }
-  return nullptr;
-}
-
-bool nodeSetActiveID(bNodeTree *ntree, short idtype, ID *id)
-{
-  bool ok = false;
-
-  if (ntree == nullptr) {
-    return ok;
-  }
-
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->id && GS(node->id->name) == idtype) {
-      if (id && ok == false && node->id == id) {
-        node->flag |= NODE_ACTIVE_ID;
-        ok = true;
-      }
-      else {
-        node->flag &= ~NODE_ACTIVE_ID;
-      }
-    }
-  }
-
-  /* update all groups linked from here
-   * if active ID node has been found already,
-   * just pass null so other matching nodes are deactivated.
-   */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == NODE_GROUP) {
-      ok |= nodeSetActiveID((bNodeTree *)node->id, idtype, (ok == false ? id : nullptr));
-    }
-  }
-
-  return ok;
-}
-
-void nodeClearActiveID(bNodeTree *ntree, short idtype)
-{
-  if (ntree == nullptr) {
-    return;
-  }
-
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->id && GS(node->id->name) == idtype) {
-      node->flag &= ~NODE_ACTIVE_ID;
-    }
-  }
-}
-
 void nodeSetSelected(bNode *node, bool select)
 {
   if (select) {
@@ -3702,7 +3615,7 @@ void nodeClearActive(bNodeTree *ntree)
   }
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    node->flag &= ~(NODE_ACTIVE | NODE_ACTIVE_ID);
+    node->flag &= ~NODE_ACTIVE;
   }
 }
 
@@ -3712,11 +3625,6 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
   LISTBASE_FOREACH (bNode *, tnode, &ntree->nodes) {
     tnode->flag &= ~NODE_ACTIVE;
 
-    if (node->id && tnode->id) {
-      if (GS(node->id->name) == GS(tnode->id->name)) {
-        tnode->flag &= ~NODE_ACTIVE_ID;
-      }
-    }
     if ((node->typeinfo->nclass == NODE_CLASS_TEXTURE) ||
         (node->typeinfo->type == GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE)) {
       tnode->flag &= ~NODE_ACTIVE_TEXTURE;
@@ -3724,9 +3632,6 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
   }
 
   node->flag |= NODE_ACTIVE;
-  if (node->id) {
-    node->flag |= NODE_ACTIVE_ID;
-  }
   if ((node->typeinfo->nclass == NODE_CLASS_TEXTURE) ||
       (node->typeinfo->type == GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE)) {
     node->flag |= NODE_ACTIVE_TEXTURE;
