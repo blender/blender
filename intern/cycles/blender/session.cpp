@@ -502,9 +502,14 @@ void BlenderSession::render_frame_finish()
     path_remove(filename);
   }
 
-  /* Clear driver. */
+  /* Clear output driver. */
   session->set_output_driver(nullptr);
   session->full_buffer_written_cb = function_null;
+
+  /* The display driver holds OpenGL resources which belong to an OpenGL context held by the render
+   * engine on Blender side. Force destruction of those resources. */
+  display_driver_ = nullptr;
+  session->set_display_driver(nullptr);
 
   /* All the files are handled.
    * Clear the list so that this session can be re-used by Persistent Data. */
