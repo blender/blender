@@ -407,10 +407,8 @@ if(WITH_GTESTS)
       tests/gpu_testing.hh
     )
     set(TEST_INC
-      ../../../intern/ghost
     )
     set(TEST_LIB
-
     )
     include(GTestTesting)
     blender_add_test_lib(bf_gpu_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
