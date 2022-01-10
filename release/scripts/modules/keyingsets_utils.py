@@ -238,11 +238,15 @@ def RKS_GEN_custom_props(_ksi, _context, ks, data):
             continue
 
         prop_path = '["%s"]' % bpy.utils.escape_identifier(cprop_name)
+
         try:
             rna_property = data.path_resolve(prop_path, False)
         except ValueError:
-            # This happens when a custom property is set to None. In that case it cannot
-            # be converted to an FCurve-compatible value, so we can't keyframe it anyway.
+            # Can technically happen, but there is no known case.
+            continue
+        if rna_property is None:
+            # In this case the property cannot be converted to an 
+            # FCurve-compatible value, so we can't keyframe it anyways.
             continue
         if rna_property.rna_type not in prop_type_compat:
             continue
