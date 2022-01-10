@@ -3762,7 +3762,12 @@ static void ui_do_but_textedit(
       case EVT_VKEY:
       case EVT_XKEY:
       case EVT_CKEY:
-        if (IS_EVENT_MOD(event, ctrl, oskey)) {
+#if defined(__APPLE__)
+        if ((event->oskey && !IS_EVENT_MOD(event, shift, alt, ctrl)) ||
+            (event->ctrl && !IS_EVENT_MOD(event, shift, alt, oskey))) {
+#else
+        if (event->ctrl && !IS_EVENT_MOD(event, shift, alt, oskey)) {
+#endif
           if (event->type == EVT_VKEY) {
             changed = ui_textedit_copypaste(but, data, UI_TEXTEDIT_PASTE);
           }
