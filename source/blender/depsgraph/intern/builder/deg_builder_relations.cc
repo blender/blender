@@ -2530,8 +2530,13 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
        * changed. The parent node group is currently explicitly tagged for update in
        * #ED_node_tree_propagate_change. In the future we could move this relation to the
        * depsgraph, but then the depsgraph has to do some more static analysis of the node tree to
-       * see which groups the output actually depends on. */
-      add_relation(group_output_key, ntree_output_key, "Group Node", RELATION_FLAG_NO_FLUSH);
+       * see which groups the output actually depends on.
+       *
+       * Furthermore, shader nodes currently depend on relations being created from e.g. objects to
+       * nodes. Geometry nodes do not depend on these relations, because they are explicitly
+       * created by the modifier (which is the thing that actually depends on the objects). */
+      const int relation_flag = (group_ntree->type == NTREE_SHADER) ? 0 : RELATION_FLAG_NO_FLUSH;
+      add_relation(group_output_key, ntree_output_key, "Group Node", relation_flag);
     }
     else {
       BLI_assert_msg(0, "Unknown ID type used for node");
