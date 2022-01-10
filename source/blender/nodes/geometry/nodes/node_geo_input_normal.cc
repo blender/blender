@@ -167,6 +167,7 @@ static void calculate_nurbs_normals(const NURBSpline &spline, MutableSpan<float3
   PolySpline poly_spline;
   poly_spline.resize(spline.size());
   poly_spline.positions().copy_from(spline.positions());
+  poly_spline.tilts().copy_from(spline.tilts());
   normals.copy_from(poly_spline.evaluated_normals());
 }
 
