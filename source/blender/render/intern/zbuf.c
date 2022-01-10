@@ -19,6 +19,9 @@
 
 /** \file
  * \ingroup render
+ *
+ * \note Some of this logic has been duplicated in `COM_VectorBlurOperation.cc`
+ * changes here may also apply also apply to that file.
  */
 
 /*---------------------------------------------------------------------------*/
