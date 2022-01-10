@@ -2406,7 +2406,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->bm_log = log;
   pbvh->cd_faceset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
 
-  pbvh->depth_limit = 18;
+  pbvh->depth_limit = 28;
 
   /* TODO: choose leaf limit better */
   pbvh->leaf_limit = 1000;

@@ -55,7 +55,7 @@
 #include <limits.h>
 
 #define LEAF_LIMIT 4000
-#define LEAF_DEPTH_LIMIT 18
+#define LEAF_DEPTH_LIMIT 28
 
 //#define PERFCNTRS
 
