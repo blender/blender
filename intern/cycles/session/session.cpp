@@ -426,6 +426,11 @@ void Session::do_delayed_reset()
   buffer_params_.update_passes(scene->passes);
   tile_manager_.update(buffer_params_, scene);
 
+  /* Update temp directory on reset.
+   * This potentially allows to finish the existing rendering with a previously configure temporary
+   * direcotry in the host software and switch to a new temp directory when new render starts. */
+  tile_manager_.set_temp_dir(params.temp_dir);
+
   /* Progress. */
   progress.reset_sample();
   progress.set_total_pixel_samples(static_cast<uint64_t>(buffer_params_.width) *

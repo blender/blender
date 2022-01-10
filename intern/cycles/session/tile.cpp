@@ -23,6 +23,7 @@
 #include "scene/film.h"
 #include "scene/integrator.h"
 #include "scene/scene.h"
+#include "session/session.h"
 #include "util/algorithm.h"
 #include "util/foreach.h"
 #include "util/log.h"
@@ -394,6 +395,11 @@ void TileManager::update(const BufferParams &params, const Scene *scene)
   }
 }
 
+void TileManager::set_temp_dir(const string &temp_dir)
+{
+  temp_dir_ = temp_dir;
+}
+
 bool TileManager::done()
 {
   return tile_state_.next_tile_index == tile_state_.num_tiles;
@@ -452,7 +458,8 @@ const int2 TileManager::get_size() const
 
 bool TileManager::open_tile_output()
 {
-  write_state_.filename = path_temp_get("cycles-tile-buffer-" + tile_file_unique_part_ + "-" +
+  write_state_.filename = path_join(temp_dir_,
+                                    "cycles-tile-buffer-" + tile_file_unique_part_ + "-" +
                                         to_string(write_state_.tile_file_index) + ".exr");
 
   write_state_.tile_out = ImageOutput::create(write_state_.filename);

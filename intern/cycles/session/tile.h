@@ -71,6 +71,8 @@ class TileManager {
    * Will store all parameters needed for buffers access outside of the scene graph. */
   void update(const BufferParams &params, const Scene *scene);
 
+  void set_temp_dir(const string &temp_dir);
+
   inline int get_num_tiles() const
   {
     return tile_state_.num_tiles;
@@ -135,6 +137,8 @@ class TileManager {
 
   bool open_tile_output();
   bool close_tile_output();
+
+  string temp_dir_;
 
   /* Part of an on-disk tile file name which avoids conflicts between several Cycles instances or
    * several sessions. */

@@ -832,6 +832,14 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
   SessionParams params;
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
+  if (background && !b_engine.is_preview()) {
+    /* Viewport and preview renders do not require temp directory and do request session
+     * parameters more often than the background render.
+     * Optimize RNA-C++ usage and memory allocation a bit by saving string access which we know is
+     * not needed for viewport render. */
+    params.temp_dir = b_engine.temporary_directory();
+  }
+
   /* feature set */
   params.experimental = (get_enum(cscene, "feature_set") != 0);
 

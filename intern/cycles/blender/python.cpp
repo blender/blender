@@ -138,20 +138,18 @@ static const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 
 static PyObject *init_func(PyObject * /*self*/, PyObject *args)
 {
-  PyObject *path, *user_path, *temp_path;
+  PyObject *path, *user_path;
   int headless;
 
-  if (!PyArg_ParseTuple(args, "OOOi", &path, &user_path, &temp_path, &headless)) {
+  if (!PyArg_ParseTuple(args, "OOi", &path, &user_path, &headless)) {
     return nullptr;
   }
 
-  PyObject *path_coerce = nullptr, *user_path_coerce = nullptr, *temp_path_coerce = nullptr;
+  PyObject *path_coerce = nullptr, *user_path_coerce = nullptr;
   path_init(PyC_UnicodeAsByte(path, &path_coerce),
-            PyC_UnicodeAsByte(user_path, &user_path_coerce),
-            PyC_UnicodeAsByte(temp_path, &temp_path_coerce));
+            PyC_UnicodeAsByte(user_path, &user_path_coerce));
   Py_XDECREF(path_coerce);
   Py_XDECREF(user_path_coerce);
-  Py_XDECREF(temp_path_coerce);
 
   BlenderSession::headless = headless;
 
