@@ -14,6 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "BLI_task.hh"
+
 #include "DNA_ID_enums.h"
 #include "DNA_curve_types.h"
 
@@ -387,6 +389,98 @@ static const CurveEval *get_curve_from_component_for_read(const GeometryComponen
 /** \} */
 
 namespace blender::bke {
+
+/* -------------------------------------------------------------------- */
+/** \name Curve Normals Access
+ * \{ */
+
+static void calculate_bezier_normals(const BezierSpline &spline, MutableSpan<float3> normals)
+{
+  Span<int> offsets = spline.control_point_offsets();
+  Span<float3> evaluated_normals = spline.evaluated_normals();
+  for (const int i : IndexRange(spline.size())) {
+    normals[i] = evaluated_normals[offsets[i]];
+  }
+}
+
+static void calculate_poly_normals(const PolySpline &spline, MutableSpan<float3> normals)
+{
+  normals.copy_from(spline.evaluated_normals());
+}
+
+/**
+ * Because NURBS control points are not necessarily on the path, the normal at the control points
+ * is not well defined, so create a temporary poly spline to find the normals. This requires extra
+ * copying currently, but may be more efficient in the future if attributes have some form of CoW.
+ */
+static void calculate_nurbs_normals(const NURBSpline &spline, MutableSpan<float3> normals)
+{
+  PolySpline poly_spline;
+  poly_spline.resize(spline.size());
+  poly_spline.positions().copy_from(spline.positions());
+  poly_spline.tilts().copy_from(spline.tilts());
+  normals.copy_from(poly_spline.evaluated_normals());
+}
+
+static Array<float3> curve_normal_point_domain(const CurveEval &curve)
+{
+  Span<SplinePtr> splines = curve.splines();
+  Array<int> offsets = curve.control_point_offsets();
+  const int total_size = offsets.last();
+  Array<float3> normals(total_size);
+
+  threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
+    for (const int i : range) {
+      const Spline &spline = *splines[i];
+      MutableSpan spline_normals{normals.as_mutable_span().slice(offsets[i], spline.size())};
+      switch (splines[i]->type()) {
+        case Spline::Type::Bezier:
+          calculate_bezier_normals(static_cast<const BezierSpline &>(spline), spline_normals);
+          break;
+        case Spline::Type::Poly:
+          calculate_poly_normals(static_cast<const PolySpline &>(spline), spline_normals);
+          break;
+        case Spline::Type::NURBS:
+          calculate_nurbs_normals(static_cast<const NURBSpline &>(spline), spline_normals);
+          break;
+      }
+    }
+  });
+  return normals;
+}
+
+VArray<float3> curve_normals_varray(const CurveComponent &component, const AttributeDomain domain)
+{
+  const CurveEval *curve = component.get_for_read();
+  if (curve == nullptr) {
+    return nullptr;
+  }
+
+  if (domain == ATTR_DOMAIN_POINT) {
+    const Span<SplinePtr> splines = curve->splines();
+
+    /* Use a reference to evaluated normals if possible to avoid an allocation and a copy.
+     * This is only possible when there is only one poly spline. */
+    if (splines.size() == 1 && splines.first()->type() == Spline::Type::Poly) {
+      const PolySpline &spline = static_cast<PolySpline &>(*splines.first());
+      return VArray<float3>::ForSpan(spline.evaluated_normals());
+    }
+
+    Array<float3> normals = curve_normal_point_domain(*curve);
+    return VArray<float3>::ForContainer(std::move(normals));
+  }
+
+  if (domain == ATTR_DOMAIN_CURVE) {
+    Array<float3> point_normals = curve_normal_point_domain(*curve);
+    VArray<float3> varray = VArray<float3>::ForContainer(std::move(point_normals));
+    return component.attribute_try_adapt_domain<float3>(
+        std::move(varray), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
+  }
+
+  return nullptr;
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Builtin Spline Attributes

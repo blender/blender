@@ -1078,6 +1078,30 @@ class IDAttributeFieldInput : public GeometryFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override;
 };
 
+VArray<float3> curve_normals_varray(const CurveComponent &component, const AttributeDomain domain);
+
+VArray<float3> mesh_normals_varray(const MeshComponent &mesh_component,
+                                   const Mesh &mesh,
+                                   const IndexMask mask,
+                                   const AttributeDomain domain);
+
+class NormalFieldInput : public GeometryFieldInput {
+ public:
+  NormalFieldInput() : GeometryFieldInput(CPPType::get<float3>())
+  {
+    category_ = Category::Generated;
+  }
+
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask mask) const override;
+
+  std::string socket_inspection_name() const override;
+
+  uint64_t hash() const override;
+  bool is_equal_to(const fn::FieldNode &other) const override;
+};
+
 class AnonymousAttributeFieldInput : public GeometryFieldInput {
  private:
   /**
