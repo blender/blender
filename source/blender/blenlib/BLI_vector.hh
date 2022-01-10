@@ -163,7 +163,7 @@ class Vector {
   /**
    * Create a vector from a span. The values in the vector are copy constructed.
    */
-  template<typename U, typename std::enable_if_t<std::is_convertible_v<U, T>> * = nullptr>
+  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
   Vector(Span<U> values, Allocator allocator = {}) : Vector(NoExceptConstructor(), allocator)
   {
     const int64_t size = values.size();
@@ -178,7 +178,7 @@ class Vector {
    * This allows you to write code like:
    * Vector<int> vec = {3, 4, 5};
    */
-  template<typename U, typename std::enable_if_t<std::is_convertible_v<U, T>> * = nullptr>
+  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
   Vector(const std::initializer_list<U> &values) : Vector(Span<U>(values))
   {
   }
@@ -187,9 +187,7 @@ class Vector {
   {
   }
 
-  template<typename U,
-           size_t N,
-           typename std::enable_if_t<std::is_convertible_v<U, T>> * = nullptr>
+  template<typename U, size_t N, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
   Vector(const std::array<U, N> &values) : Vector(Span(values))
   {
   }
@@ -197,7 +195,7 @@ class Vector {
   template<typename InputIt,
            /* This constructor should not be called with e.g. Vector(3, 10), because that is
             * expected to produce the vector (10, 10, 10). */
-           typename std::enable_if_t<!std::is_convertible_v<InputIt, int>> * = nullptr>
+           BLI_ENABLE_IF((!std::is_convertible_v<InputIt, int>))>
   Vector(InputIt first, InputIt last, Allocator allocator = {})
       : Vector(NoExceptConstructor(), allocator)
   {
@@ -326,13 +324,13 @@ class Vector {
     return MutableSpan<T>(begin_, this->size());
   }
 
-  template<typename U, typename std::enable_if_t<is_span_convertible_pointer_v<T, U>> * = nullptr>
+  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<T, U>))>
   operator Span<U>() const
   {
     return Span<U>(begin_, this->size());
   }
 
-  template<typename U, typename std::enable_if_t<is_span_convertible_pointer_v<T, U>> * = nullptr>
+  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<T, U>))>
   operator MutableSpan<U>()
   {
     return MutableSpan<U>(begin_, this->size());
