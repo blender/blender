@@ -732,6 +732,7 @@ class ToolSelectPanelHelper:
 
             if item.get_enabled is not None:
                 sub2 = sub.row(align=False)
+                sub2.scale_x = 2.0
                 sub2.enabled = item.get_enabled(context, item.idname)
 
             if use_menu:

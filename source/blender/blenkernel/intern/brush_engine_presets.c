@@ -971,6 +971,32 @@ void BKE_brush_channelset_compat_load(BrushChannelSet *chset, Brush *brush, bool
       brush->flag &= ~BRUSH_INVERSE_SMOOTH_PRESSURE;
     }
   }
+
+  if (brush_to_channels) {
+    BrushChannel *ch = BRUSHSET_LOOKUP(chset, falloff_curve);
+
+    if (ch) {
+      ch->curve.preset = brush->curve_preset;
+      BKE_brush_channel_curve_ensure_write(&ch->curve);
+
+      if (brush->curve && brush->curve_preset == BRUSH_CURVE_CUSTOM) {
+        BKE_curvemapping_free_data(ch->curve.curve);
+        BKE_curvemapping_copy_data(ch->curve.curve, brush->curve);
+      }
+    }
+  }
+  else {
+    BrushChannel *ch = BRUSHSET_LOOKUP(chset, falloff_curve);
+
+    if (ch) {
+      brush->curve_preset = ch->curve.preset;
+
+      if (ch->curve.curve && ch->curve.preset == BRUSH_CURVE_CUSTOM) {
+        BKE_curvemapping_free_data(brush->curve);
+        BKE_curvemapping_copy_data(brush->curve, ch->curve.curve);
+      }
+    }
+  }
 }
 
 /* todo: move into BKE_brush_reset_mapping*/
@@ -1755,6 +1781,8 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       break;
     }
     case SCULPT_TOOL_DRAW_SHARP:
+      BRUSHSET_LOOKUP(chset, falloff_curve)->curve.preset = BRUSH_CURVE_POW4;
+
       BRUSHSET_LOOKUP(chset, spacing)->fvalue = 5;
       BRUSHSET_SET_INT(chset, direction, 1);
       BRUSHSET_LOOKUP(chset, radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |=
@@ -1765,12 +1793,15 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
     case SCULPT_TOOL_FAIRING:
     case SCULPT_TOOL_SCENE_PROJECT:
+      BRUSHSET_LOOKUP(chset, falloff_curve)->curve.preset = BRUSH_CURVE_SMOOTHER;
       BRUSHSET_LOOKUP(chset, spacing)->fvalue = 10;
       BRUSHSET_LOOKUP(chset, strength)->fvalue = 1.0f;
       BRUSHSET_LOOKUP(chset, dyntopo_disabled)->ivalue = 1;
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       break;
     case SCULPT_TOOL_SMEAR:
+      BRUSHSET_LOOKUP(chset, falloff_curve)->curve.preset = BRUSH_CURVE_SPHERE;
+
       BRUSHSET_SET_FLOAT(chset, spacing, 5.0f);
       BRUSHSET_SET_FLOAT(chset, strength, 1.0f);
       BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
@@ -1837,7 +1868,7 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
           ~BRUSH_MAPPING_ENABLED;
       break;
     case SCULPT_TOOL_CLAY_STRIPS: {
-      // BRUSHSET_LOOKUP(chset, falloff_curve)->curve.preset = BRUSH_CURVE_SMOOTHER;
+      BRUSHSET_LOOKUP(chset, falloff_curve)->curve.preset = BRUSH_CURVE_SMOOTHER;
 
       BRUSHSET_LOOKUP(chset, radius)->mappings[BRUSH_MAPPING_PRESSURE].flag |=
           BRUSH_MAPPING_ENABLED;
@@ -1958,6 +1989,8 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
       break;
     case SCULPT_TOOL_BOUNDARY:
+      BRUSHSET_LOOKUP(chset, falloff_curve)->curve.preset = BRUSH_CURVE_CONSTANT;
+
       BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
           ~BRUSH_MAPPING_ENABLED;
       BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
@@ -1971,10 +2004,16 @@ void BKE_brush_builtin_create(Brush *brush, int tool)
       ADDCH(elastic_deform_type);
       ADDCH(elastic_deform_volume_preservation);
       break;
+    case SCULPT_TOOL_DISPLACEMENT_SMEAR:
+      BRUSHSET_LOOKUP(chset, falloff_curve)->curve.preset = BRUSH_CURVE_SMOOTHER;
+      BRUSHSET_LOOKUP(chset, strength)->mappings[BRUSH_MAPPING_PRESSURE].flag &=
+          ~BRUSH_MAPPING_ENABLED;
+      BRUSHSET_SET_BOOL(chset, use_space_attenuation, false);
+      BRUSHSET_SET_FLOAT(chset, hardness, 0.7f);
+      BRUSHSET_SET_FLOAT(chset, spacing, 5.0f);
+      BRUSHSET_SET_FLOAT(chset, strength, 1.0f);
+      break;
     default: {
-      // implement me!
-      // BKE_brush_channelset_free(chset);
-      // brush->channels = NULL;
       break;
     }
   }
