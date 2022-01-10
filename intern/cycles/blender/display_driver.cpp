@@ -941,7 +941,7 @@ void BlenderDisplayDriver::draw(const Params &params)
 
   glActiveTexture(GL_TEXTURE0);
 
-  /* NOTE: THe VAO is to be allocated on the drawing context as it is not shared across contects.
+  /* NOTE: The VAO is to be allocated on the drawing context as it is not shared across contexts.
    * Simplest is to allocate it on every redraw so that it is possible to destroy it from a
    * correct context. */
   GLuint vertex_array_object;

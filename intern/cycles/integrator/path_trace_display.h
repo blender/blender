@@ -46,7 +46,7 @@ class PathTraceDisplay {
    *
    * This call will configure parameters for a changed buffer and reset the texture state.
    *
-   * When the `reset_rendering` a complete displat reset happens. When it is false reset happens
+   * When the `reset_rendering` a complete display reset happens. When it is false reset happens
    * for a new state of the buffer parameters which is assumed to correspond to the next tile. */
   void reset(const BufferParams &buffer_params, bool reset_rendering);
 

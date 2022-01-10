@@ -51,9 +51,6 @@
 /** \defgroup intern_mikktspace MikktSpace
  *  \ingroup intern */
 
-/** \defgroup intern_numaapi NUMA (Non Uniform Memory Architecture)
- *  \ingroup intern */
-
 /** \defgroup intern_rigidbody Rigid-Body C-API
  *  \ingroup intern */
 

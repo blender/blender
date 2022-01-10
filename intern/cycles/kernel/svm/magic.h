@@ -25,7 +25,7 @@ ccl_device_noinline_cpu float3 svm_magic(float3 p, float scale, int n, float dis
   /*
    * Prevent NaNs due to input p
    * Sin and Cosine are periodic about [0 2*PI) so the following
-   * will yeild a more accurate result. As it stops the input values
+   * will yield a more accurate result. As it stops the input values
    * going out of range for floats which caused a NaN. The
    * calculation of (px + py + pz)*5 can cause an Inf when one or more
    * values are very large the cos or sin of this results in a NaN

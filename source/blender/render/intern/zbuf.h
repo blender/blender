@@ -24,7 +24,7 @@
 extern "C" {
 #endif
 
-/* span fill in method, is also used to localize data for zbuffering */
+/** Span fill in method, is also used to localize data for Z-buffering. */
 typedef struct ZSpan {
   int rectx, recty; /* range for clipping */
 
