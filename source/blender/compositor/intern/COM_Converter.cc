@@ -46,6 +46,7 @@
 #include "COM_CombineColorNode.h"
 #include "COM_CompositorNode.h"
 #include "COM_ConvertAlphaNode.h"
+#include "COM_ConvertColorSpaceNode.h"
 #include "COM_ConvertOperation.h"
 #include "COM_Converter.h"
 #include "COM_CornerPinNode.h"
@@ -425,6 +426,9 @@ Node *COM_convert_bnode(bNode *b_node)
       break;
     case CMP_NODE_POSTERIZE:
       node = new PosterizeNode(b_node);
+      break;
+    case CMP_NODE_CONVERT_COLOR_SPACE:
+      node = new ConvertColorSpaceNode(b_node);
       break;
   }
   return node;

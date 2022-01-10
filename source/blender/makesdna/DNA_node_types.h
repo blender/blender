@@ -923,6 +923,11 @@ typedef struct NodeColorspill {
   float uspillr, uspillg, uspillb;
 } NodeColorspill;
 
+typedef struct NodeConvertColorSpace {
+  char from_color_space[64];
+  char to_color_space[64];
+} NodeConvertColorSpace;
+
 typedef struct NodeDilateErode {
   char falloff;
 } NodeDilateErode;

@@ -51,6 +51,7 @@ set(SRC
   nodes/node_composite_color_spill.cc
   nodes/node_composite_colorbalance.cc
   nodes/node_composite_colorcorrection.cc
+  nodes/node_composite_convert_color_space.cc
   nodes/node_composite_common.cc
   nodes/node_composite_composite.cc
   nodes/node_composite_cornerpin.cc

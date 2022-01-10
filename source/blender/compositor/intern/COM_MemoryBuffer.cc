@@ -289,6 +289,23 @@ void MemoryBuffer::copy_from(const uchar *src,
   }
 }
 
+void MemoryBuffer::apply_processor(ColormanageProcessor &processor, const rcti area)
+{
+  const int width = BLI_rcti_size_x(&area);
+  const int height = BLI_rcti_size_y(&area);
+  float *out = get_elem(area.xmin, area.ymin);
+  /* If area allows continuous memory do conversion in one step. Otherwise per row. */
+  if (get_width() == width) {
+    IMB_colormanagement_processor_apply(&processor, out, width, height, get_num_channels(), false);
+  }
+  else {
+    for (int y = 0; y < height; y++) {
+      IMB_colormanagement_processor_apply(&processor, out, width, 1, get_num_channels(), false);
+      out += row_stride;
+    }
+  }
+}
+
 static void colorspace_to_scene_linear(MemoryBuffer *buf, const rcti &area, ColorSpace *colorspace)
 {
   const int width = BLI_rcti_size_x(&area);

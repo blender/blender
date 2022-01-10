@@ -137,6 +137,7 @@ extern StructRNA RNA_CompositorNodeChannelMatte;
 extern StructRNA RNA_CompositorNodeChromaMatte;
 extern StructRNA RNA_CompositorNodeColorMatte;
 extern StructRNA RNA_CompositorNodeColorSpill;
+extern StructRNA RNA_CompositorNodeConvertColorSpace;
 extern StructRNA RNA_CompositorNodeCombHSVA;
 extern StructRNA RNA_CompositorNodeCombRGBA;
 extern StructRNA RNA_CompositorNodeCombYCCA;

@@ -4582,6 +4582,7 @@ static void registerCompositNodes()
   register_node_type_cmp_denoise();
   register_node_type_cmp_antialiasing();
 
+  register_node_type_cmp_convert_color_space();
   register_node_type_cmp_valtorgb();
   register_node_type_cmp_rgbtobw();
   register_node_type_cmp_setalpha();

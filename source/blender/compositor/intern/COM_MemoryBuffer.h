@@ -26,6 +26,8 @@
 #include "BLI_math_interp.h"
 #include "BLI_rect.h"
 
+#include "IMB_colormanagement.h"
+
 struct ImBuf;
 
 namespace blender::compositor {
@@ -577,6 +579,11 @@ class MemoryBuffer {
   {
     return state_ == MemoryBufferState::Temporary;
   }
+
+  /**
+   * \brief Apply a color processor on the given area.
+   */
+  void apply_processor(ColormanageProcessor &processor, const rcti area);
 
   void copy_from(const MemoryBuffer *src, const rcti &area);
   void copy_from(const MemoryBuffer *src, const rcti &area, int to_x, int to_y);
