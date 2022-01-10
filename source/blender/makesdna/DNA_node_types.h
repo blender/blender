@@ -106,15 +106,21 @@ typedef struct bNodeSocket {
   /** MAX_NAME. */
   char name[64];
 
-  /* XXX deprecated, only used for the Image and OutputFile nodes,
-   * should be removed at some point.
-   */
-  /** Custom storage. */
+  /** Only used for the Image and OutputFile nodes, should be removed at some point. */
   void *storage;
 
-  short type, flag;
-  /** Max. number of links. Read via nodeSocketLinkLimit,
-   * because the limit might be defined on the socket type. */
+  /**
+   * The socket's data type. #eNodeSocketDatatype.
+   */
+  short type;
+  /** #eNodeSocketFlag */
+  short flag;
+  /**
+   * Maximum number of links that can connect to the socket. Read via #nodeSocketLinkLimit, because
+   * the limit might be defined on the socket type, in which case this value does not have any
+   * effect. It is necessary to store this in the socket because it is exposed as an RNA property
+   * for custom nodes.
+   */
   short limit;
   /** Input/output type. */
   short in_out;
@@ -123,6 +129,10 @@ typedef struct bNodeSocket {
   /** Runtime type identifier. */
   char idname[64];
 
+  /**
+   * The location of the sockets, in the view-space of the node editor.
+   * \note These are runtime data-- only calculated when drawing, and could be removed from DNA.
+   */
   float locx, locy;
 
   /** Default input value used for unlinked sockets. */
