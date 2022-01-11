@@ -765,7 +765,7 @@ static short gp_stroke_addpoint(tGPsdata *p, const float mval[2], float pressure
     /* color strength */
     if (brush_settings->flag & GP_BRUSH_USE_STENGTH_PRESSURE) {
       pt->strength *= BKE_curvemapping_evaluateF(brush_settings->curve_strength, 0, pressure);
-      CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
+      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
     }
 
     if (brush_settings->flag & GP_BRUSH_GROUP_RANDOM) {
@@ -865,6 +865,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
   tGPspoint *ptc;
   MDeformVert *dvert = NULL;
   Brush *brush = p->brush;
+  BrushGpencilSettings *brush_settings = brush->gpencil_settings;
   ToolSettings *ts = p->scene->toolsettings;
   Depsgraph *depsgraph = p->depsgraph;
   Object *obact = (Object *)p->ownerPtr.data;
@@ -958,7 +959,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
       /* copy pressure and time */
       pt->pressure = ptc->pressure;
       pt->strength = ptc->strength;
-      CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
+      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
       pt->time = ptc->time;
       /* Apply the vertex color to point. */
       ED_gpencil_point_vertex_color_set(ts, brush, pt);
@@ -991,7 +992,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
       /* copy pressure and time */
       pt->pressure = ptc->pressure;
       pt->strength = ptc->strength;
-      CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
+      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
       pt->time = ptc->time;
       /* Apply the vertex color to point. */
       ED_gpencil_point_vertex_color_set(ts, brush, pt);
@@ -1112,7 +1113,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
       /* copy pressure and time */
       pt->pressure = ptc->pressure;
       pt->strength = ptc->strength;
-      CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
+      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
       pt->time = ptc->time;
       pt->uv_fac = ptc->uv_fac;
       pt->uv_rot = ptc->uv_rot;
