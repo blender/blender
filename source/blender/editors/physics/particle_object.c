@@ -939,7 +939,9 @@ static bool connect_hair(Depsgraph *depsgraph, Scene *scene, Object *ob, Particl
                           ob->obmat,
                           psys->flag & PSYS_GLOBAL_HAIR,
                           false);
-  psys->flag &= ~PSYS_GLOBAL_HAIR;
+  if (ok) {
+    psys->flag &= ~PSYS_GLOBAL_HAIR;
+  }
 
   return ok;
 }
