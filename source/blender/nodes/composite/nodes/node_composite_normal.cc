@@ -25,7 +25,7 @@
 
 /* **************** NORMAL  ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_normal_cc {
 
 static void cmp_node_normal_declare(NodeDeclarationBuilder &b)
 {
@@ -38,14 +38,16 @@ static void cmp_node_normal_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Dot"));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_composite_normal_cc
 
 void register_node_type_cmp_normal()
 {
+  namespace file_ns = blender::nodes::node_composite_normal_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR);
-  ntype.declare = blender::nodes::cmp_node_normal_declare;
+  ntype.declare = file_ns::cmp_node_normal_declare;
 
   nodeRegisterType(&ntype);
 }

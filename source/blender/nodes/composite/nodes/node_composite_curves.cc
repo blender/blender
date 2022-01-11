@@ -28,14 +28,12 @@
 
 /* **************** CURVE Time  ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_curves_cc {
 
 static void cmp_node_time_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Float>(N_("Fac"));
 }
-
-}  // namespace blender::nodes
 
 /* custom1 = start_frame, custom2 = end_frame */
 static void node_composit_init_curves_time(bNodeTree *UNUSED(ntree), bNode *node)
@@ -45,14 +43,18 @@ static void node_composit_init_curves_time(bNodeTree *UNUSED(ntree), bNode *node
   node->storage = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
+}  // namespace blender::nodes::node_composite_curves_cc
+
 void register_node_type_cmp_curve_time()
 {
+  namespace file_ns = blender::nodes::node_composite_curves_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_TIME, "Time", NODE_CLASS_INPUT);
-  ntype.declare = blender::nodes::cmp_node_time_declare;
+  ntype.declare = file_ns::cmp_node_time_declare;
   node_type_size(&ntype, 200, 140, 320);
-  node_type_init(&ntype, node_composit_init_curves_time);
+  node_type_init(&ntype, file_ns::node_composit_init_curves_time);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
 
   nodeRegisterType(&ntype);
@@ -60,15 +62,13 @@ void register_node_type_cmp_curve_time()
 
 /* **************** CURVE VEC  ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_curves_cc {
 
 static void cmp_node_curve_vec_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Vector>(N_("Vector")).default_value({0.0f, 0.0f, 0.0f}).min(-1.0f).max(1.0f);
   b.add_output<decl::Vector>(N_("Vector"));
 }
-
-}  // namespace blender::nodes
 
 static void node_composit_init_curve_vec(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -80,15 +80,19 @@ static void node_buts_curvevec(uiLayout *layout, bContext *UNUSED(C), PointerRNA
   uiTemplateCurveMapping(layout, ptr, "mapping", 'v', false, false, false, false);
 }
 
+}  // namespace blender::nodes::node_composite_curves_cc
+
 void register_node_type_cmp_curve_vec()
 {
+  namespace file_ns = blender::nodes::node_composite_curves_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR);
-  ntype.declare = blender::nodes::cmp_node_curve_vec_declare;
-  ntype.draw_buttons = node_buts_curvevec;
+  ntype.declare = file_ns::cmp_node_curve_vec_declare;
+  ntype.draw_buttons = file_ns::node_buts_curvevec;
   node_type_size(&ntype, 200, 140, 320);
-  node_type_init(&ntype, node_composit_init_curve_vec);
+  node_type_init(&ntype, file_ns::node_composit_init_curve_vec);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
 
   nodeRegisterType(&ntype);
@@ -96,7 +100,7 @@ void register_node_type_cmp_curve_vec()
 
 /* **************** CURVE RGB  ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_curves_cc {
 
 static void cmp_node_rgbcurves_declare(NodeDeclarationBuilder &b)
 {
@@ -108,21 +112,23 @@ static void cmp_node_rgbcurves_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-}  // namespace blender::nodes
-
 static void node_composit_init_curve_rgb(bNodeTree *UNUSED(ntree), bNode *node)
 {
   node->storage = BKE_curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
+}  // namespace blender::nodes::node_composite_curves_cc
+
 void register_node_type_cmp_curve_rgb()
 {
+  namespace file_ns = blender::nodes::node_composite_curves_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR);
-  ntype.declare = blender::nodes::cmp_node_rgbcurves_declare;
+  ntype.declare = file_ns::cmp_node_rgbcurves_declare;
   node_type_size(&ntype, 200, 140, 320);
-  node_type_init(&ntype, node_composit_init_curve_rgb);
+  node_type_init(&ntype, file_ns::node_composit_init_curve_rgb);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
 
   nodeRegisterType(&ntype);

@@ -30,15 +30,13 @@
 
 /* **************** Crop  ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_crop_cc {
 
 static void cmp_node_crop_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_output<decl::Color>(N_("Image"));
 }
-
-}  // namespace blender::nodes
 
 static void node_composit_init_crop(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -72,14 +70,18 @@ static void node_composit_buts_crop(uiLayout *layout, bContext *UNUSED(C), Point
   }
 }
 
+}  // namespace blender::nodes::node_composite_crop_cc
+
 void register_node_type_cmp_crop()
 {
+  namespace file_ns = blender::nodes::node_composite_crop_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CROP, "Crop", NODE_CLASS_DISTORT);
-  ntype.declare = blender::nodes::cmp_node_crop_declare;
-  ntype.draw_buttons = node_composit_buts_crop;
-  node_type_init(&ntype, node_composit_init_crop);
+  ntype.declare = file_ns::cmp_node_crop_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_crop;
+  node_type_init(&ntype, file_ns::node_composit_init_crop);
   node_type_storage(&ntype, "NodeTwoXYs", node_free_standard_storage, node_copy_standard_storage);
 
   nodeRegisterType(&ntype);

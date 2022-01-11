@@ -26,15 +26,13 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_sunbeams_cc {
 
 static void cmp_node_sunbeams_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_output<decl::Color>(N_("Image"));
 }
-
-}  // namespace blender::nodes
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -56,14 +54,18 @@ static void node_composit_buts_sunbeams(uiLayout *layout, bContext *UNUSED(C), P
           ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_sunbeams_cc
+
 void register_node_type_cmp_sunbeams()
 {
+  namespace file_ns = blender::nodes::node_composite_sunbeams_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SUNBEAMS, "Sun Beams", NODE_CLASS_OP_FILTER);
-  ntype.declare = blender::nodes::cmp_node_sunbeams_declare;
-  ntype.draw_buttons = node_composit_buts_sunbeams;
-  node_type_init(&ntype, init);
+  ntype.declare = file_ns::cmp_node_sunbeams_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_sunbeams;
+  node_type_init(&ntype, file_ns::init);
   node_type_storage(
       &ntype, "NodeSunBeams", node_free_standard_storage, node_copy_standard_storage);
 

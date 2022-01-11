@@ -28,7 +28,7 @@
 
 /* ******************* Color Matte ********************************************************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_color_matte_cc {
 
 static void cmp_node_color_matte_declare(NodeDeclarationBuilder &b)
 {
@@ -37,8 +37,6 @@ static void cmp_node_color_matte_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
   b.add_output<decl::Float>(N_("Matte"));
 }
-
-}  // namespace blender::nodes
 
 static void node_composit_init_color_matte(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -68,15 +66,19 @@ static void node_composit_buts_color_matte(uiLayout *layout, bContext *UNUSED(C)
       col, ptr, "color_value", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_color_matte_cc
+
 void register_node_type_cmp_color_matte()
 {
+  namespace file_ns = blender::nodes::node_composite_color_matte_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_COLOR_MATTE, "Color Key", NODE_CLASS_MATTE);
-  ntype.declare = blender::nodes::cmp_node_color_matte_declare;
-  ntype.draw_buttons = node_composit_buts_color_matte;
+  ntype.declare = file_ns::cmp_node_color_matte_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_color_matte;
   ntype.flag |= NODE_PREVIEW;
-  node_type_init(&ntype, node_composit_init_color_matte);
+  node_type_init(&ntype, file_ns::node_composit_init_color_matte);
   node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
 
   nodeRegisterType(&ntype);

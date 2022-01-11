@@ -34,7 +34,7 @@
 
 /* **************** Keying  ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_keying_cc {
 
 static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
 {
@@ -46,8 +46,6 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Matte"));
   b.add_output<decl::Float>(N_("Edges"));
 }
-
-}  // namespace blender::nodes
 
 static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -81,14 +79,18 @@ static void node_composit_buts_keying(uiLayout *layout, bContext *UNUSED(C), Poi
   uiItemR(layout, ptr, "blur_post", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_keying_cc
+
 void register_node_type_cmp_keying()
 {
+  namespace file_ns = blender::nodes::node_composite_keying_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_KEYING, "Keying", NODE_CLASS_MATTE);
-  ntype.declare = blender::nodes::cmp_node_keying_declare;
-  ntype.draw_buttons = node_composit_buts_keying;
-  node_type_init(&ntype, node_composit_init_keying);
+  ntype.declare = file_ns::cmp_node_keying_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_keying;
+  node_type_init(&ntype, file_ns::node_composit_init_keying);
   node_type_storage(
       &ntype, "NodeKeyingData", node_free_standard_storage, node_copy_standard_storage);
 

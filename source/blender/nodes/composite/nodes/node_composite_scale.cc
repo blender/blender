@@ -30,7 +30,7 @@
 
 /* **************** Scale  ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_scale_cc {
 
 static void cmp_node_scale_declare(NodeDeclarationBuilder &b)
 {
@@ -39,8 +39,6 @@ static void cmp_node_scale_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Y")).default_value(1.0f).min(0.0001f).max(CMP_SCALE_MAX);
   b.add_output<decl::Color>(N_("Image"));
 }
-
-}  // namespace blender::nodes
 
 static void node_composite_update_scale(bNodeTree *ntree, bNode *node)
 {
@@ -73,14 +71,18 @@ static void node_composit_buts_scale(uiLayout *layout, bContext *UNUSED(C), Poin
   }
 }
 
+}  // namespace blender::nodes::node_composite_scale_cc
+
 void register_node_type_cmp_scale()
 {
+  namespace file_ns = blender::nodes::node_composite_scale_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SCALE, "Scale", NODE_CLASS_DISTORT);
-  ntype.declare = blender::nodes::cmp_node_scale_declare;
-  ntype.draw_buttons = node_composit_buts_scale;
-  node_type_update(&ntype, node_composite_update_scale);
+  ntype.declare = file_ns::cmp_node_scale_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_scale;
+  node_type_update(&ntype, file_ns::node_composite_update_scale);
 
   nodeRegisterType(&ntype);
 }

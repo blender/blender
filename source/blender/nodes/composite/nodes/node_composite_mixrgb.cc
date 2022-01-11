@@ -25,7 +25,7 @@
 
 /* **************** MIX RGB ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_mixrgb_cc {
 
 static void cmp_node_mixrgb_declare(NodeDeclarationBuilder &b)
 {
@@ -35,16 +35,17 @@ static void cmp_node_mixrgb_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_composite_mixrgb_cc
 
-/* custom1 = mix type */
 void register_node_type_cmp_mix_rgb()
 {
+  namespace file_ns = blender::nodes::node_composite_mixrgb_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR);
   ntype.flag |= NODE_PREVIEW;
-  ntype.declare = blender::nodes::cmp_node_mixrgb_declare;
+  ntype.declare = file_ns::cmp_node_mixrgb_declare;
   ntype.labelfunc = node_blend_label;
 
   nodeRegisterType(&ntype);

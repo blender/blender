@@ -30,17 +30,6 @@
 
 /* ******************* Color Balance ********************************* */
 
-namespace blender::nodes {
-
-static void cmp_node_colorbalance_declare(NodeDeclarationBuilder &b)
-{
-  b.add_input<decl::Float>(N_("Fac")).default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_output<decl::Color>(N_("Image"));
-}
-
-}  // namespace blender::nodes
-
 /* Sync functions update formula parameters for other modes, such that the result is comparable.
  * Note that the results are not exactly the same due to differences in color handling
  * (sRGB conversion happens for LGG),
@@ -67,6 +56,15 @@ void ntreeCompositColorBalanceSyncFromCDL(bNodeTree *UNUSED(ntree), bNode *node)
     n->gain[c] = d;
     n->gamma[c] = (n->power[c] != 0.0f) ? 1.0f / n->power[c] : 1000000.0f;
   }
+}
+
+namespace blender::nodes::node_composite_colorbalance_cc {
+
+static void cmp_node_colorbalance_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>(N_("Fac")).default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Color>(N_("Image"));
 }
 
 static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode *node)
@@ -157,16 +155,20 @@ static void node_composit_buts_colorbalance_ex(uiLayout *layout,
   }
 }
 
+}  // namespace blender::nodes::node_composite_colorbalance_cc
+
 void register_node_type_cmp_colorbalance()
 {
+  namespace file_ns = blender::nodes::node_composite_colorbalance_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_COLORBALANCE, "Color Balance", NODE_CLASS_OP_COLOR);
-  ntype.declare = blender::nodes::cmp_node_colorbalance_declare;
-  ntype.draw_buttons = node_composit_buts_colorbalance;
-  ntype.draw_buttons_ex = node_composit_buts_colorbalance_ex;
+  ntype.declare = file_ns::cmp_node_colorbalance_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_colorbalance;
+  ntype.draw_buttons_ex = file_ns::node_composit_buts_colorbalance_ex;
   node_type_size(&ntype, 400, 200, 400);
-  node_type_init(&ntype, node_composit_init_colorbalance);
+  node_type_init(&ntype, file_ns::node_composit_init_colorbalance);
   node_type_storage(
       &ntype, "NodeColorBalance", node_free_standard_storage, node_copy_standard_storage);
 

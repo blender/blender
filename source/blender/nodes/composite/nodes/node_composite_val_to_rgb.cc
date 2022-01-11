@@ -25,7 +25,7 @@
 
 /* **************** VALTORGB ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_val_to_rgb_cc {
 
 static void cmp_node_valtorgb_declare(NodeDeclarationBuilder &b)
 {
@@ -34,21 +34,23 @@ static void cmp_node_valtorgb_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Alpha"));
 }
 
-}  // namespace blender::nodes
-
 static void node_composit_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node)
 {
   node->storage = BKE_colorband_add(true);
 }
 
+}  // namespace blender::nodes::node_composite_val_to_rgb_cc
+
 void register_node_type_cmp_valtorgb()
 {
+  namespace file_ns = blender::nodes::node_composite_val_to_rgb_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTER);
-  ntype.declare = blender::nodes::cmp_node_valtorgb_declare;
+  ntype.declare = file_ns::cmp_node_valtorgb_declare;
   node_type_size(&ntype, 240, 200, 320);
-  node_type_init(&ntype, node_composit_init_valtorgb);
+  node_type_init(&ntype, file_ns::node_composit_init_valtorgb);
   node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
 
   nodeRegisterType(&ntype);
@@ -56,7 +58,7 @@ void register_node_type_cmp_valtorgb()
 
 /* **************** RGBTOBW ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_val_to_rgb_cc {
 
 static void cmp_node_rgbtobw_declare(NodeDeclarationBuilder &b)
 {
@@ -64,14 +66,16 @@ static void cmp_node_rgbtobw_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Val"));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_composite_val_to_rgb_cc
 
 void register_node_type_cmp_rgbtobw()
 {
+  namespace file_ns = blender::nodes::node_composite_val_to_rgb_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER);
-  ntype.declare = blender::nodes::cmp_node_rgbtobw_declare;
+  ntype.declare = file_ns::cmp_node_rgbtobw_declare;
   node_type_size_preset(&ntype, NODE_SIZE_SMALL);
 
   nodeRegisterType(&ntype);

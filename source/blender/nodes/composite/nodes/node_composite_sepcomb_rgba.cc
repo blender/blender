@@ -24,7 +24,7 @@
 #include "node_composite_util.hh"
 
 /* **************** SEPARATE RGBA ******************** */
-namespace blender::nodes {
+namespace blender::nodes::node_composite_sepcomb_rgba_cc {
 
 static void cmp_node_seprgba_declare(NodeDeclarationBuilder &b)
 {
@@ -35,21 +35,23 @@ static void cmp_node_seprgba_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("A"));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_composite_sepcomb_rgba_cc
 
 void register_node_type_cmp_seprgba()
 {
+  namespace file_ns = blender::nodes::node_composite_sepcomb_rgba_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SEPRGBA, "Separate RGBA", NODE_CLASS_CONVERTER);
-  ntype.declare = blender::nodes::cmp_node_seprgba_declare;
+  ntype.declare = file_ns::cmp_node_seprgba_declare;
 
   nodeRegisterType(&ntype);
 }
 
 /* **************** COMBINE RGBA ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_sepcomb_rgba_cc {
 
 static void cmp_node_combrgba_declare(NodeDeclarationBuilder &b)
 {
@@ -60,14 +62,16 @@ static void cmp_node_combrgba_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_composite_sepcomb_rgba_cc
 
 void register_node_type_cmp_combrgba()
 {
+  namespace file_ns = blender::nodes::node_composite_sepcomb_rgba_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_COMBRGBA, "Combine RGBA", NODE_CLASS_CONVERTER);
-  ntype.declare = blender::nodes::cmp_node_combrgba_declare;
+  ntype.declare = file_ns::cmp_node_combrgba_declare;
 
   nodeRegisterType(&ntype);
 }

@@ -31,15 +31,13 @@
 
 /* **************** Stabilize 2D ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_stabilize2d_cc {
 
 static void cmp_node_stabilize2d_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
   b.add_output<decl::Color>(N_("Image"));
 }
-
-}  // namespace blender::nodes
 
 static void init(const bContext *C, PointerRNA *ptr)
 {
@@ -76,14 +74,18 @@ static void node_composit_buts_stabilize2d(uiLayout *layout, bContext *C, Pointe
   uiItemR(layout, ptr, "invert", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_stabilize2d_cc
+
 void register_node_type_cmp_stabilize2d()
 {
+  namespace file_ns = blender::nodes::node_composite_stabilize2d_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_STABILIZE2D, "Stabilize 2D", NODE_CLASS_DISTORT);
-  ntype.declare = blender::nodes::cmp_node_stabilize2d_declare;
-  ntype.draw_buttons = node_composit_buts_stabilize2d;
-  ntype.initfunc_api = init;
+  ntype.declare = file_ns::cmp_node_stabilize2d_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_stabilize2d;
+  ntype.initfunc_api = file_ns::init;
 
   nodeRegisterType(&ntype);
 }

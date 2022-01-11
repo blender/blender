@@ -31,15 +31,13 @@
 
 /* **************** SPLIT VIEWER ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_split_viewer_cc {
 
 static void cmp_node_split_viewer_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image"));
   b.add_input<decl::Color>(N_("Image"), "Image_001");
 }
-
-}  // namespace blender::nodes
 
 static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -61,15 +59,19 @@ static void node_composit_buts_splitviewer(uiLayout *layout, bContext *UNUSED(C)
   uiItemR(col, ptr, "factor", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_split_viewer_cc
+
 void register_node_type_cmp_splitviewer()
 {
+  namespace file_ns = blender::nodes::node_composite_split_viewer_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SPLITVIEWER, "Split Viewer", NODE_CLASS_OUTPUT);
-  ntype.declare = blender::nodes::cmp_node_split_viewer_declare;
-  ntype.draw_buttons = node_composit_buts_splitviewer;
+  ntype.declare = file_ns::cmp_node_split_viewer_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_splitviewer;
   ntype.flag |= NODE_PREVIEW;
-  node_type_init(&ntype, node_composit_init_splitviewer);
+  node_type_init(&ntype, file_ns::node_composit_init_splitviewer);
   node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
 
   ntype.no_muting = true;

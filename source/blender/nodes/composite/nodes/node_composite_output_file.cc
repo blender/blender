@@ -196,6 +196,8 @@ void ntreeCompositOutputFileSetLayer(bNode *node, bNodeSocket *sock, const char 
   ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, name, '_');
 }
 
+namespace blender::nodes::node_composite_output_file_cc {
+
 /* XXX uses initfunc_api callback, regular initfunc does not support context yet */
 static void init_output_file(const bContext *C, PointerRNA *ptr)
 {
@@ -435,17 +437,22 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
   }
 }
 
+}  // namespace blender::nodes::node_composite_output_file_cc
+
 void register_node_type_cmp_output_file()
 {
+  namespace file_ns = blender::nodes::node_composite_output_file_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_OUTPUT_FILE, "File Output", NODE_CLASS_OUTPUT);
-  ntype.draw_buttons = node_composit_buts_file_output;
-  ntype.draw_buttons_ex = node_composit_buts_file_output_ex;
-  ntype.initfunc_api = init_output_file;
+  ntype.draw_buttons = file_ns::node_composit_buts_file_output;
+  ntype.draw_buttons_ex = file_ns::node_composit_buts_file_output_ex;
+  ntype.initfunc_api = file_ns::init_output_file;
   ntype.flag |= NODE_PREVIEW;
-  node_type_storage(&ntype, "NodeImageMultiFile", free_output_file, copy_output_file);
-  node_type_update(&ntype, update_output_file);
+  node_type_storage(
+      &ntype, "NodeImageMultiFile", file_ns::free_output_file, file_ns::copy_output_file);
+  node_type_update(&ntype, file_ns::update_output_file);
 
   nodeRegisterType(&ntype);
 }

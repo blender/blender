@@ -28,7 +28,7 @@
 
 /* **************** Translate ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_translate_cc {
 
 static void cmp_node_translate_declare(NodeDeclarationBuilder &b)
 {
@@ -37,8 +37,6 @@ static void cmp_node_translate_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Y")).default_value(0.0f).min(-10000.0f).max(10000.0f);
   b.add_output<decl::Color>(N_("Image"));
 }
-
-}  // namespace blender::nodes
 
 static void node_composit_init_translate(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -52,14 +50,18 @@ static void node_composit_buts_translate(uiLayout *layout, bContext *UNUSED(C), 
   uiItemR(layout, ptr, "wrap_axis", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_translate_cc
+
 void register_node_type_cmp_translate()
 {
+  namespace file_ns = blender::nodes::node_composite_translate_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_TRANSLATE, "Translate", NODE_CLASS_DISTORT);
-  ntype.declare = blender::nodes::cmp_node_translate_declare;
-  ntype.draw_buttons = node_composit_buts_translate;
-  node_type_init(&ntype, node_composit_init_translate);
+  ntype.declare = file_ns::cmp_node_translate_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_translate;
+  node_type_init(&ntype, file_ns::node_composit_init_translate);
   node_type_storage(
       &ntype, "NodeTranslateData", node_free_standard_storage, node_copy_standard_storage);
 

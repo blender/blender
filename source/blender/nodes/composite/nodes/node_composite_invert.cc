@@ -28,7 +28,7 @@
 
 /* **************** INVERT ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_invert_cc {
 
 static void cmp_node_invert_declare(NodeDeclarationBuilder &b)
 {
@@ -36,8 +36,6 @@ static void cmp_node_invert_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_output<decl::Color>(N_("Color"));
 }
-
-}  // namespace blender::nodes
 
 static void node_composit_init_invert(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -53,15 +51,18 @@ static void node_composit_buts_invert(uiLayout *layout, bContext *UNUSED(C), Poi
   uiItemR(col, ptr, "invert_alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
-/* custom1 = mix type */
+}  // namespace blender::nodes::node_composite_invert_cc
+
 void register_node_type_cmp_invert()
 {
+  namespace file_ns = blender::nodes::node_composite_invert_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR);
-  ntype.declare = blender::nodes::cmp_node_invert_declare;
-  ntype.draw_buttons = node_composit_buts_invert;
-  node_type_init(&ntype, node_composit_init_invert);
+  ntype.declare = file_ns::cmp_node_invert_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_invert;
+  node_type_init(&ntype, file_ns::node_composit_init_invert);
 
   nodeRegisterType(&ntype);
 }

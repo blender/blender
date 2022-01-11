@@ -28,14 +28,12 @@
 
 /* **************** Bokeh image Tools  ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_bokehimage_cc {
 
 static void cmp_node_bokehimage_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Color>(N_("Image"));
 }
-
-}  // namespace blender::nodes
 
 static void node_composit_init_bokehimage(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -63,15 +61,19 @@ static void node_composit_buts_bokehimage(uiLayout *layout, bContext *UNUSED(C),
   uiItemR(layout, ptr, "shift", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_bokehimage_cc
+
 void register_node_type_cmp_bokehimage()
 {
+  namespace file_ns = blender::nodes::node_composite_bokehimage_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_BOKEHIMAGE, "Bokeh Image", NODE_CLASS_INPUT);
-  ntype.declare = blender::nodes::cmp_node_bokehimage_declare;
-  ntype.draw_buttons = node_composit_buts_bokehimage;
+  ntype.declare = file_ns::cmp_node_bokehimage_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_bokehimage;
   ntype.flag |= NODE_PREVIEW;
-  node_type_init(&ntype, node_composit_init_bokehimage);
+  node_type_init(&ntype, file_ns::node_composit_init_bokehimage);
   node_type_storage(
       &ntype, "NodeBokehImage", node_free_standard_storage, node_copy_standard_storage);
 

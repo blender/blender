@@ -28,7 +28,7 @@
 
 /* **************** ID Mask  ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_id_mask_cc {
 
 static void cmp_node_idmask_declare(NodeDeclarationBuilder &b)
 {
@@ -36,21 +36,23 @@ static void cmp_node_idmask_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Alpha"));
 }
 
-}  // namespace blender::nodes
-
 static void node_composit_buts_id_mask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "index", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "use_antialiasing", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_id_mask_cc
+
 void register_node_type_cmp_idmask()
 {
+  namespace file_ns = blender::nodes::node_composite_id_mask_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_ID_MASK, "ID Mask", NODE_CLASS_CONVERTER);
-  ntype.declare = blender::nodes::cmp_node_idmask_declare;
-  ntype.draw_buttons = node_composit_buts_id_mask;
+  ntype.declare = file_ns::cmp_node_idmask_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_id_mask;
 
   nodeRegisterType(&ntype);
 }

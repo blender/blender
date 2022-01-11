@@ -23,7 +23,7 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_huecorrect_cc {
 
 static void cmp_node_huecorrect_declare(NodeDeclarationBuilder &b)
 {
@@ -31,8 +31,6 @@ static void cmp_node_huecorrect_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_output<decl::Color>(N_("Image"));
 }
-
-}  // namespace blender::nodes
 
 static void node_composit_init_huecorrect(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -51,14 +49,18 @@ static void node_composit_init_huecorrect(bNodeTree *UNUSED(ntree), bNode *node)
   cumapping->cur = 1;
 }
 
+}  // namespace blender::nodes::node_composite_huecorrect_cc
+
 void register_node_type_cmp_huecorrect()
 {
+  namespace file_ns = blender::nodes::node_composite_huecorrect_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_HUECORRECT, "Hue Correct", NODE_CLASS_OP_COLOR);
-  ntype.declare = blender::nodes::cmp_node_huecorrect_declare;
+  ntype.declare = file_ns::cmp_node_huecorrect_declare;
   node_type_size(&ntype, 320, 140, 500);
-  node_type_init(&ntype, node_composit_init_huecorrect);
+  node_type_init(&ntype, file_ns::node_composit_init_huecorrect);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
 
   nodeRegisterType(&ntype);

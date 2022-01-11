@@ -25,7 +25,7 @@
 
 /* **************** SEPARATE YCCA ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_sepcomb_ycca_cc {
 
 static void cmp_node_sepycca_declare(NodeDeclarationBuilder &b)
 {
@@ -36,27 +36,29 @@ static void cmp_node_sepycca_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("A"));
 }
 
-}  // namespace blender::nodes
-
 static void node_composit_init_mode_sepycca(bNodeTree *UNUSED(ntree), bNode *node)
 {
   node->custom1 = 1; /* BLI_YCC_ITU_BT709 */
 }
 
+}  // namespace blender::nodes::node_composite_sepcomb_ycca_cc
+
 void register_node_type_cmp_sepycca()
 {
+  namespace file_ns = blender::nodes::node_composite_sepcomb_ycca_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SEPYCCA, "Separate YCbCrA", NODE_CLASS_CONVERTER);
-  ntype.declare = blender::nodes::cmp_node_sepycca_declare;
-  node_type_init(&ntype, node_composit_init_mode_sepycca);
+  ntype.declare = file_ns::cmp_node_sepycca_declare;
+  node_type_init(&ntype, file_ns::node_composit_init_mode_sepycca);
 
   nodeRegisterType(&ntype);
 }
 
 /* **************** COMBINE YCCA ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_sepcomb_ycca_cc {
 
 static void cmp_node_combycca_declare(NodeDeclarationBuilder &b)
 {
@@ -67,20 +69,22 @@ static void cmp_node_combycca_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-}  // namespace blender::nodes
-
 static void node_composit_init_mode_combycca(bNodeTree *UNUSED(ntree), bNode *node)
 {
   node->custom1 = 1; /* BLI_YCC_ITU_BT709 */
 }
 
+}  // namespace blender::nodes::node_composite_sepcomb_ycca_cc
+
 void register_node_type_cmp_combycca()
 {
+  namespace file_ns = blender::nodes::node_composite_sepcomb_ycca_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_COMBYCCA, "Combine YCbCrA", NODE_CLASS_CONVERTER);
-  ntype.declare = blender::nodes::cmp_node_combycca_declare;
-  node_type_init(&ntype, node_composit_init_mode_combycca);
+  ntype.declare = file_ns::cmp_node_combycca_declare;
+  node_type_init(&ntype, file_ns::node_composit_init_mode_combycca);
 
   nodeRegisterType(&ntype);
 }

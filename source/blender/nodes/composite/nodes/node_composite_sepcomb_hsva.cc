@@ -25,7 +25,7 @@
 
 /* **************** SEPARATE HSVA ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_sepcomb_hsva_cc {
 
 static void cmp_node_sephsva_declare(NodeDeclarationBuilder &b)
 {
@@ -36,20 +36,22 @@ static void cmp_node_sephsva_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("A"));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_composite_sepcomb_hsva_cc
 
 void register_node_type_cmp_sephsva()
 {
+  namespace file_ns = blender::nodes::node_composite_sepcomb_hsva_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SEPHSVA, "Separate HSVA", NODE_CLASS_CONVERTER);
-  ntype.declare = blender::nodes::cmp_node_sephsva_declare;
+  ntype.declare = file_ns::cmp_node_sephsva_declare;
   nodeRegisterType(&ntype);
 }
 
 /* **************** COMBINE HSVA ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_sepcomb_hsva_cc {
 
 static void cmp_node_combhsva_declare(NodeDeclarationBuilder &b)
 {
@@ -60,14 +62,16 @@ static void cmp_node_combhsva_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_composite_sepcomb_hsva_cc
 
 void register_node_type_cmp_combhsva()
 {
+  namespace file_ns = blender::nodes::node_composite_sepcomb_hsva_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_COMBHSVA, "Combine HSVA", NODE_CLASS_CONVERTER);
-  ntype.declare = blender::nodes::cmp_node_combhsva_declare;
+  ntype.declare = file_ns::cmp_node_combhsva_declare;
 
   nodeRegisterType(&ntype);
 }

@@ -28,7 +28,7 @@
 
 /* **************** Inpaint/ ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_inpaint_cc {
 
 static void cmp_node_inpaint_declare(NodeDeclarationBuilder &b)
 {
@@ -36,20 +36,22 @@ static void cmp_node_inpaint_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-}  // namespace blender::nodes
-
 static void node_composit_buts_inpaint(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "distance", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_inpaint_cc
+
 void register_node_type_cmp_inpaint()
 {
+  namespace file_ns = blender::nodes::node_composite_inpaint_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_INPAINT, "Inpaint", NODE_CLASS_OP_FILTER);
-  ntype.declare = blender::nodes::cmp_node_inpaint_declare;
-  ntype.draw_buttons = node_composit_buts_inpaint;
+  ntype.declare = file_ns::cmp_node_inpaint_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_inpaint;
 
   nodeRegisterType(&ntype);
 }

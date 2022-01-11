@@ -157,16 +157,6 @@ static void cryptomatte_remove(NodeCryptomatte &n, float encoded_hash)
   MEM_freeN(entry);
 }
 
-static bNodeSocketTemplate cmp_node_cryptomatte_in[] = {
-    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f}, {-1, ""}};
-
-static bNodeSocketTemplate cmp_node_cryptomatte_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {SOCK_FLOAT, N_("Matte")},
-    {SOCK_RGBA, N_("Pick")},
-    {-1, ""},
-};
-
 void ntreeCompositCryptomatteSyncFromAdd(const Scene *scene, bNode *node)
 {
   BLI_assert(ELEM(node->type, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY));
@@ -241,6 +231,18 @@ CryptomatteSession *ntreeCompositCryptomatteSession(const Scene *scene, bNode *n
   return session_ptr.release();
 }
 
+namespace blender::nodes::node_composite_cryptomatte_cc {
+
+static bNodeSocketTemplate cmp_node_cryptomatte_in[] = {
+    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f}, {-1, ""}};
+
+static bNodeSocketTemplate cmp_node_cryptomatte_out[] = {
+    {SOCK_RGBA, N_("Image")},
+    {SOCK_FLOAT, N_("Matte")},
+    {SOCK_RGBA, N_("Pick")},
+    {-1, ""},
+};
+
 static void node_init_cryptomatte(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeCryptomatte *user = MEM_cnew<NodeCryptomatte>(__func__);
@@ -305,17 +307,23 @@ static bool node_poll_cryptomatte(bNodeType *UNUSED(ntype),
   return false;
 }
 
+}  // namespace blender::nodes::node_composite_cryptomatte_cc
+
 void register_node_type_cmp_cryptomatte()
 {
+  namespace file_ns = blender::nodes::node_composite_cryptomatte_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CRYPTOMATTE, "Cryptomatte", NODE_CLASS_MATTE);
-  node_type_socket_templates(&ntype, cmp_node_cryptomatte_in, cmp_node_cryptomatte_out);
+  node_type_socket_templates(
+      &ntype, file_ns::cmp_node_cryptomatte_in, file_ns::cmp_node_cryptomatte_out);
   node_type_size(&ntype, 240, 100, 700);
-  node_type_init(&ntype, node_init_cryptomatte);
-  ntype.initfunc_api = node_init_api_cryptomatte;
-  ntype.poll = node_poll_cryptomatte;
-  node_type_storage(&ntype, "NodeCryptomatte", node_free_cryptomatte, node_copy_cryptomatte);
+  node_type_init(&ntype, file_ns::node_init_cryptomatte);
+  ntype.initfunc_api = file_ns::node_init_api_cryptomatte;
+  ntype.poll = file_ns::node_poll_cryptomatte;
+  node_type_storage(
+      &ntype, "NodeCryptomatte", file_ns::node_free_cryptomatte, file_ns::node_copy_cryptomatte);
   nodeRegisterType(&ntype);
 }
 
@@ -324,18 +332,6 @@ void register_node_type_cmp_cryptomatte()
 /* -------------------------------------------------------------------- */
 /** \name Cryptomatte Legacy
  * \{ */
-
-static void node_init_cryptomatte_legacy(bNodeTree *ntree, bNode *node)
-{
-  node_init_cryptomatte(ntree, node);
-
-  nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, "image", "Image");
-
-  /* Add three inputs by default, as recommended by the Cryptomatte specification. */
-  ntreeCompositCryptomatteAddSocket(ntree, node);
-  ntreeCompositCryptomatteAddSocket(ntree, node);
-  ntreeCompositCryptomatteAddSocket(ntree, node);
-}
 
 bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node)
 {
@@ -362,14 +358,35 @@ int ntreeCompositCryptomatteRemoveSocket(bNodeTree *ntree, bNode *node)
   return 1;
 }
 
+namespace blender::nodes::node_composite_cryptomatte_cc {
+
+static void node_init_cryptomatte_legacy(bNodeTree *ntree, bNode *node)
+{
+  namespace file_ns = blender::nodes::node_composite_cryptomatte_cc;
+  file_ns::node_init_cryptomatte(ntree, node);
+
+  nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, "image", "Image");
+
+  /* Add three inputs by default, as recommended by the Cryptomatte specification. */
+  ntreeCompositCryptomatteAddSocket(ntree, node);
+  ntreeCompositCryptomatteAddSocket(ntree, node);
+  ntreeCompositCryptomatteAddSocket(ntree, node);
+}
+
+}  // namespace blender::nodes::node_composite_cryptomatte_cc
+
 void register_node_type_cmp_cryptomatte_legacy()
 {
+  namespace legacy_file_ns = blender::nodes::node_composite_cryptomatte_cc;
+  namespace file_ns = blender::nodes::node_composite_cryptomatte_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CRYPTOMATTE_LEGACY, "Cryptomatte", NODE_CLASS_MATTE);
-  node_type_socket_templates(&ntype, nullptr, cmp_node_cryptomatte_out);
-  node_type_init(&ntype, node_init_cryptomatte_legacy);
-  node_type_storage(&ntype, "NodeCryptomatte", node_free_cryptomatte, node_copy_cryptomatte);
+  node_type_socket_templates(&ntype, nullptr, file_ns::cmp_node_cryptomatte_out);
+  node_type_init(&ntype, file_ns::node_init_cryptomatte_legacy);
+  node_type_storage(
+      &ntype, "NodeCryptomatte", file_ns::node_free_cryptomatte, file_ns::node_copy_cryptomatte);
   nodeRegisterType(&ntype);
 }
 

@@ -28,7 +28,7 @@
 
 /* **************** Premul and Key Alpha Convert ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_premulkey_cc {
 
 static void cmp_node_premulkey_declare(NodeDeclarationBuilder &b)
 {
@@ -36,20 +36,22 @@ static void cmp_node_premulkey_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-}  // namespace blender::nodes
-
 static void node_composit_buts_premulkey(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mapping", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_premulkey_cc
+
 void register_node_type_cmp_premulkey()
 {
+  namespace file_ns = blender::nodes::node_composite_premulkey_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_PREMULKEY, "Alpha Convert", NODE_CLASS_CONVERTER);
-  ntype.declare = blender::nodes::cmp_node_premulkey_declare;
-  ntype.draw_buttons = node_composit_buts_premulkey;
+  ntype.declare = file_ns::cmp_node_premulkey_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_premulkey;
 
   nodeRegisterType(&ntype);
 }

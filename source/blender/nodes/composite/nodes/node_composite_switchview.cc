@@ -32,6 +32,8 @@
 
 /* **************** SWITCH VIEW ******************** */
 
+namespace blender::nodes::node_composite_switchview_cc {
+
 static bNodeSocketTemplate cmp_node_switch_view_out[] = {
     {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
     {-1, ""},
@@ -155,16 +157,19 @@ static void node_composit_buts_switch_view_ex(uiLayout *layout,
               nullptr);
 }
 
+}  // namespace blender::nodes::node_composite_switchview_cc
+
 void register_node_type_cmp_switch_view()
 {
+  namespace file_ns = blender::nodes::node_composite_switchview_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, "Switch View", NODE_CLASS_CONVERTER);
-  node_type_socket_templates(&ntype, nullptr, cmp_node_switch_view_out);
-  ntype.draw_buttons_ex = node_composit_buts_switch_view_ex;
-  ntype.initfunc_api = init_switch_view;
-
-  node_type_update(&ntype, cmp_node_switch_view_update);
+  node_type_socket_templates(&ntype, nullptr, file_ns::cmp_node_switch_view_out);
+  ntype.draw_buttons_ex = file_ns::node_composit_buts_switch_view_ex;
+  ntype.initfunc_api = file_ns::init_switch_view;
+  node_type_update(&ntype, file_ns::cmp_node_switch_view_update);
 
   nodeRegisterType(&ntype);
 }

@@ -30,7 +30,7 @@
 
 /* ******************* Color Spill Suppression ********************************* */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_color_spill_cc {
 
 static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
 {
@@ -38,8 +38,6 @@ static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Fac")).default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
   b.add_output<decl::Color>(N_("Image"));
 }
-
-}  // namespace blender::nodes
 
 static void node_composit_init_color_spill(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -98,14 +96,18 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext *UNUSED(C)
   }
 }
 
+}  // namespace blender::nodes::node_composite_color_spill_cc
+
 void register_node_type_cmp_color_spill()
 {
+  namespace file_ns = blender::nodes::node_composite_color_spill_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_COLOR_SPILL, "Color Spill", NODE_CLASS_MATTE);
-  ntype.declare = blender::nodes::cmp_node_color_spill_declare;
-  ntype.draw_buttons = node_composit_buts_color_spill;
-  node_type_init(&ntype, node_composit_init_color_spill);
+  ntype.declare = file_ns::cmp_node_color_spill_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_color_spill;
+  node_type_init(&ntype, file_ns::node_composit_init_color_spill);
   node_type_storage(
       &ntype, "NodeColorspill", node_free_standard_storage, node_copy_standard_storage);
 

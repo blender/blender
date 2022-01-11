@@ -31,7 +31,7 @@
 
 /* **************** BLUR ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_blur_cc {
 
 static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
 {
@@ -39,8 +39,6 @@ static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Size")).default_value(1.0f).min(0.0f).max(1.0f);
   b.add_output<decl::Color>(N_("Image"));
 }
-
-}  // namespace blender::nodes
 
 static void node_composit_init_blur(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -90,15 +88,19 @@ static void node_composit_buts_blur(uiLayout *layout, bContext *UNUSED(C), Point
   uiItemR(col, ptr, "use_extended_bounds", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_blur_cc
+
 void register_node_type_cmp_blur()
 {
+  namespace file_ns = blender::nodes::node_composite_blur_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_BLUR, "Blur", NODE_CLASS_OP_FILTER);
-  ntype.declare = blender::nodes::cmp_node_blur_declare;
-  ntype.draw_buttons = node_composit_buts_blur;
+  ntype.declare = file_ns::cmp_node_blur_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_blur;
   ntype.flag |= NODE_PREVIEW;
-  node_type_init(&ntype, node_composit_init_blur);
+  node_type_init(&ntype, file_ns::node_composit_init_blur);
   node_type_storage(
       &ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);
 

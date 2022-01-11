@@ -28,7 +28,7 @@
 
 /* **************** VECTOR BLUR ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_vec_blur_cc {
 
 static void cmp_node_vec_blur_declare(NodeDeclarationBuilder &b)
 {
@@ -42,8 +42,7 @@ static void cmp_node_vec_blur_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-}  // namespace blender::nodes
-
+/* custom1: iterations, custom2: max_speed (0 = no_limit). */
 static void node_composit_init_vecblur(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeBlurData *nbd = MEM_cnew<NodeBlurData>(__func__);
@@ -68,15 +67,18 @@ static void node_composit_buts_vecblur(uiLayout *layout, bContext *UNUSED(C), Po
   uiItemR(layout, ptr, "use_curved", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
-/* custom1: iterations, custom2: max_speed (0 = no_limit). */
+}  // namespace blender::nodes::node_composite_vec_blur_cc
+
 void register_node_type_cmp_vecblur()
 {
+  namespace file_ns = blender::nodes::node_composite_vec_blur_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_VECBLUR, "Vector Blur", NODE_CLASS_OP_FILTER);
-  ntype.declare = blender::nodes::cmp_node_vec_blur_declare;
-  ntype.draw_buttons = node_composit_buts_vecblur;
-  node_type_init(&ntype, node_composit_init_vecblur);
+  ntype.declare = file_ns::cmp_node_vec_blur_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_vecblur;
+  node_type_init(&ntype, file_ns::node_composit_init_vecblur);
   node_type_storage(
       &ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);
 

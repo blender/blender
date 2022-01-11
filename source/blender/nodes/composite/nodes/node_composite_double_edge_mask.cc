@@ -28,7 +28,7 @@
 
 /* **************** Double Edge Mask ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_double_edge_mask_cc {
 
 static void cmp_node_double_edge_mask_declare(NodeDeclarationBuilder &b)
 {
@@ -36,8 +36,6 @@ static void cmp_node_double_edge_mask_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Outer Mask")).default_value(0.8f).min(0.0f).max(1.0f);
   b.add_output<decl::Float>(N_("Mask"));
 }
-
-}  // namespace blender::nodes
 
 static void node_composit_buts_double_edge_mask(uiLayout *layout,
                                                 bContext *UNUSED(C),
@@ -53,13 +51,17 @@ static void node_composit_buts_double_edge_mask(uiLayout *layout,
   uiItemR(col, ptr, "edge_mode", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_double_edge_mask_cc
+
 void register_node_type_cmp_doubleedgemask()
 {
+  namespace file_ns = blender::nodes::node_composite_double_edge_mask_cc;
+
   static bNodeType ntype; /* Allocate a node type data structure. */
 
   cmp_node_type_base(&ntype, CMP_NODE_DOUBLEEDGEMASK, "Double Edge Mask", NODE_CLASS_MATTE);
-  ntype.declare = blender::nodes::cmp_node_double_edge_mask_declare;
-  ntype.draw_buttons = node_composit_buts_double_edge_mask;
+  ntype.declare = file_ns::cmp_node_double_edge_mask_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_double_edge_mask;
 
   nodeRegisterType(&ntype);
 }

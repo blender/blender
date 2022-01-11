@@ -28,7 +28,7 @@
 
 /* **************** ALPHAOVER ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_alpha_over_cc {
 
 static void cmp_node_alphaover_declare(NodeDeclarationBuilder &b)
 {
@@ -37,8 +37,6 @@ static void cmp_node_alphaover_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>(N_("Image"), "Image_001").default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_output<decl::Color>(N_("Image"));
 }
-
-}  // namespace blender::nodes
 
 static void node_alphaover_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -54,14 +52,18 @@ static void node_composit_buts_alphaover(uiLayout *layout, bContext *UNUSED(C), 
   uiItemR(col, ptr, "premul", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_alpha_over_cc
+
 void register_node_type_cmp_alphaover()
 {
+  namespace file_ns = blender::nodes::node_composite_alpha_over_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_ALPHAOVER, "Alpha Over", NODE_CLASS_OP_COLOR);
-  ntype.declare = blender::nodes::cmp_node_alphaover_declare;
-  ntype.draw_buttons = node_composit_buts_alphaover;
-  node_type_init(&ntype, node_alphaover_init);
+  ntype.declare = file_ns::cmp_node_alphaover_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_alphaover;
+  node_type_init(&ntype, file_ns::node_alphaover_init);
   node_type_storage(
       &ntype, "NodeTwoFloats", node_free_standard_storage, node_copy_standard_storage);
 

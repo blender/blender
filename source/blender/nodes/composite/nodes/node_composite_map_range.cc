@@ -28,7 +28,7 @@
 
 /* **************** Map Range ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_map_range_cc {
 
 static void cmp_node_map_range_declare(NodeDeclarationBuilder &b)
 {
@@ -40,8 +40,6 @@ static void cmp_node_map_range_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Value"));
 }
 
-}  // namespace blender::nodes
-
 static void node_composit_buts_map_range(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiLayout *col;
@@ -50,13 +48,17 @@ static void node_composit_buts_map_range(uiLayout *layout, bContext *UNUSED(C), 
   uiItemR(col, ptr, "use_clamp", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_map_range_cc
+
 void register_node_type_cmp_map_range()
 {
+  namespace file_ns = blender::nodes::node_composite_map_range_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MAP_RANGE, "Map Range", NODE_CLASS_OP_VECTOR);
-  ntype.declare = blender::nodes::cmp_node_map_range_declare;
-  ntype.draw_buttons = node_composit_buts_map_range;
+  ntype.declare = file_ns::cmp_node_map_range_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_map_range;
 
   nodeRegisterType(&ntype);
 }

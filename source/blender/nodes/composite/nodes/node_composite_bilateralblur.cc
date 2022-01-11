@@ -28,7 +28,7 @@
 
 /* **************** BILATERALBLUR ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_bilateralblur_cc {
 
 static void cmp_node_bilateralblur_declare(NodeDeclarationBuilder &b)
 {
@@ -36,8 +36,6 @@ static void cmp_node_bilateralblur_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>(N_("Determinator")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_output<decl::Color>(N_("Image"));
 }
-
-}  // namespace blender::nodes
 
 static void node_composit_init_bilateralblur(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -60,14 +58,18 @@ static void node_composit_buts_bilateralblur(uiLayout *layout,
   uiItemR(col, ptr, "sigma_space", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_bilateralblur_cc
+
 void register_node_type_cmp_bilateralblur()
 {
+  namespace file_ns = blender::nodes::node_composite_bilateralblur_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_BILATERALBLUR, "Bilateral Blur", NODE_CLASS_OP_FILTER);
-  ntype.declare = blender::nodes::cmp_node_bilateralblur_declare;
-  ntype.draw_buttons = node_composit_buts_bilateralblur;
-  node_type_init(&ntype, node_composit_init_bilateralblur);
+  ntype.declare = file_ns::cmp_node_bilateralblur_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_bilateralblur;
+  node_type_init(&ntype, file_ns::node_composit_init_bilateralblur);
   node_type_storage(
       &ntype, "NodeBilateralBlurData", node_free_standard_storage, node_copy_standard_storage);
 

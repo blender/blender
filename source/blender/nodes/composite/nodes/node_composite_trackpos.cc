@@ -28,7 +28,7 @@
 
 #include "node_composite_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_trackpos_cc {
 
 static void cmp_node_trackpos_declare(NodeDeclarationBuilder &b)
 {
@@ -36,8 +36,6 @@ static void cmp_node_trackpos_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Y"));
   b.add_output<decl::Vector>(N_("Speed")).subtype(PROP_VELOCITY);
 }
-
-}  // namespace blender::nodes
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -94,14 +92,18 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
   }
 }
 
+}  // namespace blender::nodes::node_composite_trackpos_cc
+
 void register_node_type_cmp_trackpos()
 {
+  namespace file_ns = blender::nodes::node_composite_trackpos_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_TRACKPOS, "Track Position", NODE_CLASS_INPUT);
-  ntype.declare = blender::nodes::cmp_node_trackpos_declare;
-  ntype.draw_buttons = node_composit_buts_trackpos;
-  node_type_init(&ntype, init);
+  ntype.declare = file_ns::cmp_node_trackpos_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_trackpos;
+  node_type_init(&ntype, file_ns::init);
   node_type_storage(
       &ntype, "NodeTrackPosData", node_free_standard_storage, node_copy_standard_storage);
 

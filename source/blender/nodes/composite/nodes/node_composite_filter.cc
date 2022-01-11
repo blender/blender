@@ -28,7 +28,7 @@
 
 /* **************** FILTER  ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_filter_cc {
 
 static void cmp_node_filter_declare(NodeDeclarationBuilder &b)
 {
@@ -37,20 +37,22 @@ static void cmp_node_filter_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-}  // namespace blender::nodes
-
 static void node_composit_buts_filter(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_filter_cc
+
 void register_node_type_cmp_filter()
 {
+  namespace file_ns = blender::nodes::node_composite_filter_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_FILTER, "Filter", NODE_CLASS_OP_FILTER);
-  ntype.declare = blender::nodes::cmp_node_filter_declare;
-  ntype.draw_buttons = node_composit_buts_filter;
+  ntype.declare = file_ns::cmp_node_filter_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_filter;
   ntype.labelfunc = node_filter_label;
   ntype.flag |= NODE_PREVIEW;
 

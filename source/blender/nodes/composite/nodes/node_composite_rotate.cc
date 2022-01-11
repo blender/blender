@@ -28,7 +28,7 @@
 
 /* **************** Rotate  ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_rotate_cc {
 
 static void cmp_node_rotate_declare(NodeDeclarationBuilder &b)
 {
@@ -41,8 +41,6 @@ static void cmp_node_rotate_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-}  // namespace blender::nodes
-
 static void node_composit_init_rotate(bNodeTree *UNUSED(ntree), bNode *node)
 {
   node->custom1 = 1; /* Bilinear Filter. */
@@ -53,14 +51,18 @@ static void node_composit_buts_rotate(uiLayout *layout, bContext *UNUSED(C), Poi
   uiItemR(layout, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
+}  // namespace blender::nodes::node_composite_rotate_cc
+
 void register_node_type_cmp_rotate()
 {
+  namespace file_ns = blender::nodes::node_composite_rotate_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_ROTATE, "Rotate", NODE_CLASS_DISTORT);
-  ntype.declare = blender::nodes::cmp_node_rotate_declare;
-  ntype.draw_buttons = node_composit_buts_rotate;
-  node_type_init(&ntype, node_composit_init_rotate);
+  ntype.declare = file_ns::cmp_node_rotate_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_rotate;
+  node_type_init(&ntype, file_ns::node_composit_init_rotate);
 
   nodeRegisterType(&ntype);
 }

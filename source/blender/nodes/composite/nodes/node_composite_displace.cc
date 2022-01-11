@@ -25,7 +25,7 @@
 
 /* **************** Displace  ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_displace_cc {
 
 static void cmp_node_displace_declare(NodeDeclarationBuilder &b)
 {
@@ -40,14 +40,16 @@ static void cmp_node_displace_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_composite_displace_cc
 
 void register_node_type_cmp_displace()
 {
+  namespace file_ns = blender::nodes::node_composite_displace_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_DISPLACE, "Displace", NODE_CLASS_DISTORT);
-  ntype.declare = blender::nodes::cmp_node_displace_declare;
+  ntype.declare = file_ns::cmp_node_displace_declare;
 
   nodeRegisterType(&ntype);
 }

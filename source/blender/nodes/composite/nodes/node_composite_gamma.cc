@@ -25,7 +25,7 @@
 
 /* **************** Gamma Tools  ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_gamma_cc {
 
 static void cmp_node_gamma_declare(NodeDeclarationBuilder &b)
 {
@@ -38,14 +38,16 @@ static void cmp_node_gamma_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Image"));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_composite_gamma_cc
 
 void register_node_type_cmp_gamma()
 {
+  namespace file_ns = blender::nodes::node_composite_gamma_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_GAMMA, "Gamma", NODE_CLASS_OP_COLOR);
-  ntype.declare = blender::nodes::cmp_node_gamma_declare;
+  ntype.declare = file_ns::cmp_node_gamma_declare;
 
   nodeRegisterType(&ntype);
 }

@@ -30,14 +30,12 @@
 
 /* **************** Mask  ******************** */
 
-namespace blender::nodes {
+namespace blender::nodes::node_composite_mask_cc {
 
 static void cmp_node_mask_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Float>(N_("Mask"));
 }
-
-}  // namespace blender::nodes
 
 static void node_composit_init_mask(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -92,15 +90,19 @@ static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *p
   }
 }
 
+}  // namespace blender::nodes::node_composite_mask_cc
+
 void register_node_type_cmp_mask()
 {
+  namespace file_ns = blender::nodes::node_composite_mask_cc;
+
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MASK, "Mask", NODE_CLASS_INPUT);
-  ntype.declare = blender::nodes::cmp_node_mask_declare;
-  ntype.draw_buttons = node_composit_buts_mask;
-  node_type_init(&ntype, node_composit_init_mask);
-  ntype.labelfunc = node_mask_label;
+  ntype.declare = file_ns::cmp_node_mask_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_mask;
+  node_type_init(&ntype, file_ns::node_composit_init_mask);
+  ntype.labelfunc = file_ns::node_mask_label;
 
   node_type_storage(&ntype, "NodeMask", node_free_standard_storage, node_copy_standard_storage);
 
