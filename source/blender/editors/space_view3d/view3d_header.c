@@ -101,6 +101,10 @@ void VIEW3D_OT_toggle_matcap_flip(wmOperatorType *ot)
 static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 {
   wmWindow *win = CTX_wm_window(C);
+  if (!win) {
+    return;
+  }
+
   const int ctrl = win->eventstate->ctrl, shift = win->eventstate->shift;
 
   /* watch it: if area->win does not exist, check that when calling direct drawing routines */
