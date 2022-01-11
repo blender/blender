@@ -331,6 +331,18 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
     return me;
   }
 
+  /* Initialize the settings before ensuring the descriptor as this is checked to decide whether
+   * subdivision is needed at all, and checking the descriptor status might involve checking if the
+   * data is out-of-date, which is a very expensive operation. */
+  SubdivToMeshSettings mesh_settings;
+  mesh_settings.resolution = me->runtime.subsurf_resolution;
+  mesh_settings.use_optimal_display = me->runtime.subsurf_use_optimal_display;
+
+  if (mesh_settings.resolution < 3) {
+    BLI_mutex_unlock(mesh_eval_mutex);
+    return me;
+  }
+
   const bool apply_render = me->runtime.subsurf_apply_render;
 
   SubdivSettings subdiv_settings;
@@ -345,15 +357,6 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(smd, &subdiv_settings, me, false);
   if (subdiv == NULL) {
     /* Happens on bad topology, but also on empty input mesh. */
-    BLI_mutex_unlock(mesh_eval_mutex);
-    return me;
-  }
-
-  SubdivToMeshSettings mesh_settings;
-  mesh_settings.resolution = me->runtime.subsurf_resolution;
-  mesh_settings.use_optimal_display = me->runtime.subsurf_use_optimal_display;
-
-  if (mesh_settings.resolution < 3) {
     BLI_mutex_unlock(mesh_eval_mutex);
     return me;
   }
