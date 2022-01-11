@@ -3527,6 +3527,8 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
   }
 
   basen->object->visibility_flag &= ~OB_HIDE_VIEWPORT;
+  /* Do immediately, as #copy_object_set_idnew() below operates on visible objects. */
+  BKE_base_eval_flags(basen);
 
   /* object_add_duplicate_internal() doesn't deselect other objects, unlike object_add_common() or
    * BKE_view_layer_base_deselect_all(). */
