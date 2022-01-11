@@ -949,7 +949,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
             """Make all the newly created and the old objects of a collection """ \
                 """to be properly setup for shadow catch"""
             for ob in collection.objects:
-                ob.cycles.is_shadow_catcher = True
+                ob.is_shadow_catcher = True
                 for child in collection.children:
                     setup_shadow_catcher_objects(child)
 
