@@ -46,7 +46,7 @@ typedef enum {
   OBJ_AXIS_NEGATIVE_Z_FORWARD = 5,
 } eTransformAxisForward;
 
-const int TOTAL_AXES = 3;
+static const int TOTAL_AXES = 3;
 
 struct OBJExportParams {
   /** Full path to the destination .OBJ file. */

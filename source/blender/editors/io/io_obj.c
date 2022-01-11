@@ -46,7 +46,7 @@
 #include "IO_wavefront_obj.h"
 #include "io_obj.h"
 
-const EnumPropertyItem io_obj_transform_axis_forward[] = {
+static const EnumPropertyItem io_obj_transform_axis_forward[] = {
     {OBJ_AXIS_X_FORWARD, "X_FORWARD", 0, "X", "Positive X axis"},
     {OBJ_AXIS_Y_FORWARD, "Y_FORWARD", 0, "Y", "Positive Y axis"},
     {OBJ_AXIS_Z_FORWARD, "Z_FORWARD", 0, "Z", "Positive Z axis"},
@@ -55,7 +55,7 @@ const EnumPropertyItem io_obj_transform_axis_forward[] = {
     {OBJ_AXIS_NEGATIVE_Z_FORWARD, "NEGATIVE_Z_FORWARD", 0, "-Z (Default)", "Negative Z axis"},
     {0, NULL, 0, NULL, NULL}};
 
-const EnumPropertyItem io_obj_transform_axis_up[] = {
+static const EnumPropertyItem io_obj_transform_axis_up[] = {
     {OBJ_AXIS_X_UP, "X_UP", 0, "X", "Positive X axis"},
     {OBJ_AXIS_Y_UP, "Y_UP", 0, "Y (Default)", "Positive Y axis"},
     {OBJ_AXIS_Z_UP, "Z_UP", 0, "Z", "Positive Z axis"},
@@ -64,7 +64,7 @@ const EnumPropertyItem io_obj_transform_axis_up[] = {
     {OBJ_AXIS_NEGATIVE_Z_UP, "NEGATIVE_Z_UP", 0, "-Z", "Negative Z axis"},
     {0, NULL, 0, NULL, NULL}};
 
-const EnumPropertyItem io_obj_export_evaluation_mode[] = {
+static const EnumPropertyItem io_obj_export_evaluation_mode[] = {
     {DAG_EVAL_RENDER, "DAG_EVAL_RENDER", 0, "Render", "Export objects as they appear in render"},
     {DAG_EVAL_VIEWPORT,
      "DAG_EVAL_VIEWPORT",
