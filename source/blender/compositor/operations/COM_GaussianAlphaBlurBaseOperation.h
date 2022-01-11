@@ -55,6 +55,11 @@ class GaussianAlphaBlurBaseOperation : public BlurBaseOperation {
   {
     falloff_ = falloff;
   }
+
+  BLI_INLINE float finv_test(const float f, const bool test)
+  {
+    return (LIKELY(test == false)) ? f : 1.0f - f;
+  }
 };
 
 }  // namespace blender::compositor
