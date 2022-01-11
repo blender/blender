@@ -2534,17 +2534,12 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
 static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
                                      ARegion *region,
                                      View3D *v3d,
-                                     GPUViewport *viewport,
-                                     const bool use_opengl_context)
+                                     GPUViewport *viewport)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
   RegionView3D *rv3d = region->regiondata;
-
-  if (use_opengl_context) {
-    DRW_opengl_context_enable();
-  }
 
   DST.options.is_depth = true;
 
@@ -2627,11 +2622,6 @@ static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
   drw_engines_disable();
 
   drw_manager_exit(&DST);
-
-  /* Changing context. */
-  if (use_opengl_context) {
-    DRW_opengl_context_disable();
-  }
 }
 
 void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
@@ -2658,7 +2648,7 @@ void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
     }
   }
 
-  drw_draw_depth_loop_impl(depsgraph, region, v3d, viewport, false);
+  drw_draw_depth_loop_impl(depsgraph, region, v3d, viewport);
 }
 
 void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
@@ -2676,7 +2666,7 @@ void DRW_draw_depth_loop_gpencil(struct Depsgraph *depsgraph,
 
   use_drw_engine(&draw_engine_gpencil_type);
 
-  drw_draw_depth_loop_impl(depsgraph, region, v3d, viewport, false);
+  drw_draw_depth_loop_impl(depsgraph, region, v3d, viewport);
 }
 
 void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, const rcti *rect)
