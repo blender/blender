@@ -1950,6 +1950,8 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
   Editing *ed = SEQ_editing_get(scene);
   Sequence *active_seq = SEQ_select_active_get(scene);
 
+  SEQ_prefetch_stop(scene);
+
   if (active_seq && active_seq->type == SEQ_TYPE_META && active_seq->flag & SELECT) {
     /* Enter meta-strip. */
     SEQ_meta_stack_alloc(ed, active_seq);
