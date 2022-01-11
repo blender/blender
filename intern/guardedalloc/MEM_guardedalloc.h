@@ -148,6 +148,12 @@ extern void *(*MEM_mallocN_aligned)(size_t len,
     ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
 
 /**
+ * Print a list of the names and sizes of all allocated memory
+ * blocks. as a python dict for easy investigation.
+ */
+extern void (*MEM_printmemlist_pydict)(void);
+
+/**
  * Print a list of the names and sizes of all allocated memory blocks.
  */
 extern void (*MEM_printmemlist)(void);
