@@ -863,7 +863,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
       case TFM_MODAL_TRANSLATE:
         /* only switch when... */
         if (t->mode == TFM_TRANSLATION) {
-          if ((t->obedit_type == OB_MESH) && (t->spacetype == SPACE_VIEW3D)) {
+          if (!(t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) && (t->obedit_type == OB_MESH) &&
+              (t->spacetype == SPACE_VIEW3D)) {
             restoreTransObjects(t);
             resetTransModal(t);
             resetTransRestrictions(t);
