@@ -140,9 +140,9 @@ static uiFont *uifont_to_blfont(int id)
 void UI_fontstyle_draw_ex(const uiFontStyle *fs,
                           const rcti *rect,
                           const char *str,
+                          const size_t str_len,
                           const uchar col[4],
                           const struct uiFontStyleDraw_Params *fs_params,
-                          size_t len,
                           int *r_xofs,
                           int *r_yofs,
                           struct ResultBLF *r_info)
@@ -183,10 +183,10 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
   }
 
   if (fs_params->align == UI_STYLE_TEXT_CENTER) {
-    xofs = floor(0.5f * (BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str, len)));
+    xofs = floor(0.5f * (BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str, str_len)));
   }
   else if (fs_params->align == UI_STYLE_TEXT_RIGHT) {
-    xofs = BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str, len);
+    xofs = BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str, str_len);
   }
 
   yofs = MAX2(0, yofs);
@@ -196,7 +196,7 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
   BLF_position(fs->uifont_id, rect->xmin + xofs, rect->ymin + yofs, 0.0f);
   BLF_color4ubv(fs->uifont_id, col);
 
-  BLF_draw_ex(fs->uifont_id, str, len, r_info);
+  BLF_draw_ex(fs->uifont_id, str, str_len, r_info);
 
   BLF_disable(fs->uifont_id, font_flag);
 
@@ -211,12 +211,11 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
 void UI_fontstyle_draw(const uiFontStyle *fs,
                        const rcti *rect,
                        const char *str,
+                       const size_t str_len,
                        const uchar col[4],
                        const struct uiFontStyleDraw_Params *fs_params)
 {
-  int xofs, yofs;
-
-  UI_fontstyle_draw_ex(fs, rect, str, col, fs_params, BLF_DRAW_STR_DUMMY_MAX, &xofs, &yofs, NULL);
+  UI_fontstyle_draw_ex(fs, rect, str, str_len, col, fs_params, NULL, NULL, NULL);
 }
 
 void UI_fontstyle_draw_rotated(const uiFontStyle *fs,
