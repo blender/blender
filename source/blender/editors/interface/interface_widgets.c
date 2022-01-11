@@ -5421,7 +5421,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
                          &(struct uiFontStyleDraw_Params){
                              .align = UI_STYLE_TEXT_LEFT,
                          },
-                         BLF_DRAW_STR_DUMMY_MAX,
+                         sizeof(drawstr),
                          &xofs,
                          &yofs,
                          &info);
