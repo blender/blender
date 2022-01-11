@@ -1828,7 +1828,7 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
   Mesh *mesh_eval = mesh;
   BMesh *bm = nullptr;
   if (mesh->edit_mesh) {
-    mesh_eval = mesh->edit_mesh->mesh_eval_final;
+    mesh_eval = BKE_object_get_editmesh_eval_final(ob);
     bm = mesh->edit_mesh->bm;
   }
 

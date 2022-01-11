@@ -119,6 +119,9 @@ void BKE_mesh_looptri_get_real_edges(const struct Mesh *mesh,
 void BKE_mesh_free_data_for_undo(struct Mesh *me);
 void BKE_mesh_clear_geometry(struct Mesh *me);
 struct Mesh *BKE_mesh_add(struct Main *bmain, const char *name);
+
+void BKE_mesh_free_editmesh(struct Mesh *mesh);
+
 /**
  * A version of #BKE_mesh_copy_parameters that is intended for evaluated output
  * (the modifier stack for example).

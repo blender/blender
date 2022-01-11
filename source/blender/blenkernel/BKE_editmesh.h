@@ -62,14 +62,6 @@ typedef struct BMEditMesh {
   struct BMLoop *(*looptris)[3];
   int tottri;
 
-  struct Mesh *mesh_eval_final, *mesh_eval_cage;
-
-  /** Cached cage bounding box of `mesh_eval_cage` for selection. */
-  struct BoundBox *bb_cage;
-
-  /** Evaluated mesh data-mask. */
-  CustomData_MeshMasks lastDataMask;
-
   /** Selection mode (#SCE_SELECT_VERTEX, #SCE_SELECT_EDGE & #SCE_SELECT_FACE). */
   short selectmode;
   /** The active material (assigned to newly created faces). */
@@ -121,7 +113,6 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em);
  * don't add NULL data check here. caller must do that
  */
 BMEditMesh *BKE_editmesh_from_object(struct Object *ob);
-void BKE_editmesh_free_derived_caches(BMEditMesh *em);
 /**
  * \note Does not free the #BMEditMesh struct itself.
  */
@@ -145,7 +136,7 @@ void BKE_editmesh_lnorspace_update(BMEditMesh *em, struct Mesh *me);
  * If auto-smooth not already set, set it.
  */
 void BKE_editmesh_ensure_autosmooth(BMEditMesh *em, struct Mesh *me);
-struct BoundBox *BKE_editmesh_cage_boundbox_get(BMEditMesh *em);
+struct BoundBox *BKE_editmesh_cage_boundbox_get(struct Object *object, BMEditMesh *em);
 
 #ifdef __cplusplus
 }

@@ -49,7 +49,7 @@ void select_id_object_min_max(Object *obj, float r_min[3], float r_max[3])
   BoundBox *bb;
   BMEditMesh *em = BKE_editmesh_from_object(obj);
   if (em) {
-    bb = BKE_editmesh_cage_boundbox_get(em);
+    bb = BKE_editmesh_cage_boundbox_get(obj, em);
   }
   else {
     bb = BKE_object_boundbox_get(obj);

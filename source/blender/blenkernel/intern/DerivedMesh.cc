@@ -1769,17 +1769,6 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
                             const CustomData_MeshMasks *dataMask,
                             const bool need_mapping)
 {
-  BLI_assert(ob->type == OB_MESH);
-
-  /* Evaluated meshes aren't supposed to be created on original instances. If you do,
-   * they aren't cleaned up properly on mode switch, causing crashes, e.g T58150. */
-  BLI_assert(ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
-
-  BKE_object_free_derived_caches(ob);
-  if (DEG_is_active(depsgraph)) {
-    BKE_sculpt_update_object_before_eval(ob);
-  }
-
 #if 0 /* XXX This is already taken care of in mesh_calc_modifiers()... */
   if (need_mapping) {
     /* Also add the flag so that it is recorded in lastDataMask. */
@@ -1846,15 +1835,7 @@ static void editbmesh_build_data(struct Depsgraph *depsgraph,
                                  BMEditMesh *em,
                                  CustomData_MeshMasks *dataMask)
 {
-  BLI_assert(obedit->id.tag & LIB_TAG_COPIED_ON_WRITE);
-
-  BKE_object_free_derived_caches(obedit);
-  if (DEG_is_active(depsgraph)) {
-    BKE_sculpt_update_object_before_eval(obedit);
-  }
-
-  BKE_editmesh_free_derived_caches(em);
-
+  Mesh *mesh = static_cast<Mesh *>(obedit->data);
   Mesh *me_cage;
   Mesh *me_final;
   GeometrySet *non_mesh_components;
@@ -1862,13 +1843,33 @@ static void editbmesh_build_data(struct Depsgraph *depsgraph,
   editbmesh_calc_modifiers(
       depsgraph, scene, obedit, em, dataMask, &me_cage, &me_final, &non_mesh_components);
 
-  em->mesh_eval_final = me_final;
-  em->mesh_eval_cage = me_cage;
+  /* The modifier stack result is expected to share edit mesh pointer with the input.
+   * This is similar `mesh_calc_finalize()`. */
+  BKE_mesh_free_editmesh(me_final);
+  BKE_mesh_free_editmesh(me_cage);
+  me_final->edit_mesh = me_cage->edit_mesh = em;
+
+  /* Object has edit_mesh but is not in edit mode (object shares mesh datablock with another object
+   * with is in edit mode).
+   * Convert edit mesh to mesh until the draw manager can draw mesh wrapper which is not in the
+   * edit mode. */
+  if (!(obedit->mode & OB_MODE_EDIT)) {
+    BKE_mesh_wrapper_ensure_mdata(me_final);
+    if (me_final != me_cage) {
+      BKE_mesh_wrapper_ensure_mdata(me_cage);
+    }
+  }
+
+  const bool is_mesh_eval_owned = (me_final != mesh->runtime.mesh_eval);
+  BKE_object_eval_assign_data(obedit, &me_final->id, is_mesh_eval_owned);
+
+  obedit->runtime.editmesh_eval_cage = me_cage;
+
   obedit->runtime.geometry_set_eval = non_mesh_components;
 
-  BKE_object_boundbox_calc_from_mesh(obedit, em->mesh_eval_final);
+  BKE_object_boundbox_calc_from_mesh(obedit, me_final);
 
-  em->lastDataMask = *dataMask;
+  obedit->runtime.last_data_mask = *dataMask;
 }
 
 static void object_get_datamask(const Depsgraph *depsgraph,
@@ -1924,9 +1925,25 @@ static void object_get_datamask(const Depsgraph *depsgraph,
 void makeDerivedMesh(struct Depsgraph *depsgraph,
                      Scene *scene,
                      Object *ob,
-                     BMEditMesh *em,
                      const CustomData_MeshMasks *dataMask)
 {
+  BLI_assert(ob->type == OB_MESH);
+
+  /* Evaluated meshes aren't supposed to be created on original instances. If you do,
+   * they aren't cleaned up properly on mode switch, causing crashes, e.g T58150. */
+  BLI_assert(ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
+
+  BKE_object_free_derived_caches(ob);
+  if (DEG_is_active(depsgraph)) {
+    BKE_sculpt_update_object_before_eval(ob);
+  }
+
+  /* NOTE: Access the `edit_mesh` after freeing the derived caches, so that `ob->data` is restored
+   * to the pre-evaluated state. This is because the evaluated state is not necessarily sharing the
+   * `edit_mesh` pointer with the input. For example, if the object is first evaluated in the
+   * object mode, and then user in another scene moves object to edit mode. */
+  BMEditMesh *em = ((Mesh *)ob->data)->edit_mesh;
+
   bool need_mapping;
   CustomData_MeshMasks cddata_masks = *dataMask;
   object_get_datamask(depsgraph, ob, &cddata_masks, &need_mapping);
@@ -1965,8 +1982,9 @@ Mesh *mesh_get_eval_final(struct Depsgraph *depsgraph,
       !CustomData_MeshMasks_are_matching(&(ob->runtime.last_data_mask), &cddata_masks) ||
       (need_mapping && !ob->runtime.last_need_mapping)) {
     CustomData_MeshMasks_update(&cddata_masks, &ob->runtime.last_data_mask);
-    mesh_build_data(
-        depsgraph, scene, ob, &cddata_masks, need_mapping || ob->runtime.last_need_mapping);
+
+    makeDerivedMesh(depsgraph, scene, ob, dataMask);
+
     mesh_eval = BKE_object_get_evaluated_mesh(ob);
   }
 
@@ -1981,6 +1999,15 @@ Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph,
                            Object *ob,
                            const CustomData_MeshMasks *dataMask)
 {
+  BMEditMesh *em = ((Mesh *)ob->data)->edit_mesh;
+  if (em != nullptr) {
+    /* There is no such a concept as deformed mesh in edit mode.
+     * Explicitly disallow this request so that the evaluated result is not modified with evaluated
+     * result from the wrong mode. */
+    BLI_assert_msg(0, "Request of derformed mesh of object which is in edit mode");
+    return nullptr;
+  }
+
   /* This function isn't thread-safe and can't be used during evaluation. */
   BLI_assert(DEG_is_evaluating(depsgraph) == false);
 
@@ -2055,12 +2082,12 @@ Mesh *editbmesh_get_eval_cage(struct Depsgraph *depsgraph,
    */
   object_get_datamask(depsgraph, obedit, &cddata_masks, nullptr);
 
-  if (!em->mesh_eval_cage ||
-      !CustomData_MeshMasks_are_matching(&(em->lastDataMask), &cddata_masks)) {
+  if (!obedit->runtime.editmesh_eval_cage ||
+      !CustomData_MeshMasks_are_matching(&(obedit->runtime.last_data_mask), &cddata_masks)) {
     editbmesh_build_data(depsgraph, scene, obedit, em, &cddata_masks);
   }
 
-  return em->mesh_eval_cage;
+  return obedit->runtime.editmesh_eval_cage;
 }
 
 Mesh *editbmesh_get_eval_cage_from_orig(struct Depsgraph *depsgraph,

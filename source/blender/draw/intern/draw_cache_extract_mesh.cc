@@ -570,6 +570,7 @@ static struct TaskNode *mesh_extract_render_data_node_create(struct TaskGraph *t
 static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                                MeshBatchCache *cache,
                                                MeshBufferCache *mbc,
+                                               Object *object,
                                                Mesh *me,
 
                                                const bool is_editmode,
@@ -615,7 +616,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
    */
   const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
                              GPU_use_hq_normals_workaround();
-  const bool override_single_mat = mesh_render_mat_len_get(me) <= 1;
+  const bool override_single_mat = mesh_render_mat_len_get(object, me) <= 1;
 
   /* Create an array containing all the extractors that needs to be executed. */
   ExtractorRunDatas extractors;
@@ -700,7 +701,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
 #endif
 
   MeshRenderData *mr = mesh_render_data_create(
-      me, is_editmode, is_paint_mode, is_mode_active, obmat, do_final, do_uvedit, ts);
+      object, me, is_editmode, is_paint_mode, is_mode_active, obmat, do_final, do_uvedit, ts);
   mr->use_hide = use_hide;
   mr->use_subsurf_fdots = use_subsurf_fdots;
   mr->use_final_mesh = do_final;
@@ -902,6 +903,7 @@ extern "C" {
 void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         MeshBatchCache *cache,
                                         MeshBufferCache *mbc,
+                                        Object *object,
                                         Mesh *me,
 
                                         const bool is_editmode,
@@ -918,6 +920,7 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   blender::draw::mesh_buffer_cache_create_requested(task_graph,
                                                     cache,
                                                     mbc,
+                                                    object,
                                                     me,
                                                     is_editmode,
                                                     is_paint_mode,

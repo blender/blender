@@ -109,7 +109,7 @@ float (*BKE_crazyspace_get_mapped_editverts(struct Depsgraph *depsgraph, Object 
   /* disable subsurf temporal, get mapped cos, and enable it */
   if (modifiers_disable_subsurf_temporary(scene_eval, obedit_eval)) {
     /* need to make new derivemesh */
-    makeDerivedMesh(depsgraph, scene_eval, obedit_eval, editmesh_eval, &CD_MASK_BAREMESH);
+    makeDerivedMesh(depsgraph, scene_eval, obedit_eval, &CD_MASK_BAREMESH);
   }
 
   /* now get the cage */

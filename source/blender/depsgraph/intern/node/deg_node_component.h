@@ -163,23 +163,6 @@ struct ComponentNode : public Node {
     DEG_COMPONENT_NODE_DECLARE; \
   }
 
-/* When updating object data in edit-mode, don't request COW update since this will duplicate
- * all object data which is unnecessary when the edit-mode data is used for calculating modifiers.
- *
- * TODO: Investigate modes besides edit-mode. */
-#define DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_OBDATA_IN_EDIT_MODE(name) \
-  struct name##ComponentNode : public ComponentNode { \
-    DEG_COMPONENT_NODE_DECLARE; \
-    virtual bool need_tag_cow_before_update() override \
-    { \
-      if (OB_DATA_SUPPORT_EDITMODE(owner->id_type) && \
-          BKE_object_data_is_in_editmode(owner->id_orig)) { \
-        return false; \
-      } \
-      return true; \
-    } \
-  }
-
 #define DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_UPDATE(name) \
   struct name##ComponentNode : public ComponentNode { \
     DEG_COMPONENT_NODE_DECLARE; \
@@ -202,7 +185,7 @@ DEG_COMPONENT_NODE_DECLARE_GENERIC(Animation);
 DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_UPDATE(BatchCache);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Cache);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(CopyOnWrite);
-DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_OBDATA_IN_EDIT_MODE(Geometry);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(Geometry);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(ImageAnimation);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(LayerCollections);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Particles);

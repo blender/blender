@@ -173,19 +173,26 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   BKE_mesh_assert_normals_dirty_or_calculated(mesh_dst);
 }
 
+void BKE_mesh_free_editmesh(struct Mesh *mesh)
+{
+  if (mesh->edit_mesh == nullptr) {
+    return;
+  }
+
+  if (mesh->edit_mesh->is_shallow_copy == false) {
+    BKE_editmesh_free_data(mesh->edit_mesh);
+  }
+  MEM_freeN(mesh->edit_mesh);
+  mesh->edit_mesh = nullptr;
+}
+
 static void mesh_free_data(ID *id)
 {
   Mesh *mesh = (Mesh *)id;
 
   BLI_freelistN(&mesh->vertex_group_names);
 
-  if (mesh->edit_mesh) {
-    if (mesh->edit_mesh->is_shallow_copy == false) {
-      BKE_editmesh_free_data(mesh->edit_mesh);
-    }
-    MEM_freeN(mesh->edit_mesh);
-    mesh->edit_mesh = nullptr;
-  }
+  BKE_mesh_free_editmesh(mesh);
 
   BKE_mesh_runtime_free_data(mesh);
   mesh_clear_geometry(mesh);

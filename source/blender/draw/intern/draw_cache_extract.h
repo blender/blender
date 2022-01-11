@@ -28,6 +28,7 @@ struct TaskGraph;
 #include "DNA_customdata_types.h"
 
 #include "BKE_attribute.h"
+#include "BKE_object.h"
 
 #include "GPU_batch.h"
 #include "GPU_index_buffer.h"
@@ -107,11 +108,13 @@ ENUM_OPERATORS(eMRDataType, MR_DATA_POLYS_SORTED)
 extern "C" {
 #endif
 
-BLI_INLINE int mesh_render_mat_len_get(const Mesh *me)
+BLI_INLINE int mesh_render_mat_len_get(const Object *object, const Mesh *me)
 {
-  /* In edit mode, the displayed mesh is stored in the edit-mesh. */
-  if (me->edit_mesh && me->edit_mesh->mesh_eval_final) {
-    return MAX2(1, me->edit_mesh->mesh_eval_final->totcol);
+  if (me->edit_mesh != NULL) {
+    const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
+    if (editmesh_eval_final != NULL) {
+      return MAX2(1, editmesh_eval_final->totcol);
+    }
   }
   return MAX2(1, me->totcol);
 }
@@ -328,6 +331,7 @@ typedef struct MeshBatchCache {
 void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         MeshBatchCache *cache,
                                         MeshBufferCache *mbc,
+                                        Object *object,
                                         Mesh *me,
                                         bool is_editmode,
                                         bool is_paint_mode,

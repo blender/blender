@@ -334,9 +334,6 @@ void EDBM_mesh_clear(BMEditMesh *em)
   /* clear bmesh */
   BM_mesh_clear(em->bm);
 
-  /* Free evaluated meshes & cache. */
-  BKE_editmesh_free_derived_caches(em);
-
   /* free tessellation data */
   em->tottri = 0;
   MEM_SAFE_FREE(em->looptris);
@@ -1404,8 +1401,6 @@ void EDBM_update(Mesh *mesh, const struct EDBMUpdate_Params *params)
     BM_lnorspace_invalidate(em->bm, false);
     em->bm->spacearr_dirty &= ~BM_SPACEARR_BMO_SET;
   }
-  /* Don't keep stale evaluated mesh data around, see: T38872. */
-  BKE_editmesh_free_derived_caches(em);
 
 #ifdef DEBUG
   {

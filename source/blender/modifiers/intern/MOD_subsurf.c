@@ -245,9 +245,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   if ((ctx->flag & MOD_APPLY_TO_BASE_MESH) == 0) {
     Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
     const bool is_render_mode = (ctx->flag & MOD_APPLY_RENDER) != 0;
-    /* Same check as in `DRW_mesh_batch_cache_create_requested` to keep both code coherent. */
-    const bool is_editmode = (mesh->edit_mesh != NULL) &&
-                             (mesh->edit_mesh->mesh_eval_final != NULL);
+    /* Same check as in `DRW_mesh_batch_cache_create_requested` to keep both code coherent. The
+     * difference is that here we do not check for the final edit mesh pointer as it is not yet
+     * assigned at this stage of modifier stack evaluation. */
+    const bool is_editmode = (mesh->edit_mesh != NULL);
     const int required_mode = BKE_subsurf_modifier_eval_required_mode(is_render_mode, is_editmode);
     if (BKE_subsurf_modifier_can_do_gpu_subdiv_ex(scene, ctx->object, smd, required_mode, false)) {
       subdiv_cache_cpu_evaluation_settings(ctx, mesh, smd);

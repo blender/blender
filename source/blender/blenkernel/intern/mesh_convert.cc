@@ -1102,8 +1102,11 @@ static Mesh *mesh_new_from_mesh_object(Depsgraph *depsgraph,
   Mesh *mesh_input = (Mesh *)object->data;
   /* If we are in edit mode, use evaluated mesh from edit structure, matching to what
    * viewport is using for visualization. */
-  if (mesh_input->edit_mesh != nullptr && mesh_input->edit_mesh->mesh_eval_final) {
-    mesh_input = mesh_input->edit_mesh->mesh_eval_final;
+  if (mesh_input->edit_mesh != nullptr) {
+    Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
+    if (editmesh_eval_final != nullptr) {
+      mesh_input = editmesh_eval_final;
+    }
   }
   return mesh_new_from_mesh(object, mesh_input);
 }

@@ -281,7 +281,8 @@ typedef struct MeshExtract {
  * \param is_mode_active: When true, use the modifiers from the edit-data,
  * otherwise don't use modifiers as they are not from this object.
  */
-MeshRenderData *mesh_render_data_create(Mesh *me,
+MeshRenderData *mesh_render_data_create(Object *object,
+                                        Mesh *me,
                                         bool is_editmode,
                                         bool is_paint_mode,
                                         bool is_mode_active,

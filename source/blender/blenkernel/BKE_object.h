@@ -530,6 +530,9 @@ struct Mesh *BKE_object_get_pre_modified_mesh(const struct Object *object);
  */
 struct Mesh *BKE_object_get_original_mesh(const struct Object *object);
 
+struct Mesh *BKE_object_get_editmesh_eval_final(const struct Object *object);
+struct Mesh *BKE_object_get_editmesh_eval_cage(const struct Object *object);
+
 /* Lattice accessors.
  * These functions return either the regular lattice, or the edit-mode lattice,
  * whichever is currently in use. */

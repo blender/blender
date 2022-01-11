@@ -960,7 +960,7 @@ int DRW_cache_object_material_count_get(struct Object *ob)
 
   switch (type) {
     case OB_MESH:
-      return DRW_mesh_material_count_get((me != NULL) ? me : ob->data);
+      return DRW_mesh_material_count_get(ob, (me != NULL) ? me : ob->data);
     case OB_CURVE:
     case OB_SURF:
     case OB_FONT:
@@ -2875,7 +2875,7 @@ GPUBatch *DRW_cache_mesh_surface_get(Object *ob)
 GPUBatch *DRW_cache_mesh_surface_edges_get(Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_edges(ob->data);
+  return DRW_mesh_batch_cache_get_surface_edges(ob, ob->data);
 }
 
 GPUBatch **DRW_cache_mesh_surface_shaded_get(Object *ob,
@@ -2883,31 +2883,31 @@ GPUBatch **DRW_cache_mesh_surface_shaded_get(Object *ob,
                                              uint gpumat_array_len)
 {
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_shaded(ob->data, gpumat_array, gpumat_array_len);
+  return DRW_mesh_batch_cache_get_surface_shaded(ob, ob->data, gpumat_array, gpumat_array_len);
 }
 
 GPUBatch **DRW_cache_mesh_surface_texpaint_get(Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_texpaint(ob->data);
+  return DRW_mesh_batch_cache_get_surface_texpaint(ob, ob->data);
 }
 
 GPUBatch *DRW_cache_mesh_surface_texpaint_single_get(Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_texpaint_single(ob->data);
+  return DRW_mesh_batch_cache_get_surface_texpaint_single(ob, ob->data);
 }
 
 GPUBatch *DRW_cache_mesh_surface_vertpaint_get(Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_vertpaint(ob->data);
+  return DRW_mesh_batch_cache_get_surface_vertpaint(ob, ob->data);
 }
 
 GPUBatch *DRW_cache_mesh_surface_sculptcolors_get(Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_sculpt(ob->data);
+  return DRW_mesh_batch_cache_get_surface_sculpt(ob, ob->data);
 }
 
 GPUBatch *DRW_cache_mesh_surface_weights_get(Object *ob)
@@ -3091,7 +3091,7 @@ GPUBatch **DRW_cache_surf_surface_shaded_get(Object *ob,
   struct Curve *cu = ob->data;
   struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
   if (mesh_eval != NULL) {
-    return DRW_mesh_batch_cache_get_surface_shaded(mesh_eval, gpumat_array, gpumat_array_len);
+    return DRW_mesh_batch_cache_get_surface_shaded(ob, mesh_eval, gpumat_array, gpumat_array_len);
   }
 
   return DRW_curve_batch_cache_get_surface_shaded(cu, gpumat_array, gpumat_array_len);
@@ -3385,7 +3385,7 @@ void drw_batch_cache_validate(Object *ob)
   struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
   switch (ob->type) {
     case OB_MESH:
-      DRW_mesh_batch_cache_validate((Mesh *)ob->data);
+      DRW_mesh_batch_cache_validate(ob, (Mesh *)ob->data);
       break;
     case OB_CURVE:
     case OB_FONT:
@@ -3393,7 +3393,7 @@ void drw_batch_cache_validate(Object *ob)
       break;
     case OB_SURF:
       if (mesh_eval != NULL) {
-        DRW_mesh_batch_cache_validate(mesh_eval);
+        DRW_mesh_batch_cache_validate(ob, mesh_eval);
       }
       DRW_curve_batch_cache_validate((Curve *)ob->data);
       break;
