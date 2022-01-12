@@ -1452,8 +1452,6 @@ static void sculptsession_free_pbvh(Object *object)
   MEM_SAFE_FREE(ss->vemap);
   MEM_SAFE_FREE(ss->vemap_mem);
 
-  MEM_SAFE_FREE(ss->limit_surface);
-
   MEM_SAFE_FREE(ss->preview_vert_index_list);
   ss->preview_vert_index_count = 0;
 
@@ -1530,14 +1528,14 @@ void BKE_sculptsession_free(Object *ob)
 
     MEM_SAFE_FREE(ss->texcache);
 
-    bool SCULPT_temp_customlayer_release(
+    bool SCULPT_attr_release_layer(
         SculptSession * ss, Object * ob, struct SculptCustomLayer * scl);
 
     if (ss->layers_to_free) {
       for (int i = 0; i < ss->tot_layers_to_free; i++) {
         if (ss->layers_to_free[i]) {
-          SCULPT_temp_customlayer_release(ss, ob, ss->layers_to_free[i]);
-          // SCULPT_temp_customlayer_release frees layers_to_free[i] itself
+          SCULPT_attr_release_layer(ss, ob, ss->layers_to_free[i]);
+          // SCULPT_attr_release_layer frees layers_to_free[i] itself
         }
       }
 
@@ -1551,8 +1549,6 @@ void BKE_sculptsession_free(Object *ob)
     MEM_SAFE_FREE(ss->orig_cos);
     MEM_SAFE_FREE(ss->deform_cos);
     MEM_SAFE_FREE(ss->deform_imats);
-
-    MEM_SAFE_FREE(ss->limit_surface);
 
     if (ss->pose_ik_chain_preview) {
       for (int i = 0; i < ss->pose_ik_chain_preview->tot_segments; i++) {
@@ -1884,7 +1880,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
       break;
   }
 
-  BKE_sculptsession_check_mdyntopo(ob->sculpt, pbvh, totvert);
+  BKE_sculptsession_check_sculptverts(ob->sculpt, pbvh, totvert);
 
   if (ss->bm && me->key && ob->shapenr != ss->bm->shapenr) {
     KeyBlock *actkey = BLI_findlink(&me->key->block, ss->bm->shapenr - 1);
@@ -2432,7 +2428,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
                                   false);
   }
 
-  BKE_sculptsession_check_mdyntopo(ob->sculpt, pbvh, me->totvert);
+  BKE_sculptsession_check_sculptverts(ob->sculpt, pbvh, me->totvert);
 
   MEM_SAFE_FREE(ss->face_areas);
   ss->face_areas = MEM_calloc_arrayN(me->totpoly, sizeof(float) * 2, "ss->face_areas");
@@ -2500,7 +2496,7 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
   ss->temp_vdata_elems = BKE_pbvh_get_grid_num_vertices(pbvh);
   ss->temp_pdata_elems = ss->totfaces;
 
-  BKE_sculptsession_check_mdyntopo(ob->sculpt, pbvh, BKE_pbvh_get_grid_num_vertices(pbvh));
+  BKE_sculptsession_check_sculptverts(ob->sculpt, pbvh, BKE_pbvh_get_grid_num_vertices(pbvh));
 
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, ob->sculpt->show_face_sets);
@@ -2508,7 +2504,7 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
   return pbvh;
 }
 
-bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, PBVH *pbvh, int totvert)
+bool BKE_sculptsession_check_sculptverts(SculptSession *ss, PBVH *pbvh, int totvert)
 {
   if (!ss->bm && (!ss->mdyntopo_verts || totvert != ss->mdyntopo_verts_size)) {
     init_mdyntopo_layer(ss, pbvh, totvert);
@@ -2684,7 +2680,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     else if (ob->type == OB_MESH) {
       Mesh *me_eval_deform = object_eval->runtime.mesh_deform_eval;
 
-      BKE_sculptsession_check_mdyntopo(ob->sculpt, me_eval_deform->totvert);
+      BKE_sculptsession_check_sculptverts(ob->sculpt, me_eval_deform->totvert);
 
       pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform, respect_hide);
     }
@@ -2986,14 +2982,14 @@ void BKE_sculptsession_bmesh_add_layers(Object *ob)
   }
 }
 
-static bool sculpt_temp_customlayer_get(SculptSession *ss,
-                                        Object *ob,
-                                        AttributeDomain domain,
-                                        int proptype,
-                                        const char *name,
-                                        SculptCustomLayer *out,
-                                        bool autocreate,
-                                        SculptLayerParams *params)
+static bool sculpt_attr_get_layer(SculptSession *ss,
+                                  Object *ob,
+                                  AttributeDomain domain,
+                                  int proptype,
+                                  const char *name,
+                                  SculptCustomLayer *out,
+                                  bool autocreate,
+                                  SculptLayerParams *params)
 {
   if (ss->save_temp_layers && !params->simple_array) {
     params->permanent = true;
@@ -3270,7 +3266,7 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
   return true;
 }
 
-bool BKE_sculptsession_customlayer_get(Object *ob,
+bool BKE_sculptsession_attr_get_layer(Object *ob,
                                        AttributeDomain domain,
                                        int proptype,
                                        const char *name,
@@ -3279,7 +3275,7 @@ bool BKE_sculptsession_customlayer_get(Object *ob,
 {
   SculptSession *ss = ob->sculpt;
 
-  bool ret = sculpt_temp_customlayer_get(ss, ob, domain, proptype, name, scl, true, params);
+  bool ret = sculpt_attr_get_layer(ss, ob, domain, proptype, name, scl, true, params);
   BKE_sculptsession_update_attr_refs(ob);
 
   return ret;
@@ -3307,14 +3303,14 @@ void BKE_sculptsession_update_attr_refs(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
-  /* run twice, in case sculpt_temp_customlayer_get had to recreate a layer and
+  /* run twice, in case SCULPT_attr_get_layer had to recreate a layer and
      messed up the ordering. */
   for (int i = 0; i < 2; i++) {
     for (int j = 0; j < SCULPT_SCL_LAYER_MAX; j++) {
       SculptCustomLayer *scl = ss->custom_layers[j];
 
       if (scl && !scl->released && !scl->params.simple_array) {
-        sculpt_temp_customlayer_get(
+        sculpt_attr_get_layer(
             ss, ob, scl->domain, scl->proptype, scl->name, scl, true, &scl->params);
       }
     }
@@ -3363,7 +3359,7 @@ bool BKE_paint_uses_channels(ePaintMode mode)
   return mode == PAINT_MODE_SCULPT;
 }
 
-bool BKE_sculptsession_customlayer_release(Object *ob, SculptCustomLayer *scl)
+bool BKE_sculptsession_attr_release_layer(Object *ob, SculptCustomLayer *scl)
 {
   SculptSession *ss = ob->sculpt;
   AttributeDomain domain = scl->domain;

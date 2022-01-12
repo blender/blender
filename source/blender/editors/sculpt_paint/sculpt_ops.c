@@ -149,9 +149,9 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
   for (int i = 0; i < totvert; i++) {
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
-    float *co = SCULPT_temp_cdata_get(vertex, scl_co);
-    float *no = SCULPT_temp_cdata_get(vertex, scl_no);
-    float *disp = SCULPT_temp_cdata_get(vertex, scl_disp);
+    float *co = SCULPT_attr_vertex_data(vertex, scl_co);
+    float *no = SCULPT_attr_vertex_data(vertex, scl_no);
+    float *disp = SCULPT_attr_vertex_data(vertex, scl_disp);
 
     copy_v3_v3(co, SCULPT_vertex_co_get(ss, vertex));
     SCULPT_vertex_normal_get(ss, vertex, no);
@@ -1132,30 +1132,28 @@ static int sculpt_set_limit_surface_exec(bContext *C, wmOperator *UNUSED(op))
 
   SCULPT_vertex_random_access_ensure(ss);
 
-  if (ss->limit_surface) {
-    SCULPT_temp_customlayer_release(ss, ob, ss->limit_surface);
+  if (!ss->custom_layers[SCULPT_SCL_LIMIT_SURFACE]) {
+    ss->custom_layers[SCULPT_SCL_LIMIT_SURFACE] = MEM_callocN(sizeof(SculptCustomLayer),
+                                                              "SculptCustomLayer");
   }
 
-  MEM_SAFE_FREE(ss->limit_surface);
-
-  ss->limit_surface = MEM_callocN(sizeof(SculptCustomLayer), "ss->limit_surface");
   SculptLayerParams params = {.permanent = false, .simple_array = false};
 
-  SCULPT_temp_customlayer_ensure(
-      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "_sculpt_limit_surface", &params);
-  SCULPT_temp_customlayer_get(ss,
-                              ob,
-                              ATTR_DOMAIN_POINT,
-                              CD_PROP_FLOAT3,
-                              "_sculpt_limit_surface",
-                              ss->limit_surface,
-                              &params);
+  SCULPT_attr_get_layer(ss,
+                        ob,
+                        ATTR_DOMAIN_POINT,
+                        CD_PROP_FLOAT3,
+                        SCULPT_SCL_GET_NAME(SCULPT_SCL_LIMIT_SURFACE),
+                        ss->custom_layers[SCULPT_SCL_LIMIT_SURFACE],
+                        &params);
+
+  const SculptCustomLayer *scl = ss->custom_layers[SCULPT_SCL_LIMIT_SURFACE];
 
   const int totvert = SCULPT_vertex_count_get(ss);
   const bool weighted = false;
   for (int i = 0; i < totvert; i++) {
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
-    float *f = SCULPT_temp_cdata_get(vertex, ss->limit_surface);
+    float *f = SCULPT_attr_vertex_data(vertex, scl);
 
     SCULPT_neighbor_coords_average(ss, f, vertex, 0.0, true, weighted);
   }

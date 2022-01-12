@@ -167,9 +167,9 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     // our temp layer.  do this here before the brush check
     // to ensure any geomtry dyntopo might subdivide has
     // valid state.
-    int *stroke_id = (int *)SCULPT_temp_cdata_get(vd.vertex, stroke_id_scl);
-    float *color_buffer = (float *)SCULPT_temp_cdata_get(vd.vertex,
-                                                         buffer_scl);  // mv->origcolor;
+    int *stroke_id = (int *)SCULPT_attr_vertex_data(vd.vertex, stroke_id_scl);
+    float *color_buffer = (float *)SCULPT_attr_vertex_data(vd.vertex,
+                                                           buffer_scl);  // mv->origcolor;
 
     if (*stroke_id != ss->stroke_id) {
       *stroke_id = ss->stroke_id;
@@ -421,20 +421,24 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   // reuse smear's buffer name
 
-  SCULPT_temp_customlayer_ensure(
+  SCULPT_attr_ensure_layer(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &params);
-  SCULPT_temp_customlayer_ensure(
-      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, SCULPT_LAYER_STROKE_ID, &params_id);
+  SCULPT_attr_ensure_layer(ss,
+                           ob,
+                           ATTR_DOMAIN_POINT,
+                           CD_PROP_INT32,
+                           SCULPT_SCL_GET_NAME(SCULPT_SCL_LAYER_STROKE_ID),
+                           &params_id);
 
-  SCULPT_temp_customlayer_get(
+  SCULPT_attr_get_layer(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &buffer_scl, &params);
-  SCULPT_temp_customlayer_get(ss,
-                              ob,
-                              ATTR_DOMAIN_POINT,
-                              CD_PROP_INT32,
-                              SCULPT_LAYER_STROKE_ID,
-                              &stroke_id_scl,
-                              &params_id);
+  SCULPT_attr_get_layer(ss,
+                        ob,
+                        ATTR_DOMAIN_POINT,
+                        CD_PROP_INT32,
+                        SCULPT_SCL_GET_NAME(SCULPT_SCL_LAYER_STROKE_ID),
+                        &stroke_id_scl,
+                        &params_id);
 
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data = {
@@ -494,7 +498,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
     float current_disp[3];
     float current_disp_norm[3];
     float interp_color[4];
-    float *prev_color = (float *)SCULPT_temp_cdata_get(vd.vertex, data->scl);
+    float *prev_color = (float *)SCULPT_attr_vertex_data(vd.vertex, data->scl);
 
     copy_v4_v4(interp_color, prev_color);
 
@@ -517,7 +521,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
       float vertex_disp[3];
       float vertex_disp_norm[3];
       sub_v3_v3v3(vertex_disp, SCULPT_vertex_co_get(ss, ni.vertex), vd.co);
-      const float *neighbor_color = SCULPT_temp_cdata_get(ni.vertex, data->scl);
+      const float *neighbor_color = SCULPT_attr_vertex_data(ni.vertex, data->scl);
 
       normalize_v3_v3(vertex_disp_norm, vertex_disp);
       if (dot_v3v3(current_disp_norm, vertex_disp_norm) >= 0.0f) {
@@ -555,7 +559,7 @@ static void do_smear_store_prev_colors_task_cb_exec(void *__restrict userdata,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_vertex_color_get(ss, vd.vertex, (float *)SCULPT_temp_cdata_get(vd.vertex, data->scl));
+    SCULPT_vertex_color_get(ss, vd.vertex, (float *)SCULPT_attr_vertex_data(vd.vertex, data->scl));
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -574,9 +578,9 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   SculptCustomLayer prev_scl;
   SculptLayerParams params = {.permanent = false, .simple_array = false};
 
-  SCULPT_temp_customlayer_ensure(
+  SCULPT_attr_ensure_layer(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &params);
-  SCULPT_temp_customlayer_get(
+  SCULPT_attr_get_layer(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &prev_scl, &params);
 
   BKE_curvemapping_init(brush->curve);

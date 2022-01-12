@@ -609,7 +609,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   }
 
   /* destroy non-customdata temporary layers (which are rarely used) */
-  SCULPT_release_customlayers(ss, ob, true);
+  SCULPT_release_attributes(ss, ob, true);
 
   /* clear all the other temporary layer references, that point to customdata layers*/
   SCULPT_clear_scl_pointers(ss);
@@ -740,7 +740,7 @@ static void SCULPT_dynamic_topology_disable_ex(
   SCULPT_pbvh_clear(ob);
 
   /* destroy non-customdata temporary layers (which are rarely (never?) used for PBVH_BMESH) */
-  SCULPT_release_customlayers(ss, ob, true);
+  SCULPT_release_attributes(ss, ob, true);
 
   /* free all the other pointers in ss->custom_layers*/
   SCULPT_clear_scl_pointers(ss);

@@ -736,7 +736,7 @@ bool SCULPT_has_persistent_base(SculptSession *ss)
 const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, SculptVertRef index)
 {
   if (ss->custom_layers[SCULPT_SCL_PERS_CO]) {
-    return (float *)SCULPT_temp_cdata_get(index, ss->custom_layers[SCULPT_SCL_PERS_CO]);
+    return (float *)SCULPT_attr_vertex_data(index, ss->custom_layers[SCULPT_SCL_PERS_CO]);
   }
 
   return SCULPT_vertex_co_get(ss, index);
@@ -762,8 +762,8 @@ const float *SCULPT_vertex_co_for_grab_active_get(SculptSession *ss, SculptVertR
 void SCULPT_vertex_limit_surface_get(SculptSession *ss, SculptVertRef vertex, float r_co[3])
 {
   if (BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS) {
-    if (ss->limit_surface) {
-      float *f = SCULPT_temp_cdata_get(vertex, ss->limit_surface);
+    if (ss->custom_layers[SCULPT_SCL_LIMIT_SURFACE]) {
+      float *f = SCULPT_attr_vertex_data(vertex, ss->custom_layers[SCULPT_SCL_LIMIT_SURFACE]);
       copy_v3_v3(r_co, f);
     }
     else {
@@ -786,7 +786,7 @@ void SCULPT_vertex_limit_surface_get(SculptSession *ss, SculptVertRef vertex, fl
 void SCULPT_vertex_persistent_normal_get(SculptSession *ss, SculptVertRef vertex, float no[3])
 {
   if (ss->custom_layers[SCULPT_SCL_PERS_NO]) {
-    float *no2 = SCULPT_temp_cdata_get(vertex, ss->custom_layers[SCULPT_SCL_PERS_NO]);
+    float *no2 = SCULPT_attr_vertex_data(vertex, ss->custom_layers[SCULPT_SCL_PERS_NO]);
     copy_v3_v3(no, no2);
   }
   else {
@@ -822,7 +822,7 @@ float SCULPT_vertex_mask_get(SculptSession *ss, SculptVertRef index)
   return 0.0f;
 }
 
-bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
+bool SCULPT_attr_ensure_layer(SculptSession *ss,
                                     Object *ob,
                                     AttributeDomain domain,
                                     int proptype,
@@ -835,7 +835,7 @@ bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
   // thoeretically it can allocate new layers
   SCULPT_update_customdata_refs(ss, ob);
 
-  bool ret = SCULPT_temp_customlayer_get(ss, ob, domain, proptype, name, &scl, params);
+  bool ret = SCULPT_attr_get_layer(ss, ob, domain, proptype, name, &scl, params);
 
   SCULPT_update_customdata_refs(ss, ob);
 
@@ -843,7 +843,7 @@ bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
 }
 
 /* TODO: thoroughly test this function */
-bool SCULPT_temp_customlayer_has(SculptSession *ss,
+bool SCULPT_attr_has_layer(SculptSession *ss,
                                  AttributeDomain domain,
                                  int proptype,
                                  const char *name)
@@ -882,12 +882,12 @@ bool SCULPT_temp_customlayer_has(SculptSession *ss,
   return false;
 }
 
-bool SCULPT_temp_customlayer_release(SculptSession *ss, Object *ob, SculptCustomLayer *scl)
+bool SCULPT_attr_release_layer(SculptSession *ss, Object *ob, SculptCustomLayer *scl)
 {
-  return BKE_sculptsession_customlayer_release(ob, scl);
+  return BKE_sculptsession_attr_release_layer(ob, scl);
 }
 
-bool SCULPT_temp_customlayer_get(SculptSession *ss,
+bool SCULPT_attr_get_layer(SculptSession *ss,
                                  Object *ob,
                                  AttributeDomain domain,
                                  int proptype,
@@ -895,7 +895,7 @@ bool SCULPT_temp_customlayer_get(SculptSession *ss,
                                  SculptCustomLayer *scl,
                                  SculptLayerParams *params)
 {
-  return BKE_sculptsession_customlayer_get(ob, domain, proptype, name, scl, params);
+  return BKE_sculptsession_attr_get_layer(ob, domain, proptype, name, scl, params);
 }
 
 SculptVertRef SCULPT_active_vertex_get(SculptSession *ss)
@@ -6887,13 +6887,13 @@ void SCULPT_cache_free(SculptSession *ss, Object *ob, StrokeCache *cache)
 #endif
 
   if (ss->custom_layers[SCULPT_SCL_LAYER_DISP]) {
-    SCULPT_temp_customlayer_release(ss, ob, ss->custom_layers[SCULPT_SCL_LAYER_DISP]);
+    SCULPT_attr_release_layer(ss, ob, ss->custom_layers[SCULPT_SCL_LAYER_DISP]);
     MEM_freeN(ss->custom_layers[SCULPT_SCL_LAYER_DISP]);
     ss->custom_layers[SCULPT_SCL_LAYER_DISP] = NULL;
   }
 
   if (ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID]) {
-    SCULPT_temp_customlayer_release(ss, ob, ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID]);
+    SCULPT_attr_release_layer(ss, ob, ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID]);
     MEM_freeN(ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID]);
     ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID] = NULL;
   }
@@ -6906,20 +6906,20 @@ void SCULPT_cache_free(SculptSession *ss, Object *ob, StrokeCache *cache)
   }
 
   if (ss->custom_layers[SCULPT_SCL_FAIRING_MASK]) {
-    SCULPT_temp_customlayer_release(ss, ob, ss->custom_layers[SCULPT_SCL_FAIRING_MASK]);
+    SCULPT_attr_release_layer(ss, ob, ss->custom_layers[SCULPT_SCL_FAIRING_MASK]);
     MEM_freeN(ss->custom_layers[SCULPT_SCL_FAIRING_MASK]);
     ss->custom_layers[SCULPT_SCL_FAIRING_MASK] = NULL;
   }
 
   if (ss->custom_layers[SCULPT_SCL_FAIRING_FADE]) {
-    SCULPT_temp_customlayer_release(ss, ob, ss->custom_layers[SCULPT_SCL_FAIRING_FADE]);
+    SCULPT_attr_release_layer(ss, ob, ss->custom_layers[SCULPT_SCL_FAIRING_FADE]);
 
     MEM_freeN(ss->custom_layers[SCULPT_SCL_FAIRING_FADE]);
     ss->custom_layers[SCULPT_SCL_FAIRING_FADE] = NULL;
   }
 
   if (ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]) {
-    SCULPT_temp_customlayer_release(ss, ob, ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]);
+    SCULPT_attr_release_layer(ss, ob, ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]);
 
     MEM_freeN(ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]);
     ss->custom_layers[SCULPT_SCL_PREFAIRING_CO] = NULL;
@@ -6965,7 +6965,7 @@ void SCULPT_cache_free(SculptSession *ss, Object *ob, StrokeCache *cache)
   MEM_freeN(cache);
 }
 
-void SCULPT_release_customlayers(SculptSession *ss, Object *ob, bool non_customdata_only)
+void SCULPT_release_attributes(SculptSession *ss, Object *ob, bool non_customdata_only)
 {
   for (int i = 0; i < SCULPT_SCL_LAYER_MAX; i++) {
     if (ss->custom_layers[i]) {
@@ -6973,7 +6973,7 @@ void SCULPT_release_customlayers(SculptSession *ss, Object *ob, bool non_customd
         continue;
       }
 
-      SCULPT_temp_customlayer_release(ss, ob, ss->custom_layers[i]);
+      SCULPT_attr_release_layer(ss, ob, ss->custom_layers[i]);
 
       MEM_freeN(ss->custom_layers[i]);
       ss->custom_layers[i] = NULL;

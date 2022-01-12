@@ -136,7 +136,7 @@ void SCULPT_face_check_origdata(SculptSession *ss, SculptFaceRef face)
     return;
   }
 
-  short *s = (short *)SCULPT_temp_cdata_get_f(face, ss->custom_layers[SCULPT_SCL_ORIG_FSETS]);
+  short *s = (short *)SCULPT_attr_face_data(face, ss->custom_layers[SCULPT_SCL_ORIG_FSETS]);
 
   // pack ss->stroke_id in higher 16 bits
   if (s[1] != ss->stroke_id) {
@@ -151,7 +151,7 @@ int SCULPT_face_set_original_get(SculptSession *ss, SculptFaceRef face)
     return SCULPT_face_set_get(ss, face);
   }
 
-  short *s = (short *)SCULPT_temp_cdata_get_f(face, ss->custom_layers[SCULPT_SCL_ORIG_FSETS]);
+  short *s = (short *)SCULPT_attr_face_data(face, ss->custom_layers[SCULPT_SCL_ORIG_FSETS]);
 
   if (s[1] != ss->stroke_id) {
     s[0] = SCULPT_face_set_get(ss, face);
@@ -169,11 +169,11 @@ void SCULPT_face_ensure_original(SculptSession *ss, Object *ob)
 
   SculptCustomLayer *scl = MEM_callocN(sizeof(*scl), "orig fset scl");
 
-  SCULPT_temp_customlayer_get(ss,
+  SCULPT_attr_get_layer(ss,
                               ob,
                               ATTR_DOMAIN_FACE,
                               CD_PROP_INT32,
-                              "orig_faceset_attr_name",
+                              SCULPT_SCL_GET_NAME(SCULPT_SCL_ORIG_FSETS),
                               scl,
                               &((SculptLayerParams){.permanent = false, .simple_array = false}));
 

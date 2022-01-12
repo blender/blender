@@ -579,7 +579,7 @@ float SCULPT_automasking_factor_get(struct AutomaskingCache *automasking,
                                     SculptVertRef vert);
 bool SCULPT_automasking_needs_normal(const SculptSession *ss, const Brush *brush);
 
-    /* Returns the automasking cache depending on the active tool. Used for code that can run both for
+/* Returns the automasking cache depending on the active tool. Used for code that can run both for
  * brushes and filter. */
 struct AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss);
 
@@ -1973,7 +1973,7 @@ void SCULPT_curvature_dir_get(SculptSession *ss,
 
 /*
 
-DEPRECATED in favor of SCULPT_temp_customlayer_ensure
+DEPRECATED in favor of SCULPT_attr_ensure_layer
 which works with all three PBVH types
 
 Ensure a named temporary layer exists, creating it if necassary.
@@ -1994,7 +1994,6 @@ void SCULPT_ensure_persistent_layers(SculptSession *ss, struct Object *ob);
 #define SCULPT_LAYER_PERS_NO "Persistent Base No"
 #define SCULPT_LAYER_PERS_DISP "Persistent Base Height"
 #define SCULPT_LAYER_DISP "__temp_layer_disp"
-#define SCULPT_LAYER_STROKE_ID "__temp_layer_strokeid"
 
 // these tools don't support dynamic pbvh splitting during the stroke
 #define DYNTOPO_HAS_DYNAMIC_SPLIT(tool) true
@@ -2008,29 +2007,68 @@ int SCULPT_get_symmetry_pass(const SculptSession *ss);
 void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
 void SCULPT_reorder_bmesh(SculptSession *ss);
 
-static inline void *SCULPT_temp_cdata_get(const SculptVertRef vertex, const SculptCustomLayer *scl)
-{
-  if (scl->data) {
-    char *p = (char *)scl->data;
-    int idx = (int)vertex.i;
+/*
+API for custom (usually temporary) attributes.
+Vertices and faces are supported.
 
-    if (scl->from_bmesh) {
-      BMElem *v = (BMElem *)vertex.i;
-      idx = v->head.index;
+Note that attributes must be created at once,
+*then* loaded into SculptCustomLayer structures, e.g.:
+
+    SCULPT_attr_ensure_layer(ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "attr1", params);
+    SCULPT_attr_ensure_layer(ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "attr2", params);
+    SCULPT_attr_ensure_layer(ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "attr3", params);
+
+    SculptCustomLayer scl1, scl2, scl3;
+
+    SCULPT_attr_get_layer(ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "attr1", &scl1, params);
+    SCULPT_attr_get_layer(ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "attr2", &scl2, params);
+    SCULPT_attr_get_layer(ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "attr3", &scl3, params);
+
+Access per element data with SCULPT_attr_vertex_data and SCULPT_attr_face_data:.
+
+    float *f = SCULPT_attr_vertex_data(sculpt_vertex, &scl1);
+
+Layers that are reused by different parts of the sculpt code
+should be cached in SculptSession->custom_layers, the entries of which
+map to the SculptStandardAttr enum in BKE_paint.h.
+
+These layers will not be created for you, though once they exist they won't
+be pruned until the user exits sculpt mode.  To use:
+
+    if (!ss->custom_layers[SCULPT_SCL_FAIRING_MASK]) {
+      ss->custom_layers[SCULPT_SCL_FAIRING_MASK] = MEM_callocN(sizeof(SculptLayerRef), "SculptLayerRef");
+      SCULPT_attr_get_layer(ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "_sculpt_fairing_mask", ss->custom_layers[SCULPT_SCL_FAIRING_MASK], params);
     }
 
-    return p + scl->elemsize * (int)idx;
-  }
-  else {
-    BMElem *v = (BMElem *)vertex.i;
-    return BM_ELEM_CD_GET_VOID_P(v, scl->cd_offset);
-  }
+Note that SCULPT_attr_get_layer will automatically update the customdata
+offsets for all non-NULL entries in ss->custom_layers automatically.
 
-  return NULL;
-}
+TODO: prune CD_TEMPORARY layers on sculpt mode exit if PBVH_FACES is active;
+      in this case the layers are stored in the original meshes's CustomData
+      structs and will remain there until the user saves/loads the file.
+*/
 
-// arg, duplicate functions!
-static inline void *SCULPT_temp_cdata_get_f(const SculptFaceRef vertex,
+/** returns true if layer was successfully created */
+bool SCULPT_attr_ensure_layer(SculptSession *ss,
+                              Object *ob,
+                              AttributeDomain domain,
+                              int proptype,
+                              const char *name,
+                              SculptLayerParams *params);
+bool SCULPT_attr_get_layer(SculptSession *ss,
+                           Object *ob,
+                           AttributeDomain domain,
+                           int proptype,
+                           const char *name,
+                           SculptCustomLayer *scl,
+                           SculptLayerParams *params);
+bool SCULPT_attr_release_layer(SculptSession *ss, struct Object *ob, SculptCustomLayer *scl);
+bool SCULPT_attr_has_layer(SculptSession *ss,
+                           AttributeDomain domain,
+                           int proptype,
+                           const char *name);
+
+static inline void *SCULPT_attr_vertex_data(const SculptVertRef vertex,
                                             const SculptCustomLayer *scl)
 {
   if (scl->data) {
@@ -2052,37 +2090,29 @@ static inline void *SCULPT_temp_cdata_get_f(const SculptFaceRef vertex,
   return NULL;
 }
 
-/*
-create a custom vertex or face attribute.
-always create all of your attributes together with SCULPT_temp_customlayer_ensure,
+// arg, duplicate functions!
+static inline void *SCULPT_attr_face_data(const SculptFaceRef vertex, const SculptCustomLayer *scl)
+{
+  if (scl->data) {
+    char *p = (char *)scl->data;
+    int idx = (int)vertex.i;
 
-then initialize their SculptCustomLayer's with SCULPT_temp_customlayer_get
-afterwards.  Otherwise customdata offsets might be wrong (for PBVH_BMESH).
+    if (scl->from_bmesh) {
+      BMElem *v = (BMElem *)vertex.i;
+      idx = v->head.index;
+    }
 
-return true on success.  if false, layer was not created.
+    return p + scl->elemsize * (int)idx;
+  }
+  else {
+    BMElem *v = (BMElem *)vertex.i;
+    return BM_ELEM_CD_GET_VOID_P(v, scl->cd_offset);
+  }
 
-Access per element data with SCULPT_temp_cdata_get.
-*/
+  return NULL;
+}
 
-bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
-                                    Object *ob,
-                                    AttributeDomain domain,
-                                    int proptype,
-                                    const char *name,
-                                    SculptLayerParams *params);
-bool SCULPT_temp_customlayer_get(SculptSession *ss,
-                                 Object *ob,
-                                 AttributeDomain domain,
-                                 int proptype,
-                                 const char *name,
-                                 SculptCustomLayer *scl,
-                                 SculptLayerParams *params);
-bool SCULPT_temp_customlayer_release(SculptSession *ss, struct Object *ob, SculptCustomLayer *scl);
-bool SCULPT_temp_customlayer_has(SculptSession *ss,
-                                 AttributeDomain domain,
-                                 int proptype,
-                                 const char *name);
-void SCULPT_release_customlayers(SculptSession *ss, struct Object *ob, bool non_customdata_only);
+void SCULPT_release_attributes(SculptSession *ss, struct Object *ob, bool non_customdata_only);
 
 bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
                                      Sculpt *sd,

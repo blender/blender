@@ -94,14 +94,14 @@ static void sculpt_array_datalayers_init(Object *ob, SculptArray *array, SculptS
     array->scl_sym = MEM_callocN(sizeof(SculptCustomLayer), __func__);
   }
 
-  SCULPT_temp_customlayer_ensure(
+  SCULPT_attr_ensure_layer(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, &params);
-  SCULPT_temp_customlayer_ensure(
+  SCULPT_attr_ensure_layer(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_symmetry_pass_cd_name, &params);
 
-  SCULPT_temp_customlayer_get(
+  SCULPT_attr_get_layer(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, array->scl_inst, &params);
-  SCULPT_temp_customlayer_get(ss,
+  SCULPT_attr_get_layer(ss,
                               ob,
                               ATTR_DOMAIN_POINT,
                               CD_PROP_INT32,
@@ -121,8 +121,8 @@ static void sculpt_array_datalayers_add(SculptArray *array, SculptSession *ss, M
   for (int i = 0; i < totvert; i++) {
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
-    *(int *)SCULPT_temp_cdata_get(vertex, scl) = ARRAY_INSTANCE_ORIGINAL;
-    *(int *)SCULPT_temp_cdata_get(vertex, array->scl_sym) = 0;
+    *(int *)SCULPT_attr_vertex_data(vertex, scl) = ARRAY_INSTANCE_ORIGINAL;
+    *(int *)SCULPT_attr_vertex_data(vertex, array->scl_sym) = 0;
   }
 }
 
@@ -133,7 +133,7 @@ void SCULPT_array_datalayers_free(SculptArray *array, Object *ob)
 #if 0
   Mesh *mesh = BKE_object_get_original_mesh(ob);
 
-  // update cdata pointers for SCULPT_temp_customlayer_release
+  // update cdata pointers for SCULPT_attr_release_layer
   if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
     ss->vdata = &mesh->vdata;
     ss->edata = &mesh->edata;
@@ -154,32 +154,32 @@ void SCULPT_array_datalayers_free(SculptArray *array, Object *ob)
       ss->totvert = mesh->totvert;
     }
 
-    BKE_sculptsession_check_mdyntopo(ss, ss->pbvh, SCULPT_vertex_count_get(ss));
+    BKE_sculptsession_check_sculptverts(ss, ss->pbvh, SCULPT_vertex_count_get(ss));
   }
 #endif
 
   SculptLayerParams params = {.permanent = true, .simple_array = false};
 
   if (array->scl_inst) {
-    SCULPT_temp_customlayer_get(ss,
+    SCULPT_attr_get_layer(ss,
                                 ob,
                                 ATTR_DOMAIN_POINT,
                                 CD_PROP_INT32,
                                 array_instance_cd_name,
                                 array->scl_inst,
                                 &params);
-    SCULPT_temp_customlayer_release(ss, ob, array->scl_inst);
+    SCULPT_attr_release_layer(ss, ob, array->scl_inst);
   }
 
   if (array->scl_sym) {
-    SCULPT_temp_customlayer_get(ss,
+    SCULPT_attr_get_layer(ss,
                                 ob,
                                 ATTR_DOMAIN_POINT,
                                 CD_PROP_INT32,
                                 array_symmetry_pass_cd_name,
                                 array->scl_sym,
                                 &params);
-    SCULPT_temp_customlayer_release(ss, ob, array->scl_sym);
+    SCULPT_attr_release_layer(ss, ob, array->scl_sym);
   }
 
   SCULPT_update_customdata_refs(ss, ob);
@@ -353,9 +353,9 @@ static void sculpt_array_ensure_geometry_indices(Object *ob, SculptArray *array)
 
   SculptLayerParams params = {.permanent = true, .simple_array = false};
 
-  SCULPT_temp_customlayer_get(
+  SCULPT_attr_get_layer(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, array->scl_inst, &params);
-  SCULPT_temp_customlayer_get(ss,
+  SCULPT_attr_get_layer(ss,
                               ob,
                               ATTR_DOMAIN_POINT,
                               CD_PROP_INT32,
@@ -369,8 +369,8 @@ static void sculpt_array_ensure_geometry_indices(Object *ob, SculptArray *array)
   for (int i = 0; i < totvert; i++) {
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
-    array->copy_index[i] = *(int *)SCULPT_temp_cdata_get(vertex, array->scl_inst);
-    array->symmetry_pass[i] = *(int *)SCULPT_temp_cdata_get(vertex, array->scl_sym);
+    array->copy_index[i] = *(int *)SCULPT_attr_vertex_data(vertex, array->scl_inst);
+    array->symmetry_pass[i] = *(int *)SCULPT_attr_vertex_data(vertex, array->scl_sym);
   }
 
   SCULPT_array_datalayers_free(array, ob);

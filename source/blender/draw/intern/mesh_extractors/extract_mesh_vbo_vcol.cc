@@ -59,6 +59,11 @@ static std::vector<AttributeRef> get_vcol_refs(const CustomData *cd_vdata,
       AttributeDomain domain = domains[step2];
 
       int i = cdata->typemap[(int)type];
+
+      if (i == -1) {
+        continue;
+      }
+
       for (; i < cdata->totlayer && (CustomDataType)cdata->layers[i].type == type; i++, layeri++) {
         const CustomDataLayer *layer = cdata->layers + i;
 

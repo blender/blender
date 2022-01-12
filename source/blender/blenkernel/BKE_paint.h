@@ -660,7 +660,7 @@ typedef struct SculptCustomLayer {
   int proptype;
   SculptLayerParams params;
 
-  char name[512];
+  char name[MAX_CUSTOMDATA_LAYER_NAME];
 
   bool is_cdlayer;  // false for multires data
   void *data;       // only valid for multires and face
@@ -676,7 +676,7 @@ typedef struct SculptCustomLayer {
   (SculptCustomLayer pointers) inside of ss->custom_layers
   that are kept up to date with SCULPT_update_customdata_refs.
   */
-enum {
+typedef enum {
   SCULPT_SCL_FAIRING_MASK,
   SCULPT_SCL_FAIRING_FADE,
   SCULPT_SCL_PREFAIRING_CO,
@@ -688,8 +688,13 @@ enum {
   SCULPT_SCL_ORIG_FSETS,
   SCULPT_SCL_SMOOTH_VEL,
   SCULPT_SCL_SMOOTH_BDIS,
+  SCULPT_SCL_AUTOMASKING,
+  SCULPT_SCL_LIMIT_SURFACE,
   SCULPT_SCL_LAYER_MAX,
-};
+} SculptStandardAttr;
+
+#define SCULPT_SCL_GET_NAME(stdattr) ("__" #stdattr)
+
 
 typedef struct SculptSession {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
@@ -842,9 +847,6 @@ typedef struct SculptSession {
   /* Boundary Brush Preview */
   SculptBoundary *boundary_preview;
 
-  // float (*limit_surface)[3];
-  struct SculptCustomLayer *limit_surface;
-
   SculptVertexInfo vertex_info;
   SculptFakeNeighbors fake_neighbors;
 
@@ -922,25 +924,32 @@ typedef struct SculptSession {
 void BKE_sculptsession_free(struct Object *ob);
 void BKE_sculptsession_free_deformMats(struct SculptSession *ss);
 void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss);
+
 void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
-bool BKE_sculptsession_check_mdyntopo(SculptSession *ss, struct PBVH *pbvh, int totvert);
-void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me);
+
+bool BKE_sculptsession_check_sculptverts(SculptSession *ss, struct PBVH *pbvh, int totvert);
+
 struct BMesh *BKE_sculptsession_empty_bmesh_create(void);
+void BKE_sculptsession_bmesh_attr_update_internal(struct Object *ob);
+
+void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me);
+
 void BKE_sculptsession_bmesh_add_layers(struct Object *ob);
-bool BKE_sculptsession_customlayer_get(struct Object *ob,
+bool BKE_sculptsession_attr_get_layer(struct Object *ob,
                                        AttributeDomain domain,
                                        int proptype,
                                        const char *name,
                                        SculptCustomLayer *scl,
                                        SculptLayerParams *params);
-bool BKE_sculptsession_customlayer_release(struct Object *ob, SculptCustomLayer *scl);
-void BKE_sculptsession_bmesh_attr_update_internal(struct Object *ob);
+bool BKE_sculptsession_attr_release_layer(struct Object *ob, SculptCustomLayer *scl);
 void BKE_sculptsession_update_attr_refs(struct Object *ob);
+
 int BKE_sculptsession_get_totvert(const SculptSession *ss);
+
 void BKE_sculptsession_ignore_uvs_set(struct Object *ob, bool value);
 
-    /**
+/**
  * Create new color layer on object if it doesn't have one and if experimental feature set has
  * sculpt vertex color enabled. Returns truth if new layer has been added, false otherwise.
  */
