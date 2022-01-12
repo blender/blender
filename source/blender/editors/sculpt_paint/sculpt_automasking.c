@@ -78,8 +78,7 @@ bool SCULPT_is_automasking_mode_enabled(const SculptSession *ss,
                                         const Brush *br,
                                         const eAutomasking_flag mode)
 {
-  int flag = BKE_brush_channelset_get_int(
-      ss->cache->channels_final, "automasking", &ss->cache->input_mapping);
+  int flag = SCULPT_get_int(ss, automasking, sd, br);
 
   return flag & mode;
 }
@@ -566,10 +565,7 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_face_random_access_ensure(ss);
 
-  if (ss->custom_layers[SCULPT_SCL_AUTOMASKING]) {
-    automasking->factorlayer = ss->custom_layers[SCULPT_SCL_AUTOMASKING];
-  }
-  else {
+  if (!ss->custom_layers[SCULPT_SCL_AUTOMASKING]) {
     ss->custom_layers[SCULPT_SCL_AUTOMASKING] = MEM_callocN(sizeof(SculptCustomLayer),
                                                             "automasking->factorlayer");
 
@@ -580,7 +576,7 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
                                ATTR_DOMAIN_POINT,
                                CD_PROP_FLOAT,
                                SCULPT_SCL_GET_NAME(SCULPT_SCL_AUTOMASKING),
-                               automasking->factorlayer,
+                               ss->custom_layers[SCULPT_SCL_AUTOMASKING],
                                &params)) {
       // failed
       MEM_freeN(ss->custom_layers[SCULPT_SCL_AUTOMASKING]);
@@ -589,6 +585,8 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
       return automasking;
     }
   }
+
+  automasking->factorlayer = ss->custom_layers[SCULPT_SCL_AUTOMASKING];
 
   // automasking->factorlayer = SCULPT_attr_ensure_layer()
   // automasking->factor = MEM_malloc_arrayN(totvert, sizeof(float), "automask_factor");
