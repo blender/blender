@@ -1822,6 +1822,13 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
       srna, "reference", "ID", "Reference ID", "Linked ID used as reference by this override");
   RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 
+  RNA_def_pointer(
+      srna,
+      "hierarchy_root",
+      "ID",
+      "Hierarchy Root ID",
+      "Library override ID used as root of the override hierarchy this ID is a member of");
+
   prop = RNA_def_boolean(srna,
                          "is_in_hierarchy",
                          true,

@@ -161,6 +161,8 @@ void BKE_lib_override_library_copy(ID *dst_id, const ID *src_id, const bool do_f
                                             (ID *)src_id;
   id_us_plus(dst_id->override_library->reference);
 
+  dst_id->override_library->hierarchy_root = src_id->override_library->hierarchy_root;
+
   if (do_full_copy) {
     BLI_duplicatelist(&dst_id->override_library->properties,
                       &src_id->override_library->properties);
@@ -293,6 +295,7 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
    * mess in case there are a lot of hidden, non-instantiated, non-properly organized dependencies.
    * Ref T94650. */
   local_id->override_library->flag |= IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY;
+  local_id->override_library->hierarchy_root = local_id;
 
   if (do_tagged_remap) {
     Key *reference_key, *local_key = NULL;
@@ -328,9 +331,11 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
 
 bool BKE_lib_override_library_create_from_tag(Main *bmain,
                                               Library *owner_library,
-                                              const Library *reference_library,
+                                              const ID *id_root_reference,
                                               const bool do_no_main)
 {
+  const Library *reference_library = id_root_reference->lib;
+
   ID *reference_id;
   bool success = true;
 
@@ -383,6 +388,8 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
   /* Only remap new local ID's pointers, we don't want to force our new overrides onto our whole
    * existing linked IDs usages. */
   if (success) {
+    ID *hierarchy_root_id = id_root_reference->newid;
+
     for (todo_id_iter = todo_ids.first; todo_id_iter != NULL; todo_id_iter = todo_id_iter->next) {
       reference_id = todo_id_iter->data;
       ID *local_id = reference_id->newid;
@@ -390,6 +397,8 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
       if (local_id == NULL) {
         continue;
       }
+
+      local_id->override_library->hierarchy_root = hierarchy_root_id;
 
       Key *reference_key, *local_key = NULL;
       if ((reference_key = BKE_key_from_id(reference_id)) != NULL) {
@@ -865,7 +874,10 @@ static bool lib_override_library_create_do(Main *bmain,
   BKE_main_relations_free(bmain);
   lib_override_group_tag_data_clear(&data);
 
-  return BKE_lib_override_library_create_from_tag(bmain, owner_library, id_root->lib, false);
+  const bool success = BKE_lib_override_library_create_from_tag(
+      bmain, owner_library, id_root, false);
+
+  return success;
 }
 
 static void lib_override_library_create_post_process(Main *bmain,
@@ -1047,6 +1059,189 @@ bool BKE_lib_override_library_template_create(struct ID *id)
   return true;
 }
 
+static ID *lib_override_root_find(Main *bmain, ID *id, const int curr_level, int *r_best_level)
+{
+  if (curr_level > 1000) {
+    CLOG_ERROR(&LOG,
+               "Levels of dependency relationships between library overrides IDs is way too high, "
+               "skipping further processing loops (involves at least '%s')",
+               id->name);
+    BLI_assert(0);
+    return NULL;
+  }
+
+  if (!ID_IS_OVERRIDE_LIBRARY(id)) {
+    BLI_assert(0);
+    return NULL;
+  }
+
+  MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->relations_from_pointers, id);
+  BLI_assert(entry != NULL);
+
+  int best_level_candidate = curr_level;
+  ID *best_root_id_candidate = id;
+
+  for (MainIDRelationsEntryItem *from_id_entry = entry->from_ids; from_id_entry != NULL;
+       from_id_entry = from_id_entry->next) {
+    if ((from_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
+      /* Never consider non-overridable relationships as actual dependencies. */
+      continue;
+    }
+
+    ID *from_id = from_id_entry->id_pointer.from;
+    if (ELEM(from_id, NULL, id)) {
+      continue;
+    }
+    if (!ID_IS_OVERRIDE_LIBRARY(from_id) || (from_id->lib != id->lib)) {
+      continue;
+    }
+
+    int level_candidate = curr_level + 1;
+    /* Recursively process the parent. */
+    ID *root_id_candidate = lib_override_root_find(
+        bmain, from_id, curr_level + 1, &level_candidate);
+    if (level_candidate > best_level_candidate && root_id_candidate != NULL) {
+      best_root_id_candidate = root_id_candidate;
+      best_level_candidate = level_candidate;
+    }
+  }
+
+  *r_best_level = best_level_candidate;
+  return best_root_id_candidate;
+}
+
+static void lib_override_root_hierarchy_set(Main *bmain, ID *id_root, ID *id, ID *id_from)
+{
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    if (id->override_library->hierarchy_root == id_root) {
+      /* Already set, nothing else to do here, sub-hierarchy is also assumed to be properly set
+       * then. */
+      return;
+    }
+
+    /* Hierarchy root already set, and not matching currently propsed one, try to find which is
+     * best. */
+    if (id->override_library->hierarchy_root != NULL) {
+      /* Check if given `id_from` matches with the hierarchy of the linked reference ID, in which
+       * case we assume that the given hierarchy root is the 'real' one.
+       *
+       * NOTE: This can fail if user mixed dependencies between several overrides of a same
+       * reference linked hierarchy. Not much to be done in that case, it's virtually impossible to
+       * fix this automatically in a reliable way. */
+      if (id_from == NULL || !ID_IS_OVERRIDE_LIBRARY_REAL(id_from)) {
+        /* Too complicated to deal with for now. */
+        CLOG_WARN(&LOG,
+                  "Inconsistency in library override hierarchy of ID '%s'.\n"
+                  "\tNot enough data to verify validity of current proposed root '%s', assuming "
+                  "already set one '%s' is valid.",
+                  id->name,
+                  id_root->name,
+                  id->override_library->hierarchy_root->name);
+        return;
+      }
+
+      ID *id_from_ref = id_from->override_library->reference;
+      MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->relations_from_pointers,
+                                                     id->override_library->reference);
+      BLI_assert(entry != NULL);
+
+      bool do_replace_root = false;
+      for (MainIDRelationsEntryItem *from_id_entry = entry->from_ids; from_id_entry != NULL;
+           from_id_entry = from_id_entry->next) {
+        if ((from_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
+          /* Never consider non-overridable relationships as actual dependencies. */
+          continue;
+        }
+
+        if (id_from_ref == from_id_entry->id_pointer.from) {
+          /* A matching parent was found in reference linked data, assume given hierarchy root is
+           * the valid one. */
+          do_replace_root = true;
+          CLOG_WARN(
+              &LOG,
+              "Inconsistency in library override hierarchy of ID '%s'.\n"
+              "\tCurrent proposed root '%s' detected as valid, will replace already set one '%s'.",
+              id->name,
+              id_root->name,
+              id->override_library->hierarchy_root->name);
+          break;
+        }
+      }
+
+      if (!do_replace_root) {
+        CLOG_WARN(
+            &LOG,
+            "Inconsistency in library override hierarchy of ID '%s'.\n"
+            "\tCurrent proposed root '%s' not detected as valid, keeping already set one '%s'.",
+            id->name,
+            id_root->name,
+            id->override_library->hierarchy_root->name);
+        return;
+      }
+    }
+
+    id->override_library->hierarchy_root = id_root;
+  }
+
+  MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->relations_from_pointers, id);
+  BLI_assert(entry != NULL);
+
+  for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != NULL;
+       to_id_entry = to_id_entry->next) {
+    if ((to_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
+      /* Never consider non-overridable relationships as actual dependencies. */
+      continue;
+    }
+
+    ID *to_id = *to_id_entry->id_pointer.to;
+    if (ELEM(to_id, NULL, id)) {
+      continue;
+    }
+    if (!ID_IS_OVERRIDE_LIBRARY(to_id) || (to_id->lib != id->lib)) {
+      continue;
+    }
+
+    /* Recursively process the sub-hierarchy. */
+    lib_override_root_hierarchy_set(bmain, id_root, to_id, id);
+  }
+}
+
+void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
+{
+  ID *id;
+
+  BKE_main_relations_create(bmain, 0);
+
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      continue;
+    }
+    if (id->override_library->hierarchy_root != NULL) {
+      continue;
+    }
+
+    int best_level = 0;
+    ID *id_root = lib_override_root_find(bmain, id, best_level, &best_level);
+
+    if (!ELEM(id_root->override_library->hierarchy_root, id_root, NULL)) {
+      CLOG_WARN(&LOG,
+                "Potential inconsistency in library override hierarchy of ID '%s', detected as "
+                "part of the hierarchy of '%s', which has a different root '%s'",
+                id->name,
+                id_root->name,
+                id_root->override_library->hierarchy_root->name);
+      continue;
+    }
+
+    lib_override_root_hierarchy_set(bmain, id_root, id_root, NULL);
+
+    BLI_assert(id->override_library->hierarchy_root != NULL);
+  }
+  FOREACH_MAIN_ID_END;
+
+  BKE_main_relations_free(bmain);
+}
+
 static void lib_override_library_remap(Main *bmain,
                                        const ID *id_root_reference,
                                        GHash *linkedref_to_old_override)
@@ -1214,7 +1409,7 @@ static bool lib_override_library_resync(Main *bmain,
    * override IDs (including within the old overrides themselves, since those are tagged too
    * above). */
   const bool success = BKE_lib_override_library_create_from_tag(
-      bmain, NULL, id_root_reference->lib, true);
+      bmain, NULL, id_root_reference, true);
 
   if (!success) {
     return success;

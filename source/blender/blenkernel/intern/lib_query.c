@@ -323,6 +323,8 @@ static bool library_foreach_ID_link(Main *bmain,
                          IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
       CALLBACK_INVOKE_ID(id->override_library->storage,
                          IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
+
+      CALLBACK_INVOKE_ID(id->override_library->hierarchy_root, IDWALK_CB_LOOPBACK);
     }
 
     IDP_foreach_property(id->properties,

@@ -113,7 +113,7 @@ struct ID *BKE_lib_override_library_create_from_id(struct Main *bmain,
  */
 bool BKE_lib_override_library_create_from_tag(struct Main *bmain,
                                               struct Library *owner_library,
-                                              const struct Library *reference_library,
+                                              const struct ID *id_root_reference,
                                               bool do_no_main);
 /**
  * Advanced 'smart' function to create fully functional overrides.
@@ -172,6 +172,15 @@ bool BKE_lib_override_library_proxy_convert(struct Main *bmain,
  */
 void BKE_lib_override_library_main_proxy_convert(struct Main *bmain,
                                                  struct BlendFileReadReport *reports);
+
+/**
+ * Find and set the 'hierarchy root' ID pointer of all library overrides in given `bmain`.
+ *
+ * NOTE: Cannot be called from `do_versions_after_linking` as this code needs a single complete
+ * Main database, not a split-by-libraries one.
+ */
+void BKE_lib_override_library_main_hierarchy_root_ensure(struct Main *bmain);
+
 /**
  * Advanced 'smart' function to resync, re-create fully functional overrides up-to-date with linked
  * data, from an existing override hierarchy.

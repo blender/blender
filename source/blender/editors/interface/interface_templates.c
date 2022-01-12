@@ -667,6 +667,13 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 
               /* Assign new pointer, takes care of updates/notifiers */
               RNA_id_pointer_create(override_id, &idptr);
+              /* Insert into override hierarchy if possible. */
+              ID *owner_id = template_ui->ptr.owner_id;
+              if (owner_id != NULL && ID_IS_OVERRIDE_LIBRARY_REAL(owner_id)) {
+                override_id->override_library->hierarchy_root =
+                    owner_id->override_library->hierarchy_root;
+                owner_id->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY;
+              }
             }
             undo_push_label = "Make Library Override";
           }

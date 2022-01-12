@@ -310,14 +310,19 @@ typedef struct IDOverrideLibrary {
   /** List of IDOverrideLibraryProperty structs. */
   ListBase properties;
 
+  /** Override hierarchy root ID. Usually the actual root of the hierarchy, but not always
+   * in degenerated cases.
+   *
+   * All liboverrides of a same hierarchy (e.g. a character collection) share the same root.
+   */
+  struct ID *hierarchy_root;
+
   /* Read/write data. */
   /* Temp ID storing extra override data (used for differential operations only currently).
    * Always NULL outside of read/write context. */
   struct ID *storage;
 
   IDOverrideLibraryRuntime *runtime;
-
-  void *_pad_0;
 
   unsigned int flag;
   char _pad_1[4];

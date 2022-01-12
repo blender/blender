@@ -374,6 +374,10 @@ static void setup_app_data(bContext *C,
     BKE_lib_override_library_main_proxy_convert(bmain, reports);
   }
 
+  if (mode != LOAD_UNDO && !blendfile_or_libraries_versions_atleast(bmain, 302, 3)) {
+    BKE_lib_override_library_main_hierarchy_root_ensure(bmain);
+  }
+
   bmain->recovered = 0;
 
   /* startup.blend or recovered startup */
