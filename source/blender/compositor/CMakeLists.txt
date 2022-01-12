@@ -147,6 +147,8 @@ set(SRC
   nodes/COM_TimeNode.h
   nodes/COM_ValueNode.cc
   nodes/COM_ValueNode.h
+  nodes/COM_SceneTimeNode.cc
+  nodes/COM_SceneTimeNode.h
 
   # output nodes
   nodes/COM_CompositorNode.cc

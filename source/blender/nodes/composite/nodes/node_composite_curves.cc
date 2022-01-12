@@ -51,7 +51,7 @@ void register_node_type_cmp_curve_time()
 
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_TIME, "Time", NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, CMP_NODE_TIME, "Time Curve", NODE_CLASS_INPUT);
   ntype.declare = file_ns::cmp_node_time_declare;
   node_type_size(&ntype, 200, 140, 320);
   node_type_init(&ntype, file_ns::node_composit_init_curves_time);

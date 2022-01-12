@@ -94,6 +94,7 @@
 #include "COM_RotateNode.h"
 #include "COM_ScaleNode.h"
 #include "COM_ScaleOperation.h"
+#include "COM_SceneTimeNode.h"
 #include "COM_SeparateColorNode.h"
 #include "COM_SetAlphaNode.h"
 #include "COM_SetValueOperation.h"
@@ -359,6 +360,9 @@ Node *COM_convert_bnode(bNode *b_node)
       break;
     case CMP_NODE_TRANSFORM:
       node = new TransformNode(b_node);
+      break;
+    case CMP_NODE_SCENE_TIME:
+      node = new SceneTimeNode(b_node);
       break;
     case CMP_NODE_STABILIZE2D:
       node = new Stabilize2dNode(b_node);

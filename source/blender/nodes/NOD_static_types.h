@@ -148,7 +148,7 @@ DefNode(CompositorNode, CMP_NODE_BLUR,           def_cmp_blur,           "BLUR",
 DefNode(CompositorNode, CMP_NODE_FILTER,         def_cmp_filter,         "FILTER",         Filter,           "Filter",            ""              )
 DefNode(CompositorNode, CMP_NODE_MAP_VALUE,      def_cmp_map_value,      "MAP_VALUE",      MapValue,         "Map Value",         ""              )
 DefNode(CompositorNode, CMP_NODE_MAP_RANGE,      def_cmp_map_range,      "MAP_RANGE",      MapRange,         "Map Range",         ""              )
-DefNode(CompositorNode, CMP_NODE_TIME,           def_time,               "TIME",           Time,             "Time",              ""              )
+DefNode(CompositorNode, CMP_NODE_TIME,           def_time,               "TIME",           Time,             "Time Curve",        ""              )
 DefNode(CompositorNode, CMP_NODE_VECBLUR,        def_cmp_vector_blur,    "VECBLUR",        VecBlur,          "Vector Blur",       ""              )
 DefNode(CompositorNode, CMP_NODE_SEPRGBA,        0,                      "SEPRGBA",        SepRGBA,          "Separate RGBA",     ""              )
 DefNode(CompositorNode, CMP_NODE_SEPHSVA,        0,                      "SEPHSVA",        SepHSVA,          "Separate HSVA",     ""              )
@@ -228,6 +228,7 @@ DefNode(CompositorNode, CMP_NODE_EXPOSURE,       0,                      "EXPOSU
 DefNode(CompositorNode, CMP_NODE_ANTIALIASING,   def_cmp_antialiasing,   "ANTIALIASING",   AntiAliasing,     "Anti-Aliasing",     ""              )
 DefNode(CompositorNode, CMP_NODE_POSTERIZE,      0,                      "POSTERIZE",      Posterize,        "Posterize",         ""              )
 DefNode(CompositorNode, CMP_NODE_CONVERT_COLOR_SPACE,def_cmp_convert_color_space, "CONVERT_COLORSPACE", ConvertColorSpace, "Color Space",""       )
+DefNode(CompositorNode, CMP_NODE_SCENE_TIME,     0,                      "SCENE_TIME",      SceneTime,        "Scene Time",        ""              )
 
 DefNode(TextureNode,    TEX_NODE_OUTPUT,         def_tex_output,         "OUTPUT",         Output,           "Output",            ""              )
 DefNode(TextureNode,    TEX_NODE_CHECKER,        0,                      "CHECKER",        Checker,          "Checker",           ""              )

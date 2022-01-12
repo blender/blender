@@ -1313,6 +1313,7 @@ void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
 #define CMP_NODE_CRYPTOMATTE 326
 #define CMP_NODE_POSTERIZE 327
 #define CMP_NODE_CONVERT_COLOR_SPACE 328
+#define CMP_NODE_SCENE_TIME 329
 
 /* channel toggles */
 #define CMP_CHAN_RGB 1
