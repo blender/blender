@@ -420,6 +420,11 @@ void BKE_node_tree_unlink_id(ID *id, struct bNodeTree *ntree)
 /** \name Node #GROUP_INPUT / #GROUP_OUTPUT
  * \{ */
 
+static bool is_group_extension_socket(const bNode *node, const bNodeSocket *socket)
+{
+  return socket->type == SOCK_CUSTOM && ELEM(node->type, NODE_GROUP_OUTPUT, NODE_GROUP_INPUT);
+}
+
 static void node_group_input_init(bNodeTree *ntree, bNode *node)
 {
   node_group_input_update(ntree, node);
@@ -471,7 +476,7 @@ void node_group_input_update(bNodeTree *ntree, bNode *node)
      * This could be improved by choosing the "best" type among all links,
      * whatever that means.
      */
-    if (link->tosock->type != SOCK_CUSTOM) {
+    if (!is_group_extension_socket(link->tonode, link->tosock)) {
       exposelink = link;
       break;
     }
@@ -568,7 +573,7 @@ void node_group_output_update(bNodeTree *ntree, bNode *node)
      * This could be improved by choosing the "best" type among all links,
      * whatever that means.
      */
-    if (link->fromsock->type != SOCK_CUSTOM) {
+    if (!is_group_extension_socket(link->fromnode, link->fromsock)) {
       exposelink = link;
       break;
     }
