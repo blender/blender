@@ -20,10 +20,11 @@
  * \ingroup bli
  */
 
+#include "BLI_math_vec_types.hh"
+
 #ifdef WITH_GMP
 
 #  include "BLI_math_mpq.hh"
-#  include "BLI_math_vec_types.hh"
 
 namespace blender {
 
