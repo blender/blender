@@ -66,3 +66,10 @@ ListBase outliner_tree_display_build_tree(TreeDisplay *tree_display, TreeSourceD
 {
   return reinterpret_cast<AbstractTreeDisplay *>(tree_display)->buildTree(*source_data);
 }
+
+bool outliner_tree_display_warnings_poll(const TreeDisplay *tree_display)
+{
+  const AbstractTreeDisplay *abstract_tree_display = reinterpret_cast<const AbstractTreeDisplay *>(
+      tree_display);
+  return abstract_tree_display->has_warnings;
+}

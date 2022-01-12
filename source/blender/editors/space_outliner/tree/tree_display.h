@@ -47,6 +47,16 @@ void outliner_tree_display_destroy(TreeDisplay **tree_display);
 
 ListBase outliner_tree_display_build_tree(TreeDisplay *tree_display, TreeSourceData *source_data);
 
+/** Accessor to whether given tree has some warnings to display. */
+bool outliner_tree_display_warnings_poll(const struct TreeDisplay *tree_display);
+
+/** Get actual warning data of a tree element, if any.
+ *
+ * \param r_icon The icon to display as warning.
+ * \param r_message The message to display as warning.
+ * \return true if there is a warning, false otherwise. */
+bool outliner_element_warnings_get(struct TreeElement *te, int *r_icon, const char **r_message);
+
 /* The following functions are needed to build the tree. They are calls back into C; the way
  * elements are created should be refactored and ported to C++ with a new design/API too. */
 /**

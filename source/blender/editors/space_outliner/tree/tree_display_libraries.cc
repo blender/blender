@@ -104,9 +104,7 @@ ListBase TreeDisplayLibraries::buildTree(const TreeSourceData &source_data)
   return tree;
 }
 
-TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar,
-                                                        ListBase &lb,
-                                                        Library *lib) const
+TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar, ListBase &lb, Library *lib)
 {
   const short filter_id_type = id_filter_get();
 
@@ -148,6 +146,9 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar,
         else {
           tenlib = outliner_add_element(&space_outliner_, &lb, &mainvar, nullptr, TSE_ID_BASE, 0);
           tenlib->name = IFACE_("Current File");
+        }
+        if (tenlib->flag & TE_HAS_WARNING) {
+          has_warnings = true;
         }
       }
 

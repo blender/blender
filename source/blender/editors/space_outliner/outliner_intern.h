@@ -158,6 +158,8 @@ enum {
   /* Child elements of the same type in the icon-row are drawn merged as one icon.
    * This flag is set for an element that is part of these merged child icons. */
   TE_ICONROW_MERGED = (1 << 7),
+  /* This element has some warning to be displayed. */
+  TE_HAS_WARNING = (1 << 8),
 };
 
 /* button events */

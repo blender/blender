@@ -74,6 +74,7 @@
 #include "RNA_access.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "outliner_intern.h"
 #include "tree/tree_display.h"
@@ -812,6 +813,41 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
   }
 }
 
+bool outliner_element_warnings_get(TreeElement *te, int *r_icon, const char **r_message)
+{
+  TreeStoreElem *tselem = TREESTORE(te);
+
+  if (tselem->type != TSE_SOME_ID) {
+    return false;
+  }
+  if (te->idcode != ID_LI) {
+    return false;
+  }
+
+  Library *library = (Library *)tselem->id;
+  if (library->tag & LIBRARY_TAG_RESYNC_REQUIRED) {
+    if (r_icon) {
+      *r_icon = ICON_ERROR;
+    }
+    if (r_message) {
+      *r_message = TIP_(
+          "Contains linked library overrides that need to be resynced, updating the library is "
+          "recommended");
+    }
+    return true;
+  }
+  if (library->id.tag & LIB_TAG_MISSING) {
+    if (r_icon) {
+      *r_icon = ICON_ERROR;
+    }
+    if (r_message) {
+      *r_message = TIP_("Missing library");
+    }
+    return true;
+  }
+  return false;
+}
+
 TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                                   ListBase *lb,
                                   void *idv,
@@ -1113,6 +1149,10 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
       }
       te->flag |= TE_FREE_NAME;
     }
+  }
+
+  if (outliner_element_warnings_get(te, NULL, NULL)) {
+    te->flag |= TE_HAS_WARNING;
   }
 
   return te;
