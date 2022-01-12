@@ -249,23 +249,6 @@ void ntreeCompositUpdateRLayers(bNodeTree *ntree)
   }
 }
 
-void ntreeCompositRegisterPass(bNodeTree *ntree,
-                               Scene *scene,
-                               ViewLayer *view_layer,
-                               const char *name,
-                               eNodeSocketDatatype type)
-{
-  if (ntree == nullptr) {
-    return;
-  }
-
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == CMP_NODE_R_LAYERS) {
-      node_cmp_rlayers_register_pass(ntree, node, scene, view_layer, name, type);
-    }
-  }
-}
-
 void ntreeCompositTagRender(Scene *scene)
 {
   /* XXX Think using G_MAIN here is valid, since you want to update current file's scene nodes,

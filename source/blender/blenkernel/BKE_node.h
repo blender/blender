@@ -1373,18 +1373,12 @@ void ntreeCompositTagRender(struct Scene *scene);
  * - Each render layer node calls the update function of the
  *   render engine that's used for its scene.
  * - The render engine calls RE_engine_register_pass for each pass.
- * - #RE_engine_register_pass calls #ntreeCompositRegisterPass,
- *   which calls #node_cmp_rlayers_register_pass for every render layer node.
+ * - #RE_engine_register_pass calls #node_cmp_rlayers_register_pass.
  *
  * TODO: This is *not* part of `blenkernel`, it's defined under "source/blender/nodes/".
  * This declaration should be moved out of BKE.
  */
 void ntreeCompositUpdateRLayers(struct bNodeTree *ntree);
-void ntreeCompositRegisterPass(struct bNodeTree *ntree,
-                               struct Scene *scene,
-                               struct ViewLayer *view_layer,
-                               const char *name,
-                               eNodeSocketDatatype type);
 void ntreeCompositClearTags(struct bNodeTree *ntree);
 
 struct bNodeSocket *ntreeCompositOutputFileAddSocket(struct bNodeTree *ntree,
