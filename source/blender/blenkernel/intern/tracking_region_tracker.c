@@ -26,6 +26,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"
 
 #include "BLI_threads.h"
@@ -322,7 +323,7 @@ void BKE_tracking_refine_marker(MovieClip *clip,
   int search_area_height, search_area_width;
   int clip_flag = clip->flag & MCLIP_TIMECODE_FLAGS;
   int reference_framenr;
-  MovieClipUser user = {0};
+  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
   double dst_pixel_x[5], dst_pixel_y[5];
   bool tracked;
 

@@ -38,6 +38,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mask_types.h"
 
 #include "BKE_animsys.h"
@@ -1308,7 +1309,7 @@ void BKE_mask_point_parent_matrix_get(MaskSplinePoint *point,
       MovieTrackingObject *ob = BKE_tracking_object_get_named(tracking, parent->parent);
 
       if (ob) {
-        MovieClipUser user = {0};
+        MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
         float clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, ctime);
         BKE_movieclip_user_set_frame(&user, ctime);
 

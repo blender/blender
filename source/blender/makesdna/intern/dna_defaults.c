@@ -103,6 +103,7 @@
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_linestyle_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -144,6 +145,7 @@
 #include "DNA_pointcloud_defaults.h"
 #include "DNA_scene_defaults.h"
 #include "DNA_simulation_defaults.h"
+#include "DNA_space_defaults.h"
 #include "DNA_speaker_defaults.h"
 #include "DNA_texture_defaults.h"
 #include "DNA_volume_defaults.h"
@@ -208,6 +210,9 @@ SDNA_DEFAULT_DECL_STRUCT(MetaBall);
 
 /* DNA_movieclip_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(MovieClip);
+SDNA_DEFAULT_DECL_STRUCT(MovieClipUser);
+SDNA_DEFAULT_DECL_STRUCT(MovieClipScopes);
+SDNA_DEFAULT_DECL_STRUCT(MovieTrackingMarker);
 
 /* DNA_object_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Object);
@@ -224,6 +229,10 @@ SDNA_DEFAULT_DECL_STRUCT(ToolSettings);
 
 /* DNA_simulation_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Simulation);
+
+/* DNA_space_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(MaskSpaceInfo);
+SDNA_DEFAULT_DECL_STRUCT(SpaceClip);
 
 /* DNA_speaker_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Speaker);
@@ -406,11 +415,18 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     /* DNA_mesh_defaults.h */
     SDNA_DEFAULT_DECL(Mesh),
 
+    /* DNA_space_defaults.h */
+    SDNA_DEFAULT_DECL(SpaceClip),
+    SDNA_DEFAULT_DECL_EX(MaskSpaceInfo, SpaceClip.mask_info),
+    SDNA_DEFAULT_DECL_EX(MovieClipUser, SpaceClip.user),
+    SDNA_DEFAULT_DECL_EX(MovieClipScopes, SpaceClip.scopes),
+
     /* DNA_meta_defaults.h */
     SDNA_DEFAULT_DECL(MetaBall),
 
     /* DNA_movieclip_defaults.h */
     SDNA_DEFAULT_DECL(MovieClip),
+    SDNA_DEFAULT_DECL_EX(MovieTrackingMarker, MovieClipScopes.undist_marker),
 
     /* DNA_object_defaults.h */
     SDNA_DEFAULT_DECL(Object),

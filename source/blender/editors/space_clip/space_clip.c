@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "DNA_defaults.h"
+
 #include "DNA_mask_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
@@ -239,14 +241,7 @@ static SpaceLink *clip_create(const ScrArea *area, const Scene *scene)
   ARegion *region;
   SpaceClip *sc;
 
-  sc = MEM_callocN(sizeof(SpaceClip), "initclip");
-  sc->spacetype = SPACE_CLIP;
-  sc->flag = SC_SHOW_MARKER_PATTERN | SC_SHOW_TRACK_PATH | SC_SHOW_GRAPH_TRACKS_MOTION |
-             SC_SHOW_GRAPH_FRAMES | SC_SHOW_ANNOTATION;
-  sc->zoom = 1.0f;
-  sc->path_length = 20;
-  sc->scopes.track_preview_height = 120;
-  sc->around = V3D_AROUND_CENTER_MEDIAN;
+  sc = DNA_struct_default_alloc(SpaceClip);
 
   /* header */
   region = MEM_callocN(sizeof(ARegion), "header for clip");

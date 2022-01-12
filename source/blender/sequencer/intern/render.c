@@ -29,6 +29,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_defaults.h"
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
@@ -1188,14 +1189,12 @@ static ImBuf *seq_render_movieclip_strip(const SeqRenderData *context,
                                          bool *r_is_proxy_image)
 {
   ImBuf *ibuf = NULL;
-  MovieClipUser user;
+  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
   IMB_Proxy_Size psize = SEQ_rendersize_to_proxysize(context->preview_render_size);
 
   if (!seq->clip) {
     return NULL;
   }
-
-  memset(&user, 0, sizeof(MovieClipUser));
 
   BKE_movieclip_user_set_frame(&user, frame_index + seq->anim_startofs + seq->clip->start_frame);
 

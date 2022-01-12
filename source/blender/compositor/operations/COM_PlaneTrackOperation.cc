@@ -18,6 +18,8 @@
 
 #include "COM_PlaneTrackOperation.h"
 
+#include "DNA_defaults.h"
+
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
@@ -80,7 +82,7 @@ void PlaneTrackCommon::determine_canvas(const rcti &preferred_area, rcti &r_area
   r_area = COM_AREA_NONE;
   if (movie_clip_) {
     int width, height;
-    MovieClipUser user = {0};
+    MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
     BKE_movieclip_user_set_frame(&user, framenumber_);
     BKE_movieclip_get_size(movie_clip_, &user, &width, &height);
     r_area = preferred_area;

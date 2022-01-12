@@ -33,6 +33,9 @@ set(INC
   ../../render
   ../../windowmanager
   ../../../../intern/guardedalloc
+
+  # dna_type_offsets.h
+  ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
 )
 
 

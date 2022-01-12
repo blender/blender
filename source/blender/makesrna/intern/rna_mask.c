@@ -23,6 +23,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h" /* SELECT */
 #include "DNA_scene_types.h"
@@ -84,7 +85,7 @@ static void rna_Mask_update_parent(Main *bmain, Scene *scene, PointerRNA *ptr)
           if (track) {
             MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_framenr);
             float marker_pos_ofs[2], parmask_pos[2];
-            MovieClipUser user = {0};
+            MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
 
             BKE_movieclip_user_set_frame(&user, scene->r.cfra);
 

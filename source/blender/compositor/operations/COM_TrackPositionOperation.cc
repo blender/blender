@@ -18,6 +18,8 @@
 
 #include "COM_TrackPositionOperation.h"
 
+#include "DNA_defaults.h"
+
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_tracking.h"
@@ -50,7 +52,7 @@ void TrackPositionOperation::calc_track_position()
 {
   is_track_position_calculated_ = true;
   MovieTracking *tracking = nullptr;
-  MovieClipUser user = {0};
+  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
   MovieTrackingObject *object;
 
   track_position_ = 0;

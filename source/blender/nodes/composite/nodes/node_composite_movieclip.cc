@@ -23,6 +23,7 @@
 
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
+#include "DNA_defaults.h"
 
 #include "RNA_access.h"
 
@@ -47,7 +48,7 @@ static void init(const bContext *C, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   Scene *scene = CTX_data_scene(C);
-  MovieClipUser *user = MEM_cnew<MovieClipUser>(__func__);
+  MovieClipUser *user = DNA_struct_default_alloc(MovieClipUser);
 
   node->id = (ID *)scene->clip;
   id_us_plus(node->id);
