@@ -129,7 +129,11 @@ void BKE_brush_channel_system_exit()
 bool BKE_brush_mapping_ensure_write(BrushMapping *mp)
 {
   if (IS_CACHE_CURVE(mp->curve)) {
-    mp->curve = BKE_curvemapping_copy(mp->curve);
+    CurveMapping *newcurve = BKE_curvemapping_copy(mp->curve);
+    RELEASE_CACHE_CURVE(mp->curve);
+
+    mp->curve = newcurve;
+
     return true;
   }
 
@@ -391,6 +395,7 @@ void BKE_brush_channel_copy_data(BrushChannel *dst,
     }
     else if (dst->curve.curve) {
       BKE_curvemapping_free(dst->curve.curve);
+      dst->curve.curve = NULL;
     }
   }
 
@@ -1090,6 +1095,9 @@ double BKE_brush_channel_eval_mappings(BrushChannel *ch,
         inputf = 1.0f - inputf;
       }
 
+      /* ensure curve tables exist */
+      BKE_curvemapping_init(mp->curve);
+
       double f2 = (float)BKE_curvemapping_evaluateF(mp->curve, 0, inputf);
       f2 = mp->min + (mp->max - mp->min) * f2;
 
@@ -1182,7 +1190,9 @@ bool BKE_brush_mapping_is_enabled(BrushChannel *child, BrushChannel *parent, int
   }
 }
 
-void BKE_brush_channel_apply_mapping_flags(BrushChannel *dst, BrushChannel *child, BrushChannel *parent)
+void BKE_brush_channel_apply_mapping_flags(BrushChannel *dst,
+                                           BrushChannel *child,
+                                           BrushChannel *parent)
 {
   for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
     BrushMapping *mp = dst->mappings + i;
@@ -2034,7 +2044,7 @@ void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
         BKE_curvemapping_init(curve);
       }
 
-      ch->mappings[i].curve = GET_CACHE_CURVE(curve);  // frees curve, returns new one
+      mp->curve = GET_CACHE_CURVE(curve);  // frees curve, returns new one
 
       // paranoia check to make sure BrushMapping.type is correct
       mp->type = i;
@@ -2065,7 +2075,10 @@ void BKE_brush_channelset_write(BlendWriter *writer, BrushChannelSet *chset)
     }
 
     for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
+      /* instantiate cached curves to ensure they get written
+         (and susequently read) seperately. */
       BKE_brush_mapping_ensure_write(ch->mappings + i);
+
       BKE_curvemapping_blend_write(writer, ch->mappings[i].curve);
     }
   }

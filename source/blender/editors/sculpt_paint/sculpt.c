@@ -5050,7 +5050,7 @@ static void sculpt_topology_update(Sculpt *sd,
     BMVert *v = (BMVert *)BM_ELEM_FROM_ID_SAFE(ss->bm, actv);
 
     if (v && v->head.htype == BM_VERT) {
-      ss->active_vertex_index.i == (intptr_t)v;
+      ss->active_vertex_index.i = (intptr_t)v;
     }
     else {
       ss->active_vertex_index.i = SCULPT_REF_NONE;
@@ -5061,7 +5061,7 @@ static void sculpt_topology_update(Sculpt *sd,
     BMFace *f = (BMFace *)BM_ELEM_FROM_ID_SAFE(ss->bm, actf);
 
     if (f && f->head.htype == BM_FACE) {
-      ss->active_face_index.i == (intptr_t)f;
+      ss->active_face_index.i = (intptr_t)f;
     }
     else {
       ss->active_face_index.i = SCULPT_REF_NONE;
@@ -5847,14 +5847,11 @@ static void SCULPT_run_command(
 
   *brush2 = *brush;
 
-  BrushChannel *ch = BRUSHSET_LOOKUP(cmd->params_final, falloff_curve);
-  if (ch) {
-    brush2->curve_preset = ch->curve.preset;
-    brush2->curve = ch->curve.curve;
-  }
+  /* prevent auto freeing of brush2->curve in BKE_brush_channelset_compat_load */
+  brush2->curve = NULL;
 
-  // Load parameters into brush2 for compatibility with old code
-  // Make sure to remove all pen pressure/tilt old code
+  /* Load parameters into brush2 for compatibility with old code
+     Make sure to remove all old code for pen pressure/tilt */
   BKE_brush_channelset_compat_load(cmd->params_mapped, brush2, false);
 
   ss->cache->use_plane_trim = BRUSHSET_GET_INT(cmd->params_mapped, use_plane_trim, NULL);
@@ -6153,6 +6150,9 @@ static void SCULPT_run_commandlist(
 
     Brush brush2 = *brush;
     brush2.sculpt_tool = cmd->tool;
+
+    /* prevent auto freeing of brush2->curve in BKE_brush_channelset_compat_load */
+    brush2.curve = NULL;
 
     // Load parameters into brush2 for compatibility with old code
     BKE_brush_channelset_compat_load(cmd->params_final, &brush2, false);
@@ -6863,6 +6863,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Relax";
     case SCULPT_TOOL_ENHANCE_DETAILS:
       return "Enhance Details";
+    case SCULPT_TOOL_DISPLACEMENT_HEAL:
+      return "Multires Heal";
   }
 
   return "Sculpting";

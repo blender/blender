@@ -120,6 +120,7 @@ void BKE_curvemapping_free(CurveMapping *cumap)
 {
   if (cumap) {
     BKE_curvemapping_free_data(cumap);
+    cumap->flag |= CUMA_IS_FREED;
     MEM_freeN(cumap);
   }
 }
@@ -194,6 +195,7 @@ CurveMapping *BKE_curvemapping_copy(const CurveMapping *cumap)
     CurveMapping *cumapn = MEM_dupallocN(cumap);
     BKE_curvemapping_copy_data(cumapn, cumap);
     cumapn->flag &= ~CUMA_PART_OF_CACHE;
+    cumapn->cache_users = 0;
     return cumapn;
   }
   return NULL;

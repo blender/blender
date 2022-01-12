@@ -182,13 +182,17 @@ CurveMappingCache *BKE_curvemapping_cache_create()
 void BKE_curvemapping_cache_aquire(CurveMappingCache *cache, CurveMapping *curve)
 {
   curve->cache_users++;
+
+  // printf("%s: %d flag: %d\n", __func__, curve->cache_users, curve->flag);
 }
 
 void BKE_curvemapping_cache_release(CurveMappingCache *cache, CurveMapping *curve)
 {
   curve->cache_users--;
 
-  if ((curve->flag & CUMA_PART_OF_CACHE) && curve->cache_users < 0) {
+  //printf("%s: %d flag: %d\n", __func__, curve->cache_users, curve->flag);
+
+  if ((curve->flag & CUMA_PART_OF_CACHE) && curve->cache_users <= 0) {
     if (!BLI_ghash_remove(cache->gh, curve, NULL, NULL)) {
       printf("error, curve was not in cache! %p\n", curve);
     }
@@ -272,6 +276,10 @@ void BKE_curvemapping_cache_exit()
 // releases a curve if it's in the cache, otherwise frees it
 void BKE_curvemapping_cache_release_or_free(CurveMappingCache *cache, CurveMapping *curve)
 {
+  if (!curve) {
+    return;
+  }
+
   if (curve->flag & CUMA_PART_OF_CACHE) {
     BKE_curvemapping_cache_release(cache, curve);
   }

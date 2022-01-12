@@ -33,6 +33,7 @@
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_curvemapping_cache.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
 
@@ -266,7 +267,7 @@ static bool check_builtin_init()
   SUBTYPE_SET(smooth_stroke_radius, BRUSH_CHANNEL_PIXEL);
   SUBTYPE_SET(normal_mask_limit, BRUSH_CHANNEL_ANGLE);
   SUBTYPE_SET(view_normal_mask_limit, BRUSH_CHANNEL_ANGLE);
-  
+
   SUBTYPE_SET(jitter_absolute, BRUSH_CHANNEL_PIXEL);
 
   SUBTYPE_SET(radius, BRUSH_CHANNEL_PIXEL);
@@ -304,7 +305,7 @@ static bool check_builtin_init()
     mdef->blendmode = MA_RAMP_ADD;
   }
 
-  //SETCAT(enhance_detail_presteps, "Enhancement");
+  // SETCAT(enhance_detail_presteps, "Enhancement");
   SETCAT(concave_mask_factor, "Automasking");
   SETCAT(automasking, "Automasking");
   SETCAT(automasking_boundary_edges_propagation_steps, "Automasking");
@@ -972,16 +973,32 @@ void BKE_brush_channelset_compat_load(BrushChannelSet *chset, Brush *brush, bool
     }
   }
 
+#if 1
   if (brush_to_channels) {
     BrushChannel *ch = BRUSHSET_LOOKUP(chset, falloff_curve);
 
     if (ch) {
       ch->curve.preset = brush->curve_preset;
-      BKE_brush_channel_curve_ensure_write(&ch->curve);
 
-      if (brush->curve && brush->curve_preset == BRUSH_CURVE_CUSTOM) {
-        BKE_curvemapping_free_data(ch->curve.curve);
-        BKE_curvemapping_copy_data(ch->curve.curve, brush->curve);
+      if (brush->curve_preset == BRUSH_CURVE_CUSTOM) {
+        BKE_curvemapping_cache_release_or_free(brush_curve_cache, ch->curve.curve);
+
+        if (brush->curve) {
+          ch->curve.curve = BKE_curvemapping_copy(brush->curve);
+        }
+        else {
+          printf("%s: missing curve in brush\n", __func__);
+
+          ch->curve.curve = MEM_callocN(sizeof(CurveMapping), "CurveMapping");
+
+          BKE_curvemapping_set_defaults(ch->curve.curve, 1, 0.0f, 0.0f, 1.0f, 1.0f);
+          BKE_curvemap_reset(ch->curve.curve->cm,
+                             &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
+                             CURVE_PRESET_LINE,
+                             1);
+
+        }
+        BKE_curvemapping_init(ch->curve.curve);
       }
     }
   }
@@ -991,12 +1008,14 @@ void BKE_brush_channelset_compat_load(BrushChannelSet *chset, Brush *brush, bool
     if (ch) {
       brush->curve_preset = ch->curve.preset;
 
-      if (ch->curve.curve && ch->curve.preset == BRUSH_CURVE_CUSTOM) {
-        BKE_curvemapping_free_data(brush->curve);
-        BKE_curvemapping_copy_data(brush->curve, ch->curve.curve);
+      if (ch->curve.preset == BRUSH_CURVE_CUSTOM) {
+        BKE_curvemapping_cache_release_or_free(brush_curve_cache, brush->curve);
+        brush->curve = BKE_curvemapping_copy(ch->curve.curve);
+        BKE_curvemapping_init(brush->curve);
       }
     }
   }
+#endif
 }
 
 /* todo: move into BKE_brush_reset_mapping*/
