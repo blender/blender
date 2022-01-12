@@ -692,9 +692,78 @@ if(CMAKE_COMPILER_IS_GNUCC)
     unset(LD_VERSION)
   endif()
 
+  # NOTE(@campbellbarton): Eventually mold will be able to use `-fuse-ld=mold`,
+  # however at the moment this only works for GCC 12.1+ (unreleased at time of writing).
+  # So a workaround is used here "-B" which points to another path to find system commands
+  # such as `ld`.
+  if(WITH_LINKER_MOLD)
+    find_program(MOLD_BIN "mold")
+    mark_as_advanced(MOLD_BIN)
+    if(NOT MOLD_BIN)
+      message(STATUS "The \"mold\" binary could not be found, using system linker!")
+      set(WITH_LINKER_MOLD OFF)
+    else()
+      # By default mold installs the binary to:
+      # - `{PREFIX}/bin/mold` as well as a symbolic-link in...
+      # - `{PREFIX}/lib/mold/ld`.
+      # (where `PREFIX` is typically `/usr/`).
+      #
+      # This block of code finds `{PREFIX}/lib/mold` from the `mold` binary.
+      # Other methods of searching for the path could also be made to work,
+      # we could even make our own directory and symbolic-link, however it's more
+      # convenient to use the one provided by mold.
+      #
+      # Use the binary path to "mold", to find the common prefix which contains "lib/mold".
+      # The parent directory: e.g. `/usr/bin/mold` -> `/usr/bin/`.
+      get_filename_component(MOLD_PREFIX "${MOLD_BIN}" DIRECTORY)
+      # The common prefix path: e.g. `/usr/bin/` -> `/usr/` to use as a hint.
+      get_filename_component(MOLD_PREFIX "${MOLD_PREFIX}" DIRECTORY)
+      # Find `{PREFIX}/lib/mold/ld`, store the directory component (without the `ld`).
+      # Then pass `-B {PREFIX}/lib/mold` to GCC so the `ld` located there overrides the default.
+      find_path(
+        MOLD_BIN_DIR "ld"
+        HINTS "${MOLD_PREFIX}"
+        PATH_SUFFIXES "lib/mold" "lib64/mold"
+        NO_DEFAULT_PATH
+        NO_CACHE
+      )
+      if(NOT MOLD_BIN_DIR)
+        message(STATUS
+          "The mold linker could not find the directory containing the linker command "
+          "(typically \"${MOLD_PREFIX}/lib/mold\"), using system linker!")
+        set(WITH_LINKER_MOLD OFF)
+      endif()
+      unset(MOLD_PREFIX)
+    endif()
+
+    if(WITH_LINKER_MOLD)
+      # GCC will search for `ld` in this directory first.
+      string(APPEND CMAKE_CXX_FLAGS " -B \"${MOLD_BIN_DIR}\"")
+      string(APPEND CMAKE_C_FLAGS " -B \"${MOLD_BIN_DIR}\"")
+    endif()
+    unset(MOLD_BIN)
+    unset(MOLD_BIN_DIR)
+  endif()
+
 # CLang is the same as GCC for now.
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
+
+  if(WITH_LINKER_MOLD)
+    find_program(MOLD_BIN "mold")
+    mark_as_advanced(MOLD_BIN)
+    if(NOT MOLD_BIN)
+      message(STATUS "The \"mold\" binary could not be found, using system linker!")
+      set(WITH_LINKER_MOLD OFF)
+    else()
+      if(CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 12.0)
+        string(APPEND CMAKE_EXE_LINKER_FLAGS " --ld-path=\"${MOLD_BIN}\"")
+      else()
+        string(APPEND CMAKE_EXE_LINKER_FLAGS " -fuse-ld=\"${MOLD_BIN}\"")
+      endif()
+    endif()
+  endif()
+
 # Intel C++ Compiler
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
   # think these next two are broken
