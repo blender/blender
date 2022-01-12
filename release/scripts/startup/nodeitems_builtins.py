@@ -730,6 +730,7 @@ geometry_node_categories = [
     GeometryNodeCategory("GEO_MESH", "Mesh", items=mesh_node_items),
     GeometryNodeCategory("GEO_PRIMITIVES_MESH", "Mesh Primitives", items=[
         NodeItem("GeometryNodeMeshCircle"),
+        NodeItem("GeometryNodeMeshEllipse"),
         NodeItem("GeometryNodeMeshCone"),
         NodeItem("GeometryNodeMeshCube"),
         NodeItem("GeometryNodeMeshCylinder"),

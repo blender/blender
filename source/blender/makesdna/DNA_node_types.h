@@ -1462,6 +1462,16 @@ typedef struct NodeGeometryMeshCircle {
   uint8_t fill_type;
 } NodeGeometryMeshCircle;
 
+typedef struct NodeGeometryMeshEllipse {
+  /* GeometryNodeMeshEllipseFillType. */
+  uint8_t fill_type;
+  /* GeometryNodeMeshEllipseDefinitionMode. */
+  uint8_t definition_mode;
+  /* GeometryNodeMeshEllipseCenteringMode. */
+  uint8_t centering_mode;
+  char _pad[1];
+} NodeGeometryMeshEllipse;
+
 typedef struct NodeGeometryMeshCylinder {
   /* GeometryNodeMeshCircleFillType. */
   uint8_t fill_type;
@@ -2245,6 +2255,24 @@ typedef enum GeometryNodeMeshCircleFillType {
   GEO_NODE_MESH_CIRCLE_FILL_NGON = 1,
   GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN = 2,
 } GeometryNodeMeshCircleFillType;
+
+typedef enum GeometryNodeMeshEllipseFillType {
+  GEO_NODE_MESH_ELLIPSE_FILL_NONE = 0,
+  GEO_NODE_MESH_ELLIPSE_FILL_NGON = 1,
+  GEO_NODE_MESH_ELLIPSE_FILL_TRIANGLE_FAN = 2,
+} GeometryNodeMeshElliFillType;
+
+typedef enum GeometryNodeMeshEllipseDefinitionMode {
+  GEO_NODE_MESH_ELLIPSE_DEFINITION_MINOR_MAJOR = 0,
+  GEO_NODE_MESH_ELLIPSE_DEFINITION_MAJOR_ECCENTRICITY = 1,
+  GEO_NODE_MESH_ELLIPSE_DEFINITION_MAJOR_FOCAL = 2,
+} GeometryNodeMeshEllipseDefinitionMode;
+
+typedef enum GeometryNodeMeshEllipseCenteringMode {
+  GEO_NODE_MESH_ELLIPSE_CENTERING_FOCUS1 = 0,
+  GEO_NODE_MESH_ELLIPSE_CENTERING_ORIGIN = 1,
+  GEO_NODE_MESH_ELLIPSE_CENTERING_FOCUS2 = 2,
+} GeometryNodeMeshEllipseCenteringMode;
 
 typedef enum GeometryNodeMeshLineMode {
   GEO_NODE_MESH_LINE_MODE_END_POINTS = 0,

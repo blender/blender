@@ -392,6 +392,7 @@ DefNode(GeometryNode, GEO_NODE_MATERIAL_SELECTION, 0, "MATERIAL_SELECTION", Mate
 DefNode(GeometryNode, GEO_NODE_MERGE_BY_DISTANCE, 0, "MERGE_BY_DISTANCE", MergeByDistance, "Merge by Distance", "")
 DefNode(GeometryNode, GEO_NODE_MESH_BOOLEAN, def_geo_boolean, "MESH_BOOLEAN", MeshBoolean, "Mesh Boolean", "")
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CIRCLE, def_geo_mesh_circle, "MESH_PRIMITIVE_CIRCLE", MeshCircle, "Mesh Circle", "")
+DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_ELLIPSE, def_geo_mesh_ellipse, "MESH_PRIMITIVE_ELLIPSE", MeshEllipse, "Mesh Ellipse", "")
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CONE, def_geo_mesh_cone, "MESH_PRIMITIVE_CONE", MeshCone, "Cone", "")
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CUBE, 0, "MESH_PRIMITIVE_CUBE", MeshCube, "Cube", "")
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CYLINDER, def_geo_mesh_cylinder, "MESH_PRIMITIVE_CYLINDER", MeshCylinder, "Cylinder", "")

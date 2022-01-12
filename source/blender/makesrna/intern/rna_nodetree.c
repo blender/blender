@@ -558,6 +558,28 @@ static EnumPropertyItem rna_node_geometry_mesh_circle_fill_type_items[] = {
     {GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN, "TRIANGLE_FAN", 0, "Triangles", ""},
     {0, NULL, 0, NULL, NULL},
 };
+
+static EnumPropertyItem rna_node_geometry_mesh_ellipse_fill_type_items[] = {
+    {GEO_NODE_MESH_ELLIPSE_FILL_NONE, "NONE", 0, "None", ""},
+    {GEO_NODE_MESH_ELLIPSE_FILL_NGON, "NGON", 0, "N-Gon", ""},
+    {GEO_NODE_MESH_ELLIPSE_FILL_TRIANGLE_FAN, "TRIANGLE_FAN", 0, "Triangles", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static EnumPropertyItem rna_node_geometry_mesh_ellipse_definition_mode_items[] = {
+    {GEO_NODE_MESH_ELLIPSE_DEFINITION_MINOR_MAJOR, "MINOR_MAJOR", 0, "Minor/Major", ""},
+    {GEO_NODE_MESH_ELLIPSE_DEFINITION_MAJOR_ECCENTRICITY, "MAJOR_ECCENTRICITY", 0, "Major/Eccentricity", ""},
+    {GEO_NODE_MESH_ELLIPSE_DEFINITION_MAJOR_FOCAL, "MAJOR_FOCAL", 0, "Major/Focal", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static EnumPropertyItem rna_node_geometry_mesh_ellipse_centering_mode_items[] = {
+    {GEO_NODE_MESH_ELLIPSE_CENTERING_FOCUS1, "FOCUS1", 0, "Focus 1", ""},
+    {GEO_NODE_MESH_ELLIPSE_CENTERING_ORIGIN, "ORIGIN", 0, "Origin", ""},
+    {GEO_NODE_MESH_ELLIPSE_CENTERING_FOCUS2, "FOCUS2", 0, "Focus 2", ""},
+    {0, NULL, 0, NULL, NULL},    
+};
+
 #endif
 
 #define ITEM_ATTRIBUTE \
@@ -10751,6 +10773,28 @@ static void def_geo_mesh_circle(StructRNA *srna)
   prop = RNA_def_property(srna, "fill_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_node_geometry_mesh_circle_fill_type_items);
   RNA_def_property_ui_text(prop, "Fill Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_mesh_ellipse(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryMeshEllipse", "storage");
+
+  prop = RNA_def_property(srna, "fill_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_mesh_ellipse_fill_type_items);
+  RNA_def_property_ui_text(prop, "Fill Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "definition_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_mesh_ellipse_definition_mode_items);
+  RNA_def_property_ui_text(prop, "Definition Mode", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "centering_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_mesh_ellipse_centering_mode_items);
+  RNA_def_property_ui_text(prop, "Centering Mode", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
