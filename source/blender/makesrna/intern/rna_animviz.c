@@ -207,6 +207,8 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Motion Path Settings", "Motion Path settings for animation visualization");
 
+  RNA_define_lib_overridable(true);
+
   /* Enums */
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "path_type");
@@ -301,6 +303,8 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop, "Has Motion Paths", "Are there any bone paths that will need updating (read-only)");
+
+  RNA_define_lib_overridable(false);
 }
 
 /* --- */
@@ -312,6 +316,7 @@ void rna_def_animviz_common(StructRNA *srna)
   prop = RNA_def_property(srna, "animation_visualization", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_pointer_sdna(prop, NULL, "avs");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Animation Visualization", "Animation data for this data-block");
 }
 
@@ -328,6 +333,7 @@ static void rna_def_animviz(BlenderRNA *brna)
   /* motion path settings (nested struct) */
   prop = RNA_def_property(srna, "motion_path", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_struct_type(prop, "AnimVizMotionPaths");
   RNA_def_property_pointer_funcs(prop, "rna_AnimViz_motion_paths_get", NULL, NULL, NULL);
   RNA_def_property_ui_text(prop, "Motion Paths", "Motion Path settings for visualization");
