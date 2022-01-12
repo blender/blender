@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "BLI_float2.hh"
+#include "BLI_math_vec_types.hh"
 
 #include "DNA_vec_types.h"
 

@@ -16,8 +16,9 @@
 
 #pragma once
 
-#include "BLI_float3.hh"
 #include "BLI_math_matrix.h"
+#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector.h"
 
 namespace blender {
 
@@ -63,7 +64,7 @@ struct float4x4 {
      * Without the negation, the result would be a so called improper rotation. That means it
      * contains a reflection. Such an improper rotation matrix could not be converted to another
      * representation of a rotation such as euler angles. */
-    const float3 cross = -float3::cross(forward, up);
+    const float3 cross = -math::cross(forward, up);
 
     float4x4 matrix;
     matrix.values[0][0] = forward.x;

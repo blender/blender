@@ -123,9 +123,7 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
         const float threshold_sq = row_filter.threshold;
         apply_filter_operation(
             column_data.typed<float2>(),
-            [&](const float2 cell) {
-              return float2::distance_squared(cell, value) > threshold_sq;
-            },
+            [&](const float2 cell) { return math::distance_squared(cell, value) > threshold_sq; },
             prev_mask,
             new_indices);
         break;
@@ -155,9 +153,7 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
         const float threshold_sq = row_filter.threshold;
         apply_filter_operation(
             column_data.typed<float3>(),
-            [&](const float3 cell) {
-              return float3::distance_squared(cell, value) > threshold_sq;
-            },
+            [&](const float3 cell) { return math::distance_squared(cell, value) > threshold_sq; },
             prev_mask,
             new_indices);
         break;

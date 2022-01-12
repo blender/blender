@@ -18,15 +18,10 @@
  * \ingroup bli
  */
 
-#include "BLI_double2.hh"
-#include "BLI_double3.hh"
-#include "BLI_float2.hh"
-#include "BLI_float3.hh"
 #include "BLI_hash.hh"
 #include "BLI_math_boolean.hh"
 #include "BLI_math_mpq.hh"
-#include "BLI_mpq2.hh"
-#include "BLI_mpq3.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 

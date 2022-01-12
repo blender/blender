@@ -21,10 +21,9 @@ extern "C" {
 #define DO_RANDOM_TESTS 0
 
 #include "BLI_array.hh"
-#include "BLI_double2.hh"
 #include "BLI_math_boolean.hh"
 #include "BLI_math_mpq.hh"
-#include "BLI_mpq2.hh"
+#include "BLI_math_vec_mpq_types.hh"
 #include "BLI_vector.hh"
 
 #include "BLI_delaunay_2d.h"

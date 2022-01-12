@@ -5,7 +5,7 @@
 #include "DNA_tracking_types.h"
 
 #include "BKE_tracking.h"
-#include "BLI_float2.hh"
+#include "BLI_math_vec_types.hh"
 
 namespace blender {
 

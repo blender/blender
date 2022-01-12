@@ -21,13 +21,11 @@
  * \brief Math vector functions needed specifically for mesh intersect and boolean.
  */
 
-#include "BLI_double2.hh"
-#include "BLI_double3.hh"
+#include "BLI_math_vec_types.hh"
 
 #ifdef WITH_GMP
 #  include "BLI_math_mpq.hh"
-#  include "BLI_mpq2.hh"
-#  include "BLI_mpq3.hh"
+#  include "BLI_math_vec_mpq_types.hh"
 #endif
 
 namespace blender {

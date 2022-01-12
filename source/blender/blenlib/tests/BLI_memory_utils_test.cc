@@ -1,6 +1,6 @@
 /* Apache License, Version 2.0 */
 
-#include "BLI_float3.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_strict_flags.h"
 #include "testing/testing.h"

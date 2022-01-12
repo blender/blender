@@ -33,10 +33,10 @@
 
 #include "BLI_array_utils.h"
 #include "BLI_blenlib.h"
-#include "BLI_float3.hh"
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_heap.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_math_vector.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_span.hh"

@@ -229,7 +229,7 @@ static void get_closest_mesh_corners(const Mesh &mesh,
       const MLoop &loop = mesh.mloop[loop_index];
       const int vertex_index = loop.v;
       const MVert &mvert = mesh.mvert[vertex_index];
-      const float distance_sq = float3::distance_squared(position, mvert.co);
+      const float distance_sq = math::distance_squared(position, float3(mvert.co));
       if (distance_sq < min_distance_sq) {
         min_distance_sq = distance_sq;
         closest_loop_index = loop_index;

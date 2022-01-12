@@ -21,7 +21,7 @@
 
 #include "BKE_image.h"
 
-#include "BLI_float4.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_threads.h"
 #include "BLI_timeit.hh"
 

@@ -22,7 +22,7 @@
 
 #include "FN_generic_virtual_array.hh"
 
-#include "BLI_float3.hh"
+#include "BLI_math_vec_types.hh"
 
 #include "BKE_attribute.h"
 
