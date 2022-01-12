@@ -18,7 +18,7 @@
 # All rights reserved.
 # ***** END GPL LICENSE BLOCK *****
 
-# Libraries configuration for any *nix system including Linux and Unix.
+# Libraries configuration for any *nix system including Linux and Unix (excluding APPLE).
 
 # Detect precompiled library directory
 if(NOT DEFINED LIBDIR)
