@@ -2262,28 +2262,15 @@ void sequencer_draw_preview(const bContext *C,
   seq_prefetch_wm_notify(C, scene);
 }
 
-/* Draw backdrop in sequencer timeline. */
-static void draw_seq_backdrop(View2D *v2d)
+static void draw_seq_timeline_channels(View2D *v2d)
 {
-  int i;
-
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-  /* View backdrop. */
-  immUniformThemeColor(TH_BACK);
-  immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
-
-  /* Darker overlay over the view backdrop. */
-  immUniformThemeColorShade(TH_BACK, -10);
-  immRectf(pos, v2d->cur.xmin, -1.0, v2d->cur.xmax, 1.0);
-
-  /* Alternating horizontal stripes. */
-  i = max_ii(1, ((int)v2d->cur.ymin) - 1);
-
   GPU_blend(GPU_BLEND_ALPHA);
   immUniformThemeColor(TH_ROW_ALTERNATE);
 
+  /* Alternating horizontal stripes. */
+  int i = max_ii(1, ((int)v2d->cur.ymin) - 1);
   while (i < v2d->cur.ymax) {
     if (i & 1) {
       immRectf(pos, v2d->cur.xmin, i, v2d->cur.xmax, i + 1);
@@ -2293,6 +2280,14 @@ static void draw_seq_backdrop(View2D *v2d)
 
   GPU_blend(GPU_BLEND_NONE);
   immUnbindProgram();
+}
+
+static void draw_seq_timeline_channel_numbers(ARegion *region)
+{
+  View2D *v2d = &region->v2d;
+  rcti rect;
+  BLI_rcti_init(&rect, 0, 15 * UI_DPI_FAC, 15 * UI_DPI_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
+  UI_view2d_draw_scale_y__block(region, v2d, &rect, TH_SCROLL_TEXT);
 }
 
 static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
@@ -2718,7 +2713,7 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   }
 
   UI_view2d_view_ortho(v2d);
-  draw_seq_backdrop(v2d);
+  draw_seq_timeline_channels(v2d);
   if ((sseq->flag & SEQ_SHOW_OVERLAY) && (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_GRID)) {
     U.v2d_min_gridsize *= 3;
     UI_view2d_draw_lines_x__discrete_frames_or_seconds(
@@ -2776,13 +2771,7 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
   ED_time_scrub_draw(region, scene, !(sseq->flag & SEQ_DRAWFRAMES), true);
 
-  /* Draw channel numbers. */
-  {
-    rcti rect;
-    BLI_rcti_init(
-        &rect, 0, 15 * UI_DPI_FAC, 15 * UI_DPI_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
-    UI_view2d_draw_scale_y__block(region, v2d, &rect, TH_SCROLL_TEXT);
-  }
+  draw_seq_timeline_channel_numbers(region);
 }
 
 void draw_timeline_seq_display(const bContext *C, ARegion *region)
