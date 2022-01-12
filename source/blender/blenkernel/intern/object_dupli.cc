@@ -1650,6 +1650,14 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
     return nullptr;
   }
 
+  /* Give "Object as Font" instances higher priority than geometry set instances, to retain
+   * the behavior from before curve object meshes were processed as instances internally. */
+  if (transflag & OB_DUPLIVERTS) {
+    if (ctx->object->type == OB_FONT) {
+      return &gen_dupli_verts_font;
+    }
+  }
+
   if (ctx->object->runtime.geometry_set_eval != nullptr) {
     if (BKE_object_has_geometry_set_instances(ctx->object)) {
       return &gen_dupli_geometry_set;
@@ -1662,9 +1670,6 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
   if (transflag & OB_DUPLIVERTS) {
     if (ctx->object->type == OB_MESH) {
       return &gen_dupli_verts;
-    }
-    if (ctx->object->type == OB_FONT) {
-      return &gen_dupli_verts_font;
     }
     if (ctx->object->type == OB_POINTCLOUD) {
       return &gen_dupli_verts_pointcloud;
