@@ -353,9 +353,7 @@ MTLMaterial mtlmaterial_for_material(const Material *material)
   const nodes::NodeRef *bsdf_node = find_bsdf_node(nodetree);
   store_bsdf_properties(bsdf_node, material, mtlmat);
   store_image_textures(bsdf_node, nodetree, material, mtlmat);
-  if (nodetree) {
-    delete nodetree;
-  }
+  delete nodetree;
   return mtlmat;
 }
 
