@@ -155,8 +155,7 @@ double BLI_dir_free_space(const char *dir) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(
  *
  * \note can return NULL when the size is not big enough
  */
-char *BLI_current_working_dir(char *dir, const size_t maxncpy) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
+char *BLI_current_working_dir(char *dir, size_t maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 eFileAttributes BLI_file_attributes(const char *path);
 
 /** \} */

@@ -57,20 +57,20 @@ void PyC_Err_PrintWithFunc(PyObject *py_func);
 void PyC_FileAndNum(const char **r_filename, int *r_lineno);
 void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno); /* checks python is running */
 int PyC_AsArray_FAST(void *array,
-                     const size_t array_item_size,
+                     size_t array_item_size,
                      PyObject *value_fast,
-                     const Py_ssize_t length,
+                     Py_ssize_t length,
                      const PyTypeObject *type,
                      const char *error_prefix);
 int PyC_AsArray(void *array,
-                const size_t array_item_size,
+                size_t array_item_size,
                 PyObject *value,
-                const Py_ssize_t length,
+                Py_ssize_t length,
                 const PyTypeObject *type,
                 const char *error_prefix);
 
 int PyC_AsArray_Multi_FAST(void *array,
-                           const size_t array_item_size,
+                           size_t array_item_size,
                            PyObject *value_fast,
                            const int *dims,
                            int dims_len,
@@ -78,7 +78,7 @@ int PyC_AsArray_Multi_FAST(void *array,
                            const char *error_prefix);
 
 int PyC_AsArray_Multi(void *array,
-                      const size_t array_item_size,
+                      size_t array_item_size,
                       PyObject *value,
                       const int *dims,
                       int dims_len,

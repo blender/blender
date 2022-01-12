@@ -257,7 +257,7 @@ static int hipewHipInit(void) {
 #endif
   static int initialized = 0;
   static int result = 0;
-  int error, driver_version;
+  int error;
 
   if (initialized) {
     return result;
@@ -565,8 +565,6 @@ int hipewCompilerVersion(void) {
   const char *path = hipewCompilerPath();
   const char *marker = "Hip compilation tools, release ";
   FILE *pipe;
-  int major, minor;
-  char *versionstr;
   char buf[128];
   char output[65536] = "\0";
   char command[65536] = "\0";

@@ -317,11 +317,8 @@ void BKE_scene_multiview_view_prefix_get(struct Scene *scene,
                                          const char *name,
                                          char *r_prefix,
                                          const char **r_ext);
-void BKE_scene_multiview_videos_dimensions_get(const struct RenderData *rd,
-                                               const size_t width,
-                                               const size_t height,
-                                               size_t *r_width,
-                                               size_t *r_height);
+void BKE_scene_multiview_videos_dimensions_get(
+    const struct RenderData *rd, size_t width, size_t height, size_t *r_width, size_t *r_height);
 int BKE_scene_multiview_num_videos_get(const struct RenderData *rd);
 
 /* depsgraph */

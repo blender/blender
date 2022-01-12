@@ -17,7 +17,8 @@
 #include <iomanip>
 #include <sstream>
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_float2.hh"
+#include "BLI_float3.hh"
 
 #include "BKE_geometry_set.hh"
 

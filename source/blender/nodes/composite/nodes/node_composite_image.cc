@@ -269,7 +269,12 @@ void node_cmp_rlayers_register_pass(bNodeTree *ntree,
   }
 }
 
-static void cmp_node_rlayer_create_outputs_cb(void *UNUSED(userdata),
+struct CreateOutputUserData {
+  bNodeTree &ntree;
+  bNode &node;
+};
+
+static void cmp_node_rlayer_create_outputs_cb(void *userdata,
                                               Scene *scene,
                                               ViewLayer *view_layer,
                                               const char *name,
@@ -277,18 +282,8 @@ static void cmp_node_rlayer_create_outputs_cb(void *UNUSED(userdata),
                                               const char *UNUSED(chanid),
                                               eNodeSocketDatatype type)
 {
-  /* Register the pass in all scenes that have a render layer node for this layer.
-   * Since multiple scenes can be used in the compositor, the code must loop over all scenes
-   * and check whether their nodetree has a node that needs to be updated. */
-  /* NOTE: using G_MAIN seems valid here,
-   * unless we want to register that for every other temp Main we could generate??? */
-  ntreeCompositRegisterPass(scene->nodetree, scene, view_layer, name, type);
-
-  for (Scene *sce = (Scene *)G_MAIN->scenes.first; sce; sce = (Scene *)sce->id.next) {
-    if (sce->nodetree && sce != scene) {
-      ntreeCompositRegisterPass(sce->nodetree, scene, view_layer, name, type);
-    }
-  }
+  CreateOutputUserData &data = *(CreateOutputUserData *)userdata;
+  node_cmp_rlayers_register_pass(&data.ntree, &data.node, scene, view_layer, name, type);
 }
 
 static void cmp_node_rlayer_create_outputs(bNodeTree *ntree,
@@ -308,14 +303,17 @@ static void cmp_node_rlayer_create_outputs(bNodeTree *ntree,
         data->prev_index = -1;
         node->storage = data;
 
+        CreateOutputUserData userdata = {*ntree, *node};
+
         RenderEngine *engine = RE_engine_create(engine_type);
         RE_engine_update_render_passes(
-            engine, scene, view_layer, cmp_node_rlayer_create_outputs_cb, nullptr);
+            engine, scene, view_layer, cmp_node_rlayer_create_outputs_cb, &userdata);
         RE_engine_free(engine);
 
         if ((scene->r.mode & R_EDGE_FRS) &&
             (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS)) {
-          ntreeCompositRegisterPass(ntree, scene, view_layer, RE_PASSNAME_FREESTYLE, SOCK_RGBA);
+          node_cmp_rlayers_register_pass(
+              ntree, node, scene, view_layer, RE_PASSNAME_FREESTYLE, SOCK_RGBA);
         }
 
         MEM_freeN(data);

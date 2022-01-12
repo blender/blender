@@ -128,7 +128,7 @@ BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
                                         float epsilon,
                                         int tree_type,
                                         int axis,
-                                        const BVHCacheType bvh_cache_type,
+                                        BVHCacheType bvh_cache_type,
                                         struct BVHCache **bvh_cache_p,
                                         ThreadMutex *mesh_eval_mutex);
 
@@ -148,7 +148,7 @@ BVHTree *bvhtree_from_mesh_verts_ex(struct BVHTreeFromMesh *data,
                                     float epsilon,
                                     int tree_type,
                                     int axis,
-                                    const BVHCacheType bvh_cache_type,
+                                    BVHCacheType bvh_cache_type,
                                     struct BVHCache **bvh_cache_p,
                                     ThreadMutex *mesh_eval_mutex);
 
@@ -165,7 +165,7 @@ BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
                                         float epsilon,
                                         int tree_type,
                                         int axis,
-                                        const BVHCacheType bvh_cache_type,
+                                        BVHCacheType bvh_cache_type,
                                         struct BVHCache **bvh_cache_p,
                                         ThreadMutex *mesh_eval_mutex);
 
@@ -188,7 +188,7 @@ BVHTree *bvhtree_from_mesh_edges_ex(struct BVHTreeFromMesh *data,
                                     float epsilon,
                                     int tree_type,
                                     int axis,
-                                    const BVHCacheType bvh_cache_type,
+                                    BVHCacheType bvh_cache_type,
                                     struct BVHCache **bvh_cache_p,
                                     ThreadMutex *mesh_eval_mutex);
 
@@ -212,7 +212,7 @@ BVHTree *bvhtree_from_mesh_faces_ex(struct BVHTreeFromMesh *data,
                                     float epsilon,
                                     int tree_type,
                                     int axis,
-                                    const BVHCacheType bvh_cache_type,
+                                    BVHCacheType bvh_cache_type,
                                     struct BVHCache **bvh_cache_p,
                                     ThreadMutex *mesh_eval_mutex);
 
@@ -229,7 +229,7 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
                                           float epsilon,
                                           int tree_type,
                                           int axis,
-                                          const BVHCacheType bvh_cache_type,
+                                          BVHCacheType bvh_cache_type,
                                           struct BVHCache **bvh_cache_p,
                                           ThreadMutex *mesh_eval_mutex);
 
@@ -251,7 +251,7 @@ BVHTree *bvhtree_from_mesh_looptri_ex(struct BVHTreeFromMesh *data,
                                       float epsilon,
                                       int tree_type,
                                       int axis,
-                                      const BVHCacheType bvh_cache_type,
+                                      BVHCacheType bvh_cache_type,
                                       struct BVHCache **bvh_cache_p,
                                       ThreadMutex *mesh_eval_mutex);
 
@@ -263,7 +263,7 @@ BVHTree *bvhtree_from_mesh_looptri_ex(struct BVHTreeFromMesh *data,
  */
 BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
                                    const struct Mesh *mesh,
-                                   const BVHCacheType bvh_cache_type,
+                                   BVHCacheType bvh_cache_type,
                                    int tree_type);
 
 /**
@@ -272,7 +272,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
 BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
                                        struct BMEditMesh *em,
                                        int tree_type,
-                                       const BVHCacheType bvh_cache_type,
+                                       BVHCacheType bvh_cache_type,
                                        struct BVHCache **bvh_cache_p,
                                        ThreadMutex *mesh_eval_mutex);
 

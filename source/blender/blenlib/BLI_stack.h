@@ -28,13 +28,13 @@ extern "C" {
 
 typedef struct BLI_Stack BLI_Stack;
 
-BLI_Stack *BLI_stack_new_ex(const size_t elem_size,
+BLI_Stack *BLI_stack_new_ex(size_t elem_size,
                             const char *description,
-                            const size_t chunk_size) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+                            size_t chunk_size) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /**
  * Create a new homogeneous stack with elements of 'elem_size' bytes.
  */
-BLI_Stack *BLI_stack_new(const size_t elem_size, const char *description) ATTR_WARN_UNUSED_RESULT
+BLI_Stack *BLI_stack_new(size_t elem_size, const char *description) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 
 /**

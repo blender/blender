@@ -102,7 +102,7 @@ void ED_slider_destroy(struct bContext *C, struct tSlider *slider);
  */
 void ED_slider_status_string_get(const struct tSlider *slider,
                                  char *status_string,
-                                 const size_t size_of_status_string);
+                                 size_t size_of_status_string);
 
 float ED_slider_factor_get(struct tSlider *slider);
 void ED_slider_factor_set(struct tSlider *slider, float factor);

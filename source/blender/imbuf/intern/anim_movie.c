@@ -879,7 +879,7 @@ static void ffmpeg_postprocess(struct anim *anim)
             dst2,
             dstStride2);
 #  else
-  /* Scale with swscale then flip image over Y axis. */
+  /* Scale with swscale. */
   int *dstStride = anim->pFrameRGB->linesize;
   uint8_t **dst = anim->pFrameRGB->data;
   const int dstStride2[4] = {dstStride[0], 0, 0, 0};
@@ -896,11 +896,12 @@ static void ffmpeg_postprocess(struct anim *anim)
             dst2,
             dstStride2);
 
-  bottom = (unsigned char *)ibuf->rect;
-  top = bottom + ibuf->x * (ibuf->y - 1) * 4;
+  /* Flip destination image buffer over Y axis. */
+  bottom = (unsigned char *)dst[0];
+  top = bottom + anim->x * (anim->y - 1) * 4;
 
-  h = (ibuf->y + 1) / 2;
-  w = ibuf->x;
+  h = (anim->y + 1) / 2;
+  w = anim->x;
 
   for (y = 0; y < h; y++) {
     unsigned char tmp[4];

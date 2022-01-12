@@ -193,7 +193,6 @@ bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWind
 static void wm_window_match_init(bContext *C, ListBase *wmlist)
 {
   *wmlist = G_MAIN->wm;
-  BLI_listbase_clear(&G_MAIN->wm);
 
   wmWindow *active_win = CTX_wm_window(C);
 
@@ -219,6 +218,8 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
       wm->message_bus = NULL;
     }
   }
+
+  BLI_listbase_clear(&G_MAIN->wm);
 
   /* reset active window */
   CTX_wm_window_set(C, active_win);

@@ -236,7 +236,7 @@ TEST(obj_exporter_writer, mtllib)
 static bool strings_equal_after_first_lines(const std::string &a, const std::string &b)
 {
   /* If `dbg_level > 0` then a failing test will print context around the first mismatch. */
-  const bool dbg_level = 0;
+  const int dbg_level = 0;
   const size_t a_len = a.size();
   const size_t b_len = b.size();
   const size_t a_next = a.find_first_of('\n');

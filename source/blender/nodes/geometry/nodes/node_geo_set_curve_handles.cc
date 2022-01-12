@@ -106,7 +106,7 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
       }
     }
     else {
-      for (int UNUSED(i) : spline->positions().index_range()) {
+      for ([[maybe_unused]] int i : spline->positions().index_range()) {
         if (current_mask < selection.size() && selection[current_mask] == current_point) {
           current_mask++;
         }

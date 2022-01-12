@@ -559,12 +559,14 @@ if(WIN32)
   set(CPACK_INSTALL_PREFIX ${CMAKE_GENERIC_PROGRAM_FILES}/${})
 endif()
 
-# Compiler toolchain
-if(CMAKE_COMPILER_IS_GNUCC)
-  option(WITH_LINKER_GOLD "Use ld.gold linker which is usually faster than ld.bfd" ON)
-  mark_as_advanced(WITH_LINKER_GOLD)
-  option(WITH_LINKER_LLD "Use ld.lld linker which is usually faster than ld.gold" OFF)
-  mark_as_advanced(WITH_LINKER_LLD)
+# Compiler tool-chain.
+if(UNIX AND NOT APPLE)
+  if(CMAKE_COMPILER_IS_GNUCC)
+    option(WITH_LINKER_GOLD "Use ld.gold linker which is usually faster than ld.bfd" ON)
+    mark_as_advanced(WITH_LINKER_GOLD)
+    option(WITH_LINKER_LLD "Use ld.lld linker which is usually faster than ld.gold" OFF)
+    mark_as_advanced(WITH_LINKER_LLD)
+  endif()
 endif()
 
 option(WITH_COMPILER_ASAN "Build and link against address sanitizer (only for Debug & RelWithDebInfo targets)." OFF)

@@ -474,9 +474,9 @@ set(ISPC_HASH 2e3abedbc0ea9aaec17d6562c632454d)
 set(ISPC_HASH_TYPE MD5)
 set(ISPC_FILE ispc-${ISPC_VERSION}.tar.gz)
 
-set(GMP_VERSION 6.2.0)
+set(GMP_VERSION 6.2.1)
 set(GMP_URI https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.xz)
-set(GMP_HASH a325e3f09e6d91e62101e59f9bda3ec1)
+set(GMP_HASH 0b82665c4a92fd2ade7440c13fcaa42b)
 set(GMP_HASH_TYPE MD5)
 set(GMP_FILE gmp-${GMP_VERSION}.tar.xz)
 

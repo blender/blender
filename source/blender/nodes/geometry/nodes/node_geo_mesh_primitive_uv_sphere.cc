@@ -178,7 +178,7 @@ static void calculate_sphere_faces(MutableSpan<MLoop> loops,
 
   int ring_vert_index_start = 1;
   int ring_edge_index_start = segments;
-  for (const int UNUSED(ring) : IndexRange(1, rings - 2)) {
+  for ([[maybe_unused]] const int ring : IndexRange(1, rings - 2)) {
     const int next_ring_vert_index_start = ring_vert_index_start + segments;
     const int next_ring_edge_index_start = ring_edge_index_start + segments * 2;
     const int ring_vertical_edge_index_start = ring_edge_index_start + segments;

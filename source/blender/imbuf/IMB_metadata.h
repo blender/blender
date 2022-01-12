@@ -58,10 +58,7 @@ void IMB_metadata_free(struct IDProperty *metadata);
  * \param len: length of value buffer allocated by user.
  * \return 1 (true) if metadata is present and value for the key found, 0 (false) otherwise.
  */
-bool IMB_metadata_get_field(struct IDProperty *metadata,
-                            const char *key,
-                            char *value,
-                            const size_t len);
+bool IMB_metadata_get_field(struct IDProperty *metadata, const char *key, char *value, size_t len);
 
 /**
  * Set user data in the metadata.

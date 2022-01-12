@@ -26,7 +26,7 @@
 extern "C" {
 #endif
 
-bool imb_is_a_dds(const unsigned char *mem, const size_t size);
+bool imb_is_a_dds(const unsigned char *mem, size_t size);
 bool imb_save_dds(struct ImBuf *ibuf, const char *name, int flags);
 struct ImBuf *imb_load_dds(const unsigned char *mem,
                            size_t size,

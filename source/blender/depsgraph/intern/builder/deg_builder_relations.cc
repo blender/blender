@@ -1475,6 +1475,17 @@ void DepsgraphRelationBuilder::build_animation_images(ID *id)
         id, NodeType::IMAGE_ANIMATION, OperationCode::IMAGE_ANIMATION);
     TimeSourceKey time_src_key;
     add_relation(time_src_key, image_animation_key, "TimeSrc -> Image Animation");
+
+    /* The image users of these ids may change during evaluation. Make sure that the image
+     * animation update happens after evaluation. */
+    if (GS(id->name) == ID_MA) {
+      OperationKey material_update_key(id, NodeType::SHADING, OperationCode::MATERIAL_UPDATE);
+      add_relation(material_update_key, image_animation_key, "Material Update -> Image Animation");
+    }
+    else if (GS(id->name) == ID_WO) {
+      OperationKey world_update_key(id, NodeType::SHADING, OperationCode::WORLD_UPDATE);
+      add_relation(world_update_key, image_animation_key, "World Update -> Image Animation");
+    }
   }
 }
 

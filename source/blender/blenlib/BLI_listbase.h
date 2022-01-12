@@ -85,7 +85,7 @@ void *BLI_findptr(const struct ListBase *listbase,
  */
 void *BLI_listbase_bytes_find(const ListBase *listbase,
                               const void *bytes,
-                              const size_t bytes_size,
+                              size_t bytes_size,
                               int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 /**
  * Find the first item in the list that matches the given string, or the given index as fallback.
@@ -96,7 +96,7 @@ void *BLI_listbase_bytes_find(const ListBase *listbase,
  */
 void *BLI_listbase_string_or_index_find(const struct ListBase *listbase,
                                         const char *string,
-                                        const size_t string_offset,
+                                        size_t string_offset,
                                         int index) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /* Find backwards. */
@@ -133,7 +133,7 @@ void *BLI_rfindptr(const struct ListBase *listbase,
  */
 void *BLI_listbase_bytes_rfind(const ListBase *listbase,
                                const void *bytes,
-                               const size_t bytes_size,
+                               size_t bytes_size,
                                int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 
 /**

@@ -140,7 +140,7 @@ bool BKE_appdir_font_folder_default(char *dir);
  * Find Python executable.
  */
 bool BKE_appdir_program_python_search(char *fullpath,
-                                      const size_t fullpath_len,
+                                      size_t fullpath_len,
                                       int version_major,
                                       int version_minor);
 
