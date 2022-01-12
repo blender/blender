@@ -243,6 +243,10 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   }
 }
 
+#ifdef __KERNEL_METAL__
+constant int __dummy_constant [[function_constant(0)]];
+#endif
+
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shade_surface_raytrace,
                              ccl_global const int *path_index_array,
@@ -253,7 +257,16 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 
   if (global_index < work_size) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
+
+#ifdef __KERNEL_METAL__
+    KernelGlobals kg = NULL;
+    /* Workaround Ambient Occlusion and Bevel nodes not working with Metal.
+     * Dummy offset should not affect result, but somehow fixes bug! */
+    kg += __dummy_constant;
+    ccl_gpu_kernel_call(integrator_shade_surface_raytrace(kg, state, render_buffer));
+#else
     ccl_gpu_kernel_call(integrator_shade_surface_raytrace(NULL, state, render_buffer));
+#endif
   }
 }
 
