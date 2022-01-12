@@ -212,7 +212,6 @@ SDNA_DEFAULT_DECL_STRUCT(MetaBall);
 SDNA_DEFAULT_DECL_STRUCT(MovieClip);
 SDNA_DEFAULT_DECL_STRUCT(MovieClipUser);
 SDNA_DEFAULT_DECL_STRUCT(MovieClipScopes);
-SDNA_DEFAULT_DECL_STRUCT(MovieTrackingMarker);
 
 /* DNA_object_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Object);
@@ -231,7 +230,6 @@ SDNA_DEFAULT_DECL_STRUCT(ToolSettings);
 SDNA_DEFAULT_DECL_STRUCT(Simulation);
 
 /* DNA_space_defaults.h */
-SDNA_DEFAULT_DECL_STRUCT(MaskSpaceInfo);
 SDNA_DEFAULT_DECL_STRUCT(SpaceClip);
 
 /* DNA_speaker_defaults.h */
@@ -418,14 +416,14 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     /* DNA_space_defaults.h */
     SDNA_DEFAULT_DECL(SpaceClip),
     SDNA_DEFAULT_DECL_EX(MaskSpaceInfo, SpaceClip.mask_info),
-    SDNA_DEFAULT_DECL_EX(MovieClipUser, SpaceClip.user),
-    SDNA_DEFAULT_DECL_EX(MovieClipScopes, SpaceClip.scopes),
 
     /* DNA_meta_defaults.h */
     SDNA_DEFAULT_DECL(MetaBall),
 
     /* DNA_movieclip_defaults.h */
     SDNA_DEFAULT_DECL(MovieClip),
+    SDNA_DEFAULT_DECL(MovieClipUser),
+    SDNA_DEFAULT_DECL(MovieClipScopes),
     SDNA_DEFAULT_DECL_EX(MovieTrackingMarker, MovieClipScopes.undist_marker),
 
     /* DNA_object_defaults.h */
