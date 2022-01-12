@@ -9488,12 +9488,7 @@ static void def_geo_triangulate(StructRNA *srna)
        "SHORTEST_DIAGONAL",
        0,
        "Shortest Diagonal",
-       "Split the quads along their shortest diagonal"},
-      {GEO_NODE_TRIANGULATE_QUAD_LONGEDGE,
-       "LONGEST_DIAGONAL",
-       0,
-       "Longest Diagonal",
-       "Split the quads along their longest diagonal"},
+       "Split the quads based on the distance between the vertices"},
       {0, NULL, 0, NULL, NULL},
   };
 

@@ -36,13 +36,13 @@
 #include "BLI_bitmap.h"
 #include "BLI_edgehash.h"
 #include "BLI_endian_switch.h"
-#include "BLI_float3.hh"
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_index_range.hh"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
 #include "BLI_task.hh"
@@ -1597,16 +1597,16 @@ bool BKE_mesh_minmax(const Mesh *me, float r_min[3], float r_max[3])
       [&](IndexRange range, const Result &init) {
         Result result = init;
         for (const int i : range) {
-          float3::min_max(me->mvert[i].co, result.min, result.max);
+          math::min_max(float3(me->mvert[i].co), result.min, result.max);
         }
         return result;
       },
       [](const Result &a, const Result &b) {
-        return Result{float3::min(a.min, b.min), float3::max(a.max, b.max)};
+        return Result{math::min(a.min, b.min), math::max(a.max, b.max)};
       });
 
-  copy_v3_v3(r_min, float3::min(minmax.min, r_min));
-  copy_v3_v3(r_max, float3::max(minmax.max, r_max));
+  copy_v3_v3(r_min, math::min(minmax.min, float3(r_min)));
+  copy_v3_v3(r_max, math::max(minmax.max, float3(r_max)));
 
   return true;
 }

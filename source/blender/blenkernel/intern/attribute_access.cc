@@ -30,7 +30,7 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BLI_color.hh"
-#include "BLI_float2.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_span.hh"
 
 #include "BLT_translation.h"

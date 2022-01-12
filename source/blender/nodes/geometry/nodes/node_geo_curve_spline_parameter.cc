@@ -96,7 +96,7 @@ static void calculate_nurbs_lengths(const NURBSpline &spline, MutableSpan<float>
   float length = 0.0f;
   for (const int i : IndexRange(positions.size() - 1)) {
     lengths[i] = length;
-    length += float3::distance(positions[i], positions[i + 1]);
+    length += math::distance(positions[i], positions[i + 1]);
   }
   lengths.last() = length;
 }

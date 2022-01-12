@@ -85,7 +85,7 @@ static bool calculate_mesh_proximity(const VArray<float3> &positions,
     for (int i : range) {
       const int index = mask[i];
       /* Use the distance to the last found point as upper bound to speedup the bvh lookup. */
-      nearest.dist_sq = float3::distance_squared(nearest.co, positions[index]);
+      nearest.dist_sq = math::distance_squared(float3(nearest.co), positions[index]);
 
       BLI_bvhtree_find_nearest(
           bvh_data.tree, positions[index], &nearest, bvh_data.nearest_callback, &bvh_data);

@@ -22,7 +22,7 @@
 
 #include <optional>
 
-#include "BLI_float3.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 

@@ -26,9 +26,8 @@
 #include "BKE_attribute.h"
 
 #include "BLI_color.hh"
-#include "BLI_float2.hh"
-#include "BLI_float3.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_math_vec_types.hh"
 
 /**
  * This file defines classes that help to provide access to attribute data on a #GeometryComponent.

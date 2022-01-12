@@ -100,7 +100,7 @@ static std::unique_ptr<CurveEval> create_direction_line_curve(const float3 start
   spline->resize(2);
   MutableSpan<float3> positions = spline->positions();
   positions[0] = start;
-  positions[1] = direction.normalized() * length + start;
+  positions[1] = math::normalize(direction) * length + start;
 
   spline->radii().fill(1.0f);
   spline->tilts().fill(0.0f);

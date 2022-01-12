@@ -367,7 +367,7 @@ void BKE_image_packfiles(struct ReportList *reports, struct Image *ima, const ch
 void BKE_image_packfiles_from_mem(struct ReportList *reports,
                                   struct Image *ima,
                                   char *data,
-                                  size_t data_len);
+                                  const size_t data_len);
 
 /**
  * Prints memory statistics for images.

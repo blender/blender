@@ -58,9 +58,9 @@ static std::unique_ptr<CurveEval> create_quadratic_bezier_curve(const float3 p1,
   const float step = 1.0f / resolution;
   for (const int i : IndexRange(resolution + 1)) {
     const float factor = step * i;
-    const float3 q1 = float3::interpolate(p1, p2, factor);
-    const float3 q2 = float3::interpolate(p2, p3, factor);
-    positions[i] = float3::interpolate(q1, q2, factor);
+    const float3 q1 = math::interpolate(p1, p2, factor);
+    const float3 q2 = math::interpolate(p2, p3, factor);
+    positions[i] = math::interpolate(q1, q2, factor);
   }
 
   curve->add_spline(std::move(spline));

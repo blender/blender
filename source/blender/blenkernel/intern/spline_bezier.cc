@@ -199,11 +199,13 @@ void BezierSpline::ensure_auto_handles() const
   }
 
   for (const int i : IndexRange(this->size())) {
+    using namespace blender;
+
     if (ELEM(HandleType::Auto, handle_types_left_[i], handle_types_right_[i])) {
       const float3 prev_diff = positions_[i] - previous_position(positions_, is_cyclic_, i);
       const float3 next_diff = next_position(positions_, is_cyclic_, i) - positions_[i];
-      float prev_len = prev_diff.length();
-      float next_len = next_diff.length();
+      float prev_len = math::length(prev_diff);
+      float next_len = math::length(next_diff);
       if (prev_len == 0.0f) {
         prev_len = 1.0f;
       }
@@ -213,7 +215,7 @@ void BezierSpline::ensure_auto_handles() const
       const float3 dir = next_diff / next_len + prev_diff / prev_len;
 
       /* This magic number is unfortunate, but comes from elsewhere in Blender. */
-      const float len = dir.length() * 2.5614f;
+      const float len = math::length(dir) * 2.5614f;
       if (len != 0.0f) {
         if (handle_types_left_[i] == HandleType::Auto) {
           const float prev_len_clamped = std::min(prev_len, next_len * 5.0f);
@@ -228,12 +230,12 @@ void BezierSpline::ensure_auto_handles() const
 
     if (handle_types_left_[i] == HandleType::Vector) {
       const float3 prev = previous_position(positions_, is_cyclic_, i);
-      handle_positions_left_[i] = float3::interpolate(positions_[i], prev, 1.0f / 3.0f);
+      handle_positions_left_[i] = math::interpolate(positions_[i], prev, 1.0f / 3.0f);
     }
 
     if (handle_types_right_[i] == HandleType::Vector) {
       const float3 next = next_position(positions_, is_cyclic_, i);
-      handle_positions_right_[i] = float3::interpolate(positions_[i], next, 1.0f / 3.0f);
+      handle_positions_right_[i] = math::interpolate(positions_[i], next, 1.0f / 3.0f);
     }
   }
 
@@ -275,6 +277,8 @@ static void set_handle_position(const float3 &position,
                                 float3 &handle,
                                 float3 &handle_other)
 {
+  using namespace blender::math;
+
   /* Don't bother when the handle positions are calculated automatically anyway. */
   if (ELEM(type, BezierSpline::HandleType::Auto, BezierSpline::HandleType::Vector)) {
     return;
@@ -283,9 +287,9 @@ static void set_handle_position(const float3 &position,
   handle = new_value;
   if (type_other == BezierSpline::HandleType::Align) {
     /* Keep track of the old length of the opposite handle. */
-    const float length = float3::distance(handle_other, position);
+    const float length = distance(handle_other, position);
     /* Set the other handle to directly opposite from the current handle. */
-    const float3 dir = (handle - position).normalized();
+    const float3 dir = normalize(handle - position);
     handle_other = position - dir * length;
   }
 }
@@ -353,6 +357,7 @@ int BezierSpline::evaluated_points_size() const
 
 void BezierSpline::correct_end_tangents() const
 {
+  using namespace blender::math;
   if (is_cyclic_) {
     return;
   }
@@ -360,10 +365,10 @@ void BezierSpline::correct_end_tangents() const
   MutableSpan<float3> tangents(evaluated_tangents_cache_);
 
   if (handle_positions_right_.first() != positions_.first()) {
-    tangents.first() = (handle_positions_right_.first() - positions_.first()).normalized();
+    tangents.first() = normalize(handle_positions_right_.first() - positions_.first());
   }
   if (handle_positions_left_.last() != positions_.last()) {
-    tangents.last() = (positions_.last() - handle_positions_left_.last()).normalized();
+    tangents.last() = normalize(positions_.last() - handle_positions_left_.last());
   }
 }
 
@@ -371,20 +376,22 @@ BezierSpline::InsertResult BezierSpline::calculate_segment_insertion(const int i
                                                                      const int next_index,
                                                                      const float parameter)
 {
+  using namespace blender::math;
+
   BLI_assert(parameter <= 1.0f && parameter >= 0.0f);
   BLI_assert(next_index == 0 || next_index == index + 1);
   const float3 &point_prev = positions_[index];
   const float3 &handle_prev = handle_positions_right_[index];
   const float3 &handle_next = handle_positions_left_[next_index];
   const float3 &point_next = positions_[next_index];
-  const float3 center_point = float3::interpolate(handle_prev, handle_next, parameter);
+  const float3 center_point = interpolate(handle_prev, handle_next, parameter);
 
   BezierSpline::InsertResult result;
-  result.handle_prev = float3::interpolate(point_prev, handle_prev, parameter);
-  result.handle_next = float3::interpolate(handle_next, point_next, parameter);
-  result.left_handle = float3::interpolate(result.handle_prev, center_point, parameter);
-  result.right_handle = float3::interpolate(center_point, result.handle_next, parameter);
-  result.position = float3::interpolate(result.left_handle, result.right_handle, parameter);
+  result.handle_prev = interpolate(point_prev, handle_prev, parameter);
+  result.handle_next = interpolate(handle_next, point_next, parameter);
+  result.left_handle = interpolate(result.handle_prev, center_point, parameter);
+  result.right_handle = interpolate(center_point, result.handle_next, parameter);
+  result.position = interpolate(result.left_handle, result.right_handle, parameter);
   return result;
 }
 

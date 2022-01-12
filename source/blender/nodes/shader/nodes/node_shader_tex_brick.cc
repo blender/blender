@@ -19,8 +19,7 @@
 
 #include "node_shader_util.hh"
 
-#include "BLI_float2.hh"
-#include "BLI_float4.hh"
+#include "BLI_math_vec_types.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

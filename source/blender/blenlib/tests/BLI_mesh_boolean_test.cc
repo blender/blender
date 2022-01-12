@@ -11,8 +11,8 @@
 #include "BLI_array.hh"
 #include "BLI_map.hh"
 #include "BLI_math_mpq.hh"
+#include "BLI_math_vec_mpq_types.hh"
 #include "BLI_mesh_boolean.hh"
-#include "BLI_mpq3.hh"
 #include "BLI_vector.hh"
 
 #ifdef WITH_GMP

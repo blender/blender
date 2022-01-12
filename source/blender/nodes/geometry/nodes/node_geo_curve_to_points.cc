@@ -285,7 +285,7 @@ static void copy_uniform_sample_point_attributes(const Span<SplinePtr> splines,
         spline.sample_with_index_factors<float3>(
             spline.evaluated_tangents(), uniform_samples, data.tangents.slice(offset, size));
         for (float3 &tangent : data.tangents) {
-          tangent.normalize();
+          tangent = math::normalize(tangent);
         }
       }
 
@@ -293,7 +293,7 @@ static void copy_uniform_sample_point_attributes(const Span<SplinePtr> splines,
         spline.sample_with_index_factors<float3>(
             spline.evaluated_normals(), uniform_samples, data.normals.slice(offset, size));
         for (float3 &normals : data.normals) {
-          normals.normalize();
+          normals = math::normalize(normals);
         }
       }
     }

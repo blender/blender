@@ -32,9 +32,9 @@
 
 #include "BLI_alloca.h"
 #include "BLI_array.hh"
-#include "BLI_float2.hh"
 #include "BLI_float4x4.hh"
 #include "BLI_math.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_mesh_boolean.hh"
 #include "BLI_mesh_intersect.hh"
 #include "BLI_span.hh"

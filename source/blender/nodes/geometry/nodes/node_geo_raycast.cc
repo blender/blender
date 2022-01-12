@@ -163,7 +163,7 @@ static void raycast_to_mesh(IndexMask mask,
   for (const int i : mask) {
     const float ray_length = ray_lengths[i];
     const float3 ray_origin = ray_origins[i];
-    const float3 ray_direction = ray_directions[i].normalized();
+    const float3 ray_direction = math::normalize(ray_directions[i]);
 
     BVHTreeRayHit hit;
     hit.index = -1;

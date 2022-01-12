@@ -19,9 +19,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_color.hh"
-#include "BLI_float2.hh"
-#include "BLI_float3.hh"
 #include "BLI_hash.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 

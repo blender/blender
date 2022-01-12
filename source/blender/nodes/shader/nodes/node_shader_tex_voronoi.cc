@@ -313,7 +313,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                pos = float2::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
             }
@@ -345,7 +345,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                pos = float2::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
             }
@@ -380,7 +380,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                pos = float2::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
             }
@@ -416,7 +416,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                r_position[i] = math::safe_divide(r_position[i], scale[i]);
               }
             }
             break;
@@ -446,7 +446,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                r_position[i] = math::safe_divide(r_position[i], scale[i]);
               }
             }
             break;
@@ -479,7 +479,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                r_position[i] = math::safe_divide(r_position[i], scale[i]);
               }
             }
             break;
@@ -519,7 +519,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position || calc_w) {
-                pos = float4::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 if (calc_position) {
                   r_position[i] = float3(pos.x, pos.y, pos.z);
                 }
@@ -560,7 +560,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position || calc_w) {
-                pos = float4::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 if (calc_position) {
                   r_position[i] = float3(pos.x, pos.y, pos.z);
                 }
@@ -604,7 +604,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position || calc_w) {
-                pos = float4::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 if (calc_position) {
                   r_position[i] = float3(pos.x, pos.y, pos.z);
                 }
@@ -837,7 +837,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                pos = float2::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
             }
@@ -868,7 +868,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                pos = float2::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
             }
@@ -902,7 +902,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                pos = float2::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
             }
@@ -937,7 +937,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                r_position[i] = math::safe_divide(r_position[i], scale[i]);
               }
             }
             break;
@@ -966,7 +966,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                r_position[i] = math::safe_divide(r_position[i], scale[i]);
               }
             }
             break;
@@ -999,7 +999,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                   r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
                 }
                 if (calc_position) {
-                  r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                  r_position[i] = math::safe_divide(r_position[i], scale[i]);
                 }
               }
             }
@@ -1040,7 +1040,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position || calc_w) {
-                pos = float4::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 if (calc_position) {
                   r_position[i] = float3(pos.x, pos.y, pos.z);
                 }
@@ -1080,7 +1080,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position || calc_w) {
-                pos = float4::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 if (calc_position) {
                   r_position[i] = float3(pos.x, pos.y, pos.z);
                 }
@@ -1123,7 +1123,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position || calc_w) {
-                pos = float4::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 if (calc_position) {
                   r_position[i] = float3(pos.x, pos.y, pos.z);
                 }

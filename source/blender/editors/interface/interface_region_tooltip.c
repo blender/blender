@@ -74,8 +74,6 @@
 #define UI_TIP_PADDING (int)(UI_TIP_PAD_FAC * UI_UNIT_Y)
 #define UI_TIP_MAXWIDTH 600
 
-#define UI_TIP_STR_MAX 1024
-
 typedef struct uiTooltipFormat {
   enum {
     UI_TIP_STYLE_NORMAL = 0,
@@ -216,7 +214,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
       /* draw header and active data (is done here to be able to change color) */
       rgb_float_to_uchar(drawcol, tip_colors[UI_TIP_LC_MAIN]);
       UI_fontstyle_set(&data->fstyle);
-      UI_fontstyle_draw(&data->fstyle, &bbox, field->text, UI_TIP_STR_MAX, drawcol, &fs_params);
+      UI_fontstyle_draw(&data->fstyle, &bbox, field->text, drawcol, &fs_params);
 
       /* offset to the end of the last line */
       if (field->text_suffix) {
@@ -226,8 +224,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
         bbox.ymax -= yofs;
 
         rgb_float_to_uchar(drawcol, tip_colors[UI_TIP_LC_ACTIVE]);
-        UI_fontstyle_draw(
-            &data->fstyle, &bbox, field->text_suffix, UI_TIP_STR_MAX, drawcol, &fs_params);
+        UI_fontstyle_draw(&data->fstyle, &bbox, field->text_suffix, drawcol, &fs_params);
 
         /* undo offset */
         bbox.xmin -= xofs;
@@ -246,7 +243,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
       /* XXX, needed because we don't have mono in 'U.uifonts' */
       BLF_size(fstyle_mono.uifont_id, fstyle_mono.points * U.pixelsize, U.dpi);
       rgb_float_to_uchar(drawcol, tip_colors[field->format.color_id]);
-      UI_fontstyle_draw(&fstyle_mono, &bbox, field->text, UI_TIP_STR_MAX, drawcol, &fs_params);
+      UI_fontstyle_draw(&fstyle_mono, &bbox, field->text, drawcol, &fs_params);
     }
     else {
       BLI_assert(field->format.style == UI_TIP_STYLE_NORMAL);
@@ -258,7 +255,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
       /* draw remaining data */
       rgb_float_to_uchar(drawcol, tip_colors[field->format.color_id]);
       UI_fontstyle_set(&data->fstyle);
-      UI_fontstyle_draw(&data->fstyle, &bbox, field->text, UI_TIP_STR_MAX, drawcol, &fs_params);
+      UI_fontstyle_draw(&data->fstyle, &bbox, field->text, drawcol, &fs_params);
     }
 
     bbox.ymax -= data->lineh * field->geom.lines;
@@ -1218,12 +1215,12 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
       BLI_assert(ELEM(field->format.style, UI_TIP_STYLE_NORMAL, UI_TIP_STYLE_HEADER));
       font_id = data->fstyle.uifont_id;
     }
-    w = BLF_width_ex(font_id, field->text, UI_TIP_STR_MAX, &info);
+    w = BLF_width_ex(font_id, field->text, BLF_DRAW_STR_DUMMY_MAX, &info);
 
     /* check for suffix (enum label) */
     if (field->text_suffix && field->text_suffix[0]) {
       x_pos = info.width;
-      w = max_ii(w, x_pos + BLF_width(font_id, field->text_suffix, UI_TIP_STR_MAX));
+      w = max_ii(w, x_pos + BLF_width(font_id, field->text_suffix, BLF_DRAW_STR_DUMMY_MAX));
     }
     fontw = max_ii(fontw, w);
 
