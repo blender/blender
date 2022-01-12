@@ -334,7 +334,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
     /* Ensure CPU device does not slow down GPU. */
     if (device.type == DEVICE_CPU && subdevices.size() > 1) {
       if (background) {
-        int orig_cpu_threads = (threads) ? threads : TaskScheduler::num_threads();
+        int orig_cpu_threads = (threads) ? threads : TaskScheduler::max_concurrency();
         int cpu_threads = max(orig_cpu_threads - (subdevices.size() - 1), 0);
 
         VLOG(1) << "CPU render threads reduced from " << orig_cpu_threads << " to " << cpu_threads

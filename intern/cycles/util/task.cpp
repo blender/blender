@@ -109,9 +109,10 @@ void TaskScheduler::free_memory()
   assert(users == 0);
 }
 
-int TaskScheduler::num_threads()
+int TaskScheduler::max_concurrency()
 {
-  return active_num_threads;
+  thread_scoped_lock lock(mutex);
+  return (users > 0) ? active_num_threads : tbb::this_task_arena::max_concurrency();
 }
 
 /* Dedicated Task Pool */

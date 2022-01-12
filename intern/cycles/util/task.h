@@ -86,10 +86,9 @@ class TaskScheduler {
   static void exit();
   static void free_memory();
 
-  /* Approximate number of threads that will work on task, which may be lower
-   * or higher than the actual number of threads. Use as little as possible and
-   * leave splitting up tasks to the scheduler. */
-  static int num_threads();
+  /* Maximum number of threads that will work on task. Use as little as
+   * possible and leave scheduling and splitting up tasks to the scheduler. */
+  static int max_concurrency();
 
  protected:
   static thread_mutex mutex;
