@@ -3620,8 +3620,8 @@ compile_FFmpeg() {
     fi
 
     ./configure --cc="gcc -Wl,--as-needed" \
-        --extra-ldflags="-pthread -static-libgcc" \
-        --prefix=$_inst --enable-static \
+        --extra-ldflags="-pthread" \
+        --prefix=$_inst --enable-shared \
         --disable-ffplay --disable-doc \
         --enable-gray \
         --enable-avfilter --disable-vdpau \
@@ -5721,76 +5721,6 @@ install_OTHER() {
 # ----------------------------------------------------------------------------
 # Printing User Info
 
-print_info_ffmpeglink_DEB() {
-  dpkg -L $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
-}
-
-print_info_ffmpeglink_RPM() {
-  rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
-}
-
-print_info_ffmpeglink_ARCH() {
-  pacman -Ql $_packages | grep -e ".*\/lib[^\/]\+\.so$" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
-}
-
-print_info_ffmpeglink() {
-  # This func must only print a ';'-separated list of libs...
-  if [ -z "$DISTRO" ]; then
-    ERROR "Failed to detect distribution type"
-    exit 1
-  fi
-
-  # Create list of packages from which to get libs names...
-  _packages=""
-
-  if [ "$THEORA_USE" = true ]; then
-    _packages="$_packages $THEORA_DEV"
-  fi
-
-  if [ "$VORBIS_USE" = true ]; then
-    _packages="$_packages $VORBIS_DEV"
-  fi
-
-  if [ "$OGG_USE" = true ]; then
-    _packages="$_packages $OGG_DEV"
-  fi
-
-  if [ "$XVID_USE" = true ]; then
-    _packages="$_packages $XVID_DEV"
-  fi
-
-  if [ "$VPX_USE" = true ]; then
-    _packages="$_packages $VPX_DEV"
-  fi
-
-  if [ "$OPUS_USE" = true ]; then
-    _packages="$_packages $OPUS_DEV"
-  fi
-
-  if [ "$MP3LAME_USE" = true ]; then
-    _packages="$_packages $MP3LAME_DEV"
-  fi
-
-  if [ "$X264_USE" = true ]; then
-    _packages="$_packages $X264_DEV"
-  fi
-
-  if [ "$OPENJPEG_USE" = true ]; then
-    _packages="$_packages $OPENJPEG_DEV"
-  fi
-
-  if [ "$DISTRO" = "DEB" ]; then
-    print_info_ffmpeglink_DEB
-  elif [ "$DISTRO" = "RPM" ]; then
-    print_info_ffmpeglink_RPM
-  elif [ "$DISTRO" = "ARCH" ]; then
-    print_info_ffmpeglink_ARCH
-  # XXX TODO!
-  else
-    PRINT "<Could not determine additional link libraries needed for ffmpeg, replace this by valid list of libs...>"
-  fi
-}
-
 print_info() {
   PRINT ""
   PRINT ""
@@ -6002,12 +5932,10 @@ print_info() {
 
   if [ "$FFMPEG_SKIP" = false ]; then
     _1="-D WITH_CODEC_FFMPEG=ON"
-    _2="-D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;swresample;lzma;rt;`print_info_ffmpeglink`'"
     PRINT "  $_1"
-    PRINT "  $_2"
-    _buildargs="$_buildargs $_1 $_2"
+    _buildargs="$_buildargs $_1"
     if [ -d $INST/ffmpeg ]; then
-      _1="-D FFMPEG=$INST/ffmpeg"
+      _1="-D FFMPEG_ROOT_DIR=$INST/ffmpeg"
       PRINT "  $_1"
       _buildargs="$_buildargs $_1"
     fi

@@ -178,26 +178,24 @@ endif()
 
 if(WITH_CODEC_FFMPEG)
   if(EXISTS ${LIBDIR})
-    # For precompiled lib directory, all ffmpeg dependencies are in the same folder
-    file(GLOB ffmpeg_libs ${LIBDIR}/ffmpeg/lib/*.a ${LIBDIR}/sndfile/lib/*.a)
-    set(FFMPEG ${LIBDIR}/ffmpeg CACHE PATH "FFMPEG Directory")
-    set(FFMPEG_LIBRARIES ${ffmpeg_libs} ${ffmpeg_libs} CACHE STRING "FFMPEG Libraries")
-  else()
-    set(FFMPEG /usr CACHE PATH "FFMPEG Directory")
-    set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
+    set(FFMPEG_ROOT_DIR ${LIBDIR}/ffmpeg)
+    # Override FFMPEG components to also include static library dependencies.
+    # included with precompiled libraries.
+    set(FFMPEG_FIND_COMPONENTS
+      avcodec avdevice avformat avutil
+      mp3lame ogg opus swresample swscale
+      theora theoradec theoraenc vorbis vorbisenc
+      vorbisfile vpx x264 xvidcore)
+  elseif(FFMPEG)
+    # Old cache variable used for root dir, convert to new standard.
+    set(FFMPEG_ROOT_DIR ${FFMPEG})
   endif()
+  find_package(FFmpeg)
 
-  mark_as_advanced(FFMPEG)
-
-  # lame, but until we have proper find module for ffmpeg
-  set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
-  if(EXISTS "${FFMPEG}/include/ffmpeg/")
-    list(APPEND FFMPEG_INCLUDE_DIRS "${FFMPEG}/include/ffmpeg")
+  if(NOT FFMPEG_FOUND)
+    set(WITH_CODEC_FFMPEG OFF)
+    message(STATUS "FFmpeg not found, disabling it")
   endif()
-  # end lameness
-
-  mark_as_advanced(FFMPEG_LIBRARIES)
-  set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 endif()
 
 if(WITH_FFTW3)
