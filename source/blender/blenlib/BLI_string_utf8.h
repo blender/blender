@@ -110,14 +110,12 @@ size_t BLI_str_utf8_from_unicode_len(unsigned int c) ATTR_WARN_UNUSED_RESULT;
  *
  * \return number of bytes written.
  */
-size_t BLI_str_utf8_from_unicode(unsigned int c, char *outbuf, const size_t outbuf_len)
-    ATTR_NONNULL(2);
+size_t BLI_str_utf8_from_unicode(unsigned int c, char *outbuf, size_t outbuf_len) ATTR_NONNULL(2);
 size_t BLI_str_utf8_as_utf32(char32_t *__restrict dst_w,
                              const char *__restrict src_c,
-                             const size_t maxncpy) ATTR_NONNULL(1, 2);
-size_t BLI_str_utf32_as_utf8(char *__restrict dst,
-                             const char32_t *__restrict src,
-                             const size_t maxncpy) ATTR_NONNULL(1, 2);
+                             size_t maxncpy) ATTR_NONNULL(1, 2);
+size_t BLI_str_utf32_as_utf8(char *__restrict dst, const char32_t *__restrict src, size_t maxncpy)
+    ATTR_NONNULL(1, 2);
 /**
  * \return The UTF-32 len in UTF-8.
  */
@@ -162,21 +160,20 @@ size_t BLI_wstrlen_utf8(const wchar_t *src) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RES
 size_t BLI_strlen_utf8_ex(const char *strc, size_t *r_len_bytes)
     ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 size_t BLI_strlen_utf8(const char *strc) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
-size_t BLI_strnlen_utf8_ex(const char *strc, const size_t maxlen, size_t *r_len_bytes)
+size_t BLI_strnlen_utf8_ex(const char *strc, size_t maxlen, size_t *r_len_bytes)
     ATTR_NONNULL(1, 3);
 /**
  * \param strc: the string to measure the length.
  * \param maxlen: the string length (in bytes)
  * \return the unicode length (not in bytes!)
  */
-size_t BLI_strnlen_utf8(const char *strc, const size_t maxlen)
-    ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+size_t BLI_strnlen_utf8(const char *strc, size_t maxlen) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
                                  const wchar_t *__restrict src,
-                                 const size_t maxncpy) ATTR_NONNULL(1, 2);
+                                 size_t maxncpy) ATTR_NONNULL(1, 2);
 size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst,
                                    const char *__restrict src,
-                                   const size_t maxncpy) ATTR_NONNULL(1, 2);
+                                   size_t maxncpy) ATTR_NONNULL(1, 2);
 
 /**
  * Count columns that character/string occupies (based on `wcwidth.co`).

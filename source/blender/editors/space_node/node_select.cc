@@ -111,13 +111,11 @@ static bNode *node_under_mouse_select(bNodeTree &ntree, int mx, int my)
 
 static bNode *node_under_mouse_tweak(bNodeTree &ntree, const float2 &mouse)
 {
-  using namespace blender::math;
-
   LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
     if (node->type == NODE_REROUTE) {
       bNodeSocket *socket = (bNodeSocket *)node->inputs.first;
       const float2 location{socket->locx, socket->locy};
-      if (distance(mouse, location) < 24.0f) {
+      if (float2::distance(mouse, location) < 24.0f) {
         return node;
       }
     }

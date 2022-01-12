@@ -3344,12 +3344,12 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
     fonty = line_height;
     BLF_position(font, x + max_ii(fontx / 55, 1), y - max_ii(fonty / 30, 1), 0.0f);
     BLF_buffer_col(font, data->shadow_color);
-    BLF_draw_buffer(font, data->text, BLF_DRAW_STR_DUMMY_MAX);
+    BLF_draw_buffer(font, data->text, sizeof(data->text));
   }
 
   BLF_position(font, x, y, 0.0f);
   BLF_buffer_col(font, data->color);
-  BLF_draw_buffer(font, data->text, BLF_DRAW_STR_DUMMY_MAX);
+  BLF_draw_buffer(font, data->text, sizeof(data->text));
 
   BLF_buffer(font, NULL, NULL, 0, 0, 0, NULL);
 

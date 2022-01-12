@@ -155,7 +155,7 @@ static void calculate_polys(const CuboidConfig &config,
   /* Calculate polys for Bottom faces. */
   int vert_1_start = 0;
 
-  for (const int UNUSED(y) : IndexRange(config.edges_y)) {
+  for ([[maybe_unused]] const int y : IndexRange(config.edges_y)) {
     for (const int x : IndexRange(config.edges_x)) {
       const int vert_1 = vert_1_start + x;
       const int vert_2 = vert_1_start + config.verts_x + x;
@@ -173,7 +173,7 @@ static void calculate_polys(const CuboidConfig &config,
   vert_1_start = 0;
   int vert_2_start = config.verts_x * config.verts_y;
 
-  for (const int UNUSED(z) : IndexRange(config.edges_z)) {
+  for ([[maybe_unused]] const int z : IndexRange(config.edges_z)) {
     for (const int x : IndexRange(config.edges_x)) {
       define_quad(polys,
                   loops,
@@ -196,7 +196,7 @@ static void calculate_polys(const CuboidConfig &config,
                                          (config.verts_x - 2) * (config.verts_y - 2));
   vert_2_start = vert_1_start + config.verts_x;
 
-  for (const int UNUSED(y) : IndexRange(config.edges_y)) {
+  for ([[maybe_unused]] const int y : IndexRange(config.edges_y)) {
     for (const int x : IndexRange(config.edges_x)) {
       define_quad(polys,
                   loops,

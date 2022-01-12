@@ -594,4 +594,7 @@ if(WIN32)
 endif()
 
 blender_add_lib(bf_freestyle "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-blender_precompile_headers(bf_freestyle FRS_precomp.cpp FRS_precomp.h)
+
+if(COMMAND target_precompile_headers) 
+  target_precompile_headers(bf_freestyle PRIVATE FRS_precomp.h)
+endif()

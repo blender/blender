@@ -16,7 +16,9 @@
 
 #pragma once
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_float2.hh"
+#include "BLI_float3.hh"
+#include "BLI_float4.hh"
 
 namespace blender::noise {
 

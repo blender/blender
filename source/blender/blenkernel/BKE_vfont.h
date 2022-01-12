@@ -104,7 +104,7 @@ void BKE_vfont_select_clamp(struct Object *ob);
 void BKE_vfont_clipboard_free(void);
 void BKE_vfont_clipboard_set(const char32_t *text_buf,
                              const struct CharInfo *info_buf,
-                             const size_t len);
+                             size_t len);
 void BKE_vfont_clipboard_get(char32_t **r_text_buf,
                              struct CharInfo **r_info_buf,
                              size_t *r_len_utf8,

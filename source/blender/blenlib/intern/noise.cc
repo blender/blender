@@ -50,7 +50,9 @@
 #include <cmath>
 #include <cstdint>
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_float2.hh"
+#include "BLI_float3.hh"
+#include "BLI_float4.hh"
 #include "BLI_math_base_safe.h"
 #include "BLI_noise.hh"
 #include "BLI_utildefines.h"
@@ -1467,7 +1469,7 @@ void voronoi_smooth_f1(const float w,
       correctionFactor /= 1.0f + 3.0f * smoothness;
       if (r_color != nullptr) {
         const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
-        smoothColor = math::interpolate(smoothColor, cellColor, h) - correctionFactor;
+        smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
       }
       if (r_w != nullptr) {
         smoothPosition = mix(smoothPosition, pointPosition, h) - correctionFactor;
@@ -1590,7 +1592,7 @@ static float voronoi_distance(const float2 a,
 {
   switch (metric) {
     case NOISE_SHD_VORONOI_EUCLIDEAN:
-      return math::distance(a, b);
+      return float2::distance(a, b);
     case NOISE_SHD_VORONOI_MANHATTAN:
       return fabsf(a.x - b.x) + fabsf(a.y - b.y);
     case NOISE_SHD_VORONOI_CHEBYCHEV:
@@ -1613,7 +1615,7 @@ void voronoi_f1(const float2 coord,
                 float3 *r_color,
                 float2 *r_position)
 {
-  const float2 cellPosition = math::floor(coord);
+  const float2 cellPosition = float2::floor(coord);
   const float2 localPosition = coord - cellPosition;
 
   float minDistance = 8.0f;
@@ -1652,7 +1654,7 @@ void voronoi_smooth_f1(const float2 coord,
                        float3 *r_color,
                        float2 *r_position)
 {
-  const float2 cellPosition = math::floor(coord);
+  const float2 cellPosition = float2::floor(coord);
   const float2 localPosition = coord - cellPosition;
   const float smoothness_clamped = max_ff(smoothness, FLT_MIN);
 
@@ -1674,10 +1676,11 @@ void voronoi_smooth_f1(const float2 coord,
         correctionFactor /= 1.0f + 3.0f * smoothness;
         if (r_color != nullptr) {
           const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
-          smoothColor = math::interpolate(smoothColor, cellColor, h) - correctionFactor;
+          smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
         }
         if (r_position != nullptr) {
-          smoothPosition = math::interpolate(smoothPosition, pointPosition, h) - correctionFactor;
+          smoothPosition = float2::interpolate(smoothPosition, pointPosition, h) -
+                           correctionFactor;
         }
       }
     }
@@ -1701,7 +1704,7 @@ void voronoi_f2(const float2 coord,
                 float3 *r_color,
                 float2 *r_position)
 {
-  const float2 cellPosition = math::floor(coord);
+  const float2 cellPosition = float2::floor(coord);
   const float2 localPosition = coord - cellPosition;
 
   float distanceF1 = 8.0f;
@@ -1745,7 +1748,7 @@ void voronoi_f2(const float2 coord,
 
 void voronoi_distance_to_edge(const float2 coord, const float randomness, float *r_distance)
 {
-  const float2 cellPosition = math::floor(coord);
+  const float2 cellPosition = float2::floor(coord);
   const float2 localPosition = coord - cellPosition;
 
   float2 vectorToClosest = float2(0.0f, 0.0f);
@@ -1774,7 +1777,7 @@ void voronoi_distance_to_edge(const float2 coord, const float randomness, float 
       const float2 perpendicularToEdge = vectorToPoint - vectorToClosest;
       if (dot_v2v2(perpendicularToEdge, perpendicularToEdge) > 0.0001f) {
         const float distanceToEdge = dot_v2v2((vectorToClosest + vectorToPoint) / 2.0f,
-                                              math::normalize(perpendicularToEdge));
+                                              perpendicularToEdge.normalized());
         minDistance = std::min(minDistance, distanceToEdge);
       }
     }
@@ -1784,7 +1787,7 @@ void voronoi_distance_to_edge(const float2 coord, const float randomness, float 
 
 void voronoi_n_sphere_radius(const float2 coord, const float randomness, float *r_radius)
 {
-  const float2 cellPosition = math::floor(coord);
+  const float2 cellPosition = float2::floor(coord);
   const float2 localPosition = coord - cellPosition;
 
   float2 closestPoint = float2(0.0f, 0.0f);
@@ -1795,7 +1798,7 @@ void voronoi_n_sphere_radius(const float2 coord, const float randomness, float *
       const float2 cellOffset = float2(i, j);
       const float2 pointPosition = cellOffset +
                                    hash_float_to_float2(cellPosition + cellOffset) * randomness;
-      const float distanceToPoint = math::distance(pointPosition, localPosition);
+      const float distanceToPoint = float2::distance(pointPosition, localPosition);
       if (distanceToPoint < minDistance) {
         minDistance = distanceToPoint;
         closestPoint = pointPosition;
@@ -1814,14 +1817,14 @@ void voronoi_n_sphere_radius(const float2 coord, const float randomness, float *
       const float2 cellOffset = float2(i, j) + closestPointOffset;
       const float2 pointPosition = cellOffset +
                                    hash_float_to_float2(cellPosition + cellOffset) * randomness;
-      const float distanceToPoint = math::distance(closestPoint, pointPosition);
+      const float distanceToPoint = float2::distance(closestPoint, pointPosition);
       if (distanceToPoint < minDistance) {
         minDistance = distanceToPoint;
         closestPointToClosestPoint = pointPosition;
       }
     }
   }
-  *r_radius = math::distance(closestPointToClosestPoint, closestPoint) / 2.0f;
+  *r_radius = float2::distance(closestPointToClosestPoint, closestPoint) / 2.0f;
 }
 
 /* **** 3D Voronoi **** */
@@ -1833,7 +1836,7 @@ static float voronoi_distance(const float3 a,
 {
   switch (metric) {
     case NOISE_SHD_VORONOI_EUCLIDEAN:
-      return math::distance(a, b);
+      return float3::distance(a, b);
     case NOISE_SHD_VORONOI_MANHATTAN:
       return fabsf(a.x - b.x) + fabsf(a.y - b.y) + fabsf(a.z - b.z);
     case NOISE_SHD_VORONOI_CHEBYCHEV:
@@ -1857,7 +1860,7 @@ void voronoi_f1(const float3 coord,
                 float3 *r_color,
                 float3 *r_position)
 {
-  const float3 cellPosition = math::floor(coord);
+  const float3 cellPosition = float3::floor(coord);
   const float3 localPosition = coord - cellPosition;
 
   float minDistance = 8.0f;
@@ -1899,7 +1902,7 @@ void voronoi_smooth_f1(const float3 coord,
                        float3 *r_color,
                        float3 *r_position)
 {
-  const float3 cellPosition = math::floor(coord);
+  const float3 cellPosition = float3::floor(coord);
   const float3 localPosition = coord - cellPosition;
   const float smoothness_clamped = max_ff(smoothness, FLT_MIN);
 
@@ -1922,10 +1925,10 @@ void voronoi_smooth_f1(const float3 coord,
           correctionFactor /= 1.0f + 3.0f * smoothness;
           if (r_color != nullptr) {
             const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
-            smoothColor = math::interpolate(smoothColor, cellColor, h) - correctionFactor;
+            smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
           }
           if (r_position != nullptr) {
-            smoothPosition = math::interpolate(smoothPosition, pointPosition, h) -
+            smoothPosition = float3::interpolate(smoothPosition, pointPosition, h) -
                              correctionFactor;
           }
         }
@@ -1951,7 +1954,7 @@ void voronoi_f2(const float3 coord,
                 float3 *r_color,
                 float3 *r_position)
 {
-  const float3 cellPosition = math::floor(coord);
+  const float3 cellPosition = float3::floor(coord);
   const float3 localPosition = coord - cellPosition;
 
   float distanceF1 = 8.0f;
@@ -1997,7 +2000,7 @@ void voronoi_f2(const float3 coord,
 
 void voronoi_distance_to_edge(const float3 coord, const float randomness, float *r_distance)
 {
-  const float3 cellPosition = math::floor(coord);
+  const float3 cellPosition = float3::floor(coord);
   const float3 localPosition = coord - cellPosition;
 
   float3 vectorToClosest = float3(0.0f, 0.0f, 0.0f);
@@ -2029,7 +2032,7 @@ void voronoi_distance_to_edge(const float3 coord, const float randomness, float 
         const float3 perpendicularToEdge = vectorToPoint - vectorToClosest;
         if (dot_v3v3(perpendicularToEdge, perpendicularToEdge) > 0.0001f) {
           const float distanceToEdge = dot_v3v3((vectorToClosest + vectorToPoint) / 2.0f,
-                                                math::normalize(perpendicularToEdge));
+                                                perpendicularToEdge.normalized());
           minDistance = std::min(minDistance, distanceToEdge);
         }
       }
@@ -2040,7 +2043,7 @@ void voronoi_distance_to_edge(const float3 coord, const float randomness, float 
 
 void voronoi_n_sphere_radius(const float3 coord, const float randomness, float *r_radius)
 {
-  const float3 cellPosition = math::floor(coord);
+  const float3 cellPosition = float3::floor(coord);
   const float3 localPosition = coord - cellPosition;
 
   float3 closestPoint = float3(0.0f, 0.0f, 0.0f);
@@ -2052,7 +2055,7 @@ void voronoi_n_sphere_radius(const float3 coord, const float randomness, float *
         const float3 cellOffset = float3(i, j, k);
         const float3 pointPosition = cellOffset +
                                      hash_float_to_float3(cellPosition + cellOffset) * randomness;
-        const float distanceToPoint = math::distance(pointPosition, localPosition);
+        const float distanceToPoint = float3::distance(pointPosition, localPosition);
         if (distanceToPoint < minDistance) {
           minDistance = distanceToPoint;
           closestPoint = pointPosition;
@@ -2073,7 +2076,7 @@ void voronoi_n_sphere_radius(const float3 coord, const float randomness, float *
         const float3 cellOffset = float3(i, j, k) + closestPointOffset;
         const float3 pointPosition = cellOffset +
                                      hash_float_to_float3(cellPosition + cellOffset) * randomness;
-        const float distanceToPoint = math::distance(closestPoint, pointPosition);
+        const float distanceToPoint = float3::distance(closestPoint, pointPosition);
         if (distanceToPoint < minDistance) {
           minDistance = distanceToPoint;
           closestPointToClosestPoint = pointPosition;
@@ -2081,7 +2084,7 @@ void voronoi_n_sphere_radius(const float3 coord, const float randomness, float *
       }
     }
   }
-  *r_radius = math::distance(closestPointToClosestPoint, closestPoint) / 2.0f;
+  *r_radius = float3::distance(closestPointToClosestPoint, closestPoint) / 2.0f;
 }
 
 /* **** 4D Voronoi **** */
@@ -2093,7 +2096,7 @@ static float voronoi_distance(const float4 a,
 {
   switch (metric) {
     case NOISE_SHD_VORONOI_EUCLIDEAN:
-      return math::distance(a, b);
+      return float4::distance(a, b);
     case NOISE_SHD_VORONOI_MANHATTAN:
       return fabsf(a.x - b.x) + fabsf(a.y - b.y) + fabsf(a.z - b.z) + fabsf(a.w - b.w);
     case NOISE_SHD_VORONOI_CHEBYCHEV:
@@ -2118,7 +2121,7 @@ void voronoi_f1(const float4 coord,
                 float3 *r_color,
                 float4 *r_position)
 {
-  const float4 cellPosition = math::floor(coord);
+  const float4 cellPosition = float4::floor(coord);
   const float4 localPosition = coord - cellPosition;
 
   float minDistance = 8.0f;
@@ -2163,7 +2166,7 @@ void voronoi_smooth_f1(const float4 coord,
                        float3 *r_color,
                        float4 *r_position)
 {
-  const float4 cellPosition = math::floor(coord);
+  const float4 cellPosition = float4::floor(coord);
   const float4 localPosition = coord - cellPosition;
   const float smoothness_clamped = max_ff(smoothness, FLT_MIN);
 
@@ -2188,10 +2191,10 @@ void voronoi_smooth_f1(const float4 coord,
             correctionFactor /= 1.0f + 3.0f * smoothness;
             if (r_color != nullptr) {
               const float3 cellColor = hash_float_to_float3(cellPosition + cellOffset);
-              smoothColor = math::interpolate(smoothColor, cellColor, h) - correctionFactor;
+              smoothColor = float3::interpolate(smoothColor, cellColor, h) - correctionFactor;
             }
             if (r_position != nullptr) {
-              smoothPosition = math::interpolate(smoothPosition, pointPosition, h) -
+              smoothPosition = float4::interpolate(smoothPosition, pointPosition, h) -
                                correctionFactor;
             }
           }
@@ -2218,7 +2221,7 @@ void voronoi_f2(const float4 coord,
                 float3 *r_color,
                 float4 *r_position)
 {
-  const float4 cellPosition = math::floor(coord);
+  const float4 cellPosition = float4::floor(coord);
   const float4 localPosition = coord - cellPosition;
 
   float distanceF1 = 8.0f;
@@ -2267,7 +2270,7 @@ void voronoi_f2(const float4 coord,
 
 void voronoi_distance_to_edge(const float4 coord, const float randomness, float *r_distance)
 {
-  const float4 cellPosition = math::floor(coord);
+  const float4 cellPosition = float4::floor(coord);
   const float4 localPosition = coord - cellPosition;
 
   float4 vectorToClosest = float4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -2304,7 +2307,7 @@ void voronoi_distance_to_edge(const float4 coord, const float randomness, float 
           const float4 perpendicularToEdge = vectorToPoint - vectorToClosest;
           if (dot_v4v4(perpendicularToEdge, perpendicularToEdge) > 0.0001f) {
             const float distanceToEdge = dot_v4v4((vectorToClosest + vectorToPoint) / 2.0f,
-                                                  math::normalize(perpendicularToEdge));
+                                                  float4::normalize(perpendicularToEdge));
             minDistance = std::min(minDistance, distanceToEdge);
           }
         }
@@ -2316,7 +2319,7 @@ void voronoi_distance_to_edge(const float4 coord, const float randomness, float 
 
 void voronoi_n_sphere_radius(const float4 coord, const float randomness, float *r_radius)
 {
-  const float4 cellPosition = math::floor(coord);
+  const float4 cellPosition = float4::floor(coord);
   const float4 localPosition = coord - cellPosition;
 
   float4 closestPoint = float4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -2330,7 +2333,7 @@ void voronoi_n_sphere_radius(const float4 coord, const float randomness, float *
           const float4 pointPosition = cellOffset +
                                        hash_float_to_float4(cellPosition + cellOffset) *
                                            randomness;
-          const float distanceToPoint = math::distance(pointPosition, localPosition);
+          const float distanceToPoint = float4::distance(pointPosition, localPosition);
           if (distanceToPoint < minDistance) {
             minDistance = distanceToPoint;
             closestPoint = pointPosition;
@@ -2354,7 +2357,7 @@ void voronoi_n_sphere_radius(const float4 coord, const float randomness, float *
           const float4 pointPosition = cellOffset +
                                        hash_float_to_float4(cellPosition + cellOffset) *
                                            randomness;
-          const float distanceToPoint = math::distance(closestPoint, pointPosition);
+          const float distanceToPoint = float4::distance(closestPoint, pointPosition);
           if (distanceToPoint < minDistance) {
             minDistance = distanceToPoint;
             closestPointToClosestPoint = pointPosition;
@@ -2363,7 +2366,7 @@ void voronoi_n_sphere_radius(const float4 coord, const float randomness, float *
       }
     }
   }
-  *r_radius = math::distance(closestPointToClosestPoint, closestPoint) / 2.0f;
+  *r_radius = float4::distance(closestPointToClosestPoint, closestPoint) / 2.0f;
 }
 
 /** \} */

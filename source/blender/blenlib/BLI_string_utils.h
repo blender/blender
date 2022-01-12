@@ -57,11 +57,11 @@ bool BLI_string_is_decimal(const char *string) ATTR_NONNULL();
  * Based on `BLI_split_dirfile()` / `os.path.splitext()`,
  * `"a.b.c"` -> (`"a.b"`, `".c"`).
  */
-void BLI_string_split_suffix(const char *string, char *r_body, char *r_suf, const size_t str_len);
+void BLI_string_split_suffix(const char *string, char *r_body, char *r_suf, size_t str_len);
 /**
  * `"a.b.c"` -> (`"a."`, `"b.c"`).
  */
-void BLI_string_split_prefix(const char *string, char *r_pre, char *r_body, const size_t str_len);
+void BLI_string_split_prefix(const char *string, char *r_pre, char *r_body, size_t str_len);
 
 /**
  * Join strings, return newly allocated string.
@@ -127,7 +127,7 @@ char *BLI_string_join_array_by_sep_char_with_tableN(char sep,
 size_t BLI_string_flip_side_name(char *r_name,
                                  const char *from_name,
                                  bool strip_number,
-                                 const size_t name_len);
+                                 size_t name_len);
 
 /**
  * Ensures name is unique (according to criteria specified by caller in unique_check callback),

@@ -121,7 +121,7 @@ void blf_font_boundbox_foreach_glyph(struct FontBLF *font,
                                      const char *str,
                                      size_t str_len,
                                      bool (*user_fn)(const char *str,
-                                                     const size_t str_step_ofs,
+                                                     size_t str_step_ofs,
                                                      const struct rcti *glyph_step_bounds,
                                                      int glyph_advance_x,
                                                      const struct rctf *glyph_bounds,
@@ -132,7 +132,7 @@ void blf_font_boundbox_foreach_glyph(struct FontBLF *font,
 
 int blf_font_count_missing_chars(struct FontBLF *font,
                                  const char *str,
-                                 const size_t str_len,
+                                 size_t str_len,
                                  int *r_tot_chars);
 
 void blf_font_free(struct FontBLF *font);

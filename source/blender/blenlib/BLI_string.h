@@ -42,8 +42,7 @@ extern "C" {
  * \param len: The number of bytes to duplicate
  * \retval Returns the duplicated string
  */
-char *BLI_strdupn(const char *str, const size_t len) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
+char *BLI_strdupn(const char *str, size_t len) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /**
  * Duplicates the cstring \a str into a newly mallocN'd
@@ -74,8 +73,7 @@ char *BLI_strdupcat(const char *__restrict str1,
  * the size of dst)
  * \retval Returns dst
  */
-char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
-    ATTR_NONNULL();
+char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t maxncpy) ATTR_NONNULL();
 
 /**
  * Like BLI_strncpy but ensures dst is always padded by given char,
@@ -107,7 +105,7 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst,
  */
 size_t BLI_strncpy_rlen(char *__restrict dst,
                         const char *__restrict src,
-                        const size_t maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+                        size_t maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
@@ -186,7 +184,7 @@ void BLI_str_replace_char(char *str, char src, char dst) ATTR_NONNULL();
  * \note Larger tables should use a hash table.
  */
 bool BLI_str_replace_table_exact(char *string,
-                                 const size_t string_len,
+                                 size_t string_len,
                                  const char *replace_table[][2],
                                  int replace_table_len);
 
@@ -235,7 +233,7 @@ char *BLI_sprintfN(const char *__restrict format, ...) ATTR_WARN_UNUSED_RESULT
  *
  * \note This is used for creating animation paths in blend files.
  */
-size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const size_t dst_maxncpy)
+size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
     ATTR_NONNULL();
 /**
  * This roughly matches C and Python's string escaping with double quotes - `"`.
@@ -251,9 +249,9 @@ size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const si
  */
 size_t BLI_str_unescape_ex(char *__restrict dst,
                            const char *__restrict src,
-                           const size_t src_maxncpy,
+                           size_t src_maxncpy,
                            /* Additional arguments. */
-                           const size_t dst_maxncpy,
+                           size_t dst_maxncpy,
                            bool *r_is_complete) ATTR_NONNULL();
 /**
  * See #BLI_str_unescape_ex doc-string.
@@ -265,7 +263,7 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
  *
  * \note This is used for parsing animation paths in blend files (runs often).
  */
-size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const size_t src_maxncpy)
+size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, size_t src_maxncpy)
     ATTR_NONNULL();
 
 /**
@@ -359,10 +357,10 @@ int BLI_strcmp_ignore_pad(const char *str1, const char *str2, char pad) ATTR_WAR
 /**
  * Determine the length of a fixed-size string.
  */
-size_t BLI_strnlen(const char *str, const size_t maxlen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+size_t BLI_strnlen(const char *str, size_t maxlen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-void BLI_str_tolower_ascii(char *str, const size_t len) ATTR_NONNULL();
-void BLI_str_toupper_ascii(char *str, const size_t len) ATTR_NONNULL();
+void BLI_str_tolower_ascii(char *str, size_t len) ATTR_NONNULL();
+void BLI_str_toupper_ascii(char *str, size_t len) ATTR_NONNULL();
 /**
  * Strip white-space from end of the string.
  */
@@ -479,7 +477,7 @@ bool BLI_string_all_words_matched(const char *name,
  * \return The number of words found in \a str
  */
 int BLI_string_find_split_words(const char *str,
-                                const size_t len,
+                                size_t len,
                                 char delim,
                                 int r_words[][2],
                                 int words_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();

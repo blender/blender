@@ -1007,6 +1007,7 @@ void BM_face_triangulate(BMesh *bm,
           break;
         }
         case MOD_TRIANGULATE_QUAD_SHORTEDGE:
+        case MOD_TRIANGULATE_QUAD_LONGEDGE:
         case MOD_TRIANGULATE_QUAD_BEAUTY:
         default: {
           BMLoop *l_v3, *l_v4;
@@ -1022,6 +1023,12 @@ void BM_face_triangulate(BMesh *bm,
             d1 = len_squared_v3v3(l_v4->v->co, l_v2->v->co);
             d2 = len_squared_v3v3(l_v1->v->co, l_v3->v->co);
             split_24 = ((d2 - d1) > 0.0f);
+          }
+          else if (quad_method == MOD_TRIANGULATE_QUAD_LONGEDGE) {
+            float d1, d2;
+            d1 = len_squared_v3v3(l_v4->v->co, l_v2->v->co);
+            d2 = len_squared_v3v3(l_v1->v->co, l_v3->v->co);
+            split_24 = ((d2 - d1) < 0.0f);
           }
           else {
             /* first check if the quad is concave on either diagonal */

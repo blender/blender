@@ -18,7 +18,8 @@
 
 #include "BLI_array.hh"
 #include "BLI_color.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_float2.hh"
+#include "BLI_float3.hh"
 
 #include "DNA_customdata_types.h"
 
@@ -159,12 +160,12 @@ template<> inline float mix2(const float factor, const float &a, const float &b)
 
 template<> inline float2 mix2(const float factor, const float2 &a, const float2 &b)
 {
-  return math::interpolate(a, b, factor);
+  return float2::interpolate(a, b, factor);
 }
 
 template<> inline float3 mix2(const float factor, const float3 &a, const float3 &b)
 {
-  return math::interpolate(a, b, factor);
+  return float3::interpolate(a, b, factor);
 }
 
 template<>

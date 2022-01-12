@@ -136,7 +136,7 @@ void add_exr_channels(void *exrhandle,
                       const char *layer_name,
                       const DataType datatype,
                       const char *view_name,
-                      const size_t width,
+                      size_t width,
                       bool use_half_float,
                       float *buf);
 void free_exr_channels(void *exrhandle,

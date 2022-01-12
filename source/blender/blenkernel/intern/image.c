@@ -2446,7 +2446,7 @@ void BKE_image_stamp_buf(Scene *scene,
 
     /* and draw the text. */
     BLF_position(mono, x, y + y_ofs, 0.0);
-    BLF_draw_buffer(mono, stamp_data.file, BLF_DRAW_STR_DUMMY_MAX);
+    BLF_draw_buffer(mono, stamp_data.file, sizeof(stamp_data.file));
 
     /* the extra pixel for background. */
     y -= BUFF_MARGIN_Y * 2;
@@ -2469,7 +2469,7 @@ void BKE_image_stamp_buf(Scene *scene,
                       y + h + BUFF_MARGIN_Y);
 
     BLF_position(mono, x, y + y_ofs, 0.0);
-    BLF_draw_buffer(mono, stamp_data.date, BLF_DRAW_STR_DUMMY_MAX);
+    BLF_draw_buffer(mono, stamp_data.date, sizeof(stamp_data.date));
 
     /* the extra pixel for background. */
     y -= BUFF_MARGIN_Y * 2;
@@ -2492,7 +2492,7 @@ void BKE_image_stamp_buf(Scene *scene,
                       y + h + BUFF_MARGIN_Y);
 
     BLF_position(mono, x, y + y_ofs, 0.0);
-    BLF_draw_buffer(mono, stamp_data.rendertime, BLF_DRAW_STR_DUMMY_MAX);
+    BLF_draw_buffer(mono, stamp_data.rendertime, sizeof(stamp_data.rendertime));
 
     /* the extra pixel for background. */
     y -= BUFF_MARGIN_Y * 2;
@@ -2515,7 +2515,7 @@ void BKE_image_stamp_buf(Scene *scene,
                       y + h + BUFF_MARGIN_Y);
 
     BLF_position(mono, x, y + y_ofs, 0.0);
-    BLF_draw_buffer(mono, stamp_data.memory, BLF_DRAW_STR_DUMMY_MAX);
+    BLF_draw_buffer(mono, stamp_data.memory, sizeof(stamp_data.memory));
 
     /* the extra pixel for background. */
     y -= BUFF_MARGIN_Y * 2;
@@ -2538,7 +2538,7 @@ void BKE_image_stamp_buf(Scene *scene,
                       y + h + BUFF_MARGIN_Y);
 
     BLF_position(mono, x, y + y_ofs, 0.0);
-    BLF_draw_buffer(mono, stamp_data.hostname, BLF_DRAW_STR_DUMMY_MAX);
+    BLF_draw_buffer(mono, stamp_data.hostname, sizeof(stamp_data.hostname));
 
     /* the extra pixel for background. */
     y -= BUFF_MARGIN_Y * 2;
@@ -2562,7 +2562,7 @@ void BKE_image_stamp_buf(Scene *scene,
                       y + h + BUFF_MARGIN_Y);
 
     BLF_position(mono, x, y + y_ofs + (h - h_fixed), 0.0);
-    BLF_draw_buffer(mono, stamp_data.note, BLF_DRAW_STR_DUMMY_MAX);
+    BLF_draw_buffer(mono, stamp_data.note, sizeof(stamp_data.note));
   }
   BLF_disable(mono, BLF_WORD_WRAP);
 
@@ -2586,7 +2586,7 @@ void BKE_image_stamp_buf(Scene *scene,
 
     /* and pad the text. */
     BLF_position(mono, x, y + y_ofs, 0.0);
-    BLF_draw_buffer(mono, stamp_data.marker, BLF_DRAW_STR_DUMMY_MAX);
+    BLF_draw_buffer(mono, stamp_data.marker, sizeof(stamp_data.marker));
 
     /* space width. */
     x += w + pad;
@@ -2609,7 +2609,7 @@ void BKE_image_stamp_buf(Scene *scene,
 
     /* and pad the text. */
     BLF_position(mono, x, y + y_ofs, 0.0);
-    BLF_draw_buffer(mono, stamp_data.time, BLF_DRAW_STR_DUMMY_MAX);
+    BLF_draw_buffer(mono, stamp_data.time, sizeof(stamp_data.time));
 
     /* space width. */
     x += w + pad;
@@ -2631,7 +2631,7 @@ void BKE_image_stamp_buf(Scene *scene,
 
     /* and pad the text. */
     BLF_position(mono, x, y + y_ofs, 0.0);
-    BLF_draw_buffer(mono, stamp_data.frame, BLF_DRAW_STR_DUMMY_MAX);
+    BLF_draw_buffer(mono, stamp_data.frame, sizeof(stamp_data.frame));
 
     /* space width. */
     x += w + pad;
@@ -2651,7 +2651,7 @@ void BKE_image_stamp_buf(Scene *scene,
                       x + w + BUFF_MARGIN_X,
                       y + h + BUFF_MARGIN_Y);
     BLF_position(mono, x, y + y_ofs, 0.0);
-    BLF_draw_buffer(mono, stamp_data.camera, BLF_DRAW_STR_DUMMY_MAX);
+    BLF_draw_buffer(mono, stamp_data.camera, sizeof(stamp_data.camera));
 
     /* space width. */
     x += w + pad;
@@ -2671,7 +2671,7 @@ void BKE_image_stamp_buf(Scene *scene,
                       x + w + BUFF_MARGIN_X,
                       y + h + BUFF_MARGIN_Y);
     BLF_position(mono, x, y + y_ofs, 0.0);
-    BLF_draw_buffer(mono, stamp_data.cameralens, BLF_DRAW_STR_DUMMY_MAX);
+    BLF_draw_buffer(mono, stamp_data.cameralens, sizeof(stamp_data.cameralens));
   }
 
   if (TEXT_SIZE_CHECK(stamp_data.scene, w, h)) {
@@ -2693,7 +2693,7 @@ void BKE_image_stamp_buf(Scene *scene,
 
     /* and pad the text. */
     BLF_position(mono, x, y + y_ofs, 0.0);
-    BLF_draw_buffer(mono, stamp_data.scene, BLF_DRAW_STR_DUMMY_MAX);
+    BLF_draw_buffer(mono, stamp_data.scene, sizeof(stamp_data.scene));
   }
 
   if (TEXT_SIZE_CHECK(stamp_data.strip, w, h)) {
@@ -2715,7 +2715,7 @@ void BKE_image_stamp_buf(Scene *scene,
                       y + h + BUFF_MARGIN_Y);
 
     BLF_position(mono, x, y + y_ofs, 0.0);
-    BLF_draw_buffer(mono, stamp_data.strip, BLF_DRAW_STR_DUMMY_MAX);
+    BLF_draw_buffer(mono, stamp_data.strip, sizeof(stamp_data.strip));
   }
 
   /* cleanup the buffer. */
