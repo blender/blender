@@ -29,9 +29,9 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_color.hh"
-#include "BLI_float3.hh"
 #include "BLI_math.h"
 #include "BLI_math_base_safe.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"

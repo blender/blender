@@ -120,10 +120,29 @@ static Imath::M44d blend_matrices(const Imath::M44d &m0, const Imath::M44d &m1, 
    * the matrices manually.
    */
 
-  convert_matrix_datatype(m0, mat0);
-  convert_matrix_datatype(m1, mat1);
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      mat0[i][j] = static_cast<float>(m0[i][j]);
+    }
+  }
+
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      mat1[i][j] = static_cast<float>(m1[i][j]);
+    }
+  }
+
   interp_m4_m4m4(ret, mat0, mat1, weight);
-  return convert_matrix_datatype(ret);
+
+  Imath::M44d m;
+
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      m[i][j] = ret[i][j];
+    }
+  }
+
+  return m;
 }
 
 Imath::M44d get_matrix(const IXformSchema &schema, const float time)

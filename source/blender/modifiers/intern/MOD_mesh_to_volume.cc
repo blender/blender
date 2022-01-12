@@ -197,8 +197,8 @@ static float compute_voxel_size(const ModifierEvalContext *ctx,
   /* Compute the voxel size based on the desired number of voxels and the approximated bounding box
    * of the volume. */
   const BoundBox *bb = BKE_object_boundbox_get(mvmd->object);
-  const float diagonal = float3::distance(transform * float3(bb->vec[6]),
-                                          transform * float3(bb->vec[0]));
+  const float diagonal = math::distance(transform * float3(bb->vec[6]),
+                                        transform * float3(bb->vec[0]));
   const float approximate_volume_side_length = diagonal + mvmd->exterior_band_width * 2.0f;
   const float voxel_size = approximate_volume_side_length / mvmd->voxel_amount / volume_simplify;
   return voxel_size;

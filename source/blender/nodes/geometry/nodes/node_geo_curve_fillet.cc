@@ -122,9 +122,9 @@ static Array<float3> calculate_directions(const Span<float3> positions)
   Array<float3> directions(size);
 
   for (const int i : IndexRange(size - 1)) {
-    directions[i] = (positions[i + 1] - positions[i]).normalized();
+    directions[i] = math::normalize(positions[i + 1] - positions[i]);
   }
-  directions[size - 1] = (positions[0] - positions[size - 1]).normalized();
+  directions[size - 1] = math::normalize(positions[0] - positions[size - 1]);
 
   return directions;
 }
@@ -135,9 +135,9 @@ static Array<float3> calculate_axes(const Span<float3> directions)
   const int size = directions.size();
   Array<float3> axes(size);
 
-  axes[0] = float3::cross(-directions[size - 1], directions[0]).normalized();
+  axes[0] = math::normalize(math::cross(-directions[size - 1], directions[0]));
   for (const int i : IndexRange(1, size - 1)) {
-    axes[i] = float3::cross(-directions[i - 1], directions[i]).normalized();
+    axes[i] = math::normalize(math::cross(-directions[i - 1], directions[i]));
   }
 
   return axes;
@@ -248,8 +248,8 @@ static void limit_radii(FilletData &fd, const bool cyclic)
 
   if (cyclic) {
     /* Calculate lengths between adjacent control points. */
-    const float len_prev = float3::distance(positions[0], positions[size - 1]);
-    const float len_next = float3::distance(positions[0], positions[1]);
+    const float len_prev = math::distance(positions[0], positions[size - 1]);
+    const float len_next = math::distance(positions[0], positions[1]);
 
     /* Calculate tangent lengths of fillets in control points. */
     const float tan_len = radii[0] * tan(angles[0] / 2.0f);
@@ -271,16 +271,16 @@ static void limit_radii(FilletData &fd, const bool cyclic)
   }
 
   /* Initialize max_radii to largest possible radii. */
-  float prev_dist = float3::distance(positions[1], positions[0]);
+  float prev_dist = math::distance(positions[1], positions[0]);
   for (const int i : IndexRange(1, size - 2)) {
-    const float temp_dist = float3::distance(positions[i], positions[i + 1]);
+    const float temp_dist = math::distance(positions[i], positions[i + 1]);
     max_radii[i] = std::min(prev_dist, temp_dist) / tan(angles[i] / 2.0f);
     prev_dist = temp_dist;
   }
 
   /* Max radii calculations for each index. */
   for (const int i : IndexRange(start, fillet_count - 1)) {
-    const float len_next = float3::distance(positions[i], positions[i + 1]);
+    const float len_next = math::distance(positions[i], positions[i + 1]);
     const float tan_len = radii[i] * tan(angles[i] / 2.0f);
     const float tan_len_next = radii[i + 1] * tan(angles[i + 1] / 2.0f);
 
@@ -415,7 +415,8 @@ static void update_bezier_positions(const FilletData &fd,
     const float3 center = get_center(dst_spline.positions()[i_dst] - positions[i_src], fd, i_src);
     /* Calculate the vector of the radius formed by the first vertex. */
     float3 radius_vec = dst_spline.positions()[i_dst] - center;
-    const float radius = radius_vec.normalize_and_get_length();
+    float radius;
+    radius_vec = math::normalize_and_get_length(radius_vec, radius);
 
     dst_spline.handle_types_right().slice(1, count - 2).fill(BezierSpline::HandleType::Align);
     dst_spline.handle_types_left().slice(1, count - 2).fill(BezierSpline::HandleType::Align);

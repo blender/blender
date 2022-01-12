@@ -24,8 +24,8 @@
 
 #include "FN_generic_virtual_array.hh"
 
-#include "BLI_float3.hh"
 #include "BLI_float4x4.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_attribute_access.hh"

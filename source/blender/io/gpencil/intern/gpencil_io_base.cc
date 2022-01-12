@@ -23,9 +23,8 @@
  * \ingroup bgpencil
  */
 
-#include "BLI_float2.hh"
-#include "BLI_float3.hh"
 #include "BLI_float4x4.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_path_util.h"
 #include "BLI_span.hh"
 
@@ -283,7 +282,7 @@ float GpencilIO::stroke_point_radius_get(bGPDlayer *gpl, bGPDstroke *gps)
   const float2 screen_ex = gpencil_3D_point_to_2D(&pt->x);
 
   const float2 v1 = screen_co - screen_ex;
-  float radius = v1.length();
+  float radius = math::length(v1);
   BKE_gpencil_free_stroke(gps_perimeter);
 
   return MAX2(radius, 1.0f);

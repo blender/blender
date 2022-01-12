@@ -16,7 +16,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_delaunay_2d.h"
-#include "BLI_double2.hh"
+#include "BLI_math_vec_types.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

@@ -645,15 +645,6 @@ endif()
 
 blender_add_lib(bf_compositor "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-if(WITH_UNITY_BUILD)
-  set_target_properties(bf_compositor PROPERTIES UNITY_BUILD ON)
-  set_target_properties(bf_compositor PROPERTIES UNITY_BUILD_BATCH_SIZE 10)
-endif()
-
-if(COMMAND target_precompile_headers)
-  target_precompile_headers(bf_compositor PRIVATE COM_precomp.h)
-endif()
-
 if(CXX_WARN_NO_SUGGEST_OVERRIDE)
   target_compile_options(bf_compositor PRIVATE "-Wsuggest-override")
 endif()

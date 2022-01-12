@@ -19,8 +19,7 @@
 #include "FN_multi_function_builder.hh"
 
 #include "BLI_color.hh"
-#include "BLI_float2.hh"
-#include "BLI_float3.hh"
+#include "BLI_math_vec_types.hh"
 
 namespace blender::bke {
 

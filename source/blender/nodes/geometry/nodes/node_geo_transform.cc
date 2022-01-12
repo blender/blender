@@ -37,7 +37,7 @@ namespace blender::nodes {
 
 static bool use_translate(const float3 rotation, const float3 scale)
 {
-  if (compare_ff(rotation.length_squared(), 0.0f, 1e-9f) != 1) {
+  if (compare_ff(math::length_squared(rotation), 0.0f, 1e-9f) != 1) {
     return false;
   }
   if (compare_ff(scale.x, 1.0f, 1e-9f) != 1 || compare_ff(scale.y, 1.0f, 1e-9f) != 1 ||
@@ -49,7 +49,7 @@ static bool use_translate(const float3 rotation, const float3 scale)
 
 static void translate_mesh(Mesh &mesh, const float3 translation)
 {
-  if (!translation.is_zero()) {
+  if (!math::is_zero(translation)) {
     BKE_mesh_translate(&mesh, translation, false);
   }
 }

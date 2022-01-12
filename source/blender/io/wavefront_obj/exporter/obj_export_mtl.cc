@@ -21,8 +21,8 @@
 #include "BKE_image.h"
 #include "BKE_node.h"
 
-#include "BLI_float3.hh"
 #include "BLI_map.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_path_util.h"
 
 #include "DNA_material_types.h"
