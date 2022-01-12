@@ -255,12 +255,7 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem,
   char buf[32] = {0};
   memcpy(buf, &mem[x], MIN2(sizeof(buf) - 1, size - x));
 
-  if (sscanf(buf,
-             "%2s %d %2s %d",
-             (char *)&oriY,
-             &height,
-             (char *)&oriX,
-             &width) != 4) {
+  if (sscanf(buf, "%2s %d %2s %d", (char *)&oriY, &height, (char *)&oriX, &width) != 4) {
     return NULL;
   }
 
