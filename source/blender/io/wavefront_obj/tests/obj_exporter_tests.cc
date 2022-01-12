@@ -197,7 +197,7 @@ static std::string read_temp_file_in_string(const std::string &file_path)
 TEST(obj_exporter_writer, header)
 {
   /* Because testing doesn't fully initialize Blender, we need the following. */
-  BKE_tempdir_init(NULL);
+  BKE_tempdir_init(nullptr);
   std::string out_file_path = blender::tests::flags_test_release_dir() + "/" + temp_file_path;
   {
     OBJExportParamsDefault _export;
@@ -235,19 +235,19 @@ TEST(obj_exporter_writer, mtllib)
 /* Return true if string #a and string #b are equal after their first newline. */
 static bool strings_equal_after_first_lines(const std::string &a, const std::string &b)
 {
-  /* If `dbg_level > 0` then a failing test will print context around the first mismatch. */
-  const int dbg_level = 0;
+  /* If `dbg_level` is true then a failing test will print context around the first mismatch. */
+  const bool dbg_level = false;
   const size_t a_len = a.size();
   const size_t b_len = b.size();
   const size_t a_next = a.find_first_of('\n');
   const size_t b_next = b.find_first_of('\n');
   if (a_next == std::string::npos || b_next == std::string::npos) {
-    if (dbg_level > 0) {
+    if (dbg_level) {
       std::cout << "Couldn't find newline in one of args\n";
     }
     return false;
   }
-  if (dbg_level > 0) {
+  if (dbg_level) {
     if (a.compare(a_next, a_len - a_next, b, b_next, b_len - b_next) != 0) {
       for (int i = 0; i < a_len - a_next && i < b_len - b_next; ++i) {
         if (a[a_next + i] != b[b_next + i]) {
@@ -284,7 +284,7 @@ class obj_exporter_regression_test : public obj_exporter_test {
       return;
     }
     /* Because testing doesn't fully initialize Blender, we need the following. */
-    BKE_tempdir_init(NULL);
+    BKE_tempdir_init(nullptr);
     std::string tempdir = std::string(BKE_tempdir_base());
     std::string out_file_path = tempdir + BLI_path_basename(golden_obj.c_str());
     strncpy(params.filepath, out_file_path.c_str(), FILE_MAX - 1);
