@@ -51,8 +51,6 @@ list(APPEND LIBRARIES ${CYCLES_GL_LIBRARIES})
 
 # Common configuration.
 
-cycles_link_directories()
-
 add_definitions(${GL_DEFINITIONS})
 
 include_directories(${INC})

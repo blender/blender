@@ -44,7 +44,6 @@ else()
 endif()
 
 # This builds `bin/tests/blender_test`, but does not add it as a single test.
-setup_libdirs()
 BLENDER_SRC_GTEST_EX(
   NAME blender
   SRC "${SRC}"

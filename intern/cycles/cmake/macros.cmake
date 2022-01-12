@@ -84,39 +84,6 @@ macro(cycles_add_library target library_deps)
   cycles_set_solution_folder(${target})
 endmacro()
 
-# Cycles library dependencies common to all executables
-
-function(cycles_link_directories)
-  if(APPLE)
-    # APPLE platform uses full paths for linking libraries, and avoids link_directories.
-    return()
-  endif()
-
-  if(WITH_OPENCOLORIO)
-    link_directories(${OPENCOLORIO_LIBPATH})
-  endif()
-  if(WITH_OPENVDB)
-    link_directories(${OPENVDB_LIBPATH} ${BLOSC_LIBPATH})
-  endif()
-  if(WITH_OPENSUBDIV)
-    link_directories(${OPENSUBDIV_LIBPATH})
-  endif()
-  if(WITH_OPENIMAGEDENOISE)
-    link_directories(${OPENIMAGEDENOISE_LIBPATH})
-  endif()
-
-  link_directories(
-    ${OPENIMAGEIO_LIBPATH}
-    ${BOOST_LIBPATH}
-    ${PNG_LIBPATH}
-    ${JPEG_LIBPATH}
-    ${ZLIB_LIBPATH}
-    ${TIFF_LIBPATH}
-    ${OPENEXR_LIBPATH}
-    ${OPENJPEG_LIBPATH}
-  )
-endfunction()
-
 macro(cycles_target_link_libraries target)
   if(WITH_CYCLES_LOGGING)
     target_link_libraries(${target} ${GLOG_LIBRARIES} ${GFLAGS_LIBRARIES})

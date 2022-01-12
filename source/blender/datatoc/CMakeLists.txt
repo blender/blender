@@ -52,10 +52,6 @@ if(NOT WITH_HEADLESS)
   endif()
 
   include_directories(${PNG_INCLUDE_DIRS})
-  if(NOT APPLE)
-    # APPLE platform uses full paths for linking libraries.
-    link_directories(${PNG_LIBPATH} ${ZLIB_LIBPATH})
-  endif()
 
   add_executable(datatoc_icon ${SRC})
   setup_platform_linker_flags(datatoc_icon)

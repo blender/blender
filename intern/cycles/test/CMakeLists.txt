@@ -38,8 +38,6 @@ set(ALL_CYCLES_LIBRARIES
 )
 include_directories(${INC})
 
-cycles_link_directories()
-
 set(SRC
   integrator_adaptive_sampling_test.cpp
   integrator_render_scheduler_test.cpp
