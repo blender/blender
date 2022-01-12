@@ -688,11 +688,11 @@ extern void ui_hsvcube_pos_from_vals(
  */
 extern void ui_but_string_get_ex(uiBut *but,
                                  char *str,
-                                 const size_t maxlen,
+                                 size_t maxlen,
                                  int float_precision,
                                  bool use_exp_float,
                                  bool *r_use_exp_float) ATTR_NONNULL(1, 2);
-extern void ui_but_string_get(uiBut *but, char *str, const size_t maxlen) ATTR_NONNULL();
+extern void ui_but_string_get(uiBut *but, char *str, size_t maxlen) ATTR_NONNULL();
 /**
  * A version of #ui_but_string_get_ex for dynamic buffer sizes
  * (where #ui_but_string_get_max_length returns 0).

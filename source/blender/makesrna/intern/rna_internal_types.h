@@ -214,7 +214,7 @@ typedef int (*RNAPropOverrideDiff)(struct Main *bmain,
                                    int mode,
                                    struct IDOverrideLibrary *override,
                                    const char *rna_path,
-                                   const size_t rna_path_len,
+                                   size_t rna_path_len,
                                    int flags,
                                    bool *r_override_changed);
 

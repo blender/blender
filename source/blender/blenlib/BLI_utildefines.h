@@ -638,7 +638,7 @@ extern "C" {
 /**
  * Check if memory is zeroed, as with `memset(arr, 0, arr_size)`.
  */
-extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
+extern bool BLI_memory_is_zero(const void *arr, size_t arr_size);
 #endif
 
 #define MEMCMP_STRUCT_AFTER_IS_ZERO(struct_var, member) \

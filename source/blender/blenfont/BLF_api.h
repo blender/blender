@@ -122,7 +122,7 @@ void BLF_draw(int fontid, const char *str, size_t str_len) ATTR_NONNULL(2);
 int BLF_draw_mono(int fontid, const char *str, size_t str_len, int cwidth) ATTR_NONNULL(2);
 
 typedef bool (*BLF_GlyphBoundsFn)(const char *str,
-                                  const size_t str_step_ofs,
+                                  size_t str_step_ofs,
                                   const struct rcti *glyph_step_bounds,
                                   int glyph_advance_x,
                                   const struct rctf *glyph_bounds,

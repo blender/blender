@@ -75,16 +75,15 @@ bool BLI_make_existing_file(const char *name);
  * - Doesn't use CWD, or deal with relative paths.
  * - Only fill's in \a dir and \a file when they are non NULL.
  */
-void BLI_split_dirfile(
-    const char *string, char *dir, char *file, const size_t dirlen, const size_t filelen);
+void BLI_split_dirfile(const char *string, char *dir, char *file, size_t dirlen, size_t filelen);
 /**
  * Copies the parent directory part of string into `dir`, max length `dirlen`.
  */
-void BLI_split_dir_part(const char *string, char *dir, const size_t dirlen);
+void BLI_split_dir_part(const char *string, char *dir, size_t dirlen);
 /**
  * Copies the leaf filename part of string into `file`, max length `filelen`.
  */
-void BLI_split_file_part(const char *string, char *file, const size_t filelen);
+void BLI_split_file_part(const char *string, char *file, size_t filelen);
 /**
  * Returns a pointer to the last extension (e.g. the position of the last period).
  * Returns NULL if there is no extension.
@@ -94,7 +93,7 @@ const char *BLI_path_extension(const char *filepath) ATTR_NONNULL();
 /**
  * Append a filename to a dir, ensuring slash separates.
  */
-void BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__restrict file)
+void BLI_path_append(char *__restrict dst, size_t maxlen, const char *__restrict file)
     ATTR_NONNULL();
 /**
  * Simple appending of filename to dir, does not check for valid path!
@@ -104,7 +103,7 @@ void BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__re
  * that de-duplicates separators and can handle an arbitrary number of paths.
  */
 void BLI_join_dirfile(char *__restrict dst,
-                      const size_t maxlen,
+                      size_t maxlen,
                       const char *__restrict dir,
                       const char *__restrict file) ATTR_NONNULL();
 /**
@@ -114,7 +113,7 @@ void BLI_join_dirfile(char *__restrict dst,
  * \note If you want a trailing slash, add `SEP_STR` as the last path argument,
  * duplicate slashes will be cleaned up.
  */
-size_t BLI_path_join(char *__restrict dst, const size_t dst_len, const char *path_first, ...)
+size_t BLI_path_join(char *__restrict dst, size_t dst_len, const char *path_first, ...)
     ATTR_NONNULL(1, 3) ATTR_SENTINEL(0);
 /**
  * Like Python's `os.path.basename()`
@@ -164,12 +163,12 @@ void BLI_path_slash_rstrip(char *string) ATTR_NONNULL();
 void BLI_path_slash_native(char *path) ATTR_NONNULL();
 
 #ifdef _WIN32
-bool BLI_path_program_extensions_add_win32(char *name, const size_t maxlen);
+bool BLI_path_program_extensions_add_win32(char *name, size_t maxlen);
 #endif
 /**
  * Search for a binary (executable)
  */
-bool BLI_path_program_search(char *fullname, const size_t maxlen, const char *name);
+bool BLI_path_program_search(char *fullname, size_t maxlen, const char *name);
 
 /**
  * \return true when `str` end with `ext` (case insensitive).
@@ -353,7 +352,7 @@ bool BLI_path_is_abs_from_cwd(const char *path) ATTR_NONNULL();
  * This is _not_ something Blender's internal paths support, instead they use the "//" prefix.
  * In most cases #BLI_path_abs should be used instead.
  */
-bool BLI_path_abs_from_cwd(char *path, const size_t maxlen) ATTR_NONNULL();
+bool BLI_path_abs_from_cwd(char *path, size_t maxlen) ATTR_NONNULL();
 /**
  * Replaces `file` with a relative version (prefixed by "//") such that #BLI_path_abs, given
  * the same `relfile`, will convert it back to its original value.

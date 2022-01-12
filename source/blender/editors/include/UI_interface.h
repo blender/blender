@@ -495,7 +495,7 @@ float UI_text_clip_middle_ex(const struct uiFontStyle *fstyle,
                              char *str,
                              float okwidth,
                              float minwidth,
-                             const size_t max_len,
+                             size_t max_len,
                              char rpart_sep);
 
 /**

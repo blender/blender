@@ -1742,7 +1742,7 @@ bool RNA_struct_override_matches(struct Main *bmain,
                                  struct PointerRNA *ptr_local,
                                  struct PointerRNA *ptr_reference,
                                  const char *root_path,
-                                 const size_t root_path_len,
+                                 size_t root_path_len,
                                  struct IDOverrideLibrary *override,
                                  eRNAOverrideMatch flags,
                                  eRNAOverrideMatchResult *r_report_flags);

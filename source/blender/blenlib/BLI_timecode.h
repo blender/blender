@@ -42,7 +42,7 @@ extern "C" {
  * \return length of \a str
  */
 size_t BLI_timecode_string_from_time(char *str,
-                                     const size_t maxncpy,
+                                     size_t maxncpy,
                                      int brevity_level,
                                      float time_seconds,
                                      double fps,
@@ -56,7 +56,7 @@ size_t BLI_timecode_string_from_time(char *str,
  * \param time_seconds: time total time in seconds
  * \return length of \a str
  */
-size_t BLI_timecode_string_from_time_simple(char *str, const size_t maxncpy, double time_seconds)
+size_t BLI_timecode_string_from_time_simple(char *str, size_t maxncpy, double time_seconds)
     ATTR_NONNULL();
 
 /**
@@ -72,7 +72,7 @@ size_t BLI_timecode_string_from_time_simple(char *str, const size_t maxncpy, dou
  * \note in some cases this is used to print non-seconds values.
  */
 size_t BLI_timecode_string_from_time_seconds(char *str,
-                                             const size_t maxncpy,
+                                             size_t maxncpy,
                                              int brevity_level,
                                              float time_seconds) ATTR_NONNULL();
 

@@ -607,7 +607,7 @@ int WM_operator_confirm_message_ex(struct bContext *C,
                                    const char *title,
                                    int icon,
                                    const char *message,
-                                   const wmOperatorCallContext opcontext);
+                                   wmOperatorCallContext opcontext);
 int WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, const char *message);
 
 /* Operator API. */

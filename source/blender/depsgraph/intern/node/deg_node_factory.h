@@ -55,7 +55,7 @@ template<class ModeObjectType> struct DepsNodeFactoryImpl : public DepsNodeFacto
 void register_node_typeinfo(DepsNodeFactory *factory);
 
 /* Get typeinfo for specified type */
-DepsNodeFactory *type_get_factory(const NodeType type);
+DepsNodeFactory *type_get_factory(NodeType type);
 
 }  // namespace deg
 }  // namespace blender

@@ -83,7 +83,7 @@ Mesh *create_cylinder_or_cone_mesh(float radius_top,
                                    int circle_segments,
                                    int side_segments,
                                    int fill_segments,
-                                   const GeometryNodeMeshCircleFillType fill_type,
+                                   GeometryNodeMeshCircleFillType fill_type,
                                    ConeAttributeOutputs &attribute_outputs);
 
 Mesh *create_cuboid_mesh(float3 size, int verts_x, int verts_y, int verts_z);

@@ -52,7 +52,7 @@ void _bli_array_wrap(void *arr, uint arr_len, size_t arr_stride, int dir);
  * Access via #BLI_array_wrap
  */
 void _bli_array_permute(
-    void *arr, uint arr_len, const size_t arr_stride, const uint *order, void *arr_temp);
+    void *arr, uint arr_len, size_t arr_stride, const uint *order, void *arr_temp);
 #define BLI_array_permute(arr, arr_len, order) \
   _bli_array_permute(arr, arr_len, sizeof(*(arr)), order, NULL)
 #define BLI_array_permute_ex(arr, arr_len, order, arr_temp) \
@@ -152,7 +152,7 @@ bool _bli_array_is_zeroed(const void *arr, uint arr_len, size_t arr_stride);
  */
 bool _bli_array_iter_spiral_square(const void *arr_v,
                                    const int arr_shape[2],
-                                   const size_t elem_size,
+                                   size_t elem_size,
                                    const int center[2],
                                    bool (*test_fn)(const void *arr_item, void *user_data),
                                    void *user_data);
