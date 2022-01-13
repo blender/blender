@@ -70,7 +70,7 @@ ccl_device float svm_ao(
 
     /* Create ray. */
     Ray ray;
-    ray.P = ray_offset(sd->P, N);
+    ray.P = sd->P;
     ray.D = D.x * T + D.y * B + D.z * N;
     ray.t = max_dist;
     ray.time = sd->time;

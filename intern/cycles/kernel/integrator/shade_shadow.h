@@ -152,7 +152,7 @@ ccl_device_inline bool integrate_transparent_shadow(KernelGlobals kg,
     const float last_hit_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, num_recorded_hits - 1, t);
     const float3 ray_P = INTEGRATOR_STATE(state, shadow_ray, P);
     const float3 ray_D = INTEGRATOR_STATE(state, shadow_ray, D);
-    INTEGRATOR_STATE_WRITE(state, shadow_ray, P) = ray_offset(ray_P + last_hit_t * ray_D, ray_D);
+    INTEGRATOR_STATE_WRITE(state, shadow_ray, P) = ray_P + last_hit_t * ray_D;
     INTEGRATOR_STATE_WRITE(state, shadow_ray, t) -= last_hit_t;
   }
 

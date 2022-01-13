@@ -206,7 +206,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   }
 
   /* Setup ray. */
-  ray.P = ray_offset(P, -Ng);
+  ray.P = P;
   ray.D = D;
   ray.t = FLT_MAX;
   ray.time = time;
@@ -420,13 +420,6 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
     /* Use the distance to the exit point for the throughput update if we found one. */
     if (hit) {
       t = ray.t;
-    }
-    else if (bounce == 0) {
-      /* Restore original position if nothing was hit after the first bounce,
-       * without the ray_offset() that was added to avoid self-intersection.
-       * Otherwise if that offset is relatively large compared to the scattering
-       * radius, we never go back up high enough to exit the surface. */
-      ray.P = P;
     }
 
     /* Advance to new scatter location. */

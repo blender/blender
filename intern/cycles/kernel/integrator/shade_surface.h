@@ -271,13 +271,11 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   }
 
   /* Setup ray. Note that clipping works through transparent bounces. */
-  INTEGRATOR_STATE_WRITE(state, ray, P) = ray_offset(sd->P,
-                                                     (label & LABEL_TRANSMIT) ? -sd->Ng : sd->Ng);
+  INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
   INTEGRATOR_STATE_WRITE(state, ray, D) = normalize(bsdf_omega_in);
   INTEGRATOR_STATE_WRITE(state, ray, t) = (label & LABEL_TRANSPARENT) ?
                                               INTEGRATOR_STATE(state, ray, t) - sd->ray_length :
                                               FLT_MAX;
-
 #ifdef __RAY_DIFFERENTIALS__
   INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
   INTEGRATOR_STATE_WRITE(state, ray, dD) = differential_make_compact(bsdf_domega_in);
@@ -321,7 +319,7 @@ ccl_device_forceinline bool integrate_surface_volume_only_bounce(IntegratorState
   }
 
   /* Setup ray position, direction stays unchanged. */
-  INTEGRATOR_STATE_WRITE(state, ray, P) = ray_offset(sd->P, -sd->Ng);
+  INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
 
   /* Clipping works through transparent. */
   INTEGRATOR_STATE_WRITE(state, ray, t) -= sd->ray_length;
@@ -365,7 +363,7 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   }
 
   Ray ray ccl_optional_struct_init;
-  ray.P = ray_offset(sd->P, sd->Ng);
+  ray.P = sd->P;
   ray.D = ao_D;
   ray.t = kernel_data.integrator.ao_bounces_distance;
   ray.time = sd->time;

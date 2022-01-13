@@ -877,7 +877,6 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
   INTEGRATOR_STATE_WRITE(state, ray, D) = normalize(phase_omega_in);
   INTEGRATOR_STATE_WRITE(state, ray, t) = FLT_MAX;
-
 #  ifdef __RAY_DIFFERENTIALS__
   INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
   INTEGRATOR_STATE_WRITE(state, ray, dD) = differential_make_compact(phase_domega_in);
