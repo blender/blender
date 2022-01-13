@@ -61,7 +61,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .make_available([](bNode &node) {
         node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_SCALE_TO_FIT;
       });
-  b.add_output<decl::Geometry>(N_("Curves"));
+  b.add_output<decl::Geometry>(N_("Curve Instances"));
   b.add_output<decl::String>(N_("Remainder")).make_available([](bNode &node) {
     node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE;
   });
@@ -281,7 +281,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   if (layout.positions.size() == 0) {
-    params.set_output("Curves", GeometrySet());
+    params.set_output("Curve Instances", GeometrySet());
     return;
   }
 
@@ -299,7 +299,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       params, layout.final_font_size, char_codes, instances);
   add_instances_from_handles(instances, char_handles, char_codes, layout.positions);
 
-  params.set_output("Curves", std::move(geometry_set_out));
+  params.set_output("Curve Instances", std::move(geometry_set_out));
 }
 
 }  // namespace blender::nodes::node_geo_string_to_curves_cc
