@@ -71,6 +71,10 @@ endif()
 
 if(WITH_TBB)
   blender_include_dirs(${TBB_INCLUDE_DIRS})
+  if(WIN32)
+    # For pragma that links tbbmalloc_proxy.lib
+    link_directories(${LIBDIR}/tbb/lib)
+  endif()
 endif()
 
 

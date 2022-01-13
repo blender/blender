@@ -179,13 +179,19 @@ endif()
 if(WITH_CODEC_FFMPEG)
   if(EXISTS ${LIBDIR})
     set(FFMPEG_ROOT_DIR ${LIBDIR}/ffmpeg)
-    # Override FFMPEG components to also include static library dependencies.
-    # included with precompiled libraries.
+    # Override FFMPEG components to also include static library dependencies
+    # included with precompiled libraries, and to ensure correct link order.
     set(FFMPEG_FIND_COMPONENTS
-      avcodec avdevice avformat avutil
-      mp3lame ogg opus swresample swscale
-      theora theoradec theoraenc vorbis vorbisenc
-      vorbisfile vpx x264 xvidcore)
+      avformat avcodec avdevice avutil swresample swscale
+      sndfile
+      FLAC
+      mp3lame
+      opus
+      theora theoradec theoraenc
+      vorbis vorbisenc vorbisfile ogg
+      vpx
+      x264
+      xvidcore)
   elseif(FFMPEG)
     # Old cache variable used for root dir, convert to new standard.
     set(FFMPEG_ROOT_DIR ${FFMPEG})
