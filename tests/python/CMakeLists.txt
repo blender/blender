@@ -740,15 +740,17 @@ if(WITH_COMPOSITOR)
   set(compositor_tests
     color
     converter
-    distort
     filter
     input
-    matte
     output
     vector
 
     multiple_node_setups
   )
+
+  if(WITH_LIBMV)
+    list(APPEND compositor_tests distort matte)
+  endif()
 
   foreach(comp_test ${compositor_tests})
     add_python_test(
