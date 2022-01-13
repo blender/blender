@@ -28,13 +28,13 @@ SceneTimeNode::SceneTimeNode(bNode *editor_node) : Node(editor_node)
 }
 
 void SceneTimeNode::convert_to_operations(NodeConverter &converter,
-                                     const CompositorContext &context) const
+                                          const CompositorContext &context) const
 {
   SetValueOperation *SecondOperation = new SetValueOperation();
   SetValueOperation *frameOperation = new SetValueOperation();
 
   const int frameNumber = context.get_framenumber();
-  const Scene* scene = context.get_scene();
+  const Scene *scene = context.get_scene();
   const double frameRate = (((double)scene->r.frs_sec) / (double)scene->r.frs_sec_base);
 
   SecondOperation->set_value(float(frameNumber / frameRate));

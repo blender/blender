@@ -2091,7 +2091,7 @@ static bool area_split_allowed(const ScrArea *area, const eScreenAxis dir_axis)
   }
 
   if ((dir_axis == SCREEN_AXIS_V && area->winx <= 2 * AREAMINX) ||
-       (dir_axis == SCREEN_AXIS_H && area->winy <= 2 * ED_area_headersize())) {
+      (dir_axis == SCREEN_AXIS_H && area->winy <= 2 * ED_area_headersize())) {
     /* Must be at least double minimum sizes to split into two. */
     return false;
   }

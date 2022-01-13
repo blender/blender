@@ -527,8 +527,13 @@ void outliner_collection_isolate_flag(Scene *scene,
                                          is_hide);
 
   /* Make this collection and its children collections the only "visible". */
-  outliner_collection_set_flag_recursive(
-      scene, view_layer, layer_collection, collection, layer_or_collection_prop, nullptr, !is_hide);
+  outliner_collection_set_flag_recursive(scene,
+                                         view_layer,
+                                         layer_collection,
+                                         collection,
+                                         layer_or_collection_prop,
+                                         nullptr,
+                                         !is_hide);
 
   /* Make this collection direct parents also "visible". */
   if (layer_collection) {

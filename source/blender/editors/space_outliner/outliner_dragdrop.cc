@@ -1540,8 +1540,12 @@ void outliner_dropboxes(void)
   WM_dropbox_add(lb, "OUTLINER_OT_parent_clear", parent_clear_poll, nullptr, nullptr, nullptr);
   WM_dropbox_add(lb, "OUTLINER_OT_scene_drop", scene_drop_poll, nullptr, nullptr, nullptr);
   WM_dropbox_add(lb, "OUTLINER_OT_material_drop", material_drop_poll, nullptr, nullptr, nullptr);
-  WM_dropbox_add(
-      lb, "OUTLINER_OT_datastack_drop", datastack_drop_poll, nullptr, nullptr, datastack_drop_tooltip);
+  WM_dropbox_add(lb,
+                 "OUTLINER_OT_datastack_drop",
+                 datastack_drop_poll,
+                 nullptr,
+                 nullptr,
+                 datastack_drop_tooltip);
   WM_dropbox_add(lb,
                  "OUTLINER_OT_collection_drop",
                  collection_drop_poll,
