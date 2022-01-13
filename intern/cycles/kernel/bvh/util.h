@@ -227,4 +227,25 @@ ccl_device_inline float intersection_curve_shadow_transparency(KernelGlobals kg,
   return (1.0f - u) * f0 + u * f1;
 }
 
+ccl_device_inline bool intersection_skip_self(ccl_private const RaySelfPrimitives &self,
+                                              const int object,
+                                              const int prim)
+{
+  return (self.prim == prim) && (self.object == object);
+}
+
+ccl_device_inline bool intersection_skip_self_shadow(ccl_private const RaySelfPrimitives &self,
+                                                     const int object,
+                                                     const int prim)
+{
+  return ((self.prim == prim) && (self.object == object)) ||
+         ((self.light_prim == prim) && (self.light_object == object));
+}
+
+ccl_device_inline bool intersection_skip_self_local(ccl_private const RaySelfPrimitives &self,
+                                                    const int prim)
+{
+  return (self.prim == prim);
+}
+
 CCL_NAMESPACE_END

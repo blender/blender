@@ -156,7 +156,10 @@ ccl_device void integrator_intersect_shadow(KernelGlobals kg, IntegratorShadowSt
   /* Read ray from integrator state into local memory. */
   Ray ray ccl_optional_struct_init;
   integrator_state_read_shadow_ray(kg, state, &ray);
-
+  ray.self.object = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, object);
+  ray.self.prim = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, prim);
+  ray.self.light_object = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 1, object);
+  ray.self.light_prim = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 1, prim);
   /* Compute visibility. */
   const uint visibility = integrate_intersect_shadow_visibility(kg, state);
 

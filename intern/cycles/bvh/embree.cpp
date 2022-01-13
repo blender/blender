@@ -66,6 +66,26 @@ static_assert(Object::MAX_MOTION_STEPS == Geometry::MAX_MOTION_STEPS,
  * as well as filtering for volume objects happen here.
  * Cycles' own BVH does that directly inside the traversal calls.
  */
+static void rtc_filter_intersection_func(const RTCFilterFunctionNArguments *args)
+{
+  /* Current implementation in Cycles assumes only single-ray intersection queries. */
+  assert(args->N == 1);
+
+  RTCHit *hit = (RTCHit *)args->hit;
+  CCLIntersectContext *ctx = ((IntersectContext *)args->context)->userRayExt;
+  const KernelGlobalsCPU *kg = ctx->kg;
+  const Ray *cray = ctx->ray;
+
+  if (kernel_embree_is_self_intersection(kg, hit, cray)) {
+    *args->valid = 0;
+  }
+}
+
+/* This gets called by Embree at every valid ray/object intersection.
+ * Things like recording subsurface or shadow hits for later evaluation
+ * as well as filtering for volume objects happen here.
+ * Cycles' own BVH does that directly inside the traversal calls.
+ */
 static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
 {
   /* Current implementation in Cycles assumes only single-ray intersection queries. */
@@ -75,12 +95,16 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
   RTCHit *hit = (RTCHit *)args->hit;
   CCLIntersectContext *ctx = ((IntersectContext *)args->context)->userRayExt;
   const KernelGlobalsCPU *kg = ctx->kg;
+  const Ray *cray = ctx->ray;
 
   switch (ctx->type) {
     case CCLIntersectContext::RAY_SHADOW_ALL: {
       Intersection current_isect;
       kernel_embree_convert_hit(kg, ray, hit, &current_isect);
-
+      if (intersection_skip_self_shadow(cray->self, current_isect.object, current_isect.prim)) {
+        *args->valid = 0;
+        return;
+      }
       /* If no transparent shadows or max number of hits exceeded, all light is blocked. */
       const int flags = intersection_get_shader_flags(kg, current_isect.prim, current_isect.type);
       if (!(flags & (SD_HAS_TRANSPARENT_SHADOW)) || ctx->num_hits >= ctx->max_hits) {
@@ -160,6 +184,10 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
           break;
         }
       }
+      if (intersection_skip_self_local(cray->self, current_isect.prim)) {
+        *args->valid = 0;
+        return;
+      }
 
       /* No intersection information requested, just return a hit. */
       if (ctx->max_hits == 0) {
@@ -225,6 +253,11 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
       if (ctx->num_hits < ctx->max_hits) {
         Intersection current_isect;
         kernel_embree_convert_hit(kg, ray, hit, &current_isect);
+        if (intersection_skip_self(cray->self, current_isect.object, current_isect.prim)) {
+          *args->valid = 0;
+          return;
+        }
+
         Intersection *isect = &ctx->isect_s[ctx->num_hits];
         ++ctx->num_hits;
         *isect = current_isect;
@@ -236,12 +269,15 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
         }
         /* This tells Embree to continue tracing. */
         *args->valid = 0;
-        break;
       }
+      break;
     }
     case CCLIntersectContext::RAY_REGULAR:
     default:
-      /* Nothing to do here. */
+      if (kernel_embree_is_self_intersection(kg, hit, cray)) {
+        *args->valid = 0;
+        return;
+      }
       break;
   }
 }
@@ -256,6 +292,14 @@ static void rtc_filter_func_backface_cull(const RTCFilterFunctionNArguments *arg
           make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z)) > 0.0f) {
     *args->valid = 0;
     return;
+  }
+
+  CCLIntersectContext *ctx = ((IntersectContext *)args->context)->userRayExt;
+  const KernelGlobalsCPU *kg = ctx->kg;
+  const Ray *cray = ctx->ray;
+
+  if (kernel_embree_is_self_intersection(kg, hit, cray)) {
+    *args->valid = 0;
   }
 }
 
@@ -505,6 +549,7 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
 
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
   rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func);
+  rtcSetGeometryIntersectFilterFunction(geom_id, rtc_filter_intersection_func);
   rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
 
   rtcCommitGeometry(geom_id);
@@ -767,6 +812,7 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
 
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
   if (hair->curve_shape == CURVE_RIBBON) {
+    rtcSetGeometryIntersectFilterFunction(geom_id, rtc_filter_intersection_func);
     rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func);
   }
   else {

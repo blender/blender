@@ -226,7 +226,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   pipeline_options.usesMotionBlur = false;
   pipeline_options.traversableGraphFlags =
       OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_LEVEL_INSTANCING;
-  pipeline_options.numPayloadValues = 6;
+  pipeline_options.numPayloadValues = 8;
   pipeline_options.numAttributeValues = 2; /* u, v */
   pipeline_options.exceptionFlags = OPTIX_EXCEPTION_FLAG_NONE;
   pipeline_options.pipelineLaunchParamsVariableName = "__params"; /* See globals.h */

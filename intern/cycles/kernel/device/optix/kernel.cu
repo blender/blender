@@ -45,6 +45,11 @@ template<typename T> ccl_device_forceinline T *get_payload_ptr_2()
   return pointer_unpack_from_uint<T>(optixGetPayload_2(), optixGetPayload_3());
 }
 
+template<typename T> ccl_device_forceinline T *get_payload_ptr_6()
+{
+  return (T *)(((uint64_t)optixGetPayload_7() << 32) | optixGetPayload_6());
+}
+
 ccl_device_forceinline int get_object_id()
 {
 #ifdef __OBJECT_MOTION__
@@ -111,6 +116,12 @@ extern "C" __global__ void __anyhit__kernel_optix_local_hit()
     return optixIgnoreIntersection();
   }
 
+  const int prim = optixGetPrimitiveIndex();
+  ccl_private Ray *const ray = get_payload_ptr_6<Ray>();
+  if (intersection_skip_self_local(ray->self, prim)) {
+    return optixIgnoreIntersection();
+  }
+
   const uint max_hits = optixGetPayload_5();
   if (max_hits == 0) {
     /* Special case for when no hit information is requested, just report that something was hit */
@@ -149,8 +160,6 @@ extern "C" __global__ void __anyhit__kernel_optix_local_hit()
     local_isect->num_hits = 1;
   }
 
-  const int prim = optixGetPrimitiveIndex();
-
   Intersection *isect = &local_isect->hits[hit];
   isect->t = optixGetRayTmax();
   isect->prim = prim;
@@ -184,6 +193,11 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
     return optixIgnoreIntersection();
   }
 #  endif
+
+  ccl_private Ray *const ray = get_payload_ptr_6<Ray>();
+  if (intersection_skip_self_shadow(ray->self, object, prim)) {
+    return optixIgnoreIntersection();
+  }
 
   float u = 0.0f, v = 0.0f;
   int type = 0;
@@ -314,6 +328,12 @@ extern "C" __global__ void __anyhit__kernel_optix_volume_test()
   if ((kernel_tex_fetch(__object_flag, object) & SD_OBJECT_HAS_VOLUME) == 0) {
     return optixIgnoreIntersection();
   }
+
+  const int prim = optixGetPrimitiveIndex();
+  ccl_private Ray *const ray = get_payload_ptr_6<Ray>();
+  if (intersection_skip_self(ray->self, object, prim)) {
+    return optixIgnoreIntersection();
+  }
 }
 
 extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
@@ -330,18 +350,31 @@ extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
 #  endif
 #endif
 
-#ifdef __VISIBILITY_FLAG__
   const uint object = get_object_id();
   const uint visibility = optixGetPayload_4();
+#ifdef __VISIBILITY_FLAG__
   if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
     return optixIgnoreIntersection();
   }
-
-  /* Shadow ray early termination. */
-  if (visibility & PATH_RAY_SHADOW_OPAQUE) {
-    return optixTerminateRay();
-  }
 #endif
+
+  const int prim = optixGetPrimitiveIndex();
+  ccl_private Ray *const ray = get_payload_ptr_6<Ray>();
+
+  if (visibility & PATH_RAY_SHADOW_OPAQUE) {
+    if (intersection_skip_self_shadow(ray->self, object, prim)) {
+      return optixIgnoreIntersection();
+    }
+    else {
+      /* Shadow ray early termination. */
+      return optixTerminateRay();
+    }
+  }
+  else {
+    if (intersection_skip_self(ray->self, object, prim)) {
+      return optixIgnoreIntersection();
+    }
+  }
 }
 
 extern "C" __global__ void __closesthit__kernel_optix_hit()

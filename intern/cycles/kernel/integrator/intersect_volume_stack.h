@@ -38,7 +38,10 @@ ccl_device void integrator_volume_stack_update_for_subsurface(KernelGlobals kg,
   Ray volume_ray ccl_optional_struct_init;
   volume_ray.P = from_P;
   volume_ray.D = normalize_len(to_P - from_P, &volume_ray.t);
-
+  volume_ray.self.object = INTEGRATOR_STATE(state, isect, object);
+  volume_ray.self.prim = INTEGRATOR_STATE(state, isect, prim);
+  volume_ray.self.light_object = OBJECT_NONE;
+  volume_ray.self.light_prim = PRIM_NONE;
   /* Store to avoid global fetches on every intersection step. */
   const uint volume_stack_size = kernel_data.volume_stack_size;
 
@@ -91,6 +94,10 @@ ccl_device void integrator_volume_stack_init(KernelGlobals kg, IntegratorState s
    * fewest hits. */
   volume_ray.D = make_float3(0.0f, 0.0f, 1.0f);
   volume_ray.t = FLT_MAX;
+  volume_ray.self.object = OBJECT_NONE;
+  volume_ray.self.prim = PRIM_NONE;
+  volume_ray.self.light_object = OBJECT_NONE;
+  volume_ray.self.light_prim = PRIM_NONE;
 
   int stack_index = 0, enclosed_index = 0;
 

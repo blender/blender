@@ -22,6 +22,8 @@
 #include "kernel/device/cpu/compat.h"
 #include "kernel/device/cpu/globals.h"
 
+#include "kernel/bvh/util.h"
+
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -37,6 +39,9 @@ struct CCLIntersectContext {
 
   KernelGlobals kg;
   RayType type;
+
+  /* For avoiding self intersections */
+  const Ray *ray;
 
   /* for shadow rays */
   Intersection *isect_s;
@@ -56,6 +61,7 @@ struct CCLIntersectContext {
   {
     kg = kg_;
     type = type_;
+    ray = NULL;
     max_hits = 1;
     num_hits = 0;
     num_recorded_hits = 0;
@@ -102,7 +108,34 @@ ccl_device_inline void kernel_embree_setup_rayhit(const Ray &ray,
 {
   kernel_embree_setup_ray(ray, rayhit.ray, visibility);
   rayhit.hit.geomID = RTC_INVALID_GEOMETRY_ID;
-  rayhit.hit.primID = RTC_INVALID_GEOMETRY_ID;
+  rayhit.hit.instID[0] = RTC_INVALID_GEOMETRY_ID;
+}
+
+ccl_device_inline bool kernel_embree_is_self_intersection(const KernelGlobals kg,
+                                                          const RTCHit *hit,
+                                                          const Ray *ray)
+{
+  bool status = false;
+  if (hit->instID[0] != RTC_INVALID_GEOMETRY_ID) {
+    const int oID = hit->instID[0] / 2;
+    if ((ray->self.object == oID) || (ray->self.light_object == oID)) {
+      RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
+          rtcGetGeometry(kernel_data.bvh.scene, hit->instID[0]));
+      const int pID = hit->primID +
+                      (intptr_t)rtcGetGeometryUserData(rtcGetGeometry(inst_scene, hit->geomID));
+      status = intersection_skip_self_shadow(ray->self, oID, pID);
+    }
+  }
+  else {
+    const int oID = hit->geomID / 2;
+    if ((ray->self.object == oID) || (ray->self.light_object == oID)) {
+      const int pID = hit->primID + (intptr_t)rtcGetGeometryUserData(
+                                        rtcGetGeometry(kernel_data.bvh.scene, hit->geomID));
+      status = intersection_skip_self_shadow(ray->self, oID, pID);
+    }
+  }
+
+  return status;
 }
 
 ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,

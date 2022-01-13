@@ -173,15 +173,16 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   uint p3 = 0;
   uint p4 = visibility;
   uint p5 = PRIMITIVE_NONE;
+  uint p6 = ((uint64_t)ray) & 0xFFFFFFFF;
+  uint p7 = (((uint64_t)ray) >> 32) & 0xFFFFFFFF;
 
   uint ray_mask = visibility & 0xFF;
-  uint ray_flags = OPTIX_RAY_FLAG_NONE;
+  uint ray_flags = OPTIX_RAY_FLAG_ENFORCE_ANYHIT;
   if (0 == ray_mask && (visibility & ~0xFF) != 0) {
     ray_mask = 0xFF;
-    ray_flags = OPTIX_RAY_FLAG_ENFORCE_ANYHIT;
   }
   else if (visibility & PATH_RAY_SHADOW_OPAQUE) {
-    ray_flags = OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT;
+    ray_flags |= OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT;
   }
 
   optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
@@ -200,7 +201,9 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
              p2,
              p3,
              p4,
-             p5);
+             p5,
+             p6,
+             p7);
 
   isect->t = __uint_as_float(p0);
   isect->u = __uint_as_float(p1);
@@ -242,6 +245,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   }
 
   MetalRTIntersectionPayload payload;
+  payload.self = ray->self;
   payload.u = 0.0f;
   payload.v = 0.0f;
   payload.visibility = visibility;
@@ -309,6 +313,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
     CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_REGULAR);
     IntersectContext rtc_ctx(&ctx);
     RTCRayHit ray_hit;
+    ctx.ray = ray;
     kernel_embree_setup_rayhit(*ray, ray_hit, visibility);
     rtcIntersect1(kernel_data.bvh.scene, &rtc_ctx.context, &ray_hit);
     if (ray_hit.hit.geomID != RTC_INVALID_GEOMETRY_ID &&
@@ -356,6 +361,9 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   uint p2 = pointer_pack_to_uint_0(local_isect);
   uint p3 = pointer_pack_to_uint_1(local_isect);
   uint p4 = local_object;
+  uint p6 = ((uint64_t)ray) & 0xFFFFFFFF;
+  uint p7 = (((uint64_t)ray) >> 32) & 0xFFFFFFFF;
+
   /* Is set to zero on miss or if ray is aborted, so can be used as return value. */
   uint p5 = max_hits;
 
@@ -379,7 +387,9 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
              p2,
              p3,
              p4,
-             p5);
+             p5,
+             p6,
+             p7);
 
   return p5;
 #  elif defined(__METALRT__)
@@ -417,6 +427,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   }
 
   MetalRTIntersectionLocalPayload payload;
+  payload.self = ray->self;
   payload.local_object = local_object;
   payload.max_hits = max_hits;
   payload.local_isect.num_hits = 0;
@@ -460,6 +471,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
         kg, has_bvh ? CCLIntersectContext::RAY_SSS : CCLIntersectContext::RAY_LOCAL);
     ctx.lcg_state = lcg_state;
     ctx.max_hits = max_hits;
+    ctx.ray = ray;
     ctx.local_isect = local_isect;
     if (local_isect) {
       local_isect->num_hits = 0;
@@ -532,6 +544,8 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   uint p3 = max_hits;
   uint p4 = visibility;
   uint p5 = false;
+  uint p6 = ((uint64_t)ray) & 0xFFFFFFFF;
+  uint p7 = (((uint64_t)ray) >> 32) & 0xFFFFFFFF;
 
   uint ray_mask = visibility & 0xFF;
   if (0 == ray_mask && (visibility & ~0xFF) != 0) {
@@ -555,7 +569,9 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
              p2,
              p3,
              p4,
-             p5);
+             p5,
+             p6,
+             p7);
 
   *num_recorded_hits = uint16_unpack_from_uint_0(p2);
   *throughput = __uint_as_float(p1);
@@ -588,6 +604,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   }
 
   MetalRTIntersectionShadowPayload payload;
+  payload.self = ray->self;
   payload.visibility = visibility;
   payload.max_hits = max_hits;
   payload.num_hits = 0;
@@ -634,6 +651,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
     Intersection *isect_array = (Intersection *)state->shadow_isect;
     ctx.isect_s = isect_array;
     ctx.max_hits = max_hits;
+    ctx.ray = ray;
     IntersectContext rtc_ctx(&ctx);
     RTCRay rtc_ray;
     kernel_embree_setup_ray(*ray, rtc_ray, visibility);
@@ -685,6 +703,8 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
   uint p3 = 0;
   uint p4 = visibility;
   uint p5 = PRIMITIVE_NONE;
+  uint p6 = ((uint64_t)ray) & 0xFFFFFFFF;
+  uint p7 = (((uint64_t)ray) >> 32) & 0xFFFFFFFF;
 
   uint ray_mask = visibility & 0xFF;
   if (0 == ray_mask && (visibility & ~0xFF) != 0) {
@@ -708,7 +728,9 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
              p2,
              p3,
              p4,
-             p5);
+             p5,
+             p6,
+             p7);
 
   isect->t = __uint_as_float(p0);
   isect->u = __uint_as_float(p1);
@@ -744,6 +766,7 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
   }
 
   MetalRTIntersectionPayload payload;
+  payload.self = ray->self;
   payload.visibility = visibility;
 
   typename metalrt_intersector_type::result_type intersection;
@@ -820,6 +843,7 @@ ccl_device_intersect uint scene_intersect_volume_all(KernelGlobals kg,
     ctx.isect_s = isect;
     ctx.max_hits = max_hits;
     ctx.num_hits = 0;
+    ctx.ray = ray;
     IntersectContext rtc_ctx(&ctx);
     RTCRay rtc_ray;
     kernel_embree_setup_ray(*ray, rtc_ray, visibility);

@@ -57,7 +57,6 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
 
   /* Pass along object info, reusing isect to save memory. */
   INTEGRATOR_STATE_WRITE(state, subsurface, Ng) = sd->Ng;
-  INTEGRATOR_STATE_WRITE(state, isect, object) = sd->object;
 
   uint32_t path_flag = (INTEGRATOR_STATE(state, path, flag) & ~PATH_RAY_CAMERA) |
                        ((sc->type == CLOSURE_BSSRDF_BURLEY_ID) ? PATH_RAY_SUBSURFACE_DISK :

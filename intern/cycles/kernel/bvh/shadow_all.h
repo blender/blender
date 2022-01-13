@@ -160,6 +160,9 @@ ccl_device_inline
                                         kernel_tex_fetch(__prim_object, prim_addr) :
                                         object;
             const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+            if (intersection_skip_self_shadow(ray->self, prim_object, prim)) {
+              continue;
+            }
 
             switch (type & PRIMITIVE_ALL) {
               case PRIMITIVE_TRIANGLE: {

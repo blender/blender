@@ -418,8 +418,8 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
   LightType type = (LightType)klight->type;
   ls->type = type;
   ls->shader = klight->shader_id;
-  ls->object = PRIM_NONE;
-  ls->prim = PRIM_NONE;
+  ls->object = isect->object;
+  ls->prim = isect->prim;
   ls->lamp = lamp;
   /* todo: missing texture coordinates */
   ls->t = isect->t;

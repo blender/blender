@@ -512,11 +512,20 @@ typedef struct differential {
 
 /* Ray */
 
+typedef struct RaySelfPrimitives {
+  int prim;         /* Primitive the ray is starting from */
+  int object;       /* Instance prim is a part of */
+  int light_prim;   /* Light primitive */
+  int light_object; /* Light object */
+} RaySelfPrimitives;
+
 typedef struct Ray {
   float3 P;   /* origin */
   float3 D;   /* direction */
   float t;    /* length of the ray */
   float time; /* time (for motion blur) */
+
+  RaySelfPrimitives self;
 
 #ifdef __RAY_DIFFERENTIALS__
   float dP;

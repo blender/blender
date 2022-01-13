@@ -257,6 +257,12 @@ ccl_device_inline void shadow_ray_setup(ccl_private const ShaderData *ccl_restri
   ray->dP = differential_make_compact(sd->dP);
   ray->dD = differential_zero_compact();
   ray->time = sd->time;
+
+  /* Fill in intersection surface and light details. */
+  ray->self.prim = sd->prim;
+  ray->self.object = sd->object;
+  ray->self.light_prim = ls->prim;
+  ray->self.light_object = ls->object;
 }
 
 /* Create shadow ray towards light sample. */

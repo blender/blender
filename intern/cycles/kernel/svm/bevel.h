@@ -196,6 +196,10 @@ ccl_device float3 svm_bevel(
     ray.dP = differential_zero_compact();
     ray.dD = differential_zero_compact();
     ray.time = sd->time;
+    ray.self.object = OBJECT_NONE;
+    ray.self.prim = PRIM_NONE;
+    ray.self.light_object = OBJECT_NONE;
+    ray.self.light_prim = PRIM_NONE;
 
     /* Intersect with the same object. if multiple intersections are found it
      * will use at most LOCAL_MAX_HITS hits, a random subset of all hits. */
