@@ -33,9 +33,9 @@ ccl_device_inline bool triangle_intersect(KernelGlobals kg,
                                           float tmax,
                                           uint visibility,
                                           int object,
+                                          int prim,
                                           int prim_addr)
 {
-  const int prim = kernel_tex_fetch(__prim_index, prim_addr);
   const uint tri_vindex = kernel_tex_fetch(__tri_vindex, prim).w;
   const float3 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
                tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
@@ -49,8 +49,7 @@ ccl_device_inline bool triangle_intersect(KernelGlobals kg,
     if (kernel_tex_fetch(__prim_visibility, prim_addr) & visibility)
 #endif
     {
-      isect->object = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, prim_addr) :
-                                                object;
+      isect->object = object;
       isect->prim = prim;
       isect->type = PRIMITIVE_TRIANGLE;
       isect->u = u;
@@ -74,21 +73,12 @@ ccl_device_inline bool triangle_intersect_local(KernelGlobals kg,
                                                 float3 P,
                                                 float3 dir,
                                                 int object,
-                                                int local_object,
+                                                int prim,
                                                 int prim_addr,
                                                 float tmax,
                                                 ccl_private uint *lcg_state,
                                                 int max_hits)
 {
-  /* Only intersect with matching object, for instanced objects we
-   * already know we are only intersecting the right object. */
-  if (object == OBJECT_NONE) {
-    if (kernel_tex_fetch(__prim_object, prim_addr) != local_object) {
-      return false;
-    }
-  }
-
-  const int prim = kernel_tex_fetch(__prim_index, prim_addr);
   const uint tri_vindex = kernel_tex_fetch(__tri_vindex, prim).w;
   const float3 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
                tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
@@ -139,7 +129,7 @@ ccl_device_inline bool triangle_intersect_local(KernelGlobals kg,
   /* Record intersection. */
   ccl_private Intersection *isect = &local_isect->hits[hit];
   isect->prim = prim;
-  isect->object = local_object;
+  isect->object = object;
   isect->type = PRIMITIVE_TRIANGLE;
   isect->u = u;
   isect->v = v;

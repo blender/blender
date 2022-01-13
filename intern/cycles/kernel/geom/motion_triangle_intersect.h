@@ -153,14 +153,12 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals kg,
                                                  float time,
                                                  uint visibility,
                                                  int object,
+                                                 int prim,
                                                  int prim_addr)
 {
-  /* Primitive index for vertex location lookup. */
-  int prim = kernel_tex_fetch(__prim_index, prim_addr);
-  int fobject = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, prim_addr) : object;
   /* Get vertex locations for intersection. */
   float3 verts[3];
-  motion_triangle_vertices(kg, fobject, prim, time, verts);
+  motion_triangle_vertices(kg, object, prim, time, verts);
   /* Ray-triangle intersection, unoptimized. */
   float t, u, v;
   if (ray_triangle_intersect(P, dir, tmax, verts[0], verts[1], verts[2], &u, &v, &t)) {
@@ -175,8 +173,7 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals kg,
       isect->u = u;
       isect->v = v;
       isect->prim = prim;
-      isect->object = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, prim_addr) :
-                                                object;
+      isect->object = object;
       isect->type = PRIMITIVE_MOTION_TRIANGLE;
       return true;
     }
@@ -196,25 +193,15 @@ ccl_device_inline bool motion_triangle_intersect_local(KernelGlobals kg,
                                                        float3 dir,
                                                        float time,
                                                        int object,
-                                                       int local_object,
+                                                       int prim,
                                                        int prim_addr,
                                                        float tmax,
                                                        ccl_private uint *lcg_state,
                                                        int max_hits)
 {
-  /* Only intersect with matching object, for instanced objects we
-   * already know we are only intersecting the right object. */
-  if (object == OBJECT_NONE) {
-    if (kernel_tex_fetch(__prim_object, prim_addr) != local_object) {
-      return false;
-    }
-  }
-
-  /* Primitive index for vertex location lookup. */
-  int prim = kernel_tex_fetch(__prim_index, prim_addr);
   /* Get vertex locations for intersection. */
   float3 verts[3];
-  motion_triangle_vertices(kg, local_object, prim, time, verts);
+  motion_triangle_vertices(kg, object, prim, time, verts);
   /* Ray-triangle intersection, unoptimized. */
   float t, u, v;
   if (!ray_triangle_intersect(P, dir, tmax, verts[0], verts[1], verts[2], &u, &v, &t)) {
@@ -266,7 +253,7 @@ ccl_device_inline bool motion_triangle_intersect_local(KernelGlobals kg,
   isect->u = u;
   isect->v = v;
   isect->prim = prim;
-  isect->object = local_object;
+  isect->object = object;
   isect->type = PRIMITIVE_MOTION_TRIANGLE;
 
   /* Record geometric normal. */

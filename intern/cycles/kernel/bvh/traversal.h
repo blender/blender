@@ -137,8 +137,14 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
             case PRIMITIVE_TRIANGLE: {
               for (; prim_addr < prim_addr2; prim_addr++) {
                 kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
+
+                const int prim_object = (object == OBJECT_NONE) ?
+                                            kernel_tex_fetch(__prim_object, prim_addr) :
+                                            object;
+                const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+
                 if (triangle_intersect(
-                        kg, isect, P, dir, isect->t, visibility, object, prim_addr)) {
+                        kg, isect, P, dir, isect->t, visibility, prim_object, prim, prim_addr)) {
                   /* shadow ray early termination */
                   if (visibility & PATH_RAY_SHADOW_OPAQUE)
                     return true;
@@ -150,8 +156,22 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
             case PRIMITIVE_MOTION_TRIANGLE: {
               for (; prim_addr < prim_addr2; prim_addr++) {
                 kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
-                if (motion_triangle_intersect(
-                        kg, isect, P, dir, isect->t, ray->time, visibility, object, prim_addr)) {
+
+                const int prim_object = (object == OBJECT_NONE) ?
+                                            kernel_tex_fetch(__prim_object, prim_addr) :
+                                            object;
+                const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+
+                if (motion_triangle_intersect(kg,
+                                              isect,
+                                              P,
+                                              dir,
+                                              isect->t,
+                                              ray->time,
+                                              visibility,
+                                              prim_object,
+                                              prim,
+                                              prim_addr)) {
                   /* shadow ray early termination */
                   if (visibility & PATH_RAY_SHADOW_OPAQUE)
                     return true;
@@ -173,13 +193,14 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                   }
                 }
 
-                const int curve_object = (object == OBJECT_NONE) ?
-                                             kernel_tex_fetch(__prim_object, prim_addr) :
-                                             object;
-                const int curve_prim = kernel_tex_fetch(__prim_index, prim_addr);
+                const int prim_object = (object == OBJECT_NONE) ?
+                                            kernel_tex_fetch(__prim_object, prim_addr) :
+                                            object;
+                const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+
                 const int curve_type = kernel_tex_fetch(__prim_type, prim_addr);
                 const bool hit = curve_intersect(
-                    kg, isect, P, dir, isect->t, curve_object, curve_prim, ray->time, curve_type);
+                    kg, isect, P, dir, isect->t, prim_object, prim, ray->time, curve_type);
                 if (hit) {
                   /* shadow ray early termination */
                   if (visibility & PATH_RAY_SHADOW_OPAQUE)
@@ -200,13 +221,14 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                   }
                 }
 
-                const int point_object = (object == OBJECT_NONE) ?
-                                             kernel_tex_fetch(__prim_object, prim_addr) :
-                                             object;
-                const int point_prim = kernel_tex_fetch(__prim_index, prim_addr);
+                const int prim_object = (object == OBJECT_NONE) ?
+                                            kernel_tex_fetch(__prim_object, prim_addr) :
+                                            object;
+                const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+
                 const int point_type = kernel_tex_fetch(__prim_type, prim_addr);
                 const bool hit = point_intersect(
-                    kg, isect, P, dir, isect->t, point_object, point_prim, ray->time, point_type);
+                    kg, isect, P, dir, isect->t, prim_object, prim, ray->time, point_type);
                 if (hit) {
                   /* shadow ray early termination */
                   if (visibility & PATH_RAY_SHADOW_OPAQUE)
