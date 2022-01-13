@@ -201,7 +201,7 @@ fail:
   PyErr_Print();
   PyErr_Clear();
 
-  Py_DECREF(ret);
+  Py_XDECREF(ret);
 
   PyGILState_Release(gilstate);
 }
