@@ -54,7 +54,8 @@ bool outliner_tree_display_warnings_poll(const struct TreeDisplay *tree_display)
  *
  * \param r_icon The icon to display as warning.
  * \param r_message The message to display as warning.
- * \return true if there is a warning, false otherwise. */
+ * \return true if there is a warning, false otherwise.
+ */
 bool outliner_element_warnings_get(struct TreeElement *te, int *r_icon, const char **r_message);
 
 /* The following functions are needed to build the tree. They are calls back into C; the way

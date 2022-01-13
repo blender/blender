@@ -24,7 +24,7 @@
 /* clang-format off */
 
 /* -------------------------------------------------------------------- */
-/** \name Spaceclip Struct
+/** \name SpaceClip Struct
  * \{ */
 
 #define _DNA_DEFAULT_MaskSpaceInfo \

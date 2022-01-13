@@ -239,7 +239,7 @@ class AssetCatalogTest : public testing::Test {
     }
 
     /* Create an empty CDF to add complexity. It should not save to this, but to the top-level
-     * one.*/
+     * one. */
     ASSERT_TRUE(BLI_file_touch(cdf_in_subdir.c_str()));
     ASSERT_EQ(0, BLI_file_size(cdf_in_subdir.c_str()));
 

@@ -1466,10 +1466,10 @@ static void outliner_find_panel(
   else {
     /* pop up panel - no previous, or user didn't want search after previous */
     name[0] = '\0';
-    /* XXX      if (sbutton(name, 0, sizeof(name) - 1, "Find: ") && name[0]) { */
-    /*          te = outliner_find_name(space_outliner, &space_outliner->tree, name, flags, nullptr, &prevFound); */
-    /*      } */
-    /*      else return; XXX RETURN! XXX */
+    // XXX      if (sbutton(name, 0, sizeof(name) - 1, "Find: ") && name[0]) {
+    //          te = outliner_find_name(space_outliner, &space_outliner->tree, name, flags, nullptr, &prevFound);
+    //      }
+    //      else return; XXX RETURN! XXX
   }
 
   /* do selection and reveal */
@@ -1485,7 +1485,7 @@ static void outliner_find_panel(
       outliner_flag_set(space_outliner, &space_outliner->tree, TSE_SELECTED, 0);
       tselem->flag |= TSE_SELECTED;
 
-      /* make te->ys center of view */
+      /* Make `te->ys` center of view. */
       ytop = (int)(te->ys + BLI_rctf_size_y(&region->v2d.mask) / 2);
       if (ytop > 0) {
         ytop = 0;
@@ -1493,7 +1493,7 @@ static void outliner_find_panel(
       region->v2d.cur.ymax = (float)ytop;
       region->v2d.cur.ymin = (float)(ytop - BLI_rctf_size_y(&region->v2d.mask));
 
-      /* make te->xs ==> te->xend center of view */
+      /* Make `te->xs` ==> `te->xend` center of view. */
       xdelta = (int)(te->xs - region->v2d.cur.xmin);
       region->v2d.cur.xmin += xdelta;
       region->v2d.cur.xmax += xdelta;

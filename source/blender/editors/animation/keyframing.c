@@ -580,7 +580,7 @@ int insert_vert_fcurve(
     beztr.ipo = BEZT_IPO_BEZ;
   }
   else {
-    /* for UI usage - defaults should come from the userprefs and/or toolsettings */
+    /* For UI usage - defaults should come from the user-preferences and/or tool-settings. */
     beztr.h1 = beztr.h2 = U.keyhandles_new; /* use default handle type here */
 
     /* use default interpolation mode, with exceptions for int/discrete values */

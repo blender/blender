@@ -2165,7 +2165,7 @@ static bool outliner_draw_warning_tree_element(uiBlock *block,
                                                const int te_ys)
 {
   if ((te->flag & TE_HAS_WARNING) == 0) {
-    /* If given element has no warning, recusively try to display the first sub-elements' warning.
+    /* If given element has no warning, recursively try to display the first sub-elements' warning.
      */
     if (!TSELEM_OPEN(tselem, space_outliner)) {
       LISTBASE_FOREACH (TreeElement *, sub_te, &te->subtree) {
@@ -3422,7 +3422,7 @@ static void outliner_draw_hierarchy_line(
   /* Small vertical padding. */
   const short line_padding = UI_UNIT_Y / 4.0f;
 
-  /* >= is 1.0 for undashed lines. */
+  /* >= is 1.0 for un-dashed lines. */
   immUniform1f("dash_factor", draw_dashed ? 0.5f : 1.0f);
 
   immBegin(GPU_PRIM_LINES, 2);

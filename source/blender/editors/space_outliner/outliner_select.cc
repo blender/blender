@@ -355,7 +355,7 @@ static void tree_element_object_activate(bContext *C,
       }
     }
     else {
-      /* deleselect all */
+      /* De-select all. */
 
       /* Only in object mode so we can switch the active object,
        * keeping all objects in the current 'mode' selected, useful for multi-pose/edit mode.

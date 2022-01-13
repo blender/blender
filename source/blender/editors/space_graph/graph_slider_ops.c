@@ -99,8 +99,10 @@ typedef struct tBeztCopyData {
 /** \name Utility Functions
  * \{ */
 
-/* Construct a list with the original bezt arrays so we can restore them during modal operation.
- * The data is stored on the struct that is passed.*/
+/**
+ * Construct a list with the original bezt arrays so we can restore them during modal operation.
+ * The data is stored on the struct that is passed.
+ */
 static void store_original_bezt_arrays(tGraphSliderOp *gso)
 {
   ListBase anim_data = {NULL, NULL};

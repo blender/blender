@@ -1174,7 +1174,7 @@ static void legacy_vec_roll_to_mat3_normalized(const float nor[3],
   const float z = nor[2];
 
   const float theta = 1.0f + y;          /* remapping Y from [-1,+1] to [0,2]. */
-  const float theta_alt = x * x + z * z; /* Helper value for matrix calculations.*/
+  const float theta_alt = x * x + z * z; /* Helper value for matrix calculations. */
   float rMatrix[3][3], bMatrix[3][3];
 
   BLI_ASSERT_UNIT_V3(nor);

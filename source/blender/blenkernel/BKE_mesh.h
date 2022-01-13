@@ -461,7 +461,7 @@ void BKE_mesh_calc_normals_poly(const struct MVert *mvert,
 /**
  * Calculate vertex and face normals, storing the result in custom data layers on the mesh.
  *
- * \note It is usually preferrable to calculate normals lazily with
+ * \note It is usually preferable to calculate normals lazily with
  * #BKE_mesh_vertex_normals_ensure, but some areas (perhaps unnecessarily)
  * can also calculate them eagerly.
  */

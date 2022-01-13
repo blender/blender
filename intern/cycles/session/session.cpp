@@ -428,7 +428,7 @@ void Session::do_delayed_reset()
 
   /* Update temp directory on reset.
    * This potentially allows to finish the existing rendering with a previously configure temporary
-   * direcotry in the host software and switch to a new temp directory when new render starts. */
+   * directory in the host software and switch to a new temp directory when new render starts. */
   tile_manager_.set_temp_dir(params.temp_dir);
 
   /* Progress. */

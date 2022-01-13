@@ -722,8 +722,8 @@ void ED_mask_draw_region(
   /* find window pixel coordinates of origin */
   UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
-  /* w = BLI_rctf_size_x(&v2d->tot); */
-  /* h = BLI_rctf_size_y(&v2d->tot); */
+  // w = BLI_rctf_size_x(&v2d->tot);
+  // h = BLI_rctf_size_y(&v2d->tot);
 
   zoomx = (float)(BLI_rcti_size_x(&region->winrct) + 1) / BLI_rctf_size_x(&region->v2d.cur);
   zoomy = (float)(BLI_rcti_size_y(&region->winrct) + 1) / BLI_rctf_size_y(&region->v2d.cur);
@@ -835,7 +835,7 @@ void ED_mask_draw_frames(
        mask_layer_shape = mask_layer_shape->next) {
     int frame = mask_layer_shape->frame;
 
-    /* draw_keyframe(i, CFRA, sfra, framelen, 1); */
+    // draw_keyframe(i, CFRA, sfra, framelen, 1);
     int height = (frame == cfra) ? 22 : 10;
     int x = (frame - sfra) * framelen;
     immVertex2i(pos, x, region_bottom);

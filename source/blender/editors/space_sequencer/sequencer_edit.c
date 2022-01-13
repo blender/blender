@@ -1558,7 +1558,7 @@ static int sequencer_split_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   }
   RNA_int_set(op->ptr, "channel", mouseloc[1]);
   RNA_enum_set(op->ptr, "side", split_side);
-  /*RNA_enum_set(op->ptr, "type", split_hard); */
+  // RNA_enum_set(op->ptr, "type", split_hard);
 
   return sequencer_split_exec(C, op);
 }

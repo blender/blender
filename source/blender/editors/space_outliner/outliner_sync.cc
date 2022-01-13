@@ -562,7 +562,7 @@ void outliner_sync_selection(const bContext *C, SpaceOutliner *space_outliner)
     outliner_sync_selection_to_outliner(
         view_layer, space_outliner, &space_outliner->tree, &active_data, &sync_types);
 
-    /* Keep any unsynced data in the dirty flag */
+    /* Keep any un-synced data in the dirty flag. */
     if (sync_types.object) {
       space_outliner->sync_select_dirty &= ~WM_OUTLINER_SYNC_SELECT_FROM_OBJECT;
     }

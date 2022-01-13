@@ -31,40 +31,40 @@
  *
  * All types are not copyable and Buffers are not Movable.
  *
- * drw::UniformArrayBuffer<T, len>
+ * `drw::UniformArrayBuffer<T, len>`
  *   Uniform buffer object containing an array of T with len elements.
  *   Data can be accessed using the [] operator.
  *
- * drw::UniformBuffer<T>
+ * `drw::UniformBuffer<T>`
  *   A uniform buffer object class inheriting from T.
  *   Data can be accessed just like a normal T object.
  *
- * drw::StorageArrayBuffer<T, len>
+ * `drw::StorageArrayBuffer<T, len>`
  *   Storage buffer object containing an array of T with len elements.
  *   The item count can be changed after creation using `resize()`.
  *   However, this requires the invalidation of the whole buffer and
  *   discarding all data inside it.
  *   Data can be accessed using the [] operator.
  *
- * drw::StorageBuffer<T>
+ * `drw::StorageBuffer<T>`
  *   A storage buffer object class inheriting from T.
  *   Data can be accessed just like a normal T object.
  *
- * drw::Texture
- *   A simple wrapper to GPUTexture. A drw::Texture can be created without allocation.
+ * `drw::Texture`
+ *   A simple wrapper to #GPUTexture. A #drw::Texture can be created without allocation.
  *   The `ensure_[1d|2d|3d|cube][_array]()` method is here to make sure the underlying texture
- *   will meet the requirements and create (or recreate) the GPUTexture if needed.
+ *   will meet the requirements and create (or recreate) the #GPUTexture if needed.
  *
- * drw::TextureFromPool
+ * `drw::TextureFromPool`
  *   A GPUTexture from the viewport texture pool. This texture can be shared with other engines
- *   and its content is undefined when aquiring it.
- *   A drw::TextureFromPool is acquired for rendering using `acquire()` and released once the
+ *   and its content is undefined when acquiring it.
+ *   A #drw::TextureFromPool is acquired for rendering using `acquire()` and released once the
  *   rendering is done using `release()`. The same texture can be acquired & released multiple
  *   time in one draw loop.
  *   The `sync()` method *MUST* be called once during the cache populate (aka: Sync) phase.
  *
- * drw::Framebuffer
- *   Simple wrapper to GPUFramebuffer that can be moved.
+ * `drw::Framebuffer`
+ *   Simple wrapper to #GPUFramebuffer that can be moved.
  *
  */
 
@@ -627,7 +627,7 @@ class Texture : NonCopyable {
   }
 
   /**
-   * Free the internal texture but not the drw::Texture itself.
+   * Free the internal texture but not the #drw::Texture itself.
    */
   void free()
   {
@@ -646,7 +646,7 @@ class Texture : NonCopyable {
 
   {
     /* TODO(fclem) In the future, we need to check if mip_count did not change.
-     * For now it's ok as we always define all mip level.*/
+     * For now it's ok as we always define all MIP level. */
     if (tx_) {
       int3 size = this->size();
       if (size != int3(w, h, d) || GPU_texture_format(tx_) != format ||

@@ -307,11 +307,13 @@ void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, boo
   }
 }
 
-/** Find the first segment of consecutive selected curve points, starting from \a start_index.
+/**
+ * Find the first segment of consecutive selected curve points, starting from \a start_index.
  * Keys that have BEZT_FLAG_IGNORE_TAG set are treated as unselected.
  * \param r_segment_start_idx: returns the start index of the segment.
  * \param r_segment_len: returns the number of curve points in the segment.
- * \return whether such a segment was found or not.*/
+ * \return whether such a segment was found or not.
+ */
 static bool find_fcurve_segment(FCurve *fcu,
                                 const int start_index,
                                 int *r_segment_start_idx,

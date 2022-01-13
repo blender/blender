@@ -306,7 +306,8 @@ void BKE_lib_override_library_main_validate(struct Main *bmain, struct ReportLis
  * This is typically used to detect whether some property has been changed in local and a new
  * #IDOverrideProperty (of #IDOverridePropertyOperation) has to be added.
  *
- * \return true if status is OK, false otherwise. */
+ * \return true if status is OK, false otherwise.
+ */
 bool BKE_lib_override_library_status_check_local(struct Main *bmain, struct ID *local);
 /**
  * Check that status of reference data-block is still valid against current local one.
@@ -317,7 +318,8 @@ bool BKE_lib_override_library_status_check_local(struct Main *bmain, struct ID *
  * This is typically used to detect whether some reference has changed and local
  * needs to be updated against it.
  *
- * \return true if status is OK, false otherwise. */
+ * \return true if status is OK, false otherwise.
+ */
 bool BKE_lib_override_library_status_check_reference(struct Main *bmain, struct ID *local);
 
 /**

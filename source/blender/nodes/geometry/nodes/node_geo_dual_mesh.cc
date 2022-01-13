@@ -415,7 +415,7 @@ static void sort_vertex_polys(const Mesh &mesh,
     }
   }
   else {
-    /* Any polygon can be the first. Just need to check the orientation.*/
+    /* Any polygon can be the first. Just need to check the orientation. */
     const MLoop &first_loop = mesh.mloop[poly_vertex_corners[0].first];
     const MLoop &second_loop = mesh.mloop[poly_vertex_corners[0].second];
     if (first_loop.v == vertex_index) {

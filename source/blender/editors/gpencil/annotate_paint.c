@@ -1473,7 +1473,7 @@ static tGPsdata *annotation_session_initpaint(bContext *C)
     return NULL;
   }
 
-  /* Radius for eraser circle is defined in userprefs */
+  /* Radius for eraser circle is defined in user-preferences. */
   /* NOTE: we do this here, so that if we exit immediately,
    *       erase size won't get lost
    */

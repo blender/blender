@@ -830,7 +830,7 @@ static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z,
     s_prev = s;
     s = dot_lfvector(r, r, numverts);
 
-    /* d = r+d*(s/s_prev); */
+    // d = r+d*(s/s_prev);
     add_lfvector_lfvectorS(d, r, d, (s / s_prev), numverts);
 
     filter(d, S);
