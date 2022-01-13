@@ -1686,6 +1686,8 @@ static TreeTraversalAction outliner_find_objects_to_delete(TreeElement *te, void
   return TRAVERSE_CONTINUE;
 }
 
+/* FIXME: See comment above #WM_msg_publish_rna_prop(). */
+extern "C" {
 static int outliner_delete_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1744,6 +1746,7 @@ static int outliner_delete_exec(bContext *C, wmOperator *op)
   ED_outliner_select_sync_from_object_tag(C);
 
   return OPERATOR_FINISHED;
+}
 }
 
 void OUTLINER_OT_delete(wmOperatorType *ot)

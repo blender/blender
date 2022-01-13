@@ -668,6 +668,8 @@ static void scenes__collection_set_flag_recursive_fn(bContext *C, void *poin, vo
   outliner_collection_set_flag_recursive_fn(C, nullptr, collection, propname);
 }
 
+/* FIXME: See comment above #WM_msg_publish_rna_prop(). */
+extern "C" {
 static void namebutton_fn(bContext *C, void *tsep, char *oldname)
 {
   Main *bmain = CTX_data_main(C);
@@ -864,6 +866,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
     }
     tselem->flag &= ~TSE_TEXTBUT;
   }
+}
 }
 
 typedef struct RestrictProperties {

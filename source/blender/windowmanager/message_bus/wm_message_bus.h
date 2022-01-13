@@ -244,6 +244,17 @@ void WM_msg_subscribe_ID(struct wmMsgBus *mbus,
                          const char *id_repr);
 void WM_msg_publish_ID(struct wmMsgBus *mbus, struct ID *id);
 
+/* FIXME
+ *
+ * For C++ code, some of the following macros need to be called in functions wrapped in
+ * `extern "C"` blocks. That is, the ones doing `extern PropertyRNA` declarations (trips up the
+ * MSVC linker).
+ * Although this shouldn't cause problems normally, if it does, the bits calling the macros can be
+ * moved to a separate function wrapped in `extern "C"`.
+ *
+ * Obviously this should be fixed properly (by not relying on inline `extern` declarations).
+ */
+
 #define WM_msg_publish_rna_prop(mbus, id_, data_, type_, prop_) \
   { \
     wmMsgParams_RNA msg_key_params_ = {{0}}; \
