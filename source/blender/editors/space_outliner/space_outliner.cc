@@ -49,7 +49,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "outliner_intern.h"
+#include "outliner_intern.hh"
 #include "tree/tree_display.h"
 
 static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
@@ -104,7 +104,7 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
   ScrArea *area = params->area;
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
-  SpaceOutliner *space_outliner = area->spacedata.first;
+  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(area->spacedata.first);
 
   /* context changes */
   switch (wmn->category) {
@@ -267,13 +267,12 @@ static void outliner_main_region_message_subscribe(const wmRegionMessageSubscrib
   struct wmMsgBus *mbus = params->message_bus;
   ScrArea *area = params->area;
   ARegion *region = params->region;
-  SpaceOutliner *space_outliner = area->spacedata.first;
+  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(area->spacedata.first);
 
-  wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
-      .owner = region,
-      .user_data = region,
-      .notify = ED_region_do_msg_notify_tag_redraw,
-  };
+  wmMsgSubscribeValue msg_sub_value_region_tag_redraw{};
+  msg_sub_value_region_tag_redraw.owner = region;
+  msg_sub_value_region_tag_redraw.user_data = region;
+  msg_sub_value_region_tag_redraw.notify = ED_region_do_msg_notify_tag_redraw;
 
   if (ELEM(space_outliner->outlinevis, SO_VIEW_LAYER, SO_SCENES, SO_OVERRIDES_LIBRARY)) {
     WM_msg_subscribe_rna_anon_prop(mbus, Window, view_layer, &msg_sub_value_region_tag_redraw);
@@ -324,7 +323,7 @@ static SpaceLink *outliner_create(const ScrArea *UNUSED(area), const Scene *UNUS
   ARegion *region;
   SpaceOutliner *space_outliner;
 
-  space_outliner = MEM_callocN(sizeof(SpaceOutliner), "initoutliner");
+  space_outliner = MEM_cnew<SpaceOutliner>("initoutliner");
   space_outliner->spacetype = SPACE_OUTLINER;
   space_outliner->filter_id_type = ID_GR;
   space_outliner->show_restrict_flags = SO_RESTRICT_ENABLE | SO_RESTRICT_HIDE | SO_RESTRICT_RENDER;
@@ -334,14 +333,14 @@ static SpaceLink *outliner_create(const ScrArea *UNUSED(area), const Scene *UNUS
   space_outliner->filter = SO_FILTER_NO_VIEW_LAYERS;
 
   /* header */
-  region = MEM_callocN(sizeof(ARegion), "header for outliner");
+  region = MEM_cnew<ARegion>("header for outliner");
 
   BLI_addtail(&space_outliner->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* main region */
-  region = MEM_callocN(sizeof(ARegion), "main region for outliner");
+  region = MEM_cnew<ARegion>("main region for outliner");
 
   BLI_addtail(&space_outliner->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
@@ -371,18 +370,17 @@ static void outliner_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void outliner_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 {
-  SpaceOutliner *space_outliner = area->spacedata.first;
+  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(area->spacedata.first);
 
   if (space_outliner->runtime == NULL) {
-    space_outliner->runtime = MEM_callocN(sizeof(*space_outliner->runtime),
-                                          "SpaceOutliner_Runtime");
+    space_outliner->runtime = MEM_cnew<SpaceOutliner_Runtime>("SpaceOutliner_Runtime");
   }
 }
 
 static SpaceLink *outliner_duplicate(SpaceLink *sl)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
-  SpaceOutliner *space_outliner_new = MEM_dupallocN(space_outliner);
+  SpaceOutliner *space_outliner_new = MEM_new<SpaceOutliner>(__func__, *space_outliner);
 
   BLI_listbase_clear(&space_outliner_new->tree);
   space_outliner_new->treestore = NULL;
@@ -390,7 +388,8 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
   space_outliner_new->sync_select_dirty = WM_OUTLINER_SYNC_SELECT_FROM_ALL;
 
   if (space_outliner->runtime) {
-    space_outliner_new->runtime = MEM_dupallocN(space_outliner->runtime);
+    space_outliner_new->runtime = MEM_new<SpaceOutliner_Runtime>("SpaceOutliner_runtime dup",
+                                                                 *space_outliner->runtime);
     space_outliner_new->runtime->tree_display = NULL;
     space_outliner_new->runtime->treehash = NULL;
   }
@@ -417,7 +416,7 @@ static void outliner_id_remap(ScrArea *area, SpaceLink *slink, ID *old_id, ID *n
     bool changed = false;
 
     BLI_mempool_iternew(space_outliner->treestore, &iter);
-    while ((tselem = BLI_mempool_iterstep(&iter))) {
+    while ((tselem = reinterpret_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
       if (tselem->id == old_id) {
         tselem->id = new_id;
         changed = true;
@@ -444,14 +443,14 @@ static void outliner_id_remap(ScrArea *area, SpaceLink *slink, ID *old_id, ID *n
 static void outliner_deactivate(struct ScrArea *area)
 {
   /* Remove hover highlights */
-  SpaceOutliner *space_outliner = area->spacedata.first;
+  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(area->spacedata.first);
   outliner_flag_set(&space_outliner->tree, TSE_HIGHLIGHTED_ANY, false);
   ED_region_tag_redraw_no_rebuild(BKE_area_find_region_type(area, RGN_TYPE_WINDOW));
 }
 
 void ED_spacetype_outliner(void)
 {
-  SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype time");
+  SpaceType *st = MEM_cnew<SpaceType>("spacetype time");
   ARegionType *art;
 
   st->spaceid = SPACE_OUTLINER;
@@ -469,7 +468,7 @@ void ED_spacetype_outliner(void)
   st->context = outliner_context;
 
   /* regions: main window */
-  art = MEM_callocN(sizeof(ARegionType), "spacetype outliner region");
+  art = MEM_cnew<ARegionType>("spacetype outliner region");
   art->regionid = RGN_TYPE_WINDOW;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
 
@@ -481,7 +480,7 @@ void ED_spacetype_outliner(void)
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_callocN(sizeof(ARegionType), "spacetype outliner header region");
+  art = MEM_cnew<ARegionType>("spacetype outliner header region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;

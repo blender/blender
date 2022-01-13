@@ -259,7 +259,7 @@ typedef enum eSpaceButtons_OutlinerSync {
 /** \name Outliner
  * \{ */
 
-/** Defined in `outliner_intern.h`. */
+/** Defined in `outliner_intern.hh`. */
 typedef struct SpaceOutliner_Runtime SpaceOutliner_Runtime;
 
 /** Outliner */

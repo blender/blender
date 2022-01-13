@@ -73,7 +73,7 @@
 
 #include "GPU_material.h"
 
-#include "outliner_intern.h"
+#include "outliner_intern.hh"
 
 static void outliner_show_active(SpaceOutliner *space_outliner,
                                  ARegion *region,
@@ -258,7 +258,7 @@ static int outliner_item_openclose_invoke(bContext *C, wmOperator *op, const wmE
     }
 
     /* Store last expanded tselem and x coordinate of disclosure triangle */
-    OpenCloseData *toggle_data = MEM_callocN(sizeof(OpenCloseData), "open_close_data");
+    OpenCloseData *toggle_data = MEM_cnew<OpenCloseData>("open_close_data");
     toggle_data->prev_tselem = tselem;
     toggle_data->open = open;
     toggle_data->x_location = te->xs;
@@ -575,10 +575,10 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
   const short id_type = (short)RNA_enum_get(op->ptr, "id_type");
-  ID *old_id = BLI_findlink(which_libbase(CTX_data_main(C), id_type),
-                            RNA_enum_get(op->ptr, "old_id"));
-  ID *new_id = BLI_findlink(which_libbase(CTX_data_main(C), id_type),
-                            RNA_enum_get(op->ptr, "new_id"));
+  ID *old_id = reinterpret_cast<ID *>(
+      BLI_findlink(which_libbase(CTX_data_main(C), id_type), RNA_enum_get(op->ptr, "old_id")));
+  ID *new_id = reinterpret_cast<ID *>(
+      BLI_findlink(which_libbase(CTX_data_main(C), id_type), RNA_enum_get(op->ptr, "new_id")));
 
   /* check for invalid states */
   if (space_outliner == NULL) {
@@ -671,9 +671,9 @@ static const EnumPropertyItem *outliner_id_itemf(bContext *C,
   int i = 0;
 
   short id_type = (short)RNA_enum_get(ptr, "id_type");
-  ID *id = which_libbase(CTX_data_main(C), id_type)->first;
+  ID *id = reinterpret_cast<ID *>(which_libbase(CTX_data_main(C), id_type)->first);
 
-  for (; id; id = id->next) {
+  for (; id; id = reinterpret_cast<ID *>(id->next)) {
     item_tmp.identifier = item_tmp.name = id->name + 2;
     item_tmp.value = i++;
     RNA_enum_item_add(&item, &totitem, &item_tmp);
@@ -709,7 +709,7 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
 
   prop = RNA_def_enum(ot->srna, "old_id", DummyRNA_NULL_items, 0, "Old ID", "Old ID to replace");
   RNA_def_property_enum_funcs_runtime(prop, NULL, NULL, outliner_id_itemf);
-  RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE | PROP_HIDDEN);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_ENUM_NO_TRANSLATE | PROP_HIDDEN));
 
   ot->prop = RNA_def_enum(ot->srna,
                           "new_id",
@@ -1739,19 +1739,19 @@ static void tree_element_to_path(TreeElement *te,
 
   /* step 1: flatten out hierarchy of parents into a flat chain */
   for (tem = te->parent; tem; tem = tem->parent) {
-    ld = MEM_callocN(sizeof(LinkData), "LinkData for tree_element_to_path()");
+    ld = MEM_cnew<LinkData>("LinkData for tree_element_to_path()");
     ld->data = tem;
     BLI_addhead(&hierarchy, ld);
   }
 
   /* step 2: step down hierarchy building the path
    * (NOTE: addhead in previous loop was needed so that we can loop like this) */
-  for (ld = hierarchy.first; ld; ld = ld->next) {
+  for (ld = reinterpret_cast<LinkData *>(hierarchy.first); ld; ld = ld->next) {
     /* get data */
     tem = (TreeElement *)ld->data;
     tse = TREESTORE(tem);
     ptr = &tem->rnaptr;
-    prop = tem->directdata;
+    prop = reinterpret_cast<PropertyRNA *>(tem->directdata);
 
     /* check if we're looking for first ID, or appending to path */
     if (*id) {
@@ -1812,7 +1812,7 @@ static void tree_element_to_path(TreeElement *te,
         /* ptr->data not ptr->owner_id seems to be the one we want,
          * since ptr->data is sometimes the owner of this ID? */
         if (RNA_struct_is_ID(ptr->type)) {
-          *id = ptr->data;
+          *id = reinterpret_cast<ID *>(ptr->data);
 
           /* clear path */
           if (*path) {
@@ -1828,7 +1828,7 @@ static void tree_element_to_path(TreeElement *te,
   if (*id) {
     /* add the active property to the path */
     ptr = &te->rnaptr;
-    prop = te->directdata;
+    prop = reinterpret_cast<PropertyRNA *>(te->directdata);
 
     /* array checks */
     if (tselem->type == TSE_RNA_ARRAY_ELEM) {
@@ -1888,7 +1888,7 @@ static void do_outliner_drivers_editop(SpaceOutliner *space_outliner,
 
       /* check if RNA-property described by this selected element is an animatable prop */
       if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM) &&
-          RNA_property_animateable(&te->rnaptr, te->directdata)) {
+          RNA_property_animateable(&te->rnaptr, reinterpret_cast<PropertyRNA *>(te->directdata))) {
         /* get id + path + index info from the selected element */
         tree_element_to_path(te, tselem, &id, &path, &array_index, &flag, &groupmode);
       }
@@ -1901,7 +1901,8 @@ static void do_outliner_drivers_editop(SpaceOutliner *space_outliner,
         /* array checks */
         if (flag & KSP_FLAG_WHOLE_ARRAY) {
           /* entire array was selected, so add drivers for all */
-          arraylen = RNA_property_array_length(&te->rnaptr, te->directdata);
+          arraylen = RNA_property_array_length(&te->rnaptr,
+                                               reinterpret_cast<PropertyRNA *>(te->directdata));
         }
         else {
           arraylen = array_index;
@@ -2051,7 +2052,8 @@ static KeyingSet *verify_active_keyingset(Scene *scene, short add)
 
   /* try to find one from scene */
   if (scene->active_keyingset > 0) {
-    ks = BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1);
+    ks = reinterpret_cast<KeyingSet *>(
+        BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1));
   }
 
   /* Add if none found */
@@ -2083,7 +2085,7 @@ static void do_outliner_keyingset_editop(SpaceOutliner *space_outliner,
 
       /* check if RNA-property described by this selected element is an animatable prop */
       if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM) &&
-          RNA_property_animateable(&te->rnaptr, te->directdata)) {
+          RNA_property_animateable(&te->rnaptr, reinterpret_cast<PropertyRNA *>(te->directdata))) {
         /* get id + path + index info from the selected element */
         tree_element_to_path(te, tselem, &id, &path, &array_index, &flag, &groupmode);
       }
@@ -2336,7 +2338,7 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
 
   /* properties */
   PropertyRNA *prop = RNA_def_int(ot->srna, "num_deleted", 0, 0, INT_MAX, "", "", 0, INT_MAX);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
 
   RNA_def_boolean(ot->srna,
                   "do_local_ids",

@@ -58,7 +58,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "outliner_intern.h"
+#include "outliner_intern.hh"
 
 static Collection *collection_parent_from_ID(ID *id);
 
@@ -157,7 +157,7 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
           return te_hovered;
         }
         *r_insert_type = TE_INSERT_BEFORE;
-        return te_hovered->subtree.first;
+        return reinterpret_cast<TreeElement *>(te_hovered->subtree.first);
       }
       *r_insert_type = TE_INSERT_AFTER;
       return te_hovered;
@@ -172,8 +172,8 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
 
   /* Mouse doesn't hover any item (ignoring x-axis),
    * so it's either above list bounds or below. */
-  TreeElement *first = space_outliner->tree.first;
-  TreeElement *last = space_outliner->tree.last;
+  TreeElement *first = reinterpret_cast<TreeElement *>(space_outliner->tree.first);
+  TreeElement *last = reinterpret_cast<TreeElement *>(space_outliner->tree.last);
 
   if (view_mval[1] < last->ys) {
     *r_insert_type = TE_INSERT_AFTER;
@@ -430,10 +430,11 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  ListBase *lb = event->customdata;
-  wmDrag *drag = lb->first;
+  ListBase *lb = reinterpret_cast<ListBase *>(event->customdata);
+  wmDrag *drag = reinterpret_cast<wmDrag *>(lb->first);
 
-  parent_drop_set_parents(C, op->reports, drag->ids.first, par, PAR_OBJECT, event->alt);
+  parent_drop_set_parents(
+      C, op->reports, reinterpret_cast<wmDragID *>(drag->ids.first), par, PAR_OBJECT, event->alt);
 
   return OPERATOR_FINISHED;
 }
@@ -504,8 +505,8 @@ static int parent_clear_invoke(bContext *C, wmOperator *UNUSED(op), const wmEven
     return OPERATOR_CANCELLED;
   }
 
-  ListBase *lb = event->customdata;
-  wmDrag *drag = lb->first;
+  ListBase *lb = reinterpret_cast<ListBase *>(event->customdata);
+  wmDrag *drag = reinterpret_cast<wmDrag *>(lb->first);
 
   LISTBASE_FOREACH (wmDragID *, drag_id, &drag->ids) {
     if (GS(drag_id->id->name) == ID_OB) {
@@ -686,7 +687,7 @@ static void datastack_drop_data_init(wmDrag *drag,
                                      TreeStoreElem *tselem,
                                      void *directdata)
 {
-  StackDropData *drop_data = MEM_callocN(sizeof(*drop_data), "datastack drop data");
+  StackDropData *drop_data = MEM_cnew<StackDropData>("datastack drop data");
 
   drop_data->ob_parent = ob;
   drop_data->pchan_parent = pchan;
@@ -836,7 +837,7 @@ static bool datastack_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   bool changed = outliner_flag_set(
       &space_outliner->tree, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
 
-  StackDropData *drop_data = drag->poin;
+  StackDropData *drop_data = reinterpret_cast<StackDropData *>(drag->poin);
   if (!drop_data) {
     return false;
   }
@@ -874,7 +875,7 @@ static char *datastack_drop_tooltip(bContext *UNUSED(C),
                                     const int UNUSED(xy[2]),
                                     struct wmDropBox *UNUSED(drop))
 {
-  StackDropData *drop_data = drag->poin;
+  StackDropData *drop_data = reinterpret_cast<StackDropData *>(drag->poin);
   switch (drop_data->drop_action) {
     case DATA_STACK_DROP_REORDER:
       return BLI_strdup(TIP_("Reorder"));
@@ -951,20 +952,28 @@ static void datastack_drop_copy(bContext *C, StackDropData *drop_data)
   switch (drop_data->drag_tselem->type) {
     case TSE_MODIFIER:
       if (drop_data->ob_parent->type == OB_GPENCIL && ob_dst->type == OB_GPENCIL) {
-        ED_object_gpencil_modifier_copy_to_object(ob_dst, drop_data->drag_directdata);
+        ED_object_gpencil_modifier_copy_to_object(
+            ob_dst, reinterpret_cast<GpencilModifierData *>(drop_data->drag_directdata));
       }
       else if (drop_data->ob_parent->type != OB_GPENCIL && ob_dst->type != OB_GPENCIL) {
         ED_object_modifier_copy_to_object(
-            C, ob_dst, drop_data->ob_parent, drop_data->drag_directdata);
+            C,
+            ob_dst,
+            drop_data->ob_parent,
+            reinterpret_cast<ModifierData *>(drop_data->drag_directdata));
       }
       break;
     case TSE_CONSTRAINT:
       if (tselem->type == TSE_POSE_CHANNEL) {
         ED_object_constraint_copy_for_pose(
-            bmain, ob_dst, drop_data->drop_te->directdata, drop_data->drag_directdata);
+            bmain,
+            ob_dst,
+            reinterpret_cast<bPoseChannel *>(drop_data->drop_te->directdata),
+            reinterpret_cast<bConstraint *>(drop_data->drag_directdata));
       }
       else {
-        ED_object_constraint_copy_for_object(bmain, ob_dst, drop_data->drag_directdata);
+        ED_object_constraint_copy_for_object(
+            bmain, ob_dst, reinterpret_cast<bConstraint *>(drop_data->drag_directdata));
       }
       break;
     case TSE_GPENCIL_EFFECT: {
@@ -972,7 +981,8 @@ static void datastack_drop_copy(bContext *C, StackDropData *drop_data)
         return;
       }
 
-      ED_object_shaderfx_copy(ob_dst, drop_data->drag_directdata);
+      ED_object_shaderfx_copy(ob_dst,
+                              reinterpret_cast<ShaderFxData *>(drop_data->drag_directdata));
       break;
     }
   }
@@ -998,11 +1008,16 @@ static void datastack_drop_reorder(bContext *C, ReportList *reports, StackDropDa
       if (ob->type == OB_GPENCIL) {
         index = outliner_get_insert_index(
             drag_te, drop_te, insert_type, &ob->greasepencil_modifiers);
-        ED_object_gpencil_modifier_move_to_index(reports, ob, drop_data->drag_directdata, index);
+        ED_object_gpencil_modifier_move_to_index(
+            reports,
+            ob,
+            reinterpret_cast<GpencilModifierData *>(drop_data->drag_directdata),
+            index);
       }
       else {
         index = outliner_get_insert_index(drag_te, drop_te, insert_type, &ob->modifiers);
-        ED_object_modifier_move_to_index(reports, ob, drop_data->drag_directdata, index);
+        ED_object_modifier_move_to_index(
+            reports, ob, reinterpret_cast<ModifierData *>(drop_data->drag_directdata), index);
       }
       break;
     case TSE_CONSTRAINT:
@@ -1013,12 +1028,14 @@ static void datastack_drop_reorder(bContext *C, ReportList *reports, StackDropDa
       else {
         index = outliner_get_insert_index(drag_te, drop_te, insert_type, &ob->constraints);
       }
-      ED_object_constraint_move_to_index(ob, drop_data->drag_directdata, index);
+      ED_object_constraint_move_to_index(
+          ob, reinterpret_cast<bConstraint *>(drop_data->drag_directdata), index);
 
       break;
     case TSE_GPENCIL_EFFECT:
       index = outliner_get_insert_index(drag_te, drop_te, insert_type, &ob->shader_fx);
-      ED_object_shaderfx_move_to_index(reports, ob, drop_data->drag_directdata, index);
+      ED_object_shaderfx_move_to_index(
+          reports, ob, reinterpret_cast<ShaderFxData *>(drop_data->drag_directdata), index);
   }
 }
 
@@ -1028,9 +1045,9 @@ static int datastack_drop_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     return OPERATOR_CANCELLED;
   }
 
-  ListBase *lb = event->customdata;
-  wmDrag *drag = lb->first;
-  StackDropData *drop_data = drag->poin;
+  ListBase *lb = reinterpret_cast<ListBase *>(event->customdata);
+  wmDrag *drag = reinterpret_cast<wmDrag *>(lb->first);
+  StackDropData *drop_data = reinterpret_cast<StackDropData *>(drag->poin);
 
   switch (drop_data->drop_action) {
     case DATA_STACK_DROP_LINK:
@@ -1111,7 +1128,7 @@ static bool collection_drop_init(
     return false;
   }
 
-  wmDragID *drag_id = drag->ids.first;
+  wmDragID *drag_id = reinterpret_cast<wmDragID *>(drag->ids.first);
   if (drag_id == NULL) {
     return false;
   }
@@ -1258,8 +1275,8 @@ static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
     return OPERATOR_CANCELLED;
   }
 
-  ListBase *lb = event->customdata;
-  wmDrag *drag = lb->first;
+  ListBase *lb = reinterpret_cast<ListBase *>(event->customdata);
+  wmDrag *drag = reinterpret_cast<wmDrag *>(lb->first);
 
   CollectionDrop data;
   if (!collection_drop_init(C, drag, event->xy, event->ctrl, &data)) {
@@ -1419,9 +1436,7 @@ static int outliner_item_drag_drop_invoke(bContext *C,
     }
 
     /* Gather all selected elements. */
-    struct IDsSelectedData selected = {
-        .selected_array = {NULL, NULL},
-    };
+    IDsSelectedData selected{};
 
     if (GS(data.drag_id->name) == ID_OB) {
       outliner_tree_traverse(space_outliner,

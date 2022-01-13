@@ -25,7 +25,7 @@
 
 #include "ED_screen.h"
 
-#include "outliner_intern.h"
+#include "outliner_intern.hh"
 
 /* ************************** registration **********************************/
 

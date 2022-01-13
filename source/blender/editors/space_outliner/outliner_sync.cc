@@ -50,7 +50,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "outliner_intern.h"
+#include "outliner_intern.hh"
 
 void ED_outliner_select_sync_from_object_tag(bContext *C)
 {
@@ -93,7 +93,8 @@ void ED_outliner_select_sync_flag_outliners(const bContext *C)
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+  for (bScreen *screen = reinterpret_cast<bScreen *>(bmain->screens.first); screen;
+       screen = reinterpret_cast<bScreen *>(screen->id.next)) {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
         if (sl->spacetype == SPACE_OUTLINER) {
@@ -274,7 +275,7 @@ static void outliner_select_sync_to_pose_bone(TreeElement *te,
                                               GSet *selected_pbones)
 {
   Object *ob = (Object *)tselem->id;
-  bArmature *arm = ob->data;
+  bArmature *arm = reinterpret_cast<bArmature *>(ob->data);
   bPoseChannel *pchan = (bPoseChannel *)te->directdata;
 
   short bone_flag = pchan->bone->flag;

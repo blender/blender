@@ -28,7 +28,7 @@
 
 #include "BLT_translation.h"
 
-#include "../outliner_intern.h"
+#include "../outliner_intern.hh"
 #include "tree_display.hh"
 
 namespace blender::ed::outliner {

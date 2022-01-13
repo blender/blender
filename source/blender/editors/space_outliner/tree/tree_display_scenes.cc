@@ -24,7 +24,7 @@
 
 #include "BKE_main.h"
 
-#include "../outliner_intern.h"
+#include "../outliner_intern.hh"
 #include "tree_display.hh"
 
 namespace blender::ed::outliner {
