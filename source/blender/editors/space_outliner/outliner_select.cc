@@ -96,14 +96,14 @@ static void do_outliner_item_editmode_toggle(bContext *C, Scene *scene, Base *ba
     changed = ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
     if (changed) {
       ED_object_base_select(base, BA_DESELECT);
-      WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
+      WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, nullptr);
     }
   }
   else {
     changed = ED_object_editmode_enter_ex(CTX_data_main(C), scene, ob, EM_NO_CONTEXT);
     if (changed) {
       ED_object_base_select(base, BA_SELECT);
-      WM_event_add_notifier(C, NC_SCENE | ND_MODE, NULL);
+      WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);
     }
   }
 
@@ -134,14 +134,14 @@ static void do_outliner_item_posemode_toggle(bContext *C, Scene *scene, Base *ba
     changed = ED_object_posemode_exit_ex(bmain, ob);
     if (changed) {
       ED_object_base_select(base, BA_DESELECT);
-      WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
+      WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, nullptr);
     }
   }
   else {
     changed = ED_object_posemode_enter_ex(bmain, ob);
     if (changed) {
       ED_object_base_select(base, BA_SELECT);
-      WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_POSE, NULL);
+      WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_POSE, nullptr);
     }
   }
 
@@ -228,7 +228,7 @@ static void tree_element_viewlayer_activate(bContext *C, TreeElement *te)
 
   if (BLI_findindex(&scene->view_layers, view_layer) != -1) {
     WM_window_set_active_view_layer(win, view_layer);
-    WM_event_add_notifier(C, NC_SCREEN | ND_LAYER, NULL);
+    WM_event_add_notifier(C, NC_SCREEN | ND_LAYER, nullptr);
   }
 }
 
@@ -286,11 +286,11 @@ static void tree_element_object_activate(bContext *C,
                                          bool recursive)
 {
   TreeStoreElem *tselem = TREESTORE(te);
-  TreeStoreElem *parent_tselem = NULL;
-  TreeElement *parent_te = NULL;
+  TreeStoreElem *parent_tselem = nullptr;
+  TreeElement *parent_te = nullptr;
   Scene *sce;
   Base *base;
-  Object *ob = NULL;
+  Object *ob = nullptr;
 
   /* if id is not object, we search back */
   if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
@@ -308,7 +308,7 @@ static void tree_element_object_activate(bContext *C,
       }
     }
   }
-  if (ob == NULL) {
+  if (ob == nullptr) {
     return;
   }
 
@@ -322,7 +322,7 @@ static void tree_element_object_activate(bContext *C,
   base = BKE_view_layer_base_find(view_layer, ob);
 
   if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
-    if (base != NULL) {
+    if (base != nullptr) {
       Object *obact = OBACT(view_layer);
       const eObjectMode object_mode = obact ? (eObjectMode)obact->mode : OB_MODE_OBJECT;
       if (base && !BKE_object_is_mode_compat(base->object, object_mode)) {
@@ -332,7 +332,7 @@ static void tree_element_object_activate(bContext *C,
           ED_object_mode_generic_exit(bmain, depsgraph, scene, base->object);
         }
         if (!BKE_object_is_mode_compat(base->object, object_mode)) {
-          base = NULL;
+          base = nullptr;
         }
       }
     }
@@ -389,8 +389,8 @@ static void tree_element_material_activate(bContext *C, ViewLayer *view_layer, T
 {
   /* we search for the object parent */
   Object *ob = (Object *)outliner_search_back(te, ID_OB);
-  /* Note : ob->matbits can be NULL when a local object points to a library mesh. */
-  if (ob == NULL || ob != OBACT(view_layer) || ob->matbits == NULL) {
+  /* Note : ob->matbits can be nullptr when a local object points to a library mesh. */
+  if (ob == nullptr || ob != OBACT(view_layer) || ob->matbits == nullptr) {
     return; /* just paranoia */
   }
 
@@ -410,7 +410,7 @@ static void tree_element_material_activate(bContext *C, ViewLayer *view_layer, T
    * for render views to update. See T42973.
    * Note that RNA material update does it too, see e.g. rna_MaterialSlot_update(). */
   DEG_id_tag_update((ID *)ob, ID_RECALC_TRANSFORM);
-  WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, NULL);
+  WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, nullptr);
 }
 
 static void tree_element_camera_activate(bContext *C, Scene *scene, TreeElement *te)
@@ -425,12 +425,12 @@ static void tree_element_camera_activate(bContext *C, Scene *scene, TreeElement 
   WM_windows_scene_data_sync(&wm->windows, scene);
   DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   DEG_relations_tag_update(bmain);
-  WM_event_add_notifier(C, NC_SCENE | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_SCENE | NA_EDITED, nullptr);
 }
 
 static void tree_element_world_activate(bContext *C, Scene *scene, TreeElement *te)
 {
-  Scene *sce = NULL;
+  Scene *sce = nullptr;
 
   TreeElement *tep = te->parent;
   if (tep) {
@@ -495,13 +495,13 @@ static void tree_element_posechannel_activate(bContext *C,
     if (set != OL_SETSEL_EXTEND) {
       /* Single select forces all other bones to get unselected. */
       uint objects_len = 0;
-      Object **objects = BKE_object_pose_array_get_unique(view_layer, NULL, &objects_len);
+      Object **objects = BKE_object_pose_array_get_unique(view_layer, nullptr, &objects_len);
 
       for (uint object_index = 0; object_index < objects_len; object_index++) {
         Object *ob_iter = BKE_object_pose_armature_get(objects[object_index]);
 
         /* Sanity checks. */
-        if (ELEM(NULL, ob_iter, ob_iter->pose, ob_iter->data)) {
+        if (ELEM(nullptr, ob_iter, ob_iter->pose, ob_iter->data)) {
           continue;
         }
 
@@ -550,7 +550,7 @@ static void tree_element_bone_activate(bContext *C,
     if (ob) {
       if (set != OL_SETSEL_EXTEND) {
         /* single select forces all other bones to get unselected */
-        for (Bone *bone_iter = reinterpret_cast<Bone *>(arm->bonebase.first); bone_iter != NULL;
+        for (Bone *bone_iter = reinterpret_cast<Bone *>(arm->bonebase.first); bone_iter != nullptr;
              bone_iter = bone_iter->next) {
           bone_iter->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
           do_outliner_bone_select_recursive(arm, bone_iter, false);
@@ -603,7 +603,7 @@ static void tree_element_ebone_activate(bContext *C,
       ob_params.no_dup_data = true;
 
       Base **bases = BKE_view_layer_array_from_bases_in_mode_params(
-          view_layer, NULL, &bases_len, &ob_params);
+          view_layer, nullptr, &bases_len, &ob_params);
       ED_armature_edit_deselect_all_multi_ex(bases, bases_len);
       MEM_freeN(bases);
 
@@ -681,7 +681,7 @@ static void tree_element_sequence_activate(bContext *C,
 
   if (BLI_findindex(ed->seqbasep, seq) != -1) {
     if (set == OL_SETSEL_EXTEND) {
-      SEQ_select_active_set(scene, NULL);
+      SEQ_select_active_set(scene, nullptr);
     }
     ED_sequencer_deselect_all(scene);
 
@@ -728,7 +728,7 @@ static void tree_element_master_collection_activate(const bContext *C)
   BKE_layer_collection_activate(view_layer, layer_collection);
   /* A very precise notifier - ND_LAYER alone is quite vague, we want to avoid unnecessary work
    * when only the active collection changes. */
-  WM_main_add_notifier(NC_SCENE | ND_LAYER | NS_LAYER_COLLECTION | NA_ACTIVATED, NULL);
+  WM_main_add_notifier(NC_SCENE | ND_LAYER | NS_LAYER_COLLECTION | NA_ACTIVATED, nullptr);
 }
 
 static void tree_element_layer_collection_activate(bContext *C, TreeElement *te)
@@ -739,7 +739,7 @@ static void tree_element_layer_collection_activate(bContext *C, TreeElement *te)
   BKE_layer_collection_activate(view_layer, layer_collection);
   /* A very precise notifier - ND_LAYER alone is quite vague, we want to avoid unnecessary work
    * when only the active collection changes. */
-  WM_main_add_notifier(NC_SCENE | ND_LAYER | NS_LAYER_COLLECTION | NA_ACTIVATED, NULL);
+  WM_main_add_notifier(NC_SCENE | ND_LAYER | NS_LAYER_COLLECTION | NA_ACTIVATED, nullptr);
 }
 
 static void tree_element_text_activate(bContext *C, TreeElement *te)
@@ -898,7 +898,7 @@ static eOLDrawState tree_element_pose_state_get(const ViewLayer *view_layer,
   const Object *ob = (const Object *)tselem->id;
   /* This will just lookup in a cache, it will not change the arguments. */
   const Base *base = BKE_view_layer_base_find((ViewLayer *)view_layer, (Object *)ob);
-  if (base == NULL) {
+  if (base == nullptr) {
     /* Armature not instantiated in current scene (e.g. inside an appended group). */
     return OL_DRAWSEL_NONE;
   }
@@ -1006,8 +1006,8 @@ static eOLDrawState tree_element_active_material_get(const ViewLayer *view_layer
 {
   /* we search for the object parent */
   const Object *ob = (const Object *)outliner_search_back((TreeElement *)te, ID_OB);
-  /* Note : ob->matbits can be NULL when a local object points to a library mesh. */
-  if (ob == NULL || ob != OBACT(view_layer) || ob->matbits == NULL) {
+  /* Note : ob->matbits can be nullptr when a local object points to a library mesh. */
+  if (ob == nullptr || ob != OBACT(view_layer) || ob->matbits == nullptr) {
     return OL_DRAWSEL_NONE; /* just paranoia */
   }
 
@@ -1046,7 +1046,7 @@ static eOLDrawState tree_element_active_scene_get(const TreeViewContext *tvc,
 static eOLDrawState tree_element_active_world_get(const Scene *scene, const TreeElement *te)
 {
   const TreeElement *tep = te->parent;
-  if (tep == NULL) {
+  if (tep == nullptr) {
     return OL_DRAWSEL_NORMAL;
   }
 
@@ -1142,7 +1142,7 @@ bPoseChannel *outliner_find_parent_bone(TreeElement *te, TreeElement **r_bone_te
     te = te->parent;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static void outliner_sync_to_properties_editors(const bContext *C,
@@ -1213,7 +1213,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         break;
       case TSE_CONSTRAINT_BASE:
       case TSE_CONSTRAINT: {
-        TreeElement *bone_te = NULL;
+        TreeElement *bone_te = nullptr;
         bPoseChannel *pchan = outliner_find_parent_bone(te, &bone_te);
 
         if (pchan) {
@@ -1421,7 +1421,7 @@ static void do_outliner_item_activate_tree_element(bContext *C,
         FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (gr, object) {
           Base *base = BKE_view_layer_base_find(tvc->view_layer, object);
           /* Object may not be in this scene */
-          if (base != NULL) {
+          if (base != nullptr) {
             if ((base->flag & BASE_SELECTED) == 0) {
               ED_object_base_select(base, BA_SELECT);
             }

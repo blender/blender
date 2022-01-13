@@ -107,11 +107,11 @@ static int outliner_highlight_update(bContext *C, wmOperator *UNUSED(op), const 
   TreeElement *hovered_te = outliner_find_item_at_y(
       space_outliner, &space_outliner->tree, view_mval[1]);
 
-  TreeElement *icon_te = NULL;
+  TreeElement *icon_te = nullptr;
   bool is_over_icon = false;
   if (hovered_te) {
     icon_te = outliner_find_item_at_x_in_row(
-        space_outliner, hovered_te, view_mval[0], NULL, &is_over_icon);
+        space_outliner, hovered_te, view_mval[0], nullptr, &is_over_icon);
   }
 
   bool changed = false;
@@ -218,7 +218,7 @@ static int outliner_item_openclose_modal(bContext *C, wmOperator *op, const wmEv
       data->prev_tselem = TREESTORE(te);
     }
     else {
-      data->prev_tselem = NULL;
+      data->prev_tselem = nullptr;
     }
   }
   else if (event->val == KM_RELEASE) {
@@ -375,7 +375,7 @@ static TreeElement *outliner_item_rename_find_active(const SpaceOutliner *space_
 
   if (!active_element) {
     BKE_report(reports, RPT_WARNING, "No active item to rename");
-    return NULL;
+    return nullptr;
   }
 
   return active_element;
@@ -393,7 +393,7 @@ static TreeElement *outliner_item_rename_find_hovered(const SpaceOutliner *space
     return hovered;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *event)
@@ -452,12 +452,12 @@ static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeSto
   Main *bmain = CTX_data_main(C);
   ID *id = tselem->id;
 
-  BLI_assert(id != NULL);
+  BLI_assert(id != nullptr);
   BLI_assert(((tselem->type == TSE_SOME_ID) && (te->idcode != 0)) ||
              (tselem->type == TSE_LAYER_COLLECTION));
   UNUSED_VARS_NDEBUG(te);
 
-  if (te->idcode == ID_LI && ((Library *)id)->parent != NULL) {
+  if (te->idcode == ID_LI && ((Library *)id)->parent != nullptr) {
     BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked library '%s'", id->name);
     return;
   }
@@ -483,7 +483,7 @@ static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeSto
 
   BKE_id_delete(bmain, id);
 
-  WM_event_add_notifier(C, NC_WINDOW, NULL);
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
 }
 
 void id_delete_fn(bContext *C,
@@ -581,7 +581,7 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
       BLI_findlink(which_libbase(CTX_data_main(C), id_type), RNA_enum_get(op->ptr, "new_id")));
 
   /* check for invalid states */
-  if (space_outliner == NULL) {
+  if (space_outliner == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -614,7 +614,7 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
    * such as lights so freeing correctly refreshes. */
   GPU_materials_free(bmain);
 
-  WM_event_add_notifier(C, NC_WINDOW, NULL);
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -662,11 +662,11 @@ static const EnumPropertyItem *outliner_id_itemf(bContext *C,
                                                  PropertyRNA *UNUSED(prop),
                                                  bool *r_free)
 {
-  if (C == NULL) {
+  if (C == nullptr) {
     return DummyRNA_NULL_items;
   }
 
-  EnumPropertyItem item_tmp = {0}, *item = NULL;
+  EnumPropertyItem item_tmp = {0}, *item = nullptr;
   int totitem = 0;
   int i = 0;
 
@@ -708,7 +708,7 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 
   prop = RNA_def_enum(ot->srna, "old_id", DummyRNA_NULL_items, 0, "Old ID", "Old ID to replace");
-  RNA_def_property_enum_funcs_runtime(prop, NULL, NULL, outliner_id_itemf);
+  RNA_def_property_enum_funcs_runtime(prop, nullptr, nullptr, outliner_id_itemf);
   RNA_def_property_flag(prop, (PropertyFlag)(PROP_ENUM_NO_TRANSLATE | PROP_HIDDEN));
 
   ot->prop = RNA_def_enum(ot->srna,
@@ -717,7 +717,7 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
                           0,
                           "New ID",
                           "New ID to remap all selected IDs' users to");
-  RNA_def_property_enum_funcs_runtime(ot->prop, NULL, NULL, outliner_id_itemf);
+  RNA_def_property_enum_funcs_runtime(ot->prop, nullptr, nullptr, outliner_id_itemf);
   RNA_def_property_flag(ot->prop, PROP_ENUM_NO_TRANSLATE);
 }
 
@@ -732,7 +732,7 @@ void id_remap_fn(bContext *C,
   wmOperatorType *ot = WM_operatortype_find("OUTLINER_OT_id_remap", false);
   PointerRNA op_props;
 
-  BLI_assert(tselem->id != NULL);
+  BLI_assert(tselem->id != nullptr);
 
   WM_operator_properties_create_ptr(&op_props, ot);
 
@@ -829,7 +829,7 @@ static int outliner_id_paste_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  WM_event_add_notifier(C, NC_WINDOW, NULL);
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
   BKE_reportf(op->reports, RPT_INFO, "%d data-block(s) pasted", num_pasted);
 
@@ -863,7 +863,7 @@ static int lib_relocate(
   PointerRNA op_props;
   int ret = 0;
 
-  BLI_assert(te->idcode == ID_LI && tselem->id != NULL);
+  BLI_assert(te->idcode == ID_LI && tselem->id != nullptr);
   UNUSED_VARS_NDEBUG(te);
 
   WM_operator_properties_create_ptr(&op_props, ot);
@@ -1255,12 +1255,12 @@ static TreeElement *outliner_show_active_get_element(bContext *C,
   Object *obact = OBACT(view_layer);
 
   if (!obact) {
-    return NULL;
+    return nullptr;
   }
 
   te = outliner_find_id(space_outliner, &space_outliner->tree, &obact->id);
 
-  if (te != NULL && obact->type == OB_ARMATURE) {
+  if (te != nullptr && obact->type == OB_ARMATURE) {
     /* traverse down the bone hierarchy in case of armature */
     TreeElement *te_obact = te;
 
@@ -1433,14 +1433,14 @@ static TreeElement *outliner_find_name(
   }
 
   /* nothing valid found */
-  return NULL;
+  return nullptr;
 }
 
 static void outliner_find_panel(
     Scene *UNUSED(scene), ARegion *region, SpaceOutliner *space_outliner, int again, int flags)
 {
-  ReportList *reports = NULL;  /* CTX_wm_reports(C); */
-  TreeElement *te = NULL;
+  ReportList *reports = nullptr;  /* CTX_wm_reports(C); */
+  TreeElement *te = nullptr;
   TreeElement *last_find;
   TreeStoreElem *tselem;
   int ytop, xdelta, prevFound = 0;
@@ -1457,7 +1457,7 @@ static void outliner_find_panel(
 
     /* try to find matching element */
     te = outliner_find_name(space_outliner, &space_outliner->tree, name, flags, last_find, &prevFound);
-    if (te == NULL) {
+    if (te == nullptr) {
       /* no more matches after previous, start from beginning again */
       prevFound = 1;
       te = outliner_find_name(space_outliner, &space_outliner->tree, name, flags, last_find, &prevFound);
@@ -1467,7 +1467,7 @@ static void outliner_find_panel(
     /* pop up panel - no previous, or user didn't want search after previous */
     name[0] = '\0';
     /* XXX      if (sbutton(name, 0, sizeof(name) - 1, "Find: ") && name[0]) { */
-    /*          te = outliner_find_name(space_outliner, &space_outliner->tree, name, flags, NULL, &prevFound); */
+    /*          te = outliner_find_name(space_outliner, &space_outliner->tree, name, flags, nullptr, &prevFound); */
     /*      } */
     /*      else return; XXX RETURN! XXX */
   }
@@ -1713,13 +1713,13 @@ static void tree_element_to_path(TreeElement *te,
                                  short *flag,
                                  short *UNUSED(groupmode))
 {
-  ListBase hierarchy = {NULL, NULL};
+  ListBase hierarchy = {nullptr, nullptr};
   LinkData *ld;
   TreeElement *tem, *temnext;
   TreeStoreElem *tse /* , *tsenext */ /* UNUSED */;
   PointerRNA *ptr, *nextptr;
   PropertyRNA *prop;
-  char *newpath = NULL;
+  char *newpath = nullptr;
 
   /* optimize tricks:
    * - Don't do anything if the selected item is a 'struct', but arrays are allowed
@@ -1762,7 +1762,7 @@ static void tree_element_to_path(TreeElement *te,
       if (tse->type == TSE_RNA_PROPERTY) {
         if (RNA_property_type(prop) == PROP_POINTER) {
           /* for pointer we just append property name */
-          newpath = RNA_path_append(*path, ptr, prop, 0, NULL);
+          newpath = RNA_path_append(*path, ptr, prop, 0, nullptr);
         }
         else if (RNA_property_type(prop) == PROP_COLLECTION) {
           char buf[128], *name;
@@ -1771,11 +1771,11 @@ static void tree_element_to_path(TreeElement *te,
           // tsenext = TREESTORE(temnext); /* UNUSED */
 
           nextptr = &temnext->rnaptr;
-          name = RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf), NULL);
+          name = RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf), nullptr);
 
           if (name) {
             /* if possible, use name as a key in the path */
-            newpath = RNA_path_append(*path, NULL, prop, 0, name);
+            newpath = RNA_path_append(*path, nullptr, prop, 0, name);
 
             if (name != buf) {
               MEM_freeN(name);
@@ -1790,7 +1790,7 @@ static void tree_element_to_path(TreeElement *te,
                 break;
               }
             }
-            newpath = RNA_path_append(*path, NULL, prop, index, NULL);
+            newpath = RNA_path_append(*path, nullptr, prop, index, nullptr);
           }
 
           ld = ld->next;
@@ -1802,7 +1802,7 @@ static void tree_element_to_path(TreeElement *te,
           MEM_freeN(*path);
         }
         *path = newpath;
-        newpath = NULL;
+        newpath = nullptr;
       }
     }
     else {
@@ -1817,7 +1817,7 @@ static void tree_element_to_path(TreeElement *te,
           /* clear path */
           if (*path) {
             MEM_freeN(*path);
-            path = NULL;
+            path = nullptr;
           }
         }
       }
@@ -1841,7 +1841,7 @@ static void tree_element_to_path(TreeElement *te,
     }
 
     /* path */
-    newpath = RNA_path_append(*path, NULL, prop, 0, NULL);
+    newpath = RNA_path_append(*path, nullptr, prop, 0, nullptr);
     if (*path) {
       MEM_freeN(*path);
     }
@@ -1880,8 +1880,8 @@ static void do_outliner_drivers_editop(SpaceOutliner *space_outliner,
 
     /* if item is selected, perform operation */
     if (tselem->flag & TSE_SELECTED) {
-      ID *id = NULL;
-      char *path = NULL;
+      ID *id = nullptr;
+      char *path = nullptr;
       int array_index = 0;
       short flag = 0;
       short groupmode = KSP_GROUP_KSNAME;
@@ -1953,7 +1953,7 @@ static int outliner_drivers_addsel_exec(bContext *C, wmOperator *op)
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
   /* check for invalid states */
-  if (space_outliner == NULL) {
+  if (space_outliner == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1962,7 +1962,7 @@ static int outliner_drivers_addsel_exec(bContext *C, wmOperator *op)
       space_outliner, &space_outliner->tree, op->reports, DRIVERS_EDITMODE_ADD);
 
   /* send notifiers */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL); /* XXX */
+  WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, nullptr); /* XXX */
 
   return OPERATOR_FINISHED;
 }
@@ -1993,7 +1993,7 @@ static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *op)
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
   /* check for invalid states */
-  if (space_outliner == NULL) {
+  if (space_outliner == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2002,7 +2002,7 @@ static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *op)
       space_outliner, &space_outliner->tree, op->reports, DRIVERS_EDITMODE_REMOVE);
 
   /* send notifiers */
-  WM_event_add_notifier(C, ND_KEYS, NULL); /* XXX */
+  WM_event_add_notifier(C, ND_KEYS, nullptr); /* XXX */
 
   return OPERATOR_FINISHED;
 }
@@ -2043,11 +2043,11 @@ enum {
 /* TODO: should this be an API func? */
 static KeyingSet *verify_active_keyingset(Scene *scene, short add)
 {
-  KeyingSet *ks = NULL;
+  KeyingSet *ks = nullptr;
 
   /* sanity check */
-  if (scene == NULL) {
-    return NULL;
+  if (scene == nullptr) {
+    return nullptr;
   }
 
   /* try to find one from scene */
@@ -2058,8 +2058,8 @@ static KeyingSet *verify_active_keyingset(Scene *scene, short add)
 
   /* Add if none found */
   /* XXX the default settings have yet to evolve. */
-  if ((add) && (ks == NULL)) {
-    ks = BKE_keyingset_add(&scene->keyingsets, NULL, NULL, KEYINGSET_ABSOLUTE, 0);
+  if ((add) && (ks == nullptr)) {
+    ks = BKE_keyingset_add(&scene->keyingsets, nullptr, nullptr, KEYINGSET_ABSOLUTE, 0);
     scene->active_keyingset = BLI_listbase_count(&scene->keyingsets);
   }
 
@@ -2077,8 +2077,8 @@ static void do_outliner_keyingset_editop(SpaceOutliner *space_outliner,
 
     /* if item is selected, perform operation */
     if (tselem->flag & TSE_SELECTED) {
-      ID *id = NULL;
-      char *path = NULL;
+      ID *id = nullptr;
+      char *path = nullptr;
       int array_index = 0;
       short flag = 0;
       short groupmode = KSP_GROUP_KSNAME;
@@ -2098,13 +2098,13 @@ static void do_outliner_keyingset_editop(SpaceOutliner *space_outliner,
             /* add a new path with the information obtained (only if valid) */
             /* TODO: what do we do with group name?
              * for now, we don't supply one, and just let this use the KeyingSet name */
-            BKE_keyingset_add_path(ks, id, NULL, path, array_index, flag, groupmode);
+            BKE_keyingset_add_path(ks, id, nullptr, path, array_index, flag, groupmode);
             ks->active_path = BLI_listbase_count(&ks->paths);
             break;
           }
           case KEYINGSET_EDITMODE_REMOVE: {
             /* find the relevant path, then remove it from the KeyingSet */
-            KS_Path *ksp = BKE_keyingset_find_path(ks, id, NULL, path, array_index, groupmode);
+            KS_Path *ksp = BKE_keyingset_find_path(ks, id, nullptr, path, array_index, groupmode);
 
             if (ksp) {
               /* free path's data */
@@ -2141,11 +2141,11 @@ static int outliner_keyingset_additems_exec(bContext *C, wmOperator *op)
   KeyingSet *ks = verify_active_keyingset(scene, 1);
 
   /* check for invalid states */
-  if (ks == NULL) {
+  if (ks == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Operation requires an active keying set");
     return OPERATOR_CANCELLED;
   }
-  if (space_outliner == NULL) {
+  if (space_outliner == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2153,7 +2153,7 @@ static int outliner_keyingset_additems_exec(bContext *C, wmOperator *op)
   do_outliner_keyingset_editop(space_outliner, ks, &space_outliner->tree, KEYINGSET_EDITMODE_ADD);
 
   /* send notifiers */
-  WM_event_add_notifier(C, NC_SCENE | ND_KEYINGSET, NULL);
+  WM_event_add_notifier(C, NC_SCENE | ND_KEYINGSET, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -2186,7 +2186,7 @@ static int outliner_keyingset_removeitems_exec(bContext *C, wmOperator *UNUSED(o
   KeyingSet *ks = verify_active_keyingset(scene, 1);
 
   /* check for invalid states */
-  if (space_outliner == NULL) {
+  if (space_outliner == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2195,7 +2195,7 @@ static int outliner_keyingset_removeitems_exec(bContext *C, wmOperator *UNUSED(o
       space_outliner, ks, &space_outliner->tree, KEYINGSET_EDITMODE_REMOVE);
 
   /* send notifiers */
-  WM_event_add_notifier(C, NC_SCENE | ND_KEYINGSET, NULL);
+  WM_event_add_notifier(C, NC_SCENE | ND_KEYINGSET, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -2224,7 +2224,7 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 static bool ed_operator_outliner_id_orphans_active(bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
-  if (area != NULL && area->spacetype == SPACE_OUTLINER) {
+  if (area != nullptr && area->spacetype == SPACE_OUTLINER) {
     SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
     return (space_outliner->outlinevis == SO_ID_ORPHANS);
   }
@@ -2309,14 +2309,14 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
    *      outliner several mouse events can be handled in one cycle without
    *      handling notifiers/redraw which leads to deleting the same object twice.
    *      cleanup tree here to prevent such cases. */
-  if ((area != NULL) && (area->spacetype == SPACE_OUTLINER)) {
+  if ((area != nullptr) && (area->spacetype == SPACE_OUTLINER)) {
     outliner_cleanup_tree(space_outliner);
   }
 
   DEG_relations_tag_update(bmain);
-  WM_event_add_notifier(C, NC_ID | NA_REMOVED, NULL);
+  WM_event_add_notifier(C, NC_ID | NA_REMOVED, nullptr);
   /* Force full redraw of the UI. */
-  WM_main_add_notifier(NC_WINDOW, NULL);
+  WM_main_add_notifier(NC_WINDOW, nullptr);
 
   return OPERATOR_FINISHED;
 }

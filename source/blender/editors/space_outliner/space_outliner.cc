@@ -92,7 +92,7 @@ static void outliner_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, NULL);
+  UI_view2d_scrollers_draw(v2d, nullptr);
 }
 
 static void outliner_main_region_free(ARegion *UNUSED(region))
@@ -372,7 +372,7 @@ static void outliner_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 {
   SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(area->spacedata.first);
 
-  if (space_outliner->runtime == NULL) {
+  if (space_outliner->runtime == nullptr) {
     space_outliner->runtime = MEM_cnew<SpaceOutliner_Runtime>("SpaceOutliner_Runtime");
   }
 }
@@ -383,15 +383,15 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
   SpaceOutliner *space_outliner_new = MEM_new<SpaceOutliner>(__func__, *space_outliner);
 
   BLI_listbase_clear(&space_outliner_new->tree);
-  space_outliner_new->treestore = NULL;
+  space_outliner_new->treestore = nullptr;
 
   space_outliner_new->sync_select_dirty = WM_OUTLINER_SYNC_SELECT_FROM_ALL;
 
   if (space_outliner->runtime) {
     space_outliner_new->runtime = MEM_new<SpaceOutliner_Runtime>("SpaceOutliner_runtime dup",
                                                                  *space_outliner->runtime);
-    space_outliner_new->runtime->tree_display = NULL;
-    space_outliner_new->runtime->treehash = NULL;
+    space_outliner_new->runtime->tree_display = nullptr;
+    space_outliner_new->runtime->treehash = nullptr;
   }
 
   return (SpaceLink *)space_outliner_new;
@@ -430,7 +430,7 @@ static void outliner_id_remap(ScrArea *area, SpaceLink *slink, ID *old_id, ID *n
       /* postpone a full rebuild because this can be called many times on-free */
       space_outliner->storeflag |= SO_TREESTORE_REBUILD;
 
-      if (new_id == NULL) {
+      if (new_id == nullptr) {
         /* Redraw is needed when removing data for multiple outlines show the same data.
          * without this, the stale data won't get fully flushed when this outliner
          * is not the active outliner the user is interacting with. See T85976. */

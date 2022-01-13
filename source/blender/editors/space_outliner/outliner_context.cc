@@ -48,7 +48,7 @@ static void outliner_context_selected_ids(const SpaceOutliner *space_outliner,
   CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 }
 
-static const char *outliner_context_dir[] = {"selected_ids", NULL};
+static const char *outliner_context_dir[] = {"selected_ids", nullptr};
 
 int /*eContextResult*/ outliner_context(const bContext *C,
                                         const char *member,

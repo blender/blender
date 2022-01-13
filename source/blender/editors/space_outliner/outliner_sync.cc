@@ -189,9 +189,9 @@ static void selected_items_init(SelectedItems *selected_items)
 
 static void selected_items_free(SelectedItems *selected_items)
 {
-  BLI_gset_free(selected_items->objects, NULL);
-  BLI_gset_free(selected_items->edit_bones, NULL);
-  BLI_gset_free(selected_items->pose_bones, NULL);
+  BLI_gset_free(selected_items->objects, nullptr);
+  BLI_gset_free(selected_items->edit_bones, nullptr);
+  BLI_gset_free(selected_items->pose_bones, nullptr);
 }
 
 /* Check if an instance of this object been selected by the sync */
@@ -404,7 +404,7 @@ static void outliner_select_sync_from_object(ViewLayer *view_layer,
   Object *ob = (Object *)tselem->id;
   Base *base = (te->directdata) ? (Base *)te->directdata :
                                   BKE_view_layer_base_find(view_layer, ob);
-  const bool is_selected = (base != NULL) && ((base->flag & BASE_SELECTED) != 0);
+  const bool is_selected = (base != nullptr) && ((base->flag & BASE_SELECTED) != 0);
 
   if (base && (ob == obact)) {
     tselem->flag |= TSE_ACTIVE;
