@@ -29,7 +29,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_delete_geometry_cc {
 
 using blender::bke::CustomDataAttributes;
 
@@ -1270,6 +1270,10 @@ static void separate_mesh_selection(GeometrySet &geometry_set,
   do_mesh_separation(geometry_set, src_component, selection, invert, selection_domain, mode);
 }
 
+}  // namespace blender::nodes::node_geo_delete_geometry_cc
+
+namespace blender::nodes {
+
 void separate_geometry(GeometrySet &geometry_set,
                        const AttributeDomain domain,
                        const GeometryNodeDeleteGeometryMode mode,
@@ -1277,28 +1281,30 @@ void separate_geometry(GeometrySet &geometry_set,
                        const bool invert,
                        bool &r_is_error)
 {
+  namespace file_ns = blender::nodes::node_geo_delete_geometry_cc;
+
   bool some_valid_domain = false;
   if (geometry_set.has_pointcloud()) {
     if (domain == ATTR_DOMAIN_POINT) {
-      separate_point_cloud_selection(geometry_set, selection_field, invert);
+      file_ns::separate_point_cloud_selection(geometry_set, selection_field, invert);
       some_valid_domain = true;
     }
   }
   if (geometry_set.has_mesh()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER)) {
-      separate_mesh_selection(geometry_set, selection_field, domain, mode, invert);
+      file_ns::separate_mesh_selection(geometry_set, selection_field, domain, mode, invert);
       some_valid_domain = true;
     }
   }
   if (geometry_set.has_curve()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
-      separate_curve_selection(geometry_set, selection_field, domain, invert);
+      file_ns::separate_curve_selection(geometry_set, selection_field, domain, invert);
       some_valid_domain = true;
     }
   }
   if (geometry_set.has_instances()) {
     if (domain == ATTR_DOMAIN_INSTANCE) {
-      separate_instance_selection(geometry_set, selection_field, invert);
+      file_ns::separate_instance_selection(geometry_set, selection_field, invert);
       some_valid_domain = true;
     }
   }
