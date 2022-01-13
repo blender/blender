@@ -869,7 +869,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
 }
 }
 
-typedef struct RestrictProperties {
+struct RestrictProperties {
   bool initialized;
 
   PropertyRNA *object_hide_viewport, *object_hide_select, *object_hide_render;
@@ -880,11 +880,11 @@ typedef struct RestrictProperties {
   PropertyRNA *modifier_show_viewport, *modifier_show_render;
   PropertyRNA *constraint_enable;
   PropertyRNA *bone_hide_viewport;
-} RestrictProperties;
+};
 
 /* We don't care about the value of the property
  * but whether the property should be active or grayed out. */
-typedef struct RestrictPropertiesActive {
+struct RestrictPropertiesActive {
   bool object_hide_viewport;
   bool object_hide_select;
   bool object_hide_render;
@@ -900,7 +900,7 @@ typedef struct RestrictPropertiesActive {
   bool modifier_show_render;
   bool constraint_enable;
   bool bone_hide_viewport;
-} RestrictPropertiesActive;
+};
 
 static void outliner_restrict_properties_enable_collection_set(
     PointerRNA *collection_ptr, RestrictProperties *props, RestrictPropertiesActive *props_active)
@@ -1995,13 +1995,13 @@ static void outliner_buttons(const bContext *C,
   /* If we add support to rename Sequence, need change this. */
 
   if (tselem->type == TSE_EBONE) {
-    len = sizeof(((EditBone *)0)->name);
+    len = sizeof(((EditBone *)nullptr)->name);
   }
   else if (tselem->type == TSE_MODIFIER) {
-    len = sizeof(((ModifierData *)0)->name);
+    len = sizeof(((ModifierData *)nullptr)->name);
   }
   else if (tselem->id && GS(tselem->id->name) == ID_LI) {
-    len = sizeof(((Library *)0)->filepath);
+    len = sizeof(((Library *)nullptr)->filepath);
   }
   else {
     len = MAX_ID_NAME - 2;
@@ -2234,7 +2234,7 @@ static void outliner_draw_warning_column(const bContext *C,
 
 TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 {
-  TreeElementIcon data = {0};
+  TreeElementIcon data = {nullptr};
 
   if (tselem->type != TSE_SOME_ID) {
     switch (tselem->type) {

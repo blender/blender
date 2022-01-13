@@ -21,7 +21,7 @@
  * \ingroup spoutliner
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -187,7 +187,7 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
   return nullptr;
 }
 
-typedef bool (*CheckTypeFn)(TreeElement *te);
+using CheckTypeFn = bool (*)(TreeElement *te);
 
 static TreeElement *outliner_data_from_tree_element_and_parents(CheckTypeFn check_type,
                                                                 TreeElement *te)
@@ -662,13 +662,13 @@ void OUTLINER_OT_material_drop(wmOperatorType *ot)
  * - Copying a single modifier/constraint/effect to another object.
  * - Copying (linking) an object's modifiers/constraints/effects to another. */
 
-typedef enum eDataStackDropAction {
+enum eDataStackDropAction {
   DATA_STACK_DROP_REORDER,
   DATA_STACK_DROP_COPY,
   DATA_STACK_DROP_LINK,
-} eDataStackDropAction;
+};
 
-typedef struct StackDropData {
+struct StackDropData {
   Object *ob_parent;
   bPoseChannel *pchan_parent;
   TreeStoreElem *drag_tselem;
@@ -678,7 +678,7 @@ typedef struct StackDropData {
   eDataStackDropAction drop_action;
   TreeElement *drop_te;
   TreeElementInsertType insert_type;
-} StackDropData;
+};
 
 static void datastack_drop_data_init(wmDrag *drag,
                                      Object *ob,
@@ -1082,13 +1082,13 @@ void OUTLINER_OT_datastack_drop(wmOperatorType *ot)
 
 /* ******************** Collection Drop Operator *********************** */
 
-typedef struct CollectionDrop {
+struct CollectionDrop {
   Collection *from;
   Collection *to;
 
   TreeElement *te;
   TreeElementInsertType insert_type;
-} CollectionDrop;
+};
 
 static Collection *collection_parent_from_ID(ID *id)
 {

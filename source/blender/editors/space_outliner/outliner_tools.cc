@@ -437,9 +437,9 @@ static void outliner_do_libdata_operation(bContext *C,
 /** \name Scene Menu Operator
  * \{ */
 
-typedef enum eOutliner_PropSceneOps {
+enum eOutliner_PropSceneOps {
   OL_SCENE_OP_DELETE = 1,
-} eOutliner_PropSceneOps;
+};
 
 static const EnumPropertyItem prop_scene_op_types[] = {
     {OL_SCENE_OP_DELETE, "DELETE", ICON_X, "Delete", ""},
@@ -534,10 +534,10 @@ void OUTLINER_OT_scene_operation(wmOperatorType *ot)
  * the merged select popup menu. The sub-tree of the parent is searched and
  * the child is needed to only show elements of the same type in the popup.
  */
-typedef struct MergedSearchData {
+struct MergedSearchData {
   TreeElement *parent_element;
   TreeElement *select_element;
-} MergedSearchData;
+};
 
 static void merged_element_search_fn_recursive(
     const ListBase *tree, short tselem_type, short type, const char *str, uiSearchItems *items)
@@ -792,14 +792,14 @@ static void object_proxy_to_override_convert_fn(bContext *C,
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 }
 
-typedef struct OutlinerLibOverrideData {
+struct OutlinerLibOverrideData {
   bool do_hierarchy;
   /**
    * For resync operation, force keeping newly created override IDs (or original linked IDs)
    * instead of re-applying relevant existing ID pointer property override operations. Helps
    * solving broken overrides while not losing *all* of your overrides. */
   bool do_resync_hierarchy_enforce;
-} OutlinerLibOverrideData;
+};
 
 static void id_override_library_create_fn(bContext *C,
                                           ReportList *reports,
@@ -1206,25 +1206,25 @@ static void refreshdrivers_animdata_fn(int UNUSED(event),
 /** \name Object Operation Utilities
  * \{ */
 
-typedef enum eOutliner_PropDataOps {
+enum eOutliner_PropDataOps {
   OL_DOP_SELECT = 1,
   OL_DOP_DESELECT,
   OL_DOP_HIDE,
   OL_DOP_UNHIDE,
   OL_DOP_SELECT_LINKED,
-} eOutliner_PropDataOps;
+};
 
-typedef enum eOutliner_PropConstraintOps {
+enum eOutliner_PropConstraintOps {
   OL_CONSTRAINTOP_ENABLE = 1,
   OL_CONSTRAINTOP_DISABLE,
   OL_CONSTRAINTOP_DELETE,
-} eOutliner_PropConstraintOps;
+};
 
-typedef enum eOutliner_PropModifierOps {
+enum eOutliner_PropModifierOps {
   OL_MODIFIER_OP_TOGVIS = 1,
   OL_MODIFIER_OP_TOGREN,
   OL_MODIFIER_OP_DELETE,
-} eOutliner_PropModifierOps;
+};
 
 static void pchan_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
 {
@@ -1651,13 +1651,13 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot)
 /** \name Delete Object/Collection Operator
  * \{ */
 
-typedef void (*OutlinerDeleteFunc)(bContext *C, ReportList *reports, Scene *scene, Object *ob);
+using OutlinerDeleteFn = void (*)(bContext *C, ReportList *reports, Scene *scene, Object *ob);
 
 static void outliner_do_object_delete(bContext *C,
                                       ReportList *reports,
                                       Scene *scene,
                                       GSet *objects_to_delete,
-                                      OutlinerDeleteFunc delete_fn)
+                                      OutlinerDeleteFn delete_fn)
 {
   GSetIterator objects_to_delete_iter;
   GSET_ITER (objects_to_delete_iter, objects_to_delete) {
@@ -1775,7 +1775,7 @@ void OUTLINER_OT_delete(wmOperatorType *ot)
 /** \name ID-Data Menu Operator
  * \{ */
 
-typedef enum eOutlinerIdOpTypes {
+enum eOutlinerIdOpTypes {
   OUTLINER_IDOP_INVALID = 0,
 
   OUTLINER_IDOP_UNLINK,
@@ -1800,7 +1800,7 @@ typedef enum eOutlinerIdOpTypes {
   OUTLINER_IDOP_RENAME,
 
   OUTLINER_IDOP_SELECT_LINKED,
-} eOutlinerIdOpTypes;
+};
 
 /* TODO: implement support for changing the ID-block used. */
 static const EnumPropertyItem prop_id_op_types[] = {
@@ -2315,14 +2315,14 @@ void OUTLINER_OT_id_operation(wmOperatorType *ot)
 /** \name Library Menu Operator
  * \{ */
 
-typedef enum eOutlinerLibOpTypes {
+enum eOutlinerLibOpTypes {
   OL_LIB_INVALID = 0,
 
   OL_LIB_RENAME,
   OL_LIB_DELETE,
   OL_LIB_RELOCATE,
   OL_LIB_RELOAD,
-} eOutlinerLibOpTypes;
+};
 
 static const EnumPropertyItem outliner_lib_op_type_items[] = {
     {OL_LIB_RENAME, "RENAME", 0, "Rename", ""},
@@ -2543,7 +2543,7 @@ void OUTLINER_OT_action_set(wmOperatorType *ot)
 /** \name Animation Menu Operator
  * \{ */
 
-typedef enum eOutliner_AnimDataOps {
+enum eOutliner_AnimDataOps {
   OUTLINER_ANIMOP_INVALID = 0,
 
   OUTLINER_ANIMOP_CLEAR_ADT,
@@ -2553,7 +2553,7 @@ typedef enum eOutliner_AnimDataOps {
 
   OUTLINER_ANIMOP_REFRESH_DRV,
   OUTLINER_ANIMOP_CLEAR_DRV
-} eOutliner_AnimDataOps;
+};
 
 static const EnumPropertyItem prop_animdata_op_types[] = {
     {OUTLINER_ANIMOP_CLEAR_ADT,

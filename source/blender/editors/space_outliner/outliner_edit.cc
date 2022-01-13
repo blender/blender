@@ -21,7 +21,7 @@
  * \ingroup spoutliner
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -183,11 +183,11 @@ void outliner_item_openclose(SpaceOutliner *space_outliner,
   }
 }
 
-typedef struct OpenCloseData {
+struct OpenCloseData {
   TreeStoreElem *prev_tselem;
   bool open;
   int x_location;
-} OpenCloseData;
+};
 
 static int outliner_item_openclose_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -1389,7 +1389,7 @@ void OUTLINER_OT_scroll_page(wmOperatorType *ot)
   ot->poll = ED_operator_outliner_active;
 
   /* properties */
-  prop = RNA_def_boolean(ot->srna, "up", 0, "Up", "Scroll up one page");
+  prop = RNA_def_boolean(ot->srna, "up", false, "Up", "Scroll up one page");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -1586,7 +1586,7 @@ void OUTLINER_OT_show_one_level(wmOperatorType *ot)
   /* no undo or registry, UI option */
 
   /* properties */
-  prop = RNA_def_boolean(ot->srna, "open", 1, "Open", "Expand all entries one level deep");
+  prop = RNA_def_boolean(ot->srna, "open", true, "Open", "Expand all entries one level deep");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -1698,7 +1698,7 @@ static bool ed_operator_outliner_datablocks_active(bContext *C)
     SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
     return (space_outliner->outlinevis == SO_DATA_API);
   }
-  return 0;
+  return false;
 }
 
 /* Helper func to extract an RNA path from selected tree element

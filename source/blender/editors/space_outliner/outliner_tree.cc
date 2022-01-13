@@ -21,8 +21,8 @@
  * \ingroup spoutliner
  */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -1226,12 +1226,12 @@ void outliner_make_object_parent_hierarchy(ListBase *lb)
 
 /* Sorting ------------------------------------------------------ */
 
-typedef struct tTreeSort {
+struct tTreeSort {
   TreeElement *te;
   ID *id;
   const char *name;
   short idcode;
-} tTreeSort;
+};
 
 /* alphabetical comparator, trying to put objects first */
 static int treesort_alpha_ob(const void *v1, const void *v2)
@@ -1458,10 +1458,10 @@ static void outliner_collections_children_sort(ListBase *lb)
 
 /* Filtering ----------------------------------------------- */
 
-typedef struct OutlinerTreeElementFocus {
+struct OutlinerTreeElementFocus {
   TreeStoreElem *tselem;
   int ys;
-} OutlinerTreeElementFocus;
+};
 
 /**
  * Bring the outliner scrolling back to where it was in relation to the original focus element

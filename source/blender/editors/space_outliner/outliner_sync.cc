@@ -21,7 +21,7 @@
  * \ingroup spoutliner
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "DNA_armature_types.h"
 #include "DNA_layer_types.h"
@@ -115,12 +115,12 @@ void ED_outliner_select_sync_flag_outliners(const bContext *C)
  * outliner display mode also needs to be considered. This stores the types of data
  * to sync to increase code clarity.
  */
-typedef struct SyncSelectTypes {
+struct SyncSelectTypes {
   bool object;
   bool edit_bone;
   bool pose_bone;
   bool sequence;
-} SyncSelectTypes;
+};
 
 /**
  * Set which types of data to sync when syncing selection from the outliner based on object
@@ -174,11 +174,11 @@ static bool outliner_sync_select_to_outliner_set_types(const bContext *C,
  * Stores items selected from a sync from the outliner. Prevents syncing the selection
  * state of the last instance of an object linked in multiple collections.
  */
-typedef struct SelectedItems {
+struct SelectedItems {
   GSet *objects;
   GSet *edit_bones;
   GSet *pose_bones;
-} SelectedItems;
+};
 
 static void selected_items_init(SelectedItems *selected_items)
 {
@@ -487,12 +487,12 @@ static void outliner_select_sync_from_sequence(Sequence *sequence_active, TreeSt
  * Contains active object, bones, and sequence for syncing to prevent getting active data
  * repeatedly throughout syncing to the outliner.
  */
-typedef struct SyncSelectActiveData {
+struct SyncSelectActiveData {
   Object *object;
   EditBone *edit_bone;
   bPoseChannel *pose_channel;
   Sequence *sequence;
-} SyncSelectActiveData;
+};
 
 /** Sync select and active flags from active view layer, bones, and sequences to the outliner. */
 static void outliner_sync_selection_to_outliner(ViewLayer *view_layer,

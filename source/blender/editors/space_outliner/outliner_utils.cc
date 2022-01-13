@@ -21,7 +21,7 @@
  * \ingroup spoutliner
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"

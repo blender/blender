@@ -21,7 +21,7 @@
  * \ingroup spoutliner
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -1165,7 +1165,7 @@ static void outliner_sync_to_properties_editors(const bContext *C,
 
 static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreElem *tselem)
 {
-  PointerRNA ptr = {0};
+  PointerRNA ptr = {nullptr};
   int context = 0;
 
   /* ID Types */
