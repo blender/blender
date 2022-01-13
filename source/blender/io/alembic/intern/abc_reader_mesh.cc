@@ -34,6 +34,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_compiler_compat.h"
+#include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 
@@ -160,27 +161,26 @@ static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
     return;
   }
 
-  read_mverts(mverts, positions, nullptr);
+  read_mverts(*config.mesh, positions, nullptr);
 }
 
-void read_mverts(MVert *mverts, const P3fArraySamplePtr positions, const N3fArraySamplePtr normals)
+void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySamplePtr normals)
 {
   for (int i = 0; i < positions->size(); i++) {
-    MVert &mvert = mverts[i];
+    MVert &mvert = mesh.mvert[i];
     Imath::V3f pos_in = (*positions)[i];
 
     copy_zup_from_yup(mvert.co, pos_in.getValue());
 
     mvert.bweight = 0;
-
-    if (normals) {
+  }
+  if (normals) {
+    float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(&mesh);
+    for (const int i : IndexRange(normals->size())) {
       Imath::V3f nor_in = (*normals)[i];
-
-      short no[3];
-      normal_float_to_short_v3(no, nor_in.getValue());
-
-      copy_zup_from_yup(mvert.no, no);
+      copy_zup_from_yup(vert_normals[i], nor_in.getValue());
     }
+    BKE_mesh_vertex_normals_clear_dirty(&mesh);
   }
 }
 

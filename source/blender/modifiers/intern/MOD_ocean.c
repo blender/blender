@@ -376,7 +376,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
 
   if (omd->geometry_mode == MOD_OCEAN_GEOM_GENERATE) {
     result = generate_ocean_geometry(omd, mesh, resolution);
-    BKE_mesh_ensure_normals(result);
+    BKE_mesh_normals_tag_dirty(result);
   }
   else if (omd->geometry_mode == MOD_OCEAN_GEOM_DISPLACE) {
     result = (Mesh *)BKE_id_copy_ex(NULL, &mesh->id, NULL, LIB_ID_COPY_LOCALIZE);

@@ -128,111 +128,45 @@ void MeshComponent::ensure_owns_direct_data()
 
 namespace blender::bke {
 
-static VArray<float3> mesh_face_normals(const Mesh &mesh,
-                                        const Span<MVert> verts,
-                                        const Span<MPoly> polys,
-                                        const Span<MLoop> loops,
-                                        const IndexMask mask)
-{
-  /* Use existing normals to avoid unnecessarily recalculating them, if possible. */
-  if (!(mesh.runtime.cd_dirty_poly & CD_MASK_NORMAL) &&
-      CustomData_has_layer(&mesh.pdata, CD_NORMAL)) {
-    const void *data = CustomData_get_layer(&mesh.pdata, CD_NORMAL);
-
-    return VArray<float3>::ForSpan({(const float3 *)data, polys.size()});
-  }
-
-  auto normal_fn = [verts, polys, loops](const int i) -> float3 {
-    float3 normal;
-    const MPoly &poly = polys[i];
-    BKE_mesh_calc_poly_normal(&poly, &loops[poly.loopstart], verts.data(), normal);
-    return normal;
-  };
-
-  return VArray<float3>::ForFunc(mask.min_array_size(), normal_fn);
-}
-
-static VArray<float3> mesh_vertex_normals(const Mesh &mesh,
-                                          const Span<MVert> verts,
-                                          const Span<MPoly> polys,
-                                          const Span<MLoop> loops,
-                                          const IndexMask mask)
-{
-  /* Use existing normals to avoid unnecessarily recalculating them, if possible. */
-  if (!(mesh.runtime.cd_dirty_vert & CD_MASK_NORMAL) &&
-      CustomData_has_layer(&mesh.vdata, CD_NORMAL)) {
-    const void *data = CustomData_get_layer(&mesh.pdata, CD_NORMAL);
-
-    return VArray<float3>::ForSpan({(const float3 *)data, mesh.totvert});
-  }
-
-  /* If the normals are dirty, they must be recalculated for the output of this node's field
-   * source. Ideally vertex normals could be calculated lazily on a const mesh, but that's not
-   * possible at the moment, so we take ownership of the results. Sadly we must also create a copy
-   * of MVert to use the mesh normals API. This can be improved by adding mutex-protected lazy
-   * calculation of normals on meshes.
-   *
-   * Use mask.min_array_size() to avoid calculating a final chunk of data if possible. */
-  Array<MVert> temp_verts(verts);
-  Array<float3> normals(verts.size()); /* Use full size for accumulation from faces. */
-  BKE_mesh_calc_normals_poly_and_vertex(temp_verts.data(),
-                                        mask.min_array_size(),
-                                        loops.data(),
-                                        loops.size(),
-                                        polys.data(),
-                                        polys.size(),
-                                        nullptr,
-                                        (float(*)[3])normals.data());
-
-  return VArray<float3>::ForContainer(std::move(normals));
-}
-
 VArray<float3> mesh_normals_varray(const MeshComponent &mesh_component,
                                    const Mesh &mesh,
                                    const IndexMask mask,
                                    const AttributeDomain domain)
 {
-  Span<MVert> verts{mesh.mvert, mesh.totvert};
-  Span<MEdge> edges{mesh.medge, mesh.totedge};
-  Span<MPoly> polys{mesh.mpoly, mesh.totpoly};
-  Span<MLoop> loops{mesh.mloop, mesh.totloop};
-
   switch (domain) {
     case ATTR_DOMAIN_FACE: {
-      return mesh_face_normals(mesh, verts, polys, loops, mask);
+      return VArray<float3>::ForSpan(
+          {(float3 *)BKE_mesh_poly_normals_ensure(&mesh), mesh.totpoly});
     }
     case ATTR_DOMAIN_POINT: {
-      return mesh_vertex_normals(mesh, verts, polys, loops, mask);
+      return VArray<float3>::ForSpan(
+          {(float3 *)BKE_mesh_vertex_normals_ensure(&mesh), mesh.totvert});
     }
     case ATTR_DOMAIN_EDGE: {
       /* In this case, start with vertex normals and convert to the edge domain, since the
-       * conversion from edges to vertices is very simple. Use the full mask since the edges
-       * might use the vertex normal from any index. */
-      GVArray vert_normals = mesh_vertex_normals(
-          mesh, verts, polys, loops, IndexRange(verts.size()));
-      Span<float3> vert_normals_span = vert_normals.get_internal_span().typed<float3>();
+       * conversion from edges to vertices is very simple. Use "manual" domain interpolation
+       * instead of the GeometryComponent API to avoid calculating unnecessary values and to
+       * allow normalizing the result more simply. */
+      Span<float3> vert_normals{(float3 *)BKE_mesh_vertex_normals_ensure(&mesh), mesh.totvert};
       Array<float3> edge_normals(mask.min_array_size());
-
-      /* Use "manual" domain interpolation instead of the GeometryComponent API to avoid
-       * calculating unnecessary values and to allow normalizing the result much more simply. */
+      Span<MEdge> edges{mesh.medge, mesh.totedge};
       for (const int i : mask) {
         const MEdge &edge = edges[i];
         edge_normals[i] = math::normalize(
-            math::interpolate(vert_normals_span[edge.v1], vert_normals_span[edge.v2], 0.5f));
+            math::interpolate(vert_normals[edge.v1], vert_normals[edge.v2], 0.5f));
       }
 
       return VArray<float3>::ForContainer(std::move(edge_normals));
     }
     case ATTR_DOMAIN_CORNER: {
       /* The normals on corners are just the mesh's face normals, so start with the face normal
-       * array and copy the face normal for each of its corners. */
-      VArray<float3> face_normals = mesh_face_normals(
-          mesh, verts, polys, loops, IndexRange(polys.size()));
-
-      /* In this case using the mesh component's generic domain interpolation is fine, the data
-       * will still be normalized, since the face normal is just copied to every corner. */
-      return mesh_component.attribute_try_adapt_domain<float3>(
-          std::move(face_normals), ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER);
+       * array and copy the face normal for each of its corners. In this case using the mesh
+       * component's generic domain interpolation is fine, the data will still be normalized,
+       * since the face normal is just copied to every corner. */
+      return mesh_component.attribute_try_adapt_domain(
+          VArray<float3>::ForSpan({(float3 *)BKE_mesh_poly_normals_ensure(&mesh), mesh.totpoly}),
+          ATTR_DOMAIN_FACE,
+          ATTR_DOMAIN_CORNER);
     }
     default:
       return {};
@@ -1276,25 +1210,10 @@ class NormalAttributeProvider final : public BuiltinAttributeProvider {
   {
     const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
     const Mesh *mesh = mesh_component.get_for_read();
-    if (mesh == nullptr) {
+    if (mesh == nullptr || mesh->totpoly == 0) {
       return {};
     }
-
-    /* Use existing normals if possible. */
-    if (!(mesh->runtime.cd_dirty_poly & CD_MASK_NORMAL) &&
-        CustomData_has_layer(&mesh->pdata, CD_NORMAL)) {
-      const void *data = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
-
-      return VArray<float3>::ForSpan(Span<float3>((const float3 *)data, mesh->totpoly));
-    }
-
-    Array<float3> normals(mesh->totpoly);
-    for (const int i : IndexRange(mesh->totpoly)) {
-      const MPoly *poly = &mesh->mpoly[i];
-      BKE_mesh_calc_poly_normal(poly, &mesh->mloop[poly->loopstart], mesh->mvert, normals[i]);
-    }
-
-    return VArray<float3>::ForContainer(std::move(normals));
+    return VArray<float3>::ForSpan({(float3 *)BKE_mesh_poly_normals_ensure(mesh), mesh->totpoly});
   }
 
   WriteAttributeLookup try_get_for_write(GeometryComponent &UNUSED(component)) const final

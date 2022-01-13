@@ -1544,7 +1544,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
       madd_v3_v3v3fl(final_co, SCULPT_vertex_persistent_co_get(ss, vi), normal, *disp_factor);
     }
     else {
-      normal_short_to_float_v3(normal, orig_data.no);
+      copy_v3_v3(normal, orig_data.no);
       mul_v3_fl(normal, brush->height);
       madd_v3_v3v3fl(final_co, orig_data.co, normal, *disp_factor);
     }
@@ -1623,7 +1623,7 @@ static void do_inflate_brush_task_cb_ex(void *__restrict userdata,
       copy_v3_v3(val, vd.fno);
     }
     else {
-      normal_short_to_float_v3(val, vd.no);
+      copy_v3_v3(val, vd.no);
     }
 
     mul_v3_fl(val, fade * ss->cache->radius);
@@ -2002,7 +2002,7 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
         mul_v3_fl(silhouette_test_dir, -1.0f);
       }
       float vno[3];
-      normal_short_to_float_v3(vno, orig_data.no);
+      copy_v3_v3(vno, orig_data.no);
       fade *= max_ff(dot_v3v3(vno, silhouette_test_dir), 0.0f);
     }
 

@@ -81,7 +81,7 @@ class AbcSubDReader final : public AbcObjectReader {
                          const char **err_str) override;
 };
 
-void read_mverts(MVert *mverts,
+void read_mverts(Mesh &mesh,
                  const Alembic::AbcGeom::P3fArraySamplePtr positions,
                  const Alembic::AbcGeom::N3fArraySamplePtr normals);
 

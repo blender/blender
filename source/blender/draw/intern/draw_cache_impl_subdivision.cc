@@ -23,6 +23,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_editmesh.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -1668,6 +1669,7 @@ void draw_subdiv_init_mesh_render_data(DRWSubdivCache *cache,
   mr->mvert = mesh->mvert;
   mr->mpoly = mesh->mpoly;
   mr->mloop = mesh->mloop;
+  mr->vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
   mr->vert_len = mesh->totvert;
   mr->edge_len = mesh->totedge;
   mr->poly_len = mesh->totpoly;

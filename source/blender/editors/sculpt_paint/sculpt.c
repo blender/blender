@@ -177,11 +177,11 @@ void SCULPT_vertex_normal_get(SculptSession *ss, int index, float no[3])
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       if (ss->shapekey_active || ss->deform_modifiers_active) {
-        const MVert *mverts = BKE_pbvh_get_verts(ss->pbvh);
-        normal_short_to_float_v3(no, mverts[index].no);
+        const float(*vert_normals)[3] = BKE_pbvh_get_vert_normals(ss->pbvh);
+        copy_v3_v3(no, vert_normals[index]);
       }
       else {
-        normal_short_to_float_v3(no, ss->mvert[index].no);
+        copy_v3_v3(no, ss->vert_normals[index]);
       }
       break;
     }
@@ -1387,10 +1387,10 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
     if (orig_data.unode->type == SCULPT_UNDO_COORDS) {
       copy_v3_v3(vd.co, orig_data.co);
       if (vd.no) {
-        copy_v3_v3_short(vd.no, orig_data.no);
+        copy_v3_v3(vd.no, orig_data.no);
       }
       else {
-        normal_short_to_float_v3(vd.fno, orig_data.no);
+        copy_v3_v3(vd.fno, orig_data.no);
       }
     }
     else if (orig_data.unode->type == SCULPT_UNDO_MASK) {
@@ -1689,7 +1689,7 @@ const float *SCULPT_brush_frontface_normal_from_falloff_shape(SculptSession *ss,
 
 static float frontface(const Brush *br,
                        const float sculpt_normal[3],
-                       const short no[3],
+                       const float no[3],
                        const float fno[3])
 {
   if (!(br->flag & BRUSH_FRONTFACE)) {
@@ -1698,10 +1698,7 @@ static float frontface(const Brush *br,
 
   float dot;
   if (no) {
-    float tmp[3];
-
-    normal_short_to_float_v3(tmp, no);
-    dot = dot_v3v3(tmp, sculpt_normal);
+    dot = dot_v3v3(no, sculpt_normal);
   }
   else {
     dot = dot_v3v3(fno, sculpt_normal);
@@ -1938,19 +1935,19 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
       float co[3];
 
       /* For bm_vert only. */
-      short no_s[3];
+      float no_s[3];
 
       if (use_original) {
         if (unode->bm_entry) {
           const float *temp_co;
-          const short *temp_no_s;
+          const float *temp_no_s;
           BM_log_original_vert_data(ss->bm_log, vd.bm_vert, &temp_co, &temp_no_s);
           copy_v3_v3(co, temp_co);
-          copy_v3_v3_short(no_s, temp_no_s);
+          copy_v3_v3(no_s, temp_no_s);
         }
         else {
           copy_v3_v3(co, unode->co[vd.i]);
-          copy_v3_v3_short(no_s, unode->no[vd.i]);
+          copy_v3_v3(no_s, unode->no[vd.i]);
         }
       }
       else {
@@ -1970,11 +1967,11 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
       data->any_vertex_sampled = true;
 
       if (use_original) {
-        normal_short_to_float_v3(no, no_s);
+        copy_v3_v3(no, no_s);
       }
       else {
         if (vd.no) {
-          normal_short_to_float_v3(no, vd.no);
+          copy_v3_v3(no, vd.no);
         }
         else {
           copy_v3_v3(no, vd.fno);
@@ -2350,7 +2347,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
                                    const Brush *br,
                                    const float brush_point[3],
                                    const float len,
-                                   const short vno[3],
+                                   const float vno[3],
                                    const float fno[3],
                                    const float mask,
                                    const int vertex_index,
@@ -3652,11 +3649,6 @@ void SCULPT_flush_stroke_deform(Sculpt *sd, Object *ob, bool is_proxy_used)
     }
 
     MEM_SAFE_FREE(nodes);
-
-    /* Modifiers could depend on mesh normals, so we should update them.
-     * NOTE: then if sculpting happens on locked key, normals should be re-calculate after applying
-     * coords from key-block on base mesh. */
-    BKE_mesh_calc_normals(me);
   }
   else if (ss->shapekey_active) {
     sculpt_update_keyblock(ob);

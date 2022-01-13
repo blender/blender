@@ -427,16 +427,6 @@ static void add_interp_verts_copy_edges_to_new_mesh(const Mesh &src_mesh,
       MVert &v2 = src_mesh.mvert[e_src.v2];
 
       interp_v3_v3v3(v.co, v1.co, v2.co, fac);
-
-      float no1[3];
-      float no2[3];
-      normal_short_to_float_v3(no1, v1.no);
-      normal_short_to_float_v3(no2, v2.no);
-      mul_v3_fl(no1, weights[0]);
-      madd_v3_v3fl(no1, no2, weights[1]);
-      normalize_v3(no1);
-      normal_float_to_short_v3(v.no, no1);
-
       vert_index++;
     }
   }

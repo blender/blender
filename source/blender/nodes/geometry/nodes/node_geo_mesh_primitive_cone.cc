@@ -676,8 +676,6 @@ static Mesh *create_vertex_mesh()
   /* Returns a mesh with a single vertex at the origin. */
   Mesh *mesh = BKE_mesh_new_nomain(1, 0, 0, 0, 0);
   copy_v3_fl3(mesh->mvert[0].co, 0.0f, 0.0f, 0.0f);
-  const short up[3] = {0, 0, SHRT_MAX};
-  copy_v3_v3_short(mesh->mvert[0].no, up);
   return mesh;
 }
 
@@ -719,8 +717,6 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
   calculate_cone_faces(loops, polys, config);
   calculate_cone_uvs(mesh, config);
   calculate_selection_outputs(mesh, config, attribute_outputs);
-
-  BKE_mesh_normals_tag_dirty(mesh);
 
   return mesh;
 }

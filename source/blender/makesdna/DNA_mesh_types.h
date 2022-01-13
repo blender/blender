@@ -82,6 +82,10 @@ typedef struct Mesh_Runtime {
   struct Mesh *mesh_eval;
   void *eval_mutex;
 
+  /* A separate mutex is needed for normal calculation, because sometimes
+   * the normals are needed while #eval_mutex is already locked. */
+  void *normals_mutex;
+
   /** Needed to ensure some thread-safety during render data pre-processing. */
   void *render_mutex;
 
@@ -129,6 +133,17 @@ typedef struct Mesh_Runtime {
   char wrapper_type_finalize;
 
   /**
+   * Settings for lazily evaluating the subdivision on the CPU if needed. These are
+   * set in the modifier when GPU subdivision can be performed.
+   */
+  char subsurf_apply_render;
+  char subsurf_use_optimal_display;
+  char _pad[2];
+  int subsurf_resolution;
+
+  void *_pad2;
+
+  /**
    * Used to mark when derived data needs to be recalculated for a certain layer.
    * Currently only normals.
    */
@@ -137,15 +152,6 @@ typedef struct Mesh_Runtime {
   int64_t cd_dirty_edge;
   int64_t cd_dirty_loop;
   int64_t cd_dirty_poly;
-
-  /**
-   * Settings for lazily evaluating the subdivision on the CPU if needed. These are
-   * set in the modifier when GPU subdivision can be performed.
-   */
-  char subsurf_apply_render;
-  char subsurf_use_optimal_display;
-  char _pad[2];
-  int subsurf_resolution;
 
 } Mesh_Runtime;
 

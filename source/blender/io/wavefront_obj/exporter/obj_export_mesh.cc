@@ -156,7 +156,6 @@ int OBJMesh::ith_smooth_group(const int poly_index) const
 
 void OBJMesh::ensure_mesh_normals() const
 {
-  BKE_mesh_ensure_normals(export_mesh_eval_);
   BKE_mesh_calc_normals_split(export_mesh_eval_);
 }
 

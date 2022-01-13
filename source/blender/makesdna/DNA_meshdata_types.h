@@ -41,12 +41,8 @@ extern "C" {
  */
 typedef struct MVert {
   float co[3];
-  /**
-   * Cache the normal, can always be recalculated from surrounding faces.
-   * See #CD_CUSTOMLOOPNORMAL for custom normals.
-   */
-  short no[3];
   char flag, bweight;
+  char _pad[2];
 } MVert;
 
 /** #MVert.flag */

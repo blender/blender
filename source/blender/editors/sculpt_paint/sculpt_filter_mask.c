@@ -334,14 +334,7 @@ static float neighbor_dirty_mask(SculptSession *ss, PBVHVertexIter *vd)
 
   if (total > 0) {
     mul_v3_fl(avg, 1.0f / total);
-    float normal[3];
-    if (vd->no) {
-      normal_short_to_float_v3(normal, vd->no);
-    }
-    else {
-      copy_v3_v3(normal, vd->fno);
-    }
-    float dot = dot_v3v3(avg, normal);
+    float dot = dot_v3v3(avg, vd->no ? vd->no : vd->fno);
     float angle = max_ff(saacosf(dot), 0.0f);
     return angle;
   }

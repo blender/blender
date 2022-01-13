@@ -30,6 +30,8 @@
 
 #include "BLI_math.h"
 #include "BLI_math_geom.h"
+#include "BLI_math_vec_types.hh"
+#include "BLI_span.hh"
 #include "BLI_string.h"
 
 #include "DNA_customdata_types.h"
@@ -527,34 +529,32 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
   }
 
   if (normals_.empty()) {
-    BKE_mesh_calc_normals(mesh);
     return;
   }
 
   if (normals_.size() != mesh->totvert) {
     std::cerr << "WARNING: vertex varying normals count mismatch for mesh " << prim_path_
               << std::endl;
-    BKE_mesh_calc_normals(mesh);
     return;
   }
 
-  for (int i = 0; i < normals_.size(); i++) {
-    MVert &mvert = mesh->mvert[i];
-    normal_float_to_short_v3(mvert.no, normals_[i].data());
-  }
+  MutableSpan vert_normals{(float3 *)BKE_mesh_vertex_normals_for_write(mesh), mesh->totvert};
+  BLI_STATIC_ASSERT(sizeof(normals_[0]) == sizeof(float3), "Expected float3 normals size");
+  vert_normals.copy_from({(float3 *)normals_.data(), static_cast<int64_t>(normals_.size())});
+  BKE_mesh_vertex_normals_clear_dirty(mesh);
 }
 
 void USDMeshReader::process_normals_face_varying(Mesh *mesh)
 {
   if (normals_.empty()) {
-    BKE_mesh_calc_normals(mesh);
+    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
   /* Check for normals count mismatches to prevent crashes. */
   if (normals_.size() != mesh->totloop) {
     std::cerr << "WARNING: loop normal count mismatch for mesh " << mesh->id.name << std::endl;
-    BKE_mesh_calc_normals(mesh);
+    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
@@ -592,14 +592,14 @@ void USDMeshReader::process_normals_face_varying(Mesh *mesh)
 void USDMeshReader::process_normals_uniform(Mesh *mesh)
 {
   if (normals_.empty()) {
-    BKE_mesh_calc_normals(mesh);
+    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
   /* Check for normals count mismatches to prevent crashes. */
   if (normals_.size() != mesh->totpoly) {
     std::cerr << "WARNING: uniform normal count mismatch for mesh " << mesh->id.name << std::endl;
-    BKE_mesh_calc_normals(mesh);
+    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
@@ -652,14 +652,11 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
     }
     else {
       /* Default */
-      BKE_mesh_calc_normals(mesh);
+      BKE_mesh_normals_tag_dirty(mesh);
     }
   }
 
-  /* Process point normals after reading polys.  This
-   * is important in the case where the normals are empty
-   * and we invoke BKE_mesh_calc_normals(mesh), which requires
-   * edges to be defined. */
+  /* Process point normals after reading polys. */
   if ((settings->read_flag & MOD_MESHSEQ_READ_VERT) != 0 &&
       normal_interpolation_ == pxr::UsdGeomTokens->vertex) {
     process_normals_vertex_varying(mesh);

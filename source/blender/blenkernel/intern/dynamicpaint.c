@@ -1789,6 +1789,7 @@ typedef struct DynamicPaintModifierApplyData {
   Object *ob;
 
   MVert *mvert;
+  const float (*vert_normals)[3];
   const MLoop *mloop;
   const MPoly *mpoly;
 
@@ -1806,14 +1807,11 @@ static void dynamic_paint_apply_surface_displace_cb(void *__restrict userdata,
   const DynamicPaintSurface *surface = data->surface;
   MVert *mvert = data->mvert;
 
-  float normal[3];
   const float *value = (float *)surface->data->type_data;
   const float val = value[i] * surface->disp_factor;
 
-  normal_short_to_float_v3(normal, mvert[i].no);
-
   /* same as 'mvert[i].co[0] -= normal[0] * val' etc. */
-  madd_v3_v3fl(mvert[i].co, normal, -val);
+  madd_v3_v3fl(mvert[i].co, data->vert_normals[i], -val);
 }
 
 /* apply displacing vertex surface to the derived mesh */
@@ -1832,6 +1830,7 @@ static void dynamicPaint_applySurfaceDisplace(DynamicPaintSurface *surface, Mesh
     DynamicPaintModifierApplyData data = {
         .surface = surface,
         .mvert = mvert,
+        .vert_normals = BKE_mesh_vertex_normals_ensure(result),
     };
     TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
@@ -1898,10 +1897,8 @@ static void dynamic_paint_apply_surface_wave_cb(void *__restrict userdata,
 
   PaintWavePoint *wPoint = (PaintWavePoint *)data->surface->data->type_data;
   MVert *mvert = data->mvert;
-  float normal[3];
 
-  normal_short_to_float_v3(normal, mvert[i].no);
-  madd_v3_v3fl(mvert[i].co, normal, wPoint[i].height);
+  madd_v3_v3fl(mvert[i].co, data->vert_normals[i], wPoint[i].height);
 }
 
 /*
@@ -2030,6 +2027,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             DynamicPaintModifierApplyData data = {
                 .surface = surface,
                 .mvert = mvert,
+                .vert_normals = BKE_mesh_vertex_normals_ensure(result),
             };
             TaskParallelSettings settings;
             BLI_parallel_range_settings_defaults(&settings);
@@ -4287,6 +4285,7 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
 
     mesh = BKE_mesh_copy_for_eval(brush_mesh, false);
     mvert = mesh->mvert;
+    const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
     mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
     mloop = mesh->mloop;
     numOfVerts = mesh->totvert;
@@ -4301,7 +4300,7 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
       /* for proximity project calculate average normal */
       if (brush->flags & MOD_DPAINT_PROX_PROJECT && brush->collision != MOD_DPAINT_COL_VOLUME) {
         float nor[3];
-        normal_short_to_float_v3(nor, mvert[ii].no);
+        copy_v3_v3(nor, vert_normals[ii]);
         mul_mat3_m4_v3(brushOb->obmat, nor);
         normalize_v3(nor);
 
@@ -5909,6 +5908,7 @@ typedef struct DynamicPaintGenerateBakeData {
   Object *ob;
 
   const MVert *mvert;
+  const float (*vert_normals)[3];
   const Vec3f *canvas_verts;
 
   const bool do_velocity_data;
@@ -5928,7 +5928,6 @@ static void dynamic_paint_generate_bake_data_cb(void *__restrict userdata,
 
   Object *ob = data->ob;
 
-  const MVert *mvert = data->mvert;
   const Vec3f *canvas_verts = data->canvas_verts;
 
   const bool do_velocity_data = data->do_velocity_data;
@@ -5962,9 +5961,9 @@ static void dynamic_paint_generate_bake_data_cb(void *__restrict userdata,
     }
 
     /* Calculate current pixel surface normal */
-    normal_short_to_float_v3(n1, mvert[tPoint->v1].no);
-    normal_short_to_float_v3(n2, mvert[tPoint->v2].no);
-    normal_short_to_float_v3(n3, mvert[tPoint->v3].no);
+    copy_v3_v3(n1, data->vert_normals[tPoint->v1]);
+    copy_v3_v3(n2, data->vert_normals[tPoint->v2]);
+    copy_v3_v3(n3, data->vert_normals[tPoint->v3]);
 
     interp_v3_v3v3v3(
         temp_nor, n1, n2, n3, f_data->barycentricWeights[index * bData->s_num[index]].v);
@@ -6006,7 +6005,7 @@ static void dynamic_paint_generate_bake_data_cb(void *__restrict userdata,
     }
 
     /* normal */
-    normal_short_to_float_v3(temp_nor, mvert[index].no);
+    copy_v3_v3(temp_nor, data->vert_normals[index]);
     if (ELEM(surface->type, MOD_DPAINT_SURFACE_T_DISPLACE, MOD_DPAINT_SURFACE_T_WAVE)) {
       /* Prepare surface normal directional scale to easily convert
        * brush intersection amount between global and local space */
@@ -6145,6 +6144,7 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
       .surface = surface,
       .ob = ob,
       .mvert = mvert,
+      .vert_normals = BKE_mesh_vertex_normals_ensure(mesh),
       .canvas_verts = canvas_verts,
       .do_velocity_data = do_velocity_data,
       .new_bdata = new_bdata,

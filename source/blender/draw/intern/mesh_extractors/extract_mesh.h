@@ -100,8 +100,9 @@ typedef struct MeshRenderData {
   BMFace *efa_act_uv;
   /* Data created on-demand (usually not for #BMesh based data). */
   MLoopTri *mlooptri;
+  const float (*vert_normals)[3];
+  const float (*poly_normals)[3];
   float (*loop_normals)[3];
-  float (*poly_normals)[3];
   int *lverts, *ledges;
 
   struct {

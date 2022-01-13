@@ -89,14 +89,6 @@ Mesh *create_grid_mesh(const int verts_x,
     });
   }
 
-  /* Point all vertex normals in the up direction. */
-  {
-    const short up_normal[3] = {0, 0, SHRT_MAX};
-    for (MVert &vert : verts) {
-      copy_v3_v3_short(vert.no, up_normal);
-    }
-  }
-
   const int y_edges_start = 0;
   const int x_edges_start = verts_x * edges_y;
   const short edge_flag = (edges_x == 0 || edges_y == 0) ? ME_LOOSEEDGE :

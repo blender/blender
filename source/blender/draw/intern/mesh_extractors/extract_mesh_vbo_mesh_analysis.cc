@@ -460,7 +460,7 @@ static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
       float fac = -1.0f;
 
       if (mp->totloop > 3) {
-        float *f_no = mr->poly_normals[mp_index];
+        const float *f_no = mr->poly_normals[mp_index];
         fac = 0.0f;
 
         for (int i = 1; i <= mp->totloop; i++) {
@@ -555,7 +555,7 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
         void **pval;
         bool value_is_init = BLI_edgehash_ensure_p(eh, l_curr->v, l_next->v, &pval);
         if (!value_is_init) {
-          *pval = mr->poly_normals[mp_index];
+          *pval = (void *)mr->poly_normals[mp_index];
           /* non-manifold edge, yet... */
           continue;
         }

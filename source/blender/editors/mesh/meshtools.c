@@ -1363,8 +1363,7 @@ typedef struct VertPickData {
 static void ed_mesh_pick_vert__mapFunc(void *userData,
                                        int index,
                                        const float co[3],
-                                       const float UNUSED(no_f[3]),
-                                       const short UNUSED(no_s[3]))
+                                       const float UNUSED(no[3]))
 {
   VertPickData *data = userData;
   if ((data->mvert[index].flag & ME_HIDE) == 0) {

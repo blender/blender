@@ -461,6 +461,7 @@ struct VertexDupliData_Mesh {
 
   int totvert;
   const MVert *mvert;
+  const float (*vert_normals)[3];
 
   const float (*orco)[3];
 };
@@ -558,12 +559,9 @@ static void make_child_duplis_verts_from_mesh(const DupliContext *ctx,
   float child_imat[4][4];
   mul_m4_m4m4(child_imat, inst_ob->imat, ctx->object->obmat);
 
-  const MVert *mv = mvert;
-  for (int i = 0; i < totvert; i++, mv++) {
-    const float *co = mv->co;
-    float no[3];
-    normal_short_to_float_v3(no, mv->no);
-    DupliObject *dob = vertex_dupli(vdd->params.ctx, inst_ob, child_imat, i, co, no, use_rotation);
+  for (int i = 0; i < totvert; i++) {
+    DupliObject *dob = vertex_dupli(
+        vdd->params.ctx, inst_ob, child_imat, i, mvert[i].co, vdd->vert_normals[i], use_rotation);
     if (vdd->orco) {
       copy_v3_v3(dob->orco, vdd->orco[i]);
     }
@@ -640,6 +638,7 @@ static void make_duplis_verts(const DupliContext *ctx)
     vdd.params = vdd_params;
     vdd.totvert = me_eval->totvert;
     vdd.mvert = me_eval->mvert;
+    vdd.vert_normals = BKE_mesh_vertex_normals_ensure(me_eval);
     vdd.orco = (const float(*)[3])CustomData_get_layer(&me_eval->vdata, CD_ORCO);
 
     make_child_duplis(ctx, &vdd, make_child_duplis_verts_from_mesh);

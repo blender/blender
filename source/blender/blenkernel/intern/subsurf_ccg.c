@@ -803,16 +803,10 @@ static int ccgDM_getNumLoops(DerivedMesh *dm)
   return 4 * ccgSubSurf_getNumFinalFaces(ccgdm->ss);
 }
 
-static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
+static CCGElem *get_vertex_elem(CCGDerivedMesh *ccgdm, int vertNum)
 {
-  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   CCGSubSurf *ss = ccgdm->ss;
-  CCGElem *vd;
-  CCGKey key;
   int i;
-
-  CCG_key_top_level(&key, ss);
-  memset(mv, 0, sizeof(*mv));
 
   if ((vertNum < ccgdm->edgeMap[0].startVert) && (ccgSubSurf_getNumFaces(ss) > 0)) {
     /* this vert comes from face data */
@@ -842,30 +836,24 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 
     offset = vertNum - ccgdm->faceMap[i].startVert;
     if (offset < 1) {
-      vd = ccgSubSurf_getFaceCenterData(f);
-      copy_v3_v3(mv->co, CCG_elem_co(&key, vd));
-      normal_float_to_short_v3(mv->no, CCG_elem_no(&key, vd));
+      return ccgSubSurf_getFaceCenterData(f);
     }
-    else if (offset < gridSideEnd) {
+    if (offset < gridSideEnd) {
       offset -= 1;
       grid = offset / gridSideVerts;
       x = offset % gridSideVerts + 1;
-      vd = ccgSubSurf_getFaceGridEdgeData(ss, f, grid, x);
-      copy_v3_v3(mv->co, CCG_elem_co(&key, vd));
-      normal_float_to_short_v3(mv->no, CCG_elem_no(&key, vd));
+      return ccgSubSurf_getFaceGridEdgeData(ss, f, grid, x);
     }
-    else if (offset < gridInternalEnd) {
+    if (offset < gridInternalEnd) {
       offset -= gridSideEnd;
       grid = offset / gridInternalVerts;
       offset %= gridInternalVerts;
       y = offset / gridSideVerts + 1;
       x = offset % gridSideVerts + 1;
-      vd = ccgSubSurf_getFaceGridData(ss, f, grid, x, y);
-      copy_v3_v3(mv->co, CCG_elem_co(&key, vd));
-      normal_float_to_short_v3(mv->no, CCG_elem_no(&key, vd));
+      return ccgSubSurf_getFaceGridData(ss, f, grid, x, y);
     }
   }
-  else if ((vertNum < ccgdm->vertMap[0].startVert) && (ccgSubSurf_getNumEdges(ss) > 0)) {
+  if ((vertNum < ccgdm->vertMap[0].startVert) && (ccgSubSurf_getNumEdges(ss) > 0)) {
     /* this vert comes from edge data */
     CCGEdge *e;
     int lastedge = ccgSubSurf_getNumEdges(ss) - 1;
@@ -879,36 +867,37 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
     e = ccgdm->edgeMap[i].edge;
 
     x = vertNum - ccgdm->edgeMap[i].startVert + 1;
-    vd = ccgSubSurf_getEdgeData(ss, e, x);
-    copy_v3_v3(mv->co, CCG_elem_co(&key, vd));
-    normal_float_to_short_v3(mv->no, CCG_elem_no(&key, vd));
+    return ccgSubSurf_getEdgeData(ss, e, x);
   }
-  else {
-    /* this vert comes from vert data */
-    CCGVert *v;
-    i = vertNum - ccgdm->vertMap[0].startVert;
 
-    v = ccgdm->vertMap[i].vert;
-    vd = ccgSubSurf_getVertData(ss, v);
-    copy_v3_v3(mv->co, CCG_elem_co(&key, vd));
-    normal_float_to_short_v3(mv->no, CCG_elem_no(&key, vd));
-  }
+  /* this vert comes from vert data */
+  CCGVert *v;
+  i = vertNum - ccgdm->vertMap[0].startVert;
+
+  v = ccgdm->vertMap[i].vert;
+  return ccgSubSurf_getVertData(ss, v);
 }
 
 static void ccgDM_getFinalVertCo(DerivedMesh *dm, int vertNum, float r_co[3])
 {
-  MVert mvert;
+  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
+  CCGSubSurf *ss = ccgdm->ss;
 
-  ccgDM_getFinalVert(dm, vertNum, &mvert);
-  copy_v3_v3(r_co, mvert.co);
+  CCGElem *vd = get_vertex_elem(ccgdm, vertNum);
+  CCGKey key;
+  CCG_key_top_level(&key, ss);
+  copy_v3_v3(r_co, CCG_elem_co(&key, vd));
 }
 
 static void ccgDM_getFinalVertNo(DerivedMesh *dm, int vertNum, float r_no[3])
 {
-  MVert mvert;
+  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
+  CCGSubSurf *ss = ccgdm->ss;
 
-  ccgDM_getFinalVert(dm, vertNum, &mvert);
-  normal_short_to_float_v3(r_no, mvert.no);
+  CCGElem *vd = get_vertex_elem(ccgdm, vertNum);
+  CCGKey key;
+  CCG_key_top_level(&key, ss);
+  copy_v3_v3(r_no, CCG_elem_no(&key, vd));
 }
 
 void subsurf_copy_grid_hidden(DerivedMesh *dm,
@@ -995,7 +984,6 @@ void subsurf_copy_grid_paint_mask(DerivedMesh *dm,
 BLI_INLINE void ccgDM_to_MVert(MVert *mv, const CCGKey *key, CCGElem *elem)
 {
   copy_v3_v3(mv->co, CCG_elem_co(key, elem));
-  normal_float_to_short_v3(mv->no, CCG_elem_no(key, elem));
   mv->flag = mv->bweight = 0;
 }
 

@@ -1400,8 +1400,7 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
   float radius;
 
   copy_v3_v3(co, treedata->vert[v_idx].co);
-  normal_short_to_float_v3(no, treedata->vert[v_idx].no);
-  negate_v3(no);
+  negate_v3_v3(no, treedata->vert_normals[v_idx]);
 
   float vec_len = sin(max_diversion);
   float offset[3];

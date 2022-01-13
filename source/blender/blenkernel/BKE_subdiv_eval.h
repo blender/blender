@@ -75,8 +75,6 @@ void BKE_subdiv_eval_limit_point_and_derivatives(struct Subdiv *subdiv,
                                                  float r_dPdv[3]);
 void BKE_subdiv_eval_limit_point_and_normal(
     struct Subdiv *subdiv, int ptex_face_index, float u, float v, float r_P[3], float r_N[3]);
-void BKE_subdiv_eval_limit_point_and_short_normal(
-    struct Subdiv *subdiv, int ptex_face_index, float u, float v, float r_P[3], short r_N[3]);
 
 /* Evaluate face-varying layer (such as UV). */
 void BKE_subdiv_eval_face_varying(struct Subdiv *subdiv,
@@ -137,15 +135,6 @@ void BKE_subdiv_eval_limit_patch_resolution_point_and_normal(struct Subdiv *subd
                                                              void *normal_buffer,
                                                              int normal_offset,
                                                              int normal_stride);
-void BKE_subdiv_eval_limit_patch_resolution_point_and_short_normal(struct Subdiv *subdiv,
-                                                                   int ptex_face_index,
-                                                                   int resolution,
-                                                                   void *point_buffer,
-                                                                   int point_offset,
-                                                                   int point_stride,
-                                                                   void *normal_buffer,
-                                                                   int normal_offset,
-                                                                   int normal_stride);
 
 #ifdef __cplusplus
 }

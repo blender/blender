@@ -72,6 +72,7 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_movieclip.h"
 #include "BKE_object.h"
@@ -544,6 +545,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   float vec[3] = {0.0f, 0.0f, 0.0f};
   float normal[3] = {0.0f, 0.0f, 0.0f};
   float weightsum = 0.0f;
+  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me_eval);
   if (me_eval) {
     const MDeformVert *dvert = CustomData_get_layer(&me_eval->vdata, CD_MDEFORMVERT);
     int numVerts = me_eval->totvert;
@@ -558,10 +560,8 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
         const MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
 
         if (dw && dw->weight > 0.0f) {
-          float nor[3];
-          normal_short_to_float_v3(nor, mv->no);
           madd_v3_v3fl(vec, mv->co, dw->weight);
-          madd_v3_v3fl(normal, nor, dw->weight);
+          madd_v3_v3fl(normal, vert_normals[i], dw->weight);
           weightsum += dw->weight;
         }
       }

@@ -379,14 +379,15 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
 
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
+    mr->vert_normals = BKE_mesh_vertex_normals_ensure(mr->me);
     if (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR | MR_DATA_TAN_LOOP_NOR)) {
-      BKE_mesh_ensure_normals_for_display(mr->me);
-      mr->poly_normals = CustomData_get_layer(&mr->me->pdata, CD_NORMAL);
+      mr->poly_normals = BKE_mesh_poly_normals_ensure(mr->me);
     }
     if (((data_flag & MR_DATA_LOOP_NOR) && is_auto_smooth) || (data_flag & MR_DATA_TAN_LOOP_NOR)) {
       mr->loop_normals = MEM_mallocN(sizeof(*mr->loop_normals) * mr->loop_len, __func__);
       short(*clnors)[2] = CustomData_get_layer(&mr->me->ldata, CD_CUSTOMLOOPNORMAL);
       BKE_mesh_normals_loop_split(mr->me->mvert,
+                                  mr->vert_normals,
                                   mr->vert_len,
                                   mr->me->medge,
                                   mr->edge_len,

@@ -1019,11 +1019,6 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
       /* Tag edges as sharp according to smooth threshold if needed,
        * to preserve autosmooth shading. */
       if (me->flag & ME_AUTOSMOOTH) {
-        float(*polynors)[3] = MEM_mallocN(sizeof(*polynors) * (size_t)me->totpoly, __func__);
-
-        BKE_mesh_calc_normals_poly(
-            me->mvert, me->totvert, me->mloop, me->totloop, me->mpoly, me->totpoly, polynors);
-
         BKE_edges_sharp_from_angle_set(me->mvert,
                                        me->totvert,
                                        me->medge,
@@ -1031,11 +1026,9 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
                                        me->mloop,
                                        me->totloop,
                                        me->mpoly,
-                                       polynors,
+                                       BKE_mesh_poly_normals_ensure(me),
                                        me->totpoly,
                                        me->smoothresh);
-
-        MEM_freeN(polynors);
       }
 
       CustomData_add_layer(data, CD_CUSTOMLOOPNORMAL, CD_DEFAULT, NULL, me->totloop);

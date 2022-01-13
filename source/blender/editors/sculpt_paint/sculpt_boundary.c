@@ -772,12 +772,10 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
 
     const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
     const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index);
-    float normal[3];
-    normal_short_to_float_v3(normal, orig_data.no);
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
     madd_v3_v3v3fl(target_co,
                    orig_data.co,
-                   normal,
+                   orig_data.no,
                    boundary->edit_info[vd.index].strength_factor * disp * mask * automask *
                        strength);
 

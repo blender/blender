@@ -163,8 +163,10 @@ static void waveModifier_do(WaveModifierData *md,
   float falloff_fac = 1.0f; /* when falloff == 0.0f this stays at 1.0f */
   const bool invert_group = (wmd->flag & MOD_WAVE_INVERT_VGROUP) != 0;
 
+  const float(*vert_normals)[3] = NULL;
   if ((wmd->flag & MOD_WAVE_NORM) && (mesh != NULL)) {
     mvert = mesh->mvert;
+    vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
   }
 
   if (wmd->objectcenter != NULL) {
@@ -288,13 +290,13 @@ static void waveModifier_do(WaveModifierData *md,
         if (mvert) {
           /* move along normals */
           if (wmd->flag & MOD_WAVE_NORM_X) {
-            co[0] += (lifefac * amplit) * mvert[i].no[0] / 32767.0f;
+            co[0] += (lifefac * amplit) * vert_normals[i][0];
           }
           if (wmd->flag & MOD_WAVE_NORM_Y) {
-            co[1] += (lifefac * amplit) * mvert[i].no[1] / 32767.0f;
+            co[1] += (lifefac * amplit) * vert_normals[i][1];
           }
           if (wmd->flag & MOD_WAVE_NORM_Z) {
-            co[2] += (lifefac * amplit) * mvert[i].no[2] / 32767.0f;
+            co[2] += (lifefac * amplit) * vert_normals[i][2];
           }
         }
         else {

@@ -203,12 +203,8 @@ Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
   MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
   MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
 
-  short normal[3];
-  normal_float_to_short_v3(normal, math::normalize(delta));
-
   for (const int i : verts.index_range()) {
     copy_v3_v3(verts[i].co, start + delta * i);
-    copy_v3_v3_short(verts[i].no, normal);
   }
 
   fill_edge_data(edges);

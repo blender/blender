@@ -196,11 +196,10 @@ void BM_log_before_all_removed(BMesh *bm, BMLog *log);
  * Does not modify the log or the vertex */
 const float *BM_log_original_vert_co(BMLog *log, BMVert *v);
 
-/* Get the logged normal of a vertex */
 /* Get the logged normal of a vertex
  *
  * Does not modify the log or the vertex */
-const short *BM_log_original_vert_no(BMLog *log, BMVert *v);
+const float *BM_log_original_vert_no(BMLog *log, BMVert *v);
 
 /* Get the logged mask of a vertex */
 /* Get the logged mask of a vertex
@@ -209,7 +208,7 @@ const short *BM_log_original_vert_no(BMLog *log, BMVert *v);
 float BM_log_original_mask(BMLog *log, BMVert *v);
 
 /* Get the logged data of a vertex (avoid multiple lookups) */
-void BM_log_original_vert_data(BMLog *log, BMVert *v, const float **r_co, const short **r_no);
+void BM_log_original_vert_data(BMLog *log, BMVert *v, const float **r_co, const float **r_no);
 
 /* For internal use only (unit testing) */
 /* For internal use only (unit testing) */

@@ -94,6 +94,10 @@ static void mesh_init_data(ID *id)
 
   BKE_mesh_runtime_init_data(mesh);
 
+  /* A newly created mesh does not have normals, so tag them dirty. This will be cleared
+   * by #BKE_mesh_vertex_normals_clear_dirty or #BKE_mesh_poly_normals_ensure. */
+  BKE_mesh_normals_tag_dirty(mesh);
+
   mesh->face_sets_color_seed = BLI_hash_int(PIL_check_seconds_timer_i() & UINT_MAX);
 }
 
@@ -150,12 +154,21 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
 
   mesh_dst->mselect = (MSelect *)MEM_dupallocN(mesh_dst->mselect);
 
+  /* Set normal layers dirty, since they aren't included in CD_MASK_MESH and are therefore not
+   * copied to the destination mesh. Alternatively normal layers could be copied if they aren't
+   * dirty, avoiding recomputation in some cases. However, a copied mesh is often changed anyway,
+   * so that idea is not clearly better. With proper reference counting, all custom data layers
+   * could be copied as the cost would be much lower. */
+  BKE_mesh_normals_tag_dirty(mesh_dst);
+
   /* TODO: Do we want to add flag to prevent this? */
   if (mesh_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
     BKE_id_copy_ex(bmain, &mesh_src->key->id, (ID **)&mesh_dst->key, flag);
     /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
     mesh_dst->key->from = &mesh_dst->id;
   }
+
+  BKE_mesh_assert_normals_dirty_or_calculated(mesh_dst);
 }
 
 static void mesh_free_data(ID *id)
@@ -335,6 +348,10 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
       BLI_endian_switch_uint32_array(tf->col, 4);
     }
   }
+
+  /* We don't expect to load normals from files, since they are derived data. */
+  BKE_mesh_normals_tag_dirty(mesh);
+  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
 }
 
 static void mesh_blend_read_lib(BlendLibReader *reader, ID *id)
@@ -1036,6 +1053,8 @@ void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
 
   BKE_mesh_copy_parameters(me_dst, me_src);
 
+  BKE_mesh_assert_normals_dirty_or_calculated(me_dst);
+
   /* Copy vertex group names. */
   BLI_assert(BLI_listbase_is_empty(&me_dst->vertex_group_names));
   BKE_defgroup_copy_list(&me_dst->vertex_group_names, &me_src->vertex_group_names);
@@ -1081,6 +1100,18 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
   }
   else {
     mesh_tessface_clear_intern(me_dst, false);
+  }
+
+  me_dst->runtime.cd_dirty_poly = me_src->runtime.cd_dirty_poly;
+  me_dst->runtime.cd_dirty_vert = me_src->runtime.cd_dirty_vert;
+
+  /* Ensure that when no normal layers exist, they are marked dirty, because
+   * normals might not have been included in the mask of copied layers. */
+  if (!CustomData_has_layer(&me_dst->vdata, CD_NORMAL)) {
+    me_dst->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  }
+  if (!CustomData_has_layer(&me_dst->pdata, CD_NORMAL)) {
+    me_dst->runtime.cd_dirty_poly |= CD_MASK_NORMAL;
   }
 
   /* The destination mesh should at least have valid primary CD layers,
@@ -1882,24 +1913,10 @@ void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
   BKE_mesh_normals_tag_dirty(mesh);
 }
 
-void BKE_mesh_vert_normals_apply(Mesh *mesh, const short (*vert_normals)[3])
-{
-  /* This will just return the pointer if it wasn't a referenced layer. */
-  MVert *mv = (MVert *)CustomData_duplicate_referenced_layer(
-      &mesh->vdata, CD_MVERT, mesh->totvert);
-  mesh->mvert = mv;
-  for (int i = 0; i < mesh->totvert; i++, mv++) {
-    copy_v3_v3_short(mv->no, vert_normals[i]);
-  }
-  mesh->runtime.cd_dirty_vert &= ~CD_MASK_NORMAL;
-}
-
 void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spacearr)
 {
   float(*r_loopnors)[3];
-  float(*polynors)[3];
   short(*clnors)[2] = nullptr;
-  bool free_polynors = false;
 
   /* Note that we enforce computing clnors when the clnor space array is requested by caller here.
    * However, we obviously only use the auto-smooth angle threshold
@@ -1921,26 +1938,8 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
   /* may be nullptr */
   clnors = (short(*)[2])CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
 
-  if (CustomData_has_layer(&mesh->pdata, CD_NORMAL)) {
-    /* This assume that layer is always up to date, not sure this is the case
-     * (esp. in Edit mode?)... */
-    polynors = (float(*)[3])CustomData_get_layer(&mesh->pdata, CD_NORMAL);
-    free_polynors = false;
-  }
-  else {
-    polynors = (float(*)[3])MEM_malloc_arrayN(mesh->totpoly, sizeof(float[3]), __func__);
-    BKE_mesh_calc_normals_poly_and_vertex(mesh->mvert,
-                                          mesh->totvert,
-                                          mesh->mloop,
-                                          mesh->totloop,
-                                          mesh->mpoly,
-                                          mesh->totpoly,
-                                          polynors,
-                                          nullptr);
-    free_polynors = true;
-  }
-
   BKE_mesh_normals_loop_split(mesh->mvert,
+                              BKE_mesh_vertex_normals_ensure(mesh),
                               mesh->totvert,
                               mesh->medge,
                               mesh->totedge,
@@ -1948,7 +1947,7 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
                               r_loopnors,
                               mesh->totloop,
                               mesh->mpoly,
-                              (const float(*)[3])polynors,
+                              BKE_mesh_poly_normals_ensure(mesh),
                               mesh->totpoly,
                               use_split_normals,
                               split_angle,
@@ -1956,12 +1955,8 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
                               clnors,
                               nullptr);
 
-  if (free_polynors) {
-    MEM_freeN(polynors);
-  }
+  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
 
-  mesh->runtime.cd_dirty_vert &= ~CD_MASK_NORMAL;
-  mesh->runtime.cd_dirty_poly &= ~CD_MASK_NORMAL;
   mesh->runtime.cd_dirty_loop &= ~CD_MASK_NORMAL;
 }
 
@@ -1989,7 +1984,7 @@ struct SplitFaceNewEdge {
 
 /* Detect needed new vertices, and update accordingly loops' vertex indices.
  * WARNING! Leaves mesh in invalid state. */
-static int split_faces_prepare_new_verts(const Mesh *mesh,
+static int split_faces_prepare_new_verts(Mesh *mesh,
                                          MLoopNorSpaceArray *lnors_spacearr,
                                          SplitFaceNewVert **new_verts,
                                          MemArena *memarena)
@@ -2001,8 +1996,9 @@ static int split_faces_prepare_new_verts(const Mesh *mesh,
 
   const int loops_len = mesh->totloop;
   int verts_len = mesh->totvert;
-  MVert *mvert = mesh->mvert;
   MLoop *mloop = mesh->mloop;
+  BKE_mesh_vertex_normals_ensure(mesh);
+  float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(mesh);
 
   BLI_bitmap *verts_used = BLI_BITMAP_NEW(verts_len, __func__);
   BLI_bitmap *done_loops = BLI_BITMAP_NEW(loops_len, __func__);
@@ -2046,7 +2042,7 @@ static int split_faces_prepare_new_verts(const Mesh *mesh,
          * vnor should always be defined to 'automatic normal' value computed from its polys,
          * not some custom normal.
          * Fortunately, that's the loop normal space's 'lnor' reference vector. ;) */
-        normal_float_to_short_v3(mvert[vert_idx].no, (*lnor_space)->vec_lnor);
+        copy_v3_v3(vert_normals[vert_idx], (*lnor_space)->vec_lnor);
       }
       else {
         /* Add new vert to list. */
@@ -2137,6 +2133,7 @@ static void split_faces_split_new_verts(Mesh *mesh,
 {
   const int verts_len = mesh->totvert - num_new_verts;
   MVert *mvert = mesh->mvert;
+  float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(mesh);
 
   /* Remember new_verts is a single linklist, so its items are in reversed order... */
   MVert *new_mv = &mvert[mesh->totvert - 1];
@@ -2145,9 +2142,10 @@ static void split_faces_split_new_verts(Mesh *mesh,
     BLI_assert(new_verts->new_index != new_verts->orig_index);
     CustomData_copy_data(&mesh->vdata, &mesh->vdata, new_verts->orig_index, i, 1);
     if (new_verts->vnor) {
-      normal_float_to_short_v3(new_mv->no, new_verts->vnor);
+      copy_v3_v3(vert_normals[i], new_verts->vnor);
     }
   }
+  BKE_mesh_vertex_normals_clear_dirty(mesh);
 }
 
 /* Perform actual split of edges. */
@@ -2235,6 +2233,7 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
   /* Also frees new_verts/edges temp data, since we used its memarena to allocate them. */
   BKE_lnor_spacearr_free(&lnors_spacearr);
 
+  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
 #ifdef VALIDATE_MESH
   BKE_mesh_validate(mesh, true, true);
 #endif

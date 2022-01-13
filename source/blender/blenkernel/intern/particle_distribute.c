@@ -626,7 +626,8 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
   /* experimental */
   tot = mesh->totface;
 
-  psys_interpolate_face(mvert, mface, 0, 0, pa->fuv, co, nor, 0, 0, 0);
+  psys_interpolate_face(
+      mvert, BKE_mesh_vertex_normals_ensure(mesh), mface, 0, 0, pa->fuv, co, nor, 0, 0, 0);
 
   normalize_v3(nor);
   negate_v3(nor);

@@ -984,7 +984,6 @@ struct Mesh *BKE_modifier_modify_mesh(ModifierData *md,
                                       struct Mesh *me)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
-  BLI_assert(CustomData_has_layer(&me->pdata, CD_NORMAL) == false);
 
   if (me->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
     if ((mti->flags & eModifierTypeFlag_AcceptsBMesh) == 0) {
@@ -1005,8 +1004,6 @@ void BKE_modifier_deform_verts(ModifierData *md,
                                int numVerts)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
-  BLI_assert(!me || CustomData_has_layer(&me->pdata, CD_NORMAL) == false);
-
   if (me && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
     modwrap_dependsOnNormals(me);
   }
@@ -1021,8 +1018,6 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
                                  int numVerts)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
-  BLI_assert(!me || CustomData_has_layer(&me->pdata, CD_NORMAL) == false);
-
   if (me && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
     BKE_mesh_calc_normals(me);
   }

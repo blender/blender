@@ -229,8 +229,7 @@ struct CageUserData {
 static void cage_mapped_verts_callback(void *userData,
                                        int index,
                                        const float co[3],
-                                       const float UNUSED(no_f[3]),
-                                       const short UNUSED(no_s[3]))
+                                       const float UNUSED(no[3]))
 {
   struct CageUserData *data = userData;
 
