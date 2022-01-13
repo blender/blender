@@ -67,10 +67,10 @@
     .slide_scale = {0.0f, 0.0f}, \
   }
 
-/* initialise as all zeros */
+/* initialize as all zeros. */
 #define _DNA_DEFAULT_MovieTrackingMarker \
   { \
-    0, \
+    .pos = {0.0f, 0.0f}, \
   }
 
 /** \} */
