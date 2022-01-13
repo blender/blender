@@ -29,46 +29,19 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Refine triangle intersection to more precise hit point. For rays that travel
- * far the precision is often not so good, this reintersects the primitive from
- * a closer distance.
+/**
+ * Use the barycentric coordinates to get the intersection location
  */
-
-ccl_device_inline float3 motion_triangle_refine(KernelGlobals kg,
-                                                ccl_private ShaderData *sd,
-                                                float3 P,
-                                                float3 D,
-                                                float t,
-                                                const int isect_object,
-                                                const int isect_prim,
-                                                float3 verts[3])
+ccl_device_inline float3 motion_triangle_point_from_uv(KernelGlobals kg,
+                                                       ccl_private ShaderData *sd,
+                                                       const int isect_object,
+                                                       const int isect_prim,
+                                                       const float u,
+                                                       const float v,
+                                                       float3 verts[3])
 {
-#ifdef __INTERSECTION_REFINE__
-  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    if (UNLIKELY(t == 0.0f)) {
-      return P;
-    }
-    const Transform tfm = object_get_inverse_transform(kg, sd);
-
-    P = transform_point(&tfm, P);
-    D = transform_direction(&tfm, D * t);
-    D = normalize_len(D, &t);
-  }
-
-  P = P + D * t;
-
-  /* Compute refined intersection distance. */
-  const float3 e1 = verts[0] - verts[2];
-  const float3 e2 = verts[1] - verts[2];
-  const float3 s1 = cross(D, e2);
-
-  const float invdivisor = 1.0f / dot(s1, e1);
-  const float3 d = P - verts[2];
-  const float3 s2 = cross(d, e1);
-  float rt = dot(e2, s2) * invdivisor;
-
-  /* Compute refined position. */
-  P = P + D * rt;
+  float w = 1.0f - u - v;
+  float3 P = u * verts[0] + v * verts[1] + w * verts[2];
 
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     const Transform tfm = object_get_transform(kg, sd);
@@ -76,70 +49,7 @@ ccl_device_inline float3 motion_triangle_refine(KernelGlobals kg,
   }
 
   return P;
-#else
-  return P + D * t;
-#endif
 }
-
-/* Same as above, except that t is assumed to be in object space
- * for instancing.
- */
-
-#ifdef __BVH_LOCAL__
-#  if defined(__KERNEL_CUDA__) && (defined(i386) || defined(_M_IX86))
-ccl_device_noinline
-#  else
-ccl_device_inline
-#  endif
-    float3
-    motion_triangle_refine_local(KernelGlobals kg,
-                                 ccl_private ShaderData *sd,
-                                 float3 P,
-                                 float3 D,
-                                 float t,
-                                 const int isect_object,
-                                 const int isect_prim,
-                                 float3 verts[3])
-{
-#  if defined(__KERNEL_GPU_RAYTRACING__)
-  /* t is always in world space with OptiX and MetalRT. */
-  return motion_triangle_refine(kg, sd, P, D, t, isect_object, isect_prim, verts);
-#  else
-#    ifdef __INTERSECTION_REFINE__
-  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    const Transform tfm = object_get_inverse_transform(kg, sd);
-
-    P = transform_point(&tfm, P);
-    D = transform_direction(&tfm, D);
-    D = normalize(D);
-  }
-
-  P = P + D * t;
-
-  /* compute refined intersection distance */
-  const float3 e1 = verts[0] - verts[2];
-  const float3 e2 = verts[1] - verts[2];
-  const float3 s1 = cross(D, e2);
-
-  const float invdivisor = 1.0f / dot(s1, e1);
-  const float3 d = P - verts[2];
-  const float3 s2 = cross(d, e1);
-  float rt = dot(e2, s2) * invdivisor;
-
-  P = P + D * rt;
-
-  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    const Transform tfm = object_get_transform(kg, sd);
-    P = transform_point(&tfm, P);
-  }
-
-  return P;
-#    else  /* __INTERSECTION_REFINE__ */
-  return P + D * t;
-#    endif /* __INTERSECTION_REFINE__ */
-#  endif
-}
-#endif /* __BVH_LOCAL__ */
 
 /* Ray intersection. We simply compute the vertex positions at the given ray
  * time and do a ray intersection with the resulting triangle.

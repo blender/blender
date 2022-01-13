@@ -89,7 +89,7 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
       sd->shader = kernel_tex_fetch(__tri_shader, sd->prim);
 
       /* vectors */
-      sd->P = triangle_refine(kg, sd, ray->P, ray->D, isect->t, isect->object, isect->prim);
+      sd->P = triangle_point_from_uv(kg, sd, isect->object, isect->prim, isect->u, isect->v);
       sd->Ng = Ng;
       sd->N = Ng;
 
