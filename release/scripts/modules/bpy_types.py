@@ -101,6 +101,19 @@ class Collection(bpy_types.ID):
     __slots__ = ()
 
     @property
+    def children_recursive(self):
+        """A list of all children from this collection."""
+        children_recursive = []
+
+        def recurse(parent):
+            for child in parent.children:
+                children_recursive.append(child)
+                recurse(child)
+
+        recurse(self)
+        return children_recursive
+
+    @property
     def users_dupli_group(self):
         """The collection instance objects this collection is used in"""
         import bpy
@@ -119,6 +132,27 @@ class Object(bpy_types.ID):
         import bpy
         return tuple(child for child in bpy.data.objects
                      if child.parent == self)
+
+    @property
+    def children_recursive(self):
+        """A list of all children from this object.
+
+        .. note:: Takes ``O(len(bpy.data.objects))`` time."""
+        import bpy
+        parent_child_map = {}
+        for child in bpy.data.objects:
+            if (parent := child.parent) is not None:
+                parent_child_map.setdefault(parent, []).append(child)
+
+        children_recursive = []
+
+        def recurse(parent):
+            for child in parent_child_map.get(parent, ()):
+                children_recursive.append(child)
+                recurse(child)
+
+        recurse(self)
+        return children_recursive
 
     @property
     def users_collection(self):
