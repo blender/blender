@@ -1434,6 +1434,8 @@ int BKE_ffmpeg_append(void *context_v,
     /* Add +1 frame because we want to encode audio up until the next video frame. */
     write_audio_frames(
         context, (frame - start_frame + 1) / (((double)rd->frs_sec) / (double)rd->frs_sec_base));
+#  else
+    UNUSED_VARS(start_frame);
 #  endif
 
     if (context->ffmpeg_autosplit) {
