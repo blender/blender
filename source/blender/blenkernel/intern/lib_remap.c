@@ -116,123 +116,125 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
     old_id = *id_p;
   }
 
-  if (*id_p && (*id_p == old_id)) {
-    /* Better remap to NULL than not remapping at all,
-     * then we can handle it as a regular remap-to-NULL case. */
-    if ((cb_flag & IDWALK_CB_NEVER_SELF) && (new_id == id_self)) {
-      new_id = NULL;
-    }
+  /* Early exit when id pointer isn't set to an expected value. */
+  if (*id_p == NULL || *id_p != old_id) {
+    return IDWALK_RET_NOP;
+  }
 
-    const bool is_reference = (cb_flag & IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE) != 0;
-    const bool is_indirect = (cb_flag & IDWALK_CB_INDIRECT_USAGE) != 0;
-    const bool skip_indirect = (id_remap_data->flag & ID_REMAP_SKIP_INDIRECT_USAGE) != 0;
-    /* NOTE: proxy usage implies LIB_TAG_EXTERN, so on this aspect it is direct,
-     * on the other hand since they get reset to lib data on file open/reload it is indirect too.
-     * Edit Mode is also a 'skip direct' case. */
-    const bool is_obj = (GS(id_owner->name) == ID_OB);
-    const bool is_obj_proxy = (is_obj &&
-                               (((Object *)id_owner)->proxy || ((Object *)id_owner)->proxy_group));
-    const bool is_obj_editmode = (is_obj && BKE_object_is_in_editmode((Object *)id_owner) &&
-                                  (id_remap_data->flag & ID_REMAP_FORCE_OBDATA_IN_EDITMODE) == 0);
-    const bool is_never_null = ((cb_flag & IDWALK_CB_NEVER_NULL) && (new_id == NULL) &&
-                                (id_remap_data->flag & ID_REMAP_FORCE_NEVER_NULL_USAGE) == 0);
-    const bool skip_reference = (id_remap_data->flag & ID_REMAP_SKIP_OVERRIDE_LIBRARY) != 0;
-    const bool skip_never_null = (id_remap_data->flag & ID_REMAP_SKIP_NEVER_NULL_USAGE) != 0;
-    const bool force_user_refcount = (id_remap_data->flag & ID_REMAP_FORCE_USER_REFCOUNT) != 0;
+  /* Better remap to NULL than not remapping at all,
+   * then we can handle it as a regular remap-to-NULL case. */
+  if ((cb_flag & IDWALK_CB_NEVER_SELF) && (new_id == id_self)) {
+    new_id = NULL;
+  }
+
+  const bool is_reference = (cb_flag & IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE) != 0;
+  const bool is_indirect = (cb_flag & IDWALK_CB_INDIRECT_USAGE) != 0;
+  const bool skip_indirect = (id_remap_data->flag & ID_REMAP_SKIP_INDIRECT_USAGE) != 0;
+  /* NOTE: proxy usage implies LIB_TAG_EXTERN, so on this aspect it is direct,
+   * on the other hand since they get reset to lib data on file open/reload it is indirect too.
+   * Edit Mode is also a 'skip direct' case. */
+  const bool is_obj = (GS(id_owner->name) == ID_OB);
+  const bool is_obj_proxy = (is_obj &&
+                             (((Object *)id_owner)->proxy || ((Object *)id_owner)->proxy_group));
+  const bool is_obj_editmode = (is_obj && BKE_object_is_in_editmode((Object *)id_owner) &&
+                                (id_remap_data->flag & ID_REMAP_FORCE_OBDATA_IN_EDITMODE) == 0);
+  const bool is_never_null = ((cb_flag & IDWALK_CB_NEVER_NULL) && (new_id == NULL) &&
+                              (id_remap_data->flag & ID_REMAP_FORCE_NEVER_NULL_USAGE) == 0);
+  const bool skip_reference = (id_remap_data->flag & ID_REMAP_SKIP_OVERRIDE_LIBRARY) != 0;
+  const bool skip_never_null = (id_remap_data->flag & ID_REMAP_SKIP_NEVER_NULL_USAGE) != 0;
+  const bool force_user_refcount = (id_remap_data->flag & ID_REMAP_FORCE_USER_REFCOUNT) != 0;
 
 #ifdef DEBUG_PRINT
-    printf(
-        "In %s (lib %p): Remapping %s (%p) to %s (%p) "
-        "(is_indirect: %d, skip_indirect: %d, is_reference: %d, skip_reference: %d)\n",
-        id->name,
-        id->lib,
-        old_id->name,
-        old_id,
-        new_id ? new_id->name : "<NONE>",
-        new_id,
-        is_indirect,
-        skip_indirect,
-        is_reference,
-        skip_reference);
+  printf(
+      "In %s (lib %p): Remapping %s (%p) to %s (%p) "
+      "(is_indirect: %d, skip_indirect: %d, is_reference: %d, skip_reference: %d)\n",
+      id->name,
+      id->lib,
+      old_id->name,
+      old_id,
+      new_id ? new_id->name : "<NONE>",
+      new_id,
+      is_indirect,
+      skip_indirect,
+      is_reference,
+      skip_reference);
 #endif
 
-    if ((id_remap_data->flag & ID_REMAP_FLAG_NEVER_NULL_USAGE) &&
-        (cb_flag & IDWALK_CB_NEVER_NULL)) {
-      id_owner->tag |= LIB_TAG_DOIT;
-    }
+  if ((id_remap_data->flag & ID_REMAP_FLAG_NEVER_NULL_USAGE) && (cb_flag & IDWALK_CB_NEVER_NULL)) {
+    id_owner->tag |= LIB_TAG_DOIT;
+  }
 
-    /* Special hack in case it's Object->data and we are in edit mode, and new_id is not NULL
-     * (otherwise, we follow common NEVER_NULL flags).
-     * (skipped_indirect too). */
-    if ((is_never_null && skip_never_null) ||
-        (is_obj_editmode && (((Object *)id_owner)->data == *id_p) && new_id != NULL) ||
-        (skip_indirect && is_indirect) || (is_reference && skip_reference)) {
-      if (is_indirect) {
-        id_remap_data->skipped_indirect++;
-        if (is_obj) {
-          Object *ob = (Object *)id_owner;
-          if (ob->data == *id_p && ob->proxy != NULL) {
-            /* And another 'Proudly brought to you by Proxy Hell' hack!
-             * This will allow us to avoid clearing 'LIB_EXTERN' flag of obdata of proxies... */
-            id_remap_data->skipped_direct++;
-          }
+  /* Special hack in case it's Object->data and we are in edit mode, and new_id is not NULL
+   * (otherwise, we follow common NEVER_NULL flags).
+   * (skipped_indirect too). */
+  if ((is_never_null && skip_never_null) ||
+      (is_obj_editmode && (((Object *)id_owner)->data == *id_p) && new_id != NULL) ||
+      (skip_indirect && is_indirect) || (is_reference && skip_reference)) {
+    if (is_indirect) {
+      id_remap_data->skipped_indirect++;
+      if (is_obj) {
+        Object *ob = (Object *)id_owner;
+        if (ob->data == *id_p && ob->proxy != NULL) {
+          /* And another 'Proudly brought to you by Proxy Hell' hack!
+           * This will allow us to avoid clearing 'LIB_EXTERN' flag of obdata of proxies... */
+          id_remap_data->skipped_direct++;
         }
       }
-      else if (is_never_null || is_obj_editmode || is_reference) {
-        id_remap_data->skipped_direct++;
-      }
-      else {
-        BLI_assert(0);
-      }
-      if (cb_flag & IDWALK_CB_USER) {
-        id_remap_data->skipped_refcounted++;
-      }
-      else if (cb_flag & IDWALK_CB_USER_ONE) {
-        /* No need to count number of times this happens, just a flag is enough. */
-        id_remap_data->status |= ID_REMAP_IS_USER_ONE_SKIPPED;
-      }
+    }
+    else if (is_never_null || is_obj_editmode || is_reference) {
+      id_remap_data->skipped_direct++;
     }
     else {
-      if (!is_never_null) {
-        *id_p = new_id;
+      BLI_assert(0);
+    }
+    if (cb_flag & IDWALK_CB_USER) {
+      id_remap_data->skipped_refcounted++;
+    }
+    else if (cb_flag & IDWALK_CB_USER_ONE) {
+      /* No need to count number of times this happens, just a flag is enough. */
+      id_remap_data->status |= ID_REMAP_IS_USER_ONE_SKIPPED;
+    }
+  }
+  else {
+    if (!is_never_null) {
+      *id_p = new_id;
+      DEG_id_tag_update_ex(id_remap_data->bmain,
+                           id_self,
+                           ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+      if (id_self != id_owner) {
         DEG_id_tag_update_ex(id_remap_data->bmain,
-                             id_self,
+                             id_owner,
                              ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-        if (id_self != id_owner) {
-          DEG_id_tag_update_ex(id_remap_data->bmain,
-                               id_owner,
-                               ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-        }
       }
-      if (cb_flag & IDWALK_CB_USER) {
-        /* NOTE: by default we don't user-count IDs which are not in the main database.
-         * This is because in certain conditions we can have data-blocks in
-         * the main which are referencing data-blocks outside of it.
-         * For example, BKE_mesh_new_from_object() called on an evaluated
-         * object will cause such situation.
-         */
-        if (force_user_refcount || (old_id->tag & LIB_TAG_NO_MAIN) == 0) {
-          id_us_min(old_id);
-        }
-        if (new_id != NULL && (force_user_refcount || (new_id->tag & LIB_TAG_NO_MAIN) == 0)) {
-          /* We do not want to handle LIB_TAG_INDIRECT/LIB_TAG_EXTERN here. */
-          new_id->us++;
-        }
+    }
+    if (cb_flag & IDWALK_CB_USER) {
+      /* NOTE: by default we don't user-count IDs which are not in the main database.
+       * This is because in certain conditions we can have data-blocks in
+       * the main which are referencing data-blocks outside of it.
+       * For example, BKE_mesh_new_from_object() called on an evaluated
+       * object will cause such situation.
+       */
+      if (force_user_refcount || (old_id->tag & LIB_TAG_NO_MAIN) == 0) {
+        id_us_min(old_id);
       }
-      else if (cb_flag & IDWALK_CB_USER_ONE) {
-        id_us_ensure_real(new_id);
-        /* We cannot affect old_id->us directly, LIB_TAG_EXTRAUSER(_SET)
-         * are assumed to be set as needed, that extra user is processed in final handling. */
+      if (new_id != NULL && (force_user_refcount || (new_id->tag & LIB_TAG_NO_MAIN) == 0)) {
+        /* We do not want to handle LIB_TAG_INDIRECT/LIB_TAG_EXTERN here. */
+        new_id->us++;
       }
-      if (!is_indirect || is_obj_proxy) {
-        id_remap_data->status |= ID_REMAP_IS_LINKED_DIRECT;
-      }
-      /* We need to remap proxy_from pointer of remapped proxy... sigh. */
-      if (is_obj_proxy && new_id != NULL) {
-        Object *ob = (Object *)id_owner;
-        if (ob->proxy == (Object *)new_id) {
-          ob->proxy->proxy_from = ob;
-        }
+    }
+    else if (cb_flag & IDWALK_CB_USER_ONE) {
+      id_us_ensure_real(new_id);
+      /* We cannot affect old_id->us directly, LIB_TAG_EXTRAUSER(_SET)
+       * are assumed to be set as needed, that extra user is processed in final handling. */
+    }
+    if (!is_indirect || is_obj_proxy) {
+      id_remap_data->status |= ID_REMAP_IS_LINKED_DIRECT;
+    }
+    /* We need to remap proxy_from pointer of remapped proxy... sigh. */
+    if (is_obj_proxy && new_id != NULL) {
+      Object *ob = (Object *)id_owner;
+      if (ob->proxy == (Object *)new_id) {
+        ob->proxy->proxy_from = ob;
       }
     }
   }
