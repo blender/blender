@@ -642,6 +642,10 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
     }
   }
 
+  /* Grease Pencil needs extra update to refresh the added keyframes. */
+  if (ac.datatype == ANIMCONT_GPENCIL) {
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL);
+  }
   /* set notifier that keyframes have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 
