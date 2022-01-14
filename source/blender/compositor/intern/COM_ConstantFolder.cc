@@ -28,8 +28,6 @@
 
 namespace blender::compositor {
 
-using Link = NodeOperationBuilder::Link;
-
 ConstantFolder::ConstantFolder(NodeOperationBuilder &operations_builder)
     : operations_builder_(operations_builder)
 {
@@ -178,8 +176,8 @@ void ConstantFolder::delete_constant_buffers()
 void ConstantFolder::get_operation_output_operations(NodeOperation *operation,
                                                      Vector<NodeOperation *> &r_outputs)
 {
-  const Vector<Link> &links = operations_builder_.get_links();
-  for (const Link &link : links) {
+  const Vector<NodeOperationBuilder::Link> &links = operations_builder_.get_links();
+  for (const NodeOperationBuilder::Link &link : links) {
     if (&link.from()->get_operation() == operation) {
       r_outputs.append(&link.to()->get_operation());
     }
