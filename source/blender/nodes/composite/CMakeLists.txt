@@ -158,3 +158,6 @@ if(WITH_UNITY_BUILD)
   set_target_properties(bf_nodes_composite PROPERTIES UNITY_BUILD ON)
   set_target_properties(bf_nodes_composite PROPERTIES UNITY_BUILD_BATCH_SIZE 10)
 endif()
+
+# Needed so we can use dna_type_offsets.h for defaults initialization.
+add_dependencies(bf_nodes_composite bf_dna)
