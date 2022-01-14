@@ -40,7 +40,7 @@ AUD_NAMESPACE_BEGIN
 /**
  * This device plays back through WASAPI, the Windows audio API.
  */
-class AUD_PLUGIN_API WASAPIDevice : public ThreadedDevice
+class AUD_PLUGIN_API WASAPIDevice : IMMNotificationClient, public ThreadedDevice
 {
 private:
 	int m_buffersize;
@@ -48,6 +48,8 @@ private:
 	IMMDevice* m_imm_device;
 	IAudioClient* m_audio_client;
 	WAVEFORMATEXTENSIBLE m_wave_format_extensible;
+	bool m_default_device_changed;
+	LONG m_reference_count;
 
 	AUD_LOCAL HRESULT setupRenderClient(IAudioRenderClient*& render_client, UINT32& buffer_size);
 
@@ -57,6 +59,17 @@ private:
 	AUD_LOCAL void runMixingThread();
 
 	AUD_LOCAL bool setupDevice(DeviceSpecs& specs);
+
+	// IUnknown implementation
+	ULONG STDMETHODCALLTYPE AddRef();
+	ULONG STDMETHODCALLTYPE Release();
+	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject);
+	// IMMNotificationClient implementation
+	HRESULT STDMETHODCALLTYPE OnDeviceStateChanged(LPCWSTR pwstrDeviceId, DWORD dwNewState);
+	HRESULT STDMETHODCALLTYPE OnDeviceAdded(LPCWSTR pwstrDeviceId);
+	HRESULT STDMETHODCALLTYPE OnDeviceRemoved(LPCWSTR pwstrDeviceId);
+	HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged(EDataFlow flow, ERole role, LPCWSTR pwstrDeviceId);
+	HRESULT STDMETHODCALLTYPE OnPropertyValueChanged(LPCWSTR pwstrDeviceId, const PROPERTYKEY key);
 
 	// delete copy constructor and operator=
 	WASAPIDevice(const WASAPIDevice&) = delete;
