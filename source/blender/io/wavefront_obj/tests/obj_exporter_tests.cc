@@ -390,6 +390,7 @@ TEST_F(obj_exporter_regression_test, cube_all_data_triangulated)
                                _export.params);
 }
 
+#if 0
 TEST_F(obj_exporter_regression_test, suzanne_all_data)
 {
   OBJExportParamsDefault _export;
@@ -414,5 +415,6 @@ TEST_F(obj_exporter_regression_test, all_objects)
                                "io_tests/obj/all_objects.mtl",
                                _export.params);
 }
+#endif
 
 }  // namespace blender::io::obj
