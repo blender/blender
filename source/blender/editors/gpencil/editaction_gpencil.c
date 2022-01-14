@@ -46,6 +46,8 @@
 
 #include "WM_api.h"
 
+#include "DEG_depsgraph.h"
+
 /* ***************************************** */
 /* NOTE ABOUT THIS FILE:
  * This file contains code for editing Grease Pencil data in the Action Editor
@@ -481,6 +483,9 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
       /* unapply offset from buffer-frame */
       gpfs->framenum -= offset;
     }
+
+    /* Tag destination datablock. */
+    DEG_id_tag_update(ale->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   }
 
   /* clean up */
