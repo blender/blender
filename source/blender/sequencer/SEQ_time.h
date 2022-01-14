@@ -59,10 +59,10 @@ void SEQ_timeline_boundbox(const struct Scene *scene,
 float SEQ_time_sequence_get_fps(struct Scene *scene, struct Sequence *seq);
 int SEQ_time_find_next_prev_edit(struct Scene *scene,
                                  int timeline_frame,
-                                 const short side,
-                                 const bool do_skip_mute,
-                                 const bool do_center,
-                                 const bool do_unselected);
+                                 short side,
+                                 bool do_skip_mute,
+                                 bool do_center,
+                                 bool do_unselected);
 void SEQ_time_update_sequence(struct Scene *scene, struct ListBase *seqbase, struct Sequence *seq);
 void SEQ_time_update_recursive(struct Scene *scene, struct Sequence *changed_seq);
 /**
@@ -74,7 +74,7 @@ void SEQ_time_update_recursive(struct Scene *scene, struct Sequence *changed_seq
  * \param timeline_frame: absolute frame position
  * \return true if strip intersects with timeline frame.
  */
-bool SEQ_time_strip_intersects_frame(const struct Sequence *seq, const int timeline_frame);
+bool SEQ_time_strip_intersects_frame(const struct Sequence *seq, int timeline_frame);
 void SEQ_time_update_meta_strip_range(struct Scene *scene, struct Sequence *seq_meta);
 
 #ifdef __cplusplus

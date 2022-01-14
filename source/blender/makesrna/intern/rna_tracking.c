@@ -32,6 +32,7 @@
 
 #include "rna_internal.h"
 
+#include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h" /* SELECT */
 #include "DNA_scene_types.h"
@@ -609,7 +610,7 @@ static MovieTrackingTrack *add_track_to_base(
     MovieClip *clip, MovieTracking *tracking, ListBase *tracksbase, const char *name, int frame)
 {
   int width, height;
-  MovieClipUser user = {0};
+  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
   MovieTrackingTrack *track;
 
   user.framenr = 1;

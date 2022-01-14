@@ -180,8 +180,13 @@ void VectorBlurOperation::generate_vector_blur(float *data,
                           inputZ->get_buffer());
 }
 
-/* ****************** Spans ******************************* */
-/* span fill in method, is also used to localize data for zbuffering */
+/* -------------------------------------------------------------------- */
+/** \name Spans
+ *
+ * Duplicated logic from `zbuf.c`.
+ * \{ */
+
+/** Span fill in method, is also used to localize data for Z-buffering. */
 struct ZSpan {
   /* range for clipping */
   int rectx, recty;
@@ -327,10 +332,12 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
   }
 
   for (y = my2; y >= my0; y--, xs0 += dx0) {
-    /* xs0 is the xcoord! */
+    /* xs0 is the X-coordinate! */
     span[y] = xs0;
   }
 }
+
+/** \} */
 
 /* ******************** VECBLUR ACCUM BUF ************************* */
 
@@ -339,6 +346,9 @@ struct DrawBufPixel {
   float alpha;
 };
 
+/**
+ * \note Near duplicate of `zspan_scanconvert` in `zbuf.c` with some minor adjustments.
+ */
 static void zbuf_fill_in_rgba(
     ZSpan *zspan, DrawBufPixel *col, float *v1, float *v2, float *v3, float *v4)
 {

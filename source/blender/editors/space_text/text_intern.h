@@ -42,7 +42,7 @@ void text_update_character_width(struct SpaceText *st);
 /**
  * Takes an area instead of a region, use for listeners.
  */
-void text_scroll_to_cursor__area(struct SpaceText *st, struct ScrArea *area, const bool center);
+void text_scroll_to_cursor__area(struct SpaceText *st, struct ScrArea *area, bool center);
 void text_update_cursor_moved(struct bContext *C);
 
 /* Padding around line numbers in character widths. */

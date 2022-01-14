@@ -50,10 +50,9 @@ bool tex_node_poll_default(bNodeType *UNUSED(ntype),
   return true;
 }
 
-void tex_node_type_base(
-    struct bNodeType *ntype, int type, const char *name, short nclass, short flag)
+void tex_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass)
 {
-  node_type_base(ntype, type, name, nclass, flag);
+  node_type_base(ntype, type, name, nclass);
 
   ntype->poll = tex_node_poll_default;
   ntype->insert_link = node_insert_link_default;

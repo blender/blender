@@ -56,7 +56,7 @@ ENUM_OPERATORS(eGPUBarrier, GPU_BARRIER_ELEMENT_ARRAY)
  */
 typedef enum eGPUBlend {
   GPU_BLEND_NONE = 0,
-  /** Premult variants will _NOT_ multiply rgb output by alpha. */
+  /** Pre-multiply variants will _NOT_ multiply rgb output by alpha. */
   GPU_BLEND_ALPHA,
   GPU_BLEND_ALPHA_PREMULT,
   GPU_BLEND_ADDITIVE,

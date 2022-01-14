@@ -34,7 +34,7 @@ struct MemArena;
  * are ignored since the edges won't share 2 faces.
  */
 void BLI_polyfill_beautify(const float (*coords)[2],
-                           const unsigned int coords_tot,
+                           unsigned int coords_tot,
                            unsigned int (*tris)[3],
 
                            /* structs for reuse */
@@ -60,7 +60,7 @@ float BLI_polyfill_beautify_quad_rotate_calc_ex(const float v1[2],
                                                 const float v2[2],
                                                 const float v3[2],
                                                 const float v4[2],
-                                                const bool lock_degenerate,
+                                                bool lock_degenerate,
                                                 float *r_area);
 #define BLI_polyfill_beautify_quad_rotate_calc(v1, v2, v3, v4) \
   BLI_polyfill_beautify_quad_rotate_calc_ex(v1, v2, v3, v4, false, NULL)

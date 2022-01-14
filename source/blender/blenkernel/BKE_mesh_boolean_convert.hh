@@ -46,8 +46,8 @@ Mesh *direct_mesh_boolean(blender::Span<const Mesh *> meshes,
                           blender::Span<const float4x4 *> obmats,
                           const float4x4 &target_transform,
                           blender::Span<blender::Array<short>> material_remaps,
-                          const bool use_self,
-                          const bool hole_tolerant,
-                          const int boolean_mode);
+                          bool use_self,
+                          bool hole_tolerant,
+                          int boolean_mode);
 
 }  // namespace blender::meshintersect

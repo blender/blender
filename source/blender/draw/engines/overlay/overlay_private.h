@@ -216,37 +216,37 @@ typedef struct OVERLAY_ExtraCallBuffers {
   DRWShadingGroup *extra_loose_points;
 } OVERLAY_ExtraCallBuffers;
 
-typedef struct OVERLAY_ArmatureCallBuffers {
+typedef struct OVERLAY_ArmatureCallBuffersInner {
   DRWCallBuffer *box_outline;
-  DRWCallBuffer *box_solid;
-  DRWCallBuffer *box_transp;
+  DRWCallBuffer *box_fill;
 
   DRWCallBuffer *dof_lines;
   DRWCallBuffer *dof_sphere;
 
   DRWCallBuffer *envelope_distance;
   DRWCallBuffer *envelope_outline;
-  DRWCallBuffer *envelope_solid;
-  DRWCallBuffer *envelope_transp;
+  DRWCallBuffer *envelope_fill;
 
   DRWCallBuffer *octa_outline;
-  DRWCallBuffer *octa_solid;
-  DRWCallBuffer *octa_transp;
+  DRWCallBuffer *octa_fill;
 
   DRWCallBuffer *point_outline;
-  DRWCallBuffer *point_solid;
-  DRWCallBuffer *point_transp;
+  DRWCallBuffer *point_fill;
 
   DRWCallBuffer *stick;
 
   DRWCallBuffer *wire;
 
   DRWShadingGroup *custom_outline;
-  DRWShadingGroup *custom_solid;
-  DRWShadingGroup *custom_transp;
+  DRWShadingGroup *custom_fill;
   DRWShadingGroup *custom_wire;
-  GHash *custom_shapes_transp_ghash;
+
   GHash *custom_shapes_ghash;
+} OVERLAY_ArmatureCallBuffersInner;
+
+typedef struct OVERLAY_ArmatureCallBuffers {
+  OVERLAY_ArmatureCallBuffersInner solid;
+  OVERLAY_ArmatureCallBuffersInner transp;
 } OVERLAY_ArmatureCallBuffers;
 
 typedef struct OVERLAY_PrivateData {
@@ -590,11 +590,11 @@ void OVERLAY_extra_line_dashed(OVERLAY_ExtraCallBuffers *cb,
 void OVERLAY_extra_line(OVERLAY_ExtraCallBuffers *cb,
                         const float start[3],
                         const float end[3],
-                        const int color_id);
+                        int color_id);
 void OVERLAY_empty_shape(OVERLAY_ExtraCallBuffers *cb,
                          const float mat[4][4],
-                         const float draw_size,
-                         const char draw_type,
+                         float draw_size,
+                         char draw_type,
                          const float color[4]);
 void OVERLAY_extra_loose_points(OVERLAY_ExtraCallBuffers *cb,
                                 struct GPUBatch *geom,

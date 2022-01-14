@@ -92,12 +92,7 @@ static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
     }
     float local_co[3];
     float normal[3];
-    if (vd.no) {
-      normal_short_to_float_v3(normal, vd.no);
-    }
-    else {
-      copy_v3_v3(normal, vd.fno);
-    }
+    copy_v3_v3(normal, vd.no ? vd.no : vd.fno);
     mul_v3_m4v3(local_co, mat, vd.co);
     /* Use the brush falloff to weight the sampled normals. */
     const float fade = SCULPT_brush_strength_factor(ss,

@@ -65,7 +65,7 @@ bool SEQ_transform_seqbase_shuffle_time(struct SeqCollection *strips_to_shuffle,
                                         struct ListBase *seqbasep,
                                         struct Scene *evil_scene,
                                         struct ListBase *markers,
-                                        const bool use_sync_markers);
+                                        bool use_sync_markers);
 /**
  * Check if the selected seq's reference unselected seq's.
  */
@@ -80,8 +80,8 @@ bool SEQ_transform_seqbase_isolated_sel_check(struct ListBase *seqbase);
  */
 void SEQ_transform_offset_after_frame(struct Scene *scene,
                                       struct ListBase *seqbase,
-                                      const int delta,
-                                      const int timeline_frame);
+                                      int delta,
+                                      int timeline_frame);
 
 /* Image transformation. */
 

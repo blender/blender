@@ -303,6 +303,12 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     recalc_flag.edges = do_fixes;
   }
 
+  const float(*vert_normals)[3] = NULL;
+  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
+  if (!BKE_mesh_vertex_normals_are_dirty(mesh)) {
+    vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
+  }
+
   for (i = 0; i < totvert; i++, mv++) {
     bool fix_normal = true;
 
@@ -317,13 +323,13 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         }
       }
 
-      if (mv->no[j] != 0) {
+      if (vert_normals && vert_normals[i][j] != 0.0f) {
         fix_normal = false;
         break;
       }
     }
 
-    if (fix_normal) {
+    if (vert_normals && fix_normal) {
       /* If the vertex normal accumulates to zero or isn't part of a face, the location is used.
        * When the location is also zero, a zero normal warning should not be raised.
        * since this is the expected behavior of normal calculation.
@@ -336,7 +342,8 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       if (!is_zero_v3(mv->co)) {
         PRINT_ERR("\tVertex %u: has zero normal, assuming Z-up normal", i);
         if (do_fixes) {
-          mv->no[2] = SHRT_MAX;
+          float *normal = (float *)vert_normals[i];
+          normal[2] = 1.0f;
           fix_flag.verts = true;
         }
       }
@@ -1001,6 +1008,10 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
   CustomData_MeshMasks mask = {0};
   if (check_meshmask) {
     mask = CD_MASK_MESH;
+    /* Normal data isn't in the mask since it is derived data,
+     * but it is valid and should not be removed. */
+    mask.vmask |= CD_MASK_NORMAL;
+    mask.pmask |= CD_MASK_NORMAL;
   }
 
   is_valid &= mesh_validate_customdata(
@@ -1097,6 +1108,8 @@ bool BKE_mesh_is_valid(Mesh *me)
 
   bool is_valid = true;
   bool changed = true;
+
+  BKE_mesh_assert_normals_dirty_or_calculated(me);
 
   is_valid &= BKE_mesh_validate_all_customdata(
       &me->vdata,

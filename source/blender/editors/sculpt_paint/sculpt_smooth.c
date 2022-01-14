@@ -2394,12 +2394,6 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
     BKE_pbvh_update_all_tri_areas(ss->pbvh);
   }
 
-  if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-    // BLI_assert(ss->cache->surface_smooth_laplacian_disp == NULL);
-    // ss->cache->surface_smooth_laplacian_disp = MEM_callocN(
-    //    sizeof(float[3]) * SCULPT_vertex_count_get(ss), "HC smooth laplacian b");
-  }
-
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data = {.sd = sd,
                                  .ob = ob,

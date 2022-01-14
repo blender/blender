@@ -313,7 +313,7 @@ static wmKeyMapItem *rna_KeyMap_item_new_from_item(wmKeyMap *km,
                                                    wmKeyMapItem *kmi_src,
                                                    bool head)
 {
-  /*  wmWindowManager *wm = CTX_wm_manager(C); */
+  // wmWindowManager *wm = CTX_wm_manager(C);
 
   if ((km->flag & KEYMAP_MODAL) == (kmi_src->idname[0] != '\0')) {
     BKE_report(reports, RPT_ERROR, "Can not mix modal/non-modal items");

@@ -88,10 +88,8 @@ bool BPY_run_filepath(struct bContext *C, const char *filepath, struct ReportLis
  * This is done so error messages give useful output however there are rare cases causes problems
  * with introspection tools which attempt to load `__file__`.
  */
-bool BPY_run_text(struct bContext *C,
-                  struct Text *text,
-                  struct ReportList *reports,
-                  const bool do_jump) ATTR_NONNULL(1, 2);
+bool BPY_run_text(struct bContext *C, struct Text *text, struct ReportList *reports, bool do_jump)
+    ATTR_NONNULL(1, 2);
 
 /** \} */
 

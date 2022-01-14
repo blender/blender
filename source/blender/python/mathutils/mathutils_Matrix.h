@@ -61,17 +61,17 @@ typedef struct {
 
 /* prototypes */
 PyObject *Matrix_CreatePyObject(const float *mat,
-                                const ushort num_col,
-                                const ushort num_row,
+                                ushort num_col,
+                                ushort num_row,
                                 PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT;
 PyObject *Matrix_CreatePyObject_wrap(float *mat,
-                                     const ushort num_col,
-                                     const ushort num_row,
+                                     ushort num_col,
+                                     ushort num_row,
                                      PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
 PyObject *Matrix_CreatePyObject_cb(PyObject *user,
-                                   const unsigned short num_col,
-                                   const unsigned short num_row,
+                                   unsigned short num_col,
+                                   unsigned short num_row,
                                    unsigned char cb_type,
                                    unsigned char cb_subtype) ATTR_WARN_UNUSED_RESULT;
 
@@ -79,8 +79,8 @@ PyObject *Matrix_CreatePyObject_cb(PyObject *user,
  * \param mat: Initialized matrix value to use in-place, allocated with #PyMem_Malloc
  */
 PyObject *Matrix_CreatePyObject_alloc(float *mat,
-                                      const ushort num_col,
-                                      const ushort num_row,
+                                      ushort num_col,
+                                      ushort num_row,
                                       PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT;
 
 /* PyArg_ParseTuple's "O&" formatting helpers. */

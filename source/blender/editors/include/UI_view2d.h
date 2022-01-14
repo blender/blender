@@ -175,7 +175,7 @@ void UI_view2d_view_ortho(const struct View2D *v2d);
  * \param xaxis: if non-zero, only use cur x-axis,
  * otherwise use cur-yaxis (mostly this will be used for x).
  */
-void UI_view2d_view_orthoSpecial(struct ARegion *region, struct View2D *v2d, const bool xaxis);
+void UI_view2d_view_orthoSpecial(struct ARegion *region, struct View2D *v2d, bool xaxis);
 /**
  * Restore view matrices after drawing.
  */
@@ -435,7 +435,7 @@ void ED_keymap_view2d(struct wmKeyConfig *keyconf);
 void UI_view2d_smooth_view(struct bContext *C,
                            struct ARegion *region,
                            const struct rctf *cur,
-                           const int smooth_viewtx);
+                           int smooth_viewtx);
 
 #define UI_MARKER_MARGIN_Y (42 * UI_DPI_FAC)
 #define UI_TIME_SCRUB_MARGIN_Y (23 * UI_DPI_FAC)

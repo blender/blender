@@ -18,6 +18,7 @@
 
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_wrapper.h"
@@ -103,6 +104,20 @@ void GeometryDataSource::foreach_default_column_ids(
     fn({(char *)"Rotation"}, false);
     fn({(char *)"Scale"}, false);
   }
+  else if (G.debug_value == 4001 && component_->type() == GEO_COMPONENT_TYPE_MESH) {
+    if (domain_ == ATTR_DOMAIN_EDGE) {
+      fn({(char *)"Vertex 1"}, false);
+      fn({(char *)"Vertex 2"}, false);
+    }
+    else if (domain_ == ATTR_DOMAIN_FACE) {
+      fn({(char *)"Corner Start"}, false);
+      fn({(char *)"Corner Size"}, false);
+    }
+    else if (domain_ == ATTR_DOMAIN_CORNER) {
+      fn({(char *)"Vertex"}, false);
+      fn({(char *)"Edge"}, false);
+    }
+  }
 }
 
 std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
@@ -144,6 +159,53 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
           column_id.name, VArray<float3>::ForFunc(domain_size, [transforms](int64_t index) {
             return transforms[index].scale();
           }));
+    }
+  }
+  else if (G.debug_value == 4001 && component_->type() == GEO_COMPONENT_TYPE_MESH) {
+    const MeshComponent &component = static_cast<const MeshComponent &>(*component_);
+    if (const Mesh *mesh = component.get_for_read()) {
+      if (domain_ == ATTR_DOMAIN_EDGE) {
+        if (STREQ(column_id.name, "Vertex 1")) {
+          return std::make_unique<ColumnValues>(
+              column_id.name, VArray<int>::ForFunc(mesh->totedge, [mesh](int64_t index) {
+                return mesh->medge[index].v1;
+              }));
+        }
+        if (STREQ(column_id.name, "Vertex 2")) {
+          return std::make_unique<ColumnValues>(
+              column_id.name, VArray<int>::ForFunc(mesh->totedge, [mesh](int64_t index) {
+                return mesh->medge[index].v2;
+              }));
+        }
+      }
+      else if (domain_ == ATTR_DOMAIN_FACE) {
+        if (STREQ(column_id.name, "Corner Start")) {
+          return std::make_unique<ColumnValues>(
+              column_id.name, VArray<int>::ForFunc(mesh->totpoly, [mesh](int64_t index) {
+                return mesh->mpoly[index].loopstart;
+              }));
+        }
+        if (STREQ(column_id.name, "Corner Size")) {
+          return std::make_unique<ColumnValues>(
+              column_id.name, VArray<int>::ForFunc(mesh->totpoly, [mesh](int64_t index) {
+                return mesh->mpoly[index].totloop;
+              }));
+        }
+      }
+      else if (domain_ == ATTR_DOMAIN_CORNER) {
+        if (STREQ(column_id.name, "Vertex")) {
+          return std::make_unique<ColumnValues>(
+              column_id.name, VArray<int>::ForFunc(mesh->totloop, [mesh](int64_t index) {
+                return mesh->mloop[index].v;
+              }));
+        }
+        if (STREQ(column_id.name, "Edge")) {
+          return std::make_unique<ColumnValues>(
+              column_id.name, VArray<int>::ForFunc(mesh->totloop, [mesh](int64_t index) {
+                return mesh->mloop[index].e;
+              }));
+        }
+      }
     }
   }
 

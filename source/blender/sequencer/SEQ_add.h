@@ -79,8 +79,8 @@ typedef struct SeqLoadData {
 void SEQ_add_load_data_init(struct SeqLoadData *load_data,
                             const char *name,
                             const char *path,
-                            const int start_frame,
-                            const int channel);
+                            int start_frame,
+                            int channel);
 /**
  * Add image strip.
  * \note Use #SEQ_add_image_set_directory() and #SEQ_add_image_load_file() to load image sequences
@@ -109,7 +109,7 @@ struct Sequence *SEQ_add_sound_strip(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ListBase *seqbase,
                                      struct SeqLoadData *load_data,
-                                     const double audio_offset);
+                                     double audio_offset);
 /**
  * Add meta strip.
  *
@@ -206,7 +206,7 @@ void SEQ_add_image_init_alpha_mode(struct Sequence *seq);
 void SEQ_add_reload_new_file(struct Main *bmain,
                              struct Scene *scene,
                              struct Sequence *seq,
-                             const bool lock_range);
+                             bool lock_range);
 void SEQ_add_movie_reload_if_needed(struct Main *bmain,
                                     struct Scene *scene,
                                     struct Sequence *seq,

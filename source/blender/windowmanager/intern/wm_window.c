@@ -1033,7 +1033,9 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
     }
 
     wm_window_set_drawable(wm, win, true);
+  }
 
+  if (win->ghostwin) {
     /* this can change per window */
     WM_window_set_dpi(win);
   }

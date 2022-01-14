@@ -71,6 +71,8 @@ class TileManager {
    * Will store all parameters needed for buffers access outside of the scene graph. */
   void update(const BufferParams &params, const Scene *scene);
 
+  void set_temp_dir(const string &temp_dir);
+
   inline int get_num_tiles() const
   {
     return tile_state_.num_tiles;
@@ -122,6 +124,12 @@ class TileManager {
   /* Tile size in the image file. */
   static const int IMAGE_TILE_SIZE = 128;
 
+  /* Maximum supported tile size.
+   * Needs to be safe from allocation on a GPU point of view: the display driver needs to be able
+   * to allocate texture with the side size of this value.
+   * Use conservative value which is safe for most of OpenGL drivers and GPUs. */
+  static const int MAX_TILE_SIZE = 8192;
+
  protected:
   /* Get tile configuration for its index.
    * The tile index must be within [0, state_.tile_state_). */
@@ -129,6 +137,8 @@ class TileManager {
 
   bool open_tile_output();
   bool close_tile_output();
+
+  string temp_dir_;
 
   /* Part of an on-disk tile file name which avoids conflicts between several Cycles instances or
    * several sessions. */

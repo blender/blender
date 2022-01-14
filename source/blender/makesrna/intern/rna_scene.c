@@ -86,8 +86,7 @@ const EnumPropertyItem rna_enum_exr_codec_items[] = {
     {R_IMF_EXR_CODEC_B44, "B44", 0, "B44 (lossy)", ""},
     {R_IMF_EXR_CODEC_B44A, "B44A", 0, "B44A (lossy)", ""},
     {R_IMF_EXR_CODEC_DWAA, "DWAA", 0, "DWAA (lossy)", ""},
-    /* NOTE: Commented out for until new OpenEXR is released, see T50673. */
-    /* {R_IMF_EXR_CODEC_DWAB, "DWAB", 0, "DWAB (lossy)", ""}, */
+    {R_IMF_EXR_CODEC_DWAB, "DWAB", 0, "DWAB (lossy)", ""},
     {0, NULL, 0, NULL, NULL},
 };
 #endif
@@ -3262,6 +3261,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       "Automerge",
       "Join by distance last drawn stroke with previous strokes in the active layer");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   prop = RNA_def_property(srna, "gpencil_sculpt", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "gp_sculpt");
@@ -7096,7 +7096,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "ssr_quality", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_ui_text(prop, "Trace Precision", "Precision of the screen space raytracing");
+  RNA_def_property_ui_text(prop, "Trace Precision", "Precision of the screen space ray-tracing");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);

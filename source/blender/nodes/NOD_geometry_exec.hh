@@ -328,7 +328,7 @@ class GeoNodeExecParams {
    */
   GVArray get_input_attribute(const StringRef name,
                               const GeometryComponent &component,
-                              const AttributeDomain domain,
+                              AttributeDomain domain,
                               const CustomDataType type,
                               const void *default_value) const;
 
@@ -358,7 +358,7 @@ class GeoNodeExecParams {
    */
   AttributeDomain get_highest_priority_input_domain(Span<std::string> names,
                                                     const GeometryComponent &component,
-                                                    const AttributeDomain default_domain) const;
+                                                    AttributeDomain default_domain) const;
 
   std::string attribute_producer_name() const;
 

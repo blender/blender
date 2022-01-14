@@ -140,6 +140,7 @@ extern StructRNA RNA_CompositorNodeChannelMatte;
 extern StructRNA RNA_CompositorNodeChromaMatte;
 extern StructRNA RNA_CompositorNodeColorMatte;
 extern StructRNA RNA_CompositorNodeColorSpill;
+extern StructRNA RNA_CompositorNodeConvertColorSpace;
 extern StructRNA RNA_CompositorNodeCombHSVA;
 extern StructRNA RNA_CompositorNodeCombRGBA;
 extern StructRNA RNA_CompositorNodeCombYCCA;
@@ -187,6 +188,7 @@ extern StructRNA RNA_CompositorNodeRGBToBW;
 extern StructRNA RNA_CompositorNodeRLayers;
 extern StructRNA RNA_CompositorNodeRotate;
 extern StructRNA RNA_CompositorNodeScale;
+extern StructRNA RNA_CompositorNodeSceneTime;
 extern StructRNA RNA_CompositorNodeSepHSVA;
 extern StructRNA RNA_CompositorNodeSepRGBA;
 extern StructRNA RNA_CompositorNodeSepYCCA;
@@ -780,7 +782,7 @@ bool RNA_pointer_is_null(const PointerRNA *ptr);
 
 bool RNA_path_resolved_create(PointerRNA *ptr,
                               struct PropertyRNA *prop,
-                              const int prop_index,
+                              int prop_index,
                               PathResolvedRNA *r_anim_rna);
 
 void RNA_blender_rna_pointer_create(PointerRNA *r_ptr);
@@ -940,13 +942,11 @@ void RNA_property_float_ui_range(PointerRNA *ptr,
 int RNA_property_float_clamp(PointerRNA *ptr, PropertyRNA *prop, float *value);
 int RNA_property_int_clamp(PointerRNA *ptr, PropertyRNA *prop, int *value);
 
-bool RNA_enum_identifier(const EnumPropertyItem *item, const int value, const char **identifier);
-int RNA_enum_bitflag_identifiers(const EnumPropertyItem *item,
-                                 const int value,
-                                 const char **identifier);
-bool RNA_enum_name(const EnumPropertyItem *item, const int value, const char **r_name);
-bool RNA_enum_description(const EnumPropertyItem *item, const int value, const char **description);
-int RNA_enum_from_value(const EnumPropertyItem *item, const int value);
+bool RNA_enum_identifier(const EnumPropertyItem *item, int value, const char **identifier);
+int RNA_enum_bitflag_identifiers(const EnumPropertyItem *item, int value, const char **identifier);
+bool RNA_enum_name(const EnumPropertyItem *item, int value, const char **r_name);
+bool RNA_enum_description(const EnumPropertyItem *item, int value, const char **description);
+int RNA_enum_from_value(const EnumPropertyItem *item, int value);
 int RNA_enum_from_identifier(const EnumPropertyItem *item, const char *identifier);
 /**
  * Take care using this with translated enums,
@@ -958,7 +958,7 @@ unsigned int RNA_enum_items_count(const EnumPropertyItem *item);
 void RNA_property_enum_items_ex(struct bContext *C,
                                 PointerRNA *ptr,
                                 PropertyRNA *prop,
-                                const bool use_static,
+                                bool use_static,
                                 const EnumPropertyItem **r_item,
                                 int *r_totitem,
                                 bool *r_free);
@@ -982,32 +982,20 @@ void RNA_property_enum_items_gettexted_all(struct bContext *C,
                                            bool *r_free);
 bool RNA_property_enum_value(
     struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *r_value);
-bool RNA_property_enum_identifier(struct bContext *C,
-                                  PointerRNA *ptr,
-                                  PropertyRNA *prop,
-                                  const int value,
-                                  const char **identifier);
+bool RNA_property_enum_identifier(
+    struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, const char **identifier);
 bool RNA_property_enum_name(
-    struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **name);
+    struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, const char **name);
 bool RNA_property_enum_name_gettexted(
-    struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **name);
+    struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, const char **name);
 
-bool RNA_property_enum_item_from_value(struct bContext *C,
-                                       PointerRNA *ptr,
-                                       PropertyRNA *prop,
-                                       const int value,
-                                       EnumPropertyItem *r_item);
-bool RNA_property_enum_item_from_value_gettexted(struct bContext *C,
-                                                 PointerRNA *ptr,
-                                                 PropertyRNA *prop,
-                                                 const int value,
-                                                 EnumPropertyItem *r_item);
+bool RNA_property_enum_item_from_value(
+    struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, EnumPropertyItem *r_item);
+bool RNA_property_enum_item_from_value_gettexted(
+    struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, EnumPropertyItem *r_item);
 
-int RNA_property_enum_bitflag_identifiers(struct bContext *C,
-                                          PointerRNA *ptr,
-                                          PropertyRNA *prop,
-                                          const int value,
-                                          const char **identifier);
+int RNA_property_enum_bitflag_identifiers(
+    struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, const char **identifier);
 
 StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *value);
@@ -1038,9 +1026,7 @@ bool RNA_property_overridable_get(PointerRNA *ptr, PropertyRNA *prop);
 /**
  * Should only be used for custom properties.
  */
-bool RNA_property_overridable_library_set(PointerRNA *ptr,
-                                          PropertyRNA *prop,
-                                          const bool is_overridable);
+bool RNA_property_overridable_library_set(PointerRNA *ptr, PropertyRNA *prop, bool is_overridable);
 bool RNA_property_overridden(PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_property_comparable(PointerRNA *ptr, PropertyRNA *prop);
 /**
@@ -1159,7 +1145,7 @@ int RNA_property_collection_lookup_string_index(
  */
 int RNA_property_collection_assign_int(PointerRNA *ptr,
                                        PropertyRNA *prop,
-                                       const int key,
+                                       int key,
                                        const PointerRNA *assign_ptr);
 bool RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr);
 
@@ -1560,22 +1546,19 @@ char *RNA_pointer_as_string(struct bContext *C,
  */
 char *RNA_pointer_as_string_keywords_ex(struct bContext *C,
                                         PointerRNA *ptr,
-                                        const bool as_function,
-                                        const bool all_args,
-                                        const bool nested_args,
-                                        const int max_prop_length,
+                                        bool as_function,
+                                        bool all_args,
+                                        bool nested_args,
+                                        int max_prop_length,
                                         PropertyRNA *iterprop);
 char *RNA_pointer_as_string_keywords(struct bContext *C,
                                      PointerRNA *ptr,
-                                     const bool as_function,
-                                     const bool all_args,
-                                     const bool nested_args,
-                                     const int max_prop_length);
-char *RNA_function_as_string_keywords(struct bContext *C,
-                                      FunctionRNA *func,
-                                      const bool as_function,
-                                      const bool all_args,
-                                      const int max_prop_length);
+                                     bool as_function,
+                                     bool all_args,
+                                     bool nested_args,
+                                     int max_prop_length);
+char *RNA_function_as_string_keywords(
+    struct bContext *C, FunctionRNA *func, bool as_function, bool all_args, int max_prop_length);
 
 /* Function */
 
@@ -1763,9 +1746,9 @@ bool RNA_struct_override_matches(struct Main *bmain,
                                  struct PointerRNA *ptr_local,
                                  struct PointerRNA *ptr_reference,
                                  const char *root_path,
-                                 const size_t root_path_len,
+                                 size_t root_path_len,
                                  struct IDOverrideLibrary *override,
-                                 const eRNAOverrideMatch flags,
+                                 eRNAOverrideMatch flags,
                                  eRNAOverrideMatchResult *r_report_flags);
 
 /**
@@ -1796,7 +1779,7 @@ void RNA_struct_override_apply(struct Main *bmain,
                                struct PointerRNA *ptr_src,
                                struct PointerRNA *ptr_storage,
                                struct IDOverrideLibrary *override,
-                               const eRNAOverrideApplyFlag flag);
+                               eRNAOverrideApplyFlag flag);
 
 struct IDOverrideLibraryProperty *RNA_property_override_property_find(struct Main *bmain,
                                                                       PointerRNA *ptr,
@@ -1811,23 +1794,23 @@ struct IDOverrideLibraryPropertyOperation *RNA_property_override_property_operat
     struct Main *bmain,
     PointerRNA *ptr,
     PropertyRNA *prop,
-    const int index,
-    const bool strict,
+    int index,
+    bool strict,
     bool *r_strict);
 struct IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_get(
     struct Main *bmain,
     PointerRNA *ptr,
     PropertyRNA *prop,
-    const short operation,
-    const int index,
-    const bool strict,
+    short operation,
+    int index,
+    bool strict,
     bool *r_strict,
     bool *r_created);
 
 eRNAOverrideStatus RNA_property_override_library_status(struct Main *bmainm,
                                                         PointerRNA *ptr,
                                                         PropertyRNA *prop,
-                                                        const int index);
+                                                        int index);
 
 void RNA_struct_state_owner_set(const char *name);
 const char *RNA_struct_state_owner_get(void);

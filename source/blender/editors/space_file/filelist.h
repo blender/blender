@@ -62,16 +62,16 @@ void folder_history_list_ensure_for_active_browse_mode(struct SpaceFile *sfile);
 void folder_history_list_free(struct SpaceFile *sfile);
 struct ListBase folder_history_list_duplicate(struct ListBase *listbase);
 
-void filelist_setsorting(struct FileList *filelist, const short sort, bool invert_sort);
+void filelist_setsorting(struct FileList *filelist, short sort, bool invert_sort);
 void filelist_sort(struct FileList *filelist);
 
 void filelist_setfilter_options(struct FileList *filelist,
-                                const bool do_filter,
-                                const bool hide_dot,
-                                const bool hide_parent,
-                                const uint64_t filter,
-                                const uint64_t filter_id,
-                                const bool filter_assets_only,
+                                bool do_filter,
+                                bool hide_dot,
+                                bool hide_parent,
+                                uint64_t filter,
+                                uint64_t filter_id,
+                                bool filter_assets_only,
                                 const char *filter_glob,
                                 const char *filter_search);
 /**
@@ -98,19 +98,19 @@ void filelist_setlibrary(struct FileList *filelist,
 
 void filelist_init_icons(void);
 void filelist_free_icons(void);
-struct ImBuf *filelist_getimage(struct FileList *filelist, const int index);
+struct ImBuf *filelist_getimage(struct FileList *filelist, int index);
 struct ImBuf *filelist_file_getimage(const FileDirEntry *file);
 struct ImBuf *filelist_geticon_image_ex(const FileDirEntry *file);
-struct ImBuf *filelist_geticon_image(struct FileList *filelist, const int index);
-int filelist_geticon(struct FileList *filelist, const int index, const bool is_main);
+struct ImBuf *filelist_geticon_image(struct FileList *filelist, int index);
+int filelist_geticon(struct FileList *filelist, int index, bool is_main);
 
 struct FileList *filelist_new(short type);
 void filelist_settype(struct FileList *filelist, short type);
 void filelist_clear(struct FileList *filelist);
 void filelist_clear_ex(struct FileList *filelist,
-                       const bool do_asset_library,
-                       const bool do_cache,
-                       const bool do_selection);
+                       bool do_asset_library,
+                       bool do_cache,
+                       bool do_selection);
 /**
  * A "smarter" version of #filelist_clear() that calls partial clearing based on the filelist
  * force-reset flags.
@@ -156,7 +156,7 @@ void filelist_file_cache_slidingwindow_set(struct FileList *filelist, size_t win
 /**
  * Load in cache all entries "around" given index (as much as block cache may hold).
  */
-bool filelist_file_cache_block(struct FileList *filelist, const int index);
+bool filelist_file_cache_block(struct FileList *filelist, int index);
 
 bool filelist_needs_force_reset(struct FileList *filelist);
 void filelist_tag_force_reset(struct FileList *filelist);
@@ -171,7 +171,7 @@ unsigned int filelist_entry_select_set(const struct FileList *filelist,
                                        unsigned int flag,
                                        FileCheckType check);
 void filelist_entry_select_index_set(struct FileList *filelist,
-                                     const int index,
+                                     int index,
                                      FileSelType select,
                                      unsigned int flag,
                                      FileCheckType check);
@@ -184,9 +184,9 @@ unsigned int filelist_entry_select_get(struct FileList *filelist,
                                        struct FileDirEntry *entry,
                                        FileCheckType check);
 unsigned int filelist_entry_select_index_get(struct FileList *filelist,
-                                             const int index,
+                                             int index,
                                              FileCheckType check);
-bool filelist_entry_is_selected(struct FileList *filelist, const int index);
+bool filelist_entry_is_selected(struct FileList *filelist, int index);
 /**
  * Set selection of the '..' parent entry, but only if it's actually visible.
  */
@@ -195,7 +195,7 @@ void filelist_entry_parent_select_set(struct FileList *filelist,
                                       unsigned int flag,
                                       FileCheckType check);
 
-void filelist_setrecursion(struct FileList *filelist, const int recursion_level);
+void filelist_setrecursion(struct FileList *filelist, int recursion_level);
 
 struct AssetLibrary *filelist_asset_library(struct FileList *filelist);
 
@@ -213,7 +213,7 @@ void filelist_readjob_stop(struct FileList *filelist, struct wmWindowManager *wm
 int filelist_readjob_running(struct FileList *filelist, struct wmWindowManager *wm);
 
 bool filelist_cache_previews_update(struct FileList *filelist);
-void filelist_cache_previews_set(struct FileList *filelist, const bool use_previews);
+void filelist_cache_previews_set(struct FileList *filelist, bool use_previews);
 bool filelist_cache_previews_running(struct FileList *filelist);
 bool filelist_cache_previews_done(struct FileList *filelist);
 

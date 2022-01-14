@@ -69,6 +69,9 @@ class SessionParams {
 
   ShadingSystem shadingsystem;
 
+  /* Session-specific temporary directory to store in-progress EXR files in. */
+  string temp_dir;
+
   SessionParams()
   {
     headless = false;

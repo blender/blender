@@ -37,11 +37,51 @@ static void fill_generic_attribute(BL::PointCloud &b_pointcloud,
   }
 }
 
-static void copy_attributes(PointCloud *pointcloud, BL::PointCloud b_pointcloud)
+static void attr_create_motion(PointCloud *pointcloud,
+                               BL::Attribute &b_attribute,
+                               const float motion_scale)
+{
+  if (!(b_attribute.domain() == BL::Attribute::domain_POINT) &&
+      (b_attribute.data_type() == BL::Attribute::data_type_FLOAT_VECTOR)) {
+    return;
+  }
+
+  BL::FloatVectorAttribute b_vector_attribute(b_attribute);
+  const int num_points = pointcloud->get_points().size();
+
+  /* Find or add attribute */
+  float3 *P = &pointcloud->get_points()[0];
+  Attribute *attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
+  if (!attr_mP) {
+    attr_mP = pointcloud->attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
+  }
+
+  /* Only export previous and next frame, we don't have any in between data. */
+  float motion_times[2] = {-1.0f, 1.0f};
+  for (int step = 0; step < 2; step++) {
+    const float relative_time = motion_times[step] * 0.5f * motion_scale;
+    float3 *mP = attr_mP->data_float3() + step * num_points;
+
+    for (int i = 0; i < num_points; i++) {
+      mP[i] = P[i] + get_float3(b_vector_attribute.data[i].vector()) * relative_time;
+    }
+  }
+}
+
+static void copy_attributes(PointCloud *pointcloud,
+                            BL::PointCloud b_pointcloud,
+                            const bool need_motion,
+                            const float motion_scale)
 {
   AttributeSet &attributes = pointcloud->attributes;
+  static const ustring u_velocity("velocity");
   for (BL::Attribute &b_attribute : b_pointcloud.attributes) {
     const ustring name{b_attribute.name().c_str()};
+
+    if (need_motion && name == u_velocity) {
+      attr_create_motion(pointcloud, b_attribute, motion_scale);
+    }
 
     if (attributes.find(name)) {
       continue;
@@ -111,7 +151,11 @@ static void copy_attributes(PointCloud *pointcloud, BL::PointCloud b_pointcloud)
   }
 }
 
-static void export_pointcloud(Scene *scene, PointCloud *pointcloud, BL::PointCloud b_pointcloud)
+static void export_pointcloud(Scene *scene,
+                              PointCloud *pointcloud,
+                              BL::PointCloud b_pointcloud,
+                              const bool need_motion,
+                              const float motion_scale)
 {
   /* TODO: optimize so we can straight memcpy arrays from Blender? */
 
@@ -141,7 +185,7 @@ static void export_pointcloud(Scene *scene, PointCloud *pointcloud, BL::PointClo
   }
 
   /* Export attributes */
-  copy_attributes(pointcloud, b_pointcloud);
+  copy_attributes(pointcloud, b_pointcloud, need_motion, motion_scale);
 }
 
 static void export_pointcloud_motion(PointCloud *pointcloud,
@@ -193,7 +237,7 @@ static void export_pointcloud_motion(PointCloud *pointcloud,
   }
 
   /* Export attributes */
-  copy_attributes(pointcloud, b_pointcloud);
+  copy_attributes(pointcloud, b_pointcloud, false, 0.0f);
 }
 
 void BlenderSync::sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info)
@@ -207,7 +251,13 @@ void BlenderSync::sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info
 
   /* TODO: add option to filter out points in the view layer. */
   BL::PointCloud b_pointcloud(b_ob_info.object_data);
-  export_pointcloud(scene, &new_pointcloud, b_pointcloud);
+  /* Motion blur attribute is relative to seconds, we need it relative to frames. */
+  const bool need_motion = object_need_motion_attribute(b_ob_info, scene);
+  const float motion_scale = (need_motion) ?
+                                 scene->motion_shutter_time() /
+                                     (b_scene.render().fps() / b_scene.render().fps_base()) :
+                                 0.0f;
+  export_pointcloud(scene, &new_pointcloud, b_pointcloud, need_motion, motion_scale);
 
   /* update original sockets */
   for (const SocketType &socket : new_pointcloud.type->inputs) {

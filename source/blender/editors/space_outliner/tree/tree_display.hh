@@ -65,6 +65,8 @@ class AbstractTreeDisplay {
    */
   virtual ListBase buildTree(const TreeSourceData &source_data) = 0;
 
+  bool has_warnings = false;
+
  protected:
   /** All derived classes will need a handle to this, so storing it in the base for convenience. */
   SpaceOutliner &space_outliner_;
@@ -105,7 +107,7 @@ class TreeDisplayLibraries final : public AbstractTreeDisplay {
   ListBase buildTree(const TreeSourceData &source_data) override;
 
  private:
-  TreeElement *add_library_contents(Main &, ListBase &, Library *) const;
+  TreeElement *add_library_contents(Main &, ListBase &, Library *);
   bool library_id_filter_poll(const Library *lib, ID *id) const;
   short id_filter_get() const;
 };
@@ -123,7 +125,7 @@ class TreeDisplayOverrideLibrary final : public AbstractTreeDisplay {
   ListBase buildTree(const TreeSourceData &source_data) override;
 
  private:
-  TreeElement *add_library_contents(Main &, ListBase &, Library *) const;
+  TreeElement *add_library_contents(Main &, ListBase &, Library *);
   bool override_library_id_filter_poll(const Library *lib, ID *id) const;
   short id_filter_get() const;
 };

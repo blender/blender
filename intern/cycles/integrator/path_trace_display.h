@@ -38,14 +38,17 @@ class BufferParams;
 
 class PathTraceDisplay {
  public:
-  PathTraceDisplay(unique_ptr<DisplayDriver> driver);
+  explicit PathTraceDisplay(unique_ptr<DisplayDriver> driver);
   virtual ~PathTraceDisplay() = default;
 
   /* Reset the display for the new state of render session. Is called whenever session is reset,
    * which happens on changes like viewport navigation or viewport dimension change.
    *
-   * This call will configure parameters for a changed buffer and reset the texture state. */
-  void reset(const BufferParams &buffer_params);
+   * This call will configure parameters for a changed buffer and reset the texture state.
+   *
+   * When the `reset_rendering` a complete display reset happens. When it is false reset happens
+   * for a new state of the buffer parameters which is assumed to correspond to the next tile. */
+  void reset(const BufferParams &buffer_params, bool reset_rendering);
 
   /* --------------------------------------------------------------------
    * Update procedure.
@@ -150,6 +153,9 @@ class PathTraceDisplay {
    *
    * Returns true if this call did draw an updated state of the texture. */
   bool draw();
+
+  /* Flush outstanding display commands before ending the render loop. */
+  void flush();
 
  private:
   /* Display driver implemented by the host application. */

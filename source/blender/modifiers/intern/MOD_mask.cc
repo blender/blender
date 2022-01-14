@@ -70,19 +70,6 @@ using blender::MutableSpan;
 using blender::Span;
 using blender::Vector;
 
-/* For delete geometry node. */
-void copy_masked_vertices_to_new_mesh(const Mesh &src_mesh, Mesh &dst_mesh, Span<int> vertex_map);
-void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
-                                   Mesh &dst_mesh,
-                                   Span<int> vertex_map,
-                                   Span<int> edge_map);
-void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
-                                   Mesh &dst_mesh,
-                                   Span<int> vertex_map,
-                                   Span<int> edge_map,
-                                   Span<int> masked_poly_indices,
-                                   Span<int> new_loop_starts);
-
 static void initData(ModifierData *md)
 {
   MaskModifierData *mmd = (MaskModifierData *)md;
@@ -355,7 +342,9 @@ static void compute_interpolated_polygons(const Mesh *mesh,
   *r_num_add_loops = num_add_loops;
 }
 
-void copy_masked_vertices_to_new_mesh(const Mesh &src_mesh, Mesh &dst_mesh, Span<int> vertex_map)
+static void copy_masked_vertices_to_new_mesh(const Mesh &src_mesh,
+                                             Mesh &dst_mesh,
+                                             Span<int> vertex_map)
 {
   BLI_assert(src_mesh.totvert == vertex_map.size());
   for (const int i_src : vertex_map.index_range()) {
@@ -438,16 +427,6 @@ static void add_interp_verts_copy_edges_to_new_mesh(const Mesh &src_mesh,
       MVert &v2 = src_mesh.mvert[e_src.v2];
 
       interp_v3_v3v3(v.co, v1.co, v2.co, fac);
-
-      float no1[3];
-      float no2[3];
-      normal_short_to_float_v3(no1, v1.no);
-      normal_short_to_float_v3(no2, v2.no);
-      mul_v3_fl(no1, weights[0]);
-      madd_v3_v3fl(no1, no2, weights[1]);
-      normalize_v3(no1);
-      normal_float_to_short_v3(v.no, no1);
-
       vert_index++;
     }
   }
@@ -455,10 +434,10 @@ static void add_interp_verts_copy_edges_to_new_mesh(const Mesh &src_mesh,
   BLI_assert(edge_index == num_masked_edges);
 }
 
-void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
-                                   Mesh &dst_mesh,
-                                   Span<int> vertex_map,
-                                   Span<int> edge_map)
+static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
+                                          Mesh &dst_mesh,
+                                          Span<int> vertex_map,
+                                          Span<int> edge_map)
 {
   BLI_assert(src_mesh.totvert == vertex_map.size());
   BLI_assert(src_mesh.totedge == edge_map.size());
@@ -487,35 +466,6 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
                                           int num_masked_polys)
 {
   for (const int i_dst : IndexRange(num_masked_polys)) {
-    const int i_src = masked_poly_indices[i_dst];
-
-    const MPoly &mp_src = src_mesh.mpoly[i_src];
-    MPoly &mp_dst = dst_mesh.mpoly[i_dst];
-    const int i_ml_src = mp_src.loopstart;
-    const int i_ml_dst = new_loop_starts[i_dst];
-
-    CustomData_copy_data(&src_mesh.pdata, &dst_mesh.pdata, i_src, i_dst, 1);
-    CustomData_copy_data(&src_mesh.ldata, &dst_mesh.ldata, i_ml_src, i_ml_dst, mp_src.totloop);
-
-    const MLoop *ml_src = src_mesh.mloop + i_ml_src;
-    MLoop *ml_dst = dst_mesh.mloop + i_ml_dst;
-
-    mp_dst = mp_src;
-    mp_dst.loopstart = i_ml_dst;
-    for (int i : IndexRange(mp_src.totloop)) {
-      ml_dst[i].v = vertex_map[ml_src[i].v];
-      ml_dst[i].e = edge_map[ml_src[i].e];
-    }
-  }
-}
-void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
-                                   Mesh &dst_mesh,
-                                   Span<int> vertex_map,
-                                   Span<int> edge_map,
-                                   Span<int> masked_poly_indices,
-                                   Span<int> new_loop_starts)
-{
-  for (const int i_dst : masked_poly_indices.index_range()) {
     const int i_src = masked_poly_indices[i_dst];
 
     const MPoly &mp_src = src_mesh.mpoly[i_src];
@@ -702,7 +652,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
     Object *armature_ob = mmd->ob_arm;
 
     /* Return input mesh if there is no armature with bones. */
-    if (ELEM(NULL, armature_ob, armature_ob->pose)) {
+    if (ELEM(nullptr, armature_ob, armature_ob->pose)) {
       return mesh;
     }
 

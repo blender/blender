@@ -98,7 +98,7 @@ static void bm_vert_task(void *__restrict userdata,
     v->head.api_flag = 0;
 
     copy_v3_v3(v->co, mv->co);
-    normal_short_to_float_v3(v->no, mv->no);
+    //XXX normal_short_to_float_v3(v->no, mv->no);
 
     v->e = NULL;
     v->head.index = i + starti;
@@ -635,7 +635,7 @@ static void me_vert_task(void *__restrict userdata)
 
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     copy_v3_v3(mvert->co, v->co);
-    normal_float_to_short_v3(mvert->no, v->no);
+    //XXX normal_float_to_short_v3(mvert->no, v->no);
 
     mvert->flag = BM_vert_flag_to_mflag(v);
 

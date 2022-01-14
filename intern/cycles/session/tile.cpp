@@ -23,6 +23,7 @@
 #include "scene/film.h"
 #include "scene/integrator.h"
 #include "scene/scene.h"
+#include "session/session.h"
 #include "util/algorithm.h"
 #include "util/foreach.h"
 #include "util/log.h"
@@ -341,8 +342,10 @@ int TileManager::compute_render_tile_size(const int suggested_tile_size) const
   /* Must be a multiple of IMAGE_TILE_SIZE so that we can write render tiles into the image file
    * aligned on image tile boundaries. We can't set IMAGE_TILE_SIZE equal to the render tile size
    * because too big tile size leads to integer overflow inside OpenEXR. */
-  return (suggested_tile_size <= IMAGE_TILE_SIZE) ? suggested_tile_size :
-                                                    align_up(suggested_tile_size, IMAGE_TILE_SIZE);
+  const int computed_tile_size = (suggested_tile_size <= IMAGE_TILE_SIZE) ?
+                                     suggested_tile_size :
+                                     align_up(suggested_tile_size, IMAGE_TILE_SIZE);
+  return min(computed_tile_size, MAX_TILE_SIZE);
 }
 
 void TileManager::reset_scheduling(const BufferParams &params, int2 tile_size)
@@ -390,6 +393,11 @@ void TileManager::update(const BufferParams &params, const Scene *scene)
     write_state_.image_spec = ImageSpec();
     overscan_ = 0;
   }
+}
+
+void TileManager::set_temp_dir(const string &temp_dir)
+{
+  temp_dir_ = temp_dir;
 }
 
 bool TileManager::done()
@@ -450,7 +458,8 @@ const int2 TileManager::get_size() const
 
 bool TileManager::open_tile_output()
 {
-  write_state_.filename = path_temp_get("cycles-tile-buffer-" + tile_file_unique_part_ + "-" +
+  write_state_.filename = path_join(temp_dir_,
+                                    "cycles-tile-buffer-" + tile_file_unique_part_ + "-" +
                                         to_string(write_state_.tile_file_index) + ".exr");
 
   write_state_.tile_out = ImageOutput::create(write_state_.filename);

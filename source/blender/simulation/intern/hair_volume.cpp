@@ -842,8 +842,8 @@ bool SIM_hair_volume_solve_divergence(HairGrid *grid,
   }
 
   /* Main Poisson equation system:
-   * This is derived from the discretezation of the Poisson equation
-   *   div(grad(p)) = div(v)
+   * This is derived from the discretization of the Poisson equation:
+   *   `div(grad(p)) = div(v)`
    *
    * The finite difference approximation yields the linear equation system described here:
    * https://en.wikipedia.org/wiki/Discrete_Poisson_equation

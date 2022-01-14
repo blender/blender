@@ -46,7 +46,7 @@ void BKE_blendfile_read_setup_ex(struct bContext *C,
                                  const struct BlendFileReadParams *params,
                                  struct BlendFileReadReport *reports,
                                  /* Extra args. */
-                                 const bool startup_update_defaults,
+                                 bool startup_update_defaults,
                                  const char *startup_app_template);
 
 void BKE_blendfile_read_setup(struct bContext *C,
@@ -127,8 +127,8 @@ void BKE_blendfile_write_partial_begin(struct Main *bmain_src);
  */
 bool BKE_blendfile_write_partial(struct Main *bmain_src,
                                  const char *filepath,
-                                 const int write_flags,
-                                 const int remap_mode,
+                                 int write_flags,
+                                 int remap_mode,
                                  struct ReportList *reports);
 void BKE_blendfile_write_partial_end(struct Main *bmain_src);
 

@@ -23,7 +23,6 @@ set(INC
   ..
 )
 
-setup_libdirs()
 include_directories(${INC})
 
 BLENDER_TEST_PERFORMANCE(BLI_ghash_performance "bf_blenlib")

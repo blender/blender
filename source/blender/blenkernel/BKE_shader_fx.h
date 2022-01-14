@@ -164,7 +164,7 @@ void BKE_shaderfxType_panel_id(ShaderFxType type, char *r_idname);
 void BKE_shaderfx_panel_expand(struct ShaderFxData *fx);
 const ShaderFxTypeInfo *BKE_shaderfx_get_info(ShaderFxType type);
 struct ShaderFxData *BKE_shaderfx_new(int type);
-void BKE_shaderfx_free_ex(struct ShaderFxData *fx, const int flag);
+void BKE_shaderfx_free_ex(struct ShaderFxData *fx, int flag);
 void BKE_shaderfx_free(struct ShaderFxData *fx);
 /**
  * Check unique name.
@@ -183,9 +183,7 @@ struct ShaderFxData *BKE_shaderfx_findby_type(struct Object *ob, ShaderFxType ty
 struct ShaderFxData *BKE_shaderfx_findby_name(struct Object *ob, const char *name);
 void BKE_shaderfx_copydata_generic(const struct ShaderFxData *fx_src, struct ShaderFxData *fx_dst);
 void BKE_shaderfx_copydata(struct ShaderFxData *fx, struct ShaderFxData *target);
-void BKE_shaderfx_copydata_ex(struct ShaderFxData *fx,
-                              struct ShaderFxData *target,
-                              const int flag);
+void BKE_shaderfx_copydata_ex(struct ShaderFxData *fx, struct ShaderFxData *target, int flag);
 void BKE_shaderfx_copy(struct ListBase *dst, const struct ListBase *src);
 void BKE_shaderfx_foreach_ID_link(struct Object *ob, ShaderFxIDWalkFunc walk, void *userData);
 

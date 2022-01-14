@@ -9,7 +9,7 @@ namespace blender::tests {
 
 TEST(any, DefaultConstructor)
 {
-  Any a;
+  Any<> a;
   EXPECT_FALSE(a.has_value());
 }
 
@@ -24,11 +24,11 @@ TEST(any, AssignInt)
   a = 10;
   EXPECT_EQ(value, 10);
 
-  Any b = a;
+  Any<> b = a;
   EXPECT_TRUE(b.has_value());
   EXPECT_EQ(b.get<int>(), 10);
 
-  Any c = std::move(a);
+  Any<> c = std::move(a);
   EXPECT_TRUE(c);
   EXPECT_EQ(c.get<int>(), 10);
 
@@ -48,11 +48,11 @@ TEST(any, AssignMap)
   map.add(4, 2);
   EXPECT_EQ((a.get<Map<int, int>>().lookup(4)), 2);
 
-  Any b = a;
+  Any<> b = a;
   EXPECT_TRUE(b);
   EXPECT_EQ((b.get<Map<int, int>>().lookup(4)), 2);
 
-  Any c = std::move(a);
+  Any<> c = std::move(a);
   c = c;
   EXPECT_TRUE(b);
   EXPECT_EQ((c.get<Map<int, int>>().lookup(4)), 2);
@@ -64,9 +64,9 @@ TEST(any, AssignAny)
 {
   Any<> a = 5;
   Any<> b = std::string("hello");
-  Any c;
+  Any<> c;
 
-  Any z;
+  Any<> z;
   EXPECT_FALSE(z.has_value());
 
   z = a;

@@ -161,6 +161,9 @@ struct PBVH {
   /* Mesh data */
   struct MeshElemMap *pmap, *vemap;
   const struct Mesh *mesh;
+
+  /* Note: Normals are not const because they can be updated for drawing by sculpt code. */
+  float (*vert_normals)[3];
   MVert *verts;
   const MPoly *mpoly;
   const MLoop *mloop;

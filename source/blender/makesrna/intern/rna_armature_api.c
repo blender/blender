@@ -119,7 +119,7 @@ void RNA_api_armature_edit_bone(StructRNA *srna)
 
   func = RNA_def_function(srna, "align_roll", "rna_EditBone_align_roll");
   RNA_def_function_ui_description(func,
-                                  "Align the bone to a localspace roll so the Z axis "
+                                  "Align the bone to a local-space roll so the Z axis "
                                   "points in the direction of the vector given");
   parm = RNA_def_float_vector(
       func, "vector", 3, NULL, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);

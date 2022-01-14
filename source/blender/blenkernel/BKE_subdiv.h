@@ -151,9 +151,9 @@ typedef struct SubdivDisplacement {
    * Averaging of displacement for vertices created for over coarse vertices
    * and edges is done by subdiv code. */
   void (*eval_displacement)(struct SubdivDisplacement *displacement,
-                            const int ptex_face_index,
-                            const float u,
-                            const float v,
+                            int ptex_face_index,
+                            float u,
+                            float v,
                             const float dPdu[3],
                             const float dPdv[3],
                             float r_D[3]);
@@ -275,35 +275,35 @@ int *BKE_subdiv_face_ptex_offset_get(Subdiv *subdiv);
 
 /* For a given (ptex_u, ptex_v) within a ptex face get corresponding
  * (grid_u, grid_v) within a grid. */
-BLI_INLINE void BKE_subdiv_ptex_face_uv_to_grid_uv(const float ptex_u,
-                                                   const float ptex_v,
+BLI_INLINE void BKE_subdiv_ptex_face_uv_to_grid_uv(float ptex_u,
+                                                   float ptex_v,
                                                    float *r_grid_u,
                                                    float *r_grid_v);
 
 /* Inverse of above. */
-BLI_INLINE void BKE_subdiv_grid_uv_to_ptex_face_uv(const float grid_u,
-                                                   const float grid_v,
+BLI_INLINE void BKE_subdiv_grid_uv_to_ptex_face_uv(float grid_u,
+                                                   float grid_v,
                                                    float *r_ptex_u,
                                                    float *r_ptex_v);
 
 /* For a given subdivision level (which is NOT refinement level) get size of
  * CCG grid (number of grid points on a side).
  */
-BLI_INLINE int BKE_subdiv_grid_size_from_level(const int level);
+BLI_INLINE int BKE_subdiv_grid_size_from_level(int level);
 
 /* Simplified version of mdisp_rot_face_to_crn, only handles quad and
  * works in normalized coordinates.
  *
  * NOTE: Output coordinates are in ptex coordinates. */
-BLI_INLINE int BKE_subdiv_rotate_quad_to_corner(const float quad_u,
-                                                const float quad_v,
+BLI_INLINE int BKE_subdiv_rotate_quad_to_corner(float quad_u,
+                                                float quad_v,
                                                 float *r_corner_u,
                                                 float *r_corner_v);
 
 /* Converts (u, v) coordinate from within a grid to a quad coordinate in
  * normalized ptex coordinates. */
 BLI_INLINE void BKE_subdiv_rotate_grid_to_quad(
-    const int corner, const float grid_u, const float grid_v, float *r_quad_u, float *r_quad_v);
+    int corner, float grid_u, float grid_v, float *r_quad_u, float *r_quad_v);
 
 /* Convert Blender edge crease value to OpenSubdiv sharpness. */
 BLI_INLINE float BKE_subdiv_edge_crease_to_sharpness_f(float edge_crease);

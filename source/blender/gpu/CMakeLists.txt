@@ -246,28 +246,15 @@ data_to_c_simple(shaders/gpu_shader_3D_clipped_uniform_color_vert.glsl SRC)
 
 data_to_c_simple(shaders/gpu_shader_instance_variying_size_variying_color_vert.glsl SRC)
 
-data_to_c_simple(shaders/gpu_shader_point_uniform_color_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_point_uniform_color_aa_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_point_uniform_color_outline_aa_frag.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_point_varying_color_outline_aa_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_point_varying_color_varying_outline_aa_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_point_varying_color_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_point_fixed_size_varying_color_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_3D_point_varying_size_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_point_varying_size_varying_color_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_point_uniform_size_aa_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_3D_point_uniform_size_outline_aa_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_2D_point_varying_size_varying_color_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_2D_point_uniform_size_aa_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_2D_point_uniform_size_outline_aa_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_2D_point_uniform_size_varying_color_outline_aa_vert.glsl SRC)
-
-data_to_c_simple(shaders/gpu_shader_2D_edituvs_points_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_2D_edituvs_facedots_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_2D_edituvs_edges_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_2D_edituvs_edges_frag.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_2D_edituvs_faces_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_2D_edituvs_stretch_vert.glsl SRC)
 
 data_to_c_simple(shaders/gpu_shader_text_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_text_frag.glsl SRC)
@@ -408,10 +395,8 @@ if(WITH_GTESTS)
       tests/gpu_testing.hh
     )
     set(TEST_INC
-      "../../../intern/ghost/"
     )
     set(TEST_LIB
-
     )
     include(GTestTesting)
     blender_add_test_lib(bf_gpu_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")

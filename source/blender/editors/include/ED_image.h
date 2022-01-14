@@ -44,18 +44,18 @@ struct wmWindowManager;
 struct View2D;
 
 /* image_draw.c */
-float ED_space_image_zoom_level(const struct View2D *v2d, const int grid_dimension);
+float ED_space_image_zoom_level(const struct View2D *v2d, int grid_dimension);
 void ED_space_image_grid_steps(struct SpaceImage *sima,
                                float grid_steps[SI_GRID_STEPS_LEN],
-                               const int grid_dimension);
+                               int grid_dimension);
 /**
  * Calculate the increment snapping value for UV/image editor based on the zoom factor
  * The code in here (except the offset part) is used in `grid_frag.glsl` (see `grid_res`) for
  * drawing the grid overlay for the UV/Image editor.
  */
-float ED_space_image_increment_snap_value(const int grid_dimesnions,
+float ED_space_image_increment_snap_value(int grid_dimesnions,
                                           const float grid_steps[SI_GRID_STEPS_LEN],
-                                          const float zoom_factor);
+                                          float zoom_factor);
 
 /* image_edit.c, exported for transform. */
 
@@ -198,7 +198,7 @@ typedef struct ImageFrameRange {
  */
 ListBase ED_image_filesel_detect_sequences(struct Main *bmain,
                                            struct wmOperator *op,
-                                           const bool detect_udim);
+                                           bool detect_udim);
 
 #ifdef __cplusplus
 }

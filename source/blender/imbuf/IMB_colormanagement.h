@@ -72,7 +72,7 @@ bool IMB_colormanagement_space_name_is_data(const char *name);
 /**
  * Convert a float RGB triplet to the correct luminance weighted average.
  *
- * Grayscale, or Luma is a distillation of RGB data values down to a weighted average
+ * Gray-scale, or Luma is a distillation of RGB data values down to a weighted average
  * based on the luminance positions of the red, green, and blue primaries.
  * Given that the internal reference space may be arbitrarily set, any
  * effort to glean the luminance coefficients must be aware of the reference
@@ -177,20 +177,20 @@ void IMB_colormanagement_colorspace_to_scene_linear(float *buffer,
                                                     bool predivide);
 
 void IMB_colormanagement_imbuf_to_byte_texture(unsigned char *out_buffer,
-                                               const int x,
-                                               const int y,
-                                               const int width,
-                                               const int height,
+                                               int x,
+                                               int y,
+                                               int width,
+                                               int height,
                                                const struct ImBuf *ibuf,
-                                               const bool compress_as_srgb,
-                                               const bool store_premultiplied);
+                                               bool compress_as_srgb,
+                                               bool store_premultiplied);
 void IMB_colormanagement_imbuf_to_float_texture(float *out_buffer,
-                                                const int offset_x,
-                                                const int offset_y,
-                                                const int width,
-                                                const int height,
+                                                int offset_x,
+                                                int offset_y,
+                                                int width,
+                                                int height,
                                                 const struct ImBuf *ibuf,
-                                                const bool store_premultiplied);
+                                                bool store_premultiplied);
 
 /**
  * Conversion between color picking role. Typically we would expect such a

@@ -327,7 +327,7 @@ void register_node_type_geo_switch()
 
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SWITCH, "Switch", NODE_CLASS_CONVERTER, 0);
+  geo_node_type_base(&ntype, GEO_NODE_SWITCH, "Switch", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::node_declare;
   node_type_init(&ntype, file_ns::node_init);
   node_type_update(&ntype, file_ns::node_update);

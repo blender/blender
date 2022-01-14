@@ -143,8 +143,7 @@ void register_node_type_geo_attribute_domain_size()
   namespace file_ns = blender::nodes::node_geo_attribute_domain_size_cc;
 
   static bNodeType ntype;
-  geo_node_type_base(
-      &ntype, GEO_NODE_ATTRIBUTE_DOMAIN_SIZE, "Domain Size", NODE_CLASS_ATTRIBUTE, 0);
+  geo_node_type_base(&ntype, GEO_NODE_ATTRIBUTE_DOMAIN_SIZE, "Domain Size", NODE_CLASS_ATTRIBUTE);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_layout;

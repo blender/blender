@@ -108,7 +108,7 @@ BLI_STATIC_ASSERT_ALIGN(gpLight, 16)
 
 /* *********** Draw Data *********** */
 typedef struct GPENCIL_MaterialPool {
-  /* Linklist. */
+  /* Single linked-list. */
   struct GPENCIL_MaterialPool *next;
   /* GPU representation of materials. */
   gpMaterial mat_data[GP_MATERIAL_BUFFER_LEN];
@@ -148,7 +148,7 @@ typedef struct GPENCIL_ViewLayerData {
 /* *********** GPencil  *********** */
 
 typedef struct GPENCIL_tVfx {
-  /** Linklist */
+  /** Single linked-list. */
   struct GPENCIL_tVfx *next;
   DRWPass *vfx_ps;
   /* Frame-buffer reference since it may not be allocated yet. */
@@ -156,7 +156,7 @@ typedef struct GPENCIL_tVfx {
 } GPENCIL_tVfx;
 
 typedef struct GPENCIL_tLayer {
-  /** Linklist */
+  /** Single linked-list. */
   struct GPENCIL_tLayer *next;
   /** Geometry pass (draw all strokes). */
   DRWPass *geom_ps;
@@ -172,7 +172,7 @@ typedef struct GPENCIL_tLayer {
 } GPENCIL_tLayer;
 
 typedef struct GPENCIL_tObject {
-  /** Linklist */
+  /** Single linked-list. */
   struct GPENCIL_tObject *next;
 
   struct {

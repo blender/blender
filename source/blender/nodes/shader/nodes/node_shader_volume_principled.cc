@@ -17,32 +17,34 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_shader_volume_principled_cc {
 
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketTemplate sh_node_volume_principled_in[] = {
-    {SOCK_RGBA, N_("Color"), 0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f},
-    {SOCK_STRING, N_("Color Attribute"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Density"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {SOCK_STRING, N_("Density Attribute"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Anisotropy"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, N_("Absorption Color"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Emission Strength"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1000.0f},
-    {SOCK_RGBA, N_("Emission Color"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Blackbody Intensity"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, N_("Blackbody Tint"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Temperature"), 1000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 6500.0f},
-    {SOCK_STRING, N_("Temperature Attribute"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_volume_principled_out[] = {
-    {SOCK_SHADER, N_("Volume")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Color")).default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_input<decl::String>(N_("Color Attribute"));
+  b.add_input<decl::Float>(N_("Density")).default_value(1.0f).min(0.0f).max(1000.0f);
+  b.add_input<decl::String>(N_("Density Attribute"));
+  b.add_input<decl::Float>(N_("Anisotropy"))
+      .default_value(0.0f)
+      .min(-1.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Color>(N_("Absorption Color")).default_value({0.0f, 0.0f, 0.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Emission Strength")).default_value(0.0f).min(0.0f).max(1000.0f);
+  b.add_input<decl::Color>(N_("Emission Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Blackbody Intensity"))
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Color>(N_("Blackbody Tint")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Temperature")).default_value(1000.0f).min(0.0f).max(6500.0f);
+  b.add_input<decl::String>(N_("Temperature Attribute"));
+  b.add_output<decl::Shader>(N_("Volume"));
+}
 
 static void node_shader_init_volume_principled(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -137,9 +139,8 @@ void register_node_type_sh_volume_principled()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_VOLUME_PRINCIPLED, "Principled Volume", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(
-      &ntype, file_ns::sh_node_volume_principled_in, file_ns::sh_node_volume_principled_out);
+  sh_node_type_base(&ntype, SH_NODE_VOLUME_PRINCIPLED, "Principled Volume", NODE_CLASS_SHADER);
+  ntype.declare = file_ns::node_declare;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_init(&ntype, file_ns::node_shader_init_volume_principled);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_volume_principled);

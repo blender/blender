@@ -175,9 +175,7 @@ class ExecutionGroup {
   /**
    * \brief Determine the rect (minx, maxx, miny, maxy) of a chunk at a position.
    */
-  void determine_chunk_rect(rcti *r_rect,
-                            const unsigned int x_chunk,
-                            const unsigned int y_chunk) const;
+  void determine_chunk_rect(rcti *r_rect, unsigned int x_chunk, unsigned int y_chunk) const;
 
   /**
    * \brief determine the number of chunks, based on the chunk_size, width and height.
@@ -197,7 +195,7 @@ class ExecutionGroup {
    * true: package(s) are scheduled
    * false: scheduling is deferred (depending workpackages are scheduled)
    */
-  bool schedule_chunk_when_possible(ExecutionSystem *graph, const int chunk_x, const int chunk_y);
+  bool schedule_chunk_when_possible(ExecutionSystem *graph, int chunk_x, int chunk_y);
 
   /**
    * \brief try to schedule a specific area.
@@ -374,7 +372,7 @@ class ExecutionGroup {
   /**
    * \brief Determine the rect (minx, maxx, miny, maxy) of a chunk.
    */
-  void determine_chunk_rect(rcti *r_rect, const unsigned int chunk_number) const;
+  void determine_chunk_rect(rcti *r_rect, unsigned int chunk_number) const;
 
   void set_chunksize(int chunksize)
   {

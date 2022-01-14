@@ -62,7 +62,7 @@
  * then the function has to specify whether the referenced array is expected to be initialized or
  * not.
  *
- * Since the arrays are only referenced, it is generally unsafe to store an Span. When you
+ * Since the arrays are only referenced, it is generally unsafe to store a Span. When you
  * store one, you should know who owns the memory.
  *
  * Instances of Span and MutableSpan are small and should be passed by value.
@@ -109,7 +109,7 @@ template<typename T> class Span {
     BLI_assert(size >= 0);
   }
 
-  template<typename U, typename std::enable_if_t<is_span_convertible_pointer_v<U, T>> * = nullptr>
+  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<U, T>))>
   constexpr Span(const U *start, int64_t size) : data_(static_cast<const T *>(start)), size_(size)
   {
     BLI_assert(size >= 0);
@@ -144,7 +144,7 @@ template<typename T> class Span {
    * Support implicit conversions like the one below:
    *   Span<T *> -> Span<const T *>
    */
-  template<typename U, typename std::enable_if_t<is_span_convertible_pointer_v<U, T>> * = nullptr>
+  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<U, T>))>
   constexpr Span(Span<U> span) : data_(static_cast<const T *>(span.data())), size_(span.size())
   {
   }
@@ -501,7 +501,7 @@ template<typename T> class MutableSpan {
    * Support implicit conversions like the one below:
    *   MutableSpan<T *> -> MutableSpan<const T *>
    */
-  template<typename U, typename std::enable_if_t<is_span_convertible_pointer_v<U, T>> * = nullptr>
+  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<U, T>))>
   constexpr MutableSpan(MutableSpan<U> span)
       : data_(static_cast<T *>(span.data())), size_(span.size())
   {
@@ -512,7 +512,7 @@ template<typename T> class MutableSpan {
     return Span<T>(data_, size_);
   }
 
-  template<typename U, typename std::enable_if_t<is_span_convertible_pointer_v<T, U>> * = nullptr>
+  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<T, U>))>
   constexpr operator Span<U>() const
   {
     return Span<U>(static_cast<const U *>(data_), size_);
@@ -597,6 +597,11 @@ template<typename T> class MutableSpan {
     BLI_assert(size >= 0);
     const int64_t new_size = std::max<int64_t>(0, std::min(size, size_ - start));
     return MutableSpan(data_ + start, new_size);
+  }
+
+  constexpr MutableSpan slice(IndexRange range) const
+  {
+    return this->slice(range.start(), range.size());
   }
 
   /**

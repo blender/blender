@@ -39,7 +39,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
                                     const float (*loop_normals)[3],
                                     const float (*vert_orco)[3],
                                     CustomData *dm_loopdata_out,
-                                    const uint dm_loopdata_out_len,
+                                    uint dm_loopdata_out_len,
                                     short *tangent_mask_curr_p);
 
 #ifdef __cplusplus

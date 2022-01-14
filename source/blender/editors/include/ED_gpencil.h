@@ -193,7 +193,7 @@ bool ED_gpencil_has_keyframe_v3d(struct Scene *scene, struct Object *ob, int cfr
 
 /* ----------- Stroke Editing Utilities ---------------- */
 bool ED_gpencil_frame_has_selected_stroke(const struct bGPDframe *gpf);
-bool ED_gpencil_layer_has_selected_stroke(const struct bGPDlayer *gpl, const bool is_multiedit);
+bool ED_gpencil_layer_has_selected_stroke(const struct bGPDlayer *gpl, bool is_multiedit);
 
 /**
  * Check whether given stroke can be edited given the supplied context.
@@ -250,12 +250,8 @@ void ED_annotation_draw_view3d(struct Scene *scene,
                                struct View3D *v3d,
                                struct ARegion *region,
                                bool only3d);
-void ED_annotation_draw_ex(struct Scene *scene,
-                           struct bGPdata *gpd,
-                           int winx,
-                           int winy,
-                           const int cfra,
-                           const char spacetype);
+void ED_annotation_draw_ex(
+    struct Scene *scene, struct bGPdata *gpd, int winx, int winy, int cfra, char spacetype);
 
 /* ----------- Grease-Pencil AnimEdit API ------------------ */
 /**
@@ -315,7 +311,7 @@ void ED_gpencil_layer_frames_duplicate(struct bGPDlayer *gpl);
 void ED_gpencil_layer_merge(struct bGPdata *gpd,
                             struct bGPDlayer *gpl_src,
                             struct bGPDlayer *gpl_dst,
-                            const bool reverse);
+                            bool reverse);
 
 /**
  * Set keyframe type for selected frames from given gp-layer
@@ -348,14 +344,14 @@ bool ED_gpencil_anim_copybuf_copy(struct bAnimContext *ac);
 /**
  * Pastes keyframes from buffer, and reports success.
  */
-bool ED_gpencil_anim_copybuf_paste(struct bAnimContext *ac, const short copy_mode);
+bool ED_gpencil_anim_copybuf_paste(struct bAnimContext *ac, short copy_mode);
 
 /* ------------ Grease-Pencil Undo System ------------------ */
 int ED_gpencil_session_active(void);
 /**
  * \param step: eUndoStepDir.
  */
-int ED_undo_gpencil_step(struct bContext *C, const int step); /* eUndoStepDir. */
+int ED_undo_gpencil_step(struct bContext *C, int step); /* eUndoStepDir. */
 
 /* ------------ Grease-Pencil Armature ------------------ */
 bool ED_gpencil_add_armature(const struct bContext *C,
@@ -410,7 +406,7 @@ void ED_gpencil_brush_draw_eraser(struct Brush *brush, int x, int y);
  */
 void ED_gpencil_stroke_init_data(struct bGPDstroke *gps,
                                  const float *array,
-                                 const int totpoints,
+                                 int totpoints,
                                  const float mat[4][4]);
 
 /**
@@ -457,7 +453,7 @@ void ED_gpencil_project_stroke_to_plane(const struct Scene *scene,
                                         struct bGPDlayer *gpl,
                                         struct bGPDstroke *gps,
                                         const float origin[3],
-                                        const int axis);
+                                        int axis);
 /**
  * Reproject given point to a plane locked to axis to avoid stroke offset
  * \param pt: Point to affect (used for input & output).
@@ -467,7 +463,7 @@ void ED_gpencil_project_point_to_plane(const struct Scene *scene,
                                        struct bGPDlayer *gpl,
                                        const struct RegionView3D *rv3d,
                                        const float origin[3],
-                                       const int axis,
+                                       int axis,
                                        struct bGPDspoint *pt);
 /**
  * Get drawing reference point for conversion or projection of the stroke
@@ -490,8 +486,8 @@ void ED_gpencil_stroke_reproject(struct Depsgraph *depsgraph,
                                  struct bGPDlayer *gpl,
                                  struct bGPDframe *gpf,
                                  struct bGPDstroke *gps,
-                                 const eGP_ReprojectModes mode,
-                                 const bool keep_original);
+                                 eGP_ReprojectModes mode,
+                                 bool keep_original);
 
 /**
  * Turn brush cursor in on/off.
@@ -513,7 +509,7 @@ void ED_gpencil_vgroup_remove(struct bContext *C, struct Object *ob);
  */
 void ED_gpencil_vgroup_select(struct bContext *C, struct Object *ob);
 /**
- * Unselect points of vertex group.
+ * Un-select points of vertex group.
  */
 void ED_gpencil_vgroup_deselect(struct bContext *C, struct Object *ob);
 
@@ -552,7 +548,7 @@ int ED_gpencil_select_stroke_segment(struct bGPdata *gpd,
                                      struct bGPDspoint *pt,
                                      bool select,
                                      bool insert,
-                                     const float scale,
+                                     float scale,
                                      float r_hita[3],
                                      float r_hitb[3]);
 
@@ -566,7 +562,7 @@ void ED_gpencil_select_curve_toggle_all(struct bContext *C, int action);
 struct tGPspoint *ED_gpencil_sbuffer_ensure(struct tGPspoint *buffer_array,
                                             int *buffer_size,
                                             int *buffer_used,
-                                            const bool clear);
+                                            bool clear);
 void ED_gpencil_sbuffer_update_eval(struct bGPdata *gpd, struct Object *ob_eval);
 
 /**
@@ -600,7 +596,7 @@ void ED_gpencil_init_random_settings(struct Brush *brush,
 bool ED_gpencil_stroke_check_collision(const struct GP_SpaceConversion *gsc,
                                        struct bGPDstroke *gps,
                                        const float mouse[2],
-                                       const int radius,
+                                       int radius,
                                        const float diff_mat[4][4]);
 /**
  * Check if a point is inside of the stroke.
@@ -631,7 +627,7 @@ struct bGPDstroke *ED_gpencil_stroke_nearest_to_ends(struct bContext *C,
                                                      struct bGPDstroke *gps,
                                                      const float ctrl1[2],
                                                      const float ctrl2[2],
-                                                     const float radius,
+                                                     float radius,
                                                      int *r_index);
 /**
  * Get extremes of stroke in 2D using current view.
@@ -649,12 +645,12 @@ struct bGPDstroke *ED_gpencil_stroke_join_and_trim(struct bGPdata *gpd,
                                                    struct bGPDframe *gpf,
                                                    struct bGPDstroke *gps,
                                                    struct bGPDstroke *gps_dst,
-                                                   const int pt_index);
+                                                   int pt_index);
 
 /**
  * Close if the distance between extremes is below threshold.
  */
-void ED_gpencil_stroke_close_by_distance(struct bGPDstroke *gps, const float threshold);
+void ED_gpencil_stroke_close_by_distance(struct bGPDstroke *gps, float threshold);
 
 #ifdef __cplusplus
 }

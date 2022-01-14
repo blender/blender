@@ -107,6 +107,7 @@ typedef struct TSpace {
 
 typedef struct TriTessFace {
   const MVert *mverts[3];
+  const float *vert_normals[3];
   const TSpace *tspace[3];
   float *loop_normal[3];
   float normal[3]; /* for flat faces */
@@ -241,9 +242,9 @@ static void calc_point_from_barycentric_extrusion(TriTessFace *triangles,
   interp_barycentric_tri_v3(data, u, v, coord);
 
   if (is_smooth) {
-    normal_short_to_float_v3(data[0], triangle->mverts[0]->no);
-    normal_short_to_float_v3(data[1], triangle->mverts[1]->no);
-    normal_short_to_float_v3(data[2], triangle->mverts[2]->no);
+    copy_v3_v3(data[0], triangle->vert_normals[0]);
+    copy_v3_v3(data[1], triangle->vert_normals[1]);
+    copy_v3_v3(data[2], triangle->vert_normals[2]);
 
     interp_barycentric_tri_v3(data, u, v, dir);
     normalize_v3(dir);
@@ -488,6 +489,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
     loop_normals = CustomData_get_layer(&me_eval->ldata, CD_NORMAL);
   }
 
+  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me);
   for (i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
     const MPoly *mp = &me->mpoly[lt->poly];
@@ -495,6 +497,9 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
     triangles[i].mverts[0] = &mvert[me->mloop[lt->tri[0]].v];
     triangles[i].mverts[1] = &mvert[me->mloop[lt->tri[1]].v];
     triangles[i].mverts[2] = &mvert[me->mloop[lt->tri[2]].v];
+    triangles[i].vert_normals[0] = &vert_normals[me->mloop[lt->tri[0]].v][0];
+    triangles[i].vert_normals[1] = &vert_normals[me->mloop[lt->tri[1]].v][1];
+    triangles[i].vert_normals[2] = &vert_normals[me->mloop[lt->tri[2]].v][2];
     triangles[i].is_smooth = (mp->flag & ME_SMOOTH) != 0;
 
     if (tangent) {
@@ -878,7 +883,7 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
           copy_v3_v3(normals[j], triangle->loop_normal[j]);
         }
         else {
-          normal_short_to_float_v3(normals[j], triangle->mverts[j]->no);
+          copy_v3_v3(normals[j], triangle->vert_normals[j]);
         }
       }
 

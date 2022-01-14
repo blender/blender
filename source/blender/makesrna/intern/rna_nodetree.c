@@ -52,6 +52,7 @@
 #include "rna_internal.h"
 #include "rna_internal_types.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -1953,7 +1954,7 @@ static bNodeType *rna_Node_register_base(Main *bmain,
   /* setup dummy node & node type to store static properties in */
   memset(&dummynt, 0, sizeof(bNodeType));
   /* this does some additional initialization of default values */
-  node_type_base_custom(&dummynt, identifier, "", 0, 0);
+  node_type_base_custom(&dummynt, identifier, "", 0);
 
   memset(&dummynode, 0, sizeof(bNode));
   dummynode.typeinfo = &dummynt;
@@ -3069,7 +3070,6 @@ static bool rna_NodeSocket_is_output_get(PointerRNA *ptr)
 
 static void rna_NodeSocket_link_limit_set(PointerRNA *ptr, int value)
 {
-  /* Does not have any effect if the link limit is defined in the socket type. */
   bNodeSocket *sock = ptr->data;
   sock->limit = (value == 0 ? 0xFFF : value);
 }
@@ -4664,6 +4664,55 @@ bool rna_NodeSocketMaterial_default_value_poll(PointerRNA *UNUSED(ptr), PointerR
   /* Do not show grease pencil materials for now. */
   Material *ma = (Material *)value.data;
   return ma->gp_style == NULL;
+}
+
+static int rna_NodeConvertColorSpace_from_color_space_get(struct PointerRNA *ptr)
+{
+  bNode *node = (bNode *)ptr->data;
+  NodeConvertColorSpace *node_storage = node->storage;
+  return IMB_colormanagement_colorspace_get_named_index(node_storage->from_color_space);
+}
+
+static void rna_NodeConvertColorSpace_from_color_space_set(struct PointerRNA *ptr, int value)
+{
+  bNode *node = (bNode *)ptr->data;
+  NodeConvertColorSpace *node_storage = node->storage;
+  const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
+
+  if (name && name[0]) {
+    BLI_strncpy(node_storage->from_color_space, name, sizeof(node_storage->from_color_space));
+  }
+}
+static int rna_NodeConvertColorSpace_to_color_space_get(struct PointerRNA *ptr)
+{
+  bNode *node = (bNode *)ptr->data;
+  NodeConvertColorSpace *node_storage = node->storage;
+  return IMB_colormanagement_colorspace_get_named_index(node_storage->to_color_space);
+}
+
+static void rna_NodeConvertColorSpace_to_color_space_set(struct PointerRNA *ptr, int value)
+{
+  bNode *node = (bNode *)ptr->data;
+  NodeConvertColorSpace *node_storage = node->storage;
+  const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
+
+  if (name && name[0]) {
+    BLI_strncpy(node_storage->to_color_space, name, sizeof(node_storage->to_color_space));
+  }
+}
+
+static const EnumPropertyItem *rna_NodeConvertColorSpace_color_space_itemf(
+    bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+{
+  EnumPropertyItem *items = NULL;
+  int totitem = 0;
+
+  IMB_colormanagement_colorspace_items_add(&items, &totitem);
+  RNA_enum_item_end(&items, &totitem);
+
+  *r_free = true;
+
+  return items;
 }
 
 #else
@@ -7313,6 +7362,42 @@ static void def_cmp_distance_matte(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_cmp_convert_color_space(StructRNA *srna)
+{
+  PropertyRNA *prop;
+  RNA_def_struct_sdna_from(srna, "NodeConvertColorSpace", "storage");
+
+  static const EnumPropertyItem color_space_items[] = {
+      {0,
+       "NONE",
+       0,
+       "None",
+       "Do not perform any color transform on load, treat colors as in scene linear space "
+       "already"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  prop = RNA_def_property(srna, "from_color_space", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+  RNA_def_property_enum_items(prop, color_space_items);
+  RNA_def_property_enum_funcs(prop,
+                              "rna_NodeConvertColorSpace_from_color_space_get",
+                              "rna_NodeConvertColorSpace_from_color_space_set",
+                              "rna_NodeConvertColorSpace_color_space_itemf");
+  RNA_def_property_ui_text(prop, "From", "Color space of the input image");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "to_color_space", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+  RNA_def_property_enum_items(prop, color_space_items);
+  RNA_def_property_enum_funcs(prop,
+                              "rna_NodeConvertColorSpace_to_color_space_get",
+                              "rna_NodeConvertColorSpace_to_color_space_set",
+                              "rna_NodeConvertColorSpace_color_space_itemf");
+  RNA_def_property_ui_text(prop, "To", "Color space of the output image");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_cmp_color_spill(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -9403,7 +9488,12 @@ static void def_geo_triangulate(StructRNA *srna)
        "SHORTEST_DIAGONAL",
        0,
        "Shortest Diagonal",
-       "Split the quads based on the distance between the vertices"},
+       "Split the quads along their shortest diagonal"},
+      {GEO_NODE_TRIANGULATE_QUAD_LONGEDGE,
+       "LONGEST_DIAGONAL",
+       0,
+       "Longest Diagonal",
+       "Split the quads along their longest diagonal"},
       {0, NULL, 0, NULL, NULL},
   };
 

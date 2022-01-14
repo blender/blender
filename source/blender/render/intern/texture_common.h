@@ -89,13 +89,13 @@ int imagewraposa(struct Tex *tex,
                  const float dyt[2],
                  struct TexResult *texres,
                  struct ImagePool *pool,
-                 const bool skip_load_image);
+                 bool skip_load_image);
 int imagewrap(struct Tex *tex,
               struct Image *ima,
               const float texvec[3],
               struct TexResult *texres,
               struct ImagePool *pool,
-              const bool skip_load_image);
+              bool skip_load_image);
 void image_sample(struct Image *ima,
                   float fx,
                   float fy,

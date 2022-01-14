@@ -68,16 +68,14 @@ struct MDeformVert *BKE_object_defgroup_data_create(struct ID *id);
  * \param use_selection: Only operate on selection.
  * \return True if any vertex was removed, false otherwise.
  */
-bool BKE_object_defgroup_clear(struct Object *ob,
-                               struct bDeformGroup *dg,
-                               const bool use_selection);
+bool BKE_object_defgroup_clear(struct Object *ob, struct bDeformGroup *dg, bool use_selection);
 /**
  * Remove all verts (or only selected ones) from all vgroups. Work in Object and Edit modes.
  *
  * \param use_selection: Only operate on selection.
  * \return True if any vertex was removed, false otherwise.
  */
-bool BKE_object_defgroup_clear_all(struct Object *ob, const bool use_selection);
+bool BKE_object_defgroup_clear_all(struct Object *ob, bool use_selection);
 
 /**
  * Remove given vgroup from object. Work in Object and Edit modes.
@@ -120,7 +118,7 @@ bool *BKE_object_defgroup_subset_from_select_type(struct Object *ob,
  * Store indices from the defgroup_validmap (faster lookups in some cases).
  */
 void BKE_object_defgroup_subset_to_index_array(const bool *defgroup_validmap,
-                                               const int defgroup_tot,
+                                               int defgroup_tot,
                                                int *r_defgroup_subset_map);
 
 /* ********** */
@@ -129,8 +127,8 @@ void BKE_object_defgroup_subset_to_index_array(const bool *defgroup_validmap,
  * Gets the status of "flag" for each #bDeformGroup
  * in the object data's vertex group list and returns an array containing them
  */
-bool *BKE_object_defgroup_lock_flags_get(struct Object *ob, const int defbase_tot);
-bool *BKE_object_defgroup_validmap_get(struct Object *ob, const int defbase_tot);
+bool *BKE_object_defgroup_lock_flags_get(struct Object *ob, int defbase_tot);
+bool *BKE_object_defgroup_validmap_get(struct Object *ob, int defbase_tot);
 /**
  * Returns total selected vgroups,
  * `wpi.defbase_sel` is assumed malloc'd, all values are set.

@@ -65,7 +65,7 @@ void ED_gizmo_draw_preset_circle(const struct wmGizmo *gz,
 void ED_gizmo_draw_preset_facemap(const struct bContext *C,
                                   const struct wmGizmo *gz,
                                   struct Object *ob,
-                                  const int facemap,
+                                  int facemap,
                                   int select_id);
 
 /* -------------------------------------------------------------------- */
@@ -97,13 +97,13 @@ enum {
  *
  * \note Needs to be called before #WM_gizmo_target_property_def_rna!
  */
-void ED_gizmo_arrow3d_set_ui_range(struct wmGizmo *gz, const float min, const float max);
+void ED_gizmo_arrow3d_set_ui_range(struct wmGizmo *gz, float min, float max);
 /**
  * Define a custom factor for arrow min/max distance.
  *
  * \note Needs to be called before #WM_gizmo_target_property_def_rna!
  */
-void ED_gizmo_arrow3d_set_range_fac(struct wmGizmo *gz, const float range_fac);
+void ED_gizmo_arrow3d_set_range_fac(struct wmGizmo *gz, float range_fac);
 
 /* -------------------------------------------------------------------- */
 /* Cage Gizmo */
@@ -248,9 +248,9 @@ struct Dial3dParams {
 };
 void ED_gizmotypes_dial_3d_draw_util(const float matrix_basis[4][4],
                                      const float matrix_final[4][4],
-                                     const float line_width,
+                                     float line_width,
                                      const float color[4],
-                                     const bool select,
+                                     bool select,
                                      struct Dial3dParams *params);
 
 /* snap3d_gizmo.c */

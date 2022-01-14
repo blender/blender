@@ -435,8 +435,6 @@ void RE_engine_end_result(
     return;
   }
 
-  re_ensure_passes_allocated_thread_safe(re);
-
   if (re->engine && (re->engine->flag & RE_ENGINE_HIGHLIGHT_TILES)) {
     const HighlightedTile tile = highlighted_tile_from_result_get(re, result);
 
@@ -445,6 +443,7 @@ void RE_engine_end_result(
 
   if (!cancel || merge_results) {
     if (!(re->test_break(re->tbh) && (re->r.scemode & R_BUTS_PREVIEW))) {
+      re_ensure_passes_allocated_thread_safe(re);
       render_result_merge(re->result, result);
     }
 
@@ -923,8 +922,10 @@ static void engine_render_view_layer(Render *re,
     }
   }
 
-  /* Optionally composite grease pencil over render result. */
-  if (engine->has_grease_pencil && use_grease_pencil) {
+  /* Optionally composite grease pencil over render result.
+   * Only do it if the passes are allocated (and the engine will not override the grease pencil
+   * when reading its result from EXR file and writing to the Blender side. */
+  if (engine->has_grease_pencil && use_grease_pencil && re->result->passes_allocated) {
     /* NOTE: External engine might have been requested to free its
      * dependency graph, which is only allowed if there is no grease
      * pencil (pipeline is taking care of that). */
@@ -1023,9 +1024,17 @@ bool RE_engine_render(Render *re, bool do_all)
     re->draw_lock(re->dlh, false);
   }
 
+  /* Render view layers. */
+  bool delay_grease_pencil = false;
+
   if (type->render) {
     FOREACH_VIEW_LAYER_TO_RENDER_BEGIN (re, view_layer_iter) {
       engine_render_view_layer(re, engine, view_layer_iter, true, true);
+
+      /* If render passes are not allocated the render engine deferred final pixels write for
+       * later. Need to defer the grease pencil for until after the engine has written the
+       * render result to Blender. */
+      delay_grease_pencil = engine->has_grease_pencil && !re->result->passes_allocated;
 
       if (RE_engine_test_break(engine)) {
         break;
@@ -1036,6 +1045,17 @@ bool RE_engine_render(Render *re, bool do_all)
 
   if (type->render_frame_finish) {
     type->render_frame_finish(engine);
+  }
+
+  /* Perform delayed grease pencil rendering. */
+  if (delay_grease_pencil) {
+    FOREACH_VIEW_LAYER_TO_RENDER_BEGIN (re, view_layer_iter) {
+      engine_render_view_layer(re, engine, view_layer_iter, false, true);
+      if (RE_engine_test_break(engine)) {
+        break;
+      }
+    }
+    FOREACH_VIEW_LAYER_TO_RENDER_END;
   }
 
   /* Clear tile data */

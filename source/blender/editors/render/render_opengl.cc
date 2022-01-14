@@ -92,7 +92,7 @@
 #endif
 
 /* TODO(sergey): Find better approximation of the scheduled frames.
- * For really highres renders it might fail still. */
+ * For really high-resolution renders it might fail still. */
 #define MAX_SCHEDULED_FRAMES 8
 
 struct OGLRender {
@@ -141,7 +141,7 @@ struct OGLRender {
   wmWindowManager *wm;
   wmWindow *win;
 
-  /** Use to check if running modal or not (invoke'd or exec'd). */
+  /** Use to check if running modal or not (invoked or executed). */
   wmTimer *timer;
 
   void **movie_ctx_arr;
@@ -727,7 +727,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   const bool is_sequencer = RNA_boolean_get(op->ptr, "sequencer");
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
   const eImageFormatDepth color_depth = static_cast<eImageFormatDepth>(
-      (is_animation) ? scene->r.im_format.depth : R_IMF_CHAN_DEPTH_32);
+      (is_animation) ? (eImageFormatDepth)scene->r.im_format.depth : R_IMF_CHAN_DEPTH_32);
   char err_out[256] = "unknown";
 
   if (G.background) {
@@ -781,7 +781,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   }
 
   /* allocate opengl render */
-  oglrender = MEM_cnew<OGLRender>("OGLRender");
+  oglrender = MEM_new<OGLRender>("OGLRender");
   op->customdata = oglrender;
 
   oglrender->ofs = ofs;
@@ -960,7 +960,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
   CTX_wm_area_set(C, oglrender->prevsa);
   CTX_wm_region_set(C, oglrender->prevar);
 
-  MEM_freeN(oglrender);
+  MEM_delete(oglrender);
 }
 
 static void screen_opengl_render_cancel(bContext *C, wmOperator *op)

@@ -320,7 +320,7 @@ static PyObject *Quaternion_rotation_difference(QuaternionObject *self, PyObject
                             QUAT_SIZE,
                             QUAT_SIZE,
                             value,
-                            "Quaternion.difference(other), invalid 'other' arg") == -1) {
+                            "Quaternion.rotation_difference(other), invalid 'other' arg") == -1) {
     return NULL;
   }
 

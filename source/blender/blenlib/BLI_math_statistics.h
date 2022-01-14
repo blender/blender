@@ -51,11 +51,11 @@ extern "C" {
  *                              (i.e. get 'sample variance' instead of 'population variance').
  * \return r_covmat the computed covariance matrix.
  */
-void BLI_covariance_m_vn_ex(const int n,
+void BLI_covariance_m_vn_ex(int n,
                             const float *cos_vn,
-                            const int nbr_cos_vn,
+                            int nbr_cos_vn,
                             const float *center,
-                            const bool use_sample_correction,
+                            bool use_sample_correction,
                             float *r_covmat);
 /**
  * \brief Compute the covariance matrix of given set of 3D coordinates.
@@ -66,8 +66,8 @@ void BLI_covariance_m_vn_ex(const int n,
  * \return r_center the computed center (mean) of 3D points (may be NULL).
  */
 void BLI_covariance_m3_v3n(const float (*cos_v3)[3],
-                           const int nbr_cos_v3,
-                           const bool use_sample_correction,
+                           int nbr_cos_v3,
+                           bool use_sample_correction,
                            float r_covmat[3][3],
                            float r_center[3]);
 

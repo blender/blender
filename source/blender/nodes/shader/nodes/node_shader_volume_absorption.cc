@@ -17,22 +17,16 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_shader_volume_absorption_cc {
 
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketTemplate sh_node_volume_absorption_in[] = {
-    {SOCK_RGBA, N_("Color"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Density"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_volume_absorption_out[] = {
-    {SOCK_SHADER, N_("Volume")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Color")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_input<decl::Float>(N_("Density")).default_value(1.0f).min(0.0f).max(1000.0f);
+  b.add_output<decl::Shader>(N_("Volume"));
+}
 
 static int node_shader_gpu_volume_absorption(GPUMaterial *mat,
                                              bNode *node,
@@ -52,9 +46,8 @@ void register_node_type_sh_volume_absorption()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_VOLUME_ABSORPTION, "Volume Absorption", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(
-      &ntype, file_ns::sh_node_volume_absorption_in, file_ns::sh_node_volume_absorption_out);
+  sh_node_type_base(&ntype, SH_NODE_VOLUME_ABSORPTION, "Volume Absorption", NODE_CLASS_SHADER);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::node_shader_gpu_volume_absorption);
 
   nodeRegisterType(&ntype);

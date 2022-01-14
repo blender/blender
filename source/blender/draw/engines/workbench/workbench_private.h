@@ -423,7 +423,7 @@ void workbench_transparent_draw_depth_pass(WORKBENCH_Data *data);
 /* workbench_shadow.c */
 void workbench_shadow_data_update(WORKBENCH_PrivateData *wpd, WORKBENCH_UBO_World *wd);
 void workbench_shadow_cache_init(WORKBENCH_Data *data);
-void workbench_shadow_cache_populate(WORKBENCH_Data *data, Object *ob, const bool has_transp_mat);
+void workbench_shadow_cache_populate(WORKBENCH_Data *data, Object *ob, bool has_transp_mat);
 
 /* workbench_shader.c */
 GPUShader *workbench_shader_opaque_get(WORKBENCH_PrivateData *wpd, eWORKBENCH_DataType data);

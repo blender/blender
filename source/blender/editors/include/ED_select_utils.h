@@ -64,27 +64,25 @@ enum {
  * Use when we've de-selected all first for 'SEL_OP_SET'.
  * 1: select, 0: deselect, -1: pass.
  */
-int ED_select_op_action(const eSelectOp sel_op, const bool is_select, const bool is_inside);
+int ED_select_op_action(eSelectOp sel_op, bool is_select, bool is_inside);
 /**
  * Use when we've de-selected all items first (for modes that need it).
  *
  * \note In some cases changing selection needs to perform other checks,
  * so it's more straightforward to deselect all, then select.
  */
-int ED_select_op_action_deselected(const eSelectOp sel_op,
-                                   const bool is_select,
-                                   const bool is_inside);
+int ED_select_op_action_deselected(eSelectOp sel_op, bool is_select, bool is_inside);
 
-int ED_select_similar_compare_float(const float delta, const float thresh, const int compare);
+int ED_select_similar_compare_float(float delta, float thresh, int compare);
 bool ED_select_similar_compare_float_tree(const struct KDTree_1d *tree,
-                                          const float length,
-                                          const float thresh,
-                                          const int compare);
+                                          float length,
+                                          float thresh,
+                                          int compare);
 
 /**
  * Utility to use for selection operations that run multiple times (circle select).
  */
-eSelectOp ED_select_op_modal(const eSelectOp sel_op, const bool is_first);
+eSelectOp ED_select_op_modal(eSelectOp sel_op, bool is_first);
 
 #ifdef __cplusplus
 }

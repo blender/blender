@@ -21,7 +21,7 @@
 
 #include "BKE_image.h"
 
-#include "BLI_float4.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_threads.h"
 #include "BLI_timeit.hh"
 
@@ -415,7 +415,7 @@ void register_node_type_geo_image_texture()
 
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_IMAGE_TEXTURE, "Image Texture", NODE_CLASS_TEXTURE, 0);
+  geo_node_type_base(&ntype, GEO_NODE_IMAGE_TEXTURE, "Image Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_layout;
   node_type_init(&ntype, file_ns::node_init);

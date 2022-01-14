@@ -18,8 +18,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_color.hh"
-#include "BLI_float2.hh"
-#include "BLI_float3.hh"
+#include "BLI_math_vec_types.hh"
 
 #include "DNA_customdata_types.h"
 
@@ -141,7 +140,7 @@ inline ColorGeometry4f mix3(const float3 &weights,
  * This is just basic linear interpolation.
  * \{ */
 
-template<typename T> T mix2(const float factor, const T &a, const T &b);
+template<typename T> T mix2(float factor, const T &a, const T &b);
 
 template<> inline bool mix2(const float factor, const bool &a, const bool &b)
 {
@@ -160,12 +159,12 @@ template<> inline float mix2(const float factor, const float &a, const float &b)
 
 template<> inline float2 mix2(const float factor, const float2 &a, const float2 &b)
 {
-  return float2::interpolate(a, b, factor);
+  return math::interpolate(a, b, factor);
 }
 
 template<> inline float3 mix2(const float factor, const float3 &a, const float3 &b)
 {
-  return float3::interpolate(a, b, factor);
+  return math::interpolate(a, b, factor);
 }
 
 template<>
@@ -287,7 +286,7 @@ class ColorGeometryMixer {
  public:
   ColorGeometryMixer(MutableSpan<ColorGeometry4f> buffer,
                      ColorGeometry4f default_color = ColorGeometry4f(0.0f, 0.0f, 0.0f, 1.0f));
-  void mix_in(const int64_t index, const ColorGeometry4f &color, const float weight = 1.0f);
+  void mix_in(int64_t index, const ColorGeometry4f &color, float weight = 1.0f);
   void finalize();
 };
 

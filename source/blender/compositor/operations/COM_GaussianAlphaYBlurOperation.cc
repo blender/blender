@@ -73,11 +73,6 @@ void GaussianAlphaYBlurOperation::update_gauss()
   }
 }
 
-BLI_INLINE float finv_test(const float f, const bool test)
-{
-  return (LIKELY(test == false)) ? f : 1.0f - f;
-}
-
 void GaussianAlphaYBlurOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
   const bool do_invert = do_subtract_;

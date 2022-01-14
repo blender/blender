@@ -273,11 +273,299 @@ uint BlenderDisplaySpaceShader::get_shader_program()
 }
 
 /* --------------------------------------------------------------------
+ * DrawTile.
+ */
+
+/* Higher level representation of a texture from the graphics library. */
+class GLTexture {
+ public:
+  /* Global counter for all allocated OpenGL textures used by instances of this class. */
+  static inline std::atomic<int> num_used = 0;
+
+  GLTexture() = default;
+
+  ~GLTexture()
+  {
+    assert(gl_id == 0);
+  }
+
+  GLTexture(const GLTexture &other) = delete;
+  GLTexture &operator=(GLTexture &other) = delete;
+
+  GLTexture(GLTexture &&other) noexcept
+      : gl_id(other.gl_id), width(other.width), height(other.height)
+  {
+    other.reset();
+  }
+
+  GLTexture &operator=(GLTexture &&other)
+  {
+    if (this == &other) {
+      return *this;
+    }
+
+    gl_id = other.gl_id;
+    width = other.width;
+    height = other.height;
+
+    other.reset();
+
+    return *this;
+  }
+
+  bool gl_resources_ensure()
+  {
+    if (gl_id) {
+      return true;
+    }
+
+    /* Create texture. */
+    glGenTextures(1, &gl_id);
+    if (!gl_id) {
+      LOG(ERROR) << "Error creating texture.";
+      return false;
+    }
+
+    /* Configure the texture. */
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, gl_id);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    /* Clamp to edge so that precision issues when zoomed out (which forces linear interpolation)
+     * does not cause unwanted repetition. */
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    ++num_used;
+
+    return true;
+  }
+
+  void gl_resources_destroy()
+  {
+    if (!gl_id) {
+      return;
+    }
+
+    glDeleteTextures(1, &gl_id);
+
+    reset();
+
+    --num_used;
+  }
+
+  /* OpenGL resource IDs of the texture.
+   *
+   * NOTE: Allocated on the render engine's context. */
+  uint gl_id = 0;
+
+  /* Dimensions of the texture in pixels. */
+  int width = 0;
+  int height = 0;
+
+ protected:
+  void reset()
+  {
+    gl_id = 0;
+    width = 0;
+    height = 0;
+  }
+};
+
+/* Higher level representation of a Pixel Buffer Object (PBO) from the graphics library. */
+class GLPixelBufferObject {
+ public:
+  /* Global counter for all allocated OpenGL PBOs used by instances of this class. */
+  static inline std::atomic<int> num_used = 0;
+
+  GLPixelBufferObject() = default;
+
+  ~GLPixelBufferObject()
+  {
+    assert(gl_id == 0);
+  }
+
+  GLPixelBufferObject(const GLPixelBufferObject &other) = delete;
+  GLPixelBufferObject &operator=(GLPixelBufferObject &other) = delete;
+
+  GLPixelBufferObject(GLPixelBufferObject &&other) noexcept
+      : gl_id(other.gl_id), width(other.width), height(other.height)
+  {
+    other.reset();
+  }
+
+  GLPixelBufferObject &operator=(GLPixelBufferObject &&other)
+  {
+    if (this == &other) {
+      return *this;
+    }
+
+    gl_id = other.gl_id;
+    width = other.width;
+    height = other.height;
+
+    other.reset();
+
+    return *this;
+  }
+
+  bool gl_resources_ensure()
+  {
+    if (gl_id) {
+      return true;
+    }
+
+    glGenBuffers(1, &gl_id);
+    if (!gl_id) {
+      LOG(ERROR) << "Error creating texture pixel buffer object.";
+      return false;
+    }
+
+    ++num_used;
+
+    return true;
+  }
+
+  void gl_resources_destroy()
+  {
+    if (!gl_id) {
+      return;
+    }
+
+    glDeleteBuffers(1, &gl_id);
+
+    reset();
+
+    --num_used;
+  }
+
+  /* OpenGL resource IDs of the PBO.
+   *
+   * NOTE: Allocated on the render engine's context. */
+  uint gl_id = 0;
+
+  /* Dimensions of the PBO. */
+  int width = 0;
+  int height = 0;
+
+ protected:
+  void reset()
+  {
+    gl_id = 0;
+    width = 0;
+    height = 0;
+  }
+};
+
+class DrawTile {
+ public:
+  DrawTile() = default;
+  ~DrawTile() = default;
+
+  DrawTile(const DrawTile &other) = delete;
+  DrawTile &operator=(const DrawTile &other) = delete;
+
+  DrawTile(DrawTile &&other) noexcept = default;
+
+  DrawTile &operator=(DrawTile &&other) = default;
+
+  bool gl_resources_ensure()
+  {
+    if (!texture.gl_resources_ensure()) {
+      gl_resources_destroy();
+      return false;
+    }
+
+    if (!gl_vertex_buffer) {
+      glGenBuffers(1, &gl_vertex_buffer);
+      if (!gl_vertex_buffer) {
+        LOG(ERROR) << "Error allocating tile VBO.";
+        gl_resources_destroy();
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  void gl_resources_destroy()
+  {
+    texture.gl_resources_destroy();
+
+    if (gl_vertex_buffer) {
+      glDeleteBuffers(1, &gl_vertex_buffer);
+      gl_vertex_buffer = 0;
+    }
+  }
+
+  inline bool ready_to_draw() const
+  {
+    return texture.gl_id != 0;
+  }
+
+  /* Texture which contains pixels of the tile. */
+  GLTexture texture;
+
+  /* Display parameters the texture of this tile has been updated for. */
+  BlenderDisplayDriver::Params params;
+
+  /* OpenGL resources needed for drawing. */
+  uint gl_vertex_buffer = 0;
+};
+
+class DrawTileAndPBO {
+ public:
+  bool gl_resources_ensure()
+  {
+    if (!tile.gl_resources_ensure() || !buffer_object.gl_resources_ensure()) {
+      gl_resources_destroy();
+      return false;
+    }
+
+    return true;
+  }
+
+  void gl_resources_destroy()
+  {
+    tile.gl_resources_destroy();
+    buffer_object.gl_resources_destroy();
+  }
+
+  DrawTile tile;
+  GLPixelBufferObject buffer_object;
+};
+
+/* --------------------------------------------------------------------
  * BlenderDisplayDriver.
  */
 
+struct BlenderDisplayDriver::Tiles {
+  /* Resources of a tile which is being currently rendered. */
+  DrawTileAndPBO current_tile;
+
+  /* All tiles which rendering is finished and which content will not be changed. */
+  struct {
+    vector<DrawTile> tiles;
+
+    void gl_resources_destroy_and_clear()
+    {
+      for (DrawTile &tile : tiles) {
+        tile.gl_resources_destroy();
+      }
+
+      tiles.clear();
+    }
+  } finished_tiles;
+};
+
 BlenderDisplayDriver::BlenderDisplayDriver(BL::RenderEngine &b_engine, BL::Scene &b_scene)
-    : b_engine_(b_engine), display_shader_(BlenderDisplayShader::create(b_engine, b_scene))
+    : b_engine_(b_engine),
+      display_shader_(BlenderDisplayShader::create(b_engine, b_scene)),
+      tiles_(make_unique<Tiles>())
 {
   /* Create context while on the main thread. */
   gl_context_create();
@@ -291,6 +579,21 @@ BlenderDisplayDriver::~BlenderDisplayDriver()
 /* --------------------------------------------------------------------
  * Update procedure.
  */
+
+void BlenderDisplayDriver::next_tile_begin()
+{
+  if (!tiles_->current_tile.tile.ready_to_draw()) {
+    LOG(ERROR)
+        << "Unexpectedly moving to the next tile without any data provided for current tile.";
+    return;
+  }
+
+  /* Moving to the next tile without giving render data for the current tile is not an expected
+   * situation. */
+  DCHECK(!need_clear_);
+
+  tiles_->finished_tiles.tiles.emplace_back(std::move(tiles_->current_tile.tile));
+}
 
 bool BlenderDisplayDriver::update_begin(const Params &params,
                                         int texture_width,
@@ -312,24 +615,33 @@ bool BlenderDisplayDriver::update_begin(const Params &params,
     glWaitSync((GLsync)gl_render_sync_, 0, GL_TIMEOUT_IGNORED);
   }
 
-  if (!gl_texture_resources_ensure()) {
+  DrawTile &current_tile = tiles_->current_tile.tile;
+  GLPixelBufferObject &current_tile_buffer_object = tiles_->current_tile.buffer_object;
+
+  /* Clear storage of all finished tiles when display clear is requested.
+   * Do it when new tile data is provided to handle the display clear flag in a single place.
+   * It also makes the logic reliable from the whether drawing did happen or not point of view. */
+  if (need_clear_) {
+    tiles_->finished_tiles.gl_resources_destroy_and_clear();
+    need_clear_ = false;
+  }
+
+  if (!tiles_->current_tile.gl_resources_ensure()) {
+    tiles_->current_tile.gl_resources_destroy();
     gl_context_disable();
     return false;
   }
 
   /* Update texture dimensions if needed. */
-  if (texture_.width != texture_width || texture_.height != texture_height) {
+  if (current_tile.texture.width != texture_width ||
+      current_tile.texture.height != texture_height) {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_.gl_id);
+    glBindTexture(GL_TEXTURE_2D, current_tile.texture.gl_id);
     glTexImage2D(
         GL_TEXTURE_2D, 0, GL_RGBA16F, texture_width, texture_height, 0, GL_RGBA, GL_HALF_FLOAT, 0);
-    texture_.width = texture_width;
-    texture_.height = texture_height;
+    current_tile.texture.width = texture_width;
+    current_tile.texture.height = texture_height;
     glBindTexture(GL_TEXTURE_2D, 0);
-
-    /* Texture did change, and no pixel storage was provided. Tag for an explicit zeroing out to
-     * avoid undefined content. */
-    texture_.need_clear = true;
   }
 
   /* Update PBO dimensions if needed.
@@ -341,29 +653,58 @@ bool BlenderDisplayDriver::update_begin(const Params &params,
    * sending too much data to GPU when resolution divider is not 1. */
   /* TODO(sergey): Investigate whether keeping the PBO exact size of the texture makes non-interop
    * mode faster. */
-  const int buffer_width = params.full_size.x;
-  const int buffer_height = params.full_size.y;
-  if (texture_.buffer_width != buffer_width || texture_.buffer_height != buffer_height) {
+  const int buffer_width = params.size.x;
+  const int buffer_height = params.size.y;
+  if (current_tile_buffer_object.width != buffer_width ||
+      current_tile_buffer_object.height != buffer_height) {
     const size_t size_in_bytes = sizeof(half4) * buffer_width * buffer_height;
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture_.gl_pbo_id);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, current_tile_buffer_object.gl_id);
     glBufferData(GL_PIXEL_UNPACK_BUFFER, size_in_bytes, 0, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-    texture_.buffer_width = buffer_width;
-    texture_.buffer_height = buffer_height;
+    current_tile_buffer_object.width = buffer_width;
+    current_tile_buffer_object.height = buffer_height;
   }
 
-  /* New content will be provided to the texture in one way or another, so mark this in a
-   * centralized place. */
-  texture_.need_update = true;
-
-  texture_.params = params;
+  /* Store an updated parameters of the current tile.
+   * In theory it is only needed once per update of the tile, but doing it on every update is
+   * the easiest and is not expensive. */
+  tiles_->current_tile.tile.params = params;
 
   return true;
 }
 
+static void update_tile_texture_pixels(const DrawTileAndPBO &tile)
+{
+  const GLTexture &texture = tile.tile.texture;
+
+  DCHECK_NE(tile.buffer_object.gl_id, 0);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture.gl_id);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, tile.buffer_object.gl_id);
+
+  glTexSubImage2D(
+      GL_TEXTURE_2D, 0, 0, 0, texture.width, texture.height, GL_RGBA, GL_HALF_FLOAT, 0);
+
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void BlenderDisplayDriver::update_end()
 {
+  /* Unpack the PBO into the texture as soon as the new content is provided.
+   *
+   * This allows to ensure that the unpacking happens while resources like graphics interop (which
+   * lifetime is outside of control of the display driver) are still valid, as well as allows to
+   * move the tile from being current to finished immediately after this call.
+   *
+   * One concern with this approach is that if the update happens more often than drawing then
+   * doing the unpack here occupies GPU transfer for no good reason. However, the render scheduler
+   * takes care of ensuring updates don't happen that often. In regular applications redraw will
+   * happen much more often than this update. */
+  update_tile_texture_pixels(tiles_->current_tile);
+
   gl_upload_sync_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
   glFlush();
 
@@ -376,21 +717,16 @@ void BlenderDisplayDriver::update_end()
 
 half4 *BlenderDisplayDriver::map_texture_buffer()
 {
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture_.gl_pbo_id);
+  const uint pbo_gl_id = tiles_->current_tile.buffer_object.gl_id;
+
+  DCHECK_NE(pbo_gl_id, 0);
+
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_gl_id);
 
   half4 *mapped_rgba_pixels = reinterpret_cast<half4 *>(
       glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY));
   if (!mapped_rgba_pixels) {
     LOG(ERROR) << "Error mapping BlenderDisplayDriver pixel buffer object.";
-  }
-
-  if (texture_.need_clear) {
-    const int64_t texture_width = texture_.width;
-    const int64_t texture_height = texture_.height;
-    memset(reinterpret_cast<void *>(mapped_rgba_pixels),
-           0,
-           texture_width * texture_height * sizeof(half4));
-    texture_.need_clear = false;
   }
 
   return mapped_rgba_pixels;
@@ -411,12 +747,9 @@ BlenderDisplayDriver::GraphicsInterop BlenderDisplayDriver::graphics_interop_get
 {
   GraphicsInterop interop_dst;
 
-  interop_dst.buffer_width = texture_.buffer_width;
-  interop_dst.buffer_height = texture_.buffer_height;
-  interop_dst.opengl_pbo_id = texture_.gl_pbo_id;
-
-  interop_dst.need_clear = texture_.need_clear;
-  texture_.need_clear = false;
+  interop_dst.buffer_width = tiles_->current_tile.buffer_object.width;
+  interop_dst.buffer_height = tiles_->current_tile.buffer_object.height;
+  interop_dst.opengl_pbo_id = tiles_->current_tile.buffer_object.gl_id;
 
   return interop_dst;
 }
@@ -437,7 +770,7 @@ void BlenderDisplayDriver::graphics_interop_deactivate()
 
 void BlenderDisplayDriver::clear()
 {
-  texture_.need_clear = true;
+  need_clear_ = true;
 }
 
 void BlenderDisplayDriver::set_zoom(float zoom_x, float zoom_y)
@@ -445,26 +778,155 @@ void BlenderDisplayDriver::set_zoom(float zoom_x, float zoom_y)
   zoom_ = make_float2(zoom_x, zoom_y);
 }
 
+/* Update vertex buffer with new coordinates of vertex positions and texture coordinates.
+ * This buffer is used to render texture in the viewport.
+ *
+ * NOTE: The buffer needs to be bound. */
+static void vertex_buffer_update(const DisplayDriver::Params &params)
+{
+  const int x = params.full_offset.x;
+  const int y = params.full_offset.y;
+
+  const int width = params.size.x;
+  const int height = params.size.y;
+
+  /* Invalidate old contents - avoids stalling if the buffer is still waiting in queue to be
+   * rendered. */
+  glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(float), NULL, GL_STREAM_DRAW);
+
+  float *vpointer = reinterpret_cast<float *>(glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
+  if (!vpointer) {
+    return;
+  }
+
+  vpointer[0] = 0.0f;
+  vpointer[1] = 0.0f;
+  vpointer[2] = x;
+  vpointer[3] = y;
+
+  vpointer[4] = 1.0f;
+  vpointer[5] = 0.0f;
+  vpointer[6] = x + width;
+  vpointer[7] = y;
+
+  vpointer[8] = 1.0f;
+  vpointer[9] = 1.0f;
+  vpointer[10] = x + width;
+  vpointer[11] = y + height;
+
+  vpointer[12] = 0.0f;
+  vpointer[13] = 1.0f;
+  vpointer[14] = x;
+  vpointer[15] = y + height;
+
+  glUnmapBuffer(GL_ARRAY_BUFFER);
+}
+
+static void draw_tile(const float2 &zoom,
+                      const int texcoord_attribute,
+                      const int position_attribute,
+                      const DrawTile &draw_tile)
+{
+  if (!draw_tile.ready_to_draw()) {
+    return;
+  }
+
+  const GLTexture &texture = draw_tile.texture;
+
+  DCHECK_NE(texture.gl_id, 0);
+  DCHECK_NE(draw_tile.gl_vertex_buffer, 0);
+
+  glBindBuffer(GL_ARRAY_BUFFER, draw_tile.gl_vertex_buffer);
+
+  /* Draw at the parameters for which the texture has been updated for. This allows to always draw
+   * texture during bordered-rendered camera view without flickering. The validness of the display
+   * parameters for a texture is guaranteed by the initial "clear" state which makes drawing to
+   * have an early output.
+   *
+   * Such approach can cause some extra "jelly" effect during panning, but it is not more jelly
+   * than overlay of selected objects. Also, it's possible to redraw texture at an intersection of
+   * the texture draw parameters and the latest updated draw parameters (although, complexity of
+   * doing it might not worth it. */
+  vertex_buffer_update(draw_tile.params);
+
+  glBindTexture(GL_TEXTURE_2D, texture.gl_id);
+
+  /* Trick to keep sharp rendering without jagged edges on all GPUs.
+   *
+   * The idea here is to enforce driver to use linear interpolation when the image is not zoomed
+   * in.
+   * For the render result with a resolution divider in effect we always use nearest interpolation.
+   *
+   * Use explicit MIN assignment to make sure the driver does not have an undefined behavior at
+   * the zoom level 1. The MAG filter is always NEAREST. */
+  const float zoomed_width = draw_tile.params.size.x * zoom.x;
+  const float zoomed_height = draw_tile.params.size.y * zoom.y;
+  if (texture.width != draw_tile.params.size.x || texture.height != draw_tile.params.size.y) {
+    /* Resolution divider is different from 1, force nearest interpolation. */
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  }
+  else if (zoomed_width - draw_tile.params.size.x > 0.5f ||
+           zoomed_height - draw_tile.params.size.y > 0.5f) {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  }
+  else {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  }
+
+  glVertexAttribPointer(
+      texcoord_attribute, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (const GLvoid *)0);
+  glVertexAttribPointer(position_attribute,
+                        2,
+                        GL_FLOAT,
+                        GL_FALSE,
+                        4 * sizeof(float),
+                        (const GLvoid *)(sizeof(float) * 2));
+
+  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
+void BlenderDisplayDriver::flush()
+{
+  /* This is called from the render thread that also calls update_begin/end, right before ending
+   * the render loop. We wait for any queued PBO and render commands to be done, before destroying
+   * the render thread and activating the context in the main thread to destroy resources.
+   *
+   * If we don't do this, the NVIDIA driver hangs for a few seconds for when ending 3D viewport
+   * rendering, for unknown reasons. This was found with NVIDIA driver version 470.73 and a Quadro
+   * RTX 6000 on Linux. */
+  if (!gl_context_enable()) {
+    return;
+  }
+
+  if (gl_upload_sync_) {
+    glWaitSync((GLsync)gl_upload_sync_, 0, GL_TIMEOUT_IGNORED);
+  }
+
+  if (gl_render_sync_) {
+    glWaitSync((GLsync)gl_render_sync_, 0, GL_TIMEOUT_IGNORED);
+  }
+
+  gl_context_disable();
+}
+
 void BlenderDisplayDriver::draw(const Params &params)
 {
   /* See do_update_begin() for why no locking is required here. */
   const bool transparent = true;  // TODO(sergey): Derive this from Film.
 
-  if (!gl_draw_resources_ensure()) {
-    return;
-  }
-
   if (use_gl_context_) {
     gl_context_mutex_.lock();
   }
 
-  if (texture_.need_clear) {
+  if (need_clear_) {
     /* Texture is requested to be cleared and was not yet cleared.
      *
      * Do early return which should be equivalent of drawing all-zero texture.
      * Watch out for the lock though so that the clear happening during update is properly
      * synchronized here. */
-    gl_context_mutex_.unlock();
+    if (use_gl_context_) {
+      gl_context_mutex_.unlock();
+    }
     return;
   }
 
@@ -477,41 +939,16 @@ void BlenderDisplayDriver::draw(const Params &params)
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
   }
 
-  display_shader_->bind(params.full_size.x, params.full_size.y);
-
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, texture_.gl_id);
 
-  /* Trick to keep sharp rendering without jagged edges on all GPUs.
-   *
-   * The idea here is to enforce driver to use linear interpolation when the image is not zoomed
-   * in.
-   * For the render result with a resolution divider in effect we always use nearest interpolation.
-   *
-   * Use explicit MIN assignment to make sure the driver does not have an undefined behavior at
-   * the zoom level 1. The MAG filter is always NEAREST. */
-  const float zoomed_width = params.size.x * zoom_.x;
-  const float zoomed_height = params.size.y * zoom_.y;
-  if (texture_.width != params.size.x || texture_.height != params.size.y) {
-    /* Resolution divider is different from 1, force nearest interpolation. */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  }
-  else if (zoomed_width - params.size.x > 0.5f || zoomed_height - params.size.y > 0.5f) {
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  }
-  else {
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  }
-
-  glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
-
-  texture_update_if_needed();
-  vertex_buffer_update(params);
-
-  /* TODO(sergey): Does it make sense/possible to cache/reuse the VAO? */
+  /* NOTE: The VAO is to be allocated on the drawing context as it is not shared across contexts.
+   * Simplest is to allocate it on every redraw so that it is possible to destroy it from a
+   * correct context. */
   GLuint vertex_array_object;
   glGenVertexArrays(1, &vertex_array_object);
   glBindVertexArray(vertex_array_object);
+
+  display_shader_->bind(params.full_size.x, params.full_size.y);
 
   const int texcoord_attribute = display_shader_->get_tex_coord_attrib_location();
   const int position_attribute = display_shader_->get_position_attrib_location();
@@ -519,23 +956,19 @@ void BlenderDisplayDriver::draw(const Params &params)
   glEnableVertexAttribArray(texcoord_attribute);
   glEnableVertexAttribArray(position_attribute);
 
-  glVertexAttribPointer(
-      texcoord_attribute, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (const GLvoid *)0);
-  glVertexAttribPointer(position_attribute,
-                        2,
-                        GL_FLOAT,
-                        GL_FALSE,
-                        4 * sizeof(float),
-                        (const GLvoid *)(sizeof(float) * 2));
+  draw_tile(zoom_, texcoord_attribute, position_attribute, tiles_->current_tile.tile);
 
-  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-  glDeleteVertexArrays(1, &vertex_array_object);
+  for (const DrawTile &tile : tiles_->finished_tiles.tiles) {
+    draw_tile(zoom_, texcoord_attribute, position_attribute, tile);
+  }
 
   display_shader_->unbind();
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glBindVertexArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  glDeleteVertexArrays(1, &vertex_array_object);
 
   if (transparent) {
     glDisable(GL_BLEND);
@@ -543,6 +976,11 @@ void BlenderDisplayDriver::draw(const Params &params)
 
   gl_render_sync_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
   glFlush();
+
+  if (VLOG_IS_ON(5)) {
+    VLOG(5) << "Number of textures: " << GLTexture::num_used;
+    VLOG(5) << "Number of PBOs: " << GLPixelBufferObject::num_used;
+  }
 
   if (use_gl_context_) {
     gl_context_mutex_.unlock();
@@ -618,154 +1056,16 @@ void BlenderDisplayDriver::gl_context_dispose()
   }
 }
 
-bool BlenderDisplayDriver::gl_draw_resources_ensure()
-{
-  if (!texture_.gl_id) {
-    /* If there is no texture allocated, there is nothing to draw. Inform the draw call that it can
-     * can not continue. Note that this is not an unrecoverable error, so once the texture is known
-     * we will come back here and create all the GPU resources needed for draw. */
-    return false;
-  }
-
-  if (gl_draw_resource_creation_attempted_) {
-    return gl_draw_resources_created_;
-  }
-  gl_draw_resource_creation_attempted_ = true;
-
-  if (!vertex_buffer_) {
-    glGenBuffers(1, &vertex_buffer_);
-    if (!vertex_buffer_) {
-      LOG(ERROR) << "Error creating vertex buffer.";
-      return false;
-    }
-  }
-
-  gl_draw_resources_created_ = true;
-
-  return true;
-}
-
 void BlenderDisplayDriver::gl_resources_destroy()
 {
   gl_context_enable();
 
-  if (vertex_buffer_ != 0) {
-    glDeleteBuffers(1, &vertex_buffer_);
-  }
-
-  if (texture_.gl_pbo_id) {
-    glDeleteBuffers(1, &texture_.gl_pbo_id);
-    texture_.gl_pbo_id = 0;
-  }
-
-  if (texture_.gl_id) {
-    glDeleteTextures(1, &texture_.gl_id);
-    texture_.gl_id = 0;
-  }
+  tiles_->current_tile.gl_resources_destroy();
+  tiles_->finished_tiles.gl_resources_destroy_and_clear();
 
   gl_context_disable();
 
   gl_context_dispose();
-}
-
-bool BlenderDisplayDriver::gl_texture_resources_ensure()
-{
-  if (texture_.creation_attempted) {
-    return texture_.is_created;
-  }
-  texture_.creation_attempted = true;
-
-  DCHECK(!texture_.gl_id);
-  DCHECK(!texture_.gl_pbo_id);
-
-  /* Create texture. */
-  glGenTextures(1, &texture_.gl_id);
-  if (!texture_.gl_id) {
-    LOG(ERROR) << "Error creating texture.";
-    return false;
-  }
-
-  /* Configure the texture. */
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, texture_.gl_id);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-  /* Create PBO for the texture. */
-  glGenBuffers(1, &texture_.gl_pbo_id);
-  if (!texture_.gl_pbo_id) {
-    LOG(ERROR) << "Error creating texture pixel buffer object.";
-    return false;
-  }
-
-  /* Creation finished with a success. */
-  texture_.is_created = true;
-
-  return true;
-}
-
-void BlenderDisplayDriver::texture_update_if_needed()
-{
-  if (!texture_.need_update) {
-    return;
-  }
-
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture_.gl_pbo_id);
-  glTexSubImage2D(
-      GL_TEXTURE_2D, 0, 0, 0, texture_.width, texture_.height, GL_RGBA, GL_HALF_FLOAT, 0);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
-  texture_.need_update = false;
-}
-
-void BlenderDisplayDriver::vertex_buffer_update(const Params & /*params*/)
-{
-  /* Draw at the parameters for which the texture has been updated for. This allows to always draw
-   * texture during bordered-rendered camera view without flickering. The validness of the display
-   * parameters for a texture is guaranteed by the initial "clear" state which makes drawing to
-   * have an early output.
-   *
-   * Such approach can cause some extra "jelly" effect during panning, but it is not more jelly
-   * than overlay of selected objects. Also, it's possible to redraw texture at an intersection of
-   * the texture draw parameters and the latest updated draw parameters (although, complexity of
-   * doing it might not worth it. */
-  const int x = texture_.params.full_offset.x;
-  const int y = texture_.params.full_offset.y;
-
-  const int width = texture_.params.size.x;
-  const int height = texture_.params.size.y;
-
-  /* Invalidate old contents - avoids stalling if the buffer is still waiting in queue to be
-   * rendered. */
-  glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(float), NULL, GL_STREAM_DRAW);
-
-  float *vpointer = reinterpret_cast<float *>(glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
-  if (!vpointer) {
-    return;
-  }
-
-  vpointer[0] = 0.0f;
-  vpointer[1] = 0.0f;
-  vpointer[2] = x;
-  vpointer[3] = y;
-
-  vpointer[4] = 1.0f;
-  vpointer[5] = 0.0f;
-  vpointer[6] = x + width;
-  vpointer[7] = y;
-
-  vpointer[8] = 1.0f;
-  vpointer[9] = 1.0f;
-  vpointer[10] = x + width;
-  vpointer[11] = y + height;
-
-  vpointer[12] = 0.0f;
-  vpointer[13] = 1.0f;
-  vpointer[14] = x;
-  vpointer[15] = y + height;
-
-  glUnmapBuffer(GL_ARRAY_BUFFER);
 }
 
 CCL_NAMESPACE_END

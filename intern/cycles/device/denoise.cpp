@@ -76,6 +76,8 @@ NODE_DEFINE(DenoiseParams)
   SOCKET_BOOLEAN(use_pass_albedo, "Use Pass Albedo", true);
   SOCKET_BOOLEAN(use_pass_normal, "Use Pass Normal", false);
 
+  SOCKET_BOOLEAN(temporally_stable, "Temporally Stable", false);
+
   SOCKET_ENUM(prefilter, "Prefilter", *prefilter_enum, DENOISER_PREFILTER_FAST);
 
   return type;

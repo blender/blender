@@ -17,15 +17,33 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
+
+#include "BKE_context.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 namespace blender::nodes::node_shader_vertex_color_cc {
 
-static bNodeSocketTemplate sh_node_vertex_color_out[] = {
-    {SOCK_RGBA, N_("Color")},
-    {SOCK_FLOAT, N_("Alpha")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Color>(N_("Color"));
+  b.add_output<decl::Float>(N_("Alpha"));
+}
+
+static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
+  if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
+    PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
+
+    uiItemPointerR(layout, ptr, "layer_name", &dataptr, "color_attributes", "", ICON_GROUP_VCOL);
+  }
+  else {
+    uiItemL(layout, TIP_("No mesh in active object"), ICON_ERROR);
+  }
+}
 
 static void node_shader_init_vertex_color(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -52,8 +70,9 @@ void register_node_type_sh_vertex_color()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_VERTEX_COLOR, "Vertex Color", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_vertex_color_out);
+  sh_node_type_base(&ntype, SH_NODE_VERTEX_COLOR, "Vertex Color", NODE_CLASS_INPUT);
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_vertex_color;
   node_type_init(&ntype, file_ns::node_shader_init_vertex_color);
   node_type_storage(
       &ntype, "NodeShaderVertexColor", node_free_standard_storage, node_copy_standard_storage);

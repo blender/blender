@@ -110,8 +110,8 @@ void BKE_camera_params_compute_matrix(CameraParams *params);
 
 void BKE_camera_view_frame_ex(const struct Scene *scene,
                               const struct Camera *camera,
-                              const float drawsize,
-                              const bool do_clip,
+                              float drawsize,
+                              bool do_clip,
                               const float scale[3],
                               float r_asp[2],
                               float r_shift[2],
@@ -151,7 +151,7 @@ struct Object *BKE_camera_multiview_render(const struct Scene *scene,
  */
 void BKE_camera_multiview_view_matrix(const struct RenderData *rd,
                                       const struct Object *camera,
-                                      const bool is_left,
+                                      bool is_left,
                                       float r_viewmat[4][4]);
 void BKE_camera_multiview_model_matrix(const struct RenderData *rd,
                                        const struct Object *camera,

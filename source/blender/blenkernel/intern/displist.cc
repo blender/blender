@@ -904,7 +904,7 @@ static GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
       int totvert;
       float(*vertex_coords)[3] = BKE_mesh_vert_coords_alloc(mesh, &totvert);
       if (mti->dependsOnNormals != nullptr && mti->dependsOnNormals(md)) {
-        BKE_mesh_ensure_normals(mesh);
+        BKE_mesh_vertex_normals_ensure(mesh);
       }
       mti->deformVerts(md, &mectx_deform, mesh, vertex_coords, totvert);
       BKE_mesh_vert_coords_apply(mesh, vertex_coords);
@@ -912,7 +912,7 @@ static GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
     }
     else {
       if (mti->dependsOnNormals != nullptr && mti->dependsOnNormals(md)) {
-        BKE_mesh_ensure_normals(mesh);
+        BKE_mesh_vertex_normals_ensure(mesh);
       }
       Mesh *output_mesh = mti->modifyMesh(md, &mectx_apply, mesh);
       if (mesh != output_mesh) {
@@ -924,7 +924,7 @@ static GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
   if (geometry_set.has_mesh()) {
     Mesh *final_mesh = geometry_set.get_mesh_for_write();
 
-    BKE_mesh_calc_normals(final_mesh);
+    BKE_mesh_ensure_normals_for_display(final_mesh);
 
     BLI_strncpy(final_mesh->id.name, cu->id.name, sizeof(final_mesh->id.name));
     *((short *)final_mesh->id.name) = ID_ME;

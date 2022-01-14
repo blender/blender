@@ -17,16 +17,22 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 namespace blender::nodes::node_shader_uv_along_stroke_cc {
 
-/* **************** OUTPUT ******************** */
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Vector>(N_("UV"));
+}
 
-static bNodeSocketTemplate sh_node_uvalongstroke_out[] = {
-    {SOCK_VECTOR, N_("UV"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
+static void node_shader_buts_uvalongstroke(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "use_tips", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
+}
 
 }  // namespace blender::nodes::node_shader_uv_along_stroke_cc
 
@@ -37,8 +43,9 @@ void register_node_type_sh_uvalongstroke()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_UVALONGSTROKE, "UV Along Stroke", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_uvalongstroke_out);
+  sh_node_type_base(&ntype, SH_NODE_UVALONGSTROKE, "UV Along Stroke", NODE_CLASS_INPUT);
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_uvalongstroke;
 
   nodeRegisterType(&ntype);
 }

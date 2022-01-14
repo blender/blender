@@ -171,7 +171,7 @@ void BKE_bpath_missing_files_check(struct Main *bmain, struct ReportList *report
 void BKE_bpath_missing_files_find(struct Main *bmain,
                                   const char *searchpath,
                                   struct ReportList *reports,
-                                  const bool find_all);
+                                  bool find_all);
 
 /** Rebase all relative file paths in given \a bmain from \a basedir_src to \a basedir_dst. */
 void BKE_bpath_relative_rebase(struct Main *bmain,
@@ -193,16 +193,14 @@ void BKE_bpath_absolute_convert(struct Main *bmain,
  *
  *  \return An opaque handle to pass to #BKE_bpath_list_restore and #BKE_bpath_list_free.
  */
-void *BKE_bpath_list_backup(struct Main *bmain, const eBPathForeachFlag flag);
+void *BKE_bpath_list_backup(struct Main *bmain, eBPathForeachFlag flag);
 
 /** Restore the temp backup of paths from \a path_list_handle into all IDs in given \a bmain.
  *
  * \note This function assumes that the data in given Main did not change (no
  * addition/deletion/re-ordering of IDs, or their file paths) since the call to
  * #BKE_bpath_list_backup that generated the given \a path_list_handle. */
-void BKE_bpath_list_restore(struct Main *bmain,
-                            const eBPathForeachFlag flag,
-                            void *path_list_handle);
+void BKE_bpath_list_restore(struct Main *bmain, eBPathForeachFlag flag, void *path_list_handle);
 
 /** Free the temp backup of paths in \a path_list_handle.
  *

@@ -90,14 +90,14 @@ static void align_rotations_auto_pivot(const VArray<float3> &vectors,
       float3 old_axis;
       mul_v3_m3v3(old_axis, old_rotation, local_main_axis);
 
-      const float3 new_axis = vector.normalized();
-      float3 rotation_axis = float3::cross_high_precision(old_axis, new_axis);
+      const float3 new_axis = math::normalize(vector);
+      float3 rotation_axis = math::cross_high_precision(old_axis, new_axis);
       if (is_zero_v3(rotation_axis)) {
         /* The vectors are linearly dependent, so we fall back to another axis. */
-        rotation_axis = float3::cross_high_precision(old_axis, float3(1, 0, 0));
+        rotation_axis = math::cross_high_precision(old_axis, float3(1, 0, 0));
         if (is_zero_v3(rotation_axis)) {
           /* This is now guaranteed to not be zero. */
-          rotation_axis = float3::cross_high_precision(old_axis, float3(0, 1, 0));
+          rotation_axis = math::cross_high_precision(old_axis, float3(0, 1, 0));
         }
       }
 
@@ -228,8 +228,7 @@ void register_node_type_geo_align_rotation_to_vector()
   geo_node_type_base(&ntype,
                      GEO_NODE_LEGACY_ALIGN_ROTATION_TO_VECTOR,
                      "Align Rotation to Vector",
-                     NODE_CLASS_GEOMETRY,
-                     0);
+                     NODE_CLASS_GEOMETRY);
   node_type_init(&ntype, file_ns::node_init);
   node_type_update(&ntype, file_ns::node_update);
   node_type_storage(&ntype,

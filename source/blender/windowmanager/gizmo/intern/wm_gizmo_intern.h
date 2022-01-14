@@ -40,7 +40,7 @@ bool wm_gizmo_select_set_ex(
 bool wm_gizmo_select_and_highlight(bContext *C, struct wmGizmoMap *gzmap, struct wmGizmo *gz);
 
 void wm_gizmo_calculate_scale(struct wmGizmo *gz, const bContext *C);
-void wm_gizmo_update(struct wmGizmo *gz, const bContext *C, const bool refresh_map);
+void wm_gizmo_update(struct wmGizmo *gz, const bContext *C, bool refresh_map);
 
 int wm_gizmo_is_visible(struct wmGizmo *gz);
 enum {
@@ -75,7 +75,7 @@ struct wmGizmoGroup *wm_gizmogroup_find_by_type(const struct wmGizmoMap *gzmap,
 struct wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
                                                      const struct wmGizmoGroup *gzgroup,
                                                      struct bContext *C,
-                                                     const int event_modifier,
+                                                     int event_modifier,
                                                      const int mval[2],
                                                      int *r_part);
 /**
@@ -84,10 +84,10 @@ struct wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
  */
 void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
                                                 const struct wmGizmoGroup *gzgroup,
-                                                const int event_modifier,
+                                                int event_modifier,
                                                 struct BLI_Buffer *visible_gizmos);
 bool wm_gizmogroup_is_visible_in_drawstep(const struct wmGizmoGroup *gzgroup,
-                                          const eWM_GizmoFlagMapDrawStep drawstep);
+                                          eWM_GizmoFlagMapDrawStep drawstep);
 
 void wm_gizmogrouptype_setup_keymap(struct wmGizmoGroupType *gzgt, struct wmKeyConfig *keyconf);
 

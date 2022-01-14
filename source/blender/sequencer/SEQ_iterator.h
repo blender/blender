@@ -225,8 +225,8 @@ SeqCollection *SEQ_query_all_strips_recursive(ListBase *seqbase);
  * \return strip collection
  */
 SeqCollection *SEQ_query_rendered_strips(ListBase *seqbase,
-                                         const int timeline_frame,
-                                         const int displayed_channel);
+                                         int timeline_frame,
+                                         int displayed_channel);
 /**
  * Query all effect strips that are directly or indirectly connected to seq_reference.
  * This includes all effects of seq_reference, strips used by another inputs and their effects, so

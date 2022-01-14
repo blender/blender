@@ -55,7 +55,7 @@ static void fn_node_compare_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Epsilon")).default_value(0.001).min(-10000.0f).max(10000.0f);
 
   b.add_output<decl::Bool>(N_("Result"));
-};
+}
 
 static void geo_node_compare_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -265,7 +265,7 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
                   "Less Than - Dot Product",
-                  [](float3 a, float3 b, float comp) { return float3::dot(a, b) < comp; }};
+                  [](float3 a, float3 b, float comp) { return math::dot(a, b) < comp; }};
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
@@ -283,7 +283,7 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_LENGTH: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Less Than - Length",
-                  [](float3 a, float3 b) { return a.length() < b.length(); }};
+                  [](float3 a, float3 b) { return math::length(a) < math::length(b); }};
               return &fn;
             }
           }
@@ -299,7 +299,7 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
                   "Less Equal - Dot Product",
-                  [](float3 a, float3 b, float comp) { return float3::dot(a, b) <= comp; }};
+                  [](float3 a, float3 b, float comp) { return math::dot(a, b) <= comp; }};
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
@@ -317,7 +317,7 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_LENGTH: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Less Equal - Length",
-                  [](float3 a, float3 b) { return a.length() <= b.length(); }};
+                  [](float3 a, float3 b) { return math::length(a) <= math::length(b); }};
               return &fn;
             }
           }
@@ -333,7 +333,7 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
                   "Greater Than - Dot Product",
-                  [](float3 a, float3 b, float comp) { return float3::dot(a, b) > comp; }};
+                  [](float3 a, float3 b, float comp) { return math::dot(a, b) > comp; }};
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
@@ -351,7 +351,7 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_LENGTH: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Greater Than - Length",
-                  [](float3 a, float3 b) { return a.length() > b.length(); }};
+                  [](float3 a, float3 b) { return math::length(a) > math::length(b); }};
               return &fn;
             }
           }
@@ -367,7 +367,7 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
                   "Greater Equal - Dot Product",
-                  [](float3 a, float3 b, float comp) { return float3::dot(a, b) >= comp; }};
+                  [](float3 a, float3 b, float comp) { return math::dot(a, b) >= comp; }};
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
@@ -385,7 +385,7 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_LENGTH: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Greater Equal - Length",
-                  [](float3 a, float3 b) { return a.length() >= b.length(); }};
+                  [](float3 a, float3 b) { return math::length(a) >= math::length(b); }};
               return &fn;
             }
           }
@@ -402,7 +402,7 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
               static fn::CustomMF_SI_SI_SI_SI_SO<float3, float3, float, float, bool> fn{
                   "Equal - Dot Product", [](float3 a, float3 b, float comp, float epsilon) {
-                    return abs(float3::dot(a, b) - comp) <= epsilon;
+                    return abs(math::dot(a, b) - comp) <= epsilon;
                   }};
               return &fn;
             }
@@ -424,7 +424,7 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_LENGTH: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
                   "Equal - Length", [](float3 a, float3 b, float epsilon) {
-                    return abs(a.length() - b.length()) <= epsilon;
+                    return abs(math::length(a) - math::length(b)) <= epsilon;
                   }};
               return &fn;
             }
@@ -442,7 +442,7 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
               static fn::CustomMF_SI_SI_SI_SI_SO<float3, float3, float, float, bool> fn{
                   "Not Equal - Dot Product", [](float3 a, float3 b, float comp, float epsilon) {
-                    return abs(float3::dot(a, b) - comp) >= epsilon;
+                    return abs(math::dot(a, b) - comp) >= epsilon;
                   }};
               return &fn;
             }
@@ -464,7 +464,7 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_LENGTH: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
                   "Not Equal - Length", [](float3 a, float3 b, float epsilon) {
-                    return abs(a.length() - b.length()) > epsilon;
+                    return abs(math::length(a) - math::length(b)) > epsilon;
                   }};
               return &fn;
             }
@@ -537,7 +537,7 @@ void register_node_type_fn_compare()
   namespace file_ns = blender::nodes::node_fn_compare_cc;
 
   static bNodeType ntype;
-  fn_node_type_base(&ntype, FN_NODE_COMPARE, "Compare", NODE_CLASS_CONVERTER, 0);
+  fn_node_type_base(&ntype, FN_NODE_COMPARE, "Compare", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::fn_node_compare_declare;
   ntype.labelfunc = file_ns::node_compare_label;
   node_type_update(&ntype, file_ns::node_compare_update);

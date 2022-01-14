@@ -399,7 +399,7 @@ void register_node_type_geo_attribute_statistic()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_ATTRIBUTE_STATISTIC, "Attribute Statistic", NODE_CLASS_ATTRIBUTE, 0);
+      &ntype, GEO_NODE_ATTRIBUTE_STATISTIC, "Attribute Statistic", NODE_CLASS_ATTRIBUTE);
 
   ntype.declare = file_ns::node_declare;
   node_type_init(&ntype, file_ns::node_init);

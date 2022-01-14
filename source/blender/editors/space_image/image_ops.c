@@ -2595,6 +2595,11 @@ static int image_new_exec(bContext *C, wmOperator *op)
   else if (sima) {
     ED_space_image_set(bmain, sima, ima, false);
   }
+  else {
+    /* #BKE_image_add_generated creates one user by default, remove it if image is not linked to
+     * anything. ref. T94599. */
+    id_us_min(&ima->id);
+  }
 
   BKE_image_signal(bmain, ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_USER_NEW_IMAGE);
 

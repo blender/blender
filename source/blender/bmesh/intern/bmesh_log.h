@@ -119,7 +119,29 @@ void BM_log_vert_before_modified(BMLog *log,
                                  const int cd_vert_mask_offset,
                                  bool log_customdata);
 
-/* Log an edge before it is modified */
+/* Log a vertex before it is modified
+ *
+ * Before modifying vertex coordinates, masks, or hflags, call this
+ * function to log its current values. This is better than logging
+ * after the coordinates have been modified, because only those
+ * vertices that are modified need to have their original values
+ * stored.
+ *
+ * Handles two separate cases:
+ *
+ * If the vertex was added in the current log entry, update the
+ * vertex in the map of added vertices.
+ *
+ * If the vertex already existed prior to the current log entry, a
+ * separate key/value map of modified vertices is used (using the
+ * vertex's ID as the key). The values stored in that case are
+ * the vertex's original state so that an undo can restore the
+ * previous state.
+ *
+ * On undo, the current vertex state will be swapped with the stored
+ * state so that a subsequent redo operation will restore the newer
+ * vertex state.
+ */
 void BM_log_edge_before_modified(BMLog *log, BMEdge *v, bool log_customdata);
 
 /* Log a new vertex as added to the BMesh */
@@ -129,7 +151,7 @@ void BM_log_edge_before_modified(BMLog *log, BMEdge *v, bool log_customdata);
  * of added vertices, with the key being its ID and the value
  * containing everything needed to reconstruct that vertex.
  */
-void BM_log_vert_added(BMLog *log, struct BMVert *v, const int cd_vert_mask_offset);
+void BM_log_vert_added(BMLog *log, struct BMVert *v, int cd_vert_mask_offset);
 
 /* Log a new edge as added to the BMesh */
 void BM_log_edge_added(BMLog *log, BMEdge *e);
@@ -168,7 +190,7 @@ void BM_log_face_added(BMLog *log, struct BMFace *f);
  * If there's a move record for the vertex, that's used as the
  * vertices original location, then the move record is deleted.
  */
-void BM_log_vert_removed(BMLog *log, struct BMVert *v, const int cd_vert_mask_offset);
+void BM_log_vert_removed(BMLog *log, struct BMVert *v, int cd_vert_mask_offset);
 
 /* Log an edge as removed from the BMesh */
 void BM_log_edge_removed(BMLog *log, BMEdge *e);
@@ -205,7 +227,9 @@ void BM_log_before_all_removed(BMesh *bm, BMLog *log);
  * Does not modify the log or the vertex */
 const float *BM_log_original_vert_co(BMLog *log, BMVert *v);
 
-/* Get the logged normal of a vertex */
+/* Get the logged normal of a vertex
+ *
+ * Does not modify the log or the vertex */
 const float *BM_log_original_vert_no(BMLog *log, BMVert *v);
 
 /* Get the logged mask of a vertex */

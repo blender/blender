@@ -5901,7 +5901,7 @@ VectorMapRangeNode::VectorMapRangeNode() : ShaderNode(get_node_type())
 {
 }
 
-void VectorMapRangeNode::expand(ShaderGraph *graph)
+void VectorMapRangeNode::expand(ShaderGraph * /*graph*/)
 {
 }
 

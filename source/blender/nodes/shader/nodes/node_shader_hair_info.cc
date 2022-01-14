@@ -17,20 +17,20 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_shader_hair_info_cc {
 
-static bNodeSocketTemplate outputs[] = {
-    {SOCK_FLOAT, N_("Is Strand"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Intercept"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Length"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Thickness"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Tangent Normal"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    // { SOCK_FLOAT,  0, N_("Fade"),             0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Random")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Float>(N_("Is Strand"));
+  b.add_output<decl::Float>(N_("Intercept"));
+  b.add_output<decl::Float>(N_("Length"));
+  b.add_output<decl::Float>(N_("Thickness"));
+  b.add_output<decl::Vector>(N_("Tangent Normal"));
+  // b.add_output<decl::Float>(N_("Fade"));
+  b.add_output<decl::Float>(N_("Random"));
+}
 
 static int node_shader_gpu_hair_info(GPUMaterial *mat,
                                      bNode *node,
@@ -54,8 +54,8 @@ void register_node_type_sh_hair_info()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_HAIR_INFO, "Hair Info", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, file_ns::outputs);
+  sh_node_type_base(&ntype, SH_NODE_HAIR_INFO, "Hair Info", NODE_CLASS_INPUT);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::node_shader_gpu_hair_info);
 
   nodeRegisterType(&ntype);

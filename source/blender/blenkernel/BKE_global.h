@@ -104,6 +104,7 @@ typedef struct Global {
    *   *   1234: Disable new dyntopo code fixing skinny faces generation (04/2015).
    *   *   3001: Enable additional Fluid modifier (Mantaflow) options (02/2020).
    *   *   4000: Line Art state output and debugging logs (03/2021).
+   *   *   4001: Mesh topology information in the spreadsheet (01/2022).
    *   * 16384 and above: Reserved for python (add-ons) usage.
    */
   short debug_value;

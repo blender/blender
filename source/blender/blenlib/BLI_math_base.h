@@ -183,7 +183,7 @@ MINLINE size_t clamp_z(size_t value, size_t min, size_t max);
  *
  * \param max_diff: the maximum absolute difference.
  */
-MINLINE int compare_ff(float a, float b, const float max_diff);
+MINLINE int compare_ff(float a, float b, float max_diff);
 /**
  * Almost-equal for IEEE floats, using their integer representation
  * (mixing ULP and absolute difference methods).
@@ -195,10 +195,8 @@ MINLINE int compare_ff(float a, float b, const float max_diff);
  *
  * \see https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
  */
-MINLINE int compare_ff_relative(float a, float b, const float max_diff, const int max_ulps);
-MINLINE bool compare_threshold_relative(const float value1,
-                                        const float value2,
-                                        const float thresh);
+MINLINE int compare_ff_relative(float a, float b, float max_diff, int max_ulps);
+MINLINE bool compare_threshold_relative(float value1, float value2, float thresh);
 
 MINLINE float signf(float f);
 MINLINE int signum_i_ex(float a, float eps);
@@ -213,13 +211,13 @@ MINLINE float power_of_2(float f);
  * Returns number of (base ten) *significant* digits of integer part of given float
  * (negative in case of decimal-only floats, 0.01 returns -1 e.g.).
  */
-MINLINE int integer_digits_f(const float f);
+MINLINE int integer_digits_f(float f);
 /**
  * Returns number of (base ten) *significant* digits of integer part of given double
  * (negative in case of decimal-only floats, 0.01 returns -1 e.g.).
  */
-MINLINE int integer_digits_d(const double d);
-MINLINE int integer_digits_i(const int i);
+MINLINE int integer_digits_d(double d);
+MINLINE int integer_digits_i(int i);
 
 /* These don't really fit anywhere but were being copied about a lot. */
 

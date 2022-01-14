@@ -19,6 +19,7 @@
 #include "device/kernel.h"
 
 #include "device/graphics_interop.h"
+#include "util/debug.h"
 #include "util/log.h"
 #include "util/map.h"
 #include "util/string.h"
@@ -42,7 +43,7 @@ struct DeviceKernelArguments {
     KERNEL_FILM_CONVERT,
   };
 
-  static const int MAX_ARGS = 16;
+  static const int MAX_ARGS = 18;
   Type types[MAX_ARGS];
   void *values[MAX_ARGS];
   size_t sizes[MAX_ARGS];
@@ -85,6 +86,8 @@ struct DeviceKernelArguments {
   }
   void add(const Type type, const void *value, size_t size)
   {
+    assert(count < MAX_ARGS);
+
     types[count] = type;
     values[count] = (void *)value;
     sizes[count] = size;

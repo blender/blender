@@ -111,7 +111,7 @@ struct HierarchyContext {
   void mark_as_instance_of(const std::string &reference_export_path);
   void mark_as_not_instanced();
 
-  bool is_object_visible(const enum eEvaluationMode evaluation_mode) const;
+  bool is_object_visible(enum eEvaluationMode evaluation_mode) const;
 };
 
 /* Abstract writer for objects. Create concrete subclasses to write to USD, Alembic, etc.

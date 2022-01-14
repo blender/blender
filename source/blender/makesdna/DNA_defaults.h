@@ -48,7 +48,9 @@ uint8_t *_DNA_struct_default_alloc_impl(const uint8_t *data_src,
 
 #define DNA_struct_default_alloc(struct_name) \
   (struct_name *)_DNA_struct_default_alloc_impl( \
-      DNA_default_table[SDNA_TYPE_FROM_STRUCT(struct_name)], sizeof(struct_name), __func__)
+      (const uint8_t *)DNA_default_table[SDNA_TYPE_FROM_STRUCT(struct_name)], \
+      sizeof(struct_name), \
+      __func__)
 
 #ifdef __cplusplus
 }

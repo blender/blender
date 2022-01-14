@@ -63,7 +63,7 @@ typedef struct bMovieHandle {
   void (*context_free)(void *context_v);
 } bMovieHandle;
 
-bMovieHandle *BKE_movie_handle_get(const char imtype);
+bMovieHandle *BKE_movie_handle_get(char imtype);
 
 /**
  * \note Similar to #BKE_image_path_from_imformat()

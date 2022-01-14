@@ -17,23 +17,17 @@
  * All rights reserved.
  */
 
-#include "node_shader_util.h"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_shader_brightness_cc {
 
-/* **************** Bright and contrast  ******************** */
-
-static bNodeSocketTemplate sh_node_brightcontrast_in[] = {
-    {SOCK_RGBA, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {SOCK_FLOAT, N_("Bright"), 0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Contrast"), 0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_brightcontrast_out[] = {
-    {SOCK_RGBA, N_("Color")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Bright")).default_value(0.0f).min(-100.0f).max(100.0f);
+  b.add_input<decl::Float>(N_("Contrast")).default_value(0.0f).min(-100.0f).max(100.0f);
+  b.add_output<decl::Color>(N_("Color"));
+}
 
 static int gpu_shader_brightcontrast(GPUMaterial *mat,
                                      bNode *node,
@@ -52,9 +46,8 @@ void register_node_type_sh_brightcontrast()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR, 0);
-  node_type_socket_templates(
-      &ntype, file_ns::sh_node_brightcontrast_in, file_ns::sh_node_brightcontrast_out);
+  sh_node_type_base(&ntype, SH_NODE_BRIGHTCONTRAST, "Bright/Contrast", NODE_CLASS_OP_COLOR);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::gpu_shader_brightcontrast);
 
   nodeRegisterType(&ntype);

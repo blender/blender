@@ -34,8 +34,8 @@ enum eUndoStepDir;
 struct MemFileUndoData *BKE_memfile_undo_encode(struct Main *bmain,
                                                 struct MemFileUndoData *mfu_prev);
 bool BKE_memfile_undo_decode(struct MemFileUndoData *mfu,
-                             const enum eUndoStepDir undo_direction,
-                             const bool use_old_bmain_data,
+                             enum eUndoStepDir undo_direction,
+                             bool use_old_bmain_data,
                              struct bContext *C);
 void BKE_memfile_undo_free(struct MemFileUndoData *mfu);
 

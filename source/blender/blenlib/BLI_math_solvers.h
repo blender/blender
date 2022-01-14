@@ -77,7 +77,7 @@ void BLI_svd_m3(const float m3[3][3], float r_U[3][3], float r_S[3], float r_V[3
  * \return true if success
  */
 bool BLI_tridiagonal_solve(
-    const float *a, const float *b, const float *c, const float *d, float *r_x, const int count);
+    const float *a, const float *b, const float *c, const float *d, float *r_x, int count);
 /**
  * \brief Solve a possibly cyclic tridiagonal system using the Sherman-Morrison formula.
  *
@@ -85,7 +85,7 @@ bool BLI_tridiagonal_solve(
  * \return true if success
  */
 bool BLI_tridiagonal_solve_cyclic(
-    const float *a, const float *b, const float *c, const float *d, float *r_x, const int count);
+    const float *a, const float *b, const float *c, const float *d, float *r_x, int count);
 
 /**
  * Generic 3 variable Newton's method solver.

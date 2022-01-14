@@ -145,7 +145,7 @@ struct AssetEntryReader {
   /**
    * \brief Lookup table containing the elements of the entry.
    */
-  ObjectValue::Lookup lookup;
+  DictionaryValue::Lookup lookup;
 
   StringRefNull get_name_with_idcode() const
   {
@@ -153,7 +153,7 @@ struct AssetEntryReader {
   }
 
  public:
-  AssetEntryReader(const ObjectValue &entry) : lookup(entry.create_lookup())
+  AssetEntryReader(const DictionaryValue &entry) : lookup(entry.create_lookup())
   {
   }
 
@@ -204,7 +204,7 @@ struct AssetEntryReader {
 
   void add_tags_to_meta_data(AssetMetaData *asset_data) const
   {
-    const ObjectValue::LookupValue *value_ptr = lookup.lookup_ptr(ATTRIBUTE_ENTRIES_TAGS);
+    const DictionaryValue::LookupValue *value_ptr = lookup.lookup_ptr(ATTRIBUTE_ENTRIES_TAGS);
     if (value_ptr == nullptr) {
       return;
     }
@@ -220,10 +220,10 @@ struct AssetEntryReader {
 
 struct AssetEntryWriter {
  private:
-  ObjectValue::Items &attributes;
+  DictionaryValue::Items &attributes;
 
  public:
-  AssetEntryWriter(ObjectValue &entry) : attributes(entry.elements())
+  AssetEntryWriter(DictionaryValue &entry) : attributes(entry.elements())
   {
   }
 
@@ -301,7 +301,7 @@ static void init_value_from_file_indexer_entry(AssetEntryWriter &result,
   /* TODO: asset_data.IDProperties */
 }
 
-static void init_value_from_file_indexer_entries(ObjectValue &result,
+static void init_value_from_file_indexer_entries(DictionaryValue &result,
                                                  const FileIndexerEntries &indexer_entries)
 {
   ArrayValue *entries = new ArrayValue();
@@ -313,7 +313,7 @@ static void init_value_from_file_indexer_entries(ObjectValue &result,
     if (indexer_entry->datablock_info.asset_data == nullptr) {
       continue;
     }
-    ObjectValue *entry_value = new ObjectValue();
+    DictionaryValue *entry_value = new DictionaryValue();
     AssetEntryWriter entry(*entry_value);
     init_value_from_file_indexer_entry(entry, indexer_entry);
     items.append_as(entry_value);
@@ -326,7 +326,7 @@ static void init_value_from_file_indexer_entries(ObjectValue &result,
     return;
   }
 
-  ObjectValue::Items &attributes = result.elements();
+  DictionaryValue::Items &attributes = result.elements();
   attributes.append_as(std::pair(ATTRIBUTE_ENTRIES, entries));
 }
 
@@ -366,10 +366,10 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
 }
 
 static int init_indexer_entries_from_value(FileIndexerEntries &indexer_entries,
-                                           const ObjectValue &value)
+                                           const DictionaryValue &value)
 {
-  const ObjectValue::Lookup attributes = value.create_lookup();
-  const ObjectValue::LookupValue *entries_value = attributes.lookup_ptr(ATTRIBUTE_ENTRIES);
+  const DictionaryValue::Lookup attributes = value.create_lookup();
+  const DictionaryValue::LookupValue *entries_value = attributes.lookup_ptr(ATTRIBUTE_ENTRIES);
   BLI_assert(entries_value != nullptr);
 
   if (entries_value == nullptr) {
@@ -379,7 +379,7 @@ static int init_indexer_entries_from_value(FileIndexerEntries &indexer_entries,
   int num_entries_read = 0;
   const ArrayValue::Items elements = (*entries_value)->as_array_value()->elements();
   for (ArrayValue::Item element : elements) {
-    const AssetEntryReader asset_entry(*element->as_object_value());
+    const AssetEntryReader asset_entry(*element->as_dictionary_value());
 
     FileIndexerEntry *entry = static_cast<FileIndexerEntry *>(
         MEM_callocN(sizeof(FileIndexerEntry), __func__));
@@ -534,9 +534,9 @@ struct AssetIndex {
   /**
    * `blender::io::serialize::Value` representing the contents of an index file.
    *
-   * Value is used over #ObjectValue as the contents of the index could be corrupted and doesn't
-   * represent an object. In case corrupted files are detected the `get_version` would return
-   * `UNKNOWN_VERSION`.
+   * Value is used over #DictionaryValue as the contents of the index could be corrupted and
+   * doesn't represent an object. In case corrupted files are detected the `get_version` would
+   * return `UNKNOWN_VERSION`.
    */
   std::unique_ptr<Value> contents;
 
@@ -546,8 +546,8 @@ struct AssetIndex {
    */
   AssetIndex(const FileIndexerEntries &indexer_entries)
   {
-    std::unique_ptr<ObjectValue> root = std::make_unique<ObjectValue>();
-    ObjectValue::Items &root_attributes = root->elements();
+    std::unique_ptr<DictionaryValue> root = std::make_unique<DictionaryValue>();
+    DictionaryValue::Items &root_attributes = root->elements();
     root_attributes.append_as(std::pair(ATTRIBUTE_VERSION, new IntValue(CURRENT_VERSION)));
     init_value_from_file_indexer_entries(*root, indexer_entries);
 
@@ -564,12 +564,12 @@ struct AssetIndex {
 
   int get_version() const
   {
-    const ObjectValue *root = contents->as_object_value();
+    const DictionaryValue *root = contents->as_dictionary_value();
     if (root == nullptr) {
       return UNKNOWN_VERSION;
     }
-    const ObjectValue::Lookup attributes = root->create_lookup();
-    const ObjectValue::LookupValue *version_value = attributes.lookup_ptr(ATTRIBUTE_VERSION);
+    const DictionaryValue::Lookup attributes = root->create_lookup();
+    const DictionaryValue::LookupValue *version_value = attributes.lookup_ptr(ATTRIBUTE_VERSION);
     if (version_value == nullptr) {
       return UNKNOWN_VERSION;
     }
@@ -588,7 +588,7 @@ struct AssetIndex {
    */
   int extract_into(FileIndexerEntries &indexer_entries) const
   {
-    const ObjectValue *root = contents->as_object_value();
+    const DictionaryValue *root = contents->as_dictionary_value();
     const int num_entries_read = init_indexer_entries_from_value(indexer_entries, *root);
     return num_entries_read;
   }

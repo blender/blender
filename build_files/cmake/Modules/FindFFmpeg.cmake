@@ -33,6 +33,8 @@ if(NOT FFMPEG_FIND_COMPONENTS)
     avfilter
     avformat
     avutil
+    swscale
+    swresample
   )
 endif()
 
@@ -50,9 +52,9 @@ foreach(_component ${FFMPEG_FIND_COMPONENTS})
   string(TOUPPER ${_component} _upper_COMPONENT)
   find_library(FFMPEG_${_upper_COMPONENT}_LIBRARY
     NAMES
-      ${_upper_COMPONENT}
+      ${_component}
     HINTS
-      ${LIBDIR}/ffmpeg
+      ${_ffmpeg_SEARCH_DIRS}
     PATH_SUFFIXES
       lib64 lib
   )

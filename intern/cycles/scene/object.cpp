@@ -821,7 +821,7 @@ void ObjectManager::device_update_flags(
   dscene->object_volume_step.clear_modified();
 }
 
-void ObjectManager::device_update_mesh_offsets(Device *, DeviceScene *dscene, Scene *scene)
+void ObjectManager::device_update_geom_offsets(Device *, DeviceScene *dscene, Scene *scene)
 {
   if (dscene->objects.size() == 0) {
     return;

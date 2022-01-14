@@ -34,7 +34,7 @@ struct ColorBand;
 void BKE_colorband_init(struct ColorBand *coba, bool rangetype);
 void BKE_colorband_init_from_table_rgba(struct ColorBand *coba,
                                         const float (*array)[4],
-                                        const int array_len,
+                                        int array_len,
                                         bool filter_sample);
 struct ColorBand *BKE_colorband_add(bool rangetype);
 bool BKE_colorband_evaluate(const struct ColorBand *coba, float in, float out[4]);

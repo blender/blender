@@ -55,17 +55,16 @@ typedef enum eUIFont_ID {
  * Default fonts to load/initialize.
  * First font is the default (index 0), others optional.
  */
+#
+#
 typedef struct uiFont {
   struct uiFont *next, *prev;
   /** 1024 = FILE_MAX. */
-  char filename[1024];
+  char filepath[1024];
   /** From blfont lib. */
   short blf_id;
   /** Own id (eUIFont_ID). */
   short uifont_id;
-  /** Fonts that read from left to right. */
-  short r_to_l;
-  char _pad0[2];
 } uiFont;
 
 /** This state defines appearance of text. */

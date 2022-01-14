@@ -32,7 +32,7 @@ static void fn_node_boolean_math_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>(N_("Boolean"), "Boolean");
   b.add_input<decl::Bool>(N_("Boolean"), "Boolean_001");
   b.add_output<decl::Bool>(N_("Boolean"));
-};
+}
 
 static void fn_node_boolean_math_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -95,7 +95,7 @@ void register_node_type_fn_boolean_math()
 
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_BOOLEAN_MATH, "Boolean Math", NODE_CLASS_CONVERTER, 0);
+  fn_node_type_base(&ntype, FN_NODE_BOOLEAN_MATH, "Boolean Math", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::fn_node_boolean_math_declare;
   ntype.labelfunc = file_ns::node_boolean_math_label;
   node_type_update(&ntype, file_ns::node_boolean_math_update);

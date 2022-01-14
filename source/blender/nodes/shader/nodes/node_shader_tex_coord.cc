@@ -17,24 +17,31 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 
 #include "DNA_customdata_types.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 namespace blender::nodes::node_shader_tex_coord_cc {
 
-/* **************** OUTPUT ******************** */
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Vector>(N_("Generated"));
+  b.add_output<decl::Vector>(N_("Normal"));
+  b.add_output<decl::Vector>(N_("UV"));
+  b.add_output<decl::Vector>(N_("Object"));
+  b.add_output<decl::Vector>(N_("Camera"));
+  b.add_output<decl::Vector>(N_("Window"));
+  b.add_output<decl::Vector>(N_("Reflection"));
+}
 
-static bNodeSocketTemplate sh_node_tex_coord_out[] = {
-    {SOCK_VECTOR, N_("Generated"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("UV"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Object"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Camera"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Window"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Reflection"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
+static void node_shader_buts_tex_coord(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "object", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
+  uiItemR(layout, ptr, "from_instancer", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
+}
 
 static int node_shader_gpu_tex_coord(GPUMaterial *mat,
                                      bNode *node,
@@ -63,8 +70,8 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat,
   GPU_stack_link(
       mat, node, "node_tex_coord", in, out, viewpos, worldnor, inv_obmat, texcofacs, orco, mtface);
 
-  /* for each output. */
-  for (int i = 0; sh_node_tex_coord_out[i].type != -1; i++) {
+  int i;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, i) {
     node_shader_gpu_bump_tex_coord(mat, node, &out[i].link);
     /* Normalize some vectors after dFdx/dFdy offsets.
      * This is the case for interpolated, non linear functions.
@@ -94,8 +101,9 @@ void register_node_type_sh_tex_coord()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_TEX_COORD, "Texture Coordinate", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_tex_coord_out);
+  sh_node_type_base(&ntype, SH_NODE_TEX_COORD, "Texture Coordinate", NODE_CLASS_INPUT);
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_tex_coord;
   node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_coord);
 
   nodeRegisterType(&ntype);

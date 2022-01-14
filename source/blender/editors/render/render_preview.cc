@@ -410,8 +410,8 @@ static const char *preview_world_name(const Scene *sce,
    * material trick to show the floor in the reflections, but hide the floor for camera rays. For
    * Eevee we use a transparent world that has a projected grid.
    *
-   * In the future when Eevee supports vulkan raytracing we can re-evaluate and perhaps remove this
-   * approximation.
+   * In the future when Eevee supports VULKAN ray-tracing we can re-evaluate and perhaps remove
+   * this approximation.
    */
   if (id_type == ID_MA && pr_method == PR_ICON_RENDER &&
       !render_engine_supports_ray_visibility(sce)) {
@@ -534,7 +534,7 @@ static Scene *preview_prepare_scene(
         const ePreviewType preview_type = static_cast<ePreviewType>(
             (sp->pr_method == PR_ICON_RENDER && sp->pr_main == G_pr_main_grease_pencil) ?
                 MA_SPHERE_A :
-                mat->pr_type);
+                (ePreviewType)mat->pr_type);
         set_preview_visibility(pr_main, sce, view_layer, preview_type, sp->pr_method);
       }
       else {
@@ -722,7 +722,7 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
     SpaceProperties *sbuts = CTX_wm_space_properties(C);
     ShaderPreview *sp = static_cast<ShaderPreview *>(WM_jobs_customdata(wm, area));
     rcti newrect;
-    int ok;
+    bool ok;
     int newx = BLI_rcti_size_x(rect);
     int newy = BLI_rcti_size_y(rect);
 
@@ -848,7 +848,6 @@ static Scene *object_preview_scene_create(const struct ObjectPreviewData *previe
 static void object_preview_render(IconPreview *preview, IconPreviewSize *preview_sized)
 {
   Main *preview_main = BKE_main_new();
-  const float pixelsize_old = U.pixelsize;
   char err_out[256] = "unknown";
 
   BLI_assert(preview->id_copy && (preview->id_copy != preview->id));
@@ -866,8 +865,6 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
 
   /* Ownership is now ours. */
   preview->id_copy = nullptr;
-
-  U.pixelsize = 2.0f;
 
   View3DShading shading;
   BKE_screen_view3d_shading_init(&shading);
@@ -889,8 +886,6 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
       nullptr,
       err_out);
   /* TODO: color-management? */
-
-  U.pixelsize = pixelsize_old;
 
   if (ibuf) {
     icon_copy_rect(ibuf, preview_sized->sizex, preview_sized->sizey, preview_sized->rect);
@@ -1429,9 +1424,9 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
       iuser.framenr = 1;
       iuser.scene = sp->scene;
 
-      /* elubie: this needs to be changed: here image is always loaded if not
+      /* NOTE(@elubie): this needs to be changed: here image is always loaded if not
        * already there. Very expensive for large images. Need to find a way to
-       * only get existing ibuf */
+       * only get existing `ibuf`. */
       ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
       if (ibuf == nullptr || (ibuf->rect == nullptr && ibuf->rect_float == nullptr)) {
         BKE_image_release_ibuf(ima, ibuf, nullptr);
@@ -1512,7 +1507,7 @@ static void other_id_types_preview_render(IconPreview *ip,
   /* These types don't use the ShaderPreview mess, they have their own types and functions. */
   BLI_assert(!ip->id || !ELEM(GS(ip->id->name), ID_OB));
 
-  /* construct shader preview from image size and previewcustomdata */
+  /* Construct shader preview from image size and preview custom-data. */
   sp->scene = ip->scene;
   sp->owner = ip->owner;
   sp->sizex = cur_size->sizex;
@@ -1708,7 +1703,10 @@ bool ED_preview_id_is_supported(const ID *id)
   if (id == nullptr) {
     return false;
   }
-
+  if (GS(id->name) == ID_NT) {
+    /* Node groups don't support standard preview generation. */
+    return false;
+  }
   if (GS(id->name) == ID_OB) {
     return object_preview_is_type_supported((const Object *)id);
   }

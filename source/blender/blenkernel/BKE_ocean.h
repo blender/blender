@@ -73,13 +73,13 @@ typedef struct OceanCache {
 struct Ocean *BKE_ocean_add(void);
 void BKE_ocean_free_data(struct Ocean *oc);
 void BKE_ocean_free(struct Ocean *oc);
-bool BKE_ocean_ensure(struct OceanModifierData *omd, const int resolution);
+bool BKE_ocean_ensure(struct OceanModifierData *omd, int resolution);
 /**
  * Return true if the ocean data is valid and can be used.
  */
 bool BKE_ocean_init_from_modifier(struct Ocean *ocean,
                                   struct OceanModifierData const *omd,
-                                  const int resolution);
+                                  int resolution);
 
 /**
  * Return true if the ocean is valid and can be used.
@@ -162,12 +162,12 @@ void BKE_ocean_free_modifier_cache(struct OceanModifierData *omd);
  * Model is intended for large area 'fully developed' sea, where winds have been steadily blowing
  * for days over an area that includes hundreds of wavelengths on a side.
  */
-float BLI_ocean_spectrum_piersonmoskowitz(const struct Ocean *oc, const float kx, const float kz);
+float BLI_ocean_spectrum_piersonmoskowitz(const struct Ocean *oc, float kx, float kz);
 /**
  * TMA extends the JONSWAP spectrum.
  * This spectral model is best suited to shallow water.
  */
-float BLI_ocean_spectrum_texelmarsenarsloe(const struct Ocean *oc, const float kx, const float kz);
+float BLI_ocean_spectrum_texelmarsenarsloe(const struct Ocean *oc, float kx, float kz);
 /**
  * Hasselmann et al, 1973. This model extends the Pierson-Moskowitz model with a peak sharpening
  * function This enhancement is an artificial construct to address the problem that the wave
@@ -176,7 +176,7 @@ float BLI_ocean_spectrum_texelmarsenarsloe(const struct Ocean *oc, const float k
  * The fetch parameter represents the distance from a lee shore,
  * called the fetch, or the distance over which the wind blows with constant velocity.
  */
-float BLI_ocean_spectrum_jonswap(const struct Ocean *oc, const float kx, const float kz);
+float BLI_ocean_spectrum_jonswap(const struct Ocean *oc, float kx, float kz);
 
 #ifdef __cplusplus
 }

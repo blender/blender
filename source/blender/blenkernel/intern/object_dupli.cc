@@ -31,9 +31,9 @@
 #include "BLI_string_utf8.h"
 
 #include "BLI_array.hh"
-#include "BLI_float3.hh"
 #include "BLI_float4x4.hh"
 #include "BLI_math.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_rand.h"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
@@ -461,6 +461,7 @@ struct VertexDupliData_Mesh {
 
   int totvert;
   const MVert *mvert;
+  const float (*vert_normals)[3];
 
   const float (*orco)[3];
 };
@@ -558,12 +559,9 @@ static void make_child_duplis_verts_from_mesh(const DupliContext *ctx,
   float child_imat[4][4];
   mul_m4_m4m4(child_imat, inst_ob->imat, ctx->object->obmat);
 
-  const MVert *mv = mvert;
-  for (int i = 0; i < totvert; i++, mv++) {
-    const float *co = mv->co;
-    float no[3];
-    normal_short_to_float_v3(no, mv->no);
-    DupliObject *dob = vertex_dupli(vdd->params.ctx, inst_ob, child_imat, i, co, no, use_rotation);
+  for (int i = 0; i < totvert; i++) {
+    DupliObject *dob = vertex_dupli(
+        vdd->params.ctx, inst_ob, child_imat, i, mvert[i].co, vdd->vert_normals[i], use_rotation);
     if (vdd->orco) {
       copy_v3_v3(dob->orco, vdd->orco[i]);
     }
@@ -640,6 +638,7 @@ static void make_duplis_verts(const DupliContext *ctx)
     vdd.params = vdd_params;
     vdd.totvert = me_eval->totvert;
     vdd.mvert = me_eval->mvert;
+    vdd.vert_normals = BKE_mesh_vertex_normals_ensure(me_eval);
     vdd.orco = (const float(*)[3])CustomData_get_layer(&me_eval->vdata, CD_ORCO);
 
     make_child_duplis(ctx, &vdd, make_child_duplis_verts_from_mesh);
@@ -1026,6 +1025,8 @@ static void get_dupliface_transform_from_coords(Span<float3> coords,
                                                 const float scale_fac,
                                                 float r_mat[4][4])
 {
+  using namespace blender::math;
+
   /* Location. */
   float3 location(0);
   for (const float3 &coord : coords) {
@@ -1036,9 +1037,7 @@ static void get_dupliface_transform_from_coords(Span<float3> coords,
   /* Rotation. */
   float quat[4];
 
-  float3 f_no;
-  cross_poly_v3(f_no, (const float(*)[3])coords.data(), (uint)coords.size());
-  f_no.normalize();
+  float3 f_no = normalize(cross_poly(coords));
   tri_to_quat_ex(quat, coords[0], coords[1], coords[2], f_no);
 
   /* Scale. */
@@ -1650,6 +1649,14 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
     return nullptr;
   }
 
+  /* Give "Object as Font" instances higher priority than geometry set instances, to retain
+   * the behavior from before curve object meshes were processed as instances internally. */
+  if (transflag & OB_DUPLIVERTS) {
+    if (ctx->object->type == OB_FONT) {
+      return &gen_dupli_verts_font;
+    }
+  }
+
   if (ctx->object->runtime.geometry_set_eval != nullptr) {
     if (BKE_object_has_geometry_set_instances(ctx->object)) {
       return &gen_dupli_geometry_set;
@@ -1662,9 +1669,6 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
   if (transflag & OB_DUPLIVERTS) {
     if (ctx->object->type == OB_MESH) {
       return &gen_dupli_verts;
-    }
-    if (ctx->object->type == OB_FONT) {
-      return &gen_dupli_verts_font;
     }
     if (ctx->object->type == OB_POINTCLOUD) {
       return &gen_dupli_verts_pointcloud;

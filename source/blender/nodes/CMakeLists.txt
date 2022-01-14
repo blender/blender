@@ -22,6 +22,7 @@ add_subdirectory(composite)
 add_subdirectory(function)
 add_subdirectory(geometry)
 add_subdirectory(shader)
+add_subdirectory(texture)
 
 set(INC
   .
@@ -48,36 +49,13 @@ set(INC
   ../../../intern/glew-mx
   ../../../intern/atomic
   ../../../intern/guardedalloc
+
+  # dna_type_offsets.h
+  ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
 )
 
 
 set(SRC
-  texture/nodes/node_texture_at.c
-  texture/nodes/node_texture_bricks.c
-  texture/nodes/node_texture_checker.c
-  texture/nodes/node_texture_common.c
-  texture/nodes/node_texture_compose.c
-  texture/nodes/node_texture_coord.c
-  texture/nodes/node_texture_curves.c
-  texture/nodes/node_texture_decompose.c
-  texture/nodes/node_texture_distance.c
-  texture/nodes/node_texture_hueSatVal.c
-  texture/nodes/node_texture_image.c
-  texture/nodes/node_texture_invert.c
-  texture/nodes/node_texture_math.c
-  texture/nodes/node_texture_mixRgb.c
-  texture/nodes/node_texture_output.c
-  texture/nodes/node_texture_proc.c
-  texture/nodes/node_texture_rotate.c
-  texture/nodes/node_texture_scale.c
-  texture/nodes/node_texture_texture.c
-  texture/nodes/node_texture_translate.c
-  texture/nodes/node_texture_valToNor.c
-  texture/nodes/node_texture_valToRgb.c
-  texture/nodes/node_texture_viewer.c
-  texture/node_texture_tree.c
-  texture/node_texture_util.c
-
   intern/derived_node_tree.cc
   intern/geometry_nodes_eval_log.cc
   intern/math_functions.cc
@@ -88,11 +66,9 @@ set(SRC
   intern/node_multi_function.cc
   intern/node_socket.cc
   intern/node_socket_declarations.cc
-  intern/socket_search_link.cc
   intern/node_tree_ref.cc
   intern/node_util.c
-
-  texture/node_texture_util.h
+  intern/socket_search_link.cc
 
   NOD_common.h
   NOD_composite.h
@@ -108,8 +84,8 @@ set(SRC
   NOD_shader.h
   NOD_socket.h
   NOD_socket_declarations.hh
-  NOD_socket_search_link.hh
   NOD_socket_declarations_geometry.hh
+  NOD_socket_search_link.hh
   NOD_static_types.h
   NOD_texture.h
   intern/node_common.h
@@ -124,17 +100,18 @@ set(LIB
   bf_nodes_function
   bf_nodes_geometry
   bf_nodes_shader
+  bf_nodes_texture
 )
 
 if(WITH_BULLET)
   list(APPEND INC_SYS
     ${BULLET_INCLUDE_DIRS}
-    "../../../intern/rigidbody/"
+    ../../../intern/rigidbody
   )
   if(NOT WITH_SYSTEM_BULLET)
   list(APPEND LIB
     extern_bullet
-    )
+  )
   endif()
 
   list(APPEND LIB

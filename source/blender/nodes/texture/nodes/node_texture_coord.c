@@ -49,7 +49,7 @@ void register_node_type_tex_coord(void)
 {
   static bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_COORD, "Coordinates", NODE_CLASS_INPUT, 0);
+  tex_node_type_base(&ntype, TEX_NODE_COORD, "Coordinates", NODE_CLASS_INPUT);
   node_type_socket_templates(&ntype, NULL, outputs);
   node_type_exec(&ntype, NULL, NULL, exec);
 

@@ -17,9 +17,12 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 
 #include "BLI_noise.hh"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 namespace blender::nodes::node_shader_tex_wave_cc {
 
@@ -39,7 +42,21 @@ static void sh_node_tex_wave_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Phase Offset")).min(-1000.0f).max(1000.0f).default_value(0.0f);
   b.add_output<decl::Color>(N_("Color")).no_muted_links();
   b.add_output<decl::Float>(N_("Fac")).no_muted_links();
-};
+}
+
+static void node_shader_buts_tex_wave(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "wave_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  int type = RNA_enum_get(ptr, "wave_type");
+  if (type == SHD_WAVE_BANDS) {
+    uiItemR(layout, ptr, "bands_direction", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  }
+  else { /* SHD_WAVE_RINGS */
+    uiItemR(layout, ptr, "rings_direction", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  }
+
+  uiItemR(layout, ptr, "wave_profile", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+}
 
 static void node_shader_init_tex_wave(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -220,8 +237,9 @@ void register_node_type_sh_tex_wave()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_TEX_WAVE, "Wave Texture", NODE_CLASS_TEXTURE, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_TEX_WAVE, "Wave Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_wave_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_tex_wave;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_init(&ntype, file_ns::node_shader_init_tex_wave);
   node_type_storage(&ntype, "NodeTexWave", node_free_standard_storage, node_copy_standard_storage);

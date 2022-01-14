@@ -38,7 +38,7 @@ void DRW_text_cache_destroy(struct DRWTextStore *dt);
 void DRW_text_cache_add(struct DRWTextStore *dt,
                         const float co[3],
                         const char *str,
-                        const int str_len,
+                        int str_len,
                         short xoffs,
                         short yoffs,
                         short flag,

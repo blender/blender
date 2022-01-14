@@ -99,7 +99,7 @@ static void pygpu_fill_format_sequence(void *data_dst_void,
   PyObject **value_fast_items = PySequence_Fast_ITEMS(py_seq_fast);
 
 /**
- * Args are constants, so range checks will be optimized out if they're nop's.
+ * Args are constants, so range checks will be optimized out if they're no-op's.
  */
 #define PY_AS_NATIVE(ty_dst, py_as_native) \
   ty_dst *data_dst = data_dst_void; \

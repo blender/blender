@@ -20,16 +20,16 @@
  * \ingroup bmesh
  */
 
-void BMO_mesh_delete_oflag_tagged(BMesh *bm, const short oflag, const char htype);
-void BM_mesh_delete_hflag_tagged(BMesh *bm, const char hflag, const char htype);
+void BMO_mesh_delete_oflag_tagged(BMesh *bm, short oflag, char htype);
+void BM_mesh_delete_hflag_tagged(BMesh *bm, char hflag, char htype);
 
 /**
  * \warning oflag applies to different types in some contexts,
  * not just the type being removed.
  */
-void BMO_mesh_delete_oflag_context(BMesh *bm, const short oflag, const int type);
+void BMO_mesh_delete_oflag_context(BMesh *bm, short oflag, int type);
 /**
  * \warning oflag applies to different types in some contexts,
  * not just the type being removed.
  */
-void BM_mesh_delete_hflag_context(BMesh *bm, const char hflag, const int type);
+void BM_mesh_delete_hflag_context(BMesh *bm, char hflag, int type);

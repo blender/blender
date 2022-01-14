@@ -65,17 +65,15 @@ struct IDOverrideLibrary *BKE_lib_override_library_init(struct ID *local_id,
 /**
  * Shallow or deep copy of a whole override from \a src_id to \a dst_id.
  */
-void BKE_lib_override_library_copy(struct ID *dst_id,
-                                   const struct ID *src_id,
-                                   const bool do_full_copy);
+void BKE_lib_override_library_copy(struct ID *dst_id, const struct ID *src_id, bool do_full_copy);
 /**
  * Clear any overriding data from given \a override.
  */
-void BKE_lib_override_library_clear(struct IDOverrideLibrary *override, const bool do_id_user);
+void BKE_lib_override_library_clear(struct IDOverrideLibrary *override, bool do_id_user);
 /**
  * Free given \a override.
  */
-void BKE_lib_override_library_free(struct IDOverrideLibrary **override, const bool do_id_user);
+void BKE_lib_override_library_free(struct IDOverrideLibrary **override, bool do_id_user);
 
 /**
  * Check if given ID has some override rules that actually indicate the user edited it.
@@ -84,10 +82,13 @@ bool BKE_lib_override_library_is_user_edited(struct ID *id);
 
 /**
  * Create an overridden local copy of linked reference.
+ *
+ * \note This function is very basic, low-level. It does not consider any hierarchical dependency,
+ * and also prevents any automatic re-sync of this local override.
  */
 struct ID *BKE_lib_override_library_create_from_id(struct Main *bmain,
                                                    struct ID *reference_id,
-                                                   const bool do_tagged_remap);
+                                                   bool do_tagged_remap);
 /**
  * Create overridden local copies of all tagged data-blocks in given Main.
  *
@@ -109,7 +110,7 @@ struct ID *BKE_lib_override_library_create_from_id(struct Main *bmain,
  */
 bool BKE_lib_override_library_create_from_tag(struct Main *bmain,
                                               const struct Library *reference_library,
-                                              const bool do_no_main);
+                                              bool do_no_main);
 /**
  * Advanced 'smart' function to create fully functional overrides.
  *
@@ -163,9 +164,9 @@ void BKE_lib_override_library_main_proxy_convert(struct Main *bmain,
  * Advanced 'smart' function to resync, re-create fully functional overrides up-to-date with linked
  * data, from an existing override hierarchy.
  *
- * \param id_root: The root liboverride ID to resync from.
  * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
  *                    which case \a scene's master collection children hierarchy is used instead).
+ * \param id_root: The root liboverride ID to resync from.
  * \return true if override was successfully resynced.
  */
 bool BKE_lib_override_library_resync(struct Main *bmain,
@@ -173,8 +174,7 @@ bool BKE_lib_override_library_resync(struct Main *bmain,
                                      struct ViewLayer *view_layer,
                                      struct ID *id_root,
                                      struct Collection *override_resync_residual_storage,
-                                     const bool do_hierarchy_enforce,
-                                     const bool do_post_process,
+                                     bool do_hierarchy_enforce,
                                      struct BlendFileReadReport *reports);
 /**
  * Detect and handle required resync of overrides data, when relations between reference linked IDs
@@ -250,21 +250,21 @@ struct IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_ope
     struct IDOverrideLibraryProperty *override_property,
     const char *subitem_refname,
     const char *subitem_locname,
-    const int subitem_refindex,
-    const int subitem_locindex,
-    const bool strict,
+    int subitem_refindex,
+    int subitem_locindex,
+    bool strict,
     bool *r_strict);
 /**
  * Find override property operation from given sub-item(s), or create it if it does not exist.
  */
 struct IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_get(
     struct IDOverrideLibraryProperty *override_property,
-    const short operation,
+    short operation,
     const char *subitem_refname,
     const char *subitem_locname,
-    const int subitem_refindex,
-    const int subitem_locindex,
-    const bool strict,
+    int subitem_refindex,
+    int subitem_locindex,
+    bool strict,
     bool *r_strict,
     bool *r_created);
 /**
@@ -306,7 +306,8 @@ void BKE_lib_override_library_main_validate(struct Main *bmain, struct ReportLis
  * This is typically used to detect whether some property has been changed in local and a new
  * #IDOverrideProperty (of #IDOverridePropertyOperation) has to be added.
  *
- * \return true if status is OK, false otherwise. */
+ * \return true if status is OK, false otherwise.
+ */
 bool BKE_lib_override_library_status_check_local(struct Main *bmain, struct ID *local);
 /**
  * Check that status of reference data-block is still valid against current local one.
@@ -317,7 +318,8 @@ bool BKE_lib_override_library_status_check_local(struct Main *bmain, struct ID *
  * This is typically used to detect whether some reference has changed and local
  * needs to be updated against it.
  *
- * \return true if status is OK, false otherwise. */
+ * \return true if status is OK, false otherwise.
+ */
 bool BKE_lib_override_library_status_check_reference(struct Main *bmain, struct ID *local);
 
 /**
@@ -338,7 +340,7 @@ bool BKE_lib_override_library_operations_create(struct Main *bmain, struct ID *l
 /**
  * Check all overrides from given \a bmain and create/update overriding operations as needed.
  */
-bool BKE_lib_override_library_main_operations_create(struct Main *bmain, const bool force_auto);
+bool BKE_lib_override_library_main_operations_create(struct Main *bmain, bool force_auto);
 
 /**
  * Reset all overrides in given \a id_root, while preserving ID relations.
@@ -353,18 +355,18 @@ void BKE_lib_override_library_id_hierarchy_reset(struct Main *bmain, struct ID *
  * Set or clear given tag in all operations in that override property data.
  */
 void BKE_lib_override_library_operations_tag(struct IDOverrideLibraryProperty *override_property,
-                                             const short tag,
-                                             const bool do_set);
+                                             short tag,
+                                             bool do_set);
 /**
  * Set or clear given tag in all properties and operations in that override data.
  */
 void BKE_lib_override_library_properties_tag(struct IDOverrideLibrary *override,
-                                             const short tag,
-                                             const bool do_set);
+                                             short tag,
+                                             bool do_set);
 /**
  * Set or clear given tag in all properties and operations in that Main's ID override data.
  */
-void BKE_lib_override_library_main_tag(struct Main *bmain, const short tag, const bool do_set);
+void BKE_lib_override_library_main_tag(struct Main *bmain, short tag, bool do_set);
 
 /**
  * Remove all tagged-as-unused properties and operations from that ID override data.

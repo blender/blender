@@ -45,7 +45,7 @@ struct WorkSpace *BKE_workspace_add(struct Main *bmain, const char *name);
 void BKE_workspace_remove(struct Main *bmain, struct WorkSpace *workspace);
 
 struct WorkSpaceInstanceHook *BKE_workspace_instance_hook_create(const struct Main *bmain,
-                                                                 const int winid);
+                                                                 int winid);
 void BKE_workspace_instance_hook_free(const struct Main *bmain,
                                       struct WorkSpaceInstanceHook *hook);
 
@@ -97,7 +97,7 @@ struct WorkSpaceLayout *BKE_workspace_layout_iter_circular(
     struct WorkSpaceLayout *start,
     bool (*callback)(const struct WorkSpaceLayout *layout, void *arg),
     void *arg,
-    const bool iter_backward);
+    bool iter_backward);
 
 void BKE_workspace_tool_remove(struct WorkSpace *workspace, struct bToolRef *tref)
     ATTR_NONNULL(1, 2);
@@ -132,13 +132,13 @@ struct WorkSpaceLayout *BKE_workspace_active_layout_get(const struct WorkSpaceIn
  * #WorkSpaceInstanceHook.act_layout should only be modified directly to update the layout pointer.
  */
 void BKE_workspace_active_layout_set(struct WorkSpaceInstanceHook *hook,
-                                     const int winid,
+                                     int winid,
                                      struct WorkSpace *workspace,
                                      struct WorkSpaceLayout *layout) SETTER_ATTRS;
 struct bScreen *BKE_workspace_active_screen_get(const struct WorkSpaceInstanceHook *hook)
     GETTER_ATTRS;
 void BKE_workspace_active_screen_set(struct WorkSpaceInstanceHook *hook,
-                                     const int winid,
+                                     int winid,
                                      struct WorkSpace *workspace,
                                      struct bScreen *screen) SETTER_ATTRS;
 

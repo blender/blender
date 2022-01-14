@@ -5661,6 +5661,11 @@ void UI_block_layout_resolve(uiBlock *block, int *r_x, int *r_y)
   }
 }
 
+bool UI_block_layout_needs_resolving(const uiBlock *block)
+{
+  return !BLI_listbase_is_empty(&block->layouts);
+}
+
 void uiLayoutSetContextPointer(uiLayout *layout, const char *name, PointerRNA *ptr)
 {
   uiBlock *block = layout->root->block;

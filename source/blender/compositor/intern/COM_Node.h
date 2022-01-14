@@ -129,13 +129,13 @@ class Node {
    * Get the reference to a certain output-socket.
    * \param index: The index of the needed output-socket.
    */
-  NodeOutput *get_output_socket(const unsigned int index = 0) const;
+  NodeOutput *get_output_socket(unsigned int index = 0) const;
 
   /**
    * get the reference to a certain input-socket.
    * \param index: The index of the needed input-socket.
    */
-  NodeInput *get_input_socket(const unsigned int index) const;
+  NodeInput *get_input_socket(unsigned int index) const;
 
   /**
    * \brief Is this node in the active group (the group that is being edited)

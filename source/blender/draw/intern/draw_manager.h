@@ -570,7 +570,7 @@ typedef struct DRWManager {
   struct Object *dupli_origin;
   /** Object-data referenced by the current dupli object. */
   struct ID *dupli_origin_data;
-  /** Ghash: #DupliKey -> void pointer for each enabled engine. */
+  /** Hash-map: #DupliKey -> void pointer for each enabled engine. */
   struct GHash *dupli_ghash;
   /** TODO(fclem): try to remove usage of this. */
   DRWInstanceData *object_instance_data[MAX_INSTANCE_DATA_SIZE];

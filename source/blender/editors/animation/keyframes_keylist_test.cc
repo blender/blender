@@ -26,12 +26,12 @@ static void build_fcurve(FCurve &fcurve)
   fcurve.totvert = 3;
   fcurve.bezt = static_cast<BezTriple *>(
       MEM_callocN(sizeof(BezTriple) * fcurve.totvert, "BezTriples"));
-  fcurve.bezt[0].vec[1][0] = 10.f;
-  fcurve.bezt[0].vec[1][1] = 1.f;
-  fcurve.bezt[1].vec[1][0] = 20.f;
-  fcurve.bezt[1].vec[1][1] = 2.f;
-  fcurve.bezt[2].vec[1][0] = 30.f;
-  fcurve.bezt[2].vec[1][1] = 1.f;
+  fcurve.bezt[0].vec[1][0] = 10.0f;
+  fcurve.bezt[0].vec[1][1] = 1.0f;
+  fcurve.bezt[1].vec[1][0] = 20.0f;
+  fcurve.bezt[1].vec[1][1] = 2.0f;
+  fcurve.bezt[2].vec[1][0] = 30.0f;
+  fcurve.bezt[2].vec[1][1] = 1.0f;
 }
 
 static AnimKeylist *create_test_keylist()

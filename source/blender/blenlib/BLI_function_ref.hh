@@ -80,6 +80,8 @@
  *
  */
 
+#include "BLI_memory_utils.hh"
+
 namespace blender {
 
 template<typename Function> class FunctionRef;
@@ -125,8 +127,8 @@ template<typename Ret, typename... Params> class FunctionRef<Ret(Params...)> {
    * another lambda.
    */
   template<typename Callable,
-           std::enable_if_t<!std::is_same_v<std::remove_cv_t<std::remove_reference_t<Callable>>,
-                                            FunctionRef>> * = nullptr>
+           BLI_ENABLE_IF((
+               !std::is_same_v<std::remove_cv_t<std::remove_reference_t<Callable>>, FunctionRef>))>
   FunctionRef(Callable &&callable)
       : callback_(callback_fn<typename std::remove_reference_t<Callable>>),
         callable_(reinterpret_cast<intptr_t>(&callable))

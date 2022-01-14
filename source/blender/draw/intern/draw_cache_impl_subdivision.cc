@@ -23,6 +23,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_editmesh.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -258,10 +259,11 @@ static GPUShader *get_patch_evaluation_shader(int shader_type)
 
 static GPUShader *get_subdiv_shader(int shader_type, const char *defines)
 {
-  if (shader_type == SHADER_PATCH_EVALUATION ||
-      shader_type == SHADER_PATCH_EVALUATION_LIMIT_NORMALS ||
-      shader_type == SHADER_PATCH_EVALUATION_FVAR ||
-      shader_type == SHADER_PATCH_EVALUATION_FACE_DOTS) {
+  if (ELEM(shader_type,
+           SHADER_PATCH_EVALUATION,
+           SHADER_PATCH_EVALUATION_LIMIT_NORMALS,
+           SHADER_PATCH_EVALUATION_FVAR,
+           SHADER_PATCH_EVALUATION_FACE_DOTS)) {
     return get_patch_evaluation_shader(shader_type);
   }
   if (g_subdiv_shaders[shader_type] == nullptr) {
@@ -1135,9 +1137,11 @@ static uint get_dispatch_size(uint elements)
   return divide_ceil_u(elements, SUBDIV_LOCAL_WORK_GROUP_SIZE);
 }
 
-/* Helper to ensure that the UBO is always initalized before dispatching computes and that the same
- * number of elements that need to be processed is used for the UBO and the dispatch size.
- * Use this instead of a raw call to #GPU_compute_dispatch. */
+/**
+ * Helper to ensure that the UBO is always initialized before dispatching computes and that the
+ * same number of elements that need to be processed is used for the UBO and the dispatch size.
+ * Use this instead of a raw call to #GPU_compute_dispatch.
+ */
 static void drw_subdiv_compute_dispatch(const DRWSubdivCache *cache,
                                         GPUShader *shader,
                                         const int src_offset,
@@ -1219,8 +1223,8 @@ void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache->num_subdiv_quads);
 
-  /* This generates a vertex buffer, so we need to put a barrier on the vertex attrib array. We
-   * also need it for subsequent compute shaders, so a barrier on the shader storage is also
+  /* This generates a vertex buffer, so we need to put a barrier on the vertex attribute array.
+   * We also need it for subsequent compute shaders, so a barrier on the shader storage is also
    * needed. */
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE | GPU_BARRIER_VERTEX_ATTRIB_ARRAY);
 
@@ -1389,8 +1393,8 @@ void draw_subdiv_accumulate_normals(const DRWSubdivCache *cache,
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache->num_subdiv_verts);
 
-  /* This generates a vertex buffer, so we need to put a barrier on the vertex attrib array. We
-   * also need it for subsequent compute shaders, so a barrier on the shader storage is also
+  /* This generates a vertex buffer, so we need to put a barrier on the vertex attribute array.
+   * We also need it for subsequent compute shaders, so a barrier on the shader storage is also
    * needed. */
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE | GPU_BARRIER_VERTEX_ATTRIB_ARRAY);
 
@@ -1413,8 +1417,8 @@ void draw_subdiv_finalize_normals(const DRWSubdivCache *cache,
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache->num_subdiv_quads);
 
-  /* This generates a vertex buffer, so we need to put a barrier on the vertex attrib array. We
-   * also need it for subsequent compute shaders, so a barrier on the shader storage is also
+  /* This generates a vertex buffer, so we need to put a barrier on the vertex attribute array.
+   * We also need it for subsequent compute shaders, so a barrier on the shader storage is also
    * needed. */
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE | GPU_BARRIER_VERTEX_ATTRIB_ARRAY);
 
@@ -1665,6 +1669,7 @@ void draw_subdiv_init_mesh_render_data(DRWSubdivCache *cache,
   mr->mvert = mesh->mvert;
   mr->mpoly = mesh->mpoly;
   mr->mloop = mesh->mloop;
+  mr->vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
   mr->vert_len = mesh->totvert;
   mr->edge_len = mesh->totedge;
   mr->poly_len = mesh->totpoly;

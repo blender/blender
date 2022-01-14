@@ -72,6 +72,7 @@ typedef struct MultiresBakeResult {
 
 typedef struct {
   MVert *mvert;
+  const float (*vert_normals)[3];
   MPoly *mpoly;
   MLoop *mloop;
   MLoopUV *mloopuv;
@@ -135,10 +136,7 @@ static void multiresbake_get_normal(const MResolvePixelData *data,
   }
   else {
     const int vi = data->mloop[data->mlooptri[tri_num].tri[vert_index]].v;
-    const short *no = data->mvert[vi].no;
-
-    normal_short_to_float_v3(norm, no);
-    normalize_v3(norm);
+    copy_v3_v3(norm, data->vert_normals[vi]);
   }
 }
 

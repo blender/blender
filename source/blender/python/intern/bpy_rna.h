@@ -178,7 +178,7 @@ typedef struct {
 } BPy_FunctionRNA;
 
 StructRNA *srna_from_self(PyObject *self, const char *error_prefix);
-StructRNA *pyrna_struct_as_srna(PyObject *self, const bool parent, const char *error_prefix);
+StructRNA *pyrna_struct_as_srna(PyObject *self, bool parent, const char *error_prefix);
 
 void BPY_rna_init(void);
 void BPY_rna_exit(void);
@@ -196,10 +196,7 @@ bool pyrna_id_FromPyObject(PyObject *obj, struct ID **id);
 bool pyrna_id_CheckPyObject(PyObject *obj);
 
 /* operators also need this to set args */
-int pyrna_pydict_to_props(PointerRNA *ptr,
-                          PyObject *kw,
-                          const bool all_args,
-                          const char *error_prefix);
+int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, bool all_args, const char *error_prefix);
 PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 
 int pyrna_deferred_register_class(struct StructRNA *srna, PyTypeObject *py_class);

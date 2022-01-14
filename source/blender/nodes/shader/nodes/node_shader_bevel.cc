@@ -17,22 +17,24 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 namespace blender::nodes::node_shader_bevel_cc {
 
-/* **************** OUTPUT ******************** */
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>(N_("Radius")).default_value(0.05f).min(0.0f).max(1000.0f);
+  b.add_input<decl::Vector>(N_("Normal")).hide_value();
+  b.add_output<decl::Vector>(N_("Normal"));
+}
 
-static bNodeSocketTemplate sh_node_bevel_in[] = {
-    {SOCK_FLOAT, N_("Radius"), 0.05f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_bevel_out[] = {
-    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
+static void node_shader_buts_bevel(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "samples", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
 
 static void node_shader_init_bevel(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -65,8 +67,9 @@ void register_node_type_sh_bevel()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_BEVEL, "Bevel", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, file_ns::sh_node_bevel_in, file_ns::sh_node_bevel_out);
+  sh_node_type_base(&ntype, SH_NODE_BEVEL, "Bevel", NODE_CLASS_INPUT);
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_bevel;
   node_type_init(&ntype, file_ns::node_shader_init_bevel);
   node_type_gpu(&ntype, file_ns::gpu_shader_bevel);
 

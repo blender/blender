@@ -665,8 +665,7 @@ static void gradientVert_update(WPGradient_userData *grad_data, int index)
 static void gradientVertUpdate__mapFunc(void *userData,
                                         int index,
                                         const float UNUSED(co[3]),
-                                        const float UNUSED(no_f[3]),
-                                        const short UNUSED(no_s[3]))
+                                        const float UNUSED(no[3]))
 {
   WPGradient_userData *grad_data = userData;
   WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
@@ -681,8 +680,7 @@ static void gradientVertUpdate__mapFunc(void *userData,
 static void gradientVertInit__mapFunc(void *userData,
                                       int index,
                                       const float co[3],
-                                      const float UNUSED(no_f[3]),
-                                      const short UNUSED(no_s[3]))
+                                      const float UNUSED(no[3]))
 {
   WPGradient_userData *grad_data = userData;
   Mesh *me = grad_data->me;

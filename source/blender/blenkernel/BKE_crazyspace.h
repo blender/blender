@@ -43,7 +43,7 @@ void BKE_crazyspace_set_quats_editmesh(struct BMEditMesh *em,
                                        float (*origcos)[3],
                                        float (*mappedcos)[3],
                                        float (*quats)[4],
-                                       const bool use_select);
+                                       bool use_select);
 void BKE_crazyspace_set_quats_mesh(struct Mesh *me,
                                    float (*origcos)[3],
                                    float (*mappedcos)[3],

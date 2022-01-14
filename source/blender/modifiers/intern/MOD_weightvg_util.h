@@ -64,7 +64,7 @@ struct uiLayout;
 void weightvg_do_map(int num,
                      float *new_w,
                      short falloff_type,
-                     const bool do_invert,
+                     bool do_invert,
                      struct CurveMapping *cmap,
                      struct RNG *rng);
 
@@ -77,22 +77,22 @@ void weightvg_do_map(int num,
  * Else, weird results might appear.
  */
 void weightvg_do_mask(const ModifierEvalContext *ctx,
-                      const int num,
+                      int num,
                       const int *indices,
                       float *org_w,
                       const float *new_w,
                       Object *ob,
                       struct Mesh *mesh,
-                      const float fact,
+                      float fact,
                       const char defgrp_name[MAX_VGROUP_NAME],
                       struct Scene *scene,
                       Tex *texture,
-                      const int tex_use_channel,
-                      const int tex_mapping,
+                      int tex_use_channel,
+                      int tex_mapping,
                       Object *tex_map_object,
                       const char *text_map_bone,
                       const char *tex_uvlayer_name,
-                      const bool invert_vgroup_mask);
+                      bool invert_vgroup_mask);
 
 /**
  * Applies weights to given vgroup (defgroup), and optionally add/remove vertices from the group.
@@ -107,11 +107,11 @@ void weightvg_update_vg(struct MDeformVert *dvert,
                         int num,
                         const int *indices,
                         const float *weights,
-                        const bool do_add,
-                        const float add_thresh,
-                        const bool do_rem,
-                        const float rem_thresh,
-                        const bool do_normalize);
+                        bool do_add,
+                        float add_thresh,
+                        bool do_rem,
+                        float rem_thresh,
+                        bool do_normalize);
 
 /**
  * Common vertex weight mask interface elements for the modifier panels.

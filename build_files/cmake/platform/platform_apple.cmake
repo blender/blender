@@ -173,6 +173,7 @@ if(WITH_IMAGE_OPENEXR)
 endif()
 
 if(WITH_CODEC_FFMPEG)
+  set(FFMPEG_ROOT_DIR ${LIBDIR}/ffmpeg)
   set(FFMPEG_FIND_COMPONENTS
     avcodec avdevice avformat avutil
     mp3lame ogg opus swresample swscale

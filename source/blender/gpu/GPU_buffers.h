@@ -85,7 +85,7 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const struct MPoly *mpoly,
                                               const struct MVert *mvert,
                                               const int *face_indices,
                                               const int *sculpt_face_sets,
-                                              const int face_indices_len,
+                                              int face_indices_len,
                                               const struct Mesh *mesh);
 
 /**
@@ -131,7 +131,8 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const int *sculpt_face_sets,
                                   const int face_sets_color_seed,
                                   const int face_sets_color_default,
-                                  const int update_flags);
+                                  const int update_flags,
+                                  const float (*vert_normals)[3]);
 
 bool GPU_pbvh_update_attribute_names(
     CustomData *vdata,
@@ -143,6 +144,11 @@ bool GPU_pbvh_update_attribute_names(
     struct CustomDataLayer *active_vcol_layer,
     struct CustomDataLayer *render_vcol_layer);
 
+/**
+ * Creates a vertex buffer (coordinate, normal, color) and,
+ * if smooth shading, an element index buffer.
+ * Threaded: do not call any functions that use OpenGL calls!
+ */
 void GPU_pbvh_bmesh_buffers_update(PBVHGPUBuildArgs *args);
 
 /**
@@ -155,13 +161,14 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
                                   int *grid_indices,
                                   int totgrid,
                                   const int *sculpt_face_sets,
-                                  const int face_sets_color_seed,
-                                  const int face_sets_color_default,
+                                  int face_sets_color_seed,
+                                  int face_sets_color_default,
                                   const struct CCGKey *key,
-                                  const int update_flags);
+                                  int update_flags);
 
 /**
- * Finish update. Not thread safe, must run in OpenGL main thread.
+ * Finish update. Not thread safe, must run in OpenGL main
+ * thread.
  */
 void GPU_pbvh_buffers_update_flush(GPU_PBVH_Buffers *buffers);
 
@@ -177,8 +184,8 @@ short GPU_pbvh_buffers_material_index_get(GPU_PBVH_Buffers *buffers);
 bool GPU_pbvh_buffers_has_overlays(GPU_PBVH_Buffers *buffers);
 float *GPU_pbvh_get_extra_matrix(GPU_PBVH_Buffers *buffers);
 
-/** if need_full_render is false, only the active (not render!) vcol layer will
-    be uploaded to GPU*/
+/** if need_full_render is false, only the active (not render!)
+   vcol layer will be uploaded to GPU*/
 
 void GPU_pbvh_need_full_render_set(bool state);
 bool GPU_pbvh_need_full_render_get(void);

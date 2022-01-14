@@ -87,7 +87,7 @@ static void extract_lnor_iter_poly_mesh(const MeshRenderData *mr,
       *lnor_data = GPU_normal_convert_i10_v3(mr->loop_normals[ml_index]);
     }
     else if (mp->flag & ME_SMOOTH) {
-      *lnor_data = GPU_normal_convert_i10_s3(mr->mvert[ml->v].no);
+      *lnor_data = GPU_normal_convert_i10_v3(mr->vert_normals[ml->v]);
     }
     else {
       *lnor_data = GPU_normal_convert_i10_v3(mr->poly_normals[mp_index]);
@@ -210,7 +210,7 @@ static void extract_lnor_hq_iter_poly_mesh(const MeshRenderData *mr,
       normal_float_to_short_v3(&lnor_data->x, mr->loop_normals[ml_index]);
     }
     else if (mp->flag & ME_SMOOTH) {
-      copy_v3_v3_short(&lnor_data->x, mr->mvert[ml->v].no);
+      normal_float_to_short_v3(&lnor_data->x, mr->vert_normals[ml->v]);
     }
     else {
       normal_float_to_short_v3(&lnor_data->x, mr->poly_normals[mp_index]);

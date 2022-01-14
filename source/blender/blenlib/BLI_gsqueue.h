@@ -31,7 +31,7 @@ extern "C" {
 
 typedef struct _GSQueue GSQueue;
 
-GSQueue *BLI_gsqueue_new(const size_t elem_size);
+GSQueue *BLI_gsqueue_new(size_t elem_size);
 /**
  * Returns true if the queue is empty, false otherwise.
  */

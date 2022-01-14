@@ -95,8 +95,8 @@ bool ED_mask_spline_select_check(const struct MaskSpline *spline);
 bool ED_mask_layer_select_check(const struct MaskLayer *mask_layer);
 bool ED_mask_select_check(const struct Mask *mask);
 
-void ED_mask_spline_select_set(struct MaskSpline *spline, const bool do_select);
-void ED_mask_layer_select_set(struct MaskLayer *mask_layer, const bool do_select);
+void ED_mask_spline_select_set(struct MaskSpline *spline, bool do_select);
+void ED_mask_layer_select_set(struct MaskLayer *mask_layer, bool do_select);
 void ED_mask_select_toggle_all(struct Mask *mask, int action);
 void ED_mask_select_flush_all(struct Mask *mask);
 
@@ -126,8 +126,8 @@ bool ED_mask_find_nearest_diff_point(const struct bContext *C,
                                      int threshold,
                                      bool feather,
                                      float tangent[2],
-                                     const bool use_deform,
-                                     const bool use_project,
+                                     bool use_deform,
+                                     bool use_project,
                                      struct MaskLayer **r_mask_layer,
                                      struct MaskSpline **r_spline,
                                      struct MaskSplinePoint **r_point,
@@ -136,7 +136,7 @@ bool ED_mask_find_nearest_diff_point(const struct bContext *C,
 bool ED_mask_feather_find_nearest(const struct bContext *C,
                                   struct Mask *mask,
                                   const float normal_co[2],
-                                  const float threshold,
+                                  float threshold,
                                   struct MaskLayer **r_mask_layer,
                                   struct MaskSpline **r_spline,
                                   struct MaskSplinePoint **r_point,
@@ -145,7 +145,7 @@ bool ED_mask_feather_find_nearest(const struct bContext *C,
 struct MaskSplinePoint *ED_mask_point_find_nearest(const struct bContext *C,
                                                    struct Mask *mask,
                                                    const float normal_co[2],
-                                                   const float threshold,
+                                                   float threshold,
                                                    struct MaskLayer **r_mask_layer,
                                                    struct MaskSpline **r_spline,
                                                    eMaskWhichHandle *r_which_handle,

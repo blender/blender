@@ -190,7 +190,7 @@ class AbstractDrawingMode {
 
 /* image_shader.c */
 GPUShader *IMAGE_shader_image_get(bool is_tiled_image);
-void IMAGE_shader_library_ensure(void);
-void IMAGE_shader_free(void);
+void IMAGE_shader_library_ensure();
+void IMAGE_shader_free();
 
 }  // namespace blender::draw::image_engine

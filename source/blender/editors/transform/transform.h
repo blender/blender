@@ -712,9 +712,9 @@ int transformEnd(struct bContext *C, TransInfo *t);
 void setTransformViewMatrices(TransInfo *t);
 void setTransformViewAspect(TransInfo *t, float r_aspect[3]);
 void convertViewVec(TransInfo *t, float r_vec[3], double dx, double dy);
-void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DProjTest flag);
+void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], eV3DProjTest flag);
 void projectIntView(TransInfo *t, const float vec[3], int adr[2]);
-void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], const eV3DProjTest flag);
+void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], eV3DProjTest flag);
 void projectFloatView(TransInfo *t, const float vec[3], float adr[2]);
 
 void applyAspectRatio(TransInfo *t, float vec[2]);
@@ -770,7 +770,7 @@ typedef enum {
 } MouseInputMode;
 
 void initMouseInput(
-    TransInfo *t, MouseInput *mi, const float center[2], const int mval[2], const bool precision);
+    TransInfo *t, MouseInput *mi, const float center[2], const int mval[2], bool precision);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
 void applyMouseInput(struct TransInfo *t,
                      struct MouseInput *mi,

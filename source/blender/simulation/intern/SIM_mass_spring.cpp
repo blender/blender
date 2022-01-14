@@ -625,7 +625,7 @@ static void cloth_calc_force(
   }
 #endif
 
-  /* cloth_calc_volume_force(clmd); */
+  // cloth_calc_volume_force(clmd);
 
 #ifdef CLOTH_FORCE_DRAG
   SIM_mass_spring_force_drag(data, drag);

@@ -47,9 +47,9 @@ void cmp_node_update_default(bNodeTree *UNUSED(ntree), bNode *node)
   node->need_exec = 1;
 }
 
-void cmp_node_type_base(bNodeType *ntype, int type, const char *name, short nclass, short flag)
+void cmp_node_type_base(bNodeType *ntype, int type, const char *name, short nclass)
 {
-  node_type_base(ntype, type, name, nclass, flag);
+  node_type_base(ntype, type, name, nclass);
 
   ntype->poll = cmp_node_poll_default;
   ntype->updatefunc = cmp_node_update_default;

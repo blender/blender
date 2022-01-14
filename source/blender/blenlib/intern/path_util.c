@@ -957,15 +957,15 @@ bool BLI_path_abs(char *path, const char *basepath)
 
 #endif
 
-  /* push slashes into unix mode - strings entering this part are
+  /* NOTE(@jesterKing): push slashes into unix mode - strings entering this part are
    * potentially messed up: having both back- and forward slashes.
    * Here we push into one conform direction, and at the end we
    * push them into the system specific dir. This ensures uniformity
-   * of paths and solving some problems (and prevent potential future
-   * ones) -jesterKing.
-   * For UNC paths the first characters containing the UNC prefix
+   * of paths and solving some problems (and prevent potential future ones).
+   *
+   * NOTE(@elubie): For UNC paths the first characters containing the UNC prefix
    * shouldn't be switched as we need to distinguish them from
-   * paths relative to the .blend file -elubie */
+   * paths relative to the `.blend` file. */
   BLI_str_replace_char(tmp + BLI_path_unc_prefix_len(tmp), '\\', '/');
 
   /* Paths starting with `//` will get the blend file as their base,

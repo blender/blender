@@ -29,7 +29,7 @@
 
 #include "RNA_access.h"
 
-#include "../outliner_intern.h"
+#include "../outliner_intern.hh"
 #include "tree_display.h"
 
 #include "tree_element_overrides.hh"

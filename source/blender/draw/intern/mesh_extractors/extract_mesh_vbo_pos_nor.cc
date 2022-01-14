@@ -74,9 +74,8 @@ static void extract_pos_nor_init(const MeshRenderData *mr,
     }
   }
   else {
-    const MVert *mv = mr->mvert;
-    for (int v = 0; v < mr->vert_len; v++, mv++) {
-      data->normals[v].low = GPU_normal_convert_i10_s3(mv->no);
+    for (int v = 0; v < mr->vert_len; v++) {
+      data->normals[v].low = GPU_normal_convert_i10_v3(mr->vert_normals[v]);
     }
   }
 }
@@ -255,7 +254,7 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
 }
 
 static void extract_pos_nor_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
-                                              const MeshRenderData *UNUSED(mr),
+                                              const MeshRenderData *mr,
                                               const MeshExtractLooseGeom *loose_geom,
                                               void *buffer,
                                               void *UNUSED(data))
@@ -285,11 +284,11 @@ static void extract_pos_nor_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache
     const MVert *loose_vert2 = &coarse_verts[loose_edge->v2];
 
     copy_v3_v3(edge_data[0].pos, loose_vert1->co);
-    normal_short_to_float_v3(edge_data[0].nor, loose_vert1->no);
+    copy_v3_v3(edge_data[0].nor, mr->vert_normals[loose_edge->v1]);
     edge_data[0].flag = 0.0f;
 
     copy_v3_v3(edge_data[1].pos, loose_vert2->co);
-    normal_short_to_float_v3(edge_data[1].nor, loose_vert2->no);
+    copy_v3_v3(edge_data[1].nor, mr->vert_normals[loose_edge->v2]);
     edge_data[1].flag = 0.0f;
 
     GPU_vertbuf_update_sub(
@@ -304,7 +303,7 @@ static void extract_pos_nor_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache
     const MVert *loose_vertex = &coarse_verts[loose_geom->verts[i]];
 
     copy_v3_v3(vert_data.pos, loose_vertex->co);
-    normal_short_to_float_v3(vert_data.nor, loose_vertex->no);
+    copy_v3_v3(vert_data.nor, mr->vert_normals[loose_geom->verts[i]]);
 
     GPU_vertbuf_update_sub(
         vbo, offset * sizeof(SubdivPosNorLoop), sizeof(SubdivPosNorLoop), &vert_data);
@@ -380,9 +379,8 @@ static void extract_pos_nor_hq_init(const MeshRenderData *mr,
     }
   }
   else {
-    const MVert *mv = mr->mvert;
-    for (int v = 0; v < mr->vert_len; v++, mv++) {
-      copy_v3_v3_short(data->normals[v].high, mv->no);
+    for (int v = 0; v < mr->vert_len; v++) {
+      normal_float_to_short_v3(data->normals[v].high, mr->vert_normals[v]);
     }
   }
 }

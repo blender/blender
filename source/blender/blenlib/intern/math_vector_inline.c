@@ -438,13 +438,6 @@ MINLINE void add_v3fl_v3fl_v3i(float r[3], const float a[3], const int b[3])
   r[2] = a[2] + (float)b[2];
 }
 
-MINLINE void add_v3fl_v3fl_v3s(float r[3], const float a[3], const short b[3])
-{
-  r[0] = a[0] + (float)b[0];
-  r[1] = a[1] + (float)b[1];
-  r[2] = a[2] + (float)b[2];
-}
-
 MINLINE void add_v4_v4(float r[4], const float a[4])
 {
   r[0] += a[0];

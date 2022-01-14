@@ -17,33 +17,25 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 
 #include "RE_texture.h"
 
 namespace blender::nodes::node_shader_particle_info_cc {
 
-static bNodeSocketTemplate outputs[] = {
-    {SOCK_FLOAT, "Index"},
-    {SOCK_FLOAT, "Random"},
-    {SOCK_FLOAT, "Age"},
-    {SOCK_FLOAT, "Lifetime"},
-    {SOCK_VECTOR, "Location"},
-#if 0 /* quaternion sockets not yet supported */
-    {SOCK_QUATERNION, "Rotation"},
-#endif
-    {SOCK_FLOAT, "Size"},
-    {SOCK_VECTOR, "Velocity"},
-    {SOCK_VECTOR, "Angular Velocity"},
-    {-1, ""},
-};
-static void node_shader_exec_particle_info(void *UNUSED(data),
-                                           int UNUSED(thread),
-                                           bNode *UNUSED(node),
-                                           bNodeExecData *UNUSED(execdata),
-                                           bNodeStack **UNUSED(in),
-                                           bNodeStack **UNUSED(out))
+static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.add_output<decl::Float>(N_("Index"));
+  b.add_output<decl::Float>(N_("Random"));
+  b.add_output<decl::Float>(N_("Age"));
+  b.add_output<decl::Float>(N_("Lifetime"));
+  b.add_output<decl::Vector>(N_("Location"));
+#if 0 /* quaternion sockets not yet supported */
+  b.add_output<decl::Quaternion>(N_("Rotation"));
+#endif
+  b.add_output<decl::Float>(N_("Size"));
+  b.add_output<decl::Vector>(N_("Velocity"));
+  b.add_output<decl::Vector>(N_("Angular Velocity"));
 }
 
 static int gpu_shader_particle_info(GPUMaterial *mat,
@@ -73,9 +65,8 @@ void register_node_type_sh_particle_info()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_PARTICLE_INFO, "Particle Info", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, file_ns::outputs);
-  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_particle_info);
+  sh_node_type_base(&ntype, SH_NODE_PARTICLE_INFO, "Particle Info", NODE_CLASS_INPUT);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::gpu_shader_particle_info);
 
   nodeRegisterType(&ntype);

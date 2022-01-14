@@ -79,10 +79,6 @@ static GpencilVirtualModifierData virtualModifierCommonData;
  * each loop over all the geometry being evaluated.
  */
 
-/**
- * Init grease pencil cache deform data.
- * \param ob: Grease pencil object
- */
 void BKE_gpencil_cache_data_init(Depsgraph *depsgraph, Object *ob)
 {
   LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
@@ -131,10 +127,6 @@ void BKE_gpencil_cache_data_init(Depsgraph *depsgraph, Object *ob)
   }
 }
 
-/**
- * Clear grease pencil cache deform data.
- * \param ob: Grease pencil object
- */
 void BKE_gpencil_cache_data_clear(Object *ob)
 {
   LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {

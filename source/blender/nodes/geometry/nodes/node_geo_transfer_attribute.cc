@@ -296,7 +296,7 @@ static void get_closest_mesh_corners(const Mesh &mesh,
       const MLoop &loop = mesh.mloop[loop_index];
       const int vertex_index = loop.v;
       const MVert &mvert = mesh.mvert[vertex_index];
-      const float distance_sq = float3::distance_squared(position, mvert.co);
+      const float distance_sq = math::distance_squared(position, float3(mvert.co));
       if (distance_sq < min_distance_sq) {
         min_distance_sq = distance_sq;
         closest_loop_index = loop_index;
@@ -827,7 +827,7 @@ void register_node_type_geo_transfer_attribute()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_TRANSFER_ATTRIBUTE, "Transfer Attribute", NODE_CLASS_ATTRIBUTE, 0);
+      &ntype, GEO_NODE_TRANSFER_ATTRIBUTE, "Transfer Attribute", NODE_CLASS_ATTRIBUTE);
   node_type_init(&ntype, file_ns::node_init);
   node_type_update(&ntype, file_ns::node_update);
   node_type_storage(&ntype,

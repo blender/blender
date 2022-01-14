@@ -26,14 +26,14 @@ extern "C" {
 
 bool BM_mesh_boolean(BMesh *bm,
                      struct BMLoop *(*looptris)[3],
-                     const int looptris_tot,
+                     int looptris_tot,
                      int (*test_fn)(BMFace *f, void *user_data),
                      void *user_data,
-                     const int nshapes,
-                     const bool use_self,
-                     const bool keep_hidden,
-                     const bool hole_tolerant,
-                     const int boolean_mode);
+                     int nshapes,
+                     bool use_self,
+                     bool keep_hidden,
+                     bool hole_tolerant,
+                     int boolean_mode);
 
 /**
  * Perform a Knife Intersection operation on the mesh `bm`.
@@ -47,14 +47,14 @@ bool BM_mesh_boolean(BMesh *bm,
  */
 bool BM_mesh_boolean_knife(BMesh *bm,
                            struct BMLoop *(*looptris)[3],
-                           const int looptris_tot,
+                           int looptris_tot,
                            int (*test_fn)(BMFace *f, void *user_data),
                            void *user_data,
-                           const int nshapes,
-                           const bool use_self,
-                           const bool use_separate_all,
-                           const bool hole_tolerant,
-                           const bool keep_hidden);
+                           int nshapes,
+                           bool use_self,
+                           bool use_separate_all,
+                           bool hole_tolerant,
+                           bool keep_hidden);
 
 #ifdef __cplusplus
 }

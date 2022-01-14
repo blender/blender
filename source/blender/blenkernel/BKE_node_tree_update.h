@@ -35,7 +35,7 @@ extern "C" {
  * Tag tree as changed without providing any more information about what has changed exactly.
  * The update process has to assume that everything may have changed.
  *
- * Using one of the methods below to tag the tree after changes is preffered when possible.
+ * Using one of the methods below to tag the tree after changes is preferred when possible.
  */
 void BKE_ntree_update_tag_all(struct bNodeTree *ntree);
 

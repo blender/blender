@@ -225,8 +225,8 @@ GridCoord multires_reshape_ptex_coord_to_grid(const MultiresReshapeContext *resh
  * Is calculated for the given surface derivatives at a given base face corner.
  */
 void multires_reshape_tangent_matrix_for_corner(const MultiresReshapeContext *reshape_context,
-                                                const int face_index,
-                                                const int corner,
+                                                int face_index,
+                                                int corner,
                                                 const float dPdu[3],
                                                 const float dPdv[3],
                                                 float r_tangent_matrix[3][3]);
@@ -266,7 +266,7 @@ void multires_reshape_evaluate_limit_at_grid(const MultiresReshapeContext *resha
 /**
  * Make sure custom data is allocated for the given level.
  */
-void multires_reshape_ensure_grids(struct Mesh *mesh, const int level);
+void multires_reshape_ensure_grids(struct Mesh *mesh, int level);
 
 /* --------------------------------------------------------------------
  * Functions specific to reshaping from a set of vertices in a object position.
@@ -283,7 +283,7 @@ void multires_reshape_ensure_grids(struct Mesh *mesh, const int level);
 bool multires_reshape_assign_final_coords_from_vertcos(
     const MultiresReshapeContext *reshape_context,
     const float (*vert_coords)[3],
-    const int num_vert_coords);
+    int num_vert_coords);
 
 /* --------------------------------------------------------------------
  * Functions specific to reshaping from CCG.
@@ -338,7 +338,7 @@ void multires_reshape_smooth_object_grids_with_details(
  * Makes it so surface on top level looks smooth. Details are not preserved
  */
 void multires_reshape_smooth_object_grids(const MultiresReshapeContext *reshape_context,
-                                          const enum eMultiresSubdivideModeType mode);
+                                          enum eMultiresSubdivideModeType mode);
 
 /* --------------------------------------------------------------------
  * Displacement, space conversion.

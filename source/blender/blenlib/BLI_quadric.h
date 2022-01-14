@@ -42,12 +42,12 @@ void BLI_quadric_clear(Quadric *q);
 
 void BLI_quadric_add_qu_qu(Quadric *a, const Quadric *b);
 void BLI_quadric_add_qu_ququ(Quadric *r, const Quadric *a, const Quadric *b);
-void BLI_quadric_mul(Quadric *a, const double scalar);
+void BLI_quadric_mul(Quadric *a, double scalar);
 
 /* Solve. */
 
 double BLI_quadric_evaluate(const Quadric *q, const double v[3]);
-bool BLI_quadric_optimize(const Quadric *q, double v[3], const double epsilon);
+bool BLI_quadric_optimize(const Quadric *q, double v[3], double epsilon);
 
 #ifdef __cplusplus
 }

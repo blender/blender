@@ -188,24 +188,24 @@ class FrameBuffer {
     copy_v4_v4_int(r_scissor, scissor_);
   }
 
-  inline bool scissor_test_get(void) const
+  inline bool scissor_test_get() const
   {
     return scissor_test_;
   }
 
-  inline void viewport_reset(void)
+  inline void viewport_reset()
   {
     int viewport_rect[4] = {0, 0, width_, height_};
     viewport_set(viewport_rect);
   }
 
-  inline void scissor_reset(void)
+  inline void scissor_reset()
   {
     int scissor_rect[4] = {0, 0, width_, height_};
     scissor_set(scissor_rect);
   }
 
-  inline GPUTexture *depth_tex(void) const
+  inline GPUTexture *depth_tex() const
   {
     if (attachments_[GPU_FB_DEPTH_ATTACHMENT].tex) {
       return attachments_[GPU_FB_DEPTH_ATTACHMENT].tex;

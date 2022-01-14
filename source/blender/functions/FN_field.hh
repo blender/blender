@@ -287,7 +287,7 @@ class FieldConstant : public FieldNode {
 
   const CPPType &output_cpp_type(int output_index) const override;
   const CPPType &type() const;
-  const GPointer value() const;
+  GPointer value() const;
 };
 
 /**
@@ -448,7 +448,7 @@ class FieldEvaluator : NonMovable, NonCopyable {
    * to avoid calculations for unnecessary elements later on. The evaluator will own the indices in
    * some cases, so it must live at least as long as the returned mask.
    */
-  IndexMask get_evaluated_as_mask(const int field_index);
+  IndexMask get_evaluated_as_mask(int field_index);
 };
 
 /**

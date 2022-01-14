@@ -26,9 +26,8 @@
 #include "BKE_attribute.h"
 
 #include "BLI_color.hh"
-#include "BLI_float2.hh"
-#include "BLI_float3.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_math_vec_types.hh"
 
 /**
  * This file defines classes that help to provide access to attribute data on a #GeometryComponent.
@@ -264,7 +263,7 @@ class OutputAttribute {
   OutputAttribute(GVMutableArray varray,
                   AttributeDomain domain,
                   SaveFn save,
-                  const bool ignore_old_values);
+                  bool ignore_old_values);
 
   ~OutputAttribute();
 
@@ -387,7 +386,7 @@ class CustomDataAttributes {
   CustomDataAttributes(CustomDataAttributes &&other);
   CustomDataAttributes &operator=(const CustomDataAttributes &other);
 
-  void reallocate(const int size);
+  void reallocate(int size);
 
   void clear();
 
@@ -423,8 +422,7 @@ class CustomDataAttributes {
    */
   void reorder(Span<AttributeIDRef> new_order);
 
-  bool foreach_attribute(const AttributeForeachCallback callback,
-                         const AttributeDomain domain) const;
+  bool foreach_attribute(const AttributeForeachCallback callback, AttributeDomain domain) const;
 };
 
 /* -------------------------------------------------------------------- */

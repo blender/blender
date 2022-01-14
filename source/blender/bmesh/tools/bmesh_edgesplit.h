@@ -29,10 +29,7 @@ extern "C" {
  * \param tag_only: Only split tagged edges.
  * \param copy_select: Copy selection history.
  */
-void BM_mesh_edgesplit(BMesh *bm,
-                       const bool use_verts,
-                       const bool tag_only,
-                       const bool copy_select);
+void BM_mesh_edgesplit(BMesh *bm, bool use_verts, bool tag_only, bool copy_select);
 
 #ifdef __cplusplus
 }

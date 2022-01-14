@@ -265,7 +265,8 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const int *sculpt_face_sets,
                                   const int face_sets_color_seed,
                                   const int face_sets_color_default,
-                                  const int update_flags)
+                                  const int update_flags,
+                                  const float (*vert_normals)[3])
 {
   GPUAttrRef vcol_refs[MAX_GPU_ATTR];
   GPUAttrRef cd_uvs[MAX_GPU_ATTR];
@@ -460,7 +461,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
           copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), v->co);
 
           if (buffers->smooth) {
-            copy_v3_v3_short(no, v->no);
+            normal_float_to_short_v3(no, vert_normals[vtri[j]]);
           }
           copy_v3_v3_short(GPU_vertbuf_raw_step(&nor_step), no);
 

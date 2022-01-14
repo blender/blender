@@ -60,7 +60,7 @@ void IMB_exr_add_channel(void *handle,
  * Read from file.
  */
 bool IMB_exr_begin_read(
-    void *handle, const char *filename, int *width, int *height, const bool parse_channels);
+    void *handle, const char *filename, int *width, int *height, bool parse_channels);
 /**
  * Used for output files (from #RenderResult) (single and multi-layer, single and multi-view).
  */

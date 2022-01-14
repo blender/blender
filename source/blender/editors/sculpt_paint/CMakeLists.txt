@@ -62,7 +62,7 @@ set(SRC
   sculpt_curvature.c
   sculpt_automasking.c
   sculpt_boundary.c
-  sculpt_brushes.c
+  sculpt_brush_types.c
   sculpt_cloth.c
   sculpt_detail.c
   sculpt_displacement.c

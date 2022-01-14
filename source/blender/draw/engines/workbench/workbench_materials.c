@@ -198,7 +198,7 @@ DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
       }
 
       DRWShadingGroup **grp_mat = NULL;
-      /* A hashmap stores material shgroups to pack all similar drawcalls together. */
+      /* A hash-map stores material shgroups to pack all similar drawcalls together. */
       if (BLI_ghash_ensure_p(prepass->material_hash, ma, (void ***)&grp_mat)) {
         return *grp_mat;
       }
@@ -277,7 +277,7 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
   WORKBENCH_Prepass *prepass = &wpd->prepass[transp][infront][datatype];
 
   DRWShadingGroup **grp_tex = NULL;
-  /* A hashmap stores image shgroups to pack all similar drawcalls together. */
+  /* A hash-map stores image shgroups to pack all similar drawcalls together. */
   if (BLI_ghash_ensure_p(prepass->material_hash, tex, (void ***)&grp_tex)) {
     return *grp_tex;
   }

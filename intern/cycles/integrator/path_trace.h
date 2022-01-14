@@ -72,7 +72,9 @@ class PathTrace {
    * render result. */
   bool ready_to_reset();
 
-  void reset(const BufferParams &full_params, const BufferParams &big_tile_params);
+  void reset(const BufferParams &full_params,
+             const BufferParams &big_tile_params,
+             bool reset_rendering);
 
   void device_free();
 
@@ -111,6 +113,9 @@ class PathTrace {
 
   /* Perform drawing of the current state of the DisplayDriver. */
   void draw();
+
+  /* Flush outstanding display commands before ending the render loop. */
+  void flush_display();
 
   /* Cancel rendering process as soon as possible, without waiting for full tile to be sampled.
    * Used in cases like reset of render session.

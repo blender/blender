@@ -81,7 +81,7 @@ typedef struct TextViewContext {
  * Use for selection.
  */
 int textview_draw(struct TextViewContext *tvc,
-                  const bool do_draw,
+                  bool do_draw,
                   const int mval_init[2],
                   void **r_mval_pick_item,
                   int *r_mval_pick_offset);

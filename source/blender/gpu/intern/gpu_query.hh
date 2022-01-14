@@ -45,8 +45,8 @@ class QueryPool {
    * Will start and end the query at this index inside the pool.
    * The pool will resize automatically.
    */
-  virtual void begin_query(void) = 0;
-  virtual void end_query(void) = 0;
+  virtual void begin_query() = 0;
+  virtual void end_query() = 0;
 
   /**
    * Must be fed with a buffer large enough to contain all the queries issued.

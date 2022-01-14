@@ -536,7 +536,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
       }
     }
     else if (image.zsize == 2) {
-      /* grayscale with alpha */
+      /* Gray-scale with alpha. */
       rect = (uchar *)ibuf->rect;
       for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
         rect[0] = rect[2];
@@ -564,7 +564,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
       }
     }
     else if (image.zsize == 2) {
-      /* grayscale with alpha */
+      /* Gray-scale with alpha. */
       fbase = ibuf->rect_float;
       for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
         fbase[0] = fbase[2];

@@ -439,7 +439,7 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
     case ID_LA:
       return (ELEM(id_type_used, ID_TE));
     case ID_CA:
-      return ELEM(id_type_used, ID_OB);
+      return ELEM(id_type_used, ID_OB, ID_IM);
     case ID_KE:
       /* Warning! key->from, could be more types in future? */
       return ELEM(id_type_used, ID_ME, ID_CU, ID_LT);

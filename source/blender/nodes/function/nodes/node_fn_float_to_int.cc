@@ -32,7 +32,7 @@ static void fn_node_float_to_int_declare(NodeDeclarationBuilder &b)
   b.is_function_node();
   b.add_input<decl::Float>(N_("Float"));
   b.add_output<decl::Int>(N_("Integer"));
-};
+}
 
 static void fn_node_float_to_int_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -89,7 +89,7 @@ void register_node_type_fn_float_to_int()
 
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_FLOAT_TO_INT, "Float to Integer", NODE_CLASS_CONVERTER, 0);
+  fn_node_type_base(&ntype, FN_NODE_FLOAT_TO_INT, "Float to Integer", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::fn_node_float_to_int_declare;
   ntype.labelfunc = file_ns::node_float_to_int_label;
   ntype.build_multi_function = file_ns::fn_node_float_to_int_build_multi_function;

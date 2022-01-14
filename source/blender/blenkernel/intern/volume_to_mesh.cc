@@ -16,7 +16,7 @@
 
 #include <vector>
 
-#include "BLI_float3.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 

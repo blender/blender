@@ -141,14 +141,23 @@ ccl_device_inline float3 shadow_ray_smooth_surface_offset(
     KernelGlobals kg, ccl_private const ShaderData *ccl_restrict sd, float3 Ng)
 {
   float3 V[3], N[3];
-  triangle_vertices_and_normals(kg, sd->prim, V, N);
+
+  if (sd->type == PRIMITIVE_MOTION_TRIANGLE) {
+    motion_triangle_vertices_and_normals(kg, sd->object, sd->prim, sd->time, V, N);
+  }
+  else {
+    kernel_assert(sd->type == PRIMITIVE_TRIANGLE);
+    triangle_vertices_and_normals(kg, sd->prim, V, N);
+  }
 
   const float u = sd->u, v = sd->v;
   const float w = 1 - u - v;
   float3 P = V[0] * u + V[1] * v + V[2] * w; /* Local space */
   float3 n = N[0] * u + N[1] * v + N[2] * w; /* We get away without normalization */
 
-  object_normal_transform(kg, sd, &n); /* Normal x scale, world space */
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+    object_normal_transform(kg, sd, &n); /* Normal x scale, world space */
+  }
 
   /* Parabolic approximation */
   float a = dot(N[2] - N[0], V[0] - V[2]);

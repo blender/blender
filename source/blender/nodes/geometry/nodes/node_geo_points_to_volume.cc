@@ -166,7 +166,7 @@ static float compute_voxel_size(const GeoNodeExecParams &params,
   }
 
   /* The voxel size adapts to the final size of the volume. */
-  const float diagonal = float3::distance(min, max);
+  const float diagonal = math::distance(min, max);
   const float extended_diagonal = diagonal + 2.0f * radius;
   const float voxel_size = extended_diagonal / voxel_amount;
   return voxel_size;
@@ -269,8 +269,7 @@ void register_node_type_geo_points_to_volume()
 
   static bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_POINTS_TO_VOLUME, "Points to Volume", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_POINTS_TO_VOLUME, "Points to Volume", NODE_CLASS_GEOMETRY);
   node_type_storage(&ntype,
                     "NodeGeometryPointsToVolume",
                     node_free_standard_storage,

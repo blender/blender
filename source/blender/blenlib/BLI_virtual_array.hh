@@ -79,7 +79,7 @@ template<typename T> class VArrayImpl {
    * Get the element at #index. This does not return a reference, because the value may be computed
    * on the fly.
    */
-  virtual T get(const int64_t index) const = 0;
+  virtual T get(int64_t index) const = 0;
 
   /**
    * Return true when the virtual array is a plain array internally.
@@ -202,7 +202,7 @@ template<typename T> class VMutableArrayImpl : public VArrayImpl<T> {
   /**
    * Assign the provided #value to the #index.
    */
-  virtual void set(const int64_t index, T value) = 0;
+  virtual void set(int64_t index, T value) = 0;
 
   /**
    * Copy all elements from the provided span into the virtual array.

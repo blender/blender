@@ -57,8 +57,8 @@ class FrsMaterial {
                      const float *iAmbiant,
                      const float *iSpecular,
                      const float *iEmission,
-                     const float iShininess,
-                     const int iPriority);
+                     float iShininess,
+                     int iPriority);
 
   /** Copy constructor */
   inline FrsMaterial(const FrsMaterial &m);
@@ -240,7 +240,7 @@ class FrsMaterial {
    *    \param a:
    *      Alpha component
    */
-  inline void setLine(const float r, const float g, const float b, const float a);
+  inline void setLine(float r, float g, float b, float a);
 
   /** Sets the diffuse color.
    *    \param r:
@@ -252,7 +252,7 @@ class FrsMaterial {
    *    \param a:
    *      Alpha component
    */
-  inline void setDiffuse(const float r, const float g, const float b, const float a);
+  inline void setDiffuse(float r, float g, float b, float a);
 
   /** Sets the specular color.
    *    \param r:
@@ -264,7 +264,7 @@ class FrsMaterial {
    *    \param a:
    *      Alpha component
    */
-  inline void setSpecular(const float r, const float g, const float b, const float a);
+  inline void setSpecular(float r, float g, float b, float a);
 
   /** Sets the ambient color.
    *    \param r:
@@ -276,7 +276,7 @@ class FrsMaterial {
    *    \param a:
    *      Alpha component
    */
-  inline void setAmbient(const float r, const float g, const float b, const float a);
+  inline void setAmbient(float r, float g, float b, float a);
 
   /** Sets the emissive color.
    *    \param r:
@@ -288,19 +288,19 @@ class FrsMaterial {
    *    \param a:
    *      Alpha component
    */
-  inline void setEmission(const float r, const float g, const float b, const float a);
+  inline void setEmission(float r, float g, float b, float a);
 
   /** Sets the shininess.
    *    \param s:
    *      Shininess
    */
-  inline void setShininess(const float s);
+  inline void setShininess(float s);
 
   /** Sets the line color priority.
    *    \param priority:
    *      Priority
    */
-  inline void setPriority(const int priority);
+  inline void setPriority(int priority);
 
   /* operators */
   inline FrsMaterial &operator=(const FrsMaterial &m);

@@ -60,7 +60,7 @@ void BKE_rigidbody_free_constraint(struct Object *ob);
 void BKE_rigidbody_object_copy(struct Main *bmain,
                                struct Object *ob_dst,
                                const struct Object *ob_src,
-                               const int flag);
+                               int flag);
 
 /** \} */
 
@@ -122,7 +122,7 @@ void BKE_rigidbody_main_collection_object_add(struct Main *bmain,
 /**
  * Copy.
  */
-struct RigidBodyWorld *BKE_rigidbody_world_copy(struct RigidBodyWorld *rbw, const int flag);
+struct RigidBodyWorld *BKE_rigidbody_world_copy(struct RigidBodyWorld *rbw, int flag);
 void BKE_rigidbody_world_groups_relink(struct RigidBodyWorld *rbw);
 
 /**
@@ -167,11 +167,11 @@ void BKE_rigidbody_ensure_local_object(struct Main *bmain, struct Object *ob);
 void BKE_rigidbody_remove_object(struct Main *bmain,
                                  struct Scene *scene,
                                  struct Object *ob,
-                                 const bool free_us);
+                                 bool free_us);
 void BKE_rigidbody_remove_constraint(struct Main *bmain,
                                      struct Scene *scene,
                                      struct Object *ob,
-                                     const bool free_us);
+                                     bool free_us);
 
 /** \} */
 

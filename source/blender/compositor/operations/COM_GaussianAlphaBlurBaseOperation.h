@@ -39,9 +39,7 @@ class GaussianAlphaBlurBaseOperation : public BlurBaseOperation {
   virtual void init_execution() override;
   virtual void deinit_execution() override;
 
-  void get_area_of_interest(const int input_idx,
-                            const rcti &output_area,
-                            rcti &r_input_area) final;
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) final;
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
                                     Span<MemoryBuffer *> inputs) final;
@@ -56,6 +54,11 @@ class GaussianAlphaBlurBaseOperation : public BlurBaseOperation {
   void set_falloff(int falloff)
   {
     falloff_ = falloff;
+  }
+
+  BLI_INLINE float finv_test(const float f, const bool test)
+  {
+    return (LIKELY(test == false)) ? f : 1.0f - f;
   }
 };
 

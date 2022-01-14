@@ -23,7 +23,7 @@
 
 #include "DNA_node_types.h"
 
-#include "node_shader_util.h"
+#include "node_shader_util.hh"
 
 #include "NOD_socket_search_link.hh"
 
@@ -49,26 +49,25 @@ static bool sh_fn_poll_default(bNodeType *UNUSED(ntype),
   return true;
 }
 
-void sh_node_type_base(
-    struct bNodeType *ntype, int type, const char *name, short nclass, short flag)
+void sh_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass)
 {
-  node_type_base(ntype, type, name, nclass, flag);
+  node_type_base(ntype, type, name, nclass);
 
   ntype->poll = sh_node_poll_default;
   ntype->insert_link = node_insert_link_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
 }
 
-void sh_fn_node_type_base(bNodeType *ntype, int type, const char *name, short nclass, short flag)
+void sh_fn_node_type_base(bNodeType *ntype, int type, const char *name, short nclass)
 {
-  sh_node_type_base(ntype, type, name, nclass, flag);
+  sh_node_type_base(ntype, type, name, nclass);
   ntype->poll = sh_fn_poll_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
 }
 
 /* ****** */
 
-void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
+static void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
 {
   const float *from = ns->vec;
 

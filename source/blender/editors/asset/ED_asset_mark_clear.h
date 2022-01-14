@@ -50,7 +50,8 @@ void ED_asset_generate_preview(const struct bContext *C, struct ID *id);
  * This clears the Fake User. If for some reason the datablock is meant to be saved anyway, the
  * caller is responsible for explicitly setting the Fake User.
  *
- * \return whether the asset metadata was actually removed; false when the ID was not an asset. */
+ * \return whether the asset metadata was actually removed; false when the ID was not an asset.
+ */
 bool ED_asset_clear_id(struct ID *id);
 
 void ED_assets_pre_save(struct Main *bmain);

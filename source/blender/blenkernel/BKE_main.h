@@ -212,12 +212,10 @@ void BKE_main_lock(struct Main *bmain);
 void BKE_main_unlock(struct Main *bmain);
 
 /** Generate the mappings between used IDs and their users, and vice-versa. */
-void BKE_main_relations_create(struct Main *bmain, const short flag);
+void BKE_main_relations_create(struct Main *bmain, short flag);
 void BKE_main_relations_free(struct Main *bmain);
 /** Set or clear given `tag` in all relation entries of given `bmain`. */
-void BKE_main_relations_tag_set(struct Main *bmain,
-                                const eMainIDRelationsEntryTags tag,
-                                const bool value);
+void BKE_main_relations_tag_set(struct Main *bmain, eMainIDRelationsEntryTags tag, bool value);
 
 /**
  * Create a #GSet storing all IDs present in given \a bmain, by their pointers.

@@ -482,7 +482,7 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
             MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
 
-            normal_short_to_float_v3(fno, v->no);
+            normal_short_to_float_v3(fno, ss->vert_normals + ml->v);
             float mask = ss->vmask ? ss->vmask[ml->v] : 0.0f;
 
             const float fade2 = bstrength *
@@ -490,7 +490,7 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                              brush,
                                                              v->co,
                                                              sqrtf(test.dist),
-                                                             v->no,
+                                                             ss->vert_normals + ml->v,
                                                              fno,
                                                              mask,
                                                              (SculptVertRef){.i = ml->v},
@@ -567,18 +567,15 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
             }
 
             do {
-              short sno[3];
               float mask = cd_mask >= 0 ? BM_ELEM_CD_GET_FLOAT(l->v, cd_mask) : 0.0f;
-
-              normal_float_to_short_v3(sno, l->v->no);
 
               const float fade2 = bstrength * SCULPT_brush_strength_factor(
                                                   ss,
                                                   brush,
                                                   l->v->co,
                                                   sqrtf(test.dist),
-                                                  sno,
                                                   l->v->no,
+                                                  l->f->no,
                                                   mask,
                                                   (SculptVertRef){.i = (intptr_t)l->v},
                                                   thread_id);

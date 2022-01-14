@@ -680,29 +680,29 @@ void SCULPT_vertex_color_set(const SculptSession *ss, SculptVertRef vertex, floa
   }
 }
 
-void SCULPT_vertex_normal_get(SculptSession *ss, SculptVertRef index, float no[3])
+void SCULPT_vertex_normal_get(SculptSession *ss, SculptVertRef vertex, float no[3])
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       if (ss->shapekey_active || ss->deform_modifiers_active) {
-        const MVert *mverts = BKE_pbvh_get_verts(ss->pbvh);
-        normal_short_to_float_v3(no, mverts[index.i].no);
+        const float(*vert_normals)[3] = BKE_pbvh_get_vert_normals(ss->pbvh);
+        copy_v3_v3(no, vert_normals[vertex.i]);
       }
       else {
-        normal_short_to_float_v3(no, ss->mvert[index.i].no);
+        copy_v3_v3(no, ss->vert_normals[vertex.i]);
       }
       break;
     }
     case PBVH_BMESH: {
-      BMVert *v = (BMVert *)index.i;
+      BMVert *v = (BMVert *)vertex.i;
 
       copy_v3_v3(no, v->no);
       break;
     }
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
-      const int grid_index = index.i / key->grid_area;
-      const int vertex_index = index.i - grid_index * key->grid_area;
+      const int grid_index = vertex.i / key->grid_area;
+      const int vertex_index = vertex.i - grid_index * key->grid_area;
       CCGElem *elem = BKE_pbvh_get_grids(ss->pbvh)[grid_index];
       copy_v3_v3(no, CCG_elem_no(key, CCG_elem_offset(key, elem, vertex_index)));
       break;
@@ -823,11 +823,11 @@ float SCULPT_vertex_mask_get(SculptSession *ss, SculptVertRef index)
 }
 
 bool SCULPT_attr_ensure_layer(SculptSession *ss,
-                                    Object *ob,
-                                    AttributeDomain domain,
-                                    int proptype,
-                                    const char *name,
-                                    SculptLayerParams *params)
+                              Object *ob,
+                              AttributeDomain domain,
+                              int proptype,
+                              const char *name,
+                              SculptLayerParams *params)
 {
   SculptCustomLayer scl;
 
@@ -844,9 +844,9 @@ bool SCULPT_attr_ensure_layer(SculptSession *ss,
 
 /* TODO: thoroughly test this function */
 bool SCULPT_attr_has_layer(SculptSession *ss,
-                                 AttributeDomain domain,
-                                 int proptype,
-                                 const char *name)
+                           AttributeDomain domain,
+                           int proptype,
+                           const char *name)
 {
   CustomData *vdata = NULL, *pdata = NULL, *data = NULL;
 
@@ -888,12 +888,12 @@ bool SCULPT_attr_release_layer(SculptSession *ss, Object *ob, SculptCustomLayer 
 }
 
 bool SCULPT_attr_get_layer(SculptSession *ss,
-                                 Object *ob,
-                                 AttributeDomain domain,
-                                 int proptype,
-                                 const char *name,
-                                 SculptCustomLayer *scl,
-                                 SculptLayerParams *params)
+                           Object *ob,
+                           AttributeDomain domain,
+                           int proptype,
+                           const char *name,
+                           SculptCustomLayer *scl,
+                           SculptLayerParams *params)
 {
   return BKE_sculptsession_attr_get_layer(ob, domain, proptype, name, scl, params);
 }
@@ -3052,9 +3052,8 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, SculptVertRef v
 
   if (orig_data->datatype == SCULPT_UNDO_COORDS) {
     float *no = mv->origno;
-    normal_float_to_short_v3(orig_data->_no, no);
 
-    orig_data->no = orig_data->_no;
+    orig_data->no = no;
     orig_data->co = mv->origco;
   }
   else if (orig_data->datatype == SCULPT_UNDO_COLOR) {
@@ -3126,7 +3125,7 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
       copy_v3_v3(vd.co, mv->origco);
 
       if (vd.no) {
-        normal_float_to_short_v3(vd.no, mv->origno);
+        copy_v3_v3(vd.no, mv->origno);
       }
       else {
         copy_v3_v3(vd.fno, mv->origno);
@@ -3439,7 +3438,7 @@ const float *SCULPT_brush_frontface_normal_from_falloff_shape(SculptSession *ss,
 
 static float frontface(const Brush *br,
                        const float sculpt_normal[3],
-                       const short no[3],
+                       const float no[3],
                        const float fno[3])
 {
   if (!(br->flag & BRUSH_FRONTFACE)) {
@@ -3448,10 +3447,7 @@ static float frontface(const Brush *br,
 
   float dot;
   if (no) {
-    float tmp[3];
-
-    normal_short_to_float_v3(tmp, no);
-    dot = dot_v3v3(tmp, sculpt_normal);
+    dot = dot_v3v3(no, sculpt_normal);
   }
   else {
     dot = dot_v3v3(fno, sculpt_normal);
@@ -3689,19 +3685,19 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
       float co[3];
 
       /* For bm_vert only. */
-      short no_s[3];
+      float no_s[3];
 
       if (use_original) {
         if (unode->bm_entry) {
           BMVert *v = vd.bm_vert;
           MSculptVert *mv = BKE_PBVH_SCULPTVERT(vd.cd_sculpt_vert, v);
 
-          normal_float_to_short_v3(no_s, mv->origno);
+          copy_v3_v3(no_s, mv->origno);
           copy_v3_v3(co, mv->origco);
         }
         else {
           copy_v3_v3(co, unode->co[vd.i]);
-          copy_v3_v3_short(no_s, unode->no[vd.i]);
+          copy_v3_v3(no_s, unode->no[vd.i]);
         }
       }
       else {
@@ -3721,11 +3717,11 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
       data->any_vertex_sampled = true;
 
       if (use_original) {
-        normal_short_to_float_v3(no, no_s);
+        copy_v3_v3(no, no_s);
       }
       else {
         if (vd.no) {
-          normal_short_to_float_v3(no, vd.no);
+          copy_v3_v3(no, vd.no);
         }
         else {
           copy_v3_v3(no, vd.fno);
@@ -3879,8 +3875,6 @@ bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
   return data.any_vertex_sampled;
 }
 
-/* This calculates flatten center and area normal together,
- * amortizing the memory bandwidth and loop overhead to calculate both at the same time. */
 void SCULPT_calc_area_normal_and_center(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3], float r_area_co[3])
 {
@@ -4130,7 +4124,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
                                    const Brush *br,
                                    const float brush_point[3],
                                    const float len,
-                                   const short vno[3],
+                                   const float vno[3],
                                    const float fno[3],
                                    const float mask,
                                    const SculptVertRef vertex_index,
@@ -4303,9 +4297,23 @@ void SCULPT_clip(Sculpt *sd, SculptSession *ss, float co[3], const float val[3])
       continue;
     }
 
-    if (ss->cache && (ss->cache->flag & (CLIP_X << i)) &&
-        (fabsf(co[i]) <= ss->cache->clip_tolerance[i])) {
-      co[i] = 0.0f;
+    bool do_clip = false;
+    float co_clip[3];
+    if (ss->cache && (ss->cache->flag & (CLIP_X << i))) {
+      /* Take possible mirror object into account. */
+      mul_v3_m4v3(co_clip, ss->cache->clip_mirror_mtx, co);
+
+      if (fabsf(co_clip[i]) <= ss->cache->clip_tolerance[i]) {
+        co_clip[i] = 0.0f;
+        float imtx[4][4];
+        invert_m4_m4(imtx, ss->cache->clip_mirror_mtx);
+        mul_m4_v3(imtx, co_clip);
+        do_clip = true;
+      }
+    }
+
+    if (do_clip) {
+      co[i] = co_clip[i];
     }
     else {
       co[i] = val[i];
@@ -5703,8 +5711,8 @@ static void get_nodes_undo(Sculpt *sd,
     }
   }
 
-  /* Initialize auto-masking cache. For anchored brushes with spherical falloff,
-   * we start off with zero radius, thus we have no PBVH nodes on the first brush step. */
+  /* For anchored brushes with spherical falloff, we start off with zero radius, thus we have no
+   * PBVH nodes on the first brush step. */
   if (totnode ||
       ((brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) && (brush->flag & BRUSH_ANCHORED))) {
     if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
@@ -6513,10 +6521,13 @@ void SCULPT_flush_stroke_deform(Sculpt *sd, Object *ob, bool is_proxy_used)
 
     MEM_SAFE_FREE(nodes);
 
+#if 0
+    //XXX check that this works, then delete this code block
     /* Modifiers could depend on mesh normals, so we should update them.
      * NOTE: then if sculpting happens on locked key, normals should be re-calculate after
      * applying coords from key-block on base mesh. */
     BKE_mesh_calc_normals(me);
+#endif
   }
   else if (ss->shapekey_active) {
     sculpt_update_keyblock(ob);
@@ -6870,8 +6881,7 @@ static const char *sculpt_tool_name(Sculpt *sd)
   return "Sculpting";
 }
 
-/**
- * Operator for applying a stroke (various attributes including mouse path)
+/* Operator for applying a stroke (various attributes including mouse path)
  * using the current brush. */
 
 void SCULPT_cache_free(SculptSession *ss, Object *ob, StrokeCache *cache)
@@ -6994,6 +7004,8 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 {
   ModifierData *md;
 
+  unit_m4(ss->cache->clip_mirror_mtx);
+
   for (md = ob->modifiers.first; md; md = md->next) {
     if (!(md->type == eModifierType_Mirror && (md->mode & eModifierMode_Realtime))) {
       continue;
@@ -7014,6 +7026,13 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
       /* Update the clip tolerance. */
       if (mmd->tolerance > ss->cache->clip_tolerance[i]) {
         ss->cache->clip_tolerance[i] = mmd->tolerance;
+      }
+
+      /* Store matrix for mirror object clipping. */
+      if (mmd->mirror_ob) {
+        float imtx_mirror_ob[4][4];
+        invert_m4_m4(imtx_mirror_ob, mmd->mirror_ob->obmat);
+        mul_m4_m4m4(ss->cache->clip_mirror_mtx, imtx_mirror_ob, ob->obmat);
       }
     }
   }

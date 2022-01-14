@@ -106,7 +106,7 @@ bool GHOST_ImeWin32::IsImeKeyEvent(char ascii)
     if (IsLanguage(IMELANG_JAPANESE) && (ascii >= ' ' && ascii <= '~')) {
       return true;
     }
-    else if (IsLanguage(IMELANG_CHINESE) && ascii && strchr("!\"$'(),.:;<>?[\\]^_`", ascii)) {
+    else if (IsLanguage(IMELANG_CHINESE) && ascii && strchr("!\"$'(),.:;<>?[\\]^_`/", ascii)) {
       return true;
     }
   }

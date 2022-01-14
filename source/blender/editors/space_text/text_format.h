@@ -66,12 +66,12 @@ int text_check_format_len(TextLine *line, unsigned int len);
  *
  * \param len: length in bytes of \a fmt_p to fill.
  */
-void text_format_fill(const char **str_p, char **fmt_p, const char type, const int len);
+void text_format_fill(const char **str_p, char **fmt_p, char type, int len);
 /**
  * ASCII version of #text_format_fill,
  * use when we no the text being stepped over is ascii (as is the case for most keywords)
  */
-void text_format_fill_ascii(const char **str_p, char **fmt_p, const char type, const int len);
+void text_format_fill_ascii(const char **str_p, char **fmt_p, char type, int len);
 
 /* *** Generalize Formatting *** */
 typedef struct TextFormatType {
@@ -88,7 +88,7 @@ typedef struct TextFormatType {
    *
    * See: FMT_TYPE_ enums below
    */
-  void (*format_line)(SpaceText *st, TextLine *line, const bool do_next);
+  void (*format_line)(SpaceText *st, TextLine *line, bool do_next);
 
   const char **ext; /* NULL terminated extensions */
 } TextFormatType;

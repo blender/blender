@@ -1135,6 +1135,7 @@ class I18nMessages:
         # XXX Temp solution, until I can make own mo generator working...
         import subprocess
         with tempfile.NamedTemporaryFile(mode='w+', encoding="utf-8") as tmp_po_f:
+            os.makedirs(os.path.dirname(fname), exist_ok=True)
             self.write_messages_to_po(tmp_po_f)
             cmd = (
                 self.settings.GETTEXT_MSGFMT_EXECUTABLE,

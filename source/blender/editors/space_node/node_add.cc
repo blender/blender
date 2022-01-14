@@ -499,6 +499,8 @@ static bool node_add_object_poll(bContext *C)
 
 void NODE_OT_add_object(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Add Node Object";
   ot->description = "Add an object info node to the current node editor";
@@ -513,15 +515,16 @@ void NODE_OT_add_object(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   RNA_def_string(ot->srna, "name", "Object", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
-  RNA_def_int(ot->srna,
-              "session_uuid",
-              0,
-              INT32_MIN,
-              INT32_MAX,
-              "Session UUID",
-              "Session UUID of the data-block to assign",
-              INT32_MIN,
-              INT32_MAX);
+  prop = RNA_def_int(ot->srna,
+                     "session_uuid",
+                     0,
+                     INT32_MIN,
+                     INT32_MAX,
+                     "Session UUID",
+                     "Session UUID of the data-block to assign",
+                     INT32_MIN,
+                     INT32_MAX);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 /** \} */
@@ -602,6 +605,8 @@ static bool node_add_texture_poll(bContext *C)
 
 void NODE_OT_add_texture(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Add Node Texture";
   ot->description = "Add a texture to the current node editor";
@@ -617,15 +622,16 @@ void NODE_OT_add_texture(wmOperatorType *ot)
 
   RNA_def_string(
       ot->srna, "name", "Texture", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
-  RNA_def_int(ot->srna,
-              "session_uuid",
-              0,
-              INT32_MIN,
-              INT32_MAX,
-              "Session UUID",
-              "Session UUID of the data-block to assign",
-              INT32_MIN,
-              INT32_MAX);
+  prop = RNA_def_int(ot->srna,
+                     "session_uuid",
+                     0,
+                     INT32_MIN,
+                     INT32_MAX,
+                     "Session UUID",
+                     "Session UUID of the data-block to assign",
+                     INT32_MIN,
+                     INT32_MAX);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 /** \} */
@@ -711,6 +717,8 @@ static bool node_add_collection_poll(bContext *C)
 
 void NODE_OT_add_collection(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Add Node Collection";
   ot->description = "Add an collection info node to the current node editor";
@@ -726,15 +734,16 @@ void NODE_OT_add_collection(wmOperatorType *ot)
 
   RNA_def_string(
       ot->srna, "name", "Collection", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
-  RNA_def_int(ot->srna,
-              "session_uuid",
-              0,
-              INT32_MIN,
-              INT32_MAX,
-              "Session UUID",
-              "Session UUID of the data-block to assign",
-              INT32_MIN,
-              INT32_MAX);
+  prop = RNA_def_int(ot->srna,
+                     "session_uuid",
+                     0,
+                     INT32_MIN,
+                     INT32_MAX,
+                     "Session UUID",
+                     "Session UUID of the data-block to assign",
+                     INT32_MIN,
+                     INT32_MAX);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 /** \} */
@@ -916,6 +925,8 @@ static int node_add_mask_exec(bContext *C, wmOperator *op)
 
 void NODE_OT_add_mask(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Add Mask Node";
   ot->description = "Add a mask node to the current node editor";
@@ -929,15 +940,16 @@ void NODE_OT_add_mask(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   RNA_def_string(ot->srna, "name", "Mask", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
-  RNA_def_int(ot->srna,
-              "session_uuid",
-              0,
-              INT32_MIN,
-              INT32_MAX,
-              "Session UUID",
-              "Session UUID of the data-block to assign",
-              INT32_MIN,
-              INT32_MAX);
+  prop = RNA_def_int(ot->srna,
+                     "session_uuid",
+                     0,
+                     INT32_MIN,
+                     INT32_MAX,
+                     "Session UUID",
+                     "Session UUID of the data-block to assign",
+                     INT32_MIN,
+                     INT32_MAX);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 /** \} */

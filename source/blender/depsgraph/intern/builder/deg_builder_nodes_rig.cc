@@ -58,13 +58,11 @@ namespace blender::deg {
 
 void DepsgraphNodeBuilder::build_pose_constraints(Object *object,
                                                   bPoseChannel *pchan,
-                                                  int pchan_index,
-                                                  bool is_object_visible)
+                                                  int pchan_index)
 {
   /* Pull indirect dependencies via constraints. */
   BuilderWalkUserData data;
   data.builder = this;
-  data.is_parent_visible = is_object_visible;
   BKE_constraints_id_loop(&pchan->constraints, constraint_walk, &data);
 
   /* Create node for constraint stack. */
@@ -147,7 +145,7 @@ void DepsgraphNodeBuilder::build_splineik_pose(Object *object,
 }
 
 /* Pose/Armature Bones Graph */
-void DepsgraphNodeBuilder::build_rig(Object *object, bool is_object_visible)
+void DepsgraphNodeBuilder::build_rig(Object *object)
 {
   bArmature *armature = (bArmature *)object->data;
   Scene *scene_cow = get_cow_datablock(scene_);
@@ -272,7 +270,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object, bool is_object_visible)
     }
     /* Build constraints. */
     if (pchan->constraints.first != nullptr) {
-      build_pose_constraints(object, pchan, pchan_index, is_object_visible);
+      build_pose_constraints(object, pchan, pchan_index);
     }
     /**
      * IK Solvers.
@@ -301,14 +299,14 @@ void DepsgraphNodeBuilder::build_rig(Object *object, bool is_object_visible)
     }
     /* Custom shape. */
     if (pchan->custom != nullptr) {
-      /* TODO(sergey): Use own visibility. */
-      build_object(-1, pchan->custom, DEG_ID_LINKED_INDIRECTLY, is_object_visible);
+      /* NOTE: The relation builder will ensure visibility of the custom shape object. */
+      build_object(-1, pchan->custom, DEG_ID_LINKED_INDIRECTLY, false);
     }
     pchan_index++;
   }
 }
 
-void DepsgraphNodeBuilder::build_proxy_rig(Object *object, bool is_object_visible)
+void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 {
   bArmature *armature = (bArmature *)object->data;
   OperationNode *op_node;
@@ -356,7 +354,8 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object, bool is_object_visibl
 
     /* Custom shape. */
     if (pchan->custom != nullptr) {
-      build_object(-1, pchan->custom, DEG_ID_LINKED_INDIRECTLY, is_object_visible);
+      /* NOTE: The relation builder will ensure visibility of the custom shape object. */
+      build_object(-1, pchan->custom, DEG_ID_LINKED_INDIRECTLY, false);
     }
 
     pchan_index++;

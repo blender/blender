@@ -28,9 +28,9 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_float3.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_rand.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"

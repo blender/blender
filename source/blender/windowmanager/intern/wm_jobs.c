@@ -381,7 +381,6 @@ static void *do_job_thread(void *job_v)
 {
   wmJob *wm_job = job_v;
 
-  BLI_thread_put_thread_on_fast_node();
   wm_job->startjob(wm_job->run_customdata, &wm_job->stop, &wm_job->do_update, &wm_job->progress);
   wm_job->ready = true;
 

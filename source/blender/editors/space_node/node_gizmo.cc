@@ -380,7 +380,7 @@ static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmGizmoGroup *gzgro
     params.value_get_fn = gizmo_node_crop_prop_matrix_get;
     params.value_set_fn = gizmo_node_crop_prop_matrix_set;
     params.range_get_fn = nullptr;
-    params.user_data = snode;
+    params.user_data = node;
     WM_gizmo_target_property_def_func(gz, "matrix", &params);
   }
   else {

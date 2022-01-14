@@ -401,7 +401,7 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
     return NULL;
   }
 
-  /* WM_operator_properties_create(&ptr, opname); */
+  // WM_operator_properties_create(&ptr, opname);
   /* Save another lookup */
   RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
 

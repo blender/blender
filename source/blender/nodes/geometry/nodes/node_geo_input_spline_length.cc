@@ -156,7 +156,7 @@ void register_node_type_geo_input_spline_length()
   namespace file_ns = blender::nodes::node_geo_input_spline_length_cc;
 
   static bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_SPLINE_LENGTH, "Spline Length", NODE_CLASS_INPUT, 0);
+  geo_node_type_base(&ntype, GEO_NODE_INPUT_SPLINE_LENGTH, "Spline Length", NODE_CLASS_INPUT);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);

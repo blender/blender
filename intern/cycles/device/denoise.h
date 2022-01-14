@@ -72,6 +72,9 @@ class DenoiseParams : public Node {
   bool use_pass_albedo = true;
   bool use_pass_normal = true;
 
+  /* Configure the denoiser to use motion vectors, previous image and a temporally stable model. */
+  bool temporally_stable = false;
+
   DenoiserPrefilter prefilter = DENOISER_PREFILTER_FAST;
 
   static const NodeEnum *get_type_enum();
@@ -83,7 +86,8 @@ class DenoiseParams : public Node {
   {
     return !(use == other.use && type == other.type && start_sample == other.start_sample &&
              use_pass_albedo == other.use_pass_albedo &&
-             use_pass_normal == other.use_pass_normal && prefilter == other.prefilter);
+             use_pass_normal == other.use_pass_normal &&
+             temporally_stable == other.temporally_stable && prefilter == other.prefilter);
   }
 };
 

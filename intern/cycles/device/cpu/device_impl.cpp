@@ -72,7 +72,7 @@ CPUDevice::CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_
           << " CPU kernels.";
 
   if (info.cpu_threads == 0) {
-    info.cpu_threads = TaskScheduler::num_threads();
+    info.cpu_threads = TaskScheduler::max_concurrency();
   }
 
 #ifdef WITH_OSL

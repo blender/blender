@@ -648,7 +648,7 @@ static void pbvh_build(PBVH *pbvh, BB *cb, BBC *prim_bbc, int totprim)
 }
 
 void BKE_pbvh_build_mesh(PBVH *pbvh,
-                         const Mesh *mesh,
+                         Mesh *mesh,
                          const MPoly *mpoly,
                          const MLoop *mloop,
                          MVert *verts,
@@ -675,6 +675,8 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
   pbvh->looptri = looptri;
   pbvh->verts = verts;
   pbvh->mdyntopo_verts = mdyntopo_verts;
+  BKE_mesh_vertex_normals_ensure(mesh);
+  pbvh->vert_normals = BKE_mesh_vertex_normals_for_write(mesh);
   pbvh->vert_bitmap = BLI_BITMAP_NEW(totvert, "bvh->vert_bitmap");
   pbvh->totvert = totvert;
   pbvh->leaf_limit = LEAF_LIMIT;
@@ -1206,7 +1208,6 @@ static void pbvh_update_normals_store_task_cb(void *__restrict userdata,
        * so we know only this thread will handle this vertex. */
       if (mvert->flag & ME_VERT_PBVH_UPDATE) {
         normalize_v3(vnors[v]);
-        normal_float_to_short_v3(mvert->no, vnors[v]);
         mvert->flag &= ~ME_VERT_PBVH_UPDATE;
       }
     }
@@ -1217,10 +1218,6 @@ static void pbvh_update_normals_store_task_cb(void *__restrict userdata,
 
 static void pbvh_faces_update_normals(PBVH *pbvh, PBVHNode **nodes, int totnode)
 {
-  /* could be per node to save some memory, but also means
-   * we have to store for each vertex which node it is in */
-  float(*vnors)[3] = MEM_callocN(sizeof(*vnors) * pbvh->totvert, __func__);
-
   /* subtle assumptions:
    * - We know that for all edited vertices, the nodes with faces
    *   adjacent to these vertices have been marked with PBVH_UpdateNormals.
@@ -1234,7 +1231,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, PBVHNode **nodes, int totnode)
   PBVHUpdateData data = {
       .pbvh = pbvh,
       .nodes = nodes,
-      .vnors = vnors,
+      .vnors = pbvh->vert_normals,
   };
 
   TaskParallelSettings settings;
@@ -1242,8 +1239,6 @@ static void pbvh_faces_update_normals(PBVH *pbvh, PBVHNode **nodes, int totnode)
 
   BLI_task_parallel_range(0, totnode, &data, pbvh_update_normals_accum_task_cb, &settings);
   BLI_task_parallel_range(0, totnode, &data, pbvh_update_normals_store_task_cb, &settings);
-
-  MEM_freeN(vnors);
 }
 
 static void pbvh_update_mask_redraw_task_cb(void *__restrict userdata,
@@ -1566,7 +1561,8 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                      CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS),
                                      pbvh->face_sets_color_seed,
                                      pbvh->face_sets_color_default,
-                                     update_flags);
+                                     update_flags,
+                                     pbvh->vert_normals);
       } break;
       case PBVH_BMESH:
         if (BKE_pbvh_bmesh_check_tris(pbvh, node)) {
@@ -3611,6 +3607,9 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
 
   vi->mask = NULL;
   if (pbvh->type == PBVH_FACES) {
+    /* Cast away const because sculpt/paint code can adjust normals when restoring mesh data. */
+    vi->vert_normals = pbvh->vert_normals;
+
     vi->vmask = CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK);
   }
 }
@@ -3720,6 +3719,12 @@ MVert *BKE_pbvh_get_verts(const PBVH *pbvh)
 {
   BLI_assert(pbvh->type == PBVH_FACES);
   return pbvh->verts;
+}
+
+const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3]
+{
+  BLI_assert(pbvh->type == PBVH_FACES);
+  return pbvh->vert_normals;
 }
 
 void BKE_pbvh_subdiv_cgg_set(PBVH *pbvh, SubdivCCG *subdiv_ccg)

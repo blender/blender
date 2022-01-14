@@ -263,7 +263,7 @@ class VectorSet {
   }
 
   /**
-   * Get an Span referencing the keys vector. The referenced memory buffer is only valid as
+   * Get a Span referencing the keys vector. The referenced memory buffer is only valid as
    * long as the vector set is not changed.
    *
    * The keys must not be changed, because this would change their hash value.

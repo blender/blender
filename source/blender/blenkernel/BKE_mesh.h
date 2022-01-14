@@ -77,7 +77,7 @@ struct BMesh *BKE_mesh_to_bmesh_ex(const struct Object *ob,
                                    const struct BMeshFromMeshParams *convert_params);
 struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me,
                                 struct Object *ob,
-                                const bool add_key_index,
+                                bool add_key_index,
                                 const struct BMeshCreateParams *params);
 
 struct Mesh *BKE_mesh_from_bmesh_nomain(struct BMesh *bm,
@@ -133,7 +133,7 @@ void BKE_mesh_copy_parameters_for_eval(struct Mesh *me_dst, const struct Mesh *m
  * when a new mesh is based on an existing mesh.
  */
 void BKE_mesh_copy_parameters(struct Mesh *me_dst, const struct Mesh *me_src);
-void BKE_mesh_update_customdata_pointers(struct Mesh *me, const bool do_ensure_tess_cd);
+void BKE_mesh_update_customdata_pointers(struct Mesh *me, bool do_ensure_tess_cd);
 void BKE_mesh_ensure_skin_customdata(struct Mesh *me);
 
 struct Mesh *BKE_mesh_new_nomain(
@@ -192,7 +192,7 @@ void BKE_mesh_assign_object(struct Main *bmain, struct Object *ob, struct Mesh *
 void BKE_mesh_from_metaball(struct ListBase *lb, struct Mesh *me);
 void BKE_mesh_to_curve_nurblist(const struct Mesh *me,
                                 struct ListBase *nurblist,
-                                const int edge_users_test);
+                                int edge_users_test);
 void BKE_mesh_to_curve(struct Main *bmain,
                        struct Depsgraph *depsgraph,
                        struct Scene *scene,
@@ -211,7 +211,7 @@ void BKE_mesh_material_index_remove(struct Mesh *me, short index);
 bool BKE_mesh_material_index_used(struct Mesh *me, short index);
 void BKE_mesh_material_index_clear(struct Mesh *me);
 void BKE_mesh_material_remap(struct Mesh *me, const unsigned int *remap, unsigned int remap_len);
-void BKE_mesh_smooth_flag_set(struct Mesh *me, const bool use_smooth);
+void BKE_mesh_smooth_flag_set(struct Mesh *me, bool use_smooth);
 
 /**
  * Needed after converting a mesh with subsurf optimal display to mesh.
@@ -257,8 +257,8 @@ void BKE_mesh_split_faces(struct Mesh *mesh, bool free_loop_normals);
  */
 struct Mesh *BKE_mesh_new_from_object(struct Depsgraph *depsgraph,
                                       struct Object *object,
-                                      const bool preserve_all_data_layers,
-                                      const bool preserve_origindex);
+                                      bool preserve_all_data_layers,
+                                      bool preserve_origindex);
 
 /**
  * This is a version of BKE_mesh_new_from_object() which stores mesh in the given main database.
@@ -279,8 +279,8 @@ struct Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
                                                   struct Scene *scene,
                                                   struct Object *ob_eval,
                                                   struct ModifierData *md_eval,
-                                                  const bool use_virtual_modifiers,
-                                                  const bool build_shapekey_layers);
+                                                  bool use_virtual_modifiers,
+                                                  bool build_shapekey_layers);
 
 /**
  * Copies a nomain-Mesh into an existing Mesh.
@@ -297,7 +297,7 @@ void BKE_mesh_nomain_to_meshkey(struct Mesh *mesh_src, struct Mesh *mesh_dst, st
 /* basic vertex data functions */
 bool BKE_mesh_minmax(const struct Mesh *me, float r_min[3], float r_max[3]);
 void BKE_mesh_transform(struct Mesh *me, const float mat[4][4], bool do_keys);
-void BKE_mesh_translate(struct Mesh *me, const float offset[3], const bool do_keys);
+void BKE_mesh_translate(struct Mesh *me, const float offset[3], bool do_keys);
 
 void BKE_mesh_tessface_ensure(struct Mesh *mesh);
 void BKE_mesh_tessface_clear(struct Mesh *mesh);
@@ -325,7 +325,6 @@ void BKE_mesh_vert_coords_apply_with_mat4(struct Mesh *mesh,
                                           const float (*vert_coords)[3],
                                           const float mat[4][4]);
 void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]);
-void BKE_mesh_vert_normals_apply(struct Mesh *mesh, const short (*vert_normals)[3]);
 
 /* *** mesh_tessellate.c *** */
 
@@ -347,7 +346,7 @@ int BKE_mesh_tessface_calc_ex(struct CustomData *fdata,
                               int totface,
                               int totloop,
                               int totpoly,
-                              const bool do_face_nor_copy);
+                              bool do_face_nor_copy);
 void BKE_mesh_tessface_calc(struct Mesh *mesh);
 
 /**
@@ -377,7 +376,83 @@ void BKE_mesh_recalc_looptri_with_normals(const struct MLoop *mloop,
 
 /* *** mesh_normals.cc *** */
 
+/**
+ * Returns the normals for each vertex, which is defined as the weighted average of the normals
+ * from a vertices surrounding faces, or the normalized position of vertices connected to no faces.
+ * \warning May still return null if the mesh is empty.
+ */
+const float (*BKE_mesh_vertex_normals_ensure(const struct Mesh *mesh))[3];
+
+/**
+ * Return the normal direction of every polygon, which is defined by the winding direction of its
+ * corners.
+ * \warning May still return null if the mesh is empty or has no polygons.
+ */
+const float (*BKE_mesh_poly_normals_ensure(const struct Mesh *mesh))[3];
+
+/**
+ * Tag mesh vertex and face normals to be recalculated when/if they are needed later.
+ *
+ * \note Dirty tagged normals are the default state of a new mesh, so tagging them
+ * dirty explicitly is not always necessary if the mesh is created locally.
+ */
 void BKE_mesh_normals_tag_dirty(struct Mesh *mesh);
+
+/**
+ * Check that a mesh with non-dirty normals has vertex and face custom data layers.
+ * If these asserts fail, it means some area cleared the dirty flag but didn't copy or add the
+ * normal layers, or removed normals but didn't set the dirty flag.
+ */
+void BKE_mesh_assert_normals_dirty_or_calculated(const struct Mesh *mesh);
+
+/**
+ * Retrieve write access to the vertex normal layer, ensuring that it exists and that it is not
+ * shared. The provided vertex normals should be the same as if they were calculated automatically.
+ *
+ * \note In order to clear the dirty flag, this function should be followed by a call to
+ * #BKE_mesh_vertex_normals_clear_dirty. This is separate so that normals are still tagged dirty
+ * while they are being assigned.
+ */
+float (*BKE_mesh_vertex_normals_for_write(struct Mesh *mesh))[3];
+
+/**
+ * Retrieve write access to the poly normal layer, ensuring that it exists and that it is not
+ * shared. The provided poly normals should be the same as if they were calculated automatically.
+ *
+ * \note In order to clear the dirty flag, this function should be followed by a call to
+ * #BKE_mesh_poly_normals_clear_dirty. This is separate so that normals are still tagged dirty
+ * while they are being assigned.
+ */
+float (*BKE_mesh_poly_normals_for_write(struct Mesh *mesh))[3];
+
+/**
+ * Mark the mesh's vertex normals non-dirty, for when they are calculated or assigned manually.
+ */
+void BKE_mesh_vertex_normals_clear_dirty(struct Mesh *mesh);
+
+/**
+ * Mark the mesh's poly normals non-dirty, for when they are calculated or assigned manually.
+ */
+void BKE_mesh_poly_normals_clear_dirty(struct Mesh *mesh);
+
+/**
+ * Return true if the mesh vertex normals either are not stored or are dirty.
+ * This can be used to help decide whether to transfer them when copying a mesh.
+ */
+bool BKE_mesh_vertex_normals_are_dirty(const struct Mesh *mesh);
+
+/**
+ * Return true if the mesh polygon normals either are not stored or are dirty.
+ * This can be used to help decide whether to transfer them when copying a mesh.
+ */
+bool BKE_mesh_poly_normals_are_dirty(const struct Mesh *mesh);
+
+/**
+ * Calculate face normals directly into a result array.
+ *
+ * \note Usually #BKE_mesh_poly_normals_ensure is the preferred way to access face normals,
+ * since they may already be calculated and cached on the mesh.
+ */
 void BKE_mesh_calc_normals_poly(const struct MVert *mvert,
                                 int mvert_len,
                                 const struct MLoop *mloop,
@@ -385,20 +460,16 @@ void BKE_mesh_calc_normals_poly(const struct MVert *mvert,
                                 const struct MPoly *mpoly,
                                 int mpoly_len,
                                 float (*r_poly_normals)[3]);
-void BKE_mesh_calc_normals_poly_and_vertex(struct MVert *mvert,
-                                           int mvert_len,
-                                           const struct MLoop *mloop,
-                                           int mloop_len,
-                                           const struct MPoly *mpolys,
-                                           int mpoly_len,
-                                           float (*r_poly_normals)[3],
-                                           float (*r_vert_normals)[3]);
+
 /**
- * \note this does not update the #CD_NORMAL layer,
- * but does update the normals in the #CD_MVERT layer.
+ * Calculate vertex and face normals, storing the result in custom data layers on the mesh.
+ *
+ * \note It is usually preferable to calculate normals lazily with
+ * #BKE_mesh_vertex_normals_ensure, but some areas (perhaps unnecessarily)
+ * can also calculate them eagerly.
  */
 void BKE_mesh_calc_normals(struct Mesh *me);
-void BKE_mesh_ensure_normals(struct Mesh *me);
+
 /**
  * Called after calculating all modifiers.
  */
@@ -413,7 +484,7 @@ void BKE_mesh_loop_manifold_fan_around_vert_next(const struct MLoop *mloops,
                                                  const struct MPoly *mpolys,
                                                  const int *loop_to_poly,
                                                  const int *e2lfan_curr,
-                                                 const uint mv_pivot_index,
+                                                 uint mv_pivot_index,
                                                  const struct MLoop **r_mlfan_curr,
                                                  int *r_mlfan_curr_index,
                                                  int *r_mlfan_vert_index,
@@ -426,15 +497,15 @@ void BKE_mesh_loop_manifold_fan_around_vert_next(const struct MLoop *mloops,
  * to keep same shading as with auto-smooth!
  */
 void BKE_edges_sharp_from_angle_set(const struct MVert *mverts,
-                                    const int numVerts,
+                                    int numVerts,
                                     struct MEdge *medges,
-                                    const int numEdges,
+                                    int numEdges,
                                     struct MLoop *mloops,
-                                    const int numLoops,
+                                    int numLoops,
                                     struct MPoly *mpolys,
                                     const float (*polynors)[3],
-                                    const int numPolys,
-                                    const float split_angle);
+                                    int numPolys,
+                                    float split_angle);
 
 /**
  * References a contiguous loop-fan with normal offset vars.
@@ -487,9 +558,7 @@ enum {
 };
 
 /* Low-level custom normals functions. */
-void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr,
-                            const int numLoops,
-                            const char data_type);
+void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr, int numLoops, char data_type);
 void BKE_lnor_spacearr_clear(MLoopNorSpaceArray *lnors_spacearr);
 void BKE_lnor_spacearr_free(MLoopNorSpaceArray *lnors_spacearr);
 
@@ -531,9 +600,9 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
  */
 void BKE_lnor_space_add_loop(MLoopNorSpaceArray *lnors_spacearr,
                              MLoopNorSpace *lnor_space,
-                             const int ml_index,
+                             int ml_index,
                              void *bm_loop,
-                             const bool is_single);
+                             bool is_single);
 void BKE_lnor_space_custom_data_to_normal(MLoopNorSpace *lnor_space,
                                           const short clnor_data[2],
                                           float r_custom_lnor[3]);
@@ -549,42 +618,45 @@ void BKE_lnor_space_custom_normal_to_data(MLoopNorSpace *lnor_space,
  * (splitting edges).
  */
 void BKE_mesh_normals_loop_split(const struct MVert *mverts,
-                                 const int numVerts,
+                                 const float (*vert_normals)[3],
+                                 int numVerts,
                                  struct MEdge *medges,
-                                 const int numEdges,
+                                 int numEdges,
                                  struct MLoop *mloops,
                                  float (*r_loopnors)[3],
-                                 const int numLoops,
+                                 int numLoops,
                                  struct MPoly *mpolys,
                                  const float (*polynors)[3],
-                                 const int numPolys,
-                                 const bool use_split_normals,
-                                 const float split_angle,
+                                 int numPolys,
+                                 bool use_split_normals,
+                                 float split_angle,
                                  MLoopNorSpaceArray *r_lnors_spacearr,
                                  short (*clnors_data)[2],
                                  int *r_loop_to_poly);
 
 void BKE_mesh_normals_loop_custom_set(const struct MVert *mverts,
-                                      const int numVerts,
+                                      const float (*vert_normals)[3],
+                                      int numVerts,
                                       struct MEdge *medges,
-                                      const int numEdges,
+                                      int numEdges,
                                       struct MLoop *mloops,
                                       float (*r_custom_loopnors)[3],
-                                      const int numLoops,
+                                      int numLoops,
                                       struct MPoly *mpolys,
                                       const float (*polynors)[3],
-                                      const int numPolys,
+                                      int numPolys,
                                       short (*r_clnors_data)[2]);
 void BKE_mesh_normals_loop_custom_from_vertices_set(const struct MVert *mverts,
+                                                    const float (*vert_normals)[3],
                                                     float (*r_custom_vertnors)[3],
-                                                    const int numVerts,
+                                                    int numVerts,
                                                     struct MEdge *medges,
-                                                    const int numEdges,
+                                                    int numEdges,
                                                     struct MLoop *mloops,
-                                                    const int numLoops,
+                                                    int numLoops,
                                                     struct MPoly *mpolys,
                                                     const float (*polynors)[3],
-                                                    const int numPolys,
+                                                    int numPolys,
                                                     short (*r_clnors_data)[2]);
 
 /**
@@ -593,9 +665,9 @@ void BKE_mesh_normals_loop_custom_from_vertices_set(const struct MVert *mverts,
  * \param clnors: The computed custom loop normals.
  * \param r_vert_clnors: The (already allocated) array where to store averaged per-vertex normals.
  */
-void BKE_mesh_normals_loop_to_vertex(const int numVerts,
+void BKE_mesh_normals_loop_to_vertex(int numVerts,
                                      const struct MLoop *mloops,
-                                     const int numLoops,
+                                     int numLoops,
                                      const float (*clnors)[3],
                                      float (*r_vert_clnors)[3]);
 
@@ -685,9 +757,9 @@ bool BKE_mesh_center_of_volume(const struct Mesh *me, float r_cent[3]);
  * \param r_center: Center of mass.
  */
 void BKE_mesh_calc_volume(const struct MVert *mverts,
-                          const int mverts_num,
+                          int mverts_num,
                           const struct MLoopTri *mlooptri,
-                          const int looptri_num,
+                          int looptri_num,
                           const struct MLoop *mloop,
                           float *r_volume,
                           float r_center[3]);
@@ -727,7 +799,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(struct ID *id,
  * Flip a single MLoop's #MDisps structure,
  * low level function to be called from face-flipping code which re-arranged the mdisps themselves.
  */
-void BKE_mesh_mdisp_flip(struct MDisps *md, const bool use_loop_mdisp_flip);
+void BKE_mesh_mdisp_flip(struct MDisps *md, bool use_loop_mdisp_flip);
 
 /**
  * Flip (invert winding of) the given \a mpoly, i.e. reverse order of its loops
@@ -742,7 +814,7 @@ void BKE_mesh_polygon_flip_ex(struct MPoly *mpoly,
                               struct CustomData *ldata,
                               float (*lnors)[3],
                               struct MDisps *mdisp,
-                              const bool use_loop_mdisp_flip);
+                              bool use_loop_mdisp_flip);
 void BKE_mesh_polygon_flip(struct MPoly *mpoly, struct MLoop *mloop, struct CustomData *ldata);
 /**
  * Flip (invert winding of) all polygons (used to inverse their normals).
@@ -795,8 +867,8 @@ enum {
  */
 struct Mesh *BKE_mesh_merge_verts(struct Mesh *mesh,
                                   const int *vtargetmap,
-                                  const int tot_vtargetmap,
-                                  const int merge_mode);
+                                  int tot_vtargetmap,
+                                  int merge_mode);
 
 /* Flush flags. */
 
@@ -806,35 +878,35 @@ struct Mesh *BKE_mesh_merge_verts(struct Mesh *mesh,
 void BKE_mesh_flush_hidden_from_verts_ex(const struct MVert *mvert,
                                          const struct MLoop *mloop,
                                          struct MEdge *medge,
-                                         const int totedge,
+                                         int totedge,
                                          struct MPoly *mpoly,
-                                         const int totpoly);
+                                         int totpoly);
 void BKE_mesh_flush_hidden_from_verts(struct Mesh *me);
 void BKE_mesh_flush_hidden_from_polys_ex(struct MVert *mvert,
                                          const struct MLoop *mloop,
                                          struct MEdge *medge,
-                                         const int totedge,
+                                         int totedge,
                                          const struct MPoly *mpoly,
-                                         const int totpoly);
+                                         int totpoly);
 void BKE_mesh_flush_hidden_from_polys(struct Mesh *me);
 /**
  * simple poly -> vert/edge selection.
  */
 void BKE_mesh_flush_select_from_polys_ex(struct MVert *mvert,
-                                         const int totvert,
+                                         int totvert,
                                          const struct MLoop *mloop,
                                          struct MEdge *medge,
-                                         const int totedge,
+                                         int totedge,
                                          const struct MPoly *mpoly,
-                                         const int totpoly);
+                                         int totpoly);
 void BKE_mesh_flush_select_from_polys(struct Mesh *me);
 void BKE_mesh_flush_select_from_verts_ex(const struct MVert *mvert,
-                                         const int totvert,
+                                         int totvert,
                                          const struct MLoop *mloop,
                                          struct MEdge *medge,
-                                         const int totedge,
+                                         int totedge,
                                          struct MPoly *mpoly,
-                                         const int totpoly);
+                                         int totpoly);
 void BKE_mesh_flush_select_from_verts(struct Mesh *me);
 
 /* spatial evaluation */
@@ -850,9 +922,9 @@ void BKE_mesh_flush_select_from_verts(struct Mesh *me);
  * \param vert_cos_new: resulting coords.
  */
 void BKE_mesh_calc_relative_deform(const struct MPoly *mpoly,
-                                   const int totpoly,
+                                   int totpoly,
                                    const struct MLoop *mloop,
-                                   const int totvert,
+                                   int totvert,
 
                                    const float (*vert_cos_src)[3],
                                    const float (*vert_cos_dst)[3],
@@ -867,7 +939,7 @@ void BKE_mesh_calc_relative_deform(const struct MPoly *mpoly,
  *
  * \returns true if a change is made.
  */
-bool BKE_mesh_validate(struct Mesh *me, const bool do_verbose, const bool cddata_check_mask);
+bool BKE_mesh_validate(struct Mesh *me, bool do_verbose, bool cddata_check_mask);
 /**
  * Checks if a Mesh is valid without any modification. This is always verbose.
  * \returns True if the mesh is valid.
@@ -906,24 +978,24 @@ bool BKE_mesh_validate_arrays(struct Mesh *me,
                               struct MPoly *mpolys,
                               unsigned int totpoly,
                               struct MDeformVert *dverts, /* assume totvert length */
-                              const bool do_verbose,
-                              const bool do_fixes,
+                              bool do_verbose,
+                              bool do_fixes,
                               bool *r_change);
 
 /**
  * \returns is_valid.
  */
 bool BKE_mesh_validate_all_customdata(struct CustomData *vdata,
-                                      const uint totvert,
+                                      uint totvert,
                                       struct CustomData *edata,
-                                      const uint totedge,
+                                      uint totedge,
                                       struct CustomData *ldata,
-                                      const uint totloop,
+                                      uint totloop,
                                       struct CustomData *pdata,
-                                      const uint totpoly,
-                                      const bool check_meshmask,
-                                      const bool do_verbose,
-                                      const bool do_fixes,
+                                      uint totpoly,
+                                      bool check_meshmask,
+                                      bool do_verbose,
+                                      bool do_fixes,
                                       bool *r_change);
 
 void BKE_mesh_strip_loose_faces(struct Mesh *me);
@@ -941,12 +1013,12 @@ void BKE_mesh_strip_loose_edges(struct Mesh *me);
  * If the mesh is from a very old blender version,
  * convert mface->edcode to edge drawflags
  */
-void BKE_mesh_calc_edges_legacy(struct Mesh *me, const bool use_old);
+void BKE_mesh_calc_edges_legacy(struct Mesh *me, bool use_old);
 void BKE_mesh_calc_edges_loose(struct Mesh *mesh);
 /**
  * Calculate edges from polygons.
  */
-void BKE_mesh_calc_edges(struct Mesh *mesh, bool keep_existing_edges, const bool select_new_edges);
+void BKE_mesh_calc_edges(struct Mesh *mesh, bool keep_existing_edges, bool select_new_edges);
 /**
  * Calculate/create edges from tessface data
  *

@@ -199,6 +199,8 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
   const MVert *verts = mesh->mvert;
   float *vertex_edge_count_div;
 
+  const float(*vertexNos)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+
   struct SmoothingData_Simple {
     float delta[3];
   } *smooth_data = MEM_calloc_arrayN(numVerts, sizeof(*smooth_data), __func__);
@@ -246,13 +248,13 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
         float edge_dir2[3];
         float no[3];
 
-        normal_short_to_float_v3(no, verts[edges[i].v1].no);
+        copy_v3_v3(no, vertexNos[edges[i].v1]);
         madd_v3_v3v3fl(edge_dir2, edge_dir, no, -dot_v3v3(edge_dir, no) * projection);
         add_v3_v3(sd_v1->delta, edge_dir2);
 
         negate_v3(edge_dir);
 
-        normal_short_to_float_v3(no, verts[edges[i].v2].no);
+        copy_v3_v3(no, vertexNos[edges[i].v2]);
         madd_v3_v3v3fl(edge_dir2, edge_dir, no, -dot_v3v3(edge_dir, no) * projection);
         add_v3_v3(sd_v2->delta, edge_dir2);
       }
@@ -310,6 +312,8 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
   /* -------------------------------------------------------------------- */
   /* Main Smoothing Loop */
 
+  const float(*vertexNos)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+
   while (iterations--) {
     for (i = 0; i < numEdges; i++) {
       struct SmoothingData_Weighted *sd_v1;
@@ -330,13 +334,13 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
         float edge_dir2[3];
         float no[3];
 
-        normal_short_to_float_v3(no, verts[edges[i].v1].no);
+        copy_v3_v3(no, vertexNos[edges[i].v1]);
         madd_v3_v3v3fl(edge_dir2, edge_dir, no, -dot_v3v3(edge_dir, no) * projection);
         add_v3_v3(sd_v1->delta, edge_dir2);
 
         negate_v3(edge_dir);
 
-        normal_short_to_float_v3(no, verts[edges[i].v2].no);
+        copy_v3_v3(no, vertexNos[edges[i].v2]);
         madd_v3_v3v3fl(edge_dir2, edge_dir, no, -dot_v3v3(edge_dir, no) * projection);
         add_v3_v3(sd_v2->delta, edge_dir2);
       }

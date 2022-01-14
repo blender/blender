@@ -21,33 +21,16 @@
  * \ingroup shdnodes
  */
 
-#include "node_shader_util.h"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_shader_squeeze_cc {
 
-/* **************** VALUE SQUEEZE ******************** */
-static bNodeSocketTemplate sh_node_squeeze_in[] = {
-    {SOCK_FLOAT, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Width"), 1.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
-    {SOCK_FLOAT, N_("Center"), 0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
-    {-1, ""}};
-
-static bNodeSocketTemplate sh_node_squeeze_out[] = {{SOCK_FLOAT, N_("Value")}, {-1, ""}};
-
-static void node_shader_exec_squeeze(void *UNUSED(data),
-                                     int UNUSED(thread),
-                                     bNode *UNUSED(node),
-                                     bNodeExecData *UNUSED(execdata),
-                                     bNodeStack **in,
-                                     bNodeStack **out)
+static void node_declare(NodeDeclarationBuilder &b)
 {
-  float vec[3];
-
-  nodestack_get_vec(vec, SOCK_FLOAT, in[0]);
-  nodestack_get_vec(vec + 1, SOCK_FLOAT, in[1]);
-  nodestack_get_vec(vec + 2, SOCK_FLOAT, in[2]);
-
-  out[0]->vec[0] = 1.0f / (1.0f + powf(M_E, -((vec[0] - vec[2]) * vec[1])));
+  b.add_input<decl::Float>(N_("Value")).default_value(0.0f).min(-100.0f).max(100.0f);
+  b.add_input<decl::Float>(N_("Width")).default_value(1.0f).min(-100.0f).max(100.0f);
+  b.add_input<decl::Float>(N_("Center")).default_value(0.0f).min(-100.0f).max(100.0f);
+  b.add_output<decl::Float>(N_("Value"));
 }
 
 static int gpu_shader_squeeze(GPUMaterial *mat,
@@ -67,9 +50,8 @@ void register_node_type_sh_squeeze()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_SQUEEZE, "Squeeze Value", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, file_ns::sh_node_squeeze_in, file_ns::sh_node_squeeze_out);
-  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_squeeze);
+  sh_node_type_base(&ntype, SH_NODE_SQUEEZE, "Squeeze Value", NODE_CLASS_CONVERTER);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::gpu_shader_squeeze);
 
   nodeRegisterType(&ntype);

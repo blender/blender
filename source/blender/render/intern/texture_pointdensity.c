@@ -47,6 +47,7 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_lattice.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
@@ -368,19 +369,11 @@ static void pointdensity_cache_vertex_weight(PointDensity *pd,
   }
 }
 
-static void pointdensity_cache_vertex_normal(PointDensity *pd,
-                                             Object *UNUSED(ob),
-                                             Mesh *mesh,
-                                             float *data_color)
+static void pointdensity_cache_vertex_normal(Mesh *mesh, float *data_color)
 {
-  MVert *mvert = mesh->mvert, *mv;
-  int i;
-
   BLI_assert(data_color);
-
-  for (i = 0, mv = mvert; i < pd->totpoints; i++, mv++, data_color += 3) {
-    normal_short_to_float_v3(data_color, mv->no);
-  }
+  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  memcpy(data_color, vert_normals, sizeof(float[3]) * mesh->totvert);
 }
 
 static void pointdensity_cache_object(PointDensity *pd, Object *ob)
@@ -442,7 +435,7 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
       pointdensity_cache_vertex_weight(pd, ob, mesh, data_color);
       break;
     case TEX_PD_COLOR_VERTNOR:
-      pointdensity_cache_vertex_normal(pd, ob, mesh, data_color);
+      pointdensity_cache_vertex_normal(mesh, data_color);
       break;
   }
 

@@ -135,7 +135,7 @@ static void context_init_commoon(MultiresReshapeContext *reshape_context)
 static bool context_is_valid(MultiresReshapeContext *reshape_context)
 {
   if (reshape_context->mdisps == NULL) {
-    /* Multires displacement has been removed before current changes were applies. */
+    /* Multi-resolution displacement has been removed before current changes were applies. */
     return false;
   }
   return true;

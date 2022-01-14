@@ -54,8 +54,7 @@ void register_node_type_geo_realize_instances()
 
   static bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_REALIZE_INSTANCES, "Realize Instances", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_REALIZE_INSTANCES, "Realize Instances", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons_ex = file_ns::node_layout;
   ntype.geometry_node_execute = file_ns::node_geo_exec;

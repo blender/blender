@@ -162,9 +162,7 @@ void BKE_constraint_unique_name(struct bConstraint *con, struct ListBase *list);
 /**
  * Allocate and duplicate a single constraint, outside of any object/pose context.
  */
-struct bConstraint *BKE_constraint_duplicate_ex(struct bConstraint *src,
-                                                const int flag,
-                                                const bool do_extern);
+struct bConstraint *BKE_constraint_duplicate_ex(struct bConstraint *src, int flag, bool do_extern);
 
 /**
  * Add a copy of the given constraint for the given bone.
@@ -188,7 +186,7 @@ void BKE_constraints_copy(struct ListBase *dst, const struct ListBase *src, bool
  */
 void BKE_constraints_copy_ex(struct ListBase *dst,
                              const struct ListBase *src,
-                             const int flag,
+                             int flag,
                              bool do_extern);
 /**
  * Run the given callback on all ID-blocks in list of constraints.
@@ -319,7 +317,7 @@ void BKE_constraint_mat_convertspace(struct Object *ob,
                                      float mat[4][4],
                                      short from,
                                      short to,
-                                     const bool keep_scale);
+                                     bool keep_scale);
 
 /**
  * This function is a relic from the prior implementations of the constraints system, when all

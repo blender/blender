@@ -66,7 +66,6 @@ typedef struct stat path_stat_t;
 
 static string cached_path = "";
 static string cached_user_path = "";
-static string cached_temp_path = "";
 static string cached_xdg_cache_path = "";
 
 namespace {
@@ -336,11 +335,10 @@ static string path_xdg_cache_get()
 }
 #endif
 
-void path_init(const string &path, const string &user_path, const string &temp_path)
+void path_init(const string &path, const string &user_path)
 {
   cached_path = path;
   cached_user_path = user_path;
-  cached_temp_path = temp_path;
 
 #ifdef _MSC_VER
   // workaround for https://svn.boost.org/trac/boost/ticket/6320
@@ -382,15 +380,6 @@ string path_cache_get(const string &sub)
   /* TODO(sergey): What that should be on Windows? */
   return path_user_get(path_join("cache", sub));
 #endif
-}
-
-string path_temp_get(const string &sub)
-{
-  if (cached_temp_path == "") {
-    cached_temp_path = Filesystem::temp_directory_path();
-  }
-
-  return path_join(cached_temp_path, sub);
 }
 
 #if defined(__linux__) || defined(__APPLE__)

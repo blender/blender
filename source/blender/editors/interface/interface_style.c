@@ -140,9 +140,9 @@ static uiFont *uifont_to_blfont(int id)
 void UI_fontstyle_draw_ex(const uiFontStyle *fs,
                           const rcti *rect,
                           const char *str,
+                          const size_t str_len,
                           const uchar col[4],
                           const struct uiFontStyleDraw_Params *fs_params,
-                          size_t len,
                           int *r_xofs,
                           int *r_yofs,
                           struct ResultBLF *r_info)
@@ -173,20 +173,20 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
   BLF_enable(fs->uifont_id, font_flag);
 
   if (fs_params->word_wrap == 1) {
-    /* draw from boundbox top */
+    /* Draw from bound-box top. */
     yofs = BLI_rcti_size_y(rect) - BLF_height_max(fs->uifont_id);
   }
   else {
-    /* draw from boundbox center */
+    /* Draw from bound-box center. */
     const float height = BLF_ascender(fs->uifont_id) + BLF_descender(fs->uifont_id);
     yofs = ceil(0.5f * (BLI_rcti_size_y(rect) - height));
   }
 
   if (fs_params->align == UI_STYLE_TEXT_CENTER) {
-    xofs = floor(0.5f * (BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str, len)));
+    xofs = floor(0.5f * (BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str, str_len)));
   }
   else if (fs_params->align == UI_STYLE_TEXT_RIGHT) {
-    xofs = BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str, len);
+    xofs = BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str, str_len);
   }
 
   yofs = MAX2(0, yofs);
@@ -196,7 +196,7 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
   BLF_position(fs->uifont_id, rect->xmin + xofs, rect->ymin + yofs, 0.0f);
   BLF_color4ubv(fs->uifont_id, col);
 
-  BLF_draw_ex(fs->uifont_id, str, len, r_info);
+  BLF_draw_ex(fs->uifont_id, str, str_len, r_info);
 
   BLF_disable(fs->uifont_id, font_flag);
 
@@ -211,12 +211,11 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
 void UI_fontstyle_draw(const uiFontStyle *fs,
                        const rcti *rect,
                        const char *str,
+                       const size_t str_len,
                        const uchar col[4],
                        const struct uiFontStyleDraw_Params *fs_params)
 {
-  int xofs, yofs;
-
-  UI_fontstyle_draw_ex(fs, rect, str, col, fs_params, BLF_DRAW_STR_DUMMY_MAX, &xofs, &yofs, NULL);
+  UI_fontstyle_draw_ex(fs, rect, str, str_len, col, fs_params, NULL, NULL, NULL);
 }
 
 void UI_fontstyle_draw_rotated(const uiFontStyle *fs,
@@ -427,11 +426,11 @@ void uiStyleInit(void)
   }
 
   if (U.font_path_ui[0]) {
-    BLI_strncpy(font_first->filename, U.font_path_ui, sizeof(font_first->filename));
+    BLI_strncpy(font_first->filepath, U.font_path_ui, sizeof(font_first->filepath));
     font_first->uifont_id = UIFONT_CUSTOM1;
   }
   else {
-    BLI_strncpy(font_first->filename, "default", sizeof(font_first->filename));
+    BLI_strncpy(font_first->filepath, "default", sizeof(font_first->filepath));
     font_first->uifont_id = UIFONT_DEFAULT;
   }
 
@@ -442,7 +441,7 @@ void uiStyleInit(void)
       font->blf_id = BLF_load_default(unique);
     }
     else {
-      font->blf_id = BLF_load(font->filename);
+      font->blf_id = BLF_load(font->filepath);
       if (font->blf_id == -1) {
         font->blf_id = BLF_load_default(unique);
       }

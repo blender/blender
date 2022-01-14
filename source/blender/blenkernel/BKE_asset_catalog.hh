@@ -141,7 +141,7 @@ class AssetCatalogService {
   AssetCatalogFilter create_catalog_filter(CatalogID active_catalog_id) const;
 
   /** Create a catalog with some sensible auto-generated catalog ID.
-   * The catalog will be saved to the default catalog file.*/
+   * The catalog will be saved to the default catalog file. */
   AssetCatalog *create_catalog(const AssetCatalogPath &catalog_path);
 
   /**

@@ -1445,7 +1445,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
   RNA_def_struct_refine_func(srna, "rna_PropertyGroup_refine");
 
   /* important so python types can have their name used in list views
-   * however this isn't prefect because it overrides how python would set the name
+   * however this isn't perfect because it overrides how python would set the name
    * when we only really want this so RNA_def_struct_name_property() is set to something useful */
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
@@ -1807,6 +1807,14 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
 
   RNA_def_pointer(
       srna, "reference", "ID", "Reference ID", "Linked ID used as reference by this override");
+
+  prop = RNA_def_boolean(srna,
+                         "is_in_hierarchy",
+                         true,
+                         "Is In Hierarchy",
+                         "Whether this library override is defined as part of a library "
+                         "hierarchy, or as a single, isolated and autonomous override");
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY);
 
   prop = RNA_def_collection(srna,
                             "properties",

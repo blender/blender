@@ -77,7 +77,7 @@ void *BKE_libblock_alloc_notest(short type) ATTR_WARN_UNUSED_RESULT;
  * The user count is set to 1, all other content (apart from name and links) being
  * initialized to zero.
  */
-void *BKE_libblock_alloc(struct Main *bmain, short type, const char *name, const int flag)
+void *BKE_libblock_alloc(struct Main *bmain, short type, const char *name, int flag)
     ATTR_WARN_UNUSED_RESULT;
 /**
  * Initialize an ID of given type, such that it has valid 'empty' data.
@@ -114,14 +114,14 @@ void BKE_lib_libblock_session_uuid_renew(struct ID *id);
  *
  * \param name: can be NULL, in which case we get default name for this ID type.
  */
-void *BKE_id_new(struct Main *bmain, const short type, const char *name);
+void *BKE_id_new(struct Main *bmain, short type, const char *name);
 /**
  * Generic helper to create a new temporary empty data-block of given type,
  * *outside* of any Main database.
  *
  * \param name: can be NULL, in which case we get default name for this ID type.
  */
-void *BKE_id_new_nomain(const short type, const char *name);
+void *BKE_id_new_nomain(short type, const char *name);
 
 /**
  * New ID creation/copying options.
@@ -202,7 +202,7 @@ enum {
 void BKE_libblock_copy_ex(struct Main *bmain,
                           const struct ID *id,
                           struct ID **r_newid,
-                          const int orig_flag);
+                          int orig_flag);
 /**
  * Used everywhere in blenkernel.
  */
@@ -220,7 +220,7 @@ void BKE_libblock_rename(struct Main *bmain, struct ID *id, const char *name) AT
 void BLI_libblock_ensure_unique_name(struct Main *bmain, const char *name) ATTR_NONNULL();
 
 struct ID *BKE_libblock_find_name(struct Main *bmain,
-                                  const short type,
+                                  short type,
                                   const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 struct ID *BKE_libblock_find_session_uuid(struct Main *bmain, short type, uint32_t session_uuid);
 /**
@@ -267,8 +267,8 @@ enum {
   LIB_ID_FREE_NO_UI_USER = 1 << 9,
 };
 
-void BKE_libblock_free_datablock(struct ID *id, const int flag) ATTR_NONNULL();
-void BKE_libblock_free_data(struct ID *id, const bool do_id_user) ATTR_NONNULL();
+void BKE_libblock_free_datablock(struct ID *id, int flag) ATTR_NONNULL();
+void BKE_libblock_free_data(struct ID *id, bool do_id_user) ATTR_NONNULL();
 
 /**
  * In most cases #BKE_id_free_ex handles this, when lower level functions are called directly
@@ -295,7 +295,7 @@ void BKE_libblock_free_data_py(struct ID *id);
  * \param use_flag_from_idtag: Still use freeing info flags from given #ID datablock,
  * even if some overriding ones are passed in \a flag parameter.
  */
-void BKE_id_free_ex(struct Main *bmain, void *idv, int flag, const bool use_flag_from_idtag);
+void BKE_id_free_ex(struct Main *bmain, void *idv, int flag, bool use_flag_from_idtag);
 /**
  * Complete ID freeing, should be usable in most cases (even for out-of-Main IDs).
  *
@@ -385,7 +385,7 @@ enum {
 /**
  * Generic 'make local' function, works for most of data-block types.
  */
-void BKE_lib_id_make_local_generic(struct Main *bmain, struct ID *id, const int flags);
+void BKE_lib_id_make_local_generic(struct Main *bmain, struct ID *id, int flags);
 /**
  * Calls the appropriate make_local method for the block, unless test is set.
  *
@@ -395,7 +395,7 @@ void BKE_lib_id_make_local_generic(struct Main *bmain, struct ID *id, const int 
  * it needs specific handling.
  * \return true is the ID has successfully been made local.
  */
-bool BKE_lib_id_make_local(struct Main *bmain, struct ID *id, const int flags);
+bool BKE_lib_id_make_local(struct Main *bmain, struct ID *id, int flags);
 /**
  * \note Does *not* set #ID.newid pointer.
  */
@@ -431,18 +431,15 @@ struct ID *BKE_id_copy(struct Main *bmain, const struct ID *id);
  * (leave to zero for default, full copy).
  * \return NULL when copying that ID type is not supported, the new copy otherwise.
  */
-struct ID *BKE_id_copy_ex(struct Main *bmain,
-                          const struct ID *id,
-                          struct ID **r_newid,
-                          const int flag);
+struct ID *BKE_id_copy_ex(struct Main *bmain, const struct ID *id, struct ID **r_newid, int flag);
 /**
  * Invokes the appropriate copy method for the block and returns the result in
  * newid, unless test. Returns true if the block can be copied.
  */
 struct ID *BKE_id_copy_for_duplicate(struct Main *bmain,
                                      struct ID *id,
-                                     const uint duplicate_flags,
-                                     const int copy_flags);
+                                     uint duplicate_flags,
+                                     int copy_flags);
 
 /**
  * Does a mere memory swap over the whole IDs data (including type-specific memory).
@@ -474,7 +471,7 @@ void id_sort_by_name(struct ListBase *lb, struct ID *id, struct ID *id_sorting_h
  * Expand ID usages of given id as 'extern' (and no more indirect) linked data.
  * Used by ID copy/make_local functions.
  */
-void BKE_lib_id_expand_local(struct Main *bmain, struct ID *id, const int flags);
+void BKE_lib_id_expand_local(struct Main *bmain, struct ID *id, int flags);
 
 /**
  * Ensures given ID has a unique name in given listbase.
@@ -489,48 +486,45 @@ void BKE_lib_id_expand_local(struct Main *bmain, struct ID *id, const int flags)
 bool BKE_id_new_name_validate(struct ListBase *lb,
                               struct ID *id,
                               const char *name,
-                              const bool do_linked_data) ATTR_NONNULL(1, 2);
+                              bool do_linked_data) ATTR_NONNULL(1, 2);
 /**
  * Pull an ID out of a library (make it local). Only call this for IDs that
  * don't have other library users.
  *
  * \param flags: Same set of `LIB_ID_MAKELOCAL_` flags as passed to #BKE_lib_id_make_local.
  */
-void BKE_lib_id_clear_library_data(struct Main *bmain, struct ID *id, const int flags);
+void BKE_lib_id_clear_library_data(struct Main *bmain, struct ID *id, int flags);
 
 /**
  * Clear or set given tags for all ids of given type in `bmain` (runtime tags).
  *
  * \note Affect whole Main database.
  */
-void BKE_main_id_tag_idcode(struct Main *mainvar,
-                            const short type,
-                            const int tag,
-                            const bool value);
+void BKE_main_id_tag_idcode(struct Main *mainvar, short type, int tag, bool value);
 /**
  * Clear or set given tags for all ids in listbase (runtime tags).
  */
-void BKE_main_id_tag_listbase(struct ListBase *lb, const int tag, const bool value);
+void BKE_main_id_tag_listbase(struct ListBase *lb, int tag, bool value);
 /**
  * Clear or set given tags for all ids in bmain (runtime tags).
  */
-void BKE_main_id_tag_all(struct Main *mainvar, const int tag, const bool value);
+void BKE_main_id_tag_all(struct Main *mainvar, int tag, bool value);
 
 /**
  * Clear or set given flags for all ids in listbase (persistent flags).
  */
-void BKE_main_id_flag_listbase(struct ListBase *lb, const int flag, const bool value);
+void BKE_main_id_flag_listbase(struct ListBase *lb, int flag, bool value);
 /**
  * Clear or set given flags for all ids in bmain (persistent flags).
  */
-void BKE_main_id_flag_all(struct Main *bmain, const int flag, const bool value);
+void BKE_main_id_flag_all(struct Main *bmain, int flag, bool value);
 
 /**
  * Next to indirect usage in `readfile.c/writefile.c` also in `editobject.c`, `scene.c`.
  */
 void BKE_main_id_newptr_and_tag_clear(struct Main *bmain);
 
-void BKE_main_id_refcount_recompute(struct Main *bmain, const bool do_linked_only);
+void BKE_main_id_refcount_recompute(struct Main *bmain, bool do_linked_only);
 
 void BKE_main_lib_objects_recalc_all(struct Main *bmain);
 
@@ -567,7 +561,7 @@ void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const struct ID *id, char
  */
 void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI],
                                     const struct ID *id,
-                                    const bool add_lib_hint,
+                                    bool add_lib_hint,
                                     char separator_char,
                                     int *r_prefix_len);
 
@@ -591,8 +585,8 @@ char *BKE_id_to_unique_string_key(const struct ID *id);
 void BKE_library_make_local(struct Main *bmain,
                             const struct Library *lib,
                             struct GHash *old_to_new_ids,
-                            const bool untagged_only,
-                            const bool set_fake);
+                            bool untagged_only,
+                            bool set_fake);
 
 void BKE_id_tag_set_atomic(struct ID *id, int tag);
 void BKE_id_tag_clear_atomic(struct ID *id, int tag);

@@ -72,8 +72,10 @@ struct VertProjUpdate {
 /* -------------------------------------------------------------------- */
 /* Internal Init */
 
-static void vpaint_proj_dm_map_cosnos_init__map_cb(
-    void *userData, int index, const float co[3], const float no_f[3], const short no_s[3])
+static void vpaint_proj_dm_map_cosnos_init__map_cb(void *userData,
+                                                   int index,
+                                                   const float co[3],
+                                                   const float no[3])
 {
   struct VertProjHandle *vp_handle = userData;
   CoNo *co_no = &vp_handle->vcosnos[index];
@@ -86,12 +88,7 @@ static void vpaint_proj_dm_map_cosnos_init__map_cb(
   }
 
   copy_v3_v3(co_no->co, co);
-  if (no_f) {
-    copy_v3_v3(co_no->no, no_f);
-  }
-  else {
-    normal_short_to_float_v3(co_no->no, no_s);
-  }
+  copy_v3_v3(co_no->no, no);
 }
 
 static void vpaint_proj_dm_map_cosnos_init(struct Depsgraph *depsgraph,
@@ -116,8 +113,10 @@ static void vpaint_proj_dm_map_cosnos_init(struct Depsgraph *depsgraph,
 
 /* Same as init but take mouse location into account */
 
-static void vpaint_proj_dm_map_cosnos_update__map_cb(
-    void *userData, int index, const float co[3], const float no_f[3], const short no_s[3])
+static void vpaint_proj_dm_map_cosnos_update__map_cb(void *userData,
+                                                     int index,
+                                                     const float co[3],
+                                                     const float no[3])
 {
   struct VertProjUpdate *vp_update = userData;
   struct VertProjHandle *vp_handle = vp_update->vp_handle;
@@ -148,12 +147,7 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(
   /* continue with regular functionality */
 
   copy_v3_v3(co_no->co, co);
-  if (no_f) {
-    copy_v3_v3(co_no->no, no_f);
-  }
-  else {
-    normal_short_to_float_v3(co_no->no, no_s);
-  }
+  copy_v3_v3(co_no->no, no);
 }
 
 static void vpaint_proj_dm_map_cosnos_update(struct Depsgraph *depsgraph,

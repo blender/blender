@@ -181,7 +181,15 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
   node_identifier.operation_name_tag = -1;
   /* Handling of commonly known scenarios. */
   if (rna_prop_affects_parameters_node(ptr, prop)) {
-    node_identifier.type = NodeType::PARAMETERS;
+    /* Custom properties of bones are placed in their components to improve granularity. */
+    if (RNA_struct_is_a(ptr->type, &RNA_PoseBone)) {
+      const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr->data);
+      node_identifier.type = NodeType::BONE;
+      node_identifier.component_name = pchan->name;
+    }
+    else {
+      node_identifier.type = NodeType::PARAMETERS;
+    }
     node_identifier.operation_code = OperationCode::ID_PROPERTY;
     node_identifier.operation_name = RNA_property_identifier(
         reinterpret_cast<const PropertyRNA *>(prop));

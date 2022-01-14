@@ -644,7 +644,7 @@ extern "C" {
 /**
  * Check if memory is zeroed, as with `memset(arr, 0, arr_size)`.
  */
-extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
+extern bool BLI_memory_is_zero(const void *arr, size_t arr_size);
 #endif
 
 #define MEMCMP_STRUCT_AFTER_IS_ZERO(struct_var, member) \
@@ -657,11 +657,12 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 /** \name String Macros
  * \{ */
 
-/* Macro to convert a value to string in the pre-processor:
+/* Macro to convert a value to string in the preprocessor:
  * - `STRINGIFY_ARG`: gives the argument as a string
  * - `STRINGIFY_APPEND`: appends any argument 'b' onto the string argument 'a',
- *   used by `STRINGIFY` because some preprocessors warn about zero arguments
+ *   used by `STRINGIFY` because some preprocessors warn about zero arguments.
  * - `STRINGIFY`: gives the argument's value as a string. */
+
 #define STRINGIFY_ARG(x) "" #x
 #define STRINGIFY_APPEND(a, b) "" a #b
 #define STRINGIFY(x) STRINGIFY_APPEND("", x)
@@ -844,6 +845,15 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 
 /** No-op for expressions we don't want to instantiate, but must remain valid. */
 #define EXPR_NOP(expr) (void)(0 ? ((void)(expr), 1) : 0)
+
+/**
+ * Utility macro that wraps `std::enable_if` to make it a bit easier to use and less verbose for
+ * SFINAE in common cases.
+ *
+ * \note Often one has to invoke this macro with double parenthesis. That's because the condition
+ * often contains a comma and angle brackets are not recognized as parenthesis by the preprocessor.
+ */
+#define BLI_ENABLE_IF(condition) typename std::enable_if_t<(condition)> * = nullptr
 
 /** \} */
 

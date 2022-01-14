@@ -26,7 +26,7 @@ namespace blender::nodes::node_fn_input_vector_cc {
 static void fn_node_input_vector_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Vector>(N_("Vector"));
-};
+}
 
 static void fn_node_input_vector_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -56,7 +56,7 @@ void register_node_type_fn_input_vector()
 
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_INPUT_VECTOR, "Vector", 0, 0);
+  fn_node_type_base(&ntype, FN_NODE_INPUT_VECTOR, "Vector", 0);
   ntype.declare = file_ns::fn_node_input_vector_declare;
   node_type_init(&ntype, file_ns::fn_node_input_vector_init);
   node_type_storage(

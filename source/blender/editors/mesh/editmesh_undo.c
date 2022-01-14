@@ -104,7 +104,7 @@ typedef struct UndoMesh {
   int selectmode;
 
   /** \note
-   * this isn't a prefect solution, if you edit keys and change shapes this works well
+   * This isn't a perfect solution, if you edit keys and change shapes this works well
    * (fixing T32442), but editing shape keys, going into object mode, removing or changing their
    * order, then go back into editmode and undo will give issues - where the old index will be
    * out of sync with the new object index.

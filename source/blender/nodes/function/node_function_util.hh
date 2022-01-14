@@ -18,7 +18,7 @@
 
 #include <string.h>
 
-#include "BLI_float3.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
@@ -37,5 +37,4 @@
 
 #include "FN_multi_function_builder.hh"
 
-void fn_node_type_base(
-    struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
+void fn_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);

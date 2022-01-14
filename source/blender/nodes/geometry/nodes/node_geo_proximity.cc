@@ -85,7 +85,7 @@ static bool calculate_mesh_proximity(const VArray<float3> &positions,
     for (int i : range) {
       const int index = mask[i];
       /* Use the distance to the last found point as upper bound to speedup the bvh lookup. */
-      nearest.dist_sq = float3::distance_squared(nearest.co, positions[index]);
+      nearest.dist_sq = math::distance_squared(float3(nearest.co), positions[index]);
 
       BLI_bvhtree_find_nearest(
           bvh_data.tree, positions[index], &nearest, bvh_data.nearest_callback, &bvh_data);
@@ -238,7 +238,7 @@ void register_node_type_geo_proximity()
 
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_PROXIMITY, "Geometry Proximity", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_PROXIMITY, "Geometry Proximity", NODE_CLASS_GEOMETRY);
   node_type_init(&ntype, file_ns::geo_proximity_init);
   node_type_storage(
       &ntype, "NodeGeometryProximity", node_free_standard_storage, node_copy_standard_storage);

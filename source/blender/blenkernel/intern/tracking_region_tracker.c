@@ -26,6 +26,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"
 
 #include "BLI_threads.h"
@@ -42,7 +43,7 @@
 
 /* **** utility functions for tracking **** */
 
-/* convert from float and byte RGBA to grayscale. Supports different coefficients for RGB. */
+/** Convert from float and byte RGBA to gray-scale. Supports different coefficients for RGB. */
 static void float_rgba_to_gray(const float *rgba,
                                float *gray,
                                int num_pixels,
@@ -71,7 +72,7 @@ static void uint8_rgba_to_float_gray(const unsigned char *rgba,
   }
 }
 
-/* Get grayscale float search buffer for given marker and frame. */
+/** Get gray-scale float search buffer for given marker and frame. */
 static float *track_get_search_floatbuf(ImBuf *ibuf,
                                         MovieTrackingTrack *track,
                                         MovieTrackingMarker *marker,
@@ -322,7 +323,7 @@ void BKE_tracking_refine_marker(MovieClip *clip,
   int search_area_height, search_area_width;
   int clip_flag = clip->flag & MCLIP_TIMECODE_FLAGS;
   int reference_framenr;
-  MovieClipUser user = {0};
+  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
   double dst_pixel_x[5], dst_pixel_y[5];
   bool tracked;
 

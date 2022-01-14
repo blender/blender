@@ -21,7 +21,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-thread::thread(function<void()> run_cb, int node) : run_cb_(run_cb), joined_(false), node_(node)
+thread::thread(function<void()> run_cb) : run_cb_(run_cb), joined_(false)
 {
 #ifdef __APPLE__
   /* Set the stack size to 2MB to match Linux. The default 512KB on macOS is
@@ -46,9 +46,6 @@ thread::~thread()
 void *thread::run(void *arg)
 {
   thread *self = (thread *)(arg);
-  if (self->node_ != -1) {
-    system_cpu_run_thread_on_node(self->node_);
-  }
   self->run_cb_();
   return NULL;
 }

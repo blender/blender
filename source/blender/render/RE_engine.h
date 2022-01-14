@@ -106,10 +106,10 @@ typedef struct RenderEngineType {
   void (*bake)(struct RenderEngine *engine,
                struct Depsgraph *depsgraph,
                struct Object *object,
-               const int pass_type,
-               const int pass_filter,
-               const int width,
-               const int height);
+               int pass_type,
+               int pass_filter,
+               int width,
+               int height);
 
   void (*view_update)(struct RenderEngine *engine,
                       const struct bContext *context,

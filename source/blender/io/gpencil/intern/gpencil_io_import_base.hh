@@ -33,7 +33,7 @@ class GpencilImporter : public GpencilIO {
 
  protected:
   struct Object *create_object();
-  int32_t create_material(const char *name, const bool stroke, const bool fill);
+  int32_t create_material(const char *name, bool stroke, bool fill);
 
  private:
 };

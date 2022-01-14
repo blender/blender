@@ -138,20 +138,18 @@ static const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 
 static PyObject *init_func(PyObject * /*self*/, PyObject *args)
 {
-  PyObject *path, *user_path, *temp_path;
+  PyObject *path, *user_path;
   int headless;
 
-  if (!PyArg_ParseTuple(args, "OOOi", &path, &user_path, &temp_path, &headless)) {
+  if (!PyArg_ParseTuple(args, "OOi", &path, &user_path, &headless)) {
     return nullptr;
   }
 
-  PyObject *path_coerce = nullptr, *user_path_coerce = nullptr, *temp_path_coerce = nullptr;
+  PyObject *path_coerce = nullptr, *user_path_coerce = nullptr;
   path_init(PyC_UnicodeAsByte(path, &path_coerce),
-            PyC_UnicodeAsByte(user_path, &user_path_coerce),
-            PyC_UnicodeAsByte(temp_path, &temp_path_coerce));
+            PyC_UnicodeAsByte(user_path, &user_path_coerce));
   Py_XDECREF(path_coerce);
   Py_XDECREF(user_path_coerce);
-  Py_XDECREF(temp_path_coerce);
 
   BlenderSession::headless = headless;
 
@@ -735,27 +733,20 @@ static bool image_parse_filepaths(PyObject *pyfilepaths, vector<string> &filepat
 
 static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *keywords)
 {
-#if 1
-  (void)args;
-  (void)keywords;
-#else
   static const char *keyword_list[] = {
-      "preferences", "scene", "view_layer", "input", "output", "tile_size", "samples", NULL};
+      "preferences", "scene", "view_layer", "input", "output", NULL};
   PyObject *pypreferences, *pyscene, *pyviewlayer;
   PyObject *pyinput, *pyoutput = NULL;
-  int tile_size = 0, samples = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    keywords,
-                                   "OOOO|Oii",
+                                   "OOOO|O",
                                    (char **)keyword_list,
                                    &pypreferences,
                                    &pyscene,
                                    &pyviewlayer,
                                    &pyinput,
-                                   &pyoutput,
-                                   &tile_size,
-                                   &samples)) {
+                                   &pyoutput)) {
     return NULL;
   }
 
@@ -777,14 +768,10 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
                      &RNA_ViewLayer,
                      PyLong_AsVoidPtr(pyviewlayer),
                      &viewlayerptr);
-  PointerRNA cviewlayer = RNA_pointer_get(&viewlayerptr, "cycles");
+  BL::ViewLayer b_view_layer(viewlayerptr);
 
-  DenoiseParams params;
-  params.radius = get_int(cviewlayer, "denoising_radius");
-  params.strength = get_float(cviewlayer, "denoising_strength");
-  params.feature_strength = get_float(cviewlayer, "denoising_feature_strength");
-  params.relative_pca = get_boolean(cviewlayer, "denoising_relative_pca");
-  params.neighbor_frames = get_int(cviewlayer, "denoising_neighbor_frames");
+  DenoiseParams params = BlenderSync::get_denoise_params(b_scene, b_view_layer, true);
+  params.use = true;
 
   /* Parse file paths list. */
   vector<string> input, output;
@@ -812,24 +799,15 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
   }
 
   /* Create denoiser. */
-  DenoiserPipeline denoiser(device);
-  denoiser.params = params;
+  DenoiserPipeline denoiser(device, params);
   denoiser.input = input;
   denoiser.output = output;
-
-  if (tile_size > 0) {
-    denoiser.tile_size = make_int2(tile_size, tile_size);
-  }
-  if (samples > 0) {
-    denoiser.samples_override = samples;
-  }
 
   /* Run denoiser. */
   if (!denoiser.run()) {
     PyErr_SetString(PyExc_ValueError, denoiser.error.c_str());
     return NULL;
   }
-#endif
 
   Py_RETURN_NONE;
 }

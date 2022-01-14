@@ -104,8 +104,8 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const struct MPoly *mpoly,
                                        unsigned int totpoly,
                                        unsigned int totvert,
                                        const float limit[2],
-                                       const bool selected,
-                                       const bool use_winding);
+                                       bool selected,
+                                       bool use_winding);
 UvMapVert *BKE_mesh_uv_vert_map_get_vert(UvVertMap *vmap, unsigned int v);
 void BKE_mesh_uv_vert_map_free(UvVertMap *vmap);
 
@@ -146,11 +146,11 @@ void BKE_mesh_vert_loop_map_create(
 void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
                                       int **r_mem,
                                       const struct MVert *mvert,
-                                      const int totvert,
+                                      int totvert,
                                       const struct MLoopTri *mlooptri,
-                                      const int totlooptri,
+                                      int totlooptri,
                                       const struct MLoop *mloop,
-                                      const int totloop);
+                                      int totloop);
 /**
  * Generates a map where the key is the vertex and the value
  * is a list of edges that use that vertex as an endpoint.
@@ -175,11 +175,11 @@ void BKE_mesh_vert_edge_vert_map_create(
 void BKE_mesh_edge_loop_map_create(MeshElemMap **r_map,
                                    int **r_mem,
                                    const struct MEdge *medge,
-                                   const int totedge,
+                                   int totedge,
                                    const struct MPoly *mpoly,
-                                   const int totpoly,
+                                   int totpoly,
                                    const struct MLoop *mloop,
-                                   const int totloop);
+                                   int totloop);
 /**
  * Generates a map where the key is the edge and the value
  * is a list of polygons that use that edge.
@@ -188,11 +188,11 @@ void BKE_mesh_edge_loop_map_create(MeshElemMap **r_map,
 void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map,
                                    int **r_mem,
                                    const struct MEdge *medge,
-                                   const int totedge,
+                                   int totedge,
                                    const struct MPoly *mpoly,
-                                   const int totpoly,
+                                   int totpoly,
                                    const struct MLoop *mloop,
-                                   const int totloop);
+                                   int totloop);
 /**
  * This function creates a map so the source-data (vert/edge/loop/poly)
  * can loop over the destination data (using the destination arrays origindex).
@@ -207,11 +207,8 @@ void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map,
  *       `totfinal` could be `tottessface` and `final_origindex` its ORIGINDEX custom-data.
  *       This would allow an MPoly to loop over its tessfaces.
  */
-void BKE_mesh_origindex_map_create(MeshElemMap **r_map,
-                                   int **r_mem,
-                                   const int totsource,
-                                   const int *final_origindex,
-                                   const int totfinal);
+void BKE_mesh_origindex_map_create(
+    MeshElemMap **r_map, int **r_mem, int totsource, const int *final_origindex, int totfinal);
 /**
  * A version of #BKE_mesh_origindex_map_create that takes a looptri array.
  * Making a poly -> looptri map.
@@ -219,9 +216,9 @@ void BKE_mesh_origindex_map_create(MeshElemMap **r_map,
 void BKE_mesh_origindex_map_create_looptri(MeshElemMap **r_map,
                                            int **r_mem,
                                            const struct MPoly *mpoly,
-                                           const int mpoly_num,
+                                           int mpoly_num,
                                            const struct MLoopTri *looptri,
-                                           const int looptri_num);
+                                           int looptri_num);
 
 /* islands */
 
@@ -251,28 +248,28 @@ typedef struct MeshIslandStore {
 } MeshIslandStore;
 
 void BKE_mesh_loop_islands_init(MeshIslandStore *island_store,
-                                const short item_type,
-                                const int items_num,
-                                const short island_type,
-                                const short innercut_type);
+                                short item_type,
+                                int items_num,
+                                short island_type,
+                                short innercut_type);
 void BKE_mesh_loop_islands_clear(MeshIslandStore *island_store);
 void BKE_mesh_loop_islands_free(MeshIslandStore *island_store);
 void BKE_mesh_loop_islands_add(MeshIslandStore *island_store,
-                               const int item_num,
+                               int item_num,
                                const int *items_indices,
-                               const int num_island_items,
+                               int num_island_items,
                                int *island_item_indices,
-                               const int num_innercut_items,
+                               int num_innercut_items,
                                int *innercut_item_indices);
 
 typedef bool (*MeshRemapIslandsCalc)(struct MVert *verts,
-                                     const int totvert,
+                                     int totvert,
                                      struct MEdge *edges,
-                                     const int totedge,
+                                     int totedge,
                                      struct MPoly *polys,
-                                     const int totpoly,
+                                     int totpoly,
                                      struct MLoop *loops,
-                                     const int totloop,
+                                     int totloop,
                                      struct MeshIslandStore *r_island_store);
 
 /* Above vert/UV mapping stuff does not do what we need here, but does things we do not need here.
@@ -283,13 +280,13 @@ typedef bool (*MeshRemapIslandsCalc)(struct MVert *verts,
  * not some UV layers coordinates.
  */
 bool BKE_mesh_calc_islands_loop_poly_edgeseam(struct MVert *verts,
-                                              const int totvert,
+                                              int totvert,
                                               struct MEdge *edges,
-                                              const int totedge,
+                                              int totedge,
                                               struct MPoly *polys,
-                                              const int totpoly,
+                                              int totpoly,
                                               struct MLoop *loops,
-                                              const int totloop,
+                                              int totloop,
                                               MeshIslandStore *r_island_store);
 
 /**
@@ -306,13 +303,13 @@ bool BKE_mesh_calc_islands_loop_poly_edgeseam(struct MVert *verts,
  * those loops are supposed to be really quick to do.
  */
 bool BKE_mesh_calc_islands_loop_poly_uvmap(struct MVert *verts,
-                                           const int totvert,
+                                           int totvert,
                                            struct MEdge *edges,
-                                           const int totedge,
+                                           int totedge,
                                            struct MPoly *polys,
-                                           const int totpoly,
+                                           int totpoly,
                                            struct MLoop *loops,
-                                           const int totloop,
+                                           int totloop,
                                            const struct MLoopUV *luvs,
                                            MeshIslandStore *r_island_store);
 
@@ -325,13 +322,13 @@ bool BKE_mesh_calc_islands_loop_poly_uvmap(struct MVert *verts,
  * Note it's callers's responsibility to MEM_freeN returned array.
  */
 int *BKE_mesh_calc_smoothgroups(const struct MEdge *medge,
-                                const int totedge,
+                                int totedge,
                                 const struct MPoly *mpoly,
-                                const int totpoly,
+                                int totpoly,
                                 const struct MLoop *mloop,
-                                const int totloop,
+                                int totloop,
                                 int *r_totgroup,
-                                const bool use_bitflags);
+                                bool use_bitflags);
 
 /* use on looptri vertex values */
 #define BKE_MESH_TESSTRI_VINDEX_ORDER(_tri, _v) \

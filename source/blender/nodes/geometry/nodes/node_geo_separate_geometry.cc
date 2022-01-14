@@ -59,37 +59,37 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometrySeparateGeometry &storage = node_storage(params.node());
   const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
 
-  bool all_is_error = false;
-  GeometrySet second_set(geometry_set);
-  if (params.output_is_required("Selection")) {
-    geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-      bool this_is_error = false;
+  auto separate_geometry_maybe_recursively = [&](GeometrySet &geometry_set, bool invert) {
+    bool is_error;
+    if (domain == ATTR_DOMAIN_INSTANCE) {
+      /* Only delete top level instances. */
       separate_geometry(geometry_set,
                         domain,
                         GEO_NODE_DELETE_GEOMETRY_MODE_ALL,
                         selection_field,
-                        false,
-                        this_is_error);
-      all_is_error &= this_is_error;
-    });
+                        invert,
+                        is_error);
+    }
+    else {
+      geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+        separate_geometry(geometry_set,
+                          domain,
+                          GEO_NODE_DELETE_GEOMETRY_MODE_ALL,
+                          selection_field,
+                          invert,
+                          is_error);
+      });
+    }
+  };
+
+  GeometrySet second_set(geometry_set);
+  if (params.output_is_required("Selection")) {
+    separate_geometry_maybe_recursively(geometry_set, false);
     params.set_output("Selection", std::move(geometry_set));
   }
   if (params.output_is_required("Inverted")) {
-    second_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-      bool this_is_error = false;
-      separate_geometry(geometry_set,
-                        domain,
-                        GEO_NODE_DELETE_GEOMETRY_MODE_ALL,
-                        selection_field,
-                        true,
-                        this_is_error);
-      all_is_error &= this_is_error;
-    });
+    separate_geometry_maybe_recursively(second_set, true);
     params.set_output("Inverted", std::move(second_set));
-  }
-  if (all_is_error) {
-    /* Only show this if none of the instances/components actually changed. */
-    params.error_message_add(NodeWarningType::Info, TIP_("No geometry with given domain"));
   }
 }
 
@@ -101,8 +101,7 @@ void register_node_type_geo_separate_geometry()
 
   static bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_SEPARATE_GEOMETRY, "Separate Geometry", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_SEPARATE_GEOMETRY, "Separate Geometry", NODE_CLASS_GEOMETRY);
 
   node_type_storage(&ntype,
                     "NodeGeometrySeparateGeometry",

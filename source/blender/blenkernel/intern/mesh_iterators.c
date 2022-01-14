@@ -34,14 +34,11 @@
 
 #include "MEM_guardedalloc.h"
 
-void BKE_mesh_foreach_mapped_vert(Mesh *mesh,
-                                  void (*func)(void *userData,
-                                               int index,
-                                               const float co[3],
-                                               const float no_f[3],
-                                               const short no_s[3]),
-                                  void *userData,
-                                  MeshForeachFlag flag)
+void BKE_mesh_foreach_mapped_vert(
+    Mesh *mesh,
+    void (*func)(void *userData, int index, const float co[3], const float no[3]),
+    void *userData,
+    MeshForeachFlag flag)
 {
   if (mesh->edit_mesh != NULL) {
     BMEditMesh *em = mesh->edit_mesh;
@@ -61,34 +58,37 @@ void BKE_mesh_foreach_mapped_vert(Mesh *mesh,
       }
       BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
         const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? vertexNos[i] : NULL;
-        func(userData, i, vertexCos[i], no, NULL);
+        func(userData, i, vertexCos[i], no);
       }
     }
     else {
       BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
         const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? eve->no : NULL;
-        func(userData, i, eve->co, no, NULL);
+        func(userData, i, eve->co, no);
       }
     }
   }
   else {
     const MVert *mv = mesh->mvert;
     const int *index = CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX);
+    const float(*vert_normals)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
+                                        BKE_mesh_vertex_normals_ensure(mesh) :
+                                        NULL;
 
     if (index) {
       for (int i = 0; i < mesh->totvert; i++, mv++) {
-        const short *no = (flag & MESH_FOREACH_USE_NORMAL) ? mv->no : NULL;
+        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[i] : NULL;
         const int orig = *index++;
         if (orig == ORIGINDEX_NONE) {
           continue;
         }
-        func(userData, orig, mv->co, NULL, no);
+        func(userData, orig, mv->co, no);
       }
     }
     else {
       for (int i = 0; i < mesh->totvert; i++, mv++) {
-        const short *no = (flag & MESH_FOREACH_USE_NORMAL) ? mv->no : NULL;
-        func(userData, i, mv->co, NULL, no);
+        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[i] : NULL;
+        func(userData, i, mv->co, no);
       }
     }
   }
@@ -310,8 +310,9 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
   const MPoly *mp = mesh->mpoly;
   const MLoop *ml;
   const MVert *mv;
-  float _no_buf[3];
-  float *no = (flag & MESH_FOREACH_USE_NORMAL) ? _no_buf : NULL;
+  const float(*vert_normals)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
+                                      BKE_mesh_vertex_normals_ensure(mesh) :
+                                      NULL;
   const int *index = CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX);
 
   if (index) {
@@ -324,10 +325,11 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
       for (int j = 0; j < mp->totloop; j++, ml++) {
         mv = &mesh->mvert[ml->v];
         if (mv->flag & ME_VERT_FACEDOT) {
-          if (flag & MESH_FOREACH_USE_NORMAL) {
-            normal_short_to_float_v3(no, mv->no);
-          }
-          func(userData, orig, mv->co, no);
+
+          func(userData,
+               orig,
+               mv->co,
+               (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[ml->v] : NULL);
         }
       }
     }
@@ -338,10 +340,7 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
       for (int j = 0; j < mp->totloop; j++, ml++) {
         mv = &mesh->mvert[ml->v];
         if (mv->flag & ME_VERT_FACEDOT) {
-          if (flag & MESH_FOREACH_USE_NORMAL) {
-            normal_short_to_float_v3(no, mv->no);
-          }
-          func(userData, i, mv->co, no);
+          func(userData, i, mv->co, (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[ml->v] : NULL);
         }
       }
     }
@@ -358,8 +357,7 @@ typedef struct MappedVCosData {
 static void get_vertexcos__mapFunc(void *user_data,
                                    int index,
                                    const float co[3],
-                                   const float UNUSED(no_f[3]),
-                                   const short UNUSED(no_s[3]))
+                                   const float UNUSED(no[3]))
 {
   MappedVCosData *mapped_vcos_data = (MappedVCosData *)user_data;
 

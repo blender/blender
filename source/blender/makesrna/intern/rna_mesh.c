@@ -317,18 +317,26 @@ static void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)
 {
-  MVert *mvert = (MVert *)ptr->data;
-  normal_short_to_float_v3(value, mvert->no);
+  Mesh *mesh = rna_mesh(ptr);
+  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+
+  const int index = (MVert *)ptr->data - mesh->mvert;
+  BLI_assert(index >= 0);
+  BLI_assert(index < mesh->totvert);
+
+  copy_v3_v3(value, vert_normals[index]);
 }
 
 static void rna_MeshVertex_normal_set(PointerRNA *ptr, const float *value)
 {
-  MVert *mvert = (MVert *)ptr->data;
-  float no[3];
+  Mesh *mesh = rna_mesh(ptr);
+  float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(mesh);
 
-  copy_v3_v3(no, value);
-  normalize_v3(no);
-  normal_float_to_short_v3(mvert->no, no);
+  const int index = (MVert *)ptr->data - mesh->mvert;
+  BLI_assert(index >= 0);
+  BLI_assert(index < mesh->totvert);
+
+  copy_v3_v3(vert_normals[index], value);
 }
 
 static float rna_MeshVertex_bevel_weight_get(PointerRNA *ptr)

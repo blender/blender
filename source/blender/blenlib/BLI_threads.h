@@ -167,7 +167,7 @@ typedef pthread_cond_t ThreadCondition;
 
 void BLI_condition_init(ThreadCondition *cond);
 void BLI_condition_wait(ThreadCondition *cond, ThreadMutex *mutex);
-void BLI_condition_wait_global_mutex(ThreadCondition *cond, const int type);
+void BLI_condition_wait_global_mutex(ThreadCondition *cond, int type);
 void BLI_condition_notify_one(ThreadCondition *cond);
 void BLI_condition_notify_all(ThreadCondition *cond);
 void BLI_condition_end(ThreadCondition *cond);
@@ -209,13 +209,6 @@ void BLI_thread_queue_nowait(ThreadQueue *queue);
 #  define BLI_thread_local_get(name) name
 #  define BLI_thread_local_set(name, value) name = value
 #endif /* defined(__APPLE__) */
-
-/* **** Special functions to help performance on crazy NUMA setups. **** */
-
-/* Make sure process/thread is using NUMA node with fast memory access. */
-
-void BLI_thread_put_process_on_fast_node(void);
-void BLI_thread_put_thread_on_fast_node(void);
 
 #ifdef __cplusplus
 }

@@ -36,7 +36,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_("Geometry that is instanced on the points"));
   b.add_input<decl::Bool>(N_("Pick Instance"))
       .supports_field()
-      .description("Place different instances on different points");
+      .description(N_("Place different instances on different points"));
   b.add_input<decl::Int>(N_("Instance Index"))
       .implicit_field()
       .description(N_(
@@ -259,7 +259,7 @@ void register_node_type_geo_instance_on_points()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_INSTANCE_ON_POINTS, "Instance on Points", NODE_CLASS_GEOMETRY, 0);
+      &ntype, GEO_NODE_INSTANCE_ON_POINTS, "Instance on Points", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);

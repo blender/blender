@@ -171,7 +171,7 @@ bool GPU_stack_link(GPUMaterial *mat,
 GPUNodeLink *GPU_uniformbuf_link_out(struct GPUMaterial *mat,
                                      struct bNode *node,
                                      struct GPUNodeStack *stack,
-                                     const int index);
+                                     int index);
 
 void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link);
 void GPU_material_add_output_link_aov(GPUMaterial *material, GPUNodeLink *link, int hash);
@@ -197,8 +197,8 @@ GPUMaterial *GPU_material_from_nodetree(struct Scene *scene,
                                         struct bNodeTree *ntree,
                                         struct ListBase *gpumaterials,
                                         const void *engine_type,
-                                        const int options,
-                                        const bool is_volume_shader,
+                                        int options,
+                                        bool is_volume_shader,
                                         const char *vert_code,
                                         const char *geom_code,
                                         const char *frag_lib,

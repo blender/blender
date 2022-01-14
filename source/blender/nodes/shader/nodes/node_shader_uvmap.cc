@@ -17,18 +17,35 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
+
+#include "BKE_context.h"
 
 #include "DNA_customdata_types.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 namespace blender::nodes::node_shader_uvmap_cc {
 
-/* **************** OUTPUT ******************** */
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Vector>(N_("UV"));
+}
 
-static bNodeSocketTemplate sh_node_uvmap_out[] = {
-    {SOCK_VECTOR, N_("UV"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
+static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "from_instancer", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
+
+  if (!RNA_boolean_get(ptr, "from_instancer")) {
+    PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
+
+    if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
+      PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
+      uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_NONE);
+    }
+  }
+}
 
 static void node_shader_init_uvmap(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -61,8 +78,9 @@ void register_node_type_sh_uvmap()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_UVMAP, "UV Map", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_uvmap_out);
+  sh_node_type_base(&ntype, SH_NODE_UVMAP, "UV Map", NODE_CLASS_INPUT);
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_uvmap;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_init(&ntype, file_ns::node_shader_init_uvmap);
   node_type_storage(

@@ -1475,6 +1475,17 @@ void DepsgraphRelationBuilder::build_animation_images(ID *id)
         id, NodeType::IMAGE_ANIMATION, OperationCode::IMAGE_ANIMATION);
     TimeSourceKey time_src_key;
     add_relation(time_src_key, image_animation_key, "TimeSrc -> Image Animation");
+
+    /* The image users of these ids may change during evaluation. Make sure that the image
+     * animation update happens after evaluation. */
+    if (GS(id->name) == ID_MA) {
+      OperationKey material_update_key(id, NodeType::SHADING, OperationCode::MATERIAL_UPDATE);
+      add_relation(material_update_key, image_animation_key, "Material Update -> Image Animation");
+    }
+    else if (GS(id->name) == ID_WO) {
+      OperationKey world_update_key(id, NodeType::SHADING, OperationCode::WORLD_UPDATE);
+      add_relation(world_update_key, image_animation_key, "World Update -> Image Animation");
+    }
   }
 }
 
@@ -1729,8 +1740,22 @@ void DepsgraphRelationBuilder::build_driver_id_property(ID *id, const char *rna_
     return;
   }
   const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);
-  OperationKey id_property_key(
-      id, NodeType::PARAMETERS, OperationCode::ID_PROPERTY, prop_identifier);
+  /* Custom properties of bones are placed in their components to improve granularity. */
+  OperationKey id_property_key;
+  if (RNA_struct_is_a(ptr.type, &RNA_PoseBone)) {
+    const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr.data);
+    id_property_key = OperationKey(
+        id, NodeType::BONE, pchan->name, OperationCode::ID_PROPERTY, prop_identifier);
+    /* Create relation from the parameters component so that tagging armature for parameters update
+     * properly propagates updates to all properties on bones and deeper (if needed). */
+    OperationKey parameters_init_key(id, NodeType::PARAMETERS, OperationCode::PARAMETERS_ENTRY);
+    add_relation(
+        parameters_init_key, id_property_key, "Init -> ID Property", RELATION_CHECK_BEFORE_ADD);
+  }
+  else {
+    id_property_key = OperationKey(
+        id, NodeType::PARAMETERS, OperationCode::ID_PROPERTY, prop_identifier);
+  }
   OperationKey parameters_exit_key(id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
   add_relation(
       id_property_key, parameters_exit_key, "ID Property -> Done", RELATION_CHECK_BEFORE_ADD);
@@ -2521,8 +2546,13 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
        * changed. The parent node group is currently explicitly tagged for update in
        * #ED_node_tree_propagate_change. In the future we could move this relation to the
        * depsgraph, but then the depsgraph has to do some more static analysis of the node tree to
-       * see which groups the output actually depends on. */
-      add_relation(group_output_key, ntree_output_key, "Group Node", RELATION_FLAG_NO_FLUSH);
+       * see which groups the output actually depends on.
+       *
+       * Furthermore, shader nodes currently depend on relations being created from e.g. objects to
+       * nodes. Geometry nodes do not depend on these relations, because they are explicitly
+       * created by the modifier (which is the thing that actually depends on the objects). */
+      const int relation_flag = (group_ntree->type == NTREE_SHADER) ? 0 : RELATION_FLAG_NO_FLUSH;
+      add_relation(group_output_key, ntree_output_key, "Group Node", relation_flag);
     }
     else {
       BLI_assert_msg(0, "Unknown ID type used for node");

@@ -48,10 +48,10 @@ class GLDrawList : public DrawList {
   ~GLDrawList();
 
   void append(GPUBatch *batch, int i_first, int i_count) override;
-  void submit(void) override;
+  void submit() override;
 
  private:
-  void init(void);
+  void init();
 
   /** Batch for which we are recording commands for. */
   GLBatch *batch_;

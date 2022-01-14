@@ -17,22 +17,62 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 #include "sky_model.h"
+
+#include "BKE_context.h"
+#include "BKE_scene.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 namespace blender::nodes::node_shader_tex_sky_cc {
 
-/* **************** OUTPUT ******************** */
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Vector>(N_("Vector")).hide_value();
+  b.add_output<decl::Color>(N_("Color")).no_muted_links();
+}
 
-static bNodeSocketTemplate sh_node_tex_sky_in[] = {
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {-1, ""},
-};
+static void node_shader_buts_tex_sky(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "sky_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
-static bNodeSocketTemplate sh_node_tex_sky_out[] = {
-    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
-    {-1, ""},
-};
+  if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_PREETHAM) {
+    uiItemR(layout, ptr, "sun_direction", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    uiItemR(layout, ptr, "turbidity", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+  if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_HOSEK) {
+    uiItemR(layout, ptr, "sun_direction", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    uiItemR(layout, ptr, "turbidity", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "ground_albedo", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+  if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_NISHITA) {
+    Scene *scene = CTX_data_scene(C);
+    if (BKE_scene_uses_blender_eevee(scene)) {
+      uiItemL(layout, TIP_("Nishita not available in Eevee"), ICON_ERROR);
+    }
+    uiItemR(layout, ptr, "sun_disc", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
+
+    uiLayout *col;
+    if (RNA_boolean_get(ptr, "sun_disc")) {
+      col = uiLayoutColumn(layout, true);
+      uiItemR(col, ptr, "sun_size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+      uiItemR(col, ptr, "sun_intensity", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    }
+
+    col = uiLayoutColumn(layout, true);
+    uiItemR(col, ptr, "sun_elevation", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "sun_rotation", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+    uiItemR(layout, ptr, "altitude", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+
+    col = uiLayoutColumn(layout, true);
+    uiItemR(col, ptr, "air_density", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "dust_density", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "ozone_density", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+}
 
 static void node_shader_init_tex_sky(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -214,13 +254,14 @@ void register_node_type_sh_tex_sky()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_TEX_SKY, "Sky Texture", NODE_CLASS_TEXTURE, 0);
-  node_type_socket_templates(&ntype, file_ns::sh_node_tex_sky_in, file_ns::sh_node_tex_sky_out);
+  sh_node_type_base(&ntype, SH_NODE_TEX_SKY, "Sky Texture", NODE_CLASS_TEXTURE);
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_tex_sky;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_init(&ntype, file_ns::node_shader_init_tex_sky);
   node_type_storage(&ntype, "NodeTexSky", node_free_standard_storage, node_copy_standard_storage);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_sky);
-  /* remove Vector input for Nishita */
+  /* Remove vector input for Nishita sky model. */
   node_type_update(&ntype, file_ns::node_shader_update_sky);
 
   nodeRegisterType(&ntype);

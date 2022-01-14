@@ -93,8 +93,8 @@ TEST(serialize, object_to_json)
 {
   JsonFormatter json;
   std::stringstream out;
-  ObjectValue value_object;
-  ObjectValue::Items &attributes = value_object.elements();
+  DictionaryValue value_object;
+  DictionaryValue::Items &attributes = value_object.elements();
   attributes.append_as(std::pair(std::string("best_number"), new IntValue(42)));
 
   json.serialize(out, value_object);

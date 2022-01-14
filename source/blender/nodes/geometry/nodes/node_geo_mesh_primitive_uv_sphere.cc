@@ -71,7 +71,12 @@ static int sphere_face_total(const int segments, const int rings)
   return quads + triangles;
 }
 
+/**
+ * Also calculate vertex normals here, since the calculation is trivial, and it allows avoiding the
+ * calculation later, if it's necessary. The vertex normals are just the normalized positions.
+ */
 static void calculate_sphere_vertex_data(MutableSpan<MVert> verts,
+                                         MutableSpan<float3> vert_normals,
                                          const float radius,
                                          const int segments,
                                          const int rings)
@@ -80,7 +85,7 @@ static void calculate_sphere_vertex_data(MutableSpan<MVert> verts,
   const float delta_phi = (2.0f * M_PI) / segments;
 
   copy_v3_v3(verts[0].co, float3(0.0f, 0.0f, radius));
-  normal_float_to_short_v3(verts[0].no, float3(0.0f, 0.0f, 1.0f));
+  vert_normals.first() = float3(0.0f, 0.0f, 1.0f);
 
   int vert_index = 1;
   for (const int ring : IndexRange(1, rings - 1)) {
@@ -92,13 +97,13 @@ static void calculate_sphere_vertex_data(MutableSpan<MVert> verts,
       const float x = sin_theta * std::cos(phi);
       const float y = sin_theta * std::sin(phi);
       copy_v3_v3(verts[vert_index].co, float3(x, y, z) * radius);
-      normal_float_to_short_v3(verts[vert_index].no, float3(x, y, z));
+      vert_normals[vert_index] = float3(x, y, z);
       vert_index++;
     }
   }
 
   copy_v3_v3(verts.last().co, float3(0.0f, 0.0f, -radius));
-  normal_float_to_short_v3(verts.last().no, float3(0.0f, 0.0f, -1.0f));
+  vert_normals.last() = float3(0.0f, 0.0f, -1.0f);
 }
 
 static void calculate_sphere_edge_indices(MutableSpan<MEdge> edges,
@@ -178,7 +183,7 @@ static void calculate_sphere_faces(MutableSpan<MLoop> loops,
 
   int ring_vert_index_start = 1;
   int ring_edge_index_start = segments;
-  for (const int UNUSED(ring) : IndexRange(1, rings - 2)) {
+  for ([[maybe_unused]] const int ring : IndexRange(1, rings - 2)) {
     const int next_ring_vert_index_start = ring_vert_index_start + segments;
     const int next_ring_edge_index_start = ring_edge_index_start + segments * 2;
     const int ring_vertical_edge_index_start = ring_edge_index_start + segments;
@@ -279,7 +284,9 @@ static Mesh *create_uv_sphere_mesh(const float radius, const int segments, const
   MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
   MutableSpan<MPoly> polys{mesh->mpoly, mesh->totpoly};
 
-  calculate_sphere_vertex_data(verts, radius, segments, rings);
+  MutableSpan vert_normals{(float3 *)BKE_mesh_vertex_normals_for_write(mesh), mesh->totvert};
+  calculate_sphere_vertex_data(verts, vert_normals, radius, segments, rings);
+  BKE_mesh_vertex_normals_clear_dirty(mesh);
 
   calculate_sphere_edge_indices(edges, segments, rings);
 
@@ -319,8 +326,7 @@ void register_node_type_geo_mesh_primitive_uv_sphere()
 
   static bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, "UV Sphere", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, "UV Sphere", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);

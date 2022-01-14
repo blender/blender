@@ -69,12 +69,8 @@ class GpencilExporterSVG : public GpencilExporter {
    * \param size: Size of the text
    * \param hexcolor: Color of the text
    */
-  static void add_text(pugi::xml_node node,
-                       float x,
-                       float y,
-                       std::string text,
-                       const float size,
-                       std::string hexcolor);
+  static void add_text(
+      pugi::xml_node node, float x, float y, std::string text, float size, std::string hexcolor);
 
  private:
   /** XML doc. */
@@ -96,7 +92,7 @@ class GpencilExporterSVG : public GpencilExporter {
   void export_stroke_to_path(struct bGPDlayer *gpl,
                              struct bGPDstroke *gps,
                              pugi::xml_node node_gpl,
-                             const bool do_fill);
+                             bool do_fill);
 
   /**
    * Export a stroke using poly-line or polygon
@@ -106,8 +102,8 @@ class GpencilExporterSVG : public GpencilExporter {
   void export_stroke_to_polyline(struct bGPDlayer *gpl,
                                  struct bGPDstroke *gps,
                                  pugi::xml_node node_gpl,
-                                 const bool is_stroke,
-                                 const bool do_fill);
+                                 bool is_stroke,
+                                 bool do_fill);
 
   /**
    * Set color SVG string for stroke
@@ -117,7 +113,7 @@ class GpencilExporterSVG : public GpencilExporter {
   void color_string_set(struct bGPDlayer *gpl,
                         struct bGPDstroke *gps,
                         pugi::xml_node node_gps,
-                        const bool do_fill);
+                        bool do_fill);
 
   /** Convert a color to Hex value (#FFFFFF). */
   std::string rgb_to_hexstr(const float color[3]);

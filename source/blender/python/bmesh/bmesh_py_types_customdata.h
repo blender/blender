@@ -61,9 +61,9 @@ typedef struct BPy_BMLayerItem {
   int index; /* index of this layer type */
 } BPy_BMLayerItem;
 
-PyObject *BPy_BMLayerAccess_CreatePyObject(BMesh *bm, const char htype);
-PyObject *BPy_BMLayerCollection_CreatePyObject(BMesh *bm, const char htype, int type);
-PyObject *BPy_BMLayerItem_CreatePyObject(BMesh *bm, const char htype, int type, int index);
+PyObject *BPy_BMLayerAccess_CreatePyObject(BMesh *bm, char htype);
+PyObject *BPy_BMLayerCollection_CreatePyObject(BMesh *bm, char htype, int type);
+PyObject *BPy_BMLayerItem_CreatePyObject(BMesh *bm, char htype, int type, int index);
 
 void BPy_BM_init_types_customdata(void);
 

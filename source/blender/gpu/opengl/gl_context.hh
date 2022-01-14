@@ -50,7 +50,7 @@ class GLSharedOrphanLists {
   Vector<GLuint> buffers;
 
  public:
-  void orphans_clear(void);
+  void orphans_clear();
 };
 
 class GLContext : public Context {
@@ -112,11 +112,11 @@ class GLContext : public Context {
 
   static void check_error(const char *info);
 
-  void activate(void) override;
-  void deactivate(void) override;
+  void activate() override;
+  void deactivate() override;
 
-  void flush(void) override;
-  void finish(void) override;
+  void flush() override;
+  void finish() override;
 
   void memory_statistics_get(int *total_mem, int *free_mem) override;
 
@@ -142,11 +142,11 @@ class GLContext : public Context {
   void vao_cache_unregister(GLVaoCache *cache);
 
   void debug_group_begin(const char *name, int index) override;
-  void debug_group_end(void) override;
+  void debug_group_end() override;
 
  private:
   static void orphans_add(Vector<GLuint> &orphan_list, std::mutex &list_mutex, GLuint id);
-  void orphans_clear(void);
+  void orphans_clear();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLContext")
 };

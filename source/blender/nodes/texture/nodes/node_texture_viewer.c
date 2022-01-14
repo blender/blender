@@ -29,9 +29,6 @@ static bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color"), 1.0f, 0.0f, 0.0f, 1.0f},
     {-1, ""},
 };
-static bNodeSocketTemplate outputs[] = {
-    {-1, ""},
-};
 
 static void exec(void *data,
                  int UNUSED(thread),
@@ -55,11 +52,12 @@ void register_node_type_tex_viewer(void)
 {
   static bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW);
-  node_type_socket_templates(&ntype, inputs, outputs);
+  tex_node_type_base(&ntype, TEX_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT);
+  node_type_socket_templates(&ntype, inputs, NULL);
   node_type_exec(&ntype, NULL, NULL, exec);
 
   ntype.no_muting = true;
+  ntype.flag |= NODE_PREVIEW;
 
   nodeRegisterType(&ntype);
 }

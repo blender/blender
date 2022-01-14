@@ -184,7 +184,7 @@ typedef struct ModifierTypeInfo {
    *
    * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
    */
-  void (*copyData)(const struct ModifierData *md, struct ModifierData *target, const int flag);
+  void (*copyData)(const struct ModifierData *md, struct ModifierData *target, int flag);
 
   /********************* Deform modifier functions *********************/
 
@@ -322,7 +322,7 @@ typedef struct ModifierTypeInfo {
    *
    * The dag_eval_mode should be of type eEvaluationMode.
    */
-  bool (*dependsOnTime)(struct Scene *scene, struct ModifierData *md, const int dag_eval_mode);
+  bool (*dependsOnTime)(struct Scene *scene, struct ModifierData *md, int dag_eval_mode);
 
   /**
    * True when a deform modifier uses normals, the requiredDataMask
@@ -415,7 +415,7 @@ void BKE_modifier_panel_expand(struct ModifierData *md);
  */
 struct ModifierData *BKE_modifier_new(int type);
 
-void BKE_modifier_free_ex(struct ModifierData *md, const int flag);
+void BKE_modifier_free_ex(struct ModifierData *md, int flag);
 void BKE_modifier_free(struct ModifierData *md);
 /**
  * Use instead of `BLI_remlink` when the object's active modifier should change.
@@ -432,11 +432,9 @@ bool BKE_modifier_unique_name(struct ListBase *modifiers, struct ModifierData *m
  */
 void BKE_modifier_copydata_generic(const struct ModifierData *md,
                                    struct ModifierData *md_dst,
-                                   const int flag);
+                                   int flag);
 void BKE_modifier_copydata(struct ModifierData *md, struct ModifierData *target);
-void BKE_modifier_copydata_ex(struct ModifierData *md,
-                              struct ModifierData *target,
-                              const int flag);
+void BKE_modifier_copydata_ex(struct ModifierData *md, struct ModifierData *target, int flag);
 bool BKE_modifier_depends_ontime(struct Scene *scene, struct ModifierData *md, int dag_eval_mode);
 bool BKE_modifier_supports_mapping(struct ModifierData *md);
 bool BKE_modifier_supports_cage(struct Scene *scene, struct ModifierData *md);
@@ -604,7 +602,7 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
  * (i.e. mesh topology remains the same as original one, a.k.a. 'cage' mesh).
  */
 struct Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(struct Object *ob_eval,
-                                                                   const bool get_cage_mesh);
+                                                                   bool get_cage_mesh);
 
 void BKE_modifier_check_uuids_unique_and_report(const struct Object *object);
 

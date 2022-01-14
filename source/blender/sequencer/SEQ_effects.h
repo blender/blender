@@ -59,10 +59,10 @@ struct SeqEffectHandle {
   void (*load)(struct Sequence *seqconst);
 
   /* duplicate */
-  void (*copy)(struct Sequence *dst, struct Sequence *src, const int flag);
+  void (*copy)(struct Sequence *dst, struct Sequence *src, int flag);
 
   /* destruct */
-  void (*free)(struct Sequence *seq, const bool do_id_user);
+  void (*free)(struct Sequence *seq, bool do_id_user);
 
   /* returns: -1: no input needed,
    * 0: no early out,
@@ -105,8 +105,8 @@ struct SeqEffectHandle {
 
 struct SeqEffectHandle SEQ_effect_handle_get(struct Sequence *seq);
 int SEQ_effect_get_num_inputs(int seq_type);
-void SEQ_effect_text_font_unload(struct TextVars *data, const bool do_id_user);
-void SEQ_effect_text_font_load(struct TextVars *data, const bool do_id_user);
+void SEQ_effect_text_font_unload(struct TextVars *data, bool do_id_user);
+void SEQ_effect_text_font_load(struct TextVars *data, bool do_id_user);
 
 #ifdef __cplusplus
 }

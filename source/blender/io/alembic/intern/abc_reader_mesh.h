@@ -42,9 +42,9 @@ class AbcMeshReader final : public AbcObjectReader {
 
   struct Mesh *read_mesh(struct Mesh *existing_mesh,
                          const Alembic::Abc::ISampleSelector &sample_sel,
-                         const int read_flag,
+                         int read_flag,
                          const char *velocity_name,
-                         const float velocity_scale,
+                         float velocity_scale,
                          const char **err_str) override;
   bool topology_changed(Mesh *existing_mesh,
                         const Alembic::Abc::ISampleSelector &sample_sel) override;
@@ -75,13 +75,13 @@ class AbcSubDReader final : public AbcObjectReader {
   void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel) override;
   struct Mesh *read_mesh(struct Mesh *existing_mesh,
                          const Alembic::Abc::ISampleSelector &sample_sel,
-                         const int read_flag,
+                         int read_flag,
                          const char *velocity_name,
-                         const float velocity_scale,
+                         float velocity_scale,
                          const char **err_str) override;
 };
 
-void read_mverts(MVert *mverts,
+void read_mverts(Mesh &mesh,
                  const Alembic::AbcGeom::P3fArraySamplePtr positions,
                  const Alembic::AbcGeom::N3fArraySamplePtr normals);
 

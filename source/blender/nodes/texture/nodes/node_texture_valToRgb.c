@@ -63,7 +63,7 @@ void register_node_type_tex_valtorgb(void)
 {
   static bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTER, 0);
+  tex_node_type_base(&ntype, TEX_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTER);
   node_type_socket_templates(&ntype, valtorgb_in, valtorgb_out);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_init(&ntype, valtorgb_init);
@@ -105,7 +105,7 @@ void register_node_type_tex_rgbtobw(void)
 {
   static bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER, 0);
+  tex_node_type_base(&ntype, TEX_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER);
   node_type_socket_templates(&ntype, rgbtobw_in, rgbtobw_out);
   node_type_exec(&ntype, NULL, NULL, rgbtobw_exec);
 

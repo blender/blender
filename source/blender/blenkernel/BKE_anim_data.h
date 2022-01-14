@@ -46,7 +46,7 @@ struct bAction;
 /**
  * Check if the given ID-block can have AnimData.
  */
-bool id_type_can_have_animdata(const short id_type);
+bool id_type_can_have_animdata(short id_type);
 bool id_can_have_animdata(const struct ID *id);
 
 /**
@@ -84,7 +84,7 @@ bool BKE_animdata_action_ensure_idroot(const struct ID *owner, struct bAction *a
 /**
  * Free AnimData used by the nominated ID-block, and clear ID-block's AnimData pointer.
  */
-void BKE_animdata_free(struct ID *id, const bool do_id_user);
+void BKE_animdata_free(struct ID *id, bool do_id_user);
 
 /**
  * Return true if the ID-block has non-empty AnimData.
@@ -103,26 +103,21 @@ void BKE_animdata_foreach_id(struct AnimData *adt, struct LibraryForeachIDData *
  * see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_lib_id.h
  * \return The copied animdata.
  */
-struct AnimData *BKE_animdata_copy(struct Main *bmain, struct AnimData *adt, const int flag);
+struct AnimData *BKE_animdata_copy(struct Main *bmain, struct AnimData *adt, int flag);
 
 /**
  * \param flag: Control ID pointers management,
  * see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_lib_id.h
  * \return true is successfully copied.
  */
-bool BKE_animdata_copy_id(struct Main *bmain,
-                          struct ID *id_to,
-                          struct ID *id_from,
-                          const int flag);
+bool BKE_animdata_copy_id(struct Main *bmain, struct ID *id_to, struct ID *id_from, int flag);
 
 /**
  * Copy AnimData Actions.
  */
 void BKE_animdata_copy_id_action(struct Main *bmain, struct ID *id);
 
-void BKE_animdata_duplicate_id_action(struct Main *bmain,
-                                      struct ID *id,
-                                      const uint duplicate_flags);
+void BKE_animdata_duplicate_id_action(struct Main *bmain, struct ID *id, uint duplicate_flags);
 
 /* Merge copies of data from source AnimData block */
 typedef enum eAnimData_MergeCopy_Modes {

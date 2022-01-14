@@ -192,6 +192,8 @@ void Session::run_main_render_loop()
       break;
     }
   }
+
+  path_trace_->flush_display();
 }
 
 void Session::run()
@@ -303,7 +305,7 @@ RenderWork Session::run_update_for_next_iteration()
 
       tile_params.update_offset_stride();
 
-      path_trace_->reset(buffer_params_, tile_params);
+      path_trace_->reset(buffer_params_, tile_params, did_reset);
     }
 
     const int resolution = render_work.resolution_divider;
@@ -384,7 +386,8 @@ int2 Session::get_effective_tile_size() const
   const int tile_size = tile_manager_.compute_render_tile_size(params.tile_size);
   const int64_t actual_tile_area = static_cast<int64_t>(tile_size) * tile_size;
 
-  if (actual_tile_area >= image_area) {
+  if (actual_tile_area >= image_area && image_width <= TileManager::MAX_TILE_SIZE &&
+      image_height <= TileManager::MAX_TILE_SIZE) {
     return make_int2(image_width, image_height);
   }
 
@@ -422,6 +425,11 @@ void Session::do_delayed_reset()
   /* Update for new state of scene and passes. */
   buffer_params_.update_passes(scene->passes);
   tile_manager_.update(buffer_params_, scene);
+
+  /* Update temp directory on reset.
+   * This potentially allows to finish the existing rendering with a previously configure temporary
+   * directory in the host software and switch to a new temp directory when new render starts. */
+  tile_manager_.set_temp_dir(params.temp_dir);
 
   /* Progress. */
   progress.reset_sample();

@@ -162,7 +162,7 @@ class ObjectManager {
                            Scene *scene,
                            Progress &progress,
                            bool bounds_valid = true);
-  void device_update_mesh_offsets(Device *device, DeviceScene *dscene, Scene *scene);
+  void device_update_geom_offsets(Device *device, DeviceScene *dscene, Scene *scene);
 
   void device_free(Device *device, DeviceScene *dscene, bool force_free);
 

@@ -1558,7 +1558,7 @@ static int sequencer_split_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   }
   RNA_int_set(op->ptr, "channel", mouseloc[1]);
   RNA_enum_set(op->ptr, "side", split_side);
-  /*RNA_enum_set(op->ptr, "type", split_hard); */
+  // RNA_enum_set(op->ptr, "type", split_hard);
 
   return sequencer_split_exec(C, op);
 }
@@ -1949,6 +1949,8 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
   Sequence *active_seq = SEQ_select_active_get(scene);
+
+  SEQ_prefetch_stop(scene);
 
   if (active_seq && active_seq->type == SEQ_TYPE_META && active_seq->flag & SELECT) {
     /* Enter meta-strip. */

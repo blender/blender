@@ -43,7 +43,7 @@ void register_node_type_geo_input_scene_time()
 {
   static bNodeType ntype;
   namespace file_ns = blender::nodes::node_geo_input_scene_time_cc;
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_SCENE_TIME, "Scene Time", NODE_CLASS_INPUT, 0);
+  geo_node_type_base(&ntype, GEO_NODE_INPUT_SCENE_TIME, "Scene Time", NODE_CLASS_INPUT);
   ntype.geometry_node_execute = file_ns::node_exec;
   ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);

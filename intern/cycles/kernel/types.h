@@ -202,7 +202,7 @@ enum SamplingPattern {
 
 /* These flags values correspond to `raytypes` in `osl.cpp`, so keep them in sync! */
 
-enum PathRayFlag {
+enum PathRayFlag : uint32_t {
   /* --------------------------------------------------------------------
    * Ray visibility.
    *
@@ -388,6 +388,7 @@ typedef enum PassType {
   PASS_DENOISING_NORMAL,
   PASS_DENOISING_ALBEDO,
   PASS_DENOISING_DEPTH,
+  PASS_DENOISING_PREVIOUS,
 
   /* PASS_SHADOW_CATCHER accumulates contribution of shadow catcher object which is not affected by
    * any other object. The pass accessor will divide the combined pass by the shadow catcher. The
@@ -1559,7 +1560,7 @@ enum {
 
 /* Kernel Features */
 
-enum KernelFeatureFlag : unsigned int {
+enum KernelFeatureFlag : uint32_t {
   /* Shader nodes. */
   KERNEL_FEATURE_NODE_BSDF = (1U << 0U),
   KERNEL_FEATURE_NODE_EMISSION = (1U << 1U),

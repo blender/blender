@@ -106,7 +106,7 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
       }
     }
     else {
-      for (int UNUSED(i) : spline->positions().index_range()) {
+      for ([[maybe_unused]] int i : spline->positions().index_range()) {
         if (current_mask < selection.size() && selection[current_mask] == current_point) {
           current_mask++;
         }
@@ -167,7 +167,7 @@ void register_node_type_geo_set_curve_handles()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_SET_CURVE_HANDLES, "Set Handle Positions", NODE_CLASS_GEOMETRY, 0);
+      &ntype, GEO_NODE_SET_CURVE_HANDLES, "Set Handle Positions", NODE_CLASS_GEOMETRY);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
   ntype.minwidth = 100.0f;

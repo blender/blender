@@ -17,26 +17,37 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 namespace blender::nodes::node_shader_subsurface_scattering_cc {
 
-/* **************** OUTPUT ******************** */
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Color")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_input<decl::Float>(N_("Scale")).default_value(1.0f).min(0.0f).max(1000.0f);
+  b.add_input<decl::Vector>(N_("Radius"))
+      .default_value({1.0f, 0.2f, 0.1f})
+      .min(0.0f)
+      .max(100.0f)
+      .compact();
+  b.add_input<decl::Float>(N_("IOR")).default_value(1.4f).min(1.01f).max(3.8f).subtype(
+      PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Anisotropy"))
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Vector>(N_("Normal")).hide_value();
+  b.add_output<decl::Shader>(N_("BSSRDF"));
+}
 
-static bNodeSocketTemplate sh_node_subsurface_scattering_in[] = {
-    {SOCK_RGBA, N_("Color"), 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Scale"), 1.0, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {SOCK_VECTOR, N_("Radius"), 1.0f, 0.2f, 0.1f, 0.0f, 0.0f, 100.0f, PROP_NONE, SOCK_COMPACT},
-    {SOCK_FLOAT, N_("IOR"), 1.4f, 0.0f, 0.0f, 0.0f, 1.01f, 3.8f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Anisotropy"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_subsurface_scattering_out[] = {
-    {SOCK_SHADER, N_("BSSRDF")},
-    {-1, ""},
-};
+static void node_shader_buts_subsurface(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+}
 
 static void node_shader_init_subsurface_scattering(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -90,10 +101,9 @@ void register_node_type_sh_subsurface_scattering()
   static bNodeType ntype;
 
   sh_node_type_base(
-      &ntype, SH_NODE_SUBSURFACE_SCATTERING, "Subsurface Scattering", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(&ntype,
-                             file_ns::sh_node_subsurface_scattering_in,
-                             file_ns::sh_node_subsurface_scattering_out);
+      &ntype, SH_NODE_SUBSURFACE_SCATTERING, "Subsurface Scattering", NODE_CLASS_SHADER);
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_subsurface;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_init(&ntype, file_ns::node_shader_init_subsurface_scattering);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_subsurface_scattering);

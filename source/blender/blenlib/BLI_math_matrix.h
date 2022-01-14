@@ -79,8 +79,8 @@ void shuffle_m4(float R[4][4], const int index[4]);
 void add_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3]);
 void add_m4_m4m4(float R[4][4], const float A[4][4], const float B[4][4]);
 
-void madd_m3_m3m3fl(float R[3][3], const float A[3][3], const float B[3][3], const float f);
-void madd_m4_m4m4fl(float R[4][4], const float A[4][4], const float B[4][4], const float f);
+void madd_m3_m3m3fl(float R[3][3], const float A[3][3], const float B[3][3], float f);
+void madd_m4_m4m4fl(float R[4][4], const float A[4][4], const float B[4][4], float f);
 
 void sub_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3]);
 void sub_m4_m4m4(float R[4][4], const float A[4][4], const float B[4][4]);
@@ -252,8 +252,8 @@ void negate_m3(float R[3][3]);
 void negate_mat3_m4(float R[4][4]);
 void negate_m4(float R[4][4]);
 
-bool invert_m3_ex(float m[3][3], const float epsilon);
-bool invert_m3_m3_ex(float m1[3][3], const float m2[3][3], const float epsilon);
+bool invert_m3_ex(float m[3][3], float epsilon);
+bool invert_m3_m3_ex(float m1[3][3], const float m2[3][3], float epsilon);
 
 bool invert_m3(float R[3][3]);
 bool invert_m3_m3(float R[3][3], const float A[3][3]);
@@ -343,8 +343,8 @@ void orthogonalize_m3_stable(float R[3][3], int axis, bool normalize);
  */
 void orthogonalize_m4_stable(float R[4][4], int axis, bool normalize);
 
-bool orthogonalize_m3_zero_axes(float R[3][3], const float unit_length);
-bool orthogonalize_m4_zero_axes(float R[4][4], const float unit_length);
+bool orthogonalize_m3_zero_axes(float R[3][3], float unit_length);
+bool orthogonalize_m4_zero_axes(float R[4][4], float unit_length);
 
 bool is_orthogonal_m3(const float mat[3][3]);
 bool is_orthogonal_m4(const float mat[4][4]);
@@ -443,7 +443,7 @@ void translate_m4(float mat[4][4], float tx, float ty, float tz);
  * #axis_angle_to_mat4_single, #axis_angle_to_mat3_single, #angle_to_mat2
  * (axis & angle args are compatible).
  */
-void rotate_m4(float mat[4][4], const char axis, const float angle);
+void rotate_m4(float mat[4][4], char axis, float angle);
 /** Scale a matrix in-place. */
 void rescale_m4(float mat[4][4], const float scale[3]);
 /**
@@ -487,7 +487,7 @@ void loc_eul_size_to_mat4(float R[4][4],
  * Matrices are made in the order: `scale * rot * loc`
  */
 void loc_eulO_size_to_mat4(
-    float R[4][4], const float loc[3], const float eul[3], const float size[3], const short order);
+    float R[4][4], const float loc[3], const float eul[3], const float size[3], short order);
 /**
  * Make a 4x4 matrix out of 3 transform components.
  * Matrices are made in the order: `scale * rot * loc`
@@ -496,20 +496,11 @@ void loc_quat_size_to_mat4(float R[4][4],
                            const float loc[3],
                            const float quat[4],
                            const float size[3]);
-void loc_axisangle_size_to_mat4(float R[4][4],
-                                const float loc[3],
-                                const float axis[3],
-                                const float angle,
-                                const float size[3]);
+void loc_axisangle_size_to_mat4(
+    float R[4][4], const float loc[3], const float axis[3], float angle, const float size[3]);
 
-void blend_m3_m3m3(float out[3][3],
-                   const float dst[3][3],
-                   const float src[3][3],
-                   const float srcweight);
-void blend_m4_m4m4(float out[4][4],
-                   const float dst[4][4],
-                   const float src[4][4],
-                   const float srcweight);
+void blend_m3_m3m3(float out[3][3], const float dst[3][3], const float src[3][3], float srcweight);
+void blend_m4_m4m4(float out[4][4], const float dst[4][4], const float src[4][4], float srcweight);
 
 /**
  * A polar-decomposition-based interpolation between matrix A and matrix B.
@@ -527,7 +518,7 @@ void blend_m4_m4m4(float out[4][4],
  * \param B: Input matrix which is totally effective with `t = 1.0`.
  * \param t: Interpolation factor.
  */
-void interp_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3], const float t);
+void interp_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3], float t);
 /**
  * Complete transform matrix interpolation,
  * based on polar-decomposition-based interpolation from #interp_m3_m3m3.
@@ -537,7 +528,7 @@ void interp_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3], con
  * \param B: Input matrix which is totally effective with `t = 1.0`.
  * \param t: Interpolation factor.
  */
-void interp_m4_m4m4(float R[4][4], const float A[4][4], const float B[4][4], const float t);
+void interp_m4_m4m4(float R[4][4], const float A[4][4], const float B[4][4], float t);
 
 bool is_negative_m3(const float mat[3][3]);
 bool is_negative_m4(const float mat[4][4]);

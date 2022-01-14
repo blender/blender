@@ -72,16 +72,13 @@ void PE_update_object(struct Depsgraph *depsgraph,
 
 bool PE_mouse_particles(
     struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
-bool PE_box_select(struct bContext *C, const struct rcti *rect, const int sel_op);
+bool PE_box_select(struct bContext *C, const struct rcti *rect, int sel_op);
 bool PE_circle_select(struct bContext *C,
                       struct wmGenericUserData *wm_userdata,
-                      const int sel_op,
+                      int sel_op,
                       const int mval[2],
                       float rad);
-int PE_lasso_select(struct bContext *C,
-                    const int mcoords[][2],
-                    const int mcoords_len,
-                    const int sel_op);
+int PE_lasso_select(struct bContext *C, const int mcoords[][2], int mcoords_len, int sel_op);
 bool PE_deselect_all_visible_ex(struct PTCacheEdit *edit);
 bool PE_deselect_all_visible(struct bContext *C);
 

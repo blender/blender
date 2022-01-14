@@ -29,4 +29,4 @@
  * \param bm: The mesh to operate on.
  * \param use_edge_tag: Only fill tagged edges.
  */
-void BM_mesh_edgenet(BMesh *bm, const bool use_edge_tag, const bool use_new_face_tag);
+void BM_mesh_edgenet(BMesh *bm, bool use_edge_tag, bool use_new_face_tag);

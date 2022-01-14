@@ -84,7 +84,7 @@ void customData_mask_layers__print(const struct CustomData_MeshMasks *mask);
 typedef void (*cd_interp)(
     const void **sources, const float *weights, const float *sub_weights, int count, void *dest);
 typedef void (*cd_copy)(const void *source, void *dest, int count);
-typedef bool (*cd_validate)(void *item, const uint totitems, const bool do_fixes);
+typedef bool (*cd_validate)(void *item, uint totitems, bool do_fixes);
 
 /**
  * Update mask_dst with layers defined in mask_src (equivalent to a bit-wise OR).
@@ -133,7 +133,7 @@ void CustomData_data_copy_value(int type, const void *source, void *dest);
  * another, while not overwriting anything else (e.g. flags).
  */
 void CustomData_data_mix_value(
-    int type, const void *source, void *dest, const int mixmode, const float mixfactor);
+    int type, const void *source, void *dest, int mixmode, float mixfactor);
 
 /**
  * Compares if data1 is equal to data2.  type is a valid CustomData type
@@ -193,7 +193,7 @@ bool CustomData_bmesh_merge(const struct CustomData *source,
                             CustomDataMask mask,
                             eCDAllocType alloctype,
                             struct BMesh *bm,
-                            const char htype);
+                            char htype);
 
 /**
  * NULL's all members and resets the #CustomData.typemap.
@@ -274,22 +274,17 @@ int CustomData_number_of_layers_typemask(const struct CustomData *data, CustomDa
  * Duplicate data of a layer with flag NOFREE, and remove that flag.
  * \return the layer data.
  */
-void *CustomData_duplicate_referenced_layer(struct CustomData *data,
-                                            const int type,
-                                            const int totelem);
+void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type, int totelem);
 void *CustomData_duplicate_referenced_layer_n(struct CustomData *data,
-                                              const int type,
-                                              const int n,
-                                              const int totelem);
+                                              int type,
+                                              int n,
+                                              int totelem);
 void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
-                                                  const int type,
+                                                  int type,
                                                   const char *name,
-                                                  const int totelem);
+                                                  int totelem);
 void *CustomData_duplicate_referenced_layer_anonymous(
-    CustomData *data,
-    const int type,
-    const struct AnonymousAttributeID *anonymous_id,
-    const int totelem);
+    CustomData *data, int type, const struct AnonymousAttributeID *anonymous_id, int totelem);
 bool CustomData_is_referenced_layer(struct CustomData *data, int type);
 
 /**
@@ -344,7 +339,7 @@ void CustomData_bmesh_copy_data_exclude_by_type(const struct CustomData *source,
                                                 struct CustomData *dest,
                                                 void *src_block,
                                                 void **dest_block,
-                                                const CustomDataMask mask_exclude);
+                                                CustomDataMask mask_exclude);
 
 /**
  * Copies data of a single layer of a given type.
@@ -410,7 +405,7 @@ void CustomData_swap_corners(struct CustomData *data, int index, const int *corn
 /**
  * Swap two items of given custom data, in all available layers.
  */
-void CustomData_swap(struct CustomData *data, const int index_a, const int index_b);
+void CustomData_swap(struct CustomData *data, int index_a, int index_b);
 
 /**
  * Gets a pointer to the data element at index from the first layer of type.
@@ -517,7 +512,7 @@ void CustomData_bmesh_free_block_data(struct CustomData *data, void *block);
  */
 void CustomData_bmesh_free_block_data_exclude_by_type(struct CustomData *data,
                                                       void *block,
-                                                      const CustomDataMask mask_exclude);
+                                                      CustomDataMask mask_exclude);
 
 /**
  * Copy custom data to/from layers as in mesh/derived-mesh, to edit-mesh
@@ -560,7 +555,7 @@ bool CustomData_layertype_is_dynamic(int type);
 /**
  * \return Maximum number of layers of given \a type, -1 means 'no limit'.
  */
-int CustomData_layertype_layers_max(const int type);
+int CustomData_layertype_layers_max(int type);
 
 /**
  * Make sure the name of layer at index is unique.
@@ -625,9 +620,7 @@ bool CustomData_from_bmeshpoly_test(CustomData *fdata, CustomData *ldata, bool f
  *
  * \return True if some errors were found.
  */
-bool CustomData_layer_validate(struct CustomDataLayer *layer,
-                               const uint totitems,
-                               const bool do_fixes);
+bool CustomData_layer_validate(struct CustomDataLayer *layer, uint totitems, bool do_fixes);
 void CustomData_layers__print(struct CustomData *data);
 
 /* External file storage */
@@ -657,8 +650,8 @@ typedef void (*cd_datatransfer_interp)(const struct CustomDataTransferLayerMap *
                                        void *dest,
                                        const void **sources,
                                        const float *weights,
-                                       const int count,
-                                       const float mix_factor);
+                                       int count,
+                                       float mix_factor);
 
 /**
  * Fake CD_LAYERS (those are actually 'real' data stored directly into elements' structs,

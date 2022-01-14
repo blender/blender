@@ -17,10 +17,12 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 
-#include "BLI_float2.hh"
-#include "BLI_float4.hh"
+#include "BLI_math_vec_types.hh"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 namespace blender::nodes::node_shader_tex_brick_cc {
 
@@ -55,7 +57,27 @@ static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
       .no_muted_links();
   b.add_output<decl::Color>(N_("Color"));
   b.add_output<decl::Float>(N_("Fac"));
-};
+}
+
+static void node_shader_buts_tex_brick(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *col;
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(col,
+          ptr,
+          "offset",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          IFACE_("Offset"),
+          ICON_NONE);
+  uiItemR(
+      col, ptr, "offset_frequency", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Frequency"), ICON_NONE);
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(col, ptr, "squash", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Squash"), ICON_NONE);
+  uiItemR(
+      col, ptr, "squash_frequency", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Frequency"), ICON_NONE);
+}
 
 static void node_shader_init_tex_brick(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -270,8 +292,9 @@ void register_node_type_sh_tex_brick()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_TEX_BRICK, "Brick Texture", NODE_CLASS_TEXTURE, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_TEX_BRICK, "Brick Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_brick_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_tex_brick;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_init(&ntype, file_ns::node_shader_init_tex_brick);
   node_type_storage(

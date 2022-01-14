@@ -321,7 +321,7 @@ BLI_NOINLINE static void interpolate_existing_attributes(
         continue;
       }
 
-      for (const int UNUSED(i_set_instance) : set_group.transforms.index_range()) {
+      for ([[maybe_unused]] const int i_set_instance : set_group.transforms.index_range()) {
         const int offset = instance_start_offsets[i_instance];
         Span<float3> bary_coords = bary_coords_array[i_instance];
         Span<int> looptri_indices = looptri_indices_array[i_instance];
@@ -516,7 +516,7 @@ static void distribute_points_poisson_disk(Span<GeometryInstanceGroup> set_group
     const VArray<float> density_factors = component.attribute_get_for_read<float>(
         density_attribute_name, ATTR_DOMAIN_CORNER, use_one_default ? 1.0f : 0.0f);
 
-    for (const int UNUSED(i_set_instance) : set_group.transforms.index_range()) {
+    for ([[maybe_unused]] const int i_set_instance : set_group.transforms.index_range()) {
       Vector<float3> &positions = positions_all[i_instance];
       Vector<float3> &bary_coords = bary_coords_all[i_instance];
       Vector<int> &looptri_indices = looptri_indices_all[i_instance];
@@ -662,7 +662,7 @@ void register_node_type_geo_point_distribute()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_LEGACY_POINT_DISTRIBUTE, "Point Distribute", NODE_CLASS_GEOMETRY, 0);
+      &ntype, GEO_NODE_LEGACY_POINT_DISTRIBUTE, "Point Distribute", NODE_CLASS_GEOMETRY);
   node_type_update(&ntype, file_ns::node_point_distribute_update);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;

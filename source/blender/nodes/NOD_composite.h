@@ -43,6 +43,7 @@ void register_node_type_cmp_texture(void);
 void register_node_type_cmp_value(void);
 void register_node_type_cmp_rgb(void);
 void register_node_type_cmp_curve_time(void);
+void register_node_type_cmp_scene_time(void);
 void register_node_type_cmp_movieclip(void);
 
 void register_node_type_cmp_composite(void);
@@ -62,6 +63,7 @@ void register_node_type_cmp_alphaover(void);
 void register_node_type_cmp_zcombine(void);
 void register_node_type_cmp_colorbalance(void);
 void register_node_type_cmp_huecorrect(void);
+void register_node_type_cmp_convert_color_space(void);
 
 void register_node_type_cmp_normal(void);
 void register_node_type_cmp_curve_vec(void);

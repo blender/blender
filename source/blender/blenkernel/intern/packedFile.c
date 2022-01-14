@@ -734,7 +734,7 @@ void BKE_packedfile_pack_all_libraries(Main *bmain, ReportList *reports)
 {
   Library *lib;
 
-  /* test for relativenss */
+  /* Test for relativeness. */
   for (lib = bmain->libraries.first; lib; lib = lib->id.next) {
     if (!BLI_path_is_rel(lib->filepath)) {
       break;

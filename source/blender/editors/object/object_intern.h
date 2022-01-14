@@ -176,8 +176,8 @@ void COLLECTION_OT_objects_remove_active(struct wmOperatorType *ot);
 bool edit_modifier_poll_generic(struct bContext *C,
                                 struct StructRNA *rna_type,
                                 int obtype_flag,
-                                const bool is_editmode_allowed,
-                                const bool is_liboverride_allowed);
+                                bool is_editmode_allowed,
+                                bool is_liboverride_allowed);
 void edit_modifier_properties(struct wmOperatorType *ot);
 bool edit_modifier_invoke_properties(struct bContext *C, struct wmOperator *op);
 

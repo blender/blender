@@ -193,7 +193,7 @@ static void extract_lines_adjacency_init_subdiv(const DRWSubdivCache *subdiv_cac
    * total: (number_of_loops + number_of_quads). */
   const uint tess_len = subdiv_cache->num_subdiv_loops + subdiv_cache->num_subdiv_quads;
   line_adjacency_data_init(
-      data, tess_len, subdiv_cache->num_subdiv_verts, subdiv_cache->num_subdiv_loops);
+      data, subdiv_cache->num_subdiv_verts, subdiv_cache->num_subdiv_loops, tess_len);
 }
 
 static void extract_lines_adjacency_iter_subdiv(const DRWSubdivCache *subdiv_cache,
@@ -220,14 +220,12 @@ static void extract_lines_adjacency_iter_subdiv(const DRWSubdivCache *subdiv_cac
 }
 
 static void extract_lines_adjacency_finish_subdiv(const DRWSubdivCache *UNUSED(subdiv_cache),
+                                                  const MeshRenderData *mr,
+                                                  struct MeshBatchCache *cache,
                                                   void *buf,
                                                   void *_data)
 {
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
-  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
-  GPU_indexbuf_build_in_place(&data->elb, ibo);
-  BLI_edgehash_free(data->eh, nullptr);
-  MEM_freeN(data->vert_to_loop);
+  extract_lines_adjacency_finish(mr, cache, buf, _data);
 }
 
 #undef NO_EDGE

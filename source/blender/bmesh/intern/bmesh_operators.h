@@ -156,19 +156,19 @@ extern const int bmo_opdefines_total;
 
 /*------specific operator helper functions-------*/
 void BM_mesh_esubdivide(BMesh *bm,
-                        const char edge_hflag,
-                        const float smooth,
-                        const short smooth_falloff,
-                        const bool use_smooth_even,
-                        const float fractal,
-                        const float along_normal,
-                        const int numcuts,
-                        const int seltype,
-                        const int cornertype,
-                        const short use_single_edge,
-                        const short use_grid_fill,
-                        const short use_only_quads,
-                        const int seed);
+                        char edge_hflag,
+                        float smooth,
+                        short smooth_falloff,
+                        bool use_smooth_even,
+                        float fractal,
+                        float along_normal,
+                        int numcuts,
+                        int seltype,
+                        int cornertype,
+                        short use_single_edge,
+                        short use_grid_fill,
+                        short use_only_quads,
+                        int seed);
 
 /**
  * Fills first available UV-map with grid-like UV's for all faces with `oflag` set.
@@ -178,18 +178,15 @@ void BM_mesh_esubdivide(BMesh *bm,
  * \param y_segments: The y-resolution of the grid
  * \param oflag: The flag to check faces with.
  */
-void BM_mesh_calc_uvs_grid(BMesh *bm,
-                           const uint x_segments,
-                           const uint y_segments,
-                           const short oflag,
-                           const int cd_loop_uv_offset);
+void BM_mesh_calc_uvs_grid(
+    BMesh *bm, uint x_segments, uint y_segments, short oflag, int cd_loop_uv_offset);
 /**
  * Fills first available UV-map with spherical projected UVs for all faces with `oflag` set.
  *
  * \param bm: The BMesh to operate on
  * \param oflag: The flag to check faces with.
  */
-void BM_mesh_calc_uvs_sphere(BMesh *bm, const short oflag, const int cd_loop_uv_offset);
+void BM_mesh_calc_uvs_sphere(BMesh *bm, short oflag, int cd_loop_uv_offset);
 /**
  * Fills first available UV-map with 2D projected UVs for all faces with `oflag` set.
  *
@@ -198,11 +195,8 @@ void BM_mesh_calc_uvs_sphere(BMesh *bm, const short oflag, const int cd_loop_uv_
  * \param radius: The size of the circle.
  * \param oflag: The flag to check faces with.
  */
-void BM_mesh_calc_uvs_circle(BMesh *bm,
-                             float mat[4][4],
-                             const float radius,
-                             const short oflag,
-                             const int cd_loop_uv_offset);
+void BM_mesh_calc_uvs_circle(
+    BMesh *bm, float mat[4][4], float radius, short oflag, int cd_loop_uv_offset);
 /**
  * Fills first available UV-map with cylinder/cone-like UVs for all faces with `oflag` set.
  *
@@ -216,12 +210,12 @@ void BM_mesh_calc_uvs_circle(BMesh *bm,
  */
 void BM_mesh_calc_uvs_cone(BMesh *bm,
                            float mat[4][4],
-                           const float radius_top,
-                           const float radius_bottom,
-                           const int segments,
-                           const bool cap_ends,
-                           const short oflag,
-                           const int cd_loop_uv_offset);
+                           float radius_top,
+                           float radius_bottom,
+                           int segments,
+                           bool cap_ends,
+                           short oflag,
+                           int cd_loop_uv_offset);
 /**
  * Fills first available UV-map with cube-like UVs for all faces with `oflag` set.
  *
@@ -231,6 +225,6 @@ void BM_mesh_calc_uvs_cone(BMesh *bm,
  * \param bm: The BMesh to operate on.
  * \param oflag: The flag to check faces with.
  */
-void BM_mesh_calc_uvs_cube(BMesh *bm, const short oflag);
+void BM_mesh_calc_uvs_cube(BMesh *bm, short oflag);
 
 #include "intern/bmesh_operator_api_inline.h"

@@ -17,20 +17,14 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_shader_holdout_cc {
 
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketTemplate sh_node_holdout_in[] = {
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_holdout_out[] = {
-    {SOCK_SHADER, N_("Holdout")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Shader>(N_("Holdout"));
+}
 
 static int gpu_shader_rgb(GPUMaterial *mat,
                           bNode *node,
@@ -50,8 +44,8 @@ void register_node_type_sh_holdout()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_HOLDOUT, "Holdout", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(&ntype, file_ns::sh_node_holdout_in, file_ns::sh_node_holdout_out);
+  sh_node_type_base(&ntype, SH_NODE_HOLDOUT, "Holdout", NODE_CLASS_SHADER);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::gpu_shader_rgb);
 
   nodeRegisterType(&ntype);

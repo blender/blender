@@ -45,7 +45,7 @@ class AbcPointsReader final : public AbcObjectReader {
                          const Alembic::Abc::ISampleSelector &sample_sel,
                          int read_flag,
                          const char *velocity_name,
-                         const float velocity_scale,
+                         float velocity_scale,
                          const char **err_str) override;
 };
 

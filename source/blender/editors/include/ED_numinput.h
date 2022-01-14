@@ -114,7 +114,7 @@ bool user_string_to_number(bContext *C,
                            const struct UnitSettings *unit,
                            int type,
                            double *r_value,
-                           const bool use_single_line_error,
+                           bool use_single_line_error,
                            char **r_error);
 
 /** \} */

@@ -188,9 +188,6 @@ static Mesh *modifyMeshDebug(struct ModifierData *md,
   CustomData_duplicate_referenced_layers(&mesh->vdata, mesh->totvert);
   BKE_mesh_update_customdata_pointers(mesh, false);
 
-  // mesh = BKE_mesh_copy_for_eval(mesh, false);
-  BKE_mesh_ensure_normals(mesh);
-
   MPropCol *colors[MAX_BASSRELIEF_DEBUG_COLORS];
   char name[MAX_CUSTOMDATA_LAYER_NAME];
 

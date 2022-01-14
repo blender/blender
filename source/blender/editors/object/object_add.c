@@ -1742,15 +1742,16 @@ void OBJECT_OT_collection_instance_add(wmOperatorType *ot)
   ot->prop = prop;
   ED_object_add_generic_props(ot, false);
 
-  RNA_def_int(ot->srna,
-              "session_uuid",
-              0,
-              INT32_MIN,
-              INT32_MAX,
-              "Session UUID",
-              "Session UUID of the collection to add",
-              INT32_MIN,
-              INT32_MAX);
+  prop = RNA_def_int(ot->srna,
+                     "session_uuid",
+                     0,
+                     INT32_MIN,
+                     INT32_MAX,
+                     "Session UUID",
+                     "Session UUID of the collection to add",
+                     INT32_MIN,
+                     INT32_MAX);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 
   object_add_drop_xy_props(ot);
 }
@@ -3526,6 +3527,8 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
   }
 
   basen->object->visibility_flag &= ~OB_HIDE_VIEWPORT;
+  /* Do immediately, as #copy_object_set_idnew() below operates on visible objects. */
+  BKE_base_eval_flags(basen);
 
   /* object_add_duplicate_internal() doesn't deselect other objects, unlike object_add_common() or
    * BKE_view_layer_base_deselect_all(). */

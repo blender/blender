@@ -53,8 +53,8 @@ void ED_view3d_draw_offscreen(struct Depsgraph *depsgraph,
                               bool is_image_render,
                               bool draw_background,
                               const char *viewname,
-                              const bool do_color_management,
-                              const bool restore_rv3d_mats,
+                              bool do_color_management,
+                              bool restore_rv3d_mats,
                               struct GPUOffScreen *ofs,
                               struct GPUViewport *viewport);
 /**
@@ -76,7 +76,7 @@ void ED_view3d_draw_offscreen_simple(struct Depsgraph *depsgraph,
                                      bool is_image_render,
                                      bool draw_background,
                                      const char *viewname,
-                                     const bool do_color_management,
+                                     bool do_color_management,
                                      struct GPUOffScreen *ofs,
                                      struct GPUViewport *viewport);
 
@@ -96,7 +96,7 @@ struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Depsgraph *depsgraph,
                                              eImBufFlags imbuf_flag,
                                              int alpha_mode,
                                              const char *viewname,
-                                             const bool restore_rv3d_mats,
+                                             bool restore_rv3d_mats,
                                              struct GPUOffScreen *ofs,
                                              char err_out[256]);
 /**

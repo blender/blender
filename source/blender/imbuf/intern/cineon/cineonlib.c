@@ -239,13 +239,13 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
   }
 
   if (cineon->depth == 1) {
-    /* Grayscale image */
+    /* Gray-scale image. */
     cineon->element[0].descriptor = descriptor_Luminance;
     cineon->element[0].transfer = transfer_Linear;
     cineon->element[0].depth = 1;
   }
   else if (cineon->depth == 3) {
-    /* RGB image */
+    /* RGB image. */
     if (cineon->numElements == 1) {
       cineon->element[0].descriptor = descriptor_RGB;
       cineon->element[0].transfer = transfer_PrintingDensity;

@@ -184,6 +184,9 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
   prop = RNA_def_boolean(
       ot->srna, "filter_usd", (filter & FILE_TYPE_USD) != 0, "Filter USD files", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(
+      ot->srna, "filter_obj", (filter & FILE_TYPE_OBJECT_IO) != 0, "Filter OBJ files", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna,
                          "filter_volume",
                          (filter & FILE_TYPE_VOLUME) != 0,

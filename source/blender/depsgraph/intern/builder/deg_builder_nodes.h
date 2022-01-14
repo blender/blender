@@ -135,6 +135,13 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
 
   OperationNode *ensure_operation_node(ID *id,
                                        NodeType comp_type,
+                                       const char *comp_name,
+                                       OperationCode opcode,
+                                       const DepsEvalOperationCb &op = nullptr,
+                                       const char *name = "",
+                                       int name_tag = -1);
+  OperationNode *ensure_operation_node(ID *id,
+                                       NodeType comp_type,
                                        OperationCode opcode,
                                        const DepsEvalOperationCb &op = nullptr,
                                        const char *name = "",
@@ -186,20 +193,17 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_object_flags(int base_index,
                                   Object *object,
                                   eDepsNode_LinkedState_Type linked_state);
-  virtual void build_object_data(Object *object, bool is_object_visible);
+  virtual void build_object_data(Object *object);
   virtual void build_object_data_camera(Object *object);
-  virtual void build_object_data_geometry(Object *object, bool is_object_visible);
-  virtual void build_object_data_geometry_datablock(ID *obdata, bool is_object_visible);
+  virtual void build_object_data_geometry(Object *object);
+  virtual void build_object_data_geometry_datablock(ID *obdata);
   virtual void build_object_data_light(Object *object);
   virtual void build_object_data_lightprobe(Object *object);
   virtual void build_object_data_speaker(Object *object);
   virtual void build_object_transform(Object *object);
   virtual void build_object_constraints(Object *object);
   virtual void build_object_pointcache(Object *object);
-  virtual void build_pose_constraints(Object *object,
-                                      bPoseChannel *pchan,
-                                      int pchan_index,
-                                      bool is_object_visible);
+  virtual void build_pose_constraints(Object *object, bPoseChannel *pchan, int pchan_index);
   virtual void build_rigidbody(Scene *scene);
   virtual void build_particle_systems(Object *object, bool is_object_visible);
   virtual void build_particle_settings(ParticleSettings *part);
@@ -227,8 +231,8 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_dimensions(Object *object);
   virtual void build_ik_pose(Object *object, bPoseChannel *pchan, bConstraint *con);
   virtual void build_splineik_pose(Object *object, bPoseChannel *pchan, bConstraint *con);
-  virtual void build_rig(Object *object, bool is_object_visible);
-  virtual void build_proxy_rig(Object *object, bool is_object_visible);
+  virtual void build_rig(Object *object);
+  virtual void build_proxy_rig(Object *object);
   virtual void build_armature(bArmature *armature);
   virtual void build_armature_bones(ListBase *bones);
   virtual void build_shapekeys(Key *key);
@@ -284,8 +288,6 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
 
   struct BuilderWalkUserData {
     DepsgraphNodeBuilder *builder;
-    /* Denotes whether object the walk is invoked from is visible. */
-    bool is_parent_visible;
   };
   static void modifier_walk(void *user_data,
                             struct Object *object,

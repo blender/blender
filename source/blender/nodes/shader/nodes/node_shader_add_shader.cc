@@ -17,22 +17,16 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_shader_add_shader_cc {
 
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketTemplate sh_node_add_shader_in[] = {
-    {SOCK_SHADER, N_("Shader")},
-    {SOCK_SHADER, N_("Shader")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_add_shader_out[] = {
-    {SOCK_SHADER, N_("Shader")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Shader>(N_("Shader"));
+  b.add_input<decl::Shader>(N_("Shader"), "Shader_001");
+  b.add_output<decl::Shader>(N_("Shader"));
+}
 
 static int node_shader_gpu_add_shader(GPUMaterial *mat,
                                       bNode *node,
@@ -52,9 +46,8 @@ void register_node_type_sh_add_shader()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_ADD_SHADER, "Add Shader", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(
-      &ntype, file_ns::sh_node_add_shader_in, file_ns::sh_node_add_shader_out);
+  sh_node_type_base(&ntype, SH_NODE_ADD_SHADER, "Add Shader", NODE_CLASS_SHADER);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::node_shader_gpu_add_shader);
 
   nodeRegisterType(&ntype);

@@ -115,7 +115,7 @@ float BKE_mask_spline_project_co(struct MaskSpline *spline,
                                  struct MaskSplinePoint *point,
                                  float start_u,
                                  const float co[2],
-                                 const eMaskSign sign);
+                                 eMaskSign sign);
 
 /** \} */
 
@@ -144,18 +144,16 @@ void BKE_mask_point_normal(struct MaskSpline *spline,
                            float n[2]);
 float BKE_mask_point_weight_scalar(struct MaskSpline *spline,
                                    struct MaskSplinePoint *point,
-                                   const float u);
-float BKE_mask_point_weight(struct MaskSpline *spline,
-                            struct MaskSplinePoint *point,
-                            const float u);
+                                   float u);
+float BKE_mask_point_weight(struct MaskSpline *spline, struct MaskSplinePoint *point, float u);
 struct MaskSplinePointUW *BKE_mask_point_sort_uw(struct MaskSplinePoint *point,
                                                  struct MaskSplinePointUW *uw);
 void BKE_mask_point_add_uw(struct MaskSplinePoint *point, float u, float w);
 
-void BKE_mask_point_select_set(struct MaskSplinePoint *point, const bool do_select);
+void BKE_mask_point_select_set(struct MaskSplinePoint *point, bool do_select);
 void BKE_mask_point_select_set_handle(struct MaskSplinePoint *point,
-                                      const eMaskWhichHandle which_handle,
-                                      const bool do_select);
+                                      eMaskWhichHandle which_handle,
+                                      bool do_select);
 
 /** \} */
 
@@ -193,12 +191,12 @@ void BKE_mask_coord_to_image(struct Image *image,
 /** \name Parenting
  * \{ */
 
-void BKE_mask_evaluate(struct Mask *mask, const float ctime, const bool do_newframe);
-void BKE_mask_layer_evaluate(struct MaskLayer *masklay, const float ctime, const bool do_newframe);
+void BKE_mask_evaluate(struct Mask *mask, float ctime, bool do_newframe);
+void BKE_mask_layer_evaluate(struct MaskLayer *masklay, float ctime, bool do_newframe);
 void BKE_mask_parent_init(struct MaskParent *parent);
 void BKE_mask_calc_handle_adjacent_interp(struct MaskSpline *spline,
                                           struct MaskSplinePoint *point,
-                                          const float u);
+                                          float u);
 /**
  * Calculates the tangent of a point by its previous and next
  * (ignoring handles - as if its a poly line).
@@ -214,7 +212,7 @@ void BKE_mask_calc_handle_point(struct MaskSpline *spline, struct MaskSplinePoin
  */
 void BKE_mask_calc_handle_point_auto(struct MaskSpline *spline,
                                      struct MaskSplinePoint *point,
-                                     const bool do_recalc_length);
+                                     bool do_recalc_length);
 void BKE_mask_get_handle_point_adjacent(struct MaskSpline *spline,
                                         struct MaskSplinePoint *point,
                                         struct MaskSplinePoint **r_point_prev,
@@ -247,22 +245,21 @@ void BKE_mask_layer_shape_to_mask(struct MaskLayer *masklay, struct MaskLayerSha
 void BKE_mask_layer_shape_to_mask_interp(struct MaskLayer *masklay,
                                          struct MaskLayerShape *masklay_shape_a,
                                          struct MaskLayerShape *masklay_shape_b,
-                                         const float fac);
-struct MaskLayerShape *BKE_mask_layer_shape_find_frame(struct MaskLayer *masklay, const int frame);
+                                         float fac);
+struct MaskLayerShape *BKE_mask_layer_shape_find_frame(struct MaskLayer *masklay, int frame);
 /**
  * When returning 2 - the frame isn't found but before/after frames are.
  */
 int BKE_mask_layer_shape_find_frame_range(struct MaskLayer *masklay,
-                                          const float frame,
+                                          float frame,
                                           struct MaskLayerShape **r_masklay_shape_a,
                                           struct MaskLayerShape **r_masklay_shape_b);
 /**
  * \note Does *not* add to the list.
  */
-struct MaskLayerShape *BKE_mask_layer_shape_alloc(struct MaskLayer *masklay, const int frame);
+struct MaskLayerShape *BKE_mask_layer_shape_alloc(struct MaskLayer *masklay, int frame);
 void BKE_mask_layer_shape_free(struct MaskLayerShape *masklay_shape);
-struct MaskLayerShape *BKE_mask_layer_shape_verify_frame(struct MaskLayer *masklay,
-                                                         const int frame);
+struct MaskLayerShape *BKE_mask_layer_shape_verify_frame(struct MaskLayer *masklay, int frame);
 struct MaskLayerShape *BKE_mask_layer_shape_duplicate(struct MaskLayerShape *masklay_shape);
 void BKE_mask_layer_shape_unlink(struct MaskLayer *masklay, struct MaskLayerShape *masklay_shape);
 void BKE_mask_layer_shape_sort(struct MaskLayer *masklay);
@@ -354,15 +351,14 @@ void BKE_mask_clipboard_paste_to_layer(struct Main *bmain, struct MaskLayer *mas
 
 unsigned int BKE_mask_spline_resolution(struct MaskSpline *spline, int width, int height);
 unsigned int BKE_mask_spline_feather_resolution(struct MaskSpline *spline, int width, int height);
-int BKE_mask_spline_differentiate_calc_total(const struct MaskSpline *spline,
-                                             const unsigned int resol);
+int BKE_mask_spline_differentiate_calc_total(const struct MaskSpline *spline, unsigned int resol);
 
 float (*BKE_mask_spline_differentiate_with_resolution(struct MaskSpline *spline,
-                                                      const unsigned int resol,
+                                                      unsigned int resol,
                                                       unsigned int *r_tot_diff_point))[2];
 void BKE_mask_spline_feather_collapse_inner_loops(struct MaskSpline *spline,
                                                   float (*feather_points)[2],
-                                                  const unsigned int tot_feather_point);
+                                                  unsigned int tot_feather_point);
 float (*BKE_mask_spline_differentiate(
     struct MaskSpline *spline, int width, int height, unsigned int *r_tot_diff_point))[2];
 /**
@@ -371,8 +367,8 @@ float (*BKE_mask_spline_differentiate(
  */
 float (*BKE_mask_spline_feather_differentiated_points_with_resolution(
     struct MaskSpline *spline,
-    const unsigned int resol,
-    const bool do_feather_isect,
+    unsigned int resol,
+    bool do_feather_isect,
     unsigned int *r_tot_feather_point))[2];
 
 /* *** mask point functions which involve evaluation *** */
@@ -393,8 +389,8 @@ float *BKE_mask_point_segment_feather_diff(struct MaskSpline *spline,
                                            int height,
                                            unsigned int *tot_feather_point);
 
-void BKE_mask_layer_evaluate_animation(struct MaskLayer *masklay, const float ctime);
-void BKE_mask_layer_evaluate_deform(struct MaskLayer *masklay, const float ctime);
+void BKE_mask_layer_evaluate_animation(struct MaskLayer *masklay, float ctime);
+void BKE_mask_layer_evaluate_deform(struct MaskLayer *masklay, float ctime);
 
 void BKE_mask_eval_animation(struct Depsgraph *depsgraph, struct Mask *mask);
 void BKE_mask_eval_update(struct Depsgraph *depsgraph, struct Mask *mask);
@@ -414,19 +410,19 @@ MaskRasterHandle *BKE_maskrasterize_handle_new(void);
 void BKE_maskrasterize_handle_free(MaskRasterHandle *mr_handle);
 void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
                                    struct Mask *mask,
-                                   const int width,
-                                   const int height,
-                                   const bool do_aspect_correct,
-                                   const bool do_mask_aa,
-                                   const bool do_feather);
+                                   int width,
+                                   int height,
+                                   bool do_aspect_correct,
+                                   bool do_mask_aa,
+                                   bool do_feather);
 float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float xy[2]);
 
 /**
  * \brief Rasterize a buffer from a single mask (threaded execution).
  */
 void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
-                              const unsigned int width,
-                              const unsigned int height,
+                              unsigned int width,
+                              unsigned int height,
                               float *buffer);
 
 /** \} */

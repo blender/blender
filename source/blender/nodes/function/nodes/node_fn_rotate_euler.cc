@@ -34,7 +34,7 @@ static void fn_node_rotate_euler_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>(N_("Axis")).default_value({0.0, 0.0, 1.0}).subtype(PROP_XYZ);
   b.add_input<decl::Float>(N_("Angle")).subtype(PROP_ANGLE);
   b.add_output<decl::Vector>(N_("Rotation"));
-};
+}
 
 static void fn_node_rotate_euler_update(bNodeTree *ntree, bNode *node)
 {
@@ -133,7 +133,7 @@ void register_node_type_fn_rotate_euler()
 
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_ROTATE_EULER, "Rotate Euler", NODE_CLASS_CONVERTER, 0);
+  fn_node_type_base(&ntype, FN_NODE_ROTATE_EULER, "Rotate Euler", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::fn_node_rotate_euler_declare;
   ntype.draw_buttons = file_ns::fn_node_rotate_euler_layout;
   node_type_update(&ntype, file_ns::fn_node_rotate_euler_update);

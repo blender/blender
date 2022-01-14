@@ -77,7 +77,7 @@ static const unsigned char *oldreadcolrs(RGBE *scan,
     scan[0][BLU] = *mem++;
     scan[0][EXP] = *mem++;
     if (scan[0][RED] == 1 && scan[0][GRN] == 1 && scan[0][BLU] == 1) {
-      for (i = scan[0][EXP] << rshift; i > 0; i--) {
+      for (i = scan[0][EXP] << rshift; i > 0 && len > 0; i--) {
         COPY_RGBE(scan[-1], scan[0]);
         scan++;
         len--;
@@ -227,7 +227,7 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem,
   int found = 0;
   int width = 0, height = 0;
   const unsigned char *ptr, *mem_eof = mem + size;
-  char oriY[80], oriX[80];
+  char oriY[3], oriX[3];
 
   if (!imb_is_a_hdr(mem, size)) {
     return NULL;
@@ -244,22 +244,33 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem,
     }
   }
 
-  if ((found && (x < (size + 2))) == 0) {
+  if ((found && (x < (size - 1))) == 0) {
     /* Data not found! */
     return NULL;
   }
 
-  if (sscanf((const char *)&mem[x + 1],
-             "%79s %d %79s %d",
-             (char *)&oriY,
-             &height,
-             (char *)&oriX,
-             &width) != 4) {
+  x++;
+
+  /* sscanf requires a null-terminated buffer argument */
+  char buf[32] = {0};
+  memcpy(buf, &mem[x], MIN2(sizeof(buf) - 1, size - x));
+
+  if (sscanf(buf, "%2s %d %2s %d", (char *)&oriY, &height, (char *)&oriX, &width) != 4) {
     return NULL;
   }
 
+  if (width < 1 || height < 1) {
+    return NULL;
+  }
+
+  /* Checking that width x height does not extend past mem_eof is not easily possible
+   * since the format uses RLE compression. Can cause excessive memory allocation to occur. */
+
   /* find end of this line, data right behind it */
-  ptr = (const unsigned char *)strchr((const char *)&mem[x + 1], '\n');
+  ptr = (const unsigned char *)strchr((const char *)&mem[x], '\n');
+  if (ptr == NULL || ptr >= mem_eof) {
+    return NULL;
+  }
   ptr++;
 
   if (flags & IB_test) {

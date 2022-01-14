@@ -23,15 +23,18 @@
 
 #include <algorithm>
 
-#include "node_shader_util.h"
+#include "node_shader_util.hh"
 
 #include "BLI_math_base_safe.h"
 
 #include "NOD_socket_search_link.hh"
 
-NODE_STORAGE_FUNCS(NodeMapRange)
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 namespace blender::nodes::node_shader_map_range_cc {
+
+NODE_STORAGE_FUNCS(NodeMapRange)
 
 static void sh_node_map_range_declare(NodeDeclarationBuilder &b)
 {
@@ -50,7 +53,18 @@ static void sh_node_map_range_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>(N_("Steps"), "Steps_FLOAT3").default_value(float3(4.0f));
   b.add_output<decl::Float>(N_("Result"));
   b.add_output<decl::Vector>(N_("Vector"));
-};
+}
+
+static void node_shader_buts_map_range(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "data_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  uiItemR(layout, ptr, "interpolation_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  if (!ELEM(RNA_enum_get(ptr, "interpolation_type"),
+            NODE_MAP_RANGE_SMOOTHSTEP,
+            NODE_MAP_RANGE_SMOOTHERSTEP)) {
+    uiItemR(layout, ptr, "clamp", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+}
 
 static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
 {
@@ -258,7 +272,7 @@ class MapRangeVectorFunction : public blender::fn::MultiFunction {
     blender::MutableSpan<float3> results = params.uninitialized_single_output<float3>(5, "Vector");
 
     for (int64_t i : mask) {
-      float3 factor = float3::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
+      float3 factor = math::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
       results[i] = factor * (to_max[i] - to_min[i]) + to_min[i];
     }
 
@@ -301,8 +315,8 @@ class MapRangeSteppedVectorFunction : public blender::fn::MultiFunction {
     blender::MutableSpan<float3> results = params.uninitialized_single_output<float3>(6, "Vector");
 
     for (int64_t i : mask) {
-      float3 factor = float3::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
-      factor = float3::safe_divide(float3::floor(factor * (steps[i] + 1.0f)), steps[i]);
+      float3 factor = math::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
+      factor = math::safe_divide(math::floor(factor * (steps[i] + 1.0f)), steps[i]);
       results[i] = factor * (to_max[i] - to_min[i]) + to_min[i];
     }
 
@@ -341,7 +355,7 @@ class MapRangeSmoothstepVectorFunction : public blender::fn::MultiFunction {
     blender::MutableSpan<float3> results = params.uninitialized_single_output<float3>(5, "Vector");
 
     for (int64_t i : mask) {
-      float3 factor = float3::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
+      float3 factor = math::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
       clamp_v3(factor, 0.0f, 1.0f);
       factor = (float3(3.0f) - 2.0f * factor) * (factor * factor);
       results[i] = factor * (to_max[i] - to_min[i]) + to_min[i];
@@ -376,7 +390,7 @@ class MapRangeSmootherstepVectorFunction : public blender::fn::MultiFunction {
     blender::MutableSpan<float3> results = params.uninitialized_single_output<float3>(5, "Vector");
 
     for (int64_t i : mask) {
-      float3 factor = float3::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
+      float3 factor = math::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
       clamp_v3(factor, 0.0f, 1.0f);
       factor = factor * factor * factor * (factor * (factor * 6.0f - 15.0f) + 10.0f);
       results[i] = factor * (to_max[i] - to_min[i]) + to_min[i];
@@ -648,8 +662,9 @@ void register_node_type_sh_map_range()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_MAP_RANGE, "Map Range", NODE_CLASS_CONVERTER, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_MAP_RANGE, "Map Range", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_map_range_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_map_range;
   node_type_init(&ntype, file_ns::node_shader_init_map_range);
   node_type_storage(
       &ntype, "NodeMapRange", node_free_standard_storage, node_copy_standard_storage);

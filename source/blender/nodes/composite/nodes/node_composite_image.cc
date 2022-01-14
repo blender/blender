@@ -269,7 +269,12 @@ void node_cmp_rlayers_register_pass(bNodeTree *ntree,
   }
 }
 
-static void cmp_node_rlayer_create_outputs_cb(void *UNUSED(userdata),
+struct CreateOutputUserData {
+  bNodeTree &ntree;
+  bNode &node;
+};
+
+static void cmp_node_rlayer_create_outputs_cb(void *userdata,
                                               Scene *scene,
                                               ViewLayer *view_layer,
                                               const char *name,
@@ -277,18 +282,8 @@ static void cmp_node_rlayer_create_outputs_cb(void *UNUSED(userdata),
                                               const char *UNUSED(chanid),
                                               eNodeSocketDatatype type)
 {
-  /* Register the pass in all scenes that have a render layer node for this layer.
-   * Since multiple scenes can be used in the compositor, the code must loop over all scenes
-   * and check whether their nodetree has a node that needs to be updated. */
-  /* NOTE: using G_MAIN seems valid here,
-   * unless we want to register that for every other temp Main we could generate??? */
-  ntreeCompositRegisterPass(scene->nodetree, scene, view_layer, name, type);
-
-  for (Scene *sce = (Scene *)G_MAIN->scenes.first; sce; sce = (Scene *)sce->id.next) {
-    if (sce->nodetree && sce != scene) {
-      ntreeCompositRegisterPass(sce->nodetree, scene, view_layer, name, type);
-    }
-  }
+  CreateOutputUserData &data = *(CreateOutputUserData *)userdata;
+  node_cmp_rlayers_register_pass(&data.ntree, &data.node, scene, view_layer, name, type);
 }
 
 static void cmp_node_rlayer_create_outputs(bNodeTree *ntree,
@@ -308,14 +303,17 @@ static void cmp_node_rlayer_create_outputs(bNodeTree *ntree,
         data->prev_index = -1;
         node->storage = data;
 
+        CreateOutputUserData userdata = {*ntree, *node};
+
         RenderEngine *engine = RE_engine_create(engine_type);
         RE_engine_update_render_passes(
-            engine, scene, view_layer, cmp_node_rlayer_create_outputs_cb, nullptr);
+            engine, scene, view_layer, cmp_node_rlayer_create_outputs_cb, &userdata);
         RE_engine_free(engine);
 
         if ((scene->r.mode & R_EDGE_FRS) &&
             (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS)) {
-          ntreeCompositRegisterPass(ntree, scene, view_layer, RE_PASSNAME_FREESTYLE, SOCK_RGBA);
+          node_cmp_rlayers_register_pass(
+              ntree, node, scene, view_layer, RE_PASSNAME_FREESTYLE, SOCK_RGBA);
         }
 
         MEM_freeN(data);
@@ -399,6 +397,8 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rl
   BLI_linklist_free(available_sockets.list, nullptr);
 }
 
+namespace blender::nodes::node_composite_image_cc {
+
 static void cmp_node_image_update(bNodeTree *ntree, bNode *node)
 {
   /* avoid unnecessary updates, only changes to the image/image user data are of interest */
@@ -447,15 +447,21 @@ static void node_composit_copy_image(bNodeTree *UNUSED(dest_ntree),
   }
 }
 
+}  // namespace blender::nodes::node_composite_image_cc
+
 void register_node_type_cmp_image()
 {
+  namespace file_ns = blender::nodes::node_composite_image_cc;
+
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_IMAGE, "Image", NODE_CLASS_INPUT, NODE_PREVIEW);
-  node_type_init(&ntype, node_composit_init_image);
-  node_type_storage(&ntype, "ImageUser", node_composit_free_image, node_composit_copy_image);
-  node_type_update(&ntype, cmp_node_image_update);
+  cmp_node_type_base(&ntype, CMP_NODE_IMAGE, "Image", NODE_CLASS_INPUT);
+  node_type_init(&ntype, file_ns::node_composit_init_image);
+  node_type_storage(
+      &ntype, "ImageUser", file_ns::node_composit_free_image, file_ns::node_composit_copy_image);
+  node_type_update(&ntype, file_ns::cmp_node_image_update);
   ntype.labelfunc = node_image_label;
+  ntype.flag |= NODE_PREVIEW;
 
   nodeRegisterType(&ntype);
 }
@@ -476,6 +482,8 @@ const char *node_cmp_rlayers_sock_to_pass(int sock_index)
   /* Exception for alpha, which is derived from Combined. */
   return (STREQ(name, "Alpha")) ? RE_PASSNAME_COMBINED : name;
 }
+
+namespace blender::nodes::node_composite_image_cc {
 
 static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
 {
@@ -601,17 +609,23 @@ static void node_composit_buts_viewlayers(uiLayout *layout, bContext *C, Pointer
   RNA_string_set(&op_ptr, "scene", scene_name);
 }
 
+}  // namespace blender::nodes::node_composite_image_cc
+
 void register_node_type_cmp_rlayers()
 {
+  namespace file_ns = blender::nodes::node_composite_image_cc;
+
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_R_LAYERS, "Render Layers", NODE_CLASS_INPUT, NODE_PREVIEW);
+  cmp_node_type_base(&ntype, CMP_NODE_R_LAYERS, "Render Layers", NODE_CLASS_INPUT);
   node_type_socket_templates(&ntype, nullptr, cmp_node_rlayers_out);
-  ntype.draw_buttons = node_composit_buts_viewlayers;
-  ntype.initfunc_api = node_composit_init_rlayers;
-  ntype.poll = node_composit_poll_rlayers;
-  node_type_storage(&ntype, nullptr, node_composit_free_rlayers, node_composit_copy_rlayers);
-  node_type_update(&ntype, cmp_node_rlayers_update);
+  ntype.draw_buttons = file_ns::node_composit_buts_viewlayers;
+  ntype.initfunc_api = file_ns::node_composit_init_rlayers;
+  ntype.poll = file_ns::node_composit_poll_rlayers;
+  ntype.flag |= NODE_PREVIEW;
+  node_type_storage(
+      &ntype, nullptr, file_ns::node_composit_free_rlayers, file_ns::node_composit_copy_rlayers);
+  node_type_update(&ntype, file_ns::cmp_node_rlayers_update);
   node_type_init(&ntype, node_cmp_rlayers_outputs);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 

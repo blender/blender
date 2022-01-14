@@ -87,8 +87,8 @@ bool UI_icon_get_theme_color(int icon_id, unsigned char color[4]);
 void UI_icon_render_id(const struct bContext *C,
                        struct Scene *scene,
                        struct ID *id,
-                       const enum eIconSizes size,
-                       const bool use_job);
+                       enum eIconSizes size,
+                       bool use_job);
 /**
  * Render size for preview images and icons
  */
@@ -108,7 +108,7 @@ void UI_icon_draw_ex(float x,
                      float alpha,
                      float desaturate,
                      const uchar mono_color[4],
-                     const bool mono_border);
+                     bool mono_border);
 
 void UI_icons_free(void);
 void UI_icons_free_drawinfo(void *drawinfo);
@@ -121,13 +121,10 @@ int UI_iconfile_get_index(const char *filename);
 
 struct PreviewImage *UI_icon_to_preview(int icon_id);
 
-int UI_icon_from_rnaptr(const struct bContext *C,
-                        struct PointerRNA *ptr,
-                        int rnaicon,
-                        const bool big);
-int UI_icon_from_idcode(const int idcode);
+int UI_icon_from_rnaptr(const struct bContext *C, struct PointerRNA *ptr, int rnaicon, bool big);
+int UI_icon_from_idcode(int idcode);
 int UI_icon_from_library(const struct ID *id);
-int UI_icon_from_object_mode(const int mode);
+int UI_icon_from_object_mode(int mode);
 int UI_icon_color_from_collection(const struct Collection *collection);
 
 #ifdef __cplusplus

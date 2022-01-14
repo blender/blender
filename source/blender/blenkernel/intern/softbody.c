@@ -1673,7 +1673,7 @@ static int sb_detect_vertex_collisionCached(float opco[3],
 
           if ((opco[0] < minx) || (opco[1] < miny) || (opco[2] < minz) || (opco[0] > maxx) ||
               (opco[1] > maxy) || (opco[2] > maxz)) {
-            /* outside the padded boundbox --> collision object is too far away */
+            /* Outside the padded bound-box -> collision object is too far away. */
             BLI_ghashIterator_step(ihash);
             continue;
           }

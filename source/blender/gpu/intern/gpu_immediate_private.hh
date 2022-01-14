@@ -68,11 +68,11 @@ class Immediate {
   Immediate(){};
   virtual ~Immediate(){};
 
-  virtual uchar *begin(void) = 0;
-  virtual void end(void) = 0;
+  virtual uchar *begin() = 0;
+  virtual void end() = 0;
 };
 
 }  // namespace blender::gpu
 
-void immActivate(void);
-void immDeactivate(void);
+void immActivate();
+void immDeactivate();

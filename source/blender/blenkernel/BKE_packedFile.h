@@ -120,7 +120,7 @@ int BKE_packedfile_write_to_file(struct ReportList *reports,
                                  const char *ref_file_name,
                                  const char *filename,
                                  struct PackedFile *pf,
-                                 const bool guimode);
+                                 bool guimode);
 
 /* Free. */
 

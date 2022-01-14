@@ -75,7 +75,8 @@ typedef struct ShrinkwrapCalcData {
 
   struct Object *ob; /* object we are applying shrinkwrap to */
 
-  struct MVert *vert;    /* Array of verts being projected (to fetch normals or other data) */
+  struct MVert *vert; /* Array of verts being projected. */
+  const float (*vert_normals)[3];
   float (*vertexCos)[3]; /* vertexs being shrinkwraped */
   int numVerts;
 
@@ -146,7 +147,7 @@ bool BKE_shrinkwrap_init_tree(
   }
 
   if (force_normals || BKE_shrinkwrap_needs_normals(shrinkType, shrinkMode)) {
-    data->pnors = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
+    data->pnors = BKE_mesh_poly_normals_ensure(mesh);
     if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
       data->clnors = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
     }
@@ -313,18 +314,18 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(struct Mesh *mesh)
   MEM_freeN(vert_status);
 
   /* Finalize average direction and compute normal. */
+  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
   for (int i = 0; i < mesh->totvert; i++) {
     int bidx = vert_boundary_id[i];
 
     if (bidx >= 0) {
       ShrinkwrapBoundaryVertData *vdata = &boundary_verts[bidx];
-      float no[3], tmp[3];
+      float tmp[3];
 
       normalize_v3(vdata->direction);
 
-      normal_short_to_float_v3(no, mesh->mvert[i].no);
-      cross_v3_v3v3(tmp, no, vdata->direction);
-      cross_v3_v3v3(vdata->normal_plane, tmp, no);
+      cross_v3_v3v3(tmp, vert_normals[i], vdata->direction);
+      cross_v3_v3v3(vdata->normal_plane, tmp, vert_normals[i]);
       normalize_v3(vdata->normal_plane);
     }
   }
@@ -540,7 +541,7 @@ static void shrinkwrap_calc_normal_projection_cb_ex(void *__restrict userdata,
      * (to get correct normals) for other cases calc->verts contains undeformed coordinates and
      * vertexCos should be used */
     copy_v3_v3(tmp_co, calc->vert[i].co);
-    normal_short_to_float_v3(tmp_no, calc->vert[i].no);
+    copy_v3_v3(tmp_no, calc->vert_normals[i]);
   }
   else {
     copy_v3_v3(tmp_co, co);
@@ -1008,8 +1009,8 @@ static void target_project_edge(const ShrinkwrapTreeData *tree,
         CLAMP(x, 0, 1);
 
         float vedge_no[2][3];
-        normal_short_to_float_v3(vedge_no[0], data->vert[edge->v1].no);
-        normal_short_to_float_v3(vedge_no[1], data->vert[edge->v2].no);
+        copy_v3_v3(vedge_no[0], data->vert_normals[edge->v1]);
+        copy_v3_v3(vedge_no[1], data->vert_normals[edge->v2]);
 
         interp_v3_v3v3(hit_co, vedge_co[0], vedge_co[1], x);
         interp_v3_v3v3(hit_no, vedge_no[0], vedge_no[1], x);
@@ -1055,9 +1056,9 @@ static void mesh_looptri_target_project(void *userdata,
   }
 
   /* Decode normals */
-  normal_short_to_float_v3(vtri_no[0], vtri[0]->no);
-  normal_short_to_float_v3(vtri_no[1], vtri[1]->no);
-  normal_short_to_float_v3(vtri_no[2], vtri[2]->no);
+  copy_v3_v3(vtri_no[0], tree->treeData.vert_normals[loop[0]->v]);
+  copy_v3_v3(vtri_no[1], tree->treeData.vert_normals[loop[1]->v]);
+  copy_v3_v3(vtri_no[2], tree->treeData.vert_normals[loop[2]->v]);
 
   /* Solve the equations for the triangle */
   if (target_project_solve_point_tri(vtri_co, vtri_no, co, raw_hit_co, dist_sq, hit_co, hit_no)) {
@@ -1191,14 +1192,13 @@ void BKE_shrinkwrap_compute_smooth_normal(const struct ShrinkwrapTreeData *tree,
 {
   const BVHTreeFromMesh *treeData = &tree->treeData;
   const MLoopTri *tri = &treeData->looptri[looptri_idx];
+  const float(*vert_normals)[3] = tree->treeData.vert_normals;
 
   /* Interpolate smooth normals if enabled. */
   if ((tree->mesh->mpoly[tri->poly].flag & ME_SMOOTH) != 0) {
-    const MVert *verts[] = {
-        &treeData->vert[treeData->loop[tri->tri[0]].v],
-        &treeData->vert[treeData->loop[tri->tri[1]].v],
-        &treeData->vert[treeData->loop[tri->tri[2]].v],
-    };
+    const uint32_t vert_indices[3] = {treeData->loop[tri->tri[0]].v,
+                                      treeData->loop[tri->tri[1]].v,
+                                      treeData->loop[tri->tri[2]].v};
     float w[3], no[3][3], tmp_co[3];
 
     /* Custom and auto smooth split normals. */
@@ -1209,9 +1209,9 @@ void BKE_shrinkwrap_compute_smooth_normal(const struct ShrinkwrapTreeData *tree,
     }
     /* Ordinary vertex normals. */
     else {
-      normal_short_to_float_v3(no[0], verts[0]->no);
-      normal_short_to_float_v3(no[1], verts[1]->no);
-      normal_short_to_float_v3(no[2], verts[2]->no);
+      copy_v3_v3(no[0], vert_normals[vert_indices[0]]);
+      copy_v3_v3(no[1], vert_normals[vert_indices[1]]);
+      copy_v3_v3(no[2], vert_normals[vert_indices[2]]);
     }
 
     /* Barycentric weights from hit point. */
@@ -1221,7 +1221,11 @@ void BKE_shrinkwrap_compute_smooth_normal(const struct ShrinkwrapTreeData *tree,
       BLI_space_transform_apply(transform, tmp_co);
     }
 
-    interp_weights_tri_v3(w, verts[0]->co, verts[1]->co, verts[2]->co, tmp_co);
+    interp_weights_tri_v3(w,
+                          treeData->vert[vert_indices[0]].co,
+                          treeData->vert[vert_indices[1]].co,
+                          treeData->vert[vert_indices[2]].co,
+                          tmp_co);
 
     /* Interpolate using weights. */
     interp_v3_v3v3v3(r_no, no[0], no[1], no[2], w);
@@ -1424,6 +1428,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
   if (mesh != NULL && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
     /* Setup arrays to get vertexs positions, normals and deform weights */
     calc.vert = mesh->mvert;
+    calc.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
 
     /* Using vertexs positions/normals as if a subsurface was applied */
     if (smd->subsurfLevels) {
@@ -1581,6 +1586,7 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
   calc.smd = &ssmd;
   calc.numVerts = src_me->totvert;
   calc.vertexCos = vertexCos;
+  calc.vert_normals = BKE_mesh_vertex_normals_ensure(src_me);
   calc.vgroup = -1;
   calc.target = target_me;
   calc.keepDist = ssmd.keepDist;

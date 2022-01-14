@@ -67,7 +67,7 @@ void BKE_curvemap_reset(struct CurveMap *cuma, const struct rctf *clipr, int pre
 /**
  * Removes with flag set.
  */
-void BKE_curvemap_remove(struct CurveMap *cuma, const short flag);
+void BKE_curvemap_remove(struct CurveMap *cuma, short flag);
 /**
  * Remove specified point.
  */
@@ -81,7 +81,7 @@ void BKE_curvemap_handle_set(struct CurveMap *cuma, int type);
 /**
  * \note only does current curvemap!.
  */
-void BKE_curvemapping_changed(struct CurveMapping *cumap, const bool rem_doubles);
+void BKE_curvemapping_changed(struct CurveMapping *cumap, bool rem_doubles);
 void BKE_curvemapping_changed_all(struct CurveMapping *cumap);
 
 /**

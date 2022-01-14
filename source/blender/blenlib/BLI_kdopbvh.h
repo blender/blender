@@ -137,7 +137,7 @@ typedef void (*BVHTree_NearestProjectedCallback)(void *userdata,
                                                  int index,
                                                  const struct DistProjectedAABBPrecalc *precalc,
                                                  const float (*clip_plane)[4],
-                                                 const int clip_plane_len,
+                                                 int clip_plane_len,
                                                  BVHTreeNearest *nearest);
 
 /* callbacks to BLI_bvhtree_walk_dfs */
@@ -200,8 +200,8 @@ BVHTreeOverlap *BLI_bvhtree_overlap_ex(const BVHTree *tree1,
                                        uint *r_overlap_tot,
                                        BVHTree_OverlapCallback callback,
                                        void *userdata,
-                                       const uint max_interactions,
-                                       const int flag);
+                                       uint max_interactions,
+                                       int flag);
 BVHTreeOverlap *BLI_bvhtree_overlap(const BVHTree *tree1,
                                     const BVHTree *tree2,
                                     unsigned int *r_overlap_tot,
@@ -248,7 +248,7 @@ int BLI_bvhtree_find_nearest(BVHTree *tree,
  */
 int BLI_bvhtree_find_nearest_first(BVHTree *tree,
                                    const float co[3],
-                                   const float dist_sq,
+                                   float dist_sq,
                                    BVHTree_NearestPointCallback callback,
                                    void *userdata);
 

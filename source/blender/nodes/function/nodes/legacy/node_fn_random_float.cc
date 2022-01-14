@@ -27,7 +27,7 @@ static void fn_node_legacy_random_float_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Max")).default_value(1.0f).min(-10000.0f).max(10000.0f);
   b.add_input<decl::Int>(N_("Seed")).min(-10000).max(10000);
   b.add_output<decl::Float>(N_("Value"));
-};
+}
 
 class RandomFloatFunction : public blender::fn::MultiFunction {
  public:
@@ -81,7 +81,7 @@ void register_node_type_fn_legacy_random_float()
 
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_LEGACY_RANDOM_FLOAT, "Random Float", 0, 0);
+  fn_node_type_base(&ntype, FN_NODE_LEGACY_RANDOM_FLOAT, "Random Float", 0);
   ntype.declare = file_ns::fn_node_legacy_random_float_declare;
   ntype.build_multi_function = file_ns::fn_node_legacy_random_float_build_multi_function;
   nodeRegisterType(&ntype);

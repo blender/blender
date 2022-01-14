@@ -121,7 +121,15 @@ void BKE_keyingsets_blend_read_expand(struct BlendExpander *expander, struct Lis
 /* ************************************* */
 /* Path Fixing API */
 
-/* Get a "fixed" version of the given path (oldPath) */
+/**
+ * Get a "fixed" version of the given path `old_path`.
+ *
+ * This is just an external wrapper for the RNA-Path fixing function,
+ * with input validity checks on top of the basic method.
+ *
+ * \note it is assumed that the structure we're replacing is `<prefix><["><name><"]>`
+ * i.e. `pose.bones["Bone"]`.
+ */
 char *BKE_animsys_fix_rna_path_rename(struct ID *owner_id,
                                       char *old_path,
                                       const char *prefix,
@@ -131,7 +139,15 @@ char *BKE_animsys_fix_rna_path_rename(struct ID *owner_id,
                                       int newSubscript,
                                       bool verify_paths);
 
-/* Fix all the paths for the given ID + Action */
+/**
+ * Fix all the paths for the given ID + Action.
+ *
+ * This is just an external wrapper for the F-Curve fixing function,
+ * with input validity checks on top of the basic method.
+ *
+ * \note it is assumed that the structure we're replacing is `<prefix><["><name><"]>`
+ * i.e. `pose.bones["Bone"]`.
+ */
 void BKE_action_fix_paths_rename(struct ID *owner_id,
                                  struct bAction *act,
                                  const char *prefix,
@@ -141,7 +157,12 @@ void BKE_action_fix_paths_rename(struct ID *owner_id,
                                  int newSubscript,
                                  bool verify_paths);
 
-/* Fix all the paths for the given ID+AnimData */
+/**
+ * Fix all the paths for the given ID+AnimData
+ *
+ * \note it is assumed that the structure we're replacing is `<prefix><["><name><"]>`
+ * i.e. `pose.bones["Bone"]`.
+ */
 void BKE_animdata_fix_paths_rename(struct ID *owner_id,
                                    struct AnimData *adt,
                                    struct ID *ref_id,
@@ -152,24 +173,31 @@ void BKE_animdata_fix_paths_rename(struct ID *owner_id,
                                    int newSubscript,
                                    bool verify_paths);
 
-/* Fix all the paths for the entire database... */
-void BKE_animdata_fix_paths_rename_all(struct ID *ref_id,
-                                       const char *prefix,
-                                       const char *oldName,
-                                       const char *newName);
-
-/* Fix all the paths for the entire bmain with extra parameters. */
+/**
+ * Fix all RNA-Paths throughout the database (directly access the #Global.main version).
+ *
+ * \note it is assumed that the structure we're replacing is `<prefix><["><name><"]>`
+ * i.e. `pose.bones["Bone"]`
+ */
 void BKE_animdata_fix_paths_rename_all_ex(struct Main *bmain,
                                           struct ID *ref_id,
                                           const char *prefix,
                                           const char *oldName,
                                           const char *newName,
-                                          const int oldSubscript,
-                                          const int newSubscript,
-                                          const bool verify_paths);
+                                          int oldSubscript,
+                                          int newSubscript,
+                                          bool verify_paths);
 
-/* Fix the path after removing elements that are not ID (e.g., node).
- * Return true if any animation data was affected. */
+/** See #BKE_animdata_fix_paths_rename_all_ex */
+void BKE_animdata_fix_paths_rename_all(struct ID *ref_id,
+                                       const char *prefix,
+                                       const char *oldName,
+                                       const char *newName);
+
+/**
+ * Fix the path after removing elements that are not ID (e.g., node).
+ * Return true if any animation data was affected.
+ */
 bool BKE_animdata_fix_paths_remove(struct ID *id, const char *path);
 
 /* -------------------------------------- */
@@ -180,7 +208,14 @@ typedef struct AnimationBasePathChange {
   const char *dst_basepath;
 } AnimationBasePathChange;
 
-/* Move animation data from src to destination if its paths are based on basepaths */
+/**
+ * Move animation data from source to destination if its paths are based on `basepaths`.
+ *
+ * Transfer the animation data from `srcID` to `dstID` where the `srcID` animation data
+ * is based off `basepath`, creating new #AnimData and associated data as necessary.
+ *
+ * \param basepaths: A list of #AnimationBasePathChange.
+ */
 void BKE_animdata_transfer_by_basepath(struct Main *bmain,
                                        struct ID *srcID,
                                        struct ID *dstID,
@@ -198,7 +233,7 @@ typedef void (*ID_FCurve_Edit_Callback)(struct ID *id, struct FCurve *fcu, void 
 /* Loop over all datablocks applying callback */
 void BKE_animdata_main_cb(struct Main *bmain, ID_AnimData_Edit_Callback func, void *user_data);
 
-/* Loop over all datablocks applying callback to all its F-Curves */
+/** Apply the given callback function on all F-Curves attached to data in `main` database. */
 void BKE_fcurves_main_cb(struct Main *bmain, ID_FCurve_Edit_Callback func, void *user_data);
 
 /* Look over all f-curves of a given ID. */
@@ -264,13 +299,13 @@ typedef enum eAnimData_Recalc {
 
 bool BKE_animsys_rna_path_resolve(struct PointerRNA *ptr,
                                   const char *rna_path,
-                                  const int array_index,
+                                  int array_index,
                                   struct PathResolvedRNA *r_result);
 bool BKE_animsys_read_from_rna_path(struct PathResolvedRNA *anim_rna, float *r_value);
 /**
  * Write the given value to a setting using RNA, and return success.
  */
-bool BKE_animsys_write_to_rna_path(struct PathResolvedRNA *anim_rna, const float value);
+bool BKE_animsys_write_to_rna_path(struct PathResolvedRNA *anim_rna, float value);
 
 /**
  * Evaluation loop for evaluation animation data
@@ -283,7 +318,7 @@ void BKE_animsys_evaluate_animdata(struct ID *id,
                                    struct AnimData *adt,
                                    const struct AnimationEvalContext *anim_eval_context,
                                    eAnimData_Recalc recalc,
-                                   const bool flush_to_original);
+                                   bool flush_to_original);
 
 /**
  * Evaluation of all ID-blocks with Animation Data blocks - Animation Data Only

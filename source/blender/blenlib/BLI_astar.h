@@ -82,7 +82,7 @@ typedef struct BLI_AStarGraph {
  * \param custom_data: an opaque pointer attached to this link,
  * available e.g. to cost callback function.
  */
-void BLI_astar_node_init(BLI_AStarGraph *as_graph, const int node_index, void *custom_data);
+void BLI_astar_node_init(BLI_AStarGraph *as_graph, int node_index, void *custom_data);
 /**
  * Add a link between two nodes of our A* graph.
  *
@@ -91,15 +91,12 @@ void BLI_astar_node_init(BLI_AStarGraph *as_graph, const int node_index, void *c
  * \param custom_data: An opaque pointer attached to this link,
  * available e.g. to cost callback function.
  */
-void BLI_astar_node_link_add(BLI_AStarGraph *as_graph,
-                             const int node1_index,
-                             const int node2_index,
-                             const float cost,
-                             void *custom_data);
+void BLI_astar_node_link_add(
+    BLI_AStarGraph *as_graph, int node1_index, int node2_index, float cost, void *custom_data);
 /**
  * \return The index of the other node of given link.
  */
-int BLI_astar_node_link_other_node(BLI_AStarGNLink *lnk, const int idx);
+int BLI_astar_node_link_other_node(BLI_AStarGNLink *lnk, int idx);
 
 /**
  * Initialize a solution data for given A* graph. Does not compute anything!
@@ -138,9 +135,9 @@ void BLI_astar_solution_free(BLI_AStarSolution *as_solution);
 typedef float (*astar_f_cost)(BLI_AStarGraph *as_graph,
                               BLI_AStarSolution *as_solution,
                               BLI_AStarGNLink *link,
-                              const int node_idx_curr,
-                              const int node_idx_next,
-                              const int node_idx_dst);
+                              int node_idx_curr,
+                              int node_idx_next,
+                              int node_idx_dst);
 
 /**
  * Initialize an A* graph. Total number of nodes must be known.
@@ -150,7 +147,7 @@ typedef float (*astar_f_cost)(BLI_AStarGraph *as_graph,
  * \param custom_data: an opaque pointer attached to this link,
  * available e.g. to cost callback function.
  */
-void BLI_astar_graph_init(BLI_AStarGraph *as_graph, const int node_num, void *custom_data);
+void BLI_astar_graph_init(BLI_AStarGraph *as_graph, int node_num, void *custom_data);
 void BLI_astar_graph_free(BLI_AStarGraph *as_graph);
 /**
  * Solve a path in given graph, using given 'cost' callback function.
@@ -161,11 +158,11 @@ void BLI_astar_graph_free(BLI_AStarGraph *as_graph);
  * \return true if a path was found, false otherwise.
  */
 bool BLI_astar_graph_solve(BLI_AStarGraph *as_graph,
-                           const int node_index_src,
-                           const int node_index_dst,
+                           int node_index_src,
+                           int node_index_dst,
                            astar_f_cost f_cost_cb,
                            BLI_AStarSolution *r_solution,
-                           const int max_steps);
+                           int max_steps);
 
 #ifdef __cplusplus
 }

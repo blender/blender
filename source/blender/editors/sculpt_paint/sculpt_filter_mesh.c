@@ -411,8 +411,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         sub_v3_v3v3(disp, val, orig_co);
       } break;
       case MESH_FILTER_INFLATE:
-        normal_short_to_float_v3(normal, orig_data.no);
-        mul_v3_v3fl(disp, normal, fade);
+        mul_v3_v3fl(disp, orig_data.no, fade);
         break;
       case MESH_FILTER_SCALE:
         unit_m3(transform);
@@ -445,7 +444,8 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         mid_v3_v3v3(disp, disp, disp2);
       } break;
       case MESH_FILTER_RANDOM: {
-        normal_short_to_float_v3(normal, orig_data.no);
+        float normal[3];
+        copy_v3_v3(normal, orig_data.no);
         /* Index is not unique for multires, so hash by vertex coordinates. */
         const uint *hash_co = (const uint *)orig_co;
         const uint hash = BLI_hash_int_2d(hash_co[0], hash_co[1]) ^
@@ -519,7 +519,6 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         /* Intensify details. */
         if (ss->filter_cache->sharpen_intensify_detail_strength > 0.0f) {
           float detail_strength[3];
-          normal_short_to_float_v3(detail_strength, orig_data.no);
           copy_v3_v3(detail_strength, ss->filter_cache->detail_directions[vd.index]);
           madd_v3_v3fl(disp,
                        detail_strength,

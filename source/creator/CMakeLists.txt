@@ -18,8 +18,6 @@
 # All rights reserved.
 # ***** END GPL LICENSE BLOCK *****
 
-setup_libdirs()
-
 blender_include_dirs(
   ../../intern/clog
   ../../intern/glew-mx
@@ -73,8 +71,8 @@ endif()
 
 if(WITH_TBB)
   blender_include_dirs(${TBB_INCLUDE_DIRS})
-  if(NOT APPLE)
-    # APPLE platform uses full paths for linking libraries.
+  if(WIN32)
+    # For pragma that links tbbmalloc_proxy.lib
     link_directories(${LIBDIR}/tbb/lib)
   endif()
 endif()

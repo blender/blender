@@ -244,6 +244,17 @@ void WM_msg_subscribe_ID(struct wmMsgBus *mbus,
                          const char *id_repr);
 void WM_msg_publish_ID(struct wmMsgBus *mbus, struct ID *id);
 
+/* FIXME
+ *
+ * For C++ code, some of the following macros need to be called in functions wrapped in
+ * `extern "C"` blocks. That is, the ones doing `extern PropertyRNA` declarations (trips up the
+ * MSVC linker).
+ * Although this shouldn't cause problems normally, if it does, the bits calling the macros can be
+ * moved to a separate function wrapped in `extern "C"`.
+ *
+ * Obviously this should be fixed properly (by not relying on inline `extern` declarations).
+ */
+
 #define WM_msg_publish_rna_prop(mbus, id_, data_, type_, prop_) \
   { \
     wmMsgParams_RNA msg_key_params_ = {{0}}; \
@@ -270,16 +281,11 @@ void WM_msg_publish_ID(struct wmMsgBus *mbus, struct ID *id);
 /* Anonymous variants (for convenience) */
 #define WM_msg_subscribe_rna_anon_type(mbus, type_, value) \
   { \
-    WM_msg_subscribe_rna_params(mbus, \
-                                &(const wmMsgParams_RNA){ \
-                                    .ptr = \
-                                        (PointerRNA){ \
-                                            .type = &RNA_##type_, \
-                                        }, \
-                                    .prop = NULL, \
-                                }, \
-                                value, \
-                                __func__); \
+    PointerRNA msg_ptr_ = {0, &RNA_##type_}; \
+    wmMsgParams_RNA msg_key_params_ = {{0}}; \
+    msg_key_params_.ptr = msg_ptr_; \
+\
+    WM_msg_subscribe_rna_params(mbus, &msg_key_params_, value, __func__); \
   } \
   ((void)0)
 #define WM_msg_subscribe_rna_anon_prop(mbus, type_, prop_, value) \
@@ -287,16 +293,13 @@ void WM_msg_publish_ID(struct wmMsgBus *mbus, struct ID *id);
     _WM_MESSAGE_EXTERN_BEGIN; \
     extern PropertyRNA rna_##type_##_##prop_; \
     _WM_MESSAGE_EXTERN_END; \
-    WM_msg_subscribe_rna_params(mbus, \
-                                &(const wmMsgParams_RNA){ \
-                                    .ptr = \
-                                        (PointerRNA){ \
-                                            .type = &RNA_##type_, \
-                                        }, \
-                                    .prop = &rna_##type_##_##prop_, \
-                                }, \
-                                value, \
-                                __func__); \
+\
+    PointerRNA msg_ptr_ = {0, &RNA_##type_}; \
+    wmMsgParams_RNA msg_key_params_ = {{0}}; \
+    msg_key_params_.ptr = msg_ptr_; \
+    msg_key_params_.prop = &rna_##type_##_##prop_; \
+\
+    WM_msg_subscribe_rna_params(mbus, &msg_key_params_, value, __func__); \
   } \
   ((void)0)
 

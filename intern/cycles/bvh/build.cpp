@@ -935,7 +935,7 @@ BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref, int start, 
 
 BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHReference> &references)
 {
-  /* This is a bit overallocating here (considering leaf size into account),
+  /* This is a bit over-allocating here (considering leaf size into account),
    * but chunk-based re-allocation in vector makes it difficult to use small
    * size of stack storage here. Some tweaks are possible tho.
    *

@@ -17,42 +17,74 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 namespace blender::nodes::node_shader_bsdf_hair_principled_cc {
 
-/* **************** OUTPUT ******************** */
-
 /* Color, melanin and absorption coefficient default to approximately same brownish hair. */
-static bNodeSocketTemplate sh_node_bsdf_hair_principled_in[] = {
-    {SOCK_RGBA, N_("Color"), 0.017513f, 0.005763f, 0.002059f, 1.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Melanin"), 0.8f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Melanin Redness"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, N_("Tint"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Absorption Coefficient"), 0.245531f, 0.52f, 1.365f, 0.0f, 0.0f, 1000.0f},
-    {SOCK_FLOAT, N_("Roughness"), 0.3f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Radial Roughness"), 0.3f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Coat"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("IOR"), 1.55f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-    {SOCK_FLOAT,
-     N_("Offset"),
-     2.0f * ((float)M_PI) / 180.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     -M_PI_2,
-     M_PI_2,
-     PROP_ANGLE},
-    {SOCK_FLOAT, N_("Random Color"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Random Roughness"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Random"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>(N_("Color")).default_value({0.017513f, 0.005763f, 0.002059f, 1.0f});
+  b.add_input<decl::Float>(N_("Melanin"))
+      .default_value(0.8f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Melanin Redness"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Color>(N_("Tint")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Vector>(N_("Absorption Coefficient"))
+      .default_value({0.245531f, 0.52f, 1.365f})
+      .min(0.0f)
+      .max(1000.0f);
+  b.add_input<decl::Float>(N_("Roughness"))
+      .default_value(0.3f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Radial Roughness"))
+      .default_value(0.3f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Coat"))
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("IOR")).default_value(1.55f).min(0.0f).max(1000.0f).subtype(
+      PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Offset"))
+      .default_value(2.0f * ((float)M_PI) / 180.0f)
+      .min(-M_PI_2)
+      .max(M_PI_2)
+      .subtype(PROP_ANGLE);
+  b.add_input<decl::Float>(N_("Random Color"))
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Random Roughness"))
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Random")).hide_value();
+  b.add_output<decl::Shader>(N_("BSDF"));
+}
 
-static bNodeSocketTemplate sh_node_bsdf_hair_principled_out[] = {
-    {SOCK_SHADER, N_("BSDF")},
-    {-1, ""},
-};
+static void node_shader_buts_principled_hair(uiLayout *layout,
+                                             bContext *UNUSED(C),
+                                             PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "parametrization", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+}
 
 /* Initialize the custom Parametrization property to Color. */
 static void node_shader_init_hair_principled(bNodeTree *UNUSED(ntree), bNode *node)
@@ -102,9 +134,9 @@ void register_node_type_sh_bsdf_hair_principled()
   static bNodeType ntype;
 
   sh_node_type_base(
-      &ntype, SH_NODE_BSDF_HAIR_PRINCIPLED, "Principled Hair BSDF", NODE_CLASS_SHADER, 0);
-  node_type_socket_templates(
-      &ntype, file_ns::sh_node_bsdf_hair_principled_in, file_ns::sh_node_bsdf_hair_principled_out);
+      &ntype, SH_NODE_BSDF_HAIR_PRINCIPLED, "Principled Hair BSDF", NODE_CLASS_SHADER);
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_principled_hair;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_init(&ntype, file_ns::node_shader_init_hair_principled);
   node_type_update(&ntype, file_ns::node_shader_update_hair_principled);

@@ -160,11 +160,11 @@ void ED_region_visibility_change_update_animated(struct bContext *C,
 void ED_region_info_draw(struct ARegion *region,
                          const char *text,
                          float fill_color[4],
-                         const bool full_redraw);
+                         bool full_redraw);
 void ED_region_info_draw_multiline(ARegion *region,
                                    const char *text_array[],
                                    float fill_color[4],
-                                   const bool full_redraw);
+                                   bool full_redraw);
 void ED_region_image_metadata_panel_draw(struct ImBuf *ibuf, struct uiLayout *layout);
 void ED_region_grid_draw(struct ARegion *region, float zoomx, float zoomy, float x0, float y0);
 float ED_region_blend_alpha(struct ARegion *region);
@@ -238,7 +238,7 @@ void ED_area_status_text(ScrArea *area, const char *str);
 /**
  * \param skip_region_exit: Skip calling area exit callback. Set for opening temp spaces.
  */
-void ED_area_newspace(struct bContext *C, ScrArea *area, int type, const bool skip_region_exit);
+void ED_area_newspace(struct bContext *C, ScrArea *area, int type, bool skip_region_exit);
 void ED_area_prevspace(struct bContext *C, ScrArea *area);
 void ED_area_swapspace(struct bContext *C, ScrArea *sa1, ScrArea *sa2);
 int ED_area_headersize(void);
@@ -316,7 +316,7 @@ bool ED_screen_change(struct bContext *C, struct bScreen *screen);
 void ED_screen_scene_change(struct bContext *C,
                             struct wmWindow *win,
                             struct Scene *scene,
-                            const bool refresh_toolsystem);
+                            bool refresh_toolsystem);
 /**
  * Called in wm_event_system.c. sets state vars in screen, cursors.
  * event type is mouse move.
@@ -360,7 +360,7 @@ bScreen *ED_screen_state_maximized_create(struct bContext *C);
 struct ScrArea *ED_screen_state_toggle(struct bContext *C,
                                        struct wmWindow *win,
                                        struct ScrArea *area,
-                                       const short state);
+                                       short state);
 /**
  * Wrapper to open a temporary space either as fullscreen space, or as separate window, as defined
  * by \a display_type.
@@ -397,7 +397,7 @@ Scene *ED_screen_scene_find_with_window(const struct bScreen *screen,
                                         struct wmWindow **r_window);
 ScrArea *ED_screen_area_find_with_spacedata(const bScreen *screen,
                                             const struct SpaceLink *sl,
-                                            const bool only_visible);
+                                            bool only_visible);
 struct wmWindow *ED_screen_window_find(const struct bScreen *screen,
                                        const struct wmWindowManager *wm);
 /**
@@ -473,9 +473,8 @@ struct WorkSpaceLayout *ED_workspace_layout_duplicate(struct Main *bmain,
 bool ED_workspace_layout_delete(struct WorkSpace *workspace,
                                 struct WorkSpaceLayout *layout_old,
                                 struct bContext *C) ATTR_NONNULL();
-bool ED_workspace_layout_cycle(struct WorkSpace *workspace,
-                               const short direction,
-                               struct bContext *C) ATTR_NONNULL();
+bool ED_workspace_layout_cycle(struct WorkSpace *workspace, short direction, struct bContext *C)
+    ATTR_NONNULL();
 
 void ED_workspace_status_text(struct bContext *C, const char *str);
 
@@ -644,12 +643,9 @@ void ED_screen_user_menu_register(void);
 /* Cache display helpers */
 
 void ED_region_cache_draw_background(struct ARegion *region);
-void ED_region_cache_draw_curfra_label(const int framenr, const float x, const float y);
-void ED_region_cache_draw_cached_segments(struct ARegion *region,
-                                          const int num_segments,
-                                          const int *points,
-                                          const int sfra,
-                                          const int efra);
+void ED_region_cache_draw_curfra_label(int framenr, float x, float y);
+void ED_region_cache_draw_cached_segments(
+    struct ARegion *region, int num_segments, const int *points, int sfra, int efra);
 
 /* area_utils.c */
 
@@ -664,19 +660,15 @@ void ED_region_generic_tools_region_message_subscribe(
 int ED_region_generic_tools_region_snap_size(const struct ARegion *region, int size, int axis);
 
 /* area_query.c */
-bool ED_region_overlap_isect_x(const ARegion *region, const int event_x);
-bool ED_region_overlap_isect_y(const ARegion *region, const int event_y);
+bool ED_region_overlap_isect_x(const ARegion *region, int event_x);
+bool ED_region_overlap_isect_y(const ARegion *region, int event_y);
 bool ED_region_overlap_isect_xy(const ARegion *region, const int event_xy[2]);
 bool ED_region_overlap_isect_any_xy(const ScrArea *area, const int event_xy[2]);
-bool ED_region_overlap_isect_x_with_margin(const ARegion *region,
-                                           const int event_x,
-                                           const int margin);
-bool ED_region_overlap_isect_y_with_margin(const ARegion *region,
-                                           const int event_y,
-                                           const int margin);
+bool ED_region_overlap_isect_x_with_margin(const ARegion *region, int event_x, int margin);
+bool ED_region_overlap_isect_y_with_margin(const ARegion *region, int event_y, int margin);
 bool ED_region_overlap_isect_xy_with_margin(const ARegion *region,
                                             const int event_xy[2],
-                                            const int margin);
+                                            int margin);
 
 bool ED_region_panel_category_gutter_calc_rect(const ARegion *region, rcti *r_region_gutter);
 bool ED_region_panel_category_gutter_isect_xy(const ARegion *region, const int event_xy[2]);

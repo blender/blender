@@ -22,7 +22,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes::node_geo_curve_primitive_quadrilaterial_cc {
+namespace blender::nodes::node_geo_curve_primitive_quadrilateral_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryCurvePrimitiveQuad)
 
@@ -281,15 +281,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
 }
 
-}  // namespace blender::nodes::node_geo_curve_primitive_quadrilaterial_cc
+}  // namespace blender::nodes::node_geo_curve_primitive_quadrilateral_cc
 
 void register_node_type_geo_curve_primitive_quadrilateral()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_primitive_quadrilaterial_cc;
+  namespace file_ns = blender::nodes::node_geo_curve_primitive_quadrilateral_cc;
 
   static bNodeType ntype;
   geo_node_type_base(
-      &ntype, GEO_NODE_CURVE_PRIMITIVE_QUADRILATERAL, "Quadrilateral", NODE_CLASS_GEOMETRY, 0);
+      &ntype, GEO_NODE_CURVE_PRIMITIVE_QUADRILATERAL, "Quadrilateral", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;

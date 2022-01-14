@@ -63,10 +63,7 @@ wmKeyMapItem *WM_keymap_add_item(
 wmKeyMapItem *WM_keymap_add_item_copy(struct wmKeyMap *keymap, wmKeyMapItem *kmi_src);
 
 bool WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
-int WM_keymap_item_to_string(const wmKeyMapItem *kmi,
-                             const bool compact,
-                             char *result,
-                             const int result_len);
+int WM_keymap_item_to_string(const wmKeyMapItem *kmi, bool compact, char *result, int result_len);
 
 wmKeyMap *WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int regionid);
 wmKeyMap *WM_keymap_list_find_spaceid_or_empty(ListBase *lb,
@@ -135,26 +132,20 @@ wmKeyMap *WM_keymap_guess_from_context(const struct bContext *C);
  */
 wmKeyMap *WM_keymap_guess_opname(const struct bContext *C, const char *opname);
 
-bool WM_keymap_uses_event_modifier(const wmKeyMap *keymap, const int event_modifier);
+bool WM_keymap_uses_event_modifier(const wmKeyMap *keymap, int event_modifier);
 
 void WM_keymap_fix_linking(void);
 
 /* Modal Keymap */
 
-int WM_modalkeymap_items_to_string(const struct wmKeyMap *km,
-                                   const int propvalue,
-                                   const bool compact,
-                                   char *result,
-                                   const int result_len);
-int WM_modalkeymap_operator_items_to_string(struct wmOperatorType *ot,
-                                            const int propvalue,
-                                            const bool compact,
-                                            char *result,
-                                            const int result_len);
+int WM_modalkeymap_items_to_string(
+    const struct wmKeyMap *km, int propvalue, bool compact, char *result, int result_len);
+int WM_modalkeymap_operator_items_to_string(
+    struct wmOperatorType *ot, int propvalue, bool compact, char *result, int result_len);
 char *WM_modalkeymap_operator_items_to_string_buf(struct wmOperatorType *ot,
-                                                  const int propvalue,
-                                                  const bool compact,
-                                                  const int max_len,
+                                                  int propvalue,
+                                                  bool compact,
+                                                  int max_len,
                                                   int *r_available_len,
                                                   char **r_result);
 
@@ -166,7 +157,7 @@ wmKeyMapItem *WM_modalkeymap_add_item(
     struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value);
 wmKeyMapItem *WM_modalkeymap_add_item_str(
     struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, const char *value);
-const wmKeyMapItem *WM_modalkeymap_find_propvalue(const wmKeyMap *km, const int propvalue);
+const wmKeyMapItem *WM_modalkeymap_find_propvalue(const wmKeyMap *km, int propvalue);
 void WM_modalkeymap_assign(struct wmKeyMap *km, const char *opname);
 
 /* Keymap Editor */
@@ -183,17 +174,17 @@ int WM_keymap_item_map_type_get(const struct wmKeyMapItem *kmi);
 
 /* Key Event */
 
-const char *WM_key_event_string(const short type, const bool compact);
-int WM_keymap_item_raw_to_string(const short shift,
-                                 const short ctrl,
-                                 const short alt,
-                                 const short oskey,
-                                 const short keymodifier,
-                                 const short val,
-                                 const short type,
-                                 const bool compact,
+const char *WM_key_event_string(short type, bool compact);
+int WM_keymap_item_raw_to_string(short shift,
+                                 short ctrl,
+                                 short alt,
+                                 short oskey,
+                                 short keymodifier,
+                                 short val,
+                                 short type,
+                                 bool compact,
                                  char *result,
-                                 const int result_len);
+                                 int result_len);
 /**
  * \param include_mask, exclude_mask:
  * Event types to include/exclude when looking up keys (#eEventType_Mask).
@@ -202,22 +193,22 @@ wmKeyMapItem *WM_key_event_operator(const struct bContext *C,
                                     const char *opname,
                                     wmOperatorCallContext opcontext,
                                     struct IDProperty *properties,
-                                    const short include_mask,
-                                    const short exclude_mask,
+                                    short include_mask,
+                                    short exclude_mask,
                                     struct wmKeyMap **r_keymap);
 char *WM_key_event_operator_string(const struct bContext *C,
                                    const char *opname,
                                    wmOperatorCallContext opcontext,
                                    struct IDProperty *properties,
-                                   const bool is_strict,
+                                   bool is_strict,
                                    char *result,
-                                   const int result_len);
+                                   int result_len);
 
 wmKeyMapItem *WM_key_event_operator_from_keymap(struct wmKeyMap *keymap,
                                                 const char *opname,
                                                 struct IDProperty *properties,
-                                                const short include_mask,
-                                                const short exclude_mask);
+                                                short include_mask,
+                                                short exclude_mask);
 
 const char *WM_bool_as_string(bool test);
 

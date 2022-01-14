@@ -3495,8 +3495,17 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 
   ui_but_update(but);
 
-  /* Popup blocks don't support moving after creation, so don't change the view for them. */
-  if (!data->searchbox) {
+  /* Make sure the edited button is in view. */
+  if (data->searchbox) {
+    /* Popup blocks don't support moving after creation, so don't change the view for them. */
+  }
+  else if (UI_block_layout_needs_resolving(but->block)) {
+    /* Layout isn't resolved yet (may happen when activating while drawing through
+     * #UI_but_active_only()), so can't move it into view yet. This causes
+     * #ui_but_update_view_for_active() to run after the layout is resolved. */
+    but->changed = true;
+  }
+  else {
     UI_but_ensure_in_view(C, data->region, but);
   }
 
@@ -3753,7 +3762,12 @@ static void ui_do_but_textedit(
       case EVT_VKEY:
       case EVT_XKEY:
       case EVT_CKEY:
-        if (IS_EVENT_MOD(event, ctrl, oskey)) {
+#if defined(__APPLE__)
+        if ((event->oskey && !IS_EVENT_MOD(event, shift, alt, ctrl)) ||
+            (event->ctrl && !IS_EVENT_MOD(event, shift, alt, oskey))) {
+#else
+        if (event->ctrl && !IS_EVENT_MOD(event, shift, alt, oskey)) {
+#endif
           if (event->type == EVT_VKEY) {
             changed = ui_textedit_copypaste(but, data, UI_TEXTEDIT_PASTE);
           }
@@ -7921,7 +7935,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
     const bool do_copy = event->type == EVT_CKEY && is_press_ctrl_but_no_shift;
     const bool do_paste = event->type == EVT_VKEY && is_press_ctrl_but_no_shift;
 
-    /* Specific handling for listrows, we try to find their overlapping tex button. */
+    /* Specific handling for list-rows, we try to find their overlapping text button. */
     if ((do_copy || do_paste) && but->type == UI_BTYPE_LISTROW) {
       uiBut *labelbut = ui_but_list_row_text_activate(C, but, data, event, BUTTON_ACTIVATE_OVER);
       if (labelbut) {

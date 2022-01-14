@@ -18,6 +18,8 @@
 
 #include "COM_MovieDistortionOperation.h"
 
+#include "DNA_defaults.h"
+
 #include "BKE_movieclip.h"
 
 namespace blender::compositor {
@@ -36,7 +38,7 @@ void MovieDistortionOperation::init_data()
 {
   if (movie_clip_) {
     MovieTracking *tracking = &movie_clip_->tracking;
-    MovieClipUser clip_user = {0};
+    MovieClipUser clip_user = *DNA_struct_default_get(MovieClipUser);
     int calibration_width, calibration_height;
 
     BKE_movieclip_user_set_frame(&clip_user, framenumber_);

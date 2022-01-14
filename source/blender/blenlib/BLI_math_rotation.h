@@ -83,12 +83,12 @@ void mul_qt_v3(const float q[4], float r[3]);
 /**
  * Simple multiply.
  */
-void mul_qt_fl(float q[4], const float f);
+void mul_qt_fl(float q[4], float f);
 
 /**
  * Raise a unit quaternion to the specified power.
  */
-void pow_qt_fl_normalized(float q[4], const float f);
+void pow_qt_fl_normalized(float q[4], float f);
 
 void sub_qt_qtqt(float q[4], const float a[4], const float b[4]);
 
@@ -120,9 +120,9 @@ bool is_zero_qt(const float q[4]);
  * \param cosom: dot product from normalized vectors/quats.
  * \param r_w: calculated weights.
  */
-void interp_dot_slerp(const float t, const float cosom, float r_w[2]);
-void interp_qt_qtqt(float q[4], const float a[4], const float b[4], const float t);
-void add_qt_qtqt(float q[4], const float a[4], const float b[4], const float t);
+void interp_dot_slerp(float t, float cosom, float r_w[2]);
+void interp_qt_qtqt(float q[4], const float a[4], const float b[4], float t);
+void add_qt_qtqt(float q[4], const float a[4], const float b[4], float t);
 
 /* Conversion. */
 
@@ -152,7 +152,7 @@ void tri_to_quat_ex(float quat[4],
  * \return the length of the normal, use to test for degenerate triangles.
  */
 float tri_to_quat(float q[4], const float a[3], const float b[3], const float c[3]);
-void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag);
+void vec_to_quat(float q[4], const float vec[3], short axis, short upflag);
 /**
  * Calculate a rotation matrix from 2 normalized vectors.
  * \note `v1` and `v2` must be normalized.
@@ -205,12 +205,12 @@ void print_qt(const char *str, const float q[4]);
 
 /* Conversion. */
 
-void axis_angle_normalized_to_quat(float r[4], const float axis[3], const float angle);
-void axis_angle_to_quat(float r[4], const float axis[3], const float angle);
+void axis_angle_normalized_to_quat(float r[4], const float axis[3], float angle);
+void axis_angle_to_quat(float r[4], const float axis[3], float angle);
 /**
  * Axis angle to 3x3 matrix - safer version (normalization of axis performed).
  */
-void axis_angle_to_mat3(float R[3][3], const float axis[3], const float angle);
+void axis_angle_to_mat3(float R[3][3], const float axis[3], float angle);
 /**
  * axis angle to 3x3 matrix
  *
@@ -222,13 +222,13 @@ void axis_angle_to_mat3(float R[3][3], const float axis[3], const float angle);
  */
 void axis_angle_normalized_to_mat3_ex(float mat[3][3],
                                       const float axis[3],
-                                      const float angle_sin,
-                                      const float angle_cos);
-void axis_angle_normalized_to_mat3(float R[3][3], const float axis[3], const float angle);
+                                      float angle_sin,
+                                      float angle_cos);
+void axis_angle_normalized_to_mat3(float R[3][3], const float axis[3], float angle);
 /**
  * Axis angle to 4x4 matrix - safer version (normalization of axis performed).
  */
-void axis_angle_to_mat4(float R[4][4], const float axis[3], const float angle);
+void axis_angle_to_mat4(float R[4][4], const float axis[3], float angle);
 
 /**
  * 3x3 matrix to axis angle.
@@ -248,17 +248,17 @@ void mat4_to_axis_angle(float axis[3], float *angle, const float M[4][4]);
  */
 void quat_to_axis_angle(float axis[3], float *angle, const float q[4]);
 
-void angle_to_mat2(float R[2][2], const float angle);
+void angle_to_mat2(float R[2][2], float angle);
 /**
  * Create a 3x3 rotation matrix from a single axis.
  */
-void axis_angle_to_mat3_single(float R[3][3], const char axis, const float angle);
+void axis_angle_to_mat3_single(float R[3][3], char axis, float angle);
 /**
  * Create a 4x4 rotation matrix from a single axis.
  */
-void axis_angle_to_mat4_single(float R[4][4], const char axis, const float angle);
+void axis_angle_to_mat4_single(float R[4][4], char axis, float angle);
 
-void axis_angle_to_quat_single(float q[4], const char axis, const float angle);
+void axis_angle_to_quat_single(float q[4], char axis, float angle);
 
 /** \} */
 
@@ -289,14 +289,14 @@ void quat_to_eul(float eul[3], const float quat[4]);
 void mat3_normalized_to_compatible_eul(float eul[3], const float old[3], float mat[3][3]);
 void mat3_to_compatible_eul(float eul[3], const float old[3], float mat[3][3]);
 void quat_to_compatible_eul(float eul[3], const float oldrot[3], const float quat[4]);
-void rotate_eul(float eul[3], const char axis, const float angle);
+void rotate_eul(float eul[3], char axis, float angle);
 
 /* Order independent. */
 
 void compatible_eul(float eul[3], const float old[3]);
 
-void add_eul_euleul(float r_eul[3], float a[3], float b[3], const short order);
-void sub_eul_euleul(float r_eul[3], float a[3], float b[3], const short order);
+void add_eul_euleul(float r_eul[3], float a[3], float b[3], short order);
+void sub_eul_euleul(float r_eul[3], float a[3], float b[3], short order);
 
 /** \} */
 
@@ -321,67 +321,58 @@ typedef enum eEulerRotationOrders {
 /**
  * Construct quaternion from Euler angles (in radians).
  */
-void eulO_to_quat(float quat[4], const float eul[3], const short order);
+void eulO_to_quat(float quat[4], const float eul[3], short order);
 /**
  * Construct 3x3 matrix from Euler angles (in radians).
  */
-void eulO_to_mat3(float mat[3][3], const float eul[3], const short order);
+void eulO_to_mat3(float mat[3][3], const float eul[3], short order);
 /**
  * Construct 4x4 matrix from Euler angles (in radians).
  */
-void eulO_to_mat4(float mat[4][4], const float eul[3], const short order);
+void eulO_to_mat4(float mat[4][4], const float eul[3], short order);
 /**
  * Euler Rotation to Axis Angle.
  */
-void eulO_to_axis_angle(float axis[3], float *angle, const float eul[3], const short order);
+void eulO_to_axis_angle(float axis[3], float *angle, const float eul[3], short order);
 /**
  * The matrix is written to as 3 axis vectors.
  */
-void eulO_to_gimbal_axis(float gmat[3][3], const float eul[3], const short order);
+void eulO_to_gimbal_axis(float gmat[3][3], const float eul[3], short order);
 
 /**
  * Convert 3x3 matrix to Euler angles (in radians).
  */
-void mat3_normalized_to_eulO(float eul[3], const short order, const float mat[3][3]);
+void mat3_normalized_to_eulO(float eul[3], short order, const float mat[3][3]);
 /**
  * Convert 4x4 matrix to Euler angles (in radians).
  */
-void mat4_normalized_to_eulO(float eul[3], const short order, const float mat[4][4]);
-void mat3_to_eulO(float eul[3], const short order, const float mat[3][3]);
-void mat4_to_eulO(float eul[3], const short order, const float mat[4][4]);
+void mat4_normalized_to_eulO(float eul[3], short order, const float mat[4][4]);
+void mat3_to_eulO(float eul[3], short order, const float mat[3][3]);
+void mat4_to_eulO(float eul[3], short order, const float mat[4][4]);
 /**
  * Convert quaternion to Euler angles (in radians).
  */
-void quat_to_eulO(float eul[3], const short order, const float quat[4]);
+void quat_to_eulO(float eul[3], short order, const float quat[4]);
 /**
  * Axis Angle to Euler Rotation.
  */
-void axis_angle_to_eulO(float eul[3], const short order, const float axis[3], const float angle);
+void axis_angle_to_eulO(float eul[3], short order, const float axis[3], float angle);
 
 /* Uses 2 methods to retrieve eulers, and picks the closest. */
 
 void mat3_normalized_to_compatible_eulO(float eul[3],
                                         const float old[3],
-                                        const short order,
+                                        short order,
                                         const float mat[3][3]);
 void mat4_normalized_to_compatible_eulO(float eul[3],
                                         const float old[3],
-                                        const short order,
+                                        short order,
                                         const float mat[4][4]);
-void mat3_to_compatible_eulO(float eul[3],
-                             const float old[3],
-                             const short order,
-                             const float mat[3][3]);
-void mat4_to_compatible_eulO(float eul[3],
-                             const float old[3],
-                             const short order,
-                             const float mat[4][4]);
-void quat_to_compatible_eulO(float eul[3],
-                             const float old[3],
-                             const short order,
-                             const float quat[4]);
+void mat3_to_compatible_eulO(float eul[3], const float old[3], short order, const float mat[3][3]);
+void mat4_to_compatible_eulO(float eul[3], const float old[3], short order, const float mat[4][4]);
+void quat_to_compatible_eulO(float eul[3], const float old[3], short order, const float quat[4]);
 
-void rotate_eulO(float eul[3], const short order, char axis, float angle);
+void rotate_eulO(float eul[3], short order, char axis, float angle);
 
 /** \} */
 

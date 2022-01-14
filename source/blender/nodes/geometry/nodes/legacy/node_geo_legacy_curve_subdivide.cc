@@ -378,7 +378,7 @@ void register_node_type_geo_legacy_curve_subdivide()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_LEGACY_CURVE_SUBDIVIDE, "Curve Subdivide", NODE_CLASS_GEOMETRY, 0);
+      &ntype, GEO_NODE_LEGACY_CURVE_SUBDIVIDE, "Curve Subdivide", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_layout;
   node_type_storage(&ntype,

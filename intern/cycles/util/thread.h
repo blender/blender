@@ -46,9 +46,7 @@ typedef std::condition_variable thread_condition_variable;
 
 class thread {
  public:
-  /* NOTE: Node index of -1 means that affinity will be inherited from the
-   * parent thread and no override on top of that will happen. */
-  thread(function<void()> run_cb, int node = -1);
+  thread(function<void()> run_cb);
   ~thread();
 
   static void *run(void *arg);
@@ -62,7 +60,6 @@ class thread {
   std::thread std_thread;
 #endif
   bool joined_;
-  int node_;
 };
 
 using thread_spin_lock = tbb::spin_mutex;

@@ -28,8 +28,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_float3.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"

@@ -126,7 +126,7 @@ static int validate_array_type(PyObject *seq,
         ok = 0;
       }
       else if ((item_seq_size = PySequence_Size(item)) == -1) {
-        /* BLI_snprintf(error_str, error_str_size, "expected a sequence of %s", item_type_str); */
+        // BLI_snprintf(error_str, error_str_size, "expected a sequence of %s", item_type_str);
         PyErr_Format(PyExc_TypeError,
                      "%s expected a sequence of %s, not %s",
                      error_prefix,

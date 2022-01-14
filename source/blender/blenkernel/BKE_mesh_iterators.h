@@ -31,14 +31,11 @@ typedef enum MeshForeachFlag {
   MESH_FOREACH_USE_NORMAL = (1 << 0),
 } MeshForeachFlag;
 
-void BKE_mesh_foreach_mapped_vert(struct Mesh *mesh,
-                                  void (*func)(void *userData,
-                                               int index,
-                                               const float co[3],
-                                               const float no_f[3],
-                                               const short no_s[3]),
-                                  void *userData,
-                                  MeshForeachFlag flag);
+void BKE_mesh_foreach_mapped_vert(
+    struct Mesh *mesh,
+    void (*func)(void *userData, int index, const float co[3], const float no[3]),
+    void *userData,
+    MeshForeachFlag flag);
 /**
  * Copied from #cdDM_foreachMappedEdge.
  * \param tot_edges: Number of original edges. Used to avoid calling the callback with invalid
@@ -68,9 +65,7 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
     void *userData,
     MeshForeachFlag flag);
 
-void BKE_mesh_foreach_mapped_vert_coords_get(struct Mesh *me_eval,
-                                             float (*r_cos)[3],
-                                             const int totcos);
+void BKE_mesh_foreach_mapped_vert_coords_get(struct Mesh *me_eval, float (*r_cos)[3], int totcos);
 
 #ifdef __cplusplus
 }

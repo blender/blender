@@ -46,6 +46,8 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_text_types.h"
 #include "DNA_workspace_types.h"
 
@@ -837,7 +839,8 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
     /* Ensure tiled image sources contain a UDIM token. */
     LISTBASE_FOREACH (Image *, ima, &bmain->images) {
       if (ima->source == IMA_SRC_TILED) {
-        BKE_image_ensure_tile_token(ima->filepath);
+        char *filename = (char *)BLI_path_basename(ima->filepath);
+        BKE_image_ensure_tile_token(filename);
       }
     }
   }
@@ -1186,7 +1189,7 @@ static void legacy_vec_roll_to_mat3_normalized(const float nor[3],
   const float z = nor[2];
 
   const float theta = 1.0f + y;          /* remapping Y from [-1,+1] to [0,2]. */
-  const float theta_alt = x * x + z * z; /* Helper value for matrix calculations.*/
+  const float theta_alt = x * x + z * z; /* Helper value for matrix calculations. */
   float rMatrix[3][3], bMatrix[3][3];
 
   BLI_ASSERT_UNIT_V3(nor);
@@ -2577,6 +2580,45 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+
+    /* Update spreadsheet data set region type. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_SPREADSHEET) {
+            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                   &sl->regionbase;
+            LISTBASE_FOREACH (ARegion *, region, regionbase) {
+              if (region->regiontype == RGN_TYPE_CHANNELS) {
+                region->regiontype = RGN_TYPE_TOOLS;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /* Initialize the bone wireframe opacity setting. */
+    if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "bone_wire_alpha")) {
+      for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+            if (sl->spacetype == SPACE_VIEW3D) {
+              View3D *v3d = (View3D *)sl;
+              v3d->overlay.bone_wire_alpha = 1.0f;
+            }
+          }
+        }
+      }
+    }
+
+    /* Rename socket on "String to Curves"-node. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_output_socket_name(
+            ntree, GEO_NODE_STRING_TO_CURVES, "Curves", "Curve Instances");
+      }
+    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 24)) {

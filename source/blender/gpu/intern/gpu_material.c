@@ -84,7 +84,7 @@ struct GPUMaterial {
   bool has_volume_output;
   bool has_surface_output;
 
-  /* Only used by Eevee to know which bsdf are used. */
+  /* Only used by Eevee to know which BSDF are used. */
   eGPUMatFlag flag;
 
   /* Used by 2.8 pipeline */
@@ -604,7 +604,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   /* Caller must re-use materials. */
   BLI_assert(GPU_material_from_nodetree_find(gpumaterials, engine_type, options) == NULL);
 
-  /* HACK: Eevee assume this to create Ghash keys. */
+  /* HACK: Eevee assume this to create #GHash keys. */
   BLI_assert(sizeof(GPUPass) > 16);
 
   /* allocate material */

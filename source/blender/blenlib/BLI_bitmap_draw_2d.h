@@ -55,12 +55,12 @@ void BLI_bitmap_draw_2d_tri_v2i(const int p1[2],
  * } while (++x != x_end);
  * \endcode
  */
-void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
-                                   const int ymin,
-                                   const int xmax,
-                                   const int ymax,
+void BLI_bitmap_draw_2d_poly_v2i_n(int xmin,
+                                   int ymin,
+                                   int xmax,
+                                   int ymax,
                                    const int verts[][2],
-                                   const int verts_len,
+                                   int verts_len,
                                    void (*callback)(int x, int x_end, int y, void *),
                                    void *user_data);
 

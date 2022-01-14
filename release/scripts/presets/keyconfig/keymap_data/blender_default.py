@@ -5648,8 +5648,13 @@ def km_image_editor_tool_uv_cursor(params):
 def km_image_editor_tool_uv_select(params, *, fallback):
     return (_fallback_id("Image Editor Tool: Uv, Tweak", fallback),
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
-        {"items": [*([] if fallback else _template_items_tool_select(params, "uv.select", "uv.cursor_set", extend="extend")),
-            *([] if (not params.use_fallback_tool_rmb) else _template_uv_select(type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),]},)
+        {"items": [
+            *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
+                params, "uv.select", "uv.cursor_set", extend="extend")),
+            *([] if (not params.use_fallback_tool_rmb) else _template_uv_select(
+                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
+        ]},
+    )
 
 
 def km_image_editor_tool_uv_select_box(params, *, fallback):
@@ -5732,8 +5737,13 @@ def km_image_editor_tool_uv_scale(params):
 def km_node_editor_tool_select(params, *, fallback):
     return (_fallback_id("Node Tool: Tweak", fallback),
         {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
-        {"items": [*([] if fallback else [("node.select", {"type": params.select_mouse, "value": 'PRESS'},
-                 {"properties": [("deselect_all", not params.legacy)]}),]),]},)
+        {"items": [
+            *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else [
+                ("node.select", {"type": params.select_mouse, "value": 'PRESS'},
+                 {"properties": [("deselect_all", not params.legacy)]}),
+            ]),
+        ]},
+    )
 
 
 def km_node_editor_tool_select_box(params, *, fallback):
@@ -5798,8 +5808,13 @@ def km_3d_view_tool_cursor(params):
 def km_3d_view_tool_select(params, *, fallback):
     return (_fallback_id("3D View Tool: Tweak", fallback),
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": [*([] if fallback else _template_items_tool_select(params, "view3d.select", "view3d.cursor3d", extend="toggle")),
-            *([] if (not params.use_fallback_tool_rmb) else _template_view3d_select(type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),]},)
+        {"items": [
+            *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
+                params, "view3d.select", "view3d.cursor3d", extend="toggle")),
+            *([] if (not params.use_fallback_tool_rmb) else _template_view3d_select(
+                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
+        ]},
+    )
 
 
 def km_3d_view_tool_select_box(params, *, fallback):
@@ -6444,8 +6459,13 @@ def km_3d_view_tool_paint_gpencil_interpolate(params):
 def km_3d_view_tool_edit_gpencil_select(params, *, fallback):
     return (_fallback_id("3D View Tool: Edit Gpencil, Tweak", fallback),
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": [*([] if fallback else _template_items_tool_select(params, "gpencil.select", "view3d.cursor3d", extend="toggle")),
-            *([] if (not params.use_fallback_tool_rmb) else _template_view3d_gpencil_select(type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),]},)
+        {"items": [
+            *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
+                params, "gpencil.select", "view3d.cursor3d", extend="toggle")),
+            *([] if (not params.use_fallback_tool_rmb) else _template_view3d_gpencil_select(
+                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
+        ]},
+    )
 
 
 def km_3d_view_tool_edit_gpencil_select_box(params, *, fallback):
@@ -6571,7 +6591,7 @@ def km_sequencer_editor_tool_generic_select(params, *, fallback):
         _fallback_id("Sequencer Tool: Tweak", fallback),
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            *([] if fallback else _template_items_tool_select(
+            *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
                 params, "sequencer.select", "sequencer.cursor_set", extend="toggle")),
 
             *([] if (not params.use_fallback_tool_rmb) else _template_sequencer_preview_select(

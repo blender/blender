@@ -106,15 +106,21 @@ typedef struct bNodeSocket {
   /** MAX_NAME. */
   char name[64];
 
-  /* XXX deprecated, only used for the Image and OutputFile nodes,
-   * should be removed at some point.
-   */
-  /** Custom storage. */
+  /** Only used for the Image and OutputFile nodes, should be removed at some point. */
   void *storage;
 
-  short type, flag;
-  /** Max. number of links. Read via nodeSocketLinkLimit,
-   * because the limit might be defined on the socket type. */
+  /**
+   * The socket's data type. #eNodeSocketDatatype.
+   */
+  short type;
+  /** #eNodeSocketFlag */
+  short flag;
+  /**
+   * Maximum number of links that can connect to the socket. Read via #nodeSocketLinkLimit, because
+   * the limit might be defined on the socket type, in which case this value does not have any
+   * effect. It is necessary to store this in the socket because it is exposed as an RNA property
+   * for custom nodes.
+   */
   short limit;
   /** Input/output type. */
   short in_out;
@@ -123,6 +129,10 @@ typedef struct bNodeSocket {
   /** Runtime type identifier. */
   char idname[64];
 
+  /**
+   * The location of the sockets, in the view-space of the node editor.
+   * \note These are runtime data-- only calculated when drawing, and could be removed from DNA.
+   */
   float locx, locy;
 
   /** Default input value used for unlinked sockets. */
@@ -307,7 +317,7 @@ typedef struct bNode {
 
   char _pad1[4];
 
-  /** Entire boundbox (world-space). */
+  /** Entire bound-box (world-space). */
   rctf totr;
   /** Optional preview area. */
   rctf prvr;
@@ -367,7 +377,7 @@ typedef struct bNode {
 #define NODE_PREVIEW 4
 #define NODE_HIDDEN 8
 #define NODE_ACTIVE 16
-#define NODE_ACTIVE_ID 32
+// #define NODE_ACTIVE_ID 32 /* deprecated */
 /* Used to indicate which group output node is used and which viewer node is active. */
 #define NODE_DO_OUTPUT 64
 #define __NODE_GROUP_EDIT 128 /* DEPRECATED */
@@ -922,6 +932,11 @@ typedef struct NodeColorspill {
   float limscale;
   float uspillr, uspillg, uspillb;
 } NodeColorspill;
+
+typedef struct NodeConvertColorSpace {
+  char from_color_space[64];
+  char to_color_space[64];
+} NodeConvertColorSpace;
 
 typedef struct NodeDilateErode {
   char falloff;
@@ -2103,6 +2118,7 @@ typedef enum GeometryNodeTriangulateQuads {
   GEO_NODE_TRIANGULATE_QUAD_FIXED = 1,
   GEO_NODE_TRIANGULATE_QUAD_ALTERNATE = 2,
   GEO_NODE_TRIANGULATE_QUAD_SHORTEDGE = 3,
+  GEO_NODE_TRIANGULATE_QUAD_LONGEDGE = 4,
 } GeometryNodeTriangulateQuads;
 
 typedef enum GeometryNodePointInstanceType {

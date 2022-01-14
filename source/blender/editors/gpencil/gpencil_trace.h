@@ -91,7 +91,7 @@ void ED_gpencil_trace_bitmap_invert(const potrace_bitmap_t *bm);
  */
 void ED_gpencil_trace_image_to_bitmap(struct ImBuf *ibuf,
                                       const potrace_bitmap_t *bm,
-                                      const float threshold);
+                                      float threshold);
 
 /**
  * Convert Potrace Bitmap to Grease Pencil strokes
@@ -106,7 +106,7 @@ void ED_gpencil_trace_data_to_strokes(struct Main *bmain,
                                       struct Object *ob,
                                       struct bGPDframe *gpf,
                                       int32_t offset[2],
-                                      const float scale,
-                                      const float sample,
-                                      const int32_t resolution,
-                                      const int32_t thickness);
+                                      float scale,
+                                      float sample,
+                                      int32_t resolution,
+                                      int32_t thickness);

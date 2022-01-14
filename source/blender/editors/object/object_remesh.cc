@@ -169,8 +169,6 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     new_mesh = mesh_fixed_poles;
   }
 
-  BKE_mesh_calc_normals(new_mesh);
-
   if (mesh->flag & ME_REMESH_REPROJECT_VOLUME || mesh->flag & ME_REMESH_REPROJECT_PAINT_MASK ||
       mesh->flag & ME_REMESH_REPROJECT_SCULPT_FACE_SETS ||
       mesh->flag & ME_REMESH_REPROJECT_MATERIALS) {

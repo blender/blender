@@ -45,10 +45,10 @@ extern "C" {
  */
 bool RE_texture_evaluate(const struct MTex *mtex,
                          const float vec[3],
-                         const int thread,
+                         int thread,
                          struct ImagePool *pool,
-                         const bool skip_load_image,
-                         const bool texnode_preview,
+                         bool skip_load_image,
+                         bool texnode_preview,
                          /* Return arguments. */
                          float *r_intensity,
                          float r_rgba[4]) ATTR_NONNULL(1, 2, 7, 8);
@@ -88,7 +88,7 @@ void RE_point_density_minmax(struct Depsgraph *depsgraph,
  */
 void RE_point_density_sample(struct Depsgraph *depsgraph,
                              struct PointDensity *pd,
-                             const int resolution,
+                             int resolution,
                              float *values);
 
 void RE_point_density_free(struct PointDensity *pd);
@@ -122,10 +122,10 @@ int multitex_ext(struct Tex *tex,
                  float dyt[3],
                  int osatex,
                  struct TexResult *texres,
-                 const short thread,
+                 short thread,
                  struct ImagePool *pool,
                  bool scene_color_manage,
-                 const bool skip_load_image);
+                 bool skip_load_image);
 
 /**
  * Nodes disabled.
@@ -138,7 +138,7 @@ int multitex_ext_safe(struct Tex *tex,
                       struct TexResult *texres,
                       struct ImagePool *pool,
                       bool scene_color_manage,
-                      const bool skip_load_image);
+                      bool skip_load_image);
 
 /**
  * Only for internal node usage.
@@ -152,7 +152,7 @@ int multitex_nodes(struct Tex *tex,
                    float dyt[3],
                    int osatex,
                    struct TexResult *texres,
-                   const short thread,
+                   short thread,
                    short which_output,
                    struct MTex *mtex,
                    struct ImagePool *pool);

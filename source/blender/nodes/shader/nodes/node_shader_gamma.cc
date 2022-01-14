@@ -17,38 +17,19 @@
  * All rights reserved.
  */
 
-#include "node_shader_util.h"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_shader_gamma_cc {
 
-/* **************** Gamma Tools  ******************** */
-
-static bNodeSocketTemplate sh_node_gamma_in[] = {
-    {SOCK_RGBA, N_("Color"), 1.0f, 1.0f, 1.0f, 1.0f},
-    {SOCK_FLOAT, N_("Gamma"), 1.0f, 0.0f, 0.0f, 0.0f, 0.001f, 10.0f, PROP_UNSIGNED},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_gamma_out[] = {
-    {SOCK_RGBA, N_("Color")},
-    {-1, ""},
-};
-
-static void node_shader_exec_gamma(void *UNUSED(data),
-                                   int UNUSED(thread),
-                                   bNode *UNUSED(node),
-                                   bNodeExecData *UNUSED(execdata),
-                                   bNodeStack **in,
-                                   bNodeStack **out)
+static void node_declare(NodeDeclarationBuilder &b)
 {
-  float col[3];
-  float gamma;
-  nodestack_get_vec(col, SOCK_VECTOR, in[0]);
-  nodestack_get_vec(&gamma, SOCK_FLOAT, in[1]);
-
-  out[0]->vec[0] = col[0] > 0.0f ? powf(col[0], gamma) : col[0];
-  out[0]->vec[1] = col[1] > 0.0f ? powf(col[1], gamma) : col[1];
-  out[0]->vec[2] = col[2] > 0.0f ? powf(col[2], gamma) : col[2];
+  b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>(N_("Gamma"))
+      .default_value(1.0f)
+      .min(0.001f)
+      .max(10.0f)
+      .subtype(PROP_UNSIGNED);
+  b.add_output<decl::Color>(N_("Color"));
 }
 
 static int node_shader_gpu_gamma(GPUMaterial *mat,
@@ -68,9 +49,8 @@ void register_node_type_sh_gamma()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_GAMMA, "Gamma", NODE_CLASS_OP_COLOR, 0);
-  node_type_socket_templates(&ntype, file_ns::sh_node_gamma_in, file_ns::sh_node_gamma_out);
-  node_type_exec(&ntype, nullptr, nullptr, file_ns::node_shader_exec_gamma);
+  sh_node_type_base(&ntype, SH_NODE_GAMMA, "Gamma", NODE_CLASS_OP_COLOR);
+  ntype.declare = file_ns::node_declare;
   node_type_gpu(&ntype, file_ns::node_shader_gpu_gamma);
 
   nodeRegisterType(&ntype);

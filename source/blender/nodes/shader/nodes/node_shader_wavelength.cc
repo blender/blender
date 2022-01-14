@@ -17,20 +17,15 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_shader_wavelength_cc {
 
-/* **************** Wavelength ******************** */
-static bNodeSocketTemplate sh_node_wavelength_in[] = {
-    {SOCK_FLOAT, N_("Wavelength"), 500.0f, 0.0f, 0.0f, 0.0f, 380.0f, 780.0f},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate sh_node_wavelength_out[] = {
-    {SOCK_RGBA, N_("Color")},
-    {-1, ""},
-};
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>(N_("Wavelength")).default_value(500.0f).min(380.0f).max(780.0f);
+  b.add_output<decl::Color>(N_("Color"));
+}
 
 static int node_shader_gpu_wavelength(GPUMaterial *mat,
                                       bNode *node,
@@ -68,10 +63,9 @@ void register_node_type_sh_wavelength()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_WAVELENGTH, "Wavelength", NODE_CLASS_CONVERTER, 0);
+  sh_node_type_base(&ntype, SH_NODE_WAVELENGTH, "Wavelength", NODE_CLASS_CONVERTER);
+  ntype.declare = file_ns::node_declare;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_socket_templates(
-      &ntype, file_ns::sh_node_wavelength_in, file_ns::sh_node_wavelength_out);
   node_type_gpu(&ntype, file_ns::node_shader_gpu_wavelength);
 
   nodeRegisterType(&ntype);

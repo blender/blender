@@ -127,7 +127,7 @@ void ED_fileselect_set_params_from_userdef(struct SpaceFile *sfile);
  */
 void ED_fileselect_params_to_userdef(struct SpaceFile *sfile,
                                      const int temp_win_size[2],
-                                     const bool is_maximized);
+                                     bool is_maximized);
 
 void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *region);
 
@@ -171,9 +171,7 @@ void ED_fileselect_activate_asset_catalog(const struct SpaceFile *sfile, bUUID c
  * Activate and select the file that corresponds to the given ID.
  * Pass deferred=true to wait for the next refresh before activating.
  */
-void ED_fileselect_activate_by_id(struct SpaceFile *sfile,
-                                  struct ID *asset_id,
-                                  const bool deferred);
+void ED_fileselect_activate_by_id(struct SpaceFile *sfile, struct ID *asset_id, bool deferred);
 
 void ED_fileselect_deselect_all(struct SpaceFile *sfile);
 void ED_fileselect_activate_by_relpath(struct SpaceFile *sfile, const char *relative_path);
@@ -256,7 +254,7 @@ char *ED_fsmenu_entry_get_name(struct FSMenuEntry *fsentry);
 void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name);
 
 int ED_fsmenu_entry_get_icon(struct FSMenuEntry *fsentry);
-void ED_fsmenu_entry_set_icon(struct FSMenuEntry *fsentry, const int icon);
+void ED_fsmenu_entry_set_icon(struct FSMenuEntry *fsentry, int icon);
 
 #ifdef __cplusplus
 }

@@ -322,7 +322,7 @@ void gpencil_apply_parent_point(struct Depsgraph *depsgraph,
  * generic based on gpencil_point_to_xy_fl
  */
 void gpencil_point_3d_to_xy(const GP_SpaceConversion *gsc,
-                            const short flag,
+                            short flag,
                             const float pt[3],
                             float xy[2]);
 
@@ -410,7 +410,7 @@ int gpencil_delete_selected_point_wrap(bContext *C);
  * \param gps: Stroke data
  * \param subdivide: Number of times to subdivide
  */
-void gpencil_subdivide_stroke(bGPdata *gpd, bGPDstroke *gps, const int subdivide);
+void gpencil_subdivide_stroke(bGPdata *gpd, bGPDstroke *gps, int subdivide);
 
 /* Layers Enums -------------------------------------- */
 

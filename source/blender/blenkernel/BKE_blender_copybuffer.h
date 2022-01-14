@@ -63,7 +63,7 @@ bool BKE_copybuffer_copy_end(struct Main *bmain_src,
 bool BKE_copybuffer_read(struct Main *bmain_dst,
                          const char *libname,
                          struct ReportList *reports,
-                         const uint64_t id_types_mask);
+                         uint64_t id_types_mask);
 /**
  * Paste data-blocks from the given .blend file 'buffer'  (i.e. append them).
  *
@@ -80,9 +80,9 @@ bool BKE_copybuffer_read(struct Main *bmain_dst,
  */
 int BKE_copybuffer_paste(struct bContext *C,
                          const char *libname,
-                         const int flag,
+                         int flag,
                          struct ReportList *reports,
-                         const uint64_t id_types_mask);
+                         uint64_t id_types_mask);
 
 #ifdef __cplusplus
 }

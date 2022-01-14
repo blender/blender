@@ -118,8 +118,6 @@ set(LIB
 )
 
 if(WITH_LIBMV)
-  setup_libdirs()
-
   if(WIN32)
     add_definitions(-D_USE_MATH_DEFINES)
   endif()

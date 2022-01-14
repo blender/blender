@@ -152,7 +152,7 @@ static void extract_edituv_stretch_area_init_subdiv(const DRWSubdivCache *subdiv
                                                     void *UNUSED(data))
 {
 
-  /* Initialise final buffer. */
+  /* Initialize final buffer. */
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {

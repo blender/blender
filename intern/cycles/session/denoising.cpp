@@ -16,61 +16,16 @@
 
 #include "session/denoising.h"
 
-#if 0
+#include "util/map.h"
+#include "util/system.h"
+#include "util/task.h"
+#include "util/time.h"
 
-#  include "kernel/filter/filter_defines.h"
-
-#  include "util/util_foreach.h"
-#  include "util/util_map.h"
-#  include "util/util_system.h"
-#  include "util/util_task.h"
-#  include "util/util_time.h"
-
-#  include <OpenImageIO/filesystem.h>
+#include <OpenImageIO/filesystem.h>
 
 CCL_NAMESPACE_BEGIN
 
 /* Utility Functions */
-
-static void print_progress(int num, int total, int frame, int num_frames)
-{
-  const char *label = "Denoise Frame ";
-  int cols = system_console_width();
-
-  cols -= strlen(label);
-
-  int len = 1;
-  for (int x = total; x > 9; x /= 10) {
-    len++;
-  }
-
-  int bars = cols - 2 * len - 6;
-
-  printf("\r%s", label);
-
-  if (num_frames > 1) {
-    int frame_len = 1;
-    for (int x = num_frames - 1; x > 9; x /= 10) {
-      frame_len++;
-    }
-    bars -= frame_len + 2;
-    printf("%*d ", frame_len, frame);
-  }
-
-  int v = int(float(num) * bars / total);
-  printf("[");
-  for (int i = 0; i < v; i++) {
-    printf("=");
-  }
-  if (v < bars) {
-    printf(">");
-  }
-  for (int i = v + 1; i < bars; i++) {
-    printf(" ");
-  }
-  printf(string_printf("] %%%dd / %d", len, total).c_str(), num);
-  fflush(stdout);
-}
 
 /* Splits in at its last dot, setting suffix to the part after the dot and in to the part before
  * it. Returns whether a dot was found. */
@@ -125,24 +80,18 @@ static void fill_mapping(vector<ChannelMapping> &map, int pos, string name, stri
   }
 }
 
-static const int INPUT_NUM_CHANNELS = 15;
-static const int INPUT_DENOISING_DEPTH = 0;
-static const int INPUT_DENOISING_NORMAL = 1;
-static const int INPUT_DENOISING_SHADOWING = 4;
-static const int INPUT_DENOISING_ALBEDO = 5;
-static const int INPUT_NOISY_IMAGE = 8;
-static const int INPUT_DENOISING_VARIANCE = 11;
-static const int INPUT_DENOISING_INTENSITY = 14;
+static const int INPUT_NUM_CHANNELS = 13;
+static const int INPUT_NOISY_IMAGE = 0;
+static const int INPUT_DENOISING_NORMAL = 3;
+static const int INPUT_DENOISING_ALBEDO = 6;
+static const int INPUT_MOTION = 9;
 static vector<ChannelMapping> input_channels()
 {
   vector<ChannelMapping> map;
-  fill_mapping(map, INPUT_DENOISING_DEPTH, "Denoising Depth", "Z");
+  fill_mapping(map, INPUT_NOISY_IMAGE, "Combined", "RGB");
   fill_mapping(map, INPUT_DENOISING_NORMAL, "Denoising Normal", "XYZ");
-  fill_mapping(map, INPUT_DENOISING_SHADOWING, "Denoising Shadowing", "X");
   fill_mapping(map, INPUT_DENOISING_ALBEDO, "Denoising Albedo", "RGB");
-  fill_mapping(map, INPUT_NOISY_IMAGE, "Noisy Image", "RGB");
-  fill_mapping(map, INPUT_DENOISING_VARIANCE, "Denoising Variance", "RGB");
-  fill_mapping(map, INPUT_DENOISING_INTENSITY, "Denoising Intensity", "X");
+  fill_mapping(map, INPUT_MOTION, "Vector", "XYZW");
   return map;
 }
 
@@ -162,7 +111,7 @@ bool DenoiseImageLayer::detect_denoising_channels()
   input_to_image_channel.clear();
   input_to_image_channel.resize(INPUT_NUM_CHANNELS, -1);
 
-  foreach (const ChannelMapping &mapping, input_channels()) {
+  for (const ChannelMapping &mapping : input_channels()) {
     vector<string>::iterator i = find(channels.begin(), channels.end(), mapping.name);
     if (i == channels.end()) {
       return false;
@@ -177,7 +126,7 @@ bool DenoiseImageLayer::detect_denoising_channels()
   output_to_image_channel.clear();
   output_to_image_channel.resize(OUTPUT_NUM_CHANNELS, -1);
 
-  foreach (const ChannelMapping &mapping, output_channels()) {
+  for (const ChannelMapping &mapping : output_channels()) {
     vector<string>::iterator i = find(channels.begin(), channels.end(), mapping.name);
     if (i == channels.end()) {
       return false;
@@ -199,18 +148,16 @@ bool DenoiseImageLayer::detect_denoising_channels()
   return true;
 }
 
-bool DenoiseImageLayer::match_channels(int neighbor,
-                                       const std::vector<string> &channelnames,
+bool DenoiseImageLayer::match_channels(const std::vector<string> &channelnames,
                                        const std::vector<string> &neighbor_channelnames)
 {
-  neighbor_input_to_image_channel.resize(neighbor + 1);
-  vector<int> &mapping = neighbor_input_to_image_channel[neighbor];
+  vector<int> &mapping = previous_output_to_image_channel;
 
   assert(mapping.size() == 0);
-  mapping.resize(input_to_image_channel.size(), -1);
+  mapping.resize(output_to_image_channel.size(), -1);
 
-  for (int i = 0; i < input_to_image_channel.size(); i++) {
-    const string &channel = channelnames[input_to_image_channel[i]];
+  for (int i = 0; i < output_to_image_channel.size(); i++) {
+    const string &channel = channelnames[output_to_image_channel[i]];
     std::vector<string>::const_iterator frame_channel = find(
         neighbor_channelnames.begin(), neighbor_channelnames.end(), channel);
 
@@ -226,19 +173,9 @@ bool DenoiseImageLayer::match_channels(int neighbor,
 
 /* Denoise Task */
 
-DenoiseTask::DenoiseTask(Device *device,
-                         DenoiserPipeline *denoiser,
-                         int frame,
-                         const vector<int> &neighbor_frames)
-    : denoiser(denoiser),
-      device(device),
-      frame(frame),
-      neighbor_frames(neighbor_frames),
-      current_layer(0),
-      input_pixels(device, "filter input buffer", MEM_READ_ONLY),
-      num_tiles(0)
+DenoiseTask::DenoiseTask(Device *device, DenoiserPipeline *denoiser, int frame)
+    : denoiser(denoiser), device(device), frame(frame), current_layer(0), buffers(device)
 {
-  image.samples = denoiser->samples_override;
 }
 
 DenoiseTask::~DenoiseTask()
@@ -246,283 +183,38 @@ DenoiseTask::~DenoiseTask()
   free();
 }
 
-/* Device callbacks */
-
-bool DenoiseTask::acquire_tile(Device *device, Device *tile_device, RenderTile &tile)
-{
-  thread_scoped_lock tile_lock(tiles_mutex);
-
-  if (tiles.empty()) {
-    return false;
-  }
-
-  tile = tiles.front();
-  tiles.pop_front();
-
-  device->map_tile(tile_device, tile);
-
-  print_progress(num_tiles - tiles.size(), num_tiles, frame, denoiser->num_frames);
-
-  return true;
-}
-
-/* Mapping tiles is required for regular rendering since each tile has its separate memory
- * which may be allocated on a different device.
- * For standalone denoising, there is a single memory that is present on all devices, so the only
- * thing that needs to be done here is to specify the surrounding tile geometry.
- *
- * However, since there is only one large memory, the denoised result has to be written to
- * a different buffer to avoid having to copy an entire horizontal slice of the image. */
-void DenoiseTask::map_neighboring_tiles(RenderTileNeighbors &neighbors, Device *tile_device)
-{
-  RenderTile &center_tile = neighbors.tiles[RenderTileNeighbors::CENTER];
-  RenderTile &target_tile = neighbors.target;
-
-  /* Fill tile information. */
-  for (int i = 0; i < RenderTileNeighbors::SIZE; i++) {
-    if (i == RenderTileNeighbors::CENTER) {
-      continue;
-    }
-
-    RenderTile &tile = neighbors.tiles[i];
-    int dx = (i % 3) - 1;
-    int dy = (i / 3) - 1;
-    tile.x = clamp(center_tile.x + dx * denoiser->tile_size.x, 0, image.width);
-    tile.w = clamp(center_tile.x + (dx + 1) * denoiser->tile_size.x, 0, image.width) - tile.x;
-    tile.y = clamp(center_tile.y + dy * denoiser->tile_size.y, 0, image.height);
-    tile.h = clamp(center_tile.y + (dy + 1) * denoiser->tile_size.y, 0, image.height) - tile.y;
-
-    tile.buffer = center_tile.buffer;
-    tile.offset = center_tile.offset;
-    tile.stride = image.width;
-  }
-
-  /* Allocate output buffer. */
-  device_vector<float> *output_mem = new device_vector<float>(
-      tile_device, "denoising_output", MEM_READ_WRITE);
-  output_mem->alloc(OUTPUT_NUM_CHANNELS * center_tile.w * center_tile.h);
-
-  /* Fill output buffer with noisy image, assumed by kernel_filter_finalize
-   * when skipping denoising of some pixels. */
-  float *result = output_mem->data();
-  float *in = &image.pixels[image.num_channels * (center_tile.y * image.width + center_tile.x)];
-
-  const DenoiseImageLayer &layer = image.layers[current_layer];
-  const int *input_to_image_channel = layer.input_to_image_channel.data();
-
-  for (int y = 0; y < center_tile.h; y++) {
-    for (int x = 0; x < center_tile.w; x++, result += OUTPUT_NUM_CHANNELS) {
-      for (int i = 0; i < OUTPUT_NUM_CHANNELS; i++) {
-        result[i] = in[image.num_channels * x + input_to_image_channel[INPUT_NOISY_IMAGE + i]];
-      }
-    }
-    in += image.num_channels * image.width;
-  }
-
-  output_mem->copy_to_device();
-
-  /* Fill output tile info. */
-  target_tile = center_tile;
-  target_tile.buffer = output_mem->device_pointer;
-  target_tile.stride = target_tile.w;
-  target_tile.offset -= target_tile.x + target_tile.y * target_tile.stride;
-
-  thread_scoped_lock output_lock(output_mutex);
-  assert(output_pixels.count(center_tile.tile_index) == 0);
-  output_pixels[target_tile.tile_index] = output_mem;
-}
-
-void DenoiseTask::unmap_neighboring_tiles(RenderTileNeighbors &neighbors)
-{
-  RenderTile &center_tile = neighbors.tiles[RenderTileNeighbors::CENTER];
-  RenderTile &target_tile = neighbors.target;
-
-  thread_scoped_lock output_lock(output_mutex);
-  assert(output_pixels.count(center_tile.tile_index) == 1);
-  device_vector<float> *output_mem = output_pixels[target_tile.tile_index];
-  output_pixels.erase(center_tile.tile_index);
-  output_lock.unlock();
-
-  /* Copy denoised pixels from device. */
-  output_mem->copy_from_device(0, OUTPUT_NUM_CHANNELS * target_tile.w, target_tile.h);
-
-  float *result = output_mem->data();
-  float *out = &image.pixels[image.num_channels * (target_tile.y * image.width + target_tile.x)];
-
-  const DenoiseImageLayer &layer = image.layers[current_layer];
-  const int *output_to_image_channel = layer.output_to_image_channel.data();
-
-  for (int y = 0; y < target_tile.h; y++) {
-    for (int x = 0; x < target_tile.w; x++, result += OUTPUT_NUM_CHANNELS) {
-      for (int i = 0; i < OUTPUT_NUM_CHANNELS; i++) {
-        out[image.num_channels * x + output_to_image_channel[i]] = result[i];
-      }
-    }
-    out += image.num_channels * image.width;
-  }
-
-  /* Free device buffer. */
-  output_mem->free();
-  delete output_mem;
-}
-
-void DenoiseTask::release_tile()
-{
-}
-
-bool DenoiseTask::get_cancel()
-{
-  return false;
-}
-
-void DenoiseTask::create_task(DeviceTask &task)
-{
-  /* Callback functions. */
-  task.acquire_tile = function_bind(&DenoiseTask::acquire_tile, this, device, _1, _2);
-  task.map_neighbor_tiles = function_bind(&DenoiseTask::map_neighboring_tiles, this, _1, _2);
-  task.unmap_neighbor_tiles = function_bind(&DenoiseTask::unmap_neighboring_tiles, this, _1);
-  task.release_tile = function_bind(&DenoiseTask::release_tile, this);
-  task.get_cancel = function_bind(&DenoiseTask::get_cancel, this);
-
-  /* Denoising parameters. */
-  task.denoising = denoiser->params;
-  task.denoising.type = DENOISER_NLM;
-  task.denoising.use = true;
-  task.denoising_from_render = false;
-
-  task.denoising_frames.resize(neighbor_frames.size());
-  for (int i = 0; i < neighbor_frames.size(); i++) {
-    task.denoising_frames[i] = neighbor_frames[i] - frame;
-  }
-
-  /* Buffer parameters. */
-  task.pass_stride = INPUT_NUM_CHANNELS;
-  task.target_pass_stride = OUTPUT_NUM_CHANNELS;
-  task.pass_denoising_data = 0;
-  task.pass_denoising_clean = -1;
-  task.frame_stride = image.width * image.height * INPUT_NUM_CHANNELS;
-
-  /* Create tiles. */
-  thread_scoped_lock tile_lock(tiles_mutex);
-  thread_scoped_lock output_lock(output_mutex);
-
-  tiles.clear();
-  assert(output_pixels.empty());
-  output_pixels.clear();
-
-  int tiles_x = divide_up(image.width, denoiser->tile_size.x);
-  int tiles_y = divide_up(image.height, denoiser->tile_size.y);
-
-  for (int ty = 0; ty < tiles_y; ty++) {
-    for (int tx = 0; tx < tiles_x; tx++) {
-      RenderTile tile;
-      tile.x = tx * denoiser->tile_size.x;
-      tile.y = ty * denoiser->tile_size.y;
-      tile.w = min(image.width - tile.x, denoiser->tile_size.x);
-      tile.h = min(image.height - tile.y, denoiser->tile_size.y);
-      tile.start_sample = 0;
-      tile.num_samples = image.layers[current_layer].samples;
-      tile.sample = 0;
-      tile.offset = 0;
-      tile.stride = image.width;
-      tile.tile_index = ty * tiles_x + tx;
-      tile.task = RenderTile::DENOISE;
-      tile.buffers = NULL;
-      tile.buffer = input_pixels.device_pointer;
-      tiles.push_back(tile);
-    }
-  }
-
-  num_tiles = tiles.size();
-}
-
 /* Denoiser Operations */
 
 bool DenoiseTask::load_input_pixels(int layer)
 {
-  int w = image.width;
-  int h = image.height;
-  int num_pixels = image.width * image.height;
-  int frame_stride = num_pixels * INPUT_NUM_CHANNELS;
-
   /* Load center image */
   DenoiseImageLayer &image_layer = image.layers[layer];
 
-  float *buffer_data = input_pixels.data();
-  image.read_pixels(image_layer, buffer_data);
-  buffer_data += frame_stride;
+  float *buffer_data = buffers.buffer.data();
+  image.read_pixels(image_layer, buffers.params, buffer_data);
 
-  /* Load neighbor images */
-  for (int i = 0; i < image.in_neighbors.size(); i++) {
-    if (!image.read_neighbor_pixels(i, image_layer, buffer_data)) {
-      error = "Failed to read neighbor frame pixels";
-      return false;
-    }
-    buffer_data += frame_stride;
-  }
-
-  /* Preprocess */
-  buffer_data = input_pixels.data();
-  for (int neighbor = 0; neighbor < image.in_neighbors.size() + 1; neighbor++) {
-    /* Clamp */
-    if (denoiser->params.clamp_input) {
-      for (int i = 0; i < num_pixels * INPUT_NUM_CHANNELS; i++) {
-        buffer_data[i] = clamp(buffer_data[i], -1e8f, 1e8f);
-      }
-    }
-
-    /* Box blur */
-    int r = 5 * denoiser->params.radius;
-    float *data = buffer_data + 14;
-    array<float> temp(num_pixels);
-
-    for (int y = 0; y < h; y++) {
-      for (int x = 0; x < w; x++) {
-        int n = 0;
-        float sum = 0.0f;
-        for (int dx = max(x - r, 0); dx < min(x + r + 1, w); dx++, n++) {
-          sum += data[INPUT_NUM_CHANNELS * (y * w + dx)];
-        }
-        temp[y * w + x] = sum / n;
-      }
-    }
-
-    for (int y = 0; y < h; y++) {
-      for (int x = 0; x < w; x++) {
-        int n = 0;
-        float sum = 0.0f;
-
-        for (int dy = max(y - r, 0); dy < min(y + r + 1, h); dy++, n++) {
-          sum += temp[dy * w + x];
-        }
-
-        data[INPUT_NUM_CHANNELS * (y * w + x)] = sum / n;
-      }
-    }
-
-    /* Highlight compression */
-    data = buffer_data + 8;
-    for (int y = 0; y < h; y++) {
-      for (int x = 0; x < w; x++) {
-        int idx = INPUT_NUM_CHANNELS * (y * w + x);
-        float3 color = make_float3(data[idx], data[idx + 1], data[idx + 2]);
-        color = color_highlight_compress(color, NULL);
-        data[idx] = color.x;
-        data[idx + 1] = color.y;
-        data[idx + 2] = color.z;
-      }
-    }
-
-    buffer_data += frame_stride;
+  /* Load previous image */
+  if (frame > 0 && !image.read_previous_pixels(image_layer, buffers.params, buffer_data)) {
+    error = "Failed to read neighbor frame pixels";
+    return false;
   }
 
   /* Copy to device */
-  input_pixels.copy_to_device();
+  buffers.buffer.copy_to_device();
 
   return true;
 }
 
 /* Task stages */
+
+static void add_pass(vector<Pass *> &passes, PassType type, PassMode mode = PassMode::NOISY)
+{
+  Pass *pass = new Pass();
+  pass->set_type(type);
+  pass->set_mode(mode);
+
+  passes.push_back(pass);
+}
 
 bool DenoiseTask::load()
 {
@@ -531,7 +223,8 @@ bool DenoiseTask::load()
     return false;
   }
 
-  if (!image.load_neighbors(denoiser->input, neighbor_frames, error)) {
+  /* Use previous frame output as input for subsequent frames. */
+  if (frame > 0 && !image.load_previous(denoiser->output[frame - 1], error)) {
     return false;
   }
 
@@ -540,10 +233,35 @@ bool DenoiseTask::load()
     return false;
   }
 
+  /* Enable temporal denoising for frames after the first (which will use the output from the
+   * previous frames). */
+  DenoiseParams params = denoiser->denoiser->get_params();
+  params.temporally_stable = frame > 0;
+  denoiser->denoiser->set_params(params);
+
   /* Allocate device buffer. */
-  int num_frames = image.in_neighbors.size() + 1;
-  input_pixels.alloc(image.width * INPUT_NUM_CHANNELS, image.height * num_frames);
-  input_pixels.zero_to_device();
+  vector<Pass *> passes;
+  add_pass(passes, PassType::PASS_COMBINED);
+  add_pass(passes, PassType::PASS_DENOISING_ALBEDO);
+  add_pass(passes, PassType::PASS_DENOISING_NORMAL);
+  add_pass(passes, PassType::PASS_MOTION);
+  add_pass(passes, PassType::PASS_DENOISING_PREVIOUS);
+  add_pass(passes, PassType::PASS_COMBINED, PassMode::DENOISED);
+
+  BufferParams buffer_params;
+  buffer_params.width = image.width;
+  buffer_params.height = image.height;
+  buffer_params.full_x = 0;
+  buffer_params.full_y = 0;
+  buffer_params.full_width = image.width;
+  buffer_params.full_height = image.height;
+  buffer_params.update_passes(passes);
+
+  for (Pass *pass : passes) {
+    delete pass;
+  }
+
+  buffers.reset(buffer_params);
 
   /* Read pixels for first layer. */
   current_layer = 0;
@@ -565,10 +283,26 @@ bool DenoiseTask::exec()
     }
 
     /* Run task on device. */
-    DeviceTask task(DeviceTask::RENDER);
-    create_task(task);
-    device->task_add(task);
-    device->task_wait();
+    denoiser->denoiser->denoise_buffer(buffers.params, &buffers, 1, true);
+
+    /* Copy denoised pixels from device. */
+    buffers.buffer.copy_from_device();
+
+    float *result = buffers.buffer.data(), *out = image.pixels.data();
+
+    const DenoiseImageLayer &layer = image.layers[current_layer];
+    const int *output_to_image_channel = layer.output_to_image_channel.data();
+
+    for (int y = 0; y < image.height; y++) {
+      for (int x = 0; x < image.width; x++, result += buffers.params.pass_stride) {
+        for (int j = 0; j < OUTPUT_NUM_CHANNELS; j++) {
+          int offset = buffers.params.get_pass_offset(PASS_COMBINED, PassMode::DENOISED);
+          int image_channel = output_to_image_channel[j];
+          out[image.num_channels * x + image_channel] = result[offset + j];
+        }
+      }
+      out += image.num_channels * image.width;
+    }
 
     printf("\n");
   }
@@ -586,8 +320,7 @@ bool DenoiseTask::save()
 void DenoiseTask::free()
 {
   image.free();
-  input_pixels.free();
-  assert(output_pixels.empty());
+  buffers.buffer.free();
 }
 
 /* Denoise Image Storage */
@@ -607,7 +340,7 @@ DenoiseImage::~DenoiseImage()
 
 void DenoiseImage::close_input()
 {
-  in_neighbors.clear();
+  in_previous.reset();
 }
 
 void DenoiseImage::free()
@@ -677,39 +410,61 @@ bool DenoiseImage::parse_channels(const ImageSpec &in_spec, string &error)
   return true;
 }
 
-void DenoiseImage::read_pixels(const DenoiseImageLayer &layer, float *input_pixels)
+void DenoiseImage::read_pixels(const DenoiseImageLayer &layer,
+                               const BufferParams &params,
+                               float *input_pixels)
 {
   /* Pixels from center file have already been loaded into pixels.
    * We copy a subset into the device input buffer with channels reshuffled. */
   const int *input_to_image_channel = layer.input_to_image_channel.data();
 
   for (int i = 0; i < width * height; i++) {
-    for (int j = 0; j < INPUT_NUM_CHANNELS; j++) {
-      int image_channel = input_to_image_channel[j];
-      input_pixels[i * INPUT_NUM_CHANNELS + j] =
+    for (int j = 0; j < 3; ++j) {
+      int offset = params.get_pass_offset(PASS_COMBINED);
+      int image_channel = input_to_image_channel[INPUT_NOISY_IMAGE + j];
+      input_pixels[i * params.pass_stride + offset + j] =
+          pixels[((size_t)i) * num_channels + image_channel];
+    }
+    for (int j = 0; j < 3; ++j) {
+      int offset = params.get_pass_offset(PASS_DENOISING_NORMAL);
+      int image_channel = input_to_image_channel[INPUT_DENOISING_NORMAL + j];
+      input_pixels[i * params.pass_stride + offset + j] =
+          pixels[((size_t)i) * num_channels + image_channel];
+    }
+    for (int j = 0; j < 3; ++j) {
+      int offset = params.get_pass_offset(PASS_DENOISING_ALBEDO);
+      int image_channel = input_to_image_channel[INPUT_DENOISING_ALBEDO + j];
+      input_pixels[i * params.pass_stride + offset + j] =
+          pixels[((size_t)i) * num_channels + image_channel];
+    }
+    for (int j = 0; j < 4; ++j) {
+      int offset = params.get_pass_offset(PASS_MOTION);
+      int image_channel = input_to_image_channel[INPUT_MOTION + j];
+      input_pixels[i * params.pass_stride + offset + j] =
           pixels[((size_t)i) * num_channels + image_channel];
     }
   }
 }
 
-bool DenoiseImage::read_neighbor_pixels(int neighbor,
-                                        const DenoiseImageLayer &layer,
+bool DenoiseImage::read_previous_pixels(const DenoiseImageLayer &layer,
+                                        const BufferParams &params,
                                         float *input_pixels)
 {
   /* Load pixels from neighboring frames, and copy them into device buffer
    * with channels reshuffled. */
   size_t num_pixels = (size_t)width * (size_t)height;
   array<float> neighbor_pixels(num_pixels * num_channels);
-  if (!in_neighbors[neighbor]->read_image(TypeDesc::FLOAT, neighbor_pixels.data())) {
+  if (!in_previous->read_image(TypeDesc::FLOAT, neighbor_pixels.data())) {
     return false;
   }
 
-  const int *input_to_image_channel = layer.neighbor_input_to_image_channel[neighbor].data();
+  const int *output_to_image_channel = layer.previous_output_to_image_channel.data();
 
   for (int i = 0; i < width * height; i++) {
-    for (int j = 0; j < INPUT_NUM_CHANNELS; j++) {
-      int image_channel = input_to_image_channel[j];
-      input_pixels[i * INPUT_NUM_CHANNELS + j] =
+    for (int j = 0; j < 3; ++j) {
+      int offset = params.get_pass_offset(PASS_DENOISING_PREVIOUS);
+      int image_channel = output_to_image_channel[j];
+      input_pixels[i * params.pass_stride + offset + j] =
           neighbor_pixels[((size_t)i) * num_channels + image_channel];
     }
   }
@@ -739,8 +494,8 @@ bool DenoiseImage::load(const string &in_filepath, string &error)
     return false;
   }
 
-  if (layers.size() == 0) {
-    error = "Could not find a render layer containing denoising info";
+  if (layers.empty()) {
+    error = "Could not find a render layer containing denoising data and motion vector passes";
     return false;
   }
 
@@ -757,45 +512,33 @@ bool DenoiseImage::load(const string &in_filepath, string &error)
   return true;
 }
 
-bool DenoiseImage::load_neighbors(const vector<string> &filepaths,
-                                  const vector<int> &frames,
-                                  string &error)
+bool DenoiseImage::load_previous(const string &filepath, string &error)
 {
-  if (frames.size() > DENOISE_MAX_FRAMES - 1) {
-    error = string_printf("Maximum number of neighbors (%d) exceeded\n", DENOISE_MAX_FRAMES - 1);
+  if (!Filesystem::is_regular(filepath)) {
+    error = "Couldn't find neighbor frame: " + filepath;
     return false;
   }
 
-  for (int neighbor = 0; neighbor < frames.size(); neighbor++) {
-    int frame = frames[neighbor];
-    const string &filepath = filepaths[frame];
-
-    if (!Filesystem::is_regular(filepath)) {
-      error = "Couldn't find neighbor frame: " + filepath;
-      return false;
-    }
-
-    unique_ptr<ImageInput> in_neighbor(ImageInput::open(filepath));
-    if (!in_neighbor) {
-      error = "Couldn't open neighbor frame: " + filepath;
-      return false;
-    }
-
-    const ImageSpec &neighbor_spec = in_neighbor->spec();
-    if (neighbor_spec.width != width || neighbor_spec.height != height) {
-      error = "Neighbor frame has different dimensions: " + filepath;
-      return false;
-    }
-
-    foreach (DenoiseImageLayer &layer, layers) {
-      if (!layer.match_channels(neighbor, in_spec.channelnames, neighbor_spec.channelnames)) {
-        error = "Neighbor frame misses denoising data passes: " + filepath;
-        return false;
-      }
-    }
-
-    in_neighbors.push_back(std::move(in_neighbor));
+  unique_ptr<ImageInput> in_neighbor(ImageInput::open(filepath));
+  if (!in_neighbor) {
+    error = "Couldn't open neighbor frame: " + filepath;
+    return false;
   }
+
+  const ImageSpec &neighbor_spec = in_neighbor->spec();
+  if (neighbor_spec.width != width || neighbor_spec.height != height) {
+    error = "Neighbor frame has different dimensions: " + filepath;
+    return false;
+  }
+
+  for (DenoiseImageLayer &layer : layers) {
+    if (!layer.match_channels(in_spec.channelnames, neighbor_spec.channelnames)) {
+      error = "Neighbor frame misses denoising data passes: " + filepath;
+      return false;
+    }
+  }
+
+  in_previous = std::move(in_neighbor);
 
   return true;
 }
@@ -864,24 +607,22 @@ bool DenoiseImage::save_output(const string &out_filepath, string &error)
 
 /* File pattern handling and outer loop over frames */
 
-DenoiserPipeline::DenoiserPipeline(DeviceInfo &device_info)
+DenoiserPipeline::DenoiserPipeline(DeviceInfo &device_info, const DenoiseParams &params)
 {
-  samples_override = 0;
-  tile_size = make_int2(64, 64);
-
-  num_frames = 0;
-
   /* Initialize task scheduler. */
   TaskScheduler::init();
 
   /* Initialize device. */
-  device = Device::create(device_info, stats, profiler, true);
-
+  device = Device::create(device_info, stats, profiler);
   device->load_kernels(KERNEL_FEATURE_DENOISING);
+
+  denoiser = Denoiser::create(device, params);
+  denoiser->load_kernels(nullptr);
 }
 
 DenoiserPipeline::~DenoiserPipeline()
 {
+  denoiser.reset();
   delete device;
   TaskScheduler::exit();
 }
@@ -890,7 +631,7 @@ bool DenoiserPipeline::run()
 {
   assert(input.size() == output.size());
 
-  num_frames = output.size();
+  int num_frames = output.size();
 
   for (int frame = 0; frame < num_frames; frame++) {
     /* Skip empty output paths. */
@@ -898,16 +639,8 @@ bool DenoiserPipeline::run()
       continue;
     }
 
-    /* Determine neighbor frame numbers that should be used for filtering. */
-    vector<int> neighbor_frames;
-    for (int f = frame - params.neighbor_frames; f <= frame + params.neighbor_frames; f++) {
-      if (f >= 0 && f < num_frames && f != frame) {
-        neighbor_frames.push_back(f);
-      }
-    }
-
     /* Execute task. */
-    DenoiseTask task(device, this, frame, neighbor_frames);
+    DenoiseTask task(device, this, frame);
     if (!task.load()) {
       error = task.error;
       return false;
@@ -930,5 +663,3 @@ bool DenoiserPipeline::run()
 }
 
 CCL_NAMESPACE_END
-
-#endif

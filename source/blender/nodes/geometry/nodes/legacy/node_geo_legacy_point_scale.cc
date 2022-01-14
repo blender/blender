@@ -127,7 +127,7 @@ void register_node_type_geo_point_scale()
 
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_LEGACY_POINT_SCALE, "Point Scale", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_LEGACY_POINT_SCALE, "Point Scale", NODE_CLASS_GEOMETRY);
 
   ntype.declare = file_ns::node_declare;
   node_type_init(&ntype, file_ns::node_init);

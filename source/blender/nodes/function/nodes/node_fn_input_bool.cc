@@ -26,7 +26,7 @@ namespace blender::nodes::node_fn_input_bool_cc {
 static void fn_node_input_bool_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Bool>(N_("Boolean"));
-};
+}
 
 static void fn_node_input_bool_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -55,7 +55,7 @@ void register_node_type_fn_input_bool()
 
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_INPUT_BOOL, "Boolean", 0, 0);
+  fn_node_type_base(&ntype, FN_NODE_INPUT_BOOL, "Boolean", 0);
   ntype.declare = file_ns::fn_node_input_bool_declare;
   node_type_init(&ntype, file_ns::fn_node_input_bool_init);
   node_type_storage(

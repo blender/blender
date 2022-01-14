@@ -27,7 +27,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>(N_("Translation")).subtype(PROP_TRANSLATION).supports_field();
   b.add_input<decl::Bool>(N_("Local Space")).default_value(true).supports_field();
   b.add_output<decl::Geometry>(N_("Instances"));
-};
+}
 
 static void translate_instances(GeoNodeExecParams &params, InstancesComponent &instances_component)
 {
@@ -77,7 +77,7 @@ void register_node_type_geo_translate_instances()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_TRANSLATE_INSTANCES, "Translate Instances", NODE_CLASS_GEOMETRY, 0);
+      &ntype, GEO_NODE_TRANSLATE_INSTANCES, "Translate Instances", NODE_CLASS_GEOMETRY);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);

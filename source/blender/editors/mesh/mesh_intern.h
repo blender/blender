@@ -48,7 +48,7 @@ bool EDBM_op_callf(struct BMEditMesh *em, struct wmOperator *op, const char *fmt
 bool EDBM_op_call_and_selectf(struct BMEditMesh *em,
                               struct wmOperator *op,
                               const char *select_slot,
-                              const bool select_replace,
+                              bool select_replace,
                               const char *fmt,
                               ...);
 /**
@@ -74,7 +74,7 @@ bool EDBM_op_init(
 bool EDBM_op_finish(struct BMEditMesh *em,
                     struct BMOperator *bmop,
                     struct wmOperator *op,
-                    const bool do_report);
+                    bool do_report);
 
 void EDBM_stats_update(struct BMEditMesh *em);
 
@@ -110,8 +110,8 @@ struct BMElem *EDBM_elem_from_index_any_multi(struct ViewLayer *view_layer,
  */
 bool edbm_extrude_edges_indiv(struct BMEditMesh *em,
                               struct wmOperator *op,
-                              const char hflag,
-                              const bool use_normal_flip);
+                              char hflag,
+                              bool use_normal_flip);
 
 /* *** editmesh_add.c *** */
 

@@ -874,7 +874,7 @@ class WFace {
     return _VerticesNormals[index];
   }
 
-  /** Returns the tex coords of the vertex of `index`. */
+  /** Returns the texture coords of the vertex of `index`. */
   inline Vec2f &GetVertexTexCoords(int index)
   {
     return _VerticesTexCoords[index];
@@ -1225,7 +1225,7 @@ class WShape {
    * orientation and (so) the face orientation. iMaterialIndex The materialIndex for this face
    *   iNormalsList
    *     The list of normals, iNormalsList[i] corresponding to the normal of the vertex
-   * iVertexList[i] for that face. iTexCoordsList The list of tex coords, iTexCoordsList[i]
+   * iVertexList[i] for that face. iTexCoordsList The list of texture coords, iTexCoordsList[i]
    * corresponding to the normal of the vertex iVertexList[i] for that face.
    */
   virtual WFace *MakeFace(vector<WVertex *> &iVertexList,

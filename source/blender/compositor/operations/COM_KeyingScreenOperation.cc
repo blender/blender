@@ -18,6 +18,8 @@
 
 #include "COM_KeyingScreenOperation.h"
 
+#include "DNA_defaults.h"
+
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
@@ -75,7 +77,7 @@ void KeyingScreenOperation::deinit_execution()
 
 KeyingScreenOperation::TriangulationData *KeyingScreenOperation::build_voronoi_triangulation()
 {
-  MovieClipUser user = {0};
+  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
   TriangulationData *triangulation;
   MovieTracking *tracking = &movie_clip_->tracking;
   MovieTrackingTrack *track;
@@ -301,7 +303,7 @@ void KeyingScreenOperation::determine_canvas(const rcti &preferred_area, rcti &r
   r_area = COM_AREA_NONE;
 
   if (movie_clip_) {
-    MovieClipUser user = {0};
+    MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
     int width, height;
     int clip_frame = BKE_movieclip_remap_scene_to_clip_frame(movie_clip_, framenumber_);
 

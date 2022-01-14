@@ -642,7 +642,7 @@ bool OCIOImpl::gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
   }
 
   /* Bind textures to sampler units. Texture 0 is set by caller.
-   * Uniforms have already been set for texture bind points.*/
+   * Uniforms have already been set for texture bind points. */
   if (!use_overlay) {
     /* Avoid missing binds. */
     GPU_texture_bind(textures.dummy, TEXTURE_SLOT_OVERLAY);

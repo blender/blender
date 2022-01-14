@@ -283,7 +283,7 @@ class RenderScheduler {
   /* Check whether timing report about the given work need to reset accumulated average time. */
   bool work_report_reset_average(const RenderWork &render_work);
 
-  /* CHeck whether render time limit has been reached (or exceeded), and if so store related
+  /* Check whether render time limit has been reached (or exceeded), and if so store related
    * information in the state so that rendering is considered finished, and is possible to report
    * average render time information. */
   void check_time_limit_reached();

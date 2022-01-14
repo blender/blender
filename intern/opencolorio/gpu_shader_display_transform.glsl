@@ -119,7 +119,7 @@ vec4 curvemapping_evaluate_premulRGBF(vec4 col)
 
 /* Using a triangle distribution which gives a more final uniform noise.
  * See Banding in Games:A Noisy Rant(revision 5) Mikkel Gjøl, Playdead (slide 27) */
-/* GPUs are rounding before writting to framebuffer so we center the distribution around 0.0. */
+/* GPUs are rounding before writing to framebuffer so we center the distribution around 0.0. */
 /* Return triangle noise in [-1..1[ range */
 float dither_random_value(vec2 co)
 {

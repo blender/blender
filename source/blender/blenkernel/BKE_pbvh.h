@@ -289,7 +289,7 @@ PBVH *BKE_pbvh_new(void);
  * (which means it may rewrite it if needed, see #BKE_pbvh_vert_coords_apply().
  */
 void BKE_pbvh_build_mesh(PBVH *pbvh,
-                         const struct Mesh *mesh,
+                         struct Mesh *mesh,
                          const struct MPoly *mpoly,
                          const struct MLoop *mloop,
                          struct MVert *verts,
@@ -639,7 +639,7 @@ void BKE_pbvh_respect_hide_set(PBVH *pbvh, bool respect_hide);
 /* Vertex Deformer. */
 
 float (*BKE_pbvh_vert_coords_alloc(struct PBVH *pbvh))[3];
-void BKE_pbvh_vert_coords_apply(struct PBVH *pbvh, const float (*vertCos)[3], const int totvert);
+void BKE_pbvh_vert_coords_apply(struct PBVH *pbvh, const float (*vertCos)[3], int totvert);
 bool BKE_pbvh_is_deformed(struct PBVH *pbvh);
 
 /* Vertex Iterator. */
@@ -676,6 +676,7 @@ typedef struct PBVHVertexIter {
 
   /* mesh */
   struct MVert *mverts;
+  float (*vert_normals)[3];
   int totvert;
   const int *vert_indices;
   float *vmask;
@@ -695,7 +696,7 @@ typedef struct PBVHVertexIter {
   struct MVert *mvert;
   struct BMVert *bm_vert;
   float *co;
-  short *no;
+  float *no;
   float *fno;
   float *mask;
   bool visible;
@@ -752,7 +753,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
             BLI_assert(vi.visible); \
           } \
           vi.co = vi.mvert->co; \
-          vi.no = vi.mvert->no; \
+          vi.no = vi.vert_normals[vi.vert_indices[vi.gx]]; \
           vi.index = vi.vertex.i = vi.vert_indices[vi.i]; \
           if (vi.vmask) { \
             vi.mask = &vi.vmask[vi.index]; \
@@ -838,6 +839,7 @@ void BKE_pbvh_parallel_range_settings(struct TaskParallelSettings *settings,
                                       int totnode);
 
 struct MVert *BKE_pbvh_get_verts(const PBVH *pbvh);
+const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3];
 
 PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
 void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
@@ -1045,7 +1047,7 @@ ATTR_NO_OPT static void MV_ADD_FLAG(MSculptVert *mv, int flag)
 }
 #endif
 
-#if 1
+#if 0
 #  include "atomic_ops.h"
 #  include <float.h>
 #  include <math.h>

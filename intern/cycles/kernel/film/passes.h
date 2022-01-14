@@ -92,6 +92,14 @@ ccl_device_forceinline void kernel_write_denoising_features_surface(
     else if (sc->type == CLOSURE_BSDF_HAIR_PRINCIPLED_ID) {
       closure_albedo *= bsdf_principled_hair_albedo(sc);
     }
+    else if (sc->type == CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID) {
+      /* BSSRDF already accounts for weight, retro-reflection would double up. */
+      ccl_private const PrincipledDiffuseBsdf *bsdf = (ccl_private const PrincipledDiffuseBsdf *)
+          sc;
+      if (bsdf->components == PRINCIPLED_DIFFUSE_RETRO_REFLECTION) {
+        continue;
+      }
+    }
 
     if (bsdf_get_specular_roughness_squared(sc) > sqr(0.075f)) {
       diffuse_albedo += closure_albedo;

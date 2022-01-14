@@ -325,7 +325,7 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
 
   /* Doesn't actually exist right now, but could be defined in Python. Reason that this isn't done
    * in Python yet is that catalogs are not exposed in BPY, and we'd somehow pass the clicked on
-   * catalog to the menu draw callback (via context probably).*/
+   * catalog to the menu draw callback (via context probably). */
   MenuType *mt = WM_menutype_find("ASSETBROWSER_MT_catalog_context_menu", true);
   if (!mt) {
     return;

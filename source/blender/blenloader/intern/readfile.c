@@ -254,7 +254,7 @@ typedef struct OldNewMap {
   /* Array that stores the actual entries. */
   OldNew *entries;
   int nentries;
-  /* Hashmap that stores indices into the `entries` array. */
+  /* Hash-map that stores indices into the `entries` array. */
   int32_t *map;
 
   int capacity_exp;

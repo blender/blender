@@ -57,12 +57,12 @@ void sequencer_draw_preview(const struct bContext *C,
                             bool draw_backdrop);
 void color3ubv_from_seq(const struct Scene *curscene,
                         const struct Sequence *seq,
-                        const bool show_strip_color_tag,
+                        bool show_strip_color_tag,
                         uchar r_col[3]);
 
 void sequencer_special_update_set(Sequence *seq);
 /* Get handle width in 2d-View space. */
-float sequence_handle_size_get_clamped(struct Sequence *seq, const float pixelx);
+float sequence_handle_size_get_clamped(struct Sequence *seq, float pixelx);
 
 /* UNUSED */
 /* void seq_reset_imageofs(struct SpaceSeq *sseq); */

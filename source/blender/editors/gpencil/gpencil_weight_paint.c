@@ -432,7 +432,7 @@ static void gpencil_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
     gpencil_point_to_xy(gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
 
     pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
-    /* do boundbox check first */
+    /* Do bound-box check first. */
     if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
       /* only check if point is inside */
       int mval_i[2];
@@ -461,7 +461,7 @@ static void gpencil_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
       gpencil_point_to_parent_space(pt2, diff_mat, &npt);
       gpencil_point_to_xy(gsc, gps, &npt, &pc2[0], &pc2[1]);
 
-      /* Check that point segment of the boundbox of the selection stroke */
+      /* Check that point segment of the bound-box of the selection stroke */
       if (((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
           ((!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1])) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1]))) {
         /* Check if point segment of stroke had anything to do with

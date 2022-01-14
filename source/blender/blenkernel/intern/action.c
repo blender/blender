@@ -307,7 +307,7 @@ static void action_asset_pre_save(void *asset_ptr, struct AssetMetaData *asset_d
   BKE_asset_metadata_idprop_ensure(asset_data, action_type);
 }
 
-AssetTypeInfo AssetType_AC = {
+static AssetTypeInfo AssetType_AC = {
     /* pre_save_fn */ action_asset_pre_save,
 };
 

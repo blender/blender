@@ -46,7 +46,7 @@ struct MemArena *BLI_memarena_new(const size_t bufsize,
 void BLI_memarena_free(struct MemArena *ma) ATTR_NONNULL(1);
 void BLI_memarena_use_malloc(struct MemArena *ma) ATTR_NONNULL(1);
 void BLI_memarena_use_calloc(struct MemArena *ma) ATTR_NONNULL(1);
-void BLI_memarena_use_align(struct MemArena *ma, const size_t align) ATTR_NONNULL(1);
+void BLI_memarena_use_align(struct MemArena *ma, size_t align) ATTR_NONNULL(1);
 void *BLI_memarena_alloc(struct MemArena *ma, size_t size) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1) ATTR_MALLOC ATTR_ALLOC_SIZE(2);
 void *BLI_memarena_calloc(struct MemArena *ma, size_t size) ATTR_WARN_UNUSED_RESULT

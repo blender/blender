@@ -167,7 +167,7 @@ void register_node_type_geo_mesh_primitive_cylinder()
   namespace file_ns = blender::nodes::node_geo_mesh_primitive_cylinder_cc;
 
   static bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CYLINDER, "Cylinder", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CYLINDER, "Cylinder", NODE_CLASS_GEOMETRY);
   node_type_init(&ntype, file_ns::node_init);
   node_type_update(&ntype, file_ns::node_update);
   node_type_storage(

@@ -86,7 +86,7 @@ std::ostream &operator<<(std::ostream &stream, const eAlpha &space);
 enum class eSpace {
   /** Blender theme color space (sRGB). */
   Theme,
-  /** Blender internal scene linear color space (maps to SceneReference role in OCIO). */
+  /** Blender internal scene linear color space (maps to scene_linear role in OCIO). */
   SceneLinear,
   /** Blender internal scene linear color space compressed to be stored in 4 uint8_t. */
   SceneLinearByteEncoded,

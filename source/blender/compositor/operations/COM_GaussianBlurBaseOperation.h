@@ -39,9 +39,7 @@ class GaussianBlurBaseOperation : public BlurBaseOperation {
   virtual void init_execution() override;
   virtual void deinit_execution() override;
 
-  void get_area_of_interest(const int input_idx,
-                            const rcti &output_area,
-                            rcti &r_input_area) override;
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   virtual void update_memory_buffer_partial(MemoryBuffer *output,
                                             const rcti &area,
                                             Span<MemoryBuffer *> inputs) override;

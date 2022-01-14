@@ -21,7 +21,7 @@
  * \ingroup shdnodes
  */
 
-#include "node_shader_util.h"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_shader_sepcomb_xyz_cc {
 
@@ -32,7 +32,7 @@ static void sh_node_sepxyz_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("X"));
   b.add_output<decl::Float>(N_("Y"));
   b.add_output<decl::Float>(N_("Z"));
-};
+}
 
 static int gpu_shader_sepxyz(GPUMaterial *mat,
                              bNode *node,
@@ -94,7 +94,7 @@ void register_node_type_sh_sepxyz()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_SEPXYZ, "Separate XYZ", NODE_CLASS_CONVERTER, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_SEPXYZ, "Separate XYZ", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_sepxyz_declare;
   node_type_gpu(&ntype, file_ns::gpu_shader_sepxyz);
   ntype.build_multi_function = file_ns::sh_node_sepxyz_build_multi_function;
@@ -111,7 +111,7 @@ static void sh_node_combxyz_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Y")).min(-10000.0f).max(10000.0f);
   b.add_input<decl::Float>(N_("Z")).min(-10000.0f).max(10000.0f);
   b.add_output<decl::Vector>(N_("Vector"));
-};
+}
 
 static int gpu_shader_combxyz(GPUMaterial *mat,
                               bNode *node,
@@ -137,7 +137,7 @@ void register_node_type_sh_combxyz()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_COMBXYZ, "Combine XYZ", NODE_CLASS_CONVERTER, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_COMBXYZ, "Combine XYZ", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_combxyz_declare;
   node_type_gpu(&ntype, file_ns::gpu_shader_combxyz);
   ntype.build_multi_function = file_ns::sh_node_combxyz_build_multi_function;

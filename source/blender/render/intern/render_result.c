@@ -470,6 +470,12 @@ RenderResult *render_result_new(Render *re,
 
 void render_result_passes_allocated_ensure(RenderResult *rr)
 {
+  if (rr == NULL) {
+    /* Happens when the result was not yet allocated for the current scene or slot configuration.
+     */
+    return;
+  }
+
   LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
     LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
       if (rl->exrhandle != NULL && !STREQ(rp->name, RE_PASSNAME_COMBINED)) {
@@ -1232,7 +1238,7 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, const RenderData *rd, const 
     }
   }
 
-  /* color -> grayscale */
+  /* Color -> gray-scale. */
   /* editing directly would alter the render view */
   if (rd->im_format.planes == R_IMF_PLANES_BW) {
     ImBuf *ibuf_bw = IMB_dupImBuf(ibuf);

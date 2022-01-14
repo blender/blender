@@ -17,19 +17,26 @@
  * All rights reserved.
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 namespace blender::nodes::node_shader_attribute_cc {
 
-/* **************** OUTPUT ******************** */
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Color>(N_("Color"));
+  b.add_output<decl::Vector>(N_("Vector"));
+  b.add_output<decl::Float>(N_("Fac"));
+  b.add_output<decl::Float>(N_("Alpha"));
+}
 
-static bNodeSocketTemplate sh_node_attribute_out[] = {
-    {SOCK_RGBA, N_("Color")},
-    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Fac"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_FACTOR},
-    {SOCK_FLOAT, N_("Alpha"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_FACTOR},
-    {-1, ""},
-};
+static void node_shader_buts_attribute(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "attribute_type", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Type"), ICON_NONE);
+  uiItemR(layout, ptr, "attribute_name", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Name"), ICON_NONE);
+}
 
 static void node_shader_init_attribute(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -75,8 +82,8 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
 
   GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);
 
-  /* for each output. */
-  for (int i = 0; sh_node_attribute_out[i].type != -1; i++) {
+  int i;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, i) {
     node_shader_gpu_bump_tex_coord(mat, node, &out[i].link);
   }
 
@@ -92,8 +99,9 @@ void register_node_type_sh_attribute()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_ATTRIBUTE, "Attribute", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, file_ns::sh_node_attribute_out);
+  sh_node_type_base(&ntype, SH_NODE_ATTRIBUTE, "Attribute", NODE_CLASS_INPUT);
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_attribute;
   node_type_init(&ntype, file_ns::node_shader_init_attribute);
   node_type_storage(
       &ntype, "NodeShaderAttribute", node_free_standard_storage, node_copy_standard_storage);

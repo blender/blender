@@ -50,17 +50,17 @@ void BKE_gpencil_convert_curve(struct Main *bmain,
                                struct Scene *scene,
                                struct Object *ob_gp,
                                struct Object *ob_cu,
-                               const bool use_collections,
-                               const float scale_thickness,
-                               const float sample);
+                               bool use_collections,
+                               float scale_thickness,
+                               float sample);
 
 /**
  * Creates a bGPDcurve by doing a cubic curve fitting on the grease pencil stroke points.
  */
 struct bGPDcurve *BKE_gpencil_stroke_editcurve_generate(struct bGPDstroke *gps,
-                                                        const float error_threshold,
-                                                        const float corner_angle,
-                                                        const float stroke_radius);
+                                                        float error_threshold,
+                                                        float corner_angle,
+                                                        float stroke_radius);
 /**
  * Updates the edit-curve for a stroke. Frees the old curve if one exists and generates a new one.
  */
@@ -85,13 +85,13 @@ void BKE_gpencil_strokes_selected_sync_selection_editcurve(struct bGPdata *gpd);
  * Recalculate stroke points with the edit-curve of the stroke.
  */
 void BKE_gpencil_stroke_update_geometry_from_editcurve(struct bGPDstroke *gps,
-                                                       const uint resolution,
-                                                       const bool is_adaptive);
+                                                       uint resolution,
+                                                       bool is_adaptive);
 /**
  * Recalculate the handles of the edit curve of a grease pencil stroke.
  */
 void BKE_gpencil_editcurve_recalculate_handles(struct bGPDstroke *gps);
-void BKE_gpencil_editcurve_subdivide(struct bGPDstroke *gps, const int cuts);
+void BKE_gpencil_editcurve_subdivide(struct bGPDstroke *gps, int cuts);
 
 #ifdef __cplusplus
 }

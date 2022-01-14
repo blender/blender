@@ -144,7 +144,7 @@ static void drawscredge_area_draw(
   }
 
   GPUBatch *batch = batch_screen_edges_get(NULL);
-  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_EDGES);
+  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_BORDERS);
   GPU_batch_uniform_4fv(batch, "rect", (float *)&rect);
   GPU_batch_draw(batch);
 }
@@ -212,7 +212,7 @@ void ED_screen_draw_edges(wmWindow *win)
   GPU_blend(GPU_BLEND_ALPHA);
 
   GPUBatch *batch = batch_screen_edges_get(&verts_per_corner);
-  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_EDGES);
+  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_BORDERS);
   GPU_batch_uniform_1i(batch, "cornerLen", verts_per_corner);
   GPU_batch_uniform_1f(batch, "scale", corner_scale);
   GPU_batch_uniform_4fv(batch, "color", col);

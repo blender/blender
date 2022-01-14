@@ -138,12 +138,6 @@ static Mesh *create_circle_mesh(const float radius,
     copy_v3_v3(verts.last().co, float3(0));
   }
 
-  /* Point all vertex normals in the up direction. */
-  const short up_normal[3] = {0, 0, SHRT_MAX};
-  for (MVert &vert : verts) {
-    copy_v3_v3_short(vert.no, up_normal);
-  }
-
   /* Create outer edges. */
   const short edge_flag = (fill_type == GEO_NODE_MESH_CIRCLE_FILL_NONE) ?
                               ME_LOOSEEDGE :
@@ -224,8 +218,7 @@ void register_node_type_geo_mesh_primitive_circle()
 
   static bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_MESH_PRIMITIVE_CIRCLE, "Mesh Circle", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CIRCLE, "Mesh Circle", NODE_CLASS_GEOMETRY);
   node_type_init(&ntype, file_ns::node_init);
   node_type_storage(
       &ntype, "NodeGeometryMeshCircle", node_free_standard_storage, node_copy_standard_storage);

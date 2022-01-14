@@ -242,7 +242,7 @@ class GeometryManager {
                              vector<AttributeRequestSet> &object_attributes);
 
   /* Compute verts/triangles/curves offsets in global arrays. */
-  void mesh_calc_offset(Scene *scene, BVHLayout bvh_layout);
+  void geom_calc_offset(Scene *scene, BVHLayout bvh_layout);
 
   void device_update_object(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
 

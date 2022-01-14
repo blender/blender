@@ -85,11 +85,6 @@ void GaussianAlphaBlurBaseOperation::get_area_of_interest(const int input_idx,
   }
 }
 
-BLI_INLINE float finv_test(const float f, const bool test)
-{
-  return (LIKELY(test == false)) ? f : 1.0f - f;
-}
-
 void GaussianAlphaBlurBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                                   const rcti &area,
                                                                   Span<MemoryBuffer *> inputs)

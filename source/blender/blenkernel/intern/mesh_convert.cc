@@ -32,6 +32,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_edgehash.h"
+#include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
@@ -65,6 +66,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+using blender::IndexRange;
+
 /* Define for cases when you want extra validation of mesh
  * after certain modifications.
  */
@@ -85,7 +88,6 @@ void BKE_mesh_from_metaball(ListBase *lb, Mesh *me)
   MVert *mvert;
   MLoop *mloop, *allloop;
   MPoly *mpoly;
-  const float *nors, *verts;
   int a, *index;
 
   dl = (DispList *)lb->first;
@@ -104,15 +106,8 @@ void BKE_mesh_from_metaball(ListBase *lb, Mesh *me)
     me->totvert = dl->nr;
     me->totpoly = dl->parts;
 
-    a = dl->nr;
-    nors = dl->nors;
-    verts = dl->verts;
-    while (a--) {
-      copy_v3_v3(mvert->co, verts);
-      normal_float_to_short_v3(mvert->no, nors);
-      mvert++;
-      nors += 3;
-      verts += 3;
+    for (const int i : IndexRange(dl->nr)) {
+      copy_v3_v3(me->mvert[i].co, &dl->verts[3 * i]);
     }
 
     a = dl->parts;
@@ -139,7 +134,7 @@ void BKE_mesh_from_metaball(ListBase *lb, Mesh *me)
 
     BKE_mesh_update_customdata_pointers(me, true);
 
-    BKE_mesh_calc_normals(me);
+    BKE_mesh_normals_tag_dirty(me);
 
     BKE_mesh_calc_edges(me, true, false);
   }
@@ -1476,8 +1471,6 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
   CustomData_reset(&tmp.ldata);
   CustomData_reset(&tmp.pdata);
 
-  BKE_mesh_ensure_normals(mesh_src);
-
   totvert = tmp.totvert = mesh_src->totvert;
   totedge = tmp.totedge = mesh_src->totedge;
   totloop = tmp.totloop = mesh_src->totloop;
@@ -1490,6 +1483,18 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
   CustomData_copy(&mesh_src->pdata, &tmp.pdata, mask->pmask, alloctype, totpoly);
   tmp.cd_flag = mesh_src->cd_flag;
   tmp.runtime.deformed_only = mesh_src->runtime.deformed_only;
+
+  tmp.runtime.cd_dirty_poly = mesh_src->runtime.cd_dirty_poly;
+  tmp.runtime.cd_dirty_vert = mesh_src->runtime.cd_dirty_vert;
+
+  /* Ensure that when no normal layers exist, they are marked dirty, because
+   * normals might not have been included in the mask of copied layers. */
+  if (!CustomData_has_layer(&tmp.vdata, CD_NORMAL)) {
+    tmp.runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  }
+  if (!CustomData_has_layer(&tmp.pdata, CD_NORMAL)) {
+    tmp.runtime.cd_dirty_poly |= CD_MASK_NORMAL;
+  }
 
   if (CustomData_has_layer(&mesh_src->vdata, CD_SHAPEKEY)) {
     KeyBlock *kb;
@@ -1614,6 +1619,8 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
     }
     BKE_id_free(nullptr, mesh_src);
   }
+
+  BKE_mesh_assert_normals_dirty_or_calculated(mesh_dst);
 }
 
 void BKE_mesh_nomain_to_meshkey(Mesh *mesh_src, Mesh *mesh_dst, KeyBlock *kb)

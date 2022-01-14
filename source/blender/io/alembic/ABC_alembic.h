@@ -115,16 +115,16 @@ void ABC_get_transform(struct CacheReader *reader,
 struct Mesh *ABC_read_mesh(struct CacheReader *reader,
                            struct Object *ob,
                            struct Mesh *existing_mesh,
-                           const float time,
+                           float time,
                            const char **err_str,
-                           const int read_flags,
+                           int read_flags,
                            const char *velocity_name,
-                           const float velocity_scale);
+                           float velocity_scale);
 
 bool ABC_mesh_topology_changed(struct CacheReader *reader,
                                struct Object *ob,
                                struct Mesh *existing_mesh,
-                               const float time,
+                               float time,
                                const char **err_str);
 
 void ABC_CacheReader_incref(struct CacheReader *reader);

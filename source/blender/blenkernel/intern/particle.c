@@ -1674,6 +1674,7 @@ static void interpolate_pathcache(ParticleCacheKey *first, float t, ParticleCach
 /************************************************/
 
 void psys_interpolate_face(MVert *mvert,
+                           const float (*vert_normals)[3],
                            MFace *mface,
                            MTFace *tface,
                            float (*orcodata)[3],
@@ -1695,13 +1696,13 @@ void psys_interpolate_face(MVert *mvert,
   v2 = mvert[mface->v2].co;
   v3 = mvert[mface->v3].co;
 
-  normal_short_to_float_v3(n1, mvert[mface->v1].no);
-  normal_short_to_float_v3(n2, mvert[mface->v2].no);
-  normal_short_to_float_v3(n3, mvert[mface->v3].no);
+  copy_v3_v3(n1, vert_normals[mface->v1]);
+  copy_v3_v3(n2, vert_normals[mface->v2]);
+  copy_v3_v3(n3, vert_normals[mface->v3]);
 
   if (mface->v4) {
     v4 = mvert[mface->v4].co;
-    normal_short_to_float_v3(n4, mvert[mface->v4].no);
+    copy_v3_v3(n4, vert_normals[mface->v4]);
 
     interp_v3_v3v3v3v3(vec, v1, v2, v3, v4, w);
 
@@ -2124,13 +2125,13 @@ void psys_particle_on_dm(Mesh *mesh_final,
   }
 
   orcodata = CustomData_get_layer(&mesh_final->vdata, CD_ORCO);
+  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh_final);
 
   if (from == PART_FROM_VERT) {
     copy_v3_v3(vec, mesh_final->mvert[mapindex].co);
 
     if (nor) {
-      normal_short_to_float_v3(nor, mesh_final->mvert[mapindex].no);
-      normalize_v3(nor);
+      copy_v3_v3(nor, vert_normals[mapindex]);
     }
 
     if (orco) {
@@ -2161,7 +2162,8 @@ void psys_particle_on_dm(Mesh *mesh_final,
     }
 
     if (from == PART_FROM_VOLUME) {
-      psys_interpolate_face(mvert, mface, mtface, orcodata, mapfw, vec, tmpnor, utan, vtan, orco);
+      psys_interpolate_face(
+          mvert, vert_normals, mface, mtface, orcodata, mapfw, vec, tmpnor, utan, vtan, orco);
       if (nor) {
         copy_v3_v3(nor, tmpnor);
       }
@@ -2173,7 +2175,8 @@ void psys_particle_on_dm(Mesh *mesh_final,
       add_v3_v3(vec, tmpnor);
     }
     else {
-      psys_interpolate_face(mvert, mface, mtface, orcodata, mapfw, vec, nor, utan, vtan, orco);
+      psys_interpolate_face(
+          mvert, vert_normals, mface, mtface, orcodata, mapfw, vec, nor, utan, vtan, orco);
     }
   }
 }

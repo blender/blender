@@ -2263,7 +2263,7 @@ static int wm_handler_operator_call(bContext *C,
           CTX_wm_region_set(C, NULL);
         }
 
-        /* /update gizmos during modal handlers. */
+        /* Update gizmos during modal handlers. */
         wm_gizmomaps_handled_modal_update(C, event, handler);
 
         /* Remove modal handler, operator itself should have been canceled and freed. */

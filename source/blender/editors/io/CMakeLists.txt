@@ -26,6 +26,7 @@ set(INC
   ../../io/collada
   ../../io/gpencil
   ../../io/usd
+  ../../io/wavefront_obj
   ../../makesdna
   ../../makesrna
   ../../windowmanager
@@ -43,6 +44,7 @@ set(SRC
   io_gpencil_export.c
   io_gpencil_import.c
   io_gpencil_utils.c
+  io_obj.c
   io_ops.c
   io_usd.c
 
@@ -50,6 +52,7 @@ set(SRC
   io_cache.h
   io_collada.h
   io_gpencil.h
+  io_obj.h
   io_ops.h
   io_usd.h
 )
@@ -57,6 +60,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  bf_wavefront_obj
 )
 
 if(WITH_OPENCOLLADA)

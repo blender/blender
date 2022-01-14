@@ -42,8 +42,7 @@ extern "C" {
  * \param len: The number of bytes to duplicate
  * \retval Returns the duplicated string
  */
-char *BLI_strdupn(const char *str, const size_t len) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
+char *BLI_strdupn(const char *str, size_t len) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /**
  * Duplicates the cstring \a str into a newly mallocN'd
@@ -74,8 +73,7 @@ char *BLI_strdupcat(const char *__restrict str1,
  * the size of dst)
  * \retval Returns dst
  */
-char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
-    ATTR_NONNULL();
+char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t maxncpy) ATTR_NONNULL();
 
 /**
  * Like BLI_strncpy but ensures dst is always padded by given char,
@@ -89,7 +87,7 @@ char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t
  */
 char *BLI_strncpy_ensure_pad(char *__restrict dst,
                              const char *__restrict src,
-                             const char pad,
+                             char pad,
                              size_t maxncpy) ATTR_NONNULL();
 
 /**
@@ -107,7 +105,7 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst,
  */
 size_t BLI_strncpy_rlen(char *__restrict dst,
                         const char *__restrict src,
-                        const size_t maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+                        size_t maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
@@ -186,7 +184,7 @@ void BLI_str_replace_char(char *str, char src, char dst) ATTR_NONNULL();
  * \note Larger tables should use a hash table.
  */
 bool BLI_str_replace_table_exact(char *string,
-                                 const size_t string_len,
+                                 size_t string_len,
                                  const char *replace_table[][2],
                                  int replace_table_len);
 
@@ -235,7 +233,7 @@ char *BLI_sprintfN(const char *__restrict format, ...) ATTR_WARN_UNUSED_RESULT
  *
  * \note This is used for creating animation paths in blend files.
  */
-size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const size_t dst_maxncpy)
+size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
     ATTR_NONNULL();
 /**
  * This roughly matches C and Python's string escaping with double quotes - `"`.
@@ -251,9 +249,9 @@ size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const si
  */
 size_t BLI_str_unescape_ex(char *__restrict dst,
                            const char *__restrict src,
-                           const size_t src_maxncpy,
+                           size_t src_maxncpy,
                            /* Additional arguments. */
-                           const size_t dst_maxncpy,
+                           size_t dst_maxncpy,
                            bool *r_is_complete) ATTR_NONNULL();
 /**
  * See #BLI_str_unescape_ex doc-string.
@@ -265,7 +263,7 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
  *
  * \note This is used for parsing animation paths in blend files (runs often).
  */
-size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const size_t src_maxncpy)
+size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, size_t src_maxncpy)
     ATTR_NONNULL();
 
 /**
@@ -306,8 +304,7 @@ size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num) ATTR_NONNULL();
  * \param bytes: Number to format.
  * \param base_10: Calculate using base 10 (GB, MB, ...) or 2 (GiB, MiB, ...).
  */
-void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base_10)
-    ATTR_NONNULL();
+void BLI_str_format_byte_unit(char dst[15], long long int bytes, bool base_10) ATTR_NONNULL();
 /**
  * Format a count to up to 6 places (plus '\0' terminator) string using long number
  * names abbreviations. Used to produce a compact representation of large numbers.
@@ -354,17 +351,16 @@ int BLI_strcasecmp_natural(const char *s1, const char *s2) ATTR_WARN_UNUSED_RESU
  * Like strcmp, but will ignore any heading/trailing pad char for comparison.
  * So e.g. if pad is '*', '*world' and 'world*' will compare equal.
  */
-int BLI_strcmp_ignore_pad(const char *str1,
-                          const char *str2,
-                          const char pad) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+int BLI_strcmp_ignore_pad(const char *str1, const char *str2, char pad) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
 
 /**
  * Determine the length of a fixed-size string.
  */
-size_t BLI_strnlen(const char *str, const size_t maxlen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+size_t BLI_strnlen(const char *str, size_t maxlen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-void BLI_str_tolower_ascii(char *str, const size_t len) ATTR_NONNULL();
-void BLI_str_toupper_ascii(char *str, const size_t len) ATTR_NONNULL();
+void BLI_str_tolower_ascii(char *str, size_t len) ATTR_NONNULL();
+void BLI_str_toupper_ascii(char *str, size_t len) ATTR_NONNULL();
 /**
  * Strip white-space from end of the string.
  */
@@ -378,7 +374,7 @@ void BLI_str_rstrip(char *str) ATTR_NONNULL();
  * \param pad:
  * \return The number of zeros stripped.
  */
-int BLI_str_rstrip_float_zero(char *str, const char pad) ATTR_NONNULL();
+int BLI_str_rstrip_float_zero(char *str, char pad) ATTR_NONNULL();
 
 /**
  * Return index of a string in a string array.
@@ -390,7 +386,7 @@ int BLI_str_rstrip_float_zero(char *str, const char pad) ATTR_NONNULL();
  */
 int BLI_str_index_in_array_n(const char *__restrict str,
                              const char **__restrict str_array,
-                             const int str_array_len) ATTR_NONNULL();
+                             int str_array_len) ATTR_NONNULL();
 /**
  * Return index of a string in a string array.
  *
@@ -461,14 +457,14 @@ size_t BLI_str_partition_ex(const char *str,
                             const char delim[],
                             const char **sep,
                             const char **suf,
-                            const bool from_right) ATTR_NONNULL(1, 3, 4, 5);
+                            bool from_right) ATTR_NONNULL(1, 3, 4, 5);
 
-int BLI_string_max_possible_word_count(const int str_len);
+int BLI_string_max_possible_word_count(int str_len);
 bool BLI_string_has_word_prefix(const char *haystack, const char *needle, size_t needle_len);
 bool BLI_string_all_words_matched(const char *name,
                                   const char *str,
                                   int (*words)[2],
-                                  const int words_len);
+                                  int words_len);
 
 /**
  * Find the ranges needed to split \a str into its individual words.
@@ -481,8 +477,8 @@ bool BLI_string_all_words_matched(const char *name,
  * \return The number of words found in \a str
  */
 int BLI_string_find_split_words(const char *str,
-                                const size_t len,
-                                const char delim,
+                                size_t len,
+                                char delim,
                                 int r_words[][2],
                                 int words_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 

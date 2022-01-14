@@ -1680,7 +1680,7 @@ static void ed_default_handlers(
 
   /* NOTE: add-handler checks if it already exists. */
 
-  /* XXX it would be good to have boundbox checks for some of these... */
+  /* XXX: it would be good to have bound-box checks for some of these. */
   if (flag & ED_KEYMAP_UI) {
     wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "User Interface", 0, 0);
     WM_event_add_keymap_handler(handlers, keymap);

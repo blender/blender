@@ -77,22 +77,22 @@ class IndexBuf {
   void init_subrange(IndexBuf *elem_src, uint start, uint length);
   void init_build_on_device(uint index_len);
 
-  uint32_t index_len_get(void) const
+  uint32_t index_len_get() const
   {
     return index_len_;
   }
   /* Return size in byte of the drawable data buffer range. Actual buffer size might be bigger. */
-  size_t size_get(void) const
+  size_t size_get() const
   {
     return index_len_ * to_bytesize(index_type_);
   };
 
-  bool is_init(void) const
+  bool is_init() const
   {
     return is_init_;
   };
 
-  virtual void upload_data(void) = 0;
+  virtual void upload_data() = 0;
 
   virtual void bind_as_ssbo(uint binding) = 0;
 

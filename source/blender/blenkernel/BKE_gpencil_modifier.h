@@ -207,7 +207,7 @@ typedef struct GpencilModifierTypeInfo {
    */
   void (*updateDepsgraph)(struct GpencilModifierData *md,
                           const struct ModifierUpdateDepsgraphContext *ctx,
-                          const int mode);
+                          int mode);
 
   /**
    * Should return true if the modifier needs to be recalculated on time
@@ -279,7 +279,7 @@ struct GpencilModifierData *BKE_gpencil_modifier_new(int type);
  * \param md: Modifier data.
  * \param flag: Flags.
  */
-void BKE_gpencil_modifier_free_ex(struct GpencilModifierData *md, const int flag);
+void BKE_gpencil_modifier_free_ex(struct GpencilModifierData *md, int flag);
 /**
  * Free grease pencil modifier data
  * \param md: Modifier data.
@@ -324,7 +324,7 @@ void BKE_gpencil_modifier_copydata(struct GpencilModifierData *md,
  */
 void BKE_gpencil_modifier_copydata_ex(struct GpencilModifierData *md,
                                       struct GpencilModifierData *target,
-                                      const int flag);
+                                      int flag);
 /**
  * Set grease pencil modifier error.
  * \param md: Modifier data.
@@ -403,11 +403,19 @@ GpencilLineartLimitInfo BKE_gpencil_get_lineart_modifier_limits(const struct Obj
 
 void BKE_gpencil_set_lineart_modifier_limits(struct GpencilModifierData *md,
                                              const struct GpencilLineartLimitInfo *info,
-                                             const bool is_first_lineart);
+                                             bool is_first_lineart);
 bool BKE_gpencil_is_first_lineart_in_stack(const struct Object *ob,
                                            const struct GpencilModifierData *md);
 
+/**
+ * Init grease pencil cache deform data.
+ * \param ob: Grease pencil object
+ */
 void BKE_gpencil_cache_data_init(struct Depsgraph *depsgraph, struct Object *ob);
+/**
+ * Clear grease pencil cache deform data.
+ * \param ob: Grease pencil object
+ */
 void BKE_gpencil_cache_data_clear(struct Object *ob);
 
 /**
@@ -449,8 +457,8 @@ int BKE_gpencil_time_modifier_cfra(struct Depsgraph *depsgraph,
                                    struct Scene *scene,
                                    struct Object *ob,
                                    struct bGPDlayer *gpl,
-                                   const int cfra,
-                                   const bool is_render);
+                                   int cfra,
+                                   bool is_render);
 
 void BKE_gpencil_modifier_blend_write(struct BlendWriter *writer, struct ListBase *modbase);
 void BKE_gpencil_modifier_blend_read_data(struct BlendDataReader *reader, struct ListBase *lb);

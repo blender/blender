@@ -133,7 +133,7 @@ typedef struct UndoType {
 
   bool (*step_encode)(struct bContext *C, struct Main *bmain, UndoStep *us);
   void (*step_decode)(
-      struct bContext *C, struct Main *bmain, UndoStep *us, const eUndoStepDir dir, bool is_final);
+      struct bContext *C, struct Main *bmain, UndoStep *us, eUndoStepDir dir, bool is_final);
 
   /**
    * \note When freeing all steps,
@@ -263,7 +263,7 @@ bool BKE_undosys_step_load_data_ex(UndoStack *ustack,
                                    struct bContext *C,
                                    UndoStep *us_target,
                                    UndoStep *us_reference,
-                                   const bool use_skip);
+                                   bool use_skip);
 /**
  * Undo/Redo until the given `us_target` step becomes the active (currently loaded) one.
  */
@@ -272,7 +272,7 @@ bool BKE_undosys_step_load_data(UndoStack *ustack, struct bContext *C, UndoStep 
  * Undo/Redo until the step matching given `index` in the undo stack becomes the active
  * (currently loaded) one.
  */
-void BKE_undosys_step_load_from_index(UndoStack *ustack, struct bContext *C, const int index);
+void BKE_undosys_step_load_from_index(UndoStack *ustack, struct bContext *C, int index);
 
 /**
  * Undo until `us_target` step becomes the active (currently loaded) one.

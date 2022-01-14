@@ -45,7 +45,7 @@ uint DNA_elem_id_strip(char *elem);
  * return true if it does, with start/end offsets.
  */
 bool DNA_elem_id_match(const char *elem_search,
-                       const int elem_search_len,
+                       int elem_search_len,
                        const char *elem_full,
                        uint *r_elem_full_offset);
 /**
@@ -53,12 +53,12 @@ bool DNA_elem_id_match(const char *elem_search,
  */
 char *DNA_elem_id_rename(struct MemArena *mem_arena,
                          const char *elem_src,
-                         const int elem_src_len,
+                         int elem_src_len,
                          const char *elem_dst,
-                         const int elem_dst_len,
+                         int elem_dst_len,
                          const char *elem_src_full,
-                         const int elem_src_full_len,
-                         const uint elem_src_full_offset_len);
+                         int elem_src_full_len,
+                         uint elem_src_full_offset_len);
 
 /**
  * When requesting version info, support both directions.

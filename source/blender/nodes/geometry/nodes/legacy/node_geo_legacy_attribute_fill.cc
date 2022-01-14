@@ -155,7 +155,7 @@ void register_node_type_geo_attribute_fill()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_LEGACY_ATTRIBUTE_FILL, "Attribute Fill", NODE_CLASS_ATTRIBUTE, 0);
+      &ntype, GEO_NODE_LEGACY_ATTRIBUTE_FILL, "Attribute Fill", NODE_CLASS_ATTRIBUTE);
   node_type_init(&ntype, file_ns::node_init);
   node_type_update(&ntype, file_ns::node_update);
   ntype.geometry_node_execute = file_ns::node_geo_exec;

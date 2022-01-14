@@ -66,7 +66,7 @@ short texttool_text_is_active(struct Text *text);
 
 /* Suggestions */
 void texttool_suggest_add(const char *name, char type);
-void texttool_suggest_prefix(const char *prefix, const int prefix_len);
+void texttool_suggest_prefix(const char *prefix, int prefix_len);
 void texttool_suggest_clear(void);
 SuggItem *texttool_suggest_first(void);
 SuggItem *texttool_suggest_last(void);

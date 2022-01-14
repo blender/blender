@@ -30,6 +30,7 @@
 
 #include "GPU_index_buffer.h"
 #include "GPU_shader.h"
+#include "GPU_uniform_buffer.h"
 #include "GPU_vertex_buffer.h"
 
 #define GPU_BATCH_VBO_MAX_LEN 16
@@ -170,6 +171,8 @@ void GPU_batch_program_set_builtin_with_config(GPUBatch *batch,
   GPU_shader_uniform_4fv_array((batch)->shader, name, len, val);
 #define GPU_batch_uniform_mat4(batch, name, val) \
   GPU_shader_uniform_mat4((batch)->shader, name, val);
+#define GPU_batch_uniformbuf_bind(batch, name, ubo) \
+  GPU_uniformbuf_bind(ubo, GPU_shader_get_uniform_block_binding((batch)->shader, name));
 #define GPU_batch_texture_bind(batch, name, tex) \
   GPU_texture_bind(tex, GPU_shader_get_texture_binding((batch)->shader, name));
 

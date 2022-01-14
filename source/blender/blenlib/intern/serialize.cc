@@ -44,12 +44,12 @@ const ArrayValue *Value::as_array_value() const
   return static_cast<const ArrayValue *>(this);
 }
 
-const ObjectValue *Value::as_object_value() const
+const DictionaryValue *Value::as_dictionary_value() const
 {
-  if (type_ != eValueType::Object) {
+  if (type_ != eValueType::Dictionary) {
     return nullptr;
   }
-  return static_cast<const ObjectValue *>(this);
+  return static_cast<const DictionaryValue *>(this);
 }
 
 static void convert_to_json(nlohmann::ordered_json &j, const Value &value);
@@ -66,13 +66,13 @@ static void convert_to_json(nlohmann::ordered_json &j, const ArrayValue &value)
   }
 }
 
-static void convert_to_json(nlohmann::ordered_json &j, const ObjectValue &value)
+static void convert_to_json(nlohmann::ordered_json &j, const DictionaryValue &value)
 {
-  const ObjectValue::Items &attributes = value.elements();
+  const DictionaryValue::Items &attributes = value.elements();
   /* Create a json object to store the attributes. If this isn't done and attributes is empty it
    * would return use a null value, in stead of an empty object. */
   j = "{}"_json;
-  for (const ObjectValue::Item &attribute : attributes) {
+  for (const DictionaryValue::Item &attribute : attributes) {
     nlohmann::ordered_json json_item;
     convert_to_json(json_item, *attribute.second);
     j[attribute.first] = json_item;
@@ -98,8 +98,8 @@ static void convert_to_json(nlohmann::ordered_json &j, const Value &value)
       break;
     }
 
-    case eValueType::Object: {
-      const ObjectValue &object = *value.as_object_value();
+    case eValueType::Dictionary: {
+      const DictionaryValue &object = *value.as_dictionary_value();
       convert_to_json(j, object);
       break;
     }
@@ -133,10 +133,11 @@ static std::unique_ptr<ArrayValue> convert_from_json_to_array(const nlohmann::or
   return array;
 }
 
-static std::unique_ptr<ObjectValue> convert_from_json_to_object(const nlohmann::ordered_json &j)
+static std::unique_ptr<DictionaryValue> convert_from_json_to_object(
+    const nlohmann::ordered_json &j)
 {
-  std::unique_ptr<ObjectValue> object = std::make_unique<ObjectValue>();
-  ObjectValue::Items &elements = object->elements();
+  std::unique_ptr<DictionaryValue> object = std::make_unique<DictionaryValue>();
+  DictionaryValue::Items &elements = object->elements();
   for (auto element : j.items()) {
     std::string key = element.key();
     nlohmann::ordered_json element_json = element.value();

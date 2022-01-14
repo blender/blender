@@ -229,6 +229,8 @@ typedef struct View3DOverlay {
 
   /** Armature edit/pose mode settings. */
   float xray_alpha_bone;
+  float bone_wire_alpha;
+  char _pad1[4];
 
   /** Darken Inactive. */
   float fade_alpha;
@@ -422,7 +424,7 @@ enum {
   RV3D_LOCK_ANY_TRANSFORM = (RV3D_LOCK_LOCATION | RV3D_LOCK_ROTATION | RV3D_LOCK_ZOOM_AND_DOLLY),
 };
 
-/* Bitwise OR of the regular lock-flags with runtime only lock-flags. */
+/** Bit-wise OR of the regular lock-flags with runtime only lock-flags. */
 #define RV3D_LOCK_FLAGS(rv3d) ((rv3d)->viewlock | ((rv3d)->runtime_viewlock))
 
 /** #RegionView3D.viewlock_quad */

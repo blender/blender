@@ -82,7 +82,7 @@ void BKE_texture_pointdensity_init_data(struct PointDensity *pd);
 void BKE_texture_pointdensity_free_data(struct PointDensity *pd);
 void BKE_texture_pointdensity_free(struct PointDensity *pd);
 struct PointDensity *BKE_texture_pointdensity_add(void);
-struct PointDensity *BKE_texture_pointdensity_copy(const struct PointDensity *pd, const int flag);
+struct PointDensity *BKE_texture_pointdensity_copy(const struct PointDensity *pd, int flag);
 
 bool BKE_texture_dependsOnTime(const struct Tex *texture);
 /**

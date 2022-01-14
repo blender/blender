@@ -30,8 +30,8 @@ struct MemArena;
  * A version of #BLI_polyfill_calc that uses a memory arena to avoid re-allocations.
  */
 void BLI_polyfill_calc_arena(const float (*coords)[2],
-                             const unsigned int coords_tot,
-                             const int coords_sign,
+                             unsigned int coords_tot,
+                             int coords_sign,
                              unsigned int (*r_tris)[3],
 
                              struct MemArena *arena);
@@ -50,8 +50,8 @@ void BLI_polyfill_calc_arena(const float (*coords)[2],
  * even in the case of degenerate input (self intersecting polygons, zero area ears... etc).
  */
 void BLI_polyfill_calc(const float (*coords)[2],
-                       const unsigned int coords_tot,
-                       const int coords_sign,
+                       unsigned int coords_tot,
+                       int coords_sign,
                        unsigned int (*r_tris)[3]);
 
 /* default size of polyfill arena */

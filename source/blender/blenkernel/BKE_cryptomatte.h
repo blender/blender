@@ -59,7 +59,7 @@ float BKE_cryptomatte_hash_to_float(uint32_t cryptomatte_hash);
  * Find an ID in the given main that matches the given encoded float.
  */
 bool BKE_cryptomatte_find_name(const struct CryptomatteSession *session,
-                               const float encoded_hash,
+                               float encoded_hash,
                                char *r_name,
                                int name_len);
 

@@ -36,10 +36,11 @@
 
 #include "BLI_alloca.h"
 #include "BLI_array.hh"
-#include "BLI_float3.hh"
+#include "BLI_float4x4.hh"
 #include "BLI_index_range.hh"
 #include "BLI_math.h"
 #include "BLI_math_solvers.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_memarena.h"
 #include "BLI_span.hh"
 #include "BLI_task.h"
@@ -148,6 +149,7 @@ struct ReliefOptimizer {
   float normalScale, boundWidth;
 
   ReliefOptimizer(const float (*cos)[3],
+                  const float (*nos)[3],
                   const MVert *mvert_,
                   int totvert_,
                   MEdge *medge_,
@@ -203,7 +205,7 @@ struct ReliefOptimizer {
       zero_v3(rv->bin);
       copy_v3_v3(rv->smoothco, rv->co);
 
-      normal_short_to_float_v3(rv->origno, mv->no);
+      copy_v3_v3(rv->origno, nos[i]);
 
       rv->index = i;
       rv->bound_vert = NULL;
@@ -1241,6 +1243,7 @@ struct BassReliefCalcData {
 
   struct MVert *vert;    /* Array of verts being projected (to fetch normals or other data) */
   float (*vertexCos)[3]; /* vertexs being shrinkwraped */
+  const float (*vertexNos)[3]; /* vertexs being shrinkwraped */
   int numVerts;
 
   struct MDeformVert *dvert; /* Pointer to mdeform array */
@@ -1286,6 +1289,7 @@ bool BKE_bassrelief_init_tree(
     return false;
   }
 
+
   /* We could create a BVH tree from the edit mesh,
    * however accessing normals from the face/loop normals gets more involved.
    * Convert mesh data since this isn't typically used in edit-mode. */
@@ -1302,6 +1306,8 @@ bool BKE_bassrelief_init_tree(
   }
 
   data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_LOOPTRI, 4);
+
+  data->treeData.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
 
   if (data->bvh == nullptr) {
     return false;
@@ -1454,7 +1460,7 @@ bool BKE_bassrelief_project_normal(char options,
   return false;
 }
 
-static void shrinkwrap_calc_normal_projection_cb_ex_intern(BassReliefCalcCBData *data,
+ATTR_NO_OPT static void shrinkwrap_calc_normal_projection_cb_ex_intern(BassReliefCalcCBData *data,
                                                            const int i,
                                                            BassReliefTreeData *tree,
                                                            BassReliefTreeRayHit *treehit)
@@ -1476,7 +1482,7 @@ static void shrinkwrap_calc_normal_projection_cb_ex_intern(BassReliefCalcCBData 
      * (to get correct normals) for other cases calc->verts contains undeformed coordinates and
      * vertexCos should be used */
     copy_v3_v3(tmp_co, calc->vert[i].co);
-    normal_short_to_float_v3(tmp_no, calc->vert[i].no);
+    copy_v3_v3(tmp_no, calc->vertexNos[i]);
   }
   else {
     copy_v3_v3(tmp_co, co);
@@ -1874,7 +1880,7 @@ static bool update_hit(BVHTreeNearest *nearest,
 }
 
 /* Target normal projection BVH callback - based on mesh_looptri_nearest_point. */
-static void mesh_looptri_target_project(void *userdata,
+ATTR_NO_OPT static void mesh_looptri_target_project(void *userdata,
                                         int index,
                                         const float co[3],
                                         BVHTreeNearest *nearest)
@@ -1908,9 +1914,9 @@ static void mesh_looptri_target_project(void *userdata,
   }
 
   /* Decode normals */
-  normal_short_to_float_v3(vtri_no[0], vtri[0]->no);
-  normal_short_to_float_v3(vtri_no[1], vtri[1]->no);
-  normal_short_to_float_v3(vtri_no[2], vtri[2]->no);
+  copy_v3_v3(vtri_no[0], tree->treeData.vert_normals[loop[0]->v]);
+  copy_v3_v3(vtri_no[1], tree->treeData.vert_normals[loop[1]->v]);
+  copy_v3_v3(vtri_no[2], tree->treeData.vert_normals[loop[2]->v]);
 
   /* Solve the equations for the triangle */
   if (target_project_solve_point_tri(vtri_co, vtri_no, co, raw_hit_co, dist_sq, hit_co, hit_no)) {
@@ -1925,7 +1931,7 @@ static void mesh_looptri_target_project(void *userdata,
  * \param transform: transform from the hit coordinate space to the object space; may be null
  * \param r_no: output in hit coordinate space; may be shared with inputs
  */
-void BKE_bassrelief_compute_smooth_normal(const struct BassReliefTreeData *tree,
+ATTR_NO_OPT void BKE_bassrelief_compute_smooth_normal(const struct BassReliefTreeData *tree,
                                           const struct SpaceTransform *transform,
                                           int looptri_idx,
                                           const float hit_co[3],
@@ -1952,9 +1958,9 @@ void BKE_bassrelief_compute_smooth_normal(const struct BassReliefTreeData *tree,
     }
     /* Ordinary vertex normals. */
     else {
-      normal_short_to_float_v3(no[0], verts[0]->no);
-      normal_short_to_float_v3(no[1], verts[1]->no);
-      normal_short_to_float_v3(no[2], verts[2]->no);
+      copy_v3_v3(no[0], treeData->vert_normals[treeData->loop[tri->tri[0]].v]);
+      copy_v3_v3(no[1], treeData->vert_normals[treeData->loop[tri->tri[1]].v]);
+      copy_v3_v3(no[2], treeData->vert_normals[treeData->loop[tri->tri[2]].v]);
     }
 
     /* Barycentric weights from hit point. */
@@ -2112,6 +2118,8 @@ void bassReliefModifier_deform(BassReliefModifierData *smd,
   calc.vgroup = defgrp_index;
   calc.invert_vgroup = (smd->shrinkOpts & MOD_BASSRELIEF_INVERT_VGROUP) != 0;
 
+  calc.vertexNos = BKE_mesh_vertex_normals_ensure(mesh);
+
   if (mesh != nullptr) {
     /* Setup arrays to get vertexs positions, normals and deform weights */
     calc.vert = mesh->mvert;
@@ -2122,6 +2130,7 @@ void bassReliefModifier_deform(BassReliefModifierData *smd,
     int totlooptri = BKE_mesh_runtime_looptri_len(mesh);
 
     calc.ropt = new ReliefOptimizer(vertexCos,
+                                    calc.vertexNos,
                                     mesh->mvert,
                                     mesh->totvert,
                                     mesh->medge,

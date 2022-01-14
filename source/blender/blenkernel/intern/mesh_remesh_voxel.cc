@@ -35,8 +35,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_float3.hh"
 #include "BLI_index_range.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_span.hh"
 #include "BLI_threads.h"
 
@@ -304,14 +304,15 @@ Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
   Array<RemeshVertex> verts(totverts);
   Array<RemeshTri> faces(totfaces);
   std::vector<RemeshEdge> edges;
+  const float(*normals)[3] = BKE_mesh_vertex_normals_ensure(input_mesh);
 
   for (int i : IndexRange(totverts)) {
     copy_v3_v3(verts[i].co, input_mesh->mvert[i].co);
-    normal_short_to_float_v3(verts[i].no, input_mesh->mvert[i].no);
+    copy_v3_v3(verts[i].no, normals[i]);
   }
 
   int *fsets = (int *)CustomData_get_layer(&input_mesh->pdata, CD_SCULPT_FACE_SETS);
-
+  
   for (const int i : IndexRange(input_mesh->totedge)) {
     MEdge *me = input_mesh->medge + i;
     MeshElemMap *mep = epmap + i;
@@ -355,8 +356,8 @@ Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
         normalize_v3(vec);
 
         // build edge normal
-        normal_short_to_float_v3(no1, input_mesh->mvert[me->v1].no);
-        normal_short_to_float_v3(no2, input_mesh->mvert[me->v2].no);
+        copy_v3_v3(no1, normals[me->v1]);
+        copy_v3_v3(no2, normals[me->v2]);
 
         add_v3_v3(no1, no2);
         normalize_v3(no1);
@@ -424,12 +425,14 @@ Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
       &mesh->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, remesh.totoutvert);
 #  endif
 
+  float(*newNormals)[3] = BKE_mesh_vertex_normals_for_write(mesh);
+
   for (int i : IndexRange(remesh.totoutvert)) {
     MVert *mv = mesh->mvert + i;
     RemeshVertex *v = remesh.outverts + i;
 
     copy_v3_v3(mv->co, v->co);
-    normal_float_to_short_v3(mv->no, v->no);
+    copy_v3_v3(newNormals[i], v->no);
 
 #  ifdef INSTANT_MESHES_VIS_COLOR
     copy_v3_v3(cols[i].color, v->viscolor);

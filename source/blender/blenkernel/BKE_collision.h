@@ -122,9 +122,9 @@ void bvhtree_update_from_mvert(struct BVHTree *bvhtree,
  * \param step: is limited from 0 (frame start position) to 1 (frame end position).
  */
 void collision_move_object(struct CollisionModifierData *collmd,
-                           const float step,
-                           const float prevstep,
-                           const bool moving_bvh);
+                           float step,
+                           float prevstep,
+                           bool moving_bvh);
 
 void collision_get_collider_velocity(float vel_old[3],
                                      float vel_new[3],

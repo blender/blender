@@ -415,7 +415,7 @@ static void sort_vertex_polys(const Mesh &mesh,
     }
   }
   else {
-    /* Any polygon can be the first. Just need to check the orientation.*/
+    /* Any polygon can be the first. Just need to check the orientation. */
     const MLoop &first_loop = mesh.mloop[poly_vertex_corners[0].first];
     const MLoop &second_loop = mesh.mloop[poly_vertex_corners[0].second];
     if (first_loop.v == vertex_index) {
@@ -554,7 +554,7 @@ static bool vertex_needs_dissolving(const int vertex,
 
 /**
  * Finds 'normal' vertices which are connected to only two polygons and marks them to not be
- * used in the datastructures derived from the mesh. For each pair of polygons which has such a
+ * used in the data-structures derived from the mesh. For each pair of polygons which has such a
  * vertex, an edge is created for the dual mesh between the centers of those two polygons. All
  * edges in the input mesh which contain such a vertex are marked as 'done' to prevent duplicate
  * edges being created. (See T94144)
@@ -703,7 +703,7 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
    * exactly one edge in the original, we can use this array to keep track of whether it still
    * needs to be created or not. If it's not -1 it gives the index in `new_edges` of the dual
    * edge. The edges coming from preserving the boundaries only get added once anyway, so we
-   * don't need a hashmap for that. */
+   * don't need a hash-map for that. */
   Array<int> old_to_new_edges_map(mesh_in.totedge);
   old_to_new_edges_map.fill(-1);
 
@@ -924,7 +924,7 @@ void register_node_type_geo_dual_mesh()
   namespace file_ns = blender::nodes::node_geo_dual_mesh_cc;
 
   static bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_DUAL_MESH, "Dual Mesh", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_DUAL_MESH, "Dual Mesh", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);

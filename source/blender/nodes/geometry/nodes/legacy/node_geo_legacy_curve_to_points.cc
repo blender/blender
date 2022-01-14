@@ -241,13 +241,13 @@ static void copy_uniform_sample_point_attributes(Span<SplinePtr> splines,
       spline.sample_with_index_factors<float3>(
           spline.evaluated_tangents(), uniform_samples, data.tangents.slice(offset, size));
       for (float3 &tangent : data.tangents) {
-        tangent.normalize();
+        tangent = math::normalize(tangent);
       }
 
       spline.sample_with_index_factors<float3>(
           spline.evaluated_normals(), uniform_samples, data.normals.slice(offset, size));
       for (float3 &normals : data.normals) {
-        normals.normalize();
+        normals = math::normalize(normals);
       }
     }
   });
@@ -352,7 +352,7 @@ void register_node_type_geo_legacy_curve_to_points()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_LEGACY_CURVE_TO_POINTS, "Curve to Points", NODE_CLASS_GEOMETRY, 0);
+      &ntype, GEO_NODE_LEGACY_CURVE_TO_POINTS, "Curve to Points", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;

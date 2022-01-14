@@ -226,9 +226,9 @@ struct GPUShader *DRW_shader_create_with_shaderlib_ex(const char *vert,
 struct GPUShader *DRW_shader_create_with_transform_feedback(const char *vert,
                                                             const char *geom,
                                                             const char *defines,
-                                                            const eGPUShaderTFBType prim_type,
+                                                            eGPUShaderTFBType prim_type,
                                                             const char **varying_names,
-                                                            const int varying_count);
+                                                            int varying_count);
 struct GPUShader *DRW_shader_create_fullscreen_ex(const char *frag,
                                                   const char *defines,
                                                   const char *name);
@@ -249,18 +249,18 @@ struct GPUShader *DRW_shader_create_fullscreen_with_shaderlib_ex(const char *fra
 
 struct GPUMaterial *DRW_shader_find_from_world(struct World *wo,
                                                const void *engine_type,
-                                               const int options,
+                                               int options,
                                                bool deferred);
 struct GPUMaterial *DRW_shader_find_from_material(struct Material *ma,
                                                   const void *engine_type,
-                                                  const int options,
+                                                  int options,
                                                   bool deferred);
 struct GPUMaterial *DRW_shader_create_from_world(struct Scene *scene,
                                                  struct World *wo,
                                                  struct bNodeTree *ntree,
                                                  const void *engine_type,
-                                                 const int options,
-                                                 const bool is_volume_shader,
+                                                 int options,
+                                                 bool is_volume_shader,
                                                  const char *vert,
                                                  const char *geom,
                                                  const char *frag_lib,
@@ -271,8 +271,8 @@ struct GPUMaterial *DRW_shader_create_from_material(struct Scene *scene,
                                                     struct Material *ma,
                                                     struct bNodeTree *ntree,
                                                     const void *engine_type,
-                                                    const int options,
-                                                    const bool is_volume_shader,
+                                                    int options,
+                                                    bool is_volume_shader,
                                                     const char *vert,
                                                     const char *geom,
                                                     const char *frag_lib,
@@ -351,7 +351,7 @@ typedef enum {
   DRW_STATE_BLEND_ADD_FULL = (2 << 11),
   /** Standard alpha blending. */
   DRW_STATE_BLEND_ALPHA = (3 << 11),
-  /** Use that if color is already premult by alpha. */
+  /** Use that if color is already pre-multiply by alpha. */
   DRW_STATE_BLEND_ALPHA_PREMUL = (4 << 11),
   DRW_STATE_BLEND_BACKGROUND = (5 << 11),
   DRW_STATE_BLEND_OIT = (6 << 11),
@@ -609,12 +609,12 @@ void DRW_shgroup_uniform_image_ref(DRWShadingGroup *shgroup, const char *name, G
 
 /* Store value instead of referencing it. */
 
-void DRW_shgroup_uniform_int_copy(DRWShadingGroup *shgroup, const char *name, const int value);
+void DRW_shgroup_uniform_int_copy(DRWShadingGroup *shgroup, const char *name, int value);
 void DRW_shgroup_uniform_ivec2_copy(DRWShadingGroup *shgroup, const char *name, const int *value);
 void DRW_shgroup_uniform_ivec3_copy(DRWShadingGroup *shgroup, const char *name, const int *value);
 void DRW_shgroup_uniform_ivec4_copy(DRWShadingGroup *shgroup, const char *name, const int *value);
-void DRW_shgroup_uniform_bool_copy(DRWShadingGroup *shgroup, const char *name, const bool value);
-void DRW_shgroup_uniform_float_copy(DRWShadingGroup *shgroup, const char *name, const float value);
+void DRW_shgroup_uniform_bool_copy(DRWShadingGroup *shgroup, const char *name, bool value);
+void DRW_shgroup_uniform_float_copy(DRWShadingGroup *shgroup, const char *name, float value);
 void DRW_shgroup_uniform_vec2_copy(DRWShadingGroup *shgroup, const char *name, const float *value);
 void DRW_shgroup_uniform_vec3_copy(DRWShadingGroup *shgroup, const char *name, const float *value);
 void DRW_shgroup_uniform_vec4_copy(DRWShadingGroup *shgroup, const char *name, const float *value);

@@ -29,22 +29,19 @@ extern "C" {
 
 struct rcti;
 
-void BLI_lasso_boundbox(struct rcti *rect, const int mcoords[][2], const unsigned int mcoords_len);
-bool BLI_lasso_is_point_inside(const int mcoords[][2],
-                               const unsigned int mcoords_len,
-                               const int sx,
-                               const int sy,
-                               const int error_value);
+void BLI_lasso_boundbox(struct rcti *rect, const int mcoords[][2], unsigned int mcoords_len);
+bool BLI_lasso_is_point_inside(
+    const int mcoords[][2], unsigned int mcoords_len, int sx, int sy, int error_value);
 /**
  * Edge version for lasso select. We assume bound-box check was done.
  */
 bool BLI_lasso_is_edge_inside(const int mcoords[][2],
-                              const unsigned int mcoords_len,
+                              unsigned int mcoords_len,
                               int x0,
                               int y0,
                               int x1,
                               int y1,
-                              const int error_value);
+                              int error_value);
 
 #ifdef __cplusplus
 }

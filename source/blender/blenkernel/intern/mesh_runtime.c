@@ -53,6 +53,8 @@ static void mesh_runtime_init_mutexes(Mesh *mesh)
 {
   mesh->runtime.eval_mutex = MEM_mallocN(sizeof(ThreadMutex), "mesh runtime eval_mutex");
   BLI_mutex_init(mesh->runtime.eval_mutex);
+  mesh->runtime.normals_mutex = MEM_mallocN(sizeof(ThreadMutex), "mesh runtime normals_mutex");
+  BLI_mutex_init(mesh->runtime.normals_mutex);
   mesh->runtime.render_mutex = MEM_mallocN(sizeof(ThreadMutex), "mesh runtime render_mutex");
   BLI_mutex_init(mesh->runtime.render_mutex);
 }
@@ -66,6 +68,11 @@ static void mesh_runtime_free_mutexes(Mesh *mesh)
     BLI_mutex_end(mesh->runtime.eval_mutex);
     MEM_freeN(mesh->runtime.eval_mutex);
     mesh->runtime.eval_mutex = NULL;
+  }
+  if (mesh->runtime.normals_mutex != NULL) {
+    BLI_mutex_end(mesh->runtime.normals_mutex);
+    MEM_freeN(mesh->runtime.normals_mutex);
+    mesh->runtime.normals_mutex = NULL;
   }
   if (mesh->runtime.render_mutex != NULL) {
     BLI_mutex_end(mesh->runtime.render_mutex);

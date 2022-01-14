@@ -26,7 +26,7 @@ static void fn_node_slice_string_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Int>(N_("Position"));
   b.add_input<decl::Int>(N_("Length")).min(0).default_value(10);
   b.add_output<decl::String>(N_("String"));
-};
+}
 
 static void fn_node_slice_string_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
@@ -48,7 +48,7 @@ void register_node_type_fn_slice_string()
 
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_SLICE_STRING, "Slice String", NODE_CLASS_CONVERTER, 0);
+  fn_node_type_base(&ntype, FN_NODE_SLICE_STRING, "Slice String", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::fn_node_slice_string_declare;
   ntype.build_multi_function = file_ns::fn_node_slice_string_build_multi_function;
   nodeRegisterType(&ntype);

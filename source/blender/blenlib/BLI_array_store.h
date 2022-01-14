@@ -84,7 +84,7 @@ size_t BLI_array_store_calc_size_compacted_get(const BArrayStore *bs);
  */
 BArrayState *BLI_array_store_state_add(BArrayStore *bs,
                                        const void *data,
-                                       const size_t data_len,
+                                       size_t data_len,
                                        const BArrayState *state_reference);
 /**
  * Remove a state and free any unused #BChunk data.

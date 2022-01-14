@@ -466,7 +466,7 @@ void outside_lattice(Lattice *lt)
             bp->hide = 1;
             bp->f1 &= ~SELECT;
 
-            /* u extrema */
+            /* U extrema. */
             bp1 = latt_bp(lt, 0, v, w);
             bp2 = latt_bp(lt, lt->pntsu - 1, v, w);
 
@@ -475,7 +475,7 @@ void outside_lattice(Lattice *lt)
             bp->vec[1] = (1.0f - fac1) * bp1->vec[1] + fac1 * bp2->vec[1];
             bp->vec[2] = (1.0f - fac1) * bp1->vec[2] + fac1 * bp2->vec[2];
 
-            /* v extrema */
+            /* V extrema. */
             bp1 = latt_bp(lt, u, 0, w);
             bp2 = latt_bp(lt, u, lt->pntsv - 1, w);
 
@@ -484,7 +484,7 @@ void outside_lattice(Lattice *lt)
             bp->vec[1] += (1.0f - fac1) * bp1->vec[1] + fac1 * bp2->vec[1];
             bp->vec[2] += (1.0f - fac1) * bp1->vec[2] + fac1 * bp2->vec[2];
 
-            /* w extrema */
+            /* W extrema. */
             bp1 = latt_bp(lt, u, v, 0);
             bp2 = latt_bp(lt, u, v, lt->pntsw - 1);
 

@@ -261,7 +261,7 @@ MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack)
 }
 
 /* -------------------------------------------------------------------- */
-/** \name RGB/Grayscale Functions
+/** \name RGB/Gray-Scale Functions
  *
  * \warning
  * These are only an approximation,

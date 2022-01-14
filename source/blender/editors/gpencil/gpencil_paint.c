@@ -54,6 +54,7 @@
 #include "BKE_deform.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_curve.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -834,7 +835,7 @@ static short gpencil_stroke_addpoint(tGPsdata *p,
     /* color strength */
     if (brush_settings->flag & GP_BRUSH_USE_STRENGTH_PRESSURE) {
       pt->strength *= BKE_curvemapping_evaluateF(brush_settings->curve_strength, 0, pressure);
-      CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
+      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
     }
 
     /* Set vertex colors for buffer. */
@@ -918,6 +919,19 @@ static short gpencil_stroke_addpoint(tGPsdata *p,
   return GP_STROKEADD_INVALID;
 }
 
+static void gpencil_stroke_unselect(bGPdata *gpd, bGPDstroke *gps)
+{
+  gps->flag &= ~GP_STROKE_SELECT;
+  BKE_gpencil_stroke_select_index_reset(gps);
+  for (int i = 0; i < gps->totpoints; i++) {
+    gps->points[i].flag &= ~GP_SPOINT_SELECT;
+  }
+  /* Update the selection from the stroke to the curve. */
+  if (gps->editcurve) {
+    BKE_gpencil_editcurve_stroke_sync_selection(gpd, gps, gps->editcurve);
+  }
+}
+
 /* make a new stroke from the buffer data */
 static void gpencil_stroke_newfrombuffer(tGPsdata *p)
 {
@@ -928,6 +942,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
   tGPspoint *ptc;
   MDeformVert *dvert = NULL;
   Brush *brush = p->brush;
+  BrushGpencilSettings *brush_settings = brush->gpencil_settings;
   ToolSettings *ts = p->scene->toolsettings;
   Depsgraph *depsgraph = p->depsgraph;
   Object *obact = (Object *)p->ownerPtr.data;
@@ -1016,7 +1031,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       /* copy pressure and time */
       pt->pressure = ptc->pressure;
       pt->strength = ptc->strength;
-      CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
+      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
       copy_v4_v4(pt->vert_color, ptc->vert_color);
       pt->time = ptc->time;
       /* Apply the vertex color to point. */
@@ -1050,7 +1065,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       /* copy pressure and time */
       pt->pressure = ptc->pressure;
       pt->strength = ptc->strength;
-      CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
+      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
       pt->time = ptc->time;
       /* Apply the vertex color to point. */
       ED_gpencil_point_vertex_color_set(ts, brush, pt, ptc);
@@ -1175,7 +1190,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       /* copy pressure and time */
       pt->pressure = ptc->pressure;
       pt->strength = ptc->strength;
-      CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
+      CLAMP(pt->strength, MIN2(GPENCIL_STRENGTH_MIN, brush_settings->draw_strength), 1.0f);
       copy_v4_v4(pt->vert_color, ptc->vert_color);
       pt->time = ptc->time;
       pt->uv_fac = ptc->uv_fac;
@@ -1282,7 +1297,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
 
   /* Join with existing strokes. */
   if (ts->gpencil_flags & GP_TOOL_FLAG_AUTOMERGE_STROKE) {
-    if (gps->prev != NULL) {
+    if ((gps->prev != NULL) || (gps->next != NULL)) {
       BKE_gpencil_stroke_boundingbox_calc(gps);
       float diff_mat[4][4], ctrl1[2], ctrl2[2];
       BKE_gpencil_layer_transform_matrix_get(depsgraph, p->ob, gpl, diff_mat);
@@ -1300,7 +1315,12 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
                                                                    ctrl2,
                                                                    GPENCIL_MINIMUM_JOIN_DIST,
                                                                    &pt_index);
+
         if (gps_target != NULL) {
+          /* Unselect all points of source and destination strokes. This is required to avoid
+           * a change in the resolution of the original strokes during the join. */
+          gpencil_stroke_unselect(gpd, gps);
+          gpencil_stroke_unselect(gpd, gps_target);
           gps = ED_gpencil_stroke_join_and_trim(p->gpd, p->gpf, gps, gps_target, pt_index);
         }
         else {
@@ -1486,7 +1506,7 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
       bGPDspoint pt_temp;
       gpencil_point_to_parent_space(gps->points, p->diff_mat, &pt_temp);
       gpencil_point_to_xy(&p->gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
-      /* do boundbox check first */
+      /* Do bound-box check first. */
       if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
         /* only check if point is inside */
         if (len_v2v2_int(mval_i, pc1) <= radius) {
@@ -1511,7 +1531,7 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
       gpencil_point_to_parent_space(pt1, p->diff_mat, &npt);
       gpencil_point_to_xy(&p->gsc, gps, &npt, &pc1[0], &pc1[1]);
 
-      /* do boundbox check first */
+      /* Do bound-box check first. */
       if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
         /* only check if point is inside */
         if (len_v2v2_int(mval_i, pc1) <= radius) {
@@ -1581,7 +1601,7 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
         copy_v2_v2_int(pc0, pc1);
       }
 
-      /* Check that point segment of the boundbox of the eraser stroke */
+      /* Check that point segment of the bound-box of the eraser stroke. */
       if (((!ELEM(V2D_IS_CLIPPED, pc0[0], pc0[1])) && BLI_rcti_isect_pt(rect, pc0[0], pc0[1])) ||
           ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
           ((!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1])) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1]))) {

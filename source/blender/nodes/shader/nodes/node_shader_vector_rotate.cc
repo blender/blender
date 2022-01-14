@@ -21,7 +21,10 @@
  * \ingroup shdnodes
  */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 namespace blender::nodes::node_shader_vector_rotate_cc {
 
@@ -34,7 +37,13 @@ static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Angle")).subtype(PROP_ANGLE);
   b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER);
   b.add_output<decl::Vector>(N_("Vector"));
-};
+}
+
+static void node_shader_buts_vector_rotate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "rotation_type", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "invert", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
+}
 
 static const char *gpu_shader_get_name(int mode)
 {
@@ -211,8 +220,9 @@ void register_node_type_sh_vector_rotate()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_VECTOR_ROTATE, "Vector Rotate", NODE_CLASS_OP_VECTOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_VECTOR_ROTATE, "Vector Rotate", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::sh_node_vector_rotate_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_vector_rotate;
   node_type_gpu(&ntype, file_ns::gpu_shader_vector_rotate);
   node_type_update(&ntype, file_ns::node_shader_update_vector_rotate);
   ntype.build_multi_function = file_ns::sh_node_vector_rotate_build_multi_function;
