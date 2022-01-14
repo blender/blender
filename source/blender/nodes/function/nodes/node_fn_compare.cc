@@ -122,41 +122,42 @@ class SocketSearchOp {
 
 static void node_compare_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  if (params.in_out() == SOCK_OUT) {
-    search_link_ops_for_declarations(params, declaration.outputs());
+  const eNodeSocketDatatype type = static_cast<eNodeSocketDatatype>(params.other_socket().type);
+  if (!ELEM(type, SOCK_BOOLEAN, SOCK_FLOAT, SOCK_RGBA, SOCK_VECTOR, SOCK_INT, SOCK_STRING)) {
     return;
   }
 
-  const eNodeSocketDatatype type = static_cast<eNodeSocketDatatype>(params.other_socket().type);
+  const eNodeSocketDatatype mode_type = (type == SOCK_BOOLEAN) ? SOCK_INT : type;
+  const bool string_type = (type == SOCK_STRING);
 
-  if (ELEM(type, SOCK_BOOLEAN, SOCK_FLOAT, SOCK_RGBA, SOCK_VECTOR, SOCK_INT, SOCK_STRING)) {
-    const eNodeSocketDatatype mode_type = (type == SOCK_BOOLEAN) ? SOCK_FLOAT : type;
-    const bool string_type = (type == SOCK_STRING);
-    /* Add socket A compare operations. */
-    for (const EnumPropertyItem *item = rna_enum_node_compare_operation_items;
-         item->identifier != nullptr;
-         item++) {
-      if (item->name != nullptr && item->identifier[0] != '\0') {
-        if (!string_type &&
-            ELEM(item->value, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER)) {
-          params.add_item(IFACE_(item->name),
-                          SocketSearchOp{"A", SOCK_RGBA, (NodeCompareOperation)item->value});
-        }
-        else if ((!string_type) ||
-                 (string_type && ELEM(item->value, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL))) {
-          params.add_item(IFACE_(item->name),
-                          SocketSearchOp{"A", mode_type, (NodeCompareOperation)item->value});
-        }
+  const std::string socket_name = params.in_out() == SOCK_IN ? "A" : "Result";
+
+  for (const EnumPropertyItem *item = rna_enum_node_compare_operation_items;
+       item->identifier != nullptr;
+       item++) {
+    if (item->name != nullptr && item->identifier[0] != '\0') {
+      if (!string_type &&
+          ELEM(item->value, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER)) {
+        params.add_item(IFACE_(item->name),
+                        SocketSearchOp{socket_name,
+                                       SOCK_RGBA,
+                                       static_cast<NodeCompareOperation>(item->value)});
+      }
+      else if ((!string_type) ||
+               (string_type && ELEM(item->value, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL))) {
+        params.add_item(IFACE_(item->name),
+                        SocketSearchOp{socket_name,
+                                       mode_type,
+                                       static_cast<NodeCompareOperation>(item->value)});
       }
     }
-    /* Add Angle socket. */
-    if (!string_type) {
-      params.add_item(
-          IFACE_("Angle"),
-          SocketSearchOp{
-              "Angle", SOCK_VECTOR, NODE_COMPARE_GREATER_THAN, NODE_COMPARE_MODE_DIRECTION});
-    }
+  }
+  /* Add Angle socket. */
+  if (!string_type && params.in_out() == SOCK_IN) {
+    params.add_item(
+        IFACE_("Angle"),
+        SocketSearchOp{
+            "Angle", SOCK_VECTOR, NODE_COMPARE_GREATER_THAN, NODE_COMPARE_MODE_DIRECTION});
   }
 }
 
