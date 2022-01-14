@@ -2018,18 +2018,6 @@ Mesh *mesh_create_eval_final(Depsgraph *depsgraph,
   return result;
 }
 
-Mesh *mesh_create_eval_final_index_render(Depsgraph *depsgraph,
-                                          Scene *scene,
-                                          Object *ob,
-                                          const CustomData_MeshMasks *dataMask,
-                                          int index)
-{
-  Mesh *result;
-  mesh_calc_modifiers(
-      depsgraph, scene, ob, true, false, dataMask, index, false, false, nullptr, &result, nullptr);
-  return result;
-}
-
 Mesh *mesh_create_eval_no_deform(Depsgraph *depsgraph,
                                  Scene *scene,
                                  Object *ob,
