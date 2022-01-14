@@ -57,6 +57,13 @@ SpaceOutliner_Runtime::SpaceOutliner_Runtime(const SpaceOutliner_Runtime & /*oth
 {
 }
 
+SpaceOutliner_Runtime::~SpaceOutliner_Runtime()
+{
+  if (treehash) {
+    BKE_outliner_treehash_free(treehash);
+  }
+}
+
 static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   ListBase *lb;
@@ -366,13 +373,7 @@ static void outliner_free(SpaceLink *sl)
     BLI_mempool_destroy(space_outliner->treestore);
   }
 
-  if (space_outliner->runtime) {
-    space_outliner->runtime->tree_display = nullptr;
-    if (space_outliner->runtime->treehash) {
-      BKE_outliner_treehash_free(space_outliner->runtime->treehash);
-    }
-    MEM_freeN(space_outliner->runtime);
-  }
+  MEM_delete(space_outliner->runtime);
 }
 
 /* spacetype; init callback */

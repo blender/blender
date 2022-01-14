@@ -66,6 +66,7 @@ struct SpaceOutliner_Runtime {
   SpaceOutliner_Runtime() = default;
   /** Used for copying runtime data to a duplicated space. */
   SpaceOutliner_Runtime(const SpaceOutliner_Runtime &);
+  ~SpaceOutliner_Runtime();
 };
 
 typedef enum TreeElementInsertType {
