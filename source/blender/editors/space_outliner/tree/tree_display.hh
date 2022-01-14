@@ -56,6 +56,11 @@ struct TreeSourceData {
   Main *bmain;
   Scene *scene;
   ViewLayer *view_layer;
+
+  TreeSourceData(Main &bmain, Scene &scene, ViewLayer &view_layer)
+      : bmain(&bmain), scene(&scene), view_layer(&view_layer)
+  {
+  }
 };
 
 /* -------------------------------------------------------------------- */

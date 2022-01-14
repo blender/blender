@@ -105,7 +105,7 @@ void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner 
   tree_element.postExpand(space_outliner);
 }
 
-bool outliner_element_warnings_get(TreeElement *te, int *r_icon, const char **r_message)
+bool tree_element_warnings_get(TreeElement *te, int *r_icon, const char **r_message)
 {
   TreeStoreElem *tselem = te->store_elem;
 

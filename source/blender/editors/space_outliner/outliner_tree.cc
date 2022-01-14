@@ -1116,7 +1116,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     }
   }
 
-  if (outliner_element_warnings_get(te, nullptr, nullptr)) {
+  if (tree_element_warnings_get(te, nullptr, nullptr)) {
     te->flag |= TE_HAS_WARNING;
   }
 
@@ -1887,10 +1887,7 @@ void outliner_build_tree(Main *mainvar,
   /* All tree displays should be created as sub-classes of AbstractTreeDisplay. */
   BLI_assert(space_outliner->runtime->tree_display != nullptr);
 
-  TreeSourceData source_data{};
-  source_data.bmain = mainvar;
-  source_data.scene = scene;
-  source_data.view_layer = view_layer;
+  TreeSourceData source_data{*mainvar, *scene, *view_layer};
   space_outliner->tree = space_outliner->runtime->tree_display->buildTree(source_data);
 
   if ((space_outliner->flag & SO_SKIP_SORT_ALPHA) == 0) {

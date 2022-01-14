@@ -107,6 +107,6 @@ void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner 
  * \param r_message The message to display as warning.
  * \return true if there is a warning, false otherwise.
  */
-bool outliner_element_warnings_get(struct TreeElement *te, int *r_icon, const char **r_message);
+bool tree_element_warnings_get(struct TreeElement *te, int *r_icon, const char **r_message);
 
 }  // namespace blender::ed::outliner
