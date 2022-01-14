@@ -1777,7 +1777,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
   if (orig_ob->lineart.flags & OBJECT_LRT_OWN_CREASE) {
     use_crease = cosf(M_PI - orig_ob->lineart.crease_threshold);
   }
-  if (obi->original_me->flag & ME_AUTOSMOOTH) {
+  else if (obi->original_me->flag & ME_AUTOSMOOTH) {
     use_crease = cosf(obi->original_me->smoothresh);
     use_auto_smooth = true;
   }
