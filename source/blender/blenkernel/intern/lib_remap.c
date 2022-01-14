@@ -91,6 +91,97 @@ enum {
   ID_REMAP_IS_USER_ONE_SKIPPED = 1 << 1, /* There was some skipped 'user_one' usages of old_id. */
 };
 
+static void foreach_libblock_remap_callback_skip(const ID *id_owner,
+                                                 ID **id_ptr,
+                                                 IDRemap *id_remap_data,
+                                                 const int cb_flag,
+                                                 const bool is_indirect,
+                                                 const bool is_reference,
+                                                 const bool is_never_null,
+                                                 const bool is_obj,
+                                                 const bool is_obj_editmode)
+{
+  if (is_indirect) {
+    id_remap_data->skipped_indirect++;
+    if (is_obj) {
+      Object *ob = (Object *)id_owner;
+      if (ob->data == *id_ptr && ob->proxy != NULL) {
+        /* And another 'Proudly brought to you by Proxy Hell' hack!
+         * This will allow us to avoid clearing 'LIB_EXTERN' flag of obdata of proxies... */
+        id_remap_data->skipped_direct++;
+      }
+    }
+  }
+  else if (is_never_null || is_obj_editmode || is_reference) {
+    id_remap_data->skipped_direct++;
+  }
+  else {
+    BLI_assert(0);
+  }
+  if (cb_flag & IDWALK_CB_USER) {
+    id_remap_data->skipped_refcounted++;
+  }
+  else if (cb_flag & IDWALK_CB_USER_ONE) {
+    /* No need to count number of times this happens, just a flag is enough. */
+    id_remap_data->status |= ID_REMAP_IS_USER_ONE_SKIPPED;
+  }
+}
+
+static void foreach_libblock_remap_callback_apply(ID *id_owner,
+                                                  ID *id_self,
+                                                  ID *old_id,
+                                                  ID *new_id,
+                                                  ID **id_ptr,
+                                                  IDRemap *id_remap_data,
+                                                  const int cb_flag,
+                                                  const bool is_indirect,
+                                                  const bool is_never_null,
+                                                  const bool force_user_refcount,
+                                                  const bool is_obj_proxy)
+{
+  if (!is_never_null) {
+    *id_ptr = new_id;
+    DEG_id_tag_update_ex(id_remap_data->bmain,
+                         id_self,
+                         ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+    if (id_self != id_owner) {
+      DEG_id_tag_update_ex(id_remap_data->bmain,
+                           id_owner,
+                           ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+    }
+  }
+  if (cb_flag & IDWALK_CB_USER) {
+    /* NOTE: by default we don't user-count IDs which are not in the main database.
+     * This is because in certain conditions we can have data-blocks in
+     * the main which are referencing data-blocks outside of it.
+     * For example, BKE_mesh_new_from_object() called on an evaluated
+     * object will cause such situation.
+     */
+    if (force_user_refcount || (old_id->tag & LIB_TAG_NO_MAIN) == 0) {
+      id_us_min(old_id);
+    }
+    if (new_id != NULL && (force_user_refcount || (new_id->tag & LIB_TAG_NO_MAIN) == 0)) {
+      /* We do not want to handle LIB_TAG_INDIRECT/LIB_TAG_EXTERN here. */
+      new_id->us++;
+    }
+  }
+  else if (cb_flag & IDWALK_CB_USER_ONE) {
+    id_us_ensure_real(new_id);
+    /* We cannot affect old_id->us directly, LIB_TAG_EXTRAUSER(_SET)
+     * are assumed to be set as needed, that extra user is processed in final handling. */
+  }
+  if (!is_indirect || is_obj_proxy) {
+    id_remap_data->status |= ID_REMAP_IS_LINKED_DIRECT;
+  }
+  /* We need to remap proxy_from pointer of remapped proxy... sigh. */
+  if (is_obj_proxy && new_id != NULL) {
+    Object *ob = (Object *)id_owner;
+    if (ob->proxy == (Object *)new_id) {
+      ob->proxy->proxy_from = ob;
+    }
+  }
+}
+
 static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
 {
   const int cb_flag = cb_data->cb_flag;
@@ -170,73 +261,28 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
   if ((is_never_null && skip_never_null) ||
       (is_obj_editmode && (((Object *)id_owner)->data == *id_p) && new_id != NULL) ||
       (skip_indirect && is_indirect) || (is_reference && skip_reference)) {
-    if (is_indirect) {
-      id_remap_data->skipped_indirect++;
-      if (is_obj) {
-        Object *ob = (Object *)id_owner;
-        if (ob->data == *id_p && ob->proxy != NULL) {
-          /* And another 'Proudly brought to you by Proxy Hell' hack!
-           * This will allow us to avoid clearing 'LIB_EXTERN' flag of obdata of proxies... */
-          id_remap_data->skipped_direct++;
-        }
-      }
-    }
-    else if (is_never_null || is_obj_editmode || is_reference) {
-      id_remap_data->skipped_direct++;
-    }
-    else {
-      BLI_assert(0);
-    }
-    if (cb_flag & IDWALK_CB_USER) {
-      id_remap_data->skipped_refcounted++;
-    }
-    else if (cb_flag & IDWALK_CB_USER_ONE) {
-      /* No need to count number of times this happens, just a flag is enough. */
-      id_remap_data->status |= ID_REMAP_IS_USER_ONE_SKIPPED;
-    }
+    foreach_libblock_remap_callback_skip(id_owner,
+                                         id_p,
+                                         id_remap_data,
+                                         cb_flag,
+                                         is_indirect,
+                                         is_reference,
+                                         is_never_null,
+                                         is_obj,
+                                         is_obj_editmode);
   }
   else {
-    if (!is_never_null) {
-      *id_p = new_id;
-      DEG_id_tag_update_ex(id_remap_data->bmain,
-                           id_self,
-                           ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-      if (id_self != id_owner) {
-        DEG_id_tag_update_ex(id_remap_data->bmain,
-                             id_owner,
-                             ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-      }
-    }
-    if (cb_flag & IDWALK_CB_USER) {
-      /* NOTE: by default we don't user-count IDs which are not in the main database.
-       * This is because in certain conditions we can have data-blocks in
-       * the main which are referencing data-blocks outside of it.
-       * For example, BKE_mesh_new_from_object() called on an evaluated
-       * object will cause such situation.
-       */
-      if (force_user_refcount || (old_id->tag & LIB_TAG_NO_MAIN) == 0) {
-        id_us_min(old_id);
-      }
-      if (new_id != NULL && (force_user_refcount || (new_id->tag & LIB_TAG_NO_MAIN) == 0)) {
-        /* We do not want to handle LIB_TAG_INDIRECT/LIB_TAG_EXTERN here. */
-        new_id->us++;
-      }
-    }
-    else if (cb_flag & IDWALK_CB_USER_ONE) {
-      id_us_ensure_real(new_id);
-      /* We cannot affect old_id->us directly, LIB_TAG_EXTRAUSER(_SET)
-       * are assumed to be set as needed, that extra user is processed in final handling. */
-    }
-    if (!is_indirect || is_obj_proxy) {
-      id_remap_data->status |= ID_REMAP_IS_LINKED_DIRECT;
-    }
-    /* We need to remap proxy_from pointer of remapped proxy... sigh. */
-    if (is_obj_proxy && new_id != NULL) {
-      Object *ob = (Object *)id_owner;
-      if (ob->proxy == (Object *)new_id) {
-        ob->proxy->proxy_from = ob;
-      }
-    }
+    foreach_libblock_remap_callback_apply(id_owner,
+                                          id_self,
+                                          old_id,
+                                          new_id,
+                                          id_p,
+                                          id_remap_data,
+                                          cb_flag,
+                                          is_indirect,
+                                          is_never_null,
+                                          force_user_refcount,
+                                          is_obj_proxy);
   }
 
   return IDWALK_RET_NOP;
