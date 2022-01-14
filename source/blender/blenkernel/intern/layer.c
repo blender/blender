@@ -1207,10 +1207,21 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
     return;
   }
 
-  /* In some cases (from older files) we do have a master collection, yet no matching layer. Create
-   * the master one here, so that the rest of the code can work as expected. */
   if (BLI_listbase_is_empty(&view_layer->layer_collections)) {
+    /* In some cases (from older files) we do have a master collection, yet no matching layer.
+     * Create the master one here, so that the rest of the code can work as expected. */
     layer_collection_add(&view_layer->layer_collections, scene->master_collection);
+  }
+  else if (BLI_listbase_count_at_most(&view_layer->layer_collections, 2) > 1) {
+    /* In some cases (from older files) we do have a master collection, but no matching layer,
+     * instead all the children of the master collection have their layer collections in the
+     * viewlayer's list. This is not a valid situation, add a layer for the master collection and
+     * add all existing first-level layers as children of that new master layer. */
+    ListBase layer_collections = view_layer->layer_collections;
+    BLI_listbase_clear(&view_layer->layer_collections);
+    LayerCollection *master_layer_collection = layer_collection_add(&view_layer->layer_collections,
+                                                                    scene->master_collection);
+    master_layer_collection->layer_collections = layer_collections;
   }
 
   /* Free cache. */
