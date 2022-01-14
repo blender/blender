@@ -19,6 +19,7 @@
  */
 
 #include "DNA_ID.h"
+#include "DNA_space_types.h"
 
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_utildefines.h"
@@ -30,7 +31,7 @@
 #include "RNA_access.h"
 
 #include "../outliner_intern.hh"
-#include "tree_display.h"
+#include "common.hh"
 #include "tree_element_id_library.hh"
 #include "tree_element_id_scene.hh"
 

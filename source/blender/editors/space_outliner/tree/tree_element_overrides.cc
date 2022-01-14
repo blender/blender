@@ -27,10 +27,11 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_space_types.h"
+
 #include "RNA_access.h"
 
 #include "../outliner_intern.hh"
-#include "tree_display.h"
 
 #include "tree_element_overrides.hh"
 

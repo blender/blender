@@ -24,8 +24,10 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_outliner_types.h"
+
 #include "../outliner_intern.hh"
-#include "tree_display.h"
+#include "common.hh"
 
 #include "tree_element_scene_objects.hh"
 

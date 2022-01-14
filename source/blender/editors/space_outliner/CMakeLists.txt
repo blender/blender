@@ -69,9 +69,8 @@ set(SRC
   tree/tree_element_view_layer.cc
 
   outliner_intern.hh
-  tree/tree_display.h
+  tree/common.hh
   tree/tree_display.hh
-  tree/tree_element.h
   tree/tree_element.hh
   tree/tree_element_anim_data.hh
   tree/tree_element_collection.hh

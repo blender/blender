@@ -79,7 +79,10 @@
 #include "RNA_access.h"
 
 #include "outliner_intern.hh"
-#include "tree/tree_display.h"
+#include "tree/tree_display.hh"
+#include "tree/tree_element.hh"
+
+using namespace blender::ed::outliner;
 
 /* Disable - this is far too slow - campbell. */
 /* #define USE_GROUP_SELECT */
@@ -3861,9 +3864,10 @@ void draw_outliner(const bContext *C)
   const bool use_mode_column = (space_outliner->flag & SO_MODE_COLUMN) &&
                                (ELEM(space_outliner->outlinevis, SO_VIEW_LAYER, SO_SCENES));
 
-  const bool use_warning_column =
-      ELEM(space_outliner->outlinevis, SO_LIBRARIES, SO_OVERRIDES_LIBRARY) &&
-      outliner_tree_display_warnings_poll(space_outliner->runtime->tree_display);
+  const bool use_warning_column = ELEM(space_outliner->outlinevis,
+                                       SO_LIBRARIES,
+                                       SO_OVERRIDES_LIBRARY) &&
+                                  space_outliner->runtime->tree_display->hasWarnings();
 
   /* Draw outliner stuff (background, hierarchy lines and names). */
   const float restrict_column_width = outliner_restrict_columns_width(space_outliner);

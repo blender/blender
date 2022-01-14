@@ -77,12 +77,15 @@
 #include "UI_resources.h"
 
 #include "outliner_intern.hh"
-#include "tree/tree_display.h"
-#include "tree/tree_element.h"
+#include "tree/common.hh"
+#include "tree/tree_display.hh"
+#include "tree/tree_element.hh"
 
 #ifdef WIN32
 #  include "BLI_math_base.h" /* M_PI */
 #endif
+
+using namespace blender::ed::outliner;
 
 /* prototypes */
 static int outliner_exclude_filter_get(const SpaceOutliner *space_outliner);
@@ -252,14 +255,6 @@ static void outliner_add_bone(SpaceOutliner *space_outliner,
   LISTBASE_FOREACH (Bone *, child_bone, &curBone->childbase) {
     outliner_add_bone(space_outliner, &te->subtree, id, child_bone, te, a);
   }
-}
-
-bool outliner_animdata_test(const AnimData *adt)
-{
-  if (adt) {
-    return (adt->action || adt->drivers.first || adt->nla_tracks.first);
-  }
-  return false;
 }
 
 #ifdef WITH_FREESTYLE
@@ -815,40 +810,7 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
   }
 }
 
-bool outliner_element_warnings_get(TreeElement *te, int *r_icon, const char **r_message)
-{
-  TreeStoreElem *tselem = TREESTORE(te);
-
-  if (tselem->type != TSE_SOME_ID) {
-    return false;
-  }
-  if (te->idcode != ID_LI) {
-    return false;
-  }
-
-  Library *library = (Library *)tselem->id;
-  if (library->tag & LIBRARY_TAG_RESYNC_REQUIRED) {
-    if (r_icon) {
-      *r_icon = ICON_ERROR;
-    }
-    if (r_message) {
-      *r_message = TIP_(
-          "Contains linked library overrides that need to be resynced, updating the library is "
-          "recommended");
-    }
-    return true;
-  }
-  if (library->id.tag & LIB_TAG_MISSING) {
-    if (r_icon) {
-      *r_icon = ICON_ERROR;
-    }
-    if (r_message) {
-      *r_message = TIP_("Missing library");
-    }
-    return true;
-  }
-  return false;
-}
+namespace blender::ed::outliner {
 
 TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                                   ListBase *lb,
@@ -883,7 +845,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     BLI_assert(TREESTORE_ID_TYPE(id));
   }
 
-  TreeElement *te = MEM_cnew<TreeElement>(__func__);
+  TreeElement *te = MEM_new<TreeElement>(__func__);
   /* add to the visual tree */
   BLI_addtail(lb, te);
   /* add to the storage */
@@ -898,9 +860,9 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   te->parent = parent;
   te->index = index; /* For data arrays. */
 
-  /* New C++ based type handle (`TreeElementType` in C, `AbstractTreeElement` in C++). Only some
-   * support this, eventually this should replace `TreeElement` entirely. */
-  te->type = outliner_tree_element_type_create(type, te, idv);
+  /* New C++ based type handle. Only some support this, eventually this should replace
+   * `TreeElement` entirely. */
+  te->type = outliner_tree_element_type_create(type, *te, idv);
   if (te->type) {
     /* Element types ported to the new design are expected to have their name set at this point! */
     BLI_assert(te->name != nullptr);
@@ -947,14 +909,14 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     te->idcode = GS(id->name);
   }
 
-  if (te->type && outliner_tree_element_type_is_expand_valid(te->type)) {
-    outliner_tree_element_type_expand(te->type, space_outliner);
+  if (te->type && te->type->isExpandValid()) {
+    tree_element_expand(*te->type, *space_outliner);
   }
   else if (type == TSE_SOME_ID) {
     /* ID types not (fully) ported to new design yet. */
-    if (outliner_tree_element_type_expand_poll(te->type, space_outliner)) {
+    if (te->type->expandPoll(*space_outliner)) {
       outliner_add_id_contents(space_outliner, te, tselem, id);
-      outliner_tree_element_type_post_expand(te->type, space_outliner);
+      te->type->postExpand(*space_outliner);
     }
   }
   else if (ELEM(type,
@@ -1161,6 +1123,8 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   return te;
 }
 
+}  // namespace blender::ed::outliner
+
 /* ======================================================= */
 
 BLI_INLINE void outliner_add_collection_init(TreeElement *te, Collection *collection)
@@ -1199,30 +1163,6 @@ TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outliner,
 
 /* ======================================================= */
 /* Generic Tree Building helpers - order these are called is top to bottom */
-
-/* Hierarchy --------------------------------------------- */
-
-void outliner_make_object_parent_hierarchy(ListBase *lb)
-{
-  /* build hierarchy */
-  /* XXX also, set extents here... */
-  TreeElement *te = reinterpret_cast<TreeElement *>(lb->first);
-  while (te) {
-    TreeElement *ten = te->next;
-    TreeStoreElem *tselem = TREESTORE(te);
-
-    if ((tselem->type == TSE_SOME_ID) && te->idcode == ID_OB) {
-      Object *ob = (Object *)tselem->id;
-      if (ob->parent && ob->parent->id.newid) {
-        BLI_remlink(lb, te);
-        TreeElement *tep = (TreeElement *)ob->parent->id.newid;
-        BLI_addtail(&tep->subtree, te);
-        te->parent = tep;
-      }
-    }
-    te = ten;
-  }
-}
 
 /* Sorting ------------------------------------------------------ */
 
@@ -1942,8 +1882,8 @@ void outliner_build_tree(Main *mainvar,
   outliner_storage_cleanup(space_outliner);
   outliner_tree_display_destroy(&space_outliner->runtime->tree_display);
 
-  space_outliner->runtime->tree_display = outliner_tree_display_create(
-      (eSpaceOutliner_Mode)space_outliner->outlinevis, space_outliner);
+  space_outliner->runtime->tree_display = outliner_tree_display_create(space_outliner->outlinevis,
+                                                                       space_outliner);
 
   /* All tree displays should be created as sub-classes of AbstractTreeDisplay. */
   BLI_assert(space_outliner->runtime->tree_display != nullptr);
@@ -1952,8 +1892,7 @@ void outliner_build_tree(Main *mainvar,
   source_data.bmain = mainvar;
   source_data.scene = scene;
   source_data.view_layer = view_layer;
-  space_outliner->tree = outliner_tree_display_build_tree(space_outliner->runtime->tree_display,
-                                                          &source_data);
+  space_outliner->tree = space_outliner->runtime->tree_display->buildTree(source_data);
 
   if ((space_outliner->flag & SO_SKIP_SORT_ALPHA) == 0) {
     outliner_sort(&space_outliner->tree);

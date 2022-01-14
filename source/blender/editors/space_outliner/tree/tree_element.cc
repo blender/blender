@@ -20,6 +20,11 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_listBase.h"
+#include "DNA_space_types.h"
+
+#include "UI_resources.h"
+
+#include "BLT_translation.h"
 
 #include "tree_element_anim_data.hh"
 #include "tree_element_collection.hh"
@@ -31,12 +36,12 @@
 #include "tree_element_scene_objects.hh"
 #include "tree_element_view_layer.hh"
 
-#include "tree_element.h"
+#include "../outliner_intern.hh"
 #include "tree_element.hh"
 
 namespace blender::ed::outliner {
 
-static AbstractTreeElement *tree_element_create(int type, TreeElement &legacy_te, void *idv)
+AbstractTreeElement *outliner_tree_element_type_create(int type, TreeElement &legacy_te, void *idv)
 {
   ID &id = *static_cast<ID *>(idv);
 
@@ -85,14 +90,13 @@ static AbstractTreeElement *tree_element_create(int type, TreeElement &legacy_te
   return nullptr;
 }
 
-static void tree_element_free(AbstractTreeElement **tree_element)
+void outliner_tree_element_type_free(AbstractTreeElement **tree_element)
 {
   delete *tree_element;
   *tree_element = nullptr;
 }
 
-static void tree_element_expand(const AbstractTreeElement &tree_element,
-                                SpaceOutliner &space_outliner)
+void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner &space_outliner)
 {
   /* Most types can just expand. IDs optionally expand (hence the poll) and do additional, common
    * expanding. Could be done nicer, we could request a small "expander" helper object from the
@@ -104,58 +108,39 @@ static void tree_element_expand(const AbstractTreeElement &tree_element,
   tree_element.postExpand(space_outliner);
 }
 
-/**
- * Needed for types that still expand in C, but need to execute the same post-expand logic. Can be
- * removed once all ID types expand entirely using the new design.
- */
-static void tree_element_post_expand_only(const AbstractTreeElement &tree_element,
-                                          SpaceOutliner &space_outliner)
+bool outliner_element_warnings_get(TreeElement *te, int *r_icon, const char **r_message)
 {
-  tree_element.postExpand(space_outliner);
-}
-/**
- * Needed for types that still expand in C, to poll if they should expand in current context. Can
- * be removed once all ID types expand entirely using the new design.
- */
-static bool tree_element_expand_poll(const AbstractTreeElement &tree_element,
-                                     const SpaceOutliner &space_outliner)
-{
-  return tree_element.expandPoll(space_outliner);
+  TreeStoreElem *tselem = te->store_elem;
+
+  if (tselem->type != TSE_SOME_ID) {
+    return false;
+  }
+  if (te->idcode != ID_LI) {
+    return false;
+  }
+
+  Library *library = (Library *)tselem->id;
+  if (library->tag & LIBRARY_TAG_RESYNC_REQUIRED) {
+    if (r_icon) {
+      *r_icon = ICON_ERROR;
+    }
+    if (r_message) {
+      *r_message = TIP_(
+          "Contains linked library overrides that need to be resynced, updating the library is "
+          "recommended");
+    }
+    return true;
+  }
+  if (library->id.tag & LIB_TAG_MISSING) {
+    if (r_icon) {
+      *r_icon = ICON_ERROR;
+    }
+    if (r_message) {
+      *r_message = TIP_("Missing library");
+    }
+    return true;
+  }
+  return false;
 }
 
 }  // namespace blender::ed::outliner
-
-namespace outliner = blender::ed::outliner;
-
-TreeElementType *outliner_tree_element_type_create(int type, TreeElement *legacy_te, void *idv)
-{
-  outliner::AbstractTreeElement *element = outliner::tree_element_create(type, *legacy_te, idv);
-  return reinterpret_cast<TreeElementType *>(element);
-}
-
-void outliner_tree_element_type_expand(TreeElementType *type, SpaceOutliner *space_outliner)
-{
-  outliner::tree_element_expand(reinterpret_cast<outliner::AbstractTreeElement &>(*type),
-                                *space_outliner);
-}
-bool outliner_tree_element_type_is_expand_valid(TreeElementType *type)
-{
-  outliner::AbstractTreeElement &element = reinterpret_cast<outliner::AbstractTreeElement &>(
-      *type);
-  return element.isExpandValid();
-}
-bool outliner_tree_element_type_expand_poll(TreeElementType *type, SpaceOutliner *space_outliner)
-{
-  return outliner::tree_element_expand_poll(
-      reinterpret_cast<outliner::AbstractTreeElement &>(*type), *space_outliner);
-}
-void outliner_tree_element_type_post_expand(TreeElementType *type, SpaceOutliner *space_outliner)
-{
-  outliner::tree_element_post_expand_only(reinterpret_cast<outliner::AbstractTreeElement &>(*type),
-                                          *space_outliner);
-}
-
-void outliner_tree_element_type_free(TreeElementType **type)
-{
-  outliner::tree_element_free(reinterpret_cast<outliner::AbstractTreeElement **>(type));
-}

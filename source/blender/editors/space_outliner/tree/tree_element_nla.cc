@@ -22,11 +22,11 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_listBase.h"
+#include "DNA_space_types.h"
 
 #include "BLT_translation.h"
 
 #include "../outliner_intern.hh"
-#include "tree_display.h"
 
 #include "tree_element_nla.hh"
 

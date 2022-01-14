@@ -22,6 +22,8 @@
 
 #include "tree_element.hh"
 
+struct Scene;
+
 namespace blender::ed::outliner {
 
 class TreeElementSceneObjectsBase final : public AbstractTreeElement {

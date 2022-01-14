@@ -19,16 +19,20 @@
  */
 
 #include "DNA_listBase.h"
+#include "DNA_space_types.h"
 
 #include "tree_display.hh"
 
 using namespace blender::ed::outliner;
 
-TreeDisplay *outliner_tree_display_create(eSpaceOutliner_Mode mode, SpaceOutliner *space_outliner)
+namespace blender::ed::outliner {
+
+AbstractTreeDisplay *outliner_tree_display_create(int /*eSpaceOutliner_Mode*/ mode,
+                                                  SpaceOutliner *space_outliner)
 {
   AbstractTreeDisplay *tree_display = nullptr;
 
-  switch (mode) {
+  switch ((eSpaceOutliner_Mode)mode) {
     case SO_SCENES:
       tree_display = new TreeDisplayScenes(*space_outliner);
       break;
@@ -48,28 +52,25 @@ TreeDisplay *outliner_tree_display_create(eSpaceOutliner_Mode mode, SpaceOutline
       tree_display = new TreeDisplayOverrideLibrary(*space_outliner);
       break;
     case SO_VIEW_LAYER:
+      /* FIXME(Julian): this should not be the default! Return nullptr and handle that as valid
+       * case. */
     default:
       tree_display = new TreeDisplayViewLayer(*space_outliner);
       break;
   }
 
-  return reinterpret_cast<TreeDisplay *>(tree_display);
+  return tree_display;
 }
 
-void outliner_tree_display_destroy(TreeDisplay **tree_display)
+void outliner_tree_display_destroy(AbstractTreeDisplay **tree_display)
 {
-  delete reinterpret_cast<AbstractTreeDisplay *>(*tree_display);
+  delete *tree_display;
   *tree_display = nullptr;
 }
 
-ListBase outliner_tree_display_build_tree(TreeDisplay *tree_display, TreeSourceData *source_data)
+bool AbstractTreeDisplay::hasWarnings() const
 {
-  return reinterpret_cast<AbstractTreeDisplay *>(tree_display)->buildTree(*source_data);
+  return has_warnings;
 }
 
-bool outliner_tree_display_warnings_poll(const TreeDisplay *tree_display)
-{
-  const AbstractTreeDisplay *abstract_tree_display = reinterpret_cast<const AbstractTreeDisplay *>(
-      tree_display);
-  return abstract_tree_display->has_warnings;
-}
+}  // namespace blender::ed::outliner

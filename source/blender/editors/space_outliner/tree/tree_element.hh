@@ -20,7 +20,11 @@
 
 #pragma once
 
-#include "tree_element.h"
+#include <memory>
+
+struct ListBase;
+struct SpaceOutliner;
+struct TreeElement;
 
 namespace blender::ed::outliner {
 
@@ -46,12 +50,6 @@ class AbstractTreeElement {
   {
     return true;
   }
-  /**
-   * Let the type add its own children.
-   */
-  virtual void expand(SpaceOutliner &) const
-  {
-  }
   virtual void postExpand(SpaceOutliner &) const
   {
   }
@@ -65,11 +63,49 @@ class AbstractTreeElement {
     return true;
   }
 
+  friend void outliner_tree_element_type_free(AbstractTreeElement **tree_element);
+  friend void tree_element_expand(const AbstractTreeElement &tree_element,
+                                  SpaceOutliner &space_outliner);
+
  protected:
   /* Pseudo-abstract: Only allow creation through derived types. */
   AbstractTreeElement(TreeElement &legacy_te) : legacy_te_(legacy_te)
   {
   }
+
+  /**
+   * Let the type add its own children.
+   */
+  virtual void expand(SpaceOutliner &) const
+  {
+  }
 };
+
+/**
+ * TODO: this function needs to be split up! It's getting a bit too large...
+ *
+ * \note "ID" is not always a real ID.
+ * \note If child items are only added to the tree if the item is open,
+ * the `TSE_` type _must_ be added to #outliner_element_needs_rebuild_on_open_change().
+ */
+struct TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
+                                         ListBase *lb,
+                                         void *idv,
+                                         struct TreeElement *parent,
+                                         short type,
+                                         short index);
+
+void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner &space_outliner);
+AbstractTreeElement *outliner_tree_element_type_create(int type, TreeElement &legacy_te, void *idv);
+void outliner_tree_element_type_free(AbstractTreeElement **tree_element);
+
+/**
+ * Get actual warning data of a tree element, if any.
+ *
+ * \param r_icon The icon to display as warning.
+ * \param r_message The message to display as warning.
+ * \return true if there is a warning, false otherwise.
+ */
+bool outliner_element_warnings_get(struct TreeElement *te, int *r_icon, const char **r_message);
 
 }  // namespace blender::ed::outliner

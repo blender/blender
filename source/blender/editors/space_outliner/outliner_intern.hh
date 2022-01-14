@@ -47,15 +47,24 @@ struct bPoseChannel;
 struct wmKeyConfig;
 struct wmOperatorType;
 
-typedef struct SpaceOutliner_Runtime {
-  /** Internal C++ object to create and manage the tree for a specific display type (View Layers,
-   *  Scenes, Blender File, etc.). */
-  struct TreeDisplay *tree_display;
+namespace blender::ed::outliner {
+class AbstractTreeDisplay;
+class AbstractTreeElement;
+}  // namespace blender::ed::outliner
+
+struct SpaceOutliner_Runtime {
+  /** Object to create and manage the tree for a specific display type (View Layers, Scenes,
+   * Blender File, etc.). */
+  blender::ed::outliner::AbstractTreeDisplay *tree_display;
 
   /** Pointers to tree-store elements, grouped by `(id, type, nr)`
    *  in hash-table for faster searching. */
   struct GHash *treehash;
-} SpaceOutliner_Runtime;
+
+  SpaceOutliner_Runtime() = default;
+  /** Used for copying runtime data to a duplicated space. */
+  SpaceOutliner_Runtime(const SpaceOutliner_Runtime &);
+};
 
 typedef enum TreeElementInsertType {
   TE_INSERT_BEFORE,
@@ -82,7 +91,7 @@ typedef struct TreeElement {
    * #TreeElement. Step by step, data should be moved to it and operations based on the type should
    * become virtual methods of the class hierarchy.
    */
-  struct TreeElementType *type;
+  blender::ed::outliner::AbstractTreeElement *type;
 
   ListBase subtree;
   int xs, ys;                /* Do selection. */
@@ -268,6 +277,10 @@ void outliner_build_tree(struct Main *mainvar,
                          struct ViewLayer *view_layer,
                          struct SpaceOutliner *space_outliner,
                          struct ARegion *region);
+
+struct TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outliner,
+                                                      struct Collection *collection,
+                                                      TreeElement *ten);
 
 bool outliner_requires_rebuild_on_select_or_active_change(
     const struct SpaceOutliner *space_outliner);

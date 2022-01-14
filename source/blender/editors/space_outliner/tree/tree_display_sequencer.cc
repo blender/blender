@@ -24,10 +24,14 @@
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_utildefines.h"
 
+#include "DNA_sequence_types.h"
+#include "DNA_space_types.h"
+
 #include "SEQ_sequencer.h"
 
 #include "../outliner_intern.hh"
 #include "tree_display.hh"
+#include "tree_element.hh"
 
 namespace blender::ed::outliner {
 

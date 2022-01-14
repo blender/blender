@@ -19,9 +19,10 @@
  */
 
 #include "DNA_listBase.h"
+#include "DNA_outliner_types.h"
+#include "DNA_scene_types.h"
 
 #include "../outliner_intern.hh"
-#include "tree_display.h"
 
 #include "tree_element_id_scene.hh"
 

@@ -24,6 +24,9 @@
 
 #include "tree_element.hh"
 
+struct AnimData;
+struct ID;
+
 namespace blender::ed::outliner {
 
 class TreeElementID : public AbstractTreeElement {

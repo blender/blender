@@ -34,15 +34,29 @@
 
 #pragma once
 
-#include "tree_display.h"
+#include <memory>
 
+struct ID;
+struct LayerCollection;
 struct ListBase;
+struct Library;
 struct Main;
+struct Scene;
+struct Sequence;
 struct SpaceOutliner;
 struct TreeElement;
-struct TreeSourceData;
+struct ViewLayer;
 
 namespace blender::ed::outliner {
+
+/**
+ * \brief The data to build the tree from.
+ */
+struct TreeSourceData {
+  Main *bmain;
+  Scene *scene;
+  ViewLayer *view_layer;
+};
 
 /* -------------------------------------------------------------------- */
 /* Tree-Display Interface */
@@ -65,12 +79,19 @@ class AbstractTreeDisplay {
    */
   virtual ListBase buildTree(const TreeSourceData &source_data) = 0;
 
-  bool has_warnings = false;
+  /** Accessor to whether given tree has some warnings to display. */
+  bool hasWarnings() const;
 
  protected:
+  bool has_warnings = false;
+
   /** All derived classes will need a handle to this, so storing it in the base for convenience. */
   SpaceOutliner &space_outliner_;
 };
+
+AbstractTreeDisplay *outliner_tree_display_create(int /*eSpaceOutliner_Mode*/ mode,
+                                                  SpaceOutliner *space_outliner);
+void outliner_tree_display_destroy(AbstractTreeDisplay **tree_display);
 
 /* -------------------------------------------------------------------- */
 /* View Layer Tree-Display */
