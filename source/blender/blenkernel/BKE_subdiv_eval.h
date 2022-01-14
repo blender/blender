@@ -102,40 +102,6 @@ void BKE_subdiv_eval_displacement(struct Subdiv *subdiv,
 void BKE_subdiv_eval_final_point(
     struct Subdiv *subdiv, int ptex_face_index, float u, float v, float r_P[3]);
 
-/* Patch queries at given resolution.
- *
- * Will evaluate patch at uniformly distributed (u, v) coordinates on a grid
- * of given resolution, producing resolution^2 evaluation points. The order
- * goes as u in rows, v in columns. */
-
-void BKE_subdiv_eval_limit_patch_resolution_point(struct Subdiv *subdiv,
-                                                  int ptex_face_index,
-                                                  int resolution,
-                                                  void *buffer,
-                                                  int offset,
-                                                  int stride);
-void BKE_subdiv_eval_limit_patch_resolution_point_and_derivatives(struct Subdiv *subdiv,
-                                                                  int ptex_face_index,
-                                                                  int resolution,
-                                                                  void *point_buffer,
-                                                                  int point_offset,
-                                                                  int point_stride,
-                                                                  void *du_buffer,
-                                                                  int du_offset,
-                                                                  int du_stride,
-                                                                  void *dv_buffer,
-                                                                  int dv_offset,
-                                                                  int dv_stride);
-void BKE_subdiv_eval_limit_patch_resolution_point_and_normal(struct Subdiv *subdiv,
-                                                             int ptex_face_index,
-                                                             int resolution,
-                                                             void *point_buffer,
-                                                             int point_offset,
-                                                             int point_stride,
-                                                             void *normal_buffer,
-                                                             int normal_offset,
-                                                             int normal_stride);
-
 #ifdef __cplusplus
 }
 #endif
