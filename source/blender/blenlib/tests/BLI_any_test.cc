@@ -53,8 +53,12 @@ TEST(any, AssignMap)
   EXPECT_EQ((b.get<Map<int, int>>().lookup(4)), 2);
 
   Any<> c = std::move(a);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wself-assign-overloaded"
+  /* Test valid state after self assignment. */
   c = c;
-  EXPECT_TRUE(b);
+#pragma clang diagnostic pop
+  EXPECT_TRUE(c);
   EXPECT_EQ((c.get<Map<int, int>>().lookup(4)), 2);
 
   EXPECT_TRUE((a.get<Map<int, int>>().is_empty())); /* NOLINT: bugprone-use-after-move */
