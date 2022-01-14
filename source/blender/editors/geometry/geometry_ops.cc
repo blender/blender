@@ -25,7 +25,7 @@
 
 #include "ED_geometry.h"
 
-#include "geometry_intern.h"
+#include "geometry_intern.hh"
 
 /**************************** registration **********************************/
 

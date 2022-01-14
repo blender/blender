@@ -35,14 +35,14 @@
 
 #include "ED_object.h"
 
-#include "geometry_intern.h"
+#include "geometry_intern.hh"
 
 /*********************** Attribute Operators ************************/
 
 static bool geometry_attributes_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
-  ID *data = (ob) ? ob->data : NULL;
+  ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
   return (ob && !ID_IS_LINKED(ob) && data && !ID_IS_LINKED(data)) &&
          BKE_id_attributes_supported(data);
 }
@@ -54,8 +54,8 @@ static bool geometry_attributes_remove_poll(bContext *C)
   }
 
   Object *ob = ED_object_context(C);
-  ID *data = (ob) ? ob->data : NULL;
-  if (BKE_id_attributes_active_get(data) != NULL) {
+  ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
+  if (BKE_id_attributes_active_get(data) != nullptr) {
     return true;
   }
 
@@ -67,22 +67,22 @@ static const EnumPropertyItem *geometry_attribute_domain_itemf(bContext *C,
                                                                PropertyRNA *UNUSED(prop),
                                                                bool *r_free)
 {
-  if (C == NULL) {
+  if (C == nullptr) {
     return DummyRNA_NULL_items;
   }
 
   Object *ob = ED_object_context(C);
-  if (ob == NULL) {
+  if (ob == nullptr) {
     return DummyRNA_NULL_items;
   }
 
-  return rna_enum_attribute_domain_itemf(ob->data, r_free);
+  return rna_enum_attribute_domain_itemf(static_cast<ID *>(ob->data), r_free);
 }
 
 static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
-  ID *id = ob->data;
+  ID *id = static_cast<ID *>(ob->data);
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
@@ -90,7 +90,7 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
   AttributeDomain domain = (AttributeDomain)RNA_enum_get(op->ptr, "domain");
   CustomDataLayer *layer = BKE_id_attribute_new(id, name, type, domain, op->reports);
 
-  if (layer == NULL) {
+  if (layer == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -144,10 +144,10 @@ void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
 static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
-  ID *id = ob->data;
+  ID *id = static_cast<ID *>(ob->data);
   CustomDataLayer *layer = BKE_id_attributes_active_get(id);
 
-  if (layer == NULL) {
+  if (layer == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
