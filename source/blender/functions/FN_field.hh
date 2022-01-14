@@ -308,7 +308,7 @@ struct FieldInputs {
  */
 class FieldContext {
  public:
-  ~FieldContext() = default;
+  virtual ~FieldContext() = default;
 
   virtual GVArray get_varray_for_input(const FieldInput &field_input,
                                        IndexMask mask,
