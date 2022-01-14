@@ -43,6 +43,10 @@ class AbstractTreeElement {
  public:
   virtual ~AbstractTreeElement() = default;
 
+  static std::unique_ptr<AbstractTreeElement> createFromType(int type,
+                                                             TreeElement &legacy_te,
+                                                             void *idv);
+
   /**
    * Check if the type is expandable in current context.
    */
@@ -63,7 +67,6 @@ class AbstractTreeElement {
     return true;
   }
 
-  friend void outliner_tree_element_type_free(AbstractTreeElement **tree_element);
   friend void tree_element_expand(const AbstractTreeElement &tree_element,
                                   SpaceOutliner &space_outliner);
 
@@ -96,8 +99,6 @@ struct TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                                          short index);
 
 void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner &space_outliner);
-AbstractTreeElement *outliner_tree_element_type_create(int type, TreeElement &legacy_te, void *idv);
-void outliner_tree_element_type_free(AbstractTreeElement **tree_element);
 
 /**
  * Get actual warning data of a tree element, if any.

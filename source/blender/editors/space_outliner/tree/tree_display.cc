@@ -27,45 +27,28 @@ using namespace blender::ed::outliner;
 
 namespace blender::ed::outliner {
 
-AbstractTreeDisplay *outliner_tree_display_create(int /*eSpaceOutliner_Mode*/ mode,
-                                                  SpaceOutliner *space_outliner)
+std::unique_ptr<AbstractTreeDisplay> AbstractTreeDisplay::createFromDisplayMode(
+    int /*eSpaceOutliner_Mode*/ mode, SpaceOutliner &space_outliner)
 {
-  AbstractTreeDisplay *tree_display = nullptr;
-
   switch ((eSpaceOutliner_Mode)mode) {
     case SO_SCENES:
-      tree_display = new TreeDisplayScenes(*space_outliner);
-      break;
+      return std::make_unique<TreeDisplayScenes>(space_outliner);
     case SO_LIBRARIES:
-      tree_display = new TreeDisplayLibraries(*space_outliner);
-      break;
+      return std::make_unique<TreeDisplayLibraries>(space_outliner);
     case SO_SEQUENCE:
-      tree_display = new TreeDisplaySequencer(*space_outliner);
-      break;
+      return std::make_unique<TreeDisplaySequencer>(space_outliner);
     case SO_DATA_API:
-      tree_display = new TreeDisplayDataAPI(*space_outliner);
-      break;
+      return std::make_unique<TreeDisplayDataAPI>(space_outliner);
     case SO_ID_ORPHANS:
-      tree_display = new TreeDisplayIDOrphans(*space_outliner);
-      break;
+      return std::make_unique<TreeDisplayIDOrphans>(space_outliner);
     case SO_OVERRIDES_LIBRARY:
-      tree_display = new TreeDisplayOverrideLibrary(*space_outliner);
-      break;
+      return std::make_unique<TreeDisplayOverrideLibrary>(space_outliner);
     case SO_VIEW_LAYER:
       /* FIXME(Julian): this should not be the default! Return nullptr and handle that as valid
        * case. */
     default:
-      tree_display = new TreeDisplayViewLayer(*space_outliner);
-      break;
+      return std::make_unique<TreeDisplayViewLayer>(space_outliner);
   }
-
-  return tree_display;
-}
-
-void outliner_tree_display_destroy(AbstractTreeDisplay **tree_display)
-{
-  delete *tree_display;
-  *tree_display = nullptr;
 }
 
 bool AbstractTreeDisplay::hasWarnings() const

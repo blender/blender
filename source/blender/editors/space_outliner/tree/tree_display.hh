@@ -73,6 +73,9 @@ class AbstractTreeDisplay {
   }
   virtual ~AbstractTreeDisplay() = default;
 
+  static std::unique_ptr<AbstractTreeDisplay> createFromDisplayMode(
+      int /*eSpaceOutliner_Mode*/ mode, SpaceOutliner &space_outliner);
+
   /**
    * Build a tree for this display mode with the Blender context data given in \a source_data and
    * the view settings in \a space_outliner.
@@ -88,10 +91,6 @@ class AbstractTreeDisplay {
   /** All derived classes will need a handle to this, so storing it in the base for convenience. */
   SpaceOutliner &space_outliner_;
 };
-
-AbstractTreeDisplay *outliner_tree_display_create(int /*eSpaceOutliner_Mode*/ mode,
-                                                  SpaceOutliner *space_outliner);
-void outliner_tree_display_destroy(AbstractTreeDisplay **tree_display);
 
 /* -------------------------------------------------------------------- */
 /* View Layer Tree-Display */

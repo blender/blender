@@ -217,7 +217,7 @@ void outliner_free_tree_element(TreeElement *element, ListBase *parent_subtree)
   if (element->flag & TE_FREE_NAME) {
     MEM_freeN((void *)element->name);
   }
-  outliner_tree_element_type_free(&element->type);
+  element->type = nullptr;
   MEM_freeN(element);
 }
 
@@ -862,7 +862,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
 
   /* New C++ based type handle. Only some support this, eventually this should replace
    * `TreeElement` entirely. */
-  te->type = outliner_tree_element_type_create(type, *te, idv);
+  te->type = AbstractTreeElement::createFromType(type, *te, idv);
   if (te->type) {
     /* Element types ported to the new design are expected to have their name set at this point! */
     BLI_assert(te->name != nullptr);
@@ -1880,10 +1880,9 @@ void outliner_build_tree(Main *mainvar,
 
   outliner_free_tree(&space_outliner->tree);
   outliner_storage_cleanup(space_outliner);
-  outliner_tree_display_destroy(&space_outliner->runtime->tree_display);
 
-  space_outliner->runtime->tree_display = outliner_tree_display_create(space_outliner->outlinevis,
-                                                                       space_outliner);
+  space_outliner->runtime->tree_display = AbstractTreeDisplay::createFromDisplayMode(
+      space_outliner->outlinevis, *space_outliner);
 
   /* All tree displays should be created as sub-classes of AbstractTreeDisplay. */
   BLI_assert(space_outliner->runtime->tree_display != nullptr);

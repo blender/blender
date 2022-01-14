@@ -41,7 +41,9 @@
 
 namespace blender::ed::outliner {
 
-AbstractTreeElement *outliner_tree_element_type_create(int type, TreeElement &legacy_te, void *idv)
+std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const int type,
+                                                                         TreeElement &legacy_te,
+                                                                         void *idv)
 {
   ID &id = *static_cast<ID *>(idv);
 
@@ -61,39 +63,34 @@ AbstractTreeElement *outliner_tree_element_type_create(int type, TreeElement &le
     case TSE_SOME_ID:
       return TreeElementID::createFromID(legacy_te, id);
     case TSE_ANIM_DATA:
-      return new TreeElementAnimData(legacy_te, *reinterpret_cast<IdAdtTemplate &>(id).adt);
+      return std::make_unique<TreeElementAnimData>(legacy_te,
+                                                   *reinterpret_cast<IdAdtTemplate &>(id).adt);
     case TSE_DRIVER_BASE:
-      return new TreeElementDriverBase(legacy_te, *static_cast<AnimData *>(idv));
+      return std::make_unique<TreeElementDriverBase>(legacy_te, *static_cast<AnimData *>(idv));
     case TSE_NLA:
-      return new TreeElementNLA(legacy_te, *static_cast<AnimData *>(idv));
+      return std::make_unique<TreeElementNLA>(legacy_te, *static_cast<AnimData *>(idv));
     case TSE_NLA_TRACK:
-      return new TreeElementNLATrack(legacy_te, *static_cast<NlaTrack *>(idv));
+      return std::make_unique<TreeElementNLATrack>(legacy_te, *static_cast<NlaTrack *>(idv));
     case TSE_NLA_ACTION:
-      return new TreeElementNLAAction(legacy_te, *static_cast<bAction *>(idv));
+      return std::make_unique<TreeElementNLAAction>(legacy_te, *static_cast<bAction *>(idv));
     case TSE_GP_LAYER:
-      return new TreeElementGPencilLayer(legacy_te, *static_cast<bGPDlayer *>(idv));
+      return std::make_unique<TreeElementGPencilLayer>(legacy_te, *static_cast<bGPDlayer *>(idv));
     case TSE_R_LAYER_BASE:
-      return new TreeElementViewLayerBase(legacy_te, *static_cast<Scene *>(idv));
+      return std::make_unique<TreeElementViewLayerBase>(legacy_te, *static_cast<Scene *>(idv));
     case TSE_SCENE_COLLECTION_BASE:
-      return new TreeElementCollectionBase(legacy_te, *static_cast<Scene *>(idv));
+      return std::make_unique<TreeElementCollectionBase>(legacy_te, *static_cast<Scene *>(idv));
     case TSE_SCENE_OBJECTS_BASE:
-      return new TreeElementSceneObjectsBase(legacy_te, *static_cast<Scene *>(idv));
+      return std::make_unique<TreeElementSceneObjectsBase>(legacy_te, *static_cast<Scene *>(idv));
     case TSE_LIBRARY_OVERRIDE_BASE:
-      return new TreeElementOverridesBase(legacy_te, id);
+      return std::make_unique<TreeElementOverridesBase>(legacy_te, id);
     case TSE_LIBRARY_OVERRIDE:
-      return new TreeElementOverridesProperty(legacy_te,
-                                              *static_cast<TreeElementOverridesData *>(idv));
+      return std::make_unique<TreeElementOverridesProperty>(
+          legacy_te, *static_cast<TreeElementOverridesData *>(idv));
     default:
       break;
   }
 
   return nullptr;
-}
-
-void outliner_tree_element_type_free(AbstractTreeElement **tree_element)
-{
-  delete *tree_element;
-  *tree_element = nullptr;
 }
 
 void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner &space_outliner)

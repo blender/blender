@@ -367,7 +367,7 @@ static void outliner_free(SpaceLink *sl)
   }
 
   if (space_outliner->runtime) {
-    outliner_tree_display_destroy(&space_outliner->runtime->tree_display);
+    space_outliner->runtime->tree_display = nullptr;
     if (space_outliner->runtime->treehash) {
       BKE_outliner_treehash_free(space_outliner->runtime->treehash);
     }
