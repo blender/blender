@@ -2054,33 +2054,6 @@ Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
 
 /***/
 
-Mesh *editbmesh_get_eval_cage_and_final(Depsgraph *depsgraph,
-                                        Scene *scene,
-                                        Object *obedit,
-                                        BMEditMesh *em,
-                                        const CustomData_MeshMasks *dataMask,
-                                        /* return args */
-                                        Mesh **r_final)
-{
-  CustomData_MeshMasks cddata_masks = *dataMask;
-
-  /* if there's no derived mesh or the last data mask used doesn't include
-   * the data we need, rebuild the derived mesh
-   */
-  object_get_datamask(depsgraph, obedit, &cddata_masks, nullptr);
-
-  if (!em->mesh_eval_cage ||
-      !CustomData_MeshMasks_are_matching(&(em->lastDataMask), &cddata_masks)) {
-    editbmesh_build_data(depsgraph, scene, obedit, em, &cddata_masks);
-  }
-
-  *r_final = em->mesh_eval_final;
-  if (em->mesh_eval_final) {
-    BLI_assert(!(em->mesh_eval_final->runtime.cd_dirty_vert & DM_DIRTY_NORMALS));
-  }
-  return em->mesh_eval_cage;
-}
-
 Mesh *editbmesh_get_eval_cage(struct Depsgraph *depsgraph,
                               Scene *scene,
                               Object *obedit,
