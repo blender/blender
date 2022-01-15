@@ -648,6 +648,9 @@ endif()
 # ----------------------------------------------------------------------------
 # Compilers
 
+# Only set the linker once.
+set(_IS_LINKER_DEFAULT ON)
+
 # GNU Compiler
 if(CMAKE_COMPILER_IS_GNUCC)
   # ffp-contract=off:
@@ -666,43 +669,15 @@ if(CMAKE_COMPILER_IS_GNUCC)
   string(PREPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GCC_EXTRA_FLAGS_RELEASE} ")
   unset(GCC_EXTRA_FLAGS_RELEASE)
 
-  if(WITH_LINKER_GOLD)
-    execute_process(
-      COMMAND ${CMAKE_C_COMPILER} -fuse-ld=gold -Wl,--version
-      ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
-    if("${LD_VERSION}" MATCHES "GNU gold")
-      string(APPEND CMAKE_EXE_LINKER_FLAGS " -fuse-ld=gold")
-      string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=gold")
-      string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=gold")
-    else()
-      message(STATUS "GNU gold linker isn't available, using the default system linker.")
-    endif()
-    unset(LD_VERSION)
-  endif()
-
-  if(WITH_LINKER_LLD)
-    execute_process(
-      COMMAND ${CMAKE_C_COMPILER} -fuse-ld=lld -Wl,--version
-      ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
-    if("${LD_VERSION}" MATCHES "LLD")
-      string(APPEND CMAKE_EXE_LINKER_FLAGS " -fuse-ld=lld")
-      string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=lld")
-      string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=lld")
-    else()
-      message(STATUS "LLD linker isn't available, using the default system linker.")
-    endif()
-    unset(LD_VERSION)
-  endif()
-
   # NOTE(@campbellbarton): Eventually mold will be able to use `-fuse-ld=mold`,
   # however at the moment this only works for GCC 12.1+ (unreleased at time of writing).
   # So a workaround is used here "-B" which points to another path to find system commands
   # such as `ld`.
-  if(WITH_LINKER_MOLD)
+  if(WITH_LINKER_MOLD AND _IS_LINKER_DEFAULT)
     find_program(MOLD_BIN "mold")
     mark_as_advanced(MOLD_BIN)
     if(NOT MOLD_BIN)
-      message(STATUS "The \"mold\" binary could not be found, using system linker!")
+      message(STATUS "The \"mold\" binary could not be found, using system linker.")
       set(WITH_LINKER_MOLD OFF)
     else()
       # By default mold installs the binary to:
@@ -732,7 +707,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
       if(NOT MOLD_BIN_DIR)
         message(STATUS
           "The mold linker could not find the directory containing the linker command "
-          "(typically \"${MOLD_PREFIX}/lib/mold\"), using system linker!")
+          "(typically \"${MOLD_PREFIX}/lib/mold\"), using system linker.")
         set(WITH_LINKER_MOLD OFF)
       endif()
       unset(MOLD_PREFIX)
@@ -740,35 +715,68 @@ if(CMAKE_COMPILER_IS_GNUCC)
 
     if(WITH_LINKER_MOLD)
       # GCC will search for `ld` in this directory first.
-      string(APPEND CMAKE_EXE_LINKER_FLAGS " -B \"${MOLD_BIN_DIR}\"")
+      string(APPEND CMAKE_EXE_LINKER_FLAGS    " -B \"${MOLD_BIN_DIR}\"")
       string(APPEND CMAKE_SHARED_LINKER_FLAGS " -B \"${MOLD_BIN_DIR}\"")
       string(APPEND CMAKE_MODULE_LINKER_FLAGS " -B \"${MOLD_BIN_DIR}\"")
+      set(_IS_LINKER_DEFAULT OFF)
     endif()
     unset(MOLD_BIN)
     unset(MOLD_BIN_DIR)
+  endif()
+
+  if(WITH_LINKER_GOLD AND _IS_LINKER_DEFAULT)
+    execute_process(
+      COMMAND ${CMAKE_C_COMPILER} -fuse-ld=gold -Wl,--version
+      ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
+    if("${LD_VERSION}" MATCHES "GNU gold")
+      string(APPEND CMAKE_EXE_LINKER_FLAGS    " -fuse-ld=gold")
+      string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=gold")
+      string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=gold")
+      set(_IS_LINKER_DEFAULT OFF)
+    else()
+      message(STATUS "GNU gold linker isn't available, using the default system linker.")
+    endif()
+    unset(LD_VERSION)
+  endif()
+
+  if(WITH_LINKER_LLD AND _IS_LINKER_DEFAULT)
+    execute_process(
+      COMMAND ${CMAKE_C_COMPILER} -fuse-ld=lld -Wl,--version
+      ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
+    if("${LD_VERSION}" MATCHES "LLD")
+      string(APPEND CMAKE_EXE_LINKER_FLAGS    " -fuse-ld=lld")
+      string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=lld")
+      string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=lld")
+      set(_IS_LINKER_DEFAULT OFF)
+    else()
+      message(STATUS "LLD linker isn't available, using the default system linker.")
+    endif()
+    unset(LD_VERSION)
   endif()
 
 # CLang is the same as GCC for now.
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 
-  if(WITH_LINKER_MOLD)
+  if(WITH_LINKER_MOLD AND _IS_LINKER_DEFAULT)
     find_program(MOLD_BIN "mold")
     mark_as_advanced(MOLD_BIN)
     if(NOT MOLD_BIN)
-      message(STATUS "The \"mold\" binary could not be found, using system linker!")
+      message(STATUS "The \"mold\" binary could not be found, using system linker.")
       set(WITH_LINKER_MOLD OFF)
     else()
       if(CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 12.0)
-        string(APPEND CMAKE_EXE_LINKER_FLAGS " --ld-path=\"${MOLD_BIN}\"")
+        string(APPEND CMAKE_EXE_LINKER_FLAGS    " --ld-path=\"${MOLD_BIN}\"")
         string(APPEND CMAKE_SHARED_LINKER_FLAGS " --ld-path=\"${MOLD_BIN}\"")
         string(APPEND CMAKE_MODULE_LINKER_FLAGS " --ld-path=\"${MOLD_BIN}\"")
       else()
-        string(APPEND CMAKE_EXE_LINKER_FLAGS " -fuse-ld=\"${MOLD_BIN}\"")
+        string(APPEND CMAKE_EXE_LINKER_FLAGS    " -fuse-ld=\"${MOLD_BIN}\"")
         string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=\"${MOLD_BIN}\"")
         string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=\"${MOLD_BIN}\"")
       endif()
+      set(_IS_LINKER_DEFAULT OFF)
     endif()
+    unset(MOLD_BIN)
   endif()
 
 # Intel C++ Compiler
@@ -793,6 +801,8 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
   set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
   string(APPEND PLATFORM_LINKFLAGS " -static-intel")
 endif()
+
+unset(_IS_LINKER_DEFAULT)
 
 # Avoid conflicts with Mesa llvmpipe, Luxrender, and other plug-ins that may
 # use the same libraries as Blender with a different version or build options.
