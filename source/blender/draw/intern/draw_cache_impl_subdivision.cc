@@ -955,7 +955,8 @@ static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
                                     const SubsurfModifierData *smd,
                                     const bool is_final_render)
 {
-  const int level = get_render_subsurf_level(&scene->r, smd->levels, is_final_render);
+  const int requested_levels = (is_final_render) ? smd->renderLevels : smd->levels;
+  const int level = get_render_subsurf_level(&scene->r, requested_levels, is_final_render);
   SubdivToMeshSettings to_mesh_settings;
   to_mesh_settings.resolution = (1 << level) + 1;
   to_mesh_settings.use_optimal_display = false;
