@@ -5162,6 +5162,7 @@ static bool brush_uses_commandlist(Brush *brush, int tool)
     case SCULPT_TOOL_FILL:
     case SCULPT_TOOL_BLOB:
     case SCULPT_TOOL_FLATTEN:
+    case SCULPT_TOOL_SCRAPE:
     case SCULPT_TOOL_GRAB:
     case SCULPT_TOOL_LAYER:
     case SCULPT_TOOL_DRAW_FACE_SETS:
