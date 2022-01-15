@@ -33,6 +33,25 @@ builtin_channel_categories = ["Cloth Tool",
     "Stroke",
     "Automasking"]
 
+channel_name_map = {
+    "size": "radius",
+    "autosmooth_fset_slide": "fset_slide",
+    "auto_smooth_factor": "autosmooth",
+    "auto_smooth_projection": "autosmooth_projection",
+    "auto_smooth_radius_factor": "autosmooth_radius_scale",
+    "boundary_smooth_factor": "boundary_smooth",
+    "autosmooth_fset_slide": "fset_slide",
+    "topology_rake_factor": "topology_rake",
+    "use_locked_size": "radius_unit",
+    "use_cloth_collision" : "cloth_use_collision",
+    "use_accumulate" : "accumulate"
+}
+expand_channels = {"direction", "radius_unit", "automasking"}
+name_channel_map = {}
+
+for k, v in channel_name_map.items():
+    name_channel_map[v] = k
+
 class DynamicBrushCategoryPanel(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -258,21 +277,6 @@ for cat in builtin_channel_categories:
     DynamicPaintPanelGen.ensureCategory(cat, cat,  prefix="VIEW3D_PT_brush_category_edit_",
                                 parent="VIEW3D_PT_tools_brush_settings_channels_preview").insertEachAfter(insertAfters)
 
-channel_name_map = {
-    "size": "radius",
-    "autosmooth_fset_slide": "fset_slide",
-    "auto_smooth_factor": "autosmooth",
-    "auto_smooth_projection": "autosmooth_projection",
-    "auto_smooth_radius_factor": "autosmooth_radius_scale",
-    "boundary_smooth_factor": "boundary_smooth",
-    "autosmooth_fset_slide": "fset_slide",
-    "topology_rake_factor": "topology_rake",
-    "use_locked_size": "radius_unit",
-    "use_cloth_collision" : "cloth_use_collision"
-}
-expand_channels = {"direction", "radius_unit", "automasking"}
-
-
 def template_curve(layout, base, propname, full_path, use_negative_slope=None):
     layout.template_curve_mapping(base, propname, brush=True, use_negative_slope=use_negative_slope)
 
@@ -447,6 +451,9 @@ class UnifiedPaintPanel:
             show_mappings = True
 
         if context.mode != "SCULPT":
+            if prop_name in name_channel_map:
+                prop_name = name_channel_map[prop_name]
+
             return UnifiedPaintPanel.prop_unified(layout, context, brush, prop_name, icon=icon, text=text, slider=slider, header=header, expand=expand)
 
         if prop_name == "size":
@@ -1252,17 +1259,17 @@ def brush_settings(layout, context, brush, popover=False):
 
     mode = UnifiedPaintPanel.get_brush_mode(context)
 
-    layout.prop(context.tool_settings.unified_paint_settings, "brush_editor_mode")
-    layout.prop(context.tool_settings.unified_paint_settings, "brush_editor_advanced")
-
-    advanced = context.tool_settings.unified_paint_settings.brush_editor_advanced
-    editor = context.tool_settings.unified_paint_settings.brush_editor_mode
-
     ### Draw simple settings unique to each paint mode.  ###
     brush_shared_settings(layout, context, brush, popover)
 
     # Sculpt Mode #
     if mode == 'SCULPT':
+        layout.prop(context.tool_settings.unified_paint_settings, "brush_editor_mode")
+        layout.prop(context.tool_settings.unified_paint_settings, "brush_editor_advanced")
+
+        advanced = context.tool_settings.unified_paint_settings.brush_editor_advanced
+        editor = context.tool_settings.unified_paint_settings.brush_editor_mode
+
         capabilities = brush.sculpt_capabilities
         sculpt_tool = brush.sculpt_tool
 
@@ -2080,13 +2087,6 @@ def brush_settings_advanced(layout, context, brush, popover=False):
     """Draw advanced brush settings for Sculpt, Texture/Vertex/Weight Paint modes."""
 
     mode = UnifiedPaintPanel.get_brush_mode(context)
-
-    # In the popover we want to combine advanced brush settings with
-    # non-advanced brush settings.
-    if popover:
-        brush_settings(layout, context, brush, popover=True)
-        layout.separator()
-        layout.label(text="Advanced")
 
     # These options are shared across many modes.
     use_accumulate = False

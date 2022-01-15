@@ -1795,6 +1795,13 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
   PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
 
+  if (BKE_pbvh_type(pbvh) == PBVH_FACES) {
+    ss->vert_normals = BKE_pbvh_get_vert_normals(ss->pbvh);
+  }
+  else {
+    ss->vert_normals = NULL;
+  }
+
   BLI_assert(pbvh == ss->pbvh);
   UNUSED_VARS_NDEBUG(pbvh);
 

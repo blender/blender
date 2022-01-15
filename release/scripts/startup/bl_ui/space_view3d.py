@@ -76,7 +76,10 @@ class VIEW3D_HT_tool_header(Header):
                 is_valid_context = draw_fn(context, layout, tool)
 
         def draw_3d_brush_settings(layout, tool_mode):
-            layout.popover("VIEW3D_PT_tools_brush_settings_channels", text="Brush")
+            if tool_mode == "SCULPT":
+                layout.popover("VIEW3D_PT_tools_brush_settings_channels", text="Brush")
+            else:
+                layout.popover("VIEW3D_PT_tools_brush_settings", text="Brush")
 
             if tool_mode not in ('PAINT_WEIGHT', 'SCULPT'):
                 layout.popover("VIEW3D_PT_tools_brush_texture")

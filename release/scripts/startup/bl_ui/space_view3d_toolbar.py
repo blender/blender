@@ -397,7 +397,6 @@ class VIEW3D_PT_tools_brush_settings(Panel, View3DPaintBrushPanel):
 
         brush_settings(layout.column(), context, brush, popover=self.is_popover)
 
-
 class VIEW3D_PT_tools_brush_settings_channels(Panel, View3DPaintBrushPanel):
     bl_context = ".paint_common"
     bl_label = "Brush Settings"
@@ -451,13 +450,44 @@ class VIEW3D_PT_tools_brush_settings_channels_preview(Panel, View3DPaintBrushPan
                                 prefix="VIEW3D_PT_brush_category_edit_",
                                 parent="VIEW3D_PT_tools_brush_settings_channels_preview")
 
-
 class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
     bl_context = ".brush_editor"
+    bl_parent_id = "VIEW3D_PT_tools_brush_settings"
+    bl_label = "Advanced"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 14
+
+    @classmethod
+    def poll(cls, context):
+        if context.mode == 'SCULPT':
+          return False
+
+        return View3DPaintBrushPanel.poll(cls, context)
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        settings = UnifiedPaintPanel.paint_settings(context)
+        brush = settings.brush
+
+        brush_settings_advanced(layout.column(), context, brush, self.is_popover)
+
+class VIEW3D_PT_tools_brush_settings_advanced_sculpt(Panel, View3DPaintBrushPanel):
+    bl_context = ".paint_common"
     #bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Advanced"
     bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x = 14
+
+    @classmethod
+    def poll(cls, context):
+        if context.mode != 'SCULPT':
+          return False
+
+        return View3DPaintBrushPanel.poll(cls, context)
 
     def draw(self, context):
         layout = self.layout
@@ -2745,6 +2775,7 @@ classes = (VIEW3D_MT_brush_context_menu,
     VIEW3D_PT_tools_brush_color,
     VIEW3D_PT_tools_brush_swatches,
     VIEW3D_PT_tools_brush_settings_advanced,
+    VIEW3D_PT_tools_brush_settings_advanced_sculpt,
     VIEW3D_PT_tools_brush_clone,
     TEXTURE_UL_texpaintslots,
     VIEW3D_MT_tools_projectpaint_uvlayer,
