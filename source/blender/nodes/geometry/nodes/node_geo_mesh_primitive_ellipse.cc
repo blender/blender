@@ -35,27 +35,63 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(32)
       .min(3)
       .description(N_("Number of vertices on the ellipse"));
-  b.add_input<decl::Float>(N_("Minor Radius"))
-      .default_value(0.5f)
-      .min(0.0f)
-      .subtype(PROP_DISTANCE)
-      .description(N_("Semi minor axis distance"));
+
   b.add_input<decl::Float>(N_("Major Radius"))
       .default_value(1.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("Semi major axis distance"));
+      .description(N_("Semi-major axis distance"));
+
+  b.add_input<decl::Float>(N_("Minor Radius"))
+      .default_value(0.8f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("Semi-minor axis distance"));
+
+  b.add_input<decl::Float>(N_("Eccentricity"))
+      .default_value(0.6f)
+      .min(0.0f)
+      .max(1.0f)
+      .description(N_("Eccentricity"));
+  
+  b.add_input<decl::Float>(N_("Focal Length"))
+      .default_value(0.6f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .description(N_("Focal Length"));
+
   b.add_input<decl::Float>(N_("Phase"))
       .default_value(0.0f)
       .description(N_("Phase"));
+
   b.add_input<decl::Float>(N_("Rotation"))
       .default_value(0.0f)
       .description(N_("Rotation around the centering point"));
+
   b.add_input<decl::Float>(N_("Scale"))
       .default_value(1.0f)
       .min(0.0f)
       .description(N_("Scale the minor and major radii"));
+
+  b.add_input<decl::Float>(N_("Exponent X"))
+      .default_value(2.0f)
+      .min(0.0f)
+      .description(N_("Exponent X : modulates curve along X direction"));
+
+  b.add_input<decl::Float>(N_("Exponent Y"))
+      .default_value(2.0f)
+      .min(0.0f)
+      .description(N_("Exponent Y : modulates curve along Y direction"));
+
   b.add_output<decl::Geometry>(N_("Mesh"));
+
+  b.add_output<decl::Vector>(N_("Focus 1"))
+      .subtype(PROP_TRANSLATION)
+      .description(N_("Location of the focus point 1"));
+
+  b.add_output<decl::Vector>(N_("Focus 2"))
+      .subtype(PROP_TRANSLATION)
+      .description(N_("Location of the focus point 2"));
 }
 
 static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -77,6 +113,38 @@ static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 
   node->storage = node_storage;
 }
+
+
+static void node_update(bNodeTree *ntree, bNode *node)
+{
+  bNodeSocket *vertices_socket = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *major_radius_socket = vertices_socket->next;
+  bNodeSocket *minor_radius_socket = major_radius_socket->next;
+  bNodeSocket *eccentricity_socket = minor_radius_socket->next;
+  bNodeSocket *focal_length_socket = eccentricity_socket->next;
+
+  const NodeGeometryMeshEllipse &storage = node_storage(*node);
+  const GeometryNodeMeshEllipseFillType fill = (GeometryNodeMeshEllipseFillType)storage.fill_type;
+  const GeometryNodeMeshEllipseDefinitionMode definition = (GeometryNodeMeshEllipseDefinitionMode)storage.definition_mode;
+  const GeometryNodeMeshEllipseCenteringMode centering = (GeometryNodeMeshEllipseCenteringMode)storage.centering_mode;
+
+  // node_sock_label(end_and_offset_socket,
+  //                 (mode == GEO_NODE_MESH_LINE_MODE_END_POINTS) ? N_("End Location") :
+  //                                                                N_("Offset"));
+
+  nodeSetSocketAvailability(ntree,
+                            minor_radius_socket,
+                            definition == GEO_NODE_MESH_ELLIPSE_DEFINITION_MINOR_MAJOR);
+                            
+  nodeSetSocketAvailability(ntree,
+                            eccentricity_socket,
+                            definition == GEO_NODE_MESH_ELLIPSE_DEFINITION_MAJOR_ECCENTRICITY);
+  
+  nodeSetSocketAvailability(ntree,
+                            focal_length_socket,
+                            definition == GEO_NODE_MESH_ELLIPSE_DEFINITION_MAJOR_FOCAL);
+}
+
 
 static int ellipse_vert_total(const GeometryNodeMeshEllipseFillType fill_type, const int verts_num)
 {
@@ -132,14 +200,24 @@ static int ellipse_face_total(const GeometryNodeMeshEllipseFillType fill_type, c
   return 0;
 }
 
-static Mesh *create_ellipse_mesh(const float minor_radius,
-                                 const float major_radius,
+float sign(float x)
+{ 
+  return (x > 0) ? 1 : ((x < 0) ? -1 : 0);
+}
+
+static Mesh *create_ellipse_mesh(const float major_radius,
+                                 const float minor_radius,
                                  const float rotation,
                                  const float phase,
                                  const float scale,
+                                 const float exponent_x,
+                                 const float exponent_y,
                                  const int verts_num,
                                  const GeometryNodeMeshEllipseCenteringMode centering_mode,
-                                 const GeometryNodeMeshEllipseFillType fill_type)
+                                 const GeometryNodeMeshEllipseFillType fill_type,
+                                 float3 &focus1,
+                                 float3 &focus2
+                                 )
 {
   Mesh *mesh = BKE_mesh_new_nomain(ellipse_vert_total(fill_type, verts_num),
                                    ellipse_edge_total(fill_type, verts_num),
@@ -184,13 +262,32 @@ static Mesh *create_ellipse_mesh(const float minor_radius,
 
   float sins = std::sin(rotation);  // cached for performance
   float coss = std::cos(rotation);  // cached for performance
-        
+
+  // locations of the focal points of the centered and rotated ellipse
+  float f1x = -cx - dx;
+  float f1y = -cy - dy;
+  float f2x = -cx + dx;
+  float f2y = -cy + dy;
+  float f1xx = f1x * coss - f1y * sins;
+  float f1yy = f1x * sins + f1y * coss;
+  float f2xx = f2x * coss - f2y * sins;
+  float f2yy = f2x * sins + f2y * coss;
+
+  focus1 = float3(f1xx, f1yy, 0);
+  focus2 = float3(f2xx, f2yy, 0);
+
+  const float epsilon = 1e-10; // used to eliminate division by zero
+  float exx = 2.0 / (exponent_x + epsilon);
+  float eyy = 2.0 / (exponent_y + epsilon);
+
   /* Assign vertex coordinates. */
   const float angle_delta = 2.0f * (M_PI / static_cast<float>(verts_num));
   for (const int i : IndexRange(verts_num)) {
     const float angle = i * angle_delta + phase;
-    float x = cx + std::cos(angle) * rx;
-    float y = cy + std::sin(angle) * ry;
+    float cosa = cos(angle);
+    float sina = sin(angle);
+    float x = -cx + rx * std::pow(abs(cosa), exx) * sign(cosa);
+    float y = -cy + ry * std::pow(abs(sina), eyy) * sign(sina);
     float xx = x * coss - y * sins;
     float yy = x * sins + y * coss;
 
@@ -267,22 +364,63 @@ static void node_geo_exec(GeoNodeExecParams params)
   const GeometryNodeMeshEllipseDefinitionMode definition = (GeometryNodeMeshEllipseDefinitionMode)storage.definition_mode;
   const GeometryNodeMeshEllipseCenteringMode centering = (GeometryNodeMeshEllipseCenteringMode)storage.centering_mode;
 
-  const float radius1 = params.extract_input<float>("Minor Radius");
-  const float radius2 = params.extract_input<float>("Major Radius");
-  const float rotation = params.extract_input<float>("Rotation");
-  const float phase = params.extract_input<float>("Phase");
-  const float scale = params.extract_input<float>("Scale");
+  float major_radius = params.extract_input<float>("Major Radius");
+  float minor_radius = 0.0f;
 
-  const int verts_num = params.extract_input<int>("Vertices");
-  if (verts_num < 3) {
-    params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 3"));
-    params.set_default_remaining_outputs();
-    return;
+  if (definition == GEO_NODE_MESH_ELLIPSE_DEFINITION_MINOR_MAJOR)
+  {
+    minor_radius = params.extract_input<float>("Minor Radius");
+  }
+  else if (definition == GEO_NODE_MESH_ELLIPSE_DEFINITION_MAJOR_ECCENTRICITY)
+  {
+    float eccentricity = params.extract_input<float>("Eccentricity");
+    eccentricity = std::max(0.0f, std::min(eccentricity, 1.0f));
+    minor_radius = major_radius * sqrtf(1.0f - eccentricity * eccentricity);
+  }
+  else if (definition == GEO_NODE_MESH_ELLIPSE_DEFINITION_MAJOR_FOCAL)
+  {
+    float focal_length = params.extract_input<float>("Focal Length");
+    focal_length = std::min(major_radius, focal_length);
+    minor_radius = sqrtf(major_radius * major_radius - focal_length * focal_length);
+  }
+  else
+  {
+    // TODO: add something here (undefined)
   }
 
-  Mesh *mesh = create_ellipse_mesh(radius1, radius2, rotation, phase, scale, verts_num, centering, fill);
+  int verts_num = params.extract_input<int>("Vertices");
+  float rotation = params.extract_input<float>("Rotation");
+  float phase = params.extract_input<float>("Phase");
+  float scale = params.extract_input<float>("Scale");
+  float exponent_x = params.extract_input<float>("Exponent X");
+  float exponent_y = params.extract_input<float>("Exponent Y");
+
+  // sanitize the inputs
+  verts_num = std::max(3, verts_num);
+  scale = std::max(0.0f, scale);
+  exponent_x = std::max(0.0f, exponent_x);
+  exponent_y = std::max(0.0f, exponent_y);
+
+  float3 f1;
+  float3 f2;
+
+  Mesh *mesh = create_ellipse_mesh(major_radius,
+                                   minor_radius, 
+                                   rotation, 
+                                   phase, 
+                                   scale, 
+                                   exponent_x,
+                                   exponent_y,
+                                   verts_num, 
+                                   centering, 
+                                   fill,
+                                   f1,
+                                   f2
+                                   );
 
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Focus 1", f1);
+  params.set_output("Focus 2", f2);
 }
 
 }  // namespace blender::nodes::node_geo_mesh_primitive_ellipse_cc
@@ -296,6 +434,7 @@ void register_node_type_geo_mesh_primitive_ellipse()
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_ELLIPSE, "Mesh Ellipse", NODE_CLASS_GEOMETRY);
   node_type_init(&ntype, file_ns::node_init);
   node_type_storage(&ntype, "NodeGeometryMeshEllipse", node_free_standard_storage, node_copy_standard_storage);
+  node_type_update(&ntype, file_ns::node_update);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
   ntype.declare = file_ns::node_declare;
