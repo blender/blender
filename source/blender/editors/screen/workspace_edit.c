@@ -495,7 +495,7 @@ static void WORKSPACE_OT_reorder_to_back(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Workspace Reorder to Back";
-  ot->description = "Reorder workspace to be first in the list";
+  ot->description = "Reorder workspace to be last in the list";
   ot->idname = "WORKSPACE_OT_reorder_to_back";
 
   /* api callbacks */
