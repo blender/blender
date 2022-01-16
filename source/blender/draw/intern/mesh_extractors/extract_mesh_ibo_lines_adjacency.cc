@@ -218,6 +218,24 @@ static void extract_lines_adjacency_iter_subdiv(const DRWSubdivCache *subdiv_cac
   lines_adjacency_triangle(v0, v2, v3, l0, l2, l3, data);
 }
 
+static void extract_lines_adjacency_iter_subdiv_bm(const DRWSubdivCache *subdiv_cache,
+                                                   const MeshRenderData *mr,
+                                                   void *_data,
+                                                   uint subdiv_quad_index,
+                                                   const BMFace *UNUSED(coarse_quad))
+{
+  extract_lines_adjacency_iter_subdiv(subdiv_cache, mr, _data, subdiv_quad_index);
+}
+
+static void extract_lines_adjacency_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cache,
+                                                     const MeshRenderData *mr,
+                                                     void *_data,
+                                                     uint subdiv_quad_index,
+                                                     const MPoly *UNUSED(coarse_quad))
+{
+  extract_lines_adjacency_iter_subdiv(subdiv_cache, mr, _data, subdiv_quad_index);
+}
+
 static void extract_lines_adjacency_finish_subdiv(const DRWSubdivCache *UNUSED(subdiv_cache),
                                                   const MeshRenderData *mr,
                                                   struct MeshBatchCache *cache,
@@ -237,7 +255,8 @@ constexpr MeshExtract create_extractor_lines_adjacency()
   extractor.iter_looptri_mesh = extract_lines_adjacency_iter_looptri_mesh;
   extractor.finish = extract_lines_adjacency_finish;
   extractor.init_subdiv = extract_lines_adjacency_init_subdiv;
-  extractor.iter_subdiv = extract_lines_adjacency_iter_subdiv;
+  extractor.iter_subdiv_bm = extract_lines_adjacency_iter_subdiv_bm;
+  extractor.iter_subdiv_mesh = extract_lines_adjacency_iter_subdiv_mesh;
   extractor.finish_subdiv = extract_lines_adjacency_finish_subdiv;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_LineAdjacency_Data);

@@ -261,22 +261,21 @@ static void extract_edit_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
   *(EditLoopData **)data = vbo_data;
 }
 
-static void extract_edit_data_iter_subdiv(const DRWSubdivCache *subdiv_cache,
-                                          const MeshRenderData *mr,
-                                          void *_data,
-                                          uint subdiv_quad_index)
+static void extract_edit_data_iter_subdiv_bm(const DRWSubdivCache *subdiv_cache,
+                                             const MeshRenderData *mr,
+                                             void *_data,
+                                             uint subdiv_quad_index,
+                                             const BMFace *coarse_quad)
 {
   EditLoopData *vbo_data = *(EditLoopData **)_data;
   int *subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(subdiv_cache->verts_orig_index);
   int *subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(subdiv_cache->edges_orig_index);
-  int *subdiv_loop_poly_index = subdiv_cache->subdiv_loop_poly_index;
 
   uint start_loop_idx = subdiv_quad_index * 4;
   uint end_loop_idx = (subdiv_quad_index + 1) * 4;
   for (uint i = start_loop_idx; i < end_loop_idx; i++) {
     const int vert_origindex = subdiv_loop_vert_index[i];
     const int edge_origindex = subdiv_loop_edge_index[i];
-    const int poly_origindex = subdiv_loop_poly_index[i];
 
     EditLoopData *edit_loop_data = &vbo_data[i];
     memset(edit_loop_data, 0, sizeof(EditLoopData));
@@ -295,10 +294,20 @@ static void extract_edit_data_iter_subdiv(const DRWSubdivCache *subdiv_cache,
       }
     }
 
-    BMFace *efa = bm_original_face_get(mr, poly_origindex);
     /* The -1 parameter is for edit_uvs, which we don't do here. */
-    mesh_render_data_face_flag(mr, efa, -1, edit_loop_data);
+    mesh_render_data_face_flag(mr, coarse_quad, -1, edit_loop_data);
   }
+}
+
+static void extract_edit_data_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cache,
+                                               const MeshRenderData *mr,
+                                               void *_data,
+                                               uint subdiv_quad_index,
+                                               const MPoly *coarse_quad)
+{
+  const int coarse_quad_index = static_cast<int>(coarse_quad - mr->mpoly);
+  BMFace *coarse_quad_bm = bm_original_face_get(mr, coarse_quad_index);
+  extract_edit_data_iter_subdiv_bm(subdiv_cache, mr, _data, subdiv_quad_index, coarse_quad_bm);
 }
 
 static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
@@ -336,7 +345,8 @@ constexpr MeshExtract create_extractor_edit_data()
   extractor.iter_lvert_bm = extract_edit_data_iter_lvert_bm;
   extractor.iter_lvert_mesh = extract_edit_data_iter_lvert_mesh;
   extractor.init_subdiv = extract_edit_data_init_subdiv;
-  extractor.iter_subdiv = extract_edit_data_iter_subdiv;
+  extractor.iter_subdiv_bm = extract_edit_data_iter_subdiv_bm;
+  extractor.iter_subdiv_mesh = extract_edit_data_iter_subdiv_mesh;
   extractor.iter_loose_geom_subdiv = extract_edit_data_loose_geom_subdiv;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(EditLoopData *);

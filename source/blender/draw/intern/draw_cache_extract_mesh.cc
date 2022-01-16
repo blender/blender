@@ -848,6 +848,7 @@ static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
   }
 
   MeshRenderData mr;
+  memset(&mr, 0, sizeof(MeshRenderData));
   draw_subdiv_init_mesh_render_data(subdiv_cache, &mr, ts);
   mesh_render_data_update_loose_geom(&mr, mbc, MR_ITER_LEDGE | MR_ITER_LVERT, MR_DATA_LOOSE_GEOM);
 
@@ -860,9 +861,25 @@ static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
 
     extractor->init_subdiv(subdiv_cache, &mr, cache, buffer, data);
 
-    if (extractor->iter_subdiv) {
-      for (uint i = 0; i < subdiv_cache->num_subdiv_quads; i++) {
-        extractor->iter_subdiv(subdiv_cache, &mr, data, i);
+    if (extractor->iter_subdiv_mesh || extractor->iter_subdiv_bm) {
+      int *subdiv_loop_poly_index = subdiv_cache->subdiv_loop_poly_index;
+      if (subdiv_cache->bm) {
+        for (uint i = 0; i < subdiv_cache->num_subdiv_quads; i++) {
+          /* Multiply by 4 to have the start index of the quad's loop, as subdiv_loop_poly_index is
+           * based on the subdivision loops. */
+          const int poly_origindex = subdiv_loop_poly_index[i * 4];
+          const BMFace *efa = bm_original_face_get(&mr, poly_origindex);
+          extractor->iter_subdiv_bm(subdiv_cache, &mr, data, i, efa);
+        }
+      }
+      else {
+        for (uint i = 0; i < subdiv_cache->num_subdiv_quads; i++) {
+          /* Multiply by 4 to have the start index of the quad's loop, as subdiv_loop_poly_index is
+           * based on the subdivision loops. */
+          const int poly_origindex = subdiv_loop_poly_index[i * 4];
+          const MPoly *mp = &mr.mpoly[poly_origindex];
+          extractor->iter_subdiv_mesh(subdiv_cache, &mr, data, i, mp);
+        }
       }
     }
 
