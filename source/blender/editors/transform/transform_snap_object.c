@@ -318,12 +318,14 @@ static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx,
 
     if (sod->treedata_mesh.tree == NULL) {
       sod->treedata_mesh.vert = me_eval->mvert;
+      sod->treedata_mesh.vert_normals = BKE_mesh_vertex_normals_ensure(me_eval);
       sod->treedata_mesh.loop = me_eval->mloop;
       sod->treedata_mesh.looptri = BKE_mesh_runtime_looptri_ensure(me_eval);
       BLI_assert(sod->has_looptris == false);
     }
     else {
       BLI_assert(sod->treedata_mesh.vert != NULL);
+      BLI_assert(sod->treedata_mesh.vert_normals != NULL);
       BLI_assert(sod->treedata_mesh.loop != NULL);
       BLI_assert(sod->treedata_mesh.looptri != NULL);
       sod->has_looptris = true;
