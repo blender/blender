@@ -141,14 +141,17 @@ static void extract_edituv_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
 
 static void extract_edituv_data_iter_subdiv(const DRWSubdivCache *subdiv_cache,
                                             const MeshRenderData *mr,
-                                            void *_data)
+                                            void *_data,
+                                            uint subdiv_quad_index)
 {
   MeshExtract_EditUVData_Data *data = static_cast<MeshExtract_EditUVData_Data *>(_data);
   int *subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(subdiv_cache->verts_orig_index);
   int *subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(subdiv_cache->edges_orig_index);
   int *subdiv_loop_poly_index = subdiv_cache->subdiv_loop_poly_index;
 
-  for (uint i = 0; i < subdiv_cache->num_subdiv_loops; i++) {
+  uint start_loop_idx = subdiv_quad_index * 4;
+  uint end_loop_idx = (subdiv_quad_index + 1) * 4;
+  for (uint i = start_loop_idx; i < end_loop_idx; i++) {
     const int vert_origindex = subdiv_loop_vert_index[i];
     const int edge_origindex = subdiv_loop_edge_index[i];
     const int poly_origindex = subdiv_loop_poly_index[i];

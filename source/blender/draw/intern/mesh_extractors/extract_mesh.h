@@ -225,7 +225,8 @@ typedef void(ExtractInitSubdivFn)(const struct DRWSubdivCache *subdiv_cache,
                                   void *data);
 typedef void(ExtractIterSubdivFn)(const struct DRWSubdivCache *subdiv_cache,
                                   const MeshRenderData *mr,
-                                  void *data);
+                                  void *data,
+                                  uint subdiv_quad_index);
 typedef void(ExtractFinishSubdivFn)(const struct DRWSubdivCache *subdiv_cache,
                                     const MeshRenderData *mr,
                                     struct MeshBatchCache *cache,

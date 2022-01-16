@@ -861,7 +861,9 @@ static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
     extractor->init_subdiv(subdiv_cache, &mr, cache, buffer, data);
 
     if (extractor->iter_subdiv) {
-      extractor->iter_subdiv(subdiv_cache, &mr, data);
+      for (uint i = 0; i < subdiv_cache->num_subdiv_quads; i++) {
+        extractor->iter_subdiv(subdiv_cache, &mr, data, i);
+      }
     }
 
     if (extractor->iter_loose_geom_subdiv) {

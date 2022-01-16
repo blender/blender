@@ -198,25 +198,24 @@ static void extract_lines_adjacency_init_subdiv(const DRWSubdivCache *subdiv_cac
 
 static void extract_lines_adjacency_iter_subdiv(const DRWSubdivCache *subdiv_cache,
                                                 const MeshRenderData *UNUSED(mr),
-                                                void *_data)
+                                                void *_data,
+                                                uint subdiv_quad_index)
 {
   MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
 
-  for (uint i = 0; i < subdiv_cache->num_subdiv_quads; i++) {
-    const uint loop_index = i * 4;
-    const uint l0 = loop_index + 0;
-    const uint l1 = loop_index + 1;
-    const uint l2 = loop_index + 2;
-    const uint l3 = loop_index + 3;
+  const uint loop_index = subdiv_quad_index * 4;
+  const uint l0 = loop_index + 0;
+  const uint l1 = loop_index + 1;
+  const uint l2 = loop_index + 2;
+  const uint l3 = loop_index + 3;
 
-    const uint v0 = subdiv_cache->subdiv_loop_subdiv_vert_index[l0];
-    const uint v1 = subdiv_cache->subdiv_loop_subdiv_vert_index[l1];
-    const uint v2 = subdiv_cache->subdiv_loop_subdiv_vert_index[l2];
-    const uint v3 = subdiv_cache->subdiv_loop_subdiv_vert_index[l3];
+  const uint v0 = subdiv_cache->subdiv_loop_subdiv_vert_index[l0];
+  const uint v1 = subdiv_cache->subdiv_loop_subdiv_vert_index[l1];
+  const uint v2 = subdiv_cache->subdiv_loop_subdiv_vert_index[l2];
+  const uint v3 = subdiv_cache->subdiv_loop_subdiv_vert_index[l3];
 
-    lines_adjacency_triangle(v0, v1, v2, l0, l1, l2, data);
-    lines_adjacency_triangle(v0, v2, v3, l0, l2, l3, data);
-  }
+  lines_adjacency_triangle(v0, v1, v2, l0, l1, l2, data);
+  lines_adjacency_triangle(v0, v2, v3, l0, l2, l3, data);
 }
 
 static void extract_lines_adjacency_finish_subdiv(const DRWSubdivCache *UNUSED(subdiv_cache),
