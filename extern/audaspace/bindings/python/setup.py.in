@@ -8,20 +8,20 @@ import numpy
 from distutils.core import setup, Extension
 
 if len(sys.argv) > 2 and sys.argv[1] == '--build-docs':
-	import subprocess
-	from distutils.core import Distribution
-	from distutils.command.build import build
+    import subprocess
+    from distutils.core import Distribution
+    from distutils.command.build import build
 
-	dist = Distribution()
-	cmd = build(dist)
-	cmd.finalize_options()
-	#print(cmd.build_platlib)
+    dist = Distribution()
+    cmd = build(dist)
+    cmd.finalize_options()
+    #print(cmd.build_platlib)
 
-	os.environ['PYTHONPATH'] = os.path.join(os.getcwd(), cmd.build_platlib)
-	os.environ['LD_LIBRARY_PATH'] = os.getcwd()
+    os.environ['PYTHONPATH'] = os.path.join(os.getcwd(), cmd.build_platlib)
+    os.environ['LD_LIBRARY_PATH'] = os.getcwd()
 
-	ret = subprocess.call(sys.argv[2:])
-	sys.exit(ret)
+    ret = subprocess.call(sys.argv[2:])
+    sys.exit(ret)
 
 
 # the following line is not working due to https://bugs.python.org/issue9023
@@ -43,7 +43,8 @@ audaspace = Extension(
                       library_dirs = ['.', 'Release', 'Debug'],
                       language = 'c++',
                       extra_compile_args = extra_args,
-					  sources = [os.path.join(source_directory, file) for file in ['PyAPI.cpp', 'PyDevice.cpp', 'PyHandle.cpp', 'PySound.cpp', 'PySequenceEntry.cpp', 'PySequence.cpp', 'PyPlaybackManager.cpp', 'PyDynamicMusic.cpp', 'PyThreadPool.cpp', 'PySource.cpp'] + (['PyImpulseResponse.cpp', 'PyHRTF.cpp'] if '@WITH_FFTW@' == 'ON' else [])]
+                      define_macros = [('WITH_CONVOLUTION', None)] if '@WITH_FFTW@' == 'ON' else [],
+                      sources = [os.path.join(source_directory, file) for file in ['PyAPI.cpp', 'PyDevice.cpp', 'PyHandle.cpp', 'PySound.cpp', 'PySequenceEntry.cpp', 'PySequence.cpp', 'PyPlaybackManager.cpp', 'PyDynamicMusic.cpp', 'PyThreadPool.cpp', 'PySource.cpp'] + (['PyImpulseResponse.cpp', 'PyHRTF.cpp'] if '@WITH_FFTW@' == 'ON' else [])]
 )
 
 setup(
@@ -56,6 +57,6 @@ setup(
       license = 'Apache License 2.0',
       long_description = codecs.open(os.path.join(source_directory, '../../README.md'), 'r', 'utf-8').read(),
       ext_modules = [audaspace],
-	  headers = [os.path.join(source_directory, file) for file in ['PyAPI.h', 'PyDevice.h', 'PyHandle.h', 'PySound.h', 'PySequenceEntry.h', 'PySequence.h', 'PyPlaybackManager.h', 'PyDynamicMusic.h', 'PyThreadPool.h', 'PySource.h'] + (['PyImpulseResponse.h', 'PyHRTF.h'] if '@WITH_FFTW@' == 'ON' else [])] + ['Audaspace.h']
+      headers = [os.path.join(source_directory, file) for file in ['PyAPI.h', 'PyDevice.h', 'PyHandle.h', 'PySound.h', 'PySequenceEntry.h', 'PySequence.h', 'PyPlaybackManager.h', 'PyDynamicMusic.h', 'PyThreadPool.h', 'PySource.h'] + (['PyImpulseResponse.h', 'PyHRTF.h'] if '@WITH_FFTW@' == 'ON' else [])] + ['Audaspace.h']
 )
 

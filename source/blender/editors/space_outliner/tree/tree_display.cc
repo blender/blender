@@ -19,57 +19,41 @@
  */
 
 #include "DNA_listBase.h"
+#include "DNA_space_types.h"
 
 #include "tree_display.hh"
 
 using namespace blender::ed::outliner;
 
-TreeDisplay *outliner_tree_display_create(eSpaceOutliner_Mode mode, SpaceOutliner *space_outliner)
-{
-  AbstractTreeDisplay *tree_display = nullptr;
+namespace blender::ed::outliner {
 
-  switch (mode) {
+std::unique_ptr<AbstractTreeDisplay> AbstractTreeDisplay::createFromDisplayMode(
+    int /*eSpaceOutliner_Mode*/ mode, SpaceOutliner &space_outliner)
+{
+  switch ((eSpaceOutliner_Mode)mode) {
     case SO_SCENES:
-      tree_display = new TreeDisplayScenes(*space_outliner);
-      break;
+      return std::make_unique<TreeDisplayScenes>(space_outliner);
     case SO_LIBRARIES:
-      tree_display = new TreeDisplayLibraries(*space_outliner);
-      break;
+      return std::make_unique<TreeDisplayLibraries>(space_outliner);
     case SO_SEQUENCE:
-      tree_display = new TreeDisplaySequencer(*space_outliner);
-      break;
+      return std::make_unique<TreeDisplaySequencer>(space_outliner);
     case SO_DATA_API:
-      tree_display = new TreeDisplayDataAPI(*space_outliner);
-      break;
+      return std::make_unique<TreeDisplayDataAPI>(space_outliner);
     case SO_ID_ORPHANS:
-      tree_display = new TreeDisplayIDOrphans(*space_outliner);
-      break;
+      return std::make_unique<TreeDisplayIDOrphans>(space_outliner);
     case SO_OVERRIDES_LIBRARY:
-      tree_display = new TreeDisplayOverrideLibrary(*space_outliner);
-      break;
+      return std::make_unique<TreeDisplayOverrideLibrary>(space_outliner);
     case SO_VIEW_LAYER:
+      /* FIXME(Julian): this should not be the default! Return nullptr and handle that as valid
+       * case. */
     default:
-      tree_display = new TreeDisplayViewLayer(*space_outliner);
-      break;
+      return std::make_unique<TreeDisplayViewLayer>(space_outliner);
   }
-
-  return reinterpret_cast<TreeDisplay *>(tree_display);
 }
 
-void outliner_tree_display_destroy(TreeDisplay **tree_display)
+bool AbstractTreeDisplay::hasWarnings() const
 {
-  delete reinterpret_cast<AbstractTreeDisplay *>(*tree_display);
-  *tree_display = nullptr;
+  return has_warnings;
 }
 
-ListBase outliner_tree_display_build_tree(TreeDisplay *tree_display, TreeSourceData *source_data)
-{
-  return reinterpret_cast<AbstractTreeDisplay *>(tree_display)->buildTree(*source_data);
-}
-
-bool outliner_tree_display_warnings_poll(const TreeDisplay *tree_display)
-{
-  const AbstractTreeDisplay *abstract_tree_display = reinterpret_cast<const AbstractTreeDisplay *>(
-      tree_display);
-  return abstract_tree_display->has_warnings;
-}
+}  // namespace blender::ed::outliner

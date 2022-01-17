@@ -28,6 +28,7 @@
           ndt.addColumn('number', dt.getValue(x,0));
           for(var y=1; y<dt.getNumberOfColumns(); y++) {
               ndt.setValue(y-1, x+1, dt.getValue(x,y));
+              ndt.setFormattedValue(y-1, x+1, dt.getFormattedValue(x,y));
           }
       }
       return ndt;

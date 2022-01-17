@@ -26,6 +26,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "BKE_node_tree_update.h"
+
 #include "RNA_define.h"
 #include "rna_internal.h"
 
@@ -321,6 +323,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
                    CMP_NODE_VALTORGB,
                    TEX_NODE_VALTORGB,
                    GEO_NODE_LEGACY_ATTRIBUTE_COLOR_RAMP)) {
+            BKE_ntree_update_tag_node_property(ntree, node);
             ED_node_tree_propagate_change(NULL, bmain, ntree);
           }
         }

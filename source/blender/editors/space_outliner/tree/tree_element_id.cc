@@ -19,6 +19,7 @@
  */
 
 #include "DNA_ID.h"
+#include "DNA_space_types.h"
 
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_utildefines.h"
@@ -30,7 +31,7 @@
 #include "RNA_access.h"
 
 #include "../outliner_intern.hh"
-#include "tree_display.h"
+#include "common.hh"
 #include "tree_element_id_library.hh"
 #include "tree_element_id_scene.hh"
 
@@ -38,13 +39,13 @@
 
 namespace blender::ed::outliner {
 
-TreeElementID *TreeElementID::createFromID(TreeElement &legacy_te, ID &id)
+std::unique_ptr<TreeElementID> TreeElementID::createFromID(TreeElement &legacy_te, ID &id)
 {
   switch (ID_Type type = GS(id.name); type) {
     case ID_LI:
-      return new TreeElementIDLibrary(legacy_te, (Library &)id);
+      return std::make_unique<TreeElementIDLibrary>(legacy_te, (Library &)id);
     case ID_SCE:
-      return new TreeElementIDScene(legacy_te, (Scene &)id);
+      return std::make_unique<TreeElementIDScene>(legacy_te, (Scene &)id);
     case ID_OB:
     case ID_ME:
     case ID_CU:
@@ -82,7 +83,7 @@ TreeElementID *TreeElementID::createFromID(TreeElement &legacy_te, ID &id)
     case ID_PAL:
     case ID_PC:
     case ID_CF:
-      return new TreeElementID(legacy_te, id);
+      return std::make_unique<TreeElementID>(legacy_te, id);
       /* Deprecated */
     case ID_IP:
       BLI_assert_msg(0, "Outliner trying to build tree-element for deprecated ID type");

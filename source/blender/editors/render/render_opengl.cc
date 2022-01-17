@@ -1115,7 +1115,7 @@ static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
   Scene *scene = oglrender->scene;
   WriteTaskData *task_data = MEM_new<WriteTaskData>("write task data");
   task_data->rr = rr;
-  task_data->tmp_scene = *scene;
+  memcpy(&task_data->tmp_scene, scene, sizeof(task_data->tmp_scene));
   BLI_mutex_lock(&oglrender->task_mutex);
   oglrender->num_scheduled_frames++;
   if (oglrender->num_scheduled_frames > MAX_SCHEDULED_FRAMES) {

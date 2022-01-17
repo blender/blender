@@ -12,34 +12,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2020 Blender Foundation.
+ * All rights reserved.
  */
 
 /** \file
- * \ingroup spoutliner
+ * \ingroup edgeometry
  */
 
-#include "DNA_listBase.h"
-#include "DNA_outliner_types.h"
-#include "DNA_scene_types.h"
+#include "WM_api.h"
 
-#include "BLT_translation.h"
+#include "ED_geometry.h"
 
-#include "../outliner_intern.hh"
+#include "geometry_intern.hh"
 
-#include "tree_element_collection.hh"
+/**************************** registration **********************************/
 
-namespace blender::ed::outliner {
-
-TreeElementCollectionBase::TreeElementCollectionBase(TreeElement &legacy_te, Scene &scene)
-    : AbstractTreeElement(legacy_te), scene_(scene)
+void ED_operatortypes_geometry(void)
 {
-  BLI_assert(legacy_te.store_elem->type == TSE_SCENE_COLLECTION_BASE);
-  legacy_te.name = IFACE_("Scene Collection");
+  WM_operatortype_append(GEOMETRY_OT_attribute_add);
+  WM_operatortype_append(GEOMETRY_OT_color_attribute_add);
+  WM_operatortype_append(GEOMETRY_OT_attribute_remove);
+  WM_operatortype_append(GEOMETRY_OT_color_attribute_remove);
 }
-
-void TreeElementCollectionBase::expand(SpaceOutliner &space_outliner) const
-{
-  outliner_add_collection_recursive(&space_outliner, scene_.master_collection, &legacy_te_);
-}
-
-}  // namespace blender::ed::outliner

@@ -38,14 +38,14 @@ TEST(math_vec_types, ScalarConstructorDouble)
 
 TEST(math_vec_types, MultiScalarConstructorVec2)
 {
-  int2 i(5.5f, -1.8);
+  int2 i(5, -1);
   EXPECT_EQ(i[0], 5);
   EXPECT_EQ(i[1], -1);
 }
 
 TEST(math_vec_types, MultiScalarConstructorVec3)
 {
-  int3 i(5.5f, -1.8, 6u);
+  int3 i(5, -1, 6u);
   EXPECT_EQ(i[0], 5);
   EXPECT_EQ(i[1], -1);
   EXPECT_EQ(i[2], 6);
@@ -53,7 +53,7 @@ TEST(math_vec_types, MultiScalarConstructorVec3)
 
 TEST(math_vec_types, MultiScalarConstructorVec4)
 {
-  int4 i(5.5f, -1.8, 6u, 0.888f);
+  int4 i(5, -1, 6u, 0);
   EXPECT_EQ(i[0], 5);
   EXPECT_EQ(i[1], -1);
   EXPECT_EQ(i[2], 6);

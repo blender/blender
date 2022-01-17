@@ -98,8 +98,15 @@ class TestGraph:
         for entry in entries:
             test_index = tests[entry.test]
             revision_index = revisions[entry.revision]
-            time = entry.output[output] if output in entry.output else -1.0
-            rows[revision_index]['c'][test_index + 1] = {'f': None, 'v': time}
+            output_value = entry.output[output] if output in entry.output else -1.0
+
+            if output.find("memory") != -1:
+                formatted_value = '%.2f MB' % (output_value / (1024 * 1024))
+            else:
+                formatted_value = "%.4f" % output_value
+
+            cell = {'f': formatted_value, 'v': output_value}
+            rows[revision_index]['c'][test_index + 1] = cell
 
         data = {'cols': cols, 'rows': rows}
         return {'device': device_name, 'name': chart_name, 'data': data, 'chart_type': chart_type}

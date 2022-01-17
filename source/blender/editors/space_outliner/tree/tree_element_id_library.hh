@@ -22,6 +22,8 @@
 
 #include "tree_element_id.hh"
 
+struct Library;
+
 namespace blender::ed::outliner {
 
 class TreeElementIDLibrary final : public TreeElementID {

@@ -955,7 +955,8 @@ static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
                                     const SubsurfModifierData *smd,
                                     const bool is_final_render)
 {
-  const int level = get_render_subsurf_level(&scene->r, smd->levels, is_final_render);
+  const int requested_levels = (is_final_render) ? smd->renderLevels : smd->levels;
+  const int level = get_render_subsurf_level(&scene->r, requested_levels, is_final_render);
   SubdivToMeshSettings to_mesh_settings;
   to_mesh_settings.resolution = (1 << level) + 1;
   to_mesh_settings.use_optimal_display = false;
@@ -1675,6 +1676,10 @@ void draw_subdiv_init_mesh_render_data(DRWSubdivCache *cache,
   mr->poly_len = mesh->totpoly;
   mr->loop_len = mesh->totloop;
   mr->extract_type = MR_EXTRACT_MESH;
+  mr->toolsettings = toolsettings;
+  mr->v_origindex = static_cast<int *>(CustomData_get_layer(&mr->me->vdata, CD_ORIGINDEX));
+  mr->e_origindex = static_cast<int *>(CustomData_get_layer(&mr->me->edata, CD_ORIGINDEX));
+  mr->p_origindex = static_cast<int *>(CustomData_get_layer(&mr->me->pdata, CD_ORIGINDEX));
 
   /* MeshRenderData is only used for generating edit mode data here. */
   if (!cache->bm) {
@@ -1685,7 +1690,6 @@ void draw_subdiv_init_mesh_render_data(DRWSubdivCache *cache,
   BM_mesh_elem_table_ensure(bm, BM_EDGE | BM_FACE | BM_VERT);
 
   mr->bm = bm;
-  mr->toolsettings = toolsettings;
   mr->eed_act = BM_mesh_active_edge_get(bm);
   mr->efa_act = BM_mesh_active_face_get(bm, false, true);
   mr->eve_act = BM_mesh_active_vert_get(bm);
@@ -1695,9 +1699,6 @@ void draw_subdiv_init_mesh_render_data(DRWSubdivCache *cache,
   mr->freestyle_edge_ofs = CustomData_get_offset(&bm->edata, CD_FREESTYLE_EDGE);
   mr->freestyle_face_ofs = CustomData_get_offset(&bm->pdata, CD_FREESTYLE_FACE);
 #endif
-  mr->v_origindex = static_cast<int *>(CustomData_get_layer(&mr->me->vdata, CD_ORIGINDEX));
-  mr->e_origindex = static_cast<int *>(CustomData_get_layer(&mr->me->edata, CD_ORIGINDEX));
-  mr->p_origindex = static_cast<int *>(CustomData_get_layer(&mr->me->pdata, CD_ORIGINDEX));
 }
 
 /**

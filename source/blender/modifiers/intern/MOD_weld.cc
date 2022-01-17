@@ -612,7 +612,7 @@ static void weld_edge_groups_setup(const int medge_len,
 
   int wgroups_len = wedge.size() - edge_kill_len;
   r_edge_groups.reinitialize(wgroups_len);
-  r_edge_groups.fill({0});
+  r_edge_groups.fill({{0}});
   MutableSpan<WeldGroupEdge> wegroups = r_edge_groups;
   wegrp_iter = &r_edge_groups[0];
 

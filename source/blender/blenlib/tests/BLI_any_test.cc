@@ -53,8 +53,10 @@ TEST(any, AssignMap)
   EXPECT_EQ((b.get<Map<int, int>>().lookup(4)), 2);
 
   Any<> c = std::move(a);
-  c = c;
-  EXPECT_TRUE(b);
+  /* Test valid state after self assignment. Clang emits `-Wself-assign-overloaded` with `c=c;`.
+   * And pragma suppression creates warnings on other compilers. */
+  c = static_cast<decltype(a) &>(c);
+  EXPECT_TRUE(c);
   EXPECT_EQ((c.get<Map<int, int>>().lookup(4)), 2);
 
   EXPECT_TRUE((a.get<Map<int, int>>().is_empty())); /* NOLINT: bugprone-use-after-move */

@@ -191,8 +191,12 @@ class ProximityFunction : public fn::MultiFunction {
     }
 
     if (!success) {
-      positions.fill_indices(mask, float3(0));
-      distances.fill_indices(mask, 0.0f);
+      if (!positions.is_empty()) {
+        positions.fill_indices(mask, float3(0));
+      }
+      if (!distances.is_empty()) {
+        distances.fill_indices(mask, 0.0f);
+      }
       return;
     }
 

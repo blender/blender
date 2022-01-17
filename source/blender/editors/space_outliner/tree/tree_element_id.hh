@@ -24,6 +24,9 @@
 
 #include "tree_element.hh"
 
+struct AnimData;
+struct ID;
+
 namespace blender::ed::outliner {
 
 class TreeElementID : public AbstractTreeElement {
@@ -33,7 +36,7 @@ class TreeElementID : public AbstractTreeElement {
  public:
   TreeElementID(TreeElement &legacy_te, ID &id);
 
-  static TreeElementID *createFromID(TreeElement &legacy_te, ID &id);
+  static std::unique_ptr<TreeElementID> createFromID(TreeElement &legacy_te, ID &id);
 
   void postExpand(SpaceOutliner &) const override;
   bool expandPoll(const SpaceOutliner &) const override;

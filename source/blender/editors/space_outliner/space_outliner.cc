@@ -50,7 +50,19 @@
 #include "UI_view2d.h"
 
 #include "outliner_intern.hh"
-#include "tree/tree_display.h"
+#include "tree/tree_display.hh"
+
+SpaceOutliner_Runtime::SpaceOutliner_Runtime(const SpaceOutliner_Runtime & /*other*/)
+    : tree_display(nullptr), treehash(nullptr)
+{
+}
+
+SpaceOutliner_Runtime::~SpaceOutliner_Runtime()
+{
+  if (treehash) {
+    BKE_outliner_treehash_free(treehash);
+  }
+}
 
 static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
 {
@@ -361,13 +373,7 @@ static void outliner_free(SpaceLink *sl)
     BLI_mempool_destroy(space_outliner->treestore);
   }
 
-  if (space_outliner->runtime) {
-    outliner_tree_display_destroy(&space_outliner->runtime->tree_display);
-    if (space_outliner->runtime->treehash) {
-      BKE_outliner_treehash_free(space_outliner->runtime->treehash);
-    }
-    MEM_freeN(space_outliner->runtime);
-  }
+  MEM_delete(space_outliner->runtime);
 }
 
 /* spacetype; init callback */
@@ -376,7 +382,7 @@ static void outliner_init(wmWindowManager *UNUSED(wm), ScrArea *area)
   SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(area->spacedata.first);
 
   if (space_outliner->runtime == nullptr) {
-    space_outliner->runtime = MEM_cnew<SpaceOutliner_Runtime>("SpaceOutliner_Runtime");
+    space_outliner->runtime = MEM_new<SpaceOutliner_Runtime>("SpaceOutliner_Runtime");
   }
 }
 
@@ -391,10 +397,9 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
   space_outliner_new->sync_select_dirty = WM_OUTLINER_SYNC_SELECT_FROM_ALL;
 
   if (space_outliner->runtime) {
+    /* Copy constructor handles details. */
     space_outliner_new->runtime = MEM_new<SpaceOutliner_Runtime>("SpaceOutliner_runtime dup",
                                                                  *space_outliner->runtime);
-    space_outliner_new->runtime->tree_display = nullptr;
-    space_outliner_new->runtime->treehash = nullptr;
   }
 
   return (SpaceLink *)space_outliner_new;

@@ -2489,12 +2489,15 @@ static void make_bevel_list_segment_3D(BevList *bl)
   normalize_v3(bevp1->dir);
 
   vec_to_quat(bevp1->quat, bevp1->dir, 5, 1);
-
   axis_angle_to_quat(q, bevp1->dir, bevp1->tilt);
   mul_qt_qtqt(bevp1->quat, q, bevp1->quat);
   normalize_qt(bevp1->quat);
+
   copy_v3_v3(bevp2->dir, bevp1->dir);
-  copy_qt_qt(bevp2->quat, bevp1->quat);
+  vec_to_quat(bevp2->quat, bevp2->dir, 5, 1);
+  axis_angle_to_quat(q, bevp2->dir, bevp2->tilt);
+  mul_qt_qtqt(bevp2->quat, q, bevp2->quat);
+  normalize_qt(bevp2->quat);
 }
 
 /* only for 2 points */

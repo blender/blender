@@ -139,33 +139,44 @@ static void extract_edituv_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
   extract_edituv_data_init_common(mr, vbo, data, subdiv_cache->num_subdiv_loops);
 }
 
-static void extract_edituv_data_iter_subdiv(const DRWSubdivCache *subdiv_cache,
-                                            const MeshRenderData *mr,
-                                            void *_data)
+static void extract_edituv_data_iter_subdiv_bm(const DRWSubdivCache *subdiv_cache,
+                                               const MeshRenderData *mr,
+                                               void *_data,
+                                               uint subdiv_quad_index,
+                                               const BMFace *coarse_quad)
 {
   MeshExtract_EditUVData_Data *data = static_cast<MeshExtract_EditUVData_Data *>(_data);
   int *subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(subdiv_cache->verts_orig_index);
   int *subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(subdiv_cache->edges_orig_index);
-  int *subdiv_loop_poly_index = subdiv_cache->subdiv_loop_poly_index;
 
-  for (uint i = 0; i < subdiv_cache->num_subdiv_loops; i++) {
+  uint start_loop_idx = subdiv_quad_index * 4;
+  uint end_loop_idx = (subdiv_quad_index + 1) * 4;
+  for (uint i = start_loop_idx; i < end_loop_idx; i++) {
     const int vert_origindex = subdiv_loop_vert_index[i];
     const int edge_origindex = subdiv_loop_edge_index[i];
-    const int poly_origindex = subdiv_loop_poly_index[i];
 
     EditLoopData *edit_loop_data = &data->vbo_data[i];
     memset(edit_loop_data, 0, sizeof(EditLoopData));
 
-    BMFace *efa = bm_original_face_get(mr, poly_origindex);
-
     if (vert_origindex != -1 && edge_origindex != -1) {
       BMEdge *eed = bm_original_edge_get(mr, edge_origindex);
       /* Loop on an edge endpoint. */
-      BMLoop *l = BM_face_edge_share_loop(efa, eed);
+      BMLoop *l = BM_face_edge_share_loop(const_cast<BMFace *>(coarse_quad), eed);
       mesh_render_data_loop_flag(mr, l, data->cd_ofs, edit_loop_data);
       mesh_render_data_loop_edge_flag(mr, l, data->cd_ofs, edit_loop_data);
     }
   }
+}
+
+static void extract_edituv_data_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cache,
+                                                 const MeshRenderData *mr,
+                                                 void *_data,
+                                                 uint subdiv_quad_index,
+                                                 const MPoly *coarse_quad)
+{
+  const int coarse_quad_index = static_cast<int>(coarse_quad - mr->mpoly);
+  BMFace *coarse_quad_bm = bm_original_face_get(mr, coarse_quad_index);
+  extract_edituv_data_iter_subdiv_bm(subdiv_cache, mr, _data, subdiv_quad_index, coarse_quad_bm);
 }
 
 constexpr MeshExtract create_extractor_edituv_data()
@@ -175,7 +186,8 @@ constexpr MeshExtract create_extractor_edituv_data()
   extractor.iter_poly_bm = extract_edituv_data_iter_poly_bm;
   extractor.iter_poly_mesh = extract_edituv_data_iter_poly_mesh;
   extractor.init_subdiv = extract_edituv_data_init_subdiv;
-  extractor.iter_subdiv = extract_edituv_data_iter_subdiv;
+  extractor.iter_subdiv_bm = extract_edituv_data_iter_subdiv_bm;
+  extractor.iter_subdiv_mesh = extract_edituv_data_iter_subdiv_mesh;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_EditUVData_Data);
   extractor.use_threading = true;

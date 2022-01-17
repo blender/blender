@@ -95,6 +95,13 @@ void WASAPIDevice::runMixingThread()
 				sleep_duration = std::chrono::milliseconds(buffer_size * 1000 / int(m_specs.rate) / 2);
 			}
 
+			if(m_default_device_changed)
+			{
+				m_default_device_changed = false;
+				result = AUDCLNT_E_DEVICE_INVALIDATED;
+				goto stop_thread;
+			}
+
 			if(FAILED(result = m_audio_client->GetCurrentPadding(&padding)))
 				goto stop_thread;
 
@@ -296,13 +303,78 @@ bool WASAPIDevice::setupDevice(DeviceSpecs &specs)
 	return true;
 }
 
+ULONG WASAPIDevice::AddRef()
+{
+	return InterlockedIncrement(&m_reference_count);
+}
+
+ULONG WASAPIDevice::Release()
+{
+	ULONG reference_count = InterlockedDecrement(&m_reference_count);
+
+	if(0 == reference_count)
+		delete this;
+
+	return reference_count;
+}
+
+HRESULT WASAPIDevice::QueryInterface(REFIID riid, void **ppvObject)
+{
+	if(riid == __uuidof(IMMNotificationClient))
+	{
+		*ppvObject = reinterpret_cast<IMMNotificationClient*>(this);
+		AddRef();
+	}
+	else if(riid == IID_IUnknown)
+	{
+		*ppvObject = reinterpret_cast<IUnknown*>(this);
+		AddRef();
+	}
+	else
+	{
+		*ppvObject = nullptr;
+		return E_NOINTERFACE;
+	}
+
+	return S_OK;
+}
+
+HRESULT WASAPIDevice::OnDeviceStateChanged(LPCWSTR pwstrDeviceId, DWORD dwNewState)
+{
+	return S_OK;
+}
+
+HRESULT WASAPIDevice::OnDeviceAdded(LPCWSTR pwstrDeviceId)
+{
+	return S_OK;
+}
+
+HRESULT WASAPIDevice::OnDeviceRemoved(LPCWSTR pwstrDeviceId)
+{
+	return S_OK;
+}
+
+HRESULT WASAPIDevice::OnDefaultDeviceChanged(EDataFlow flow, ERole role, LPCWSTR pwstrDeviceId)
+{
+	if(flow != EDataFlow::eCapture)
+		m_default_device_changed = true;
+
+	return S_OK;
+}
+
+HRESULT WASAPIDevice::OnPropertyValueChanged(LPCWSTR pwstrDeviceId, const PROPERTYKEY key)
+{
+	return S_OK;
+}
+
 WASAPIDevice::WASAPIDevice(DeviceSpecs specs, int buffersize) :
 	m_buffersize(buffersize),
 	m_imm_device_enumerator(nullptr),
 	m_imm_device(nullptr),
 	m_audio_client(nullptr),
-
-	m_wave_format_extensible({})
+	m_wave_format_extensible({}),
+	m_default_device_changed(false),
+	m_reference_count(1)
 {
 	// initialize COM if it hasn't happened yet
 	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
@@ -327,6 +399,8 @@ WASAPIDevice::WASAPIDevice(DeviceSpecs specs, int buffersize) :
 
 	create();
 
+	m_imm_device_enumerator->RegisterEndpointNotificationCallback(this);
+
 	return;
 
 	error:
@@ -339,6 +413,8 @@ WASAPIDevice::WASAPIDevice(DeviceSpecs specs, int buffersize) :
 WASAPIDevice::~WASAPIDevice()
 {
 	stopMixingThread();
+
+	m_imm_device_enumerator->UnregisterEndpointNotificationCallback(this);
 
 	SafeRelease(&m_audio_client);
 	SafeRelease(&m_imm_device);
