@@ -64,7 +64,7 @@ IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
 
   state.shader = GPU_shader_get_builtin_shader(builtin);
 
-  /* Shader will be unbind by immUnbindProgram in immDrawPixelsTexScaled_clipping */
+  /* Shader will be unbind by immUnbindProgram in a `immDrawPixelsTex` function. */
   immBindBuiltinProgram(builtin);
   immUniform1i("image", 0);
   state.do_shader_unbind = true;

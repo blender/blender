@@ -148,8 +148,8 @@ void immDrawPixelsTexTiled_scaling(IMMDrawPixelsTexState *state,
  *
  * If color is NULL then use white by default
  *
- * Be also aware that this function unbinds the shader when
- * it's finished.
+ * Unless <em>state->do_shader_unbind<em> is explicitly set to `false`, the shader is unbound when
+ * finished.
  */
 void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
                                             float x,
