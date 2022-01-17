@@ -130,8 +130,7 @@ GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
     }
   }
 
-  return new GHOST_Wintab(hwnd,
-                          std::move(handle),
+  return new GHOST_Wintab(std::move(handle),
                           info,
                           get,
                           set,
@@ -174,8 +173,7 @@ void GHOST_Wintab::extractCoordinates(LOGCONTEXT &lc, Coord &tablet, Coord &syst
   system.y.ext = -lc.lcSysExtY;
 }
 
-GHOST_Wintab::GHOST_Wintab(HWND hwnd,
-                           unique_hmodule handle,
+GHOST_Wintab::GHOST_Wintab(unique_hmodule handle,
                            GHOST_WIN32_WTInfo info,
                            GHOST_WIN32_WTGet get,
                            GHOST_WIN32_WTSet set,

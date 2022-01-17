@@ -214,8 +214,7 @@ class GHOST_Wintab {
   /** Most recently received tablet data, or none if pen is not in range. */
   GHOST_TabletData m_lastTabletData = GHOST_TABLET_DATA_NONE;
 
-  GHOST_Wintab(HWND hwnd,
-               unique_hmodule handle,
+  GHOST_Wintab(unique_hmodule handle,
                GHOST_WIN32_WTInfo info,
                GHOST_WIN32_WTGet get,
                GHOST_WIN32_WTSet set,
