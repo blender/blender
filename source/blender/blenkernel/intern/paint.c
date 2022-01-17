@@ -3086,7 +3086,7 @@ static bool sculpt_attr_get_layer(SculptSession *ss,
 
     CustomData_free(&dummy, 0);
 
-    out->data = MEM_calloc_arrayN(totelem, elemsize, name);
+    out->data = MEM_calloc_arrayN(totelem, elemsize, __func__);
 
     out->is_cdlayer = false;
     out->from_bmesh = ss->bm != NULL;
