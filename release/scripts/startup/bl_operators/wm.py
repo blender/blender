@@ -23,6 +23,7 @@ import bpy
 from bpy.types import (
     Menu,
     Operator,
+    Collection,
     bpy_prop_array,
 )
 from bpy.props import (
@@ -2467,6 +2468,7 @@ class WM_OT_batch_rename(Operator):
         name="Type",
         items=(
             ('OBJECT', "Objects", ""),
+            ('COLLECTION', "Collections", ""),
             ('MATERIAL', "Materials", ""),
             None,
             # Enum identifiers are compared with 'object.type'.
@@ -2530,6 +2532,18 @@ class WM_OT_batch_rename(Operator):
                     list(space.node_tree.nodes),
                     "name",
                     "Node(s)",
+                )
+        elif space_type == 'OUTLINER':
+            data_type_test = 'COLLECTION'
+            if check_context:
+                return data_type_test
+            if data_type == data_type_test:
+                data = (
+                    [id for id in context.selected_ids if isinstance(id, Collection)]
+                    if only_selected else
+                    scene.collection.children_recursive,
+                    "name",
+                    "Collection(s)",
                 )
         else:
             if mode == 'POSE' or (mode == 'WEIGHT_PAINT' and context.pose_object):
