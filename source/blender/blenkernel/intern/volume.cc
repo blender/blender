@@ -138,11 +138,19 @@ static struct VolumeFileCache {
       }
 
       std::lock_guard<std::mutex> lock(mutex);
-      return simplified_grids.lookup_or_add_cb(simplify_level, [&]() {
-        const float resolution_factor = 1.0f / (1 << simplify_level);
-        const VolumeGridType grid_type = BKE_volume_grid_type_openvdb(*grid);
-        return BKE_volume_grid_create_with_changed_resolution(grid_type, *grid, resolution_factor);
+      openvdb::GridBase::Ptr simple_grid;
+
+      /* Isolate creating grid since that's multithreaded and we are
+       * holding a mutex lock. */
+      blender::threading::isolate_task([&] {
+        simple_grid = simplified_grids.lookup_or_add_cb(simplify_level, [&]() {
+          const float resolution_factor = 1.0f / (1 << simplify_level);
+          const VolumeGridType grid_type = BKE_volume_grid_type_openvdb(*grid);
+          return BKE_volume_grid_create_with_changed_resolution(
+              grid_type, *grid, resolution_factor);
+        });
       });
+      return simple_grid;
     }
 
     /* Unique key: filename + grid name. */
@@ -247,16 +255,20 @@ static struct VolumeFileCache {
  protected:
   void update_for_remove_user(Entry &entry)
   {
-    if (entry.num_metadata_users + entry.num_tree_users == 0) {
-      cache.erase(entry);
-    }
-    else if (entry.num_tree_users == 0) {
-      /* Note we replace the grid rather than clearing, so that if there is
-       * any other shared pointer to the grid it will keep the tree. */
-      entry.grid = entry.grid->copyGridWithNewTree();
-      entry.simplified_grids.clear();
-      entry.is_loaded = false;
-    }
+    /* Isolate file unloading since that's multithreaded and we are
+     * holding a mutex lock. */
+    blender::threading::isolate_task([&] {
+      if (entry.num_metadata_users + entry.num_tree_users == 0) {
+        cache.erase(entry);
+      }
+      else if (entry.num_tree_users == 0) {
+        /* Note we replace the grid rather than clearing, so that if there is
+         * any other shared pointer to the grid it will keep the tree. */
+        entry.grid = entry.grid->copyGridWithNewTree();
+        entry.simplified_grids.clear();
+        entry.is_loaded = false;
+      }
+    });
   }
 
   /* Cache contents */
