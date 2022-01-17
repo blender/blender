@@ -237,7 +237,7 @@ void BKE_bpath_missing_files_check(Main *bmain, ReportList *reports)
       .bmain = bmain,
       .callback_function = check_missing_files_foreach_path_cb,
       .flag = BKE_BPATH_FOREACH_PATH_ABSOLUTE | BKE_BPATH_FOREACH_PATH_SKIP_PACKED |
-              BKE_BPATH_FOREACH_PATH_RESOLVE_TOKEN,
+              BKE_BPATH_FOREACH_PATH_RESOLVE_TOKEN | BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES,
       .user_data = reports});
 }
 
