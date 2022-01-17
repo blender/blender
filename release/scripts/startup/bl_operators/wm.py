@@ -2597,6 +2597,20 @@ class WM_OT_batch_rename(Operator):
                     "name",
                     "Object(s)",
                 )
+            elif data_type == 'COLLECTION':
+                data = (
+                    tuple(set(
+                        ob.instance_collection
+                        for ob in context.selected_objects
+                        if ((ob.instance_type == 'COLLECTION') and
+                            (collection := ob.instance_collection) is not None and
+                            (collection.library is None))
+                    ))
+                    if only_selected else
+                    [id for id in bpy.data.collections if id.library is None],
+                    "name",
+                    "Collection(s)",
+                )
             elif data_type == 'MATERIAL':
                 data = (
                     tuple(set(
