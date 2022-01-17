@@ -69,6 +69,33 @@ static void scale_output_assign(const Span<T> input,
   }
 }
 
+template<class T>
+static void nurbs_to_bezier_assign(const Span<T> input,
+                                   const MutableSpan<T> r_output,
+                                   const NURBSpline::KnotsMode knotsMode)
+{
+  const int input_size = input.size();
+  const int output_size = r_output.size();
+
+  switch (knotsMode) {
+    case NURBSpline::KnotsMode::Bezier:
+      scale_input_assign<T>(input, 3, 1, r_output);
+      break;
+    case NURBSpline::KnotsMode::Normal:
+      for (const int i : IndexRange(output_size)) {
+        r_output[i] = input[(i + 1) % input_size];
+      }
+      break;
+    case NURBSpline::KnotsMode::EndPoint:
+      for (const int i : IndexRange(1, output_size - 2)) {
+        r_output[i] = input[i + 1];
+      }
+      r_output.first() = input.first();
+      r_output.last() = input.last();
+      break;
+  }
+}
+
 template<typename CopyFn>
 static void copy_attributes(const Spline &input_spline, Spline &output_spline, CopyFn copy_fn)
 {
@@ -91,6 +118,88 @@ static void copy_attributes(const Spline &input_spline, Spline &output_spline, C
         return true;
       },
       ATTR_DOMAIN_POINT);
+}
+
+static Vector<float3> create_nurbs_to_bezier_handles(const Span<float3> nurbs_positions,
+                                                     const NURBSpline::KnotsMode knots_mode)
+{
+  const int nurbs_positions_size = nurbs_positions.size();
+  Vector<float3> handle_positions;
+  if (knots_mode == NURBSpline::KnotsMode::Bezier) {
+    for (const int i : IndexRange(nurbs_positions_size)) {
+      if (i % 3 == 1) {
+        continue;
+      }
+      handle_positions.append(nurbs_positions[i]);
+    }
+    if (nurbs_positions_size % 3 == 1) {
+      handle_positions.pop_last();
+    }
+    else if (nurbs_positions_size % 3 == 2) {
+      const int last_index = nurbs_positions_size - 1;
+      handle_positions.append(2 * nurbs_positions[last_index] - nurbs_positions[last_index - 1]);
+    }
+  }
+  else {
+    const bool is_periodic = knots_mode == NURBSpline::KnotsMode::Normal;
+    if (is_periodic) {
+      handle_positions.append(nurbs_positions[1] +
+                              ((nurbs_positions[0] - nurbs_positions[1]) / 3));
+    }
+    else {
+      handle_positions.append(2 * nurbs_positions[0] - nurbs_positions[1]);
+      handle_positions.append(nurbs_positions[1]);
+    }
+    const int segments_size = nurbs_positions_size - 1;
+    const bool ignore_interior_segment = segments_size == 3 && is_periodic == false;
+    if (ignore_interior_segment == false) {
+      const float mid_offset = (float)(segments_size - 1) / 2.0f;
+      for (const int i : IndexRange(1, segments_size - 2)) {
+        const int divisor = is_periodic ?
+                                3 :
+                                std::min(3, (int)(-std::abs(i - mid_offset) + mid_offset + 1.0f));
+        const float3 &p1 = nurbs_positions[i];
+        const float3 &p2 = nurbs_positions[i + 1];
+        const float3 displacement = (p2 - p1) / divisor;
+        const int num_handles_on_segment = divisor < 3 ? 1 : 2;
+        for (int j : IndexRange(1, num_handles_on_segment)) {
+          handle_positions.append(p1 + (displacement * j));
+        }
+      }
+    }
+    const int last_index = nurbs_positions_size - 1;
+    if (is_periodic) {
+      handle_positions.append(
+          nurbs_positions[last_index - 1] +
+          ((nurbs_positions[last_index] - nurbs_positions[last_index - 1]) / 3));
+    }
+    else {
+      handle_positions.append(nurbs_positions[last_index - 1]);
+      handle_positions.append(2 * nurbs_positions[last_index] - nurbs_positions[last_index - 1]);
+    }
+  }
+  return handle_positions;
+}
+
+static Array<float3> create_nurbs_to_bezier_positions(const Span<float3> nurbs_positions,
+                                                      const Span<float3> handle_positions,
+                                                      const NURBSpline::KnotsMode knots_mode)
+{
+  if (knots_mode == NURBSpline::KnotsMode::Bezier) {
+    /* Every third NURBS position (starting from index 1) should be converted to Bezier position */
+    const int scale = 3;
+    const int offset = 1;
+    Array<float3> bezier_positions((nurbs_positions.size() + offset) / scale);
+    scale_input_assign(nurbs_positions, scale, offset, bezier_positions.as_mutable_span());
+    return bezier_positions;
+  }
+
+  Array<float3> bezier_positions(handle_positions.size() / 2);
+  for (const int i : IndexRange(bezier_positions.size())) {
+    bezier_positions[i] = math::interpolate(
+        handle_positions[i * 2], handle_positions[i * 2 + 1], 0.5f);
+  }
+  return bezier_positions;
 }
 
 static SplinePtr convert_to_poly_spline(const Spline &input)
@@ -175,22 +284,43 @@ static SplinePtr poly_to_bezier(const Spline &input)
 static SplinePtr nurbs_to_bezier(const Spline &input)
 {
   const NURBSpline &nurbs_spline = static_cast<const NURBSpline &>(input);
+  Span<float3> nurbs_positions;
+  Vector<float3> nurbs_positions_vector;
+  NURBSpline::KnotsMode knots_mode;
+  if (nurbs_spline.is_cyclic()) {
+    nurbs_positions_vector = nurbs_spline.positions();
+    nurbs_positions_vector.append(nurbs_spline.positions()[0]);
+    nurbs_positions_vector.append(nurbs_spline.positions()[1]);
+    nurbs_positions = nurbs_positions_vector;
+    knots_mode = NURBSpline::KnotsMode::Normal;
+  }
+  else {
+    nurbs_positions = nurbs_spline.positions();
+    knots_mode = nurbs_spline.knots_mode;
+  }
+  const Vector<float3> handle_positions = create_nurbs_to_bezier_handles(nurbs_positions,
+                                                                         knots_mode);
+  BLI_assert(handle_positions.size() % 2 == 0);
+  const Array<float3> bezier_positions = create_nurbs_to_bezier_positions(
+      nurbs_positions, handle_positions.as_span(), knots_mode);
+  BLI_assert(handle_positions.size() == bezier_positions.size() * 2);
+
   std::unique_ptr<BezierSpline> output = std::make_unique<BezierSpline>();
-  output->resize(input.size() / 3);
-  scale_input_assign<float3>(input.positions(), 3, 1, output->positions());
-  scale_input_assign<float3>(input.positions(), 3, 0, output->handle_positions_left());
-  scale_input_assign<float3>(input.positions(), 3, 2, output->handle_positions_right());
-  scale_input_assign<float>(input.radii(), 3, 2, output->radii());
-  scale_input_assign<float>(input.tilts(), 3, 2, output->tilts());
+  output->resize(bezier_positions.size());
+  output->positions().copy_from(bezier_positions);
+  nurbs_to_bezier_assign(nurbs_spline.radii(), output->radii(), knots_mode);
+  nurbs_to_bezier_assign(nurbs_spline.tilts(), output->tilts(), knots_mode);
+  scale_input_assign(handle_positions.as_span(), 2, 0, output->handle_positions_left());
+  scale_input_assign(handle_positions.as_span(), 2, 1, output->handle_positions_right());
   output->handle_types_left().fill(BezierSpline::HandleType::Align);
   output->handle_types_right().fill(BezierSpline::HandleType::Align);
   output->set_resolution(nurbs_spline.resolution());
-  Spline::copy_base_settings(input, *output);
+  Spline::copy_base_settings(nurbs_spline, *output);
   output->attributes.reallocate(output->size());
-  copy_attributes(input, *output, [](GSpan src, GMutableSpan dst) {
+  copy_attributes(nurbs_spline, *output, [knots_mode](GSpan src, GMutableSpan dst) {
     attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
       using T = decltype(dummy);
-      scale_input_assign<T>(src.typed<T>(), 3, 1, dst.typed<T>());
+      nurbs_to_bezier_assign(src.typed<T>(), dst.typed<T>(), knots_mode);
     });
   });
   return output;
@@ -204,20 +334,13 @@ static SplinePtr convert_to_bezier(const Spline &input, GeoNodeExecParams params
     case Spline::Type::Poly:
       return poly_to_bezier(input);
     case Spline::Type::NURBS:
-      if (input.size() < 6) {
+      if (input.size() < 4) {
         params.error_message_add(
             NodeWarningType::Info,
-            TIP_("NURBS must have minimum of 6 points for Bezier Conversion"));
+            TIP_("NURBS must have minimum of 4 points for Bezier Conversion"));
         return input.copy();
       }
-      else {
-        if (input.size() % 3 != 0) {
-          params.error_message_add(NodeWarningType::Info,
-                                   TIP_("NURBS must have multiples of 3 points for full Bezier "
-                                        "conversion, curve truncated"));
-        }
-        return nurbs_to_bezier(input);
-      }
+      return nurbs_to_bezier(input);
   }
   BLI_assert_unreachable();
   return {};
