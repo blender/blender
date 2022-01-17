@@ -55,6 +55,36 @@ typedef struct IMMDrawPixelsTexState {
 IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin);
 
 /**
+ * Unlike the other `immDrawPixelsTex` functions, this doesn't do tiled drawing, but draws into a
+ * full texture.
+ *
+ * Use the currently bound shader.
+ *
+ * Use #immDrawPixelsTexSetup to bind the shader you want before calling #immDrawPixelsTex.
+ *
+ * If using a special shader double check it uses the same attributes "pos" "texCoord" and uniform
+ * "image".
+ *
+ * If color is NULL then use white by default
+ *
+ * Unless <em>state->do_shader_unbind<em> is explicitly set to `false`, the shader is unbound when
+ * finished.
+ */
+void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
+                                    const float x,
+                                    const float y,
+                                    const int img_w,
+                                    const int img_h,
+                                    const eGPUTextureFormat gpu_format,
+                                    const bool use_filter,
+                                    const void *rect,
+                                    const float scaleX,
+                                    const float scaleY,
+                                    const float xzoom,
+                                    const float yzoom,
+                                    const float color[4]);
+
+/**
  * #immDrawPixelsTex - Functions like a limited #glDrawPixels, but actually draws the
  * image using textures, which can be tremendously faster on low-end
  * cards, and also avoids problems with the raster position being

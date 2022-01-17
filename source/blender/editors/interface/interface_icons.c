@@ -1546,7 +1546,7 @@ static void icon_draw_rect_fast(float x,
     immUniform1f("factor", desaturate);
   }
 
-  immDrawPixelsTexScaled(
+  immDrawPixelsTexScaledFullSize(
       &state, draw_x, draw_y, rw, rh, GPU_RGBA8, true, rect, scale_x, scale_y, 1.0f, 1.0f, col);
 }
 
@@ -1561,7 +1561,6 @@ static void icon_draw_rect(float x,
                            float alpha,
                            const float desaturate)
 {
-  ImBuf *ima = NULL;
   int draw_w = w;
   int draw_h = h;
   int draw_x = x;
@@ -1577,6 +1576,8 @@ static void icon_draw_rect(float x,
   /* modulate color */
   const float col[4] = {alpha, alpha, alpha, alpha};
 
+  float scale_x = 1.0f;
+  float scale_y = 1.0f;
   /* rect contains image in 'rendersize', we only scale if needed */
   if (rw != w || rh != h) {
     /* preserve aspect ratio and center */
@@ -1590,13 +1591,9 @@ static void icon_draw_rect(float x,
       draw_h = h;
       draw_x += (w - draw_w) / 2;
     }
+    scale_x = draw_w / (float)rw;
+    scale_y = draw_h / (float)rh;
     /* If the image is squared, the `draw_*` initialization values are good. */
-
-    /* first allocate imbuf for scaling and copy preview into it */
-    ima = IMB_allocImBuf(rw, rh, 32, IB_rect);
-    memcpy(ima->rect, rect, rw * rh * sizeof(uint));
-    IMB_scaleImBuf(ima, draw_w, draw_h); /* scale it */
-    rect = ima->rect;
   }
 
   /* draw */
@@ -1613,12 +1610,8 @@ static void icon_draw_rect(float x,
     immUniform1f("factor", desaturate);
   }
 
-  immDrawPixelsTex(
-      &state, draw_x, draw_y, draw_w, draw_h, GPU_RGBA8, false, rect, 1.0f, 1.0f, col);
-
-  if (ima) {
-    IMB_freeImBuf(ima);
-  }
+  immDrawPixelsTexScaledFullSize(
+      &state, draw_x, draw_y, rw, rh, GPU_RGBA8, true, rect, scale_x, scale_y, 1.0f, 1.0f, col);
 }
 
 /* High enough to make a difference, low enough so that

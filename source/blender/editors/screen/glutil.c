@@ -72,6 +72,75 @@ IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
   return state;
 }
 
+void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
+                                    const float x,
+                                    const float y,
+                                    const int img_w,
+                                    const int img_h,
+                                    const eGPUTextureFormat gpu_format,
+                                    const bool use_filter,
+                                    const void *rect,
+                                    const float scaleX,
+                                    const float scaleY,
+                                    const float xzoom,
+                                    const float yzoom,
+                                    const float color[4])
+{
+  const static float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  const float draw_width = img_w * scaleX * xzoom;
+  const float draw_height = img_h * scaleY * yzoom;
+  /* Downscaling with regular bilinear interpolation (i.e. #GL_LINEAR) doesn't give good filtering
+   * results. Mipmaps can be used to get better results (i.e. #GL_LINEAR_MIPMAP_LINEAR), so always
+   * use mipmaps when filtering. */
+  const bool use_mipmap = use_filter && ((draw_width < img_w) || (draw_height < img_h));
+
+  GPUTexture *tex = GPU_texture_create_2d("immDrawPixels", img_w, img_h, 1, gpu_format, NULL);
+
+  const bool use_float_data = ELEM(gpu_format, GPU_RGBA16F, GPU_RGB16F, GPU_R16F);
+  eGPUDataFormat gpu_data_format = (use_float_data) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
+  GPU_texture_update(tex, gpu_data_format, rect);
+
+  GPU_texture_filter_mode(tex, use_filter);
+  if (use_mipmap) {
+    GPU_texture_generate_mipmap(tex);
+    GPU_texture_mipmap_mode(tex, true, true);
+  }
+  GPU_texture_wrap_mode(tex, false, true);
+
+  GPU_texture_bind(tex, 0);
+
+  /* optional */
+  /* NOTE: Shader could be null for GLSL OCIO drawing, it is fine, since
+   * it does not need color.
+   */
+  if (state->shader != NULL && GPU_shader_get_uniform(state->shader, "color") != -1) {
+    immUniformColor4fv((color) ? color : white);
+  }
+
+  uint pos = state->pos, texco = state->texco;
+
+  immBegin(GPU_PRIM_TRI_FAN, 4);
+  immAttr2f(texco, 0.0f, 0.0f);
+  immVertex2f(pos, x, y);
+
+  immAttr2f(texco, 1.0f, 0.0f);
+  immVertex2f(pos, x + draw_width, y);
+
+  immAttr2f(texco, 1.0f, 1.0f);
+  immVertex2f(pos, x + draw_width, y + draw_height);
+
+  immAttr2f(texco, 0.0f, 1.0f);
+  immVertex2f(pos, x, y + draw_height);
+  immEnd();
+
+  if (state->do_shader_unbind) {
+    immUnbindProgram();
+  }
+
+  GPU_texture_unbind(tex);
+  GPU_texture_free(tex);
+}
+
 void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
                                      float x,
                                      float y,
