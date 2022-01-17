@@ -434,6 +434,7 @@ bool GLContext::clear_texture_support = false;
 bool GLContext::copy_image_support = false;
 bool GLContext::debug_layer_support = false;
 bool GLContext::direct_state_access_support = false;
+bool GLContext::explicit_location_support = false;
 bool GLContext::fixed_restart_index_support = false;
 bool GLContext::multi_bind_support = false;
 bool GLContext::multi_draw_indirect_support = false;
@@ -492,6 +493,7 @@ void GLBackend::capabilities_init()
   GLContext::copy_image_support = GLEW_ARB_copy_image;
   GLContext::debug_layer_support = GLEW_VERSION_4_3 || GLEW_KHR_debug || GLEW_ARB_debug_output;
   GLContext::direct_state_access_support = GLEW_ARB_direct_state_access;
+  GLContext::explicit_location_support = GLEW_VERSION_4_3;
   GLContext::fixed_restart_index_support = GLEW_ARB_ES3_compatibility;
   GLContext::multi_bind_support = GLEW_ARB_multi_bind;
   GLContext::multi_draw_indirect_support = GLEW_ARB_multi_draw_indirect;

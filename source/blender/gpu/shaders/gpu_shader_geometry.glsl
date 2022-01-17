@@ -1,4 +1,4 @@
-
+#ifndef USE_GPU_SHADER_CREATE_INFO
 uniform mat4 ProjectionMatrix;
 
 uniform int PrimitiveIdBase;
@@ -19,6 +19,7 @@ out vec3 varposition;
 
 uniform bool osd_flat_shading;
 uniform int osd_fvar_count;
+#endif
 
 #define INTERP_FACE_VARYING_2(result, fvarOffset, tessCoord) \
   { \
@@ -38,8 +39,10 @@ uniform int osd_fvar_count;
     result = vec3(tmp, 0); \
   }
 
+#ifndef USE_GPU_SHADER_CREATE_INFO
 uniform samplerBuffer FVarDataBuffer;
 uniform isamplerBuffer FVarDataOffsetBuffer;
+#endif
 
 out block
 {

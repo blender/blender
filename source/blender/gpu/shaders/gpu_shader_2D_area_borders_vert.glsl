@@ -1,4 +1,4 @@
-
+#ifndef USE_GPU_SHADER_CREATE_INFO
 uniform mat4 ModelViewProjectionMatrix;
 
 uniform vec4 rect;
@@ -8,6 +8,7 @@ uniform float scale;
 in vec2 pos;
 
 out vec2 uv;
+#endif
 
 void main()
 {

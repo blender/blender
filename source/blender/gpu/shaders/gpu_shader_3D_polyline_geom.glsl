@@ -1,4 +1,4 @@
-
+#ifndef USE_GPU_SHADER_CREATE_INFO
 layout(lines) in;
 layout(triangle_strip, max_vertices = 4) out;
 
@@ -7,17 +7,18 @@ uniform vec2 viewportSize;
 uniform float lineWidth;
 uniform bool lineSmooth = true;
 
-#if !defined(UNIFORM)
+#  if !defined(UNIFORM)
 in vec4 finalColor_g[];
-#endif
+#  endif
 
-#ifdef CLIP
+#  ifdef CLIP
 in float clip_g[];
 out float clip;
-#endif
+#  endif
 
 out vec4 finalColor;
 noperspective out float smoothline;
+#endif
 
 #define SMOOTH_WIDTH 1.0
 
