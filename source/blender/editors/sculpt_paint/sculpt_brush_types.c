@@ -3486,6 +3486,10 @@ void SCULPT_do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 
     ss->custom_layers[SCULPT_SCL_FAIRING_MASK] = MEM_callocN(sizeof(SculptCustomLayer),
                                                              "ss->Cache->fairing_mask");
+    ss->custom_layers[SCULPT_SCL_FAIRING_FADE] = MEM_callocN(sizeof(SculptCustomLayer),
+                                                             "ss->Cache->fairing_fade");
+    ss->custom_layers[SCULPT_SCL_PREFAIRING_CO] = MEM_callocN(sizeof(SculptCustomLayer),
+                                                              "ss->Cache->prefairing_co");
 
     SculptLayerParams params = {.permanent = false, .simple_array = true};
 
@@ -3497,8 +3501,6 @@ void SCULPT_do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
                           ss->custom_layers[SCULPT_SCL_FAIRING_MASK],
                           &params);
 
-    ss->custom_layers[SCULPT_SCL_FAIRING_FADE] = MEM_callocN(sizeof(SculptCustomLayer),
-                                                             "ss->Cache->fairing_fade");
     SCULPT_attr_get_layer(ss,
                           ob,
                           ATTR_DOMAIN_POINT,
@@ -3507,8 +3509,6 @@ void SCULPT_do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
                           ss->custom_layers[SCULPT_SCL_FAIRING_FADE],
                           &params);
 
-    ss->custom_layers[SCULPT_SCL_PREFAIRING_CO] = MEM_callocN(sizeof(SculptCustomLayer),
-                                                              "ss->Cache->prefairing_co");
     SCULPT_attr_get_layer(ss,
                           ob,
                           ATTR_DOMAIN_POINT,

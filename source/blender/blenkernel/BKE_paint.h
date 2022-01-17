@@ -670,6 +670,7 @@ typedef struct SculptCustomLayer {
   bool from_bmesh;  // note that layers can be fixed arrays but still from a bmesh, e.g. filter
                     // laplacian smooth
   bool released;
+  bool ready;
 } SculptCustomLayer;
 
 /* These custom attributes have references

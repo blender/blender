@@ -3095,6 +3095,7 @@ static bool sculpt_attr_get_layer(SculptSession *ss,
     out->domain = domain;
     out->proptype = proptype;
     out->elemsize = elemsize;
+    out->ready = true;
 
     /*grids cannot store normal customdata layers, and thus
       we cannot rely on the customdata api to keep track of
@@ -3130,6 +3131,7 @@ static bool sculpt_attr_get_layer(SculptSession *ss,
       out->from_bmesh = true;
 
       if (!ss->bm) {
+        out->ready = false;
         return false;
       }
 
@@ -3141,6 +3143,7 @@ static bool sculpt_attr_get_layer(SculptSession *ss,
           cdata = &ss->bm->pdata;
           break;
         default:
+          out->ready = false;
           return false;
       }
 
@@ -3148,6 +3151,7 @@ static bool sculpt_attr_get_layer(SculptSession *ss,
 
       if (idx < 0) {
         if (!autocreate) {
+          out->ready = false;
           return false;
         }
 
@@ -3192,6 +3196,7 @@ static bool sculpt_attr_get_layer(SculptSession *ss,
           cdata = ss->pdata;
           break;
         default:
+          out->ready = false;
           return false;
       }
 
@@ -3199,6 +3204,7 @@ static bool sculpt_attr_get_layer(SculptSession *ss,
 
       if (idx < 0) {
         if (!autocreate) {
+          out->ready = false;
           return false;
         }
 
@@ -3234,6 +3240,7 @@ static bool sculpt_attr_get_layer(SculptSession *ss,
           totelem = ss->totfaces;
           cdata = &ss->temp_pdata;
         default:
+          out->ready = false;
           return false;
       }
 
@@ -3241,6 +3248,7 @@ static bool sculpt_attr_get_layer(SculptSession *ss,
 
       if (idx < 0) {
         if (!autocreate) {
+          out->ready = false;
           return false;
         }
 
@@ -3269,6 +3277,8 @@ static bool sculpt_attr_get_layer(SculptSession *ss,
       break;
     }
   }
+
+  out->ready = true;
 
   return true;
 }
@@ -3316,7 +3326,11 @@ void BKE_sculptsession_update_attr_refs(Object *ob)
     for (int j = 0; j < SCULPT_SCL_LAYER_MAX; j++) {
       SculptCustomLayer *scl = ss->custom_layers[j];
 
-      if (scl && !scl->released && !scl->params.simple_array) {
+      if (!scl || !scl->ready) {
+        continue;
+      }
+
+      if (!scl->released && !scl->params.simple_array) {
         sculpt_attr_get_layer(
             ss, ob, scl->domain, scl->proptype, scl->name, scl, true, &scl->params);
       }
