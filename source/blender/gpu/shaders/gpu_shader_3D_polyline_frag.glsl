@@ -1,14 +1,15 @@
-
+#ifndef USE_GPU_SHADER_CREATE_INFO
 uniform float lineWidth;
 uniform bool lineSmooth = true;
 
 in vec4 finalColor;
 noperspective in float smoothline;
-#ifdef CLIP
+#  ifdef CLIP
 in float clip;
-#endif
+#  endif
 
 out vec4 fragColor;
+#endif
 
 #define SMOOTH_WIDTH 1.0
 

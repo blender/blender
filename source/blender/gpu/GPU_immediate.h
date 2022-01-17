@@ -122,6 +122,7 @@ void immUniformMatrix4fv(const char *name, const float data[4][4]);
 
 void immBindTexture(const char *name, GPUTexture *tex);
 void immBindTextureSampler(const char *name, GPUTexture *tex, eGPUSamplerState state);
+void immBindUniformBuf(const char *name, GPUUniformBuf *ubo);
 
 /* Convenience functions for setting "uniform vec4 color". */
 /* The RGB functions have implicit alpha = 1.0. */

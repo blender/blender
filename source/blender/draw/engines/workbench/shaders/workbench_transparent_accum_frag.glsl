@@ -6,6 +6,7 @@
 #pragma BLENDER_REQUIRE(workbench_matcap_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_world_light_lib.glsl)
 
+#ifndef WORKBENCH_SHADER_SHARED_H
 /* Revealage is actually stored in transparentAccum alpha channel.
  * This is a workaround to older hardware not having separate blend equation per render target. */
 layout(location = 0) out vec4 transparentAccum;
@@ -13,6 +14,7 @@ layout(location = 1) out vec4 revealageAccum;
 
 /* NOTE: Blending will be skipped on objectId because output is a non-normalized integer buffer. */
 layout(location = 2) out uint objectId;
+#endif
 
 /* Special function only to be used with calculate_transparent_weight(). */
 float linear_zdepth(float depth, vec4 viewvecs[2], mat4 proj_mat)

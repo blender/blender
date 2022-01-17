@@ -629,6 +629,12 @@ void immBindTextureSampler(const char *name, GPUTexture *tex, eGPUSamplerState s
   GPU_texture_bind_ex(tex, state, binding, true);
 }
 
+void immBindUniformBuf(const char *name, GPUUniformBuf *ubo)
+{
+  int binding = GPU_shader_get_uniform_block_binding(imm->shader, name);
+  GPU_uniformbuf_bind(ubo, binding);
+}
+
 /* --- convenience functions for setting "uniform vec4 color" --- */
 
 void immUniformColor4f(float r, float g, float b, float a)

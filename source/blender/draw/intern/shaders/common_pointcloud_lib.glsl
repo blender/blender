@@ -2,12 +2,16 @@
 /* NOTE: To be used with UNIFORM_RESOURCE_ID and INSTANCED_ATTR as define. */
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
+#ifndef DRW_SHADER_SHARED_H
+
 in vec4 pos; /* Position and radius. */
 
 /* ---- Instanced attribs ---- */
 
 in vec3 pos_inst;
 in vec3 nor;
+
+#endif
 
 mat3 pointcloud_get_facing_matrix(vec3 p)
 {

@@ -1,3 +1,4 @@
+#ifndef USE_GPU_SHADER_CREATE_INFO
 uniform vec3 checkerColorAndSize;
 
 noperspective in vec2 uvInterp;
@@ -12,6 +13,7 @@ flat in vec4 embossColor;
 flat in float lineWidth;
 
 out vec4 fragColor;
+#endif
 
 vec3 compute_masks(vec2 uv)
 {

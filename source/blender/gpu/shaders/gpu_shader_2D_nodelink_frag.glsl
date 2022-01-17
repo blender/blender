@@ -1,4 +1,4 @@
-
+#ifndef USE_GPU_SHADER_CREATE_INFO
 in float colorGradient;
 in vec4 finalColor;
 in float lineU;
@@ -8,6 +8,7 @@ flat in float dashAlpha;
 flat in int isMainLine;
 
 out vec4 fragColor;
+#endif
 
 #define DASH_WIDTH 10.0
 #define ANTIALIAS 1.0

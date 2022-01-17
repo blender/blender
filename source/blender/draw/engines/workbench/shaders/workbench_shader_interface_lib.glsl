@@ -1,15 +1,17 @@
 
+#ifndef WORKBENCH_SHADER_SHARED_H
 IN_OUT ShaderStageInterface
 {
   vec3 normal_interp;
   vec3 color_interp;
   float alpha_interp;
   vec2 uv_interp;
-#ifdef TRANSPARENT_MATERIAL
+#  ifdef TRANSPARENT_MATERIAL
   flat float roughness;
   flat float metallic;
-#else
+#  else
   flat float packed_rough_metal;
-#endif
+#  endif
   flat int object_id;
 };
+#endif

@@ -1,7 +1,9 @@
 #ifdef USE_WORLD_CLIP_PLANES
 #  if defined(GPU_VERTEX_SHADER) || defined(GPU_GEOMETRY_SHADER)
 
+#    ifndef USE_GPU_SHADER_CREATE_INFO
 uniform vec4 WorldClipPlanes[6];
+#    endif
 
 #    define _world_clip_planes_calc_clip_distance(wpos, _clipplanes) \
       { \
@@ -14,6 +16,10 @@ uniform vec4 WorldClipPlanes[6];
         gl_ClipDistance[5] = dot(_clipplanes[5], pos); \
       }
 
+/* When all shaders are builtin shaders are migrated this could be applied directly. */
+#    ifdef USE_GPU_SHADER_CREATE_INFO
+#      define WorldClipPlanes clipPlanes.world
+#    endif
 /* HACK Dirty hack to be able to override the definition in common_view_lib.glsl.
  * Not doing this would require changing the include order in every shaders. */
 #    define world_clip_planes_calc_clip_distance(wpos) \

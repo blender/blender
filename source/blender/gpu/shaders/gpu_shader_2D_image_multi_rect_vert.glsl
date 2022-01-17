@@ -4,7 +4,8 @@
  */
 
 /* Same as ICON_DRAW_CACHE_SIZE */
-#define MAX_CALLS 16
+#ifndef USE_GPU_SHADER_CREATE_INFO
+#  define MAX_CALLS 16
 
 uniform vec4 calls_data[MAX_CALLS * 3];
 
@@ -12,6 +13,7 @@ out vec2 texCoord_interp;
 flat out vec4 finalColor;
 
 in vec2 pos;
+#endif
 
 void main()
 {

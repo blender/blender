@@ -51,7 +51,9 @@
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_platform.h"
+#include "GPU_shader_shared.h"
 #include "GPU_state.h"
+#include "GPU_uniform_buffer.h"
 
 #include "DRW_engine.h"
 
@@ -1873,22 +1875,28 @@ static void nodelink_batch_draw(const SpaceNode &snode)
   }
 
   GPU_blend(GPU_BLEND_ALPHA);
+  NodeLinkInstanceData node_link_data;
 
-  float colors[6][4] = {{0.0f}};
-  UI_GetThemeColor4fv(TH_WIRE_INNER, colors[nodelink_get_color_id(TH_WIRE_INNER)]);
-  UI_GetThemeColor4fv(TH_WIRE, colors[nodelink_get_color_id(TH_WIRE)]);
-  UI_GetThemeColor4fv(TH_ACTIVE, colors[nodelink_get_color_id(TH_ACTIVE)]);
-  UI_GetThemeColor4fv(TH_EDGE_SELECT, colors[nodelink_get_color_id(TH_EDGE_SELECT)]);
-  UI_GetThemeColor4fv(TH_REDALERT, colors[nodelink_get_color_id(TH_REDALERT)]);
+  UI_GetThemeColor4fv(TH_WIRE_INNER, node_link_data.colors[nodelink_get_color_id(TH_WIRE_INNER)]);
+  UI_GetThemeColor4fv(TH_WIRE, node_link_data.colors[nodelink_get_color_id(TH_WIRE)]);
+  UI_GetThemeColor4fv(TH_ACTIVE, node_link_data.colors[nodelink_get_color_id(TH_ACTIVE)]);
+  UI_GetThemeColor4fv(TH_EDGE_SELECT,
+                      node_link_data.colors[nodelink_get_color_id(TH_EDGE_SELECT)]);
+  UI_GetThemeColor4fv(TH_REDALERT, node_link_data.colors[nodelink_get_color_id(TH_REDALERT)]);
+  node_link_data.expandSize = snode.runtime->aspect * LINK_WIDTH;
+  node_link_data.arrowSize = ARROW_SIZE;
+
+  GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(sizeof(node_link_data), &node_link_data, __func__);
 
   GPU_vertbuf_data_len_set(g_batch_link.inst_vbo, g_batch_link.count);
   GPU_vertbuf_use(g_batch_link.inst_vbo); /* force update. */
 
   GPU_batch_program_set_builtin(g_batch_link.batch, GPU_SHADER_2D_NODELINK_INST);
-  GPU_batch_uniform_4fv_array(g_batch_link.batch, "colors", 6, colors);
-  GPU_batch_uniform_1f(g_batch_link.batch, "expandSize", snode.runtime->aspect * LINK_WIDTH);
-  GPU_batch_uniform_1f(g_batch_link.batch, "arrowSize", ARROW_SIZE);
+  GPU_batch_uniformbuf_bind(g_batch_link.batch, "node_link_data", ubo);
   GPU_batch_draw(g_batch_link.batch);
+
+  GPU_uniformbuf_unbind(ubo);
+  GPU_uniformbuf_free(ubo);
 
   nodelink_batch_reset();
 
@@ -2060,19 +2068,32 @@ void node_draw_link_bezier(const bContext &C,
         copy_v4_v4(colors[2], link_preselection_highlight_color);
       }
 
+      NodeLinkData node_link_data;
+      for (int i = 0; i < 4; i++) {
+        copy_v2_v2(node_link_data.bezierPts[i], vec[i]);
+      }
+      for (int i = 0; i < 3; i++) {
+        copy_v2_v2(node_link_data.colors[i], colors[i]);
+      }
+      node_link_data.doArrow = drawarrow;
+      node_link_data.doMuted = drawmuted;
+      node_link_data.dim_factor = dim_factor;
+      node_link_data.thickness = thickness;
+      node_link_data.dash_factor = dash_factor;
+      node_link_data.dash_alpha = dash_alpha;
+      node_link_data.expandSize = snode.runtime->aspect * LINK_WIDTH;
+      node_link_data.arrowSize = ARROW_SIZE;
+
       GPUBatch *batch = g_batch_link.batch_single;
+      GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(
+          sizeof(node_link_data), &node_link_data, __func__);
+
       GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_NODELINK);
-      GPU_batch_uniform_2fv_array(batch, "bezierPts", 4, vec);
-      GPU_batch_uniform_4fv_array(batch, "colors", 3, colors);
-      GPU_batch_uniform_1f(batch, "expandSize", snode.runtime->aspect * LINK_WIDTH);
-      GPU_batch_uniform_1f(batch, "arrowSize", ARROW_SIZE);
-      GPU_batch_uniform_1i(batch, "doArrow", drawarrow);
-      GPU_batch_uniform_1i(batch, "doMuted", drawmuted);
-      GPU_batch_uniform_1f(batch, "dim_factor", dim_factor);
-      GPU_batch_uniform_1f(batch, "thickness", thickness);
-      GPU_batch_uniform_1f(batch, "dash_factor", dash_factor);
-      GPU_batch_uniform_1f(batch, "dash_alpha", dash_alpha);
+      GPU_batch_uniformbuf_bind(batch, "node_link_data", ubo);
       GPU_batch_draw(batch);
+
+      GPU_uniformbuf_unbind(ubo);
+      GPU_uniformbuf_free(ubo);
     }
   }
 }

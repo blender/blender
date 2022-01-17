@@ -536,12 +536,14 @@ option(WITH_OPENGL              "When off limits visibility of the opengl header
 option(WITH_GLEW_ES             "Switches to experimental copy of GLEW that has support for OpenGL ES. (temporary option for development purposes)" OFF)
 option(WITH_GL_EGL              "Use the EGL OpenGL system library instead of the platform specific OpenGL system library (CGL, glX, or WGL)"       OFF)
 option(WITH_GL_PROFILE_ES20     "Support using OpenGL ES 2.0. (through either EGL or the AGL/WGL/XGL 'es20' profile)"                               OFF)
+option(WITH_GPU_SHADER_BUILDER  "Shader builder is a developer option enabling linting on GLSL during compilation"                                  OFF)
 
 mark_as_advanced(
   WITH_OPENGL
   WITH_GLEW_ES
   WITH_GL_EGL
   WITH_GL_PROFILE_ES20
+  WITH_GPU_SHADER_BUILDER
 )
 
 if(WIN32)

@@ -5,10 +5,12 @@
 #pragma BLENDER_REQUIRE(workbench_material_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_image_lib.glsl)
 
+#ifndef WORKBENCH_SHADER_SHARED_H
 in vec3 pos;
 in vec3 nor;
 in vec4 ac; /* active color */
 in vec2 au; /* active texture layer */
+#endif
 
 void main()
 {
@@ -23,8 +25,10 @@ void main()
 
   normal_interp = normalize(normal_object_to_view(nor));
 
-#ifdef OPAQUE_MATERIAL
+#ifndef WORKBENCH_SHADER_SHARED_H
+#  ifdef OPAQUE_MATERIAL
   float metallic, roughness;
+#  endif
 #endif
   workbench_material_data_get(resource_handle, color_interp, alpha_interp, roughness, metallic);
 
