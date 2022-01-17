@@ -43,4 +43,3 @@ GPU_SHADER_CREATE_INFO(gpu_shader_text)
     .fragment_source("gpu_shader_text_frag.glsl")
     .additional_info("gpu_srgb_to_framebuffer_space")
     .do_static_compilation(true);
-    

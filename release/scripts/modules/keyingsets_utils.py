@@ -245,7 +245,7 @@ def RKS_GEN_custom_props(_ksi, _context, ks, data):
             # Can technically happen, but there is no known case.
             continue
         if rna_property is None:
-            # In this case the property cannot be converted to an 
+            # In this case the property cannot be converted to an
             # FCurve-compatible value, so we can't keyframe it anyways.
             continue
         if rna_property.rna_type not in prop_type_compat:

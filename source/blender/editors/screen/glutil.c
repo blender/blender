@@ -86,7 +86,7 @@ void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
                                     const float yzoom,
                                     const float color[4])
 {
-  const static float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  static const float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   const float draw_width = img_w * scaleX * xzoom;
   const float draw_height = img_h * scaleY * yzoom;
   /* Downscaling with regular bilinear interpolation (i.e. #GL_LINEAR) doesn't give good filtering

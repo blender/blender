@@ -48,4 +48,3 @@ GPU_SHADER_CREATE_INFO(gpu_shader_gpencil_stroke)
     .fragment_source("gpu_shader_gpencil_stroke_frag.glsl")
     .typedef_source("GPU_shader_shared.h")
     .do_static_compilation(true);
-    

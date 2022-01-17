@@ -37,4 +37,3 @@ GPU_SHADER_CREATE_INFO(gpu_shader_2D_image_rect_color)
     .vertex_source("gpu_shader_2D_image_rect_vert.glsl")
     .fragment_source("gpu_shader_image_color_frag.glsl")
     .do_static_compilation(true);
-

@@ -44,4 +44,3 @@ GPU_SHADER_CREATE_INFO(gpu_shader_keyframe_shape)
     .vertex_source("gpu_shader_keyframe_shape_vert.glsl")
     .fragment_source("gpu_shader_keyframe_shape_frag.glsl")
     .do_static_compilation(true);
-    

@@ -481,9 +481,9 @@ if(WITH_GPU_SHADER_BUILDER)
     ${PLATFORM_LINKLIBS}
   )
   target_include_directories(shader_builder PRIVATE ${INC} ${CMAKE_CURRENT_BINARY_DIR})
-  
+
   set(BAKED_CREATE_INFOS_FILE ${CMAKE_CURRENT_BINARY_DIR}/shader_baked.hh)
-  
+
   add_custom_command(
     OUTPUT
     ${BAKED_CREATE_INFOS_FILE}
