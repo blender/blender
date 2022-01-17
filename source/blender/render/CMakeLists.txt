@@ -49,6 +49,7 @@ set(SRC
   intern/pipeline.c
   intern/render_result.c
   intern/texture_image.c
+  intern/texture_margin.cc
   intern/texture_pointdensity.c
   intern/texture_procedural.c
   intern/zbuf.c
@@ -58,6 +59,7 @@ set(SRC
   RE_multires_bake.h
   RE_pipeline.h
   RE_texture.h
+  RE_texture_margin.h
 
   intern/pipeline.h
   intern/render_result.h

@@ -72,6 +72,7 @@ DEF_ENUM(rna_enum_image_generated_type_items)
 DEF_ENUM(rna_enum_normal_space_items)
 DEF_ENUM(rna_enum_normal_swizzle_items)
 DEF_ENUM(rna_enum_bake_save_mode_items)
+DEF_ENUM(rna_enum_bake_margin_type_items)
 DEF_ENUM(rna_enum_bake_target_items)
 
 DEF_ENUM(rna_enum_views_format_items)

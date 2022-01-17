@@ -33,7 +33,8 @@ extern "C" {
 typedef struct MultiresBakeRender {
   Scene *scene;
   DerivedMesh *lores_dm, *hires_dm;
-  int bake_filter; /* Bake-filter, aka margin */
+  int bake_margin;
+  char bake_margin_type;
   int lvl, tot_lvl;
   short mode;
   bool use_lores_mesh; /* Use low-resolution mesh when baking displacement maps */

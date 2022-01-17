@@ -47,6 +47,7 @@
 #include "RE_multires_bake.h"
 #include "RE_pipeline.h"
 #include "RE_texture.h"
+#include "RE_texture_margin.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -1296,14 +1297,23 @@ static void apply_ao_callback(DerivedMesh *lores_dm,
 
 /* ******$***************** Post processing ************************* */
 
-static void bake_ibuf_filter(ImBuf *ibuf, char *mask, const int filter)
+static void bake_ibuf_filter(
+    ImBuf *ibuf, char *mask, const int margin, const char margin_type, DerivedMesh *dm)
 {
   /* must check before filtering */
   const bool is_new_alpha = (ibuf->planes != R_IMF_PLANES_RGBA) && BKE_imbuf_alpha_test(ibuf);
 
-  /* Margin */
-  if (filter) {
-    IMB_filter_extend(ibuf, mask, filter);
+  if (margin) {
+    switch (margin_type) {
+      case R_BAKE_ADJACENT_FACES:
+        RE_generate_texturemargin_adjacentfaces_dm(ibuf, mask, margin, dm);
+        break;
+      default:
+      /* fall through */
+      case R_BAKE_EXTEND:
+        IMB_filter_extend(ibuf, mask, margin);
+        break;
+    }
   }
 
   /* if the bake results in new alpha then change the image setting */
@@ -1311,7 +1321,7 @@ static void bake_ibuf_filter(ImBuf *ibuf, char *mask, const int filter)
     ibuf->planes = R_IMF_PLANES_RGBA;
   }
   else {
-    if (filter && ibuf->planes != R_IMF_PLANES_RGBA) {
+    if (margin && ibuf->planes != R_IMF_PLANES_RGBA) {
       /* clear alpha added by filtering */
       IMB_rectfill_alpha(ibuf, 1.0f);
     }
@@ -1460,7 +1470,8 @@ static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
                                        result->height_max);
     }
 
-    bake_ibuf_filter(ibuf, userdata->mask_buffer, bkr->bake_filter);
+    bake_ibuf_filter(
+        ibuf, userdata->mask_buffer, bkr->bake_margin, bkr->bake_margin_type, bkr->lores_dm);
 
     ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
     BKE_image_mark_dirty(ima, ibuf);

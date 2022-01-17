@@ -1803,17 +1803,44 @@ class CYCLES_RENDER_PT_bake_output(CyclesButtonsPanel, Panel):
         rd = scene.render
 
         if rd.use_bake_multires:
-            layout.prop(rd, "bake_margin")
             layout.prop(rd, "use_bake_clear", text="Clear Image")
-
             if rd.bake_type == 'DISPLACEMENT':
                 layout.prop(rd, "use_bake_lores_mesh")
         else:
             layout.prop(cbk, "target")
-
             if cbk.target == 'IMAGE_TEXTURES':
-                layout.prop(cbk, "margin")
                 layout.prop(cbk, "use_clear", text="Clear Image")
+
+class CYCLES_RENDER_PT_bake_output_margin(CyclesButtonsPanel, Panel):
+    bl_label = "Margin"
+    bl_context = "render"
+    bl_parent_id = "CYCLES_RENDER_PT_bake_output"
+    COMPAT_ENGINES = {'CYCLES'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        cbk = scene.render.bake
+        return cbk.target == 'IMAGE_TEXTURES'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        scene = context.scene
+        cscene = scene.cycles
+        cbk = scene.render.bake
+        rd = scene.render
+
+        if rd.use_bake_multires:
+            layout.prop(rd, "bake_margin_type", text="Type")
+            layout.prop(rd, "bake_margin", text="Size")
+        else:
+            if cbk.target == 'IMAGE_TEXTURES':
+                layout.prop(cbk, "margin_type", text="Type")
+                layout.prop(cbk, "margin", text="Size")
+
 
 
 class CYCLES_RENDER_PT_debug(CyclesDebugButtonsPanel, Panel):
@@ -2183,6 +2210,7 @@ classes = (
     CYCLES_RENDER_PT_bake_influence,
     CYCLES_RENDER_PT_bake_selected_to_active,
     CYCLES_RENDER_PT_bake_output,
+    CYCLES_RENDER_PT_bake_output_margin,
     CYCLES_RENDER_PT_debug,
     node_panel(CYCLES_MATERIAL_PT_settings),
     node_panel(CYCLES_MATERIAL_PT_settings_surface),

@@ -47,6 +47,7 @@
     .width = 512, \
     .height = 512, \
     .margin = 16, \
+    .margin_type = R_BAKE_ADJACENT_FACES, \
     .normal_space = R_BAKE_SPACE_TANGENT, \
     .normal_swizzle = {R_BAKE_POSX, R_BAKE_POSY, R_BAKE_POSZ}, \
   }
@@ -102,7 +103,8 @@
     .dither_intensity = 1.0f, \
  \
     .bake_mode = 0, \
-    .bake_filter = 16, \
+    .bake_margin = 16, \
+    .bake_margin_type = R_BAKE_ADJACENT_FACES, \
     .bake_flag = R_BAKE_CLEAR, \
     .bake_samples = 256, \
     .bake_biasdist = 0.001f, \
