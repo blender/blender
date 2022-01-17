@@ -1322,6 +1322,7 @@ PointerRNA *UI_list_custom_drag_operator_set(uiList *ui_list,
 void ED_uilisttypes_ui()
 {
   WM_uilisttype_add(UI_UL_asset_view());
+  WM_uilisttype_add(UI_UL_cache_file_layers());
 }
 
 /** \} */

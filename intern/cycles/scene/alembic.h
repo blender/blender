@@ -479,6 +479,10 @@ class AlembicProcedural : public Procedural {
   /* The file path to the Alembic archive */
   NODE_SOCKET_API(ustring, filepath)
 
+  /* Layers for the Alembic archive. Layers are in the order in which they override data, with the
+   * latter elements overriding the former ones. */
+  NODE_SOCKET_API_ARRAY(array<ustring>, layers)
+
   /* The current frame to render. */
   NODE_SOCKET_API(float, frame)
 

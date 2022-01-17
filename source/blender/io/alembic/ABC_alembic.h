@@ -26,6 +26,7 @@ extern "C" {
 #endif
 
 struct CacheArchiveHandle;
+struct CacheFileLayer;
 struct CacheReader;
 struct ListBase;
 struct Main;
@@ -102,6 +103,7 @@ bool ABC_import(struct bContext *C,
 
 struct CacheArchiveHandle *ABC_create_handle(struct Main *bmain,
                                              const char *filename,
+                                             const struct CacheFileLayer *layers,
                                              struct ListBase *object_paths);
 
 void ABC_free_handle(struct CacheArchiveHandle *handle);

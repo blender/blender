@@ -159,11 +159,25 @@ static bool gather_objects_paths(const IObject &object, ListBase *object_paths)
 
 CacheArchiveHandle *ABC_create_handle(struct Main *bmain,
                                       const char *filename,
+                                      const CacheFileLayer *layers,
                                       ListBase *object_paths)
 {
-  ArchiveReader *archive = new ArchiveReader(bmain, filename);
+  std::vector<const char *> filenames;
+  filenames.push_back(filename);
 
-  if (!archive->valid()) {
+  while (layers) {
+    if ((layers->flag & CACHEFILE_LAYER_HIDDEN) == 0) {
+      filenames.push_back(layers->filepath);
+    }
+    layers = layers->next;
+  }
+
+  /* We need to reverse the order as overriding archives should come first. */
+  std::reverse(filenames.begin(), filenames.end());
+
+  ArchiveReader *archive = ArchiveReader::get(bmain, filenames);
+
+  if (!archive || !archive->valid()) {
     delete archive;
     return nullptr;
   }
@@ -447,9 +461,9 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 
   WM_set_locked_interface(data->wm, true);
 
-  ArchiveReader *archive = new ArchiveReader(data->bmain, data->filename);
+  ArchiveReader *archive = ArchiveReader::get(data->bmain, {data->filename});
 
-  if (!archive->valid()) {
+  if (!archive || !archive->valid()) {
     data->error_code = ABC_ARCHIVE_FAIL;
     delete archive;
     return;

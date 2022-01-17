@@ -529,6 +529,17 @@ void BlenderSync::sync_procedural(BL::Object &b_ob,
   string absolute_path = blender_absolute_path(b_data, b_ob, b_mesh_cache.cache_file().filepath());
   procedural->set_filepath(ustring(absolute_path));
 
+  array<ustring> layers;
+  for (BL::CacheFileLayer &layer : cache_file.layers) {
+    if (layer.hide_layer()) {
+      continue;
+    }
+
+    absolute_path = blender_absolute_path(b_data, b_ob, layer.filepath());
+    layers.push_back_slow(ustring(absolute_path));
+  }
+  procedural->set_layers(layers);
+
   procedural->set_scale(cache_file.scale());
 
   procedural->set_use_prefetch(cache_file.use_prefetch());

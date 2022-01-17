@@ -23,6 +23,8 @@
 
 #include "abc_reader_archive.h"
 
+#include "Alembic/AbcCoreLayer/Read.h"
+
 #include "BKE_main.h"
 
 #include "BLI_path_util.h"
@@ -76,6 +78,46 @@ static IArchive open_archive(const std::string &filename,
   return IArchive();
 }
 
+ArchiveReader *ArchiveReader::get(struct Main *bmain, const std::vector<const char *> &filenames)
+{
+  std::vector<ArchiveReader *> readers;
+
+  for (const char *filename : filenames) {
+    auto reader = new ArchiveReader(bmain, filename);
+
+    if (!reader->valid()) {
+      delete reader;
+      continue;
+    }
+
+    readers.push_back(reader);
+  }
+
+  if (readers.size() == 0) {
+    return nullptr;
+  }
+
+  if (readers.size() == 1) {
+    return readers[0];
+  }
+
+  return new ArchiveReader(readers);
+}
+
+ArchiveReader::ArchiveReader(const std::vector<ArchiveReader *> &readers) : m_readers(readers)
+{
+  Alembic::AbcCoreLayer::ArchiveReaderPtrs archives;
+
+  for (auto &reader : readers) {
+    archives.push_back(reader->m_archive.getPtr());
+  }
+
+  Alembic::AbcCoreLayer::ReadArchive layer;
+  Alembic::AbcCoreAbstract::ArchiveReaderPtr arPtr = layer(archives);
+
+  m_archive = IArchive(arPtr, kWrapExisting, ErrorHandler::kThrowPolicy);
+}
+
 ArchiveReader::ArchiveReader(struct Main *bmain, const char *filename)
 {
   char abs_filename[FILE_MAX];
@@ -94,6 +136,13 @@ ArchiveReader::ArchiveReader(struct Main *bmain, const char *filename)
   m_streams.push_back(&m_infile);
 
   m_archive = open_archive(abs_filename, m_streams);
+}
+
+ArchiveReader::~ArchiveReader()
+{
+  for (ArchiveReader *reader : m_readers) {
+    delete reader;
+  }
 }
 
 bool ArchiveReader::valid() const

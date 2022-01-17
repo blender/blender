@@ -1161,6 +1161,11 @@ class ConstraintButtonsSubPanel:
             context, self.layout.template_cache_file_time_settings
         )
 
+    def draw_transform_cache_layers(self, context):
+        self.draw_transform_cache_subpanel(
+            context, self.layout.template_cache_file_layers
+        )
+
     def draw_transform_cache_subpanel(self, context, template_func):
         con = self.get_constraint(context)
         if con.cache_file is None:
@@ -1574,6 +1579,22 @@ class BONE_PT_bTransformCacheConstraint_velocity(BoneConstraintPanel, Constraint
         self.draw_transform_cache_velocity(context)
 
 
+class OBJECT_PT_bTransformCacheConstraint_layers(ObjectConstraintPanel, ConstraintButtonsSubPanel, Panel):
+    bl_parent_id = "OBJECT_PT_bTransformCacheConstraint"
+    bl_label = "Override Layers"
+
+    def draw(self, context):
+        self.draw_transform_cache_layers(context)
+
+
+class BONE_PT_bTransformCacheConstraint_layers(BoneConstraintPanel, ConstraintButtonsSubPanel, Panel):
+    bl_parent_id = "BONE_PT_bTransformCacheConstraint"
+    bl_label = "Override Layers"
+
+    def draw(self, context):
+        self.draw_transform_cache_layers(context)
+
+
 class OBJECT_PT_bTransformCacheConstraint_procedural(ObjectConstraintPanel, ConstraintButtonsSubPanel, Panel):
     bl_parent_id = "OBJECT_PT_bTransformCacheConstraint"
     bl_label = "Render Procedural"
@@ -1695,6 +1716,7 @@ classes = (
     OBJECT_PT_bTransformCacheConstraint_time,
     OBJECT_PT_bTransformCacheConstraint_procedural,
     OBJECT_PT_bTransformCacheConstraint_velocity,
+    OBJECT_PT_bTransformCacheConstraint_layers,
     OBJECT_PT_bPythonConstraint,
     OBJECT_PT_bArmatureConstraint,
     OBJECT_PT_bArmatureConstraint_bones,
@@ -1735,6 +1757,7 @@ classes = (
     BONE_PT_bTransformCacheConstraint_time,
     BONE_PT_bTransformCacheConstraint_procedural,
     BONE_PT_bTransformCacheConstraint_velocity,
+    BONE_PT_bTransformCacheConstraint_layers,
     BONE_PT_bPythonConstraint,
     BONE_PT_bArmatureConstraint,
     BONE_PT_bArmatureConstraint_bones,

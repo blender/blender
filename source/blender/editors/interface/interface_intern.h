@@ -1528,6 +1528,9 @@ uiTreeViewHandle *ui_block_view_find_matching_in_old_block(const uiBlock *new_bl
 uiButTreeRow *ui_block_view_find_treerow_in_old_block(const uiBlock *new_block,
                                                       const uiTreeViewItemHandle *new_item_handle);
 
+/* interface_templates.c */
+struct uiListType *UI_UL_cache_file_layers(void);
+
 #ifdef __cplusplus
 }
 #endif
