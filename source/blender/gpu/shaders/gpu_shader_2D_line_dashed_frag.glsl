@@ -6,8 +6,6 @@
  * Dashed is performed in screen space.
  */
 
-#ifndef USE_GPU_SHADER_CREATE_INFO
-
 uniform float dash_width;
 
 /* Simple mode, discarding non-dash parts (so no need for blending at all). */
@@ -25,7 +23,6 @@ noperspective in vec2 stipple_pos;
 flat in vec2 stipple_start;
 
 out vec4 fragColor;
-#endif
 
 void main()
 {

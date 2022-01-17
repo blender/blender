@@ -32,8 +32,6 @@
 #include "intern/gpu_codegen.h"
 #include "intern/gpu_material_library.h"
 #include "intern/gpu_private.h"
-#include "intern/gpu_shader_create_info_private.hh"
-#include "intern/gpu_shader_dependency_private.h"
 
 /**
  * although the order of initialization and shutdown should not matter
@@ -50,9 +48,6 @@ void GPU_init(void)
   }
 
   initialized = true;
-
-  gpu_shader_dependency_init();
-  gpu_shader_create_info_init();
 
   gpu_codegen_init();
   gpu_material_library_init();
@@ -74,9 +69,6 @@ void GPU_exit(void)
 
   gpu_material_library_exit();
   gpu_codegen_exit();
-
-  gpu_shader_dependency_exit();
-  gpu_shader_create_info_exit();
 
   initialized = false;
 }

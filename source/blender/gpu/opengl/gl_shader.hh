@@ -27,7 +27,6 @@
 
 #include "glew-mx.h"
 
-#include "gpu_shader_create_info.hh"
 #include "gpu_shader_private.hh"
 
 namespace blender {
@@ -37,9 +36,6 @@ namespace gpu {
  * Implementation of shader compilation and uniforms handling using OpenGL.
  */
 class GLShader : public Shader {
-  friend shader::ShaderCreateInfo;
-  friend shader::StageInterfaceInfo;
-
  private:
   /** Handle for full program (links shader stages below). */
   GLuint shader_program_ = 0;
@@ -62,13 +58,7 @@ class GLShader : public Shader {
   void geometry_shader_from_glsl(MutableSpan<const char *> sources) override;
   void fragment_shader_from_glsl(MutableSpan<const char *> sources) override;
   void compute_shader_from_glsl(MutableSpan<const char *> sources) override;
-  bool finalize(const shader::ShaderCreateInfo *info = nullptr) override;
-
-  std::string resources_declare(const shader::ShaderCreateInfo &info) const override;
-  std::string vertex_interface_declare(const shader::ShaderCreateInfo &info) const override;
-  std::string fragment_interface_declare(const shader::ShaderCreateInfo &info) const override;
-  std::string geometry_interface_declare(const shader::ShaderCreateInfo &info) const override;
-  std::string geometry_layout_declare(const shader::ShaderCreateInfo &info) const override;
+  bool finalize() override;
 
   /** Should be called before linking. */
   void transform_feedback_names_set(Span<const char *> name_list,

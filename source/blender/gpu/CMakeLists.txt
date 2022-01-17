@@ -83,8 +83,6 @@ set(SRC
   intern/gpu_select_sample_query.cc
   intern/gpu_shader.cc
   intern/gpu_shader_builtin.c
-  intern/gpu_shader_create_info.cc
-  intern/gpu_shader_dependency.cc
   intern/gpu_shader_interface.cc
   intern/gpu_shader_log.cc
   intern/gpu_state.cc
@@ -137,7 +135,6 @@ set(SRC
   GPU_primitive.h
   GPU_select.h
   GPU_shader.h
-  GPU_shader_shared.h
   GPU_state.h
   GPU_texture.h
   GPU_uniform_buffer.h
@@ -162,8 +159,6 @@ set(SRC
   intern/gpu_private.h
   intern/gpu_query.hh
   intern/gpu_select_private.h
-  intern/gpu_shader_create_info.hh
-  intern/gpu_shader_create_info_private.hh
   intern/gpu_shader_interface.hh
   intern/gpu_shader_private.hh
   intern/gpu_state_private.hh
@@ -202,250 +197,174 @@ if(NOT WITH_SYSTEM_GLEW)
   )
 endif()
 
-set(GLSL_SRC
-  GPU_shader_shared.h
+data_to_c_simple(shaders/gpu_shader_depth_only_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_uniform_color_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_checker_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_diag_stripes_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_simple_lighting_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_flat_color_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_flat_color_alpha_test_0_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_flat_id_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_area_borders_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_area_borders_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_widget_base_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_widget_base_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_widget_shadow_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_widget_shadow_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_nodelink_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_nodelink_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_flat_color_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_line_dashed_uniform_color_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_line_dashed_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_smooth_color_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_smooth_color_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_image_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_image_rect_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_image_multi_rect_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_image_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_image_desaturate_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_image_overlays_merge_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_image_overlays_stereo_merge_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_image_modulate_alpha_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_image_shuffle_color_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_image_color_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_image_varying_color_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_image_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_normal_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_flat_color_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_line_dashed_uniform_color_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_polyline_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_polyline_geom.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_polyline_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_smooth_color_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_smooth_color_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_passthrough_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_clipped_uniform_color_vert.glsl SRC)
 
-  shaders/gpu_shader_depth_only_frag.glsl
-  shaders/gpu_shader_uniform_color_frag.glsl
-  shaders/gpu_shader_checker_frag.glsl
-  shaders/gpu_shader_diag_stripes_frag.glsl
-  shaders/gpu_shader_simple_lighting_frag.glsl
-  shaders/gpu_shader_flat_color_frag.glsl
-  shaders/gpu_shader_flat_color_alpha_test_0_frag.glsl
-  shaders/gpu_shader_flat_id_frag.glsl
-  shaders/gpu_shader_2D_vert.glsl
-  shaders/gpu_shader_2D_area_borders_vert.glsl
-  shaders/gpu_shader_2D_area_borders_frag.glsl
-  shaders/gpu_shader_2D_widget_base_vert.glsl
-  shaders/gpu_shader_2D_widget_base_frag.glsl
-  shaders/gpu_shader_2D_widget_shadow_vert.glsl
-  shaders/gpu_shader_2D_widget_shadow_frag.glsl
-  shaders/gpu_shader_2D_nodelink_frag.glsl
-  shaders/gpu_shader_2D_nodelink_vert.glsl
-  shaders/gpu_shader_2D_flat_color_vert.glsl
-  shaders/gpu_shader_2D_line_dashed_uniform_color_vert.glsl
-  shaders/gpu_shader_2D_line_dashed_frag.glsl
-  shaders/gpu_shader_2D_smooth_color_vert.glsl
-  shaders/gpu_shader_2D_smooth_color_frag.glsl
-  shaders/gpu_shader_2D_image_vert.glsl
-  shaders/gpu_shader_2D_image_rect_vert.glsl
-  shaders/gpu_shader_2D_image_multi_rect_vert.glsl
-  shaders/gpu_shader_image_frag.glsl
-  shaders/gpu_shader_image_desaturate_frag.glsl
-  shaders/gpu_shader_image_overlays_merge_frag.glsl
-  shaders/gpu_shader_image_overlays_stereo_merge_frag.glsl
-  shaders/gpu_shader_image_modulate_alpha_frag.glsl
-  shaders/gpu_shader_image_shuffle_color_frag.glsl
-  shaders/gpu_shader_image_color_frag.glsl
-  shaders/gpu_shader_image_varying_color_frag.glsl
-  shaders/gpu_shader_3D_image_vert.glsl
-  shaders/gpu_shader_3D_vert.glsl
-  shaders/gpu_shader_3D_normal_vert.glsl
-  shaders/gpu_shader_3D_flat_color_vert.glsl
-  shaders/gpu_shader_3D_line_dashed_uniform_color_vert.glsl
-  shaders/gpu_shader_3D_polyline_frag.glsl
-  shaders/gpu_shader_3D_polyline_geom.glsl
-  shaders/gpu_shader_3D_polyline_vert.glsl
-  shaders/gpu_shader_3D_smooth_color_vert.glsl
-  shaders/gpu_shader_3D_smooth_color_frag.glsl
-  shaders/gpu_shader_3D_passthrough_vert.glsl
-  shaders/gpu_shader_3D_clipped_uniform_color_vert.glsl
+data_to_c_simple(shaders/gpu_shader_instance_variying_size_variying_color_vert.glsl SRC)
 
-  shaders/gpu_shader_instance_variying_size_variying_color_vert.glsl
+data_to_c_simple(shaders/gpu_shader_point_uniform_color_aa_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_point_uniform_color_outline_aa_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_point_varying_color_varying_outline_aa_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_point_varying_color_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_point_fixed_size_varying_color_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_point_varying_size_varying_color_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_point_uniform_size_aa_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_point_uniform_size_aa_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_point_uniform_size_outline_aa_vert.glsl SRC)
 
-  shaders/gpu_shader_point_uniform_color_aa_frag.glsl
-  shaders/gpu_shader_point_uniform_color_outline_aa_frag.glsl
-  shaders/gpu_shader_point_varying_color_varying_outline_aa_frag.glsl
-  shaders/gpu_shader_point_varying_color_frag.glsl
-  shaders/gpu_shader_3D_point_fixed_size_varying_color_vert.glsl
-  shaders/gpu_shader_3D_point_varying_size_varying_color_vert.glsl
-  shaders/gpu_shader_3D_point_uniform_size_aa_vert.glsl
-  shaders/gpu_shader_2D_point_varying_size_varying_color_vert.glsl
-  shaders/gpu_shader_2D_point_uniform_size_aa_vert.glsl
-  shaders/gpu_shader_2D_point_uniform_size_outline_aa_vert.glsl
+data_to_c_simple(shaders/gpu_shader_text_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_text_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_keyframe_shape_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_keyframe_shape_frag.glsl SRC)
 
-  shaders/gpu_shader_text_vert.glsl
-  shaders/gpu_shader_text_frag.glsl
-  shaders/gpu_shader_keyframe_shape_vert.glsl
-  shaders/gpu_shader_keyframe_shape_frag.glsl
+data_to_c_simple(shaders/gpu_shader_codegen_lib.glsl SRC)
 
-  shaders/gpu_shader_codegen_lib.glsl
+data_to_c_simple(shaders/gpu_shader_geometry.glsl SRC)
 
-  shaders/gpu_shader_geometry.glsl
+data_to_c_simple(shaders/material/gpu_shader_material_add_shader.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_ambient_occlusion.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_anisotropic.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_attribute.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_background.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_bevel.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_wavelength.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_blackbody.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_bright_contrast.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_bump.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_camera.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_clamp.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_color_ramp.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_color_util.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_combine_hsv.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_combine_rgb.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_combine_xyz.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_diffuse.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_displacement.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_eevee_specular.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_emission.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_float_curve.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_fractal_noise.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_fresnel.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_gamma.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_geometry.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_glass.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_glossy.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_hair_info.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_hash.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_holdout.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_hue_sat_val.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_invert.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_layer_weight.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_light_falloff.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_light_path.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_mapping.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_map_range.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_math.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_math_util.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_mix_rgb.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_mix_shader.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_noise.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_normal.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_normal_map.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_object_info.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_output_aov.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_output_material.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_output_world.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_particle_info.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_principled.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_refraction.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_rgb_curves.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_rgb_to_bw.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_separate_hsv.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_separate_rgb.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_separate_xyz.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_set.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_shader_to_rgba.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_squeeze.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_subsurface_scattering.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_tangent.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_tex_brick.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_tex_checker.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_tex_environment.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_tex_gradient.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_tex_image.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_tex_magic.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_tex_musgrave.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_tex_noise.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_tex_sky.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_texture_coordinates.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_tex_voronoi.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_tex_wave.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_tex_white_noise.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_toon.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_translucent.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_transparent.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_uv_map.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_vector_curves.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_vector_displacement.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_vector_math.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_vector_rotate.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_velvet.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_vertex_color.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_volume_absorption.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_volume_info.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_volume_principled.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_volume_scatter.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_wireframe.glsl SRC)
+data_to_c_simple(shaders/material/gpu_shader_material_world_normals.glsl SRC)
 
-  shaders/material/gpu_shader_material_add_shader.glsl
-  shaders/material/gpu_shader_material_ambient_occlusion.glsl
-  shaders/material/gpu_shader_material_anisotropic.glsl
-  shaders/material/gpu_shader_material_attribute.glsl
-  shaders/material/gpu_shader_material_background.glsl
-  shaders/material/gpu_shader_material_bevel.glsl
-  shaders/material/gpu_shader_material_wavelength.glsl
-  shaders/material/gpu_shader_material_blackbody.glsl
-  shaders/material/gpu_shader_material_bright_contrast.glsl
-  shaders/material/gpu_shader_material_bump.glsl
-  shaders/material/gpu_shader_material_camera.glsl
-  shaders/material/gpu_shader_material_clamp.glsl
-  shaders/material/gpu_shader_material_color_ramp.glsl
-  shaders/material/gpu_shader_material_color_util.glsl
-  shaders/material/gpu_shader_material_combine_hsv.glsl
-  shaders/material/gpu_shader_material_combine_rgb.glsl
-  shaders/material/gpu_shader_material_combine_xyz.glsl
-  shaders/material/gpu_shader_material_diffuse.glsl
-  shaders/material/gpu_shader_material_displacement.glsl
-  shaders/material/gpu_shader_material_eevee_specular.glsl
-  shaders/material/gpu_shader_material_emission.glsl
-  shaders/material/gpu_shader_material_float_curve.glsl
-  shaders/material/gpu_shader_material_fractal_noise.glsl
-  shaders/material/gpu_shader_material_fresnel.glsl
-  shaders/material/gpu_shader_material_gamma.glsl
-  shaders/material/gpu_shader_material_geometry.glsl
-  shaders/material/gpu_shader_material_glass.glsl
-  shaders/material/gpu_shader_material_glossy.glsl
-  shaders/material/gpu_shader_material_hair_info.glsl
-  shaders/material/gpu_shader_material_hash.glsl
-  shaders/material/gpu_shader_material_holdout.glsl
-  shaders/material/gpu_shader_material_hue_sat_val.glsl
-  shaders/material/gpu_shader_material_invert.glsl
-  shaders/material/gpu_shader_material_layer_weight.glsl
-  shaders/material/gpu_shader_material_light_falloff.glsl
-  shaders/material/gpu_shader_material_light_path.glsl
-  shaders/material/gpu_shader_material_mapping.glsl
-  shaders/material/gpu_shader_material_map_range.glsl
-  shaders/material/gpu_shader_material_math.glsl
-  shaders/material/gpu_shader_material_math_util.glsl
-  shaders/material/gpu_shader_material_mix_rgb.glsl
-  shaders/material/gpu_shader_material_mix_shader.glsl
-  shaders/material/gpu_shader_material_noise.glsl
-  shaders/material/gpu_shader_material_normal.glsl
-  shaders/material/gpu_shader_material_normal_map.glsl
-  shaders/material/gpu_shader_material_object_info.glsl
-  shaders/material/gpu_shader_material_output_aov.glsl
-  shaders/material/gpu_shader_material_output_material.glsl
-  shaders/material/gpu_shader_material_output_world.glsl
-  shaders/material/gpu_shader_material_particle_info.glsl
-  shaders/material/gpu_shader_material_principled.glsl
-  shaders/material/gpu_shader_material_refraction.glsl
-  shaders/material/gpu_shader_material_rgb_curves.glsl
-  shaders/material/gpu_shader_material_rgb_to_bw.glsl
-  shaders/material/gpu_shader_material_separate_hsv.glsl
-  shaders/material/gpu_shader_material_separate_rgb.glsl
-  shaders/material/gpu_shader_material_separate_xyz.glsl
-  shaders/material/gpu_shader_material_set.glsl
-  shaders/material/gpu_shader_material_shader_to_rgba.glsl
-  shaders/material/gpu_shader_material_squeeze.glsl
-  shaders/material/gpu_shader_material_subsurface_scattering.glsl
-  shaders/material/gpu_shader_material_tangent.glsl
-  shaders/material/gpu_shader_material_tex_brick.glsl
-  shaders/material/gpu_shader_material_tex_checker.glsl
-  shaders/material/gpu_shader_material_tex_environment.glsl
-  shaders/material/gpu_shader_material_tex_gradient.glsl
-  shaders/material/gpu_shader_material_tex_image.glsl
-  shaders/material/gpu_shader_material_tex_magic.glsl
-  shaders/material/gpu_shader_material_tex_musgrave.glsl
-  shaders/material/gpu_shader_material_tex_noise.glsl
-  shaders/material/gpu_shader_material_tex_sky.glsl
-  shaders/material/gpu_shader_material_texture_coordinates.glsl
-  shaders/material/gpu_shader_material_tex_voronoi.glsl
-  shaders/material/gpu_shader_material_tex_wave.glsl
-  shaders/material/gpu_shader_material_tex_white_noise.glsl
-  shaders/material/gpu_shader_material_toon.glsl
-  shaders/material/gpu_shader_material_translucent.glsl
-  shaders/material/gpu_shader_material_transparent.glsl
-  shaders/material/gpu_shader_material_uv_map.glsl
-  shaders/material/gpu_shader_material_vector_curves.glsl
-  shaders/material/gpu_shader_material_vector_displacement.glsl
-  shaders/material/gpu_shader_material_vector_math.glsl
-  shaders/material/gpu_shader_material_vector_rotate.glsl
-  shaders/material/gpu_shader_material_velvet.glsl
-  shaders/material/gpu_shader_material_vertex_color.glsl
-  shaders/material/gpu_shader_material_volume_absorption.glsl
-  shaders/material/gpu_shader_material_volume_info.glsl
-  shaders/material/gpu_shader_material_volume_principled.glsl
-  shaders/material/gpu_shader_material_volume_scatter.glsl
-  shaders/material/gpu_shader_material_wireframe.glsl
-  shaders/material/gpu_shader_material_world_normals.glsl
+data_to_c_simple(shaders/gpu_shader_gpencil_stroke_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_gpencil_stroke_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_gpencil_stroke_geom.glsl SRC)
 
-  shaders/gpu_shader_gpencil_stroke_vert.glsl
-  shaders/gpu_shader_gpencil_stroke_frag.glsl
-  shaders/gpu_shader_gpencil_stroke_geom.glsl
+data_to_c_simple(shaders/gpu_shader_cfg_world_clip_lib.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_colorspace_lib.glsl SRC)
 
-  shaders/gpu_shader_cfg_world_clip_lib.glsl
-  shaders/gpu_shader_colorspace_lib.glsl
+data_to_c_simple(shaders/gpu_shader_common_obinfos_lib.glsl SRC)
 
-  shaders/gpu_shader_common_obinfos_lib.glsl
-
-  intern/gpu_shader_shared_utils.h
-)
-
-set(GLSL_C)
-foreach(GLSL_FILE ${GLSL_SRC})
-  data_to_c_simple(${GLSL_FILE} GLSL_C)
-endforeach()
-
-blender_add_lib(bf_gpu_shaders "${GLSL_C}" "" "" "")
-
-list(APPEND LIB
-  bf_gpu_shaders
-)
-
-set(GLSL_SOURCE_CONTENT "")
-foreach(GLSL_FILE ${GLSL_SRC})
-  get_filename_component(GLSL_FILE_NAME ${GLSL_FILE} NAME)
-  string(REPLACE "." "_" GLSL_FILE_NAME_UNDERSCORES ${GLSL_FILE_NAME})
-  string(APPEND GLSL_SOURCE_CONTENT "SHADER_SOURCE\(datatoc_${GLSL_FILE_NAME_UNDERSCORES}, \"${GLSL_FILE_NAME}\"\)\n")
-endforeach()
-
-set(glsl_source_list_file "${CMAKE_CURRENT_BINARY_DIR}/glsl_gpu_source_list.h")
-file(GENERATE OUTPUT ${glsl_source_list_file} CONTENT "${GLSL_SOURCE_CONTENT}")
-list(APPEND SRC ${glsl_source_list_file})
-list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
-
-set(SHADER_CREATE_INFOS
-#../draw/engines/workbench/shaders/workbench_effect_cavity_info.hh
-#../draw/engines/workbench/shaders/workbench_prepass_info.hh
-../draw/intern/shaders/draw_fullscreen_info.hh
-../draw/intern/shaders/draw_view_info.hh
-../draw/intern/shaders/draw_object_infos_info.hh
-
-shaders/infos/gpu_clip_planes_info.hh
-shaders/infos/gpu_srgb_to_framebuffer_space_info.hh
-shaders/infos/gpu_shader_3D_image_modulate_alpha_info.hh
-shaders/infos/gpu_shader_2D_checker_info.hh
-shaders/infos/gpu_shader_2D_diag_stripes_info.hh
-shaders/infos/gpu_shader_2D_uniform_color_info.hh
-shaders/infos/gpu_shader_2D_flat_color_info.hh
-shaders/infos/gpu_shader_2D_smooth_color_info.hh
-shaders/infos/gpu_shader_2D_image_overlays_merge_info.hh
-shaders/infos/gpu_shader_2D_image_overlays_stereo_merge_info.hh
-shaders/infos/gpu_shader_2D_image_info.hh
-shaders/infos/gpu_shader_2D_image_color_info.hh
-shaders/infos/gpu_shader_2D_image_desaturate_color_info.hh
-shaders/infos/gpu_shader_2D_image_shuffle_color_info.hh
-shaders/infos/gpu_shader_2D_image_rect_color_info.hh
-shaders/infos/gpu_shader_text_info.hh
-shaders/infos/gpu_shader_keyframe_shape_info.hh
-shaders/infos/gpu_shader_3D_flat_color_info.hh
-shaders/infos/gpu_shader_3D_uniform_color_info.hh
-shaders/infos/gpu_shader_3D_smooth_color_info.hh
-shaders/infos/gpu_shader_3D_depth_only_info.hh
-shaders/infos/gpu_shader_2D_point_varying_size_varying_color_info.hh
-shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_aa_info.hh
-shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_outline_aa_info.hh
-shaders/infos/gpu_shader_2D_area_borders_info.hh
-shaders/infos/gpu_shader_instance_varying_color_varying_size_info.hh
-shaders/infos/gpu_shader_3D_point_info.hh
-shaders/infos/gpu_shader_2D_nodelink_info.hh
-shaders/infos/gpu_shader_gpencil_stroke_info.hh
-shaders/infos/gpu_shader_simple_lighting_info.hh
-)
-
-set(SHADER_CREATE_INFOS_CONTENT "")
-foreach(DESCRIPTOR_FILE ${SHADER_CREATE_INFOS})
-string(APPEND SHADER_CREATE_INFOS_CONTENT "#include \"${DESCRIPTOR_FILE}\"\n")
-endforeach()
-
-set(shader_create_info_list_file "${CMAKE_CURRENT_BINARY_DIR}/gpu_shader_create_info_list.hh")
-file(GENERATE OUTPUT ${shader_create_info_list_file} CONTENT "${SHADER_CREATE_INFOS_CONTENT}")
 
 if(WITH_MOD_FLUID)
   add_definitions(-DWITH_FLUID)
@@ -458,47 +377,10 @@ if(WITH_IMAGE_DDS)
 endif()
 
 blender_add_lib(bf_gpu "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-target_link_libraries(bf_gpu PUBLIC
-  bf_draw_shaders
-  bf_gpu_shaders
-)
 
 if(CXX_WARN_NO_SUGGEST_OVERRIDE)
   target_compile_options(bf_gpu PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wsuggest-override>)
 endif()
-
-
-
-if(WITH_GPU_SHADER_BUILDER)
-  add_executable(shader_builder
-    intern/gpu_shader_builder.cc
-    intern/gpu_shader_builder_stubs.cc
-    ${shader_create_info_list_file}
-  )
-
-  target_link_libraries(shader_builder PUBLIC
-    bf_blenkernel
-    ${PLATFORM_LINKLIBS}
-  )
-  target_include_directories(shader_builder PRIVATE ${INC} ${CMAKE_CURRENT_BINARY_DIR})
-  
-  set(BAKED_CREATE_INFOS_FILE ${CMAKE_CURRENT_BINARY_DIR}/shader_baked.hh)
-  
-  add_custom_command(
-    OUTPUT
-    ${BAKED_CREATE_INFOS_FILE}
-    COMMAND
-      "$<TARGET_FILE:shader_builder>" ${BAKED_CREATE_INFOS_FILE}
-    DEPENDS shader_builder
-  )
-  set(GPU_SHADER_INFO_SRC
-    intern/gpu_shader_info_baked.cc
-    ${BAKED_CREATE_INFOS_FILE}
-  )
-
-  blender_add_lib(bf_gpu_shader_infos "${GPU_SHADER_INFO_SRC}" "" "" "")
-endif()
-
 
 if(WITH_GTESTS)
   if(WITH_OPENGL_DRAW_TESTS)

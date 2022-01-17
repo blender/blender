@@ -1,7 +1,5 @@
-/* Temporary until we fully make the switch. */
-#ifndef DRW_SHADER_SHARED_H
-
-#  define DRW_RESOURCE_CHUNK_LEN 512
+#define COMMON_VIEW_LIB
+#define DRW_RESOURCE_CHUNK_LEN 512
 
 /* keep in sync with DRWManager.view_data */
 layout(std140) uniform viewBlock
@@ -23,8 +21,6 @@ layout(std140) uniform viewBlock
   /* TODO: move it elsewhere. */
   vec4 CameraTexCoFactors;
 };
-
-#endif /* DRW_SHADER_SHARED_H */
 
 #define ViewNear (ViewVecs[0].w)
 #define ViewFar (ViewVecs[1].w)
@@ -145,10 +141,6 @@ flat in int resourceIDFrag;
 /* clang-format off */
 #if !defined(GPU_INTEL) && !defined(GPU_DEPRECATED_AMD_DRIVER) && !defined(OS_MAC) && !defined(INSTANCED_ATTR)
 /* clang-format on */
-
-/* Temporary until we fully make the switch. */
-#  ifndef DRW_SHADER_SHARED_H
-
 struct ObjectMatrices {
   mat4 drw_modelMatrix;
   mat4 drw_modelMatrixInverse;
@@ -158,23 +150,17 @@ layout(std140) uniform modelBlock
 {
   ObjectMatrices drw_matrices[DRW_RESOURCE_CHUNK_LEN];
 };
-#  endif /* DRW_SHADER_SHARED_H */
 
 #  define ModelMatrix (drw_matrices[resource_id].drw_modelMatrix)
 #  define ModelMatrixInverse (drw_matrices[resource_id].drw_modelMatrixInverse)
 
 #else /* GPU_INTEL */
-
-/* Temporary until we fully make the switch. */
-#  ifndef DRW_SHADER_SHARED_H
 /* Intel GPU seems to suffer performance impact when the model matrix is in UBO storage.
  * So for now we just force using the legacy path. */
 /* Note that this is also a workaround of a problem on osx (amd or nvidia)
  * and older amd driver on windows. */
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
-#  endif /* DRW_SHADER_SHARED_H */
-
 #endif
 
 #define resource_handle (resourceChunk * DRW_RESOURCE_CHUNK_LEN + resource_id)

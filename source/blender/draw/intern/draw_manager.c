@@ -70,7 +70,6 @@
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
-#include "GPU_shader_shared.h"
 #include "GPU_state.h"
 #include "GPU_uniform_buffer.h"
 #include "GPU_viewport.h"
@@ -2757,15 +2756,11 @@ void DRW_draw_depth_object(
   GPU_framebuffer_clear_depth(depth_fb, 1.0f);
   GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 
-  struct GPUClipPlanes planes;
-  const bool use_clipping_planes = RV3D_CLIPPING_ENABLED(v3d, rv3d);
-  if (use_clipping_planes) {
+  const float(*world_clip_planes)[4] = NULL;
+  if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
     GPU_clip_distances(6);
     ED_view3d_clipping_local(rv3d, object->obmat);
-    for (int i = 0; i < 6; i++) {
-      copy_v4_v4(planes.world[i], rv3d->clip_local[i]);
-    }
-    copy_m4_m4(planes.ModelMatrix, object->obmat);
+    world_clip_planes = rv3d->clip_local;
   }
 
   drw_batch_cache_validate(object);
@@ -2787,19 +2782,14 @@ void DRW_draw_depth_object(
       BLI_task_graph_work_and_wait(task_graph);
       BLI_task_graph_free(task_graph);
 
-      const eGPUShaderConfig sh_cfg = use_clipping_planes ? GPU_SHADER_CFG_CLIPPED :
-                                                            GPU_SHADER_CFG_DEFAULT;
+      const eGPUShaderConfig sh_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED :
+                                                          GPU_SHADER_CFG_DEFAULT;
       GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_DEPTH_ONLY, sh_cfg);
-
-      GPUUniformBuf *ubo = NULL;
-      if (use_clipping_planes) {
-        ubo = GPU_uniformbuf_create_ex(sizeof(struct GPUClipPlanes), &planes, __func__);
-        GPU_batch_uniformbuf_bind(batch, "clipPlanes", ubo);
+      if (world_clip_planes != NULL) {
+        GPU_batch_uniform_4fv_array(batch, "WorldClipPlanes", 6, world_clip_planes);
       }
 
       GPU_batch_draw(batch);
-      GPU_uniformbuf_free(ubo);
-
     } break;
     case OB_CURVE:
     case OB_SURF:

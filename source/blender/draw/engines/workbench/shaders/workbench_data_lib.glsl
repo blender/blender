@@ -1,5 +1,3 @@
-
-#ifndef WORKBENCH_SHADER_SHARED_H
 struct LightData {
   vec4 direction;
   vec4 specular_color;
@@ -39,10 +37,9 @@ struct WorldData {
   int _pad2;
 };
 
-#  define viewport_size_inv viewport_size.zw
+#define viewport_size_inv viewport_size.zw
 
 layout(std140) uniform world_block
 {
   WorldData world_data;
 };
-#endif

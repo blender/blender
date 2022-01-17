@@ -1,13 +1,12 @@
-#ifndef USE_GPU_SHADER_CREATE_INFO
+
 uniform mat4 ModelViewProjectionMatrix;
 
-#  define MAX_PARAM 12
-#  ifdef USE_INSTANCE
-#    define MAX_INSTANCE 6
+#define MAX_PARAM 12
+#ifdef USE_INSTANCE
+#  define MAX_INSTANCE 6
 uniform vec4 parameters[MAX_PARAM * MAX_INSTANCE];
-#  else
+#else
 uniform vec4 parameters[MAX_PARAM];
-#  endif
 #endif
 
 /* gl_InstanceID is supposed to be 0 if not drawing instances, but this seems
@@ -42,7 +41,6 @@ uniform vec4 parameters[MAX_PARAM];
 #define doAlphaCheck (alphaDiscard < 0.0)
 #define discardFactor abs(alphaDiscard)
 
-#ifndef USE_GPU_SHADER_CREATE_INFO
 noperspective out vec2 uvInterp;
 flat out vec2 outRectSize;
 flat out vec4 outRoundCorners;
@@ -53,9 +51,8 @@ flat out float lineWidth;
 noperspective out float butCo;
 flat out float discardFac;
 
-#  ifdef OS_MAC
+#ifdef OS_MAC
 in float dummy;
-#  endif
 #endif
 
 vec2 do_widget(void)

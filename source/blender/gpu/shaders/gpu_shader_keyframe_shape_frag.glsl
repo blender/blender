@@ -11,7 +11,6 @@
 #define GPU_KEYFRAME_SHAPE_SQUARE \
   (GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL | GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL)
 
-#ifndef USE_GPU_SHADER_CREATE_INFO
 flat in vec4 radii;
 flat in vec4 thresholds;
 
@@ -21,7 +20,6 @@ flat in vec4 finalOutlineColor;
 flat in int finalFlags;
 
 out vec4 fragColor;
-#endif
 
 const float diagonal_scale = sqrt(0.5);
 
