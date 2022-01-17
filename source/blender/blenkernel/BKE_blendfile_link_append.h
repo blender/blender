@@ -150,7 +150,7 @@ typedef enum eBlendfileLinkAppendForeachItemFlag {
    *
    * IMPORTANT: Those 'indirect' items currently may not cover **all** indirectly linked data.
    * See comments in #foreach_libblock_link_append_callback. */
-  BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_INDIRECT = 1 << 0,
+  BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_INDIRECT = 1 << 1,
 } eBlendfileLinkAppendForeachItemFlag;
 /**
  * Callback called by #BKE_blendfile_link_append_context_item_foreach over each (or a subset of
