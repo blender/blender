@@ -402,7 +402,7 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
         glUniform1i(input->location, res.slot);
       }
       input->binding = res.slot;
-      enabled_tex_mask_ |= (1 << input->binding);
+      enabled_tex_mask_ |= (1ull << input->binding);
       input++;
     }
     else if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
