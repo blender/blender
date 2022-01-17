@@ -1107,7 +1107,11 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
     capabilities = brush.image_paint_capabilities
 
     if capabilities.has_color:
-        UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
+        row = layout.row(align=True)
+        row.ui_units_x = 4
+        UnifiedPaintPanel.prop_unified_color(row, context, brush, "color", text="")
+        UnifiedPaintPanel.prop_unified_color(row, context, brush, "secondary_color", text="")
+        row.separator()
         layout.prop(brush, "blend", text="" if compact else "Blend")
 
     UnifiedPaintPanel.prop_unified(
