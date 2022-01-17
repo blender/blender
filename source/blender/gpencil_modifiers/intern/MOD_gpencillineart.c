@@ -314,7 +314,9 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
     uiItemR(layout, ptr, "source_object", 0, NULL, ICON_OBJECT_DATA);
   }
   else if (source_type == LRT_SOURCE_COLLECTION) {
-    uiItemR(layout, ptr, "source_collection", 0, NULL, ICON_OUTLINER_COLLECTION);
+    uiLayout *sub = uiLayoutRow(layout, true);
+    uiItemR(sub, ptr, "source_collection", 0, NULL, ICON_OUTLINER_COLLECTION);
+    uiItemR(sub, ptr, "use_invert_collection", 0, "", ICON_ARROW_LEFTRIGHT);
   }
   else {
     /* Source is Scene. */

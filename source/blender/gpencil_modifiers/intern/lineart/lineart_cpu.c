@@ -4363,8 +4363,15 @@ static void lineart_gpencil_generate(LineartCache *cache,
       continue;
     }
     if (orig_col && ec->object_ref) {
-      if (!BKE_collection_has_object_recursive_instanced(orig_col, (Object *)ec->object_ref)) {
-        continue;
+      if (BKE_collection_has_object_recursive_instanced(orig_col, (Object *)ec->object_ref)) {
+        if (modifier_flags & LRT_GPENCIL_INVERT_COLLECTION) {
+          continue;
+        }
+      }
+      else {
+        if (!(modifier_flags & LRT_GPENCIL_INVERT_COLLECTION)) {
+          continue;
+        }
       }
     }
     if (mask_switches & LRT_GPENCIL_MATERIAL_MASK_ENABLE) {
