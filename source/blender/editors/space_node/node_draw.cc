@@ -1169,17 +1169,17 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
   GPU_blend(GPU_BLEND_ALPHA);
 
   IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-  immDrawPixelsTex(&state,
-                   draw_rect.xmin,
-                   draw_rect.ymin,
-                   preview->xsize,
-                   preview->ysize,
-                   GPU_RGBA8,
-                   true,
-                   preview->rect,
-                   scale,
-                   scale,
-                   nullptr);
+  immDrawPixelsTexTiled(&state,
+                        draw_rect.xmin,
+                        draw_rect.ymin,
+                        preview->xsize,
+                        preview->ysize,
+                        GPU_RGBA8,
+                        true,
+                        preview->rect,
+                        scale,
+                        scale,
+                        nullptr);
 
   GPU_blend(GPU_BLEND_NONE);
 

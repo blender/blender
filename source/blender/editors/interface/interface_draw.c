@@ -325,17 +325,17 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(region),
   }
 
   IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-  immDrawPixelsTex(&state,
-                   (float)rect->xmin,
-                   (float)rect->ymin,
-                   ibuf->x,
-                   ibuf->y,
-                   GPU_RGBA8,
-                   false,
-                   ibuf->rect,
-                   1.0f,
-                   1.0f,
-                   col);
+  immDrawPixelsTexTiled(&state,
+                        (float)rect->xmin,
+                        (float)rect->ymin,
+                        ibuf->x,
+                        ibuf->y,
+                        GPU_RGBA8,
+                        false,
+                        ibuf->rect,
+                        1.0f,
+                        1.0f,
+                        col);
 
   GPU_blend(GPU_BLEND_NONE);
 
@@ -2135,17 +2135,17 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(region),
       }
 
       IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-      immDrawPixelsTex(&state,
-                       rect.xmin,
-                       rect.ymin + 1,
-                       drawibuf->x,
-                       drawibuf->y,
-                       GPU_RGBA8,
-                       true,
-                       drawibuf->rect,
-                       1.0f,
-                       1.0f,
-                       NULL);
+      immDrawPixelsTexTiled(&state,
+                            rect.xmin,
+                            rect.ymin + 1,
+                            drawibuf->x,
+                            drawibuf->y,
+                            GPU_RGBA8,
+                            true,
+                            drawibuf->rect,
+                            1.0f,
+                            1.0f,
+                            NULL);
 
       /* draw cross for pixel position */
       GPU_matrix_translate_2f(rect.xmin + scopes->track_pos[0], rect.ymin + scopes->track_pos[1]);

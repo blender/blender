@@ -748,19 +748,19 @@ static void wm_drag_draw_icon(bContext *UNUSED(C),
 
     float col[4] = {1.0f, 1.0f, 1.0f, 0.65f}; /* this blends texture */
     IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-    immDrawPixelsTexScaled(&state,
-                           x,
-                           y,
-                           drag->imb->x,
-                           drag->imb->y,
-                           GPU_RGBA8,
-                           false,
-                           drag->imb->rect,
-                           drag->scale,
-                           drag->scale,
-                           1.0f,
-                           1.0f,
-                           col);
+    immDrawPixelsTexTiled_scaling(&state,
+                                  x,
+                                  y,
+                                  drag->imb->x,
+                                  drag->imb->y,
+                                  GPU_RGBA8,
+                                  false,
+                                  drag->imb->rect,
+                                  drag->scale,
+                                  drag->scale,
+                                  1.0f,
+                                  1.0f,
+                                  col);
   }
   else {
     int padding = 4 * UI_DPI_FAC;

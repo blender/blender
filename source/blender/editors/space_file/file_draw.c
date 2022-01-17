@@ -403,19 +403,19 @@ static void file_draw_preview(const SpaceFile *sfile,
   }
 
   IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-  immDrawPixelsTexScaled(&state,
-                         (float)xco,
-                         (float)yco,
-                         imb->x,
-                         imb->y,
-                         GPU_RGBA8,
-                         true,
-                         imb->rect,
-                         scale,
-                         scale,
-                         1.0f,
-                         1.0f,
-                         col);
+  immDrawPixelsTexTiled_scaling(&state,
+                                (float)xco,
+                                (float)yco,
+                                imb->x,
+                                imb->y,
+                                GPU_RGBA8,
+                                true,
+                                imb->rect,
+                                scale,
+                                scale,
+                                1.0f,
+                                1.0f,
+                                col);
 
   GPU_blend(GPU_BLEND_ALPHA);
 
