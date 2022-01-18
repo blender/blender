@@ -2544,11 +2544,13 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Rename geometry socket on "String to Curves" node and "Transfer Attribute" node. */
+    /* Rename sockets on multiple nodes */
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       if (ntree->type == NTREE_GEOMETRY) {
         version_node_output_socket_name(
             ntree, GEO_NODE_STRING_TO_CURVES, "Curves", "Curve Instances");
+        version_node_output_socket_name(
+            ntree, GEO_NODE_INPUT_MESH_EDGE_ANGLE, "Angle", "Unsigned Angle");
         version_node_input_socket_name(ntree, GEO_NODE_TRANSFER_ATTRIBUTE, "Target", "Source");
       }
     }
