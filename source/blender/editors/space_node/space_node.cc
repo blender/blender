@@ -1051,7 +1051,5 @@ void ED_spacetype_node()
   art->draw = node_toolbar_region_draw;
   BLI_addhead(&st->regiontypes, art);
 
-  node_toolbar_register(art);
-
   BKE_spacetype_register(st);
 }
