@@ -2538,7 +2538,7 @@ class WM_OT_batch_rename(Operator):
                 return data_type_test
             if data_type == data_type_test:
                 data = (
-                    [id for id in context.selected_ids if isinstance(id, Collection)]
+                    [id for id in context.selected_ids if isinstance(id, Collection) and id.library is None]
                     if only_selected else
                     scene.collection.children_recursive,
                     "name",
@@ -2613,10 +2613,10 @@ class WM_OT_batch_rename(Operator):
             elif data_type == 'MATERIAL':
                 data = (
                     tuple(set(
-                        slot.material
+                        id
                         for ob in context.selected_objects
                         for slot in ob.material_slots
-                        if slot.material is not None
+                        if (id := slot.material) is not None and id.library is None
                     ))
                     if only_selected else
                     [id for id in bpy.data.materials if id.library is None],
