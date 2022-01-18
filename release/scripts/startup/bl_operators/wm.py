@@ -2514,10 +2514,9 @@ class WM_OT_batch_rename(Operator):
                 return data_type_test
             if data_type == data_type_test:
                 data = (
-                    # TODO, we don't have access to seqbasep, this won't work when inside metas.
-                    [seq for seq in context.scene.sequence_editor.sequences_all if seq.select]
+                    context.selected_sequences
                     if only_selected else
-                    context.scene.sequence_editor.sequences_all,
+                    scene.sequence_editor.sequences_all,
                     "name",
                     "Strip(s)",
                 )
