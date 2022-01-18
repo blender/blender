@@ -252,9 +252,13 @@ static BMesh *BMD_mesh_bm_create(
    * otherwise the wrong active render layer is used, see T92384. */
   BM_mesh_copy_init_customdata_from_mesh(bm, mesh, &allocsize);
 
-  BMeshFromMeshParams params{};
-  params.calc_face_normal = true;
-  BM_mesh_bm_from_me(bm, mesh_operand_ob, &params);
+  /* NOTE(@campbellbarton): Handle in #BM_mesh_bm_from_me, this is a local fix for T94197. */
+  BM_mesh_cd_flag_apply(bm,
+                        mesh->cd_flag | mesh_operand_ob->cd_flag | BM_mesh_cd_flag_from_bmesh(bm));
+
+  BMeshFromMeshParams bmesh_from_mesh_params{};
+  bmesh_from_mesh_params.calc_face_normal = true;
+  BM_mesh_bm_from_me(bm, mesh_operand_ob, &bmesh_from_mesh_params);
 
   if (UNLIKELY(*r_is_flip)) {
     const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
@@ -265,7 +269,7 @@ static BMesh *BMD_mesh_bm_create(
     }
   }
 
-  BM_mesh_bm_from_me(bm, mesh, &params);
+  BM_mesh_bm_from_me(bm, mesh, &bmesh_from_mesh_params);
 
   return bm;
 }
