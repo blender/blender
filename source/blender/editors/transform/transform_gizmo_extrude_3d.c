@@ -82,6 +82,7 @@ typedef struct GizmoExtrudeGroup {
     float orient_matrix[3][3];
     bool constraint_axis[3];
     float value[4];
+    int orient_type;
   } redo_xform;
 
   /* Depends on object type. */
@@ -310,6 +311,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     RNA_float_get_array(op_xform->ptr, "orient_matrix", &ggd->redo_xform.orient_matrix[0][0]);
     RNA_boolean_get_array(op_xform->ptr, "constraint_axis", ggd->redo_xform.constraint_axis);
     RNA_float_get_array(op_xform->ptr, "value", ggd->redo_xform.value);
+    ggd->redo_xform.orient_type = RNA_enum_get(op_xform->ptr, "orient_type");
 
     /* Set properties for redo. */
     for (int i = 0; i < 3; i++) {
@@ -435,7 +437,8 @@ static void gizmo_mesh_extrude_invoke_prepare(const bContext *UNUSED(C),
     if (gz == ggd->adjust[0]) {
       RNA_boolean_set_array(&macroptr, "constraint_axis", ggd->redo_xform.constraint_axis);
       RNA_float_set_array(&macroptr, "orient_matrix", &ggd->redo_xform.orient_matrix[0][0]);
-      RNA_enum_set(&macroptr, "orient_type", V3D_ORIENT_NORMAL);
+      RNA_enum_set(&macroptr, "orient_matrix_type", ggd->redo_xform.orient_type);
+      RNA_enum_set(&macroptr, "orient_type", ggd->redo_xform.orient_type);
     }
     RNA_float_set_array(&macroptr, "value", ggd->redo_xform.value);
   }
