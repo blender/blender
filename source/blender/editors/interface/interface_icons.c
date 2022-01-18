@@ -31,6 +31,7 @@
 #include "GPU_batch_presets.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_shader_shared.h"
 #include "GPU_state.h"
 #include "GPU_texture.h"
 
@@ -1582,18 +1583,21 @@ static void icon_draw_cache_texture_flush_ex(GPUTexture *texture,
   GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR);
   GPU_shader_bind(shader);
 
-  const int img_binding = GPU_shader_get_texture_binding(shader, "image");
-  const int data_loc = GPU_shader_get_uniform(shader, "calls_data");
+  const int data_loc = GPU_shader_get_uniform_block(shader, "multi_rect_data");
+  GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(
+      sizeof(struct MultiRectCallData), texture_draw_calls->drawcall_cache, __func__);
+  GPU_uniformbuf_bind(ubo, data_loc);
 
+  const int img_binding = GPU_shader_get_texture_binding(shader, "image");
   GPU_texture_bind_ex(texture, GPU_SAMPLER_ICON, img_binding, false);
-  GPU_shader_uniform_vector(
-      shader, data_loc, 4, ICON_DRAW_CACHE_SIZE * 3, (float *)texture_draw_calls->drawcall_cache);
 
   GPUBatch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
   GPU_batch_draw_instanced(quad, texture_draw_calls->calls);
 
   GPU_texture_unbind(texture);
+  GPU_uniformbuf_unbind(ubo);
+  GPU_uniformbuf_free(ubo);
 
   texture_draw_calls->calls = 0;
 }

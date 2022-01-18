@@ -80,3 +80,10 @@ struct SimpleLightingData {
   float _pad;
 };
 BLI_STATIC_ASSERT_ALIGN(struct SimpleLightingData, 16)
+
+#define MAX_CALLS 16
+
+struct MultiRectCallData {
+  float4 calls_data[MAX_CALLS * 3];
+};
+BLI_STATIC_ASSERT_ALIGN(struct MultiRectCallData, 16)

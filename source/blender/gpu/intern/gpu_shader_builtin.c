@@ -210,12 +210,9 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
         },
     [GPU_SHADER_2D_IMAGE_RECT_COLOR] = {.name = "GPU_SHADER_2D_IMAGE_RECT_COLOR",
                                         .create_info = "gpu_shader_2D_image_rect_color"},
-    [GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR] =
-        {
-            .name = "GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR",
-            .vert = datatoc_gpu_shader_2D_image_multi_rect_vert_glsl,
-            .frag = datatoc_gpu_shader_image_varying_color_frag_glsl,
-        },
+    [GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR] = {.name = "GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR",
+                                              .create_info =
+                                                  "gpu_shader_2D_image_multi_rect_color"},
 
     [GPU_SHADER_3D_UNIFORM_COLOR] =
         {
