@@ -147,17 +147,18 @@ typedef struct IDProperty {
 #define DEFAULT_ALLOC_FOR_NULL_STRINGS 64
 
 /*->type*/
-enum {
+typedef enum eIDPropertyType {
   IDP_STRING = 0,
   IDP_INT = 1,
   IDP_FLOAT = 2,
+  /** Array containing int, floats, doubles or groups. */
   IDP_ARRAY = 5,
   IDP_GROUP = 6,
   IDP_ID = 7,
   IDP_DOUBLE = 8,
   IDP_IDPARRAY = 9,
-  IDP_NUMTYPES = 10,
-};
+} eIDPropertyType;
+#define IDP_NUMTYPES 10
 
 /** Used by some IDP utils, keep values in sync with type enum above. */
 enum {
