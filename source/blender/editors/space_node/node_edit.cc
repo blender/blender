@@ -1381,7 +1381,7 @@ void NODE_OT_duplicate(wmOperatorType *ot)
       ot->srna, "keep_inputs", false, "Keep Inputs", "Keep the input links to duplicated nodes");
 }
 
-bool ED_node_select_check(const ListBase *lb)
+static bool node_select_check(const ListBase *lb)
 {
   LISTBASE_FOREACH (const bNode *, node, lb) {
     if (node->flag & NODE_SELECT) {
@@ -1392,10 +1392,10 @@ bool ED_node_select_check(const ListBase *lb)
   return false;
 }
 
-void ED_node_select_all(ListBase *lb, int action)
+void node_select_all(ListBase *lb, int action)
 {
   if (action == SEL_TOGGLE) {
-    if (ED_node_select_check(lb)) {
+    if (node_select_check(lb)) {
       action = SEL_DESELECT;
     }
     else {
@@ -2063,7 +2063,7 @@ static int node_copy_color_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  ED_node_sort(ntree);
+  node_sort(ntree);
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
 
   return OPERATOR_FINISHED;

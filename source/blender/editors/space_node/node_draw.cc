@@ -232,7 +232,7 @@ static bool compare_nodes(const bNode *a, const bNode *b)
   return false;
 }
 
-void ED_node_sort(bNodeTree *ntree)
+void node_sort(bNodeTree *ntree)
 {
   /* Merge sort is the algorithm of choice here. */
   int totnodes = BLI_listbase_count(&ntree->nodes);

@@ -1602,7 +1602,7 @@ static int node_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  ED_node_sort(ntree);
+  node_sort(ntree);
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
 
   return OPERATOR_FINISHED;
@@ -1699,7 +1699,7 @@ static int node_join_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  ED_node_sort(&ntree);
+  node_sort(&ntree);
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
 
   return OPERATOR_FINISHED;
@@ -1785,7 +1785,7 @@ static int node_attach_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent
     }
   }
 
-  ED_node_sort(ntree);
+  node_sort(ntree);
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
 
   return OPERATOR_FINISHED;
@@ -1861,7 +1861,7 @@ static int node_detach_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  ED_node_sort(ntree);
+  node_sort(ntree);
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
 
   return OPERATOR_FINISHED;

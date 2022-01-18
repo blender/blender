@@ -127,6 +127,12 @@ void node_socket_color_get(const bContext &C,
                            float r_color[4]);
 void node_draw_space(const bContext &C, ARegion &region);
 
+/**
+ * Sort nodes by selection: unselected nodes first, then selected,
+ * then the active node at the very end. Relative order is kept intact.
+ */
+void node_sort(bNodeTree *ntree);
+
 void node_set_cursor(wmWindow &win, SpaceNode &snode, const blender::float2 &cursor);
 /* DPI scaled coords */
 blender::float2 node_to_view(const bNode &node, const blender::float2 &co);
@@ -203,6 +209,8 @@ void draw_nodespace_back_pix(const bContext &C,
                              ARegion &region,
                              SpaceNode &snode,
                              bNodeInstanceKey parent_key);
+
+void node_select_all(ListBase *lb, int action);
 
 /**
  * XXX Does some additional initialization on top of #nodeAddNode

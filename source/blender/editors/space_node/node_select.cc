@@ -400,7 +400,7 @@ static int node_select_grouped_exec(bContext *C, wmOperator *op)
   }
 
   if (changed) {
-    ED_node_sort(snode->edittree);
+    node_sort(snode->edittree);
     WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
     return OPERATOR_FINISHED;
   }
@@ -468,7 +468,7 @@ void node_select_single(bContext &C, bNode &node)
   ED_node_set_active(bmain, snode, snode->edittree, &node, &active_texture_changed);
   ED_node_set_active_viewer_key(snode);
 
-  ED_node_sort(snode->edittree);
+  node_sort(snode->edittree);
   if (active_texture_changed && has_workbench_in_texture_color(wm, scene, ob)) {
     DEG_id_tag_update(&snode->edittree->id, ID_RECALC_COPY_ON_WRITE);
   }
@@ -611,7 +611,7 @@ static int node_mouse_select(bContext *C,
       ED_spreadsheet_context_paths_set_geometry_node(&bmain, &snode, node);
     }
     ED_node_set_active_viewer_key(&snode);
-    ED_node_sort(snode.edittree);
+    node_sort(snode.edittree);
     if ((active_texture_changed && has_workbench_in_texture_color(wm, scene, ob)) ||
         viewer_node_changed) {
       DEG_id_tag_update(&snode.edittree->id, ID_RECALC_COPY_ON_WRITE);
@@ -688,7 +688,7 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = (eSelectOp)RNA_enum_get(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    ED_node_select_all(&snode->edittree->nodes, SEL_DESELECT);
+    node_select_all(&snode->edittree->nodes, SEL_DESELECT);
   }
 
   LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
@@ -705,7 +705,7 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  ED_node_sort(snode->edittree);
+  node_sort(snode->edittree);
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
 
@@ -775,7 +775,7 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
       WM_gesture_is_modal_first((const wmGesture *)op->customdata));
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    ED_node_select_all(&snode->edittree->nodes, SEL_DESELECT);
+    node_select_all(&snode->edittree->nodes, SEL_DESELECT);
   }
 
   /* get operator properties */
@@ -850,7 +850,7 @@ static bool do_lasso_select_node(bContext *C,
 
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    ED_node_select_all(&snode->edittree->nodes, SEL_DESELECT);
+    node_select_all(&snode->edittree->nodes, SEL_DESELECT);
     changed = true;
   }
 
@@ -941,9 +941,9 @@ static int node_select_all_exec(bContext *C, wmOperator *op)
   ListBase *node_lb = &snode->edittree->nodes;
   int action = RNA_enum_get(op->ptr, "action");
 
-  ED_node_select_all(node_lb, action);
+  node_select_all(node_lb, action);
 
-  ED_node_sort(snode->edittree);
+  node_sort(snode->edittree);
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
   return OPERATOR_FINISHED;
@@ -997,7 +997,7 @@ static int node_select_linked_to_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  ED_node_sort(snode->edittree);
+  node_sort(snode->edittree);
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
   return OPERATOR_FINISHED;
@@ -1049,7 +1049,7 @@ static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  ED_node_sort(snode->edittree);
+  node_sort(snode->edittree);
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
   return OPERATOR_FINISHED;
