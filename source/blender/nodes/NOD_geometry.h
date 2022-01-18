@@ -98,6 +98,7 @@ void register_node_type_geo_delete_geometry(void);
 void register_node_type_geo_distribute_points_on_faces(void);
 void register_node_type_geo_dual_mesh(void);
 void register_node_type_geo_edge_split(void);
+void register_node_type_geo_field_at_index(void);
 void register_node_type_geo_geometry_to_instance(void);
 void register_node_type_geo_image_texture(void);
 void register_node_type_geo_input_curve_handles(void);
