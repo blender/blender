@@ -79,13 +79,14 @@ class OBJWriter : NonMovable, NonCopyable {
   void write_vertex_coords(const OBJMesh &obj_mesh_data) const;
   /**
    * Write UV vertex coordinates for all vertices as `vt u v`.
-   * \note UV indices are stored here, but written later.
+   * \note UV indices are stored here, but written with polygons later.
    */
   void write_uv_coords(OBJMesh &obj_mesh_data) const;
   /**
    * Write loop normals for smooth-shaded polygons, and polygon normals otherwise, as "vn x y z".
+   * \note Normal indices ares stored here, but written with polygons later.
    */
-  void write_poly_normals(const OBJMesh &obj_mesh_data) const;
+  void write_poly_normals(OBJMesh &obj_mesh_data);
   /**
    * Write smooth group if polygon at the given index is shaded smooth else "s 0"
    */

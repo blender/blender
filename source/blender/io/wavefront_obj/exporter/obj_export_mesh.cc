@@ -27,6 +27,7 @@
 #include "BKE_object.h"
 
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_math.h"
 
 #include "DEG_depsgraph_query.h"
@@ -144,6 +145,11 @@ int OBJMesh::tot_edges() const
 int16_t OBJMesh::tot_materials() const
 {
   return export_mesh_eval_->totcol;
+}
+
+int OBJMesh::tot_normal_indices() const
+{
+  return tot_normal_indices_;
 }
 
 int OBJMesh::ith_smooth_group(const int poly_index) const
@@ -297,6 +303,7 @@ Span<int> OBJMesh::calc_poly_uv_indices(const int poly_index) const
   BLI_assert(poly_index < uv_indices_.size());
   return uv_indices_[poly_index];
 }
+
 float3 OBJMesh::calc_poly_normal(const int poly_index) const
 {
   float3 r_poly_normal;
@@ -308,41 +315,87 @@ float3 OBJMesh::calc_poly_normal(const int poly_index) const
   return r_poly_normal;
 }
 
-void OBJMesh::calc_loop_normals(const int poly_index, Vector<float3> &r_loop_normals) const
+/** Round \a f to \a round_digits decimal digits. */
+static float round_float_to_n_digits(const float f, int round_digits)
 {
-  r_loop_normals.clear();
-  const MPoly &mpoly = export_mesh_eval_->mpoly[poly_index];
-  const float(
-      *lnors)[3] = (const float(*)[3])(CustomData_get_layer(&export_mesh_eval_->ldata, CD_NORMAL));
-  for (int loop_of_poly = 0; loop_of_poly < mpoly.totloop; loop_of_poly++) {
-    float3 loop_normal;
-    copy_v3_v3(loop_normal, lnors[mpoly.loopstart + loop_of_poly]);
-    mul_mat3_m4_v3(world_and_axes_transform_, loop_normal);
-    r_loop_normals.append(loop_normal);
-  }
+  float scale = powf(10.0, round_digits);
+  return ceilf((scale * f - 0.49999999f)) / scale;
 }
 
-std::pair<int, Vector<int>> OBJMesh::calc_poly_normal_indices(
-    const int poly_index, const int object_tot_prev_normals) const
+static float3 round_float3_to_n_digits(const float3 &v, int round_digits)
+{
+  float3 ans;
+  ans.x = round_float_to_n_digits(v.x, round_digits);
+  ans.y = round_float_to_n_digits(v.y, round_digits);
+  ans.z = round_float_to_n_digits(v.z, round_digits);
+  return ans;
+}
+
+void OBJMesh::store_normal_coords_and_indices(Vector<float3> &r_normal_coords)
+{
+  /* We'll round normal components to 4 digits.
+   * This will cover up some minor differences
+   * between floating point calculations on different platforms.
+   * Since normals are normalized, there will be no perceptible loss
+   * of precision when rounding to 4 digits. */
+  constexpr int round_digits = 4;
+  int cur_normal_index = 0;
+  Map<float3, int> normal_to_index;
+  /* We don't know how many unique normals there will be, but this is a guess.*/
+  normal_to_index.reserve(export_mesh_eval_->totpoly);
+  loop_to_normal_index_.resize(export_mesh_eval_->totloop);
+  loop_to_normal_index_.fill(-1);
+  const float(*lnors)[3] = (const float(*)[3])(
+      CustomData_get_layer(&export_mesh_eval_->ldata, CD_NORMAL));
+  for (int poly_index = 0; poly_index < export_mesh_eval_->totpoly; ++poly_index) {
+    const MPoly &mpoly = export_mesh_eval_->mpoly[poly_index];
+    bool need_per_loop_normals = is_ith_poly_smooth(poly_index);
+    if (need_per_loop_normals) {
+      for (int loop_of_poly = 0; loop_of_poly < mpoly.totloop; ++loop_of_poly) {
+        float3 loop_normal;
+        int loop_index = mpoly.loopstart + loop_of_poly;
+        BLI_assert(loop_index < export_mesh_eval_->totloop);
+        copy_v3_v3(loop_normal, lnors[loop_index]);
+        mul_mat3_m4_v3(world_and_axes_transform_, loop_normal);
+        float3 rounded_loop_normal = round_float3_to_n_digits(loop_normal, round_digits);
+        int loop_norm_index = normal_to_index.lookup_default(rounded_loop_normal, -1);
+        if (loop_norm_index == -1) {
+          loop_norm_index = cur_normal_index++;
+          normal_to_index.add(rounded_loop_normal, loop_norm_index);
+          r_normal_coords.append(rounded_loop_normal);
+        }
+        loop_to_normal_index_[loop_index] = loop_norm_index;
+      }
+    }
+    else {
+      float3 poly_normal = calc_poly_normal(poly_index);
+      float3 rounded_poly_normal = round_float3_to_n_digits(poly_normal, round_digits);
+      int poly_norm_index = normal_to_index.lookup_default(rounded_poly_normal, -1);
+      if (poly_norm_index == -1) {
+        poly_norm_index = cur_normal_index++;
+        normal_to_index.add(rounded_poly_normal, poly_norm_index);
+        r_normal_coords.append(rounded_poly_normal);
+      }
+      for (int i = 0; i < mpoly.totloop; ++i) {
+        int loop_index = mpoly.loopstart + i;
+        BLI_assert(loop_index < export_mesh_eval_->totloop);
+        loop_to_normal_index_[loop_index] = poly_norm_index;
+      }
+    }
+  }
+  tot_normal_indices_ = cur_normal_index;
+}
+
+Vector<int> OBJMesh::calc_poly_normal_indices(const int poly_index) const
 {
   const MPoly &mpoly = export_mesh_eval_->mpoly[poly_index];
   const int totloop = mpoly.totloop;
   Vector<int> r_poly_normal_indices(totloop);
-
-  if (is_ith_poly_smooth(poly_index)) {
-    for (int poly_loop_index = 0; poly_loop_index < totloop; poly_loop_index++) {
-      /* Using polygon loop index is fine because polygon/loop normals and their normal indices are
-       * written by looping over #Mesh.mpoly /#Mesh.mloop in the same order. */
-      r_poly_normal_indices[poly_loop_index] = object_tot_prev_normals + poly_loop_index;
-    }
-    /* For a smooth-shaded polygon, #Mesh.totloop -many loop normals are written. */
-    return {totloop, r_poly_normal_indices};
-  }
   for (int poly_loop_index = 0; poly_loop_index < totloop; poly_loop_index++) {
-    r_poly_normal_indices[poly_loop_index] = object_tot_prev_normals;
+    int loop_index = mpoly.loopstart + poly_loop_index;
+    r_poly_normal_indices[poly_loop_index] = loop_to_normal_index_[loop_index];
   }
-  /* For a flat-shaded polygon, one polygon normal is written.  */
-  return {1, r_poly_normal_indices};
+  return r_poly_normal_indices;
 }
 
 int16_t OBJMesh::get_poly_deform_group_index(const int poly_index) const

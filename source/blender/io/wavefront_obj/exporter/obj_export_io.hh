@@ -130,7 +130,7 @@ syntax_elem_to_formatting(const eOBJSyntaxElement key)
       return {"vt %f %f\n", 2, is_type_float<T...>};
     }
     case eOBJSyntaxElement::normal: {
-      return {"vn %f %f %f\n", 3, is_type_float<T...>};
+      return {"vn %.4f %.4f %.4f\n", 3, is_type_float<T...>};
     }
     case eOBJSyntaxElement::poly_element_begin: {
       return {"f", 0, is_type_string_related<T...>};

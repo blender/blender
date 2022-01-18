@@ -175,23 +175,13 @@ void OBJWriter::write_uv_coords(OBJMesh &r_obj_mesh_data) const
   }
 }
 
-void OBJWriter::write_poly_normals(const OBJMesh &obj_mesh_data) const
+void OBJWriter::write_poly_normals(OBJMesh &obj_mesh_data)
 {
   obj_mesh_data.ensure_mesh_normals();
-  Vector<float3> lnormals;
-  const int tot_polygons = obj_mesh_data.tot_polygons();
-  for (int i = 0; i < tot_polygons; i++) {
-    if (obj_mesh_data.is_ith_poly_smooth(i)) {
-      obj_mesh_data.calc_loop_normals(i, lnormals);
-      for (const float3 &lnormal : lnormals) {
-        file_handler_->write<eOBJSyntaxElement::normal>(lnormal[0], lnormal[1], lnormal[2]);
-      }
-    }
-    else {
-      float3 poly_normal = obj_mesh_data.calc_poly_normal(i);
-      file_handler_->write<eOBJSyntaxElement::normal>(
-          poly_normal[0], poly_normal[1], poly_normal[2]);
-    }
+  Vector<float3> normals;
+  obj_mesh_data.store_normal_coords_and_indices(normals);
+  for (const float3 &normal : normals) {
+    file_handler_->write<eOBJSyntaxElement::normal>(normal[0], normal[1], normal[2]);
   }
 }
 
@@ -298,28 +288,17 @@ void OBJWriter::write_poly_elements(const OBJMesh &obj_mesh_data,
   const func_vert_uv_normal_indices poly_element_writer = get_poly_element_writer(
       obj_mesh_data.tot_uv_vertices());
 
-  /* Number of normals may not be equal to number of polygons due to smooth shading. */
-  int per_object_tot_normals = 0;
   const int tot_polygons = obj_mesh_data.tot_polygons();
   for (int i = 0; i < tot_polygons; i++) {
     Vector<int> poly_vertex_indices = obj_mesh_data.calc_poly_vertex_indices(i);
     Span<int> poly_uv_indices = obj_mesh_data.calc_poly_uv_indices(i);
-    /* For an Object, a normal index depends on how many of its normals have been written before
-     * it. This is unknown because of smooth shading. So pass "per object total normals"
-     * and update it after each call. */
-    int new_normals = 0;
-    Vector<int> poly_normal_indices;
-    std::tie(new_normals, poly_normal_indices) = obj_mesh_data.calc_poly_normal_indices(
-        i, per_object_tot_normals);
-    per_object_tot_normals += new_normals;
+    Vector<int> poly_normal_indices = obj_mesh_data.calc_poly_normal_indices(i);
 
     last_poly_smooth_group = write_smooth_group(obj_mesh_data, i, last_poly_smooth_group);
     last_poly_vertex_group = write_vertex_group(obj_mesh_data, i, last_poly_vertex_group);
     last_poly_mat_nr = write_poly_material(obj_mesh_data, i, last_poly_mat_nr, matname_fn);
     (this->*poly_element_writer)(poly_vertex_indices, poly_uv_indices, poly_normal_indices);
   }
-  /* Unusual: Other indices are updated in #OBJWriter::update_index_offsets. */
-  index_offsets_.normal_offset += per_object_tot_normals;
 }
 
 void OBJWriter::write_edges_indices(const OBJMesh &obj_mesh_data) const
@@ -390,7 +369,7 @@ void OBJWriter::update_index_offsets(const OBJMesh &obj_mesh_data)
 {
   index_offsets_.vertex_offset += obj_mesh_data.tot_vertices();
   index_offsets_.uv_vertex_offset += obj_mesh_data.tot_uv_vertices();
-  /* Normal index is updated right after writing the normals. */
+  index_offsets_.normal_offset += obj_mesh_data.tot_normal_indices();
 }
 
 /* -------------------------------------------------------------------- */
