@@ -232,14 +232,14 @@ static bool compare_nodes(const bNode *a, const bNode *b)
   return false;
 }
 
-void node_sort(bNodeTree *ntree)
+void node_sort(bNodeTree &ntree)
 {
   /* Merge sort is the algorithm of choice here. */
-  int totnodes = BLI_listbase_count(&ntree->nodes);
+  int totnodes = BLI_listbase_count(&ntree.nodes);
 
   int k = 1;
   while (k < totnodes) {
-    bNode *first_a = (bNode *)ntree->nodes.first;
+    bNode *first_a = (bNode *)ntree.nodes.first;
     bNode *first_b = first_a;
 
     do {
@@ -266,8 +266,8 @@ void node_sort(bNodeTree *ntree)
           bNode *tmp = node_b;
           node_b = node_b->next;
           b++;
-          BLI_remlink(&ntree->nodes, tmp);
-          BLI_insertlinkbefore(&ntree->nodes, node_a, tmp);
+          BLI_remlink(&ntree.nodes, tmp);
+          BLI_insertlinkbefore(&ntree.nodes, node_a, tmp);
         }
       }
 

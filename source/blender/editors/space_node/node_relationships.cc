@@ -1588,14 +1588,14 @@ void NODE_OT_links_detach(wmOperatorType *ot)
 
 static int node_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  SpaceNode *snode = CTX_wm_space_node(C);
-  bNodeTree *ntree = snode->edittree;
-  bNode *frame = nodeGetActive(ntree);
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  bNodeTree &ntree = *snode.edittree;
+  bNode *frame = nodeGetActive(&ntree);
   if (!frame || frame->type != NODE_FRAME) {
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     if (node == frame) {
       continue;
     }
@@ -1702,7 +1702,7 @@ static int node_join_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  node_sort(&ntree);
+  node_sort(ntree);
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
 
   return OPERATOR_FINISHED;
@@ -1729,15 +1729,15 @@ void NODE_OT_join(wmOperatorType *ot)
 /** \name Attach Operator
  * \{ */
 
-static bNode *node_find_frame_to_attach(ARegion *region,
-                                        const bNodeTree *ntree,
+static bNode *node_find_frame_to_attach(ARegion &region,
+                                        const bNodeTree &ntree,
                                         const int mouse_xy[2])
 {
   /* convert mouse coordinates to v2d space */
   float cursor[2];
-  UI_view2d_region_to_view(&region->v2d, UNPACK2(mouse_xy), &cursor[0], &cursor[1]);
+  UI_view2d_region_to_view(&region.v2d, UNPACK2(mouse_xy), &cursor[0], &cursor[1]);
 
-  LISTBASE_FOREACH_BACKWARD (bNode *, frame, &ntree->nodes) {
+  LISTBASE_FOREACH_BACKWARD (bNode *, frame, &ntree.nodes) {
     /* skip selected, those are the nodes we want to attach */
     if ((frame->type != NODE_FRAME) || (frame->flag & NODE_SELECT)) {
       continue;
@@ -1752,13 +1752,13 @@ static bNode *node_find_frame_to_attach(ARegion *region,
 
 static int node_attach_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
-  ARegion *region = CTX_wm_region(C);
-  SpaceNode *snode = CTX_wm_space_node(C);
-  bNodeTree *ntree = snode->edittree;
+  ARegion &region = *CTX_wm_region(C);
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  bNodeTree &ntree = *snode.edittree;
   bNode *frame = node_find_frame_to_attach(region, ntree, event->mval);
 
   if (frame) {
-    LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree->nodes) {
+    LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
       if (node->flag & NODE_SELECT) {
         if (node->parent == nullptr) {
           /* disallow moving a parent into its child */
@@ -1848,17 +1848,17 @@ static void node_detach_recursive(bNode *node)
 /* detach the root nodes in the current selection */
 static int node_detach_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  SpaceNode *snode = CTX_wm_space_node(C);
-  bNodeTree *ntree = snode->edittree;
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  bNodeTree &ntree = *snode.edittree;
 
   /* reset tags */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     node->done = 0;
   }
   /* detach nodes recursively
    * relative order is preserved here!
    */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     if (!(node->done & NODE_DETACH_DONE)) {
       node_detach_recursive(node);
     }
@@ -2239,7 +2239,7 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
 
   /* frame attachment wasn't handled yet
    * so we search the frame that the node will be attached to later */
-  insert.parent = node_find_frame_to_attach(region, ntree, mouse_xy);
+  insert.parent = node_find_frame_to_attach(*region, *ntree, mouse_xy);
 
   /* this makes sure nodes are also correctly offset when inserting a node on top of a frame
    * without actually making it a part of the frame (because mouse isn't intersecting it)

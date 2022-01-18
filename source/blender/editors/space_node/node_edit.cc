@@ -2040,18 +2040,15 @@ void NODE_OT_output_file_move_active_socket(wmOperatorType *ot)
 
 static int node_copy_color_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  SpaceNode *snode = CTX_wm_space_node(C);
-  bNodeTree *ntree = snode->edittree;
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  bNodeTree &ntree = *snode.edittree;
 
-  if (!ntree) {
-    return OPERATOR_CANCELLED;
-  }
-  bNode *node = nodeGetActive(ntree);
+  bNode *node = nodeGetActive(&ntree);
   if (!node) {
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (bNode *, node_iter, &ntree->nodes) {
+  LISTBASE_FOREACH (bNode *, node_iter, &ntree.nodes) {
     if (node_iter->flag & NODE_SELECT && node_iter != node) {
       if (node->flag & NODE_CUSTOM_COLOR) {
         node_iter->flag |= NODE_CUSTOM_COLOR;

@@ -131,7 +131,7 @@ void node_draw_space(const bContext &C, ARegion &region);
  * Sort nodes by selection: unselected nodes first, then selected,
  * then the active node at the very end. Relative order is kept intact.
  */
-void node_sort(bNodeTree *ntree);
+void node_sort(bNodeTree &ntree);
 
 void node_set_cursor(wmWindow &win, SpaceNode &snode, const blender::float2 &cursor);
 /* DPI scaled coords */
