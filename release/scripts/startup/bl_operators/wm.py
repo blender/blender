@@ -23,7 +23,6 @@ import bpy
 from bpy.types import (
     Menu,
     Operator,
-    Collection,
     bpy_prop_array,
 )
 from bpy.props import (
@@ -2500,7 +2499,26 @@ class WM_OT_batch_rename(Operator):
     actions: CollectionProperty(type=BatchRenameAction)
 
     @staticmethod
-    def _data_from_context(context, data_type, only_selected, *, check_context=False):
+    def _selected_ids_from_outliner_by_type(context, ty):
+        return [
+            id for id in context.selected_ids
+            if isinstance(id, ty)
+            if id.library is None
+        ]
+
+    @staticmethod
+    def _selected_ids_from_outliner_by_type_for_object_data(context, ty):
+        # Include selected object-data as well as the selected ID's.
+        from bpy.types import Object
+        # De-duplicate the result as object-data may cause duplicates.
+        return tuple(set([
+            id for id_base in context.selected_ids
+            if isinstance(id := id_base.data if isinstance(id_base, Object) else id_base, ty)
+            if id.library is None
+        ]))
+
+    @classmethod
+    def _data_from_context(cls, context, data_type, only_selected, *, check_context=False):
 
         mode = context.mode
         scene = context.scene
@@ -2538,7 +2556,7 @@ class WM_OT_batch_rename(Operator):
                 return data_type_test
             if data_type == data_type_test:
                 data = (
-                    [id for id in context.selected_ids if isinstance(id, Collection) and id.library is None]
+                    cls._selected_ids_from_outliner_by_type(context, bpy.types.Collection)
                     if only_selected else
                     scene.collection.children_recursive,
                     "name",
@@ -2574,15 +2592,15 @@ class WM_OT_batch_rename(Operator):
             return 'OBJECT'
 
         object_data_type_attrs_map = {
-            'MESH': ("meshes", "Mesh(es)"),
-            'CURVE': ("curves", "Curve(s)"),
-            'META': ("metaballs", "Metaball(s)"),
-            'ARMATURE': ("armatures", "Armature(s)"),
-            'LATTICE': ("lattices", "Lattice(s)"),
-            'GPENCIL': ("grease_pencils", "Grease Pencil(s)"),
-            'CAMERA': ("cameras", "Camera(s)"),
-            'SPEAKER': ("speakers", "Speaker(s)"),
-            'LIGHT_PROBE': ("light_probes", "Light Probe(s)"),
+            'MESH': ("meshes", "Mesh(es)", bpy.types.Mesh),
+            'CURVE': ("curves", "Curve(s)", bpy.types.Curve),
+            'META': ("metaballs", "Metaball(s)", bpy.types.MetaBall),
+            'ARMATURE': ("armatures", "Armature(s)", bpy.types.Armature),
+            'LATTICE': ("lattices", "Lattice(s)", bpy.types.Lattice),
+            'GPENCIL': ("grease_pencils", "Grease Pencil(s)", bpy.types.GreasePencil),
+            'CAMERA': ("cameras", "Camera(s)", bpy.types.Camera),
+            'SPEAKER': ("speakers", "Speaker(s)", bpy.types.Speaker),
+            'LIGHT_PROBE': ("light_probes", "Light Probe(s)", bpy.types.LightProbe),
         }
 
         # Finish with space types.
@@ -2590,7 +2608,13 @@ class WM_OT_batch_rename(Operator):
 
             if data_type == 'OBJECT':
                 data = (
-                    context.selected_editable_objects
+                    (
+                        # Outliner.
+                        cls._selected_ids_from_outliner_by_type(context, bpy.types.Object)
+                        if space_type == 'OUTLINER' else
+                        # 3D View (default).
+                        context.selected_editable_objects
+                    )
                     if only_selected else
                     [id for id in bpy.data.objects if id.library is None],
                     "name",
@@ -2598,6 +2622,7 @@ class WM_OT_batch_rename(Operator):
                 )
             elif data_type == 'COLLECTION':
                 data = (
+                    # Outliner case is handled already.
                     tuple(set(
                         ob.instance_collection
                         for ob in context.selected_objects
@@ -2612,26 +2637,38 @@ class WM_OT_batch_rename(Operator):
                 )
             elif data_type == 'MATERIAL':
                 data = (
-                    tuple(set(
-                        id
-                        for ob in context.selected_objects
-                        for slot in ob.material_slots
-                        if (id := slot.material) is not None and id.library is None
-                    ))
+                    (
+                        # Outliner.
+                        cls._selected_ids_from_outliner_by_type(context, bpy.types.Material)
+                        if space_type == 'OUTLINER' else
+                        # 3D View (default).
+                        tuple(set(
+                            id
+                            for ob in context.selected_objects
+                            for slot in ob.material_slots
+                            if (id := slot.material) is not None and id.library is None
+                        ))
+                    )
                     if only_selected else
                     [id for id in bpy.data.materials if id.library is None],
                     "name",
                     "Material(s)",
                 )
             elif data_type in object_data_type_attrs_map.keys():
-                attr, descr = object_data_type_attrs_map[data_type]
+                attr, descr, ty = object_data_type_attrs_map[data_type]
                 data = (
-                    tuple(set(
-                        id
-                        for ob in context.selected_objects
-                        if ob.type == data_type
-                        if (id := ob.data) is not None and id.library is None
-                    ))
+                    (
+                        # Outliner.
+                        cls._selected_ids_from_outliner_by_type_for_object_data(context, ty)
+                        if space_type == 'OUTLINER' else
+                        # 3D View (default).
+                        tuple(set(
+                            id
+                            for ob in context.selected_objects
+                            if ob.type == data_type
+                            if (id := ob.data) is not None and id.library is None
+                        ))
+                    )
                     if only_selected else
                     [id for id in getattr(bpy.data, attr) if id.library is None],
                     "name",
