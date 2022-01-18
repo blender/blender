@@ -49,10 +49,6 @@
 #include "ED_asset_list.hh"
 #include "asset_library_reference.hh"
 
-/* Enable asset indexing. Currently disabled as ID properties aren't indexed yet and is needed for
- * object snapping. See {D12990}. */
-//#define SPACE_FILE_ENABLE_ASSET_INDEXING
-
 namespace blender::ed::asset {
 
 /* -------------------------------------------------------------------- */
@@ -174,9 +170,7 @@ void AssetList::setup()
       "",
       "");
 
-#ifdef SPACE_FILE_ENABLE_ASSET_INDEXING
   filelist_setindexer(files, &file_indexer_asset);
-#endif
 
   char path[FILE_MAXDIR] = "";
   if (user_library) {
