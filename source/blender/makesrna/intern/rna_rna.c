@@ -3121,7 +3121,7 @@ static void rna_def_number_property(StructRNA *srna, PropertyType type)
                              "Precision",
                              "Number of digits after the dot used by buttons. Fraction is "
                              "automatically hidden for exact integer values of fields with unit "
-                             "'NONE' or 'TIME' (frame count) and step divisible by 100.");
+                             "'NONE' or 'TIME' (frame count) and step divisible by 100");
   }
 }
 
