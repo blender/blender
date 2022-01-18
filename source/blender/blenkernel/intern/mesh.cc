@@ -150,6 +150,8 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
 
   BKE_mesh_update_customdata_pointers(mesh_dst, do_tessface);
 
+  mesh_dst->cd_flag = mesh_src->cd_flag;
+
   mesh_dst->edit_mesh = nullptr;
 
   mesh_dst->mselect = (MSelect *)MEM_dupallocN(mesh_dst->mselect);

@@ -146,6 +146,19 @@ void BM_elem_attrs_copy_ex(BMesh *bm_src,
 void BM_elem_attrs_copy(BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, void *ele_dst_v);
 void BM_elem_select_copy(BMesh *bm_dst, void *ele_dst_v, const void *ele_src_v);
 
+/**
+ * Initialize the `bm_dst` layers in preparation for populating it's contents with multiple meshes.
+ * Typically done using multiple calls to #BM_mesh_bm_from_me with the same `bm` argument).
+ *
+ * \note While the custom-data layers of all meshes are created, the active layers are set
+ * by the first instance mesh containing that layer type.
+ * This means the first mesh should always be the main mesh (from the user perspective),
+ * as this is the mesh they have control over (active UV layer for rendering for example).
+ */
+void BM_mesh_copy_init_customdata_from_mesh_array(BMesh *bm_dst,
+                                                  const struct Mesh *me_src_array[],
+                                                  int me_src_array_len,
+                                                  const struct BMAllocTemplate *allocsize);
 void BM_mesh_copy_init_customdata_from_mesh(BMesh *bm_dst,
                                             const struct Mesh *me_src,
                                             const struct BMAllocTemplate *allocsize);

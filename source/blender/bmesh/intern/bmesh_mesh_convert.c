@@ -315,13 +315,20 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     CustomData_bmesh_init_pool(&bm->edata, me->totedge, BM_EDGE);
     CustomData_bmesh_init_pool(&bm->ldata, me->totloop, BM_LOOP);
     CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
-
-    BM_mesh_cd_flag_apply(bm, me->cd_flag);
   }
+  BM_mesh_cd_flag_apply(bm, me->cd_flag | (is_new ? 0 : BM_mesh_cd_flag_from_bmesh(bm)));
 
-  const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
-  const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
-  const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+  /* Only copy these values over if the source mesh is flagged to be using them.
+   * Even if `bm` has these layers, they may have been added from another mesh, when `!is_new`. */
+  const int cd_vert_bweight_offset = (me->cd_flag & ME_CDFLAG_VERT_BWEIGHT) ?
+                                         CustomData_get_offset(&bm->vdata, CD_BWEIGHT) :
+                                         -1;
+  const int cd_edge_bweight_offset = (me->cd_flag & ME_CDFLAG_EDGE_BWEIGHT) ?
+                                         CustomData_get_offset(&bm->edata, CD_BWEIGHT) :
+                                         -1;
+  const int cd_edge_crease_offset = (me->cd_flag & ME_CDFLAG_EDGE_CREASE) ?
+                                        CustomData_get_offset(&bm->edata, CD_CREASE) :
+                                        -1;
   const int cd_shape_key_offset = tot_shape_keys ? CustomData_get_offset(&bm->vdata, CD_SHAPEKEY) :
                                                    -1;
   const int cd_shape_keyindex_offset = is_new && (tot_shape_keys || params->add_key_index) ?
