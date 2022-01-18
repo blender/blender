@@ -2471,15 +2471,18 @@ class WM_OT_batch_rename(Operator):
             ('MATERIAL', "Materials", ""),
             None,
             # Enum identifiers are compared with 'object.type'.
+            # Follow order in "Add" menu.
             ('MESH', "Meshes", ""),
             ('CURVE', "Curves", ""),
             ('META', "Metaballs", ""),
+            ('VOLUME', "Volumes", ""),
+            ('GPENCIL', "Grease Pencils", ""),
             ('ARMATURE', "Armatures", ""),
             ('LATTICE', "Lattices", ""),
-            ('GPENCIL', "Grease Pencils", ""),
+            ('LIGHT', "Light", ""),
+            ('LIGHT_PROBE', "Light Probes", ""),
             ('CAMERA', "Cameras", ""),
             ('SPEAKER', "Speakers", ""),
-            ('LIGHT_PROBE', "Light Probes", ""),
             None,
             ('BONE', "Bones", ""),
             ('NODE', "Nodes", ""),
@@ -2595,12 +2598,14 @@ class WM_OT_batch_rename(Operator):
             'MESH': ("meshes", "Mesh(es)", bpy.types.Mesh),
             'CURVE': ("curves", "Curve(s)", bpy.types.Curve),
             'META': ("metaballs", "Metaball(s)", bpy.types.MetaBall),
+            'VOLUME': ("volumes", "Volume(s)", bpy.types.Volume),
+            'GPENCIL': ("grease_pencils", "Grease Pencil(s)", bpy.types.GreasePencil),
             'ARMATURE': ("armatures", "Armature(s)", bpy.types.Armature),
             'LATTICE': ("lattices", "Lattice(s)", bpy.types.Lattice),
-            'GPENCIL': ("grease_pencils", "Grease Pencil(s)", bpy.types.GreasePencil),
+            'LIGHT': ("lights", "Light(s)", bpy.types.Light),
+            'LIGHT_PROBE': ("light_probes", "Light Probe(s)", bpy.types.LightProbe),
             'CAMERA': ("cameras", "Camera(s)", bpy.types.Camera),
             'SPEAKER': ("speakers", "Speaker(s)", bpy.types.Speaker),
-            'LIGHT_PROBE': ("light_probes", "Light Probe(s)", bpy.types.LightProbe),
         }
 
         # Finish with space types.
