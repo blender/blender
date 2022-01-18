@@ -227,7 +227,7 @@ TEST(lib_remap, delete_when_remap_to_self_not_allowed)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Userref counting
+/** \name User Reference Counting
  * \{ */
 
 TEST(lib_remap, users_are_decreased_when_not_skipping_never_null)

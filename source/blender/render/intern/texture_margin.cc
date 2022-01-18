@@ -121,8 +121,7 @@ class TextureMarginMap {
   void rasterize_tri(float *v1, float *v2, float *v3, uint32_t value, char *mask)
   {
     /* NOTE: This is not thread safe, because the value to be written by the rasterizer is
-     * a class member. If this is ever made multithreaded each therad needs to get it's own.
-     */
+     * a class member. If this is ever made multi-threaded each thread needs to get it's own. */
     value_to_store_ = value;
     mask_ = mask;
     zspan_scanconvert(
@@ -323,8 +322,7 @@ class TextureMarginMap {
   /* Find which edge of the src_poly is closest to x,y. Look up it's adjacent UV-edge and polygon.
    * Then return the location of the equivalent pixel in the other polygon.
    * Returns true if a new pixel location was found, false if it wasn't, which can happen if the
-   * margin pixel is on a corner, or the UV-edge doesnt have an adjacent polygon.
-   */
+   * margin pixel is on a corner, or the UV-edge doesn't have an adjacent polygon. */
   bool lookup_pixel(
       float x, float y, int src_poly, float *r_destx, float *r_desty, int *r_other_poly)
   {
@@ -386,7 +384,7 @@ class TextureMarginMap {
       return false;
     }
 
-    /* Get the 'other' edge. I.E. the UV edge from the neighbour polygon. */
+    /* Get the 'other' edge. I.E. the UV edge from the neighbor polygon. */
     int other_edge = loop_adjacency_map_[found_edge];
 
     if (other_edge < 0) {
@@ -407,7 +405,7 @@ class TextureMarginMap {
     float2 other_edgepoint1 = uv_to_xy(mloopuv_[other_edge]);
     float2 other_edgepoint2 = uv_to_xy(mloopuv_[other_edge2]);
 
-    /* Calculate the vector from the oder edges last point to it's first point. */
+    /* Calculate the vector from the order edges last point to it's first point. */
     float2 other_ab = other_edgepoint1 - other_edgepoint2;
     float2 other_reflect_point = other_edgepoint2 + (found_t * other_ab);
     float2 perpendicular_other_ab;
@@ -486,9 +484,8 @@ static void generate_margin(ImBuf *ibuf,
   TextureMarginMap map(ibuf->x, ibuf->y, mpoly, mloop, mloopuv, totpoly, totloop, totedge);
 
   bool draw_new_mask = false;
-  /* Now the map contains 3 sorts of values: 0xFFFFFFFF for empty pixels, 0x80000000 + polyindex
-   * for margin pixels, just polyindex for poly pixels.
-   */
+  /* Now the map contains 3 sorts of values: 0xFFFFFFFF for empty pixels, `0x80000000 + polyindex`
+   * for margin pixels, just `polyindex` for poly pixels. */
   if (mask) {
     mask = (char *)MEM_dupallocN(mask);
   }
@@ -525,8 +522,7 @@ static void generate_margin(ImBuf *ibuf,
   map.grow_dijkstra(margin);
 
   /* Looking further than 3 polygons away leads to so much cumulative rounding
-   * that it isn't worth it. So hardcode it to 3.
-   */
+   * that it isn't worth it. So hard-code it to 3. */
   map.lookup_pixels(ibuf, mask, 3);
 
   /* Use the extend filter to fill in the missing pixels at the corners, not strictly correct, but

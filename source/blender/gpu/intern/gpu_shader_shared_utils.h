@@ -24,16 +24,16 @@
  * We use the same vector and matrix types as Blender C++. Some math functions are defined to use
  * the float version to match the GLSL syntax.
  * This file can be used for C & C++ code and the syntax used should follow the same rules.
- * Some preprocessing is done by the GPU backend to make it GLSL compatible.
+ * Some preprocessing is done by the GPU back-end to make it GLSL compatible.
  *
  * IMPORTANT:
- * - Don't add trailing comma at the end of the enum. Our custom pre-processor will noy trim it
+ * - Don't add trailing comma at the end of the enum. Our custom pre-processor will now trim it
  *   for GLSL.
  * - Always use `u` suffix for enum values. GLSL do not support implicit cast.
  * - Define all values. This is in order to simplify custom pre-processor code.
  * - Always use uint32_t as underlying type.
  * - Use float suffix by default for float literals to avoid double promotion in C++.
- * - Pack one float or int after a vec3/ivec3 to fullfil alligment rules.
+ * - Pack one float or int after a vec3/ivec3 to fulfill alignment rules.
  *
  * NOTE: Due to alignment restriction and buggy drivers, do not try to use mat3 inside structs.
  * NOTE: (UBO only) Do not use arrays of float. They are padded to arrays of vec4 and are not worth
@@ -80,7 +80,6 @@
 #  include "BLI_assert.h"
 
 #  ifdef __cplusplus
-#    include "BLI_float4x4.hh"
 #    include "BLI_float4x4.hh"
 #  else
 typedef float float2[2];

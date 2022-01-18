@@ -89,9 +89,9 @@ void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
   static const float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   const float draw_width = img_w * scaleX * xzoom;
   const float draw_height = img_h * scaleY * yzoom;
-  /* Downscaling with regular bilinear interpolation (i.e. #GL_LINEAR) doesn't give good filtering
-   * results. Mipmaps can be used to get better results (i.e. #GL_LINEAR_MIPMAP_LINEAR), so always
-   * use mipmaps when filtering. */
+  /* Down-scaling with regular bi-linear interpolation (i.e. #GL_LINEAR) doesn't give good
+   * filtering results. Mipmaps can be used to get better results (i.e. #GL_LINEAR_MIPMAP_LINEAR),
+   * so always use mipmaps when filtering. */
   const bool use_mipmap = use_filter && ((draw_width < img_w) || (draw_height < img_h));
 
   GPUTexture *tex = GPU_texture_create_2d("immDrawPixels", img_w, img_h, 1, gpu_format, NULL);

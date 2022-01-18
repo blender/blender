@@ -20,7 +20,7 @@
 /** \file
  * \ingroup gpu
  *
- * Descriptior type used to define shader structure, resources and interfaces.
+ * Descriptor type used to define shader structure, resources and interfaces.
  *
  * Some rule of thumb:
  * - Do not include anything else than this file in each descriptor file.

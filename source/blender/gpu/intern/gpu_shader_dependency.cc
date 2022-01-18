@@ -140,7 +140,7 @@ struct GPUSource {
     };
   }
 
-  /* Returns the final string with all inlcudes done. */
+  /* Returns the final string with all includes done. */
   void build(std::string &str, shader::BuiltinBits &out_builtins)
   {
     for (auto *dep : dependencies) {

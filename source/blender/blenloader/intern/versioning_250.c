@@ -856,10 +856,9 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       if (!ts->uv_selectmode || ts->vgroup_weight == 0.0f) {
         ts->selectmode = SCE_SELECT_VERTEX;
 
-        /* autokeying - setting should be taken from the user-prefs
-         * but the userprefs version may not have correct flags set
-         * (i.e. will result in blank box when enabled)
-         */
+        /* The auto-keying setting should be taken from the user-preferences
+         * but the user-preferences version may not have correct flags set
+         * (i.e. will result in blank box when enabled). */
         ts->autokey_mode = U.autokey_mode;
         if (ts->autokey_mode == 0) {
           ts->autokey_mode = 2; /* 'add/replace' but not on */

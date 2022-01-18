@@ -1014,7 +1014,7 @@ static void rna_FKeyframe_points_add(ID *id, FCurve *fcu, Main *bmain, int tot)
     fcu->totvert += tot;
 
     while (tot--) {
-      /* defaults, no userprefs gives predictable results for API */
+      /* Defaults, ignoring user-preference gives predictable results for API. */
       bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
       bezt->ipo = BEZT_IPO_BEZ;
       bezt->h1 = bezt->h2 = HD_AUTO_ANIM;

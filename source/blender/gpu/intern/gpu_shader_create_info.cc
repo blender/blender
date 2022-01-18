@@ -20,7 +20,7 @@
 /** \file
  * \ingroup gpu
  *
- * Descriptior type used to define shader structure, resources and interfaces.
+ * Descriptor type used to define shader structure, resources and interfaces.
  */
 
 #include "BLI_map.hh"
@@ -165,7 +165,7 @@ bool gpu_shader_create_info_compile_all()
   return true;
 }
 
-/* Runtime create infos are not registered in the dictionnary and cannot be searched. */
+/* Runtime create infos are not registered in the dictionary and cannot be searched. */
 const GPUShaderCreateInfo *gpu_shader_create_info_get(const char *info_name)
 {
   ShaderCreateInfo *info = g_create_infos->lookup(info_name);

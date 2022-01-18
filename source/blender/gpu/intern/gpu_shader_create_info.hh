@@ -20,7 +20,7 @@
 /** \file
  * \ingroup gpu
  *
- * Descriptior type used to define shader structure, resources and interfaces.
+ * Descriptor type used to define shader structure, resources and interfaces.
  *
  * Some rule of thumb:
  * - Do not include anything else than this file in each info file.
@@ -214,9 +214,9 @@ struct StageInterfaceInfo {
 struct ShaderCreateInfo {
   /** Shader name for debugging. */
   StringRefNull name_;
-  /** True if the shader is static and can be precompiled at compile time. */
+  /** True if the shader is static and can be pre-compiled at compile time. */
   bool do_static_compilation_ = false;
-  /** If true, all additionaly linked create info will be merged into this one. */
+  /** If true, all additionally linked create info will be merged into this one. */
   bool finalized_ = false;
   /**
    * Maximum length of all the resource names including each null terminator.
@@ -297,7 +297,7 @@ struct ShaderCreateInfo {
   };
   /**
    * Resources are grouped by frequency of change.
-   * Pass resources are meants to be valid for the whole pass.
+   * Pass resources are meant to be valid for the whole pass.
    * Batch resources can be changed in a more granular manner (per object/material).
    * Mis-usage will only produce suboptimal performance.
    */
