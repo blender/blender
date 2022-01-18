@@ -40,8 +40,10 @@ void BKE_subsurf_modifier_subdiv_settings_init(struct SubdivSettings *settings,
                                                const struct SubsurfModifierData *smd,
                                                bool use_render_params);
 
-/* If skip_check_is_last is true, we assume that the modifier passed is the last enabled modifier
- * in the stack. */
+/**
+ * \param skip_check_is_last: When true, we assume that the modifier passed is the last enabled
+ * modifier in the stack.
+ */
 bool BKE_subsurf_modifier_can_do_gpu_subdiv_ex(const struct Scene *scene,
                                                const struct Object *ob,
                                                const struct SubsurfModifierData *smd,
@@ -54,6 +56,10 @@ bool BKE_subsurf_modifier_can_do_gpu_subdiv(const struct Scene *scene,
 
 extern void (*BKE_subsurf_modifier_free_gpu_cache_cb)(struct Subdiv *subdiv);
 
+/**
+ * Main goal of this function is to give usable subdivision surface descriptor
+ * which matches settings and topology.
+ */
 struct Subdiv *BKE_subsurf_modifier_subdiv_descriptor_ensure(
     const struct SubsurfModifierData *smd,
     const struct SubdivSettings *subdiv_settings,
@@ -62,8 +68,10 @@ struct Subdiv *BKE_subsurf_modifier_subdiv_descriptor_ensure(
 
 struct SubsurfRuntimeData *BKE_subsurf_modifier_ensure_runtime(struct SubsurfModifierData *smd);
 
-/* Return the #ModifierMode required for the evaluation of the subsurf modifier, which should be
- * used to check if the modifier is enabled. */
+/**
+ * Return the #ModifierMode required for the evaluation of the subsurf modifier,
+ * which should be used to check if the modifier is enabled.
+ */
 int BKE_subsurf_modifier_eval_required_mode(bool is_final_render, bool is_edit_mode);
 
 #ifdef __cplusplus

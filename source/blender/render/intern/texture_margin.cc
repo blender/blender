@@ -544,16 +544,6 @@ static void generate_margin(ImBuf *ibuf,
 
 }  // namespace blender::render::texturemargin
 
-/**
- * Generate a margin around the textures uv islands by copying pixels from the adjacent polygon.
- *
- * \param ibuf: the texture image.
- * \param mask: pixels with a mask value of 1 are not written to.
- * \param margin: the size of the margin in pixels.
- * \param me: the mesh to use the polygons of.
- * \param mloopuv: the uv data to use.
- */
-
 void RE_generate_texturemargin_adjacentfaces(
     ImBuf *ibuf, char *mask, const int margin, const Mesh *me, char const *uv_layer)
 {
