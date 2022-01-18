@@ -252,6 +252,10 @@ static BMesh *BMD_mesh_bm_create(
    * otherwise the wrong active render layer is used, see T92384. */
   BM_mesh_copy_init_customdata_from_mesh(bm, mesh, &allocsize);
 
+  /* NOTE(@campbellbarton): Handle in #BM_mesh_bm_from_me, this is a local fix for T94197. */
+  BM_mesh_cd_flag_apply(bm,
+                        mesh->cd_flag | mesh_operand_ob->cd_flag | BM_mesh_cd_flag_from_bmesh(bm));
+
   BMeshFromMeshParams bmesh_from_mesh_params{};
   bmesh_from_mesh_params.calc_face_normal = true;
   BM_mesh_bm_from_me(bm, mesh_operand_ob, &bmesh_from_mesh_params);
