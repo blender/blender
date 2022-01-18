@@ -212,7 +212,10 @@ static bool socket_is_available(bNodeTree *UNUSED(ntree), bNodeSocket *sock, con
   }
 
   if (!allow_used && (sock->flag & SOCK_IN_USE)) {
-    return false;
+    /* Multi input sockets are available (even if used). */
+    if (!(sock->flag & SOCK_MULTI_INPUT)) {
+      return false;
+    }
   }
 
   return true;
