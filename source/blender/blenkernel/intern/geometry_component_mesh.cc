@@ -15,6 +15,7 @@
  */
 
 #include "BLI_listbase.h"
+#include "BLI_task.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -266,78 +267,19 @@ static GVArray adapt_mesh_domain_corner_to_point(const Mesh &mesh, const GVArray
 
 /**
  * Each corner's value is simply a copy of the value at its vertex.
- *
- * \note Theoretically this interpolation does not need to compute all values at once.
- * However, doing that makes the implementation simpler, and this can be optimized in the future if
- * only some values are required.
  */
-template<typename T>
-static void adapt_mesh_domain_point_to_corner_impl(const Mesh &mesh,
-                                                   const VArray<T> &old_values,
-                                                   MutableSpan<T> r_values)
-{
-  BLI_assert(r_values.size() == mesh.totloop);
-
-  for (const int loop_index : IndexRange(mesh.totloop)) {
-    const int vertex_index = mesh.mloop[loop_index].v;
-    r_values[loop_index] = old_values[vertex_index];
-  }
-}
-
 static GVArray adapt_mesh_domain_point_to_corner(const Mesh &mesh, const GVArray &varray)
 {
   GVArray new_varray;
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    Array<T> values(mesh.totloop);
-    adapt_mesh_domain_point_to_corner_impl<T>(mesh, varray.typed<T>(), values);
-    new_varray = VArray<T>::ForContainer(std::move(values));
+    new_varray = VArray<T>::ForFunc(mesh.totloop,
+                                    [mesh, varray = varray.typed<T>()](const int64_t loop_index) {
+                                      const int vertex_index = mesh.mloop[loop_index].v;
+                                      return varray[vertex_index];
+                                    });
   });
   return new_varray;
-}
-
-/**
- * \note Theoretically this interpolation does not need to compute all values at once.
- * However, doing that makes the implementation simpler, and this can be optimized in the future if
- * only some values are required.
- */
-template<typename T>
-static void adapt_mesh_domain_corner_to_face_impl(const Mesh &mesh,
-                                                  const VArray<T> &old_values,
-                                                  MutableSpan<T> r_values)
-{
-  BLI_assert(r_values.size() == mesh.totpoly);
-  attribute_math::DefaultMixer<T> mixer(r_values);
-
-  for (const int poly_index : IndexRange(mesh.totpoly)) {
-    const MPoly &poly = mesh.mpoly[poly_index];
-    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-      const T value = old_values[loop_index];
-      mixer.mix_in(poly_index, value);
-    }
-  }
-
-  mixer.finalize();
-}
-
-/* A face is selected if all of its corners were selected. */
-template<>
-void adapt_mesh_domain_corner_to_face_impl(const Mesh &mesh,
-                                           const VArray<bool> &old_values,
-                                           MutableSpan<bool> r_values)
-{
-  BLI_assert(r_values.size() == mesh.totpoly);
-
-  r_values.fill(true);
-  for (const int poly_index : IndexRange(mesh.totpoly)) {
-    const MPoly &poly = mesh.mpoly[poly_index];
-    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-      if (!old_values[loop_index]) {
-        r_values[poly_index] = false;
-        break;
-      }
-    }
-  }
 }
 
 static GVArray adapt_mesh_domain_corner_to_face(const Mesh &mesh, const GVArray &varray)
@@ -346,9 +288,33 @@ static GVArray adapt_mesh_domain_corner_to_face(const Mesh &mesh, const GVArray 
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
-      Array<T> values(mesh.totpoly);
-      adapt_mesh_domain_corner_to_face_impl<T>(mesh, varray.typed<T>(), values);
-      new_varray = VArray<T>::ForContainer(std::move(values));
+      if constexpr (std::is_same_v<T, bool>) {
+        new_varray = VArray<T>::ForFunc(
+            mesh.totpoly, [mesh, varray = varray.typed<bool>()](const int face_index) {
+              /* A face is selected if all of its corners were selected. */
+              const MPoly &poly = mesh.mpoly[face_index];
+              for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+                if (!varray[loop_index]) {
+                  return false;
+                }
+              }
+              return true;
+            });
+      }
+      else {
+        new_varray = VArray<T>::ForFunc(
+            mesh.totpoly, [mesh, varray = varray.typed<T>()](const int face_index) {
+              T return_value;
+              attribute_math::DefaultMixer<T> mixer({&return_value, 1});
+              const MPoly &poly = mesh.mpoly[face_index];
+              for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+                const T value = varray[loop_index];
+                mixer.mix_in(0, value);
+              }
+              mixer.finalize();
+              return return_value;
+            });
+      }
     }
   });
   return new_varray;
@@ -406,11 +372,13 @@ void adapt_mesh_domain_corner_to_edge_impl(const Mesh &mesh,
   }
 
   /* Deselect loose edges without corners that are still selected from the 'true' default. */
-  for (const int edge_index : IndexRange(mesh.totedge)) {
-    if (loose_edges[edge_index]) {
-      r_values[edge_index] = false;
+  threading::parallel_for(IndexRange(mesh.totedge), 2048, [&](const IndexRange range) {
+    for (const int edge_index : range) {
+      if (loose_edges[edge_index]) {
+        r_values[edge_index] = false;
+      }
     }
-  }
+  });
 }
 
 static GVArray adapt_mesh_domain_corner_to_edge(const Mesh &mesh, const GVArray &varray)
@@ -491,11 +459,13 @@ void adapt_mesh_domain_face_to_corner_impl(const Mesh &mesh,
 {
   BLI_assert(r_values.size() == mesh.totloop);
 
-  for (const int poly_index : IndexRange(mesh.totpoly)) {
-    const MPoly &poly = mesh.mpoly[poly_index];
-    MutableSpan<T> poly_corner_values = r_values.slice(poly.loopstart, poly.totloop);
-    poly_corner_values.fill(old_values[poly_index]);
-  }
+  threading::parallel_for(IndexRange(mesh.totpoly), 1024, [&](const IndexRange range) {
+    for (const int poly_index : range) {
+      const MPoly &poly = mesh.mpoly[poly_index];
+      MutableSpan<T> poly_corner_values = r_values.slice(poly.loopstart, poly.totloop);
+      poly_corner_values.fill(old_values[poly_index]);
+    }
+  });
 }
 
 static GVArray adapt_mesh_domain_face_to_corner(const Mesh &mesh, const GVArray &varray)
@@ -566,100 +536,44 @@ static GVArray adapt_mesh_domain_face_to_edge(const Mesh &mesh, const GVArray &v
   return new_varray;
 }
 
-/**
- * \note Theoretically this interpolation does not need to compute all values at once.
- * However, doing that makes the implementation simpler, and this can be optimized in the future if
- * only some values are required.
- */
-template<typename T>
-static void adapt_mesh_domain_point_to_face_impl(const Mesh &mesh,
-                                                 const VArray<T> &old_values,
-                                                 MutableSpan<T> r_values)
-{
-  BLI_assert(r_values.size() == mesh.totpoly);
-  attribute_math::DefaultMixer<T> mixer(r_values);
-
-  for (const int poly_index : IndexRange(mesh.totpoly)) {
-    const MPoly &poly = mesh.mpoly[poly_index];
-    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-      MLoop &loop = mesh.mloop[loop_index];
-      const int point_index = loop.v;
-      mixer.mix_in(poly_index, old_values[point_index]);
-    }
-  }
-  mixer.finalize();
-}
-
-/* A face is selected if all of its vertices were selected too. */
-template<>
-void adapt_mesh_domain_point_to_face_impl(const Mesh &mesh,
-                                          const VArray<bool> &old_values,
-                                          MutableSpan<bool> r_values)
-{
-  BLI_assert(r_values.size() == mesh.totpoly);
-
-  r_values.fill(true);
-  for (const int poly_index : IndexRange(mesh.totpoly)) {
-    const MPoly &poly = mesh.mpoly[poly_index];
-    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-      MLoop &loop = mesh.mloop[loop_index];
-      const int vert_index = loop.v;
-      if (!old_values[vert_index]) {
-        r_values[poly_index] = false;
-        break;
-      }
-    }
-  }
-}
-
 static GVArray adapt_mesh_domain_point_to_face(const Mesh &mesh, const GVArray &varray)
 {
   GVArray new_varray;
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
-      Array<T> values(mesh.totpoly);
-      adapt_mesh_domain_point_to_face_impl<T>(mesh, varray.typed<T>(), values);
-      new_varray = VArray<T>::ForContainer(std::move(values));
+      if constexpr (std::is_same_v<T, bool>) {
+        new_varray = VArray<T>::ForFunc(
+            mesh.totpoly, [mesh, varray = varray.typed<bool>()](const int face_index) {
+              /* A face is selected if all of its vertices were selected. */
+              const MPoly &poly = mesh.mpoly[face_index];
+              for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+                const MLoop &loop = mesh.mloop[loop_index];
+                if (!varray[loop.v]) {
+                  return false;
+                }
+              }
+              return true;
+            });
+      }
+      else {
+        new_varray = VArray<T>::ForFunc(
+            mesh.totpoly, [mesh, varray = varray.typed<T>()](const int face_index) {
+              T return_value;
+              attribute_math::DefaultMixer<T> mixer({&return_value, 1});
+              const MPoly &poly = mesh.mpoly[face_index];
+              for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+                const MLoop &loop = mesh.mloop[loop_index];
+                const T value = varray[loop.v];
+                mixer.mix_in(0, value);
+              }
+              mixer.finalize();
+              return return_value;
+            });
+      }
     }
   });
   return new_varray;
-}
-
-/**
- * \note Theoretically this interpolation does not need to compute all values at once.
- * However, doing that makes the implementation simpler, and this can be optimized in the future if
- * only some values are required.
- */
-template<typename T>
-static void adapt_mesh_domain_point_to_edge_impl(const Mesh &mesh,
-                                                 const VArray<T> &old_values,
-                                                 MutableSpan<T> r_values)
-{
-  BLI_assert(r_values.size() == mesh.totedge);
-  attribute_math::DefaultMixer<T> mixer(r_values);
-
-  for (const int edge_index : IndexRange(mesh.totedge)) {
-    const MEdge &edge = mesh.medge[edge_index];
-    mixer.mix_in(edge_index, old_values[edge.v1]);
-    mixer.mix_in(edge_index, old_values[edge.v2]);
-  }
-
-  mixer.finalize();
-}
-
-/* An edge is selected if both of its vertices were selected. */
-template<>
-void adapt_mesh_domain_point_to_edge_impl(const Mesh &mesh,
-                                          const VArray<bool> &old_values,
-                                          MutableSpan<bool> r_values)
-{
-  BLI_assert(r_values.size() == mesh.totedge);
-
-  for (const int edge_index : IndexRange(mesh.totedge)) {
-    const MEdge &edge = mesh.medge[edge_index];
-    r_values[edge_index] = old_values[edge.v1] && old_values[edge.v2];
-  }
 }
 
 static GVArray adapt_mesh_domain_point_to_edge(const Mesh &mesh, const GVArray &varray)
@@ -668,9 +582,26 @@ static GVArray adapt_mesh_domain_point_to_edge(const Mesh &mesh, const GVArray &
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
-      Array<T> values(mesh.totedge);
-      adapt_mesh_domain_point_to_edge_impl<T>(mesh, varray.typed<T>(), values);
-      new_varray = VArray<T>::ForContainer(std::move(values));
+      if constexpr (std::is_same_v<T, bool>) {
+        /* An edge is selected if both of its vertices were selected. */
+        new_varray = VArray<bool>::ForFunc(
+            mesh.totedge, [mesh, varray = varray.typed<bool>()](const int edge_index) {
+              const MEdge &edge = mesh.medge[edge_index];
+              return varray[edge.v1] && varray[edge.v2];
+            });
+      }
+      else {
+        new_varray = VArray<T>::ForFunc(
+            mesh.totedge, [mesh, varray = varray.typed<T>()](const int edge_index) {
+              T return_value;
+              attribute_math::DefaultMixer<T> mixer({&return_value, 1});
+              const MEdge &edge = mesh.medge[edge_index];
+              mixer.mix_in(0, varray[edge.v1]);
+              mixer.mix_in(0, varray[edge.v2]);
+              mixer.finalize();
+              return return_value;
+            });
+      }
     }
   });
   return new_varray;
@@ -787,61 +718,41 @@ static GVArray adapt_mesh_domain_edge_to_point(const Mesh &mesh, const GVArray &
   return new_varray;
 }
 
-/**
- * \note Theoretically this interpolation does not need to compute all values at once.
- * However, doing that makes the implementation simpler, and this can be optimized in the future if
- * only some values are required.
- */
-template<typename T>
-static void adapt_mesh_domain_edge_to_face_impl(const Mesh &mesh,
-                                                const VArray<T> &old_values,
-                                                MutableSpan<T> r_values)
-{
-  BLI_assert(r_values.size() == mesh.totpoly);
-  attribute_math::DefaultMixer<T> mixer(r_values);
-
-  for (const int poly_index : IndexRange(mesh.totpoly)) {
-    const MPoly &poly = mesh.mpoly[poly_index];
-    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-      const MLoop &loop = mesh.mloop[loop_index];
-      mixer.mix_in(poly_index, old_values[loop.e]);
-    }
-  }
-
-  mixer.finalize();
-}
-
-/* A face is selected if all of its edges are selected. */
-template<>
-void adapt_mesh_domain_edge_to_face_impl(const Mesh &mesh,
-                                         const VArray<bool> &old_values,
-                                         MutableSpan<bool> r_values)
-{
-  BLI_assert(r_values.size() == mesh.totpoly);
-
-  r_values.fill(true);
-  for (const int poly_index : IndexRange(mesh.totpoly)) {
-    const MPoly &poly = mesh.mpoly[poly_index];
-    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-      const MLoop &loop = mesh.mloop[loop_index];
-      const int edge_index = loop.e;
-      if (!old_values[edge_index]) {
-        r_values[poly_index] = false;
-        break;
-      }
-    }
-  }
-}
-
 static GVArray adapt_mesh_domain_edge_to_face(const Mesh &mesh, const GVArray &varray)
 {
   GVArray new_varray;
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
-      Array<T> values(mesh.totpoly);
-      adapt_mesh_domain_edge_to_face_impl<T>(mesh, varray.typed<T>(), values);
-      new_varray = VArray<T>::ForContainer(std::move(values));
+      if constexpr (std::is_same_v<T, bool>) {
+        /* A face is selected if all of its edges are selected. */
+        new_varray = VArray<bool>::ForFunc(
+            mesh.totpoly, [mesh, varray = varray.typed<T>()](const int face_index) {
+              const MPoly &poly = mesh.mpoly[face_index];
+              for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+                const MLoop &loop = mesh.mloop[loop_index];
+                if (!varray[loop.e]) {
+                  return false;
+                }
+              }
+              return true;
+            });
+      }
+      else {
+        new_varray = VArray<T>::ForFunc(
+            mesh.totpoly, [mesh, varray = varray.typed<T>()](const int face_index) {
+              T return_value;
+              attribute_math::DefaultMixer<T> mixer({&return_value, 1});
+              const MPoly &poly = mesh.mpoly[face_index];
+              for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+                const MLoop &loop = mesh.mloop[loop_index];
+                const T value = varray[loop.e];
+                mixer.mix_in(0, value);
+              }
+              mixer.finalize();
+              return return_value;
+            });
+      }
     }
   });
   return new_varray;
