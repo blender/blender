@@ -115,6 +115,8 @@ class MetalDevice : public Device {
 
   void load_texture_info();
 
+  void erase_allocation(device_memory &mem);
+
   virtual bool should_use_graphics_interop() override;
 
   virtual unique_ptr<DeviceQueue> gpu_queue_create() override;
