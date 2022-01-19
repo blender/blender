@@ -166,8 +166,8 @@ static void next_color_attr(struct ID *id, CustomDataLayer *layer, bool is_rende
     return;
   }
 
-  AttributeDomainMask domain_mask = ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER;
-  CustomDataMask type_mask = CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL;
+  AttributeDomainMask domain_mask = (AttributeDomainMask)(ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER);
+  CustomDataMask type_mask = (CustomDataMask)(CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL);
 
   int length = BKE_id_attributes_length(id, domain_mask, type_mask);
   int idx = BKE_id_attribute_index_from_ref(id, ref, domain_mask, type_mask);
@@ -192,7 +192,7 @@ static void next_color_attrs(struct ID *id, CustomDataLayer *layer)
 static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
   {
   Object *ob = ED_object_context(C);
-  ID *id = ob->data;
+  ID *id = static_cast<ID*>(ob->data);
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
@@ -317,7 +317,7 @@ void GEOMETRY_OT_attribute_remove(wmOperatorType *ot)
 static int geometry_color_attribute_remove_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
-  ID *id = ob->data;
+  ID *id = static_cast<ID*>(ob->data);
   CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
 
   if (layer == NULL) {
@@ -348,7 +348,7 @@ static bool geometry_color_attributes_remove_poll(bContext *C)
   }
 
   Object *ob = ED_object_context(C);
-  ID *data = (ob) ? ob->data : NULL;
+  ID *data = (ob) ? static_cast<ID*>(ob->data) : NULL;
   if (BKE_id_attributes_active_color_get(data) != NULL) {
     return true;
   }
