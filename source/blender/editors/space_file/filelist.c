@@ -1877,8 +1877,6 @@ FileList *filelist_new(short type)
   p->filelist.nbr_entries = FILEDIR_NBR_ENTRIES_UNSET;
   filelist_settype(p, type);
 
-  p->indexer = &file_indexer_noop;
-
   return p;
 }
 
@@ -1890,6 +1888,7 @@ void filelist_settype(FileList *filelist, short type)
 
   filelist->type = type;
   filelist->tags = 0;
+  filelist->indexer = &file_indexer_noop;
   switch (filelist->type) {
     case FILE_MAIN:
       filelist->check_dir_fn = filelist_checkdir_main;
