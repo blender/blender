@@ -64,10 +64,10 @@ flat out int isMainLine;
 #  define doMuted (domuted[0] != 0)
 
 #else
-#  define P0 node_link_data.bezierPts[0]
-#  define P1 node_link_data.bezierPts[1]
-#  define P2 node_link_data.bezierPts[2]
-#  define P3 node_link_data.bezierPts[3]
+#  define P0 node_link_data.bezierPts[0].xy
+#  define P1 node_link_data.bezierPts[1].xy
+#  define P2 node_link_data.bezierPts[2].xy
+#  define P3 node_link_data.bezierPts[3].xy
 #  define cols node_link_data.colors
 #  define doArrow node_link_data.doArrow
 #  define doMuted node_link_data.doMuted

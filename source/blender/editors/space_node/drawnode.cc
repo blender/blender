@@ -2073,7 +2073,7 @@ void node_draw_link_bezier(const bContext &C,
         copy_v2_v2(node_link_data.bezierPts[i], vec[i]);
       }
       for (int i = 0; i < 3; i++) {
-        copy_v2_v2(node_link_data.colors[i], colors[i]);
+        copy_v4_v4(node_link_data.colors[i], colors[i]);
       }
       node_link_data.doArrow = drawarrow;
       node_link_data.doMuted = drawmuted;
@@ -2086,7 +2086,7 @@ void node_draw_link_bezier(const bContext &C,
 
       GPUBatch *batch = g_batch_link.batch_single;
       GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(
-          sizeof(node_link_data), &node_link_data, __func__);
+          sizeof(NodeLinkData), &node_link_data, __func__);
 
       GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_NODELINK);
       GPU_batch_uniformbuf_bind(batch, "node_link_data", ubo);
