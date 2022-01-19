@@ -6437,6 +6437,14 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "Enable some extra fields in the Asset Browser to aid in debugging");
   RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
 
+  prop = RNA_def_property(srna, "use_asset_indexing", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "no_asset_indexing", 1);
+  RNA_def_property_ui_text(prop,
+                           "Asset Indexing",
+                           "Disabling the asset indexer forces every asset library refresh to "
+                           "completely reread assets from disk");
+  RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
+
   prop = RNA_def_property(srna, "use_override_templates", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_override_templates", 1);
   RNA_def_property_ui_text(

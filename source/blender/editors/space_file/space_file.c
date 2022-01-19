@@ -57,6 +57,7 @@
 #include "UI_view2d.h"
 
 #include "GPU_framebuffer.h"
+#include "file_indexer.h"
 #include "file_intern.h" /* own include */
 #include "filelist.h"
 #include "fsmenu.h"
@@ -356,7 +357,9 @@ static void file_refresh(const bContext *C, ScrArea *area)
   }
 
   if (ED_fileselect_is_asset_browser(sfile)) {
-    filelist_setindexer(sfile->files, &file_indexer_asset);
+    const bool use_asset_indexer = !USER_EXPERIMENTAL_TEST(&U, no_asset_indexing);
+    filelist_setindexer(sfile->files,
+                        use_asset_indexer ? &file_indexer_asset : &file_indexer_noop);
   }
 
   /* Update the active indices of bookmarks & co. */
