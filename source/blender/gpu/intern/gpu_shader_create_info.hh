@@ -149,7 +149,7 @@ enum class Interpolation {
 };
 
 /** Input layout for geometry shader. */
-enum class InputLayout {
+enum class PrimitiveIn {
   POINTS = 0,
   LINES,
   LINES_ADJACENCY,
@@ -158,7 +158,7 @@ enum class InputLayout {
 };
 
 /** Output layout for geometry shader. */
-enum class OutputLayout {
+enum class PrimitiveOut {
   POINTS = 0,
   LINE_STRIP,
   TRIANGLE_STRIP,
@@ -233,16 +233,14 @@ struct ShaderCreateInfo {
   };
   Vector<VertIn> vertex_inputs_;
 
-  struct GeomIn {
-    InputLayout layout;
+  struct GeometryStageLayout {
+    PrimitiveIn primitive_in;
+    int invocations;
+    PrimitiveOut primitive_out;
+    /** Set to -1 by default to check if used. */
+    int max_vertices = -1;
   };
-  GeomIn geom_in_;
-
-  struct GeomOut {
-    OutputLayout layout;
-    int max_vertices;
-  };
-  GeomOut geom_out_;
+  GeometryStageLayout geometry_layout_;
 
   struct FragOut {
     int index;
@@ -350,11 +348,21 @@ struct ShaderCreateInfo {
     return *(Self *)this;
   }
 
-  Self &geometry_layout(InputLayout layout_in, OutputLayout layout_out, int max_vertices)
+  /**
+   * IMPORTANT: invocations count is only used if GL_ARB_gpu_shader5 is supported. On
+   * implementations that do not supports it, the max_vertices will be be multiplied by
+   * invocations. Your shader needs to account for this fact. Use `#ifdef GPU_ARB_gpu_shader5`
+   * and make a code path that does not rely on gl_InvocationID.
+   */
+  Self &geometry_layout(PrimitiveIn prim_in,
+                        PrimitiveOut prim_out,
+                        int max_vertices,
+                        int invocations = -1)
   {
-    geom_in_.layout = layout_in;
-    geom_out_.layout = layout_out;
-    geom_out_.max_vertices = max_vertices;
+    geometry_layout_.primitive_in = prim_in;
+    geometry_layout_.primitive_out = prim_out;
+    geometry_layout_.max_vertices = max_vertices;
+    geometry_layout_.invocations = invocations;
     return *(Self *)this;
   }
 

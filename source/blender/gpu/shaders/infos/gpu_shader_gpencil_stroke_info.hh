@@ -35,7 +35,7 @@ GPU_SHADER_CREATE_INFO(gpu_shader_gpencil_stroke)
     .vertex_in(1, Type::VEC3, "pos")
     .vertex_in(2, Type::FLOAT, "thickness")
     .vertex_out(gpencil_stroke_vert_iface)
-    .geometry_layout(InputLayout::LINES_ADJACENCY, OutputLayout::TRIANGLE_STRIP, 13)
+    .geometry_layout(PrimitiveIn::LINES_ADJACENCY, PrimitiveOut::TRIANGLE_STRIP, 13)
     .geometry_out(gpencil_stroke_geom_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
 

@@ -127,32 +127,32 @@ static const char *to_string(const Type &type)
   }
 }
 
-static const char *to_string(const InputLayout &layout)
+static const char *to_string(const PrimitiveIn &layout)
 {
   switch (layout) {
-    case InputLayout::POINTS:
+    case PrimitiveIn::POINTS:
       return "points";
-    case InputLayout::LINES:
+    case PrimitiveIn::LINES:
       return "lines";
-    case InputLayout::LINES_ADJACENCY:
+    case PrimitiveIn::LINES_ADJACENCY:
       return "lines_adjacency";
-    case InputLayout::TRIANGLES:
+    case PrimitiveIn::TRIANGLES:
       return "triangles";
-    case InputLayout::TRIANGLES_ADJACENCY:
+    case PrimitiveIn::TRIANGLES_ADJACENCY:
       return "triangles_adjacency";
     default:
       return "unknown";
   }
 }
 
-static const char *to_string(const OutputLayout &layout)
+static const char *to_string(const PrimitiveOut &layout)
 {
   switch (layout) {
-    case OutputLayout::POINTS:
+    case PrimitiveOut::POINTS:
       return "points";
-    case OutputLayout::LINE_STRIP:
+    case PrimitiveOut::LINE_STRIP:
       return "line_strip";
-    case OutputLayout::TRIANGLE_STRIP:
+    case PrimitiveOut::TRIANGLE_STRIP:
       return "triangle_strip";
     default:
       return "unknown";
@@ -470,11 +470,24 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
 
 std::string GLShader::geometry_layout_declare(const ShaderCreateInfo &info) const
 {
+  int max_verts = info.geometry_layout_.max_vertices;
+  int invocations = info.geometry_layout_.invocations;
+
+  if (GLContext::geometry_shader_invocations == false && invocations != -1) {
+    max_verts *= invocations;
+    invocations = -1;
+  }
+
   std::stringstream ss;
-  ss << "\n/* Layout. */\n";
-  ss << "layout(" << to_string(info.geom_in_.layout) << ") in;\n";
-  ss << "layout(" << to_string(info.geom_out_.layout)
-     << ", max_vertices = " << info.geom_out_.max_vertices << ") out;\n";
+  ss << "\n/* Geometry Layout. */\n";
+  ss << "layout(" << to_string(info.geometry_layout_.primitive_in);
+  if (invocations != -1) {
+    ss << ", invocations = " << invocations;
+  }
+  ss << ") in;\n";
+
+  ss << "layout(" << to_string(info.geometry_layout_.primitive_out)
+     << ", max_vertices = " << max_verts << ") out;\n";
   ss << "\n";
   return ss.str();
 }
@@ -530,6 +543,10 @@ static char *glsl_patch_default_get()
   if (GLContext::shader_draw_parameters_support) {
     STR_CONCAT(patch, slen, "#extension GL_ARB_shader_draw_parameters : enable\n");
     STR_CONCAT(patch, slen, "#define GPU_ARB_shader_draw_parameters\n");
+  }
+  if (GLContext::geometry_shader_invocations) {
+    STR_CONCAT(patch, slen, "#extension GL_ARB_gpu_shader5 : enable\n");
+    STR_CONCAT(patch, slen, "#define GPU_ARB_gpu_shader5\n");
   }
   if (GLContext::texture_cube_map_array_support) {
     STR_CONCAT(patch, slen, "#extension GL_ARB_texture_cube_map_array : enable\n");

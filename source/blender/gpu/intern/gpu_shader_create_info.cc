@@ -85,6 +85,7 @@ void ShaderCreateInfo::finalize()
     if (!info.geometry_source_.is_empty()) {
       BLI_assert(geometry_source_.is_empty());
       geometry_source_ = info.geometry_source_;
+      geometry_layout_ = info.geometry_layout_;
     }
     if (!info.fragment_source_.is_empty()) {
       BLI_assert(fragment_source_.is_empty());
