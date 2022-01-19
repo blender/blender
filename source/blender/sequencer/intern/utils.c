@@ -35,10 +35,12 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_animsys.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
+#include "SEQ_animation.h"
 #include "SEQ_edit.h"
 #include "SEQ_iterator.h"
 #include "SEQ_relations.h"
@@ -583,7 +585,8 @@ void SEQ_ensure_unique_name(Sequence *seq, Scene *scene)
 
   BLI_strncpy_utf8(name, seq->name + 2, sizeof(name));
   SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, seq);
-  SEQ_dupe_animdata(scene, name, seq->name + 2);
+  BKE_animdata_fix_paths_rename(
+      &scene->id, scene->adt, NULL, "sequence_editor.sequences_all", name, seq->name + 2, 0, 0, 0);
 
   if (seq->type == SEQ_TYPE_META) {
     LISTBASE_FOREACH (Sequence *, seq_child, &seq->seqbase) {

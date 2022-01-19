@@ -84,7 +84,7 @@ struct ListBase *SEQ_active_seqbase_get(const struct Editing *ed);
  */
 void SEQ_seqbase_active_set(struct Editing *ed, struct ListBase *seqbase);
 struct Sequence *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int type);
-void SEQ_sequence_free(struct Scene *scene, struct Sequence *seq, bool do_clean_animdata);
+void SEQ_sequence_free(struct Scene *scene, struct Sequence *seq);
 /**
  * Create and initialize #MetaStack, append it to `ed->metastack` ListBase
  *
@@ -107,8 +107,6 @@ struct MetaStack *SEQ_meta_stack_active_get(const struct Editing *ed);
  * \param ms: meta stack
  */
 void SEQ_meta_stack_free(struct Editing *ed, struct MetaStack *ms);
-void SEQ_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
-void SEQ_dupe_animdata(struct Scene *scene, const char *name_src, const char *name_dst);
 struct Sequence *SEQ_sequence_dupli_recursive(const struct Scene *scene_src,
                                               struct Scene *scene_dst,
                                               struct ListBase *new_seq_list,

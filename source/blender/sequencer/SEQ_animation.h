@@ -13,7 +13,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2004 Blender Foundation.
+ * The Original Code is Copyright (C) 2022 Blender Foundation.
  * All rights reserved.
  */
 
@@ -27,14 +27,14 @@
 extern "C" {
 #endif
 
+struct GSet;
+struct ListBase;
 struct Scene;
 struct Sequence;
 
-/**
- * Cache must be freed before calling this function
- * since it leaves the seqbase in an invalid state.
- */
-void seq_free_sequence_recurse(struct Scene *scene, struct Sequence *seq, bool do_id_user);
+void SEQ_free_animdata(struct Scene *scene, struct Sequence *seq);
+void SEQ_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
+struct GSet *SEQ_fcurves_by_strip_get(const struct Sequence *seq, struct ListBase *fcurve_base);
 
 #ifdef __cplusplus
 }

@@ -43,6 +43,7 @@
 #include "utils.h"
 
 #include "SEQ_add.h"
+#include "SEQ_animation.h"
 #include "SEQ_edit.h"
 #include "SEQ_effects.h"
 #include "SEQ_iterator.h"
@@ -199,8 +200,9 @@ void SEQ_edit_remove_flagged_sequences(Scene *scene, ListBase *seqbase)
       if (seq->type == SEQ_TYPE_META) {
         SEQ_edit_remove_flagged_sequences(scene, &seq->seqbase);
       }
+      SEQ_free_animdata(scene, seq);
       BLI_remlink(seqbase, seq);
-      SEQ_sequence_free(scene, seq, true);
+      SEQ_sequence_free(scene, seq);
       SEQ_sequence_lookup_tag(scene, SEQ_LOOKUP_TAG_INVALID);
     }
   }

@@ -66,7 +66,7 @@ typedef struct ThumbDataItem {
 static void thumbnail_hash_data_free(void *val)
 {
   ThumbDataItem *item = val;
-  SEQ_sequence_free(item->scene, item->seq_dupli, 0);
+  SEQ_sequence_free(item->scene, item->seq_dupli);
   MEM_freeN(val);
 }
 
