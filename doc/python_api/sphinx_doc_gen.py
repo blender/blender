@@ -1762,6 +1762,7 @@ except ModuleNotFoundError:
     fw("html_show_sphinx = False\n")
     fw("html_baseurl = 'https://docs.blender.org/api/current/'\n")
     fw("html_use_opensearch = 'https://docs.blender.org/api/current'\n")
+    fw("html_show_search_summary = True\n")
     fw("html_split_index = True\n")
     fw("html_static_path = ['static']\n")
     fw("html_extra_path = ['static/favicon.ico', 'static/blender_logo.svg']\n")
