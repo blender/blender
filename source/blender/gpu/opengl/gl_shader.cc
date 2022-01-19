@@ -285,8 +285,7 @@ static std::ostream &print_qualifier(std::ostream &os, const Qualifier &qualifie
 
 static void print_resource(std::ostream &os, const ShaderCreateInfo::Resource &res)
 {
-  if (res.bind_type != ShaderCreateInfo::Resource::BindType::SAMPLER ||
-      GLContext::explicit_location_support) {
+  if (GLContext::explicit_location_support) {
     os << "layout(binding = " << res.slot;
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
       os << ", " << res.image.format;
@@ -298,6 +297,9 @@ static void print_resource(std::ostream &os, const ShaderCreateInfo::Resource &r
       os << ", std430";
     }
     os << ") ";
+  }
+  else if (res.bind_type == ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
+    os << "layout(std140) ";
   }
 
   int64_t array_offset;
