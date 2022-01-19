@@ -64,7 +64,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
     else {
       data_ = mem_allocate(from.datasize_);
       if (from.datasize_ > 0) {
-        memcpy(data_, from.data_, from.datasize_ * sizeof(T));
+        mem_copy(data_, from.data_, from.datasize_);
       }
       datasize_ = from.datasize_;
       capacity_ = datasize_;
@@ -76,7 +76,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
     if (this != &from) {
       resize(from.size());
       if (datasize_ > 0) {
-        memcpy((void *)data_, from.data_, datasize_ * sizeof(T));
+        mem_copy(data_, from.data_, datasize_);
       }
     }
 
@@ -88,7 +88,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
     resize(from.size());
 
     if (from.size() > 0 && datasize_ > 0) {
-      memcpy(data_, &from[0], datasize_ * sizeof(T));
+      mem_copy(data_, from.data(), datasize_);
     }
 
     return *this;
@@ -161,8 +161,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
           return NULL;
         }
         else if (data_ != NULL) {
-          memcpy(
-              (void *)newdata, data_, ((datasize_ < newsize) ? datasize_ : newsize) * sizeof(T));
+          mem_copy(newdata, data_, ((datasize_ < newsize) ? datasize_ : newsize));
           mem_free(data_, capacity_);
         }
         data_ = newdata;
@@ -246,7 +245,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
     if (newcapacity > capacity_) {
       T *newdata = mem_allocate(newcapacity);
       if (data_ != NULL) {
-        memcpy(newdata, data_, ((datasize_ < newcapacity) ? datasize_ : newcapacity) * sizeof(T));
+        mem_copy(newdata, data_, ((datasize_ < newcapacity) ? datasize_ : newcapacity));
         mem_free(data_, capacity_);
       }
       data_ = newdata;
@@ -280,7 +279,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
     if (from.size()) {
       size_t old_size = size();
       resize(old_size + from.size());
-      memcpy(data_ + old_size, from.data(), sizeof(T) * from.size());
+      mem_copy(data_ + old_size, from.data(), from.size());
     }
   }
 
@@ -306,6 +305,11 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
       util_guarded_mem_free(sizeof(T) * N);
       util_aligned_free(mem);
     }
+  }
+
+  inline void mem_copy(T *mem_to, const T *mem_from, const size_t N)
+  {
+    memcpy((void *)mem_to, mem_from, sizeof(T) * N);
   }
 
   T *data_;
