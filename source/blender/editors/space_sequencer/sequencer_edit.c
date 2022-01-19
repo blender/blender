@@ -2494,7 +2494,7 @@ static void sequencer_copy_animation(Scene *scene, Sequence *seq)
     return;
   }
 
-  GSet *fcurves = SEQ_fcurves_by_strip_name_get(seq->name + 2, &scene->adt->action->curves);
+  GSet *fcurves = SEQ_fcurves_by_strip_get(seq, &scene->adt->action->curves);
 
   GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
     BLI_addtail(&fcurves_clipboard, BKE_fcurve_copy(fcu));
