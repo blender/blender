@@ -44,6 +44,10 @@
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
+#ifndef NDEBUG
+#  include "BLI_dynstr.h"
+#endif
+
 #include "BLT_translation.h"
 
 #include "BKE_anonymous_attribute.h"
@@ -5188,3 +5192,33 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, int count)
 
   CustomData_update_typemap(data);
 }
+
+#ifndef NDEBUG
+
+void CustomData_debug_info_from_layers(const CustomData *data, const char *indent, DynStr *dynstr)
+{
+  for (int type = 0; type < CD_NUMTYPES; type++) {
+    if (CustomData_has_layer(data, type)) {
+      /* NOTE: doesn't account for multiple layers. */
+      const char *name = CustomData_layertype_name(type);
+      const int size = CustomData_sizeof(type);
+      const void *pt = CustomData_get_layer(data, type);
+      const int pt_size = pt ? (int)(MEM_allocN_len(pt) / size) : 0;
+      const char *structname;
+      int structnum;
+      CustomData_file_write_info(type, &structname, &structnum);
+      BLI_dynstr_appendf(
+          dynstr,
+          "%sdict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
+          indent,
+          name,
+          structname,
+          type,
+          (const void *)pt,
+          size,
+          pt_size);
+    }
+  }
+}
+
+#endif /* NDEBUG */

@@ -747,6 +747,14 @@ void CustomData_blend_write(struct BlendWriter *writer,
                             struct ID *id);
 void CustomData_blend_read(struct BlendDataReader *reader, struct CustomData *data, int count);
 
+#ifndef NDEBUG
+struct DynStr;
+/** Use to inspect mesh data when debugging. */
+void CustomData_debug_info_from_layers(const struct CustomData *data,
+                                       const char *indent,
+                                       struct DynStr *dynstr);
+#endif /* NDEBUG */
+
 #ifdef __cplusplus
 }
 #endif
