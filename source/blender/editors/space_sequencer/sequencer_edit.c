@@ -2487,6 +2487,22 @@ static void seq_copy_del_sound(Scene *scene, Sequence *seq)
   }
 }
 
+static void sequencer_copy_animation(Scene *scene, Sequence *seq)
+{
+  if (scene->adt == NULL || scene->adt->action == NULL ||
+      BLI_listbase_is_empty(&scene->adt->action->curves)) {
+    return;
+  }
+
+  GSet *fcurves = SEQ_fcurves_by_strip_name_get(seq->name + 2, &scene->adt->action->curves);
+
+  GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
+    BLI_addtail(&fcurves_clipboard, BKE_fcurve_copy(fcu));
+  }
+  GSET_FOREACH_END();
+  BLI_gset_free(fcurves, NULL);
+}
+
 static int sequencer_copy_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -2513,8 +2529,10 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
   seqbase_clipboard_frame = scene->r.cfra;
   SEQ_clipboard_active_seq_name_store(scene);
 
-  /* Remove anything that references the current scene. */
   LISTBASE_FOREACH (Sequence *, seq, &seqbase_clipboard) {
+    /* Copy curves. */
+    sequencer_copy_animation(scene, seq);
+    /* Remove anything that references the current scene. */
     seq_copy_del_sound(scene, seq);
   }
 
@@ -2559,6 +2577,29 @@ void ED_sequencer_deselect_all(Scene *scene)
   }
 }
 
+static void sequencer_paste_animation(bContext *C)
+{
+  if (BLI_listbase_is_empty(&fcurves_clipboard)) {
+    return;
+  }
+
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  bAction *act;
+
+  if (scene->adt != NULL && scene->adt->action != NULL) {
+    act = scene->adt->action;
+  }
+  else {
+    /* get action to add F-Curve+keyframe to */
+    act = ED_id_action_ensure(bmain, &scene->id);
+  }
+
+  LISTBASE_FOREACH (FCurve *, fcu, &fcurves_clipboard) {
+    BLI_addtail(&act->curves, BKE_fcurve_copy(fcu));
+  }
+}
+
 static int sequencer_paste_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -2589,12 +2630,15 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
   }
 
   /* Paste animation.
-   * First backup original curves from scene and duplicate strip curves from backup into scene.
-   * This way, when pasted strips are renamed, curves are renamed with them. Finally, restore
-   * original curves from backup.
+   * Note: Only fcurves are copied. Drivers and NLA action strips are not copied.
+   * First backup original curves from scene and move curves from clipboard into scene. This way,
+   * when pasted strips are renamed, pasted fcurves are renamed with them. Finally restore original
+   * curves from backup.
    */
+
   ListBase fcurves_original_backup = {NULL, NULL};
   sequencer_backup_original_animation(scene, &fcurves_original_backup);
+  sequencer_paste_animation(C);
 
   /* Copy strips, temporarily restoring pointers to actual data-blocks. This
    * must happen on the clipboard itself, so that copying does user counting
@@ -2613,8 +2657,6 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
     if (SEQ_clipboard_pasted_seq_was_active(iseq)) {
       SEQ_select_active_set(scene, iseq);
     }
-
-    sequencer_duplicate_animation(scene, iseq, &fcurves_original_backup);
 
     /* Make sure, that pasted strips have unique names. */
     SEQ_ensure_unique_name(iseq, scene);
