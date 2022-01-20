@@ -45,6 +45,9 @@ struct wmGizmoGroupType;
 struct wmKeyConfig;
 struct wmWindow;
 
+/* Outside of blender namespace to avoid Python documentation build error with `ctypes`. */
+extern const char *node_context_dir[];
+
 namespace blender::ed::space_node {
 
 /** Temporary data used in node link drag modal operator. */
@@ -324,8 +327,6 @@ void node_geometry_add_attribute_search_button(const bContext &C,
                                                const bNode &node,
                                                PointerRNA &socket_ptr,
                                                uiLayout &layout);
-
-extern const char *node_context_dir[];
 
 /* Nodes draw without dpi - the view zoom is flexible. */
 #define HIDDEN_RAD (0.75f * U.widget_unit)
