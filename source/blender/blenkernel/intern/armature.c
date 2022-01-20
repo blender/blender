@@ -1356,9 +1356,12 @@ static void ease_handle_axis(const float deriv1[3], const float deriv2[3], float
 
   copy_v3_v3(r_axis, deriv1);
 
-  float len1 = len_squared_v3(deriv1), len2 = len_squared_v3(deriv2);
-  float ratio = len1 / len2;
-
+  const float len2 = len_squared_v3(deriv2);
+  if (UNLIKELY(len2 == 0.0f)) {
+    return;
+  }
+  const float len1 = len_squared_v3(deriv1);
+  const float ratio = len1 / len2;
   if (ratio < gap * gap) {
     madd_v3_v3fl(r_axis, deriv2, gap - sqrtf(ratio));
   }

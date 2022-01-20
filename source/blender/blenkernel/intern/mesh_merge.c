@@ -615,10 +615,18 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
   }
 
   /* Copy over data. #CustomData_add_layer can do this, need to look it up. */
-  memcpy(result->mvert, mvert, sizeof(MVert) * STACK_SIZE(mvert));
-  memcpy(result->medge, medge, sizeof(MEdge) * STACK_SIZE(medge));
-  memcpy(result->mloop, mloop, sizeof(MLoop) * STACK_SIZE(mloop));
-  memcpy(result->mpoly, mpoly, sizeof(MPoly) * STACK_SIZE(mpoly));
+  if (STACK_SIZE(mvert)) {
+    memcpy(result->mvert, mvert, sizeof(MVert) * STACK_SIZE(mvert));
+  }
+  if (STACK_SIZE(medge)) {
+    memcpy(result->medge, medge, sizeof(MEdge) * STACK_SIZE(medge));
+  }
+  if (STACK_SIZE(mloop)) {
+    memcpy(result->mloop, mloop, sizeof(MLoop) * STACK_SIZE(mloop));
+  }
+  if (STACK_SIZE(mpoly)) {
+    memcpy(result->mpoly, mpoly, sizeof(MPoly) * STACK_SIZE(mpoly));
+  }
 
   MEM_freeN(mvert);
   MEM_freeN(medge);
