@@ -82,24 +82,54 @@ template<>
 bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTags(TopologyRefiner &refiner,
                                                             ccl::Mesh const &mesh)
 {
+  /* Historical maximum crease weight used at Pixar, influencing the maximum in OpenSubDiv. */
+  static constexpr float CREASE_SCALE = 10.0f;
+
   size_t num_creases = mesh.get_subd_creases_weight().size();
+  size_t num_vertex_creases = mesh.get_subd_vert_creases().size();
+
+  /* The last loop is over the vertices, so early exit to avoid iterating them needlessly. */
+  if (num_creases == 0 && num_vertex_creases == 0) {
+    return true;
+  }
 
   for (int i = 0; i < num_creases; i++) {
     ccl::Mesh::SubdEdgeCrease crease = mesh.get_subd_crease(i);
     Index edge = findBaseEdge(refiner, crease.v[0], crease.v[1]);
 
     if (edge != INDEX_INVALID) {
-      setBaseEdgeSharpness(refiner, edge, crease.crease * 10.0f);
+      setBaseEdgeSharpness(refiner, edge, crease.crease * CREASE_SCALE);
     }
   }
 
+  std::map<int, float> vertex_creases;
+
+  for (size_t i = 0; i < num_vertex_creases; ++i) {
+    const int vertex_idx = mesh.get_subd_vert_creases()[i];
+    const float weight = mesh.get_subd_vert_creases_weight()[i];
+
+    vertex_creases[vertex_idx] = weight * CREASE_SCALE;
+  }
+
   for (int i = 0; i < mesh.get_verts().size(); i++) {
+    float sharpness = 0.0f;
+    std::map<int, float>::const_iterator iter = vertex_creases.find(i);
+
+    if (iter != vertex_creases.end()) {
+      sharpness = iter->second;
+    }
+
     ConstIndexArray vert_edges = getBaseVertexEdges(refiner, i);
 
     if (vert_edges.size() == 2) {
-      float sharpness = refiner.getLevel(0).getEdgeSharpness(vert_edges[0]);
-      sharpness = ccl::min(sharpness, refiner.getLevel(0).getEdgeSharpness(vert_edges[1]));
+      const float sharpness0 = refiner.getLevel(0).getEdgeSharpness(vert_edges[0]);
+      const float sharpness1 = refiner.getLevel(0).getEdgeSharpness(vert_edges[1]);
 
+      sharpness += ccl::min(sharpness0, sharpness1);
+      sharpness = ccl::min(sharpness, CREASE_SCALE);
+    }
+
+    if (sharpness != 0.0f) {
       setBaseVertexSharpness(refiner, i, sharpness);
     }
   }

@@ -141,6 +141,9 @@ NODE_DEFINE(Mesh)
   subdivision_type_enum.insert("catmull_clark", SUBDIVISION_CATMULL_CLARK);
   SOCKET_ENUM(subdivision_type, "Subdivision Type", subdivision_type_enum, SUBDIVISION_NONE);
 
+  SOCKET_INT_ARRAY(subd_vert_creases, "Subdivision Vertex Crease", array<int>());
+  SOCKET_FLOAT_ARRAY(
+      subd_vert_creases_weight, "Subdivision Vertex Crease Weights", array<float>());
   SOCKET_INT_ARRAY(subd_creases_edge, "Subdivision Crease Edges", array<int>());
   SOCKET_FLOAT_ARRAY(subd_creases_weight, "Subdivision Crease Weights", array<float>());
   SOCKET_INT_ARRAY(subd_face_corners, "Subdivision Face Corners", array<int>());
@@ -408,7 +411,7 @@ Mesh::SubdFace Mesh::get_subd_face(size_t index) const
   return s;
 }
 
-void Mesh::add_crease(int v0, int v1, float weight)
+void Mesh::add_edge_crease(int v0, int v1, float weight)
 {
   subd_creases_edge.push_back_slow(v0);
   subd_creases_edge.push_back_slow(v1);
@@ -417,6 +420,17 @@ void Mesh::add_crease(int v0, int v1, float weight)
   tag_subd_creases_edge_modified();
   tag_subd_creases_edge_modified();
   tag_subd_creases_weight_modified();
+}
+
+void Mesh::add_vertex_crease(int v, float weight)
+{
+  assert(v < verts.size());
+
+  subd_vert_creases.push_back_slow(v);
+  subd_vert_creases_weight.push_back_slow(weight);
+
+  tag_subd_vert_creases_modified();
+  tag_subd_vert_creases_weight_modified();
 }
 
 void Mesh::copy_center_to_motion_step(const int motion_step)

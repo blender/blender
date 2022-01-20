@@ -323,7 +323,9 @@ GPUShader *OVERLAY_shader_edit_mesh_vert(void)
                                  datatoc_edit_mesh_common_lib_glsl,
                                  datatoc_edit_mesh_vert_glsl,
                                  NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_point_varying_color_frag_glsl, NULL},
+        .frag = (const char *[]){datatoc_common_globals_lib_glsl,
+                                 datatoc_gpu_shader_point_varying_color_frag_glsl,
+                                 NULL},
         .defs = (const char *[]){sh_cfg->def, "#define VERT\n", NULL},
     });
   }

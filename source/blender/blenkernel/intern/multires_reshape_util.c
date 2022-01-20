@@ -211,6 +211,8 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
   reshape_context->top.level = mmd->totlvl;
   reshape_context->top.grid_size = BKE_subdiv_grid_size_from_level(reshape_context->top.level);
 
+  reshape_context->cd_vertex_crease = CustomData_get_layer(&base_mesh->vdata, CD_CREASE);
+
   context_init_commoon(reshape_context);
 
   return context_verify_or_free(reshape_context);

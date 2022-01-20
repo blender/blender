@@ -3,6 +3,10 @@ in vec4 finalColor;
 out vec4 fragColor;
 #endif
 
+#if defined(VERT)
+in float vertexCrease;
+#endif
+
 void main()
 {
   vec2 centered = gl_PointCoord - vec2(0.5);
@@ -14,5 +18,14 @@ void main()
     discard;
   }
 
+#if defined(VERT)
   fragColor = finalColor;
+
+  float midStroke = 0.5 * rad_squared;
+  if (vertexCrease > 0.0 && dist_squared > midStroke) {
+    fragColor.rgb = mix(finalColor.rgb, colorEdgeCrease.rgb, vertexCrease);
+  }
+#else
+  fragColor = finalColor;
+#endif
 }

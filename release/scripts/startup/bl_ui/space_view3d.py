@@ -4026,6 +4026,10 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
 
         layout.separator()
 
+        layout.operator("transform.vert_crease")
+
+        layout.separator()
+
         layout.operator("mesh.blend_from_shape")
         layout.operator("mesh.shape_propagate_to_all", text="Propagate to Shapes")
 

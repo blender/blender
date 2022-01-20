@@ -1178,6 +1178,12 @@ void AlembicProcedural::read_subd(AlembicObject *abc_object, Abc::chrono_t frame
   cached_data.subd_creases_weight.copy_to_socket(
       frame_time, mesh, mesh->get_subd_creases_weight_socket());
 
+  cached_data.subd_vertex_crease_indices.copy_to_socket(
+      frame_time, mesh, mesh->get_subd_vert_creases_socket());
+
+  cached_data.subd_vertex_crease_weights.copy_to_socket(
+      frame_time, mesh, mesh->get_subd_vert_creases_weight_socket());
+
   mesh->set_num_subd_faces(mesh->get_subd_shader().size());
 
   /* Update attributes. */

@@ -122,6 +122,17 @@ void BM_mesh_cd_flag_apply(BMesh *bm, const char cd_flag)
     }
   }
 
+  if (cd_flag & ME_CDFLAG_VERT_CREASE) {
+    if (!CustomData_has_layer(&bm->vdata, CD_CREASE)) {
+      BM_data_layer_add(bm, &bm->vdata, CD_CREASE);
+    }
+  }
+  else {
+    if (CustomData_has_layer(&bm->vdata, CD_CREASE)) {
+      BM_data_layer_free(bm, &bm->vdata, CD_CREASE);
+    }
+  }
+
   if (cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
     if (!CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
       BM_data_layer_add(bm, &bm->edata, CD_BWEIGHT);
@@ -150,6 +161,9 @@ char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
   char cd_flag = 0;
   if (CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
     cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
+  }
+  if (CustomData_has_layer(&bm->vdata, CD_CREASE)) {
+    cd_flag |= ME_CDFLAG_VERT_CREASE;
   }
   if (CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
     cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;

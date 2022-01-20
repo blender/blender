@@ -84,7 +84,8 @@ typedef struct MeshRenderData {
   const float (*bm_poly_centers)[3];
 
   int *v_origindex, *e_origindex, *p_origindex;
-  int crease_ofs;
+  int edge_crease_ofs;
+  int vert_crease_ofs;
   int bweight_ofs;
   int freestyle_edge_ofs;
   int freestyle_face_ofs;
@@ -308,6 +309,8 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
 typedef struct EditLoopData {
   uchar v_flag;
   uchar e_flag;
+  /* This is used for both vertex and edge creases. The edge crease value is stored in the bottom 4
+   * bits, while the vertex crease is stored in the upper 4 bits. */
   uchar crease;
   uchar bweight;
 } EditLoopData;

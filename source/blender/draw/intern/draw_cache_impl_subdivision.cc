@@ -1693,7 +1693,8 @@ void draw_subdiv_init_mesh_render_data(DRWSubdivCache *cache,
   mr->eed_act = BM_mesh_active_edge_get(bm);
   mr->efa_act = BM_mesh_active_face_get(bm, false, true);
   mr->eve_act = BM_mesh_active_vert_get(bm);
-  mr->crease_ofs = CustomData_get_offset(&bm->edata, CD_CREASE);
+  mr->edge_crease_ofs = CustomData_get_offset(&bm->edata, CD_CREASE);
+  mr->vert_crease_ofs = CustomData_get_offset(&bm->vdata, CD_CREASE);
   mr->bweight_ofs = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
 #ifdef WITH_FREESTYLE
   mr->freestyle_edge_ofs = CustomData_get_offset(&bm->edata, CD_FREESTYLE_EDGE);

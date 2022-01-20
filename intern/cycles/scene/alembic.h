@@ -320,6 +320,8 @@ struct CachedData {
   DataStore<int> num_ngons;
   DataStore<array<int>> subd_creases_edge;
   DataStore<array<float>> subd_creases_weight;
+  DataStore<array<int>> subd_vertex_crease_indices;
+  DataStore<array<float>> subd_vertex_crease_weights;
 
   /* hair data */
   DataStore<array<float3>> curve_keys;

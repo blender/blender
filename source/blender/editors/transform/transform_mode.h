@@ -106,7 +106,8 @@ void initCurveShrinkFatten(TransInfo *t);
 void initBevelWeight(TransInfo *t);
 
 /* transform_mode_edge_crease.c */
-void initCrease(TransInfo *t);
+void initEgdeCrease(TransInfo *t);
+void initVertCrease(TransInfo *t);
 
 /* transform_mode_edge_rotate_normal.c */
 void initNormalRotation(TransInfo *t);

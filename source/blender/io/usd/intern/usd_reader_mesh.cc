@@ -522,6 +522,38 @@ void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
   }
 }
 
+void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTime)
+{
+  pxr::VtIntArray corner_indices;
+  if (!mesh_prim_.GetCornerIndicesAttr().Get(&corner_indices, motionSampleTime)) {
+    return;
+  }
+
+  pxr::VtIntArray corner_sharpnesses;
+  if (!mesh_prim_.GetCornerSharpnessesAttr().Get(&corner_sharpnesses, motionSampleTime)) {
+    return;
+  }
+
+  /* It is fine to have fewer indices than vertices, but never the other way other. */
+  if (corner_indices.size() > mesh->totvert) {
+    std::cerr << "WARNING: too many vertex crease for mesh " << prim_path_ << std::endl;
+    return;
+  }
+
+  if (corner_indices.size() != corner_sharpnesses.size()) {
+    std::cerr << "WARNING: vertex crease indices and sharpnesses count mismatch for mesh "
+              << prim_path_ << std::endl;
+    return;
+  }
+
+  float *creases = static_cast<float *>(
+      CustomData_add_layer(&mesh->vdata, CD_CREASE, CD_DEFAULT, nullptr, mesh->totvert));
+
+  for (size_t i = 0; i < corner_indices.size(); i++) {
+    creases[corner_indices[i]] = corner_sharpnesses[i];
+  }
+}
+
 void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
 {
   if (!mesh) {
@@ -640,6 +672,8 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
       mvert.co[1] = positions_[i][1];
       mvert.co[2] = positions_[i][2];
     }
+
+    read_vertex_creases(mesh, motionSampleTime);
   }
 
   if (new_mesh || (settings->read_flag & MOD_MESHSEQ_READ_POLY) != 0) {

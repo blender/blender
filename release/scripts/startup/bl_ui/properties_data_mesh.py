@@ -557,6 +557,7 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         col.enabled = obj is not None and obj.mode != 'EDIT'
         col.prop(me, "use_customdata_vertex_bevel", text="Vertex Bevel Weight")
         col.prop(me, "use_customdata_edge_bevel", text="Edge Bevel Weight")
+        col.prop(me, "use_customdata_vertex_crease", text="Vertex Crease")
         col.prop(me, "use_customdata_edge_crease", text="Edge Crease")
 
 

@@ -103,13 +103,13 @@ BLI_INLINE void BKE_subdiv_rotate_grid_to_quad(
   }
 }
 
-BLI_INLINE float BKE_subdiv_edge_crease_to_sharpness_f(float edge_crease)
+BLI_INLINE float BKE_subdiv_crease_to_sharpness_f(float edge_crease)
 {
   return edge_crease * edge_crease * 10.0f;
 }
 
-BLI_INLINE float BKE_subdiv_edge_crease_to_sharpness_char(char edge_crease)
+BLI_INLINE float BKE_subdiv_crease_to_sharpness_char(char edge_crease)
 {
   const float edge_crease_f = edge_crease / 255.0f;
-  return BKE_subdiv_edge_crease_to_sharpness_f(edge_crease_f);
+  return BKE_subdiv_crease_to_sharpness_f(edge_crease_f);
 }

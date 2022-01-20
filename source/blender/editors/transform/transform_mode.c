@@ -1135,8 +1135,11 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
     case TFM_PUSHPULL:
       initPushPull(t);
       break;
-    case TFM_CREASE:
-      initCrease(t);
+    case TFM_EDGE_CREASE:
+      initEgdeCrease(t);
+      break;
+    case TFM_VERT_CREASE:
+      initVertCrease(t);
       break;
     case TFM_BONESIZE:
       initBoneSize(t);

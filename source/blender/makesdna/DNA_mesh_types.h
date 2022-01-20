@@ -428,6 +428,7 @@ enum {
   ME_CDFLAG_VERT_BWEIGHT = 1 << 0,
   ME_CDFLAG_EDGE_BWEIGHT = 1 << 1,
   ME_CDFLAG_EDGE_CREASE = 1 << 2,
+  ME_CDFLAG_VERT_CREASE = 1 << 3,
 };
 
 /** #Mesh.remesh_mode */

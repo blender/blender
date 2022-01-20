@@ -106,6 +106,9 @@ typedef struct MultiresReshapeContext {
   /* Indexed by base face index, returns first ptex face index corresponding
    * to that base face. */
   int *face_ptex_offset;
+
+  /* Vertex crease custom data layer, null if none is present. */
+  const float *cd_vertex_crease;
 } MultiresReshapeContext;
 
 /**
