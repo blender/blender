@@ -76,10 +76,9 @@
 #include "NOD_texture.h"
 #include "node_intern.hh" /* own include */
 
-#define USE_ESC_COMPO
+namespace blender::ed::space_node {
 
-using blender::float2;
-using blender::Map;
+#define USE_ESC_COMPO
 
 /* ***************** composite job manager ********************** */
 
@@ -320,8 +319,12 @@ static void compo_startjob(void *cjv,
   ntree->progress = nullptr;
 }
 
+}  // namespace blender::ed::space_node
+
 void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene *scene_owner)
 {
+  using namespace blender::ed::space_node;
+
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -360,6 +363,8 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 
   WM_jobs_start(CTX_wm_manager(C), wm_job);
 }
+
+namespace blender::ed::space_node {
 
 /* ***************************************** */
 
@@ -411,18 +416,20 @@ static void send_notifiers_after_tree_change(ID *id, bNodeTree *ntree)
   }
 }
 
+}  // namespace blender::ed::space_node
+
 void ED_node_tree_propagate_change(const bContext *C, Main *bmain, bNodeTree *root_ntree)
 {
   if (C != nullptr) {
     SpaceNode *snode = CTX_wm_space_node(C);
     if (snode != nullptr && root_ntree != nullptr) {
-      send_notifiers_after_tree_change(snode->id, root_ntree);
+      blender::ed::space_node::send_notifiers_after_tree_change(snode->id, root_ntree);
     }
   }
 
   NodeTreeUpdateExtraParams params = {nullptr};
   params.tree_changed_fn = [](ID *id, bNodeTree *ntree, void *UNUSED(user_data)) {
-    send_notifiers_after_tree_change(id, ntree);
+    blender::ed::space_node::send_notifiers_after_tree_change(id, ntree);
     DEG_id_tag_update(&ntree->id, ID_RECALC_COPY_ON_WRITE);
   };
   params.tree_output_changed_fn = [](ID *UNUSED(id), bNodeTree *ntree, void *UNUSED(user_data)) {
@@ -589,6 +596,8 @@ void ED_node_texture_default(const bContext *C, Tex *tex)
   BKE_ntree_update_main_tree(CTX_data_main(C), tex->nodetree, nullptr);
 }
 
+namespace blender::ed::space_node {
+
 /**
  * Here we set the active tree(s), even called for each redraw now, so keep it fast :)
  */
@@ -630,6 +639,8 @@ void snode_set_context(const bContext &C)
     ED_node_tree_start(snode, ntree, id, from);
   }
 }
+
+}  // namespace blender::ed::space_node
 
 void ED_node_set_active(
     Main *bmain, SpaceNode *snode, bNodeTree *ntree, bNode *node, bool *r_active_texture_changed)
@@ -795,6 +806,8 @@ void ED_node_post_apply_transform(bContext *UNUSED(C), bNodeTree *UNUSED(ntree))
   /* make sure nodes have correct bounding boxes after transform */
   // node_update_nodetree(C, ntree, 0.0f, 0.0f);
 }
+
+namespace blender::ed::space_node {
 
 /* ***************** generic operator functions for nodes ***************** */
 
@@ -2929,3 +2942,4 @@ void NODE_OT_cryptomatte_layer_remove(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+}  // namespace blender::ed::space_node

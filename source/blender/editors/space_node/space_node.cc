@@ -206,6 +206,18 @@ void ED_node_set_active_viewer_key(SpaceNode *snode)
   }
 }
 
+void ED_node_cursor_location_get(const SpaceNode *snode, float value[2])
+{
+  copy_v2_v2(value, snode->runtime->cursor);
+}
+
+void ED_node_cursor_location_set(SpaceNode *snode, const float value[2])
+{
+  copy_v2_v2(snode->runtime->cursor, value);
+}
+
+namespace blender::ed::space_node {
+
 float2 space_node_group_offset(const SpaceNode &snode)
 {
   const bNodeTreePath *path = (bNodeTreePath *)snode.treepath.last;
@@ -554,16 +566,6 @@ static void node_toolbar_region_init(wmWindowManager *wm, ARegion *region)
 static void node_toolbar_region_draw(const bContext *C, ARegion *region)
 {
   ED_region_panels(C, region);
-}
-
-void ED_node_cursor_location_get(const SpaceNode *snode, float value[2])
-{
-  copy_v2_v2(value, snode->runtime->cursor);
-}
-
-void ED_node_cursor_location_set(SpaceNode *snode, const float value[2])
-{
-  copy_v2_v2(snode->runtime->cursor, value);
 }
 
 static void node_cursor(wmWindow *win, ScrArea *area, ARegion *region)
@@ -978,8 +980,12 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
   }
 }
 
+}  // namespace blender::ed::space_node
+
 void ED_spacetype_node()
 {
+  using namespace blender::ed::space_node;
+
   SpaceType *st = MEM_cnew<SpaceType>("spacetype node");
   ARegionType *art;
 

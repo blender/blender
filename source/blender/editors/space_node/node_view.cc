@@ -55,7 +55,7 @@
 
 #include "node_intern.hh" /* own include */
 
-using blender::StringRef;
+namespace blender::ed::space_node {
 
 /* -------------------------------------------------------------------- */
 /** \name View All Operator
@@ -444,6 +444,8 @@ static void sample_draw(const bContext *C, ARegion *region, void *arg_info)
   }
 }
 
+}  // namespace blender::ed::space_node
+
 bool ED_space_node_get_position(
     Main *bmain, SpaceNode *snode, struct ARegion *region, const int mval[2], float fpos[2])
 {
@@ -525,6 +527,8 @@ bool ED_space_node_color_sample(
 
   return ret;
 }
+
+namespace blender::ed::space_node {
 
 static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -783,3 +787,5 @@ void NODE_OT_geometry_node_view_legacy(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender::ed::space_node

@@ -79,7 +79,7 @@
 #include "NOD_texture.h"
 #include "node_intern.hh" /* own include */
 
-using blender::float2;
+namespace blender::ed::space_node {
 
 /* Default flags for uiItemR(). Name is kept short since this is used a lot in this file. */
 #define DEFAULT_FLAGS UI_ITEM_R_SPLIT_EMPTY_NAME
@@ -160,6 +160,8 @@ static void node_buts_curvefloat(uiLayout *layout, bContext *UNUSED(C), PointerR
   uiTemplateCurveMapping(layout, ptr, "mapping", 0, false, false, false, false);
 }
 
+}  // namespace blender::ed::space_node
+
 #define SAMPLE_FLT_ISNONE FLT_MAX
 /* Bad bad, 2.5 will do better? ... no it won't! */
 static float _sample_col[4] = {SAMPLE_FLT_ISNONE};
@@ -172,6 +174,8 @@ void ED_node_sample_set(const float col[4])
     copy_v4_fl(_sample_col, SAMPLE_FLT_ISNONE);
   }
 }
+
+namespace blender::ed::space_node {
 
 static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -1101,8 +1105,12 @@ static void node_socket_undefined_interface_draw_color(bContext *UNUSED(C),
 
 /** \} */
 
+}  // namespace blender::ed::space_node
+
 void ED_node_init_butfuncs()
 {
+  using namespace blender::ed::space_node;
+
   /* Fallback types for undefined tree, nodes, sockets
    * Defined in blenkernel, but not registered in type hashes.
    */
@@ -1135,8 +1143,10 @@ void ED_init_custom_node_type(bNodeType *UNUSED(ntype))
 
 void ED_init_custom_node_socket_type(bNodeSocketType *stype)
 {
-  stype->draw = node_socket_button_label;
+  stype->draw = blender::ed::space_node::node_socket_button_label;
 }
+
+namespace blender::ed::space_node {
 
 static const float virtual_node_socket_color[4] = {0.2, 0.2, 0.2, 1.0};
 
@@ -1420,14 +1430,6 @@ static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout
   uiItemR(layout, ptr, "hide_value", DEFAULT_FLAGS, nullptr, 0);
 }
 
-void ED_init_standard_node_socket_type(bNodeSocketType *stype)
-{
-  stype->draw = std_node_socket_draw;
-  stype->draw_color = std_node_socket_draw_color;
-  stype->interface_draw = std_node_socket_interface_draw;
-  stype->interface_draw_color = std_node_socket_interface_draw_color;
-}
-
 static void node_socket_virtual_draw_color(bContext *UNUSED(C),
                                            PointerRNA *UNUSED(ptr),
                                            PointerRNA *UNUSED(node_ptr),
@@ -1436,11 +1438,25 @@ static void node_socket_virtual_draw_color(bContext *UNUSED(C),
   copy_v4_v4(r_color, virtual_node_socket_color);
 }
 
+}  // namespace blender::ed::space_node
+
+void ED_init_standard_node_socket_type(bNodeSocketType *stype)
+{
+  using namespace blender::ed::space_node;
+  stype->draw = std_node_socket_draw;
+  stype->draw_color = std_node_socket_draw_color;
+  stype->interface_draw = std_node_socket_interface_draw;
+  stype->interface_draw_color = std_node_socket_interface_draw_color;
+}
+
 void ED_init_node_socket_type_virtual(bNodeSocketType *stype)
 {
+  using namespace blender::ed::space_node;
   stype->draw = node_socket_button_label;
   stype->draw_color = node_socket_virtual_draw_color;
 }
+
+namespace blender::ed::space_node {
 
 /* ************** Generic drawing ************** */
 
@@ -2147,6 +2163,8 @@ void node_draw_link(const bContext &C,
 
   node_draw_link_bezier(C, v2d, snode, link, th_col1, th_col2, th_col3);
 }
+
+}  // namespace blender::ed::space_node
 
 void ED_node_draw_snap(View2D *v2d, const float cent[2], float size, NodeBorder border, uint pos)
 {

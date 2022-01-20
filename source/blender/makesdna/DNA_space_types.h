@@ -65,7 +65,14 @@ struct wmTimer;
 typedef struct SpaceProperties_Runtime SpaceProperties_Runtime;
 
 /** Defined in `node_intern.hh`. */
+#ifdef __cplusplus
+namespace blender::ed::space_node {
+struct SpaceNode_Runtime;
+}  // namespace blender::nodes
+using SpaceNode_Runtime = blender::ed::space_node::SpaceNode_Runtime;
+#else
 typedef struct SpaceNode_Runtime SpaceNode_Runtime;
+#endif
 
 /** Defined in `file_intern.h`. */
 typedef struct SpaceFile_Runtime SpaceFile_Runtime;

@@ -62,9 +62,7 @@
 #include "NOD_socket.h"
 #include "node_intern.hh" /* own include */
 
-using blender::float2;
-using blender::Map;
-using blender::Vector;
+namespace blender::ed::space_node {
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -1109,3 +1107,5 @@ void NODE_OT_group_insert(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender::ed::space_node

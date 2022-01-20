@@ -62,7 +62,7 @@
 
 #include "node_intern.hh" /* own include */
 
-using blender::float2;
+namespace blender::ed::space_node {
 
 /**
  * Function to detect if there is a visible view3d that uses workbench in texture mode.
@@ -1309,3 +1309,5 @@ void NODE_OT_find_node(wmOperatorType *ot)
 }
 
 /** \} */
+
+}

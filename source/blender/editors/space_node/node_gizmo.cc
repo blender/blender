@@ -43,6 +43,8 @@
 
 #include "node_intern.hh"
 
+namespace blender::ed::space_node {
+
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
  * \{ */
@@ -636,3 +638,5 @@ void NODE_GGT_backdrop_corner_pin(wmGizmoGroupType *gzgt)
 }
 
 /** \} */
+
+}  // namespace blender::ed::space_node
