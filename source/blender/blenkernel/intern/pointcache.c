@@ -831,31 +831,23 @@ static void ptcache_rigidbody_interpolate(int index,
     RigidBodyOb *rbo = ob->rigidbody_object;
 
     if (rbo->type == RBO_TYPE_ACTIVE) {
-      ParticleKey keys[4];
-      ParticleKey result;
-      float dfra;
-
-      memset(keys, 0, sizeof(keys));
-
-      copy_v3_v3(keys[1].co, rbo->pos);
-      copy_qt_qt(keys[1].rot, rbo->orn);
+      /* It may be possible to improve results by taking into account velocity
+       * for interpolation using psys_interpolate_particle, however this is
+       * not currently cached. */
+      float pos[3], orn[4];
 
       if (old_data) {
-        memcpy(keys[2].co, data, sizeof(float[3]));
-        memcpy(keys[2].rot, data + 3, sizeof(float[4]));
+        memcpy(pos, data, sizeof(float[3]));
+        memcpy(orn, data + 3, sizeof(float[4]));
       }
       else {
-        BKE_ptcache_make_particle_key(&keys[2], 0, data, cfra2);
+        PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, index, pos);
+        PTCACHE_DATA_TO(data, BPHYS_DATA_ROTATION, index, orn);
       }
 
-      dfra = cfra2 - cfra1;
-
-      /* NOTE: keys[0] and keys[3] unused for type < 1 (crappy). */
-      psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &result, true);
-      interp_qt_qtqt(result.rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
-
-      copy_v3_v3(rbo->pos, result.co);
-      copy_qt_qt(rbo->orn, result.rot);
+      const float t = (cfra - cfra1) / (cfra2 - cfra1);
+      interp_v3_v3v3(rbo->pos, rbo->pos, pos, t);
+      interp_qt_qtqt(rbo->orn, rbo->orn, orn, t);
     }
   }
 }
