@@ -75,7 +75,7 @@
 typedef enum eSculptFaceSetByTopologyMode {
   SCULPT_FACE_SET_TOPOLOGY_LOOSE_PART = 0,
   SCULPT_FACE_SET_TOPOLOGY_POLY_LOOP = 1,
-};
+} eSculptFaceSetByTopologyMode;
 
 static EnumPropertyItem prop_sculpt_face_set_by_topology[] = {
     {

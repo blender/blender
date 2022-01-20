@@ -75,7 +75,7 @@ typedef struct {
 static bool sculpt_and_constant_or_manual_detail_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  //Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
   /*checking for constant/manual mode isn't necassary since we do this on the python side
     in the ui scripts*/

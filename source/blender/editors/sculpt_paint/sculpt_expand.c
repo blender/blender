@@ -804,10 +804,6 @@ static float *sculpt_expand_poly_loop_falloff_create(Object *ob, const SculptVer
       continue;
     }
 
-    const SculptVertRef symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(
-        ob, symm_it, v);
-    // const int symm_vertex_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, symm_vertex);
-
     BLI_bitmap *poly_loop = sculpt_poly_loop_from_cursor(ob);
 
     for (int i = 0; i < ss->totfaces; i++) {

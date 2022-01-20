@@ -1045,6 +1045,10 @@ static FilterCache *sculpt_ipmask_filter_cache_init(Object *ob,
       filter_cache->mask_filter_step_forward = sculpt_ipmask_vertex_contrast_increase_cb;
       filter_cache->mask_filter_step_backward = sculpt_ipmask_vertex_contrast_decrease_cb;
       break;
+    case IPMASK_FILTER_ADD_SUBSTRACT:
+    case IPMASK_FILTER_INVERT:
+    case IPMASK_FILTER_QUANTIZE:
+      break;
   }
 
   return filter_cache;
