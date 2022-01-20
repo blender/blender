@@ -1288,6 +1288,32 @@ static char *rna_LoopCustomData_data_path(PointerRNA *ptr, const char *collectio
   return NULL;
 }
 
+static void rna_Mesh_vertex_normals_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  const float(*normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  rna_iterator_array_begin(iter, (void *)normals, sizeof(float[3]), mesh->totvert, false, NULL);
+}
+
+static int rna_Mesh_vertex_normals_length(PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  return mesh->totvert;
+}
+
+static void rna_Mesh_poly_normals_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  const float(*normals)[3] = BKE_mesh_poly_normals_ensure(mesh);
+  rna_iterator_array_begin(iter, (void *)normals, sizeof(float[3]), mesh->totpoly, false, NULL);
+}
+
+static int rna_Mesh_poly_normals_length(PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  return mesh->totpoly;
+}
+
 static char *rna_MeshUVLoop_path(PointerRNA *ptr)
 {
   return rna_LoopCustomData_data_path(ptr, "uv_layers", CD_MLOOPUV);
@@ -2520,6 +2546,20 @@ static void rna_def_mesh_polygons(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
+/* Defines a read-only vector type since normals should not be modified manually. */
+static void rna_def_normal_layer_value(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "MeshNormalValue", NULL);
+  RNA_def_struct_sdna(srna, "vec3f");
+  RNA_def_struct_ui_text(srna, "Mesh Normal Vector", "Vector in a mesh normal array");
+
+  PropertyRNA *prop = RNA_def_property(srna, "vector", PROP_FLOAT, PROP_DIRECTION);
+  RNA_def_property_ui_text(prop, "Vector", "3D vector");
+  RNA_def_property_float_sdna(prop, NULL, "x");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+}
+
 static void rna_def_loop_colors(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
@@ -3016,6 +3056,40 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_ui_text(prop, "Polygons", "Polygons of the mesh");
   rna_def_mesh_polygons(brna, prop);
+
+  rna_def_normal_layer_value(brna);
+
+  prop = RNA_def_property(srna, "vertex_normals", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "MeshNormalValue");
+  RNA_def_property_ui_text(prop,
+                           "Vertex Normals",
+                           "The normal direction of each vertex, defined as the average of the "
+                           "surrounding face normals");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Mesh_vertex_normals_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_Mesh_vertex_normals_length",
+                                    NULL,
+                                    NULL,
+                                    NULL);
+
+  prop = RNA_def_property(srna, "polygon_normals", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "MeshNormalValue");
+  RNA_def_property_ui_text(prop,
+                           "Polygon Normals",
+                           "The normal direction of each polygon, defined by the winding order "
+                           "and position of its vertices");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Mesh_poly_normals_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_Mesh_poly_normals_length",
+                                    NULL,
+                                    NULL,
+                                    NULL);
 
   prop = RNA_def_property(srna, "loop_triangles", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "runtime.looptris.array", "runtime.looptris.len");
