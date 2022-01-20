@@ -1719,10 +1719,6 @@ void SCULPT_do_slide_relax_brush(struct Sculpt *sd,
                                  struct PBVHNode **nodes,
                                  int totnode);
 
-void SCULPT_do_displacement_heal_brush(struct Sculpt *sd,
-                                       struct Object *ob,
-                                       struct PBVHNode **nodes,
-                                       int totnode);
 void SCULPT_do_displacement_smear_brush(struct Sculpt *sd,
                                         struct Object *ob,
                                         struct PBVHNode **nodes,
