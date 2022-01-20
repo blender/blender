@@ -704,6 +704,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeCurvePrimitiveCircle"),
         NodeItem("GeometryNodeCurveStar"),
         NodeItem("GeometryNodeCurveSpiral"),
+        NodeItem("GeometryNodeCurveArc"),
         NodeItem("GeometryNodeCurveQuadraticBezier"),
         NodeItem("GeometryNodeCurvePrimitiveQuadrilateral"),
         NodeItem("GeometryNodeCurvePrimitiveBezierSegment"),

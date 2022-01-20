@@ -77,6 +77,7 @@ void register_node_type_geo_curve_fill(void);
 void register_node_type_geo_curve_fillet(void);
 void register_node_type_geo_curve_handle_type_selection(void);
 void register_node_type_geo_curve_length(void);
+void register_node_type_geo_curve_primitive_arc(void);
 void register_node_type_geo_curve_primitive_bezier_segment(void);
 void register_node_type_geo_curve_primitive_circle(void);
 void register_node_type_geo_curve_primitive_line(void);
