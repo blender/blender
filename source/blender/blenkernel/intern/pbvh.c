@@ -2960,7 +2960,6 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
 
   vi->mask = NULL;
   if (pbvh->type == PBVH_FACES) {
-    /* Cast away const because sculpt/paint code can adjust normals when restoring mesh data. */
     vi->vert_normals = pbvh->vert_normals;
 
     vi->vmask = CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK);
