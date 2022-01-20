@@ -509,7 +509,8 @@ bool Shader::can_connect(const bNodeSocket &socket) const
   }
   /* Basic types can convert to shaders, but not the other way around. */
   if (in_out_ == SOCK_IN) {
-    return ELEM(socket.type, SOCK_VECTOR, SOCK_RGBA, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN);
+    return ELEM(
+        socket.type, SOCK_VECTOR, SOCK_RGBA, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_SHADER);
   }
   return socket.type == SOCK_SHADER;
 }
