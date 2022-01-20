@@ -3720,7 +3720,7 @@ void barycentric_weights_v2_quad(const float v1[2],
   /* NOTE(campbell): fabsf() here is not needed for convex quads
    * (and not used in #interp_weights_poly_v2).
    * But in the case of concave/bow-tie quads for the mask rasterizer it
-   * gives unreliable results without adding absf(). If this becomes an issue for more general
+   * gives unreliable results without adding `absf()`. If this becomes an issue for more general
    * usage we could have this optional or use a different function. */
 #define MEAN_VALUE_HALF_TAN_V2(_area, i1, i2) \
   ((_area = cross_v2v2(dirs[i1], dirs[i2])) != 0.0f ? \

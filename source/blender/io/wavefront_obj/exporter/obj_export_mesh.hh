@@ -172,8 +172,8 @@ class OBJMesh : NonCopyable {
    */
   float3 calc_poly_normal(int poly_index) const;
   /**
-   * Find the unqique normals of the mesh and return them in \a r_normal_coords.
-   * Store the indices into that vector with for each loop in this OBJMesh.
+   * Find the unique normals of the mesh and return them in \a r_normal_coords.
+   * Store the indices into that vector with for each loop in this #OBJMesh.
    */
   void store_normal_coords_and_indices(Vector<float3> &r_normal_coords);
   /**

@@ -398,7 +398,7 @@ MINLINE float fractf(float a)
   return a - floorf(a);
 }
 
-/* Adapted from godot-engine math_funcs.h. */
+/* Adapted from `godot-engine` math_funcs.h. */
 MINLINE float wrapf(float value, float max, float min)
 {
   float range = max - min;
@@ -722,15 +722,15 @@ MINLINE int integer_digits_i(const int i)
 
 #ifdef BLI_HAVE_SSE2
 
-/* Calculate initial guess for arg^exp based on float representation
+/**
+ * Calculate initial guess for `arg^exp` based on float representation
  * This method gives a constant bias, which can be easily compensated by
  * multiplying with bias_coeff.
- * Gives better results for exponents near 1 (e. g. 4/5).
+ * Gives better results for exponents near 1 (e.g. `4/5`).
  * exp = exponent, encoded as uint32_t
- * e2coeff = 2^(127/exponent - 127) * bias_coeff^(1/exponent), encoded as
- * uint32_t
+ * `e2coeff = 2^(127/exponent - 127) * bias_coeff^(1/exponent)`, encoded as `uint32_t`.
  *
- * We hope that exp and e2coeff gets properly inlined
+ * We hope that exp and e2coeff gets properly inlined.
  */
 MALWAYS_INLINE __m128 _bli_math_fastpow(const int exp, const int e2coeff, const __m128 arg)
 {
@@ -742,7 +742,7 @@ MALWAYS_INLINE __m128 _bli_math_fastpow(const int exp, const int e2coeff, const 
   return ret;
 }
 
-/* Improve x ^ 1.0f/5.0f solution with Newton-Raphson method */
+/** Improve `x ^ 1.0f/5.0f` solution with Newton-Raphson method */
 MALWAYS_INLINE __m128 _bli_math_improve_5throot_solution(const __m128 old_result, const __m128 x)
 {
   __m128 approx2 = _mm_mul_ps(old_result, old_result);
@@ -752,7 +752,7 @@ MALWAYS_INLINE __m128 _bli_math_improve_5throot_solution(const __m128 old_result
   return _mm_mul_ps(summ, _mm_set1_ps(1.0f / 5.0f));
 }
 
-/* Calculate powf(x, 2.4). Working domain: 1e-10 < x < 1e+10 */
+/** Calculate `powf(x, 2.4)`. Working domain: `1e-10 < x < 1e+10`. */
 MALWAYS_INLINE __m128 _bli_math_fastpow24(const __m128 arg)
 {
   /* max, avg and |avg| errors were calculated in gcc without FMA instructions

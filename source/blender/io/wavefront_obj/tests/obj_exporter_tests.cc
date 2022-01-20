@@ -29,7 +29,7 @@
 #include "obj_exporter_tests.hh"
 
 namespace blender::io::obj {
-/* Set this true to keep comparison-failing test ouput in temp file directory. */
+/* Set this true to keep comparison-failing test output in temp file directory. */
 constexpr bool save_failing_test_output = false;
 
 /* This is also the test name. */

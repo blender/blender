@@ -1544,7 +1544,7 @@ void SCULPT_OT_mask_init(struct wmOperatorType *ot);
 /* Detail size. */
 
 /* -------------------------------------------------------------------- */
-/** \name Dyntopo/Retopo Operators
+/** \name Dyntopo/Retopology Operators
  * \{ */
 
 void SCULPT_OT_detail_flood_fill(struct wmOperatorType *ot);
