@@ -119,12 +119,6 @@ def use_optix(context):
     return (get_device_type(context) == 'OPTIX' and cscene.device == 'GPU')
 
 
-def use_sample_all_lights(context):
-    cscene = context.scene.cycles
-
-    return cscene.sample_all_lights_direct or cscene.sample_all_lights_indirect
-
-
 def show_device_active(context):
     cscene = context.scene.cycles
     if cscene.device != 'GPU':
