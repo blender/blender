@@ -43,10 +43,8 @@ class ColorSpaceManager {
   /* Convert pixels in the specified colorspace to scene linear color for
    * rendering. Must be a colorspace returned from detect_known_colorspace. */
   template<typename T>
-  static void to_scene_linear(ustring colorspace,
-                              T *pixels,
-                              size_t num_pixels,
-                              bool compress_as_srgb);
+  static void to_scene_linear(
+      ustring colorspace, T *pixels, size_t num_pixels, bool is_rgba, bool compress_as_srgb);
 
   /* Efficiently convert pixels to scene linear colorspace at render time,
    * for OSL where the image texture cache contains original pixels. The

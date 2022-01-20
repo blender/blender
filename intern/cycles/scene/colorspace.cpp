@@ -263,7 +263,9 @@ template<typename T> inline void cast_from_float4(T *data, float4 value)
 
 /* Slower versions for other all data types, which needs to convert to float and back. */
 template<typename T, bool compress_as_srgb = false>
-inline void processor_apply_pixels(const OCIO::Processor *processor, T *pixels, size_t num_pixels)
+inline void processor_apply_pixels_rgba(const OCIO::Processor *processor,
+                                        T *pixels,
+                                        size_t num_pixels)
 {
   /* TODO: implement faster version for when we know the conversion
    * is a simple matrix transform between linear spaces. In that case
@@ -310,25 +312,79 @@ inline void processor_apply_pixels(const OCIO::Processor *processor, T *pixels, 
     }
   }
 }
+
+template<typename T, bool compress_as_srgb = false>
+inline void processor_apply_pixels_grayscale(const OCIO::Processor *processor,
+                                             T *pixels,
+                                             size_t num_pixels)
+{
+  OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
+
+  /* Process large images in chunks to keep temporary memory requirement down. */
+  const size_t chunk_size = std::min((size_t)(16 * 1024 * 1024), num_pixels);
+  vector<float> float_pixels(chunk_size * 3);
+
+  for (size_t j = 0; j < num_pixels; j += chunk_size) {
+    size_t width = std::min(chunk_size, num_pixels - j);
+
+    /* Convert to 3 channels, since that's the minimum required by OpenColorIO. */
+    {
+      const T *pixel = pixels + j;
+      float *fpixel = float_pixels.data();
+      for (size_t i = 0; i < width; i++, pixel++, fpixel += 3) {
+        const float f = util_image_cast_to_float<T>(*pixel);
+        fpixel[0] = f;
+        fpixel[1] = f;
+        fpixel[2] = f;
+      }
+    }
+
+    OCIO::PackedImageDesc desc((float *)float_pixels.data(), width, 1, 3);
+    device_processor->apply(desc);
+
+    {
+      T *pixel = pixels + j;
+      const float *fpixel = float_pixels.data();
+      for (size_t i = 0; i < width; i++, pixel++, fpixel += 3) {
+        float f = average(make_float3(fpixel[0], fpixel[1], fpixel[2]));
+        if (compress_as_srgb) {
+          f = color_linear_to_srgb(f);
+        }
+        *pixel = util_image_cast_from_float<T>(f);
+      }
+    }
+  }
+}
+
 #endif
 
 template<typename T>
-void ColorSpaceManager::to_scene_linear(ustring colorspace,
-                                        T *pixels,
-                                        size_t num_pixels,
-                                        bool compress_as_srgb)
+void ColorSpaceManager::to_scene_linear(
+    ustring colorspace, T *pixels, size_t num_pixels, bool is_rgba, bool compress_as_srgb)
 {
 #ifdef WITH_OCIO
   const OCIO::Processor *processor = (const OCIO::Processor *)get_processor(colorspace);
 
   if (processor) {
-    if (compress_as_srgb) {
-      /* Compress output as sRGB. */
-      processor_apply_pixels<T, true>(processor, pixels, num_pixels);
+    if (is_rgba) {
+      if (compress_as_srgb) {
+        /* Compress output as sRGB. */
+        processor_apply_pixels_rgba<T, true>(processor, pixels, num_pixels);
+      }
+      else {
+        /* Write output as scene linear directly. */
+        processor_apply_pixels_rgba<T>(processor, pixels, num_pixels);
+      }
     }
     else {
-      /* Write output as scene linear directly. */
-      processor_apply_pixels<T>(processor, pixels, num_pixels);
+      if (compress_as_srgb) {
+        /* Compress output as sRGB. */
+        processor_apply_pixels_grayscale<T, true>(processor, pixels, num_pixels);
+      }
+      else {
+        /* Write output as scene linear directly. */
+        processor_apply_pixels_grayscale<T>(processor, pixels, num_pixels);
+      }
     }
   }
 #else
@@ -348,6 +404,11 @@ void ColorSpaceManager::to_scene_linear(ColorSpaceProcessor *processor_,
 
   if (processor) {
     OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
+    if (channels == 1) {
+      float3 rgb = make_float3(pixel[0], pixel[0], pixel[0]);
+      device_processor->applyRGB(&rgb.x);
+      pixel[0] = average(rgb);
+    }
     if (channels == 3) {
       device_processor->applyRGB(pixel);
     }
@@ -390,9 +451,9 @@ void ColorSpaceManager::free_memory()
 }
 
 /* Template instantiations so we don't have to inline functions. */
-template void ColorSpaceManager::to_scene_linear(ustring, uchar *, size_t, bool);
-template void ColorSpaceManager::to_scene_linear(ustring, ushort *, size_t, bool);
-template void ColorSpaceManager::to_scene_linear(ustring, half *, size_t, bool);
-template void ColorSpaceManager::to_scene_linear(ustring, float *, size_t, bool);
+template void ColorSpaceManager::to_scene_linear(ustring, uchar *, size_t, bool, bool);
+template void ColorSpaceManager::to_scene_linear(ustring, ushort *, size_t, bool, bool);
+template void ColorSpaceManager::to_scene_linear(ustring, half *, size_t, bool, bool);
+template void ColorSpaceManager::to_scene_linear(ustring, float *, size_t, bool, bool);
 
 CCL_NAMESPACE_END
