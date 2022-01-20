@@ -21,7 +21,6 @@
  * \ingroup gpu
  */
 
-
 #include "gpu_shader_create_info.hh"
 
 #include "gpu_interface_info.hh"

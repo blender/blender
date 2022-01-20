@@ -369,7 +369,6 @@ typedef struct {
   struct DistRayAABB_Precalc *dist_ray_to_aabb_precalc;
 } SculptSearchCircleData;
 
-
 /* Sculpt Filters */
 typedef enum SculptFilterOrientation {
   SCULPT_FILTER_ORIENTATION_LOCAL = 0,
@@ -459,7 +458,6 @@ typedef struct FilterCache {
   /* Auto-masking. */
   AutomaskingCache *automasking;
 } FilterCache;
-
 
 /**
  * This structure contains all the temporary data
@@ -783,7 +781,6 @@ typedef struct ExpandCache {
 
 /** \} */
 
-
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Poll Functions
  * \{ */
@@ -820,7 +817,6 @@ void SCULPT_flush_stroke_deform(struct Sculpt *sd, Object *ob, bool is_proxy_use
 void SCULPT_tag_update_overlays(bContext *C);
 /** \} */
 
-
 /* -------------------------------------------------------------------- */
 /** \name Stroke Functions
  * \{ */
@@ -853,7 +849,6 @@ float SCULPT_raycast_init(struct ViewContext *vc,
 
 /* Symmetry */
 char SCULPT_mesh_symmetry_xyz_get(Object *object);
-
 
 /**
  * Returns true when the step belongs to the stroke that is directly performed by the brush and
@@ -913,7 +908,6 @@ float *SCULPT_brush_deform_target_vertex_co_get(SculptSession *ss,
                                                 int deform_target,
                                                 PBVHVertexIter *iter);
 
-
 void SCULPT_vertex_neighbors_get(struct SculptSession *ss,
                                  int index,
                                  bool include_duplicates,
@@ -927,7 +921,7 @@ void SCULPT_vertex_neighbors_get(struct SculptSession *ss,
     neighbor_iterator.index = neighbor_iterator.neighbors[neighbor_iterator.i];
 
 /** Iterate over neighboring and duplicate vertices (for PBVH_GRIDS). Duplicates come
-  * first since they are nearest for floodfill. */
+ * first since they are nearest for floodfill. */
 #define SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
   SCULPT_vertex_neighbors_get(ss, v_index, true, &neighbor_iterator); \
   for (neighbor_iterator.i = neighbor_iterator.size - 1; neighbor_iterator.i >= 0; \
@@ -1115,10 +1109,9 @@ void SCULPT_flip_quat_by_symm_area(float quat[4],
                                    ePaintSymmetryAreas symmarea,
                                    const float pivot[3]);
 
-
 /**
-* Initialize a point-in-brush test
-*/
+ * Initialize a point-in-brush test
+ */
 void SCULPT_brush_test_init(struct SculptSession *ss, SculptBrushTest *test);
 
 bool SCULPT_brush_test_sphere(SculptBrushTest *test, const float co[3]);
@@ -1434,8 +1427,6 @@ bool SCULPT_pbvh_calc_area_normal(const struct Brush *brush,
                                   int totnode,
                                   bool use_threading,
                                   float r_area_no[3]);
-
-
 
 /**
  * Flip all the edit-data across the axis/axes specified by \a symm.

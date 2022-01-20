@@ -21,7 +21,6 @@
  * \ingroup gpu
  */
 
-
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(gpu_shader_2D_diag_stripes)

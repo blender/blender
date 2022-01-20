@@ -444,7 +444,7 @@ void MetalDevice::erase_allocation(device_memory &mem)
 
     /* blank out reference to MetalMem* in the launch params (fixes crash T94736) */
     if (mmem->pointer_index >= 0) {
-      device_ptr *pointers = (device_ptr*)&launch_params;
+      device_ptr *pointers = (device_ptr *)&launch_params;
       pointers[mmem->pointer_index] = 0;
     }
     metal_mem_map.erase(it);
