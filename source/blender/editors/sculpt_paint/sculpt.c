@@ -2229,6 +2229,7 @@ static float brush_strength(const Sculpt *sd,
     case SCULPT_TOOL_DRAW_SHARP:
     case SCULPT_TOOL_LAYER:
       return alpha * flip * pressure * overlap * feather;
+    case SCULPT_TOOL_DISPLACEMENT_HEAL:
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
       return alpha * pressure * overlap * feather;
     case SCULPT_TOOL_CLOTH:
@@ -3400,6 +3401,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     case SCULPT_TOOL_DISPLACEMENT_SMEAR:
       SCULPT_do_displacement_smear_brush(sd, ob, nodes, totnode);
       break;
+    case SCULPT_TOOL_DISPLACEMENT_HEAL:
+      SCULPT_do_displacement_heal_brush(sd, ob, nodes, totnode);
+      break;
     case SCULPT_TOOL_PAINT:
       SCULPT_do_paint_brush(sd, ob, nodes, totnode);
       break;
@@ -3950,6 +3954,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Multires Displacement Eraser";
     case SCULPT_TOOL_DISPLACEMENT_SMEAR:
       return "Multires Displacement Smear";
+    case SCULPT_TOOL_DISPLACEMENT_HEAL:
+      return "Multires Heal";
     case SCULPT_TOOL_PAINT:
       return "Paint Brush";
     case SCULPT_TOOL_SMEAR:

@@ -751,7 +751,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.sculpt.cloth
   brush.sculpt.crease
   brush.sculpt.displacement_eraser
-  brush.sculpt.displacement_smear
+  brush.sculpt.displacement_heal
   brush.sculpt.draw
   brush.sculpt.draw_face_sets
   brush.sculpt.draw_sharp

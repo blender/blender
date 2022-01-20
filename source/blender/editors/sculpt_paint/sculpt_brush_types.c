@@ -2845,3 +2845,181 @@ void SCULPT_do_mask_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Multires Heal Brush
+ * \{ */
+
+BLI_INLINE int grid_xy_to_vertex(int x, int y, int grid_i, int gridsize)
+{
+  return grid_i * gridsize * gridsize + y * gridsize + x;
+}
+
+typedef struct DisplacementHealTaskData {
+  Object *ob;
+  Brush *brush;
+  Sculpt *sd;
+  PBVHNode **nodes;
+  BLI_bitmap *bitmap;
+  float plane_view[3];
+  float bstrength;
+} DisplacementHealTaskData;
+
+static void do_displacement_heal_cb(void *__restrict userdata,
+                                    const int n,
+                                    const TaskParallelTLS *__restrict tls)
+{
+  DisplacementHealTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+
+  PBVHNode *node = data->nodes[n];
+
+  CCGElem **grids;
+
+  int *grid_indices, totgrid, maxgrid, gridsize;
+  const float bstrength = data->bstrength;
+
+  BKE_pbvh_node_get_grids(ss->pbvh, node, &grid_indices, &totgrid, &maxgrid, &gridsize, &grids);
+
+  float(*disps)[3] = MEM_calloc_arrayN(gridsize * gridsize, sizeof(float) * 3, __func__);
+  float(*mats)[16] = MEM_calloc_arrayN(gridsize * gridsize, sizeof(float) * 16, __func__);
+  float(*limits)[3] = MEM_calloc_arrayN(gridsize * gridsize, sizeof(float) * 3, __func__);
+
+  bool modified = false;
+
+  for (int i = 0; i < totgrid; i++) {
+    const int grid_i = grid_indices[i];
+
+    for (int x = 0; x < gridsize; x++) {
+      for (int y = 0; y < gridsize; y++) {
+        int vertex = grid_xy_to_vertex(x, y, grid_i, gridsize);
+
+        SubdivCCGCoord coord = {.grid_index = grid_i, .x = x, .y = y};
+        int locali = y * gridsize + x;
+        float mat[3][3], p[3];
+
+        BKE_subdiv_ccg_get_tangent_matrix(ss->subdiv_ccg, &coord, mat, p);
+        copy_m3_m3(mats[locali], mat);
+
+        invert_m3(mat);
+
+        float disp[3];
+        copy_v3_v3(disp, SCULPT_vertex_co_get(ss, vertex));
+        sub_v3_v3(disp, p);
+        mul_v3_m3v3(disp, mat, disp);
+
+        float test = dot_v3v3(disp, disp);
+        if (isnan(test) || isinf(test)) {
+          zero_v3(disp);
+        }
+
+        copy_v3_v3(disps[locali], disp);
+        copy_v3_v3(limits[locali], p);
+      }
+    }
+
+    for (int x = 0; x < gridsize; x++) {
+      for (int y = 0; y < gridsize; y++) {
+        int locali = y * gridsize + x;
+
+        int vertex = grid_xy_to_vertex(x, y, grid_i, gridsize);
+        float *disp = disps[locali];
+        float avg[3] = {0.0f, 0.0f, 0.0f};
+        float tot = 0.0f;
+
+        for (int x2 = x - 1; x2 <= x + 1; x2++) {
+          for (int y2 = y - 1; y2 <= y + 1; y2++) {
+            if (x2 < 0 || y2 < 0 || x2 >= gridsize || y2 >= gridsize) {
+              continue;
+            }
+
+            int local2 = y2 * gridsize + x2;
+
+            add_v3_v3(avg, disps[local2]);
+            tot += 1.0f;
+          }
+        }
+
+        if (tot == 0.0f) {
+          continue;
+        }
+
+        mul_v3_fl(avg, 1.0 / tot);
+
+        if (dot_v3v3(avg, avg) == 0.0f || dot_v3v3(disp, disp) == 0.0f) {
+          continue;
+        }
+
+        float ratio = len_v3(disp) / len_v3(avg);
+
+        if (ratio < 1.0f) {
+          continue;
+        }
+
+        modified = true;
+
+        ratio = pow(ratio, 0.1f);
+        float tmp[3];
+
+        copy_v3_v3(tmp, disp);
+        mul_v3_fl(tmp, 1.0f / ratio);
+        mul_v3_m3v3(tmp, mats[locali], tmp);
+        add_v3_v3(tmp, limits[locali]);
+
+        float *co = (float *)SCULPT_vertex_co_get(ss, vertex);
+        float test = dot_v3v3(co, co);
+
+        if (isnan(test) || isinf(test)) {
+          copy_v3_v3(co, tmp);
+        }
+        else {
+          interp_v3_v3v3(co, co, tmp, bstrength);
+        }
+      }
+    }
+  }
+
+  MEM_SAFE_FREE(disps);
+  MEM_SAFE_FREE(mats);
+  MEM_SAFE_FREE(limits);
+
+  if (modified) {
+    BKE_pbvh_node_mark_update(node);
+  }
+}
+
+void SCULPT_do_displacement_heal_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  if (!ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS) {
+    return;
+  }
+
+  SCULPT_boundary_info_ensure(ob);
+
+  const int totvert = SCULPT_vertex_count_get(ss);
+  BLI_bitmap *bitmap = BLI_BITMAP_NEW(totvert, __func__);
+  const float bstrength = fabsf(ss->cache->bstrength);
+
+  /* paranoia check */
+  ss->cache->radius_squared = ss->cache->radius * ss->cache->radius;
+
+  /* Threaded loop over nodes. */
+  DisplacementHealTaskData data = {.sd = sd,
+                                   .ob = ob,
+                                   .brush = brush,
+                                   .bstrength = bstrength,
+                                   .nodes = nodes,
+                                   .bitmap = bitmap};
+
+  copy_v3_v3(data.plane_view, ss->cache->view_normal);
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, do_displacement_heal_cb, &settings);
+
+  MEM_SAFE_FREE(bitmap);
+}
+/** \} */

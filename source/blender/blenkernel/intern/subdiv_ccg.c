@@ -37,6 +37,7 @@
 #include "BKE_ccg.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_eval.h"
 
@@ -2100,6 +2101,40 @@ void BKE_subdiv_ccg_eval_limit_point(const SubdivCCG *subdiv_ccg,
   float u, v;
   subdiv_ccg_coord_to_ptex_coord(subdiv_ccg, coord, &ptex_face_index, &u, &v);
   BKE_subdiv_eval_limit_point(subdiv, ptex_face_index, u, v, r_point);
+}
+
+void BKE_subdiv_ccg_eval_limit_point_and_derivatives(const SubdivCCG *subdiv_ccg,
+                                                     const SubdivCCGCoord *coord,
+                                                     float r_point[3],
+                                                     float r_dPdu[3],
+                                                     float r_dPdv[3])
+{
+  Subdiv *subdiv = subdiv_ccg->subdiv;
+  int ptex_face_index;
+  float u, v;
+  subdiv_ccg_coord_to_ptex_coord(subdiv_ccg, coord, &ptex_face_index, &u, &v);
+  BKE_subdiv_eval_limit_point_and_derivatives(
+      subdiv, ptex_face_index, u, v, r_point, r_dPdu, r_dPdv);
+}
+
+void BKE_subdiv_ccg_get_tangent_matrix(const SubdivCCG *subdiv_ccg,
+                                       const SubdivCCGCoord *coord,
+                                       float mat[3][3],
+                                       float r_point[3])
+{
+  int ptex_face_index;
+  float u, v;
+  float du[3], dv[3];
+
+  const int face_index = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, coord->grid_index);
+  const SubdivCCGFace *faces = subdiv_ccg->faces;
+  const SubdivCCGFace *face = &faces[face_index];
+  const float corner = coord->grid_index - face->start_grid_index;
+
+  subdiv_ccg_coord_to_ptex_coord(subdiv_ccg, coord, &ptex_face_index, &u, &v);
+
+  BKE_subdiv_ccg_eval_limit_point_and_derivatives(subdiv_ccg, coord, r_point, du, dv);
+  BKE_multires_construct_tangent_matrix(mat, du, dv, corner);
 }
 
 /** \} */

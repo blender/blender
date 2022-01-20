@@ -460,6 +460,7 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_BOUNDARY = 30,
   SCULPT_TOOL_DISPLACEMENT_ERASER = 31,
   SCULPT_TOOL_DISPLACEMENT_SMEAR = 32,
+  SCULPT_TOOL_DISPLACEMENT_HEAL = 45 /* use value from sculpt-dev */
 } eBrushSculptTool;
 
 /* Brush.uv_sculpt_tool */

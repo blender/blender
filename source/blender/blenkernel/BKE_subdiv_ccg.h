@@ -314,6 +314,17 @@ void BKE_subdiv_ccg_eval_limit_point(const SubdivCCG *subdiv_ccg,
                                      const SubdivCCGCoord *coord,
                                      float r_point[3]);
 
+void BKE_subdiv_ccg_eval_limit_point_and_derivatives(const SubdivCCG *subdiv_ccg,
+                                                     const SubdivCCGCoord *coord,
+                                                     float r_point[3],
+                                                     float r_dPdu[3],
+                                                     float r_dPdv[3]);
+
+void BKE_subdiv_ccg_get_tangent_matrix(const SubdivCCG *subdiv_ccg,
+                                       const SubdivCCGCoord *coord,
+                                       float mat[3][3],
+                                       float r_point[3]);
+
 typedef enum SubdivCCGAdjacencyType {
   SUBDIV_CCG_ADJACENT_NONE,
   SUBDIV_CCG_ADJACENT_VERTEX,
