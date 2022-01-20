@@ -285,12 +285,12 @@ static std::unique_ptr<CurveEval> create_arc_curve_from_points(const int resolut
   return curve;
 }
 
-std::unique_ptr<CurveEval> create_arc_curve_from_radius(const int resolution,
-                                                        const float radius,
-                                                        const float start_angle,
-                                                        const float sweep_angle,
-                                                        const bool connect_center,
-                                                        const bool invert_arc)
+static std::unique_ptr<CurveEval> create_arc_curve_from_radius(const int resolution,
+                                                               const float radius,
+                                                               const float start_angle,
+                                                               const float sweep_angle,
+                                                               const bool connect_center,
+                                                               const bool invert_arc)
 {
   std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
   std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
@@ -357,7 +357,6 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     case GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_RADIUS: {
       std::unique_ptr<CurveEval> curve;
-      const bool use_circle = false;
       curve = create_arc_curve_from_radius(std::max(params.extract_input<int>("Resolution"), 2),
                                            params.extract_input<float>("Radius"),
                                            params.extract_input<float>("Start Angle"),
