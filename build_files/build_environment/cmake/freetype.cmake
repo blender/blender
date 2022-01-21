@@ -23,9 +23,12 @@ set(FREETYPE_EXTRA_ARGS
   -DWITH_HarfBuzz=OFF
   -DFT_WITH_HARFBUZZ=OFF
   -DFT_WITH_BZIP2=OFF
+  -DFT_WITH_BROTLI=ON
   -DCMAKE_DISABLE_FIND_PACKAGE_HarfBuzz=TRUE
   -DCMAKE_DISABLE_FIND_PACKAGE_BZip2=TRUE
-  -DCMAKE_DISABLE_FIND_PACKAGE_BrotliDec=TRUE)
+  -DPC_BROTLIDEC_INCLUDEDIR=${LIBDIR}/brotli/include
+  -DPC_BROTLIDEC_LIBDIR=${LIBDIR}/brotli/lib
+  )
 
 ExternalProject_Add(external_freetype
   URL file://${PACKAGE_DIR}/${FREETYPE_FILE}
@@ -34,6 +37,11 @@ ExternalProject_Add(external_freetype
   PREFIX ${BUILD_DIR}/freetype
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/freetype ${DEFAULT_CMAKE_FLAGS} ${FREETYPE_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/freetype
+)
+
+add_dependencies(
+  external_freetype
+  external_brotli
 )
 
 if(BUILD_MODE STREQUAL Release AND WIN32)

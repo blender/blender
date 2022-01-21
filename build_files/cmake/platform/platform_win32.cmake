@@ -347,7 +347,7 @@ set(FREETYPE_INCLUDE_DIRS
   ${LIBDIR}/freetype/include
   ${LIBDIR}/freetype/include/freetype2
 )
-set(FREETYPE_LIBRARY ${LIBDIR}/freetype/lib/freetype2ST.lib)
+set(FREETYPE_LIBRARIES ${LIBDIR}/freetype/lib/freetype2ST.lib)
 windows_find_package(freetype REQUIRED)
 
 if(WITH_FFTW3)
