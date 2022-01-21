@@ -29,7 +29,7 @@ using namespace blender::io::serialize;
 
 /* Forward declarations */
 class IDPropertySerializer;
-class DictionaryEntryParser;
+struct DictionaryEntryParser;
 static IDProperty *idprop_from_value(const DictionaryValue &value);
 static const IDPropertySerializer &serializer_for(eIDPropertyType property_type);
 static const IDPropertySerializer &serializer_for(StringRef idprop_typename);
