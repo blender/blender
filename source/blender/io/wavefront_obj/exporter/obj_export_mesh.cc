@@ -17,6 +17,8 @@
 /** \file
  * \ingroup obj
  */
+/* Silence warnings from copying deprecated fields. Needed for an Object copy constructor use. */
+#define DNA_DEPRECATED_ALLOW
 
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
@@ -42,20 +44,21 @@
 namespace blender::io::obj {
 OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Object *mesh_object)
 {
-  export_object_eval_ = DEG_get_evaluated_object(depsgraph, mesh_object);
-  export_mesh_eval_ = BKE_object_get_evaluated_mesh(export_object_eval_);
+  /* We need to copy the object because it may be in temporary space. */
+  Object *obj_eval = DEG_get_evaluated_object(depsgraph, mesh_object);
+  export_object_eval_ = *obj_eval;
+  export_mesh_eval_ = BKE_object_get_evaluated_mesh(&export_object_eval_);
   mesh_eval_needs_free_ = false;
 
   if (!export_mesh_eval_) {
     /* Curves and NURBS surfaces need a new mesh when they're
      * exported in the form of vertices and edges.
      */
-    export_mesh_eval_ = BKE_mesh_new_from_object(depsgraph, export_object_eval_, true, true);
+    export_mesh_eval_ = BKE_mesh_new_from_object(depsgraph, &export_object_eval_, true, true);
     /* Since a new mesh been allocated, it needs to be freed in the destructor. */
     mesh_eval_needs_free_ = true;
   }
-  if (export_params.export_triangulated_mesh &&
-      ELEM(export_object_eval_->type, OB_MESH, OB_SURF)) {
+  if (export_params.export_triangulated_mesh && ELEM(export_object_eval_.type, OB_MESH, OB_SURF)) {
     std::tie(export_mesh_eval_, mesh_eval_needs_free_) = triangulate_mesh_eval();
   }
   set_world_axes_transform(export_params.forward_axis, export_params.up_axis);
@@ -116,10 +119,10 @@ void OBJMesh::set_world_axes_transform(const eTransformAxisForward forward,
   mat3_from_axis_conversion(OBJ_AXIS_Y_FORWARD, OBJ_AXIS_Z_UP, forward, up, axes_transform);
   /* mat3_from_axis_conversion returns a transposed matrix! */
   transpose_m3(axes_transform);
-  mul_m4_m3m4(world_and_axes_transform_, axes_transform, export_object_eval_->obmat);
+  mul_m4_m3m4(world_and_axes_transform_, axes_transform, export_object_eval_.obmat);
   /* mul_m4_m3m4 does not transform last row of obmat, i.e. location data. */
-  mul_v3_m3v3(world_and_axes_transform_[3], axes_transform, export_object_eval_->obmat[3]);
-  world_and_axes_transform_[3][3] = export_object_eval_->obmat[3][3];
+  mul_v3_m3v3(world_and_axes_transform_[3], axes_transform, export_object_eval_.obmat[3]);
+  world_and_axes_transform_[3][3] = export_object_eval_.obmat[3][3];
 }
 
 int OBJMesh::tot_vertices() const
@@ -185,8 +188,14 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
 
 const Material *OBJMesh::get_object_material(const int16_t mat_nr) const
 {
-  /* "+ 1" as material getter needs one-based indices.  */
-  const Material *r_mat = BKE_object_material_get(export_object_eval_, mat_nr + 1);
+  /**
+   * The const_cast is safe here because BKE_object_material_get won't change the object
+   * but it is a big can of worms to fix the declaration of that function right now.
+   *
+   * The call uses "+ 1" as material getter needs one-based indices.
+   */
+  Object *obj = const_cast<Object *>(&export_object_eval_);
+  const Material *r_mat = BKE_object_material_get(obj, mat_nr + 1);
 #ifdef DEBUG
   if (!r_mat) {
     std::cerr << "Material not found for mat_nr = " << mat_nr << std::endl;
@@ -209,7 +218,7 @@ int16_t OBJMesh::ith_poly_matnr(const int poly_index) const
 
 const char *OBJMesh::get_object_name() const
 {
-  return export_object_eval_->id.name + 2;
+  return export_object_eval_.id.name + 2;
 }
 
 const char *OBJMesh::get_object_mesh_name() const
@@ -403,7 +412,7 @@ int16_t OBJMesh::get_poly_deform_group_index(const int poly_index) const
   BLI_assert(poly_index < export_mesh_eval_->totpoly);
   const MPoly &mpoly = export_mesh_eval_->mpoly[poly_index];
   const MLoop *mloop = &export_mesh_eval_->mloop[mpoly.loopstart];
-  const Object *obj = export_object_eval_;
+  const Object *obj = &export_object_eval_;
   const int tot_deform_groups = BKE_object_defgroup_count(obj);
   /* Indices of the vector index into deform groups of an object; values are the]
    * number of vertex members in one deform group. */
@@ -444,7 +453,7 @@ int16_t OBJMesh::get_poly_deform_group_index(const int poly_index) const
 const char *OBJMesh::get_poly_deform_group_name(const int16_t def_group_index) const
 {
   const bDeformGroup &vertex_group = *(static_cast<bDeformGroup *>(
-      BLI_findlink(BKE_object_defgroup_list(export_object_eval_), def_group_index)));
+      BLI_findlink(BKE_object_defgroup_list(&export_object_eval_), def_group_index)));
   return vertex_group.name;
 }
 

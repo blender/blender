@@ -60,7 +60,7 @@ TEST_F(obj_exporter_test, filter_objects_curves_as_mesh)
     return;
   }
   auto [objmeshes, objcurves]{filter_supported_objects(depsgraph, _export.params)};
-  EXPECT_EQ(objmeshes.size(), 17);
+  EXPECT_EQ(objmeshes.size(), 19);
   EXPECT_EQ(objcurves.size(), 0);
 }
 
@@ -73,7 +73,7 @@ TEST_F(obj_exporter_test, filter_objects_curves_as_nurbs)
   }
   _export.params.export_curves_as_nurbs = true;
   auto [objmeshes, objcurves]{filter_supported_objects(depsgraph, _export.params)};
-  EXPECT_EQ(objmeshes.size(), 16);
+  EXPECT_EQ(objmeshes.size(), 18);
   EXPECT_EQ(objcurves.size(), 2);
 }
 
