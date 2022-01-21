@@ -304,7 +304,7 @@ class IDPStringSerializer : public IDPropertySerializer {
   std::unique_ptr<IDProperty, IDPropertyDeleter> entry_to_idprop(
       DictionaryEntryParser &entry_reader) const override
   {
-    BLI_assert(entry_reader.get_type().value() == IDP_STRING);
+    BLI_assert(*(entry_reader.get_type()) == IDP_STRING);
     std::optional<std::string> name = entry_reader.get_name();
     if (!name.has_value()) {
       return nullptr;
@@ -344,7 +344,7 @@ class IDPIntSerializer : public IDPropertySerializer {
   std::unique_ptr<IDProperty, IDPropertyDeleter> entry_to_idprop(
       DictionaryEntryParser &entry_reader) const override
   {
-    BLI_assert(entry_reader.get_type().value() == IDP_INT);
+    BLI_assert(*(entry_reader.get_type()) == IDP_INT);
     std::optional<std::string> name = entry_reader.get_name();
     if (!name.has_value()) {
       return nullptr;
@@ -384,7 +384,7 @@ class IDPFloatSerializer : public IDPropertySerializer {
   std::unique_ptr<IDProperty, IDPropertyDeleter> entry_to_idprop(
       DictionaryEntryParser &entry_reader) const override
   {
-    BLI_assert(entry_reader.get_type().value() == IDP_FLOAT);
+    BLI_assert(*(entry_reader.get_type()) == IDP_FLOAT);
     std::optional<std::string> name = entry_reader.get_name();
     if (!name.has_value()) {
       return nullptr;
@@ -424,7 +424,7 @@ class IDPDoubleSerializer : public IDPropertySerializer {
   std::unique_ptr<IDProperty, IDPropertyDeleter> entry_to_idprop(
       DictionaryEntryParser &entry_reader) const override
   {
-    BLI_assert(entry_reader.get_type().value() == IDP_DOUBLE);
+    BLI_assert(*(entry_reader.get_type()) == IDP_DOUBLE);
     std::optional<std::string> name = entry_reader.get_name();
     if (!name.has_value()) {
       return nullptr;
@@ -502,7 +502,7 @@ class IDPArraySerializer : public IDPropertySerializer {
   std::unique_ptr<IDProperty, IDPropertyDeleter> entry_to_idprop(
       DictionaryEntryParser &entry_reader) const override
   {
-    BLI_assert(entry_reader.get_type().value() == IDP_ARRAY);
+    BLI_assert(*(entry_reader.get_type()) == IDP_ARRAY);
     std::optional<eIDPropertyType> property_subtype = entry_reader.get_subtype();
     if (!property_subtype.has_value()) {
       return nullptr;
@@ -556,8 +556,8 @@ class IDPArraySerializer : public IDPropertySerializer {
   std::unique_ptr<IDProperty, IDPropertyDeleter> idprop_array_int_from_value(
       DictionaryEntryParser &entry_reader) const
   {
-    BLI_assert(entry_reader.get_type().value() == IDP_ARRAY);
-    BLI_assert(entry_reader.get_subtype().value() == IDP_INT);
+    BLI_assert(*(entry_reader.get_type()) == IDP_ARRAY);
+    BLI_assert(*(entry_reader.get_subtype()) == IDP_INT);
     std::optional<std::string> name = entry_reader.get_name();
     if (!name.has_value()) {
       return nullptr;
@@ -572,8 +572,8 @@ class IDPArraySerializer : public IDPropertySerializer {
   std::unique_ptr<IDProperty, IDPropertyDeleter> idprop_array_float_from_value(
       DictionaryEntryParser &entry_reader) const
   {
-    BLI_assert(entry_reader.get_type().value() == IDP_ARRAY);
-    BLI_assert(entry_reader.get_subtype().value() == IDP_FLOAT);
+    BLI_assert(*(entry_reader.get_type()) == IDP_ARRAY);
+    BLI_assert(*(entry_reader.get_subtype()) == IDP_FLOAT);
     std::optional<std::string> name = entry_reader.get_name();
     if (!name.has_value()) {
       return nullptr;
@@ -588,8 +588,8 @@ class IDPArraySerializer : public IDPropertySerializer {
   std::unique_ptr<IDProperty, IDPropertyDeleter> idprop_array_double_from_value(
       DictionaryEntryParser &entry_reader) const
   {
-    BLI_assert(entry_reader.get_type().value() == IDP_ARRAY);
-    BLI_assert(entry_reader.get_subtype().value() == IDP_DOUBLE);
+    BLI_assert(*(entry_reader.get_type()) == IDP_ARRAY);
+    BLI_assert(*(entry_reader.get_subtype()) == IDP_DOUBLE);
     std::optional<std::string> name = entry_reader.get_name();
     if (!name.has_value()) {
       return nullptr;
@@ -639,7 +639,7 @@ class IDPGroupSerializer : public IDPropertySerializer {
   std::unique_ptr<IDProperty, IDPropertyDeleter> entry_to_idprop(
       DictionaryEntryParser &entry_reader) const override
   {
-    BLI_assert(entry_reader.get_type().value() == IDP_GROUP);
+    BLI_assert(*(entry_reader.get_type()) == IDP_GROUP);
     std::optional<std::string> name = entry_reader.get_name();
     if (!name.has_value()) {
       return nullptr;
@@ -796,7 +796,7 @@ static IDProperty *idprop_from_value(const DictionaryValue &value)
     return nullptr;
   }
 
-  const IDPropertySerializer &serializer = serializer_for(property_type.value());
+  const IDPropertySerializer &serializer = serializer_for(*property_type);
   return serializer.entry_to_idprop(entry_reader).release();
 }
 
