@@ -27,7 +27,7 @@ namespace blender::nodes::node_geo_input_mesh_island_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Int>(N_("Index"))
+  b.add_output<decl::Int>(N_("Island Index"))
       .field_source()
       .description(N_("Island indices are based on the order of the lowest-numbered vertex "
                       "contained in each island"));
@@ -133,9 +133,9 @@ class IslandCountFieldInput final : public GeometryFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  if (params.output_is_required("Index")) {
+  if (params.output_is_required("Island Index")) {
     Field<int> field{std::make_shared<IslandFieldInput>()};
-    params.set_output("Index", std::move(field));
+    params.set_output("Island Index", std::move(field));
   }
   if (params.output_is_required("Island Count")) {
     Field<int> field{std::make_shared<IslandCountFieldInput>()};
