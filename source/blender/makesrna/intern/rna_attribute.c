@@ -166,7 +166,9 @@ static int rna_Attribute_type_get(PointerRNA *ptr)
   return layer->type;
 }
 
-const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id, bool *r_free)
+const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id,
+                                                        bool include_instances,
+                                                        bool *r_free)
 {
   EnumPropertyItem *item = NULL;
   const EnumPropertyItem *domain_item = NULL;
@@ -188,6 +190,9 @@ const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id, bool *r_free)
     if (id_type == ID_ME && ELEM(domain_item->value, ATTR_DOMAIN_CURVE)) {
       continue;
     }
+    if (!include_instances && domain_item->value == ATTR_DOMAIN_INSTANCE) {
+      continue;
+    }
 
     if (domain_item->value == ATTR_DOMAIN_POINT && id_type == ID_ME) {
       RNA_enum_item_add(&item, &totitem, &mesh_vertex_domain_item);
@@ -207,7 +212,7 @@ static const EnumPropertyItem *rna_Attribute_domain_itemf(bContext *UNUSED(C),
                                                           PropertyRNA *UNUSED(prop),
                                                           bool *r_free)
 {
-  return rna_enum_attribute_domain_itemf(ptr->owner_id, r_free);
+  return rna_enum_attribute_domain_itemf(ptr->owner_id, true, r_free);
 }
 
 static int rna_Attribute_domain_get(PointerRNA *ptr)

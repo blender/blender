@@ -20,9 +20,11 @@ set(INC
   ../../blenkernel
   ../../blenlib
   ../../depsgraph
+  ../../functions
   ../../makesdna
   ../../makesrna
   ../../windowmanager
+  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
