@@ -78,6 +78,26 @@ template<> inline half util_image_cast_from_float(float value)
   return float_to_half_image(value);
 }
 
+/* Multiply image pixels in native data format. */
+template<typename T> inline T util_image_multiply_native(T a, T b);
+
+template<> inline float util_image_multiply_native(float a, float b)
+{
+  return a * b;
+}
+template<> inline uchar util_image_multiply_native(uchar a, uchar b)
+{
+  return ((uint32_t)a * (uint32_t)b) / 255;
+}
+template<> inline uint16_t util_image_multiply_native(uint16_t a, uint16_t b)
+{
+  return ((uint32_t)a * (uint32_t)b) / 65535;
+}
+template<> inline half util_image_multiply_native(half a, half b)
+{
+  return float_to_half_image(half_to_float_image(a) * half_to_float_image(b));
+}
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_IMAGE_H__ */
