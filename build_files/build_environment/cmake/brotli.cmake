@@ -31,8 +31,8 @@ ExternalProject_Add(external_brotli
 if(BUILD_MODE STREQUAL Release AND WIN32)
   ExternalProject_Add_Step(external_brotli after_install
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/brotli/include ${HARVEST_TARGET}/brotli/include
-    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/brotli/lib/brotlidec-static${LIBEXT} ${HARVEST_TARGET}/zstd/lib/brotlidec-static${LIBEXT}
-    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/brotli/lib/brotlicommon-static${LIBEXT} ${HARVEST_TARGET}/zstd/lib/brotlicommon-static${LIBEXT}
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/brotli/lib/brotlidec-static${LIBEXT} ${HARVEST_TARGET}/brotli/lib/brotlidec-static${LIBEXT}
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/brotli/lib/brotlicommon-static${LIBEXT} ${HARVEST_TARGET}/brotli/lib/brotlicommon-static${LIBEXT}
     DEPENDEES install
   )
 endif()
