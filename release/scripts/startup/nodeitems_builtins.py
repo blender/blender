@@ -150,6 +150,7 @@ def mesh_node_items(context):
     yield NodeItem("GeometryNodeSubdivideMesh")
     yield NodeItem("GeometryNodeSubdivisionSurface")
     yield NodeItem("GeometryNodeTriangulate")
+    yield NodeItem("GeometryNodeScaleElements")
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItem("GeometryNodeInputMeshEdgeAngle")
     yield NodeItem("GeometryNodeInputMeshEdgeNeighbors")

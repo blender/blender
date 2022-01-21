@@ -2341,6 +2341,11 @@ typedef enum GeometryNodeRealizeInstancesFlag {
   GEO_NODE_REALIZE_INSTANCES_LEGACY_BEHAVIOR = (1 << 0),
 } GeometryNodeRealizeInstancesFlag;
 
+typedef enum GeometryNodeScaleElementsMode {
+  GEO_NODE_SCALE_ELEMENTS_UNIFORM = 0,
+  GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS = 1,
+} GeometryNodeScaleElementsMode;
+
 #ifdef __cplusplus
 }
 #endif

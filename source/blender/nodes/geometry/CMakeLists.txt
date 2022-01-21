@@ -167,6 +167,7 @@ set(SRC
   nodes/node_geo_raycast.cc
   nodes/node_geo_realize_instances.cc
   nodes/node_geo_rotate_instances.cc
+  nodes/node_geo_scale_elements.cc
   nodes/node_geo_scale_instances.cc
   nodes/node_geo_separate_components.cc
   nodes/node_geo_separate_geometry.cc

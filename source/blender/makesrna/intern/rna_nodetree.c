@@ -11422,6 +11422,53 @@ static void def_geo_field_at_index(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
 }
 
+static void def_geo_scale_elements(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem domain_items[] = {
+      {ATTR_DOMAIN_FACE,
+       "FACE",
+       ICON_NONE,
+       "Face",
+       "Scale individual faces or neighboring face islands"},
+      {ATTR_DOMAIN_EDGE,
+       "EDGE",
+       ICON_NONE,
+       "Edge",
+       "Scale individual edges or neighboring edge islands"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem scale_mode_items[] = {
+      {GEO_NODE_SCALE_ELEMENTS_UNIFORM,
+       "UNIFORM",
+       ICON_NONE,
+       "Uniform",
+       "Scale elements by the same factor in every direction"},
+      {GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS,
+       "SINGLE_AXIS",
+       ICON_NONE,
+       "Single Axis",
+       "Scale elements in a single direction"},
+      {0, NULL, 0, NULL, NULL},
+
+  };
+
+  prop = RNA_def_property(srna, "domain", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, domain_items);
+  RNA_def_property_enum_default(prop, ATTR_DOMAIN_FACE);
+  RNA_def_property_ui_text(prop, "Domain", "Element type to transform");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
+
+  prop = RNA_def_property(srna, "scale_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom2");
+  RNA_def_property_enum_items(prop, scale_mode_items);
+  RNA_def_property_ui_text(prop, "Scale Mode", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
+}
+
 /* -------------------------------------------------------------------------- */
 
 static void rna_def_shader_node(BlenderRNA *brna)

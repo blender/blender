@@ -407,6 +407,7 @@ DefNode(GeometryNode, GEO_NODE_RESAMPLE_CURVE, def_geo_curve_resample, "RESAMPLE
 DefNode(GeometryNode, GEO_NODE_REVERSE_CURVE, 0, "REVERSE_CURVE", ReverseCurve, "Reverse Curve", "")
 DefNode(GeometryNode, GEO_NODE_ROTATE_INSTANCES, 0, "ROTATE_INSTANCES", RotateInstances, "Rotate Instances", "")
 DefNode(GeometryNode, GEO_NODE_SAMPLE_CURVE, def_geo_curve_sample, "SAMPLE_CURVE", SampleCurve, "Sample Curve", "")
+DefNode(GeometryNode, GEO_NODE_SCALE_ELEMENTS, def_geo_scale_elements, "SCALE_ELEMENTS", ScaleElements, "Scale Elements", "")
 DefNode(GeometryNode, GEO_NODE_SCALE_INSTANCES, 0, "SCALE_INSTANCES", ScaleInstances, "Scale Instances", "")
 DefNode(GeometryNode, GEO_NODE_SEPARATE_COMPONENTS, 0, "SEPARATE_COMPONENTS", SeparateComponents, "Separate Components", "")
 DefNode(GeometryNode, GEO_NODE_SEPARATE_GEOMETRY, def_geo_separate_geometry, "SEPARATE_GEOMETRY", SeparateGeometry, "Separate Geometry", "")
