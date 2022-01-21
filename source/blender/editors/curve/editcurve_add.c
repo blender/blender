@@ -306,9 +306,9 @@ Nurb *ED_curve_add_nurbs_primitive(
       else if (cutype == CU_NURBS) { /* nurb */
         nu->pntsu = 8;
         nu->pntsv = 1;
-        nu->orderu = 4;
+        nu->orderu = 3;
         nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * nu->pntsu, "addNurbprim6");
-        nu->flagu = CU_NURB_CYCLIC;
+        nu->flagu = CU_NURB_CYCLIC | CU_NURB_BEZIER;
         bp = nu->bp;
 
         for (a = 0; a < 8; a++) {
@@ -322,7 +322,7 @@ Nurb *ED_curve_add_nurbs_primitive(
             bp->vec[2] += 0.25f * nurbcircle[a][1] * grid;
           }
           if (a & 1) {
-            bp->vec[3] = 0.25 * M_SQRT2;
+            bp->vec[3] = 0.5 * M_SQRT2;
           }
           else {
             bp->vec[3] = 1.0;
