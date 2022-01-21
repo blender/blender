@@ -965,7 +965,7 @@ static void rna_wmKeyMapItem_keymodifier_set(PointerRNA *ptr, int value)
   if (value == EVT_ESCKEY) {
     /* pass */
   }
-  else if (value >= EVT_AKEY) {
+  else if (ISKEYBOARD(value) && !ISKEYMODIFIER(value)) {
     kmi->keymodifier = value;
   }
   else {
