@@ -88,6 +88,7 @@ enum class eMTLSyntaxElement {
 
 template<eFileType filetype> struct FileTypeTraits;
 
+/* Used to prevent mixing of say OBJ file format with MTL syntax elements. */
 template<> struct FileTypeTraits<eFileType::OBJ> {
   using SyntaxType = eOBJSyntaxElement;
 };
@@ -96,15 +97,19 @@ template<> struct FileTypeTraits<eFileType::MTL> {
   using SyntaxType = eMTLSyntaxElement;
 };
 
-template<eFileType type> struct Formatting {
+struct FormattingSyntax {
+  /* Formatting syntax with the file format key like `newmtl %s\n`. */
   const char *fmt = nullptr;
+  /* Number of arguments needed by the syntax. */
   const int total_args = 0;
-  /* Fail to compile by default. */
-  const bool is_type_valid = false;
+  /* Whether types of the given arguments are accepted by the syntax above. Fail to compile by
+   * default.
+   */
+  const bool are_types_valid = false;
 };
 
 /**
- * Type dependent but always false. Use to add a conditional compile-time error.
+ * Type dependent but always false. Use to add a constexpr-conditional compile-time error.
  */
 template<typename T> struct always_false : std::false_type {
 };
@@ -118,9 +123,8 @@ constexpr bool is_type_integral = (... && std::is_integral_v<std::decay_t<T>>);
 template<typename... T>
 constexpr bool is_type_string_related = (... && std::is_constructible_v<std::string, T>);
 
-template<eFileType filetype, typename... T>
-constexpr std::enable_if_t<filetype == eFileType::OBJ, Formatting<filetype>>
-syntax_elem_to_formatting(const eOBJSyntaxElement key)
+template<typename... T>
+constexpr FormattingSyntax syntax_elem_to_formatting(const eOBJSyntaxElement key)
 {
   switch (key) {
     case eOBJSyntaxElement::vertex_coords: {
@@ -201,9 +205,8 @@ syntax_elem_to_formatting(const eOBJSyntaxElement key)
   }
 }
 
-template<eFileType filetype, typename... T>
-constexpr std::enable_if_t<filetype == eFileType::MTL, Formatting<filetype>>
-syntax_elem_to_formatting(const eMTLSyntaxElement key)
+template<typename... T>
+constexpr FormattingSyntax syntax_elem_to_formatting(const eMTLSyntaxElement key)
 {
   switch (key) {
     case eMTLSyntaxElement::newmtl: {
@@ -261,21 +264,25 @@ syntax_elem_to_formatting(const eMTLSyntaxElement key)
   }
 }
 
-template<eFileType filetype> class FileHandler : NonCopyable, NonMovable {
+/**
+ * File format and syntax agnostic file writer.
+ */
+template<eFileType filetype> class FormattedFileHandler : NonCopyable, NonMovable {
  private:
-  FILE *outfile_ = nullptr;
+  std::FILE *outfile_ = nullptr;
   std::string outfile_path_;
 
  public:
-  FileHandler(std::string outfile_path) noexcept(false) : outfile_path_(std::move(outfile_path))
+  FormattedFileHandler(std::string outfile_path) noexcept(false)
+      : outfile_path_(std::move(outfile_path))
   {
     outfile_ = std::fopen(outfile_path_.c_str(), "w");
     if (!outfile_) {
-      throw std::system_error(errno, std::system_category(), "Cannot open file");
+      throw std::system_error(errno, std::system_category(), "Cannot open file " + outfile_path_);
     }
   }
 
-  ~FileHandler()
+  ~FormattedFileHandler()
   {
     if (outfile_ && std::fclose(outfile_)) {
       std::cerr << "Error: could not close the file '" << outfile_path_
@@ -283,17 +290,24 @@ template<eFileType filetype> class FileHandler : NonCopyable, NonMovable {
     }
   }
 
+  /**
+   * Example invocation: `writer->write<eMTLSyntaxElement::newmtl>("foo")`.
+   *
+   * \param key Must match what the instance's filetype expects; i.e., `eMTLSyntaxElement` for
+   * `eFileType::MTL`.
+   */
   template<typename FileTypeTraits<filetype>::SyntaxType key, typename... T>
   constexpr void write(T &&...args) const
   {
-    constexpr Formatting<filetype> fmt_nargs_valid = syntax_elem_to_formatting<filetype, T...>(
-        key);
-    write__impl<fmt_nargs_valid.total_args>(fmt_nargs_valid.fmt, std::forward<T>(args)...);
-    /* Types of all arguments and the number of arguments should match
-     * what the formatting specifies. */
-    return std::enable_if_t < fmt_nargs_valid.is_type_valid &&
-               (sizeof...(T) == fmt_nargs_valid.total_args),
-           void > ();
+    /* Get format syntax, number of arguments expected and whether types of given arguments are
+     * valid.
+     */
+    constexpr FormattingSyntax fmt_nargs_valid = syntax_elem_to_formatting<T...>(key);
+    BLI_STATIC_ASSERT(fmt_nargs_valid.are_types_valid &&
+                          (sizeof...(T) == fmt_nargs_valid.total_args),
+                      "Types of all arguments and the number of arguments should match what the "
+                      "formatting specifies.");
+    write_impl(fmt_nargs_valid.fmt, std::forward<T>(args)...);
   }
 
  private:
@@ -301,11 +315,11 @@ template<eFileType filetype> class FileHandler : NonCopyable, NonMovable {
   template<typename T> using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
   /**
-   * Make #std::string etc., usable for `fprintf` family.
+   * Make #std::string etc., usable for `fprintf` family. int float etc. are not affected.
    * \return: `const char *` or the original argument if the argument is
    * not related to #std::string.
    */
-  template<typename T> constexpr auto string_to_primitive(T &&arg) const
+  template<typename T> constexpr auto convert_to_primitive(T &&arg) const
   {
     if constexpr (std::is_same_v<remove_cvref_t<T>, std::string> ||
                   std::is_same_v<remove_cvref_t<T>, blender::StringRefNull>) {
@@ -319,21 +333,19 @@ template<eFileType filetype> class FileHandler : NonCopyable, NonMovable {
       return;
     }
     else {
+      /* For int, float etc. */
       return std::forward<T>(arg);
     }
   }
 
-  template<int total_args, typename... T>
-  constexpr std::enable_if_t<(total_args != 0), void> write__impl(const char *fmt,
-                                                                  T &&...args) const
+  template<typename... T> constexpr void write_impl(const char *fmt, T &&...args) const
   {
-    std::fprintf(outfile_, fmt, string_to_primitive(std::forward<T>(args))...);
-  }
-  template<int total_args, typename... T>
-  constexpr std::enable_if_t<(total_args == 0), void> write__impl(const char *fmt,
-                                                                  T &&...args) const
-  {
-    std::fputs(fmt, outfile_);
+    if constexpr (sizeof...(T) == 0) {
+      std::fputs(fmt, outfile_);
+    }
+    else {
+      std::fprintf(outfile_, fmt, convert_to_primitive(std::forward<T>(args))...);
+    }
   }
 };
 

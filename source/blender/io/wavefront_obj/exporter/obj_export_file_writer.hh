@@ -49,14 +49,14 @@ struct IndexOffsets {
 class OBJWriter : NonMovable, NonCopyable {
  private:
   const OBJExportParams &export_params_;
-  std::unique_ptr<FileHandler<eFileType::OBJ>> file_handler_ = nullptr;
+  std::unique_ptr<FormattedFileHandler<eFileType::OBJ>> file_handler_ = nullptr;
   IndexOffsets index_offsets_{0, 0, 0};
 
  public:
   OBJWriter(const char *filepath, const OBJExportParams &export_params) noexcept(false)
       : export_params_(export_params)
   {
-    file_handler_ = std::make_unique<FileHandler<eFileType::OBJ>>(filepath);
+    file_handler_ = std::make_unique<FormattedFileHandler<eFileType::OBJ>>(filepath);
   }
 
   void write_header() const;
@@ -172,7 +172,7 @@ class OBJWriter : NonMovable, NonCopyable {
  */
 class MTLWriter : NonMovable, NonCopyable {
  private:
-  std::unique_ptr<FileHandler<eFileType::MTL>> file_handler_ = nullptr;
+  std::unique_ptr<FormattedFileHandler<eFileType::MTL>> file_handler_ = nullptr;
   std::string mtl_filepath_;
   Vector<MTLMaterial> mtlmaterials_;
   /* Map from a Material* to an index into mtlmaterials_. */

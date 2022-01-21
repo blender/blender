@@ -394,7 +394,7 @@ MTLWriter::MTLWriter(const char *obj_filepath) noexcept(false)
   if (!ok) {
     throw std::system_error(ENAMETOOLONG, std::system_category(), "");
   }
-  file_handler_ = std::make_unique<FileHandler<eFileType::MTL>>(mtl_filepath_);
+  file_handler_ = std::make_unique<FormattedFileHandler<eFileType::MTL>>(mtl_filepath_);
 }
 
 void MTLWriter::write_header(const char *blen_filepath) const
