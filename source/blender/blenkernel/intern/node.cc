@@ -4769,6 +4769,7 @@ static void registerGeometryNodes()
   register_node_type_geo_dual_mesh();
   register_node_type_geo_edge_split();
   register_node_type_geo_field_at_index();
+  register_node_type_geo_flip_faces();
   register_node_type_geo_geometry_to_instance();
   register_node_type_geo_image_texture();
   register_node_type_geo_input_curve_handles();

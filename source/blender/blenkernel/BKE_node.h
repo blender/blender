@@ -1630,6 +1630,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_INPUT_MESH_EDGE_ANGLE 1147
 #define GEO_NODE_FIELD_AT_INDEX 1148
 #define GEO_NODE_CURVE_PRIMITIVE_ARC 1149
+#define GEO_NODE_FLIP_FACES 1150
 
 /** \} */
 
