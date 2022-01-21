@@ -358,6 +358,8 @@ bool MetalDeviceKernels::load(MetalDevice *device, int kernel_type)
           "__intersection__curve_ribbon_shadow",
           "__intersection__curve_all",
           "__intersection__curve_all_shadow",
+          "__intersection__point",
+          "__intersection__point_shadow",
       };
       assert(sizeof(function_names) / sizeof(function_names[0]) == METALRT_FUNC_NUM);
 
@@ -400,36 +402,50 @@ bool MetalDeviceKernels::load(MetalDevice *device, int kernel_type)
     NSArray *function_list = nil;
 
     if (device->use_metalrt) {
-      id<MTLFunction> box_intersect_default = nil;
-      id<MTLFunction> box_intersect_shadow = nil;
+      id<MTLFunction> curve_intersect_default = nil;
+      id<MTLFunction> curve_intersect_shadow = nil;
+      id<MTLFunction> point_intersect_default = nil;
+      id<MTLFunction> point_intersect_shadow = nil;
       if (device->kernel_features & KERNEL_FEATURE_HAIR) {
         /* Add curve intersection programs. */
         if (device->kernel_features & KERNEL_FEATURE_HAIR_THICK) {
           /* Slower programs for thick hair since that also slows down ribbons.
            * Ideally this should not be needed. */
-          box_intersect_default = rt_intersection_funcs[kernel_type][METALRT_FUNC_CURVE_ALL];
-          box_intersect_shadow = rt_intersection_funcs[kernel_type][METALRT_FUNC_CURVE_ALL_SHADOW];
+          curve_intersect_default = rt_intersection_funcs[kernel_type][METALRT_FUNC_CURVE_ALL];
+          curve_intersect_shadow =
+              rt_intersection_funcs[kernel_type][METALRT_FUNC_CURVE_ALL_SHADOW];
         }
         else {
-          box_intersect_default = rt_intersection_funcs[kernel_type][METALRT_FUNC_CURVE_RIBBON];
-          box_intersect_shadow =
+          curve_intersect_default = rt_intersection_funcs[kernel_type][METALRT_FUNC_CURVE_RIBBON];
+          curve_intersect_shadow =
               rt_intersection_funcs[kernel_type][METALRT_FUNC_CURVE_RIBBON_SHADOW];
         }
       }
+      if (device->kernel_features & KERNEL_FEATURE_POINTCLOUD) {
+        point_intersect_default = rt_intersection_funcs[kernel_type][METALRT_FUNC_POINT];
+        point_intersect_shadow = rt_intersection_funcs[kernel_type][METALRT_FUNC_POINT_SHADOW];
+      }
       table_functions[METALRT_TABLE_DEFAULT] = [NSArray
           arrayWithObjects:rt_intersection_funcs[kernel_type][METALRT_FUNC_DEFAULT_TRI],
-                           box_intersect_default ?
-                               box_intersect_default :
+                           curve_intersect_default ?
+                               curve_intersect_default :
+                               rt_intersection_funcs[kernel_type][METALRT_FUNC_DEFAULT_BOX],
+                           point_intersect_default ?
+                               point_intersect_default :
                                rt_intersection_funcs[kernel_type][METALRT_FUNC_DEFAULT_BOX],
                            nil];
       table_functions[METALRT_TABLE_SHADOW] = [NSArray
           arrayWithObjects:rt_intersection_funcs[kernel_type][METALRT_FUNC_SHADOW_TRI],
-                           box_intersect_shadow ?
-                               box_intersect_shadow :
+                           curve_intersect_shadow ?
+                               curve_intersect_shadow :
+                               rt_intersection_funcs[kernel_type][METALRT_FUNC_SHADOW_BOX],
+                           point_intersect_shadow ?
+                               point_intersect_shadow :
                                rt_intersection_funcs[kernel_type][METALRT_FUNC_SHADOW_BOX],
                            nil];
       table_functions[METALRT_TABLE_LOCAL] = [NSArray
           arrayWithObjects:rt_intersection_funcs[kernel_type][METALRT_FUNC_LOCAL_TRI],
+                           rt_intersection_funcs[kernel_type][METALRT_FUNC_LOCAL_BOX],
                            rt_intersection_funcs[kernel_type][METALRT_FUNC_LOCAL_BOX],
                            nil];
 
