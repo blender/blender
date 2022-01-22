@@ -3231,6 +3231,12 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
       prop, "Use Geometry Space", "Use geometry distance for chaining instead of image space");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+  prop = RNA_def_property(srna, "use_detail_preserve", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_CHAIN_PRESERVE_DETAILS);
+  RNA_def_property_ui_text(
+      prop, "Preserve Details", "Keep the zig-zag \"noise\" in initial chaining");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
   prop = RNA_def_property(srna, "use_overlap_edge_type_support", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_ALLOW_OVERLAP_EDGE_TYPES);
   RNA_def_property_ui_text(prop,

@@ -3158,6 +3158,8 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   rb->force_crease = (lmd->calculation_flags & LRT_USE_CREASE_ON_SMOOTH_SURFACES) != 0;
   rb->sharp_as_crease = (lmd->calculation_flags & LRT_USE_CREASE_ON_SHARP_EDGES) != 0;
 
+  rb->chain_preserve_details = (lmd->calculation_flags & LRT_CHAIN_PRESERVE_DETAILS) != 0;
+
   int16_t edge_types = lmd->edge_types_override;
 
   rb->use_contour = (edge_types & LRT_EDGE_FLAG_CONTOUR) != 0;

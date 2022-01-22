@@ -571,6 +571,57 @@ static void lineart_bounding_area_link_chain(LineartRenderBuffer *rb, LineartEdg
   }
 }
 
+static bool lineart_chain_fix_ambiguous_segments(LineartEdgeChain *ec,
+                                                 LineartEdgeChainItem *last_matching_eci,
+                                                 float distance_threshold,
+                                                 bool preserve_details,
+                                                 LineartEdgeChainItem **r_next_eci)
+{
+  float dist_accum = 0;
+
+  int fixed_occ = last_matching_eci->occlusion;
+  unsigned char fixed_mask = last_matching_eci->material_mask_bits;
+
+  LineartEdgeChainItem *can_skip_to = NULL;
+  LineartEdgeChainItem *last_eci = last_matching_eci;
+  for (LineartEdgeChainItem *eci = last_matching_eci->next; eci; eci = eci->next) {
+    dist_accum += len_v2v2(last_eci->pos, eci->pos);
+    if (dist_accum > distance_threshold) {
+      break;
+    }
+    last_eci = eci;
+    /* The reason for this is because we don't want visible segments to be "skipped" into
+     * connecting with invisible segments. */
+    if (eci->occlusion < fixed_occ) {
+      break;
+    }
+    if (eci->material_mask_bits == fixed_mask && eci->occlusion == fixed_occ) {
+      can_skip_to = eci;
+    }
+  }
+  if (can_skip_to) {
+    /* Either mark all in-between segments with the same occlusion and mask or delete those
+     * different ones. */
+    LineartEdgeChainItem *next_eci;
+    for (LineartEdgeChainItem *eci = last_matching_eci->next; eci != can_skip_to; eci = next_eci) {
+      next_eci = eci->next;
+      if (eci->material_mask_bits == fixed_mask && eci->occlusion == fixed_occ) {
+        continue;
+      }
+      if (preserve_details) {
+        eci->material_mask_bits = fixed_mask;
+        eci->occlusion = fixed_occ;
+      }
+      else {
+        BLI_remlink(&ec->chain, eci);
+      }
+    }
+    *r_next_eci = can_skip_to;
+    return true;
+  }
+  return false;
+}
+
 void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
 {
   LineartEdgeChain *ec, *new_ec;
@@ -595,6 +646,13 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
       if (eci->occlusion != fixed_occ || eci->material_mask_bits != fixed_mask) {
         if (next_eci) {
           if (lineart_point_overlapping(next_eci, eci->pos[0], eci->pos[1], 1e-5)) {
+            continue;
+          }
+          if (lineart_chain_fix_ambiguous_segments(ec,
+                                                   eci->prev,
+                                                   rb->chaining_image_threshold,
+                                                   rb->chain_preserve_details,
+                                                   &next_eci)) {
             continue;
           }
         }

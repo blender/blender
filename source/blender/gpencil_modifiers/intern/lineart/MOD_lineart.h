@@ -308,6 +308,8 @@ typedef struct LineartRenderBuffer {
   bool force_crease;
   bool sharp_as_crease;
 
+  bool chain_preserve_details;
+
   /* Keep an copy of these data so when line art is running it's self-contained. */
   bool cam_is_persp;
   float cam_obmat[4][4];
