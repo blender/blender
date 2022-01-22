@@ -257,20 +257,23 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
     BLI_strncpy(name, defname, name_len);
   }
 
-  if (unique_check(arg, name)) {
+  // VSE MG: commented out so duplicate layer names can be used with the 
+  // intention of using custom/varying channels. 
+  /*if (unique_check(arg, name))
+  {
     char numstr[16];
     char *tempname = alloca(name_len);
     char *left = alloca(name_len);
     int number;
     size_t len = BLI_split_name_num(left, &number, name, delim);
     do {
-      /* add 1 to account for \0 */
+      // add 1 to account for \0 
       const size_t numlen = BLI_snprintf(numstr, sizeof(numstr), "%c%03d", delim, ++number) + 1;
 
-      /* highly unlikely the string only has enough room for the number
-       * but support anyway */
+      // highly unlikely the string only has enough room for the number
+      // but support anyway 
       if ((len == 0) || (numlen >= name_len)) {
-        /* number is know not to be utf-8 */
+        // number is know not to be utf-8 
         BLI_strncpy(tempname, numstr, name_len);
       }
       else {
@@ -283,7 +286,7 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
     BLI_strncpy(name, tempname, name_len);
 
     return true;
-  }
+  }*/
 
   return false;
 }
