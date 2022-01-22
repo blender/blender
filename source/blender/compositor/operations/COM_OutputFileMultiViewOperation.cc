@@ -75,7 +75,7 @@ void *OutputOpenExrSingleLayerMultiViewOperation::get_handle(const char *filenam
       }
 
       IMB_exr_add_view(exrhandle, srv->name);
-      add_exr_channels(exrhandle, nullptr, datatype_, srv->name, width, false, nullptr);
+      add_exr_channels(exrhandle, nullptr, datatype_, srv->name, width, false, nullptr, false);
     }
 
     BLI_make_existing_file(filename);
@@ -119,7 +119,8 @@ void OutputOpenExrSingleLayerMultiViewOperation::deinit_execution()
                      view_name_,
                      width,
                      format_->depth == R_IMF_CHAN_DEPTH_16,
-                     output_buffer_);
+                     output_buffer_,
+                     false);
 
     /* memory can only be freed after we write all views to the file */
     output_buffer_ = nullptr;
@@ -144,11 +145,12 @@ OutputOpenExrMultiLayerMultiViewOperation::OutputOpenExrMultiLayerMultiViewOpera
     const Scene *scene,
     const RenderData *rd,
     const bNodeTree *tree,
+    ImageFormatData format,
     const char *path,
     char exr_codec,
     bool exr_half_float,
     const char *view_name)
-    : OutputOpenExrMultiLayerOperation(scene, rd, tree, path, exr_codec, exr_half_float, view_name)
+    : OutputOpenExrMultiLayerOperation(scene, rd, tree, format, path, exr_codec, exr_half_float, view_name)
 {
 }
 
@@ -187,7 +189,8 @@ void *OutputOpenExrMultiLayerMultiViewOperation::get_handle(const char *filename
                          srv->name,
                          width,
                          exr_half_float_,
-                         nullptr);
+                         nullptr,
+                         false);
       }
     }
 
@@ -236,7 +239,8 @@ void OutputOpenExrMultiLayerMultiViewOperation::deinit_execution()
                        view_name_,
                        width,
                        exr_half_float_,
-                       layers_[i].output_buffer);
+                       layers_[i].output_buffer,
+                       false);
     }
 
     for (unsigned int i = 0; i < layers_.size(); i++) {

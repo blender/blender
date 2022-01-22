@@ -42,7 +42,8 @@ void add_exr_channels(void *exrhandle,
                       const char *view_name,
                       const size_t width,
                       bool use_half_float,
-                      float *buf)
+                      float *buf,
+                      bool map)
 {
   /* create channels */
   switch (datatype) {
@@ -77,38 +78,53 @@ void add_exr_channels(void *exrhandle,
                           use_half_float);
       break;
     case DataType::Color:
-      IMB_exr_add_channel(exrhandle,
-                          layer_name,
-                          "R",
-                          view_name,
-                          4,
-                          4 * width,
-                          buf ? buf : nullptr,
-                          use_half_float);
-      IMB_exr_add_channel(exrhandle,
-                          layer_name,
-                          "G",
-                          view_name,
-                          4,
-                          4 * width,
-                          buf ? buf + 1 : nullptr,
-                          use_half_float);
-      IMB_exr_add_channel(exrhandle,
-                          layer_name,
-                          "B",
-                          view_name,
-                          4,
-                          4 * width,
-                          buf ? buf + 2 : nullptr,
-                          use_half_float);
-      IMB_exr_add_channel(exrhandle,
-                          layer_name,
-                          "A",
-                          view_name,
-                          4,
-                          4 * width,
-                          buf ? buf + 3 : nullptr,
-                          use_half_float);
+      if (!map)
+      {
+        IMB_exr_add_channel(exrhandle,
+                            layer_name,
+                            "R",
+                            view_name,
+                            4,
+                            4 * width,
+                            buf ? buf : nullptr,
+                            use_half_float);
+        IMB_exr_add_channel(exrhandle,
+                            layer_name,
+                            "G",
+                            view_name,
+                            4,
+                            4 * width,
+                            buf ? buf + 1 : nullptr,
+                            use_half_float);
+        IMB_exr_add_channel(exrhandle,
+                            layer_name,
+                            "B",
+                            view_name,
+                            4,
+                            4 * width,
+                            buf ? buf + 2 : nullptr,
+                            use_half_float);
+        IMB_exr_add_channel(exrhandle,
+                            layer_name,
+                            "A",
+                            view_name,
+                            4,
+                            4 * width,
+                            buf ? buf + 3 : nullptr,
+                            use_half_float);
+      }
+      else
+      {
+        IMB_exr_add_channel(exrhandle,
+                            layer_name,
+                            "Map",
+                            view_name,
+                            4,
+                            4 * width,
+                            buf ? buf : nullptr,
+                            use_half_float);
+      }
+
       break;
     default:
       break;
@@ -327,6 +343,7 @@ OutputOpenExrLayer::OutputOpenExrLayer(const char *name_, DataType datatype_, bo
 OutputOpenExrMultiLayerOperation::OutputOpenExrMultiLayerOperation(const Scene *scene,
                                                                    const RenderData *rd,
                                                                    const bNodeTree *tree,
+                                                                   ImageFormatData format,
                                                                    const char *path,
                                                                    char exr_codec,
                                                                    bool exr_half_float,
@@ -335,6 +352,7 @@ OutputOpenExrMultiLayerOperation::OutputOpenExrMultiLayerOperation(const Scene *
   scene_ = scene;
   rd_ = rd;
   tree_ = tree;
+  format_ = format;
 
   BLI_strncpy(path_, path, sizeof(path_));
   exr_codec_ = exr_codec;
@@ -418,19 +436,22 @@ void OutputOpenExrMultiLayerOperation::deinit_execution()
                                suffix);
     BLI_make_existing_file(filename);
 
-    for (unsigned int i = 0; i < layers_.size(); i++) {
+    for (unsigned int i = 0; i < layers_.size(); i++)
+    {
       OutputOpenExrLayer &layer = layers_[i];
       if (!layer.image_input) {
         continue; /* skip unconnected sockets */
       }
 
+      bool map = i == 1 && format_.planes == 46;
       add_exr_channels(exrhandle,
                        layers_[i].name,
                        layers_[i].datatype,
                        "",
                        width,
                        exr_half_float_,
-                       layers_[i].output_buffer);
+                       layers_[i].output_buffer,
+                       map);
     }
 
     /* when the filename has no permissions, this can fail */

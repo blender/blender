@@ -385,24 +385,18 @@ const EnumPropertyItem rna_enum_image_type_items[] = {
 };
 
 const EnumPropertyItem rna_enum_image_color_mode_items[] = {
-    {R_IMF_PLANES_BW,
-     "BW",
-     0,
-     "BW",
-     "Images get saved in 8-bit grayscale (only PNG, JPEG, TGA, TIF)"},
+    {R_IMF_PLANES_BW, "BW", 0, "BW", "Images get saved in 8-bit grayscale (only PNG, JPEG, TGA, TIF)"},
+    {R_IMF_PLANES_MAP, "MAP", 0, "MAP", "Creates a single 'Map' channel for the second layer, required for Vision Viewer"},
     {R_IMF_PLANES_RGB, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
-    {R_IMF_PLANES_RGBA,
-     "RGBA",
-     0,
-     "RGBA",
-     "Images are saved with RGB and Alpha data (if supported)"},
+    {R_IMF_PLANES_RGBA, "RGBA", 0, "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
     {0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME
 #  define IMAGE_COLOR_MODE_BW rna_enum_image_color_mode_items[0]
-#  define IMAGE_COLOR_MODE_RGB rna_enum_image_color_mode_items[1]
-#  define IMAGE_COLOR_MODE_RGBA rna_enum_image_color_mode_items[2]
+#  define IMAGE_COLOR_MODE_MAP rna_enum_image_color_mode_items[1]
+#  define IMAGE_COLOR_MODE_RGB rna_enum_image_color_mode_items[2]
+#  define IMAGE_COLOR_MODE_RGBA rna_enum_image_color_mode_items[3]
 #endif
 
 const EnumPropertyItem rna_enum_image_color_depth_items[] = {
@@ -1316,9 +1310,12 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext
     int totitem = 0;
     EnumPropertyItem *item = NULL;
 
+    // VSE: IMAGE_COLOR_MODE_BW assigned to the first element in rna_enum_image_color_mode_items list
     if (chan_flag & IMA_CHAN_FLAG_BW) {
       RNA_enum_item_add(&item, &totitem, &IMAGE_COLOR_MODE_BW);
     }
+    // VSE TODO: Map option is currerntly force, do correct checks
+    RNA_enum_item_add(&item, &totitem, &IMAGE_COLOR_MODE_MAP);
     if (chan_flag & IMA_CHAN_FLAG_RGB) {
       RNA_enum_item_add(&item, &totitem, &IMAGE_COLOR_MODE_RGB);
     }

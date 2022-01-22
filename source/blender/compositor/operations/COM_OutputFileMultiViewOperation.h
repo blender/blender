@@ -54,6 +54,7 @@ class OutputOpenExrMultiLayerMultiViewOperation : public OutputOpenExrMultiLayer
   OutputOpenExrMultiLayerMultiViewOperation(const Scene *scene,
                                             const RenderData *rd,
                                             const bNodeTree *tree,
+                                            ImageFormatData format,
                                             const char *path,
                                             char exr_codec,
                                             bool exr_half_float,

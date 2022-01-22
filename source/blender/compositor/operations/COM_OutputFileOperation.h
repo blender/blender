@@ -96,6 +96,7 @@ class OutputOpenExrMultiLayerOperation : public MultiThreadedOperation {
   const RenderData *rd_;
   const bNodeTree *tree_;
 
+  ImageFormatData format_;
   char path_[FILE_MAX];
   char exr_codec_;
   bool exr_half_float_;
@@ -108,6 +109,7 @@ class OutputOpenExrMultiLayerOperation : public MultiThreadedOperation {
   OutputOpenExrMultiLayerOperation(const Scene *scene,
                                    const RenderData *rd,
                                    const bNodeTree *tree,
+                                   ImageFormatData format,
                                    const char *path,
                                    char exr_codec,
                                    bool exr_half_float,
@@ -138,7 +140,8 @@ void add_exr_channels(void *exrhandle,
                       const char *view_name,
                       size_t width,
                       bool use_half_float,
-                      float *buf);
+                      float *buf,
+                      bool map);
 void free_exr_channels(void *exrhandle,
                        const RenderData *rd,
                        const char *layer_name,
