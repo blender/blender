@@ -305,6 +305,7 @@ typedef struct LineartRenderBuffer {
   bool filter_face_mark;
   bool filter_face_mark_invert;
   bool filter_face_mark_boundaries;
+  bool filter_face_mark_keep_contour;
 
   bool force_crease;
   bool sharp_as_crease;

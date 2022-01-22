@@ -581,6 +581,7 @@ static void face_mark_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiItemR(layout, ptr, "use_face_mark_invert", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "use_face_mark_boundaries", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_face_mark_keep_contour", 0, NULL, ICON_NONE);
 }
 
 static void chaining_panel_draw(const bContext *UNUSED(C), Panel *panel)

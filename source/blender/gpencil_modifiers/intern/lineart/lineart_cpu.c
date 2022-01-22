@@ -1493,6 +1493,7 @@ static uint16_t lineart_identify_feature_line(LineartRenderBuffer *rb,
   FreestyleEdge *fel, *fer;
   bool face_mark_filtered = false;
   uint16_t edge_flag_result = 0;
+  bool only_contour = false;
 
   if (use_freestyle_face && rb->filter_face_mark) {
     fel = CustomData_bmesh_get(&bm_if_freestyle->pdata, ll->f->head.data, CD_FREESTYLE_FACE);
@@ -1517,7 +1518,12 @@ static uint16_t lineart_identify_feature_line(LineartRenderBuffer *rb,
       face_mark_filtered = !face_mark_filtered;
     }
     if (!face_mark_filtered) {
-      return 0;
+      if (rb->filter_face_mark_keep_contour) {
+        only_contour = true;
+      }
+      else {
+        return 0;
+      }
     }
   }
 
@@ -1575,6 +1581,12 @@ static uint16_t lineart_identify_feature_line(LineartRenderBuffer *rb,
 
   if ((result = dot_1 * dot_2) <= 0 && (fabs(dot_1) + fabs(dot_2))) {
     edge_flag_result |= LRT_EDGE_FLAG_CONTOUR;
+  }
+
+  /* For when face mark filtering decided that we discard the face but keep_contour option is on.
+   * so we still have correct full contour around the object. */
+  if (only_contour) {
+    return edge_flag_result;
   }
 
   if (rb->use_crease) {
@@ -1902,7 +1914,8 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
                                                    bm);
     if (eflag) {
       /* Only allocate for feature lines (instead of all lines) to save memory.
-       * If allow duplicated edges, one edge gets added multiple times if it has multiple types. */
+       * If allow duplicated edges, one edge gets added multiple times if it has multiple types.
+       */
       allocate_la_e += rb->allow_duplicated_types ? lineart_edge_type_duplication_count(eflag) : 1;
     }
     /* Here we just use bm's flag for when loading actual lines, then we don't need to call
@@ -2096,8 +2109,8 @@ static bool lineart_geometry_check_visible(double (*model_view_proj)[4],
   }
 
   bool cond[6] = {true, true, true, true, true, true};
-  /* Because for a point to be inside clip space, it must satisfy `-Wc <= XYCc <= Wc`, here if all
-   * verts falls to the same side of the clip space border, we know it's outside view. */
+  /* Because for a point to be inside clip space, it must satisfy `-Wc <= XYCc <= Wc`, here if
+   * all verts falls to the same side of the clip space border, we know it's outside view. */
   for (int i = 0; i < 8; i++) {
     cond[0] &= (co[i][0] < -co[i][3]);
     cond[1] &= (co[i][0] > co[i][3]);
@@ -2172,7 +2185,8 @@ static void lineart_main_load_geometries(
 
   int thread_count = rb->thread_count;
 
-  /* This memory is in render buffer memory pool. so we don't need to free those after loading. */
+  /* This memory is in render buffer memory pool. so we don't need to free those after loading.
+   */
   LineartObjectLoadTaskInfo *olti = lineart_mem_acquire(
       &rb->render_data_pool, sizeof(LineartObjectLoadTaskInfo) * thread_count);
 
@@ -2455,8 +2469,9 @@ static bool lineart_triangle_edge_image_space_occlusion(SpinLock *UNUSED(spl),
   dot_f = dot_v3v3_db(Cv, tri->gn);
 
   /* NOTE(Yiming): When we don't use `dot_f==0` here, it's theoretically possible that _some_
-   * faces in perspective mode would get erroneously caught in this condition where they really are
-   * legit faces that would produce occlusion, but haven't encountered those yet in my test files.
+   * faces in perspective mode would get erroneously caught in this condition where they really
+   * are legit faces that would produce occlusion, but haven't encountered those yet in my test
+   * files.
    */
   if (fabs(dot_f) < FLT_EPSILON) {
     return false;
@@ -2523,8 +2538,9 @@ static bool lineart_triangle_edge_image_space_occlusion(SpinLock *UNUSED(spl),
     return false; \
   }
 
-  /* Determine the pair of edges that the line has crossed. The "|" symbol in the comment indicates
-   * triangle boundary. DBL_TRIANGLE_LIM is needed to for floating point precision tolerance. */
+  /* Determine the pair of edges that the line has crossed. The "|" symbol in the comment
+   * indicates triangle boundary. DBL_TRIANGLE_LIM is needed to for floating point precision
+   * tolerance. */
 
   if (st_l == 2) {
     /* Left side is in the triangle. */
@@ -3206,6 +3222,8 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   rb->filter_face_mark = (lmd->calculation_flags & LRT_FILTER_FACE_MARK) != 0;
   rb->filter_face_mark_boundaries = (lmd->calculation_flags & LRT_FILTER_FACE_MARK_BOUNDARIES) !=
                                     0;
+  rb->filter_face_mark_keep_contour = (lmd->calculation_flags &
+                                       LRT_FILTER_FACE_MARK_KEEP_CONTOUR) != 0;
 
   rb->chain_data_pool = &lc->chain_data_pool;
 
@@ -4282,8 +4300,8 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
 
     if (rb->chain_smooth_tolerance > FLT_EPSILON) {
       /* Keeping UI range of 0-1 for ease of read while scaling down the actual value for best
-       * effective range in image-space (Coordinate only goes from -1 to 1). This value is somewhat
-       * arbitrary, but works best for the moment.  */
+       * effective range in image-space (Coordinate only goes from -1 to 1). This value is
+       * somewhat arbitrary, but works best for the moment.  */
       MOD_lineart_smooth_chains(rb, rb->chain_smooth_tolerance / 50);
     }
 
