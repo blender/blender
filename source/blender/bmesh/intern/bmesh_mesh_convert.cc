@@ -79,6 +79,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 
@@ -94,6 +95,8 @@
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h" /* For element checking. */
+
+using blender::Array;
 
 void BM_mesh_cd_flag_ensure(BMesh *bm, Mesh *mesh, const char cd_flag)
 {
@@ -178,8 +181,8 @@ char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
 static BMFace *bm_face_create_from_mpoly(
     MPoly *mp, MLoop *ml, BMesh *bm, BMVert **vtable, BMEdge **etable)
 {
-  BMVert **verts = (BMVert **)BLI_array_alloca(verts, mp->totloop);
-  BMEdge **edges = (BMEdge **)BLI_array_alloca(edges, mp->totloop);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(mp->totloop);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges(mp->totloop);
   int j;
 
   for (j = 0; j < mp->totloop; j++, ml++) {
@@ -187,7 +190,7 @@ static BMFace *bm_face_create_from_mpoly(
     edges[j] = etable[ml->e];
   }
 
-  return BM_face_create(bm, verts, edges, mp->totloop, nullptr, BM_CREATE_SKIP_CD);
+  return BM_face_create(bm, verts.data(), edges.data(), mp->totloop, nullptr, BM_CREATE_SKIP_CD);
 }
 
 void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshParams *params)
