@@ -109,6 +109,7 @@ set(SRC
   intern/brush.c
   intern/brush_channel_define.h
   intern/brush_engine.c
+  intern/brush_engine.cc
   intern/brush_engine_presets.c
   intern/bvhutils.cc
   intern/cachefile.c
@@ -483,7 +484,9 @@ set(SRC
   BKE_workspace.h
   BKE_world.h
   BKE_writeavi.h
+  intern/brush_channel_names.h
   BKE_brush_engine.h
+  BKE_brush_engine.hh
 
   nla_private.h
   particle_private.h

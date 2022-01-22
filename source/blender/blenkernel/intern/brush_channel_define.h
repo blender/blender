@@ -14,7 +14,8 @@ places in rna_engine_codebase are relevent:
 */
 
 /* static name checking stuff */
-#if defined(BRUSH_CHANNEL_DEFINE_TYPES) || defined(BRUSH_CHANNEL_DEFINE_EXTERNAL)
+#if defined(BRUSH_CHANNEL_DEFINE_TYPES) || defined(BRUSH_CHANNEL_DEFINE_EXTERNAL) || \
+    defined(BRUSH_CHANNEL_MAKE_NAMES)
 #  ifdef MAKE_FLOAT
 #    undef MAKE_FLOAT
 #  endif
@@ -79,6 +80,8 @@ places in rna_engine_codebase are relevent:
 
 #  ifdef BRUSH_CHANNEL_DEFINE_TYPES
 #    define MAKE_BUILTIN_CH_DEF(idname) const char *BRUSH_BUILTIN_##idname = #    idname;
+#  elif BRUSH_CHANNEL_MAKE_NAMES
+#    define MAKE_BUILTIN_CH_DEF(idname) #idname,
 #  else
 #    define MAKE_BUILTIN_CH_DEF(idname) extern const char *BRUSH_BUILTIN_##idname;
 #  endif
