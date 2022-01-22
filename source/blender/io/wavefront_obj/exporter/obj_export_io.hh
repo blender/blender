@@ -26,6 +26,7 @@
 #include <type_traits>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_fileops.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
 
@@ -276,7 +277,7 @@ template<eFileType filetype> class FormattedFileHandler : NonCopyable, NonMovabl
   FormattedFileHandler(std::string outfile_path) noexcept(false)
       : outfile_path_(std::move(outfile_path))
   {
-    outfile_ = std::fopen(outfile_path_.c_str(), "w");
+    outfile_ = BLI_fopen(outfile_path_.c_str(), "w");
     if (!outfile_) {
       throw std::system_error(errno, std::system_category(), "Cannot open file " + outfile_path_);
     }

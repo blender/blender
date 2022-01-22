@@ -1,10 +1,8 @@
 /* Apache License, Version 2.0 */
 
-#include <fstream>
 #include <gtest/gtest.h>
 #include <ios>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <system_error>
 
@@ -185,15 +183,21 @@ static std::unique_ptr<OBJWriter> init_writer(const OBJExportParams &params,
   }
 }
 
-/* The following is relative to BKE_tempdir_base. */
-const char *const temp_file_path = "output.OBJ";
+/* The following is relative to BKE_tempdir_base.
+ * Use Latin Capital Letter A with Ogonek, Cyrillic Capital Letter Zhe
+ * at the end, to test I/O on non-English file names. */
+const char *const temp_file_path = "output\xc4\x84\xd0\x96.OBJ";
 
 static std::string read_temp_file_in_string(const std::string &file_path)
 {
-  std::ifstream temp_stream(file_path);
-  std::ostringstream input_ss;
-  input_ss << temp_stream.rdbuf();
-  return input_ss.str();
+  std::string res;
+  size_t buffer_len;
+  void *buffer = BLI_file_read_text_as_mem(file_path.c_str(), 0, &buffer_len);
+  if (buffer != NULL) {
+    res.assign((const char *)buffer, buffer_len);
+    MEM_freeN(buffer);
+  }
+  return res;
 }
 
 TEST(obj_exporter_writer, header)
