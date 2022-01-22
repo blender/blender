@@ -300,6 +300,7 @@ typedef struct LineartRenderBuffer {
   bool use_loose_edge_chain;
   bool use_geometry_space_chain;
   bool use_image_boundary_trimming;
+  bool use_back_face_culling;
 
   bool filter_face_mark;
   bool filter_face_mark_invert;

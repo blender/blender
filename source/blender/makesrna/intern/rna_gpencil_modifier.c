@@ -3450,6 +3450,14 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
       prop,
       "Image Boundary Trimming",
       "Trim all edges right at the boundary of image(including overscan region)");
+
+  prop = RNA_def_property(srna, "use_back_face_culling", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_USE_BACK_FACE_CULLING);
+  RNA_def_property_ui_text(
+      prop,
+      "Back Face Culling",
+      "Remove all back faces to speed up calculation, this will create edges in "
+      "different occlusion levels than when disabled");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_invert_collection", PROP_BOOLEAN, PROP_NONE);
