@@ -891,6 +891,10 @@ void ImageManager::device_free(Device *device)
 void ImageManager::collect_statistics(RenderStats *stats)
 {
   foreach (const Image *image, images) {
+    if (!image) {
+      /* Image may have been freed due to lack of users. */
+      continue;
+    }
     stats->image.textures.add_entry(
         NamedSizeEntry(image->loader->name(), image->mem->memory_size()));
   }
