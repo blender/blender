@@ -80,8 +80,10 @@
 
 #include "BLI_alloca.h"
 #include "BLI_array.hh"
+#include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_span.hh"
 
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
@@ -97,6 +99,8 @@
 #include "intern/bmesh_private.h" /* For element checking. */
 
 using blender::Array;
+using blender::IndexRange;
+using blender::Span;
 
 void BM_mesh_cd_flag_ensure(BMesh *bm, Mesh *mesh, const char cd_flag)
 {
@@ -178,35 +182,28 @@ char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
 }
 
 /* Static function for alloc (duplicate in modifiers_bmesh.c) */
-static BMFace *bm_face_create_from_mpoly(
-    MPoly *mp, MLoop *ml, BMesh *bm, BMVert **vtable, BMEdge **etable)
+static BMFace *bm_face_create_from_mpoly(BMesh &bm,
+                                         Span<MLoop> loops,
+                                         Span<BMVert *> vtable,
+                                         Span<BMEdge *> etable)
 {
-  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(mp->totloop);
-  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges(mp->totloop);
-  int j;
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> verts(loops.size());
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges(loops.size());
 
-  for (j = 0; j < mp->totloop; j++, ml++) {
-    verts[j] = vtable[ml->v];
-    edges[j] = etable[ml->e];
+  for (const int i : loops.index_range()) {
+    verts[i] = vtable[loops[i].v];
+    edges[i] = etable[loops[i].e];
   }
 
-  return BM_face_create(bm, verts.data(), edges.data(), mp->totloop, nullptr, BM_CREATE_SKIP_CD);
+  return BM_face_create(&bm, verts.data(), edges.data(), loops.size(), nullptr, BM_CREATE_SKIP_CD);
 }
 
 void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshParams *params)
 {
   const bool is_new = !(bm->totvert || (bm->vdata.totlayer || bm->edata.totlayer ||
                                         bm->pdata.totlayer || bm->ldata.totlayer));
-  MVert *mvert;
-  MEdge *medge;
-  MLoop *mloop;
-  MPoly *mp;
   KeyBlock *actkey;
-  BMVert *v, **vtable = nullptr;
-  BMEdge *e, **etable = nullptr;
-  BMFace *f, **ftable = nullptr;
   float(*keyco)[3] = nullptr;
-  int totloops, i;
   CustomData_MeshMasks mask = CD_MASK_BMESH;
   CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
 
@@ -317,6 +314,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
       }
     }
 
+    int i;
     KeyBlock *block;
     for (i = 0, block = static_cast<KeyBlock *>(me->key->block.first); i < tot_shape_keys;
          block = block->next, i++) {
@@ -354,17 +352,18 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
                                            CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX) :
                                            -1;
 
-  vtable = static_cast<BMVert **>(MEM_mallocN(sizeof(BMVert **) * me->totvert, __func__));
-
-  for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
-    v = vtable[i] = BM_vert_create(bm, keyco ? keyco[i] : mvert->co, nullptr, BM_CREATE_SKIP_CD);
+  Span<MVert> mvert{me->mvert, me->totvert};
+  Array<BMVert *> vtable(me->totvert);
+  for (const int i : mvert.index_range()) {
+    BMVert *v = vtable[i] = BM_vert_create(
+        bm, keyco ? keyco[i] : mvert[i].co, nullptr, BM_CREATE_SKIP_CD);
     BM_elem_index_set(v, i); /* set_ok */
 
     /* Transfer flag. */
-    v->head.hflag = BM_vert_flag_from_mflag(mvert->flag & ~SELECT);
+    v->head.hflag = BM_vert_flag_from_mflag(mvert[i].flag & ~SELECT);
 
     /* This is necessary for selection counts to work properly. */
-    if (mvert->flag & SELECT) {
+    if (mvert[i].flag & SELECT) {
       BM_vert_select_set(bm, v, true);
     }
 
@@ -376,7 +375,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data, true);
 
     if (cd_vert_bweight_offset != -1) {
-      BM_ELEM_CD_SET_FLOAT(v, cd_vert_bweight_offset, (float)mvert->bweight / 255.0f);
+      BM_ELEM_CD_SET_FLOAT(v, cd_vert_bweight_offset, (float)mvert[i].bweight / 255.0f);
     }
 
     /* Set shape key original index. */
@@ -396,19 +395,18 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     bm->elem_index_dirty &= ~BM_VERT; /* Added in order, clear dirty flag. */
   }
 
-  etable = static_cast<BMEdge **>(MEM_mallocN(sizeof(BMEdge **) * me->totedge, __func__));
-
-  medge = me->medge;
-  for (i = 0; i < me->totedge; i++, medge++) {
-    e = etable[i] = BM_edge_create(
-        bm, vtable[medge->v1], vtable[medge->v2], nullptr, BM_CREATE_SKIP_CD);
+  Span<MEdge> medge{me->medge, me->totedge};
+  Array<BMEdge *> etable(me->totedge);
+  for (const int i : medge.index_range()) {
+    BMEdge *e = etable[i] = BM_edge_create(
+        bm, vtable[medge[i].v1], vtable[medge[i].v2], nullptr, BM_CREATE_SKIP_CD);
     BM_elem_index_set(e, i); /* set_ok */
 
     /* Transfer flags. */
-    e->head.hflag = BM_edge_flag_from_mflag(medge->flag & ~SELECT);
+    e->head.hflag = BM_edge_flag_from_mflag(medge[i].flag & ~SELECT);
 
     /* This is necessary for selection counts to work properly. */
-    if (medge->flag & SELECT) {
+    if (medge[i].flag & SELECT) {
       BM_edge_select_set(bm, e, true);
     }
 
@@ -416,29 +414,31 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data, true);
 
     if (cd_edge_bweight_offset != -1) {
-      BM_ELEM_CD_SET_FLOAT(e, cd_edge_bweight_offset, (float)medge->bweight / 255.0f);
+      BM_ELEM_CD_SET_FLOAT(e, cd_edge_bweight_offset, (float)medge[i].bweight / 255.0f);
     }
     if (cd_edge_crease_offset != -1) {
-      BM_ELEM_CD_SET_FLOAT(e, cd_edge_crease_offset, (float)medge->crease / 255.0f);
+      BM_ELEM_CD_SET_FLOAT(e, cd_edge_crease_offset, (float)medge[i].crease / 255.0f);
     }
   }
   if (is_new) {
     bm->elem_index_dirty &= ~BM_EDGE; /* Added in order, clear dirty flag. */
   }
 
+  Span<MPoly> mpoly{me->mpoly, me->totpoly};
+  Span<MLoop> mloop{me->mloop, me->totloop};
+
   /* Only needed for selection. */
+
+  Array<BMFace *> ftable;
   if (me->mselect && me->totselect != 0) {
-    ftable = static_cast<BMFace **>(MEM_mallocN(sizeof(BMFace **) * me->totpoly, __func__));
+    ftable.reinitialize(me->totpoly);
   }
 
-  mloop = me->mloop;
-  mp = me->mpoly;
-  for (i = 0, totloops = 0; i < me->totpoly; i++, mp++) {
-    BMLoop *l_iter;
-    BMLoop *l_first;
-
-    f = bm_face_create_from_mpoly(mp, mloop + mp->loopstart, bm, vtable, etable);
-    if (ftable != nullptr) {
+  int totloops = 0;
+  for (const int i : mpoly.index_range()) {
+    BMFace *f = bm_face_create_from_mpoly(
+        *bm, mloop.slice(mpoly[i].loopstart, mpoly[i].totloop), vtable, etable);
+    if (!ftable.is_empty()) {
       ftable[i] = f;
     }
 
@@ -456,20 +456,21 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     BM_elem_index_set(f, bm->totface - 1); /* set_ok */
 
     /* Transfer flag. */
-    f->head.hflag = BM_face_flag_from_mflag(mp->flag & ~ME_FACE_SEL);
+    f->head.hflag = BM_face_flag_from_mflag(mpoly[i].flag & ~ME_FACE_SEL);
 
     /* This is necessary for selection counts to work properly. */
-    if (mp->flag & ME_FACE_SEL) {
+    if (mpoly[i].flag & ME_FACE_SEL) {
       BM_face_select_set(bm, f, true);
     }
 
-    f->mat_nr = mp->mat_nr;
+    f->mat_nr = mpoly[i].mat_nr;
     if (i == me->act_face) {
       bm->act_face = f;
     }
 
-    int j = mp->loopstart;
-    l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+    int j = mpoly[i].loopstart;
+    BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
+    BMLoop *l_iter = l_first;
     do {
       /* Don't use 'j' since we may have skipped some faces, hence some loops. */
       BM_elem_index_set(l_iter, totloops++); /* set_ok */
@@ -490,24 +491,25 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
   }
 
   /* -------------------------------------------------------------------- */
-  /* MSelect clears the array elements (avoid adding multiple times).
+  /* MSelect clears the array elements (to avoid adding multiple times).
    *
    * Take care to keep this last and not use (v/e/ftable) after this.
    */
 
   if (me->mselect && me->totselect != 0) {
-    MSelect *msel;
-    for (i = 0, msel = me->mselect; i < me->totselect; i++, msel++) {
+    for (const int i : IndexRange(me->totselect)) {
+      const MSelect &msel = me->mselect[i];
+
       BMElem **ele_p;
-      switch (msel->type) {
+      switch (msel.type) {
         case ME_VSEL:
-          ele_p = (BMElem **)&vtable[msel->index];
+          ele_p = (BMElem **)&vtable[msel.index];
           break;
         case ME_ESEL:
-          ele_p = (BMElem **)&etable[msel->index];
+          ele_p = (BMElem **)&etable[msel.index];
           break;
         case ME_FSEL:
-          ele_p = (BMElem **)&ftable[msel->index];
+          ele_p = (BMElem **)&ftable[msel.index];
           break;
         default:
           continue;
@@ -521,12 +523,6 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
   }
   else {
     BM_select_history_clear(bm);
-  }
-
-  MEM_freeN(vtable);
-  MEM_freeN(etable);
-  if (ftable) {
-    MEM_freeN(ftable);
   }
 }
 
