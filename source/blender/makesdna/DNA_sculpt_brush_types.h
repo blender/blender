@@ -127,7 +127,7 @@ static_assert(offsetof(BrushChannel, type) - offsetof(BrushChannel, mappings) ==
 #endif
 
 // BrushChannel->flag
-enum {
+typedef enum {
   BRUSH_CHANNEL_INHERIT = 1 << 0,
   BRUSH_CHANNEL_INHERIT_IF_UNSET = 1 << 1,
   BRUSH_CHANNEL_NO_MAPPINGS = 1 << 2,
@@ -136,7 +136,7 @@ enum {
   BRUSH_CHANNEL_SHOW_IN_WORKSPACE = 1 << 6,
   BRUSH_CHANNEL_SHOW_IN_HEADER = 1 << 7,
   BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU = 1 << 8,
-};
+} eBrushChannelFlag;
 
 // BrushChannelType->type
 enum {

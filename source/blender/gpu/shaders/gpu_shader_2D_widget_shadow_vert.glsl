@@ -51,9 +51,12 @@ const vec2 cornervec[36] = vec2[36](vec2(0.0, 1.0),
 
 #define INNER_FLAG uint(1 << 10) /* is inner vert */
 
+#ifndef USE_GPU_SHADER_CREATE_INFO
 uniform mat4 ModelViewProjectionMatrix;
 
 uniform vec4 parameters[4];
+#endif
+
 /* radi and rad per corner */
 #define recti parameters[0]
 #define rect parameters[1]
@@ -61,9 +64,11 @@ uniform vec4 parameters[4];
 #define rads parameters[2].y
 #define roundCorners parameters[3]
 
+#ifndef USE_GPU_SHADER_CREATE_INFO
 in uint vflag;
 
 out float shadowFalloff;
+#endif
 
 void main()
 {

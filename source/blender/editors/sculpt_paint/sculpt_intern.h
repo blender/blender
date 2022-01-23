@@ -1850,12 +1850,18 @@ void SCULPT_cache_free(SculptSession *ss, struct Object *ob, StrokeCache *cache)
 /** \name Sculpt Undo
  * \{ */
 
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Undo
+ * \{ */
+
 SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type);
 SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type);
 SculptUndoNode *SCULPT_undo_get_first_node(void);
 void SCULPT_undo_push_begin(struct Object *ob, const char *name);
 void SCULPT_undo_push_end(struct Object *ob);
 void SCULPT_undo_push_end_ex(struct Object *ob, const bool use_nested_undo);
+
+/** \} */
 
 /** \} */
 
@@ -1962,7 +1968,7 @@ void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot);
 /* Detail size. */
 
 /* -------------------------------------------------------------------- */
-/** \name Dyntopo/Retopo Operators
+/** \name Dyntopo/Retopology Operators
  * \{ */
 
 void SCULPT_OT_detail_flood_fill(struct wmOperatorType *ot);

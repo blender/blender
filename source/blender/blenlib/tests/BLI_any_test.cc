@@ -54,7 +54,7 @@ TEST(any, AssignMap)
 
   Any<> c = std::move(a);
   /* Test valid state after self assignment. Clang emits `-Wself-assign-overloaded` with `c=c;`.
-   * And pragma suppression creates warnings on other compilers. */
+   * And `pragma` suppression creates warnings on other compilers. */
   c = static_cast<decltype(a) &>(c);
   EXPECT_TRUE(c);
   EXPECT_EQ((c.get<Map<int, int>>().lookup(4)), 2);

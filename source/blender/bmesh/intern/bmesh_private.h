@@ -27,6 +27,10 @@
  * parts of the bmesh internals.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* returns positive nonzero on error */
 
 #if 1//def NDEBUG
@@ -104,3 +108,7 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], uint nverts);
 
 /* include the rest of our private declarations */
 #include "bmesh_structure.h"
+
+#ifdef __cplusplus
+}
+#endif

@@ -110,6 +110,12 @@ struct USDMeshData {
    * single sharpness or a value per-edge, USD will encode either a single sharpness per crease on
    * a mesh, or sharpness's for all edges making up the creases on a mesh. */
   pxr::VtFloatArray crease_sharpnesses;
+
+  /* The lengths of this array specifies the number of sharp corners (or vertex crease) on the
+   * surface. Each value is the index of a vertex in the mesh's vertex list. */
+  pxr::VtIntArray corner_indices;
+  /* The per-vertex sharpnesses. The lengths of this array must match that of `corner_indices`. */
+  pxr::VtFloatArray corner_sharpnesses;
 };
 
 void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh)
@@ -214,6 +220,23 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
         attr_crease_sharpness, pxr::VtValue(usd_mesh_data.crease_sharpnesses), timecode);
   }
 
+  if (!usd_mesh_data.corner_indices.empty() &&
+      usd_mesh_data.corner_indices.size() == usd_mesh_data.corner_sharpnesses.size()) {
+    pxr::UsdAttribute attr_corner_indices = usd_mesh.CreateCornerIndicesAttr(pxr::VtValue(), true);
+    pxr::UsdAttribute attr_corner_sharpnesses = usd_mesh.CreateCornerSharpnessesAttr(
+        pxr::VtValue(), true);
+
+    if (!attr_corner_indices.HasValue()) {
+      attr_corner_indices.Set(usd_mesh_data.corner_indices, defaultTime);
+      attr_corner_sharpnesses.Set(usd_mesh_data.corner_sharpnesses, defaultTime);
+    }
+
+    usd_value_writer_.SetAttribute(
+        attr_corner_indices, pxr::VtValue(usd_mesh_data.corner_indices), timecode);
+    usd_value_writer_.SetAttribute(
+        attr_corner_sharpnesses, pxr::VtValue(usd_mesh_data.crease_sharpnesses), timecode);
+  }
+
   if (usd_export_context_.export_params.export_uvmaps) {
     write_uv_maps(mesh, usd_mesh);
   }
@@ -268,7 +291,7 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
   }
 }
 
-static void get_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
+static void get_edge_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
   const float factor = 1.0f / 255.0f;
 
@@ -293,11 +316,30 @@ static void get_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
   }
 }
 
+static void get_vert_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
+{
+  const float *creases = static_cast<const float *>(CustomData_get_layer(&mesh->vdata, CD_CREASE));
+
+  if (!creases) {
+    return;
+  }
+
+  for (int i = 0, v = mesh->totvert; i < v; i++) {
+    const float sharpness = creases[i];
+
+    if (sharpness != 0.0f) {
+      usd_mesh_data.corner_indices.push_back(i);
+      usd_mesh_data.corner_sharpnesses.push_back(sharpness);
+    }
+  }
+}
+
 void USDGenericMeshWriter::get_geometry_data(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
   get_vertices(mesh, usd_mesh_data);
   get_loops_polys(mesh, usd_mesh_data);
-  get_creases(mesh, usd_mesh_data);
+  get_edge_creases(mesh, usd_mesh_data);
+  get_vert_creases(mesh, usd_mesh_data);
 }
 
 void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,

@@ -83,6 +83,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "RE_bake.h"
+#include "RE_texture_margin.h"
 
 /* local include */
 #include "render_types.h"
@@ -154,10 +155,24 @@ void RE_bake_mask_fill(const BakePixel pixel_array[], const size_t num_pixels, c
   }
 }
 
-void RE_bake_margin(ImBuf *ibuf, char *mask, const int margin)
+void RE_bake_margin(ImBuf *ibuf,
+                    char *mask,
+                    const int margin,
+                    const char margin_type,
+                    Mesh const *me,
+                    char const *uv_layer)
 {
   /* margin */
-  IMB_filter_extend(ibuf, mask, margin);
+  switch (margin_type) {
+    case R_BAKE_ADJACENT_FACES:
+      RE_generate_texturemargin_adjacentfaces(ibuf, mask, margin, me, uv_layer);
+      break;
+    default:
+    /* fall through */
+    case R_BAKE_EXTEND:
+      IMB_filter_extend(ibuf, mask, margin);
+      break;
+  }
 
   if (ibuf->planes != R_IMF_PLANES_RGBA) {
     /* clear alpha added by filtering */

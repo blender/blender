@@ -88,13 +88,6 @@
 
 #include "node_intern.hh" /* own include */
 
-using blender::Array;
-using blender::float2;
-using blender::Map;
-using blender::Set;
-using blender::Span;
-using blender::Vector;
-using blender::VectorSet;
 using blender::fn::CPPType;
 using blender::fn::FieldCPPType;
 using blender::fn::FieldInput;
@@ -115,6 +108,8 @@ float ED_node_grid_size()
 
 void ED_node_tree_update(const bContext *C)
 {
+  using namespace blender::ed::space_node;
+
   SpaceNode *snode = CTX_wm_space_node(C);
   if (snode) {
     snode_set_context(*C);
@@ -176,6 +171,8 @@ void ED_node_tag_update_id(ID *id)
   }
 }
 
+namespace blender::ed::space_node {
+
 static bool compare_nodes(const bNode *a, const bNode *b)
 {
   /* These tell if either the node or any of the parent nodes is selected.
@@ -232,14 +229,14 @@ static bool compare_nodes(const bNode *a, const bNode *b)
   return false;
 }
 
-void ED_node_sort(bNodeTree *ntree)
+void node_sort(bNodeTree &ntree)
 {
   /* Merge sort is the algorithm of choice here. */
-  int totnodes = BLI_listbase_count(&ntree->nodes);
+  int totnodes = BLI_listbase_count(&ntree.nodes);
 
   int k = 1;
   while (k < totnodes) {
-    bNode *first_a = (bNode *)ntree->nodes.first;
+    bNode *first_a = (bNode *)ntree.nodes.first;
     bNode *first_b = first_a;
 
     do {
@@ -266,8 +263,8 @@ void ED_node_sort(bNodeTree *ntree)
           bNode *tmp = node_b;
           node_b = node_b->next;
           b++;
-          BLI_remlink(&ntree->nodes, tmp);
-          BLI_insertlinkbefore(&ntree->nodes, node_a, tmp);
+          BLI_remlink(&ntree.nodes, tmp);
+          BLI_insertlinkbefore(&ntree.nodes, node_a, tmp);
         }
       }
 
@@ -1071,8 +1068,12 @@ static void node_socket_draw_nested(const bContext &C,
   UI_block_emboss_set(&block, old_emboss);
 }
 
+}  // namespace blender::ed::space_node
+
 void ED_node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[4], float scale)
 {
+  using namespace blender::ed::space_node;
+
   const float size = 2.25f * NODE_SOCKSIZE * scale;
   rcti draw_rect = *rect;
   float outline_color[4] = {0};
@@ -1118,6 +1119,8 @@ void ED_node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[
   /* Restore. */
   GPU_blend(state);
 }
+
+namespace blender::ed::space_node {
 
 /* **************  Socket callbacks *********** */
 
@@ -1169,17 +1172,17 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
   GPU_blend(GPU_BLEND_ALPHA);
 
   IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-  immDrawPixelsTex(&state,
-                   draw_rect.xmin,
-                   draw_rect.ymin,
-                   preview->xsize,
-                   preview->ysize,
-                   GPU_RGBA8,
-                   true,
-                   preview->rect,
-                   scale,
-                   scale,
-                   nullptr);
+  immDrawPixelsTexTiled(&state,
+                        draw_rect.xmin,
+                        draw_rect.ymin,
+                        preview->xsize,
+                        preview->ysize,
+                        GPU_RGBA8,
+                        true,
+                        preview->rect,
+                        scale,
+                        scale,
+                        nullptr);
 
   GPU_blend(GPU_BLEND_NONE);
 
@@ -2879,3 +2882,5 @@ void node_draw_space(const bContext &C, ARegion &region)
   /* Scrollers. */
   UI_view2d_scrollers_draw(&v2d, nullptr);
 }
+
+}  // namespace blender::ed::space_node

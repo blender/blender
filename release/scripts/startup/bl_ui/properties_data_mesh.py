@@ -76,6 +76,14 @@ class MESH_MT_shape_key_context_menu(Menu):
         layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move to Top").type = 'TOP'
         layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move to Bottom").type = 'BOTTOM'
 
+class MESH_MT_attribute_context_menu(Menu):
+    bl_label = "Attribute Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("geometry.attribute_convert")
+
 
 class MESH_UL_vgroups(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data_, _active_propname, _index):
@@ -601,6 +609,7 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         col.enabled = obj is not None and obj.mode != 'EDIT'
         col.prop(me, "use_customdata_vertex_bevel", text="Vertex Bevel Weight")
         col.prop(me, "use_customdata_edge_bevel", text="Edge Bevel Weight")
+        col.prop(me, "use_customdata_vertex_crease", text="Vertex Crease")
         col.prop(me, "use_customdata_edge_crease", text="Edge Crease")
 
 
@@ -670,11 +679,9 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         col.operator("geometry.attribute_add", icon='ADD', text="")
         col.operator("geometry.attribute_remove", icon='REMOVE', text="")
 
-        active = mesh.attributes.active
-        
-        if active and (active.domain == "POINT" and active.data_type == "FLOAT_COLOR"):
-            layout.operator("sculpt.vertex_to_loop_colors", text="Save To Corners")
-            layout.operator("sculpt.loop_to_vertex_colors", text="Load From Corners")
+        col.separator()
+
+        col.menu("MESH_MT_attribute_context_menu", icon='DOWNARROW_HLT', text="")
 
         self.draw_attribute_warnings(context, layout)
 
@@ -712,6 +719,7 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
 
 classes = (MESH_MT_vertex_group_context_menu,
     MESH_MT_shape_key_context_menu,
+    MESH_MT_attribute_context_menu,
     MESH_UL_vgroups,
     MESH_UL_fmaps,
     MESH_UL_shape_keys,

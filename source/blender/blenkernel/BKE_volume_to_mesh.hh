@@ -56,11 +56,20 @@ struct Mesh *volume_to_mesh(const openvdb::GridBase &grid,
                             float threshold,
                             float adaptivity);
 
+/**
+ * Convert an OpenVDB volume grid to corresponding mesh data: vertex positions and quad and
+ * triangle indices.
+ */
 struct OpenVDBMeshData volume_to_mesh_data(const openvdb::GridBase &grid,
                                            const VolumeToMeshResolution &resolution,
                                            float threshold,
                                            float adaptivity);
 
+/**
+ * Convert mesh data from the format provided by OpenVDB into Blender's #Mesh data structure.
+ * This can be used to add mesh data from a grid into an existing mesh rather than merging multiple
+ * meshes later on.
+ */
 void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
                                  const Span<openvdb::Vec3I> vdb_tris,
                                  const Span<openvdb::Vec4I> vdb_quads,

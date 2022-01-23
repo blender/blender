@@ -24,8 +24,11 @@
 #include "BLI_string_ref.hh"
 
 #include "GPU_shader.h"
+#include "gpu_shader_create_info.hh"
 #include "gpu_shader_interface.hh"
 #include "gpu_vertex_buffer_private.hh"
+
+#include <string>
 
 namespace blender {
 namespace gpu {
@@ -53,7 +56,7 @@ class Shader {
   virtual void geometry_shader_from_glsl(MutableSpan<const char *> sources) = 0;
   virtual void fragment_shader_from_glsl(MutableSpan<const char *> sources) = 0;
   virtual void compute_shader_from_glsl(MutableSpan<const char *> sources) = 0;
-  virtual bool finalize() = 0;
+  virtual bool finalize(const shader::ShaderCreateInfo *info = nullptr) = 0;
 
   virtual void transform_feedback_names_set(Span<const char *> name_list,
                                             eGPUShaderTFBType geom_type) = 0;
@@ -67,6 +70,13 @@ class Shader {
   virtual void uniform_int(int location, int comp_len, int array_size, const int *data) = 0;
 
   virtual void vertformat_from_shader(GPUVertFormat *) const = 0;
+
+  std::string defines_declare(const shader::ShaderCreateInfo &info) const;
+  virtual std::string resources_declare(const shader::ShaderCreateInfo &info) const = 0;
+  virtual std::string vertex_interface_declare(const shader::ShaderCreateInfo &info) const = 0;
+  virtual std::string fragment_interface_declare(const shader::ShaderCreateInfo &info) const = 0;
+  virtual std::string geometry_interface_declare(const shader::ShaderCreateInfo &info) const = 0;
+  virtual std::string geometry_layout_declare(const shader::ShaderCreateInfo &info) const = 0;
 
   /* DEPRECATED: Kept only because of BGL API. */
   virtual int program_handle_get() const = 0;

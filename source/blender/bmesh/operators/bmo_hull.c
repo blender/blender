@@ -30,7 +30,7 @@
 
 #  include "RBI_hull_api.h"
 
-/* XXX: using 128 for totelem and pchunk of mempool, no idea what good
+/* XXX: using 128 for totelem and `pchunk` of `mempool`, no idea what good
  * values would be though */
 
 #  include "bmesh.h"

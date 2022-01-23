@@ -143,15 +143,16 @@ ccl_device_inline
               for (; prim_addr < prim_addr2; prim_addr++) {
                 kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
                 /* only primitives from volume object */
-                uint tri_object = (object == OBJECT_NONE) ?
-                                      kernel_tex_fetch(__prim_object, prim_addr) :
-                                      object;
-                int object_flag = kernel_tex_fetch(__object_flag, tri_object);
+                const int prim_object = (object == OBJECT_NONE) ?
+                                            kernel_tex_fetch(__prim_object, prim_addr) :
+                                            object;
+                const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+                int object_flag = kernel_tex_fetch(__object_flag, prim_object);
                 if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
                   continue;
                 }
                 hit = triangle_intersect(
-                    kg, isect_array, P, dir, isect_t, visibility, object, prim_addr);
+                    kg, isect_array, P, dir, isect_t, visibility, prim_object, prim, prim_addr);
                 if (hit) {
                   /* Move on to next entry in intersections array. */
                   isect_array++;
@@ -183,15 +184,24 @@ ccl_device_inline
               for (; prim_addr < prim_addr2; prim_addr++) {
                 kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
                 /* only primitives from volume object */
-                uint tri_object = (object == OBJECT_NONE) ?
-                                      kernel_tex_fetch(__prim_object, prim_addr) :
-                                      object;
-                int object_flag = kernel_tex_fetch(__object_flag, tri_object);
+                const int prim_object = (object == OBJECT_NONE) ?
+                                            kernel_tex_fetch(__prim_object, prim_addr) :
+                                            object;
+                const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+                int object_flag = kernel_tex_fetch(__object_flag, prim_object);
                 if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
                   continue;
                 }
-                hit = motion_triangle_intersect(
-                    kg, isect_array, P, dir, isect_t, ray->time, visibility, object, prim_addr);
+                hit = motion_triangle_intersect(kg,
+                                                isect_array,
+                                                P,
+                                                dir,
+                                                isect_t,
+                                                ray->time,
+                                                visibility,
+                                                prim_object,
+                                                prim,
+                                                prim_addr);
                 if (hit) {
                   /* Move on to next entry in intersections array. */
                   isect_array++;

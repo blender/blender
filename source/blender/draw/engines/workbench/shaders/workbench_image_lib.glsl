@@ -25,12 +25,14 @@ bool node_tex_tile_lookup(inout vec3 co, sampler2DArray ima, sampler1DArray map)
   return true;
 }
 
+#ifndef WORKBENCH_SHADER_SHARED_H
 uniform sampler2DArray imageTileArray;
 uniform sampler1DArray imageTileData;
 uniform sampler2D imageTexture;
 
 uniform float imageTransparencyCutoff = 0.1;
 uniform bool imagePremult;
+#endif
 
 vec3 workbench_image_color(vec2 uvs)
 {

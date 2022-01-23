@@ -1191,7 +1191,7 @@ void BM_mesh_remap(BMesh *bm,
 
   /* Edges' pointers, only vert pointers (as we don't mess with loops!),
    * and - ack! - edge pointers,
-   * as we have to handle disklinks... */
+   * as we have to handle disk-links. */
   if (vptr_map || eptr_map) {
     BM_ITER_MESH (ed, &iter, bm, BM_EDGES_OF_MESH) {
       if (vptr_map) {

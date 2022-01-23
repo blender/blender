@@ -199,22 +199,18 @@ ccl_device int volume_sample_channel(float3 albedo,
    *  Tracing". Matt Jen-Yuan Chiang, Peter Kutz, Brent Burley. SIGGRAPH 2016. */
   float3 weights = fabs(throughput * albedo);
   float sum_weights = weights.x + weights.y + weights.z;
-  float3 weights_pdf;
 
   if (sum_weights > 0.0f) {
-    weights_pdf = weights / sum_weights;
+    *pdf = weights / sum_weights;
   }
   else {
-    weights_pdf = make_float3(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f);
+    *pdf = make_float3(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f);
   }
 
-  *pdf = weights_pdf;
-
-  /* OpenCL does not support -> on float3, so don't use pdf->x. */
-  if (rand < weights_pdf.x) {
+  if (rand < pdf->x) {
     return 0;
   }
-  else if (rand < weights_pdf.x + weights_pdf.y) {
+  else if (rand < pdf->x + pdf->y) {
     return 1;
   }
   else {

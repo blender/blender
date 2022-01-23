@@ -206,6 +206,18 @@ void ED_node_set_active_viewer_key(SpaceNode *snode)
   }
 }
 
+void ED_node_cursor_location_get(const SpaceNode *snode, float value[2])
+{
+  copy_v2_v2(value, snode->runtime->cursor);
+}
+
+void ED_node_cursor_location_set(SpaceNode *snode, const float value[2])
+{
+  copy_v2_v2(snode->runtime->cursor, value);
+}
+
+namespace blender::ed::space_node {
+
 float2 space_node_group_offset(const SpaceNode &snode)
 {
   const bNodeTreePath *path = (bNodeTreePath *)snode.treepath.last;
@@ -556,16 +568,6 @@ static void node_toolbar_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-void ED_node_cursor_location_get(const SpaceNode *snode, float value[2])
-{
-  copy_v2_v2(value, snode->runtime->cursor);
-}
-
-void ED_node_cursor_location_set(SpaceNode *snode, const float value[2])
-{
-  copy_v2_v2(snode->runtime->cursor, value);
-}
-
 static void node_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 {
   SpaceNode *snode = (SpaceNode *)area->spacedata.first;
@@ -814,8 +816,14 @@ static void node_region_listener(const wmRegionListenerParams *params)
   }
 }
 
+}  // namespace blender::ed::space_node
+
+/* Outside of blender namespace to avoid Python documentation build error with `ctypes`. */
 const char *node_context_dir[] = {
     "selected_nodes", "active_node", "light", "material", "world", nullptr};
+
+namespace blender::ed::space_node {
+
 static int /*eContextResult*/ node_context(const bContext *C,
                                            const char *member,
                                            bContextDataResult *result)
@@ -978,8 +986,12 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
   }
 }
 
+}  // namespace blender::ed::space_node
+
 void ED_spacetype_node()
 {
+  using namespace blender::ed::space_node;
+
   SpaceType *st = MEM_cnew<SpaceType>("spacetype node");
   ARegionType *art;
 
@@ -1050,8 +1062,6 @@ void ED_spacetype_node()
   art->init = node_toolbar_region_init;
   art->draw = node_toolbar_region_draw;
   BLI_addhead(&st->regiontypes, art);
-
-  node_toolbar_register(art);
 
   BKE_spacetype_register(st);
 }

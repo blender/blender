@@ -58,6 +58,11 @@ class BVHMetal : public BVH {
                        id<MTLCommandQueue> queue,
                        Geometry *const geom,
                        bool refit);
+  bool build_BLAS_pointcloud(Progress &progress,
+                             id<MTLDevice> device,
+                             id<MTLCommandQueue> queue,
+                             Geometry *const geom,
+                             bool refit);
   bool build_TLAS(Progress &progress, id<MTLDevice> device, id<MTLCommandQueue> queue, bool refit);
 };
 

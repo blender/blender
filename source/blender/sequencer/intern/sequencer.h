@@ -34,10 +34,7 @@ struct Sequence;
  * Cache must be freed before calling this function
  * since it leaves the seqbase in an invalid state.
  */
-void seq_free_sequence_recurse(struct Scene *scene,
-                               struct Sequence *seq,
-                               bool do_id_user,
-                               bool do_clean_animdata);
+void seq_free_sequence_recurse(struct Scene *scene, struct Sequence *seq, bool do_id_user);
 
 #ifdef __cplusplus
 }

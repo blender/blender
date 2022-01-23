@@ -57,13 +57,10 @@
 #include "UI_view2d.h"
 
 #include "GPU_framebuffer.h"
+#include "file_indexer.h"
 #include "file_intern.h" /* own include */
 #include "filelist.h"
 #include "fsmenu.h"
-
-/* Enable asset indexing. Currently disabled as ID properties aren't indexed yet and is needed for
- * object snapping. See {D12990}. */
-//#define SPACE_FILE_ENABLE_ASSET_INDEXING
 
 static ARegion *file_ui_region_ensure(ScrArea *area, ARegion *region_prev)
 {
@@ -359,11 +356,11 @@ static void file_refresh(const bContext *C, ScrArea *area)
         sfile->files, asset_params->asset_catalog_visibility, &asset_params->catalog_id);
   }
 
-#ifdef SPACE_FILE_ENABLE_ASSET_INDEXING
   if (ED_fileselect_is_asset_browser(sfile)) {
-    filelist_setindexer(sfile->files, &file_indexer_asset);
+    const bool use_asset_indexer = !USER_EXPERIMENTAL_TEST(&U, no_asset_indexing);
+    filelist_setindexer(sfile->files,
+                        use_asset_indexer ? &file_indexer_asset : &file_indexer_noop);
   }
-#endif
 
   /* Update the active indices of bookmarks & co. */
   sfile->systemnr = fsmenu_get_active_indices(fsmenu, FS_CATEGORY_SYSTEM, params->dir);

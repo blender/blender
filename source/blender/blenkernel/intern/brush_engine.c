@@ -1191,8 +1191,8 @@ bool BKE_brush_mapping_is_enabled(BrushChannel *child, BrushChannel *parent, int
 }
 
 void BKE_brush_channel_apply_mapping_flags(BrushChannel *dst,
-                                           BrushChannel *child,
-                                           BrushChannel *parent)
+                                           const BrushChannel *child,
+                                           const BrushChannel *parent)
 {
   for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
     BrushMapping *mp = dst->mappings + i;
@@ -1289,7 +1289,7 @@ void BKE_brush_channelset_set_final_int(BrushChannelSet *child,
   BKE_brush_channel_set_int(ch, value);
 }
 
-float BKE_brush_channelset_get_final_float(BrushChannelSet *child,
+float old_BKE_brush_channelset_get_final_float(BrushChannelSet *child,
                                            BrushChannelSet *parent,
                                            const char *idname,
                                            BrushMappingData *mapdata)

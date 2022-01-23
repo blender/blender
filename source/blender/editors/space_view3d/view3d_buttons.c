@@ -87,7 +87,7 @@ typedef struct {
 } TransformMedian_Generic;
 
 typedef struct {
-  float location[3], bv_weight, be_weight, skin[2], crease;
+  float location[3], bv_weight, v_crease, be_weight, skin[2], e_crease;
 } TransformMedian_Mesh;
 
 typedef struct {
@@ -319,6 +319,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     BMIter iter;
 
     const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
+    const int cd_vert_crease_offset = CustomData_get_offset(&bm->vdata, CD_CREASE);
     const int cd_vert_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
     const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
     const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
@@ -333,6 +334,10 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
           if (cd_vert_bweight_offset != -1) {
             median->bv_weight += BM_ELEM_CD_GET_FLOAT(eve, cd_vert_bweight_offset);
+          }
+
+          if (cd_vert_crease_offset != -1) {
+            median->v_crease += BM_ELEM_CD_GET_FLOAT(eve, cd_vert_crease_offset);
           }
 
           if (has_skinradius) {
@@ -352,7 +357,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
             }
 
             if (cd_edge_crease_offset != -1) {
-              median->crease += BM_ELEM_CD_GET_FLOAT(eed, cd_edge_crease_offset);
+              median->e_crease += BM_ELEM_CD_GET_FLOAT(eed, cd_edge_crease_offset);
             }
 
             totedgedata++;
@@ -489,11 +494,12 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
   if (has_meshdata) {
     TransformMedian_Mesh *median = &median_basis.mesh;
     if (totedgedata) {
-      median->crease /= (float)totedgedata;
+      median->e_crease /= (float)totedgedata;
       median->be_weight /= (float)totedgedata;
     }
     if (tot) {
       median->bv_weight /= (float)tot;
+      median->v_crease /= (float)tot;
       if (has_skinradius) {
         median->skin[0] /= (float)tot;
         median->skin[1] /= (float)tot;
@@ -683,6 +689,23 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                         TIP_("Vertex weight used by Bevel modifier"));
         UI_but_number_step_size_set(but, 1);
         UI_but_number_precision_set(but, 2);
+        /* customdata layer added on demand */
+        but = uiDefButF(block,
+                        UI_BTYPE_NUM,
+                        B_TRANSFORM_PANEL_MEDIAN,
+                        tot == 1 ? IFACE_("Vertex Crease:") : IFACE_("Mean Vertex Crease:"),
+                        0,
+                        yi -= buth + but_margin,
+                        butw,
+                        buth,
+                        &ve_median->v_crease,
+                        0.0,
+                        1.0,
+                        0,
+                        0,
+                        TIP_("Weight used by the Subdivision Surface modifier"));
+        UI_but_number_step_size_set(but, 1);
+        UI_but_number_precision_set(but, 2);
       }
       if (has_skinradius) {
         UI_block_align_begin(block);
@@ -761,7 +784,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                         yi -= buth + but_margin,
                         butw,
                         buth,
-                        &ve_median->crease,
+                        &ve_median->e_crease,
                         0.0,
                         1.0,
                         0,
@@ -958,8 +981,9 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     const bool apply_vcos = (tot == 1) || (len_squared_v3(median_basis.generic.location) != 0.0f);
 
     if ((ob->type == OB_MESH) &&
-        (apply_vcos || median_basis.mesh.bv_weight || median_basis.mesh.skin[0] ||
-         median_basis.mesh.skin[1] || median_basis.mesh.be_weight || median_basis.mesh.crease)) {
+        (apply_vcos || median_basis.mesh.bv_weight || median_basis.mesh.v_crease ||
+         median_basis.mesh.skin[0] || median_basis.mesh.skin[1] || median_basis.mesh.be_weight ||
+         median_basis.mesh.e_crease)) {
       const TransformMedian_Mesh *median = &median_basis.mesh, *ve_median = &ve_median_basis.mesh;
       Mesh *me = ob->data;
       BMEditMesh *em = me->edit_mesh;
@@ -969,24 +993,35 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
       BMEdge *eed;
 
       int cd_vert_bweight_offset = -1;
+      int cd_vert_crease_offset = -1;
       int cd_vert_skin_offset = -1;
       int cd_edge_bweight_offset = -1;
       int cd_edge_crease_offset = -1;
 
       float scale_bv_weight = 1.0f;
+      float scale_v_crease = 1.0f;
       float scale_skin[2] = {1.0f, 1.0f};
       float scale_be_weight = 1.0f;
-      float scale_crease = 1.0f;
+      float scale_e_crease = 1.0f;
 
       /* Vertices */
 
-      if (apply_vcos || median->bv_weight || median->skin[0] || median->skin[1]) {
+      if (apply_vcos || median->bv_weight || median->v_crease || median->skin[0] ||
+          median->skin[1]) {
         if (median->bv_weight) {
           BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_VERT_BWEIGHT);
           cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
           BLI_assert(cd_vert_bweight_offset != -1);
 
           scale_bv_weight = compute_scale_factor(ve_median->bv_weight, median->bv_weight);
+        }
+
+        if (median->v_crease) {
+          BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_VERT_CREASE);
+          cd_vert_crease_offset = CustomData_get_offset(&bm->vdata, CD_CREASE);
+          BLI_assert(cd_vert_crease_offset != -1);
+
+          scale_v_crease = compute_scale_factor(ve_median->v_crease, median->v_crease);
         }
 
         for (int i = 0; i < 2; i++) {
@@ -1011,6 +1046,11 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
               apply_scale_factor_clamp(b_weight, tot, ve_median->bv_weight, scale_bv_weight);
             }
 
+            if (cd_vert_crease_offset != -1) {
+              float *crease = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_crease_offset);
+              apply_scale_factor_clamp(crease, tot, ve_median->v_crease, scale_v_crease);
+            }
+
             if (cd_vert_skin_offset != -1) {
               MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_skin_offset);
 
@@ -1033,7 +1073,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
       /* Edges */
 
-      if (median->be_weight || median->crease) {
+      if (median->be_weight || median->e_crease) {
         if (median->be_weight) {
           BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_BWEIGHT);
           cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
@@ -1042,12 +1082,12 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
           scale_be_weight = compute_scale_factor(ve_median->be_weight, median->be_weight);
         }
 
-        if (median->crease) {
+        if (median->e_crease) {
           BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_CREASE);
           cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
           BLI_assert(cd_edge_crease_offset != -1);
 
-          scale_crease = compute_scale_factor(ve_median->crease, median->crease);
+          scale_e_crease = compute_scale_factor(ve_median->e_crease, median->e_crease);
         }
 
         BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
@@ -1057,9 +1097,9 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
               apply_scale_factor_clamp(b_weight, tot, ve_median->be_weight, scale_be_weight);
             }
 
-            if (median->crease != 0.0f) {
+            if (median->e_crease != 0.0f) {
               float *crease = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_crease_offset);
-              apply_scale_factor_clamp(crease, tot, ve_median->crease, scale_crease);
+              apply_scale_factor_clamp(crease, tot, ve_median->e_crease, scale_e_crease);
             }
           }
         }

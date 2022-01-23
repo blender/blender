@@ -4953,19 +4953,22 @@ bool ed_editnurb_spin(
 
     if ((a & 1) == 0) {
       rotateflagNurb(editnurb, SELECT, cent, scalemat1);
-      weightflagNurb(editnurb, SELECT, 0.25 * M_SQRT2);
+      weightflagNurb(editnurb, SELECT, 0.5 * M_SQRT2);
     }
     else {
       rotateflagNurb(editnurb, SELECT, cent, scalemat2);
-      weightflagNurb(editnurb, SELECT, 4.0 / M_SQRT2);
+      weightflagNurb(editnurb, SELECT, 2.0 / M_SQRT2);
     }
   }
 
   if (ok) {
     LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if (ED_curve_nurb_select_check(v3d, nu)) {
-        nu->orderv = 4;
-        nu->flagv |= CU_NURB_CYCLIC;
+        nu->orderv = 3;
+        /* It is challenging to create a good approximation of a circle with uniform knots vector
+         * (which is forced in Blender for cyclic NURBS curves). Here a NURBS circle is constructed
+         * by connecting four Bezier arcs. */
+        nu->flagv |= CU_NURB_CYCLIC | CU_NURB_BEZIER;
         BKE_nurb_knot_calc_v(nu);
       }
     }

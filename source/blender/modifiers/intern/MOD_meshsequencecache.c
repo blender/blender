@@ -392,6 +392,22 @@ static void render_procedural_panel_draw(const bContext *C, Panel *panel)
   uiTemplateCacheFileProcedural(layout, C, &fileptr);
 }
 
+static void override_layers_panel_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA ob_ptr;
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
+
+  PointerRNA fileptr;
+  if (!uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
+    return;
+  }
+
+  uiLayoutSetPropSep(layout, true);
+  uiTemplateCacheFileLayers(layout, C, &fileptr);
+}
+
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(
@@ -405,6 +421,12 @@ static void panelRegister(ARegionType *region_type)
                              panel_type);
   modifier_subpanel_register(
       region_type, "velocity", "Velocity", NULL, velocity_panel_draw, panel_type);
+  modifier_subpanel_register(region_type,
+                             "override_layers",
+                             "Override Layers",
+                             NULL,
+                             override_layers_panel_draw,
+                             panel_type);
 }
 
 static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)

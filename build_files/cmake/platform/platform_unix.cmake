@@ -700,14 +700,18 @@ if(CMAKE_COMPILER_IS_GNUCC)
       find_path(
         MOLD_BIN_DIR "ld"
         HINTS "${MOLD_PREFIX}"
-        PATH_SUFFIXES "lib/mold" "lib64/mold"
+        # The default path is `libexec`, Arch Linux for e.g.
+        # replaces this with `lib` so check both.
+        PATH_SUFFIXES "libexec/mold" "lib/mold" "lib64/mold"
         NO_DEFAULT_PATH
         NO_CACHE
       )
       if(NOT MOLD_BIN_DIR)
         message(STATUS
           "The mold linker could not find the directory containing the linker command "
-          "(typically \"${MOLD_PREFIX}/lib/mold\"), using system linker.")
+          "(typically "
+          "\"${MOLD_PREFIX}/libexec/mold/ld\") or "
+          "\"${MOLD_PREFIX}/lib/mold/ld\") using system linker.")
         set(WITH_LINKER_MOLD OFF)
       endif()
       unset(MOLD_PREFIX)

@@ -108,6 +108,7 @@ set(SRC
   intern/bpath.c
   intern/brush.c
   intern/brush_channel_define.h
+  intern/brush_channel_define_header.h
   intern/brush_engine.c
   intern/brush_engine.cc
   intern/brush_engine_presets.c
@@ -169,6 +170,8 @@ set(SRC
   intern/icons.cc
   intern/icons_rasterize.c
   intern/idprop.c
+  intern/idprop_create.cc
+  intern/idprop_serialize.cc
   intern/idprop_utils.c
   intern/idtype.c
   intern/image.c
@@ -204,6 +207,7 @@ set(SRC
   intern/mesh.cc
   intern/mesh_boolean_convert.cc
   intern/mesh_convert.cc
+  intern/mesh_debug.cc
   intern/mesh_evaluate.cc
   intern/mesh_fair.cc
   intern/mesh_iterators.c
@@ -393,6 +397,7 @@ set(SRC
   BKE_hair.h
   BKE_icons.h
   BKE_idprop.h
+  BKE_idprop.hh
   BKE_idtype.h
   BKE_image.h
   BKE_image_save.h
@@ -484,7 +489,7 @@ set(SRC
   BKE_workspace.h
   BKE_world.h
   BKE_writeavi.h
-  intern/brush_channel_names.h
+  intern/brush_channel_names.hh
   BKE_brush_engine.h
   BKE_brush_engine.hh
 
@@ -533,7 +538,7 @@ set(LIB
   bf_simulation
 
   # For `vfontdata_freetype.c`.
-  ${FREETYPE_LIBRARY}
+  ${FREETYPE_LIBRARIES}
 )
 
 if(WITH_BINRELOC)
@@ -841,9 +846,11 @@ if(WITH_GTESTS)
     intern/bpath_test.cc
     intern/cryptomatte_test.cc
     intern/fcurve_test.cc
+    intern/idprop_serialize_test.cc
     intern/lattice_deform_test.cc
     intern/layer_test.cc
     intern/lib_id_test.cc
+    intern/lib_remap_test.cc
     intern/tracking_test.cc
   )
   set(TEST_INC

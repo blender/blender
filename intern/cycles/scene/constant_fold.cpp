@@ -441,9 +441,13 @@ void ConstantFolder::fold_mapping(NodeMappingType type) const
   if (is_zero(scale_in)) {
     make_zero();
   }
-  else if ((is_zero(location_in) || type == NODE_MAPPING_TYPE_VECTOR ||
-            type == NODE_MAPPING_TYPE_NORMAL) &&
-           is_zero(rotation_in) && is_one(scale_in)) {
+  else if (
+      /* Can't constant fold since we always need to normalize the output. */
+      (type != NODE_MAPPING_TYPE_NORMAL) &&
+      /* Check all use values are zero, note location is not used by vector and normal types. */
+      (is_zero(location_in) || type == NODE_MAPPING_TYPE_VECTOR ||
+       type == NODE_MAPPING_TYPE_NORMAL) &&
+      is_zero(rotation_in) && is_one(scale_in)) {
     try_bypass_or_make_constant(vector_in);
   }
 }

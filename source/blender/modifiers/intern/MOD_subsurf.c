@@ -85,6 +85,9 @@ static void requiredDataMask(Object *UNUSED(ob),
     r_cddata_masks->lmask |= CD_MASK_NORMAL;
     r_cddata_masks->lmask |= CD_MASK_CUSTOMLOOPNORMAL;
   }
+  if (smd->flags & eSubsurfModifierFlag_UseCrease) {
+    r_cddata_masks->vmask |= CD_MASK_CREASE;
+  }
 }
 
 static bool dependsOnNormals(ModifierData *md)

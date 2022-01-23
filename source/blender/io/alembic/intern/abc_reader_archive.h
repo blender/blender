@@ -41,8 +41,16 @@ class ArchiveReader {
   std::ifstream m_infile;
   std::vector<std::istream *> m_streams;
 
- public:
+  std::vector<ArchiveReader *> m_readers;
+
+  ArchiveReader(const std::vector<ArchiveReader *> &readers);
+
   ArchiveReader(struct Main *bmain, const char *filename);
+
+ public:
+  static ArchiveReader *get(struct Main *bmain, const std::vector<const char *> &filenames);
+
+  ~ArchiveReader();
 
   bool valid() const;
 

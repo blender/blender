@@ -1,9 +1,11 @@
-#ifdef USE_WORLD_CLIP_PLANES
+#ifndef USE_GPU_SHADER_CREATE_INFO
+#  ifdef USE_WORLD_CLIP_PLANES
 uniform mat4 ModelMatrix;
-#endif
+#  endif
 
 /* Does Nothing */
 in vec3 pos;
+#endif
 
 void main()
 {

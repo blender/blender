@@ -83,9 +83,9 @@ else()
   set(OPENEXR_VERSION_POSTFIX)
 endif()
 
-set(FREETYPE_VERSION 2.10.2)
+set(FREETYPE_VERSION 2.11.0)
 set(FREETYPE_URI http://prdownloads.sourceforge.net/freetype/freetype-${FREETYPE_VERSION}.tar.gz)
-set(FREETYPE_HASH b1cb620e4c875cd4d1bfa04945400945)
+set(FREETYPE_HASH cf09172322f6b50cf8f568bf8fe14bde)
 set(FREETYPE_HASH_TYPE MD5)
 set(FREETYPE_FILE freetype-${FREETYPE_VERSION}.tar.gz)
 
@@ -500,3 +500,10 @@ set(ZSTD_FILE zstd-${ZSTD_VERSION}.tar.gz)
 
 set(SSE2NEON_GIT https://github.com/DLTcollab/sse2neon.git)
 set(SSE2NEON_GIT_HASH fe5ff00bb8d19b327714a3c290f3e2ce81ba3525)
+
+set(BROTLI_VERSION v1.0.9)
+set(BROTLI_URI https://github.com/google/brotli/archive/refs/tags/${BROTLI_VERSION}.tar.gz)
+set(BROTLI_HASH f9e8d81d0405ba66d181529af42a3354f838c939095ff99930da6aa9cdf6fe46)
+set(BROTLI_HASH_TYPE SHA256)
+set(BROTLI_FILE brotli-${BROTLI_VERSION}.tar.gz)
+

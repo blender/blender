@@ -989,6 +989,7 @@ typedef enum eLineArtGPencilModifierFlags {
   LRT_GPENCIL_IS_BAKED = (1 << 3),
   LRT_GPENCIL_USE_CACHE = (1 << 4),
   LRT_GPENCIL_OFFSET_TOWARDS_CUSTOM_CAMERA = (1 << 5),
+  LRT_GPENCIL_INVERT_COLLECTION = (1 << 6),
 } eLineArtGPencilModifierFlags;
 
 typedef enum eLineartGpencilMaskSwitches {

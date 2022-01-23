@@ -59,6 +59,18 @@ typedef struct CacheObjectPath {
   char path[4096];
 } CacheObjectPath;
 
+/* CacheFileLayer::flag */
+enum { CACHEFILE_LAYER_HIDDEN = (1 << 0) };
+
+typedef struct CacheFileLayer {
+  struct CacheFileLayer *next, *prev;
+
+  /** 1024 = FILE_MAX. */
+  char filepath[1024];
+  int flag;
+  int _pad;
+} CacheFileLayer;
+
 /* CacheFile::velocity_unit
  * Determines what temporal unit is used to interpret velocity vectors for motion blur effects. */
 enum {
@@ -72,6 +84,8 @@ typedef struct CacheFile {
 
   /** Paths of the objects inside of the archive referenced by this CacheFile. */
   ListBase object_paths;
+
+  ListBase layers;
 
   /** 1024 = FILE_MAX. */
   char filepath[1024];
@@ -109,7 +123,10 @@ typedef struct CacheFile {
   /** Size in megabytes for the prefetch cache used by the Cycles Procedural. */
   int prefetch_cache_size;
 
-  char _pad2[7];
+  /** Index of the currently selected layer in the UI, starts at 1. */
+  int active_layer;
+
+  char _pad2[3];
 
   char velocity_unit;
   /* Name of the velocity property in the archive. */

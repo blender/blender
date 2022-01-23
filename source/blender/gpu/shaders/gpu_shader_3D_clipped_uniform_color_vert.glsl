@@ -1,9 +1,10 @@
-
+#ifndef USE_GPU_SHADER_CREATE_INFO
 uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ModelMatrix;
 uniform vec4 ClipPlane;
 
 in vec3 pos;
+#endif
 
 void main()
 {

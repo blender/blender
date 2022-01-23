@@ -2426,6 +2426,13 @@ void uiTemplateCacheFileProcedural(uiLayout *layout,
  */
 void uiTemplateCacheFileTimeSettings(uiLayout *layout, struct PointerRNA *fileptr);
 
+/**
+ * Draw the override layers related properties of the CacheFile.
+ */
+void uiTemplateCacheFileLayers(uiLayout *layout,
+                               const struct bContext *C,
+                               struct PointerRNA *fileptr);
+
 /* Default UIList class name, keep in sync with its declaration in bl_ui/__init__.py */
 #define UI_UL_DEFAULT_CLASS_NAME "UI_UL_list"
 enum uiTemplateListFlags {

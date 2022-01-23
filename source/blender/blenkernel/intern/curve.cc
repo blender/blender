@@ -30,6 +30,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
+#include "BLI_index_range.hh"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -67,10 +68,12 @@
 
 #include "BLO_read_write.h"
 
+using blender::IndexRange;
+
 /* globals */
 
 /* local */
-static CLG_LogRef LOG = {"bke.curve"};
+// static CLG_LogRef LOG = {"bke.curve"};
 
 static void curve_init_data(ID *id)
 {
@@ -1160,81 +1163,34 @@ void BKE_nurb_bpoint_calc_plane(struct Nurb *nu, BPoint *bp, float r_plane[3])
 
 static void calcknots(float *knots, const int pnts, const short order, const short flag)
 {
-  /* knots: number of pnts NOT corrected for cyclic */
-  const int pnts_order = pnts + order;
-  float k;
-  int a;
+  const bool is_cyclic = flag & CU_NURB_CYCLIC;
+  const bool is_bezier = flag & CU_NURB_BEZIER && !(flag & CU_NURB_ENDPOINT);
+  const bool is_end_point = flag & CU_NURB_ENDPOINT && !(flag & CU_NURB_BEZIER);
+  /* Inner knots are always repeated once except on Bezier case. */
+  const int repeat_inner = is_bezier ? order - 1 : 1;
+  /* How many times to repeat 0.0 at the beginning of knot. */
+  const int head = is_end_point && !is_cyclic ? order : (is_bezier ? order / 2 : 1);
+  /* Number of knots replicating widths of the starting knots.
+   * Covers both Cyclic and EndPoint cases. */
+  const int tail = is_cyclic ? 2 * order - 1 : (is_end_point ? order : 0);
 
-  switch (flag & (CU_NURB_ENDPOINT | CU_NURB_BEZIER)) {
-    case CU_NURB_ENDPOINT:
-      k = 0.0;
-      for (a = 1; a <= pnts_order; a++) {
-        knots[a - 1] = k;
-        if (a >= order && a <= pnts) {
-          k += 1.0f;
-        }
-      }
-      break;
-    case CU_NURB_BEZIER:
-      /* Warning, the order MUST be 2 or 4,
-       * if this is not enforced, the displist will be corrupt */
-      if (order == 4) {
-        k = 0.34;
-        for (a = 0; a < pnts_order; a++) {
-          knots[a] = floorf(k);
-          k += (1.0f / 3.0f);
-        }
-      }
-      else if (order == 3) {
-        k = 0.6f;
-        for (a = 0; a < pnts_order; a++) {
-          if (a >= order && a <= pnts) {
-            k += 0.5f;
-          }
-          knots[a] = floorf(k);
-        }
-      }
-      else {
-        CLOG_ERROR(&LOG, "bez nurb curve order is not 3 or 4, should never happen");
-      }
-      break;
-    default:
-      for (a = 0; a < pnts_order; a++) {
-        knots[a] = (float)a;
-      }
-      break;
-  }
-}
+  const int knot_count = pnts + order + (is_cyclic ? order - 1 : 0);
 
-static void makecyclicknots(float *knots, int pnts, short order)
-/* pnts, order: number of pnts NOT corrected for cyclic */
-{
-  int a, b, order2, c;
+  int r = head;
+  float current = 0.0f;
 
-  if (knots == nullptr) {
-    return;
-  }
-
-  order2 = order - 1;
-
-  /* do first long rows (order -1), remove identical knots at endpoints */
-  if (order > 2) {
-    b = pnts + order2;
-    for (a = 1; a < order2; a++) {
-      if (knots[b] != knots[b - a]) {
-        break;
-      }
-    }
-    if (a == order2) {
-      knots[pnts + order - 2] += 1.0f;
+  for (const int i : IndexRange(knot_count - tail)) {
+    knots[i] = current;
+    r--;
+    if (r == 0) {
+      current += 1.0;
+      r = repeat_inner;
     }
   }
 
-  b = order;
-  c = pnts + order + order2;
-  for (a = pnts + order2; a < c; a++) {
-    knots[a] = knots[a - 1] + (knots[b] - knots[b - 1]);
-    b--;
+  const int tail_index = knot_count - tail;
+  for (const int i : IndexRange(tail)) {
+    knots[tail_index + i] = current + (knots[i] - knots[0]);
   }
 }
 
@@ -1247,13 +1203,7 @@ static void makeknots(Nurb *nu, short uv)
       }
       if (BKE_nurb_check_valid_u(nu)) {
         nu->knotsu = (float *)MEM_calloc_arrayN(KNOTSU(nu) + 1, sizeof(float), "makeknots");
-        if (nu->flagu & CU_NURB_CYCLIC) {
-          calcknots(nu->knotsu, nu->pntsu, nu->orderu, 0); /* cyclic should be uniform */
-          makecyclicknots(nu->knotsu, nu->pntsu, nu->orderu);
-        }
-        else {
-          calcknots(nu->knotsu, nu->pntsu, nu->orderu, nu->flagu);
-        }
+        calcknots(nu->knotsu, nu->pntsu, nu->orderu, nu->flagu);
       }
       else {
         nu->knotsu = nullptr;
@@ -1265,13 +1215,7 @@ static void makeknots(Nurb *nu, short uv)
       }
       if (BKE_nurb_check_valid_v(nu)) {
         nu->knotsv = (float *)MEM_calloc_arrayN(KNOTSV(nu) + 1, sizeof(float), "makeknots");
-        if (nu->flagv & CU_NURB_CYCLIC) {
-          calcknots(nu->knotsv, nu->pntsv, nu->orderv, 0); /* cyclic should be uniform */
-          makecyclicknots(nu->knotsv, nu->pntsv, nu->orderv);
-        }
-        else {
-          calcknots(nu->knotsv, nu->pntsv, nu->orderv, nu->flagv);
-        }
+        calcknots(nu->knotsv, nu->pntsv, nu->orderv, nu->flagv);
       }
       else {
         nu->knotsv = nullptr;

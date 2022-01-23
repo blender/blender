@@ -124,8 +124,6 @@ bool BKE_subsurf_modifier_can_do_gpu_subdiv(const Scene *scene,
 
 void (*BKE_subsurf_modifier_free_gpu_cache_cb)(Subdiv *subdiv) = NULL;
 
-/* Main goal of this function is to give usable subdivision surface descriptor
- * which matches settings and topology. */
 Subdiv *BKE_subsurf_modifier_subdiv_descriptor_ensure(const SubsurfModifierData *smd,
                                                       const SubdivSettings *subdiv_settings,
                                                       const Mesh *mesh,

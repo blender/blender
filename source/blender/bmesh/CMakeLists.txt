@@ -98,9 +98,11 @@ set(SRC
   intern/bmesh_marking.h
   intern/bmesh_mesh.c
   intern/bmesh_mesh.h
-  intern/bmesh_mesh_convert.c
   intern/bmesh_mesh_convert_threaded.c
+  intern/bmesh_mesh_convert.cc
   intern/bmesh_mesh_convert.h
+  intern/bmesh_mesh_debug.c
+  intern/bmesh_mesh_debug.h
   intern/bmesh_mesh_duplicate.c
   intern/bmesh_mesh_duplicate.h
   intern/bmesh_mesh_normals.c

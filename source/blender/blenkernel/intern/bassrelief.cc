@@ -174,7 +174,7 @@ struct ReliefOptimizer {
 
     /* copy mlooptri in case it's later freed */
 
-    mlooptri = new MLoopTri[totlooptri];
+    mlooptri = new MLoopTri[(uint)totlooptri];
     for (int i = 0; i < totlooptri; i++) {
       mlooptri[i] = _mlooptri[i];
     }
@@ -184,7 +184,7 @@ struct ReliefOptimizer {
     }
 
     arena = BLI_memarena_new(1024 * 32, "relief optimizer arena");
-    verts = new ReliefVertex[totvert];
+    verts = new ReliefVertex[(uint)totvert];
     compress_ratio = 0.5f;
 
     const MVert *mv = mvert_;

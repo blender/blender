@@ -69,6 +69,8 @@ class GLContext : public Context {
   static bool copy_image_support;
   static bool debug_layer_support;
   static bool direct_state_access_support;
+  static bool explicit_location_support;
+  static bool geometry_shader_invocations;
   static bool fixed_restart_index_support;
   static bool multi_bind_support;
   static bool multi_draw_indirect_support;

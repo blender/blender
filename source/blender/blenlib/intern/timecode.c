@@ -49,7 +49,7 @@ size_t BLI_timecode_string_from_time(char *str,
 
   /* get cframes */
   if (time < 0) {
-    /* correction for negative cfraues */
+    /* Correction for negative cframes. */
     neg[0] = '-';
     time = -time;
   }

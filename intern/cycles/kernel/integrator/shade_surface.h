@@ -188,7 +188,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   const uint16_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce);
   uint32_t shadow_flag = INTEGRATOR_STATE(state, path, flag);
   shadow_flag |= (is_light) ? PATH_RAY_SHADOW_FOR_LIGHT : 0;
-  shadow_flag |= PATH_RAY_SURFACE_PASS;
+  shadow_flag |= (shadow_flag & PATH_RAY_ANY_PASS) ? 0 : PATH_RAY_SURFACE_PASS;
   const float3 throughput = INTEGRATOR_STATE(state, path, throughput) * bsdf_eval_sum(&bsdf_eval);
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {

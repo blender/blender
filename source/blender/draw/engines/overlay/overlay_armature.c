@@ -660,7 +660,7 @@ static void drw_shgroup_bone_custom_solid(ArmatureDrawContext *ctx,
    * by #data_eval. This is bad since it gives preference to an object's evaluated mesh over any
    * other data type, but supporting all evaluated geometry components would require a much larger
    * refactor of this area. */
-  Mesh *mesh = BKE_object_get_evaluated_mesh(custom);
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(custom);
   if (mesh == NULL) {
     return;
   }

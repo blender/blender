@@ -3,10 +3,6 @@
 
 #define CAVITY_BUFFER_RANGE 4.0
 
-#ifdef WORKBENCH_ENCODE_NORMALS
-
-#  define WB_Normal vec2
-
 /* From http://aras-p.info/texts/CompactNormalStorage.html
  * Using Method #4: Spheremap Transform */
 vec3 workbench_normal_decode(vec4 enc)
@@ -22,20 +18,13 @@ vec3 workbench_normal_decode(vec4 enc)
 
 /* From http://aras-p.info/texts/CompactNormalStorage.html
  * Using Method #4: Spheremap Transform */
-WB_Normal workbench_normal_encode(bool front_face, vec3 n)
+vec2 workbench_normal_encode(bool front_face, vec3 n)
 {
   n = normalize(front_face ? n : -n);
   float p = sqrt(n.z * 8.0 + 8.0);
   n.xy = clamp(n.xy / p + 0.5, 0.0, 1.0);
   return n.xy;
 }
-
-#else
-#  define WB_Normal vec3
-/* Well just do nothing... */
-#  define workbench_normal_encode(f, a) (a)
-#  define workbench_normal_decode(a) (a.xyz)
-#endif /* WORKBENCH_ENCODE_NORMALS */
 
 /* Encoding into the alpha of a RGBA16F texture. (10bit mantissa) */
 #define TARGET_BITCOUNT 8u

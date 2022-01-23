@@ -316,8 +316,8 @@ void BKE_brush_channelset_merge(BrushChannelSet *dst,
                                 BrushChannelSet *parent);
 
 void BKE_brush_channel_apply_mapping_flags(BrushChannel *dst,
-                                           BrushChannel *child,
-                                           BrushChannel *parent);
+                                           const BrushChannel *child,
+                                           const BrushChannel *parent);
 
 bool BKE_brush_mapping_is_enabled(BrushChannel *child, BrushChannel *parent, int mapping);
 

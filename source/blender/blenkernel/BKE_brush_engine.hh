@@ -1,129 +1,252 @@
-#include "DNA_brush_enums.h"
-#include "DNA_brush_types.h"
-#include "DNA_color_types.h"
-#include "DNA_curveprofile_types.h"
-#include "DNA_material_types.h"
-#include "DNA_node_types.h"
-#include "DNA_sculpt_brush_types.h"
+#if 1
 
-#include "BLI_compiler_attrs.h"
-#include "BLI_compiler_compat.h"
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-#include "BLI_rand.h"
-#include "BLI_rect.h"
-#include "BLI_smallhash.h"
-#include "BLI_utildefines.h"
+#  include "DNA_brush_enums.h"
+#  include "DNA_brush_types.h"
+#  include "DNA_color_types.h"
+#  include "DNA_curveprofile_types.h"
+#  include "DNA_material_types.h"
+#  include "DNA_node_types.h"
+#  include "DNA_sculpt_brush_types.h"
 
-#include "BKE_brush_engine.h"
+#  include "BLI_compiler_attrs.h"
+#  include "BLI_compiler_compat.h"
+#  include "BLI_ghash.h"
+#  include "BLI_listbase.h"
+#  include "BLI_math.h"
+#  include "BLI_rand.h"
+#  include "BLI_rect.h"
+#  include "BLI_smallhash.h"
+#  include "BLI_utildefines.h"
 
-#include "BKE_brush.h"
-#include "BKE_brush_engine.h"
-#include "BKE_colorband.h"
-#include "BKE_colortools.h"
-#include "BKE_context.h"
-#include "BKE_curvemapping_cache.h"
-#include "BKE_curveprofile.h"
-#include "BKE_lib_override.h"
-#include "BKE_lib_query.h"
-#include "BKE_main.h"
-#include "BKE_node.h"
-#include "BKE_paint.h"
+#  include "BKE_brush_engine.h"
 
-#include <algorithm>
-#include <cmath>
-#include <type_traits>
+#  include "BKE_brush.h"
+#  include "BKE_brush_engine.h"
+#  include "BKE_colorband.h"
+#  include "BKE_colortools.h"
+#  include "BKE_context.h"
+#  include "BKE_curvemapping_cache.h"
+#  include "BKE_curveprofile.h"
+#  include "BKE_lib_override.h"
+#  include "BKE_lib_query.h"
+#  include "BKE_main.h"
+#  include "BKE_node.h"
+#  include "BKE_paint.h"
+
+#  include <algorithm>
+#  include <cmath>
+#  include <cstdio>
+#  include <string>
+#  include <type_traits>
+
+#  include "intern/brush_channel_names.hh"
+
+#  define IS_CACHE_CURVE(curve) BKE_curvemapping_in_cache(curve)
+// frees curve if it wasn't cached, returns cache curved
+#  define GET_CACHE_CURVE(curve) BKE_curvemapping_cache_get(brush_curve_cache, curve, true)
+#  define RELEASE_CACHE_CURVE(curve) BKE_curvemapping_cache_release(brush_curve_cache, curve)
+#  define RELEASE_OR_FREE_CURVE(curve) \
+    curve ? (BKE_curvemapping_cache_release_or_free(brush_curve_cache, curve), nullptr) : nullptr
+#  define CURVE_ADDREF(curve) BKE_curvemapping_cache_aquire(brush_curve_cache, curve)
+
+struct CurveMappingCache *brush_curve_cache = NULL;
+extern BrushChannelType brush_builtin_channels[];
+extern int brush_builtin_channel_len;
 
 /* build compile time list of channel idnames */
+
+/** return eithers a reference to a brush channel type,
+   or if T is BrushCurve the (non-reference) BrushCurveIF wrapper type*/
+#  define BRUSH_VALUE_REF(T) typename std::conditional<std::is_same_v<T, BrushCurve>, BrushCurveIF, T &>::type
+
+template<class T> struct extract_float_array {
+  using type = typename std::conditional<std::is_array_v<T>, float, T>::type;
+};
 
 namespace blender {
 namespace brush {
 
+class BrushCurveIF {
+ public:
+  BrushCurveIF(BrushCurve *curve) : _curve(curve)
+  {
+  }
+  BrushCurveIF(const BrushCurveIF &b)
+  {
+    _curve = b._curve;
+  }
+
+  float evaluate(float f, float maxval = 1.0f)
+  {
+    /* ensure that curve is in valid state */
+    initCurve(false);
+
+    return BKE_brush_curve_strength_ex(_curve->preset, _curve->curve, f, maxval);
+  }
+
+  void initCurve(bool forceCreate = false)
+  {
+    if ((forceCreate || _curve->preset == BRUSH_CURVE_CUSTOM) && !_curve->curve) {
+      CurveMapping *cumap = _curve->curve = static_cast<CurveMapping *>(
+          MEM_callocN(sizeof(CurveMapping), "channel CurveMapping"));
+
+      int preset = CURVE_PRESET_LINE;
+
+      /* brush and curvemapping presets aren't perfectly compatible,
+         try to convert in reasonable manner*/
+      switch (_curve->preset) {
+        case BRUSH_CURVE_SMOOTH:
+        case BRUSH_CURVE_SMOOTHER:
+          preset = CURVE_PRESET_SMOOTH;
+          break;
+
+        case BRUSH_CURVE_SHARP:
+          preset = CURVE_PRESET_SHARP;
+          break;
+        case BRUSH_CURVE_POW4:
+          preset = CURVE_PRESET_POW3;
+          break;
+      }
+
+      struct rctf rect;
+      rect.xmin = rect.ymin = 0.0f;
+      rect.xmax = rect.ymax = 1.0f;
+
+      BKE_curvemapping_set_defaults(cumap, 1, 0.0f, 0.0f, 1.0f, 1.0f);
+      BKE_curvemap_reset(cumap->cm, &rect, preset, _curve->preset_slope_negative ? 0 : 1);
+
+      BKE_curvemapping_init(cumap);
+    }
+  }
+
+  void ensureWrite()
+  {
+    initCurve(true);
+
+    if (IS_CACHE_CURVE(_curve->curve)) {
+      _curve->curve = BKE_curvemapping_copy(_curve->curve);
+    }
+  }
+
+  CurveMapping *curve()
+  {
+    initCurve(false);
+    return _curve->curve;
+  }
+
+  eBrushCurvePreset &preset()
+  {
+    eBrushCurvePreset *p = reinterpret_cast<eBrushCurvePreset *>(&_curve->preset);
+    return *p;
+  }
+
+ private:
+  BrushCurve *_curve;
+};
+
 template<typename T> class BrushChannelIF {
  public:
+  BrushChannelIF()
+  {
+    _channel = nullptr;
+  }
+
   BrushChannelIF(BrushChannel *source) : _channel(source)
   {
   }
 
-  /* evaluation functions */
-
-  /** int evaluator */
-  std::enable_if_t<std::is_same<T, int>::value> evaluate(BrushMappingData *mapdata = nullptr)
+  eBrushChannelFlag &flag()
   {
-    double val = static_cast<double>(_channel->ivalue);
+    eBrushChannelFlag *f = reinterpret_cast<eBrushChannelFlag *>(&_channel->flag);
 
-    val = _evaluate(val, t, 0UL, mapdata);
-    return static_cast<int>(val);
+    return *f;
   }
 
-  /** float evaluator */
-  std::enable_if_t<std::is_same<T, float>::value> evaluate(BrushMappingData *mapdata = nullptr)
+  BrushChannelIF(const BrushChannelIF<T> &b)
   {
-    double val = static_cast<double>(_channel->fvalue);
-
-    val = _evaluate(val, t, 0UL, mapdata);
-    return static_cast<float>(val);
+    _channel = b._channel;
   }
 
-  /** bool evaluator */
-  std::enable_if_t<std::is_same<T, bool>::value> evaluate(BrushMappingData *mapdata = nullptr)
-  {
-    double val = static_cast<double>(_channel->fvalue);
+  BrushChannelIF<T> &operator=(const BrushChannelIF<T> &a) = default;
 
-    val = _evaluate(val, t, 0UL, mapdata);
-    return std::floor(val) != 0;
+  const BrushChannel &channel()
+  {
+    return *_channel;
   }
 
-  /** Curve evaluator. Unlike other channel types, this takes a float
-      argument, runs it through the brush curve and returns the result as
-      a float.
-
-      \param t value to evaluate with brush curve
-      */
-  std::enable_if_t<
-      std::conditional<std::is_same<T, BrushCurve>::value, float, std::false_type>::value>
-  evaluate(float t, BrushMappingData *mapdata = nullptr)
+  const char *idname()
   {
-    t = BKE_brush_curve_strength_ex(_channel->curve.preset, _channel->curve.curve, 1.0f - t, 1.0f);
-    double val = static_cast<double>(t);
-
-    return static_cast<float>(_evaluate(val, t, 0UL, mapdata));
+    return _channel->idname;
   }
 
-  /** value getter for int channels */
-  std::add_lvalue_reference_t<std::enable_if_t<std::is_same<T, int>::value>> value()
+  const bool isValid() const
   {
-    return _channel->ivalue;
+    return _channel != nullptr;
   }
 
-  /** value getter for float channels */
-  std::add_lvalue_reference_t<std::enable_if_t<std::is_same<T, float>::value>> value()
+  /**
+  Returns a reference to value of a brush channel.
+
+  Note that if T is BrushCurve then a BrushCurveIF
+  wrapper will be returned instead.
+
+  */
+  BRUSH_VALUE_REF(T) value()
   {
-    return _channel->fvalue;
+    if constexpr (std::is_same_v<T, float>) {
+      return _channel->fvalue;
+    }
+    else if constexpr (std::is_same_v<T, int>) {
+      return _channel->ivalue;
+    }
+    else if constexpr (std::is_same_v<T, bool>) {
+      bool *boolval = reinterpret_cast<bool *>(&_channel->ivalue);
+      return *boolval;
+    }
+    else if constexpr (std::is_same_v<T, BrushCurveIF>) {
+      return BrushCurveIF(&_channel->curve);
+    }
+    else if constexpr (std::is_same_v<T, float[3]>) {
+      float(*vec3)[3] = reinterpret_cast<float(*)[3]>(_channel->vector);
+
+      return vec3[0];
+    }
+    else if constexpr (std::is_same_v<T, float[4]>) {
+      return _channel->vector;
+    }
+
+    T ret;
+    return ret;
   }
 
-  /** value getter for bool channels */
-  std::add_lvalue_reference_t<std::enable_if_t<std::is_same<T, bool>::value>> value()
+  /* vectorIndex is only used for float[3] and float[4] specializations*/
+  typename extract_float_array<T>::type evaluate(BrushMappingData *mapping = nullptr, int vectorIndex = 0)
   {
-    return *(reinterpret_cast<bool *>(&_channel->ivalue));
-  }
+    if constexpr (std::is_same_v<T, float>) {
+      return (float)_evaluate((double)_channel->fvalue, 0, mapping);
+    }
+    else if constexpr (std::is_same_v<T, int>) {
+      return (int)_evaluate((double)_channel->ivalue, 0, mapping);
+    }
+    else if constexpr (std::is_same_v<T, bool>) {
+      return fabs(_evaluate((double)(_channel->ivalue & 1), 0, mapping)) > FLT_EPSILON;
+    }
+    else if constexpr (std::is_same_v<T, float[3]> || std::is_same_v<T, float[4]>) {
+      return (float)_evaluate((double)_channel->vector, vectorIndex, mapping);
+    }
 
-  /** value getter for BrushCurve channels */
-  std::add_lvalue_reference_t<std::enable_if_t<std::is_same<T, BrushCurve>::value>> value()
-  {
-    return _channel->curve;
+    static_assert(!std::is_same_v<T, BrushCurveIF>, "cannot use evaluate with brush curves");
   }
 
  private:
-  double _evaluate(double val, float t, unsigned int idx, BrushMappingData *mapdata = nullptr)
+  double _evaluate(double val, unsigned int idx, BrushMappingData *mapping = nullptr)
   {
-    if (idx == 3 && !(ch->flag & BRUSH_CHANNEL_APPLY_MAPPING_TO_ALPHA)) {
-      return f;
+    if (idx == 3 && !(_channel->flag & BRUSH_CHANNEL_APPLY_MAPPING_TO_ALPHA)) {
+      return val;
     }
 
-    if (mapdata) {
-      double factor = f;  // 1.0f;
+    if (mapping) {
+      double factor = val;
 
       for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
         BrushMapping *mp = _channel->mappings + i;
@@ -132,7 +255,7 @@ template<typename T> class BrushChannelIF {
           continue;
         }
 
-        float inputf = ((float *)mapdata)[i] * mp->premultiply;
+        float inputf = (reinterpret_cast<float *>(mapping))[i] * mp->premultiply;
 
         switch ((BrushMappingFunc)mp->mapfunc) {
           case BRUSH_MAPFUNC_NONE:
@@ -191,34 +314,157 @@ template<typename T> class BrushChannelIF {
             f2 = factor - f2;
             break;
           case MA_RAMP_DIFF:
-            f2 = fabsf(factor - f2);
+            f2 = std::abs(factor - f2);
             break;
           default:
             printf("Unsupported brush mapping blend mode for %s (%s); will mix instead\n",
-                   ch->name,
-                   ch->idname);
+                   _channel->name,
+                   _channel->idname);
             break;
         }
 
         factor += (f2 - factor) * mp->factor;
       }
 
-      f = factor;
-      CLAMP(f, _channel->def->min, _channel->def->max);
+      val = factor;
+      CLAMP(val, (double)_channel->def->min, (double)_channel->def->max);
     }
 
-    return f;
+    return val;
   }
 
   BrushChannel *_channel;
 };
 
-template<typename T> class BrushChannelSetIF {
+class BrushChannelSetIF {
  public:
   BrushChannelSetIF(BrushChannelSet *chset) : _chset(chset)
   {
   }
 
+  BrushChannelSetIF(const BrushChannelSetIF &b)
+  {
+    _chset = b._chset;
+  }
+
+  bool isValid()
+  {
+    return _chset != nullptr;
+  }
+
+  void destroy()
+  {
+    if (_chset) {
+      if (_chset->namemap) {
+        BLI_ghash_free(_chset->namemap, nullptr, nullptr);
+      }
+
+      LISTBASE_FOREACH (BrushChannel *, ch, &_chset->channels) {
+        if (ch->curve.curve) {
+          RELEASE_OR_FREE_CURVE(ch->curve.curve);
+        }
+      }
+
+      BLI_freelistN(&_chset->channels);
+
+      MEM_SAFE_FREE(_chset);
+    }
+    _chset = nullptr;
+  }
+
+  void ensureChannel(const char *idname)
+  {
+  }
+
+  template<typename T> BrushChannelIF<T> lookup(const char *idname)
+  {
+    BrushChannel *ch = static_cast<BrushChannel *>(
+        BLI_ghash_lookup(_chset->namemap, static_cast<const void *>(idname)));
+    BrushChannelIF<T> chif(ch);
+
+    return chif;
+  }
+
+  template<typename T>
+  BRUSH_VALUE_REF(T)
+  getFinalValue(BrushChannelSet *parentset,
+                BrushChannelIF<T> ch,
+                BrushMappingData *mapping = nullptr,
+                int vectorIndex = 0)
+  {
+    return getFinalValue(BrushChannelSetIF(parentset), ch, mapping, vectorIndex);
+  }
+
+  /**
+  Looks up channel with same idname as ch in parentset.
+  If it exists, returns the evaluated value of that channel
+  taking all inheritance flags and input mappings into
+  account.
+
+  if it doesn't exist then the value of ch with
+  input mappings evaluated will be returned.
+
+  Note that if T is BrushCurve then we simply return
+  a BrushCurveIF wrapper of either ch or the
+  one in parentset, depending on inheritance flags.
+  */
+  template<typename T>
+  typename extract_float_array<T>::type
+  getFinalValue(BrushChannelSetIF &parentSet,
+                BrushChannelIF<T> ch,
+                BrushMappingData *mapping = nullptr,
+                int vectorIndex = 0)
+  {
+    BrushChannelIF<T> ch2;
+
+    if (parentSet.isValid()) {
+      ch2 = parentSet.lookup<T>(ch.idname());
+    }
+
+    if (!parentSet.isValid() || !ch2.isValid()) {
+      if constexpr (std::is_same_v<T, BrushCurve>) {  // curve?
+        return ch.value();
+      }
+      else if constexpr (std::is_array_v<T>) {
+        return ch.evaluate(mapping, vectorIndex);
+      }
+    }
+
+    if constexpr (std::is_same_v<T, BrushCurve>) {
+      return (int)ch.flag() & (int)BRUSH_CHANNEL_INHERIT ? ch2.value() : ch.value();
+    }
+
+    BrushChannel _cpy = (int)ch.flag() & (int)BRUSH_CHANNEL_INHERIT ? ch2.channel() : ch.channel();
+    BrushChannelIF<T> cpy(&_cpy);
+
+    BKE_brush_channel_apply_mapping_flags(&_cpy, &ch.channel(), &ch2.channel());
+
+    return cpy.evaluate(mapping, vectorIndex);
+  }
+
+  /*
+We want to validate channel names at compile time,
+but we can't do compile-time validation of string literals
+without c++20.  Instead we use macros to make
+lots of accessor methods.
+
+examples:
+
+  BrushChannelIF<float> strength();
+  BrushChannelIF<float> radius();
+  BrushChannelIF<bool> dyntopo_disabled();
+
+  auto ch = chset->strength();
+  BrushChanneIF<float> ch = chset->strength();
+
+  if (ch->isValid()) {
+    float val = ch->value();
+    ch->value() = val * val;
+  }
+*/
+
+#  define BRUSH_CHANNEL_MAKE_CPP_LOOKUPS
+#  include "intern/brush_channel_define.h"
 
  private:
   BrushChannelSet *_chset;
@@ -226,3 +472,4 @@ template<typename T> class BrushChannelSetIF {
 
 }  // namespace brush
 }  // namespace blender
+#endif

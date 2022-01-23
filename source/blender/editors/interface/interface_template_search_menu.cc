@@ -465,6 +465,9 @@ static MenuSearch_Data *menu_items_from_ui_create(
     const char *idname_array[] = {
         /* While we could include this, it's just showing filenames to load. */
         "TOPBAR_MT_file_open_recent",
+        /* Showing undo history is not helpful since users may accidentally undo
+         * an action they intend to run. */
+        "TOPBAR_MT_undo_history",
     };
     for (int i = 0; i < ARRAY_SIZE(idname_array); i++) {
       MenuType *mt = WM_menutype_find(idname_array[i], false);

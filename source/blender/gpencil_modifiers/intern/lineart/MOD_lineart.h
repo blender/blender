@@ -300,13 +300,17 @@ typedef struct LineartRenderBuffer {
   bool use_loose_edge_chain;
   bool use_geometry_space_chain;
   bool use_image_boundary_trimming;
+  bool use_back_face_culling;
 
   bool filter_face_mark;
   bool filter_face_mark_invert;
   bool filter_face_mark_boundaries;
+  bool filter_face_mark_keep_contour;
 
   bool force_crease;
   bool sharp_as_crease;
+
+  bool chain_preserve_details;
 
   /* Keep an copy of these data so when line art is running it's self-contained. */
   bool cam_is_persp;

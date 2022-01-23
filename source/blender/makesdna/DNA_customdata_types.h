@@ -139,6 +139,10 @@ typedef enum CustomDataType {
   CD_SHAPE_KEYINDEX = 27,
   CD_SHAPEKEY = 28,
   CD_BWEIGHT = 29,
+  /* Usage of CD_CREASE depends on where on the Mesh the layer is added:
+   * - for vertex creasing, this is persistent data accross all modes and is stored in the file,
+   * - for egde creasing, it is runtime data which is only used in edit-mode before being copied to
+   * MEdge when exiting edit-mode. */
   CD_CREASE = 30,
   CD_ORIGSPACE_MLOOP = 31,
   CD_PREVIEW_MLOOPCOL = 32,

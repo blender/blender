@@ -1071,7 +1071,15 @@ static void create_subd_mesh(Scene *scene,
 
   for (BL::MeshEdge &e : b_mesh.edges) {
     if (e.crease() != 0.0f) {
-      mesh->add_crease(e.vertices()[0], e.vertices()[1], e.crease());
+      mesh->add_edge_crease(e.vertices()[0], e.vertices()[1], e.crease());
+    }
+  }
+
+  for (BL::MeshVertexCreaseLayer &c : b_mesh.vertex_creases) {
+    for (int i = 0; i < c.data.length(); ++i) {
+      if (c.data[i].value() != 0.0f) {
+        mesh->add_vertex_crease(i, c.data[i].value());
+      }
     }
   }
 

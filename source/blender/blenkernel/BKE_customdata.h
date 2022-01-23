@@ -787,6 +787,14 @@ void CustomData_bmesh_asan_poison(const CustomData *data, void *block);
 void CustomData_bmesh_asan_unpoison(const CustomData *data, void *block);
 int CustomData_get_named_offset(const CustomData *data, int type, const char *name);
 
+#ifndef NDEBUG
+struct DynStr;
+/** Use to inspect mesh data when debugging. */
+void CustomData_debug_info_from_layers(const struct CustomData *data,
+                                       const char *indent,
+                                       struct DynStr *dynstr);
+#endif /* NDEBUG */
+
 #ifdef __cplusplus
 }
 #endif

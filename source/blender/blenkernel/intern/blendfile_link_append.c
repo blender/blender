@@ -681,21 +681,25 @@ static void loose_data_instantiate_collection_process(
     Collection *collection = (Collection *)id;
     bool do_add_collection = (id->tag & LIB_TAG_DOIT) != 0;
 
+    if (!do_add_collection) {
+      continue;
+    }
     /* When instantiated into view-layer, do not add collections if one of their parents is also
-     * instantiated. In case of empty-instantiation though, instantiation of all user-selected
-     * collections is the desired behavior. */
-    if (!do_add_collection ||
-        (!do_instantiate_as_empty &&
-         loose_data_instantiate_collection_parents_check_recursive(collection))) {
+     * instantiated. */
+    if (!do_instantiate_as_empty &&
+        loose_data_instantiate_collection_parents_check_recursive(collection)) {
+      continue;
+    }
+    /* When instantiated as empty, do not add indirectly linked (i.e. non-user-selected)
+     * collections. */
+    if (do_instantiate_as_empty && (item->tag & LINK_APPEND_TAG_INDIRECT) != 0) {
       continue;
     }
 
     loose_data_instantiate_ensure_active_collection(instantiate_context);
     Collection *active_collection = instantiate_context->active_collection;
 
-    /* In case user requested instantiation of collections as empties, do so for the one they
-     * explicitly selected (originally directly linked IDs) only. */
-    if (do_instantiate_as_empty && (item->tag & LINK_APPEND_TAG_INDIRECT) == 0) {
+    if (do_instantiate_as_empty) {
       /* BKE_object_add(...) messes with the selection. */
       Object *ob = BKE_object_add_only_object(bmain, OB_EMPTY, collection->id.name + 2);
       ob->type = OB_EMPTY;

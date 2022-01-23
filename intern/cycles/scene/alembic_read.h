@@ -76,9 +76,10 @@ struct SubDSchemaData {
 
   vector<FaceSetShaderIndexPair> shader_face_sets;
 
-  // Those are unsupported for now.
   Alembic::AbcGeom::IInt32ArrayProperty corner_indices;
   Alembic::AbcGeom::IFloatArrayProperty corner_sharpnesses;
+
+  // Those are unsupported for now.
   Alembic::AbcGeom::IInt32Property face_varying_interpolate_boundary;
   Alembic::AbcGeom::IInt32Property face_varying_propagate_corners;
   Alembic::AbcGeom::IInt32Property interpolate_boundary;

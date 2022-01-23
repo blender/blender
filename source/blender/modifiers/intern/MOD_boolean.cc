@@ -248,9 +248,14 @@ static BMesh *BMD_mesh_bm_create(
   BMeshCreateParams bmesh_create_params = {0};
   BMesh *bm = BM_mesh_create(&allocsize, &bmesh_create_params);
 
-  /* Needed so active layers are set based on `mesh` not `mesh_operand_ob`,
-   * otherwise the wrong active render layer is used, see T92384. */
-  BM_mesh_copy_init_customdata_from_mesh(bm, mesh, &allocsize);
+  /* Keep `mesh` first, needed so active layers are set based on `mesh` not `mesh_operand_ob`,
+   * otherwise the wrong active render layer is used, see T92384.
+   *
+   * NOTE: while initializing customer data layers the is not essential,
+   * it avoids the overhead of having to re-allocate #BMHeader.data when the 2nd mesh is added
+   * (if it contains additional custom-data layers). */
+  const Mesh *mesh_array[2] = {mesh, mesh_operand_ob};
+  BM_mesh_copy_init_customdata_from_mesh_array(bm, mesh_array, ARRAY_SIZE(mesh_array), &allocsize);
 
   BMeshFromMeshParams bmesh_from_mesh_params = {0};
 

@@ -91,28 +91,29 @@ filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_par
 {
   Vector<std::unique_ptr<OBJMesh>> r_exportable_meshes;
   Vector<std::unique_ptr<OBJCurve>> r_exportable_nurbs;
-  const ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
-  LISTBASE_FOREACH (const Base *, base, &view_layer->object_bases) {
-    Object *object_in_layer = base->object;
-    if (export_params.export_selected_objects && !(object_in_layer->base_flag & BASE_SELECTED)) {
+  const int deg_objects_visibility_flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                                           DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
+                                           DEG_ITER_OBJECT_FLAG_VISIBLE |
+                                           DEG_ITER_OBJECT_FLAG_DUPLI;
+  DEG_OBJECT_ITER_BEGIN (depsgraph, object, deg_objects_visibility_flags) {
+    if (export_params.export_selected_objects && !(object->base_flag & BASE_SELECTED)) {
       continue;
     }
-    switch (object_in_layer->type) {
+    switch (object->type) {
       case OB_SURF:
         /* Export in mesh form: vertices and polygons. */
         ATTR_FALLTHROUGH;
       case OB_MESH:
-        r_exportable_meshes.append(
-            std::make_unique<OBJMesh>(depsgraph, export_params, object_in_layer));
+        r_exportable_meshes.append(std::make_unique<OBJMesh>(depsgraph, export_params, object));
         break;
       case OB_CURVE: {
-        Curve *curve = static_cast<Curve *>(object_in_layer->data);
+        Curve *curve = static_cast<Curve *>(object->data);
         Nurb *nurb{static_cast<Nurb *>(curve->nurb.first)};
         if (!nurb) {
           /* An empty curve. Not yet supported to export these as meshes. */
           if (export_params.export_curves_as_nurbs) {
             r_exportable_nurbs.append(
-                std::make_unique<OBJCurve>(depsgraph, export_params, object_in_layer));
+                std::make_unique<OBJCurve>(depsgraph, export_params, object));
           }
           break;
         }
@@ -121,18 +122,18 @@ filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_par
             if (export_params.export_curves_as_nurbs) {
               /* Export in parameter form: control points. */
               r_exportable_nurbs.append(
-                  std::make_unique<OBJCurve>(depsgraph, export_params, object_in_layer));
+                  std::make_unique<OBJCurve>(depsgraph, export_params, object));
             }
             else {
               /* Export in mesh form: edges and vertices. */
               r_exportable_meshes.append(
-                  std::make_unique<OBJMesh>(depsgraph, export_params, object_in_layer));
+                  std::make_unique<OBJMesh>(depsgraph, export_params, object));
             }
             break;
           case CU_BEZIER:
             /* Always export in mesh form: edges and vertices. */
             r_exportable_meshes.append(
-                std::make_unique<OBJMesh>(depsgraph, export_params, object_in_layer));
+                std::make_unique<OBJMesh>(depsgraph, export_params, object));
             break;
           default:
             /* Other curve types are not supported. */
@@ -145,6 +146,7 @@ filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_par
         break;
     }
   }
+  DEG_OBJECT_ITER_END;
   return {std::move(r_exportable_meshes), std::move(r_exportable_nurbs)};
 }
 

@@ -418,6 +418,22 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
   }
 }
 
+static void ntree_shader_groups_remove_muted_links(bNodeTree *ntree)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == NODE_GROUP) {
+      if (node->id != nullptr) {
+        ntree_shader_groups_remove_muted_links(reinterpret_cast<bNodeTree *>(node->id));
+      }
+    }
+  }
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
+    if (link->flag & NODE_LINK_MUTED) {
+      nodeRemLink(ntree, link);
+    }
+  }
+}
+
 static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
 {
   LinkNode *group_interface_nodes = nullptr;
@@ -875,6 +891,7 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree,
 
   bNode *output = ntreeShaderOutputNode(localtree, SHD_OUTPUT_EEVEE);
 
+  ntree_shader_groups_remove_muted_links(localtree);
   ntree_shader_groups_expand_inputs(localtree);
 
   ntree_shader_groups_flatten(localtree);

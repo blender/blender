@@ -530,6 +530,7 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
       PyErr_SetString(PyExc_BufferError, "the buffer size is smaller than expected");
       return NULL;
     }
+    Py_INCREF(py_buffer);
   }
   else {
     py_buffer = BPyGPU_Buffer_CreatePyObject(
@@ -590,6 +591,7 @@ static PyObject *pygpu_framebuffer_read_depth(BPyGPUFrameBuffer *self,
       PyErr_SetString(PyExc_BufferError, "the buffer size is smaller than expected");
       return NULL;
     }
+    Py_INCREF(py_buffer);
   }
   else {
     py_buffer = BPyGPU_Buffer_CreatePyObject(GPU_DATA_FLOAT, (Py_ssize_t[]){h, w}, 2, NULL);

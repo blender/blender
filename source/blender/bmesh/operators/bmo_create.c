@@ -17,7 +17,7 @@
 /** \file
  * \ingroup bmesh
  *
- * Create faces or edges (Fkey by default).
+ * Create faces or edges (F-key by default).
  */
 
 #include "MEM_guardedalloc.h"

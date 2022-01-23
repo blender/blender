@@ -365,6 +365,11 @@ template<typename T, BLI_ENABLE_IF_FLT_VEC(T)> inline T interpolate(const T &a, 
   return a * (1 - t) + b * t;
 }
 
+template<typename T, BLI_ENABLE_IF_FLT_VEC(T)> inline T midpoint(const T &a, const T &b)
+{
+  return (a + b) * 0.5;
+}
+
 template<typename T, BLI_ENABLE_IF_FLT_VEC(T)>
 inline T faceforward(const T &vector, const T &incident, const T &reference)
 {

@@ -742,6 +742,7 @@ NODE_DEFINE(AlembicProcedural)
   NodeType *type = NodeType::add("alembic", create);
 
   SOCKET_STRING(filepath, "Filename", ustring());
+  SOCKET_STRING_ARRAY(layers, "Layers", array<ustring>());
   SOCKET_FLOAT(frame, "Frame", 1.0f);
   SOCKET_FLOAT(start_frame, "Start Frame", 1.0f);
   SOCKET_FLOAT(end_frame, "End Frame", 1.0f);
@@ -839,14 +840,26 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
     return;
   }
 
-  if (!archive.valid()) {
+  if (!archive.valid() || filepath_is_modified() || layers_is_modified()) {
     Alembic::AbcCoreFactory::IFactory factory;
     factory.setPolicy(Alembic::Abc::ErrorHandler::kQuietNoopPolicy);
-    archive = factory.getArchive(filepath.c_str());
+
+    std::vector<std::string> filenames;
+    filenames.push_back(filepath.c_str());
+
+    for (const ustring &layer : layers) {
+      filenames.push_back(layer.c_str());
+    }
+
+    /* We need to reverse the order as overriding archives should come first. */
+    std::reverse(filenames.begin(), filenames.end());
+
+    archive = factory.getArchive(filenames);
 
     if (!archive.valid()) {
       /* avoid potential infinite update loops in viewport synchronization */
       filepath.clear();
+      layers.clear();
       clear_modified();
       return;
     }
@@ -1164,6 +1177,12 @@ void AlembicProcedural::read_subd(AlembicObject *abc_object, Abc::chrono_t frame
 
   cached_data.subd_creases_weight.copy_to_socket(
       frame_time, mesh, mesh->get_subd_creases_weight_socket());
+
+  cached_data.subd_vertex_crease_indices.copy_to_socket(
+      frame_time, mesh, mesh->get_subd_vert_creases_socket());
+
+  cached_data.subd_vertex_crease_weights.copy_to_socket(
+      frame_time, mesh, mesh->get_subd_vert_creases_weight_socket());
 
   mesh->set_num_subd_faces(mesh->get_subd_shader().size());
 

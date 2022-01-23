@@ -101,11 +101,6 @@ void ED_node_socket_draw(struct bNodeSocket *sock,
 void ED_node_tree_update(const struct bContext *C);
 void ED_node_tag_update_id(struct ID *id);
 
-/**
- * Sort nodes by selection: unselected nodes first, then selected,
- * then the active node at the very end. Relative order is kept intact.
- */
-void ED_node_sort(struct bNodeTree *ntree);
 float ED_node_grid_size(void);
 
 /* node_relationships.c */
@@ -142,8 +137,6 @@ void ED_node_composit_default(const struct bContext *C, struct Scene *scene);
  * Called from shading buttons or header.
  */
 void ED_node_texture_default(const struct bContext *C, struct Tex *tex);
-bool ED_node_select_check(const ListBase *lb);
-void ED_node_select_all(ListBase *lb, int action);
 void ED_node_post_apply_transform(struct bContext *C, struct bNodeTree *ntree);
 void ED_node_set_active(struct Main *bmain,
                         struct SpaceNode *snode,

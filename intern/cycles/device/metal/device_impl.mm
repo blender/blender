@@ -87,17 +87,14 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     default:
       break;
     case METAL_GPU_INTEL: {
-      use_metalrt = false;
       max_threads_per_threadgroup = 64;
       break;
     }
     case METAL_GPU_AMD: {
-      use_metalrt = false;
       max_threads_per_threadgroup = 128;
       break;
     }
     case METAL_GPU_APPLE: {
-      use_metalrt = true;
       max_threads_per_threadgroup = 512;
       break;
     }
@@ -432,6 +429,25 @@ void MetalDevice::load_texture_info()
   }
 }
 
+void MetalDevice::erase_allocation(device_memory &mem)
+{
+  stats.mem_free(mem.device_size);
+  mem.device_pointer = 0;
+  mem.device_size = 0;
+
+  auto it = metal_mem_map.find(&mem);
+  if (it != metal_mem_map.end()) {
+    MetalMem *mmem = it->second.get();
+
+    /* blank out reference to MetalMem* in the launch params (fixes crash T94736) */
+    if (mmem->pointer_index >= 0) {
+      device_ptr *pointers = (device_ptr *)&launch_params;
+      pointers[mmem->pointer_index] = 0;
+    }
+    metal_mem_map.erase(it);
+  }
+}
+
 MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
 {
   size_t size = mem.memory_size();
@@ -561,11 +577,7 @@ void MetalDevice::generic_free(device_memory &mem)
       mmem.mtlBuffer = nil;
     }
 
-    stats.mem_free(mem.device_size);
-    mem.device_pointer = 0;
-    mem.device_size = 0;
-
-    metal_mem_map.erase(&mem);
+    erase_allocation(mem);
   }
 }
 
@@ -954,10 +966,7 @@ void MetalDevice::tex_free(device_texture &mem)
       delayed_free_list.push_back(mmem.mtlTexture);
       mmem.mtlTexture = nil;
     }
-    stats.mem_free(mem.device_size);
-    mem.device_pointer = 0;
-    mem.device_size = 0;
-    metal_mem_map.erase(&mem);
+    erase_allocation(mem);
   }
 }
 

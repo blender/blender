@@ -243,8 +243,11 @@ static void undo_history_draw_menu(const bContext *C, Menu *menu)
   if (wm->undo_stack == NULL) {
     return;
   }
+
   int undo_step_count = 0;
-  for (UndoStep *us = wm->undo_stack->steps.first; us; us = us->next) {
+  int undo_step_count_all = 0;
+  for (UndoStep *us = wm->undo_stack->steps.last; us; us = us->prev) {
+    undo_step_count_all += 1;
     if (us->skip) {
       continue;
     }
@@ -255,10 +258,12 @@ static void undo_history_draw_menu(const bContext *C, Menu *menu)
   uiLayout *column = NULL;
 
   const int col_size = 20 + (undo_step_count / 12);
-  int i = 0;
 
   undo_step_count = 0;
-  for (UndoStep *us = wm->undo_stack->steps.first; us; us = us->next, i++) {
+
+  /* Reverse the order so the most recent state is first in the menu. */
+  int i = undo_step_count_all - 1;
+  for (UndoStep *us = wm->undo_stack->steps.last; us; us = us->prev, i--) {
     if (us->skip) {
       continue;
     }

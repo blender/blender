@@ -2374,8 +2374,13 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
     capabilities = brush.image_paint_capabilities
 
     if capabilities.has_color:
-        UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
-        if context.mode != "SCULT":
+        row = layout.row(align=True)
+        row.ui_units_x = 4
+        UnifiedPaintPanel.prop_unified_color(row, context, brush, "color", text="")
+        UnifiedPaintPanel.prop_unified_color(row, context, brush, "secondary_color", text="")
+        row.separator()
+
+        if context.mode != "SCULPT":
             layout.prop(brush, "blend", text="" if compact else "Blend")
         else:
             UnifiedPaintPanel.channel_unified(layout,

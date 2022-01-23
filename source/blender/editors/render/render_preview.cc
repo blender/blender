@@ -687,17 +687,17 @@ static bool ed_preview_draw_rect(ScrArea *area, int split, int first, rcti *rect
         RE_AcquiredResultGet32(re, &rres, (uint *)rect_byte, 0);
 
         IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-        immDrawPixelsTex(&state,
-                         fx,
-                         fy,
-                         rres.rectx,
-                         rres.recty,
-                         GPU_RGBA8,
-                         false,
-                         rect_byte,
-                         1.0f,
-                         1.0f,
-                         nullptr);
+        immDrawPixelsTexTiled(&state,
+                              fx,
+                              fy,
+                              rres.rectx,
+                              rres.recty,
+                              GPU_RGBA8,
+                              false,
+                              rect_byte,
+                              1.0f,
+                              1.0f,
+                              nullptr);
 
         MEM_freeN(rect_byte);
 

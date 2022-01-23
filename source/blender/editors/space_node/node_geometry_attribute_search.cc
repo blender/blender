@@ -46,12 +46,10 @@
 
 #include "node_intern.hh"
 
-using blender::IndexRange;
-using blender::Map;
-using blender::Set;
-using blender::StringRef;
 namespace geo_log = blender::nodes::geometry_nodes_eval_log;
 using geo_log::GeometryAttributeInfo;
+
+namespace blender::ed::space_node {
 
 struct AttributeSearchData {
   const bNodeTree *tree;
@@ -139,3 +137,5 @@ void node_geometry_add_attribute_search_button(const bContext &UNUSED(C),
                          attribute_search_exec_fn,
                          nullptr);
 }
+
+}  // namespace blender::ed::space_node

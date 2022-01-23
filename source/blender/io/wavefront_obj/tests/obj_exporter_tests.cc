@@ -1,10 +1,8 @@
 /* Apache License, Version 2.0 */
 
-#include <fstream>
 #include <gtest/gtest.h>
 #include <ios>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <system_error>
 
@@ -29,6 +27,8 @@
 #include "obj_exporter_tests.hh"
 
 namespace blender::io::obj {
+/* Set this true to keep comparison-failing test output in temp file directory. */
+constexpr bool save_failing_test_output = false;
 
 /* This is also the test name. */
 class obj_exporter_test : public BlendfileLoadingBaseTest {
@@ -58,7 +58,7 @@ TEST_F(obj_exporter_test, filter_objects_curves_as_mesh)
     return;
   }
   auto [objmeshes, objcurves]{filter_supported_objects(depsgraph, _export.params)};
-  EXPECT_EQ(objmeshes.size(), 17);
+  EXPECT_EQ(objmeshes.size(), 19);
   EXPECT_EQ(objcurves.size(), 0);
 }
 
@@ -71,7 +71,7 @@ TEST_F(obj_exporter_test, filter_objects_curves_as_nurbs)
   }
   _export.params.export_curves_as_nurbs = true;
   auto [objmeshes, objcurves]{filter_supported_objects(depsgraph, _export.params)};
-  EXPECT_EQ(objmeshes.size(), 16);
+  EXPECT_EQ(objmeshes.size(), 18);
   EXPECT_EQ(objcurves.size(), 2);
 }
 
@@ -183,15 +183,21 @@ static std::unique_ptr<OBJWriter> init_writer(const OBJExportParams &params,
   }
 }
 
-/* The following is relative to BKE_tempdir_base. */
-const char *const temp_file_path = "output.OBJ";
+/* The following is relative to BKE_tempdir_base.
+ * Use Latin Capital Letter A with Ogonek, Cyrillic Capital Letter Zhe
+ * at the end, to test I/O on non-English file names. */
+const char *const temp_file_path = "output\xc4\x84\xd0\x96.OBJ";
 
 static std::string read_temp_file_in_string(const std::string &file_path)
 {
-  std::ifstream temp_stream(file_path);
-  std::ostringstream input_ss;
-  input_ss << temp_stream.rdbuf();
-  return input_ss.str();
+  std::string res;
+  size_t buffer_len;
+  void *buffer = BLI_file_read_text_as_mem(file_path.c_str(), 0, &buffer_len);
+  if (buffer != NULL) {
+    res.assign((const char *)buffer, buffer_len);
+    MEM_freeN(buffer);
+  }
+  return res;
 }
 
 TEST(obj_exporter_writer, header)
@@ -294,8 +300,14 @@ class obj_exporter_regression_test : public obj_exporter_test {
 
     std::string golden_file_path = blender::tests::flags_test_asset_dir() + "/" + golden_obj;
     std::string golden_str = read_temp_file_in_string(golden_file_path);
-    ASSERT_TRUE(strings_equal_after_first_lines(output_str, golden_str));
-    BLI_delete(out_file_path.c_str(), false, false);
+    bool are_equal = strings_equal_after_first_lines(output_str, golden_str);
+    if (save_failing_test_output && !are_equal) {
+      printf("failing test output in %s\n", out_file_path.c_str());
+    }
+    ASSERT_TRUE(are_equal);
+    if (!save_failing_test_output || are_equal) {
+      BLI_delete(out_file_path.c_str(), false, false);
+    }
     if (!golden_mtl.empty()) {
       std::string out_mtl_file_path = tempdir + BLI_path_basename(golden_mtl.c_str());
       std::string output_mtl_str = read_temp_file_in_string(out_mtl_file_path);
@@ -390,7 +402,6 @@ TEST_F(obj_exporter_regression_test, cube_all_data_triangulated)
                                _export.params);
 }
 
-#if 0
 TEST_F(obj_exporter_regression_test, suzanne_all_data)
 {
   OBJExportParamsDefault _export;
@@ -415,6 +426,5 @@ TEST_F(obj_exporter_regression_test, all_objects)
                                "io_tests/obj/all_objects.mtl",
                                _export.params);
 }
-#endif
 
 }  // namespace blender::io::obj

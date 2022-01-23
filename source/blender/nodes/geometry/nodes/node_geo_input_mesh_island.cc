@@ -27,10 +27,13 @@ namespace blender::nodes::node_geo_input_mesh_island_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Int>(N_("Index"))
+  b.add_output<decl::Int>(N_("Island Index"))
       .field_source()
       .description(N_("Island indices are based on the order of the lowest-numbered vertex "
                       "contained in each island"));
+  b.add_output<decl::Int>(N_("Island Count"))
+      .field_source()
+      .description(N_("The total number of mesh islands"));
 }
 
 class IslandFieldInput final : public GeometryFieldInput {
@@ -81,10 +84,63 @@ class IslandFieldInput final : public GeometryFieldInput {
   }
 };
 
+class IslandCountFieldInput final : public GeometryFieldInput {
+ public:
+  IslandCountFieldInput() : GeometryFieldInput(CPPType::get<int>(), "Island Count")
+  {
+    category_ = Category::Generated;
+  }
+
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask UNUSED(mask)) const final
+  {
+    if (component.type() != GEO_COMPONENT_TYPE_MESH) {
+      return {};
+    }
+    const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
+    const Mesh *mesh = mesh_component.get_for_read();
+    if (mesh == nullptr) {
+      return {};
+    }
+
+    DisjointSet islands(mesh->totvert);
+    for (const int i : IndexRange(mesh->totedge)) {
+      islands.join(mesh->medge[i].v1, mesh->medge[i].v2);
+    }
+
+    Set<int> island_list;
+    for (const int i_vert : IndexRange(mesh->totvert)) {
+      const int64_t root = islands.find_root(i_vert);
+      island_list.add(root);
+    }
+
+    return VArray<int>::ForSingle(island_list.size(),
+                                  mesh_component.attribute_domain_size(domain));
+  }
+
+  uint64_t hash() const override
+  {
+    /* Some random hash. */
+    return 45634572457;
+  }
+
+  bool is_equal_to(const fn::FieldNode &other) const override
+  {
+    return dynamic_cast<const IslandCountFieldInput *>(&other) != nullptr;
+  }
+};
+
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<int> island_field{std::make_shared<IslandFieldInput>()};
-  params.set_output("Index", std::move(island_field));
+  if (params.output_is_required("Island Index")) {
+    Field<int> field{std::make_shared<IslandFieldInput>()};
+    params.set_output("Island Index", std::move(field));
+  }
+  if (params.output_is_required("Island Count")) {
+    Field<int> field{std::make_shared<IslandCountFieldInput>()};
+    params.set_output("Island Count", std::move(field));
+  }
 }
 
 }  // namespace blender::nodes::node_geo_input_mesh_island_cc

@@ -86,8 +86,8 @@ void createTransEdge(TransInfo *t)
       BM_mesh_cd_flag_ensure(em->bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_EDGE_BWEIGHT);
       cd_edge_float_offset = CustomData_get_offset(&em->bm->edata, CD_BWEIGHT);
     }
-    else { /* if (t->mode == TFM_CREASE) { */
-      BLI_assert(t->mode == TFM_CREASE);
+    else { /* if (t->mode == TFM_EDGE_CREASE) { */
+      BLI_assert(t->mode == TFM_EDGE_CREASE);
       BM_mesh_cd_flag_ensure(em->bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_EDGE_CREASE);
       cd_edge_float_offset = CustomData_get_offset(&em->bm->edata, CD_CREASE);
     }

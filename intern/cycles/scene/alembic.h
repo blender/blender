@@ -320,6 +320,8 @@ struct CachedData {
   DataStore<int> num_ngons;
   DataStore<array<int>> subd_creases_edge;
   DataStore<array<float>> subd_creases_weight;
+  DataStore<array<int>> subd_vertex_crease_indices;
+  DataStore<array<float>> subd_vertex_crease_weights;
 
   /* hair data */
   DataStore<array<float3>> curve_keys;
@@ -478,6 +480,10 @@ class AlembicProcedural : public Procedural {
 
   /* The file path to the Alembic archive */
   NODE_SOCKET_API(ustring, filepath)
+
+  /* Layers for the Alembic archive. Layers are in the order in which they override data, with the
+   * latter elements overriding the former ones. */
+  NODE_SOCKET_API_ARRAY(array<ustring>, layers)
 
   /* The current frame to render. */
   NODE_SOCKET_API(float, frame)

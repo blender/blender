@@ -131,10 +131,7 @@ ccl_device_inline int4 clamp(const int4 &a, const int4 &mn, const int4 &mx)
 ccl_device_inline int4 select(const int4 &mask, const int4 &a, const int4 &b)
 {
 #  ifdef __KERNEL_SSE__
-  const __m128 m = _mm_cvtepi32_ps(mask);
-  /* TODO(sergey): avoid cvt. */
-  return int4(_mm_castps_si128(
-      _mm_or_ps(_mm_and_ps(m, _mm_castsi128_ps(a)), _mm_andnot_ps(m, _mm_castsi128_ps(b)))));
+  return int4(_mm_or_si128(_mm_and_si128(mask, a), _mm_andnot_si128(mask, b)));
 #  else
   return make_int4(
       (mask.x) ? a.x : b.x, (mask.y) ? a.y : b.y, (mask.z) ? a.z : b.z, (mask.w) ? a.w : b.w);

@@ -1465,7 +1465,7 @@ static void VertsToTransData(TransInfo *t,
   td->ext = NULL;
   td->val = NULL;
   td->extra = eve;
-  if (t->mode == TFM_BWEIGHT) {
+  if (t->mode == TFM_BWEIGHT || t->mode == TFM_VERT_CREASE) {
     td->val = bweight;
     td->ival = *bweight;
   }
@@ -1606,9 +1606,14 @@ void createTransEditVerts(TransInfo *t)
     }
 
     int cd_vert_bweight_offset = -1;
+    int cd_vert_crease_offset = -1;
     if (t->mode == TFM_BWEIGHT) {
       BM_mesh_cd_flag_ensure(bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_VERT_BWEIGHT);
       cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
+    }
+    else if (t->mode == TFM_VERT_CREASE) {
+      BM_mesh_cd_flag_ensure(bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_VERT_CREASE);
+      cd_vert_crease_offset = CustomData_get_offset(&bm->vdata, CD_CREASE);
     }
 
     TransData *tob = tc->data;
@@ -1645,6 +1650,8 @@ void createTransEditVerts(TransInfo *t)
       else if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
         float *bweight = (cd_vert_bweight_offset != -1) ?
                              BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset) :
+                             (cd_vert_crease_offset != -1) ?
+                             BM_ELEM_CD_GET_VOID_P(eve, cd_vert_crease_offset) :
                              NULL;
 
         /* Do not use the island center in case we are using islands

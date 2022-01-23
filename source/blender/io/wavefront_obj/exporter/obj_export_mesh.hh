@@ -32,6 +32,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
 #include "IO_wavefront_obj.h"
 
@@ -57,7 +58,11 @@ using unique_bmesh_ptr = std::unique_ptr<BMesh, CustomBMeshDeleter>;
 
 class OBJMesh : NonCopyable {
  private:
-  Object *export_object_eval_;
+  /**
+   * We need to copy the entire Object structure here because the dependency graph iterator
+   * sometimes builds an Object in a temporary space that doesn't persist.
+   */
+  Object export_object_eval_;
   Mesh *export_mesh_eval_;
   /**
    * For curves which are converted to mesh, and triangulated meshes, a new mesh is allocated.
@@ -78,6 +83,15 @@ class OBJMesh : NonCopyable {
    */
   Vector<Vector<int>> uv_indices_;
   /**
+   * Per-loop normal index.
+   */
+  Vector<int> loop_to_normal_index_;
+  /*
+   * Total number of normal indices (maximum entry, plus 1, in
+   * the loop_to_norm_index_ vector).
+   */
+  int tot_normal_indices_ = 0;
+  /**
    * Total smooth groups in an object.
    */
   int tot_smooth_groups_ = NEGATIVE_INIT;
@@ -97,6 +111,7 @@ class OBJMesh : NonCopyable {
   int tot_vertices() const;
   int tot_polygons() const;
   int tot_uv_vertices() const;
+  int tot_normal_indices() const;
   int tot_edges() const;
 
   /**
@@ -162,18 +177,16 @@ class OBJMesh : NonCopyable {
    */
   float3 calc_poly_normal(int poly_index) const;
   /**
-   * Calculate a polygon's polygon/loop normal indices.
-   * \param object_tot_prev_normals Number of normals of this Object written so far.
-   * \return Number of distinct normal indices.
+   * Find the unique normals of the mesh and return them in \a r_normal_coords.
+   * Store the indices into that vector with for each loop in this #OBJMesh.
    */
-  std::pair<int, Vector<int>> calc_poly_normal_indices(int poly_index,
-                                                       int object_tot_prev_normals) const;
+  void store_normal_coords_and_indices(Vector<float3> &r_normal_coords);
   /**
-   * Calculate loop normals of a polygon at the given index.
-   *
-   * Should be used for smooth-shaded polygons.
+   * Calculate a polygon's polygon/loop normal indices.
+   * \param poly_index Index of the polygon to calculate indices for.
+   * \return Vector of normal indices, aligned with vertices of polygon.
    */
-  void calc_loop_normals(int poly_index, Vector<float3> &r_loop_normals) const;
+  Vector<int> calc_poly_normal_indices(int poly_index) const;
   /**
    * Find the index of the vertex group with the maximum number of vertices in a polygon.
    * The index indices into the #Object.defbase.

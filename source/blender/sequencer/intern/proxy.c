@@ -591,7 +591,7 @@ void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop)
     IMB_anim_index_rebuild_finish(context->index_context, stop);
   }
 
-  seq_free_sequence_recurse(NULL, context->seq, true, true);
+  seq_free_sequence_recurse(NULL, context->seq, true);
 
   MEM_freeN(context);
 }

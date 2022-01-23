@@ -1859,7 +1859,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     if (bmain->subversionfile < 4) {
       for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
         sce->r.bake_mode = 1; /* prevent to include render stuff here */
-        sce->r.bake_filter = 16;
+        sce->r.bake_margin = 16;
+        sce->r.bake_margin_type = R_BAKE_ADJACENT_FACES;
         sce->r.bake_flag = R_BAKE_CLEAR;
       }
     }

@@ -31,6 +31,7 @@
 #include "GPU_batch_presets.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_shader_shared.h"
 #include "GPU_state.h"
 #include "GPU_texture.h"
 
@@ -1478,24 +1479,16 @@ PreviewImage *UI_icon_to_preview(int icon_id)
   return NULL;
 }
 
-/**
- * Version of #icon_draw_rect() that uses the GPU for scaling. This is only used for
- * #ICON_TYPE_IMBUF because it's a back-ported fix for performance issues, see T92922. Only
- * File/Asset Browser use #ICON_TYPE_IMBUF right now, which makes implications more predictable.
- *
- * TODO(Julian): This code is mostly duplicated. #icon_draw_rect() should be ported to use the GPU
- *               instead (D13144).
- */
-static void icon_draw_rect_fast(float x,
-                                float y,
-                                int w,
-                                int h,
-                                float UNUSED(aspect),
-                                int rw,
-                                int rh,
-                                uint *rect,
-                                float alpha,
-                                const float desaturate)
+static void icon_draw_rect(float x,
+                           float y,
+                           int w,
+                           int h,
+                           float UNUSED(aspect),
+                           int rw,
+                           int rh,
+                           uint *rect,
+                           float alpha,
+                           const float desaturate)
 {
   int draw_w = w;
   int draw_h = h;
@@ -1546,79 +1539,8 @@ static void icon_draw_rect_fast(float x,
     immUniform1f("factor", desaturate);
   }
 
-  immDrawPixelsTexScaled(
+  immDrawPixelsTexScaledFullSize(
       &state, draw_x, draw_y, rw, rh, GPU_RGBA8, true, rect, scale_x, scale_y, 1.0f, 1.0f, col);
-}
-
-static void icon_draw_rect(float x,
-                           float y,
-                           int w,
-                           int h,
-                           float UNUSED(aspect),
-                           int rw,
-                           int rh,
-                           uint *rect,
-                           float alpha,
-                           const float desaturate)
-{
-  ImBuf *ima = NULL;
-  int draw_w = w;
-  int draw_h = h;
-  int draw_x = x;
-  /* We need to round y, to avoid the icon jittering in some cases. */
-  int draw_y = round_fl_to_int(y);
-
-  /* sanity check */
-  if (w <= 0 || h <= 0 || w > 2000 || h > 2000) {
-    printf("%s: icons are %i x %i pixels?\n", __func__, w, h);
-    BLI_assert_msg(0, "invalid icon size");
-    return;
-  }
-  /* modulate color */
-  const float col[4] = {alpha, alpha, alpha, alpha};
-
-  /* rect contains image in 'rendersize', we only scale if needed */
-  if (rw != w || rh != h) {
-    /* preserve aspect ratio and center */
-    if (rw > rh) {
-      draw_w = w;
-      draw_h = (int)(((float)rh / (float)rw) * (float)w);
-      draw_y += (h - draw_h) / 2;
-    }
-    else if (rw < rh) {
-      draw_w = (int)(((float)rw / (float)rh) * (float)h);
-      draw_h = h;
-      draw_x += (w - draw_w) / 2;
-    }
-    /* If the image is squared, the `draw_*` initialization values are good. */
-
-    /* first allocate imbuf for scaling and copy preview into it */
-    ima = IMB_allocImBuf(rw, rh, 32, IB_rect);
-    memcpy(ima->rect, rect, rw * rh * sizeof(uint));
-    IMB_scaleImBuf(ima, draw_w, draw_h); /* scale it */
-    rect = ima->rect;
-  }
-
-  /* draw */
-  eGPUBuiltinShader shader;
-  if (desaturate != 0.0f) {
-    shader = GPU_SHADER_2D_IMAGE_DESATURATE_COLOR;
-  }
-  else {
-    shader = GPU_SHADER_2D_IMAGE_COLOR;
-  }
-  IMMDrawPixelsTexState state = immDrawPixelsTexSetup(shader);
-
-  if (shader == GPU_SHADER_2D_IMAGE_DESATURATE_COLOR) {
-    immUniform1f("factor", desaturate);
-  }
-
-  immDrawPixelsTex(
-      &state, draw_x, draw_y, draw_w, draw_h, GPU_RGBA8, false, rect, 1.0f, 1.0f, col);
-
-  if (ima) {
-    IMB_freeImBuf(ima);
-  }
 }
 
 /* High enough to make a difference, low enough so that
@@ -1661,18 +1583,21 @@ static void icon_draw_cache_texture_flush_ex(GPUTexture *texture,
   GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR);
   GPU_shader_bind(shader);
 
-  const int img_binding = GPU_shader_get_texture_binding(shader, "image");
-  const int data_loc = GPU_shader_get_uniform(shader, "calls_data");
+  const int data_loc = GPU_shader_get_uniform_block(shader, "multi_rect_data");
+  GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(
+      sizeof(struct MultiRectCallData), texture_draw_calls->drawcall_cache, __func__);
+  GPU_uniformbuf_bind(ubo, data_loc);
 
+  const int img_binding = GPU_shader_get_texture_binding(shader, "image");
   GPU_texture_bind_ex(texture, GPU_SAMPLER_ICON, img_binding, false);
-  GPU_shader_uniform_vector(
-      shader, data_loc, 4, ICON_DRAW_CACHE_SIZE * 3, (float *)texture_draw_calls->drawcall_cache);
 
   GPUBatch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
   GPU_batch_draw_instanced(quad, texture_draw_calls->calls);
 
   GPU_texture_unbind(texture);
+  GPU_uniformbuf_unbind(ubo);
+  GPU_uniformbuf_free(ubo);
 
   texture_draw_calls->calls = 0;
 }
@@ -1874,9 +1799,7 @@ static void icon_draw_size(float x,
     ImBuf *ibuf = icon->obj;
 
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
-    /* These icons are only used by the File/Asset Browser currently. Without this `_fast()`
-     * version, there may be performance issues, see T92922. */
-    icon_draw_rect_fast(x, y, w, h, aspect, ibuf->x, ibuf->y, ibuf->rect, alpha, desaturate);
+    icon_draw_rect(x, y, w, h, aspect, ibuf->x, ibuf->y, ibuf->rect, alpha, desaturate);
     GPU_blend(GPU_BLEND_ALPHA);
   }
   else if (di->type == ICON_TYPE_VECTOR) {

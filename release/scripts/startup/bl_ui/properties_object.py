@@ -184,24 +184,18 @@ class OBJECT_PT_collections(ObjectButtonsPanel, Panel):
             row.operator("object.collection_add", text="Add to Collection")
         row.operator("object.collection_add", text="", icon='ADD')
 
-        obj_name = obj.name
-        for collection in bpy.data.collections:
-            # XXX this is slow and stupid!, we need 2 checks, one that's fast
-            # and another that we can be sure its not a name collision
-            # from linked library data
-            collection_objects = collection.objects
-            if obj_name in collection.objects and obj in collection_objects[:]:
-                col = layout.column(align=True)
+        for collection in obj.users_collection:
+            col = layout.column(align=True)
 
-                col.context_pointer_set("collection", collection)
+            col.context_pointer_set("collection", collection)
 
-                row = col.box().row()
-                row.prop(collection, "name", text="")
-                row.operator("object.collection_remove", text="", icon='X', emboss=False)
-                row.menu("COLLECTION_MT_context_menu", icon='DOWNARROW_HLT', text="")
+            row = col.box().row()
+            row.prop(collection, "name", text="")
+            row.operator("object.collection_remove", text="", icon='X', emboss=False)
+            row.menu("COLLECTION_MT_context_menu", icon='DOWNARROW_HLT', text="")
 
-                row = col.box().row()
-                row.prop(collection, "instance_offset", text="")
+            row = col.box().row()
+            row.prop(collection, "instance_offset", text="")
 
 
 class OBJECT_PT_display(ObjectButtonsPanel, Panel):

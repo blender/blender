@@ -148,12 +148,23 @@ ccl_device_inline
             /* intersect ray against primitive */
             for (; prim_addr < prim_addr2; prim_addr++) {
               kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
+
+              /* Only intersect with matching object, for instanced objects we
+               * already know we are only intersecting the right object. */
+              if (object == OBJECT_NONE) {
+                if (kernel_tex_fetch(__prim_object, prim_addr) != local_object) {
+                  continue;
+                }
+              }
+
+              const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+
               if (triangle_intersect_local(kg,
                                            local_isect,
                                            P,
                                            dir,
-                                           object,
                                            local_object,
+                                           prim,
                                            prim_addr,
                                            isect_t,
                                            lcg_state,
@@ -168,13 +179,24 @@ ccl_device_inline
             /* intersect ray against primitive */
             for (; prim_addr < prim_addr2; prim_addr++) {
               kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
+
+              /* Only intersect with matching object, for instanced objects we
+               * already know we are only intersecting the right object. */
+              if (object == OBJECT_NONE) {
+                if (kernel_tex_fetch(__prim_object, prim_addr) != local_object) {
+                  continue;
+                }
+              }
+
+              const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+
               if (motion_triangle_intersect_local(kg,
                                                   local_isect,
                                                   P,
                                                   dir,
                                                   ray->time,
-                                                  object,
                                                   local_object,
+                                                  prim,
                                                   prim_addr,
                                                   isect_t,
                                                   lcg_state,

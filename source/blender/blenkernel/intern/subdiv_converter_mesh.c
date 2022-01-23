@@ -40,6 +40,8 @@
 #include "opensubdiv_capi.h"
 #include "opensubdiv_converter_capi.h"
 
+#include "bmesh_class.h"
+
 /* Enable work-around for non-working CPU evaluator when using bilinear scheme.
  * This forces Catmark scheme with all edges marked as infinitely sharp. */
 #define BUGGY_SIMPLE_SCHEME_WORKAROUND 1
@@ -47,6 +49,8 @@
 typedef struct ConverterStorage {
   SubdivSettings settings;
   const Mesh *mesh;
+  /* CustomData layer for vertex sharpnesses. */
+  const float *cd_vertex_crease;
   /* Indexed by loop index, value denotes index of face-varying vertex
    * which corresponds to the UV coordinate.
    */
@@ -168,7 +172,7 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter, int manif
   }
   const int edge_index = storage->manifold_edge_index_reverse[manifold_edge_index];
   const MEdge *medge = storage->mesh->medge;
-  return BKE_subdiv_edge_crease_to_sharpness_char(medge[edge_index].crease);
+  return BKE_subdiv_crease_to_sharpness_char(medge[edge_index].crease);
 }
 
 static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
@@ -184,14 +188,14 @@ static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
   return BLI_BITMAP_TEST_BOOL(storage->infinite_sharp_vertices_map, vertex_index);
 }
 
-static float get_vertex_sharpness(const OpenSubdiv_Converter *converter,
-                                  int UNUSED(manifold_vertex_index))
+static float get_vertex_sharpness(const OpenSubdiv_Converter *converter, int manifold_vertex_index)
 {
   ConverterStorage *storage = converter->user_data;
-  if (!storage->settings.use_creases) {
+  if (!storage->settings.use_creases || storage->cd_vertex_crease == NULL) {
     return 0.0f;
   }
-  return 0.0f;
+  const int vertex_index = storage->manifold_vertex_index_reverse[manifold_vertex_index];
+  return BKE_subdiv_crease_to_sharpness_f(storage->cd_vertex_crease[vertex_index]);
 }
 
 static int get_num_uv_layers(const OpenSubdiv_Converter *converter)
@@ -393,6 +397,7 @@ static void init_user_data(OpenSubdiv_Converter *converter,
   ConverterStorage *user_data = MEM_mallocN(sizeof(ConverterStorage), __func__);
   user_data->settings = *settings;
   user_data->mesh = mesh;
+  user_data->cd_vertex_crease = CustomData_get_layer(&mesh->vdata, CD_CREASE);
   user_data->loop_uv_indices = NULL;
   initialize_manifold_indices(user_data);
   converter->user_data = user_data;
