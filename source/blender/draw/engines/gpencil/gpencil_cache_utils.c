@@ -440,5 +440,3 @@ GPENCIL_tLayer *gpencil_layer_cache_get(GPENCIL_tObject *tgp_ob, int number)
   }
   return NULL;
 }
-
-/** \} */
