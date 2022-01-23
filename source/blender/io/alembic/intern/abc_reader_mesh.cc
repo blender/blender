@@ -937,6 +937,40 @@ static void read_vertex_creases(Mesh *mesh,
   mesh->cd_flag |= ME_CDFLAG_VERT_CREASE;
 }
 
+static void read_edge_creases(Mesh *mesh,
+                              const Int32ArraySamplePtr &indices,
+                              const FloatArraySamplePtr &sharpnesses)
+{
+  if (!(indices && sharpnesses)) {
+    return;
+  }
+
+  MEdge *edges = mesh->medge;
+  int totedge = mesh->totedge;
+
+  for (int i = 0, s = 0, e = indices->size(); i < e; i += 2, s++) {
+    int v1 = (*indices)[i];
+    int v2 = (*indices)[i + 1];
+
+    if (v2 < v1) {
+      /* It appears to be common to store edges with the smallest index first, in which case this
+       * prevents us from doing the second search below. */
+      std::swap(v1, v2);
+    }
+
+    MEdge *edge = find_edge(edges, totedge, v1, v2);
+    if (edge == nullptr) {
+      edge = find_edge(edges, totedge, v2, v1);
+    }
+
+    if (edge) {
+      edge->crease = unit_float_to_uchar_clamp((*sharpnesses)[s]);
+    }
+  }
+
+  mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
+}
+
 /* ************************************************************************** */
 
 AbcSubDReader::AbcSubDReader(const IObject &object, ImportSettings &settings)
@@ -1000,36 +1034,7 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
     return;
   }
 
-  /* Read egde creases. */
-  Int32ArraySamplePtr indices = sample.getCreaseIndices();
-  Alembic::Abc::FloatArraySamplePtr sharpnesses = sample.getCreaseSharpnesses();
-
-  if (indices && sharpnesses) {
-    MEdge *edges = mesh->medge;
-    int totedge = mesh->totedge;
-
-    for (int i = 0, s = 0, e = indices->size(); i < e; i += 2, s++) {
-      int v1 = (*indices)[i];
-      int v2 = (*indices)[i + 1];
-
-      if (v2 < v1) {
-        /* It appears to be common to store edges with the smallest index first, in which case this
-         * prevents us from doing the second search below. */
-        std::swap(v1, v2);
-      }
-
-      MEdge *edge = find_edge(edges, totedge, v1, v2);
-      if (edge == nullptr) {
-        edge = find_edge(edges, totedge, v2, v1);
-      }
-
-      if (edge) {
-        edge->crease = unit_float_to_uchar_clamp((*sharpnesses)[s]);
-      }
-    }
-
-    mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
-  }
+  read_edge_creases(mesh, sample.getCreaseIndices(), sample.getCreaseSharpnesses());
 
   read_vertex_creases(mesh, sample.getCornerIndices(), sample.getCornerSharpnesses());
 
