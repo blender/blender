@@ -1,53 +1,52 @@
-#if 1
 
-#  include "DNA_brush_enums.h"
-#  include "DNA_brush_types.h"
-#  include "DNA_color_types.h"
-#  include "DNA_curveprofile_types.h"
-#  include "DNA_material_types.h"
-#  include "DNA_node_types.h"
-#  include "DNA_sculpt_brush_types.h"
+#include "DNA_brush_enums.h"
+#include "DNA_brush_types.h"
+#include "DNA_color_types.h"
+#include "DNA_curveprofile_types.h"
+#include "DNA_material_types.h"
+#include "DNA_node_types.h"
+#include "DNA_sculpt_brush_types.h"
 
-#  include "BLI_compiler_attrs.h"
-#  include "BLI_compiler_compat.h"
-#  include "BLI_ghash.h"
-#  include "BLI_listbase.h"
-#  include "BLI_math.h"
-#  include "BLI_rand.h"
-#  include "BLI_rect.h"
-#  include "BLI_smallhash.h"
-#  include "BLI_utildefines.h"
+#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
+#include "BLI_ghash.h"
+#include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_rand.h"
+#include "BLI_rect.h"
+#include "BLI_smallhash.h"
+#include "BLI_utildefines.h"
 
-#  include "BKE_brush_engine.h"
+#include "BKE_brush_engine.h"
 
-#  include "BKE_brush.h"
-#  include "BKE_brush_engine.h"
-#  include "BKE_colorband.h"
-#  include "BKE_colortools.h"
-#  include "BKE_context.h"
-#  include "BKE_curvemapping_cache.h"
-#  include "BKE_curveprofile.h"
-#  include "BKE_lib_override.h"
-#  include "BKE_lib_query.h"
-#  include "BKE_main.h"
-#  include "BKE_node.h"
-#  include "BKE_paint.h"
+#include "BKE_brush.h"
+#include "BKE_brush_engine.h"
+#include "BKE_colorband.h"
+#include "BKE_colortools.h"
+#include "BKE_context.h"
+#include "BKE_curvemapping_cache.h"
+#include "BKE_curveprofile.h"
+#include "BKE_lib_override.h"
+#include "BKE_lib_query.h"
+#include "BKE_main.h"
+#include "BKE_node.h"
+#include "BKE_paint.h"
 
-#  include <algorithm>
-#  include <cmath>
-#  include <cstdio>
-#  include <string>
-#  include <type_traits>
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
+#include <string>
+#include <type_traits>
 
-#  include "intern/brush_channel_names.hh"
+#include "intern/brush_channel_names.hh"
 
-#  define IS_CACHE_CURVE(curve) BKE_curvemapping_in_cache(curve)
+#define IS_CACHE_CURVE(curve) BKE_curvemapping_in_cache(curve)
 // frees curve if it wasn't cached, returns cache curved
-#  define GET_CACHE_CURVE(curve) BKE_curvemapping_cache_get(brush_curve_cache, curve, true)
-#  define RELEASE_CACHE_CURVE(curve) BKE_curvemapping_cache_release(brush_curve_cache, curve)
-#  define RELEASE_OR_FREE_CURVE(curve) \
-    curve ? (BKE_curvemapping_cache_release_or_free(brush_curve_cache, curve), nullptr) : nullptr
-#  define CURVE_ADDREF(curve) BKE_curvemapping_cache_aquire(brush_curve_cache, curve)
+#define GET_CACHE_CURVE(curve) BKE_curvemapping_cache_get(brush_curve_cache, curve, true)
+#define RELEASE_CACHE_CURVE(curve) BKE_curvemapping_cache_release(brush_curve_cache, curve)
+#define RELEASE_OR_FREE_CURVE(curve) \
+  curve ? (BKE_curvemapping_cache_release_or_free(brush_curve_cache, curve), nullptr) : nullptr
+#define CURVE_ADDREF(curve) BKE_curvemapping_cache_aquire(brush_curve_cache, curve)
 
 struct CurveMappingCache *brush_curve_cache = NULL;
 extern BrushChannelType brush_builtin_channels[];
@@ -57,7 +56,8 @@ extern int brush_builtin_channel_len;
 
 /** return eithers a reference to a brush channel type,
    or if T is BrushCurve the (non-reference) BrushCurveIF wrapper type*/
-#  define BRUSH_VALUE_REF(T) typename std::conditional<std::is_same_v<T, BrushCurve>, BrushCurveIF, T &>::type
+#define BRUSH_VALUE_REF(T) \
+  typename std::conditional<std::is_same_v<T, BrushCurve>, BrushCurveIF, T &>::type
 
 template<class T> struct extract_float_array {
   using type = typename std::conditional<std::is_array_v<T>, float, T>::type;
@@ -155,6 +155,11 @@ template<typename T> class BrushChannelIF {
   {
   }
 
+  const int type()
+  {
+    return _channel->type;
+  }
+
   eBrushChannelFlag &flag()
   {
     eBrushChannelFlag *f = reinterpret_cast<eBrushChannelFlag *>(&_channel->flag);
@@ -220,7 +225,8 @@ template<typename T> class BrushChannelIF {
   }
 
   /* vectorIndex is only used for float[3] and float[4] specializations*/
-  typename extract_float_array<T>::type evaluate(BrushMappingData *mapping = nullptr, int vectorIndex = 0)
+  typename extract_float_array<T>::type evaluate(BrushMappingData *mapping = nullptr,
+                                                 int vectorIndex = 0)
   {
     if constexpr (std::is_same_v<T, float>) {
       return (float)_evaluate((double)_channel->fvalue, 0, mapping);
@@ -232,7 +238,7 @@ template<typename T> class BrushChannelIF {
       return fabs(_evaluate((double)(_channel->ivalue & 1), 0, mapping)) > FLT_EPSILON;
     }
     else if constexpr (std::is_same_v<T, float[3]> || std::is_same_v<T, float[4]>) {
-      return (float)_evaluate((double)_channel->vector, vectorIndex, mapping);
+      return (float)_evaluate((double)_channel->vector[vectorIndex], vectorIndex, mapping);
     }
 
     static_assert(!std::is_same_v<T, BrushCurveIF>, "cannot use evaluate with brush curves");
@@ -409,11 +415,10 @@ class BrushChannelSetIF {
   one in parentset, depending on inheritance flags.
   */
   template<typename T>
-  typename extract_float_array<T>::type
-  getFinalValue(BrushChannelSetIF &parentSet,
-                BrushChannelIF<T> ch,
-                BrushMappingData *mapping = nullptr,
-                int vectorIndex = 0)
+  typename extract_float_array<T>::type getFinalValue(BrushChannelSetIF &parentSet,
+                                                      BrushChannelIF<T> ch,
+                                                      BrushMappingData *mapping = nullptr,
+                                                      int vectorIndex = 0)
   {
     BrushChannelIF<T> ch2;
 
@@ -463,8 +468,8 @@ examples:
   }
 */
 
-#  define BRUSH_CHANNEL_MAKE_CPP_LOOKUPS
-#  include "intern/brush_channel_define.h"
+#define BRUSH_CHANNEL_MAKE_CPP_LOOKUPS
+#include "intern/brush_channel_define.h"
 
  private:
   BrushChannelSet *_chset;
@@ -472,4 +477,3 @@ examples:
 
 }  // namespace brush
 }  // namespace blender
-#endif

@@ -1388,7 +1388,7 @@ int BKE_brush_channel_get_vector(BrushChannel *ch, float out[4], BrushMappingDat
   return size;
 }
 
-int BKE_brush_channelset_get_final_vector(BrushChannelSet *child,
+int old_BKE_brush_channelset_get_final_vector(BrushChannelSet *child,
                                           BrushChannelSet *parent,
                                           const char *idname,
                                           float r_vec[4],
