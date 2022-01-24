@@ -772,6 +772,7 @@ set(geo_node_tests
   geometry
   mesh_primitives
   mesh
+  mesh/extrude
   points
   utilities
   vector
