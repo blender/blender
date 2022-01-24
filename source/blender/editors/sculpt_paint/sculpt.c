@@ -4028,13 +4028,71 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
   }
 }
 
+static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache)
+{
+  Scene *scene = CTX_data_scene(C);
+  Brush *brush = paint->brush;
+
+  if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
+    cache->saved_mask_brush_tool = brush->mask_tool;
+    brush->mask_tool = BRUSH_MASK_SMOOTH;
+  }
+  else if (ELEM(brush->sculpt_tool,
+                SCULPT_TOOL_SLIDE_RELAX,
+                SCULPT_TOOL_DRAW_FACE_SETS,
+                SCULPT_TOOL_PAINT,
+                SCULPT_TOOL_SMEAR)) {
+    /* Do nothing, this tool has its own smooth mode. */
+  }
+  else {
+    int cur_brush_size = BKE_brush_size_get(scene, brush);
+
+    BLI_strncpy(cache->saved_active_brush_name,
+                brush->id.name + 2,
+                sizeof(cache->saved_active_brush_name));
+
+    /* Switch to the smooth brush. */
+    brush = BKE_paint_toolslots_brush_get(paint, SCULPT_TOOL_SMOOTH);
+    if (brush) {
+      BKE_paint_brush_set(paint, brush);
+      cache->saved_smooth_size = BKE_brush_size_get(scene, brush);
+      BKE_brush_size_set(scene, brush, cur_brush_size);
+      BKE_curvemapping_init(brush->curve);
+    }
+  }
+}
+
+static void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache *cache)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  Brush *brush = BKE_paint_brush(paint);
+
+  if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
+    brush->mask_tool = cache->saved_mask_brush_tool;
+  }
+  else if (ELEM(brush->sculpt_tool,
+                SCULPT_TOOL_SLIDE_RELAX,
+                SCULPT_TOOL_DRAW_FACE_SETS,
+                SCULPT_TOOL_PAINT,
+                SCULPT_TOOL_SMEAR)) {
+    /* Do nothing. */
+  }
+  else {
+    /* Try to switch back to the saved/previous brush. */
+    BKE_brush_size_set(scene, brush, cache->saved_smooth_size);
+    brush = (Brush *)BKE_libblock_find_name(bmain, ID_BR, cache->saved_active_brush_name);
+    if (brush) {
+      BKE_paint_brush_set(paint, brush);
+    }
+  }
+}
+
 /* Initialize the stroke cache invariants from operator properties. */
 static void sculpt_update_cache_invariants(
     bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, const float mouse[2])
 {
   StrokeCache *cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
   Brush *brush = BKE_paint_brush(&sd->paint);
   ViewContext *vc = paint_stroke_view_context(op->customdata);
@@ -4099,35 +4157,9 @@ static void sculpt_update_cache_invariants(
 
   /* Alt-Smooth. */
   if (cache->alt_smooth) {
-    if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
-      cache->saved_mask_brush_tool = brush->mask_tool;
-      brush->mask_tool = BRUSH_MASK_SMOOTH;
-    }
-    else if (ELEM(brush->sculpt_tool,
-                  SCULPT_TOOL_SLIDE_RELAX,
-                  SCULPT_TOOL_DRAW_FACE_SETS,
-                  SCULPT_TOOL_PAINT,
-                  SCULPT_TOOL_SMEAR)) {
-      /* Do nothing, this tool has its own smooth mode. */
-    }
-    else {
-      Paint *p = &sd->paint;
-      Brush *br;
-      int size = BKE_brush_size_get(scene, brush);
-
-      BLI_strncpy(cache->saved_active_brush_name,
-                  brush->id.name + 2,
-                  sizeof(cache->saved_active_brush_name));
-
-      br = (Brush *)BKE_libblock_find_name(bmain, ID_BR, "Smooth");
-      if (br) {
-        BKE_paint_brush_set(p, br);
-        brush = br;
-        cache->saved_smooth_size = BKE_brush_size_get(scene, brush);
-        BKE_brush_size_set(scene, brush, size);
-        BKE_curvemapping_init(brush->curve);
-      }
-    }
+    smooth_brush_toggle_on(C, &sd->paint, cache);
+    /* Refresh the brush pointer in case we switched brush in the toggle function. */
+    brush = BKE_paint_brush(&sd->paint);
   }
 
   copy_v2_v2(cache->mouse, cache->initial_mouse);
@@ -4135,9 +4167,7 @@ static void sculpt_update_cache_invariants(
   copy_v2_v2(ups->tex_mouse, cache->initial_mouse);
 
   /* Truly temporary data that isn't stored in properties. */
-
   cache->vc = vc;
-
   cache->brush = brush;
 
   /* Cache projection matrix. */
@@ -5255,9 +5285,7 @@ static void sculpt_brush_exit_tex(Sculpt *sd)
 
 static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(stroke))
 {
-  Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
-  Scene *scene = CTX_data_scene(C);
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
@@ -5275,23 +5303,9 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 
   /* Alt-Smooth. */
   if (ss->cache->alt_smooth) {
-    if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
-      brush->mask_tool = ss->cache->saved_mask_brush_tool;
-    }
-    else if (ELEM(brush->sculpt_tool,
-                  SCULPT_TOOL_SLIDE_RELAX,
-                  SCULPT_TOOL_DRAW_FACE_SETS,
-                  SCULPT_TOOL_PAINT,
-                  SCULPT_TOOL_SMEAR)) {
-      /* Do nothing. */
-    }
-    else {
-      BKE_brush_size_set(scene, brush, ss->cache->saved_smooth_size);
-      brush = (Brush *)BKE_libblock_find_name(bmain, ID_BR, ss->cache->saved_active_brush_name);
-      if (brush) {
-        BKE_paint_brush_set(&sd->paint, brush);
-      }
-    }
+    smooth_brush_toggle_off(C, &sd->paint, ss->cache);
+    /* Refresh the brush pointer in case we switched brush in the toggle function. */
+    brush = BKE_paint_brush(&sd->paint);
   }
 
   if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
