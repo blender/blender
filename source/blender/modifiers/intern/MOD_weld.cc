@@ -386,7 +386,10 @@ static Vector<WeldVert> weld_vert_ctx_alloc_and_setup(Span<int> vert_dest_map,
 
   for (const int i : vert_dest_map.index_range()) {
     if (vert_dest_map[i] != OUT_OF_CONTEXT) {
-      wvert.append({vert_dest_map[i], i});
+      WeldVert wv{};
+      wv.vert_dest = vert_dest_map[i];
+      wv.vert_orig = i;
+      wvert.append(wv);
     }
   }
   return wvert;
