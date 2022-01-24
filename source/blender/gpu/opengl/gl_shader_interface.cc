@@ -385,7 +385,7 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
       copy_input_name(input, res.uniformbuf.name, name_buffer_, name_buffer_offset);
       if (true || !GLContext::explicit_location_support) {
-        input->location = glGetUniformBlockIndex(program, res.uniformbuf.name.c_str());
+        input->location = glGetUniformBlockIndex(program, name_buffer_ + input->name_offset);
         glUniformBlockBinding(program, input->location, res.slot);
       }
       input->binding = res.slot;
@@ -424,7 +424,7 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
     copy_input_name(input, uni.name, name_buffer_, name_buffer_offset);
     /* Until we make use of explicit uniform location. */
     if (true || !GLContext::explicit_location_support) {
-      input->location = glGetUniformLocation(program, uni.name.c_str());
+      input->location = glGetUniformLocation(program, name_buffer_ + input->name_offset);
     }
     input->binding = -1;
     input++;
