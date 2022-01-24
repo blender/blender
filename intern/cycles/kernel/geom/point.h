@@ -81,7 +81,7 @@ ccl_device float3 point_attribute_float3(KernelGlobals kg,
 #  endif
 
   if (desc.element == ATTR_ELEMENT_VERTEX) {
-    return float4_to_float3(kernel_tex_fetch(__attributes_float4, desc.offset + sd->prim));
+    return kernel_tex_fetch(__attributes_float3, desc.offset + sd->prim);
   }
   else {
     return make_float3(0.0f, 0.0f, 0.0f);
