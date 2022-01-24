@@ -34,7 +34,7 @@
  * - `SORT_IMPL_LINKTYPE`:
  *   Struct type for sorting.
  * - `SORT_IMPL_LINKTYPE_DATA`:
- *   Data pointer or leave undefined to pass the link its self.
+ *   Data pointer or leave undefined to pass the link itself.
  * - `SORT_IMPL_FUNC`:
  *   Function name of the sort function.
  *

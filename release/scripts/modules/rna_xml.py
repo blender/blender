@@ -122,7 +122,7 @@ def rna2xml(
         if issubclass(value_type, skip_classes):
             return
 
-        # XXX, fixme, pointcache has eternal nested pointer to its self.
+        # XXX, fixme, pointcache has eternal nested pointer to itself.
         if value == parent:
             return
 

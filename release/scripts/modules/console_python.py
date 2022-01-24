@@ -272,7 +272,7 @@ def autocomplete(context):
         sc.select_end += ofs
     except:
         # unlikely, but this can happen with unicode errors for example.
-        # or if the api attribute access its self causes an error.
+        # or if the api attribute access itself causes an error.
         import traceback
         scrollback_error = traceback.format_exc()
 

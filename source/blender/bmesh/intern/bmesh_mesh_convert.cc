@@ -40,7 +40,7 @@
  *
  * - The active key-block is used for BMesh vertex locations on entering edit-mode.
  *   So obviously the meshes vertex locations remain unchanged and the shape key
- *   its self is not being edited directly.
+ *   itself is not being edited directly.
  *   Simply the #BMVert.co is a initialized from active shape key (when its set).
  * - All key-blocks are added as CustomData layers (read code for details).
  *

@@ -3157,7 +3157,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Loop Triangles", "Tessellation of mesh polygons into triangles");
   rna_def_mesh_looptris(brna, prop);
 
-  /* TODO: should this be allowed to be its self? */
+  /* TODO: should this be allowed to be itself? */
   prop = RNA_def_property(srna, "texture_mesh", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "texcomesh");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);

@@ -236,7 +236,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
 
   /* Copy custom-data to new geometry,
-   * copy from its self because this data may have been created in the checks above. */
+   * copy from itself because this data may have been created in the checks above. */
   CustomData_copy_data(&result->vdata, &result->vdata, 0, maxVerts, maxVerts);
   CustomData_copy_data(&result->edata, &result->edata, 0, maxEdges, maxEdges);
   /* loops are copied later */

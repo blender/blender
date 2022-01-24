@@ -546,7 +546,7 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
 
     :arg key: unique item this name belongs to, name_dict[key] will be reused
        when available.
-       This can be the object, mesh, material, etc instance its self.
+       This can be the object, mesh, material, etc instance itself.
     :type key: any hashable object associated with the *name*.
     :arg name: The name used to create a unique value in *name_dict*.
     :type name: string

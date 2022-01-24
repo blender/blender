@@ -2984,14 +2984,14 @@ static void rna_def_function(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "No Self",
-      "Function does not pass its self as an argument (becomes a static method in python)");
+      "Function does not pass itself as an argument (becomes a static method in python)");
 
   prop = RNA_def_property(srna, "use_self_type", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_boolean_funcs(prop, "rna_Function_use_self_type_get", NULL);
   RNA_def_property_ui_text(prop,
                            "Use Self Type",
-                           "Function passes its self type as an argument (becomes a class method "
+                           "Function passes itself type as an argument (becomes a class method "
                            "in python if use_self is false)");
 }
 

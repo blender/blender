@@ -636,12 +636,12 @@ bool WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, sho
  *
  * \param store: Store settings for re-use.
  *
- * \warning do not use this within an operator to call its self! T29537.
+ * \warning do not use this within an operator to call itself! T29537.
  */
 int WM_operator_call_ex(struct bContext *C, struct wmOperator *op, bool store);
 int WM_operator_call(struct bContext *C, struct wmOperator *op);
 /**
- * This is intended to be used when an invoke operator wants to call exec on its self
+ * This is intended to be used when an invoke operator wants to call exec on itself
  * and is basically like running op->type->exec() directly, no poll checks no freeing,
  * since we assume whoever called invoke will take care of that
  */

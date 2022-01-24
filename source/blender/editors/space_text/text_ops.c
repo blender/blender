@@ -796,7 +796,7 @@ static int text_run_script(bContext *C, ReportList *reports)
 
   /* Don't report error messages while live editing */
   if (!is_live) {
-    /* text may have freed its self */
+    /* text may have freed itself */
     if (CTX_data_edit_text(C) == text) {
       if (text->curl != curl_prev || curc_prev != text->curc) {
         text_update_cursor_moved(C);

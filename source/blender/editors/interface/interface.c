@@ -4900,7 +4900,7 @@ int UI_autocomplete_end(AutoComplete *autocpl, char *autoname)
     BLI_strncpy(autoname, autocpl->truncate, autocpl->maxlen);
   }
   else {
-    if (autoname != autocpl->startname) { /* don't copy a string over its self */
+    if (autoname != autocpl->startname) { /* don't copy a string over itself */
       BLI_strncpy(autoname, autocpl->startname, autocpl->maxlen);
     }
   }

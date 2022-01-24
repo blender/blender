@@ -588,7 +588,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
 
   const bool force_delta_cache_update =
-      /* XXX, take care! if mesh data its self changes we need to forcefully recalculate deltas */
+      /* XXX, take care! if mesh data itself changes we need to forcefully recalculate deltas */
       !cache_settings_equal(csmd) ||
       ((csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_ORCO) &&
        (((ID *)ob->data)->recalc & ID_RECALC_ALL));

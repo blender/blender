@@ -180,7 +180,7 @@ static bool python_script_exec(
   if (!py_result) {
     if (text) {
       if (do_jump) {
-        /* ensure text is valid before use, the script may have freed its self */
+        /* ensure text is valid before use, the script may have freed itself */
         Main *bmain_new = CTX_data_main(C);
         if ((bmain_old == bmain_new) && (BLI_findindex(&bmain_new->texts, text) != -1)) {
           python_script_error_jump_text(text);

@@ -847,7 +847,7 @@ BLI_INLINE int bm_edge_is_manifold_or_boundary(BMLoop *l)
   /* less optimized version of check below */
   return (BM_edge_is_manifold(l->e) || BM_edge_is_boundary(l->e);
 #else
-  /* if the edge is a boundary it points to its self, else this must be a manifold */
+  /* if the edge is a boundary it points to itself, else this must be a manifold */
   return LIKELY(l) && LIKELY(l->radial_next->radial_next == l);
 #endif
 }
@@ -855,7 +855,7 @@ BLI_INLINE int bm_edge_is_manifold_or_boundary(BMLoop *l)
 static bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
 {
   /* simply check that there is no overlap between faces and edges of each vert,
-   * (excluding the 2 faces attached to 'e' and 'e' its self) */
+   * (excluding the 2 faces attached to 'e' and 'e' itself) */
 
   BMEdge *e_iter;
 

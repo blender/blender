@@ -62,7 +62,7 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, int totelem_reserve) ATTR_NONNULL(1
  */
 void BLI_mempool_clear(BLI_mempool *pool) ATTR_NONNULL(1);
 /**
- * Free the mempool its self (and all elements).
+ * Free the mempool itself (and all elements).
  */
 void BLI_mempool_destroy(BLI_mempool *pool) ATTR_NONNULL(1);
 int BLI_mempool_len(const BLI_mempool *pool) ATTR_NONNULL(1);

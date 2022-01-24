@@ -828,7 +828,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     }
   }
   else if (type == TSE_GP_LAYER) {
-    /* idv is the layer its self */
+    /* idv is the layer itself */
     id = TREESTORE(parent)->id;
   }
 
