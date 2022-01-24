@@ -1861,6 +1861,9 @@ static void rna_SpaceTextEditor_text_set(PointerRNA *ptr,
   SpaceText *st = (SpaceText *)(ptr->data);
 
   st->text = value.data;
+  if (st->text != NULL) {
+    id_us_ensure_real((ID *)st->text);
+  }
 
   ScrArea *area = rna_area_from_space(ptr);
   if (area) {
