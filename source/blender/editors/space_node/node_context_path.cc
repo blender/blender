@@ -45,11 +45,11 @@
 
 #include "node_intern.hh"
 
-struct Mesh;
 struct Curve;
 struct Light;
-struct World;
 struct Material;
+struct Mesh;
+struct World;
 
 namespace blender::ed::space_node {
 

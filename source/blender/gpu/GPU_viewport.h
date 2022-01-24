@@ -40,10 +40,10 @@ extern "C" {
 typedef struct GHash GHash;
 typedef struct GPUViewport GPUViewport;
 
-struct GPUFrameBuffer;
+struct DRWData;
 struct DefaultFramebufferList;
 struct DefaultTextureList;
-struct DRWData;
+struct GPUFrameBuffer;
 
 GPUViewport *GPU_viewport_create(void);
 GPUViewport *GPU_viewport_stereo_create(void);

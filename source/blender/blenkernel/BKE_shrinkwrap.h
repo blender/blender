@@ -47,8 +47,8 @@ struct MDeformVert;
 struct Mesh;
 struct ModifierEvalContext;
 struct Object;
-struct ShrinkwrapModifierData;
 struct ShrinkwrapGpencilModifierData;
+struct ShrinkwrapModifierData;
 struct SpaceTransform;
 
 /* Information about boundary edges in the mesh. */

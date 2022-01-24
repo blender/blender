@@ -33,13 +33,13 @@ struct ARegionType;
 struct Depsgraph;
 struct Main;
 struct Scene;
-struct Sequence;
 struct SeqCollection;
+struct Sequence;
 struct SpaceSeq;
 struct StripElem;
+struct View2D;
 struct bContext;
 struct rctf;
-struct View2D;
 struct wmOperator;
 
 #define OVERLAP_ALPHA 180

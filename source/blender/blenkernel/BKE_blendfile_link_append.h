@@ -30,8 +30,8 @@ struct LibraryLink_Params;
 struct Main;
 struct ReportList;
 struct Scene;
-struct ViewLayer;
 struct View3D;
+struct ViewLayer;
 
 typedef struct BlendfileLinkAppendContext BlendfileLinkAppendContext;
 typedef struct BlendfileLinkAppendContextItem BlendfileLinkAppendContextItem;

@@ -38,8 +38,8 @@
 
 struct ID;
 struct LayerCollection;
-struct ListBase;
 struct Library;
+struct ListBase;
 struct Main;
 struct Scene;
 struct Sequence;

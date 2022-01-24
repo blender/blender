@@ -36,8 +36,8 @@ struct SpaceSpreadsheet_Runtime {
   }
 };
 
-struct bContext;
 struct ARegionType;
+struct bContext;
 
 void spreadsheet_operatortypes();
 void spreadsheet_update_context_path(const bContext *C);

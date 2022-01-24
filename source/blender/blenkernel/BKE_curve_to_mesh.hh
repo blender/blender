@@ -16,8 +16,8 @@
 
 #pragma once
 
-struct Mesh;
 struct CurveEval;
+struct Mesh;
 
 /** \file
  * \ingroup bke

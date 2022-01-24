@@ -25,8 +25,8 @@ extern "C" {
 #endif
 
 struct ID;
-struct bContext;
 struct Main;
+struct bContext;
 
 /**
  * Mark the datablock as asset.
