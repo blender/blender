@@ -43,6 +43,7 @@
 #include "DNA_lineart_types.h"
 #include "DNA_listBase.h"
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_text_types.h"
 #include "DNA_workspace_types.h"
@@ -2366,6 +2367,15 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (ed != NULL) {
         SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
       }
+    }
+  }
+
+  /* Mesh vertex normals are stored differently after 3.1 (see D12770). This causes an incorrect
+   * viewport display when smooth faces are loaded from the future version, so tag normals dirty
+   * on all meshes from future versions. */
+  if (!DNA_struct_elem_find(fd->filesdna, "MVert", "short", "no[3]")) {
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
     }
   }
 
