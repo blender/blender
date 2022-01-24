@@ -243,7 +243,7 @@ static int rna_Image_gl_touch(
 
   BKE_image_tag_time(image);
 
-  if (image->gputexture[TEXTARGET_2D][0] == NULL) {
+  if (image->gputexture[TEXTARGET_2D][0][IMA_TEXTURE_RESOLUTION_FULL] == NULL) {
     error = rna_Image_gl_load(image, reports, frame, layer_index, pass_index);
   }
 
