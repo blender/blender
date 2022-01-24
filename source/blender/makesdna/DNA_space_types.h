@@ -68,7 +68,7 @@ typedef struct SpaceProperties_Runtime SpaceProperties_Runtime;
 #ifdef __cplusplus
 namespace blender::ed::space_node {
 struct SpaceNode_Runtime;
-}  // namespace blender::nodes
+}  // namespace blender::ed::space_node
 using SpaceNode_Runtime = blender::ed::space_node::SpaceNode_Runtime;
 #else
 typedef struct SpaceNode_Runtime SpaceNode_Runtime;

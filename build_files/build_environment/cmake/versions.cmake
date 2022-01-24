@@ -506,4 +506,3 @@ set(BROTLI_URI https://github.com/google/brotli/archive/refs/tags/${BROTLI_VERSI
 set(BROTLI_HASH f9e8d81d0405ba66d181529af42a3354f838c939095ff99930da6aa9cdf6fe46)
 set(BROTLI_HASH_TYPE SHA256)
 set(BROTLI_FILE brotli-${BROTLI_VERSION}.tar.gz)
-
