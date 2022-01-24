@@ -54,7 +54,7 @@
 BLI_INLINE eParticleRefineShaderType drw_hair_shader_type_get(void)
 {
 #ifdef USE_COMPUTE_SHADERS
-  if (GPU_compute_shader_support()) {
+  if (GPU_compute_shader_support() && GPU_shader_storage_buffer_objects_support()) {
     return PART_REFINE_SHADER_COMPUTE;
   }
 #endif
