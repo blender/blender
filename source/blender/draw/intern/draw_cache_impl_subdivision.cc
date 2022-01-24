@@ -752,9 +752,10 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   cache->subdiv_loop_poly_index = static_cast<int *>(
       MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_poly_index"));
 
+  const int num_coarse_vertices = ctx->coarse_mesh->totvert;
   cache->point_indices = static_cast<int *>(
-      MEM_mallocN(cache->num_subdiv_verts * sizeof(int), "point_indices"));
-  for (int i = 0; i < num_vertices; i++) {
+      MEM_mallocN(num_coarse_vertices * sizeof(int), "point_indices"));
+  for (int i = 0; i < num_coarse_vertices; i++) {
     cache->point_indices[i] = -1;
   }
 

@@ -157,7 +157,7 @@ static void extract_points_finish(const MeshRenderData *UNUSED(mr),
 }
 
 static void extract_points_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                       const MeshRenderData *UNUSED(mr),
+                                       const MeshRenderData *mr,
                                        struct MeshBatchCache *UNUSED(cache),
                                        void *UNUSED(buffer),
                                        void *data)
@@ -165,9 +165,9 @@ static void extract_points_init_subdiv(const DRWSubdivCache *subdiv_cache,
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
   /* Copy the points as the data upload will free them. */
   elb->data = (uint *)MEM_dupallocN(subdiv_cache->point_indices);
-  elb->index_len = subdiv_cache->num_subdiv_verts;
+  elb->index_len = mr->vert_len;
   elb->index_min = 0;
-  elb->index_max = subdiv_cache->num_subdiv_loops - 1;
+  elb->index_max = subdiv_cache->num_subdiv_loops + mr->loop_loose_len;
   elb->prim_type = GPU_PRIM_POINTS;
 }
 
@@ -184,9 +184,6 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
 
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
 
-  elb->data = static_cast<uint32_t *>(
-      MEM_reallocN(elb->data, sizeof(uint) * (subdiv_cache->num_subdiv_loops + loop_loose_len)));
-
   const Mesh *coarse_mesh = subdiv_cache->mesh;
   const MEdge *coarse_edges = coarse_mesh->medge;
 
@@ -195,22 +192,18 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
   for (int i = 0; i < loose_geom->edge_len; i++) {
     const MEdge *loose_edge = &coarse_edges[loose_geom->edges[i]];
     if (elb->data[loose_edge->v1] == -1u) {
-      elb->data[loose_edge->v1] = offset;
+      GPU_indexbuf_set_point_vert(elb, loose_edge->v1, offset);
     }
     if (elb->data[loose_edge->v2] == -1u) {
-      elb->data[loose_edge->v2] = offset + 1;
+      GPU_indexbuf_set_point_vert(elb, loose_edge->v2, offset + 1);
     }
-    elb->index_max += 2;
-    elb->index_len += 2;
     offset += 2;
   }
 
   for (int i = 0; i < loose_geom->vert_len; i++) {
     if (elb->data[loose_geom->verts[i]] == -1u) {
-      elb->data[loose_geom->verts[i]] = offset;
+      GPU_indexbuf_set_point_vert(elb, loose_geom->verts[i], offset);
     }
-    elb->index_max += 1;
-    elb->index_len += 1;
     offset += 1;
   }
 }
