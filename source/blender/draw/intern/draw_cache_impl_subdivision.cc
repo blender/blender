@@ -573,6 +573,9 @@ void draw_subdiv_cache_free(DRWSubdivCache *cache)
   GPU_VERTBUF_DISCARD_SAFE(cache->subdiv_vertex_face_adjacency);
   cache->resolution = 0;
   cache->num_subdiv_loops = 0;
+  cache->num_subdiv_edges = 0;
+  cache->num_subdiv_verts = 0;
+  cache->num_subdiv_triangles = 0;
   cache->num_coarse_poly = 0;
   cache->num_subdiv_quads = 0;
   draw_subdiv_free_edit_mode_cache(cache);
@@ -976,6 +979,7 @@ static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
   }
 
   DRWCacheBuildingContext cache_building_context;
+  memset(&cache_building_context, 0, sizeof(DRWCacheBuildingContext));
   cache_building_context.coarse_mesh = mesh_eval;
   cache_building_context.settings = &to_mesh_settings;
   cache_building_context.cache = cache;
