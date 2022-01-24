@@ -149,16 +149,9 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
 
   Brush *brush = (Brush *)id;
   const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
-  bool force_local = (flags & LIB_ID_MAKELOCAL_FORCE_LOCAL) != 0;
-  bool force_copy = (flags & LIB_ID_MAKELOCAL_FORCE_COPY) != 0;
-  BLI_assert(force_copy == false || force_copy != force_local);
 
-  bool is_local = false, is_lib = false;
-
-  /* - only lib users: do nothing (unless force_local is set)
-   * - only local users: set flag
-   * - mixed: make copy
-   */
+  bool force_local, force_copy;
+  BKE_lib_id_make_local_generic_action_define(bmain, id, flags, &force_local, &force_copy);
 
   if (brush->clone.image) {
     /* Special case: ima always local immediately. Clone image should only have one user anyway. */
@@ -169,18 +162,6 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
      * acceptable for the time being. */
     BKE_lib_id_make_local(bmain, &brush->clone.image->id, 0);
     BLI_assert(brush->clone.image->id.lib == NULL && brush->clone.image->id.newid == NULL);
-  }
-
-  if (!force_local && !force_copy) {
-    BKE_library_ID_test_usages(bmain, brush, &is_local, &is_lib);
-    if (lib_local || is_local) {
-      if (!is_lib) {
-        force_local = true;
-      }
-      else {
-        force_copy = true;
-      }
-    }
   }
 
   if (force_local) {
