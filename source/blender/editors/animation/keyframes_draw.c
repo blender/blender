@@ -496,7 +496,7 @@ static void ED_keylist_draw_list_elem_prepare_for_drawing(AnimKeylistDrawListEle
 }
 
 typedef struct AnimKeylistDrawList {
-  ListBase /* AnimKeylistDrawListElem*/ channels;
+  ListBase /* AnimKeylistDrawListElem */ channels;
 } AnimKeylistDrawList;
 
 AnimKeylistDrawList *ED_keylist_draw_list_create(void)

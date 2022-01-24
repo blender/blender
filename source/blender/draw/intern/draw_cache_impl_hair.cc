@@ -167,7 +167,7 @@ static void hair_batch_cache_fill_segments_proc_pos(Hair *hair,
       seg_data[3] = total_len;
       co_prev = curve_co[j];
     }
-    /* Assign length value*/
+    /* Assign length value. */
     *(float *)GPU_vertbuf_raw_step(length_step) = total_len;
     if (total_len > 0.0f) {
       /* Divide by total length to have a [0-1] number. */

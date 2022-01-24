@@ -138,7 +138,7 @@ const std::map<std::string, std::unique_ptr<NurbsObject>> all_nurbs_truth = []()
       "NurbsCircle",
       std::make_unique<NurbsObject>(
           "NurbsCircle", coordinates_NurbsCircle, std::vector<int>{3}, std::vector<int>{11}));
-  /* This is actually an Object containing a NurbsPath and a NurbsCurve spline.  */
+  /* This is actually an Object containing a NurbsPath and a NurbsCurve spline. */
   all_nurbs.emplace("NurbsPathCurve",
                     std::make_unique<NurbsObject>("NurbsPathCurve",
                                                   coordinates_NurbsPathCurve,

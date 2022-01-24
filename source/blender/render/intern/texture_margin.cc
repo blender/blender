@@ -54,7 +54,7 @@ namespace blender::render::texturemargin {
 class TextureMarginMap {
   static const int directions[4][2];
 
-  /* Maps UV-edges to their corresponding UV-edge.  */
+  /* Maps UV-edges to their corresponding UV-edge. */
   Vector<int> loop_adjacency_map_;
   /* Maps UV-edges to their corresponding polygon. */
   Vector<int> loop_to_poly_map_;

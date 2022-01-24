@@ -121,7 +121,7 @@ static void image_init(Image *ima, short source, short type);
 static void image_free_packedfiles(Image *ima);
 static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src);
 
-/* Reset runtime image fields when datablock is being initialized. */
+/* Reset runtime image fields when data-block is being initialized. */
 static void image_runtime_reset(struct Image *image)
 {
   memset(&image->runtime, 0, sizeof(image->runtime));
@@ -129,7 +129,7 @@ static void image_runtime_reset(struct Image *image)
   BLI_mutex_init(image->runtime.cache_mutex);
 }
 
-/* Reset runtime image fields when datablock is being copied.  */
+/* Reset runtime image fields when data-block is being copied. */
 static void image_runtime_reset_on_copy(struct Image *image)
 {
   image->runtime.cache_mutex = MEM_mallocN(sizeof(ThreadMutex), "image runtime cache_mutex");
@@ -3553,7 +3553,7 @@ static void image_tag_frame_recalc(Image *ima, ID *iuser_id, ImageUser *iuser, v
     iuser->flag |= IMA_NEED_FRAME_RECALC;
 
     if (iuser_id) {
-      /* Must copy image user changes to CoW datablock. */
+      /* Must copy image user changes to CoW data-block. */
       DEG_id_tag_update(iuser_id, ID_RECALC_COPY_ON_WRITE);
     }
   }
@@ -3568,7 +3568,7 @@ static void image_tag_reload(Image *ima, ID *iuser_id, ImageUser *iuser, void *c
       image_update_views_format(ima, iuser);
     }
     if (iuser_id) {
-      /* Must copy image user changes to CoW datablock. */
+      /* Must copy image user changes to CoW data-block. */
       DEG_id_tag_update(iuser_id, ID_RECALC_COPY_ON_WRITE);
     }
   }
@@ -5773,7 +5773,7 @@ static void image_user_id_has_animation(Image *ima,
 bool BKE_image_user_id_has_animation(ID *id)
 {
   /* For the dependency graph, this does not consider nested node
-   * trees as these are handled as their own datablock. */
+   * trees as these are handled as their own data-block. */
   bool has_animation = false;
   bool skip_nested_nodes = true;
   image_walk_id_all_users(id, skip_nested_nodes, &has_animation, image_user_id_has_animation);

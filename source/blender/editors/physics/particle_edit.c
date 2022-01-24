@@ -1441,7 +1441,7 @@ void recalc_emitter_field(Depsgraph *UNUSED(depsgraph), Object *UNUSED(ob), Part
   PTCacheEdit *edit = psys->edit;
   Mesh *mesh = edit->psmd_eval->mesh_final;
   float *vec, *nor;
-  int i, totface /*, totvert*/;
+  int i, totface;
 
   if (!mesh) {
     return;
@@ -1454,7 +1454,7 @@ void recalc_emitter_field(Depsgraph *UNUSED(depsgraph), Object *UNUSED(ob), Part
   BLI_kdtree_3d_free(edit->emitter_field);
 
   totface = mesh->totface;
-  // totvert = dm->getNumVerts(dm); /* UNUSED */
+  // int totvert = dm->getNumVerts(dm); /* UNUSED */
 
   edit->emitter_cosnos = MEM_callocN(sizeof(float[6]) * totface, "emitter cosnos");
 

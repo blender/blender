@@ -110,7 +110,7 @@ struct FormattingSyntax {
 };
 
 /**
- * Type dependent but always false. Use to add a constexpr-conditional compile-time error.
+ * Type dependent but always false. Use to add a `constexpr` conditional compile-time error.
  */
 template<typename T> struct always_false : std::false_type {
 };

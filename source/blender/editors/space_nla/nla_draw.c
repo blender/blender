@@ -324,7 +324,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uin
   GPU_line_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);
 
-  /* Fully opaque line on selected strips.  */
+  /* Fully opaque line on selected strips. */
   if (strip->flag & NLASTRIP_FLAG_SELECT) {
     /* TODO: Use theme setting. */
     immUniformColor3f(1.0f, 1.0f, 1.0f);

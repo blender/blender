@@ -520,7 +520,7 @@ CatalogFilePath AssetCatalogService::find_suitable_cdf_path_for_writing(
                  "A non-empty .blend file path is required to be able to determine where the "
                  "catalog definition file should be put");
 
-  /* Ask the asset library API for an appropriate location.  */
+  /* Ask the asset library API for an appropriate location. */
   char suitable_root_path[PATH_MAX];
   const bool asset_lib_root_found = BKE_asset_library_find_suitable_root_path_from_path(
       blend_file_path.c_str(), suitable_root_path);

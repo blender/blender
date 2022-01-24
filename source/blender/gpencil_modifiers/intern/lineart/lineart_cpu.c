@@ -1562,7 +1562,7 @@ static uint16_t lineart_identify_feature_line(LineartRenderBuffer *rb,
       edge_flag_result |= LRT_EDGE_FLAG_CONTOUR;
     }
 
-    /* Because the ray points towards the camera, so backface is when dot value being negative.*/
+    /* Because the ray points towards the camera, so back-face is when dot value being negative. */
     if (rb->use_back_face_culling) {
       if (dot_1 < 0) {
         tri1->flags |= LRT_CULL_DISCARD;
@@ -4301,7 +4301,7 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
     if (rb->chain_smooth_tolerance > FLT_EPSILON) {
       /* Keeping UI range of 0-1 for ease of read while scaling down the actual value for best
        * effective range in image-space (Coordinate only goes from -1 to 1). This value is
-       * somewhat arbitrary, but works best for the moment.  */
+       * somewhat arbitrary, but works best for the moment. */
       MOD_lineart_smooth_chains(rb, rb->chain_smooth_tolerance / 50);
     }
 

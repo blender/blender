@@ -98,7 +98,7 @@ uint get_index(uint i)
 
 /* Duplicate of #PosNorLoop from the mesh extract CPU code.
  * We do not use a vec3 for the position as it will be padded to a vec4 which is incompatible with
- * the format.  */
+ * the format. */
 struct PosNorLoop {
   float x, y, z;
   /* TODO(kevindietrich) : figure how to compress properly as GLSL does not have char/short types,

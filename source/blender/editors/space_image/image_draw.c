@@ -591,7 +591,7 @@ float ED_space_image_zoom_level(const View2D *v2d, const int grid_dimension)
    * - Default grid size on startup, which is 256x256 pixels
    * - How blend factor for grid lines is set up in the fragment shader `grid_frag.glsl`. */
   float zoom_factor;
-  zoom_factor = (xzoom + yzoom) / 2.0f; /* Average for accuracy.  */
+  zoom_factor = (xzoom + yzoom) / 2.0f; /* Average for accuracy. */
   zoom_factor *= 256.0f / (powf(grid_dimension, 2));
   return zoom_factor;
 }

@@ -591,8 +591,8 @@ BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 {
   /* This is a cheap way to set the edge draw, its not precise and will
    * pick the first 2 faces an edge uses.
-   * The dot comparison is a little arbitrary, but set so that a 5 subd
-   * IcoSphere won't vanish but subd 6 will (as with pre-bmesh Blender). */
+   * The dot comparison is a little arbitrary, but set so that a 5 subdivisions
+   * ico-sphere won't vanish but 6 subdivisions will (as with pre-bmesh Blender). */
 
   if (/* (med->flag & ME_EDGEDRAW) && */ /* Assume to be true. */
       (e->l && (e->l != e->l->radial_next)) &&

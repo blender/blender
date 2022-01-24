@@ -561,7 +561,7 @@ BMFace *BM_face_find_double(BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
  * many overlapping faces.
  *
  * An example of how this is used: when 2 tri's are selected that share an edge,
- * pressing Fkey would make a new overlapping quad (without a check like this)
+ * pressing F-key would make a new overlapping quad (without a check like this)
  *
  * \a earr and \a varr can be in any order, however they _must_ form a closed loop.
  */

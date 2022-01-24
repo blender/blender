@@ -106,7 +106,7 @@ typedef struct DRWSubdivCache {
   struct GPUVertBuf *edges_orig_index;
 
   /* Owned by #Subdiv. Indexed by coarse polygon index, difference between value (i + 1) and (i)
-   * gives the number of ptex faces for coarse polygon (i).  */
+   * gives the number of ptex faces for coarse polygon (i). */
   int *face_ptex_offset;
   /* Vertex buffer for face_ptex_offset. */
   struct GPUVertBuf *face_ptex_offset_buffer;

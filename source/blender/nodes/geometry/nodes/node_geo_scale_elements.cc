@@ -345,7 +345,7 @@ static void scale_faces_uniformly(MeshComponent &mesh_component, const UniformSc
 
 static Vector<ElementIsland> prepare_edge_islands(const Mesh &mesh, const IndexMask edge_selection)
 {
-  /* Use the disjoing set data structure to determine which vertices have to be scaled together. */
+  /* Use the disjoint set data structure to determine which vertices have to be scaled together. */
   DisjointSet disjoint_set(mesh.totvert);
   for (const int edge_index : edge_selection) {
     const MEdge &edge = mesh.medge[edge_index];

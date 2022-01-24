@@ -1737,7 +1737,7 @@ bool BLI_path_contains(const char *container_path, const char *containee_path)
   char containee_native[PATH_MAX];
 
   /* Keep space for a trailing slash. If the path is truncated by this, the containee path is
-   * longer than PATH_MAX and the result is ill-defined.  */
+   * longer than PATH_MAX and the result is ill-defined. */
   BLI_strncpy(container_native, container_path, PATH_MAX - 1);
   BLI_strncpy(containee_native, containee_path, PATH_MAX);
 
