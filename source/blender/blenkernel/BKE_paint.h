@@ -617,10 +617,6 @@ typedef struct SculptSession {
   float init_pivot_rot[4];
   float init_pivot_scale[3];
 
-  float prev_pivot_pos[3];
-  float prev_pivot_rot[4];
-  float prev_pivot_scale[3];
-
   union {
     struct {
       struct SculptVertexPaintGeomMap gmap;

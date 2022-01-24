@@ -70,10 +70,6 @@ void ED_sculpt_init_transform(struct bContext *C, Object *ob)
   copy_v4_v4(ss->init_pivot_rot, ss->pivot_rot);
   copy_v3_v3(ss->init_pivot_scale, ss->pivot_scale);
 
-  copy_v3_v3(ss->prev_pivot_pos, ss->pivot_pos);
-  copy_v4_v4(ss->prev_pivot_rot, ss->pivot_rot);
-  copy_v3_v3(ss->prev_pivot_scale, ss->pivot_scale);
-
   SCULPT_undo_push_begin(ob, "Transform");
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
@@ -81,13 +77,10 @@ void ED_sculpt_init_transform(struct bContext *C, Object *ob)
 
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS);
-
-  ss->filter_cache->transform_displacement_mode = SCULPT_TRANSFORM_DISPLACEMENT_ORIGINAL;
 }
 
 static void sculpt_transform_matrices_init(SculptSession *ss,
                                            const char symm,
-                                           const SculptTransformDisplacementMode t_mode,
                                            float r_transform_mats[8][4][4])
 {
 
@@ -96,18 +89,9 @@ static void sculpt_transform_matrices_init(SculptSession *ss,
       transform_mat[4][4];
 
   float start_pivot_pos[3], start_pivot_rot[4], start_pivot_scale[3];
-  switch (t_mode) {
-    case SCULPT_TRANSFORM_DISPLACEMENT_ORIGINAL:
-      copy_v3_v3(start_pivot_pos, ss->init_pivot_pos);
-      copy_v4_v4(start_pivot_rot, ss->init_pivot_rot);
-      copy_v3_v3(start_pivot_scale, ss->init_pivot_scale);
-      break;
-    case SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL:
-      copy_v3_v3(start_pivot_pos, ss->prev_pivot_pos);
-      copy_v4_v4(start_pivot_rot, ss->prev_pivot_rot);
-      copy_v3_v3(start_pivot_scale, ss->prev_pivot_scale);
-      break;
-  }
+  copy_v3_v3(start_pivot_pos, ss->init_pivot_pos);
+  copy_v4_v4(start_pivot_rot, ss->init_pivot_rot);
+  copy_v3_v3(start_pivot_scale, ss->init_pivot_scale);
 
   for (int i = 0; i < PAINT_SYMM_AREAS; i++) {
     ePaintSymmetryAreas v_symm = i;
@@ -167,25 +151,15 @@ static void sculpt_transform_task_cb(void *__restrict userdata,
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     float transformed_co[3], orig_co[3], disp[3];
-    float *start_co;
     float fade = vd.mask ? *vd.mask : 0.0f;
     copy_v3_v3(orig_co, orig_data.co);
     char symm_area = SCULPT_get_vertex_symm_area(orig_co);
 
-    switch (ss->filter_cache->transform_displacement_mode) {
-      case SCULPT_TRANSFORM_DISPLACEMENT_ORIGINAL:
-        start_co = orig_co;
-        break;
-      case SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL:
-        start_co = vd.co;
-        break;
-    }
-
-    copy_v3_v3(transformed_co, start_co);
+    copy_v3_v3(transformed_co, orig_co);
     mul_m4_v3(data->transform_mats[(int)symm_area], transformed_co);
-    sub_v3_v3v3(disp, transformed_co, start_co);
+    sub_v3_v3v3(disp, transformed_co, orig_co);
     mul_v3_fl(disp, 1.0f - fade);
-    add_v3_v3v3(vd.co, start_co, disp);
+    add_v3_v3v3(vd.co, orig_co, disp);
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -207,8 +181,7 @@ static void sculpt_transform_all_vertices(Sculpt *sd, Object *ob)
       .nodes = ss->filter_cache->nodes,
   };
 
-  sculpt_transform_matrices_init(
-      ss, symm, ss->filter_cache->transform_displacement_mode, data.transform_mats);
+  sculpt_transform_matrices_init(ss, symm, data.transform_mats);
 
   /* Regular transform applies all symmetry passes at once as it is split by symmetry areas
    * (each vertex can only be transformed once by the transform matrix of its area). */
@@ -228,10 +201,6 @@ void ED_sculpt_update_modal_transform(struct bContext *C, Object *ob)
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
   sculpt_transform_all_vertices(sd, ob);
-
-  copy_v3_v3(ss->prev_pivot_pos, ss->pivot_pos);
-  copy_v4_v4(ss->prev_pivot_rot, ss->pivot_rot);
-  copy_v3_v3(ss->prev_pivot_scale, ss->pivot_scale);
 
   if (ss->deform_modifiers_active || ss->shapekey_active) {
     SCULPT_flush_stroke_deform(sd, ob, true);
