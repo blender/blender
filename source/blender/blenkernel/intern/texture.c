@@ -67,6 +67,8 @@
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
+#include "NOD_texture.h"
+
 #include "RE_texture.h"
 
 #include "BLO_read_write.h"

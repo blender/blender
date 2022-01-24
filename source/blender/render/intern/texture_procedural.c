@@ -43,14 +43,14 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 
-#include "BKE_image.h"
-#include "BKE_node.h"
-
 #include "BKE_colorband.h"
+#include "BKE_image.h"
 #include "BKE_material.h"
+#include "BKE_node.h"
 #include "BKE_scene.h"
-
 #include "BKE_texture.h"
+
+#include "NOD_texture.h"
 
 #include "MEM_guardedalloc.h"
 

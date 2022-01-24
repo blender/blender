@@ -56,6 +56,8 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
+#include "NOD_composite.h"
+
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"

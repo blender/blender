@@ -42,6 +42,8 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 
+#include "NOD_shader.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "IMB_colormanagement.h"

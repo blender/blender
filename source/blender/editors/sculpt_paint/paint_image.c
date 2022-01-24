@@ -56,6 +56,8 @@
 #include "BKE_paint.h"
 #include "BKE_undo_system.h"
 
+#include "NOD_texture.h"
+
 #include "DEG_depsgraph.h"
 
 #include "UI_interface.h"

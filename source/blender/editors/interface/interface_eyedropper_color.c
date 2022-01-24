@@ -42,6 +42,8 @@
 #include "BKE_node.h"
 #include "BKE_screen.h"
 
+#include "NOD_composite.h"
+
 #include "RNA_access.h"
 
 #include "UI_interface.h"

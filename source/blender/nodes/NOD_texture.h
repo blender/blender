@@ -74,6 +74,22 @@ void register_node_type_tex_proc_noise(void);
 void register_node_type_tex_proc_stucci(void);
 void register_node_type_tex_proc_distnoise(void);
 
+void ntreeTexCheckCyclics(struct bNodeTree *ntree);
+struct bNodeTreeExec *ntreeTexBeginExecTree(struct bNodeTree *ntree);
+void ntreeTexEndExecTree(struct bNodeTreeExec *exec);
+int ntreeTexExecTree(struct bNodeTree *ntree,
+                     struct TexResult *target,
+                     const float co[3],
+                     float dxt[3],
+                     float dyt[3],
+                     int osatex,
+                     short thread,
+                     const struct Tex *tex,
+                     short which_output,
+                     int cfra,
+                     int preview,
+                     struct MTex *mtex);
+
 #ifdef __cplusplus
 }
 #endif

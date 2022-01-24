@@ -73,6 +73,8 @@
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
 
+#include "NOD_texture.h"
+
 #include "DEG_depsgraph.h"
 
 #include "IMB_colormanagement.h"

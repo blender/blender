@@ -631,6 +631,7 @@ static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_no_bo
 #  include "NOD_geometry.h"
 #  include "NOD_shader.h"
 #  include "NOD_socket.h"
+#  include "NOD_texture.h"
 
 #  include "RE_engine.h"
 #  include "RE_pipeline.h"

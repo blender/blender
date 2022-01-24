@@ -34,6 +34,7 @@
 
 #include "NOD_node_declaration.hh"
 #include "NOD_node_tree_ref.hh"
+#include "NOD_texture.h"
 
 #include "DEG_depsgraph_query.h"
 

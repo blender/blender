@@ -27,6 +27,7 @@ set(INC
   ../../gpu
   ../../imbuf
   ../../makesdna
+  ../../nodes
   ../../makesrna
   ../../render
   ../../windowmanager

@@ -22,6 +22,8 @@
 #include "BKE_image.h"
 #include "BKE_node.h"
 
+#include "NOD_texture.h"
+
 namespace blender::compositor {
 
 TextureBaseOperation::TextureBaseOperation()
