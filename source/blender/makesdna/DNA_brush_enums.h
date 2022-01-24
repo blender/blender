@@ -532,6 +532,9 @@ typedef enum eBrushImagePaintTool {
   PAINT_TOOL_MASK = 5,
 } eBrushImagePaintTool;
 
+/* The enums here should be kept in sync with the weight paint tool.
+ * This is because #smooth_brush_toggle_on and #smooth_brush_toggle_off
+ * assumes that the Blur blursh has the same enum value. */
 typedef enum eBrushVertexPaintTool {
   VPAINT_TOOL_DRAW = 0,
   VPAINT_TOOL_BLUR = 1,
@@ -539,6 +542,7 @@ typedef enum eBrushVertexPaintTool {
   VPAINT_TOOL_SMEAR = 3,
 } eBrushVertexPaintTool;
 
+/* See #eBrushVertexPaintTool when changing this definition. */
 typedef enum eBrushWeightPaintTool {
   WPAINT_TOOL_DRAW = 0,
   WPAINT_TOOL_BLUR = 1,

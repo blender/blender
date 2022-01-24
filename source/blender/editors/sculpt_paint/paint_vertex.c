@@ -32,6 +32,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_task.h"
 
 #include "DNA_brush_types.h"
@@ -43,9 +44,11 @@
 #include "RNA_access.h"
 
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_layer.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
@@ -1470,14 +1473,48 @@ struct WPaintData {
   bool precomputed_weight_ready;
 };
 
+static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache)
+{
+  Scene *scene = CTX_data_scene(C);
+  Brush *brush = paint->brush;
+  int cur_brush_size = BKE_brush_size_get(scene, brush);
+
+  BLI_strncpy(
+      cache->saved_active_brush_name, brush->id.name + 2, sizeof(cache->saved_active_brush_name));
+
+  /* Switch to the blur (smooth) brush. */
+  brush = BKE_paint_toolslots_brush_get(paint, WPAINT_TOOL_BLUR);
+  if (brush) {
+    BKE_paint_brush_set(paint, brush);
+    cache->saved_smooth_size = BKE_brush_size_get(scene, brush);
+    BKE_brush_size_set(scene, brush, cur_brush_size);
+    BKE_curvemapping_init(brush->curve);
+  }
+}
+
+static void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache *cache)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  Brush *brush = BKE_paint_brush(paint);
+  /* The current brush should match with what we have stored in the cache. */
+  BLI_assert(brush == cache->brush);
+
+  /* Try to switch back to the saved/previous brush. */
+  BKE_brush_size_set(scene, brush, cache->saved_smooth_size);
+  brush = (Brush *)BKE_libblock_find_name(bmain, ID_BR, cache->saved_active_brush_name);
+  if (brush) {
+    BKE_paint_brush_set(paint, brush);
+  }
+}
+
 /* Initialize the stroke cache invariants from operator properties */
 static void vwpaint_update_cache_invariants(
-    bContext *C, const VPaint *vp, SculptSession *ss, wmOperator *op, const float mouse[2])
+    bContext *C, VPaint *vp, SculptSession *ss, wmOperator *op, const float mouse[2])
 {
   StrokeCache *cache;
   Scene *scene = CTX_data_scene(C);
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
-  const Brush *brush = vp->paint.brush;
   ViewContext *vc = paint_stroke_view_context(op->customdata);
   Object *ob = CTX_data_active_object(C);
   float mat[3][3];
@@ -1513,7 +1550,12 @@ static void vwpaint_update_cache_invariants(
     ups->draw_inverted = false;
   }
 
+  if (cache->alt_smooth) {
+    smooth_brush_toggle_on(C, &vp->paint, cache);
+  }
+
   copy_v2_v2(cache->mouse, cache->initial_mouse);
+  Brush *brush = vp->paint.brush;
   /* Truly temporary data that isn't stored in properties */
   cache->vc = vc;
   cache->brush = brush;
@@ -1715,14 +1757,14 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
     wpd->mirror.lock = tmpflags;
   }
 
-  if (ELEM(vp->paint.brush->weightpaint_tool, WPAINT_TOOL_SMEAR, WPAINT_TOOL_BLUR)) {
-    wpd->precomputed_weight = MEM_mallocN(sizeof(float) * me->totvert, __func__);
-  }
-
   /* If not previously created, create vertex/weight paint mode session data */
   vertex_paint_init_stroke(depsgraph, ob);
   vwpaint_update_cache_invariants(C, vp, ss, op, mouse);
   vertex_paint_init_session_data(ts, ob);
+
+  if (ELEM(vp->paint.brush->weightpaint_tool, WPAINT_TOOL_SMEAR, WPAINT_TOOL_BLUR)) {
+    wpd->precomputed_weight = MEM_mallocN(sizeof(float) * me->totvert, __func__);
+  }
 
   if (ob->sculpt->mode.wpaint.dvert_prev != NULL) {
     MDeformVert *dv = ob->sculpt->mode.wpaint.dvert_prev;
@@ -2395,7 +2437,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
   wpi.vgroup_validmap = wpd->vgroup_validmap;
   wpi.vgroup_locked = wpd->vgroup_locked;
   wpi.vgroup_unlocked = wpd->vgroup_unlocked;
-  wpi.do_flip = RNA_boolean_get(itemptr, "pen_flip");
+  wpi.do_flip = RNA_boolean_get(itemptr, "pen_flip") || ss->cache->invert;
   wpi.do_multipaint = wpd->do_multipaint;
   wpi.do_auto_normalize = ((ts->auto_normalize != 0) && (wpi.vgroup_validmap != NULL) &&
                            (wpi.do_multipaint || wpi.vgroup_validmap[wpi.active.index]));
@@ -2478,6 +2520,14 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
     }
 
     MEM_freeN(wpd);
+  }
+
+  SculptSession *ss = ob->sculpt;
+
+  if (ss->cache->alt_smooth) {
+    ToolSettings *ts = CTX_data_tool_settings(C);
+    VPaint *vp = ts->wpaint;
+    smooth_brush_toggle_off(C, &vp->paint, ss->cache);
   }
 
   /* and particles too */
@@ -3431,6 +3481,14 @@ static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
   }
   if (vpd->smear.color_curr) {
     MEM_freeN(vpd->smear.color_curr);
+  }
+
+  SculptSession *ss = ob->sculpt;
+
+  if (ss->cache->alt_smooth) {
+    ToolSettings *ts = CTX_data_tool_settings(C);
+    VPaint *vp = ts->vpaint;
+    smooth_brush_toggle_off(C, &vp->paint, ss->cache);
   }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
