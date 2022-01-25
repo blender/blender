@@ -31,6 +31,7 @@
 
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_remap.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
 
@@ -896,71 +897,63 @@ static void node_widgets()
   WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_backdrop_corner_pin);
 }
 
-static void node_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
+static void node_id_remap(ScrArea *UNUSED(area),
+                          SpaceLink *slink,
+                          const struct IDRemapper *mappings)
 {
   SpaceNode *snode = (SpaceNode *)slink;
 
-  if (snode->id == old_id) {
+  if (ELEM(BKE_id_remapper_apply(mappings, &snode->id, ID_REMAP_APPLY_DEFAULT),
+           ID_REMAP_RESULT_SOURCE_REMAPPED,
+           ID_REMAP_RESULT_SOURCE_UNASSIGNED)) {
     /* nasty DNA logic for SpaceNode:
      * ideally should be handled by editor code, but would be bad level call
      */
     BLI_freelistN(&snode->treepath);
 
     /* XXX Untested in case new_id != nullptr... */
-    snode->id = new_id;
     snode->from = nullptr;
     snode->nodetree = nullptr;
     snode->edittree = nullptr;
   }
-  else if (GS(old_id->name) == ID_OB) {
-    if (snode->from == old_id) {
-      if (new_id == nullptr) {
-        snode->flag &= ~SNODE_PIN;
-      }
-      snode->from = new_id;
+  if (BKE_id_remapper_apply(mappings, &snode->from, ID_REMAP_APPLY_DEFAULT) ==
+      ID_REMAP_RESULT_SOURCE_UNASSIGNED) {
+    snode->flag &= ~SNODE_PIN;
+  }
+  BKE_id_remapper_apply(mappings, (ID **)&snode->gpd, ID_REMAP_APPLY_UPDATE_REFCOUNT);
+
+  if (!BKE_id_remapper_has_mapping_for(mappings, FILTER_ID_NT)) {
+    return;
+  }
+
+  bNodeTreePath *path, *path_next;
+  for (path = (bNodeTreePath *)snode->treepath.first; path; path = path->next) {
+    BKE_id_remapper_apply(mappings, (ID **)&path->nodetree, ID_REMAP_APPLY_ENSURE_REAL);
+    if (path == snode->treepath.first) {
+      /* first nodetree in path is same as snode->nodetree */
+      snode->nodetree = path->nodetree;
+    }
+    if (path->nodetree == nullptr) {
+      break;
     }
   }
-  else if (GS(old_id->name) == ID_GD) {
-    if ((ID *)snode->gpd == old_id) {
-      snode->gpd = (bGPdata *)new_id;
-      id_us_min(old_id);
-      id_us_plus(new_id);
-    }
+
+  /* remaining path entries are invalid, remove */
+  for (; path; path = path_next) {
+    path_next = path->next;
+
+    BLI_remlink(&snode->treepath, path);
+    MEM_freeN(path);
   }
-  else if (GS(old_id->name) == ID_NT) {
-    bNodeTreePath *path, *path_next;
 
-    for (path = (bNodeTreePath *)snode->treepath.first; path; path = path->next) {
-      if ((ID *)path->nodetree == old_id) {
-        path->nodetree = (bNodeTree *)new_id;
-        id_us_ensure_real(new_id);
-      }
-      if (path == snode->treepath.first) {
-        /* first nodetree in path is same as snode->nodetree */
-        snode->nodetree = path->nodetree;
-      }
-      if (path->nodetree == nullptr) {
-        break;
-      }
-    }
-
-    /* remaining path entries are invalid, remove */
-    for (; path; path = path_next) {
-      path_next = path->next;
-
-      BLI_remlink(&snode->treepath, path);
-      MEM_freeN(path);
-    }
-
-    /* edittree is just the last in the path,
-     * set this directly since the path may have been shortened above */
-    if (snode->treepath.last) {
-      path = (bNodeTreePath *)snode->treepath.last;
-      snode->edittree = path->nodetree;
-    }
-    else {
-      snode->edittree = nullptr;
-    }
+  /* edittree is just the last in the path,
+   * set this directly since the path may have been shortened above */
+  if (snode->treepath.last) {
+    path = (bNodeTreePath *)snode->treepath.last;
+    snode->edittree = path->nodetree;
+  }
+  else {
+    snode->edittree = nullptr;
   }
 }
 

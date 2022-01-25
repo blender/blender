@@ -51,6 +51,7 @@
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -312,28 +313,39 @@ void WM_main_remove_notifier_reference(const void *reference)
   }
 }
 
-void WM_main_remap_editor_id_reference(ID *old_id, ID *new_id)
+static void wm_main_remap_assetlist(ID *old_id, ID *new_id, void *UNUSED(user_data))
+{
+  ED_assetlist_storage_id_remap(old_id, new_id);
+}
+
+static void wm_main_remap_msgbus_notify(ID *old_id, ID *new_id, void *user_data)
+{
+  struct wmMsgBus *mbus = user_data;
+  if (new_id != NULL) {
+    WM_msg_id_update(mbus, old_id, new_id);
+  }
+  else {
+    WM_msg_id_remove(mbus, old_id);
+  }
+}
+
+void WM_main_remap_editor_id_reference(const struct IDRemapper *mappings)
 {
   Main *bmain = G_MAIN;
 
   LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        ED_spacedata_id_remap(area, sl, old_id, new_id);
+        ED_spacedata_id_remap(area, sl, mappings);
       }
     }
   }
-  ED_assetlist_storage_id_remap(old_id, new_id);
+
+  BKE_id_remapper_iter(mappings, wm_main_remap_assetlist, NULL);
 
   wmWindowManager *wm = bmain->wm.first;
   if (wm && wm->message_bus) {
-    struct wmMsgBus *mbus = wm->message_bus;
-    if (new_id != NULL) {
-      WM_msg_id_update(mbus, old_id, new_id);
-    }
-    else {
-      WM_msg_id_remove(mbus, old_id);
-    }
+    BKE_id_remapper_iter(mappings, wm_main_remap_msgbus_notify, wm->message_bus);
   }
 }
 

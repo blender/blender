@@ -38,6 +38,9 @@
 extern "C" {
 #endif
 
+struct ID;
+struct IDRemapper;
+
 /* BKE_libblock_free, delete are declared in BKE_lib_id.h for convenience. */
 
 /* Also IDRemap->flag. */
@@ -98,6 +101,19 @@ enum {
 };
 
 /**
+ * Replace all references in given Main using the given \a mappings
+ *
+ * \note Is preferred over BKE_libblock_remap_locked due to performance.
+ */
+void BKE_libblock_remap_multiple_locked(struct Main *bmain,
+                                        const struct IDRemapper *mappings,
+                                        const short remap_flags);
+
+void BKE_libblock_remap_multiple(struct Main *bmain,
+                                 const struct IDRemapper *mappings,
+                                 const short remap_flags);
+
+/**
  * Replace all references in given Main to \a old_id by \a new_id
  * (if \a new_id is NULL, it unlinks \a old_id).
  *
@@ -146,11 +162,60 @@ void BKE_libblock_relink_to_newid(struct Main *bmain, struct ID *id, int remap_f
     ATTR_NONNULL();
 
 typedef void (*BKE_library_free_notifier_reference_cb)(const void *);
-typedef void (*BKE_library_remap_editor_id_reference_cb)(struct ID *, struct ID *);
+typedef void (*BKE_library_remap_editor_id_reference_cb)(const struct IDRemapper *mappings);
 
 void BKE_library_callback_free_notifier_reference_set(BKE_library_free_notifier_reference_cb func);
 void BKE_library_callback_remap_editor_id_reference_set(
     BKE_library_remap_editor_id_reference_cb func);
+
+/* IDRemapper */
+struct IDRemapper;
+typedef enum IDRemapperApplyResult {
+  /** No remapping rules available for the source. */
+  ID_REMAP_RESULT_SOURCE_UNAVAILABLE,
+  /** Source isn't mappable (e.g. NULL). */
+  ID_REMAP_RESULT_SOURCE_NOT_MAPPABLE,
+  /** Source has been remapped to a new pointer. */
+  ID_REMAP_RESULT_SOURCE_REMAPPED,
+  /** Source has been set to NULL. */
+  ID_REMAP_RESULT_SOURCE_UNASSIGNED,
+} IDRemapperApplyResult;
+
+typedef enum IDRemapperApplyOptions {
+  ID_REMAP_APPLY_UPDATE_REFCOUNT = (1 << 0),
+  ID_REMAP_APPLY_ENSURE_REAL = (1 << 1),
+
+  ID_REMAP_APPLY_DEFAULT = 0,
+} IDRemapperApplyOptions;
+
+typedef void (*IDRemapperIterFunction)(struct ID *old_id, struct ID *new_id, void *user_data);
+
+/**
+ * Create a new ID Remapper.
+ *
+ * An ID remapper stores multiple remapping rules.
+ */
+struct IDRemapper *BKE_id_remapper_create(void);
+
+void BKE_id_remapper_clear(struct IDRemapper *id_remapper);
+bool BKE_id_remapper_is_empty(const struct IDRemapper *id_remapper);
+/** Free the given ID Remapper. */
+void BKE_id_remapper_free(struct IDRemapper *id_remapper);
+/** Add a new remapping. */
+void BKE_id_remapper_add(struct IDRemapper *id_remapper, struct ID *old_id, struct ID *new_id);
+
+/**
+ * Apply a remapping.
+ *
+ * Update the id pointer stored in the given r_id_ptr if a remapping rule exists.
+ */
+IDRemapperApplyResult BKE_id_remapper_apply(const struct IDRemapper *id_remapper,
+                                            struct ID **r_id_ptr,
+                                            IDRemapperApplyOptions options);
+bool BKE_id_remapper_has_mapping_for(const struct IDRemapper *id_remapper, uint64_t type_filter);
+void BKE_id_remapper_iter(const struct IDRemapper *id_remapper,
+                          IDRemapperIterFunction func,
+                          void *user_data);
 
 #ifdef __cplusplus
 }

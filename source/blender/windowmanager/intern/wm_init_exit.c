@@ -252,7 +252,7 @@ void WM_init(bContext *C, int argc, const char **argv)
   BKE_region_callback_free_gizmomap_set(wm_gizmomap_remove);
   BKE_region_callback_refresh_tag_gizmomap_set(WM_gizmomap_tag_refresh);
   BKE_library_callback_remap_editor_id_reference_set(WM_main_remap_editor_id_reference);
-  BKE_spacedata_callback_id_remap_set(ED_spacedata_id_remap);
+  BKE_spacedata_callback_id_remap_set(ED_spacedata_id_remap_single);
   DEG_editors_set_update_cb(ED_render_id_flush_update, ED_render_scene_update);
 
   ED_spacetypes_init();
