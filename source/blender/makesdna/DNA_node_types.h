@@ -1848,7 +1848,6 @@ enum {
 /* math node clamp */
 #define SHD_MATH_CLAMP 1
 
-/** Math node operations. */
 typedef enum NodeMathOperation {
   NODE_MATH_ADD = 0,
   NODE_MATH_SUBTRACT = 1,
@@ -1892,7 +1891,6 @@ typedef enum NodeMathOperation {
   NODE_MATH_SMOOTH_MAX = 39,
 } NodeMathOperation;
 
-/** Vector Math node operations. */
 typedef enum NodeVectorMathOperation {
   NODE_VECTOR_MATH_ADD = 0,
   NODE_VECTOR_MATH_SUBTRACT = 1,
@@ -1926,7 +1924,6 @@ typedef enum NodeVectorMathOperation {
   NODE_VECTOR_MATH_MULTIPLY_ADD = 26,
 } NodeVectorMathOperation;
 
-/** Boolean math node operations. */
 typedef enum NodeBooleanMathOperation {
   NODE_BOOLEAN_MATH_AND = 0,
   NODE_BOOLEAN_MATH_OR = 1,
@@ -1941,7 +1938,6 @@ typedef enum NodeBooleanMathOperation {
   NODE_BOOLEAN_MATH_NIMPLY = 8,
 } NodeBooleanMathOperation;
 
-/** Float compare node operations. */
 typedef enum NodeCompareMode {
   NODE_COMPARE_MODE_ELEMENT = 0,
   NODE_COMPARE_MODE_LENGTH = 1,
@@ -1959,10 +1955,8 @@ typedef enum NodeCompareOperation {
   NODE_COMPARE_NOT_EQUAL = 5,
   NODE_COMPARE_COLOR_BRIGHTER = 6,
   NODE_COMPARE_COLOR_DARKER = 7,
-
 } NodeCompareOperation;
 
-/** Float to Int node operations. */
 typedef enum FloatToIntRoundingMode {
   FN_NODE_FLOAT_TO_INT_ROUND = 0,
   FN_NODE_FLOAT_TO_INT_FLOOR = 1,
