@@ -33,7 +33,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 
 #include "ED_anim_api.h"
@@ -578,17 +577,18 @@ static void nla_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
-static void nla_id_remap(ScrArea *UNUSED(area),
-                         SpaceLink *slink,
-                         const struct IDRemapper *mappings)
+static void nla_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
 {
   SpaceNla *snla = (SpaceNla *)slink;
 
-  if (snla->ads == NULL) {
-    return;
+  if (snla->ads) {
+    if ((ID *)snla->ads->filter_grp == old_id) {
+      snla->ads->filter_grp = (Collection *)new_id;
+    }
+    if ((ID *)snla->ads->source == old_id) {
+      snla->ads->source = new_id;
+    }
   }
-  BKE_id_remapper_apply(mappings, (ID **)&snla->ads->filter_grp, ID_REMAP_APPLY_DEFAULT);
-  BKE_id_remapper_apply(mappings, (ID **)&snla->ads->source, ID_REMAP_APPLY_DEFAULT);
 }
 
 void ED_spacetype_nla(void)

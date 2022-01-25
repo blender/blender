@@ -36,7 +36,6 @@
 
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
-#include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 
 #include "ED_anim_api.h"
@@ -797,17 +796,18 @@ static void graph_refresh(const bContext *C, ScrArea *area)
   graph_refresh_fcurve_colors(C);
 }
 
-static void graph_id_remap(ScrArea *UNUSED(area),
-                           SpaceLink *slink,
-                           const struct IDRemapper *mappings)
+static void graph_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
 {
   SpaceGraph *sgraph = (SpaceGraph *)slink;
-  if (!sgraph->ads) {
-    return;
-  }
 
-  BKE_id_remapper_apply(mappings, (ID **)&sgraph->ads->filter_grp, ID_REMAP_APPLY_DEFAULT);
-  BKE_id_remapper_apply(mappings, (ID **)&sgraph->ads->source, ID_REMAP_APPLY_DEFAULT);
+  if (sgraph->ads) {
+    if ((ID *)sgraph->ads->filter_grp == old_id) {
+      sgraph->ads->filter_grp = (Collection *)new_id;
+    }
+    if ((ID *)sgraph->ads->source == old_id) {
+      sgraph->ads->source = new_id;
+    }
+  }
 }
 
 static int graph_space_subtype_get(ScrArea *area)

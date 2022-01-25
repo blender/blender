@@ -38,7 +38,6 @@ struct BlendLibReader;
 struct BlendWriter;
 struct Header;
 struct ID;
-struct IDRemapper;
 struct LibraryForeachIDData;
 struct ListBase;
 struct Menu;
@@ -118,7 +117,10 @@ typedef struct SpaceType {
   bContextDataCallback context;
 
   /* Used when we want to replace an ID by another (or NULL). */
-  void (*id_remap)(struct ScrArea *area, struct SpaceLink *sl, const struct IDRemapper *mappings);
+  void (*id_remap)(struct ScrArea *area,
+                   struct SpaceLink *sl,
+                   struct ID *old_id,
+                   struct ID *new_id);
 
   int (*space_subtype_get)(struct ScrArea *area);
   void (*space_subtype_set)(struct ScrArea *area, int value);
