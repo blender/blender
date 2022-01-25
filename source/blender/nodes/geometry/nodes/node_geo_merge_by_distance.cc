@@ -14,6 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "GEO_mesh_merge_by_distance.hh"
 #include "GEO_point_merge_by_distance.hh"
 
 #include "node_geometry_util.hh"
@@ -22,7 +23,8 @@ namespace blender::nodes::node_geo_merge_by_distance_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Geometry")).supported_type({GEO_COMPONENT_TYPE_POINT_CLOUD});
+  b.add_input<decl::Geometry>(N_("Geometry"))
+      .supported_type({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_MESH});
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
   b.add_input<decl::Float>(N_("Distance")).default_value(0.1f).min(0.0f).subtype(PROP_DISTANCE);
   b.add_output<decl::Geometry>(N_("Geometry"));
@@ -46,6 +48,25 @@ static PointCloud *pointcloud_merge_by_distance(const PointCloudComponent &src_p
   return geometry::point_merge_by_distance(src_points, merge_distance, selection);
 }
 
+static std::optional<Mesh *> mesh_merge_by_distance(const MeshComponent &mesh_component,
+                                                    const float merge_distance,
+                                                    const Field<bool> &selection_field)
+{
+  const int src_size = mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT);
+  GeometryComponentFieldContext context{mesh_component, ATTR_DOMAIN_POINT};
+  FieldEvaluator evaluator{context, src_size};
+  evaluator.add(selection_field);
+  evaluator.evaluate();
+
+  const IndexMask selection = evaluator.get_evaluated_as_mask(0);
+  if (selection.is_empty()) {
+    return nullptr;
+  }
+
+  const Mesh &mesh = *mesh_component.get_for_read();
+  return geometry::mesh_merge_by_distance_all(mesh, selection, merge_distance);
+}
+
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
@@ -58,6 +79,13 @@ static void node_geo_exec(GeoNodeExecParams params)
       PointCloud *result = pointcloud_merge_by_distance(
           *geometry_set.get_component_for_read<PointCloudComponent>(), merge_distance, selection);
       geometry_set.replace_pointcloud(result);
+    }
+    if (geometry_set.has_mesh()) {
+      std::optional<Mesh *> result = mesh_merge_by_distance(
+          *geometry_set.get_component_for_read<MeshComponent>(), merge_distance, selection);
+      if (result) {
+        geometry_set.replace_mesh(*result);
+      }
     }
   });
 
