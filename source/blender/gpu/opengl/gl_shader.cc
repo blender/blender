@@ -595,11 +595,6 @@ static char *glsl_patch_default_get()
     STR_CONCAT(patch, slen, "#extension GL_ARB_shading_language_420pack: enable\n");
   }
 
-  if (!GLContext::shader_draw_parameters_support) {
-    /* Fallback: Emulate base instance using a uniform. */
-    STR_CONCAT(patch, slen, "uniform int gpu_BaseInstance;\n");
-  }
-
   /* Fallbacks. */
   if (!GLContext::shader_draw_parameters_support) {
     STR_CONCAT(patch, slen, "uniform int gpu_BaseInstance;\n");
