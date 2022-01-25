@@ -620,11 +620,7 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
       return &RNA_ID;
 #  endif
     case OB_POINTCLOUD:
-#  ifdef WITH_POINT_CLOUD
       return &RNA_PointCloud;
-#  else
-      return &RNA_ID;
-#  endif
     case OB_VOLUME:
       return &RNA_Volume;
     default:

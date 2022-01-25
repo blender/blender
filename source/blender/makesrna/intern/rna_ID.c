@@ -423,11 +423,9 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_PaintCurve) {
     return ID_PC;
   }
-#  ifdef WITH_POINT_CLOUD
   if (base_type == &RNA_PointCloud) {
     return ID_PT;
   }
-#  endif
   if (base_type == &RNA_LightProbe) {
     return ID_LP;
   }
@@ -533,11 +531,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
     case ID_PC:
       return &RNA_PaintCurve;
     case ID_PT:
-#  ifdef WITH_POINT_CLOUD
       return &RNA_PointCloud;
-#  else
-      return &RNA_ID;
-#  endif
     case ID_LP:
       return &RNA_LightProbe;
     case ID_SCE:
