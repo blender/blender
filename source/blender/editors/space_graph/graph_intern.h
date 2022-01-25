@@ -144,6 +144,7 @@ void GRAPH_OT_easing_type(struct wmOperatorType *ot);
 void GRAPH_OT_frame_jump(struct wmOperatorType *ot);
 void GRAPH_OT_snap_cursor_value(struct wmOperatorType *ot);
 void GRAPH_OT_snap(struct wmOperatorType *ot);
+void GRAPH_OT_equalize_handles(struct wmOperatorType *ot);
 void GRAPH_OT_mirror(struct wmOperatorType *ot);
 
 /* defines for snap keyframes
@@ -156,6 +157,15 @@ enum eGraphKeys_Snap_Mode {
   GRAPHKEYS_SNAP_NEAREST_MARKER,
   GRAPHKEYS_SNAP_HORIZONTAL,
   GRAPHKEYS_SNAP_VALUE,
+};
+
+/* Defines for equalize keyframe handles.
+ * NOTE: Keep in sync with eEditKeyframes_Equalize (in ED_keyframes_edit.h).
+ */
+enum eGraphKeys_Equalize_Mode {
+  GRAPHKEYS_EQUALIZE_LEFT = 1,
+  GRAPHKEYS_EQUALIZE_RIGHT,
+  GRAPHKEYS_EQUALIZE_BOTH,
 };
 
 /* defines for mirror keyframes

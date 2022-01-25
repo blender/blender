@@ -93,6 +93,13 @@ typedef enum eEditKeyframes_Snap {
   SNAP_KEYS_TIME,
 } eEditKeyframes_Snap;
 
+/* equalizing tools */
+typedef enum eEditKeyframes_Equalize {
+  EQUALIZE_HANDLES_LEFT = (1 << 0),
+  EQUALIZE_HANDLES_RIGHT = (1 << 1),
+  EQUALIZE_HANDLES_BOTH = (EQUALIZE_HANDLES_LEFT | EQUALIZE_HANDLES_RIGHT),
+} eEditKeyframes_Equalize;
+
 /* mirroring tools */
 typedef enum eEditKeyframes_Mirror {
   MIRROR_KEYS_CURFRAME = 1,
@@ -258,6 +265,18 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked,
                                  KeyframeEditFunc key_ok,
                                  KeyframeEditFunc key_cb,
                                  FcuEditFunc fcu_cb);
+/**
+ * Sets selected keyframes' bezier handles to an equal length and optionally makes
+ * the keyframes' handles horizontal.
+ * \param handle_length: Desired handle length, must be positive.
+ * \param flatten: Makes the keyframes' handles the same value as the keyframe,
+ * flattening the curve at that point.
+ */
+void ANIM_fcurve_equalize_keyframes_loop(struct FCurve *fcu,
+                                         eEditKeyframes_Equalize mode,
+                                         float handle_length,
+                                         bool flatten);
+
 /**
  * Function for working with any type (i.e. one of the known types) of animation channel.
  */
