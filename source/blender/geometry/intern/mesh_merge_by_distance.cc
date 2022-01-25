@@ -563,14 +563,10 @@ static void weld_edge_groups_setup(const int medge_len,
                                    Array<WeldGroupEdge> &r_edge_groups)
 {
   /* Get weld edge groups. */
-
-  struct WeldGroupEdge *wegrp_iter;
-
   int wgroups_len = wedge.size() - edge_kill_len;
   r_edge_groups.reinitialize(wgroups_len);
   r_edge_groups.fill({{0}});
   MutableSpan<WeldGroupEdge> wegroups = r_edge_groups;
-  wegrp_iter = &r_edge_groups[0];
 
   wgroups_len = 0;
   for (const int i : IndexRange(medge_len)) {
@@ -584,11 +580,10 @@ static void weld_edge_groups_setup(const int medge_len,
       }
       else {
         we->edge_dest = we->edge_orig;
-        wegrp_iter->v1 = we->vert_a;
-        wegrp_iter->v2 = we->vert_b;
+        wegroups[wgroups_len].v1 = we->vert_a;
+        wegroups[wgroups_len].v2 = we->vert_b;
         r_edge_groups_map[i] = wgroups_len;
         wgroups_len++;
-        wegrp_iter++;
       }
     }
     else {
@@ -597,6 +592,11 @@ static void weld_edge_groups_setup(const int medge_len,
   }
 
   BLI_assert(wgroups_len == wedge.size() - edge_kill_len);
+
+  if (wgroups_len == 0) {
+    /* All edges in the context are collapsed. */
+    return;
+  }
 
   for (const WeldEdge &we : wedge) {
     if (we.flag == ELEM_COLLAPSED) {
