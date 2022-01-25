@@ -887,10 +887,7 @@ struct GPUShader *EEVEE_shaders_volumes_integration_sh_get()
         datatoc_volumetric_geom_glsl,
         datatoc_volumetric_integration_frag_glsl,
         e_data.lib,
-        USE_VOLUME_OPTI ? "#extension GL_ARB_shader_image_load_store: enable\n"
-                          "#extension GL_ARB_shading_language_420pack: enable\n"
-                          "#define USE_VOLUME_OPTI\n" SHADER_DEFINES :
-                          SHADER_DEFINES);
+        USE_VOLUME_OPTI ? "#define USE_VOLUME_OPTI\n" SHADER_DEFINES : SHADER_DEFINES);
   }
   return e_data.volumetric_integration_sh;
 }
