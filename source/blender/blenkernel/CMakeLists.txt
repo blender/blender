@@ -522,7 +522,7 @@ set(LIB
   bf_simulation
 
   # For `vfontdata_freetype.c`.
-  ${FREETYPE_LIBRARIES}
+  ${FREETYPE_LIBRARIES} ${BROTLI_LIBRARIES}
 )
 
 if(WITH_BINRELOC)

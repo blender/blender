@@ -292,7 +292,7 @@ target_link_libraries(multitest_c
   guardedalloc_lib
   wcwidth_lib
   ${OPENGL_gl_LIBRARY}
-  ${FREETYPE_LIBRARIES}
+  ${FREETYPE_LIBRARIES} ${BROTLI_LIBRARIES}
   ${ZLIB_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${PLATFORM_LINKLIBS}
