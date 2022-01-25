@@ -415,7 +415,8 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
                                Scene *scene,
                                Sequence *seq,
                                struct GSet *file_list,
-                               ListBase *queue)
+                               ListBase *queue,
+                               bool build_only_on_bad_performance)
 {
   SeqIndexBuildContext *context;
   Sequence *nseq;
@@ -476,7 +477,8 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
                                                                 context->size_flags,
                                                                 context->quality,
                                                                 context->overwrite,
-                                                                file_list);
+                                                                file_list,
+                                                                build_only_on_bad_performance);
       }
       if (!context->index_context) {
         MEM_freeN(context);
