@@ -39,6 +39,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer_offscreen.h"
 
@@ -988,19 +989,12 @@ static void sequencer_buttons_region_listener(const wmRegionListenerParams *para
   }
 }
 
-static void sequencer_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
+static void sequencer_id_remap(ScrArea *UNUSED(area),
+                               SpaceLink *slink,
+                               const struct IDRemapper *mappings)
 {
   SpaceSeq *sseq = (SpaceSeq *)slink;
-
-  if (!ELEM(GS(old_id->name), ID_GD)) {
-    return;
-  }
-
-  if ((ID *)sseq->gpd == old_id) {
-    sseq->gpd = (bGPdata *)new_id;
-    id_us_min(old_id);
-    id_us_plus(new_id);
-  }
+  BKE_id_remapper_apply(mappings, (ID **)&sseq->gpd, ID_REMAP_APPLY_DEFAULT);
 }
 
 /* ************************************* */

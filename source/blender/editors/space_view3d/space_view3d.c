@@ -48,6 +48,7 @@
 #include "BKE_idprop.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
+#include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
@@ -1813,50 +1814,54 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
   return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
-static void view3d_id_remap(ScrArea *area, SpaceLink *slink, ID *old_id, ID *new_id)
+static void view3d_id_remap_v3d_ob_centers(View3D *v3d, const struct IDRemapper *mappings)
 {
-  View3D *v3d;
-  ARegion *region;
-  bool is_local = false;
+  if (BKE_id_remapper_apply(mappings, (ID **)&v3d->ob_center, ID_REMAP_APPLY_DEFAULT) ==
+      ID_REMAP_RESULT_SOURCE_UNASSIGNED) {
+    /* Otherwise, bonename may remain valid...
+     * We could be smart and check this, too? */
+    v3d->ob_center_bone[0] = '\0';
+  }
+}
 
-  if (!ELEM(GS(old_id->name), ID_OB, ID_MA, ID_IM, ID_MC)) {
+static void view3d_id_remap_v3d(ScrArea *area,
+                                SpaceLink *slink,
+                                View3D *v3d,
+                                const struct IDRemapper *mappings,
+                                const bool is_local)
+{
+  ARegion *region;
+  if (BKE_id_remapper_apply(mappings, (ID **)&v3d->camera, ID_REMAP_APPLY_DEFAULT) ==
+      ID_REMAP_RESULT_SOURCE_UNASSIGNED) {
+    /* 3D view might be inactive, in that case needs to use slink->regionbase */
+    ListBase *regionbase = (slink == area->spacedata.first) ? &area->regionbase :
+                                                              &slink->regionbase;
+    for (region = regionbase->first; region; region = region->next) {
+      if (region->regiontype == RGN_TYPE_WINDOW) {
+        RegionView3D *rv3d = is_local ? ((RegionView3D *)region->regiondata)->localvd :
+                                        region->regiondata;
+        if (rv3d && (rv3d->persp == RV3D_CAMOB)) {
+          rv3d->persp = RV3D_PERSP;
+        }
+      }
+    }
+  }
+}
+
+static void view3d_id_remap(ScrArea *area, SpaceLink *slink, const struct IDRemapper *mappings)
+{
+
+  if (!BKE_id_remapper_has_mapping_for(
+          mappings, FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_IM | FILTER_ID_MC)) {
     return;
   }
 
-  for (v3d = (View3D *)slink; v3d; v3d = v3d->localvd, is_local = true) {
-    if ((ID *)v3d->camera == old_id) {
-      v3d->camera = (Object *)new_id;
-      if (!new_id) {
-        /* 3D view might be inactive, in that case needs to use slink->regionbase */
-        ListBase *regionbase = (slink == area->spacedata.first) ? &area->regionbase :
-                                                                  &slink->regionbase;
-        for (region = regionbase->first; region; region = region->next) {
-          if (region->regiontype == RGN_TYPE_WINDOW) {
-            RegionView3D *rv3d = is_local ? ((RegionView3D *)region->regiondata)->localvd :
-                                            region->regiondata;
-            if (rv3d && (rv3d->persp == RV3D_CAMOB)) {
-              rv3d->persp = RV3D_PERSP;
-            }
-          }
-        }
-      }
-    }
-
-    /* Values in local-view aren't used, see: T52663 */
-    if (is_local == false) {
-      if ((ID *)v3d->ob_center == old_id) {
-        v3d->ob_center = (Object *)new_id;
-        /* Otherwise, bonename may remain valid...
-         * We could be smart and check this, too? */
-        if (new_id == NULL) {
-          v3d->ob_center_bone[0] = '\0';
-        }
-      }
-    }
-
-    if (is_local) {
-      break;
-    }
+  View3D *view3d = (View3D *)slink;
+  view3d_id_remap_v3d(area, slink, view3d, mappings, false);
+  view3d_id_remap_v3d_ob_centers(view3d, mappings);
+  if (view3d->localvd != NULL) {
+    /* Object centers in local-view aren't used, see: T52663 */
+    view3d_id_remap_v3d(area, slink, view3d->localvd, mappings, true);
   }
 }
 

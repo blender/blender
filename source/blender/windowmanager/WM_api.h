@@ -47,6 +47,7 @@ struct GHashIterator;
 struct GPUViewport;
 struct ID;
 struct IDProperty;
+struct IDRemapper;
 struct ImBuf;
 struct ImageFormatData;
 struct Main;
@@ -471,7 +472,7 @@ void WM_main_add_notifier(unsigned int type, void *reference);
  * Clear notifiers by reference, Used so listeners don't act on freed data.
  */
 void WM_main_remove_notifier_reference(const void *reference);
-void WM_main_remap_editor_id_reference(struct ID *old_id, struct ID *new_id);
+void WM_main_remap_editor_id_reference(const struct IDRemapper *mappings);
 
 /* reports */
 /**
