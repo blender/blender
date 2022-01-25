@@ -103,7 +103,9 @@ find_package_wrapper(Zstd REQUIRED)
 
 # FreeType compiled with Brotli compression for woff2.
 find_package_wrapper(Freetype REQUIRED)
-find_package_wrapper(Brotli REQUIRED)
+if(EXISTS ${LIBDIR})
+  find_package_wrapper(Brotli REQUIRED)
+endif()
 
 if(WITH_PYTHON)
   # No way to set py35, remove for now.
