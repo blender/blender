@@ -1,17 +1,7 @@
-if EXIST "%PYTHON%" (
-    goto detect_python_done
+if NOT EXIST %PYTHON% (
+    echo python not found, required for this operation
+    exit /b 1
 )
-
-set PYTHON=%BLENDER_DIR%\..\lib\win64_vc15\python\39\bin\python.exe
-if EXIST %PYTHON% (
-    goto detect_python_done
-)
-
-echo python not found at %PYTHON%
-exit /b 1
-
-:detect_python_done
-echo found python (%PYTHON%)
 
 call "%~dp0\find_inkscape.cmd"
 

@@ -1,10 +1,7 @@
-if EXIST %PYTHON% (
-	goto detect_python_done
+if NOT EXIST %PYTHON% (
+    echo python not found, required for this operation
+    exit /b 1
 )
-
-echo python not found in lib folder
-exit /b 1
-
 :detect_python_done
 
 REM Use -B to avoid writing __pycache__ in lib directory and causing update conflicts.
