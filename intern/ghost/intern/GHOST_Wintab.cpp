@@ -23,12 +23,19 @@
 #include "GHOST_Wintab.h"
 #include <cstdio>
 
+static void wintab_load_error(const char *func)
+{
+  fprintf(stderr, "corrupted wintab32.dll; missing %s\n", func);
+}
+
 GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
 {
   /* Load Wintab library if available. */
 
   auto handle = unique_hmodule(::LoadLibrary("Wintab32.dll"), &::FreeLibrary);
   if (!handle) {
+    fprintf(stderr, "Could not find wintab32.dll\n");
+
     return nullptr;
   }
 
@@ -36,51 +43,61 @@ GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
 
   auto info = (GHOST_WIN32_WTInfo)::GetProcAddress(handle.get(), "WTInfoA");
   if (!info) {
+    wintab_load_error("WTInfoA");
     return nullptr;
   }
 
   auto open = (GHOST_WIN32_WTOpen)::GetProcAddress(handle.get(), "WTOpenA");
   if (!open) {
+    wintab_load_error("WTOpenA");
     return nullptr;
   }
 
   auto get = (GHOST_WIN32_WTGet)::GetProcAddress(handle.get(), "WTGetA");
   if (!get) {
+    wintab_load_error("WTGetA");
     return nullptr;
   }
 
   auto set = (GHOST_WIN32_WTSet)::GetProcAddress(handle.get(), "WTSetA");
   if (!set) {
+    wintab_load_error("WTSetA");
     return nullptr;
   }
 
   auto close = (GHOST_WIN32_WTClose)::GetProcAddress(handle.get(), "WTClose");
   if (!close) {
+    wintab_load_error("WTClose");
     return nullptr;
   }
 
   auto packetsGet = (GHOST_WIN32_WTPacketsGet)::GetProcAddress(handle.get(), "WTPacketsGet");
   if (!packetsGet) {
+    wintab_load_error("WTPacketGet");
     return nullptr;
   }
 
   auto queueSizeGet = (GHOST_WIN32_WTQueueSizeGet)::GetProcAddress(handle.get(), "WTQueueSizeGet");
   if (!queueSizeGet) {
+    wintab_load_error("WTQueueSizeGet");
     return nullptr;
   }
 
   auto queueSizeSet = (GHOST_WIN32_WTQueueSizeSet)::GetProcAddress(handle.get(), "WTQueueSizeSet");
   if (!queueSizeSet) {
+    wintab_load_error("WTQueueSizeSet");
     return nullptr;
   }
 
   auto enable = (GHOST_WIN32_WTEnable)::GetProcAddress(handle.get(), "WTEnable");
   if (!enable) {
+    wintab_load_error("WTEnable");
     return nullptr;
   }
 
   auto overlap = (GHOST_WIN32_WTOverlap)::GetProcAddress(handle.get(), "WTOverlap");
   if (!overlap) {
+    wintab_load_error("WTOverlap");
     return nullptr;
   }
 
@@ -88,8 +105,7 @@ GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
 
   LOGCONTEXT lc = {0};
   if (!info(WTI_DEFSYSCTX, 0, &lc)) {
-    fprintf(stderr, "Failed to load Wintab driver\n");
-    fflush(stderr);
+    fprintf(stderr, "Failed to initialize Wintab driver\n");
 
     return nullptr;
   }
@@ -102,7 +118,6 @@ GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
   auto hctx = unique_hctx(open(hwnd, &lc, FALSE), close);
   if (!hctx) {
     fprintf(stderr, "Failed to open Wintab driver\n");
-    fflush(stderr);
 
     return nullptr;
   }

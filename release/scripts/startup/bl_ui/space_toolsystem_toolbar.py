@@ -1308,7 +1308,6 @@ class _defs_sculpt:
 
         def get_enabled(context, idname):
             if "multires" in idname.lower() or idname.lower() == "builtin_brush.displacement heal":
-                print("IDNAME", idname)
                 have_multires = False;
                 ob = context.object
 

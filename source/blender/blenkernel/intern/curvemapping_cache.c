@@ -226,15 +226,14 @@ CurveMapping *BKE_curvemapping_cache_get(CurveMappingCache *cache,
     return lookup;
   }
 
-  printf("adding curve key %d\n", BKE_curvemapping_calc_hash(curve));
-
   CurveMapping *curve2 = BKE_curvemapping_copy(curve);
 
   *key = curve2;
   *val = curve2;
 
   curve2->flag |= CUMA_PART_OF_CACHE;
-#if 1
+#if 0
+  printf("adding curve key %d\n", BKE_curvemapping_calc_hash(curve));
   printf("%d %d",
          (int)BKE_curvemapping_calc_hash(curve2),
          (int)BKE_curvemapping_equals(curve, curve2));
@@ -247,6 +246,7 @@ CurveMapping *BKE_curvemapping_cache_get(CurveMappingCache *cache,
   }
   printf("}\n");
 #endif
+
   if (free_input && !(curve->flag & CUMA_PART_OF_CACHE)) {
     BKE_curvemapping_free(curve);
   }
