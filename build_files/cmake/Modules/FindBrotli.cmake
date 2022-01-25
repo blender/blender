@@ -36,7 +36,9 @@ FIND_PATH(BROTLI_INCLUDE_DIR
 
 FIND_LIBRARY(BROTLI_LIBRARY_COMMON
   NAMES
+    # Some builds use a special `-static` postfix in their static libraries names.
     brotlicommon-static
+    brotlicommon
   HINTS
     ${_BROTLI_SEARCH_DIRS}
   PATH_SUFFIXES
@@ -45,7 +47,9 @@ FIND_LIBRARY(BROTLI_LIBRARY_COMMON
 )
 FIND_LIBRARY(BROTLI_LIBRARY_DEC
   NAMES
+    # Some builds use a special `-static` postfix in their static libraries names.
     brotlidec-static
+    brotlidec
   HINTS
     ${_BROTLI_SEARCH_DIRS}
   PATH_SUFFIXES
