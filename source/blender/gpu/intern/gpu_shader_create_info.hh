@@ -223,8 +223,6 @@ struct ShaderCreateInfo {
    * Only for names used by gpu::ShaderInterface.
    */
   size_t interface_names_size_ = 0;
-  /** Only for compute shaders. */
-  int local_group_size_[3] = {0, 0, 0};
 
   struct VertIn {
     int index;
@@ -241,6 +239,14 @@ struct ShaderCreateInfo {
     int max_vertices = -1;
   };
   GeometryStageLayout geometry_layout_;
+
+  struct ComputeStageLayout {
+    int local_size_x = -1;
+    int local_size_y = -1;
+    int local_size_z = -1;
+  };
+
+  ComputeStageLayout compute_layout_;
 
   struct FragOut {
     int index;
@@ -363,6 +369,14 @@ struct ShaderCreateInfo {
     geometry_layout_.primitive_out = prim_out;
     geometry_layout_.max_vertices = max_vertices;
     geometry_layout_.invocations = invocations;
+    return *(Self *)this;
+  }
+
+  Self &local_group_size(int local_size_x = -1, int local_size_y = -1, int local_size_z = -1)
+  {
+    compute_layout_.local_size_x = local_size_x;
+    compute_layout_.local_size_y = local_size_y;
+    compute_layout_.local_size_z = local_size_z;
     return *(Self *)this;
   }
 
@@ -498,20 +512,6 @@ struct ShaderCreateInfo {
                    "Use the array_size parameter instead.");
     push_constants_.append({slot, type, name, array_size});
     interface_names_size_ += name.size() + 1;
-    return *(Self *)this;
-  }
-
-  /** \} */
-
-  /* -------------------------------------------------------------------- */
-  /** \name Compute shaders Local Group Size
-   * \{ */
-
-  Self &local_group_size(int x, int y = 1, int z = 1)
-  {
-    local_group_size_[0] = x;
-    local_group_size_[1] = y;
-    local_group_size_[2] = z;
     return *(Self *)this;
   }
 

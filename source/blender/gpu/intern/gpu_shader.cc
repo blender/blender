@@ -394,6 +394,7 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
     uint32_t builtins = 0;
     char *code = gpu_shader_dependency_get_resolved_source(info.compute_source_.c_str(),
                                                            &builtins);
+    std::string layout = shader->compute_layout_declare(info);
 
     Vector<const char *> sources;
     standard_defines(sources);
@@ -406,6 +407,7 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
       sources.append(types);
     }
     sources.append(resources.c_str());
+    sources.append(layout.c_str());
     sources.append(code);
 
     shader->compute_shader_from_glsl(sources);

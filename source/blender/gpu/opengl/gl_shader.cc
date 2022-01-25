@@ -271,16 +271,16 @@ static void print_image_type(std::ostream &os,
 
 static std::ostream &print_qualifier(std::ostream &os, const Qualifier &qualifiers)
 {
-  if ((qualifiers & Qualifier::RESTRICT) != Qualifier::RESTRICT) {
-    os << "restrict";
+  if ((qualifiers & Qualifier::RESTRICT) == Qualifier::RESTRICT) {
+    os << "restrict ";
   }
-  if ((qualifiers & Qualifier::READ_ONLY) != Qualifier::READ_ONLY) {
-    os << "readonly";
+  if ((qualifiers & Qualifier::READ_ONLY) == Qualifier::READ_ONLY) {
+    os << "readonly ";
   }
-  if ((qualifiers & Qualifier::WRITE_ONLY) != Qualifier::WRITE_ONLY) {
-    os << "writeonly";
+  if ((qualifiers & Qualifier::WRITE_ONLY) == Qualifier::WRITE_ONLY) {
+    os << "writeonly ";
   }
-  return os << " ";
+  return os;
 }
 
 static void print_resource(std::ostream &os, const ShaderCreateInfo::Resource &res)
@@ -328,8 +328,8 @@ static void print_resource(std::ostream &os, const ShaderCreateInfo::Resource &r
       array_offset = res.storagebuf.name.find_first_of("[");
       name_no_array = (array_offset == -1) ? res.storagebuf.name :
                                              StringRef(res.storagebuf.name.c_str(), array_offset);
-      os << "buffer ";
       print_qualifier(os, res.storagebuf.qualifiers);
+      os << "buffer ";
       os << name_no_array << " { " << res.storagebuf.type_name << " _" << res.storagebuf.name
          << "; };\n";
       break;
@@ -503,6 +503,22 @@ std::string GLShader::geometry_interface_declare(const ShaderCreateInfo &info) c
   for (const StageInterfaceInfo *iface : info.geometry_out_interfaces_) {
     print_interface(ss, "out", *iface);
   }
+  ss << "\n";
+  return ss.str();
+}
+
+std::string GLShader::compute_layout_declare(const ShaderCreateInfo &info) const
+{
+  std::stringstream ss;
+  ss << "\n/* Compute Layout. */\n";
+  ss << "layout(local_size_x = " << info.compute_layout_.local_size_x;
+  if (info.compute_layout_.local_size_y != -1) {
+    ss << ", local_size_y = " << info.compute_layout_.local_size_y;
+  }
+  if (info.compute_layout_.local_size_z != -1) {
+    ss << ", local_size_y = " << info.compute_layout_.local_size_z;
+  }
+  ss << ") in;\n";
   ss << "\n";
   return ss.str();
 }
