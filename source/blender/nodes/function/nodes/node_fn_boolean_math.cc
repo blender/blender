@@ -22,6 +22,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "NOD_socket_search_link.hh"
+
 #include "node_function_util.hh"
 
 namespace blender::nodes::node_fn_boolean_math_cc {
@@ -57,6 +59,28 @@ static void node_boolean_math_label(const bNodeTree *UNUSED(ntree),
     name = "Unknown";
   }
   BLI_strncpy(label, IFACE_(name), maxlen);
+}
+
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const eNodeSocketDatatype type = static_cast<eNodeSocketDatatype>(params.other_socket().type);
+  if (!params.node_tree().typeinfo->validate_link(
+          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_BOOLEAN)) {
+    return;
+  }
+
+  for (const EnumPropertyItem *item = rna_enum_node_boolean_math_items;
+       item->identifier != nullptr;
+       item++) {
+    if (item->name != nullptr && item->identifier[0] != '\0') {
+      NodeBooleanMathOperation operation = static_cast<NodeBooleanMathOperation>(item->value);
+      params.add_item(IFACE_(item->name), [operation](LinkSearchOpParams &params) {
+        bNode &node = params.add_node("FunctionNodeBooleanMath");
+        node.custom1 = operation;
+        params.update_and_connect_available_socket(node, "Boolean");
+      });
+    }
+  }
 }
 
 static const fn::MultiFunction *get_multi_function(bNode &bnode)
@@ -124,5 +148,6 @@ void register_node_type_fn_boolean_math()
   node_type_update(&ntype, file_ns::node_boolean_math_update);
   ntype.build_multi_function = file_ns::fn_node_boolean_math_build_multi_function;
   ntype.draw_buttons = file_ns::fn_node_boolean_math_layout;
+  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   nodeRegisterType(&ntype);
 }
