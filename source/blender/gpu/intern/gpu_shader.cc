@@ -249,6 +249,18 @@ GPUShader *GPU_shader_create_compute(const char *computecode,
                               shname);
 }
 
+GPUShader *GPU_shader_create_from_info_name(const char *info_name)
+{
+  using namespace blender::gpu::shader;
+  const GPUShaderCreateInfo *_info = gpu_shader_create_info_get(info_name);
+  const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(_info);
+  if (!info.do_static_compilation_) {
+    printf("Warning: Trying to compile \"%s\" which was not marked for static compilation.\n",
+           info.name_.c_str());
+  }
+  return GPU_shader_create_from_info(_info);
+}
+
 GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
 {
   using namespace blender::gpu::shader;

@@ -41,9 +41,6 @@
 #include "GPU_texture.h"
 #include "GPU_uniform_buffer.h"
 
-/* TODO(jbakker): Need a better way to retrieve create_infos. */
-#include "gpu_shader_create_info_private.hh"
-
 /* Adjust these constants as needed. */
 #define MAX_DEFINE_LENGTH 256
 #define MAX_EXT_DEFINE_LENGTH 512
@@ -366,7 +363,7 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
     /* common case */
     if (sh_cfg == GPU_SHADER_CFG_DEFAULT) {
       if (stages->create_info != NULL) {
-        *sh_p = GPU_shader_create_from_info(gpu_shader_create_info_get(stages->create_info));
+        *sh_p = GPU_shader_create_from_info_name(stages->create_info);
       }
       else {
         *sh_p = GPU_shader_create_from_arrays_named(
@@ -392,8 +389,7 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
                       GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR));
       /* In rare cases geometry shaders calculate clipping themselves. */
       if (stages->clipped_create_info != NULL) {
-        *sh_p = GPU_shader_create_from_info(
-            gpu_shader_create_info_get(stages->clipped_create_info));
+        *sh_p = GPU_shader_create_from_info_name(stages->clipped_create_info);
       }
       else {
         const char *world_clip_lib = datatoc_gpu_shader_cfg_world_clip_lib_glsl;
