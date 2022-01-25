@@ -170,7 +170,6 @@ struct anim_index *IMB_indexer_open(const char *name)
   int i;
 
   if (!fp) {
-    fprintf(stderr, "Couldn't open indexer file: %s\n", name);
     return NULL;
   }
 
