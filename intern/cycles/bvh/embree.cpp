@@ -355,10 +355,12 @@ void BVHEmbree::build(Progress &progress, Stats *stats, RTCDevice rtc_device_)
   }
 
   const bool dynamic = params.bvh_type == BVH_TYPE_DYNAMIC;
+  const bool compact = params.use_compact_structure;
 
   scene = rtcNewScene(rtc_device);
   const RTCSceneFlags scene_flags = (dynamic ? RTC_SCENE_FLAG_DYNAMIC : RTC_SCENE_FLAG_NONE) |
-                                    RTC_SCENE_FLAG_COMPACT | RTC_SCENE_FLAG_ROBUST;
+                                    (compact ? RTC_SCENE_FLAG_COMPACT : RTC_SCENE_FLAG_NONE) |
+                                    RTC_SCENE_FLAG_ROBUST;
   rtcSetSceneFlags(scene, scene_flags);
   build_quality = dynamic ? RTC_BUILD_QUALITY_LOW :
                             (params.use_spatial_split ? RTC_BUILD_QUALITY_HIGH :

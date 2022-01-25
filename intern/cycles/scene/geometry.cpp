@@ -236,6 +236,7 @@ void Geometry::compute_bvh(
 
       BVHParams bparams;
       bparams.use_spatial_split = params->use_bvh_spatial_split;
+      bparams.use_compact_structure = params->use_bvh_compact_structure;
       bparams.bvh_layout = bvh_layout;
       bparams.use_unaligned_nodes = dscene->data.bvh.have_curves &&
                                     params->use_bvh_unaligned_nodes;

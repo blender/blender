@@ -667,6 +667,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Use special type BVH optimized for hair (uses more ram but renders faster)",
         default=True,
     )
+    debug_use_compact_bvh: BoolProperty(
+        name="Use Compact BVH",
+        description="Use compact BVH structure (uses less ram but renders slower)",
+        default=True,
+    )
     debug_bvh_time_steps: IntProperty(
         name="BVH Time Steps",
         description="Split BVH primitives by this number of time steps to speed up render time in cost of memory",

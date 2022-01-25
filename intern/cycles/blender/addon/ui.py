@@ -689,6 +689,8 @@ class CYCLES_RENDER_PT_performance_acceleration_structure(CyclesButtonsPanel, Pa
         sub.active = not cscene.debug_use_spatial_splits and not use_embree
         sub.prop(cscene, "debug_bvh_time_steps")
 
+        col.prop(cscene, "debug_use_compact_bvh")
+
 
 class CYCLES_RENDER_PT_performance_final_render(CyclesButtonsPanel, Panel):
     bl_label = "Final Render"
