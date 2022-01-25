@@ -63,7 +63,6 @@ static void node_boolean_math_label(const bNodeTree *UNUSED(ntree),
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const eNodeSocketDatatype type = static_cast<eNodeSocketDatatype>(params.other_socket().type);
   if (!params.node_tree().typeinfo->validate_link(
           static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_BOOLEAN)) {
     return;
