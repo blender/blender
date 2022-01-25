@@ -1818,10 +1818,11 @@ void SCULPT_surface_smooth_displace_step(SculptSession *ss,
 void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
 
 /* Slide/Relax */
-void SCULPT_relax_vertex(struct SculptSession *ss,
-                         struct PBVHVertexIter *vd,
+
+void SCULPT_relax_vertex(SculptSession *ss,
+                         PBVHVertexIter *vd,
                          float factor,
-                         bool filter_boundary_face_sets,
+                         SculptBoundaryType boundary_mask,
                          float *r_final_pos);
 
 /** \} */

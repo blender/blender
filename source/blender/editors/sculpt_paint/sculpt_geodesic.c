@@ -722,7 +722,6 @@ static float *SCULPT_geodesic_grids_create(Object *ob,
                                            float (*cos)[3])
 {
   SculptSession *ss = ob->sculpt;
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
 
   const int totvert = SCULPT_vertex_count_get(ss);
 
@@ -831,7 +830,6 @@ static float *SCULPT_geodesic_grids_create(Object *ob,
     int v1b = -1, v2b = -1;
 
     TempEdge *te = edges + i;
-    SculptVertexNeighborIter ni2;
 
     for (int j = 0; j < vmap[te->v1].count; j++) {
       TempEdge *te2 = edges + vmap[te->v1].indices[j];
@@ -912,8 +910,6 @@ static float *SCULPT_geodesic_grids_create(Object *ob,
                                             cos);
       }
 
-      TempEdge *te = edges + e;
-
       for (int pi = 0; pi < 4; pi++) {
         int v_other = e_otherv_map[e][pi];
 
@@ -981,7 +977,6 @@ static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices
 {
 
   SculptSession *ss = ob->sculpt;
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
   const int totvert = SCULPT_vertex_count_get(ss);
   float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "distances");
   SculptVertRef first_affected = {SCULPT_GEODESIC_VERTEX_NONE};

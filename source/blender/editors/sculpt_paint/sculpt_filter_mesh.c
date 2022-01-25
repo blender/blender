@@ -352,7 +352,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
-    float orig_co[3], oldco[3], oldno[3], val[3], avg[3], normal[3], disp[3];
+    float orig_co[3], oldco[3], oldno[3], val[3], avg[3], disp[3];
     float disp2[3], transform[3][3], final_pos[3];
 
     float fade = vd.mask ? *vd.mask : 0.0f;

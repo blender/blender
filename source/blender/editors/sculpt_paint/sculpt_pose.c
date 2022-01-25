@@ -842,7 +842,6 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
   int prev_face_set = SCULPT_FACE_SET_NONE;
 
   SculptVertRef current_vertex = SCULPT_active_vertex_get(ss);
-  int current_vertex_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, current_vertex);
 
   for (int s = 0; s < ik_chain->tot_segments; s++) {
 

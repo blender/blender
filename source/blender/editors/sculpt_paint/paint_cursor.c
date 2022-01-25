@@ -1518,8 +1518,6 @@ static void sculpt_cursor_draw_3D_face_set_preview(PaintCursorContext *pcontext)
   GPU_line_width(1.0f);
   sculpt_cursor_draw_active_face_set_color_set(pcontext);
 
-  int fi = BKE_pbvh_face_index_to_table(ss->pbvh, ss->active_face_index);
-
   /*
   MPoly *poly = &ss->mpoly[fi];
   MLoop *loops = ss->mloop;

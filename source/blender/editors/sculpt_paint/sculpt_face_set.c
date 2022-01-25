@@ -490,7 +490,7 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                              brush,
                                                              v->co,
                                                              sqrtf(test.dist),
-                                                             ss->vert_normals + ml->v,
+                                                             ss->vert_normals[ml->v],
                                                              fno,
                                                              mask,
                                                              (SculptVertRef){.i = ml->v},
@@ -2680,7 +2680,6 @@ static void island_stack_mesh_do(SculptSession *ss,
   BLI_array_declare(faces);
   BLI_array_len_set(faces, *r_totfaces);
 
-  int i = 0;
   MPoly *mp = ss->mpoly + face.i;
   MLoop *ml = ss->mloop + mp->loopstart;
 

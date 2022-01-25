@@ -346,8 +346,6 @@ static float sculpt_ipmask_vertex_grow_cb(SculptSession *ss,
                                           const SculptVertRef vertex,
                                           float *current_mask)
 {
-  int vertex_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex);
-
   float max = 0.0f;
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
@@ -364,8 +362,6 @@ static float sculpt_ipmask_vertex_shrink_cb(SculptSession *ss,
                                             const SculptVertRef vertex,
                                             float *current_mask)
 {
-  int vertex_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex);
-
   float min = 1.0f;
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
