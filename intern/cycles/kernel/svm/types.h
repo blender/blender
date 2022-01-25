@@ -81,6 +81,7 @@ typedef enum ShaderNodeType {
   NODE_OBJECT_INFO,
   NODE_PARTICLE_INFO,
   NODE_HAIR_INFO,
+  NODE_POINT_INFO,
   NODE_TEXTURE_MAPPING,
   NODE_MAPPING,
   NODE_MIN_MAX,
@@ -176,11 +177,15 @@ typedef enum NodeHairInfo {
   NODE_INFO_CURVE_INTERCEPT,
   NODE_INFO_CURVE_LENGTH,
   NODE_INFO_CURVE_THICKNESS,
-  /* Fade for minimum hair width transiency. */
-  // NODE_INFO_CURVE_FADE,
   NODE_INFO_CURVE_TANGENT_NORMAL,
   NODE_INFO_CURVE_RANDOM,
 } NodeHairInfo;
+
+typedef enum NodePointInfo {
+  NODE_INFO_POINT_POSITION,
+  NODE_INFO_POINT_RADIUS,
+  NODE_INFO_POINT_RANDOM,
+} NodePointInfo;
 
 typedef enum NodeLightPath {
   NODE_LP_camera = 0,

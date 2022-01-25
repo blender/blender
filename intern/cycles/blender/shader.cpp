@@ -689,6 +689,9 @@ static ShaderNode *add_node(Scene *scene,
   else if (b_node.is_a(&RNA_ShaderNodeHairInfo)) {
     node = graph->create_node<HairInfoNode>();
   }
+  else if (b_node.is_a(&RNA_ShaderNodePointInfo)) {
+    node = graph->create_node<PointInfoNode>();
+  }
   else if (b_node.is_a(&RNA_ShaderNodeVolumeInfo)) {
     node = graph->create_node<VolumeInfoNode>();
   }

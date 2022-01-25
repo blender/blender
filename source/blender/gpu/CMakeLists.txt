@@ -323,6 +323,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_output_material.glsl
   shaders/material/gpu_shader_material_output_world.glsl
   shaders/material/gpu_shader_material_particle_info.glsl
+  shaders/material/gpu_shader_material_point_info.glsl
   shaders/material/gpu_shader_material_principled.glsl
   shaders/material/gpu_shader_material_refraction.glsl
   shaders/material/gpu_shader_material_rgb_curves.glsl

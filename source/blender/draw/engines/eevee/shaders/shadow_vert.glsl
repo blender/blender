@@ -26,6 +26,9 @@ void main()
 
   worldNormal = cross(hairTangent, binor);
   vec3 world_pos = pos;
+#elif defined(POINTCLOUD_SHADER)
+  pointcloud_get_pos_and_radius(pointPosition, pointRadius);
+  pointID = gl_VertexID;
 #else
   vec3 world_pos = point_object_to_world(pos);
 #endif

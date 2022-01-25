@@ -390,6 +390,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeAmbientOcclusion"),
         NodeItem("ShaderNodeObjectInfo"),
         NodeItem("ShaderNodeHairInfo"),
+        NodeItem("ShaderNodePointInfo"),
         NodeItem("ShaderNodeVolumeInfo"),
         NodeItem("ShaderNodeParticleInfo"),
         NodeItem("ShaderNodeCameraData"),

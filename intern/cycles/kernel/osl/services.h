@@ -298,7 +298,9 @@ class OSLRenderServices : public OSL::RendererServices {
   static ustring u_curve_tangent_normal;
   static ustring u_curve_random;
   static ustring u_is_point;
+  static ustring u_point_position;
   static ustring u_point_radius;
+  static ustring u_point_random;
   static ustring u_normal_map_normal;
   static ustring u_path_ray_length;
   static ustring u_path_ray_depth;

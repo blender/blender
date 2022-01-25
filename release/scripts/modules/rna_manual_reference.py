@@ -1860,6 +1860,7 @@ url_manual_mapping = (
 	("bpy.types.shadernodeemission*", "render/shader_nodes/shader/emission.html#bpy-types-shadernodeemission"),
 	("bpy.types.shadernodegeometry*", "render/shader_nodes/input/geometry.html#bpy-types-shadernodegeometry"),
 	("bpy.types.shadernodehairinfo*", "render/shader_nodes/input/hair_info.html#bpy-types-shadernodehairinfo"),
+	("bpy.types.shadernodepointinfo*", "render/shader_nodes/input/point_info.html#bpy-types-shadernodepointinfo"),
 	("bpy.types.shadernodemaprange*", "render/shader_nodes/converter/map_range.html#bpy-types-shadernodemaprange"),
 	("bpy.types.shadernodergbcurve*", "modeling/geometry_nodes/color/rgb_curves.html#bpy-types-shadernodergbcurve"),
 	("bpy.types.shadernodeseparate*", "render/shader_nodes/converter/combine_separate.html#bpy-types-shadernodeseparate"),

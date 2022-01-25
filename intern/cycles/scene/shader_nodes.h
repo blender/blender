@@ -1005,9 +1005,20 @@ class HairInfoNode : public ShaderNode {
   {
     return true;
   }
-  virtual int get_feature()
+};
+
+class PointInfoNode : public ShaderNode {
+ public:
+  SHADER_NODE_CLASS(PointInfoNode)
+
+  void attributes(Shader *shader, AttributeRequestSet *attributes);
+  bool has_attribute_dependency()
   {
-    return ShaderNode::get_feature() | KERNEL_FEATURE_NODE_HAIR;
+    return true;
+  }
+  bool has_spatial_varying()
+  {
+    return true;
   }
 };
 

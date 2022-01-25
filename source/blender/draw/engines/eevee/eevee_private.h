@@ -176,7 +176,7 @@ enum {
   VAR_MAT_MESH = (1 << 0),
   VAR_MAT_VOLUME = (1 << 1),
   VAR_MAT_HAIR = (1 << 2),
-  /* VAR_MAT_PROBE = (1 << 3), UNUSED */
+  VAR_MAT_POINTCLOUD = (1 << 3),
   VAR_MAT_BLEND = (1 << 4),
   VAR_MAT_LOOKDEV = (1 << 5),
   VAR_MAT_HOLDOUT = (1 << 6),

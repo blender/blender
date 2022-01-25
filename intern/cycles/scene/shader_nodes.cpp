@@ -4466,6 +4466,59 @@ void HairInfoNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_hair_info");
 }
 
+/* Point Info */
+
+NODE_DEFINE(PointInfoNode)
+{
+  NodeType *type = NodeType::add("point_info", create, NodeType::SHADER);
+
+  SOCKET_OUT_POINT(position, "Position");
+  SOCKET_OUT_FLOAT(radius, "Radius");
+  SOCKET_OUT_FLOAT(random, "Random");
+
+  return type;
+}
+
+PointInfoNode::PointInfoNode() : ShaderNode(get_node_type())
+{
+}
+
+void PointInfoNode::attributes(Shader *shader, AttributeRequestSet *attributes)
+{
+  if (shader->has_surface_link()) {
+    if (!output("Random")->links.empty())
+      attributes->add(ATTR_STD_POINT_RANDOM);
+  }
+
+  ShaderNode::attributes(shader, attributes);
+}
+
+void PointInfoNode::compile(SVMCompiler &compiler)
+{
+  ShaderOutput *out;
+
+  out = output("Position");
+  if (!out->links.empty()) {
+    compiler.add_node(NODE_POINT_INFO, NODE_INFO_POINT_POSITION, compiler.stack_assign(out));
+  }
+
+  out = output("Radius");
+  if (!out->links.empty()) {
+    compiler.add_node(NODE_POINT_INFO, NODE_INFO_POINT_RADIUS, compiler.stack_assign(out));
+  }
+
+  out = output("Random");
+  if (!out->links.empty()) {
+    int attr = compiler.attribute(ATTR_STD_POINT_RANDOM);
+    compiler.add_node(NODE_ATTR, attr, compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT);
+  }
+}
+
+void PointInfoNode::compile(OSLCompiler &compiler)
+{
+  compiler.add(this, "node_point_info");
+}
+
 /* Volume Info */
 
 NODE_DEFINE(VolumeInfoNode)

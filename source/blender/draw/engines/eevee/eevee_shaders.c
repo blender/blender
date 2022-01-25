@@ -1357,6 +1357,9 @@ static char *eevee_get_defines(int options)
   if ((options & VAR_MAT_HAIR) != 0) {
     BLI_dynstr_append(ds, "#define HAIR_SHADER\n");
   }
+  if ((options & VAR_MAT_POINTCLOUD) != 0) {
+    BLI_dynstr_append(ds, "#define POINTCLOUD_SHADER\n");
+  }
   if ((options & VAR_WORLD_PROBE) != 0) {
     BLI_dynstr_append(ds, "#define PROBE_CAPTURE\n");
   }
