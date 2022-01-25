@@ -402,6 +402,8 @@ static void do_version_scene_collection_to_collection(Main *bmain, Scene *scene)
     do_version_layer_collection_pre(
         view_layer, &view_layer->layer_collections, enabled_set, selectable_set);
 
+    BKE_layer_collection_doversion_2_80(scene, view_layer);
+
     BKE_layer_collection_sync(scene, view_layer);
 
     do_version_layer_collection_post(
