@@ -28,7 +28,6 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Length"));
   b.add_output<decl::Float>(N_("Thickness"));
   b.add_output<decl::Vector>(N_("Tangent Normal"));
-  // b.add_output<decl::Float>(N_("Fade"));
   b.add_output<decl::Float>(N_("Random"));
 }
 
