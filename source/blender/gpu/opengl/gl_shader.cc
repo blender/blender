@@ -492,16 +492,34 @@ std::string GLShader::geometry_layout_declare(const ShaderCreateInfo &info) cons
   return ss.str();
 }
 
+static StageInterfaceInfo *find_interface_by_name(const Vector<StageInterfaceInfo *> &ifaces,
+                                                  const StringRefNull &name)
+{
+  for (auto iface : ifaces) {
+    if (iface->name == name) {
+      return iface;
+    }
+  }
+  return nullptr;
+}
+
 std::string GLShader::geometry_interface_declare(const ShaderCreateInfo &info) const
 {
+
   std::stringstream ss;
   ss << "\n/* Interfaces. */\n";
   for (const StageInterfaceInfo *iface : info.vertex_out_interfaces_) {
-    print_interface(ss, "in", *iface, "[]");
+    bool has_matching_output_iface = find_interface_by_name(info.geometry_out_interfaces_,
+                                                            iface->instance_name) != nullptr;
+    const char *suffix = (has_matching_output_iface) ? "_in[]" : "[]";
+    print_interface(ss, "in", *iface, suffix);
   }
   ss << "\n";
   for (const StageInterfaceInfo *iface : info.geometry_out_interfaces_) {
-    print_interface(ss, "out", *iface);
+    bool has_matching_input_iface = find_interface_by_name(info.vertex_out_interfaces_,
+                                                           iface->instance_name) != nullptr;
+    const char *suffix = (has_matching_input_iface) ? "_out" : "";
+    print_interface(ss, "out", *iface, suffix);
   }
   ss << "\n";
   return ss.str();
@@ -532,7 +550,7 @@ std::string GLShader::compute_layout_declare(const ShaderCreateInfo &info) const
 static char *glsl_patch_default_get()
 {
   /** Used for shader patching. Init once. */
-  static char patch[512] = "\0";
+  static char patch[700] = "\0";
   if (patch[0] != '\0') {
     return patch;
   }
@@ -559,6 +577,11 @@ static char *glsl_patch_default_get()
   if (GLContext::shader_draw_parameters_support) {
     STR_CONCAT(patch, slen, "#extension GL_ARB_shader_draw_parameters : enable\n");
     STR_CONCAT(patch, slen, "#define GPU_ARB_shader_draw_parameters\n");
+    STR_CONCAT(patch, slen, "#define gpu_BaseInstance gl_BaseInstanceARB\n");
+  }
+  else {
+    /* Fallback: Emulate base instance using a uniform. */
+    STR_CONCAT(patch, slen, "uniform int gpu_BaseInstance\n");
   }
   if (GLContext::geometry_shader_invocations) {
     STR_CONCAT(patch, slen, "#extension GL_ARB_gpu_shader5 : enable\n");
@@ -568,6 +591,9 @@ static char *glsl_patch_default_get()
     STR_CONCAT(patch, slen, "#extension GL_ARB_texture_cube_map_array : enable\n");
     STR_CONCAT(patch, slen, "#define GPU_ARB_texture_cube_map_array\n");
   }
+
+  /* Vulkan GLSL compat. */
+  STR_CONCAT(patch, slen, "#define gpu_InstanceIndex (gl_InstanceID + gpu_BaseInstance)\n");
 
   /* Derivative sign can change depending on implementation. */
   STR_CONCATF(patch, slen, "#define DFDX_SIGN %1.1f\n", GLContext::derivative_signs[0]);

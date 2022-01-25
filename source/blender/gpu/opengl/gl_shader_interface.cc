@@ -440,6 +440,14 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
     }
   }
 
+  /* Compatibility uniforms. */
+  if (!GLContext::shader_draw_parameters_support) {
+    input->location = glGetUniformLocation(program, "gpu_BaseInstance");
+    copy_input_name(input, "gpu_BaseInstance", name_buffer_, name_buffer_offset);
+    input->binding = -1;
+    input++;
+  }
+
   /* Builtin Uniforms */
   for (int32_t u_int = 0; u_int < GPU_NUM_UNIFORMS; u_int++) {
     GPUUniformBuiltin u = static_cast<GPUUniformBuiltin>(u_int);

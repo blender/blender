@@ -380,7 +380,12 @@ struct ShaderCreateInfo {
     return *(Self *)this;
   }
 
-  /* Only needed if geometry shader is enabled. */
+  /**
+   * Only needed if geometry shader is enabled.
+   * IMPORTANT: Input and output instance name will have respectively "_in" and "_out" suffix
+   * appended in the geometry shader IF AND ONLY IF the vertex_out interface instance name matches
+   * the geometry_out interface instance name.
+   */
   Self &geometry_out(StageInterfaceInfo &interface)
   {
     geometry_out_interfaces_.append(&interface);
