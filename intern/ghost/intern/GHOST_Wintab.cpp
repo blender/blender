@@ -21,6 +21,7 @@
 #define _USE_MATH_DEFINES
 
 #include "GHOST_Wintab.h"
+#include <cstdio>
 
 GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
 {
@@ -87,6 +88,9 @@ GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
 
   LOGCONTEXT lc = {0};
   if (!info(WTI_DEFSYSCTX, 0, &lc)) {
+    fprintf(stderr, "Failed to load Wintab driver\n");
+    fflush(stderr);
+
     return nullptr;
   }
 
@@ -97,6 +101,9 @@ GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
   /* The Wintab spec says we must open the context disabled if we are using cursor masks. */
   auto hctx = unique_hctx(open(hwnd, &lc, FALSE), close);
   if (!hctx) {
+    fprintf(stderr, "Failed to open Wintab driver\n");
+    fflush(stderr);
+
     return nullptr;
   }
 
