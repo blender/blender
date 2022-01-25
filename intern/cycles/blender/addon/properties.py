@@ -1452,6 +1452,19 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                     num += 1
         return num
 
+    def has_multi_device(self):
+        import _cycles
+        compute_device_type = self.get_compute_device_type()
+        device_list = _cycles.available_devices(compute_device_type)
+        for device in device_list:
+            if device[1] == compute_device_type:
+                continue
+            for dev in self.devices:
+                if dev.use and dev.id == device[2]:
+                    return True
+
+        return False
+
     def has_active_device(self):
         return self.get_num_gpu_devices() > 0
 
