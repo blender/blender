@@ -424,7 +424,7 @@ static void outliner_id_remap(ScrArea *area, SpaceLink *slink, ID *old_id, ID *n
     bool changed = false;
 
     BLI_mempool_iternew(space_outliner->treestore, &iter);
-    while ((tselem = reinterpret_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
+    while ((tselem = static_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
       if (tselem->id == old_id) {
         tselem->id = new_id;
         changed = true;
