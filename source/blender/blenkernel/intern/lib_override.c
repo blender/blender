@@ -1553,11 +1553,13 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
     CLOG_ERROR(
         &LOG,
         "While processing indirect level %d, ID %s from lib %s of indirect level %d detected "
-        "as needing resync.",
+        "as needing resync, skipping.",
         library_indirect_level,
         id->name,
         id->lib->filepath,
         id->lib->temp_index);
+    id->tag &= ~LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
+    return;
   }
 
   MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->relations_from_pointers, id);
