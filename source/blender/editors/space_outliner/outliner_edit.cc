@@ -74,6 +74,9 @@
 #include "GPU_material.h"
 
 #include "outliner_intern.hh"
+#include "tree/tree_element_rna.hh"
+
+using namespace blender::ed::outliner;
 
 static void outliner_show_active(SpaceOutliner *space_outliner,
                                  ARegion *region,
@@ -1718,7 +1721,6 @@ static void tree_element_to_path(TreeElement *te,
   TreeElement *tem, *temnext;
   TreeStoreElem *tse /* , *tsenext */ /* UNUSED */;
   PointerRNA *ptr, *nextptr;
-  PropertyRNA *prop;
   char *newpath = nullptr;
 
   /* optimize tricks:
@@ -1751,7 +1753,6 @@ static void tree_element_to_path(TreeElement *te,
     tem = (TreeElement *)ld->data;
     tse = TREESTORE(tem);
     ptr = &tem->rnaptr;
-    prop = reinterpret_cast<PropertyRNA *>(tem->directdata);
 
     /* check if we're looking for first ID, or appending to path */
     if (*id) {
@@ -1759,7 +1760,9 @@ static void tree_element_to_path(TreeElement *te,
        * - to prevent memory leaks, we must write to newpath not path,
        *   then free old path + swap them.
        */
-      if (tse->type == TSE_RNA_PROPERTY) {
+      if (TreeElementRNAProperty *tem_rna_prop = tree_element_cast<TreeElementRNAProperty>(tem)) {
+        PropertyRNA *prop = tem_rna_prop->getRNAProperty();
+
         if (RNA_property_type(prop) == PROP_POINTER) {
           /* for pointer we just append property name */
           newpath = RNA_path_append(*path, ptr, prop, 0, nullptr);
@@ -1827,8 +1830,7 @@ static void tree_element_to_path(TreeElement *te,
   /* step 3: if we've got an ID, add the current item to the path */
   if (*id) {
     /* add the active property to the path */
-    ptr = &te->rnaptr;
-    prop = reinterpret_cast<PropertyRNA *>(te->directdata);
+    PropertyRNA *prop = tree_element_cast<TreeElementRNACommon>(te)->getRNAProperty();
 
     /* array checks */
     if (tselem->type == TSE_RNA_ARRAY_ELEM) {
@@ -1886,9 +1888,11 @@ static void do_outliner_drivers_editop(SpaceOutliner *space_outliner,
       short flag = 0;
       short groupmode = KSP_GROUP_KSNAME;
 
+      TreeElementRNACommon *te_rna = tree_element_cast<TreeElementRNACommon>(te);
+      PropertyRNA *prop = te_rna ? te_rna->getRNAProperty() : nullptr;
+
       /* check if RNA-property described by this selected element is an animatable prop */
-      if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM) &&
-          RNA_property_animateable(&te->rnaptr, reinterpret_cast<PropertyRNA *>(te->directdata))) {
+      if (prop && RNA_property_animateable(&te->rnaptr, prop)) {
         /* get id + path + index info from the selected element */
         tree_element_to_path(te, tselem, &id, &path, &array_index, &flag, &groupmode);
       }
@@ -1901,8 +1905,7 @@ static void do_outliner_drivers_editop(SpaceOutliner *space_outliner,
         /* array checks */
         if (flag & KSP_FLAG_WHOLE_ARRAY) {
           /* entire array was selected, so add drivers for all */
-          arraylen = RNA_property_array_length(&te->rnaptr,
-                                               reinterpret_cast<PropertyRNA *>(te->directdata));
+          arraylen = RNA_property_array_length(&te->rnaptr, prop);
         }
         else {
           arraylen = array_index;
@@ -2084,8 +2087,9 @@ static void do_outliner_keyingset_editop(SpaceOutliner *space_outliner,
       short groupmode = KSP_GROUP_KSNAME;
 
       /* check if RNA-property described by this selected element is an animatable prop */
-      if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM) &&
-          RNA_property_animateable(&te->rnaptr, reinterpret_cast<PropertyRNA *>(te->directdata))) {
+      if (TreeElementRNACommon *te_rna = tree_element_cast<TreeElementRNACommon>(te);
+          te_rna && te_rna->getRNAProperty() &&
+          RNA_property_animateable(&te->rnaptr, te_rna->getRNAProperty())) {
         /* get id + path + index info from the selected element */
         tree_element_to_path(te, tselem, &id, &path, &array_index, &flag, &groupmode);
       }

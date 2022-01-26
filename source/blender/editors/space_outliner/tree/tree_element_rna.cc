@@ -73,6 +73,11 @@ bool TreeElementRNACommon::expandPoll(const SpaceOutliner &) const
   return isRNAValid();
 }
 
+PropertyRNA *TreeElementRNACommon::getRNAProperty() const
+{
+  return nullptr;
+}
+
 /* -------------------------------------------------------------------- */
 /* RNA Struct */
 
@@ -108,10 +113,12 @@ void TreeElementRNAStruct::expand(SpaceOutliner &space_outliner) const
   int tot = RNA_property_collection_length(ptr, iterprop);
   CLAMP_MAX(tot, max_index);
 
+  TreeElementRNAProperty *parent_prop_te = legacy_te_.parent ?
+                                               tree_element_cast<TreeElementRNAProperty>(
+                                                   legacy_te_.parent) :
+                                               nullptr;
   /* auto open these cases */
-  if (!legacy_te_.parent ||
-      (RNA_property_type(reinterpret_cast<PropertyRNA *>(legacy_te_.parent->directdata))) ==
-          PROP_POINTER) {
+  if (!parent_prop_te || (RNA_property_type(parent_prop_te->getRNAProperty()) == PROP_POINTER)) {
     if (!tselem.used) {
       tselem.flag &= ~TSE_CLOSED;
     }
@@ -157,7 +164,6 @@ TreeElementRNAProperty::TreeElementRNAProperty(TreeElement &legacy_te,
   PropertyRNA *prop = reinterpret_cast<PropertyRNA *>(propptr.data);
 
   legacy_te_.name = RNA_property_ui_name(prop);
-  legacy_te_.directdata = prop;
   rna_prop_ = prop;
 }
 
@@ -225,6 +231,11 @@ void TreeElementRNAProperty::expand(SpaceOutliner &space_outliner) const
   }
 }
 
+PropertyRNA *TreeElementRNAProperty::getRNAProperty() const
+{
+  return rna_prop_;
+}
+
 /* -------------------------------------------------------------------- */
 /* RNA Array Element */
 
@@ -236,11 +247,9 @@ TreeElementRNAArrayElement::TreeElementRNAArrayElement(TreeElement &legacy_te,
   BLI_assert(legacy_te.store_elem->type == TSE_RNA_ARRAY_ELEM);
 
   BLI_assert(legacy_te.parent && (legacy_te.parent->store_elem->type == TSE_RNA_PROPERTY));
-  PropertyRNA *prop = reinterpret_cast<PropertyRNA *>(legacy_te_.parent->directdata);
-  legacy_te_.directdata = prop;
   legacy_te_.index = index;
 
-  char c = RNA_property_array_item_char(prop, index);
+  char c = RNA_property_array_item_char(TreeElementRNAArrayElement::getRNAProperty(), index);
 
   legacy_te_.name = reinterpret_cast<char *>(
       MEM_callocN(sizeof(char[20]), "OutlinerRNAArrayName"));
@@ -251,6 +260,14 @@ TreeElementRNAArrayElement::TreeElementRNAArrayElement(TreeElement &legacy_te,
     sprintf((char *)legacy_te_.name, "  %d", index + 1);
   }
   legacy_te_.flag |= TE_FREE_NAME;
+}
+
+PropertyRNA *TreeElementRNAArrayElement::getRNAProperty() const
+{
+  /* Forward query to the parent (which is expected to be a #TreeElementRNAProperty). */
+  const TreeElementRNAProperty *parent_prop_te = tree_element_cast<TreeElementRNAProperty>(
+      legacy_te_.parent);
+  return parent_prop_te ? parent_prop_te->getRNAProperty() : nullptr;
 }
 
 }  // namespace blender::ed::outliner

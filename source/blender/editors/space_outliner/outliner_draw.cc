@@ -81,6 +81,7 @@
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
 #include "tree/tree_element.hh"
+#include "tree/tree_element_rna.hh"
 
 using namespace blender::ed::outliner;
 
@@ -1915,9 +1916,9 @@ static void outliner_draw_rnabuts(
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     TreeStoreElem *tselem = TREESTORE(te);
     if (te->ys + 2 * UI_UNIT_Y >= region->v2d.cur.ymin && te->ys <= region->v2d.cur.ymax) {
-      if (tselem->type == TSE_RNA_PROPERTY) {
+      if (TreeElementRNAProperty *te_rna_prop = tree_element_cast<TreeElementRNAProperty>(te)) {
         ptr = &te->rnaptr;
-        prop = reinterpret_cast<PropertyRNA *>(te->directdata);
+        prop = te_rna_prop->getRNAProperty();
 
         if (!TSELEM_OPEN(tselem, space_outliner)) {
           if (RNA_property_type(prop) == PROP_POINTER) {
@@ -1959,9 +1960,10 @@ static void outliner_draw_rnabuts(
           }
         }
       }
-      else if (tselem->type == TSE_RNA_ARRAY_ELEM) {
+      else if (TreeElementRNAArrayElement *te_rna_array_elem =
+                   tree_element_cast<TreeElementRNAArrayElement>(te)) {
         ptr = &te->rnaptr;
-        prop = reinterpret_cast<PropertyRNA *>(te->directdata);
+        prop = te_rna_array_elem->getRNAProperty();
 
         uiDefAutoButR(block,
                       ptr,
