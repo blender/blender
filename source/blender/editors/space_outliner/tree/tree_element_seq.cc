@@ -41,7 +41,6 @@ TreeElementSequence::TreeElementSequence(TreeElement &legacy_te, Sequence &seque
    * so this is "safe".
    */
   legacy_te.idcode = sequence_.type;
-  legacy_te.directdata = &sequence_;
   legacy_te.name = sequence_.name + 2;
 }
 
@@ -70,6 +69,11 @@ void TreeElementSequence::expand(SpaceOutliner &space_outliner) const
   }
 }
 
+Sequence &TreeElementSequence::getSequence() const
+{
+  return sequence_;
+}
+
 /* -------------------------------------------------------------------- */
 /* Strip */
 
@@ -84,7 +88,6 @@ TreeElementSequenceStrip::TreeElementSequenceStrip(TreeElement &legacy_te, Strip
   else {
     legacy_te_.name = IFACE_("Strip None");
   }
-  legacy_te_.directdata = &strip;
 }
 
 /* -------------------------------------------------------------------- */
@@ -92,13 +95,17 @@ TreeElementSequenceStrip::TreeElementSequenceStrip(TreeElement &legacy_te, Strip
 
 TreeElementSequenceStripDuplicate::TreeElementSequenceStripDuplicate(TreeElement &legacy_te,
                                                                      Sequence &sequence)
-    : AbstractTreeElement(legacy_te)
+    : AbstractTreeElement(legacy_te), sequence_(sequence)
 {
   BLI_assert(legacy_te.store_elem->type == TSE_SEQUENCE_DUP);
 
   legacy_te_.idcode = sequence.type;
-  legacy_te_.directdata = &sequence;
   legacy_te_.name = sequence.strip->stripdata->name;
+}
+
+Sequence &TreeElementSequenceStripDuplicate::getSequence() const
+{
+  return sequence_;
 }
 
 }  // namespace blender::ed::outliner

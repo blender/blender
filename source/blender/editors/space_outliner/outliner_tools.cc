@@ -96,8 +96,11 @@
 #include "SEQ_sequencer.h"
 
 #include "outliner_intern.hh"
+#include "tree/tree_element_seq.hh"
 
 static CLG_LogRef LOG = {"ed.outliner.tools"};
+
+using namespace blender::ed::outliner;
 
 /* -------------------------------------------------------------------- */
 /** \name ID/Library/Data Set/Un-link Utilities
@@ -1285,7 +1288,8 @@ static void ebone_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), 
 
 static void sequence_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *scene_ptr)
 {
-  Sequence *seq = (Sequence *)te->directdata;
+  TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
+  Sequence *seq = &te_seq->getSequence();
   Scene *scene = (Scene *)scene_ptr;
   Editing *ed = SEQ_editing_get(scene);
   if (BLI_findindex(ed->seqbasep, seq) != -1) {
