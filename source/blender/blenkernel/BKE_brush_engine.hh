@@ -48,7 +48,7 @@
   curve ? (BKE_curvemapping_cache_release_or_free(brush_curve_cache, curve), nullptr) : nullptr
 #define CURVE_ADDREF(curve) BKE_curvemapping_cache_aquire(brush_curve_cache, curve)
 
-struct CurveMappingCache *brush_curve_cache = NULL;
+extern struct CurveMappingCache *brush_curve_cache;
 extern BrushChannelType brush_builtin_channels[];
 extern int brush_builtin_channel_len;
 

@@ -4290,7 +4290,7 @@ static void do_displacement_heal_cb(void *__restrict userdata,
         copy_m3_m3(mats[locali], mat);
 
         invert_m3(mat);
-
+        
         float disp[3];
         copy_v3_v3(disp, SCULPT_vertex_co_get(ss, vertex));
         sub_v3_v3(disp, p);
