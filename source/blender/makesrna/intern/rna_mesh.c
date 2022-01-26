@@ -3120,6 +3120,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "vertex_normals", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "MeshNormalValue");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_ui_text(prop,
                            "Vertex Normals",
                            "The normal direction of each vertex, defined as the average of the "
@@ -3136,6 +3137,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "polygon_normals", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "MeshNormalValue");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_ui_text(prop,
                            "Polygon Normals",
                            "The normal direction of each polygon, defined by the winding order "
@@ -3246,6 +3248,7 @@ static void rna_def_mesh(BlenderRNA *brna)
                                     NULL,
                                     NULL);
   RNA_def_property_struct_type(prop, "MeshVertColorLayer");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_ui_text(prop, "Sculpt Vertex Colors", "All vertex colors");
   rna_def_vert_colors(brna, prop);
 
