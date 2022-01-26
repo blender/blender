@@ -1792,6 +1792,7 @@ static void tree_element_to_path(TreeElement *te,
               if (temsub == temnext) {
                 break;
               }
+              index++;
             }
             newpath = RNA_path_append(*path, nullptr, prop, index, nullptr);
           }
