@@ -109,9 +109,14 @@ if(NOT WITH_SYSTEM_FREETYPE)
   find_package_wrapper(Freetype REQUIRED)
   if(EXISTS ${LIBDIR})
     find_package_wrapper(Brotli REQUIRED)
-    list(APPEND FREETYPE_LIBRARIES
-      ${BROTLI_LIBRARIES}
-    )
+
+    # NOTE: This is done on WIN32 & APPLE but fails on some Linux systems.
+    # See: https://devtalk.blender.org/t/22536
+    # So `BROTLI_LIBRARIES` need to be added  `FREETYPE_LIBRARIES`.
+    #
+    # list(APPEND FREETYPE_LIBRARIES
+    #   ${BROTLI_LIBRARIES}
+    # )
   endif()
 endif()
 

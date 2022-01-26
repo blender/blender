@@ -54,7 +54,7 @@ set(LIB
   bf_gpu
   bf_intern_guardedalloc
 
-  ${FREETYPE_LIBRARIES}
+  ${FREETYPE_LIBRARIES} ${BROTLI_LIBRARIES}
 )
 
 if(WIN32)
