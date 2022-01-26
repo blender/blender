@@ -38,9 +38,11 @@
 #include "ED_select_utils.h"
 #include "ED_view3d.h"
 
+#include "GPU_framebuffer.h"
 #include "GPU_matrix.h"
 #include "GPU_select.h"
 #include "GPU_state.h"
+#include "GPU_viewport.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -681,6 +683,18 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
   /* Search for 3D intersections if they're before 2D that have been found (if any).
    * This way we always use the first hit. */
   if (has_3d) {
+
+    /* The depth buffer is needed for for gizmos to obscure eachother.  */
+    GPUViewport *viewport = WM_draw_region_get_viewport(CTX_wm_region(C));
+    GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
+    GPUFrameBuffer *depth_read_fb = NULL;
+    GPU_framebuffer_ensure_config(&depth_read_fb,
+                                  {
+                                      GPU_ATTACHMENT_TEXTURE(depth_tx),
+                                      GPU_ATTACHMENT_NONE,
+                                  });
+    GPU_framebuffer_bind(depth_read_fb);
+
     const int hotspot_radii[] = {
         3 * U.pixelsize,
         /* This runs on mouse move, careful doing too many tests! */
@@ -693,6 +707,9 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
         break;
       }
     }
+
+    GPU_framebuffer_restore();
+    GPU_framebuffer_free(depth_read_fb);
 
     if (hit != -1) {
       const int select_id = hit >> 8;
