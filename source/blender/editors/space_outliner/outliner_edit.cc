@@ -1756,7 +1756,7 @@ static void tree_element_to_path(TreeElement *te,
        *   then free old path + swap them.
        */
       if (TreeElementRNAProperty *tem_rna_prop = tree_element_cast<TreeElementRNAProperty>(tem)) {
-        PropertyRNA *prop = tem_rna_prop->getRNAProperty();
+        PropertyRNA *prop = tem_rna_prop->getPropertyRNA();
 
         if (RNA_property_type(prop) == PROP_POINTER) {
           /* for pointer we just append property name */
@@ -1825,7 +1825,7 @@ static void tree_element_to_path(TreeElement *te,
   /* step 3: if we've got an ID, add the current item to the path */
   if (*id) {
     /* add the active property to the path */
-    PropertyRNA *prop = tree_element_cast<TreeElementRNACommon>(te)->getRNAProperty();
+    PropertyRNA *prop = tree_element_cast<TreeElementRNACommon>(te)->getPropertyRNA();
 
     /* array checks */
     if (tselem->type == TSE_RNA_ARRAY_ELEM) {
@@ -1884,7 +1884,7 @@ static void do_outliner_drivers_editop(SpaceOutliner *space_outliner,
       short groupmode = KSP_GROUP_KSNAME;
 
       TreeElementRNACommon *te_rna = tree_element_cast<TreeElementRNACommon>(te);
-      PropertyRNA *prop = te_rna ? te_rna->getRNAProperty() : nullptr;
+      PropertyRNA *prop = te_rna ? te_rna->getPropertyRNA() : nullptr;
 
       /* check if RNA-property described by this selected element is an animatable prop */
       if (prop && RNA_property_animateable(&te->rnaptr, prop)) {
@@ -2083,8 +2083,8 @@ static void do_outliner_keyingset_editop(SpaceOutliner *space_outliner,
 
       /* check if RNA-property described by this selected element is an animatable prop */
       if (TreeElementRNACommon *te_rna = tree_element_cast<TreeElementRNACommon>(te);
-          te_rna && te_rna->getRNAProperty() &&
-          RNA_property_animateable(&te->rnaptr, te_rna->getRNAProperty())) {
+          te_rna && te_rna->getPropertyRNA() &&
+          RNA_property_animateable(&te->rnaptr, te_rna->getPropertyRNA())) {
         /* get id + path + index info from the selected element */
         tree_element_to_path(te, tselem, &id, &path, &array_index, &flag, &groupmode);
       }

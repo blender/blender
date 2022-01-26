@@ -1918,7 +1918,7 @@ static void outliner_draw_rnabuts(
     if (te->ys + 2 * UI_UNIT_Y >= region->v2d.cur.ymin && te->ys <= region->v2d.cur.ymax) {
       if (TreeElementRNAProperty *te_rna_prop = tree_element_cast<TreeElementRNAProperty>(te)) {
         ptr = &te->rnaptr;
-        prop = te_rna_prop->getRNAProperty();
+        prop = te_rna_prop->getPropertyRNA();
 
         if (!TSELEM_OPEN(tselem, space_outliner)) {
           if (RNA_property_type(prop) == PROP_POINTER) {
@@ -1963,7 +1963,7 @@ static void outliner_draw_rnabuts(
       else if (TreeElementRNAArrayElement *te_rna_array_elem =
                    tree_element_cast<TreeElementRNAArrayElement>(te)) {
         ptr = &te->rnaptr;
-        prop = te_rna_array_elem->getRNAProperty();
+        prop = te_rna_array_elem->getPropertyRNA();
 
         uiDefAutoButR(block,
                       ptr,

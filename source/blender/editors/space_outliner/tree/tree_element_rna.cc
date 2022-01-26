@@ -73,7 +73,7 @@ bool TreeElementRNACommon::expandPoll(const SpaceOutliner &) const
   return isRNAValid();
 }
 
-PropertyRNA *TreeElementRNACommon::getRNAProperty() const
+PropertyRNA *TreeElementRNACommon::getPropertyRNA() const
 {
   return nullptr;
 }
@@ -118,7 +118,7 @@ void TreeElementRNAStruct::expand(SpaceOutliner &space_outliner) const
                                                    legacy_te_.parent) :
                                                nullptr;
   /* auto open these cases */
-  if (!parent_prop_te || (RNA_property_type(parent_prop_te->getRNAProperty()) == PROP_POINTER)) {
+  if (!parent_prop_te || (RNA_property_type(parent_prop_te->getPropertyRNA()) == PROP_POINTER)) {
     if (!tselem.used) {
       tselem.flag &= ~TSE_CLOSED;
     }
@@ -231,7 +231,7 @@ void TreeElementRNAProperty::expand(SpaceOutliner &space_outliner) const
   }
 }
 
-PropertyRNA *TreeElementRNAProperty::getRNAProperty() const
+PropertyRNA *TreeElementRNAProperty::getPropertyRNA() const
 {
   return rna_prop_;
 }
@@ -249,7 +249,7 @@ TreeElementRNAArrayElement::TreeElementRNAArrayElement(TreeElement &legacy_te,
   BLI_assert(legacy_te.parent && (legacy_te.parent->store_elem->type == TSE_RNA_PROPERTY));
   legacy_te_.index = index;
 
-  char c = RNA_property_array_item_char(TreeElementRNAArrayElement::getRNAProperty(), index);
+  char c = RNA_property_array_item_char(TreeElementRNAArrayElement::getPropertyRNA(), index);
 
   legacy_te_.name = reinterpret_cast<char *>(
       MEM_callocN(sizeof(char[20]), "OutlinerRNAArrayName"));
@@ -262,12 +262,12 @@ TreeElementRNAArrayElement::TreeElementRNAArrayElement(TreeElement &legacy_te,
   legacy_te_.flag |= TE_FREE_NAME;
 }
 
-PropertyRNA *TreeElementRNAArrayElement::getRNAProperty() const
+PropertyRNA *TreeElementRNAArrayElement::getPropertyRNA() const
 {
   /* Forward query to the parent (which is expected to be a #TreeElementRNAProperty). */
   const TreeElementRNAProperty *parent_prop_te = tree_element_cast<TreeElementRNAProperty>(
       legacy_te_.parent);
-  return parent_prop_te ? parent_prop_te->getRNAProperty() : nullptr;
+  return parent_prop_te ? parent_prop_te->getPropertyRNA() : nullptr;
 }
 
 }  // namespace blender::ed::outliner
