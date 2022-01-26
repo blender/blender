@@ -82,6 +82,8 @@ int UI_icon_get_height(int icon_id);
 bool UI_icon_get_theme_color(int icon_id, unsigned char color[4]);
 
 /**
+ * Render a #PreviewImage for the data block.
+ *
  * Note that if an ID doesn't support jobs for preview creation, \a use_job will be ignored.
  */
 void UI_icon_render_id(const struct bContext *C,
@@ -89,6 +91,18 @@ void UI_icon_render_id(const struct bContext *C,
                        struct ID *id,
                        enum eIconSizes size,
                        bool use_job);
+
+/**
+ * Render the data block into the provided #PreviewImage.
+ */
+void UI_icon_render_id_ex(const struct bContext *C,
+                          struct Scene *scene,
+                          struct ID *id_to_render,
+                          const enum eIconSizes size,
+                          const bool use_job,
+                          struct PreviewImage *r_preview_image);
+
+
 /**
  * Render size for preview images and icons
  */
