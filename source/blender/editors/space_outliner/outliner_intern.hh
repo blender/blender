@@ -225,7 +225,7 @@ typedef enum {
  * - not searching into RNA items helps but isn't the complete solution
  */
 
-#define SEARCHING_OUTLINER(sov) (sov->search_flags & SO_SEARCH_RECURSIVE)
+#define SEARCHING_OUTLINER(sov) ((sov)->search_flags & SO_SEARCH_RECURSIVE)
 
 /* is the current element open? if so we also show children */
 #define TSELEM_OPEN(telm, sv) \

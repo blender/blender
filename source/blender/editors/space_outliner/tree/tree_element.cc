@@ -33,6 +33,7 @@
 #include "tree_element_id.hh"
 #include "tree_element_nla.hh"
 #include "tree_element_overrides.hh"
+#include "tree_element_rna.hh"
 #include "tree_element_scene_objects.hh"
 #include "tree_element_view_layer.hh"
 
@@ -86,6 +87,15 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
     case TSE_LIBRARY_OVERRIDE:
       return std::make_unique<TreeElementOverridesProperty>(
           legacy_te, *static_cast<TreeElementOverridesData *>(idv));
+    case TSE_RNA_STRUCT:
+      return std::make_unique<TreeElementRNAStruct>(legacy_te,
+                                                    *reinterpret_cast<PointerRNA *>(idv));
+    case TSE_RNA_PROPERTY:
+      return std::make_unique<TreeElementRNAProperty>(
+          legacy_te, *reinterpret_cast<PointerRNA *>(idv), legacy_te.index);
+    case TSE_RNA_ARRAY_ELEM:
+      return std::make_unique<TreeElementRNAArrayElement>(
+          legacy_te, *reinterpret_cast<PointerRNA *>(idv), legacy_te.index);
     default:
       break;
   }
