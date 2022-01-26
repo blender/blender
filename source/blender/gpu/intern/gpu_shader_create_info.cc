@@ -27,6 +27,8 @@
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
+#include "GPU_capabilities.h"
+#include "GPU_platform.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
@@ -58,6 +60,11 @@ void ShaderCreateInfo::finalize()
     /* Recursive. */
     const_cast<ShaderCreateInfo &>(info).finalize();
 
+#if 0 /* Enabled for debugging merging. TODO(fclem) exception handling and error reporting in \
+         console. */
+    std::cout << "Merging : " << info_name << " > " << name_ << std::endl;
+#endif
+
     interface_names_size_ += info.interface_names_size_;
 
     vertex_inputs_.extend(info.vertex_inputs_);
@@ -70,7 +77,7 @@ void ShaderCreateInfo::finalize()
 
     batch_resources_.extend(info.batch_resources_);
     pass_resources_.extend(info.pass_resources_);
-    typedef_sources_.extend(info.typedef_sources_);
+    typedef_sources_.extend_non_duplicates(info.typedef_sources_);
 
     validate(info);
 
@@ -194,6 +201,13 @@ void gpu_shader_create_info_init()
 #  include "gpu_shader_baked.hh"
 #endif
 
+  /* WORKAROUND: Replace draw_mesh info with the legacy one for systems that have problems with UBO
+   * indexing. */
+  if (GPU_type_matches(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD, GPU_OS_ANY, GPU_DRIVER_ANY) ||
+      GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY) || GPU_crappy_amd_driver()) {
+    draw_modelmat = draw_modelmat_legacy;
+  }
+
   /* TEST */
   // gpu_shader_create_info_compile_all();
 }
@@ -213,25 +227,37 @@ void gpu_shader_create_info_exit()
 
 bool gpu_shader_create_info_compile_all()
 {
+  int success = 0;
+  int total = 0;
   for (ShaderCreateInfo *info : g_create_infos->values()) {
     if (info->do_static_compilation_) {
-      // printf("Compiling %s: ... \n", info->name_.c_str());
+      total++;
       GPUShader *shader = GPU_shader_create_from_info(
           reinterpret_cast<const GPUShaderCreateInfo *>(info));
       if (shader == nullptr) {
         printf("Compilation %s Failed\n", info->name_.c_str());
-        return false;
+      }
+      else {
+        success++;
       }
       GPU_shader_free(shader);
-      // printf("Success\n");
     }
   }
-  return true;
+  printf("===============================\n");
+  printf("Shader Test compilation result: \n");
+  printf("%d Total\n", total);
+  printf("%d Passed\n", success);
+  printf("%d Failed\n", total - success);
+  printf("===============================\n");
+  return success == total;
 }
 
 /* Runtime create infos are not registered in the dictionary and cannot be searched. */
 const GPUShaderCreateInfo *gpu_shader_create_info_get(const char *info_name)
 {
+  if (g_create_infos->contains(info_name) == false) {
+    printf("Error: Cannot find shader create info named \"%s\"\n", info_name);
+  }
   ShaderCreateInfo *info = g_create_infos->lookup(info_name);
   return reinterpret_cast<const GPUShaderCreateInfo *>(info);
 }

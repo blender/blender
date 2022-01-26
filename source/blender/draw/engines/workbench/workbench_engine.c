@@ -51,8 +51,6 @@ void workbench_engine_init(void *ved)
   WORKBENCH_StorageList *stl = vedata->stl;
   WORKBENCH_TextureList *txl = vedata->txl;
 
-  workbench_shader_library_ensure();
-
   workbench_private_data_alloc(stl);
   WORKBENCH_PrivateData *wpd = stl->wpd;
   workbench_private_data_init(wpd);

@@ -165,7 +165,7 @@ void workbench_cavity_cache_init(WORKBENCH_Data *data)
     grp = DRW_shgroup_create(sh, psl->cavity_ps);
     DRW_shgroup_uniform_texture(grp, "normalBuffer", wpd->normal_buffer_tx);
     DRW_shgroup_uniform_block(grp, "samples_block", wpd->vldata->cavity_sample_ubo);
-    DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
+    DRW_shgroup_uniform_block(grp, "world_data", wpd->world_ubo);
 
     if (SSAO_ENABLED(wpd)) {
       DRW_shgroup_uniform_texture(grp, "depthBuffer", dtxl->depth);

@@ -27,8 +27,6 @@ using namespace blender::draw::image_engine;
 
 static void test_workbench_glsl_shaders()
 {
-  workbench_shader_library_ensure();
-
   const int MAX_WPD = 6;
   WORKBENCH_PrivateData wpds[MAX_WPD];
 

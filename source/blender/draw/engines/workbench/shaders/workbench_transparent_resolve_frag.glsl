@@ -1,11 +1,4 @@
 
-uniform sampler2D transparentAccum;
-uniform sampler2D transparentRevealage;
-
-in vec4 uvcoordsvar;
-
-out vec4 fragColor;
-
 /* Based on :
  * McGuire and Bavoil, Weighted Blended Order-Independent Transparency, Journal of
  * Computer Graphics Techniques (JCGT), vol. 2, no. 2, 122–141, 2013

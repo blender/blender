@@ -459,7 +459,6 @@ void workbench_shader_depth_of_field_get(GPUShader **prepare_sh,
                                          GPUShader **blur2_sh,
                                          GPUShader **resolve_sh);
 
-void workbench_shader_library_ensure(void);
 void workbench_shader_free(void);
 
 /* workbench_effect_antialiasing.c */

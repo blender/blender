@@ -1,6 +1,4 @@
 
-#pragma BLENDER_REQUIRE(workbench_data_lib.glsl)
-
 vec2 matcap_uv_compute(vec3 I, vec3 N, bool flipped)
 {
   /* Quick creation of an orthonormal basis */
@@ -15,16 +13,14 @@ vec2 matcap_uv_compute(vec3 I, vec3 N, bool flipped)
   return matcap_uv * 0.496 + 0.5;
 }
 
-uniform sampler2D matcapDiffuseImage;
-uniform sampler2D matcapSpecularImage;
-
-vec3 get_matcap_lighting(vec3 base_color, vec3 N, vec3 I)
+vec3 get_matcap_lighting(
+    sampler2D diffuse_matcap, sampler2D specular_matcap, vec3 base_color, vec3 N, vec3 I)
 {
   bool flipped = world_data.matcap_orientation != 0;
   vec2 uv = matcap_uv_compute(I, N, flipped);
 
-  vec3 diffuse = textureLod(matcapDiffuseImage, uv, 0.0).rgb;
-  vec3 specular = textureLod(matcapSpecularImage, uv, 0.0).rgb;
+  vec3 diffuse = textureLod(diffuse_matcap, uv, 0.0).rgb;
+  vec3 specular = textureLod(specular_matcap, uv, 0.0).rgb;
 
   return diffuse * base_color + specular * float(world_data.use_specular);
 }

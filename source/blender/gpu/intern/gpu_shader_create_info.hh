@@ -559,7 +559,9 @@ struct ShaderCreateInfo {
                         StringRefNull info_name1 = "",
                         StringRefNull info_name2 = "",
                         StringRefNull info_name3 = "",
-                        StringRefNull info_name4 = "")
+                        StringRefNull info_name4 = "",
+                        StringRefNull info_name5 = "",
+                        StringRefNull info_name6 = "")
   {
     additional_infos_.append(info_name0);
     if (!info_name1.is_empty()) {
@@ -573,6 +575,12 @@ struct ShaderCreateInfo {
     }
     if (!info_name4.is_empty()) {
       additional_infos_.append(info_name4);
+    }
+    if (!info_name5.is_empty()) {
+      additional_infos_.append(info_name5);
+    }
+    if (!info_name6.is_empty()) {
+      additional_infos_.append(info_name6);
     }
     return *(Self *)this;
   }

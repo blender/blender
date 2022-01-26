@@ -1,14 +1,9 @@
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(workbench_shader_interface_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_common_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_material_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_image_lib.glsl)
-
-#ifndef WORKBENCH_SHADER_SHARED_H
-uniform samplerBuffer ac; /* active color layer */
-uniform samplerBuffer au; /* active texture layer */
-#endif
 
 /* From http://libnoise.sourceforge.net/noisegen/index.html */
 float integer_noise(int n)
@@ -65,19 +60,12 @@ void main()
   float hair_rand = integer_noise(hair_get_strand_id());
   vec3 nor = workbench_hair_random_normal(tan, binor, hair_rand);
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 
   uv_interp = hair_get_customdata_vec2(au);
 
   normal_interp = normalize(normal_world_to_view(nor));
 
-#ifndef WORKBENCH_SHADER_SHARED_H
-#  ifdef OPAQUE_MATERIAL
-  float metallic, roughness;
-#  endif
-#endif
   workbench_material_data_get(resource_handle, color_interp, alpha_interp, roughness, metallic);
 
   if (materialIndex == 0) {
@@ -89,10 +77,6 @@ void main()
   alpha_interp *= 0.3;
 
   workbench_hair_random_material(hair_rand, color_interp, roughness, metallic);
-
-#ifdef OPAQUE_MATERIAL
-  packed_rough_metal = workbench_float_pair_encode(roughness, metallic);
-#endif
 
   object_id = int(uint(resource_handle) & 0xFFFFu) + 1;
 }

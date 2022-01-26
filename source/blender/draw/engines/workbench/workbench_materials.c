@@ -210,7 +210,7 @@ DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
 
       DRWShadingGroup *grp = prepass->common_shgrp;
       *grp_mat = grp = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_uniform_block(grp, "material_block", wpd->material_ubo_curr);
+      DRW_shgroup_uniform_block(grp, "materials_data", wpd->material_ubo_curr);
       DRW_shgroup_uniform_int_copy(grp, "materialIndex", mat_id);
       return grp;
     }
@@ -234,7 +234,7 @@ DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
       DRWShadingGroup **grp = &wpd->prepass[transp][infront][datatype].common_shgrp;
       if (resource_changed) {
         *grp = DRW_shgroup_create_sub(*grp);
-        DRW_shgroup_uniform_block(*grp, "material_block", wpd->material_ubo_curr);
+        DRW_shgroup_uniform_block(*grp, "materials_data", wpd->material_ubo_curr);
       }
       if (r_transp && transp) {
         *r_transp = true;
@@ -293,5 +293,6 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
     DRW_shgroup_uniform_texture_ex(grp, "imageTexture", tex, sampler);
   }
   DRW_shgroup_uniform_bool_copy(grp, "imagePremult", (ima && ima->alpha_mode == IMA_ALPHA_PREMUL));
+  DRW_shgroup_uniform_float_copy(grp, "imageTransparencyCutoff", 0.1f);
   return grp;
 }

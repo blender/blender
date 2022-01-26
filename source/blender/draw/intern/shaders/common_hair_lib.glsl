@@ -5,7 +5,9 @@
  * of data the CPU has to precompute and transfer for each update.
  */
 
+/* TODO(fclem): Keep documentation but remove the uniform declaration. */
 #ifndef USE_GPU_SHADER_CREATE_INFO
+
 /**
  * hairStrandsRes: Number of points per hair strand.
  * 2 - no subdivision

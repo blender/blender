@@ -1,20 +1,9 @@
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(workbench_shader_interface_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_common_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_image_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_matcap_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_world_light_lib.glsl)
-
-#ifndef WORKBENCH_SHADER_SHARED_H
-/* Revealage is actually stored in transparentAccum alpha channel.
- * This is a workaround to older hardware not having separate blend equation per render target. */
-layout(location = 0) out vec4 transparentAccum;
-layout(location = 1) out vec4 revealageAccum;
-
-/* NOTE: Blending will be skipped on objectId because output is a non-normalized integer buffer. */
-layout(location = 2) out uint objectId;
-#endif
 
 /* Special function only to be used with calculate_transparent_weight(). */
 float linear_zdepth(float depth, vec4 viewvecs[2], mat4 proj_mat)
@@ -69,7 +58,7 @@ void main()
 #endif
 
 #ifdef V3D_LIGHTING_MATCAP
-  vec3 shaded_color = get_matcap_lighting(color, N, I);
+  vec3 shaded_color = get_matcap_lighting(matcap_diffuse_tx, matcap_specular_tx, color, N, I);
 #endif
 
 #ifdef V3D_LIGHTING_STUDIO
@@ -80,7 +69,7 @@ void main()
   vec3 shaded_color = color;
 #endif
 
-  shaded_color *= get_shadow(N);
+  shaded_color *= get_shadow(N, forceShadowing);
 
   /* Listing 4 */
   float weight = calculate_transparent_weight() * alpha_interp;

@@ -46,7 +46,7 @@ void workbench_outline_cache_init(WORKBENCH_Data *data)
     grp = DRW_shgroup_create(sh, psl->outline_ps);
     DRW_shgroup_uniform_texture(grp, "objectIdBuffer", wpd->object_id_tx);
     DRW_shgroup_uniform_texture(grp, "depthBuffer", dtxl->depth);
-    DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
+    DRW_shgroup_uniform_block(grp, "world_data", wpd->world_ubo);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }
   else {

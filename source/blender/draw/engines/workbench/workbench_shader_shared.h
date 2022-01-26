@@ -45,4 +45,3 @@ struct WorldData {
 };
 
 #define viewport_size_inv viewport_size.zw
-#define packed_rough_metal roughness

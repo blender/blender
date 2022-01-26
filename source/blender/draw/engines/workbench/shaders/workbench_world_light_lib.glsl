@@ -1,6 +1,4 @@
 
-#pragma BLENDER_REQUIRE(workbench_data_lib.glsl)
-
 /* [Drobot2014a] Low Level Optimizations for GCN */
 vec4 fast_rcp(vec4 v)
 {
@@ -120,12 +118,10 @@ vec3 get_world_lighting(vec3 base_color, float roughness, float metallic, vec3 N
   return diffuse_light + specular_light;
 }
 
-uniform bool forceShadowing = false;
-
-float get_shadow(vec3 N)
+float get_shadow(vec3 N, bool force_shadowing)
 {
   float light_factor = -dot(N, world_data.shadow_direction_vs.xyz);
   float shadow_mix = smoothstep(world_data.shadow_shift, world_data.shadow_focus, light_factor);
-  shadow_mix *= forceShadowing ? 0.0 : world_data.shadow_mul;
+  shadow_mix *= force_shadowing ? 0.0 : world_data.shadow_mul;
   return shadow_mix + world_data.shadow_add;
 }

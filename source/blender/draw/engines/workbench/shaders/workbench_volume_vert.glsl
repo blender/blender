@@ -1,21 +1,7 @@
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_common_obinfos_lib.glsl)
-
-uniform float slicePosition;
-uniform int sliceAxis; /* -1 is no slice, 0 is X, 1 is Y, 2 is Z. */
-
-uniform mat4 volumeTextureToObject;
-
-in vec3 pos;
 
 RESOURCE_ID_VARYING
-
-#ifdef VOLUME_SLICE
-in vec3 uvs;
-
-out vec3 localPos;
-#endif
 
 void main()
 {

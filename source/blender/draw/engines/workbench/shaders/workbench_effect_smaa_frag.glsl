@@ -1,50 +1,35 @@
 
-uniform sampler2D edgesTex;
-uniform sampler2D areaTex;
-uniform sampler2D searchTex;
-uniform sampler2D blendTex;
-uniform sampler2D colorTex;
-uniform float mixFactor;
-uniform float taaAccumulatedWeight;
-
-in vec2 uvs;
-in vec2 pixcoord;
-in vec4 offset[3];
-
-#if SMAA_STAGE == 0
-out vec2 fragColor;
-#else
-out vec4 fragColor;
-#endif
+#pragma BLENDER_REQUIRE(common_smaa_lib.glsl)
 
 void main()
 {
 #if SMAA_STAGE == 0
   /* Detect edges in color and revealage buffer. */
-  fragColor = SMAALumaEdgeDetectionPS(uvs, offset, colorTex);
+  out_edges = SMAALumaEdgeDetectionPS(uvs, offset, colorTex);
   /* Discard if there is no edge. */
-  if (dot(fragColor, float2(1.0, 1.0)) == 0.0) {
+  if (dot(out_edges, float2(1.0, 1.0)) == 0.0) {
     discard;
   }
 
 #elif SMAA_STAGE == 1
-  fragColor = SMAABlendingWeightCalculationPS(
+  out_weights = SMAABlendingWeightCalculationPS(
       uvs, pixcoord, offset, edgesTex, areaTex, searchTex, vec4(0));
 
 #elif SMAA_STAGE == 2
-  fragColor = vec4(0.0);
+  out_color = vec4(0.0);
   if (mixFactor > 0.0) {
-    fragColor += SMAANeighborhoodBlendingPS(uvs, offset[0], colorTex, blendTex) * mixFactor;
+    out_color += SMAANeighborhoodBlendingPS(uvs, offset[0], colorTex, blendTex) * mixFactor;
   }
   if (mixFactor < 1.0) {
-    fragColor += texture(colorTex, uvs) * (1.0 - mixFactor);
+    out_color += texture(colorTex, uvs) * (1.0 - mixFactor);
   }
-  fragColor /= taaAccumulatedWeight;
-  fragColor = exp2(fragColor) - 0.5;
+  out_color /= taaAccumulatedWeight;
+  /* Exit log2 space used for Antialiasing. */
+  out_color = exp2(out_color) - 0.5;
 
   /* Avoid float precision issue. */
-  if (fragColor.a > 0.999) {
-    fragColor.a = 1.0;
+  if (out_color.a > 0.999) {
+    out_color.a = 1.0;
   }
 #endif
 }

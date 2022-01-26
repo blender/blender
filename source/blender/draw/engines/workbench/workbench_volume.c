@@ -129,7 +129,7 @@ static void workbench_volume_modifier_cache_populate(WORKBENCH_Data *vedata,
     float step_length = max_ff(1e-16f, dim[axis] * 0.05f);
 
     grp = DRW_shgroup_create(sh, vedata->psl->volume_ps);
-    DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
+    DRW_shgroup_uniform_block(grp, "world_data", wpd->world_ubo);
     DRW_shgroup_uniform_float_copy(grp, "slicePosition", fds->slice_depth);
     DRW_shgroup_uniform_int_copy(grp, "sliceAxis", axis);
     DRW_shgroup_uniform_float_copy(grp, "stepLength", step_length);
@@ -148,7 +148,7 @@ static void workbench_volume_modifier_cache_populate(WORKBENCH_Data *vedata,
     step_length = len_v3(dim);
 
     grp = DRW_shgroup_create(sh, vedata->psl->volume_ps);
-    DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
+    DRW_shgroup_uniform_block(grp, "world_data", wpd->world_ubo);
     DRW_shgroup_uniform_int_copy(grp, "samplesLen", max_slice);
     DRW_shgroup_uniform_float_copy(grp, "stepLength", step_length);
     DRW_shgroup_uniform_float_copy(grp, "noiseOfs", noise_ofs);
@@ -272,7 +272,7 @@ static void workbench_volume_object_cache_populate(WORKBENCH_Data *vedata,
     const float slice_position = volume->display.slice_depth;
 
     grp = DRW_shgroup_create(sh, vedata->psl->volume_ps);
-    DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
+    DRW_shgroup_uniform_block(grp, "world_data", wpd->world_ubo);
     DRW_shgroup_uniform_float_copy(grp, "slicePosition", slice_position);
     DRW_shgroup_uniform_int_copy(grp, "sliceAxis", axis);
     DRW_shgroup_uniform_float_copy(grp, "stepLength", step_length);
@@ -299,7 +299,7 @@ static void workbench_volume_object_cache_populate(WORKBENCH_Data *vedata,
 
     /* Set uniforms. */
     grp = DRW_shgroup_create(sh, vedata->psl->volume_ps);
-    DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
+    DRW_shgroup_uniform_block(grp, "world_data", wpd->world_ubo);
     DRW_shgroup_uniform_int_copy(grp, "samplesLen", max_slice);
     DRW_shgroup_uniform_float_copy(grp, "stepLength", step_length);
     DRW_shgroup_uniform_float_copy(grp, "noiseOfs", noise_ofs);

@@ -154,7 +154,7 @@ set(SRC
   engines/workbench/workbench_materials.c
   engines/workbench/workbench_opaque.c
   engines/workbench/workbench_render.c
-  engines/workbench/workbench_shader.c
+  engines/workbench/workbench_shader.cc
   engines/workbench/workbench_shadow.c
   engines/workbench/workbench_transparent.c
   engines/workbench/workbench_volume.c
@@ -342,7 +342,6 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_common_lib.glsl
   engines/workbench/shaders/workbench_composite_frag.glsl
   engines/workbench/shaders/workbench_curvature_lib.glsl
-  engines/workbench/shaders/workbench_data_lib.glsl
   engines/workbench/shaders/workbench_effect_cavity_frag.glsl
   engines/workbench/shaders/workbench_effect_dof_frag.glsl
   engines/workbench/shaders/workbench_effect_outline_frag.glsl
@@ -357,7 +356,6 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_prepass_hair_vert.glsl
   engines/workbench/shaders/workbench_prepass_pointcloud_vert.glsl
   engines/workbench/shaders/workbench_prepass_vert.glsl
-  engines/workbench/shaders/workbench_shader_interface_lib.glsl
   engines/workbench/shaders/workbench_shadow_caps_geom.glsl
   engines/workbench/shaders/workbench_shadow_debug_frag.glsl
   engines/workbench/shaders/workbench_shadow_geom.glsl
@@ -378,6 +376,7 @@ set(GLSL_SRC
   intern/shaders/common_hair_refine_comp.glsl
   intern/shaders/common_math_lib.glsl
   intern/shaders/common_math_geom_lib.glsl
+  intern/shaders/common_view_clipping_lib.glsl
   intern/shaders/common_view_lib.glsl
   intern/shaders/common_fxaa_lib.glsl
   intern/shaders/common_smaa_lib.glsl

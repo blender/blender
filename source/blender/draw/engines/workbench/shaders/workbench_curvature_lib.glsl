@@ -1,6 +1,4 @@
 
-#pragma BLENDER_REQUIRE(workbench_data_lib.glsl)
-
 float curvature_soft_clamp(float curvature, float control)
 {
   if (curvature < 0.5 / control) {

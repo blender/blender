@@ -84,66 +84,91 @@ vec4 pack_line_data(vec2 frag_co, vec2 edge_start, vec2 edge_pos)
   }
 }
 
-uniform int resourceChunk;
+/* Temporary until we fully make the switch. */
+#ifndef DRW_SHADER_SHARED_H
+uniform int drw_resourceChunk;
+#endif /* DRW_SHADER_SHARED_H */
 
 #ifdef GPU_VERTEX_SHADER
-#  ifdef GPU_ARB_shader_draw_parameters
-#    define baseInstance gl_BaseInstanceARB
-#  else /* no ARB_shader_draw_parameters */
-uniform int baseInstance;
-#  endif
 
-#  if defined(IN_PLACE_INSTANCES) || defined(INSTANCED_ATTR)
+/* Temporary until we fully make the switch. */
+#  ifndef DRW_SHADER_SHARED_H
+
+/* clang-format off */
+#    if defined(IN_PLACE_INSTANCES) || defined(INSTANCED_ATTR) || defined(DRW_LEGACY_MODEL_MATRIX) || defined(GPU_DEPRECATED_AMD_DRIVER)
+/* clang-format on */
 /* When drawing instances of an object at the same position. */
-#    define instanceId 0
-#  elif defined(GPU_DEPRECATED_AMD_DRIVER)
-/* A driver bug make it so that when using an attribute with GL_INT_2_10_10_10_REV as format,
- * the gl_InstanceID is incremented by the 2 bit component of the attribute.
- * Ignore gl_InstanceID then. */
-#    define instanceId 0
-#  else
-#    define instanceId gl_InstanceID
-#  endif
+#      define instanceId 0
+#    else
+#      define instanceId gl_InstanceID
+#    endif
 
-#  ifdef UNIFORM_RESOURCE_ID
-/* This is in the case we want to do a special instance drawcall but still want to have the
- * right resourceId and all the correct ubo datas. */
-uniform int resourceId;
-#    define resource_id resourceId
-#  else
-#    define resource_id (baseInstance + instanceId)
-#  endif
+#    if defined(UNIFORM_RESOURCE_ID)
+/* This is in the case we want to do a special instance drawcall for one object but still want to
+ * have the right resourceId and all the correct ubo datas. */
+uniform int drw_resourceId;
+#      define resource_id drw_resourceId
+#    else
+#      define resource_id (gpu_BaseInstance + instanceId)
+#    endif
 
 /* Use this to declare and pass the value if
  * the fragment shader uses the resource_id. */
-#  ifdef USE_GEOMETRY_SHADER
-#    define RESOURCE_ID_VARYING flat out int resourceIDGeom;
-#    define PASS_RESOURCE_ID resourceIDGeom = resource_id;
-#  else
-#    define RESOURCE_ID_VARYING flat out int resourceIDFrag;
-#    define PASS_RESOURCE_ID resourceIDFrag = resource_id;
-#  endif
-#endif
+#    ifdef USE_GEOMETRY_SHADER
+#      define RESOURCE_ID_VARYING flat out int resourceIDGeom;
+#      define PASS_RESOURCE_ID resourceIDGeom = resource_id;
+#    else
+#      define RESOURCE_ID_VARYING flat out int resourceIDFrag;
+#      define PASS_RESOURCE_ID resourceIDFrag = resource_id;
+#    endif
 
+#  endif /* DRW_SHADER_SHARED_H */
+
+#endif /* GPU_VERTEX_SHADER */
+
+/* Temporary until we fully make the switch. */
+#ifdef DRW_SHADER_SHARED_H
+/* TODO(fclem): Rename PASS_RESOURCE_ID to DRW_RESOURCE_ID_VARYING_SET */
+#  if defined(UNIFORM_RESOURCE_ID)
+#    define resource_id drw_ResourceID
+#    define PASS_RESOURCE_ID
+
+#  elif defined(GPU_VERTEX_SHADER)
+#    define resource_id gpu_InstanceIndex
+#    define PASS_RESOURCE_ID drw_ResourceID_iface.resource_index = resource_id;
+
+#  elif defined(GPU_GEOMETRY_SHADER)
+#    define resource_id drw_ResourceID_iface_in[0].index
+#    define PASS_RESOURCE_ID drw_ResourceID_iface_out.resource_index = resource_id;
+
+#  elif defined(GPU_FRAGMENT_SHADER)
+#    define resource_id drw_ResourceID_iface.resource_index
+#  endif
+
+/* TODO(fclem): Remove. */
+#  define RESOURCE_ID_VARYING
+
+#else
 /* If used in a fragment / geometry shader, we pass
  * resource_id as varying. */
-#ifdef GPU_GEOMETRY_SHADER
-#  define RESOURCE_ID_VARYING \
-    flat out int resourceIDFrag; \
-    flat in int resourceIDGeom[];
+#  ifdef GPU_GEOMETRY_SHADER
+#    define RESOURCE_ID_VARYING \
+      flat out int resourceIDFrag; \
+      flat in int resourceIDGeom[];
 
-#  define resource_id resourceIDGeom
-#  define PASS_RESOURCE_ID resourceIDFrag = resource_id[0];
-#endif
+#    define resource_id resourceIDGeom
+#    define PASS_RESOURCE_ID resourceIDFrag = resource_id[0];
+#  endif
 
-#ifdef GPU_FRAGMENT_SHADER
+#  ifdef GPU_FRAGMENT_SHADER
 flat in int resourceIDFrag;
-#  define resource_id resourceIDFrag
+#    define resource_id resourceIDFrag
+#  endif
 #endif
 
 /* Breaking this across multiple lines causes issues for some older GLSL compilers. */
 /* clang-format off */
-#if !defined(GPU_INTEL) && !defined(GPU_DEPRECATED_AMD_DRIVER) && !defined(OS_MAC) && !defined(INSTANCED_ATTR)
+#if !defined(GPU_INTEL) && !defined(GPU_DEPRECATED_AMD_DRIVER) && !defined(OS_MAC) && !defined(INSTANCED_ATTR) && !defined(DRW_LEGACY_MODEL_MATRIX)
 /* clang-format on */
 
 /* Temporary until we fully make the switch. */
@@ -158,10 +183,10 @@ layout(std140) uniform modelBlock
 {
   ObjectMatrices drw_matrices[DRW_RESOURCE_CHUNK_LEN];
 };
-#  endif /* DRW_SHADER_SHARED_H */
 
-#  define ModelMatrix (drw_matrices[resource_id].drw_modelMatrix)
-#  define ModelMatrixInverse (drw_matrices[resource_id].drw_modelMatrixInverse)
+#    define ModelMatrix (drw_matrices[resource_id].drw_modelMatrix)
+#    define ModelMatrixInverse (drw_matrices[resource_id].drw_modelMatrixInverse)
+#  endif /* DRW_SHADER_SHARED_H */
 
 #else /* GPU_INTEL */
 
@@ -177,7 +202,10 @@ uniform mat4 ModelMatrixInverse;
 
 #endif
 
-#define resource_handle (resourceChunk * DRW_RESOURCE_CHUNK_LEN + resource_id)
+/* Temporary until we fully make the switch. */
+#ifndef DRW_SHADER_SHARED_H
+#  define resource_handle (drw_resourceChunk * DRW_RESOURCE_CHUNK_LEN + resource_id)
+#endif
 
 /** Transform shortcuts. */
 /* Rule of thumb: Try to reuse world positions and normals because converting through viewspace

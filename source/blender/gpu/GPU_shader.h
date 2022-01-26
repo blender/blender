@@ -149,9 +149,14 @@ typedef enum {
 } GPUUniformBuiltin;
 
 typedef enum {
+  /** Deprecated */
   GPU_UNIFORM_BLOCK_VIEW = 0, /* viewBlock */
   GPU_UNIFORM_BLOCK_MODEL,    /* modelBlock */
   GPU_UNIFORM_BLOCK_INFO,     /* infoBlock */
+  /** New ones */
+  GPU_UNIFORM_BLOCK_DRW_VIEW,
+  GPU_UNIFORM_BLOCK_DRW_MODEL,
+  GPU_UNIFORM_BLOCK_DRW_INFOS,
 
   GPU_NUM_UNIFORM_BLOCKS, /* Special value, denotes number of builtin uniforms block. */
 } GPUUniformBlockBuiltin;
