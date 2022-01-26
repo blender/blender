@@ -109,6 +109,9 @@ if(NOT WITH_SYSTEM_FREETYPE)
   find_package_wrapper(Freetype REQUIRED)
   if(EXISTS ${LIBDIR})
     find_package_wrapper(Brotli REQUIRED)
+    list(APPEND FREETYPE_LIBRARIES
+      ${BROTLI_LIBRARIES}
+    )
   endif()
 endif()
 
