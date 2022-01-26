@@ -506,6 +506,8 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
 
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
+
+  return OPERATOR_FINISHED;
 }
 
 static void geometry_attribute_convert_ui(bContext *UNUSED(C), wmOperator *op)
