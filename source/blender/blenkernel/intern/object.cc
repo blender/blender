@@ -4572,7 +4572,7 @@ Mesh *BKE_object_get_editmesh_eval_final(const Object *object)
 
   const Mesh *mesh = static_cast<const Mesh *>(object->data);
   if (mesh->edit_mesh == nullptr) {
-    /* Heppens when requesting material of evaluated 3d font obejct: the evaluated object get
+    /* Happens when requesting material of evaluated 3d font object: the evaluated object get
      * converted to mesh, and it does not have edit mesh. */
     return nullptr;
   }

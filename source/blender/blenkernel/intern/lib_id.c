@@ -462,7 +462,7 @@ void BKE_lib_id_make_local_generic_action_define(
   BLI_assert(force_copy == false || force_copy != force_local);
 
   if (force_local || force_copy) {
-    /* Already set by caller code, nothig to do here. */
+    /* Already set by caller code, nothing to do here. */
     *r_force_local = force_local;
     *r_force_copy = force_copy;
     return;

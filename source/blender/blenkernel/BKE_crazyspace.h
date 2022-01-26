@@ -72,7 +72,7 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph,
                                  float (**deformcos)[3]);
 
 /* -------------------------------------------------------------------- */
-/** \name Crazyspace API
+/** \name Crazy-Space API
  * \{ */
 
 void BKE_crazyspace_api_eval(struct Depsgraph *depsgraph,

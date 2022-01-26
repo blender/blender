@@ -63,7 +63,10 @@ enum class Type {
 };
 
 enum class BuiltinBits {
-  /** Allow getting barycentic coordinates inside the fragment shader. NOTE: emulated on OpenGL. */
+  /**
+   * Allow getting barycentric coordinates inside the fragment shader.
+   * \note Emulated on OpenGL.
+   */
   BARYCENTRIC_COORD = (1 << 0),
   FRAG_COORD = (1 << 2),
   FRONT_FACING = (1 << 4),

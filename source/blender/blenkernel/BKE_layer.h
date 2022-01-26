@@ -157,7 +157,8 @@ int BKE_layer_collection_findindex(struct ViewLayer *view_layer, const struct La
 void BKE_layer_collection_resync_forbid(void);
 void BKE_layer_collection_resync_allow(void);
 
-/** Helper to fix older pre-2.80 blendfiles.
+/**
+ * Helper to fix older pre-2.80 blend-files.
  *
  * Ensures the given `view_layer` as a valid first-level layer collection, i.e. a single one
  * matching the scene's master collection. This is a requirement for `BKE_layer_collection_sync`.

@@ -105,7 +105,7 @@ void ShaderCreateInfo::finalize()
 void ShaderCreateInfo::validate(const ShaderCreateInfo &other_info)
 {
   {
-    /* Check same bindpoints usage in OGL. */
+    /* Check same bind-points usage in OGL. */
     Set<int> images, samplers, ubos, ssbos;
 
     auto register_resource = [&](const Resource &res) -> bool {
