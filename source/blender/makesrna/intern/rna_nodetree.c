@@ -11378,6 +11378,33 @@ static void def_geo_string_to_curves(StructRNA *srna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem rna_node_geometry_string_to_curves_pivot_mode[] = {
+      {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_MIDPOINT, "MIDPOINT", 0, "Midpoint", "Midpoint"},
+      {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_LEFT, "TOP_LEFT", 0, "Top Left", "Top Left"},
+      {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_CENTER,
+       "TOP_CENTER",
+       0,
+       "Top Center",
+       "Top Center"},
+      {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_RIGHT, "TOP_RIGHT", 0, "Top Right", "Top Right"},
+      {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_LEFT,
+       "BOTTOM_LEFT",
+       0,
+       "Bottom Left",
+       "Bottom Left"},
+      {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_CENTER,
+       "BOTTOM_CENTER",
+       0,
+       "Bottom Center",
+       "Bottom Center"},
+      {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_RIGHT,
+       "BOTTOM_RIGHT",
+       0,
+       "Bottom Right",
+       "Bottom Right"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   PropertyRNA *prop;
 
   prop = RNA_def_property(srna, "font", PROP_POINTER, PROP_NONE);
@@ -11409,6 +11436,13 @@ static void def_geo_string_to_curves(StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_node_geometry_string_to_curves_align_y_items);
   RNA_def_property_enum_default(prop, GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP_BASELINE);
   RNA_def_property_ui_text(prop, "Align Y", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "pivot_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "pivot_mode");
+  RNA_def_property_enum_items(prop, rna_node_geometry_string_to_curves_pivot_mode);
+  RNA_def_property_enum_default(prop, GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_LEFT);
+  RNA_def_property_ui_text(prop, "Pivot Point", "Pivot point position relative to character");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
