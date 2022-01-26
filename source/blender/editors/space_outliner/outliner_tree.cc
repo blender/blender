@@ -928,56 +928,11 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                 TSE_GP_LAYER,
                 TSE_RNA_STRUCT,
                 TSE_RNA_PROPERTY,
-                TSE_RNA_ARRAY_ELEM)) {
+                TSE_RNA_ARRAY_ELEM,
+                TSE_SEQUENCE,
+                TSE_SEQ_STRIP,
+                TSE_SEQUENCE_DUP)) {
     BLI_assert_msg(false, "Element type should already use new AbstractTreeElement design");
-  }
-  else if (type == TSE_SEQUENCE) {
-    Sequence *seq = (Sequence *)idv;
-
-    /*
-     * The idcode is a little hack, but the outliner
-     * only check te->idcode if te->type is equal to zero,
-     * so this is "safe".
-     */
-    te->idcode = seq->type;
-    te->directdata = seq;
-    te->name = seq->name + 2;
-
-    if (!(seq->type & SEQ_TYPE_EFFECT)) {
-      /*
-       * This work like the sequence.
-       * If the sequence have a name (not default name)
-       * show it, in other case put the filename.
-       */
-
-      if (seq->type == SEQ_TYPE_META) {
-        LISTBASE_FOREACH (Sequence *, p, &seq->seqbase) {
-          outliner_add_element(space_outliner, &te->subtree, (void *)p, te, TSE_SEQUENCE, index);
-        }
-      }
-      else {
-        outliner_add_element(
-            space_outliner, &te->subtree, (void *)seq->strip, te, TSE_SEQ_STRIP, index);
-      }
-    }
-  }
-  else if (type == TSE_SEQ_STRIP) {
-    Strip *strip = (Strip *)idv;
-
-    if (strip->dir[0] != '\0') {
-      te->name = strip->dir;
-    }
-    else {
-      te->name = IFACE_("Strip None");
-    }
-    te->directdata = strip;
-  }
-  else if (type == TSE_SEQUENCE_DUP) {
-    Sequence *seq = (Sequence *)idv;
-
-    te->idcode = seq->type;
-    te->directdata = seq;
-    te->name = seq->strip->stripdata->name;
   }
 
   if (tree_element_warnings_get(te, nullptr, nullptr)) {

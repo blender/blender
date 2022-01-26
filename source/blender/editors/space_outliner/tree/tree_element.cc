@@ -35,6 +35,7 @@
 #include "tree_element_overrides.hh"
 #include "tree_element_rna.hh"
 #include "tree_element_scene_objects.hh"
+#include "tree_element_seq.hh"
 #include "tree_element_view_layer.hh"
 
 #include "../outliner_intern.hh"
@@ -96,6 +97,14 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
     case TSE_RNA_ARRAY_ELEM:
       return std::make_unique<TreeElementRNAArrayElement>(
           legacy_te, *reinterpret_cast<PointerRNA *>(idv), legacy_te.index);
+    case TSE_SEQUENCE:
+      return std::make_unique<TreeElementSequence>(legacy_te, *reinterpret_cast<Sequence *>(idv));
+    case TSE_SEQ_STRIP:
+      return std::make_unique<TreeElementSequenceStrip>(legacy_te,
+                                                        *reinterpret_cast<Strip *>(idv));
+    case TSE_SEQUENCE_DUP:
+      return std::make_unique<TreeElementSequenceStripDuplicate>(
+          legacy_te, *reinterpret_cast<Sequence *>(idv));
     default:
       break;
   }
