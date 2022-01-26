@@ -79,6 +79,8 @@ bool TreeElementRNACommon::expandPoll(const SpaceOutliner &) const
 TreeElementRNAStruct::TreeElementRNAStruct(TreeElement &legacy_te, PointerRNA &rna_ptr)
     : TreeElementRNACommon(legacy_te, rna_ptr)
 {
+  BLI_assert(legacy_te.store_elem->type == TSE_RNA_STRUCT);
+
   if (!isRNAValid()) {
     return;
   }
@@ -142,6 +144,8 @@ TreeElementRNAProperty::TreeElementRNAProperty(TreeElement &legacy_te,
                                                const int index)
     : TreeElementRNACommon(legacy_te, rna_ptr)
 {
+  BLI_assert(legacy_te.store_elem->type == TSE_RNA_PROPERTY);
+
   if (!isRNAValid()) {
     return;
   }
@@ -229,6 +233,9 @@ TreeElementRNAArrayElement::TreeElementRNAArrayElement(TreeElement &legacy_te,
                                                        const int index)
     : TreeElementRNACommon(legacy_te, rna_ptr)
 {
+  BLI_assert(legacy_te.store_elem->type == TSE_RNA_ARRAY_ELEM);
+
+  BLI_assert(legacy_te.parent && (legacy_te.parent->store_elem->type == TSE_RNA_PROPERTY));
   PropertyRNA *prop = reinterpret_cast<PropertyRNA *>(legacy_te_.parent->directdata);
   legacy_te_.directdata = prop;
   legacy_te_.index = index;
