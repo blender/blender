@@ -32,6 +32,7 @@
 #include "util/color.h"
 #include "util/foreach.h"
 #include "util/log.h"
+#include "util/string.h"
 #include "util/transform.h"
 
 #include "kernel/tables.h"
@@ -462,8 +463,12 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
   const ustring known_colorspace = metadata.colorspace;
 
   if (handle.svm_slot() == -1) {
+    /* OIIO currently does not support <UVTILE> substitutions natively. Replace with a format they
+     * understand. */
+    std::string osl_filename = filename.string();
+    string_replace(osl_filename, "<UVTILE>", "<U>_<V>");
     compiler.parameter_texture(
-        "filename", filename, compress_as_srgb ? u_colorspace_raw : known_colorspace);
+        "filename", ustring(osl_filename), compress_as_srgb ? u_colorspace_raw : known_colorspace);
   }
   else {
     compiler.parameter_texture("filename", handle.svm_slot());
@@ -472,7 +477,8 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
   const bool unassociate_alpha = !(ColorSpaceManager::colorspace_is_data(colorspace) ||
                                    alpha_type == IMAGE_ALPHA_CHANNEL_PACKED ||
                                    alpha_type == IMAGE_ALPHA_IGNORE);
-  const bool is_tiled = (filename.find("<UDIM>") != string::npos);
+  const bool is_tiled = (filename.find("<UDIM>") != string::npos ||
+                         filename.find("<UVTILE>") != string::npos);
 
   compiler.parameter(this, "projection");
   compiler.parameter(this, "projection_blend");
