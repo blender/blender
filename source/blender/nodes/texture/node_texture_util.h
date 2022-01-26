@@ -123,6 +123,18 @@ void tex_output(bNode *node,
 
 void params_from_cdata(TexParams *out, TexCallData *in);
 
+struct bNodeThreadStack *ntreeGetThreadStack(struct bNodeTreeExec *exec, int thread);
+void ntreeReleaseThreadStack(struct bNodeThreadStack *nts);
+bool ntreeExecThreadNodes(struct bNodeTreeExec *exec,
+                          struct bNodeThreadStack *nts,
+                          void *callerdata,
+                          int thread);
+
+struct bNodeTreeExec *ntreeTexBeginExecTree_internal(struct bNodeExecContext *context,
+                                                     struct bNodeTree *ntree,
+                                                     bNodeInstanceKey parent_key);
+void ntreeTexEndExecTree_internal(struct bNodeTreeExec *exec);
+
 #ifdef __cplusplus
 }
 #endif

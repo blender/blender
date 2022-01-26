@@ -101,6 +101,11 @@ void node_shader_gpu_tex_mapping(struct GPUMaterial *mat,
                                  struct GPUNodeStack *in,
                                  struct GPUNodeStack *out);
 
+struct bNodeTreeExec *ntreeShaderBeginExecTree_internal(struct bNodeExecContext *context,
+                                                        struct bNodeTree *ntree,
+                                                        bNodeInstanceKey parent_key);
+void ntreeShaderEndExecTree_internal(struct bNodeTreeExec *exec);
+
 void ntreeExecGPUNodes(struct bNodeTreeExec *exec,
                        struct GPUMaterial *mat,
                        struct bNode *output_node);

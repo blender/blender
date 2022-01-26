@@ -71,9 +71,6 @@ typedef struct bNodeThreadStack {
   bool used;
 } bNodeThreadStack;
 
-/** Supported socket types in old nodes. */
-int node_exec_socket_use_stack(struct bNodeSocket *sock);
-
 /** For a given socket, find the actual stack entry. */
 struct bNodeStack *node_get_socket_stack(struct bNodeStack *stack, struct bNodeSocket *sock);
 void node_get_stack(struct bNode *node,
@@ -85,23 +82,6 @@ struct bNodeTreeExec *ntree_exec_begin(struct bNodeExecContext *context,
                                        struct bNodeTree *ntree,
                                        bNodeInstanceKey parent_key);
 void ntree_exec_end(struct bNodeTreeExec *exec);
-
-struct bNodeThreadStack *ntreeGetThreadStack(struct bNodeTreeExec *exec, int thread);
-void ntreeReleaseThreadStack(struct bNodeThreadStack *nts);
-bool ntreeExecThreadNodes(struct bNodeTreeExec *exec,
-                          struct bNodeThreadStack *nts,
-                          void *callerdata,
-                          int thread);
-
-struct bNodeTreeExec *ntreeShaderBeginExecTree_internal(struct bNodeExecContext *context,
-                                                        struct bNodeTree *ntree,
-                                                        bNodeInstanceKey parent_key);
-void ntreeShaderEndExecTree_internal(struct bNodeTreeExec *exec);
-
-struct bNodeTreeExec *ntreeTexBeginExecTree_internal(struct bNodeExecContext *context,
-                                                     struct bNodeTree *ntree,
-                                                     bNodeInstanceKey parent_key);
-void ntreeTexEndExecTree_internal(struct bNodeTreeExec *exec);
 
 #ifdef __cplusplus
 }
