@@ -27,52 +27,6 @@
 #include "workbench_engine.h"
 #include "workbench_private.h"
 
-extern char datatoc_common_math_lib_glsl[];
-extern char datatoc_common_math_geom_lib_glsl[];
-extern char datatoc_common_hair_lib_glsl[];
-extern char datatoc_common_pointcloud_lib_glsl[];
-extern char datatoc_common_view_lib_glsl[];
-extern char datatoc_common_smaa_lib_glsl[];
-
-extern char datatoc_workbench_prepass_vert_glsl[];
-extern char datatoc_workbench_prepass_hair_vert_glsl[];
-extern char datatoc_workbench_prepass_pointcloud_vert_glsl[];
-extern char datatoc_workbench_prepass_frag_glsl[];
-
-extern char datatoc_workbench_effect_cavity_frag_glsl[];
-extern char datatoc_workbench_effect_outline_frag_glsl[];
-extern char datatoc_workbench_effect_dof_frag_glsl[];
-extern char datatoc_workbench_effect_taa_frag_glsl[];
-extern char datatoc_workbench_effect_smaa_frag_glsl[];
-extern char datatoc_workbench_effect_smaa_vert_glsl[];
-
-extern char datatoc_workbench_composite_frag_glsl[];
-
-extern char datatoc_workbench_transparent_accum_frag_glsl[];
-extern char datatoc_workbench_transparent_resolve_frag_glsl[];
-
-extern char datatoc_workbench_merge_infront_frag_glsl[];
-
-extern char datatoc_workbench_shadow_vert_glsl[];
-extern char datatoc_workbench_shadow_geom_glsl[];
-extern char datatoc_workbench_shadow_caps_geom_glsl[];
-extern char datatoc_workbench_shadow_debug_frag_glsl[];
-
-extern char datatoc_workbench_volume_vert_glsl[];
-extern char datatoc_workbench_volume_frag_glsl[];
-
-extern char datatoc_workbench_cavity_lib_glsl[];
-extern char datatoc_workbench_common_lib_glsl[];
-extern char datatoc_workbench_curvature_lib_glsl[];
-extern char datatoc_workbench_data_lib_glsl[];
-extern char datatoc_workbench_image_lib_glsl[];
-extern char datatoc_workbench_matcap_lib_glsl[];
-extern char datatoc_workbench_material_lib_glsl[];
-extern char datatoc_workbench_world_light_lib_glsl[];
-
-extern char datatoc_gpu_shader_depth_only_frag_glsl[];
-extern char datatoc_gpu_shader_common_obinfos_lib_glsl[];
-
 /* Maximum number of variations. */
 #define MAX_LIGHTING 3
 
