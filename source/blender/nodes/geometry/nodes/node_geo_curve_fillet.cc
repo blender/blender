@@ -44,7 +44,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PropertySubType::PROP_DISTANCE)
       .default_value(0.25f)
       .supports_field();
-  b.add_input<decl::Bool>(N_("Limit Radius"));
+  b.add_input<decl::Bool>(N_("Limit Radius"))
+      .description(
+          N_("Limit the maximum value of the radius in order to avoid overlapping fillets"));
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 

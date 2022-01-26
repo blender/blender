@@ -29,8 +29,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Int>(N_("Island Index"))
       .field_source()
-      .description(N_("Island indices are based on the order of the lowest-numbered vertex "
-                      "contained in each island"));
+      .description(N_("The index of the each vertex's island. Indices are based on the "
+                      "lowest vertex index contained in each island"));
   b.add_output<decl::Int>(N_("Island Count"))
       .field_source()
       .description(N_("The total number of mesh islands"));
