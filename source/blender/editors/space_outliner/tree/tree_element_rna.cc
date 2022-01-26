@@ -54,8 +54,6 @@ TreeElementRNACommon::TreeElementRNACommon(TreeElement &legacy_te, PointerRNA &r
     legacy_te_.name = IFACE_("(empty)");
     return;
   }
-
-  legacy_te_.rnaptr = rna_ptr;
 }
 
 bool TreeElementRNACommon::isExpandValid() const
@@ -71,6 +69,11 @@ bool TreeElementRNACommon::isRNAValid() const
 bool TreeElementRNACommon::expandPoll(const SpaceOutliner &) const
 {
   return isRNAValid();
+}
+
+const PointerRNA &TreeElementRNACommon::getPointerRNA() const
+{
+  return rna_ptr_;
 }
 
 PropertyRNA *TreeElementRNACommon::getPropertyRNA() const
@@ -102,15 +105,15 @@ TreeElementRNAStruct::TreeElementRNAStruct(TreeElement &legacy_te, PointerRNA &r
 void TreeElementRNAStruct::expand(SpaceOutliner &space_outliner) const
 {
   TreeStoreElem &tselem = *TREESTORE(&legacy_te_);
-  PointerRNA *ptr = &legacy_te_.rnaptr;
+  PointerRNA ptr = rna_ptr_;
 
   /* If searching don't expand RNA entries */
   if (SEARCHING_OUTLINER(&space_outliner) && BLI_strcasecmp("RNA", legacy_te_.name) == 0) {
     tselem.flag &= ~TSE_CHILDSEARCH;
   }
 
-  PropertyRNA *iterprop = RNA_struct_iterator_property(ptr->type);
-  int tot = RNA_property_collection_length(ptr, iterprop);
+  PropertyRNA *iterprop = RNA_struct_iterator_property(ptr.type);
+  int tot = RNA_property_collection_length(&ptr, iterprop);
   CLAMP_MAX(tot, max_index);
 
   TreeElementRNAProperty *parent_prop_te = legacy_te_.parent ?
@@ -127,14 +130,10 @@ void TreeElementRNAStruct::expand(SpaceOutliner &space_outliner) const
   if (TSELEM_OPEN(&tselem, &space_outliner)) {
     for (int index = 0; index < tot; index++) {
       PointerRNA propptr;
-      RNA_property_collection_lookup_int(ptr, iterprop, index, &propptr);
+      RNA_property_collection_lookup_int(&ptr, iterprop, index, &propptr);
       if (!(RNA_property_flag(reinterpret_cast<PropertyRNA *>(propptr.data)) & PROP_HIDDEN)) {
-        outliner_add_element(&space_outliner,
-                             &legacy_te_.subtree,
-                             (void *)ptr,
-                             &legacy_te_,
-                             TSE_RNA_PROPERTY,
-                             index);
+        outliner_add_element(
+            &space_outliner, &legacy_te_.subtree, &ptr, &legacy_te_, TSE_RNA_PROPERTY, index);
       }
     }
   }
@@ -184,7 +183,7 @@ void TreeElementRNAProperty::expand(SpaceOutliner &space_outliner) const
     if (pptr.data) {
       if (TSELEM_OPEN(&tselem, &space_outliner)) {
         outliner_add_element(
-            &space_outliner, &legacy_te_.subtree, (void *)&pptr, &legacy_te_, TSE_RNA_STRUCT, -1);
+            &space_outliner, &legacy_te_.subtree, &pptr, &legacy_te_, TSE_RNA_STRUCT, -1);
       }
       else {
         legacy_te_.flag |= TE_LAZY_CLOSED;
@@ -199,12 +198,8 @@ void TreeElementRNAProperty::expand(SpaceOutliner &space_outliner) const
       for (int index = 0; index < tot; index++) {
         PointerRNA pptr;
         RNA_property_collection_lookup_int(&rna_ptr, rna_prop_, index, &pptr);
-        outliner_add_element(&space_outliner,
-                             &legacy_te_.subtree,
-                             (void *)&pptr,
-                             &legacy_te_,
-                             TSE_RNA_STRUCT,
-                             index);
+        outliner_add_element(
+            &space_outliner, &legacy_te_.subtree, &pptr, &legacy_te_, TSE_RNA_STRUCT, index);
       }
     }
     else if (tot) {

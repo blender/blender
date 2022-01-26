@@ -96,6 +96,7 @@
 #include "SEQ_sequencer.h"
 
 #include "outliner_intern.hh"
+#include "tree/tree_element_rna.hh"
 #include "tree/tree_element_seq.hh"
 
 static CLG_LogRef LOG = {"ed.outliner.tools"};
@@ -1340,10 +1341,16 @@ static void data_select_linked_fn(int event,
                                   TreeStoreElem *UNUSED(tselem),
                                   void *C_v)
 {
+  const TreeElementRNAStruct *te_rna_struct = tree_element_cast<TreeElementRNAStruct>(te);
+  if (!te_rna_struct) {
+    return;
+  }
+
   if (event == OL_DOP_SELECT_LINKED) {
-    if (RNA_struct_is_ID(te->rnaptr.type)) {
+    const PointerRNA &ptr = te_rna_struct->getPointerRNA();
+    if (RNA_struct_is_ID(ptr.type)) {
       bContext *C = (bContext *)C_v;
-      ID *id = reinterpret_cast<ID *>(te->rnaptr.data);
+      ID *id = reinterpret_cast<ID *>(ptr.data);
 
       ED_object_select_linked_by_id(C, id);
     }

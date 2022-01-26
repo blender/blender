@@ -1747,7 +1747,8 @@ static void tree_element_to_path(TreeElement *te,
   LISTBASE_FOREACH (LinkData *, ld, &hierarchy) {
     /* get data */
     TreeElement *tem = (TreeElement *)ld->data;
-    PointerRNA *ptr = &tem->rnaptr;
+    TreeElementRNACommon *tem_rna = tree_element_cast<TreeElementRNACommon>(tem);
+    PointerRNA ptr = tem_rna->getPointerRNA();
 
     /* check if we're looking for first ID, or appending to path */
     if (*id) {
@@ -1760,15 +1761,14 @@ static void tree_element_to_path(TreeElement *te,
 
         if (RNA_property_type(prop) == PROP_POINTER) {
           /* for pointer we just append property name */
-          newpath = RNA_path_append(*path, ptr, prop, 0, nullptr);
+          newpath = RNA_path_append(*path, &ptr, prop, 0, nullptr);
         }
         else if (RNA_property_type(prop) == PROP_COLLECTION) {
           char buf[128], *name;
 
           TreeElement *temnext = (TreeElement *)(ld->next->data);
-
-          PointerRNA *nextptr = &temnext->rnaptr;
-          name = RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf), nullptr);
+          PointerRNA nextptr = tree_element_cast<TreeElementRNACommon>(temnext)->getPointerRNA();
+          name = RNA_struct_name_get_alloc(&nextptr, buf, sizeof(buf), nullptr);
 
           if (name) {
             /* if possible, use name as a key in the path */
@@ -1809,8 +1809,8 @@ static void tree_element_to_path(TreeElement *te,
       if (tree_element_cast<TreeElementRNAStruct>(tem)) {
         /* ptr->data not ptr->owner_id seems to be the one we want,
          * since ptr->data is sometimes the owner of this ID? */
-        if (RNA_struct_is_ID(ptr->type)) {
-          *id = reinterpret_cast<ID *>(ptr->data);
+        if (RNA_struct_is_ID(ptr.type)) {
+          *id = reinterpret_cast<ID *>(ptr.data);
 
           /* clear path */
           if (*path) {
@@ -1884,10 +1884,11 @@ static void do_outliner_drivers_editop(SpaceOutliner *space_outliner,
       short groupmode = KSP_GROUP_KSNAME;
 
       TreeElementRNACommon *te_rna = tree_element_cast<TreeElementRNACommon>(te);
+      PointerRNA ptr = te_rna ? te_rna->getPointerRNA() : PointerRNA_NULL;
       PropertyRNA *prop = te_rna ? te_rna->getPropertyRNA() : nullptr;
 
       /* check if RNA-property described by this selected element is an animatable prop */
-      if (prop && RNA_property_animateable(&te->rnaptr, prop)) {
+      if (prop && RNA_property_animateable(&ptr, prop)) {
         /* get id + path + index info from the selected element */
         tree_element_to_path(te, tselem, &id, &path, &array_index, &flag, &groupmode);
       }
@@ -1900,7 +1901,7 @@ static void do_outliner_drivers_editop(SpaceOutliner *space_outliner,
         /* array checks */
         if (flag & KSP_FLAG_WHOLE_ARRAY) {
           /* entire array was selected, so add drivers for all */
-          arraylen = RNA_property_array_length(&te->rnaptr, prop);
+          arraylen = RNA_property_array_length(&ptr, prop);
         }
         else {
           arraylen = array_index;
@@ -2082,9 +2083,10 @@ static void do_outliner_keyingset_editop(SpaceOutliner *space_outliner,
       short groupmode = KSP_GROUP_KSNAME;
 
       /* check if RNA-property described by this selected element is an animatable prop */
-      if (TreeElementRNACommon *te_rna = tree_element_cast<TreeElementRNACommon>(te);
-          te_rna && te_rna->getPropertyRNA() &&
-          RNA_property_animateable(&te->rnaptr, te_rna->getPropertyRNA())) {
+      const TreeElementRNACommon *te_rna = tree_element_cast<TreeElementRNACommon>(te);
+      PointerRNA ptr = te_rna->getPointerRNA();
+      if (te_rna && te_rna->getPropertyRNA() &&
+          RNA_property_animateable(&ptr, te_rna->getPropertyRNA())) {
         /* get id + path + index info from the selected element */
         tree_element_to_path(te, tselem, &id, &path, &array_index, &flag, &groupmode);
       }

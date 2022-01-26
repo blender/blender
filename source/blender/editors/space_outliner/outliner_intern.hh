@@ -107,8 +107,7 @@ typedef struct TreeElement {
   short idcode;              /* From TreeStore id. */
   short xend;                /* Width of item display, for select. */
   const char *name;
-  void *directdata;  /* Armature Bones, Base, ... */
-  PointerRNA rnaptr; /* RNA Pointer. */
+  void *directdata; /* Armature Bones, Base, ... */
 } TreeElement;
 
 typedef struct TreeElementIcon {

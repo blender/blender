@@ -43,6 +43,7 @@ class TreeElementRNACommon : public AbstractTreeElement {
   bool isExpandValid() const override;
   bool expandPoll(const SpaceOutliner &) const override;
 
+  const PointerRNA &getPointerRNA() const;
   /**
    * If this element represents a property or is part of a property (array element), this returns
    * the property. Otherwise nullptr.
