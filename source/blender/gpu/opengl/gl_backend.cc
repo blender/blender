@@ -423,7 +423,7 @@ static void detect_workarounds()
 
   /* Buggy interface query functions cause crashes when handling SSBOs (T93680) */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY) &&
-    (strstr(renderer, "HD Graphics 4400")|| strstr(renderer, "HD Graphics 4600"))) {
+      (strstr(renderer, "HD Graphics 4400") || strstr(renderer, "HD Graphics 4600"))) {
     GCaps.shader_storage_buffer_objects_support = false;
   }
 }  // namespace blender::gpu

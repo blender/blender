@@ -1446,7 +1446,10 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
       context = index_ffmpeg_create_context(
           anim, tcs_in_use, proxy_sizes_to_build, quality, build_only_on_bad_performance);
       break;
+#else
+    UNUSED_VARS(build_only_on_bad_performance);
 #endif
+
 #ifdef WITH_AVI
     default:
       context = index_fallback_create_context(anim, tcs_in_use, proxy_sizes_to_build, quality);
