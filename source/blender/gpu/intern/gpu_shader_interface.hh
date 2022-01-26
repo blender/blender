@@ -191,9 +191,9 @@ inline const char *ShaderInterface::builtin_uniform_name(GPUUniformBuiltin u)
     case GPU_UNIFORM_BASE_INSTANCE:
       return "gpu_BaseInstance";
     case GPU_UNIFORM_RESOURCE_CHUNK:
-      return "resourceChunk";
+      return "drw_resourceChunk";
     case GPU_UNIFORM_RESOURCE_ID:
-      return "resourceId";
+      return "drw_ResourceID";
     case GPU_UNIFORM_SRGB_TRANSFORM:
       return "srgbTarget";
 
