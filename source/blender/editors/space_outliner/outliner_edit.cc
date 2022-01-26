@@ -1717,10 +1717,6 @@ static void tree_element_to_path(TreeElement *te,
                                  short *UNUSED(groupmode))
 {
   ListBase hierarchy = {nullptr, nullptr};
-  LinkData *ld;
-  TreeElement *tem, *temnext;
-  TreeStoreElem *tse /* , *tsenext */ /* UNUSED */;
-  PointerRNA *ptr, *nextptr;
   char *newpath = nullptr;
 
   /* optimize tricks:
@@ -1740,19 +1736,18 @@ static void tree_element_to_path(TreeElement *te,
    */
 
   /* step 1: flatten out hierarchy of parents into a flat chain */
-  for (tem = te->parent; tem; tem = tem->parent) {
-    ld = MEM_cnew<LinkData>("LinkData for tree_element_to_path()");
+  for (TreeElement *tem = te->parent; tem; tem = tem->parent) {
+    LinkData *ld = MEM_cnew<LinkData>("LinkData for tree_element_to_path()");
     ld->data = tem;
     BLI_addhead(&hierarchy, ld);
   }
 
   /* step 2: step down hierarchy building the path
    * (NOTE: addhead in previous loop was needed so that we can loop like this) */
-  for (ld = reinterpret_cast<LinkData *>(hierarchy.first); ld; ld = ld->next) {
+  LISTBASE_FOREACH (LinkData *, ld, &hierarchy) {
     /* get data */
-    tem = (TreeElement *)ld->data;
-    tse = TREESTORE(tem);
-    ptr = &tem->rnaptr;
+    TreeElement *tem = (TreeElement *)ld->data;
+    PointerRNA *ptr = &tem->rnaptr;
 
     /* check if we're looking for first ID, or appending to path */
     if (*id) {
@@ -1770,10 +1765,9 @@ static void tree_element_to_path(TreeElement *te,
         else if (RNA_property_type(prop) == PROP_COLLECTION) {
           char buf[128], *name;
 
-          temnext = (TreeElement *)(ld->next->data);
-          // tsenext = TREESTORE(temnext); /* UNUSED */
+          TreeElement *temnext = (TreeElement *)(ld->next->data);
 
-          nextptr = &temnext->rnaptr;
+          PointerRNA *nextptr = &temnext->rnaptr;
           name = RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf), nullptr);
 
           if (name) {
@@ -1812,7 +1806,7 @@ static void tree_element_to_path(TreeElement *te,
     else {
       /* no ID, so check if entry is RNA-struct,
        * and if that RNA-struct is an ID datablock to extract info from. */
-      if (tse->type == TSE_RNA_STRUCT) {
+      if (tree_element_cast<TreeElementRNAStruct>(tem)) {
         /* ptr->data not ptr->owner_id seems to be the one we want,
          * since ptr->data is sometimes the owner of this ID? */
         if (RNA_struct_is_ID(ptr->type)) {
