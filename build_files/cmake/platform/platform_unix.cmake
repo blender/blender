@@ -104,10 +104,12 @@ find_package_wrapper(PNG REQUIRED)
 find_package_wrapper(ZLIB REQUIRED)
 find_package_wrapper(Zstd REQUIRED)
 
-# FreeType compiled with Brotli compression for woff2.
-find_package_wrapper(Freetype REQUIRED)
-if(EXISTS ${LIBDIR})
-  find_package_wrapper(Brotli REQUIRED)
+if(NOT WITH_SYSTEM_FREETYPE)
+  # FreeType compiled with Brotli compression for woff2.
+  find_package_wrapper(Freetype REQUIRED)
+  if(EXISTS ${LIBDIR})
+    find_package_wrapper(Brotli REQUIRED)
+  endif()
 endif()
 
 if(WITH_PYTHON)
@@ -552,6 +554,12 @@ if(EXISTS ${LIBDIR})
   set(WITH_STATIC_LIBS ${WITH_STATIC_LIBS_INIT})
 endif()
 
+if(WITH_SYSTEM_FREETYPE)
+  find_package_wrapper(Freetype)
+  if(NOT FREETYPE_FOUND)
+    message(FATAL_ERROR "Failed finding system FreeType version!")
+  endif()
+endif()
 
 if(WITH_LZO AND WITH_SYSTEM_LZO)
   find_package_wrapper(LZO)
