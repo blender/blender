@@ -79,10 +79,6 @@ bool BLI_windows_register_blend_extension(const bool background)
   char buffer[256];
 
   char BlPath[MAX_PATH];
-  char InstallDir[FILE_MAXDIR];
-  char SysDir[FILE_MAXDIR];
-  const char *ThumbHandlerDLL;
-  char RegCmd[MAX_PATH * 2];
   char MBox[256];
   char *blender_app;
 #  ifndef _WIN64
