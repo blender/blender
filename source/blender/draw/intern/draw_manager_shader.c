@@ -629,7 +629,7 @@ static uint32_t drw_shader_dependencies_get(const DRWShaderLibrary *lib, const c
   return deps;
 }
 
-void DRW_shader_library_add_file(DRWShaderLibrary *lib, char *lib_code, const char *lib_name)
+void DRW_shader_library_add_file(DRWShaderLibrary *lib, const char *lib_code, const char *lib_name)
 {
   int index = -1;
   for (int i = 0; i < MAX_LIB; i++) {

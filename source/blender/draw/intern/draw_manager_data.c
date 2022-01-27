@@ -1904,7 +1904,7 @@ void DRW_view_reset(void)
   DST.view_previous = NULL;
 }
 
-void DRW_view_default_set(DRWView *view)
+void DRW_view_default_set(const DRWView *view)
 {
   BLI_assert(DST.view_default == NULL);
   DST.view_default = view;

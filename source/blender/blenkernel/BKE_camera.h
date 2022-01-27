@@ -46,7 +46,7 @@ void *BKE_camera_add(struct Main *bmain, const char *name);
 /**
  * Get the camera's DOF value, takes the DOF object into account.
  */
-float BKE_camera_object_dof_distance(struct Object *ob);
+float BKE_camera_object_dof_distance(const struct Object *ob);
 
 int BKE_camera_sensor_fit(int sensor_fit, float sizex, float sizey);
 float BKE_camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y);
