@@ -3298,14 +3298,6 @@ static bool wm_event_inside_rect(const wmEvent *event, const rcti *rect)
   return false;
 }
 
-static bool wm_event_inside_region(const wmEvent *event, const ARegion *region)
-{
-  if (wm_event_always_pass(event)) {
-    return true;
-  }
-  return ED_region_contains_xy(region, event->xy);
-}
-
 static ScrArea *area_event_inside(bContext *C, const int xy[2])
 {
   wmWindow *win = CTX_wm_window(C);
@@ -3519,6 +3511,55 @@ static void wm_event_handle_xrevent(bContext *C,
 }
 #endif /* WITH_XR_OPENXR */
 
+static int wm_event_do_region_handlers(bContext *C, wmEvent *event, ARegion *region)
+{
+  CTX_wm_region_set(C, region);
+
+  /* Call even on non mouse events, since the */
+  wm_region_mouse_co(C, event);
+
+  const wmWindowManager *wm = CTX_wm_manager(C);
+  if (!BLI_listbase_is_empty(&wm->drags)) {
+    /* Does polls for drop regions and checks #uiButs. */
+    /* Need to be here to make sure region context is true. */
+    if (ELEM(event->type, MOUSEMOVE, EVT_DROP) || ISKEYMODIFIER(event->type)) {
+      wm_drags_check_ops(C, event);
+    }
+  }
+
+  return wm_handlers_do(C, event, &region->handlers);
+}
+
+/**
+ * Send event to region handlers in \a area.
+ *
+ * Two cases:
+ * 1) Always pass events (#wm_event_always_pass()) are sent to all regions.
+ * 2) Event is passed to the region visually under the cursor (#ED_area_find_region_xy_visual()).
+ */
+static int wm_event_do_handlers_area_regions(bContext *C, wmEvent *event, ScrArea *area)
+{
+  /* Case 1. */
+  if (wm_event_always_pass(event)) {
+    int action = WM_HANDLER_CONTINUE;
+
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+      action |= wm_event_do_region_handlers(C, event, region);
+    }
+
+    wm_event_handler_return_value_check(event, action);
+    return action;
+  }
+
+  /* Case 2. */
+  ARegion *region_hovered = ED_area_find_region_xy_visual(area, RGN_TYPE_ANY, event->xy);
+  if (!region_hovered) {
+    return WM_HANDLER_CONTINUE;
+  }
+
+  return wm_event_do_region_handlers(C, event, region_hovered);
+}
+
 void wm_event_do_handlers(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -3701,36 +3742,12 @@ void wm_event_do_handlers(bContext *C)
           if (wm_event_inside_rect(event, &area->totrct)) {
             CTX_wm_area_set(C, area);
 
-            if ((action & WM_HANDLER_BREAK) == 0) {
-              LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-                if (wm_event_inside_region(event, region)) {
+            action |= wm_event_do_handlers_area_regions(C, event, area);
 
-                  CTX_wm_region_set(C, region);
-
-                  /* Call even on non mouse events, since the */
-                  wm_region_mouse_co(C, event);
-
-                  if (!BLI_listbase_is_empty(&wm->drags)) {
-                    /* Does polls for drop regions and checks #uiButs. */
-                    /* Need to be here to make sure region context is true. */
-                    if (ELEM(event->type, MOUSEMOVE, EVT_DROP) || ISKEYMODIFIER(event->type)) {
-                      wm_drags_check_ops(C, event);
-                    }
-                  }
-
-                  action |= wm_handlers_do(C, event, &region->handlers);
-
-                  /* Fileread case (python), T29489. */
-                  if (CTX_wm_window(C) == NULL) {
-                    wm_event_free_and_remove_from_queue_if_valid(event);
-                    return;
-                  }
-
-                  if (action & WM_HANDLER_BREAK) {
-                    break;
-                  }
-                }
-              }
+            /* Fileread case (python), T29489. */
+            if (CTX_wm_window(C) == NULL) {
+              wm_event_free_and_remove_from_queue_if_valid(event);
+              return;
             }
 
             CTX_wm_region_set(C, NULL);
