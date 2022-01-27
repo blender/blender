@@ -43,7 +43,7 @@
 #include "RE_texture_margin.h"
 
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 #include <valarray>
 
 namespace blender::render::texturemargin {
@@ -128,7 +128,8 @@ class TextureMarginMap {
         &zspan_, this, &(v1[0]), &(v2[0]), &(v3[0]), TextureMarginMap::zscan_store_pixel);
   }
 
-  static void zscan_store_pixel(void *map, int x, int y, float, float)
+  static void zscan_store_pixel(
+      void *map, int x, int y, [[maybe_unused]] float u, [[maybe_unused]] float v)
   {
     /* NOTE: Not thread safe, see comment above.
      *
@@ -441,17 +442,17 @@ static void generate_margin(ImBuf *ibuf,
 
   int tottri;
   MLoopTri const *looptri;
-  MLoopTri *looptri_mem = NULL;
+  MLoopTri *looptri_mem = nullptr;
 
   if (me) {
-    BLI_assert(dm == NULL);
+    BLI_assert(dm == nullptr);
     totpoly = me->totpoly;
     totloop = me->totloop;
     totedge = me->totedge;
     mpoly = me->mpoly;
     mloop = me->mloop;
 
-    if ((uv_layer == NULL) || (uv_layer[0] == '\0')) {
+    if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
       mloopuv = static_cast<MLoopUV const *>(CustomData_get_layer(&me->ldata, CD_MLOOPUV));
     }
     else {
@@ -467,9 +468,9 @@ static void generate_margin(ImBuf *ibuf,
     looptri = looptri_mem;
   }
   else {
-    BLI_assert(dm != NULL);
-    BLI_assert(me == NULL);
-    BLI_assert(mloopuv == NULL);
+    BLI_assert(dm != nullptr);
+    BLI_assert(me == nullptr);
+    BLI_assert(mloopuv == nullptr);
     totpoly = dm->getNumPolys(dm);
     totedge = dm->getNumEdges(dm);
     totloop = dm->getNumLoops(dm);
@@ -510,7 +511,7 @@ static void generate_margin(ImBuf *ibuf,
     }
 
     BLI_assert(lt->poly < 0x80000000);  // NOTE: we need the top bit for the dijkstra distance map
-    map.rasterize_tri(vec[0], vec[1], vec[2], lt->poly, draw_new_mask ? mask : NULL);
+    map.rasterize_tri(vec[0], vec[1], vec[2], lt->poly, draw_new_mask ? mask : nullptr);
   }
 
   char *tmpmask = (char *)MEM_dupallocN(mask);
@@ -543,7 +544,7 @@ static void generate_margin(ImBuf *ibuf,
 void RE_generate_texturemargin_adjacentfaces(
     ImBuf *ibuf, char *mask, const int margin, const Mesh *me, char const *uv_layer)
 {
-  blender::render::texturemargin::generate_margin(ibuf, mask, margin, me, NULL, uv_layer);
+  blender::render::texturemargin::generate_margin(ibuf, mask, margin, me, nullptr, uv_layer);
 }
 
 void RE_generate_texturemargin_adjacentfaces_dm(ImBuf *ibuf,
@@ -551,5 +552,5 @@ void RE_generate_texturemargin_adjacentfaces_dm(ImBuf *ibuf,
                                                 const int margin,
                                                 DerivedMesh *dm)
 {
-  blender::render::texturemargin::generate_margin(ibuf, mask, margin, NULL, dm, NULL);
+  blender::render::texturemargin::generate_margin(ibuf, mask, margin, nullptr, dm, nullptr);
 }

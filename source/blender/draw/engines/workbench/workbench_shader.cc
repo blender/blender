@@ -64,7 +64,7 @@ static struct {
 
   struct GPUShader *volume_sh[2][2][3][2];
 
-} e_data = {{{{NULL}}}};
+} e_data = {{{{nullptr}}}};
 
 /* -------------------------------------------------------------------- */
 /** \name Conversions
