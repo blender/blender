@@ -174,7 +174,7 @@ void RE_SetOverrideCamera(Render *re, Object *cam_ob)
   re->camera_override = cam_ob;
 }
 
-void RE_SetCamera(Render *re, Object *cam_ob)
+void RE_SetCamera(Render *re, const Object *cam_ob)
 {
   CameraParams params;
 

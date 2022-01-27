@@ -567,7 +567,7 @@ void DRW_shader_free(GPUShader *shader)
 #define MAX_LIB_DEPS 8
 
 struct DRWShaderLibrary {
-  char *libs[MAX_LIB];
+  const char *libs[MAX_LIB];
   char libs_name[MAX_LIB][MAX_LIB_NAME];
   uint32_t libs_deps[MAX_LIB];
 };

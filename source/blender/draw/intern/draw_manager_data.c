@@ -1907,7 +1907,7 @@ void DRW_view_reset(void)
 void DRW_view_default_set(const DRWView *view)
 {
   BLI_assert(DST.view_default == NULL);
-  DST.view_default = view;
+  DST.view_default = (DRWView *)view;
 }
 
 void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len)

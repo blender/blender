@@ -310,7 +310,7 @@ void RE_SetOverrideCamera(struct Render *re, struct Object *cam_ob);
  *
  * \note call this after #RE_InitState().
  */
-void RE_SetCamera(struct Render *re, struct Object *cam_ob);
+void RE_SetCamera(struct Render *re, const struct Object *cam_ob);
 
 /**
  * Get current view and window transform.
