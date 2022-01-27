@@ -292,17 +292,18 @@ struct GPUSource {
     source = processed_source.c_str();
   };
 
-  void init_dependencies(const GPUSourceDictionnary &dict)
+  /* Return 1 one error. */
+  int init_dependencies(const GPUSourceDictionnary &dict)
   {
     if (dependencies_init) {
-      return;
+      return 0;
     }
     dependencies_init = true;
     int64_t pos = 0;
     while (true) {
       pos = source.find("pragma BLENDER_REQUIRE(", pos);
       if (pos == -1) {
-        return;
+        return 0;
       }
       int64_t start = source.find('(', pos) + 1;
       int64_t end = source.find(')', pos);
@@ -310,7 +311,7 @@ struct GPUSource {
         /* TODO Use clog. */
         std::cout << "Error: " << filename << " : Malformed BLENDER_REQUIRE: Missing \")\"."
                   << std::endl;
-        return;
+        return 1;
       }
       StringRef dependency_name = source.substr(start, end - start);
       GPUSource *dependency_source = dict.lookup_default(dependency_name, nullptr);
@@ -318,10 +319,13 @@ struct GPUSource {
         /* TODO Use clog. */
         std::cout << "Error: " << filename << " : Dependency not found \"" << dependency_name
                   << "\"." << std::endl;
-        return;
+        return 1;
       }
       /* Recursive. */
-      dependency_source->init_dependencies(dict);
+      int result = dependency_source->init_dependencies(dict);
+      if (result != 0) {
+        return 1;
+      }
 
       for (auto *dep : dependency_source->dependencies) {
         dependencies.append_non_duplicates(dep);
@@ -358,9 +362,11 @@ void gpu_shader_dependency_init()
 #include "glsl_gpu_source_list.h"
 #undef SHADER_SOURCE
 
+  int errors = 0;
   for (auto *value : g_sources->values()) {
-    value->init_dependencies(*g_sources);
+    errors += value->init_dependencies(*g_sources);
   }
+  BLI_assert_msg(errors == 0, "Dependency errors detected: Aborting");
 }
 
 void gpu_shader_dependency_exit()
