@@ -704,6 +704,7 @@ static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
   }
 
   WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 
   return local_id;
 }
@@ -721,6 +722,7 @@ static ID *rna_ID_override_hierarchy_create(
   BKE_lib_override_library_create(bmain, scene, view_layer, id, id_reference, &id_root_override);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 
   return id_root_override;
 }
@@ -741,6 +743,8 @@ static void rna_ID_override_template_create(ID *id, ReportList *reports)
     return;
   }
   BKE_lib_override_library_template_create(id);
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 }
 
 static void rna_ID_override_library_operations_update(ID *id,
@@ -754,6 +758,8 @@ static void rna_ID_override_library_operations_update(ID *id,
   }
 
   BKE_lib_override_library_operations_create(bmain, id);
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 }
 
 static void rna_ID_override_library_reset(ID *id,
@@ -773,6 +779,8 @@ static void rna_ID_override_library_reset(ID *id,
   else {
     BKE_lib_override_library_id_reset(bmain, id);
   }
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 }
 
 static void rna_ID_override_library_destroy(ID *id,
@@ -793,6 +801,8 @@ static void rna_ID_override_library_destroy(ID *id,
     BKE_libblock_remap(bmain, id, id->override_library->reference, ID_REMAP_SKIP_INDIRECT_USAGE);
     BKE_id_delete(bmain, id);
   }
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 }
 
 static IDOverrideLibraryProperty *rna_ID_override_library_properties_add(
@@ -806,6 +816,7 @@ static IDOverrideLibraryProperty *rna_ID_override_library_properties_add(
     BKE_report(reports, RPT_DEBUG, "No new override property created, property already exists");
   }
 
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
   return result;
 }
 
@@ -819,6 +830,8 @@ static void rna_ID_override_library_properties_remove(IDOverrideLibrary *overrid
   }
 
   BKE_lib_override_library_property_delete(override_library, override_property);
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 }
 
 static IDOverrideLibraryPropertyOperation *rna_ID_override_library_property_operations_add(
@@ -845,6 +858,8 @@ static IDOverrideLibraryPropertyOperation *rna_ID_override_library_property_oper
   if (!created) {
     BKE_report(reports, RPT_DEBUG, "No new override operation created, operation already exists");
   }
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
   return result;
 }
 
@@ -859,6 +874,8 @@ static void rna_ID_override_library_property_operations_remove(
   }
 
   BKE_lib_override_library_property_operation_delete(override_property, override_operation);
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 }
 
 static void rna_ID_update_tag(ID *id, Main *bmain, ReportList *reports, int flag)
@@ -1747,6 +1764,7 @@ static void rna_def_ID_override_library_property(BlenderRNA *brna)
                             "IDOverrideLibraryPropertyOperation",
                             "Operations",
                             "List of overriding operations for a property");
+  RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
   rna_def_ID_override_library_property_operations(brna, prop);
 
   rna_def_ID_override_library_property_operation(brna);
@@ -1799,8 +1817,9 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "ID Library Override", "Struct gathering all data needed by overridden linked IDs");
 
-  RNA_def_pointer(
+  prop = RNA_def_pointer(
       srna, "reference", "ID", "Reference ID", "Linked ID used as reference by this override");
+  RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 
   prop = RNA_def_boolean(srna,
                          "is_in_hierarchy",
@@ -1808,6 +1827,7 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
                          "Is In Hierarchy",
                          "Whether this library override is defined as part of a library "
                          "hierarchy, or as a single, isolated and autonomous override");
+  RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY);
 
   prop = RNA_def_collection(srna,
@@ -1815,6 +1835,7 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
                             "IDOverrideLibraryProperty",
                             "Properties",
                             "List of overridden properties");
+  RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
   rna_def_ID_override_library_properties(brna, prop);
 
   /* Update function. */
