@@ -69,7 +69,7 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   virtual void do_write(HierarchyContext &context) = 0;
   pxr::UsdTimeCode get_export_time_code() const;
 
-  pxr::UsdShadeMaterial ensure_usd_material(Material *material);
+  pxr::UsdShadeMaterial ensure_usd_material(const HierarchyContext &context, Material *material);
 
   void write_visibility(const HierarchyContext &context,
                         const pxr::UsdTimeCode timecode,

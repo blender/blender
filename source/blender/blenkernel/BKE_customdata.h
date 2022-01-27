@@ -437,6 +437,12 @@ int CustomData_get_clone_layer(const struct CustomData *data, int type);
 int CustomData_get_stencil_layer(const struct CustomData *data, int type);
 
 /**
+ * Returns name of the active layer of the given type or NULL
+ * if no such active layer is defined.
+ */
+const char *CustomData_get_active_layer_name(const struct CustomData *data, int type);
+
+/**
  * Copies the data from source to the data element at index in the first layer of type
  * no effect if there is no layer of type.
  */
