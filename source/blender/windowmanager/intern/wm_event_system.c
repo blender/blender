@@ -645,6 +645,20 @@ static int wm_event_always_pass(const wmEvent *event)
   return ISTIMER(event->type) || (event->type == WINDEACTIVATE);
 }
 
+/**
+ * Debug only sanity check for the return value of event handlers. Checks that "always pass" events
+ * don't cause non-passing handler return values, and thus actually pass.
+ *
+ * Can't be executed if the handler just loaded a file (typically identified by `CTX_wm_window(C)`
+ * returning `NULL`), because the event will have been freed then.
+ */
+BLI_INLINE void wm_event_handler_return_value_check(const wmEvent *event, const int action)
+{
+  BLI_assert_msg(!wm_event_always_pass(event) || (action != WM_HANDLER_BREAK),
+                 "Return value for events that should always pass should never be BREAK.");
+  UNUSED_VARS_NDEBUG(event, action);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2965,9 +2979,9 @@ static int wm_handlers_do_intern(bContext *C, wmWindow *win, wmEvent *event, Lis
 
   wmWindowManager *wm = CTX_wm_manager(C);
   int action = WM_HANDLER_CONTINUE;
-  int always_pass;
 
   if (handlers == NULL) {
+    wm_event_handler_return_value_check(event, action);
     return action;
   }
 
@@ -2988,7 +3002,7 @@ static int wm_handlers_do_intern(bContext *C, wmWindow *win, wmEvent *event, Lis
     }
     else if (handler_base->poll == NULL || handler_base->poll(CTX_wm_region(C), event)) {
       /* In advance to avoid access to freed event on window close. */
-      always_pass = wm_event_always_pass(event);
+      const int always_pass = wm_event_always_pass(event);
 
       /* Modal+blocking handler_base. */
       if (handler_base->flag & WM_HANDLER_BLOCKING) {
@@ -3130,6 +3144,10 @@ static int wm_handlers_do_intern(bContext *C, wmWindow *win, wmEvent *event, Lis
     wm_cursor_arrow_move(CTX_wm_window(C), event);
   }
 
+  /* Do some extra sanity checking before returning the action. */
+  if (CTX_wm_window(C) != NULL) {
+    wm_event_handler_return_value_check(event, action);
+  }
   return action;
 }
 
@@ -3257,6 +3275,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
     }
   }
 
+  wm_event_handler_return_value_check(event, action);
   return action;
 }
 
