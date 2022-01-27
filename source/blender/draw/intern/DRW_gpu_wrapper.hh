@@ -72,10 +72,7 @@
 
 #include "draw_texture_pool.h"
 
-#include "BLI_float4.hh"
-#include "BLI_int2.hh"
-#include "BLI_int3.hh"
-#include "BLI_int4.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 #include "BLI_utility_mixins.hh"
@@ -594,14 +591,6 @@ class Texture : NonCopyable {
   void clear(uint4 values)
   {
     GPU_texture_clear(tx_, GPU_DATA_UINT, &values[0]);
-  }
-
-  /**
-   * Clear the entirety of the texture using one pixel worth of data.
-   */
-  void clear(uchar4 values)
-  {
-    GPU_texture_clear(tx_, GPU_DATA_UBYTE, &values[0]);
   }
 
   /**
