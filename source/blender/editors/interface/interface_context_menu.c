@@ -809,12 +809,18 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       else {
         if (is_array_component) {
           ot = WM_operatortype_find("UI_OT_override_type_set_button", false);
-          uiItemFullO_ptr(
-              layout, ot, "Define Overrides", ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+          uiItemFullO_ptr(layout,
+                          ot,
+                          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Define Overrides"),
+                          ICON_NONE,
+                          NULL,
+                          WM_OP_INVOKE_DEFAULT,
+                          0,
+                          &op_ptr);
           RNA_boolean_set(&op_ptr, "all", true);
           uiItemFullO_ptr(layout,
                           ot,
-                          "Define Single Override",
+                          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Define Single Override"),
                           ICON_NONE,
                           NULL,
                           WM_OP_INVOKE_DEFAULT,
@@ -825,7 +831,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
         else {
           uiItemFullO(layout,
                       "UI_OT_override_type_set_button",
-                      "Define Override",
+                      CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Define Override"),
                       ICON_NONE,
                       NULL,
                       WM_OP_INVOKE_DEFAULT,
