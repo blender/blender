@@ -13,8 +13,8 @@ GPU_SHADER_INTERFACE_INFO(workbench_shadow_iface, "vData")
 GPU_SHADER_CREATE_INFO(workbench_shadow_common)
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_out(workbench_shadow_iface)
-    .push_constant(0, Type::FLOAT, "lightDistance")
-    .push_constant(1, Type::VEC3, "lightDirection")
+    .push_constant(Type::FLOAT, "lightDistance")
+    .push_constant(Type::VEC3, "lightDirection")
     .vertex_source("workbench_shadow_vert.glsl")
     .additional_info("draw_mesh");
 

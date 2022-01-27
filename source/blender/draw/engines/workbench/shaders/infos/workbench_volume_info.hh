@@ -10,10 +10,10 @@ GPU_SHADER_CREATE_INFO(workbench_volume)
     .fragment_out(0, Type::VEC4, "fragColor")
     .sampler(0, ImageType::DEPTH_2D, "depthBuffer")
     .sampler(1, ImageType::FLOAT_3D, "densityTexture")
-    .push_constant(28, Type::INT, "samplesLen")
-    .push_constant(29, Type::FLOAT, "noiseOfs")
-    .push_constant(30, Type::FLOAT, "stepLength")
-    .push_constant(31, Type::FLOAT, "densityScale")
+    .push_constant(Type::INT, "samplesLen")
+    .push_constant(Type::FLOAT, "noiseOfs")
+    .push_constant(Type::FLOAT, "stepLength")
+    .push_constant(Type::FLOAT, "densityScale")
     .vertex_source("workbench_volume_vert.glsl")
     .fragment_source("workbench_volume_frag.glsl")
     .additional_info("draw_object_infos");
@@ -32,9 +32,9 @@ GPU_SHADER_CREATE_INFO(workbench_volume_smoke)
 
 GPU_SHADER_CREATE_INFO(workbench_volume_object)
     .define("VOLUME_OBJECT")
-    .push_constant(0, Type::MAT4, "volumeTextureToObject")
+    .push_constant(Type::MAT4, "volumeTextureToObject")
     /* FIXME(fclem): This overflow the push_constant limit. */
-    .push_constant(16, Type::MAT4, "volumeObjectToTexture")
+    .push_constant(Type::MAT4, "volumeObjectToTexture")
     .additional_info("draw_volume", "draw_resource_id_varying");
 
 /** \} */
@@ -47,15 +47,15 @@ GPU_SHADER_CREATE_INFO(workbench_volume_coba)
     .define("USE_COBA")
     .sampler(4, ImageType::UINT_3D, "flagTexture")
     .sampler(5, ImageType::FLOAT_1D, "transferTexture")
-    .push_constant(18, Type::BOOL, "showPhi")
-    .push_constant(19, Type::BOOL, "showFlags")
-    .push_constant(20, Type::BOOL, "showPressure")
-    .push_constant(21, Type::FLOAT, "gridScale");
+    .push_constant(Type::BOOL, "showPhi")
+    .push_constant(Type::BOOL, "showFlags")
+    .push_constant(Type::BOOL, "showPressure")
+    .push_constant(Type::FLOAT, "gridScale");
 
 GPU_SHADER_CREATE_INFO(workbench_volume_no_coba)
     .sampler(4, ImageType::FLOAT_3D, "shadowTexture")
     .sampler(5, ImageType::UINT_2D, "transferTexture")
-    .push_constant(18, Type::VEC3, "activeColor");
+    .push_constant(Type::VEC3, "activeColor");
 
 /** \} */
 
@@ -79,8 +79,8 @@ GPU_SHADER_CREATE_INFO(workbench_volume_slice)
     .define("VOLUME_SLICE")
     .vertex_in(1, Type::VEC3, "uvs")
     .vertex_out(workbench_volume_iface)
-    .push_constant(32, Type::INT, "sliceAxis") /* -1 is no slice. */
-    .push_constant(33, Type::FLOAT, "slicePosition");
+    .push_constant(Type::INT, "sliceAxis") /* -1 is no slice. */
+    .push_constant(Type::FLOAT, "slicePosition");
 
 /** \} */
 

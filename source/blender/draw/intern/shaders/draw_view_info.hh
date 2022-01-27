@@ -26,7 +26,7 @@ GPU_SHADER_CREATE_INFO(draw_resource_id_varying)
 /* Variation used when drawing multiple instances for one object. */
 GPU_SHADER_CREATE_INFO(draw_resource_id_uniform)
     .define("UNIFORM_RESOURCE_ID")
-    .push_constant(64, Type::INT, "drw_ResourceID");
+    .push_constant(Type::INT, "drw_ResourceID");
 
 /**
  * Declare a resource handle that identify a unique object.
@@ -34,7 +34,7 @@ GPU_SHADER_CREATE_INFO(draw_resource_id_uniform)
  */
 GPU_SHADER_CREATE_INFO(draw_resource_handle)
     .define("resource_handle (drw_resourceChunk * DRW_RESOURCE_CHUNK_LEN + resource_id)")
-    .push_constant(63, Type::INT, "drw_resourceChunk");
+    .push_constant(Type::INT, "drw_resourceChunk");
 
 /** \} */
 
@@ -54,13 +54,13 @@ GPU_SHADER_CREATE_INFO(draw_modelmat)
 
 GPU_SHADER_CREATE_INFO(draw_modelmat_legacy)
     .define("DRW_LEGACY_MODEL_MATRIX")
-    .push_constant(38, Type::MAT4, "ModelMatrix")
-    .push_constant(54, Type::MAT4, "ModelMatrixInverse")
+    .push_constant(Type::MAT4, "ModelMatrix")
+    .push_constant(Type::MAT4, "ModelMatrixInverse")
     .additional_info("draw_view");
 
 GPU_SHADER_CREATE_INFO(draw_modelmat_instanced_attr)
-    .push_constant(0, Type::MAT4, "ModelMatrix")
-    .push_constant(16, Type::MAT4, "ModelMatrixInverse")
+    .push_constant(Type::MAT4, "ModelMatrix")
+    .push_constant(Type::MAT4, "ModelMatrixInverse")
     .additional_info("draw_view");
 
 /** \} */
@@ -84,14 +84,14 @@ GPU_SHADER_CREATE_INFO(draw_hair)
     .sampler(14, ImageType::UINT_BUFFER, "hairStrandBuffer")
     .sampler(13, ImageType::UINT_BUFFER, "hairStrandSegBuffer")
     /* TODO(fclem) Pack thoses into one UBO. */
-    .push_constant(9, Type::INT, "hairStrandsRes")
-    .push_constant(10, Type::INT, "hairThicknessRes")
-    .push_constant(11, Type::FLOAT, "hairRadRoot")
-    .push_constant(12, Type::FLOAT, "hairRadTip")
-    .push_constant(13, Type::FLOAT, "hairRadShape")
-    .push_constant(14, Type::BOOL, "hairCloseTip")
-    .push_constant(15, Type::INT, "hairStrandOffset")
-    .push_constant(16, Type::VEC4, "hairDupliMatrix", 4)
+    .push_constant(Type::INT, "hairStrandsRes")
+    .push_constant(Type::INT, "hairThicknessRes")
+    .push_constant(Type::FLOAT, "hairRadRoot")
+    .push_constant(Type::FLOAT, "hairRadTip")
+    .push_constant(Type::FLOAT, "hairRadShape")
+    .push_constant(Type::BOOL, "hairCloseTip")
+    .push_constant(Type::INT, "hairStrandOffset")
+    .push_constant(Type::VEC4, "hairDupliMatrix", 4)
     .additional_info("draw_modelmat", "draw_resource_id");
 
 GPU_SHADER_CREATE_INFO(draw_pointcloud)

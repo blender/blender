@@ -314,7 +314,6 @@ struct ShaderCreateInfo {
   Vector<StageInterfaceInfo *> geometry_out_interfaces_;
 
   struct PushConst {
-    int index;
     Type type;
     StringRefNull name;
     int array_size;
@@ -503,22 +502,14 @@ struct ShaderCreateInfo {
   /** \name Push constants
    *
    * Data managed by GPUShader. Can be set through uniform functions. Must be less than 128bytes.
-   * One slot represents 4bytes. Each element needs to have enough empty space left after it.
-   * example:
-   * [0] = PUSH_CONSTANT(MAT4, "ModelMatrix"),
-   * ---- 16 slots occupied by ModelMatrix ----
-   * [16] = PUSH_CONSTANT(VEC4, "color"),
-   * ---- 4 slots occupied by color ----
-   * [20] = PUSH_CONSTANT(BOOL, "srgbToggle"),
-   * The maximum slot is 31.
    * \{ */
 
-  Self &push_constant(int slot, Type type, StringRefNull name, int array_size = 0)
+  Self &push_constant(Type type, StringRefNull name, int array_size = 0)
   {
     BLI_assert_msg(name.find("[") == -1,
                    "Array syntax is forbidden for push constants."
                    "Use the array_size parameter instead.");
-    push_constants_.append({slot, type, name, array_size});
+    push_constants_.append({type, name, array_size});
     interface_names_size_ += name.size() + 1;
     return *(Self *)this;
   }

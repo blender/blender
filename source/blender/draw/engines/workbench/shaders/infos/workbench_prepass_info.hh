@@ -36,15 +36,15 @@ GPU_SHADER_CREATE_INFO(workbench_texture_none).define("TEXTURE_NONE");
 
 GPU_SHADER_CREATE_INFO(workbench_texture_single)
     .sampler(2, ImageType::FLOAT_2D, "imageTexture", Frequency::BATCH)
-    .push_constant(1, Type::BOOL, "imagePremult")
-    .push_constant(2, Type::FLOAT, "imageTransparencyCutoff")
+    .push_constant(Type::BOOL, "imagePremult")
+    .push_constant(Type::FLOAT, "imageTransparencyCutoff")
     .define("V3D_SHADING_TEXTURE_COLOR");
 
 GPU_SHADER_CREATE_INFO(workbench_texture_tile)
     .sampler(2, ImageType::FLOAT_2D_ARRAY, "imageTileArray", Frequency::BATCH)
     .sampler(3, ImageType::FLOAT_1D_ARRAY, "imageTileData", Frequency::BATCH)
-    .push_constant(1, Type::BOOL, "imagePremult")
-    .push_constant(2, Type::FLOAT, "imageTransparencyCutoff")
+    .push_constant(Type::BOOL, "imagePremult")
+    .push_constant(Type::FLOAT, "imageTransparencyCutoff")
     .define("V3D_SHADING_TEXTURE_COLOR")
     .define("TEXTURE_IMAGE_ARRAY");
 
@@ -79,8 +79,8 @@ GPU_SHADER_INTERFACE_INFO(workbench_material_iface, "")
 GPU_SHADER_CREATE_INFO(workbench_material)
     .uniform_buf(4, "WorldData", "world_data", Frequency::PASS)
     .uniform_buf(5, "vec4", "materials_data[4096]", Frequency::PASS)
-    .push_constant(4, Type::INT, "materialIndex")
-    .push_constant(5, Type::BOOL, "useMatcap")
+    .push_constant(Type::INT, "materialIndex")
+    .push_constant(Type::BOOL, "useMatcap")
     .vertex_out(workbench_material_iface);
 
 /** \} */
@@ -95,7 +95,7 @@ GPU_SHADER_CREATE_INFO(workbench_transparent_accum)
     .fragment_out(0, Type::VEC4, "transparentAccum")
     .fragment_out(1, Type::VEC4, "revealageAccum")
     .fragment_out(2, Type::UINT, "objectId")
-    .push_constant(3, Type::BOOL, "forceShadowing")
+    .push_constant(Type::BOOL, "forceShadowing")
     .typedef_source("workbench_shader_shared.h")
     .fragment_source("workbench_transparent_accum_frag.glsl");
 
