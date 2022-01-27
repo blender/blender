@@ -1611,8 +1611,7 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
 
   if (!(te = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]))) {
     if (deselect_all) {
-      outliner_flag_set(&space_outliner->tree, TSE_SELECTED, false);
-      changed = true;
+      changed |= outliner_flag_set(&space_outliner->tree, TSE_SELECTED, false);
     }
   }
   /* Don't allow toggle on scene collection */
@@ -1660,16 +1659,18 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
     changed = true;
   }
 
-  if (changed) {
-    if (rebuild_tree) {
-      ED_region_tag_redraw(region);
-    }
-    else {
-      ED_region_tag_redraw_no_rebuild(region);
-    }
-
-    ED_outliner_select_sync_from_outliner(C, space_outliner);
+  if (!changed) {
+    return OPERATOR_CANCELLED;
   }
+
+  if (rebuild_tree) {
+    ED_region_tag_redraw(region);
+  }
+  else {
+    ED_region_tag_redraw_no_rebuild(region);
+  }
+
+  ED_outliner_select_sync_from_outliner(C, space_outliner);
 
   return OPERATOR_FINISHED;
 }
