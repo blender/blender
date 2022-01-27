@@ -107,6 +107,10 @@ class ShaderInterface {
   {
     return input_lookup(inputs_ + attr_len_ + ubo_len_ + uniform_len_, ssbo_len_, name);
   }
+  inline const ShaderInput *ssbo_get(const int binding) const
+  {
+    return input_lookup(inputs_ + attr_len_ + ubo_len_ + uniform_len_, ssbo_len_, binding);
+  }
 
   inline const char *input_name_get(const ShaderInput *input) const
   {

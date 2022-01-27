@@ -34,6 +34,7 @@
 
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_create_info_private.hh"
+#include "gpu_shader_private.hh"
 
 #undef GPU_SHADER_INTERFACE_INFO
 #undef GPU_SHADER_CREATE_INFO
@@ -227,6 +228,7 @@ void gpu_shader_create_info_exit()
 
 bool gpu_shader_create_info_compile_all()
 {
+  using namespace blender::gpu;
   int success = 0;
   int total = 0;
   for (ShaderCreateInfo *info : g_create_infos->values()) {
@@ -239,6 +241,49 @@ bool gpu_shader_create_info_compile_all()
       }
       else {
         success++;
+
+#if 0 /* TODO(fclem): This is too verbose for now. Make it a cmake option. */
+        /* Test if any resource is optimized out and print a warning if that's the case. */
+        /* TODO(fclem): Limit this to OpenGL backend. */
+        const ShaderInterface *interface = unwrap(shader)->interface;
+
+        blender::Vector<ShaderCreateInfo::Resource> all_resources;
+        all_resources.extend(info->pass_resources_);
+        all_resources.extend(info->batch_resources_);
+
+        for (ShaderCreateInfo::Resource &res : all_resources) {
+          blender::StringRefNull name = "";
+          const ShaderInput *input = nullptr;
+
+          switch (res.bind_type) {
+            case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
+              input = interface->ubo_get(res.slot);
+              name = res.uniformbuf.name;
+              break;
+            case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
+              input = interface->ssbo_get(res.slot);
+              name = res.storagebuf.name;
+              break;
+            case ShaderCreateInfo::Resource::BindType::SAMPLER:
+              input = interface->texture_get(res.slot);
+              name = res.sampler.name;
+              break;
+            case ShaderCreateInfo::Resource::BindType::IMAGE:
+              input = interface->texture_get(res.slot);
+              name = res.image.name;
+              break;
+          }
+
+          if (input == nullptr) {
+            std::cout << "Error: " << info->name_;
+            std::cout << ": Resource « " << name << " » not found in the shader interface\n";
+          }
+          else if (input->location == -1) {
+            std::cout << "Warning: " << info->name_;
+            std::cout << ": Resource « " << name << " » is optimized out\n";
+          }
+        }
+#endif
       }
       GPU_shader_free(shader);
     }
