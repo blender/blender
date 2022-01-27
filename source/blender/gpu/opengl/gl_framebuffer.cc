@@ -429,8 +429,15 @@ void GLFrameBuffer::read(eGPUFrameBufferBits plane,
   switch (plane) {
     case GPU_DEPTH_BIT:
       format = GL_DEPTH_COMPONENT;
+      BLI_assert_msg(
+          this->attachments_[GPU_FB_DEPTH_ATTACHMENT].tex != nullptr ||
+              this->attachments_[GPU_FB_DEPTH_STENCIL_ATTACHMENT].tex != nullptr,
+          "GPUFramebuffer: Error: Trying to read depth without a depth buffer attached.");
       break;
     case GPU_COLOR_BIT:
+      BLI_assert_msg(
+          mode != GL_NONE,
+          "GPUFramebuffer: Error: Trying to read a color slot without valid attachment.");
       format = channel_len_to_gl(channel_len);
       /* TODO: needed for selection buffers to work properly, this should be handled better. */
       if (format == GL_RED && type == GL_UNSIGNED_INT) {
