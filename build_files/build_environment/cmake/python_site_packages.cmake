@@ -31,7 +31,7 @@ ExternalProject_Add(external_python_site_packages
   CONFIGURE_COMMAND ${PIP_CONFIGURE_COMMAND}
   BUILD_COMMAND ""
   PREFIX ${BUILD_DIR}/site_packages
-  INSTALL_COMMAND ${PYTHON_BINARY} -m pip install ${SITE_PACKAGES_EXTRA} cython==${CYTHON_VERSION} idna==${IDNA_VERSION} charset-normalizer==${CHARSET_NORMALIZER_VERSION} urllib3==${URLLIB3_VERSION} certifi==${CERTIFI_VERSION} requests==${REQUESTS_VERSION} zstandard==${ZSTANDARD_VERSION} --no-binary :all:
+  INSTALL_COMMAND ${PYTHON_BINARY} -m pip install --no-cache-dir ${SITE_PACKAGES_EXTRA} cython==${CYTHON_VERSION} idna==${IDNA_VERSION} charset-normalizer==${CHARSET_NORMALIZER_VERSION} urllib3==${URLLIB3_VERSION} certifi==${CERTIFI_VERSION} requests==${REQUESTS_VERSION} zstandard==${ZSTANDARD_VERSION} --no-binary :all:
 )
 
 if(USE_PIP_NUMPY)
