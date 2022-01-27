@@ -221,7 +221,9 @@ set(URLLIB3_VERSION 1.26.8)
 set(CERTIFI_VERSION 2021.10.8)
 set(REQUESTS_VERSION 2.27.1)
 set(CYTHON_VERSION 0.29.26)
-set(ZSTANDARD_VERSION 0.17.0 )
+# The version of the zstd library used to build the Python package should match ZSTD_VERSION defined below.
+# At this time of writing, 0.17.0 was already released, but built against zstd 1.5.1, while we use 1.5.0.
+set(ZSTANDARD_VERSION 0.16.0)
 
 set(NUMPY_VERSION 1.22.0)
 set(NUMPY_SHORT_VERSION 1.22)
