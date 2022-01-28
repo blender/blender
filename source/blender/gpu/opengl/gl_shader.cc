@@ -416,9 +416,9 @@ std::string GLShader::resources_declare(const ShaderCreateInfo &info) const
     ss << ";\n";
   }
   for (const ShaderCreateInfo::PushConst &uniform : info.push_constants_) {
-    /* T95278: Double macro to avoid some compilers think it is recusive. */
+    /* T95278: Double macro to avoid some compilers think it is recursive. */
     ss << "#define " << uniform.name << "_ " << uniform.name << "\n";
-    ss << "#define " << uniform.name << " (" << uniform.name << _ ")\n";
+    ss << "#define " << uniform.name << " (" << uniform.name << "_)\n";
   }
   ss << "\n";
   return ss.str();
