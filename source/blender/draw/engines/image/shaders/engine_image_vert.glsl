@@ -1,10 +1,5 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-#define IMAGE_DRAW_FLAG_DO_REPEAT (1 << 4)
-#define IMAGE_Z_DEPTH 0.75
-
-uniform int drawFlags;
-
 in vec2 pos;
 in vec2 uv;
 
