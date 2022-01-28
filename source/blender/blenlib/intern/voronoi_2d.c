@@ -777,7 +777,7 @@ static void voronoi_addTriangle(
     *r_triangles = MEM_reallocN(*r_triangles, sizeof(int[3]) * (*r_triangles_total + 1));
   }
   else {
-    *r_triangles = MEM_callocN(sizeof(int[3]), "trianglulation triangles");
+    *r_triangles = MEM_callocN(sizeof(int[3]), "triangulation triangles");
   }
 
   triangle = (int *)&(*r_triangles)[(*r_triangles_total)];

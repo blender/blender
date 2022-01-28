@@ -112,7 +112,7 @@ if(NOT WITH_SYSTEM_FREETYPE)
 
     # NOTE: This is done on WIN32 & APPLE but fails on some Linux systems.
     # See: https://devtalk.blender.org/t/22536
-    # So `BROTLI_LIBRARIES` need to be added  `FREETYPE_LIBRARIES`.
+    # So `BROTLI_LIBRARIES` need to be added directly after `FREETYPE_LIBRARIES`.
     #
     # list(APPEND FREETYPE_LIBRARIES
     #   ${BROTLI_LIBRARIES}

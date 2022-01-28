@@ -199,7 +199,7 @@ struct GPUSource {
    *
    * IMPORTANT: This has some requirements:
    * - Enums needs to have underlying types specified to uint32_t to make them usable in UBO/SSBO.
-   * - All values needs to be specified using constant literals to avoid compiler differencies.
+   * - All values needs to be specified using constant literals to avoid compiler differences.
    * - All values needs to have the 'u' suffix to avoid GLSL compiler errors.
    */
   void enum_preprocess(void)

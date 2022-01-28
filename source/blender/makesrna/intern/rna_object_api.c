@@ -1012,7 +1012,7 @@ void RNA_api_object(StructRNA *srna)
       parm, "", "The ortho scale to aim to be able to see all given points (if relevant)");
   RNA_def_parameter_flags(parm, 0, PARM_OUTPUT);
 
-  /* Crazyspace access. */
+  /* Crazy-space access. */
 
   func = RNA_def_function(srna, "crazyspace_eval", "rna_Object_crazyspace_eval");
   RNA_def_function_ui_description(

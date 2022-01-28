@@ -440,7 +440,7 @@ static pxr::TfToken get_node_tex_image_color_space(bNode *node)
   return pxr::TfToken();
 }
 
-/* Search the upstream nodes connected to the given socket and return the first occurrance
+/* Search the upstream nodes connected to the given socket and return the first occurrence
  * of the node of the given type. Return null if no node of this type was found. */
 static bNode *traverse_channel(bNodeSocket *input, const short target_type)
 {
@@ -464,7 +464,7 @@ static bNode *traverse_channel(bNodeSocket *input, const short target_type)
   return nullptr;
 }
 
-/* Returns the first occurence of a principled bsdf or a diffuse bsdf node found in the given
+/* Returns the first occurrence of a principled BSDF or a diffuse BSDF node found in the given
  * material's node tree.  Returns null if no instance of either type was found.*/
 static bNode *find_bsdf_node(Material *material)
 {

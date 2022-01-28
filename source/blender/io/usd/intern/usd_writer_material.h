@@ -31,17 +31,19 @@ namespace blender::io::usd {
 
 struct USDExporterContext;
 
-/* Entry point to create an approximate USD Preview Surface network from a Cycles node graph.
+/**
+ * Entry point to create an approximate USD Preview Surface network from a Cycles node graph.
  * Due to the limited nodes in the USD Preview Surface specification, only the following nodes
  * are supported:
- *  - UVMap
- *  - Texture Coordinate
- *  - Image Texture
- *  - Principled BSDF
+ * - UVMap
+ * - Texture Coordinate
+ * - Image Texture
+ * - Principled BSDF
  * More may be added in the future.
  *
- * The 'default_uv' paramter is used as the default UV set name sampled by the primvar
- * reader shaders generated for image texture nodes that don't have an attached UVMAp node. */
+ * \param default_uv: used as the default UV set name sampled by the `primvar`
+ * reader shaders generated for image texture nodes that don't have an attached UVMap node.
+ */
 void create_usd_preview_surface_material(const USDExporterContext &usd_export_context,
                                          Material *material,
                                          pxr::UsdShadeMaterial &usd_material,
