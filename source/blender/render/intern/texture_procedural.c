@@ -212,23 +212,23 @@ static int clouds(const Tex *tex, const float texvec[3], TexResult *texres)
   if (tex->stype == TEX_COLOR) {
     /* in this case, int. value should really be computed from color,
      * and bumpnormal from that, would be too slow, looks ok as is */
-    texres->tr = texres->tin;
-    texres->tg = BLI_noise_generic_turbulence(tex->noisesize,
-                                              texvec[1],
-                                              texvec[0],
-                                              texvec[2],
-                                              tex->noisedepth,
-                                              (tex->noisetype != TEX_NOISESOFT),
-                                              tex->noisebasis);
-    texres->tb = BLI_noise_generic_turbulence(tex->noisesize,
-                                              texvec[1],
-                                              texvec[2],
-                                              texvec[0],
-                                              tex->noisedepth,
-                                              (tex->noisetype != TEX_NOISESOFT),
-                                              tex->noisebasis);
+    texres->trgba[0] = texres->tin;
+    texres->trgba[1] = BLI_noise_generic_turbulence(tex->noisesize,
+                                                    texvec[1],
+                                                    texvec[0],
+                                                    texvec[2],
+                                                    tex->noisedepth,
+                                                    (tex->noisetype != TEX_NOISESOFT),
+                                                    tex->noisebasis);
+    texres->trgba[2] = BLI_noise_generic_turbulence(tex->noisesize,
+                                                    texvec[1],
+                                                    texvec[2],
+                                                    texvec[0],
+                                                    tex->noisedepth,
+                                                    (tex->noisetype != TEX_NOISESOFT),
+                                                    tex->noisebasis);
     BRICONTRGB;
-    texres->ta = 1.0;
+    texres->trgba[3] = 1.0;
     return (rv | TEX_RGB);
   }
 
@@ -453,14 +453,14 @@ static int magic(const Tex *tex, const float texvec[3], TexResult *texres)
     y /= turb;
     z /= turb;
   }
-  texres->tr = 0.5f - x;
-  texres->tg = 0.5f - y;
-  texres->tb = 0.5f - z;
+  texres->trgba[0] = 0.5f - x;
+  texres->trgba[1] = 0.5f - y;
+  texres->trgba[2] = 0.5f - z;
 
-  texres->tin = (1.0f / 3.0f) * (texres->tr + texres->tg + texres->tb);
+  texres->tin = (1.0f / 3.0f) * (texres->trgba[0] + texres->trgba[1] + texres->trgba[2]);
 
   BRICONTRGB;
-  texres->ta = 1.0f;
+  texres->trgba[3] = 1.0f;
 
   return TEX_RGB;
 }
@@ -767,21 +767,21 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
   if (tex->vn_coltype) {
     float ca[3]; /* cell color */
     BLI_noise_cell_v3(pa[0], pa[1], pa[2], ca);
-    texres->tr = aw1 * ca[0];
-    texres->tg = aw1 * ca[1];
-    texres->tb = aw1 * ca[2];
+    texres->trgba[0] = aw1 * ca[0];
+    texres->trgba[1] = aw1 * ca[1];
+    texres->trgba[2] = aw1 * ca[2];
     BLI_noise_cell_v3(pa[3], pa[4], pa[5], ca);
-    texres->tr += aw2 * ca[0];
-    texres->tg += aw2 * ca[1];
-    texres->tb += aw2 * ca[2];
+    texres->trgba[0] += aw2 * ca[0];
+    texres->trgba[1] += aw2 * ca[1];
+    texres->trgba[2] += aw2 * ca[2];
     BLI_noise_cell_v3(pa[6], pa[7], pa[8], ca);
-    texres->tr += aw3 * ca[0];
-    texres->tg += aw3 * ca[1];
-    texres->tb += aw3 * ca[2];
+    texres->trgba[0] += aw3 * ca[0];
+    texres->trgba[1] += aw3 * ca[1];
+    texres->trgba[2] += aw3 * ca[2];
     BLI_noise_cell_v3(pa[9], pa[10], pa[11], ca);
-    texres->tr += aw4 * ca[0];
-    texres->tg += aw4 * ca[1];
-    texres->tb += aw4 * ca[2];
+    texres->trgba[0] += aw4 * ca[0];
+    texres->trgba[1] += aw4 * ca[1];
+    texres->trgba[2] += aw4 * ca[2];
     if (tex->vn_coltype >= 2) {
       float t1 = (da[1] - da[0]) * 10;
       if (t1 > 1) {
@@ -793,14 +793,14 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
       else {
         t1 *= sc;
       }
-      texres->tr *= t1;
-      texres->tg *= t1;
-      texres->tb *= t1;
+      texres->trgba[0] *= t1;
+      texres->trgba[1] *= t1;
+      texres->trgba[2] *= t1;
     }
     else {
-      texres->tr *= sc;
-      texres->tg *= sc;
-      texres->tb *= sc;
+      texres->trgba[0] *= sc;
+      texres->trgba[1] *= sc;
+      texres->trgba[2] *= sc;
     }
   }
 
@@ -821,7 +821,7 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
 
   if (tex->vn_coltype) {
     BRICONTRGB;
-    texres->ta = 1.0;
+    texres->trgba[3] = 1.0;
     return (rv | TEX_RGB);
   }
 
@@ -1270,10 +1270,7 @@ static int multitex(Tex *tex,
     float col[4];
     if (BKE_colorband_evaluate(tex->coba, texres->tin, col)) {
       texres->talpha = true;
-      texres->tr = col[0];
-      texres->tg = col[1];
-      texres->tb = col[2];
-      texres->ta = col[3];
+      copy_v4_v4(texres->trgba, col);
       retval |= TEX_RGB;
     }
   }
@@ -1330,7 +1327,7 @@ static int multitex_nodes_intern(Tex *tex,
 
         /* don't linearize float buffers, assumed to be linear */
         if (ibuf != NULL && ibuf->rect_float == NULL && (rgbnor & TEX_RGB) && scene_color_manage) {
-          IMB_colormanagement_colorspace_to_scene_linear_v3(&texres->tr, ibuf->rect_colorspace);
+          IMB_colormanagement_colorspace_to_scene_linear_v3(texres->trgba, ibuf->rect_colorspace);
         }
 
         BKE_image_pool_release_ibuf(tex->ima, ibuf, pool);
@@ -1375,7 +1372,7 @@ static int multitex_nodes_intern(Tex *tex,
 
         /* don't linearize float buffers, assumed to be linear */
         if (ibuf != NULL && ibuf->rect_float == NULL && (rgbnor & TEX_RGB) && scene_color_manage) {
-          IMB_colormanagement_colorspace_to_scene_linear_v3(&texres->tr, ibuf->rect_colorspace);
+          IMB_colormanagement_colorspace_to_scene_linear_v3(texres->trgba, ibuf->rect_colorspace);
         }
 
         BKE_image_pool_release_ibuf(tex->ima, ibuf, pool);
@@ -1768,19 +1765,14 @@ bool RE_texture_evaluate(const MTex *mtex,
                  true);
 
   if (rgb) {
-    texr.tin = IMB_colormanagement_get_luminance(&texr.tr);
+    texr.tin = IMB_colormanagement_get_luminance(texr.trgba);
   }
   else {
-    texr.tr = mtex->r;
-    texr.tg = mtex->g;
-    texr.tb = mtex->b;
+    copy_v3_fl3(texr.trgba, mtex->r, mtex->g, mtex->b);
   }
 
   *r_intensity = texr.tin;
-  r_rgba[0] = texr.tr;
-  r_rgba[1] = texr.tg;
-  r_rgba[2] = texr.tb;
-  r_rgba[3] = texr.ta;
+  copy_v4_v4(r_rgba, texr.trgba);
 
   return (rgb != 0);
 }

@@ -262,9 +262,9 @@ static void displaceModifier_do_task(void *__restrict userdata,
       }
       break;
     case MOD_DISP_DIR_RGB_XYZ:
-      local_vec[0] = texres.tr - dmd->midlevel;
-      local_vec[1] = texres.tg - dmd->midlevel;
-      local_vec[2] = texres.tb - dmd->midlevel;
+      local_vec[0] = texres.trgba[0] - dmd->midlevel;
+      local_vec[1] = texres.trgba[1] - dmd->midlevel;
+      local_vec[2] = texres.trgba[2] - dmd->midlevel;
       if (use_global_direction) {
         mul_transposed_mat3_m4_v3(data->local_mat, local_vec);
       }

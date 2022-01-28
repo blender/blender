@@ -99,10 +99,11 @@ void RE_point_density_fix_linking(void);
 
 /**
  * Texture evaluation result.
- * \note `tr tg tb ta` have to remain in this order for array access.
  */
 typedef struct TexResult {
-  float tin, tr, tg, tb, ta;
+  float tin;
+  float trgba[4];
+  /* Is acually a bool true->use alpha, false->set alpha to 1.0. */
   int talpha;
   float *nor;
 } TexResult;

@@ -1061,11 +1061,11 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
       /* Evaluate texture at tex_coord. */
       TexResult texres = {0};
       BKE_texture_get_value_ex(sce, tex, tex_coord, &texres, img_pool, color_manage);
-
-      rect_float[0] = texres.tr;
-      rect_float[1] = texres.tg;
-      rect_float[2] = texres.tb;
-      rect_float[3] = texres.talpha ? texres.ta : 1.0f;
+      copy_v4_fl4(rect_float,
+                  texres.trgba[0],
+                  texres.trgba[1],
+                  texres.trgba[2],
+                  texres.talpha ? texres.trgba[3] : 1.0f);
 
       rect_float += 4;
     }
