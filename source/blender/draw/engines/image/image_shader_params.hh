@@ -54,7 +54,6 @@ struct ShaderParameters {
       Camera *camera = static_cast<Camera *>(scene->camera->data);
       copy_v2_fl2(far_near, camera->clip_end, camera->clip_start);
     }
-    const bool is_tiled_image = (image->source == IMA_SRC_TILED);
-    space->get_shader_parameters(*this, image_buffer, is_tiled_image);
+    space->get_shader_parameters(*this, image_buffer);
   }
 };

@@ -72,8 +72,7 @@ class AbstractSpaceAccessor {
    * are updated inside the image engine.
    */
   virtual void get_shader_parameters(ShaderParameters &r_shader_parameters,
-                                     ImBuf *image_buffer,
-                                     bool is_tiled) = 0;
+                                     ImBuf *image_buffer) = 0;
 
   /**
    * Retrieve the gpu textures to draw.

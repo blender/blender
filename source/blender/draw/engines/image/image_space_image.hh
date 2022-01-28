@@ -54,9 +54,7 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
     ED_space_image_release_buffer(sima, image_buffer, lock);
   }
 
-  void get_shader_parameters(ShaderParameters &r_shader_parameters,
-                             ImBuf *image_buffer,
-                             bool UNUSED(is_tiled)) override
+  void get_shader_parameters(ShaderParameters &r_shader_parameters, ImBuf *image_buffer) override
   {
     const int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(image_buffer);
     if ((sima_flag & SI_USE_ALPHA) != 0) {

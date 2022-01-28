@@ -54,9 +54,7 @@ class SpaceNodeAccessor : public AbstractSpaceAccessor {
     BKE_image_release_ibuf(image, ibuf, lock);
   }
 
-  void get_shader_parameters(ShaderParameters &r_shader_parameters,
-                             ImBuf *ibuf,
-                             bool UNUSED(is_tiled)) override
+  void get_shader_parameters(ShaderParameters &r_shader_parameters, ImBuf *ibuf) override
   {
     if ((snode->flag & SNODE_USE_ALPHA) != 0) {
       /* Show RGBA */
