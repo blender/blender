@@ -56,11 +56,9 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
 
   void get_shader_parameters(ShaderParameters &r_shader_parameters,
                              ImBuf *image_buffer,
-                             bool is_tiled) override
+                             bool UNUSED(is_tiled)) override
   {
     const int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(image_buffer);
-    const bool do_repeat = (!is_tiled) && ((sima->flag & SI_DRAW_TILE) != 0);
-    SET_FLAG_FROM_TEST(r_shader_parameters.flags, do_repeat, IMAGE_DRAW_FLAG_DO_REPEAT);
     if ((sima_flag & SI_USE_ALPHA) != 0) {
       /* Show RGBA */
       r_shader_parameters.flags |= IMAGE_DRAW_FLAG_SHOW_ALPHA | IMAGE_DRAW_FLAG_APPLY_ALPHA;
