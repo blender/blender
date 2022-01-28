@@ -64,11 +64,7 @@ GPUShader *IMAGE_shader_image_get()
 {
   IMAGE_Shaders *sh_data = &e_data.shaders;
   if (sh_data->image_sh == nullptr) {
-    sh_data->image_sh = DRW_shader_create_with_shaderlib(datatoc_engine_image_vert_glsl,
-                                                         nullptr,
-                                                         datatoc_engine_image_frag_glsl,
-                                                         e_data.lib,
-                                                         nullptr);
+    sh_data->image_sh = GPU_shader_create_from_info_name("image_engine_shader");
   }
   return sh_data->image_sh;
 }
