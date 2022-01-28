@@ -227,11 +227,17 @@ set(SRC
   engines/eevee/eevee_lut.h
   engines/eevee/eevee_private.h
   engines/external/external_engine.h
-  engines/image/image_drawing_mode_image_space.hh
+  engines/image/image_batches.hh
+  engines/image/image_drawing_mode.hh
   engines/image/image_engine.h
+  engines/image/image_instance_data.hh
+  engines/image/image_partial_updater.hh
   engines/image/image_private.hh
+  engines/image/image_shader_params.hh
   engines/image/image_space_image.hh
   engines/image/image_space_node.hh
+  engines/image/image_space.hh
+  engines/image/image_wrappers.hh
   engines/workbench/workbench_engine.h
   engines/workbench/workbench_private.h
   engines/workbench/workbench_shader_shared.h

@@ -41,7 +41,7 @@
 
 #include "GPU_batch.h"
 
-#include "image_drawing_mode_image_space.hh"
+#include "image_drawing_mode.hh"
 #include "image_engine.h"
 #include "image_private.hh"
 #include "image_space_image.hh"
@@ -68,7 +68,7 @@ template<
      *
      * Useful during development to switch between drawing implementations.
      */
-    typename DrawingMode = ImageSpaceDrawingMode>
+    typename DrawingMode = ScreenSpaceDrawingMode<OneTextureMethod>>
 class ImageEngine {
  private:
   const DRWContextState *draw_ctx;
@@ -86,48 +86,58 @@ class ImageEngine {
 
   void cache_init()
   {
-    IMAGE_StorageList *stl = vedata->stl;
-    IMAGE_PrivateData *pd = stl->pd;
-
+    IMAGE_InstanceData *instance_data = vedata->instance_data;
     drawing_mode.cache_init(vedata);
-    pd->view = nullptr;
-    if (space->has_view_override()) {
-      const ARegion *region = draw_ctx->region;
-      pd->view = space->create_view_override(region);
-    }
+
+    /* Setup full screen view matrix. */
+    const ARegion *region = draw_ctx->region;
+    float winmat[4][4], viewmat[4][4];
+    orthographic_m4(viewmat, 0.0, region->winx, 0.0, region->winy, 0.0, 1.0);
+    unit_m4(winmat);
+    instance_data->view = DRW_view_create(viewmat, winmat, nullptr, nullptr, nullptr);
   }
 
   void cache_populate()
   {
-    IMAGE_StorageList *stl = vedata->stl;
-    IMAGE_PrivateData *pd = stl->pd;
+    IMAGE_InstanceData *instance_data = vedata->instance_data;
     Main *bmain = CTX_data_main(draw_ctx->evil_C);
-    pd->image = space->get_image(bmain);
-    if (pd->image == nullptr) {
+    instance_data->image = space->get_image(bmain);
+    if (instance_data->image == nullptr) {
       /* Early exit, nothing to draw. */
       return;
     }
-    pd->ibuf = space->acquire_image_buffer(pd->image, &pd->lock);
+    instance_data->flags.do_tile_drawing = instance_data->image->source != IMA_SRC_TILED &&
+                                           space->use_tile_drawing();
+    void *lock;
+    ImBuf *image_buffer = space->acquire_image_buffer(instance_data->image, &lock);
+
+    /* Setup the matrix to go from screen UV coordinates to UV texture space coordinates. */
+    float image_resolution[2] = {image_buffer ? image_buffer->x : 1024.0f,
+                                 image_buffer ? image_buffer->y : 1024.0f};
+    space->init_ss_to_texture_matrix(
+        draw_ctx->region, image_resolution, instance_data->ss_to_texture);
+
+    const Scene *scene = DRW_context_state_get()->scene;
+    instance_data->sh_params.update(space.get(), scene, instance_data->image, image_buffer);
+    space->release_buffer(instance_data->image, image_buffer, lock);
+
     ImageUser *iuser = space->get_image_user();
-    drawing_mode.cache_image(space.get(), vedata, pd->image, iuser, pd->ibuf);
+    drawing_mode.cache_image(vedata, instance_data->image, iuser);
   }
 
   void draw_finish()
   {
     drawing_mode.draw_finish(vedata);
 
-    IMAGE_StorageList *stl = vedata->stl;
-    IMAGE_PrivateData *pd = stl->pd;
-    space->release_buffer(pd->image, pd->ibuf, pd->lock);
-    pd->image = nullptr;
-    pd->ibuf = nullptr;
+    IMAGE_InstanceData *instance_data = vedata->instance_data;
+    instance_data->image = nullptr;
   }
 
   void draw_scene()
   {
     drawing_mode.draw_scene(vedata);
   }
-};
+};  // namespace blender::draw::image_engine
 
 /* -------------------------------------------------------------------- */
 /** \name Engine Callbacks
@@ -137,15 +147,9 @@ static void IMAGE_engine_init(void *ved)
 {
   IMAGE_shader_library_ensure();
   IMAGE_Data *vedata = (IMAGE_Data *)ved;
-  IMAGE_StorageList *stl = vedata->stl;
-  if (!stl->pd) {
-    stl->pd = static_cast<IMAGE_PrivateData *>(MEM_callocN(sizeof(IMAGE_PrivateData), __func__));
+  if (vedata->instance_data == nullptr) {
+    vedata->instance_data = MEM_new<IMAGE_InstanceData>(__func__);
   }
-  IMAGE_PrivateData *pd = stl->pd;
-
-  pd->ibuf = nullptr;
-  pd->lock = nullptr;
-  pd->texture = nullptr;
 }
 
 static void IMAGE_cache_init(void *vedata)
@@ -174,6 +178,12 @@ static void IMAGE_engine_free()
   IMAGE_shader_free();
 }
 
+static void IMAGE_instance_free(void *_instance_data)
+{
+  IMAGE_InstanceData *instance_data = reinterpret_cast<IMAGE_InstanceData *>(_instance_data);
+  MEM_delete(instance_data);
+}
+
 /** \} */
 
 static const DrawEngineDataSize IMAGE_data_size = DRW_VIEWPORT_DATA_SIZE(IMAGE_Data);
@@ -191,7 +201,7 @@ DrawEngineType draw_engine_image_type = {
     &IMAGE_data_size,      /* vedata_size */
     &IMAGE_engine_init,    /* engine_init */
     &IMAGE_engine_free,    /* engine_free */
-    nullptr,               /* instance_free */
+    &IMAGE_instance_free,  /* instance_free */
     &IMAGE_cache_init,     /* cache_init */
     &IMAGE_cache_populate, /* cache_populate */
     nullptr,               /* cache_finish */

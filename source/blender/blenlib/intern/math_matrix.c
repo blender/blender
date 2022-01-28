@@ -2296,6 +2296,17 @@ void scale_m4_fl(float R[4][4], float scale)
   R[3][0] = R[3][1] = R[3][2] = 0.0;
 }
 
+void scale_m4_v2(float R[4][4], const float scale[2])
+{
+  R[0][0] = scale[0];
+  R[1][1] = scale[1];
+  R[2][2] = R[3][3] = 1.0;
+  R[0][1] = R[0][2] = R[0][3] = 0.0;
+  R[1][0] = R[1][2] = R[1][3] = 0.0;
+  R[2][0] = R[2][1] = R[2][3] = 0.0;
+  R[3][0] = R[3][1] = R[3][2] = 0.0;
+}
+
 void translate_m4(float mat[4][4], float Tx, float Ty, float Tz)
 {
   mat[3][0] += (Tx * mat[0][0] + Ty * mat[1][0] + Tz * mat[2][0]);

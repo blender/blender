@@ -58,14 +58,6 @@ static void image_free_gpu_limited_scale(Image *ima);
 static void image_update_gputexture_ex(
     Image *ima, ImageTile *tile, ImBuf *ibuf, int x, int y, int w, int h);
 
-/* Internal structs. */
-#define IMA_PARTIAL_REFRESH_TILE_SIZE 256
-struct ImagePartialRefresh {
-  struct ImagePartialRefresh *next, *prev;
-  int tile_x;
-  int tile_y;
-};
-
 bool BKE_image_has_gpu_texture_premultiplied_alpha(Image *image, ImBuf *ibuf)
 {
   if (image) {
