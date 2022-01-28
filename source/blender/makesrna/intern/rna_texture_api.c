@@ -32,6 +32,7 @@
 
 #  include "BKE_context.h"
 #  include "BKE_global.h"
+#  include "BLI_math.h"
 #  include "DNA_scene_types.h"
 #  include "IMB_imbuf.h"
 #  include "IMB_imbuf_types.h"
@@ -40,14 +41,12 @@
 
 static void texture_evaluate(struct Tex *tex, float value[3], float r_color[4])
 {
-  TexResult texres = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
+  TexResult texres = {0.0f};
 
   /* TODO(sergey): always use color management now. */
   multitex_ext(tex, value, NULL, NULL, 1, &texres, 0, NULL, true, false);
 
-  r_color[0] = texres.tr;
-  r_color[1] = texres.tg;
-  r_color[2] = texres.tb;
+  copy_v3_v3(r_color, texres.trgba);
   r_color[3] = texres.tin;
 }
 

@@ -133,11 +133,9 @@ void TextureBaseOperation::execute_pixel_sampled(float output[4],
   retval = multitex_ext(
       texture_, vec, nullptr, nullptr, 0, &texres, thread_id, pool_, scene_color_manage_, false);
 
-  output[3] = texres.talpha ? texres.ta : texres.tin;
+  output[3] = texres.talpha ? texres.trgba[3] : texres.tin;
   if (retval & TEX_RGB) {
-    output[0] = texres.tr;
-    output[1] = texres.tg;
-    output[2] = texres.tb;
+    copy_v3_v3(output, texres.trgba);
   }
   else {
     output[0] = output[1] = output[2] = output[3];
@@ -186,11 +184,9 @@ void TextureBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                     scene_color_manage_,
                                     false);
 
-    it.out[3] = tex_result.talpha ? tex_result.ta : tex_result.tin;
+    it.out[3] = tex_result.talpha ? tex_result.trgba[3] : tex_result.tin;
     if (retval & TEX_RGB) {
-      it.out[0] = tex_result.tr;
-      it.out[1] = tex_result.tg;
-      it.out[2] = tex_result.tb;
+      copy_v3_v3(it.out, tex_result.trgba);
     }
     else {
       it.out[0] = it.out[1] = it.out[2] = it.out[3];

@@ -108,7 +108,7 @@ int imagewrap(Tex *tex,
   int x, y, retval;
   int xi, yi; /* original values */
 
-  texres->tin = texres->ta = texres->tr = texres->tg = texres->tb = 0.0f;
+  texres->tin = texres->trgba[3] = texres->trgba[0] = texres->trgba[1] = texres->trgba[2] = 0.0f;
 
   /* we need to set retval OK, otherwise texture code generates normals itself... */
   retval = texres->nor ? (TEX_RGB | TEX_NOR) : TEX_RGB;
@@ -269,7 +269,7 @@ int imagewrap(Tex *tex,
               (tex->extend == TEX_EXTEND));
   }
   else { /* no filtering */
-    ibuf_get_color(&texres->tr, ibuf, x, y);
+    ibuf_get_color(texres->trgba, ibuf, x, y);
   }
 
   if (texres->nor) {
@@ -281,13 +281,13 @@ int imagewrap(Tex *tex,
        * the normal used in the renderer points inward. It is generated
        * this way in calc_vertexnormals(). Should this ever change
        * this negate must be removed. */
-      texres->nor[0] = -2.0f * (texres->tr - 0.5f);
-      texres->nor[1] = 2.0f * (texres->tg - 0.5f);
-      texres->nor[2] = 2.0f * (texres->tb - 0.5f);
+      texres->nor[0] = -2.0f * (texres->trgba[0] - 0.5f);
+      texres->nor[1] = 2.0f * (texres->trgba[1] - 0.5f);
+      texres->nor[2] = 2.0f * (texres->trgba[2] - 0.5f);
     }
     else {
       /* bump: take three samples */
-      val1 = texres->tr + texres->tg + texres->tb;
+      val1 = texres->trgba[0] + texres->trgba[1] + texres->trgba[2];
 
       if (x < ibuf->x - 1) {
         float col[4];
@@ -314,26 +314,26 @@ int imagewrap(Tex *tex,
   }
 
   if (texres->talpha) {
-    texres->tin = texres->ta;
+    texres->tin = texres->trgba[3];
   }
   else if (tex->imaflag & TEX_CALCALPHA) {
-    texres->ta = texres->tin = max_fff(texres->tr, texres->tg, texres->tb);
+    texres->trgba[3] = texres->tin = max_fff(texres->trgba[0], texres->trgba[1], texres->trgba[2]);
   }
   else {
-    texres->ta = texres->tin = 1.0;
+    texres->trgba[3] = texres->tin = 1.0;
   }
 
   if (tex->flag & TEX_NEGALPHA) {
-    texres->ta = 1.0f - texres->ta;
+    texres->trgba[3] = 1.0f - texres->trgba[3];
   }
 
   /* de-premul, this is being pre-multiplied in shade_input_do_shade()
    * do not de-premul for generated alpha, it is already in straight */
-  if (texres->ta != 1.0f && texres->ta > 1e-4f && !(tex->imaflag & TEX_CALCALPHA)) {
-    fx = 1.0f / texres->ta;
-    texres->tr *= fx;
-    texres->tg *= fx;
-    texres->tb *= fx;
+  if (texres->trgba[3] != 1.0f && texres->trgba[3] > 1e-4f && !(tex->imaflag & TEX_CALCALPHA)) {
+    fx = 1.0f / texres->trgba[3];
+    texres->trgba[0] *= fx;
+    texres->trgba[1] *= fx;
+    texres->trgba[2] *= fx;
   }
 
   if (ima) {
@@ -546,10 +546,10 @@ static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
   }
 
   if (starty == endy && startx == endx) {
-    ibuf_get_color(&texres->tr, ibuf, startx, starty);
+    ibuf_get_color(texres->trgba, ibuf, startx, starty);
   }
   else {
-    div = texres->tr = texres->tg = texres->tb = texres->ta = 0.0;
+    div = texres->trgba[0] = texres->trgba[1] = texres->trgba[2] = texres->trgba[3] = 0.0;
     for (y = starty; y <= endy; y++) {
 
       muly = 1.0;
@@ -570,11 +570,7 @@ static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
         mulx = muly;
 
         ibuf_get_color(col, ibuf, startx, y);
-
-        texres->ta += mulx * col[3];
-        texres->tr += mulx * col[0];
-        texres->tg += mulx * col[1];
-        texres->tb += mulx * col[2];
+        madd_v4_v4fl(texres->trgba, col, mulx);
         div += mulx;
       }
       else {
@@ -588,19 +584,14 @@ static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
           }
 
           ibuf_get_color(col, ibuf, x, y);
-
+          /* TODO(jbakker): No need to do manual optimization. Branching is slower than multiplying
+           * with 1. */
           if (mulx == 1.0f) {
-            texres->ta += col[3];
-            texres->tr += col[0];
-            texres->tg += col[1];
-            texres->tb += col[2];
+            add_v4_v4(texres->trgba, col);
             div += 1.0f;
           }
           else {
-            texres->ta += mulx * col[3];
-            texres->tr += mulx * col[0];
-            texres->tg += mulx * col[1];
-            texres->tb += mulx * col[2];
+            madd_v4_v4fl(texres->trgba, col, mulx);
             div += mulx;
           }
         }
@@ -609,13 +600,10 @@ static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
 
     if (div != 0.0f) {
       div = 1.0f / div;
-      texres->tb *= div;
-      texres->tg *= div;
-      texres->tr *= div;
-      texres->ta *= div;
+      mul_v4_fl(texres->trgba, div);
     }
     else {
-      texres->tr = texres->tg = texres->tb = texres->ta = 0.0f;
+      zero_v4(texres->trgba);
     }
   }
 }
@@ -663,7 +651,7 @@ static void boxsample(ImBuf *ibuf,
     alphaclip = clipx_rctf(rf, 0.0, (float)(ibuf->x));
 
     if (alphaclip <= 0.0f) {
-      texres->tr = texres->tb = texres->tg = texres->ta = 0.0;
+      texres->trgba[0] = texres->trgba[2] = texres->trgba[1] = texres->trgba[3] = 0.0;
       return;
     }
   }
@@ -679,33 +667,33 @@ static void boxsample(ImBuf *ibuf,
     alphaclip *= clipy_rctf(rf, 0.0, (float)(ibuf->y));
 
     if (alphaclip <= 0.0f) {
-      texres->tr = texres->tb = texres->tg = texres->ta = 0.0;
+      texres->trgba[0] = texres->trgba[2] = texres->trgba[1] = texres->trgba[3] = 0.0;
       return;
     }
   }
 
   if (count > 1) {
-    tot = texres->tr = texres->tb = texres->tg = texres->ta = 0.0;
+    tot = texres->trgba[0] = texres->trgba[2] = texres->trgba[1] = texres->trgba[3] = 0.0;
     while (count--) {
       boxsampleclip(ibuf, rf, &texr);
 
       opp = square_rctf(rf);
       tot += opp;
 
-      texres->tr += opp * texr.tr;
-      texres->tg += opp * texr.tg;
-      texres->tb += opp * texr.tb;
+      texres->trgba[0] += opp * texr.trgba[0];
+      texres->trgba[1] += opp * texr.trgba[1];
+      texres->trgba[2] += opp * texr.trgba[2];
       if (texres->talpha) {
-        texres->ta += opp * texr.ta;
+        texres->trgba[3] += opp * texr.trgba[3];
       }
       rf++;
     }
     if (tot != 0.0f) {
-      texres->tr /= tot;
-      texres->tg /= tot;
-      texres->tb /= tot;
+      texres->trgba[0] /= tot;
+      texres->trgba[1] /= tot;
+      texres->trgba[2] /= tot;
       if (texres->talpha) {
-        texres->ta /= tot;
+        texres->trgba[3] /= tot;
       }
     }
   }
@@ -714,15 +702,15 @@ static void boxsample(ImBuf *ibuf,
   }
 
   if (texres->talpha == 0) {
-    texres->ta = 1.0;
+    texres->trgba[3] = 1.0;
   }
 
   if (alphaclip != 1.0f) {
     /* premul it all */
-    texres->tr *= alphaclip;
-    texres->tg *= alphaclip;
-    texres->tb *= alphaclip;
-    texres->ta *= alphaclip;
+    texres->trgba[0] *= alphaclip;
+    texres->trgba[1] *= alphaclip;
+    texres->trgba[2] *= alphaclip;
+    texres->trgba[3] *= alphaclip;
   }
 }
 
@@ -850,7 +838,7 @@ static void area_sample(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
   ysam = CLAMPIS(ysam, minsam, ibuf->y * 2);
   xsd = 1.0f / xsam;
   ysd = 1.0f / ysam;
-  texr->tr = texr->tg = texr->tb = texr->ta = 0.0f;
+  texr->trgba[0] = texr->trgba[1] = texr->trgba[2] = texr->trgba[3] = 0.0f;
   for (ys = 0; ys < ysam; ys++) {
     for (xs = 0; xs < xsam; xs++) {
       const float su = (xs + ((ys & 1) + 0.5f) * 0.5f) * xsd - 0.5f;
@@ -861,18 +849,18 @@ static void area_sample(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
           tc, ibuf, pu * ibuf->x, pv * ibuf->y, AFD->intpol, AFD->extflag);
       clip |= out;
       cw += out ? 0.0f : 1.0f;
-      texr->tr += tc[0];
-      texr->tg += tc[1];
-      texr->tb += tc[2];
-      texr->ta += texr->talpha ? tc[3] : 0.0f;
+      texr->trgba[0] += tc[0];
+      texr->trgba[1] += tc[1];
+      texr->trgba[2] += tc[2];
+      texr->trgba[3] += texr->talpha ? tc[3] : 0.0f;
     }
   }
   xsd *= ysd;
-  texr->tr *= xsd;
-  texr->tg *= xsd;
-  texr->tb *= xsd;
-  /* clipping can be ignored if alpha used, texr->ta already includes filtered edge */
-  texr->ta = texr->talpha ? texr->ta * xsd : (clip ? cw * xsd : 1.0f);
+  texr->trgba[0] *= xsd;
+  texr->trgba[1] *= xsd;
+  texr->trgba[2] *= xsd;
+  /* clipping can be ignored if alpha used, texr->trgba[3] already includes filtered edge */
+  texr->trgba[3] = texr->talpha ? texr->trgba[3] * xsd : (clip ? cw * xsd : 1.0f);
 }
 
 typedef struct ReadEWAData {
@@ -901,7 +889,7 @@ static void ewa_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata_t 
                  AFD->dyt,
                  ewa_read_pixel_cb,
                  &data,
-                 &texr->tr);
+                 texr->trgba);
 }
 
 static void feline_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata_t *AFD)
@@ -919,7 +907,7 @@ static void feline_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
   /* have to use same scaling for du/dv here as for Ux/Vx/Uy/Vy (*after* D calc.) */
   du *= AFD->dusc;
   dv *= AFD->dvsc;
-  d = texr->tr = texr->tb = texr->tg = texr->ta = 0.0f;
+  d = texr->trgba[0] = texr->trgba[2] = texr->trgba[1] = texr->trgba[3] = 0.0f;
   for (n = -maxn; n <= maxn; n += 2) {
     float tc[4];
     const float hn = n * 0.5f;
@@ -934,19 +922,20 @@ static void feline_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
         tc, ibuf, ibuf->x * u, ibuf->y * v, AFD->intpol, AFD->extflag);
     /* TXF alpha: `clip |= out;`
      * TXF alpha: `cw += out ? 0.0f : wt;` */
-    texr->tr += tc[0] * wt;
-    texr->tg += tc[1] * wt;
-    texr->tb += tc[2] * wt;
-    texr->ta += texr->talpha ? tc[3] * wt : 0.0f;
+    texr->trgba[0] += tc[0] * wt;
+    texr->trgba[1] += tc[1] * wt;
+    texr->trgba[2] += tc[2] * wt;
+    texr->trgba[3] += texr->talpha ? tc[3] * wt : 0.0f;
     d += wt;
   }
 
   d = 1.0f / d;
-  texr->tr *= d;
-  texr->tg *= d;
-  texr->tb *= d;
-  /* Clipping can be ignored if alpha used, `texr->ta` already includes filtered edge */
-  texr->ta = texr->talpha ? texr->ta * d : 1.0f; /* TXF alpha: `(clip ? cw*d : 1.0f);` */
+  texr->trgba[0] *= d;
+  texr->trgba[1] *= d;
+  texr->trgba[2] *= d;
+  /* Clipping can be ignored if alpha used, `texr->trgba[3]` already includes filtered edge */
+  texr->trgba[3] = texr->talpha ? texr->trgba[3] * d :
+                                  1.0f; /* TXF alpha: `(clip ? cw*d : 1.0f);` */
 }
 #undef EWA_MAXIDX
 
@@ -971,10 +960,10 @@ static void alpha_clip_aniso(
 
     if (alphaclip != 1.0f) {
       /* premul it all */
-      texres->tr *= alphaclip;
-      texres->tg *= alphaclip;
-      texres->tb *= alphaclip;
-      texres->ta *= alphaclip;
+      texres->trgba[0] *= alphaclip;
+      texres->trgba[1] *= alphaclip;
+      texres->trgba[2] *= alphaclip;
+      texres->trgba[3] *= alphaclip;
     }
   }
 }
@@ -1033,7 +1022,7 @@ static int imagewraposa_aniso(Tex *tex,
       filterfunc = area_sample;
   }
 
-  texres->tin = texres->ta = texres->tr = texres->tg = texres->tb = 0.0f;
+  texres->tin = texres->trgba[3] = texres->trgba[0] = texres->trgba[1] = texres->trgba[2] = 0.0f;
 
   /* we need to set retval OK, otherwise texture code generates normals itself... */
   retval = texres->nor ? (TEX_RGB | TEX_NOR) : TEX_RGB;
@@ -1332,27 +1321,27 @@ static int imagewraposa_aniso(Tex *tex,
     if (texres->nor && ((tex->imaflag & TEX_NORMALMAP) == 0)) {
       /* color & normal */
       filterfunc(texres, curibuf, fx, fy, &AFD);
-      val1 = texres->tr + texres->tg + texres->tb;
+      val1 = texres->trgba[0] + texres->trgba[1] + texres->trgba[2];
       filterfunc(&texr, curibuf, fx + dxt[0], fy + dxt[1], &AFD);
-      val2 = texr.tr + texr.tg + texr.tb;
+      val2 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
       filterfunc(&texr, curibuf, fx + dyt[0], fy + dyt[1], &AFD);
-      val3 = texr.tr + texr.tg + texr.tb;
+      val3 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
       /* don't switch x or y! */
       texres->nor[0] = val1 - val2;
       texres->nor[1] = val1 - val3;
       if (previbuf != curibuf) { /* interpolate */
         filterfunc(&texr, previbuf, fx, fy, &AFD);
         /* rgb */
-        texres->tr += levf * (texr.tr - texres->tr);
-        texres->tg += levf * (texr.tg - texres->tg);
-        texres->tb += levf * (texr.tb - texres->tb);
-        texres->ta += levf * (texr.ta - texres->ta);
+        texres->trgba[0] += levf * (texr.trgba[0] - texres->trgba[0]);
+        texres->trgba[1] += levf * (texr.trgba[1] - texres->trgba[1]);
+        texres->trgba[2] += levf * (texr.trgba[2] - texres->trgba[2]);
+        texres->trgba[3] += levf * (texr.trgba[3] - texres->trgba[3]);
         /* normal */
-        val1 += levf * ((texr.tr + texr.tg + texr.tb) - val1);
+        val1 += levf * ((texr.trgba[0] + texr.trgba[1] + texr.trgba[2]) - val1);
         filterfunc(&texr, previbuf, fx + dxt[0], fy + dxt[1], &AFD);
-        val2 += levf * ((texr.tr + texr.tg + texr.tb) - val2);
+        val2 += levf * ((texr.trgba[0] + texr.trgba[1] + texr.trgba[2]) - val2);
         filterfunc(&texr, previbuf, fx + dyt[0], fy + dyt[1], &AFD);
-        val3 += levf * ((texr.tr + texr.tg + texr.tb) - val3);
+        val3 += levf * ((texr.trgba[0] + texr.trgba[1] + texr.trgba[2]) - val3);
         texres->nor[0] = val1 - val2; /* vals have been interpolated above! */
         texres->nor[1] = val1 - val3;
       }
@@ -1361,10 +1350,10 @@ static int imagewraposa_aniso(Tex *tex,
       filterfunc(texres, curibuf, fx, fy, &AFD);
       if (previbuf != curibuf) { /* interpolate */
         filterfunc(&texr, previbuf, fx, fy, &AFD);
-        texres->tr += levf * (texr.tr - texres->tr);
-        texres->tg += levf * (texr.tg - texres->tg);
-        texres->tb += levf * (texr.tb - texres->tb);
-        texres->ta += levf * (texr.ta - texres->ta);
+        texres->trgba[0] += levf * (texr.trgba[0] - texres->trgba[0]);
+        texres->trgba[1] += levf * (texr.trgba[1] - texres->trgba[1]);
+        texres->trgba[2] += levf * (texr.trgba[2] - texres->trgba[2]);
+        texres->trgba[3] += levf * (texr.trgba[3] - texres->trgba[3]);
       }
 
       if (tex->texfilter != TXF_EWA) {
@@ -1402,11 +1391,11 @@ static int imagewraposa_aniso(Tex *tex,
     if (texres->nor && ((tex->imaflag & TEX_NORMALMAP) == 0)) {
       /* color & normal */
       filterfunc(texres, ibuf, fx, fy, &AFD);
-      val1 = texres->tr + texres->tg + texres->tb;
+      val1 = texres->trgba[0] + texres->trgba[1] + texres->trgba[2];
       filterfunc(&texr, ibuf, fx + dxt[0], fy + dxt[1], &AFD);
-      val2 = texr.tr + texr.tg + texr.tb;
+      val2 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
       filterfunc(&texr, ibuf, fx + dyt[0], fy + dyt[1], &AFD);
-      val3 = texr.tr + texr.tg + texr.tb;
+      val3 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
       /* don't switch x or y! */
       texres->nor[0] = val1 - val2;
       texres->nor[1] = val1 - val3;
@@ -1420,13 +1409,14 @@ static int imagewraposa_aniso(Tex *tex,
   }
 
   if (tex->imaflag & TEX_CALCALPHA) {
-    texres->ta = texres->tin = texres->ta * max_fff(texres->tr, texres->tg, texres->tb);
+    texres->trgba[3] = texres->tin = texres->trgba[3] *
+                                     max_fff(texres->trgba[0], texres->trgba[1], texres->trgba[2]);
   }
   else {
-    texres->tin = texres->ta;
+    texres->tin = texres->trgba[3];
   }
   if (tex->flag & TEX_NEGALPHA) {
-    texres->ta = 1.0f - texres->ta;
+    texres->trgba[3] = 1.0f - texres->trgba[3];
   }
 
   if (texres->nor && (tex->imaflag & TEX_NORMALMAP)) { /* normal from color */
@@ -1436,9 +1426,9 @@ static int imagewraposa_aniso(Tex *tex,
      * the normal used in the renderer points inward. It is generated
      * this way in calc_vertexnormals(). Should this ever change
      * this negate must be removed. */
-    texres->nor[0] = -2.0f * (texres->tr - 0.5f);
-    texres->nor[1] = 2.0f * (texres->tg - 0.5f);
-    texres->nor[2] = 2.0f * (texres->tb - 0.5f);
+    texres->nor[0] = -2.0f * (texres->trgba[0] - 0.5f);
+    texres->nor[1] = 2.0f * (texres->trgba[1] - 0.5f);
+    texres->nor[2] = 2.0f * (texres->trgba[2] - 0.5f);
   }
 
   /* de-premul, this is being pre-multiplied in shade_input_do_shade()
@@ -1449,11 +1439,11 @@ static int imagewraposa_aniso(Tex *tex,
   /* brecht: tried to fix this, see "TXF alpha" comments */
 
   /* do not de-premul for generated alpha, it is already in straight */
-  if (texres->ta != 1.0f && texres->ta > 1e-4f && !(tex->imaflag & TEX_CALCALPHA)) {
-    fx = 1.0f / texres->ta;
-    texres->tr *= fx;
-    texres->tg *= fx;
-    texres->tb *= fx;
+  if (texres->trgba[3] != 1.0f && texres->trgba[3] > 1e-4f && !(tex->imaflag & TEX_CALCALPHA)) {
+    fx = 1.0f / texres->trgba[3];
+    texres->trgba[0] *= fx;
+    texres->trgba[1] *= fx;
+    texres->trgba[2] *= fx;
   }
 
   if (ima) {
@@ -1490,7 +1480,7 @@ int imagewraposa(Tex *tex,
     return imagewraposa_aniso(tex, ima, ibuf, texvec, dxt, dyt, texres, pool, skip_load_image);
   }
 
-  texres->tin = texres->ta = texres->tr = texres->tg = texres->tb = 0.0f;
+  texres->tin = texres->trgba[3] = texres->trgba[0] = texres->trgba[1] = texres->trgba[2] = 0.0f;
 
   /* we need to set retval OK, otherwise texture code generates normals itself... */
   retval = texres->nor ? (TEX_RGB | TEX_NOR) : TEX_RGB;
@@ -1795,7 +1785,7 @@ int imagewraposa(Tex *tex,
 
       boxsample(
           curibuf, fx - minx, fy - miny, fx + minx, fy + miny, texres, imaprepeat, imapextend);
-      val1 = texres->tr + texres->tg + texres->tb;
+      val1 = texres->trgba[0] + texres->trgba[1] + texres->trgba[2];
       boxsample(curibuf,
                 fx - minx + dxt[0],
                 fy - miny + dxt[1],
@@ -1804,7 +1794,7 @@ int imagewraposa(Tex *tex,
                 &texr,
                 imaprepeat,
                 imapextend);
-      val2 = texr.tr + texr.tg + texr.tb;
+      val2 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
       boxsample(curibuf,
                 fx - minx + dyt[0],
                 fy - miny + dyt[1],
@@ -1813,7 +1803,7 @@ int imagewraposa(Tex *tex,
                 &texr,
                 imaprepeat,
                 imapextend);
-      val3 = texr.tr + texr.tg + texr.tb;
+      val3 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
 
       /* don't switch x or y! */
       texres->nor[0] = (val1 - val2);
@@ -1827,20 +1817,20 @@ int imagewraposa(Tex *tex,
         /* calc rgb */
         dx = 2.0f * (pixsize - maxd) / pixsize;
         if (dx >= 1.0f) {
-          texres->ta = texr.ta;
-          texres->tb = texr.tb;
-          texres->tg = texr.tg;
-          texres->tr = texr.tr;
+          texres->trgba[3] = texr.trgba[3];
+          texres->trgba[2] = texr.trgba[2];
+          texres->trgba[1] = texr.trgba[1];
+          texres->trgba[0] = texr.trgba[0];
         }
         else {
           dy = 1.0f - dx;
-          texres->tb = dy * texres->tb + dx * texr.tb;
-          texres->tg = dy * texres->tg + dx * texr.tg;
-          texres->tr = dy * texres->tr + dx * texr.tr;
-          texres->ta = dy * texres->ta + dx * texr.ta;
+          texres->trgba[2] = dy * texres->trgba[2] + dx * texr.trgba[2];
+          texres->trgba[1] = dy * texres->trgba[1] + dx * texr.trgba[1];
+          texres->trgba[0] = dy * texres->trgba[0] + dx * texr.trgba[0];
+          texres->trgba[3] = dy * texres->trgba[3] + dx * texr.trgba[3];
         }
 
-        val1 = dy * val1 + dx * (texr.tr + texr.tg + texr.tb);
+        val1 = dy * val1 + dx * (texr.trgba[0] + texr.trgba[1] + texr.trgba[2]);
         boxsample(previbuf,
                   fx - minx + dxt[0],
                   fy - miny + dxt[1],
@@ -1849,7 +1839,7 @@ int imagewraposa(Tex *tex,
                   &texr,
                   imaprepeat,
                   imapextend);
-        val2 = dy * val2 + dx * (texr.tr + texr.tg + texr.tb);
+        val2 = dy * val2 + dx * (texr.trgba[0] + texr.trgba[1] + texr.trgba[2]);
         boxsample(previbuf,
                   fx - minx + dyt[0],
                   fy - miny + dyt[1],
@@ -1858,17 +1848,17 @@ int imagewraposa(Tex *tex,
                   &texr,
                   imaprepeat,
                   imapextend);
-        val3 = dy * val3 + dx * (texr.tr + texr.tg + texr.tb);
+        val3 = dy * val3 + dx * (texr.trgba[0] + texr.trgba[1] + texr.trgba[2]);
 
         texres->nor[0] = (val1 - val2); /* vals have been interpolated above! */
         texres->nor[1] = (val1 - val3);
 
         if (dx < 1.0f) {
           dy = 1.0f - dx;
-          texres->tb = dy * texres->tb + dx * texr.tb;
-          texres->tg = dy * texres->tg + dx * texr.tg;
-          texres->tr = dy * texres->tr + dx * texr.tr;
-          texres->ta = dy * texres->ta + dx * texr.ta;
+          texres->trgba[2] = dy * texres->trgba[2] + dx * texr.trgba[2];
+          texres->trgba[1] = dy * texres->trgba[1] + dx * texr.trgba[1];
+          texres->trgba[0] = dy * texres->trgba[0] + dx * texr.trgba[0];
+          texres->trgba[3] = dy * texres->trgba[3] + dx * texr.trgba[3];
         }
       }
       texres->nor[0] *= bumpscale;
@@ -1888,17 +1878,17 @@ int imagewraposa(Tex *tex,
         fx = 2.0f * (pixsize - maxd) / pixsize;
 
         if (fx >= 1.0f) {
-          texres->ta = texr.ta;
-          texres->tb = texr.tb;
-          texres->tg = texr.tg;
-          texres->tr = texr.tr;
+          texres->trgba[3] = texr.trgba[3];
+          texres->trgba[2] = texr.trgba[2];
+          texres->trgba[1] = texr.trgba[1];
+          texres->trgba[0] = texr.trgba[0];
         }
         else {
           fy = 1.0f - fx;
-          texres->tb = fy * texres->tb + fx * texr.tb;
-          texres->tg = fy * texres->tg + fx * texr.tg;
-          texres->tr = fy * texres->tr + fx * texr.tr;
-          texres->ta = fy * texres->ta + fx * texr.ta;
+          texres->trgba[2] = fy * texres->trgba[2] + fx * texr.trgba[2];
+          texres->trgba[1] = fy * texres->trgba[1] + fx * texr.trgba[1];
+          texres->trgba[0] = fy * texres->trgba[0] + fx * texr.trgba[0];
+          texres->trgba[3] = fy * texres->trgba[3] + fx * texr.trgba[3];
         }
       }
     }
@@ -1917,7 +1907,7 @@ int imagewraposa(Tex *tex,
 
     if (texres->nor && (tex->imaflag & TEX_NORMALMAP) == 0) {
       boxsample(ibuf, fx - minx, fy - miny, fx + minx, fy + miny, texres, imaprepeat, imapextend);
-      val1 = texres->tr + texres->tg + texres->tb;
+      val1 = texres->trgba[0] + texres->trgba[1] + texres->trgba[2];
       boxsample(ibuf,
                 fx - minx + dxt[0],
                 fy - miny + dxt[1],
@@ -1926,7 +1916,7 @@ int imagewraposa(Tex *tex,
                 &texr,
                 imaprepeat,
                 imapextend);
-      val2 = texr.tr + texr.tg + texr.tb;
+      val2 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
       boxsample(ibuf,
                 fx - minx + dyt[0],
                 fy - miny + dyt[1],
@@ -1935,7 +1925,7 @@ int imagewraposa(Tex *tex,
                 &texr,
                 imaprepeat,
                 imapextend);
-      val3 = texr.tr + texr.tg + texr.tb;
+      val3 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
 
       /* don't switch x or y! */
       texres->nor[0] = (val1 - val2);
@@ -1947,14 +1937,15 @@ int imagewraposa(Tex *tex,
   }
 
   if (tex->imaflag & TEX_CALCALPHA) {
-    texres->ta = texres->tin = texres->ta * max_fff(texres->tr, texres->tg, texres->tb);
+    texres->trgba[3] = texres->tin = texres->trgba[3] *
+                                     max_fff(texres->trgba[0], texres->trgba[1], texres->trgba[2]);
   }
   else {
-    texres->tin = texres->ta;
+    texres->tin = texres->trgba[3];
   }
 
   if (tex->flag & TEX_NEGALPHA) {
-    texres->ta = 1.0f - texres->ta;
+    texres->trgba[3] = 1.0f - texres->trgba[3];
   }
 
   if (texres->nor && (tex->imaflag & TEX_NORMALMAP)) {
@@ -1963,15 +1954,15 @@ int imagewraposa(Tex *tex,
      * It needs to be done because in Blender the normal used in the renderer points inward.
      * It is generated this way in #calc_vertexnormals().
      * Should this ever change this negate must be removed. */
-    texres->nor[0] = -2.0f * (texres->tr - 0.5f);
-    texres->nor[1] = 2.0f * (texres->tg - 0.5f);
-    texres->nor[2] = 2.0f * (texres->tb - 0.5f);
+    texres->nor[0] = -2.0f * (texres->trgba[0] - 0.5f);
+    texres->nor[1] = 2.0f * (texres->trgba[1] - 0.5f);
+    texres->nor[2] = 2.0f * (texres->trgba[2] - 0.5f);
   }
 
   /* de-premul, this is being pre-multiplied in shade_input_do_shade() */
   /* do not de-premul for generated alpha, it is already in straight */
-  if (texres->ta != 1.0f && texres->ta > 1e-4f && !(tex->imaflag & TEX_CALCALPHA)) {
-    mul_v3_fl(&texres->tr, 1.0f / texres->ta);
+  if (texres->trgba[3] != 1.0f && texres->trgba[3] > 1e-4f && !(tex->imaflag & TEX_CALCALPHA)) {
+    mul_v3_fl(texres->trgba, 1.0f / texres->trgba[3]);
   }
 
   if (ima) {
@@ -1996,7 +1987,7 @@ void image_sample(
 
   texres.talpha = true; /* boxsample expects to be initialized */
   boxsample(ibuf, fx, fy, fx + dx, fy + dy, &texres, 0, 1);
-  copy_v4_v4(result, &texres.tr);
+  copy_v4_v4(result, texres.trgba);
 
   ima->flag |= IMA_USED_FOR_RENDER;
 
@@ -2020,5 +2011,5 @@ void ibuf_sample(ImBuf *ibuf, float fx, float fy, float dx, float dy, float resu
 
   ewa_eval(&texres, ibuf, fx, fy, &AFD);
 
-  copy_v4_v4(result, &texres.tr);
+  copy_v4_v4(result, texres.trgba);
 }

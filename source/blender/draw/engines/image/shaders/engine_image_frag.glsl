@@ -5,7 +5,6 @@
 #define IMAGE_DRAW_FLAG_APPLY_ALPHA (1 << 1)
 #define IMAGE_DRAW_FLAG_SHUFFLING (1 << 2)
 #define IMAGE_DRAW_FLAG_DEPTH (1 << 3)
-#define IMAGE_DRAW_FLAG_DO_REPEAT (1 << 4)
 
 uniform sampler2D imageTexture;
 

@@ -44,6 +44,7 @@ struct ShaderParameters {
 
   void update(AbstractSpaceAccessor *space, const Scene *scene, Image *image, ImBuf *image_buffer)
   {
+    flags = 0;
     copy_v4_fl(shuffle, 1.0f);
     copy_v2_fl2(far_near, 100.0f, 0.0f);
 
@@ -53,7 +54,6 @@ struct ShaderParameters {
       Camera *camera = static_cast<Camera *>(scene->camera->data);
       copy_v2_fl2(far_near, camera->clip_end, camera->clip_start);
     }
-    const bool is_tiled_image = (image->source == IMA_SRC_TILED);
-    space->get_shader_parameters(*this, image_buffer, is_tiled_image);
+    space->get_shader_parameters(*this, image_buffer);
   }
 };

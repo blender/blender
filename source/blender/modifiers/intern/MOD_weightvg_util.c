@@ -186,28 +186,32 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
           org_w[i] = (new_w[i] * texres.tin * fact) + (org_w[i] * (1.0f - (texres.tin * fact)));
           break;
         case MOD_WVG_MASK_TEX_USE_RED:
-          org_w[i] = (new_w[i] * texres.tr * fact) + (org_w[i] * (1.0f - (texres.tr * fact)));
+          org_w[i] = (new_w[i] * texres.trgba[0] * fact) +
+                     (org_w[i] * (1.0f - (texres.trgba[0] * fact)));
           break;
         case MOD_WVG_MASK_TEX_USE_GREEN:
-          org_w[i] = (new_w[i] * texres.tg * fact) + (org_w[i] * (1.0f - (texres.tg * fact)));
+          org_w[i] = (new_w[i] * texres.trgba[1] * fact) +
+                     (org_w[i] * (1.0f - (texres.trgba[1] * fact)));
           break;
         case MOD_WVG_MASK_TEX_USE_BLUE:
-          org_w[i] = (new_w[i] * texres.tb * fact) + (org_w[i] * (1.0f - (texres.tb * fact)));
+          org_w[i] = (new_w[i] * texres.trgba[2] * fact) +
+                     (org_w[i] * (1.0f - (texres.trgba[2] * fact)));
           break;
         case MOD_WVG_MASK_TEX_USE_HUE:
-          rgb_to_hsv_v(&texres.tr, hsv);
+          rgb_to_hsv_v(texres.trgba, hsv);
           org_w[i] = (new_w[i] * hsv[0] * fact) + (org_w[i] * (1.0f - (hsv[0] * fact)));
           break;
         case MOD_WVG_MASK_TEX_USE_SAT:
-          rgb_to_hsv_v(&texres.tr, hsv);
+          rgb_to_hsv_v(texres.trgba, hsv);
           org_w[i] = (new_w[i] * hsv[1] * fact) + (org_w[i] * (1.0f - (hsv[1] * fact)));
           break;
         case MOD_WVG_MASK_TEX_USE_VAL:
-          rgb_to_hsv_v(&texres.tr, hsv);
+          rgb_to_hsv_v(texres.trgba, hsv);
           org_w[i] = (new_w[i] * hsv[2] * fact) + (org_w[i] * (1.0f - (hsv[2] * fact)));
           break;
         case MOD_WVG_MASK_TEX_USE_ALPHA:
-          org_w[i] = (new_w[i] * texres.ta * fact) + (org_w[i] * (1.0f - (texres.ta * fact)));
+          org_w[i] = (new_w[i] * texres.trgba[3] * fact) +
+                     (org_w[i] * (1.0f - (texres.trgba[3] * fact)));
           break;
         default:
           org_w[i] = (new_w[i] * texres.tin * fact) + (org_w[i] * (1.0f - (texres.tin * fact)));

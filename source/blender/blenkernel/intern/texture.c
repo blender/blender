@@ -723,10 +723,10 @@ void BKE_texture_get_value_ex(const Scene *scene,
    * if the texture didn't give an RGB value, copy the intensity across
    */
   if (result_type & TEX_RGB) {
-    texres->tin = (1.0f / 3.0f) * (texres->tr + texres->tg + texres->tb);
+    texres->tin = (1.0f / 3.0f) * (texres->trgba[0] + texres->trgba[1] + texres->trgba[2]);
   }
   else {
-    copy_v3_fl(&texres->tr, texres->tin);
+    copy_v3_fl(texres->trgba, texres->tin);
   }
 }
 
