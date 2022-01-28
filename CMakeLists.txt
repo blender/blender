@@ -685,7 +685,7 @@ if(WIN32 OR XCODE)
   option(IDE_GROUP_PROJECTS_IN_FOLDERS "Organize the projects according to source folder structure." ON)
   mark_as_advanced(IDE_GROUP_PROJECTS_IN_FOLDERS)
 
-  if (IDE_GROUP_PROJECTS_IN_FOLDERS)
+  if(IDE_GROUP_PROJECTS_IN_FOLDERS)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
   endif()
 endif()

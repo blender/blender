@@ -402,57 +402,57 @@ list(APPEND SRC ${glsl_source_list_file})
 list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 
 set(SHADER_CREATE_INFOS
-../draw/engines/workbench/shaders/infos/workbench_composite_info.hh
-../draw/engines/workbench/shaders/infos/workbench_effect_antialiasing_info.hh
-../draw/engines/workbench/shaders/infos/workbench_effect_cavity_info.hh
-../draw/engines/workbench/shaders/infos/workbench_effect_dof_info.hh
-../draw/engines/workbench/shaders/infos/workbench_effect_outline_info.hh
-../draw/engines/workbench/shaders/infos/workbench_merge_infront_info.hh
-../draw/engines/workbench/shaders/infos/workbench_prepass_info.hh
-../draw/engines/workbench/shaders/infos/workbench_shadow_info.hh
-../draw/engines/workbench/shaders/infos/workbench_transparent_resolve_info.hh
-../draw/engines/workbench/shaders/infos/workbench_volume_info.hh
-../draw/intern/shaders/draw_fullscreen_info.hh
-../draw/intern/shaders/draw_object_infos_info.hh
-../draw/intern/shaders/draw_view_info.hh
-../draw/intern/shaders/draw_hair_refine_info.hh
+  ../draw/engines/workbench/shaders/infos/workbench_composite_info.hh
+  ../draw/engines/workbench/shaders/infos/workbench_effect_antialiasing_info.hh
+  ../draw/engines/workbench/shaders/infos/workbench_effect_cavity_info.hh
+  ../draw/engines/workbench/shaders/infos/workbench_effect_dof_info.hh
+  ../draw/engines/workbench/shaders/infos/workbench_effect_outline_info.hh
+  ../draw/engines/workbench/shaders/infos/workbench_merge_infront_info.hh
+  ../draw/engines/workbench/shaders/infos/workbench_prepass_info.hh
+  ../draw/engines/workbench/shaders/infos/workbench_shadow_info.hh
+  ../draw/engines/workbench/shaders/infos/workbench_transparent_resolve_info.hh
+  ../draw/engines/workbench/shaders/infos/workbench_volume_info.hh
+  ../draw/intern/shaders/draw_fullscreen_info.hh
+  ../draw/intern/shaders/draw_object_infos_info.hh
+  ../draw/intern/shaders/draw_view_info.hh
+  ../draw/intern/shaders/draw_hair_refine_info.hh
 
-shaders/infos/gpu_clip_planes_info.hh
-shaders/infos/gpu_shader_2D_area_borders_info.hh
-shaders/infos/gpu_shader_2D_checker_info.hh
-shaders/infos/gpu_shader_2D_diag_stripes_info.hh
-shaders/infos/gpu_shader_2D_flat_color_info.hh
-shaders/infos/gpu_shader_2D_image_color_info.hh
-shaders/infos/gpu_shader_2D_image_desaturate_color_info.hh
-shaders/infos/gpu_shader_2D_image_info.hh
-shaders/infos/gpu_shader_2D_image_multi_rect_color_info.hh
-shaders/infos/gpu_shader_2D_image_overlays_merge_info.hh
-shaders/infos/gpu_shader_2D_image_overlays_stereo_merge_info.hh
-shaders/infos/gpu_shader_2D_image_rect_color_info.hh
-shaders/infos/gpu_shader_2D_image_shuffle_color_info.hh
-shaders/infos/gpu_shader_2D_nodelink_info.hh
-shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_aa_info.hh
-shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_outline_aa_info.hh
-shaders/infos/gpu_shader_2D_point_varying_size_varying_color_info.hh
-shaders/infos/gpu_shader_2D_smooth_color_info.hh
-shaders/infos/gpu_shader_2D_uniform_color_info.hh
-shaders/infos/gpu_shader_3D_depth_only_info.hh
-shaders/infos/gpu_shader_3D_flat_color_info.hh
-shaders/infos/gpu_shader_3D_image_modulate_alpha_info.hh
-shaders/infos/gpu_shader_3D_point_info.hh
-shaders/infos/gpu_shader_3D_smooth_color_info.hh
-shaders/infos/gpu_shader_3D_uniform_color_info.hh
-shaders/infos/gpu_shader_gpencil_stroke_info.hh
-shaders/infos/gpu_shader_instance_varying_color_varying_size_info.hh
-shaders/infos/gpu_shader_keyframe_shape_info.hh
-shaders/infos/gpu_shader_simple_lighting_info.hh
-shaders/infos/gpu_shader_text_info.hh
-shaders/infos/gpu_srgb_to_framebuffer_space_info.hh
+  shaders/infos/gpu_clip_planes_info.hh
+  shaders/infos/gpu_shader_2D_area_borders_info.hh
+  shaders/infos/gpu_shader_2D_checker_info.hh
+  shaders/infos/gpu_shader_2D_diag_stripes_info.hh
+  shaders/infos/gpu_shader_2D_flat_color_info.hh
+  shaders/infos/gpu_shader_2D_image_color_info.hh
+  shaders/infos/gpu_shader_2D_image_desaturate_color_info.hh
+  shaders/infos/gpu_shader_2D_image_info.hh
+  shaders/infos/gpu_shader_2D_image_multi_rect_color_info.hh
+  shaders/infos/gpu_shader_2D_image_overlays_merge_info.hh
+  shaders/infos/gpu_shader_2D_image_overlays_stereo_merge_info.hh
+  shaders/infos/gpu_shader_2D_image_rect_color_info.hh
+  shaders/infos/gpu_shader_2D_image_shuffle_color_info.hh
+  shaders/infos/gpu_shader_2D_nodelink_info.hh
+  shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_aa_info.hh
+  shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_outline_aa_info.hh
+  shaders/infos/gpu_shader_2D_point_varying_size_varying_color_info.hh
+  shaders/infos/gpu_shader_2D_smooth_color_info.hh
+  shaders/infos/gpu_shader_2D_uniform_color_info.hh
+  shaders/infos/gpu_shader_3D_depth_only_info.hh
+  shaders/infos/gpu_shader_3D_flat_color_info.hh
+  shaders/infos/gpu_shader_3D_image_modulate_alpha_info.hh
+  shaders/infos/gpu_shader_3D_point_info.hh
+  shaders/infos/gpu_shader_3D_smooth_color_info.hh
+  shaders/infos/gpu_shader_3D_uniform_color_info.hh
+  shaders/infos/gpu_shader_gpencil_stroke_info.hh
+  shaders/infos/gpu_shader_instance_varying_color_varying_size_info.hh
+  shaders/infos/gpu_shader_keyframe_shape_info.hh
+  shaders/infos/gpu_shader_simple_lighting_info.hh
+  shaders/infos/gpu_shader_text_info.hh
+  shaders/infos/gpu_srgb_to_framebuffer_space_info.hh
 )
 
 set(SHADER_CREATE_INFOS_CONTENT "")
 foreach(DESCRIPTOR_FILE ${SHADER_CREATE_INFOS})
-string(APPEND SHADER_CREATE_INFOS_CONTENT "#include \"${DESCRIPTOR_FILE}\"\n")
+  string(APPEND SHADER_CREATE_INFOS_CONTENT "#include \"${DESCRIPTOR_FILE}\"\n")
 endforeach()
 
 set(shader_create_info_list_file "${CMAKE_CURRENT_BINARY_DIR}/gpu_shader_create_info_list.hh")

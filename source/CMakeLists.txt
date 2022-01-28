@@ -27,7 +27,7 @@ if(WITH_CLANG_TIDY AND NOT MSVC)
     message(WARNING "Currently Clang-Tidy might fail with GCC toolchain, switch to Clang toolchain if that happens")
     if(COMMAND target_precompile_headers)
       message(STATUS "Clang-Tidy and GCC precompiled headers are incompatible, disabling precompiled headers")
-      set(CMAKE_DISABLE_PRECOMPILE_HEADERS On)
+      set(CMAKE_DISABLE_PRECOMPILE_HEADERS ON)
     endif()
   endif()
 

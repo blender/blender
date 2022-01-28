@@ -692,7 +692,7 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
 
         foreach(render_test ${_cycles_render_tests})
           # Enable just one simple test for Metal until more tests are passing.
-          if ((NOT (_cycles_device MATCHES "METAL")) OR (render_test MATCHES "camera"))
+          if((NOT (_cycles_device MATCHES "METAL")) OR (render_test MATCHES "camera"))
             add_python_test(
               cycles_${render_test}_${_cycles_device_lower}
               ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
