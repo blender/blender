@@ -600,7 +600,7 @@ static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
 
     if (div != 0.0f) {
       div = 1.0f / div;
-      mul_v4_fl(texres->trgba, div)
+      mul_v4_fl(texres->trgba, div);
     }
     else {
       zero_v4(texres->trgba);
