@@ -185,8 +185,7 @@ static void test_image_glsl_shaders()
 {
   IMAGE_shader_library_ensure();
 
-  EXPECT_NE(IMAGE_shader_image_get(false), nullptr);
-  EXPECT_NE(IMAGE_shader_image_get(true), nullptr);
+  EXPECT_NE(IMAGE_shader_image_get(), nullptr);
 
   IMAGE_shader_free();
 }

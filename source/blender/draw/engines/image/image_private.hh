@@ -72,7 +72,7 @@ class AbstractDrawingMode {
 };
 
 /* image_shader.c */
-GPUShader *IMAGE_shader_image_get(bool is_tiled_image);
+GPUShader *IMAGE_shader_image_get();
 void IMAGE_shader_library_ensure();
 void IMAGE_shader_free();
 
