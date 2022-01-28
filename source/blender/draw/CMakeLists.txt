@@ -518,8 +518,8 @@ set(GLSL_SRC
   engines/overlay/shaders/wireframe_frag.glsl
   engines/overlay/shaders/xray_fade_frag.glsl
 
-  engines/image/shaders/engine_image_frag.glsl
-  engines/image/shaders/engine_image_vert.glsl
+  engines/image/shaders/image_engine_frag.glsl
+  engines/image/shaders/image_engine_vert.glsl
 )
 
 set(GLSL_C)

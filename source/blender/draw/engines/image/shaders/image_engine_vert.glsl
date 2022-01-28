@@ -1,12 +1,5 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-in vec2 pos;
-in vec2 uv;
-
-/* Normalized screen space uv coordinates. */
-out vec2 uv_screen;
-out vec2 uv_image;
-
 void main()
 {
   vec3 image_pos = vec3(pos, 0.0);

@@ -6,28 +6,11 @@
 #define IMAGE_DRAW_FLAG_SHUFFLING (1 << 2)
 #define IMAGE_DRAW_FLAG_DEPTH (1 << 3)
 
-uniform sampler2D imageTexture;
-
-uniform bool imgPremultiplied;
-uniform int drawFlags;
-uniform vec2 farNearDistances;
-uniform vec4 color;
-uniform vec4 shuffle;
-
-/* Maximum UV range.
- * Negative UV coordinates and UV coordinates beyond maxUV would draw a border. */
-uniform vec2 maxUv;
-
-#define FAR_DISTANCE farNearDistances.x
-#define NEAR_DISTANCE farNearDistances.y
-
 #define Z_DEPTH_BORDER 1.0
 #define Z_DEPTH_IMAGE 0.75
 
-in vec2 uv_screen;
-in vec2 uv_image;
-
-out vec4 fragColor;
+#define FAR_DISTANCE farNearDistances.x
+#define NEAR_DISTANCE farNearDistances.y
 
 bool is_border(vec2 uv)
 {
@@ -51,7 +34,7 @@ void main()
     }
 
     if ((drawFlags & IMAGE_DRAW_FLAG_SHUFFLING) != 0) {
-      tex_color = color * dot(tex_color, shuffle);
+      tex_color = col * dot(tex_color, shuffle);
     }
     if ((drawFlags & IMAGE_DRAW_FLAG_SHOW_ALPHA) == 0) {
       tex_color.a = 1.0;
