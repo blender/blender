@@ -977,7 +977,7 @@ static void node_id_remap(ScrArea *UNUSED(area),
    * copies of pointers. All usages should be calling a function that will receive the appropriate
    * instance.
    *
-   * We could also move a remap address at a time to ise the IDRemapper as that should get closer
+   * We could also move a remap address at a time to use the IDRemapper as that should get closer
    * to cleaner code. See {D13615} for more information about this topic.
    */
   BKE_id_remapper_iter(mappings, node_id_remap_cb, slink);
