@@ -397,7 +397,7 @@ static void export_in_memory_texture(Image *ima,
     return;
   }
 
-  if (BLI_paths_equal(export_path, image_abs_path) && BLI_exists(image_abs_path)) {
+  if ((BLI_path_cmp_normalized(export_path, image_abs_path) == 0) && BLI_exists(image_abs_path)) {
     /* As a precaution, don't overwrite the original path. */
     return;
   }
@@ -668,7 +668,7 @@ static void copy_tiled_textures(Image *ima,
       continue;
     }
 
-    if (BLI_paths_equal(src_tile_path, dest_tile_path)) {
+    if (BLI_path_cmp_normalized(src_tile_path, dest_tile_path) == 0) {
       /* Source and destination paths are the same, don't copy. */
       continue;
     }
@@ -703,7 +703,7 @@ static void copy_single_file(Image *ima, const std::string &dest_dir, const bool
     return;
   }
 
-  if (BLI_paths_equal(source_path, dest_path)) {
+  if (BLI_path_cmp_normalized(source_path, dest_path) == 0) {
     /* Source and destination paths are the same, don't copy. */
     return;
   }

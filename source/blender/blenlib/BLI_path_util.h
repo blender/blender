@@ -381,11 +381,6 @@ void BLI_path_normalize_unc(char *path_16, int maxlen);
 #endif
 
 /**
- * Returns true if the given paths are equal.
- */
-bool BLI_paths_equal(const char *p1, const char *p2);
-
-/**
  * Appends a suffix to the string, fitting it before the extension
  *
  * string = Foo.png, suffix = 123, separator = _
@@ -408,6 +403,19 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
 #  define BLI_path_cmp strcmp
 #  define BLI_path_ncmp strncmp
 #endif
+
+/**
+ * Returns the result of #BLI_path_cmp with both paths normalized and slashes made native.
+ *
+ * \note #BLI_path_cmp is used for Blender's internal logic to consider paths to be the same
+ * #BLI_path_cmp_normalized may be used in when handling other kinds of paths
+ * (e.g. importers/exporters) but should be used consistently.
+ *
+ * Checking the normalized paths is not a guarantee the paths reference different files.
+ * An equivalent to Python's `os.path.samefile` could be supported for checking if paths
+ * point to the same location on the file-system (following symbolic-links).
+ */
+int BLI_path_cmp_normalized(const char *p1, const char *p2);
 
 /* These values need to be hard-coded in structs, dna does not recognize defines */
 /* also defined in `DNA_space_types.h`. */
