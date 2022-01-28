@@ -498,7 +498,7 @@ std::string GLShader::geometry_layout_declare(const ShaderCreateInfo &info) cons
 static StageInterfaceInfo *find_interface_by_name(const Vector<StageInterfaceInfo *> &ifaces,
                                                   const StringRefNull &name)
 {
-  for (auto iface : ifaces) {
+  for (auto *iface : ifaces) {
     if (iface->name == name) {
       return iface;
     }

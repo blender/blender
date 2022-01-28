@@ -119,7 +119,7 @@ struct GPUSource {
   template<bool check_whole_word = true, bool reversed = false, typename T>
   int64_t find_str(const StringRef &input, const T keyword, int64_t offset = 0)
   {
-    while (1) {
+    while (true) {
       if constexpr (reversed) {
         offset = input.rfind(keyword, offset);
       }
@@ -202,10 +202,10 @@ struct GPUSource {
    * - All values needs to be specified using constant literals to avoid compiler differences.
    * - All values needs to have the 'u' suffix to avoid GLSL compiler errors.
    */
-  void enum_preprocess(void)
+  void enum_preprocess()
   {
     const StringRefNull input = source;
-    std::string output = "";
+    std::string output;
     int64_t cursor = 0;
     int64_t last_pos = 0;
     const bool is_cpp = filename.endswith(".hh");
@@ -220,7 +220,7 @@ struct GPUSource {
     continue; \
   }
 
-    while (1) {
+    while (true) {
       cursor = find_keyword(input, "enum ", cursor);
       if (cursor == -1) {
         break;
