@@ -5,38 +5,38 @@
 update-code:
     git:
         submodules:
-        -   branch: master
+        -   branch: blender-v3.1-release
             commit_id: HEAD
             path: release/scripts/addons
-        -   branch: master
+        -   branch: blender-v3.1-release
             commit_id: HEAD
             path: release/scripts/addons_contrib
-        -   branch: master
+        -   branch: blender-v3.1-release
             commit_id: HEAD
             path: release/datafiles/locale
-        -   branch: master
+        -   branch: blender-v3.1-release
             commit_id: HEAD
             path: source/tools
     svn:
         libraries:
             darwin-arm64:
-                branch: trunk
+                branch: tags/blender-3.1-release
                 commit_id: HEAD
                 path: lib/darwin_arm64
             darwin-x86_64:
-                branch: trunk
+                branch: tags/blender-3.1-release
                 commit_id: HEAD
                 path: lib/darwin
             linux-x86_64:
-                branch: trunk
+                branch: tags/blender-3.1-release
                 commit_id: HEAD
                 path: lib/linux_centos7_x86_64
             windows-amd64:
-                branch: trunk
+                branch: tags/blender-3.1-release
                 commit_id: HEAD
                 path: lib/win64_vc15
         tests:
-            branch: trunk
+            branch: tags/blender-3.1-release
             commit_id: HEAD
             path: lib/tests
         benchmarks:
