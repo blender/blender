@@ -602,6 +602,7 @@ extern StructRNA RNA_SolidifyModifier;
 extern StructRNA RNA_Sound;
 extern StructRNA RNA_SoundSequence;
 extern StructRNA RNA_Space;
+extern StructRNA RNA_SpaceAssets;
 extern StructRNA RNA_SpaceClipEditor;
 extern StructRNA RNA_SpaceConsole;
 extern StructRNA RNA_SpaceDopeSheetEditor;

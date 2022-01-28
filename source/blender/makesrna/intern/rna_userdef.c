@@ -2532,6 +2532,26 @@ static void rna_def_userdef_theme_space_file(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 }
 
+static void rna_def_userdef_theme_space_assets(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  /* space_file */
+
+  srna = RNA_def_struct(brna, "ThemeAssetBrowser", NULL);
+  RNA_def_struct_sdna(srna, "ThemeSpace");
+  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+  RNA_def_struct_ui_text(srna, "Theme Asset Browser", "Theme settings for the Asset Browser");
+
+  rna_def_userdef_theme_spaces_main(srna);
+
+  prop = RNA_def_property(srna, "row_alternate", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_ui_text(prop, "Alternate Rows", "Overlay color on every other row");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+}
+
 static void rna_def_userdef_theme_space_outliner(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -3936,6 +3956,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
       {12, "OUTLINER", ICON_OUTLINER, "Outliner", ""},
       {14, "PREFERENCES", ICON_PREFERENCES, "Preferences", ""},
       {15, "INFO", ICON_INFO, "Info", ""},
+      {24, "ASSET_BROWSER", ICON_ASSET_MANAGER, "Asset Browser", ""},
       {16, "FILE_BROWSER", ICON_FILEBROWSER, "File Browser", ""},
       {17, "CONSOLE", ICON_CONSOLE, "Python Console", ""},
       {20, "CLIP_EDITOR", ICON_TRACKER, "Movie Clip Editor", ""},
@@ -4076,6 +4097,13 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "space_spreadsheet");
   RNA_def_property_struct_type(prop, "ThemeSpreadsheet");
   RNA_def_property_ui_text(prop, "Spreadsheet", "");
+
+  prop = RNA_def_property(srna, "asset_browser", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_pointer_sdna(prop, NULL, "space_assets");
+  RNA_def_property_struct_type(prop, "ThemeAssetBrowser");
+  RNA_def_property_ui_text(prop, "Asset Browser", "");
+
   /* end space types */
 
   prop = RNA_def_property(srna, "bone_color_sets", PROP_COLLECTION, PROP_NONE);
@@ -4321,6 +4349,7 @@ static void rna_def_userdef_dothemes(BlenderRNA *brna)
   rna_def_userdef_theme_space_view3d(brna);
   rna_def_userdef_theme_space_graph(brna);
   rna_def_userdef_theme_space_file(brna);
+  rna_def_userdef_theme_space_assets(brna);
   rna_def_userdef_theme_space_nla(brna);
   rna_def_userdef_theme_space_action(brna);
   rna_def_userdef_theme_space_image(brna);

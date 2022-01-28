@@ -1363,6 +1363,42 @@
         </space_list>
       </ThemeSpreadsheet>
     </spreadsheet>
+    <asset_browser>
+      <ThemeAssetBrowser
+        row_alternate="#ffffff0f"
+        >
+        <space>
+          <ThemeSpaceGeneric
+            back="#999999"
+            title="#000000"
+            text="#000000"
+            text_hi="#ffffff"
+            header="#adadadff"
+            header_text="#000000"
+            header_text_hi="#ffffff"
+            button="#999999e6"
+            button_title="#1a1a1a"
+            button_text="#000000"
+            button_text_hi="#000000"
+            navigation_bar="#00000000"
+            execution_buts="#999999e6"
+            tab_active="#6697e6"
+            tab_inactive="#cccccc"
+            tab_back="#999999ff"
+            tab_outline="#999999"
+            >
+            <panelcolors>
+              <ThemePanelColors
+                header="#42424200"
+                back="#00000028"
+                sub_back="#00000024"
+                >
+              </ThemePanelColors>
+            </panelcolors>
+          </ThemeSpaceGeneric>
+        </space>
+      </ThemeAssetBrowser>
+    </asset_browser>
     <bone_color_sets>
       <ThemeBoneColorSet
         normal="#9a0000"

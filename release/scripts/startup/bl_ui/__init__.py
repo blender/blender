@@ -75,6 +75,7 @@ _modules = [
     "space_toolsystem_common",
     "space_toolsystem_toolbar",
 
+    "space_assets",
     "space_clip",
     "space_console",
     "space_dopesheet",

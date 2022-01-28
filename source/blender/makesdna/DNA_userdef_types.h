@@ -506,6 +506,7 @@ typedef struct bTheme {
   ThemeSpace space_topbar;
   ThemeSpace space_statusbar;
   ThemeSpace space_spreadsheet;
+  ThemeSpace space_assets;
 
   /* 20 sets of bone colors for this theme */
   ThemeWireColor tarm[20];
@@ -523,7 +524,7 @@ typedef struct bTheme {
 #define UI_THEMESPACE_START(btheme) \
   (CHECK_TYPE_INLINE(btheme, bTheme *), &((btheme)->space_properties))
 #define UI_THEMESPACE_END(btheme) \
-  (CHECK_TYPE_INLINE(btheme, bTheme *), (&((btheme)->space_spreadsheet) + 1))
+  (CHECK_TYPE_INLINE(btheme, bTheme *), (&((btheme)->space_assets) + 1))
 
 typedef struct bAddon {
   struct bAddon *next, *prev;

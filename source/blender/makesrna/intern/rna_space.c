@@ -178,6 +178,11 @@ const EnumPropertyItem rna_enum_space_type_items[] = {
      ICON_PROPERTIES,
      "Properties",
      "Edit properties of active object and related data-blocks"},
+    {SPACE_ASSETS,
+     "ASSET_BROWSER",
+     ICON_ASSET_MANAGER,
+     "Asset Browser",
+     "Browse in asset libraries"},
     {SPACE_FILE, "FILE_BROWSER", ICON_FILEBROWSER, "File Browser", "Browse for files and assets"},
     {SPACE_SPREADSHEET,
      "SPREADSHEET",
@@ -619,6 +624,8 @@ static StructRNA *rna_Space_refine(struct PointerRNA *ptr)
       return &RNA_SpaceClipEditor;
     case SPACE_SPREADSHEET:
       return &RNA_SpaceSpreadsheet;
+    case SPACE_ASSETS:
+      return &RNA_SpaceAssets;
 
       /* Currently no type info. */
     case SPACE_SCRIPT:
@@ -7968,6 +7975,18 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
 }
 
+static void rna_def_space_assets(BlenderRNA *brna)
+{
+  //  PropertyRNA *prop;
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "SpaceAssets", "Space");
+  RNA_def_struct_ui_text(srna, "Space Asset Browser", "Asset browser space data");
+
+  //  rna_def_space_generic_show_region_toggles(
+  //      srna, (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_CHANNELS) | (1 << RGN_TYPE_FOOTER));
+}
+
 void RNA_def_space(BlenderRNA *brna)
 {
   rna_def_space(brna);
@@ -7995,6 +8014,7 @@ void RNA_def_space(BlenderRNA *brna)
   rna_def_space_node(brna);
   rna_def_space_clip(brna);
   rna_def_space_spreadsheet(brna);
+  rna_def_space_assets(brna);
 }
 
 #endif
