@@ -134,6 +134,22 @@ static void image_runtime_reset_on_copy(struct Image *image)
 {
   image->runtime.cache_mutex = MEM_mallocN(sizeof(ThreadMutex), "image runtime cache_mutex");
   BLI_mutex_init(image->runtime.cache_mutex);
+
+  image->runtime.partial_update_register = NULL;
+  image->runtime.partial_update_user = NULL;
+}
+
+static void image_runtime_free_data(struct Image *image)
+{
+  BLI_mutex_end(image->runtime.cache_mutex);
+  MEM_freeN(image->runtime.cache_mutex);
+  image->runtime.cache_mutex = NULL;
+
+  if (image->runtime.partial_update_user != NULL) {
+    BKE_image_partial_update_free(image->runtime.partial_update_user);
+    image->runtime.partial_update_user = NULL;
+  }
+  BKE_image_partial_update_register_free(image);
 }
 
 static void image_init_data(ID *id)
@@ -213,10 +229,8 @@ static void image_free_data(ID *id)
   BKE_previewimg_free(&image->preview);
 
   BLI_freelistN(&image->tiles);
-  BLI_freelistN(&image->gpu_refresh_areas);
 
-  BLI_mutex_end(image->runtime.cache_mutex);
-  MEM_freeN(image->runtime.cache_mutex);
+  image_runtime_free_data(image);
 }
 
 static void image_foreach_cache(ID *id,
@@ -321,7 +335,8 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   ima->cache = NULL;
   ima->gpuflag = 0;
   BLI_listbase_clear(&ima->anims);
-  BLI_listbase_clear(&ima->gpu_refresh_areas);
+  ima->runtime.partial_update_register = NULL;
+  ima->runtime.partial_update_user = NULL;
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 2; j++) {
       for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
@@ -401,7 +416,6 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
 
   ima->lastused = 0;
   ima->gpuflag = 0;
-  BLI_listbase_clear(&ima->gpu_refresh_areas);
 
   image_runtime_reset(ima);
 }

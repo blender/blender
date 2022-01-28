@@ -616,8 +616,14 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
         ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL) {
       image_buffer_rect_update(rj, rr, ibuf, &rj->iuser, &tile_rect, offset_x, offset_y, viewname);
     }
-    BKE_image_update_gputexture_delayed(
-        ima, ibuf, offset_x, offset_y, BLI_rcti_size_x(&tile_rect), BLI_rcti_size_y(&tile_rect));
+    ImageTile *image_tile = BKE_image_get_tile(ima, 0);
+    BKE_image_update_gputexture_delayed(ima,
+                                        image_tile,
+                                        ibuf,
+                                        offset_x,
+                                        offset_y,
+                                        BLI_rcti_size_x(&tile_rect),
+                                        BLI_rcti_size_y(&tile_rect));
 
     /* make jobs timer to send notifier */
     *(rj->do_update) = true;

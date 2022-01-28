@@ -24,6 +24,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLI_rect.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -561,19 +563,27 @@ struct GPUTexture *BKE_image_get_gpu_tilemap(struct Image *image,
  * Is the alpha of the `GPUTexture` for a given image/ibuf premultiplied.
  */
 bool BKE_image_has_gpu_texture_premultiplied_alpha(struct Image *image, struct ImBuf *ibuf);
+
 /**
  * Partial update of texture for texture painting.
  * This is often much quicker than fully updating the texture for high resolution images.
  */
 void BKE_image_update_gputexture(
     struct Image *ima, struct ImageUser *iuser, int x, int y, int w, int h);
+
 /**
  * Mark areas on the #GPUTexture that needs to be updated. The areas are marked in chunks.
  * The next time the #GPUTexture is used these tiles will be refreshes. This saves time
  * when writing to the same place multiple times This happens for during foreground rendering.
  */
-void BKE_image_update_gputexture_delayed(
-    struct Image *ima, struct ImBuf *ibuf, int x, int y, int w, int h);
+void BKE_image_update_gputexture_delayed(struct Image *ima,
+                                         struct ImageTile *image_tile,
+                                         struct ImBuf *ibuf,
+                                         int x,
+                                         int y,
+                                         int w,
+                                         int h);
+
 /**
  * Called on entering and exiting texture paint mode,
  * temporary disabling/enabling mipmapping on all images for quick texture
@@ -590,6 +600,32 @@ struct RenderSlot *BKE_image_add_renderslot(struct Image *ima, const char *name)
 bool BKE_image_remove_renderslot(struct Image *ima, struct ImageUser *iuser, int slot);
 struct RenderSlot *BKE_image_get_renderslot(struct Image *ima, int index);
 bool BKE_image_clear_renderslot(struct Image *ima, struct ImageUser *iuser, int slot);
+
+/* --- image_partial_update.cc --- */
+/** Image partial updates. */
+struct PartialUpdateUser;
+
+/**
+ * \brief Create a new PartialUpdateUser. An Object that contains data to use partial updates.
+ */
+struct PartialUpdateUser *BKE_image_partial_update_create(const struct Image *image);
+
+/**
+ * \brief free a partial update user.
+ */
+void BKE_image_partial_update_free(struct PartialUpdateUser *user);
+
+/* --- partial updater (image side) --- */
+struct PartialUpdateRegister;
+
+void BKE_image_partial_update_register_free(struct Image *image);
+/** \brief Mark a region of the image to update. */
+void BKE_image_partial_update_mark_region(struct Image *image,
+                                          const struct ImageTile *image_tile,
+                                          const struct ImBuf *image_buffer,
+                                          const rcti *updated_region);
+/** \brief Mark the whole image to be updated. */
+void BKE_image_partial_update_mark_full_update(struct Image *image);
 
 #ifdef __cplusplus
 }
