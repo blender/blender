@@ -34,7 +34,7 @@ void main()
     }
 
     if ((drawFlags & IMAGE_DRAW_FLAG_SHUFFLING) != 0) {
-      tex_color = col * dot(tex_color, shuffle);
+      tex_color = vec4(dot(tex_color, shuffle));
     }
     if ((drawFlags & IMAGE_DRAW_FLAG_SHOW_ALPHA) == 0) {
       tex_color.a = 1.0;

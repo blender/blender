@@ -35,8 +35,6 @@
 #include "image_space.hh"
 
 struct ShaderParameters {
-  constexpr static float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-
   int flags = 0;
   float shuffle[4];
   float far_near[2];
