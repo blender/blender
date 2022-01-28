@@ -5928,6 +5928,11 @@ PointerRNA *UI_but_operator_ptr_get(uiBut *but)
   return but->opptr;
 }
 
+bContextStore *UI_but_context_get(const uiBut *but)
+{
+  return but->context;
+}
+
 void UI_but_unit_type_set(uiBut *but, const int unit_type)
 {
   but->unit_type = (uchar)(RNA_SUBTYPE_UNIT_VALUE(unit_type));

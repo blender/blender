@@ -3076,6 +3076,8 @@ static int wm_handlers_do_intern(bContext *C, wmWindow *win, wmEvent *event, Lis
                   event->customdata = NULL;
                   event->custom = 0;
 
+                  wm_drop_end(C, drag, drop);
+
                   /* XXX fileread case. */
                   if (CTX_wm_window(C) == NULL) {
                     return action;

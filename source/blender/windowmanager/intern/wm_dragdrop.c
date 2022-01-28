@@ -226,6 +226,30 @@ void wm_drags_exit(wmWindowManager *wm, wmWindow *win)
   }
 }
 
+static bContextStore *wm_drop_ui_context_create(const bContext *C)
+{
+  uiBut *active_but = UI_region_active_but_get(CTX_wm_region(C));
+  if (!active_but) {
+    return NULL;
+  }
+
+  bContextStore *but_context = UI_but_context_get(active_but);
+  if (!but_context) {
+    return NULL;
+  }
+
+  return CTX_store_copy(but_context);
+}
+
+static void wm_drop_ui_context_free(bContextStore **context_store)
+{
+  if (!*context_store) {
+    return;
+  }
+  CTX_store_free(*context_store);
+  *context_store = NULL;
+}
+
 void WM_event_drag_image(wmDrag *drag, ImBuf *imb, float scale, int sx, int sy)
 {
   drag->imb = imb;
@@ -259,6 +283,7 @@ void WM_drag_free(wmDrag *drag)
   if (drag->flags & WM_DRAG_FREE_DATA) {
     WM_drag_data_free(drag->type, drag->poin);
   }
+  wm_drop_ui_context_free(&drag->drop_state.ui_context);
   if (drag->drop_state.free_disabled_info) {
     MEM_SAFE_FREE(drag->drop_state.disabled_info);
   }
@@ -317,6 +342,10 @@ static wmDropBox *dropbox_active(bContext *C,
           }
 
           const wmOperatorCallContext opcontext = wm_drop_operator_context_get(drop);
+          if (drag->drop_state.ui_context) {
+            CTX_store_set(C, drag->drop_state.ui_context);
+          }
+
           if (WM_operator_poll_context(C, drop->ot, opcontext)) {
             return drop;
           }
@@ -367,6 +396,10 @@ static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *even
     return;
   }
 
+  /* Update UI context, before polling so polls can query this context. */
+  wm_drop_ui_context_free(&drag->drop_state.ui_context);
+  drag->drop_state.ui_context = wm_drop_ui_context_create(C);
+
   wmDropBox *drop_prev = drag->drop_state.active_dropbox;
   wmDropBox *drop = wm_dropbox_active(C, drag, event);
   if (drop != drop_prev) {
@@ -381,11 +414,20 @@ static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *even
     drag->drop_state.area_from = drop ? CTX_wm_area(C) : NULL;
     drag->drop_state.region_from = drop ? CTX_wm_region(C) : NULL;
   }
+
+  if (!drag->drop_state.active_dropbox) {
+    wm_drop_ui_context_free(&drag->drop_state.ui_context);
+  }
 }
 
 void wm_drop_prepare(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   const wmOperatorCallContext opcontext = wm_drop_operator_context_get(drop);
+
+  if (drag->drop_state.ui_context) {
+    CTX_store_set(C, drag->drop_state.ui_context);
+  }
+
   /* Optionally copy drag information to operator properties. Don't call it if the
    * operator fails anyway, it might do more than just set properties (e.g.
    * typically import an asset). */
@@ -394,6 +436,11 @@ void wm_drop_prepare(bContext *C, wmDrag *drag, wmDropBox *drop)
   }
 
   wm_drags_exit(CTX_wm_manager(C), CTX_wm_window(C));
+}
+
+void wm_drop_end(bContext *C, wmDrag *UNUSED(drag), wmDropBox *UNUSED(drop))
+{
+  CTX_store_set(C, NULL);
 }
 
 void wm_drags_check_ops(bContext *C, const wmEvent *event)
@@ -897,6 +944,7 @@ void wm_drags_draw(bContext *C, wmWindow *win)
     if (drag->drop_state.active_dropbox) {
       CTX_wm_area_set(C, drag->drop_state.area_from);
       CTX_wm_region_set(C, drag->drop_state.region_from);
+      CTX_store_set(C, drag->drop_state.ui_context);
 
       /* Drawing should be allowed to assume the context from handling and polling (that's why we
        * restore it above). */
@@ -915,4 +963,5 @@ void wm_drags_draw(bContext *C, wmWindow *win)
   GPU_blend(GPU_BLEND_NONE);
   CTX_wm_area_set(C, NULL);
   CTX_wm_region_set(C, NULL);
+  CTX_store_set(C, NULL);
 }
