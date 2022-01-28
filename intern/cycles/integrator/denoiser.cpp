@@ -125,20 +125,41 @@ static Device *find_best_device(Device *device, DenoiserType type)
   return best_device;
 }
 
+static DeviceInfo find_best_denoiser_device_info(const vector<DeviceInfo> &device_infos,
+                                                 DenoiserType denoiser_type)
+{
+  for (const DeviceInfo &device_info : device_infos) {
+    if ((device_info.denoisers & denoiser_type) == 0) {
+      continue;
+    }
+
+    /* TODO(sergey): Use one of the already configured devices, so that OptiX denoising can happen
+     * on a physical CUDA device which is already used for rendering. */
+
+    /* TODO(sergey): Choose fastest device for denoising. */
+
+    return device_info;
+  }
+
+  DeviceInfo none_device;
+  none_device.type = DEVICE_NONE;
+  return none_device;
+}
+
 static unique_ptr<Device> create_denoiser_device(Device *path_trace_device,
-                                                 const uint device_type_mask)
+                                                 const uint device_type_mask,
+                                                 DenoiserType denoiser_type)
 {
   const vector<DeviceInfo> device_infos = Device::available_devices(device_type_mask);
   if (device_infos.empty()) {
     return nullptr;
   }
 
-  /* TODO(sergey): Use one of the already configured devices, so that OptiX denoising can happen on
-   * a physical CUDA device which is already used for rendering. */
-
-  /* TODO(sergey): Choose fastest device for denoising. */
-
-  const DeviceInfo denoiser_device_info = device_infos.front();
+  const DeviceInfo denoiser_device_info = find_best_denoiser_device_info(device_infos,
+                                                                         denoiser_type);
+  if (denoiser_device_info.type == DEVICE_NONE) {
+    return nullptr;
+  }
 
   unique_ptr<Device> denoiser_device(
       Device::create(denoiser_device_info, path_trace_device->stats, path_trace_device->profiler));
@@ -186,7 +207,8 @@ Device *Denoiser::ensure_denoiser_device(Progress *progress)
   device_creation_attempted_ = true;
 
   const uint device_type_mask = get_device_type_mask();
-  local_denoiser_device_ = create_denoiser_device(path_trace_device_, device_type_mask);
+  local_denoiser_device_ = create_denoiser_device(
+      path_trace_device_, device_type_mask, params_.type);
   denoiser_device_ = local_denoiser_device_.get();
 
   return denoiser_device_;

@@ -38,6 +38,7 @@ class OIDNDenoiser : public Denoiser {
 
  protected:
   virtual uint get_device_type_mask() const override;
+  virtual Device *ensure_denoiser_device(Progress *progress) override;
 
   /* We only perform one denoising at a time, since OpenImageDenoise itself is multithreaded.
    * Use this mutex whenever images are passed to the OIDN and needs to be denoised. */
