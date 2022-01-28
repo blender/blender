@@ -49,7 +49,7 @@ void BLI_setenv_if_new(const char *env, const char *val) ATTR_NONNULL(1);
  * This function uses an alternative method to get environment variables that does pick up on
  * runtime environment variables. The result will be UTF-8 encoded.
  */
-const char *BLI_getenv(const char *env) ATTR_NONNULL(1);
+const char *BLI_getenv(const char *env) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Returns in `string` the concatenation of `dir` and `file` (also with `relabase` on the
@@ -337,13 +337,13 @@ void BLI_path_frame_strip(char *path, char *r_ext) ATTR_NONNULL();
 /**
  * Check if we have '#' chars, usable for #BLI_path_frame, #BLI_path_frame_range
  */
-bool BLI_path_frame_check_chars(const char *path) ATTR_NONNULL();
+bool BLI_path_frame_check_chars(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 /**
  * Checks for a relative path (ignoring Blender's "//") prefix
  * (unlike `!BLI_path_is_rel(path)`).
  * When false, #BLI_path_abs_from_cwd would expand the absolute path.
  */
-bool BLI_path_is_abs_from_cwd(const char *path) ATTR_NONNULL();
+bool BLI_path_is_abs_from_cwd(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 /**
  * Checks for relative path, expanding them relative to the current working directory.
  * \returns true if the expansion was performed.
@@ -367,7 +367,7 @@ bool BLI_path_is_rel(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 /**
  * Return true if the path is a UNC share.
  */
-bool BLI_path_is_unc(const char *path);
+bool BLI_path_is_unc(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Creates a display string from path to be used menus and the user interface.
@@ -415,7 +415,8 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
  * An equivalent to Python's `os.path.samefile` could be supported for checking if paths
  * point to the same location on the file-system (following symbolic-links).
  */
-int BLI_path_cmp_normalized(const char *p1, const char *p2);
+int BLI_path_cmp_normalized(const char *p1, const char *p2)
+    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 
 /* These values need to be hard-coded in structs, dna does not recognize defines */
 /* also defined in `DNA_space_types.h`. */
