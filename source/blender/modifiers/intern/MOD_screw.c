@@ -27,6 +27,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_alloca.h"
+#include "BLI_bitmap.h"
 #include "BLI_math.h"
 
 #include "BLT_translation.h"
@@ -134,6 +135,8 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
                                          const float axis_offset[3],
                                          const float merge_threshold)
 {
+  BLI_bitmap *vert_tag = BLI_BITMAP_NEW(totvert, __func__);
+
   const float merge_threshold_sq = square_f(merge_threshold);
   const bool use_offset = axis_offset != NULL;
   uint tot_doubles = 0;
@@ -150,12 +153,9 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
     }
     const float dist_sq = len_squared_v3v3(axis_co, mvert_new[i].co);
     if (dist_sq <= merge_threshold_sq) {
-      mvert_new[i].flag |= ME_VERT_TMP_TAG;
+      BLI_BITMAP_ENABLE(vert_tag, i);
       tot_doubles += 1;
       copy_v3_v3(mvert_new[i].co, axis_co);
-    }
-    else {
-      mvert_new[i].flag &= ~ME_VERT_TMP_TAG & 0xFF;
     }
   }
 
@@ -166,7 +166,7 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
 
     uint tot_doubles_left = tot_doubles;
     for (uint i = 0; i < totvert; i += 1) {
-      if (mvert_new[i].flag & ME_VERT_TMP_TAG) {
+      if (BLI_BITMAP_TEST(vert_tag, i)) {
         int *doubles_map = &full_doubles_map[totvert + i];
         for (uint step = 1; step < step_tot; step += 1) {
           *doubles_map = (int)i;
@@ -184,6 +184,9 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
                                   MESH_MERGE_VERTS_DUMP_IF_MAPPED);
     MEM_freeN(full_doubles_map);
   }
+
+  MEM_freeN(vert_tag);
+
   return result;
 }
 
@@ -439,6 +442,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   mv_new = mvert_new;
   mv_orig = mvert_orig;
 
+  BLI_bitmap *vert_tag = BLI_BITMAP_NEW(totvert, __func__);
+
   /* Copy the first set of edges */
   med_orig = medge_orig;
   med_new = medge_new;
@@ -447,10 +452,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     med_new->v2 = med_orig->v2;
     med_new->crease = med_orig->crease;
     med_new->flag = med_orig->flag & ~ME_LOOSEEDGE;
-    /* Tag mvert as not loose.
-     * NOTE: ME_VERT_TMP_TAG is given to be cleared by BKE_mesh_new_nomain_from_template. */
-    mvert_new[med_orig->v1].flag |= ME_VERT_TMP_TAG;
-    mvert_new[med_orig->v2].flag |= ME_VERT_TMP_TAG;
+
+    /* Tag mvert as not loose. */
+    BLI_BITMAP_ENABLE(vert_tag, med_orig->v1);
+    BLI_BITMAP_ENABLE(vert_tag, med_orig->v1);
   }
 
   /* build polygon -> edge map */
@@ -910,7 +915,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       med_new->v1 = varray_stride + j;
       med_new->v2 = med_new->v1 - totvert;
       med_new->flag = ME_EDGEDRAW | ME_EDGERENDER;
-      if ((mv_new_base->flag & ME_VERT_TMP_TAG) == 0) {
+      if (!BLI_BITMAP_TEST(vert_tag, j)) {
         med_new->flag |= ME_LOOSEEDGE;
       }
       med_new++;
@@ -931,7 +936,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       med_new->v1 = i;
       med_new->v2 = varray_stride + i;
       med_new->flag = ME_EDGEDRAW | ME_EDGERENDER;
-      if ((mvert_new[i].flag & ME_VERT_TMP_TAG) == 0) {
+      if (!BLI_BITMAP_TEST(vert_tag, i)) {
         med_new->flag |= ME_LOOSEEDGE;
       }
       med_new++;
@@ -1118,6 +1123,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
   }
 #endif
+
+  MEM_freeN(vert_tag);
 
   if (edge_poly_map) {
     MEM_freeN(edge_poly_map);
