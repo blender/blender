@@ -795,6 +795,7 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 
   /* Free custom data. */
   sequencer_add_cancel(C, op);
+  SEQ_collection_free(movie_strips);
 
   seq_build_proxy(C, movie_strips);
   DEG_relations_tag_update(bmain);
