@@ -337,6 +337,18 @@ constexpr int64_t StringRefBase::find(StringRef str, int64_t pos) const
   return index_or_npos_to_int64(std::string_view(*this).find(str, static_cast<size_t>(pos)));
 }
 
+constexpr int64_t StringRefBase::rfind(char c, int64_t pos) const
+{
+  BLI_assert(pos >= 0);
+  return index_or_npos_to_int64(std::string_view(*this).rfind(c, static_cast<size_t>(pos)));
+}
+
+constexpr int64_t StringRefBase::rfind(StringRef str, int64_t pos) const
+{
+  BLI_assert(pos >= 0);
+  return index_or_npos_to_int64(std::string_view(*this).rfind(str, static_cast<size_t>(pos)));
+}
+
 constexpr int64_t StringRefBase::find_first_of(StringRef chars, int64_t pos) const
 {
   BLI_assert(pos >= 0);

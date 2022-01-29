@@ -21,54 +21,22 @@ CCL_NAMESPACE_BEGIN
 /* Ray offset to avoid self intersection.
  *
  * This function should be used to compute a modified ray start position for
- * rays leaving from a surface. */
-
+ * rays leaving from a surface. This is from "A Fast and Robust Method for Avoiding
+ * Self-Intersection" see https://research.nvidia.com/publication/2019-03_A-Fast-and
+ */
 ccl_device_inline float3 ray_offset(float3 P, float3 Ng)
 {
-#ifdef __INTERSECTION_REFINE__
-  const float epsilon_f = 1e-5f;
-  /* ideally this should match epsilon_f, but instancing and motion blur
-   * precision makes it problematic */
-  const float epsilon_test = 1.0f;
-  const int epsilon_i = 32;
+  const float int_scale = 256.0f;
+  int3 of_i = make_int3((int)(int_scale * Ng.x), (int)(int_scale * Ng.y), (int)(int_scale * Ng.z));
 
-  float3 res;
-
-  /* x component */
-  if (fabsf(P.x) < epsilon_test) {
-    res.x = P.x + Ng.x * epsilon_f;
-  }
-  else {
-    uint ix = __float_as_uint(P.x);
-    ix += ((ix ^ __float_as_uint(Ng.x)) >> 31) ? -epsilon_i : epsilon_i;
-    res.x = __uint_as_float(ix);
-  }
-
-  /* y component */
-  if (fabsf(P.y) < epsilon_test) {
-    res.y = P.y + Ng.y * epsilon_f;
-  }
-  else {
-    uint iy = __float_as_uint(P.y);
-    iy += ((iy ^ __float_as_uint(Ng.y)) >> 31) ? -epsilon_i : epsilon_i;
-    res.y = __uint_as_float(iy);
-  }
-
-  /* z component */
-  if (fabsf(P.z) < epsilon_test) {
-    res.z = P.z + Ng.z * epsilon_f;
-  }
-  else {
-    uint iz = __float_as_uint(P.z);
-    iz += ((iz ^ __float_as_uint(Ng.z)) >> 31) ? -epsilon_i : epsilon_i;
-    res.z = __uint_as_float(iz);
-  }
-
-  return res;
-#else
-  const float epsilon_f = 1e-4f;
-  return P + epsilon_f * Ng;
-#endif
+  float3 p_i = make_float3(__int_as_float(__float_as_int(P.x) + ((P.x < 0) ? -of_i.x : of_i.x)),
+                           __int_as_float(__float_as_int(P.y) + ((P.y < 0) ? -of_i.y : of_i.y)),
+                           __int_as_float(__float_as_int(P.z) + ((P.z < 0) ? -of_i.z : of_i.z)));
+  const float origin = 1.0f / 32.0f;
+  const float float_scale = 1.0f / 65536.0f;
+  return make_float3(fabsf(P.x) < origin ? P.x + float_scale * Ng.x : p_i.x,
+                     fabsf(P.y) < origin ? P.y + float_scale * Ng.y : p_i.y,
+                     fabsf(P.z) < origin ? P.z + float_scale * Ng.z : p_i.z);
 }
 
 #if defined(__KERNEL_CPU__)
@@ -225,6 +193,27 @@ ccl_device_inline float intersection_curve_shadow_transparency(KernelGlobals kg,
   const float f1 = kernel_tex_fetch(__attributes_float, offset + k1);
 
   return (1.0f - u) * f0 + u * f1;
+}
+
+ccl_device_inline bool intersection_skip_self(ccl_private const RaySelfPrimitives &self,
+                                              const int object,
+                                              const int prim)
+{
+  return (self.prim == prim) && (self.object == object);
+}
+
+ccl_device_inline bool intersection_skip_self_shadow(ccl_private const RaySelfPrimitives &self,
+                                                     const int object,
+                                                     const int prim)
+{
+  return ((self.prim == prim) && (self.object == object)) ||
+         ((self.light_prim == prim) && (self.light_object == object));
+}
+
+ccl_device_inline bool intersection_skip_self_local(ccl_private const RaySelfPrimitives &self,
+                                                    const int prim)
+{
+  return (self.prim == prim);
 }
 
 CCL_NAMESPACE_END

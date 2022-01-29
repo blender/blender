@@ -4,13 +4,6 @@
 #pragma BLENDER_REQUIRE(workbench_matcap_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_world_light_lib.glsl)
 
-uniform sampler2D materialBuffer;
-uniform sampler2D normalBuffer;
-
-in vec4 uvcoordsvar;
-
-out vec4 fragColor;
-
 void main()
 {
   /* Normal and Incident vector are in viewspace. Lighting is evaluated in viewspace. */
@@ -27,7 +20,7 @@ void main()
   /* When using matcaps, mat_data.a is the back-face sign. */
   N = (mat_data.a > 0.0) ? N : -N;
 
-  fragColor.rgb = get_matcap_lighting(base_color, N, I);
+  fragColor.rgb = get_matcap_lighting(matcap_diffuse_tx, matcap_specular_tx, base_color, N, I);
 #endif
 
 #ifdef V3D_LIGHTING_STUDIO
@@ -38,7 +31,7 @@ void main()
   fragColor.rgb = base_color;
 #endif
 
-  fragColor.rgb *= get_shadow(N);
+  fragColor.rgb *= get_shadow(N, forceShadowing);
 
   fragColor.a = 1.0;
 }

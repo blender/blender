@@ -64,6 +64,8 @@
 #include "BKE_workspace.h"
 #include "BKE_world.h"
 
+#include "NOD_composite.h"
+
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 

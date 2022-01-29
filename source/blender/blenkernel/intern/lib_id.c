@@ -454,37 +454,56 @@ static void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id, 
   }
 }
 
+void BKE_lib_id_make_local_generic_action_define(
+    struct Main *bmain, struct ID *id, int flags, bool *r_force_local, bool *r_force_copy)
+{
+  bool force_local = (flags & LIB_ID_MAKELOCAL_FORCE_LOCAL) != 0;
+  bool force_copy = (flags & LIB_ID_MAKELOCAL_FORCE_COPY) != 0;
+  BLI_assert(force_copy == false || force_copy != force_local);
+
+  if (force_local || force_copy) {
+    /* Already set by caller code, nothing to do here. */
+    *r_force_local = force_local;
+    *r_force_copy = force_copy;
+    return;
+  }
+
+  const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
+  bool is_local = false, is_lib = false;
+
+  /* - no user (neither lib nor local): make local (happens e.g. with UI-used only data).
+   * - only lib users: do nothing (unless force_local is set)
+   * - only local users: make local
+   * - mixed: make copy
+   * In case we make a whole lib's content local,
+   * we always want to localize, and we skip remapping (done later).
+   */
+
+  BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
+  if (!lib_local && !is_local && !is_lib) {
+    force_local = true;
+  }
+  else if (lib_local || is_local) {
+    if (!is_lib) {
+      force_local = true;
+    }
+    else {
+      force_copy = true;
+    }
+  }
+
+  *r_force_local = force_local;
+  *r_force_copy = force_copy;
+}
+
 void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
 {
   if (!ID_IS_LINKED(id)) {
     return;
   }
 
-  const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
-  bool force_local = (flags & LIB_ID_MAKELOCAL_FORCE_LOCAL) != 0;
-  bool force_copy = (flags & LIB_ID_MAKELOCAL_FORCE_COPY) != 0;
-  BLI_assert(force_copy == false || force_copy != force_local);
-
-  bool is_local = false, is_lib = false;
-
-  /* - only lib users: do nothing (unless force_local is set)
-   * - only local users: set flag
-   * - mixed: make copy
-   * In case we make a whole lib's content local,
-   * we always want to localize, and we skip remapping (done later).
-   */
-
-  if (!force_copy && !force_local) {
-    BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
-    if (lib_local || is_local) {
-      if (!is_lib) {
-        force_local = true;
-      }
-      else {
-        force_copy = true;
-      }
-    }
-  }
+  bool force_local, force_copy;
+  BKE_lib_id_make_local_generic_action_define(bmain, id, flags, &force_local, &force_copy);
 
   if (force_local) {
     BKE_lib_id_clear_library_data(bmain, id, flags);
@@ -516,6 +535,7 @@ void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
         }
       }
 
+      const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
       if (!lib_local) {
         BKE_libblock_remap(bmain, id, id_new, ID_REMAP_SKIP_INDIRECT_USAGE);
       }

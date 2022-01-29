@@ -38,6 +38,7 @@
 
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_image_partial_update.hh"
 #include "BKE_main.h"
 
 #include "GPU_capabilities.h"
@@ -46,20 +47,16 @@
 
 #include "PIL_time.h"
 
+using namespace blender::bke::image::partial_update;
+
+extern "C" {
+
 /* Prototypes. */
 static void gpu_free_unused_buffers();
 static void image_free_gpu(Image *ima, const bool immediate);
 static void image_free_gpu_limited_scale(Image *ima);
 static void image_update_gputexture_ex(
     Image *ima, ImageTile *tile, ImBuf *ibuf, int x, int y, int w, int h);
-
-/* Internal structs. */
-#define IMA_PARTIAL_REFRESH_TILE_SIZE 256
-struct ImagePartialRefresh {
-  struct ImagePartialRefresh *next, *prev;
-  int tile_x;
-  int tile_y;
-};
 
 bool BKE_image_has_gpu_texture_premultiplied_alpha(Image *image, ImBuf *ibuf)
 {
@@ -337,6 +334,48 @@ static void image_update_reusable_textures(Image *ima,
   }
 }
 
+static void image_gpu_texture_partial_update_changes_available(
+    Image *image, PartialUpdateChecker<ImageTileData>::CollectResult &changes)
+{
+  while (changes.get_next_change() == ePartialUpdateIterResult::ChangeAvailable) {
+    const int tile_offset_x = changes.changed_region.region.xmin;
+    const int tile_offset_y = changes.changed_region.region.ymin;
+    const int tile_width = min_ii(changes.tile_data.tile_buffer->x,
+                                  BLI_rcti_size_x(&changes.changed_region.region));
+    const int tile_height = min_ii(changes.tile_data.tile_buffer->y,
+                                   BLI_rcti_size_y(&changes.changed_region.region));
+    image_update_gputexture_ex(image,
+                               changes.tile_data.tile,
+                               changes.tile_data.tile_buffer,
+                               tile_offset_x,
+                               tile_offset_y,
+                               tile_width,
+                               tile_height);
+  }
+}
+
+static void image_gpu_texture_try_partial_update(Image *image, ImageUser *iuser)
+{
+  PartialUpdateChecker<ImageTileData> checker(image, iuser, image->runtime.partial_update_user);
+  PartialUpdateChecker<ImageTileData>::CollectResult changes = checker.collect_changes();
+  switch (changes.get_result_code()) {
+    case ePartialUpdateCollectResult::FullUpdateNeeded: {
+      image_free_gpu(image, true);
+      break;
+    }
+
+    case ePartialUpdateCollectResult::PartialChangesDetected: {
+      image_gpu_texture_partial_update_changes_available(image, changes);
+      break;
+    }
+
+    case ePartialUpdateCollectResult::NoChangesDetected: {
+      /* GPUTextures are up to date. */
+      break;
+    }
+  }
+}
+
 static GPUTexture *image_get_gpu_texture(Image *ima,
                                          ImageUser *iuser,
                                          ImBuf *ibuf,
@@ -370,30 +409,19 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   }
 #undef GPU_FLAGS_TO_CHECK
 
-  /* Check if image has been updated and tagged to be updated (full or partial). */
-  ImageTile *tile = BKE_image_get_tile(ima, 0);
-  if (((ima->gpuflag & IMA_GPU_REFRESH) != 0) ||
-      ((ibuf == nullptr || tile == nullptr) && ((ima->gpuflag & IMA_GPU_PARTIAL_REFRESH) != 0))) {
-    image_free_gpu(ima, true);
-    BLI_freelistN(&ima->gpu_refresh_areas);
-    ima->gpuflag &= ~(IMA_GPU_REFRESH | IMA_GPU_PARTIAL_REFRESH);
+  /* TODO(jbakker): We should replace the IMA_GPU_REFRESH flag with a call to
+   * BKE_image-partial_update_mark_full_update. Although the flag is quicker it leads to double
+   * administration. */
+  if ((ima->gpuflag & IMA_GPU_REFRESH) != 0) {
+    BKE_image_partial_update_mark_full_update(ima);
+    ima->gpuflag &= ~IMA_GPU_REFRESH;
   }
-  else if (ima->gpuflag & IMA_GPU_PARTIAL_REFRESH) {
-    BLI_assert(ibuf);
-    BLI_assert(tile);
-    ImagePartialRefresh *refresh_area;
-    while ((
-        refresh_area = static_cast<ImagePartialRefresh *>(BLI_pophead(&ima->gpu_refresh_areas)))) {
-      const int tile_offset_x = refresh_area->tile_x * IMA_PARTIAL_REFRESH_TILE_SIZE;
-      const int tile_offset_y = refresh_area->tile_y * IMA_PARTIAL_REFRESH_TILE_SIZE;
-      const int tile_width = MIN2(IMA_PARTIAL_REFRESH_TILE_SIZE, ibuf->x - tile_offset_x);
-      const int tile_height = MIN2(IMA_PARTIAL_REFRESH_TILE_SIZE, ibuf->y - tile_offset_y);
-      image_update_gputexture_ex(
-          ima, tile, ibuf, tile_offset_x, tile_offset_y, tile_width, tile_height);
-      MEM_freeN(refresh_area);
-    }
-    ima->gpuflag &= ~IMA_GPU_PARTIAL_REFRESH;
+
+  if (ima->runtime.partial_update_user == nullptr) {
+    ima->runtime.partial_update_user = BKE_image_partial_update_create(ima);
   }
+
+  image_gpu_texture_try_partial_update(ima, iuser);
 
   /* Tag as in active use for garbage collector. */
   BKE_image_tag_time(ima);
@@ -417,6 +445,7 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
 
   /* Check if we have a valid image. If not, we return a dummy
    * texture with zero bind-code so we don't keep trying. */
+  ImageTile *tile = BKE_image_get_tile(ima, 0);
   if (tile == nullptr) {
     *tex = image_gpu_texture_error_create(textarget);
     return *tex;
@@ -427,8 +456,7 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   if (ibuf_intern == nullptr) {
     ibuf_intern = BKE_image_acquire_ibuf(ima, iuser, nullptr);
     if (ibuf_intern == nullptr) {
-      *tex = image_gpu_texture_error_create(textarget);
-      return *tex;
+      return image_gpu_texture_error_create(textarget);
     }
   }
 
@@ -477,13 +505,12 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
       break;
   }
 
-  /* if `ibuf` was given, we don't own the `ibuf_intern` */
-  if (ibuf == nullptr) {
-    BKE_image_release_ibuf(ima, ibuf_intern, nullptr);
-  }
-
   if (*tex) {
     GPU_texture_orig_size_set(*tex, ibuf_intern->x, ibuf_intern->y);
+  }
+
+  if (ibuf != ibuf_intern) {
+    BKE_image_release_ibuf(ima, ibuf_intern, nullptr);
   }
 
   return *tex;
@@ -903,87 +930,29 @@ static void image_update_gputexture_ex(
 
 void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int w, int h)
 {
+  ImageTile *image_tile = BKE_image_get_tile_from_iuser(ima, iuser);
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, nullptr);
-  ImageTile *tile = BKE_image_get_tile_from_iuser(ima, iuser);
-
-  if ((ibuf == nullptr) || (w == 0) || (h == 0)) {
-    /* Full reload of texture. */
-    BKE_image_free_gputextures(ima);
-  }
-  image_update_gputexture_ex(ima, tile, ibuf, x, y, w, h);
+  BKE_image_update_gputexture_delayed(ima, image_tile, ibuf, x, y, w, h);
   BKE_image_release_ibuf(ima, ibuf, nullptr);
 }
 
-void BKE_image_update_gputexture_delayed(
-    struct Image *ima, struct ImBuf *ibuf, int x, int y, int w, int h)
+void BKE_image_update_gputexture_delayed(struct Image *ima,
+                                         struct ImageTile *image_tile,
+                                         struct ImBuf *ibuf,
+                                         int x,
+                                         int y,
+                                         int w,
+                                         int h)
 {
   /* Check for full refresh. */
-  if (ibuf && x == 0 && y == 0 && w == ibuf->x && h == ibuf->y) {
-    ima->gpuflag |= IMA_GPU_REFRESH;
-  }
-  /* Check if we can promote partial refresh to a full refresh. */
-  if ((ima->gpuflag & (IMA_GPU_REFRESH | IMA_GPU_PARTIAL_REFRESH)) ==
-      (IMA_GPU_REFRESH | IMA_GPU_PARTIAL_REFRESH)) {
-    ima->gpuflag &= ~IMA_GPU_PARTIAL_REFRESH;
-    BLI_freelistN(&ima->gpu_refresh_areas);
-  }
-  /* Image is already marked for complete refresh. */
-  if (ima->gpuflag & IMA_GPU_REFRESH) {
-    return;
-  }
-
-  /* Schedule the tiles that covers the requested area. */
-  const int start_tile_x = x / IMA_PARTIAL_REFRESH_TILE_SIZE;
-  const int start_tile_y = y / IMA_PARTIAL_REFRESH_TILE_SIZE;
-  const int end_tile_x = (x + w) / IMA_PARTIAL_REFRESH_TILE_SIZE;
-  const int end_tile_y = (y + h) / IMA_PARTIAL_REFRESH_TILE_SIZE;
-  const int num_tiles_x = (end_tile_x + 1) - (start_tile_x);
-  const int num_tiles_y = (end_tile_y + 1) - (start_tile_y);
-  const int num_tiles = num_tiles_x * num_tiles_y;
-  const bool allocate_on_heap = BLI_BITMAP_SIZE(num_tiles) > 16;
-  BLI_bitmap *requested_tiles = nullptr;
-  if (allocate_on_heap) {
-    requested_tiles = BLI_BITMAP_NEW(num_tiles, __func__);
+  if (ibuf != nullptr && ima->source != IMA_SRC_TILED && x == 0 && y == 0 && w == ibuf->x &&
+      h == ibuf->y) {
+    BKE_image_partial_update_mark_full_update(ima);
   }
   else {
-    requested_tiles = BLI_BITMAP_NEW_ALLOCA(num_tiles);
-  }
-
-  /* Mark the tiles that have already been requested. They don't need to be requested again. */
-  int num_tiles_not_scheduled = num_tiles;
-  LISTBASE_FOREACH (ImagePartialRefresh *, area, &ima->gpu_refresh_areas) {
-    if (area->tile_x < start_tile_x || area->tile_x > end_tile_x || area->tile_y < start_tile_y ||
-        area->tile_y > end_tile_y) {
-      continue;
-    }
-    int requested_tile_index = (area->tile_x - start_tile_x) +
-                               (area->tile_y - start_tile_y) * num_tiles_x;
-    BLI_BITMAP_ENABLE(requested_tiles, requested_tile_index);
-    num_tiles_not_scheduled--;
-    if (num_tiles_not_scheduled == 0) {
-      break;
-    }
-  }
-
-  /* Schedule the tiles that aren't requested yet. */
-  if (num_tiles_not_scheduled) {
-    int tile_index = 0;
-    for (int tile_y = start_tile_y; tile_y <= end_tile_y; tile_y++) {
-      for (int tile_x = start_tile_x; tile_x <= end_tile_x; tile_x++) {
-        if (!BLI_BITMAP_TEST_BOOL(requested_tiles, tile_index)) {
-          ImagePartialRefresh *area = static_cast<ImagePartialRefresh *>(
-              MEM_mallocN(sizeof(ImagePartialRefresh), __func__));
-          area->tile_x = tile_x;
-          area->tile_y = tile_y;
-          BLI_addtail(&ima->gpu_refresh_areas, area);
-        }
-        tile_index++;
-      }
-    }
-    ima->gpuflag |= IMA_GPU_PARTIAL_REFRESH;
-  }
-  if (allocate_on_heap) {
-    MEM_freeN(requested_tiles);
+    rcti dirty_region;
+    BLI_rcti_init(&dirty_region, x, x + w, y, y + h);
+    BKE_image_partial_update_mark_region(ima, image_tile, ibuf, &dirty_region);
   }
 }
 
@@ -1016,3 +985,4 @@ void BKE_image_paint_set_mipmap(Main *bmain, bool mipmap)
 }
 
 /** \} */
+}

@@ -603,6 +603,20 @@ static bool data_transfer_poll_property(const bContext *UNUSED(C),
   return true;
 }
 
+static char *data_transfer_get_description(bContext *UNUSED(C),
+                                           wmOperatorType *UNUSED(ot),
+                                           PointerRNA *ptr)
+{
+  const bool reverse_transfer = RNA_boolean_get(ptr, "use_reverse_transfer");
+
+  if (reverse_transfer) {
+    return BLI_strdup(
+        "Transfer data layer(s) (weights, edge sharp, etc.) from selected meshes to active one");
+  }
+
+  return NULL;
+}
+
 void OBJECT_OT_data_transfer(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -619,6 +633,7 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
   ot->invoke = WM_menu_invoke;
   ot->exec = data_transfer_exec;
   ot->check = data_transfer_check;
+  ot->get_description = data_transfer_get_description;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

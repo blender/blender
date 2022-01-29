@@ -2491,7 +2491,9 @@ void CustomData_realloc(CustomData *data, int totelem)
       continue;
     }
     typeInfo = layerType_getInfo(layer->type);
-    layer->data = MEM_reallocN(layer->data, (size_t)totelem * typeInfo->size);
+    /* Use calloc to avoid the need to manually initialize new data in layers.
+     * Useful for types like #MDeformVert which contain a pointer. */
+    layer->data = MEM_recallocN(layer->data, (size_t)totelem * typeInfo->size);
   }
 }
 
@@ -2786,6 +2788,13 @@ int CustomData_get_stencil_layer(const CustomData *data, int type)
   const int layer_index = data->typemap[type];
   BLI_assert(customdata_typemap_is_valid(data));
   return (layer_index != -1) ? data->layers[layer_index].active_mask : -1;
+}
+
+const char *CustomData_get_active_layer_name(const struct CustomData *data, const int type)
+{
+  /* Get the layer index of the active layer of this type. */
+  const int layer_index = CustomData_get_active_layer_index(data, type);
+  return layer_index < 0 ? NULL : data->layers[layer_index].name;
 }
 
 void CustomData_set_layer_active(CustomData *data, int type, int n)

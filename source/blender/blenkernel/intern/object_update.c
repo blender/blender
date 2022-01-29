@@ -160,12 +160,6 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
   /* includes all keys and modifiers */
   switch (ob->type) {
     case OB_MESH: {
-#if 0
-      BMEditMesh *em = (ob->mode & OB_MODE_EDIT) ? BKE_editmesh_from_object(ob) : NULL;
-#else
-      BMEditMesh *em = (ob->mode & OB_MODE_EDIT) ? ((Mesh *)ob->data)->edit_mesh : NULL;
-#endif
-
       CustomData_MeshMasks cddata_masks = scene->customdata_mask;
       CustomData_MeshMasks_update(&cddata_masks, &CD_MASK_BAREMESH);
       /* Custom attributes should not be removed automatically. They might be used by the render
@@ -192,12 +186,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
         cddata_masks.lmask |= CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
         cddata_masks.vmask |= CD_MASK_ORCO | CD_MASK_PROP_COLOR;
       }
-      if (em) {
-        makeDerivedMesh(depsgraph, scene, ob, em, &cddata_masks); /* was CD_MASK_BAREMESH */
-      }
-      else {
-        makeDerivedMesh(depsgraph, scene, ob, NULL, &cddata_masks);
-      }
+      makeDerivedMesh(depsgraph, scene, ob, &cddata_masks); /* was CD_MASK_BAREMESH */
       break;
     }
     case OB_ARMATURE:

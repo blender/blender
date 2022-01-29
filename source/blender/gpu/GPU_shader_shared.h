@@ -25,13 +25,6 @@
 #  include "intern/gpu_shader_shared_utils.h"
 #endif
 
-#ifdef __cplusplus
-using blender::float2;
-using blender::float3;
-using blender::float4;
-using blender::float4x4;
-#endif
-
 struct NodeLinkData {
   float4 colors[3];
   /* bezierPts Is actually a float2, but due to std140 each element needs to be aligned to 16

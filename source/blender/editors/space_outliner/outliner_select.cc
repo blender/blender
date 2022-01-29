@@ -80,6 +80,9 @@
 #include "RNA_define.h"
 
 #include "outliner_intern.hh"
+#include "tree/tree_element_seq.hh"
+
+using namespace blender::ed::outliner;
 
 /**
  * \note changes to selection are by convention and not essential.
@@ -676,7 +679,8 @@ static void tree_element_sequence_activate(bContext *C,
                                            TreeElement *te,
                                            const eOLSetState set)
 {
-  Sequence *seq = (Sequence *)te->directdata;
+  const TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
+  Sequence *seq = &te_seq->getSequence();
   Editing *ed = SEQ_editing_get(scene);
 
   if (BLI_findindex(ed->seqbasep, seq) != -1) {
@@ -954,7 +958,8 @@ static eOLDrawState tree_element_posegroup_state_get(const ViewLayer *view_layer
 
 static eOLDrawState tree_element_sequence_state_get(const Scene *scene, const TreeElement *te)
 {
-  const Sequence *seq = (const Sequence *)te->directdata;
+  const TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
+  const Sequence *seq = &te_seq->getSequence();
   const Editing *ed = scene->ed;
 
   if (ed && ed->act_seq == seq && seq->flag & SELECT) {
@@ -965,7 +970,9 @@ static eOLDrawState tree_element_sequence_state_get(const Scene *scene, const Tr
 
 static eOLDrawState tree_element_sequence_dup_state_get(const TreeElement *te)
 {
-  const Sequence *seq = (const Sequence *)te->directdata;
+  const TreeElementSequenceStripDuplicate *te_dup =
+      tree_element_cast<TreeElementSequenceStripDuplicate>(te);
+  const Sequence *seq = &te_dup->getSequence();
   if (seq->flag & SELECT) {
     return OL_DRAWSEL_NORMAL;
   }
@@ -1604,8 +1611,7 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
 
   if (!(te = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]))) {
     if (deselect_all) {
-      outliner_flag_set(&space_outliner->tree, TSE_SELECTED, false);
-      changed = true;
+      changed |= outliner_flag_set(&space_outliner->tree, TSE_SELECTED, false);
     }
   }
   /* Don't allow toggle on scene collection */
@@ -1653,16 +1659,18 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
     changed = true;
   }
 
-  if (changed) {
-    if (rebuild_tree) {
-      ED_region_tag_redraw(region);
-    }
-    else {
-      ED_region_tag_redraw_no_rebuild(region);
-    }
-
-    ED_outliner_select_sync_from_outliner(C, space_outliner);
+  if (!changed) {
+    return OPERATOR_CANCELLED;
   }
+
+  if (rebuild_tree) {
+    ED_region_tag_redraw(region);
+  }
+  else {
+    ED_region_tag_redraw_no_rebuild(region);
+  }
+
+  ED_outliner_select_sync_from_outliner(C, space_outliner);
 
   return OPERATOR_FINISHED;
 }

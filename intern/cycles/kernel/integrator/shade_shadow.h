@@ -83,7 +83,10 @@ ccl_device_inline void integrate_transparent_volume_shadow(KernelGlobals kg,
   /* Setup shader data. */
   Ray ray ccl_optional_struct_init;
   integrator_state_read_shadow_ray(kg, state, &ray);
-
+  ray.self.object = OBJECT_NONE;
+  ray.self.prim = PRIM_NONE;
+  ray.self.light_object = OBJECT_NONE;
+  ray.self.light_prim = PRIM_NONE;
   /* Modify ray position and length to match current segment. */
   const float start_t = (hit == 0) ? 0.0f :
                                      INTEGRATOR_STATE_ARRAY(state, shadow_isect, hit - 1, t);
@@ -149,7 +152,7 @@ ccl_device_inline bool integrate_transparent_shadow(KernelGlobals kg,
     const float last_hit_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, num_recorded_hits - 1, t);
     const float3 ray_P = INTEGRATOR_STATE(state, shadow_ray, P);
     const float3 ray_D = INTEGRATOR_STATE(state, shadow_ray, D);
-    INTEGRATOR_STATE_WRITE(state, shadow_ray, P) = ray_offset(ray_P + last_hit_t * ray_D, ray_D);
+    INTEGRATOR_STATE_WRITE(state, shadow_ray, P) = ray_P + last_hit_t * ray_D;
     INTEGRATOR_STATE_WRITE(state, shadow_ray, t) -= last_hit_t;
   }
 

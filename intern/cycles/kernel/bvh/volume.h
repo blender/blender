@@ -144,6 +144,9 @@ ccl_device_inline
                                             kernel_tex_fetch(__prim_object, prim_addr) :
                                             object;
                 const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+                if (intersection_skip_self(ray->self, prim_object, prim)) {
+                  continue;
+                }
 
                 int object_flag = kernel_tex_fetch(__object_flag, prim_object);
                 if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
@@ -164,6 +167,9 @@ ccl_device_inline
                                             kernel_tex_fetch(__prim_object, prim_addr) :
                                             object;
                 const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+                if (intersection_skip_self(ray->self, prim_object, prim)) {
+                  continue;
+                }
                 int object_flag = kernel_tex_fetch(__object_flag, prim_object);
                 if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
                   continue;

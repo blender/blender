@@ -31,8 +31,8 @@ namespace blender::nodes::geometry_nodes_eval_log {
 struct GeometryAttributeInfo;
 }
 
-struct uiBlock;
 struct StructRNA;
+struct uiBlock;
 struct uiSearchItems;
 
 namespace blender::ui {

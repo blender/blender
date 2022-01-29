@@ -72,7 +72,7 @@ static void do_proc(float *result,
   }
 
   if (textype & TEX_RGB) {
-    copy_v4_v4(result, &texres.tr);
+    copy_v4_v4(result, texres.trgba);
   }
   else {
     copy_v4_v4(result, col1);

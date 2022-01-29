@@ -249,6 +249,18 @@ GPUShader *GPU_shader_create_compute(const char *computecode,
                               shname);
 }
 
+GPUShader *GPU_shader_create_from_info_name(const char *info_name)
+{
+  using namespace blender::gpu::shader;
+  const GPUShaderCreateInfo *_info = gpu_shader_create_info_get(info_name);
+  const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(_info);
+  if (!info.do_static_compilation_) {
+    printf("Warning: Trying to compile \"%s\" which was not marked for static compilation.\n",
+           info.name_.c_str());
+  }
+  return GPU_shader_create_from_info(_info);
+}
+
 GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
 {
   using namespace blender::gpu::shader;
@@ -382,6 +394,7 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
     uint32_t builtins = 0;
     char *code = gpu_shader_dependency_get_resolved_source(info.compute_source_.c_str(),
                                                            &builtins);
+    std::string layout = shader->compute_layout_declare(info);
 
     Vector<const char *> sources;
     standard_defines(sources);
@@ -394,6 +407,7 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
       sources.append(types);
     }
     sources.append(resources.c_str());
+    sources.append(layout.c_str());
     sources.append(code);
 
     shader->compute_shader_from_glsl(sources);

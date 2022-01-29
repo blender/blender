@@ -71,7 +71,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
     textype = multitex_nodes(nodetex, co, dxt, dyt, p->osatex, &texres, thread, 0, p->mtex, NULL);
 
     if (textype & TEX_RGB) {
-      copy_v4_v4(out, &texres.tr);
+      copy_v4_v4(out, texres.trgba);
     }
     else {
       copy_v4_v4(out, col1);

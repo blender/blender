@@ -24,12 +24,12 @@
 
 struct DRWShadingGroup;
 struct FluidModifierData;
+struct GPUMaterial;
 struct ModifierData;
 struct Object;
 struct ParticleSystem;
 struct RegionView3D;
 struct ViewLayer;
-struct GPUMaterial;
 
 #define UBO_FIRST_COLOR colorWire
 #define UBO_LAST_COLOR colorUVShadow

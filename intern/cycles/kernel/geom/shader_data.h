@@ -89,7 +89,7 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
       sd->shader = kernel_tex_fetch(__tri_shader, sd->prim);
 
       /* vectors */
-      sd->P = triangle_refine(kg, sd, ray->P, ray->D, isect->t, isect->object, isect->prim);
+      sd->P = triangle_point_from_uv(kg, sd, isect->object, isect->prim, isect->u, isect->v);
       sd->Ng = Ng;
       sd->N = Ng;
 
@@ -190,40 +190,46 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
 #ifdef __OBJECT_MOTION__
     shader_setup_object_transforms(kg, sd, time);
 #endif
-  }
-  else if (lamp != LAMP_NONE) {
-    sd->lamp = lamp;
-  }
 
-  /* transform into world space */
-  if (object_space) {
-    object_position_transform_auto(kg, sd, &sd->P);
-    object_normal_transform_auto(kg, sd, &sd->Ng);
-    sd->N = sd->Ng;
-    object_dir_transform_auto(kg, sd, &sd->I);
-  }
+    /* transform into world space */
+    if (object_space) {
+      object_position_transform_auto(kg, sd, &sd->P);
+      object_normal_transform_auto(kg, sd, &sd->Ng);
+      sd->N = sd->Ng;
+      object_dir_transform_auto(kg, sd, &sd->I);
+    }
 
-  if (sd->type == PRIMITIVE_TRIANGLE) {
-    /* smooth normal */
-    if (sd->shader & SHADER_SMOOTH_NORMAL) {
-      sd->N = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v);
+    if (sd->type == PRIMITIVE_TRIANGLE) {
+      /* smooth normal */
+      if (sd->shader & SHADER_SMOOTH_NORMAL) {
+        sd->N = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v);
+
+        if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+          object_normal_transform_auto(kg, sd, &sd->N);
+        }
+      }
+
+      /* dPdu/dPdv */
+#ifdef __DPDU__
+      triangle_dPdudv(kg, sd->prim, &sd->dPdu, &sd->dPdv);
 
       if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-        object_normal_transform_auto(kg, sd, &sd->N);
+        object_dir_transform_auto(kg, sd, &sd->dPdu);
+        object_dir_transform_auto(kg, sd, &sd->dPdv);
       }
-    }
-
-    /* dPdu/dPdv */
-#ifdef __DPDU__
-    triangle_dPdudv(kg, sd->prim, &sd->dPdu, &sd->dPdv);
-
-    if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-      object_dir_transform_auto(kg, sd, &sd->dPdu);
-      object_dir_transform_auto(kg, sd, &sd->dPdv);
-    }
 #endif
+    }
+    else {
+#ifdef __DPDU__
+      sd->dPdu = zero_float3();
+      sd->dPdv = zero_float3();
+#endif
+    }
   }
   else {
+    if (lamp != LAMP_NONE) {
+      sd->lamp = lamp;
+    }
 #ifdef __DPDU__
     sd->dPdu = zero_float3();
     sd->dPdv = zero_float3();

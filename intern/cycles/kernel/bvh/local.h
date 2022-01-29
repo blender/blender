@@ -157,7 +157,11 @@ ccl_device_inline
                 }
               }
 
+              /* Skip self intersection. */
               const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+              if (intersection_skip_self_local(ray->self, prim)) {
+                continue;
+              }
 
               if (triangle_intersect_local(kg,
                                            local_isect,
@@ -188,7 +192,11 @@ ccl_device_inline
                 }
               }
 
+              /* Skip self intersection. */
               const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+              if (intersection_skip_self_local(ray->self, prim)) {
+                continue;
+              }
 
               if (motion_triangle_intersect_local(kg,
                                                   local_isect,

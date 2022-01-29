@@ -72,10 +72,7 @@
 
 #include "draw_texture_pool.h"
 
-#include "BLI_float4.hh"
-#include "BLI_int2.hh"
-#include "BLI_int3.hh"
-#include "BLI_int4.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 #include "BLI_utility_mixins.hh"
@@ -105,7 +102,8 @@ class DataBuffer {
   T *data_ = nullptr;
   int64_t len_ = len;
 
-  BLI_STATIC_ASSERT((sizeof(T) % 16) == 0, "Type need to be aligned to size of float4.");
+  BLI_STATIC_ASSERT(((sizeof(T) * len) % 16) == 0,
+                    "Buffer size need to be aligned to size of float4.");
 
  public:
   /**
@@ -295,7 +293,7 @@ class UniformArrayBuffer : public detail::UniformCommon<T, len, false> {
   UniformArrayBuffer()
   {
     /* TODO(fclem) We should map memory instead. */
-    this->data_ = MEM_mallocN_aligned(this->name_);
+    this->data_ = (T *)MEM_mallocN_aligned(len * sizeof(T), 16, this->name_);
   }
 };
 
@@ -484,7 +482,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_2d(eGPUTextureFormat format, const int2 &extent, float *data = nullptr, int mips = 1)
+  bool ensure_2d(eGPUTextureFormat format, int2 extent, float *data = nullptr, int mips = 1)
   {
     return ensure_impl(UNPACK2(extent), 0, mips, format, data, false, false);
   }
@@ -493,11 +491,8 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_2d_array(eGPUTextureFormat format,
-                       const int2 &extent,
-                       int layers,
-                       float *data = nullptr,
-                       int mips = 1)
+  bool ensure_2d_array(
+      eGPUTextureFormat format, int2 extent, int layers, float *data = nullptr, int mips = 1)
   {
     return ensure_impl(UNPACK2(extent), layers, mips, format, data, true, false);
   }
@@ -506,7 +501,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_3d(eGPUTextureFormat format, const int3 &extent, float *data = nullptr, int mips = 1)
+  bool ensure_3d(eGPUTextureFormat format, int3 extent, float *data = nullptr, int mips = 1)
   {
     return ensure_impl(UNPACK3(extent), mips, format, data, false, false);
   }
@@ -599,14 +594,6 @@ class Texture : NonCopyable {
   /**
    * Clear the entirety of the texture using one pixel worth of data.
    */
-  void clear(uchar4 values)
-  {
-    GPU_texture_clear(tx_, GPU_DATA_UBYTE, &values[0]);
-  }
-
-  /**
-   * Clear the entirety of the texture using one pixel worth of data.
-   */
   void clear(int4 values)
   {
     GPU_texture_clear(tx_, GPU_DATA_INT, &values[0]);
@@ -632,6 +619,15 @@ class Texture : NonCopyable {
   void free()
   {
     GPU_TEXTURE_FREE_SAFE(tx_);
+  }
+
+  /**
+   * Swap the content of the two textures.
+   */
+  static void swap(Texture &a, Texture &b)
+  {
+    SWAP(GPUTexture *, a.tx_, b.tx_);
+    SWAP(const char *, a.name_, b.name_);
   }
 
  private:
@@ -713,7 +709,7 @@ class TextureFromPool : public Texture, NonMovable {
   TextureFromPool(const char *name = "gpu::Texture") : Texture(name){};
 
   /* Always use `release()` after rendering. */
-  void acquire(int w, int h, eGPUTextureFormat format, void *owner_)
+  void acquire(int2 extent, eGPUTextureFormat format, void *owner_)
   {
     if (this->tx_ == nullptr) {
       if (tx_tmp_saved_ != nullptr) {
@@ -721,7 +717,7 @@ class TextureFromPool : public Texture, NonMovable {
         return;
       }
       DrawEngineType *owner = (DrawEngineType *)owner_;
-      this->tx_ = DRW_texture_pool_query_2d(w, h, format, owner);
+      this->tx_ = DRW_texture_pool_query_2d(UNPACK2(extent), format, owner);
     }
   }
 
@@ -750,11 +746,6 @@ class TextureFromPool : public Texture, NonMovable {
   bool ensure_cube_array(int, int, int, eGPUTextureFormat, float *) = delete;
   void filter_mode(bool) = delete;
   void free() = delete;
-  /**
-   * Forbid the use of DRW_shgroup_uniform_texture.
-   * Use DRW_shgroup_uniform_texture_ref instead.
-   */
-  operator GPUTexture *() const = delete;
 };
 
 /** \} */
@@ -804,6 +795,15 @@ class Framebuffer : NonCopyable {
   operator GPUFrameBuffer *() const
   {
     return fb_;
+  }
+
+  /**
+   * Swap the content of the two framebuffer.
+   */
+  static void swap(Framebuffer &a, Framebuffer &b)
+  {
+    SWAP(GPUFrameBuffer *, a.fb_, b.fb_);
+    SWAP(const char *, a.name_, b.name_);
   }
 };
 

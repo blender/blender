@@ -38,10 +38,10 @@ struct Main;
 struct ReportList;
 struct Scene;
 struct SpaceImage;
+struct View2D;
 struct bContext;
 struct wmOperator;
 struct wmWindowManager;
-struct View2D;
 
 /* image_draw.c */
 float ED_space_image_zoom_level(const struct View2D *v2d, int grid_dimension);

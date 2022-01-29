@@ -27,7 +27,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Int>(N_("Vertex Count"))
       .field_source()
-      .description(N_("Vertex count and edge count are equal"));
+      .description(N_("The number of vertices connected to this vertex with an edge, "
+                      "equal to the number of connected edges"));
   b.add_output<decl::Int>(N_("Face Count"))
       .field_source()
       .description(N_("Number of faces that contain the vertex"));

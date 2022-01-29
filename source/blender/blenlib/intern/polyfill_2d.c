@@ -25,7 +25,7 @@
  *   and that triangles will have non-overlapping indices (even for degenerate geometry).
  * - Self-intersections are considered degenerate (resulting triangles will overlap).
  * - While multiple polygons aren't supported, holes can still be defined using *key-holes*
- *   (where the polygon doubles back on its self with *exactly* matching coordinates).
+ *   (where the polygon doubles back on itself with *exactly* matching coordinates).
  *
  * \note
  *

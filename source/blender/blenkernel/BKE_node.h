@@ -1178,30 +1178,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define SH_NODE_OUTPUT_AOV 707
 #define SH_NODE_VECTOR_ROTATE 708
 #define SH_NODE_CURVE_FLOAT 709
-
-/* API */
-
-struct bNodeTreeExec *ntreeShaderBeginExecTree(struct bNodeTree *ntree);
-void ntreeShaderEndExecTree(struct bNodeTreeExec *exec);
-/**
-   Find an output node of the shader tree.
- *
- * \note it will only return output which is NOT in the group, which isn't how
- * render engines works but it's how the GPU shader compilation works. This we
- * can change in the future and make it a generic function, but for now it stays
- * private here.
- */
-struct bNode *ntreeShaderOutputNode(struct bNodeTree *ntree, int target);
-/**
- * This one needs to work on a local tree.
- *
- * TODO: This is *not* part of `blenkernel`, it's defined under "source/blender/nodes/".
- * This declaration should be moved out of BKE.
- */
-void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
-                           struct GPUMaterial *mat,
-                           bool *has_surface_output,
-                           bool *has_volume_output);
+#define SH_NODE_POINT_INFO 710
 
 /** \} */
 
@@ -1352,75 +1329,6 @@ void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
 #define CMP_DEFAULT_SMAA_CONTRAST_LIMIT 0.2f
 #define CMP_DEFAULT_SMAA_CORNER_ROUNDING 0.25f
 
-/* API */
-void ntreeCompositExecTree(struct Scene *scene,
-                           struct bNodeTree *ntree,
-                           struct RenderData *rd,
-                           int rendering,
-                           int do_previews,
-                           const struct ColorManagedViewSettings *view_settings,
-                           const struct ColorManagedDisplaySettings *display_settings,
-                           const char *view_name);
-
-/**
- * Called from render pipeline, to tag render input and output.
- * need to do all scenes, to prevent errors when you re-render 1 scene.
- */
-void ntreeCompositTagRender(struct Scene *scene);
-/**
- * Update the outputs of the render layer nodes.
- * Since the outputs depend on the render engine, this part is a bit complex:
- * - #ntreeCompositUpdateRLayers is called and loops over all render layer nodes.
- * - Each render layer node calls the update function of the
- *   render engine that's used for its scene.
- * - The render engine calls RE_engine_register_pass for each pass.
- * - #RE_engine_register_pass calls #node_cmp_rlayers_register_pass.
- *
- * TODO: This is *not* part of `blenkernel`, it's defined under "source/blender/nodes/".
- * This declaration should be moved out of BKE.
- */
-void ntreeCompositUpdateRLayers(struct bNodeTree *ntree);
-void ntreeCompositClearTags(struct bNodeTree *ntree);
-
-struct bNodeSocket *ntreeCompositOutputFileAddSocket(struct bNodeTree *ntree,
-                                                     struct bNode *node,
-                                                     const char *name,
-                                                     struct ImageFormatData *im_format);
-int ntreeCompositOutputFileRemoveActiveSocket(struct bNodeTree *ntree, struct bNode *node);
-void ntreeCompositOutputFileSetPath(struct bNode *node,
-                                    struct bNodeSocket *sock,
-                                    const char *name);
-void ntreeCompositOutputFileSetLayer(struct bNode *node,
-                                     struct bNodeSocket *sock,
-                                     const char *name);
-/* needed in do_versions */
-void ntreeCompositOutputFileUniquePath(struct ListBase *list,
-                                       struct bNodeSocket *sock,
-                                       const char defname[],
-                                       char delim);
-void ntreeCompositOutputFileUniqueLayer(struct ListBase *list,
-                                        struct bNodeSocket *sock,
-                                        const char defname[],
-                                        char delim);
-
-void ntreeCompositColorBalanceSyncFromLGG(bNodeTree *ntree, bNode *node);
-void ntreeCompositColorBalanceSyncFromCDL(bNodeTree *ntree, bNode *node);
-
-void ntreeCompositCryptomatteSyncFromAdd(const Scene *scene, bNode *node);
-void ntreeCompositCryptomatteSyncFromRemove(bNode *node);
-bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node);
-int ntreeCompositCryptomatteRemoveSocket(bNodeTree *ntree, bNode *node);
-void ntreeCompositCryptomatteLayerPrefix(const Scene *scene,
-                                         const bNode *node,
-                                         char *r_prefix,
-                                         size_t prefix_len);
-/**
- * Update the runtime layer names with the crypto-matte layer names of the references render layer
- * or image.
- */
-void ntreeCompositCryptomatteUpdateLayerNames(const Scene *scene, bNode *node);
-struct CryptomatteSession *ntreeCompositCryptomatteSession(const Scene *scene, bNode *node);
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1456,24 +1364,6 @@ struct TexResult;
 /* 501-599 reserved. Use like this: TEX_NODE_PROC + TEX_CLOUDS, etc */
 #define TEX_NODE_PROC 500
 #define TEX_NODE_PROC_MAX 600
-
-/* API */
-void ntreeTexCheckCyclics(struct bNodeTree *ntree);
-
-struct bNodeTreeExec *ntreeTexBeginExecTree(struct bNodeTree *ntree);
-void ntreeTexEndExecTree(struct bNodeTreeExec *exec);
-int ntreeTexExecTree(struct bNodeTree *ntree,
-                     struct TexResult *target,
-                     const float co[3],
-                     float dxt[3],
-                     float dyt[3],
-                     int osatex,
-                     short thread,
-                     const struct Tex *tex,
-                     short which_output,
-                     int cfra,
-                     int preview,
-                     struct MTex *mtex);
 
 /** \} */
 
@@ -1632,6 +1522,8 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_CURVE_PRIMITIVE_ARC 1149
 #define GEO_NODE_FLIP_FACES 1150
 #define GEO_NODE_SCALE_ELEMENTS 1151
+#define GEO_NODE_EXTRUDE_MESH 1152
+#define GEO_NODE_MERGE_BY_DISTANCE 1153
 
 /** \} */
 

@@ -26,11 +26,11 @@
 extern "C" {
 #endif
 
-struct Mesh;
-struct IMBuf;
-struct MLoopUV;
-struct ImBuf;
 struct DerivedMesh;
+struct IMBuf;
+struct ImBuf;
+struct MLoopUV;
+struct Mesh;
 
 /**
  * Generate a margin around the textures uv islands by copying pixels from the adjacent polygon.

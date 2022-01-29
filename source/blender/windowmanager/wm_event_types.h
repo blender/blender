@@ -222,7 +222,7 @@ enum {
 #define _EVT_KEYBOARD_MAX 0x00ff /* 255 */
 
   /* WARNING: 0x010x are used for internal events
-   * (but are still stored in the key-map).  */
+   * (but are still stored in the key-map). */
 
   EVT_F1KEY = 0x012c,  /* 300 */
   EVT_F2KEY = 0x012d,  /* 301 */

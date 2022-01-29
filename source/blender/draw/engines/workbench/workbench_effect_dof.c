@@ -328,7 +328,7 @@ void workbench_dof_cache_init(WORKBENCH_Data *vedata)
 
     float offset = wpd->taa_sample / (float)max_ii(1, wpd->taa_sample_len);
     DRWShadingGroup *grp = DRW_shgroup_create(blur1_sh, psl->dof_blur1_ps);
-    DRW_shgroup_uniform_block(grp, "dofSamplesBlock", wpd->vldata->dof_sample_ubo);
+    DRW_shgroup_uniform_block(grp, "samples", wpd->vldata->dof_sample_ubo);
     DRW_shgroup_uniform_texture(grp, "noiseTex", wpd->vldata->cavity_jitter_tx);
     DRW_shgroup_uniform_texture(grp, "inputCocTex", txl->coc_halfres_tx);
     DRW_shgroup_uniform_texture(grp, "halfResColorTex", txl->dof_source_tx);

@@ -70,10 +70,14 @@ ccl_device float svm_ao(
 
     /* Create ray. */
     Ray ray;
-    ray.P = ray_offset(sd->P, N);
+    ray.P = sd->P;
     ray.D = D.x * T + D.y * B + D.z * N;
     ray.t = max_dist;
     ray.time = sd->time;
+    ray.self.object = sd->object;
+    ray.self.prim = sd->prim;
+    ray.self.light_object = OBJECT_NONE;
+    ray.self.light_prim = PRIM_NONE;
     ray.dP = differential_zero_compact();
     ray.dD = differential_zero_compact();
 

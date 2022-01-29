@@ -41,13 +41,13 @@ extern char datatoc_engine_image_vert_glsl[];
 namespace blender::draw::image_engine {
 
 struct IMAGE_Shaders {
-  GPUShader *image_sh[2];
+  GPUShader *image_sh;
 };
 
 static struct {
   IMAGE_Shaders shaders;
   DRWShaderLibrary *lib;
-} e_data = {{{nullptr}}}; /* Engine data */
+} e_data = {{nullptr}}; /* Engine data */
 
 void IMAGE_shader_library_ensure()
 {
@@ -60,19 +60,13 @@ void IMAGE_shader_library_ensure()
   }
 }
 
-GPUShader *IMAGE_shader_image_get(bool is_tiled_image)
+GPUShader *IMAGE_shader_image_get()
 {
-  const int index = is_tiled_image ? 1 : 0;
   IMAGE_Shaders *sh_data = &e_data.shaders;
-  if (sh_data->image_sh[index] == nullptr) {
-    sh_data->image_sh[index] = DRW_shader_create_with_shaderlib(
-        datatoc_engine_image_vert_glsl,
-        nullptr,
-        datatoc_engine_image_frag_glsl,
-        e_data.lib,
-        is_tiled_image ? "#define TILED_IMAGE\n" : nullptr);
+  if (sh_data->image_sh == nullptr) {
+    sh_data->image_sh = GPU_shader_create_from_info_name("image_engine_shader");
   }
-  return sh_data->image_sh[index];
+  return sh_data->image_sh;
 }
 
 void IMAGE_shader_free()

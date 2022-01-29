@@ -183,7 +183,7 @@ template<typename GridType> struct DisplaceOp {
     TexResult texture_result = {0};
     BKE_texture_get_value(
         nullptr, this->texture, const_cast<float *>(pos.asV()), &texture_result, false);
-    return {texture_result.tr, texture_result.tg, texture_result.tb};
+    return {texture_result.trgba[0], texture_result.trgba[1], texture_result.trgba[2]};
   }
 };
 

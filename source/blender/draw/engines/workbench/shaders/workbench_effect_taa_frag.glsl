@@ -1,9 +1,4 @@
 
-uniform sampler2D colorBuffer;
-uniform float samplesWeights[9];
-
-out vec4 fragColor;
-
 void main()
 {
   vec2 texel_size = 1.0 / vec2(textureSize(colorBuffer, 0));

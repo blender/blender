@@ -36,6 +36,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_lib_remap.h"
 #include "BKE_nla.h"
 #include "BKE_screen.h"
 
@@ -814,20 +815,15 @@ static void action_refresh(const bContext *C, ScrArea *area)
   /* XXX re-sizing y-extents of tot should go here? */
 }
 
-static void action_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
+static void action_id_remap(ScrArea *UNUSED(area),
+                            SpaceLink *slink,
+                            const struct IDRemapper *mappings)
 {
   SpaceAction *sact = (SpaceAction *)slink;
 
-  if ((ID *)sact->action == old_id) {
-    sact->action = (bAction *)new_id;
-  }
-
-  if ((ID *)sact->ads.filter_grp == old_id) {
-    sact->ads.filter_grp = (Collection *)new_id;
-  }
-  if ((ID *)sact->ads.source == old_id) {
-    sact->ads.source = new_id;
-  }
+  BKE_id_remapper_apply(mappings, (ID **)&sact->action, ID_REMAP_APPLY_DEFAULT);
+  BKE_id_remapper_apply(mappings, (ID **)&sact->ads.filter_grp, ID_REMAP_APPLY_DEFAULT);
+  BKE_id_remapper_apply(mappings, &sact->ads.source, ID_REMAP_APPLY_DEFAULT);
 }
 
 /**

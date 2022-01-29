@@ -33,6 +33,7 @@
 #include "BKE_appdir.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
@@ -989,7 +990,7 @@ static int /*eContextResult*/ file_context(const bContext *C,
   return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
-static void file_id_remap(ScrArea *area, SpaceLink *sl, ID *UNUSED(old_id), ID *UNUSED(new_id))
+static void file_id_remap(ScrArea *area, SpaceLink *sl, const struct IDRemapper *UNUSED(mappings))
 {
   SpaceFile *sfile = (SpaceFile *)sl;
 

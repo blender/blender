@@ -709,6 +709,6 @@ void BLI_ewa_filter(const int width,
   /* d should hopefully never be zero anymore */
   d = 1.0f / d;
   mul_v3_fl(result, d);
-  /* clipping can be ignored if alpha used, texr->ta already includes filtered edge */
+  /* clipping can be ignored if alpha used, texr->trgba[3] already includes filtered edge */
   result[3] = use_alpha ? result[3] * d : 1.0f;
 }

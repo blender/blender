@@ -908,9 +908,9 @@ static void do_texture_effector(EffectorCache *eff,
       eff->pd->tex, tex_co, NULL, NULL, 0, result, 0, NULL, scene_color_manage, false);
 
   if (hasrgb && mode == PFIELD_TEX_RGB) {
-    force[0] = (0.5f - result->tr) * strength;
-    force[1] = (0.5f - result->tg) * strength;
-    force[2] = (0.5f - result->tb) * strength;
+    force[0] = (0.5f - result->trgba[0]) * strength;
+    force[1] = (0.5f - result->trgba[1]) * strength;
+    force[2] = (0.5f - result->trgba[2]) * strength;
   }
   else if (nabla != 0) {
     strength /= nabla;
@@ -933,7 +933,8 @@ static void do_texture_effector(EffectorCache *eff,
       /* generate intensity if texture only has rgb value */
       if (hasrgb & TEX_RGB) {
         for (int i = 0; i < 4; i++) {
-          result[i].tin = (1.0f / 3.0f) * (result[i].tr + result[i].tg + result[i].tb);
+          result[i].tin = (1.0f / 3.0f) *
+                          (result[i].trgba[0] + result[i].trgba[1] + result[i].trgba[2]);
         }
       }
       force[0] = (result[0].tin - result[1].tin) * strength;
@@ -943,12 +944,12 @@ static void do_texture_effector(EffectorCache *eff,
     else { /*PFIELD_TEX_CURL*/
       float dbdy, dgdz, drdz, dbdx, dgdx, drdy;
 
-      dbdy = result[2].tb - result[0].tb;
-      dgdz = result[3].tg - result[0].tg;
-      drdz = result[3].tr - result[0].tr;
-      dbdx = result[1].tb - result[0].tb;
-      dgdx = result[1].tg - result[0].tg;
-      drdy = result[2].tr - result[0].tr;
+      dbdy = result[2].trgba[2] - result[0].trgba[2];
+      dgdz = result[3].trgba[1] - result[0].trgba[1];
+      drdz = result[3].trgba[0] - result[0].trgba[0];
+      dbdx = result[1].trgba[2] - result[0].trgba[2];
+      dgdx = result[1].trgba[1] - result[0].trgba[1];
+      drdy = result[2].trgba[0] - result[0].trgba[0];
 
       force[0] = (dbdy - dgdz) * strength;
       force[1] = (drdz - dbdx) * strength;

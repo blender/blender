@@ -381,6 +381,11 @@ static bool get_implicit_socket_input(const SocketRef &socket, void *r_value)
         new (r_value) ValueOrField<float3>(bke::AttributeFieldInput::Create<float3>(side));
         return true;
       }
+      if (bnode.type == GEO_NODE_EXTRUDE_MESH) {
+        new (r_value)
+            ValueOrField<float3>(Field<float3>(std::make_shared<bke::NormalFieldInput>()));
+        return true;
+      }
       new (r_value) ValueOrField<float3>(bke::AttributeFieldInput::Create<float3>("position"));
       return true;
     }

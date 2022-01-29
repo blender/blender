@@ -573,6 +573,9 @@ void draw_subdiv_cache_free(DRWSubdivCache *cache)
   GPU_VERTBUF_DISCARD_SAFE(cache->subdiv_vertex_face_adjacency);
   cache->resolution = 0;
   cache->num_subdiv_loops = 0;
+  cache->num_subdiv_edges = 0;
+  cache->num_subdiv_verts = 0;
+  cache->num_subdiv_triangles = 0;
   cache->num_coarse_poly = 0;
   cache->num_subdiv_quads = 0;
   draw_subdiv_free_edit_mode_cache(cache);
@@ -749,9 +752,10 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   cache->subdiv_loop_poly_index = static_cast<int *>(
       MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_poly_index"));
 
+  const int num_coarse_vertices = ctx->coarse_mesh->totvert;
   cache->point_indices = static_cast<int *>(
-      MEM_mallocN(cache->num_subdiv_verts * sizeof(int), "point_indices"));
-  for (int i = 0; i < num_vertices; i++) {
+      MEM_mallocN(num_coarse_vertices * sizeof(int), "point_indices"));
+  for (int i = 0; i < num_coarse_vertices; i++) {
     cache->point_indices[i] = -1;
   }
 
@@ -976,6 +980,7 @@ static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
   }
 
   DRWCacheBuildingContext cache_building_context;
+  memset(&cache_building_context, 0, sizeof(DRWCacheBuildingContext));
   cache_building_context.coarse_mesh = mesh_eval;
   cache_building_context.settings = &to_mesh_settings;
   cache_building_context.cache = cache;
@@ -1823,7 +1828,7 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
   Mesh *mesh_eval = mesh;
   BMesh *bm = nullptr;
   if (mesh->edit_mesh) {
-    mesh_eval = mesh->edit_mesh->mesh_eval_final;
+    mesh_eval = BKE_object_get_editmesh_eval_final(ob);
     bm = mesh->edit_mesh->bm;
   }
 

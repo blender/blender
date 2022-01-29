@@ -27,6 +27,9 @@
 
 #include "RNA_types.h"
 
+/* Needed for `tree_element_cast()`. */
+#include "tree/tree_element.hh"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -104,8 +107,7 @@ typedef struct TreeElement {
   short idcode;              /* From TreeStore id. */
   short xend;                /* Width of item display, for select. */
   const char *name;
-  void *directdata;  /* Armature Bones, Base, Sequence, Strip... */
-  PointerRNA rnaptr; /* RNA Pointer. */
+  void *directdata; /* Armature Bones, Base, ... */
 } TreeElement;
 
 typedef struct TreeElementIcon {
@@ -225,7 +227,7 @@ typedef enum {
  * - not searching into RNA items helps but isn't the complete solution
  */
 
-#define SEARCHING_OUTLINER(sov) (sov->search_flags & SO_SEARCH_RECURSIVE)
+#define SEARCHING_OUTLINER(sov) ((sov)->search_flags & SO_SEARCH_RECURSIVE)
 
 /* is the current element open? if so we also show children */
 #define TSELEM_OPEN(telm, sv) \
@@ -686,3 +688,19 @@ int outliner_context(const struct bContext *C,
 #ifdef __cplusplus
 }
 #endif
+
+namespace blender::ed::outliner {
+
+/**
+ * Helper to safely "cast" a #TreeElement to its new C++ #AbstractTreeElement, if possible.
+ * \return nullptr if the tree-element doesn't match the requested type \a TreeElementT or the
+ *         element doesn't hold a C++ #AbstractTreeElement pendant yet.
+ */
+template<typename TreeElementT> TreeElementT *tree_element_cast(const TreeElement *te)
+{
+  static_assert(std::is_base_of_v<AbstractTreeElement, TreeElementT>,
+                "Requested tree-element type must be an AbstractTreeElement");
+  return dynamic_cast<TreeElementT *>(te->type.get());
+}
+
+}  // namespace blender::ed::outliner

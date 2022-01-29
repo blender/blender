@@ -31,6 +31,7 @@
 
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_remap.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
 
@@ -896,9 +897,9 @@ static void node_widgets()
   WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_backdrop_corner_pin);
 }
 
-static void node_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
+static void node_id_remap_cb(ID *old_id, ID *new_id, void *user_data)
 {
-  SpaceNode *snode = (SpaceNode *)slink;
+  SpaceNode *snode = static_cast<SpaceNode *>(user_data);
 
   if (snode->id == old_id) {
     /* nasty DNA logic for SpaceNode:
@@ -962,6 +963,24 @@ static void node_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, I
       snode->edittree = nullptr;
     }
   }
+}
+
+static void node_id_remap(ScrArea *UNUSED(area),
+                          SpaceLink *slink,
+                          const struct IDRemapper *mappings)
+{
+  /* Although we should be able to perform all the mappings in a single go this lead to issues when
+   * running the python test cases. Somehow the nodetree/edittree weren't updated to the new
+   * pointers that generated a SEGFAULT.
+   *
+   * To move forward we should perhaps remove snode->edittree and snode->nodetree as they are just
+   * copies of pointers. All usages should be calling a function that will receive the appropriate
+   * instance.
+   *
+   * We could also move a remap address at a time to use the IDRemapper as that should get closer
+   * to cleaner code. See {D13615} for more information about this topic.
+   */
+  BKE_id_remapper_iter(mappings, node_id_remap_cb, slink);
 }
 
 static int node_space_subtype_get(ScrArea *area)

@@ -385,7 +385,7 @@ GPUShader *OVERLAY_shader_armature_sphere(bool use_outline)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
-  const char extensions[] = "#extension GL_ARB_conservative_depth : enable\n";
+  const char extensions[] = "";
   if (use_outline && !sh_data->armature_sphere_outline) {
     sh_data->armature_sphere_outline = GPU_shader_create_from_arrays({
         .vert = (const char *[]){sh_cfg->lib,

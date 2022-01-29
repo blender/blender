@@ -182,6 +182,11 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
 
   /* Write shadow ray and associated state to global memory. */
   integrator_state_write_shadow_ray(kg, shadow_state, &ray);
+  // Save memory by storing the light and object indices in the shadow_isect
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, object) = ray.self.object;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, prim) = ray.self.prim;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, object) = ray.self.light_object;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, prim) = ray.self.light_prim;
 
   /* Copy state from main path to shadow path. */
   const uint16_t bounce = INTEGRATOR_STATE(state, path, bounce);
@@ -266,13 +271,11 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   }
 
   /* Setup ray. Note that clipping works through transparent bounces. */
-  INTEGRATOR_STATE_WRITE(state, ray, P) = ray_offset(sd->P,
-                                                     (label & LABEL_TRANSMIT) ? -sd->Ng : sd->Ng);
+  INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
   INTEGRATOR_STATE_WRITE(state, ray, D) = normalize(bsdf_omega_in);
   INTEGRATOR_STATE_WRITE(state, ray, t) = (label & LABEL_TRANSPARENT) ?
                                               INTEGRATOR_STATE(state, ray, t) - sd->ray_length :
                                               FLT_MAX;
-
 #ifdef __RAY_DIFFERENTIALS__
   INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
   INTEGRATOR_STATE_WRITE(state, ray, dD) = differential_make_compact(bsdf_domega_in);
@@ -316,7 +319,7 @@ ccl_device_forceinline bool integrate_surface_volume_only_bounce(IntegratorState
   }
 
   /* Setup ray position, direction stays unchanged. */
-  INTEGRATOR_STATE_WRITE(state, ray, P) = ray_offset(sd->P, -sd->Ng);
+  INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
 
   /* Clipping works through transparent. */
   INTEGRATOR_STATE_WRITE(state, ray, t) -= sd->ray_length;
@@ -360,10 +363,14 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   }
 
   Ray ray ccl_optional_struct_init;
-  ray.P = ray_offset(sd->P, sd->Ng);
+  ray.P = sd->P;
   ray.D = ao_D;
   ray.t = kernel_data.integrator.ao_bounces_distance;
   ray.time = sd->time;
+  ray.self.object = sd->object;
+  ray.self.prim = sd->prim;
+  ray.self.light_object = OBJECT_NONE;
+  ray.self.light_prim = PRIM_NONE;
   ray.dP = differential_zero_compact();
   ray.dD = differential_zero_compact();
 
@@ -375,6 +382,10 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
 
   /* Write shadow ray and associated state to global memory. */
   integrator_state_write_shadow_ray(kg, shadow_state, &ray);
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, object) = ray.self.object;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, prim) = ray.self.prim;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, object) = ray.self.light_object;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, prim) = ray.self.light_prim;
 
   /* Copy state from main path to shadow path. */
   const uint16_t bounce = INTEGRATOR_STATE(state, path, bounce);

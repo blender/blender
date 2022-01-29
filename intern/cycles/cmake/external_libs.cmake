@@ -559,10 +559,10 @@ if(WITH_CYCLES_DEVICE_METAL)
   find_library(METAL_LIBRARY Metal)
 
   # This file was added in the 12.0 SDK, use it as a way to detect the version.
-  if (METAL_LIBRARY AND NOT EXISTS "${METAL_LIBRARY}/Headers/MTLFunctionStitching.h")
+  if(METAL_LIBRARY AND NOT EXISTS "${METAL_LIBRARY}/Headers/MTLFunctionStitching.h")
     message(STATUS "Metal version too old, must be SDK 12.0 or newer, disabling WITH_CYCLES_DEVICE_METAL")
     set(WITH_CYCLES_DEVICE_METAL OFF)
-  elseif (NOT METAL_LIBRARY)
+  elseif(NOT METAL_LIBRARY)
     message(STATUS "Metal not found, disabling WITH_CYCLES_DEVICE_METAL")
     set(WITH_CYCLES_DEVICE_METAL OFF)
   else()

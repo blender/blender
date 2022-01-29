@@ -745,14 +745,17 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
                                 N_("Fonts"),
                                 ICON_FILE_FONT,
                                 FS_INSERT_LAST);
+      fsmenu_add_windows_folder(fsmenu,
+                                FS_CATEGORY_SYSTEM_BOOKMARKS,
+                                &FOLDERID_SkyDrive,
+                                N_("OneDrive"),
+                                ICON_URL,
+                                FS_INSERT_LAST);
 
       /* These items are just put in path cache for thumbnail views and if bookmarked. */
 
       fsmenu_add_windows_folder(
           fsmenu, FS_CATEGORY_OTHER, &FOLDERID_UserProfiles, NULL, ICON_COMMUNITY, FS_INSERT_LAST);
-
-      fsmenu_add_windows_folder(
-          fsmenu, FS_CATEGORY_OTHER, &FOLDERID_SkyDrive, NULL, ICON_URL, FS_INSERT_LAST);
     }
   }
 #elif defined(__APPLE__)

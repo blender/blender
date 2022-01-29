@@ -96,8 +96,12 @@
 #include "SEQ_sequencer.h"
 
 #include "outliner_intern.hh"
+#include "tree/tree_element_rna.hh"
+#include "tree/tree_element_seq.hh"
 
 static CLG_LogRef LOG = {"ed.outliner.tools"};
+
+using namespace blender::ed::outliner;
 
 /* -------------------------------------------------------------------- */
 /** \name ID/Library/Data Set/Un-link Utilities
@@ -855,8 +859,9 @@ static void id_override_library_create_fn(bContext *C,
         if (!ID_IS_LINKED(te->store_elem->id)) {
           break;
         }
-        /* If we'd need to override that aren't ID, but it is not overridable, abort. */
-        if (!ID_IS_OVERRIDABLE_LIBRARY(te->store_elem->id)) {
+        /* If some element in the tree needs to be overridden, but its ID is not overridable,
+         * abort. */
+        if (!ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(te->store_elem->id)) {
           BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
           BKE_reportf(reports,
                       RPT_WARNING,
@@ -1285,7 +1290,8 @@ static void ebone_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), 
 
 static void sequence_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *scene_ptr)
 {
-  Sequence *seq = (Sequence *)te->directdata;
+  TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
+  Sequence *seq = &te_seq->getSequence();
   Scene *scene = (Scene *)scene_ptr;
   Editing *ed = SEQ_editing_get(scene);
   if (BLI_findindex(ed->seqbasep, seq) != -1) {
@@ -1336,10 +1342,16 @@ static void data_select_linked_fn(int event,
                                   TreeStoreElem *UNUSED(tselem),
                                   void *C_v)
 {
+  const TreeElementRNAStruct *te_rna_struct = tree_element_cast<TreeElementRNAStruct>(te);
+  if (!te_rna_struct) {
+    return;
+  }
+
   if (event == OL_DOP_SELECT_LINKED) {
-    if (RNA_struct_is_ID(te->rnaptr.type)) {
+    const PointerRNA &ptr = te_rna_struct->getPointerRNA();
+    if (RNA_struct_is_ID(ptr.type)) {
       bContext *C = (bContext *)C_v;
-      ID *id = reinterpret_cast<ID *>(te->rnaptr.data);
+      ID *id = reinterpret_cast<ID *>(ptr.data);
 
       ED_object_select_linked_by_id(C, id);
     }

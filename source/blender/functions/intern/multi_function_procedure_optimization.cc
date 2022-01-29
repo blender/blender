@@ -81,7 +81,7 @@ void move_destructs_up(MFProcedure &procedure, MFInstruction &block_end_instr)
     const MFInstructionCursor &prev_cursor = prev_cursors[0];
     current_instr = prev_cursor.instruction();
     if (current_instr == nullptr) {
-      /* Stop when there is no previous instruction. E.g. when this is the first instruction.  */
+      /* Stop when there is no previous instruction. E.g. when this is the first instruction. */
       break;
     }
   }

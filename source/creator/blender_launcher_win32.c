@@ -79,7 +79,26 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   BOOL success = CreateProcess(
       path, buffer, NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &siStartInfo, &procInfo);
 
+  DWORD returnValue = success ? 0 : -1;
+
   if (success) {
+    /* If blender-launcher is called with background command line flag,
+     * wait for the blender process to exit and return its return value. */
+    BOOL background = FALSE;
+    int argc = 0;
+    LPWSTR *argv = CommandLineToArgvW(pCmdLine, &argc);
+    for (int i = 0; i < argc; i++) {
+      if ((wcscmp(argv[i], L"-b") == 0) || (wcscmp(argv[i], L"--background") == 0)) {
+        background = TRUE;
+        break;
+      }
+    }
+
+    if (background) {
+      WaitForSingleObject(procInfo.hProcess, INFINITE);
+      GetExitCodeProcess(procInfo.hProcess, &returnValue);
+    }
+
     /* Handles in PROCESS_INFORMATION must be closed with CloseHandle when they are no longer
      * needed - MSDN. Closing the handles will NOT terminate the thread/process that we just
      * started. */
@@ -88,5 +107,5 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   }
 
   free(buffer);
-  return success ? 0 : -1;
+  return returnValue;
 }

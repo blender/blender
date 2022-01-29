@@ -22,13 +22,22 @@ mat3 pointcloud_get_facing_matrix(vec3 p)
   return facing_mat;
 }
 
+/* Returns world center position and radius. */
+void pointcloud_get_pos_and_radius(out vec3 outpos, out float outradius)
+{
+  outpos = point_object_to_world(pos.xyz);
+  outradius = dot(abs(mat3(ModelMatrix) * pos.www), vec3(1.0 / 3.0));
+}
+
 /* Return world position and normal. */
 void pointcloud_get_pos_and_nor(out vec3 outpos, out vec3 outnor)
 {
-  vec3 p = point_object_to_world(pos.xyz);
+  vec3 p;
+  float radius;
+  pointcloud_get_pos_and_radius(p, radius);
+
   mat3 facing_mat = pointcloud_get_facing_matrix(p);
 
-  float radius = dot(abs(mat3(ModelMatrix) * pos.www), vec3(1.0 / 3.0));
   /* TODO(fclem): remove multiplication here. Here only for keeping the size correct for now. */
   radius *= 0.01;
   outpos = p + (facing_mat * pos_inst) * radius;

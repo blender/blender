@@ -655,6 +655,8 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
 #  include "BKE_screen.h"
 #  include "BKE_unit.h"
 
+#  include "NOD_composite.h"
+
 #  include "ED_image.h"
 #  include "ED_info.h"
 #  include "ED_keyframing.h"

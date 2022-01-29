@@ -154,7 +154,7 @@ set(SRC
   engines/workbench/workbench_materials.c
   engines/workbench/workbench_opaque.c
   engines/workbench/workbench_render.c
-  engines/workbench/workbench_shader.c
+  engines/workbench/workbench_shader.cc
   engines/workbench/workbench_shadow.c
   engines/workbench/workbench_transparent.c
   engines/workbench/workbench_volume.c
@@ -214,6 +214,7 @@ set(SRC
   intern/draw_manager_text.h
   intern/draw_shader_shared.h
   intern/draw_shader.h
+  intern/draw_shader_shared.h
   intern/draw_subdivision.h
   intern/draw_texture_pool.h
   intern/draw_view.h
@@ -227,11 +228,17 @@ set(SRC
   engines/eevee/eevee_lut.h
   engines/eevee/eevee_private.h
   engines/external/external_engine.h
-  engines/image/image_drawing_mode_image_space.hh
+  engines/image/image_batches.hh
+  engines/image/image_drawing_mode.hh
   engines/image/image_engine.h
+  engines/image/image_instance_data.hh
+  engines/image/image_partial_updater.hh
   engines/image/image_private.hh
+  engines/image/image_shader_params.hh
   engines/image/image_space_image.hh
   engines/image/image_space_node.hh
+  engines/image/image_space.hh
+  engines/image/image_wrappers.hh
   engines/workbench/workbench_engine.h
   engines/workbench/workbench_private.h
   engines/workbench/workbench_shader_shared.h
@@ -342,7 +349,6 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_common_lib.glsl
   engines/workbench/shaders/workbench_composite_frag.glsl
   engines/workbench/shaders/workbench_curvature_lib.glsl
-  engines/workbench/shaders/workbench_data_lib.glsl
   engines/workbench/shaders/workbench_effect_cavity_frag.glsl
   engines/workbench/shaders/workbench_effect_dof_frag.glsl
   engines/workbench/shaders/workbench_effect_outline_frag.glsl
@@ -357,7 +363,6 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_prepass_hair_vert.glsl
   engines/workbench/shaders/workbench_prepass_pointcloud_vert.glsl
   engines/workbench/shaders/workbench_prepass_vert.glsl
-  engines/workbench/shaders/workbench_shader_interface_lib.glsl
   engines/workbench/shaders/workbench_shadow_caps_geom.glsl
   engines/workbench/shaders/workbench_shadow_debug_frag.glsl
   engines/workbench/shaders/workbench_shadow_geom.glsl
@@ -513,8 +518,8 @@ set(GLSL_SRC
   engines/overlay/shaders/wireframe_frag.glsl
   engines/overlay/shaders/xray_fade_frag.glsl
 
-  engines/image/shaders/engine_image_frag.glsl
-  engines/image/shaders/engine_image_vert.glsl
+  engines/image/shaders/image_engine_frag.glsl
+  engines/image/shaders/image_engine_vert.glsl
 )
 
 set(GLSL_C)
@@ -532,7 +537,7 @@ set(GLSL_SOURCE_CONTENT "")
 foreach(GLSL_FILE ${GLSL_SRC})
   get_filename_component(GLSL_FILE_NAME ${GLSL_FILE} NAME)
   string(REPLACE "." "_" GLSL_FILE_NAME_UNDERSCORES ${GLSL_FILE_NAME})
-  string(APPEND GLSL_SOURCE_CONTENT "SHADER_SOURCE\(datatoc_${GLSL_FILE_NAME_UNDERSCORES}, \"${GLSL_FILE_NAME}\"\)\n")
+  string(APPEND GLSL_SOURCE_CONTENT "SHADER_SOURCE\(datatoc_${GLSL_FILE_NAME_UNDERSCORES}, \"${GLSL_FILE_NAME}\", \"${GLSL_FILE}\"\)\n")
 endforeach()
 
 set(glsl_source_list_file "${CMAKE_CURRENT_BINARY_DIR}/glsl_draw_source_list.h")

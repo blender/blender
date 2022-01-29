@@ -54,14 +54,9 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
     ED_space_image_release_buffer(sima, image_buffer, lock);
   }
 
-  void get_shader_parameters(ShaderParameters &r_shader_parameters,
-                             ImBuf *image_buffer,
-                             bool is_tiled) override
+  void get_shader_parameters(ShaderParameters &r_shader_parameters, ImBuf *image_buffer) override
   {
     const int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(image_buffer);
-    const bool do_repeat = (!is_tiled) && ((sima->flag & SI_DRAW_TILE) != 0);
-    SET_FLAG_FROM_TEST(r_shader_parameters.flags, do_repeat, IMAGE_DRAW_FLAG_DO_REPEAT);
-    SET_FLAG_FROM_TEST(r_shader_parameters.flags, is_tiled, IMAGE_DRAW_FLAG_USE_WORLD_POS);
     if ((sima_flag & SI_USE_ALPHA) != 0) {
       /* Show RGBA */
       r_shader_parameters.flags |= IMAGE_DRAW_FLAG_SHOW_ALPHA | IMAGE_DRAW_FLAG_APPLY_ALPHA;
@@ -100,15 +95,6 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
         r_shader_parameters.flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
       }
     }
-  }
-
-  bool has_view_override() const override
-  {
-    return false;
-  }
-  DRWView *create_view_override(const ARegion *UNUSED(region)) override
-  {
-    return nullptr;
   }
 
   void get_gpu_textures(Image *image,
@@ -171,11 +157,25 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
     }
   }
 
-  void get_image_mat(const ImBuf *UNUSED(image_buffer),
-                     const ARegion *UNUSED(region),
-                     float r_mat[4][4]) const override
+  bool use_tile_drawing() const override
   {
-    unit_m4(r_mat);
+    return (sima->flag & SI_DRAW_TILE) != 0;
+  }
+
+  void init_ss_to_texture_matrix(const ARegion *region,
+                                 const float UNUSED(image_resolution[2]),
+                                 float r_uv_to_texture[4][4]) const override
+  {
+    unit_m4(r_uv_to_texture);
+    float scale_x = 1.0 / BLI_rctf_size_x(&region->v2d.cur);
+    float scale_y = 1.0 / BLI_rctf_size_y(&region->v2d.cur);
+    float translate_x = scale_x * -region->v2d.cur.xmin;
+    float translate_y = scale_y * -region->v2d.cur.ymin;
+
+    r_uv_to_texture[0][0] = scale_x;
+    r_uv_to_texture[1][1] = scale_y;
+    r_uv_to_texture[3][0] = translate_x;
+    r_uv_to_texture[3][1] = translate_y;
   }
 };
 

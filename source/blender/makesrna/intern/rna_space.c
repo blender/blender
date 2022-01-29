@@ -1862,6 +1862,9 @@ static void rna_SpaceTextEditor_text_set(PointerRNA *ptr,
   SpaceText *st = (SpaceText *)(ptr->data);
 
   st->text = value.data;
+  if (st->text != NULL) {
+    id_us_ensure_real((ID *)st->text);
+  }
 
   ScrArea *area = rna_area_from_space(ptr);
   if (area) {
@@ -2338,7 +2341,8 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
     seq->strip->proxy->build_size_flags |= SEQ_rendersize_to_proxysize(sseq->render_size);
 
     /* Build proxy. */
-    SEQ_proxy_rebuild_context(pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue);
+    SEQ_proxy_rebuild_context(
+        pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue, true);
   }
 
   BLI_gset_free(file_list, MEM_freeN);

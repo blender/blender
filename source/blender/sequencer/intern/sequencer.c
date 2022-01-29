@@ -66,6 +66,15 @@
 /** \name Allocate / Free Functions
  * \{ */
 
+StripProxy *seq_strip_proxy_alloc(void)
+{
+  StripProxy *strip_proxy = MEM_callocN(sizeof(struct StripProxy), "StripProxy");
+  strip_proxy->quality = 50;
+  strip_proxy->build_tc_flags = SEQ_PROXY_TC_ALL;
+  strip_proxy->tc = SEQ_PROXY_TC_RECORD_RUN;
+  return strip_proxy;
+}
+
 static Strip *seq_strip_alloc(int type)
 {
   Strip *strip = MEM_callocN(sizeof(Strip), "strip");

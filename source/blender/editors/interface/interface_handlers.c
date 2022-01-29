@@ -3957,7 +3957,14 @@ static void ui_do_but_textedit(
       ui_textedit_delete_selection(but, data);
     }
     if (event->type == WM_IME_COMPOSITE_EVENT && ime_data->result_len) {
-      ui_textedit_insert_buf(but, data, ime_data->str_result, ime_data->result_len);
+      if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER) &&
+          strcmp(ime_data->str_result, "\xE3\x80\x82") == 0) {
+        /* Convert Ideographic Full Stop (U+3002) to decimal point when entering numbers. */
+        ui_textedit_insert_ascii(but, data, '.');
+      }
+      else {
+        ui_textedit_insert_buf(but, data, ime_data->str_result, ime_data->result_len);
+      }
     }
   }
   else if (event->type == WM_IME_COMPOSITE_END) {

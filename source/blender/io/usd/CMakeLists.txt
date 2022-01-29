@@ -64,6 +64,7 @@ set(SRC
   intern/usd_writer_camera.cc
   intern/usd_writer_hair.cc
   intern/usd_writer_light.cc
+  intern/usd_writer_material.cc
   intern/usd_writer_mesh.cc
   intern/usd_writer_metaball.cc
   intern/usd_writer_transform.cc
@@ -89,6 +90,7 @@ set(SRC
   intern/usd_writer_camera.h
   intern/usd_writer_hair.h
   intern/usd_writer_light.h
+  intern/usd_writer_material.h
   intern/usd_writer_mesh.h
   intern/usd_writer_metaball.h
   intern/usd_writer_transform.h

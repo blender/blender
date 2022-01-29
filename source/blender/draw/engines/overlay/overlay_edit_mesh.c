@@ -28,6 +28,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
+#include "BKE_object.h"
 
 #include "draw_cache_impl.h"
 #include "draw_manager_text.h"
@@ -229,7 +230,10 @@ static void overlay_edit_mesh_add_ob_to_pass(OVERLAY_PrivateData *pd, Object *ob
   Mesh *me = (Mesh *)ob->data;
   BMEditMesh *embm = me->edit_mesh;
   if (embm) {
-    has_edit_mesh_cage = embm->mesh_eval_cage && (embm->mesh_eval_cage != embm->mesh_eval_final);
+    Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
+    Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
+
+    has_edit_mesh_cage = editmesh_eval_cage && (editmesh_eval_cage != editmesh_eval_final);
     has_skin_roots = CustomData_get_offset(&embm->bm->vdata, CD_MVERT_SKIN) != -1;
   }
 

@@ -218,7 +218,7 @@ void *BKE_camera_add(Main *bmain, const char *name)
   return cam;
 }
 
-float BKE_camera_object_dof_distance(Object *ob)
+float BKE_camera_object_dof_distance(const Object *ob)
 {
   Camera *cam = (Camera *)ob->data;
   if (ob->type != OB_CAMERA) {

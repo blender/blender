@@ -42,3 +42,13 @@ IN_OUT ShaderHairInterface
   flat int hairStrandID;
 };
 #endif
+
+#ifdef POINTCLOUD_SHADER
+IN_OUT ShaderPointCloudInterface
+{
+  /* world space */
+  float pointRadius;
+  float pointPosition;
+  flat int pointID;
+};
+#endif

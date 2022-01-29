@@ -121,7 +121,7 @@ static void image_init(Image *ima, short source, short type);
 static void image_free_packedfiles(Image *ima);
 static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src);
 
-/* Reset runtime image fields when datablock is being initialized. */
+/* Reset runtime image fields when data-block is being initialized. */
 static void image_runtime_reset(struct Image *image)
 {
   memset(&image->runtime, 0, sizeof(image->runtime));
@@ -129,11 +129,27 @@ static void image_runtime_reset(struct Image *image)
   BLI_mutex_init(image->runtime.cache_mutex);
 }
 
-/* Reset runtime image fields when datablock is being copied.  */
+/* Reset runtime image fields when data-block is being copied. */
 static void image_runtime_reset_on_copy(struct Image *image)
 {
   image->runtime.cache_mutex = MEM_mallocN(sizeof(ThreadMutex), "image runtime cache_mutex");
   BLI_mutex_init(image->runtime.cache_mutex);
+
+  image->runtime.partial_update_register = NULL;
+  image->runtime.partial_update_user = NULL;
+}
+
+static void image_runtime_free_data(struct Image *image)
+{
+  BLI_mutex_end(image->runtime.cache_mutex);
+  MEM_freeN(image->runtime.cache_mutex);
+  image->runtime.cache_mutex = NULL;
+
+  if (image->runtime.partial_update_user != NULL) {
+    BKE_image_partial_update_free(image->runtime.partial_update_user);
+    image->runtime.partial_update_user = NULL;
+  }
+  BKE_image_partial_update_register_free(image);
 }
 
 static void image_init_data(ID *id)
@@ -213,10 +229,8 @@ static void image_free_data(ID *id)
   BKE_previewimg_free(&image->preview);
 
   BLI_freelistN(&image->tiles);
-  BLI_freelistN(&image->gpu_refresh_areas);
 
-  BLI_mutex_end(image->runtime.cache_mutex);
-  MEM_freeN(image->runtime.cache_mutex);
+  image_runtime_free_data(image);
 }
 
 static void image_foreach_cache(ID *id,
@@ -321,7 +335,8 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   ima->cache = NULL;
   ima->gpuflag = 0;
   BLI_listbase_clear(&ima->anims);
-  BLI_listbase_clear(&ima->gpu_refresh_areas);
+  ima->runtime.partial_update_register = NULL;
+  ima->runtime.partial_update_user = NULL;
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 2; j++) {
       for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
@@ -401,7 +416,6 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
 
   ima->lastused = 0;
   ima->gpuflag = 0;
-  BLI_listbase_clear(&ima->gpu_refresh_areas);
 
   image_runtime_reset(ima);
 }
@@ -3553,7 +3567,7 @@ static void image_tag_frame_recalc(Image *ima, ID *iuser_id, ImageUser *iuser, v
     iuser->flag |= IMA_NEED_FRAME_RECALC;
 
     if (iuser_id) {
-      /* Must copy image user changes to CoW datablock. */
+      /* Must copy image user changes to CoW data-block. */
       DEG_id_tag_update(iuser_id, ID_RECALC_COPY_ON_WRITE);
     }
   }
@@ -3568,7 +3582,7 @@ static void image_tag_reload(Image *ima, ID *iuser_id, ImageUser *iuser, void *c
       image_update_views_format(ima, iuser);
     }
     if (iuser_id) {
-      /* Must copy image user changes to CoW datablock. */
+      /* Must copy image user changes to CoW data-block. */
       DEG_id_tag_update(iuser_id, ID_RECALC_COPY_ON_WRITE);
     }
   }
@@ -5773,7 +5787,7 @@ static void image_user_id_has_animation(Image *ima,
 bool BKE_image_user_id_has_animation(ID *id)
 {
   /* For the dependency graph, this does not consider nested node
-   * trees as these are handled as their own datablock. */
+   * trees as these are handled as their own data-block. */
   bool has_animation = false;
   bool skip_nested_nodes = true;
   image_walk_id_all_users(id, skip_nested_nodes, &has_animation, image_user_id_has_animation);

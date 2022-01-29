@@ -181,6 +181,12 @@ typedef struct Object_Runtime {
    */
   struct Mesh *mesh_deform_eval;
 
+  /* Evaluated mesh cage in edit mode. */
+  struct Mesh *editmesh_eval_cage;
+
+  /** Cached cage bounding box of `editmesh_eval_cage` for selection. */
+  struct BoundBox *editmesh_bb_cage;
+
   /**
    * Original grease pencil bGPdata pointer, before object->data was changed to point
    * to gpd_eval.
@@ -210,6 +216,12 @@ typedef struct Object_Runtime {
 
   unsigned short local_collections_bits;
   short _pad2[3];
+
+  float (*crazyspace_deform_imats)[3][3];
+  float (*crazyspace_deform_cos)[3];
+  int crazyspace_num_verts;
+
+  int _pad3[3];
 } Object_Runtime;
 
 typedef struct ObjectLineArt {

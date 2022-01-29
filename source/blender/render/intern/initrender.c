@@ -174,7 +174,7 @@ void RE_SetOverrideCamera(Render *re, Object *cam_ob)
   re->camera_override = cam_ob;
 }
 
-void RE_SetCamera(Render *re, Object *cam_ob)
+void RE_SetCamera(Render *re, const Object *cam_ob)
 {
   CameraParams params;
 
@@ -194,13 +194,13 @@ void RE_SetCamera(Render *re, Object *cam_ob)
   re->viewplane = params.viewplane;
 }
 
-void RE_GetCameraWindow(struct Render *re, struct Object *camera, float r_winmat[4][4])
+void RE_GetCameraWindow(struct Render *re, const struct Object *camera, float r_winmat[4][4])
 {
   RE_SetCamera(re, camera);
   copy_m4_m4(r_winmat, re->winmat);
 }
 
-void RE_GetCameraWindowWithOverscan(struct Render *re, float overscan, float r_winmat[4][4])
+void RE_GetCameraWindowWithOverscan(const struct Render *re, float overscan, float r_winmat[4][4])
 {
   CameraParams params;
   params.is_ortho = re->winmat[3][3] != 0.0f;
@@ -218,7 +218,7 @@ void RE_GetCameraWindowWithOverscan(struct Render *re, float overscan, float r_w
   copy_m4_m4(r_winmat, params.winmat);
 }
 
-void RE_GetCameraModelMatrix(Render *re, struct Object *camera, float r_modelmat[4][4])
+void RE_GetCameraModelMatrix(const Render *re, const struct Object *camera, float r_modelmat[4][4])
 {
   BKE_camera_multiview_model_matrix(&re->r, camera, re->viewname, r_modelmat);
 }

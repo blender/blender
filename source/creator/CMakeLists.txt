@@ -685,7 +685,11 @@ if(UNIX AND NOT APPLE)
           PATTERN "*.pyo" EXCLUDE                 # * any cache *
         )
         # On some platforms requests does have extra dependencies.
-        set(_requests_deps "certifi" "chardet" "idna" "urllib3")
+        #
+        # Either 'chardet' or 'charset_normalizer" is used, depending on the
+        # version of Python. The code below silently skips the one that's not
+        # available, so we can just list both here.
+        set(_requests_deps "certifi" "chardet" "charset_normalizer" "idna" "urllib3")
         foreach(_requests_dep ${_requests_deps})
           if(EXISTS ${PYTHON_REQUESTS_PATH}/${_requests_dep})
             install(

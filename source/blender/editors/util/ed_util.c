@@ -35,6 +35,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_global.h"
+#include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_multires.h"
@@ -434,11 +435,27 @@ void unpack_menu(bContext *C,
   UI_popup_menu_end(C, pup);
 }
 
-void ED_spacedata_id_remap(struct ScrArea *area, struct SpaceLink *sl, ID *old_id, ID *new_id)
+void ED_spacedata_id_remap(struct ScrArea *area,
+                           struct SpaceLink *sl,
+                           const struct IDRemapper *mappings)
+{
+  SpaceType *st = BKE_spacetype_from_id(sl->spacetype);
+  if (st && st->id_remap) {
+    st->id_remap(area, sl, mappings);
+  }
+}
+
+void ED_spacedata_id_remap_single(struct ScrArea *area,
+                                  struct SpaceLink *sl,
+                                  ID *old_id,
+                                  ID *new_id)
 {
   SpaceType *st = BKE_spacetype_from_id(sl->spacetype);
 
   if (st && st->id_remap) {
-    st->id_remap(area, sl, old_id, new_id);
+    struct IDRemapper *mappings = BKE_id_remapper_create();
+    BKE_id_remapper_add(mappings, old_id, new_id);
+    st->id_remap(area, sl, mappings);
+    BKE_id_remapper_free(mappings);
   }
 }

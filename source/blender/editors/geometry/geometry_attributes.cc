@@ -34,6 +34,7 @@
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
+#include "BKE_object_deform.h"
 #include "BKE_report.h"
 
 #include "RNA_access.h"
@@ -513,6 +514,8 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
 static void geometry_attribute_convert_ui(bContext *UNUSED(C), wmOperator *op)
 {
   uiLayout *layout = op->layout;
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
 
   uiItemR(layout, op->ptr, "mode", 0, nullptr, ICON_NONE);
 

@@ -61,6 +61,7 @@ KERNEL_STRUCT_MEMBER(shadow_ray, packed_float3, D, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(shadow_ray, float, t, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(shadow_ray, float, time, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(shadow_ray, float, dP, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER(shadow_ray, int, object, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_END(shadow_ray)
 
 /*********************** Shadow Intersection result **************************/

@@ -142,58 +142,23 @@ ccl_device_inline bool triangle_intersect_local(KernelGlobals kg,
 }
 #endif /* __BVH_LOCAL__ */
 
-/* Refine triangle intersection to more precise hit point. For rays that travel
- * far the precision is often not so good, this reintersects the primitive from
- * a closer distance. */
-
-/* Reintersections uses the paper:
- *
- * Tomas Moeller
- * Fast, minimum storage ray/triangle intersection
- * http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
+/**
+ * Use the barycentric coordinates to get the intersection location
  */
-
-ccl_device_inline float3 triangle_refine(KernelGlobals kg,
-                                         ccl_private ShaderData *sd,
-                                         float3 P,
-                                         float3 D,
-                                         float t,
-                                         const int isect_object,
-                                         const int isect_prim)
+ccl_device_inline float3 triangle_point_from_uv(KernelGlobals kg,
+                                                ccl_private ShaderData *sd,
+                                                const int isect_object,
+                                                const int isect_prim,
+                                                const float u,
+                                                const float v)
 {
-#ifdef __INTERSECTION_REFINE__
-  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    if (UNLIKELY(t == 0.0f)) {
-      return P;
-    }
-    const Transform tfm = object_get_inverse_transform(kg, sd);
-
-    P = transform_point(&tfm, P);
-    D = transform_direction(&tfm, D * t);
-    D = normalize_len(D, &t);
-  }
-
-  P = P + D * t;
-
   const uint tri_vindex = kernel_tex_fetch(__tri_vindex, isect_prim).w;
   const packed_float3 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
                       tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
                       tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
-  float3 edge1 = make_float3(tri_a.x - tri_c.x, tri_a.y - tri_c.y, tri_a.z - tri_c.z);
-  float3 edge2 = make_float3(tri_b.x - tri_c.x, tri_b.y - tri_c.y, tri_b.z - tri_c.z);
-  float3 tvec = make_float3(P.x - tri_c.x, P.y - tri_c.y, P.z - tri_c.z);
-  float3 qvec = cross(tvec, edge1);
-  float3 pvec = cross(D, edge2);
-  float det = dot(edge1, pvec);
-  if (det != 0.0f) {
-    /* If determinant is zero it means ray lies in the plane of
-     * the triangle. It is possible in theory due to watertight
-     * nature of triangle intersection. For such cases we simply
-     * don't refine intersection hoping it'll go all fine.
-     */
-    float rt = dot(edge2, qvec) / det;
-    P = P + D * rt;
-  }
+  float w = 1.0f - u - v;
+
+  float3 P = u * tri_a + v * tri_b + w * tri_c;
 
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     const Transform tfm = object_get_transform(kg, sd);
@@ -201,65 +166,6 @@ ccl_device_inline float3 triangle_refine(KernelGlobals kg,
   }
 
   return P;
-#else
-  return P + D * t;
-#endif
-}
-
-/* Same as above, except that t is assumed to be in object space for
- * instancing.
- */
-ccl_device_inline float3 triangle_refine_local(KernelGlobals kg,
-                                               ccl_private ShaderData *sd,
-                                               float3 P,
-                                               float3 D,
-                                               float t,
-                                               const int isect_object,
-                                               const int isect_prim)
-{
-#if defined(__KERNEL_GPU_RAYTRACING__)
-  /* t is always in world space with OptiX and MetalRT. */
-  return triangle_refine(kg, sd, P, D, t, isect_object, isect_prim);
-#else
-  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    const Transform tfm = object_get_inverse_transform(kg, sd);
-
-    P = transform_point(&tfm, P);
-    D = transform_direction(&tfm, D);
-    D = normalize(D);
-  }
-
-  P = P + D * t;
-
-#  ifdef __INTERSECTION_REFINE__
-  const uint tri_vindex = kernel_tex_fetch(__tri_vindex, isect_prim).w;
-  const packed_float3 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
-                      tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
-                      tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
-  float3 edge1 = make_float3(tri_a.x - tri_c.x, tri_a.y - tri_c.y, tri_a.z - tri_c.z);
-  float3 edge2 = make_float3(tri_b.x - tri_c.x, tri_b.y - tri_c.y, tri_b.z - tri_c.z);
-  float3 tvec = make_float3(P.x - tri_c.x, P.y - tri_c.y, P.z - tri_c.z);
-  float3 qvec = cross(tvec, edge1);
-  float3 pvec = cross(D, edge2);
-  float det = dot(edge1, pvec);
-  if (det != 0.0f) {
-    /* If determinant is zero it means ray lies in the plane of
-     * the triangle. It is possible in theory due to watertight
-     * nature of triangle intersection. For such cases we simply
-     * don't refine intersection hoping it'll go all fine.
-     */
-    float rt = dot(edge2, qvec) / det;
-    P = P + D * rt;
-  }
-#  endif /* __INTERSECTION_REFINE__ */
-
-  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    const Transform tfm = object_get_transform(kg, sd);
-    P = transform_point(&tfm, P);
-  }
-
-  return P;
-#endif
 }
 
 CCL_NAMESPACE_END

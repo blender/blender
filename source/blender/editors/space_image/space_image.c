@@ -37,6 +37,7 @@
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 
 #include "RNA_access.h"
@@ -983,29 +984,19 @@ static void image_header_region_listener(const wmRegionListenerParams *params)
   }
 }
 
-static void image_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
+static void image_id_remap(ScrArea *UNUSED(area),
+                           SpaceLink *slink,
+                           const struct IDRemapper *mappings)
 {
   SpaceImage *simg = (SpaceImage *)slink;
 
-  if (!ELEM(GS(old_id->name), ID_IM, ID_GD, ID_MSK)) {
+  if (!BKE_id_remapper_has_mapping_for(mappings, FILTER_ID_IM | FILTER_ID_GD | FILTER_ID_MSK)) {
     return;
   }
 
-  if ((ID *)simg->image == old_id) {
-    simg->image = (Image *)new_id;
-    id_us_ensure_real(new_id);
-  }
-
-  if ((ID *)simg->gpd == old_id) {
-    simg->gpd = (bGPdata *)new_id;
-    id_us_min(old_id);
-    id_us_plus(new_id);
-  }
-
-  if ((ID *)simg->mask_info.mask == old_id) {
-    simg->mask_info.mask = (Mask *)new_id;
-    id_us_ensure_real(new_id);
-  }
+  BKE_id_remapper_apply(mappings, (ID **)&simg->image, ID_REMAP_APPLY_ENSURE_REAL);
+  BKE_id_remapper_apply(mappings, (ID **)&simg->gpd, ID_REMAP_APPLY_UPDATE_REFCOUNT);
+  BKE_id_remapper_apply(mappings, (ID **)&simg->mask_info.mask, ID_REMAP_APPLY_ENSURE_REAL);
 }
 
 /**

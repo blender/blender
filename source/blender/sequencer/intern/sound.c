@@ -31,6 +31,7 @@
 #include "DNA_sound_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_main.h"
 #include "BKE_scene.h"
@@ -56,11 +57,15 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, 
       }
     }
     else if (seq->type == SEQ_TYPE_SOUND_RAM && seq->sound) {
-      const float length = BKE_sound_get_length(bmain, seq->sound);
+      SoundInfo info;
+      if (!BKE_sound_info_get(bmain, seq->sound, &info)) {
+        continue;
+      }
+
       int old = seq->len;
       float fac;
 
-      seq->len = (int)ceil((double)length * FPS);
+      seq->len = MAX2(1, round((info.length - seq->sound->offset_time) * FPS));
       fac = (float)seq->len / (float)old;
       old = seq->startofs;
       seq->startofs *= fac;

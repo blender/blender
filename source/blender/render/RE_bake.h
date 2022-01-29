@@ -25,6 +25,7 @@
 
 struct Depsgraph;
 struct ImBuf;
+struct MLoopUV;
 struct Mesh;
 struct Render;
 struct MLoopUV;

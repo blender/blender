@@ -37,8 +37,6 @@ OIDNDenoiser::OIDNDenoiser(Device *path_trace_device, const DenoiseParams &param
     : Denoiser(path_trace_device, params)
 {
   DCHECK_EQ(params.type, DENOISER_OPENIMAGEDENOISE);
-
-  DCHECK(openimagedenoise_supported()) << "OpenImageDenoiser is not supported on this platform.";
 }
 
 #ifdef WITH_OPENIMAGEDENOISE
@@ -585,6 +583,9 @@ bool OIDNDenoiser::denoise_buffer(const BufferParams &buffer_params,
                                   const int num_samples,
                                   bool allow_inplace_modification)
 {
+  DCHECK(openimagedenoise_supported())
+      << "OpenImageDenoiser is not supported on this platform or build.";
+
 #ifdef WITH_OPENIMAGEDENOISE
   thread_scoped_lock lock(mutex_);
 
@@ -633,6 +634,22 @@ bool OIDNDenoiser::denoise_buffer(const BufferParams &buffer_params,
 uint OIDNDenoiser::get_device_type_mask() const
 {
   return DEVICE_MASK_CPU;
+}
+
+Device *OIDNDenoiser::ensure_denoiser_device(Progress *progress)
+{
+#ifndef WITH_OPENIMAGEDENOISE
+  path_trace_device_->set_error("Build without OpenImageDenoiser");
+  return nullptr;
+#else
+  if (!openimagedenoise_supported()) {
+    path_trace_device_->set_error(
+        "OpenImageDenoiser is not supported on this CPU: missing SSE 4.1 support");
+    return nullptr;
+  }
+
+  return Denoiser::ensure_denoiser_device(progress);
+#endif
 }
 
 CCL_NAMESPACE_END

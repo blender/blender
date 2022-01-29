@@ -153,19 +153,21 @@ static Mesh *mesh_for_snap(Object *ob_eval, eSnapEditType edit_mode_type, bool *
       return NULL;
     }
 
-    BMEditMesh *em_eval = BKE_editmesh_from_object(ob_eval);
-    if ((edit_mode_type == SNAP_GEOM_FINAL) && em_eval->mesh_eval_final) {
-      if (em_eval->mesh_eval_final->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+    Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob_eval);
+    Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob_eval);
+
+    if ((edit_mode_type == SNAP_GEOM_FINAL) && editmesh_eval_final) {
+      if (editmesh_eval_final->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
         return NULL;
       }
-      me_eval = em_eval->mesh_eval_final;
+      me_eval = editmesh_eval_final;
       use_hide = true;
     }
-    else if ((edit_mode_type == SNAP_GEOM_CAGE) && em_eval->mesh_eval_cage) {
-      if (em_eval->mesh_eval_cage->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+    else if ((edit_mode_type == SNAP_GEOM_CAGE) && editmesh_eval_cage) {
+      if (editmesh_eval_cage->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
         return NULL;
       }
-      me_eval = em_eval->mesh_eval_cage;
+      me_eval = editmesh_eval_cage;
       use_hide = true;
     }
   }
@@ -345,12 +347,14 @@ static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx,
 
 static struct Mesh_Runtime *snap_object_data_editmesh_runtime_get(Object *ob_eval)
 {
-  BMEditMesh *em_eval = BKE_editmesh_from_object(ob_eval);
-  if (em_eval->mesh_eval_final) {
-    return &em_eval->mesh_eval_final->runtime;
+  Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob_eval);
+  if (editmesh_eval_final) {
+    return &editmesh_eval_final->runtime;
   }
-  if (em_eval->mesh_eval_cage) {
-    return &em_eval->mesh_eval_cage->runtime;
+
+  Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob_eval);
+  if (editmesh_eval_cage) {
+    return &editmesh_eval_cage->runtime;
   }
 
   return &((Mesh *)ob_eval->data)->runtime;

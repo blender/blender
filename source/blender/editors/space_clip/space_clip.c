@@ -39,6 +39,7 @@
 
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_remap.h"
 #include "BKE_movieclip.h"
 #include "BKE_screen.h"
 #include "BKE_tracking.h"
@@ -1317,23 +1318,18 @@ static void clip_properties_region_listener(const wmRegionListenerParams *params
 
 /********************* registration ********************/
 
-static void clip_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
+static void clip_id_remap(ScrArea *UNUSED(area),
+                          SpaceLink *slink,
+                          const struct IDRemapper *mappings)
 {
   SpaceClip *sclip = (SpaceClip *)slink;
 
-  if (!ELEM(GS(old_id->name), ID_MC, ID_MSK)) {
+  if (!BKE_id_remapper_has_mapping_for(mappings, FILTER_ID_MC | FILTER_ID_MSK)) {
     return;
   }
 
-  if ((ID *)sclip->clip == old_id) {
-    sclip->clip = (MovieClip *)new_id;
-    id_us_ensure_real(new_id);
-  }
-
-  if ((ID *)sclip->mask_info.mask == old_id) {
-    sclip->mask_info.mask = (Mask *)new_id;
-    id_us_ensure_real(new_id);
-  }
+  BKE_id_remapper_apply(mappings, (ID **)&sclip->clip, ID_REMAP_APPLY_ENSURE_REAL);
+  BKE_id_remapper_apply(mappings, (ID **)&sclip->mask_info.mask, ID_REMAP_APPLY_ENSURE_REAL);
 }
 
 void ED_spacetype_clip(void)

@@ -198,7 +198,7 @@ ccl_device_inline float3 shadow_ray_offset(KernelGlobals kg,
   float NL = dot(sd->N, L);
   bool transmit = (NL < 0.0f);
   float3 Ng = (transmit ? -sd->Ng : sd->Ng);
-  float3 P = ray_offset(sd->P, Ng);
+  float3 P = sd->P;
 
   if ((sd->type & PRIMITIVE_TRIANGLE) && (sd->shader & SHADER_SMOOTH_NORMAL)) {
     const float offset_cutoff =
@@ -243,7 +243,7 @@ ccl_device_inline void shadow_ray_setup(ccl_private const ShaderData *ccl_restri
     }
     else {
       /* other lights, avoid self-intersection */
-      ray->D = ray_offset(ls->P, ls->Ng) - P;
+      ray->D = ls->P - P;
       ray->D = normalize_len(ray->D, &ray->t);
     }
   }
@@ -257,6 +257,12 @@ ccl_device_inline void shadow_ray_setup(ccl_private const ShaderData *ccl_restri
   ray->dP = differential_make_compact(sd->dP);
   ray->dD = differential_zero_compact();
   ray->time = sd->time;
+
+  /* Fill in intersection surface and light details. */
+  ray->self.prim = sd->prim;
+  ray->self.object = sd->object;
+  ray->self.light_prim = ls->prim;
+  ray->self.light_object = ls->object;
 }
 
 /* Create shadow ray towards light sample. */

@@ -570,7 +570,6 @@ static void log_kernel_features(const uint features)
           << "\n";
   VLOG(2) << "Use Emission " << string_from_bool(features & KERNEL_FEATURE_NODE_EMISSION) << "\n";
   VLOG(2) << "Use Volume " << string_from_bool(features & KERNEL_FEATURE_NODE_VOLUME) << "\n";
-  VLOG(2) << "Use Hair " << string_from_bool(features & KERNEL_FEATURE_NODE_HAIR) << "\n";
   VLOG(2) << "Use Bump " << string_from_bool(features & KERNEL_FEATURE_NODE_BUMP) << "\n";
   VLOG(2) << "Use Voronoi " << string_from_bool(features & KERNEL_FEATURE_NODE_VORONOI_EXTRA)
           << "\n";

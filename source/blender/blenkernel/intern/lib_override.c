@@ -1121,6 +1121,45 @@ void BKE_lib_override_library_main_proxy_convert(Main *bmain, BlendFileReadRepor
   }
 }
 
+static void lib_override_library_remap(Main *bmain,
+                                       const ID *id_root_reference,
+                                       GHash *linkedref_to_old_override)
+{
+  ID *id;
+  struct IDRemapper *remapper = BKE_id_remapper_create();
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+
+    if (id->tag & LIB_TAG_DOIT && id->newid != NULL && id->lib == id_root_reference->lib) {
+      ID *id_override_new = id->newid;
+      ID *id_override_old = BLI_ghash_lookup(linkedref_to_old_override, id);
+      if (id_override_old == NULL) {
+        continue;
+      }
+
+      BKE_id_remapper_add(remapper, id_override_old, id_override_new);
+      /* Remap no-main override IDs we just created too. */
+      GHashIterator linkedref_to_old_override_iter;
+      GHASH_ITER (linkedref_to_old_override_iter, linkedref_to_old_override) {
+        ID *id_override_old_iter = BLI_ghashIterator_getValue(&linkedref_to_old_override_iter);
+        if ((id_override_old_iter->tag & LIB_TAG_NO_MAIN) == 0) {
+          continue;
+        }
+
+        BKE_libblock_relink_ex(bmain,
+                               id_override_old_iter,
+                               id_override_old,
+                               id_override_new,
+                               ID_REMAP_FORCE_USER_REFCOUNT | ID_REMAP_FORCE_NEVER_NULL_USAGE);
+      }
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  /* Remap all IDs to use the new override. */
+  BKE_libblock_remap_multiple(bmain, remapper, 0);
+  BKE_id_remapper_free(remapper);
+}
+
 static bool lib_override_library_resync(Main *bmain,
                                         Scene *scene,
                                         ViewLayer *view_layer,
@@ -1312,32 +1351,9 @@ static bool lib_override_library_resync(Main *bmain,
   }
   FOREACH_MAIN_LISTBASE_END;
 
-  /* We need to remap old to new override usages in a separate loop, after all new overrides have
+  /* We remap old to new override usages in a separate loop, after all new overrides have
    * been added to Main. */
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (id->tag & LIB_TAG_DOIT && id->newid != NULL && id->lib == id_root_reference->lib) {
-      ID *id_override_new = id->newid;
-      ID *id_override_old = BLI_ghash_lookup(linkedref_to_old_override, id);
-
-      if (id_override_old != NULL) {
-        /* Remap all IDs to use the new override. */
-        BKE_libblock_remap(bmain, id_override_old, id_override_new, 0);
-        /* Remap no-main override IDs we just created too. */
-        GHashIterator linkedref_to_old_override_iter;
-        GHASH_ITER (linkedref_to_old_override_iter, linkedref_to_old_override) {
-          ID *id_override_old_iter = BLI_ghashIterator_getValue(&linkedref_to_old_override_iter);
-          if (id_override_old_iter->tag & LIB_TAG_NO_MAIN) {
-            BKE_libblock_relink_ex(bmain,
-                                   id_override_old_iter,
-                                   id_override_old,
-                                   id_override_new,
-                                   ID_REMAP_FORCE_USER_REFCOUNT | ID_REMAP_FORCE_NEVER_NULL_USAGE);
-          }
-        }
-      }
-    }
-  }
-  FOREACH_MAIN_ID_END;
+  lib_override_library_remap(bmain, id_root_reference, linkedref_to_old_override);
 
   BKE_main_collection_sync(bmain);
 
@@ -1537,11 +1553,13 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
     CLOG_ERROR(
         &LOG,
         "While processing indirect level %d, ID %s from lib %s of indirect level %d detected "
-        "as needing resync.",
+        "as needing resync, skipping.",
         library_indirect_level,
         id->name,
         id->lib->filepath,
         id->lib->temp_index);
+    id->tag &= ~LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
+    return;
   }
 
   MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->relations_from_pointers, id);

@@ -34,11 +34,11 @@ extern "C" {
 struct ARegion;
 struct ARegionType;
 struct AssetLibrary;
-struct FileSelectParams;
 struct FileAssetSelectParams;
+struct FileSelectParams;
 struct SpaceFile;
-struct uiLayout;
 struct View2D;
+struct uiLayout;
 
 /* file_draw.c */
 

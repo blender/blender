@@ -226,6 +226,18 @@ ccl_device float curve_thickness(KernelGlobals kg, ccl_private const ShaderData 
   return r * 2.0f;
 }
 
+/* Curve random */
+
+ccl_device float curve_random(KernelGlobals kg, ccl_private const ShaderData *sd)
+{
+  if (sd->type & PRIMITIVE_CURVE) {
+    const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_CURVE_RANDOM);
+    return (desc.offset != ATTR_STD_NOT_FOUND) ? curve_attribute_float(kg, sd, desc, NULL, NULL) :
+                                                 0.0f;
+  }
+  return 0.0f;
+}
+
 /* Curve location for motion pass, linear interpolation between keys and
  * ignoring radius because we do the same for the motion keys */
 

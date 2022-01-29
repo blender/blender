@@ -61,7 +61,7 @@ struct wmOperator;
 
 /**
  * \param em: Edit-mesh used for generating mirror data.
- * \param use_self: Allow a vertex to point to its self (middle verts).
+ * \param use_self: Allow a vertex to point to itself (middle verts).
  * \param use_select: Restrict to selected verts.
  * \param respecthide: Skip hidden vertices.
  * \param use_topology: Use topology mirror.

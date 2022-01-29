@@ -51,8 +51,6 @@ bool BlenderOutputDriver::read_render_tile(const Tile &tile)
 
   BL::RenderLayer b_rlay = *b_single_rlay;
 
-  vector<float> pixels(static_cast<size_t>(tile.size.x) * tile.size.y * 4);
-
   /* Copy each pass.
    * TODO:copy only the required ones for better performance? */
   for (BL::RenderPass &b_pass : b_rlay.passes) {

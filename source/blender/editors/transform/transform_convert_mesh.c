@@ -1650,7 +1650,7 @@ void createTransEditVerts(TransInfo *t)
       else if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
         float *bweight = (cd_vert_bweight_offset != -1) ?
                              BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset) :
-                             (cd_vert_crease_offset != -1) ?
+                         (cd_vert_crease_offset != -1) ?
                              BM_ELEM_CD_GET_VOID_P(eve, cd_vert_crease_offset) :
                              NULL;
 

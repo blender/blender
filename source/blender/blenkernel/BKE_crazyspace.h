@@ -26,10 +26,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 struct BMEditMesh;
 struct Depsgraph;
 struct Mesh;
 struct Object;
+struct ReportList;
 struct Scene;
 
 /* crazyspace.c */
@@ -68,6 +70,31 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph,
                                  struct Object *ob,
                                  float (**deformmats)[3][3],
                                  float (**deformcos)[3]);
+
+/* -------------------------------------------------------------------- */
+/** \name Crazy-Space API
+ * \{ */
+
+void BKE_crazyspace_api_eval(struct Depsgraph *depsgraph,
+                             struct Scene *scene,
+                             struct Object *object,
+                             struct ReportList *reports);
+
+void BKE_crazyspace_api_displacement_to_deformed(struct Object *object,
+                                                 struct ReportList *reports,
+                                                 int vertex_index,
+                                                 float displacement[3],
+                                                 float r_displacement_deformed[3]);
+
+void BKE_crazyspace_api_displacement_to_original(struct Object *object,
+                                                 struct ReportList *reports,
+                                                 int vertex_index,
+                                                 float displacement_deformed[3],
+                                                 float r_displacement[3]);
+
+void BKE_crazyspace_api_eval_clear(struct Object *object);
+
+/** \} */
 
 #ifdef __cplusplus
 }

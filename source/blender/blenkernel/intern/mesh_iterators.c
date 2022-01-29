@@ -46,7 +46,7 @@ void BKE_mesh_foreach_mapped_vert(
     BMIter iter;
     BMVert *eve;
     int i;
-    if (mesh->runtime.edit_data->vertexCos != NULL) {
+    if (mesh->runtime.edit_data != NULL && mesh->runtime.edit_data->vertexCos != NULL) {
       const float(*vertexCos)[3] = mesh->runtime.edit_data->vertexCos;
       const float(*vertexNos)[3];
       if (flag & MESH_FOREACH_USE_NORMAL) {
@@ -106,7 +106,7 @@ void BKE_mesh_foreach_mapped_edge(
     BMIter iter;
     BMEdge *eed;
     int i;
-    if (mesh->runtime.edit_data->vertexCos != NULL) {
+    if (mesh->runtime.edit_data != NULL && mesh->runtime.edit_data->vertexCos != NULL) {
       const float(*vertexCos)[3] = mesh->runtime.edit_data->vertexCos;
       BM_mesh_elem_index_ensure(bm, BM_VERT);
 
@@ -164,7 +164,8 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
     BMIter iter;
     BMFace *efa;
 
-    const float(*vertexCos)[3] = mesh->runtime.edit_data->vertexCos;
+    const float(*vertexCos)[3] = mesh->runtime.edit_data ? mesh->runtime.edit_data->vertexCos :
+                                                           NULL;
 
     /* XXX: investigate using EditMesh data. */
     const float(*lnors)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
@@ -231,7 +232,7 @@ void BKE_mesh_foreach_mapped_face_center(
     void *userData,
     MeshForeachFlag flag)
 {
-  if (mesh->edit_mesh != NULL) {
+  if (mesh->edit_mesh != NULL && mesh->runtime.edit_data != NULL) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
     const float(*polyCos)[3];

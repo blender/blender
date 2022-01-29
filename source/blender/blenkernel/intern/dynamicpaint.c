@@ -1518,7 +1518,7 @@ static void dynamic_paint_set_init_color_tex_to_vcol_cb(
     multitex_ext_safe(tex, uv, &texres, pool, scene_color_manage, false);
 
     if (texres.tin > pPoint[vert].color[3]) {
-      copy_v3_v3(pPoint[vert].color, &texres.tr);
+      copy_v3_v3(pPoint[vert].color, texres.trgba);
       pPoint[vert].color[3] = texres.tin;
     }
   }
@@ -1559,7 +1559,7 @@ static void dynamic_paint_set_init_color_tex_to_imseq_cb(
   multitex_ext_safe(tex, uv_final, &texres, NULL, scene_color_manage, false);
 
   /* apply color */
-  copy_v3_v3(pPoint[i].color, &texres.tr);
+  copy_v3_v3(pPoint[i].color, texres.trgba);
   pPoint[i].color[3] = texres.tin;
 }
 

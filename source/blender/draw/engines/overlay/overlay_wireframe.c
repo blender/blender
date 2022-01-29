@@ -185,10 +185,11 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     Mesh *me = ob->data;
     if (is_edit_mode) {
       BLI_assert(me->edit_mesh);
-      BMEditMesh *embm = me->edit_mesh;
-      has_edit_mesh_cage = embm->mesh_eval_cage && (embm->mesh_eval_cage != embm->mesh_eval_final);
-      if (embm->mesh_eval_final) {
-        me = embm->mesh_eval_final;
+      Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
+      Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
+      has_edit_mesh_cage = editmesh_eval_cage && (editmesh_eval_cage != editmesh_eval_final);
+      if (editmesh_eval_final) {
+        me = editmesh_eval_final;
       }
     }
     is_mesh_verts_only = me->totedge == 0 && me->totvert > 0;

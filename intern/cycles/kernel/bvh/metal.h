@@ -15,6 +15,7 @@
  */
 
 struct MetalRTIntersectionPayload {
+  RaySelfPrimitives self;
   uint visibility;
   float u, v;
   int prim;
@@ -25,6 +26,7 @@ struct MetalRTIntersectionPayload {
 };
 
 struct MetalRTIntersectionLocalPayload {
+  RaySelfPrimitives self;
   uint local_object;
   uint lcg_state;
   short max_hits;
@@ -34,6 +36,7 @@ struct MetalRTIntersectionLocalPayload {
 };
 
 struct MetalRTIntersectionShadowPayload {
+  RaySelfPrimitives self;
   uint visibility;
 #if defined(__METALRT_MOTION__)
   float time;

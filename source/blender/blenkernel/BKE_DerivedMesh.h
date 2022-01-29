@@ -399,7 +399,6 @@ bool editbmesh_modifier_is_enabled(struct Scene *scene,
 void makeDerivedMesh(struct Depsgraph *depsgraph,
                      struct Scene *scene,
                      struct Object *ob,
-                     struct BMEditMesh *em,
                      const struct CustomData_MeshMasks *dataMask);
 
 void DM_calc_loop_tangents(DerivedMesh *dm,

@@ -40,8 +40,8 @@ struct uiBlock;
 struct uiBut;
 struct uiButTreeRow;
 struct uiLayout;
-struct wmEvent;
 struct wmDrag;
+struct wmEvent;
 
 namespace blender::ui {
 

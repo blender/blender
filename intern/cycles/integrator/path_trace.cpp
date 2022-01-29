@@ -820,8 +820,15 @@ void PathTrace::tile_buffer_read()
     return;
   }
 
+  /* Read buffers back from device. */
+  tbb::parallel_for_each(path_trace_works_, [&](unique_ptr<PathTraceWork> &path_trace_work) {
+    path_trace_work->copy_render_buffers_from_device();
+  });
+
+  /* Read (subset of) passes from output driver. */
   PathTraceTile tile(*this);
   if (output_driver_->read_render_tile(tile)) {
+    /* Copy buffers to device again. */
     tbb::parallel_for_each(path_trace_works_, [](unique_ptr<PathTraceWork> &path_trace_work) {
       path_trace_work->copy_render_buffers_to_device();
     });

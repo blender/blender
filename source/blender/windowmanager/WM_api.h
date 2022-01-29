@@ -47,6 +47,7 @@ struct GHashIterator;
 struct GPUViewport;
 struct ID;
 struct IDProperty;
+struct IDRemapper;
 struct ImBuf;
 struct ImageFormatData;
 struct Main;
@@ -471,7 +472,7 @@ void WM_main_add_notifier(unsigned int type, void *reference);
  * Clear notifiers by reference, Used so listeners don't act on freed data.
  */
 void WM_main_remove_notifier_reference(const void *reference);
-void WM_main_remap_editor_id_reference(struct ID *old_id, struct ID *new_id);
+void WM_main_remap_editor_id_reference(const struct IDRemapper *mappings);
 
 /* reports */
 /**
@@ -636,12 +637,12 @@ bool WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, sho
  *
  * \param store: Store settings for re-use.
  *
- * \warning do not use this within an operator to call its self! T29537.
+ * \warning do not use this within an operator to call itself! T29537.
  */
 int WM_operator_call_ex(struct bContext *C, struct wmOperator *op, bool store);
 int WM_operator_call(struct bContext *C, struct wmOperator *op);
 /**
- * This is intended to be used when an invoke operator wants to call exec on its self
+ * This is intended to be used when an invoke operator wants to call exec on itself
  * and is basically like running op->type->exec() directly, no poll checks no freeing,
  * since we assume whoever called invoke will take care of that
  */

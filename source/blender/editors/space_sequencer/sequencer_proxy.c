@@ -85,7 +85,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
     }
 
     bool success = SEQ_proxy_rebuild_context(
-        pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue);
+        pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue, false);
 
     if (!success && (seq->strip->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) != 0) {
       BKE_reportf(reports, RPT_WARNING, "Overwrite is not checked for %s, skipping", seq->name);
@@ -137,7 +137,7 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
       short stop = 0, do_update;
       float progress;
 
-      SEQ_proxy_rebuild_context(bmain, depsgraph, scene, seq, file_list, &queue);
+      SEQ_proxy_rebuild_context(bmain, depsgraph, scene, seq, file_list, &queue, false);
 
       for (link = queue.first; link; link = link->next) {
         struct SeqIndexBuildContext *context = link->data;

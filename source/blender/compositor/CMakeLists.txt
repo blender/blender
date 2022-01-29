@@ -38,8 +38,8 @@ set(INC
   ../render/intern
   ../../../extern/clew/include
   ../../../intern/atomic
-  ../../../intern/guardedalloc
   ../../../intern/clog
+  ../../../intern/guardedalloc
 
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
@@ -140,6 +140,8 @@ set(SRC
   nodes/COM_OutputFileNode.h
   nodes/COM_RenderLayersNode.cc
   nodes/COM_RenderLayersNode.h
+  nodes/COM_SceneTimeNode.cc
+  nodes/COM_SceneTimeNode.h
   nodes/COM_SwitchNode.cc
   nodes/COM_SwitchNode.h
   nodes/COM_SwitchViewNode.cc
@@ -150,8 +152,6 @@ set(SRC
   nodes/COM_TimeNode.h
   nodes/COM_ValueNode.cc
   nodes/COM_ValueNode.h
-  nodes/COM_SceneTimeNode.cc
-  nodes/COM_SceneTimeNode.h
 
   # output nodes
   nodes/COM_CompositorNode.cc
@@ -573,10 +573,10 @@ set(SRC
   operations/COM_IDMaskOperation.cc
   operations/COM_IDMaskOperation.h
 
-  operations/COM_DotproductOperation.cc
-  operations/COM_DotproductOperation.h
   operations/COM_ConvertColorSpaceOperation.cc
   operations/COM_ConvertColorSpaceOperation.h
+  operations/COM_DotproductOperation.cc
+  operations/COM_DotproductOperation.h
 
   # Matte operation
   operations/COM_BoxMaskOperation.cc

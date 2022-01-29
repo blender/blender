@@ -27,8 +27,8 @@
 extern "C" {
 #endif
 
-struct Scene;
 struct ListBase;
+struct Scene;
 
 bool sequencer_seq_generates_image(struct Sequence *seq);
 void seq_open_anim_file(struct Scene *scene, struct Sequence *seq, bool openfile);

@@ -1,40 +1,6 @@
-#extension GL_ARB_gpu_shader5 : enable
-
-#ifdef GL_ARB_gpu_shader5
+#ifdef GPU_ARB_gpu_shader5
 #  define USE_INVOC_EXT
 #endif
-
-#ifdef DOUBLE_MANIFOLD
-#  ifdef USE_INVOC_EXT
-#    define invoc_len 2
-#  else
-#    define vert_len 8
-#  endif
-#else
-#  ifdef USE_INVOC_EXT
-#    define invoc_len 1
-#  else
-#    define vert_len 4
-#  endif
-#endif
-
-#ifdef USE_INVOC_EXT
-layout(lines_adjacency, invocations = invoc_len) in;
-layout(triangle_strip, max_vertices = 4) out;
-#else
-layout(lines_adjacency) in;
-layout(triangle_strip, max_vertices = vert_len) out;
-#endif
-
-uniform vec3 lightDirection = vec3(0.57, 0.57, -0.57);
-
-in VertexData
-{
-  vec3 pos;           /* local position */
-  vec4 frontPosition; /* final ndc position */
-  vec4 backPosition;
-}
-vData[];
 
 #define DEGENERATE_TRIS_WORKAROUND
 #define DEGENERATE_TRIS_AREA_THRESHOLD 4e-17

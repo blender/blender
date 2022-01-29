@@ -240,7 +240,7 @@ typedef enum PropertyFlag {
   PROP_ID_REFCOUNT = (1 << 6),
 
   /**
-   * Disallow assigning a variable to its self, eg an object tracking its self
+   * Disallow assigning a variable to itself, eg an object tracking itself
    * only apply this to types that are derived from an ID ().
    */
   PROP_ID_SELF_CHECK = (1 << 20),

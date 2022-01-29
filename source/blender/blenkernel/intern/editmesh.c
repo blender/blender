@@ -39,6 +39,8 @@
 #include "BKE_mesh_wrapper.h"
 #include "BKE_object.h"
 
+#include "DEG_depsgraph_query.h"
+
 BMEditMesh *BKE_editmesh_create(BMesh *bm)
 {
   BMEditMesh *em = MEM_callocN(sizeof(BMEditMesh), __func__);
@@ -50,9 +52,6 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
 {
   BMEditMesh *em_copy = MEM_callocN(sizeof(BMEditMesh), __func__);
   *em_copy = *em;
-
-  em_copy->mesh_eval_cage = em_copy->mesh_eval_final = NULL;
-  em_copy->bb_cage = NULL;
 
   em_copy->bm = BM_mesh_copy(em->bm);
 
@@ -194,22 +193,8 @@ void BKE_editmesh_looptri_and_normals_calc_with_partial(BMEditMesh *em,
                                          });
 }
 
-void BKE_editmesh_free_derived_caches(BMEditMesh *em)
-{
-  if (em->mesh_eval_cage) {
-    BKE_id_free(NULL, em->mesh_eval_cage);
-  }
-  if (em->mesh_eval_final && em->mesh_eval_final != em->mesh_eval_cage) {
-    BKE_id_free(NULL, em->mesh_eval_final);
-  }
-  em->mesh_eval_cage = em->mesh_eval_final = NULL;
-
-  MEM_SAFE_FREE(em->bb_cage);
-}
-
 void BKE_editmesh_free_data(BMEditMesh *em)
 {
-  BKE_editmesh_free_derived_caches(em);
 
   if (em->looptris) {
     MEM_freeN(em->looptris);
@@ -283,13 +268,15 @@ const float (*BKE_editmesh_vert_coords_when_deformed(struct Depsgraph *depsgraph
   *r_is_alloc = false;
 
   Mesh *me = ob->data;
+  Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object_eval);
 
   if ((me->runtime.edit_data != NULL) && (me->runtime.edit_data->vertexCos != NULL)) {
     /* Deformed, and we have deformed coords already. */
     coords = me->runtime.edit_data->vertexCos;
   }
-  else if ((em->mesh_eval_final != NULL) &&
-           (em->mesh_eval_final->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH)) {
+  else if ((editmesh_eval_final != NULL) &&
+           (editmesh_eval_final->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH)) {
     /* If this is an edit-mesh type, leave NULL as we can use the vertex coords. */
   }
   else {
@@ -334,18 +321,18 @@ void BKE_editmesh_ensure_autosmooth(BMEditMesh *em, Mesh *me)
   }
 }
 
-BoundBox *BKE_editmesh_cage_boundbox_get(BMEditMesh *em)
+BoundBox *BKE_editmesh_cage_boundbox_get(struct Object *object, BMEditMesh *UNUSED(em))
 {
-  if (em->bb_cage == NULL) {
+  if (object->runtime.editmesh_bb_cage == NULL) {
     float min[3], max[3];
     INIT_MINMAX(min, max);
-    if (em->mesh_eval_cage) {
-      BKE_mesh_wrapper_minmax(em->mesh_eval_cage, min, max);
+    if (object->runtime.editmesh_eval_cage) {
+      BKE_mesh_wrapper_minmax(object->runtime.editmesh_eval_cage, min, max);
     }
 
-    em->bb_cage = MEM_callocN(sizeof(BoundBox), "BMEditMesh.bb_cage");
-    BKE_boundbox_init_from_minmax(em->bb_cage, min, max);
+    object->runtime.editmesh_bb_cage = MEM_callocN(sizeof(BoundBox), "BMEditMesh.bb_cage");
+    BKE_boundbox_init_from_minmax(object->runtime.editmesh_bb_cage, min, max);
   }
 
-  return em->bb_cage;
+  return object->runtime.editmesh_bb_cage;
 }

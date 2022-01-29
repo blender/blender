@@ -581,7 +581,7 @@ class WM_OT_context_cycle_enum(Operator):
 
         # Have the info we need, advance to the next item.
         #
-        # When wrap's disabled we may set the value to its self,
+        # When wrap's disabled we may set the value to itself,
         # this is done to ensure update callbacks run.
         if self.reverse:
             if orig_index == 0:

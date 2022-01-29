@@ -1220,7 +1220,7 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
     }
 
 #ifdef WITH_INPUT_IME
-    if (window->getImeInput()->IsImeKeyEvent(ascii)) {
+    if (window->getImeInput()->IsImeKeyEvent(ascii, key)) {
       return NULL;
     }
 #endif /* WITH_INPUT_IME */

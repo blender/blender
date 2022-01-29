@@ -30,8 +30,8 @@ extern "C" {
 #endif
 
 struct Mesh;
-struct Subdiv;
 struct OpenSubdiv_EvaluatorCache;
+struct Subdiv;
 
 typedef enum eSubdivEvaluatorType {
   SUBDIV_EVALUATOR_TYPE_CPU,

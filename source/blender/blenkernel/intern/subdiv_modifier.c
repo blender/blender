@@ -92,7 +92,7 @@ bool BKE_subsurf_modifier_can_do_gpu_subdiv_ex(const Scene *scene,
     return false;
   }
 
-  if (!GPU_compute_shader_support()) {
+  if (!(GPU_compute_shader_support() && GPU_shader_storage_buffer_objects_support())) {
     return false;
   }
 

@@ -87,6 +87,8 @@
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
 
+#include "NOD_texture.h"
+
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
@@ -7082,8 +7084,6 @@ static void sculpt_update_cache_invariants(
     bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, const float mouse[2])
 {
   StrokeCache *cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
-  // Main *bmain = CTX_data_main(C);
-  // Scene *scene = CTX_data_scene(C);
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
   Brush *brush = BKE_paint_brush(&sd->paint);
   ViewContext *vc = paint_stroke_view_context(op->customdata);
@@ -7217,9 +7217,7 @@ static void sculpt_update_cache_invariants(
   copy_v2_v2(ups->tex_mouse, cache->initial_mouse);
 
   /* Truly temporary data that isn't stored in properties. */
-
   cache->vc = vc;
-
   cache->brush = brush;
 
   /* Cache projection matrix. */

@@ -16,9 +16,12 @@
  * Copyright 2018, Blender Foundation.
  */
 
-#include "COM_CryptomatteNode.h"
 #include "BKE_node.h"
+
+#include "NOD_composite.h"
+
 #include "COM_ConvertOperation.h"
+#include "COM_CryptomatteNode.h"
 #include "COM_MultilayerImageOperation.h"
 #include "COM_RenderLayersProg.h"
 #include "COM_SetAlphaMultiplyOperation.h"

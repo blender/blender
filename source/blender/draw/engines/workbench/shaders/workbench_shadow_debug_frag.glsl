@@ -1,10 +1,4 @@
 
-out vec4 fragColor;
-
-layout(location = 0) out vec4 materialData;
-layout(location = 1) out vec4 normalData;
-layout(location = 2) out uint objectId;
-
 void main()
 {
   const float a = 0.25;

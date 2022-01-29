@@ -32,9 +32,9 @@ extern "C" {
 struct ListBase;
 struct Mask;
 struct Scene;
+struct SeqRenderData;
 struct Sequence;
 struct StripElem;
-struct SeqRenderData;
 
 /**
  * Sort strips in provided seqbase. Effect strips are trailing the list and they are sorted by

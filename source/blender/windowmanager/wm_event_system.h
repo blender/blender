@@ -199,6 +199,7 @@ void wm_dropbox_free(void);
  */
 void wm_drags_exit(wmWindowManager *wm, wmWindow *win);
 void wm_drop_prepare(bContext *C, wmDrag *drag, wmDropBox *drop);
+void wm_drop_end(bContext *C, wmDrag *drag, wmDropBox *drop);
 /**
  * Called in inner handler loop, region context.
  */

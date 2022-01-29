@@ -41,6 +41,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh_iterators.h"
+#include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
 
@@ -311,9 +312,10 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
       userdata[1] = tvs->transverts;
     }
 
-    if (tvs->transverts && em->mesh_eval_cage) {
+    struct Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(obedit);
+    if (tvs->transverts && editmesh_eval_cage) {
       BM_mesh_elem_table_ensure(bm, BM_VERT);
-      BKE_mesh_foreach_mapped_vert(em->mesh_eval_cage, set_mapped_co, userdata, MESH_FOREACH_NOP);
+      BKE_mesh_foreach_mapped_vert(editmesh_eval_cage, set_mapped_co, userdata, MESH_FOREACH_NOP);
     }
   }
   else if (obedit->type == OB_ARMATURE) {

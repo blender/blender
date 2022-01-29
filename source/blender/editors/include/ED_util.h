@@ -33,6 +33,7 @@ extern "C" {
 struct GPUBatch;
 struct Main;
 struct bContext;
+struct IDRemapper;
 
 /* ed_util.c */
 
@@ -60,10 +61,13 @@ bool ED_editors_flush_edits(struct Main *bmain);
  *
  * \param new_id: may be NULL to unlink \a old_id.
  */
+void ED_spacedata_id_remap_single(struct ScrArea *area,
+                               struct SpaceLink *sl,
+                               struct ID *old_id,
+                               struct ID *new_id);
 void ED_spacedata_id_remap(struct ScrArea *area,
                            struct SpaceLink *sl,
-                           struct ID *old_id,
-                           struct ID *new_id);
+                           const struct IDRemapper *mappings);
 
 void ED_operatortypes_edutils(void);
 

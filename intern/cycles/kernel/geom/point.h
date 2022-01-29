@@ -81,7 +81,7 @@ ccl_device float3 point_attribute_float3(KernelGlobals kg,
 #  endif
 
   if (desc.element == ATTR_ELEMENT_VERTEX) {
-    return float4_to_float3(kernel_tex_fetch(__attributes_float4, desc.offset + sd->prim));
+    return kernel_tex_fetch(__attributes_float3, desc.offset + sd->prim);
   }
   else {
     return make_float3(0.0f, 0.0f, 0.0f);
@@ -109,14 +109,56 @@ ccl_device float4 point_attribute_float4(KernelGlobals kg,
   }
 }
 
+/* Point position */
+
+ccl_device float3 point_position(KernelGlobals kg, ccl_private const ShaderData *sd)
+{
+  if (sd->type & PRIMITIVE_POINT) {
+    /* World space center. */
+    float3 P = (sd->type & PRIMITIVE_MOTION) ?
+                   float4_to_float3(motion_point(kg, sd->object, sd->prim, sd->time)) :
+                   float4_to_float3(kernel_tex_fetch(__points, sd->prim));
+
+    if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+      object_position_transform(kg, sd, &P);
+    }
+
+    return P;
+  }
+
+  return zero_float3();
+}
+
 /* Point radius */
 
 ccl_device float point_radius(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
   if (sd->type & PRIMITIVE_POINT) {
-    return kernel_tex_fetch(__points, sd->prim).w;
+    /* World space radius. */
+    const float r = kernel_tex_fetch(__points, sd->prim).w;
+
+    if (sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED) {
+      return r;
+    }
+    else {
+      float3 dir = make_float3(r, r, r);
+      object_dir_transform(kg, sd, &dir);
+      return average(dir);
+    }
   }
 
+  return 0.0f;
+}
+
+/* Point random */
+
+ccl_device float point_random(KernelGlobals kg, ccl_private const ShaderData *sd)
+{
+  if (sd->type & PRIMITIVE_POINT) {
+    const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_POINT_RANDOM);
+    return (desc.offset != ATTR_STD_NOT_FOUND) ? point_attribute_float(kg, sd, desc, NULL, NULL) :
+                                                 0.0f;
+  }
   return 0.0f;
 }
 

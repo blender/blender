@@ -310,7 +310,7 @@ void RE_SetOverrideCamera(struct Render *re, struct Object *cam_ob);
  *
  * \note call this after #RE_InitState().
  */
-void RE_SetCamera(struct Render *re, struct Object *cam_ob);
+void RE_SetCamera(struct Render *re, const struct Object *cam_ob);
 
 /**
  * Get current view and window transform.
@@ -454,12 +454,14 @@ struct RenderPass *RE_pass_find_by_type(volatile struct RenderLayer *rl,
 #define RE_BAKE_DISPLACEMENT 1
 #define RE_BAKE_AO 2
 
-void RE_GetCameraWindow(struct Render *re, struct Object *camera, float mat[4][4]);
+void RE_GetCameraWindow(struct Render *re, const struct Object *camera, float mat[4][4]);
 /**
  * Must be called after #RE_GetCameraWindow(), does not change `re->winmat`.
  */
-void RE_GetCameraWindowWithOverscan(struct Render *re, float overscan, float r_winmat[4][4]);
-void RE_GetCameraModelMatrix(struct Render *re, struct Object *camera, float r_modelmat[4][4]);
+void RE_GetCameraWindowWithOverscan(const struct Render *re, float overscan, float r_winmat[4][4]);
+void RE_GetCameraModelMatrix(const struct Render *re,
+                             const struct Object *camera,
+                             float r_modelmat[4][4]);
 
 struct Scene *RE_GetScene(struct Render *re);
 void RE_SetScene(struct Render *re, struct Scene *sce);

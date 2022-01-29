@@ -27,7 +27,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Int>(N_("Face Count"))
       .field_source()
-      .description(N_("Number of faces that contain the edge"));
+      .description(N_("The number of faces that use each edge as one of their sides"));
 }
 
 class EdgeNeighborCountFieldInput final : public GeometryFieldInput {

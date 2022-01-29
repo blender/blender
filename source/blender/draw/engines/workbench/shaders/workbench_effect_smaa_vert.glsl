@@ -1,7 +1,5 @@
 
-out vec2 uvs;
-out vec2 pixcoord;
-out vec4 offset[3];
+#pragma BLENDER_REQUIRE(common_smaa_lib.glsl)
 
 void main()
 {

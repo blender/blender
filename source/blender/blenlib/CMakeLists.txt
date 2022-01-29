@@ -255,9 +255,9 @@ set(SRC
   BLI_math_solvers.h
   BLI_math_statistics.h
   BLI_math_time.h
-  BLI_math_vector.h
-  BLI_math_vec_types.hh
   BLI_math_vec_mpq_types.hh
+  BLI_math_vec_types.hh
+  BLI_math_vector.h
   BLI_memarena.h
   BLI_memblock.h
   BLI_memiter.h
@@ -368,8 +368,8 @@ if(WITH_GMP)
 endif()
 
 if(WIN32)
-  if (WITH_BLENDER_THUMBNAILER)
-    # Needed for querying the thumbnailer .dll in winstuff.c
+  if(WITH_BLENDER_THUMBNAILER)
+    # Needed for querying the `thumbnailer .dll` in `winstuff.c`.
     add_definitions(-DWITH_BLENDER_THUMBNAILER)
   endif()
   list(APPEND INC

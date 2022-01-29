@@ -107,6 +107,10 @@ class ShaderInterface {
   {
     return input_lookup(inputs_ + attr_len_ + ubo_len_ + uniform_len_, ssbo_len_, name);
   }
+  inline const ShaderInput *ssbo_get(const int binding) const
+  {
+    return input_lookup(inputs_ + attr_len_ + ubo_len_ + uniform_len_, ssbo_len_, binding);
+  }
 
   inline const char *input_name_get(const ShaderInput *input) const
   {
@@ -189,11 +193,11 @@ inline const char *ShaderInterface::builtin_uniform_name(GPUUniformBuiltin u)
     case GPU_UNIFORM_COLOR:
       return "color";
     case GPU_UNIFORM_BASE_INSTANCE:
-      return "baseInstance";
+      return "gpu_BaseInstance";
     case GPU_UNIFORM_RESOURCE_CHUNK:
-      return "resourceChunk";
+      return "drw_resourceChunk";
     case GPU_UNIFORM_RESOURCE_ID:
-      return "resourceId";
+      return "drw_ResourceID";
     case GPU_UNIFORM_SRGB_TRANSFORM:
       return "srgbTarget";
 
@@ -211,6 +215,13 @@ inline const char *ShaderInterface::builtin_uniform_block_name(GPUUniformBlockBu
       return "modelBlock";
     case GPU_UNIFORM_BLOCK_INFO:
       return "infoBlock";
+
+    case GPU_UNIFORM_BLOCK_DRW_VIEW:
+      return "drw_view";
+    case GPU_UNIFORM_BLOCK_DRW_MODEL:
+      return "drw_matrices";
+    case GPU_UNIFORM_BLOCK_DRW_INFOS:
+      return "drw_infos";
     default:
       return NULL;
   }

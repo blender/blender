@@ -378,8 +378,9 @@ struct IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
                                                          IMB_Timecode_Type tcs_in_use,
                                                          IMB_Proxy_Size proxy_sizes_in_use,
                                                          int quality,
-                                                         bool overwrite,
-                                                         struct GSet *file_list);
+                                                         const bool overwrite,
+                                                         struct GSet *file_list,
+                                                         bool build_only_on_bad_performance);
 
 /**
  * Will rebuild all used indices and proxies at once.
@@ -431,6 +432,7 @@ bool IMB_anim_can_produce_frames(const struct anim *anim);
 int ismovie(const char *filepath);
 int IMB_anim_get_image_width(struct anim *anim);
 int IMB_anim_get_image_height(struct anim *anim);
+bool IMB_get_gop_decode_time(struct anim *anim);
 
 /**
  *

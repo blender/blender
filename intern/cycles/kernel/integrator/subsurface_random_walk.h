@@ -195,6 +195,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   const float time = INTEGRATOR_STATE(state, ray, time);
   const float3 Ng = INTEGRATOR_STATE(state, subsurface, Ng);
   const int object = INTEGRATOR_STATE(state, isect, object);
+  const int prim = INTEGRATOR_STATE(state, isect, prim);
 
   /* Sample diffuse surface scatter into the object. */
   float3 D;
@@ -205,12 +206,16 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   }
 
   /* Setup ray. */
-  ray.P = ray_offset(P, -Ng);
+  ray.P = P;
   ray.D = D;
   ray.t = FLT_MAX;
   ray.time = time;
   ray.dP = ray_dP;
   ray.dD = differential_zero_compact();
+  ray.self.object = object;
+  ray.self.prim = prim;
+  ray.self.light_object = OBJECT_NONE;
+  ray.self.light_prim = PRIM_NONE;
 
 #ifndef __KERNEL_GPU_RAYTRACING__
   /* Compute or fetch object transforms. */
@@ -377,7 +382,15 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
      * If yes, we will later use backwards guided sampling in order to have a decent
      * chance of connecting to it.
      * TODO: Maybe use less than 10 times the mean free path? */
-    ray.t = (bounce == 0) ? max(t, 10.0f / (min3(sigma_t))) : t;
+    if (bounce == 0) {
+      ray.t = max(t, 10.0f / (min3(sigma_t)));
+    }
+    else {
+      ray.t = t;
+      /* After the first bounce the object can intersect the same surface again */
+      ray.self.object = OBJECT_NONE;
+      ray.self.prim = PRIM_NONE;
+    }
     scene_intersect_local(kg, &ray, &ss_isect, object, NULL, 1);
     hit = (ss_isect.num_hits > 0);
 
@@ -407,13 +420,6 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
     /* Use the distance to the exit point for the throughput update if we found one. */
     if (hit) {
       t = ray.t;
-    }
-    else if (bounce == 0) {
-      /* Restore original position if nothing was hit after the first bounce,
-       * without the ray_offset() that was added to avoid self-intersection.
-       * Otherwise if that offset is relatively large compared to the scattering
-       * radius, we never go back up high enough to exit the surface. */
-      ray.P = P;
     }
 
     /* Advance to new scatter location. */

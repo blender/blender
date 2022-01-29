@@ -743,7 +743,7 @@ will re-allocate objects data,
 any references to a meshes vertices/polygons/UVs, armatures bones,
 curves points, etc. cannot be accessed after switching mode.
 
-Only the reference to the data its self can be re-accessed, the following example will crash.
+Only the reference to the data itself can be re-accessed, the following example will crash.
 
 .. code-block:: python
 

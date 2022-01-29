@@ -68,15 +68,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
   verts[1] = (1.0f - t) * verts[1] + t * next_verts[1];
   verts[2] = (1.0f - t) * verts[2] + t * next_verts[2];
   /* Compute refined position. */
-#ifdef __BVH_LOCAL__
-  if (is_local) {
-    sd->P = motion_triangle_refine_local(kg, sd, P, D, ray_t, isect_object, isect_prim, verts);
-  }
-  else
-#endif /* __BVH_LOCAL__*/
-  {
-    sd->P = motion_triangle_refine(kg, sd, P, D, ray_t, isect_object, isect_prim, verts);
-  }
+  sd->P = motion_triangle_point_from_uv(kg, sd, isect_object, isect_prim, sd->u, sd->v, verts);
   /* Compute face normal. */
   float3 Ng;
   if (sd->object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {

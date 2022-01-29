@@ -667,7 +667,7 @@ static void drw_shgroup_bone_custom_solid(ArmatureDrawContext *ctx,
 
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
-  DRW_mesh_batch_cache_validate(mesh);
+  DRW_mesh_batch_cache_validate(custom, mesh);
 
   struct GPUBatch *surf = DRW_mesh_batch_cache_get_surface(mesh);
   struct GPUBatch *edges = DRW_mesh_batch_cache_get_edge_detection(mesh, NULL);
@@ -715,7 +715,7 @@ static void drw_shgroup_bone_custom_wire(ArmatureDrawContext *ctx,
   }
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
-  DRW_mesh_batch_cache_validate(mesh);
+  DRW_mesh_batch_cache_validate(custom, mesh);
 
   struct GPUBatch *geom = DRW_mesh_batch_cache_get_all_edges(mesh);
   if (geom) {

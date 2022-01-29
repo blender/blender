@@ -32,6 +32,7 @@
 #include "util/color.h"
 #include "util/foreach.h"
 #include "util/log.h"
+#include "util/string.h"
 #include "util/transform.h"
 
 #include "kernel/tables.h"
@@ -462,8 +463,12 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
   const ustring known_colorspace = metadata.colorspace;
 
   if (handle.svm_slot() == -1) {
+    /* OIIO currently does not support <UVTILE> substitutions natively. Replace with a format they
+     * understand. */
+    std::string osl_filename = filename.string();
+    string_replace(osl_filename, "<UVTILE>", "<U>_<V>");
     compiler.parameter_texture(
-        "filename", filename, compress_as_srgb ? u_colorspace_raw : known_colorspace);
+        "filename", ustring(osl_filename), compress_as_srgb ? u_colorspace_raw : known_colorspace);
   }
   else {
     compiler.parameter_texture("filename", handle.svm_slot());
@@ -472,7 +477,8 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
   const bool unassociate_alpha = !(ColorSpaceManager::colorspace_is_data(colorspace) ||
                                    alpha_type == IMAGE_ALPHA_CHANNEL_PACKED ||
                                    alpha_type == IMAGE_ALPHA_IGNORE);
-  const bool is_tiled = (filename.find("<UDIM>") != string::npos);
+  const bool is_tiled = (filename.find("<UDIM>") != string::npos ||
+                         filename.find("<UVTILE>") != string::npos);
 
   compiler.parameter(this, "projection");
   compiler.parameter(this, "projection_blend");
@@ -4388,9 +4394,6 @@ NODE_DEFINE(HairInfoNode)
   SOCKET_OUT_FLOAT(size, "Length");
   SOCKET_OUT_FLOAT(thickness, "Thickness");
   SOCKET_OUT_NORMAL(tangent_normal, "Tangent Normal");
-#if 0 /* Output for minimum hair width transparency - deactivated. */
-  SOCKET_OUT_FLOAT(fade, "Fade");
-#endif
   SOCKET_OUT_FLOAT(index, "Random");
 
   return type;
@@ -4448,12 +4451,7 @@ void HairInfoNode::compile(SVMCompiler &compiler)
   if (!out->links.empty()) {
     compiler.add_node(NODE_HAIR_INFO, NODE_INFO_CURVE_TANGENT_NORMAL, compiler.stack_assign(out));
   }
-#if 0
-  out = output("Fade");
-  if(!out->links.empty()) {
-    compiler.add_node(NODE_HAIR_INFO, NODE_INFO_CURVE_FADE, compiler.stack_assign(out));
-  }
-#endif
+
   out = output("Random");
   if (!out->links.empty()) {
     int attr = compiler.attribute(ATTR_STD_CURVE_RANDOM);
@@ -4464,6 +4462,59 @@ void HairInfoNode::compile(SVMCompiler &compiler)
 void HairInfoNode::compile(OSLCompiler &compiler)
 {
   compiler.add(this, "node_hair_info");
+}
+
+/* Point Info */
+
+NODE_DEFINE(PointInfoNode)
+{
+  NodeType *type = NodeType::add("point_info", create, NodeType::SHADER);
+
+  SOCKET_OUT_POINT(position, "Position");
+  SOCKET_OUT_FLOAT(radius, "Radius");
+  SOCKET_OUT_FLOAT(random, "Random");
+
+  return type;
+}
+
+PointInfoNode::PointInfoNode() : ShaderNode(get_node_type())
+{
+}
+
+void PointInfoNode::attributes(Shader *shader, AttributeRequestSet *attributes)
+{
+  if (shader->has_surface_link()) {
+    if (!output("Random")->links.empty())
+      attributes->add(ATTR_STD_POINT_RANDOM);
+  }
+
+  ShaderNode::attributes(shader, attributes);
+}
+
+void PointInfoNode::compile(SVMCompiler &compiler)
+{
+  ShaderOutput *out;
+
+  out = output("Position");
+  if (!out->links.empty()) {
+    compiler.add_node(NODE_POINT_INFO, NODE_INFO_POINT_POSITION, compiler.stack_assign(out));
+  }
+
+  out = output("Radius");
+  if (!out->links.empty()) {
+    compiler.add_node(NODE_POINT_INFO, NODE_INFO_POINT_RADIUS, compiler.stack_assign(out));
+  }
+
+  out = output("Random");
+  if (!out->links.empty()) {
+    int attr = compiler.attribute(ATTR_STD_POINT_RANDOM);
+    compiler.add_node(NODE_ATTR, attr, compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT);
+  }
+}
+
+void PointInfoNode::compile(OSLCompiler &compiler)
+{
+  compiler.add(this, "node_point_info");
 }
 
 /* Volume Info */

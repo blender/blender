@@ -791,6 +791,10 @@ ccl_device_forceinline void integrate_volume_direct_light(
 
   /* Write shadow ray and associated state to global memory. */
   integrator_state_write_shadow_ray(kg, shadow_state, &ray);
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, object) = ray.self.object;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, prim) = ray.self.prim;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, object) = ray.self.light_object;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, prim) = ray.self.light_prim;
 
   /* Copy state from main path to shadow path. */
   const uint16_t bounce = INTEGRATOR_STATE(state, path, bounce);
@@ -873,11 +877,13 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
   INTEGRATOR_STATE_WRITE(state, ray, D) = normalize(phase_omega_in);
   INTEGRATOR_STATE_WRITE(state, ray, t) = FLT_MAX;
-
 #  ifdef __RAY_DIFFERENTIALS__
   INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
   INTEGRATOR_STATE_WRITE(state, ray, dD) = differential_make_compact(phase_domega_in);
 #  endif
+  // Save memory by storing last hit prim and object in isect
+  INTEGRATOR_STATE_WRITE(state, isect, prim) = sd->prim;
+  INTEGRATOR_STATE_WRITE(state, isect, object) = sd->object;
 
   /* Update throughput. */
   const float3 throughput = INTEGRATOR_STATE(state, path, throughput);

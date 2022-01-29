@@ -40,6 +40,27 @@ struct TriangleIntersectionResult
 
 enum { METALRT_HIT_TRIANGLE, METALRT_HIT_BOUNDING_BOX };
 
+ccl_device_inline bool intersection_skip_self(ray_data const RaySelfPrimitives& self,
+                                              const int object,
+                                              const int prim)
+{
+  return (self.prim == prim) && (self.object == object);
+}
+
+ccl_device_inline bool intersection_skip_self_shadow(ray_data const RaySelfPrimitives& self,
+                                                     const int object,
+                                                     const int prim)
+{
+  return ((self.prim == prim) && (self.object == object)) ||
+         ((self.light_prim == prim) && (self.light_object == object));
+}
+
+ccl_device_inline bool intersection_skip_self_local(ray_data const RaySelfPrimitives& self,
+                                                    const int prim)
+{
+  return (self.prim == prim);
+}
+
 template<typename TReturn, uint intersection_type>
 TReturn metalrt_local_hit(constant KernelParamsMetal &launch_params_metal,
                           ray_data MetalKernelContext::MetalRTIntersectionLocalPayload &payload,
@@ -53,8 +74,8 @@ TReturn metalrt_local_hit(constant KernelParamsMetal &launch_params_metal,
 #ifdef __BVH_LOCAL__
   uint prim = primitive_id + kernel_tex_fetch(__object_prim_offset, object);
 
-  if (object != payload.local_object) {
-    /* Only intersect with matching object */
+  if ((object != payload.local_object) || intersection_skip_self_local(payload.self, prim)) {
+    /* Only intersect with matching object and skip self-intersecton. */
     result.accept = false;
     result.continue_search = true;
     return result;
@@ -165,6 +186,11 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
     return true;
   }
 #  endif
+
+  if (intersection_skip_self_shadow(payload.self, object, prim)) {
+    /* continue search */
+    return true;
+  }
 
   float u = 0.0f, v = 0.0f;
   int type = 0;
@@ -322,21 +348,35 @@ inline TReturnType metalrt_visibility_test(constant KernelParamsMetal &launch_pa
   }
 #  endif
 
-#  ifdef __VISIBILITY_FLAG__
   uint visibility = payload.visibility;
+#  ifdef __VISIBILITY_FLAG__
   if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
     result.accept = false;
     result.continue_search = true;
     return result;
   }
+#  endif
 
   /* Shadow ray early termination. */
   if (visibility & PATH_RAY_SHADOW_OPAQUE) {
-    result.accept = true;
-    result.continue_search = false;
-    return result;
+    if (intersection_skip_self_shadow(payload.self, object, prim)) {
+      result.accept = false;
+      result.continue_search = true;
+      return result;
+    }
+    else {
+      result.accept = true;
+      result.continue_search = false;
+      return result;
+    }
   }
-#  endif
+  else {
+    if (intersection_skip_self(payload.self, object, prim)) {
+      result.accept = false;
+      result.continue_search = true;
+      return result;
+    }
+  }
 
   result.accept = true;
   result.continue_search = true;

@@ -44,6 +44,8 @@
 #include "BKE_node.h"
 #include "BKE_scene.h"
 
+#include "NOD_shader.h"
+
 #include "GPU_material.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"

@@ -32,6 +32,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 
 #include "ED_screen.h"
@@ -401,18 +402,12 @@ static void text_properties_region_draw(const bContext *C, ARegion *region)
   }
 }
 
-static void text_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
+static void text_id_remap(ScrArea *UNUSED(area),
+                          SpaceLink *slink,
+                          const struct IDRemapper *mappings)
 {
   SpaceText *stext = (SpaceText *)slink;
-
-  if (!ELEM(GS(old_id->name), ID_TXT)) {
-    return;
-  }
-
-  if ((ID *)stext->text == old_id) {
-    stext->text = (Text *)new_id;
-    id_us_ensure_real(new_id);
-  }
+  BKE_id_remapper_apply(mappings, (ID **)&stext->text, ID_REMAP_APPLY_ENSURE_REAL);
 }
 
 /********************* registration ********************/

@@ -761,6 +761,15 @@ class ASSETBROWSER_PT_metadata_preview(asset_utils.AssetMetaDataPanel, Panel):
         col.operator("ed.lib_id_load_custom_preview", icon='FILEBROWSER', text="")
         col.separator()
         col.operator("ed.lib_id_generate_preview", icon='FILE_REFRESH', text="")
+        col.menu("ASSETBROWSER_MT_metadata_preview_menu", icon='DOWNARROW_HLT', text="")
+
+
+class ASSETBROWSER_MT_metadata_preview_menu(bpy.types.Menu):
+    bl_label = "Preview"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("ed.lib_id_generate_preview_from_object", text="Render Active Object")
 
 
 class ASSETBROWSER_PT_metadata_tags(asset_utils.AssetMetaDataPanel, Panel):
@@ -840,6 +849,7 @@ classes = (
     ASSETBROWSER_MT_view,
     ASSETBROWSER_MT_select,
     ASSETBROWSER_MT_edit,
+    ASSETBROWSER_MT_metadata_preview_menu,
     ASSETBROWSER_PT_metadata,
     ASSETBROWSER_PT_metadata_preview,
     ASSETBROWSER_PT_metadata_tags,

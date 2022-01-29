@@ -231,6 +231,43 @@ template<typename T> class SimpleMixer {
 };
 
 /**
+ * Mixes together booleans with "or" while fitting the same interface as the other
+ * mixers in order to be simpler to use. This mixing method has a few benefits:
+ *  - An "average" for selections is relatively meaningless.
+ *  - Predictable selection propagation is very super important.
+ *  - It's generally  easier to remove an element from a selection that is slightly too large than
+ *    the opposite.
+ */
+class BooleanPropagationMixer {
+ private:
+  MutableSpan<bool> buffer_;
+
+ public:
+  /**
+   * \param buffer: Span where the interpolated values should be stored.
+   */
+  BooleanPropagationMixer(MutableSpan<bool> buffer) : buffer_(buffer)
+  {
+    buffer_.fill(false);
+  }
+
+  /**
+   * Mix a #value into the element with the given #index.
+   */
+  void mix_in(const int64_t index, const bool value, [[maybe_unused]] const float weight = 1.0f)
+  {
+    buffer_[index] |= value;
+  }
+
+  /**
+   * Does not do anything, since the mixing is trivial.
+   */
+  void finalize()
+  {
+  }
+};
+
+/**
  * This mixer accumulates values in a type that is different from the one that is mixed.
  * Some types cannot encode the floating point weights in their values (e.g. int and bool).
  */
@@ -291,7 +328,7 @@ class ColorGeometryMixer {
 };
 
 template<typename T> struct DefaultMixerStruct {
-  /* Use void by default. This can be check for in `if constexpr` statements. */
+  /* Use void by default. This can be checked for in `if constexpr` statements. */
   using type = void;
 };
 template<> struct DefaultMixerStruct<float> {
@@ -326,6 +363,23 @@ template<> struct DefaultMixerStruct<bool> {
    * Otherwise information provided by weights is easily rounded away. */
   using type = SimpleMixerWithAccumulationType<bool, float, float_to_bool>;
 };
+
+template<typename T> struct DefaultPropatationMixerStruct {
+  /* Use void by default. This can be checked for in `if constexpr` statements. */
+  using type = typename DefaultMixerStruct<T>::type;
+};
+
+template<> struct DefaultPropatationMixerStruct<bool> {
+  using type = BooleanPropagationMixer;
+};
+
+/**
+ * This mixer is meant for propagating attributes when creating new geometry. A key difference
+ * with the default mixer is that booleans are mixed with "or" instead of "at least half"
+ * (the default mixing for booleans).
+ */
+template<typename T>
+using DefaultPropatationMixer = typename DefaultPropatationMixerStruct<T>::type;
 
 /* Utility to get a good default mixer for a given type. This is `void` when there is no default
  * mixer for the given type. */

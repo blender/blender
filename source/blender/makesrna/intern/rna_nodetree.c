@@ -300,9 +300,33 @@ const EnumPropertyItem rna_enum_node_vec_math_items[] = {
 };
 
 const EnumPropertyItem rna_enum_node_boolean_math_items[] = {
-    {NODE_BOOLEAN_MATH_AND, "AND", 0, "And", "Outputs true only when both inputs are true"},
-    {NODE_BOOLEAN_MATH_OR, "OR", 0, "Or", "Outputs or when at least one of the inputs is true"},
-    {NODE_BOOLEAN_MATH_NOT, "NOT", 0, "Not", "Outputs the opposite of the input"},
+    {NODE_BOOLEAN_MATH_AND, "AND", 0, "And", "True when both inputs are true"},
+    {NODE_BOOLEAN_MATH_OR, "OR", 0, "Or", "True when at least one input is true"},
+    {NODE_BOOLEAN_MATH_NOT, "NOT", 0, "Not", "Opposite of the input"},
+    {0, "", ICON_NONE, NULL, NULL},
+    {NODE_BOOLEAN_MATH_NAND, "NAND", 0, "Not And", "True when at least one input is false"},
+    {NODE_BOOLEAN_MATH_NOR, "NOR", 0, "Nor", "True when both inputs are false"},
+    {NODE_BOOLEAN_MATH_XNOR,
+     "XNOR",
+     0,
+     "Equal",
+     "True when both inputs are equal (exclusive nor)"},
+    {NODE_BOOLEAN_MATH_XOR,
+     "XOR",
+     0,
+     "Not Equal",
+     "True when both inputs are different (exclusive or)"},
+    {0, "", ICON_NONE, NULL, NULL},
+    {NODE_BOOLEAN_MATH_IMPLY,
+     "IMPLY",
+     0,
+     "Imply",
+     "True unless the first input is true and the second is false"},
+    {NODE_BOOLEAN_MATH_NIMPLY,
+     "NIMPLY",
+     0,
+     "Subtract",
+     "True when the first input is true and the second is false (not imply)"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -631,6 +655,7 @@ static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_no_bo
 #  include "NOD_geometry.h"
 #  include "NOD_shader.h"
 #  include "NOD_socket.h"
+#  include "NOD_texture.h"
 
 #  include "RE_engine.h"
 #  include "RE_pipeline.h"
@@ -9894,6 +9919,27 @@ static void def_geo_point_distribute(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
+static void def_geo_extrude_mesh(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem mode_items[] = {
+      {GEO_NODE_EXTRUDE_MESH_VERTICES, "VERTICES", 0, "Vertices", ""},
+      {GEO_NODE_EXTRUDE_MESH_EDGES, "EDGES", 0, "Edges", ""},
+      {GEO_NODE_EXTRUDE_MESH_FACES, "FACES", 0, "Faces", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryExtrudeMesh", "storage");
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "mode");
+  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_enum_default(prop, GEO_NODE_EXTRUDE_MESH_FACES);
+  RNA_def_property_ui_text(prop, "Mode", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_geo_distribute_points_on_faces(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -11332,6 +11378,33 @@ static void def_geo_string_to_curves(StructRNA *srna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem rna_node_geometry_string_to_curves_pivot_mode[] = {
+      {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_MIDPOINT, "MIDPOINT", 0, "Midpoint", "Midpoint"},
+      {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_LEFT, "TOP_LEFT", 0, "Top Left", "Top Left"},
+      {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_CENTER,
+       "TOP_CENTER",
+       0,
+       "Top Center",
+       "Top Center"},
+      {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_RIGHT, "TOP_RIGHT", 0, "Top Right", "Top Right"},
+      {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_LEFT,
+       "BOTTOM_LEFT",
+       0,
+       "Bottom Left",
+       "Bottom Left"},
+      {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_CENTER,
+       "BOTTOM_CENTER",
+       0,
+       "Bottom Center",
+       "Bottom Center"},
+      {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_RIGHT,
+       "BOTTOM_RIGHT",
+       0,
+       "Bottom Right",
+       "Bottom Right"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   PropertyRNA *prop;
 
   prop = RNA_def_property(srna, "font", PROP_POINTER, PROP_NONE);
@@ -11363,6 +11436,13 @@ static void def_geo_string_to_curves(StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_node_geometry_string_to_curves_align_y_items);
   RNA_def_property_enum_default(prop, GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP_BASELINE);
   RNA_def_property_ui_text(prop, "Align Y", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "pivot_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "pivot_mode");
+  RNA_def_property_enum_items(prop, rna_node_geometry_string_to_curves_pivot_mode);
+  RNA_def_property_enum_default(prop, GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_LEFT);
+  RNA_def_property_ui_text(prop, "Pivot Point", "Pivot point position relative to character");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

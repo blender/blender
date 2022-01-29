@@ -404,6 +404,7 @@ void invert_m4_m4_safe_ortho(float Ainv[4][4], const float A[4][4]);
 
 void scale_m3_fl(float R[3][3], float scale);
 void scale_m4_fl(float R[4][4], float scale);
+void scale_m4_v2(float R[4][4], const float scale[2]);
 
 /**
  * This computes the overall volume scale factor of a transformation matrix.

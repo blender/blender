@@ -107,6 +107,20 @@ struct float4x4 {
     return &values[0][0];
   }
 
+  float *operator[](const int64_t index)
+  {
+    BLI_assert(index >= 0);
+    BLI_assert(index < 4);
+    return &values[index][0];
+  }
+
+  const float *operator[](const int64_t index) const
+  {
+    BLI_assert(index >= 0);
+    BLI_assert(index < 4);
+    return &values[index][0];
+  }
+
   using c_style_float4x4 = float[4][4];
   c_style_float4x4 &ptr()
   {

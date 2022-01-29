@@ -256,7 +256,6 @@ static BMesh *BMD_mesh_bm_create(
    * (if it contains additional custom-data layers). */
   const Mesh *mesh_array[2] = {mesh, mesh_operand_ob};
   BM_mesh_copy_init_customdata_from_mesh_array(bm, mesh_array, ARRAY_SIZE(mesh_array), &allocsize);
-
   BMeshFromMeshParams bmesh_from_mesh_params = {0};
 
   bmesh_from_mesh_params.calc_face_normal = true;

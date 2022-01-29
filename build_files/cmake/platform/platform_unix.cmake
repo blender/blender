@@ -48,6 +48,9 @@ if(NOT DEFINED LIBDIR)
   unset(LIBDIR_CENTOS7_ABI)
 endif()
 
+# Support restoring this value once pre-compiled libraries have been handled.
+set(WITH_STATIC_LIBS_INIT ${WITH_STATIC_LIBS})
+
 if(EXISTS ${LIBDIR})
   message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
 
@@ -100,7 +103,22 @@ find_package_wrapper(JPEG REQUIRED)
 find_package_wrapper(PNG REQUIRED)
 find_package_wrapper(ZLIB REQUIRED)
 find_package_wrapper(Zstd REQUIRED)
-find_package_wrapper(Freetype REQUIRED)
+
+if(NOT WITH_SYSTEM_FREETYPE)
+  # FreeType compiled with Brotli compression for woff2.
+  find_package_wrapper(Freetype REQUIRED)
+  if(EXISTS ${LIBDIR})
+    find_package_wrapper(Brotli REQUIRED)
+
+    # NOTE: This is done on WIN32 & APPLE but fails on some Linux systems.
+    # See: https://devtalk.blender.org/t/22536
+    # So `BROTLI_LIBRARIES` need to be added directly after `FREETYPE_LIBRARIES`.
+    #
+    # list(APPEND FREETYPE_LIBRARIES
+    #   ${BROTLI_LIBRARIES}
+    # )
+  endif()
+endif()
 
 if(WITH_PYTHON)
   # No way to set py35, remove for now.
@@ -535,6 +553,21 @@ add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE
 # System Libraries
 #
 # Keep last, so indirectly linked libraries don't override our own pre-compiled libs.
+
+if(EXISTS ${LIBDIR})
+  # Clear the prefix path as it causes the `LIBDIR` to override system locations.
+  unset(CMAKE_PREFIX_PATH)
+
+  # Since the pre-compiled `LIBDIR` directories have been handled, don't prefer static libraries.
+  set(WITH_STATIC_LIBS ${WITH_STATIC_LIBS_INIT})
+endif()
+
+if(WITH_SYSTEM_FREETYPE)
+  find_package_wrapper(Freetype)
+  if(NOT FREETYPE_FOUND)
+    message(FATAL_ERROR "Failed finding system FreeType version!")
+  endif()
+endif()
 
 if(WITH_LZO AND WITH_SYSTEM_LZO)
   find_package_wrapper(LZO)

@@ -214,21 +214,7 @@ bool DRW_object_is_in_edit_mode(const Object *ob)
   if (BKE_object_is_in_editmode(ob)) {
     if (ob->type == OB_MESH) {
       if ((ob->mode & OB_MODE_EDIT) == 0) {
-        Mesh *me = (Mesh *)ob->data;
-        BMEditMesh *embm = me->edit_mesh;
-        /* Sanity check when rendering in multiple windows. */
-        if (embm && embm->mesh_eval_final == NULL) {
-          return false;
-        }
-        /* Do not draw ob with edit overlay when edit data is present and is modified. */
-        if (embm && embm->mesh_eval_cage && (embm->mesh_eval_cage != embm->mesh_eval_final)) {
-          return false;
-        }
-        /* Check if the object that we are drawing is modified. */
-        if (!DEG_is_original_id(&me->id)) {
-          return false;
-        }
-        return true;
+        return false;
       }
     }
     return true;
@@ -1498,7 +1484,7 @@ void DRW_draw_callbacks_post_scene(void)
      * Don't trust them! */
     DRW_state_reset();
 
-    /* needed so gizmo isn't obscured */
+    /* Needed so gizmo isn't occluded. */
     if ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) {
       GPU_depth_test(GPU_DEPTH_NONE);
       DRW_draw_gizmo_3d();

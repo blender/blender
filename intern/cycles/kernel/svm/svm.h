@@ -454,13 +454,14 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
         break;
 #if defined(__HAIR__)
       case NODE_HAIR_INFO:
-        IF_KERNEL_NODES_FEATURE(HAIR)
-        {
-          svm_node_hair_info(kg, sd, stack, node.y, node.z);
-        }
+        svm_node_hair_info(kg, sd, stack, node.y, node.z);
         break;
 #endif
-
+#if defined(__POINTCLOUD__)
+      case NODE_POINT_INFO:
+        svm_node_point_info(kg, sd, stack, node.y, node.z);
+        break;
+#endif
       case NODE_TEXTURE_MAPPING:
         offset = svm_node_texture_mapping(kg, sd, stack, node.y, node.z, offset);
         break;

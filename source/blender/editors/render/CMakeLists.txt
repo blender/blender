@@ -28,6 +28,7 @@ set(INC
   ../../imbuf
   ../../makesdna
   ../../makesrna
+  ../../nodes
   ../../render
   ../../sequencer
   ../../windowmanager

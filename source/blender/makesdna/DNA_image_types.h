@@ -142,10 +142,20 @@ typedef enum eImageTextureResolution {
   IMA_TEXTURE_RESOLUTION_LEN
 } eImageTextureResolution;
 
+/* Defined in BKE_image.h. */
+struct PartialUpdateRegister;
+struct PartialUpdateUser;
+
 typedef struct Image_Runtime {
   /* Mutex used to guarantee thread-safe access to the cached ImBuf of the corresponding image ID.
    */
   void *cache_mutex;
+
+  /** \brief Register containing partial updates. */
+  struct PartialUpdateRegister *partial_update_register;
+  /** \brief Partial update user for GPUTextures stored inside the Image. */
+  struct PartialUpdateUser *partial_update_user;
+
 } Image_Runtime;
 
 typedef struct Image {
@@ -171,8 +181,6 @@ typedef struct Image {
   int lastframe;
 
   /* GPU texture flag. */
-  /* Contains `ImagePartialRefresh`. */
-  ListBase gpu_refresh_areas;
   int gpuframenr;
   short gpuflag;
   short gpu_pass;
@@ -247,15 +255,13 @@ enum {
 enum {
   /** GPU texture needs to be refreshed. */
   IMA_GPU_REFRESH = (1 << 0),
-  /** GPU texture needs to be partially refreshed. */
-  IMA_GPU_PARTIAL_REFRESH = (1 << 1),
   /** All mipmap levels in OpenGL texture set? */
-  IMA_GPU_MIPMAP_COMPLETE = (1 << 2),
+  IMA_GPU_MIPMAP_COMPLETE = (1 << 1),
   /* Reuse the max resolution textures as they fit in the limited scale. */
-  IMA_GPU_REUSE_MAX_RESOLUTION = (1 << 3),
+  IMA_GPU_REUSE_MAX_RESOLUTION = (1 << 2),
   /* Has any limited scale textures been allocated.
    * Adds additional checks to reuse max resolution images when they fit inside limited scale. */
-  IMA_GPU_HAS_LIMITED_SCALE_TEXTURES = (1 << 4),
+  IMA_GPU_HAS_LIMITED_SCALE_TEXTURES = (1 << 3),
 };
 
 /* Image.source, where the image comes from */

@@ -350,7 +350,7 @@ void OBJMesh::store_normal_coords_and_indices(Vector<float3> &r_normal_coords)
   constexpr int round_digits = 4;
   int cur_normal_index = 0;
   Map<float3, int> normal_to_index;
-  /* We don't know how many unique normals there will be, but this is a guess.*/
+  /* We don't know how many unique normals there will be, but this is a guess. */
   normal_to_index.reserve(export_mesh_eval_->totpoly);
   loop_to_normal_index_.resize(export_mesh_eval_->totloop);
   loop_to_normal_index_.fill(-1);

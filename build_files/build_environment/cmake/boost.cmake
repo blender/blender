@@ -25,8 +25,13 @@ else()
 endif()
 
 if(WIN32)
-  set(BOOST_TOOLSET toolset=msvc-14.1)
-  set(BOOST_COMPILER_STRING -vc141)
+  if(MSVC_VERSION GREATER_EQUAL 1920) # 2019
+    set(BOOST_TOOLSET toolset=msvc-14.2)
+    set(BOOST_COMPILER_STRING -vc142)
+  else() # 2017
+    set(BOOST_TOOLSET toolset=msvc-14.1)
+    set(BOOST_COMPILER_STRING -vc141)
+  endif()
 
   set(BOOST_CONFIGURE_COMMAND bootstrap.bat)
   set(BOOST_BUILD_COMMAND b2)

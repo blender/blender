@@ -49,10 +49,10 @@ static void exec(void *data,
     params_from_cdata(&params, cdata);
 
     if (in[1] && in[1]->hasinput && !in[0]->hasinput) {
-      tex_input_rgba(&target->tr, in[1], &params, cdata->thread);
+      tex_input_rgba(target->trgba, in[1], &params, cdata->thread);
     }
     else {
-      tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
+      tex_input_rgba(target->trgba, in[0], &params, cdata->thread);
     }
   }
   else {
@@ -61,9 +61,9 @@ static void exec(void *data,
       TexParams params;
       params_from_cdata(&params, cdata);
 
-      tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
+      tex_input_rgba(target->trgba, in[0], &params, cdata->thread);
 
-      target->tin = (target->tr + target->tg + target->tb) / 3.0f;
+      target->tin = (target->trgba[0] + target->trgba[1] + target->trgba[2]) / 3.0f;
       target->talpha = true;
 
       if (target->nor) {

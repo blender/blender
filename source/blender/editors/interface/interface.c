@@ -4934,7 +4934,7 @@ int UI_autocomplete_end(AutoComplete *autocpl, char *autoname)
     BLI_strncpy(autoname, autocpl->truncate, autocpl->maxlen);
   }
   else {
-    if (autoname != autocpl->startname) { /* don't copy a string over its self */
+    if (autoname != autocpl->startname) { /* don't copy a string over itself */
       BLI_strncpy(autoname, autocpl->startname, autocpl->maxlen);
     }
   }
@@ -5960,6 +5960,11 @@ PointerRNA *UI_but_operator_ptr_get(uiBut *but)
   }
 
   return but->opptr;
+}
+
+bContextStore *UI_but_context_get(const uiBut *but)
+{
+  return but->context;
 }
 
 void UI_but_unit_type_set(uiBut *but, const int unit_type)

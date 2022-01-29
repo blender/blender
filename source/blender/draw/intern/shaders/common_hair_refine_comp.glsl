@@ -1,4 +1,6 @@
+#pragma BLENDER_REQUIRE(common_hair_lib.glsl)
 
+#ifndef USE_GPU_SHADER_CREATE_INFO
 /*
  * To be compiled with common_hair_lib.glsl.
  */
@@ -9,6 +11,7 @@ layout(std430, binding = 0) writeonly buffer hairPointOutputBuffer
   vec4 posTime[];
 }
 out_vertbuf;
+#endif
 
 void main(void)
 {
@@ -20,5 +23,5 @@ void main(void)
   vec4 result = hair_interp_data(data0, data1, data2, data3, weights);
 
   uint index = uint(hair_get_id() * hairStrandsRes) + gl_GlobalInvocationID.y;
-  out_vertbuf.posTime[index] = result;
+  posTime[index] = result;
 }

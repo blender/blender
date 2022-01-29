@@ -80,7 +80,7 @@ typedef struct DRWTempInstancingHandle {
   GPUBatch *batch;
   /** Batch containing instancing attributes. */
   GPUBatch *instancer;
-  /** Callbuffer to be used instead of instancer. */
+  /** Call-buffer to be used instead of instancer. */
   GPUVertBuf *buf;
   /** Original non-instanced batch pointer. */
   GPUBatch *geom;

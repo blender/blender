@@ -108,7 +108,7 @@ typedef struct {
   ListBase data;
   /** Clear the images before baking */
   bool bake_clear;
-  /** margin size in pixels*/
+  /** Margin size in pixels. */
   int bake_margin;
   /** margin type */
   char bake_margin_type;

@@ -11,6 +11,15 @@ from pathlib import Path
 
 # List of .blend files that are known to be failing and are not ready to be
 # tested, or that only make sense on some devices. Accepts regular expressions.
+BLACKLIST_ALL = [
+    # Blacklisted due overlapping object differences between platforms.
+    "hair_geom_reflection.blend",
+    "hair_geom_transmission.blend",
+    "hair_instancer_uv.blend",
+    "principled_hair_directcoloring.blend",
+    "visibility_particles.blend",
+]
+
 BLACKLIST_OSL = [
     # OSL only supported on CPU.
     '.*_osl.blend',
@@ -36,8 +45,12 @@ BLACKLIST_GPU = [
     'hair_instancer_uv.blend',
     'hair_length_info.blend',
     'hair_particle_random.blend',
+    "hair_transmission.blend",
     'principled_hair_.*.blend',
     'transparent_shadow_hair.*.blend',
+    # Inconsistent handling of overlapping objects.
+    "T41143.blend",
+    "visibility_particles.blend",
 ]
 
 
@@ -96,7 +109,7 @@ def main():
     output_dir = args.outdir[0]
     device = args.device[0]
 
-    blacklist = []
+    blacklist = BLACKLIST_ALL
     if device != 'CPU':
         blacklist += BLACKLIST_GPU
     if device != 'CPU' or 'OSL' in args.blacklist:

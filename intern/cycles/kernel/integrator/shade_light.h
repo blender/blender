@@ -37,8 +37,9 @@ ccl_device_inline void integrate_light(KernelGlobals kg,
 
   /* Advance ray beyond light. */
   /* TODO: can we make this more numerically robust to avoid reintersecting the
-   * same light in some cases? */
-  const float3 new_ray_P = ray_offset(ray_P + ray_D * isect.t, ray_D);
+   * same light in some cases? Ray should not intersect surface anymore as the
+   * object and prim ids will prevent self intersection. */
+  const float3 new_ray_P = ray_P + ray_D * isect.t;
   INTEGRATOR_STATE_WRITE(state, ray, P) = new_ray_P;
   INTEGRATOR_STATE_WRITE(state, ray, t) -= isect.t;
 
@@ -46,7 +47,7 @@ ccl_device_inline void integrate_light(KernelGlobals kg,
   const float mis_ray_t = INTEGRATOR_STATE(state, path, mis_ray_t);
   ray_P -= ray_D * mis_ray_t;
   isect.t += mis_ray_t;
-  INTEGRATOR_STATE_WRITE(state, path, mis_ray_t) = mis_ray_t + isect.t;
+  INTEGRATOR_STATE_WRITE(state, path, mis_ray_t) = isect.t;
 
   LightSample ls ccl_optional_struct_init;
   const bool use_light_sample = light_sample_from_intersection(kg, &isect, ray_P, ray_D, &ls);

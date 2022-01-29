@@ -41,8 +41,8 @@ GPU_SHADER_CREATE_INFO(gpu_shader_gpencil_stroke)
 
     .uniform_buf(0, "GPencilStrokeData", "gpencil_stroke_data")
 
-    .push_constant(0, Type::MAT4, "ModelViewProjectionMatrix")
-    .push_constant(16, Type::MAT4, "ProjectionMatrix")
+    .push_constant(Type::MAT4, "ModelViewProjectionMatrix")
+    .push_constant(Type::MAT4, "ProjectionMatrix")
     .vertex_source("gpu_shader_gpencil_stroke_vert.glsl")
     .geometry_source("gpu_shader_gpencil_stroke_geom.glsl")
     .fragment_source("gpu_shader_gpencil_stroke_frag.glsl")

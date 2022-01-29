@@ -415,7 +415,8 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
                                Scene *scene,
                                Sequence *seq,
                                struct GSet *file_list,
-                               ListBase *queue)
+                               ListBase *queue,
+                               bool build_only_on_bad_performance)
 {
   SeqIndexBuildContext *context;
   Sequence *nseq;
@@ -476,7 +477,8 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
                                                                 context->size_flags,
                                                                 context->quality,
                                                                 context->overwrite,
-                                                                file_list);
+                                                                file_list,
+                                                                build_only_on_bad_performance);
       }
       if (!context->index_context) {
         MEM_freeN(context);
@@ -601,10 +603,7 @@ void SEQ_proxy_set(struct Sequence *seq, bool value)
   if (value) {
     seq->flag |= SEQ_USE_PROXY;
     if (seq->strip->proxy == NULL) {
-      seq->strip->proxy = MEM_callocN(sizeof(struct StripProxy), "StripProxy");
-      seq->strip->proxy->quality = 50;
-      seq->strip->proxy->build_tc_flags = SEQ_PROXY_TC_ALL;
-      seq->strip->proxy->build_size_flags = SEQ_PROXY_IMAGE_SIZE_25;
+      seq->strip->proxy = seq_strip_proxy_alloc();
     }
   }
   else {

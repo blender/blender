@@ -3135,6 +3135,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "vertex_normals", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "MeshNormalValue");
+
   RNA_def_property_ui_text(prop,
                            "Vertex Normals",
                            "The normal direction of each vertex, defined as the average of the "
@@ -3151,6 +3152,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "polygon_normals", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "MeshNormalValue");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_ui_text(prop,
                            "Polygon Normals",
                            "The normal direction of each polygon, defined by the winding order "
@@ -3172,7 +3174,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Loop Triangles", "Tessellation of mesh polygons into triangles");
   rna_def_mesh_looptris(brna, prop);
 
-  /* TODO: should this be allowed to be its self? */
+  /* TODO: should this be allowed to be itself? */
   prop = RNA_def_property(srna, "texture_mesh", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "texcomesh");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
@@ -3261,6 +3263,7 @@ static void rna_def_mesh(BlenderRNA *brna)
                                     NULL,
                                     NULL);
   RNA_def_property_struct_type(prop, "MeshVertColorLayer");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_ui_text(prop, "Sculpt Vertex Colors", "All vertex colors");
   rna_def_vert_colors(brna, prop);
 

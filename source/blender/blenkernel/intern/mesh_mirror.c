@@ -240,7 +240,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
 
   /* Copy custom-data to new geometry,
-   * copy from its self because this data may have been created in the checks above. */
+   * copy from itself because this data may have been created in the checks above. */
   CustomData_copy_data(&result->vdata, &result->vdata, 0, maxVerts, maxVerts);
   CustomData_copy_data(&result->edata, &result->edata, 0, maxEdges, maxEdges);
   /* loops are copied later */
@@ -424,7 +424,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     /* calculate custom normals into loop_normals, then mirror first half into second half */
 
     BKE_mesh_normals_loop_split(result->mvert,
-                                BKE_mesh_vertex_normals_ensure(mesh),
+                                BKE_mesh_vertex_normals_ensure(result),
                                 result->totvert,
                                 result->medge,
                                 result->totedge,
@@ -432,7 +432,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
                                 loop_normals,
                                 totloop,
                                 result->mpoly,
-                                BKE_mesh_poly_normals_ensure(mesh),
+                                BKE_mesh_poly_normals_ensure(result),
                                 totpoly,
                                 true,
                                 mesh->smoothresh,

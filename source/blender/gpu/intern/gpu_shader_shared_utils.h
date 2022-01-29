@@ -27,11 +27,10 @@
  * Some preprocessing is done by the GPU back-end to make it GLSL compatible.
  *
  * IMPORTANT:
- * - Don't add trailing comma at the end of the enum. Our custom pre-processor will now trim it
- *   for GLSL.
  * - Always use `u` suffix for enum values. GLSL do not support implicit cast.
  * - Define all values. This is in order to simplify custom pre-processor code.
- * - Always use uint32_t as underlying type.
+ * - (C++ only) Always use `uint32_t` as underlying type (`enum eMyEnum : uint32_t`).
+ * - (C only) do NOT use the enum type inside UBO/SSBO structs and use `uint` instead.
  * - Use float suffix by default for float literals to avoid double promotion in C++.
  * - Pack one float or int after a vec3/ivec3 to fulfill alignment rules.
  *
@@ -74,31 +73,44 @@
 #  define bool3 bvec3
 #  define bool4 bvec4
 
-#else /* C */
+#else /* C / C++ */
 #  pragma once
 
 #  include "BLI_assert.h"
 
 #  ifdef __cplusplus
 #    include "BLI_float4x4.hh"
-#  else
+#    include "BLI_math_vec_types.hh"
+using blender::float2;
+using blender::float3;
+using blender::float4;
+using blender::float4x4;
+using blender::int2;
+using blender::int3;
+using blender::int4;
+using blender::uint2;
+using blender::uint3;
+using blender::uint4;
+using bool1 = int;
+using bool2 = blender::int2;
+using bool3 = blender::int3;
+using bool4 = blender::int4;
+
+#  else /* C */
 typedef float float2[2];
 typedef float float3[3];
 typedef float float4[4];
 typedef float float4x4[4][4];
-#  endif
 typedef int int2[2];
 typedef int int3[2];
 typedef int int4[4];
 typedef uint uint2[2];
 typedef uint uint3[3];
 typedef uint uint4[4];
-typedef int int2[2];
-typedef int int3[2];
-typedef int int4[4];
 typedef int bool1;
 typedef int bool2[2];
 typedef int bool3[2];
 typedef int bool4[4];
+#  endif
 
 #endif

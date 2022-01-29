@@ -668,6 +668,7 @@ typedef struct UserDef_Experimental {
   char use_override_templates;
 
   char use_sculpt_uvsmooth;
+  char _pad[1];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

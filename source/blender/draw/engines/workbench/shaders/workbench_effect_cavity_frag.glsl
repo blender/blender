@@ -4,6 +4,7 @@
 #pragma BLENDER_REQUIRE(workbench_cavity_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_curvature_lib.glsl)
 
+<<<<<<< HEAD
 #ifndef DRW_SHADER_SHARED_H
 
 uniform sampler2D depthBuffer;
@@ -16,6 +17,8 @@ out vec4 fragColor;
 
 #endif
 
+=======
+>>>>>>> master
 void main()
 {
   float cavity = 0.0, edges = 0.0, curvature = 0.0;

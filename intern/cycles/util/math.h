@@ -401,7 +401,7 @@ ccl_device_inline float fractf(float x)
   return x - floorf(x);
 }
 
-/* Adapted from godot-engine math_funcs.h. */
+/* Adapted from `godot-engine` math_funcs.h. */
 ccl_device_inline float wrapf(float value, float max, float min)
 {
   float range = max - min;

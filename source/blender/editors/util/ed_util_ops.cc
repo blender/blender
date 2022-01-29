@@ -121,6 +121,22 @@ static void ED_OT_lib_id_load_custom_preview(wmOperatorType *ot)
                                  FILE_SORT_DEFAULT);
 }
 
+static bool lib_id_generate_preview_poll(bContext *C)
+{
+  if (!lib_id_preview_editing_poll(C)) {
+    return false;
+  }
+
+  const PointerRNA idptr = CTX_data_pointer_get(C, "id");
+  const ID *id = (ID *)idptr.data;
+  if (GS(id->name) == ID_NT) {
+    CTX_wm_operator_poll_msg_set(C, TIP_("Can't generate automatic preview for node group"));
+    return false;
+  }
+
+  return true;
+}
+
 static int lib_id_generate_preview_exec(bContext *C, wmOperator *UNUSED(op))
 {
   PointerRNA idptr = CTX_data_pointer_get(C, "id");
@@ -148,8 +164,52 @@ static void ED_OT_lib_id_generate_preview(wmOperatorType *ot)
   ot->idname = "ED_OT_lib_id_generate_preview";
 
   /* api callbacks */
-  ot->poll = lib_id_preview_editing_poll;
+  ot->poll = lib_id_generate_preview_poll;
   ot->exec = lib_id_generate_preview_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_INTERNAL | OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static bool lib_id_generate_preview_from_object_poll(bContext *C)
+{
+  if (!lib_id_preview_editing_poll(C)) {
+    return false;
+  }
+  if (CTX_data_active_object(C) == nullptr) {
+    return false;
+  }
+  return true;
+}
+
+static int lib_id_generate_preview_from_object_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  PointerRNA idptr = CTX_data_pointer_get(C, "id");
+  ID *id = (ID *)idptr.data;
+
+  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+
+  Object *object_to_render = CTX_data_active_object(C);
+
+  BKE_previewimg_id_free(id);
+  PreviewImage *preview_image = BKE_previewimg_id_ensure(id);
+  UI_icon_render_id_ex(C, nullptr, &object_to_render->id, ICON_SIZE_PREVIEW, true, preview_image);
+
+  WM_event_add_notifier(C, NC_ASSET | NA_EDITED, nullptr);
+  ED_assetlist_storage_tag_main_data_dirty();
+
+  return OPERATOR_FINISHED;
+}
+
+static void ED_OT_lib_id_generate_preview_from_object(wmOperatorType *ot)
+{
+  ot->name = "Generate Preview from Object";
+  ot->description = "Create a preview for this asset by rendering the active object";
+  ot->idname = "ED_OT_lib_id_generate_preview_from_object";
+
+  /* api callbacks */
+  ot->poll = lib_id_generate_preview_from_object_poll;
+  ot->exec = lib_id_generate_preview_from_object_exec;
 
   /* flags */
   ot->flag = OPTYPE_INTERNAL | OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -280,6 +340,7 @@ void ED_operatortypes_edutils()
 {
   WM_operatortype_append(ED_OT_lib_id_load_custom_preview);
   WM_operatortype_append(ED_OT_lib_id_generate_preview);
+  WM_operatortype_append(ED_OT_lib_id_generate_preview_from_object);
 
   WM_operatortype_append(ED_OT_lib_id_fake_user_toggle);
   WM_operatortype_append(ED_OT_lib_id_unlink);

@@ -18,10 +18,14 @@
  */
 #include "usd_writer_abstract.h"
 #include "usd_hierarchy_iterator.h"
+#include "usd_writer_material.h"
 
 #include <pxr/base/tf/stringUtils.h>
 
+#include "BKE_customdata.h"
 #include "BLI_assert.h"
+
+#include "DNA_mesh_types.h"
 
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
@@ -33,6 +37,19 @@ static const pxr::TfToken preview_surface("UsdPreviewSurface", pxr::TfToken::Imm
 static const pxr::TfToken roughness("roughness", pxr::TfToken::Immortal);
 static const pxr::TfToken surface("surface", pxr::TfToken::Immortal);
 }  // namespace usdtokens
+
+static std::string get_mesh_active_uvlayer_name(const Object *ob)
+{
+  if (!ob || ob->type != OB_MESH || !ob->data) {
+    return "";
+  }
+
+  const Mesh *me = static_cast<Mesh *>(ob->data);
+
+  const char *name = CustomData_get_active_layer_name(&me->ldata, CD_MLOOPUV);
+
+  return name ? name : "";
+}
 
 namespace blender::io::usd {
 
@@ -78,7 +95,8 @@ const pxr::SdfPath &USDAbstractWriter::usd_path() const
   return usd_export_context_.usd_path;
 }
 
-pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(Material *material)
+pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyContext &context,
+                                                             Material *material)
 {
   static pxr::SdfPath material_library_path("/_materials");
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
@@ -92,17 +110,14 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(Material *material)
   }
   usd_material = pxr::UsdShadeMaterial::Define(stage, usd_path);
 
-  /* Construct the shader. */
-  pxr::SdfPath shader_path = usd_path.AppendChild(usdtokens::preview_shader);
-  pxr::UsdShadeShader shader = pxr::UsdShadeShader::Define(stage, shader_path);
-  shader.CreateIdAttr(pxr::VtValue(usdtokens::preview_surface));
-  shader.CreateInput(usdtokens::diffuse_color, pxr::SdfValueTypeNames->Color3f)
-      .Set(pxr::GfVec3f(material->r, material->g, material->b));
-  shader.CreateInput(usdtokens::roughness, pxr::SdfValueTypeNames->Float).Set(material->roughness);
-  shader.CreateInput(usdtokens::metallic, pxr::SdfValueTypeNames->Float).Set(material->metallic);
-
-  /* Connect the shader and the material together. */
-  usd_material.CreateSurfaceOutput().ConnectToSource(shader, usdtokens::surface);
+  if (material->use_nodes && this->usd_export_context_.export_params.generate_preview_surface) {
+    std::string active_uv = get_mesh_active_uvlayer_name(context.object);
+    create_usd_preview_surface_material(
+        this->usd_export_context_, material, usd_material, active_uv);
+  }
+  else {
+    create_usd_viewport_material(this->usd_export_context_, material, usd_material);
+  }
 
   return usd_material;
 }

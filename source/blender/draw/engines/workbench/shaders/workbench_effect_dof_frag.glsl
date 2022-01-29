@@ -7,19 +7,6 @@
  * Converted and adapted from HLSL to GLSL by Clément Foucault
  */
 
-uniform vec2 invertedViewportSize;
-uniform vec2 nearFar;
-uniform vec3 dofParams;
-uniform float noiseOffset;
-uniform sampler2D inputCocTex;
-uniform sampler2D maxCocTilesTex;
-uniform sampler2D sceneColorTex;
-uniform sampler2D sceneDepthTex;
-uniform sampler2D backgroundTex;
-uniform sampler2D halfResColorTex;
-uniform sampler2D blurTex;
-uniform sampler2D noiseTex;
-
 #define dof_aperturesize dofParams.x
 #define dof_distance dofParams.y
 #define dof_invsensorsize dofParams.z
@@ -52,9 +39,6 @@ float decode_signed_coc(vec2 cocs)
  * Custom Coc aware downsampling. Half res pass.
  */
 #ifdef PREPARE
-
-layout(location = 0) out vec4 halfResColor;
-layout(location = 1) out vec2 normalizedCoc;
 
 void main()
 {
@@ -98,9 +82,6 @@ void main()
  * Custom Coc aware downsampling. Quarter res pass.
  */
 #ifdef DOWNSAMPLE
-
-layout(location = 0) out vec4 outColor;
-layout(location = 1) out vec2 outCocs;
 
 void main()
 {
@@ -216,14 +197,6 @@ void main()
  * Outputs vertical blur and combined blur in MRT
  */
 #ifdef BLUR1
-layout(location = 0) out vec4 blurColor;
-
-#  define NUM_SAMPLES 49
-
-layout(std140) uniform dofSamplesBlock
-{
-  vec4 samples[NUM_SAMPLES];
-};
 
 vec2 get_random_vector(float offset)
 {
@@ -308,7 +281,6 @@ void main()
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #ifdef BLUR2
-out vec4 finalColor;
 
 void main()
 {
@@ -384,9 +356,6 @@ void main()
  * ----------------- STEP 4 ------------------
  */
 #ifdef RESOLVE
-
-layout(location = 0, index = 0) out vec4 finalColorAdd;
-layout(location = 0, index = 1) out vec4 finalColorMul;
 
 void main()
 {

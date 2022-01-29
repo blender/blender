@@ -38,9 +38,11 @@
 #include "ED_select_utils.h"
 #include "ED_view3d.h"
 
+#include "GPU_framebuffer.h"
 #include "GPU_matrix.h"
 #include "GPU_select.h"
 #include "GPU_state.h"
+#include "GPU_viewport.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -505,8 +507,7 @@ void WM_gizmomap_draw(wmGizmoMap *gzmap,
 
 static void gizmo_draw_select_3d_loop(const bContext *C,
                                       wmGizmo **visible_gizmos,
-                                      const int visible_gizmos_len,
-                                      bool *r_use_select_bias)
+                                      const int visible_gizmos_len)
 {
 
   /* TODO(campbell): this depends on depth buffer being written to,
@@ -542,10 +543,6 @@ static void gizmo_draw_select_3d_loop(const bContext *C,
       is_depth_skip_prev = is_depth_skip;
     }
 
-    if (gz->select_bias != 0.0) {
-      *r_use_select_bias = true;
-    }
-
     /* pass the selection id shifted by 8 bits. Last 8 bits are used for selected gizmo part id */
 
     gz->type->draw_select(C, gz, select_id << 8);
@@ -563,7 +560,10 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
                                             const int visible_gizmos_len,
                                             const bContext *C,
                                             const int co[2],
-                                            const int hotspot)
+                                            const int hotspot,
+                                            const bool use_depth_test,
+                                            const bool has_3d_select_bias,
+                                            int *r_hits)
 {
   const wmWindowManager *wm = CTX_wm_manager(C);
   ScrArea *area = CTX_wm_area(C);
@@ -577,30 +577,69 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
 
   BLI_rcti_init_pt_radius(&rect, co, hotspot);
 
-  ED_view3d_draw_setup_view(
-      wm, CTX_wm_window(C), depsgraph, CTX_data_scene(C), region, v3d, NULL, NULL, &rect);
+  /* The selection mode is assigned for the following reasons:
+   *
+   * - #GPU_SELECT_ALL: Use it to check if there is anything at the cursor location
+   *   (only ever runs once).
+   * - #GPU_SELECT_PICK_NEAREST: Use if there are more than 1 item at the cursor location,
+   *   select the best one.
+   * - #GPU_SELECT_PICK_ALL: Use for the same purpose as #GPU_SELECT_PICK_NEAREST
+   *   when the selection depths need to re-ordered based on a bias.
+   * */
+  const int gpu_select_mode = (use_depth_test ?
+                                   (has_3d_select_bias ?
+                                         /* Using select bias means the depths need to be
+                                          * re-calculated based on the bias to pick the best. */
+                                         GPU_SELECT_PICK_ALL :
+                                         /* No bias, just pick the closest. */
+                                         GPU_SELECT_PICK_NEAREST) :
+                                   /* Fast-path (occlusion queries). */
+                                   GPU_SELECT_ALL);
 
-  bool use_select_bias = false;
+  if (GPU_select_is_cached()) {
+    GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, gpu_select_mode, 0);
+    GPU_select_cache_load_id();
+    hits = GPU_select_end();
+  }
+  else {
+    /* TODO: waiting for the GPU in the middle of the event loop for every
+     * mouse move is bad for performance, we need to find a solution to not
+     * use the GPU or draw something once. (see T61474) */
 
-  /* TODO: waiting for the GPU in the middle of the event loop for every
-   * mouse move is bad for performance, we need to find a solution to not
-   * use the GPU or draw something once. (see T61474) */
-  GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_FIRST_PASS, 0);
-  /* do the drawing */
-  gizmo_draw_select_3d_loop(C, visible_gizmos, visible_gizmos_len, &use_select_bias);
+    ED_view3d_draw_setup_view(
+        wm, CTX_wm_window(C), depsgraph, CTX_data_scene(C), region, v3d, NULL, NULL, &rect);
 
-  hits = GPU_select_end();
+    /* There is no need to bind to the depth buffer outside this function
+     * because all future passes the will use the cached depths. */
+    GPUFrameBuffer *depth_read_fb = NULL;
+    if (use_depth_test) {
+      GPUViewport *viewport = WM_draw_region_get_viewport(CTX_wm_region(C));
+      GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
+      GPU_framebuffer_ensure_config(&depth_read_fb,
+                                    {
+                                        GPU_ATTACHMENT_TEXTURE(depth_tx),
+                                        GPU_ATTACHMENT_NONE,
+                                    });
+      GPU_framebuffer_bind(depth_read_fb);
+    }
 
-  if (hits > 0) {
-    GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
-    gizmo_draw_select_3d_loop(C, visible_gizmos, visible_gizmos_len, &use_select_bias);
-    GPU_select_end();
+    GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, gpu_select_mode, 0);
+    gizmo_draw_select_3d_loop(C, visible_gizmos, visible_gizmos_len);
+    hits = GPU_select_end();
+
+    if (use_depth_test) {
+      GPU_framebuffer_restore();
+      GPU_framebuffer_free(depth_read_fb);
+    }
+
+    ED_view3d_draw_setup_view(
+        wm, CTX_wm_window(C), depsgraph, CTX_data_scene(C), region, v3d, NULL, NULL, NULL);
   }
 
-  ED_view3d_draw_setup_view(
-      wm, CTX_wm_window(C), depsgraph, CTX_data_scene(C), region, v3d, NULL, NULL, NULL);
+  /* When selection bias is needed, this function will run again with `use_depth_test` enabled. */
+  int hit_found = -1;
 
-  if (use_select_bias && (hits > 1)) {
+  if (has_3d_select_bias && use_depth_test && (hits > 1)) {
     float co_direction[3];
     float co_screen[3] = {co[0], co[1], 0.0f};
     ED_view3d_win_to_vector(region, (float[2]){UNPACK2(co)}, co_direction);
@@ -612,7 +651,6 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
     GPU_matrix_unproject_3fv(co_screen, rv3d->viewinv, rv3d->winmat, viewport, co_3d_origin);
 
     uint *buf_iter = buffer;
-    int hit_found = -1;
     float dot_best = FLT_MAX;
 
     for (int i = 0; i < hits; i++, buf_iter += 4) {
@@ -632,11 +670,16 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
         hit_found = buf_iter[3];
       }
     }
-    return hit_found;
+  }
+  else {
+    const uint *hit_near = GPU_select_buffer_near(buffer, hits);
+    if (hit_near) {
+      hit_found = hit_near[3];
+    }
   }
 
-  const uint *hit_near = GPU_select_buffer_near(buffer, hits);
-  return hit_near ? hit_near[3] : -1;
+  *r_hits = hits;
+  return hit_found;
 }
 
 /**
@@ -659,6 +702,7 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
 
   /* Search for 3D gizmo's that use the 2D callback for checking intersections. */
   bool has_3d = false;
+  bool has_3d_select_bias = false;
   {
     for (int select_id = 0; select_id < visible_gizmos_len; select_id++) {
       wmGizmo *gz = visible_gizmos[select_id];
@@ -674,6 +718,9 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
       }
       else if (gz->type->draw_select != NULL) {
         has_3d = true;
+        if (gz->select_bias != 0.0f) {
+          has_3d_select_bias = true;
+        }
       }
     }
   }
@@ -681,17 +728,78 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
   /* Search for 3D intersections if they're before 2D that have been found (if any).
    * This way we always use the first hit. */
   if (has_3d) {
+
+    /* NOTE(@campbellbarton): The selection logic here uses a fast-path that exits early
+     * where possible. This is important as this runs on cursor-motion in the 3D view-port.
+     *
+     * - First, don't use the depth buffer at all, use occlusion queries to detect any gizmos.
+     *   If there are no gizmos or only one - early exit, otherwise.
+     *
+     * - Bind the depth buffer and and use selection picking logic.
+     *   This is much slower than occlusion queries (since it's reading depths while drawing).
+     *   When there is a single gizmo under the cursor (quite common), early exit, otherwise.
+     *
+     * - Perform another pass at a reduced size (see: `hotspot_radii`),
+     *   since the result depths are cached this pass is practically free.
+     *
+     * Other notes:
+     *
+     * - If any of these passes fail, use the nearest result from the previous pass.
+     *
+     * - Drawing is only ever done twice.
+     */
+
+    /* Order largest to smallest so the first pass can be used as cache for
+     * later passes (when `use_depth_test == true`). */
     const int hotspot_radii[] = {
-        3 * U.pixelsize,
-        /* This runs on mouse move, careful doing too many tests! */
         10 * U.pixelsize,
+        /* This runs on mouse move, careful doing too many tests! */
+        3 * U.pixelsize,
     };
+
+    /* Narrowing may assign zero to `hit`, allow falling back to the previous test. */
+    int hit_prev = -1;
+
+    bool use_depth_test = false;
+    bool use_depth_cache = false;
+
     for (int i = 0; i < ARRAY_SIZE(hotspot_radii); i++) {
-      hit = gizmo_find_intersected_3d_intern(
-          visible_gizmos, visible_gizmos_len_trim, C, co, hotspot_radii[i]);
-      if (hit != -1) {
+
+      if (use_depth_test && (use_depth_cache == false)) {
+        GPU_select_cache_begin();
+        use_depth_cache = true;
+      }
+
+      int hit_count;
+      hit = gizmo_find_intersected_3d_intern(visible_gizmos,
+                                             visible_gizmos_len_trim,
+                                             C,
+                                             co,
+                                             hotspot_radii[i],
+                                             use_depth_test,
+                                             has_3d_select_bias,
+                                             &hit_count);
+      /* Only continue searching when there are multiple options to narrow down. */
+      if (hit_count < 2) {
         break;
       }
+
+      /* Fast path for simple case, one item or nothing. */
+      if (use_depth_test == false) {
+        /* Restart, using depth buffer (slower). */
+        use_depth_test = true;
+        i = -1;
+      }
+      hit_prev = hit;
+    }
+    /* Narrowing the search area may yield no hits,
+     * in this case fall back to the previous search. */
+    if (hit == -1) {
+      hit = hit_prev;
+    }
+
+    if (use_depth_cache) {
+      GPU_select_cache_end();
     }
 
     if (hit != -1) {

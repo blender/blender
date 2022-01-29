@@ -456,6 +456,7 @@ void graphedit_operatortypes(void)
 
   /* editing */
   WM_operatortype_append(GRAPH_OT_snap);
+  WM_operatortype_append(GRAPH_OT_equalize_handles);
   WM_operatortype_append(GRAPH_OT_mirror);
   WM_operatortype_append(GRAPH_OT_frame_jump);
   WM_operatortype_append(GRAPH_OT_snap_cursor_value);

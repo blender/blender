@@ -47,12 +47,7 @@ static struct {
 
 static GPUShader *hair_refine_shader_compute_create(ParticleRefineShader UNUSED(refinement))
 {
-  GPUShader *sh = NULL;
-  sh = GPU_shader_create_compute(datatoc_common_hair_refine_comp_glsl,
-                                 datatoc_common_hair_lib_glsl,
-                                 "#define HAIR_PHASE_SUBDIV\n",
-                                 __func__);
-  return sh;
+  return GPU_shader_create_from_info_name("draw_hair_refine_compute");
 }
 
 static GPUShader *hair_refine_shader_transform_feedback_create(

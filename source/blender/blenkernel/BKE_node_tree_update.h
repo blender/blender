@@ -20,12 +20,12 @@
  * \ingroup bke
  */
 
+struct ID;
+struct Main;
 struct bNode;
+struct bNodeLink;
 struct bNodeSocket;
 struct bNodeTree;
-struct bNodeLink;
-struct Main;
-struct ID;
 
 #ifdef __cplusplus
 extern "C" {

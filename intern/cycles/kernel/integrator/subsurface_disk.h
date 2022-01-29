@@ -99,6 +99,10 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
   ray.dP = ray_dP;
   ray.dD = differential_zero_compact();
   ray.time = time;
+  ray.self.object = OBJECT_NONE;
+  ray.self.prim = PRIM_NONE;
+  ray.self.light_object = OBJECT_NONE;
+  ray.self.light_prim = OBJECT_NONE;
 
   /* Intersect with the same object. if multiple intersections are found it
    * will use at most BSSRDF_MAX_HITS hits, a random subset of all hits. */

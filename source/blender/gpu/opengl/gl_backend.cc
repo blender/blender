@@ -240,6 +240,7 @@ static void detect_workarounds()
     GLContext::unused_fb_slot_workaround = true;
     /* Turn off extensions. */
     GCaps.shader_image_load_store_support = false;
+    GCaps.shader_storage_buffer_objects_support = false;
     GLContext::base_instance_support = false;
     GLContext::clear_texture_support = false;
     GLContext::copy_image_support = false;
@@ -418,6 +419,12 @@ static void detect_workarounds()
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY) &&
       strstr(renderer, "HD Graphics 4000")) {
     GLContext::generate_mipmap_workaround = true;
+  }
+
+  /* Buggy interface query functions cause crashes when handling SSBOs (T93680) */
+  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY) &&
+      (strstr(renderer, "HD Graphics 4400") || strstr(renderer, "HD Graphics 4600"))) {
+    GCaps.shader_storage_buffer_objects_support = false;
   }
 }  // namespace blender::gpu
 

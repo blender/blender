@@ -35,7 +35,7 @@
 #include "node_exec.h"
 #include "node_util.h"
 
-int node_exec_socket_use_stack(bNodeSocket *sock)
+static int node_exec_socket_use_stack(bNodeSocket *sock)
 {
   /* NOTE: INT supported as FLOAT. Only for EEVEE. */
   return ELEM(sock->type, SOCK_INT, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER);
@@ -275,61 +275,4 @@ void ntree_exec_end(bNodeTreeExec *exec)
   }
 
   MEM_freeN(exec);
-}
-
-/**** Material/Texture trees ****/
-
-bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
-{
-  ListBase *lb = &exec->threadstack[thread];
-  bNodeThreadStack *nts;
-
-  for (nts = (bNodeThreadStack *)lb->first; nts; nts = nts->next) {
-    if (!nts->used) {
-      nts->used = true;
-      break;
-    }
-  }
-
-  if (!nts) {
-    nts = MEM_cnew<bNodeThreadStack>("bNodeThreadStack");
-    nts->stack = (bNodeStack *)MEM_dupallocN(exec->stack);
-    nts->used = true;
-    BLI_addtail(lb, nts);
-  }
-
-  return nts;
-}
-
-void ntreeReleaseThreadStack(bNodeThreadStack *nts)
-{
-  nts->used = false;
-}
-
-bool ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *callerdata, int thread)
-{
-  bNodeStack *nsin[MAX_SOCKET] = {nullptr};  /* arbitrary... watch this */
-  bNodeStack *nsout[MAX_SOCKET] = {nullptr}; /* arbitrary... watch this */
-  bNodeExec *nodeexec;
-  bNode *node;
-  int n;
-
-  /* nodes are presorted, so exec is in order of list */
-
-  for (n = 0, nodeexec = exec->nodeexec; n < exec->totnodes; n++, nodeexec++) {
-    node = nodeexec->node;
-    if (node->need_exec) {
-      node_get_stack(node, nts->stack, nsin, nsout);
-      /* Handle muted nodes...
-       * If the mute func is not set, assume the node should never be muted,
-       * and hence execute it!
-       */
-      if (node->typeinfo->exec_fn && !(node->flag & NODE_MUTED)) {
-        node->typeinfo->exec_fn(callerdata, thread, node, &nodeexec->data, nsin, nsout);
-      }
-    }
-  }
-
-  /* signal to that all went OK, for render */
-  return true;
 }

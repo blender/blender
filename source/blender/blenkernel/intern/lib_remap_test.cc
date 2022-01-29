@@ -304,7 +304,7 @@ TEST(lib_remap, never_null_usage_flag_not_requested_on_delete)
   EXPECT_EQ(context.test_data.object->data, context.test_data.mesh);
   EXPECT_EQ(context.test_data.object->id.tag & LIB_TAG_DOIT, 0);
 
-  /* Never null usage isn't requested so the flag should not be set.*/
+  /* Never null usage isn't requested so the flag should not be set. */
   BKE_libblock_remap(
       context.test_data.bmain, context.test_data.mesh, nullptr, ID_REMAP_SKIP_NEVER_NULL_USAGE);
   EXPECT_EQ(context.test_data.object->data, context.test_data.mesh);
@@ -339,7 +339,7 @@ TEST(lib_remap, never_null_usage_flag_not_requested_on_remap)
   EXPECT_EQ(context.test_data.object->data, context.test_data.mesh);
   EXPECT_EQ(context.test_data.object->id.tag & LIB_TAG_DOIT, 0);
 
-  /* Never null usage isn't requested so the flag should not be set.*/
+  /* Never null usage isn't requested so the flag should not be set. */
   BKE_libblock_remap(
       context.test_data.bmain, context.test_data.mesh, other_mesh, ID_REMAP_SKIP_NEVER_NULL_USAGE);
   EXPECT_EQ(context.test_data.object->data, other_mesh);

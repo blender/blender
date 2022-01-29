@@ -28,8 +28,8 @@
 extern "C" {
 #endif
 
-struct Main;
 struct AssetLibrary;
+struct Main;
 
 void ED_asset_catalogs_save_from_main_path(struct AssetLibrary *library, const struct Main *bmain);
 

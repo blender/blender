@@ -328,6 +328,12 @@ ccl_device void integrator_intersect_closest(KernelGlobals kg,
 
   /* Scene Intersection. */
   Intersection isect ccl_optional_struct_init;
+  isect.object = OBJECT_NONE;
+  isect.prim = PRIM_NONE;
+  ray.self.object = last_isect_object;
+  ray.self.prim = last_isect_prim;
+  ray.self.light_object = OBJECT_NONE;
+  ray.self.light_prim = PRIM_NONE;
   bool hit = scene_intersect(kg, &ray, visibility, &isect);
 
   /* TODO: remove this and do it in the various intersection functions instead. */

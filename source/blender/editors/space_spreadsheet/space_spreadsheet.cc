@@ -18,6 +18,7 @@
 
 #include "BLI_listbase.h"
 
+#include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 
 #include "ED_screen.h"
@@ -171,21 +172,23 @@ static void spreadsheet_keymap(wmKeyConfig *keyconf)
   WM_keymap_ensure(keyconf, "Spreadsheet Generic", SPACE_SPREADSHEET, 0);
 }
 
-static void spreadsheet_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
+static void spreadsheet_id_remap(ScrArea *UNUSED(area),
+                                 SpaceLink *slink,
+                                 const IDRemapper *mappings)
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)slink;
   LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
-    if (context->type == SPREADSHEET_CONTEXT_OBJECT) {
-      SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)context;
-      if ((ID *)object_context->object == old_id) {
-        if (new_id && GS(new_id->name) == ID_OB) {
-          object_context->object = (Object *)new_id;
-        }
-        else {
-          object_context->object = nullptr;
-        }
-      }
+    if (context->type != SPREADSHEET_CONTEXT_OBJECT) {
+      continue;
     }
+    SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)context;
+
+    if (object_context->object != nullptr && GS(object_context->object->id.name) != ID_OB) {
+      object_context->object = nullptr;
+      continue;
+    }
+
+    BKE_id_remapper_apply(mappings, ((ID **)&object_context->object), ID_REMAP_APPLY_DEFAULT);
   }
 }
 

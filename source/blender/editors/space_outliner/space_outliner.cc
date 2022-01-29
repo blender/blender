@@ -31,6 +31,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_lib_remap.h"
 #include "BKE_outliner_treehash.h"
 #include "BKE_screen.h"
 
@@ -405,45 +406,49 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
   return (SpaceLink *)space_outliner_new;
 }
 
-static void outliner_id_remap(ScrArea *area, SpaceLink *slink, ID *old_id, ID *new_id)
+static void outliner_id_remap(ScrArea *area, SpaceLink *slink, const struct IDRemapper *mappings)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)slink;
 
-  /* Some early out checks. */
-  if (!TREESTORE_ID_TYPE(old_id)) {
-    return; /* ID type is not used by outliner. */
+  BKE_id_remapper_apply(mappings, (ID **)&space_outliner->search_tse.id, ID_REMAP_APPLY_DEFAULT);
+
+  if (!space_outliner->treestore) {
+    return;
   }
 
-  if (space_outliner->search_tse.id == old_id) {
-    space_outliner->search_tse.id = new_id;
-  }
+  TreeStoreElem *tselem;
+  BLI_mempool_iter iter;
+  bool changed = false;
+  bool unassigned = false;
 
-  if (space_outliner->treestore) {
-    TreeStoreElem *tselem;
-    BLI_mempool_iter iter;
-    bool changed = false;
-
-    BLI_mempool_iternew(space_outliner->treestore, &iter);
-    while ((tselem = reinterpret_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
-      if (tselem->id == old_id) {
-        tselem->id = new_id;
+  BLI_mempool_iternew(space_outliner->treestore, &iter);
+  while ((tselem = static_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
+    switch (BKE_id_remapper_apply(mappings, &tselem->id, ID_REMAP_APPLY_DEFAULT)) {
+      case ID_REMAP_RESULT_SOURCE_REMAPPED:
         changed = true;
-      }
+        break;
+      case ID_REMAP_RESULT_SOURCE_UNASSIGNED:
+        changed = true;
+        unassigned = true;
+        break;
+      case ID_REMAP_RESULT_SOURCE_UNAVAILABLE:
+      case ID_REMAP_RESULT_SOURCE_NOT_MAPPABLE:
+        break;
     }
+  }
 
-    /* Note that the Outliner may not be the active editor of the area, and hence not initialized.
-     * So runtime data might not have been created yet. */
-    if (space_outliner->runtime && space_outliner->runtime->treehash && changed) {
-      /* rebuild hash table, because it depends on ids too */
-      /* postpone a full rebuild because this can be called many times on-free */
-      space_outliner->storeflag |= SO_TREESTORE_REBUILD;
+  /* Note that the Outliner may not be the active editor of the area, and hence not initialized.
+   * So runtime data might not have been created yet. */
+  if (space_outliner->runtime && space_outliner->runtime->treehash && changed) {
+    /* rebuild hash table, because it depends on ids too */
+    /* postpone a full rebuild because this can be called many times on-free */
+    space_outliner->storeflag |= SO_TREESTORE_REBUILD;
 
-      if (new_id == nullptr) {
-        /* Redraw is needed when removing data for multiple outlines show the same data.
-         * without this, the stale data won't get fully flushed when this outliner
-         * is not the active outliner the user is interacting with. See T85976. */
-        ED_area_tag_redraw(area);
-      }
+    if (unassigned) {
+      /* Redraw is needed when removing data for multiple outlines show the same data.
+       * without this, the stale data won't get fully flushed when this outliner
+       * is not the active outliner the user is interacting with. See T85976. */
+      ED_area_tag_redraw(area);
     }
   }
 }

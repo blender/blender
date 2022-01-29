@@ -828,7 +828,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     }
   }
   else if (type == TSE_GP_LAYER) {
-    /* idv is the layer its self */
+    /* idv is the layer itself */
     id = TREESTORE(parent)->id;
   }
 
@@ -925,195 +925,14 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                 TSE_NLA,
                 TSE_NLA_ACTION,
                 TSE_NLA_TRACK,
-                TSE_GP_LAYER)) {
-    /* Should already use new AbstractTreeElement design. */
-    BLI_assert(0);
-  }
-  else if (type == TSE_SEQUENCE) {
-    Sequence *seq = (Sequence *)idv;
-
-    /*
-     * The idcode is a little hack, but the outliner
-     * only check te->idcode if te->type is equal to zero,
-     * so this is "safe".
-     */
-    te->idcode = seq->type;
-    te->directdata = seq;
-    te->name = seq->name + 2;
-
-    if (!(seq->type & SEQ_TYPE_EFFECT)) {
-      /*
-       * This work like the sequence.
-       * If the sequence have a name (not default name)
-       * show it, in other case put the filename.
-       */
-
-      if (seq->type == SEQ_TYPE_META) {
-        LISTBASE_FOREACH (Sequence *, p, &seq->seqbase) {
-          outliner_add_element(space_outliner, &te->subtree, (void *)p, te, TSE_SEQUENCE, index);
-        }
-      }
-      else {
-        outliner_add_element(
-            space_outliner, &te->subtree, (void *)seq->strip, te, TSE_SEQ_STRIP, index);
-      }
-    }
-  }
-  else if (type == TSE_SEQ_STRIP) {
-    Strip *strip = (Strip *)idv;
-
-    if (strip->dir[0] != '\0') {
-      te->name = strip->dir;
-    }
-    else {
-      te->name = IFACE_("Strip None");
-    }
-    te->directdata = strip;
-  }
-  else if (type == TSE_SEQUENCE_DUP) {
-    Sequence *seq = (Sequence *)idv;
-
-    te->idcode = seq->type;
-    te->directdata = seq;
-    te->name = seq->strip->stripdata->name;
-  }
-  else if (ELEM(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
-    PointerRNA *ptr = (PointerRNA *)idv;
-
-    /* Don't display arrays larger, weak but index is stored as a short,
-     * also the outliner isn't intended for editing such large data-sets. */
-    BLI_STATIC_ASSERT(sizeof(te->index) == 2, "Index is no longer short!")
-    const int tot_limit = SHRT_MAX;
-
-    /* we do lazy build, for speed and to avoid infinite recursion */
-
-    if (ptr->data == nullptr) {
-      te->name = IFACE_("(empty)");
-    }
-    else if (type == TSE_RNA_STRUCT) {
-      /* struct */
-      te->name = RNA_struct_name_get_alloc(ptr, nullptr, 0, nullptr);
-
-      if (te->name) {
-        te->flag |= TE_FREE_NAME;
-      }
-      else {
-        te->name = RNA_struct_ui_name(ptr->type);
-      }
-
-      /* If searching don't expand RNA entries */
-      if (SEARCHING_OUTLINER(space_outliner) && BLI_strcasecmp("RNA", te->name) == 0) {
-        tselem->flag &= ~TSE_CHILDSEARCH;
-      }
-
-      PropertyRNA *iterprop = RNA_struct_iterator_property(ptr->type);
-      int tot = RNA_property_collection_length(ptr, iterprop);
-      CLAMP_MAX(tot, tot_limit);
-
-      /* auto open these cases */
-      if (!parent || (RNA_property_type(reinterpret_cast<PropertyRNA *>(parent->directdata))) ==
-                         PROP_POINTER) {
-        if (!tselem->used) {
-          tselem->flag &= ~TSE_CLOSED;
-        }
-      }
-
-      if (TSELEM_OPEN(tselem, space_outliner)) {
-        for (int a = 0; a < tot; a++) {
-          PointerRNA propptr;
-          RNA_property_collection_lookup_int(ptr, iterprop, a, &propptr);
-          if (!(RNA_property_flag(reinterpret_cast<PropertyRNA *>(propptr.data)) & PROP_HIDDEN)) {
-            outliner_add_element(
-                space_outliner, &te->subtree, (void *)ptr, te, TSE_RNA_PROPERTY, a);
-          }
-        }
-      }
-      else if (tot) {
-        te->flag |= TE_LAZY_CLOSED;
-      }
-
-      te->rnaptr = *ptr;
-    }
-    else if (type == TSE_RNA_PROPERTY) {
-      /* property */
-      PointerRNA propptr;
-      PropertyRNA *iterprop = RNA_struct_iterator_property(ptr->type);
-      RNA_property_collection_lookup_int(ptr, iterprop, index, &propptr);
-
-      PropertyRNA *prop = reinterpret_cast<PropertyRNA *>(propptr.data);
-      PropertyType proptype = RNA_property_type(prop);
-
-      te->name = RNA_property_ui_name(prop);
-      te->directdata = prop;
-      te->rnaptr = *ptr;
-
-      /* If searching don't expand RNA entries */
-      if (SEARCHING_OUTLINER(space_outliner) && BLI_strcasecmp("RNA", te->name) == 0) {
-        tselem->flag &= ~TSE_CHILDSEARCH;
-      }
-
-      if (proptype == PROP_POINTER) {
-        PointerRNA pptr = RNA_property_pointer_get(ptr, prop);
-
-        if (pptr.data) {
-          if (TSELEM_OPEN(tselem, space_outliner)) {
-            outliner_add_element(
-                space_outliner, &te->subtree, (void *)&pptr, te, TSE_RNA_STRUCT, -1);
-          }
-          else {
-            te->flag |= TE_LAZY_CLOSED;
-          }
-        }
-      }
-      else if (proptype == PROP_COLLECTION) {
-        int tot = RNA_property_collection_length(ptr, prop);
-        CLAMP_MAX(tot, tot_limit);
-
-        if (TSELEM_OPEN(tselem, space_outliner)) {
-          for (int a = 0; a < tot; a++) {
-            PointerRNA pptr;
-            RNA_property_collection_lookup_int(ptr, prop, a, &pptr);
-            outliner_add_element(
-                space_outliner, &te->subtree, (void *)&pptr, te, TSE_RNA_STRUCT, a);
-          }
-        }
-        else if (tot) {
-          te->flag |= TE_LAZY_CLOSED;
-        }
-      }
-      else if (ELEM(proptype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
-        int tot = RNA_property_array_length(ptr, prop);
-        CLAMP_MAX(tot, tot_limit);
-
-        if (TSELEM_OPEN(tselem, space_outliner)) {
-          for (int a = 0; a < tot; a++) {
-            outliner_add_element(
-                space_outliner, &te->subtree, (void *)ptr, te, TSE_RNA_ARRAY_ELEM, a);
-          }
-        }
-        else if (tot) {
-          te->flag |= TE_LAZY_CLOSED;
-        }
-      }
-    }
-    else if (type == TSE_RNA_ARRAY_ELEM) {
-      PropertyRNA *prop = reinterpret_cast<PropertyRNA *>(parent->directdata);
-
-      te->directdata = prop;
-      te->rnaptr = *ptr;
-      te->index = index;
-
-      char c = RNA_property_array_item_char(prop, index);
-
-      te->name = reinterpret_cast<char *>(MEM_callocN(sizeof(char[20]), "OutlinerRNAArrayName"));
-      if (c) {
-        sprintf((char *)te->name, "  %c", c);
-      }
-      else {
-        sprintf((char *)te->name, "  %d", index + 1);
-      }
-      te->flag |= TE_FREE_NAME;
-    }
+                TSE_GP_LAYER,
+                TSE_RNA_STRUCT,
+                TSE_RNA_PROPERTY,
+                TSE_RNA_ARRAY_ELEM,
+                TSE_SEQUENCE,
+                TSE_SEQ_STRIP,
+                TSE_SEQUENCE_DUP)) {
+    BLI_assert_msg(false, "Element type should already use new AbstractTreeElement design");
   }
 
   if (tree_element_warnings_get(te, nullptr, nullptr)) {

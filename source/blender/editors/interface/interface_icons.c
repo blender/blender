@@ -1949,6 +1949,16 @@ static void ui_id_preview_image_render_size(
   }
 }
 
+void UI_icon_render_id_ex(const bContext *C,
+                          Scene *scene,
+                          ID *id_to_render,
+                          const enum eIconSizes size,
+                          const bool use_job,
+                          PreviewImage *r_preview_image)
+{
+  ui_id_preview_image_render_size(C, scene, id_to_render, r_preview_image, size, use_job);
+}
+
 void UI_icon_render_id(
     const bContext *C, Scene *scene, ID *id, const enum eIconSizes size, const bool use_job)
 {
@@ -1957,19 +1967,21 @@ void UI_icon_render_id(
     return;
   }
 
+  ID *id_to_render = id;
+
   /* For objects, first try if a preview can created via the object data. */
   if (GS(id->name) == ID_OB) {
     Object *ob = (Object *)id;
     if (ED_preview_id_is_supported(ob->data)) {
-      id = ob->data;
+      id_to_render = ob->data;
     }
   }
 
-  if (!ED_preview_id_is_supported(id)) {
+  if (!ED_preview_id_is_supported(id_to_render)) {
     return;
   }
 
-  ui_id_preview_image_render_size(C, scene, id, pi, size, use_job);
+  UI_icon_render_id_ex(C, scene, id_to_render, size, use_job, pi);
 }
 
 static void ui_id_icon_render(const bContext *C, ID *id, bool use_jobs)

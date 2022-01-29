@@ -3260,10 +3260,10 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
     rna_idproperty_touch(idprop);
   }
   else if (sprop->set) {
-    sprop->set(ptr, value); /* set function needs to clamp its self */
+    sprop->set(ptr, value); /* set function needs to clamp itself */
   }
   else if (sprop->set_ex) {
-    sprop->set_ex(ptr, prop, value); /* set function needs to clamp its self */
+    sprop->set_ex(ptr, prop, value); /* set function needs to clamp itself */
   }
   else if (prop->flag & PROP_EDITABLE) {
     IDProperty *group;
@@ -3292,11 +3292,11 @@ void RNA_property_string_set_bytes(PointerRNA *ptr, PropertyRNA *prop, const cha
   }
   else if (sprop->set) {
     /* XXX, should take length argument (currently not used). */
-    sprop->set(ptr, value); /* set function needs to clamp its self */
+    sprop->set(ptr, value); /* set function needs to clamp itself */
   }
   else if (sprop->set_ex) {
     /* XXX, should take length argument (currently not used). */
-    sprop->set_ex(ptr, prop, value); /* set function needs to clamp its self */
+    sprop->set_ex(ptr, prop, value); /* set function needs to clamp itself */
   }
   else if (prop->flag & PROP_EDITABLE) {
     IDProperty *group;

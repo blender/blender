@@ -48,6 +48,8 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 
+#include "NOD_texture.h"
+
 #include "WM_api.h"
 #include "wm_cursors.h"
 

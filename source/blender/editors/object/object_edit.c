@@ -1976,8 +1976,14 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
   RNA_int_set(&menu->ptr, "collection_index", menu->index);
   RNA_boolean_set(&menu->ptr, "is_new", true);
 
-  uiItemFullO_ptr(
-      layout, menu->ot, "New Collection", ICON_ADD, menu->ptr.data, WM_OP_INVOKE_DEFAULT, 0, NULL);
+  uiItemFullO_ptr(layout,
+                  menu->ot,
+                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "New Collection"),
+                  ICON_ADD,
+                  menu->ptr.data,
+                  WM_OP_INVOKE_DEFAULT,
+                  0,
+                  NULL);
 
   uiItemS(layout);
 
