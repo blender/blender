@@ -84,10 +84,6 @@ if(WITH_USD)
   add_definitions(-DWITH_USD)
 endif()
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 if(WITH_PUGIXML)
   add_definitions(-DWITH_PUGIXML)
 endif()

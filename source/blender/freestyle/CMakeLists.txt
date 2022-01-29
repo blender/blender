@@ -583,10 +583,6 @@ if(WITH_PYTHON_SAFETY)
   add_definitions(-DWITH_PYTHON_SAFETY)
 endif()
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 if(WIN32)
   list(APPEND INC_SYS
     ${PTHREADS_INC}

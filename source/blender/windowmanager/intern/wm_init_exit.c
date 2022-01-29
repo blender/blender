@@ -594,9 +594,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
     DRW_opengl_context_destroy();
   }
 
-#ifdef WITH_INTERNATIONAL
   BLT_lang_free();
-#endif
 
   ANIM_keyingset_infos_exit();
 

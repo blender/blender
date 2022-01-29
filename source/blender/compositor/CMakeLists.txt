@@ -631,10 +631,6 @@ list(APPEND SRC
 unset(GENSRC)
 unset(GENSRC_DIR)
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 if(WITH_OPENIMAGEDENOISE)
   add_definitions(-DWITH_OPENIMAGEDENOISE)
   add_definitions(-DOIDN_STATIC_LIB)

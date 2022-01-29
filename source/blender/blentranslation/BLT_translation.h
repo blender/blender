@@ -55,24 +55,14 @@ bool BLT_lang_is_ime_supported(void);
 #define N_(msgid) msgid
 #define CTX_N_(context, msgid) msgid
 
-/* Those macros should be used everywhere in UI code. */
-#ifdef WITH_INTERNATIONAL
+/* These macros should be used everywhere in UI code. */
 /*#  define _(msgid) BLT_gettext(msgid) */
-#  define IFACE_(msgid) BLT_translate_do_iface(NULL, msgid)
-#  define TIP_(msgid) BLT_translate_do_tooltip(NULL, msgid)
-#  define DATA_(msgid) BLT_translate_do_new_dataname(NULL, msgid)
-#  define CTX_IFACE_(context, msgid) BLT_translate_do_iface(context, msgid)
-#  define CTX_TIP_(context, msgid) BLT_translate_do_tooltip(context, msgid)
-#  define CTX_DATA_(context, msgid) BLT_translate_do_new_dataname(context, msgid)
-#else
-/*#  define _(msgid) msgid */
-#  define IFACE_(msgid) msgid
-#  define TIP_(msgid) msgid
-#  define DATA_(msgid) msgid
-#  define CTX_IFACE_(context, msgid) ((void)(0 ? (context) : 0), msgid)
-#  define CTX_TIP_(context, msgid) ((void)(0 ? (context) : 0), msgid)
-#  define CTX_DATA_(context, msgid) ((void)(0 ? (context) : 0), msgid)
-#endif
+#define IFACE_(msgid) BLT_translate_do_iface(NULL, msgid)
+#define TIP_(msgid) BLT_translate_do_tooltip(NULL, msgid)
+#define DATA_(msgid) BLT_translate_do_new_dataname(NULL, msgid)
+#define CTX_IFACE_(context, msgid) BLT_translate_do_iface(context, msgid)
+#define CTX_TIP_(context, msgid) BLT_translate_do_tooltip(context, msgid)
+#define CTX_DATA_(context, msgid) BLT_translate_do_new_dataname(context, msgid)
 
 /* Helper macro, when we want to define a same msgid for multiple msgctxt...
  * Does nothing in C, but is "parsed" by our i18n py tools.

@@ -183,10 +183,6 @@ if(WITH_BULLET)
   add_definitions(-DWITH_BULLET)
 endif()
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 # To disable adaptive subdivision test in subsurf UI without cycles
 if(WITH_CYCLES)
   add_definitions(-DWITH_CYCLES)

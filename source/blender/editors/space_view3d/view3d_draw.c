@@ -1258,11 +1258,7 @@ static void draw_viewport_name(ARegion *region, View3D *v3d, int xoffset, int *y
 
   /* 6 is the maximum size of the axis roll text. */
   /* increase size for unicode languages (Chinese in utf-8...) */
-#ifdef WITH_INTERNATIONAL
   char tmpstr[96 + 6];
-#else
-  char tmpstr[32 + 6];
-#endif
 
   BLF_enable(font_id, BLF_SHADOW);
   BLF_shadow(font_id, 5, (const float[4]){0.0f, 0.0f, 0.0f, 1.0f});

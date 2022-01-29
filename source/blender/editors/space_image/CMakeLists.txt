@@ -53,10 +53,6 @@ set(LIB
   bf_editor_uvedit
 )
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 if(WITH_OPENIMAGEIO)
   add_definitions(-DWITH_OPENIMAGEIO)
 endif()

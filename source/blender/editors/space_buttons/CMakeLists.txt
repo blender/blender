@@ -40,10 +40,6 @@ set(SRC
 set(LIB
 )
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 
 if(WITH_FREESTYLE)
   add_definitions(-DWITH_FREESTYLE)

@@ -135,10 +135,6 @@ if(WITH_CYCLES)
   add_definitions(-DWITH_CYCLES)
 endif()
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 if(WITH_OPENCOLLADA)
   add_definitions(-DWITH_COLLADA)
 endif()

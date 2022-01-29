@@ -60,10 +60,6 @@ set(LIB
   bf_blenlib
 )
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 if(WITH_PYTHON)
   add_definitions(-DWITH_PYTHON)
 endif()
