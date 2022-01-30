@@ -39,8 +39,8 @@
  * second intern/ module with MEM_ prefix, for use in c++.
  *
  * \subsection memdependencies Dependencies
- * - stdlib
- * - stdio
+ * - `stdlib`
+ * - `stdio`
  *
  * \subsection memdocs API Documentation
  * See \ref MEM_guardedalloc.h

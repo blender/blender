@@ -23,8 +23,8 @@
  * image that are changed. These areas are organized in chunks. Changes that happen over time are
  * organized in changesets.
  *
- * A common usecase is to update GPUTexture for drawing where only that part is uploaded that only
- * changed.
+ * A common use case is to update #GPUTexture for drawing where only that part is uploaded that
+ * only changed.
  */
 
 #pragma once

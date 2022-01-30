@@ -70,7 +70,7 @@ class ImagePartialUpdateTest : public testing::Test {
     IMB_init();
 
     bmain = BKE_main_new();
-    /* Creating an image generates a mem-leak during tests. */
+    /* Creating an image generates a memory-leak during tests. */
     image = create_test_image(1024, 1024);
     image_tile = BKE_image_get_tile(image, 0);
     image_buffer = BKE_image_acquire_ibuf(image, nullptr, nullptr);

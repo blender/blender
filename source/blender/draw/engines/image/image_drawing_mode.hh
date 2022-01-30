@@ -149,7 +149,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                          IMAGE_InstanceData &instance_data) const
   {
     while (iterator.get_next_change() == ePartialUpdateIterResult::ChangeAvailable) {
-      /* Quick exit when tile_buffer isn't availble. */
+      /* Quick exit when tile_buffer isn't available. */
       if (iterator.tile_data.tile_buffer == nullptr) {
         continue;
       }
