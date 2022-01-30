@@ -107,9 +107,6 @@ typedef enum DerivedMeshType {
 typedef enum DMDirtyFlag {
   /* dm has valid tessellated faces, but tessellated CDDATA need to be updated. */
   DM_DIRTY_TESS_CDLAYERS = 1 << 0,
-
-  /* check this with modifier dependsOnNormals callback to see if normals need recalculation */
-  DM_DIRTY_NORMALS = 1 << 1,
 } DMDirtyFlag;
 
 typedef struct DerivedMesh DerivedMesh;
@@ -138,9 +135,6 @@ struct DerivedMesh {
   char cd_flag;
 
   short tangent_mask; /* which tangent layers are calculated */
-
-  /** Calculate vert and face normals */
-  void (*calcNormals)(DerivedMesh *dm);
 
   /** Loop tessellation cache (WARNING! Only call inside threading-protected code!) */
   void (*recalcLoopTri)(DerivedMesh *dm);
@@ -353,8 +347,6 @@ void DM_copy_vert_data(struct DerivedMesh *source,
  * Sets up mpolys for a DM based on face iterators in source.
  */
 void DM_DupPolys(DerivedMesh *source, DerivedMesh *target);
-
-void DM_ensure_normals(DerivedMesh *dm);
 
 /**
  * Ensure the array is large enough.

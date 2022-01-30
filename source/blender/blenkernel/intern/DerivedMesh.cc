@@ -464,14 +464,6 @@ void DM_DupPolys(DerivedMesh *source, DerivedMesh *target)
   }
 }
 
-void DM_ensure_normals(DerivedMesh *dm)
-{
-  if (dm->dirty & DM_DIRTY_NORMALS) {
-    dm->calcNormals(dm);
-  }
-  BLI_assert((dm->dirty & DM_DIRTY_NORMALS) == 0);
-}
-
 void DM_ensure_looptri_data(DerivedMesh *dm)
 {
   const unsigned int totpoly = dm->numPolyData;
@@ -524,7 +516,7 @@ void DM_set_only_copy(DerivedMesh *dm, const CustomData_MeshMasks *mask)
    * see replies to r50969, Campbell */
 #if 0
   CustomData_set_only_copy(&dm->loopData, mask->lmask);
-  CustomData_set_only_copy(&dm->polyData, mask->pmask);
+  Custom(&dm->polyData, mask->pmask);
 #endif
 }
 

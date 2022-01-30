@@ -265,9 +265,6 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
   dm->deformedOnly = 1;
   dm->cd_flag = mesh->cd_flag;
 
-  if (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) {
-    dm->dirty |= DM_DIRTY_NORMALS;
-  }
   /* TODO: DM_DIRTY_TESS_CDLAYERS ? Maybe not though,
    * since we probably want to switch to looptris? */
 
@@ -282,7 +279,9 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
   CustomData_merge(&mesh->pdata, &dm->polyData, cddata_masks.pmask, alloctype, mesh->totpoly);
 
   cddm->mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
-  cddm->vert_normals = CustomData_get_layer(&dm->vertData, CD_NORMAL);
+  /* Though this may be an unnecessary calculation, simply retrieving the layer may return nothing
+   * or dirty normals. */
+  cddm->vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
   cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
   cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
   cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
