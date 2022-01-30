@@ -358,7 +358,7 @@ void OBJMesh::store_normal_coords_and_indices(Vector<float3> &r_normal_coords)
       *lnors)[3] = (const float(*)[3])(CustomData_get_layer(&export_mesh_eval_->ldata, CD_NORMAL));
   for (int poly_index = 0; poly_index < export_mesh_eval_->totpoly; ++poly_index) {
     const MPoly &mpoly = export_mesh_eval_->mpoly[poly_index];
-    bool need_per_loop_normals = is_ith_poly_smooth(poly_index);
+    bool need_per_loop_normals = lnors != nullptr || (mpoly.flag & ME_SMOOTH);
     if (need_per_loop_normals) {
       for (int loop_of_poly = 0; loop_of_poly < mpoly.totloop; ++loop_of_poly) {
         float3 loop_normal;

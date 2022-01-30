@@ -402,6 +402,18 @@ TEST_F(obj_exporter_regression_test, cube_all_data_triangulated)
                                _export.params);
 }
 
+TEST_F(obj_exporter_regression_test, cube_normal_edit)
+{
+  OBJExportParamsDefault _export;
+  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
+  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.export_materials = false;
+  compare_obj_export_to_golden("io_tests/blend_geometry/cube_normal_edit.blend",
+                               "io_tests/obj/cube_normal_edit.obj",
+                               "",
+                               _export.params);
+}
+
 TEST_F(obj_exporter_regression_test, suzanne_all_data)
 {
   OBJExportParamsDefault _export;
