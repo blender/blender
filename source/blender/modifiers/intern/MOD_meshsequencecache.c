@@ -404,6 +404,10 @@ static void override_layers_panel_draw(const bContext *C, Panel *panel)
     return;
   }
 
+  if (RNA_pointer_is_null(&fileptr)) {
+    return;
+  }
+
   uiLayoutSetPropSep(layout, true);
   uiTemplateCacheFileLayers(layout, C, &fileptr);
 }
