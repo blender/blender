@@ -193,7 +193,7 @@ static std::string read_temp_file_in_string(const std::string &file_path)
   std::string res;
   size_t buffer_len;
   void *buffer = BLI_file_read_text_as_mem(file_path.c_str(), 0, &buffer_len);
-  if (buffer != NULL) {
+  if (buffer != nullptr) {
     res.assign((const char *)buffer, buffer_len);
     MEM_freeN(buffer);
   }
@@ -236,6 +236,38 @@ TEST(obj_exporter_writer, mtllib)
   const std::string result = read_temp_file_in_string(out_file_path);
   ASSERT_EQ(result, "mtllib blah.mtl\nmtllib blah.mtl\n");
   BLI_delete(out_file_path.c_str(), false, false);
+}
+
+TEST(obj_exporter_writer, format_handler_buffer_chunking)
+{
+  /* Use a tiny buffer chunk size, so that the test below ends up creating several blocks. */
+  FormatHandler<eFileType::OBJ, 16, 8> h;
+  h.write<eOBJSyntaxElement::object_name>("abc");
+  h.write<eOBJSyntaxElement::object_name>("abcd");
+  h.write<eOBJSyntaxElement::object_name>("abcde");
+  h.write<eOBJSyntaxElement::object_name>("abcdef");
+  h.write<eOBJSyntaxElement::object_name>("012345678901234567890123456789abcd");
+  h.write<eOBJSyntaxElement::object_name>("123");
+  h.write<eOBJSyntaxElement::curve_element_begin>();
+  h.write<eOBJSyntaxElement::new_line>();
+  h.write<eOBJSyntaxElement::nurbs_parameter_begin>();
+  h.write<eOBJSyntaxElement::new_line>();
+
+  size_t got_blocks = h.get_block_count();
+  ASSERT_EQ(got_blocks, 7);
+
+  std::string got_string = h.get_as_string();
+  using namespace std::string_literals;
+  const char *expected = R"(o abc
+o abcd
+o abcde
+o abcdef
+o 012345678901234567890123456789abcd
+o 123
+curv 0.0 1.0
+parm 0.0
+)";
+  ASSERT_EQ(got_string, expected);
 }
 
 /* Return true if string #a and string #b are equal after their first newline. */

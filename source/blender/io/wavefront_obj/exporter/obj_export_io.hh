@@ -24,6 +24,7 @@
 #include <string>
 #include <system_error>
 #include <type_traits>
+#include <vector>
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_fileops.h"
@@ -124,6 +125,14 @@ constexpr bool is_type_integral = (... && std::is_integral_v<std::decay_t<T>>);
 template<typename... T>
 constexpr bool is_type_string_related = (... && std::is_constructible_v<std::string, T>);
 
+// gcc (at least 9.3) while compiling the obj_exporter_tests.cc with optimizations on,
+// results in "obj_export_io.hh:205:18: warning: ‘%s’ directive output truncated writing 34 bytes
+// into a region of size 6" and similar warnings. Yes the output is truncated, and that is covered
+// as an edge case by tests on purpose.
+#if defined __GNUC__
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wformat-truncation"
+#endif
 template<typename... T>
 constexpr FormattingSyntax syntax_elem_to_formatting(const eOBJSyntaxElement key)
 {
@@ -264,31 +273,44 @@ constexpr FormattingSyntax syntax_elem_to_formatting(const eMTLSyntaxElement key
     }
   }
 }
+#if defined __GNUC__
+#  pragma GCC diagnostic pop
+#endif
 
 /**
- * File format and syntax agnostic file writer.
+ * File format and syntax agnostic file buffer writer.
+ * All writes are done into an internal chunked memory buffer
+ * (list of default 64 kilobyte blocks).
+ * Call write_fo_file once in a while to write the memory buffer(s)
+ * into the given file.
  */
-template<eFileType filetype> class FormattedFileHandler : NonCopyable, NonMovable {
+template<eFileType filetype,
+         size_t buffer_chunk_size = 64 * 1024,
+         size_t write_local_buffer_size = 1024>
+class FormatHandler : NonCopyable, NonMovable {
  private:
-  std::FILE *outfile_ = nullptr;
-  std::string outfile_path_;
+  typedef std::vector<char> VectorChar;
+  std::vector<VectorChar> blocks_;
 
  public:
-  FormattedFileHandler(std::string outfile_path) noexcept(false)
-      : outfile_path_(std::move(outfile_path))
+  /* Write contents to the buffer(s) into a file, and clear the buffers. */
+  void write_to_file(FILE *f)
   {
-    outfile_ = BLI_fopen(outfile_path_.c_str(), "w");
-    if (!outfile_) {
-      throw std::system_error(errno, std::system_category(), "Cannot open file " + outfile_path_);
-    }
+    for (const auto &b : blocks_)
+      fwrite(b.data(), 1, b.size(), f);
+    blocks_.clear();
   }
 
-  ~FormattedFileHandler()
+  std::string get_as_string() const
   {
-    if (outfile_ && std::fclose(outfile_)) {
-      std::cerr << "Error: could not close the file '" << outfile_path_
-                << "'  properly, it may be corrupted." << std::endl;
-    }
+    std::string s;
+    for (const auto &b : blocks_)
+      s.append(b.data(), b.size());
+    return s;
+  }
+  size_t get_block_count() const
+  {
+    return blocks_.size();
   }
 
   /**
@@ -298,7 +320,7 @@ template<eFileType filetype> class FormattedFileHandler : NonCopyable, NonMovabl
    * `eFileType::MTL`.
    */
   template<typename FileTypeTraits<filetype>::SyntaxType key, typename... T>
-  constexpr void write(T &&...args) const
+  constexpr void write(T &&...args)
   {
     /* Get format syntax, number of arguments expected and whether types of given arguments are
      * valid.
@@ -339,13 +361,47 @@ template<eFileType filetype> class FormattedFileHandler : NonCopyable, NonMovabl
     }
   }
 
-  template<typename... T> constexpr void write_impl(const char *fmt, T &&...args) const
+  /* Ensure the last block contains at least this amount of free space.
+   * If not, add a new block with max of block size & the amount of space needed. */
+  void ensure_space(size_t at_least)
+  {
+    if (blocks_.empty() || (blocks_.back().capacity() - blocks_.back().size() < at_least)) {
+      VectorChar &b = blocks_.emplace_back(VectorChar());
+      b.reserve(std::max(at_least, buffer_chunk_size));
+    }
+  }
+
+  template<typename... T> constexpr void write_impl(const char *fmt, T &&...args)
   {
     if constexpr (sizeof...(T) == 0) {
-      std::fputs(fmt, outfile_);
+      /* No arguments: just emit the format string. */
+      size_t len = strlen(fmt);
+      ensure_space(len);
+      VectorChar &bb = blocks_.back();
+      bb.insert(bb.end(), fmt, fmt + len);
     }
     else {
-      std::fprintf(outfile_, fmt, convert_to_primitive(std::forward<T>(args))...);
+      /* Format into a local buffer. */
+      char buf[write_local_buffer_size];
+      int needed = std::snprintf(
+          buf, write_local_buffer_size, fmt, convert_to_primitive(std::forward<T>(args))...);
+      if (needed < 0)
+        throw std::system_error(
+            errno, std::system_category(), "Failed to format obj export string into a buffer");
+      ensure_space(needed + 1); /* Ensure space for zero terminator. */
+      VectorChar &bb = blocks_.back();
+      if (needed < write_local_buffer_size) {
+        /* String formatted successfully into the local buffer, copy it. */
+        bb.insert(bb.end(), buf, buf + needed);
+      }
+      else {
+        /* Would need more space than the local buffer: insert said space and format again into
+         * that. */
+        size_t bbEnd = bb.size();
+        bb.insert(bb.end(), needed, ' ');
+        std::snprintf(
+            bb.data() + bbEnd, needed + 1, fmt, convert_to_primitive(std::forward<T>(args))...);
+      }
     }
   }
 };
