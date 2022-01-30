@@ -56,7 +56,7 @@ vec2 get_ao_noise(void)
 {
   vec2 noise = texelfetch_noise_tex(gl_FragCoord.xy).xy;
   /* Decorrelate noise from AA. */
-  /* TODO(fclem) we should use a more general approach for more random number dimensions. */
+  /* TODO(@fclem): we should use a more general approach for more random number dimensions. */
   noise = fract(noise * 6.1803402007);
   return noise;
 }

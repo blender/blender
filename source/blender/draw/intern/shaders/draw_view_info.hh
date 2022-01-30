@@ -83,7 +83,7 @@ GPU_SHADER_CREATE_INFO(draw_hair)
     .sampler(15, ImageType::FLOAT_BUFFER, "hairPointBuffer")
     .sampler(14, ImageType::UINT_BUFFER, "hairStrandBuffer")
     .sampler(13, ImageType::UINT_BUFFER, "hairStrandSegBuffer")
-    /* TODO(fclem) Pack thoses into one UBO. */
+    /* TODO(@fclem): Pack these into one UBO. */
     .push_constant(Type::INT, "hairStrandsRes")
     .push_constant(Type::INT, "hairThicknessRes")
     .push_constant(Type::FLOAT, "hairRadRoot")

@@ -157,7 +157,7 @@ bool ShaderEval::eval_gpu(Device *device,
   queue->init_execution();
 
   /* Execute work on GPU in chunk, so we can cancel.
-   * TODO : query appropriate size from device.*/
+   * TODO: query appropriate size from device. */
   const int32_t chunk_size = 65536;
 
   device_ptr d_input = input.device_pointer;

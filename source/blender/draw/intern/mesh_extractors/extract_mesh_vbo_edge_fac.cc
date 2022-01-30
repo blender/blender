@@ -78,7 +78,7 @@ static void extract_edge_fac_init(const MeshRenderData *mr,
     data->edge_loop_count = static_cast<uchar *>(
         MEM_callocN(sizeof(uint32_t) * mr->edge_len, __func__));
 
-    /* HACK(fclem) Detecting the need for edge render.
+    /* HACK(@fclem): Detecting the need for edge render.
      * We could have a flag in the mesh instead or check the modifier stack. */
     const MEdge *med = mr->medge;
     for (int e_index = 0; e_index < mr->edge_len; e_index++, med++) {

@@ -72,7 +72,7 @@ void USDCameraReader::read_object_data(Main *bmain, const double motionSampleTim
   cam_prim.GetHorizontalApertureAttr().Get(&horAp, motionSampleTime);
 
   bcam->lens = val.Get<float>();
-  /* TODO(makowalski) */
+  /* TODO(@makowalski): support sensor size. */
 #if 0
    bcam->sensor_x = 0.0f;
    bcam->sensor_y = 0.0f;

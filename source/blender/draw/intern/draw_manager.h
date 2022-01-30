@@ -300,7 +300,7 @@ struct DRWCallBuffer {
 };
 
 /** Used by #DRWUniform.type */
-/* TODO(jbakker): rename to DRW_RESOURCE/DRWResourceType. */
+/* TODO(@jbakker): rename to DRW_RESOURCE/DRWResourceType. */
 typedef enum {
   DRW_UNIFORM_INT = 0,
   DRW_UNIFORM_INT_COPY,
@@ -529,7 +529,7 @@ typedef struct DRWData {
   struct GHash *obattrs_ubo_pool;
   uint ubo_len;
   /** Texture pool to reuse temp texture across engines. */
-  /* TODO(fclem) the pool could be shared even between viewports. */
+  /* TODO(@fclem): The pool could be shared even between view-ports. */
   struct DRWTexturePool *texture_pool;
   /** Per stereo view data. Contains engine data and default framebuffers. */
   struct DRWViewData *view_data[2];
@@ -549,7 +549,7 @@ typedef struct DupliKey {
 typedef struct DRWManager {
   /* TODO: clean up this struct a bit. */
   /* Cache generation */
-  /* TODO(fclem) Rename to data. */
+  /* TODO(@fclem): Rename to data. */
   DRWData *vmempool;
   /** Active view data structure for one of the 2 stereo view. Not related to DRWView. */
   struct DRWViewData *view_data_active;
@@ -572,7 +572,7 @@ typedef struct DRWManager {
   struct ID *dupli_origin_data;
   /** Hash-map: #DupliKey -> void pointer for each enabled engine. */
   struct GHash *dupli_ghash;
-  /** TODO(fclem): try to remove usage of this. */
+  /** TODO(@fclem): try to remove usage of this. */
   DRWInstanceData *object_instance_data[MAX_INSTANCE_DATA_SIZE];
   /* Dupli data for the current dupli for each enabled engine. */
   void **dupli_datas;
@@ -615,7 +615,7 @@ typedef struct DRWManager {
   DRWView *view_active;
   DRWView *view_previous;
   uint primary_view_ct;
-  /** TODO(fclem): Remove this. Only here to support
+  /** TODO(@fclem): Remove this. Only here to support
    * shaders without common_view_lib.glsl */
   DRWViewUboStorage view_storage_cpy;
 
@@ -640,7 +640,7 @@ typedef struct DRWManager {
   GPUDrawList *draw_list;
 
   struct {
-    /* TODO(fclem): optimize: use chunks. */
+    /* TODO(@fclem): optimize: use chunks. */
     DRWDebugLine *lines;
     DRWDebugSphere *spheres;
   } debug;

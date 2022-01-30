@@ -1685,9 +1685,9 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
   G.f |= G_FLAG_RENDER_VIEWPORT;
 
   {
-    /* free images which can have changed on frame-change
-     * warning! can be slow so only free animated images - campbell */
-    BKE_image_free_anim_gputextures(G.main); /* XXX :((( */
+    /* Free images which can have changed on frame-change.
+     * WARNING(@campbellbarton): can be slow so only free animated images. */
+    BKE_image_free_anim_gputextures(G.main);
   }
 
   GPU_matrix_push_projection();

@@ -167,7 +167,7 @@ void ShaderCreateInfo::validate(const ShaderCreateInfo &other_info)
     }
   }
   {
-    /* TODO(fclem) Push constant validation. */
+    /* TODO(@fclem): Push constant validation. */
   }
 }
 

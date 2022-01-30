@@ -816,7 +816,7 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
       culling->user_data = user_data;
     }
     if (bypass_culling) {
-      /* NOTE this will disable culling for the whole object. */
+      /* NOTE: this will disable culling for the whole object. */
       culling->bsphere.radius = -1.0f;
     }
   }
@@ -1248,7 +1248,7 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
   int chunkid_location = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_RESOURCE_CHUNK);
   int resourceid_location = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_RESOURCE_ID);
 
-  /* TODO(fclem) Will take the place of the above after the GPUShaderCreateInfo port. */
+  /* TODO(@fclem): Will take the place of the above after the GPUShaderCreateInfo port. */
   if (view_ubo_location == -1) {
     view_ubo_location = GPU_shader_get_builtin_block(shader, GPU_UNIFORM_BLOCK_DRW_VIEW);
   }

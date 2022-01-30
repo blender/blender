@@ -286,13 +286,13 @@ template<
     /** The number of values that can be stored in this uniform buffer. */
     int64_t len
     /** True if the buffer only resides on GPU memory and cannot be accessed. */
-    /* TODO(fclem): Currently unsupported. */
+    /* TODO(@fclem): Currently unsupported. */
     /* bool device_only = false */>
 class UniformArrayBuffer : public detail::UniformCommon<T, len, false> {
  public:
   UniformArrayBuffer()
   {
-    /* TODO(fclem) We should map memory instead. */
+    /* TODO(@fclem): We should map memory instead. */
     this->data_ = (T *)MEM_mallocN_aligned(len * sizeof(T), 16, this->name_);
   }
 };
@@ -301,13 +301,13 @@ template<
     /** Type of the values stored in this uniform buffer. */
     typename T
     /** True if the buffer only resides on GPU memory and cannot be accessed. */
-    /* TODO(fclem): Currently unsupported. */
+    /* TODO(@fclem): Currently unsupported. */
     /* bool device_only = false */>
 class UniformBuffer : public T, public detail::UniformCommon<T, 1, false> {
  public:
   UniformBuffer()
   {
-    /* TODO(fclem) How could we map this? */
+    /* TODO(@fclem): How could we map this? */
     this->data_ = static_cast<T *>(this);
   }
 
@@ -641,7 +641,7 @@ class Texture : NonCopyable {
                    bool cubemap = false)
 
   {
-    /* TODO(fclem) In the future, we need to check if mip_count did not change.
+    /* TODO(@fclem): In the future, we need to check if mip_count did not change.
      * For now it's ok as we always define all MIP level. */
     if (tx_) {
       int3 size = this->size();
@@ -653,7 +653,7 @@ class Texture : NonCopyable {
     if (tx_ == nullptr) {
       tx_ = create(w, h, d, mips, format, data, layered, cubemap);
       if (mips > 1) {
-        /* TODO(fclem) Remove once we have immutable storage or when mips are
+        /* TODO(@fclem): Remove once we have immutable storage or when mips are
          * generated on creation. */
         GPU_texture_generate_mipmap(tx_);
       }

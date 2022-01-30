@@ -1107,7 +1107,7 @@ static void rna_def_image(BlenderRNA *brna)
       prop, "Duration", "Duration (in frames) of the image (1 when not a video/sequence)");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-  /* NOTE about pixels/channels/is_float:
+  /* NOTE: About pixels/channels/is_float:
    * These properties describe how the image is stored internally (inside of ImBuf),
    * not how it was saved to disk or how it'll be saved on disk.
    */

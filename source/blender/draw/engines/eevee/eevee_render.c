@@ -517,8 +517,7 @@ static void eevee_render_draw_background(EEVEE_Data *vedata)
   EEVEE_PassList *psl = vedata->psl;
 
   /* Prevent background to write to data buffers.
-   * NOTE : This also make sure the textures are bound
-   *        to the right double buffer. */
+   * NOTE: This also make sure the textures are bound to the right double buffer. */
   GPU_framebuffer_ensure_config(&fbl->main_fb,
                                 {GPU_ATTACHMENT_LEAVE,
                                  GPU_ATTACHMENT_LEAVE,

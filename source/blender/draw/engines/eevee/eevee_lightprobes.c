@@ -1077,8 +1077,8 @@ void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
 
   pinfo->intensity_fac = intensity;
 
-  /* find cell position on the virtual 3D texture */
-  /* NOTE : Keep in sync with load_irradiance_cell() */
+  /* Find cell position on the virtual 3D texture. */
+  /* NOTE: Keep in sync with `load_irradiance_cell()`. */
 #if defined(IRRADIANCE_SH_L2)
   int size[2] = {3, 3};
 #elif defined(IRRADIANCE_HL2)
