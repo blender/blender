@@ -245,10 +245,6 @@ typedef struct ModifierTypeInfo {
                              const struct ModifierEvalContext *ctx,
                              struct Mesh *mesh);
 
-  struct Hair *(*modifyHair)(struct ModifierData *md,
-                             const struct ModifierEvalContext *ctx,
-                             struct Hair *hair);
-
   /**
    * The modifier has to change the geometry set in-place. The geometry set can contain zero or
    * more geometry components. This callback can be used by modifiers that don't work on any

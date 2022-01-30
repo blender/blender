@@ -380,22 +380,6 @@ static Hair *hair_evaluate_modifiers(struct Depsgraph *depsgraph,
       /* Created deformed coordinates array on demand. */
       mti->deformVerts(md, &mectx, nullptr, hair->co, hair->totpoint);
     }
-    else if (mti->modifyHair) {
-      /* Ensure we are not modifying the input. */
-      if (hair == hair_input) {
-        hair = BKE_hair_copy_for_eval(hair, true);
-      }
-
-      Hair *hair_next = mti->modifyHair(md, &mectx, hair);
-
-      if (hair_next && hair_next != hair) {
-        /* If the modifier returned a new hair, release the old one. */
-        if (hair != hair_input) {
-          BKE_id_free(nullptr, hair);
-        }
-        hair = hair_next;
-      }
-    }
   }
 
   return hair;
