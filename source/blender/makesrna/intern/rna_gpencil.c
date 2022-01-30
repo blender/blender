@@ -2228,7 +2228,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_solo_mode", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_SOLO_MODE);
   RNA_def_property_ui_text(
-      prop, "Solo Mode", "In Paint mode display only layers with keyframe in current frame");
+      prop, "Solo Mode", "In Draw Mode only display layers with keyframe in current frame");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
   /* Layer is used as Ruler. */
