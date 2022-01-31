@@ -142,34 +142,35 @@ static void add_used_ids_from_sockets(const ListBase &sockets, Set<ID *> &ids)
   LISTBASE_FOREACH (const bNodeSocket *, socket, &sockets) {
     switch (socket->type) {
       case SOCK_OBJECT: {
-        Object *object = ((bNodeSocketValueObject *)socket->default_value)->value;
-        if (object != nullptr) {
+        if (Object *object = ((bNodeSocketValueObject *)socket->default_value)->value) {
           ids.add(&object->id);
         }
+        break;
       }
       case SOCK_COLLECTION: {
-        Collection *collection = ((bNodeSocketValueCollection *)socket->default_value)->value;
-        if (collection != nullptr) {
+        if (Collection *collection =
+                ((bNodeSocketValueCollection *)socket->default_value)->value) {
           ids.add(&collection->id);
         }
+        break;
       }
       case SOCK_MATERIAL: {
-        Material *material = ((bNodeSocketValueMaterial *)socket->default_value)->value;
-        if (material != nullptr) {
+        if (Material *material = ((bNodeSocketValueMaterial *)socket->default_value)->value) {
           ids.add(&material->id);
         }
+        break;
       }
       case SOCK_TEXTURE: {
-        Tex *texture = ((bNodeSocketValueTexture *)socket->default_value)->value;
-        if (texture != nullptr) {
+        if (Tex *texture = ((bNodeSocketValueTexture *)socket->default_value)->value) {
           ids.add(&texture->id);
         }
+        break;
       }
       case SOCK_IMAGE: {
-        Image *image = ((bNodeSocketValueImage *)socket->default_value)->value;
-        if (image != nullptr) {
+        if (Image *image = ((bNodeSocketValueImage *)socket->default_value)->value) {
           ids.add(&image->id);
         }
+        break;
       }
     }
   }
