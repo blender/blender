@@ -349,13 +349,17 @@ class TextureMarginMap {
      * But it seems fast enough for now and that would add a lot of complexity. */
     for (int i = 0; i < totloop; i++) {
       int otherloop = loop_adjacency_map_[i + loopstart];
+
+      if (otherloop < 0) {
+        continue;
+      }
+
       uint32_t poly = loop_to_poly_map_[otherloop];
 
       if (lookup_pixel(x, y, poly, &destx, &desty, &foundpoly, &found_dist)) {
         if (mindist < 0.f || found_dist < mindist) {
           mindist = found_dist;
           *r_other_poly = foundpoly;
-          ;
           *r_destx = destx;
           *r_desty = desty;
           *r_start_poly = poly;
