@@ -1730,17 +1730,10 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
       normalize_v3(no);
     }
     else {
-#if 1
-      /* In case the normalizing per pixel isn't optimal,
-       * we could cache or access from evaluated mesh. */
       normal_tri_v3(no,
                     ps->mvert_eval[lt_vtri[0]].co,
                     ps->mvert_eval[lt_vtri[1]].co,
                     ps->mvert_eval[lt_vtri[2]].co);
-#else
-      /* Don't use because some modifiers don't have normal data (subsurf for eg). */
-      copy_v3_v3(no, (float *)ps->dm->getTessFaceData(ps->dm, tri_index, CD_NORMAL));
-#endif
     }
 
     if (UNLIKELY(ps->is_flip_object)) {
