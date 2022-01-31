@@ -145,7 +145,6 @@ class ImageEngine {
 
 static void IMAGE_engine_init(void *ved)
 {
-  IMAGE_shader_library_ensure();
   IMAGE_Data *vedata = (IMAGE_Data *)ved;
   if (vedata->instance_data == nullptr) {
     vedata->instance_data = MEM_new<IMAGE_InstanceData>(__func__);
