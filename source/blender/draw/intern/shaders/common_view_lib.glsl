@@ -183,7 +183,6 @@ layout(std140) uniform modelBlock
 {
   ObjectMatrices drw_matrices[DRW_RESOURCE_CHUNK_LEN];
 };
-#  endif /* DRW_SHADER_SHARED_H */
 
 #    define ModelMatrix (drw_matrices[resource_id].drw_modelMatrix)
 #    define ModelMatrixInverse (drw_matrices[resource_id].drw_modelMatrixInverse)
