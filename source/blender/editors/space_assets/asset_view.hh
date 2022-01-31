@@ -20,9 +20,23 @@
 
 #pragma once
 
-void asset_browser_operatortypes();
-
-struct ARegion;
 struct bContext;
+struct AssetLibraryReference;
+struct uiLayout;
 
-void asset_browser_main_region_draw(const bContext *C, ARegion *region);
+namespace blender::ed::asset_browser {
+
+class AssetGridView {
+  AssetLibraryReference asset_library_ref_;
+
+ public:
+  AssetGridView(const AssetLibraryReference &);
+
+  void build();
+};
+
+void asset_view_create_in_layout(const bContext &C,
+                                 const AssetLibraryReference &asset_library_ref,
+                                 uiLayout &layout);
+
+}  // namespace blender::ed::asset_browser

@@ -23,6 +23,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "BKE_asset.h"
 #include "BKE_screen.h"
 
 #include "BLI_listbase.h"
@@ -35,6 +36,7 @@
 #include "UI_resources.h"
 
 #include "asset_browser_intern.hh"
+#include "asset_view.hh"
 
 /* ---------------------------------------------------------------------- */
 /* Asset Browser Space */
@@ -43,6 +45,8 @@ static SpaceLink *asset_browser_create(const ScrArea *UNUSED(area), const Scene 
 {
   SpaceAssets *assets_space = MEM_cnew<SpaceAssets>("asset browser space");
   assets_space->spacetype = SPACE_ASSETS;
+
+  BKE_asset_library_reference_init_default(&assets_space->asset_library_ref);
 
   {
     /* Header. */
@@ -90,11 +94,6 @@ static void asset_browser_main_region_init(wmWindowManager *UNUSED(wm), ARegion 
 {
 }
 
-static void asset_browser_main_region_draw(const bContext *UNUSED(C), ARegion *UNUSED(region))
-{
-  UI_ThemeClearColor(TH_BACK);
-}
-
 static void asset_browser_main_region_listener(const wmRegionListenerParams *UNUSED(params))
 {
 }
@@ -129,7 +128,7 @@ void ED_spacetype_assets(void)
   st->operatortypes = asset_browser_operatortypes;
   st->keymap = asset_browser_keymap;
 
-  /* regions: main window */
+  /* Main region. */
   art = MEM_cnew<ARegionType>("spacetype asset browser main region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = asset_browser_main_region_init;
@@ -138,7 +137,7 @@ void ED_spacetype_assets(void)
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
   BLI_addhead(&st->regiontypes, art);
 
-  /* regions: header */
+  /* Header region. */
   art = MEM_cnew<ARegionType>("spacetype asset browser header region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;

@@ -3265,6 +3265,18 @@ static int rna_FileAssetSelectParams_catalog_id_length(PointerRNA *UNUSED(ptr))
   return UUID_STRING_LEN - 1;
 }
 
+static int rna_SpaceAssets_asset_library_get(PointerRNA *ptr)
+{
+  SpaceAssets *asset_space = ptr->data;
+  return ED_asset_library_reference_to_enum_value(&asset_space->asset_library_ref);
+}
+
+static void rna_SpaceAssets_asset_library_set(PointerRNA *ptr, int value)
+{
+  SpaceAssets *asset_space = ptr->data;
+  asset_space->asset_library_ref = ED_asset_library_reference_from_enum_value(value);
+}
+
 #else
 
 static const EnumPropertyItem dt_uv_items[] = {
@@ -7977,7 +7989,7 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
 
 static void rna_def_space_assets(BlenderRNA *brna)
 {
-  //  PropertyRNA *prop;
+  PropertyRNA *prop;
   StructRNA *srna;
 
   srna = RNA_def_struct(brna, "SpaceAssets", "Space");
@@ -7985,6 +7997,11 @@ static void rna_def_space_assets(BlenderRNA *brna)
 
   //  rna_def_space_generic_show_region_toggles(
   //      srna, (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_CHANNELS) | (1 << RGN_TYPE_FOOTER));
+
+  prop = rna_def_asset_library_reference_common(
+      srna, "rna_SpaceAssets_asset_library_get", "rna_SpaceAssets_asset_library_set");
+  RNA_def_property_ui_text(prop, "Asset Library", "");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 }
 
 void RNA_def_space(BlenderRNA *brna)

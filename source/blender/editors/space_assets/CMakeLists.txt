@@ -30,8 +30,13 @@ set(INC
 )
 
 set(SRC
+  asset_browser_draw.cc
   asset_browser_ops.cc
+  asset_view.cc
   space_assets.cc
+
+  asset_browser_intern.hh
+  asset_view.hh
 )
 
 set(LIB

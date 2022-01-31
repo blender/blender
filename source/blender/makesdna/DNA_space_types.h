@@ -2047,6 +2047,8 @@ typedef struct SpaceAssets {
   char link_flag;
   char _pad0[6];
   /* End 'SpaceLink' header. */
+
+  AssetLibraryReference asset_library_ref;
 } SpaceAssets;
 
 /** \} */

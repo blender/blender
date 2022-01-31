@@ -25,9 +25,11 @@ class ASSETBROWSER_HT_header(Header):
 
     def draw(self, context):
         layout = self.layout
-        # space = context.space_data
+        space = context.space_data
 
         layout.template_header()
+
+        layout.prop(space, "asset_library_ref", text="")
 
 
 classes = (
