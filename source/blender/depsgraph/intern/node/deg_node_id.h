@@ -121,6 +121,9 @@ struct IDNode : public Node {
   /* Accumulated flag from operation. Is initialized and used during updates flush. */
   bool is_user_modified;
 
+  /* Copy-on-Write component has been explicitly tagged for update. */
+  bool is_cow_explicitly_tagged;
+
   /* Accumulate recalc flags from multiple update passes. */
   int id_cow_recalc_backup;
 
