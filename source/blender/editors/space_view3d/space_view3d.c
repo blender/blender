@@ -89,6 +89,7 @@
 #include "DEG_depsgraph_build.h"
 
 #include "view3d_intern.h" /* own include */
+#include "view3d_navigate.h"
 
 /* ******************** manage regions ********************* */
 

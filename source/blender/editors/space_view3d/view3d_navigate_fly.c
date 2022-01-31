@@ -58,6 +58,7 @@
 #include "DEG_depsgraph.h"
 
 #include "view3d_intern.h" /* own include */
+#include "view3d_navigate.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Modal Key-map
@@ -1102,9 +1103,9 @@ static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else
 #endif /* WITH_INPUT_NDOF */
-      if (event->type == TIMER && event->customdata == fly->timer) {
-    flyApply(C, fly, false);
-  }
+    if (event->type == TIMER && event->customdata == fly->timer) {
+      flyApply(C, fly, false);
+    }
 
   do_draw |= fly->redraw;
 

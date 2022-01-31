@@ -50,6 +50,7 @@
 #include "ED_transform.h"
 
 #include "view3d_intern.h"
+#include "view3d_navigate.h"
 
 #ifdef WIN32
 #  include "BLI_math_base.h" /* M_PI */
