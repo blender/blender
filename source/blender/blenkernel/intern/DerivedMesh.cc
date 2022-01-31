@@ -284,16 +284,16 @@ void DM_init(DerivedMesh *dm,
   copy_vn_i(dm->polyData.typemap, CD_NUMTYPES, -1);
 }
 
-void DM_from_template_ex(DerivedMesh *dm,
-                         DerivedMesh *source,
-                         DerivedMeshType type,
-                         int numVerts,
-                         int numEdges,
-                         int numTessFaces,
-                         int numLoops,
-                         int numPolys,
-                         const CustomData_MeshMasks *mask)
+void DM_from_template(DerivedMesh *dm,
+                      DerivedMesh *source,
+                      DerivedMeshType type,
+                      int numVerts,
+                      int numEdges,
+                      int numTessFaces,
+                      int numLoops,
+                      int numPolys)
 {
+  const CustomData_MeshMasks *mask = &CD_MASK_DERIVEDMESH;
   CustomData_copy(&source->vertData, &dm->vertData, mask->vmask, CD_CALLOC, numVerts);
   CustomData_copy(&source->edgeData, &dm->edgeData, mask->emask, CD_CALLOC, numEdges);
   CustomData_copy(&source->faceData, &dm->faceData, mask->fmask, CD_CALLOC, numTessFaces);
@@ -312,25 +312,6 @@ void DM_from_template_ex(DerivedMesh *dm,
   DM_init_funcs(dm);
 
   dm->needsFree = 1;
-}
-void DM_from_template(DerivedMesh *dm,
-                      DerivedMesh *source,
-                      DerivedMeshType type,
-                      int numVerts,
-                      int numEdges,
-                      int numTessFaces,
-                      int numLoops,
-                      int numPolys)
-{
-  DM_from_template_ex(dm,
-                      source,
-                      type,
-                      numVerts,
-                      numEdges,
-                      numTessFaces,
-                      numLoops,
-                      numPolys,
-                      &CD_MASK_DERIVEDMESH);
 }
 
 bool DM_release(DerivedMesh *dm)

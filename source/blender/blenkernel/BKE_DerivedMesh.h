@@ -227,15 +227,6 @@ void DM_init(DerivedMesh *dm,
  * Utility function to initialize a DerivedMesh for the desired number
  * of vertices, edges and faces, with a layer setup copied from source
  */
-void DM_from_template_ex(DerivedMesh *dm,
-                         DerivedMesh *source,
-                         DerivedMeshType type,
-                         int numVerts,
-                         int numEdges,
-                         int numTessFaces,
-                         int numLoops,
-                         int numPolys,
-                         const struct CustomData_MeshMasks *mask);
 void DM_from_template(DerivedMesh *dm,
                       DerivedMesh *source,
                       DerivedMeshType type,
