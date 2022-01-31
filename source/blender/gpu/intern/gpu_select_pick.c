@@ -243,7 +243,7 @@ typedef struct GPUPickState {
   /* Buffer size (stores number of integers, for actual size multiply by sizeof integer). */
   uint bufsize;
   /* mode of operation */
-  char mode;
+  eGPUSelectMode mode;
 
   /* OpenGL drawing, never use when (is_cached == true). */
   struct {
@@ -303,12 +303,16 @@ typedef struct GPUPickState {
 
 static GPUPickState g_pick_state = {0};
 
-void gpu_select_pick_begin(uint (*buffer)[4], uint bufsize, const rcti *input, char mode)
+void gpu_select_pick_begin(uint (*buffer)[4], uint bufsize, const rcti *input, eGPUSelectMode mode)
 {
   GPUPickState *ps = &g_pick_state;
 
 #ifdef DEBUG_PRINT
-  printf("%s: mode=%d, use_cache=%d, is_cache=%d\n", __func__, mode, ps->use_cache, ps->is_cached);
+  printf("%s: mode=%d, use_cache=%d, is_cache=%d\n",
+         __func__,
+         (int)mode,
+         ps->use_cache,
+         ps->is_cached);
 #endif
 
   GPU_debug_group_begin("Selection Pick");

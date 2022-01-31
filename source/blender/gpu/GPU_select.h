@@ -32,7 +32,7 @@ extern "C" {
 struct rcti;
 
 /** Flags for mode of operation. */
-enum {
+typedef enum eGPUSelectMode {
   GPU_SELECT_ALL = 1,
   /* gpu_select_query */
   GPU_SELECT_NEAREST_FIRST_PASS = 2,
@@ -40,13 +40,16 @@ enum {
   /* gpu_select_pick */
   GPU_SELECT_PICK_ALL = 4,
   GPU_SELECT_PICK_NEAREST = 5,
-};
+} eGPUSelectMode;
 
 /**
  * Initialize and provide buffer for results.
  */
-void GPU_select_begin(
-    unsigned int *buffer, unsigned int bufsize, const struct rcti *input, char mode, int oldhits);
+void GPU_select_begin(unsigned int *buffer,
+                      unsigned int bufsize,
+                      const struct rcti *input,
+                      eGPUSelectMode mode,
+                      int oldhits);
 /**
  * Loads a new selection id and ends previous query, if any.
  * In second pass of selection it also returns

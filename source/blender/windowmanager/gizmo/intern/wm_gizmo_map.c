@@ -582,19 +582,19 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
    * - #GPU_SELECT_ALL: Use it to check if there is anything at the cursor location
    *   (only ever runs once).
    * - #GPU_SELECT_PICK_NEAREST: Use if there are more than 1 item at the cursor location,
-   *   select the best one.
+   *   pick the nearest one.
    * - #GPU_SELECT_PICK_ALL: Use for the same purpose as #GPU_SELECT_PICK_NEAREST
    *   when the selection depths need to re-ordered based on a bias.
    * */
-  const int gpu_select_mode = (use_depth_test ?
-                                   (has_3d_select_bias ?
-                                         /* Using select bias means the depths need to be
-                                          * re-calculated based on the bias to pick the best. */
-                                         GPU_SELECT_PICK_ALL :
-                                         /* No bias, just pick the closest. */
-                                         GPU_SELECT_PICK_NEAREST) :
-                                   /* Fast-path (occlusion queries). */
-                                   GPU_SELECT_ALL);
+  const eGPUSelectMode gpu_select_mode =
+      (use_depth_test ? (has_3d_select_bias ?
+                              /* Using select bias means the depths need to be
+                               * re-calculated based on the bias to pick the best. */
+                              GPU_SELECT_PICK_ALL :
+                              /* No bias, just pick the closest. */
+                              GPU_SELECT_PICK_NEAREST) :
+                        /* Fast-path (occlusion queries). */
+                        GPU_SELECT_ALL);
 
   if (GPU_select_is_cached()) {
     GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, gpu_select_mode, 0);

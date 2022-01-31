@@ -59,7 +59,7 @@ struct GPUSelectQueryState {
   /* Buffer size (stores number of integers, for actual size multiply by `sizeof(int)`). */
   uint bufsize;
   /* Mode of operation. */
-  char mode;
+  eGPUSelectMode mode;
   uint index;
   int oldhits;
 
@@ -73,7 +73,7 @@ struct GPUSelectQueryState {
 static GPUSelectQueryState g_query_state = {false};
 
 void gpu_select_query_begin(
-    uint (*buffer)[4], uint bufsize, const rcti *input, char mode, int oldhits)
+    uint (*buffer)[4], uint bufsize, const rcti *input, const eGPUSelectMode mode, int oldhits)
 {
   GPU_debug_group_begin("Selection Queries");
 

@@ -866,7 +866,7 @@ struct DrawSelectLoopUserData {
   uint *buffer;
   uint buffer_len;
   const rcti *rect;
-  char gpu_select_mode;
+  eGPUSelectMode gpu_select_mode;
 };
 
 static bool drw_select_loop_pass(eDRWSelectStage stage, void *user_data)
@@ -950,7 +950,7 @@ int view3d_opengl_select_ex(ViewContext *vc,
   const bool use_nearest = (is_pick_select && select_mode == VIEW3D_SELECT_PICK_NEAREST);
   bool draw_surface = true;
 
-  char gpu_select_mode;
+  eGPUSelectMode gpu_select_mode;
 
   /* case not a box select */
   if (input->xmin == input->xmax) {

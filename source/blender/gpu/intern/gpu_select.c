@@ -43,22 +43,22 @@
  * \{ */
 
 /* Internal algorithm used */
-enum {
+typedef enum eGPUSelectAlgo {
   /** glBegin/EndQuery(GL_SAMPLES_PASSED... ), `gpu_select_query.c`
    * Only sets 4th component (ID) correctly. */
   ALGO_GL_QUERY = 1,
   /** Read depth buffer for every drawing pass and extract depths, `gpu_select_pick.c`
    * Only sets 4th component (ID) correctly. */
   ALGO_GL_PICK = 2,
-};
+} eGPUSelectAlgo;
 
 typedef struct GPUSelectState {
   /* To ignore selection id calls when not initialized */
   bool select_is_active;
   /* mode of operation */
-  char mode;
+  eGPUSelectMode mode;
   /* internal algorithm for selection */
-  char algorithm;
+  eGPUSelectAlgo algorithm;
   /* allow GPU_select_begin/end without drawing */
   bool use_cache;
   /**
@@ -80,7 +80,8 @@ static GPUSelectState g_select_state = {0};
 /** \name Public API
  * \{ */
 
-void GPU_select_begin(uint *buffer, uint bufsize, const rcti *input, char mode, int oldhits)
+void GPU_select_begin(
+    uint *buffer, uint bufsize, const rcti *input, eGPUSelectMode mode, int oldhits)
 {
   if (mode == GPU_SELECT_NEAREST_SECOND_PASS) {
     /* In the case hits was '-1',
