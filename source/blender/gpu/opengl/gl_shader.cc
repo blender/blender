@@ -597,10 +597,6 @@ static char *glsl_patch_default_get()
     STR_CONCAT(patch, slen, "#extension GL_ARB_gpu_shader5 : enable\n");
     STR_CONCAT(patch, slen, "#define GPU_ARB_gpu_shader5\n");
   }
-  if (GLContext::geometry_shader_invocations) {
-    STR_CONCAT(patch, slen, "#extension GL_ARB_gpu_shader5 : enable\n");
-    STR_CONCAT(patch, slen, "#define GPU_ARB_gpu_shader5\n");
-  }
   if (GLContext::texture_cube_map_array_support) {
     STR_CONCAT(patch, slen, "#extension GL_ARB_texture_cube_map_array : enable\n");
     STR_CONCAT(patch, slen, "#define GPU_ARB_texture_cube_map_array\n");

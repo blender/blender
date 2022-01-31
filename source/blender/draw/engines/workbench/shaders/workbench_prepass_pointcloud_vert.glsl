@@ -19,14 +19,6 @@ void main()
 
   uv_interp = vec2(0.0);
 
-<<<<<<< HEAD
-#ifndef WORKBENCH_SHADER_SHARED_H
-#  ifdef OPAQUE_MATERIAL
-  float metallic, roughness;
-#  endif
-#endif
-=======
->>>>>>> master
   workbench_material_data_get(resource_handle, color_interp, alpha_interp, roughness, metallic);
 
   if (materialIndex == 0) {

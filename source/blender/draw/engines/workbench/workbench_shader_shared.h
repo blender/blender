@@ -1,20 +1,10 @@
 
-<<<<<<< HEAD
-=======
-<<<<<<<< HEAD:source/blender/draw/engines/workbench/workbench_shader_shared.h
->>>>>>> master
 #ifndef GPU_SHADER
 #  include "gpu_shader_shared_utils.h"
 #endif
 
 #define WORKBENCH_SHADER_SHARED_H
 
-<<<<<<< HEAD
-=======
-========
-#ifndef WORKBENCH_SHADER_SHARED_H
->>>>>>>> master:source/blender/draw/engines/workbench/shaders/workbench_data_lib.glsl
->>>>>>> master
 struct LightData {
   float4 direction;
   float4 specular_color;
@@ -54,19 +44,4 @@ struct WorldData {
   int _pad2;
 };
 
-<<<<<<< HEAD
 #define viewport_size_inv viewport_size.zw
-#define packed_rough_metal roughness
-=======
-<<<<<<<< HEAD:source/blender/draw/engines/workbench/workbench_shader_shared.h
-#define viewport_size_inv viewport_size.zw
-========
-#  define viewport_size_inv viewport_size.zw
-
-layout(std140) uniform world_block
-{
-  WorldData world_data;
-};
-#endif
->>>>>>>> master:source/blender/draw/engines/workbench/shaders/workbench_data_lib.glsl
->>>>>>> master

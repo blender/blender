@@ -5,14 +5,6 @@
 #pragma BLENDER_REQUIRE(workbench_material_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_image_lib.glsl)
 
-<<<<<<< HEAD
-#ifndef WORKBENCH_SHADER_SHARED_H
-uniform samplerBuffer ac; /* active color layer */
-uniform samplerBuffer au; /* active texture layer */
-#endif
-
-=======
->>>>>>> master
 /* From http://libnoise.sourceforge.net/noisegen/index.html */
 float integer_noise(int n)
 {
@@ -74,14 +66,6 @@ void main()
 
   normal_interp = normalize(normal_world_to_view(nor));
 
-<<<<<<< HEAD
-#ifndef WORKBENCH_SHADER_SHARED_H
-#  ifdef OPAQUE_MATERIAL
-  float metallic, roughness;
-#  endif
-#endif
-=======
->>>>>>> master
   workbench_material_data_get(resource_handle, color_interp, alpha_interp, roughness, metallic);
 
   if (materialIndex == 0) {
