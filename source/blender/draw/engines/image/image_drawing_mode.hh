@@ -99,12 +99,14 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
   {
     const ShaderParameters &sh_params = instance_data->sh_params;
     GPUShader *shader = IMAGE_shader_image_get();
+    DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
     DRWShadingGroup *shgrp = DRW_shgroup_create(shader, instance_data->passes.image_pass);
     DRW_shgroup_uniform_vec2_copy(shgrp, "farNearDistances", sh_params.far_near);
     DRW_shgroup_uniform_vec4_copy(shgrp, "shuffle", sh_params.shuffle);
     DRW_shgroup_uniform_int_copy(shgrp, "drawFlags", sh_params.flags);
     DRW_shgroup_uniform_bool_copy(shgrp, "imgPremultiplied", sh_params.use_premul_alpha);
+    DRW_shgroup_uniform_texture(shgrp, "depth_texture", dtxl->depth);
     float image_mat[4][4];
     unit_m4(image_mat);
     for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
@@ -151,9 +153,14 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
         const int tile_y = image_tile.get_tile_y_offset();
         tile_user.tile = image_tile.get_tile_number();
 
-        if (!BKE_image_has_ibuf(image, &tile_user)) {
+        /* NOTE: `BKE_image_has_ibuf` doesn't work as it fails for render results. That could be a
+         * bug or a feature. For now we just acquire to determine if there is a texture. */
+        void *lock;
+        ImBuf *tile_buffer = BKE_image_acquire_ibuf(image, &tile_user, &lock);
+        if (tile_buffer == nullptr) {
           continue;
         }
+        BKE_image_release_ibuf(image, tile_buffer, lock);
 
         DRWShadingGroup *shsub = DRW_shgroup_create_sub(shgrp);
         float4 min_max_uv(tile_x, tile_y, tile_x + 1, tile_y + 1);
@@ -461,8 +468,10 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
 
     DRW_view_set_active(instance_data->view);
     DRW_draw_pass(instance_data->passes.depth_pass);
+    GPU_framebuffer_bind(dfbl->color_only_fb);
     DRW_draw_pass(instance_data->passes.image_pass);
     DRW_view_set_active(nullptr);
+    GPU_framebuffer_bind(dfbl->default_fb);
   }
 };  // namespace clipping
 
