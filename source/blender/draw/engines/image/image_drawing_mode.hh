@@ -126,12 +126,19 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
    */
   void add_depth_shgroups(IMAGE_InstanceData &instance_data,
                           Image *image,
-                          ImageUser *UNUSED(image_user)) const
+                          ImageUser *image_user) const
   {
     GPUShader *shader = IMAGE_shader_depth_get();
     DRWShadingGroup *shgrp = DRW_shgroup_create(shader, instance_data.passes.depth_pass);
+
     float image_mat[4][4];
     unit_m4(image_mat);
+
+    ImageUser tile_user = {0};
+    if (image_user) {
+      tile_user = *image_user;
+    }
+
     for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
       const TextureInfo &info = instance_data.texture_infos[i];
       if (!info.visible) {
@@ -139,10 +146,16 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       }
 
       LISTBASE_FOREACH (ImageTile *, image_tile_ptr, &image->tiles) {
-        DRWShadingGroup *shsub = DRW_shgroup_create_sub(shgrp);
         const ImageTileWrapper image_tile(image_tile_ptr);
         const int tile_x = image_tile.get_tile_x_offset();
         const int tile_y = image_tile.get_tile_y_offset();
+        tile_user.tile = image_tile.get_tile_number();
+
+        if (!BKE_image_has_ibuf(image, &tile_user)) {
+          continue;
+        }
+
+        DRWShadingGroup *shsub = DRW_shgroup_create_sub(shgrp);
         float4 min_max_uv(tile_x, tile_y, tile_x + 1, tile_y + 1);
         DRW_shgroup_uniform_vec4_copy(shsub, "min_max_uv", min_max_uv);
         DRW_shgroup_call_obmat(shsub, info.batch, image_mat);
