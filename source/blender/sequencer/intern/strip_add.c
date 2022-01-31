@@ -361,8 +361,7 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 Sequence *SEQ_add_sound_strip(Main *UNUSED(bmain),
                               Scene *UNUSED(scene),
                               ListBase *UNUSED(seqbase),
-                              SeqLoadData *UNUSED(load_data),
-                              const double UNUSED(audio_offset))
+                              SeqLoadData *UNUSED(load_data))
 {
   return NULL;
 }
