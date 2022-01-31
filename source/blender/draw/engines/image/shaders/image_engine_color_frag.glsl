@@ -12,6 +12,11 @@
 void main()
 {
   ivec2 uvs_clamped = ivec2(uv_screen);
+  float depth = texelFetch(depth_texture, uvs_clamped, 0).r;
+  if (depth == 1.0) {
+    discard;
+  }
+
   vec4 tex_color = texelFetch(imageTexture, uvs_clamped, 0);
 
   if ((drawFlags & IMAGE_DRAW_FLAG_APPLY_ALPHA) != 0) {
