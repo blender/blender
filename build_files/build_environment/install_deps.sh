@@ -4036,11 +4036,11 @@ install_DEB() {
     INFO "Forced Python building, as requested..."
     _do_compile_python=true
   else
-    check_package_version_ge_lt_DEB python3-dev $PYTHON_VERSION_MIN $PYTHON_VERSION_MEX
+    check_package_version_ge_lt_DEB python${PYTHON_VERSION_SHORT}-dev $PYTHON_VERSION_MIN $PYTHON_VERSION_MEX
     if [ $? -eq 0 ]; then
-      PYTHON_VERSION_INSTALLED=$(echo `get_package_version_DEB python3-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
+      PYTHON_VERSION_INSTALLED=$(echo `get_package_version_DEB python${PYTHON_VERSION_SHORT}-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
 
-      install_packages_DEB python3-dev
+      install_packages_DEB python${PYTHON_VERSION_SHORT}-dev
       clean_Python
       PRINT ""
 
