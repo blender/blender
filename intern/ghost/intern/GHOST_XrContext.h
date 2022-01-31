@@ -126,6 +126,7 @@ class GHOST_XrContext : public GHOST_IXrContext {
   void storeInstanceProperties();
   void initDebugMessenger();
 
+  void printSDKVersion();
   void printInstanceInfo();
   void printAvailableAPILayersAndExtensionsInfo();
   void printExtensionsAndAPILayersToEnable();
