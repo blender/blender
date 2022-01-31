@@ -287,14 +287,24 @@ Sequence *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 }
 
 #ifdef WITH_AUDASPACE
-Sequence *SEQ_add_sound_strip(Main *bmain,
-                              Scene *scene,
-                              ListBase *seqbase,
-                              SeqLoadData *load_data,
-                              const double audio_offset)
+
+static void seq_add_sound_av_sync(Main *bmain, Scene *scene, Sequence *seq, SeqLoadData *load_data)
+{
+  SoundStreamInfo sound_stream;
+  if (!BKE_sound_stream_info_get(bmain, load_data->path, 0, &sound_stream)) {
+    return;
+  }
+
+  const double av_stream_offset = sound_stream.start - load_data->r_video_stream_start;
+  const int frame_offset = av_stream_offset * FPS;
+  /* Set subframe offset. */
+  seq->sound->offset_time = ((double)frame_offset / FPS) - av_stream_offset;
+  SEQ_transform_translate_sequence(scene, seq, frame_offset);
+}
+
+Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {
   bSound *sound = BKE_sound_new_file(bmain, load_data->path); /* Handles relative paths. */
-  sound->offset_time = audio_offset;
   SoundInfo info;
   bool sound_loaded = BKE_sound_info_get(bmain, sound, &info);
 
@@ -337,6 +347,8 @@ Sequence *SEQ_add_sound_strip(Main *bmain,
     }
   }
 
+  seq_add_sound_av_sync(bmain, scene, seq, load_data);
+
   /* Set Last active directory. */
   BLI_strncpy(scene->ed->act_sounddir, strip->dir, FILE_MAXDIR);
   seq_add_set_name(scene, seq, load_data);
@@ -373,8 +385,7 @@ Sequence *SEQ_add_meta_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_
   return seqm;
 }
 
-Sequence *SEQ_add_movie_strip(
-    Main *bmain, Scene *scene, ListBase *seqbase, SeqLoadData *load_data, double *r_start_offset)
+Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {
   char path[sizeof(load_data->path)];
   BLI_strncpy(path, load_data->path, sizeof(path));
@@ -420,8 +431,8 @@ Sequence *SEQ_add_movie_strip(
     return NULL;
   }
 
-  int video_frame_offset = 0;
   float video_fps = 0.0f;
+  load_data->r_video_stream_start = 0.0;
 
   if (anim_arr[0] != NULL) {
     short fps_denom;
@@ -437,23 +448,11 @@ Sequence *SEQ_add_movie_strip(
       scene->r.frs_sec_base = fps_num;
     }
 
-    double video_start_offset = IMD_anim_get_offset(anim_arr[0]);
-    int minimum_frame_offset;
-
-    if (*r_start_offset >= 0) {
-      minimum_frame_offset = MIN2(video_start_offset, *r_start_offset) * FPS;
-    }
-    else {
-      minimum_frame_offset = video_start_offset * FPS;
-    }
-
-    video_frame_offset = video_start_offset * FPS - minimum_frame_offset;
-
-    *r_start_offset = video_start_offset;
+    load_data->r_video_stream_start = IMD_anim_get_offset(anim_arr[0]);
   }
 
   Sequence *seq = SEQ_sequence_alloc(
-      seqbase, load_data->start_frame + video_frame_offset, load_data->channel, SEQ_TYPE_MOVIE);
+      seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_MOVIE);
 
   /* Multiview settings. */
   if (load_data->use_multiview) {
