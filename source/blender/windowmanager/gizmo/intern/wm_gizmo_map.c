@@ -572,7 +572,7 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   rcti rect;
   /* Almost certainly overkill, but allow for many custom gizmos. */
-  uint buffer[MAXPICKBUF];
+  GPUSelectResult buffer[MAXPICKELEMS];
   short hits;
 
   BLI_rcti_init_pt_radius(&rect, co, hotspot);
@@ -582,19 +582,19 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
    * - #GPU_SELECT_ALL: Use it to check if there is anything at the cursor location
    *   (only ever runs once).
    * - #GPU_SELECT_PICK_NEAREST: Use if there are more than 1 item at the cursor location,
-   *   select the best one.
+   *   pick the nearest one.
    * - #GPU_SELECT_PICK_ALL: Use for the same purpose as #GPU_SELECT_PICK_NEAREST
    *   when the selection depths need to re-ordered based on a bias.
    * */
-  const int gpu_select_mode = (use_depth_test ?
-                                   (has_3d_select_bias ?
-                                         /* Using select bias means the depths need to be
-                                          * re-calculated based on the bias to pick the best. */
-                                         GPU_SELECT_PICK_ALL :
-                                         /* No bias, just pick the closest. */
-                                         GPU_SELECT_PICK_NEAREST) :
-                                   /* Fast-path (occlusion queries). */
-                                   GPU_SELECT_ALL);
+  const eGPUSelectMode gpu_select_mode =
+      (use_depth_test ? (has_3d_select_bias ?
+                              /* Using select bias means the depths need to be
+                               * re-calculated based on the bias to pick the best. */
+                              GPU_SELECT_PICK_ALL :
+                              /* No bias, just pick the closest. */
+                              GPU_SELECT_PICK_NEAREST) :
+                        /* Fast-path (occlusion queries). */
+                        GPU_SELECT_ALL);
 
   if (GPU_select_is_cached()) {
     GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, gpu_select_mode, 0);
@@ -650,14 +650,14 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
 
     GPU_matrix_unproject_3fv(co_screen, rv3d->viewinv, rv3d->winmat, viewport, co_3d_origin);
 
-    uint *buf_iter = buffer;
+    GPUSelectResult *buf_iter = buffer;
     float dot_best = FLT_MAX;
 
-    for (int i = 0; i < hits; i++, buf_iter += 4) {
-      BLI_assert(buf_iter[3] != -1);
-      wmGizmo *gz = visible_gizmos[buf_iter[3] >> 8];
+    for (int i = 0; i < hits; i++, buf_iter++) {
+      BLI_assert(buf_iter->id != -1);
+      wmGizmo *gz = visible_gizmos[buf_iter->id >> 8];
       float co_3d[3];
-      co_screen[2] = int_as_float(buf_iter[1]);
+      co_screen[2] = int_as_float(buf_iter->depth);
       GPU_matrix_unproject_3fv(co_screen, rv3d->viewinv, rv3d->winmat, viewport, co_3d);
       float select_bias = gz->select_bias;
       if ((gz->flag & WM_GIZMO_DRAW_NO_SCALE) == 0) {
@@ -667,14 +667,14 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
       const float dot_test = dot_v3v3(co_3d, co_direction) - select_bias;
       if (dot_best > dot_test) {
         dot_best = dot_test;
-        hit_found = buf_iter[3];
+        hit_found = buf_iter->id;
       }
     }
   }
   else {
-    const uint *hit_near = GPU_select_buffer_near(buffer, hits);
+    const GPUSelectResult *hit_near = GPU_select_buffer_near(buffer, hits);
     if (hit_near) {
-      hit_found = hit_near[3];
+      hit_found = hit_near->id;
     }
   }
 

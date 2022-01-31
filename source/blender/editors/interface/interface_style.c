@@ -39,9 +39,8 @@
 #include "BKE_global.h"
 
 #include "BLF_api.h"
-#ifdef WITH_INTERNATIONAL
-#  include "BLT_translation.h"
-#endif
+
+#include "BLT_translation.h"
 
 #include "UI_interface.h"
 

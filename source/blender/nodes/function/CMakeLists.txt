@@ -63,10 +63,6 @@ set(LIB
   bf_functions
 )
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 blender_add_lib(bf_nodes_function "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 if(WITH_UNITY_BUILD)

@@ -43,22 +43,22 @@
  * \{ */
 
 /* Internal algorithm used */
-enum {
+typedef enum eGPUSelectAlgo {
   /** glBegin/EndQuery(GL_SAMPLES_PASSED... ), `gpu_select_query.c`
    * Only sets 4th component (ID) correctly. */
   ALGO_GL_QUERY = 1,
   /** Read depth buffer for every drawing pass and extract depths, `gpu_select_pick.c`
    * Only sets 4th component (ID) correctly. */
   ALGO_GL_PICK = 2,
-};
+} eGPUSelectAlgo;
 
 typedef struct GPUSelectState {
   /* To ignore selection id calls when not initialized */
   bool select_is_active;
   /* mode of operation */
-  char mode;
+  eGPUSelectMode mode;
   /* internal algorithm for selection */
-  char algorithm;
+  eGPUSelectAlgo algorithm;
   /* allow GPU_select_begin/end without drawing */
   bool use_cache;
   /**
@@ -80,7 +80,11 @@ static GPUSelectState g_select_state = {0};
 /** \name Public API
  * \{ */
 
-void GPU_select_begin(uint *buffer, uint bufsize, const rcti *input, char mode, int oldhits)
+void GPU_select_begin(GPUSelectResult *buffer,
+                      const uint buffer_len,
+                      const rcti *input,
+                      eGPUSelectMode mode,
+                      int oldhits)
 {
   if (mode == GPU_SELECT_NEAREST_SECOND_PASS) {
     /* In the case hits was '-1',
@@ -119,12 +123,12 @@ void GPU_select_begin(uint *buffer, uint bufsize, const rcti *input, char mode, 
 
   switch (g_select_state.algorithm) {
     case ALGO_GL_QUERY: {
-      gpu_select_query_begin((uint(*)[4])buffer, bufsize / 4, input, mode, oldhits);
+      gpu_select_query_begin(buffer, buffer_len, input, mode, oldhits);
       break;
     }
     default: /* ALGO_GL_PICK */
     {
-      gpu_select_pick_begin((uint(*)[4])buffer, bufsize / 4, input, mode);
+      gpu_select_pick_begin(buffer, buffer_len, input, mode);
       break;
     }
   }
@@ -219,35 +223,35 @@ bool GPU_select_is_cached(void)
 /** \name Utilities
  * \{ */
 
-const uint *GPU_select_buffer_near(const uint *buffer, int hits)
+const GPUSelectResult *GPU_select_buffer_near(const GPUSelectResult *buffer, int hits)
 {
-  const uint *buffer_near = NULL;
+  const GPUSelectResult *buffer_near = NULL;
   uint depth_min = (uint)-1;
   for (int i = 0; i < hits; i++) {
-    if (buffer[1] < depth_min) {
-      BLI_assert(buffer[3] != -1);
-      depth_min = buffer[1];
+    if (buffer->depth < depth_min) {
+      BLI_assert(buffer->id != -1);
+      depth_min = buffer->depth;
       buffer_near = buffer;
     }
-    buffer += 4;
+    buffer++;
   }
   return buffer_near;
 }
 
-uint GPU_select_buffer_remove_by_id(uint *buffer, int hits, uint select_id)
+uint GPU_select_buffer_remove_by_id(GPUSelectResult *buffer, int hits, uint select_id)
 {
-  uint *buffer_src = buffer;
-  uint *buffer_dst = buffer;
+  GPUSelectResult *buffer_src = buffer;
+  GPUSelectResult *buffer_dst = buffer;
   int hits_final = 0;
   for (int i = 0; i < hits; i++) {
-    if (buffer_src[3] != select_id) {
+    if (buffer_src->id != select_id) {
       if (buffer_dst != buffer_src) {
-        memcpy(buffer_dst, buffer_src, sizeof(int[4]));
+        memcpy(buffer_dst, buffer_src, sizeof(GPUSelectResult));
       }
-      buffer_dst += 4;
+      buffer_dst++;
       hits_final += 1;
     }
-    buffer_src += 4;
+    buffer_src++;
   }
   return hits_final;
 }

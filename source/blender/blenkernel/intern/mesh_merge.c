@@ -27,6 +27,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_edgehash.h"
 #include "BLI_ghash.h"
 #include "BLI_utildefines.h"
@@ -351,6 +352,8 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
         &poly_map, &poly_map_mem, mesh->mpoly, mesh->mloop, totvert, totpoly, totloop);
   } /* done preparing for fast poly compare */
 
+  BLI_bitmap *vert_tag = BLI_BITMAP_NEW(mesh->totvert, __func__);
+
   mp = mesh->mpoly;
   mv = mesh->mvert;
   for (i = 0; i < totpoly; i++, mp++) {
@@ -365,11 +368,11 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
       if (vtargetmap[ml->v] == -1) {
         all_vertices_merged = false;
         /* This will be used to check for poly using several time the same vert. */
-        mv[ml->v].flag &= ~ME_VERT_TMP_TAG;
+        BLI_BITMAP_DISABLE(vert_tag, ml->v);
       }
       else {
         /* This will be used to check for poly using several time the same vert. */
-        mv[vtargetmap[ml->v]].flag &= ~ME_VERT_TMP_TAG;
+        BLI_BITMAP_DISABLE(vert_tag, vtargetmap[ml->v]);
       }
     }
 
@@ -457,8 +460,8 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
 #endif
       /* A loop is only valid if its matching edge is,
        * and it's not reusing a vertex already used by this poly. */
-      if (LIKELY((newe[ml->e] != -1) && ((mv[mlv].flag & ME_VERT_TMP_TAG) == 0))) {
-        mv[mlv].flag |= ME_VERT_TMP_TAG;
+      if (LIKELY((newe[ml->e] != -1) && !BLI_BITMAP_TEST(vert_tag, mlv))) {
+        BLI_BITMAP_ENABLE(vert_tag, mlv);
 
         if (UNLIKELY(last_valid_ml != NULL && need_edge_from_last_valid_ml)) {
           /* We need to create a new edge between last valid loop and this one! */
@@ -643,6 +646,8 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
   MEM_freeN(olde);
   MEM_freeN(oldl);
   MEM_freeN(oldp);
+
+  MEM_freeN(vert_tag);
 
   BLI_edgehash_free(ehash, NULL);
 

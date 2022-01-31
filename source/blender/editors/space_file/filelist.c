@@ -524,7 +524,7 @@ static int compare_apply_inverted(int val, const struct FileSortData *sort_data)
  * 2) If not possible (file names match) and both represent local IDs, sort by ID-type.
  * 3) If not possible and only one is a local ID, place files representing local IDs first.
  *
- * TODO (not actually implemented, but should be):
+ * TODO: (not actually implemented, but should be):
  * 4) If no file represents a local ID, sort by file path, so that files higher up the file system
  *    hierarchy are placed first.
  */

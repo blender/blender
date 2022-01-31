@@ -890,7 +890,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
   bool anyProcessed = false;
   NSEvent *event;
 
-  // TODO : implement timer ??
+  /* TODO: implement timer? */
 #if 0
   do {
     GHOST_TimerManager* timerMgr = getTimerManager();

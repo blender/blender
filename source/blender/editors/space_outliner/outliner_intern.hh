@@ -57,10 +57,12 @@ class AbstractTreeDisplay;
 class AbstractTreeElement;
 }  // namespace blender::ed::outliner
 
+namespace outliner = blender::ed::outliner;
+
 struct SpaceOutliner_Runtime {
   /** Object to create and manage the tree for a specific display type (View Layers, Scenes,
    * Blender File, etc.). */
-  std::unique_ptr<blender::ed::outliner::AbstractTreeDisplay> tree_display;
+  std::unique_ptr<outliner::AbstractTreeDisplay> tree_display;
 
   /** Pointers to tree-store elements, grouped by `(id, type, nr)`
    *  in hash-table for faster searching. */
@@ -93,11 +95,12 @@ typedef struct TreeElement {
   struct TreeElement *next, *prev, *parent;
 
   /**
-   * Handle to the new C++ object (a derived type of base #AbstractTreeElement) that should replace
-   * #TreeElement. Step by step, data should be moved to it and operations based on the type should
-   * become virtual methods of the class hierarchy.
+   * The new inheritance based representation of the element (a derived type of base
+   * #AbstractTreeElement) that should eventually replace #TreeElement. Step by step, data should
+   * be moved to it and operations based on the type should become virtual methods of the class
+   * hierarchy.
    */
-  std::unique_ptr<blender::ed::outliner::AbstractTreeElement> type;
+  std::unique_ptr<outliner::AbstractTreeElement> abstract_element;
 
   ListBase subtree;
   int xs, ys;                /* Do selection. */
@@ -700,7 +703,7 @@ template<typename TreeElementT> TreeElementT *tree_element_cast(const TreeElemen
 {
   static_assert(std::is_base_of_v<AbstractTreeElement, TreeElementT>,
                 "Requested tree-element type must be an AbstractTreeElement");
-  return dynamic_cast<TreeElementT *>(te->type.get());
+  return dynamic_cast<TreeElementT *>(te->abstract_element.get());
 }
 
 }  // namespace blender::ed::outliner

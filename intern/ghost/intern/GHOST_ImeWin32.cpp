@@ -96,7 +96,7 @@ bool GHOST_ImeWin32::IsEnglishMode()
          !(conversion_modes_ & (IME_CMODE_NATIVE | IME_CMODE_FULLSHAPE));
 }
 
-bool GHOST_ImeWin32::IsImeKeyEvent(char ascii)
+bool GHOST_ImeWin32::IsImeKeyEvent(char ascii, GHOST_TKey key)
 {
   if (!(IsEnglishMode())) {
     /* In Chinese, Japanese, Korean, all alpha keys are processed by IME. */
@@ -106,7 +106,8 @@ bool GHOST_ImeWin32::IsImeKeyEvent(char ascii)
     if (IsLanguage(IMELANG_JAPANESE) && (ascii >= ' ' && ascii <= '~')) {
       return true;
     }
-    else if (IsLanguage(IMELANG_CHINESE) && ascii && strchr("!\"$'(),.:;<>?[\\]^_`/", ascii)) {
+    else if (IsLanguage(IMELANG_CHINESE) && ascii && strchr("!\"$'(),.:;<>?[\\]^_`/", ascii) &&
+             !(key == GHOST_kKeyNumpadPeriod)) {
       return true;
     }
   }

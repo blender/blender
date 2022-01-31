@@ -370,7 +370,7 @@ static void print_interface(std::ostream &os,
                             const StageInterfaceInfo &iface,
                             const StringRefNull &suffix = "")
 {
-  /* TODO(fclem) Move that to interface check. */
+  /* TODO(@fclem): Move that to interface check. */
   // if (iface.instance_name.is_empty()) {
   //   BLI_assert_msg(0, "Interfaces require an instance name for geometry shader.");
   //   std::cout << iface.name << ": Interfaces require an instance name for geometry shader.\n";
@@ -416,7 +416,9 @@ std::string GLShader::resources_declare(const ShaderCreateInfo &info) const
     ss << ";\n";
   }
   for (const ShaderCreateInfo::PushConst &uniform : info.push_constants_) {
-    ss << "#define " << uniform.name << " (" << uniform.name << ")\n";
+    /* T95278: Double macro to avoid some compilers think it is recursive. */
+    ss << "#define " << uniform.name << "_ " << uniform.name << "\n";
+    ss << "#define " << uniform.name << " (" << uniform.name << "_)\n";
   }
   ss << "\n";
   return ss.str();
@@ -498,7 +500,7 @@ std::string GLShader::geometry_layout_declare(const ShaderCreateInfo &info) cons
 static StageInterfaceInfo *find_interface_by_name(const Vector<StageInterfaceInfo *> &ifaces,
                                                   const StringRefNull &name)
 {
-  for (auto iface : ifaces) {
+  for (auto *iface : ifaces) {
     if (iface->name == name) {
       return iface;
     }

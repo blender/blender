@@ -49,7 +49,7 @@ void EEVEE_subsurface_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   const int fs_size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
   if (effects->enabled_effects & EFFECT_SSS) {
-    /* NOTE : we need another stencil because the stencil buffer is on the same texture
+    /* NOTE: we need another stencil because the stencil buffer is on the same texture
      * as the depth buffer we are sampling from. This could be avoided if the stencil is
      * a separate texture but that needs OpenGL 4.4 or ARB_texture_stencil8.
      * OR OpenGL 4.3 / ARB_ES3_compatibility if using a render-buffer instead. */

@@ -580,7 +580,6 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
 #endif
   MVert *mvert = dm->getVertArray(dm);
   MEdge *medge = dm->getEdgeArray(dm);
-  // MFace *mface = dm->getTessFaceArray(dm); /* UNUSED */
   MVert *mv;
   MEdge *me;
   MLoop *mloop = dm->getLoopArray(dm), *ml;
@@ -1129,44 +1128,6 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
   }
 }
 
-static void ccgDM_copyFinalFaceArray(DerivedMesh *dm, MFace *mface)
-{
-  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-  CCGSubSurf *ss = ccgdm->ss;
-  int index;
-  int totface;
-  int gridSize = ccgSubSurf_getGridSize(ss);
-  int edgeSize = ccgSubSurf_getEdgeSize(ss);
-  int i = 0;
-  DMFlagMat *faceFlags = ccgdm->faceFlags;
-
-  totface = dm->getNumTessFaces(dm);
-  for (index = 0; index < totface; index++) {
-    CCGFace *f = ccgdm->faceMap[index].face;
-    int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
-    /* keep types in sync with MFace, avoid many conversions */
-    char flag = (faceFlags) ? faceFlags[index].flag : ME_SMOOTH;
-    short mat_nr = (faceFlags) ? faceFlags[index].mat_nr : 0;
-
-    for (S = 0; S < numVerts; S++) {
-      for (y = 0; y < gridSize - 1; y++) {
-        for (x = 0; x < gridSize - 1; x++) {
-          MFace *mf = &mface[i];
-          mf->v1 = getFaceIndex(ss, f, S, x + 0, y + 0, edgeSize, gridSize);
-          mf->v2 = getFaceIndex(ss, f, S, x + 0, y + 1, edgeSize, gridSize);
-          mf->v3 = getFaceIndex(ss, f, S, x + 1, y + 1, edgeSize, gridSize);
-          mf->v4 = getFaceIndex(ss, f, S, x + 1, y + 0, edgeSize, gridSize);
-          mf->mat_nr = mat_nr;
-          mf->flag = flag;
-          mf->edcode = 0;
-
-          i++;
-        }
-      }
-    }
-  }
-}
-
 typedef struct CopyFinalLoopArrayData {
   CCGDerivedMesh *ccgdm;
   MLoop *mloop;
@@ -1457,63 +1418,6 @@ static void *ccgDM_get_edge_data_layer(DerivedMesh *dm, int type)
   return DM_get_edge_data_layer(dm, type);
 }
 
-static void *ccgDM_get_tessface_data_layer(DerivedMesh *dm, int type)
-{
-  if (type == CD_ORIGINDEX) {
-    /* create origindex on demand to save memory */
-    int *origindex;
-
-    /* Avoid re-creation if the layer exists already */
-    origindex = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
-    if (origindex) {
-      return origindex;
-    }
-
-    DM_add_tessface_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
-    origindex = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
-
-    /* silly loop counting up */
-    range_vn_i(origindex, dm->getNumTessFaces(dm), 0);
-
-    return origindex;
-  }
-
-  if (type == CD_TESSLOOPNORMAL) {
-    /* Create tessloopnormal on demand to save memory. */
-    /* Note that since tessellated face corners are the same a loops in CCGDM,
-     * and since all faces have four loops/corners, we can simplify the code
-     * here by converting tessloopnormals from 'short (*)[4][3]' to 'short (*)[3]'. */
-    short(*tlnors)[3];
-
-    /* Avoid re-creation if the layer exists already */
-    tlnors = DM_get_tessface_data_layer(dm, CD_TESSLOOPNORMAL);
-    if (!tlnors) {
-      float(*lnors)[3];
-      short(*tlnors_it)[3];
-      const int numLoops = ccgDM_getNumLoops(dm);
-      int i;
-
-      lnors = dm->getLoopDataArray(dm, CD_NORMAL);
-      if (!lnors) {
-        return NULL;
-      }
-
-      DM_add_tessface_layer(dm, CD_TESSLOOPNORMAL, CD_CALLOC, NULL);
-      tlnors = tlnors_it = (short(*)[3])DM_get_tessface_data_layer(dm, CD_TESSLOOPNORMAL);
-
-      /* With ccgdm, we have a simple one to one mapping between loops
-       * and tessellated face corners. */
-      for (i = 0; i < numLoops; i++, tlnors_it++, lnors++) {
-        normal_float_to_short_v3(*tlnors_it, *lnors);
-      }
-    }
-
-    return tlnors;
-  }
-
-  return DM_get_tessface_data_layer(dm, type);
-}
-
 static void *ccgDM_get_poly_data_layer(DerivedMesh *dm, int type)
 {
   if (type == CD_ORIGINDEX) {
@@ -1549,46 +1453,6 @@ static void *ccgDM_get_poly_data_layer(DerivedMesh *dm, int type)
   }
 
   return DM_get_poly_data_layer(dm, type);
-}
-
-static void *ccgDM_get_vert_data(DerivedMesh *dm, int index, int type)
-{
-  if (type == CD_ORIGINDEX) {
-    /* ensure creation of CD_ORIGINDEX layer */
-    ccgDM_get_vert_data_layer(dm, type);
-  }
-
-  return DM_get_vert_data(dm, index, type);
-}
-
-static void *ccgDM_get_edge_data(DerivedMesh *dm, int index, int type)
-{
-  if (type == CD_ORIGINDEX) {
-    /* ensure creation of CD_ORIGINDEX layer */
-    ccgDM_get_edge_data_layer(dm, type);
-  }
-
-  return DM_get_edge_data(dm, index, type);
-}
-
-static void *ccgDM_get_tessface_data(DerivedMesh *dm, int index, int type)
-{
-  if (ELEM(type, CD_ORIGINDEX, CD_TESSLOOPNORMAL)) {
-    /* ensure creation of CD_ORIGINDEX/CD_TESSLOOPNORMAL layers */
-    ccgDM_get_tessface_data_layer(dm, type);
-  }
-
-  return DM_get_tessface_data(dm, index, type);
-}
-
-static void *ccgDM_get_poly_data(DerivedMesh *dm, int index, int type)
-{
-  if (type == CD_ORIGINDEX) {
-    /* ensure creation of CD_ORIGINDEX layer */
-    ccgDM_get_tessface_data_layer(dm, type);
-  }
-
-  return DM_get_poly_data(dm, index, type);
 }
 
 static int ccgDM_getNumGrids(DerivedMesh *dm)
@@ -1705,25 +1569,6 @@ static BLI_bitmap **ccgDM_getGridHidden(DerivedMesh *dm)
   return ccgdm->gridHidden;
 }
 
-static const MeshElemMap *ccgDM_getPolyMap(Object *ob, DerivedMesh *dm)
-{
-  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-
-  if (!ccgdm->multires.mmd && !ccgdm->pmap && ob->type == OB_MESH) {
-    Mesh *me = ob->data;
-
-    BKE_mesh_vert_poly_map_create(&ccgdm->pmap,
-                                  &ccgdm->pmap_mem,
-                                  me->mpoly,
-                                  me->mloop,
-                                  me->totvert,
-                                  me->totpoly,
-                                  me->totloop);
-  }
-
-  return ccgdm->pmap;
-}
-
 /* WARNING! *MUST* be called in an 'loops_cache_rwlock' protected thread context! */
 static void ccgDM_recalcLoopTri(DerivedMesh *dm)
 {
@@ -1773,17 +1618,11 @@ static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
 
   ccgdm->dm.copyVertArray = ccgDM_copyFinalVertArray;
   ccgdm->dm.copyEdgeArray = ccgDM_copyFinalEdgeArray;
-  ccgdm->dm.copyTessFaceArray = ccgDM_copyFinalFaceArray;
   ccgdm->dm.copyLoopArray = ccgDM_copyFinalLoopArray;
   ccgdm->dm.copyPolyArray = ccgDM_copyFinalPolyArray;
 
-  ccgdm->dm.getVertData = ccgDM_get_vert_data;
-  ccgdm->dm.getEdgeData = ccgDM_get_edge_data;
-  ccgdm->dm.getTessFaceData = ccgDM_get_tessface_data;
-  ccgdm->dm.getPolyData = ccgDM_get_poly_data;
   ccgdm->dm.getVertDataArray = ccgDM_get_vert_data_layer;
   ccgdm->dm.getEdgeDataArray = ccgDM_get_edge_data_layer;
-  ccgdm->dm.getTessFaceDataArray = ccgDM_get_tessface_data_layer;
   ccgdm->dm.getPolyDataArray = ccgDM_get_poly_data_layer;
   ccgdm->dm.getNumGrids = ccgDM_getNumGrids;
   ccgdm->dm.getGridSize = ccgDM_getGridSize;
@@ -1792,7 +1631,6 @@ static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
   ccgdm->dm.getGridKey = ccgDM_getGridKey;
   ccgdm->dm.getGridFlagMats = ccgDM_getGridFlagMats;
   ccgdm->dm.getGridHidden = ccgDM_getGridHidden;
-  ccgdm->dm.getPolyMap = ccgDM_getPolyMap;
 
   ccgdm->dm.recalcLoopTri = ccgDM_recalcLoopTri;
 
@@ -1848,7 +1686,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
   int index;
   int i;
   int vertNum = 0, edgeNum = 0, faceNum = 0;
-  int *vertOrigIndex, *faceOrigIndex, *polyOrigIndex, *base_polyOrigIndex, *edgeOrigIndex;
+  int *vertOrigIndex, *polyOrigIndex, *base_polyOrigIndex, *edgeOrigIndex;
   short *edgeFlags = ccgdm->edgeFlags;
   DMFlagMat *faceFlags = ccgdm->faceFlags;
   int *polyidx = NULL;
@@ -1884,7 +1722,6 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
   vertOrigIndex = DM_get_vert_data_layer(&ccgdm->dm, CD_ORIGINDEX);
   edgeOrigIndex = DM_get_edge_data_layer(&ccgdm->dm, CD_ORIGINDEX);
 
-  faceOrigIndex = DM_get_tessface_data_layer(&ccgdm->dm, CD_ORIGINDEX);
   polyOrigIndex = DM_get_poly_data_layer(&ccgdm->dm, CD_ORIGINDEX);
 
   has_edge_cd = ((ccgdm->dm.edgeData.totlayer - (edgeOrigIndex ? 1 : 0)) != 0);
@@ -2006,12 +1843,6 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
           /* Copy over poly data, e.g. #CD_FACEMAP. */
           CustomData_copy_data(&dm->polyData, &ccgdm->dm.polyData, origIndex, faceNum, 1);
 
-          /* Set original index data. */
-          if (faceOrigIndex) {
-            /* reference the index in 'polyOrigIndex' */
-            *faceOrigIndex = faceNum;
-            faceOrigIndex++;
-          }
           if (polyOrigIndex) {
             *polyOrigIndex = base_polyOrigIndex ? base_polyOrigIndex[origIndex] : origIndex;
             polyOrigIndex++;

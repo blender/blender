@@ -35,6 +35,7 @@ struct Base;
 struct Bone;
 struct Depsgraph;
 struct EditBone;
+struct GPUSelectResult;
 struct ListBase;
 struct Main;
 struct Mesh;
@@ -157,22 +158,22 @@ int ED_armature_join_objects_exec(struct bContext *C, struct wmOperator *op);
 
 struct Base *ED_armature_base_and_ebone_from_select_buffer(struct Base **bases,
                                                            uint bases_len,
-                                                           int hit,
+                                                           unsigned int select_id,
                                                            struct EditBone **r_ebone);
 struct Object *ED_armature_object_and_ebone_from_select_buffer(struct Object **objects,
                                                                uint objects_len,
-                                                               int hit,
+                                                               unsigned int select_id,
                                                                struct EditBone **r_ebone);
 struct Base *ED_armature_base_and_pchan_from_select_buffer(struct Base **bases,
                                                            uint bases_len,
-                                                           int hit,
+                                                           unsigned int select_id,
                                                            struct bPoseChannel **r_pchan);
 /**
  * For callers that don't need the pose channel.
  */
 struct Base *ED_armature_base_and_bone_from_select_buffer(struct Base **bases,
                                                           uint bases_len,
-                                                          int hit,
+                                                          unsigned int select_id,
                                                           struct Bone **r_bone);
 bool ED_armature_edit_deselect_all(struct Object *obedit);
 bool ED_armature_edit_deselect_all_visible(struct Object *obedit);
@@ -334,7 +335,7 @@ void ED_armature_pose_select_pick_bone(struct ViewLayer *view_layer,
 bool ED_armature_pose_select_pick_with_buffer(struct ViewLayer *view_layer,
                                               struct View3D *v3d,
                                               struct Base *base,
-                                              const unsigned int *buffer,
+                                              const struct GPUSelectResult *buffer,
                                               short hits,
                                               bool extend,
                                               bool deselect,

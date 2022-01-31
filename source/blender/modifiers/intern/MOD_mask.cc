@@ -837,7 +837,6 @@ ModifierTypeInfo modifierType_Mask = {
     /* deformVertsEM */ nullptr,
     /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
-    /* modifyHair */ nullptr,
     /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,

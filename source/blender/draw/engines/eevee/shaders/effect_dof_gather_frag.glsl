@@ -52,7 +52,7 @@ const float unit_ring_radius = 1.0 / float(gather_ring_count);
 const float unit_sample_radius = 1.0 / float(gather_ring_count + 0.5);
 const float large_kernel_radius = 0.5 + float(gather_ring_count);
 const float smaller_kernel_radius = 0.5 + float(gather_ring_count - gather_density_change_ring);
-/* NOTE(fclem) the bias is reducing issues with density change visible transition. */
+/* NOTE(@fclem): the bias is reducing issues with density change visible transition. */
 const float radius_downscale_factor = smaller_kernel_radius / large_kernel_radius;
 const int change_density_at_ring = (gather_ring_count - gather_density_change_ring + 1);
 const float coc_radius_error = 2.0;
@@ -83,7 +83,7 @@ void dof_gather_init(float base_radius,
 #endif
   center_co = gl_FragCoord.xy + jitter_ofs * base_radius * unit_sample_radius;
 
-  /* TODO(fclem) Seems like the default lod selection is too big. Bias to avoid blocky moving
+  /* TODO(@fclem): Seems like the default lod selection is too big. Bias to avoid blocky moving
    * out of focus shapes. */
   const float lod_bias = -2.0;
   lod = max(floor(log2(base_radius * unit_sample_radius) + 0.5) + lod_bias, 0.0);
@@ -111,7 +111,7 @@ void dof_gather_accumulator(float base_radius,
      * a ring. So we need to compensate for fast gather that does not check CoC intersection. */
     base_radius += (0.5 - noise.x) * 1.5 * unit_ring_radius * base_radius;
   }
-  /* TODO(fclem) another seed? For now Cranly-Partterson rotation with golden ratio. */
+  /* TODO(@fclem): another seed? For now Cranly-Partterson rotation with golden ratio. */
   noise.x = fract(noise.x + 0.61803398875);
 
   float lod, isect_mul;
@@ -172,7 +172,7 @@ void dof_gather_accumulator(float base_radius,
     }
 
 #ifdef DOF_FOREGROUND_PASS /* Reduce issue with closer foreground over distant foreground. */
-    /* TODO(fclem) this seems to not be completely correct as the issue remains. */
+    /* TODO(@fclem): This seems to not be completely correct as the issue remains. */
     float ring_area = (sqr(float(ring) + 0.5 + coc_radius_error) -
                        sqr(float(ring) - 0.5 + coc_radius_error)) *
                       sqr(base_radius * unit_sample_radius);

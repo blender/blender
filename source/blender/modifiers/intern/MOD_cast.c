@@ -589,7 +589,6 @@ ModifierTypeInfo modifierType_Cast = {
     /* deformVertsEM */ deformVertsEM,
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ NULL,
-    /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
 
     /* initData */ initData,

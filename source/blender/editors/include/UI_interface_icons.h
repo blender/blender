@@ -102,7 +102,6 @@ void UI_icon_render_id_ex(const struct bContext *C,
                           const bool use_job,
                           struct PreviewImage *r_preview_image);
 
-
 /**
  * Render size for preview images and icons
  */

@@ -101,7 +101,7 @@ uint get_index(uint i)
  * the format. */
 struct PosNorLoop {
   float x, y, z;
-  /* TODO(kevindietrich) : figure how to compress properly as GLSL does not have char/short types,
+  /* TODO(@kevindietrich): figure how to compress properly as GLSL does not have char/short types,
    * bit operations get tricky. */
   float nx, ny, nz;
   float flag;

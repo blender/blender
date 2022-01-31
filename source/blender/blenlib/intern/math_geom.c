@@ -3299,8 +3299,8 @@ static bool point_in_slice(const float p[3],
   return (h >= 0.0f && h <= 1.0f);
 }
 
-/* adult sister defining the slice planes by the origin and the normal
- * NOTE |normal| may not be 1 but defining the thickness of the slice */
+/* Adult sister defining the slice planes by the origin and the normal.
+ * NOTE: |normal| may not be 1 but defining the thickness of the slice. */
 static bool point_in_slice_as(const float p[3], const float origin[3], const float normal[3])
 {
   float h, rp[3];

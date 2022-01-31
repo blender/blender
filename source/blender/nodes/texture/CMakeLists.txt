@@ -82,8 +82,5 @@ if(WITH_PYTHON)
   add_definitions(-DWITH_PYTHON)
 endif()
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
 
 blender_add_lib(bf_nodes_texture "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

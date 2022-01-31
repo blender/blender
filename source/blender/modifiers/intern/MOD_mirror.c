@@ -238,7 +238,6 @@ ModifierTypeInfo modifierType_Mirror = {
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ modifyMesh,
-    /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
 
     /* initData */ initData,

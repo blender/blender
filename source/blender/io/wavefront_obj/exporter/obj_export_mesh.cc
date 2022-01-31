@@ -69,16 +69,28 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
  */
 OBJMesh::~OBJMesh()
 {
-  free_mesh_if_needed();
-  if (poly_smooth_groups_) {
-    MEM_freeN(poly_smooth_groups_);
-  }
+  clear();
 }
 
 void OBJMesh::free_mesh_if_needed()
 {
   if (mesh_eval_needs_free_ && export_mesh_eval_) {
     BKE_id_free(nullptr, export_mesh_eval_);
+    export_mesh_eval_ = nullptr;
+    mesh_eval_needs_free_ = false;
+  }
+}
+
+void OBJMesh::clear()
+{
+  free_mesh_if_needed();
+  uv_indices_.clear_and_make_inline();
+  uv_coords_.clear_and_make_inline();
+  loop_to_normal_index_.clear_and_make_inline();
+  normal_coords_.clear_and_make_inline();
+  if (poly_smooth_groups_) {
+    MEM_freeN(poly_smooth_groups_);
+    poly_smooth_groups_ = nullptr;
   }
 }
 
@@ -256,7 +268,7 @@ Vector<int> OBJMesh::calc_poly_vertex_indices(const int poly_index) const
   return r_poly_vertex_indices;
 }
 
-void OBJMesh::store_uv_coords_and_indices(Vector<std::array<float, 2>> &r_uv_coords)
+void OBJMesh::store_uv_coords_and_indices()
 {
   const MPoly *mpoly = export_mesh_eval_->mpoly;
   const MLoop *mloop = export_mesh_eval_->mloop;
@@ -276,7 +288,7 @@ void OBJMesh::store_uv_coords_and_indices(Vector<std::array<float, 2>> &r_uv_coo
   uv_indices_.resize(totpoly);
   /* At least total vertices of a mesh will be present in its texture map. So
    * reserve minimum space early. */
-  r_uv_coords.reserve(totvert);
+  uv_coords_.reserve(totvert);
 
   tot_uv_vertices_ = 0;
   for (int vertex_index = 0; vertex_index < totvert; vertex_index++) {
@@ -288,11 +300,10 @@ void OBJMesh::store_uv_coords_and_indices(Vector<std::array<float, 2>> &r_uv_coo
       const int vertices_in_poly = mpoly[uv_vert->poly_index].totloop;
 
       /* Store UV vertex coordinates. */
-      r_uv_coords.resize(tot_uv_vertices_);
+      uv_coords_.resize(tot_uv_vertices_);
       const int loopstart = mpoly[uv_vert->poly_index].loopstart;
       Span<float> vert_uv_coords(mloopuv[loopstart + uv_vert->loop_of_poly_index].uv, 2);
-      r_uv_coords[tot_uv_vertices_ - 1][0] = vert_uv_coords[0];
-      r_uv_coords[tot_uv_vertices_ - 1][1] = vert_uv_coords[1];
+      uv_coords_[tot_uv_vertices_ - 1] = float2(vert_uv_coords[0], vert_uv_coords[1]);
 
       /* Store UV vertex indices. */
       uv_indices_[uv_vert->poly_index].resize(vertices_in_poly);
@@ -340,7 +351,7 @@ static float3 round_float3_to_n_digits(const float3 &v, int round_digits)
   return ans;
 }
 
-void OBJMesh::store_normal_coords_and_indices(Vector<float3> &r_normal_coords)
+void OBJMesh::store_normal_coords_and_indices()
 {
   /* We'll round normal components to 4 digits.
    * This will cover up some minor differences
@@ -358,7 +369,7 @@ void OBJMesh::store_normal_coords_and_indices(Vector<float3> &r_normal_coords)
       *lnors)[3] = (const float(*)[3])(CustomData_get_layer(&export_mesh_eval_->ldata, CD_NORMAL));
   for (int poly_index = 0; poly_index < export_mesh_eval_->totpoly; ++poly_index) {
     const MPoly &mpoly = export_mesh_eval_->mpoly[poly_index];
-    bool need_per_loop_normals = is_ith_poly_smooth(poly_index);
+    bool need_per_loop_normals = lnors != nullptr || (mpoly.flag & ME_SMOOTH);
     if (need_per_loop_normals) {
       for (int loop_of_poly = 0; loop_of_poly < mpoly.totloop; ++loop_of_poly) {
         float3 loop_normal;
@@ -371,7 +382,7 @@ void OBJMesh::store_normal_coords_and_indices(Vector<float3> &r_normal_coords)
         if (loop_norm_index == -1) {
           loop_norm_index = cur_normal_index++;
           normal_to_index.add(rounded_loop_normal, loop_norm_index);
-          r_normal_coords.append(rounded_loop_normal);
+          normal_coords_.append(rounded_loop_normal);
         }
         loop_to_normal_index_[loop_index] = loop_norm_index;
       }
@@ -383,7 +394,7 @@ void OBJMesh::store_normal_coords_and_indices(Vector<float3> &r_normal_coords)
       if (poly_norm_index == -1) {
         poly_norm_index = cur_normal_index++;
         normal_to_index.add(rounded_poly_normal, poly_norm_index);
-        r_normal_coords.append(rounded_poly_normal);
+        normal_coords_.append(rounded_poly_normal);
       }
       for (int i = 0; i < mpoly.totloop; ++i) {
         int loop_index = mpoly.loopstart + i;

@@ -905,8 +905,8 @@ void HIPDevice::tex_alloc(device_texture &mem)
       address_mode = hipAddressModeClamp;
       break;
     case EXTENSION_CLIP:
-      // TODO : (Arya) setting this to Mode Clamp instead of Mode Border because it's unsupported
-      // in hip
+      /* TODO(@arya): setting this to Mode Clamp instead of Mode Border
+       * because it's unsupported in HIP. */
       address_mode = hipAddressModeClamp;
       break;
     default:

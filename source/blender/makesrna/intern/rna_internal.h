@@ -369,6 +369,13 @@ void rna_ViewLayer_active_aov_index_range(
     PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax);
 int rna_ViewLayer_active_aov_index_get(PointerRNA *ptr);
 void rna_ViewLayer_active_aov_index_set(PointerRNA *ptr, int value);
+/** Set `r_rna_path` with the base viewlayer path.
+ *  `rna_path_buffer_size` should be at least `sizeof(ViewLayer.name) * 3`.
+ *  \return actual length of the generayted RNA path.
+ */
+size_t rna_ViewLayer_path_buffer_get(struct ViewLayer *view_layer,
+                                     char *r_rna_path,
+                                     const size_t rna_path_buffer_size);
 
 /* named internal so as not to conflict with obj.update() rna func */
 void rna_Object_internal_update_data(struct Main *bmain,

@@ -101,7 +101,7 @@ static uint gpu_component_size_for_attribute_type(CustomDataType type)
     case CD_PROP_BOOL:
     case CD_PROP_INT32:
     case CD_PROP_FLOAT: {
-      /* TODO(kevindietrich) : should be 1 when scalar attributes conversion is handled by us. See
+      /* TODO(@kevindietrich): should be 1 when scalar attributes conversion is handled by us. See
        * comment #extract_attr_init. */
       return 3;
     }
@@ -317,7 +317,7 @@ static void extract_attr_init(const MeshRenderData *mr,
 
   init_vbo_for_attribute(mr, vbo, request, false, static_cast<uint32_t>(mr->loop_len));
 
-  /* TODO(kevindietrich) : float3 is used for scalar attributes as the implicit conversion done by
+  /* TODO(@kevindietrich): float3 is used for scalar attributes as the implicit conversion done by
    * OpenGL to vec4 for a scalar `s` will produce a `vec4(s, 0, 0, 1)`. However, following the
    * Blender convention, it should be `vec4(s, s, s, 1)`. This could be resolved using a similar
    * texture as for volume attribute, so we can control the conversion ourselves. */

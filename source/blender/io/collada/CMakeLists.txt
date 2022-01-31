@@ -135,10 +135,6 @@ if(WITH_BUILDINFO)
   add_definitions(-DWITH_BUILDINFO)
 endif()
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 if(CMAKE_COMPILER_IS_GNUCXX)
   # COLLADAFWArray.h gives error with gcc 4.5
   string(APPEND CMAKE_CXX_FLAGS " -fpermissive")

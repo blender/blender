@@ -161,7 +161,7 @@ class GHOST_ImeWin32 {
   bool IsEnglishMode();
 
   /* Checks a key whether IME has to do handling. */
-  bool IsImeKeyEvent(char ascii);
+  bool IsImeKeyEvent(char ascii, GHOST_TKey key);
 
   /**
    * Create the IME windows, and allocate required resources for them.

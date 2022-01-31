@@ -39,6 +39,7 @@
 
 #include "BLI_alloca.h"
 #include "BLI_array.h"
+#include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -2464,17 +2465,14 @@ void ED_vgroup_mirror(Object *ob,
         sel = sel_mirr = true;
       }
 
-      /* tag verts we have used */
-      for (vidx = 0, mv = me->mvert; vidx < me->totvert; vidx++, mv++) {
-        mv->flag &= ~ME_VERT_TMP_TAG;
-      }
+      BLI_bitmap *vert_tag = BLI_BITMAP_NEW(me->totvert, __func__);
 
       for (vidx = 0, mv = me->mvert; vidx < me->totvert; vidx++, mv++) {
-        if ((mv->flag & ME_VERT_TMP_TAG) == 0) {
+        if (!BLI_BITMAP_TEST(vert_tag, vidx)) {
           if ((vidx_mirr = mesh_get_x_mirror_vert(ob, NULL, vidx, use_topology)) != -1) {
             if (vidx != vidx_mirr) {
               mv_mirr = &me->mvert[vidx_mirr];
-              if ((mv_mirr->flag & ME_VERT_TMP_TAG) == 0) {
+              if (!BLI_BITMAP_TEST(vert_tag, vidx_mirr)) {
 
                 if (use_vert_sel) {
                   sel = mv->flag & SELECT;
@@ -2489,8 +2487,8 @@ void ED_vgroup_mirror(Object *ob,
                   totmirr++;
                 }
 
-                mv->flag |= ME_VERT_TMP_TAG;
-                mv_mirr->flag |= ME_VERT_TMP_TAG;
+                BLI_BITMAP_ENABLE(vert_tag, vidx);
+                BLI_BITMAP_ENABLE(vert_tag, vidx_mirr);
               }
             }
           }
@@ -2499,6 +2497,8 @@ void ED_vgroup_mirror(Object *ob,
           }
         }
       }
+
+      MEM_freeN(vert_tag);
     }
   }
   else if (ob->type == OB_LATTICE) {

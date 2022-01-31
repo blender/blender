@@ -334,7 +334,6 @@ ModifierTypeInfo modifierType_ParticleSystem = {
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ NULL,
-    /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
 
     /* initData */ initData,

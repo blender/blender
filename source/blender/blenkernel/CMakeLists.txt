@@ -719,10 +719,6 @@ if(WITH_FFTW3)
   add_definitions(-DFFTW3=1)
 endif()
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 if(WITH_FREESTYLE)
   add_definitions(-DWITH_FREESTYLE)
 endif()

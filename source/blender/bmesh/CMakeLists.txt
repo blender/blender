@@ -207,10 +207,6 @@ if(WITH_BULLET)
   add_definitions(-DWITH_BULLET)
 endif()
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 if(WITH_FREESTYLE)
   add_definitions(-DWITH_FREESTYLE)
 endif()
