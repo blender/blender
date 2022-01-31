@@ -20,6 +20,7 @@ set(INC
   ../../blenkernel
   ../../blenlib
   ../../depsgraph
+  ../../gpu
   ../../makesdna
   ../../makesrna
   ../../render

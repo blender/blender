@@ -43,10 +43,26 @@ typedef enum eGPUSelectMode {
 } eGPUSelectMode;
 
 /**
+ * The result of calling #GPU_select_begin & #GPU_select_end.
+ */
+typedef struct GPUSelectResult {
+  /** The selection identifier matching the value passed in by #GPU_select_load_id. */
+  unsigned int id;
+  /**
+   * The nearest depth.
+   * - Only supported by picking modes (#GPU_SELECT_PICK_ALL and #GPU_SELECT_PICK_NEAREST)
+   *   since occlusion quiries don't provide a convenient way of accessing the depth-buffer.
+   * - OpenGL's `GL_SELECT` supported both near and far depths,
+   *   this has not been included as Blender doesn't need this however support could be added.
+   */
+  unsigned int depth;
+} GPUSelectResult;
+
+/**
  * Initialize and provide buffer for results.
  */
-void GPU_select_begin(unsigned int *buffer,
-                      unsigned int bufsize,
+void GPU_select_begin(GPUSelectResult *buffer,
+                      unsigned int buffer_len,
                       const struct rcti *input,
                       eGPUSelectMode mode,
                       int oldhits);
@@ -82,8 +98,8 @@ void GPU_select_cache_end(void);
  *
  * Note that comparing depth as uint is fine.
  */
-const uint *GPU_select_buffer_near(const uint *buffer, int hits);
-uint GPU_select_buffer_remove_by_id(uint *buffer, int hits, uint select_id);
+const GPUSelectResult *GPU_select_buffer_near(const GPUSelectResult *buffer, int hits);
+uint GPU_select_buffer_remove_by_id(GPUSelectResult *buffer, int hits, uint select_id);
 /**
  * Part of the solution copied from `rect_subregion_stride_calc`.
  */

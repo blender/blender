@@ -31,8 +31,8 @@ extern "C" {
 
 /* gpu_select_pick */
 
-void gpu_select_pick_begin(uint (*buffer)[4],
-                           uint bufsize,
+void gpu_select_pick_begin(GPUSelectResult *buffer,
+                           uint buffer_len,
                            const rcti *input,
                            eGPUSelectMode mode);
 bool gpu_select_pick_load_id(uint id, bool end);
@@ -49,7 +49,7 @@ void gpu_select_pick_cache_load_id(void);
 /* gpu_select_sample_query */
 
 void gpu_select_query_begin(
-    uint (*buffer)[4], uint bufsize, const rcti *input, eGPUSelectMode mode, int oldhits);
+    GPUSelectResult *buffer, uint buffer_len, const rcti *input, eGPUSelectMode mode, int oldhits);
 bool gpu_select_query_load_id(uint id);
 uint gpu_select_query_end(void);
 

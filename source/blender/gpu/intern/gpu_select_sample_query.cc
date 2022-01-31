@@ -55,9 +55,9 @@ struct GPUSelectQueryState {
   /* Array holding the id corresponding id to each query. */
   Vector<uint> *ids;
   /* Cache on initialization. */
-  uint (*buffer)[4];
-  /* Buffer size (stores number of integers, for actual size multiply by `sizeof(int)`). */
-  uint bufsize;
+  GPUSelectResult *buffer;
+  /* The capacity of the `buffer` array. */
+  uint buffer_len;
   /* Mode of operation. */
   eGPUSelectMode mode;
   uint index;
@@ -72,14 +72,17 @@ struct GPUSelectQueryState {
 
 static GPUSelectQueryState g_query_state = {false};
 
-void gpu_select_query_begin(
-    uint (*buffer)[4], uint bufsize, const rcti *input, const eGPUSelectMode mode, int oldhits)
+void gpu_select_query_begin(GPUSelectResult *buffer,
+                            uint buffer_len,
+                            const rcti *input,
+                            const eGPUSelectMode mode,
+                            int oldhits)
 {
   GPU_debug_group_begin("Selection Queries");
 
   g_query_state.query_issued = false;
-  g_query_state.bufsize = bufsize;
   g_query_state.buffer = buffer;
+  g_query_state.buffer_len = buffer_len;
   g_query_state.mode = mode;
   g_query_state.index = 0;
   g_query_state.oldhits = oldhits;
@@ -138,10 +141,11 @@ bool gpu_select_query_load_id(uint id)
   g_query_state.query_issued = true;
 
   if (g_query_state.mode == GPU_SELECT_NEAREST_SECOND_PASS) {
-    /* Second pass should never run if first pass fails, can read past 'bufsize' in this case. */
+    /* Second pass should never run if first pass fails,
+     * can read past `buffer_len` in this case. */
     BLI_assert(g_query_state.oldhits != -1);
     if (g_query_state.index < g_query_state.oldhits) {
-      if (g_query_state.buffer[g_query_state.index][3] == id) {
+      if (g_query_state.buffer[g_query_state.index].id == id) {
         g_query_state.index++;
         return true;
       }
@@ -154,7 +158,7 @@ bool gpu_select_query_load_id(uint id)
 uint gpu_select_query_end()
 {
   uint hits = 0;
-  const uint maxhits = g_query_state.bufsize;
+  const uint maxhits = g_query_state.buffer_len;
 
   if (g_query_state.query_issued) {
     g_query_state.queries->end_query();
@@ -168,10 +172,8 @@ uint gpu_select_query_end()
     if (result[i] != 0) {
       if (g_query_state.mode != GPU_SELECT_NEAREST_SECOND_PASS) {
         if (hits < maxhits) {
-          g_query_state.buffer[hits][0] = 1;
-          g_query_state.buffer[hits][1] = 0xFFFF;
-          g_query_state.buffer[hits][2] = 0xFFFF;
-          g_query_state.buffer[hits][3] = ids[i];
+          g_query_state.buffer[hits].depth = 0xFFFF;
+          g_query_state.buffer[hits].id = ids[i];
           hits++;
         }
         else {
@@ -183,9 +185,8 @@ uint gpu_select_query_end()
         int j;
         /* search in buffer and make selected object first */
         for (j = 0; j < g_query_state.oldhits; j++) {
-          if (g_query_state.buffer[j][3] == ids[i]) {
-            g_query_state.buffer[j][1] = 0;
-            g_query_state.buffer[j][2] = 0;
+          if (g_query_state.buffer[j].id == ids[i]) {
+            g_query_state.buffer[j].depth = 0;
           }
         }
         break;

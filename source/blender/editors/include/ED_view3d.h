@@ -41,6 +41,7 @@ struct Camera;
 struct CustomData_MeshMasks;
 struct Depsgraph;
 struct EditBone;
+struct GPUSelectResult;
 struct ID;
 struct MVert;
 struct Main;
@@ -873,7 +874,6 @@ bool ED_view3d_depth_read_cached_seg(
 
 /* select */
 #define MAXPICKELEMS 2500
-#define MAXPICKBUF (4 * MAXPICKELEMS)
 
 typedef enum {
   /* all elements in the region, ignore depth */
@@ -912,21 +912,21 @@ void view3d_opengl_select_cache_end(void);
  * \note (vc->obedit == NULL) can be set to explicitly skip edit-object selection.
  */
 int view3d_opengl_select_ex(struct ViewContext *vc,
-                            unsigned int *buffer,
-                            unsigned int bufsize,
+                            struct GPUSelectResult *buffer,
+                            unsigned int buffer_len,
                             const struct rcti *input,
                             eV3DSelectMode select_mode,
                             eV3DSelectObjectFilter select_filter,
                             bool do_material_slot_selection);
 int view3d_opengl_select(struct ViewContext *vc,
-                         unsigned int *buffer,
-                         unsigned int bufsize,
+                         struct GPUSelectResult *buffer,
+                         unsigned int buffer_len,
                          const struct rcti *input,
                          eV3DSelectMode select_mode,
                          eV3DSelectObjectFilter select_filter);
 int view3d_opengl_select_with_id_filter(struct ViewContext *vc,
-                                        unsigned int *buffer,
-                                        unsigned int bufsize,
+                                        struct GPUSelectResult *buffer,
+                                        unsigned int buffer_len,
                                         const struct rcti *input,
                                         eV3DSelectMode select_mode,
                                         eV3DSelectObjectFilter select_filter,

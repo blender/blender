@@ -238,10 +238,8 @@ static int depth_cmp(const void *v1, const void *v2)
 /* depth sorting */
 typedef struct GPUPickState {
   /* cache on initialization */
-  uint (*buffer)[4];
-
-  /* Buffer size (stores number of integers, for actual size multiply by sizeof integer). */
-  uint bufsize;
+  GPUSelectResult *buffer;
+  uint buffer_len;
   /* mode of operation */
   eGPUSelectMode mode;
 
@@ -303,7 +301,10 @@ typedef struct GPUPickState {
 
 static GPUPickState g_pick_state = {0};
 
-void gpu_select_pick_begin(uint (*buffer)[4], uint bufsize, const rcti *input, eGPUSelectMode mode)
+void gpu_select_pick_begin(GPUSelectResult *buffer,
+                           const uint buffer_len,
+                           const rcti *input,
+                           eGPUSelectMode mode)
 {
   GPUPickState *ps = &g_pick_state;
 
@@ -317,8 +318,8 @@ void gpu_select_pick_begin(uint (*buffer)[4], uint bufsize, const rcti *input, e
 
   GPU_debug_group_begin("Selection Pick");
 
-  ps->bufsize = bufsize;
   ps->buffer = buffer;
+  ps->buffer_len = buffer_len;
   ps->mode = mode;
 
   const uint rect_len = (uint)(BLI_rcti_size_x(input) * BLI_rcti_size_y(input));
@@ -580,7 +581,7 @@ uint gpu_select_pick_end(void)
     rect_depth_final = ps->gl.rect_depth;
   }
 
-  uint maxhits = g_pick_state.bufsize;
+  uint maxhits = g_pick_state.buffer_len;
   DepthID *depth_data;
   uint depth_data_len = 0;
 
@@ -675,11 +676,8 @@ uint gpu_select_pick_end(void)
 #ifdef DEBUG_PRINT
       printf("  hit: %u: depth %u\n", depth_data[i].id, depth_data[i].depth);
 #endif
-      /* first 3 are dummy values */
-      g_pick_state.buffer[hits][0] = 1;
-      g_pick_state.buffer[hits][1] = depth_data[i].depth;
-      g_pick_state.buffer[hits][2] = 0x0; /* z-far is currently never used. */
-      g_pick_state.buffer[hits][3] = depth_data[i].id;
+      g_pick_state.buffer[hits].depth = depth_data[i].depth;
+      g_pick_state.buffer[hits].id = depth_data[i].id;
       hits++;
     }
     BLI_assert(hits < maxhits);
