@@ -49,6 +49,7 @@ static int gpu_shader_curve_vec(GPUMaterial *mat,
 
   CurveMapping *cumap = (CurveMapping *)node->storage;
 
+  BKE_curvemapping_init(cumap);
   BKE_curvemapping_table_RGBA(cumap, &array, &size);
   GPUNodeLink *tex = GPU_color_band(mat, size, array, &layer);
 
