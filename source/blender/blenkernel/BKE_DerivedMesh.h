@@ -104,11 +104,6 @@ typedef enum DerivedMeshType {
   DM_TYPE_CCGDM,
 } DerivedMeshType;
 
-typedef enum DMDirtyFlag {
-  /* dm has valid tessellated faces, but tessellated CDDATA need to be updated. */
-  DM_DIRTY_TESS_CDLAYERS = 1 << 0,
-} DMDirtyFlag;
-
 typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
   /** Private DerivedMesh data, only for internal DerivedMesh use */
@@ -117,7 +112,6 @@ struct DerivedMesh {
   int needsFree;    /* checked on ->release, is set to 0 for cached results */
   int deformedOnly; /* set by modifier stack if only deformed from original */
   DerivedMeshType type;
-  DMDirtyFlag dirty;
 
   /**
    * \warning Typical access is done via #getLoopTriArray, #getNumLoopTri.

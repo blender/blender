@@ -275,7 +275,6 @@ void DM_init(DerivedMesh *dm,
   DM_init_funcs(dm);
 
   dm->needsFree = 1;
-  dm->dirty = (DMDirtyFlag)0;
 
   /* Don't use #CustomData_reset because we don't want to touch custom-data. */
   copy_vn_i(dm->vertData.typemap, CD_NUMTYPES, -1);
@@ -313,7 +312,6 @@ void DM_from_template_ex(DerivedMesh *dm,
   DM_init_funcs(dm);
 
   dm->needsFree = 1;
-  dm->dirty = (DMDirtyFlag)0;
 }
 void DM_from_template(DerivedMesh *dm,
                       DerivedMesh *source,
