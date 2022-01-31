@@ -193,7 +193,7 @@ static std::string read_temp_file_in_string(const std::string &file_path)
   std::string res;
   size_t buffer_len;
   void *buffer = BLI_file_read_text_as_mem(file_path.c_str(), 0, &buffer_len);
-  if (buffer != NULL) {
+  if (buffer != nullptr) {
     res.assign((const char *)buffer, buffer_len);
     MEM_freeN(buffer);
   }
