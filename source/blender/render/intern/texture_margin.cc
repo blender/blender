@@ -470,7 +470,6 @@ static void generate_margin(ImBuf *ibuf,
   else {
     BLI_assert(dm != nullptr);
     BLI_assert(me == nullptr);
-    BLI_assert(mloopuv == nullptr);
     totpoly = dm->getNumPolys(dm);
     totedge = dm->getNumEdges(dm);
     totloop = dm->getNumLoops(dm);
