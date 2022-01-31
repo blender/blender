@@ -57,10 +57,12 @@ class AbstractTreeDisplay;
 class AbstractTreeElement;
 }  // namespace blender::ed::outliner
 
+namespace outliner = blender::ed::outliner;
+
 struct SpaceOutliner_Runtime {
   /** Object to create and manage the tree for a specific display type (View Layers, Scenes,
    * Blender File, etc.). */
-  std::unique_ptr<blender::ed::outliner::AbstractTreeDisplay> tree_display;
+  std::unique_ptr<outliner::AbstractTreeDisplay> tree_display;
 
   /** Pointers to tree-store elements, grouped by `(id, type, nr)`
    *  in hash-table for faster searching. */
@@ -97,7 +99,7 @@ typedef struct TreeElement {
    * #TreeElement. Step by step, data should be moved to it and operations based on the type should
    * become virtual methods of the class hierarchy.
    */
-  std::unique_ptr<blender::ed::outliner::AbstractTreeElement> type;
+  std::unique_ptr<outliner::AbstractTreeElement> type;
 
   ListBase subtree;
   int xs, ys;                /* Do selection. */
