@@ -137,37 +137,39 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(nmd, DNA_struct_default_get(NodesModifierData), modifier);
 }
 
-static void addIdsUsedBySocket(const ListBase *sockets, Set<ID *> &ids)
+static void add_used_ids_from_sockets(const ListBase &sockets, Set<ID *> &ids)
 {
-  LISTBASE_FOREACH (const bNodeSocket *, socket, sockets) {
-    if (socket->type == SOCK_OBJECT) {
-      Object *object = ((bNodeSocketValueObject *)socket->default_value)->value;
-      if (object != nullptr) {
-        ids.add(&object->id);
+  LISTBASE_FOREACH (const bNodeSocket *, socket, &sockets) {
+    switch (socket->type) {
+      case SOCK_OBJECT: {
+        Object *object = ((bNodeSocketValueObject *)socket->default_value)->value;
+        if (object != nullptr) {
+          ids.add(&object->id);
+        }
       }
-    }
-    else if (socket->type == SOCK_COLLECTION) {
-      Collection *collection = ((bNodeSocketValueCollection *)socket->default_value)->value;
-      if (collection != nullptr) {
-        ids.add(&collection->id);
+      case SOCK_COLLECTION: {
+        Collection *collection = ((bNodeSocketValueCollection *)socket->default_value)->value;
+        if (collection != nullptr) {
+          ids.add(&collection->id);
+        }
       }
-    }
-    else if (socket->type == SOCK_MATERIAL) {
-      Material *material = ((bNodeSocketValueMaterial *)socket->default_value)->value;
-      if (material != nullptr) {
-        ids.add(&material->id);
+      case SOCK_MATERIAL: {
+        Material *material = ((bNodeSocketValueMaterial *)socket->default_value)->value;
+        if (material != nullptr) {
+          ids.add(&material->id);
+        }
       }
-    }
-    else if (socket->type == SOCK_TEXTURE) {
-      Tex *texture = ((bNodeSocketValueTexture *)socket->default_value)->value;
-      if (texture != nullptr) {
-        ids.add(&texture->id);
+      case SOCK_TEXTURE: {
+        Tex *texture = ((bNodeSocketValueTexture *)socket->default_value)->value;
+        if (texture != nullptr) {
+          ids.add(&texture->id);
+        }
       }
-    }
-    else if (socket->type == SOCK_IMAGE) {
-      Image *image = ((bNodeSocketValueImage *)socket->default_value)->value;
-      if (image != nullptr) {
-        ids.add(&image->id);
+      case SOCK_IMAGE: {
+        Image *image = ((bNodeSocketValueImage *)socket->default_value)->value;
+        if (image != nullptr) {
+          ids.add(&image->id);
+        }
       }
     }
   }
@@ -178,8 +180,8 @@ static void find_used_ids_from_nodes(const bNodeTree &tree, Set<ID *> &ids)
   Set<const bNodeTree *> handled_groups;
 
   LISTBASE_FOREACH (const bNode *, node, &tree.nodes) {
-    addIdsUsedBySocket(&node->inputs, ids);
-    addIdsUsedBySocket(&node->outputs, ids);
+    add_used_ids_from_sockets(node->inputs, ids);
+    add_used_ids_from_sockets(node->outputs, ids);
 
     if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
       const bNodeTree *group = (bNodeTree *)node->id;
@@ -236,34 +238,36 @@ static void add_object_relation(const ModifierUpdateDepsgraphContext *ctx, Objec
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-  DEG_add_modifier_to_transform_relation(ctx->node, "Nodes Modifier");
-  if (nmd->node_group != nullptr) {
-    DEG_add_node_tree_output_relation(ctx->node, nmd->node_group, "Nodes Modifier");
+  if (nmd->node_group == nullptr) {
+    return;
+  }
 
-    Set<ID *> used_ids;
-    find_used_ids_from_settings(nmd->settings, used_ids);
-    find_used_ids_from_nodes(*nmd->node_group, used_ids);
-    for (ID *id : used_ids) {
-      switch ((ID_Type)GS(id->name)) {
-        case ID_OB: {
-          Object *object = reinterpret_cast<Object *>(id);
-          add_object_relation(ctx, *object);
-          break;
-        }
-        case ID_GR: {
-          Collection *collection = reinterpret_cast<Collection *>(id);
-          add_collection_relation(ctx, *collection);
-          break;
-        }
-        case ID_IM:
-        case ID_TE: {
-          DEG_add_generic_id_relation(ctx->node, id, "Nodes Modifier");
-        }
-        default: {
-          /* Purposefully don't add relations for materials. While there are material sockets,
-           * the pointers are only passed around as handles rather than dereferenced. */
-          break;
-        }
+  DEG_add_modifier_to_transform_relation(ctx->node, "Nodes Modifier");
+  DEG_add_node_tree_output_relation(ctx->node, nmd->node_group, "Nodes Modifier");
+
+  Set<ID *> used_ids;
+  find_used_ids_from_settings(nmd->settings, used_ids);
+  find_used_ids_from_nodes(*nmd->node_group, used_ids);
+  for (ID *id : used_ids) {
+    switch ((ID_Type)GS(id->name)) {
+      case ID_OB: {
+        Object *object = reinterpret_cast<Object *>(id);
+        add_object_relation(ctx, *object);
+        break;
+      }
+      case ID_GR: {
+        Collection *collection = reinterpret_cast<Collection *>(id);
+        add_collection_relation(ctx, *collection);
+        break;
+      }
+      case ID_IM:
+      case ID_TE: {
+        DEG_add_generic_id_relation(ctx->node, id, "Nodes Modifier");
+      }
+      default: {
+        /* Purposefully don't add relations for materials. While there are material sockets,
+         * the pointers are only passed around as handles rather than dereferenced. */
+        break;
       }
     }
   }
