@@ -1730,6 +1730,8 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
       normalize_v3(no);
     }
     else {
+      /* In case the normalizing per pixel isn't optimal,
+       * we could cache or access from evaluated mesh. */
       normal_tri_v3(no,
                     ps->mvert_eval[lt_vtri[0]].co,
                     ps->mvert_eval[lt_vtri[1]].co,
