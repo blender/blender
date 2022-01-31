@@ -26,6 +26,8 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "BLI_math_vec_types.hh"
+
 #include "image_batches.hh"
 #include "image_private.hh"
 #include "image_wrappers.hh"
@@ -80,11 +82,17 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
  private:
   DRWPass *create_image_pass() const
   {
-    /* Write depth is needed for background overlay rendering. Near depth is used for
-     * transparency checker and Far depth is used for indicating the image size. */
-    DRWState state = static_cast<DRWState>(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                                           DRW_STATE_DEPTH_ALWAYS | DRW_STATE_BLEND_ALPHA_PREMUL);
+    DRWState state = static_cast<DRWState>(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_ALWAYS |
+                                           DRW_STATE_BLEND_ALPHA_PREMUL);
     return DRW_pass_create("Image", state);
+  }
+
+  DRWPass *create_depth_pass() const
+  {
+    /* Depth is needed for background overlay rendering. Near depth is used for
+     * transparency checker and Far depth is used for indicating the image size. */
+    DRWState state = static_cast<DRWState>(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
+    return DRW_pass_create("Depth", state);
   }
 
   void add_shgroups(const IMAGE_InstanceData *instance_data) const
@@ -97,7 +105,6 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     DRW_shgroup_uniform_vec4_copy(shgrp, "shuffle", sh_params.shuffle);
     DRW_shgroup_uniform_int_copy(shgrp, "drawFlags", sh_params.flags);
     DRW_shgroup_uniform_bool_copy(shgrp, "imgPremultiplied", sh_params.use_premul_alpha);
-    DRW_shgroup_uniform_vec2_copy(shgrp, "maxUv", instance_data->max_uv);
     float image_mat[4][4];
     unit_m4(image_mat);
     for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
@@ -109,6 +116,37 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       DRWShadingGroup *shgrp_sub = DRW_shgroup_create_sub(shgrp);
       DRW_shgroup_uniform_texture_ex(shgrp_sub, "imageTexture", info.texture, GPU_SAMPLER_DEFAULT);
       DRW_shgroup_call_obmat(shgrp_sub, info.batch, image_mat);
+    }
+  }
+
+  /**
+   * \brief add depth drawing calls.
+   *
+   * The depth is used to identify if the tile exist or transparent.
+   */
+  void add_depth_shgroups(IMAGE_InstanceData &instance_data,
+                          Image *image,
+                          ImageUser *UNUSED(image_user)) const
+  {
+    GPUShader *shader = IMAGE_shader_depth_get();
+    DRWShadingGroup *shgrp = DRW_shgroup_create(shader, instance_data.passes.depth_pass);
+    float image_mat[4][4];
+    unit_m4(image_mat);
+    for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
+      const TextureInfo &info = instance_data.texture_infos[i];
+      if (!info.visible) {
+        continue;
+      }
+
+      LISTBASE_FOREACH (ImageTile *, image_tile_ptr, &image->tiles) {
+        DRWShadingGroup *shsub = DRW_shgroup_create_sub(shgrp);
+        const ImageTileWrapper image_tile(image_tile_ptr);
+        const int tile_x = image_tile.get_tile_x_offset();
+        const int tile_y = image_tile.get_tile_y_offset();
+        float4 min_max_uv(tile_x, tile_y, tile_x + 1, tile_y + 1);
+        DRW_shgroup_uniform_vec4_copy(shsub, "min_max_uv", min_max_uv);
+        DRW_shgroup_call_obmat(shsub, info.batch, image_mat);
+      }
     }
   }
 
@@ -367,6 +405,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
   {
     IMAGE_InstanceData *instance_data = vedata->instance_data;
     instance_data->passes.image_pass = create_image_pass();
+    instance_data->passes.depth_pass = create_depth_pass();
   }
 
   void cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser) const override
@@ -376,7 +415,6 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     TextureMethod method(instance_data);
 
     instance_data->partial_update.ensure_image(image);
-    instance_data->max_uv_update();
     instance_data->clear_dirty_flag();
 
     // Step: Find out which screen space textures are needed to draw on the screen. Remove the
@@ -391,6 +429,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
 
     // Step: Add the GPU textures to the shgroup.
     instance_data->update_batches();
+    add_depth_shgroups(*instance_data, image, iuser);
     add_shgroups(instance_data);
   }
 
@@ -408,6 +447,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     GPU_framebuffer_clear_color_depth(dfbl->default_fb, clear_col, 1.0);
 
     DRW_view_set_active(instance_data->view);
+    DRW_draw_pass(instance_data->passes.depth_pass);
     DRW_draw_pass(instance_data->passes.image_pass);
     DRW_view_set_active(nullptr);
   }

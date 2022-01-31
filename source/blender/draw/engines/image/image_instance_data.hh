@@ -57,29 +57,14 @@ struct IMAGE_InstanceData {
 
   struct {
     DRWPass *image_pass;
+    DRWPass *depth_pass;
   } passes;
 
   /** \brief Transform matrix to convert a normalized screen space coordinates to texture space. */
   float ss_to_texture[4][4];
   TextureInfo texture_infos[SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN];
 
-  /**
-   * \brief Maximum uv's that are on the border of the image.
-   *
-   * Larger UV coordinates would be drawn as a border. */
-  float max_uv[2];
-
  public:
-  void max_uv_update()
-  {
-    copy_v2_fl2(max_uv, 1.0f, 1.0);
-    LISTBASE_FOREACH (ImageTile *, image_tile_ptr, &image->tiles) {
-      ImageTileWrapper image_tile(image_tile_ptr);
-      max_uv[0] = max_ii(max_uv[0], image_tile.get_tile_x_offset() + 1);
-      max_uv[1] = max_ii(max_uv[1], image_tile.get_tile_y_offset() + 1);
-    }
-  }
-
   void clear_dirty_flag()
   {
     reset_dirty_flag(false);

@@ -3,7 +3,6 @@
 void main()
 {
   vec3 image_pos = vec3(pos, 0.0);
-  uv_screen = image_pos.xy;
   uv_image = uv;
 
   vec3 world_pos = point_object_to_world(image_pos);
