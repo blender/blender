@@ -104,7 +104,7 @@ MINLINE void float_to_byte_dither_v4(
 
 bool IMB_alpha_affects_rgb(const ImBuf *ibuf)
 {
-  return (ibuf->flags & IB_alphamode_channel_packed) == 0;
+  return ibuf && (ibuf->flags & IB_alphamode_channel_packed) == 0;
 }
 
 void IMB_buffer_byte_from_float(uchar *rect_to,
