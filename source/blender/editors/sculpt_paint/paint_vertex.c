@@ -1483,7 +1483,7 @@ static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache 
 {
   Scene *scene = CTX_data_scene(C);
   Brush *brush = paint->brush;
-  int cur_brush_size = BKE_brush_size_get(scene, brush);
+  int cur_brush_size = BKE_brush_size_get(scene, brush, false);
 
   BLI_strncpy(
       cache->saved_active_brush_name, brush->id.name + 2, sizeof(cache->saved_active_brush_name));
@@ -1492,8 +1492,8 @@ static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache 
   brush = BKE_paint_toolslots_brush_get(paint, WPAINT_TOOL_BLUR);
   if (brush) {
     BKE_paint_brush_set(paint, brush);
-    cache->saved_smooth_size = BKE_brush_size_get(scene, brush);
-    BKE_brush_size_set(scene, brush, cur_brush_size);
+    cache->saved_smooth_size = BKE_brush_size_get(scene, brush, false);
+    BKE_brush_size_set(scene, brush, cur_brush_size, false);
     BKE_curvemapping_init(brush->curve);
   }
 }
@@ -1507,7 +1507,7 @@ static void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache
   BLI_assert(brush == cache->brush);
 
   /* Try to switch back to the saved/previous brush. */
-  BKE_brush_size_set(scene, brush, cache->saved_smooth_size);
+  BKE_brush_size_set(scene, brush, cache->saved_smooth_size, false);
   brush = (Brush *)BKE_libblock_find_name(bmain, ID_BR, cache->saved_active_brush_name);
   if (brush) {
     BKE_paint_brush_set(paint, brush);
@@ -1521,10 +1521,6 @@ static void vwpaint_update_cache_invariants(
   StrokeCache *cache;
   Scene *scene = CTX_data_scene(C);
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
-<<<<<<< HEAD
-  Brush *brush = vp->paint.brush;
-=======
->>>>>>> master
   ViewContext *vc = paint_stroke_view_context(op->customdata);
   Object *ob = CTX_data_active_object(C);
   float mat[3][3];

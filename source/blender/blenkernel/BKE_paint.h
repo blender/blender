@@ -859,6 +859,10 @@ typedef struct SculptSession {
   float pivot_rot[4];
   float pivot_scale[3];
 
+  float prev_pivot_pos[3];
+  float prev_pivot_rot[4];
+  float prev_pivot_scale[3];
+
   float init_pivot_pos[3];
   float init_pivot_rot[4];
   float init_pivot_scale[3];

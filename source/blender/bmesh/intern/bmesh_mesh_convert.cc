@@ -589,8 +589,6 @@ void BM_mesh_bm_from_me(Object *ob,
     cd_shape_key_offset[i] = bm->vdata.layers[idx].offset;
   }
 
-  vtable = static_cast<BMVert**>(MEM_mallocN(sizeof(BMVert **) * me->totvert, __func__));
-
   Span<MVert> mvert{me->mvert, me->totvert};
   Array<BMVert *> vtable(me->totvert);
   for (const int i : mvert.index_range()) {

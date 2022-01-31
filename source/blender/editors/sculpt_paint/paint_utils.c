@@ -679,8 +679,6 @@ static int curvemapping_preset_get_path(
 
 static int curvemapping_preset_exec(bContext *C, wmOperator *op)
 {
-  Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
-
   PointerRNA ctx_ptr;
   RNA_pointer_create(NULL, &RNA_Context, C, &ctx_ptr);
 

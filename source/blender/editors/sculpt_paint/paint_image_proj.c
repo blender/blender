@@ -4467,7 +4467,6 @@ static void project_paint_begin(const bContext *C,
   /* At the moment this is just ps->arena_mt[0], but use this to show were not multi-threading. */
   MemArena *arena;
 
-  Object *ob = CTX_data_active_object(C);
   bool use_brush_channels = paint_use_channels(C);
 
   const int diameter = 2 * BKE_brush_size_get(ps->scene, ps->brush, use_brush_channels);
