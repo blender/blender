@@ -872,7 +872,13 @@ bool ED_view3d_autodist_simple(struct ARegion *region,
 bool ED_view3d_depth_read_cached_seg(
     const ViewDepths *vd, const int mval_sta[2], const int mval_end[2], int margin, float *depth);
 
-/* select */
+/**
+ * The default value for the maximum number of elements that can be selected at once
+ * using view-port selection.
+ *
+ * \note in many cases this defines the size of fixed-size stack buffers,
+ * so take care increasing this value.
+ */
 #define MAXPICKELEMS 2500
 
 typedef enum {

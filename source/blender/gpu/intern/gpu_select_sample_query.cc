@@ -48,22 +48,22 @@ using namespace blender;
 using namespace blender::gpu;
 
 struct GPUSelectQueryState {
-  /* Tracks whether a query has been issued so that gpu_load_id can end the previous one. */
+  /** Tracks whether a query has been issued so that gpu_load_id can end the previous one. */
   bool query_issued;
-  /* GPU queries abstraction. Contains an array of queries. */
+  /** GPU queries abstraction. Contains an array of queries. */
   QueryPool *queries;
-  /* Array holding the id corresponding id to each query. */
+  /** Array holding the id corresponding id to each query. */
   Vector<uint> *ids;
-  /* Cache on initialization. */
+  /** Cache on initialization. */
   GPUSelectResult *buffer;
-  /* The capacity of the `buffer` array. */
+  /** The capacity of the `buffer` array. */
   uint buffer_len;
-  /* Mode of operation. */
+  /** Mode of operation. */
   eGPUSelectMode mode;
   uint index;
   int oldhits;
 
-  /* Previous state to restore after drawing. */
+  /** Previous state to restore after drawing. */
   int viewport[4];
   int scissor[4];
   eGPUWriteMask write_mask;
@@ -114,7 +114,7 @@ void gpu_select_query_begin(GPUSelectResult *buffer,
   /* occlusion queries operates on fragments that pass tests and since we are interested on all
    * objects in the view frustum independently of their order, we need to disable the depth test */
   if (mode == GPU_SELECT_ALL) {
-    /* glQueries on Windows+Intel drivers only works with depth testing turned on.
+    /* #glQueries on Windows+Intel drivers only works with depth testing turned on.
      * See T62947 for details */
     GPU_depth_test(GPU_DEPTH_ALWAYS);
     GPU_depth_mask(true);
