@@ -1269,7 +1269,7 @@ static void remove_id_attribute_from_instances(GeometrySet &geometry_set)
 {
   geometry_set.modify_geometry_sets([&](GeometrySet &sub_geometry) {
     if (sub_geometry.has<InstancesComponent>()) {
-      InstancesComponent &component = geometry_set.get_component_for_write<InstancesComponent>();
+      InstancesComponent &component = sub_geometry.get_component_for_write<InstancesComponent>();
       component.attributes().remove("id");
     }
   });

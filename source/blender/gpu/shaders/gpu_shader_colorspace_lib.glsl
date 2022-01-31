@@ -6,13 +6,13 @@
 uniform bool srgbTarget = false;
 #endif
 
-vec4 blender_srgb_to_framebuffer_space(vec4 color)
+vec4 blender_srgb_to_framebuffer_space(vec4 col)
 {
   if (srgbTarget) {
-    vec3 c = max(color.rgb, vec3(0.0));
+    vec3 c = max(col.rgb, vec3(0.0));
     vec3 c1 = c * (1.0 / 12.92);
     vec3 c2 = pow((c + 0.055) * (1.0 / 1.055), vec3(2.4));
-    color.rgb = mix(c1, c2, step(vec3(0.04045), c));
+    col.rgb = mix(c1, c2, step(vec3(0.04045), c));
   }
-  return color;
+  return col;
 }
