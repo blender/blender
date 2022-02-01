@@ -439,6 +439,9 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
   for (const StageInterfaceInfo *iface : info.vertex_out_interfaces_) {
     print_interface(ss, "out", *iface);
   }
+  if (!GLContext::layered_rendering_support && bool(info.builtins_ & BuiltinBits::LAYER)) {
+    ss << "out int gpu_Layer;\n";
+  }
   ss << "\n";
   return ss.str();
 }
@@ -501,7 +504,7 @@ static StageInterfaceInfo *find_interface_by_name(const Vector<StageInterfaceInf
                                                   const StringRefNull &name)
 {
   for (auto *iface : ifaces) {
-    if (iface->name == name) {
+    if (iface->instance_name == name) {
       return iface;
     }
   }
@@ -510,8 +513,8 @@ static StageInterfaceInfo *find_interface_by_name(const Vector<StageInterfaceInf
 
 std::string GLShader::geometry_interface_declare(const ShaderCreateInfo &info) const
 {
-
   std::stringstream ss;
+
   ss << "\n/* Interfaces. */\n";
   for (const StageInterfaceInfo *iface : info.vertex_out_interfaces_) {
     bool has_matching_output_iface = find_interface_by_name(info.geometry_out_interfaces_,
@@ -545,6 +548,65 @@ std::string GLShader::compute_layout_declare(const ShaderCreateInfo &info) const
   ss << "\n";
   return ss.str();
 }
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Passthrough geometry shader emulation
+ *
+ * \{ */
+
+std::string GLShader::workaround_geometry_shader_source_create(
+    const shader::ShaderCreateInfo &info)
+{
+  std::stringstream ss;
+
+  const bool do_layer_workaround = !GLContext::layered_rendering_support &&
+                                   bool(info.builtins_ & BuiltinBits::LAYER);
+  const bool do_barycentric_workaround = !GLContext::native_barycentrics_support &&
+                                         bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD);
+
+  shader::ShaderCreateInfo info_modified = info;
+  info_modified.geometry_out_interfaces_ = info_modified.vertex_out_interfaces_;
+  /**
+   * NOTE(@fclem): Assuming we will render TRIANGLES. This will not work with other primitive
+   * types. In this case, it might not trigger an error on some implementations.
+   */
+  info_modified.geometry_layout(PrimitiveIn::TRIANGLES, PrimitiveOut::TRIANGLE_STRIP, 3);
+
+  ss << geometry_layout_declare(info_modified);
+  ss << geometry_interface_declare(info_modified);
+  if (do_layer_workaround) {
+    ss << "in int gpu_Layer[];\n";
+  }
+  ss << "\n";
+
+  ss << "void main()\n";
+  ss << "{\n";
+  if (do_layer_workaround) {
+    ss << "  gl_Layer = gpu_Layer[0];\n";
+  }
+  for (auto i : IndexRange(3)) {
+    for (auto iface : info_modified.vertex_out_interfaces_) {
+      for (auto &inout : iface->inouts) {
+        ss << "  " << iface->instance_name << "_out." << inout.name;
+        ss << " = " << iface->instance_name << "_in[" << i << "]." << inout.name << ";\n";
+      }
+    }
+    ss << "  gl_Position = gl_in[" << i << "].gl_Position;\n";
+    ss << "  EmitVertex();\n";
+  }
+  ss << "}\n";
+  return ss.str();
+}
+
+bool GLShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info)
+{
+  BuiltinBits builtins = info->builtins_;
+  if (!GLContext::native_barycentrics_support && bool(builtins & BuiltinBits::BARYCENTRIC_COORD)) {
+    return true;
+  }
+  return false;
+}
 
 /** \} */
 
@@ -555,7 +617,7 @@ std::string GLShader::compute_layout_declare(const ShaderCreateInfo &info) const
 static char *glsl_patch_default_get()
 {
   /** Used for shader patching. Init once. */
-  static char patch[700] = "\0";
+  static char patch[1024] = "\0";
   if (patch[0] != '\0') {
     return patch;
   }
@@ -598,6 +660,10 @@ static char *glsl_patch_default_get()
   if (GPU_shader_image_load_store_support()) {
     STR_CONCAT(patch, slen, "#extension GL_ARB_shader_image_load_store: enable\n");
     STR_CONCAT(patch, slen, "#extension GL_ARB_shading_language_420pack: enable\n");
+  }
+  if (GLContext::layered_rendering_support) {
+    STR_CONCAT(patch, slen, "#extension GL_AMD_vertex_shader_layer: enable\n");
+    STR_CONCAT(patch, slen, "#define gpu_Layer gl_Layer\n");
   }
 
   /* Fallbacks. */
@@ -713,6 +779,14 @@ bool GLShader::finalize(const shader::ShaderCreateInfo *info)
 {
   if (compilation_failed_) {
     return false;
+  }
+
+  if (info && do_geometry_shader_injection(info)) {
+    std::string source = workaround_geometry_shader_source_create(*info);
+    Vector<const char *> sources;
+    sources.append("version");
+    sources.append(source.c_str());
+    geometry_shader_from_glsl(sources);
   }
 
   glLinkProgram(shader_program_);
