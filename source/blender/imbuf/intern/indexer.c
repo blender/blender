@@ -247,8 +247,10 @@ struct anim_index *IMB_indexer_open(const char *name)
 
 uint64_t IMB_indexer_get_seek_pos(struct anim_index *idx, int frame_index)
 {
-  if (frame_index < 0) {
-    frame_index = 0;
+  /* This is hard coded, because our current timecode files return non zero seek position for index
+   * 0. Only when seeking to 0 it is guaranteed, that first packet will be read. */
+  if (frame_index <= 0) {
+    return 0;
   }
   if (frame_index >= idx->num_entries) {
     frame_index = idx->num_entries - 1;
