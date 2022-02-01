@@ -34,6 +34,7 @@
 
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_create_info_private.hh"
+#include "gpu_shader_dependency_private.h"
 #include "gpu_shader_private.hh"
 
 #undef GPU_SHADER_INTERFACE_INFO
@@ -207,6 +208,19 @@ void gpu_shader_create_info_init()
   if (GPU_type_matches(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD, GPU_OS_ANY, GPU_DRIVER_ANY) ||
       GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY) || GPU_crappy_amd_driver()) {
     draw_modelmat = draw_modelmat_legacy;
+  }
+
+  for (ShaderCreateInfo *info : g_create_infos->values()) {
+    if (info->do_static_compilation_) {
+      info->builtins_ |= static_cast<BuiltinBits>(
+          gpu_shader_dependency_get_builtins(info->vertex_source_.c_str()));
+      info->builtins_ |= static_cast<BuiltinBits>(
+          gpu_shader_dependency_get_builtins(info->fragment_source_.c_str()));
+      info->builtins_ |= static_cast<BuiltinBits>(
+          gpu_shader_dependency_get_builtins(info->geometry_source_.c_str()));
+      info->builtins_ |= static_cast<BuiltinBits>(
+          gpu_shader_dependency_get_builtins(info->compute_source_.c_str()));
+    }
   }
 
   /* TEST */
