@@ -755,7 +755,7 @@ void createTransPose(TransInfo *t)
         continue;
       }
 
-      if (!has_targetless_ik(pchan) == NULL) {
+      if (has_targetless_ik(pchan) == NULL) {
         if (pchan->parent && (bone->flag & BONE_CONNECTED)) {
           if (bone->flag & BONE_HINGE_CHILD_TRANSFORM) {
             has_translate_rotate[0] = true;
@@ -1536,7 +1536,6 @@ void transform_convert_pose_transflags_update(Object *ob, const int mode, const 
   bArmature *arm = ob->data;
   bPoseChannel *pchan;
   Bone *bone;
-  int total = 0;
 
   for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
     bone = pchan->bone;
