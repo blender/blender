@@ -487,7 +487,7 @@ class VIEW3D_PT_tools_brush_settings_advanced_sculpt(Panel, View3DPaintBrushPane
         if context.mode != 'SCULPT':
           return False
 
-        return View3DPaintBrushPanel.poll(cls, context)
+        return View3DPaintBrushPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout

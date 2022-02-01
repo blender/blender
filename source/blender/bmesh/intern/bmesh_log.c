@@ -294,26 +294,15 @@ struct BMLogEntry {
   /* The following GHashes map from an element ID to one of the log
    * types above */
 
-  /* Elements that were in the previous entry, but have been
-   * deleted */
-  GHash *deleted_verts;
-  GHash *deleted_edges;
-  GHash *deleted_edges_post;  // used for split edges
-  GHash *deleted_faces;
-
+  /* topology at beginning of step */
   GHash *topo_modified_verts_pre;
   GHash *topo_modified_edges_pre;
   GHash *topo_modified_faces_pre;
 
+  /* topology at end of step */
   GHash *topo_modified_verts_post;
   GHash *topo_modified_edges_post;
   GHash *topo_modified_faces_post;
-
-  /* Elements that were not in the previous entry, but are in the
-   * result of this entry */
-  GHash *added_verts;
-  GHash *added_edges;
-  GHash *added_faces;
 
   /* Vertices whose coordinates, mask value, or hflag have changed */
   GHash *modified_verts;
@@ -620,7 +609,7 @@ static uint bm_log_vert_id_get(BMLog *log, BMVert *v)
 }
 
 /* Get a vertex from its unique ID */
-static BMVert *bm_log_vert_from_id(BMLog *log, uint id)
+ATTR_NO_OPT static BMVert *bm_log_vert_from_id(BMLog *log, uint id)
 {
   if (log->bm->idmap.map && id >= ((unsigned int)log->bm->idmap.map_size)) {
     return NULL;
@@ -766,12 +755,8 @@ static void bm_log_face_customdata_reuse(BMesh *bm, BMLog *log, BMFace *f, BMLog
 }
 
 /* Update a BMLogVert with data from a BMVert */
-static void bm_log_vert_bmvert_copy(BMLog *log,
-                                    BMLogEntry *entry,
-                                    BMLogVert *lv,
-                                    BMVert *v,
-                                    const int cd_vert_mask_offset,
-                                    bool copy_customdata)
+static void bm_log_vert_bmvert_copy(
+    BMLog *log, BMLogEntry *entry, BMLogVert *lv, BMVert *v, bool copy_customdata)
 {
   copy_v3_v3(lv->co, v->co);
   copy_v3_v3(lv->no, v->no);
@@ -795,7 +780,7 @@ static BMLogVert *bm_log_vert_alloc(BMLog *log,
 
   SET_TRACE(lv);
 
-  bm_log_vert_bmvert_copy(log, entry, lv, v, -1, log_customdata);
+  bm_log_vert_bmvert_copy(log, entry, lv, v, log_customdata);
 
   return lv;
 }
@@ -982,45 +967,10 @@ static void bm_log_verts_unmake_pre(
 
     /* Ensure the log has the final values of the vertex before
      * deleting it */
-    bm_log_vert_bmvert_copy(log, entry, lv, v, -1, true);
+    bm_log_vert_bmvert_copy(log, entry, lv, v, true);
 
     if (callbacks) {
       callbacks->on_vert_kill(v, callbacks->userdata);
-    }
-  }
-}
-
-static void bm_log_faces_unmake_pre(
-    BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
-{
-  GHashIterator gh_iter;
-  GHASH_ITER (gh_iter, faces) {
-    void *key = BLI_ghashIterator_getKey(&gh_iter);
-    BMLogFace *lf = BLI_ghashIterator_getValue(&gh_iter);
-    uint id = POINTER_AS_UINT(key);
-    BMFace *f = bm_log_face_from_id(log, id);
-
-    if (!f) {
-      fprintf(DEBUG_FILE, "%s: vertex id: %d\n", GET_TRACE(lf, entry), id);
-      continue;
-    }
-
-    if (f->head.htype != BM_FACE) {
-      fprintf(DEBUG_FILE,
-              "%s: vertex id: %d, type was: %d\n",
-              GET_TRACE(lf, entry),
-              id,
-              f->head.htype);
-      continue;
-    }
-
-    /* Ensure the log has the final values of the vertex before
-     * deleting it */
-
-    bm_log_face_bmface_copy(log, f, lf, entry, true);
-
-    if (callbacks) {
-      callbacks->on_face_kill(f, callbacks->userdata);
     }
   }
 }
@@ -1053,12 +1003,47 @@ static void bm_log_edges_unmake_pre(
       continue;
     }
 
-    /* Ensure the log has the final values of the vertex before
+    /* Ensure the log has the final values of the edge before
      * deleting it */
     bm_log_edge_bmedge_copy(log, entry, le, e, true);
 
     if (callbacks) {
       callbacks->on_edge_kill(e, callbacks->userdata);
+    }
+  }
+}
+
+static void bm_log_faces_unmake_pre(
+    BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
+{
+  GHashIterator gh_iter;
+  GHASH_ITER (gh_iter, faces) {
+    void *key = BLI_ghashIterator_getKey(&gh_iter);
+    BMLogFace *lf = BLI_ghashIterator_getValue(&gh_iter);
+    uint id = POINTER_AS_UINT(key);
+    BMFace *f = bm_log_face_from_id(log, id);
+
+    if (!f) {
+      fprintf(DEBUG_FILE, "%s: vertex id: %d\n", GET_TRACE(lf, entry), id);
+      continue;
+    }
+
+    if (f->head.htype != BM_FACE) {
+      fprintf(DEBUG_FILE,
+              "%s: vertex id: %d, type was: %d\n",
+              GET_TRACE(lf, entry),
+              id,
+              f->head.htype);
+      continue;
+    }
+
+    /* Ensure the log has the final values of the face before
+     * deleting it */
+
+    bm_log_face_bmface_copy(log, f, lf, entry, true);
+
+    if (callbacks) {
+      callbacks->on_face_kill(f, callbacks->userdata);
     }
   }
 }
@@ -1427,7 +1412,8 @@ static void bm_log_vert_values_swap(
     BMVert *v = bm_log_vert_from_id(log, id);
 
     if (!v) {
-      fprintf(DEBUG_FILE, "%s[%s]: missing vert in bmlog! %d", GET_TRACE(lv, entry), __func__, id);
+      fprintf(
+          DEBUG_FILE, "%s[%s]: missing vert in bmlog! %d\n", GET_TRACE(lv, entry), __func__, id);
       continue;
     }
 
@@ -1600,21 +1586,12 @@ static BMLogEntry *bm_log_entry_create(BMLogEntryType type)
   entry->id = log_entry_idgen++;
 
   if (type == LOG_ENTRY_PARTIAL) {
-    entry->deleted_verts = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
-    entry->deleted_edges = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
-    entry->deleted_edges_post = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
-    entry->deleted_faces = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
-
     entry->topo_modified_verts_pre = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
     entry->topo_modified_verts_post = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
     entry->topo_modified_edges_pre = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
     entry->topo_modified_edges_post = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
     entry->topo_modified_faces_pre = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
     entry->topo_modified_faces_post = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
-
-    entry->added_verts = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
-    entry->added_edges = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
-    entry->added_faces = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
 
     entry->modified_verts = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
     entry->modified_edges = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
@@ -1644,21 +1621,12 @@ static void bm_log_entry_free_direct(BMLogEntry *entry)
       BKE_mesh_free_data_for_undo(entry->full_copy_mesh);
       break;
     case LOG_ENTRY_PARTIAL:
-      BLI_ghash_free(entry->deleted_verts, NULL, NULL);
-      BLI_ghash_free(entry->deleted_edges, NULL, NULL);
-      BLI_ghash_free(entry->deleted_edges_post, NULL, NULL);
-      BLI_ghash_free(entry->deleted_faces, NULL, NULL);
-
       BLI_ghash_free(entry->topo_modified_verts_pre, NULL, NULL);
       BLI_ghash_free(entry->topo_modified_verts_post, NULL, NULL);
       BLI_ghash_free(entry->topo_modified_edges_pre, NULL, NULL);
       BLI_ghash_free(entry->topo_modified_edges_post, NULL, NULL);
       BLI_ghash_free(entry->topo_modified_faces_pre, NULL, NULL);
       BLI_ghash_free(entry->topo_modified_faces_post, NULL, NULL);
-
-      BLI_ghash_free(entry->added_verts, NULL, NULL);
-      BLI_ghash_free(entry->added_edges, NULL, NULL);
-      BLI_ghash_free(entry->added_faces, NULL, NULL);
 
       BLI_ghash_free(entry->modified_verts, NULL, NULL);
       BLI_ghash_free(entry->modified_edges, NULL, NULL);
@@ -1974,15 +1942,6 @@ void BM_log_print_entry(BMLog *log, BMLogEntry *entry)
         fprintf(DEBUG_FILE, "v: %d ", BLI_ghash_len(first->modified_verts));
         fprintf(DEBUG_FILE, "e: %d ", BLI_ghash_len(first->modified_edges));
         fprintf(DEBUG_FILE, "f: %d ", BLI_ghash_len(first->modified_faces));
-        fprintf(DEBUG_FILE, " new: ");
-        fprintf(DEBUG_FILE, "v: %d ", BLI_ghash_len(first->added_verts));
-        fprintf(DEBUG_FILE, "e: %d ", BLI_ghash_len(first->added_edges));
-        fprintf(DEBUG_FILE, "f: %d ", BLI_ghash_len(first->added_faces));
-        fprintf(DEBUG_FILE, " deleted: ");
-        fprintf(DEBUG_FILE, "v: %d ", BLI_ghash_len(first->deleted_verts));
-        fprintf(DEBUG_FILE, "e: %d ", BLI_ghash_len(first->deleted_edges));
-        fprintf(DEBUG_FILE, "pe: %d ", BLI_ghash_len(first->deleted_edges_post));
-        fprintf(DEBUG_FILE, "f: %d ", BLI_ghash_len(first->deleted_faces));
         fprintf(DEBUG_FILE, "\n");
         fprintf(DEBUG_FILE, " topo_modified_pre:");
         fprintf(DEBUG_FILE, "v: %d ", BLI_ghash_len(first->topo_modified_verts_pre));
@@ -2812,8 +2771,11 @@ void BM_log_vert_before_modified(BMLog *log,
   // LOGPRINT("key %d\n", (int)key);
 
   /* Find or create the BMLogVert entry */
-  if ((lv = log_ghash_lookup(log, entry->topo_modified_verts_post, key))) {
-    bm_log_vert_bmvert_copy(log, entry, lv, v, -1, log_customdata);
+  if ((lv = log_ghash_lookup(log, entry->topo_modified_verts_pre, key))) {
+    bm_log_vert_bmvert_copy(log, entry, lv, v, log_customdata);
+  }
+  else if ((lv = log_ghash_lookup(log, entry->topo_modified_verts_post, key))) {
+    bm_log_vert_bmvert_copy(log, entry, lv, v, log_customdata);
   }
   else if (!log_ghash_ensure_p(log, entry->modified_verts, key, &val_p)) {
     lv = bm_log_vert_alloc(log, v, -1, true);
@@ -2832,7 +2794,7 @@ void BM_log_edge_before_modified(BMLog *log, BMEdge *e, bool log_customdata)
   void **val_p;
 
   /* Find or create the BMLogVert entry */
-  if ((le = log_ghash_lookup(log, entry->topo_modified_edges_post, key))) {
+  if ((le = log_ghash_lookup(log, entry->topo_modified_edges_pre, key))) {
     bm_log_edge_bmedge_copy(log, entry, le, e, log_customdata);
   }
   else if (!log_ghash_ensure_p(log, entry->modified_edges, key, &val_p)) {
@@ -2885,8 +2847,9 @@ bool BM_log_has_vert(BMLog *log, BMVert *v)
 {
   int id = BM_ELEM_GET_ID(log->bm, v);
 
-  bool ret = BLI_ghash_haskey(log->current_entry->added_verts, POINTER_FROM_INT(id));
-  ret = ret || BLI_ghash_haskey(log->current_entry->deleted_verts, POINTER_FROM_INT(id));
+  bool ret = BLI_ghash_haskey(log->current_entry->topo_modified_verts_pre, POINTER_FROM_INT(id));
+  ret = ret ||
+        BLI_ghash_haskey(log->current_entry->topo_modified_verts_post, POINTER_FROM_INT(id));
   ret = ret || BLI_ghash_haskey(log->current_entry->modified_verts, POINTER_FROM_INT(id));
 
   return ret;
@@ -2896,10 +2859,10 @@ bool BM_log_has_edge(BMLog *log, BMEdge *e)
 {
   int id = get_edge_id(log->bm, e);
 
-  bool ret = BLI_ghash_haskey(log->current_entry->added_edges, POINTER_FROM_INT(id));
-  ret = ret || BLI_ghash_haskey(log->current_entry->deleted_edges, POINTER_FROM_INT(id));
+  bool ret = BLI_ghash_haskey(log->current_entry->topo_modified_edges_pre, POINTER_FROM_INT(id));
+  ret = ret ||
+        BLI_ghash_haskey(log->current_entry->topo_modified_edges_post, POINTER_FROM_INT(id));
   ret = ret || BLI_ghash_haskey(log->current_entry->modified_edges, POINTER_FROM_INT(id));
-  ret = ret || BLI_ghash_haskey(log->current_entry->deleted_edges_post, POINTER_FROM_INT(id));
 
   return ret;
 }
@@ -2908,9 +2871,7 @@ bool BM_log_has_face(BMLog *log, BMFace *f)
 {
   int id = get_face_id(log->bm, f);
 
-  bool ret = BLI_ghash_haskey(log->current_entry->added_faces, POINTER_FROM_INT(id));
-  ret = ret || BLI_ghash_haskey(log->current_entry->deleted_faces, POINTER_FROM_INT(id));
-  ret = ret || BLI_ghash_haskey(log->current_entry->modified_faces, POINTER_FROM_INT(id));
+  bool ret = BLI_ghash_haskey(log->current_entry->modified_faces, POINTER_FROM_INT(id));
   ret = ret ||
         BLI_ghash_haskey(log->current_entry->topo_modified_faces_post, POINTER_FROM_INT(id));
   ret = ret || BLI_ghash_haskey(log->current_entry->topo_modified_faces_pre, POINTER_FROM_INT(id));
@@ -2941,6 +2902,8 @@ void BM_log_face_topo_pre(BMLog *log, BMFace *f)
   uint f_id = (uint)get_face_id(log->bm, f);
   void *key = POINTER_FROM_UINT(f_id);
 
+  log_ghash_remove(entry->modified_faces, key, entry->pool_faces);
+
   if (log_ghash_remove(entry->topo_modified_faces_post, key, entry->pool_faces)) {
     // do nothing
     bm_logstack_pop();
@@ -2948,14 +2911,6 @@ void BM_log_face_topo_pre(BMLog *log, BMFace *f)
   }
 
   void **val = NULL;
-
-  if (BLI_ghash_haskey(entry->topo_modified_faces_post, key) ||
-      BLI_ghash_haskey(entry->added_faces, key)) {
-    // do nothing
-    bm_logstack_pop();
-    return;
-  }
-  // BLI_ghash_remove(entry->topo_modified_faces_post, key, NULL, NULL);
 
   if (!BLI_ghash_ensure_p(entry->topo_modified_faces_pre, key, &val)) {
     BMLogFace *lf;
@@ -2987,6 +2942,8 @@ void BM_log_face_topo_post(BMLog *log, BMFace *f)
 
   void **val = NULL;
 
+  log_ghash_remove(entry->modified_faces, key, entry->pool_faces);
+
   if (BLI_ghash_ensure_p(entry->topo_modified_faces_post, key, &val)) {
     BMLogFace *lf_old = (BMLogFace *)*val;
     *lf_old = *lf;
@@ -3010,14 +2967,15 @@ void BM_log_edge_topo_pre(BMLog *log, BMEdge *e)
 
   void **val = NULL;
 
+  log_ghash_remove(entry->modified_edges, key, entry->pool_edges);
+
   if (log_ghash_remove(entry->topo_modified_edges_post, key, entry->pool_edges)) {
     // do nothing
     bm_logstack_pop();
     return;
   }
 
-  if (BLI_ghash_haskey(entry->topo_modified_edges_post, key) ||
-      BLI_ghash_haskey(entry->added_edges, key) || BLI_ghash_haskey(entry->deleted_edges, key)) {
+  if (BLI_ghash_haskey(entry->topo_modified_edges_post, key)) {
     // do nothing
     bm_logstack_pop();
     return;
@@ -3051,9 +3009,15 @@ void BM_log_edge_topo_post(BMLog *log, BMEdge *e)
 
   void **val = NULL;
 
+  log_ghash_remove(entry->modified_edges, key, entry->pool_edges);
+
   if (BLI_ghash_ensure_p(entry->topo_modified_edges_post, key, &val)) {
     BMLogEdge *le_old = (BMLogEdge *)*val;
     *le_old = *le;
+
+    if (le_old->customdata) {
+      BLI_mempool_free(entry->edata.pool, le_old->customdata);
+    }
     BLI_mempool_free(entry->pool_edges, le);
   }
   else {
@@ -3073,14 +3037,9 @@ void BM_log_vert_topo_pre(BMLog *log, BMVert *v)
 
   void **val = NULL;
 
-  if (log_ghash_remove(entry->topo_modified_verts_post, key, entry->pool_verts)) {
-    // do nothing
-    bm_logstack_pop();
-    return;
-  }
+  log_ghash_remove(entry->modified_verts, key, entry->pool_verts);
 
-  if (BLI_ghash_haskey(entry->topo_modified_verts_post, key) ||
-      BLI_ghash_haskey(entry->added_verts, key) || BLI_ghash_haskey(entry->deleted_verts, key)) {
+  if (log_ghash_remove(entry->topo_modified_verts_post, key, entry->pool_verts)) {
     // do nothing
     bm_logstack_pop();
     return;
@@ -3114,9 +3073,16 @@ void BM_log_vert_topo_post(BMLog *log, BMVert *v)
 
   void **val = NULL;
 
+  log_ghash_remove(entry->modified_verts, key, entry->pool_verts);
+
   if (BLI_ghash_ensure_p(entry->topo_modified_verts_post, key, &val)) {
     BMLogVert *lv_old = (BMLogVert *)*val;
     *lv_old = *lv;
+
+    if (lv_old->customdata) {
+      BLI_mempool_free(entry->vdata.pool, lv_old->customdata);
+    }
+
     BLI_mempool_free(entry->pool_verts, lv);
   }
   else {
@@ -3152,22 +3118,7 @@ void BM_log_vert_removed(BMLog *log, BMVert *v, int UNUSED(cd_vert_mask_offset))
     return;
   }
 
-  BMLogEntry *entry = log->current_entry;
-  uint v_id = (uint)get_vert_id(log->bm, v);
-  void *key = POINTER_FROM_UINT(v_id);
-
-  bool ok = !BLI_ghash_haskey(entry->topo_modified_verts_pre, key);
-  bool ok2 = false;
-
-  ok2 |= !BLI_ghash_remove(entry->topo_modified_verts_post, key, NULL, NULL);
-
-  ok = ok && ok2;
-
-  if (ok) {
-    BM_log_vert_topo_pre(log, v);
-    bm_logstack_pop();
-    return;
-  }
+  BM_log_vert_topo_pre(log, v);
 
   bm_logstack_pop();
 }
@@ -3190,10 +3141,10 @@ BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, fl
   BM_log_edge_topo_pre(log, e);
   BMVert *newv = BM_edge_split(log->bm, e, v, newe, t);
 
-  BM_log_edge_topo_post(log, e);
-  BM_log_edge_added(log, *newe);
-
   BM_log_vert_added(log, newv, -1);
+
+  BM_log_edge_topo_post(log, e);
+  BM_log_edge_topo_post(log, *newe);
 
   bm_logstack_pop();
 
@@ -3317,13 +3268,6 @@ void BM_log_all_added(BMesh *bm, BMLog *log)
   BMFace *f;
 
   /* avoid unnecessary resizing on initialization */
-  if (BLI_ghash_len(log->current_entry->added_verts) == 0) {
-    BLI_ghash_reserve(log->current_entry->added_verts, ((uint)bm->totvert));
-  }
-
-  if (BLI_ghash_len(log->current_entry->added_faces) == 0) {
-    BLI_ghash_reserve(log->current_entry->added_faces, ((uint)bm->totface));
-  }
 
   /* Log all vertices as newly created */
   BM_ITER_MESH (v, &bm_iter, bm, BM_VERTS_OF_MESH) {
@@ -3353,12 +3297,8 @@ void BM_log_full_mesh(BMesh *bm, BMLog *log)
   bool add = false;
 
   if (entry->type == LOG_ENTRY_PARTIAL) {
-    add = BLI_ghash_len(entry->added_faces) > 0;
-    add = BLI_ghash_len(entry->added_edges) > 0;
     add |= BLI_ghash_len(entry->modified_verts) > 0;
     add |= BLI_ghash_len(entry->modified_faces) > 0;
-    add |= BLI_ghash_len(entry->deleted_verts) > 0;
-    add |= BLI_ghash_len(entry->deleted_faces) > 0;
     add |= BLI_ghash_len(entry->topo_modified_verts_post) > 0;
     add |= BLI_ghash_len(entry->topo_modified_verts_pre) > 0;
     add |= BLI_ghash_len(entry->topo_modified_edges_post) > 0;
@@ -3456,17 +3396,9 @@ static int bmlog_entry_memsize(BMLogEntry *entry)
       fprintf(DEBUG_FILE, "%d\n", BLI_memarena_size(entry->arena));
     }
     // estimate ghash memory usage
-    ret += (int)BLI_ghash_len(entry->added_verts) * (int)sizeof(void *) * 4;
-    ret += (int)BLI_ghash_len(entry->added_edges) * (int)sizeof(void *) * 4;
-    ret += (int)BLI_ghash_len(entry->added_faces) * (int)sizeof(void *) * 4;
-
     ret += (int)BLI_ghash_len(entry->modified_verts) * (int)sizeof(void *) * 4;
     ret += (int)BLI_ghash_len(entry->modified_edges) * (int)sizeof(void *) * 4;
     ret += (int)BLI_ghash_len(entry->modified_faces) * (int)sizeof(void *) * 4;
-
-    ret += (int)BLI_ghash_len(entry->deleted_verts) * (int)sizeof(void *) * 4;
-    ret += (int)BLI_ghash_len(entry->deleted_edges) * (int)sizeof(void *) * 4;
-    ret += (int)BLI_ghash_len(entry->deleted_faces) * (int)sizeof(void *) * 4;
   }
   else if (entry->type == LOG_ENTRY_FULL_MESH) {
     Mesh *me = entry->full_copy_mesh;

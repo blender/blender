@@ -2594,7 +2594,7 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
   int steps = is_snake_hook ? 1 : 1;
 
   if (is_snake_hook) {
-    radius *= 1.25;
+    //radius *= 1.25;
   }
 
   for (int i = 0; i < pbvh->totnode; i++) {
