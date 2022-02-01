@@ -993,6 +993,24 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
 /** \name Library link/append code.
  * \{ */
 
+static void blendfile_link_append_proxies_convert(Main *bmain, ReportList *reports)
+{
+  BlendFileReadReport bf_reports = {.reports = reports};
+  BKE_lib_override_library_main_proxy_convert(bmain, &bf_reports);
+
+  if (bf_reports.count.proxies_to_lib_overrides_success != 0 ||
+      bf_reports.count.proxies_to_lib_overrides_failures != 0) {
+    BKE_reportf(
+        bf_reports.reports,
+        RPT_WARNING,
+        "Proxies have been removed from Blender (%d proxies were automatically converted "
+        "to library overrides, %d proxies could not be converted and were cleared). "
+        "Please consider re-saving any library .blend file with the newest Blender version.",
+        bf_reports.count.proxies_to_lib_overrides_success,
+        bf_reports.count.proxies_to_lib_overrides_failures);
+  }
+}
+
 void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
 {
   if (lapp_context->num_items == 0) {
@@ -1259,6 +1277,8 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
   }
 
   BKE_main_id_newptr_and_tag_clear(bmain);
+
+  blendfile_link_append_proxies_convert(bmain, reports);
 }
 
 void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
@@ -1360,6 +1380,10 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
     LooseDataInstantiateContext instantiate_context = {.lapp_context = lapp_context,
                                                        .active_collection = NULL};
     loose_data_instantiate(&instantiate_context);
+  }
+
+  if ((lapp_context->params->flag & FILE_LINK) != 0) {
+    blendfile_link_append_proxies_convert(lapp_context->params->bmain, reports);
   }
 }
 

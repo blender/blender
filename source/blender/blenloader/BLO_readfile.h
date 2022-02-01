@@ -117,8 +117,6 @@ typedef struct BlendFileReadReport {
     /* Number of root override IDs that were resynced. */
     int resynced_lib_overrides;
 
-    /* Number of (non-converted) linked proxies. */
-    int linked_proxies;
     /* Number of proxies converted to library overrides. */
     int proxies_to_lib_overrides_success;
     /* Number of proxies that failed to convert to library overrides. */

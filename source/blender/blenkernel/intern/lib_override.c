@@ -1040,7 +1040,12 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
 
   /* In some cases the instance collection of a proxy object may be local (see e.g. T83875). Not
    * sure this is a valid state, but for now just abort the overriding process. */
-  if (!ID_IS_OVERRIDABLE_LIBRARY(id_root)) {
+  if (!ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(id_root)) {
+    if (ob_proxy->proxy != NULL) {
+      ob_proxy->proxy->proxy_from = NULL;
+    }
+    id_us_min((ID *)ob_proxy->proxy);
+    ob_proxy->proxy = ob_proxy->proxy_group = NULL;
     return false;
   }
 
@@ -1058,12 +1063,12 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
   DEG_id_tag_update(&ob_proxy->id, ID_RECALC_COPY_ON_WRITE);
 
   /* In case of proxy conversion, remap all local ID usages to linked IDs to their newly created
-   * overrides.
+   * overrides. Also do that for the IDs from the same lib as the proxy in case it is linked.
    * While this might not be 100% the desired behavior, it is likely to be the case most of the
    * time. Ref: T91711. */
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
-    if (!ID_IS_LINKED(id_iter)) {
+    if (!ID_IS_LINKED(id_iter) || id_iter->lib == ob_proxy->id.lib) {
       id_iter->tag |= LIB_TAG_DOIT;
     }
   }
@@ -1120,18 +1125,24 @@ void BKE_lib_override_library_main_proxy_convert(Main *bmain, BlendFileReadRepor
   }
 
   LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-    if (ID_IS_LINKED(object)) {
-      if (object->proxy != NULL) {
-        CLOG_WARN(&LOG, "Did not try to convert linked proxy object '%s'", object->id.name);
-        reports->count.linked_proxies++;
-      }
-      continue;
-    }
-
     if (object->proxy_group != NULL || object->proxy != NULL) {
-      CLOG_WARN(
-          &LOG, "Proxy object '%s' failed to be converted to library override", object->id.name);
+      if (ID_IS_LINKED(object)) {
+        CLOG_WARN(&LOG,
+                  "Linked proxy object '%s' from '%s' failed to be converted to library override",
+                  object->id.name + 2,
+                  object->id.lib->filepath);
+      }
+      else {
+        CLOG_WARN(&LOG,
+                  "Proxy object '%s' failed to be converted to library override",
+                  object->id.name + 2);
+      }
       reports->count.proxies_to_lib_overrides_failures++;
+      if (object->proxy != NULL) {
+        object->proxy->proxy_from = NULL;
+      }
+      id_us_min((ID *)object->proxy);
+      object->proxy = object->proxy_group = NULL;
     }
   }
 }

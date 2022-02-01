@@ -874,18 +874,16 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
                 duration_lib_override_recursive_resync_seconds);
   }
 
-  if (bf_reports->count.linked_proxies != 0 ||
-      bf_reports->count.proxies_to_lib_overrides_success != 0 ||
+  if (bf_reports->count.proxies_to_lib_overrides_success != 0 ||
       bf_reports->count.proxies_to_lib_overrides_failures != 0) {
-    BKE_reportf(bf_reports->reports,
-                RPT_WARNING,
-                "Proxies are deprecated (%d proxies were automatically converted to library "
-                "overrides, %d proxies could not be converted and %d linked proxies were kept "
-                "untouched). If you need to keep proxies for the time being, please disable the "
-                "`Proxy to Override Auto Conversion` in Experimental user preferences",
-                bf_reports->count.proxies_to_lib_overrides_success,
-                bf_reports->count.proxies_to_lib_overrides_failures,
-                bf_reports->count.linked_proxies);
+    BKE_reportf(
+        bf_reports->reports,
+        RPT_WARNING,
+        "Proxies have been removed from Blender (%d proxies were automatically converted "
+        "to library overrides, %d proxies could not be converted and were cleared). "
+        "Please also consider re-saving any library .blend file with the newest Blender version.",
+        bf_reports->count.proxies_to_lib_overrides_success,
+        bf_reports->count.proxies_to_lib_overrides_failures);
   }
 
   if (bf_reports->count.sequence_strips_skipped != 0) {
