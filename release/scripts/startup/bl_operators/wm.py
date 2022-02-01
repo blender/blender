@@ -2961,93 +2961,75 @@ class WM_MT_splash_quick_setup(Menu):
     bl_label = "Quick Setup"
 
     def draw(self, context):
-        wm = context.window_manager
-        # prefs = context.preferences
-
         layout = self.layout
-
         layout.operator_context = 'EXEC_DEFAULT'
 
         layout.label(text="Quick Setup")
 
-        split = layout.split(factor=0.25)
+        split = layout.split(factor=0.14) # Left margin.
         split.label()
-        split = split.split(factor=2.0 / 3.0)
+        split = split.split(factor=0.73) # Content width.
 
         col = split.column()
 
+        col.use_property_split = True
+        col.use_property_decorate = False
+
+        # Languages.
         if bpy.app.build_options.international:
-            sub = col.split(factor=0.35)
-            row = sub.row()
-            row.alignment = 'RIGHT'
-            row.label(text="Language")
             prefs = context.preferences
-            sub.prop(prefs.view, "language", text="")
+            col.prop(prefs.view, "language")
+            col.separator()
 
-        col.separator()
+        # Shortcuts.
+        wm = context.window_manager
+        kc = wm.keyconfigs.active
+        kc_prefs = kc.preferences
 
-        sub = col.split(factor=0.35)
-        row = sub.row()
-        row.alignment = 'RIGHT'
-        row.label(text="Shortcuts")
-        text = bpy.path.display_name(wm.keyconfigs.active.name)
+        sub = col.column(heading="Shortcuts")
+        text = bpy.path.display_name(kc.name)
         if not text:
             text = "Blender"
         sub.menu("USERPREF_MT_keyconfigs", text=text)
 
-        kc = wm.keyconfigs.active
-        kc_prefs = kc.preferences
         has_select_mouse = hasattr(kc_prefs, "select_mouse")
         if has_select_mouse:
-            sub = col.split(factor=0.35)
-            row = sub.row()
-            row.alignment = 'RIGHT'
-            row.label(text="Select With")
-            sub.row().prop(kc_prefs, "select_mouse", expand=True)
-            has_select_mouse = True
+            col.row().prop(kc_prefs, "select_mouse", text="Select With", expand=True)
 
         has_spacebar_action = hasattr(kc_prefs, "spacebar_action")
         if has_spacebar_action:
-            sub = col.split(factor=0.35)
-            row = sub.row()
-            row.alignment = 'RIGHT'
-            row.label(text="Spacebar")
-            sub.row().prop(kc_prefs, "spacebar_action", expand=True)
-            has_select_mouse = True
+            col.row().prop(kc_prefs, "spacebar_action", text="Spacebar")
 
         col.separator()
 
-        sub = col.split(factor=0.35)
-        row = sub.row()
-        row.alignment = 'RIGHT'
-        row.label(text="Theme")
+        # Themes.
+        sub = col.column(heading="Theme")
         label = bpy.types.USERPREF_MT_interface_theme_presets.bl_label
         if label == "Presets":
             label = "Blender Dark"
         sub.menu("USERPREF_MT_interface_theme_presets", text=label)
 
-        # Keep height constant
+        # Keep height constant.
         if not has_select_mouse:
             col.label()
         if not has_spacebar_action:
             col.label()
 
-        layout.label()
+        layout.separator(factor=2.0)
 
-        row = layout.row()
+        # Save settings buttons.
+        sub = layout.row()
 
-        sub = row.row()
         old_version = bpy.types.PREFERENCES_OT_copy_prev.previous_version()
         if bpy.types.PREFERENCES_OT_copy_prev.poll(context) and old_version:
-            sub.operator("preferences.copy_prev", text=iface_("Load %d.%d Settings", "Operator") % old_version)
+            sub.operator("preferences.copy_prev", text="Load %d.%d Settings" % old_version)
             sub.operator("wm.save_userpref", text="Save New Settings")
         else:
             sub.label()
             sub.label()
             sub.operator("wm.save_userpref", text="Next")
 
-        layout.separator()
-        layout.separator()
+        layout.separator(factor=2.4)
 
 
 class WM_MT_splash(Menu):
