@@ -1566,8 +1566,6 @@ void transform_convert_pose_transflags_update(Object *ob, const int mode, const 
       }
     }
   }
-
-  return total;
 }
 
 static short apply_targetless_ik(Object *ob)
