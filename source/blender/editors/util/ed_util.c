@@ -47,6 +47,8 @@
 
 #include "DEG_depsgraph.h"
 
+#include "DNA_gpencil_types.h"
+
 #include "ED_armature.h"
 #include "ED_asset.h"
 #include "ED_image.h"
@@ -117,6 +119,10 @@ void ED_editors_init(bContext *C)
       /* For multi-edit mode we may already have mode data (grease pencil does not need it).
        * However we may have a non-active object stuck in a grease-pencil edit mode. */
       if (ob != obact) {
+        bGPdata *gpd = (bGPdata *)ob->data;
+        gpd->flag &= ~(GP_DATA_STROKE_PAINTMODE | GP_DATA_STROKE_EDITMODE |
+                       GP_DATA_STROKE_SCULPTMODE | GP_DATA_STROKE_WEIGHTMODE |
+                       GP_DATA_STROKE_VERTEXMODE);
         ob->mode = OB_MODE_OBJECT;
         DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
       }
