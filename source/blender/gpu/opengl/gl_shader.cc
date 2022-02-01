@@ -277,14 +277,14 @@ static void print_image_type(std::ostream &os,
 
 static std::ostream &print_qualifier(std::ostream &os, const Qualifier &qualifiers)
 {
-  if ((qualifiers & Qualifier::RESTRICT) == Qualifier::RESTRICT) {
+  if (bool(qualifiers & Qualifier::NO_RESTRICT) == false) {
     os << "restrict ";
   }
-  if ((qualifiers & Qualifier::READ_ONLY) == Qualifier::READ_ONLY) {
-    os << "readonly ";
-  }
-  if ((qualifiers & Qualifier::WRITE_ONLY) == Qualifier::WRITE_ONLY) {
+  if (bool(qualifiers & Qualifier::READ) == false) {
     os << "writeonly ";
+  }
+  if (bool(qualifiers & Qualifier::WRITE) == false) {
+    os << "readonly ";
   }
   return os;
 }

@@ -130,10 +130,13 @@ enum class ImageType {
 
 /* Storage qualifiers. */
 enum class Qualifier {
-  RESTRICT = (1 << 0),
-  READ_ONLY = (1 << 1),
-  WRITE_ONLY = (1 << 2),
-  QUALIFIER_MAX = (WRITE_ONLY << 1) - 1,
+  /** Restrict flag is set by default. Unless specified otherwise. */
+  NO_RESTRICT = (1 << 0),
+  READ = (1 << 1),
+  WRITE = (1 << 2),
+  /** Shorthand version of combined flags. */
+  READ_WRITE = READ | WRITE,
+  QUALIFIER_MAX = (WRITE << 1) - 1,
 };
 ENUM_OPERATORS(Qualifier, Qualifier::QUALIFIER_MAX);
 
