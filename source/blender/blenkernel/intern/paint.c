@@ -1648,7 +1648,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->totvert = me->totvert;
     ss->totpoly = me->totpoly;
     ss->totfaces = me->totpoly;
-    ss->vert_normals = BKE_mesh_vertex_normals_ensure(me);
     ss->mvert = me->mvert;
     ss->mpoly = me->mpoly;
     ss->mloop = me->mloop;

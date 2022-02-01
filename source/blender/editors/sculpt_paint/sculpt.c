@@ -178,13 +178,8 @@ void SCULPT_vertex_normal_get(SculptSession *ss, int index, float no[3])
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
-      if (ss->shapekey_active || ss->deform_modifiers_active) {
-        const float(*vert_normals)[3] = BKE_pbvh_get_vert_normals(ss->pbvh);
-        copy_v3_v3(no, vert_normals[index]);
-      }
-      else {
-        copy_v3_v3(no, ss->vert_normals[index]);
-      }
+      const float(*vert_normals)[3] = BKE_pbvh_get_vert_normals(ss->pbvh);
+      copy_v3_v3(no, vert_normals[index]);
       break;
     }
     case PBVH_BMESH:
