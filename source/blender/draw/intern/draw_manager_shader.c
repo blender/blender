@@ -46,6 +46,10 @@
 
 #include "draw_manager.h"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"draw.manager.shader"};
+
 extern char datatoc_gpu_shader_2D_vert_glsl[];
 extern char datatoc_gpu_shader_3D_vert_glsl[];
 extern char datatoc_gpu_shader_depth_only_frag_glsl[];
@@ -616,11 +620,10 @@ static uint32_t drw_shader_dependencies_get(const DRWShaderLibrary *lib, const c
       }
       dbg_name[i + 1] = '\0';
 
-      printf(
-          "Error: Dependency not found: %s\n"
-          "This might be due to bad lib ordering.\n",
-          dbg_name);
-      BLI_assert(0);
+      CLOG_WARN(&LOG,
+                "Error: Dependency not found: %s\n"
+                "This might be due to bad lib ordering or overriding a builtin shader.\n",
+                dbg_name);
     }
     else {
       deps |= 1u << (uint32_t)dep;

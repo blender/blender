@@ -904,7 +904,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph, const IDNode 
    * modifiers.
    *
    * TODO: Investigate modes besides edit-mode. */
-  if (check_datablock_expanded(id_cow)) {
+  if (check_datablock_expanded(id_cow) && !id_node->is_cow_explicitly_tagged) {
     const ID_Type id_type = GS(id_orig->name);
     if (OB_DATA_SUPPORT_EDITMODE(id_type) && BKE_object_data_is_in_editmode(id_orig)) {
       /* Make sure pointers in the edit mode data are updated in the copy.

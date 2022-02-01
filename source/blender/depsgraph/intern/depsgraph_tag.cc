@@ -284,6 +284,7 @@ void depsgraph_tag_component(Depsgraph *graph,
    * here. */
   if (component_node == nullptr) {
     if (component_type == NodeType::ANIMATION) {
+      id_node->is_cow_explicitly_tagged = true;
       depsgraph_id_tag_copy_on_write(graph, id_node, update_source);
     }
     return;
@@ -300,6 +301,9 @@ void depsgraph_tag_component(Depsgraph *graph,
   /* If component depends on copy-on-write, tag it as well. */
   if (component_node->need_tag_cow_before_update()) {
     depsgraph_id_tag_copy_on_write(graph, id_node, update_source);
+  }
+  if (component_type == NodeType::COPY_ON_WRITE) {
+    id_node->is_cow_explicitly_tagged = true;
   }
 }
 
@@ -888,6 +892,7 @@ void DEG_ids_clear_recalc(Depsgraph *depsgraph, const bool backup)
      * correctly when there are multiple depsgraph with others still using
      * the recalc flag. */
     id_node->is_user_modified = false;
+    id_node->is_cow_explicitly_tagged = false;
     deg_graph_clear_id_recalc_flags(id_node->id_cow);
     if (deg_graph->is_active) {
       deg_graph_clear_id_recalc_flags(id_node->id_orig);
