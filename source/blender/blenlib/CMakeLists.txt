@@ -85,6 +85,7 @@ set(SRC
   intern/hash_md5.c
   intern/hash_mm2a.c
   intern/hash_mm3.c
+  intern/heap_minmax.c
   intern/index_mask.cc
   intern/jitter_2d.c
   intern/kdtree_1d.c
@@ -221,6 +222,7 @@ set(SRC
   BLI_hash_tables.hh
   BLI_heap.h
   BLI_heap_simple.h
+  BLI_heap_minmax.h
   BLI_index_mask.hh
   BLI_index_range.hh
   BLI_inplace_priority_queue.hh

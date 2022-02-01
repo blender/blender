@@ -75,7 +75,7 @@ typedef struct {
 static bool sculpt_and_constant_or_manual_detail_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  //Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  // Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
   /*checking for constant/manual mode isn't necassary since we do this on the python side
     in the ui scripts*/
@@ -164,7 +164,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
                                               mask_cb,
                                               mask_cb_data,
                                               max_dyntopo_steps_coll,
-                                              enable_surface_relax);
+                                              enable_surface_relax,
+                                              false);
 
     for (int j = 0; j < totnodes; j++) {
       BKE_pbvh_node_mark_topology_update(nodes[j]);
@@ -182,7 +183,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
                                                mask_cb,
                                                mask_cb_data,
                                                max_dyntopo_steps_subd,
-                                               enable_surface_relax);
+                                               enable_surface_relax,
+                                               false);
     for (int j = 0; j < totnodes; j++) {
       BKE_pbvh_node_mark_topology_update(nodes[j]);
     }
@@ -210,7 +212,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
                                    mask_cb,
                                    mask_cb_data,
                                    max_dyntopo_steps_coll,
-                                   enable_surface_relax);
+                                   enable_surface_relax,
+                                   false);
   }
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);

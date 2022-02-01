@@ -14,6 +14,7 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
 #include "BLI_heap.h"
+#include "BLI_heap_minmax.h"
 #include "BLI_heap_simple.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
@@ -56,6 +57,7 @@
 #define DYNTOPO_MAX_ITER 4096
 
 #define DYNTOPO_USE_HEAP
+#define DYNTOPO_USE_MINMAX_HEAP
 
 #ifndef DYNTOPO_USE_HEAP
 /* don't add edges into the queue multiple times */
@@ -193,6 +195,7 @@ void bmesh_radial_loop_append(BMEdge *e, BMLoop *l);
 void bm_kill_only_edge(BMesh *bm, BMEdge *e);
 void bm_kill_only_loop(BMesh *bm, BMLoop *l);
 void bm_kill_only_face(BMesh *bm, BMFace *f);
+bool edge_queue_test(struct EdgeQueueContext *eq_ctx, PBVH *pbvh, BMEdge *e);
 
 static void fix_mesh(PBVH *pbvh, BMesh *bm)
 {
@@ -1420,7 +1423,27 @@ typedef struct EdgeQueueContext {
   int val34_verts_size;
   bool local_mode;
   float surface_smooth_fac;
+
+  MinMaxHeap *heap_mm;
+  int max_heap_mm;
+  TableGSet *used_verts;
+  float view_normal[3];
+  bool use_view_normal;
+  float limit_min, limit_max, limit_mid;
 } EdgeQueueContext;
+
+static void edge_queue_insert_unified(EdgeQueueContext *eq_ctx, BMEdge *e)
+{
+  if (/*BLI_mm_heap_len(eq_ctx->heap_mm) < eq_ctx->max_heap_mm &&*/ !(e->head.hflag &
+                                                                      BM_ELEM_TAG)) {
+    float len = len_squared_v3v3(e->v1->co, e->v2->co);
+
+    len += (BLI_thread_frand(0)-0.5f)*0.1*eq_ctx->limit_mid;
+
+    BLI_mm_heap_insert(eq_ctx->heap_mm, len, e);
+    e->head.hflag |= BM_ELEM_TAG;
+  }
+}
 
 static void edge_queue_insert_val34_vert(EdgeQueueContext *eq_ctx, BMVert *v)
 {
@@ -1808,8 +1831,17 @@ static void edge_queue_insert(EdgeQueueContext *eq_ctx, BMEdge *e, float priorit
     pair->v2 = e->v2;
     pair->limit_len_squared = limit * limit;
 
+#ifdef DYNTOPO_USE_MINMAX_HEAP
+
+#endif
+
 #ifdef DYNTOPO_USE_HEAP
     BLI_heapsimple_insert(eq_ctx->q->heap, priority, pair);
+#endif
+#ifdef DYNTOPO_USE_MINMAX_HEAP
+    edge_queue_insert_unified(eq_ctx, e);
+    BLI_table_gset_add(eq_ctx->used_verts, e->v1);
+    BLI_table_gset_add(eq_ctx->used_verts, e->v2);
 #endif
 
     BLI_array_append(elems, pair);
@@ -1892,6 +1924,71 @@ static void long_edge_queue_edge_add_recursive(EdgeQueueContext *eq_ctx,
     } while ((l_iter = l_iter->radial_next) != l_end);
   }
 }
+
+static void long_edge_queue_edge_add_recursive_3(EdgeQueueContext *eq_ctx,
+                                                 BMLoop *l_edge,
+                                                 BMLoop *l_end,
+                                                 const float len_sq,
+                                                 float limit_len,
+                                                 int depth)
+{
+  BLI_assert(len_sq > square_f(limit_len));
+
+  if (l_edge->e->head.hflag & BM_ELEM_TAG) {
+    // return;
+  }
+
+#  ifdef USE_EDGEQUEUE_FRONTFACE
+  if (depth > DEPTH_START_LIMIT && eq_ctx->use_view_normal) {
+    if (dot_v3v3(l_edge->f->no, eq_ctx->view_normal) < 0.0f) {
+      return;
+    }
+  }
+#  endif
+
+  edge_queue_insert_unified(eq_ctx, l_edge->e);
+
+  if ((l_edge->radial_next != l_edge)) {
+    const float len_sq_cmp = len_sq * EVEN_EDGELEN_THRESHOLD;
+
+    limit_len *= EVEN_GENERATION_SCALE;
+    const float limit_len_sq = square_f(limit_len);
+
+    BMLoop *l_iter = l_edge;
+    do {
+      BMLoop *l_adjacent[2] = {l_iter->next, l_iter->prev};
+      for (int i = 0; i < (int)ARRAY_SIZE(l_adjacent); i++) {
+        BMEdge *e = l_adjacent[i]->e;
+
+        float len_sq_other = calc_weighted_edge_split(
+            eq_ctx, l_adjacent[i]->e->v1, l_adjacent[i]->e->v2);
+
+        float w = maskcb_get(eq_ctx, e);
+
+        len_sq_other *= w * w;
+
+        bool insert_ok = len_sq_other > max_ff(len_sq_cmp, limit_len_sq);
+#  ifdef EVEN_NO_TEST_DEPTH_LIMIT
+        if (!insert_ok && depth >= EVEN_NO_TEST_DEPTH_LIMIT) {
+          continue;
+        }
+#  else
+        if (!insert_ok) {
+          continue;
+        }
+#  endif
+
+        long_edge_queue_edge_add_recursive_3(eq_ctx,
+                                             l_adjacent[i]->radial_next,
+                                             l_adjacent[i],
+                                             len_sq_other,
+                                             limit_len,
+                                             depth + 1);
+      }
+    } while ((l_iter = l_iter->radial_next) != l_end);
+  }
+}
+
 #endif /* USE_EDGEQUEUE_EVEN_SUBDIV */
 
 static void short_edge_queue_edge_add(EdgeQueueContext *eq_ctx, BMEdge *e)
@@ -1980,7 +2077,7 @@ static void short_edge_queue_edge_add_recursive_2(EdgeQueueThreadData *tdata,
   BLI_assert(len_sq > square_f(limit_len));
 
   if (l_edge->e->head.hflag & BM_ELEM_TAG) {
-    return;
+    // return;
   }
 
 #ifdef USE_EDGEQUEUE_FRONTFACE
@@ -2032,7 +2129,7 @@ static void long_edge_queue_edge_add_recursive_2(EdgeQueueThreadData *tdata,
   BLI_assert(len_sq > square_f(limit_len));
 
   if (l_edge->e->head.hflag & BM_ELEM_TAG) {
-    return;
+    // return;
   }
 
 #ifdef USE_EDGEQUEUE_FRONTFACE
@@ -2206,19 +2303,22 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
            but tangentially to surface.
          */
         int randval = (seed = dyntopo_thread_rand(seed)) & 255;
-        
+
         if (do_smooth && randval > 127) {
           surface_smooth_v_safe(tdata->pbvh, l_iter->v, eq_ctx->surface_smooth_fac);
         }
 
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
-        float w = maskcb_get(eq_ctx, l_iter->e);
         float len_sq = calc_weighted_edge_split(eq_ctx, l_iter->e->v1, l_iter->e->v2);
-        len_sq *= w * w;
 
+        /* subdivide walks the mesh a bit for better transitions in the topology */
         if (len_sq > eq_ctx->q->limit_len_squared) {
           long_edge_queue_edge_add_recursive_2(
               tdata, l_iter->radial_next, l_iter, len_sq, eq_ctx->q->limit_len, 0, true);
+        }
+
+        if (edge_queue_test(eq_ctx, pbvh, l_iter->e)) {
+          edge_thread_data_insert(tdata, l_iter->e);
         }
 #else
         const float len_sq = BM_edge_calc_length_squared(l_iter->e);
@@ -2758,6 +2858,15 @@ static void edge_queue_init(EdgeQueueContext *eq_ctx,
 #endif
 }
 
+static bool edge_queue_test(EdgeQueueContext *eq_ctx, PBVH *pbvh, BMEdge *e)
+{
+  float len = len_squared_v3v3(e->v1->co, e->v2->co);
+  float min = pbvh->bm_min_edge_len * pbvh->bm_min_edge_len;
+  float max = pbvh->bm_max_edge_len * pbvh->bm_max_edge_len;
+
+  return len < min || len > max;
+}
+
 /* Create a priority queue containing vertex pairs connected by a long
  * edge as defined by PBVH.bm_max_edge_len.
  *
@@ -2855,6 +2964,17 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
 
   for (int i = 0; i < count; i++) {
     EdgeQueueThreadData *td = tdata + i;
+    BMEdge **edges = td->edges;
+
+    for (int j = 0; j < td->totedge; j++) {
+      BMEdge *e = edges[j];
+
+      e->head.hflag &= ~BM_ELEM_TAG;
+    }
+  }
+
+  for (int i = 0; i < count; i++) {
+    EdgeQueueThreadData *td = tdata + i;
 
     for (int j = 0; j < td->val34_verts_tot; j++) {
       BMVert *v = td->val34_verts[j];
@@ -2902,12 +3022,16 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
       // check_vert_fan_are_tris(pbvh, e->v1);
       // check_vert_fan_are_tris(pbvh, e->v2);
 
-      float w = -calc_weighted_edge_split(eq_ctx, e->v1, e->v2);
-      float w2 = maskcb_get(eq_ctx, e);
+      // float w = -calc_weighted_edge_split(eq_ctx, e->v1, e->v2);
+      // float w2 = maskcb_get(eq_ctx, e);
 
-      w *= w2 * w2;
+      // w *= w2 * w2;
 
-      edge_queue_insert(eq_ctx, e, w, eq_ctx->q->limit_len);
+      if (edge_queue_test(eq_ctx, pbvh, e)) {
+        edge_queue_insert_unified(eq_ctx, e);
+      }
+
+      // edge_queue_insert(eq_ctx, e, w, eq_ctx->q->limit_len);
     }
 
     MEM_SAFE_FREE(td->edges);
@@ -3188,6 +3312,7 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
                                     const bool use_projected,
                                     bool local_mode)
 {
+  return;
   if (local_mode) {
     edge_queue_create_local(
         eq_ctx, pbvh, center, view_normal, radius, use_frontface, use_projected, true);
@@ -3836,7 +3961,9 @@ static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   BM_log_edge_topo_pre(pbvh->bm_log, e);
   BM_log_vert_removed(pbvh->bm_log, v_del, pbvh->cd_vert_mask_offset);
 
-  BLI_ghash_insert(deleted_verts, (void *)v_del, NULL);
+  if (deleted_verts) {
+    BLI_ghash_insert(deleted_verts, (void *)v_del, NULL);
+  }
 
   pbvh_bmesh_check_nodes(pbvh);
 
@@ -4198,12 +4325,18 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
 
   int updateflag = SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE;
 
+#ifdef DYNTOPO_USE_MINMAX_HEAP
+  BMVert *v;
+
+  TGSET_ITER (v, ectx->used_verts) {
+#else
   for (int vi = 0; vi < ectx->val34_verts_tot; vi++) {
     if (pbvh->dyntopo_stop) {
       break;
     }
 
     BMVert *v = ectx->val34_verts[vi];
+#endif
 
     if (bm_elem_is_free((BMElem *)v, BM_VERT)) {
       continue;
@@ -4495,6 +4628,9 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
       }
     }
   }
+#ifdef DYNTOPO_USE_MINMAX_HEAP
+  TGSET_ITER_END;
+#endif
 
   if (modified) {
     pbvh->bm->elem_index_dirty |= BM_VERT | BM_FACE | BM_EDGE;
@@ -4679,22 +4815,23 @@ float mask_cb_nop(SculptVertRef vertex, void *userdata)
 }
 
 /* Collapse short edges, subdivide long edges */
-bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
-                                    PBVHTopologyUpdateMode mode,
-                                    const float center[3],
-                                    const float view_normal[3],
-                                    float radius,
-                                    const bool use_frontface,
-                                    const bool use_projected,
-                                    int sym_axis,
-                                    bool updatePBVH,
-                                    DyntopoMaskCB mask_cb,
-                                    void *mask_cb_data,
-                                    int custom_max_steps,
-                                    bool disable_surface_relax)
+ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
+                                                PBVHTopologyUpdateMode mode,
+                                                const float center[3],
+                                                const float view_normal[3],
+                                                float radius,
+                                                const bool use_frontface,
+                                                const bool use_projected,
+                                                int sym_axis,
+                                                bool updatePBVH,
+                                                DyntopoMaskCB mask_cb,
+                                                void *mask_cb_data,
+                                                int custom_max_steps,
+                                                bool disable_surface_relax,
+                                                bool is_snake_hook)
 {
   /* disable surface smooth if uv layers are present, to avoid expensive reprojection operation */
-  if (CustomData_has_layer(&pbvh->bm->ldata, CD_MLOOPUV)) {
+  if (!is_snake_hook && CustomData_has_layer(&pbvh->bm->ldata, CD_MLOOPUV)) {
     disable_surface_relax = true;
   }
 
@@ -4778,6 +4915,18 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                              .local_mode = false,
                              .surface_smooth_fac = safe_smooth};
 
+#ifdef DYNTOPO_USE_MINMAX_HEAP
+  eq_ctx.heap_mm = BLI_mm_heap_new_ex(max_ii(DYNTOPO_MAX_ITER, custom_max_steps));
+  eq_ctx.used_verts = BLI_table_gset_new(__func__);
+  eq_ctx.max_heap_mm = DYNTOPO_MAX_ITER << 2;
+  eq_ctx.limit_min = pbvh->bm_min_edge_len;
+  eq_ctx.limit_max = pbvh->bm_max_edge_len;
+  eq_ctx.limit_mid = eq_ctx.limit_max*0.5f + eq_ctx.limit_min*0.5f;
+
+  eq_ctx.use_view_normal = use_frontface;
+  copy_v3_v3(eq_ctx.view_normal, view_normal);
+#endif
+
 #if 1
 
   // if no collapse, run cleanup here to avoid degenerate geometry
@@ -4847,13 +4996,16 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
 #  ifdef DYNTOPO_REPORT
     printf("brusharea: %.2f, ratio: %.2f\n", brusharea, ratio);
-    printf("subdivide max_steps %d\n", max_steps);
+    printf("  subdivide max_steps %d\n", max_steps);
+    printf("  edges in queue: %d\n", (int)BLI_heapsimple_len(eq_ctx.q->heap));
 #  endif
 
+#  if 0
     pbvh_bmesh_check_nodes(pbvh);
     modified |= pbvh_bmesh_subdivide_long_edges(
         &eq_ctx, pbvh, &edge_loops, max_steps, (mode & PBVH_Cleanup));
     pbvh_bmesh_check_nodes(pbvh);
+#  endif
 
     if (q.elems) {
       MEM_freeN(q.elems);
@@ -4864,13 +5016,15 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
 #endif
 
+#ifndef DYNTOPO_USE_MINMAX_HEAP
   // if have collapse, run cleanup for nicer geometry more compatible with topology rake
   if ((mode & PBVH_Cleanup) && (mode & PBVH_Collapse)) {
     modified |= do_cleanup_3_4(
         &eq_ctx, pbvh, center, view_normal, radius, use_frontface, use_projected);
   }
+#endif
 
-  if (mode & PBVH_Collapse) {
+  if (0 && mode & PBVH_Collapse) {
     BM_log_entry_add_ex(pbvh->bm, pbvh->bm_log, true);
 
     EdgeQueue q;
@@ -4924,13 +5078,16 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
     }
 
 #ifdef DYNTOPO_REPORT
-    printf("collapse max_steps %d\n", max_steps);
+    printf("  collapse max_steps %d\n", max_steps);
+    printf("  edges in queue: %d\n", (int)BLI_heapsimple_len(eq_ctx.q->heap));
 #endif
 
+#if 0
     // printf("max_steps %d\n", max_steps);
     pbvh_bmesh_check_nodes(pbvh);
     modified |= pbvh_bmesh_collapse_short_edges(&eq_ctx, pbvh, &deleted_faces, max_steps);
     pbvh_bmesh_check_nodes(pbvh);
+#endif
 
     BLI_heapsimple_free(q.heap, NULL);
     if (q.elems) {
@@ -4987,7 +5144,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   BLI_rng_free(rng);
 #endif
 
-  if (modified) {
+  if (1 || modified) {
 
 #ifdef PROXY_ADVANCED
     for (int i = 0; i < pbvh->totnode; i++) {
@@ -4999,6 +5156,105 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
       }
     }
 #endif
+
+    int steps[2] = {0, 0};
+
+    if ((mode & PBVH_Subdivide) && (mode & PBVH_Collapse)) {
+      steps[0] = 32;
+      steps[1] = 32;
+    }
+    else if (mode & PBVH_Subdivide) {
+      steps[0] = 512;
+    }
+    else if (mode & PBVH_Collapse) {
+      steps[0] = 512;
+    }
+
+    BMEdge **edges = MEM_malloc_arrayN(steps[0], sizeof(void *), __func__);
+    int etot = 0;
+
+    PBVHTopologyUpdateMode ops[2];
+    int count = 0;
+    int i = 0;
+    int max_steps = max_ii(custom_max_steps, DYNTOPO_MAX_ITER) << 1;
+
+    int totop = 0;
+
+    if (mode & PBVH_Subdivide) {
+      ops[totop++] = PBVH_Subdivide;
+    }
+    if (mode & PBVH_Collapse) {
+      ops[totop++] = PBVH_Collapse;
+    }
+
+    int curop = 0;
+    float limit_len_subd = pbvh->bm_max_edge_len * pbvh->bm_max_edge_len;
+    float limit_len_cold = pbvh->bm_min_edge_len * pbvh->bm_min_edge_len;
+    // limit_len_cold = limit_len_cold * limit_len_cold;
+
+    printf(" minmax queue size: %d\n", BLI_mm_heap_len(eq_ctx.heap_mm));
+
+    while (totop > 0 && !BLI_mm_heap_is_empty(eq_ctx.heap_mm) && i < max_steps) {
+      BMEdge *e = NULL;
+
+      if (count >= steps[curop]) {
+        if (ops[curop] == PBVH_Subdivide) {
+          pbvh_split_edges(&eq_ctx, pbvh, pbvh->bm, edges, etot, false);
+          etot = 0;
+        }
+
+        curop = (curop + 1) % totop;
+        count = 0;
+      }
+
+      switch (ops[curop]) {
+        case PBVH_Subdivide: {
+          if (BLI_mm_heap_max_value(eq_ctx.heap_mm) < limit_len_subd) {
+            break;
+          }
+
+          e = BLI_mm_heap_pop_max(eq_ctx.heap_mm);
+          while (!BLI_mm_heap_is_empty(eq_ctx.heap_mm) && e &&
+                 (bm_elem_is_free((BMElem *)e, BM_EDGE) ||
+                  len_squared_v3v3(e->v1->co, e->v2->co) < limit_len_subd)) {
+            e = BLI_mm_heap_pop_max(eq_ctx.heap_mm);
+          }
+
+          if (!e || bm_elem_is_free((BMElem *)e, BM_EDGE)) {
+            break;
+          }
+
+          edges[etot++] = e;
+          break;
+        }
+        case PBVH_Collapse: {
+          if (BLI_mm_heap_min_value(eq_ctx.heap_mm) > limit_len_cold) {
+            break;
+          }
+
+          e = BLI_mm_heap_pop_min(eq_ctx.heap_mm);
+          while (!BLI_mm_heap_is_empty(eq_ctx.heap_mm) && e &&
+                 (bm_elem_is_free((BMElem *)e, BM_EDGE) ||
+                  len_squared_v3v3(e->v1->co, e->v2->co) > limit_len_cold)) {
+            e = BLI_mm_heap_pop_min(eq_ctx.heap_mm);
+          }
+
+          if (!e || bm_elem_is_free((BMElem *)e, BM_EDGE)) {
+            break;
+          }
+
+          pbvh_bmesh_collapse_edge(pbvh, e, e->v1, e->v2, NULL, NULL, &eq_ctx);
+
+          break;
+        }
+        default:
+          break;
+      }
+      count++;
+      i++;
+    }
+
+    MEM_SAFE_FREE(edges);
 
     // avoid potential infinite loops
     const int totnode = pbvh->totnode;
@@ -5020,6 +5276,11 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
     }
   }
 
+  if (mode & PBVH_Cleanup) {
+    modified |= do_cleanup_3_4(
+        &eq_ctx, pbvh, center, view_normal, radius, use_frontface, use_projected);
+  }
+
   /* clear PBVH_UpdateTopology flags */
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = pbvh->nodes + i;
@@ -5030,6 +5291,16 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
     node->flag &= ~PBVH_UpdateTopology;
   }
+
+#ifdef DYNTOPO_USE_MINMAX_HEAP
+  if (eq_ctx.heap_mm) {
+    BLI_mm_heap_free(eq_ctx.heap_mm, NULL);
+  }
+
+  if (eq_ctx.used_verts) {
+    BLI_table_gset_free(eq_ctx.used_verts, NULL);
+  }
+#endif
 
   MEM_SAFE_FREE(eq_ctx.val34_verts);
 
@@ -5432,6 +5703,29 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 
     BMVert *newv = BM_log_edge_split_do(pbvh->bm_log, e, e->v1, &newe, 0.5f);
 
+#ifdef DYNTOPO_USE_MINMAX_HEAP
+    const float elimit = pbvh->bm_max_edge_len;
+
+    if (0 && e->l) {
+      e->head.hflag &= ~BM_ELEM_TAG;
+      newe->head.hflag &= ~BM_ELEM_TAG;
+
+      long_edge_queue_edge_add_recursive_3(
+          eq_ctx, e->l->radial_next, e->l, len_squared_v3v3(e->v1->co, e->v2->co), elimit, 0);
+      long_edge_queue_edge_add_recursive_3(eq_ctx,
+                                           newe->l->radial_next,
+                                           newe->l,
+                                           len_squared_v3v3(newe->v1->co, newe->v2->co),
+                                           elimit,
+                                           0);
+    }
+
+    // edge_queue_insert_unified(eq_ctx, e);
+    // edge_queue_insert_unified(eq_ctx, newe);
+
+    BLI_table_gset_add(eq_ctx->used_verts, newv);
+#endif
+
     PBVH_CHECK_NAN(newv->co);
 
     validate_edge(pbvh, pbvh->bm, e, true, true);
@@ -5624,6 +5918,17 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 
       BMFace *newf = BM_face_split(bm, f2, l1, l2, &rl, NULL, false);
       if (newf) {
+        //rl->e->head.hflag &= ~BM_ELEM_TAG;
+        // edge_queue_insert_unified(eq_ctx, rl->e);
+        /*
+        long_edge_queue_edge_add_recursive_3(eq_ctx,
+                                             rl->radial_next,
+                                             rl,
+                                             len_squared_v3v3(rl->e->v1->co, rl->e->v2->co),
+                                             pbvh->bm_max_edge_len,
+                                             0);
+                                             */
+
         check_face_is_manifold(pbvh, bm, newf);
         check_face_is_manifold(pbvh, bm, f2);
         check_face_is_manifold(pbvh, bm, f);
@@ -5887,6 +6192,7 @@ void BKE_dyntopo_remesh(DynTopoState *ds,
                                    mask_cb_nop,
                                    NULL,
                                    ds->pbvh->bm->totedge,
+                                   false,
                                    false);
   }
 
@@ -5911,7 +6217,8 @@ void BKE_dyntopo_remesh(DynTopoState *ds,
                                    mask_cb_nop,
                                    NULL,
                                    ds->pbvh->bm->totedge * 5,
-                                   true);
+                                   true,
+                                   false);
 
     BKE_pbvh_update_normals(ds->pbvh, NULL);
 

@@ -1761,7 +1761,8 @@ static int color_boundary_key(float col[4])
 #endif
 
 /* calls atomic_cas_uint32 on two adjacent (and int aligned) shorts */
-BLI_INLINE void atomic_cas_short2(ushort *base, ushort olda, ushort oldb, ushort newa, ushort newb) {
+BLI_INLINE void atomic_cas_short2(ushort *base, ushort olda, ushort oldb, ushort newa, ushort newb)
+{
   uint oldi, newi;
 
   ((ushort *)&oldi)[0] = olda;
@@ -1784,7 +1785,7 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    const int totuv)
 {
   MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
-  
+
   float curv = 0.0f, totcurv = 0.0f;
 
   int newflag = mv->flag;
@@ -1793,10 +1794,10 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
 
   BMEdge *e = v->e;
   newflag &= ~(SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_NEED_BOUNDARY |
-                SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_FSET_CORNER | SCULPTVERT_CORNER |
-                SCULPTVERT_NEED_VALENCE | SCULPTVERT_SEAM_BOUNDARY | SCULPTVERT_SHARP_BOUNDARY |
-                SCULPTVERT_SEAM_CORNER | SCULPTVERT_SHARP_CORNER | SCULPTVERT_PBVH_BOUNDARY |
-                SCULPTVERT_UV_BOUNDARY | SCULPTVERT_UV_CORNER);
+               SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_FSET_CORNER | SCULPTVERT_CORNER |
+               SCULPTVERT_NEED_VALENCE | SCULPTVERT_SEAM_BOUNDARY | SCULPTVERT_SHARP_BOUNDARY |
+               SCULPTVERT_SEAM_CORNER | SCULPTVERT_SHARP_CORNER | SCULPTVERT_PBVH_BOUNDARY |
+               SCULPTVERT_UV_BOUNDARY | SCULPTVERT_UV_CORNER);
 
   ushort stroke_id = (ushort)mv->stroke_id;
 
@@ -1804,8 +1805,8 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
     newflag |= SCULPTVERT_BOUNDARY;
 
     atomic_cas_int32(&mv->flag, oldflag, newflag);
-    atomic_cas_short2(&mv->valence, (ushort)oldval, stroke_id, 0, stroke_id); 
-    
+    atomic_cas_short2(&mv->valence, (ushort)oldval, stroke_id, 0, stroke_id);
+
     return;
   }
 
@@ -2056,7 +2057,7 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
 #endif
 
   atomic_cas_int32(&mv->flag, oldflag, newflag);
-  atomic_cas_short2(&mv->valence, (ushort)oldval, stroke_id, (ushort)val, stroke_id); 
+  atomic_cas_short2(&mv->valence, (ushort)oldval, stroke_id, (ushort)val, stroke_id);
 
   /* no atomic_cas_int16, so do origmask and curv at once */
 
@@ -2570,23 +2571,31 @@ void BKE_pbvh_set_bm_log(PBVH *pbvh, struct BMLog *log)
   pbvh->bm_log = log;
 }
 
-bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
-                                          bool (*searchcb)(PBVHNode *node, void *data),
-                                          void (*undopush)(PBVHNode *node, void *data),
-                                          void *searchdata,
-                                          PBVHTopologyUpdateMode mode,
-                                          const float center[3],
-                                          const float view_normal[3],
-                                          float radius,
-                                          const bool use_frontface,
-                                          const bool use_projected,
-                                          int sym_axis,
-                                          bool updatePBVH,
-                                          DyntopoMaskCB mask_cb,
-                                          void *mask_cb_data,
-                                          bool disable_surface_relax)
+ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
+                                                      bool (*searchcb)(PBVHNode *node, void *data),
+                                                      void (*undopush)(PBVHNode *node, void *data),
+                                                      void *searchdata,
+                                                      PBVHTopologyUpdateMode mode,
+                                                      const float center[3],
+                                                      const float view_normal[3],
+                                                      float radius,
+                                                      const bool use_frontface,
+                                                      const bool use_projected,
+                                                      int sym_axis,
+                                                      bool updatePBVH,
+                                                      DyntopoMaskCB mask_cb,
+                                                      void *mask_cb_data,
+                                                      bool disable_surface_relax,
+                                                      bool is_snake_hook)
 {
   bool modified = false;
+  PBVHNode **nodes = NULL;
+  BLI_array_declare(nodes);
+  int steps = is_snake_hook ? 1 : 1;
+
+  if (is_snake_hook) {
+    radius *= 1.25;
+  }
 
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = pbvh->nodes + i;
@@ -2596,26 +2605,39 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
     }
 
     if (node->flag & PBVH_Leaf) {
-      node->flag |= PBVH_UpdateCurvatureDir;
       undopush(node, searchdata);
 
-      BKE_pbvh_node_mark_topology_update(pbvh->nodes + i);
+      BLI_array_append(nodes, node);
     }
   }
 
-  modified = modified || BKE_pbvh_bmesh_update_topology(pbvh,
-                                                        mode,
-                                                        center,
-                                                        view_normal,
-                                                        radius,
-                                                        use_frontface,
-                                                        use_projected,
-                                                        sym_axis,
-                                                        updatePBVH,
-                                                        mask_cb,
-                                                        mask_cb_data,
-                                                        0,
-                                                        disable_surface_relax);
+  for (int i = 0; i < steps; i++) {
+    for (int j = 0; j < BLI_array_len(nodes); j++) {
+      nodes[j]->flag |= PBVH_UpdateCurvatureDir;
+      BKE_pbvh_node_mark_topology_update(nodes[j]);
+    }
+
+    bool modified2 = BKE_pbvh_bmesh_update_topology(pbvh,
+                                               mode,
+                                               center,
+                                               view_normal,
+                                               radius,
+                                               use_frontface,
+                                               use_projected,
+                                               sym_axis,
+                                               updatePBVH && i == steps - 1,
+                                               mask_cb,
+                                               mask_cb_data,
+                                               is_snake_hook ? 40960 : 0,
+                                               disable_surface_relax,
+                                               is_snake_hook);
+
+    if (!modified2) {
+      break;
+    }
+
+    modified = true;
+  }
 
   return modified;
 }

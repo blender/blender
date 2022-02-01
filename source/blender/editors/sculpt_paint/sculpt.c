@@ -5052,7 +5052,8 @@ static void sculpt_topology_update(Sculpt *sd,
       DYNTOPO_HAS_DYNAMIC_SPLIT(SCULPT_get_tool(ss, brush)),
       mask_cb,
       mask_cb_data,
-      SCULPT_get_int(ss, dyntopo_disable_smooth, sd, brush));
+      SCULPT_get_int(ss, dyntopo_disable_smooth, sd, brush),
+      brush->sculpt_tool == SCULPT_TOOL_SNAKE_HOOK);
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);
 
