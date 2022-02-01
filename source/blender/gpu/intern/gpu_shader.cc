@@ -249,6 +249,11 @@ GPUShader *GPU_shader_create_compute(const char *computecode,
                               shname);
 }
 
+const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name)
+{
+  return gpu_shader_create_info_get(info_name);
+}
+
 GPUShader *GPU_shader_create_from_info_name(const char *info_name)
 {
   using namespace blender::gpu::shader;

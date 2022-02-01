@@ -302,6 +302,7 @@ const GPUShaderCreateInfo *gpu_shader_create_info_get(const char *info_name)
 {
   if (g_create_infos->contains(info_name) == false) {
     printf("Error: Cannot find shader create info named \"%s\"\n", info_name);
+    return nullptr;
   }
   ShaderCreateInfo *info = g_create_infos->lookup(info_name);
   return reinterpret_cast<const GPUShaderCreateInfo *>(info);
