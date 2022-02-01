@@ -5,6 +5,7 @@
 #define IMAGE_DRAW_FLAG_APPLY_ALPHA (1 << 1)
 #define IMAGE_DRAW_FLAG_SHUFFLING (1 << 2)
 #define IMAGE_DRAW_FLAG_DEPTH (1 << 3)
+#define IMAGE_DRAW_FLAG_DEPTH_ALWAYS (1 << 4)
 
 #define FAR_DISTANCE farNearDistances.x
 #define NEAR_DISTANCE farNearDistances.y
@@ -12,9 +13,11 @@
 void main()
 {
   ivec2 uvs_clamped = ivec2(uv_screen);
-  float depth = texelFetch(depth_texture, uvs_clamped, 0).r;
-  if (depth == 1.0) {
-    discard;
+  if ((drawFlags & IMAGE_DRAW_FLAG_DEPTH_ALWAYS) == 0) {
+    float depth = texelFetch(depth_texture, uvs_clamped, 0).r;
+    if (depth == 1.0) {
+      discard;
+    }
   }
 
   vec4 tex_color = texelFetch(imageTexture, uvs_clamped, 0);
