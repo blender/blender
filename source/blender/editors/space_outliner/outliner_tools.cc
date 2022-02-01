@@ -875,7 +875,7 @@ static void id_override_library_create_fn(bContext *C,
       }
 
       success = BKE_lib_override_library_create(
-          bmain, CTX_data_scene(C), CTX_data_view_layer(C), id_root, id_reference, nullptr);
+          bmain, CTX_data_scene(C), CTX_data_view_layer(C), NULL, id_root, id_reference, nullptr);
     }
     else if (ID_IS_OVERRIDABLE_LIBRARY(id_root)) {
       success = BKE_lib_override_library_create_from_id(bmain, id_root, true) != nullptr;
