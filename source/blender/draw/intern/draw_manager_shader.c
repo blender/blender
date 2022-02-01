@@ -50,8 +50,6 @@
 
 static CLG_LogRef LOG = {"draw.manager.shader"};
 
-extern char datatoc_gpu_shader_2D_vert_glsl[];
-extern char datatoc_gpu_shader_3D_vert_glsl[];
 extern char datatoc_gpu_shader_depth_only_frag_glsl[];
 extern char datatoc_common_fullscreen_vert_glsl[];
 
