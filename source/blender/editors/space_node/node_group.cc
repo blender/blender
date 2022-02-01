@@ -776,6 +776,18 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
 
   ListBase anim_basepaths = {nullptr, nullptr};
 
+  /* Detach unselected nodes inside frames when the frame is put into the group. Otherwise the
+   * `parent` pointer becomes dangling. */
+  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+    if (node->parent == nullptr) {
+      continue;
+    }
+    if (node_group_make_use_node(*node->parent, gnode) &&
+        !node_group_make_use_node(*node, gnode)) {
+      nodeDetachNode(node);
+    }
+  }
+
   /* move nodes over */
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree.nodes) {
     if (node_group_make_use_node(*node, gnode)) {
