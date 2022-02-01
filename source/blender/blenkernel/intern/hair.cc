@@ -31,7 +31,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vec_types.hh"
-#include "BLI_rand.h"
+#include "BLI_rand.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -54,6 +54,7 @@
 #include "BLO_read_write.h"
 
 using blender::float3;
+using blender::RandomNumberGenerator;
 
 static const char *HAIR_ATTR_POSITION = "position";
 static const char *HAIR_ATTR_RADIUS = "radius";
@@ -220,38 +221,32 @@ static void hair_random(Hair *hair)
   CustomData_realloc(&hair->cdata, hair->totcurve);
   BKE_hair_update_customdata_pointers(hair);
 
-  RNG *rng = BLI_rng_new(0);
+  RandomNumberGenerator rng;
 
   for (int i = 0; i < hair->totcurve; i++) {
     HairCurve *curve = &hair->curves[i];
     curve->firstpoint = i * numpoints;
     curve->numpoints = numpoints;
 
-    float theta = 2.0f * M_PI * BLI_rng_get_float(rng);
-    float phi = saacosf(2.0f * BLI_rng_get_float(rng) - 1.0f);
+    const float theta = 2.0f * M_PI * rng.get_float();
+    const float phi = saacosf(2.0f * rng.get_float() - 1.0f);
 
-    float no[3] = {sinf(theta) * sinf(phi), cosf(theta) * sinf(phi), cosf(phi)};
-    normalize_v3(no);
+    float3 no = {std::sin(theta) * std::sin(phi), std::cos(theta) * std::sin(phi), std::cos(phi)};
+    blender::math::normalize(no);
 
-    float co[3];
-    copy_v3_v3(co, no);
-
-    float(*curve_co)[3] = hair->co + curve->firstpoint;
-    float *curve_radius = hair->radius + curve->firstpoint;
+    float(*curve_positions)[3] = hair->co + curve->firstpoint;
+    float *curve_radii = hair->radius + curve->firstpoint;
+    float3 co = no;
     for (int key = 0; key < numpoints; key++) {
       float t = key / (float)(numpoints - 1);
-      copy_v3_v3(curve_co[key], co);
-      curve_radius[key] = 0.02f * (1.0f - t);
+      copy_v3_v3(curve_positions[key], co);
+      curve_radii[key] = 0.02f * (1.0f - t);
 
-      float offset[3] = {2.0f * BLI_rng_get_float(rng) - 1.0f,
-                         2.0f * BLI_rng_get_float(rng) - 1.0f,
-                         2.0f * BLI_rng_get_float(rng) - 1.0f};
-      add_v3_v3(offset, no);
-      madd_v3_v3fl(co, offset, 1.0f / numpoints);
+      float3 offset = float3(rng.get_float(), rng.get_float(), rng.get_float()) * 2.0f - 1.0f;
+
+      co += (offset + no) / numpoints;
     }
   }
-
-  BLI_rng_free(rng);
 }
 
 void *BKE_hair_add(Main *bmain, const char *name)
