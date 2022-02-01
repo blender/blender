@@ -4626,6 +4626,31 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
                   BKE_report(op->reports, RPT_ERROR, "Not implemented!");
                 }
                 else {
+                  /* Check if all points are selected. */
+                  bool all_points_selected = true;
+                  for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+                    if ((pt->flag & GP_SPOINT_SELECT) == 0) {
+                      all_points_selected = false;
+                      break;
+                    }
+                  }
+
+                  /* Separate the entrie stroke. */
+                  if (all_points_selected) {
+                    /* deselect old stroke */
+                    gps->flag &= ~GP_STROKE_SELECT;
+                    BKE_gpencil_stroke_select_index_reset(gps);
+                    /* unlink from source frame */
+                    BLI_remlink(&gpf->strokes, gps);
+                    gps->prev = gps->next = NULL;
+                    /* relink to destination frame */
+                    BLI_addtail(&gpf_dst->strokes, gps);
+                    /* Reassign material. */
+                    gps->mat_nr = idx;
+
+                    continue;
+                  }
+
                   /* make copy of source stroke */
                   bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(gps, true, true);
 
