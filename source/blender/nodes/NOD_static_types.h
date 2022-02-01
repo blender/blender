@@ -230,6 +230,8 @@ DefNode(CompositorNode, CMP_NODE_ANTIALIASING,   def_cmp_antialiasing,   "ANTIAL
 DefNode(CompositorNode, CMP_NODE_POSTERIZE,      0,                      "POSTERIZE",      Posterize,        "Posterize",         ""              )
 DefNode(CompositorNode, CMP_NODE_CONVERT_COLOR_SPACE,def_cmp_convert_color_space, "CONVERT_COLORSPACE", ConvertColorSpace, "Color Space",""       )
 DefNode(CompositorNode, CMP_NODE_SCENE_TIME,     0,                      "SCENE_TIME",      SceneTime,        "Scene Time",        ""              )
+DefNode(CompositorNode, CMP_NODE_COMBINE_XYZ,    0,                      "COMBINE_XYZ",    CombineXYZ,       "Combine XYZ",       ""              )
+DefNode(CompositorNode, CMP_NODE_SEPARATE_XYZ,   0,                      "SEPARATE_XYZ",   SeparateXYZ,      "Separate XYZ",      ""              )
 
 DefNode(TextureNode,    TEX_NODE_OUTPUT,         def_tex_output,         "OUTPUT",         Output,           "Output",            ""              )
 DefNode(TextureNode,    TEX_NODE_CHECKER,        0,                      "CHECKER",        Checker,          "Checker",           ""              )

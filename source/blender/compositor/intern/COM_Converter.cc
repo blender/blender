@@ -44,6 +44,7 @@
 #include "COM_ColorSpillNode.h"
 #include "COM_ColorToBWNode.h"
 #include "COM_CombineColorNode.h"
+#include "COM_CombineXYZNode.h"
 #include "COM_CompositorNode.h"
 #include "COM_ConvertAlphaNode.h"
 #include "COM_ConvertColorSpaceNode.h"
@@ -96,6 +97,7 @@
 #include "COM_ScaleOperation.h"
 #include "COM_SceneTimeNode.h"
 #include "COM_SeparateColorNode.h"
+#include "COM_SeparateXYZNode.h"
 #include "COM_SetAlphaNode.h"
 #include "COM_SetValueOperation.h"
 #include "COM_SplitViewerNode.h"
@@ -433,6 +435,12 @@ Node *COM_convert_bnode(bNode *b_node)
       break;
     case CMP_NODE_CONVERT_COLOR_SPACE:
       node = new ConvertColorSpaceNode(b_node);
+      break;
+    case CMP_NODE_SEPARATE_XYZ:
+      node = new SeparateXYZNode(b_node);
+      break;
+    case CMP_NODE_COMBINE_XYZ:
+      node = new CombineXYZNode(b_node);
       break;
   }
   return node;

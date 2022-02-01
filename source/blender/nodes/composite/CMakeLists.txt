@@ -110,6 +110,7 @@ set(SRC
   nodes/node_composite_sepcomb_rgba.cc
   nodes/node_composite_sepcomb_ycca.cc
   nodes/node_composite_sepcomb_yuva.cc
+  nodes/node_composite_sepcomb_xyz.cc
   nodes/node_composite_setalpha.cc
   nodes/node_composite_split_viewer.cc
   nodes/node_composite_stabilize2d.cc
