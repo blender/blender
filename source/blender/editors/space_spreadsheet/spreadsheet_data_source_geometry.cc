@@ -474,6 +474,11 @@ static void find_fields_to_evaluate(const SpaceSpreadsheet *sspreadsheet,
         r_fields.add("Viewer", std::move(field));
       }
     }
+    if (const geo_log::GenericValueLog *generic_value_log =
+            dynamic_cast<const geo_log::GenericValueLog *>(value_log)) {
+      fn::GPointer value = generic_value_log->value();
+      r_fields.add("Viewer", fn::make_constant_field(*value.type(), value.get()));
+    }
   }
 }
 
