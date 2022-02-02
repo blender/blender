@@ -271,4 +271,14 @@ TEST(vector_set, LookupKey)
   EXPECT_EQ(set.lookup_key_ptr("a"), set.lookup_key_ptr_as("a"));
 }
 
+TEST(vector_set, GrowWhenEmpty)
+{
+  /* Tests that the internal keys array is freed correctly when growing an empty set. */
+  VectorSet<int> set;
+  set.add(4);
+  set.remove(4);
+  EXPECT_TRUE(set.is_empty());
+  set.reserve(100);
+}
+
 }  // namespace blender::tests
