@@ -4635,7 +4635,7 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
                     }
                   }
 
-                  /* Separate the entrie stroke. */
+                  /* Separate the entire stroke. */
                   if (all_points_selected) {
                     /* deselect old stroke */
                     gps->flag &= ~GP_STROKE_SELECT;

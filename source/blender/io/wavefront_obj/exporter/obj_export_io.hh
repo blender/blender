@@ -125,10 +125,10 @@ constexpr bool is_type_integral = (... && std::is_integral_v<std::decay_t<T>>);
 template<typename... T>
 constexpr bool is_type_string_related = (... && std::is_constructible_v<std::string, T>);
 
-// gcc (at least 9.3) while compiling the obj_exporter_tests.cc with optimizations on,
-// results in "obj_export_io.hh:205:18: warning: ‘%s’ directive output truncated writing 34 bytes
-// into a region of size 6" and similar warnings. Yes the output is truncated, and that is covered
-// as an edge case by tests on purpose.
+/* GCC (at least 9.3) while compiling the obj_exporter_tests.cc with optimizations on,
+ * results in "obj_export_io.hh:205:18: warning: ‘%s’ directive output truncated writing 34 bytes
+ * into a region of size 6" and similar warnings. Yes the output is truncated, and that is covered
+ * as an edge case by tests on purpose. */
 #if defined __GNUC__
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wformat-truncation"

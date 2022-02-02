@@ -273,7 +273,8 @@ struct TileChangeset {
     const int previous_chunk_len = chunk_dirty_flags_.size();
 
     chunk_dirty_flags_.resize(chunk_len);
-    /* Fast exit. When the changeset was already empty no need to re-init the chunk_validity. */
+    /* Fast exit. When the changeset was already empty no need to
+     * re-initialize the chunk_validity. */
     if (!has_dirty_chunks()) {
       return;
     }

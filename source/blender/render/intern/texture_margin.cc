@@ -48,16 +48,17 @@
 
 namespace blender::render::texturemargin {
 
-/* The map class contains both a pixel map which maps out polygon indices for all UV-polygons and
+/**
+ * The map class contains both a pixel map which maps out polygon indices for all UV-polygons and
  * adjacency tables.
  */
 class TextureMarginMap {
   static const int directions[8][2];
   static const int distances[8];
 
-  /* Maps UV-edges to their corresponding UV-edge. */
+  /** Maps UV-edges to their corresponding UV-edge. */
   Vector<int> loop_adjacency_map_;
-  /* Maps UV-edges to their corresponding polygon. */
+  /** Maps UV-edges to their corresponding polygon. */
   Vector<int> loop_to_poly_map_;
 
   int w_, h_;
@@ -132,9 +133,7 @@ class TextureMarginMap {
   static void zscan_store_pixel(
       void *map, int x, int y, [[maybe_unused]] float u, [[maybe_unused]] float v)
   {
-    /* NOTE: Not thread safe, see comment above.
-     *
-     */
+    /* NOTE: Not thread safe, see comment above. */
     TextureMarginMap *m = static_cast<TextureMarginMap *>(map);
     m->set_pixel(x, y, m->value_to_store_);
     if (m->mask_) {
@@ -153,7 +152,8 @@ class TextureMarginMap {
 #define IsDijkstraPixel(dp) ((dp)&0x80000000)
 #define DijkstraPixelIsUnset(dp) ((dp) == 0xFFFFFFFF)
 
-  /* Use dijkstra's algorithm to 'grow' a border around the polygons marked in the map.
+  /**
+   * Use dijkstra's algorithm to 'grow' a border around the polygons marked in the map.
    * For each pixel mark which direction is the shortest way to a polygon.
    */
   void grow_dijkstra(int margin)
@@ -188,8 +188,10 @@ class TextureMarginMap {
       }
     }
 
-    //      std::make_heap(active_pixels.begin(), active_pixels.end(), cmp_dijkstrapixel_fun);
-    //      Not strictly needed because at this point it already is a heap.
+    /* Not strictly needed because at this point it already is a heap. */
+#if 0
+    std::make_heap(active_pixels.begin(), active_pixels.end(), cmp_dijkstrapixel_fun);
+#endif
 
     while (active_pixels.size()) {
       std::pop_heap(active_pixels.begin(), active_pixels.end(), cmp_dijkstrapixel_fun);
@@ -215,7 +217,8 @@ class TextureMarginMap {
     }
   }
 
-  /* Walk over the map and for margin pixels follow the direction stored in the bottom 3
+  /**
+   * Walk over the map and for margin pixels follow the direction stored in the bottom 3
    * bits back to the polygon.
    * Then look up the pixel from the next polygon.
    */
@@ -324,10 +327,12 @@ class TextureMarginMap {
     }
   }
 
-  /* Call lookup_pixel for the start_poly. If that fails, try the adjacent polygons as well.
-   * Because the Dijkstra is not vey exact in determining which polygon is the closest, the
+  /**
+   * Call lookup_pixel for the start_poly. If that fails, try the adjacent polygons as well.
+   * Because the Dijkstra is not very exact in determining which polygon is the closest, the
    * polygon we need can be the one next to the one the Dijkstra map provides. To prevent missing
-   * pixels also check the neighbouring polygons. */
+   * pixels also check the neighboring polygons.
+   */
   bool lookup_pixel_polygon_neighbourhood(
       float x, float y, uint32_t *r_start_poly, float *r_destx, float *r_desty, int *r_other_poly)
   {
@@ -344,8 +349,8 @@ class TextureMarginMap {
 
     float mindist = -1.f;
 
-    /* Loop over all adjacent polyons and determine which edge is closest.
-     * This could be optimized by only inspecting neigbours which are on the edge of an island.
+    /* Loop over all adjacent polygons and determine which edge is closest.
+     * This could be optimized by only inspecting neighbors which are on the edge of an island.
      * But it seems fast enough for now and that would add a lot of complexity. */
     for (int i = 0; i < totloop; i++) {
       int otherloop = loop_adjacency_map_[i + loopstart];
@@ -370,10 +375,12 @@ class TextureMarginMap {
     return mindist >= 0.f;
   }
 
-  /* Find which edge of the src_poly is closest to x,y. Look up it's adjacent UV-edge and polygon.
+  /**
+   * Find which edge of the src_poly is closest to x,y. Look up it's adjacent UV-edge and polygon.
    * Then return the location of the equivalent pixel in the other polygon.
    * Returns true if a new pixel location was found, false if it wasn't, which can happen if the
-   * margin pixel is on a corner, or the UV-edge doesn't have an adjacent polygon. */
+   * margin pixel is on a corner, or the UV-edge doesn't have an adjacent polygon.
+   */
   bool lookup_pixel(float x,
                     float y,
                     int src_poly,
@@ -568,7 +575,9 @@ static void generate_margin(ImBuf *ibuf,
       vec[a][1] = uv[1] * (float)ibuf->y - (0.5f + 0.002f);
     }
 
-    BLI_assert(lt->poly < 0x80000000);  // NOTE: we need the top bit for the dijkstra distance map
+    /* NOTE: we need the top bit for the dijkstra distance map. */
+    BLI_assert(lt->poly < 0x80000000);
+
     map.rasterize_tri(vec[0], vec[1], vec[2], lt->poly, draw_new_mask ? mask : nullptr);
   }
 

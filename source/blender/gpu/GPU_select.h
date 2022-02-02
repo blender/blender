@@ -51,7 +51,7 @@ typedef struct GPUSelectResult {
   /**
    * The nearest depth.
    * - Only supported by picking modes (#GPU_SELECT_PICK_ALL and #GPU_SELECT_PICK_NEAREST)
-   *   since occlusion quiries don't provide a convenient way of accessing the depth-buffer.
+   *   since occlusion quires don't provide a convenient way of accessing the depth-buffer.
    * - OpenGL's `GL_SELECT` supported both near and far depths,
    *   this has not been included as Blender doesn't need this however support could be added.
    */

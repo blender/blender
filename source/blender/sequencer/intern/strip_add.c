@@ -297,7 +297,7 @@ static void seq_add_sound_av_sync(Main *bmain, Scene *scene, Sequence *seq, SeqL
 
   const double av_stream_offset = sound_stream.start - load_data->r_video_stream_start;
   const int frame_offset = av_stream_offset * FPS;
-  /* Set subframe offset. */
+  /* Set sub-frame offset. */
   seq->sound->offset_time = ((double)frame_offset / FPS) - av_stream_offset;
   SEQ_transform_translate_sequence(scene, seq, frame_offset);
 }

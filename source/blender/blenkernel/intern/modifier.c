@@ -1182,8 +1182,8 @@ void BKE_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
 
 #if 0
       CollisionModifierData *collmd = (CollisionModifierData *)md;
-      // TODO: CollisionModifier should use pointcache
-      // + have proper reset events before enabling this
+      /* TODO: CollisionModifier should use pointcache
+       * + have proper reset events before enabling this. */
       writestruct(wd, DATA, MVert, collmd->numverts, collmd->x);
       writestruct(wd, DATA, MVert, collmd->numverts, collmd->xnew);
       writestruct(wd, DATA, MFace, collmd->numfaces, collmd->mfaces);
