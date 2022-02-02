@@ -314,7 +314,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                                0);
         imb_freerectImbuf_all(&extracted_buffer);
       }
-
+      /* TODO(jbakker): Find leak when rendering VSE and remove this call. */
       if (float_buffer_created) {
         imb_freerectfloatImBuf(iterator.tile_data.tile_buffer);
       }
@@ -430,6 +430,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                   uv_to_texel,
                   crop_rect_ptr);
 
+    /* TODO(jbakker): Find leak when rendering VSE and remove this call. */
     if (float_buffer_created) {
       imb_freerectfloatImBuf(&tile_buffer);
     }
