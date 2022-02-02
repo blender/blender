@@ -211,7 +211,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       if (iterator.tile_data.tile_buffer == nullptr) {
         continue;
       }
-      ensure_float_buffer(*iterator.tile_data.tile_buffer);
+      const bool float_buffer_created = ensure_float_buffer(*iterator.tile_data.tile_buffer);
       const float tile_width = static_cast<float>(iterator.tile_data.tile_buffer->x);
       const float tile_height = static_cast<float>(iterator.tile_data.tile_buffer->y);
 
@@ -313,6 +313,10 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                                0);
         imb_freerectImbuf_all(&extracted_buffer);
       }
+      /* TODO(jbakker): Find leak when rendering VSE and remove this call. */
+      if (float_buffer_created) {
+        imb_freerectfloatImBuf(iterator.tile_data.tile_buffer);
+      }
     }
   }
 
@@ -366,12 +370,19 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
 
   /**
    * \brief Ensure that the float buffer of the given image buffer is available.
+   *
+   * Returns true when a float buffer was created. Somehow the VSE cache increases the ref
+   * counter, but might use a different mechanism for destructing the image, that doesn't free the
+   * rect_float as the refcounter isn't 0. To work around this we destruct any created local
+   * buffers ourself.
    */
-  void ensure_float_buffer(ImBuf &image_buffer) const
+  bool ensure_float_buffer(ImBuf &image_buffer) const
   {
     if (image_buffer.rect_float == nullptr) {
       IMB_float_from_rect(&image_buffer);
+      return true;
     }
+    return false;
   }
 
   void do_full_update_texture_slot(const IMAGE_InstanceData &instance_data,
@@ -382,7 +393,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
   {
     const int texture_width = texture_buffer.x;
     const int texture_height = texture_buffer.y;
-    ensure_float_buffer(tile_buffer);
+    const bool float_buffer_created = ensure_float_buffer(tile_buffer);
 
     /* IMB_transform works in a non-consistent space. This should be documented or fixed!.
      * Construct a variant of the info_uv_to_texture that adds the texel space
@@ -417,6 +428,11 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                   IMB_FILTER_NEAREST,
                   uv_to_texel,
                   crop_rect_ptr);
+
+    /* TODO(jbakker): Find leak when rendering VSE and remove this call. */
+    if (float_buffer_created) {
+      imb_freerectfloatImBuf(&tile_buffer);
+    }
   }
 
  public:
