@@ -22,7 +22,7 @@
 
 #pragma once
 
-class ShaderParameters;
+struct ShaderParameters;
 
 /**
  *  Space accessor.
