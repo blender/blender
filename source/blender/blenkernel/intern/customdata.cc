@@ -3939,6 +3939,7 @@ void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata, Custom
   }
 }
 
+#ifndef USE_BMESH_PAGE_CUSTOMDATA
 void CustomData_bmesh_init_pool(CustomData *data, int totelem, const char htype)
 {
   CustomData_bmesh_init_pool_ex(data, totelem, htype, __func__);
@@ -3978,6 +3979,7 @@ void CustomData_bmesh_init_pool_ex(CustomData *data,
     data->pool = BLI_mempool_create_ex(data->totsize, totelem, chunksize, BLI_MEMPOOL_NOP, memtag);
   }
 }
+#endif
 
 bool CustomData_bmesh_merge(const CustomData *source,
                             CustomData *dest,
@@ -4122,6 +4124,7 @@ void CustomData_bmesh_free_block_data(CustomData *data, void *block)
   CustomData_bmesh_asan_poison(data, block);
 }
 
+#ifndef USE_BMESH_PAGE_CUSTOMDATA
 static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
 {
   if (*block) {
@@ -4149,6 +4152,7 @@ static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
     *block = nullptr;
   }
 }
+#endif
 
 void CustomData_bmesh_free_block_data_exclude_by_type(CustomData *data,
                                                       void *block,
@@ -4176,6 +4180,7 @@ void CustomData_bmesh_free_block_data_exclude_by_type(CustomData *data,
   CustomData_bmesh_asan_poison(data, block);
 }
 
+#ifndef USE_BMESH_PAGE_CUSTOMDATA
 static void CustomData_bmesh_set_default_n(CustomData *data, void **block, int n)
 {
   if (ELEM(data->layers[n].type, CD_TOOLFLAGS, CD_MESH_ID)) {
@@ -4204,6 +4209,7 @@ void CustomData_bmesh_set_default(CustomData *data, void **block)
     CustomData_bmesh_set_default_n(data, block, i);
   }
 }
+#endif
 
 void CustomData_bmesh_swap_data_simple(CustomData *data, void **block1, void **block2)
 {
@@ -4663,6 +4669,7 @@ void CustomData_bmesh_interp_n(CustomData *data,
   typeInfo->interp(src_blocks_ofs, weights, sub_weights, count, dst_block_ofs);
 }
 
+#ifndef USE_BMESH_PAGE_CUSTOMDATA
 void CustomData_bmesh_interp(CustomData *data,
                              const void **src_blocks,
                              const float *weights,
@@ -4845,6 +4852,8 @@ void CustomData_from_bmesh_block(const CustomData *source,
     }
   }
 }
+#endif
+
 
 void CustomData_file_write_info(int type, const char **r_struct_name, int *r_struct_num)
 {
@@ -5855,6 +5864,64 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, int count)
 
   CustomData_update_typemap(data);
   CustomData_regen_active_refs(data);  // check for corrupted active layer refs
+}
+
+size_t CustomData_getTypeSize(CustomDataType type)
+{
+  const LayerTypeInfo *info = layerType_getInfo(type);
+
+  return info ? info->size : 0ULL;
+}
+
+void CustomData_setDefaultData(CustomDataType type, void *block, int totelem)
+{
+  const LayerTypeInfo *info = layerType_getInfo(type);
+
+  if (info->set_default) {
+    info->set_default(block, totelem);
+  }
+  else {
+    memset(block, 0, info->size * totelem);
+  }
+}
+
+void CustomData_freeData(CustomDataType type, void *block, int totelem)
+{
+  const LayerTypeInfo *info = layerType_getInfo(type);
+
+  if (info->free) {
+    info->free(block, totelem, info->size);
+  }
+}
+
+#include "BLI_alloca.h"
+
+void CustomData_interpData(CustomDataType type,
+                           void *block,
+                           int tot,
+                           const void **srcs,
+                           const float *ws,
+                           const float *sub_ws)
+{
+  const LayerTypeInfo *info = layerType_getInfo(type);
+
+  if (!info->interp) {
+    return;
+  }
+
+  if (!ws) {
+    float *ws2 = static_cast<float *>(BLI_array_alloca(ws2, tot));
+    float w = 1.0f / (float)tot;
+
+    for (int i = 0; i < tot; i++) {
+      ws2[i] = w;
+    }
+
+    info->interp(srcs, ws2, sub_ws, 1, block);
+  }
+  else {
+    info->interp(srcs, ws, sub_ws, 1, block);
+  }
 }
 
 #ifndef NDEBUG

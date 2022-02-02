@@ -1796,44 +1796,6 @@ static int pbvh_flush_bb(PBVH *pbvh, PBVHNode *node, int flag)
   return update;
 }
 
-void BKE_pbvh_update_origcolor_bmesh(PBVH *pbvh, PBVHNode *node)
-{
-  PBVHVertexIter vd;
-
-  if (!pbvh->bm || pbvh->vcol_type == -1) {
-    return;
-  }
-
-  if (pbvh->vcol_type == -1) {
-    return;
-  }
-
-  BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, vd.bm_vert);
-
-    BKE_pbvh_bmesh_get_vcol(
-        vd.bm_vert, mv->origcolor, pbvh->vcol_type, pbvh->vcol_domain, pbvh->cd_vcol_offset);
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
-void BKE_pbvh_update_origco_bmesh(PBVH *pbvh, PBVHNode *node)
-{
-  PBVHVertexIter vd;
-
-  if (!pbvh->bm || pbvh->cd_sculpt_vert < 0) {
-    return;
-  }
-
-  BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, vd.bm_vert);
-
-    copy_v3_v3(mv->origco, vd.bm_vert->co);
-    copy_v3_v3(mv->origno, vd.bm_vert->no);
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
 void BKE_pbvh_update_bounds(PBVH *pbvh, int flag)
 {
   if (!pbvh->nodes) {

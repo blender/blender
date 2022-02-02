@@ -154,6 +154,7 @@ BMVert *BM_vert_create(BMesh *bm,
     }
     else {
       CustomData_bmesh_set_default(&bm->vdata, &v->head.data);
+
       zero_v3(v->no);
     }
 

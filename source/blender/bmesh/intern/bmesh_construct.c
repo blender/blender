@@ -42,6 +42,10 @@
 
 #include "range_tree.h"
 
+#ifdef USE_BMESH_PAGE_CUSTOMDATA
+#include "intern/bmesh_data_attr.h"
+#endif
+
 #define SELECT 1
 
 #ifdef WITH_BM_ID_FREELIST

@@ -482,7 +482,7 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
             MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
 
-            normal_short_to_float_v3(fno, ss->vert_normals + ml->v);
+            copy_v3_v3(fno, ss->vert_normals[ml->v]);
             float mask = ss->vmask ? ss->vmask[ml->v] : 0.0f;
 
             const float fade2 = bstrength *

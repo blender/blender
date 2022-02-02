@@ -102,7 +102,7 @@ struct CurveMappingCache *brush_curve_cache = NULL;
 extern BrushChannelType brush_builtin_channels[];
 extern int brush_builtin_channel_len;
 
-static bool brush_mapping_inherits(BrushChannel *ch, BrushMapping *mp)
+static bool brush_mapping_inherits(const BrushChannel *ch, const BrushMapping *mp)
 {
   switch (mp->inherit_mode) {
     case BRUSH_MAPPING_INHERIT_NEVER:

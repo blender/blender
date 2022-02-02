@@ -379,6 +379,10 @@ void BM_mesh_bm_from_me(Object *ob,
       CustomData_bmesh_init_pool_ex(&bm->pdata, me->totpoly, BM_FACE, __func__);
     }
 
+    #ifdef USE_BMESH_PAGE_CUSTOMDATA
+    bmesh_update_attr_refs(bm);
+    #endif
+
     if (params->copy_temp_cdlayers) {
       bm_mark_temp_cdlayers(bm);
     }

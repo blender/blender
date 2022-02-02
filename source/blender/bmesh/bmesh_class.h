@@ -401,6 +401,10 @@ typedef struct BMesh {
     int map_size;
     int cd_id_off[15];
   } idmap;
+
+#ifdef USE_BMESH_PAGE_CUSTOMDATA
+  struct BMeshAttrList *attr_list;
+#endif
 } BMesh;
 
 enum {

@@ -353,9 +353,7 @@ void BKE_pbvh_update_sculpt_verts(struct BMesh *bm,
 
 /** update original data, only data whose r_** parameters are passed in will be updated*/
 void BKE_pbvh_bmesh_update_origvert(
-    PBVH *pbvh, struct BMVert *v, float **r_co, float **r_no, float **r_color, bool log_undo);
-void BKE_pbvh_update_origcolor_bmesh(PBVH *pbvh, PBVHNode *node);
-void BKE_pbvh_update_origco_bmesh(PBVH *pbvh, PBVHNode *node);
+    PBVH *pbvh, struct BMVert *v, float **r_co, float **r_no, float **r_color);
 
 /**
 checks if original data needs to be updated for v, and if so updates it.  Stroke_id

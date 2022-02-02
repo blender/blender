@@ -94,6 +94,9 @@ typedef struct CustomData {
   struct BLI_mempool *pool;
   /** External file storing customdata layers. */
   CustomDataExternal *external;
+
+  /** for use with USE_BMESH_PAGE_CUSTOMDATA test, remove later*/
+  void *bm_attrs, *_pad[1];
 } CustomData;
 
 /* CustomData.type */

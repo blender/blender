@@ -943,15 +943,9 @@ void BKE_pbvh_bmesh_get_vcol(
 }
 
 void BKE_pbvh_bmesh_update_origvert(
-    PBVH *pbvh, BMVert *v, float **r_co, float **r_no, float **r_color, bool log_undo)
+    PBVH *pbvh, BMVert *v, float **r_co, float **r_no, float **r_color)
 {
   MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-
-  if (log_undo) {
-    bm_logstack_push();
-    BM_log_vert_before_modified(pbvh->bm_log, v, pbvh->cd_vert_mask_offset, r_color != NULL);
-    bm_logstack_pop();
-  }
 
   if (pbvh->cd_vert_mask_offset) {
     mv->origmask = (short)(BM_ELEM_CD_GET_FLOAT(v, pbvh->cd_vert_mask_offset) * 65535.0f);
@@ -995,7 +989,7 @@ bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, BMVert *v, int stroke_id)
   if (mv->stroke_id != stroke_id) {
     float *dummy;
 
-    BKE_pbvh_bmesh_update_origvert(pbvh, v, &dummy, &dummy, &dummy, false);
+    BKE_pbvh_bmesh_update_origvert(pbvh, v, &dummy, &dummy, &dummy);
     mv->stroke_id = stroke_id;
     return true;
   }

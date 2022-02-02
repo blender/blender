@@ -793,6 +793,16 @@ void CustomData_bmesh_asan_poison(const CustomData *data, void *block);
 void CustomData_bmesh_asan_unpoison(const CustomData *data, void *block);
 int CustomData_get_named_offset(const CustomData *data, int type, const char *name);
 
+void CustomData_setDefaultData(CustomDataType type, void *block, int totelem);
+size_t CustomData_getTypeSize(CustomDataType type);
+void CustomData_freeData(CustomDataType type, void *block, int totelem);
+void CustomData_interpData(CustomDataType type,
+                           void *block,
+                           int tot,
+                           const void **srcs,
+                           const float *ws,
+                           const float *sub_ws);
+
 #ifndef NDEBUG
 struct DynStr;
 /** Use to inspect mesh data when debugging. */

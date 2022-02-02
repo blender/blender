@@ -237,6 +237,11 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
     }
   }
 
+#ifdef USE_BMESH_PAGE_CUSTOMDATA
+  bmesh_update_attr_refs(bm);
+  BMAttr_init(bm);
+#endif
+
   return bm;
 }
 
@@ -365,6 +370,11 @@ void BM_mesh_data_free(BMesh *bm)
   }
 
   BMO_error_clear(bm);
+
+#ifdef USE_BMESH_PAGE_CUSTOMDATA
+  BMAttr_free(bm->attr_list);
+  bm->attr_list = NULL;
+#endif
 }
 
 void BM_mesh_clear(BMesh *bm)
@@ -407,6 +417,17 @@ void BM_mesh_clear(BMesh *bm)
 #endif
     bm_init_idmap_cdlayers(bm);
   }
+
+#ifdef USE_BMESH_PAGE_CUSTOMDATA
+  if (!bm->attr_list) {
+    bm->attr_list = BMAttr_new();
+  }
+  else {
+    BMAttr_reset(bm->attr_list);
+  }
+
+  BMAttr_init(bm);
+#endif
 }
 
 void BM_mesh_free(BMesh *bm)
