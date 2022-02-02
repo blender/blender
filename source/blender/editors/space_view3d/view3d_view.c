@@ -981,6 +981,15 @@ int view3d_opengl_select_ex(ViewContext *vc,
     }
   }
 
+  /* Re-use cache (rect must be smaller than the cached)
+   * other context is assumed to be unchanged */
+  if (GPU_select_is_cached()) {
+    GPU_select_begin(buffer, buffer_len, &rect, gpu_select_mode, 0);
+    GPU_select_cache_load_id();
+    hits = GPU_select_end();
+    goto finally;
+  }
+
   /* Important to use 'vc->obact', not 'OBACT(vc->view_layer)' below,
    * so it will be NULL when hidden. */
   struct {
@@ -1039,15 +1048,6 @@ int view3d_opengl_select_ex(ViewContext *vc,
   /* Tools may request depth outside of regular drawing code. */
   UI_Theme_Store(&theme_state);
   UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
-
-  /* Re-use cache (rect must be smaller than the cached)
-   * other context is assumed to be unchanged */
-  if (GPU_select_is_cached()) {
-    GPU_select_begin(buffer, buffer_len, &rect, gpu_select_mode, 0);
-    GPU_select_cache_load_id();
-    hits = GPU_select_end();
-    goto finally;
-  }
 
   /* All of the queries need to be perform on the drawing context. */
   DRW_opengl_context_enable();
@@ -1132,13 +1132,13 @@ int view3d_opengl_select_ex(ViewContext *vc,
 
   DRW_opengl_context_disable();
 
+  UI_Theme_Restore(&theme_state);
+
 finally:
 
   if (hits < 0) {
     printf("Too many objects in select buffer\n"); /* XXX make error message */
   }
-
-  UI_Theme_Restore(&theme_state);
 
   return hits;
 }
