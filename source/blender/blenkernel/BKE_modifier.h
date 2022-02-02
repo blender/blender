@@ -470,6 +470,8 @@ void BKE_modifiers_foreach_tex_link(struct Object *ob, TexWalkFunc walk, void *u
 
 struct ModifierData *BKE_modifiers_findby_type(const struct Object *ob, ModifierType type);
 struct ModifierData *BKE_modifiers_findby_name(const struct Object *ob, const char *name);
+struct ModifierData *BKE_modifiers_findby_session_uuid(const struct Object *ob,
+                                                       const SessionUUID *session_uuid);
 void BKE_modifiers_clear_errors(struct Object *ob);
 /**
  * used for buttons, to find out if the 'draw deformed in edit-mode option is there.
@@ -568,7 +570,8 @@ const char *BKE_modifier_path_relbase_from_global(struct Object *ob);
  * For a given modifier data, get corresponding original one.
  * If the modifier data is already original, return it as-is.
  */
-struct ModifierData *BKE_modifier_get_original(struct ModifierData *md);
+struct ModifierData *BKE_modifier_get_original(const struct Object *object,
+                                               struct ModifierData *md);
 struct ModifierData *BKE_modifier_get_evaluated(struct Depsgraph *depsgraph,
                                                 struct Object *object,
                                                 struct ModifierData *md);

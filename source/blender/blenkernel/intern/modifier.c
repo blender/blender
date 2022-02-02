@@ -290,6 +290,16 @@ ModifierData *BKE_modifiers_findby_name(const Object *ob, const char *name)
   return BLI_findstring(&(ob->modifiers), name, offsetof(ModifierData, name));
 }
 
+ModifierData *BKE_modifiers_findby_session_uuid(const Object *ob, const SessionUUID *session_uuid)
+{
+  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+    if (BLI_session_uuid_is_equal(&md->session_uuid, session_uuid)) {
+      return md;
+    }
+  }
+  return NULL;
+}
+
 void BKE_modifiers_clear_errors(Object *ob)
 {
   LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
@@ -439,9 +449,7 @@ void BKE_modifier_set_error(const Object *ob, ModifierData *md, const char *_for
 #ifndef NDEBUG
   if ((md->mode & eModifierMode_Virtual) == 0) {
     /* Ensure correct object is passed in. */
-    const Object *ob_orig = (Object *)DEG_get_original_id((ID *)&ob->id);
-    const ModifierData *md_orig = md->orig_modifier_data ? md->orig_modifier_data : md;
-    BLI_assert(BLI_findindex(&ob_orig->modifiers, md_orig) != -1);
+    BLI_assert(BKE_modifier_get_original(ob, md) != NULL);
   }
 #endif
 
@@ -1052,12 +1060,10 @@ Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval,
   return me;
 }
 
-ModifierData *BKE_modifier_get_original(ModifierData *md)
+ModifierData *BKE_modifier_get_original(const Object *object, ModifierData *md)
 {
-  if (md->orig_modifier_data == NULL) {
-    return md;
-  }
-  return md->orig_modifier_data;
+  const Object *object_orig = DEG_get_original_object((Object *)object);
+  return BKE_modifiers_findby_session_uuid(object_orig, &md->session_uuid);
 }
 
 struct ModifierData *BKE_modifier_get_evaluated(Depsgraph *depsgraph,
@@ -1068,7 +1074,7 @@ struct ModifierData *BKE_modifier_get_evaluated(Depsgraph *depsgraph,
   if (object_eval == object) {
     return md;
   }
-  return BKE_modifiers_findby_name(object_eval, md->name);
+  return BKE_modifiers_findby_session_uuid(object_eval, &md->session_uuid);
 }
 
 void BKE_modifier_check_uuids_unique_and_report(const Object *object)

@@ -368,7 +368,8 @@ void ED_pose_bone_select_tag_update(struct Object *ob);
 void ED_pose_bone_select(struct Object *ob, struct bPoseChannel *pchan, bool select);
 
 /* meshlaplacian.c */
-void ED_mesh_deform_bind_callback(struct MeshDeformModifierData *mmd,
+void ED_mesh_deform_bind_callback(struct Object *object,
+                                  struct MeshDeformModifierData *mmd,
                                   struct Mesh *cagemesh,
                                   float *vertexcos,
                                   int totvert,
