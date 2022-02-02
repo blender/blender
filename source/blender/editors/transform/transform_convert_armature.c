@@ -751,27 +751,29 @@ void createTransPose(TransInfo *t)
 
       tc->data_len++;
 
-      if (has_translate_rotate[0] && has_translate_rotate[1]) {
-        continue;
-      }
+      if (has_translate_rotate != NULL) {
+        if (has_translate_rotate[0] && has_translate_rotate[1]) {
+          continue;
+        }
 
-      if (has_targetless_ik(pchan) == NULL) {
-        if (pchan->parent && (bone->flag & BONE_CONNECTED)) {
-          if (bone->flag & BONE_HINGE_CHILD_TRANSFORM) {
-            has_translate_rotate[0] = true;
+        if (has_targetless_ik(pchan) == NULL) {
+          if (pchan->parent && (bone->flag & BONE_CONNECTED)) {
+            if (bone->flag & BONE_HINGE_CHILD_TRANSFORM) {
+              has_translate_rotate[0] = true;
+            }
+          }
+          else {
+            if ((pchan->protectflag & OB_LOCK_LOC) != OB_LOCK_LOC) {
+              has_translate_rotate[0] = true;
+            }
+          }
+          if ((pchan->protectflag & OB_LOCK_ROT) != OB_LOCK_ROT) {
+            has_translate_rotate[1] = true;
           }
         }
         else {
-          if ((pchan->protectflag & OB_LOCK_LOC) != OB_LOCK_LOC) {
-            has_translate_rotate[0] = true;
-          }
+          has_translate_rotate[0] = true;
         }
-        if ((pchan->protectflag & OB_LOCK_ROT) != OB_LOCK_ROT) {
-          has_translate_rotate[1] = true;
-        }
-      }
-      else {
-        has_translate_rotate[0] = true;
       }
     }
 
