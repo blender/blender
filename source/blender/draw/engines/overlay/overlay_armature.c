@@ -2084,7 +2084,9 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
 
         boneflag &= ~BONE_DRAW_LOCKED_WEIGHT;
 
-        draw_bone_relations(ctx, eBone, NULL, arm, boneflag, constflag);
+        if (!is_select) {
+          draw_bone_relations(ctx, eBone, NULL, arm, boneflag, constflag);
+        }
 
         if (arm->drawtype == ARM_ENVELOPE) {
           draw_bone_update_disp_matrix_default(eBone, NULL);
@@ -2107,12 +2109,14 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
           draw_bone_octahedral(ctx, eBone, NULL, arm, boneflag, constflag, select_id);
         }
 
-        if (show_text && (arm->flag & ARM_DRAWNAMES)) {
-          draw_bone_name(ctx, eBone, NULL, arm, boneflag);
-        }
+        if (!is_select) {
+          if (show_text && (arm->flag & ARM_DRAWNAMES)) {
+            draw_bone_name(ctx, eBone, NULL, arm, boneflag);
+          }
 
-        if (arm->flag & ARM_DRAWAXES) {
-          draw_axes(ctx, eBone, NULL, arm);
+          if (arm->flag & ARM_DRAWAXES) {
+            draw_axes(ctx, eBone, NULL, arm);
+          }
         }
       }
     }
@@ -2221,7 +2225,9 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
           boneflag &= ~BONE_DRAW_LOCKED_WEIGHT;
         }
 
-        draw_bone_relations(ctx, NULL, pchan, arm, boneflag, constflag);
+        if (!is_pose_select) {
+          draw_bone_relations(ctx, NULL, pchan, arm, boneflag, constflag);
+        }
 
         if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
           draw_bone_update_disp_matrix_custom(pchan);
@@ -2248,16 +2254,19 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
           draw_bone_octahedral(ctx, NULL, pchan, arm, boneflag, constflag, select_id);
         }
 
-        if (draw_dofs) {
-          draw_bone_degrees_of_freedom(ctx, pchan);
-        }
+        /* These aren't included in the selection. */
+        if (!is_pose_select) {
+          if (draw_dofs) {
+            draw_bone_degrees_of_freedom(ctx, pchan);
+          }
 
-        if (show_text && (arm->flag & ARM_DRAWNAMES)) {
-          draw_bone_name(ctx, NULL, pchan, arm, boneflag);
-        }
+          if (show_text && (arm->flag & ARM_DRAWNAMES)) {
+            draw_bone_name(ctx, NULL, pchan, arm, boneflag);
+          }
 
-        if (arm->flag & ARM_DRAWAXES) {
-          draw_axes(ctx, NULL, pchan, arm);
+          if (arm->flag & ARM_DRAWAXES) {
+            draw_axes(ctx, NULL, pchan, arm);
+          }
         }
       }
     }
