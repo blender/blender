@@ -55,7 +55,7 @@ float4 PointCloud::Point::motion_key(const float3 *points,
   /* Figure out which steps we need to fetch and their
    * interpolation factor. */
   const size_t max_step = num_steps - 1;
-  const size_t step = min((int)(time * max_step), max_step - 1);
+  const size_t step = min((size_t)(time * max_step), max_step - 1);
   const float t = time * max_step - step;
   /* Fetch vertex coordinates. */
   const float4 curr_key = point_for_step(

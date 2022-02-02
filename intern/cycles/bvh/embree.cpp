@@ -471,7 +471,7 @@ void BVHEmbree::add_instance(Object *ob, int i)
   assert(instance_bvh != NULL);
 
   const size_t num_object_motion_steps = ob->use_motion() ? ob->get_motion().size() : 1;
-  const size_t num_motion_steps = min(num_object_motion_steps, RTC_MAX_TIME_STEP_COUNT);
+  const size_t num_motion_steps = min(num_object_motion_steps, (size_t)RTC_MAX_TIME_STEP_COUNT);
   assert(num_object_motion_steps <= RTC_MAX_TIME_STEP_COUNT);
 
   RTCGeometry geom_id = rtcNewGeometry(rtc_device, RTC_GEOMETRY_TYPE_INSTANCE);
@@ -522,7 +522,7 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
   }
 
   assert(num_motion_steps <= RTC_MAX_TIME_STEP_COUNT);
-  num_motion_steps = min(num_motion_steps, RTC_MAX_TIME_STEP_COUNT);
+  num_motion_steps = min(num_motion_steps, (size_t)RTC_MAX_TIME_STEP_COUNT);
 
   const size_t num_triangles = mesh->num_triangles();
 
@@ -775,7 +775,7 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
   }
 
   assert(num_motion_steps <= RTC_MAX_TIME_STEP_COUNT);
-  num_motion_steps = min(num_motion_steps, RTC_MAX_TIME_STEP_COUNT);
+  num_motion_steps = min(num_motion_steps, (size_t)RTC_MAX_TIME_STEP_COUNT);
 
   const size_t num_curves = hair->num_curves();
   size_t num_segments = 0;

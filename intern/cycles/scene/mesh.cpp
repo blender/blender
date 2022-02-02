@@ -53,7 +53,7 @@ void Mesh::Triangle::motion_verts(const float3 *verts,
 {
   /* Figure out which steps we need to fetch and their interpolation factor. */
   const size_t max_step = num_steps - 1;
-  const size_t step = min((int)(time * max_step), max_step - 1);
+  const size_t step = min((size_t)(time * max_step), max_step - 1);
   const float t = time * max_step - step;
   /* Fetch vertex coordinates. */
   float3 curr_verts[3];
