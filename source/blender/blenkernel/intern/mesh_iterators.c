@@ -34,19 +34,29 @@
 
 #include "MEM_guardedalloc.h"
 
+/* General note on iterating vers/loops/edges/polys and end mode.
+ *
+ * The edit mesh pointer is set for both final and cage meshes in both cases when there are
+ * modifiers applied and not. This helps consistency of checks in the draw manager, where the
+ * existence of the edit mesh pointer does not depend on object configuration.
+ *
+ * For the iterating, however, we need to follow the `CD_ORIGINDEX` code paths when there are
+ * modifiers applied on the cage. In the code terms it means that the check for the edit mode code
+ * path needs to consist of both edit mesh and edit data checks. */
+
 void BKE_mesh_foreach_mapped_vert(
     Mesh *mesh,
     void (*func)(void *userData, int index, const float co[3], const float no[3]),
     void *userData,
     MeshForeachFlag flag)
 {
-  if (mesh->edit_mesh != NULL) {
+  if (mesh->edit_mesh != NULL && mesh->runtime.edit_data != NULL) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
     BMIter iter;
     BMVert *eve;
     int i;
-    if (mesh->runtime.edit_data != NULL && mesh->runtime.edit_data->vertexCos != NULL) {
+    if (mesh->runtime.edit_data->vertexCos != NULL) {
       const float(*vertexCos)[3] = mesh->runtime.edit_data->vertexCos;
       const float(*vertexNos)[3];
       if (flag & MESH_FOREACH_USE_NORMAL) {
@@ -100,13 +110,13 @@ void BKE_mesh_foreach_mapped_edge(
     void (*func)(void *userData, int index, const float v0co[3], const float v1co[3]),
     void *userData)
 {
-  if (mesh->edit_mesh != NULL) {
+  if (mesh->edit_mesh != NULL && mesh->runtime.edit_data) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
     BMIter iter;
     BMEdge *eed;
     int i;
-    if (mesh->runtime.edit_data != NULL && mesh->runtime.edit_data->vertexCos != NULL) {
+    if (mesh->runtime.edit_data->vertexCos != NULL) {
       const float(*vertexCos)[3] = mesh->runtime.edit_data->vertexCos;
       BM_mesh_elem_index_ensure(bm, BM_VERT);
 
@@ -158,14 +168,13 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
   /* We can't use dm->getLoopDataLayout(dm) here,
    * we want to always access dm->loopData, EditDerivedBMesh would
    * return loop data from bmesh itself. */
-  if (mesh->edit_mesh != NULL) {
+  if (mesh->edit_mesh != NULL && mesh->runtime.edit_data) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
     BMIter iter;
     BMFace *efa;
 
-    const float(*vertexCos)[3] = mesh->runtime.edit_data ? mesh->runtime.edit_data->vertexCos :
-                                                           NULL;
+    const float(*vertexCos)[3] = mesh->runtime.edit_data->vertexCos;
 
     /* XXX: investigate using EditMesh data. */
     const float(*lnors)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
