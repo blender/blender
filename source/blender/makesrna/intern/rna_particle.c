@@ -368,7 +368,7 @@ static void rna_ParticleHairKey_co_object_set(ID *id,
   /* Mark particle system as edited, so then particle_system_update() does not reset the hair
    * keys from path. This behavior is similar to how particle edit mode sets flags. */
   ParticleSystemModifierData *orig_modifier = (ParticleSystemModifierData *)
-                                                  modifier->modifier.orig_modifier_data;
+      BKE_modifier_get_original(&modifier->modifier);
   orig_modifier->psys->flag |= PSYS_EDITED;
 
   hair_key_location_object_set(hair_key, object, modifier, particle, co);
