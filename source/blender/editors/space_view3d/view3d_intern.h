@@ -40,13 +40,6 @@ struct wmKeyConfig;
 struct wmOperatorType;
 struct wmWindowManager;
 
-/* drawing flags: */
-enum {
-  DRAW_PICKING = (1 << 0),
-  DRAW_CONSTCOLOR = (1 << 1),
-  DRAW_SCENESET = (1 << 2),
-};
-
 /* view3d_header.c */
 void VIEW3D_OT_toggle_matcap_flip(struct wmOperatorType *ot);
 

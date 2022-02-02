@@ -954,8 +954,6 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *ob_iter = objects[ob_index];
       const bool use_mat_local = params->use_local_axis && (ob_iter != ob);
-      bPoseChannel *pchan;
-
       /* mislead counting bones... bah. We don't know the gizmo mode, could be mixed */
       const int mode = TFM_ROTATION;
 
