@@ -2780,6 +2780,24 @@ void CustomData_free_layers(CustomData *data, int type, int totelem)
   }
 }
 
+void CustomData_free_layers_anonymous(struct CustomData *data, int totelem)
+{
+  while (true) {
+    bool found_anonymous_layer = false;
+    for (int i = 0; i < data->totlayer; i++) {
+      const CustomDataLayer *layer = &data->layers[i];
+      if (layer->anonymous_id != NULL) {
+        CustomData_free_layer(data, layer->type, totelem, i);
+        found_anonymous_layer = true;
+        break;
+      }
+    }
+    if (!found_anonymous_layer) {
+      break;
+    }
+  }
+}
+
 bool CustomData_has_layer(const CustomData *data, int type)
 {
   return (CustomData_get_layer_index(data, type) != -1);
