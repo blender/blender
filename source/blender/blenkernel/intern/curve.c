@@ -915,7 +915,7 @@ float BKE_nurb_calc_length(const Nurb *nu, int resolution)
         pntsit = points + 3;
       }
 
-      while (--b) {
+      while (--b > 0) {
         length += len_v3v3(prevpntsit, pntsit);
         prevpntsit = pntsit;
         pntsit += 3;
