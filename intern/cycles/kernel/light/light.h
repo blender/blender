@@ -115,7 +115,8 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     if (type == LIGHT_SPOT) {
       const float3 center = make_float3(klight->co[0], klight->co[1], klight->co[2]);
       const float radius = klight->spot.radius;
-      const float3 dir = make_float3(klight->spot.dir[0], klight->spot.dir[1], klight->spot.dir[2]);
+      const float3 dir = make_float3(
+          klight->spot.dir[0], klight->spot.dir[1], klight->spot.dir[2]);
       /* disk oriented normal */
       const float3 lightN = normalize(P - center);
       ls->P = center;
@@ -124,7 +125,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
         /* disk light */
         ls->P += disk_light_sample(lightN, randu, randv) * radius;
 
-	  const float invarea = klight->spot.invarea;
+      const float invarea = klight->spot.invarea;
       ls->pdf = invarea;
 
       ls->D = normalize_len(ls->P - P, &ls->t);
@@ -154,9 +155,9 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
       ls->P = center;
 
       if (radius > 0.0f) {
-        ls->P += disk_light_sample(lightN, randu, randv) * radius;         
+        ls->P += disk_light_sample(lightN, randu, randv) * radius;
       }
-      ls->pdf = klight->spot.invarea; 
+      ls->pdf = klight->spot.invarea;
 
       ls->D = normalize_len(ls->P - P, &ls->t);
       /* we set the light normal to the outgoing direction to support texturing */
@@ -440,7 +441,7 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
   if (type == LIGHT_SPOT) {
     const float3 center = make_float3(klight->co[0], klight->co[1], klight->co[2]);
     const float3 dir = make_float3(klight->spot.dir[0], klight->spot.dir[1], klight->spot.dir[2]);
-    /* the normal of the oriented disk */ 
+    /* the normal of the oriented disk */
     const float3 lightN = normalize(ray_P - center);
     /* we set the light normal to the outgoing direction to support texturing*/
     ls->Ng = -ls->D;
@@ -473,7 +474,7 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
 
     /* we set the light normal to the outgoing direction to support texturing*/
     ls->Ng = -ls->D;
-    
+
     float invarea = klight->spot.invarea;
     ls->eval_fac = (0.25f * M_1_PI_F) * invarea;
     ls->pdf = invarea;
