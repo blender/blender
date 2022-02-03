@@ -763,6 +763,12 @@ static bool modifier_apply_obdata(
       BKE_object_material_from_eval_data(bmain, ob, &mesh_applied->id);
       BKE_mesh_nomain_to_mesh(mesh_applied, me, ob, &CD_MASK_MESH, true);
 
+      /* Anonymous attributes shouldn't by available on the applied geometry. */
+      CustomData_free_layers_anonymous(&me->vdata, me->totvert);
+      CustomData_free_layers_anonymous(&me->edata, me->totedge);
+      CustomData_free_layers_anonymous(&me->pdata, me->totpoly);
+      CustomData_free_layers_anonymous(&me->ldata, me->totloop);
+
       if (md_eval->type == eModifierType_Multires) {
         multires_customdata_delete(me);
       }

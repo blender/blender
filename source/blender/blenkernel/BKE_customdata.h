@@ -254,6 +254,11 @@ bool CustomData_free_layer_active(struct CustomData *data, int type, int totelem
 void CustomData_free_layers(struct CustomData *data, int type, int totelem);
 
 /**
+ * Free all anonymous attributes.
+ */
+void CustomData_free_layers_anonymous(struct CustomData *data, int totelem);
+
+/**
  * Returns true if a layer with the specified type exists.
  */
 bool CustomData_has_layer(const struct CustomData *data, int type);
