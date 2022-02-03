@@ -430,7 +430,7 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 
   /* Group to use (dynamic enum). */
   prop = RNA_def_enum(
-      ot->srna, "group", DummyRNA_DEFAULT_items, 0, "Group", "Vertex group to set as active");
+      ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "Vertex group to set as active");
   RNA_def_enum_funcs(prop, weight_paint_sample_enum_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
