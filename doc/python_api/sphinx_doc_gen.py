@@ -1750,7 +1750,7 @@ except ModuleNotFoundError:
 
     fw("if html_theme == 'sphinx_rtd_theme':\n")
     fw("    html_theme_options = {\n")
-    fw("          'display_version': False\n")
+    fw("        'display_version': False,\n")
     # fw("        'analytics_id': '',\n")
     # fw("        'collapse_navigation': True,\n")
     fw("        'sticky_navigation': False,\n")
