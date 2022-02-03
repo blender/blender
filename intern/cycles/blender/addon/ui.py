@@ -669,7 +669,7 @@ class CYCLES_RENDER_PT_performance_acceleration_structure(CyclesButtonsPanel, Pa
 
     @classmethod
     def poll(cls, context):
-        return not use_optix(context) or has_multi_device(context)
+        return not use_optix(context) or use_multi_device(context)
 
     def draw(self, context):
         import _cycles
