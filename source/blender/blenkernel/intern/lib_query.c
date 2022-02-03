@@ -517,7 +517,7 @@ static int foreach_libblock_id_users_callback(LibraryIDLinkCallbackData *cb_data
   IDUsersIter *iter = cb_data->user_data;
 
   if (*id_p) {
-    /* 'Loopback' ID pointers (the ugly 'from' ones, Object->proxy_from and Key->from).
+    /* 'Loopback' ID pointers (the ugly 'from' ones, like Key->from).
      * Those are not actually ID usage, we can ignore them here.
      */
     if (cb_flag & IDWALK_CB_LOOPBACK) {
@@ -768,7 +768,7 @@ static int foreach_libblock_used_linked_data_tag_clear_cb(LibraryIDLinkCallbackD
   bool *is_changed = cb_data->user_data;
 
   if (*id_p) {
-    /* The infamous 'from' pointers (Key.from, Object.proxy_from, ...).
+    /* The infamous 'from' pointers (Key.from, ...).
      * those are not actually ID usage, so we ignore them here. */
     if (cb_flag & IDWALK_CB_LOOPBACK) {
       return IDWALK_RET_NOP;

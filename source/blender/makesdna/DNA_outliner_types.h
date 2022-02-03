@@ -101,7 +101,7 @@ typedef enum eTreeStoreElemType {
   TSE_DRIVER_BASE = 16,           /* NO ID */
   /* TSE_DRIVER          = 17, */ /* UNUSED */
 
-  TSE_PROXY = 18,
+  /* TSE_PROXY = 18,           */ /* UNUSED */
   TSE_R_LAYER_BASE = 19,
   TSE_R_LAYER = 20,
   /* TSE_R_PASS          = 21, */ /* UNUSED */

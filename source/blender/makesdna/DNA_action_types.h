@@ -478,9 +478,6 @@ typedef struct bPose {
 
   short flag;
   char _pad[2];
-  /** Proxy layer: copy from armature, gets synced. */
-  unsigned int proxy_layer;
-  char _pad1[4];
 
   /** Local action time of this pose. */
   float ctime;
@@ -503,8 +500,6 @@ typedef struct bPose {
 
   /** Settings for visualization of bone animation. */
   bAnimVizSettings avs;
-  /** Proxy active bone name, MAXBONENAME. */
-  char proxy_act_bone[64];
 } bPose;
 
 /* Pose->flag */

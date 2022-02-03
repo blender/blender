@@ -77,8 +77,6 @@ enum class NodeType {
   /* Parameters Component - Default when nothing else fits
    * (i.e. just SDNA property setting). */
   PARAMETERS,
-  /* Generic "Proxy-Inherit" Component. */
-  PROXY,
   /* Animation Component */
   ANIMATION,
   /* Transform Component (Parenting/Constraints) */

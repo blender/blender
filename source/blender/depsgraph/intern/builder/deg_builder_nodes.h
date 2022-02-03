@@ -184,8 +184,6 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
                             Object *object,
                             eDepsNode_LinkedState_Type linked_state,
                             bool is_visible);
-  virtual void build_object_proxy_from(Object *object, bool is_object_visible);
-  virtual void build_object_proxy_group(Object *object, bool is_object_visible);
   virtual void build_object_instance_collection(Object *object, bool is_object_visible);
   virtual void build_object_from_layer(int base_index,
                                        Object *object,
@@ -232,7 +230,6 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_ik_pose(Object *object, bPoseChannel *pchan, bConstraint *con);
   virtual void build_splineik_pose(Object *object, bPoseChannel *pchan, bConstraint *con);
   virtual void build_rig(Object *object);
-  virtual void build_proxy_rig(Object *object);
   virtual void build_armature(bArmature *armature);
   virtual void build_armature_bones(ListBase *bones);
   virtual void build_shapekeys(Key *key);

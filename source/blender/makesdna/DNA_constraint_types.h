@@ -714,8 +714,6 @@ typedef enum eBConstraint_Flags {
   CONSTRAINT_SPACEONCE = (1 << 6),
   /* influence ipo is on constraint itself, not in action channel */
   CONSTRAINT_OWN_IPO = (1 << 7),
-  /* indicates that constraint was added locally (i.e.  didn't come from the proxy-lib) */
-  CONSTRAINT_PROXY_LOCAL = (1 << 8),
   /* indicates that constraint is temporarily disabled (only used in GE) */
   CONSTRAINT_OFF = (1 << 9),
   /* use bbone curve shape when calculating headtail values (also used by dependency graph!) */

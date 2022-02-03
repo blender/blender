@@ -63,17 +63,6 @@ class DepsgraphFromIDsNodeBuilder : public DepsgraphNodeBuilder {
     return DepsgraphNodeBuilder::need_pull_base_into_graph(base);
   }
 
-  void build_object_proxy_group(Object *object, bool is_visible) override
-  {
-    if (object->proxy_group == nullptr) {
-      return;
-    }
-    if (!filter_.contains(&object->proxy_group->id)) {
-      return;
-    }
-    DepsgraphNodeBuilder::build_object_proxy_group(object, is_visible);
-  }
-
  protected:
   DepsgraphFromIDsFilter filter_;
 };
@@ -94,17 +83,6 @@ class DepsgraphFromIDsRelationBuilder : public DepsgraphRelationBuilder {
       return false;
     }
     return DepsgraphRelationBuilder::need_pull_base_into_graph(base);
-  }
-
-  void build_object_proxy_group(Object *object) override
-  {
-    if (object->proxy_group == nullptr) {
-      return;
-    }
-    if (!filter_.contains(&object->proxy_group->id)) {
-      return;
-    }
-    DepsgraphRelationBuilder::build_object_proxy_group(object);
   }
 
  protected:

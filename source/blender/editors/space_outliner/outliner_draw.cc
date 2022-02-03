@@ -2480,9 +2480,6 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
       case TSE_POSE_CHANNEL:
         data.icon = ICON_BONE_DATA;
         break;
-      case TSE_PROXY:
-        data.icon = ICON_GHOST_ENABLED;
-        break;
       case TSE_R_LAYER_BASE:
         data.icon = ICON_RENDERLAYERS;
         break;

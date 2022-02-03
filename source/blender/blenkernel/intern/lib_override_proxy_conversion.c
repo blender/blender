@@ -27,6 +27,9 @@
 
 #include "BLI_linklist.h"
 
+/* Required for proxy to liboverrides conversion code. */
+#define DNA_DEPRECATED_ALLOW
+
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
 #include "DNA_object_types.h"

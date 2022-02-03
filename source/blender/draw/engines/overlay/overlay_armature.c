@@ -2374,9 +2374,6 @@ static bool POSE_is_driven_by_active_armature(Object *ob)
   if (ob_arm) {
     const DRWContextState *draw_ctx = DRW_context_state_get();
     bool is_active = OVERLAY_armature_is_pose_mode(ob_arm, draw_ctx);
-    if (!is_active && ob_arm->proxy_from) {
-      is_active = OVERLAY_armature_is_pose_mode(ob_arm->proxy_from, draw_ctx);
-    }
     return is_active;
   }
 

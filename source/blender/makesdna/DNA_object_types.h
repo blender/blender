@@ -263,9 +263,10 @@ typedef struct Object {
   /** String describing subobject info, MAX_ID_NAME-2. */
   char parsubstr[64];
   struct Object *parent, *track;
-  /* If `ob->proxy` (or proxy_group), this object is proxy for object `ob->proxy`. */
-  /* proxy_from is set in target back to the proxy. */
-  struct Object *proxy, *proxy_group, *proxy_from;
+  /* Proxy pointer are deprecated, only kept for conversion to liboverrides. */
+  struct Object *proxy DNA_DEPRECATED;
+  struct Object *proxy_group DNA_DEPRECATED;
+  struct Object *proxy_from DNA_DEPRECATED;
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
   /* struct Path *path; */

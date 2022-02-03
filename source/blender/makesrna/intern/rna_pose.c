@@ -140,7 +140,7 @@ static char *rna_PoseBone_path(PointerRNA *ptr)
 
 static bool rna_bone_group_poll(Object *ob, ReportList *reports)
 {
-  if ((ob->proxy != NULL) || (ob->proxy_group != NULL) || ID_IS_OVERRIDE_LIBRARY(ob)) {
+  if (ID_IS_OVERRIDE_LIBRARY(ob)) {
     BKE_report(reports, RPT_ERROR, "Cannot edit bone groups for proxies or library overrides");
     return false;
   }
@@ -717,7 +717,7 @@ static int rna_PoseChannel_proxy_editable(PointerRNA *ptr, const char **r_info)
   bArmature *arm = ob->data;
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
 
-  if (ob->proxy && pchan->bone && (pchan->bone->layer & arm->layer_protected)) {
+  if (false && pchan->bone && (pchan->bone->layer & arm->layer_protected)) {
     *r_info = "Can't edit property of a proxy on a protected layer";
     return 0;
   }

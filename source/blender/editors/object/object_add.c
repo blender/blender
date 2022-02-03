@@ -2347,11 +2347,6 @@ static void make_object_duplilist_real(bContext *C,
     BKE_animdata_free(&ob_dst->id, true);
     ob_dst->adt = NULL;
 
-    /* Proxies are not to be copied. */
-    ob_dst->proxy_from = NULL;
-    ob_dst->proxy_group = NULL;
-    ob_dst->proxy = NULL;
-
     ob_dst->parent = NULL;
     BKE_constraints_free(&ob_dst->constraints);
     ob_dst->runtime.curve_cache = NULL;
@@ -2466,13 +2461,6 @@ static void make_object_duplilist_real(bContext *C,
   }
 
   if (base->object->transflag & OB_DUPLICOLLECTION && base->object->instance_collection) {
-    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      if (ob->proxy_group == base->object) {
-        ob->proxy = NULL;
-        ob->proxy_from = NULL;
-        DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
-      }
-    }
     base->object->instance_collection = NULL;
   }
 

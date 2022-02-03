@@ -419,9 +419,6 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain,
     fd->skip_flags = params->skip_flags;
     BLI_strncpy(fd->relabase, filename, sizeof(fd->relabase));
 
-    /* clear ob->proxy_from pointers in old main */
-    blo_clear_proxy_pointers_from_lib(oldmain);
-
     /* separate libraries from old main */
     blo_split_main(&old_mainlist, oldmain);
     /* add the library pointers in oldmap lookup */

@@ -88,14 +88,6 @@ typedef struct DriverVarTypeInfo {
 /** \name Driver Target Utilities
  * \{ */
 
-static ID *dtar_id_ensure_proxy_from(ID *id)
-{
-  if (id && GS(id->name) == ID_OB && ((Object *)id)->proxy_from) {
-    return (ID *)(((Object *)id)->proxy_from);
-  }
-  return id;
-}
-
 /**
  * Helper function to obtain a value using RNA from the specified source
  * (for evaluating drivers).
@@ -113,7 +105,7 @@ static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
     return 0.0f;
   }
 
-  id = dtar_id_ensure_proxy_from(dtar->id);
+  id = dtar->id;
 
   /* Error check for missing pointer. */
   if (id == NULL) {
@@ -217,7 +209,7 @@ bool driver_get_variable_property(ChannelDriver *driver,
     return false;
   }
 
-  id = dtar_id_ensure_proxy_from(dtar->id);
+  id = dtar->id;
 
   /* Error check for missing pointer. */
   if (id == NULL) {
@@ -273,7 +265,7 @@ static short driver_check_valid_targets(ChannelDriver *driver, DriverVar *dvar)
   short valid_targets = 0;
 
   DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
-    Object *ob = (Object *)dtar_id_ensure_proxy_from(dtar->id);
+    Object *ob = (Object *)dtar->id;
 
     /* Check if this target has valid data. */
     if ((ob == NULL) || (GS(ob->id.name) != ID_OB)) {
@@ -328,7 +320,7 @@ static float dvar_eval_rotDiff(ChannelDriver *driver, DriverVar *dvar)
   for (int i = 0; i < 2; i++) {
     /* Get pointer to loc values to store in. */
     DriverTarget *dtar = &dvar->targets[i];
-    Object *ob = (Object *)dtar_id_ensure_proxy_from(dtar->id);
+    Object *ob = (Object *)dtar->id;
     bPoseChannel *pchan;
 
     /* After the checks above, the targets should be valid here. */
@@ -389,7 +381,7 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
   /* NOTE: for now, these are all just world-space */
   DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
     /* Get pointer to loc values to store in. */
-    Object *ob = (Object *)dtar_id_ensure_proxy_from(dtar->id);
+    Object *ob = (Object *)dtar->id;
     bPoseChannel *pchan;
     float tmp_loc[3];
 
@@ -472,7 +464,7 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
 static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
 {
   DriverTarget *dtar = &dvar->targets[0];
-  Object *ob = (Object *)dtar_id_ensure_proxy_from(dtar->id);
+  Object *ob = (Object *)dtar->id;
   bPoseChannel *pchan;
   float mat[4][4];
   float oldEul[3] = {0.0f, 0.0f, 0.0f};

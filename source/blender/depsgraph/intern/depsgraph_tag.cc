@@ -526,12 +526,6 @@ void graph_tag_ids_for_visible_update(Depsgraph *graph)
    * this. */
   for (deg::IDNode *id_node : graph->id_nodes) {
     const ID_Type id_type = GS(id_node->id_orig->name);
-    if (id_type == ID_OB) {
-      Object *object_orig = reinterpret_cast<Object *>(id_node->id_orig);
-      if (object_orig->proxy != nullptr) {
-        object_orig->proxy->proxy_from = object_orig;
-      }
-    }
 
     if (!id_node->visible_components_mask) {
       /* ID has no components which affects anything visible.
