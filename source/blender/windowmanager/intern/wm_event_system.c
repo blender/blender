@@ -3589,7 +3589,7 @@ void wm_event_do_handlers(bContext *C)
       if (scene_eval != NULL) {
         const int is_playing_sound = BKE_sound_scene_playing(scene_eval);
 
-        if (scene_eval->id.recalc & ID_RECALC_AUDIO_SEEK) {
+        if (scene_eval->id.recalc & ID_RECALC_FRAME_CHANGE) {
           /* Ignore seek here, the audio will be updated to the scene frame after jump during next
            * dependency graph update. */
         }

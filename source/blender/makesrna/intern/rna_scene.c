@@ -1028,7 +1028,7 @@ static void rna_Scene_frame_update(Main *UNUSED(bmain),
                                    PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
-  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
+  DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
   WM_main_add_notifier(NC_SCENE | ND_FRAME, scene);
 }
 

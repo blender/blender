@@ -2522,7 +2522,7 @@ void BKE_scene_update_sound(Depsgraph *depsgraph, Main *bmain)
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   const int recalc = scene->id.recalc;
   BKE_sound_ensure_scene(scene);
-  if (recalc & ID_RECALC_AUDIO_SEEK) {
+  if (recalc & ID_RECALC_FRAME_CHANGE) {
     BKE_sound_seek_scene(bmain, scene);
   }
   if (recalc & ID_RECALC_AUDIO_FPS) {
