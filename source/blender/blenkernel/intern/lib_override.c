@@ -1107,23 +1107,29 @@ static void lib_override_library_proxy_convert_do(Main *bmain,
 void BKE_lib_override_library_main_proxy_convert(Main *bmain, BlendFileReadReport *reports)
 {
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    FOREACH_SCENE_OBJECT_BEGIN (scene, object) {
-      if (object->proxy_group == NULL) {
-        continue;
-      }
+    LinkNodePair proxy_objects = {NULL};
 
-      lib_override_library_proxy_convert_do(bmain, scene, object, reports);
+    FOREACH_SCENE_OBJECT_BEGIN (scene, object) {
+      if (object->proxy_group != NULL) {
+        BLI_linklist_append(&proxy_objects, object);
+      }
     }
     FOREACH_SCENE_OBJECT_END;
 
     FOREACH_SCENE_OBJECT_BEGIN (scene, object) {
-      if (object->proxy == NULL) {
-        continue;
+      if (object->proxy != NULL && object->proxy_group == NULL) {
+        BLI_linklist_append(&proxy_objects, object);
       }
-
-      lib_override_library_proxy_convert_do(bmain, scene, object, reports);
     }
     FOREACH_SCENE_OBJECT_END;
+
+    for (LinkNode *proxy_object_iter = proxy_objects.list; proxy_object_iter != NULL;
+         proxy_object_iter = proxy_object_iter->next) {
+      Object *proxy_object = proxy_object_iter->link;
+      lib_override_library_proxy_convert_do(bmain, scene, proxy_object, reports);
+    }
+
+    BLI_linklist_free(proxy_objects.list, NULL);
   }
 
   LISTBASE_FOREACH (Object *, object, &bmain->objects) {
