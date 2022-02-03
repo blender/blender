@@ -1122,7 +1122,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* Hair and PointCloud attributes. */
     for (Hair *hair = bmain->hairs.first; hair != NULL; hair = hair->id.next) {
-      do_versions_point_attributes(&hair->pdata);
+      do_versions_point_attributes(&hair->geometry.point_data);
     }
     for (PointCloud *pointcloud = bmain->pointclouds.first; pointcloud != NULL;
          pointcloud = pointcloud->id.next) {
@@ -1424,7 +1424,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* Hair and PointCloud attributes names. */
     LISTBASE_FOREACH (Hair *, hair, &bmain->hairs) {
-      do_versions_point_attribute_names(&hair->pdata);
+      do_versions_point_attribute_names(&hair->geometry.point_data);
     }
     LISTBASE_FOREACH (PointCloud *, pointcloud, &bmain->pointclouds) {
       do_versions_point_attribute_names(&pointcloud->pdata);

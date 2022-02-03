@@ -90,10 +90,10 @@ static void get_domains(const ID *id, DomainInfo info[ATTR_DOMAIN_NUM])
     }
     case ID_HA: {
       Hair *hair = (Hair *)id;
-      info[ATTR_DOMAIN_POINT].customdata = &hair->pdata;
-      info[ATTR_DOMAIN_POINT].length = hair->totpoint;
-      info[ATTR_DOMAIN_CURVE].customdata = &hair->cdata;
-      info[ATTR_DOMAIN_CURVE].length = hair->totcurve;
+      info[ATTR_DOMAIN_POINT].customdata = &hair->geometry.point_data;
+      info[ATTR_DOMAIN_POINT].length = hair->geometry.point_size;
+      info[ATTR_DOMAIN_CURVE].customdata = &hair->geometry.curve_data;
+      info[ATTR_DOMAIN_CURVE].length = hair->geometry.curve_size;
       break;
     }
     default:

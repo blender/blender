@@ -29,7 +29,10 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
+#include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_hair_types.h"
@@ -43,6 +46,10 @@
 
 #include "draw_cache_impl.h"   /* own include */
 #include "draw_hair_private.h" /* own include */
+
+using blender::float3;
+using blender::IndexRange;
+using blender::Span;
 
 static void hair_batch_cache_clear(Hair *hair);
 
@@ -131,17 +138,9 @@ static void ensure_seg_pt_count(Hair *hair, ParticleHairCache *hair_cache)
     return;
   }
 
-  hair_cache->strands_len = 0;
-  hair_cache->elems_len = 0;
-  hair_cache->point_len = 0;
-
-  HairCurve *curve = hair->curves;
-  int num_curves = hair->totcurve;
-  for (int i = 0; i < num_curves; i++, curve++) {
-    hair_cache->strands_len++;
-    hair_cache->elems_len += curve->numpoints + 1;
-    hair_cache->point_len += curve->numpoints;
-  }
+  hair_cache->strands_len = hair->geometry.curve_size;
+  hair_cache->elems_len = hair->geometry.point_size + hair->geometry.curve_size;
+  hair_cache->point_len = hair->geometry.point_size;
 }
 
 static void hair_batch_cache_fill_segments_proc_pos(Hair *hair,
@@ -149,30 +148,36 @@ static void hair_batch_cache_fill_segments_proc_pos(Hair *hair,
                                                     GPUVertBufRaw *length_step)
 {
   /* TODO: use hair radius layer if available. */
-  HairCurve *curve = hair->curves;
-  int num_curves = hair->totcurve;
-  for (int i = 0; i < num_curves; i++, curve++) {
-    float(*curve_co)[3] = hair->co + curve->firstpoint;
+  const int curve_size = hair->geometry.curve_size;
+  Span<int> offsets{hair->geometry.offsets, hair->geometry.curve_size + 1};
+
+  Span<float3> positions{(float3 *)hair->geometry.position, hair->geometry.point_size};
+
+  for (const int i : IndexRange(curve_size)) {
+    const IndexRange curve_range(offsets[i], offsets[i + 1] - offsets[i]);
+
+    Span<float3> spline_positions = positions.slice(curve_range);
     float total_len = 0.0f;
-    float *co_prev = nullptr, *seg_data_first;
-    for (int j = 0; j < curve->numpoints; j++) {
+    float *seg_data_first;
+    for (const int i_spline : spline_positions.index_range()) {
       float *seg_data = (float *)GPU_vertbuf_raw_step(attr_step);
-      copy_v3_v3(seg_data, curve_co[j]);
-      if (co_prev) {
-        total_len += len_v3v3(co_prev, curve_co[j]);
-      }
-      else {
+      copy_v3_v3(seg_data, spline_positions[i_spline]);
+      if (i_spline == 0) {
         seg_data_first = seg_data;
       }
+      else {
+        total_len += blender::math::distance(spline_positions[i_spline - 1],
+                                             spline_positions[i_spline]);
+      }
       seg_data[3] = total_len;
-      co_prev = curve_co[j];
     }
     /* Assign length value. */
     *(float *)GPU_vertbuf_raw_step(length_step) = total_len;
     if (total_len > 0.0f) {
       /* Divide by total length to have a [0-1] number. */
-      for (int j = 0; j < curve->numpoints; j++, seg_data_first += 4) {
+      for ([[maybe_unused]] const int i_spline : spline_positions.index_range()) {
         seg_data_first[3] /= total_len;
+        seg_data_first += 4;
       }
     }
   }
@@ -226,11 +231,14 @@ static void hair_batch_cache_fill_strands_data(Hair *hair,
                                                GPUVertBufRaw *data_step,
                                                GPUVertBufRaw *seg_step)
 {
-  HairCurve *curve = hair->curves;
-  int num_curves = hair->totcurve;
-  for (int i = 0; i < num_curves; i++, curve++) {
-    *(uint *)GPU_vertbuf_raw_step(data_step) = curve->firstpoint;
-    *(ushort *)GPU_vertbuf_raw_step(seg_step) = curve->numpoints - 1;
+  const int curve_size = hair->geometry.curve_size;
+  Span<int> offsets{hair->geometry.offsets, hair->geometry.curve_size + 1};
+
+  for (const int i : IndexRange(curve_size)) {
+    const IndexRange curve_range(offsets[i], offsets[i + 1] - offsets[i]);
+
+    *(uint *)GPU_vertbuf_raw_step(data_step) = curve_range.start();
+    *(ushort *)GPU_vertbuf_raw_step(seg_step) = curve_range.size() - 1;
   }
 }
 
@@ -289,10 +297,11 @@ static void hair_batch_cache_fill_segments_indices(Hair *hair,
                                                    const int res,
                                                    GPUIndexBufBuilder *elb)
 {
-  HairCurve *curve = hair->curves;
-  int num_curves = hair->totcurve;
+  const int curve_size = hair->geometry.curve_size;
+
   uint curr_point = 0;
-  for (int i = 0; i < num_curves; i++, curve++) {
+
+  for ([[maybe_unused]] const int i : IndexRange(curve_size)) {
     for (int k = 0; k < res; k++) {
       GPU_indexbuf_add_generic_vert(elb, curr_point++);
     }
