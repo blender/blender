@@ -71,7 +71,6 @@ void ObjectRuntimeBackup::backup_modifier_runtime_data(Object *object)
     const SessionUUID &session_uuid = modifier_data->session_uuid;
     BLI_assert(BLI_session_uuid_is_generated(&session_uuid));
 
-    BLI_assert(modifier_data->orig_modifier_data != nullptr);
     modifier_runtime_data.add(session_uuid, ModifierDataBackup(modifier_data));
     modifier_data->runtime = nullptr;
   }
@@ -150,8 +149,9 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
 void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object)
 {
   LISTBASE_FOREACH (ModifierData *, modifier_data, &object->modifiers) {
-    BLI_assert(modifier_data->orig_modifier_data != nullptr);
     const SessionUUID &session_uuid = modifier_data->session_uuid;
+    BLI_assert(BLI_session_uuid_is_generated(&session_uuid));
+
     optional<ModifierDataBackup> backup = modifier_runtime_data.pop_try(session_uuid);
     if (backup.has_value()) {
       modifier_data->runtime = backup->runtime;

@@ -610,7 +610,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       BLI_assert(csmd->bind_coords != NULL);
       /* Copy bound data to the original modifier. */
       CorrectiveSmoothModifierData *csmd_orig = (CorrectiveSmoothModifierData *)
-          BKE_modifier_get_original(&csmd->modifier);
+          BKE_modifier_get_original(ob, &csmd->modifier);
       csmd_orig->bind_coords = MEM_dupallocN(csmd->bind_coords);
       csmd_orig->bind_coords_num = csmd->bind_coords_num;
     }

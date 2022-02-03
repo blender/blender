@@ -1148,7 +1148,8 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
 
   if (geo_logger.has_value()) {
     geo_logger->log_output_geometry(output_geometry_set);
-    NodesModifierData *nmd_orig = (NodesModifierData *)BKE_modifier_get_original(&nmd->modifier);
+    NodesModifierData *nmd_orig = (NodesModifierData *)BKE_modifier_get_original(ctx->object,
+                                                                                 &nmd->modifier);
     clear_runtime_data(nmd_orig);
     nmd_orig->runtime_eval_log = new geo_log::ModifierLog(*geo_logger);
   }

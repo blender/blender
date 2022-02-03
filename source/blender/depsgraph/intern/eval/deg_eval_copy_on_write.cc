@@ -674,12 +674,6 @@ void update_pose_orig_pointers(const bPose *pose_orig, bPose *pose_cow)
   update_list_orig_pointers(&pose_orig->chanbase, &pose_cow->chanbase, &bPoseChannel::orig_pchan);
 }
 
-void update_modifiers_orig_pointers(const Object *object_orig, Object *object_cow)
-{
-  update_list_orig_pointers(
-      &object_orig->modifiers, &object_cow->modifiers, &ModifierData::orig_modifier_data);
-}
-
 void update_nla_strips_orig_pointers(const ListBase *strips_orig, ListBase *strips_cow)
 {
   NlaStrip *strip_orig = reinterpret_cast<NlaStrip *>(strips_orig->first);
@@ -766,7 +760,6 @@ void update_id_after_copy(const Depsgraph *depsgraph,
         BKE_gpencil_update_orig_pointers(object_orig, object_cow);
       }
       update_particles_after_copy(depsgraph, object_orig, object_cow);
-      update_modifiers_orig_pointers(object_orig, object_cow);
       update_proxy_pointers_after_copy(depsgraph, object_orig, object_cow);
       break;
     }

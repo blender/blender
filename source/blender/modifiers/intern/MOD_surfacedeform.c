@@ -1454,7 +1454,7 @@ static void surfacedeformModifier_do(ModifierData *md,
         BKE_modifier_set_error(ob, md, "Attempt to bind from inactive dependency graph");
         return;
       }
-      ModifierData *md_orig = BKE_modifier_get_original(md);
+      ModifierData *md_orig = BKE_modifier_get_original(ob, md);
       freeData(md_orig);
     }
     return;
@@ -1478,7 +1478,7 @@ static void surfacedeformModifier_do(ModifierData *md,
     }
 
     SurfaceDeformModifierData *smd_orig = (SurfaceDeformModifierData *)BKE_modifier_get_original(
-        md);
+        ob, md);
     float tmp_mat[4][4];
 
     invert_m4_m4(tmp_mat, ob->obmat);
