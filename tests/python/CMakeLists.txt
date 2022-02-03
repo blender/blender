@@ -324,7 +324,10 @@ add_blender_test(
 )
 endif()
 
+if(FALSE)
 # OBJ Export tests
+# Disabled because new C++ Obj exporter has C++ tests.
+
 add_blender_test(
   export_obj_cube
   ${TEST_SRC_DIR}/io_tests/blend_geometry/all_quads.blend
@@ -345,8 +348,6 @@ add_blender_test(
   --md5=a733ae4fa4a591ea9b0912da3af042de --md5_method=FILE
 )
 
-# disabled until updated & working
-if(FALSE)
 add_blender_test(
   export_obj_all_objects
   ${TEST_SRC_DIR}/io_tests/blend_scene/all_objects.blend
