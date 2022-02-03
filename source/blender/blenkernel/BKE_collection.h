@@ -123,11 +123,20 @@ struct Collection *BKE_collection_object_find(struct Main *bmain,
 bool BKE_collection_is_empty(const struct Collection *collection);
 
 /**
- * Add object to collection
+ * Add object to given collection, ensuring this collection is 'editable' (i.e. local and not a
+ * liboverride), and finding a suitable parent one otherwise.
  */
 bool BKE_collection_object_add(struct Main *bmain,
                                struct Collection *collection,
                                struct Object *ob);
+/**
+ * Same as #BKE_collection_object_add, but uncondionnaly adds the object to the given collection.
+ *
+ * NOTE: required in certain cases, like do-versionning or complex ID management tasks.
+ */
+bool BKE_collection_object_add_notest(struct Main *bmain,
+                                      struct Collection *collection,
+                                      struct Object *ob);
 /**
  * Add \a ob_dst to all scene collections that reference object \a ob_src is in.
  * Used for copying objects.
