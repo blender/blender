@@ -211,7 +211,7 @@ void depsgraph_tag_to_component_opcode(const ID *id,
     case ID_RECALC_SEQUENCER_STRIPS:
       *component_type = NodeType::SEQUENCER;
       break;
-    case ID_RECALC_AUDIO_SEEK:
+    case ID_RECALC_FRAME_CHANGE:
     case ID_RECALC_AUDIO_FPS:
     case ID_RECALC_AUDIO_VOLUME:
     case ID_RECALC_AUDIO_MUTE:
@@ -737,8 +737,8 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
       return "EDITORS";
     case ID_RECALC_SEQUENCER_STRIPS:
       return "SEQUENCER_STRIPS";
-    case ID_RECALC_AUDIO_SEEK:
-      return "AUDIO_SEEK";
+    case ID_RECALC_FRAME_CHANGE:
+      return "FRAME_CHANGE";
     case ID_RECALC_AUDIO_FPS:
       return "AUDIO_FPS";
     case ID_RECALC_AUDIO_VOLUME:

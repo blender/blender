@@ -1385,7 +1385,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 
   if (CFRA != sc->user.framenr) {
     CFRA = sc->user.framenr;
-    DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
+    DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 
     WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
   }

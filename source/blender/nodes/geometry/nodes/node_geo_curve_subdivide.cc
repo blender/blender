@@ -35,7 +35,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0)
       .max(1000)
       .supports_field()
-      .description(N_("The number of control points to create on the segment following each point"));
+      .description(
+          N_("The number of control points to create on the segment following each point"));
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
