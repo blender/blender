@@ -52,8 +52,6 @@
 
 #include "view3d_intern.h"
 
-static void do_view3d_header_buttons(bContext *C, void *arg, int event);
-
 #define B_SEL_VERT 110
 #define B_SEL_EDGE 111
 #define B_SEL_FACE 112
@@ -98,101 +96,45 @@ void VIEW3D_OT_toggle_matcap_flip(wmOperatorType *ot)
 /** \name UI Templates
  * \{ */
 
-static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
-{
-  wmWindow *win = CTX_wm_window(C);
-  const int ctrl = win->eventstate->ctrl, shift = win->eventstate->shift;
-
-  /* watch it: if area->win does not exist, check that when calling direct drawing routines */
-
-  switch (event) {
-    case B_SEL_VERT:
-      if (EDBM_selectmode_toggle_multi(C, SCE_SELECT_VERTEX, -1, shift, ctrl)) {
-        ED_undo_push(C, "Selectmode Set: Vertex");
-      }
-      break;
-    case B_SEL_EDGE:
-      if (EDBM_selectmode_toggle_multi(C, SCE_SELECT_EDGE, -1, shift, ctrl)) {
-        ED_undo_push(C, "Selectmode Set: Edge");
-      }
-      break;
-    case B_SEL_FACE:
-      if (EDBM_selectmode_toggle_multi(C, SCE_SELECT_FACE, -1, shift, ctrl)) {
-        ED_undo_push(C, "Selectmode Set: Face");
-      }
-      break;
-    default:
-      break;
-  }
-}
-
 void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
-  uiBlock *block = uiLayoutGetBlock(layout);
-
-  UI_block_func_handle_set(block, do_view3d_header_buttons, NULL);
-
-  if (obedit && (obedit->type == OB_MESH)) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    uiLayout *row;
-    uiBut *but;
-
-    row = uiLayoutRow(layout, true);
-    block = uiLayoutGetBlock(row);
-    but = uiDefIconButBitS(
-        block,
-        UI_BTYPE_TOGGLE,
-        SCE_SELECT_VERTEX,
-        B_SEL_VERT,
-        ICON_VERTEXSEL,
-        0,
-        0,
-        UI_UNIT_X,
-        UI_UNIT_Y,
-        &em->selectmode,
-        1.0,
-        0.0,
-        0,
-        0,
-        TIP_("Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"));
-    UI_but_flag_disable(but, UI_BUT_UNDO);
-    but = uiDefIconButBitS(
-        block,
-        UI_BTYPE_TOGGLE,
-        SCE_SELECT_EDGE,
-        B_SEL_EDGE,
-        ICON_EDGESEL,
-        0,
-        0,
-        ceilf(UI_UNIT_X - U.pixelsize),
-        UI_UNIT_Y,
-        &em->selectmode,
-        1.0,
-        0.0,
-        0,
-        0,
-        TIP_("Edge select - Shift-Click for multiple modes, "
-             "Ctrl-Click expands/contracts selection depending on the current mode"));
-    UI_but_flag_disable(but, UI_BUT_UNDO);
-    but = uiDefIconButBitS(
-        block,
-        UI_BTYPE_TOGGLE,
-        SCE_SELECT_FACE,
-        B_SEL_FACE,
-        ICON_FACESEL,
-        0,
-        0,
-        ceilf(UI_UNIT_X - U.pixelsize),
-        UI_UNIT_Y,
-        &em->selectmode,
-        1.0,
-        0.0,
-        0,
-        0,
-        TIP_("Face select - Shift-Click for multiple modes, Ctrl-Click expands selection"));
-    UI_but_flag_disable(but, UI_BUT_UNDO);
+  if (!obedit || obedit->type != OB_MESH) {
+    return;
   }
+
+  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  uiLayout *row = uiLayoutRow(layout, true);
+
+  PointerRNA op_ptr;
+  wmOperatorType *ot = WM_operatortype_find("MESH_OT_select_mode", true);
+  uiItemFullO_ptr(row,
+                  ot,
+                  "",
+                  ICON_VERTEXSEL,
+                  NULL,
+                  WM_OP_INVOKE_DEFAULT,
+                  (em->selectmode & SCE_SELECT_VERTEX) ? UI_ITEM_O_DEPRESS : 0,
+                  &op_ptr);
+  RNA_enum_set(&op_ptr, "type", SCE_SELECT_VERTEX);
+  uiItemFullO_ptr(row,
+                  ot,
+                  "",
+                  ICON_EDGESEL,
+                  NULL,
+                  WM_OP_INVOKE_DEFAULT,
+                  (em->selectmode & SCE_SELECT_EDGE) ? UI_ITEM_O_DEPRESS : 0,
+                  &op_ptr);
+  RNA_enum_set(&op_ptr, "type", SCE_SELECT_EDGE);
+  uiItemFullO_ptr(row,
+                  ot,
+                  "",
+                  ICON_FACESEL,
+                  NULL,
+                  WM_OP_INVOKE_DEFAULT,
+                  (em->selectmode & SCE_SELECT_FACE) ? UI_ITEM_O_DEPRESS : 0,
+                  &op_ptr);
+  RNA_enum_set(&op_ptr, "type", SCE_SELECT_FACE);
 }
 
 static void uiTemplatePaintModeSelection(uiLayout *layout, struct bContext *C)
