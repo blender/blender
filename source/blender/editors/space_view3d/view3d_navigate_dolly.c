@@ -243,12 +243,6 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   viewops_data_alloc(C, op);
   vod = op->customdata;
 
-  /* poll should check but in some cases fails, see poll func for details */
-  if (RV3D_LOCK_FLAGS(vod->rv3d) & RV3D_LOCK_ROTATION) {
-    viewops_data_free(C, op);
-    return OPERATOR_PASS_THROUGH;
-  }
-
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
   /* needs to run before 'viewops_data_create' so the backup 'rv3d->ofs' is correct */
@@ -329,7 +323,7 @@ void VIEW3D_OT_dolly(wmOperatorType *ot)
   ot->invoke = viewdolly_invoke;
   ot->exec = viewdolly_exec;
   ot->modal = viewdolly_modal;
-  ot->poll = ED_operator_region_view3d_active;
+  ot->poll = view3d_rotation_poll;
   ot->cancel = viewdolly_cancel;
 
   /* flags */

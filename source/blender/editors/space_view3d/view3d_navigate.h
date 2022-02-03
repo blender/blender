@@ -149,6 +149,8 @@ typedef struct ViewOpsData {
 } ViewOpsData;
 
 /* view3d_navigate.c */
+bool view3d_location_poll(struct bContext *C);
+bool view3d_rotation_poll(struct bContext *C);
 bool view3d_zoom_or_dolly_poll(struct bContext *C);
 
 enum eViewOpsFlag viewops_flag_from_prefs(void);

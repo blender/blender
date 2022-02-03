@@ -59,22 +59,29 @@
 /** \name Navigation Polls
  * \{ */
 
-static bool view3d_pan_poll(bContext *C)
+static bool view3d_navigation_poll_impl(bContext *C, const char viewlock)
 {
-  if (ED_operator_region_view3d_active(C)) {
-    const RegionView3D *rv3d = CTX_wm_region_view3d(C);
-    return !(RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_LOCATION);
+  if (!ED_operator_region_view3d_active(C)) {
+    return false;
   }
-  return false;
+
+  const RegionView3D *rv3d = CTX_wm_region_view3d(C);
+  return !(RV3D_LOCK_FLAGS(rv3d) & viewlock);
+}
+
+bool view3d_location_poll(bContext *C)
+{
+  return view3d_navigation_poll_impl(C, RV3D_LOCK_LOCATION);
+}
+
+bool view3d_rotation_poll(bContext *C)
+{
+  return view3d_navigation_poll_impl(C, RV3D_LOCK_ROTATION);
 }
 
 bool view3d_zoom_or_dolly_poll(bContext *C)
 {
-  if (ED_operator_region_view3d_active(C)) {
-    const RegionView3D *rv3d = CTX_wm_region_view3d(C);
-    return !(RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ZOOM_AND_DOLLY);
-  }
-  return false;
+  return view3d_navigation_poll_impl(C, RV3D_LOCK_ZOOM_AND_DOLLY);
 }
 
 /** \} */
@@ -1053,7 +1060,7 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = viewcenter_cursor_exec;
-  ot->poll = view3d_pan_poll;
+  ot->poll = view3d_location_poll;
 
   /* flags */
   ot->flag = 0;
@@ -1105,7 +1112,7 @@ void VIEW3D_OT_view_center_pick(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = viewcenter_pick_invoke;
-  ot->poll = view3d_pan_poll;
+  ot->poll = view3d_location_poll;
 
   /* flags */
   ot->flag = 0;
@@ -1582,7 +1589,7 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = viewpan_invoke;
-  ot->poll = view3d_pan_poll;
+  ot->poll = view3d_location_poll;
 
   /* flags */
   ot->flag = 0;

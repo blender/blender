@@ -386,12 +386,6 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   viewops_data_alloc(C, op);
   vod = op->customdata;
 
-  /* poll should check but in some cases fails, see poll func for details */
-  if (RV3D_LOCK_FLAGS(vod->rv3d) & RV3D_LOCK_ROTATION) {
-    viewops_data_free(C, op);
-    return OPERATOR_PASS_THROUGH;
-  }
-
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
   viewops_data_create(C,
@@ -446,7 +440,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = viewrotate_invoke;
   ot->modal = viewrotate_modal;
-  ot->poll = ED_operator_region_view3d_active;
+  ot->poll = view3d_rotation_poll;
   ot->cancel = viewrotate_cancel;
 
   /* flags */

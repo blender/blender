@@ -133,17 +133,12 @@ static int viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* makes op->customdata */
   viewops_data_alloc(C, op);
-  vod = op->customdata;
-  if (RV3D_LOCK_FLAGS(vod->rv3d) & RV3D_LOCK_LOCATION) {
-    viewops_data_free(C, op);
-    return OPERATOR_PASS_THROUGH;
-  }
-
   viewops_data_create(C,
                       op,
                       event,
                       (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT) |
                           (use_cursor_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
+  vod = op->customdata;
 
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
@@ -179,7 +174,7 @@ void VIEW3D_OT_move(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = viewmove_invoke;
   ot->modal = viewmove_modal;
-  ot->poll = ED_operator_region_view3d_active;
+  ot->poll = view3d_location_poll;
   ot->cancel = viewmove_cancel;
 
   /* flags */
