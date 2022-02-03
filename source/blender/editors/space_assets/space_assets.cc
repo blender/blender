@@ -34,6 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "asset_browser_intern.hh"
 #include "asset_view.hh"
@@ -57,10 +58,16 @@ static SpaceLink *asset_browser_create(const ScrArea *UNUSED(area), const Scene 
   }
 
   {
-    /* Main window. */
+    /* Main region. */
     ARegion *region = MEM_cnew<ARegion>("asset browser main region");
     BLI_addtail(&assets_space->regionbase, region);
     region->regiontype = RGN_TYPE_WINDOW;
+
+    region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+    region->v2d.align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
+    region->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
+    region->v2d.keeptot = V2D_KEEPTOT_STRICT;
+    region->v2d.minzoom = region->v2d.maxzoom = 1.0f;
   }
 
   return (SpaceLink *)assets_space;
@@ -90,8 +97,9 @@ static void asset_browser_keymap(wmKeyConfig *UNUSED(keyconf))
 /* ---------------------------------------------------------------------- */
 /* Main Region */
 
-static void asset_browser_main_region_init(wmWindowManager *UNUSED(wm), ARegion *UNUSED(region))
+static void asset_browser_main_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
 {
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 }
 
 static void asset_browser_main_region_listener(const wmRegionListenerParams *UNUSED(params))

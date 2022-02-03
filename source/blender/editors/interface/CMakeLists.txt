@@ -38,6 +38,7 @@ set(INC
 )
 
 set(SRC
+  grid_view.cc
   interface.c
   interface_align.c
   interface_anim.c

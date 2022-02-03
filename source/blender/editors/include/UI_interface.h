@@ -80,6 +80,7 @@ struct wmKeyMapItem;
 struct wmMsgBus;
 struct wmOperator;
 struct wmOperatorType;
+struct wmRegionListenerParams;
 struct wmWindow;
 
 typedef struct uiBlock uiBlock;
@@ -91,6 +92,8 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 typedef struct uiTreeViewHandle uiTreeViewHandle;
 /* C handle for C++ #ui::AbstractTreeViewItem type. */
 typedef struct uiTreeViewItemHandle uiTreeViewItemHandle;
+/* C handle for C++ #ui::AbstractGridView type. */
+typedef struct uiGridViewHandle uiGridViewHandle;
 
 /* Defines */
 
@@ -3163,6 +3166,9 @@ void UI_interface_tag_script_reload(void);
 /* Support click-drag motion which presses the button and closes a popover (like a menu). */
 #define USE_UI_POPOVER_ONCE
 
+void UI_block_views_listen(const uiBlock *block,
+                           const struct wmRegionListenerParams *listener_params);
+
 bool UI_tree_view_item_is_active(const uiTreeViewItemHandle *item);
 bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a, const uiTreeViewItemHandle *b);
 /**
@@ -3200,6 +3206,11 @@ void UI_tree_view_item_context_menu_build(struct bContext *C,
 uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const struct ARegion *region,
                                                       const int xy[2]) ATTR_NONNULL(1, 2);
 uiTreeViewItemHandle *UI_block_tree_view_find_active_item(const struct ARegion *region);
+
+/**
+ * Listen to \a notifier, returning true if the region should redraw.
+ */
+bool UI_grid_view_listen_should_redraw(const uiGridViewHandle *view, const wmNotifier *notifier);
 
 #ifdef __cplusplus
 }

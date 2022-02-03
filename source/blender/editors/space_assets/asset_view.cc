@@ -25,23 +25,31 @@
 #include "ED_asset.h"
 
 #include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "asset_view.hh"
 
+namespace ui = blender::ui;
+
 namespace blender::ed::asset_browser {
 
-AssetGridView::AssetGridView(const AssetLibraryReference &asset_library_ref)
-    : asset_library_ref_(asset_library_ref)
+AssetGridView::AssetGridView(const AssetLibraryReference &asset_library_ref, uiLayout &layout)
+    : asset_library_ref_(asset_library_ref), layout(layout)
 {
 }
 
 void AssetGridView::build()
 {
-  ED_assetlist_iterate(asset_library_ref_, [](AssetHandle asset) {
-    std::cout << ED_asset_handle_get_name(&asset) << std::endl;
+  ED_assetlist_iterate(asset_library_ref_, [this](AssetHandle asset) {
+    uiItemL(
+        &layout, ED_asset_handle_get_name(&asset), ED_asset_handle_get_preview_icon_id(&asset));
     return true;
   });
-  std::cout << std::endl;
+}
+
+bool AssetGridView::listen(const wmNotifier &notifier) const
+{
+  return ED_assetlist_listen(&asset_library_ref_, &notifier);
 }
 
 void asset_view_create_in_layout(const bContext &C,
@@ -55,8 +63,10 @@ void asset_view_create_in_layout(const bContext &C,
 
   UI_block_layout_set_current(block, &layout);
 
-  AssetGridView grid_view{asset_library_ref};
-  grid_view.build();
+  ui::AbstractGridView *grid_view = UI_block_add_view(
+      *block, "asset grid view", std::make_unique<AssetGridView>(asset_library_ref, layout));
+
+  grid_view->build();
 }
 
 }  // namespace blender::ed::asset_browser

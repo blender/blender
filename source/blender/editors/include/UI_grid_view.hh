@@ -15,34 +15,35 @@
  */
 
 /** \file
- * \ingroup spassets
+ * \ingroup editorui
+ *
+ * API for simple creation of grid UIs, supporting typically needed features.
+ * https://wiki.blender.org/wiki/Source/Interface/Views/Grid_Views
  */
 
 #pragma once
 
-#include "UI_grid_view.hh"
+struct wmNotifier;
 
-struct bContext;
-struct AssetLibraryReference;
-struct uiLayout;
+namespace blender::ui {
 
-namespace blender::ed::asset_browser {
-
-class AssetGridView : public blender::ui::AbstractGridView {
-  AssetLibraryReference asset_library_ref_;
-
-  /* TODO temp. */
-  uiLayout &layout;
-
+class AbstractGridViewItem {
  public:
-  AssetGridView(const AssetLibraryReference &, uiLayout &layout);
+  virtual ~AbstractGridViewItem() = default;
 
-  void build() override;
-  bool listen(const wmNotifier &) const override;
+ protected:
+  AbstractGridViewItem() = default;
 };
 
-void asset_view_create_in_layout(const bContext &C,
-                                 const AssetLibraryReference &asset_library_ref,
-                                 uiLayout &layout);
+class AbstractGridView {
+ public:
+  virtual ~AbstractGridView() = default;
 
-}  // namespace blender::ed::asset_browser
+  /** Listen to a notifier, returning true if a redraw is needed. */
+  virtual bool listen(const wmNotifier &) const;
+
+  // protected:
+  virtual void build() = 0;
+};
+
+}  // namespace blender::ui

@@ -25,6 +25,7 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "asset_browser_intern.hh"
 #include "asset_view.hh"
@@ -38,8 +39,11 @@ using namespace blender::ed::asset_browser;
 void asset_browser_main_region_draw(const bContext *C, ARegion *region)
 {
   const SpaceAssets *asset_space = CTX_wm_space_assets(C);
+  View2D *v2d = &region->v2d;
 
   UI_ThemeClearColor(TH_BACK);
+
+  UI_view2d_view_ortho(v2d);
 
   const uiStyle *style = UI_style_get_dpi();
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
@@ -55,6 +59,15 @@ void asset_browser_main_region_draw(const bContext *C, ARegion *region)
 
   asset_view_create_in_layout(*C, asset_space->asset_library_ref, *layout);
 
+  /* Update main region View2d dimensions. */
+  int layout_width, layout_height;
+  UI_block_layout_resolve(block, &layout_width, &layout_height);
+  UI_view2d_totRect_set(v2d, layout_width, layout_height);
+
   UI_block_end(C, block);
   UI_block_draw(C, block);
+
+  /* reset view matrix */
+  UI_view2d_view_restore(C);
+  UI_view2d_scrollers_draw(v2d, nullptr);
 }

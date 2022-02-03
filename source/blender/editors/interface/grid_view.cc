@@ -15,34 +15,34 @@
  */
 
 /** \file
- * \ingroup spassets
+ * \ingroup edinterface
  */
 
-#pragma once
+#include "WM_types.h"
+
+#include "UI_interface.h"
 
 #include "UI_grid_view.hh"
 
-struct bContext;
-struct AssetLibraryReference;
-struct uiLayout;
+namespace blender::ui {
 
-namespace blender::ed::asset_browser {
+/* ---------------------------------------------------------------------- */
 
-class AssetGridView : public blender::ui::AbstractGridView {
-  AssetLibraryReference asset_library_ref_;
+bool AbstractGridView::listen(const wmNotifier &) const
+{
+  /* Nothing by default. */
+  return false;
+}
 
-  /* TODO temp. */
-  uiLayout &layout;
+}  // namespace blender::ui
 
- public:
-  AssetGridView(const AssetLibraryReference &, uiLayout &layout);
+using namespace blender::ui;
 
-  void build() override;
-  bool listen(const wmNotifier &) const override;
-};
+/* ---------------------------------------------------------------------- */
 
-void asset_view_create_in_layout(const bContext &C,
-                                 const AssetLibraryReference &asset_library_ref,
-                                 uiLayout &layout);
-
-}  // namespace blender::ed::asset_browser
+bool UI_grid_view_listen_should_redraw(const uiGridViewHandle *view_handle,
+                                       const wmNotifier *notifier)
+{
+  const AbstractGridView &view = *reinterpret_cast<const AbstractGridView *>(view_handle);
+  return view.listen(*notifier);
+}
