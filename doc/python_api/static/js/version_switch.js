@@ -126,7 +126,7 @@ var Popover = function() {
       var url = new URL(window.location.href);
       let pathSplit = [ "", "api", v ];
       if (url.pathname.startsWith("/api/")) {
-        pathSplit.push(url.pathname.split('/').slice(4).join('/'));
+        pathSplit.push(url.pathname.split('/').slice(3).join('/'));
       }
       else {
         pathSplit.push(url.pathname.substring(1));
