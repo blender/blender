@@ -401,11 +401,6 @@ void makeDerivedMesh(struct Depsgraph *depsgraph,
                      struct Object *ob,
                      const struct CustomData_MeshMasks *dataMask);
 
-void DM_calc_loop_tangents(DerivedMesh *dm,
-                           bool calc_active_tangent,
-                           const char (*tangent_names)[MAX_NAME],
-                           int tangent_names_len);
-
 #ifdef __cplusplus
 }
 #endif
