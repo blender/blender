@@ -1,7 +1,7 @@
 (function() {  // switch: v1.2
 "use strict";
 
-var versionsFileUrl = "https://docs.blender.org/versions.json"
+var versionsFileUrl = "https://docs.blender.org/PROD/versions.json"
 
 var all_versions;
 
