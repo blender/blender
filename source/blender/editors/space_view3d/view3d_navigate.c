@@ -114,7 +114,7 @@ void view3d_operator_properties_common(wmOperatorType *ot, const enum eV3D_OpPro
 
 void calctrackballvec(const rcti *rect, const int event_xy[2], float r_dir[3])
 {
-  const float radius = TRACKBALLSIZE;
+  const float radius = V3D_OP_TRACKBALLSIZE;
   const float t = radius / (float)M_SQRT2;
   const float size[2] = {BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)};
   /* Aspect correct so dragging in a non-square view doesn't squash the direction.

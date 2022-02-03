@@ -27,7 +27,7 @@
  * Size of the sphere being dragged for trackball rotation within the view bounds.
  * also affects speed (smaller is faster).
  */
-#define TRACKBALLSIZE (1.1f)
+#define V3D_OP_TRACKBALLSIZE (1.1f)
 
 struct ARegion;
 struct bContext;

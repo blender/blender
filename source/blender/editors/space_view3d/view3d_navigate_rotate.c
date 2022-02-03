@@ -201,7 +201,7 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
 
     sub_v3_v3v3(dvec, newvec, vod->init.trackvec);
 
-    angle = (len_v3(dvec) / (2.0f * TRACKBALLSIZE)) * (float)M_PI;
+    angle = (len_v3(dvec) / (2.0f * V3D_OP_TRACKBALLSIZE)) * (float)M_PI;
 
     /* Before applying the sensitivity this is rotating 1:1,
      * where the cursor would match the surface of a sphere in the view. */
