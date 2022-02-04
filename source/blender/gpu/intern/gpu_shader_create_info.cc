@@ -242,14 +242,10 @@ void gpu_shader_create_info_init()
 
   for (ShaderCreateInfo *info : g_create_infos->values()) {
     if (info->do_static_compilation_) {
-      info->builtins_ |= static_cast<BuiltinBits>(
-          gpu_shader_dependency_get_builtins(info->vertex_source_.c_str()));
-      info->builtins_ |= static_cast<BuiltinBits>(
-          gpu_shader_dependency_get_builtins(info->fragment_source_.c_str()));
-      info->builtins_ |= static_cast<BuiltinBits>(
-          gpu_shader_dependency_get_builtins(info->geometry_source_.c_str()));
-      info->builtins_ |= static_cast<BuiltinBits>(
-          gpu_shader_dependency_get_builtins(info->compute_source_.c_str()));
+      info->builtins_ |= gpu_shader_dependency_get_builtins(info->vertex_source_);
+      info->builtins_ |= gpu_shader_dependency_get_builtins(info->fragment_source_);
+      info->builtins_ |= gpu_shader_dependency_get_builtins(info->geometry_source_);
+      info->builtins_ |= gpu_shader_dependency_get_builtins(info->compute_source_);
     }
   }
 
