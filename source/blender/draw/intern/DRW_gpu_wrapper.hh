@@ -674,20 +674,20 @@ class Texture : NonCopyable {
     if (h == 0) {
       return GPU_texture_create_1d(name_, w, mips, format, data);
     }
-    else if (d == 0) {
-      if (layered) {
-        return GPU_texture_create_1d_array(name_, w, h, mips, format, data);
-      }
-      else {
-        return GPU_texture_create_2d(name_, w, h, mips, format, data);
-      }
-    }
     else if (cubemap) {
       if (layered) {
         return GPU_texture_create_cube_array(name_, w, d, mips, format, data);
       }
       else {
         return GPU_texture_create_cube(name_, w, mips, format, data);
+      }
+    }
+    else if (d == 0) {
+      if (layered) {
+        return GPU_texture_create_1d_array(name_, w, h, mips, format, data);
+      }
+      else {
+        return GPU_texture_create_2d(name_, w, h, mips, format, data);
       }
     }
     else {
