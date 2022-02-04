@@ -28,6 +28,7 @@ extern "C" {
 #endif
 
 struct Object;
+struct bContext;
 
 typedef struct TransVert {
   float *loc;
@@ -42,10 +43,14 @@ typedef struct TransVertStore {
   int mode;
 } TransVertStore;
 
-void ED_transverts_create_from_obedit(TransVertStore *tvs, struct Object *obedit, int mode);
+/**
+ * \param obedit: When `mode` has the #TM_CALC_MAPLOC flag set, `obedit` must be evaluated,
+ * to access evaluated vertices.
+ */
+void ED_transverts_create_from_obedit(TransVertStore *tvs, const struct Object *obedit, int mode);
 void ED_transverts_update_obedit(TransVertStore *tvs, struct Object *obedit);
 void ED_transverts_free(TransVertStore *tvs);
-bool ED_transverts_check_obedit(Object *obedit);
+bool ED_transverts_check_obedit(const struct Object *obedit);
 bool ED_transverts_poll(struct bContext *C);
 
 /* currently only used for bmesh index values */
@@ -66,12 +71,16 @@ enum {
   TM_SKIP_HANDLES = (1 << 1),
   /** fill in normals when available */
   TM_CALC_NORMALS = (1 << 2),
+  /** Calculates #TransVert.maploc where possible. */
+  TM_CALC_MAPLOC = (1 << 2),
 };
 
 enum {
   /* SELECT == (1 << 0) */
+  /** Calculated when #TM_CALC_MAPLOC is set. */
   TX_VERT_USE_MAPLOC = (1 << 1),
-  TX_VERT_USE_NORMAL = (1 << 2), /* avoid nonzero check */
+  /** Calculated when #TM_CALC_NORMALS is set, avoid nonzero check. */
+  TX_VERT_USE_NORMAL = (1 << 2),
 };
 
 #ifdef __cplusplus
