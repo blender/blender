@@ -596,6 +596,14 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
                                    /* Fast-path (occlusion queries). */
                                    GPU_SELECT_ALL);
 
+  /* When switching between modes and the mouse pointer is over a gizmo, the highlight test is
+   * performed before the viewport is fully initialized (region->draw_buffer = NULL).
+   * When this is the case we should not use depth testing. */
+  GPUViewport *gpu_viewport = WM_draw_region_get_viewport(region);
+  if (use_depth_test && gpu_viewport == NULL) {
+    return -1;
+  }
+
   if (GPU_select_is_cached()) {
     GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, gpu_select_mode, 0);
     GPU_select_cache_load_id();
@@ -613,8 +621,7 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
      * because all future passes the will use the cached depths. */
     GPUFrameBuffer *depth_read_fb = NULL;
     if (use_depth_test) {
-      GPUViewport *viewport = WM_draw_region_get_viewport(CTX_wm_region(C));
-      GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
+      GPUTexture *depth_tx = GPU_viewport_depth_texture(gpu_viewport);
       GPU_framebuffer_ensure_config(&depth_read_fb,
                                     {
                                         GPU_ATTACHMENT_TEXTURE(depth_tx),
