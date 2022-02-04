@@ -127,6 +127,74 @@ static const char *to_string(const Type &type)
   }
 }
 
+static const char *to_string(const eGPUTextureFormat &type)
+{
+  switch (type) {
+    case GPU_RGBA8UI:
+      return "rgba8ui";
+    case GPU_RGBA8I:
+      return "rgba8i";
+    case GPU_RGBA8:
+      return "rgba8";
+    case GPU_RGBA32UI:
+      return "rgba32ui";
+    case GPU_RGBA32I:
+      return "rgba32i";
+    case GPU_RGBA32F:
+      return "rgba32f";
+    case GPU_RGBA16UI:
+      return "rgba16ui";
+    case GPU_RGBA16I:
+      return "rgba16i";
+    case GPU_RGBA16F:
+      return "rgba16f";
+    case GPU_RGBA16:
+      return "rgba16";
+    case GPU_RG8UI:
+      return "rg8ui";
+    case GPU_RG8I:
+      return "rg8i";
+    case GPU_RG8:
+      return "rg8";
+    case GPU_RG32UI:
+      return "rg32ui";
+    case GPU_RG32I:
+      return "rg32i";
+    case GPU_RG32F:
+      return "rg32f";
+    case GPU_RG16UI:
+      return "rg16ui";
+    case GPU_RG16I:
+      return "rg16i";
+    case GPU_RG16F:
+      return "rg16f";
+    case GPU_RG16:
+      return "rg16";
+    case GPU_R8UI:
+      return "r8ui";
+    case GPU_R8I:
+      return "r8i";
+    case GPU_R8:
+      return "r8";
+    case GPU_R32UI:
+      return "r32ui";
+    case GPU_R32I:
+      return "r32i";
+    case GPU_R32F:
+      return "r32f";
+    case GPU_R16UI:
+      return "r16ui";
+    case GPU_R16I:
+      return "r16i";
+    case GPU_R16F:
+      return "r16f";
+    case GPU_R16:
+      return "r16";
+    default:
+      return "unkown";
+  }
+}
+
 static const char *to_string(const PrimitiveIn &layout)
 {
   switch (layout) {
@@ -294,7 +362,7 @@ static void print_resource(std::ostream &os, const ShaderCreateInfo::Resource &r
   if (GLContext::explicit_location_support) {
     os << "layout(binding = " << res.slot;
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
-      os << ", " << res.image.format;
+      os << ", " << to_string(res.image.format);
     }
     else if (res.bind_type == ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
       os << ", std140";
@@ -738,7 +806,7 @@ static char *glsl_patch_default_get()
     STR_CONCAT(patch, slen, "#extension GL_ARB_texture_cube_map_array : enable\n");
     STR_CONCAT(patch, slen, "#define GPU_ARB_texture_cube_map_array\n");
   }
-  if (GLEW_ARB_conservative_depth) {
+  if (!GLEW_VERSION_4_2 && GLEW_ARB_conservative_depth) {
     STR_CONCAT(patch, slen, "#extension GL_ARB_conservative_depth : enable\n");
   }
   if (GPU_shader_image_load_store_support()) {
@@ -760,6 +828,9 @@ static char *glsl_patch_default_get()
 
   /* Vulkan GLSL compat. */
   STR_CONCAT(patch, slen, "#define gpu_InstanceIndex (gl_InstanceID + gpu_BaseInstance)\n");
+
+  /* Array compat. */
+  STR_CONCAT(patch, slen, "#define array(_type) _type[]\n");
 
   /* Derivative sign can change depending on implementation. */
   STR_CONCATF(patch, slen, "#define DFDX_SIGN %1.1f\n", GLContext::derivative_signs[0]);
