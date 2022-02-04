@@ -205,7 +205,7 @@ static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof,
     /* Perform the orbital rotation */
     angle = ndof->dt * rot[1];
 
-    /* update the onscreen doo-dad */
+    /* Update the onscreen axis-angle indicator. */
     rv3d->rot_angle = angle;
     rv3d->rot_axis[0] = 0;
     rv3d->rot_axis[1] = 0;
@@ -222,7 +222,7 @@ static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof,
     /* transform rotation axis from view to world coordinates */
     mul_qt_v3(view_inv, axis);
 
-    /* update the onscreen doo-dad */
+    /* Update the onscreen axis-angle indicator. */
     rv3d->rot_angle = angle;
     copy_v3_v3(rv3d->rot_axis, axis);
 
@@ -251,7 +251,7 @@ void view3d_ndof_fly(const wmNDOFMotionData *ndof,
   float view_inv[4];
   invert_qt_qt_normalized(view_inv, rv3d->viewquat);
 
-  rv3d->rot_angle = 0.0f; /* disable onscreen rotation doo-dad */
+  rv3d->rot_angle = 0.0f; /* Disable onscreen rotation indicator. */
 
   if (has_translate) {
     /* ignore real 'dist' since fly has its own speed settings,

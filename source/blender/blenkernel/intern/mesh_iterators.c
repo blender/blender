@@ -34,7 +34,7 @@
 
 #include "MEM_guardedalloc.h"
 
-/* General note on iterating vers/loops/edges/polys and end mode.
+/* General note on iterating verts/loops/edges/polys and end mode.
  *
  * The edit mesh pointer is set for both final and cage meshes in both cases when there are
  * modifiers applied and not. This helps consistency of checks in the draw manager, where the

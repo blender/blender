@@ -130,9 +130,9 @@ bool BKE_collection_object_add(struct Main *bmain,
                                struct Collection *collection,
                                struct Object *ob);
 /**
- * Same as #BKE_collection_object_add, but uncondionnaly adds the object to the given collection.
+ * Same as #BKE_collection_object_add, but unconditionally adds the object to the given collection.
  *
- * NOTE: required in certain cases, like do-versionning or complex ID management tasks.
+ * NOTE: required in certain cases, like do-versioning or complex ID management tasks.
  */
 bool BKE_collection_object_add_notest(struct Main *bmain,
                                       struct Collection *collection,

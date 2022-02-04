@@ -469,7 +469,6 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 
   if (delta < 0) {
     const float step = 1.2f;
-    /* this min and max is also in viewmove() */
     if (use_cam_zoom) {
       view_zoom_to_window_xy_camera(scene, depsgraph, v3d, region, step, zoom_xy);
     }

@@ -254,7 +254,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
     }
   }
   else {
-    /* If there's no selection, lastofs is unmodified and last value since static */
+    /* If there's no selection, `lastofs` is unmodified and last value since static. */
     is_set = calculateTransformCenter(C, V3D_AROUND_CENTER_MEDIAN, lastofs, NULL);
   }
 
@@ -300,7 +300,7 @@ void viewops_data_create(bContext *C,
   if (viewops_flag & VIEWOPS_FLAG_DEPTH_NAVIGATE) {
     float fallback_depth_pt[3];
 
-    view3d_operator_needs_opengl(C); /* needed for zbuf drawing */
+    view3d_operator_needs_opengl(C); /* Needed for Z-buffer drawing. */
 
     negate_v3_v3(fallback_depth_pt, rv3d->ofs);
 
@@ -356,8 +356,8 @@ void viewops_data_create(bContext *C,
   if (viewops_flag & VIEWOPS_FLAG_DEPTH_NAVIGATE) {
     if (vod->use_dyn_ofs) {
       if (rv3d->is_persp) {
-        float my_origin[3]; /* original G.vd->ofs */
-        float my_pivot[3];  /* view */
+        float my_origin[3]; /* Original #RegionView3D.ofs. */
+        float my_pivot[3];  /* View pivot. */
         float dvec[3];
 
         /* locals for dist correction */
