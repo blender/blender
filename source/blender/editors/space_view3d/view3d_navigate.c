@@ -274,15 +274,11 @@ enum eViewOpsFlag viewops_flag_from_prefs(void)
                                 (U.uiflag & USER_DEPTH_NAVIGATE) != 0);
 }
 
-void viewops_data_create(bContext *C,
-                         wmOperator *op,
-                         const wmEvent *event,
-                         enum eViewOpsFlag viewops_flag)
+ViewOpsData *viewops_data_create(bContext *C, const wmEvent *event, enum eViewOpsFlag viewops_flag)
 {
   ViewOpsData *vod = MEM_callocN(sizeof(ViewOpsData), __func__);
 
   /* Store data. */
-  op->customdata = vod;
   vod->bmain = CTX_data_main(C);
   vod->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   vod->scene = CTX_data_scene(C);
@@ -423,13 +419,14 @@ void viewops_data_create(bContext *C,
   }
 
   rv3d->rflag |= RV3D_NAVIGATING;
+
+  return vod;
 }
 
-void viewops_data_free(bContext *C, wmOperator *op)
+void viewops_data_free(bContext *C, ViewOpsData *vod)
 {
   ARegion *region;
-  if (op->customdata) {
-    ViewOpsData *vod = op->customdata;
+  if (vod) {
     region = vod->region;
     vod->rv3d->rflag &= ~RV3D_NAVIGATING;
 
@@ -442,7 +439,6 @@ void viewops_data_free(bContext *C, wmOperator *op)
     }
 
     MEM_freeN(vod);
-    op->customdata = NULL;
   }
   else {
     region = CTX_wm_region(C);
@@ -1565,12 +1561,12 @@ static int viewpan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     y = 25;
   }
 
-  viewops_data_create(C, op, event, (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT));
-  ViewOpsData *vod = op->customdata;
+  ViewOpsData *vod = viewops_data_create(
+      C, event, (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT));
 
   viewmove_apply(vod, vod->prev.event_xy[0] + x, vod->prev.event_xy[1] + y);
 
-  viewops_data_free(C, op);
+  viewops_data_free(C, vod);
 
   return OPERATOR_FINISHED;
 }

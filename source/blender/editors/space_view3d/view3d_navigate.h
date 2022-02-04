@@ -166,15 +166,17 @@ bool view3d_orbit_calc_center(struct bContext *C, float r_dyn_ofs[3]);
 
 void view3d_operator_properties_common(struct wmOperatorType *ot, const enum eV3D_OpPropFlag flag);
 
-void viewops_data_free(struct bContext *C, struct wmOperator *op);
+/**
+ * Allocate and fill in context pointers for #ViewOpsData
+ */
+void viewops_data_free(struct bContext *C, ViewOpsData *vod);
 
 /**
  * Allocate, fill in context pointers and calculate the values for #ViewOpsData
  */
-void viewops_data_create(struct bContext *C,
-                         struct wmOperator *op,
-                         const struct wmEvent *event,
-                         enum eViewOpsFlag viewops_flag);
+ViewOpsData *viewops_data_create(struct bContext *C,
+                                 const struct wmEvent *event,
+                                 enum eViewOpsFlag viewops_flag);
 
 void VIEW3D_OT_view_all(struct wmOperatorType *ot);
 void VIEW3D_OT_view_selected(struct wmOperatorType *ot);

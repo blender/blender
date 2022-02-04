@@ -378,8 +378,8 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   const wmNDOFMotionData *ndof = event->customdata;
 
-  viewops_data_create(C, op, event, (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_DEPTH_NAVIGATE));
-  vod = op->customdata;
+  vod = op->customdata = viewops_data_create(
+      C, event, (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_DEPTH_NAVIGATE));
 
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
@@ -417,7 +417,8 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   ED_region_tag_redraw(vod->region);
 
-  viewops_data_free(C, op);
+  viewops_data_free(C, op->customdata);
+  op->customdata = NULL;
 
   return OPERATOR_FINISHED;
 }
@@ -457,9 +458,8 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   const wmNDOFMotionData *ndof = event->customdata;
 
-  viewops_data_create(C, op, event, (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_DEPTH_NAVIGATE));
-
-  vod = op->customdata;
+  vod = op->customdata = viewops_data_create(
+      C, event, (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_DEPTH_NAVIGATE));
 
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
@@ -531,7 +531,8 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   ED_region_tag_redraw(vod->region);
 
-  viewops_data_free(C, op);
+  viewops_data_free(C, op->customdata);
+  op->customdata = NULL;
 
   return OPERATOR_FINISHED;
 }
