@@ -231,7 +231,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       if (iterator.tile_data.tile_buffer == nullptr) {
         continue;
       }
-      const bool float_buffer_created = ensure_float_buffer(*iterator.tile_data.tile_buffer);
+      ensure_float_buffer(*iterator.tile_data.tile_buffer);
       const float tile_width = static_cast<float>(iterator.tile_data.tile_buffer->x);
       const float tile_height = static_cast<float>(iterator.tile_data.tile_buffer->y);
 
@@ -337,10 +337,6 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                                0);
         imb_freerectImbuf_all(&extracted_buffer);
       }
-      /* TODO(jbakker): Find leak when rendering VSE and remove this call. */
-      if (float_buffer_created) {
-        imb_freerectfloatImBuf(iterator.tile_data.tile_buffer);
-      }
     }
   }
 
@@ -418,6 +414,9 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     const int texture_width = texture_buffer.x;
     const int texture_height = texture_buffer.y;
     const bool float_buffer_created = ensure_float_buffer(tile_buffer);
+    /* TODO(jbakker): Find leak when rendering VSE and don't free here. */
+    const bool do_free_float_buffer = float_buffer_created &&
+                                      instance_data.image->type == IMA_TYPE_R_RESULT;
 
     /* IMB_transform works in a non-consistent space. This should be documented or fixed!.
      * Construct a variant of the info_uv_to_texture that adds the texel space
@@ -455,8 +454,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                   uv_to_texel,
                   crop_rect_ptr);
 
-    /* TODO(jbakker): Find leak when rendering VSE and remove this call. */
-    if (float_buffer_created) {
+    if (do_free_float_buffer) {
       imb_freerectfloatImBuf(&tile_buffer);
     }
   }
