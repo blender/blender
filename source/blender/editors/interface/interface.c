@@ -4910,6 +4910,21 @@ int UI_autocomplete_end(AutoComplete *autocpl, char *autoname)
   return match;
 }
 
+int UI_preview_tile_size_x(void)
+{
+  return round_fl_to_int((96.0f / 20.0f) * UI_UNIT_X);
+}
+
+int UI_preview_tile_size_y(void)
+{
+  return round_fl_to_int((96.0f / 20.0f) * UI_UNIT_Y);
+}
+
+int UI_preview_tile_size_y_no_label(void)
+{
+  return round_fl_to_int((96.0f / 20.0f) * UI_UNIT_Y - UI_UNIT_Y);
+}
+
 static void ui_but_update_and_icon_set(uiBut *but, int icon)
 {
   if (icon) {

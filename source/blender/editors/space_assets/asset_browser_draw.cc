@@ -47,15 +47,8 @@ void asset_browser_main_region_draw(const bContext *C, ARegion *region)
 
   const uiStyle *style = UI_style_get_dpi();
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
-  uiLayout *layout = UI_block_layout(block,
-                                     UI_LAYOUT_VERTICAL,
-                                     UI_LAYOUT_PANEL,
-                                     style->panelspace,
-                                     0,
-                                     region->sizex,
-                                     1,
-                                     0,
-                                     style);
+  uiLayout *layout = UI_block_layout(
+      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, style->panelspace, 0, region->winx, 1, 0, style);
 
   asset_view_create_in_layout(*C, asset_space->asset_library_ref, *layout);
 

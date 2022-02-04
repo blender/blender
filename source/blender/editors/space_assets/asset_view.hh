@@ -37,7 +37,7 @@ class AssetGridView : public blender::ui::AbstractGridView {
  public:
   AssetGridView(const AssetLibraryReference &, uiLayout &layout);
 
-  void build() override;
+  void build_items() override;
   bool listen(const wmNotifier &) const override;
 };
 

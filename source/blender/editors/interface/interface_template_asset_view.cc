@@ -98,9 +98,8 @@ static void asset_view_draw_item(uiList *ui_list,
 
   uiBlock *block = uiLayoutGetBlock(layout);
   const bool show_names = list_data->show_names;
-  /* TODO ED_fileselect_init_layout(). Share somehow? */
-  const float size_x = (96.0f / 20.0f) * UI_UNIT_X;
-  const float size_y = (96.0f / 20.0f) * UI_UNIT_Y - (show_names ? 0 : UI_UNIT_Y);
+  const int size_x = UI_preview_tile_size_x();
+  const int size_y = show_names ? UI_preview_tile_size_y() : UI_preview_tile_size_y_no_label();
   uiBut *but = uiDefIconTextBut(block,
                                 UI_BTYPE_PREVIEW_TILE,
                                 0,

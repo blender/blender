@@ -1788,6 +1788,14 @@ AutoComplete *UI_autocomplete_begin(const char *startname, size_t maxlen);
 void UI_autocomplete_update_name(AutoComplete *autocpl, const char *name);
 int UI_autocomplete_end(AutoComplete *autocpl, char *autoname);
 
+/**
+ * A decent size for a button (typically #UI_BTYPE_PREVIEW_TILE) to display a nicely readable
+ * preview with label in.
+ */
+int UI_preview_tile_size_x(void);
+int UI_preview_tile_size_y(void);
+int UI_preview_tile_size_y_no_label(void);
+
 /* Panels
  *
  * Functions for creating, freeing and drawing panels. The API here

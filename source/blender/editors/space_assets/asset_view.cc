@@ -38,11 +38,11 @@ AssetGridView::AssetGridView(const AssetLibraryReference &asset_library_ref, uiL
 {
 }
 
-void AssetGridView::build()
+void AssetGridView::build_items()
 {
   ED_assetlist_iterate(asset_library_ref_, [this](AssetHandle asset) {
-    uiItemL(
-        &layout, ED_asset_handle_get_name(&asset), ED_asset_handle_get_preview_icon_id(&asset));
+    add_item<ui::PreviewGridItem>(ED_asset_handle_get_name(&asset),
+                                  ED_asset_handle_get_preview_icon_id(&asset));
     return true;
   });
 }
@@ -57,16 +57,16 @@ void asset_view_create_in_layout(const bContext &C,
                                  uiLayout &layout)
 {
   uiBlock *block = uiLayoutGetBlock(&layout);
+  UI_block_layout_set_current(block, &layout);
 
   ED_assetlist_storage_fetch(&asset_library_ref, &C);
   ED_assetlist_ensure_previews_job(&asset_library_ref, &C);
 
-  UI_block_layout_set_current(block, &layout);
-
   ui::AbstractGridView *grid_view = UI_block_add_view(
       *block, "asset grid view", std::make_unique<AssetGridView>(asset_library_ref, layout));
 
-  grid_view->build();
+  ui::GridViewBuilder builder(*block);
+  builder.build_grid_view(*grid_view);
 }
 
 }  // namespace blender::ed::asset_browser
