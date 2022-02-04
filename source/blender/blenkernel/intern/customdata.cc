@@ -2431,7 +2431,7 @@ const char *CustomData_get_active_layer_name(const struct CustomData *data, cons
 {
   /* Get the layer index of the active layer of this type. */
   const int layer_index = CustomData_get_active_layer_index(data, type);
-  return layer_index < 0 ? NULL : data->layers[layer_index].name;
+  return layer_index < 0 ? nullptr : data->layers[layer_index].name;
 }
 
 void CustomData_set_layer_active(CustomData *data, int type, int n)
@@ -2786,7 +2786,7 @@ void CustomData_free_layers_anonymous(struct CustomData *data, int totelem)
     bool found_anonymous_layer = false;
     for (int i = 0; i < data->totlayer; i++) {
       const CustomDataLayer *layer = &data->layers[i];
-      if (layer->anonymous_id != NULL) {
+      if (layer->anonymous_id != nullptr) {
         CustomData_free_layer(data, layer->type, totelem, i);
         found_anonymous_layer = true;
         break;

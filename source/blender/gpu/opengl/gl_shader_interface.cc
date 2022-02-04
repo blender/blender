@@ -497,7 +497,7 @@ GLShaderInterface::~GLShaderInterface()
 void GLShaderInterface::ref_add(GLVaoCache *ref)
 {
   for (int i = 0; i < refs_.size(); i++) {
-    if (refs_[i] == NULL) {
+    if (refs_[i] == nullptr) {
       refs_[i] = ref;
       return;
     }
@@ -509,7 +509,7 @@ void GLShaderInterface::ref_remove(GLVaoCache *ref)
 {
   for (int i = 0; i < refs_.size(); i++) {
     if (refs_[i] == ref) {
-      refs_[i] = NULL;
+      refs_[i] = nullptr;
       break; /* cannot have duplicates */
     }
   }

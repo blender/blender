@@ -1405,7 +1405,7 @@ static char *edbm_select_mode_get_description(struct bContext *UNUSED(C),
   if (RNA_struct_property_is_set(values, "type") &&
       !RNA_struct_property_is_set(values, "use_extend") &&
       !RNA_struct_property_is_set(values, "use_expand") &&
-      !RNA_struct_property_is_set(values, "action"))
+      !RNA_struct_property_is_set(values, "action")) {
     switch (type) {
       case SCE_SELECT_VERTEX:
         return BLI_strdup(
@@ -1418,6 +1418,7 @@ static char *edbm_select_mode_get_description(struct bContext *UNUSED(C),
         return BLI_strdup(
             N_("Face select - Shift-Click for multiple modes, Ctrl-Click expands selection"));
     }
+  }
 
   return NULL;
 }
