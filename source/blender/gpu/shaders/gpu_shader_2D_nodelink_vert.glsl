@@ -4,57 +4,18 @@
 
 #define MID_VERTEX 65
 
-#ifndef USE_GPU_SHADER_CREATE_INFO
+/**
+ * `uv.x` is position along the curve, defining the tangent space.
+ * `uv.y` is "signed" distance (compressed to [0..1] range) from the pos in expand direction
+ * `pos` is the verts position in the curve tangent space
+ */
 
-/* u is position along the curve, defining the tangent space.
- * v is "signed" distance (compressed to [0..1] range) from the pos in expand direction */
-in vec2 uv;
-in vec2 pos; /* verts position in the curve tangent space */
-in vec2 expand;
-
-#  ifdef USE_INSTANCE
-/* Instance attrs. */
-in vec2 P0;
-in vec2 P1;
-in vec2 P2;
-in vec2 P3;
-in ivec4 colid_doarrow;
-in vec4 start_color;
-in vec4 end_color;
-in ivec2 domuted;
-in float dim_factor;
-in float thickness;
-in float dash_factor;
-in float dash_alpha;
-
-uniform vec4 colors[6];
-
-#  else
-/* Single curve drawcall, use uniform. */
-uniform vec2 bezierPts[4];
-
-uniform vec4 colors[3];
-uniform bool doArrow;
-uniform bool doMuted;
-uniform float dim_factor;
-uniform float thickness;
-uniform float dash_factor;
-uniform float dash_alpha;
-
-#  endif
-
-uniform float expandSize;
-uniform float arrowSize;
-uniform mat4 ModelViewProjectionMatrix;
-
-out float colorGradient;
-out vec4 finalColor;
-out float lineU;
-flat out float lineLength;
-flat out float dashFactor;
-flat out float dashAlpha;
-flat out int isMainLine;
-#endif
+void main(void)
+{
+  /* Define where along the noodle the gradient will starts and ends.
+   * Use 0.25 instead of 0.35-0.65, because of a visual shift issue. */
+  const float start_gradient_threshold = 0.25;
+  const float end_gradient_threshold = 0.55;
 
 #ifdef USE_INSTANCE
 #  define colStart (colid_doarrow[0] < 3 ? start_color : node_link_data.colors[colid_doarrow[0]])
@@ -62,33 +23,23 @@ flat out int isMainLine;
 #  define colShadow node_link_data.colors[colid_doarrow[2]]
 #  define doArrow (colid_doarrow[3] != 0)
 #  define doMuted (domuted[0] != 0)
-
 #else
-#  define P0 node_link_data.bezierPts[0].xy
-#  define P1 node_link_data.bezierPts[1].xy
-#  define P2 node_link_data.bezierPts[2].xy
-#  define P3 node_link_data.bezierPts[3].xy
-#  define cols node_link_data.colors
-#  define doArrow node_link_data.doArrow
-#  define doMuted node_link_data.doMuted
-#  define dim_factor node_link_data.dim_factor
-#  define thickness node_link_data.thickness
-#  define dash_factor node_link_data.dash_factor
-#  define dash_alpha node_link_data.dash_alpha
+  vec2 P0 = node_link_data.bezierPts[0].xy;
+  vec2 P1 = node_link_data.bezierPts[1].xy;
+  vec2 P2 = node_link_data.bezierPts[2].xy;
+  vec2 P3 = node_link_data.bezierPts[3].xy;
+  bool doArrow = node_link_data.doArrow;
+  bool doMuted = node_link_data.doMuted;
+  float dim_factor = node_link_data.dim_factor;
+  float thickness = node_link_data.thickness;
+  float dash_factor = node_link_data.dash_factor;
+  float dash_alpha = node_link_data.dash_alpha;
 
-#  define colShadow node_link_data.colors[0]
-#  define colStart node_link_data.colors[1]
-#  define colEnd node_link_data.colors[2]
-
+  vec4 colShadow = node_link_data.colors[0];
+  vec4 colStart = node_link_data.colors[1];
+  vec4 colEnd = node_link_data.colors[2];
 #endif
 
-/* Define where along the noodle the gradient will starts and ends.
- * Use 0.25 instead of 0.35-0.65, because of a visual shift issue. */
-const float start_gradient_threshold = 0.25;
-const float end_gradient_threshold = 0.55;
-
-void main(void)
-{
   /* Parameters for the dashed line. */
   isMainLine = expand.y != 1.0 ? 0 : 1;
   dashFactor = dash_factor;
