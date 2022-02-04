@@ -143,21 +143,6 @@ void calctrackballvec(const rcti *rect, const int event_xy[2], float r_dir[3])
   }
 }
 
-void viewops_data_alloc(bContext *C, wmOperator *op)
-{
-  ViewOpsData *vod = MEM_callocN(sizeof(ViewOpsData), "viewops data");
-
-  /* store data */
-  op->customdata = vod;
-  vod->bmain = CTX_data_main(C);
-  vod->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  vod->scene = CTX_data_scene(C);
-  vod->area = CTX_wm_area(C);
-  vod->region = CTX_wm_region(C);
-  vod->v3d = vod->area->spacedata.first;
-  vod->rv3d = vod->region->regiondata;
-}
-
 void view3d_orbit_apply_dyn_ofs(float r_ofs[3],
                                 const float ofs_old[3],
                                 const float viewquat_old[4],
@@ -294,8 +279,19 @@ void viewops_data_create(bContext *C,
                          const wmEvent *event,
                          enum eViewOpsFlag viewops_flag)
 {
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewOpsData *vod = op->customdata;
+  ViewOpsData *vod = MEM_callocN(sizeof(ViewOpsData), __func__);
+
+  /* Store data. */
+  op->customdata = vod;
+  vod->bmain = CTX_data_main(C);
+  vod->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  vod->scene = CTX_data_scene(C);
+  vod->area = CTX_wm_area(C);
+  vod->region = CTX_wm_region(C);
+  vod->v3d = vod->area->spacedata.first;
+  vod->rv3d = vod->region->regiondata;
+
+  Depsgraph *depsgraph = vod->depsgraph;
   RegionView3D *rv3d = vod->rv3d;
 
   /* Could do this more nicely. */
@@ -1569,7 +1565,6 @@ static int viewpan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     y = 25;
   }
 
-  viewops_data_alloc(C, op);
   viewops_data_create(C, op, event, (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT));
   ViewOpsData *vod = op->customdata;
 

@@ -512,7 +512,6 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
 
   /* makes op->customdata */
-  viewops_data_alloc(C, op);
   viewops_data_create(C,
                       op,
                       event,

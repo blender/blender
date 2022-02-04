@@ -239,8 +239,14 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
+  const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
+
   /* makes op->customdata */
-  viewops_data_alloc(C, op);
+  viewops_data_create(C,
+                      op,
+                      event,
+                      (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT) |
+                          (use_cursor_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
   vod = op->customdata;
 
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
@@ -258,14 +264,6 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
     ED_region_tag_redraw(vod->region);
   }
-
-  const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
-
-  viewops_data_create(C,
-                      op,
-                      event,
-                      (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT) |
-                          (use_cursor_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
 
   /* if one or the other zoom position aren't set, set from event */
   if (!RNA_struct_property_is_set(op->ptr, "mx") || !RNA_struct_property_is_set(op->ptr, "my")) {

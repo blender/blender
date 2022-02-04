@@ -220,7 +220,6 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else {
     /* makes op->customdata */
-    viewops_data_alloc(C, op);
     viewops_data_create(C, op, event, viewops_flag_from_prefs());
     vod = op->customdata;
     vod->init.dial = BLI_dial_init((const float[2]){BLI_rcti_cent_x(&vod->region->winrct),

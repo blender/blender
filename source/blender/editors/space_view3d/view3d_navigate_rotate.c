@@ -383,16 +383,15 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
 
   /* makes op->customdata */
-  viewops_data_alloc(C, op);
-  vod = op->customdata;
-
-  ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
-
   viewops_data_create(C,
                       op,
                       event,
                       viewops_flag_from_prefs() | VIEWOPS_FLAG_PERSP_ENSURE |
                           (use_cursor_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
+
+  vod = op->customdata;
+
+  ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
   if (ELEM(event->type, MOUSEPAN, MOUSEROTATE)) {
     /* Rotate direction we keep always same */

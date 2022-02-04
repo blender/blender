@@ -378,7 +378,6 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   const wmNDOFMotionData *ndof = event->customdata;
 
-  viewops_data_alloc(C, op);
   viewops_data_create(C, op, event, (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_DEPTH_NAVIGATE));
   vod = op->customdata;
 
@@ -458,7 +457,6 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   const wmNDOFMotionData *ndof = event->customdata;
 
-  viewops_data_alloc(C, op);
   viewops_data_create(C, op, event, (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_DEPTH_NAVIGATE));
 
   vod = op->customdata;
