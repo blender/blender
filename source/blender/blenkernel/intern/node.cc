@@ -648,7 +648,6 @@ static void ntree_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   bNodeTree *ntree = (bNodeTree *)id;
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-  ntree->init = 0; /* to set callbacks and force setting types */
   ntree->is_updating = false;
   ntree->typeinfo = nullptr;
   ntree->interface_type = nullptr;
@@ -677,7 +676,6 @@ static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
 void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
 {
   /* NOTE: writing and reading goes in sync, for speed. */
-  ntree->init = 0; /* to set callbacks and force setting types */
   ntree->is_updating = false;
   ntree->typeinfo = nullptr;
   ntree->interface_type = nullptr;
@@ -1145,8 +1143,6 @@ static void ntree_set_typeinfo(bNodeTree *ntree, bNodeTreeType *typeinfo)
   }
   else {
     ntree->typeinfo = &NodeTreeTypeUndefined;
-
-    ntree->init &= ~NTREE_TYPE_INIT;
   }
 
   /* Deprecated integer type. */
@@ -1177,8 +1173,6 @@ static void node_set_typeinfo(const struct bContext *C,
   }
   else {
     node->typeinfo = &NodeTypeUndefined;
-
-    ntree->init &= ~NTREE_TYPE_INIT;
   }
 }
 
@@ -1199,8 +1193,6 @@ static void node_socket_set_typeinfo(bNodeTree *ntree,
   }
   else {
     sock->typeinfo = &NodeSocketTypeUndefined;
-
-    ntree->init &= ~NTREE_TYPE_INIT;
   }
   BKE_ntree_update_tag_socket_type(ntree, sock);
 }
@@ -1218,8 +1210,6 @@ static void update_typeinfo(Main *bmain,
   }
 
   FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-    ntree->init |= NTREE_TYPE_INIT;
-
     if (treetype && STREQ(ntree->idname, treetype->idname)) {
       ntree_set_typeinfo(ntree, unregister ? nullptr : treetype);
     }
@@ -1260,8 +1250,6 @@ static void update_typeinfo(Main *bmain,
 
 void ntreeSetTypes(const struct bContext *C, bNodeTree *ntree)
 {
-  ntree->init |= NTREE_TYPE_INIT;
-
   ntree_set_typeinfo(ntree, ntreeTypeFind(ntree->idname));
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -2673,11 +2661,6 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
   if (is_embedded) {
     ntree->id.flag |= LIB_EMBEDDED_DATA;
   }
-
-  /* Types are fully initialized at this point,
-   * if an undefined node is added later this will be reset.
-   */
-  ntree->init |= NTREE_TYPE_INIT;
 
   BLI_strncpy(ntree->idname, idname, sizeof(ntree->idname));
   ntree_set_typeinfo(ntree, ntreeTypeFind(idname));
