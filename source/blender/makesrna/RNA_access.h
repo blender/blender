@@ -104,6 +104,8 @@ extern StructRNA RNA_BuildGpencilModifier;
 extern StructRNA RNA_BuildModifier;
 extern StructRNA RNA_ByteColorAttribute;
 extern StructRNA RNA_ByteColorAttributeValue;
+extern StructRNA RNA_ByteIntAttribute;
+extern StructRNA RNA_ByteIntAttributeValue;
 extern StructRNA RNA_CacheFile;
 extern StructRNA RNA_CacheFileLayer;
 extern StructRNA RNA_Camera;

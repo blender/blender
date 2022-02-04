@@ -50,6 +50,9 @@ inline void convert_to_static_type(const CustomDataType data_type, const Func &f
     case CD_PROP_BOOL:
       func(bool());
       break;
+    case CD_PROP_INT8:
+      func(int8_t());
+      break;
     case CD_PROP_COLOR:
       func(ColorGeometry4f());
       break;
@@ -77,6 +80,9 @@ inline void convert_to_static_type(const fn::CPPType &cpp_type, const Func &func
   else if (cpp_type.is<bool>()) {
     func(bool());
   }
+  else if (cpp_type.is<int8_t>()) {
+    func(int8_t());
+  }
   else if (cpp_type.is<ColorGeometry4f>()) {
     func(ColorGeometry4f());
   }
@@ -92,6 +98,12 @@ inline void convert_to_static_type(const fn::CPPType &cpp_type, const Func &func
  * \{ */
 
 template<typename T> T mix3(const float3 &weights, const T &v0, const T &v1, const T &v2);
+
+template<>
+inline int8_t mix3(const float3 &weights, const int8_t &v0, const int8_t &v1, const int8_t &v2)
+{
+  return static_cast<int8_t>(weights.x * v0 + weights.y * v1 + weights.z * v2);
+}
 
 template<> inline bool mix3(const float3 &weights, const bool &v0, const bool &v1, const bool &v2)
 {
@@ -145,6 +157,11 @@ template<typename T> T mix2(float factor, const T &a, const T &b);
 template<> inline bool mix2(const float factor, const bool &a, const bool &b)
 {
   return ((1.0f - factor) * a + factor * b) >= 0.5f;
+}
+
+template<> inline int8_t mix2(const float factor, const int8_t &a, const int8_t &b)
+{
+  return static_cast<int8_t>((1.0f - factor) * a + factor * b);
 }
 
 template<> inline int mix2(const float factor, const int &a, const int &b)
@@ -362,6 +379,15 @@ template<> struct DefaultMixerStruct<bool> {
   /* Store interpolated booleans in a float temporary.
    * Otherwise information provided by weights is easily rounded away. */
   using type = SimpleMixerWithAccumulationType<bool, float, float_to_bool>;
+};
+
+template<> struct DefaultMixerStruct<int8_t> {
+  static int8_t float_to_int8_t(const float &value)
+  {
+    return static_cast<int8_t>(value);
+  }
+  /* Store interpolated 8 bit integers in a float temporarily to increase accuracy. */
+  using type = SimpleMixerWithAccumulationType<int8_t, float, float_to_int8_t>;
 };
 
 template<typename T> struct DefaultPropatationMixerStruct {

@@ -265,6 +265,9 @@ typedef struct MStringProperty {
 typedef struct MBoolProperty {
   uint8_t b;
 } MBoolProperty;
+typedef struct MInt8Property {
+  int8_t i;
+} MInt8Property;
 
 /** \} */
 

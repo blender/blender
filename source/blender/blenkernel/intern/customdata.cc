@@ -1793,8 +1793,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     {sizeof(float[3]), "vec3f", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 44: CD_RADIUS */
     {sizeof(float), "MFloatProperty", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
-    /* 45: CD_HAIRCURVE */ /* UNUSED */
-    {-1, "", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
+    /* 45: CD_PROP_INT8 */
+    {sizeof(int8_t), "MInt8Property", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 46: CD_HAIRMAPPING */ /* UNUSED */
     {-1, "", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 47: CD_PROP_COLOR */
@@ -1914,7 +1914,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     "CDCustomLoopNormal",
     "CDSculptFaceGroups",
     /* 43-46 */ "CDHairPoint",
-    "CDHairCurve",
+    "CDPropInt8",
     "CDHairMapping",
     "CDPoint",
     "CDPropCol",

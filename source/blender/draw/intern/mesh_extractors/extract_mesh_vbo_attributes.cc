@@ -99,6 +99,7 @@ static uint gpu_component_size_for_attribute_type(CustomDataType type)
 {
   switch (type) {
     case CD_PROP_BOOL:
+    case CD_PROP_INT8:
     case CD_PROP_INT32:
     case CD_PROP_FLOAT: {
       /* TODO(@kevindietrich): should be 1 when scalar attributes conversion is handled by us. See
@@ -326,6 +327,10 @@ static void extract_attr_init(const MeshRenderData *mr,
       extract_attr_generic<bool, float3>(mr, vbo, request);
       break;
     }
+    case CD_PROP_INT8: {
+      extract_attr_generic<int8_t, float3>(mr, vbo, request);
+      break;
+    }
     case CD_PROP_INT32: {
       extract_attr_generic<int32_t, float3>(mr, vbo, request);
       break;
@@ -376,6 +381,10 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
   switch (request.cd_type) {
     case CD_PROP_BOOL: {
       extract_attr_generic<bool, float3>(mr, src_data, request);
+      break;
+    }
+    case CD_PROP_INT8: {
+      extract_attr_generic<int8_t, float3>(mr, src_data, request);
       break;
     }
     case CD_PROP_INT32: {

@@ -505,8 +505,9 @@ static bool custom_data_match_attribute(const CustomData *custom_data,
                                         int *r_layer_index,
                                         int *r_type)
 {
-  const int possible_attribute_types[6] = {
+  const int possible_attribute_types[7] = {
       CD_PROP_BOOL,
+      CD_PROP_INT8,
       CD_PROP_INT32,
       CD_PROP_FLOAT,
       CD_PROP_FLOAT2,
@@ -655,6 +656,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
             break;
           }
           case CD_PROP_BOOL:
+          case CD_PROP_INT8:
           case CD_PROP_INT32:
           case CD_PROP_FLOAT:
           case CD_PROP_FLOAT2:
