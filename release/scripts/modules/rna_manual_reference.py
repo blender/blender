@@ -677,7 +677,6 @@ url_manual_mapping = (
 	("bpy.ops.gpencil.stroke_merge_by_distance*", "grease_pencil/modes/edit/grease_pencil_menu.html#bpy-ops-gpencil-stroke-merge-by-distance"),
 	("bpy.ops.node.collapse_hide_unused_toggle*", "interface/controls/nodes/editing.html#bpy-ops-node-collapse-hide-unused-toggle"),
 	("bpy.ops.object.anim_transforms_to_deltas*", "scene_layout/object/editing/apply.html#bpy-ops-object-anim-transforms-to-deltas"),
-	("bpy.ops.object.convert_proxy_to_override*", "files/linked_libraries/library_overrides.html#bpy-ops-object-convert-proxy-to-override"),
 	("bpy.ops.object.modifier_copy_to_selected*", "modeling/modifiers/introduction.html#bpy-ops-object-modifier-copy-to-selected"),
 	("bpy.ops.preferences.app_template_install*", "advanced/app_templates.html#bpy-ops-preferences-app-template-install"),
 	("bpy.types.actionposemarkers.active_index*", "animation/armatures/properties/pose_library.html#bpy-types-actionposemarkers-active-index"),

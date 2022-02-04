@@ -36,10 +36,7 @@ namespace deg {
  *   visibility and other flags assigned to the objects.
  *   All other bases (the ones which points to object which is outside of the set of IDs) are
  *   completely ignored.
- *
- * - Proxy groups pointing to objects which are outside of the IDs set are also ignored.
- *   This way we avoid high-poly character body pulled into the dependency graph when it's coming
- *   from a library into an animation file and the dependency graph constructed for a proxy rig. */
+ */
 
 class FromIDsBuilderPipeline : public AbstractBuilderPipeline {
  public:

@@ -109,18 +109,28 @@ enum NodeResizeDirection {
 };
 ENUM_OPERATORS(NodeResizeDirection, NODE_RESIZE_LEFT);
 
+/* Nodes draw without dpi - the view zoom is flexible. */
+#define HIDDEN_RAD (0.75f * U.widget_unit)
+#define BASIS_RAD (0.2f * U.widget_unit)
+#define NODE_DYS (U.widget_unit / 2)
+#define NODE_DY U.widget_unit
+#define NODE_SOCKDY (0.1f * U.widget_unit)
+#define NODE_WIDTH(node) (node.width * UI_DPI_FAC)
+#define NODE_HEIGHT(node) (node.height * UI_DPI_FAC)
+#define NODE_MARGIN_X (1.2f * U.widget_unit)
+#define NODE_SOCKSIZE (0.25f * U.widget_unit)
+#define NODE_MULTI_INPUT_LINK_GAP (0.25f * U.widget_unit)
+#define NODE_RESIZE_MARGIN (0.20f * U.widget_unit)
+#define NODE_LINK_RESOL 12
+
+/* space_node.cc */
+
 /**
  * Transform between View2Ds in the tree path.
  */
 float2 space_node_group_offset(const SpaceNode &snode);
 
-float node_socket_calculate_height(const bNodeSocket &socket);
-float2 node_link_calculate_multi_input_position(const float2 &socket_position,
-                                                int index,
-                                                int total_inputs);
-
 int node_get_resize_cursor(NodeResizeDirection directions);
-NodeResizeDirection node_get_resize_direction(const bNode *node, int x, int y);
 /**
  * Usual convention here would be #node_socket_get_color(),
  * but that's already used (for setting a color property socket).
@@ -130,6 +140,9 @@ void node_socket_color_get(const bContext &C,
                            PointerRNA &node_ptr,
                            const bNodeSocket &sock,
                            float r_color[4]);
+
+/* node_draw.cc */
+
 void node_draw_space(const bContext &C, ARegion &region);
 
 /**
@@ -144,8 +157,12 @@ float2 node_to_view(const bNode &node, const float2 &co);
 void node_to_updated_rect(const bNode &node, rctf &r_rect);
 float2 node_from_view(const bNode &node, const float2 &co);
 
+/* node_ops.cc */
+
 void node_operatortypes();
 void node_keymap(wmKeyConfig *keyconf);
+
+/* node_select.cc */
 
 void node_deselect_all(SpaceNode &snode);
 void node_socket_select(bNode *node, bNodeSocket &sock);
@@ -165,6 +182,8 @@ void NODE_OT_select_grouped(wmOperatorType *ot);
 void NODE_OT_select_same_type_step(wmOperatorType *ot);
 void NODE_OT_find_node(wmOperatorType *ot);
 
+/* node_view.cc */
+
 bool space_node_view_flag(
     bContext &C, SpaceNode &snode, ARegion &region, int node_flag, int smooth_viewtx);
 
@@ -176,6 +195,10 @@ void NODE_OT_backimage_move(wmOperatorType *ot);
 void NODE_OT_backimage_zoom(wmOperatorType *ot);
 void NODE_OT_backimage_fit(wmOperatorType *ot);
 void NODE_OT_backimage_sample(wmOperatorType *ot);
+
+/* drawnode.cc */
+
+NodeResizeDirection node_get_resize_direction(const bNode *node, int x, int y);
 
 void nodelink_batch_start(SpaceNode &snode);
 void nodelink_batch_end(SpaceNode &snode);
@@ -215,7 +238,7 @@ void draw_nodespace_back_pix(const bContext &C,
                              SpaceNode &snode,
                              bNodeInstanceKey parent_key);
 
-void node_select_all(ListBase *lb, int action);
+/* node_add.cc */
 
 /**
  * XXX Does some additional initialization on top of #nodeAddNode
@@ -232,12 +255,16 @@ void NODE_OT_add_file(wmOperatorType *ot);
 void NODE_OT_add_mask(wmOperatorType *ot);
 void NODE_OT_new_node_tree(wmOperatorType *ot);
 
+/* node_group.cc */
+
 const char *node_group_idname(bContext *C);
 void NODE_OT_group_make(wmOperatorType *ot);
 void NODE_OT_group_insert(wmOperatorType *ot);
 void NODE_OT_group_ungroup(wmOperatorType *ot);
 void NODE_OT_group_separate(wmOperatorType *ot);
 void NODE_OT_group_edit(wmOperatorType *ot);
+
+/* node_relationships.cc */
 
 void sort_multi_input_socket_links(SpaceNode &snode,
                                    bNode &node,
@@ -258,6 +285,16 @@ void NODE_OT_detach(wmOperatorType *ot);
 void NODE_OT_link_viewer(wmOperatorType *ot);
 
 void NODE_OT_insert_offset(wmOperatorType *ot);
+
+/* node_edit.cc */
+
+float2 node_link_calculate_multi_input_position(const float2 &socket_position,
+                                                int index,
+                                                int total_inputs);
+
+void node_select_all(ListBase *lb, int action);
+
+float node_socket_calculate_height(const bNodeSocket &socket);
 
 void snode_set_context(const bContext &C);
 
@@ -314,13 +351,17 @@ void NODE_OT_shader_script_update(wmOperatorType *ot);
 void NODE_OT_viewer_border(wmOperatorType *ot);
 void NODE_OT_clear_viewer_border(wmOperatorType *ot);
 
+void NODE_OT_cryptomatte_layer_add(wmOperatorType *ot);
+void NODE_OT_cryptomatte_layer_remove(wmOperatorType *ot);
+
+/* node_gizmo.cc */
+
 void NODE_GGT_backdrop_transform(wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_crop(wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_sun_beams(wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_corner_pin(wmGizmoGroupType *gzgt);
 
-void NODE_OT_cryptomatte_layer_add(wmOperatorType *ot);
-void NODE_OT_cryptomatte_layer_remove(wmOperatorType *ot);
+/* node_geometry_attribute_search.cc */
 
 void node_geometry_add_attribute_search_button(const bContext &C,
                                                const bNodeTree &node_tree,
@@ -328,21 +369,11 @@ void node_geometry_add_attribute_search_button(const bContext &C,
                                                PointerRNA &socket_ptr,
                                                uiLayout &layout);
 
-/* Nodes draw without dpi - the view zoom is flexible. */
-#define HIDDEN_RAD (0.75f * U.widget_unit)
-#define BASIS_RAD (0.2f * U.widget_unit)
-#define NODE_DYS (U.widget_unit / 2)
-#define NODE_DY U.widget_unit
-#define NODE_SOCKDY (0.1f * U.widget_unit)
-#define NODE_WIDTH(node) (node.width * UI_DPI_FAC)
-#define NODE_HEIGHT(node) (node.height * UI_DPI_FAC)
-#define NODE_MARGIN_X (1.2f * U.widget_unit)
-#define NODE_SOCKSIZE (0.25f * U.widget_unit)
-#define NODE_MULTI_INPUT_LINK_GAP (0.25f * U.widget_unit)
-#define NODE_RESIZE_MARGIN (0.20f * U.widget_unit)
-#define NODE_LINK_RESOL 12
+/* node_context_path.c */
 
 Vector<ui::ContextPathItem> context_path_for_space_node(const bContext &C);
+
+/* link_drag_search.cc */
 
 void invoke_node_link_drag_add_menu(bContext &C,
                                     bNode &node,

@@ -211,6 +211,7 @@ void BKE_lib_override_library_free(struct IDOverrideLibrary **override, const bo
 }
 
 static ID *lib_override_library_create_from(Main *bmain,
+                                            Library *owner_library,
                                             ID *reference_id,
                                             const int lib_id_copy_flags)
 {
@@ -226,6 +227,12 @@ static ID *lib_override_library_create_from(Main *bmain,
     return NULL;
   }
   id_us_min(local_id);
+
+  /* TODO: Handle this properly in LIB_NO_MAIN case as well (i.e. resync case). Or offload to
+   * generic ID copy code? */
+  if ((lib_id_copy_flags & LIB_ID_CREATE_NO_MAIN) == 0) {
+    local_id->lib = owner_library;
+  }
 
   BKE_lib_override_library_init(local_id, reference_id);
 
@@ -281,7 +288,7 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
   BLI_assert(reference_id != NULL);
   BLI_assert(ID_IS_LINKED(reference_id));
 
-  ID *local_id = lib_override_library_create_from(bmain, reference_id, 0);
+  ID *local_id = lib_override_library_create_from(bmain, NULL, reference_id, 0);
   /* We cannot allow automatic hierarchy resync on this ID, it is highly likely to generate a giant
    * mess in case there are a lot of hidden, non-instantiated, non-properly organized dependencies.
    * Ref T94650. */
@@ -320,6 +327,7 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
 }
 
 bool BKE_lib_override_library_create_from_tag(Main *bmain,
+                                              Library *owner_library,
                                               const Library *reference_library,
                                               const bool do_no_main)
 {
@@ -351,7 +359,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
        * This requires extra care further down the resync process,
        * see: #BKE_lib_override_library_resync. */
       reference_id->newid = lib_override_library_create_from(
-          bmain, reference_id, do_no_main ? LIB_ID_CREATE_NO_MAIN : 0);
+          bmain, owner_library, reference_id, do_no_main ? LIB_ID_CREATE_NO_MAIN : 0);
       if (reference_id->newid == NULL) {
         success = false;
         break;
@@ -616,6 +624,35 @@ static void lib_override_linked_group_tag_recursive(LibOverrideGroupTagData *dat
   }
 }
 
+static bool lib_override_linked_group_tag_collections_keep_tagged_check_recursive(
+    LibOverrideGroupTagData *data, Collection *collection)
+{
+  /* NOTE: Collection's object cache (using bases, as returned by #BKE_collection_object_cache_get)
+   * is not usable here, as it may have become invalid from some previous operation and it should
+   * not be updated here. So instead only use collections' reliable 'raw' data to check if some
+   * object in the hierarchy of the given collection is still tagged for override. */
+  for (CollectionObject *collection_object = collection->gobject.first; collection_object != NULL;
+       collection_object = collection_object->next) {
+    Object *object = collection_object->ob;
+    if (object == NULL) {
+      continue;
+    }
+    if ((object->id.tag & data->tag) != 0) {
+      return true;
+    }
+  }
+
+  for (CollectionChild *collection_child = collection->children.first; collection_child != NULL;
+       collection_child = collection_child->next) {
+    if (lib_override_linked_group_tag_collections_keep_tagged_check_recursive(
+            data, collection_child->collection)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 static void lib_override_linked_group_tag_clear_boneshapes_objects(LibOverrideGroupTagData *data)
 {
   Main *bmain = data->bmain;
@@ -638,15 +675,8 @@ static void lib_override_linked_group_tag_clear_boneshapes_objects(LibOverrideGr
     if ((collection->id.tag & data->tag) == 0) {
       continue;
     }
-    bool keep_tagged = false;
-    const ListBase object_bases = BKE_collection_object_cache_get(collection);
-    LISTBASE_FOREACH (Base *, base, &object_bases) {
-      if ((base->object->id.tag & data->tag) != 0) {
-        keep_tagged = true;
-        break;
-      }
-    }
-    if (!keep_tagged) {
+
+    if (!lib_override_linked_group_tag_collections_keep_tagged_check_recursive(data, collection)) {
       collection->id.tag &= ~data->tag;
     }
   }
@@ -813,7 +843,10 @@ static void lib_override_overrides_group_tag(LibOverrideGroupTagData *data)
   lib_override_overrides_group_tag_recursive(data);
 }
 
-static bool lib_override_library_create_do(Main *bmain, Scene *scene, ID *id_root)
+static bool lib_override_library_create_do(Main *bmain,
+                                           Scene *scene,
+                                           Library *owner_library,
+                                           ID *id_root)
 {
   BKE_main_relations_create(bmain, 0);
   LibOverrideGroupTagData data = {.bmain = bmain,
@@ -832,12 +865,13 @@ static bool lib_override_library_create_do(Main *bmain, Scene *scene, ID *id_roo
   BKE_main_relations_free(bmain);
   lib_override_group_tag_data_clear(&data);
 
-  return BKE_lib_override_library_create_from_tag(bmain, id_root->lib, false);
+  return BKE_lib_override_library_create_from_tag(bmain, owner_library, id_root->lib, false);
 }
 
 static void lib_override_library_create_post_process(Main *bmain,
                                                      Scene *scene,
                                                      ViewLayer *view_layer,
+                                                     const Library *owner_library,
                                                      ID *id_root,
                                                      ID *id_reference,
                                                      Collection *residual_storage,
@@ -859,7 +893,8 @@ static void lib_override_library_create_post_process(Main *bmain,
 
   /* Instantiating the root collection or object should never be needed in resync case, since the
    * old override would be remapped to the new one. */
-  if (!is_resync && id_root != NULL && id_root->newid != NULL && !ID_IS_LINKED(id_root->newid)) {
+  if (!is_resync && id_root != NULL && id_root->newid != NULL &&
+      (!ID_IS_LINKED(id_root->newid) || id_root->newid->lib == owner_library)) {
     switch (GS(id_root->name)) {
       case ID_GR: {
         Object *ob_reference = id_reference != NULL && GS(id_reference->name) == ID_OB ?
@@ -904,7 +939,7 @@ static void lib_override_library_create_post_process(Main *bmain,
   Collection *default_instantiating_collection = residual_storage;
   LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
     Object *ob_new = (Object *)ob->id.newid;
-    if (ob_new == NULL || ID_IS_LINKED(ob_new)) {
+    if (ob_new == NULL || (ID_IS_LINKED(ob_new) && ob_new->id.lib != owner_library)) {
       continue;
     }
 
@@ -967,6 +1002,7 @@ static void lib_override_library_create_post_process(Main *bmain,
 bool BKE_lib_override_library_create(Main *bmain,
                                      Scene *scene,
                                      ViewLayer *view_layer,
+                                     Library *owner_library,
                                      ID *id_root,
                                      ID *id_reference,
                                      ID **r_id_root_override)
@@ -975,7 +1011,7 @@ bool BKE_lib_override_library_create(Main *bmain,
     *r_id_root_override = NULL;
   }
 
-  const bool success = lib_override_library_create_do(bmain, scene, id_root);
+  const bool success = lib_override_library_create_do(bmain, scene, owner_library, id_root);
 
   if (!success) {
     return success;
@@ -986,7 +1022,7 @@ bool BKE_lib_override_library_create(Main *bmain,
   }
 
   lib_override_library_create_post_process(
-      bmain, scene, view_layer, id_root, id_reference, NULL, false);
+      bmain, scene, view_layer, owner_library, id_root, id_reference, NULL, false);
 
   /* Cleanup. */
   BKE_main_id_newptr_and_tag_clear(bmain);
@@ -1009,116 +1045,6 @@ bool BKE_lib_override_library_template_create(struct ID *id)
 
   BKE_lib_override_library_init(id, NULL);
   return true;
-}
-
-bool BKE_lib_override_library_proxy_convert(Main *bmain,
-                                            Scene *scene,
-                                            ViewLayer *view_layer,
-                                            Object *ob_proxy)
-{
-  /* `proxy_group`, if defined, is the empty instantiating the collection from which the proxy is
-   * coming. */
-  Object *ob_proxy_group = ob_proxy->proxy_group;
-  const bool is_override_instancing_object = ob_proxy_group != NULL;
-  ID *id_root = is_override_instancing_object ? &ob_proxy_group->instance_collection->id :
-                                                &ob_proxy->proxy->id;
-  ID *id_reference = is_override_instancing_object ? &ob_proxy_group->id : &ob_proxy->id;
-
-  /* In some cases the instance collection of a proxy object may be local (see e.g. T83875). Not
-   * sure this is a valid state, but for now just abort the overriding process. */
-  if (!ID_IS_OVERRIDABLE_LIBRARY(id_root)) {
-    return false;
-  }
-
-  /* We manually convert the proxy object into a library override, further override handling will
-   * then be handled by `BKE_lib_override_library_create()` just as for a regular override
-   * creation.
-   */
-  ob_proxy->proxy->id.tag |= LIB_TAG_DOIT;
-  ob_proxy->proxy->id.newid = &ob_proxy->id;
-  BKE_lib_override_library_init(&ob_proxy->id, &ob_proxy->proxy->id);
-
-  ob_proxy->proxy->proxy_from = NULL;
-  ob_proxy->proxy = ob_proxy->proxy_group = NULL;
-
-  DEG_id_tag_update(&ob_proxy->id, ID_RECALC_COPY_ON_WRITE);
-
-  /* In case of proxy conversion, remap all local ID usages to linked IDs to their newly created
-   * overrides.
-   * While this might not be 100% the desired behavior, it is likely to be the case most of the
-   * time. Ref: T91711. */
-  ID *id_iter;
-  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
-    if (!ID_IS_LINKED(id_iter)) {
-      id_iter->tag |= LIB_TAG_DOIT;
-    }
-  }
-  FOREACH_MAIN_ID_END;
-
-  return BKE_lib_override_library_create(bmain, scene, view_layer, id_root, id_reference, NULL);
-}
-
-static void lib_override_library_proxy_convert_do(Main *bmain,
-                                                  Scene *scene,
-                                                  Object *ob_proxy,
-                                                  BlendFileReadReport *reports)
-{
-  Object *ob_proxy_group = ob_proxy->proxy_group;
-  const bool is_override_instancing_object = ob_proxy_group != NULL;
-
-  const bool success = BKE_lib_override_library_proxy_convert(bmain, scene, NULL, ob_proxy);
-
-  if (success) {
-    CLOG_INFO(&LOG,
-              4,
-              "Proxy object '%s' successfully converted to library overrides",
-              ob_proxy->id.name);
-    /* Remove the instance empty from this scene, the items now have an overridden collection
-     * instead. */
-    if (is_override_instancing_object) {
-      BKE_scene_collections_object_remove(bmain, scene, ob_proxy_group, true);
-    }
-    reports->count.proxies_to_lib_overrides_success++;
-  }
-}
-
-void BKE_lib_override_library_main_proxy_convert(Main *bmain, BlendFileReadReport *reports)
-{
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    FOREACH_SCENE_OBJECT_BEGIN (scene, object) {
-      if (object->proxy_group == NULL) {
-        continue;
-      }
-
-      lib_override_library_proxy_convert_do(bmain, scene, object, reports);
-    }
-    FOREACH_SCENE_OBJECT_END;
-
-    FOREACH_SCENE_OBJECT_BEGIN (scene, object) {
-      if (object->proxy == NULL) {
-        continue;
-      }
-
-      lib_override_library_proxy_convert_do(bmain, scene, object, reports);
-    }
-    FOREACH_SCENE_OBJECT_END;
-  }
-
-  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-    if (ID_IS_LINKED(object)) {
-      if (object->proxy != NULL) {
-        CLOG_WARN(&LOG, "Did not try to convert linked proxy object '%s'", object->id.name);
-        reports->count.linked_proxies++;
-      }
-      continue;
-    }
-
-    if (object->proxy_group != NULL || object->proxy != NULL) {
-      CLOG_WARN(
-          &LOG, "Proxy object '%s' failed to be converted to library override", object->id.name);
-      reports->count.proxies_to_lib_overrides_failures++;
-    }
-  }
 }
 
 static void lib_override_library_remap(Main *bmain,
@@ -1288,7 +1214,7 @@ static bool lib_override_library_resync(Main *bmain,
    * override IDs (including within the old overrides themselves, since those are tagged too
    * above). */
   const bool success = BKE_lib_override_library_create_from_tag(
-      bmain, id_root_reference->lib, true);
+      bmain, NULL, id_root_reference->lib, true);
 
   if (!success) {
     return success;
@@ -1502,6 +1428,7 @@ static bool lib_override_library_resync(Main *bmain,
     lib_override_library_create_post_process(bmain,
                                              scene,
                                              view_layer,
+                                             NULL,
                                              id_root_reference,
                                              id_root,
                                              override_resync_residual_storage,
@@ -1926,7 +1853,7 @@ void BKE_lib_override_library_main_resync(Main *bmain,
 
   /* Essentially ensures that potentially new overrides of new objects will be instantiated. */
   lib_override_library_create_post_process(
-      bmain, scene, view_layer, NULL, NULL, override_resync_residual_storage, true);
+      bmain, scene, view_layer, NULL, NULL, NULL, override_resync_residual_storage, true);
 
   if (BKE_collection_is_empty(override_resync_residual_storage)) {
     BKE_collection_delete(bmain, override_resync_residual_storage, true);
@@ -2979,10 +2906,6 @@ void BKE_lib_override_library_main_update(Main *bmain)
 
 bool BKE_lib_override_library_id_is_user_deletable(struct Main *bmain, struct ID *id)
 {
-  if (!(ID_IS_LINKED(id) || ID_IS_OVERRIDE_LIBRARY(id))) {
-    return true;
-  }
-
   /* The only strong known case currently are objects used by override collections. */
   /* TODO: There are most likely other cases... This may need to be addressed in a better way at
    * some point. */

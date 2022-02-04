@@ -211,7 +211,7 @@ void depsgraph_tag_to_component_opcode(const ID *id,
     case ID_RECALC_SEQUENCER_STRIPS:
       *component_type = NodeType::SEQUENCER;
       break;
-    case ID_RECALC_AUDIO_SEEK:
+    case ID_RECALC_FRAME_CHANGE:
     case ID_RECALC_AUDIO_FPS:
     case ID_RECALC_AUDIO_VOLUME:
     case ID_RECALC_AUDIO_MUTE:
@@ -284,6 +284,7 @@ void depsgraph_tag_component(Depsgraph *graph,
    * here. */
   if (component_node == nullptr) {
     if (component_type == NodeType::ANIMATION) {
+      id_node->is_cow_explicitly_tagged = true;
       depsgraph_id_tag_copy_on_write(graph, id_node, update_source);
     }
     return;
@@ -300,6 +301,9 @@ void depsgraph_tag_component(Depsgraph *graph,
   /* If component depends on copy-on-write, tag it as well. */
   if (component_node->need_tag_cow_before_update()) {
     depsgraph_id_tag_copy_on_write(graph, id_node, update_source);
+  }
+  if (component_type == NodeType::COPY_ON_WRITE) {
+    id_node->is_cow_explicitly_tagged = true;
   }
 }
 
@@ -522,12 +526,6 @@ void graph_tag_ids_for_visible_update(Depsgraph *graph)
    * this. */
   for (deg::IDNode *id_node : graph->id_nodes) {
     const ID_Type id_type = GS(id_node->id_orig->name);
-    if (id_type == ID_OB) {
-      Object *object_orig = reinterpret_cast<Object *>(id_node->id_orig);
-      if (object_orig->proxy != nullptr) {
-        object_orig->proxy->proxy_from = object_orig;
-      }
-    }
 
     if (!id_node->visible_components_mask) {
       /* ID has no components which affects anything visible.
@@ -733,8 +731,8 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
       return "EDITORS";
     case ID_RECALC_SEQUENCER_STRIPS:
       return "SEQUENCER_STRIPS";
-    case ID_RECALC_AUDIO_SEEK:
-      return "AUDIO_SEEK";
+    case ID_RECALC_FRAME_CHANGE:
+      return "FRAME_CHANGE";
     case ID_RECALC_AUDIO_FPS:
       return "AUDIO_FPS";
     case ID_RECALC_AUDIO_VOLUME:
@@ -888,6 +886,7 @@ void DEG_ids_clear_recalc(Depsgraph *depsgraph, const bool backup)
      * correctly when there are multiple depsgraph with others still using
      * the recalc flag. */
     id_node->is_user_modified = false;
+    id_node->is_cow_explicitly_tagged = false;
     deg_graph_clear_id_recalc_flags(id_node->id_cow);
     if (deg_graph->is_active) {
       deg_graph_clear_id_recalc_flags(id_node->id_orig);

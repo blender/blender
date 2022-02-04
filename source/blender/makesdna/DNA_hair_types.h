@@ -27,48 +27,71 @@
 extern "C" {
 #endif
 
-typedef struct HairCurve {
-  /* Index of first point of hair curve. */
-  int firstpoint;
-  /* Number of points in hair curve, must be 2 or higher. */
-  int numpoints;
-} HairCurve;
+/**
+ * A reusable data structure for geometry consisting of many curves. All control point data is
+ * stored contiguously for better efficiency. Data for each curve is stored as a slice of the
+ * main #point_data array.
+ *
+ * The data structure is meant to be embedded in other data-blocks to allow reusing
+ * curve-processing algorithms for multiple Blender data-block types.
+ */
+typedef struct CurvesGeometry {
+  /**
+   * A runtime pointer to the "position" attribute data.
+   * \note This data is owned by #point_data.
+   */
+  float (*position)[3];
+  /**
+   * A runtime pointer to the "radius" attribute data.
+   * \note This data is owned by #point_data.
+   */
+  float *radius;
 
-/* Hair attachment to a mesh.
- * TODO: attach to tessellated triangles or polygons?
- * TODO: what type of interpolation to use for uv? */
-typedef struct HairMapping {
-  float uv[2];
-  int poly;
-} HairMapping;
+  /**
+   * The start index of each curve in the point data. The size of each curve can be calculated by
+   * subtracting the offset from the next offset. That is valid even for the last curve because
+   * this array is allocated with a length one larger than the number of splines.
+   *
+   * \note This is *not* stored in #CustomData because its size is one larger than #curve_data.
+   */
+  int *offsets;
+
+  /**
+   * All attributes stored on control points (#ATTR_DOMAIN_POINT).
+   */
+  CustomData point_data;
+
+  /**
+   * All attributes stored on curves (#ATTR_DOMAIN_CURVE).
+   */
+  CustomData curve_data;
+
+  /**
+   * The total number of control points in all curves.
+   */
+  int point_size;
+  /**
+   * The number of curves in the data-block.
+   */
+  int curve_size;
+} CurvesGeometry;
 
 typedef struct Hair {
   ID id;
-  struct AnimData *adt; /* animation data (must be immediately after id) */
+  /* Animation data (must be immediately after id). */
+  struct AnimData *adt;
+
+  CurvesGeometry geometry;
 
   int flag;
-  int _pad1[1];
-
-  /* Geometry */
-  float (*co)[3];
-  float *radius;
-  struct HairCurve *curves;
-  struct HairMaping *mapping;
-  int totpoint;
-  int totcurve;
-
-  /* Custom Data */
-  struct CustomData pdata;
-  struct CustomData cdata;
   int attributes_active_index;
-  int _pad3;
 
-  /* Material */
+  /* Materials. */
   struct Material **mat;
   short totcol;
   short _pad2[3];
 
-  /* Draw Cache */
+  /* Draw Cache. */
   void *batch_cache;
 } Hair;
 

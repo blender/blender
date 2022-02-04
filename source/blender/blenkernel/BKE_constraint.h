@@ -278,18 +278,6 @@ bool BKE_constraint_apply_and_remove_for_pose(struct Depsgraph *depsgraph,
 
 void BKE_constraint_panel_expand(struct bConstraint *con);
 
-/* Constraints + Proxies function prototypes */
-
-/**
- * Rescue all constraints tagged as being #CONSTRAINT_PROXY_LOCAL
- * (i.e. added to bone that's proxy-synced in this file).
- */
-void BKE_constraints_proxylocal_extract(struct ListBase *dst, struct ListBase *src);
-/**
- * Returns if the owner of the constraint is proxy-protected.
- */
-bool BKE_constraints_proxylocked_owner(struct Object *ob, struct bPoseChannel *pchan);
-
 /* Constraint Evaluation function prototypes */
 
 /**

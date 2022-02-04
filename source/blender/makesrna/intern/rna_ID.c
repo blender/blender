@@ -719,7 +719,8 @@ static ID *rna_ID_override_hierarchy_create(
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
   ID *id_root_override = NULL;
-  BKE_lib_override_library_create(bmain, scene, view_layer, id, id_reference, &id_root_override);
+  BKE_lib_override_library_create(
+      bmain, scene, view_layer, NULL, id, id_reference, &id_root_override);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
   WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
@@ -948,9 +949,9 @@ static void rna_ID_user_remap(ID *id, Main *bmain, ID *new_id)
   }
 }
 
-static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, bool clear_proxy)
+static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, bool UNUSED(clear_proxy))
 {
-  BKE_lib_id_make_local(bmain, self, clear_proxy ? 0 : LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING);
+  BKE_lib_id_make_local(bmain, self, 0);
 
   ID *ret_id = self->newid ? self->newid : self;
   BKE_id_newptr_and_tag_clear(self);
@@ -2088,13 +2089,7 @@ static void rna_def_ID(BlenderRNA *brna)
       "Make this datablock local, return local one "
       "(may be a copy of the original, in case it is also indirectly used)");
   RNA_def_function_flag(func, FUNC_USE_MAIN);
-  parm = RNA_def_boolean(
-      func,
-      "clear_proxy",
-      true,
-      "",
-      "Whether to clear proxies (the default behavior, "
-      "note that if object has to be duplicated to be made local, proxies are always cleared)");
+  parm = RNA_def_boolean(func, "clear_proxy", true, "", "Deprecated, has no effect");
   parm = RNA_def_pointer(func, "id", "ID", "", "This ID, or the new ID if it was copied");
   RNA_def_function_return(func, parm);
 

@@ -78,6 +78,23 @@
 /** \name High Level `.blend` file read/write.
  * \{ */
 
+static bool blendfile_or_libraries_versions_atleast(Main *bmain,
+                                                    const short versionfile,
+                                                    const short subversionfile)
+{
+  if (!MAIN_VERSION_ATLEAST(bmain, versionfile, subversionfile)) {
+    return false;
+  }
+
+  LISTBASE_FOREACH (Library *, library, &bmain->libraries) {
+    if (!MAIN_VERSION_ATLEAST(library, versionfile, subversionfile)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 static bool foreach_path_clean_cb(BPathForeachPathData *UNUSED(bpath_data),
                                   char *path_dst,
                                   const char *path_src)
@@ -349,10 +366,11 @@ static void setup_app_data(bContext *C,
     do_versions_ipos_to_animato(bmain);
   }
 
-  /* FIXME: Same as above, readfile's `do_version` do not allow to create new IDs. */
-  /* TODO: Once this is definitively validated for 3.0 and option to not do it is removed, add a
-   * version bump and check here. */
-  if (mode != LOAD_UNDO && !USER_EXPERIMENTAL_TEST(&U, no_proxy_to_override_conversion)) {
+  /* NOTE: readfile's `do_version` does not allow to create new IDs, and only operates on a single
+   * library at a time. This code needs to operate on the whole Main at once. */
+  /* NOTE: Check bmain version (i.e. current blend file version), AND the versions of all the
+   * linked libraries. */
+  if (mode != LOAD_UNDO && !blendfile_or_libraries_versions_atleast(bmain, 302, 1)) {
     BKE_lib_override_library_main_proxy_convert(bmain, reports);
   }
 
@@ -603,12 +621,12 @@ UserDef *BKE_blendfile_userdef_from_defaults(void)
     const char *addons[] = {
         "io_anim_bvh",
         "io_curve_svg",
+        "io_import_obj",
         "io_mesh_ply",
         "io_mesh_stl",
         "io_mesh_uv_layout",
         "io_scene_fbx",
         "io_scene_gltf2",
-        "io_scene_obj",
         "io_scene_x3d",
         "cycles",
         "pose_library",

@@ -1094,13 +1094,11 @@ static bool collection_object_remove(Main *bmain,
   return true;
 }
 
-bool BKE_collection_object_add(Main *bmain, Collection *collection, Object *ob)
+bool BKE_collection_object_add_notest(Main *bmain, Collection *collection, Object *ob)
 {
-  if (ELEM(NULL, collection, ob)) {
+  if (ob == NULL) {
     return false;
   }
-
-  collection = collection_parent_editable_find_recursive(collection);
 
   /* Only case where this pointer can be NULL is when scene itself is linked, this case should
    * never be reached. */
@@ -1120,6 +1118,17 @@ bool BKE_collection_object_add(Main *bmain, Collection *collection, Object *ob)
   DEG_id_tag_update(&collection->id, ID_RECALC_GEOMETRY);
 
   return true;
+}
+
+bool BKE_collection_object_add(Main *bmain, Collection *collection, Object *ob)
+{
+  if (collection == NULL) {
+    return false;
+  }
+
+  collection = collection_parent_editable_find_recursive(collection);
+
+  return BKE_collection_object_add_notest(bmain, collection, ob);
 }
 
 void BKE_collection_object_add_from(Main *bmain, Scene *scene, Object *ob_src, Object *ob_dst)

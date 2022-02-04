@@ -63,6 +63,7 @@ enum class Type {
 };
 
 enum class BuiltinBits {
+  NONE = 0,
   /**
    * Allow getting barycentric coordinates inside the fragment shader.
    * \note Emulated on OpenGL.
@@ -72,6 +73,10 @@ enum class BuiltinBits {
   FRONT_FACING = (1 << 4),
   GLOBAL_INVOCATION_ID = (1 << 5),
   INSTANCE_ID = (1 << 6),
+  /**
+   * Allow setting the target layer when the output is a layered framebuffer.
+   * \note Emulated through geometry shader on older hardware.
+   */
   LAYER = (1 << 7),
   LOCAL_INVOCATION_ID = (1 << 8),
   LOCAL_INVOCATION_INDEX = (1 << 9),
@@ -125,10 +130,13 @@ enum class ImageType {
 
 /* Storage qualifiers. */
 enum class Qualifier {
-  RESTRICT = (1 << 0),
-  READ_ONLY = (1 << 1),
-  WRITE_ONLY = (1 << 2),
-  QUALIFIER_MAX = (WRITE_ONLY << 1) - 1,
+  /** Restrict flag is set by default. Unless specified otherwise. */
+  NO_RESTRICT = (1 << 0),
+  READ = (1 << 1),
+  WRITE = (1 << 2),
+  /** Shorthand version of combined flags. */
+  READ_WRITE = READ | WRITE,
+  QUALIFIER_MAX = (WRITE << 1) - 1,
 };
 ENUM_OPERATORS(Qualifier, Qualifier::QUALIFIER_MAX);
 
@@ -226,6 +234,8 @@ struct ShaderCreateInfo {
    * Only for names used by gpu::ShaderInterface.
    */
   size_t interface_names_size_ = 0;
+  /** Manually set builtins. */
+  BuiltinBits builtins_ = BuiltinBits::NONE;
 
   struct VertIn {
     int index;
@@ -535,6 +545,12 @@ struct ShaderCreateInfo {
   Self &do_static_compilation(bool value)
   {
     do_static_compilation_ = value;
+    return *(Self *)this;
+  }
+
+  Self &builtins(BuiltinBits builtin)
+  {
+    builtins_ |= builtin;
     return *(Self *)this;
   }
 

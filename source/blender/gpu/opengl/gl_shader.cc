@@ -277,14 +277,14 @@ static void print_image_type(std::ostream &os,
 
 static std::ostream &print_qualifier(std::ostream &os, const Qualifier &qualifiers)
 {
-  if ((qualifiers & Qualifier::RESTRICT) == Qualifier::RESTRICT) {
+  if (bool(qualifiers & Qualifier::NO_RESTRICT) == false) {
     os << "restrict ";
   }
-  if ((qualifiers & Qualifier::READ_ONLY) == Qualifier::READ_ONLY) {
-    os << "readonly ";
-  }
-  if ((qualifiers & Qualifier::WRITE_ONLY) == Qualifier::WRITE_ONLY) {
+  if (bool(qualifiers & Qualifier::READ) == false) {
     os << "writeonly ";
+  }
+  if (bool(qualifiers & Qualifier::WRITE) == false) {
+    os << "readonly ";
   }
   return os;
 }
@@ -415,11 +415,31 @@ std::string GLShader::resources_declare(const ShaderCreateInfo &info) const
     }
     ss << ";\n";
   }
+#if 0 /* T95278: This is not be enough to prevent some compilers think it is recursive. */
   for (const ShaderCreateInfo::PushConst &uniform : info.push_constants_) {
     /* T95278: Double macro to avoid some compilers think it is recursive. */
     ss << "#define " << uniform.name << "_ " << uniform.name << "\n";
     ss << "#define " << uniform.name << " (" << uniform.name << "_)\n";
   }
+#endif
+  ss << "\n";
+  return ss.str();
+}
+
+static std::string main_function_wrapper(std::string &pre_main, std::string &post_main)
+{
+  std::stringstream ss;
+  /* Prototype for the original main. */
+  ss << "\n";
+  ss << "void main_function_();\n";
+  /* Wrapper to the main function in order to inject code processing on globals. */
+  ss << "void main() {\n";
+  ss << pre_main;
+  ss << "  main_function_();\n";
+  ss << post_main;
+  ss << "}\n";
+  /* Rename the original main. */
+  ss << "#define main main_function_\n";
   ss << "\n";
   return ss.str();
 }
@@ -427,6 +447,7 @@ std::string GLShader::resources_declare(const ShaderCreateInfo &info) const
 std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) const
 {
   std::stringstream ss;
+  std::string post_main = "";
 
   ss << "\n/* Inputs. */\n";
   for (const ShaderCreateInfo::VertIn &attr : info.vertex_inputs_) {
@@ -439,19 +460,67 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
   for (const StageInterfaceInfo *iface : info.vertex_out_interfaces_) {
     print_interface(ss, "out", *iface);
   }
+  if (!GLContext::layered_rendering_support && bool(info.builtins_ & BuiltinBits::LAYER)) {
+    ss << "out int gpu_Layer;\n";
+  }
+  if (bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
+    if (!GLContext::native_barycentric_support) {
+      /* Disabled or unsupported. */
+    }
+    else if (GLEW_AMD_shader_explicit_vertex_parameter) {
+      /* Need this for stable barycentric. */
+      ss << "flat out vec4 gpu_pos_flat;\n";
+      ss << "out vec4 gpu_pos;\n";
+
+      post_main += "  gpu_pos = gpu_pos_flat = gl_Position;\n";
+    }
+  }
   ss << "\n";
+
+  if (post_main.empty() == false) {
+    std::string pre_main = "";
+    ss << main_function_wrapper(pre_main, post_main);
+  }
   return ss.str();
 }
 
 std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) const
 {
   std::stringstream ss;
+  std::string pre_main = "";
+
   ss << "\n/* Interfaces. */\n";
   const Vector<StageInterfaceInfo *> &in_interfaces = (info.geometry_source_.is_empty()) ?
                                                           info.vertex_out_interfaces_ :
                                                           info.geometry_out_interfaces_;
   for (const StageInterfaceInfo *iface : in_interfaces) {
     print_interface(ss, "in", *iface);
+  }
+  if (bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
+    if (!GLContext::native_barycentric_support) {
+      ss << "smooth in vec3 gpu_BaryCoord;\n";
+      ss << "noperspective in vec3 gpu_BaryCoordNoPersp;\n";
+    }
+    else if (GLEW_AMD_shader_explicit_vertex_parameter) {
+      /* NOTE(fclem): This won't work with geometry shader. Hopefully, we don't need geometry
+       * shader workaround if this extension/feature is detected. */
+      ss << "\n/* Stable Barycentric Coordinates. */\n";
+      ss << "flat in vec4 gpu_pos_flat;\n";
+      ss << "__explicitInterpAMD in vec4 gpu_pos;\n";
+      /* Globals. */
+      ss << "vec3 gpu_BaryCoord;\n";
+      ss << "vec3 gpu_BaryCoordNoPersp;\n";
+      ss << "\n";
+      ss << "vec2 stable_bary_(vec2 in_bary) {\n";
+      ss << "  vec3 bary = vec3(in_bary, 1.0 - in_bary.x - in_bary.y);\n";
+      ss << "  if (interpolateAtVertexAMD(gpu_pos, 0) == gpu_pos_flat) { return bary.zxy; }\n";
+      ss << "  if (interpolateAtVertexAMD(gpu_pos, 2) == gpu_pos_flat) { return bary.yzx; }\n";
+      ss << "  return bary.xyz;\n";
+      ss << "}\n";
+
+      pre_main += "  gpu_BaryCoord = stable_bary_(gl_BaryCoordSmoothAMD);\n";
+      pre_main += "  gpu_BaryCoordNoPersp = stable_bary_(gl_BaryCoordNoPerspAMD);\n";
+    }
   }
   ss << "\n/* Outputs. */\n";
   for (const ShaderCreateInfo::FragOut &output : info.fragment_outputs_) {
@@ -470,6 +539,11 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
     ss << "out " << to_string(output.type) << " " << output.name << ";\n";
   }
   ss << "\n";
+
+  if (pre_main.empty() == false) {
+    std::string post_main = "";
+    ss << main_function_wrapper(pre_main, post_main);
+  }
   return ss.str();
 }
 
@@ -501,7 +575,7 @@ static StageInterfaceInfo *find_interface_by_name(const Vector<StageInterfaceInf
                                                   const StringRefNull &name)
 {
   for (auto *iface : ifaces) {
-    if (iface->name == name) {
+    if (iface->instance_name == name) {
       return iface;
     }
   }
@@ -510,8 +584,8 @@ static StageInterfaceInfo *find_interface_by_name(const Vector<StageInterfaceInf
 
 std::string GLShader::geometry_interface_declare(const ShaderCreateInfo &info) const
 {
-
   std::stringstream ss;
+
   ss << "\n/* Interfaces. */\n";
   for (const StageInterfaceInfo *iface : info.vertex_out_interfaces_) {
     bool has_matching_output_iface = find_interface_by_name(info.geometry_out_interfaces_,
@@ -545,6 +619,76 @@ std::string GLShader::compute_layout_declare(const ShaderCreateInfo &info) const
   ss << "\n";
   return ss.str();
 }
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Passthrough geometry shader emulation
+ *
+ * \{ */
+
+std::string GLShader::workaround_geometry_shader_source_create(
+    const shader::ShaderCreateInfo &info)
+{
+  std::stringstream ss;
+
+  const bool do_layer_workaround = !GLContext::layered_rendering_support &&
+                                   bool(info.builtins_ & BuiltinBits::LAYER);
+  const bool do_barycentric_workaround = !GLContext::native_barycentric_support &&
+                                         bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD);
+
+  shader::ShaderCreateInfo info_modified = info;
+  info_modified.geometry_out_interfaces_ = info_modified.vertex_out_interfaces_;
+  /**
+   * NOTE(@fclem): Assuming we will render TRIANGLES. This will not work with other primitive
+   * types. In this case, it might not trigger an error on some implementations.
+   */
+  info_modified.geometry_layout(PrimitiveIn::TRIANGLES, PrimitiveOut::TRIANGLE_STRIP, 3);
+
+  ss << geometry_layout_declare(info_modified);
+  ss << geometry_interface_declare(info_modified);
+  if (do_layer_workaround) {
+    ss << "in int gpu_Layer[];\n";
+  }
+  if (do_barycentric_workaround) {
+    ss << "smooth out vec3 gpu_BaryCoord;\n";
+    ss << "noperspective out vec3 gpu_BaryCoordNoPersp;\n";
+  }
+  ss << "\n";
+
+  ss << "void main()\n";
+  ss << "{\n";
+  if (do_layer_workaround) {
+    ss << "  gl_Layer = gpu_Layer[0];\n";
+  }
+  for (auto i : IndexRange(3)) {
+    for (auto iface : info_modified.vertex_out_interfaces_) {
+      for (auto &inout : iface->inouts) {
+        ss << "  " << iface->instance_name << "_out." << inout.name;
+        ss << " = " << iface->instance_name << "_in[" << i << "]." << inout.name << ";\n";
+      }
+    }
+    if (do_barycentric_workaround) {
+      ss << "  gpu_BaryCoordNoPersp = gpu_BaryCoord =";
+      ss << " vec3(" << int(i == 0) << ", " << int(i == 1) << ", " << int(i == 2) << ");\n";
+    }
+    ss << "  gl_Position = gl_in[" << i << "].gl_Position;\n";
+    ss << "  EmitVertex();\n";
+  }
+  ss << "}\n";
+  return ss.str();
+}
+
+bool GLShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info)
+{
+  BuiltinBits builtins = info->builtins_;
+  if (!GLContext::native_barycentric_support && bool(builtins & BuiltinBits::BARYCENTRIC_COORD)) {
+    return true;
+  }
+  if (!GLContext::layered_rendering_support && bool(builtins & BuiltinBits::LAYER)) {
+    return true;
+  }
+  return false;
+}
 
 /** \} */
 
@@ -555,7 +699,7 @@ std::string GLShader::compute_layout_declare(const ShaderCreateInfo &info) const
 static char *glsl_patch_default_get()
 {
   /** Used for shader patching. Init once. */
-  static char patch[700] = "\0";
+  static char patch[1024] = "\0";
   if (patch[0] != '\0') {
     return patch;
   }
@@ -598,6 +742,13 @@ static char *glsl_patch_default_get()
   if (GPU_shader_image_load_store_support()) {
     STR_CONCAT(patch, slen, "#extension GL_ARB_shader_image_load_store: enable\n");
     STR_CONCAT(patch, slen, "#extension GL_ARB_shading_language_420pack: enable\n");
+  }
+  if (GLContext::layered_rendering_support) {
+    STR_CONCAT(patch, slen, "#extension GL_AMD_vertex_shader_layer: enable\n");
+    STR_CONCAT(patch, slen, "#define gpu_Layer gl_Layer\n");
+  }
+  if (GLContext::native_barycentric_support) {
+    STR_CONCAT(patch, slen, "#extension GL_AMD_shader_explicit_vertex_parameter: enable\n");
   }
 
   /* Fallbacks. */
@@ -713,6 +864,14 @@ bool GLShader::finalize(const shader::ShaderCreateInfo *info)
 {
   if (compilation_failed_) {
     return false;
+  }
+
+  if (info && do_geometry_shader_injection(info)) {
+    std::string source = workaround_geometry_shader_source_create(*info);
+    Vector<const char *> sources;
+    sources.append("version");
+    sources.append(source.c_str());
+    geometry_shader_from_glsl(sources);
   }
 
   glLinkProgram(shader_program_);

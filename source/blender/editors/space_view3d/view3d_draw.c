@@ -1036,7 +1036,7 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
   negate_v3_v3(o, rv3d->ofs);
 
   GPU_blend(GPU_BLEND_ALPHA);
-  GPU_depth_mask(false); /* don't overwrite zbuf */
+  GPU_depth_mask(false); /* Don't overwrite the Z-buffer. */
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);

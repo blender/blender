@@ -111,9 +111,6 @@ typedef enum eDepsObjectComponentType {
   /* Parameters Component - Default when nothing else fits
    * (i.e. just SDNA property setting). */
   DEG_OB_COMP_PARAMETERS,
-  /* Generic "Proxy-Inherit" Component.
-   * TODO(sergey): Also for instancing of subgraphs? */
-  DEG_OB_COMP_PROXY,
   /* Animation Component.
    *
    * TODO(sergey): merge in with parameters? */

@@ -28,10 +28,11 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vec_types.hh"
-#include "BLI_rand.h"
+#include "BLI_rand.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -54,6 +55,9 @@
 #include "BLO_read_write.h"
 
 using blender::float3;
+using blender::IndexRange;
+using blender::MutableSpan;
+using blender::RandomNumberGenerator;
 
 static const char *HAIR_ATTR_POSITION = "position";
 static const char *HAIR_ATTR_RADIUS = "radius";
@@ -69,14 +73,22 @@ static void hair_init_data(ID *id)
 
   MEMCPY_STRUCT_AFTER(hair, DNA_struct_default_get(Hair), id);
 
-  CustomData_reset(&hair->pdata);
-  CustomData_reset(&hair->cdata);
+  CustomData_reset(&hair->geometry.point_data);
+  CustomData_reset(&hair->geometry.curve_data);
 
-  CustomData_add_layer_named(
-      &hair->pdata, CD_PROP_FLOAT3, CD_CALLOC, nullptr, hair->totpoint, HAIR_ATTR_POSITION);
-  CustomData_add_layer_named(
-      &hair->pdata, CD_PROP_FLOAT, CD_CALLOC, nullptr, hair->totpoint, HAIR_ATTR_RADIUS);
-  CustomData_add_layer(&hair->cdata, CD_HAIRCURVE, CD_CALLOC, nullptr, hair->totcurve);
+  CustomData_add_layer_named(&hair->geometry.point_data,
+                             CD_PROP_FLOAT3,
+                             CD_CALLOC,
+                             nullptr,
+                             hair->geometry.point_size,
+                             HAIR_ATTR_POSITION);
+  CustomData_add_layer_named(&hair->geometry.point_data,
+                             CD_PROP_FLOAT,
+                             CD_CALLOC,
+                             nullptr,
+                             hair->geometry.point_size,
+                             HAIR_ATTR_RADIUS);
+
   BKE_hair_update_customdata_pointers(hair);
 
   hair_random(hair);
@@ -88,10 +100,23 @@ static void hair_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, co
   const Hair *hair_src = (const Hair *)id_src;
   hair_dst->mat = static_cast<Material **>(MEM_dupallocN(hair_src->mat));
 
+  hair_dst->geometry.point_size = hair_src->geometry.point_size;
+  hair_dst->geometry.curve_size = hair_src->geometry.curve_size;
+
   const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
-  CustomData_copy(&hair_src->pdata, &hair_dst->pdata, CD_MASK_ALL, alloc_type, hair_dst->totpoint);
-  CustomData_copy(&hair_src->cdata, &hair_dst->cdata, CD_MASK_ALL, alloc_type, hair_dst->totcurve);
+  CustomData_copy(&hair_src->geometry.point_data,
+                  &hair_dst->geometry.point_data,
+                  CD_MASK_ALL,
+                  alloc_type,
+                  hair_dst->geometry.point_size);
+  CustomData_copy(&hair_src->geometry.curve_data,
+                  &hair_dst->geometry.curve_data,
+                  CD_MASK_ALL,
+                  alloc_type,
+                  hair_dst->geometry.curve_size);
   BKE_hair_update_customdata_pointers(hair_dst);
+
+  hair_dst->geometry.offsets = static_cast<int *>(MEM_dupallocN(hair_src->geometry.offsets));
 
   hair_dst->batch_cache = nullptr;
 }
@@ -103,8 +128,10 @@ static void hair_free_data(ID *id)
 
   BKE_hair_batch_cache_free(hair);
 
-  CustomData_free(&hair->pdata, hair->totpoint);
-  CustomData_free(&hair->cdata, hair->totcurve);
+  CustomData_free(&hair->geometry.point_data, hair->geometry.point_size);
+  CustomData_free(&hair->geometry.curve_data, hair->geometry.curve_size);
+
+  MEM_SAFE_FREE(hair->geometry.offsets);
 
   MEM_SAFE_FREE(hair->mat);
 }
@@ -123,16 +150,30 @@ static void hair_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
   CustomDataLayer *players = nullptr, players_buff[CD_TEMP_CHUNK_SIZE];
   CustomDataLayer *clayers = nullptr, clayers_buff[CD_TEMP_CHUNK_SIZE];
-  CustomData_blend_write_prepare(&hair->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
-  CustomData_blend_write_prepare(&hair->cdata, &clayers, clayers_buff, ARRAY_SIZE(clayers_buff));
+  CustomData_blend_write_prepare(
+      &hair->geometry.point_data, &players, players_buff, ARRAY_SIZE(players_buff));
+  CustomData_blend_write_prepare(
+      &hair->geometry.curve_data, &clayers, clayers_buff, ARRAY_SIZE(clayers_buff));
 
   /* Write LibData */
   BLO_write_id_struct(writer, Hair, id_address, &hair->id);
   BKE_id_blend_write(writer, &hair->id);
 
   /* Direct data */
-  CustomData_blend_write(writer, &hair->pdata, players, hair->totpoint, CD_MASK_ALL, &hair->id);
-  CustomData_blend_write(writer, &hair->cdata, clayers, hair->totcurve, CD_MASK_ALL, &hair->id);
+  CustomData_blend_write(writer,
+                         &hair->geometry.point_data,
+                         players,
+                         hair->geometry.point_size,
+                         CD_MASK_ALL,
+                         &hair->id);
+  CustomData_blend_write(writer,
+                         &hair->geometry.curve_data,
+                         clayers,
+                         hair->geometry.curve_size,
+                         CD_MASK_ALL,
+                         &hair->id);
+
+  BLO_write_int32_array(writer, hair->geometry.curve_size + 1, hair->geometry.offsets);
 
   BLO_write_pointer_array(writer, hair->totcol, hair->mat);
   if (hair->adt) {
@@ -155,9 +196,11 @@ static void hair_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_animdata_blend_read_data(reader, hair->adt);
 
   /* Geometry */
-  CustomData_blend_read(reader, &hair->pdata, hair->totpoint);
-  CustomData_blend_read(reader, &hair->cdata, hair->totcurve);
+  CustomData_blend_read(reader, &hair->geometry.point_data, hair->geometry.point_size);
+  CustomData_blend_read(reader, &hair->geometry.curve_data, hair->geometry.point_size);
   BKE_hair_update_customdata_pointers(hair);
+
+  BLO_read_int32_array(reader, hair->geometry.curve_size + 1, &hair->geometry.offsets);
 
   /* Materials */
   BLO_read_pointer_array(reader, (void **)&hair->mat);
@@ -211,47 +254,51 @@ IDTypeInfo IDType_ID_HA = {
 
 static void hair_random(Hair *hair)
 {
+  CurvesGeometry &geometry = hair->geometry;
   const int numpoints = 8;
 
-  hair->totcurve = 500;
-  hair->totpoint = hair->totcurve * numpoints;
+  geometry.curve_size = 500;
 
-  CustomData_realloc(&hair->pdata, hair->totpoint);
-  CustomData_realloc(&hair->cdata, hair->totcurve);
+  geometry.curve_size = 500;
+  geometry.point_size = geometry.curve_size * numpoints;
+
+  hair->geometry.offsets = (int *)MEM_calloc_arrayN(
+      hair->geometry.curve_size + 1, sizeof(int), __func__);
+  CustomData_realloc(&geometry.point_data, geometry.point_size);
+  CustomData_realloc(&geometry.curve_data, geometry.curve_size);
   BKE_hair_update_customdata_pointers(hair);
 
-  RNG *rng = BLI_rng_new(0);
+  MutableSpan<int> offsets{geometry.offsets, geometry.curve_size + 1};
+  MutableSpan<float3> positions{(float3 *)geometry.position, geometry.point_size};
+  MutableSpan<float> radii{geometry.radius, geometry.point_size};
 
-  for (int i = 0; i < hair->totcurve; i++) {
-    HairCurve *curve = &hair->curves[i];
-    curve->firstpoint = i * numpoints;
-    curve->numpoints = numpoints;
-
-    float theta = 2.0f * M_PI * BLI_rng_get_float(rng);
-    float phi = saacosf(2.0f * BLI_rng_get_float(rng) - 1.0f);
-
-    float no[3] = {sinf(theta) * sinf(phi), cosf(theta) * sinf(phi), cosf(phi)};
-    normalize_v3(no);
-
-    float co[3];
-    copy_v3_v3(co, no);
-
-    float(*curve_co)[3] = hair->co + curve->firstpoint;
-    float *curve_radius = hair->radius + curve->firstpoint;
-    for (int key = 0; key < numpoints; key++) {
-      float t = key / (float)(numpoints - 1);
-      copy_v3_v3(curve_co[key], co);
-      curve_radius[key] = 0.02f * (1.0f - t);
-
-      float offset[3] = {2.0f * BLI_rng_get_float(rng) - 1.0f,
-                         2.0f * BLI_rng_get_float(rng) - 1.0f,
-                         2.0f * BLI_rng_get_float(rng) - 1.0f};
-      add_v3_v3(offset, no);
-      madd_v3_v3fl(co, offset, 1.0f / numpoints);
-    }
+  for (const int i : offsets.index_range()) {
+    geometry.offsets[i] = numpoints * i;
   }
 
-  BLI_rng_free(rng);
+  RandomNumberGenerator rng;
+
+  for (int i = 0; i < geometry.curve_size; i++) {
+    const IndexRange curve_range(offsets[i], offsets[i + 1] - offsets[i]);
+    MutableSpan<float3> curve_positions = positions.slice(curve_range);
+    MutableSpan<float> curve_radii = radii.slice(curve_range);
+
+    const float theta = 2.0f * M_PI * rng.get_float();
+    const float phi = saacosf(2.0f * rng.get_float() - 1.0f);
+
+    float3 no = {std::sin(theta) * std::sin(phi), std::cos(theta) * std::sin(phi), std::cos(phi)};
+    no = blender::math::normalize(no);
+
+    float3 co = no;
+    for (int key = 0; key < numpoints; key++) {
+      float t = key / (float)(numpoints - 1);
+      curve_positions[key] = co;
+      curve_radii[key] = 0.02f * (1.0f - t);
+
+      float3 offset = float3(rng.get_float(), rng.get_float(), rng.get_float()) * 2.0f - 1.0f;
+      co += (offset + no) / numpoints;
+    }
+  }
 }
 
 void *BKE_hair_add(Main *bmain, const char *name)
@@ -276,9 +323,9 @@ BoundBox *BKE_hair_boundbox_get(Object *ob)
     float min[3], max[3];
     INIT_MINMAX(min, max);
 
-    float(*hair_co)[3] = hair->co;
-    float *hair_radius = hair->radius;
-    for (int a = 0; a < hair->totpoint; a++) {
+    float(*hair_co)[3] = hair->geometry.position;
+    float *hair_radius = hair->geometry.radius;
+    for (int a = 0; a < hair->geometry.point_size; a++) {
       float *co = hair_co[a];
       float radius = (hair_radius) ? hair_radius[a] : 0.0f;
       const float co_min[3] = {co[0] - radius, co[1] - radius, co[2] - radius};
@@ -295,12 +342,10 @@ BoundBox *BKE_hair_boundbox_get(Object *ob)
 
 void BKE_hair_update_customdata_pointers(Hair *hair)
 {
-  hair->co = (float(*)[3])CustomData_get_layer_named(
-      &hair->pdata, CD_PROP_FLOAT3, HAIR_ATTR_POSITION);
-  hair->radius = (float *)CustomData_get_layer_named(
-      &hair->pdata, CD_PROP_FLOAT, HAIR_ATTR_RADIUS);
-  hair->curves = (HairCurve *)CustomData_get_layer(&hair->cdata, CD_HAIRCURVE);
-  hair->mapping = (HairMaping *)CustomData_get_layer(&hair->cdata, CD_HAIRMAPPING);
+  hair->geometry.position = (float(*)[3])CustomData_get_layer_named(
+      &hair->geometry.point_data, CD_PROP_FLOAT3, HAIR_ATTR_POSITION);
+  hair->geometry.radius = (float *)CustomData_get_layer_named(
+      &hair->geometry.point_data, CD_PROP_FLOAT, HAIR_ATTR_RADIUS);
 }
 
 bool BKE_hair_customdata_required(Hair *UNUSED(hair), CustomDataLayer *layer)
@@ -318,10 +363,18 @@ Hair *BKE_hair_new_for_eval(const Hair *hair_src, int totpoint, int totcurve)
   hair_dst->mat = static_cast<Material **>(MEM_dupallocN(hair_src->mat));
   hair_dst->totcol = hair_src->totcol;
 
-  hair_dst->totpoint = totpoint;
-  hair_dst->totcurve = totcurve;
-  CustomData_copy(&hair_src->pdata, &hair_dst->pdata, CD_MASK_ALL, CD_CALLOC, totpoint);
-  CustomData_copy(&hair_src->cdata, &hair_dst->cdata, CD_MASK_ALL, CD_CALLOC, totcurve);
+  hair_dst->geometry.point_size = totpoint;
+  hair_dst->geometry.curve_size = totcurve;
+  CustomData_copy(&hair_src->geometry.point_data,
+                  &hair_dst->geometry.point_data,
+                  CD_MASK_ALL,
+                  CD_CALLOC,
+                  totpoint);
+  CustomData_copy(&hair_src->geometry.curve_data,
+                  &hair_dst->geometry.curve_data,
+                  CD_MASK_ALL,
+                  CD_CALLOC,
+                  totcurve);
   BKE_hair_update_customdata_pointers(hair_dst);
 
   return hair_dst;
@@ -373,12 +426,14 @@ static Hair *hair_evaluate_modifiers(struct Depsgraph *depsgraph,
       }
 
       /* Ensure we are not overwriting referenced data. */
-      CustomData_duplicate_referenced_layer_named(
-          &hair->pdata, CD_PROP_FLOAT3, HAIR_ATTR_POSITION, hair->totpoint);
+      CustomData_duplicate_referenced_layer_named(&hair->geometry.point_data,
+                                                  CD_PROP_FLOAT3,
+                                                  HAIR_ATTR_POSITION,
+                                                  hair->geometry.point_size);
       BKE_hair_update_customdata_pointers(hair);
 
       /* Created deformed coordinates array on demand. */
-      mti->deformVerts(md, &mectx, nullptr, hair->co, hair->totpoint);
+      mti->deformVerts(md, &mectx, nullptr, hair->geometry.position, hair->geometry.point_size);
     }
   }
 

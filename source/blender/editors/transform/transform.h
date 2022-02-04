@@ -580,11 +580,11 @@ typedef struct TransInfo {
   /** Mouse side of the current frame, 'L', 'R' or 'B' */
   char frame_side;
 
-  /** copy from G.vd, prevents feedback. */
+  /** copy from #RegionView3D, prevents feedback. */
   float viewmat[4][4];
   /** and to make sure we don't have to. */
   float viewinv[4][4];
-  /** access G.vd from other space types. */
+  /** Access #RegionView3D from other space types. */
   float persmat[4][4];
   float persinv[4][4];
   short persp;

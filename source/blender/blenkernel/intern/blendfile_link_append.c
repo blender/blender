@@ -993,6 +993,27 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
 /** \name Library link/append code.
  * \{ */
 
+static void blendfile_link_append_proxies_convert(Main *bmain, ReportList *reports)
+{
+  /* NOTE: Do not bother checking file versions here, if there are no proxies to convert this code
+   * is quite fast anyway. */
+
+  BlendFileReadReport bf_reports = {.reports = reports};
+  BKE_lib_override_library_main_proxy_convert(bmain, &bf_reports);
+
+  if (bf_reports.count.proxies_to_lib_overrides_success != 0 ||
+      bf_reports.count.proxies_to_lib_overrides_failures != 0) {
+    BKE_reportf(
+        bf_reports.reports,
+        RPT_WARNING,
+        "Proxies have been removed from Blender (%d proxies were automatically converted "
+        "to library overrides, %d proxies could not be converted and were cleared). "
+        "Please consider re-saving any library .blend file with the newest Blender version.",
+        bf_reports.count.proxies_to_lib_overrides_success,
+        bf_reports.count.proxies_to_lib_overrides_failures);
+  }
+}
+
 void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
 {
   if (lapp_context->num_items == 0) {
@@ -1039,10 +1060,6 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
 
     if (item->action != LINK_APPEND_ACT_UNSET) {
       /* Already set, pass. */
-    }
-    if (GS(id->name) == ID_OB && ((Object *)id)->proxy_from != NULL) {
-      CLOG_INFO(&LOG, 3, "Appended ID '%s' is proxified, keeping it linked...", id->name);
-      item->action = LINK_APPEND_ACT_KEEP_LINKED;
     }
     else if (do_reuse_local_id && existing_local_id != NULL) {
       CLOG_INFO(&LOG, 3, "Appended ID '%s' as a matching local one, re-using it...", id->name);
@@ -1098,10 +1115,7 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
         local_appended_new_id = id->newid;
         break;
       case LINK_APPEND_ACT_MAKE_LOCAL:
-        BKE_lib_id_make_local(bmain,
-                              id,
-                              make_local_common_flags | LIB_ID_MAKELOCAL_FORCE_LOCAL |
-                                  LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING);
+        BKE_lib_id_make_local(bmain, id, make_local_common_flags | LIB_ID_MAKELOCAL_FORCE_LOCAL);
         BLI_assert(id->newid == NULL);
         local_appended_new_id = id;
         break;
@@ -1210,55 +1224,11 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
       continue;
     }
     BLI_assert(ID_IS_LINKED(id));
-
-    /* Attempt to re-link copied proxy objects. This allows appending of an entire scene
-     * from another blend file into this one, even when that blend file contains proxified
-     * armatures that have local references. Since the proxified object needs to be linked
-     * (not local), this will only work when the "Localize all" checkbox is disabled.
-     * TL;DR: this is a dirty hack on top of an already weak feature (proxies). */
-    if (GS(id->name) == ID_OB && ((Object *)id)->proxy != NULL) {
-      Object *ob = (Object *)id;
-      Object *ob_new = (Object *)id->newid;
-      bool is_local = false, is_lib = false;
-
-      /* Proxies only work when the proxified object is linked-in from a library. */
-      if (!ID_IS_LINKED(ob->proxy)) {
-        CLOG_WARN(&LOG,
-                  "Proxy object %s will lose its link to %s, because the "
-                  "proxified object is local",
-                  id->newid->name,
-                  ob->proxy->id.name);
-        continue;
-      }
-
-      BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
-
-      /* We can only switch the proxy'ing to a made-local proxy if it is no longer
-       * referred to from a library. Not checking for local use; if new local proxy
-       * was not used locally would be a nasty bug! */
-      if (is_local || is_lib) {
-        CLOG_WARN(&LOG,
-                  "Made-local proxy object %s will lose its link to %s, "
-                  "because the linked-in proxy is referenced (is_local=%i, is_lib=%i)",
-                  id->newid->name,
-                  ob->proxy->id.name,
-                  is_local,
-                  is_lib);
-      }
-      else {
-        /* we can switch the proxy'ing from the linked-in to the made-local proxy.
-         * BKE_object_make_proxy() shouldn't be used here, as it allocates memory that
-         * was already allocated by object_make_local() (which called BKE_object_copy). */
-        ob_new->proxy = ob->proxy;
-        ob_new->proxy_group = ob->proxy_group;
-        ob_new->proxy_from = ob->proxy_from;
-        ob_new->proxy->proxy_from = ob_new;
-        ob->proxy = ob->proxy_from = ob->proxy_group = NULL;
-      }
-    }
   }
 
   BKE_main_id_newptr_and_tag_clear(bmain);
+
+  blendfile_link_append_proxies_convert(bmain, reports);
 }
 
 void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
@@ -1360,6 +1330,10 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
     LooseDataInstantiateContext instantiate_context = {.lapp_context = lapp_context,
                                                        .active_collection = NULL};
     loose_data_instantiate(&instantiate_context);
+  }
+
+  if ((lapp_context->params->flag & FILE_LINK) != 0) {
+    blendfile_link_append_proxies_convert(lapp_context->params->bmain, reports);
   }
 }
 
@@ -1541,7 +1515,6 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
 
   /* Note that in reload case, we also want to replace indirect usages. */
   const short remap_flags = ID_REMAP_SKIP_NEVER_NULL_USAGE |
-                            ID_REMAP_NO_INDIRECT_PROXY_DATA_USAGE |
                             (do_reload ? 0 : ID_REMAP_SKIP_INDIRECT_USAGE);
   for (item_idx = 0, itemlink = lapp_context->items.list; itemlink;
        item_idx++, itemlink = itemlink->next) {

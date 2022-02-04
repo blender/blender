@@ -100,6 +100,9 @@ struct ID *BKE_lib_override_library_create_from_id(struct Main *bmain,
  * main. You can add more local IDs to be remapped to use new overriding ones by setting their
  * LIB_TAG_DOIT tag.
  *
+ * \param owner_library: the library in which the overrides should be created. Besides versioning
+ * and resync code path, this should always be NULL (i.e. the local .blend file).
+ *
  * \param reference_library: the library from which the linked data being overridden come from
  * (i.e. the library of the linked reference ID).
  *
@@ -109,6 +112,7 @@ struct ID *BKE_lib_override_library_create_from_id(struct Main *bmain,
  * \return \a true on success, \a false otherwise.
  */
 bool BKE_lib_override_library_create_from_tag(struct Main *bmain,
+                                              struct Library *owner_library,
                                               const struct Library *reference_library,
                                               bool do_no_main);
 /**
@@ -122,16 +126,24 @@ bool BKE_lib_override_library_create_from_tag(struct Main *bmain,
  *
  * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
  *                    which case \a scene's master collection children hierarchy is used instead).
+ *
+ * \param owner_library: the library in which the overrides should be created. Besides versioning
+ * and resync code path, this should always be NULL (i.e. the local .blend file).
+ *
  * \param id_root: The root ID to create an override from.
+ *
  * \param id_reference: Some reference ID used to do some post-processing after overrides have been
  * created, may be NULL. Typically, the Empty object instantiating the linked collection we
  * override, currently.
+ *
  * \param r_id_root_override: if not NULL, the override generated for the given \a id_root.
+ *
  * \return true if override was successfully created.
  */
 bool BKE_lib_override_library_create(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ViewLayer *view_layer,
+                                     struct Library *owner_library,
                                      struct ID *id_root,
                                      struct ID *id_reference,
                                      struct ID **r_id_root_override);

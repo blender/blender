@@ -619,14 +619,6 @@ void BKE_pose_eval_cleanup(struct Depsgraph *depsgraph,
                            struct Scene *scene,
                            struct Object *object);
 
-void BKE_pose_eval_proxy_init(struct Depsgraph *depsgraph, struct Object *object);
-void BKE_pose_eval_proxy_done(struct Depsgraph *depsgraph, struct Object *object);
-void BKE_pose_eval_proxy_cleanup(struct Depsgraph *depsgraph, struct Object *object);
-
-void BKE_pose_eval_proxy_copy_bone(struct Depsgraph *depsgraph,
-                                   struct Object *object,
-                                   int pchan_index);
-
 /* -------------------------------------------------------------------- */
 /** \name Deform 3D Coordinates by Armature (armature_deform.c)
  * \{ */

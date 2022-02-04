@@ -149,36 +149,6 @@ bool ED_object_posemode_exit(bContext *C, Object *ob)
   return ok;
 }
 
-/* if a selected or active bone is protected, throw error (only if warn == 1) and return 1 */
-/* only_selected == 1: the active bone is allowed to be protected */
-#if 0 /* UNUSED 2.5 */
-static bool pose_has_protected_selected(Object *ob, short warn)
-{
-  /* check protection */
-  if (ob->proxy) {
-    bPoseChannel *pchan;
-    bArmature *arm = ob->data;
-
-    for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-      if (pchan->bone && BKE_pose_is_layer_visible(arm, pchan)) {
-        if (pchan->bone->layer & arm->layer_protected) {
-          if (pchan->bone->flag & BONE_SELECTED) {
-            break;
-          }
-        }
-      }
-    }
-    if (pchan) {
-      if (warn) {
-        error("Cannot change Proxy protected bones");
-      }
-      return 1;
-    }
-  }
-  return 0;
-}
-#endif
-
 /* ********************************************** */
 /* Motion Paths */
 
@@ -1055,10 +1025,6 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob_iter = objects[ob_index];
     bArmature *arm = ob_iter->data;
-
-    if (ob_iter->proxy != NULL) {
-      BKE_report(op->reports, RPT_INFO, "Undo of hiding can only be done with Reveal Selected");
-    }
 
     bool changed = bone_looper(ob_iter, arm->bonebase.first, hide_select_p, hide_pose_bone_fn) !=
                    0;

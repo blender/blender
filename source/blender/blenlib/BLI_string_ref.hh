@@ -358,7 +358,9 @@ constexpr int64_t StringRefBase::find_first_of(StringRef chars, int64_t pos) con
 
 constexpr int64_t StringRefBase::find_first_of(char c, int64_t pos) const
 {
-  return this->find_first_of(StringRef(&c, 1), pos);
+  BLI_assert(pos >= 0);
+  return index_or_npos_to_int64(
+      std::string_view(*this).find_first_of(c, static_cast<size_t>(pos)));
 }
 
 constexpr int64_t StringRefBase::find_last_of(StringRef chars, int64_t pos) const
@@ -370,7 +372,9 @@ constexpr int64_t StringRefBase::find_last_of(StringRef chars, int64_t pos) cons
 
 constexpr int64_t StringRefBase::find_last_of(char c, int64_t pos) const
 {
-  return this->find_last_of(StringRef(&c, 1), pos);
+  BLI_assert(pos >= 0);
+  return index_or_npos_to_int64(
+      std::string_view(*this).find_last_of(c, static_cast<size_t>(pos)));
 }
 
 constexpr int64_t StringRefBase::find_first_not_of(StringRef chars, int64_t pos) const
@@ -382,7 +386,9 @@ constexpr int64_t StringRefBase::find_first_not_of(StringRef chars, int64_t pos)
 
 constexpr int64_t StringRefBase::find_first_not_of(char c, int64_t pos) const
 {
-  return this->find_first_not_of(StringRef(&c, 1), pos);
+  BLI_assert(pos >= 0);
+  return index_or_npos_to_int64(
+      std::string_view(*this).find_first_not_of(c, static_cast<size_t>(pos)));
 }
 
 constexpr int64_t StringRefBase::find_last_not_of(StringRef chars, int64_t pos) const
@@ -394,7 +400,9 @@ constexpr int64_t StringRefBase::find_last_not_of(StringRef chars, int64_t pos) 
 
 constexpr int64_t StringRefBase::find_last_not_of(char c, int64_t pos) const
 {
-  return this->find_last_not_of(StringRef(&c, 1), pos);
+  BLI_assert(pos >= 0);
+  return index_or_npos_to_int64(
+      std::string_view(*this).find_last_not_of(c, static_cast<size_t>(pos)));
 }
 
 constexpr StringRef StringRefBase::trim() const

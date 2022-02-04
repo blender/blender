@@ -33,11 +33,14 @@
 #include "BLI_math.h"
 #include "BLI_threads.h"
 
+#include "BKE_DerivedMesh.h"
 #include "BKE_ccg.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_lib_id.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_tangent.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_subsurf.h"
@@ -488,9 +491,35 @@ static void do_multires_bake(MultiresBakeRender *bkr,
 
     void *bake_data = NULL;
 
+    Mesh *temp_mesh = BKE_mesh_new_nomain(
+        dm->getNumVerts(dm), dm->getNumEdges(dm), 0, dm->getNumLoops(dm), dm->getNumPolys(dm));
+    memcpy(temp_mesh->mvert, dm->getVertArray(dm), temp_mesh->totvert * sizeof(*temp_mesh->mvert));
+    memcpy(temp_mesh->medge, dm->getEdgeArray(dm), temp_mesh->totedge * sizeof(*temp_mesh->medge));
+    memcpy(temp_mesh->mpoly, dm->getPolyArray(dm), temp_mesh->totpoly * sizeof(*temp_mesh->mpoly));
+    memcpy(temp_mesh->mloop, dm->getLoopArray(dm), temp_mesh->totloop * sizeof(*temp_mesh->mloop));
+    const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(temp_mesh);
+
     if (require_tangent) {
       if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1) {
-        DM_calc_loop_tangents(dm, true, NULL, 0);
+        BKE_mesh_calc_loop_tangent_ex(
+            dm->getVertArray(dm),
+            dm->getPolyArray(dm),
+            dm->getNumPolys(dm),
+            dm->getLoopArray(dm),
+            dm->getLoopTriArray(dm),
+            dm->getNumLoopTri(dm),
+            &dm->loopData,
+            true,
+            NULL,
+            0,
+            vert_normals,
+            (const float(*)[3])CustomData_get_layer(&dm->polyData, CD_NORMAL),
+            (const float(*)[3])dm->getLoopDataArray(dm, CD_NORMAL),
+            (const float(*)[3])dm->getVertDataArray(dm, CD_ORCO), /* may be nullptr */
+            /* result */
+            &dm->loopData,
+            dm->getNumLoops(dm),
+            &dm->tangent_mask);
       }
 
       pvtangent = DM_get_loop_data_layer(dm, CD_TANGENT);
@@ -524,6 +553,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
 
       handle->data.mpoly = mpoly;
       handle->data.mvert = mvert;
+      handle->data.vert_normals = vert_normals;
       handle->data.mloopuv = mloopuv;
       handle->data.mlooptri = mlooptri;
       handle->data.mloop = mloop;
@@ -574,6 +604,8 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     }
 
     MEM_freeN(handles);
+
+    BKE_id_free(NULL, temp_mesh);
 
     BKE_image_release_ibuf(ima, ibuf, NULL);
   }

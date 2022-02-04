@@ -1033,7 +1033,7 @@ bool ED_view3d_minmax_verts(Object *obedit, float r_min[3], float r_max[3])
   }
 
   if (ED_transverts_check_obedit(obedit)) {
-    ED_transverts_create_from_obedit(&tvs, obedit, TM_ALL_JOINTS);
+    ED_transverts_create_from_obedit(&tvs, obedit, TM_ALL_JOINTS | TM_CALC_MAPLOC);
   }
 
   if (tvs.transverts_tot == 0) {

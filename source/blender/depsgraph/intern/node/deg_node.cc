@@ -67,8 +67,6 @@ const char *nodeTypeAsString(NodeType type)
     /* **** Outer Types **** */
     case NodeType::PARAMETERS:
       return "PARAMETERS";
-    case NodeType::PROXY:
-      return "PROXY";
     case NodeType::ANIMATION:
       return "ANIMATION";
     case NodeType::TRANSFORM:
@@ -174,7 +172,6 @@ eDepsSceneComponentType nodeTypeToSceneComponent(NodeType type)
     case NodeType::BONE:
     case NodeType::SHADING:
     case NodeType::CACHE:
-    case NodeType::PROXY:
     case NodeType::SIMULATION:
     case NodeType::NTREE_OUTPUT:
       return DEG_SCENE_COMP_PARAMETERS;
@@ -194,8 +191,6 @@ NodeType nodeTypeFromObjectComponent(eDepsObjectComponentType component_type)
       return NodeType::UNDEFINED;
     case DEG_OB_COMP_PARAMETERS:
       return NodeType::PARAMETERS;
-    case DEG_OB_COMP_PROXY:
-      return NodeType::PROXY;
     case DEG_OB_COMP_ANIMATION:
       return NodeType::ANIMATION;
     case DEG_OB_COMP_TRANSFORM:
@@ -219,8 +214,6 @@ eDepsObjectComponentType nodeTypeToObjectComponent(NodeType type)
   switch (type) {
     case NodeType::PARAMETERS:
       return DEG_OB_COMP_PARAMETERS;
-    case NodeType::PROXY:
-      return DEG_OB_COMP_PROXY;
     case NodeType::ANIMATION:
       return DEG_OB_COMP_ANIMATION;
     case NodeType::TRANSFORM:

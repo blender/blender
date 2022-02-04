@@ -28,6 +28,7 @@
 
 #include "BLI_alloca.h"
 
+#include "BKE_editmesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -239,6 +240,26 @@ static void workbench_cache_hair_populate(WORKBENCH_PrivateData *wpd,
   DRW_shgroup_hair_create_sub(ob, psys, md, grp, NULL);
 }
 
+static const CustomData *workbench_mesh_get_loop_custom_data(const Mesh *mesh)
+{
+  if (mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+    BLI_assert(mesh->edit_mesh != NULL);
+    BLI_assert(mesh->edit_mesh->bm != NULL);
+    return &mesh->edit_mesh->bm->ldata;
+  }
+  return &mesh->ldata;
+}
+
+static const CustomData *workbench_mesh_get_vert_custom_data(const Mesh *mesh)
+{
+  if (mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+    BLI_assert(mesh->edit_mesh != NULL);
+    BLI_assert(mesh->edit_mesh->bm != NULL);
+    return &mesh->edit_mesh->bm->vdata;
+  }
+  return &mesh->vdata;
+}
+
 /**
  * Decide what color-type to draw the object with.
  * In some cases it can be overwritten by #workbench_material_setup().
@@ -251,6 +272,8 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
 {
   eV3DShadingColorType color_type = wpd->shading.color_type;
   const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
+  const CustomData *ldata = workbench_mesh_get_loop_custom_data(me);
+  const CustomData *vdata = workbench_mesh_get_vert_custom_data(me);
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_active = (ob == draw_ctx->obact);
@@ -264,19 +287,19 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
     if (ob->dt < OB_TEXTURE) {
       color_type = V3D_SHADING_MATERIAL_COLOR;
     }
-    else if ((me == NULL) || (me->mloopuv == NULL)) {
+    else if ((me == NULL) || !CustomData_has_layer(ldata, CD_MLOOPUV)) {
       /* Disable color mode if data layer is unavailable. */
       color_type = V3D_SHADING_MATERIAL_COLOR;
     }
   }
   else if (color_type == V3D_SHADING_VERTEX_COLOR) {
     if (U.experimental.use_sculpt_vertex_colors) {
-      if ((me == NULL) || !CustomData_has_layer(&me->vdata, CD_PROP_COLOR)) {
+      if ((me == NULL) || !CustomData_has_layer(vdata, CD_PROP_COLOR)) {
         color_type = V3D_SHADING_OBJECT_COLOR;
       }
     }
     else {
-      if ((me == NULL) || !CustomData_has_layer(&me->ldata, CD_MLOOPCOL)) {
+      if ((me == NULL) || !CustomData_has_layer(ldata, CD_MLOOPCOL)) {
         color_type = V3D_SHADING_OBJECT_COLOR;
       }
     }
@@ -291,13 +314,13 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
 
   if (!is_sculpt_pbvh && !is_render) {
     /* Force texture or vertex mode if object is in paint mode. */
-    if (is_texpaint_mode && me && me->mloopuv) {
+    if (is_texpaint_mode && me && CustomData_has_layer(ldata, CD_MLOOPUV)) {
       color_type = V3D_SHADING_TEXTURE_COLOR;
       if (r_texpaint_mode) {
         *r_texpaint_mode = true;
       }
     }
-    else if (is_vertpaint_mode && me && me->mloopcol) {
+    else if (is_vertpaint_mode && me && CustomData_has_layer(ldata, CD_MLOOPCOL)) {
       color_type = V3D_SHADING_VERTEX_COLOR;
     }
   }

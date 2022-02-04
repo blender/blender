@@ -169,7 +169,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
   FRAMENUMBER_MIN_CLAMP(CFRA);
 
   /* do updates */
-  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
+  DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 }
 

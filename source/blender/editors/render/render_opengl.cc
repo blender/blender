@@ -72,7 +72,10 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+
 #include "RE_pipeline.h"
+
+#include "BLT_translation.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -1326,12 +1329,12 @@ static char *screen_opengl_render_description(struct bContext *UNUSED(C),
   }
 
   if (RNA_boolean_get(ptr, "render_keyed_only")) {
-    return BLI_strdup(
+    return BLI_strdup(TIP_(
         "Render the viewport for the animation range of this scene, but only render keyframes of "
-        "selected objects");
+        "selected objects"));
   }
 
-  return BLI_strdup("Render the viewport for the animation range of this scene");
+  return BLI_strdup(TIP_("Render the viewport for the animation range of this scene"));
 }
 
 void RENDER_OT_opengl(wmOperatorType *ot)

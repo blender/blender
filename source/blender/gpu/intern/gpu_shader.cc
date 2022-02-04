@@ -249,6 +249,11 @@ GPUShader *GPU_shader_create_compute(const char *computecode,
                               shname);
 }
 
+const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name)
+{
+  return gpu_shader_create_info_get(info_name);
+}
+
 GPUShader *GPU_shader_create_from_info_name(const char *info_name)
 {
   using namespace blender::gpu::shader;
@@ -309,9 +314,8 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
   }
 
   if (!info.vertex_source_.is_empty()) {
-    uint32_t builtins = 0;
+    char *code = gpu_shader_dependency_get_resolved_source(info.vertex_source_.c_str());
     std::string interface = shader->vertex_interface_declare(info);
-    char *code = gpu_shader_dependency_get_resolved_source(info.vertex_source_.c_str(), &builtins);
 
     Vector<const char *> sources;
     standard_defines(sources);
@@ -336,10 +340,8 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
   }
 
   if (!info.fragment_source_.is_empty()) {
-    uint32_t builtins = 0;
+    char *code = gpu_shader_dependency_get_resolved_source(info.fragment_source_.c_str());
     std::string interface = shader->fragment_interface_declare(info);
-    char *code = gpu_shader_dependency_get_resolved_source(info.fragment_source_.c_str(),
-                                                           &builtins);
 
     Vector<const char *> sources;
     standard_defines(sources);
@@ -364,11 +366,9 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
   }
 
   if (!info.geometry_source_.is_empty()) {
-    uint32_t builtins = 0;
-    std::string interface = shader->geometry_interface_declare(info);
+    char *code = gpu_shader_dependency_get_resolved_source(info.geometry_source_.c_str());
     std::string layout = shader->geometry_layout_declare(info);
-    char *code = gpu_shader_dependency_get_resolved_source(info.geometry_source_.c_str(),
-                                                           &builtins);
+    std::string interface = shader->geometry_interface_declare(info);
 
     Vector<const char *> sources;
     standard_defines(sources);
@@ -391,9 +391,7 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
   }
 
   if (!info.compute_source_.is_empty()) {
-    uint32_t builtins = 0;
-    char *code = gpu_shader_dependency_get_resolved_source(info.compute_source_.c_str(),
-                                                           &builtins);
+    char *code = gpu_shader_dependency_get_resolved_source(info.compute_source_.c_str());
     std::string layout = shader->compute_layout_declare(info);
 
     Vector<const char *> sources;

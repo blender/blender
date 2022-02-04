@@ -581,8 +581,6 @@ static void updateDuplicateLocRotConstraintSettings(Object *ob,
 {
   /* This code assumes that bRotLimitConstraint and bLocLimitConstraint have the same fields in
    * the same memory locations. */
-  BLI_assert(sizeof(bLocLimitConstraint) == sizeof(bRotLimitConstraint));
-
   bRotLimitConstraint *limit = (bRotLimitConstraint *)curcon->data;
   float local_mat[4][4], imat[4][4];
 
@@ -798,6 +796,13 @@ static void updateDuplicateTransformConstraintSettings(Object *ob,
           trans->to_min_rot[i] = temp_vec[i];
         }
       }
+
+      if (trans->from == TRANS_ROTATION && trans->map[1] == Y) {
+        /* Y Rot to Y Rot: Flip and invert */
+        trans->to_max_rot[1] = -trans->to_min_rot[1];
+        trans->to_min_rot[1] = -temp_vec[1];
+      }
+
       break;
   }
   /* convert back to the settings space */

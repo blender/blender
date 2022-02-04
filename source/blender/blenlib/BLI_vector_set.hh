@@ -570,6 +570,10 @@ class VectorSet {
     if (this->size() == 0) {
       try {
         slots_.reinitialize(total_slots);
+        if (keys_ != nullptr) {
+          this->deallocate_keys_array(keys_);
+          keys_ = nullptr;
+        }
         keys_ = this->allocate_keys_array(usable_slots);
       }
       catch (...) {

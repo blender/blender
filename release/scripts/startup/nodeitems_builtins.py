@@ -547,6 +547,8 @@ compositor_node_categories = [
         NodeItem("CompositorNodeCombYUVA"),
         NodeItem("CompositorNodeSepYCCA"),
         NodeItem("CompositorNodeCombYCCA"),
+        NodeItem("CompositorNodeSeparateXYZ"),
+        NodeItem("CompositorNodeCombineXYZ"),
         NodeItem("CompositorNodeSwitchView"),
         NodeItem("CompositorNodeConvertColorSpace"),
     ]),

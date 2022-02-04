@@ -84,6 +84,8 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
+#include "BLT_translation.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -762,6 +764,12 @@ static bool modifier_apply_obdata(
       Main *bmain = DEG_get_bmain(depsgraph);
       BKE_object_material_from_eval_data(bmain, ob, &mesh_applied->id);
       BKE_mesh_nomain_to_mesh(mesh_applied, me, ob, &CD_MASK_MESH, true);
+
+      /* Anonymous attributes shouldn't by available on the applied geometry. */
+      CustomData_free_layers_anonymous(&me->vdata, me->totvert);
+      CustomData_free_layers_anonymous(&me->edata, me->totedge);
+      CustomData_free_layers_anonymous(&me->pdata, me->totpoly);
+      CustomData_free_layers_anonymous(&me->ldata, me->totloop);
 
       if (md_eval->type == eModifierType_Multires) {
         multires_customdata_delete(me);
@@ -1515,7 +1523,7 @@ static char *modifier_apply_as_shapekey_get_description(struct bContext *UNUSED(
   bool keep = RNA_boolean_get(values, "keep_modifier");
 
   if (keep) {
-    return BLI_strdup("Apply modifier as a new shapekey and keep it in the stack");
+    return BLI_strdup(TIP_("Apply modifier as a new shapekey and keep it in the stack"));
   }
 
   return NULL;

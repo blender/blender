@@ -151,18 +151,9 @@ static void rna_Armature_edit_bone_remove(bArmature *arm,
   RNA_POINTER_INVALIDATE(ebone_ptr);
 }
 
-static void rna_Armature_update_layers(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Armature_update_layers(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   bArmature *arm = (bArmature *)ptr->owner_id;
-  Object *ob;
-
-  /* proxy lib exception, store it here so we can restore layers on file
-   * load, since it would otherwise get lost due to being linked data */
-  for (ob = bmain->objects.first; ob; ob = ob->id.next) {
-    if (ob->data == arm && ob->pose) {
-      ob->pose->proxy_layer = arm->layer;
-    }
-  }
 
   DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
   WM_main_add_notifier(NC_GEOM | ND_DATA, arm);

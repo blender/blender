@@ -1793,10 +1793,10 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     {sizeof(float[3]), "vec3f", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 44: CD_RADIUS */
     {sizeof(float), "MFloatProperty", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
-    /* 45: CD_HAIRCURVE */
-    {sizeof(HairCurve), "HairCurve", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
-    /* 46: CD_HAIRMAPPING */
-    {sizeof(HairMapping), "HairMapping", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
+    /* 45: CD_HAIRCURVE */ /* UNUSED */
+    {-1, "", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
+    /* 46: CD_HAIRMAPPING */ /* UNUSED */
+    {-1, "", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 47: CD_PROP_COLOR */
     {sizeof(MPropCol),
      "MPropCol",
@@ -2431,7 +2431,7 @@ const char *CustomData_get_active_layer_name(const struct CustomData *data, cons
 {
   /* Get the layer index of the active layer of this type. */
   const int layer_index = CustomData_get_active_layer_index(data, type);
-  return layer_index < 0 ? NULL : data->layers[layer_index].name;
+  return layer_index < 0 ? nullptr : data->layers[layer_index].name;
 }
 
 void CustomData_set_layer_active(CustomData *data, int type, int n)
@@ -2777,6 +2777,24 @@ void CustomData_free_layers(CustomData *data, int type, int totelem)
   const int index = CustomData_get_layer_index(data, type);
   while (CustomData_free_layer(data, type, totelem, index)) {
     /* pass */
+  }
+}
+
+void CustomData_free_layers_anonymous(struct CustomData *data, int totelem)
+{
+  while (true) {
+    bool found_anonymous_layer = false;
+    for (int i = 0; i < data->totlayer; i++) {
+      const CustomDataLayer *layer = &data->layers[i];
+      if (layer->anonymous_id != nullptr) {
+        CustomData_free_layer(data, layer->type, totelem, i);
+        found_anonymous_layer = true;
+        break;
+      }
+    }
+    if (!found_anonymous_layer) {
+      break;
+    }
   }
 }
 

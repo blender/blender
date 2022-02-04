@@ -874,18 +874,16 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
                 duration_lib_override_recursive_resync_seconds);
   }
 
-  if (bf_reports->count.linked_proxies != 0 ||
-      bf_reports->count.proxies_to_lib_overrides_success != 0 ||
+  if (bf_reports->count.proxies_to_lib_overrides_success != 0 ||
       bf_reports->count.proxies_to_lib_overrides_failures != 0) {
-    BKE_reportf(bf_reports->reports,
-                RPT_WARNING,
-                "Proxies are deprecated (%d proxies were automatically converted to library "
-                "overrides, %d proxies could not be converted and %d linked proxies were kept "
-                "untouched). If you need to keep proxies for the time being, please disable the "
-                "`Proxy to Override Auto Conversion` in Experimental user preferences",
-                bf_reports->count.proxies_to_lib_overrides_success,
-                bf_reports->count.proxies_to_lib_overrides_failures,
-                bf_reports->count.linked_proxies);
+    BKE_reportf(
+        bf_reports->reports,
+        RPT_WARNING,
+        "Proxies have been removed from Blender (%d proxies were automatically converted "
+        "to library overrides, %d proxies could not be converted and were cleared). "
+        "Please also consider re-saving any library .blend file with the newest Blender version.",
+        bf_reports->count.proxies_to_lib_overrides_success,
+        bf_reports->count.proxies_to_lib_overrides_failures);
   }
 
   if (bf_reports->count.sequence_strips_skipped != 0) {
@@ -2706,7 +2704,7 @@ static char *wm_open_mainfile_description(struct bContext *UNUSED(C),
 
   BLI_stat_t stats;
   if (BLI_stat(path, &stats) == -1) {
-    return BLI_sprintfN("%s\n\n%s", path, N_("File Not Found"));
+    return BLI_sprintfN("%s\n\n%s", path, TIP_("File Not Found"));
   }
 
   /* Date. */
@@ -2716,7 +2714,7 @@ static char *wm_open_mainfile_description(struct bContext *UNUSED(C),
   BLI_filelist_entry_datetime_to_string(
       NULL, (int64_t)stats.st_mtime, false, time_st, date_st, &is_today, &is_yesterday);
   if (is_today || is_yesterday) {
-    BLI_strncpy(date_st, is_today ? N_("Today") : N_("Yesterday"), sizeof(date_st));
+    BLI_strncpy(date_st, is_today ? TIP_("Today") : TIP_("Yesterday"), sizeof(date_st));
   }
 
   /* Size. */
@@ -2724,7 +2722,7 @@ static char *wm_open_mainfile_description(struct bContext *UNUSED(C),
   BLI_filelist_entry_size_to_string(NULL, (uint64_t)stats.st_size, false, size_str);
 
   return BLI_sprintfN(
-      "%s\n\n%s: %s %s\n%s: %s", path, N_("Modified"), date_st, time_st, N_("Size"), size_str);
+      "%s\n\n%s: %s %s\n%s: %s", path, TIP_("Modified"), date_st, time_st, TIP_("Size"), size_str);
 }
 
 /* currently fits in a pointer */
@@ -3171,8 +3169,8 @@ static char *wm_save_as_mainfile_get_description(bContext *UNUSED(C),
                                                  PointerRNA *ptr)
 {
   if (RNA_boolean_get(ptr, "copy")) {
-    return BLI_strdup(
-        "Save the current file in the desired location but do not make the saved file active");
+    return BLI_strdup(TIP_(
+        "Save the current file in the desired location but do not make the saved file active"));
   }
   return NULL;
 }

@@ -190,16 +190,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
       break;
     }
     case OB_ARMATURE:
-      if (ID_IS_LINKED(ob) && ob->proxy_from) {
-        if (BKE_pose_copy_result(ob->pose, ob->proxy_from->pose) == false) {
-          printf("Proxy copy error, lib Object: %s proxy Object: %s\n",
-                 ob->id.name + 2,
-                 ob->proxy_from->id.name + 2);
-        }
-      }
-      else {
-        BKE_pose_where_is(depsgraph, scene, ob);
-      }
+      BKE_pose_where_is(depsgraph, scene, ob);
       break;
 
     case OB_MBALL:
@@ -311,33 +302,9 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
   object_sync_boundbox_to_original(object_orig, object);
 }
 
-bool BKE_object_eval_proxy_copy(Depsgraph *depsgraph, Object *object)
+void BKE_object_eval_uber_transform(Depsgraph *UNUSED(depsgraph), Object *UNUSED(object))
 {
-  /* Handle proxy copy for target, */
-  if (ID_IS_LINKED(object) && object->proxy_from) {
-    DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
-    if (object->proxy_from->proxy_group) {
-      /* Transform proxy into group space. */
-      Object *obg = object->proxy_from->proxy_group;
-      float imat[4][4];
-      invert_m4_m4(imat, obg->obmat);
-      mul_m4_m4m4(object->obmat, imat, object->proxy_from->obmat);
-      /* Should always be true. */
-      if (obg->instance_collection) {
-        add_v3_v3(object->obmat[3], obg->instance_collection->instance_offset);
-      }
-    }
-    else {
-      copy_m4_m4(object->obmat, object->proxy_from->obmat);
-    }
-    return true;
-  }
-  return false;
-}
-
-void BKE_object_eval_uber_transform(Depsgraph *depsgraph, Object *object)
-{
-  BKE_object_eval_proxy_copy(depsgraph, object);
+  return;
 }
 
 void BKE_object_data_batch_cache_dirty_tag(ID *object_data)

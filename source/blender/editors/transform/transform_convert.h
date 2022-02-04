@@ -124,10 +124,8 @@ void special_aftertrans_update__actedit(bContext *C, TransInfo *t);
  * Sets transform flags in the bones.
  * Returns total number of bones with #BONE_TRANSFORM.
  */
-int transform_convert_pose_transflags_update(Object *ob,
-                                             int mode,
-                                             short around,
-                                             bool has_translate_rotate[2]);
+void transform_convert_pose_transflags_update(Object *ob, int mode, short around);
+
 /**
  * When objects array is NULL, use 't->data_container' as is.
  */

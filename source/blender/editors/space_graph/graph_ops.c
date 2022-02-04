@@ -103,7 +103,7 @@ static void graphview_cursor_apply(bContext *C, wmOperator *op)
     }
 
     SUBFRA = 0.0f;
-    DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
+    DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
   }
 
   /* set the cursor value */

@@ -390,7 +390,7 @@ static void meshdeformModifier_do(ModifierData *md,
     }
     if (!recursive_bind_sentinel) {
       recursive_bind_sentinel = 1;
-      mmd->bindfunc(mmd, cagemesh, (float *)vertexCos, numVerts, cagemat);
+      mmd->bindfunc(ob, mmd, cagemesh, (float *)vertexCos, numVerts, cagemat);
       recursive_bind_sentinel = 0;
     }
 

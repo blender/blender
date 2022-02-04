@@ -325,45 +325,6 @@ static void object_free_data(ID *id)
   BKE_previewimg_free(&ob->preview);
 }
 
-static void object_make_local(Main *bmain, ID *id, const int flags)
-{
-  if (!ID_IS_LINKED(id)) {
-    return;
-  }
-
-  Object *ob = (Object *)id;
-  const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
-  const bool clear_proxy = (flags & LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING) == 0;
-
-  bool force_local, force_copy;
-  BKE_lib_id_make_local_generic_action_define(bmain, id, flags, &force_local, &force_copy);
-
-  if (force_local) {
-    BKE_lib_id_clear_library_data(bmain, &ob->id, flags);
-    BKE_lib_id_expand_local(bmain, &ob->id, flags);
-    if (clear_proxy) {
-      if (ob->proxy_from != nullptr) {
-        ob->proxy_from->proxy = nullptr;
-        ob->proxy_from->proxy_group = nullptr;
-      }
-      ob->proxy = ob->proxy_from = ob->proxy_group = nullptr;
-    }
-  }
-  else if (force_copy) {
-    Object *ob_new = (Object *)BKE_id_copy(bmain, &ob->id);
-    id_us_min(&ob_new->id);
-
-    ob_new->proxy = ob_new->proxy_from = ob_new->proxy_group = nullptr;
-
-    /* setting newid is mandatory for complex make_lib_local logic... */
-    ID_NEW_SET(ob, ob_new);
-
-    if (!lib_local) {
-      BKE_libblock_remap(bmain, ob, ob_new, ID_REMAP_SKIP_INDIRECT_USAGE);
-    }
-  }
-}
-
 static void library_foreach_modifiersForeachIDLink(void *user_data,
                                                    Object *UNUSED(object),
                                                    ID **id_pointer,
@@ -419,51 +380,25 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Object *object = (Object *)id;
 
-  /* Object is special, proxies make things hard... */
-  const int proxy_cb_flag = ((BKE_lib_query_foreachid_process_flags_get(data) &
-                              IDWALK_NO_INDIRECT_PROXY_DATA_USAGE) == 0 &&
-                             (object->proxy || object->proxy_group)) ?
-                                IDWALK_CB_INDIRECT_USAGE :
-                                0;
-
   /* object data special case */
   if (object->type == OB_EMPTY) {
     /* empty can have nullptr or Image */
-    BKE_LIB_FOREACHID_PROCESS_ID(data, object->data, proxy_cb_flag | IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_ID(data, object->data, IDWALK_CB_USER);
   }
   else {
     /* when set, this can't be nullptr */
     if (object->data) {
-      BKE_LIB_FOREACHID_PROCESS_ID(
-          data, object->data, proxy_cb_flag | IDWALK_CB_USER | IDWALK_CB_NEVER_NULL);
+      BKE_LIB_FOREACHID_PROCESS_ID(data, object->data, IDWALK_CB_USER | IDWALK_CB_NEVER_NULL);
     }
   }
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->parent, IDWALK_CB_NEVER_SELF);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->track, IDWALK_CB_NEVER_SELF);
-  /* object->proxy is refcounted, but not object->proxy_group... *sigh* */
-  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->proxy, IDWALK_CB_USER | IDWALK_CB_NEVER_SELF);
-  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->proxy_group, IDWALK_CB_NOP);
-
-  /* Special case!
-   * Since this field is set/owned by 'user' of this ID (and not ID itself),
-   * it is only indirect usage if proxy object is linked... Twisted. */
-  {
-    const int cb_flag_orig = BKE_lib_query_foreachid_process_callback_flag_override(
-        data,
-        (object->proxy_from != nullptr && ID_IS_LINKED(object->proxy_from)) ?
-            IDWALK_CB_INDIRECT_USAGE :
-            0,
-        true);
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(
-        data, object->proxy_from, IDWALK_CB_LOOPBACK | IDWALK_CB_NEVER_SELF);
-    BKE_lib_query_foreachid_process_callback_flag_override(data, cb_flag_orig, true);
-  }
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->poselib, IDWALK_CB_USER);
 
   for (int i = 0; i < object->totcol; i++) {
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->mat[i], proxy_cb_flag | IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->mat[i], IDWALK_CB_USER);
   }
 
   /* Note that ob->gpd is deprecated, so no need to handle it here. */
@@ -476,8 +411,6 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
   /* Note that ob->effect is deprecated, so no need to handle it here. */
 
   if (object->pose) {
-    const int cb_flag_orig = BKE_lib_query_foreachid_process_callback_flag_override(
-        data, proxy_cb_flag, false);
     LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
       BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
           data,
@@ -492,7 +425,6 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
           BKE_constraints_id_loop(
               &pchan->constraints, library_foreach_constraintObjectLooper, data));
     }
-    BKE_lib_query_foreachid_process_callback_flag_override(data, cb_flag_orig, true);
   }
 
   if (object->rigidbody_constraint) {
@@ -627,9 +559,6 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   bArmature *arm = nullptr;
   if (ob->type == OB_ARMATURE) {
     arm = (bArmature *)ob->data;
-    if (arm && ob->pose && arm->act_bone) {
-      BLI_strncpy(ob->pose->proxy_act_bone, arm->act_bone->name, sizeof(ob->pose->proxy_act_bone));
-    }
   }
 
   BKE_pose_blend_write(writer, ob->pose, arm);
@@ -1305,7 +1234,7 @@ IDTypeInfo IDType_ID_OB = {
     /* init_data */ object_init_data,
     /* copy_data */ object_copy_data,
     /* free_data */ object_free_data,
-    /* make_local */ object_make_local,
+    /* make_local */ nullptr,
     /* foreach_id */ object_foreach_id,
     /* foreach_cache */ nullptr,
     /* foreach_path */ object_foreach_path,
@@ -2873,161 +2802,6 @@ bool BKE_object_obdata_is_libdata(const Object *ob)
   return (ob && ob->data && ID_IS_LINKED(ob->data));
 }
 
-/* -------------------------------------------------------------------- */
-/** \name Object Proxy API
- * \{ */
-
-/* when you make proxy, ensure the exposed layers are extern */
-static void armature_set_id_extern(Object *ob)
-{
-  bArmature *arm = (bArmature *)ob->data;
-  unsigned int lay = arm->layer_protected;
-
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-    if (!(pchan->bone->layer & lay)) {
-      id_lib_extern((ID *)pchan->custom);
-    }
-  }
-}
-
-void BKE_object_copy_proxy_drivers(Object *ob, Object *target)
-{
-  if ((target->adt) && (target->adt->drivers.first)) {
-
-    /* add new animdata block */
-    if (!ob->adt) {
-      ob->adt = BKE_animdata_ensure_id(&ob->id);
-    }
-
-    /* make a copy of all the drivers (for now), then correct any links that need fixing */
-    BKE_fcurves_free(&ob->adt->drivers);
-    BKE_fcurves_copy(&ob->adt->drivers, &target->adt->drivers);
-
-    LISTBASE_FOREACH (FCurve *, fcu, &ob->adt->drivers) {
-      ChannelDriver *driver = fcu->driver;
-
-      LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-        /* all drivers */
-        DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
-          if (dtar->id) {
-            if ((Object *)dtar->id == target) {
-              dtar->id = (ID *)ob;
-            }
-            else {
-              /* only on local objects because this causes indirect links
-               * 'a -> b -> c', blend to point directly to a.blend
-               * when a.blend has a proxy that's linked into `c.blend`. */
-              if (!ID_IS_LINKED(ob)) {
-                id_lib_extern((ID *)dtar->id);
-              }
-            }
-          }
-        }
-        DRIVER_TARGETS_LOOPER_END;
-      }
-    }
-  }
-}
-
-void BKE_object_make_proxy(Main *bmain, Object *ob, Object *target, Object *cob)
-{
-  /* paranoia checks */
-  if (ID_IS_LINKED(ob) || !ID_IS_LINKED(target)) {
-    CLOG_ERROR(&LOG, "cannot make proxy");
-    return;
-  }
-
-  ob->proxy = target;
-  id_us_plus(&target->id);
-  ob->proxy_group = cob;
-
-  DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
-  DEG_id_tag_update(&target->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
-
-  /* copy transform
-   * - cob means this proxy comes from a collection, just apply the matrix
-   *   so the object won't move from its dupli-transform.
-   *
-   * - no cob means this is being made from a linked object,
-   *   this is closer to making a copy of the object - in-place. */
-  if (cob) {
-    ob->rotmode = target->rotmode;
-    mul_m4_m4m4(ob->obmat, cob->obmat, target->obmat);
-    if (cob->instance_collection) { /* should always be true */
-      float tvec[3];
-      mul_v3_mat3_m4v3(tvec, ob->obmat, cob->instance_collection->instance_offset);
-      sub_v3_v3(ob->obmat[3], tvec);
-    }
-    BKE_object_apply_mat4(ob, ob->obmat, false, true);
-  }
-  else {
-    BKE_object_transform_copy(ob, target);
-    ob->parent = target->parent; /* libdata */
-    copy_m4_m4(ob->parentinv, target->parentinv);
-  }
-
-  /* copy animdata stuff - drivers only for now... */
-  BKE_object_copy_proxy_drivers(ob, target);
-
-  /* skip constraints? */
-  /* FIXME: this is considered by many as a bug */
-
-  /* set object type and link to data */
-  ob->type = target->type;
-  ob->data = target->data;
-  id_us_plus((ID *)ob->data); /* ensures lib data becomes LIB_TAG_EXTERN */
-
-  /* copy material and index information */
-  ob->actcol = ob->totcol = 0;
-  if (ob->mat) {
-    MEM_freeN(ob->mat);
-  }
-  if (ob->matbits) {
-    MEM_freeN(ob->matbits);
-  }
-  ob->mat = nullptr;
-  ob->matbits = nullptr;
-  if ((target->totcol) && (target->mat) && OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
-    int i;
-
-    ob->actcol = target->actcol;
-    ob->totcol = target->totcol;
-
-    ob->mat = (Material **)MEM_dupallocN(target->mat);
-    ob->matbits = (char *)MEM_dupallocN(target->matbits);
-    for (i = 0; i < target->totcol; i++) {
-      /* don't need to run BKE_object_materials_test
-       * since we know this object is new and not used elsewhere */
-      id_us_plus((ID *)ob->mat[i]);
-    }
-  }
-
-  /* type conversions */
-  if (target->type == OB_ARMATURE) {
-    copy_object_pose(ob, target, 0); /* data copy, object pointers in constraints */
-    BKE_pose_rest(ob->pose, false);  /* clear all transforms in channels */
-    BKE_pose_rebuild(bmain, ob, (bArmature *)ob->data, true); /* set all internal links */
-
-    armature_set_id_extern(ob);
-  }
-  else if (target->type == OB_EMPTY) {
-    ob->empty_drawtype = target->empty_drawtype;
-    ob->empty_drawsize = target->empty_drawsize;
-  }
-
-  /* copy IDProperties */
-  if (ob->id.properties) {
-    IDP_FreeProperty(ob->id.properties);
-    ob->id.properties = nullptr;
-  }
-  if (target->id.properties) {
-    ob->id.properties = IDP_CopyProperty(target->id.properties);
-  }
-
-  /* copy drawtype info */
-  ob->dt = target->dt;
-}
-
 void BKE_object_obdata_size_init(struct Object *ob, const float size)
 {
   /* apply radius as a scale to types that support it */
@@ -3068,8 +2842,6 @@ void BKE_object_obdata_size_init(struct Object *ob, const float size)
     }
   }
 }
-
-/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Object Matrix Get/Set API
@@ -4186,7 +3958,11 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
       /* pass */
     }
     else {
-      BoundBox *bb = BKE_object_boundbox_get(dob->ob);
+      Object temp_ob = *dob->ob;
+      /* Do not modify the original boundbox. */
+      temp_ob.runtime.bb = nullptr;
+      BKE_object_replace_data_on_shallow_copy(&temp_ob, dob->ob_data);
+      BoundBox *bb = BKE_object_boundbox_get(&temp_ob);
 
       if (bb) {
         int i;
@@ -4198,6 +3974,8 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
 
         ok = true;
       }
+
+      MEM_SAFE_FREE(temp_ob.runtime.bb);
     }
   }
   free_object_duplilist(lb); /* does restore */
@@ -4356,33 +4134,10 @@ void BKE_object_tfm_restore(Object *ob, void *obtfm_pt)
 /** \name Object Evaluation/Update API
  * \{ */
 
-static void object_handle_update_proxy(Depsgraph *depsgraph,
-                                       Scene *scene,
-                                       Object *object,
-                                       const bool do_proxy_update)
-{
-  /* The case when this is a collection proxy, object_update is called in collection.c */
-  if (object->proxy == nullptr) {
-    return;
-  }
-  /* set pointer in library proxy target, for copying, but restore it */
-  object->proxy->proxy_from = object;
-  // printf("set proxy pointer for later collection stuff %s\n", ob->id.name);
-
-  /* the no-group proxy case, we call update */
-  if (object->proxy_group == nullptr) {
-    if (do_proxy_update) {
-      // printf("call update, lib ob %s proxy %s\n", ob->proxy->id.name, ob->id.name);
-      BKE_object_handle_update(depsgraph, scene, object->proxy);
-    }
-  }
-}
-
 void BKE_object_handle_update_ex(Depsgraph *depsgraph,
                                  Scene *scene,
                                  Object *ob,
-                                 RigidBodyWorld *rbw,
-                                 const bool do_proxy_update)
+                                 RigidBodyWorld *rbw)
 {
   const ID *object_data = (ID *)ob->data;
   const bool recalc_object = (ob->id.recalc & ID_RECALC_ALL) != 0;
@@ -4390,7 +4145,6 @@ void BKE_object_handle_update_ex(Depsgraph *depsgraph,
                                ((object_data->recalc & ID_RECALC_ALL) != 0) :
                                false;
   if (!recalc_object && !recalc_data) {
-    object_handle_update_proxy(depsgraph, scene, ob, do_proxy_update);
     return;
   }
   /* Speed optimization for animation lookups. */
@@ -4419,22 +4173,17 @@ void BKE_object_handle_update_ex(Depsgraph *depsgraph,
     if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) {
       printf("recalcob %s\n", ob->id.name + 2);
     }
-    /* Handle proxy copy for target. */
-    if (!BKE_object_eval_proxy_copy(depsgraph, ob)) {
-      BKE_object_where_is_calc_ex(depsgraph, scene, rbw, ob, nullptr);
-    }
+    BKE_object_where_is_calc_ex(depsgraph, scene, rbw, ob, nullptr);
   }
 
   if (recalc_data) {
     BKE_object_handle_data_update(depsgraph, scene, ob);
   }
-
-  object_handle_update_proxy(depsgraph, scene, ob, do_proxy_update);
 }
 
 void BKE_object_handle_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
-  BKE_object_handle_update_ex(depsgraph, scene, ob, nullptr, true);
+  BKE_object_handle_update_ex(depsgraph, scene, ob, nullptr);
 }
 
 void BKE_object_sculpt_data_create(Object *ob)

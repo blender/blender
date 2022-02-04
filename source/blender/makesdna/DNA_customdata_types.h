@@ -160,10 +160,10 @@ typedef enum CustomDataType {
   CD_CUSTOMLOOPNORMAL = 41,
   CD_SCULPT_FACE_SETS = 42,
 
-  /* CD_LOCATION = 43, */ /* UNUSED */
-  /* CD_RADIUS = 44, */   /* UNUSED */
-  CD_HAIRCURVE = 45,
-  CD_HAIRMAPPING = 46,
+  /* CD_LOCATION = 43, */    /* UNUSED */
+  /* CD_RADIUS = 44, */      /* UNUSED */
+  /* CD_HAIRCURVE = 45, */   /* UNUSED, can be reused. */
+  /* CD_HAIRMAPPING = 46, */ /* UNUSED, can be reused. */
 
   CD_PROP_COLOR = 47,
   CD_PROP_FLOAT3 = 48,

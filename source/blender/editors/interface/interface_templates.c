@@ -2672,18 +2672,6 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
 
 static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *con)
 {
-  bPoseChannel *pchan = BKE_pose_channel_active_if_layer_visible(ob);
-  short proxy_protected, xco = 0, yco = 0;
-  // int rb_col; // UNUSED
-
-  /* determine whether constraint is proxy protected or not */
-  if (BKE_constraints_proxylocked_owner(ob, pchan)) {
-    proxy_protected = (con->flag & CONSTRAINT_PROXY_LOCAL) == 0;
-  }
-  else {
-    proxy_protected = 0;
-  }
-
   /* unless button has own callback, it adds this callback to button */
   uiBlock *block = uiLayoutGetBlock(layout);
   UI_block_func_set(block, constraint_active_func, ob, con);
@@ -2708,71 +2696,22 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
 
   uiLayout *row = uiLayoutRow(layout, true);
 
-  if (proxy_protected == 0) {
-    uiItemR(row, &ptr, "name", 0, "", ICON_NONE);
-  }
-  else {
-    uiItemL(row, IFACE_(con->name), ICON_NONE);
-  }
+  uiItemR(row, &ptr, "name", 0, "", ICON_NONE);
 
-  /* proxy-protected constraints cannot be edited, so hide up/down + close buttons */
-  if (proxy_protected) {
-    UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  /* Enabled eye icon. */
+  uiItemR(row, &ptr, "enabled", 0, "", ICON_NONE);
 
-    /* draw a ghost icon (for proxy) and also a lock beside it,
-     * to show that constraint is "proxy locked" */
-    uiDefIconBut(block,
-                 UI_BTYPE_BUT,
-                 0,
-                 ICON_GHOST_ENABLED,
-                 xco + 12.2f * UI_UNIT_X,
-                 yco,
-                 0.95f * UI_UNIT_X,
-                 0.95f * UI_UNIT_Y,
-                 NULL,
-                 0.0,
-                 0.0,
-                 0.0,
-                 0.0,
-                 TIP_("Proxy Protected"));
-    uiDefIconBut(block,
-                 UI_BTYPE_BUT,
-                 0,
-                 ICON_LOCKED,
-                 xco + 13.1f * UI_UNIT_X,
-                 yco,
-                 0.95f * UI_UNIT_X,
-                 0.95f * UI_UNIT_Y,
-                 NULL,
-                 0.0,
-                 0.0,
-                 0.0,
-                 0.0,
-                 TIP_("Proxy Protected"));
+  /* Extra operators menu. */
+  uiItemMenuF(row, "", ICON_DOWNARROW_HLT, constraint_ops_extra_draw, con);
 
-    UI_block_emboss_set(block, UI_EMBOSS);
-  }
-  else {
-    /* Enabled eye icon. */
-    uiItemR(row, &ptr, "enabled", 0, "", ICON_NONE);
-
-    /* Extra operators menu. */
-    uiItemMenuF(row, "", ICON_DOWNARROW_HLT, constraint_ops_extra_draw, con);
-
-    /* Close 'button' - emboss calls here disable drawing of 'button' behind X */
-    sub = uiLayoutRow(row, false);
-    uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
-    uiLayoutSetOperatorContext(sub, WM_OP_INVOKE_DEFAULT);
-    uiItemO(sub, "", ICON_X, "CONSTRAINT_OT_delete");
-  }
+  /* Close 'button' - emboss calls here disable drawing of 'button' behind X */
+  sub = uiLayoutRow(row, false);
+  uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
+  uiLayoutSetOperatorContext(sub, WM_OP_INVOKE_DEFAULT);
+  uiItemO(sub, "", ICON_X, "CONSTRAINT_OT_delete");
 
   /* Some extra padding at the end, so the 'x' icon isn't too close to drag button. */
   uiItemS(layout);
-
-  /* Set but-locks for protected settings (magic numbers are used here!) */
-  if (proxy_protected) {
-    UI_block_lock_set(block, true, TIP_("Cannot edit Proxy-Protected Constraint"));
-  }
 
   /* clear any locks set up for proxies/lib-linking */
   UI_block_lock_clear(block);

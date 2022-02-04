@@ -30,6 +30,7 @@
 #ifdef WIN32
 #  include "BLI_winstuff.h"
 #endif
+#include "BLI_path_util.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"
@@ -142,16 +143,20 @@ static void PREFERENCES_OT_autoexec_path_remove(wmOperatorType *ot)
 
 static int preferences_asset_library_add_exec(bContext *UNUSED(C), wmOperator *op)
 {
-  char *directory = RNA_string_get_alloc(op->ptr, "directory", NULL, 0, NULL);
+  char *path = RNA_string_get_alloc(op->ptr, "directory", NULL, 0, NULL);
+  char dirname[FILE_MAXFILE];
+
+  BLI_path_slash_rstrip(path);
+  BLI_split_file_part(path, dirname, sizeof(dirname));
 
   /* NULL is a valid directory path here. A library without path will be created then. */
-  BKE_preferences_asset_library_add(&U, NULL, directory);
+  BKE_preferences_asset_library_add(&U, dirname, path);
   U.runtime.is_dirty = true;
 
   /* There's no dedicated notifier for the Preferences. */
   WM_main_add_notifier(NC_WINDOW, NULL);
 
-  MEM_freeN(directory);
+  MEM_freeN(path);
   return OPERATOR_FINISHED;
 }
 

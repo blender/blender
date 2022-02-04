@@ -91,26 +91,18 @@ enum {
   ID_REMAP_IS_USER_ONE_SKIPPED = 1 << 1, /* There was some skipped 'user_one' usages of old_id. */
 };
 
-static void foreach_libblock_remap_callback_skip(const ID *id_owner,
-                                                 ID **id_ptr,
+static void foreach_libblock_remap_callback_skip(const ID *UNUSED(id_owner),
+                                                 ID **UNUSED(id_ptr),
                                                  IDRemap *id_remap_data,
                                                  const int cb_flag,
                                                  const bool is_indirect,
                                                  const bool is_reference,
                                                  const bool is_never_null,
-                                                 const bool is_obj,
+                                                 const bool UNUSED(is_obj),
                                                  const bool is_obj_editmode)
 {
   if (is_indirect) {
     id_remap_data->skipped_indirect++;
-    if (is_obj) {
-      Object *ob = (Object *)id_owner;
-      if (ob->data == *id_ptr && ob->proxy != NULL) {
-        /* And another 'Proudly brought to you by Proxy Hell' hack!
-         * This will allow us to avoid clearing 'LIB_EXTERN' flag of obdata of proxies... */
-        id_remap_data->skipped_direct++;
-      }
-    }
   }
   else if (is_never_null || is_obj_editmode || is_reference) {
     id_remap_data->skipped_direct++;
@@ -136,8 +128,7 @@ static void foreach_libblock_remap_callback_apply(ID *id_owner,
                                                   const int cb_flag,
                                                   const bool is_indirect,
                                                   const bool is_never_null,
-                                                  const bool force_user_refcount,
-                                                  const bool is_obj_proxy)
+                                                  const bool force_user_refcount)
 {
   if (!is_never_null) {
     *id_ptr = new_id;
@@ -170,15 +161,8 @@ static void foreach_libblock_remap_callback_apply(ID *id_owner,
     /* We cannot affect old_id->us directly, LIB_TAG_EXTRAUSER(_SET)
      * are assumed to be set as needed, that extra user is processed in final handling. */
   }
-  if (!is_indirect || is_obj_proxy) {
+  if (!is_indirect) {
     id_remap_data->status |= ID_REMAP_IS_LINKED_DIRECT;
-  }
-  /* We need to remap proxy_from pointer of remapped proxy... sigh. */
-  if (is_obj_proxy && new_id != NULL) {
-    Object *ob = (Object *)id_owner;
-    if (ob->proxy == (Object *)new_id) {
-      ob->proxy->proxy_from = ob;
-    }
   }
 }
 
@@ -221,12 +205,9 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
   const bool is_reference = (cb_flag & IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE) != 0;
   const bool is_indirect = (cb_flag & IDWALK_CB_INDIRECT_USAGE) != 0;
   const bool skip_indirect = (id_remap_data->flag & ID_REMAP_SKIP_INDIRECT_USAGE) != 0;
-  /* NOTE: proxy usage implies LIB_TAG_EXTERN, so on this aspect it is direct,
-   * on the other hand since they get reset to lib data on file open/reload it is indirect too.
-   * Edit Mode is also a 'skip direct' case. */
   const bool is_obj = (GS(id_owner->name) == ID_OB);
-  const bool is_obj_proxy = (is_obj &&
-                             (((Object *)id_owner)->proxy || ((Object *)id_owner)->proxy_group));
+  /* NOTE: Edit Mode is a 'skip direct' case, unless specifically requested, obdata should not be
+   * remapped in this situation. */
   const bool is_obj_editmode = (is_obj && BKE_object_is_in_editmode((Object *)id_owner) &&
                                 (id_remap_data->flag & ID_REMAP_FORCE_OBDATA_IN_EDITMODE) == 0);
   const bool is_never_null = ((cb_flag & IDWALK_CB_NEVER_NULL) && (new_id == NULL) &&
@@ -281,8 +262,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
                                           cb_flag,
                                           is_indirect,
                                           is_never_null,
-                                          force_user_refcount,
-                                          is_obj_proxy);
+                                          force_user_refcount);
   }
 
   return IDWALK_RET_NOP;
@@ -430,10 +410,7 @@ static void libblock_remap_data(
     Main *bmain, ID *id, ID *old_id, ID *new_id, const short remap_flags, IDRemap *r_id_remap_data)
 {
   IDRemap id_remap_data;
-  const int foreach_id_flags = ((remap_flags & ID_REMAP_NO_INDIRECT_PROXY_DATA_USAGE) != 0 ?
-                                    IDWALK_NO_INDIRECT_PROXY_DATA_USAGE :
-                                    IDWALK_NOP) |
-                               ((remap_flags & ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS) != 0 ?
+  const int foreach_id_flags = ((remap_flags & ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS) != 0 ?
                                     IDWALK_DO_INTERNAL_RUNTIME_POINTERS :
                                     IDWALK_NOP);
 

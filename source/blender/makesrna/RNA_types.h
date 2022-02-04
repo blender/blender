@@ -322,7 +322,7 @@ typedef enum PropertyFlag {
  * FREE FLAGS: 2, 3, 4, 5, 6, 7, 8, 9, 12 and above.
  */
 typedef enum PropertyOverrideFlag {
-  /** Means the property can be overridden by a local 'proxy' of some linked datablock. */
+  /** Means that the property can be overridden by a local override of some linked datablock. */
   PROPOVERRIDE_OVERRIDABLE_LIBRARY = (1 << 0),
 
   /**

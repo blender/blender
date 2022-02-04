@@ -35,9 +35,10 @@ void gpu_shader_dependency_init(void);
 void gpu_shader_dependency_exit(void);
 
 /* User must free the resulting string using free. */
-char *gpu_shader_dependency_get_resolved_source(const char *shader_source_name,
-                                                uint32_t *builtins);
+char *gpu_shader_dependency_get_resolved_source(const char *shader_source_name);
 char *gpu_shader_dependency_get_source(const char *shader_source_name);
+
+uint32_t gpu_shader_dependency_get_builtins(const char *shader_source_name);
 
 #ifdef __cplusplus
 }

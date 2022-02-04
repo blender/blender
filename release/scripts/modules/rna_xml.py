@@ -298,7 +298,7 @@ def xml2rna(
                         del value_xml_split
                     tp_name = 'ARRAY'
 
-#                print("  %s.%s (%s) --- %s" % (type(value).__name__, attr, tp_name, subvalue_type))
+                    # print("  %s.%s (%s) --- %s" % (type(value).__name__, attr, tp_name, subvalue_type))
                 try:
                     setattr(value, attr, value_xml_coerce)
                 except ValueError:
@@ -340,7 +340,6 @@ def xml2rna(
 
                     else:
                         # print(elems)
-
                         if len(elems) == 1:
                             # sub node named by its type
                             child_xml_real, = elems
@@ -376,7 +375,6 @@ def _get_context_val(context, path):
 
 
 def xml_file_run(context, filepath, rna_map):
-
     import xml.dom.minidom
 
     xml_nodes = xml.dom.minidom.parse(filepath)
@@ -391,27 +389,25 @@ def xml_file_run(context, filepath, rna_map):
         value = _get_context_val(context, rna_path)
 
         if value is not Ellipsis and value is not None:
-            print("  loading XML: %r -> %r" % (filepath, rna_path))
+            # print("  loading XML: %r -> %r" % (filepath, rna_path))
             xml2rna(xml_node, root_rna=value)
 
 
 def xml_file_write(context, filepath, rna_map, *, skip_typemap=None):
+    with open(filepath, "w", encoding="utf-8") as file:
+        fw = file.write
+        fw("<bpy>\n")
 
-    file = open(filepath, "w", encoding="utf-8")
-    fw = file.write
-
-    fw("<bpy>\n")
-
-    for rna_path, _xml_tag in rna_map:
-        # xml_tag is ignored, we get this from the rna
-        value = _get_context_val(context, rna_path)
-        rna2xml(fw,
+        for rna_path, _xml_tag in rna_map:
+            # xml_tag is ignored, we get this from the rna
+            value = _get_context_val(context, rna_path)
+            rna2xml(
+                fw=fw,
                 root_rna=value,
                 method='ATTR',
                 root_ident="  ",
                 ident_val="  ",
                 skip_typemap=skip_typemap,
-                )
+            )
 
-    fw("</bpy>\n")
-    file.close()
+        fw("</bpy>\n")

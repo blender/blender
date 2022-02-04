@@ -157,8 +157,9 @@ option(WITH_BLENDER "Build blender (disable to build only the blender player)" O
 mark_as_advanced(WITH_BLENDER)
 
 if(APPLE)
-  # Currently this causes a build error linking, disable.
-  set(WITH_BLENDER_THUMBNAILER OFF)
+  # In future, can be used with `quicklookthumbnailing/qlthumbnailreply` to create file
+  # thumbnails for say Finder. Turn it off for now.
+  option(WITH_BLENDER_THUMBNAILER "Build \"blender-thumbnailer\" thumbnail extraction utility" OFF)
 elseif(WIN32)
   option(WITH_BLENDER_THUMBNAILER "Build \"BlendThumb.dll\" helper for Windows explorer integration" ON)
 else()

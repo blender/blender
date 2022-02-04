@@ -58,6 +58,7 @@
 #include "DEG_depsgraph.h"
 
 #include "view3d_intern.h" /* own include */
+#include "view3d_navigate.h"
 
 #ifdef WITH_INPUT_NDOF
 //#  define NDOF_WALK_DEBUG
@@ -1486,9 +1487,9 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else
 #endif /* WITH_INPUT_NDOF */
-      if (event->type == TIMER && event->customdata == walk->timer) {
-    walkApply(C, walk, false);
-  }
+    if (event->type == TIMER && event->customdata == walk->timer) {
+      walkApply(C, walk, false);
+    }
 
   do_draw |= walk->redraw;
 

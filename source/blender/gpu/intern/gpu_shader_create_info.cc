@@ -34,6 +34,7 @@
 
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_create_info_private.hh"
+#include "gpu_shader_dependency_private.h"
 #include "gpu_shader_private.hh"
 
 #undef GPU_SHADER_INTERFACE_INFO
@@ -209,6 +210,19 @@ void gpu_shader_create_info_init()
     draw_modelmat = draw_modelmat_legacy;
   }
 
+  for (ShaderCreateInfo *info : g_create_infos->values()) {
+    if (info->do_static_compilation_) {
+      info->builtins_ |= static_cast<BuiltinBits>(
+          gpu_shader_dependency_get_builtins(info->vertex_source_.c_str()));
+      info->builtins_ |= static_cast<BuiltinBits>(
+          gpu_shader_dependency_get_builtins(info->fragment_source_.c_str()));
+      info->builtins_ |= static_cast<BuiltinBits>(
+          gpu_shader_dependency_get_builtins(info->geometry_source_.c_str()));
+      info->builtins_ |= static_cast<BuiltinBits>(
+          gpu_shader_dependency_get_builtins(info->compute_source_.c_str()));
+    }
+  }
+
   /* TEST */
   // gpu_shader_create_info_compile_all();
 }
@@ -302,6 +316,7 @@ const GPUShaderCreateInfo *gpu_shader_create_info_get(const char *info_name)
 {
   if (g_create_infos->contains(info_name) == false) {
     printf("Error: Cannot find shader create info named \"%s\"\n", info_name);
+    return nullptr;
   }
   ShaderCreateInfo *info = g_create_infos->lookup(info_name);
   return reinterpret_cast<const GPUShaderCreateInfo *>(info);

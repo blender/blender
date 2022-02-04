@@ -1007,6 +1007,28 @@ typedef struct PBVHUpdateData {
   bool show_sculpt_face_sets;
 } PBVHUpdateData;
 
+static void pbvh_update_normals_clear_task_cb(void *__restrict userdata,
+                                              const int n,
+                                              const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  PBVHUpdateData *data = userdata;
+  PBVH *pbvh = data->pbvh;
+  PBVHNode *node = data->nodes[n];
+  float(*vnors)[3] = data->vnors;
+
+  if (node->flag & PBVH_UpdateNormals) {
+    const int *verts = node->vert_indices;
+    const int totvert = node->uniq_verts;
+    for (int i = 0; i < totvert; i++) {
+      const int v = verts[i];
+      const MVert *mvert = &pbvh->verts[v];
+      if (mvert->flag & ME_VERT_PBVH_UPDATE) {
+        zero_v3(vnors[v]);
+      }
+    }
+  }
+}
+
 static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
                                               const int n,
                                               const TaskParallelTLS *__restrict UNUSED(tls))
@@ -1107,6 +1129,8 @@ static void pbvh_faces_update_normals(PBVH *pbvh, PBVHNode **nodes, int totnode)
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
 
+  /* Zero normals before accumulation. */
+  BLI_task_parallel_range(0, totnode, &data, pbvh_update_normals_clear_task_cb, &settings);
   BLI_task_parallel_range(0, totnode, &data, pbvh_update_normals_accum_task_cb, &settings);
   BLI_task_parallel_range(0, totnode, &data, pbvh_update_normals_store_task_cb, &settings);
 }

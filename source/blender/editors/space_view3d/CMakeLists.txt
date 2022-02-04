@@ -60,8 +60,17 @@ set(SRC
   view3d_gizmo_tool_generic.c
   view3d_header.c
   view3d_iterators.c
+  view3d_navigate.c
+  view3d_navigate_dolly.c
   view3d_navigate_fly.c
+  view3d_navigate_move.c
+  view3d_navigate_ndof.c
+  view3d_navigate_roll.c
+  view3d_navigate_rotate.c
+  view3d_navigate_smoothview.c
   view3d_navigate_walk.c
+  view3d_navigate_zoom.c
+  view3d_navigate_zoom_border.c
   view3d_ops.c
   view3d_placement.c
   view3d_project.c
@@ -71,6 +80,7 @@ set(SRC
   view3d_view.c
 
   view3d_intern.h
+  view3d_navigate.h
 )
 
 set(LIB

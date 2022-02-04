@@ -3150,19 +3150,6 @@ static void rna_def_object(BlenderRNA *brna)
       "Align to Vertex Normal is enabled)");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
 
-  /* proxy */
-  prop = RNA_def_property(srna, "proxy", PROP_POINTER, PROP_NONE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
-  RNA_def_property_override_clear_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_ui_text(prop, "Proxy", "Library object this proxy object controls");
-
-  prop = RNA_def_property(srna, "proxy_collection", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, NULL, "proxy_group");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
-  RNA_def_property_override_clear_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_ui_text(
-      prop, "Proxy Collection", "Library collection duplicator object this proxy object controls");
-
   /* materials */
   prop = RNA_def_property(srna, "material_slots", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "MaterialSlot");
