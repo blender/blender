@@ -432,7 +432,9 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
 
   ss << "\n/* Inputs. */\n";
   for (const ShaderCreateInfo::VertIn &attr : info.vertex_inputs_) {
-    if (GLContext::explicit_location_support) {
+    if (GLContext::explicit_location_support &&
+        /* Fix issue with amdgpu-pro + workbench_prepass_mesh_vert.glsl being quantized. */
+        GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) == false) {
       ss << "layout(location = " << attr.index << ") ";
     }
     ss << "in " << to_string(attr.type) << " " << attr.name << ";\n";
