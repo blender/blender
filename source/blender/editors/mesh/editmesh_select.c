@@ -1408,15 +1408,15 @@ static char *edbm_select_mode_get_description(struct bContext *UNUSED(C),
       !RNA_struct_property_is_set(values, "action")) {
     switch (type) {
       case SCE_SELECT_VERTEX:
-        return BLI_strdup(
-            N_("Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"));
+        return BLI_strdup(TIP_(
+            "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"));
       case SCE_SELECT_EDGE:
         return BLI_strdup(
-            N_("Edge select - Shift-Click for multiple modes, "
-               "Ctrl-Click expands/contracts selection depending on the current mode"));
+            TIP_("Edge select - Shift-Click for multiple modes, "
+                 "Ctrl-Click expands/contracts selection depending on the current mode"));
       case SCE_SELECT_FACE:
         return BLI_strdup(
-            N_("Face select - Shift-Click for multiple modes, Ctrl-Click expands selection"));
+            TIP_("Face select - Shift-Click for multiple modes, Ctrl-Click expands selection"));
     }
   }
 

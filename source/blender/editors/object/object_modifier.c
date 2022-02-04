@@ -84,6 +84,8 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
+#include "BLT_translation.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -1521,7 +1523,7 @@ static char *modifier_apply_as_shapekey_get_description(struct bContext *UNUSED(
   bool keep = RNA_boolean_get(values, "keep_modifier");
 
   if (keep) {
-    return BLI_strdup("Apply modifier as a new shapekey and keep it in the stack");
+    return BLI_strdup(TIP_("Apply modifier as a new shapekey and keep it in the stack"));
   }
 
   return NULL;

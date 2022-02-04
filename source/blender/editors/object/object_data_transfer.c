@@ -43,6 +43,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "BLT_translation.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -610,8 +612,8 @@ static char *data_transfer_get_description(bContext *UNUSED(C),
   const bool reverse_transfer = RNA_boolean_get(ptr, "use_reverse_transfer");
 
   if (reverse_transfer) {
-    return BLI_strdup(
-        "Transfer data layer(s) (weights, edge sharp, etc.) from selected meshes to active one");
+    return BLI_strdup(TIP_(
+        "Transfer data layer(s) (weights, edge sharp, etc.) from selected meshes to active one"));
   }
 
   return NULL;

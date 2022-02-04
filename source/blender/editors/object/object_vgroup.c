@@ -64,6 +64,8 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_armature_types.h"
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -3427,16 +3429,16 @@ static char *vertex_group_lock_description(struct bContext *UNUSED(C),
 
   switch (action) {
     case VGROUP_LOCK:
-      action_str = "Lock";
+      action_str = TIP_("Lock");
       break;
     case VGROUP_UNLOCK:
-      action_str = "Unlock";
+      action_str = TIP_("Unlock");
       break;
     case VGROUP_TOGGLE:
-      action_str = "Toggle locks of";
+      action_str = TIP_("Toggle locks of");
       break;
     case VGROUP_INVERT:
-      action_str = "Invert locks of";
+      action_str = TIP_("Invert locks of");
       break;
     default:
       return NULL;
@@ -3444,34 +3446,34 @@ static char *vertex_group_lock_description(struct bContext *UNUSED(C),
 
   switch (mask) {
     case VGROUP_MASK_ALL:
-      target_str = "all";
+      target_str = TIP_("all");
       break;
     case VGROUP_MASK_SELECTED:
-      target_str = "selected";
+      target_str = TIP_("selected");
       break;
     case VGROUP_MASK_UNSELECTED:
-      target_str = "unselected";
+      target_str = TIP_("unselected");
       break;
     case VGROUP_MASK_INVERT_UNSELECTED:
       switch (action) {
         case VGROUP_INVERT:
-          target_str = "selected";
+          target_str = TIP_("selected");
           break;
         case VGROUP_LOCK:
-          target_str = "selected and unlock unselected";
+          target_str = TIP_("selected and unlock unselected");
           break;
         case VGROUP_UNLOCK:
-          target_str = "selected and lock unselected";
+          target_str = TIP_("selected and lock unselected");
           break;
         default:
-          target_str = "all and invert unselected";
+          target_str = TIP_("all and invert unselected");
       }
       break;
     default:
       return NULL;
   }
 
-  return BLI_sprintfN("%s %s vertex groups of the active object", action_str, target_str);
+  return BLI_sprintfN(TIP_("%s %s vertex groups of the active object"), action_str, target_str);
 }
 
 void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)
