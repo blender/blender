@@ -243,7 +243,6 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *area)
     for (region = area->regionbase.first; region; region = region->next) {
       if ((region->regiontype == RGN_TYPE_WINDOW) && region->regiondata) {
         ED_view3d_stop_render_preview(wm, region);
-        break;
       }
     }
   }
