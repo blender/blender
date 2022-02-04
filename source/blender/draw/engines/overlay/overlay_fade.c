@@ -43,7 +43,6 @@ void OVERLAY_fade_cache_init(OVERLAY_Data *vedata)
 
     GPUShader *sh = OVERLAY_shader_uniform_color();
     pd->fade_grp[i] = DRW_shgroup_create(sh, psl->fade_ps[i]);
-    DRW_shgroup_uniform_block(pd->fade_grp[i], "globalsBlock", G_draw.block_ubo);
 
     const DRWContextState *draw_ctx = DRW_context_state_get();
     float color[4];
