@@ -30,7 +30,10 @@
 
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
+#include "GPU_material.h"
 #include "GPU_texture.h"
+
+#include <iostream>
 
 namespace blender::gpu::shader {
 
@@ -61,6 +64,59 @@ enum class Type {
   IVEC4,
   BOOL,
 };
+
+/* All of these functions is a bit out of place */
+static inline Type to_type(const eGPUType type)
+{
+  switch (type) {
+    case GPU_FLOAT:
+      return Type::FLOAT;
+    case GPU_VEC2:
+      return Type::VEC2;
+    case GPU_VEC3:
+      return Type::VEC3;
+    case GPU_VEC4:
+      return Type::VEC4;
+    case GPU_MAT3:
+      return Type::MAT3;
+    case GPU_MAT4:
+      return Type::MAT4;
+    default:
+      BLI_assert_msg(0, "Error: Cannot convert eGPUType to shader::Type.");
+      return Type::FLOAT;
+  }
+}
+
+static inline std::ostream &operator<<(std::ostream &stream, const Type type)
+{
+  switch (type) {
+    case Type::FLOAT:
+      return stream << "float";
+    case Type::VEC2:
+      return stream << "vec2";
+    case Type::VEC3:
+      return stream << "vec3";
+    case Type::VEC4:
+      return stream << "vec4";
+    case Type::MAT3:
+      return stream << "mat3";
+    case Type::MAT4:
+      return stream << "mat4";
+    default:
+      BLI_assert(0);
+      return stream;
+  }
+}
+
+static inline std::ostream &operator<<(std::ostream &stream, const eGPUType type)
+{
+  switch (type) {
+    case GPU_CLOSURE:
+      return stream << "Closure";
+    default:
+      return stream << to_type(type);
+  }
+}
 
 enum class BuiltinBits {
   NONE = 0,
@@ -229,6 +285,8 @@ struct ShaderCreateInfo {
   bool do_static_compilation_ = false;
   /** If true, all additionally linked create info will be merged into this one. */
   bool finalized_ = false;
+  /** If true, all resources will have an automatic location assigned. */
+  bool auto_resource_location_ = false;
   /**
    * Maximum length of all the resource names including each null terminator.
    * Only for names used by gpu::ShaderInterface.
@@ -236,11 +294,36 @@ struct ShaderCreateInfo {
   size_t interface_names_size_ = 0;
   /** Manually set builtins. */
   BuiltinBits builtins_ = BuiltinBits::NONE;
+  /** Manually set generated code. */
+  std::string vertex_source_generated = "";
+  std::string fragment_source_generated = "";
+  std::string typedef_source_generated = "";
+  /** Manually set generated dependencies. */
+  Vector<const char *, 0> dependencies_generated;
+
+#define TEST_EQUAL(a, b, _member) \
+  if (!((a)._member == (b)._member)) { \
+    return false; \
+  }
+
+#define TEST_VECTOR_EQUAL(a, b, _vector) \
+  TEST_EQUAL(a, b, _vector.size()); \
+  for (auto i : _vector.index_range()) { \
+    TEST_EQUAL(a, b, _vector[i]); \
+  }
 
   struct VertIn {
     int index;
     Type type;
     StringRefNull name;
+
+    bool operator==(const VertIn &b)
+    {
+      TEST_EQUAL(*this, b, index);
+      TEST_EQUAL(*this, b, type);
+      TEST_EQUAL(*this, b, name);
+      return true;
+    }
   };
   Vector<VertIn> vertex_inputs_;
 
@@ -250,6 +333,15 @@ struct ShaderCreateInfo {
     PrimitiveOut primitive_out;
     /** Set to -1 by default to check if used. */
     int max_vertices = -1;
+
+    bool operator==(const GeometryStageLayout &b)
+    {
+      TEST_EQUAL(*this, b, primitive_in);
+      TEST_EQUAL(*this, b, invocations);
+      TEST_EQUAL(*this, b, primitive_out);
+      TEST_EQUAL(*this, b, max_vertices);
+      return true;
+    }
   };
   GeometryStageLayout geometry_layout_;
 
@@ -257,8 +349,15 @@ struct ShaderCreateInfo {
     int local_size_x = -1;
     int local_size_y = -1;
     int local_size_z = -1;
-  };
 
+    bool operator==(const ComputeStageLayout &b)
+    {
+      TEST_EQUAL(*this, b, local_size_x);
+      TEST_EQUAL(*this, b, local_size_y);
+      TEST_EQUAL(*this, b, local_size_z);
+      return true;
+    }
+  };
   ComputeStageLayout compute_layout_;
 
   struct FragOut {
@@ -266,6 +365,15 @@ struct ShaderCreateInfo {
     Type type;
     DualBlend blend;
     StringRefNull name;
+
+    bool operator==(const FragOut &b)
+    {
+      TEST_EQUAL(*this, b, index);
+      TEST_EQUAL(*this, b, type);
+      TEST_EQUAL(*this, b, blend);
+      TEST_EQUAL(*this, b, name);
+      return true;
+    }
   };
   Vector<FragOut> fragment_outputs_;
 
@@ -311,6 +419,35 @@ struct ShaderCreateInfo {
     };
 
     Resource(BindType type, int _slot) : bind_type(type), slot(_slot){};
+
+    bool operator==(const Resource &b)
+    {
+      TEST_EQUAL(*this, b, bind_type);
+      TEST_EQUAL(*this, b, slot);
+      switch (bind_type) {
+        case UNIFORM_BUFFER:
+          TEST_EQUAL(*this, b, uniformbuf.type_name);
+          TEST_EQUAL(*this, b, uniformbuf.name);
+          break;
+        case STORAGE_BUFFER:
+          TEST_EQUAL(*this, b, storagebuf.qualifiers);
+          TEST_EQUAL(*this, b, storagebuf.type_name);
+          TEST_EQUAL(*this, b, storagebuf.name);
+          break;
+        case SAMPLER:
+          TEST_EQUAL(*this, b, sampler.type);
+          TEST_EQUAL(*this, b, sampler.sampler);
+          TEST_EQUAL(*this, b, sampler.name);
+          break;
+        case IMAGE:
+          TEST_EQUAL(*this, b, image.format);
+          TEST_EQUAL(*this, b, image.type);
+          TEST_EQUAL(*this, b, image.qualifiers);
+          TEST_EQUAL(*this, b, image.name);
+          break;
+      }
+      return true;
+    }
   };
   /**
    * Resources are grouped by frequency of change.
@@ -327,6 +464,14 @@ struct ShaderCreateInfo {
     Type type;
     StringRefNull name;
     int array_size;
+
+    bool operator==(const PushConst &b)
+    {
+      TEST_EQUAL(*this, b, type);
+      TEST_EQUAL(*this, b, name);
+      TEST_EQUAL(*this, b, array_size);
+      return true;
+    }
   };
 
   Vector<PushConst> push_constants_;
@@ -554,6 +699,12 @@ struct ShaderCreateInfo {
     return *(Self *)this;
   }
 
+  Self &auto_resource_location(bool value)
+  {
+    auto_resource_location_ = value;
+    return *(Self *)this;
+  }
+
   /** \} */
 
   /* -------------------------------------------------------------------- */
@@ -624,6 +775,77 @@ struct ShaderCreateInfo {
   void validate(const ShaderCreateInfo &other_info);
 
   /** \} */
+
+  /* -------------------------------------------------------------------- */
+  /** \name Operators.
+   *
+   * \{ */
+
+  /* Comparison operator for GPUPass cache. We only compare if it will create the same shader code.
+   * So we do not compare name and some other internal stuff. */
+  bool operator==(const ShaderCreateInfo &b)
+  {
+    TEST_EQUAL(*this, b, builtins_);
+    TEST_EQUAL(*this, b, vertex_source_generated);
+    TEST_EQUAL(*this, b, fragment_source_generated);
+    TEST_EQUAL(*this, b, typedef_source_generated);
+    TEST_VECTOR_EQUAL(*this, b, vertex_inputs_);
+    TEST_EQUAL(*this, b, geometry_layout_);
+    TEST_EQUAL(*this, b, compute_layout_);
+    TEST_VECTOR_EQUAL(*this, b, fragment_outputs_);
+    TEST_VECTOR_EQUAL(*this, b, pass_resources_);
+    TEST_VECTOR_EQUAL(*this, b, batch_resources_);
+    TEST_VECTOR_EQUAL(*this, b, vertex_out_interfaces_);
+    TEST_VECTOR_EQUAL(*this, b, geometry_out_interfaces_);
+    TEST_VECTOR_EQUAL(*this, b, push_constants_);
+    TEST_VECTOR_EQUAL(*this, b, typedef_sources_);
+    TEST_EQUAL(*this, b, vertex_source_);
+    TEST_EQUAL(*this, b, geometry_source_);
+    TEST_EQUAL(*this, b, fragment_source_);
+    TEST_EQUAL(*this, b, compute_source_);
+    TEST_VECTOR_EQUAL(*this, b, additional_infos_);
+    TEST_VECTOR_EQUAL(*this, b, defines_);
+    return true;
+  }
+
+  /** Debug print */
+  friend std::ostream &operator<<(std::ostream &stream, const ShaderCreateInfo &info)
+  {
+    /* TODO(@fclem): Complete print. */
+
+    auto print_resource = [&](const Resource &res) {
+      switch (res.bind_type) {
+        case Resource::BindType::UNIFORM_BUFFER:
+          stream << "UNIFORM_BUFFER(" << res.slot << ", " << res.uniformbuf.name << ")"
+                 << std::endl;
+          break;
+        case Resource::BindType::STORAGE_BUFFER:
+          stream << "STORAGE_BUFFER(" << res.slot << ", " << res.storagebuf.name << ")"
+                 << std::endl;
+          break;
+        case Resource::BindType::SAMPLER:
+          stream << "SAMPLER(" << res.slot << ", " << res.sampler.name << ")" << std::endl;
+          break;
+        case Resource::BindType::IMAGE:
+          stream << "IMAGE(" << res.slot << ", " << res.image.name << ")" << std::endl;
+          break;
+      }
+    };
+
+    /* TODO(@fclem): Order the resources. */
+    for (auto &res : info.batch_resources_) {
+      print_resource(res);
+    }
+    for (auto &res : info.pass_resources_) {
+      print_resource(res);
+    }
+    return stream;
+  }
+
+  /** \} */
+
+#undef TEST_EQUAL
+#undef TEST_VECTOR_EQUAL
 };
 
 }  // namespace blender::gpu::shader
