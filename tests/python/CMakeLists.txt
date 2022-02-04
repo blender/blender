@@ -293,6 +293,13 @@ add_blender_test(
   --testdir "${TEST_SRC_DIR}/animation"
 )
 
+add_blender_test(
+  bl_rigging_symmetrize
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_rigging_symmetrize.py
+  --
+  --testdir "${TEST_SRC_DIR}/animation"
+)
+
 # ------------------------------------------------------------------------------
 # IO TESTS
 
