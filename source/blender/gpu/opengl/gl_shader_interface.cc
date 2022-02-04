@@ -117,7 +117,28 @@ static inline int image_binding(int32_t program,
   switch (type) {
     case GL_IMAGE_1D:
     case GL_IMAGE_2D:
-    case GL_IMAGE_3D: {
+    case GL_IMAGE_3D:
+    case GL_IMAGE_CUBE:
+    case GL_IMAGE_BUFFER:
+    case GL_IMAGE_1D_ARRAY:
+    case GL_IMAGE_2D_ARRAY:
+    case GL_IMAGE_CUBE_MAP_ARRAY:
+    case GL_INT_IMAGE_1D:
+    case GL_INT_IMAGE_2D:
+    case GL_INT_IMAGE_3D:
+    case GL_INT_IMAGE_CUBE:
+    case GL_INT_IMAGE_BUFFER:
+    case GL_INT_IMAGE_1D_ARRAY:
+    case GL_INT_IMAGE_2D_ARRAY:
+    case GL_INT_IMAGE_CUBE_MAP_ARRAY:
+    case GL_UNSIGNED_INT_IMAGE_1D:
+    case GL_UNSIGNED_INT_IMAGE_2D:
+    case GL_UNSIGNED_INT_IMAGE_3D:
+    case GL_UNSIGNED_INT_IMAGE_CUBE:
+    case GL_UNSIGNED_INT_IMAGE_BUFFER:
+    case GL_UNSIGNED_INT_IMAGE_1D_ARRAY:
+    case GL_UNSIGNED_INT_IMAGE_2D_ARRAY:
+    case GL_UNSIGNED_INT_IMAGE_CUBE_MAP_ARRAY: {
       /* For now just assign a consecutive index. In the future, we should set it in
        * the shader using layout(binding = i) and query its value. */
       int binding = *image_len;
