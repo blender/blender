@@ -460,6 +460,19 @@ void DRW_shgroup_vertex_buffer(DRWShadingGroup *shgroup,
       shgroup, location, DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE, vertex_buffer, 0, 0, 1);
 }
 
+void DRW_shgroup_vertex_buffer_ref(DRWShadingGroup *shgroup,
+                                   const char *name,
+                                   GPUVertBuf **vertex_buffer)
+{
+  int location = GPU_shader_get_ssbo(shgroup->shader, name);
+  if (location == -1) {
+    BLI_assert_msg(0, "Unable to locate binding of shader storage buffer objects.");
+    return;
+  }
+  drw_shgroup_uniform_create_ex(
+      shgroup, location, DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE_REF, vertex_buffer, 0, 0, 1);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -730,6 +743,18 @@ static void drw_command_compute(DRWShadingGroup *shgroup,
   cmd->groups_z_len = groups_z_len;
 }
 
+static void drw_command_compute_ref(DRWShadingGroup *shgroup, int groups_ref[3])
+{
+  DRWCommandComputeRef *cmd = drw_command_create(shgroup, DRW_CMD_COMPUTE_REF);
+  cmd->groups_ref = groups_ref;
+}
+
+static void drw_command_barrier(DRWShadingGroup *shgroup, eGPUBarrier type)
+{
+  DRWCommandBarrier *cmd = drw_command_create(shgroup, DRW_CMD_BARRIER);
+  cmd->type = type;
+}
+
 static void drw_command_draw_procedural(DRWShadingGroup *shgroup,
                                         GPUBatch *batch,
                                         DRWResourceHandle handle,
@@ -853,6 +878,20 @@ void DRW_shgroup_call_compute(DRWShadingGroup *shgroup,
   BLI_assert(GPU_compute_shader_support());
 
   drw_command_compute(shgroup, groups_x_len, groups_y_len, groups_z_len);
+}
+
+void DRW_shgroup_call_compute_ref(DRWShadingGroup *shgroup, int groups_ref[3])
+{
+  BLI_assert(GPU_compute_shader_support());
+
+  drw_command_compute_ref(shgroup, groups_ref);
+}
+
+void DRW_shgroup_barrier(DRWShadingGroup *shgroup, eGPUBarrier type)
+{
+  BLI_assert(GPU_compute_shader_support());
+
+  drw_command_barrier(shgroup, type);
 }
 
 static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,

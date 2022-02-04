@@ -468,6 +468,10 @@ void DRW_shgroup_call_compute(DRWShadingGroup *shgroup,
                               int groups_x_len,
                               int groups_y_len,
                               int groups_z_len);
+/**
+ * \warning this keeps the ref to groups_ref until it actually dispatch.
+ */
+void DRW_shgroup_call_compute_ref(DRWShadingGroup *shgroup, int groups_ref[3]);
 void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, Object *ob, uint point_count);
 void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, Object *ob, uint line_count);
 void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *sh, Object *ob, uint tri_count);
@@ -532,6 +536,11 @@ void DRW_shgroup_stencil_set(DRWShadingGroup *shgroup,
  * TODO: remove this function. Obsolete version. mask is actually reference value.
  */
 void DRW_shgroup_stencil_mask(DRWShadingGroup *shgroup, uint mask);
+
+/**
+ * Issue a barrier command.
+ */
+void DRW_shgroup_barrier(DRWShadingGroup *shgroup, eGPUBarrier type);
 
 /**
  * Issue a clear command.
@@ -627,6 +636,9 @@ void DRW_shgroup_uniform_vec4_array_copy(DRWShadingGroup *shgroup,
 void DRW_shgroup_vertex_buffer(DRWShadingGroup *shgroup,
                                const char *name,
                                struct GPUVertBuf *vertex_buffer);
+void DRW_shgroup_vertex_buffer_ref(DRWShadingGroup *shgroup,
+                                   const char *name,
+                                   struct GPUVertBuf **vertex_buffer);
 
 bool DRW_shgroup_is_empty(DRWShadingGroup *shgroup);
 
