@@ -325,35 +325,6 @@ static void object_free_data(ID *id)
   BKE_previewimg_free(&ob->preview);
 }
 
-static void object_make_local(Main *bmain, ID *id, const int flags)
-{
-  if (!ID_IS_LINKED(id)) {
-    return;
-  }
-
-  Object *ob = (Object *)id;
-  const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
-
-  bool force_local, force_copy;
-  BKE_lib_id_make_local_generic_action_define(bmain, id, flags, &force_local, &force_copy);
-
-  if (force_local) {
-    BKE_lib_id_clear_library_data(bmain, &ob->id, flags);
-    BKE_lib_id_expand_local(bmain, &ob->id, flags);
-  }
-  else if (force_copy) {
-    Object *ob_new = (Object *)BKE_id_copy(bmain, &ob->id);
-    id_us_min(&ob_new->id);
-
-    /* setting newid is mandatory for complex make_lib_local logic... */
-    ID_NEW_SET(ob, ob_new);
-
-    if (!lib_local) {
-      BKE_libblock_remap(bmain, ob, ob_new, ID_REMAP_SKIP_INDIRECT_USAGE);
-    }
-  }
-}
-
 static void library_foreach_modifiersForeachIDLink(void *user_data,
                                                    Object *UNUSED(object),
                                                    ID **id_pointer,
@@ -1263,7 +1234,7 @@ IDTypeInfo IDType_ID_OB = {
     /* init_data */ object_init_data,
     /* copy_data */ object_copy_data,
     /* free_data */ object_free_data,
-    /* make_local */ object_make_local,
+    /* make_local */ nullptr,
     /* foreach_id */ object_foreach_id,
     /* foreach_cache */ nullptr,
     /* foreach_path */ object_foreach_path,
