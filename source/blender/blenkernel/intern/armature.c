@@ -69,8 +69,6 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"bke.armature"};
-
 /* -------------------------------------------------------------------- */
 /** \name Prototypes
  * \{ */
