@@ -1347,7 +1347,7 @@ class GeometryNodesEvaluator {
     }
     input_state.usage = ValueUsage::Unused;
 
-    /* If the input is unused, it's value can be destructed now. */
+    /* If the input is unused, its value can be destructed now. */
     this->destruct_input_value_if_exists(locked_node, socket);
 
     if (input_state.was_ready_for_execution) {

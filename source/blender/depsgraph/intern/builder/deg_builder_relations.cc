@@ -1992,7 +1992,7 @@ void DepsgraphRelationBuilder::build_particle_settings(ParticleSettings *part)
                  "Particle Texture -> Particle Reset",
                  RELATION_FLAG_FLUSH_USER_EDIT_ONLY);
     add_relation(texture_key, particle_settings_eval_key, "Particle Texture -> Particle Eval");
-    /* TODO(sergey): Consider moving texture space handling to an own
+    /* TODO(sergey): Consider moving texture space handling to its own
      * function. */
     if (mtex->texco == TEXCO_OBJECT && mtex->object != nullptr) {
       ComponentKey object_key(&mtex->object->id, NodeType::TRANSFORM);

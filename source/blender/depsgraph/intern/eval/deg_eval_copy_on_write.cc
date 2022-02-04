@@ -646,8 +646,8 @@ void set_particle_system_modifiers_loaded(Object *object_cow)
 
 void reset_particle_system_edit_eval(const Depsgraph *depsgraph, Object *object_cow)
 {
-  /* Inactive (and render) dependency graphs are living in own little bubble, should not care about
-   * edit mode at all. */
+  /* Inactive (and render) dependency graphs are living in their own little bubble, should not care
+   * about edit mode at all. */
   if (!DEG_is_active(reinterpret_cast<const ::Depsgraph *>(depsgraph))) {
     return;
   }

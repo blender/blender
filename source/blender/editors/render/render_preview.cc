@@ -767,7 +767,7 @@ struct ObjectPreviewData {
   /* The main for the preview, not of the current file. */
   Main *pr_main;
   /* Copy of the object to create the preview for. The copy is for thread safety (and to insert
-   * it into an own main). */
+   * it into its own main). */
   Object *object;
   /* Current frame. */
   int cfra;

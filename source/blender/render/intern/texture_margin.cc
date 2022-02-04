@@ -123,7 +123,7 @@ class TextureMarginMap {
   void rasterize_tri(float *v1, float *v2, float *v3, uint32_t value, char *mask)
   {
     /* NOTE: This is not thread safe, because the value to be written by the rasterizer is
-     * a class member. If this is ever made multi-threaded each thread needs to get it's own. */
+     * a class member. If this is ever made multi-threaded each thread needs to get its own. */
     value_to_store_ = value;
     mask_ = mask;
     zspan_scanconvert(
@@ -376,7 +376,7 @@ class TextureMarginMap {
   }
 
   /**
-   * Find which edge of the src_poly is closest to x,y. Look up it's adjacent UV-edge and polygon.
+   * Find which edge of the src_poly is closest to x,y. Look up its adjacent UV-edge and polygon.
    * Then return the location of the equivalent pixel in the other polygon.
    * Returns true if a new pixel location was found, false if it wasn't, which can happen if the
    * margin pixel is on a corner, or the UV-edge doesn't have an adjacent polygon.
@@ -470,7 +470,7 @@ class TextureMarginMap {
     float2 other_edgepoint1 = uv_to_xy(mloopuv_[other_edge]);
     float2 other_edgepoint2 = uv_to_xy(mloopuv_[other_edge2]);
 
-    /* Calculate the vector from the order edges last point to it's first point. */
+    /* Calculate the vector from the order edges last point to its first point. */
     float2 other_ab = other_edgepoint1 - other_edgepoint2;
     float2 other_reflect_point = other_edgepoint2 + (found_t * other_ab);
     float2 perpendicular_other_ab;
