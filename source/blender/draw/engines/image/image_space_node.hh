@@ -56,7 +56,6 @@ class SpaceNodeAccessor : public AbstractSpaceAccessor {
 
   void get_shader_parameters(ShaderParameters &r_shader_parameters, ImBuf *ibuf) override
   {
-    r_shader_parameters.flags |= IMAGE_DRAW_FLAG_DEPTH_ALWAYS;
     if ((snode->flag & SNODE_USE_ALPHA) != 0) {
       /* Show RGBA */
       r_shader_parameters.flags |= IMAGE_DRAW_FLAG_SHOW_ALPHA | IMAGE_DRAW_FLAG_APPLY_ALPHA;

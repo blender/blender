@@ -26,6 +26,7 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "BLI_float4x4.hh"
 #include "BLI_math_vec_types.hh"
 
 #include "image_batches.hh"
@@ -61,11 +62,11 @@ struct OneTextureMethod {
     }
   }
 
-  void update_uv_bounds(const ARegion *region)
+  void update_region_uv_bounds(const ARegion *region)
   {
     TextureInfo &info = instance_data->texture_infos[0];
-    if (!BLI_rctf_compare(&info.uv_bounds, &region->v2d.cur, EPSILON_UV_BOUNDS)) {
-      info.uv_bounds = region->v2d.cur;
+    if (!BLI_rctf_compare(&info.region_uv_bounds, &region->v2d.cur, EPSILON_UV_BOUNDS)) {
+      info.region_uv_bounds = region->v2d.cur;
       info.dirty = true;
     }
 
@@ -73,6 +74,25 @@ struct OneTextureMethod {
     for (int i = 1; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
       BLI_rctf_init_minmax(&instance_data->texture_infos[i].clipping_bounds);
     }
+  }
+
+  void update_screen_uv_bounds()
+  {
+    for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
+      update_screen_uv_bounds(instance_data->texture_infos[0]);
+    }
+  }
+
+  void update_screen_uv_bounds(TextureInfo &info)
+  {
+    /* Although this works, computing an inverted matrix adds some precision issues and leads to
+     * tearing artifacts. This should be modified to use the scaling and transformation from the
+     * not inverted matrix.*/
+    float4x4 mat(instance_data->ss_to_texture);
+    float4x4 mat_inv = mat.inverted();
+    float3 min_uv = mat_inv * float3(0.0f, 0.0f, 0.0f);
+    float3 max_uv = mat_inv * float3(1.0f, 1.0f, 0.0f);
+    BLI_rctf_init(&info.clipping_uv_bounds, min_uv[0], max_uv[0], min_uv[1], max_uv[1]);
   }
 };
 
@@ -248,8 +268,9 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                               static_cast<float>(iterator.tile_data.tile_buffer->y) +
                           tile_offset_y);
         rctf changed_overlapping_region_in_uv_space;
-        const bool region_overlap = BLI_rctf_isect(
-            &info.uv_bounds, &changed_region_in_uv_space, &changed_overlapping_region_in_uv_space);
+        const bool region_overlap = BLI_rctf_isect(&info.region_uv_bounds,
+                                                   &changed_region_in_uv_space,
+                                                   &changed_overlapping_region_in_uv_space);
         if (!region_overlap) {
           continue;
         }
@@ -257,15 +278,16 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
         // TODO: first convert to ss_pixel space as integer based. and from there go back to texel
         // space. But perhaps this isn't needed and we could use an extraction offset somehow.
         rcti gpu_texture_region_to_update;
-        BLI_rcti_init(&gpu_texture_region_to_update,
-                      floor((changed_overlapping_region_in_uv_space.xmin - info.uv_bounds.xmin) *
-                            texture_width / BLI_rctf_size_x(&info.uv_bounds)),
-                      floor((changed_overlapping_region_in_uv_space.xmax - info.uv_bounds.xmin) *
-                            texture_width / BLI_rctf_size_x(&info.uv_bounds)),
-                      ceil((changed_overlapping_region_in_uv_space.ymin - info.uv_bounds.ymin) *
-                           texture_height / BLI_rctf_size_y(&info.uv_bounds)),
-                      ceil((changed_overlapping_region_in_uv_space.ymax - info.uv_bounds.ymin) *
-                           texture_height / BLI_rctf_size_y(&info.uv_bounds)));
+        BLI_rcti_init(
+            &gpu_texture_region_to_update,
+            floor((changed_overlapping_region_in_uv_space.xmin - info.region_uv_bounds.xmin) *
+                  texture_width / BLI_rctf_size_x(&info.region_uv_bounds)),
+            floor((changed_overlapping_region_in_uv_space.xmax - info.region_uv_bounds.xmin) *
+                  texture_width / BLI_rctf_size_x(&info.region_uv_bounds)),
+            ceil((changed_overlapping_region_in_uv_space.ymin - info.region_uv_bounds.ymin) *
+                 texture_height / BLI_rctf_size_y(&info.region_uv_bounds)),
+            ceil((changed_overlapping_region_in_uv_space.ymax - info.region_uv_bounds.ymin) *
+                 texture_height / BLI_rctf_size_y(&info.region_uv_bounds)));
 
         rcti tile_region_to_extract;
         BLI_rcti_init(
@@ -289,11 +311,13 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
         for (int y = gpu_texture_region_to_update.ymin; y < gpu_texture_region_to_update.ymax;
              y++) {
           float yf = y / (float)texture_height;
-          float v = info.uv_bounds.ymax * yf + info.uv_bounds.ymin * (1.0 - yf) - tile_offset_y;
+          float v = info.region_uv_bounds.ymax * yf + info.region_uv_bounds.ymin * (1.0 - yf) -
+                    tile_offset_y;
           for (int x = gpu_texture_region_to_update.xmin; x < gpu_texture_region_to_update.xmax;
                x++) {
             float xf = x / (float)texture_width;
-            float u = info.uv_bounds.xmax * xf + info.uv_bounds.xmin * (1.0 - xf) - tile_offset_x;
+            float u = info.region_uv_bounds.xmax * xf + info.region_uv_bounds.xmin * (1.0 - xf) -
+                      tile_offset_x;
             nearest_interpolation_color(tile_buffer,
                                         nullptr,
                                         &extracted_buffer.rect_float[offset * 4],
@@ -405,8 +429,10 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                       static_cast<float>(texture_height) / static_cast<float>(tile_buffer.y),
                       1.0f};
     rescale_m4(uv_to_texel, scale);
-    uv_to_texel[3][0] += image_tile.get_tile_x_offset() / BLI_rctf_size_x(&texture_info.uv_bounds);
-    uv_to_texel[3][1] += image_tile.get_tile_y_offset() / BLI_rctf_size_y(&texture_info.uv_bounds);
+    uv_to_texel[3][0] += image_tile.get_tile_x_offset() /
+                         BLI_rctf_size_x(&texture_info.region_uv_bounds);
+    uv_to_texel[3][1] += image_tile.get_tile_y_offset() /
+                         BLI_rctf_size_y(&texture_info.region_uv_bounds);
     uv_to_texel[3][0] *= texture_width;
     uv_to_texel[3][1] *= texture_height;
     invert_m4(uv_to_texel);
@@ -457,7 +483,8 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     // screen space textures that aren't needed.
     const ARegion *region = draw_ctx->region;
     method.update_screen_space_bounds(region);
-    method.update_uv_bounds(region);
+    method.update_region_uv_bounds(region);
+    method.update_screen_uv_bounds();
 
     // Step: Update the GPU textures based on the changes in the image.
     instance_data->update_gpu_texture_allocations();

@@ -44,8 +44,10 @@ struct TextureInfo {
 
   /** \brief area of the texture in screen space. */
   rctf clipping_bounds;
-  /** \brief uv area of the texture. */
-  rctf uv_bounds;
+  /** \brief uv area of the texture (copy from ARegion). */
+  rctf region_uv_bounds;
+  /** \brief uv area of the texture in screen space. */
+  rctf clipping_uv_bounds;
 
   /**
    * \brief Batch to draw the associated texton the screen.
