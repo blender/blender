@@ -90,7 +90,7 @@ static int text_font_draw(const TextDrawContext *tdc, int x, int y, const char *
 static int text_font_draw_character(const TextDrawContext *tdc, int x, int y, char c)
 {
   BLF_position(tdc->font_id, x, y, 0);
-  BLF_draw(tdc->font_id, &c, 1);
+  BLF_draw_mono(tdc->font_id, &c, 1, tdc->cwidth_px);
 
   return tdc->cwidth_px;
 }
