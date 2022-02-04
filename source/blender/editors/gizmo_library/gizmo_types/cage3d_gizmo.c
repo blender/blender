@@ -91,7 +91,7 @@ static void gizmo_calc_rect_view_scale(const wmGizmo *gz, const float dims[3], f
 
 static void gizmo_calc_rect_view_margin(const wmGizmo *gz, const float dims[3], float margin[3])
 {
-  const float handle_size = 0.15f;
+  const float handle_size = 9.0f;
   /* XXX, the scale isn't taking offset into account, we need to calculate scale per handle! */
   // handle_size *= gz->scale_final;
 
@@ -178,7 +178,7 @@ static void cage3d_draw_box_interaction(const RegionView3D *rv3d,
     float co_test[3];
     mul_v3_m4v3(co_test, matrix_final, co);
     float rad_scale[3];
-    mul_v3_v3fl(rad_scale, rad, ED_view3d_pixel_size(rv3d, co_test) * 60);
+    mul_v3_v3fl(rad_scale, rad, ED_view3d_pixel_size(rv3d, co_test));
 
     {
       uint pos = GPU_vertformat_attr_add(
@@ -255,7 +255,7 @@ static void cage3d_draw_circle_handles(const RegionView3D *rv3d,
                                        const float margin[3],
                                        const float color[3],
                                        bool solid,
-                                       float scale)
+                                       const float handle_scale)
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   const float rad[3] = {margin[0] / 3, margin[1] / 3, margin[2] / 3};
@@ -274,7 +274,7 @@ static void cage3d_draw_circle_handles(const RegionView3D *rv3d,
         float co_test[3];
         mul_v3_m4v3(co_test, matrix_final, co);
         float rad_scale[3];
-        mul_v3_v3fl(rad_scale, rad, ED_view3d_pixel_size(rv3d, co_test) * scale);
+        mul_v3_v3fl(rad_scale, rad, ED_view3d_pixel_size(rv3d, co_test) * handle_scale);
         imm_draw_point_aspect_3d(pos, co, rad_scale, solid);
       }
     }
@@ -381,7 +381,8 @@ static void gizmo_cage3d_draw_intern(
       }
 
       if (show) {
-        cage3d_draw_box_interaction(rv3d, matrix_final, gz->color, gz->highlight_part, size_real, margin);
+        cage3d_draw_box_interaction(
+            rv3d, matrix_final, gz->color, gz->highlight_part, size_real, margin);
       }
     }
     else if (draw_style == ED_GIZMO_CAGE2D_STYLE_CIRCLE) {
@@ -395,10 +396,10 @@ static void gizmo_cage3d_draw_intern(
       cage3d_draw_circle_wire(
           size_real, margin, color, transform_flag, draw_options, gz->line_width);
 
-      /* corner gizmos */
+      /* Corner gizmos (draw the outer & inner so there is a visible outline). */
       GPU_polygon_smooth(true);
-      cage3d_draw_circle_handles(rv3d, matrix_final, size_real, margin, black, true, 60);
-      cage3d_draw_circle_handles(rv3d, matrix_final, size_real, margin, color, true, 40);
+      cage3d_draw_circle_handles(rv3d, matrix_final, size_real, margin, black, true, 1.0f);
+      cage3d_draw_circle_handles(rv3d, matrix_final, size_real, margin, color, true, 1.0f / 1.5f);
       GPU_polygon_smooth(false);
 
       GPU_blend(GPU_BLEND_NONE);
