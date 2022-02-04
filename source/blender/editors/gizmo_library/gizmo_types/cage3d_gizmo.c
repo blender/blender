@@ -151,7 +151,9 @@ static void cage3d_draw_box_corners(const float r[3],
   immUnbindProgram();
 }
 
-static void cage3d_draw_box_interaction(const float color[4],
+static void cage3d_draw_box_interaction(const RegionView3D *rv3d,
+                                        const float matrix_final[4][4],
+                                        const float color[4],
                                         const int highlighted,
                                         const float size[3],
                                         const float margin[3])
@@ -173,13 +175,17 @@ static void cage3d_draw_box_interaction(const float color[4],
       co[i] = size[i] * sign[range[i]];
     }
     const float rad[3] = {margin[0] / 3, margin[1] / 3, margin[2] / 3};
+    float co_test[3];
+    mul_v3_m4v3(co_test, matrix_final, co);
+    float rad_scale[3];
+    mul_v3_v3fl(rad_scale, rad, ED_view3d_pixel_size(rv3d, co_test) * 60);
 
     {
       uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformColor3fv(color);
-      imm_draw_cube_fill_3d(pos, co, rad);
+      imm_draw_cube_fill_3d(pos, co, rad_scale);
       immUnbindProgram();
     }
   }
@@ -334,13 +340,13 @@ static void gizmo_cage3d_draw_intern(
           continue;
         }
         GPU_select_load_id(select_id | i);
-        cage3d_draw_box_interaction(gz->color, i, size, margin);
+        cage3d_draw_box_interaction(rv3d, matrix_final, gz->color, i, size, margin);
       }
     }
     if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE) {
       const int transform_part = ED_GIZMO_CAGE3D_PART_TRANSLATE;
       GPU_select_load_id(select_id | transform_part);
-      cage3d_draw_box_interaction(gz->color, transform_part, size, margin);
+      cage3d_draw_box_interaction(rv3d, matrix_final, gz->color, transform_part, size, margin);
     }
   }
   else {
@@ -375,7 +381,7 @@ static void gizmo_cage3d_draw_intern(
       }
 
       if (show) {
-        cage3d_draw_box_interaction(gz->color, gz->highlight_part, size_real, margin);
+        cage3d_draw_box_interaction(rv3d, matrix_final, gz->color, gz->highlight_part, size_real, margin);
       }
     }
     else if (draw_style == ED_GIZMO_CAGE2D_STYLE_CIRCLE) {
