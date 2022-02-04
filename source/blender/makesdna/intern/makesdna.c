@@ -1555,8 +1555,18 @@ int main(int argc, char **argv)
         base_directory = BASE_HEADER;
       }
 
+      /* NOTE: #init_structDNA() in dna_genfile.c expects `sdna->data` is 4-bytes aligned.
+       * `DNAstr[]` buffer written by `makesdna` is used for this data, so make `DNAstr` forcefully
+       * 4-bytes aligned. */
+#ifdef __GNUC__
+#  define FORCE_ALIGN_4 " __attribute__((aligned(4))) "
+#else
+#  define FORCE_ALIGN_4 " "
+#endif
       fprintf(file_dna, "extern const unsigned char DNAstr[];\n");
-      fprintf(file_dna, "const unsigned char DNAstr[] = {\n");
+      fprintf(file_dna, "const unsigned char" FORCE_ALIGN_4 "DNAstr[] = {\n");
+#undef FORCE_ALIGN_4
+
       if (make_structDNA(base_directory, file_dna, file_dna_offsets, file_dna_verify)) {
         /* error */
         fclose(file_dna);
