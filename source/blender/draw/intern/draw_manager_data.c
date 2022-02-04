@@ -283,19 +283,45 @@ void DRW_shgroup_uniform_image_ref(DRWShadingGroup *shgroup, const char *name, G
   drw_shgroup_uniform_create_ex(shgroup, loc, DRW_UNIFORM_IMAGE_REF, tex, 0, 0, 1);
 }
 
-void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup,
-                               const char *name,
-                               const GPUUniformBuf *ubo)
+void DRW_shgroup_uniform_block_ex(DRWShadingGroup *shgroup,
+                                  const char *name,
+                                  const GPUUniformBuf *ubo DRW_DEBUG_FILE_LINE_ARGS)
 {
   BLI_assert(ubo != NULL);
   int loc = GPU_shader_get_uniform_block_binding(shgroup->shader, name);
+  if (loc == -1) {
+#ifdef DRW_UNUSED_RESOURCE_TRACKING
+    printf("%s:%d: Unable to locate binding of shader uniform buffer object: %s.\n",
+           file,
+           line,
+           name);
+#else
+    /* TODO(@fclem): Would be good to have, but eevee has too much of this for the moment. */
+    // BLI_assert_msg(0, "Unable to locate binding of shader uniform buffer objects.");
+#endif
+    return;
+  }
   drw_shgroup_uniform_create_ex(shgroup, loc, DRW_UNIFORM_BLOCK, ubo, 0, 0, 1);
 }
 
-void DRW_shgroup_uniform_block_ref(DRWShadingGroup *shgroup, const char *name, GPUUniformBuf **ubo)
+void DRW_shgroup_uniform_block_ref_ex(DRWShadingGroup *shgroup,
+                                      const char *name,
+                                      GPUUniformBuf **ubo DRW_DEBUG_FILE_LINE_ARGS)
 {
   BLI_assert(ubo != NULL);
   int loc = GPU_shader_get_uniform_block_binding(shgroup->shader, name);
+  if (loc == -1) {
+#ifdef DRW_UNUSED_RESOURCE_TRACKING
+    printf("%s:%d: Unable to locate binding of shader uniform buffer object: %s.\n",
+           file,
+           line,
+           name);
+#else
+    /* TODO(@fclem): Would be good to have, but eevee has too much of this for the moment. */
+    // BLI_assert_msg(0, "Unable to locate binding of shader uniform buffer objects.");
+#endif
+    return;
+  }
   drw_shgroup_uniform_create_ex(shgroup, loc, DRW_UNIFORM_BLOCK_REF, ubo, 0, 0, 1);
 }
 
@@ -447,26 +473,40 @@ void DRW_shgroup_uniform_vec4_array_copy(DRWShadingGroup *shgroup,
   }
 }
 
-void DRW_shgroup_vertex_buffer(DRWShadingGroup *shgroup,
-                               const char *name,
-                               GPUVertBuf *vertex_buffer)
+void DRW_shgroup_vertex_buffer_ex(DRWShadingGroup *shgroup,
+                                  const char *name,
+                                  GPUVertBuf *vertex_buffer DRW_DEBUG_FILE_LINE_ARGS)
 {
   int location = GPU_shader_get_ssbo(shgroup->shader, name);
   if (location == -1) {
+#ifdef DRW_UNUSED_RESOURCE_TRACKING
+    printf("%s:%d: Unable to locate binding of shader storage buffer object: %s.\n",
+           file,
+           line,
+           name);
+#else
     BLI_assert_msg(0, "Unable to locate binding of shader storage buffer objects.");
+#endif
     return;
   }
   drw_shgroup_uniform_create_ex(
       shgroup, location, DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE, vertex_buffer, 0, 0, 1);
 }
 
-void DRW_shgroup_vertex_buffer_ref(DRWShadingGroup *shgroup,
-                                   const char *name,
-                                   GPUVertBuf **vertex_buffer)
+void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
+                                      const char *name,
+                                      GPUVertBuf **vertex_buffer DRW_DEBUG_FILE_LINE_ARGS)
 {
   int location = GPU_shader_get_ssbo(shgroup->shader, name);
   if (location == -1) {
+#ifdef DRW_UNUSED_RESOURCE_TRACKING
+    printf("%s:%d: Unable to locate binding of shader storage buffer object: %s.\n",
+           file,
+           line,
+           name);
+#else
     BLI_assert_msg(0, "Unable to locate binding of shader storage buffer objects.");
+#endif
     return;
   }
   drw_shgroup_uniform_create_ex(
