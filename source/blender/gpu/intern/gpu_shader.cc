@@ -306,7 +306,7 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
 
   Vector<const char *> typedefs;
   if (!info.typedef_sources_.is_empty() || !info.typedef_source_generated.empty()) {
-    typedefs.append(gpu_shader_dependency_get_source("gpu_shader_shared_utils.h").c_str());
+    typedefs.append(gpu_shader_dependency_get_source("GPU_shader_shared_utils.h").c_str());
   }
   if (!info.typedef_source_generated.empty()) {
     typedefs.append(info.typedef_source_generated.c_str());
