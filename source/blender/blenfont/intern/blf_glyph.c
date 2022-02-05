@@ -74,7 +74,7 @@ static FT_Fixed to_16dot16(double val)
 /** \name Glyph Cache
  * \{ */
 
-GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, float size, unsigned int dpi)
+static GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, float size, unsigned int dpi)
 {
   GlyphCacheBLF *gc = (GlyphCacheBLF *)font->cache.first;
   while (gc) {
@@ -87,7 +87,7 @@ GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, float size, unsigned int dpi)
   return NULL;
 }
 
-GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
+static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 {
   GlyphCacheBLF *gc = (GlyphCacheBLF *)MEM_callocN(sizeof(GlyphCacheBLF), "blf_glyph_cache_new");
 
