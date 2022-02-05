@@ -255,15 +255,6 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
   return is_set;
 }
 
-static bool viewops_data_init_orbit_select(bContext *C, ViewOpsData *vod)
-{
-  float ofs[3];
-  if (view3d_orbit_calc_center(C, ofs) || (vod->use_dyn_ofs == false)) {
-    vod->use_dyn_ofs = true;
-    negate_v3_v3(vod->dyn_ofs, ofs);
-  }
-}
-
 static enum eViewOpsFlag viewops_flag_from_args(bool use_select, bool use_depth)
 {
   enum eViewOpsFlag flag = 0;
@@ -283,53 +274,19 @@ enum eViewOpsFlag viewops_flag_from_prefs(void)
                                 (U.uiflag & USER_DEPTH_NAVIGATE) != 0);
 }
 
-static void viewops_data_init_depth_ofs(bContext *C, ViewOpsData *vod, const int mval[2])
+ViewOpsData *viewops_data_create(bContext *C, const wmEvent *event, enum eViewOpsFlag viewops_flag)
 {
-  float fallback_depth_pt[3];
+  ViewOpsData *vod = MEM_callocN(sizeof(ViewOpsData), __func__);
 
-  view3d_operator_needs_opengl(C); /* Needed for Z-buffer drawing. */
+  /* Store data. */
+  vod->bmain = CTX_data_main(C);
+  vod->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  vod->scene = CTX_data_scene(C);
+  vod->area = CTX_wm_area(C);
+  vod->region = CTX_wm_region(C);
+  vod->v3d = vod->area->spacedata.first;
+  vod->rv3d = vod->region->regiondata;
 
-  negate_v3_v3(fallback_depth_pt, vod->rv3d->ofs);
-
-  vod->use_dyn_ofs = ED_view3d_autodist(
-      vod->depsgraph, vod->region, vod->v3d, mval, vod->dyn_ofs, true, fallback_depth_pt);
-}
-
-static void viewops_data_ensure_persp(ViewOpsData *vod)
-{
-  if (ED_view3d_persp_ensure(vod->depsgraph, vod->v3d, vod->region)) {
-    /* If we're switching from camera view to the perspective one,
-     * need to tag viewport update, so camera view and borders are properly updated. */
-    ED_region_tag_redraw(vod->region);
-  }
-}
-
-static void viewops_data_init_generic(ViewOpsData *vod, const wmEvent *event)
-{
-  RegionView3D *rv3d = vod->rv3d;
-
-  /* set the view from the camera, if view locking is enabled.
-   * we may want to make this optional but for now its needed always */
-  ED_view3d_camera_lock_init(vod->depsgraph, vod->v3d, vod->rv3d);
-
-  vod->init.persp = rv3d->persp;
-  vod->init.dist = rv3d->dist;
-  vod->init.camzoom = rv3d->camzoom;
-  copy_qt_qt(vod->init.quat, rv3d->viewquat);
-  copy_v2_v2_int(vod->init.event_xy, event->xy);
-  copy_v2_v2_int(vod->prev.event_xy, event->xy);
-
-  vod->init.event_type = event->type;
-  copy_v3_v3(vod->init.ofs, rv3d->ofs);
-
-  copy_qt_qt(vod->curr.viewquat, rv3d->viewquat);
-}
-
-static void viewops_data_init(bContext *C,
-                              ViewOpsData *vod,
-                              const wmEvent *event,
-                              enum eViewOpsFlag viewops_flag)
-{
   Depsgraph *depsgraph = vod->depsgraph;
   RegionView3D *rv3d = vod->rv3d;
 
@@ -340,17 +297,37 @@ static void viewops_data_init(bContext *C,
 
   /* we need the depth info before changing any viewport options */
   if (viewops_flag & VIEWOPS_FLAG_DEPTH_NAVIGATE) {
-    viewops_data_init_depth_ofs(C, vod, event->mval);
+    float fallback_depth_pt[3];
+
+    view3d_operator_needs_opengl(C); /* Needed for Z-buffer drawing. */
+
+    negate_v3_v3(fallback_depth_pt, rv3d->ofs);
+
+    vod->use_dyn_ofs = ED_view3d_autodist(
+        depsgraph, vod->region, vod->v3d, event->mval, vod->dyn_ofs, true, fallback_depth_pt);
   }
   else {
     vod->use_dyn_ofs = false;
   }
 
   if (viewops_flag & VIEWOPS_FLAG_PERSP_ENSURE) {
-    viewops_data_ensure_persp(vod);
+    if (ED_view3d_persp_ensure(depsgraph, vod->v3d, vod->region)) {
+      /* If we're switching from camera view to the perspective one,
+       * need to tag viewport update, so camera view and borders are properly updated. */
+      ED_region_tag_redraw(vod->region);
+    }
   }
 
-  viewops_data_init_generic(vod, event);
+  /* set the view from the camera, if view locking is enabled.
+   * we may want to make this optional but for now its needed always */
+  ED_view3d_camera_lock_init(depsgraph, vod->v3d, vod->rv3d);
+
+  vod->init.persp = rv3d->persp;
+  vod->init.dist = rv3d->dist;
+  vod->init.camzoom = rv3d->camzoom;
+  copy_qt_qt(vod->init.quat, rv3d->viewquat);
+  copy_v2_v2_int(vod->init.event_xy, event->xy);
+  copy_v2_v2_int(vod->prev.event_xy, event->xy);
 
   if (viewops_flag & VIEWOPS_FLAG_USE_MOUSE_INIT) {
     zero_v2_int(vod->init.event_xy_offset);
@@ -361,8 +338,16 @@ static void viewops_data_init(bContext *C,
     vod->init.event_xy_offset[1] = BLI_rcti_cent_y(&vod->region->winrct) - event->xy[1];
   }
 
+  vod->init.event_type = event->type;
+  copy_v3_v3(vod->init.ofs, rv3d->ofs);
+
+  copy_qt_qt(vod->curr.viewquat, rv3d->viewquat);
+
   if (viewops_flag & VIEWOPS_FLAG_ORBIT_SELECT) {
-    if (viewops_data_init_orbit_select(C, vod)) {
+    float ofs[3];
+    if (view3d_orbit_calc_center(C, ofs) || (vod->use_dyn_ofs == false)) {
+      vod->use_dyn_ofs = true;
+      negate_v3_v3(vod->dyn_ofs, ofs);
       viewops_flag &= ~VIEWOPS_FLAG_DEPTH_NAVIGATE;
     }
   }
@@ -434,6 +419,8 @@ static void viewops_data_init(bContext *C,
   }
 
   rv3d->rflag |= RV3D_NAVIGATING;
+
+  return vod;
 }
 
 void viewops_data_free(bContext *C, ViewOpsData *vod)
@@ -460,27 +447,6 @@ void viewops_data_free(bContext *C, ViewOpsData *vod)
   /* Need to redraw because drawing code uses RV3D_NAVIGATING to draw
    * faster while navigation operator runs. */
   ED_region_tag_redraw(region);
-}
-
-ViewOpsData *viewops_data_create(bContext *C, const wmEvent *event, enum eViewOpsFlag viewops_flag)
-{
-  ViewOpsData *vod = MEM_callocN(sizeof(ViewOpsData), __func__);
-
-  /* Store data. */
-  vod->bmain = CTX_data_main(C);
-  vod->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  vod->scene = CTX_data_scene(C);
-  vod->area = CTX_wm_area(C);
-  vod->region = CTX_wm_region(C);
-  vod->v3d = vod->area->spacedata.first;
-  vod->rv3d = vod->region->regiondata;
-
-  /* Could do this more nicely. */
-  if ((viewops_flag & VIEWOPS_FLAG_USE_MOUSE_INIT) == 0) {
-    viewops_flag &= ~VIEWOPS_FLAG_DEPTH_NAVIGATE;
-  }
-
-  viewops_data_init(C, vod, event, viewops_flag);
 }
 
 /** \} */
