@@ -272,8 +272,8 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
 {
   eV3DShadingColorType color_type = wpd->shading.color_type;
   const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
-  const CustomData *ldata = workbench_mesh_get_loop_custom_data(me);
-  const CustomData *vdata = workbench_mesh_get_vert_custom_data(me);
+  const CustomData *ldata = (me == NULL) ? NULL : workbench_mesh_get_loop_custom_data(me);
+  const CustomData *vdata = (me == NULL) ? NULL : workbench_mesh_get_vert_custom_data(me);
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_active = (ob == draw_ctx->obact);
