@@ -73,6 +73,9 @@ typedef struct GlyphCacheBLF {
   bool bold;
   bool italic;
 
+  /* Column width when printing monospaced. */
+  int fixed_width;
+
   /* and the glyphs. */
   ListBase bucket[257];
 
@@ -206,9 +209,6 @@ typedef struct FontBLF {
 
   /* font size. */
   float size;
-
-  /* Column width when printing monospaced. */
-  int fixed_width;
 
   /* max texture size. */
   int tex_size_max;

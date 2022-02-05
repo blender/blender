@@ -34,7 +34,6 @@
 
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
-#include FT_ADVANCES_H /* For FT_Get_Advance */
 
 #include "MEM_guardedalloc.h"
 
@@ -826,7 +825,10 @@ float blf_font_height(FontBLF *font,
 
 float blf_font_fixed_width(FontBLF *font)
 {
-  return (float)font->fixed_width;
+  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
+  float width = (gc) ? (float)gc->fixed_width : font->size / 2.0f;
+  blf_glyph_cache_release(font);
+  return width;
 }
 
 static void blf_font_boundbox_foreach_glyph_ex(FontBLF *font,
@@ -1369,22 +1371,6 @@ void blf_font_size(FontBLF *font, float size, unsigned int dpi)
   }
 
   blf_glyph_cache_release(font);
-
-  /* Set fixed-width size for monospaced output. */
-  FT_UInt gindex = FT_Get_Char_Index(font->face, U'0');
-  if (gindex) {
-    FT_Fixed advance = 0;
-    FT_Get_Advance(font->face, gindex, FT_LOAD_NO_HINTING, &advance);
-    /* Use CSS 'ch unit' width, advance of zero character. */
-    font->fixed_width = (int)(advance >> 16);
-  }
-  else {
-    /* Font does not contain "0" so use CSS fallback of 1/2 of em. */
-    font->fixed_width = (int)((font->face->size->metrics.height / 2) >> 6);
-  }
-  if (font->fixed_width < 1) {
-    font->fixed_width = 1;
-  }
 }
 
 /** \} */
