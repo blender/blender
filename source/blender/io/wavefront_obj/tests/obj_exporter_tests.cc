@@ -265,7 +265,7 @@ o abcdef
 o 012345678901234567890123456789abcd
 o 123
 curv 0.0 1.0
-parm 0.0
+parm u 0.0
 )";
   ASSERT_EQ(got_string, expected);
 }
@@ -408,6 +408,19 @@ TEST_F(obj_exporter_regression_test, nurbs_as_nurbs)
   _export.params.export_curves_as_nurbs = true;
   compare_obj_export_to_golden(
       "io_tests/blend_geometry/nurbs.blend", "io_tests/obj/nurbs.obj", "", _export.params);
+}
+
+TEST_F(obj_exporter_regression_test, nurbs_curves_as_nurbs)
+{
+  OBJExportParamsDefault _export;
+  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
+  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.export_materials = false;
+  _export.params.export_curves_as_nurbs = true;
+  compare_obj_export_to_golden("io_tests/blend_geometry/nurbs_curves.blend",
+                               "io_tests/obj/nurbs_curves.obj",
+                               "",
+                               _export.params);
 }
 
 TEST_F(obj_exporter_regression_test, nurbs_as_mesh)

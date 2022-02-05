@@ -369,11 +369,25 @@ void OBJWriter::write_nurbs_curve(FormatHandler<eFileType::OBJ> &fh,
 
     /**
      * In `parm u 0 0.1 ..` line:, (total control points + 2) equidistant numbers in the
-     * parameter range are inserted.
+     * parameter range are inserted. However for curves with endpoint flag,
+     * first degree+1 numbers are zeroes, and last degree+1 numbers are ones
      */
+
+    const short flagsu = obj_nurbs_data.get_nurbs_flagu(spline_idx);
+    const bool cyclic = flagsu & CU_NURB_CYCLIC;
+    const bool endpoint = !cyclic && (flagsu & CU_NURB_ENDPOINT);
     fh.write<eOBJSyntaxElement::nurbs_parameter_begin>();
     for (int i = 1; i <= total_control_points + 2; i++) {
-      fh.write<eOBJSyntaxElement::nurbs_parameters>(1.0f * i / (total_control_points + 2 + 1));
+      float parm = 1.0f * i / (total_control_points + 2 + 1);
+      if (endpoint) {
+        if (i <= nurbs_degree) {
+          parm = 0;
+        }
+        else if (i > total_control_points + 2 - nurbs_degree) {
+          parm = 1;
+        }
+      }
+      fh.write<eOBJSyntaxElement::nurbs_parameters>(parm);
     }
     fh.write<eOBJSyntaxElement::nurbs_parameter_end>();
 
