@@ -65,10 +65,7 @@ void blf_font_draw__wrap(struct FontBLF *font,
                          const char *str,
                          size_t str_len,
                          struct ResultBLF *r_info);
-void blf_font_draw_ascii(struct FontBLF *font,
-                         const char *str,
-                         size_t str_len,
-                         struct ResultBLF *r_info);
+
 /**
  * Use fixed column width, but an utf8 character may occupy multiple columns.
  */
