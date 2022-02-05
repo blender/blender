@@ -295,6 +295,10 @@ class UniformArrayBuffer : public detail::UniformCommon<T, len, false> {
     /* TODO(@fclem): We should map memory instead. */
     this->data_ = (T *)MEM_mallocN_aligned(len * sizeof(T), 16, this->name_);
   }
+  ~UniformArrayBuffer()
+  {
+    MEM_freeN(this->data_);
+  }
 };
 
 template<
