@@ -31,6 +31,8 @@
 extern "C" {
 #endif
 
+#define GPU_DEBUG_SHADER_COMPILATION_GROUP "Shader Compilation"
+
 void GPU_debug_group_begin(const char *name);
 void GPU_debug_group_end(void);
 /**
