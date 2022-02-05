@@ -548,7 +548,8 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                      (use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)));
       ED_view3d_camera_lock_autokey(vod->v3d, vod->rv3d, C, false, true);
 
-      viewops_data_free(C, op);
+      viewops_data_free(C, op->customdata);
+      op->customdata = NULL;
       return OPERATOR_FINISHED;
     }
 
@@ -568,7 +569,8 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 static void viewzoom_cancel(bContext *C, wmOperator *op)
 {
-  viewops_data_free(C, op);
+  viewops_data_free(C, op->customdata);
+  op->customdata = NULL;
 }
 
 void VIEW3D_OT_zoom(wmOperatorType *ot)
