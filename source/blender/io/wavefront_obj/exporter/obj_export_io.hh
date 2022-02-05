@@ -168,7 +168,7 @@ constexpr FormattingSyntax syntax_elem_to_formatting(const eOBJSyntaxElement key
       return {"curv 0.0 1.0", 0, is_type_string_related<T...>};
     }
     case eOBJSyntaxElement::nurbs_parameter_begin: {
-      return {"parm 0.0", 0, is_type_string_related<T...>};
+      return {"parm u 0.0", 0, is_type_string_related<T...>};
     }
     case eOBJSyntaxElement::nurbs_parameters: {
       return {" %f", 1, is_type_float<T...>};
