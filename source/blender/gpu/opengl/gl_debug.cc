@@ -339,7 +339,7 @@ void object_label(GLenum type, GLuint object, const char *name)
     char label[64];
     SNPRINTF(label, "%s%s%s", to_str_prefix(type), name, to_str_suffix(type));
     /* Small convenience for caller. */
-    if (ELEM(type, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_VERTEX_SHADER)) {
+    if (ELEM(type, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_VERTEX_SHADER, GL_COMPUTE_SHADER)) {
       type = GL_SHADER;
     }
     if (ELEM(type, GL_UNIFORM_BUFFER)) {
