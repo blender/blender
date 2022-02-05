@@ -1318,12 +1318,7 @@ FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, int m
 
 void blf_font_free(FontBLF *font)
 {
-  BLI_spin_lock(&blf_glyph_cache_mutex);
-  GlyphCacheBLF *gc;
-
-  while ((gc = BLI_pophead(&font->cache))) {
-    blf_glyph_cache_free(gc);
-  }
+  blf_glyph_cache_clear(font);
 
   if (font->kerning_cache) {
     MEM_freeN(font->kerning_cache);
@@ -1337,8 +1332,6 @@ void blf_font_free(FontBLF *font)
     MEM_freeN(font->name);
   }
   MEM_freeN(font);
-
-  BLI_spin_unlock(&blf_glyph_cache_mutex);
 }
 
 /** \} */

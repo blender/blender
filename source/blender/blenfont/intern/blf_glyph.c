@@ -122,20 +122,7 @@ void blf_glyph_cache_release(FontBLF *font)
   BLI_spin_unlock(font->glyph_cache_mutex);
 }
 
-void blf_glyph_cache_clear(FontBLF *font)
-{
-  GlyphCacheBLF *gc;
-
-  BLI_spin_lock(font->glyph_cache_mutex);
-
-  while ((gc = BLI_pophead(&font->cache))) {
-    blf_glyph_cache_free(gc);
-  }
-
-  BLI_spin_unlock(font->glyph_cache_mutex);
-}
-
-void blf_glyph_cache_free(GlyphCacheBLF *gc)
+static void blf_glyph_cache_free(GlyphCacheBLF *gc)
 {
   GlyphBLF *g;
   for (uint i = 0; i < ARRAY_SIZE(gc->bucket); i++) {
@@ -150,6 +137,19 @@ void blf_glyph_cache_free(GlyphCacheBLF *gc)
     MEM_freeN(gc->bitmap_result);
   }
   MEM_freeN(gc);
+}
+
+void blf_glyph_cache_clear(FontBLF *font)
+{
+  GlyphCacheBLF *gc;
+
+  BLI_spin_lock(font->glyph_cache_mutex);
+
+  while ((gc = BLI_pophead(&font->cache))) {
+    blf_glyph_cache_free(gc);
+  }
+
+  BLI_spin_unlock(font->glyph_cache_mutex);
 }
 
 /**

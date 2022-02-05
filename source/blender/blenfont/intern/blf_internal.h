@@ -148,7 +148,6 @@ struct GlyphCacheBLF *blf_glyph_cache_new(struct FontBLF *font);
 struct GlyphCacheBLF *blf_glyph_cache_acquire(struct FontBLF *font);
 void blf_glyph_cache_release(struct FontBLF *font);
 void blf_glyph_cache_clear(struct FontBLF *font);
-void blf_glyph_cache_free(struct GlyphCacheBLF *gc);
 
 /**
  * Create (or load from cache) a fully-rendered bitmap glyph.
