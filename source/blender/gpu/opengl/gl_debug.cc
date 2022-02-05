@@ -108,6 +108,11 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
     GPU_debug_get_groups_names(sizeof(debug_groups), debug_groups);
     CLG_Severity clog_severity;
 
+    if (GPU_debug_group_match(GPU_DEBUG_SHADER_COMPILATION_GROUP)) {
+      /** Do not duplicate shader compilation error/warnings. */
+      return;
+    }
+
     switch (type) {
       case GL_DEBUG_TYPE_ERROR:
       case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
