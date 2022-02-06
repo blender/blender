@@ -193,8 +193,8 @@ static void store_bsdf_properties(const nodes::NodeRef *bsdf_node,
     copy_property_from_node(SOCK_FLOAT, bnode, "Roughness", {&roughness, 1});
   }
   /* Empirical approximation. Importer should use the inverse of this method. */
-  float spec_exponent = (1.0f - roughness) * 30;
-  spec_exponent *= spec_exponent;
+  float spec_exponent = (1.0f - roughness);
+  spec_exponent *= spec_exponent * 1000.0f;
 
   float specular = material->spec;
   if (bnode) {
