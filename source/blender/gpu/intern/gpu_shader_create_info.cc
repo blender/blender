@@ -55,6 +55,8 @@ void ShaderCreateInfo::finalize()
   }
   finalized_ = true;
 
+  Set<StringRefNull> deps_merged;
+
   for (auto &info_name : additional_infos_) {
     const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(
         gpu_shader_create_info_get(info_name.c_str()));
@@ -85,6 +87,10 @@ void ShaderCreateInfo::finalize()
         BLI_assert(0);
       }
     };
+
+    if (!deps_merged.add(info.name_)) {
+      assert_no_overlap(false, "additional info already merged via another info");
+    }
 
     if (info.compute_layout_.local_size_x != -1) {
       assert_no_overlap(compute_layout_.local_size_x == -1, "Compute layout already defined");
