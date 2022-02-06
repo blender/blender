@@ -313,6 +313,14 @@ class FormatHandler : NonCopyable, NonMovable {
     return blocks_.size();
   }
 
+  void append_from(FormatHandler<filetype, buffer_chunk_size, write_local_buffer_size> &v)
+  {
+    blocks_.insert(blocks_.end(),
+                   std::make_move_iterator(v.blocks_.begin()),
+                   std::make_move_iterator(v.blocks_.end()));
+    v.blocks_.clear();
+  }
+
   /**
    * Example invocation: `writer->write<eMTLSyntaxElement::newmtl>("foo")`.
    *
