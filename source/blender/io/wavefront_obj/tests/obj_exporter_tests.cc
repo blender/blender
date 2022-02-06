@@ -313,8 +313,14 @@ class obj_exporter_regression_test : public obj_exporter_test {
       std::string output_mtl_str = read_temp_file_in_string(out_mtl_file_path);
       std::string golden_mtl_file_path = blender::tests::flags_test_asset_dir() + "/" + golden_mtl;
       std::string golden_mtl_str = read_temp_file_in_string(golden_mtl_file_path);
-      ASSERT_TRUE(strings_equal_after_first_lines(output_mtl_str, golden_mtl_str));
-      BLI_delete(out_mtl_file_path.c_str(), false, false);
+      are_equal = strings_equal_after_first_lines(output_mtl_str, golden_mtl_str);
+      if (save_failing_test_output && !are_equal) {
+        printf("failing test output in %s\n", out_mtl_file_path.c_str());
+      }
+      ASSERT_TRUE(are_equal);
+      if (!save_failing_test_output || are_equal) {
+        BLI_delete(out_mtl_file_path.c_str(), false, false);
+      }
     }
   }
 };
