@@ -196,6 +196,9 @@ void init_gl_callbacks()
 
 void check_gl_error(const char *info)
 {
+  if (!(G.debug & G_DEBUG_GPU)) {
+    return;
+  }
   GLenum error = glGetError();
 
 #define ERROR_CASE(err) \
