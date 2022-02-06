@@ -13,7 +13,7 @@ GPU_SHADER_CREATE_INFO(workbench_composite)
     .fragment_out(0, Type::VEC4, "fragColor")
     .typedef_source("workbench_shader_shared.h")
     .fragment_source("workbench_composite_frag.glsl")
-    .additional_info("draw_fullscreen");
+    .additional_info("draw_fullscreen", "draw_view");
 
 /** \} */
 
