@@ -82,6 +82,8 @@ DEBUG_FUNC_DECLARE(PFNGLDRAWBUFFERSPROC, void, glDrawBuffers, GLsizei, n, const 
 DEBUG_FUNC_DECLARE(PFNGLDRAWELEMENTSINSTANCEDBASEVERTEXBASEINSTANCEPROC, void, glDrawElementsInstancedBaseVertexBaseInstance, GLenum, mode, GLsizei, count, GLenum, type, const void *, indices, GLsizei, primcount, GLint, basevertex, GLuint, baseinstance);
 DEBUG_FUNC_DECLARE(PFNGLDRAWELEMENTSINSTANCEDBASEVERTEXPROC, void, glDrawElementsInstancedBaseVertex, GLenum, mode, GLsizei, count, GLenum, type, const void *, indices, GLsizei, instancecount, GLint, basevertex);
 DEBUG_FUNC_DECLARE(PFNGLENDQUERYPROC, void, glEndQuery, GLenum, target);
+DEBUG_FUNC_DECLARE(PFNGLDISPATCHCOMPUTEPROC, void, glDispatchCompute, GLuint, num_groups_x, GLuint, num_groups_y, GLuint, num_groups_z);
+DEBUG_FUNC_DECLARE(PFNGLDISPATCHCOMPUTEINDIRECTPROC, void, glDispatchComputeIndirect, GLintptr, indirect);
 DEBUG_FUNC_DECLARE(PFNGLENDTRANSFORMFEEDBACKPROC, void, glEndTransformFeedback, void);
 DEBUG_FUNC_DECLARE(PFNGLFRAMEBUFFERTEXTURE2DPROC, void, glFramebufferTexture2D, GLenum, target, GLenum, attachment, GLenum, textarget, GLuint, texture, GLint, level);
 DEBUG_FUNC_DECLARE(PFNGLFRAMEBUFFERTEXTURELAYERPROC, void, glFramebufferTextureLayer, GLenum, target, GLenum, attachment, GLuint, texture, GLint, level, GLint, layer);
@@ -130,6 +132,8 @@ void init_debug_layer()
   DEBUG_WRAP(glDeleteSamplers);
   DEBUG_WRAP(glDeleteShader);
   DEBUG_WRAP(glDeleteVertexArrays);
+  DEBUG_WRAP(glDispatchCompute);
+  DEBUG_WRAP(glDispatchComputeIndirect);
   DEBUG_WRAP(glDrawArraysInstanced);
   DEBUG_WRAP(glDrawArraysInstancedBaseInstance);
   DEBUG_WRAP(glDrawBuffers);
