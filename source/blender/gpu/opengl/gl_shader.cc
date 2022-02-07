@@ -85,7 +85,7 @@ static const char *to_string(const Interpolation &interp)
     case Interpolation::NO_PERSPECTIVE:
       return "noperspective";
     default:
-      return "unkown";
+      return "unknown";
   }
 }
 
@@ -123,7 +123,7 @@ static const char *to_string(const Type &type)
     case Type::BOOL:
       return "bool";
     default:
-      return "unkown";
+      return "unknown";
   }
 }
 

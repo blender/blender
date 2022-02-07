@@ -243,7 +243,7 @@ static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
       uiItemR(layout, filter_ptr, "value_string", 0, IFACE_("Value"), ICON_NONE);
       break;
     case SPREADSHEET_VALUE_TYPE_UNKNOWN:
-      uiItemL(layout, IFACE_("Unkown column type"), ICON_ERROR);
+      uiItemL(layout, IFACE_("Unknown column type"), ICON_ERROR);
       break;
   }
 }

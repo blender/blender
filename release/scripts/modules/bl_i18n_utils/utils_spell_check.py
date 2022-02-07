@@ -76,10 +76,12 @@ class SpellChecker:
         "tangency",
         "vertices",
         "wasn",  # wasn't
+        "zig", "zag",
 
         # Brands etc.
         "htc",
         "huawei",
+        "radeon",
         "vive",
         "xbox",
 
@@ -136,6 +138,7 @@ class SpellChecker:
         "filename", "filenames",
         "filepath", "filepaths",
         "forcefield", "forcefields",
+        "framerange",
         "fulldome", "fulldomes",
         "fullscreen",
         "gamepad",
@@ -498,6 +501,7 @@ class SpellChecker:
         "framerate",
         "gimbal",
         "grayscale",
+        "icosahedron",
         "icosphere",
         "inpaint",
         "kerning",
@@ -556,6 +560,7 @@ class SpellChecker:
         "bspline",
         "bweight",
         "colorband",
+        "crazyspace",
         "datablock", "datablocks",
         "despeckle",
         "depsgraph",
@@ -730,6 +735,7 @@ class SpellChecker:
         "precisa",
         "px",
         "qmc",
+        "rdna",
         "rdp",
         "rgb", "rgba",
         "rhs",
