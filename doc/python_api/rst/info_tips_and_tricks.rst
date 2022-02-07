@@ -81,7 +81,7 @@ but reference an external file rather than including it directly.
 Executing External Scripts
 --------------------------
 
-This is the equivalent to running the script directly, referencing a scripts path from a two line code block.
+This is the equivalent to running the script directly, referencing a script's path from a two line code block.
 
 .. code-block:: python
 
@@ -124,7 +124,7 @@ small script which is often useful for testing different settings quickly.
 
 The other issue with this is the script has to be in Python's module search path.
 While this is not best practice -- for testing purposes you can extend the search path,
-this following example adds the current blend-files directory to the search path
+this following example adds the current blend-file's directory to the search path
 and then loads the script as a module.
 
 .. code-block:: python
@@ -302,7 +302,7 @@ Python Safety (Build Option)
 ----------------------------
 
 Since it's possible to access data which has been removed (see :doc:`Gotchas <info_gotcha>`),
-can make it hard to track down the cause of crashes.
+it can be hard to track down the cause of crashes.
 To raise Python exceptions on accessing freed data (rather than crashing),
 enable the CMake build option ``WITH_PYTHON_SAFETY``.
 This enables data tracking which makes data access about two times slower
