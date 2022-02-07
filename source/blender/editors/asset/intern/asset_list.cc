@@ -41,6 +41,7 @@
 #include "WM_api.h"
 
 /* XXX uses private header of file-space. */
+#include "../space_file/file_indexer.h"
 #include "../space_file/filelist.h"
 
 #include "ED_asset_handle.h"
@@ -170,7 +171,8 @@ void AssetList::setup()
       "",
       "");
 
-  filelist_setindexer(files, &file_indexer_asset);
+  const bool use_asset_indexer = !USER_EXPERIMENTAL_TEST(&U, no_asset_indexing);
+  filelist_setindexer(files, use_asset_indexer ? &file_indexer_asset : &file_indexer_noop);
 
   char path[FILE_MAXDIR] = "";
   if (user_library) {
