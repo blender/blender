@@ -101,9 +101,25 @@ void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view)
   const GridViewStyle &style = grid_view.get_style();
 
   const int cols_per_row = uiLayoutGetWidth(&layout) / style.tile_width;
-  uiLayout *grid_layout = uiLayoutGridFlow(&layout, true, cols_per_row, true, true, true);
+  /* Use `-cols_per_row` because the grid layout uses a multiple of the passed absolute value for
+   * the number of columns then, rather than distributing the number of items evenly over rows and
+   * stretching the items to fit (see #uiLayoutItemGridFlow.columns_len). */
+  uiLayout *grid_layout = uiLayoutGridFlow(&layout, true, -cols_per_row, true, true, true);
 
-  grid_view.foreach_item([&](AbstractGridViewItem &item) { item.build_grid_tile(*grid_layout); });
+  int item_count = 0;
+  grid_view.foreach_item([&](AbstractGridViewItem &item) {
+    item.build_grid_tile(*grid_layout);
+    item_count++;
+  });
+
+  /* If there are not enough items to fill the layout, add padding items so the layout doesn't
+   * stretch over the entire width. */
+  if (item_count < cols_per_row) {
+    for (int padding_item_idx = 0; padding_item_idx < (cols_per_row - item_count);
+         padding_item_idx++) {
+      uiItemS(grid_layout);
+    }
+  }
 }
 
 uiLayout *GridViewLayoutBuilder::current_layout() const
