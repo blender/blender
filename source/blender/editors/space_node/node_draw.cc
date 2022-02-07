@@ -626,7 +626,9 @@ static void node_update_hidden(bNode &node, uiBlock &block)
 
 static int node_get_colorid(const bNode &node)
 {
-  switch (node.typeinfo->nclass) {
+  const int nclass = (node.typeinfo->ui_class == nullptr) ? node.typeinfo->nclass :
+                                                            node.typeinfo->ui_class(&node);
+  switch (nclass) {
     case NODE_CLASS_INPUT:
       return TH_NODE_INPUT;
     case NODE_CLASS_OUTPUT:

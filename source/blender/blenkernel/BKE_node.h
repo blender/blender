@@ -274,6 +274,9 @@ typedef struct bNodeType {
                     char *label,
                     int maxlen);
 
+  /** Optional override for node class, used for drawing node header. */
+  int (*ui_class)(const struct bNode *node);
+
   /** Called when the node is updated in the editor. */
   void (*updatefunc)(struct bNodeTree *ntree, struct bNode *node);
   /** Check and update if internal ID data has changed. */
