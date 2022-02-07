@@ -214,7 +214,7 @@ void Shader::print_log(Span<const char *> sources,
     if (source_index > 0) {
       row_in_file -= sources_end_line[source_index - 1];
     }
-    /* Print the filename the error line is comming from. */
+    /* Print the filename the error line is coming from. */
     if (source_index > 0) {
       StringRefNull filename = shader::gpu_shader_dependency_get_filename_from_source_string(
           sources[source_index]);

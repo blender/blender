@@ -4132,7 +4132,7 @@ static VMesh *cubic_subdiv(BevelParams *bp, VMesh *vm_in)
   for (int i = 0; i < n_boundary; i++) {
     float co1[3], co2[3], acc[3];
     EdgeHalf *e = bndv->elast;
-    /* Generate tangents. This is hacked together and would ideally be done elsewere and then only
+    /* Generate tangents. This is hacked together and would ideally be done elsewhere and then only
      * used here. */
     float tangent[3], tangent2[3], normal[3];
     bool convex = true;
@@ -4199,7 +4199,7 @@ static VMesh *cubic_subdiv(BevelParams *bp, VMesh *vm_in)
       sub_v3_v3v3(co1, mesh_vert(vm_in, i, 0, 0)->co, mesh_vert(vm_in, i, 0, 1)->co);
       sub_v3_v3v3(co2, mesh_vert(vm_in, i, 0, 1)->co, mesh_vert(vm_in, i, 0, 2)->co);
       cross_v3_v3v3(tangent, co1, co2);
-      /** The following constant is choosen to best match the old results. */
+      /** The following constant is chosen to best match the old results. */
       normalize_v3_length(tangent, 1.5f / ns_out);
     }
     /** Copy corner vertex. */

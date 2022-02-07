@@ -130,7 +130,7 @@ enum class BuiltinBits {
   GLOBAL_INVOCATION_ID = (1 << 5),
   INSTANCE_ID = (1 << 6),
   /**
-   * Allow setting the target layer when the output is a layered framebuffer.
+   * Allow setting the target layer when the output is a layered frame-buffer.
    * \note Emulated through geometry shader on older hardware.
    */
   LAYER = (1 << 7),

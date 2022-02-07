@@ -61,7 +61,7 @@ char *GLLogParser::parse_line(char *log_line, GPULogItem &log_item)
       log_item.cursor.column = -1;
     }
     else if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OFFICIAL) &&
-             /* WORKAROUND(@fclem): Both Mesa and amdgpu-pro are reported as official. */
+             /* WORKAROUND(@fclem): Both Mesa and AMDGPU-PRO are reported as official. */
              StringRefNull(GPU_platform_version()).find(" Mesa ") == -1) {
       /* source:row */
       log_item.cursor.source = log_item.cursor.row;
