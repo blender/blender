@@ -1456,6 +1456,12 @@ static void rna_def_strip_crop(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_SequenceCrop_path");
 }
 
+static const EnumPropertyItem transform_filter_items[] = {
+    {SEQ_TRANSFORM_FILTER_NEAREST, "NEAREST", 0, "Nearest", ""},
+    {SEQ_TRANSFORM_FILTER_BILINEAR, "BILINEAR", 0, "Bilinear", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static void rna_def_strip_transform(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -1500,6 +1506,13 @@ static void rna_def_strip_transform(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "origin");
   RNA_def_property_ui_text(prop, "Origin", "Origin of image for transformation");
   RNA_def_property_ui_range(prop, 0, 1, 1, 3);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
+
+  prop = RNA_def_property(srna, "filter", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "filter");
+  RNA_def_property_enum_items(prop, transform_filter_items);
+  RNA_def_property_enum_default(prop, SEQ_TRANSFORM_FILTER_BILINEAR);
+  RNA_def_property_ui_text(prop, "Filter", "Type of filter to use for image transformation");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
   RNA_def_struct_path_func(srna, "rna_SequenceTransform_path");

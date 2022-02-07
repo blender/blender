@@ -685,6 +685,17 @@ static int customdata_compare(
           }
           break;
         }
+        case CD_PROP_INT8: {
+          const int8_t *l1_data = (int8_t *)l1->data;
+          const int8_t *l2_data = (int8_t *)l2->data;
+
+          for (int i = 0; i < total_length; i++) {
+            if (l1_data[i] != l2_data[i]) {
+              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
+            }
+          }
+          break;
+        }
         case CD_PROP_BOOL: {
           const bool *l1_data = (bool *)l1->data;
           const bool *l2_data = (bool *)l2->data;

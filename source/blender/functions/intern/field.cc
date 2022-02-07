@@ -571,6 +571,13 @@ bool IndexFieldInput::is_equal_to(const fn::FieldNode &other) const
 }
 
 /* --------------------------------------------------------------------
+ * FieldNode.
+ */
+
+/* Avoid generating the destructor in every translation unit. */
+FieldNode::~FieldNode() = default;
+
+/* --------------------------------------------------------------------
  * FieldOperation.
  */
 
@@ -580,6 +587,9 @@ FieldOperation::FieldOperation(std::shared_ptr<const MultiFunction> function,
 {
   owned_function_ = std::move(function);
 }
+
+/* Avoid generating the destructor in every translation unit. */
+FieldOperation::~FieldOperation() = default;
 
 /**
  * Returns the field inputs used by all the provided fields.
@@ -654,6 +664,9 @@ FieldInput::FieldInput(const CPPType &type, std::string debug_name)
   field_inputs->deduplicated_nodes.add_new(*this);
   field_inputs_ = std::move(field_inputs);
 }
+
+/* Avoid generating the destructor in every translation unit. */
+FieldInput::~FieldInput() = default;
 
 /* --------------------------------------------------------------------
  * FieldConstant.

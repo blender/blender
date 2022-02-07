@@ -177,7 +177,7 @@ constexpr FormattingSyntax syntax_elem_to_formatting(const eOBJSyntaxElement key
       return {"curv 0.0 1.0", 0, is_type_string_related<T...>};
     }
     case eOBJSyntaxElement::nurbs_parameter_begin: {
-      return {"parm 0.0", 0, is_type_string_related<T...>};
+      return {"parm u 0.0", 0, is_type_string_related<T...>};
     }
     case eOBJSyntaxElement::nurbs_parameters: {
       return {" %f", 1, is_type_float<T...>};
@@ -311,6 +311,14 @@ class FormatHandler : NonCopyable, NonMovable {
   size_t get_block_count() const
   {
     return blocks_.size();
+  }
+
+  void append_from(FormatHandler<filetype, buffer_chunk_size, write_local_buffer_size> &v)
+  {
+    blocks_.insert(blocks_.end(),
+                   std::make_move_iterator(v.blocks_.begin()),
+                   std::make_move_iterator(v.blocks_.end()));
+    v.blocks_.clear();
   }
 
   /**

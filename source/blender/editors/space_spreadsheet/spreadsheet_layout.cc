@@ -127,6 +127,28 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
       UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
     }
+    if (data.type().is<int8_t>()) {
+      const int8_t value = data.get<int8_t>(real_index);
+      const std::string value_str = std::to_string(value);
+      uiBut *but = uiDefIconTextBut(params.block,
+                                    UI_BTYPE_LABEL,
+                                    0,
+                                    ICON_NONE,
+                                    value_str.c_str(),
+                                    params.xmin,
+                                    params.ymin,
+                                    params.width,
+                                    params.height,
+                                    nullptr,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    nullptr);
+      /* Right-align Integers. */
+      UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+      UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
+    }
     else if (data.type().is<float>()) {
       const float value = data.get<float>(real_index);
       std::stringstream ss;

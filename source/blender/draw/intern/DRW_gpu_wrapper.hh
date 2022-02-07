@@ -295,6 +295,10 @@ class UniformArrayBuffer : public detail::UniformCommon<T, len, false> {
     /* TODO(@fclem): We should map memory instead. */
     this->data_ = (T *)MEM_mallocN_aligned(len * sizeof(T), 16, this->name_);
   }
+  ~UniformArrayBuffer()
+  {
+    MEM_freeN(this->data_);
+  }
 };
 
 template<
@@ -674,20 +678,20 @@ class Texture : NonCopyable {
     if (h == 0) {
       return GPU_texture_create_1d(name_, w, mips, format, data);
     }
-    else if (d == 0) {
-      if (layered) {
-        return GPU_texture_create_1d_array(name_, w, h, mips, format, data);
-      }
-      else {
-        return GPU_texture_create_2d(name_, w, h, mips, format, data);
-      }
-    }
     else if (cubemap) {
       if (layered) {
         return GPU_texture_create_cube_array(name_, w, d, mips, format, data);
       }
       else {
         return GPU_texture_create_cube(name_, w, mips, format, data);
+      }
+    }
+    else if (d == 0) {
+      if (layered) {
+        return GPU_texture_create_1d_array(name_, w, h, mips, format, data);
+      }
+      else {
+        return GPU_texture_create_2d(name_, w, h, mips, format, data);
       }
     }
     else {

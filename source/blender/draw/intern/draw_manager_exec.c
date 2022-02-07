@@ -662,8 +662,11 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
           *use_tfeedback = GPU_shader_transform_feedback_enable(shgroup->shader,
                                                                 ((GPUVertBuf *)uni->pvalue));
           break;
+        case DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE_REF:
+          GPU_vertbuf_bind_as_ssbo(*uni->vertbuf_ref, uni->location);
+          break;
         case DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE:
-          GPU_vertbuf_bind_as_ssbo((GPUVertBuf *)uni->pvalue, uni->location);
+          GPU_vertbuf_bind_as_ssbo(uni->vertbuf, uni->location);
           break;
           /* Legacy/Fallback support. */
         case DRW_UNIFORM_BASE_INSTANCE:
@@ -1048,6 +1051,15 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
                                cmd->compute.groups_x_len,
                                cmd->compute.groups_y_len,
                                cmd->compute.groups_z_len);
+          break;
+        case DRW_CMD_COMPUTE_REF:
+          GPU_compute_dispatch(shgroup->shader,
+                               cmd->compute_ref.groups_ref[0],
+                               cmd->compute_ref.groups_ref[1],
+                               cmd->compute_ref.groups_ref[2]);
+          break;
+        case DRW_CMD_BARRIER:
+          GPU_memory_barrier(cmd->barrier.type);
           break;
       }
     }

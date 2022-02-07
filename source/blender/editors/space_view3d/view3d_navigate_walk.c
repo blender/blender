@@ -1487,9 +1487,9 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else
 #endif /* WITH_INPUT_NDOF */
-    if (event->type == TIMER && event->customdata == walk->timer) {
-      walkApply(C, walk, false);
-    }
+      if (event->type == TIMER && event->customdata == walk->timer) {
+    walkApply(C, walk, false);
+  }
 
   do_draw |= walk->redraw;
 

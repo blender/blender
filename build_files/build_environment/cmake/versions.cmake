@@ -83,9 +83,9 @@ else()
   set(OPENEXR_VERSION_POSTFIX)
 endif()
 
-set(FREETYPE_VERSION 2.11.0)
+set(FREETYPE_VERSION 2.11.1)
 set(FREETYPE_URI http://prdownloads.sourceforge.net/freetype/freetype-${FREETYPE_VERSION}.tar.gz)
-set(FREETYPE_HASH cf09172322f6b50cf8f568bf8fe14bde)
+set(FREETYPE_HASH bd4e3b007474319909a6b79d50908e85)
 set(FREETYPE_HASH_TYPE MD5)
 set(FREETYPE_FILE freetype-${FREETYPE_VERSION}.tar.gz)
 

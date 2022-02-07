@@ -514,8 +514,10 @@ typedef struct bNodeTree {
   /** Information about how inputs and outputs of the node group interact with fields. */
   FieldInferencingInterfaceHandle *field_inferencing_interface;
 
-  /** Set init on fileread. */
-  int type, init;
+  int type;
+
+  char _pad1[4];
+
   /**
    * Sockets in groups have unique identifiers, adding new sockets always
    * will increase this counter.
@@ -598,9 +600,6 @@ typedef struct bNodeTree {
 #define NTREE_COMPOSIT 1
 #define NTREE_TEXTURE 2
 #define NTREE_GEOMETRY 3
-
-/** #NodeTree.init, flag */
-#define NTREE_TYPE_INIT 1
 
 /** #NodeTree.flag */
 #define NTREE_DS_EXPAND (1 << 0)            /* for animation editors */

@@ -2073,8 +2073,9 @@ static void UI_OT_tree_view_drop(wmOperatorType *ot)
 /** \name UI Tree-View Item Rename Operator
  *
  * General purpose renaming operator for tree-views. Thanks to this, to add a rename button to
- * context menus for example, tree-view API users don't have to implement own renaming operators
- * with the same logic as they already have for their #ui::AbstractTreeViewItem::rename() override.
+ * context menus for example, tree-view API users don't have to implement their own renaming
+ * operators with the same logic as they already have for their #ui::AbstractTreeViewItem::rename()
+ * override.
  *
  * \{ */
 

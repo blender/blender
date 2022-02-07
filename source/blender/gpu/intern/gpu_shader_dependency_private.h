@@ -34,12 +34,32 @@ void gpu_shader_dependency_init(void);
 
 void gpu_shader_dependency_exit(void);
 
-/* User must free the resulting string using free. */
-char *gpu_shader_dependency_get_resolved_source(const char *shader_source_name);
-char *gpu_shader_dependency_get_source(const char *shader_source_name);
-
-uint32_t gpu_shader_dependency_get_builtins(const char *shader_source_name);
-
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+
+#  include "BLI_string_ref.hh"
+#  include "BLI_vector.hh"
+
+#  include "gpu_shader_create_info.hh"
+
+namespace blender::gpu::shader {
+
+BuiltinBits gpu_shader_dependency_get_builtins(const StringRefNull source_name);
+
+Vector<const char *> gpu_shader_dependency_get_resolved_source(const StringRefNull source_name);
+StringRefNull gpu_shader_dependency_get_source(const StringRefNull source_name);
+
+/**
+ * \brief Find the name of the file from which the given string was generated.
+ * \return Return filename or empty string.
+ * \note source_string needs to be identical to the one given by gpu_shader_dependency_get_source()
+ */
+StringRefNull gpu_shader_dependency_get_filename_from_source_string(
+    const StringRefNull source_string);
+
+}  // namespace blender::gpu::shader
+
 #endif

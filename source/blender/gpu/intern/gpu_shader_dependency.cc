@@ -332,14 +332,12 @@ struct GPUSource {
   }
 
   /* Returns the final string with all includes done. */
-  std::string build() const
+  void build(Vector<const char *> &result) const
   {
-    std::string str;
     for (auto *dep : dependencies) {
-      str += dep->source;
+      result.append(dep->source.c_str());
     }
-    str += source;
-    return str;
+    result.append(source.c_str());
   }
 
   shader::BuiltinBits builtins_get() const
@@ -383,23 +381,47 @@ void gpu_shader_dependency_exit()
   delete g_sources;
 }
 
-uint32_t gpu_shader_dependency_get_builtins(const char *shader_source_name)
+namespace blender::gpu::shader {
+
+BuiltinBits gpu_shader_dependency_get_builtins(const StringRefNull shader_source_name)
 {
-  if (shader_source_name[0] == '\0') {
-    return 0;
+  if (shader_source_name.is_empty()) {
+    return shader::BuiltinBits::NONE;
+  }
+  if (g_sources->contains(shader_source_name) == false) {
+    std::cout << "Error: Could not find \"" << shader_source_name
+              << "\" in the list of registered source.\n";
+    BLI_assert(0);
+    return shader::BuiltinBits::NONE;
   }
   GPUSource *source = g_sources->lookup(shader_source_name);
-  return static_cast<uint32_t>(source->builtins_get());
+  return source->builtins_get();
 }
 
-char *gpu_shader_dependency_get_resolved_source(const char *shader_source_name)
+Vector<const char *> gpu_shader_dependency_get_resolved_source(
+    const StringRefNull shader_source_name)
 {
+  Vector<const char *> result;
   GPUSource *source = g_sources->lookup(shader_source_name);
-  return strdup(source->build().c_str());
+  source->build(result);
+  return result;
 }
 
-char *gpu_shader_dependency_get_source(const char *shader_source_name)
+StringRefNull gpu_shader_dependency_get_source(const StringRefNull shader_source_name)
 {
   GPUSource *src = g_sources->lookup(shader_source_name);
-  return strdup(src->source.c_str());
+  return src->source;
 }
+
+StringRefNull gpu_shader_dependency_get_filename_from_source_string(
+    const StringRefNull source_string)
+{
+  for (auto &source : g_sources->values()) {
+    if (source->source.c_str() == source_string.c_str()) {
+      return source->filename;
+    }
+  }
+  return "";
+}
+
+}  // namespace blender::gpu::shader

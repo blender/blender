@@ -82,7 +82,7 @@ enum eViewOpsFlag {
 
 /** Generic View Operator Custom-Data */
 typedef struct ViewOpsData {
-  /** Context pointers (assigned by #viewops_data_alloc). */
+  /** Context pointers (assigned by #viewops_data_create). */
   struct Main *bmain;
   struct Scene *scene;
   struct ScrArea *area;
@@ -169,16 +169,14 @@ void view3d_operator_properties_common(struct wmOperatorType *ot, const enum eV3
 /**
  * Allocate and fill in context pointers for #ViewOpsData
  */
-void viewops_data_alloc(struct bContext *C, struct wmOperator *op);
-void viewops_data_free(struct bContext *C, struct wmOperator *op);
+void viewops_data_free(struct bContext *C, ViewOpsData *vod);
 
 /**
- * Calculate the values for #ViewOpsData
+ * Allocate, fill in context pointers and calculate the values for #ViewOpsData
  */
-void viewops_data_create(struct bContext *C,
-                         struct wmOperator *op,
-                         const struct wmEvent *event,
-                         enum eViewOpsFlag viewops_flag);
+ViewOpsData *viewops_data_create(struct bContext *C,
+                                 const struct wmEvent *event,
+                                 enum eViewOpsFlag viewops_flag);
 
 void VIEW3D_OT_view_all(struct wmOperatorType *ot);
 void VIEW3D_OT_view_selected(struct wmOperatorType *ot);

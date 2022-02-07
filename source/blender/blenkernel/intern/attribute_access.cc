@@ -83,6 +83,8 @@ const blender::fn::CPPType *custom_data_type_to_cpp_type(const CustomDataType ty
       return &CPPType::get<ColorGeometry4f>();
     case CD_PROP_BOOL:
       return &CPPType::get<bool>();
+    case CD_PROP_INT8:
+      return &CPPType::get<int8_t>();
     default:
       return nullptr;
   }
@@ -109,6 +111,9 @@ CustomDataType cpp_type_to_custom_data_type(const blender::fn::CPPType &type)
   if (type.is<bool>()) {
     return CD_PROP_BOOL;
   }
+  if (type.is<int8_t>()) {
+    return CD_PROP_INT8;
+  }
   return static_cast<CustomDataType>(-1);
 }
 
@@ -117,16 +122,18 @@ static int attribute_data_type_complexity(const CustomDataType data_type)
   switch (data_type) {
     case CD_PROP_BOOL:
       return 0;
-    case CD_PROP_INT32:
+    case CD_PROP_INT8:
       return 1;
-    case CD_PROP_FLOAT:
+    case CD_PROP_INT32:
       return 2;
-    case CD_PROP_FLOAT2:
+    case CD_PROP_FLOAT:
       return 3;
-    case CD_PROP_FLOAT3:
+    case CD_PROP_FLOAT2:
       return 4;
-    case CD_PROP_COLOR:
+    case CD_PROP_FLOAT3:
       return 5;
+    case CD_PROP_COLOR:
+      return 6;
 #if 0 /* These attribute types are not supported yet. */
     case CD_MLOOPCOL:
       return 3;

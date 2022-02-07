@@ -103,30 +103,6 @@ class OBJWriter : NonMovable, NonCopyable {
    */
   void write_poly_normals(FormatHandler<eFileType::OBJ> &fh, OBJMesh &obj_mesh_data);
   /**
-   * Write smooth group if polygon at the given index is shaded smooth else "s 0"
-   */
-  int write_smooth_group(FormatHandler<eFileType::OBJ> &fh,
-                         const OBJMesh &obj_mesh_data,
-                         int poly_index,
-                         int last_poly_smooth_group) const;
-  /**
-   * Write material name and material group of a polygon in the .OBJ file.
-   * \return #mat_nr of the polygon at the given index.
-   * \note It doesn't write to the material library.
-   */
-  int16_t write_poly_material(FormatHandler<eFileType::OBJ> &fh,
-                              const OBJMesh &obj_mesh_data,
-                              int poly_index,
-                              int16_t last_poly_mat_nr,
-                              std::function<const char *(int)> matname_fn) const;
-  /**
-   * Write the name of the deform group of a polygon.
-   */
-  int16_t write_vertex_group(FormatHandler<eFileType::OBJ> &fh,
-                             const OBJMesh &obj_mesh_data,
-                             int poly_index,
-                             int16_t last_poly_vertex_group) const;
-  /**
    * Write polygon elements with at least vertex indices, and conditionally with UV vertex
    * indices and polygon normal indices. Also write groups: smooth, vertex, material.
    * The matname_fn turns a 0-indexed material slot number in an Object into the

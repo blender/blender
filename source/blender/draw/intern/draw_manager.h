@@ -205,8 +205,10 @@ typedef enum {
 
   /* Compute Commands. */
   DRW_CMD_COMPUTE = 8,
+  DRW_CMD_COMPUTE_REF = 9,
 
   /* Other Commands */
+  DRW_CMD_BARRIER = 11,
   DRW_CMD_CLEAR = 12,
   DRW_CMD_DRWSTATE = 13,
   DRW_CMD_STENCIL = 14,
@@ -249,6 +251,14 @@ typedef struct DRWCommandCompute {
   int groups_z_len;
 } DRWCommandCompute;
 
+typedef struct DRWCommandComputeRef {
+  int *groups_ref;
+} DRWCommandComputeRef;
+
+typedef struct DRWCommandBarrier {
+  eGPUBarrier type;
+} DRWCommandBarrier;
+
 typedef struct DRWCommandDrawProcedural {
   GPUBatch *batch;
   DRWResourceHandle handle;
@@ -286,6 +296,8 @@ typedef union DRWCommand {
   DRWCommandDrawInstanceRange instance_range;
   DRWCommandDrawProcedural procedural;
   DRWCommandCompute compute;
+  DRWCommandComputeRef compute_ref;
+  DRWCommandBarrier barrier;
   DRWCommandSetMutableState state;
   DRWCommandSetStencil stencil;
   DRWCommandSetSelectID select_id;
@@ -314,6 +326,7 @@ typedef enum {
   DRW_UNIFORM_BLOCK_REF,
   DRW_UNIFORM_TFEEDBACK_TARGET,
   DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE,
+  DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE_REF,
   /** Per drawcall uniforms/UBO */
   DRW_UNIFORM_BLOCK_OBMATS,
   DRW_UNIFORM_BLOCK_OBINFOS,
@@ -344,6 +357,11 @@ struct DRWUniform {
     union {
       GPUUniformBuf *block;
       GPUUniformBuf **block_ref;
+    };
+    /* DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE */
+    union {
+      GPUVertBuf *vertbuf;
+      GPUVertBuf **vertbuf_ref;
     };
     /* DRW_UNIFORM_FLOAT_COPY */
     float fvalue[4];

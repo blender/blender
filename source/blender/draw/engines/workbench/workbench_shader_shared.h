@@ -1,6 +1,6 @@
 
 #ifndef GPU_SHADER
-#  include "gpu_shader_shared_utils.h"
+#  include "GPU_shader_shared_utils.h"
 #endif
 
 #define WORKBENCH_SHADER_SHARED_H

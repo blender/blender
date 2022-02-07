@@ -61,6 +61,10 @@ class OBJCurve : NonCopyable {
    * Get the degree of the NURBS spline at the given index.
    */
   int get_nurbs_degree(int spline_index) const;
+  /**
+   * Get the U flags (CU_NURB_*) of the NURBS spline at the given index.
+   */
+  short get_nurbs_flagu(int spline_index) const;
 
  private:
   /**

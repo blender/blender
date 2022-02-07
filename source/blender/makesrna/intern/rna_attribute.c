@@ -46,6 +46,7 @@ const EnumPropertyItem rna_enum_attribute_type_items[] = {
     {CD_PROP_STRING, "STRING", 0, "String", "Text string"},
     {CD_PROP_BOOL, "BOOLEAN", 0, "Boolean", "True or false"},
     {CD_PROP_FLOAT2, "FLOAT2", 0, "2D Vector", "2D vector with floating-point values"},
+    {CD_PROP_INT8, "INT8", 0, "8-Bit Integer", "Smaller integer with a range from -128 to 127"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -59,6 +60,7 @@ const EnumPropertyItem rna_enum_attribute_type_with_auto_items[] = {
     {CD_PROP_STRING, "STRING", 0, "String", "Text string"},
     {CD_PROP_BOOL, "BOOLEAN", 0, "Boolean", "True or false"},
     {CD_PROP_FLOAT2, "FLOAT2", 0, "2D Vector", "2D vector with floating-point values"},
+    {CD_PROP_INT8, "INT8", 0, "8-Bit Integer", "Smaller integer with a range from -128 to 127"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -133,6 +135,8 @@ static StructRNA *srna_by_custom_data_layer_type(const CustomDataType type)
       return &RNA_BoolAttribute;
     case CD_PROP_FLOAT2:
       return &RNA_Float2Attribute;
+    case CD_PROP_INT8:
+      return &RNA_ByteIntAttribute;
     default:
       return NULL;
   }
@@ -253,6 +257,9 @@ static void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRN
     case CD_PROP_FLOAT2:
       struct_size = sizeof(float[2]);
       break;
+    case CD_PROP_INT8:
+      struct_size = sizeof(int8_t);
+      break;
     default:
       struct_size = 0;
       length = 0;
@@ -292,6 +299,28 @@ static void rna_ByteColorAttributeValue_color_set(PointerRNA *ptr, const float *
 {
   MLoopCol *mlcol = (MLoopCol *)ptr->data;
   linearrgb_to_srgb_uchar4(&mlcol->r, values);
+}
+
+/* Int8 Attribute. */
+
+static int rna_ByteIntAttributeValue_get(PointerRNA *ptr)
+{
+  int8_t *value = (int8_t *)ptr->data;
+  return (int)(*value);
+}
+
+static void rna_ByteIntAttributeValue_set(PointerRNA *ptr, const int new_value)
+{
+  int8_t *value = (int8_t *)ptr->data;
+  if (new_value > INT8_MAX) {
+    *value = INT8_MAX;
+  }
+  else if (new_value < INT8_MIN) {
+    *value = INT8_MIN;
+  }
+  else {
+    *value = (int8_t)new_value;
+  }
 }
 
 /* Attribute Group */
@@ -648,6 +677,36 @@ static void rna_def_attribute_bool(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "b", 0x01);
 }
 
+static void rna_def_attribute_int8(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "ByteIntAttribute", "Attribute");
+  RNA_def_struct_sdna(srna, "CustomDataLayer");
+  RNA_def_struct_ui_text(srna, "8-bit Int Attribute", "8-bit int geometry attribute");
+
+  prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "ByteIntAttributeValue");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Attribute_data_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_Attribute_data_length",
+                                    NULL,
+                                    NULL,
+                                    NULL);
+
+  srna = RNA_def_struct(brna, "ByteIntAttributeValue", NULL);
+  RNA_def_struct_sdna(srna, "MInt8Property");
+  RNA_def_struct_ui_text(
+      srna, "8-bit Integer Attribute Value", "8-bit value in geometry attribute");
+  prop = RNA_def_property(srna, "value", PROP_INT, PROP_NONE);
+  RNA_def_property_int_funcs(
+      prop, "rna_ByteIntAttributeValue_get", "rna_ByteIntAttributeValue_set", NULL);
+}
+
 static void rna_def_attribute_float2(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -723,6 +782,7 @@ static void rna_def_attribute(BlenderRNA *brna)
   rna_def_attribute_string(brna);
   rna_def_attribute_bool(brna);
   rna_def_attribute_float2(brna);
+  rna_def_attribute_int8(brna);
 }
 
 /* Mesh/PointCloud/Hair.attributes */

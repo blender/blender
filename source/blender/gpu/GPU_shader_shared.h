@@ -22,7 +22,7 @@
  */
 
 #ifndef USE_GPU_SHADER_CREATE_INFO
-#  include "intern/gpu_shader_shared_utils.h"
+#  include "GPU_shader_shared_utils.h"
 #endif
 
 struct NodeLinkData {

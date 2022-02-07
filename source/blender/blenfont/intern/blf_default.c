@@ -37,15 +37,15 @@
 /* Default size and dpi, for BLF_draw_default. */
 static int global_font_default = -1;
 static int global_font_dpi = 72;
-/* Keep in sync with `UI_style_get()->widgetlabel.points` */
-static int global_font_size = 11;
+/* Keep in sync with `UI_DEFAULT_TEXT_POINTS` */
+static float global_font_size = 11.0f;
 
 void BLF_default_dpi(int dpi)
 {
   global_font_dpi = dpi;
 }
 
-void BLF_default_size(int size)
+void BLF_default_size(float size)
 {
   global_font_size = size;
 }

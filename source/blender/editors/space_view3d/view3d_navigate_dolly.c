@@ -174,7 +174,8 @@ static int viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   if (ret & OPERATOR_FINISHED) {
-    viewops_data_free(C, op);
+    viewops_data_free(C, vod);
+    op->customdata = NULL;
   }
 
   return ret;
@@ -225,7 +226,8 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 
   ED_region_tag_redraw(region);
 
-  viewops_data_free(C, op);
+  viewops_data_free(C, op->customdata);
+  op->customdata = NULL;
 
   return OPERATOR_FINISHED;
 }
@@ -239,9 +241,13 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  /* makes op->customdata */
-  viewops_data_alloc(C, op);
-  vod = op->customdata;
+  const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
+
+  vod = op->customdata = viewops_data_create(
+      C,
+      event,
+      (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT) |
+          (use_cursor_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
 
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
@@ -258,14 +264,6 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
     ED_region_tag_redraw(vod->region);
   }
-
-  const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
-
-  viewops_data_create(C,
-                      op,
-                      event,
-                      (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT) |
-                          (use_cursor_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
 
   /* if one or the other zoom position aren't set, set from event */
   if (!RNA_struct_property_is_set(op->ptr, "mx") || !RNA_struct_property_is_set(op->ptr, "my")) {
@@ -296,7 +294,8 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       }
       viewdolly_apply(vod, event->prev_xy, (U.uiflag & USER_ZOOM_INVERT) == 0);
 
-      viewops_data_free(C, op);
+      viewops_data_free(C, op->customdata);
+      op->customdata = NULL;
       return OPERATOR_FINISHED;
     }
 
@@ -309,7 +308,8 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 static void viewdolly_cancel(bContext *C, wmOperator *op)
 {
-  viewops_data_free(C, op);
+  viewops_data_free(C, op->customdata);
+  op->customdata = NULL;
 }
 
 void VIEW3D_OT_dolly(wmOperatorType *ot)
