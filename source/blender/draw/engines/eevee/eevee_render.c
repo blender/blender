@@ -244,10 +244,10 @@ void EEVEE_render_cache(void *vedata,
         EEVEE_cryptomatte_cache_populate(data, sldata, ob);
       }
     }
-    else if (ob->type == OB_HAIR) {
+    else if (ob->type == OB_CURVES) {
       EEVEE_object_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
       if (do_cryptomatte) {
-        EEVEE_cryptomatte_object_hair_cache_populate(data, sldata, ob);
+        EEVEE_cryptomatte_object_curves_cache_populate(data, sldata, ob);
       }
     }
     else if (ob->type == OB_VOLUME) {

@@ -32,11 +32,11 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_fluid_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_light_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -1120,10 +1120,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Hair and PointCloud attributes. */
-    for (Hair *hair = bmain->hairs.first; hair != NULL; hair = hair->id.next) {
-      do_versions_point_attributes(&hair->geometry.point_data);
-    }
+    /* PointCloud attributes. */
     for (PointCloud *pointcloud = bmain->pointclouds.first; pointcloud != NULL;
          pointcloud = pointcloud->id.next) {
       do_versions_point_attributes(&pointcloud->pdata);
@@ -1422,10 +1419,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Hair and PointCloud attributes names. */
-    LISTBASE_FOREACH (Hair *, hair, &bmain->hairs) {
-      do_versions_point_attribute_names(&hair->geometry.point_data);
-    }
+    /* PointCloud attributes names. */
     LISTBASE_FOREACH (PointCloud *, pointcloud, &bmain->pointclouds) {
       do_versions_point_attribute_names(&pointcloud->pdata);
     }

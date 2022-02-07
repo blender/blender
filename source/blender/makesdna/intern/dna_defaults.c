@@ -94,9 +94,9 @@
 #include "DNA_cloth_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_fluid_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -127,9 +127,9 @@
 #include "DNA_camera_defaults.h"
 #include "DNA_collection_defaults.h"
 #include "DNA_curve_defaults.h"
+#include "DNA_curves_defaults.h"
 #include "DNA_fluid_defaults.h"
 #include "DNA_gpencil_modifier_defaults.h"
-#include "DNA_hair_defaults.h"
 #include "DNA_image_defaults.h"
 #include "DNA_lattice_defaults.h"
 #include "DNA_light_defaults.h"
@@ -184,8 +184,8 @@ SDNA_DEFAULT_DECL_STRUCT(FluidEffectorSettings);
 /* DNA_image_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Image);
 
-/* DNA_hair_defaults.h */
-SDNA_DEFAULT_DECL_STRUCT(Hair);
+/* DNA_curves_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(Curves);
 
 /* DNA_lattice_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Lattice);
@@ -392,8 +392,8 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     /* DNA_image_defaults.h */
     SDNA_DEFAULT_DECL(Image),
 
-    /* DNA_hair_defaults.h */
-    SDNA_DEFAULT_DECL(Hair),
+    /* DNA_curves_defaults.h */
+    SDNA_DEFAULT_DECL(Curves),
 
     /* DNA_lattice_defaults.h */
     SDNA_DEFAULT_DECL(Lattice),

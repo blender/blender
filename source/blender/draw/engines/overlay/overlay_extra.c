@@ -484,7 +484,7 @@ static void OVERLAY_texture_space(OVERLAY_ExtraCallBuffers *cb, Object *ob, cons
       texcosize = mb->size;
       break;
     }
-    case ID_HA:
+    case ID_CV:
     case ID_PT:
     case ID_VO: {
       /* No user defined texture space support. */

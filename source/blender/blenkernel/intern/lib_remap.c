@@ -558,7 +558,7 @@ static void libblock_remap_foreach_idpair_cb(ID *old_id, ID *new_id, void *user_
     case ID_ME:
     case ID_CU:
     case ID_MB:
-    case ID_HA:
+    case ID_CV:
     case ID_PT:
     case ID_VO:
       if (new_id) { /* Only affects us in case obdata was relinked (changed). */

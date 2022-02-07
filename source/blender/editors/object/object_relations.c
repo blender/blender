@@ -63,11 +63,11 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_curves.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil.h"
-#include "BKE_hair.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_lattice.h"
@@ -1872,7 +1872,7 @@ static void single_obdata_users(
                 ob->data,
                 BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
-          case OB_HAIR:
+          case OB_CURVES:
             ob->data = ID_NEW_SET(
                 ob->data,
                 BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));

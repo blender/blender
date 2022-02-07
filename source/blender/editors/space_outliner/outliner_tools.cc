@@ -29,8 +29,8 @@
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_light_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
@@ -164,7 +164,7 @@ static void get_element_operation_type(
         case ID_CF:
         case ID_WS:
         case ID_LP:
-        case ID_HA:
+        case ID_CV:
         case ID_PT:
         case ID_VO:
         case ID_SIM:
@@ -262,10 +262,10 @@ static void unlink_material_fn(bContext *UNUSED(C),
     totcol = mb->totcol;
     matar = mb->mat;
   }
-  else if (GS(tsep->id->name) == ID_HA) {
-    Hair *hair = (Hair *)tsep->id;
-    totcol = hair->totcol;
-    matar = hair->mat;
+  else if (GS(tsep->id->name) == ID_CV) {
+    Curves *curves = (Curves *)tsep->id;
+    totcol = curves->totcol;
+    matar = curves->mat;
   }
   else if (GS(tsep->id->name) == ID_PT) {
     PointCloud *pointcloud = (PointCloud *)tsep->id;

@@ -35,8 +35,8 @@
 #include "DNA_armature_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_light_types.h"
@@ -700,8 +700,8 @@ static int acf_object_icon(bAnimListElem *ale)
       return ICON_OUTLINER_OB_FONT;
     case OB_SURF:
       return ICON_OUTLINER_OB_SURFACE;
-    case OB_HAIR:
-      return ICON_OUTLINER_OB_HAIR;
+    case OB_CURVES:
+      return ICON_OUTLINER_OB_CURVES;
     case OB_POINTCLOUD:
       return ICON_OUTLINER_OB_POINTCLOUD;
     case OB_VOLUME:
@@ -2813,15 +2813,15 @@ static bAnimChannelType ACF_DSSPK = {
 /* Hair Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dshair_icon(bAnimListElem *UNUSED(ale))
+static int acf_dscurves_icon(bAnimListElem *UNUSED(ale))
 {
-  return ICON_HAIR_DATA;
+  return ICON_CURVES_DATA;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dshair_setting_flag(bAnimContext *UNUSED(ac),
-                                   eAnimChannel_Settings setting,
-                                   bool *neg)
+static int acf_dscurves_setting_flag(bAnimContext *UNUSED(ac),
+                                     eAnimChannel_Settings setting,
+                                     bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -2846,22 +2846,24 @@ static int acf_dshair_setting_flag(bAnimContext *UNUSED(ac),
 }
 
 /* get pointer to the setting */
-static void *acf_dshair_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+static void *acf_dscurves_setting_ptr(bAnimListElem *ale,
+                                      eAnimChannel_Settings setting,
+                                      short *type)
 {
-  Hair *hair = (Hair *)ale->data;
+  Curves *curves = (Curves *)ale->data;
 
   /* clear extra return data first */
   *type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(hair->flag, type);
+      return GET_ACF_FLAG_PTR(curves->flag, type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
-      if (hair->adt) {
-        return GET_ACF_FLAG_PTR(hair->adt->flag, type);
+      if (curves->adt) {
+        return GET_ACF_FLAG_PTR(curves->adt->flag, type);
       }
       return NULL;
 
@@ -2870,9 +2872,9 @@ static void *acf_dshair_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
   }
 }
 
-/* hair expander type define */
+/* Curves expander type define */
 static bAnimChannelType ACF_DSHAIR = {
-    "Hair Expander",        /* type name */
+    "Curves Expander",      /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
@@ -2882,11 +2884,11 @@ static bAnimChannelType ACF_DSHAIR = {
 
     acf_generic_idblock_name,      /* name */
     acf_generic_idblock_name_prop, /* name prop */
-    acf_dshair_icon,               /* icon */
+    acf_dscurves_icon,             /* icon */
 
     acf_generic_dataexpand_setting_valid, /* has setting */
-    acf_dshair_setting_flag,              /* flag for setting */
-    acf_dshair_setting_ptr                /* pointer for setting */
+    acf_dscurves_setting_flag,            /* flag for setting */
+    acf_dscurves_setting_ptr              /* pointer for setting */
 };
 
 /* PointCloud Expander  ------------------------------------------- */

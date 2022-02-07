@@ -33,7 +33,7 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 
-#include "DNA_hair_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
@@ -925,7 +925,7 @@ void EEVEE_object_hair_cache_populate(EEVEE_Data *vedata,
                                       Object *ob,
                                       bool *cast_shadow)
 {
-  eevee_hair_cache_populate(vedata, sldata, ob, NULL, NULL, HAIR_MATERIAL_NR, cast_shadow);
+  eevee_hair_cache_populate(vedata, sldata, ob, NULL, NULL, CURVES_MATERIAL_NR, cast_shadow);
 }
 
 void EEVEE_materials_cache_finish(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)

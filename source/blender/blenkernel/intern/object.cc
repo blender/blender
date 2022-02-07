@@ -89,6 +89,7 @@
 #include "BKE_constraint.h"
 #include "BKE_crazyspace.h"
 #include "BKE_curve.h"
+#include "BKE_curves.h"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_duplilist.h"
@@ -103,7 +104,6 @@
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
-#include "BKE_hair.h"
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
@@ -1415,7 +1415,7 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
   }
 
   /* Only geometry objects should be able to get modifiers T25291. */
-  if (ELEM(ob->type, OB_POINTCLOUD, OB_VOLUME, OB_HAIR)) {
+  if (ELEM(ob->type, OB_POINTCLOUD, OB_VOLUME, OB_CURVES)) {
     return (mti->modifyGeometrySet != nullptr);
   }
   if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
@@ -2098,8 +2098,8 @@ static const char *get_obdata_defname(int type)
       return DATA_("Armature");
     case OB_SPEAKER:
       return DATA_("Speaker");
-    case OB_HAIR:
-      return DATA_("Hair");
+    case OB_CURVES:
+      return DATA_("HairCurves");
     case OB_POINTCLOUD:
       return DATA_("PointCloud");
     case OB_VOLUME:
@@ -2173,8 +2173,8 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
       return BKE_lightprobe_add(bmain, name);
     case OB_GPENCIL:
       return BKE_gpencil_data_addnew(bmain, name);
-    case OB_HAIR:
-      return BKE_hair_add(bmain, name);
+    case OB_CURVES:
+      return BKE_curves_add(bmain, name);
     case OB_POINTCLOUD:
       return BKE_pointcloud_add_default(bmain, name);
     case OB_VOLUME:
@@ -2211,8 +2211,8 @@ int BKE_object_obdata_to_type(const ID *id)
       return OB_ARMATURE;
     case ID_LP:
       return OB_LIGHTPROBE;
-    case ID_HA:
-      return OB_HAIR;
+    case ID_CV:
+      return OB_CURVES;
     case ID_PT:
       return OB_POINTCLOUD;
     case ID_VO:
@@ -2729,8 +2729,8 @@ Object *BKE_object_duplicate(Main *bmain, Object *ob, uint dupflag, uint duplica
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
-    case OB_HAIR:
-      if (dupflag & USER_DUP_HAIR) {
+    case OB_CURVES:
+      if (dupflag & USER_DUP_CURVES) {
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
@@ -3624,8 +3624,8 @@ BoundBox *BKE_object_boundbox_get(Object *ob)
     case OB_GPENCIL:
       bb = BKE_gpencil_boundbox_get(ob);
       break;
-    case OB_HAIR:
-      bb = BKE_hair_boundbox_get(ob);
+    case OB_CURVES:
+      bb = BKE_curves_boundbox_get(ob);
       break;
     case OB_POINTCLOUD:
       bb = BKE_pointcloud_boundbox_get(ob);
@@ -3826,8 +3826,8 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
       }
       break;
     }
-    case OB_HAIR: {
-      BoundBox bb = *BKE_hair_boundbox_get(ob);
+    case OB_CURVES: {
+      BoundBox bb = *BKE_curves_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
@@ -4941,7 +4941,7 @@ bool BKE_object_supports_material_slots(struct Object *ob)
               OB_SURF,
               OB_FONT,
               OB_MBALL,
-              OB_HAIR,
+              OB_CURVES,
               OB_POINTCLOUD,
               OB_VOLUME,
               OB_GPENCIL);

@@ -170,7 +170,7 @@ void RNA_def_fcurve(struct BlenderRNA *brna);
 void RNA_def_gpencil(struct BlenderRNA *brna);
 void RNA_def_greasepencil_modifier(struct BlenderRNA *brna);
 void RNA_def_shader_fx(struct BlenderRNA *brna);
-void RNA_def_hair(struct BlenderRNA *brna);
+void RNA_def_curves(struct BlenderRNA *brna);
 void RNA_def_image(struct BlenderRNA *brna);
 void RNA_def_key(struct BlenderRNA *brna);
 void RNA_def_light(struct BlenderRNA *brna);
@@ -496,8 +496,8 @@ void RNA_def_main_cachefiles(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_paintcurves(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_workspaces(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_lightprobes(BlenderRNA *brna, PropertyRNA *cprop);
-#ifdef WITH_HAIR_NODES
-void RNA_def_main_hairs(BlenderRNA *brna, PropertyRNA *cprop);
+#ifdef WITH_NEW_CURVES_TYPE
+void RNA_def_main_hair_curves(BlenderRNA *brna, PropertyRNA *cprop);
 #endif
 void RNA_def_main_pointclouds(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_volumes(BlenderRNA *brna, PropertyRNA *cprop);

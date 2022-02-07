@@ -271,7 +271,7 @@ const EnumPropertyItem rna_enum_object_type_items[] = {
     OBTYPE_CU_SURF,
     {OB_MBALL, "META", ICON_OUTLINER_OB_META, "Metaball", ""},
     OBTYPE_CU_FONT,
-    {OB_HAIR, "HAIR", ICON_OUTLINER_OB_HAIR, "Hair", ""},
+    {OB_CURVES, "CURVES", ICON_OUTLINER_OB_CURVES, "Hair Curves", ""},
     {OB_POINTCLOUD, "POINTCLOUD", ICON_OUTLINER_OB_POINTCLOUD, "Point Cloud", ""},
     {OB_VOLUME, "VOLUME", ICON_OUTLINER_OB_VOLUME, "Volume", ""},
     {OB_GPENCIL, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
@@ -613,9 +613,9 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
       return &RNA_LightProbe;
     case OB_GPENCIL:
       return &RNA_GreasePencil;
-    case OB_HAIR:
-#  ifdef WITH_HAIR_NODES
-      return &RNA_Hair;
+    case OB_CURVES:
+#  ifdef WITH_NEW_CURVES_TYPE
+      return &RNA_Curves;
 #  else
       return &RNA_ID;
 #  endif

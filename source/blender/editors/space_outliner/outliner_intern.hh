@@ -145,7 +145,7 @@ typedef struct TreeElementIcon {
         ID_GD, \
         ID_LS, \
         ID_LP, \
-        ID_HA, \
+        ID_CV, \
         ID_PT, \
         ID_VO, \
         ID_SIM) || /* Only in 'blendfile' mode ... :/ */ \

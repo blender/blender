@@ -90,7 +90,7 @@ typedef enum ID_Type {
   ID_CF = MAKE_ID2('C', 'F'),  /* CacheFile */
   ID_WS = MAKE_ID2('W', 'S'),  /* WorkSpace */
   ID_LP = MAKE_ID2('L', 'P'),  /* LightProbe */
-  ID_HA = MAKE_ID2('H', 'A'),  /* Hair */
+  ID_CV = MAKE_ID2('C', 'V'),  /* Curves */
   ID_PT = MAKE_ID2('P', 'T'),  /* PointCloud */
   ID_VO = MAKE_ID2('V', 'O'),  /* Volume */
   ID_SIM = MAKE_ID2('S', 'I'), /* Simulation (geometry node groups) */

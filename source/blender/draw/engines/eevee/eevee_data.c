@@ -177,7 +177,7 @@ static void *motion_blur_deform_data_get(EEVEE_MotionBlurData *mb, Object *ob, b
     if (hair) {
       EEVEE_HairMotionData *hair_step;
       /* Ugly, we allocate for each modifiers and just fill based on modifier index in the list. */
-      int psys_len = (ob->type != OB_HAIR) ? BLI_listbase_count(&ob->modifiers) : 1;
+      int psys_len = (ob->type != OB_CURVES) ? BLI_listbase_count(&ob->modifiers) : 1;
       hair_step = MEM_callocN(sizeof(EEVEE_HairMotionData) + sizeof(hair_step->psys[0]) * psys_len,
                               __func__);
       hair_step->psys_len = psys_len;

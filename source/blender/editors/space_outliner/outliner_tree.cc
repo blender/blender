@@ -32,9 +32,9 @@
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
@@ -773,10 +773,10 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
       }
       break;
     }
-    case ID_HA: {
-      Hair *hair = (Hair *)id;
-      if (outliner_animdata_test(hair->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, hair, te, TSE_ANIM_DATA, 0);
+    case ID_CV: {
+      Curves *curves = (Curves *)id;
+      if (outliner_animdata_test(curves->adt)) {
+        outliner_add_element(space_outliner, &te->subtree, curves, te, TSE_ANIM_DATA, 0);
       }
       break;
     }

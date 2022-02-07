@@ -1284,8 +1284,8 @@ void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *use
   /* cache files */
   ANIMDATA_IDS_CB(bmain->cachefiles.first);
 
-  /* hairs */
-  ANIMDATA_IDS_CB(bmain->hairs.first);
+  /* Hair Curves. */
+  ANIMDATA_IDS_CB(bmain->hair_curves.first);
 
   /* pointclouds */
   ANIMDATA_IDS_CB(bmain->pointclouds.first);
@@ -1413,8 +1413,8 @@ void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,
   /* cache files */
   RENAMEFIX_ANIM_IDS(bmain->cachefiles.first);
 
-  /* hairs */
-  RENAMEFIX_ANIM_IDS(bmain->hairs.first);
+  /* Hair Curves. */
+  RENAMEFIX_ANIM_IDS(bmain->hair_curves.first);
 
   /* pointclouds */
   RENAMEFIX_ANIM_IDS(bmain->pointclouds.first);

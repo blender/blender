@@ -308,7 +308,7 @@ extern StructRNA RNA_GizmoProperties;
 extern StructRNA RNA_GlowSequence;
 extern StructRNA RNA_GpencilModifier;
 extern StructRNA RNA_GreasePencil;
-extern StructRNA RNA_Hair;
+extern StructRNA RNA_Curves;
 extern StructRNA RNA_Header;
 extern StructRNA RNA_Histogram;
 extern StructRNA RNA_HookGpencilModifier;

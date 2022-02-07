@@ -599,7 +599,7 @@ void DepsgraphNodeBuilder::build_id(ID *id)
     case ID_CU:
     case ID_LT:
     case ID_GD:
-    case ID_HA:
+    case ID_CV:
     case ID_PT:
     case ID_VO:
       build_object_data_geometry_datablock(id);
@@ -894,7 +894,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
     case OB_MBALL:
     case OB_LATTICE:
     case OB_GPENCIL:
-    case OB_HAIR:
+    case OB_CURVES:
     case OB_POINTCLOUD:
     case OB_VOLUME:
       build_object_data_geometry(object);
@@ -1563,7 +1563,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
       op_node->set_as_entry();
       break;
     }
-    case ID_HA: {
+    case ID_CV: {
       op_node = add_operation_node(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
       op_node->set_as_entry();
       break;

@@ -72,7 +72,7 @@ bool BlenderSync::object_is_geometry(BObjectInfo &b_ob_info)
 
   BL::Object::type_enum type = b_ob_info.iter_object.type();
 
-  if (type == BL::Object::type_VOLUME || type == BL::Object::type_HAIR ||
+  if (type == BL::Object::type_VOLUME || type == BL::Object::type_CURVES ||
       type == BL::Object::type_POINTCLOUD) {
     /* Will be exported attached to mesh. */
     return true;
@@ -97,7 +97,7 @@ bool BlenderSync::object_can_have_geometry(BL::Object &b_ob)
     case BL::Object::type_SURFACE:
     case BL::Object::type_META:
     case BL::Object::type_FONT:
-    case BL::Object::type_HAIR:
+    case BL::Object::type_CURVES:
     case BL::Object::type_POINTCLOUD:
     case BL::Object::type_VOLUME:
       return true;

@@ -890,7 +890,7 @@ typedef enum IDRecalcFlag {
 #define FILTER_ID_CF (1ULL << 28)
 #define FILTER_ID_WS (1ULL << 29)
 #define FILTER_ID_LP (1ULL << 31)
-#define FILTER_ID_HA (1ULL << 32)
+#define FILTER_ID_CV (1ULL << 32)
 #define FILTER_ID_PT (1ULL << 33)
 #define FILTER_ID_VO (1ULL << 34)
 #define FILTER_ID_SIM (1ULL << 35)
@@ -901,7 +901,7 @@ typedef enum IDRecalcFlag {
    FILTER_ID_MB | FILTER_ID_MC | FILTER_ID_ME | FILTER_ID_MSK | FILTER_ID_NT | FILTER_ID_OB | \
    FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_SCE | FILTER_ID_SPK | FILTER_ID_SO | \
    FILTER_ID_TE | FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_WO | FILTER_ID_CF | FILTER_ID_WS | \
-   FILTER_ID_LP | FILTER_ID_HA | FILTER_ID_PT | FILTER_ID_VO | FILTER_ID_SIM)
+   FILTER_ID_LP | FILTER_ID_CV | FILTER_ID_PT | FILTER_ID_VO | FILTER_ID_SIM)
 
 /**
  * This enum defines the index assigned to each type of IDs in the array returned by
@@ -984,7 +984,7 @@ enum {
   INDEX_ID_ME,
   INDEX_ID_CU,
   INDEX_ID_MB,
-  INDEX_ID_HA,
+  INDEX_ID_CV,
   INDEX_ID_PT,
   INDEX_ID_VO,
   INDEX_ID_LT,

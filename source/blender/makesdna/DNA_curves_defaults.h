@@ -24,10 +24,10 @@
 /* clang-format off */
 
 /* -------------------------------------------------------------------- */
-/** \name Hair Struct
+/** \name Curves Struct
  * \{ */
 
-#define _DNA_DEFAULT_Hair \
+#define _DNA_DEFAULT_Curves \
   { \
     .flag = 0, \
   }

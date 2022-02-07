@@ -26,8 +26,8 @@
 
 #include "rna_internal.h"
 
+#include "DNA_curves_types.h"
 #include "DNA_customdata_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
@@ -188,7 +188,7 @@ const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id,
     if (id_type == ID_PT && !ELEM(domain_item->value, ATTR_DOMAIN_POINT)) {
       continue;
     }
-    if (id_type == ID_HA && !ELEM(domain_item->value, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
+    if (id_type == ID_CV && !ELEM(domain_item->value, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
       continue;
     }
     if (id_type == ID_ME && ELEM(domain_item->value, ATTR_DOMAIN_CURVE)) {

@@ -31,7 +31,6 @@
 
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BLI_bitmap.h"

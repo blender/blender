@@ -2988,7 +2988,7 @@ static const char *dataname(short id_code)
       return "Data from CF";
     case ID_WS:
       return "Data from WS";
-    case ID_HA:
+    case ID_CV:
       return "Data from HA";
     case ID_PT:
       return "Data from PT";

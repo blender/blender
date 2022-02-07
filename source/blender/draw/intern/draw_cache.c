@@ -19,7 +19,7 @@
  */
 
 #include "DNA_curve_types.h"
-#include "DNA_hair_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -835,7 +835,7 @@ GPUBatch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold)
       return NULL;
     case OB_MBALL:
       return DRW_cache_mball_edge_detection_get(ob, r_is_manifold);
-    case OB_HAIR:
+    case OB_CURVES:
       return NULL;
     case OB_POINTCLOUD:
       return NULL;
@@ -859,7 +859,7 @@ GPUBatch *DRW_cache_object_face_wireframe_get(Object *ob)
       return NULL;
     case OB_MBALL:
       return DRW_cache_mball_face_wireframe_get(ob);
-    case OB_HAIR:
+    case OB_CURVES:
       return NULL;
     case OB_POINTCLOUD:
       return DRW_pointcloud_batch_cache_get_dots(ob);
@@ -886,7 +886,7 @@ GPUBatch *DRW_cache_object_loose_edges_get(struct Object *ob)
       return NULL;
     case OB_MBALL:
       return NULL;
-    case OB_HAIR:
+    case OB_CURVES:
       return NULL;
     case OB_POINTCLOUD:
       return NULL;
@@ -910,7 +910,7 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
       return NULL;
     case OB_MBALL:
       return DRW_cache_mball_surface_get(ob);
-    case OB_HAIR:
+    case OB_CURVES:
       return NULL;
     case OB_POINTCLOUD:
       return DRW_cache_pointcloud_surface_get(ob);
@@ -935,7 +935,7 @@ GPUVertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
       return DRW_curve_batch_cache_pos_vertbuf_get(ob->data);
     case OB_MBALL:
       return DRW_mball_batch_cache_pos_vertbuf_get(ob);
-    case OB_HAIR:
+    case OB_CURVES:
       return NULL;
     case OB_POINTCLOUD:
       return NULL;
@@ -967,8 +967,8 @@ int DRW_cache_object_material_count_get(struct Object *ob)
       return DRW_curve_material_count_get(ob->data);
     case OB_MBALL:
       return DRW_metaball_material_count_get(ob->data);
-    case OB_HAIR:
-      return DRW_hair_material_count_get(ob->data);
+    case OB_CURVES:
+      return DRW_curves_material_count_get(ob->data);
     case OB_POINTCLOUD:
       return DRW_pointcloud_material_count_get(ob->data);
     case OB_VOLUME:
@@ -994,7 +994,7 @@ GPUBatch **DRW_cache_object_surface_material_get(struct Object *ob,
       return NULL;
     case OB_MBALL:
       return DRW_cache_mball_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
-    case OB_HAIR:
+    case OB_CURVES:
       return NULL;
     case OB_POINTCLOUD:
       return DRW_cache_pointcloud_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
@@ -3403,8 +3403,8 @@ void drw_batch_cache_validate(Object *ob)
     case OB_LATTICE:
       DRW_lattice_batch_cache_validate((Lattice *)ob->data);
       break;
-    case OB_HAIR:
-      DRW_hair_batch_cache_validate((Hair *)ob->data);
+    case OB_CURVES:
+      DRW_curves_batch_cache_validate((Curves *)ob->data);
       break;
     case OB_POINTCLOUD:
       DRW_pointcloud_batch_cache_validate((PointCloud *)ob->data);

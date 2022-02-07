@@ -119,6 +119,7 @@ set(SRC
   intern/crazyspace.c
   intern/cryptomatte.cc
   intern/curve.cc
+  intern/curves.cc
   intern/curve_bevel.c
   intern/curve_convert.c
   intern/curve_decimate.c
@@ -156,7 +157,6 @@ set(SRC
   intern/gpencil_curve.c
   intern/gpencil_geom.cc
   intern/gpencil_modifier.c
-  intern/hair.cc
   intern/icons.cc
   intern/icons_rasterize.c
   intern/idprop.c
@@ -356,6 +356,7 @@ set(SRC
   BKE_cryptomatte.h
   BKE_cryptomatte.hh
   BKE_curve.h
+  BKE_curves.h
   BKE_curve_to_mesh.hh
   BKE_curveprofile.h
   BKE_customdata.h
@@ -384,7 +385,6 @@ set(SRC
   BKE_gpencil_curve.h
   BKE_gpencil_geom.h
   BKE_gpencil_modifier.h
-  BKE_hair.h
   BKE_icons.h
   BKE_idprop.h
   BKE_idprop.hh

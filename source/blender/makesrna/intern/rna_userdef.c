@@ -5293,7 +5293,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
       prop, "Duplicate GPencil", "Causes grease pencil data to be duplicated with the object");
 
   prop = RNA_def_property(srna, "use_duplicate_hair", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_HAIR);
+  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_CURVES);
   RNA_def_property_ui_text(
       prop, "Duplicate Hair", "Causes hair data to be duplicated with the object");
 
@@ -6399,9 +6399,9 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "reduces execution time and memory usage)");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-  prop = RNA_def_property(srna, "use_new_hair_type", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_new_hair_type", 1);
-  RNA_def_property_ui_text(prop, "New Hair Type", "Enable the new hair type in the ui");
+  prop = RNA_def_property(srna, "use_new_curves_type", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_new_curves_type", 1);
+  RNA_def_property_ui_text(prop, "New Curves Type", "Enable the new curves data type in the UI");
 
   prop = RNA_def_property(srna, "use_cycles_debug", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_cycles_debug", 1);

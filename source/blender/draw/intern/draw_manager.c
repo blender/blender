@@ -35,11 +35,11 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_curves.h"
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
-#include "BKE_hair.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
@@ -2948,8 +2948,8 @@ void DRW_engines_register(void)
     BKE_gpencil_batch_cache_dirty_tag_cb = DRW_gpencil_batch_cache_dirty_tag;
     BKE_gpencil_batch_cache_free_cb = DRW_gpencil_batch_cache_free;
 
-    BKE_hair_batch_cache_dirty_tag_cb = DRW_hair_batch_cache_dirty_tag;
-    BKE_hair_batch_cache_free_cb = DRW_hair_batch_cache_free;
+    BKE_curves_batch_cache_dirty_tag_cb = DRW_curves_batch_cache_dirty_tag;
+    BKE_curves_batch_cache_free_cb = DRW_curves_batch_cache_free;
 
     BKE_pointcloud_batch_cache_dirty_tag_cb = DRW_pointcloud_batch_cache_dirty_tag;
     BKE_pointcloud_batch_cache_free_cb = DRW_pointcloud_batch_cache_free;

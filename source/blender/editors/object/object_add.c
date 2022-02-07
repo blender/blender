@@ -62,6 +62,7 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_curves.h"
 #include "BKE_displist.h"
 #include "BKE_duplilist.h"
 #include "BKE_effect.h"
@@ -69,7 +70,6 @@
 #include "BKE_gpencil_curve.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
-#include "BKE_hair.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
@@ -1894,18 +1894,18 @@ void OBJECT_OT_speaker_add(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Add Hair Operator
+/** \name Add Hair Curves Operator
  * \{ */
 
-static bool object_hair_add_poll(bContext *C)
+static bool object_hair_curves_add_poll(bContext *C)
 {
-  if (!U.experimental.use_new_hair_type) {
+  if (!U.experimental.use_new_curves_type) {
     return false;
   }
   return ED_operator_objectmode(C);
 }
 
-static int object_hair_add_exec(bContext *C, wmOperator *op)
+static int object_hair_curves_add_exec(bContext *C, wmOperator *op)
 {
   ushort local_view_bits;
   float loc[3], rot[3];
@@ -1913,22 +1913,22 @@ static int object_hair_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Object *object = ED_object_add_type(C, OB_HAIR, NULL, loc, rot, false, local_view_bits);
+  Object *object = ED_object_add_type(C, OB_CURVES, NULL, loc, rot, false, local_view_bits);
   object->dtx |= OB_DRAWBOUNDOX; /* TODO: remove once there is actual drawing. */
 
   return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_hair_add(wmOperatorType *ot)
+void OBJECT_OT_hair_curves_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add Hair";
-  ot->description = "Add a hair object to the scene";
-  ot->idname = "OBJECT_OT_hair_add";
+  ot->name = "Add Hair Curves";
+  ot->description = "Add a hair curves object to the scene";
+  ot->idname = "OBJECT_OT_hair_curves_add";
 
   /* api callbacks */
-  ot->exec = object_hair_add_exec;
-  ot->poll = object_hair_add_poll;
+  ot->exec = object_hair_curves_add_exec;
+  ot->poll = object_hair_curves_add_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

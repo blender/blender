@@ -32,8 +32,8 @@ CCL_NAMESPACE_BEGIN
 
 static Geometry::Type determine_geom_type(BObjectInfo &b_ob_info, bool use_particle_hair)
 {
-#ifdef WITH_HAIR_NODES
-  if (b_ob_info.object_data.is_a(&RNA_Hair) || use_particle_hair) {
+#ifdef WITH_NEW_CURVES_TYPE
+  if (b_ob_info.object_data.is_a(&RNA_Curves) || use_particle_hair) {
 #else
   if (use_particle_hair) {
 #endif
@@ -231,8 +231,8 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
     if (progress.get_cancel())
       return;
 
-#ifdef WITH_HAIR_NODES
-    if (b_ob_info.object_data.is_a(&RNA_Hair) || use_particle_hair) {
+#ifdef WITH_NEW_CURVES_TYPE
+    if (b_ob_info.object_data.is_a(&RNA_Curves) || use_particle_hair) {
 #else
     if (use_particle_hair) {
 #endif

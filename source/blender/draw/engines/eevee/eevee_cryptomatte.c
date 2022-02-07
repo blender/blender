@@ -56,7 +56,7 @@
 #include "BLI_math_bits.h"
 #include "BLI_rect.h"
 
-#include "DNA_hair_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
@@ -248,25 +248,25 @@ static DRWShadingGroup *eevee_cryptomatte_shading_group_create(EEVEE_Data *vedat
   return grp;
 }
 
-static void eevee_cryptomatte_hair_cache_populate(EEVEE_Data *vedata,
-                                                  EEVEE_ViewLayerData *sldata,
-                                                  Object *ob,
-                                                  ParticleSystem *psys,
-                                                  ModifierData *md,
-                                                  Material *material)
+static void eevee_cryptomatte_curves_cache_populate(EEVEE_Data *vedata,
+                                                    EEVEE_ViewLayerData *sldata,
+                                                    Object *ob,
+                                                    ParticleSystem *psys,
+                                                    ModifierData *md,
+                                                    Material *material)
 {
   DRWShadingGroup *grp = eevee_cryptomatte_shading_group_create(
       vedata, sldata, ob, material, true);
   DRW_shgroup_hair_create_sub(ob, psys, md, grp, NULL);
 }
 
-void EEVEE_cryptomatte_object_hair_cache_populate(EEVEE_Data *vedata,
-                                                  EEVEE_ViewLayerData *sldata,
-                                                  Object *ob)
+void EEVEE_cryptomatte_object_curves_cache_populate(EEVEE_Data *vedata,
+                                                    EEVEE_ViewLayerData *sldata,
+                                                    Object *ob)
 {
-  BLI_assert(ob->type == OB_HAIR);
-  Material *material = BKE_object_material_get_eval(ob, HAIR_MATERIAL_NR);
-  eevee_cryptomatte_hair_cache_populate(vedata, sldata, ob, NULL, NULL, material);
+  BLI_assert(ob->type == OB_CURVES);
+  Material *material = BKE_object_material_get_eval(ob, CURVES_MATERIAL_NR);
+  eevee_cryptomatte_curves_cache_populate(vedata, sldata, ob, NULL, NULL, material);
 }
 
 void EEVEE_cryptomatte_particle_hair_cache_populate(EEVEE_Data *vedata,
@@ -291,7 +291,7 @@ void EEVEE_cryptomatte_particle_hair_cache_populate(EEVEE_Data *vedata,
           continue;
         }
         Material *material = BKE_object_material_get_eval(ob, part->omat);
-        eevee_cryptomatte_hair_cache_populate(vedata, sldata, ob, psys, md, material);
+        eevee_cryptomatte_curves_cache_populate(vedata, sldata, ob, psys, md, material);
       }
     }
   }

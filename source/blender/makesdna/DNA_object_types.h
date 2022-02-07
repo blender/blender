@@ -505,7 +505,7 @@ enum {
   /** Grease Pencil object used in 3D view but not used for annotation in 2D. */
   OB_GPENCIL = 26,
 
-  OB_HAIR = 27,
+  OB_CURVES = 27,
 
   OB_POINTCLOUD = 28,
 
@@ -520,7 +520,15 @@ enum {
   (((_type) >= OB_MESH && (_type) <= OB_MBALL) || ((_type) >= OB_GPENCIL && (_type) <= OB_VOLUME))
 /** Does the object have some render-able geometry (unlike empties, cameras, etc.). */
 #define OB_TYPE_IS_GEOMETRY(_type) \
-  (ELEM(_type, OB_MESH, OB_SURF, OB_FONT, OB_MBALL, OB_GPENCIL, OB_HAIR, OB_POINTCLOUD, OB_VOLUME))
+  (ELEM(_type, \
+        OB_MESH, \
+        OB_SURF, \
+        OB_FONT, \
+        OB_MBALL, \
+        OB_GPENCIL, \
+        OB_CURVES, \
+        OB_POINTCLOUD, \
+        OB_VOLUME))
 #define OB_TYPE_SUPPORT_VGROUP(_type) (ELEM(_type, OB_MESH, OB_LATTICE, OB_GPENCIL))
 #define OB_TYPE_SUPPORT_EDITMODE(_type) \
   (ELEM(_type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE))
@@ -542,7 +550,7 @@ enum {
         ID_LT, \
         ID_GD, \
         ID_AR, \
-        ID_HA, \
+        ID_CV, \
         ID_PT, \
         ID_VO))
 
@@ -557,7 +565,7 @@ enum {
   case ID_LT: \
   case ID_GD: \
   case ID_AR: \
-  case ID_HA: \
+  case ID_CV: \
   case ID_PT: \
   case ID_VO
 

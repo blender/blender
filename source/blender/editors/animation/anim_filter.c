@@ -47,8 +47,8 @@
 #include "DNA_brush_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_layer_types.h"
@@ -791,10 +791,10 @@ static bAnimListElem *make_new_animlistelem(void *data,
         break;
       }
       case ANIMTYPE_DSHAIR: {
-        Hair *hair = (Hair *)data;
-        AnimData *adt = hair->adt;
+        Curves *curves = (Curves *)data;
+        AnimData *adt = curves->adt;
 
-        ale->flag = FILTER_HAIR_OBJD(hair);
+        ale->flag = FILTER_CURVES_OBJD(curves);
 
         ale->key_data = (adt) ? adt->action : NULL;
         ale->datatype = ALE_ACT;
@@ -2616,16 +2616,16 @@ static size_t animdata_filter_ds_obdata(
       expanded = FILTER_SPK_OBJD(spk);
       break;
     }
-    case OB_HAIR: /* ---------- Hair ----------- */
+    case OB_CURVES: /* ---------- Curves ----------- */
     {
-      Hair *hair = (Hair *)ob->data;
+      Curves *curves = (Curves *)ob->data;
 
       if (ads->filterflag2 & ADS_FILTER_NOHAIR) {
         return 0;
       }
 
       type = ANIMTYPE_DSHAIR;
-      expanded = FILTER_HAIR_OBJD(hair);
+      expanded = FILTER_CURVES_OBJD(curves);
       break;
     }
     case OB_POINTCLOUD: /* ---------- PointCloud ----------- */

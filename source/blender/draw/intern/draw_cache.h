@@ -246,14 +246,14 @@ struct GPUBatch **DRW_cache_mball_surface_shaded_get(struct Object *ob,
 struct GPUBatch *DRW_cache_mball_face_wireframe_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mball_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 
-/* Hair */
+/* Curves */
 
-struct GPUBatch *DRW_cache_hair_surface_get(struct Object *ob);
-struct GPUBatch **DRW_cache_hair_surface_shaded_get(struct Object *ob,
-                                                    struct GPUMaterial **gpumat_array,
-                                                    uint gpumat_array_len);
-struct GPUBatch *DRW_cache_hair_face_wireframe_get(struct Object *ob);
-struct GPUBatch *DRW_cache_hair_edge_detection_get(struct Object *ob, bool *r_is_manifold);
+struct GPUBatch *DRW_cache_curves_surface_get(struct Object *ob);
+struct GPUBatch **DRW_cache_curves_surface_shaded_get(struct Object *ob,
+                                                      struct GPUMaterial **gpumat_array,
+                                                      uint gpumat_array_len);
+struct GPUBatch *DRW_cache_curves_face_wireframe_get(struct Object *ob);
+struct GPUBatch *DRW_cache_curves_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 
 /* PointCloud */
 

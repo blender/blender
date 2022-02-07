@@ -29,8 +29,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
+#include "DNA_curves_types.h"
 #include "DNA_customdata_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
@@ -38,9 +38,9 @@
 #include "BLI_string_utf8.h"
 
 #include "BKE_attribute.h"
+#include "BKE_curves.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
-#include "BKE_hair.h"
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
 
@@ -88,12 +88,12 @@ static void get_domains(const ID *id, DomainInfo info[ATTR_DOMAIN_NUM])
       }
       break;
     }
-    case ID_HA: {
-      Hair *hair = (Hair *)id;
-      info[ATTR_DOMAIN_POINT].customdata = &hair->geometry.point_data;
-      info[ATTR_DOMAIN_POINT].length = hair->geometry.point_size;
-      info[ATTR_DOMAIN_CURVE].customdata = &hair->geometry.curve_data;
-      info[ATTR_DOMAIN_CURVE].length = hair->geometry.curve_size;
+    case ID_CV: {
+      Curves *curves = (Curves *)id;
+      info[ATTR_DOMAIN_POINT].customdata = &curves->geometry.point_data;
+      info[ATTR_DOMAIN_POINT].length = curves->geometry.point_size;
+      info[ATTR_DOMAIN_CURVE].customdata = &curves->geometry.curve_data;
+      info[ATTR_DOMAIN_CURVE].length = curves->geometry.curve_size;
       break;
     }
     default:
@@ -301,8 +301,8 @@ bool BKE_id_attribute_required(ID *id, CustomDataLayer *layer)
     case ID_PT: {
       return BKE_pointcloud_customdata_required((PointCloud *)id, layer);
     }
-    case ID_HA: {
-      return BKE_hair_customdata_required((Hair *)id, layer);
+    case ID_CV: {
+      return BKE_curves_customdata_required((Curves *)id, layer);
     }
     default:
       return false;
@@ -372,8 +372,8 @@ int *BKE_id_attributes_active_index_p(ID *id)
     case ID_ME: {
       return &((Mesh *)id)->attributes_active_index;
     }
-    case ID_HA: {
-      return &((Hair *)id)->attributes_active_index;
+    case ID_CV: {
+      return &((Curves *)id)->attributes_active_index;
     }
     default:
       return NULL;

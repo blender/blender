@@ -76,7 +76,7 @@ typedef struct CurvesGeometry {
   int curve_size;
 } CurvesGeometry;
 
-typedef struct Hair {
+typedef struct Curves {
   ID id;
   /* Animation data (must be immediately after id). */
   struct AnimData *adt;
@@ -93,15 +93,15 @@ typedef struct Hair {
 
   /* Draw Cache. */
   void *batch_cache;
-} Hair;
+} Curves;
 
-/* Hair.flag */
+/* Curves.flag */
 enum {
   HA_DS_EXPAND = (1 << 0),
 };
 
 /* Only one material supported currently. */
-#define HAIR_MATERIAL_NR 1
+#define CURVES_MATERIAL_NR 1
 
 #ifdef __cplusplus
 }

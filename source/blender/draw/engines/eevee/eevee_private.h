@@ -1385,9 +1385,9 @@ void EEVEE_cryptomatte_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *s
 void EEVEE_cryptomatte_particle_hair_cache_populate(EEVEE_Data *vedata,
                                                     EEVEE_ViewLayerData *sldata,
                                                     Object *ob);
-void EEVEE_cryptomatte_object_hair_cache_populate(EEVEE_Data *vedata,
-                                                  EEVEE_ViewLayerData *sldata,
-                                                  Object *ob);
+void EEVEE_cryptomatte_object_curves_cache_populate(EEVEE_Data *vedata,
+                                                    EEVEE_ViewLayerData *sldata,
+                                                    Object *ob);
 void EEVEE_cryptomatte_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 /**
  * Register the render passes needed for cryptomatte
