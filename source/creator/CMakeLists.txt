@@ -1104,9 +1104,9 @@ elseif(APPLE)
       ${TARGETDIR_VER}/python/lib
     )
 
-    install(DIRECTORY ${LIBDIR}/python/bin
-      DESTINATION ${TARGETDIR_VER}/python
-      USE_SOURCE_PERMISSIONS
+    install(
+      PROGRAMS ${PYTHON_EXECUTABLE}
+      DESTINATION ${TARGETDIR_VER}/python/bin
     )
 
     # Needed for distutils/pip
