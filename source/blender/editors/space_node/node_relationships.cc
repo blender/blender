@@ -365,10 +365,7 @@ void sort_multi_input_socket_links(SpaceNode &snode,
   }
 }
 
-static void snode_autoconnect(Main &bmain,
-                              SpaceNode &snode,
-                              const bool allow_multiple,
-                              const bool replace)
+static void snode_autoconnect(SpaceNode &snode, const bool allow_multiple, const bool replace)
 {
   bNodeTree *ntree = snode.edittree;
   Vector<bNode *> sorted_nodes;
@@ -440,10 +437,6 @@ static void snode_autoconnect(Main &bmain,
         }
       }
     }
-  }
-
-  if (numlinks > 0) {
-    BKE_ntree_update_main_tree(&bmain, ntree, nullptr);
   }
 }
 
@@ -1304,13 +1297,13 @@ static int node_make_link_exec(bContext *C, wmOperator *op)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), &bmain);
 
-  snode_autoconnect(bmain, snode, true, replace);
+  snode_autoconnect(snode, true, replace);
 
   /* deselect sockets after linking */
   node_deselect_all_input_sockets(snode, false);
   node_deselect_all_output_sockets(snode, false);
 
-  ED_node_tree_propagate_change(C, CTX_data_main(C), snode.edittree);
+  ED_node_tree_propagate_change(C, &bmain, snode.edittree);
 
   return OPERATOR_FINISHED;
 }
