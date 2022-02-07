@@ -71,6 +71,7 @@
 #include "DNA_asset_types.h"
 #include "DNA_space_types.h"
 
+#include "ED_asset_view_catalog_filter.h"
 #include "ED_datafiles.h"
 #include "ED_fileselect.h"
 #include "ED_screen.h"
@@ -372,7 +373,7 @@ typedef struct FileListFilter {
   char filter_search[66]; /* + 2 for heading/trailing implicit '*' wildcards. */
   short flags;
 
-  FileAssetCatalogFilterSettingsHandle *asset_catalog_filter;
+  AssetViewCatalogFilterSettingsHandle *asset_catalog_filter;
 } FileListFilter;
 
 /* FileListFilter.flags */
@@ -955,7 +956,8 @@ static void prepare_filter_asset_library(const FileList *filelist, FileListFilte
                  "prepare_filter_asset_library() should only be called when the file browser is "
                  "in asset browser mode");
 
-  file_ensure_updated_catalog_filter_data(filter->asset_catalog_filter, filelist->asset_library);
+  asset_view_ensure_updated_catalog_filter_data(filter->asset_catalog_filter,
+                                                filelist->asset_library);
 }
 
 /**
@@ -985,7 +987,7 @@ static bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
   const AssetMetaData *asset_data = filelist_file_internal_get_asset_data(file);
 
   /* Not used yet for the asset view template. */
-  if (filter->asset_catalog_filter && !file_is_asset_visible_in_catalog_filter_settings(
+  if (filter->asset_catalog_filter && !asset_view_is_asset_visible_in_catalog_filter_settings(
                                           filter->asset_catalog_filter, asset_data)) {
     return false;
   }
@@ -1175,15 +1177,15 @@ void filelist_setindexer(FileList *filelist, const FileIndexerType *indexer)
 
 void filelist_set_asset_catalog_filter_options(
     FileList *filelist,
-    eFileSel_Params_AssetCatalogVisibility catalog_visibility,
+    AssetCatalogFilterMode catalog_visibility,
     const bUUID *catalog_id)
 {
   if (!filelist->filter_data.asset_catalog_filter) {
     /* There's no filter data yet. */
-    filelist->filter_data.asset_catalog_filter = file_create_asset_catalog_filter_settings();
+    filelist->filter_data.asset_catalog_filter = asset_view_create_catalog_filter_settings();
   }
 
-  const bool needs_update = file_set_asset_catalog_filter_settings(
+  const bool needs_update = asset_view_set_catalog_filter_settings(
       filelist->filter_data.asset_catalog_filter, catalog_visibility, *catalog_id);
 
   if (needs_update) {
@@ -1934,7 +1936,7 @@ static void filelist_clear_asset_library(FileList *filelist)
 {
   /* The AssetLibraryService owns the AssetLibrary pointer, so no need for us to free it. */
   filelist->asset_library = NULL;
-  file_delete_asset_catalog_filter_settings(&filelist->filter_data.asset_catalog_filter);
+  asset_view_delete_catalog_filter_settings(&filelist->filter_data.asset_catalog_filter);
 }
 
 void filelist_clear_ex(struct FileList *filelist,

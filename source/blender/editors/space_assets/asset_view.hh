@@ -20,10 +20,12 @@
 
 #pragma once
 
+#include "DNA_asset_types.h"
+
 #include "UI_grid_view.hh"
 
+struct AssetCatalogFilterSettings;
 struct bContext;
-struct AssetLibraryReference;
 struct uiLayout;
 
 namespace blender::ed::asset_browser {
@@ -43,6 +45,7 @@ class AssetGridView : public blender::ui::AbstractGridView {
 
 void asset_view_create_in_layout(const bContext &C,
                                  const AssetLibraryReference &asset_library_ref,
+                                 const struct AssetCatalogFilterSettings &catalog_filter_settings,
                                  uiLayout &layout);
 
 }  // namespace blender::ed::asset_browser

@@ -124,6 +124,7 @@ class AssetList : NonCopyable {
 
   void setup();
   void fetch(const bContext &C);
+  void setCatalogFilterSettings(const AssetCatalogFilterSettings &settings);
   void ensurePreviewsJob(const bContext *C);
   void clear(bContext *C);
 
@@ -163,7 +164,7 @@ void AssetList::setup()
   filelist_setlibrary(files, &library_ref_);
   filelist_setfilter_options(
       files,
-      false,
+      true,
       true,
       true, /* Just always hide parent, prefer to not add an extra user option for this. */
       FILE_TYPE_BLENDERLIB,
@@ -201,6 +202,14 @@ void AssetList::fetch(const bContext &C)
   }
   filelist_sort(files);
   filelist_filter(files);
+}
+
+void AssetList::setCatalogFilterSettings(const AssetCatalogFilterSettings &settings)
+{
+  filelist_set_asset_catalog_filter_options(
+      filelist_,
+      (AssetCatalogFilterMode)settings.filter_mode,
+      &settings.active_catalog_id);
 }
 
 bool AssetList::needsRefetch() const
@@ -449,6 +458,15 @@ void ED_assetlist_ensure_previews_job(const AssetLibraryReference *library_refer
   AssetList *list = AssetListStorage::lookup_list(*library_reference);
   if (list) {
     list->ensurePreviewsJob(C);
+  }
+}
+
+void ED_assetlist_catalog_filter_set(const struct AssetLibraryReference *library_reference,
+                                     const struct AssetCatalogFilterSettings *settings)
+{
+  AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  if (list) {
+    list->setCatalogFilterSettings(*settings);
   }
 }
 

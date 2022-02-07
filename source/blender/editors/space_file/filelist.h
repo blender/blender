@@ -82,11 +82,11 @@ void filelist_setfilter_options(struct FileList *filelist,
 void filelist_setindexer(struct FileList *filelist, const struct FileIndexerType *indexer);
 /**
  * \param catalog_id: The catalog that should be filtered by if \a catalog_visibility is
- * #FILE_SHOW_ASSETS_FROM_CATALOG. May be NULL otherwise.
+ * #ASSET_CATALOG_SHOW_ASSETS_FROM_CATALOG. May be NULL otherwise.
  */
 void filelist_set_asset_catalog_filter_options(
     struct FileList *filelist,
-    eFileSel_Params_AssetCatalogVisibility catalog_visibility,
+    AssetCatalogFilterMode catalog_visibility,
     const struct bUUID *catalog_id);
 void filelist_tag_needs_filtering(struct FileList *filelist);
 void filelist_filter(struct FileList *filelist);

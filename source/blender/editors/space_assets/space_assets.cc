@@ -185,7 +185,7 @@ void ED_spacetype_assets(void)
   art->draw = ED_region_header_draw;
   BLI_addhead(&st->regiontypes, art);
 
-  /* regions: navigation window */
+  /* Navigation region */
   art = MEM_cnew<ARegionType>("spacetype asset browser navigation region");
   art->regionid = RGN_TYPE_NAV_BAR;
   art->prefsizex = UI_COMPACT_PANEL_WIDTH;

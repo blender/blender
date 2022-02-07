@@ -500,7 +500,7 @@ void ED_fileselect_activate_asset_catalog(const SpaceFile *sfile, const bUUID ca
   }
 
   FileAssetSelectParams *params = ED_fileselect_get_asset_params(sfile);
-  params->asset_catalog_visibility = FILE_SHOW_ASSETS_FROM_CATALOG;
+  params->asset_catalog_visibility = ASSET_CATALOG_SHOW_ASSETS_FROM_CATALOG;
   params->catalog_id = catalog_id;
   WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
 }

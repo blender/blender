@@ -230,11 +230,11 @@ AssetCatalogTreeViewAllItem &AssetCatalogTreeView::add_all_item()
 
   AssetCatalogTreeViewAllItem &item = add_tree_item<AssetCatalogTreeViewAllItem>(IFACE_("All"));
   item.set_on_activate_fn([params](ui::BasicTreeViewItem & /*item*/) {
-    params->asset_catalog_visibility = FILE_SHOW_ASSETS_ALL_CATALOGS;
+    params->asset_catalog_visibility = ASSET_CATALOG_SHOW_ALL_ASSETS;
     WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
   });
   item.set_is_active_fn(
-      [params]() { return params->asset_catalog_visibility == FILE_SHOW_ASSETS_ALL_CATALOGS; });
+      [params]() { return params->asset_catalog_visibility == ASSET_CATALOG_SHOW_ALL_ASSETS; });
   return item;
 }
 
@@ -246,23 +246,23 @@ void AssetCatalogTreeView::add_unassigned_item()
       IFACE_("Unassigned"), ICON_FILE_HIDDEN);
 
   item.set_on_activate_fn([params](ui::BasicTreeViewItem & /*item*/) {
-    params->asset_catalog_visibility = FILE_SHOW_ASSETS_WITHOUT_CATALOG;
+    params->asset_catalog_visibility = ASSET_CATALOG_SHOW_ASSETS_WITHOUT_CATALOG;
     WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
   });
   item.set_is_active_fn(
-      [params]() { return params->asset_catalog_visibility == FILE_SHOW_ASSETS_WITHOUT_CATALOG; });
+      [params]() { return params->asset_catalog_visibility == ASSET_CATALOG_SHOW_ASSETS_WITHOUT_CATALOG; });
 }
 
 void AssetCatalogTreeView::activate_catalog_by_id(CatalogID catalog_id)
 {
-  params_->asset_catalog_visibility = FILE_SHOW_ASSETS_FROM_CATALOG;
+  params_->asset_catalog_visibility = ASSET_CATALOG_SHOW_ASSETS_FROM_CATALOG;
   params_->catalog_id = catalog_id;
   WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
 }
 
 bool AssetCatalogTreeView::is_active_catalog(CatalogID catalog_id) const
 {
-  return (params_->asset_catalog_visibility == FILE_SHOW_ASSETS_FROM_CATALOG) &&
+  return (params_->asset_catalog_visibility == ASSET_CATALOG_SHOW_ASSETS_FROM_CATALOG) &&
          (params_->catalog_id == catalog_id);
 }
 
@@ -663,95 +663,7 @@ bool AssetCatalogTreeViewUnassignedItem::DropController::on_drop(struct bContext
 
 /* ---------------------------------------------------------------------- */
 
-namespace blender::ed::space_file::asset_browser {
-
-class AssetCatalogViewFilter {
- public:
-  eFileSel_Params_AssetCatalogVisibility asset_catalog_visibility;
-  bUUID asset_catalog_id;
-
-  std::unique_ptr<AssetCatalogFilter> catalog_filter;
-};
-
-}  // namespace blender::ed::space_file::asset_browser
-
-using namespace blender::ed::space_file::asset_browser;
-
-FileAssetCatalogFilterSettingsHandle *file_create_asset_catalog_filter_settings()
-{
-  AssetCatalogViewFilter *filter_settings = MEM_new<AssetCatalogViewFilter>(__func__);
-  return reinterpret_cast<FileAssetCatalogFilterSettingsHandle *>(filter_settings);
-}
-
-void file_delete_asset_catalog_filter_settings(
-    FileAssetCatalogFilterSettingsHandle **filter_settings_handle)
-{
-  AssetCatalogViewFilter **filter_settings = reinterpret_cast<AssetCatalogViewFilter **>(
-      filter_settings_handle);
-  MEM_delete(*filter_settings);
-  *filter_settings = nullptr;
-}
-
-bool file_set_asset_catalog_filter_settings(
-    FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
-    eFileSel_Params_AssetCatalogVisibility catalog_visibility,
-    ::bUUID catalog_id)
-{
-  AssetCatalogViewFilter *filter_settings = reinterpret_cast<AssetCatalogViewFilter *>(
-      filter_settings_handle);
-  bool needs_update = false;
-
-  if (filter_settings->asset_catalog_visibility != catalog_visibility) {
-    filter_settings->asset_catalog_visibility = catalog_visibility;
-    needs_update = true;
-  }
-
-  if (filter_settings->asset_catalog_visibility == FILE_SHOW_ASSETS_FROM_CATALOG &&
-      !BLI_uuid_equal(filter_settings->asset_catalog_id, catalog_id)) {
-    filter_settings->asset_catalog_id = catalog_id;
-    needs_update = true;
-  }
-
-  return needs_update;
-}
-
-void file_ensure_updated_catalog_filter_data(
-    FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
-    const ::AssetLibrary *asset_library)
-{
-  AssetCatalogViewFilter *filter_settings = reinterpret_cast<AssetCatalogViewFilter *>(
-      filter_settings_handle);
-  const AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(
-      asset_library);
-
-  if (filter_settings->asset_catalog_visibility != FILE_SHOW_ASSETS_ALL_CATALOGS) {
-    filter_settings->catalog_filter = std::make_unique<AssetCatalogFilter>(
-        catalog_service->create_catalog_filter(filter_settings->asset_catalog_id));
-  }
-}
-
-bool file_is_asset_visible_in_catalog_filter_settings(
-    const FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
-    const AssetMetaData *asset_data)
-{
-  const AssetCatalogViewFilter *filter_settings = reinterpret_cast<const AssetCatalogViewFilter *>(
-      filter_settings_handle);
-
-  switch (filter_settings->asset_catalog_visibility) {
-    case FILE_SHOW_ASSETS_WITHOUT_CATALOG:
-      return !filter_settings->catalog_filter->is_known(asset_data->catalog_id);
-    case FILE_SHOW_ASSETS_FROM_CATALOG:
-      return filter_settings->catalog_filter->contains(asset_data->catalog_id);
-    case FILE_SHOW_ASSETS_ALL_CATALOGS:
-      /* All asset files should be visible. */
-      return true;
-  }
-
-  BLI_assert_unreachable();
-  return false;
-}
-
-/* ---------------------------------------------------------------------- */
+namespace asset_browser = blender::ed::space_file::asset_browser;
 
 void file_create_asset_catalog_tree_view_in_layout(::AssetLibrary *asset_library,
                                                    uiLayout *layout,
@@ -765,7 +677,7 @@ void file_create_asset_catalog_tree_view_in_layout(::AssetLibrary *asset_library
   ui::AbstractTreeView *tree_view = UI_block_add_view(
       *block,
       "asset catalog tree view",
-      std::make_unique<AssetCatalogTreeView>(asset_library, params, *space_file));
+      std::make_unique<asset_browser::AssetCatalogTreeView>(asset_library, params, *space_file));
 
   ui::TreeViewBuilder builder(*block);
   builder.build_tree_view(*tree_view);

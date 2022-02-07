@@ -44,6 +44,7 @@ set(SRC
   intern/asset_ops.cc
   intern/asset_temp_id_consumer.cc
   intern/asset_type.cc
+  intern/asset_view_catalog_filter.cc
 
   ED_asset_catalog.h
   ED_asset_catalog.hh
@@ -56,6 +57,7 @@ set(SRC
   ED_asset_mark_clear.h
   ED_asset_temp_id_consumer.h
   ED_asset_type.h
+  ED_asset_view_catalog_filter.h
   intern/asset_library_reference.hh
 )
 

@@ -826,9 +826,9 @@ typedef struct FileAssetSelectParams {
   FileSelectParams base_params;
 
   AssetLibraryReference asset_library_ref;
-  short asset_catalog_visibility; /* eFileSel_Params_AssetCatalogVisibility */
+  short asset_catalog_visibility; /* AssetCatalogFilterMode */
   char _pad[6];
-  /** If #asset_catalog_visibility is #FILE_SHOW_ASSETS_FROM_CATALOG, this sets the ID of the
+  /** If #asset_catalog_visibility is #ASSET_CATALOG_SHOW_ASSETS_FROM_CATALOG, this sets the ID of the
    * catalog to show. */
   bUUID catalog_id;
 
@@ -1037,13 +1037,6 @@ typedef enum eFileSel_Params_Flag {
   /** Enables filtering by asset catalog. */
   FILE_FILTER_ASSET_CATALOG = (1 << 15),
 } eFileSel_Params_Flag;
-
-/* TODO rename */
-typedef enum eFileSel_Params_AssetCatalogVisibility {
-  FILE_SHOW_ASSETS_ALL_CATALOGS,
-  FILE_SHOW_ASSETS_FROM_CATALOG,
-  FILE_SHOW_ASSETS_WITHOUT_CATALOG,
-} eFileSel_Params_AssetCatalogVisibility;
 
 /**
  * #FileSelectParams.rename_flag / `sfile->params->rename_flag`.
@@ -2040,10 +2033,16 @@ typedef enum eSpreadsheetColumnValueType {
 /** \name Asset Browser
  * \{ */
 
+typedef enum AssetCatalogFilterMode {
+  ASSET_CATALOG_SHOW_ALL_ASSETS,
+  ASSET_CATALOG_SHOW_ASSETS_FROM_CATALOG,
+  ASSET_CATALOG_SHOW_ASSETS_WITHOUT_CATALOG,
+} AssetCatalogFilterMode;
+
 typedef struct AssetCatalogFilterSettings {
-  short filter_mode; /* eFileSel_Params_AssetCatalogVisibility */
+  short filter_mode; /* AssetCatalogFilterMode */
   char _pad[6];
-  /** If #visibility_mode is #FILE_SHOW_ASSETS_FROM_CATALOG, this sets the ID of the
+  /** If #visibility_mode is #ASSET_CATALOG_SHOW_ASSETS_FROM_CATALOG, this sets the ID of the
    * catalog to show. */
   bUUID active_catalog_id;
 } AssetCatalogFilterSettings;

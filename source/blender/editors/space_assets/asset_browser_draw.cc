@@ -50,7 +50,8 @@ void asset_browser_main_region_draw(const bContext *C, ARegion *region)
   uiLayout *layout = UI_block_layout(
       block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, style->panelspace, 0, region->winx, 1, 0, style);
 
-  asset_view_create_in_layout(*C, asset_space->asset_library_ref, *layout);
+  asset_view_create_in_layout(
+      *C, asset_space->asset_library_ref, asset_space->catalog_filter, *layout);
 
   /* Update main region View2d dimensions. */
   int layout_width, layout_height;

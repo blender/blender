@@ -54,6 +54,7 @@ bool AssetGridView::listen(const wmNotifier &notifier) const
 
 void asset_view_create_in_layout(const bContext &C,
                                  const AssetLibraryReference &asset_library_ref,
+                                 const AssetCatalogFilterSettings &catalog_filter_settings,
                                  uiLayout &layout)
 {
   uiBlock *block = uiLayoutGetBlock(&layout);
@@ -61,6 +62,7 @@ void asset_view_create_in_layout(const bContext &C,
 
   ED_assetlist_storage_fetch(&asset_library_ref, &C);
   ED_assetlist_ensure_previews_job(&asset_library_ref, &C);
+  ED_assetlist_catalog_filter_set(&asset_library_ref, &catalog_filter_settings);
 
   ui::AbstractGridView *grid_view = UI_block_add_view(
       *block, "asset grid view", std::make_unique<AssetGridView>(asset_library_ref, layout));
