@@ -1107,6 +1107,15 @@ static bool seq_transform_origin_set(Sequence *seq, void *UNUSED(user_data))
   return true;
 }
 
+static bool seq_transform_filter_set(Sequence *seq, void *UNUSED(user_data))
+{
+  StripTransform *transform = seq->strip->transform;
+  if (seq->strip->transform != NULL) {
+    transform->filter = SEQ_TRANSFORM_FILTER_BILINEAR;
+  }
+  return true;
+}
+
 static void do_version_subsurface_methods(bNode *node)
 {
   if (node->type == SH_NODE_SUBSURFACE_SCATTERING) {
@@ -2545,6 +2554,14 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         version_node_output_socket_name(
             ntree, GEO_NODE_INPUT_MESH_ISLAND, "Index", "Island Index");
         version_node_input_socket_name(ntree, GEO_NODE_TRANSFER_ATTRIBUTE, "Target", "Source");
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 2)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed != NULL) {
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_transform_filter_set, NULL);
       }
     }
   }
