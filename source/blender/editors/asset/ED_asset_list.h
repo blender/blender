@@ -26,6 +26,7 @@ extern "C" {
 
 struct AssetFilterSettings;
 struct AssetHandle;
+struct AssetLibrary;
 struct AssetLibraryReference;
 struct ID;
 struct bContext;
@@ -62,6 +63,9 @@ void ED_assetlist_storage_exit(void);
 
 struct ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle);
 const char *ED_assetlist_library_path(const struct AssetLibraryReference *library_reference);
+
+struct AssetLibrary *ED_assetlist_library_get(
+    const struct AssetLibraryReference *library_reference);
 
 /**
  * \return True if the region needs a UI redraw.

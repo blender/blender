@@ -133,6 +133,7 @@ class AssetList : NonCopyable {
   int size() const;
   void tagMainDataDirty() const;
   void remapID(ID *id_old, ID *id_new) const;
+  AssetLibrary &asset_library() const;
   StringRef filepath() const;
 };
 
@@ -313,6 +314,11 @@ void AssetList::remapID(ID * /*id_old*/, ID * /*id_new*/) const
 StringRef AssetList::filepath() const
 {
   return filelist_dir(filelist_);
+}
+
+AssetLibrary &AssetList::asset_library() const
+{
+  return *filelist_asset_library(filelist_);
 }
 
 /** \} */
@@ -522,6 +528,15 @@ const char *ED_assetlist_library_path(const AssetLibraryReference *library_refer
   AssetList *list = AssetListStorage::lookup_list(*library_reference);
   if (list) {
     return list->filepath().data();
+  }
+  return nullptr;
+}
+
+AssetLibrary *ED_assetlist_library_get(const AssetLibraryReference *library_reference)
+{
+  AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  if (list) {
+    return &list->asset_library();
   }
   return nullptr;
 }

@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -55,6 +56,15 @@ static SpaceLink *asset_browser_create(const ScrArea *UNUSED(area), const Scene 
     BLI_addtail(&assets_space->regionbase, region);
     region->regiontype = RGN_TYPE_HEADER;
     region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+  }
+
+  {
+    /* navigation region */
+    ARegion *region = MEM_cnew<ARegion>("asset browser navigation region");
+
+    BLI_addtail(&assets_space->regionbase, region);
+    region->regiontype = RGN_TYPE_NAV_BAR;
+    region->alignment = RGN_ALIGN_LEFT;
   }
 
   {
@@ -119,6 +129,25 @@ static void asset_browser_header_listener(const wmRegionListenerParams *UNUSED(p
 }
 
 /* ---------------------------------------------------------------------- */
+/* Navigation Region */
+
+static void asset_browser_navigation_region_init(wmWindowManager *wm, ARegion *region)
+{
+  region->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
+  ED_region_panels_init(wm, region);
+}
+
+static void asset_browser_navigation_region_draw(const bContext *C, ARegion *region)
+{
+  ED_region_panels(C, region);
+}
+
+static void asset_browser_navigation_region_listener(
+    const wmRegionListenerParams *UNUSED(listener_params))
+{
+}
+
+/* ---------------------------------------------------------------------- */
 /* Asset Browser Space-Type */
 
 void ED_spacetype_assets(void)
@@ -154,6 +183,18 @@ void ED_spacetype_assets(void)
   art->init = asset_browser_header_init;
   art->layout = ED_region_header_layout;
   art->draw = ED_region_header_draw;
+  BLI_addhead(&st->regiontypes, art);
+
+  /* regions: navigation window */
+  art = MEM_cnew<ARegionType>("spacetype asset browser navigation region");
+  art->regionid = RGN_TYPE_NAV_BAR;
+  art->prefsizex = UI_COMPACT_PANEL_WIDTH;
+  art->init = asset_browser_navigation_region_init;
+  art->draw = asset_browser_navigation_region_draw;
+  art->listener = asset_browser_navigation_region_listener;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_NAVBAR;
+  asset_browser_navigation_region_panels_register(art);
+
   BLI_addhead(&st->regiontypes, art);
 
   BKE_spacetype_register(st);

@@ -1038,6 +1038,7 @@ typedef enum eFileSel_Params_Flag {
   FILE_FILTER_ASSET_CATALOG = (1 << 15),
 } eFileSel_Params_Flag;
 
+/* TODO rename */
 typedef enum eFileSel_Params_AssetCatalogVisibility {
   FILE_SHOW_ASSETS_ALL_CATALOGS,
   FILE_SHOW_ASSETS_FROM_CATALOG,
@@ -2039,6 +2040,14 @@ typedef enum eSpreadsheetColumnValueType {
 /** \name Asset Browser
  * \{ */
 
+typedef struct AssetCatalogFilterSettings {
+  short filter_mode; /* eFileSel_Params_AssetCatalogVisibility */
+  char _pad[6];
+  /** If #visibility_mode is #FILE_SHOW_ASSETS_FROM_CATALOG, this sets the ID of the
+   * catalog to show. */
+  bUUID active_catalog_id;
+} AssetCatalogFilterSettings;
+
 typedef struct SpaceAssets {
   SpaceLink *next, *prev;
   /** Storage of regions for inactive spaces. */
@@ -2049,6 +2058,7 @@ typedef struct SpaceAssets {
   /* End 'SpaceLink' header. */
 
   AssetLibraryReference asset_library_ref;
+  AssetCatalogFilterSettings catalog_filter;
 } SpaceAssets;
 
 /** \} */

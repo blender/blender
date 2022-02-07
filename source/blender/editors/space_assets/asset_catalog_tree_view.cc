@@ -18,7 +18,7 @@
  */
 
 /** \file
- * \ingroup spfile
+ * \ingroup spassets
  */
 
 #include "DNA_space_types.h"
@@ -32,7 +32,6 @@
 #include "BLT_translation.h"
 
 #include "ED_asset.h"
-#include "ED_fileselect.h"
 #include "ED_undo.h"
 
 #include "RNA_access.h"
@@ -45,13 +44,12 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "file_intern.h"
-#include "filelist.h"
+#include "asset_browser_intern.hh"
 
 using namespace blender;
 using namespace blender::bke;
 
-namespace blender::ed::space_file::asset_browser {
+namespace blender::ed::asset_browser {
 
 class AssetCatalogTreeViewAllItem;
 
@@ -59,17 +57,14 @@ class AssetCatalogTreeView : public ui::AbstractTreeView {
   ::AssetLibrary *asset_library_;
   /** The asset catalog tree this tree-view represents. */
   bke::AssetCatalogTree *catalog_tree_;
-  FileAssetSelectParams *params_;
-  SpaceFile &space_file_;
+  AssetCatalogFilterSettings &catalog_filter_;
 
   friend class AssetCatalogTreeViewItem;
   friend class AssetCatalogDropController;
   friend class AssetCatalogTreeViewAllItem;
 
  public:
-  AssetCatalogTreeView(::AssetLibrary *library,
-                       FileAssetSelectParams *params,
-                       SpaceFile &space_file);
+  AssetCatalogTreeView(::AssetLibrary *library, AssetCatalogFilterSettings *catalog_filter);
 
   void build_tree() override;
 
@@ -186,13 +181,14 @@ class AssetCatalogTreeViewUnassignedItem : public ui::BasicTreeViewItem {
 /* ---------------------------------------------------------------------- */
 
 AssetCatalogTreeView::AssetCatalogTreeView(::AssetLibrary *library,
-                                           FileAssetSelectParams *params,
-                                           SpaceFile &space_file)
+                                           AssetCatalogFilterSettings *catalog_filter)
     : asset_library_(library),
       catalog_tree_(BKE_asset_library_get_catalog_tree(library)),
-      params_(params),
-      space_file_(space_file)
+      catalog_filter_(*catalog_filter)
 {
+  if (!catalog_filter) {
+    throw "Catalog filter should never be null";
+  }
 }
 
 void AssetCatalogTreeView::build_tree()
@@ -226,44 +222,43 @@ ui::BasicTreeViewItem &AssetCatalogTreeView::build_catalog_items_recursive(
 
 AssetCatalogTreeViewAllItem &AssetCatalogTreeView::add_all_item()
 {
-  FileAssetSelectParams *params = params_;
-
   AssetCatalogTreeViewAllItem &item = add_tree_item<AssetCatalogTreeViewAllItem>(IFACE_("All"));
-  item.set_on_activate_fn([params](ui::BasicTreeViewItem & /*item*/) {
-    params->asset_catalog_visibility = FILE_SHOW_ASSETS_ALL_CATALOGS;
-    WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
+  item.set_on_activate_fn([this](ui::BasicTreeViewItem & /*item*/) {
+    catalog_filter_.filter_mode = FILE_SHOW_ASSETS_ALL_CATALOGS;
+    /* TODO */
+    //    WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
   });
   item.set_is_active_fn(
-      [params]() { return params->asset_catalog_visibility == FILE_SHOW_ASSETS_ALL_CATALOGS; });
+      [this]() { return catalog_filter_.filter_mode == FILE_SHOW_ASSETS_ALL_CATALOGS; });
   return item;
 }
 
 void AssetCatalogTreeView::add_unassigned_item()
 {
-  FileAssetSelectParams *params = params_;
-
   AssetCatalogTreeViewUnassignedItem &item = add_tree_item<AssetCatalogTreeViewUnassignedItem>(
       IFACE_("Unassigned"), ICON_FILE_HIDDEN);
 
-  item.set_on_activate_fn([params](ui::BasicTreeViewItem & /*item*/) {
-    params->asset_catalog_visibility = FILE_SHOW_ASSETS_WITHOUT_CATALOG;
-    WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
+  item.set_on_activate_fn([this](ui::BasicTreeViewItem & /*item*/) {
+    catalog_filter_.filter_mode = FILE_SHOW_ASSETS_WITHOUT_CATALOG;
+    /* TODO */
+    //    WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
   });
   item.set_is_active_fn(
-      [params]() { return params->asset_catalog_visibility == FILE_SHOW_ASSETS_WITHOUT_CATALOG; });
+      [this]() { return catalog_filter_.filter_mode == FILE_SHOW_ASSETS_WITHOUT_CATALOG; });
 }
 
 void AssetCatalogTreeView::activate_catalog_by_id(CatalogID catalog_id)
 {
-  params_->asset_catalog_visibility = FILE_SHOW_ASSETS_FROM_CATALOG;
-  params_->catalog_id = catalog_id;
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
+  catalog_filter_.filter_mode = FILE_SHOW_ASSETS_FROM_CATALOG;
+  catalog_filter_.active_catalog_id = catalog_id;
+  /* TODO */
+  //  WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
 }
 
 bool AssetCatalogTreeView::is_active_catalog(CatalogID catalog_id) const
 {
-  return (params_->asset_catalog_visibility == FILE_SHOW_ASSETS_FROM_CATALOG) &&
-         (params_->catalog_id == catalog_id);
+  return (catalog_filter_.filter_mode == FILE_SHOW_ASSETS_FROM_CATALOG) &&
+         (catalog_filter_.active_catalog_id == catalog_id);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -454,11 +449,12 @@ bool AssetCatalogDropController::drop_asset_catalog_into_catalog(
   return true;
 }
 
-bool AssetCatalogDropController::drop_assets_into_catalog(struct bContext *C,
-                                                          const AssetCatalogTreeView &tree_view,
-                                                          const wmDrag &drag,
-                                                          CatalogID catalog_id,
-                                                          StringRefNull simple_name)
+bool AssetCatalogDropController::drop_assets_into_catalog(
+    struct bContext *C,
+    const AssetCatalogTreeView &UNUSED(tree_view),
+    const wmDrag &drag,
+    CatalogID catalog_id,
+    StringRefNull simple_name)
 {
   BLI_assert(drag.type == WM_DRAG_ASSET_LIST);
   const ListBase *asset_drags = WM_drag_asset_list_get(&drag);
@@ -477,10 +473,12 @@ bool AssetCatalogDropController::drop_assets_into_catalog(struct bContext *C,
     BKE_asset_metadata_catalog_id_set(
         asset_item->asset_data.local_id->asset_data, catalog_id, simple_name.c_str());
 
+    /* TODO */
     /* Trigger re-run of filtering to update visible assets. */
-    filelist_tag_needs_filtering(tree_view.space_file_.files);
-    file_select_deselect_all(&tree_view.space_file_, FILE_SEL_SELECTED | FILE_SEL_HIGHLIGHTED);
-    WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
+    //    filelist_tag_needs_filtering(tree_view.space_file_.files);
+    //    file_select_deselect_all(&tree_view.space_file_, FILE_SEL_SELECTED |
+    //    FILE_SEL_HIGHLIGHTED);
+    //    WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
   }
 
   if (did_update) {
@@ -659,13 +657,15 @@ bool AssetCatalogTreeViewUnassignedItem::DropController::on_drop(struct bContext
       C, tree_view<AssetCatalogTreeView>(), drag, CatalogID{});
 }
 
-}  // namespace blender::ed::space_file::asset_browser
+}  // namespace blender::ed::asset_browser
 
 /* ---------------------------------------------------------------------- */
 
-namespace blender::ed::space_file::asset_browser {
+#if 0
 
-class AssetCatalogViewFilter {
+namespace blender::ed::asset_browser {
+
+class AssetCatalogFilterSettings {
  public:
   eFileSel_Params_AssetCatalogVisibility asset_catalog_visibility;
   bUUID asset_catalog_id;
@@ -673,20 +673,20 @@ class AssetCatalogViewFilter {
   std::unique_ptr<AssetCatalogFilter> catalog_filter;
 };
 
-}  // namespace blender::ed::space_file::asset_browser
+}  // namespace blender::ed::asset_browser
 
-using namespace blender::ed::space_file::asset_browser;
+using namespace blender::ed::asset_browser;
 
 FileAssetCatalogFilterSettingsHandle *file_create_asset_catalog_filter_settings()
 {
-  AssetCatalogViewFilter *filter_settings = MEM_new<AssetCatalogViewFilter>(__func__);
+  AssetCatalogFilterSettings *filter_settings = MEM_new<AssetCatalogFilterSettings>(__func__);
   return reinterpret_cast<FileAssetCatalogFilterSettingsHandle *>(filter_settings);
 }
 
 void file_delete_asset_catalog_filter_settings(
     FileAssetCatalogFilterSettingsHandle **filter_settings_handle)
 {
-  AssetCatalogViewFilter **filter_settings = reinterpret_cast<AssetCatalogViewFilter **>(
+  AssetCatalogFilterSettings **filter_settings = reinterpret_cast<AssetCatalogFilterSettings **>(
       filter_settings_handle);
   MEM_delete(*filter_settings);
   *filter_settings = nullptr;
@@ -697,7 +697,7 @@ bool file_set_asset_catalog_filter_settings(
     eFileSel_Params_AssetCatalogVisibility catalog_visibility,
     ::bUUID catalog_id)
 {
-  AssetCatalogViewFilter *filter_settings = reinterpret_cast<AssetCatalogViewFilter *>(
+  AssetCatalogFilterSettings *filter_settings = reinterpret_cast<AssetCatalogFilterSettings *>(
       filter_settings_handle);
   bool needs_update = false;
 
@@ -719,7 +719,7 @@ void file_ensure_updated_catalog_filter_data(
     FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
     const ::AssetLibrary *asset_library)
 {
-  AssetCatalogViewFilter *filter_settings = reinterpret_cast<AssetCatalogViewFilter *>(
+  AssetCatalogFilterSettings *filter_settings = reinterpret_cast<AssetCatalogFilterSettings *>(
       filter_settings_handle);
   const AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(
       asset_library);
@@ -734,8 +734,8 @@ bool file_is_asset_visible_in_catalog_filter_settings(
     const FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
     const AssetMetaData *asset_data)
 {
-  const AssetCatalogViewFilter *filter_settings = reinterpret_cast<const AssetCatalogViewFilter *>(
-      filter_settings_handle);
+  const AssetCatalogFilterSettings *filter_settings =
+      reinterpret_cast<const AssetCatalogFilterSettings *>(filter_settings_handle);
 
   switch (filter_settings->asset_catalog_visibility) {
     case FILE_SHOW_ASSETS_WITHOUT_CATALOG:
@@ -750,13 +750,13 @@ bool file_is_asset_visible_in_catalog_filter_settings(
   BLI_assert_unreachable();
   return false;
 }
+#endif
 
 /* ---------------------------------------------------------------------- */
 
-void file_create_asset_catalog_tree_view_in_layout(::AssetLibrary *asset_library,
-                                                   uiLayout *layout,
-                                                   SpaceFile *space_file,
-                                                   FileAssetSelectParams *params)
+void asset_brower_create_catalog_tree_view_in_layout(::AssetLibrary *asset_library,
+                                                     uiLayout *layout,
+                                                     SpaceAssets *assets_space)
 {
   uiBlock *block = uiLayoutGetBlock(layout);
 
@@ -765,7 +765,8 @@ void file_create_asset_catalog_tree_view_in_layout(::AssetLibrary *asset_library
   ui::AbstractTreeView *tree_view = UI_block_add_view(
       *block,
       "asset catalog tree view",
-      std::make_unique<AssetCatalogTreeView>(asset_library, params, *space_file));
+      std::make_unique<ed::asset_browser::AssetCatalogTreeView>(asset_library,
+                                                                &assets_space->catalog_filter));
 
   ui::TreeViewBuilder builder(*block);
   builder.build_tree_view(*tree_view);

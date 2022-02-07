@@ -32,6 +32,8 @@ set(INC
 set(SRC
   asset_browser_draw.cc
   asset_browser_ops.cc
+  asset_browser_panels.cc
+  asset_catalog_tree_view.cc
   asset_view.cc
   space_assets.cc
 

@@ -29,8 +29,6 @@ class ASSETBROWSER_HT_header(Header):
 
         layout.template_header()
 
-        layout.prop(space, "asset_library_ref", text="")
-
 
 classes = (
     ASSETBROWSER_HT_header,
