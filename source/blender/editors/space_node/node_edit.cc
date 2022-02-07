@@ -394,7 +394,7 @@ static void send_notifiers_after_tree_change(ID *id, bNodeTree *ntree)
 {
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
 
-  if (ntree->type == NTREE_SHADER) {
+  if (ntree->type == NTREE_SHADER && id != nullptr) {
     if (GS(id->name) == ID_MA) {
       WM_main_add_notifier(NC_MATERIAL | ND_SHADING, id);
     }
