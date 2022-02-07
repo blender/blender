@@ -12,7 +12,7 @@ that can be troublesome and avoid practices that are known to cause instability.
 Using Operators
 ===============
 
-Blender's operators are tools for users to access, that can access with Python too which is very useful.
+Blender's operators are tools for users to access, that can be accessed with Python too which is very useful.
 Still operators have limitations that can make them cumbersome to script.
 
 The main limits are:
@@ -20,13 +20,13 @@ The main limits are:
 - Can't pass data such as objects, meshes or materials to operate on (operators use the context instead).
 - The return value from calling an operator is the success (if it finished or was canceled),
   in some cases it would be more logical from an API perspective to return the result of the operation.
-- Operators poll function can fail where an API function would raise an exception giving details on exactly why.
+- Operators' poll function can fail where an API function would raise an exception giving details on exactly why.
 
 
 Why does an operator's poll fail?
 ---------------------------------
 
-When calling an operator gives an error like this:
+When calling an operator it gives an error like this:
 
    >>> bpy.ops.action.clean(threshold=0.001)
    RuntimeError: Operator bpy.ops.action.clean.poll() failed, context is incorrect
@@ -49,9 +49,9 @@ you should be able to find the poll function with no knowledge of C.
 .. note::
 
    Blender does have the functionality for poll functions to describe why they fail,
-   but its currently not used much, if you're interested to help improve the API
+   but it's currently not used much, if you're interested to help improve the API
    feel free to add calls to :class:`bpy.types.Operator.poll_message_set` (``CTX_wm_operator_poll_msg_set`` in C)
-   where its not obvious why poll fails, e.g:
+   where it's not obvious why poll fails, e.g:
 
       >>> bpy.ops.gpencil.draw()
       RuntimeError: Operator bpy.ops.gpencil.draw.poll() Failed to find Grease Pencil data to draw into
@@ -107,7 +107,7 @@ In this case you need to call :class:`bpy.types.ViewLayer.update` after modifyin
 
 
 Now all dependent data (child objects, modifiers, drivers, etc.)
-has been recalculated and is available to the script within active view layer.
+have been recalculated and are available to the script within the active view layer.
 
 
 Can I redraw during script execution?
@@ -116,13 +116,13 @@ Can I redraw during script execution?
 The official answer to this is no, or... *"You don't want to do that"*.
 To give some background on the topic:
 
-While a script executes Blender waits for it to finish and is effectively locked until its done,
+While a script executes, Blender waits for it to finish and is effectively locked until it's done;
 while in this state Blender won't redraw or respond to user input.
 Normally this is not such a problem because scripts distributed with Blender
 tend not to run for an extended period of time,
 nevertheless scripts *can* take a long time to complete and it would be nice to see progress in the viewport.
 
-When tools lock Blender in a loop redraw are highly discouraged
+Tools that lock Blender in a loop redraw are highly discouraged
 since they conflict with Blender's ability to run multiple operators
 at once and update different parts of the interface as the tool runs.
 
@@ -130,7 +130,7 @@ So the solution here is to write a **modal** operator, which is an operator that
 See the modal operator template in the text editor.
 Modal operators execute on user input or setup their own timers to run frequently,
 they can handle the events or pass through to be handled by the keymap or other modal operators.
-Examples of a modal operators are Transform, Painting, Fly Navigation and File Select.
+Examples of modal operators are Transform, Painting, Fly Navigation and File Select.
 
 Writing modal operators takes more effort than a simple ``for`` loop
 that contains draw calls but is more flexible and integrates better with Blender's design.
@@ -240,7 +240,7 @@ Editing
 Editing is where the three data types vary most.
 
 - Polygons are very limited for editing,
-  changing materials and options like smooth works but for anything else
+  changing materials and options like smooth works, but for anything else
   they are too inflexible and are only intended for storage.
 - Tessfaces should not be used for editing geometry because doing so will cause existing n-gons to be tessellated.
 - BMesh-faces are by far the best way to manipulate geometry.
@@ -256,7 +256,7 @@ the choice mostly depends on whether the target format supports n-gons or not.
 - Tessfaces work well for exporting to formats which don't support n-gons,
   in fact this is the only place where their use is encouraged.
 - BMesh-Faces can work for exporting too but may not be necessary if polygons can be used
-  since using BMesh gives some overhead because its not the native storage format in Object-Mode.
+  since using BMesh gives some overhead because it's not the native storage format in Object-Mode.
 
 
 Edit Bones, Pose Bones, Bone... Bones
@@ -348,7 +348,7 @@ Armature Mode Switching
 While writing scripts that deal with armatures you may find you have to switch between modes,
 when doing so take care when switching out of Edit-Mode not to keep references
 to the edit bones or their head/tail vectors.
-Further access to these will crash Blender so its important the script
+Further access to these will crash Blender so it's important that the script
 clearly separates sections of the code which operate in different modes.
 
 This is mainly an issue with Edit-Mode since pose data can be manipulated without having to be in Pose-Mode,
@@ -386,11 +386,11 @@ Or with name assignment:
 Data names may not match the assigned values if they exceed the maximum length, are already used or an empty string.
 
 
-Its better practice not to reference objects by names at all,
+It's better practice not to reference objects by names at all,
 once created you can store the data in a list, dictionary, on a class, etc;
 there is rarely a reason to have to keep searching for the same data by name.
 
-If you do need to use name references, its best to use a dictionary to maintain
+If you do need to use name references, it's best to use a dictionary to maintain
 a mapping between the names of the imported assets and the newly created data,
 this way you don't run this risk of referencing existing data from the blend-file, or worse modifying it.
 
@@ -414,11 +414,11 @@ Library Collisions
 Blender keeps data names unique (:class:`bpy.types.ID.name`) so you can't name two objects,
 meshes, scenes, etc., the same by accident.
 However, when linking in library data from another blend-file naming collisions can occur,
-so its best to avoid referencing data by name at all.
+so it's best to avoid referencing data by name at all.
 
-This can be tricky at times and not even Blender handles this correctly in some case
+This can be tricky at times and not even Blender handles this correctly in some cases
 (when selecting the modifier object for e.g. you can't select between multiple objects with the same name),
-but its still good to try avoiding these problems in this area.
+but it's still good to try avoiding these problems in this area.
 If you need to select between local and library data, there is a feature in ``bpy.data`` members to allow for this.
 
 .. code-block:: python
@@ -467,11 +467,11 @@ writing a script in ``latin1`` or ``iso-8859-15``.
 See `PEP 263 <https://www.python.org/dev/peps/pep-0263/>`__.
 
 However, this complicates matters for Blender's Python API because ``.blend`` files don't have an explicit encoding.
-To avoid the problem for Python integration and script authors we have decided all strings in blend-files
+To avoid the problem for Python integration and script authors we have decided that all strings in blend-files
 **must** be ``UTF-8``, ``ASCII`` compatible.
-This means assigning strings with different encodings to an object names for instance will raise an error.
+This means assigning strings with different encodings to an object name, for instance, will raise an error.
 
-Paths are an exception to this rule since the existence of non-UTF-8 paths on user's file system cannot be ignored.
+Paths are an exception to this rule since the existence of non-UTF-8 paths on the user's file system cannot be ignored.
 This means seemingly harmless expressions can raise errors, e.g:
 
    >>> print(bpy.data.filepath)
@@ -505,7 +505,7 @@ to keep it short about encoding problems -- here are some suggestions:
 .. note::
 
    Sometimes it's preferable to avoid string encoding issues by using bytes instead of Python strings,
-   when reading some input its less trouble to read it as binary data
+   when reading some input it's less trouble to read it as binary data
    though you will still need to decide how to treat any strings you want to use with Blender,
    some importers do this.
 
@@ -679,7 +679,7 @@ Undo/Redo
 ---------
 
 For safety, you should assume that undo and redo always invalidates all :class:`bpy.types.ID`
-instances (Object, Scene, Mesh, Light, etc.), as weel obviously as all of their sub-data.
+instances (Object, Scene, Mesh, Light, etc.), as well obviously as all of their sub-data.
 
 This example shows how you can tell undo changes the memory locations:
 
@@ -716,7 +716,7 @@ Tools in Blender are not allowed to modify library data.
 But Python does not enforce this restriction.
 
 This can be useful in some cases, using a script to adjust material values for example.
-But its also possible to use a script to make library data point to newly created local data,
+But it's also possible to use a script to make library data point to newly created local data,
 which is not supported since a call to undo will remove the local data
 but leave the library referencing it and likely crash.
 

@@ -22,7 +22,7 @@ Data Access
 ===========
 
 The most common case for using the reference API is to find out how to access data in the blend-file.
-Before going any further its best to be aware of ID data-blocks in Blender since you will often find properties
+Before going any further it's best to be aware of ID data-blocks in Blender since you will often find properties
 relative to them.
 
 
@@ -55,9 +55,9 @@ Start by collecting the information where the data is located.
 First find this setting in the interface ``Properties editor -> Object -> Transform -> Location``.
 From the button context menu select *Online Python Reference*, this will link you to:
 :class:`bpy.types.Object.location`.
-Being an API reference, this link often gives little more information then the tooltip, though some of the pages
+Being an API reference, this link often gives little more information than the tooltip, though some of the pages
 include examples (normally at the top of the page).
-But you now know that you have to use ``.location`` and that its an array of three floats.
+But you now know that you have to use ``.location`` and that it's an array of three floats.
 
 So the next step is to find out where to access objects, go down to the bottom of the page to the references section,
 for objects there are many references, but one of the most common places to access objects is via the context.
@@ -154,7 +154,7 @@ The tooltip includes :class:`bpy.types.SubsurfModifier.levels` but you want the 
 
 Note that the text copied won't include the ``bpy.data.collection["name"].`` component since its assumed that
 you won't be doing collection look-ups on every access and typically you'll want to use the context rather
-then access each :class:`bpy.types.ID` instance by name.
+than access each :class:`bpy.types.ID` instance by name.
 
 Type in the ID path into a Python console :mod:`bpy.context.active_object`.
 Include the trailing dot and don't execute the code, yet.
@@ -252,6 +252,6 @@ Each entry can be selected, then copied :kbd:`Ctrl-C`, usually to paste in the t
 .. note::
 
    Not all operators get registered for display,
-   zooming the view for example isn't so useful to repeat so its excluded from the output.
+   zooming the view for example isn't so useful to repeat so it's excluded from the output.
 
    To display *every* operator that runs see :ref:`Show All Operators <info_show_all_operators>`.
