@@ -149,7 +149,7 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
             col.operator("pose.group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
             split = layout.split()
-            split.active = (ob.proxy is None)
+            split.active = True
 
             col = split.column()
             col.prop(group, "color_set")
