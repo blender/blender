@@ -93,6 +93,7 @@ enum {
   SIMVERT_FACE,
   SIMVERT_VGROUP,
   SIMVERT_EDGE,
+  SIMVERT_CREASE,
 };
 
 /* Poke face center calculation */
