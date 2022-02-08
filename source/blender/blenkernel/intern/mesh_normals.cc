@@ -43,6 +43,7 @@
 #include "BLI_span.hh"
 #include "BLI_stack.h"
 #include "BLI_task.h"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
@@ -373,22 +374,28 @@ const float (*BKE_mesh_vertex_normals_ensure(const Mesh *mesh))[3]
     return (const float(*)[3])CustomData_get_layer(&mesh->vdata, CD_NORMAL);
   }
 
-  Mesh &mesh_mutable = *const_cast<Mesh *>(mesh);
+  float(*vert_normals)[3];
+  float(*poly_normals)[3];
 
-  float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(&mesh_mutable);
-  float(*poly_normals)[3] = BKE_mesh_poly_normals_for_write(&mesh_mutable);
+  /* Isolate task because a mutex is locked and computing normals is multi-threaded. */
+  blender::threading::isolate_task([&]() {
+    Mesh &mesh_mutable = *const_cast<Mesh *>(mesh);
 
-  mesh_calc_normals_poly_and_vertex(mesh_mutable.mvert,
-                                    mesh_mutable.totvert,
-                                    mesh_mutable.mloop,
-                                    mesh_mutable.totloop,
-                                    mesh_mutable.mpoly,
-                                    mesh_mutable.totpoly,
-                                    poly_normals,
-                                    vert_normals);
+    vert_normals = BKE_mesh_vertex_normals_for_write(&mesh_mutable);
+    poly_normals = BKE_mesh_poly_normals_for_write(&mesh_mutable);
 
-  BKE_mesh_vertex_normals_clear_dirty(&mesh_mutable);
-  BKE_mesh_poly_normals_clear_dirty(&mesh_mutable);
+    mesh_calc_normals_poly_and_vertex(mesh_mutable.mvert,
+                                      mesh_mutable.totvert,
+                                      mesh_mutable.mloop,
+                                      mesh_mutable.totloop,
+                                      mesh_mutable.mpoly,
+                                      mesh_mutable.totpoly,
+                                      poly_normals,
+                                      vert_normals);
+
+    BKE_mesh_vertex_normals_clear_dirty(&mesh_mutable);
+    BKE_mesh_poly_normals_clear_dirty(&mesh_mutable);
+  });
 
   BLI_mutex_unlock(normals_mutex);
   return vert_normals;
@@ -413,19 +420,24 @@ const float (*BKE_mesh_poly_normals_ensure(const Mesh *mesh))[3]
     return (const float(*)[3])CustomData_get_layer(&mesh->pdata, CD_NORMAL);
   }
 
-  Mesh &mesh_mutable = *const_cast<Mesh *>(mesh);
+  float(*poly_normals)[3];
 
-  float(*poly_normals)[3] = BKE_mesh_poly_normals_for_write(&mesh_mutable);
+  /* Isolate task because a mutex is locked and computing normals is multi-threaded. */
+  blender::threading::isolate_task([&]() {
+    Mesh &mesh_mutable = *const_cast<Mesh *>(mesh);
 
-  BKE_mesh_calc_normals_poly(mesh_mutable.mvert,
-                             mesh_mutable.totvert,
-                             mesh_mutable.mloop,
-                             mesh_mutable.totloop,
-                             mesh_mutable.mpoly,
-                             mesh_mutable.totpoly,
-                             poly_normals);
+    poly_normals = BKE_mesh_poly_normals_for_write(&mesh_mutable);
 
-  BKE_mesh_poly_normals_clear_dirty(&mesh_mutable);
+    BKE_mesh_calc_normals_poly(mesh_mutable.mvert,
+                               mesh_mutable.totvert,
+                               mesh_mutable.mloop,
+                               mesh_mutable.totloop,
+                               mesh_mutable.mpoly,
+                               mesh_mutable.totpoly,
+                               poly_normals);
+
+    BKE_mesh_poly_normals_clear_dirty(&mesh_mutable);
+  });
 
   BLI_mutex_unlock(normals_mutex);
   return poly_normals;
