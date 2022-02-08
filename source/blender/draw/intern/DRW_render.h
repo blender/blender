@@ -30,6 +30,7 @@
 #include "GPU_framebuffer.h"
 #include "GPU_primitive.h"
 #include "GPU_shader.h"
+#include "GPU_storage_buffer.h"
 #include "GPU_texture.h"
 #include "GPU_uniform_buffer.h"
 
@@ -568,6 +569,12 @@ void DRW_shgroup_uniform_block_ex(DRWShadingGroup *shgroup,
 void DRW_shgroup_uniform_block_ref_ex(DRWShadingGroup *shgroup,
                                       const char *name,
                                       struct GPUUniformBuf **ubo DRW_DEBUG_FILE_LINE_ARGS);
+void DRW_shgroup_storage_block_ex(DRWShadingGroup *shgroup,
+                                  const char *name,
+                                  const struct GPUStorageBuf *ssbo DRW_DEBUG_FILE_LINE_ARGS);
+void DRW_shgroup_storage_block_ref_ex(DRWShadingGroup *shgroup,
+                                      const char *name,
+                                      struct GPUStorageBuf **ssbo DRW_DEBUG_FILE_LINE_ARGS);
 void DRW_shgroup_uniform_float(DRWShadingGroup *shgroup,
                                const char *name,
                                const float *value,
@@ -643,6 +650,10 @@ void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
     DRW_shgroup_uniform_block_ex(shgroup, name, ubo, __FILE__, __LINE__)
 #  define DRW_shgroup_uniform_block_ref(shgroup, name, ubo) \
     DRW_shgroup_uniform_block_ref_ex(shgroup, name, ubo, __FILE__, __LINE__)
+#  define DRW_shgroup_storage_block(shgroup, name, ubo) \
+    DRW_shgroup_storage_block_ex(shgroup, name, ubo, __FILE__, __LINE__)
+#  define DRW_shgroup_storage_block_ref(shgroup, name, ubo) \
+    DRW_shgroup_storage_block_ref_ex(shgroup, name, ubo, __FILE__, __LINE__)
 #else
 #  define DRW_shgroup_vertex_buffer(shgroup, name, vert) \
     DRW_shgroup_vertex_buffer_ex(shgroup, name, vert)
@@ -652,6 +663,10 @@ void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
     DRW_shgroup_uniform_block_ex(shgroup, name, ubo)
 #  define DRW_shgroup_uniform_block_ref(shgroup, name, ubo) \
     DRW_shgroup_uniform_block_ref_ex(shgroup, name, ubo)
+#  define DRW_shgroup_storage_block(shgroup, name, ubo) \
+    DRW_shgroup_storage_block_ex(shgroup, name, ubo)
+#  define DRW_shgroup_storage_block_ref(shgroup, name, ubo) \
+    DRW_shgroup_storage_block_ref_ex(shgroup, name, ubo)
 #endif
 
 bool DRW_shgroup_is_empty(DRWShadingGroup *shgroup);

@@ -309,6 +309,8 @@ typedef enum {
   DRW_UNIFORM_IMAGE_REF,
   DRW_UNIFORM_BLOCK,
   DRW_UNIFORM_BLOCK_REF,
+  DRW_UNIFORM_STORAGE_BLOCK,
+  DRW_UNIFORM_STORAGE_BLOCK_REF,
   DRW_UNIFORM_TFEEDBACK_TARGET,
   DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE,
   DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE_REF,
@@ -342,6 +344,11 @@ struct DRWUniform {
     union {
       GPUUniformBuf *block;
       GPUUniformBuf **block_ref;
+    };
+    /* DRW_UNIFORM_STORAGE_BLOCK */
+    union {
+      GPUStorageBuf *ssbo;
+      GPUStorageBuf **ssbo_ref;
     };
     /* DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE */
     union {

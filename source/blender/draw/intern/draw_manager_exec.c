@@ -319,6 +319,7 @@ void DRW_state_reset(void)
 
   GPU_texture_unbind_all();
   GPU_uniformbuf_unbind_all();
+  GPU_storagebuf_unbind_all();
 
   /* Should stay constant during the whole rendering. */
   GPU_point_size(5);
@@ -621,6 +622,12 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
         case DRW_UNIFORM_BLOCK_REF:
           GPU_uniformbuf_bind(*uni->block_ref, uni->location);
           break;
+        case DRW_UNIFORM_STORAGE_BLOCK:
+          GPU_storagebuf_bind(uni->ssbo, uni->location);
+          break;
+        case DRW_UNIFORM_STORAGE_BLOCK_REF:
+          GPU_storagebuf_bind(*uni->ssbo_ref, uni->location);
+          break;
         case DRW_UNIFORM_BLOCK_OBMATS:
           state->obmats_loc = uni->location;
           GPU_uniformbuf_bind(DST.vmempool->matrices_ubo[0], uni->location);
@@ -915,6 +922,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
       if (G.debug & G_DEBUG_GPU) {
         GPU_texture_unbind_all();
         GPU_uniformbuf_unbind_all();
+        GPU_storagebuf_unbind_all();
       }
     }
     GPU_shader_bind(shgroup->shader);

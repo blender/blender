@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "GPU_vertex_buffer.h"
+
 namespace blender {
 namespace gpu {
 
@@ -22,6 +24,7 @@ class QueryPool;
 class Shader;
 class Texture;
 class UniformBuf;
+class StorageBuf;
 class VertBuf;
 
 class GPUBackend {
@@ -43,6 +46,7 @@ class GPUBackend {
   virtual Shader *shader_alloc(const char *name) = 0;
   virtual Texture *texture_alloc(const char *name) = 0;
   virtual UniformBuf *uniformbuf_alloc(int size, const char *name) = 0;
+  virtual StorageBuf *storagebuf_alloc(int size, GPUUsageType usage, const char *name) = 0;
   virtual VertBuf *vertbuf_alloc() = 0;
 };
 

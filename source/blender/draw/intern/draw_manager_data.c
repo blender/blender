@@ -216,6 +216,8 @@ static void drw_shgroup_uniform(DRWShadingGroup *shgroup,
   BLI_assert(arraysize > 0 && arraysize <= 16);
   BLI_assert(length >= 0 && length <= 16);
   BLI_assert(!ELEM(type,
+                   DRW_UNIFORM_STORAGE_BLOCK,
+                   DRW_UNIFORM_STORAGE_BLOCK_REF,
                    DRW_UNIFORM_BLOCK,
                    DRW_UNIFORM_BLOCK_REF,
                    DRW_UNIFORM_TEXTURE,
@@ -308,6 +310,50 @@ void DRW_shgroup_uniform_block_ref_ex(DRWShadingGroup *shgroup,
     return;
   }
   drw_shgroup_uniform_create_ex(shgroup, loc, DRW_UNIFORM_BLOCK_REF, ubo, 0, 0, 1);
+}
+
+void DRW_shgroup_storage_block_ex(DRWShadingGroup *shgroup,
+                                  const char *name,
+                                  const GPUStorageBuf *ssbo DRW_DEBUG_FILE_LINE_ARGS)
+{
+  BLI_assert(ssbo != NULL);
+  /* TODO(@fclem): Fix naming inconsistency. */
+  int loc = GPU_shader_get_ssbo(shgroup->shader, name);
+  if (loc == -1) {
+#ifdef DRW_UNUSED_RESOURCE_TRACKING
+    printf("%s:%d: Unable to locate binding of shader storage buffer object: %s.\n",
+           file,
+           line,
+           name);
+#else
+    /* TODO(@fclem): Would be good to have, but eevee has too much of this for the moment. */
+    // BLI_assert_msg(0, "Unable to locate binding of shader storage buffer objects.");
+#endif
+    return;
+  }
+  drw_shgroup_uniform_create_ex(shgroup, loc, DRW_UNIFORM_STORAGE_BLOCK, ssbo, 0, 0, 1);
+}
+
+void DRW_shgroup_storage_block_ref_ex(DRWShadingGroup *shgroup,
+                                      const char *name,
+                                      GPUStorageBuf **ssbo DRW_DEBUG_FILE_LINE_ARGS)
+{
+  BLI_assert(ssbo != NULL);
+  /* TODO(@fclem): Fix naming inconsistency. */
+  int loc = GPU_shader_get_ssbo(shgroup->shader, name);
+  if (loc == -1) {
+#ifdef DRW_UNUSED_RESOURCE_TRACKING
+    printf("%s:%d: Unable to locate binding of shader storage buffer object: %s.\n",
+           file,
+           line,
+           name);
+#else
+    /* TODO(@fclem): Would be good to have, but eevee has too much of this for the moment. */
+    // BLI_assert_msg(0, "Unable to locate binding of shader storage buffer objects.");
+#endif
+    return;
+  }
+  drw_shgroup_uniform_create_ex(shgroup, loc, DRW_UNIFORM_STORAGE_BLOCK_REF, ssbo, 0, 0, 1);
 }
 
 void DRW_shgroup_uniform_bool(DRWShadingGroup *shgroup,
