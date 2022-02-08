@@ -2038,6 +2038,126 @@ static void draw_bone_name(ArmatureDrawContext *ctx,
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Pose Bone Culling
+ *
+ * Used for selection since drawing many bones can be slow, see: T91253.
+ *
+ * Bounding spheres are used with margins added to ensure bones are included.
+ * An added margin is needed because #BKE_pchan_minmax only returns the bounds
+ * of the bones head & tail which doesn't account for parts of the bone users may select
+ * (octahedral spheres or envelope radius for example).
+ * \{ */
+
+static void pchan_culling_calc_bsphere(const Object *ob,
+                                       const bPoseChannel *pchan,
+                                       BoundSphere *r_bsphere)
+{
+  float min[3], max[3];
+  INIT_MINMAX(min, max);
+  BKE_pchan_minmax(ob, pchan, min, max);
+  mid_v3_v3v3(r_bsphere->center, min, max);
+  r_bsphere->radius = len_v3v3(min, r_bsphere->center);
+}
+
+/**
+ * \return true when bounding sphere from `pchan` intersect the view.
+ * (same for other "test" functions defined here).
+ */
+static bool pchan_culling_test_simple(const DRWView *view,
+                                      const Object *ob,
+                                      const bPoseChannel *pchan)
+{
+  BoundSphere bsphere;
+  pchan_culling_calc_bsphere(ob, pchan, &bsphere);
+  return DRW_culling_sphere_test(view, &bsphere);
+}
+
+static bool pchan_culling_test_with_radius_scale(const DRWView *view,
+                                                 const Object *ob,
+                                                 const bPoseChannel *pchan,
+                                                 const float scale)
+{
+  BoundSphere bsphere;
+  pchan_culling_calc_bsphere(ob, pchan, &bsphere);
+  bsphere.radius *= scale;
+  return DRW_culling_sphere_test(view, &bsphere);
+}
+
+static bool pchan_culling_test_custom(const DRWView *view,
+                                      const Object *ob,
+                                      const bPoseChannel *pchan)
+{
+  /* For more aggressive culling the bounding box of the custom-object could be used. */
+  return pchan_culling_test_simple(view, ob, pchan);
+}
+
+static bool pchan_culling_test_wire(const DRWView *view,
+                                    const Object *ob,
+                                    const bPoseChannel *pchan)
+{
+  BLI_assert(((const bArmature *)ob->data)->drawtype == ARM_WIRE);
+  return pchan_culling_test_simple(view, ob, pchan);
+}
+
+static bool pchan_culling_test_line(const DRWView *view,
+                                    const Object *ob,
+                                    const bPoseChannel *pchan)
+{
+  BLI_assert(((const bArmature *)ob->data)->drawtype == ARM_LINE);
+  /* Account for the end-points, as the line end-points size is in pixels, this is a rough value.
+   * Since the end-points are small the difference between having any margin or not is unlikely
+   * to be noticeable. */
+  const float scale = 1.1f;
+  return pchan_culling_test_with_radius_scale(view, ob, pchan, scale);
+}
+
+static bool pchan_culling_test_envelope(const DRWView *view,
+                                        const Object *ob,
+                                        const bPoseChannel *pchan)
+{
+  const bArmature *arm = ob->data;
+  BLI_assert(arm->drawtype == ARM_ENVELOPE);
+  BoundSphere bsphere;
+  pchan_culling_calc_bsphere(ob, pchan, &bsphere);
+  bsphere.radius += max_ff(pchan->bone->rad_head, pchan->bone->rad_tail) *
+                    mat4_to_size_max_axis(ob->obmat) * mat4_to_size_max_axis(pchan->disp_mat);
+  return DRW_culling_sphere_test(view, &bsphere);
+}
+
+static bool pchan_culling_test_bbone(const DRWView *view,
+                                     const Object *ob,
+                                     const bPoseChannel *pchan)
+{
+  const bArmature *arm = ob->data;
+  BLI_assert(arm->drawtype == ARM_B_BONE);
+  const float ob_scale = mat4_to_size_max_axis(ob->obmat);
+  const Mat4 *bbones_mat = (const Mat4 *)pchan->draw_data->bbone_matrix;
+  for (int i = pchan->bone->segments; i--; bbones_mat++) {
+    BoundSphere bsphere;
+    float size[3];
+    mat4_to_size(size, bbones_mat->mat);
+    copy_v3_v3(bsphere.center, bbones_mat->mat[3]);
+    bsphere.radius = len_v3(size) * ob_scale;
+    if (DRW_culling_sphere_test(view, &bsphere)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool pchan_culling_test_octohedral(const DRWView *view,
+                                          const Object *ob,
+                                          const bPoseChannel *pchan)
+{
+  /* No type assertion as this is a fallback (files from the future will end up here). */
+  /* Account for spheres on the end-points. */
+  const float scale = 1.2f;
+  return pchan_culling_test_with_radius_scale(view, ob, pchan, scale);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Main Draw Loops
  * \{ */
 
@@ -2185,6 +2305,8 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
     }
   }
 
+  const DRWView *view = is_pose_select ? DRW_view_default_get() : NULL;
+
   for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next, index += 0x10000) {
     Bone *bone = pchan->bone;
     const bool bone_visible = (bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0;
@@ -2225,27 +2347,39 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
 
         if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
           draw_bone_update_disp_matrix_custom(pchan);
-          draw_bone_custom_shape(ctx, NULL, pchan, arm, boneflag, constflag, select_id);
+          if (!is_pose_select || pchan_culling_test_custom(view, ob, pchan)) {
+            draw_bone_custom_shape(ctx, NULL, pchan, arm, boneflag, constflag, select_id);
+          }
         }
         else if (arm->drawtype == ARM_ENVELOPE) {
           draw_bone_update_disp_matrix_default(NULL, pchan);
-          draw_bone_envelope(ctx, NULL, pchan, arm, boneflag, constflag, select_id);
+          if (!is_pose_select || pchan_culling_test_envelope(view, ob, pchan)) {
+            draw_bone_envelope(ctx, NULL, pchan, arm, boneflag, constflag, select_id);
+          }
         }
         else if (arm->drawtype == ARM_LINE) {
           draw_bone_update_disp_matrix_default(NULL, pchan);
-          draw_bone_line(ctx, NULL, pchan, arm, boneflag, constflag, select_id);
+          if (!is_pose_select || pchan_culling_test_line(view, ob, pchan)) {
+            draw_bone_line(ctx, NULL, pchan, arm, boneflag, constflag, select_id);
+          }
         }
         else if (arm->drawtype == ARM_WIRE) {
           draw_bone_update_disp_matrix_bbone(NULL, pchan);
-          draw_bone_wire(ctx, NULL, pchan, arm, boneflag, constflag, select_id);
+          if (!is_pose_select || pchan_culling_test_wire(view, ob, pchan)) {
+            draw_bone_wire(ctx, NULL, pchan, arm, boneflag, constflag, select_id);
+          }
         }
         else if (arm->drawtype == ARM_B_BONE) {
           draw_bone_update_disp_matrix_bbone(NULL, pchan);
-          draw_bone_box(ctx, NULL, pchan, arm, boneflag, constflag, select_id);
+          if (!is_pose_select || pchan_culling_test_bbone(view, ob, pchan)) {
+            draw_bone_box(ctx, NULL, pchan, arm, boneflag, constflag, select_id);
+          }
         }
         else {
           draw_bone_update_disp_matrix_default(NULL, pchan);
-          draw_bone_octahedral(ctx, NULL, pchan, arm, boneflag, constflag, select_id);
+          if (!is_pose_select || pchan_culling_test_octohedral(view, ob, pchan)) {
+            draw_bone_octahedral(ctx, NULL, pchan, arm, boneflag, constflag, select_id);
+          }
         }
 
         /* These aren't included in the selection. */

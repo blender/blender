@@ -163,6 +163,30 @@ void BKE_armature_transform(struct bArmature *arm, const float mat[4][4], bool d
 /* Bounding box. */
 struct BoundBox *BKE_armature_boundbox_get(struct Object *ob);
 
+/**
+ * Calculate the axis-aligned bounds of `pchan` in world-space,
+ * taking into account custom transform when set.
+ *
+ * `r_min` and `r_max` are expanded to fit `pchan` so the caller must initialize them
+ * (typically using #INIT_MINMAX).
+ *
+ * \note The bounds are calculated based on the head & tail of the bone
+ * or the custom object's bounds (if the bone uses a custom object).
+ * Visual elements such as the envelopes radius & bendy-bone spline segments are *not* included,
+ * making this not so useful for viewport culling.
+ */
+void BKE_pchan_minmax(const struct Object *ob,
+                      const struct bPoseChannel *pchan,
+                      float r_min[3],
+                      float r_max[3]);
+/**
+ * Calculate the axis aligned bounds of the pose of `ob` in world-space.
+
+ * `r_min` and `r_max` are expanded to fit `ob->pose` so the caller must initialize them
+ * (typically using #INIT_MINMAX).
+ *
+ * \note This uses #BKE_pchan_minmax, see its documentation for details on bounds calculation.
+ */
 bool BKE_pose_minmax(
     struct Object *ob, float r_min[3], float r_max[3], bool use_hidden, bool use_select);
 
