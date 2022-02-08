@@ -130,6 +130,8 @@ ENUM_OPERATORS(NodeResizeDirection, NODE_RESIZE_LEFT);
  */
 float2 space_node_group_offset(const SpaceNode &snode);
 
+rctf node_frame_rect_inside(const bNode &node);
+
 int node_get_resize_cursor(NodeResizeDirection directions);
 /**
  * Usual convention here would be #node_socket_get_color(),
