@@ -426,6 +426,8 @@ GLint GLContext::max_cubemap_size = 0;
 GLint GLContext::max_texture_3d_size = 0;
 GLint GLContext::max_ubo_binds = 0;
 GLint GLContext::max_ubo_size = 0;
+GLint GLContext::max_ssbo_binds = 0;
+GLint GLContext::max_ssbo_size = 0;
 
 /** Extensions. */
 
@@ -493,7 +495,9 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &GLContext::max_texture_3d_size);
   glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &GLContext::max_cubemap_size);
   glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &GLContext::max_ubo_binds);
+  glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &GLContext::max_ssbo_binds);
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GLContext::max_ubo_size);
+  glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &GLContext::max_ssbo_size);
   GLContext::base_instance_support = GLEW_ARB_base_instance;
   GLContext::clear_texture_support = GLEW_ARB_clear_texture;
   GLContext::copy_image_support = GLEW_ARB_copy_image;

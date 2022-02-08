@@ -19,6 +19,7 @@
 #include "gl_index_buffer.hh"
 #include "gl_query.hh"
 #include "gl_shader.hh"
+#include "gl_storage_buffer.hh"
 #include "gl_texture.hh"
 #include "gl_uniform_buffer.hh"
 #include "gl_vertex_buffer.hh"
@@ -99,6 +100,11 @@ class GLBackend : public GPUBackend {
   UniformBuf *uniformbuf_alloc(int size, const char *name) override
   {
     return new GLUniformBuf(size, name);
+  };
+
+  StorageBuf *storagebuf_alloc(int size, GPUUsageType usage, const char *name) override
+  {
+    return new GLStorageBuf(size, usage, name);
   };
 
   VertBuf *vertbuf_alloc() override

@@ -45,6 +45,8 @@ class GLContext : public Context {
   static GLint max_texture_3d_size;
   static GLint max_ubo_size;
   static GLint max_ubo_binds;
+  static GLint max_ssbo_size;
+  static GLint max_ssbo_binds;
 
   /** Extensions. */
 
