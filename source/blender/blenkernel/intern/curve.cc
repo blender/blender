@@ -32,6 +32,7 @@
 #include "BLI_ghash.h"
 #include "BLI_index_range.hh"
 #include "BLI_math.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -59,6 +60,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_spline.hh"
 #include "BKE_vfont.h"
 
 #include "DEG_depsgraph.h"
@@ -68,6 +70,7 @@
 
 #include "BLO_read_write.h"
 
+using blender::float3;
 using blender::IndexRange;
 
 /* globals */
@@ -503,7 +506,10 @@ BoundBox *BKE_curve_boundbox_get(Object *ob)
     float min[3], max[3];
 
     INIT_MINMAX(min, max);
-    BKE_curve_minmax(cu, true, min, max);
+    if (!BKE_curve_minmax(cu, true, min, max)) {
+      copy_v3_fl(min, -1.0f);
+      copy_v3_fl(max, 1.0f);
+    }
 
     if (ob->runtime.bb == nullptr) {
       ob->runtime.bb = (BoundBox *)MEM_mallocN(sizeof(*ob->runtime.bb), __func__);
@@ -5066,6 +5072,16 @@ void BKE_curve_nurb_vert_active_validate(Curve *cu)
 
 bool BKE_curve_minmax(Curve *cu, bool use_radius, float min[3], float max[3])
 {
+  if (cu->curve_eval != nullptr) {
+    float3 eval_min(FLT_MAX);
+    float3 eval_max(-FLT_MAX);
+    if (cu->curve_eval->bounds_min_max(eval_min, eval_max, false)) {
+      copy_v3_v3(min, eval_min);
+      copy_v3_v3(max, eval_max);
+      return true;
+    }
+  }
+
   ListBase *nurb_lb = BKE_curve_nurbs_get(cu);
   ListBase temp_nurb_lb = {nullptr, nullptr};
   const bool is_font = (BLI_listbase_is_empty(nurb_lb)) && (cu->len != 0);
