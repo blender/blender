@@ -42,6 +42,7 @@ struct uiButTreeRow;
 struct uiLayout;
 struct wmDrag;
 struct wmEvent;
+struct wmNotifier;
 
 namespace blender::ui {
 
@@ -141,6 +142,9 @@ class AbstractTreeView : public TreeViewItemContainer {
   virtual ~AbstractTreeView() = default;
 
   void foreach_item(ItemIterFn iter_fn, IterOptions options = IterOptions::None) const;
+
+  /** Listen to a notifier, returning true if a redraw is needed. */
+  virtual bool listen(const wmNotifier &) const;
 
   /** Only one item can be renamed at a time. */
   bool is_renaming() const;

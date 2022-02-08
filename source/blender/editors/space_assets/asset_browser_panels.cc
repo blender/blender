@@ -74,7 +74,10 @@ static void assets_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pa
   uiItemS(col);
 
   AssetLibrary *library = ED_assetlist_library_get(&assets_space->asset_library_ref);
-  asset_brower_create_catalog_tree_view_in_layout(library, col, assets_space);
+  PropertyRNA *catalog_filter_prop = RNA_struct_find_property(&assets_space_ptr, "catalog_filter");
+
+  asset_view_create_catalog_tree_view_in_layout(
+      library, col, &assets_space_ptr, catalog_filter_prop, CTX_wm_message_bus(C));
 }
 
 void asset_browser_navigation_region_panels_register(ARegionType *art)

@@ -3277,6 +3277,17 @@ static void rna_SpaceAssets_asset_library_set(PointerRNA *ptr, int value)
   asset_space->asset_library_ref = ED_asset_library_reference_from_enum_value(value);
 }
 
+static void rna_AssetCatalogFilterSettings_active_catalog_id_get(PointerRNA *ptr, char *value)
+{
+  const AssetCatalogFilterSettings *settings = ptr->data;
+  BLI_uuid_format(value, settings->active_catalog_id);
+}
+
+static int rna_AssetCatalogFilterSettings_active_catalog_id_length(PointerRNA *UNUSED(ptr))
+{
+  return UUID_STRING_LEN - 1;
+}
+
 #else
 
 static const EnumPropertyItem dt_uv_items[] = {
@@ -7987,21 +7998,77 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
 }
 
+static void rna_def_asset_catalog_filter_settings(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem asset_catalog_filter_mode[] = {
+      {ASSET_CATALOG_SHOW_ALL_ASSETS,
+       "SHOW_ALL_ASSETS",
+       ICON_NONE,
+       "All Assets",
+       "Show all assets, regardless of catalogs"},
+      {ASSET_CATALOG_SHOW_ASSETS_FROM_CATALOG,
+       "SHOW_ASSETS_FROM_CATALOG",
+       ICON_NONE,
+       "From Catalog",
+       "Show assets assigned to a specific catalog"},
+      {ASSET_CATALOG_SHOW_ASSETS_WITHOUT_CATALOG,
+       "SHOW_ASSETS_WITHOUT_CATALOG",
+       ICON_NONE,
+       "Assets Without Catalog",
+       "Show any asset that doesn't have a recognized asset catalog assigned to it"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  srna = RNA_def_struct(brna, "AssetCatalogFilterSettings", NULL);
+  RNA_def_struct_ui_text(
+      srna,
+      "Asset Catalog Filter Settings",
+      "Options to determine how catalogs should affect which assets are visible");
+
+  prop = RNA_def_property(srna, "filter_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, asset_catalog_filter_mode);
+  RNA_def_property_ui_text(prop,
+                           "Asset Catalog Filter Mode",
+                           "Determine how filtering based on asset catalogs should be done");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
+
+  prop = RNA_def_property(srna, "active_catalog_id", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(prop,
+                                "rna_AssetCatalogFilterSettings_active_catalog_id_get",
+                                "rna_AssetCatalogFilterSettings_active_catalog_id_length",
+                                NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Catalog UUID", "The UUID of the catalog to show assets from");
+}
+
 static void rna_def_space_assets(BlenderRNA *brna)
 {
   PropertyRNA *prop;
   StructRNA *srna;
 
+  rna_def_asset_catalog_filter_settings(brna);
+
   srna = RNA_def_struct(brna, "SpaceAssets", "Space");
   RNA_def_struct_ui_text(srna, "Space Asset Browser", "Asset browser space data");
 
-  //  rna_def_space_generic_show_region_toggles(
-  //      srna, (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_CHANNELS) | (1 << RGN_TYPE_FOOTER));
+  //  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_NAV_BAR));
 
   prop = rna_def_asset_library_reference_common(
       srna, "rna_SpaceAssets_asset_library_get", "rna_SpaceAssets_asset_library_set");
   RNA_def_property_ui_text(prop, "Asset Library", "");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
+
+  prop = RNA_def_property(srna, "catalog_filter", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "AssetCatalogFilterSettings");
+  RNA_def_property_ui_text(prop,
+                           "Asset Catalog Filter",
+                           "Parameters to set up rules for filtering assets based on the catalogs "
+                           "they are assigned to");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
 }
 
 void RNA_def_space(BlenderRNA *brna)

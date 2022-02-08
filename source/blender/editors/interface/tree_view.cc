@@ -82,6 +82,12 @@ void AbstractTreeView::foreach_item(ItemIterFn iter_fn, IterOptions options) con
   foreach_item_recursive(iter_fn, options);
 }
 
+bool AbstractTreeView::listen(const wmNotifier &) const
+{
+  /* Nothing by default. */
+  return false;
+}
+
 bool AbstractTreeView::is_renaming() const
 {
   return rename_buffer_ != nullptr;
@@ -818,6 +824,13 @@ class TreeViewItemAPIWrapper {
 /* C-API */
 
 using namespace blender::ui;
+
+bool UI_tree_view_listen_should_redraw(const uiTreeViewHandle *view_handle,
+                                       const wmNotifier *notifier)
+{
+  const AbstractTreeView &view = *reinterpret_cast<const AbstractTreeView *>(view_handle);
+  return view.listen(*notifier);
+}
 
 bool UI_tree_view_item_is_active(const uiTreeViewItemHandle *item_handle)
 {

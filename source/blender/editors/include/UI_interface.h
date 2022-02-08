@@ -3218,6 +3218,10 @@ uiTreeViewItemHandle *UI_block_tree_view_find_active_item(const struct ARegion *
 /**
  * Listen to \a notifier, returning true if the region should redraw.
  */
+bool UI_tree_view_listen_should_redraw(const uiTreeViewHandle *view, const wmNotifier *notifier);
+/**
+ * Listen to \a notifier, returning true if the region should redraw.
+ */
 bool UI_grid_view_listen_should_redraw(const uiGridViewHandle *view, const wmNotifier *notifier);
 
 #ifdef __cplusplus

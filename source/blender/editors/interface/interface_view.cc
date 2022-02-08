@@ -101,12 +101,19 @@ void ui_block_free_views(uiBlock *block)
 
 void UI_block_views_listen(const uiBlock *block, const wmRegionListenerParams *listener_params)
 {
+  ARegion *region = listener_params->region;
+
   LISTBASE_FOREACH (ViewLink *, view_link, &block->views) {
-    /* TODO only grid views, should this be supported by all views? */
     if (AbstractGridView *grid_view = get_view_from_link<AbstractGridView>(*view_link)) {
       if (UI_grid_view_listen_should_redraw(reinterpret_cast<uiGridViewHandle *>(grid_view),
                                             listener_params->notifier)) {
-        ED_region_tag_redraw(listener_params->region);
+        ED_region_tag_redraw(region);
+      }
+    }
+    else if (AbstractTreeView *tree_view = get_view_from_link<AbstractTreeView>(*view_link)) {
+      if (UI_tree_view_listen_should_redraw(reinterpret_cast<uiTreeViewHandle *>(tree_view),
+                                            listener_params->notifier)) {
+        ED_region_tag_redraw(region);
       }
     }
   }

@@ -33,9 +33,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "RNA_access.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
+
+#include "WM_message.h"
 
 #include "asset_browser_intern.hh"
 #include "asset_view.hh"
@@ -116,6 +120,29 @@ static void asset_browser_main_region_listener(const wmRegionListenerParams *UNU
 {
 }
 
+/* FIXME: See comment above #WM_msg_publish_rna_prop(). */
+extern "C" {
+static void asset_browser_main_region_message_subscribe(
+    const wmRegionMessageSubscribeParams *params)
+{
+  struct wmMsgBus *mbus = params->message_bus;
+  bScreen *screen = params->screen;
+  SpaceAssets *assets_space = reinterpret_cast<SpaceAssets *>(params->area->spacedata.first);
+
+  wmMsgSubscribeValue msg_sub_value_region_tag_redraw{};
+  msg_sub_value_region_tag_redraw.owner = params->region;
+  msg_sub_value_region_tag_redraw.user_data = params->region;
+  msg_sub_value_region_tag_redraw.notify = ED_region_do_msg_notify_tag_redraw;
+
+  WM_msg_subscribe_rna_prop(mbus,
+                            &screen->id,
+                            assets_space,
+                            SpaceAssets,
+                            catalog_filter,
+                            &msg_sub_value_region_tag_redraw);
+}
+}
+
 /* ---------------------------------------------------------------------- */
 /* Header Region */
 
@@ -171,6 +198,7 @@ void ED_spacetype_assets(void)
   art->init = asset_browser_main_region_init;
   art->draw = asset_browser_main_region_draw;
   art->listener = asset_browser_main_region_listener;
+  art->message_subscribe = asset_browser_main_region_message_subscribe;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
   BLI_addhead(&st->regiontypes, art);
 

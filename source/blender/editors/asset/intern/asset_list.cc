@@ -207,9 +207,7 @@ void AssetList::fetch(const bContext &C)
 void AssetList::setCatalogFilterSettings(const AssetCatalogFilterSettings &settings)
 {
   filelist_set_asset_catalog_filter_options(
-      filelist_,
-      (AssetCatalogFilterMode)settings.filter_mode,
-      &settings.active_catalog_id);
+      filelist_, (AssetCatalogFilterMode)settings.filter_mode, &settings.active_catalog_id);
 }
 
 bool AssetList::needsRefetch() const
@@ -285,7 +283,11 @@ bool AssetList::listen(const wmNotifier &notifier) const
       break;
     }
     case NC_ASSET:
-      if (ELEM(notifier.data, ND_ASSET_LIST, ND_ASSET_LIST_READING, ND_ASSET_LIST_PREVIEW)) {
+      if (ELEM(notifier.data, ND_ASSET_LIST)) {
+        filelist_tag_needs_filtering(filelist_);
+        return true;
+      }
+      if (ELEM(notifier.data, ND_ASSET_LIST_READING, ND_ASSET_LIST_PREVIEW)) {
         return true;
       }
       if (ELEM(notifier.action, NA_ADDED, NA_REMOVED, NA_EDITED)) {
