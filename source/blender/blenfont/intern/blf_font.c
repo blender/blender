@@ -1238,6 +1238,12 @@ FontBLF *blf_font_new(const char *name, const char *filename)
   font = (FontBLF *)MEM_callocN(sizeof(FontBLF), "blf_font_new");
   err = FT_New_Face(ft_lib, filename, 0, &font->face);
   if (err) {
+    if (ELEM(err, FT_Err_Unknown_File_Format, FT_Err_Unimplemented_Feature)) {
+      printf("Format of this font file is not supported\n");
+    }
+    else {
+      printf("Error encountered while opening font file\n");
+    }
     MEM_freeN(font);
     return NULL;
   }
