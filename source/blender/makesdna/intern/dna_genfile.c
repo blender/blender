@@ -734,8 +734,7 @@ static void cast_primitive_type(const eSDNA_Type old_type,
 
   double old_value_f = 0.0;
   /* Intentionally overflow signed values into an unsigned type.
-   * Casting back to a signed value preserves the sign (when the new value is signed).
-   * It's also important to cast to `int64_t` when setting `old_value_f` from a signed value. */
+   * Casting back to a signed value preserves the sign (when the new value is signed). */
   uint64_t old_value_i = 0;
 
   for (int a = 0; a < array_len; a++) {
@@ -743,61 +742,63 @@ static void cast_primitive_type(const eSDNA_Type old_type,
       case SDNA_TYPE_CHAR: {
         const char value = *old_data;
         old_value_i = value;
-        old_value_f = (double)old_value_i;
+        old_value_f = (double)value;
         break;
       }
       case SDNA_TYPE_UCHAR: {
         const uchar value = *((uchar *)old_data);
         old_value_i = value;
-        old_value_f = (double)old_value_i;
+        old_value_f = (double)value;
         break;
       }
       case SDNA_TYPE_SHORT: {
         const short value = *((short *)old_data);
         old_value_i = value;
-        old_value_f = (double)(int64_t)old_value_i;
+        old_value_f = (double)value;
         break;
       }
       case SDNA_TYPE_USHORT: {
         const ushort value = *((unsigned short *)old_data);
         old_value_i = value;
-        old_value_f = (double)old_value_i;
+        old_value_f = (double)value;
         break;
       }
       case SDNA_TYPE_INT: {
         const int value = *((int *)old_data);
         old_value_i = value;
-        old_value_f = (double)(int64_t)old_value_i;
+        old_value_f = (double)value;
         break;
       }
       case SDNA_TYPE_FLOAT: {
         const float value = *((float *)old_data);
+        /* `int64_t` range stored in a `uint64_t`. */
+        old_value_i = (uint64_t)(int64_t)value;
         old_value_f = value;
-        old_value_i = (uint64_t)(int64_t)old_value_f;
         break;
       }
       case SDNA_TYPE_DOUBLE: {
         const double value = *((double *)old_data);
+        /* `int64_t` range stored in a `uint64_t`. */
+        old_value_i = (uint64_t)(int64_t)value;
         old_value_f = value;
-        old_value_i = (uint64_t)(int64_t)old_value_f;
         break;
       }
       case SDNA_TYPE_INT64: {
         const int64_t value = *((int64_t *)old_data);
         old_value_i = (uint64_t)value;
-        old_value_f = (double)(int64_t)old_value_i;
+        old_value_f = (double)value;
         break;
       }
       case SDNA_TYPE_UINT64: {
         const uint64_t value = *((uint64_t *)old_data);
         old_value_i = value;
-        old_value_f = (double)old_value_i;
+        old_value_f = (double)value;
         break;
       }
       case SDNA_TYPE_INT8: {
         const int8_t value = *((int8_t *)old_data);
         old_value_i = (uint64_t)value;
-        old_value_f = (double)(int64_t)old_value_i;
+        old_value_f = (double)value;
       }
     }
 
