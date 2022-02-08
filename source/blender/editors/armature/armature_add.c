@@ -859,13 +859,27 @@ static void updateDuplicateCustomBoneShapes(bContext *C, EditBone *dup_bone, Obj
     Main *bmain = CTX_data_main(C);
     char name_flip[MAX_ID_NAME - 2];
 
+    /* Invert the X location */
+    pchan->custom_translation[0] *= -1;
+    /* Invert the Y rotation */
+    pchan->custom_rotation_euler[1] *= -1;
+    /* Invert the Z rotation */
+    pchan->custom_rotation_euler[2] *= -1;
+
     /* Skip the first two chars in the object name as those are used to store object type */
     BLI_string_flip_side_name(name_flip, pchan->custom->id.name + 2, false, sizeof(name_flip));
     Object *shape_ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, name_flip);
 
+    /* If name_flip doesn't exist, BKE_libblock_find_name() returns pchan->custom (best match) */
+    shape_ob = shape_ob == pchan->custom ? NULL : shape_ob;
+
     if (shape_ob != NULL) {
       /* A flipped shape object exists, use it! */
       pchan->custom = shape_ob;
+    }
+    else {
+      /* Flip shape */
+      pchan->custom_scale_xyz[0] *= -1;
     }
   }
 }
