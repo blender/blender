@@ -733,6 +733,9 @@ static void cast_primitive_type(const eSDNA_Type old_type,
   const int curlen = DNA_elem_type_size(new_type);
 
   double old_value_f = 0.0;
+  /* Intentionally overflow signed values into an unsigned type.
+   * Casting back to a signed value preserves the sign (when the new value is signed).
+   * It's also important to cast to `int64_t` when setting `old_value_f` from a signed value. */
   uint64_t old_value_i = 0;
 
   for (int a = 0; a < array_len; a++) {
@@ -752,7 +755,7 @@ static void cast_primitive_type(const eSDNA_Type old_type,
       case SDNA_TYPE_SHORT: {
         const short value = *((short *)old_data);
         old_value_i = value;
-        old_value_f = (double)old_value_i;
+        old_value_f = (double)(int64_t)old_value_i;
         break;
       }
       case SDNA_TYPE_USHORT: {
@@ -764,7 +767,7 @@ static void cast_primitive_type(const eSDNA_Type old_type,
       case SDNA_TYPE_INT: {
         const int value = *((int *)old_data);
         old_value_i = value;
-        old_value_f = (double)old_value_i;
+        old_value_f = (double)(int64_t)old_value_i;
         break;
       }
       case SDNA_TYPE_FLOAT: {
@@ -782,7 +785,7 @@ static void cast_primitive_type(const eSDNA_Type old_type,
       case SDNA_TYPE_INT64: {
         const int64_t value = *((int64_t *)old_data);
         old_value_i = (uint64_t)value;
-        old_value_f = (double)old_value_i;
+        old_value_f = (double)(int64_t)old_value_i;
         break;
       }
       case SDNA_TYPE_UINT64: {
@@ -794,7 +797,7 @@ static void cast_primitive_type(const eSDNA_Type old_type,
       case SDNA_TYPE_INT8: {
         const int8_t value = *((int8_t *)old_data);
         old_value_i = (uint64_t)value;
-        old_value_f = (double)old_value_i;
+        old_value_f = (double)(int64_t)old_value_i;
       }
     }
 
