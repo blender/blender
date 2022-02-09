@@ -194,7 +194,7 @@ const bTheme U_theme_default = {
     },
     .wcol_view_item = {
       .outline = RGBA(0x2d2d2dff),
-      .inner = RGBA(0x4B4B4BFF),
+      .inner = RGBA(0x303030ff),
       .inner_sel = RGBA(0x4772b3ff),
       .item = RGBA(0x4772b3ff),
       .text = RGBA(0xccccccff),
