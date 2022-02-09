@@ -15,15 +15,15 @@
  *
  * The Original Code is written by Rob Haarsma (phase)
  * All rights reserved.
+ */
+
+/** \file
+ * \ingroup bke
  *
  * This code parses the Freetype font outline data to chains of Blender's bezier-triples.
  * Additional information can be found at the bottom of this file.
  *
  * Code that uses exotic character maps is present but commented out.
- */
-
-/** \file
- * \ingroup bke
  */
 
 #include <ft2build.h>

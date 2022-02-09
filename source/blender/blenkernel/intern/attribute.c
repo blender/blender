@@ -15,13 +15,12 @@
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation.
  * All rights reserved.
- *
- * Implementation of generic geometry attributes management. This is built
- * on top of CustomData, which manages individual domains.
  */
 
 /** \file
  * \ingroup bke
+ * Implementation of generic geometry attributes management. This is built
+ * on top of CustomData, which manages individual domains.
  */
 
 #include <string.h>

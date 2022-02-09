@@ -15,8 +15,6 @@
  *
  * The Original Code is Copyright (C) 2015 Blender Foundation.
  * All rights reserved.
- *
- * Defines and code for core node types
  */
 
 /** \file

@@ -15,15 +15,16 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
+ */
+
+/** \file
+ * \ingroup bke
+ *
  * MetaBalls are created from a single Object (with a name without number in it),
  * here the DispList and BoundBox also is located.
  * All objects with the same name (but with a number in it) are added to this.
  *
  * texture coordinates are patched within the displist
- */
-
-/** \file
- * \ingroup bke
  */
 
 #include <ctype.h>

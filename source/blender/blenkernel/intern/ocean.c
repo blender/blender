@@ -15,13 +15,13 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- *
- * Based on original code by Drew Whitehouse / Houdini Ocean Toolkit
- * OpenMP hints by Christian Schnellhammer
  */
 
 /** \file
  * \ingroup bke
+ *
+ * Based on original code by Drew Whitehouse / Houdini Ocean Toolkit
+ * OpenMP hints by Christian Schnellhammer
  */
 
 #include <math.h>
