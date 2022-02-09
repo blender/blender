@@ -667,7 +667,7 @@ std::string GLShader::compute_layout_declare(const ShaderCreateInfo &info) const
     ss << ", local_size_y = " << info.compute_layout_.local_size_y;
   }
   if (info.compute_layout_.local_size_z != -1) {
-    ss << ", local_size_y = " << info.compute_layout_.local_size_z;
+    ss << ", local_size_z = " << info.compute_layout_.local_size_z;
   }
   ss << ") in;\n";
   ss << "\n";
@@ -836,6 +836,10 @@ static char *glsl_patch_compute_get()
   /* Version need to go first. */
   STR_CONCAT(patch, slen, "#version 430\n");
   STR_CONCAT(patch, slen, "#extension GL_ARB_compute_shader :enable\n");
+
+  /* Array compat. */
+  STR_CONCAT(patch, slen, "#define array(_type) _type[]\n");
+
   BLI_assert(slen < sizeof(patch));
   return patch;
 }
