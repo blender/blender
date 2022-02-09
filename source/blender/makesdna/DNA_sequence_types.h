@@ -73,8 +73,8 @@ typedef struct StripCrop {
 } StripCrop;
 
 typedef struct StripTransform {
-  int xofs;
-  int yofs;
+  float xofs;
+  float yofs;
   float scale_x;
   float scale_y;
   float rotation;

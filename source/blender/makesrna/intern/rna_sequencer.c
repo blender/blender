@@ -1485,16 +1485,16 @@ static void rna_def_strip_transform(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
-  prop = RNA_def_property(srna, "offset_x", PROP_INT, PROP_PIXEL);
-  RNA_def_property_int_sdna(prop, NULL, "xofs");
+  prop = RNA_def_property(srna, "offset_x", PROP_FLOAT, PROP_PIXEL);
+  RNA_def_property_float_sdna(prop, NULL, "xofs");
   RNA_def_property_ui_text(prop, "Translate X", "Move along X axis");
-  RNA_def_property_ui_range(prop, INT_MIN, INT_MAX, 1, 6);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, 3);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
-  prop = RNA_def_property(srna, "offset_y", PROP_INT, PROP_PIXEL);
-  RNA_def_property_int_sdna(prop, NULL, "yofs");
+  prop = RNA_def_property(srna, "offset_y", PROP_FLOAT, PROP_PIXEL);
+  RNA_def_property_float_sdna(prop, NULL, "yofs");
   RNA_def_property_ui_text(prop, "Translate Y", "Move along Y axis");
-  RNA_def_property_ui_range(prop, INT_MIN, INT_MAX, 1, 6);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, 3);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
   prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ANGLE);
