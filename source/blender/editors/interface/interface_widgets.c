@@ -4572,10 +4572,12 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       break;
 
     case UI_WTYPE_TREEROW:
+      wt.wcol_theme = &btheme->tui.wcol_view_item;
       wt.custom = widget_treerow;
       break;
 
     case UI_WTYPE_GRID_TILE:
+      wt.wcol_theme = &btheme->tui.wcol_view_item;
       wt.draw = widget_gridtile;
       break;
 
