@@ -632,7 +632,7 @@ static void sequencer_add_movie_clamp_sound_strip_length(Scene *scene,
                                                          Sequence *seq_movie,
                                                          Sequence *seq_sound)
 {
-  if (ELEM(NULL, seq_movie, seq_sound) || seq_sound->len <= seq_movie->len) {
+  if (ELEM(NULL, seq_movie, seq_sound)) {
     return;
   }
 
