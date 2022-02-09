@@ -14,15 +14,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Copyright (C) 1991, 1992, 1993 Free Software Foundation, Inc.
- *
- * NOTE: The canonical source of this file is maintained with the GNU C Library.
- * Bugs can be reported to <bug-glibc@prep.ai.mit.edu>.
  */
 
 #pragma once
 
 /** \file
  * \ingroup bli
+ * \note The canonical source of this file is maintained with the GNU C Library.
+ * Bugs can be reported to <bug-glibc@prep.ai.mit.edu>.
  */
 
 #ifdef __cplusplus

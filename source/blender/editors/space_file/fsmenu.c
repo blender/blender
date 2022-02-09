@@ -790,7 +790,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
     }
 
     /* Get mounted volumes better method OSX 10.6 and higher, see:
-     * https://developer.apple.com/library/mac/#documentation/CoreFOundation/Reference/CFURLRef/Reference/reference.html
+     * https://developer.apple.com/library/mac/#documentation/CoreFoundation/Reference/CFURLRef/Reference/reference.html
      */
 
     /* We get all volumes sorted including network and do not relay

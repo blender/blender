@@ -16,7 +16,7 @@
  * Adapted from the Blender Alembic importer implementation.
  *
  * Modifications Copyright (C) 2021 Tangent Animation and
- * NVIDIA Corporation.  All rights reserved.
+ * NVIDIA Corporation. All rights reserved.
  */
 #pragma once
 

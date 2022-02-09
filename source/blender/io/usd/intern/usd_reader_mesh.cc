@@ -14,10 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Adapted from the Blender Alembic importer implementation.
- *
- * Modifications Copyright (C) 2021 Tangent Animation and
- * NVIDIA Corporation.  All rights reserved.
- */
+ * Modifications Copyright 2021 Tangent Animation and
+ * NVIDIA Corporation. All rights reserved. */
 
 #include "usd_reader_mesh.h"
 #include "usd_reader_material.h"

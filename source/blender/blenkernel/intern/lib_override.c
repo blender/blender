@@ -1133,7 +1133,7 @@ static void lib_override_root_hierarchy_set(Main *bmain, ID *id_root, ID *id, ID
       return;
     }
 
-    /* Hierarchy root already set, and not matching currently propsed one, try to find which is
+    /* Hierarchy root already set, and not matching currently proposed one, try to find which is
      * best. */
     if (id->override_library->hierarchy_root != NULL) {
       /* Check if given `id_from` matches with the hierarchy of the linked reference ID, in which

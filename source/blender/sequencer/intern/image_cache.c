@@ -13,7 +13,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Peter Schlaile <peter [at] schlaile [dot] de> 2010
+ * Copyright 2010 Peter Schlaile <peter [at] schlaile [dot] de>
  */
 
 /** \file

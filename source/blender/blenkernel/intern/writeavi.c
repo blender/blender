@@ -18,7 +18,7 @@
  */
 
 /** \file
- * Functions for writing avi-format files.
+ * Functions for writing AVI-format files.
  * Added interface for generic movie support (ton)
  * \ingroup bke
  */
