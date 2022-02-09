@@ -193,9 +193,6 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi,
   bool outside = true;
 
   float F0 = fresnel_dielectric_cos(1.0f, eta);
-  if (use_fresnel) {
-    throughput = interpolate_fresnel_color(wi, normalize(wi + wr), eta, F0, cspec0);
-  }
 
   int order;
   for (order = 0; order < 10; order++) {
