@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2008, Blender Foundation
  * This is a new part of Blender
- * Operator for converting Grease Pencil data to geometry
  */
 
 /** \file
  * \ingroup edgpencil
+ * Operator for converting Grease Pencil data to geometry.
  */
 
 #include "MEM_guardedalloc.h"

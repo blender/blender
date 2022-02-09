@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation
  * All rights reserved.
- * Implementation of Bone Groups operators and editing API's
  */
 
 /** \file
  * \ingroup edarmature
+ * Implementation of Bone Groups operators and editing API's.
  */
 
 #include <string.h>

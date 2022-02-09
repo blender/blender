@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2017, Blender Foundation
  * This is a new part of Blender
- * Operators for creating new Grease Pencil primitives (boxes, circles, ...)
  */
 
 /** \file
  * \ingroup edgpencil
+ * Operators for creating new Grease Pencil primitives (boxes, circles, ...).
  */
 
 #include <math.h>

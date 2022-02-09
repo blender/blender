@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2016, Blender Foundation
  * This is a new part of Blender
- * Operators for interpolating new Grease Pencil frames from existing strokes
  */
 
 /** \file
  * \ingroup edgpencil
+ * Operators for interpolating new Grease Pencil frames from existing strokes.
  */
 
 #include <math.h>

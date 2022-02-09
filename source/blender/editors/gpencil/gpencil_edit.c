@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2008, Blender Foundation
  * This is a new part of Blender
- * Operators for editing Grease Pencil strokes
  */
 
 /** \file
  * \ingroup edgpencil
+ * Operators for editing Grease Pencil strokes.
  */
 
 #include <math.h>

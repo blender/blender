@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- * Pose Mode API's and Operators for Pose Mode armatures
  */
 
 /** \file
  * \ingroup edarmature
+ * Pose Mode API's and Operators for Pose Mode armatures.
  */
 
 #include "MEM_guardedalloc.h"

@@ -13,11 +13,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2007 by Janne Karhu.
- * All rights reserved.
- * Adaptive time step
- * Classical SPH
- * Copyright 2011-2012 AutoCRC
+ * Copyright 2007 Janne Karhu. All rights reserved.
+ *           2011-2012 AutoCRC (adaptive time step, Classical SPH).
  */
 
 /** \file

@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2019, Blender Foundation.
  * This is a new part of Blender
- * Operators for merge Grease Pencil strokes
  */
 
 /** \file
  * \ingroup edgpencil
+ * Operators for merge Grease Pencil strokes.
  */
 
 #include <stdio.h>

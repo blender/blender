@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2018, Blender Foundation,
  * This is a new part of Blender
- * Use deprecated data to convert old 2.7x files
  */
 
 /** \file
  * \ingroup edgpencil
+ * Use deprecated data to convert old 2.7x files.
  */
 
 /* Allow using deprecated functionality. */
