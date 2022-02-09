@@ -1345,6 +1345,10 @@ static void write_area(BlendWriter *writer, ScrArea *area)
         }
       }
     }
+    else if (sl->spacetype == SPACE_ASSETS) {
+      BLO_write_struct(writer, SpaceAssets, sl);
+      // SpaceAssets *space_assets = (SpaceAssets *)sl;
+    }
   }
 }
 
