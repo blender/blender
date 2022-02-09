@@ -5072,16 +5072,6 @@ void BKE_curve_nurb_vert_active_validate(Curve *cu)
 
 bool BKE_curve_minmax(Curve *cu, bool use_radius, float min[3], float max[3])
 {
-  if (cu->curve_eval != nullptr) {
-    float3 eval_min(FLT_MAX);
-    float3 eval_max(-FLT_MAX);
-    if (cu->curve_eval->bounds_min_max(eval_min, eval_max, false)) {
-      copy_v3_v3(min, eval_min);
-      copy_v3_v3(max, eval_max);
-      return true;
-    }
-  }
-
   ListBase *nurb_lb = BKE_curve_nurbs_get(cu);
   ListBase temp_nurb_lb = {nullptr, nullptr};
   const bool is_font = (BLI_listbase_is_empty(nurb_lb)) && (cu->len != 0);
