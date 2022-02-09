@@ -97,14 +97,14 @@ static void foreach_libblock_remap_callback_skip(const ID *UNUSED(id_owner),
                                                  const int cb_flag,
                                                  const bool is_indirect,
                                                  const bool is_reference,
-                                                 const bool is_never_null,
+                                                 const bool violates_never_null,
                                                  const bool UNUSED(is_obj),
                                                  const bool is_obj_editmode)
 {
   if (is_indirect) {
     id_remap_data->skipped_indirect++;
   }
-  else if (is_never_null || is_obj_editmode || is_reference) {
+  else if (violates_never_null || is_obj_editmode || is_reference) {
     id_remap_data->skipped_direct++;
   }
   else {
@@ -127,10 +127,10 @@ static void foreach_libblock_remap_callback_apply(ID *id_owner,
                                                   IDRemap *id_remap_data,
                                                   const int cb_flag,
                                                   const bool is_indirect,
-                                                  const bool is_never_null,
+                                                  const bool violates_never_null,
                                                   const bool force_user_refcount)
 {
-  if (!is_never_null) {
+  if (!violates_never_null) {
     *id_ptr = new_id;
     DEG_id_tag_update_ex(id_remap_data->bmain,
                          id_self,
@@ -210,8 +210,8 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
    * remapped in this situation. */
   const bool is_obj_editmode = (is_obj && BKE_object_is_in_editmode((Object *)id_owner) &&
                                 (id_remap_data->flag & ID_REMAP_FORCE_OBDATA_IN_EDITMODE) == 0);
-  const bool is_never_null = ((cb_flag & IDWALK_CB_NEVER_NULL) && (new_id == NULL) &&
-                              (id_remap_data->flag & ID_REMAP_FORCE_NEVER_NULL_USAGE) == 0);
+  const bool violates_never_null = ((cb_flag & IDWALK_CB_NEVER_NULL) && (new_id == NULL) &&
+                                    (id_remap_data->flag & ID_REMAP_FORCE_NEVER_NULL_USAGE) == 0);
   const bool skip_reference = (id_remap_data->flag & ID_REMAP_SKIP_OVERRIDE_LIBRARY) != 0;
   const bool skip_never_null = (id_remap_data->flag & ID_REMAP_SKIP_NEVER_NULL_USAGE) != 0;
   const bool force_user_refcount = (id_remap_data->flag & ID_REMAP_FORCE_USER_REFCOUNT) != 0;
@@ -239,7 +239,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
   /* Special hack in case it's Object->data and we are in edit mode, and new_id is not NULL
    * (otherwise, we follow common NEVER_NULL flags).
    * (skipped_indirect too). */
-  if ((is_never_null && skip_never_null) ||
+  if ((violates_never_null && skip_never_null) ||
       (is_obj_editmode && (((Object *)id_owner)->data == *id_p) && new_id != NULL) ||
       (skip_indirect && is_indirect) || (is_reference && skip_reference)) {
     foreach_libblock_remap_callback_skip(id_owner,
@@ -248,7 +248,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
                                          cb_flag,
                                          is_indirect,
                                          is_reference,
-                                         is_never_null,
+                                         violates_never_null,
                                          is_obj,
                                          is_obj_editmode);
   }
@@ -261,7 +261,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
                                           id_remap_data,
                                           cb_flag,
                                           is_indirect,
-                                          is_never_null,
+                                          violates_never_null,
                                           force_user_refcount);
   }
 
