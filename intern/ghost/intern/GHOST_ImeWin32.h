@@ -15,8 +15,6 @@
  *
  * The Original Code is Copyright (c) 2010 The Chromium Authors. All rights reserved.
  * All rights reserved.
- *
- * The Original Code is: some of this file.
  */
 
 /** \file
