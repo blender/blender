@@ -124,12 +124,7 @@ ccl_device_inline int min(int a, int b)
   return (a < b) ? a : b;
 }
 
-ccl_device_inline uint32_t min(uint32_t a, uint32_t b)
-{
-  return (a < b) ? a : b;
-}
-
-ccl_device_inline uint64_t min(uint64_t a, uint64_t b)
+ccl_device_inline uint min(uint a, uint b)
 {
   return (a < b) ? a : b;
 }
