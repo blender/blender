@@ -12,21 +12,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright
- * All rights reserved.
  */
 
 /** \file
  * \ingroup imbuf
- */
-
-/* ----------------------------------------------------------------------
  * Radiance High Dynamic Range image file IO
  * For description and code for reading/writing of radiance hdr files
  * by Greg Ward, refer to:
  * http://radsite.lbl.gov/radiance/refer/Notes/picture_format.html
- * ----------------------------------------------------------------------
  */
 
 #include "MEM_guardedalloc.h"

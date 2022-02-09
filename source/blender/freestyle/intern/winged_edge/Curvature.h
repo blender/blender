@@ -15,16 +15,10 @@
  *
  * The Original Code is:
  *     GTS - Library for the manipulation of triangulated surfaces
- *     Copyright (C) 1999 Stephane Popinet
+ *     Copyright 1999 Stephane Popinet
  * and:
  *     OGF/Graphite: Geometry and Graphics Programming Library + Utilities
- *     Copyright (C) 2000-2003 Bruno Levy
- *     Contact: Bruno Levy <levy@loria.fr>
- *         ISA Project
- *         LORIA, INRIA Lorraine,
- *         Campus Scientifique, BP 239
- *         54506 VANDOEUVRE LES NANCY CEDEX
- *         FRANCE
+ *     Copyright (C) 2000-2003 Bruno Levy <levy@loria.fr>
  */
 
 #pragma once
