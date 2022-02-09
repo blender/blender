@@ -31,6 +31,7 @@
 #  include <tbb/blocked_range.h>
 #  include <tbb/parallel_for.h>
 #  include <tbb/parallel_for_each.h>
+#  include <tbb/parallel_invoke.h>
 #  include <tbb/parallel_reduce.h>
 #  include <tbb/task_arena.h>
 #  ifdef WIN32
@@ -100,6 +101,19 @@ Value parallel_reduce(IndexRange range,
 #else
   UNUSED_VARS(grain_size, reduction);
   return function(range, identity);
+#endif
+}
+
+/**
+ * Execute all of the provided functions. The functions might be executed in parallel or in serial
+ * or some combination of both.
+ */
+template<typename... Functions> void parallel_invoke(Functions &&...functions)
+{
+#ifdef WITH_TBB
+  tbb::parallel_invoke(std::forward<Functions>(functions)...);
+#else
+  (functions(), ...);
 #endif
 }
 

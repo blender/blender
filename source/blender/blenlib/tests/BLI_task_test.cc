@@ -1,6 +1,7 @@
 /* Apache License, Version 2.0 */
 
 #include "testing/testing.h"
+#include <atomic>
 #include <cstring>
 
 #include "atomic_ops.h"
@@ -12,6 +13,7 @@
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
 #include "BLI_task.h"
+#include "BLI_task.hh"
 
 #define NUM_ITEMS 10000
 
@@ -279,4 +281,16 @@ TEST(task, ListBaseIter)
 
   MEM_freeN(items_buffer);
   BLI_threadapi_exit();
+}
+
+TEST(task, ParallelInvoke)
+{
+  std::atomic<int> counter = 0;
+  blender::threading::parallel_invoke([&]() { counter++; },
+                                      [&]() { counter++; },
+                                      [&]() { counter++; },
+                                      [&]() { counter++; },
+                                      [&]() { counter++; },
+                                      [&]() { counter++; });
+  EXPECT_EQ(counter, 6);
 }
