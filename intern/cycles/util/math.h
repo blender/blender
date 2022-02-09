@@ -935,8 +935,14 @@ ccl_device_inline uint prev_power_of_two(uint x)
 ccl_device_inline uint32_t reverse_integer_bits(uint32_t x)
 {
   /* Use a native instruction if it exists. */
-#if defined(__arm__) || defined(__aarch64__)
+#if defined(__aarch64__) || defined(_M_ARM64)
+  /* Assume the rbit is always available on 64bit ARM architecture. */
   __asm__("rbit %w0, %w1" : "=r"(x) : "r"(x));
+  return x;
+#elif defined(__arm__) && ((__ARM_ARCH > 7) || __ARM_ARCH == 6 && __ARM_ARCH_ISA_THUMB >= 2)
+  /* This ARM instruction is available in ARMv6T2 and above.
+   * This 32-bit Thumb instruction is available in ARMv6T2 and above. */
+  __asm__("rbit %0, %1" : "=r"(x) : "r"(x));
   return x;
 #elif defined(__KERNEL_CUDA__)
   return __brev(x);
