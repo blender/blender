@@ -781,6 +781,15 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
     }
   }
 
+  if ((but->type == UI_BTYPE_GRID_TILE) && (oldbut->type == UI_BTYPE_GRID_TILE)) {
+    uiButGridTile *but_gridtile = (uiButGridTile *)but;
+    uiButGridTile *oldbut_gridtile = (uiButGridTile *)oldbut;
+    if (!but_gridtile->view_item || !oldbut_gridtile->view_item ||
+        !UI_grid_view_item_matches(but_gridtile->view_item, oldbut_gridtile->view_item)) {
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -907,6 +916,12 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
       SWAP(uiTreeViewItemHandle *, treerow_newbut->tree_item, treerow_oldbut->tree_item);
       break;
     }
+    case UI_BTYPE_GRID_TILE: {
+      uiButGridTile *gridtile_oldbut = (uiButGridTile *)oldbut;
+      uiButGridTile *gridtile_newbut = (uiButGridTile *)but;
+      SWAP(uiGridViewItemHandle *, gridtile_newbut->view_item, gridtile_oldbut->view_item);
+      break;
+    }
     default:
       break;
   }
@@ -996,9 +1011,9 @@ static bool ui_but_update_from_old_block(const bContext *C,
   else {
     int flag_copy = UI_BUT_DRAG_MULTI;
 
-    /* Stupid special case: The active button may be inside (as in, overlapped on top) a tree-row
+    /* Stupid special case: The active button may be inside (as in, overlapped on top) a view-item
      * button which we also want to keep highlighted then. */
-    if (but->type == UI_BTYPE_TREEROW) {
+    if (ui_but_is_view_item(but)) {
       flag_copy |= UI_ACTIVE;
     }
 
@@ -3966,6 +3981,10 @@ static void ui_but_alloc_info(const eButType type,
     case UI_BTYPE_TREEROW:
       alloc_size = sizeof(uiButTreeRow);
       alloc_str = "uiButTreeRow";
+      break;
+    case UI_BTYPE_GRID_TILE:
+      alloc_size = sizeof(uiButGridTile);
+      alloc_str = "uiButGridTile";
       break;
     default:
       alloc_size = sizeof(uiBut);

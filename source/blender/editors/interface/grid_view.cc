@@ -68,6 +68,44 @@ GridViewStyle::GridViewStyle(int width, int height) : tile_width(width), tile_he
 
 /* ---------------------------------------------------------------------- */
 
+bool AbstractGridViewItem::matches(const AbstractGridViewItem &other) const
+{
+  return label_ == other.label_;
+}
+
+void AbstractGridViewItem::grid_tile_click_fn(struct bContext * /*C*/,
+                                              void *but_arg1,
+                                              void * /*arg2*/)
+{
+  uiButGridTile *grid_tile_but = (uiButGridTile *)but_arg1;
+  AbstractGridViewItem &grid_item = reinterpret_cast<AbstractGridViewItem &>(
+      *grid_tile_but->view_item);
+
+  //  tree_item.activate();
+}
+
+void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
+{
+  const GridViewStyle &style = get_view().get_style();
+  grid_tile_but_ = (uiButGridTile *)uiDefBut(&block,
+                                             UI_BTYPE_GRID_TILE,
+                                             0,
+                                             "",
+                                             0,
+                                             0,
+                                             style.tile_width,
+                                             style.tile_height,
+                                             nullptr,
+                                             0,
+                                             0,
+                                             0,
+                                             0,
+                                             "");
+
+  grid_tile_but_->view_item = reinterpret_cast<uiGridViewItemHandle *>(this);
+  UI_but_func_set(&grid_tile_but_->but, grid_tile_click_fn, grid_tile_but_, nullptr);
+}
+
 const AbstractGridView &AbstractGridViewItem::get_view() const
 {
   if (UNLIKELY(!view_)) {
@@ -87,7 +125,9 @@ class GridViewLayoutBuilder {
  public:
   GridViewLayoutBuilder(uiBlock &block);
 
-  void build_from_view(const AbstractGridView &grid_view);
+  void build_from_view(const AbstractGridView &grid_view) const;
+  void build_grid_tile(uiLayout &grid_layout, AbstractGridViewItem &item) const;
+
   uiLayout *current_layout() const;
 };
 
@@ -95,8 +135,19 @@ GridViewLayoutBuilder::GridViewLayoutBuilder(uiBlock &block) : block_(block)
 {
 }
 
-void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view)
+void GridViewLayoutBuilder::build_grid_tile(uiLayout &grid_layout,
+                                            AbstractGridViewItem &item) const
 {
+  uiLayout *overlap = uiLayoutOverlap(&grid_layout);
+
+  item.add_grid_tile_button(block_);
+  item.build_grid_tile(*uiLayoutRow(overlap, false));
+}
+
+void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view) const
+{
+  uiLayout *prev_layout = current_layout();
+
   uiLayout &layout = *uiLayoutColumn(current_layout(), false);
   const GridViewStyle &style = grid_view.get_style();
 
@@ -108,7 +159,7 @@ void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view)
 
   int item_count = 0;
   grid_view.foreach_item([&](AbstractGridViewItem &item) {
-    item.build_grid_tile(*grid_layout);
+    build_grid_tile(*grid_layout, item);
     item_count++;
   });
 
@@ -120,6 +171,8 @@ void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view)
       uiItemS(grid_layout);
     }
   }
+
+  UI_block_layout_set_current(&block_, prev_layout);
 }
 
 uiLayout *GridViewLayoutBuilder::current_layout() const
@@ -183,10 +236,21 @@ void PreviewGridItem::build_grid_tile(uiLayout &layout) const
 using namespace blender::ui;
 
 /* ---------------------------------------------------------------------- */
+/* C-API */
+
+using namespace blender::ui;
 
 bool UI_grid_view_listen_should_redraw(const uiGridViewHandle *view_handle,
                                        const wmNotifier *notifier)
 {
   const AbstractGridView &view = *reinterpret_cast<const AbstractGridView *>(view_handle);
   return view.listen(*notifier);
+}
+
+bool UI_grid_view_item_matches(const uiGridViewItemHandle *a_handle,
+                               const uiGridViewItemHandle *b_handle)
+{
+  const AbstractGridViewItem &a = reinterpret_cast<const AbstractGridViewItem &>(*a_handle);
+  const AbstractGridViewItem &b = reinterpret_cast<const AbstractGridViewItem &>(*b_handle);
+  return a.matches(b);
 }

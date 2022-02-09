@@ -27,8 +27,10 @@
 #include "BLI_vector.hh"
 #include "UI_resources.h"
 
+struct bContext;
 struct PreviewImage;
 struct uiBlock;
+struct uiButGridTile;
 struct uiLayout;
 struct wmNotifier;
 
@@ -41,9 +43,16 @@ class AbstractGridView;
  * \{ */
 
 class AbstractGridViewItem {
-  friend AbstractGridView;
+  friend class AbstractGridView;
+  friend class GridViewLayoutBuilder;
 
   const AbstractGridView *view_;
+
+ protected:
+  /** This label is used as the default way to identifying an item in the view. */
+  std::string label_{};
+  /** Every visible item gets a button of type #UI_BTYPE_GRID_TILE during the layout building. */
+  uiButGridTile *grid_tile_but_ = nullptr;
 
  public:
   virtual ~AbstractGridViewItem() = default;
@@ -52,8 +61,20 @@ class AbstractGridViewItem {
 
   const AbstractGridView &get_view() const;
 
+  /**
+   * Compare this item to \a other to check if they represent the same data.
+   * Used to recognize an item from a previous redraw, to be able to keep its state (e.g. active,
+   * renaming, etc.). By default this just matches the item's label. If that isn't good enough for
+   * a sub-class, that can override it.
+   */
+  virtual bool matches(const AbstractGridViewItem &other) const;
+
  protected:
   AbstractGridViewItem() = default;
+
+ private:
+  static void grid_tile_click_fn(bContext *, void *but_arg1, void *);
+  void add_grid_tile_button(uiBlock &block);
 };
 
 /** \} */

@@ -359,6 +359,13 @@ typedef struct uiButTreeRow {
   int indentation;
 } uiButTreeRow;
 
+/** Derived struct for #UI_BTYPE_GRID_TILE. */
+typedef struct uiButGridTile {
+  uiBut but;
+
+  uiGridViewItemHandle *view_item;
+} uiButGridTile;
+
 /** Derived struct for #UI_BTYPE_HSVCUBE. */
 typedef struct uiButHSVCube {
   uiBut but;
@@ -1357,6 +1364,7 @@ void ui_but_anim_decorate_update_from_flag(uiButDecorator *but);
 bool ui_but_is_editable(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_is_editable_as_text(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_is_toggle(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+bool ui_but_is_view_item(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 /**
  * Can we mouse over the button or is it hidden/disabled/layout.
  * \note ctrl is kind of a hack currently,
@@ -1387,6 +1395,8 @@ uiBut *ui_list_row_find_mouse_over(const struct ARegion *region, const int xy[2]
 uiBut *ui_list_row_find_from_index(const struct ARegion *region,
                                    int index,
                                    uiBut *listbox) ATTR_WARN_UNUSED_RESULT;
+uiBut *ui_view_item_find_mouse_over(const struct ARegion *region, const int xy[2])
+    ATTR_NONNULL(1, 2);
 uiBut *ui_tree_row_find_mouse_over(const struct ARegion *region, const int xy[2])
     ATTR_NONNULL(1, 2);
 uiBut *ui_tree_row_find_active(const struct ARegion *region);

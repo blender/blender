@@ -203,7 +203,7 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   bool is_renaming_ = false;
 
  protected:
-  /** This label is used for identifying an item within its parent. */
+  /** This label is used as the default way to identifying an item within its parent. */
   std::string label_{};
   /** Every visible item gets a button of type #UI_BTYPE_TREEROW during the layout building. */
   uiButTreeRow *tree_row_but_ = nullptr;

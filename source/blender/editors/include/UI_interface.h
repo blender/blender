@@ -94,6 +94,8 @@ typedef struct uiTreeViewHandle uiTreeViewHandle;
 typedef struct uiTreeViewItemHandle uiTreeViewItemHandle;
 /* C handle for C++ #ui::AbstractGridView type. */
 typedef struct uiGridViewHandle uiGridViewHandle;
+/* C handle for C++ #ui::AbstractGridViewItem type. */
+typedef struct uiGridViewItemHandle uiGridViewItemHandle;
 
 /* Defines */
 
@@ -407,6 +409,8 @@ typedef enum {
   UI_BTYPE_DECORATOR = 58 << 9,
   /* An item in a tree view. Parent items may be collapsible. */
   UI_BTYPE_TREEROW = 59 << 9,
+  /* An item in a grid view. */
+  UI_BTYPE_GRID_TILE = 60 << 9,
 } eButType;
 
 #define BUTTYPE (63 << 9)
@@ -3178,6 +3182,7 @@ void UI_block_views_listen(const uiBlock *block,
                            const struct wmRegionListenerParams *listener_params);
 
 bool UI_tree_view_item_is_active(const uiTreeViewItemHandle *item);
+bool UI_grid_view_item_matches(const uiGridViewItemHandle *a, const uiGridViewItemHandle *b);
 bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a, const uiTreeViewItemHandle *b);
 /**
  * Attempt to start dragging the tree-item \a item_. This will not work if the tree item doesn't

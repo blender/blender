@@ -121,6 +121,7 @@ typedef enum {
   UI_WTYPE_PROGRESSBAR,
   UI_WTYPE_NODESOCKET,
   UI_WTYPE_TREEROW,
+  UI_WTYPE_GRID_TILE,
 } uiWidgetTypeEnum;
 
 /* Button state argument shares bits with 'uiBut.flag'.
@@ -3713,6 +3714,13 @@ static void widget_treerow(
   widget_treerow_exec(wcol, rect, state, roundboxalign, tree_row->indentation, zoom);
 }
 
+static void widget_gridtile(
+    uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign, const float zoom)
+{
+  /* TODO Reuse tree-row drawing. */
+  widget_treerow_exec(wcol, rect, state, roundboxalign, 0, zoom);
+}
+
 static void widget_nodesocket(uiBut *but,
                               uiWidgetColors *wcol,
                               rcti *rect,
@@ -4567,6 +4575,10 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       wt.custom = widget_treerow;
       break;
 
+    case UI_WTYPE_GRID_TILE:
+      wt.draw = widget_gridtile;
+      break;
+
     case UI_WTYPE_NODESOCKET:
       wt.custom = widget_nodesocket;
       break;
@@ -4900,6 +4912,11 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
 
       case UI_BTYPE_TREEROW:
         wt = widget_type(UI_WTYPE_TREEROW);
+        fstyle = &style->widgetlabel;
+        break;
+
+      case UI_BTYPE_GRID_TILE:
+        wt = widget_type(UI_WTYPE_GRID_TILE);
         fstyle = &style->widgetlabel;
         break;
 
