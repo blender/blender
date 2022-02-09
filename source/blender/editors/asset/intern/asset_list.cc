@@ -363,6 +363,7 @@ class AssetListStorage {
       const AssetLibraryReference &library_reference, eFileSelectType filesel_type);
 
   static AssetListMap &global_storage();
+  static bool &global_storage_is_destructed();
 };
 
 void AssetListStorage::fetch_library(const AssetLibraryReference &library_reference,
@@ -383,6 +384,7 @@ void AssetListStorage::fetch_library(const AssetLibraryReference &library_refere
 void AssetListStorage::destruct()
 {
   global_storage().~AssetListMap();
+  global_storage_is_destructed() = true;
 }
 
 AssetList *AssetListStorage::lookup_list(const AssetLibraryReference &library_ref)
@@ -435,7 +437,17 @@ std::tuple<AssetList &, AssetListStorage::is_new_t> AssetListStorage::ensure_lis
 AssetListStorage::AssetListMap &AssetListStorage::global_storage()
 {
   static AssetListMap global_storage_;
+  if (global_storage_is_destructed()) {
+    global_storage_ = AssetListMap();
+    global_storage_is_destructed() = false;
+  }
   return global_storage_;
+}
+
+bool &AssetListStorage::global_storage_is_destructed()
+{
+  static bool is_destructed = false;
+  return is_destructed;
 }
 
 /** \} */

@@ -621,6 +621,10 @@ static void wm_file_read_pre(bContext *C, bool use_data, bool UNUSED(use_userdef
   UI_view2d_zoom_cache_reset();
 
   ED_preview_restart_queue_free();
+  /* #AssetLibraryService and the contained #AssetLibrary instances are destroyed on file loading.
+   * Asset lists may still reference them, so clear the asset list storage entirely for now. Later
+   * on, asset lists should actually live in the library, so this can be solved differently. */
+  ED_assetlist_storage_exit();
 }
 
 /**
