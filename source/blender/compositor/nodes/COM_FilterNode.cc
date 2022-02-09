@@ -48,7 +48,7 @@ void FilterNode::convert_to_operations(NodeConverter &converter,
                               2 / 16.0f,
                               1 / 16.0f);
       break;
-    case CMP_FILT_SHARP:
+    case CMP_FILT_SHARP_BOX:
       operation = new ConvolutionFilterOperation();
       operation->set3x3Filter(-1, -1, -1, -1, 9, -1, -1, -1, -1);
       break;
@@ -79,6 +79,10 @@ void FilterNode::convert_to_operations(NodeConverter &converter,
     case CMP_FILT_SHADOW:
       operation = new ConvolutionFilterOperation();
       operation->set3x3Filter(1, 2, 1, 0, 1, 0, -1, -2, -1);
+      break;
+    case CMP_FILT_SHARP_DIAMOND:
+      operation = new ConvolutionFilterOperation();
+      operation->set3x3Filter(0, -1, 0, -1, 5, -1, 0, -1, 0);
       break;
     default:
       operation = new ConvolutionFilterOperation();

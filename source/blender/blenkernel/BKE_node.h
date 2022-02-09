@@ -1303,12 +1303,13 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 
 /* filter types */
 #define CMP_FILT_SOFT 0
-#define CMP_FILT_SHARP 1
+#define CMP_FILT_SHARP_BOX 1
 #define CMP_FILT_LAPLACE 2
 #define CMP_FILT_SOBEL 3
 #define CMP_FILT_PREWITT 4
 #define CMP_FILT_KIRSCH 5
 #define CMP_FILT_SHADOW 6
+#define CMP_FILT_SHARP_DIAMOND 7
 
 /* scale node type, in custom1 */
 #define CMP_SCALE_RELATIVE 0

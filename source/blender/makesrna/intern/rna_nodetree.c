@@ -465,7 +465,8 @@ static const EnumPropertyItem rna_enum_node_tex_dimensions_items[] = {
 
 const EnumPropertyItem rna_enum_node_filter_items[] = {
     {0, "SOFTEN", 0, "Soften", ""},
-    {1, "SHARPEN", 0, "Sharpen", ""},
+    {1, "SHARPEN", 0, "Box Sharpen", "An aggressive sharpening filter"},
+    {7, "SHARPEN_DIAMOND", 0, "Diamond Sharpen", "A moderate sharpening filter"},
     {2, "LAPLACE", 0, "Laplace", ""},
     {3, "SOBEL", 0, "Sobel", ""},
     {4, "PREWITT", 0, "Prewitt", ""},
