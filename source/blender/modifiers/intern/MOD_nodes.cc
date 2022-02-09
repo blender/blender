@@ -996,7 +996,11 @@ static void store_computed_output_attributes(
 {
   for (const OutputAttributeToStore &store : attributes_to_store) {
     GeometryComponent &component = geometry.get_component_for_write(store.component_type);
-    if (component.attribute_exists(store.name)) {
+    const CustomDataType data_type = blender::bke::cpp_type_to_custom_data_type(store.data.type());
+    const std::optional<AttributeMetaData> meta_data = component.attribute_get_meta_data(
+        store.name);
+    if (meta_data.has_value() && meta_data->domain == store.domain &&
+        meta_data->data_type == data_type) {
       /* Copy the data into an existing attribute. */
       blender::bke::WriteAttributeLookup write_attribute = component.attribute_try_get_for_write(
           store.name);
@@ -1010,6 +1014,10 @@ static void store_computed_output_attributes(
       MEM_freeN(store.data.data());
     }
     else {
+      /* Replace the existing attribute with the new data. */
+      if (meta_data.has_value()) {
+        component.attribute_try_delete(store.name);
+      }
       component.attribute_try_create(store.name,
                                      store.domain,
                                      blender::bke::cpp_type_to_custom_data_type(store.data.type()),
