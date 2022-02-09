@@ -999,7 +999,7 @@ static void write_libraries(WriteData *wd, Main *main)
             if (!BKE_idtype_idcode_is_linkable(GS(id->name))) {
               printf(
                   "ERROR: write file: data-block '%s' from lib '%s' is not linkable "
-                  "but is flagged as directly linked",
+                  "but is flagged as directly linked\n",
                   id->name,
                   main->curlib->filepath_abs);
               BLI_assert(0);
