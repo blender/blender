@@ -819,7 +819,7 @@ void RNA_def_material(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Refraction Depth",
                            "Approximate the thickness of the object to compute two refraction "
-                           "event (0 is disabled)");
+                           "events (0 is disabled)");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   /* For Preview Render */
