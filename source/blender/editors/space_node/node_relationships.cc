@@ -2453,12 +2453,12 @@ void ED_node_link_insert(Main *bmain, ScrArea *area)
   bNodeSocket *best_output = get_main_socket(ntree, *node_to_insert, SOCK_OUT);
 
   /* Ignore main sockets when the types don't match. */
-  if (best_input != nullptr &&
+  if (best_input != nullptr && ntree.typeinfo->validate_link != nullptr &&
       !ntree.typeinfo->validate_link(static_cast<eNodeSocketDatatype>(old_link->fromsock->type),
                                      static_cast<eNodeSocketDatatype>(best_input->type))) {
     best_input = nullptr;
   }
-  if (best_output != nullptr &&
+  if (best_output != nullptr && ntree.typeinfo->validate_link != nullptr &&
       !ntree.typeinfo->validate_link(static_cast<eNodeSocketDatatype>(best_output->type),
                                      static_cast<eNodeSocketDatatype>(old_link->tosock->type))) {
     best_output = nullptr;
