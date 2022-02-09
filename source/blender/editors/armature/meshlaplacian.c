@@ -12,11 +12,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * meshlaplacian.c: Algorithms using the mesh laplacian.
  */
 
 /** \file
  * \ingroup edarmature
+ * Algorithms using the mesh laplacian.
  */
 
 #include "MEM_guardedalloc.h"

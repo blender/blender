@@ -15,7 +15,7 @@
  *
  * Copyright 2001-2002 NaN Holding BV. All rights reserved.
  *           1997-2001 Id Software, Inc. Video mode switching.
-                       Ported from Quake 2 by Alex Fraser <alex@phatcore.com>.
+ *                     Ported from Quake 2 by Alex Fraser <alex@phatcore.com>.
  */
 
 /** \file

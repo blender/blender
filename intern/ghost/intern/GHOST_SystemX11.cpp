@@ -15,7 +15,7 @@
  *
  * Copyright 2001-2002 NaN Holding BV. All rights reserved.
  *           2009 Nokia Corporation and/or its subsidiary(-ies).
-                  Part of this code has been taken from Qt, under LGPL license.
+ *                Part of this code has been taken from Qt, under LGPL license.
  */
 
 /** \file

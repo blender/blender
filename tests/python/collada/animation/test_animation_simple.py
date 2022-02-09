@@ -16,10 +16,12 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-#
-# Call as follows:
-# python collada_mesh_simple.py --blender PATH_TO_BLENDER_EXE --testdir PATH_TO_SVN/lib/tests/collada/mesh
-#
+
+"""
+Call as follows:
+python collada_mesh_simple.py --blender PATH_TO_BLENDER_EXE --testdir PATH_TO_SVN/lib/tests/collada/mesh
+"""
+
 import sys
 import bpy
 import argparse

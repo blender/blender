@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 Blender Foundation but based
- * on ghostwinlay.c (C) 2001-2002 by NaN Holding BV
- * All rights reserved.
+ * on ghostwinlay.c (C) 2001-2002 by NaN Holding BV. All rights reserved.
  */
 
 /** \file

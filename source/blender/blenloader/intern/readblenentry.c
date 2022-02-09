@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- * .blend file reading entry point
  */
 
 /** \file
  * \ingroup blenloader
+ * `.blend` file reading entry point.
  */
 
 #include <stddef.h>

@@ -15,7 +15,6 @@
  *
  * The Original Code is Copyright (C) 2004 Blender Foundation
  * All rights reserved.
- * .blend file reading entry point
  */
 
 /** \file

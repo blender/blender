@@ -12,15 +12,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Mesh Fairing algorithm designed by Brett Fedack, used in the addon "Mesh Fairing":
- * https://github.com/fedackb/mesh-fairing.
  */
 
 #pragma once
 
 /** \file
  * \ingroup bke
+ * Mesh Fairing algorithm designed by Brett Fedack, used in the addon "Mesh Fairing":
+ * https://github.com/fedackb/mesh-fairing.
  */
 
 #include "BLI_utildefines.h"

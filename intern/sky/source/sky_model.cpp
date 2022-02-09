@@ -22,7 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Copyright (c) 2012 - 2013, Lukas Hosek and Alexander Wilkie
+ * Copyright (c) 2012-2013, Lukas Hosek and Alexander Wilkie
  * All rights reserved.
  */
 
