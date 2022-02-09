@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- * Functions for writing avi-format files.
- * Added interface for generic movie support (ton)
  */
 
 /** \file
+ * Functions for writing avi-format files.
+ * Added interface for generic movie support (ton)
  * \ingroup bke
  */
 

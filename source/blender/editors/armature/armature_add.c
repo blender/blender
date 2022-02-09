@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- * Operators and API's for creating bones
  */
 
 /** \file
  * \ingroup edarmature
+ * Operators and API's for creating bones.
  */
 
 #include "DNA_anim_types.h"

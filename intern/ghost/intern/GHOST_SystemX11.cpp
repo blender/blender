@@ -13,10 +13,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * Part of this code has been taken from Qt, under LGPL license
- * Copyright (C) 2009 Nokia Corporation and/or its subsidiary(-ies).
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved.
+ *           2009 Nokia Corporation and/or its subsidiary(-ies).
+                  Part of this code has been taken from Qt, under LGPL license.
  */
 
 /** \file

@@ -15,13 +15,13 @@
  *
  * The Original Code is Copyright (C) 2004 Blender Foundation.
  * All rights reserved.
- * external writefile function prototypes
  */
 
 #pragma once
 
 /** \file
  * \ingroup blenloader
+ * External writefile function prototypes.
  */
 
 #include "BLI_filereader.h"
@@ -91,6 +91,8 @@ void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t s
 /**
  * Not memfile itself.
  */
+/* **************** support for memory-write, for undo buffers *************** */
+
 extern void BLO_memfile_free(MemFile *memfile);
 /**
  * Result is that 'first' is being freed.

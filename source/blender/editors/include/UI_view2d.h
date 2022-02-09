@@ -15,12 +15,12 @@
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
- * Generic 2d view with should allow drawing grids,
- * panning, zooming, scrolling, ..
  */
 
 /** \file
  * \ingroup editorui
+ * Generic 2D view with should allow drawing grids,
+ * panning, zooming, scrolling, .. etc.
  */
 
 #pragma once

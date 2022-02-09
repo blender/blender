@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2006 by Nicholas Bishop
  * All rights reserved.
- * Implements the Sculpt Mode tools
  */
 
 /** \file
  * \ingroup edsculpt
+ * Implements the Sculpt Mode tools.
  */
 
 #include <stddef.h>

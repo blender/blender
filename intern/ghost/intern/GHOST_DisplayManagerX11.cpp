@@ -13,11 +13,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * Video mode switching
- * Copyright (C) 1997-2001 Id Software, Inc.
- * Ported from Quake 2 by Alex Fraser <alex@phatcore.com>
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved.
+ *           1997-2001 Id Software, Inc. Video mode switching.
+                       Ported from Quake 2 by Alex Fraser <alex@phatcore.com>.
  */
 
 /** \file

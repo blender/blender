@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- * Armature EditMode tools - transforms, chain based editing, and other settings
  */
 
 /** \file
  * \ingroup edarmature
+ * Armature EditMode tools - transforms, chain based editing, and other settings.
  */
 
 #include "DNA_armature_types.h"

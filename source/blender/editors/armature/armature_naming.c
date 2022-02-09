@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- * Operators and API's for renaming bones both in and out of Edit Mode
  */
 
 /** \file
  * \ingroup edarmature
+ * Operators and API's for renaming bones both in and out of Edit Mode.
  *
  * This file contains functions/API's for renaming bones and/or working with them.
  */

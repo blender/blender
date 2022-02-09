@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- * Dynamically sized string ADT
  */
 
 /** \file
  * \ingroup bli
+ * Dynamically sized string ADT.
  */
 
 #include <stdio.h>

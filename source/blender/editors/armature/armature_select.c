@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- * API's and Operators for selecting armature bones in EditMode
  */
 
 /** \file
  * \ingroup edarmature
+ * API's and Operators for selecting armature bones in EditMode.
  */
 
 #include "MEM_guardedalloc.h"

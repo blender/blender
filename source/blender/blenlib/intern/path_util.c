@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- * various string, file, list operations.
  */
 
 /** \file
  * \ingroup bli
+ * Various string, file, list operations.
  */
 
 #include <ctype.h>

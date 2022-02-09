@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2010 by Nicholas Bishop
  * All rights reserved.
- * Implements the PBVH node hiding operator
  */
 
 /** \file
  * \ingroup edsculpt
+ * Implements the PBVH node hiding operator.
  */
 
 #include "MEM_guardedalloc.h"

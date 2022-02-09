@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) Blender Foundation, 2002-2009
  * All rights reserved.
- * UV Sculpt tools
  */
 
 /** \file
  * \ingroup edsculpt
+ * UV Sculpt tools.
  */
 
 #include "MEM_guardedalloc.h"

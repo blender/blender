@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- * Operators for relations between bones and for transferring bones between armature objects
  */
 
 /** \file
  * \ingroup edarmature
+ * Operators for relations between bones and for transferring bones between armature objects.
  */
 
 #include "MEM_guardedalloc.h"

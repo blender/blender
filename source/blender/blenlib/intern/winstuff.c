@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- * Windows-posix compatibility layer, windows-specific functions.
  */
 
 /** \file
  * \ingroup bli
+ * Windows-posix compatibility layer, windows-specific functions.
  */
 
 #ifdef WIN32

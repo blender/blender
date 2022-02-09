@@ -15,11 +15,11 @@
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation.
  * All rights reserved.
- * Implementation of CDDerivedMesh.
  */
 
 /** \file
  * \ingroup bke
+ * Implementation of #CDDerivedMesh.
  * BKE_cdderivedmesh.h contains the function prototypes for this file.
  */
 

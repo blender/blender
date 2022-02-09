@@ -15,12 +15,12 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- * API's for creating vertex groups from bones
- * - Interfaces with heat weighting in meshlaplacian
  */
 
 /** \file
  * \ingroup edarmature
+ * API's for creating vertex groups from bones
+ * - Interfaces with heat weighting in meshlaplacian.
  */
 
 #include "DNA_armature_types.h"
