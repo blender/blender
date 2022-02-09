@@ -791,8 +791,8 @@ void RNA_def_material(BlenderRNA *brna)
   RNA_def_property_boolean_negative_sdna(prop, NULL, "blend_flag", MA_BL_HIDE_BACKFACE);
   RNA_def_property_ui_text(prop,
                            "Show Backface",
-                           "Limit transparency to a single layer "
-                           "(avoids transparency sorting problems)");
+                           "Render multiple transparent layers "
+                           "(may introduce transparency sorting problems)");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   prop = RNA_def_property(srna, "use_backface_culling", PROP_BOOLEAN, PROP_NONE);
@@ -819,7 +819,7 @@ void RNA_def_material(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Refraction Depth",
                            "Approximate the thickness of the object to compute two refraction "
-                           "event (0 is disabled)");
+                           "events (0 is disabled)");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   /* For Preview Render */
