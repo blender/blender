@@ -413,7 +413,7 @@ void bmesh_radial_loop_append(BMEdge *e, BMLoop *l)
   l->e = e;
 }
 
-void bmesh_radial_loop_remove(BMEdge *e, BMLoop *l)
+ATTR_NO_OPT void bmesh_radial_loop_remove(BMEdge *e, BMLoop *l)
 {
   /* if e is non-NULL, l must be in the radial cycle of e */
   if (UNLIKELY(e != l->e)) {

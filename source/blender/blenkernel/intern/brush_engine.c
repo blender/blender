@@ -538,7 +538,7 @@ void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
 
     mp->blendmode = !mdef->no_default ? MA_RAMP_MULT : mdef->blendmode;
     mp->factor = mdef->factor == 0.0f ? 1.0f : mdef->factor;
-    mp->premultiply = 1.0f;
+    mp->premultiply_factor = 1.0f;
     mp->func_cutoff = mdef->func_cutoff != 0.0f ? mdef->func_cutoff : 0.5f;
 
     if (i == BRUSH_MAPPING_STROKE_T) {
@@ -616,7 +616,7 @@ BrushChannelSet *BKE_brush_channelset_create(const char *info)
   BrushChannelSet *chset = (BrushChannelSet *)MEM_callocN(sizeof(BrushChannelSet),
                                                           info ? tag : "BrushChannelSet");
 
-  chset->namemap = BLI_ghash_str_new("BrushChannelSet ghash");
+  chset->channelmap = BLI_ghash_str_new("BrushChannelSet ghash");
 
   return chset;
 }
@@ -625,7 +625,7 @@ void BKE_brush_channelset_free(BrushChannelSet *chset)
 {
   BrushChannel *ch, *next;
 
-  BLI_ghash_free(chset->namemap, NULL, NULL);
+  BLI_ghash_free(chset->channelmap, NULL, NULL);
 
   for (ch = chset->channels.first; ch; ch = next) {
     next = ch->next;
@@ -692,22 +692,22 @@ void BKE_brush_channelset_add(BrushChannelSet *chset, BrushChannel *ch)
   BKE_brush_channel_ensure_unque_name(chset, ch);
 
   BLI_addtail(&chset->channels, ch);
-  BLI_ghash_insert(chset->namemap, ch->idname, ch);
+  BLI_ghash_insert(chset->channelmap, ch->idname, ch);
 
   chset->totchannel++;
 }
 
 void BKE_brush_channel_rename(BrushChannelSet *chset, BrushChannel *ch, const char *newname)
 {
-  BLI_ghash_remove(chset->namemap, ch->idname, NULL, NULL);
+  BLI_ghash_remove(chset->channelmap, ch->idname, NULL, NULL);
   BLI_strncpy(ch->idname, newname, sizeof(ch->idname));
   BKE_brush_channel_ensure_unque_name(chset, ch);
-  BLI_ghash_insert(chset->namemap, ch->idname, ch);
+  BLI_ghash_insert(chset->channelmap, ch->idname, ch);
 }
 
 void BKE_brush_channelset_remove(BrushChannelSet *chset, BrushChannel *ch)
 {
-  BLI_ghash_remove(chset->namemap, ch->idname, NULL, NULL);
+  BLI_ghash_remove(chset->channelmap, ch->idname, NULL, NULL);
   BLI_remlink(&chset->channels, ch);
 
   chset->totchannel--;
@@ -742,7 +742,7 @@ void BKE_brush_channelset_add_duplicate(BrushChannelSet *chset, BrushChannel *ch
 
 BrushChannel *BKE_brush_channelset_lookup(BrushChannelSet *chset, const char *idname)
 {
-  return BLI_ghash_lookup(chset->namemap, idname);
+  return BLI_ghash_lookup(chset->channelmap, idname);
 }
 
 BrushChannel *BKE_brush_channelset_lookup_final(BrushChannelSet *child,
@@ -1060,9 +1060,9 @@ double BKE_brush_channel_eval_mappings(BrushChannel *ch,
         continue;
       }
 
-      float inputf = ((float *)mapdata)[i] * mp->premultiply;
+      float inputf = ((float *)mapdata)[i] * mp->premultiply_factor;
 
-      switch ((BrushMappingFunc)mp->mapfunc) {
+      switch ((eBrushMappingFunc)mp->mapfunc) {
         case BRUSH_MAPFUNC_NONE:
           break;
         case BRUSH_MAPFUNC_SAW:
@@ -1085,7 +1085,7 @@ double BKE_brush_channel_eval_mappings(BrushChannel *ch,
           break;
         case BRUSH_MAPFUNC_SQUARE:
           inputf -= floorf(inputf);
-          inputf = inputf > mp->func_cutoff ? 1.0f : 0.0f;  //(float)(inputf > 0.5f);
+          inputf = inputf > mp->func_cutoff ? 1.0f : 0.0f;
           break;
         default:
           break;
@@ -1988,7 +1988,7 @@ void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
 {
   BLO_read_list(reader, &chset->channels);
 
-  chset->namemap = BLI_ghash_str_new("BrushChannelSet");
+  chset->channelmap = BLI_ghash_str_new("BrushChannelSet");
 
   BrushChannel *ch;
   // regenerate chset->totchannel just to be safe
@@ -1997,7 +1997,7 @@ void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
   for (ch = chset->channels.first; ch; ch = ch->next) {
     chset->totchannel++;
 
-    BLI_ghash_insert(chset->namemap, ch->idname, ch);
+    BLI_ghash_insert(chset->channelmap, ch->idname, ch);
 
     BLO_read_data_address(reader, &ch->curve.curve);
     if (ch->curve.curve) {
@@ -2012,8 +2012,8 @@ void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
 
       CurveMapping *curve = mp->curve;
 
-      if (mp->premultiply == 0.0f) {
-        mp->premultiply = 1.0f;
+      if (mp->premultiply_factor == 0.0f) {
+        mp->premultiply_factor = 1.0f;
       }
 
       if (mp->func_cutoff == 0.0f) {
@@ -2084,7 +2084,7 @@ void BKE_brush_channelset_write(BlendWriter *writer, BrushChannelSet *chset)
   }
 }
 
-const char *BKE_brush_mapping_type_to_str(BrushMappingType mapping)
+const char *BKE_brush_mapping_type_to_str(eBrushMappingType mapping)
 {
   switch (mapping) {
     case BRUSH_MAPPING_PRESSURE:
@@ -2108,7 +2108,7 @@ const char *BKE_brush_mapping_type_to_str(BrushMappingType mapping)
   return "Error";
 }
 
-const char *BKE_brush_mapping_type_to_typename(BrushMappingType mapping)
+const char *BKE_brush_mapping_type_to_typename(eBrushMappingType mapping)
 {
   switch (mapping) {
     case BRUSH_MAPPING_PRESSURE:
@@ -2153,13 +2153,10 @@ void BKE_brush_mapping_copy_data(BrushMapping *dst, BrushMapping *src)
   dst->max = src->max;
   dst->factor = src->factor;
   dst->flag = src->flag;
-  dst->input_channel = src->input_channel;
   dst->blendmode = src->blendmode;
   dst->func_cutoff = src->func_cutoff;
   dst->mapfunc = src->mapfunc;
-  dst->premultiply = src->premultiply;
-
-  memcpy(dst->name, src->name, sizeof(dst->name));
+  dst->premultiply_factor = src->premultiply_factor;
 }
 
 void BKE_brush_channelset_to_unified_settings(BrushChannelSet *chset, UnifiedPaintSettings *ups)

@@ -261,9 +261,9 @@ template<typename T> class BrushChannelIF {
           continue;
         }
 
-        float inputf = (reinterpret_cast<float *>(mapping))[i] * mp->premultiply;
+        float inputf = (reinterpret_cast<float *>(mapping))[i] * mp->premultiply_factor;
 
-        switch ((BrushMappingFunc)mp->mapfunc) {
+        switch ((eBrushMappingFunc)mp->mapfunc) {
           case BRUSH_MAPFUNC_NONE:
             break;
           case BRUSH_MAPFUNC_SAW:
@@ -361,8 +361,8 @@ class BrushChannelSetIF {
   void destroy()
   {
     if (_chset) {
-      if (_chset->namemap) {
-        BLI_ghash_free(_chset->namemap, nullptr, nullptr);
+      if (_chset->channelmap) {
+        BLI_ghash_free(_chset->channelmap, nullptr, nullptr);
       }
 
       LISTBASE_FOREACH (BrushChannel *, ch, &_chset->channels) {
@@ -385,7 +385,7 @@ class BrushChannelSetIF {
   template<typename T> BrushChannelIF<T> lookup(const char *idname)
   {
     BrushChannel *ch = static_cast<BrushChannel *>(
-        BLI_ghash_lookup(_chset->namemap, static_cast<const void *>(idname)));
+        BLI_ghash_lookup(_chset->channelmap, static_cast<const void *>(idname)));
     BrushChannelIF<T> chif(ch);
 
     return chif;

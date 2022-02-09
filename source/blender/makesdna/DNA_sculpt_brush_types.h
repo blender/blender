@@ -29,26 +29,48 @@
 
 struct GHash;
 
-typedef struct BrushMapping {
-  char name[64];
+/* Input mapping struct.  An input mapping transform
+   stroke inputs intos outputs.  Inputs can be device
+   events (like pen pressure/tilt) or synethesize
+   (cumulative stroke distance, random, etc).
 
-  /*reference to a cached curve, see BKE_curvemapping_cache*/
+   Inspired by Krita.
+*/
+typedef struct BrushMapping {
+  /* note that we use a curve cache (see BKE_curvemapping_cache)
+     and copy on write semantics.  BrushChannels are copied
+     extensively (mostly to cache input mappings and resolve
+     channel inheritance), to the point that copying the
+     channel curves was a problem.
+     
+   */
   CurveMapping *curve;
+
   float factor;
-  short blendmode;
-  short input_channel;
+  int blendmode; /* blendmode, a subset of the MA_BLEND_XXX enums*/
+
   int flag, type;
 
   float min, max;
-  float premultiply;  // premultiply input data
-  int mapfunc;
+  float premultiply_factor; /** factor to premultiply input data with */
+
+  int mapfunc; /** mapping function, see eBrushMappingFunc.  Most are periodic. */
+
+  /** threshold for BRUSH_MAPFUNC_CUTOFF and BRUSH_MAPFUNC_SQUARE mapping functions */
   float func_cutoff;
+
+  /** controls whether this channel should inherit from scene defaults,
+   *  see eBrushMappingInheritMode */
   char inherit_mode, _pad[3];
 } BrushMapping;
 
 typedef struct BrushCurve {
   CurveMapping *curve;
-  int preset;  // see eBrushCurvePreset, this differs from the one in BrushMappingDef
+
+  /** curve preset, see eBrushCurvePreset.
+      Note: this differs from BrushMappingDef's preset field
+    */
+  int preset;
   char preset_slope_negative;
   char _pad[3];
 } BrushCurve;
@@ -56,60 +78,78 @@ typedef struct BrushCurve {
 typedef struct BrushChannel {
   struct BrushChannel *next, *prev;
 
-  char idname[64];
-  char name[64];
-  char *category;  // if NULL, def->category will be used
+  /** Channel id.  Avoid calling API methods that take strings directly.
+      There are API facilities to check channel idnames at compile time:
+      the BRUSHSET_XXX macros, SCULPT_get_XXX, etc.  On the C++ side
+      BrushChannelSetIF has accessor methods, e.g. BrushChannelSet::radius.
+  */
+  char idname[64]; 
+  char name[64];   /** user-friendly name */
+  char *category;  /** category; if NULL, def->category will be used */
 
-  struct BrushChannelType *def;
+  struct BrushChannelType *def; /* Brush channel definition */
 
-  float fvalue;
-  int ivalue;
-  float vector[4];
+  /*
+    Need to investigate whether we
+    can use ID properties here.  ID properties
+    don't support CurveMappings and do support
+    things we don't want, like groups, strings and
+    ID pointer properties.
+
+    We could implement an ID property CurveMapping
+    type and prevent the creation of group properties
+    at the API level though.
+  */
+  float fvalue; /** floating point value */
+  int ivalue; /** stores integer, boolean, enum and bitmasks */
+  float vector[4]; /* stores 3 and 4 component vectors */
   BrushCurve curve;
 
-  BrushMapping mappings[7];  // should always be BRUSH_MAPPING_MAX
+  BrushMapping mappings[7];  /* dimension should always be BRUSH_MAPPING_MAX */
 
-  short type, ui_order;
-  int flag;
+  short type; /** eBrushChannelType */
+  short ui_order;
+  int flag; /** eBrushChannelFlag */
 } BrushChannel;
 
 typedef struct BrushChannelSet {
   ListBase channels;
   int totchannel, _pad[1];
-  struct GHash *namemap;
+
+  struct GHash *channelmap; /** quick lookup ghash, maps idnames to brush channels */
 } BrushChannelSet;
 
 #define BRUSH_CHANNEL_MAX_IDNAME sizeof(((BrushChannel){0}).idname)
 
 /* BrushMapping->flag */
-enum {
+typedef enum eBrushMappingFlags {
   BRUSH_MAPPING_ENABLED = 1 << 0,
   BRUSH_MAPPING_INVERT = 1 << 1,
   BRUSH_MAPPING_UI_EXPANDED = 1 << 2,
-};
+} eBrushMappingFlags;
 
 /* BrushMapping->inherit_mode */
-enum {
+typedef enum eBrushMappingInheritMode {
   /* never inherit */
   BRUSH_MAPPING_INHERIT_NEVER,
   /* always inherit */
   BRUSH_MAPPING_INHERIT_ALWAYS,
   /* use channel's inheritance mode */
   BRUSH_MAPPING_INHERIT_CHANNEL
-};
+} eBrushMappingInheritMode;
 
 /* BrushMapping->mapfunc */
-typedef enum {
+typedef enum eBrushMappingFunc {
   BRUSH_MAPFUNC_NONE,
   BRUSH_MAPFUNC_SAW,
   BRUSH_MAPFUNC_TENT,
   BRUSH_MAPFUNC_COS,
   BRUSH_MAPFUNC_CUTOFF,
-  BRUSH_MAPFUNC_SQUARE,
-} BrushMappingFunc;
+  BRUSH_MAPFUNC_SQUARE, /* square wave */
+} eBrushMappingFunc;
 
 // mapping types
-typedef enum {
+typedef enum eBrushMappingType {
   BRUSH_MAPPING_PRESSURE = 0,
   BRUSH_MAPPING_XTILT = 1,
   BRUSH_MAPPING_YTILT = 2,
@@ -118,7 +158,7 @@ typedef enum {
   BRUSH_MAPPING_RANDOM = 5,
   BRUSH_MAPPING_STROKE_T = 6,
   BRUSH_MAPPING_MAX = 7  // see BrushChannel.mappings
-} BrushMappingType;
+} eBrushMappingType;
 
 #ifndef __GNUC__
 static_assert(offsetof(BrushChannel, type) - offsetof(BrushChannel, mappings) ==
@@ -127,7 +167,7 @@ static_assert(offsetof(BrushChannel, type) - offsetof(BrushChannel, mappings) ==
 #endif
 
 // BrushChannel->flag
-typedef enum {
+typedef enum eBrushChannelFlag {
   BRUSH_CHANNEL_INHERIT = 1 << 0,
   BRUSH_CHANNEL_INHERIT_IF_UNSET = 1 << 1,
   BRUSH_CHANNEL_NO_MAPPINGS = 1 << 2,
@@ -139,7 +179,7 @@ typedef enum {
 } eBrushChannelFlag;
 
 // BrushChannelType->type
-enum {
+typedef enum eBrushChannelType {
   BRUSH_CHANNEL_TYPE_FLOAT = 1 << 0,
   BRUSH_CHANNEL_TYPE_INT = 1 << 1,
   BRUSH_CHANNEL_TYPE_ENUM = 1 << 2,
@@ -148,15 +188,15 @@ enum {
   BRUSH_CHANNEL_TYPE_VEC3 = 1 << 5,
   BRUSH_CHANNEL_TYPE_VEC4 = 1 << 6,
   BRUSH_CHANNEL_TYPE_CURVE = 1 << 7
-};
+} eBrushChannelType;
 
 /* clang-format off */
-enum {
+typedef enum eBrushChannelSubType {
   BRUSH_CHANNEL_NONE,
   BRUSH_CHANNEL_COLOR,
   BRUSH_CHANNEL_FACTOR,
   BRUSH_CHANNEL_PERCENT,
   BRUSH_CHANNEL_PIXEL,
   BRUSH_CHANNEL_ANGLE
-};
+} eBrushChannelSubType;
 /* clang-format on */

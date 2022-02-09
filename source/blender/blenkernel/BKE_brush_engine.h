@@ -457,8 +457,8 @@ void BKE_brush_channelset_foreach_id(void *userdata,
 
 /******** brush mapping stuff *******/
 void BKE_brush_mapping_copy_data(BrushMapping *dst, BrushMapping *src);
-const char *BKE_brush_mapping_type_to_str(BrushMappingType mapping);
-const char *BKE_brush_mapping_type_to_typename(BrushMappingType mapping);
+const char *BKE_brush_mapping_type_to_str(eBrushMappingType mapping);
+const char *BKE_brush_mapping_type_to_typename(eBrushMappingType mapping);
 
 /********* misc utility functions *********/
 

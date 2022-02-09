@@ -689,7 +689,7 @@ void RNA_def_brush_mapping(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Factor", "Mapping factor");
 
   prop = RNA_def_property(srna, "premultiply", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "premultiply");
+  RNA_def_property_float_sdna(prop, NULL, "premultiply_factor");
   RNA_def_property_range(prop, -100000, 100000);
   RNA_def_property_ui_range(prop, -100, 100, 0.01, 3);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);

@@ -788,8 +788,6 @@ int bmesh_elem_check(void *element, const char htype)
 
 #endif /* NDEBUG */
 
-int bleh = 0;
-
 /**
  * low level function, only frees the vert,
  * doesn't change or adjust surrounding geometry
@@ -811,10 +809,6 @@ static void bm_kill_only_vert(BMesh *bm, BMVert *v)
 
     BLI_mempool_free(bm->vtoolflagpool, flags->flag);
     flags->flag = NULL;
-
-    if (bleh) {
-      printf("eek\n");
-    }
   }
 
   if (v->head.data) {
@@ -925,6 +919,8 @@ void bm_kill_only_edge(BMesh *bm, BMEdge *e)
   if (e->head.data) {
     CustomData_bmesh_free_block(&bm->edata, &e->head.data);
   }
+
+  e->l = NULL;
 
   BLI_mempool_free(bm->epool, e);
 }
@@ -2085,8 +2081,8 @@ static char *obj_append_line(char *line, char *str, char *fixed, int *size, int 
 {
   int len = (int)strlen(line);
 
-  if (*i + len >= *size) {
-    *size += *size >> 1;
+  if (*i + len + 1 >= *size) {
+    *size += len + ((*size) >> 1);
 
     if (str == fixed) {
       str = MEM_mallocN(*size, "buf");
@@ -2113,13 +2109,17 @@ ATTR_NO_OPT static char *bm_save_local_obj_text(
 
   buf[0] = 0;
 
-  BMVert **vs = NULL;
-  BMEdge **es = NULL;
-  BMFace **fs = NULL;
+  BMVert **vs = NULL, **initial_vs = NULL;
+  BMEdge **es = NULL, **initial_es = NULL;
+  BMFace **fs = NULL, **initial_fs = NULL;
 
   BLI_array_staticdeclare(vs, 64);
   BLI_array_staticdeclare(es, 64);
   BLI_array_staticdeclare(fs, 64);
+
+  BLI_array_staticdeclare(initial_vs, 8);
+  BLI_array_staticdeclare(initial_es, 8);
+  BLI_array_staticdeclare(initial_fs, 8);
 
   SmallHash visit;
   BLI_smallhash_init(&visit);
@@ -2136,12 +2136,15 @@ ATTR_NO_OPT static char *bm_save_local_obj_text(
     switch (*c) {
       case 'v':
         BLI_array_append(vs, (BMVert *)ptr);
+        BLI_array_append(initial_vs, (BMVert *)ptr);
         break;
       case 'e':
         BLI_array_append(es, (BMEdge *)ptr);
+        BLI_array_append(initial_es, (BMEdge *)ptr);
         break;
       case 'f':
         BLI_array_append(fs, (BMFace *)ptr);
+        BLI_array_append(initial_fs, (BMFace *)ptr);
         break;
     }
 
@@ -2204,10 +2207,11 @@ ATTR_NO_OPT static char *bm_save_local_obj_text(
     } while ((l = l->next) != f->l_first);
   }
 
-  struct {
+  struct stack {
     BMVert *v;
     int depth;
-  } stack[256];
+  } *stack = NULL;
+  BLI_array_staticdeclare(stack, 256);
 
   SmallHash elemset;
   BLI_smallhash_init(&elemset);
@@ -2225,16 +2229,26 @@ ATTR_NO_OPT static char *bm_save_local_obj_text(
   for (int i = 0; i < BLI_array_len(vs); i++) {
     int si = 0;
 
+    BLI_array_clear(stack);
+
     // connected islands only
     if (i > 0) {
       break;
     }
+
+    BLI_array_grow_one(stack);
 
     stack[si].v = vs[i];
     stack[si].depth = 0;
     si++;
 
     while (si > 0) {
+      BLI_array_len_set(stack, BLI_array_len(stack) - 1);
+
+      if (si >= 8192) {
+        printf("%s: stack error\n", __func__);
+      }
+
       si--;
 
       BMVert *v = stack[si].v;
@@ -2254,10 +2268,14 @@ ATTR_NO_OPT static char *bm_save_local_obj_text(
       BMEdge *e = v->e;
       do {
         if (!BLI_smallhash_ensure_p(&visit, (uintptr_t)e, &val)) {
+          BLI_array_grow_one(stack);
+
           *val = NULL;
           stack[si].v = e->v1;
           stack[si].depth = startdepth + 1;
           si++;
+
+          BLI_array_grow_one(stack);
 
           stack[si].v = e->v2;
           stack[si].depth = startdepth + 1;
@@ -2279,6 +2297,8 @@ ATTR_NO_OPT static char *bm_save_local_obj_text(
             BMLoop *l2 = l;
             do {
               if (!BLI_smallhash_ensure_p(&visit, (uintptr_t)l->v, &val)) {
+                BLI_array_grow_one(stack);
+
                 *val = NULL;
                 stack[si].v = l->v;
                 stack[si].depth = startdepth + 1;
@@ -2299,10 +2319,47 @@ ATTR_NO_OPT static char *bm_save_local_obj_text(
     es[i]->head.api_flag &= ~tag;
   }
 
-  char line[256];
+  char line[128];
+  line[0] = 0;
+
+  for (int i = 0; i < BLI_array_len(vs); i++) {
+    vs[i]->head.api_flag &= ~tag;
+  }
+  for (int i = 0; i < BLI_array_len(es); i++) {
+    es[i]->head.api_flag &= ~tag;
+  }
+  for (int i = 0; i < BLI_array_len(fs); i++) {
+    fs[i]->head.api_flag &= ~tag;
+  }
+
+  for (int i = 0; i < BLI_array_len(initial_vs); i++) {
+    initial_vs[i]->head.api_flag |= tag;
+  }
+
+  for (int i = 0; i < BLI_array_len(initial_es); i++) {
+    initial_es[i]->head.api_flag |= tag;
+    initial_es[i]->v1->head.api_flag |= tag;
+    initial_es[i]->v2->head.api_flag |= tag;
+  }
+
+  for (int i = 0; i < BLI_array_len(initial_fs); i++) {
+    BMFace *f = initial_fs[i];
+
+    f->head.api_flag |= tag;
+    BMLoop *l = f->l_first;
+
+    do {
+      l->v->head.api_flag |= tag;
+    } while ((l = l->next) != f->l_first);
+  }
 
   for (int i = 0; i < BLI_array_len(vs); i++) {
     BMVert *v = vs[i];
+
+    if (v->head.api_flag & tag) {
+      sprintf(line, "#select\n");
+      str = obj_append_line(line, str, buf, &size, &stri);
+    }
 
     v->head.index = i + 1;
     sprintf(line, "v %.4f %.4f %.4f\n", v->co[0], v->co[1], v->co[2]);
@@ -2319,6 +2376,7 @@ ATTR_NO_OPT static char *bm_save_local_obj_text(
 
     do {
       sprintf(line, " %d", l->v->head.index);
+
       str = obj_append_line(line, str, buf, &size, &stri);
     } while ((l = l->next) != f->l_first);
 
@@ -2331,6 +2389,11 @@ ATTR_NO_OPT static char *bm_save_local_obj_text(
   BLI_array_free(vs);
   BLI_array_free(es);
   BLI_array_free(fs);
+  BLI_array_free(stack);
+
+  BLI_array_free(initial_vs);
+  BLI_array_free(initial_es);
+  BLI_array_free(initial_fs);
 
   return str;
 }
@@ -2374,14 +2437,21 @@ char *_last_local_obj = NULL;
 #  define JVKE_CHECK_ELEMENT(elem)
 #endif
 
-BMVert *bmesh_kernel_join_vert_kill_edge(
+ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(
     BMesh *bm, BMEdge *e, BMVert *v_kill, const bool do_del, const bool combine_flags)
 {
   BMVert *v_conn = BM_edge_other_vert(e, v_kill);
 
 #ifdef JVKE_DEBUG
   char buf[LOCAL_OBJ_SIZE];
-  char *saved_obj = _last_local_obj = bm_save_local_obj_text(bm, 2, buf, "e", e);
+
+  if (_last_local_obj) {
+    free(_last_local_obj);
+  }
+
+  char *saved_obj = bm_save_local_obj_text(bm, 2, buf, "e", e);
+  _last_local_obj = strdup(saved_obj);
+
   bm_local_obj_free(saved_obj, buf);
 #endif
 
@@ -2392,6 +2462,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
 
   BMVert *v_del = BM_edge_other_vert(e, v_conn);
   const int tag = _FLAG_WALK_ALT;  // using bmhead.api_flag here
+  const int dup_tag = _FLAG_OVERLAP;
 
   JVKE_CHECK_ELEMENT(v_conn);
   JVKE_CHECK_ELEMENT(v_del);
@@ -2408,6 +2479,10 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
       BMLoop *l = e2->l;
       do {
         BM_ELEM_API_FLAG_DISABLE(l->f, tag);
+
+        BM_ELEM_API_FLAG_DISABLE(l->f, dup_tag);
+        BM_ELEM_API_FLAG_DISABLE(l->e, dup_tag);
+        BM_ELEM_API_FLAG_DISABLE(l->v, dup_tag);
       } while ((l = l->radial_next) != e2->l);
     } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
   }
@@ -2605,6 +2680,10 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
       }
 
       bmesh_radial_loop_append(l->e, l);
+
+      BM_ELEM_API_FLAG_DISABLE(l->e, dup_tag);
+      BM_ELEM_API_FLAG_DISABLE(l->v, dup_tag);
+      BM_ELEM_API_FLAG_DISABLE(l->f, dup_tag);
     } while ((l = l->next) != f->l_first);
   }
 
@@ -2635,6 +2714,89 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
   }
 #endif
 
+  /* use euler criteria to check for duplicate faces */
+  if (do_del && v_conn->e) {
+    int tote = 0, totv = 0, totf = 0;
+
+    BMVert *v = v_conn;
+    BMEdge *e2 = v->e;
+
+    if (!BM_ELEM_API_FLAG_TEST(v, dup_tag)) {
+      BM_ELEM_API_FLAG_ENABLE(v, dup_tag);
+      totv++;
+    }
+
+    do {
+      BMVert *v2 = BM_edge_other_vert(e2, v);
+
+      if (!BM_ELEM_API_FLAG_TEST(e2, dup_tag)) {
+        BM_ELEM_API_FLAG_ENABLE(e2, dup_tag);
+        tote++;
+      }
+      if (!BM_ELEM_API_FLAG_TEST(v2, dup_tag)) {
+        BM_ELEM_API_FLAG_ENABLE(v2, dup_tag);
+        totv++;
+      }
+
+      if (e2->l) {
+        BMLoop *l_radial = e2->l;
+        do {
+          if (BM_ELEM_API_FLAG_TEST(l_radial->f, dup_tag)) {
+            continue;
+          }
+
+          totf++;
+
+          BM_ELEM_API_FLAG_ENABLE(l_radial->f, dup_tag);
+          BMLoop *l = l_radial;
+
+          do {
+            if (!BM_ELEM_API_FLAG_TEST(l->v, dup_tag)) {
+              BM_ELEM_API_FLAG_ENABLE(l->v, dup_tag);
+              totv++;
+            }
+
+            if (!BM_ELEM_API_FLAG_TEST(l->e, dup_tag)) {
+              BM_ELEM_API_FLAG_ENABLE(l->e, dup_tag);
+              tote++;
+            }
+          } while ((l = l->next) != l_radial);
+        } while ((l_radial = l_radial->radial_next) != e2->l);
+      }
+    } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
+
+    int eul = totv - tote + totf;
+    if (eul != 1) {
+      //printf("%s: possible duplicate geometry! %d\n", __func__, eul);
+      e2 = v->e;
+
+      do {
+        BMLoop *l = e2->l;
+
+        if (!l) {
+          continue;
+        }
+
+        BMLoop *l_next = l;
+
+        do {
+          /* no guarantee each face has only one loop in radial
+             list */
+          l_next = l->radial_next;
+
+          while (l_next != l && l_next->f == l->f) {
+            l_next = l->radial_next;
+          }
+
+          BMFace *f;
+
+          if ((f = BM_face_find_double(l->f))) {
+            BM_face_kill(bm, l->f);
+          }
+        } while (e2->l && (l = l_next) != e2->l);
+      } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
+    }
+  }
   // printf("v_del: %p, v_conn: %p\n", v_del->e, v_conn->e);
   if (do_del) {
     JVKE_CHECK_ELEMENT(v_del);
@@ -2648,13 +2810,13 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
 }
 
 /*original version of bmesh_kernel_join_vert_kill_edge*/
-BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
-                                              BMEdge *e_kill,
-                                              BMVert *v_kill,
-                                              const bool do_del,
-                                              const bool check_edge_exists,
-                                              const bool kill_degenerate_faces,
-                                              const bool combine_flags)
+ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
+                                                          BMEdge *e_kill,
+                                                          BMVert *v_kill,
+                                                          const bool do_del,
+                                                          const bool check_edge_exists,
+                                                          const bool kill_degenerate_faces,
+                                                          const bool combine_flags)
 {
   BLI_SMALLSTACK_DECLARE(faces_degenerate, BMFace *);
   BMVert *v_target = BM_edge_other_vert(e_kill, v_kill);
@@ -2735,7 +2897,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
   return v_target;
 }
 
-BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
+ATTR_NO_OPT BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 {
   BMLoop *l_iter, *l_f1 = NULL, *l_f2 = NULL;
   int newlen = 0, i, f1len = 0, f2len = 0;

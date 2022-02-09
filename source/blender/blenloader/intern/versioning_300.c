@@ -2752,8 +2752,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
 
         for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
-          if (ch->mappings[i].premultiply == 0.0f) {
-            ch->mappings[i].premultiply = 1.0f;
+          if (ch->mappings[i].premultiply_factor == 0.0f) {
+            ch->mappings[i].premultiply_factor = 1.0f;
           }
 
           if (ch->mappings[i].blendmode == MA_RAMP_BLEND) {
@@ -2788,7 +2788,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
       LISTBASE_FOREACH (BrushChannel *, ch, &brush->channels->channels) {
         for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
-          ch->mappings[i].premultiply = 1.0f;
+          ch->mappings[i].premultiply_factor = 1.0f;
         }
 
         BrushMapping *mp = ch->mappings + BRUSH_MAPPING_STROKE_T;

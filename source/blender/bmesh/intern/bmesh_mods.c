@@ -464,7 +464,7 @@ BMVert *BM_edge_collapse(BMesh *bm,
                          const bool combine_flags,
                          const bool full_non_manifold_collapse)
 {
-  if (full_non_manifold_collapse) {
+  if (full_non_manifold_collapse||true) {
     return bmesh_kernel_join_vert_kill_edge(bm, e_kill, v_kill, do_del, combine_flags);
   }
   else {

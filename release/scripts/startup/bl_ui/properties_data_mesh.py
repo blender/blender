@@ -489,7 +489,7 @@ class MESH_UL_color_attributes(UIList):
 
 
 class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
-    bl_label = "Vertex Colors"
+    bl_label = "Color Attributes"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
