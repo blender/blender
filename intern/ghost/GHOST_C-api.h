@@ -889,16 +889,11 @@ extern char *GHOST_getClipboard(bool selection);
 extern void GHOST_putClipboard(const char *buffer, bool selection);
 
 /**
- * Toggles console
- * \param action:
- * - 0: Hides
- * - 1: Shows
- * - 2: Toggles
- * - 3: Hides if it runs not from  command line
- * - *: Does nothing
+ * Set the Console State
+ * \param action: console state
  * \return current status (1 -visible, 0 - hidden)
  */
-extern int GHOST_toggleConsole(int action);
+extern int setConsoleWindowState(GHOST_TConsoleWindowState action);
 
 /**
  * Use native pixel size (MacBook pro 'retina'), if supported.

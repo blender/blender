@@ -809,10 +809,10 @@ void GHOST_putClipboard(const char *buffer, bool selection)
   system->putClipboard(buffer, selection);
 }
 
-int GHOST_toggleConsole(int action)
+int setConsoleWindowState(GHOST_TConsoleWindowState action)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
-  return system->toggleConsole(action);
+  return system->setConsoleWindowState(action);
 }
 
 int GHOST_UseNativePixels(void)

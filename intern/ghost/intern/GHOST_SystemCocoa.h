@@ -244,7 +244,7 @@ class GHOST_SystemCocoa : public GHOST_System {
   /**
    * \see GHOST_ISystem
    */
-  int toggleConsole(int action)
+  int setConsoleWindowState(GHOST_TConsoleWindowState action)
   {
     return 0;
   }

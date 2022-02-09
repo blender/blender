@@ -40,7 +40,7 @@ class GHOST_SystemNULL : public GHOST_System {
   {
     return false;
   }
-  int toggleConsole(int action)
+  int setConsoleWindowState(GHOST_TConsoleWindowState action)
   {
     return 0;
   }

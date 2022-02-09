@@ -356,10 +356,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   if (!G.background) {
     if (wm_start_with_console) {
-      GHOST_toggleConsole(1);
+      setConsoleWindowState(GHOST_kConsoleWindowStateShow);
     }
     else {
-      GHOST_toggleConsole(3);
+      setConsoleWindowState(GHOST_kConsoleWindowStateHideForNonConsoleLaunch);
     }
   }
 

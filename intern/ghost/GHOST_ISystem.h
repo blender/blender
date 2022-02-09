@@ -411,16 +411,11 @@ class GHOST_ISystem {
 #endif
 
   /**
-   * Toggles console
-   * \param action:
-   * - 0: Hides.
-   * - 1: Shows
-   * - 2: Toggles
-   * - 3: Hides if it runs not from  command line
-   * - *: Does nothing
+   * Set the Console State
+   * \param action: console state
    * \return current status (1 -visible, 0 - hidden)
    */
-  virtual int toggleConsole(int action) = 0;
+  virtual int setConsoleWindowState(GHOST_TConsoleWindowState action) = 0;
 
   /***************************************************************************************
    * Access to clipboard.

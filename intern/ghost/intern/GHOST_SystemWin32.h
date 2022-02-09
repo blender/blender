@@ -436,16 +436,11 @@ class GHOST_SystemWin32 : public GHOST_System {
   static LRESULT WINAPI s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
   /**
-   * Toggles console
-   * \param action:
-   * - 0 - Hides
-   * - 1 - Shows
-   * - 2 - Toggles
-   * - 3 - Hides if it runs not from  command line
-   * - * - Does nothing
+   * Set the Console State
+   * \param action: console state
    * \return current status (1 -visible, 0 - hidden)
    */
-  int toggleConsole(int action);
+  int setConsoleWindowState(GHOST_TConsoleWindowState action);
 
   /** The current state of the modifier keys. */
   GHOST_ModifierKeys m_modifierKeys;
