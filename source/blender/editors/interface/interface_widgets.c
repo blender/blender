@@ -5506,13 +5506,17 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
                                     eFontStyle_Align text_align)
 {
   rcti trect = *rect;
-  const float text_size = UI_UNIT_Y;
   float font_dims[2] = {0.0f, 0.0f};
   const bool has_text = name && name[0];
+  const float padding = PREVIEW_PAD;
 
   if (has_text) {
+    UI_fontstyle_set(fstyle);
+    BLF_width_and_height(
+        fstyle->uifont_id, name, BLF_DRAW_STR_DUMMY_MAX, &font_dims[0], &font_dims[1]);
+
     /* draw icon in rect above the space reserved for the label */
-    rect->ymin += text_size;
+    rect->ymin += round_fl_to_int(font_dims[1] + 2 * padding);
   }
   GPU_blend(GPU_BLEND_ALPHA);
   widget_draw_preview(iconid, 1.0f, rect);
@@ -5522,15 +5526,9 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
     return;
   }
 
-  BLF_width_and_height(
-      fstyle->uifont_id, name, BLF_DRAW_STR_DUMMY_MAX, &font_dims[0], &font_dims[1]);
-
   /* text rect */
-  trect.ymin += U.widget_unit / 2;
-  trect.ymax = trect.ymin + font_dims[1];
-  if (trect.xmax > rect->xmax - PREVIEW_PAD) {
-    trect.xmax = rect->xmax - PREVIEW_PAD;
-  }
+  BLI_rcti_pad(&trect, -padding * 2, -padding * 2);
+  trect.ymax = round_fl_to_int(trect.ymin + font_dims[1]);
 
   {
     char drawstr[UI_MAX_DRAW_STR];

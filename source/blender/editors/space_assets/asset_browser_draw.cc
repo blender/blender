@@ -46,9 +46,19 @@ void asset_browser_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_ortho(v2d);
 
   const uiStyle *style = UI_style_get_dpi();
+  const float padding = style->panelouter;
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   uiLayout *layout = UI_block_layout(
-      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, style->panelspace, 0, region->winx, 1, 0, style);
+      block,
+      UI_LAYOUT_VERTICAL,
+      UI_LAYOUT_PANEL,
+      padding,
+      -padding,
+      /* 3x (instead of 2x) padding to add extra space for the scrollbar on the right. */
+      region->winx - 3 * padding,
+      1,
+      0,
+      style);
 
   asset_view_create_in_layout(
       *C, asset_space->asset_library_ref, asset_space->catalog_filter, *layout);

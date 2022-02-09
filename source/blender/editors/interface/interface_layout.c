@@ -4444,8 +4444,8 @@ static void ui_litem_layout_grid_flow(uiLayout *litem)
   BLI_assert(gflow->tot_columns > 0);
   BLI_assert(gflow->tot_rows > 0);
 
-  const int space_x = style->columnspace;
-  const int space_y = style->buttonspacey;
+  const int space_x = litem->align ? 0 : style->columnspace;
+  const int space_y = litem->align ? 0 : style->buttonspacey;
 
   int *widths = BLI_array_alloca(widths, gflow->tot_columns);
   int *heights = BLI_array_alloca(heights, gflow->tot_rows);

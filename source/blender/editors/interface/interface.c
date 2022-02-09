@@ -4929,20 +4929,32 @@ int UI_autocomplete_end(AutoComplete *autocpl, char *autoname)
   return match;
 }
 
+#define PREVIEW_TILE_PAD (0.15f * UI_UNIT_X)
+
 int UI_preview_tile_size_x(void)
 {
-  return round_fl_to_int((96.0f / 20.0f) * UI_UNIT_X);
+  const float pad = PREVIEW_TILE_PAD;
+  return round_fl_to_int((96.0f / 20.0f) * UI_UNIT_X + 2.0f * pad);
 }
 
 int UI_preview_tile_size_y(void)
 {
-  return round_fl_to_int((96.0f / 20.0f) * UI_UNIT_Y);
+  const uiStyle *style = UI_style_get();
+  const float font_height = style->widget.points * UI_DPI_FAC;
+  const float pad = PREVIEW_TILE_PAD;
+
+  return round_fl_to_int(UI_preview_tile_size_y_no_label() + font_height +
+                         /* Add some extra padding to make things less tight vertically. */
+                         pad);
 }
 
 int UI_preview_tile_size_y_no_label(void)
 {
-  return round_fl_to_int((96.0f / 20.0f) * UI_UNIT_Y - UI_UNIT_Y);
+  const float pad = PREVIEW_TILE_PAD;
+  return round_fl_to_int((96.0f / 20.0f) * UI_UNIT_Y + 2.0f * pad);
 }
+
+#undef PREVIEW_TILE_PAD
 
 static void ui_but_update_and_icon_set(uiBut *but, int icon)
 {
