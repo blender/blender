@@ -118,6 +118,10 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences, BL::Scene &b_scen
     device.has_peer_memory = false;
   }
 
+  if (get_boolean(cpreferences, "use_metalrt")) {
+    device.use_metalrt = true;
+  }
+
   return device;
 }
 
