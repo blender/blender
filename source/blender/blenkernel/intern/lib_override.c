@@ -332,8 +332,15 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
 bool BKE_lib_override_library_create_from_tag(Main *bmain,
                                               Library *owner_library,
                                               const ID *id_root_reference,
+                                              ID *id_hierarchy_root,
                                               const bool do_no_main)
 {
+  BLI_assert(id_root_reference != NULL);
+  BLI_assert(id_hierarchy_root != NULL || (id_root_reference->tag & LIB_TAG_DOIT) != 0);
+  BLI_assert(id_hierarchy_root == NULL ||
+             (ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root) &&
+              id_hierarchy_root->override_library->reference == id_root_reference));
+
   const Library *reference_library = id_root_reference->lib;
 
   ID *reference_id;
@@ -388,7 +395,10 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
   /* Only remap new local ID's pointers, we don't want to force our new overrides onto our whole
    * existing linked IDs usages. */
   if (success) {
-    ID *hierarchy_root_id = id_root_reference->newid;
+    if (id_root_reference->newid != NULL) {
+      id_hierarchy_root = id_root_reference->newid;
+    }
+    BLI_assert(id_hierarchy_root != NULL);
 
     for (todo_id_iter = todo_ids.first; todo_id_iter != NULL; todo_id_iter = todo_id_iter->next) {
       reference_id = todo_id_iter->data;
@@ -398,7 +408,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
         continue;
       }
 
-      local_id->override_library->hierarchy_root = hierarchy_root_id;
+      local_id->override_library->hierarchy_root = id_hierarchy_root;
 
       Key *reference_key, *local_key = NULL;
       if ((reference_key = BKE_key_from_id(reference_id)) != NULL) {
@@ -889,7 +899,7 @@ static bool lib_override_library_create_do(Main *bmain,
   lib_override_group_tag_data_clear(&data);
 
   const bool success = BKE_lib_override_library_create_from_tag(
-      bmain, owner_library, id_root, false);
+      bmain, owner_library, id_root, NULL, false);
 
   return success;
 }
@@ -1424,7 +1434,7 @@ static bool lib_override_library_resync(Main *bmain,
    * override IDs (including within the old overrides themselves, since those are tagged too
    * above). */
   const bool success = BKE_lib_override_library_create_from_tag(
-      bmain, NULL, id_root_reference, true);
+      bmain, NULL, id_root_reference, id_root->override_library->hierarchy_root, true);
 
   if (!success) {
     return success;
