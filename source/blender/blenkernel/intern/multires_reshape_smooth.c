@@ -825,6 +825,7 @@ static void foreach_edge(const struct SubdivForeachContext *foreach_context,
                          void *UNUSED(tls),
                          const int coarse_edge_index,
                          const int UNUSED(subdiv_edge_index),
+                         const bool is_loose,
                          const int subdiv_v1,
                          const int subdiv_v2)
 {
@@ -832,7 +833,9 @@ static void foreach_edge(const struct SubdivForeachContext *foreach_context,
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
 
   if (reshape_smooth_context->smoothing_type == MULTIRES_SUBDIVIDE_LINEAR) {
-    store_edge(reshape_smooth_context, subdiv_v1, subdiv_v2, (char)255);
+    if (!is_loose) {
+      store_edge(reshape_smooth_context, subdiv_v1, subdiv_v2, (char)255);
+    }
     return;
   }
 

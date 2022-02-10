@@ -74,6 +74,7 @@ typedef void (*SubdivForeachEdgeCb)(const struct SubdivForeachContext *context,
                                     void *tls,
                                     int coarse_edge_index,
                                     int subdiv_edge_index,
+                                    bool is_loose,
                                     int subdiv_v1,
                                     int subdiv_v2);
 
