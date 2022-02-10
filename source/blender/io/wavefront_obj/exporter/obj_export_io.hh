@@ -129,7 +129,7 @@ constexpr bool is_type_string_related = (... && std::is_constructible_v<std::str
  * results in "obj_export_io.hh:205:18: warning: ‘%s’ directive output truncated writing 34 bytes
  * into a region of size 6" and similar warnings. Yes the output is truncated, and that is covered
  * as an edge case by tests on purpose. */
-#if defined __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wformat-truncation"
 #endif
