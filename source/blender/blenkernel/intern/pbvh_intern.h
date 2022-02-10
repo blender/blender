@@ -153,8 +153,8 @@ struct PBVH {
   int totgrid;
   BLI_bitmap **grid_hidden;
 
-  /* Only used during BVH build and update,
-   * don't need to remain valid after */
+  /* Used during BVH build and later to mark that a vertex needs to update
+   * (its normal must be recalculated). */
   BLI_bitmap *vert_bitmap;
 
 #ifdef PERFCNTRS

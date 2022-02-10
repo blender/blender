@@ -873,7 +873,7 @@ static void do_mask_by_color_contiguous_update_nodes_cb(
     }
     update_node = true;
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -980,7 +980,7 @@ static void do_mask_by_color_task_cb(void *__restrict userdata,
     }
     update_node = true;
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;

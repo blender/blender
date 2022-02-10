@@ -216,7 +216,7 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], val, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;

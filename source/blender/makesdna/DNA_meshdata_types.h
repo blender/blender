@@ -51,7 +51,6 @@ enum {
   ME_HIDE = (1 << 4),
   ME_VERT_FACEDOT = (1 << 5),
   /*  ME_VERT_MERGED = (1 << 6), */
-  ME_VERT_PBVH_UPDATE = (1 << 7),
 };
 
 /**

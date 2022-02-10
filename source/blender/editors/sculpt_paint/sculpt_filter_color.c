@@ -205,7 +205,7 @@ static void color_filter_task_cb(void *__restrict userdata,
     copy_v3_v3(vd.col, final_color);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;

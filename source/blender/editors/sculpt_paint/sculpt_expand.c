@@ -1253,7 +1253,7 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
     *vd.mask = clamp_f(new_mask, 0.0f, 1.0f);
     any_changed = true;
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1333,7 +1333,7 @@ static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
     copy_v4_v4(vd.col, final_color);
     any_changed = true;
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;

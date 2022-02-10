@@ -240,7 +240,6 @@ static void SCULPT_dynamic_topology_disable_ex(
     /* Sync the visibility to vertices manually as the pmap is still not initialized. */
     for (int i = 0; i < me->totvert; i++) {
       me->mvert[i].flag &= ~ME_HIDE;
-      me->mvert[i].flag |= ME_VERT_PBVH_UPDATE;
     }
   }
 

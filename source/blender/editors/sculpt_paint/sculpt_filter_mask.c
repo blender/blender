@@ -179,7 +179,7 @@ static void mask_filter_task_cb(void *__restrict userdata,
       update = true;
     }
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -403,7 +403,7 @@ static void dirty_mask_apply_task_cb(void *__restrict userdata,
     *vd.mask = CLAMPIS(mask, 0.0f, 1.0f);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;
