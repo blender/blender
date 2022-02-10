@@ -60,6 +60,8 @@ void BKE_ntree_update_tag_link_removed(struct bNodeTree *ntree);
 void BKE_ntree_update_tag_link_added(struct bNodeTree *ntree, struct bNodeLink *link);
 void BKE_ntree_update_tag_link_mute(struct bNodeTree *ntree, struct bNodeLink *link);
 
+/** Used when the a new output node becomes active and therefore changes the output. */
+void BKE_ntree_update_tag_active_output_changed(struct bNodeTree *ntree);
 /** Used after file loading when run-time data on the tree has not been initialized yet. */
 void BKE_ntree_update_tag_missing_runtime_data(struct bNodeTree *ntree);
 /** Used when the interface sockets/values have changed. */

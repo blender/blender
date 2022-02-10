@@ -1614,6 +1614,11 @@ void BKE_ntree_update_tag_link_mute(bNodeTree *ntree, bNodeLink *UNUSED(link))
   add_tree_tag(ntree, NTREE_CHANGED_LINK);
 }
 
+void BKE_ntree_update_tag_active_output_changed(bNodeTree *ntree)
+{
+  add_tree_tag(ntree, NTREE_CHANGED_ANY);
+}
+
 void BKE_ntree_update_tag_missing_runtime_data(bNodeTree *ntree)
 {
   add_tree_tag(ntree, NTREE_CHANGED_ALL);
