@@ -1078,7 +1078,7 @@ context_type_map = {
     "gpencil": ("GreasePencil", False),
     "gpencil_data": ("GreasePencil", False),
     "gpencil_data_owner": ("ID", False),
-    "hair": ("Hair", False),
+    "curves": ("Hair Curves", False),
     "id": ("ID", False),
     "image_paint_object": ("Object", False),
     "lattice": ("Lattice", False),

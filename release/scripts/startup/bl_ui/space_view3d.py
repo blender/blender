@@ -5628,7 +5628,7 @@ class VIEW3D_PT_object_type_visibility(Panel):
             ("surf", "Surface"),
             ("meta", "Meta"),
             ("font", "Text"),
-            ("hair", "Hair"),
+            ("curves", "Hair Curves"),
             ("pointcloud", "Point Cloud"),
             ("volume", "Volume"),
             ("grease_pencil", "Grease Pencil"),
@@ -5648,7 +5648,7 @@ class VIEW3D_PT_object_type_visibility(Panel):
                 col.separator()
                 continue
 
-            if attr == "hair" and not hasattr(bpy.data, "hairs"):
+            if attr == "curves" and not hasattr(bpy.data, "hair_curves"):
                 continue
             elif attr == "pointcloud" and not hasattr(bpy.data, "pointclouds"):
                 continue
