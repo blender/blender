@@ -1397,8 +1397,11 @@ static void nlaedit_split_strip_actclip(
     nstrip->actstart = splitaframe;
   }
 
-  /* clear the active flag from the copy */
-  nstrip->flag &= ~NLASTRIP_FLAG_ACTIVE;
+  /* Make sure Sync Length is off. With that setting on, entering and exiting tweak mode would
+   * effectively undo the split, because both the old and the new strip will be at the length of
+   * the Action again. */
+  strip->flag &= ~NLASTRIP_FLAG_SYNC_LENGTH;
+  nstrip->flag &= ~(NLASTRIP_FLAG_SYNC_LENGTH | NLASTRIP_FLAG_ACTIVE);
 
   /* auto-name the new strip */
   BKE_nlastrip_validate_name(adt, nstrip);
