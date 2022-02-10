@@ -35,6 +35,7 @@ struct AnimData;
 struct Curve;
 struct Curve;
 struct MDeformVert;
+struct GPencilUpdateCache;
 
 #define GP_DEFAULT_PIX_FACTOR 1.0f
 #define GP_DEFAULT_GRID_LINES 4
@@ -325,6 +326,8 @@ typedef struct bGPDstroke {
   /** Curve used to edit the stroke using Bezier handlers. */
   struct bGPDcurve *editcurve;
 
+  /* NOTE: When adding new members, make sure to add them to BKE_gpencil_stroke_copy_settings as well! */
+
   bGPDstroke_Runtime runtime;
   void *_pad5;
 } bGPDstroke;
@@ -408,6 +411,8 @@ typedef struct bGPDframe {
   short flag;
   /** Keyframe type (eBezTriple_KeyframeType). */
   short key_type;
+
+  /* NOTE: When adding new members, make sure to add them to BKE_gpencil_frame_copy_settings as well! */
 
   bGPDframe_Runtime runtime;
 } bGPDframe;
@@ -532,6 +537,8 @@ typedef struct bGPDlayer {
   float layer_mat[4][4], layer_invmat[4][4];
   char _pad3[4];
 
+  /* NOTE: When adding new members, make sure to add them to BKE_gpencil_layer_copy_settings as well! */
+
   bGPDlayer_Runtime runtime;
 } bGPDlayer;
 
@@ -633,6 +640,8 @@ typedef struct bGPdata_Runtime {
   Brush *sbuffer_brush;
   struct GpencilBatchCache *gpencil_cache;
   struct LineartCache *lineart_cache;
+
+  struct GPencilUpdateCache *update_cache;
 } bGPdata_Runtime;
 
 /* grid configuration */
@@ -725,6 +734,8 @@ typedef struct bGPdata {
   int vertex_group_active_index;
 
   bGPgrid grid;
+
+  /* NOTE: When adding new members, make sure to add them to BKE_gpencil_data_copy_settings as well! */
 
   bGPdata_Runtime runtime;
 } bGPdata;

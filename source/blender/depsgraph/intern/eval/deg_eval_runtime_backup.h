@@ -31,6 +31,7 @@
 #include "intern/eval/deg_eval_runtime_backup_scene.h"
 #include "intern/eval/deg_eval_runtime_backup_sound.h"
 #include "intern/eval/deg_eval_runtime_backup_volume.h"
+#include "intern/eval/deg_eval_runtime_backup_gpencil.h"
 
 namespace blender {
 namespace deg {
@@ -71,6 +72,7 @@ class RuntimeBackup {
   DrawDataList *drawdata_ptr;
   MovieClipBackup movieclip_backup;
   VolumeBackup volume_backup;
+  GPencilBackup gpencil_backup;
 };
 
 }  // namespace deg

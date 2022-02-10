@@ -99,6 +99,12 @@ typedef DLRBT_Node *(*DLRBT_NAlloc_FP)(void *data);
  */
 typedef void (*DLRBT_NUpdate_FP)(void *node, void *data);
 
+/**
+ * Free a node and the wrapped data.
+ * \param node: <DLRBT_Node> the node to free.
+ */
+typedef void (*DLRBT_NFree_FP)(void *node);
+
 /* ********************************************** */
 /* Public API */
 
@@ -122,7 +128,7 @@ void BLI_dlrbTree_init(DLRBT_Tree *tree);
 /**
  * Free the given tree's data but not the tree itself.
  */
-void BLI_dlrbTree_free(DLRBT_Tree *tree);
+void BLI_dlrbTree_free(DLRBT_Tree *tree, DLRBT_NFree_FP free_cb);
 
 /**
  * Make sure the tree's Double-Linked list representation is valid.
