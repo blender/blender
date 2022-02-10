@@ -195,7 +195,7 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
 
   /* Geometry */
   CustomData_blend_read(reader, &curves->geometry.point_data, curves->geometry.point_size);
-  CustomData_blend_read(reader, &curves->geometry.curve_data, curves->geometry.point_size);
+  CustomData_blend_read(reader, &curves->geometry.curve_data, curves->geometry.curve_size);
   BKE_curves_update_customdata_pointers(curves);
 
   BLO_read_int32_array(reader, curves->geometry.curve_size + 1, &curves->geometry.offsets);
