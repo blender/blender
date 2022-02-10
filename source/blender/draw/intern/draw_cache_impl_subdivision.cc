@@ -820,6 +820,7 @@ static void draw_subdiv_edge_cb(const SubdivForeachContext *foreach_context,
                                 void *UNUSED(tls),
                                 const int coarse_edge_index,
                                 const int subdiv_edge_index,
+                                const bool UNUSED(is_loose),
                                 const int UNUSED(subdiv_v1),
                                 const int UNUSED(subdiv_v2))
 {

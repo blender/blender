@@ -734,7 +734,7 @@ static int subdiv_foreach_edges_row(SubdivForeachTaskContext *ctx,
     const int v1 = vertex_index;
     const int v2 = vertex_index + 1;
     ctx->foreach_context->edge(
-        ctx->foreach_context, tls, coarse_edge_index, subdiv_edge_index, v1, v2);
+        ctx->foreach_context, tls, coarse_edge_index, subdiv_edge_index, false, v1, v2);
     vertex_index += 1;
   }
   return subdiv_edge_index;
@@ -762,7 +762,7 @@ static int subdiv_foreach_edges_column(SubdivForeachTaskContext *ctx,
     const int v1 = vertex_index;
     const int v2 = vertex_index + num_edges_per_row;
     ctx->foreach_context->edge(
-        ctx->foreach_context, tls, coarse_edge_index, subdiv_edge_index, v1, v2);
+        ctx->foreach_context, tls, coarse_edge_index, subdiv_edge_index, false, v1, v2);
     vertex_index += 1;
   }
   return subdiv_edge_index;
@@ -862,7 +862,7 @@ static void subdiv_foreach_edges_all_patches_regular(SubdivForeachTaskContext *c
       const int v1 = (flip) ? (start_edge_vertex + (resolution - i - 3)) : (start_edge_vertex + i);
       const int v2 = side_start_index + side_stride * i;
       ctx->foreach_context->edge(
-          ctx->foreach_context, tls, ORIGINDEX_NONE, subdiv_edge_index, v1, v2);
+          ctx->foreach_context, tls, ORIGINDEX_NONE, subdiv_edge_index, false, v1, v2);
     }
   }
 }
@@ -926,7 +926,7 @@ static void subdiv_foreach_edges_all_patches_special(SubdivForeachTaskContext *c
       const int v1 = current_patch_vertex_index;
       const int v2 = next_path_vertex_index;
       ctx->foreach_context->edge(
-          ctx->foreach_context, tls, ORIGINDEX_NONE, subdiv_edge_index, v1, v2);
+          ctx->foreach_context, tls, ORIGINDEX_NONE, subdiv_edge_index, false, v1, v2);
       current_patch_vertex_index += ptex_face_inner_resolution + 1;
       next_path_vertex_index += 1;
     }
@@ -940,7 +940,7 @@ static void subdiv_foreach_edges_all_patches_special(SubdivForeachTaskContext *c
       const int v1 = center_vertex_index;
       const int v2 = current_patch_end_vertex_index;
       ctx->foreach_context->edge(
-          ctx->foreach_context, tls, ORIGINDEX_NONE, subdiv_edge_index, v1, v2);
+          ctx->foreach_context, tls, ORIGINDEX_NONE, subdiv_edge_index, false, v1, v2);
     }
   }
   /* Connect inner path of patch to boundary. */
@@ -964,7 +964,7 @@ static void subdiv_foreach_edges_all_patches_special(SubdivForeachTaskContext *c
                                 (start_edge_vertex + i);
         const int v2 = side_start_index + i;
         ctx->foreach_context->edge(
-            ctx->foreach_context, tls, ORIGINDEX_NONE, subdiv_edge_index, v1, v2);
+            ctx->foreach_context, tls, ORIGINDEX_NONE, subdiv_edge_index, false, v1, v2);
       }
     }
     if (ptex_face_resolution >= 3) {
@@ -978,7 +978,7 @@ static void subdiv_foreach_edges_all_patches_special(SubdivForeachTaskContext *c
                                 (start_edge_vertex + i);
         const int v2 = side_start_index + (ptex_face_inner_resolution + 1) * i;
         ctx->foreach_context->edge(
-            ctx->foreach_context, tls, ORIGINDEX_NONE, subdiv_edge_index, v1, v2);
+            ctx->foreach_context, tls, ORIGINDEX_NONE, subdiv_edge_index, false, v1, v2);
       }
     }
     prev_coarse_loop = coarse_loop;
@@ -1015,6 +1015,8 @@ static void subdiv_foreach_boundary_edges(SubdivForeachTaskContext *ctx,
   const int resolution = ctx->settings->resolution;
   const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
   const int num_subdiv_edges_per_coarse_edge = resolution - 1;
+  const bool is_loose = !BLI_BITMAP_TEST_BOOL(ctx->coarse_edges_used_map, coarse_edge_index);
+
   int subdiv_edge_index = ctx->edge_boundary_offset +
                           coarse_edge_index * num_subdiv_edges_per_coarse_edge;
   int last_vertex_index = ctx->vertices_corner_offset + coarse_edge->v1;
@@ -1023,13 +1025,13 @@ static void subdiv_foreach_boundary_edges(SubdivForeachTaskContext *ctx,
     const int v2 = ctx->vertices_edge_offset +
                    coarse_edge_index * num_subdiv_vertices_per_coarse_edge + i;
     ctx->foreach_context->edge(
-        ctx->foreach_context, tls, coarse_edge_index, subdiv_edge_index, v1, v2);
+        ctx->foreach_context, tls, coarse_edge_index, subdiv_edge_index, is_loose, v1, v2);
     last_vertex_index = v2;
   }
   const int v1 = last_vertex_index;
   const int v2 = ctx->vertices_corner_offset + coarse_edge->v2;
   ctx->foreach_context->edge(
-      ctx->foreach_context, tls, coarse_edge_index, subdiv_edge_index, v1, v2);
+      ctx->foreach_context, tls, coarse_edge_index, subdiv_edge_index, is_loose, v1, v2);
 }
 
 /** \} */

@@ -767,6 +767,7 @@ static void subdiv_mesh_edge(const SubdivForeachContext *foreach_context,
                              void *UNUSED(tls),
                              const int coarse_edge_index,
                              const int subdiv_edge_index,
+                             const bool UNUSED(is_loose),
                              const int subdiv_v1,
                              const int subdiv_v2)
 {
