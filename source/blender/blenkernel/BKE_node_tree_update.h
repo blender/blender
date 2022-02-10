@@ -26,6 +26,7 @@ struct bNode;
 struct bNodeLink;
 struct bNodeSocket;
 struct bNodeTree;
+struct ImageUser;
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,6 +69,8 @@ void BKE_ntree_update_tag_missing_runtime_data(struct bNodeTree *ntree);
 void BKE_ntree_update_tag_interface(struct bNodeTree *ntree);
 /** Used when an id data block changed that might be used by nodes that need to be updated. */
 void BKE_ntree_update_tag_id_changed(struct Main *bmain, struct ID *id);
+/** Used when an image user is updated that is used by any part of the node tree. */
+void BKE_ntree_update_tag_image_user_changed(struct bNodeTree *ntree, struct ImageUser *iuser);
 
 typedef struct NodeTreeUpdateExtraParams {
   /**
