@@ -1642,6 +1642,12 @@ void BKE_ntree_update_tag_id_changed(Main *bmain, ID *id)
   FOREACH_NODETREE_END;
 }
 
+void BKE_ntree_update_tag_image_user_changed(bNodeTree *ntree, ImageUser *UNUSED(iuser))
+{
+  /* Would have to search for the node that uses the image user for a more detailed tag. */
+  add_tree_tag(ntree, NTREE_CHANGED_ANY);
+}
+
 /**
  * Protect from recursive calls into the updating function. Some node update functions might
  * trigger this from Python or in other cases.

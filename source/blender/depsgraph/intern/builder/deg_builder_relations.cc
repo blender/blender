@@ -1486,6 +1486,10 @@ void DepsgraphRelationBuilder::build_animation_images(ID *id)
       OperationKey world_update_key(id, NodeType::SHADING, OperationCode::WORLD_UPDATE);
       add_relation(world_update_key, image_animation_key, "World Update -> Image Animation");
     }
+    else if (GS(id->name) == ID_NT) {
+      OperationKey ntree_output_key(id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
+      add_relation(ntree_output_key, image_animation_key, "NTree Output -> Image Animation");
+    }
   }
 }
 
