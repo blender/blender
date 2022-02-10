@@ -455,8 +455,14 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
   mem.device_pointer = 0;
 
   id<MTLBuffer> metal_buffer = nil;
+  MTLResourceOptions options = default_storage_mode;
+
+  /* Workaround for "bake" unit tests which fail if RenderBuffers is allocated with MTLResourceStorageModeShared. */
+  if (strstr(mem.name, "RenderBuffers")) {
+    options = MTLResourceStorageModeManaged;
+  }
+
   if (size > 0) {
-    MTLResourceOptions options = default_storage_mode;
     if (mem.type == MEM_DEVICE_ONLY) {
       options = MTLResourceStorageModePrivate;
     }
@@ -490,7 +496,7 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
   mmem->mtlBuffer = metal_buffer;
   mmem->offset = 0;
   mmem->size = size;
-  if (mem.type != MEM_DEVICE_ONLY) {
+  if (options != MTLResourceStorageModePrivate) {
     mmem->hostPtr = [metal_buffer contents];
   }
   else {
