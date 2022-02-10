@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "util/algorithm.h"
+#include "util/math.h"
 #include "util/murmurhash.h"
 
 #if defined(_MSC_VER)

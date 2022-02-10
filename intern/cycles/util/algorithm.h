@@ -21,8 +21,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-using std::max;
-using std::min;
 using std::remove;
 using std::sort;
 using std::stable_sort;

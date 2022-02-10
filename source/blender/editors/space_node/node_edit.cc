@@ -667,6 +667,7 @@ void ED_node_set_active(
       node->flag |= NODE_DO_OUTPUT;
       if (!was_output) {
         do_update = true;
+        BKE_ntree_update_tag_active_output_changed(ntree);
       }
     }
 
@@ -684,6 +685,7 @@ void ED_node_set_active(
         }
 
         node->flag |= NODE_DO_OUTPUT;
+        BKE_ntree_update_tag_active_output_changed(ntree);
       }
 
       ED_node_tree_propagate_change(nullptr, bmain, ntree);
@@ -750,6 +752,7 @@ void ED_node_set_active(
 
         node->flag |= NODE_DO_OUTPUT;
         if (was_output == 0) {
+          BKE_ntree_update_tag_active_output_changed(ntree);
           ED_node_tree_propagate_change(nullptr, bmain, ntree);
         }
 
@@ -765,6 +768,7 @@ void ED_node_set_active(
           }
 
           node->flag |= NODE_DO_OUTPUT;
+          BKE_ntree_update_tag_active_output_changed(ntree);
           ED_node_tree_propagate_change(nullptr, bmain, ntree);
         }
       }
