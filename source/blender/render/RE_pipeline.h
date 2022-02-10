@@ -31,6 +31,7 @@ struct Image;
 struct ImageFormatData;
 struct Main;
 struct Object;
+struct ImBuf;
 struct RenderData;
 struct RenderResult;
 struct ReportList;
@@ -209,7 +210,7 @@ void RE_FreeAllPersistentData(void);
 /**
  * Free persistent render data, optionally only for the given scene.
  */
-void RE_FreePersistentData(const Scene *scene);
+void RE_FreePersistentData(const struct Scene *scene);
 
 /**
  * Get results and statistics.
