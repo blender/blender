@@ -119,7 +119,7 @@ void Hair::Curve::motion_keys(const float3 *curve_keys,
 {
   /* Figure out which steps we need to fetch and their interpolation factor. */
   const size_t max_step = num_steps - 1;
-  const size_t step = min((int)(time * max_step), max_step - 1);
+  const size_t step = std::min((size_t)(time * max_step), max_step - 1);
   const float t = time * max_step - step;
   /* Fetch vertex coordinates. */
   float4 curr_keys[2];
@@ -147,7 +147,7 @@ void Hair::Curve::cardinal_motion_keys(const float3 *curve_keys,
 {
   /* Figure out which steps we need to fetch and their interpolation factor. */
   const size_t max_step = num_steps - 1;
-  const size_t step = min((int)(time * max_step), max_step - 1);
+  const size_t step = min((size_t)(time * max_step), max_step - 1);
   const float t = time * max_step - step;
   /* Fetch vertex coordinates. */
   float4 curr_keys[4];
@@ -191,8 +191,8 @@ void Hair::Curve::keys_for_step(const float3 *curve_keys,
                                 size_t k1,
                                 float4 r_keys[2]) const
 {
-  k0 = max(k0, 0);
-  k1 = min(k1, num_keys - 1);
+  k0 = max(k0, (size_t)0);
+  k1 = min(k1, (size_t)(num_keys - 1));
   const size_t center_step = ((num_steps - 1) / 2);
   if (step == center_step) {
     /* Center step: regular key location. */
@@ -237,8 +237,8 @@ void Hair::Curve::cardinal_keys_for_step(const float3 *curve_keys,
                                          size_t k3,
                                          float4 r_keys[4]) const
 {
-  k0 = max(k0, 0);
-  k3 = min(k3, num_keys - 1);
+  k0 = max(k0, (size_t)0);
+  k3 = min(k3, (size_t)(num_keys - 1));
   const size_t center_step = ((num_steps - 1) / 2);
   if (step == center_step) {
     /* Center step: regular key location. */

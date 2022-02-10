@@ -124,7 +124,41 @@ ccl_device_inline int min(int a, int b)
   return (a < b) ? a : b;
 }
 
-ccl_device_inline uint min(uint a, uint b)
+ccl_device_inline uint32_t max(uint32_t a, uint32_t b)
+{
+  return (a > b) ? a : b;
+}
+
+ccl_device_inline uint32_t min(uint32_t a, uint32_t b)
+{
+  return (a < b) ? a : b;
+}
+
+ccl_device_inline uint64_t max(uint64_t a, uint64_t b)
+{
+  return (a > b) ? a : b;
+}
+
+ccl_device_inline uint64_t min(uint64_t a, uint64_t b)
+{
+  return (a < b) ? a : b;
+}
+
+/* NOTE: On 64bit Darwin the `size_t` is defined as `unsigned long int` and `uint64_t` is defined
+ * as `unsigned long long`. Both of the definitions are 64 bit unsigned integer, but the automatic
+ * substitution does not allow to automatically pick function defined for `uint64_t` as it is not
+ * exactly the same type definition.
+ * Work this around by adding a templated function enabled for `size_t` type which will be used
+ * when there is no explicit specialization of `min()`/`max()` above. */
+
+template<class T>
+ccl_device_inline typename std::enable_if_t<std::is_same_v<T, size_t>, T> max(T a, T b)
+{
+  return (a > b) ? a : b;
+}
+
+template<class T>
+ccl_device_inline typename std::enable_if_t<std::is_same_v<T, size_t>, T> min(T a, T b)
 {
   return (a < b) ? a : b;
 }

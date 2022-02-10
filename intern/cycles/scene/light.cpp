@@ -606,8 +606,8 @@ void LightManager::device_update_background(Device *device,
       ImageMetaData metadata;
       if (!env->handle.empty()) {
         ImageMetaData metadata = env->handle.metadata();
-        environment_res.x = max(environment_res.x, metadata.width);
-        environment_res.y = max(environment_res.y, metadata.height);
+        environment_res.x = max(environment_res.x, (int)metadata.width);
+        environment_res.y = max(environment_res.y, (int)metadata.height);
       }
     }
     if (node->type == SkyTextureNode::get_node_type()) {

@@ -1586,7 +1586,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         if (ob->is_traceable() && ob->use_motion()) {
           total_motion_transform_size = align_up(total_motion_transform_size,
                                                  OPTIX_TRANSFORM_BYTE_ALIGNMENT);
-          const size_t motion_keys = max(ob->get_motion().size(), 2) - 2;
+          const size_t motion_keys = max(ob->get_motion().size(), (size_t)2) - 2;
           total_motion_transform_size = total_motion_transform_size +
                                         sizeof(OptixSRTMotionTransform) +
                                         motion_keys * sizeof(OptixSRTData);
@@ -1660,7 +1660,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
       /* Insert motion traversable if object has motion. */
       if (motion_blur && ob->use_motion()) {
-        size_t motion_keys = max(ob->get_motion().size(), 2) - 2;
+        size_t motion_keys = max(ob->get_motion().size(), (size_t)2) - 2;
         size_t motion_transform_size = sizeof(OptixSRTMotionTransform) +
                                        motion_keys * sizeof(OptixSRTData);
 

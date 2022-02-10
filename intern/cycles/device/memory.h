@@ -311,7 +311,7 @@ template<typename T> class device_only_memory : public device_memory {
       : device_memory(device, name, allow_host_memory_fallback ? MEM_READ_WRITE : MEM_DEVICE_ONLY)
   {
     data_type = device_type_traits<T>::data_type;
-    data_elements = max(device_type_traits<T>::num_elements, 1);
+    data_elements = max(device_type_traits<T>::num_elements, size_t(1));
   }
 
   device_only_memory(device_only_memory &&other) noexcept : device_memory(std::move(other))

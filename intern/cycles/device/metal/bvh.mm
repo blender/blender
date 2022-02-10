@@ -761,7 +761,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
       num_instances++;
 
       if (ob->use_motion()) {
-        num_motion_transforms += max(1, ob->get_motion().size());
+        num_motion_transforms += max((size_t)1, ob->get_motion().size());
       }
       else {
         num_motion_transforms++;
