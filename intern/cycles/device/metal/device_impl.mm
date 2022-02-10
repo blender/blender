@@ -765,6 +765,15 @@ void MetalDevice::tex_alloc_as_buffer(device_texture &mem)
 
 void MetalDevice::tex_alloc(device_texture &mem)
 {
+  /* Check that dimensions fit within maximum allowable size.
+     See https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
+  */
+  if (mem.data_width > 16384 ||
+      mem.data_height > 16384) {
+    set_error(string_printf("Texture exceeds maximum allowed size of 16384 x 16384 (requested: %zu x %zu)", mem.data_width, mem.data_height));
+    return;
+  }
+
   MTLStorageMode storage_mode = MTLStorageModeManaged;
   if (@available(macos 10.15, *)) {
     if ([mtlDevice hasUnifiedMemory] &&
