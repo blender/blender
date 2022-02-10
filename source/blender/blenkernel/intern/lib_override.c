@@ -1955,7 +1955,8 @@ static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
   ID *id_owner = cb_data->id_owner;
   ID *id = *cb_data->id_pointer;
   if (id != NULL && ID_IS_LINKED(id) && id->lib != id_owner->lib) {
-    const int owner_library_indirect_level = id_owner->lib != NULL ? id_owner->lib->temp_index : 0;
+    const int owner_library_indirect_level = ID_IS_LINKED(id_owner) ? id_owner->lib->temp_index :
+                                                                      0;
     if (owner_library_indirect_level > 10000) {
       CLOG_ERROR(
           &LOG,
