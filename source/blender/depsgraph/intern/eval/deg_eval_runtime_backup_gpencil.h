@@ -38,7 +38,7 @@ class GPencilBackup {
   void init_from_gpencil(bGPdata *gpd);
   void restore_to_gpencil(bGPdata *gpd);
 
-  const Depsgraph* depsgraph;
+  const Depsgraph *depsgraph;
 };
 
 }  // namespace deg

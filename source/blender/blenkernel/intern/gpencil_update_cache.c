@@ -167,8 +167,11 @@ static void update_cache_node_create_ex(GPencilUpdateCache *root_cache,
   }
 
   GPencilUpdateCache *gps_cache = update_cache_alloc(gps_index, node_flag, (bGPDstroke *)data);
-  BLI_dlrbTree_add(
-      gpf_node->cache->children, cache_node_compare, cache_node_alloc, cache_node_update, gps_cache);
+  BLI_dlrbTree_add(gpf_node->cache->children,
+                   cache_node_compare,
+                   cache_node_alloc,
+                   cache_node_update,
+                   gps_cache);
 
   BLI_dlrbTree_linkedlist_sync(gpf_node->cache->children);
 }

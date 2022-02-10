@@ -74,7 +74,7 @@ void BLI_dlrbTree_free(DLRBT_Tree *tree, DLRBT_NFree_FP free_cb)
   if (tree->first) {
     /* free list */
     if (free_cb) {
-      LISTBASE_FOREACH_MUTABLE(DLRBT_Node *, node, tree) {
+      LISTBASE_FOREACH_MUTABLE (DLRBT_Node *, node, tree) {
         free_cb(node);
       }
       BLI_listbase_clear((ListBase *)tree);

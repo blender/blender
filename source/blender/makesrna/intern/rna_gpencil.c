@@ -180,12 +180,12 @@ static const EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 
 static void rna_GPencil_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-#if 0
+#  if 0
   /* In case a property on a layer changed, tag it with a light update. */
   if (ptr->type == &RNA_GPencilLayer) {
     BKE_gpencil_tag_light_update((bGPdata *)(ptr->owner_id), (bGPDlayer *)(ptr->data), NULL, NULL);
   }
-#endif
+#  endif
   DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }

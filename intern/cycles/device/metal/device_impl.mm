@@ -458,7 +458,8 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
   id<MTLBuffer> metal_buffer = nil;
   MTLResourceOptions options = default_storage_mode;
 
-  /* Workaround for "bake" unit tests which fail if RenderBuffers is allocated with MTLResourceStorageModeShared. */
+  /* Workaround for "bake" unit tests which fail if RenderBuffers is allocated with
+   * MTLResourceStorageModeShared. */
   if (strstr(mem.name, "RenderBuffers")) {
     options = MTLResourceStorageModeManaged;
   }
@@ -769,9 +770,11 @@ void MetalDevice::tex_alloc(device_texture &mem)
   /* Check that dimensions fit within maximum allowable size.
      See https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
   */
-  if (mem.data_width > 16384 ||
-      mem.data_height > 16384) {
-    set_error(string_printf("Texture exceeds maximum allowed size of 16384 x 16384 (requested: %zu x %zu)", mem.data_width, mem.data_height));
+  if (mem.data_width > 16384 || mem.data_height > 16384) {
+    set_error(string_printf(
+        "Texture exceeds maximum allowed size of 16384 x 16384 (requested: %zu x %zu)",
+        mem.data_width,
+        mem.data_height));
     return;
   }
 
