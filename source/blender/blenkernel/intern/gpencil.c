@@ -2879,7 +2879,7 @@ static bool gpencil_update_on_write_layer_cb(GPencilUpdateCache *gpl_cache, void
     td->gpl_eval->runtime.gpl_orig = gpl;
     return true;
   }
-  else if (gpl_cache->flag == GP_UPDATE_NODE_LIGHT_COPY) {
+  if (gpl_cache->flag == GP_UPDATE_NODE_LIGHT_COPY) {
     BLI_assert(gpl != NULL);
     BKE_gpencil_layer_copy_settings(gpl, td->gpl_eval);
     td->gpl_eval->runtime.gpl_orig = gpl;
@@ -2919,7 +2919,7 @@ static bool gpencil_update_on_write_frame_cb(GPencilUpdateCache *gpf_cache, void
 
     return true;
   }
-  else if (gpf_cache->flag == GP_UPDATE_NODE_LIGHT_COPY) {
+  if (gpf_cache->flag == GP_UPDATE_NODE_LIGHT_COPY) {
     BLI_assert(gpf != NULL);
     BKE_gpencil_frame_copy_settings(gpf, td->gpf_eval);
     td->gpf_eval->runtime.gpf_orig = gpf;

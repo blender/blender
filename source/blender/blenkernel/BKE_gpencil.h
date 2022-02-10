@@ -195,8 +195,8 @@ void BKE_gpencil_frame_copy_settings(const struct bGPDframe *gpf_src, struct bGP
 /**
  * Make a copy of a given gpencil stroke settings.
  */
-void BKE_gpencil_stroke_copy_settings(const struct bGPDstroke *gpf_src,
-                                      struct bGPDstroke *gpf_dst);
+void BKE_gpencil_stroke_copy_settings(const struct bGPDstroke *gps_src,
+                                      struct bGPDstroke *gps_dst);
 
 /**
  * Make a copy of strokes between gpencil frames.
@@ -741,7 +741,8 @@ int BKE_gpencil_material_find_index_by_name_prefix(struct Object *ob, const char
 
 void BKE_gpencil_blend_read_data(struct BlendDataReader *reader, struct bGPdata *gpd);
 
-bool BKE_gpencil_can_avoid_full_copy_on_write(const struct Depsgraph *depsgraph, struct bGPdata *gpd);
+bool BKE_gpencil_can_avoid_full_copy_on_write(const struct Depsgraph *depsgraph,
+                                              struct bGPdata *gpd);
 
 void BKE_gpencil_update_on_write(struct bGPdata *gpd_orig, struct bGPdata *gpd_eval);
 
