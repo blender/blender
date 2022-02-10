@@ -432,7 +432,7 @@ void BKE_object_eval_constraints(struct Depsgraph *depsgraph,
                                  struct Object *ob);
 void BKE_object_eval_transform_final(struct Depsgraph *depsgraph, struct Object *ob);
 
-void BKE_object_eval_uber_transform(struct Depsgraph *depsgraph, struct Object *ob);
+void BKE_object_eval_uber_transform(struct Depsgraph *depsgraph, struct Object *object);
 void BKE_object_eval_uber_data(struct Depsgraph *depsgraph,
                                struct Scene *scene,
                                struct Object *ob);

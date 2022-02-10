@@ -2117,6 +2117,7 @@ static bool pchan_culling_test_envelope(const DRWView *view,
 {
   const bArmature *arm = ob->data;
   BLI_assert(arm->drawtype == ARM_ENVELOPE);
+  UNUSED_VARS_NDEBUG(arm);
   BoundSphere bsphere;
   pchan_culling_calc_bsphere(ob, pchan, &bsphere);
   bsphere.radius += max_ff(pchan->bone->rad_head, pchan->bone->rad_tail) *
@@ -2130,6 +2131,7 @@ static bool pchan_culling_test_bbone(const DRWView *view,
 {
   const bArmature *arm = ob->data;
   BLI_assert(arm->drawtype == ARM_B_BONE);
+  UNUSED_VARS_NDEBUG(arm);
   const float ob_scale = mat4_to_size_max_axis(ob->obmat);
   const Mat4 *bbones_mat = (const Mat4 *)pchan->draw_data->bbone_matrix;
   for (int i = pchan->bone->segments; i--; bbones_mat++) {

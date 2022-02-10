@@ -304,7 +304,6 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
 
 void BKE_object_eval_uber_transform(Depsgraph *UNUSED(depsgraph), Object *UNUSED(object))
 {
-  return;
 }
 
 void BKE_object_data_batch_cache_dirty_tag(ID *object_data)
