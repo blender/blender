@@ -102,7 +102,7 @@ void TextureBaseOperation::execute_pixel_sampled(float output[4],
                                                  float y,
                                                  PixelSampler sampler)
 {
-  TexResult texres = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, nullptr};
+  TexResult texres = {0.0f};
   float texture_size[4];
   float texture_offset[4];
   float vec[3];

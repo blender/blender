@@ -32,11 +32,11 @@ struct PartialImageUpdater {
   /**
    * \brief Ensure that there is a partial update user for the given image.
    */
-  void ensure_image(const Image *image)
+  void ensure_image(const Image *new_image)
   {
-    if (!is_valid(image)) {
+    if (!is_valid(new_image)) {
       free();
-      create(image);
+      create(new_image);
     }
   }
 
@@ -60,11 +60,11 @@ struct PartialImageUpdater {
     return user != nullptr;
   }
 
-  void create(const Image *image)
+  void create(const Image *new_image)
   {
     BLI_assert(user == nullptr);
-    user = BKE_image_partial_update_create(image);
-    image = image;
+    user = BKE_image_partial_update_create(new_image);
+    image = new_image;
   }
 
   void free()
