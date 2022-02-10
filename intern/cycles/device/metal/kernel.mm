@@ -59,8 +59,13 @@ bool MetalDeviceKernel::load(MetalDevice *device,
   }
 
   bool use_binary_archive = true;
-  if (getenv("CYCLES_METAL_DISABLE_BINARY_ARCHIVES")) {
+  if (device->device_vendor == METAL_GPU_APPLE) {
+    /* Workaround for T94142: Cycles Metal crash with simultaneous viewport and final render */
     use_binary_archive = false;
+  }
+
+  if (auto str = getenv("CYCLES_METAL_DISABLE_BINARY_ARCHIVES")) {
+    use_binary_archive = (atoi(str) == 0);
   }
 
   id<MTLBinaryArchive> archive = nil;

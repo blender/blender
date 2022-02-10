@@ -79,6 +79,7 @@ class DeviceInfo {
   bool has_profiling;         /* Supports runtime collection of profiling info. */
   bool has_peer_memory;       /* GPU has P2P access to memory of another GPU. */
   bool has_gpu_queue;         /* Device supports GPU queue. */
+  bool use_metalrt;           /* Use MetalRT to accelerate ray queries (Metal only). */
   DenoiserTypeMask denoisers; /* Supported denoiser types. */
   int cpu_threads;
   vector<DeviceInfo> multi_devices;
@@ -96,6 +97,7 @@ class DeviceInfo {
     has_profiling = false;
     has_peer_memory = false;
     has_gpu_queue = false;
+    use_metalrt = false;
     denoisers = DENOISER_NONE;
   }
 

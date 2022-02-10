@@ -100,6 +100,7 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     }
   }
 
+  use_metalrt = info.use_metalrt;
   if (auto metalrt = getenv("CYCLES_METALRT")) {
     use_metalrt = (atoi(metalrt) != 0);
   }
@@ -455,8 +456,14 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
   mem.device_pointer = 0;
 
   id<MTLBuffer> metal_buffer = nil;
+  MTLResourceOptions options = default_storage_mode;
+
+  /* Workaround for "bake" unit tests which fail if RenderBuffers is allocated with MTLResourceStorageModeShared. */
+  if (strstr(mem.name, "RenderBuffers")) {
+    options = MTLResourceStorageModeManaged;
+  }
+
   if (size > 0) {
-    MTLResourceOptions options = default_storage_mode;
     if (mem.type == MEM_DEVICE_ONLY) {
       options = MTLResourceStorageModePrivate;
     }
@@ -490,7 +497,7 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
   mmem->mtlBuffer = metal_buffer;
   mmem->offset = 0;
   mmem->size = size;
-  if (mem.type != MEM_DEVICE_ONLY) {
+  if (options != MTLResourceStorageModePrivate) {
     mmem->hostPtr = [metal_buffer contents];
   }
   else {
@@ -759,6 +766,15 @@ void MetalDevice::tex_alloc_as_buffer(device_texture &mem)
 
 void MetalDevice::tex_alloc(device_texture &mem)
 {
+  /* Check that dimensions fit within maximum allowable size.
+     See https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
+  */
+  if (mem.data_width > 16384 ||
+      mem.data_height > 16384) {
+    set_error(string_printf("Texture exceeds maximum allowed size of 16384 x 16384 (requested: %zu x %zu)", mem.data_width, mem.data_height));
+    return;
+  }
+
   MTLStorageMode storage_mode = MTLStorageModeManaged;
   if (@available(macos 10.15, *)) {
     if ([mtlDevice hasUnifiedMemory] &&

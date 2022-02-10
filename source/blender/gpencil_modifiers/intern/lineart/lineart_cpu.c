@@ -2224,10 +2224,10 @@ static void lineart_main_load_geometries(
       use_mesh = use_ob->data;
     }
     else {
-      /* If DEG_ITER_OBJECT_FLAG_DUPLI is set, the curve objects are going to have a mesh
-       * equivalent already in the object list, so ignore converting the original curve in this
-       * case. */
-      if (allow_duplicates) {
+      /* If DEG_ITER_OBJECT_FLAG_DUPLI is set, some curve objects may also have an evaluated mesh
+       * object in the list. To avoid adding duplicate geometry, ignore evaluated curve objects in
+       * those cases. */
+      if (allow_duplicates && BKE_object_get_evaluated_mesh(ob) != NULL) {
         continue;
       }
       use_mesh = BKE_mesh_new_from_object(depsgraph, use_ob, true, true);
