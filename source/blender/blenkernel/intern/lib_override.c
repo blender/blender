@@ -2997,6 +2997,8 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
     return;
   }
 
+  tmp_id->lib = local->lib;
+
   /* This ID name is problematic, since it is an 'rna name property' it should not be editable or
    * different from reference linked ID. But local ID names need to be unique in a given type
    * list of Main, so we cannot always keep it identical, which is why we need this special
@@ -3009,6 +3011,7 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
   Key *tmp_key = BKE_key_from_id(tmp_id);
   if (local_key != NULL && tmp_key != NULL) {
     tmp_key->id.flag |= (local_key->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE);
+    tmp_key->id.lib = local_key->id.lib;
   }
 
   PointerRNA rnaptr_src, rnaptr_dst, rnaptr_storage_stack, *rnaptr_storage = NULL;
