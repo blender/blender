@@ -973,13 +973,6 @@ void blo_do_versions_userdef(UserDef *userdef)
    */
   {
     /* Keep this block, even when empty. */
-    if (!USER_VERSION_ATLEAST(301, 7)) {
-      /* io_scene_obj directory is gone, split into io_import_obj and io_export_obj,
-       * with io_import_obj enabled by default and io_export_obj replaced by the C++ version.
-       */
-      BKE_addon_remove_safe(&userdef->addons, "io_scene_obj");
-      BKE_addon_ensure(&userdef->addons, "io_import_obj");
-    }
   }
 
   LISTBASE_FOREACH (bTheme *, btheme, &userdef->themes) {
