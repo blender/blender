@@ -43,83 +43,45 @@ MetalGPUVendor MetalInfo::get_vendor_from_device_name(string const &device_name)
   return METAL_GPU_UNKNOWN;
 }
 
-bool MetalInfo::device_version_check(id<MTLDevice> device)
+vector<id<MTLDevice>> const &MetalInfo::get_usable_devices()
 {
-  /* Metal Cycles doesn't work correctly on macOS versions older than 12.0 */
-  if (@available(macos 12.0, *)) {
-    MetalGPUVendor vendor = get_vendor_from_device_name([[device name] UTF8String]);
+  static vector<id<MTLDevice>> usable_devices;
+  static bool already_enumerated = false;
 
-    /* Metal Cycles works on Apple Silicon GPUs at present */
-    return (vendor == METAL_GPU_APPLE);
+  if (already_enumerated) {
+    return usable_devices;
   }
 
-  return false;
-}
+  metal_printf("Usable Metal devices:\n");
+  for (id<MTLDevice> device in MTLCopyAllDevices()) {
+    const char *device_name = [device.name UTF8String];
 
-void MetalInfo::get_usable_devices(vector<MetalPlatformDevice> *usable_devices)
-{
-  static bool first_time = true;
-#  define FIRST_VLOG(severity) \
-    if (first_time) \
-    VLOG(severity)
+    MetalGPUVendor vendor = get_vendor_from_device_name(device_name);
+    bool usable = false;
 
-  usable_devices->clear();
-
-  NSArray<id<MTLDevice>> *allDevices = MTLCopyAllDevices();
-  for (id<MTLDevice> device in allDevices) {
-    string device_name;
-    if (!get_device_name(device, &device_name)) {
-      FIRST_VLOG(2) << "Failed to get device name, ignoring.";
-      continue;
+    if (@available(macos 12.2, *)) {
+      usable |= (vendor == METAL_GPU_APPLE);
     }
 
-    static const char *forceIntelStr = getenv("CYCLES_METAL_FORCE_INTEL");
-    bool forceIntel = forceIntelStr ? (atoi(forceIntelStr) != 0) : false;
-    if (forceIntel && device_name.find("Intel") == string::npos) {
-      FIRST_VLOG(2) << "CYCLES_METAL_FORCE_INTEL causing non-Intel device " << device_name
-                    << " to be ignored.";
-      continue;
+    if (@available(macos 12.3, *)) {
+      usable |= (vendor == METAL_GPU_AMD);
     }
 
-    if (!device_version_check(device)) {
-      FIRST_VLOG(2) << "Ignoring device " << device_name << " due to too old compiler version.";
-      continue;
+    if (usable) {
+      metal_printf("- %s\n", device_name);
+      [device retain];
+      usable_devices.push_back(device);
     }
-    FIRST_VLOG(2) << "Adding new device " << device_name << ".";
-    string hardware_id;
-    usable_devices->push_back(MetalPlatformDevice(device, device_name));
+    else {
+      metal_printf("  (skipping \"%s\")\n", device_name);
+    }
   }
-  first_time = false;
-}
-
-bool MetalInfo::get_num_devices(uint32_t *num_devices)
-{
-  *num_devices = MTLCopyAllDevices().count;
-  return true;
-}
-
-uint32_t MetalInfo::get_num_devices()
-{
-  uint32_t num_devices;
-  if (!get_num_devices(&num_devices)) {
-    return 0;
+  if (usable_devices.empty()) {
+    metal_printf("   No usable Metal devices found\n");
   }
-  return num_devices;
-}
+  already_enumerated = true;
 
-bool MetalInfo::get_device_name(id<MTLDevice> device, string *platform_name)
-{
-  *platform_name = [device.name UTF8String];
-  return true;
-}
-
-string MetalInfo::get_device_name(id<MTLDevice> device)
-{
-  string platform_name;
-  if (!get_device_name(device, &platform_name)) {
-    return "";
-  }
-  return platform_name;
+  return usable_devices;
 }
 
 id<MTLBuffer> MetalBufferPool::get_buffer(id<MTLDevice> device,

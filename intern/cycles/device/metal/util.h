@@ -36,33 +36,10 @@ enum MetalGPUVendor {
   METAL_GPU_INTEL = 3,
 };
 
-/* Retains a named MTLDevice for device enumeration. */
-struct MetalPlatformDevice {
-  MetalPlatformDevice(id<MTLDevice> device, const string &device_name)
-      : device_id(device), device_name(device_name)
-  {
-    [device_id retain];
-  }
-  ~MetalPlatformDevice()
-  {
-    [device_id release];
-  }
-  id<MTLDevice> device_id;
-  string device_name;
-};
-
 /* Contains static Metal helper functions. */
 struct MetalInfo {
-  static bool device_version_check(id<MTLDevice> device);
-  static void get_usable_devices(vector<MetalPlatformDevice> *usable_devices);
+  static vector<id<MTLDevice>> const &get_usable_devices();
   static MetalGPUVendor get_vendor_from_device_name(string const &device_name);
-
-  /* Platform information. */
-  static bool get_num_devices(uint32_t *num_platforms);
-  static uint32_t get_num_devices();
-
-  static bool get_device_name(id<MTLDevice> device_id, string *device_name);
-  static string get_device_name(id<MTLDevice> device_id);
 };
 
 /* Pool of MTLBuffers whose lifetime is linked to a single MTLCommandBuffer */

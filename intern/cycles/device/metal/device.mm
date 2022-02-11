@@ -39,33 +39,20 @@ bool device_metal_init()
   return true;
 }
 
-static int device_metal_get_num_devices_safe(uint32_t *num_devices)
-{
-  *num_devices = MTLCopyAllDevices().count;
-  return 0;
-}
-
 void device_metal_info(vector<DeviceInfo> &devices)
 {
-  uint32_t num_devices = 0;
-  device_metal_get_num_devices_safe(&num_devices);
-  if (num_devices == 0) {
-    return;
-  }
-
-  vector<MetalPlatformDevice> usable_devices;
-  MetalInfo::get_usable_devices(&usable_devices);
+  auto usable_devices = MetalInfo::get_usable_devices();
   /* Devices are numbered consecutively across platforms. */
   set<string> unique_ids;
   int device_index = 0;
-  for (MetalPlatformDevice &device : usable_devices) {
+  for (id<MTLDevice> &device : usable_devices) {
     /* Compute unique ID for persistent user preferences. */
-    const string &device_name = device.device_name;
+    string device_name = [device.name UTF8String];
     string id = string("METAL_") + device_name;
 
     /* Hardware ID might not be unique, add device number in that case. */
     if (unique_ids.find(id) != unique_ids.end()) {
-      id += string_printf("_ID_%d", num_devices);
+      id += string_printf("_ID_%d", device_index);
     }
     unique_ids.insert(id);
 
@@ -94,15 +81,13 @@ void device_metal_info(vector<DeviceInfo> &devices)
 string device_metal_capabilities()
 {
   string result = "";
-  string error_msg = "";
-  uint32_t num_devices = 0;
-  assert(device_metal_get_num_devices_safe(&num_devices));
+  auto allDevices = MTLCopyAllDevices();
+  uint32_t num_devices = allDevices.count;
   if (num_devices == 0) {
     return "No Metal devices found\n";
   }
   result += string_printf("Number of devices: %u\n", num_devices);
 
-  NSArray<id<MTLDevice>> *allDevices = MTLCopyAllDevices();
   for (id<MTLDevice> device in allDevices) {
     result += string_printf("\t\tDevice: %s\n", [device.name UTF8String]);
   }

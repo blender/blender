@@ -53,16 +53,10 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
   mtlDevId = info.num;
 
   /* select chosen device */
-  vector<MetalPlatformDevice> usable_devices;
-  MetalInfo::get_usable_devices(&usable_devices);
-  if (usable_devices.size() == 0) {
-    set_error("Metal: no devices found.");
-    return;
-  }
+  auto usable_devices = MetalInfo::get_usable_devices();
   assert(mtlDevId < usable_devices.size());
-  MetalPlatformDevice &platform_device = usable_devices[mtlDevId];
-  mtlDevice = platform_device.device_id;
-  device_name = platform_device.device_name;
+  mtlDevice = usable_devices[mtlDevId];
+  device_name = [mtlDevice.name UTF8String];
   device_vendor = MetalInfo::get_vendor_from_device_name(device_name);
   assert(device_vendor != METAL_GPU_UNKNOWN);
   metal_printf("Creating new Cycles device for Metal: %s\n", device_name.c_str());
@@ -458,7 +452,8 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
   id<MTLBuffer> metal_buffer = nil;
   MTLResourceOptions options = default_storage_mode;
 
-  /* Workaround for "bake" unit tests which fail if RenderBuffers is allocated with MTLResourceStorageModeShared. */
+  /* Workaround for "bake" unit tests which fail if RenderBuffers is allocated with
+   * MTLResourceStorageModeShared. */
   if (strstr(mem.name, "RenderBuffers")) {
     options = MTLResourceStorageModeManaged;
   }
@@ -769,9 +764,11 @@ void MetalDevice::tex_alloc(device_texture &mem)
   /* Check that dimensions fit within maximum allowable size.
      See https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
   */
-  if (mem.data_width > 16384 ||
-      mem.data_height > 16384) {
-    set_error(string_printf("Texture exceeds maximum allowed size of 16384 x 16384 (requested: %zu x %zu)", mem.data_width, mem.data_height));
+  if (mem.data_width > 16384 || mem.data_height > 16384) {
+    set_error(string_printf(
+        "Texture exceeds maximum allowed size of 16384 x 16384 (requested: %zu x %zu)",
+        mem.data_width,
+        mem.data_height));
     return;
   }
 
