@@ -72,7 +72,7 @@ bool id_can_have_animdata(const ID *id)
   return id_type_can_have_animdata(GS(id->name));
 }
 
-AnimData *BKE_animdata_from_id(ID *id)
+AnimData *BKE_animdata_from_id(const ID *id)
 {
   /* In order for this to work, we assume that the #AnimData pointer is stored
    * immediately after the given ID-block in the struct, as per IdAdtTemplate. */

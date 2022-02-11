@@ -377,7 +377,10 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
     return FILTER_ID_ALL;
   }
 
-  if (ntreeFromID(id_owner)) {
+  /* Casting to non const.
+   * TODO(jbakker): We should introduce a ntree_id_has_tree function as we are actually not
+   * interested in the result. */
+  if (ntreeFromID((ID *)id_owner)) {
     return FILTER_ID_ALL;
   }
 
@@ -453,7 +456,7 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
     case ID_SIM:
       return FILTER_ID_OB | FILTER_ID_IM;
     case ID_WM:
-      return FILTER_ID_SCE, FILTER_ID_WS;
+      return FILTER_ID_SCE | FILTER_ID_WS;
     case ID_IM:
     case ID_VF:
     case ID_TXT:

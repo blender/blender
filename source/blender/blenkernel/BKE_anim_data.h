@@ -36,7 +36,7 @@ bool id_can_have_animdata(const struct ID *id);
 /**
  * Get #AnimData from the given ID-block.
  */
-struct AnimData *BKE_animdata_from_id(struct ID *id);
+struct AnimData *BKE_animdata_from_id(const struct ID *id);
 
 /**
  * Ensure #AnimData exists in the given ID-block (when supported).
