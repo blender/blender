@@ -157,4 +157,36 @@ void BKE_id_remapper_iter(const struct IDRemapper *id_remapper,
   const blender::bke::id::remapper::IDRemapper *remapper = unwrap(id_remapper);
   remapper->iter(func, user_data);
 }
+
+const char *BKE_id_remapper_result_string(const IDRemapperApplyResult result)
+{
+  switch (result) {
+    case ID_REMAP_RESULT_SOURCE_NOT_MAPPABLE:
+      return "not_mappable";
+    case ID_REMAP_RESULT_SOURCE_UNAVAILABLE:
+      return "unavailable";
+    case ID_REMAP_RESULT_SOURCE_UNASSIGNED:
+      return "unassigned";
+    case ID_REMAP_RESULT_SOURCE_REMAPPED:
+      return "remapped";
+    default:
+      BLI_assert_unreachable();
+  }
+  return "";
+}
+
+static void id_remapper_print_item_cb(ID *old_id, ID *new_id, void *UNUSED(user_data))
+{
+  if (old_id != nullptr && new_id != nullptr) {
+    printf("Remap %s(%p) to %s(%p)\n", old_id->name, old_id, new_id->name, new_id);
+  }
+  if (old_id != nullptr && new_id == nullptr) {
+    printf("Unassign %s(%p)\n", old_id->name, old_id);
+  }
+}
+
+void BKE_id_remapper_print(const struct IDRemapper *id_remapper)
+{
+  BKE_id_remapper_iter(id_remapper, id_remapper_print_item_cb, nullptr);
+}
 }

@@ -204,6 +204,11 @@ void BKE_id_remapper_iter(const struct IDRemapper *id_remapper,
                           IDRemapperIterFunction func,
                           void *user_data);
 
+/** Returns a readable string for the given result. Can be used for debugging purposes. */
+const char *BKE_id_remapper_result_string(const IDRemapperApplyResult result);
+/** Prints out the rules inside the given id_remapper. Can be used for debugging purposes. */
+void BKE_id_remapper_print(const struct IDRemapper *id_remapper);
+
 #ifdef __cplusplus
 }
 #endif
