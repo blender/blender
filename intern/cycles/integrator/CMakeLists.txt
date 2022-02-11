@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2011-2021 Blender Foundation
+# Copyright 2011-2022 Blender Foundation
 
 set(INC
   ..
