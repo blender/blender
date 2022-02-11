@@ -1102,6 +1102,16 @@ static ID *lib_override_root_find(Main *bmain, ID *id, const int curr_level, int
   MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->relations_from_pointers, id);
   BLI_assert(entry != NULL);
 
+  if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED && ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    /* This ID has already been processed. */
+    BLI_assert(id->override_library != NULL);
+    *r_best_level = curr_level;
+    return id->override_library->hierarchy_root;
+  }
+  /* This way we won't process again that ID, should we encounter it again through another
+   * relationship hierarchy. */
+  entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
+
   int best_level_candidate = curr_level;
   ID *best_root_id_candidate = id;
 
@@ -1129,6 +1139,8 @@ static ID *lib_override_root_find(Main *bmain, ID *id, const int curr_level, int
       best_level_candidate = level_candidate;
     }
   }
+
+  BLI_assert(best_root_id_candidate != NULL);
 
   *r_best_level = best_level_candidate;
   return best_root_id_candidate;
@@ -1243,6 +1255,8 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
     if (id->override_library->hierarchy_root != NULL) {
       continue;
     }
+
+    BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
 
     int best_level = 0;
     ID *id_root = lib_override_root_find(bmain, id, best_level, &best_level);
