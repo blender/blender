@@ -315,19 +315,10 @@ int BKE_mesh_wrapper_poly_len(const Mesh *me)
 /** \name CPU Subdivision Evaluation
  * \{ */
 
-Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
+static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
 {
-  ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime.eval_mutex;
-  BLI_mutex_lock(mesh_eval_mutex);
-
-  if (me->runtime.wrapper_type == ME_WRAPPER_TYPE_SUBD) {
-    BLI_mutex_unlock(mesh_eval_mutex);
-    return me->runtime.mesh_eval;
-  }
-
   SubsurfModifierData *smd = BKE_object_get_last_subsurf_modifier(ob);
   if (!smd) {
-    BLI_mutex_unlock(mesh_eval_mutex);
     return me;
   }
 
@@ -339,7 +330,6 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   mesh_settings.use_optimal_display = me->runtime.subsurf_use_optimal_display;
 
   if (mesh_settings.resolution < 3) {
-    BLI_mutex_unlock(mesh_eval_mutex);
     return me;
   }
 
@@ -348,7 +338,6 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   SubdivSettings subdiv_settings;
   BKE_subsurf_modifier_subdiv_settings_init(&subdiv_settings, smd, apply_render);
   if (subdiv_settings.level == 0) {
-    BLI_mutex_unlock(mesh_eval_mutex);
     return me;
   }
 
@@ -357,7 +346,6 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(smd, &subdiv_settings, me, false);
   if (subdiv == NULL) {
     /* Happens on bad topology, but also on empty input mesh. */
-    BLI_mutex_unlock(mesh_eval_mutex);
     return me;
   }
 
@@ -375,8 +363,42 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
     me->runtime.wrapper_type = ME_WRAPPER_TYPE_SUBD;
   }
 
-  BLI_mutex_unlock(mesh_eval_mutex);
   return me->runtime.mesh_eval;
+}
+
+typedef struct SubdivisionWrapperIsolatedTaskData {
+  const Object *ob;
+  Mesh *me;
+  Mesh *result;
+} SubdivisionWrapperIsolatedTaskData;
+
+static void mesh_wrapper_ensure_subdivision_isolated(void *userdata)
+{
+  SubdivisionWrapperIsolatedTaskData *task_data = (SubdivisionWrapperIsolatedTaskData *)userdata;
+  const Object *ob = task_data->ob;
+  Mesh *me = task_data->me;
+  task_data->result = mesh_wrapper_ensure_subdivision(ob, me);
+}
+
+Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
+{
+  ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime.eval_mutex;
+  BLI_mutex_lock(mesh_eval_mutex);
+
+  if (me->runtime.wrapper_type == ME_WRAPPER_TYPE_SUBD) {
+    BLI_mutex_unlock(mesh_eval_mutex);
+    return me->runtime.mesh_eval;
+  }
+
+  SubdivisionWrapperIsolatedTaskData task_data;
+  task_data.ob = ob;
+  task_data.me = me;
+
+  /* Must isolate multithreaded tasks while holding a mutex lock. */
+  BLI_task_isolate(mesh_wrapper_ensure_subdivision_isolated, &task_data);
+
+  BLI_mutex_unlock(mesh_eval_mutex);
+  return task_data.result;
 }
 
 /** \} */
