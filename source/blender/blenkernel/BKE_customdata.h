@@ -34,10 +34,8 @@ typedef struct {
 extern const CustomData_MeshMasks CD_MASK_BAREMESH;
 extern const CustomData_MeshMasks CD_MASK_BAREMESH_ORIGINDEX;
 extern const CustomData_MeshMasks CD_MASK_MESH;
-extern const CustomData_MeshMasks CD_MASK_EDITMESH;
 extern const CustomData_MeshMasks CD_MASK_DERIVEDMESH;
 extern const CustomData_MeshMasks CD_MASK_BMESH;
-extern const CustomData_MeshMasks CD_MASK_FACECORNERS;
 extern const CustomData_MeshMasks CD_MASK_EVERYTHING;
 
 /* for ORIGINDEX layer type, indicates no original index for this element */
