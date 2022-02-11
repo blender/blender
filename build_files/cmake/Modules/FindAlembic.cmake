@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2016 Blender Foundation.
+
 # - Find Alembic library
 # Find the native Alembic includes and libraries
 # This module defines
@@ -8,13 +11,6 @@
 #                    This can also be an environment variable.
 #  ALEMBIC_FOUND, If false, do not try to use Alembic.
 #
-
-#=============================================================================
-# Copyright 2016 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If ALEMBIC_ROOT_DIR was defined in the environment, use it.
 IF(NOT ALEMBIC_ROOT_DIR AND NOT $ENV{ALEMBIC_ROOT_DIR} STREQUAL "")

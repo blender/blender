@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # turn everything OFF except for python which defaults to ON
 # and is needed for the UI
 #

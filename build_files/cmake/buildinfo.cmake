@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # This is called by cmake as an external process from
 # ./source/creator/CMakeLists.txt to write ./source/creator/buildinfo.h
 # Caller must define:

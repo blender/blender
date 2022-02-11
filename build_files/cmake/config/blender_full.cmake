@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # Turn everything ON that's expected for an official release builds.
 #
 # Example usage:

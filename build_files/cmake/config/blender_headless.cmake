@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # headless configuration, useful in for servers or renderfarms
 # builds without a windowing system (X11/Windows/Cocoa).
 #

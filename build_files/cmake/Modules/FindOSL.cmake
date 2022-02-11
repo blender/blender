@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2014 Blender Foundation.
+
 # - Find OpenShadingLanguage library
 # Find the native OpenShadingLanguage includes and library
 # This module defines
@@ -10,13 +13,6 @@
 #  OSL_FOUND, if false, do not try to use OSL.
 #  OSL_LIBRARY_VERSION_MAJOR, OSL_LIBRARY_VERSION_MINOR,  the major
 #                and minor versions of OSL library if found.
-#
-#=============================================================================
-# Copyright 2014 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If OSL_ROOT_DIR was defined in the environment, use it.
 IF(NOT OSL_ROOT_DIR AND NOT $ENV{OSL_ROOT_DIR} STREQUAL "")

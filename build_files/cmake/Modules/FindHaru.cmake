@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2021 Blender Foundation.
+
 # - Find HARU library
 # Find the native Haru includes and library
 # This module defines
@@ -10,13 +13,6 @@
 #
 # also defined, but not for general use are
 #  HARU_LIBRARY, where to find the Haru library.
-
-#=============================================================================
-# Copyright 2021 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If HARU_ROOT_DIR was defined in the environment, use it.
 if(NOT HARU_ROOT_DIR AND NOT $ENV{HARU_ROOT_DIR} STREQUAL "")

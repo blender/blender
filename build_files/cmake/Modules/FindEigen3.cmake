@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2015 Blender Foundation.
+
 # - Find Eigen3 library
 # Find the native Eigen3 includes and library
 # This module defines
@@ -6,13 +9,6 @@
 #  EIGEN3_ROOT_DIR, The base directory to search for Eigen3.
 #                    This can also be an environment variable.
 #  EIGEN3_FOUND, If false, do not try to use Eigen3.
-#
-#=============================================================================
-# Copyright 2015 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If EIGEN3_ROOT_DIR was defined in the environment, use it.
 IF(NOT EIGEN3_ROOT_DIR AND NOT $ENV{EIGEN3_ROOT_DIR} STREQUAL "")
