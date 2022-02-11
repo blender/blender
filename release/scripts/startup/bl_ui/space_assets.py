@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-from bpy.types import Header
+from bpy.types import Header, Menu
 
 
 class ASSETBROWSER_HT_header(Header):
@@ -29,9 +29,58 @@ class ASSETBROWSER_HT_header(Header):
 
         layout.template_header()
 
+        ASSETBROWSER_MT_editor_menus.draw_collapsible(context, layout)
+
+
+class ASSETBROWSER_MT_editor_menus(Menu):
+    bl_idname = "ASSETBROWSER_MT_editor_menus"
+    bl_label = ""
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.menu("ASSETBROWSER_MT_view")
+        layout.menu("ASSETBROWSER_MT_select")
+        layout.menu("ASSETBROWSER_MT_edit")
+
+
+class ASSETBROWSER_MT_view(Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+        st = context.space_data
+
+        layout.prop(st, "show_region_nav_bar", text="Navigation")
+
+        layout.separator()
+
+        layout.menu("INFO_MT_area")
+
+
+class ASSETBROWSER_MT_select(Menu):
+    bl_label = "Select"
+
+    def draw(self, _context):
+        layout = self.layout
+
+
+class ASSETBROWSER_MT_edit(Menu):
+    bl_label = "Edit"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("asset.catalog_undo", text="Undo")
+        layout.operator("asset.catalog_redo", text="Redo")
+
 
 classes = (
     ASSETBROWSER_HT_header,
+    ASSETBROWSER_MT_editor_menus,
+    ASSETBROWSER_MT_view,
+    ASSETBROWSER_MT_select,
+    ASSETBROWSER_MT_edit,
 )
 
 if __name__ == "__main__":  # only for live edit.

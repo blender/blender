@@ -868,6 +868,20 @@ static void rna_Space_show_region_hud_update(bContext *C, PointerRNA *ptr)
   rna_Space_bool_from_region_flag_update_by_type(C, ptr, RGN_TYPE_HUD, RGN_FLAG_HIDDEN_BY_USER);
 }
 
+/* Navigation Region. */
+static bool rna_Space_show_region_nav_bar_get(PointerRNA *ptr)
+{
+  return !rna_Space_bool_from_region_flag_get_by_type(ptr, RGN_TYPE_NAV_BAR, RGN_FLAG_HIDDEN);
+}
+static void rna_Space_show_region_nav_bar_set(PointerRNA *ptr, bool value)
+{
+  rna_Space_bool_from_region_flag_set_by_type(ptr, RGN_TYPE_NAV_BAR, RGN_FLAG_HIDDEN, !value);
+}
+static void rna_Space_show_region_nav_bar_update(bContext *C, PointerRNA *ptr)
+{
+  rna_Space_bool_from_region_flag_update_by_type(C, ptr, RGN_TYPE_NAV_BAR, RGN_FLAG_HIDDEN);
+}
+
 /** \} */
 
 static bool rna_Space_view2d_sync_get(PointerRNA *ptr)
@@ -3384,6 +3398,10 @@ static void rna_def_space_generic_show_region_toggles(StructRNA *srna, int regio
   if (region_type_mask & (1 << RGN_TYPE_HUD)) {
     region_type_mask &= ~(1 << RGN_TYPE_HUD);
     DEF_SHOW_REGION_PROPERTY(show_region_hud, "Adjust Last Operation", "");
+  }
+  if (region_type_mask & (1 << RGN_TYPE_NAV_BAR)) {
+    region_type_mask &= ~(1 << RGN_TYPE_NAV_BAR);
+    DEF_SHOW_REGION_PROPERTY(show_region_nav_bar, "Navigation Bar", "");
   }
   BLI_assert(region_type_mask == 0);
 }
@@ -8054,7 +8072,7 @@ static void rna_def_space_assets(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "SpaceAssets", "Space");
   RNA_def_struct_ui_text(srna, "Space Asset Browser", "Asset browser space data");
 
-  //  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_NAV_BAR));
+  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_NAV_BAR));
 
   prop = rna_def_asset_library_reference_common(
       srna, "rna_SpaceAssets_asset_library_get", "rna_SpaceAssets_asset_library_set");

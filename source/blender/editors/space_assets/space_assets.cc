@@ -39,6 +39,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "WM_api.h"
 #include "WM_message.h"
 
 #include "asset_browser_intern.hh"
@@ -104,16 +105,49 @@ static SpaceLink *asset_browser_duplicate(SpaceLink *sl)
   return (SpaceLink *)asset_browser_new;
 }
 
-static void asset_browser_keymap(wmKeyConfig *UNUSED(keyconf))
+static void asset_browser_keymap(wmKeyConfig *keyconf)
 {
+  /* keys for all regions */
+  WM_keymap_ensure(keyconf, "Asset Browser", SPACE_ASSETS, 0);
+}
+
+const char *asset_browser_context_dir[] = {
+    "asset_library_ref",
+    NULL,
+};
+
+static int /*eContextResult*/ asset_browser_context(const bContext *C,
+                                                    const char *member,
+                                                    bContextDataResult *result)
+{
+  if (CTX_data_dir(member)) {
+    CTX_data_dir_set(result, asset_browser_context_dir);
+    return CTX_RESULT_OK;
+  }
+
+  bScreen *screen = CTX_wm_screen(C);
+  SpaceAssets *assets_space = CTX_wm_space_assets(C);
+
+  if (CTX_data_equals(member, "asset_library_ref")) {
+    CTX_data_pointer_set(
+        result, &screen->id, &RNA_AssetLibraryReference, &assets_space->asset_library_ref);
+    return CTX_RESULT_OK;
+  }
+
+  return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
 /* ---------------------------------------------------------------------- */
 /* Main Region */
 
-static void asset_browser_main_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
+static void asset_browser_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
+
+  {
+    wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Asset Browser", SPACE_ASSETS, 0);
+    WM_event_add_keymap_handler(&region->handlers, keymap);
+  }
 }
 
 static void asset_browser_main_region_listener(const wmRegionListenerParams *UNUSED(params))
@@ -162,6 +196,11 @@ static void asset_browser_navigation_region_init(wmWindowManager *wm, ARegion *r
 {
   region->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
   ED_region_panels_init(wm, region);
+
+  {
+    wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Asset Browser", SPACE_ASSETS, 0);
+    WM_event_add_keymap_handler(&region->handlers, keymap);
+  }
 }
 
 static void asset_browser_navigation_region_draw(const bContext *C, ARegion *region)
@@ -191,6 +230,7 @@ void ED_spacetype_assets(void)
   st->duplicate = asset_browser_duplicate;
   st->operatortypes = asset_browser_operatortypes;
   st->keymap = asset_browser_keymap;
+  st->context = asset_browser_context;
 
   /* Main region. */
   art = MEM_cnew<ARegionType>("spacetype asset browser main region");

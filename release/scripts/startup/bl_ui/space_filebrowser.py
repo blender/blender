@@ -80,7 +80,7 @@ class FILEBROWSER_HT_header(Header):
             layout.template_header()
 
         if SpaceAssetInfo.is_asset_browser(space_data):
-            ASSETBROWSER_MT_editor_menus.draw_collapsible(context, layout)
+            ASSETBROWSEROLD_MT_editor_menus.draw_collapsible(context, layout)
             layout.separator()
             self.draw_asset_browser_buttons(context)
         else:
@@ -638,19 +638,19 @@ class AssetBrowserMenu:
         return SpaceAssetInfo.is_asset_browser_poll(context)
 
 
-class ASSETBROWSER_MT_editor_menus(AssetBrowserMenu, Menu):
-    bl_idname = "ASSETBROWSER_MT_editor_menus"
+class ASSETBROWSEROLD_MT_editor_menus(AssetBrowserMenu, Menu):
+    bl_idname = "ASSETBROWSEROLD_MT_editor_menus"
     bl_label = ""
 
     def draw(self, _context):
         layout = self.layout
 
-        layout.menu("ASSETBROWSER_MT_view")
-        layout.menu("ASSETBROWSER_MT_select")
+        layout.menu("ASSETBROWSEROLD_MT_view")
+        layout.menu("ASSETBROWSEROLD_MT_select")
         layout.menu("ASSETBROWSER_MT_edit")
 
 
-class ASSETBROWSER_MT_view(AssetBrowserMenu, Menu):
+class ASSETBROWSEROLD_MT_view(AssetBrowserMenu, Menu):
     bl_label = "View"
 
     def draw(self, context):
@@ -671,7 +671,7 @@ class ASSETBROWSER_MT_view(AssetBrowserMenu, Menu):
         layout.menu("INFO_MT_area")
 
 
-class ASSETBROWSER_MT_select(AssetBrowserMenu, Menu):
+class ASSETBROWSEROLD_MT_select(AssetBrowserMenu, Menu):
     bl_label = "Select"
 
     def draw(self, _context):
@@ -686,7 +686,7 @@ class ASSETBROWSER_MT_select(AssetBrowserMenu, Menu):
         layout.operator("file.select_box")
 
 
-class ASSETBROWSER_MT_edit(AssetBrowserMenu, Menu):
+class ASSETBROWSEROLD_MT_edit(AssetBrowserMenu, Menu):
     bl_label = "Edit"
 
     def draw(self, _context):
@@ -845,10 +845,10 @@ classes = (
     FILEBROWSER_MT_context_menu,
     ASSETBROWSER_PT_display,
     ASSETBROWSER_PT_filter,
-    ASSETBROWSER_MT_editor_menus,
-    ASSETBROWSER_MT_view,
-    ASSETBROWSER_MT_select,
-    ASSETBROWSER_MT_edit,
+    ASSETBROWSEROLD_MT_editor_menus,
+    ASSETBROWSEROLD_MT_view,
+    ASSETBROWSEROLD_MT_select,
+    ASSETBROWSEROLD_MT_edit,
     ASSETBROWSER_MT_metadata_preview_menu,
     ASSETBROWSER_PT_metadata,
     ASSETBROWSER_PT_metadata_preview,

@@ -2135,7 +2135,6 @@ def km_info(params):
 
     return keymap
 
-
 # ------------------------------------------------------------------------------
 # Editor (File Browser)
 
@@ -2286,6 +2285,25 @@ def km_file_browser_buttons(_params):
          {"properties": [("increment", -10)]}),
         ("file.filenum", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True},
          {"properties": [("increment", -100)]}),
+    ])
+
+    return keymap
+
+
+# ------------------------------------------------------------------------------
+# Editor (Asset Browser)
+
+def km_asset_browser(params):
+    items = []
+    keymap = (
+        "Asset Browser",
+        {"space_type": 'ASSET_BROWSER', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        ("wm.context_toggle", {"type": 'T', "value": 'PRESS'},
+         {"properties": [("data_path", 'space_data.show_region_nav_bar')]}),
     ])
 
     return keymap
@@ -7718,6 +7736,7 @@ def generate_keymaps(params=None):
         km_node_editor(params),
         km_spreadsheet_generic(params),
         km_info(params),
+        km_asset_browser(params),
         km_file_browser(params),
         km_file_browser_main(params),
         km_file_browser_buttons(params),

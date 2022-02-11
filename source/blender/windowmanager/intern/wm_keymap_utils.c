@@ -433,6 +433,10 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
   else if (STRPREFIX(opname, "FILE_OT")) {
     km = WM_keymap_find_all(wm, "File Browser", sl->spacetype, 0);
   }
+  /* Asset browser */
+  else if (STRPREFIX(opname, "ASSET_OT")) {
+    km = WM_keymap_find_all(wm, "Asset Browser", sl->spacetype, 0);
+  }
   /* Logic Editor */
   else if (STRPREFIX(opname, "LOGIC_OT")) {
     km = WM_keymap_find_all(wm, "Logic Editor", sl->spacetype, 0);

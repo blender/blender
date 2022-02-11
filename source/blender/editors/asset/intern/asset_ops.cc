@@ -446,23 +446,37 @@ static void ASSET_OT_library_refresh(struct wmOperatorType *ot)
 
 /* -------------------------------------------------------------------- */
 
+static AssetLibrary *get_asset_library(const bContext *C)
+{
+  if (const SpaceFile *sfile = CTX_wm_space_file(C)) {
+    return ED_fileselect_active_asset_library_get(sfile);
+  }
+  if (const AssetLibraryReference *library_ref = CTX_wm_asset_library_ref(C)) {
+    return ED_assetlist_library_get(library_ref);
+  }
+  return nullptr;
+}
+
 static bool asset_catalog_operator_poll(bContext *C)
 {
-  const SpaceFile *sfile = CTX_wm_space_file(C);
-  return sfile && ED_fileselect_active_asset_library_get(sfile);
+  return get_asset_library(C) != nullptr;
 }
 
 static int asset_catalog_new_exec(bContext *C, wmOperator *op)
 {
-  SpaceFile *sfile = CTX_wm_space_file(C);
-  struct AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  AssetLibrary *asset_library = get_asset_library(C);
   char *parent_path = RNA_string_get_alloc(op->ptr, "parent_path", nullptr, 0, nullptr);
 
   blender::bke::AssetCatalog *new_catalog = ED_asset_catalog_add(
       asset_library, "Catalog", parent_path);
 
-  if (sfile) {
+  if (SpaceFile *sfile = CTX_wm_space_file(C)) {
     ED_fileselect_activate_asset_catalog(sfile, new_catalog->catalog_id);
+  }
+  else if (SpaceAssets *sassets = CTX_wm_space_assets(C)) {
+    /* TODO how can we select the catalog here in a nice way, without being space dependent? Idea:
+     * use an operator macro instead? */
+    UNUSED_VARS(sassets);
   }
 
   MEM_freeN(parent_path);
@@ -494,8 +508,7 @@ static void ASSET_OT_catalog_new(struct wmOperatorType *ot)
 
 static int asset_catalog_delete_exec(bContext *C, wmOperator *op)
 {
-  SpaceFile *sfile = CTX_wm_space_file(C);
-  struct AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  AssetLibrary *asset_library = get_asset_library(C);
   char *catalog_id_str = RNA_string_get_alloc(op->ptr, "catalog_id", nullptr, 0, nullptr);
   bke::CatalogID catalog_id;
   if (!BLI_uuid_parse_string(&catalog_id, catalog_id_str)) {
@@ -530,13 +543,16 @@ static void ASSET_OT_catalog_delete(struct wmOperatorType *ot)
 
 static bke::AssetCatalogService *get_catalog_service(bContext *C)
 {
-  const SpaceFile *sfile = CTX_wm_space_file(C);
-  if (!sfile) {
-    return nullptr;
+  if (const SpaceFile *sfile = CTX_wm_space_file(C)) {
+    AssetLibrary *asset_lib = ED_fileselect_active_asset_library_get(sfile);
+    return BKE_asset_library_get_catalog_service(asset_lib);
+  }
+  if (const AssetLibraryReference *library_ref = CTX_wm_asset_library_ref(C)) {
+    AssetLibrary *asset_lib = ED_assetlist_library_get(library_ref);
+    return BKE_asset_library_get_catalog_service(asset_lib);
   }
 
-  AssetLibrary *asset_lib = ED_fileselect_active_asset_library_get(sfile);
-  return BKE_asset_library_get_catalog_service(asset_lib);
+  return nullptr;
 }
 
 static int asset_catalog_undo_exec(bContext *C, wmOperator * /*op*/)
@@ -547,7 +563,7 @@ static int asset_catalog_undo_exec(bContext *C, wmOperator * /*op*/)
   }
 
   catalog_service->undo();
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
+  WM_event_add_notifier(C, NC_ASSET | ND_ASSET_CATALOGS, nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -577,7 +593,7 @@ static int asset_catalog_redo_exec(bContext *C, wmOperator * /*op*/)
   }
 
   catalog_service->redo();
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
+  WM_event_add_notifier(C, NC_ASSET | ND_ASSET_CATALOGS, nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -654,8 +670,7 @@ static bool asset_catalogs_save_poll(bContext *C)
 
 static int asset_catalogs_save_exec(bContext *C, wmOperator * /*op*/)
 {
-  const SpaceFile *sfile = CTX_wm_space_file(C);
-  ::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  ::AssetLibrary *asset_library = get_asset_library(C);
 
   ED_asset_catalogs_save_from_main_path(asset_library, CTX_data_main(C));
 
@@ -690,11 +705,12 @@ static bool has_external_files(Main *bmain, struct ReportList *reports);
 static bool asset_bundle_install_poll(bContext *C)
 {
   /* This operator only works when the asset browser is set to Current File. */
-  const SpaceFile *sfile = CTX_wm_space_file(C);
-  if (sfile == nullptr) {
+  const AssetLibraryReference *asset_library_ref = CTX_wm_asset_library_ref(C);
+  if (asset_library_ref == nullptr) {
     return false;
   }
-  if (!ED_fileselect_is_local_asset_library(sfile)) {
+
+  if (asset_library_ref->type == ASSET_LIBRARY_LOCAL) {
     return false;
   }
 
