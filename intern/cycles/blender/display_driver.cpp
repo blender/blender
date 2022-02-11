@@ -480,26 +480,12 @@ class DrawTile {
       return false;
     }
 
-    if (!gl_vertex_buffer) {
-      glGenBuffers(1, &gl_vertex_buffer);
-      if (!gl_vertex_buffer) {
-        LOG(ERROR) << "Error allocating tile VBO.";
-        gl_resources_destroy();
-        return false;
-      }
-    }
-
     return true;
   }
 
   void gl_resources_destroy()
   {
     texture.gl_resources_destroy();
-
-    if (gl_vertex_buffer) {
-      glDeleteBuffers(1, &gl_vertex_buffer);
-      gl_vertex_buffer = 0;
-    }
   }
 
   inline bool ready_to_draw() const
@@ -512,9 +498,6 @@ class DrawTile {
 
   /* Display parameters the texture of this tile has been updated for. */
   BlenderDisplayDriver::Params params;
-
-  /* OpenGL resources needed for drawing. */
-  uint gl_vertex_buffer = 0;
 };
 
 class DrawTileAndPBO {
@@ -560,6 +543,30 @@ struct BlenderDisplayDriver::Tiles {
       tiles.clear();
     }
   } finished_tiles;
+
+  /* OpenGL vertex buffer needed for drawing. */
+  uint gl_vertex_buffer = 0;
+
+  bool gl_resources_ensure()
+  {
+    if (!gl_vertex_buffer) {
+      glGenBuffers(1, &gl_vertex_buffer);
+      if (!gl_vertex_buffer) {
+        LOG(ERROR) << "Error allocating tile VBO.";
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  void gl_resources_destroy()
+  {
+    if (gl_vertex_buffer) {
+      glDeleteBuffers(1, &gl_vertex_buffer);
+      gl_vertex_buffer = 0;
+    }
+  }
 };
 
 BlenderDisplayDriver::BlenderDisplayDriver(BL::RenderEngine &b_engine, BL::Scene &b_scene)
@@ -624,6 +631,12 @@ bool BlenderDisplayDriver::update_begin(const Params &params,
   if (need_clear_) {
     tiles_->finished_tiles.gl_resources_destroy_and_clear();
     need_clear_ = false;
+  }
+
+  if (!tiles_->gl_resources_ensure()) {
+    tiles_->gl_resources_destroy();
+    gl_context_disable();
+    return false;
   }
 
   if (!tiles_->current_tile.gl_resources_ensure()) {
@@ -825,7 +838,8 @@ static void vertex_buffer_update(const DisplayDriver::Params &params)
 static void draw_tile(const float2 &zoom,
                       const int texcoord_attribute,
                       const int position_attribute,
-                      const DrawTile &draw_tile)
+                      const DrawTile &draw_tile,
+                      const uint gl_vertex_buffer)
 {
   if (!draw_tile.ready_to_draw()) {
     return;
@@ -834,9 +848,9 @@ static void draw_tile(const float2 &zoom,
   const GLTexture &texture = draw_tile.texture;
 
   DCHECK_NE(texture.gl_id, 0);
-  DCHECK_NE(draw_tile.gl_vertex_buffer, 0);
+  DCHECK_NE(gl_vertex_buffer, 0);
 
-  glBindBuffer(GL_ARRAY_BUFFER, draw_tile.gl_vertex_buffer);
+  glBindBuffer(GL_ARRAY_BUFFER, gl_vertex_buffer);
 
   /* Draw at the parameters for which the texture has been updated for. This allows to always draw
    * texture during bordered-rendered camera view without flickering. The validness of the display
@@ -956,10 +970,14 @@ void BlenderDisplayDriver::draw(const Params &params)
   glEnableVertexAttribArray(texcoord_attribute);
   glEnableVertexAttribArray(position_attribute);
 
-  draw_tile(zoom_, texcoord_attribute, position_attribute, tiles_->current_tile.tile);
+  draw_tile(zoom_,
+            texcoord_attribute,
+            position_attribute,
+            tiles_->current_tile.tile,
+            tiles_->gl_vertex_buffer);
 
   for (const DrawTile &tile : tiles_->finished_tiles.tiles) {
-    draw_tile(zoom_, texcoord_attribute, position_attribute, tile);
+    draw_tile(zoom_, texcoord_attribute, position_attribute, tile, tiles_->gl_vertex_buffer);
   }
 
   display_shader_->unbind();
@@ -1062,6 +1080,7 @@ void BlenderDisplayDriver::gl_resources_destroy()
 
   tiles_->current_tile.gl_resources_destroy();
   tiles_->finished_tiles.gl_resources_destroy_and_clear();
+  tiles_->gl_resources_destroy();
 
   gl_context_disable();
 
