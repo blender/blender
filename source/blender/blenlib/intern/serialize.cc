@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include "BLI_serialize.hh"
 
 #include "json.hpp"

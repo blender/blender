@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* Pre-compiled headers, see: D13797. */
 
 #include <cfloat>

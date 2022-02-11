@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include "COM_MultiThreadedOperation.h"
 #include "COM_ExecutionSystem.h"
 

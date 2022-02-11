@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \defgroup render Rendering
  *  \ingroup blender

@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2014 Blender Foundation. All rights reserved. */
 #ifndef __BLENDER_TESTING_H__
 #define __BLENDER_TESTING_H__
 
