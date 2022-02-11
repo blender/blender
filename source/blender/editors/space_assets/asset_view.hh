@@ -27,17 +27,15 @@
 struct AssetCatalogFilterSettings;
 struct bContext;
 struct uiLayout;
+struct View2D;
 
 namespace blender::ed::asset_browser {
 
 class AssetGridView : public blender::ui::AbstractGridView {
   AssetLibraryReference asset_library_ref_;
 
-  /* TODO temp. */
-  uiLayout &layout;
-
  public:
-  AssetGridView(const AssetLibraryReference &, uiLayout &layout);
+  AssetGridView(const AssetLibraryReference &);
 
   void build_items() override;
   bool listen(const wmNotifier &) const override;
@@ -45,7 +43,8 @@ class AssetGridView : public blender::ui::AbstractGridView {
 
 void asset_view_create_in_layout(const bContext &C,
                                  const AssetLibraryReference &asset_library_ref,
-                                 const struct AssetCatalogFilterSettings &catalog_filter_settings,
+                                 const AssetCatalogFilterSettings &catalog_filter_settings,
+                                 const View2D &v2d,
                                  uiLayout &layout);
 
 }  // namespace blender::ed::asset_browser

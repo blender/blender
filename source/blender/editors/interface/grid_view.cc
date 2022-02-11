@@ -18,7 +18,10 @@
  * \ingroup edinterface
  */
 
+#include <limits>
 #include <stdexcept>
+
+#include "BLI_index_range.hh"
 
 #include "WM_types.h"
 
@@ -60,6 +63,11 @@ bool AbstractGridView::listen(const wmNotifier &) const
 const GridViewStyle &AbstractGridView::get_style() const
 {
   return style_;
+}
+
+int AbstractGridView::get_item_count() const
+{
+  return items_.size();
 }
 
 GridViewStyle::GridViewStyle(int width, int height) : tile_width(width), tile_height(height)
@@ -117,6 +125,129 @@ const AbstractGridView &AbstractGridViewItem::get_view() const
 
 /* ---------------------------------------------------------------------- */
 
+/**
+ * Helper for only adding layout items for grid items that are actually in view. 3 main functions:
+ * - #is_item_visible(): Query if an item of a given index is visible in the view (others should be
+ * skipped when building the layout).
+ * - #fill_layout_before_visible(): Add empty space to the layout before a visible row is drawn, so
+ *   the layout height is the same as if all items were added (important to get the correct scroll
+ *   height).
+ * - #fill_layout_after_visible(): Same thing, just adds empty space for after the last visible
+ *   row.
+ *
+ * Does two assumptions:
+ * - Top-to-bottom flow (ymax = 0 and ymin < 0). If that's not good enough, View2D should
+ *   probably provide queries for the scroll offset.
+ * - Only vertical scrolling. For horizontal scrolling, spacers would have to be added on the
+ *   side(s) as well.
+ */
+class BuildOnlyVisibleButtonsHelper {
+  const View2D &v2d_;
+  const AbstractGridView &grid_view_;
+  const GridViewStyle &style_;
+  const int cols_per_row_ = 0;
+  /* Indices of items within the view. Calculated by constructor */
+  IndexRange visible_items_range_{};
+
+ public:
+  BuildOnlyVisibleButtonsHelper(const View2D &,
+                                const AbstractGridView &grid_view,
+                                int cols_per_row);
+
+  bool is_item_visible(int item_idx) const;
+  void fill_layout_before_visible(uiBlock &) const;
+  void fill_layout_after_visible(uiBlock &) const;
+
+ private:
+  IndexRange get_visible_range() const;
+  void add_spacer_button(uiBlock &, int row_count) const;
+};
+
+BuildOnlyVisibleButtonsHelper::BuildOnlyVisibleButtonsHelper(const View2D &v2d,
+                                                             const AbstractGridView &grid_view,
+                                                             const int cols_per_row)
+    : v2d_(v2d), grid_view_(grid_view), style_(grid_view.get_style()), cols_per_row_(cols_per_row)
+{
+  visible_items_range_ = get_visible_range();
+}
+
+IndexRange BuildOnlyVisibleButtonsHelper::get_visible_range() const
+{
+  int first_idx_in_view = 0;
+  int max_items_in_view = 0;
+
+  const float scroll_ofs_y = abs(v2d_.cur.ymax - v2d_.tot.ymax);
+  if (!IS_EQF(scroll_ofs_y, 0)) {
+    const int scrolled_away_rows = (int)scroll_ofs_y / style_.tile_height;
+
+    first_idx_in_view = scrolled_away_rows * cols_per_row_;
+  }
+
+  const float view_height = BLI_rctf_size_y(&v2d_.cur);
+  const int count_rows_in_view = round_fl_to_int(view_height / style_.tile_height);
+  max_items_in_view = (count_rows_in_view + 1) * cols_per_row_;
+
+  return IndexRange(first_idx_in_view, max_items_in_view);
+}
+
+bool BuildOnlyVisibleButtonsHelper::is_item_visible(const int item_idx) const
+{
+  return visible_items_range_.contains(item_idx);
+}
+
+void BuildOnlyVisibleButtonsHelper::fill_layout_before_visible(uiBlock &block) const
+{
+  const float scroll_ofs_y = abs(v2d_.cur.ymax - v2d_.tot.ymax);
+
+  if (IS_EQF(scroll_ofs_y, 0)) {
+    return;
+  }
+
+  const int scrolled_away_rows = (int)scroll_ofs_y / style_.tile_height;
+  add_spacer_button(block, scrolled_away_rows);
+}
+
+void BuildOnlyVisibleButtonsHelper::fill_layout_after_visible(uiBlock &block) const
+{
+  const int last_item_idx = grid_view_.get_item_count() - 1;
+  const int last_visible_idx = visible_items_range_.last();
+
+  if (last_item_idx > last_visible_idx) {
+    const int remaining_rows = (cols_per_row_ > 0) ?
+                                   (last_item_idx - last_visible_idx) / cols_per_row_ :
+                                   0;
+    BuildOnlyVisibleButtonsHelper::add_spacer_button(block, remaining_rows);
+  }
+}
+
+void BuildOnlyVisibleButtonsHelper::add_spacer_button(uiBlock &block, const int row_count) const
+{
+  /* UI code only supports button dimensions of `signed short` size, the layout height we want to
+   * fill may be bigger than that. So add multiple labels of the maximum size if necessary. */
+  for (int remaining_rows = row_count; remaining_rows > 0;) {
+    const short row_count_this_iter = std::min(
+        std::numeric_limits<short>::max() / style_.tile_height, remaining_rows);
+
+    uiDefBut(&block,
+             UI_BTYPE_LABEL,
+             0,
+             "",
+             0,
+             0,
+             UI_UNIT_X,
+             row_count_this_iter * style_.tile_height,
+             nullptr,
+             0,
+             0,
+             0,
+             0,
+             "");
+    remaining_rows -= row_count_this_iter;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 class GridViewLayoutBuilder {
   uiBlock &block_;
 
@@ -125,7 +256,9 @@ class GridViewLayoutBuilder {
  public:
   GridViewLayoutBuilder(uiBlock &block);
 
-  void build_from_view(const AbstractGridView &grid_view) const;
+  void build_from_view(const AbstractGridView &grid_view, const View2D &v2d) const;
+
+ private:
   void build_grid_tile(uiLayout &grid_layout, AbstractGridViewItem &item) const;
 
   uiLayout *current_layout() const;
@@ -144,7 +277,8 @@ void GridViewLayoutBuilder::build_grid_tile(uiLayout &grid_layout,
   item.build_grid_tile(*uiLayoutRow(overlap, false));
 }
 
-void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view) const
+void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view,
+                                            const View2D &v2d) const
 {
   uiLayout *prev_layout = current_layout();
 
@@ -152,27 +286,40 @@ void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view) c
   const GridViewStyle &style = grid_view.get_style();
 
   const int cols_per_row = uiLayoutGetWidth(&layout) / style.tile_width;
+
+  BuildOnlyVisibleButtonsHelper build_visible_helper(v2d, grid_view, cols_per_row);
+
+  build_visible_helper.fill_layout_before_visible(block_);
+
   /* Use `-cols_per_row` because the grid layout uses a multiple of the passed absolute value for
    * the number of columns then, rather than distributing the number of items evenly over rows and
    * stretching the items to fit (see #uiLayoutItemGridFlow.columns_len). */
   uiLayout *grid_layout = uiLayoutGridFlow(&layout, true, -cols_per_row, true, true, true);
 
-  int item_count = 0;
+  int item_idx = 0;
   grid_view.foreach_item([&](AbstractGridViewItem &item) {
+    /* Skip if item isn't visible. */
+    if (!build_visible_helper.is_item_visible(item_idx)) {
+      item_idx++;
+      return;
+    }
+
     build_grid_tile(*grid_layout, item);
-    item_count++;
+    item_idx++;
   });
 
   /* If there are not enough items to fill the layout, add padding items so the layout doesn't
    * stretch over the entire width. */
-  if (item_count < cols_per_row) {
-    for (int padding_item_idx = 0; padding_item_idx < (cols_per_row - item_count);
+  if (grid_view.get_item_count() < cols_per_row) {
+    for (int padding_item_idx = 0; padding_item_idx < (cols_per_row - grid_view.get_item_count());
          padding_item_idx++) {
       uiItemS(grid_layout);
     }
   }
 
   UI_block_layout_set_current(&block_, prev_layout);
+
+  build_visible_helper.fill_layout_after_visible(block_);
 }
 
 uiLayout *GridViewLayoutBuilder::current_layout() const
@@ -186,12 +333,12 @@ GridViewBuilder::GridViewBuilder(uiBlock &block) : block_(block)
 {
 }
 
-void GridViewBuilder::build_grid_view(AbstractGridView &grid_view)
+void GridViewBuilder::build_grid_view(AbstractGridView &grid_view, const View2D &v2d)
 {
   grid_view.build_items();
 
   GridViewLayoutBuilder builder(block_);
-  builder.build_from_view(grid_view);
+  builder.build_from_view(grid_view, v2d);
   //  grid_view.update_from_old(block_);
   //  grid_view.change_state_delayed();
 

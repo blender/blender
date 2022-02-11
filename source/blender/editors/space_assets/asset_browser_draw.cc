@@ -61,7 +61,7 @@ void asset_browser_main_region_draw(const bContext *C, ARegion *region)
       style);
 
   asset_view_create_in_layout(
-      *C, asset_space->asset_library_ref, asset_space->catalog_filter, *layout);
+      *C, asset_space->asset_library_ref, asset_space->catalog_filter, *v2d, *layout);
 
   /* Update main region View2d dimensions. */
   int layout_width, layout_height;

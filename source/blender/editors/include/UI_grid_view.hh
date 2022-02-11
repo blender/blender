@@ -32,6 +32,7 @@ struct PreviewImage;
 struct uiBlock;
 struct uiButGridTile;
 struct uiLayout;
+struct View2D;
 struct wmNotifier;
 
 namespace blender::ui {
@@ -122,6 +123,7 @@ class AbstractGridView {
    */
   template<class ItemT, typename... Args> inline ItemT &add_item(Args &&...args);
   const GridViewStyle &get_style() const;
+  int get_item_count() const;
 
  protected:
   virtual void build_items() = 0;
@@ -148,7 +150,9 @@ class GridViewBuilder {
  public:
   GridViewBuilder(uiBlock &block);
 
-  void build_grid_view(AbstractGridView &grid_view);
+  /** Build \a grid_view into the previously provided block, clipped by \a view_bounds (view space,
+   * typically `View2D.cur`). */
+  void build_grid_view(AbstractGridView &grid_view, const View2D &v2d);
 };
 
 /** \} */
