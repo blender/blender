@@ -77,17 +77,25 @@ enum {
   ID_REMAP_FORCE_OBDATA_IN_EDITMODE = 1 << 9,
 };
 
+typedef enum eIDRemapType {
+  /** Remap an ID reference to a new reference. The new reference can also be null. */
+  ID_REMAP_TYPE_REMAP = 0,
+
+  /** Cleanup all IDs used by a specific one. */
+  ID_REMAP_TYPE_CLEANUP = 1,
+} eIDRemapType;
+
 /**
  * Replace all references in given Main using the given \a mappings
  *
  * \note Is preferred over BKE_libblock_remap_locked due to performance.
  */
 void BKE_libblock_remap_multiple_locked(struct Main *bmain,
-                                        const struct IDRemapper *mappings,
+                                        struct IDRemapper *mappings,
                                         const short remap_flags);
 
 void BKE_libblock_remap_multiple(struct Main *bmain,
-                                 const struct IDRemapper *mappings,
+                                 struct IDRemapper *mappings,
                                  const short remap_flags);
 
 /**
@@ -172,6 +180,13 @@ typedef enum IDRemapperApplyOptions {
    */
   ID_REMAP_APPLY_ENSURE_REAL = (1 << 1),
 
+  /**
+   * Unassign in stead of remap when the new ID datablock would become id_self.
+   *
+   * To use this option 'BKE_id_remapper_apply_ex' must be used with a not-null id_self parameter.
+   */
+  ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF = (1 << 2),
+
   ID_REMAP_APPLY_DEFAULT = 0,
 } IDRemapperApplyOptions;
 
@@ -199,7 +214,28 @@ void BKE_id_remapper_add(struct IDRemapper *id_remapper, struct ID *old_id, stru
 IDRemapperApplyResult BKE_id_remapper_apply(const struct IDRemapper *id_remapper,
                                             struct ID **r_id_ptr,
                                             IDRemapperApplyOptions options);
+/**
+ * Apply a remapping.
+ *
+ * Use this function when `ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF`. In this case
+ * the #id_self parameter is required. Otherwise the #BKE_id_remapper_apply can be used.
+ *
+ * \param id_self required for ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF.
+ *     When remapping to id_self it will then be remapped to NULL.
+ */
+IDRemapperApplyResult BKE_id_remapper_apply_ex(const struct IDRemapper *id_remapper,
+                                               struct ID **r_id_ptr,
+                                               IDRemapperApplyOptions options,
+                                               struct ID *id_self);
 bool BKE_id_remapper_has_mapping_for(const struct IDRemapper *id_remapper, uint64_t type_filter);
+
+/**
+ * Determine the mapping result, without applying the mapping.
+ */
+IDRemapperApplyResult BKE_id_remapper_get_mapping_result(const struct IDRemapper *id_remapper,
+                                                         struct ID *id,
+                                                         IDRemapperApplyOptions options,
+                                                         const struct ID *id_self);
 void BKE_id_remapper_iter(const struct IDRemapper *id_remapper,
                           IDRemapperIterFunction func,
                           void *user_data);

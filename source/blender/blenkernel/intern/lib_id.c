@@ -1121,6 +1121,14 @@ void BKE_libblock_init_empty(ID *id)
   BLI_assert_msg(0, "IDType Missing IDTypeInfo");
 }
 
+void BKE_libblock_runtime_reset_remapping_status(ID *id)
+{
+  id->runtime.remap.status = 0;
+  id->runtime.remap.skipped_refcounted = 0;
+  id->runtime.remap.skipped_direct = 0;
+  id->runtime.remap.skipped_indirect = 0;
+}
+
 /* ********** ID session-wise UUID management. ********** */
 static uint global_session_uuid = 0;
 

@@ -330,6 +330,31 @@ enum {
 /* 2 characters for ID code and 64 for actual name */
 #define MAX_ID_NAME 66
 
+/* ID_Runtime.remapping_status */
+enum {
+  /** new_id is directly linked in current .blend. */
+  ID_REMAP_IS_LINKED_DIRECT = 1 << 0,
+  /** There was some skipped 'user_one' usages of old_id. */
+  ID_REMAP_IS_USER_ONE_SKIPPED = 1 << 1,
+};
+
+/** Status used and counters created during id-remapping. */
+typedef struct ID_Runtime_Remap {
+  /** Status during ID remapping. */
+  int status;
+  /** During ID remapping the number of skipped use cases that refcount the data-block. */
+  int skipped_refcounted;
+  /** During ID remapping the number of direct use cases that could be remapped (e.g. obdata when
+in edit mode). */
+  int skipped_direct;
+  /** During ID remapping, the number of indirect use cases that could not be remapped. */
+  int skipped_indirect;
+} ID_Runtime_Remap;
+
+typedef struct ID_Runtime {
+  ID_Runtime_Remap remap;
+} ID_Runtime;
+
 /* There's a nasty circular dependency here.... 'void *' to the rescue! I
  * really wonder why this is needed. */
 typedef struct ID {
@@ -408,6 +433,8 @@ typedef struct ID {
    * May be NULL.
    */
   struct LibraryWeakReference *library_weak_reference;
+
+  struct ID_Runtime runtime;
 } ID;
 
 /**

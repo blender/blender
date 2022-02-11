@@ -69,6 +69,11 @@ void *BKE_libblock_alloc(struct Main *bmain, short type, const char *name, int f
  */
 void BKE_libblock_init_empty(struct ID *id) ATTR_NONNULL(1);
 
+/**
+ * Reset the runtime counters used by ID remapping.
+ */
+void BKE_libblock_runtime_reset_remapping_status(struct ID *id) ATTR_NONNULL(1);
+
 /* *** ID's session_uuid management. *** */
 
 /**

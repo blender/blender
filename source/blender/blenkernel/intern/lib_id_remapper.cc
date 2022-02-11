@@ -44,7 +44,25 @@ struct IDRemapper {
     return (source_types & filter) != 0;
   }
 
-  IDRemapperApplyResult apply(ID **r_id_ptr, IDRemapperApplyOptions options) const
+  IDRemapperApplyResult get_mapping_result(ID *id,
+                                           IDRemapperApplyOptions options,
+                                           const ID *id_self) const
+  {
+    if (!mappings.contains(id)) {
+      return ID_REMAP_RESULT_SOURCE_UNAVAILABLE;
+    }
+    const ID *new_id = mappings.lookup(id);
+    if ((options & ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF) != 0 && id_self == new_id) {
+      new_id = nullptr;
+    }
+    if (new_id == nullptr) {
+      return ID_REMAP_RESULT_SOURCE_UNASSIGNED;
+    }
+
+    return ID_REMAP_RESULT_SOURCE_REMAPPED;
+  }
+
+  IDRemapperApplyResult apply(ID **r_id_ptr, IDRemapperApplyOptions options, ID *id_self) const
   {
     BLI_assert(r_id_ptr != nullptr);
     if (*r_id_ptr == nullptr) {
@@ -60,6 +78,9 @@ struct IDRemapper {
     }
 
     *r_id_ptr = mappings.lookup(*r_id_ptr);
+    if (options & ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF && *r_id_ptr == id_self) {
+      *r_id_ptr = nullptr;
+    }
     if (*r_id_ptr == nullptr) {
       return ID_REMAP_RESULT_SOURCE_UNASSIGNED;
     }
@@ -142,12 +163,35 @@ bool BKE_id_remapper_has_mapping_for(const struct IDRemapper *id_remapper, uint6
   return remapper->contains_mappings_for_any(type_filter);
 }
 
+IDRemapperApplyResult BKE_id_remapper_get_mapping_result(const struct IDRemapper *id_remapper,
+                                                         struct ID *id,
+                                                         IDRemapperApplyOptions options,
+                                                         const struct ID *id_self)
+{
+  const blender::bke::id::remapper::IDRemapper *remapper = unwrap(id_remapper);
+  return remapper->get_mapping_result(id, options, id_self);
+}
+
+IDRemapperApplyResult BKE_id_remapper_apply_ex(const IDRemapper *id_remapper,
+                                               ID **r_id_ptr,
+                                               const IDRemapperApplyOptions options,
+                                               ID *id_self)
+{
+  BLI_assert_msg((options & ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF) == 0 ||
+                     id_self != nullptr,
+                 "ID_REMAP_APPLY_WHEN_REMAPPING_TO_SELF requires id_self parameter.");
+  const blender::bke::id::remapper::IDRemapper *remapper = unwrap(id_remapper);
+  return remapper->apply(r_id_ptr, options, id_self);
+}
+
 IDRemapperApplyResult BKE_id_remapper_apply(const IDRemapper *id_remapper,
                                             ID **r_id_ptr,
                                             const IDRemapperApplyOptions options)
 {
-  const blender::bke::id::remapper::IDRemapper *remapper = unwrap(id_remapper);
-  return remapper->apply(r_id_ptr, options);
+  BLI_assert_msg((options & ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF) == 0,
+                 "ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF requires id_self parameter. Use "
+                 "`BKE_id_remapper_apply_ex`.");
+  return BKE_id_remapper_apply_ex(id_remapper, r_id_ptr, options, nullptr);
 }
 
 void BKE_id_remapper_iter(const struct IDRemapper *id_remapper,
