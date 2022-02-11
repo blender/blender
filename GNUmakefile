@@ -71,6 +71,10 @@ Static Source Code Checking
    * check_sparse:          Run blenders source through sparse (C only).
    * check_smatch:          Run blenders source through smatch (C only).
    * check_descriptions:    Check for duplicate/invalid descriptions.
+   * check_licenses:        Check license headers follow the SPDX license specification,
+                            using one of the accepted licenses in 'doc/license/SPDX-license-identifiers.txt'
+                            Append with 'SHOW_HEADERS=1' to show all unique headers
+                            which can be useful for spotting license irregularities.
 
 Spell Checkers
    This runs the spell checker from the developer tools repositor.
@@ -493,6 +497,12 @@ check_spelling_osl: .FORCE
 check_descriptions: .FORCE
 	$(BLENDER_BIN) --background -noaudio --factory-startup --python \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_descriptions.py"
+
+check_licenses: .FORCE
+	PYTHONIOENCODING=utf_8 $(PYTHON) \
+	    "$(BLENDER_DIR)/source/tools/check_source/check_licenses.py" \
+	    "--show-headers=$(SHOW_HEADERS)"
+
 
 # -----------------------------------------------------------------------------
 # Utilities
