@@ -18,6 +18,8 @@
  * - `BKE_lib_query_` should be used for functions in that file.
  */
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -206,6 +208,11 @@ int BKE_library_ID_use_ID(struct ID *id_user, struct ID *id_used);
  * quite useful to reduce useless iterations in some cases.
  */
 bool BKE_library_id_can_use_idtype(struct ID *id_owner, short id_type_used);
+
+/**
+ * Given the id_owner return the type of id_types it can use as a filter_id.
+ */
+uint64_t BKE_library_id_can_use_filter_id(const struct ID *id_owner);
 
 /**
  * Check whether given ID is used locally (i.e. by another non-linked ID).
