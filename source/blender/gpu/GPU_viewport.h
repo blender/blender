@@ -79,7 +79,9 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
 /**
  * Should be called from DRW after DRW_opengl_context_enable.
  */
-void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, struct GPUOffScreen *ofs);
+void GPU_viewport_bind_from_offscreen(GPUViewport *viewport,
+                                      struct GPUOffScreen *ofs,
+                                      bool is_xr_surface);
 /**
  * Clear vars assigned from offscreen, so we don't free data owned by `GPUOffScreen`.
  */

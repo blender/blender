@@ -199,7 +199,9 @@ void GPU_viewport_bind(GPUViewport *viewport, int view, const rcti *rect)
   viewport->active_view = view;
 }
 
-void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, struct GPUOffScreen *ofs)
+void GPU_viewport_bind_from_offscreen(GPUViewport *viewport,
+                                      struct GPUOffScreen *ofs,
+                                      bool is_xr_surface)
 {
   GPUTexture *color, *depth;
   GPUFrameBuffer *fb;
@@ -208,7 +210,13 @@ void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, struct GPUOffScreen
 
   GPU_offscreen_viewport_data_get(ofs, &fb, &color, &depth);
 
-  gpu_viewport_textures_free(viewport);
+  /* XR surfaces will already check for texture size changes and free if necessary (see
+   * #wm_xr_session_surface_offscreen_ensure()), so don't free here as it has a significant
+   * performance impact (leads to texture re-creation in #gpu_viewport_textures_create() every VR
+   * drawing iteration).*/
+  if (!is_xr_surface) {
+    gpu_viewport_textures_free(viewport);
+  }
 
   /* This is the only texture we can share. */
   viewport->depth_tx = depth;

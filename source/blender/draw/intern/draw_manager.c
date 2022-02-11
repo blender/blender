@@ -1765,6 +1765,8 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
                                     GPUOffScreen *ofs,
                                     GPUViewport *viewport)
 {
+  const bool is_xr_surface = ((v3d->flag & V3D_XR_SESSION_SURFACE) != 0);
+
   /* Create temporary viewport if needed or update the existing viewport. */
   GPUViewport *render_viewport = viewport;
   if (viewport == NULL) {
@@ -1774,7 +1776,7 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
     drw_notify_view_update_offscreen(depsgraph, engine_type, region, v3d, render_viewport);
   }
 
-  GPU_viewport_bind_from_offscreen(render_viewport, ofs);
+  GPU_viewport_bind_from_offscreen(render_viewport, ofs, is_xr_surface);
 
   /* Just here to avoid an assert but shouldn't be required in practice. */
   GPU_framebuffer_restore();
