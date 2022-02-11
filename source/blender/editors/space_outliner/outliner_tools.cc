@@ -217,6 +217,7 @@ static void unlink_action_fn(bContext *C,
 {
   /* just set action to nullptr */
   BKE_animdata_set_action(CTX_wm_reports(C), tsep->id, nullptr);
+  DEG_id_tag_update(tsep->id, ID_RECALC_ANIMATION);
 }
 
 static void unlink_material_fn(bContext *UNUSED(C),
