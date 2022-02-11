@@ -159,7 +159,17 @@ typedef enum IDRemapperApplyResult {
 } IDRemapperApplyResult;
 
 typedef enum IDRemapperApplyOptions {
+  /**
+   * Update the user count of the old and new ID datablock.
+   *
+   * For remapping the old ID users will be decremented and the new ID users will be
+   * incremented. When un-assigning the old ID users will be decremented.
+   */
   ID_REMAP_APPLY_UPDATE_REFCOUNT = (1 << 0),
+
+  /**
+   * Make sure that the new ID datablock will have a 'real' user.
+   */
   ID_REMAP_APPLY_ENSURE_REAL = (1 << 1),
 
   ID_REMAP_APPLY_DEFAULT = 0,
