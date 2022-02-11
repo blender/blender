@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include "gpu_interface_info.hh"
 #include "gpu_shader_create_info.hh"
 

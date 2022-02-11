@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2013 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2013 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup depsgraph
@@ -87,7 +71,7 @@ void depsgraph_geometry_tag_to_component(const ID *id, NodeType *component_type)
 
 bool is_selectable_data_id_type(const ID_Type id_type)
 {
-  return ELEM(id_type, ID_ME, ID_CU, ID_MB, ID_LT, ID_GD, ID_HA, ID_PT, ID_VO);
+  return ELEM(id_type, ID_ME, ID_CU, ID_MB, ID_LT, ID_GD, ID_CV, ID_PT, ID_VO);
 }
 
 void depsgraph_select_tag_to_component_opcode(const ID *id,
@@ -591,7 +575,7 @@ NodeType geometry_tag_to_component(const ID *id)
         case OB_LATTICE:
         case OB_MBALL:
         case OB_GPENCIL:
-        case OB_HAIR:
+        case OB_CURVES:
         case OB_POINTCLOUD:
         case OB_VOLUME:
           return NodeType::GEOMETRY;
@@ -605,7 +589,7 @@ NodeType geometry_tag_to_component(const ID *id)
     case ID_CU:
     case ID_LT:
     case ID_MB:
-    case ID_HA:
+    case ID_CV:
     case ID_PT:
     case ID_VO:
     case ID_GR:

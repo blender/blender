@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -27,6 +13,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_image.h"
+#include "BKE_node_tree_update.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -167,7 +154,8 @@ static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
   if (id) {
     if (GS(id->name) == ID_NT) {
-      /* Special update for nodetrees to find parent datablock. */
+      /* Special update for nodetrees. */
+      BKE_ntree_update_tag_image_user_changed((bNodeTree *)id, iuser);
       ED_node_tree_propagate_change(NULL, bmain, NULL);
     }
     else {

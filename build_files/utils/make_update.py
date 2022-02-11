@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-#
-# "make update" for all platforms, updating svn libraries and tests and Blender
-# git repository and submodules.
-#
-# For release branches, this will check out the appropriate branches of
-# submodules and libraries.
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+"""
+"make update" for all platforms, updating svn libraries and tests and Blender
+git repository and sub-modules.
+
+For release branches, this will check out the appropriate branches of
+sub-modules and libraries.
+"""
 
 import argparse
 import os

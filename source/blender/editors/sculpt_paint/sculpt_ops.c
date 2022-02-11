@@ -1,25 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2006 by Nicholas Bishop
- * All rights reserved.
- * Implements the Sculpt Mode tools
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2006 by Nicholas Bishop. All rights reserved. */
 
 /** \file
  * \ingroup edsculpt
+ * Implements the Sculpt Mode tools.
  */
 
 #include "MEM_guardedalloc.h"
@@ -873,7 +857,7 @@ static void do_mask_by_color_contiguous_update_nodes_cb(
     }
     update_node = true;
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -980,7 +964,7 @@ static void do_mask_by_color_task_cb(void *__restrict userdata,
     }
     update_node = true;
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;

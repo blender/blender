@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2014 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2014 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -323,6 +307,8 @@ static bool library_foreach_ID_link(Main *bmain,
                          IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
       CALLBACK_INVOKE_ID(id->override_library->storage,
                          IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
+
+      CALLBACK_INVOKE_ID(id->override_library->hierarchy_root, IDWALK_CB_LOOPBACK);
     }
 
     IDP_foreach_property(id->properties,
@@ -378,109 +364,99 @@ void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cb_flag)
   }
 }
 
-bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
+uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
 {
   /* any type of ID can be used in custom props. */
   if (id_owner->properties) {
-    return true;
+    return FILTER_ID_ALL;
   }
-
   const short id_type_owner = GS(id_owner->name);
 
   /* IDProps of armature bones and nodes, and bNode->id can use virtually any type of ID. */
   if (ELEM(id_type_owner, ID_NT, ID_AR)) {
-    return true;
+    return FILTER_ID_ALL;
   }
 
-  if (ntreeFromID(id_owner)) {
-    return true;
+  /* Casting to non const.
+   * TODO(jbakker): We should introduce a ntree_id_has_tree function as we are actually not
+   * interested in the result. */
+  if (ntreeFromID((ID *)id_owner)) {
+    return FILTER_ID_ALL;
   }
 
   if (BKE_animdata_from_id(id_owner)) {
     /* AnimationData can use virtually any kind of data-blocks, through drivers especially. */
-    return true;
+    return FILTER_ID_ALL;
   }
 
   switch ((ID_Type)id_type_owner) {
     case ID_LI:
-      return ELEM(id_type_used, ID_LI);
+      /* ID_LI doesn't exist as filter_id. */
+      return 0;
     case ID_SCE:
-      return (ELEM(id_type_used,
-                   ID_OB,
-                   ID_WO,
-                   ID_SCE,
-                   ID_MC,
-                   ID_MA,
-                   ID_GR,
-                   ID_TXT,
-                   ID_LS,
-                   ID_MSK,
-                   ID_SO,
-                   ID_GD,
-                   ID_BR,
-                   ID_PAL,
-                   ID_IM,
-                   ID_NT));
+      return FILTER_ID_OB | FILTER_ID_WO | FILTER_ID_SCE | FILTER_ID_MC | FILTER_ID_MA |
+             FILTER_ID_GR | FILTER_ID_TXT | FILTER_ID_LS | FILTER_ID_MSK | FILTER_ID_SO |
+             FILTER_ID_GD | FILTER_ID_BR | FILTER_ID_PAL | FILTER_ID_IM | FILTER_ID_NT;
     case ID_OB:
       /* Could be more specific, but simpler to just always say 'yes' here. */
-      return true;
+      return FILTER_ID_ALL;
     case ID_ME:
-      return ELEM(id_type_used, ID_ME, ID_KE, ID_MA, ID_IM);
+      return FILTER_ID_ME | FILTER_ID_MA | FILTER_ID_IM;
     case ID_CU:
-      return ELEM(id_type_used, ID_OB, ID_KE, ID_MA, ID_VF);
+      return FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_VF;
     case ID_MB:
-      return ELEM(id_type_used, ID_MA);
+      return FILTER_ID_MA;
     case ID_MA:
-      return (ELEM(id_type_used, ID_TE, ID_GR));
+      return FILTER_ID_TE | FILTER_ID_GR;
     case ID_TE:
-      return (ELEM(id_type_used, ID_IM, ID_OB));
+      return FILTER_ID_IM | FILTER_ID_OB;
     case ID_LT:
-      return ELEM(id_type_used, ID_KE);
+      return 0;
     case ID_LA:
-      return (ELEM(id_type_used, ID_TE));
+      return FILTER_ID_TE;
     case ID_CA:
-      return ELEM(id_type_used, ID_OB, ID_IM);
+      return FILTER_ID_OB | FILTER_ID_IM;
     case ID_KE:
       /* Warning! key->from, could be more types in future? */
-      return ELEM(id_type_used, ID_ME, ID_CU, ID_LT);
+      return FILTER_ID_ME | FILTER_ID_CU | FILTER_ID_LT;
     case ID_SCR:
-      return ELEM(id_type_used, ID_SCE);
+      return FILTER_ID_SCE;
     case ID_WO:
-      return (ELEM(id_type_used, ID_TE));
+      return FILTER_ID_TE;
     case ID_SPK:
-      return ELEM(id_type_used, ID_SO);
+      return FILTER_ID_SO;
     case ID_GR:
-      return ELEM(id_type_used, ID_OB, ID_GR);
+      return FILTER_ID_OB | FILTER_ID_GR;
     case ID_NT:
       /* Could be more specific, but node.id has no type restriction... */
-      return true;
+      return FILTER_ID_ALL;
     case ID_BR:
-      return ELEM(id_type_used, ID_BR, ID_IM, ID_PC, ID_TE, ID_MA);
+      return FILTER_ID_BR | FILTER_ID_IM | FILTER_ID_PC | FILTER_ID_TE | FILTER_ID_MA;
     case ID_PA:
-      return ELEM(id_type_used, ID_OB, ID_GR, ID_TE);
+      return FILTER_ID_OB | FILTER_ID_GR | FILTER_ID_TE;
     case ID_MC:
-      return ELEM(id_type_used, ID_GD, ID_IM);
+      return FILTER_ID_GD | FILTER_ID_IM;
     case ID_MSK:
       /* WARNING! mask->parent.id, not typed. */
-      return ELEM(id_type_used, ID_MC);
+      return FILTER_ID_MC;
     case ID_LS:
-      return (ELEM(id_type_used, ID_TE, ID_OB));
+      return FILTER_ID_TE | FILTER_ID_OB;
     case ID_LP:
-      return ELEM(id_type_used, ID_IM);
+      return FILTER_ID_IM;
     case ID_GD:
-      return ELEM(id_type_used, ID_MA);
+      return FILTER_ID_MA;
     case ID_WS:
-      return ELEM(id_type_used, ID_SCR, ID_SCE);
-    case ID_HA:
-      return ELEM(id_type_used, ID_MA);
+      return FILTER_ID_SCE;
+    case ID_CV:
+      return FILTER_ID_MA;
     case ID_PT:
-      return ELEM(id_type_used, ID_MA);
+      return FILTER_ID_MA;
     case ID_VO:
-      return ELEM(id_type_used, ID_MA);
+      return FILTER_ID_MA;
     case ID_SIM:
-      return ELEM(id_type_used, ID_OB, ID_IM);
+      return FILTER_ID_OB | FILTER_ID_IM;
     case ID_WM:
-      return ELEM(id_type_used, ID_SCE, ID_WS);
+      return FILTER_ID_SCE | FILTER_ID_WS;
     case ID_IM:
     case ID_VF:
     case ID_TXT:
@@ -491,12 +467,40 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
     case ID_PC:
     case ID_CF:
       /* Those types never use/reference other IDs... */
-      return false;
+      return 0;
     case ID_IP:
       /* Deprecated... */
-      return false;
+      return 0;
   }
-  return false;
+  return 0;
+}
+
+bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
+{
+  /* any type of ID can be used in custom props. */
+  if (id_owner->properties) {
+    return true;
+  }
+
+  const short id_type_owner = GS(id_owner->name);
+  /* Exception for ID_LI as they don't exist as a filter. */
+  if (id_type_used == ID_LI) {
+    return id_type_owner == ID_LI;
+  }
+
+  /* Exception: ID_KE aren't available as filter_id. */
+  if (id_type_used == ID_KE) {
+    return ELEM(id_type_owner, ID_ME, ID_CU, ID_LT);
+  }
+
+  /* Exception: ID_SCR aren't available as filter_id. */
+  if (id_type_used == ID_SCR) {
+    return ELEM(id_type_owner, ID_WS);
+  }
+
+  const uint64_t filter_id_type_used = BKE_idtype_idcode_to_idfilter(id_type_used);
+  const uint64_t can_be_used = BKE_library_id_can_use_filter_id(id_owner);
+  return (can_be_used & filter_id_type_used) != 0;
 }
 
 /* ***** ID users iterator. ***** */

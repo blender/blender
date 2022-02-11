@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 import bpy
@@ -2148,8 +2132,8 @@ class VIEW3D_MT_add(Menu):
         layout.menu("VIEW3D_MT_surface_add", icon='OUTLINER_OB_SURFACE')
         layout.menu("VIEW3D_MT_metaball_add", text="Metaball", icon='OUTLINER_OB_META')
         layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
-        if context.preferences.experimental.use_new_hair_type:
-            layout.operator("object.hair_add", text="Hair", icon='OUTLINER_OB_HAIR')
+        if context.preferences.experimental.use_new_curves_type:
+            layout.operator("object.hair_curves_add", text="Hair Curves", icon='OUTLINER_OB_CURVES')
         if context.preferences.experimental.use_new_point_cloud_type:
             layout.operator("object.pointcloud_add", text="Point Cloud", icon='OUTLINER_OB_POINTCLOUD')
         layout.menu("VIEW3D_MT_volume_add", text="Volume", icon='OUTLINER_OB_VOLUME')
@@ -5628,7 +5612,7 @@ class VIEW3D_PT_object_type_visibility(Panel):
             ("surf", "Surface"),
             ("meta", "Meta"),
             ("font", "Text"),
-            ("hair", "Hair"),
+            ("curves", "Hair Curves"),
             ("pointcloud", "Point Cloud"),
             ("volume", "Volume"),
             ("grease_pencil", "Grease Pencil"),
@@ -5648,7 +5632,7 @@ class VIEW3D_PT_object_type_visibility(Panel):
                 col.separator()
                 continue
 
-            if attr == "hair" and not hasattr(bpy.data, "hairs"):
+            if attr == "curves" and not hasattr(bpy.data, "hair_curves"):
                 continue
             elif attr == "pointcloud" and not hasattr(bpy.data, "pointclouds"):
                 continue

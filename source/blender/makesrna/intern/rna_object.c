@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -271,7 +257,7 @@ const EnumPropertyItem rna_enum_object_type_items[] = {
     OBTYPE_CU_SURF,
     {OB_MBALL, "META", ICON_OUTLINER_OB_META, "Metaball", ""},
     OBTYPE_CU_FONT,
-    {OB_HAIR, "HAIR", ICON_OUTLINER_OB_HAIR, "Hair", ""},
+    {OB_CURVES, "CURVES", ICON_OUTLINER_OB_CURVES, "Hair Curves", ""},
     {OB_POINTCLOUD, "POINTCLOUD", ICON_OUTLINER_OB_POINTCLOUD, "Point Cloud", ""},
     {OB_VOLUME, "VOLUME", ICON_OUTLINER_OB_VOLUME, "Volume", ""},
     {OB_GPENCIL, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
@@ -613,9 +599,9 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
       return &RNA_LightProbe;
     case OB_GPENCIL:
       return &RNA_GreasePencil;
-    case OB_HAIR:
-#  ifdef WITH_HAIR_NODES
-      return &RNA_Hair;
+    case OB_CURVES:
+#  ifdef WITH_NEW_CURVES_TYPE
+      return &RNA_Curves;
 #  else
       return &RNA_ID;
 #  endif

@@ -1,22 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2006, Blender Foundation
-# All rights reserved.
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright 2006 Blender Foundation. All rights reserved.
 
 set(INC
   .
@@ -119,6 +102,7 @@ set(SRC
   intern/crazyspace.c
   intern/cryptomatte.cc
   intern/curve.cc
+  intern/curves.cc
   intern/curve_bevel.c
   intern/curve_convert.c
   intern/curve_decimate.c
@@ -156,7 +140,7 @@ set(SRC
   intern/gpencil_curve.c
   intern/gpencil_geom.cc
   intern/gpencil_modifier.c
-  intern/hair.cc
+  intern/gpencil_update_cache.c
   intern/icons.cc
   intern/icons_rasterize.c
   intern/idprop.c
@@ -356,6 +340,7 @@ set(SRC
   BKE_cryptomatte.h
   BKE_cryptomatte.hh
   BKE_curve.h
+  BKE_curves.h
   BKE_curve_to_mesh.hh
   BKE_curveprofile.h
   BKE_customdata.h
@@ -384,7 +369,7 @@ set(SRC
   BKE_gpencil_curve.h
   BKE_gpencil_geom.h
   BKE_gpencil_modifier.h
-  BKE_hair.h
+  BKE_gpencil_update_cache.h
   BKE_icons.h
   BKE_idprop.h
   BKE_idprop.hh

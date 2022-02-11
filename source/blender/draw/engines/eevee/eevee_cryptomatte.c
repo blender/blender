@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2020, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. */
 
 /** \file
  * \ingroup EEVEE
@@ -56,7 +41,7 @@
 #include "BLI_math_bits.h"
 #include "BLI_rect.h"
 
-#include "DNA_hair_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
@@ -248,25 +233,25 @@ static DRWShadingGroup *eevee_cryptomatte_shading_group_create(EEVEE_Data *vedat
   return grp;
 }
 
-static void eevee_cryptomatte_hair_cache_populate(EEVEE_Data *vedata,
-                                                  EEVEE_ViewLayerData *sldata,
-                                                  Object *ob,
-                                                  ParticleSystem *psys,
-                                                  ModifierData *md,
-                                                  Material *material)
+static void eevee_cryptomatte_curves_cache_populate(EEVEE_Data *vedata,
+                                                    EEVEE_ViewLayerData *sldata,
+                                                    Object *ob,
+                                                    ParticleSystem *psys,
+                                                    ModifierData *md,
+                                                    Material *material)
 {
   DRWShadingGroup *grp = eevee_cryptomatte_shading_group_create(
       vedata, sldata, ob, material, true);
   DRW_shgroup_hair_create_sub(ob, psys, md, grp, NULL);
 }
 
-void EEVEE_cryptomatte_object_hair_cache_populate(EEVEE_Data *vedata,
-                                                  EEVEE_ViewLayerData *sldata,
-                                                  Object *ob)
+void EEVEE_cryptomatte_object_curves_cache_populate(EEVEE_Data *vedata,
+                                                    EEVEE_ViewLayerData *sldata,
+                                                    Object *ob)
 {
-  BLI_assert(ob->type == OB_HAIR);
-  Material *material = BKE_object_material_get_eval(ob, HAIR_MATERIAL_NR);
-  eevee_cryptomatte_hair_cache_populate(vedata, sldata, ob, NULL, NULL, material);
+  BLI_assert(ob->type == OB_CURVES);
+  Material *material = BKE_object_material_get_eval(ob, CURVES_MATERIAL_NR);
+  eevee_cryptomatte_curves_cache_populate(vedata, sldata, ob, NULL, NULL, material);
 }
 
 void EEVEE_cryptomatte_particle_hair_cache_populate(EEVEE_Data *vedata,
@@ -291,7 +276,7 @@ void EEVEE_cryptomatte_particle_hair_cache_populate(EEVEE_Data *vedata,
           continue;
         }
         Material *material = BKE_object_material_get_eval(ob, part->omat);
-        eevee_cryptomatte_hair_cache_populate(vedata, sldata, ob, psys, md, material);
+        eevee_cryptomatte_curves_cache_populate(vedata, sldata, ob, psys, md, material);
       }
     }
   }

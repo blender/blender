@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2011 Blender Foundation.
+
 # - Find Spacenav library
 # Find the native Spacenav includes and library
 # This module defines
@@ -10,13 +13,6 @@
 #
 # also defined, but not for general use are
 #  SPACENAV_LIBRARY, where to find the Spacenav library.
-
-#=============================================================================
-# Copyright 2011 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If SPACENAV_ROOT_DIR was defined in the environment, use it.
 IF(NOT SPACENAV_ROOT_DIR AND NOT $ENV{SPACENAV_ROOT_DIR} STREQUAL "")

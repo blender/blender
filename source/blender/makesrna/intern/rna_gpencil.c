@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -172,6 +158,7 @@ static const EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 #  include "BKE_gpencil.h"
 #  include "BKE_gpencil_curve.h"
 #  include "BKE_gpencil_geom.h"
+#  include "BKE_gpencil_update_cache.h"
 #  include "BKE_icons.h"
 
 #  include "DEG_depsgraph.h"
@@ -179,6 +166,12 @@ static const EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 
 static void rna_GPencil_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
+#  if 0
+  /* In case a property on a layer changed, tag it with a light update. */
+  if (ptr->type == &RNA_GPencilLayer) {
+    BKE_gpencil_tag_light_update((bGPdata *)(ptr->owner_id), (bGPDlayer *)(ptr->data), NULL, NULL);
+  }
+#  endif
   DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }

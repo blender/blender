@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2020 Blender Foundation.
+
 # - Find NanoVDB library
 # Find the native NanoVDB includes and library
 # This module defines
@@ -6,13 +9,6 @@
 #  NANOVDB_ROOT_DIR, The base directory to search for NanoVDB.
 #                     This can also be an environment variable.
 #  NANOVDB_FOUND, If false, do not try to use NanoVDB.
-
-#=============================================================================
-# Copyright 2020 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If NANOVDB_ROOT_DIR was defined in the environment, use it.
 IF(NOT NANOVDB_ROOT_DIR AND NOT $ENV{NANOVDB_ROOT_DIR} STREQUAL "")

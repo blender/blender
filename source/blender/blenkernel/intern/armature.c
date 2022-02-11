@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -2679,6 +2663,35 @@ BoundBox *BKE_armature_boundbox_get(Object *ob)
   return ob->runtime.bb;
 }
 
+void BKE_pchan_minmax(const Object *ob, const bPoseChannel *pchan, float r_min[3], float r_max[3])
+{
+  const bArmature *arm = ob->data;
+  const bPoseChannel *pchan_tx = (pchan->custom && pchan->custom_tx) ? pchan->custom_tx : pchan;
+  const BoundBox *bb_custom = ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) ?
+                                  BKE_object_boundbox_get(pchan->custom) :
+                                  NULL;
+  if (bb_custom) {
+    float mat[4][4], smat[4][4], rmat[4][4], tmp[4][4];
+    scale_m4_fl(smat, PCHAN_CUSTOM_BONE_LENGTH(pchan));
+    rescale_m4(smat, pchan->custom_scale_xyz);
+    eulO_to_mat4(rmat, pchan->custom_rotation_euler, ROT_MODE_XYZ);
+    copy_m4_m4(tmp, pchan_tx->pose_mat);
+    translate_m4(tmp,
+                 pchan->custom_translation[0],
+                 pchan->custom_translation[1],
+                 pchan->custom_translation[2]);
+    mul_m4_series(mat, ob->obmat, tmp, rmat, smat);
+    BKE_boundbox_minmax(bb_custom, mat, r_min, r_max);
+  }
+  else {
+    float vec[3];
+    mul_v3_m4v3(vec, ob->obmat, pchan_tx->pose_head);
+    minmax_v3v3_v3(r_min, r_max, vec);
+    mul_v3_m4v3(vec, ob->obmat, pchan_tx->pose_tail);
+    minmax_v3v3_v3(r_min, r_max, vec);
+  }
+}
+
 bool BKE_pose_minmax(Object *ob, float r_min[3], float r_max[3], bool use_hidden, bool use_select)
 {
   bool changed = false;
@@ -2692,31 +2705,8 @@ bool BKE_pose_minmax(Object *ob, float r_min[3], float r_max[3], bool use_hidden
        *     (editarmature.c:2592)... Skip in this case too! */
       if (pchan->bone && (!((use_hidden == false) && (PBONE_VISIBLE(arm, pchan->bone) == false)) &&
                           !((use_select == true) && ((pchan->bone->flag & BONE_SELECTED) == 0)))) {
-        bPoseChannel *pchan_tx = (pchan->custom && pchan->custom_tx) ? pchan->custom_tx : pchan;
-        BoundBox *bb_custom = ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) ?
-                                  BKE_object_boundbox_get(pchan->custom) :
-                                  NULL;
-        if (bb_custom) {
-          float mat[4][4], smat[4][4], rmat[4][4], tmp[4][4];
-          scale_m4_fl(smat, PCHAN_CUSTOM_BONE_LENGTH(pchan));
-          rescale_m4(smat, pchan->custom_scale_xyz);
-          eulO_to_mat4(rmat, pchan->custom_rotation_euler, ROT_MODE_XYZ);
-          copy_m4_m4(tmp, pchan_tx->pose_mat);
-          translate_m4(tmp,
-                       pchan->custom_translation[0],
-                       pchan->custom_translation[1],
-                       pchan->custom_translation[2]);
-          mul_m4_series(mat, ob->obmat, tmp, rmat, smat);
-          BKE_boundbox_minmax(bb_custom, mat, r_min, r_max);
-        }
-        else {
-          float vec[3];
-          mul_v3_m4v3(vec, ob->obmat, pchan_tx->pose_head);
-          minmax_v3v3_v3(r_min, r_max, vec);
-          mul_v3_m4v3(vec, ob->obmat, pchan_tx->pose_tail);
-          minmax_v3v3_v3(r_min, r_max, vec);
-        }
 
+        BKE_pchan_minmax(ob, pchan, r_min, r_max);
         changed = true;
       }
     }

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -667,6 +653,13 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 
               /* Assign new pointer, takes care of updates/notifiers */
               RNA_id_pointer_create(override_id, &idptr);
+              /* Insert into override hierarchy if possible. */
+              ID *owner_id = template_ui->ptr.owner_id;
+              if (owner_id != NULL && ID_IS_OVERRIDE_LIBRARY_REAL(owner_id)) {
+                override_id->override_library->hierarchy_root =
+                    owner_id->override_library->hierarchy_root;
+                owner_id->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY;
+              }
             }
             undo_push_label = "Make Library Override";
           }
@@ -792,8 +785,8 @@ static const char *template_id_browse_tip(const StructRNA *type)
         return N_("Browse Workspace to be linked");
       case ID_LP:
         return N_("Browse LightProbe to be linked");
-      case ID_HA:
-        return N_("Browse Hair Data to be linked");
+      case ID_CV:
+        return N_("Browse Hair Curves Data to be linked");
       case ID_PT:
         return N_("Browse Point Cloud Data to be linked");
       case ID_VO:
@@ -874,7 +867,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
                             BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE,
                             BLT_I18NCONTEXT_ID_WORKSPACE,
                             BLT_I18NCONTEXT_ID_LIGHTPROBE,
-                            BLT_I18NCONTEXT_ID_HAIR,
+                            BLT_I18NCONTEXT_ID_CURVES,
                             BLT_I18NCONTEXT_ID_POINTCLOUD,
                             BLT_I18NCONTEXT_ID_VOLUME,
                             BLT_I18NCONTEXT_ID_SIMULATION, );

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2016 Blender Foundation.
+
 # - Find CPPUNIT library
 # Find the native CPPUNIT includes and library
 # This module defines
@@ -10,17 +13,6 @@
 #
 # also defined, but not for general use are
 #  CPPUNIT_LIBRARY, where to find the CPPUNIT library.
-
-#=============================================================================
-# Copyright 2016 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD License (the "License");
-# see accompanying file Copyright.txt for details.
-#
-# This software is distributed WITHOUT ANY WARRANTY; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the License for more information.
-#=============================================================================
 
 # If CPPUNIT_ROOT_DIR was defined in the environment, use it.
 IF(NOT CPPUNIT_ROOT_DIR AND NOT $ENV{CPPUNIT_ROOT_DIR} STREQUAL "")

@@ -1,18 +1,5 @@
-#
-# Copyright 2011-2013 Blender Foundation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2011-2022 Blender Foundation
 
 # <pep8 compliant>
 from __future__ import annotations
@@ -1374,6 +1361,12 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         default=False,
     )
 
+    use_metalrt: BoolProperty(
+        name="MetalRT (Experimental)",
+        description="MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases. However this support is experimental and some scenes may render incorrectly",
+        default=False,
+    )
+
     def find_existing_device_entry(self, device):
         for device_entry in self.devices:
             if device_entry.id == device[2] and device_entry.type == device[1]:
@@ -1518,6 +1511,12 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             row = layout.row()
             row.use_property_split = True
             row.prop(self, "peer_memory")
+
+        if compute_device_type == 'METAL':
+            row = layout.row()
+            row.use_property_split = True
+            row.prop(self, "use_metalrt")
+
 
     def draw(self, context):
         self.draw_impl(self.layout, context)

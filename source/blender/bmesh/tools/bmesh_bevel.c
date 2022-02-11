@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -6373,10 +6359,10 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
           sub_v3_v3v3(edge_dir, bv->v->co, v2->co);
           float z = fabsf(2.0f * sinf(angle_v3v3(vert_axis, edge_dir)));
           if (z < BEVEL_EPSILON) {
-            e->offset_l_spec = 0.01f * bp->offset; /* Undefined behavior, so tiny bevel. */
+            e->offset_l_spec = 0.01f * bv->offset; /* Undefined behavior, so tiny bevel. */
           }
           else {
-            e->offset_l_spec = bp->offset / z;
+            e->offset_l_spec = bv->offset / z;
           }
           break;
         }
@@ -6385,10 +6371,10 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
           sub_v3_v3v3(edge_dir, bv->v->co, v2->co);
           float z = fabsf(cosf(angle_v3v3(vert_axis, edge_dir)));
           if (z < BEVEL_EPSILON) {
-            e->offset_l_spec = 0.01f * bp->offset; /* Undefined behavior, so tiny bevel. */
+            e->offset_l_spec = 0.01f * bv->offset; /* Undefined behavior, so tiny bevel. */
           }
           else {
-            e->offset_l_spec = bp->offset / z;
+            e->offset_l_spec = bv->offset / z;
           }
           break;
         }

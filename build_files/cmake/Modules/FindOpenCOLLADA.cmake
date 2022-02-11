@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2011 Blender Foundation.
+
 # - Find OpenCOLLADA library
 # Find the native OpenCOLLADA includes and library
 # This module defines
@@ -7,13 +10,6 @@
 #  OPENCOLLADA_ROOT_DIR, The base directory to search for OpenCOLLADA.
 #                    This can also be an environment variable.
 #  OPENCOLLADA_FOUND, If false, do not try to use OpenCOLLADA.
-
-#=============================================================================
-# Copyright 2011 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # note about include paths, there are 2 ways includes are set
 #

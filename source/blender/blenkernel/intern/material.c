@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -36,10 +20,10 @@
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_defaults.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -341,9 +325,9 @@ Material ***BKE_object_material_array_p(Object *ob)
     bGPdata *gpd = ob->data;
     return &(gpd->mat);
   }
-  if (ob->type == OB_HAIR) {
-    Hair *hair = ob->data;
-    return &(hair->mat);
+  if (ob->type == OB_CURVES) {
+    Curves *curves = ob->data;
+    return &(curves->mat);
   }
   if (ob->type == OB_POINTCLOUD) {
     PointCloud *pointcloud = ob->data;
@@ -374,9 +358,9 @@ short *BKE_object_material_len_p(Object *ob)
     bGPdata *gpd = ob->data;
     return &(gpd->totcol);
   }
-  if (ob->type == OB_HAIR) {
-    Hair *hair = ob->data;
-    return &(hair->totcol);
+  if (ob->type == OB_CURVES) {
+    Curves *curves = ob->data;
+    return &(curves->totcol);
   }
   if (ob->type == OB_POINTCLOUD) {
     PointCloud *pointcloud = ob->data;
@@ -403,8 +387,8 @@ Material ***BKE_id_material_array_p(ID *id)
       return &(((MetaBall *)id)->mat);
     case ID_GD:
       return &(((bGPdata *)id)->mat);
-    case ID_HA:
-      return &(((Hair *)id)->mat);
+    case ID_CV:
+      return &(((Curves *)id)->mat);
     case ID_PT:
       return &(((PointCloud *)id)->mat);
     case ID_VO:
@@ -429,8 +413,8 @@ short *BKE_id_material_len_p(ID *id)
       return &(((MetaBall *)id)->totcol);
     case ID_GD:
       return &(((bGPdata *)id)->totcol);
-    case ID_HA:
-      return &(((Hair *)id)->totcol);
+    case ID_CV:
+      return &(((Curves *)id)->totcol);
     case ID_PT:
       return &(((PointCloud *)id)->totcol);
     case ID_VO:
@@ -454,7 +438,7 @@ static void material_data_index_remove_id(ID *id, short index)
       BKE_curve_material_index_remove((Curve *)id, index);
       break;
     case ID_MB:
-    case ID_HA:
+    case ID_CV:
     case ID_PT:
     case ID_VO:
       /* No material indices for these object data types. */
@@ -509,7 +493,7 @@ static void material_data_index_clear_id(ID *id)
       BKE_curve_material_index_clear((Curve *)id);
       break;
     case ID_MB:
-    case ID_HA:
+    case ID_CV:
     case ID_PT:
     case ID_VO:
       /* No material indices for these object data types. */

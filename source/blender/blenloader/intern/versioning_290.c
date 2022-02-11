@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -32,11 +18,11 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_fluid_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_light_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -1120,10 +1106,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Hair and PointCloud attributes. */
-    for (Hair *hair = bmain->hairs.first; hair != NULL; hair = hair->id.next) {
-      do_versions_point_attributes(&hair->geometry.point_data);
-    }
+    /* PointCloud attributes. */
     for (PointCloud *pointcloud = bmain->pointclouds.first; pointcloud != NULL;
          pointcloud = pointcloud->id.next) {
       do_versions_point_attributes(&pointcloud->pdata);
@@ -1422,10 +1405,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Hair and PointCloud attributes names. */
-    LISTBASE_FOREACH (Hair *, hair, &bmain->hairs) {
-      do_versions_point_attribute_names(&hair->geometry.point_data);
-    }
+    /* PointCloud attributes names. */
     LISTBASE_FOREACH (PointCloud *, pointcloud, &bmain->pointclouds) {
       do_versions_point_attribute_names(&pointcloud->pdata);
     }

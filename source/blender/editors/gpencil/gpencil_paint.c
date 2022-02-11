@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008, Blender Foundation
- * This is a new part of Blender
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. */
 
 /** \file
  * \ingroup edgpencil
@@ -56,6 +40,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_curve.h"
 #include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_update_cache.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -1341,6 +1326,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
   }
 
   gpencil_update_cache(p->gpd);
+  BKE_gpencil_tag_full_update(p->gpd, gpl, p->gpf, NULL);
 }
 
 /* --- 'Eraser' for 'Paint' Tool ------ */
@@ -2108,6 +2094,9 @@ static void gpencil_session_cleanup(tGPsdata *p)
   gpd->runtime.sbuffer_used = 0;
   gpd->runtime.sbuffer_size = 0;
   gpd->runtime.sbuffer_sflag = 0;
+  /* This update is required for update-on-write because the sbuffer data is not longer overwritten
+   * by a copy-on-write. */
+  ED_gpencil_sbuffer_update_eval(gpd, p->ob_eval);
   p->inittime = 0.0;
 }
 
@@ -2136,6 +2125,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
   p->gpl = BKE_gpencil_layer_active_get(p->gpd);
   if (p->gpl == NULL) {
     p->gpl = BKE_gpencil_layer_addnew(p->gpd, DATA_("GP_Layer"), true, false);
+    BKE_gpencil_tag_full_update(p->gpd, NULL, NULL, NULL);
     changed = true;
     if (p->custom_color[3]) {
       copy_v3_v3(p->gpl->color, p->custom_color);
@@ -2218,10 +2208,15 @@ static void gpencil_paint_initstroke(tGPsdata *p,
     }
 
     bool need_tag = p->gpl->actframe == NULL;
+    bGPDframe *actframe = p->gpl->actframe;
+
     p->gpf = BKE_gpencil_layer_frame_get(p->gpl, CFRA, add_frame_mode);
     /* Only if there wasn't an active frame, need update. */
     if (need_tag) {
-      DEG_id_tag_update(&p->gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+      DEG_id_tag_update(&p->gpd->id, ID_RECALC_GEOMETRY);
+    }
+    if (actframe != p->gpl->actframe) {
+      BKE_gpencil_tag_full_update(p->gpd, p->gpl, NULL, NULL);
     }
 
     if (p->gpf == NULL) {

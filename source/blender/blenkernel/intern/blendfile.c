@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -374,6 +360,10 @@ static void setup_app_data(bContext *C,
     BKE_lib_override_library_main_proxy_convert(bmain, reports);
   }
 
+  if (mode != LOAD_UNDO && !blendfile_or_libraries_versions_atleast(bmain, 302, 3)) {
+    BKE_lib_override_library_main_hierarchy_root_ensure(bmain);
+  }
+
   bmain->recovered = 0;
 
   /* startup.blend or recovered startup */
@@ -621,12 +611,12 @@ UserDef *BKE_blendfile_userdef_from_defaults(void)
     const char *addons[] = {
         "io_anim_bvh",
         "io_curve_svg",
-        "io_import_obj",
         "io_mesh_ply",
         "io_mesh_stl",
         "io_mesh_uv_layout",
         "io_scene_fbx",
         "io_scene_gltf2",
+        "io_scene_obj",
         "io_scene_x3d",
         "cycles",
         "pose_library",

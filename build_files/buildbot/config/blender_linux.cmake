@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # ######## Global feature set settings ########
 
 include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/config/blender_release.cmake")

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -76,7 +62,7 @@ typedef struct CurvesGeometry {
   int curve_size;
 } CurvesGeometry;
 
-typedef struct Hair {
+typedef struct Curves {
   ID id;
   /* Animation data (must be immediately after id). */
   struct AnimData *adt;
@@ -93,15 +79,15 @@ typedef struct Hair {
 
   /* Draw Cache. */
   void *batch_cache;
-} Hair;
+} Curves;
 
-/* Hair.flag */
+/* Curves.flag */
 enum {
   HA_DS_EXPAND = (1 << 0),
 };
 
 /* Only one material supported currently. */
-#define HAIR_MATERIAL_NR 1
+#define CURVES_MATERIAL_NR 1
 
 #ifdef __cplusplus
 }

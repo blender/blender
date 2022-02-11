@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spnode
@@ -397,7 +381,7 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
 
     /* Round the socket location to stop it from jiggling. */
     nsock->locx = round(loc.x + NODE_WIDTH(node));
-    nsock->locy = round(0.5f * (dy + buty));
+    nsock->locy = round(dy - NODE_DYS);
 
     dy = buty;
     if (nsock->next) {
@@ -527,7 +511,7 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
 
     nsock->locx = loc.x;
     /* Round the socket vertical position to stop it from jiggling. */
-    nsock->locy = round(0.5f * (dy + buty));
+    nsock->locy = round(dy - NODE_DYS);
 
     dy = buty - multi_input_socket_offset * 0.5;
     if (nsock->next) {
@@ -626,7 +610,9 @@ static void node_update_hidden(bNode &node, uiBlock &block)
 
 static int node_get_colorid(const bNode &node)
 {
-  switch (node.typeinfo->nclass) {
+  const int nclass = (node.typeinfo->ui_class == nullptr) ? node.typeinfo->nclass :
+                                                            node.typeinfo->ui_class(&node);
+  switch (nclass) {
     case NODE_CLASS_INPUT:
       return TH_NODE_INPUT;
     case NODE_CLASS_OUTPUT:
@@ -2270,6 +2256,13 @@ void node_set_cursor(wmWindow &win, SpaceNode &snode, const float2 &cursor)
   if (node) {
     NodeResizeDirection dir = node_get_resize_direction(node, cursor[0], cursor[1]);
     wmcursor = node_get_resize_cursor(dir);
+    /* We want to indicate that Frame nodes can be moved/selected on their borders. */
+    if (node->type == NODE_FRAME && dir == NODE_RESIZE_NONE) {
+      const rctf frame_inside = node_frame_rect_inside(*node);
+      if (!BLI_rctf_isect_pt(&frame_inside, cursor[0], cursor[1])) {
+        wmcursor = WM_CURSOR_NSEW_SCROLL;
+      }
+    }
   }
 
   WM_cursor_set(&win, wmcursor);

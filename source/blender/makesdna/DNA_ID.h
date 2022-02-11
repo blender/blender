@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup DNA
@@ -310,14 +294,19 @@ typedef struct IDOverrideLibrary {
   /** List of IDOverrideLibraryProperty structs. */
   ListBase properties;
 
+  /** Override hierarchy root ID. Usually the actual root of the hierarchy, but not always
+   * in degenerated cases.
+   *
+   * All liboverrides of a same hierarchy (e.g. a character collection) share the same root.
+   */
+  struct ID *hierarchy_root;
+
   /* Read/write data. */
   /* Temp ID storing extra override data (used for differential operations only currently).
    * Always NULL outside of read/write context. */
   struct ID *storage;
 
   IDOverrideLibraryRuntime *runtime;
-
-  void *_pad_0;
 
   unsigned int flag;
   char _pad_1[4];
@@ -340,6 +329,31 @@ enum {
 
 /* 2 characters for ID code and 64 for actual name */
 #define MAX_ID_NAME 66
+
+/* ID_Runtime.remapping_status */
+enum {
+  /** new_id is directly linked in current .blend. */
+  ID_REMAP_IS_LINKED_DIRECT = 1 << 0,
+  /** There was some skipped 'user_one' usages of old_id. */
+  ID_REMAP_IS_USER_ONE_SKIPPED = 1 << 1,
+};
+
+/** Status used and counters created during id-remapping. */
+typedef struct ID_Runtime_Remap {
+  /** Status during ID remapping. */
+  int status;
+  /** During ID remapping the number of skipped use cases that refcount the data-block. */
+  int skipped_refcounted;
+  /** During ID remapping the number of direct use cases that could be remapped (e.g. obdata when
+in edit mode). */
+  int skipped_direct;
+  /** During ID remapping, the number of indirect use cases that could not be remapped. */
+  int skipped_indirect;
+} ID_Runtime_Remap;
+
+typedef struct ID_Runtime {
+  ID_Runtime_Remap remap;
+} ID_Runtime;
 
 /* There's a nasty circular dependency here.... 'void *' to the rescue! I
  * really wonder why this is needed. */
@@ -419,6 +433,8 @@ typedef struct ID {
    * May be NULL.
    */
   struct LibraryWeakReference *library_weak_reference;
+
+  struct ID_Runtime runtime;
 } ID;
 
 /**
@@ -890,7 +906,7 @@ typedef enum IDRecalcFlag {
 #define FILTER_ID_CF (1ULL << 28)
 #define FILTER_ID_WS (1ULL << 29)
 #define FILTER_ID_LP (1ULL << 31)
-#define FILTER_ID_HA (1ULL << 32)
+#define FILTER_ID_CV (1ULL << 32)
 #define FILTER_ID_PT (1ULL << 33)
 #define FILTER_ID_VO (1ULL << 34)
 #define FILTER_ID_SIM (1ULL << 35)
@@ -901,7 +917,7 @@ typedef enum IDRecalcFlag {
    FILTER_ID_MB | FILTER_ID_MC | FILTER_ID_ME | FILTER_ID_MSK | FILTER_ID_NT | FILTER_ID_OB | \
    FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_SCE | FILTER_ID_SPK | FILTER_ID_SO | \
    FILTER_ID_TE | FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_WO | FILTER_ID_CF | FILTER_ID_WS | \
-   FILTER_ID_LP | FILTER_ID_HA | FILTER_ID_PT | FILTER_ID_VO | FILTER_ID_SIM)
+   FILTER_ID_LP | FILTER_ID_CV | FILTER_ID_PT | FILTER_ID_VO | FILTER_ID_SIM)
 
 /**
  * This enum defines the index assigned to each type of IDs in the array returned by
@@ -984,7 +1000,7 @@ enum {
   INDEX_ID_ME,
   INDEX_ID_CU,
   INDEX_ID_MB,
-  INDEX_ID_HA,
+  INDEX_ID_CV,
   INDEX_ID_PT,
   INDEX_ID_VO,
   INDEX_ID_LT,

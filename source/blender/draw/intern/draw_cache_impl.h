@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2016, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Blender Foundation. */
 
 /** \file
  * \ingroup draw
@@ -33,7 +18,7 @@ struct ParticleSystem;
 struct TaskGraph;
 
 struct Curve;
-struct Hair;
+struct Curves;
 struct Lattice;
 struct Mesh;
 struct MetaBall;
@@ -73,9 +58,9 @@ void DRW_particle_batch_cache_free(struct ParticleSystem *psys);
 void DRW_gpencil_batch_cache_dirty_tag(struct bGPdata *gpd);
 void DRW_gpencil_batch_cache_free(struct bGPdata *gpd);
 
-void DRW_hair_batch_cache_dirty_tag(struct Hair *hair, int mode);
-void DRW_hair_batch_cache_validate(struct Hair *hair);
-void DRW_hair_batch_cache_free(struct Hair *hair);
+void DRW_curves_batch_cache_dirty_tag(struct Curves *curves, int mode);
+void DRW_curves_batch_cache_validate(struct Curves *curves);
+void DRW_curves_batch_cache_free(struct Curves *curves);
 
 void DRW_pointcloud_batch_cache_dirty_tag(struct PointCloud *pointcloud, int mode);
 void DRW_pointcloud_batch_cache_validate(struct PointCloud *pointcloud);
@@ -188,7 +173,7 @@ struct GPUBatch *DRW_lattice_batch_cache_get_edit_verts(struct Lattice *lt);
 /** \name Hair
  * \{ */
 
-int DRW_hair_material_count_get(struct Hair *hair);
+int DRW_curves_material_count_get(struct Curves *curves);
 
 /** \} */
 

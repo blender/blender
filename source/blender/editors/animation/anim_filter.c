@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup edanimation
@@ -47,8 +31,8 @@
 #include "DNA_brush_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_layer_types.h"
@@ -791,10 +775,10 @@ static bAnimListElem *make_new_animlistelem(void *data,
         break;
       }
       case ANIMTYPE_DSHAIR: {
-        Hair *hair = (Hair *)data;
-        AnimData *adt = hair->adt;
+        Curves *curves = (Curves *)data;
+        AnimData *adt = curves->adt;
 
-        ale->flag = FILTER_HAIR_OBJD(hair);
+        ale->flag = FILTER_CURVES_OBJD(curves);
 
         ale->key_data = (adt) ? adt->action : NULL;
         ale->datatype = ALE_ACT;
@@ -2616,16 +2600,16 @@ static size_t animdata_filter_ds_obdata(
       expanded = FILTER_SPK_OBJD(spk);
       break;
     }
-    case OB_HAIR: /* ---------- Hair ----------- */
+    case OB_CURVES: /* ---------- Curves ----------- */
     {
-      Hair *hair = (Hair *)ob->data;
+      Curves *curves = (Curves *)ob->data;
 
       if (ads->filterflag2 & ADS_FILTER_NOHAIR) {
         return 0;
       }
 
       type = ANIMTYPE_DSHAIR;
-      expanded = FILTER_HAIR_OBJD(hair);
+      expanded = FILTER_CURVES_OBJD(curves);
       break;
     }
     case OB_POINTCLOUD: /* ---------- PointCloud ----------- */

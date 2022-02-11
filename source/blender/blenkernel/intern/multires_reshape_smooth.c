@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -825,6 +809,7 @@ static void foreach_edge(const struct SubdivForeachContext *foreach_context,
                          void *UNUSED(tls),
                          const int coarse_edge_index,
                          const int UNUSED(subdiv_edge_index),
+                         const bool is_loose,
                          const int subdiv_v1,
                          const int subdiv_v2)
 {
@@ -832,7 +817,9 @@ static void foreach_edge(const struct SubdivForeachContext *foreach_context,
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
 
   if (reshape_smooth_context->smoothing_type == MULTIRES_SUBDIVIDE_LINEAR) {
-    store_edge(reshape_smooth_context, subdiv_v1, subdiv_v2, (char)255);
+    if (!is_loose) {
+      store_edge(reshape_smooth_context, subdiv_v1, subdiv_v2, (char)255);
+    }
     return;
   }
 

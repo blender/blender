@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -5327,7 +5313,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
       prop, "Duplicate GPencil", "Causes grease pencil data to be duplicated with the object");
 
   prop = RNA_def_property(srna, "use_duplicate_hair", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_HAIR);
+  RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_CURVES);
   RNA_def_property_ui_text(
       prop, "Duplicate Hair", "Causes hair data to be duplicated with the object");
 
@@ -6433,9 +6419,9 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "reduces execution time and memory usage)");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-  prop = RNA_def_property(srna, "use_new_hair_type", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_new_hair_type", 1);
-  RNA_def_property_ui_text(prop, "New Hair Type", "Enable the new hair type in the ui");
+  prop = RNA_def_property(srna, "use_new_curves_type", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_new_curves_type", 1);
+  RNA_def_property_ui_text(prop, "New Curves Type", "Enable the new curves data type in the UI");
 
   prop = RNA_def_property(srna, "use_cycles_debug", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_cycles_debug", 1);

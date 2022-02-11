@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 string(TIMESTAMP CURRENT_YEAR "%Y")
 
 set(PROJECT_DESCRIPTION  "Blender is the free and open source 3D creation suite software.")

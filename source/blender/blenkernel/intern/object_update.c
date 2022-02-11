@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 20014 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2014 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -41,12 +25,12 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
+#include "BKE_curves.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_effect.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
-#include "BKE_hair.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -214,8 +198,8 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
       BKE_gpencil_update_layer_transforms(depsgraph, ob);
       break;
     }
-    case OB_HAIR:
-      BKE_hair_data_update(depsgraph, scene, ob);
+    case OB_CURVES:
+      BKE_curves_data_update(depsgraph, scene, ob);
       break;
     case OB_POINTCLOUD:
       BKE_pointcloud_data_update(depsgraph, scene, ob);
@@ -304,7 +288,6 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
 
 void BKE_object_eval_uber_transform(Depsgraph *UNUSED(depsgraph), Object *UNUSED(object))
 {
-  return;
 }
 
 void BKE_object_data_batch_cache_dirty_tag(ID *object_data)
@@ -326,8 +309,8 @@ void BKE_object_data_batch_cache_dirty_tag(ID *object_data)
     case ID_GD:
       BKE_gpencil_batch_cache_dirty_tag((struct bGPdata *)object_data);
       break;
-    case ID_HA:
-      BKE_hair_batch_cache_dirty_tag((struct Hair *)object_data, BKE_HAIR_BATCH_DIRTY_ALL);
+    case ID_CV:
+      BKE_curves_batch_cache_dirty_tag((struct Curves *)object_data, BKE_CURVES_BATCH_DIRTY_ALL);
       break;
     case ID_PT:
       BKE_pointcloud_batch_cache_dirty_tag((struct PointCloud *)object_data,

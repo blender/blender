@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2018 Blender Foundation.
+
 # - Find Blosc library
 # Find the native Blosc includes and library
 # This module defines
@@ -10,13 +13,6 @@
 #
 # also defined, but not for general use are
 #  BLOSC_LIBRARY, where to find the Blosc library.
-
-#=============================================================================
-# Copyright 2018 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If BLOSC_ROOT_DIR was defined in the environment, use it.
 IF(NOT BLOSC_ROOT_DIR AND NOT $ENV{BLOSC_ROOT_DIR} STREQUAL "")

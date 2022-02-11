@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # This shell script checks out and compiles blender, tested on ubuntu 10.04
 # assumes you have dependencies installed already
@@ -7,7 +8,7 @@
 #   https://wiki.blender.org/wiki/Building_Blender/Linux/Generic_Distro/CMake
 
 # grab blender
-mkdir ~/blender-git 
+mkdir ~/blender-git
 cd ~/blender-git
 
 git clone http://git.blender.org/blender.git

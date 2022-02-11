@@ -1,25 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * Operators and API's for creating bones
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edarmature
+ * Operators and API's for creating bones.
  */
 
 #include "DNA_anim_types.h"
@@ -859,13 +843,27 @@ static void updateDuplicateCustomBoneShapes(bContext *C, EditBone *dup_bone, Obj
     Main *bmain = CTX_data_main(C);
     char name_flip[MAX_ID_NAME - 2];
 
+    /* Invert the X location */
+    pchan->custom_translation[0] *= -1;
+    /* Invert the Y rotation */
+    pchan->custom_rotation_euler[1] *= -1;
+    /* Invert the Z rotation */
+    pchan->custom_rotation_euler[2] *= -1;
+
     /* Skip the first two chars in the object name as those are used to store object type */
     BLI_string_flip_side_name(name_flip, pchan->custom->id.name + 2, false, sizeof(name_flip));
     Object *shape_ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, name_flip);
 
+    /* If name_flip doesn't exist, BKE_libblock_find_name() returns pchan->custom (best match) */
+    shape_ob = shape_ob == pchan->custom ? NULL : shape_ob;
+
     if (shape_ob != NULL) {
       /* A flipped shape object exists, use it! */
       pchan->custom = shape_ob;
+    }
+    else {
+      /* Flip shape */
+      pchan->custom_scale_xyz[0] *= -1;
     }
   }
 }

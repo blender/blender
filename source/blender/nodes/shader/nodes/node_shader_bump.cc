@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup shdnodes
@@ -60,6 +44,17 @@ static int gpu_shader_bump(GPUMaterial *mat,
                            GPUNodeStack *in,
                            GPUNodeStack *out)
 {
+  /* If there is no Height input, the node becomes a no-op. */
+  if (!in[2].link) {
+    if (!in[5].link) {
+      return GPU_link(mat, "world_normals_get", &out[0].link);
+    }
+    else {
+      /* Actually running the bump code would normalize, but Cycles handles it as total no-op. */
+      return GPU_link(mat, "vector_copy", in[5].link, &out[0].link);
+    }
+  }
+
   if (!in[5].link) {
     GPU_link(mat, "world_normals_get", &in[5].link);
   }

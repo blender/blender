@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spnode
@@ -394,7 +378,7 @@ static void send_notifiers_after_tree_change(ID *id, bNodeTree *ntree)
 {
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
 
-  if (ntree->type == NTREE_SHADER) {
+  if (ntree->type == NTREE_SHADER && id != nullptr) {
     if (GS(id->name) == ID_MA) {
       WM_main_add_notifier(NC_MATERIAL | ND_SHADING, id);
     }
@@ -667,6 +651,7 @@ void ED_node_set_active(
       node->flag |= NODE_DO_OUTPUT;
       if (!was_output) {
         do_update = true;
+        BKE_ntree_update_tag_active_output_changed(ntree);
       }
     }
 
@@ -684,6 +669,7 @@ void ED_node_set_active(
         }
 
         node->flag |= NODE_DO_OUTPUT;
+        BKE_ntree_update_tag_active_output_changed(ntree);
       }
 
       ED_node_tree_propagate_change(nullptr, bmain, ntree);
@@ -750,6 +736,7 @@ void ED_node_set_active(
 
         node->flag |= NODE_DO_OUTPUT;
         if (was_output == 0) {
+          BKE_ntree_update_tag_active_output_changed(ntree);
           ED_node_tree_propagate_change(nullptr, bmain, ntree);
         }
 
@@ -765,6 +752,7 @@ void ED_node_set_active(
           }
 
           node->flag |= NODE_DO_OUTPUT;
+          BKE_ntree_update_tag_active_output_changed(ntree);
           ED_node_tree_propagate_change(nullptr, bmain, ntree);
         }
       }

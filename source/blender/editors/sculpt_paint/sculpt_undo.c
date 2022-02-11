@@ -1,25 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2006 by Nicholas Bishop
- * All rights reserved.
- * Implements the Sculpt Mode tools
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2006 by Nicholas Bishop. All rights reserved. */
 
 /** \file
  * \ingroup edsculpt
+ * Implements the Sculpt Mode tools.
  */
 
 #include <stddef.h>
@@ -134,7 +118,7 @@ struct PartialUpdateData {
 };
 
 /**
- * A version of #update_cb that tests for 'ME_VERT_PBVH_UPDATE'
+ * A version of #update_cb that tests for the update tag in #PBVH.vert_bitmap.
  */
 static void update_cb_partial(PBVHNode *node, void *userdata)
 {
@@ -250,20 +234,20 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
         if (ss->deform_modifiers_active) {
           for (int i = 0; i < unode->totvert; i++) {
             sculpt_undo_restore_deformed(ss, unode, i, index[i], mvert[index[i]].co);
-            mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+            BKE_pbvh_vert_mark_update(ss->pbvh, index[i]);
           }
         }
         else {
           for (int i = 0; i < unode->totvert; i++) {
             swap_v3_v3(mvert[index[i]].co, unode->orig_co[i]);
-            mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+            BKE_pbvh_vert_mark_update(ss->pbvh, index[i]);
           }
         }
       }
       else {
         for (int i = 0; i < unode->totvert; i++) {
           swap_v3_v3(mvert[index[i]].co, unode->co[i]);
-          mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+          BKE_pbvh_vert_mark_update(ss->pbvh, index[i]);
         }
       }
     }
@@ -307,7 +291,7 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode)
       if ((BLI_BITMAP_TEST(unode->vert_hidden, i) != 0) != ((v->flag & ME_HIDE) != 0)) {
         BLI_BITMAP_FLIP(unode->vert_hidden, i);
         v->flag ^= ME_HIDE;
-        v->flag |= ME_VERT_PBVH_UPDATE;
+        BKE_pbvh_vert_mark_update(ss->pbvh, unode->index[i]);
       }
     }
   }
@@ -331,12 +315,11 @@ static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode)
   if (unode->maxvert) {
     /* regular mesh restore */
     int *index = unode->index;
-    MVert *mvert = ss->mvert;
     MPropCol *vcol = ss->vcol;
 
     for (int i = 0; i < unode->totvert; i++) {
       copy_v4_v4(vcol[index[i]].color, unode->col[i]);
-      mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, index[i]);
     }
   }
   return true;
@@ -348,7 +331,6 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode)
   Object *ob = OBACT(view_layer);
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
-  MVert *mvert;
   float *vmask;
   int *index;
 
@@ -356,13 +338,12 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode)
     /* Regular mesh restore. */
 
     index = unode->index;
-    mvert = ss->mvert;
     vmask = ss->vmask;
 
     for (int i = 0; i < unode->totvert; i++) {
       if (vmask[index[i]] != unode->mask[i]) {
         SWAP(float, vmask[index[i]], unode->mask[i]);
-        mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+        BKE_pbvh_vert_mark_update(ss->pbvh, index[i]);
       }
     }
   }

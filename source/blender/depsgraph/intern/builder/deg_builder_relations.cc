@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2013 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2013 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup depsgraph
@@ -555,7 +539,7 @@ void DepsgraphRelationBuilder::build_id(ID *id)
     case ID_MB:
     case ID_CU:
     case ID_LT:
-    case ID_HA:
+    case ID_CV:
     case ID_PT:
     case ID_VO:
     case ID_GD:
@@ -849,7 +833,7 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
     case OB_MBALL:
     case OB_LATTICE:
     case OB_GPENCIL:
-    case OB_HAIR:
+    case OB_CURVES:
     case OB_POINTCLOUD:
     case OB_VOLUME: {
       build_object_data_geometry(object);
@@ -1452,6 +1436,10 @@ void DepsgraphRelationBuilder::build_animation_images(ID *id)
     else if (GS(id->name) == ID_WO) {
       OperationKey world_update_key(id, NodeType::SHADING, OperationCode::WORLD_UPDATE);
       add_relation(world_update_key, image_animation_key, "World Update -> Image Animation");
+    }
+    else if (GS(id->name) == ID_NT) {
+      OperationKey ntree_output_key(id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
+      add_relation(ntree_output_key, image_animation_key, "NTree Output -> Image Animation");
     }
   }
 }
@@ -2301,7 +2289,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
       }
       break;
     }
-    case ID_HA:
+    case ID_CV:
       break;
     case ID_PT:
       break;
@@ -2925,7 +2913,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
       continue;
     }
     int rel_flag = (RELATION_FLAG_NO_FLUSH | RELATION_FLAG_GODMODE);
-    if ((ELEM(id_type, ID_ME, ID_HA, ID_PT, ID_VO) && comp_node->type == NodeType::GEOMETRY) ||
+    if ((ELEM(id_type, ID_ME, ID_CV, ID_PT, ID_VO) && comp_node->type == NodeType::GEOMETRY) ||
         (id_type == ID_CF && comp_node->type == NodeType::CACHE)) {
       rel_flag &= ~RELATION_FLAG_NO_FLUSH;
     }

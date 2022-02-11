@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022 Blender Foundation.
+
 # - Find Brotli library (compression for freetype/woff2).
 # This module defines
 #  BROTLI_INCLUDE_DIRS, where to find Brotli headers, Set when
@@ -7,13 +10,6 @@
 #                   This can also be an environment variable.
 #  BROTLI_FOUND, If false, do not try to use Brotli.
 #
-
-#=============================================================================
-# Copyright 2022 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If BROTLI_ROOT_DIR was defined in the environment, use it.
 IF(NOT BROTLI_ROOT_DIR AND NOT $ENV{BROTLI_ROOT_DIR} STREQUAL "")

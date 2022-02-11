@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2015 Blender Foundation.
+
 # - Find LLVM library
 # Find the native LLVM includes and library
 # This module defines
@@ -9,13 +12,6 @@
 #
 # also defined, but not for general use are
 #  LLVM_LIBRARY, where to find the LLVM library.
-
-#=============================================================================
-# Copyright 2015 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 if(LLVM_ROOT_DIR)
   if(DEFINED LLVM_VERSION)

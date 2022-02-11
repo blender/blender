@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008, Blender Foundation
- * This is a new part of Blender
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. */
 
 /** \file
  * \ingroup bke
@@ -55,6 +39,7 @@
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_update_cache.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
@@ -158,6 +143,7 @@ static void greasepencil_blend_write(BlendWriter *writer, ID *id, const void *id
   gpd->runtime.sbuffer_used = 0;
   gpd->runtime.sbuffer_size = 0;
   gpd->runtime.tot_cp_points = 0;
+  gpd->runtime.update_cache = NULL;
 
   /* write gpd data block to file */
   BLO_write_id_struct(writer, bGPdata, id_address, &gpd->id);
@@ -221,6 +207,7 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
   gpd->runtime.sbuffer_used = 0;
   gpd->runtime.sbuffer_size = 0;
   gpd->runtime.tot_cp_points = 0;
+  gpd->runtime.update_cache = NULL;
 
   /* Relink palettes (old palettes deprecated, only to convert old files). */
   BLO_read_list(reader, &gpd->palettes);
@@ -500,6 +487,8 @@ void BKE_gpencil_free_data(bGPdata *gpd, bool free_all)
   MEM_SAFE_FREE(gpd->mat);
 
   BLI_freelistN(&gpd->vertex_group_names);
+
+  BKE_gpencil_free_update_cache(gpd);
 
   /* free all data */
   if (free_all) {
@@ -985,6 +974,43 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src,
   return gpl_dst;
 }
 
+void BKE_gpencil_data_copy_settings(const bGPdata *gpd_src, bGPdata *gpd_dst)
+{
+  gpd_dst->flag = gpd_src->flag;
+  gpd_dst->curve_edit_resolution = gpd_src->curve_edit_resolution;
+  gpd_dst->curve_edit_threshold = gpd_src->curve_edit_threshold;
+  gpd_dst->curve_edit_corner_angle = gpd_src->curve_edit_corner_angle;
+  gpd_dst->pixfactor = gpd_src->pixfactor;
+  copy_v4_v4(gpd_dst->line_color, gpd_src->line_color);
+
+  gpd_dst->onion_factor = gpd_src->onion_factor;
+  gpd_dst->onion_mode = gpd_src->onion_mode;
+  gpd_dst->onion_flag = gpd_src->onion_flag;
+  gpd_dst->gstep = gpd_src->gstep;
+  gpd_dst->gstep_next = gpd_src->gstep_next;
+
+  copy_v3_v3(gpd_dst->gcolor_prev, gpd_src->gcolor_prev);
+  copy_v3_v3(gpd_dst->gcolor_next, gpd_src->gcolor_next);
+
+  gpd_dst->zdepth_offset = gpd_src->zdepth_offset;
+
+  gpd_dst->totlayer = gpd_src->totlayer;
+  gpd_dst->totframe = gpd_src->totframe;
+  gpd_dst->totstroke = gpd_src->totstroke;
+  gpd_dst->totpoint = gpd_src->totpoint;
+
+  gpd_dst->draw_mode = gpd_src->draw_mode;
+  gpd_dst->onion_keytype = gpd_src->onion_keytype;
+
+  gpd_dst->select_last_index = gpd_src->select_last_index;
+  gpd_dst->vertex_group_active_index = gpd_src->vertex_group_active_index;
+
+  copy_v3_v3(gpd_dst->grid.color, gpd_src->grid.color);
+  copy_v2_v2(gpd_dst->grid.scale, gpd_src->grid.scale);
+  copy_v2_v2(gpd_dst->grid.offset, gpd_src->grid.offset);
+  gpd_dst->grid.lines = gpd_src->grid.lines;
+}
+
 void BKE_gpencil_layer_copy_settings(const bGPDlayer *gpl_src, bGPDlayer *gpl_dst)
 {
   gpl_dst->line_change = gpl_src->line_change;
@@ -1004,6 +1030,33 @@ void BKE_gpencil_layer_copy_settings(const bGPDlayer *gpl_src, bGPDlayer *gpl_ds
   copy_m4_m4(gpl_dst->layer_invmat, gpl_src->layer_invmat);
   gpl_dst->blend_mode = gpl_src->blend_mode;
   gpl_dst->flag = gpl_src->flag;
+  gpl_dst->onion_flag = gpl_src->onion_flag;
+}
+
+void BKE_gpencil_frame_copy_settings(const bGPDframe *gpf_src, bGPDframe *gpf_dst)
+{
+  gpf_dst->flag = gpf_src->flag;
+  gpf_dst->key_type = gpf_src->key_type;
+  gpf_dst->framenum = gpf_src->framenum;
+}
+
+void BKE_gpencil_stroke_copy_settings(const bGPDstroke *gps_src, bGPDstroke *gps_dst)
+{
+  gps_dst->thickness = gps_src->thickness;
+  gps_dst->flag = gps_src->flag;
+  gps_dst->inittime = gps_src->inittime;
+  gps_dst->mat_nr = gps_src->mat_nr;
+  copy_v2_v2_short(gps_dst->caps, gps_src->caps);
+  gps_dst->hardeness = gps_src->hardeness;
+  copy_v2_v2(gps_dst->aspect_ratio, gps_src->aspect_ratio);
+  gps_dst->fill_opacity_fac = gps_dst->fill_opacity_fac;
+  copy_v3_v3(gps_dst->boundbox_min, gps_src->boundbox_min);
+  copy_v3_v3(gps_dst->boundbox_max, gps_src->boundbox_max);
+  gps_dst->uv_rotation = gps_src->uv_rotation;
+  copy_v2_v2(gps_dst->uv_translation, gps_src->uv_translation);
+  gps_dst->uv_scale = gps_src->uv_scale;
+  gps_dst->select_index = gps_src->select_index;
+  copy_v4_v4(gps_dst->vert_color_fill, gps_src->vert_color_fill);
 }
 
 bGPdata *BKE_gpencil_data_duplicate(Main *bmain, const bGPdata *gpd_src, bool internal_copy)
@@ -2579,34 +2632,51 @@ void BKE_gpencil_frame_original_pointers_update(const struct bGPDframe *gpf_orig
   }
 }
 
-void BKE_gpencil_update_orig_pointers(const Object *ob_orig, const Object *ob_eval)
+/**
+ * Update original pointers in evaluated layer.
+ * \param gpl_orig: Original grease-pencil layer.
+ * \param gpl_eval: Evaluated grease pencil layer.
+ */
+void BKE_gpencil_layer_original_pointers_update(const struct bGPDlayer *gpl_orig,
+                                                const struct bGPDlayer *gpl_eval)
 {
-  bGPdata *gpd_eval = (bGPdata *)ob_eval->data;
-  bGPdata *gpd_orig = (bGPdata *)ob_orig->data;
+  bGPDframe *gpf_eval = gpl_eval->frames.first;
+  LISTBASE_FOREACH (bGPDframe *, gpf_orig, &gpl_orig->frames) {
+    if (gpf_eval != NULL) {
+      /* Update frame reference pointers. */
+      gpf_eval->runtime.gpf_orig = (bGPDframe *)gpf_orig;
+      BKE_gpencil_frame_original_pointers_update(gpf_orig, gpf_eval);
+      gpf_eval = gpf_eval->next;
+    }
+  }
+}
 
+void BKE_gpencil_data_update_orig_pointers(const bGPdata *gpd_orig, const bGPdata *gpd_eval)
+{
   /* Assign pointers to the original stroke and points to the evaluated data. This must
    * be done before applying any modifier because at this moment the structure is equals,
    * so we can assume the layer index is the same in both data-blocks.
    * This data will be used by operators. */
 
   bGPDlayer *gpl_eval = gpd_eval->layers.first;
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd_orig->layers) {
+  LISTBASE_FOREACH (bGPDlayer *, gpl_orig, &gpd_orig->layers) {
     if (gpl_eval != NULL) {
       /* Update layer reference pointers. */
-      gpl_eval->runtime.gpl_orig = (bGPDlayer *)gpl;
-
-      bGPDframe *gpf_eval = gpl_eval->frames.first;
-      LISTBASE_FOREACH (bGPDframe *, gpf_orig, &gpl->frames) {
-        if (gpf_eval != NULL) {
-          /* Update frame reference pointers. */
-          gpf_eval->runtime.gpf_orig = (bGPDframe *)gpf_orig;
-          BKE_gpencil_frame_original_pointers_update(gpf_orig, gpf_eval);
-          gpf_eval = gpf_eval->next;
-        }
-      }
+      gpl_eval->runtime.gpl_orig = gpl_orig;
+      BKE_gpencil_layer_original_pointers_update(gpl_orig, gpl_eval);
       gpl_eval = gpl_eval->next;
     }
   }
+}
+
+/**
+ * Update pointers of eval data to original data to keep references.
+ * \param ob_orig: Original grease pencil object
+ * \param ob_eval: Evaluated grease pencil object
+ */
+void BKE_gpencil_update_orig_pointers(const Object *ob_orig, const Object *ob_eval)
+{
+  BKE_gpencil_data_update_orig_pointers((bGPdata *)ob_orig->data, (bGPdata *)ob_eval->data);
 }
 
 void BKE_gpencil_layer_transform_matrix_get(const Depsgraph *depsgraph,
@@ -2749,6 +2819,182 @@ void BKE_gpencil_frame_selected_hash(bGPdata *gpd, struct GHash *r_list)
       }
     }
   }
+}
+
+bool BKE_gpencil_can_avoid_full_copy_on_write(const Depsgraph *depsgraph, bGPdata *gpd)
+{
+  /* For now, we only use the update cache in the active depsgraph. Othwerwise we might access the
+   * cache while another depsgraph frees it. */
+  if (!DEG_is_active(depsgraph)) {
+    return false;
+  }
+
+  GPencilUpdateCache *update_cache = gpd->runtime.update_cache;
+  return update_cache != NULL && update_cache->flag != GP_UPDATE_NODE_FULL_COPY;
+}
+
+typedef struct tGPencilUpdateOnWriteTraverseData {
+  bGPdata *gpd_eval;
+  bGPDlayer *gpl_eval;
+  bGPDframe *gpf_eval;
+  bGPDstroke *gps_eval;
+  int gpl_index;
+  int gpf_index;
+  int gps_index;
+} tGPencilUpdateOnWriteTraverseData;
+
+static bool gpencil_update_on_write_layer_cb(GPencilUpdateCache *gpl_cache, void *user_data)
+{
+  tGPencilUpdateOnWriteTraverseData *td = (tGPencilUpdateOnWriteTraverseData *)user_data;
+  td->gpl_eval = BLI_findlinkfrom((Link *)td->gpl_eval, gpl_cache->index - td->gpl_index);
+  td->gpl_index = gpl_cache->index;
+  bGPDlayer *gpl = (bGPDlayer *)gpl_cache->data;
+
+  if (gpl_cache->flag == GP_UPDATE_NODE_FULL_COPY) {
+    bGPDlayer *gpl_eval_next = td->gpl_eval->next;
+    BLI_assert(gpl != NULL);
+
+    BKE_gpencil_layer_delete(td->gpd_eval, td->gpl_eval);
+
+    td->gpl_eval = BKE_gpencil_layer_duplicate(gpl, true, true);
+    BLI_insertlinkbefore(&td->gpd_eval->layers, gpl_eval_next, td->gpl_eval);
+
+    BKE_gpencil_layer_original_pointers_update(gpl, td->gpl_eval);
+    td->gpl_eval->runtime.gpl_orig = gpl;
+    return true;
+  }
+  if (gpl_cache->flag == GP_UPDATE_NODE_LIGHT_COPY) {
+    BLI_assert(gpl != NULL);
+    BKE_gpencil_layer_copy_settings(gpl, td->gpl_eval);
+    td->gpl_eval->runtime.gpl_orig = gpl;
+  }
+
+  td->gpf_eval = td->gpl_eval->frames.first;
+  td->gpf_index = 0;
+  return false;
+}
+
+static bool gpencil_update_on_write_frame_cb(GPencilUpdateCache *gpf_cache, void *user_data)
+{
+  tGPencilUpdateOnWriteTraverseData *td = (tGPencilUpdateOnWriteTraverseData *)user_data;
+  td->gpf_eval = BLI_findlinkfrom((Link *)td->gpf_eval, gpf_cache->index - td->gpf_index);
+  td->gpf_index = gpf_cache->index;
+
+  bGPDframe *gpf = (bGPDframe *)gpf_cache->data;
+
+  if (gpf_cache->flag == GP_UPDATE_NODE_FULL_COPY) {
+    /* Do a full copy of the frame. */
+    bGPDframe *gpf_eval_next = td->gpf_eval->next;
+    BLI_assert(gpf != NULL);
+
+    bool update_actframe = (td->gpl_eval->actframe == td->gpf_eval) ? true : false;
+    BKE_gpencil_free_strokes(td->gpf_eval);
+    BLI_freelinkN(&td->gpl_eval->frames, td->gpf_eval);
+
+    td->gpf_eval = BKE_gpencil_frame_duplicate(gpf, true);
+    BLI_insertlinkbefore(&td->gpl_eval->frames, gpf_eval_next, td->gpf_eval);
+
+    BKE_gpencil_frame_original_pointers_update(gpf, td->gpf_eval);
+    td->gpf_eval->runtime.gpf_orig = gpf;
+
+    if (update_actframe) {
+      td->gpl_eval->actframe = td->gpf_eval;
+    }
+
+    return true;
+  }
+  if (gpf_cache->flag == GP_UPDATE_NODE_LIGHT_COPY) {
+    BLI_assert(gpf != NULL);
+    BKE_gpencil_frame_copy_settings(gpf, td->gpf_eval);
+    td->gpf_eval->runtime.gpf_orig = gpf;
+  }
+
+  td->gps_eval = td->gpf_eval->strokes.first;
+  td->gps_index = 0;
+  return false;
+}
+
+static bool gpencil_update_on_write_stroke_cb(GPencilUpdateCache *gps_cache, void *user_data)
+{
+  tGPencilUpdateOnWriteTraverseData *td = (tGPencilUpdateOnWriteTraverseData *)user_data;
+  td->gps_eval = BLI_findlinkfrom((Link *)td->gps_eval, gps_cache->index - td->gps_index);
+  td->gps_index = gps_cache->index;
+
+  bGPDstroke *gps = (bGPDstroke *)gps_cache->data;
+
+  if (gps_cache->flag == GP_UPDATE_NODE_FULL_COPY) {
+    /* Do a full copy of the stroke. */
+    bGPDstroke *gps_eval_next = td->gps_eval->next;
+    BLI_assert(gps != NULL);
+
+    BLI_remlink(&td->gpf_eval->strokes, td->gps_eval);
+    BKE_gpencil_free_stroke(td->gps_eval);
+
+    td->gps_eval = BKE_gpencil_stroke_duplicate(gps, true, true);
+    BLI_insertlinkbefore(&td->gpf_eval->strokes, gps_eval_next, td->gps_eval);
+
+    td->gps_eval->runtime.gps_orig = gps;
+
+    /* Assign original pt pointers. */
+    for (int i = 0; i < gps->totpoints; i++) {
+      bGPDspoint *pt_orig = &gps->points[i];
+      bGPDspoint *pt_eval = &td->gps_eval->points[i];
+      pt_orig->runtime.pt_orig = NULL;
+      pt_orig->runtime.idx_orig = i;
+      pt_eval->runtime.pt_orig = pt_orig;
+      pt_eval->runtime.idx_orig = i;
+    }
+  }
+  else if (gps_cache->flag == GP_UPDATE_NODE_LIGHT_COPY) {
+    BLI_assert(gps != NULL);
+    BKE_gpencil_stroke_copy_settings(gps, td->gps_eval);
+    td->gps_eval->runtime.gps_orig = gps;
+  }
+
+  return false;
+}
+
+/**
+ * Update the geometry of the evaluated bGPdata.
+ * This function will:
+ *    1) Copy the original data over to the evaluated object.
+ *    2) Update the original pointers in the runtime structs.
+ */
+void BKE_gpencil_update_on_write(bGPdata *gpd_orig, bGPdata *gpd_eval)
+{
+  GPencilUpdateCache *update_cache = gpd_orig->runtime.update_cache;
+
+  /* We assume that a full copy is not needed and the update cache is populated. */
+  if (update_cache == NULL || update_cache->flag == GP_UPDATE_NODE_FULL_COPY) {
+    return;
+  }
+
+  if (update_cache->flag == GP_UPDATE_NODE_LIGHT_COPY) {
+    BKE_gpencil_data_copy_settings(gpd_orig, gpd_eval);
+  }
+
+  GPencilUpdateCacheTraverseSettings ts = {{
+      gpencil_update_on_write_layer_cb,
+      gpencil_update_on_write_frame_cb,
+      gpencil_update_on_write_stroke_cb,
+  }};
+
+  tGPencilUpdateOnWriteTraverseData data = {
+      .gpd_eval = gpd_eval,
+      .gpl_eval = gpd_eval->layers.first,
+      .gpf_eval = NULL,
+      .gps_eval = NULL,
+      .gpl_index = 0,
+      .gpf_index = 0,
+      .gps_index = 0,
+  };
+
+  BKE_gpencil_traverse_update_cache(update_cache, &ts, &data);
+
+  gpd_eval->flag |= GP_DATA_CACHE_IS_DIRTY;
+
+  /* TODO: This might cause issues when we have multiple depsgraphs? */
+  BKE_gpencil_free_update_cache(gpd_orig);
 }
 
 /** \} */

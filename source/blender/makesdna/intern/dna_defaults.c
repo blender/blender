@@ -1,20 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * DNA default value access.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -94,9 +78,9 @@
 #include "DNA_cloth_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_fluid_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -127,9 +111,9 @@
 #include "DNA_camera_defaults.h"
 #include "DNA_collection_defaults.h"
 #include "DNA_curve_defaults.h"
+#include "DNA_curves_defaults.h"
 #include "DNA_fluid_defaults.h"
 #include "DNA_gpencil_modifier_defaults.h"
-#include "DNA_hair_defaults.h"
 #include "DNA_image_defaults.h"
 #include "DNA_lattice_defaults.h"
 #include "DNA_light_defaults.h"
@@ -184,8 +168,8 @@ SDNA_DEFAULT_DECL_STRUCT(FluidEffectorSettings);
 /* DNA_image_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Image);
 
-/* DNA_hair_defaults.h */
-SDNA_DEFAULT_DECL_STRUCT(Hair);
+/* DNA_curves_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(Curves);
 
 /* DNA_lattice_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Lattice);
@@ -392,8 +376,8 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     /* DNA_image_defaults.h */
     SDNA_DEFAULT_DECL(Image),
 
-    /* DNA_hair_defaults.h */
-    SDNA_DEFAULT_DECL(Hair),
+    /* DNA_curves_defaults.h */
+    SDNA_DEFAULT_DECL(Curves),
 
     /* DNA_lattice_defaults.h */
     SDNA_DEFAULT_DECL(Lattice),

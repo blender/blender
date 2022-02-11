@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "GEO_mesh_merge_by_distance.hh"
 #include "GEO_point_merge_by_distance.hh"
@@ -60,7 +46,7 @@ static std::optional<Mesh *> mesh_merge_by_distance(const MeshComponent &mesh_co
 
   const IndexMask selection = evaluator.get_evaluated_as_mask(0);
   if (selection.is_empty()) {
-    return nullptr;
+    return std::nullopt;
   }
 
   const Mesh &mesh = *mesh_component.get_for_read();
@@ -78,7 +64,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry_set.has_pointcloud()) {
       PointCloud *result = pointcloud_merge_by_distance(
           *geometry_set.get_component_for_read<PointCloudComponent>(), merge_distance, selection);
-      geometry_set.replace_pointcloud(result);
+      if (result) {
+        geometry_set.replace_pointcloud(result);
+      }
     }
     if (geometry_set.has_mesh()) {
       std::optional<Mesh *> result = mesh_merge_by_distance(

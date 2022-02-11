@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 #pragma once
 
@@ -58,6 +42,12 @@ ListBase BLI_listbase_from_link(struct Link *some_link);
  */
 void *BLI_findlink(const struct ListBase *listbase, int number) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
+
+/**
+ * Returns the nth element after \a link, numbering from 0.
+ */
+void *BLI_findlinkfrom(struct Link *start, int number) ATTR_WARN_UNUSED_RESULT;
+
 /**
  * Finds the first element of \a listbase which contains the null-terminated
  * string \a id at the specified offset, returning NULL if not found.

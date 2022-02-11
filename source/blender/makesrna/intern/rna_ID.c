@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -76,7 +62,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_SPK, "SPEAKER", ICON_SPEAKER, "Speaker", ""},
     {ID_TXT, "TEXT", ICON_TEXT, "Text", ""},
     {ID_TE, "TEXTURE", ICON_TEXTURE_DATA, "Texture", ""},
-    {ID_HA, "HAIR", ICON_HAIR_DATA, "Hair", ""},
+    {ID_CV, "CURVES", ICON_CURVES_DATA, "Hair Curves", ""},
     {ID_PT, "POINTCLOUD", ICON_POINTCLOUD_DATA, "Point Cloud", ""},
     {ID_VO, "VOLUME", ICON_VOLUME_DATA, "Volume", ""},
     {ID_WM, "WINDOWMANAGER", ICON_WINDOW, "Window Manager", ""},
@@ -151,7 +137,7 @@ const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
      ICON_OUTLINER_COLLECTION,
      "Collections",
      "Show Collection data-blocks"},
-    {FILTER_ID_HA, "filter_hair", ICON_HAIR_DATA, "Hairs", "Show/hide Hair data-blocks"},
+    {FILTER_ID_CV, "filter_hair", ICON_CURVES_DATA, "Hairs", "Show/hide Hair data-blocks"},
     {FILTER_ID_IM, "filter_image", ICON_IMAGE_DATA, "Images", "Show Image data-blocks"},
     {FILTER_ID_LA, "filter_light", ICON_LIGHT_DATA, "Lights", "Show Light data-blocks"},
     {FILTER_ID_LP,
@@ -385,9 +371,9 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_FreestyleLineStyle) {
     return ID_LS;
   }
-#  ifdef WITH_HAIR_NODES
-  if (base_type == &RNA_Hair) {
-    return ID_HA;
+#  ifdef WITH_NEW_CURVES_TYPE
+  if (base_type == &RNA_Curves) {
+    return ID_CV;
   }
 #  endif
   if (base_type == &RNA_Lattice) {
@@ -492,9 +478,9 @@ StructRNA *ID_code_to_RNA_type(short idcode)
       return &RNA_GreasePencil;
     case ID_GR:
       return &RNA_Collection;
-    case ID_HA:
-#  ifdef WITH_HAIR_NODES
-      return &RNA_Hair;
+    case ID_CV:
+#  ifdef WITH_NEW_CURVES_TYPE
+      return &RNA_Curves;
 #  else
       return &RNA_ID;
 #  endif
@@ -1821,6 +1807,13 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
   prop = RNA_def_pointer(
       srna, "reference", "ID", "Reference ID", "Linked ID used as reference by this override");
   RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
+
+  RNA_def_pointer(
+      srna,
+      "hierarchy_root",
+      "ID",
+      "Hierarchy Root ID",
+      "Library override ID used as root of the override hierarchy this ID is a member of");
 
   prop = RNA_def_boolean(srna,
                          "is_in_hierarchy",

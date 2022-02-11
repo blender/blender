@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -1931,6 +1915,14 @@ void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
     mul_v3_m4v3(mv->co, mat, vert_coords[i]);
   }
   BKE_mesh_normals_tag_dirty(mesh);
+}
+
+void BKE_mesh_anonymous_attributes_remove(Mesh *mesh)
+{
+  CustomData_free_layers_anonymous(&mesh->vdata, mesh->totvert);
+  CustomData_free_layers_anonymous(&mesh->edata, mesh->totedge);
+  CustomData_free_layers_anonymous(&mesh->pdata, mesh->totpoly);
+  CustomData_free_layers_anonymous(&mesh->ldata, mesh->totloop);
 }
 
 void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spacearr)

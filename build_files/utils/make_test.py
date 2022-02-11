@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
-#
-# "make test" for all platforms, running automated tests.
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+"""
+"make test" for all platforms, running automated tests.
+"""
 
 import argparse
 import os

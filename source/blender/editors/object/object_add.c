@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edobj
@@ -62,6 +46,7 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_curves.h"
 #include "BKE_displist.h"
 #include "BKE_duplilist.h"
 #include "BKE_effect.h"
@@ -69,7 +54,6 @@
 #include "BKE_gpencil_curve.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
-#include "BKE_hair.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
@@ -1894,18 +1878,18 @@ void OBJECT_OT_speaker_add(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Add Hair Operator
+/** \name Add Hair Curves Operator
  * \{ */
 
-static bool object_hair_add_poll(bContext *C)
+static bool object_hair_curves_add_poll(bContext *C)
 {
-  if (!U.experimental.use_new_hair_type) {
+  if (!U.experimental.use_new_curves_type) {
     return false;
   }
   return ED_operator_objectmode(C);
 }
 
-static int object_hair_add_exec(bContext *C, wmOperator *op)
+static int object_hair_curves_add_exec(bContext *C, wmOperator *op)
 {
   ushort local_view_bits;
   float loc[3], rot[3];
@@ -1913,22 +1897,22 @@ static int object_hair_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Object *object = ED_object_add_type(C, OB_HAIR, NULL, loc, rot, false, local_view_bits);
+  Object *object = ED_object_add_type(C, OB_CURVES, NULL, loc, rot, false, local_view_bits);
   object->dtx |= OB_DRAWBOUNDOX; /* TODO: remove once there is actual drawing. */
 
   return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_hair_add(wmOperatorType *ot)
+void OBJECT_OT_hair_curves_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add Hair";
-  ot->description = "Add a hair object to the scene";
-  ot->idname = "OBJECT_OT_hair_add";
+  ot->name = "Add Hair Curves";
+  ot->description = "Add a hair curves object to the scene";
+  ot->idname = "OBJECT_OT_hair_curves_add";
 
   /* api callbacks */
-  ot->exec = object_hair_add_exec;
-  ot->poll = object_hair_add_poll;
+  ot->exec = object_hair_curves_add_exec;
+  ot->poll = object_hair_curves_add_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2918,7 +2902,10 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       /* Full (edge-angle based) draw calculation should ideally be performed. */
       BKE_mesh_edges_set_draw_render(me_eval);
       BKE_object_material_from_eval_data(bmain, newob, &me_eval->id);
-      BKE_mesh_nomain_to_mesh(me_eval, newob->data, newob, &CD_MASK_MESH, true);
+      Mesh *new_mesh = (Mesh *)newob->data;
+      BKE_mesh_nomain_to_mesh(me_eval, new_mesh, newob, &CD_MASK_MESH, true);
+      /* Anonymous attributes shouldn't be available on the applied geometry. */
+      BKE_mesh_anonymous_attributes_remove(new_mesh);
       BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */
     }
     else if (ob->type == OB_FONT) {

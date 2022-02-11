@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spnode
@@ -231,7 +215,6 @@ static void node_buts_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *pt
 NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, const int y)
 {
   if (node->type == NODE_FRAME) {
-    const float size = 10.0f;
     NodeFrame *data = (NodeFrame *)node->storage;
 
     /* shrinking frame size is determined by child nodes */
@@ -242,7 +225,9 @@ NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, co
     NodeResizeDirection dir = NODE_RESIZE_NONE;
 
     const rctf &totr = node->totr;
-    if (x >= totr.xmax - size && x < totr.xmax && y >= totr.ymin && y < totr.ymax) {
+    const float size = NODE_RESIZE_MARGIN;
+
+    if (x > totr.xmax - size && x <= totr.xmax && y >= totr.ymin && y < totr.ymax) {
       dir |= NODE_RESIZE_RIGHT;
     }
     if (x >= totr.xmin && x < totr.xmin + size && y >= totr.ymin && y < totr.ymax) {

@@ -1,24 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 by the Blender Foundation.
- * All rights reserved.
- * Modifier stack implementation.
- *
- * BKE_modifier.h contains the function prototypes for this file.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -110,7 +91,7 @@ static void id_type_init(void)
   INIT_TYPE(ID_CF);
   INIT_TYPE(ID_WS);
   INIT_TYPE(ID_LP);
-  INIT_TYPE(ID_HA);
+  INIT_TYPE(ID_CV);
   INIT_TYPE(ID_PT);
   INIT_TYPE(ID_VO);
   INIT_TYPE(ID_SIM);
@@ -237,7 +218,7 @@ uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
     CASE_IDFILTER(CU);
     CASE_IDFILTER(GD);
     CASE_IDFILTER(GR);
-    CASE_IDFILTER(HA);
+    CASE_IDFILTER(CV);
     CASE_IDFILTER(IM);
     CASE_IDFILTER(LA);
     CASE_IDFILTER(LS);
@@ -286,7 +267,7 @@ short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
     CASE_IDFILTER(CU);
     CASE_IDFILTER(GD);
     CASE_IDFILTER(GR);
-    CASE_IDFILTER(HA);
+    CASE_IDFILTER(CV);
     CASE_IDFILTER(IM);
     CASE_IDFILTER(LA);
     CASE_IDFILTER(LS);
@@ -334,7 +315,7 @@ int BKE_idtype_idcode_to_index(const short idcode)
     CASE_IDINDEX(CU);
     CASE_IDINDEX(GD);
     CASE_IDINDEX(GR);
-    CASE_IDINDEX(HA);
+    CASE_IDINDEX(CV);
     CASE_IDINDEX(IM);
     CASE_IDINDEX(IP);
     CASE_IDINDEX(KE);
@@ -393,7 +374,7 @@ short BKE_idtype_idcode_from_index(const int index)
     CASE_IDCODE(CU);
     CASE_IDCODE(GD);
     CASE_IDCODE(GR);
-    CASE_IDCODE(HA);
+    CASE_IDCODE(CV);
     CASE_IDCODE(IM);
     CASE_IDCODE(IP);
     CASE_IDCODE(KE);

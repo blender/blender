@@ -1,25 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * DNA handling
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup DNA
+ * \brief DNA handling
  *
  * Lowest-level functions for decoding the parts of a saved .blend
  * file, including interpretation of its SDNA block and conversion of
@@ -733,49 +717,73 @@ static void cast_primitive_type(const eSDNA_Type old_type,
   const int curlen = DNA_elem_type_size(new_type);
 
   double old_value_f = 0.0;
+  /* Intentionally overflow signed values into an unsigned type.
+   * Casting back to a signed value preserves the sign (when the new value is signed). */
   uint64_t old_value_i = 0;
 
   for (int a = 0; a < array_len; a++) {
     switch (old_type) {
-      case SDNA_TYPE_CHAR:
-        old_value_i = *old_data;
-        old_value_f = (double)old_value_i;
+      case SDNA_TYPE_CHAR: {
+        const char value = *old_data;
+        old_value_i = value;
+        old_value_f = (double)value;
         break;
-      case SDNA_TYPE_UCHAR:
-        old_value_i = *((unsigned char *)old_data);
-        old_value_f = (double)old_value_i;
+      }
+      case SDNA_TYPE_UCHAR: {
+        const uchar value = *((uchar *)old_data);
+        old_value_i = value;
+        old_value_f = (double)value;
         break;
-      case SDNA_TYPE_SHORT:
-        old_value_i = *((short *)old_data);
-        old_value_f = (double)old_value_i;
+      }
+      case SDNA_TYPE_SHORT: {
+        const short value = *((short *)old_data);
+        old_value_i = value;
+        old_value_f = (double)value;
         break;
-      case SDNA_TYPE_USHORT:
-        old_value_i = *((unsigned short *)old_data);
-        old_value_f = (double)old_value_i;
+      }
+      case SDNA_TYPE_USHORT: {
+        const ushort value = *((unsigned short *)old_data);
+        old_value_i = value;
+        old_value_f = (double)value;
         break;
-      case SDNA_TYPE_INT:
-        old_value_i = *((int *)old_data);
-        old_value_f = (double)old_value_i;
+      }
+      case SDNA_TYPE_INT: {
+        const int value = *((int *)old_data);
+        old_value_i = value;
+        old_value_f = (double)value;
         break;
-      case SDNA_TYPE_FLOAT:
-        old_value_f = *((float *)old_data);
-        old_value_i = (uint64_t)(int64_t)old_value_f;
+      }
+      case SDNA_TYPE_FLOAT: {
+        const float value = *((float *)old_data);
+        /* `int64_t` range stored in a `uint64_t`. */
+        old_value_i = (uint64_t)(int64_t)value;
+        old_value_f = value;
         break;
-      case SDNA_TYPE_DOUBLE:
-        old_value_f = *((double *)old_data);
-        old_value_i = (uint64_t)(int64_t)old_value_f;
+      }
+      case SDNA_TYPE_DOUBLE: {
+        const double value = *((double *)old_data);
+        /* `int64_t` range stored in a `uint64_t`. */
+        old_value_i = (uint64_t)(int64_t)value;
+        old_value_f = value;
         break;
-      case SDNA_TYPE_INT64:
-        old_value_i = (uint64_t) * ((int64_t *)old_data);
-        old_value_f = (double)old_value_i;
+      }
+      case SDNA_TYPE_INT64: {
+        const int64_t value = *((int64_t *)old_data);
+        old_value_i = (uint64_t)value;
+        old_value_f = (double)value;
         break;
-      case SDNA_TYPE_UINT64:
-        old_value_i = *((uint64_t *)old_data);
-        old_value_f = (double)old_value_i;
+      }
+      case SDNA_TYPE_UINT64: {
+        const uint64_t value = *((uint64_t *)old_data);
+        old_value_i = value;
+        old_value_f = (double)value;
         break;
-      case SDNA_TYPE_INT8:
-        old_value_i = (uint64_t) * ((int8_t *)old_data);
-        old_value_f = (double)old_value_i;
+      }
+      case SDNA_TYPE_INT8: {
+        const int8_t value = *((int8_t *)old_data);
+        old_value_i = (uint64_t)value;
+        old_value_f = (double)value;
+      }
     }
 
     switch (new_type) {

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2004 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2004 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spoutliner
@@ -32,9 +16,9 @@
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
@@ -773,10 +757,10 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
       }
       break;
     }
-    case ID_HA: {
-      Hair *hair = (Hair *)id;
-      if (outliner_animdata_test(hair->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, hair, te, TSE_ANIM_DATA, 0);
+    case ID_CV: {
+      Curves *curves = (Curves *)id;
+      if (outliner_animdata_test(curves->adt)) {
+        outliner_add_element(space_outliner, &te->subtree, curves, te, TSE_ANIM_DATA, 0);
       }
       break;
     }

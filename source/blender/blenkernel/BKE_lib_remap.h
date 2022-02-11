@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -91,17 +77,25 @@ enum {
   ID_REMAP_FORCE_OBDATA_IN_EDITMODE = 1 << 9,
 };
 
+typedef enum eIDRemapType {
+  /** Remap an ID reference to a new reference. The new reference can also be null. */
+  ID_REMAP_TYPE_REMAP = 0,
+
+  /** Cleanup all IDs used by a specific one. */
+  ID_REMAP_TYPE_CLEANUP = 1,
+} eIDRemapType;
+
 /**
  * Replace all references in given Main using the given \a mappings
  *
  * \note Is preferred over BKE_libblock_remap_locked due to performance.
  */
 void BKE_libblock_remap_multiple_locked(struct Main *bmain,
-                                        const struct IDRemapper *mappings,
+                                        struct IDRemapper *mappings,
                                         const short remap_flags);
 
 void BKE_libblock_remap_multiple(struct Main *bmain,
-                                 const struct IDRemapper *mappings,
+                                 struct IDRemapper *mappings,
                                  const short remap_flags);
 
 /**
@@ -173,8 +167,25 @@ typedef enum IDRemapperApplyResult {
 } IDRemapperApplyResult;
 
 typedef enum IDRemapperApplyOptions {
+  /**
+   * Update the user count of the old and new ID datablock.
+   *
+   * For remapping the old ID users will be decremented and the new ID users will be
+   * incremented. When un-assigning the old ID users will be decremented.
+   */
   ID_REMAP_APPLY_UPDATE_REFCOUNT = (1 << 0),
+
+  /**
+   * Make sure that the new ID datablock will have a 'real' user.
+   */
   ID_REMAP_APPLY_ENSURE_REAL = (1 << 1),
+
+  /**
+   * Unassign in stead of remap when the new ID datablock would become id_self.
+   *
+   * To use this option 'BKE_id_remapper_apply_ex' must be used with a not-null id_self parameter.
+   */
+  ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF = (1 << 2),
 
   ID_REMAP_APPLY_DEFAULT = 0,
 } IDRemapperApplyOptions;
@@ -203,10 +214,36 @@ void BKE_id_remapper_add(struct IDRemapper *id_remapper, struct ID *old_id, stru
 IDRemapperApplyResult BKE_id_remapper_apply(const struct IDRemapper *id_remapper,
                                             struct ID **r_id_ptr,
                                             IDRemapperApplyOptions options);
+/**
+ * Apply a remapping.
+ *
+ * Use this function when `ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF`. In this case
+ * the #id_self parameter is required. Otherwise the #BKE_id_remapper_apply can be used.
+ *
+ * \param id_self required for ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF.
+ *     When remapping to id_self it will then be remapped to NULL.
+ */
+IDRemapperApplyResult BKE_id_remapper_apply_ex(const struct IDRemapper *id_remapper,
+                                               struct ID **r_id_ptr,
+                                               IDRemapperApplyOptions options,
+                                               struct ID *id_self);
 bool BKE_id_remapper_has_mapping_for(const struct IDRemapper *id_remapper, uint64_t type_filter);
+
+/**
+ * Determine the mapping result, without applying the mapping.
+ */
+IDRemapperApplyResult BKE_id_remapper_get_mapping_result(const struct IDRemapper *id_remapper,
+                                                         struct ID *id,
+                                                         IDRemapperApplyOptions options,
+                                                         const struct ID *id_self);
 void BKE_id_remapper_iter(const struct IDRemapper *id_remapper,
                           IDRemapperIterFunction func,
                           void *user_data);
+
+/** Returns a readable string for the given result. Can be used for debugging purposes. */
+const char *BKE_id_remapper_result_string(const IDRemapperApplyResult result);
+/** Prints out the rules inside the given id_remapper. Can be used for debugging purposes. */
+void BKE_id_remapper_print(const struct IDRemapper *id_remapper);
 
 #ifdef __cplusplus
 }

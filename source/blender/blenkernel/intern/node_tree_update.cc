@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_map.hh"
 #include "BLI_multi_value_map.hh"
@@ -272,6 +258,12 @@ static OutputFieldDependency find_group_output_dependencies(
 
   while (!sockets_to_check.is_empty()) {
     const InputSocketRef *input_socket = sockets_to_check.pop();
+
+    if (!input_socket->is_directly_linked() &&
+        !field_state_by_socket_id[input_socket->id()].is_single) {
+      /* This socket uses a field as input by default. */
+      return OutputFieldDependency::ForFieldSource();
+    }
 
     for (const OutputSocketRef *origin_socket : input_socket->directly_linked_sockets()) {
       const NodeRef &origin_node = origin_socket->node();
@@ -1608,6 +1600,11 @@ void BKE_ntree_update_tag_link_mute(bNodeTree *ntree, bNodeLink *UNUSED(link))
   add_tree_tag(ntree, NTREE_CHANGED_LINK);
 }
 
+void BKE_ntree_update_tag_active_output_changed(bNodeTree *ntree)
+{
+  add_tree_tag(ntree, NTREE_CHANGED_ANY);
+}
+
 void BKE_ntree_update_tag_missing_runtime_data(bNodeTree *ntree)
 {
   add_tree_tag(ntree, NTREE_CHANGED_ALL);
@@ -1629,6 +1626,12 @@ void BKE_ntree_update_tag_id_changed(Main *bmain, ID *id)
     }
   }
   FOREACH_NODETREE_END;
+}
+
+void BKE_ntree_update_tag_image_user_changed(bNodeTree *ntree, ImageUser *UNUSED(iuser))
+{
+  /* Would have to search for the node that uses the image user for a more detailed tag. */
+  add_tree_tag(ntree, NTREE_CHANGED_ANY);
 }
 
 /**

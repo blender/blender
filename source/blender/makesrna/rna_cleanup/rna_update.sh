@@ -1,3 +1,5 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-or-later
 cd ../../../../
 ./blender.bin --background -noaudio --python ./release/scripts/modules/rna_info.py 2> source/blender/makesrna/rna_cleanup/out.txt
 cd ./source/blender/makesrna/rna_cleanup/

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spnode
@@ -99,11 +83,51 @@ static bool has_workbench_in_texture_color(const wmWindowManager *wm,
 /** \name Public Node Selection API
  * \{ */
 
+rctf node_frame_rect_inside(const bNode &node)
+{
+  const float margin = 1.5f * U.widget_unit;
+  rctf frame_inside = {
+      node.totr.xmin,
+      node.totr.xmax,
+      node.totr.ymin,
+      node.totr.ymax,
+  };
+
+  BLI_rctf_pad(&frame_inside, -margin, -margin);
+
+  return frame_inside;
+}
+
+static bool node_frame_select_isect_mouse(bNode *node, const float2 &mouse)
+{
+  /* Frame nodes are selectable by their borders (including their whole rect - as for other nodes -
+   * would prevent e.g. box selection of nodes inside that frame). */
+  const rctf frame_inside = node_frame_rect_inside(*node);
+  if (BLI_rctf_isect_pt(&node->totr, mouse.x, mouse.y) &&
+      !BLI_rctf_isect_pt(&frame_inside, mouse.x, mouse.y)) {
+    return true;
+  }
+
+  return false;
+}
+
 static bNode *node_under_mouse_select(bNodeTree &ntree, int mx, int my)
 {
   LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
-    if (BLI_rctf_isect_pt(&node->totr, mx, my)) {
-      return node;
+    switch (node->type) {
+      case NODE_FRAME: {
+        const float2 mouse{(float)mx, (float)my};
+        if (node_frame_select_isect_mouse(node, mouse)) {
+          return node;
+        }
+        break;
+      }
+      default: {
+        if (BLI_rctf_isect_pt(&node->totr, mx, my)) {
+          return node;
+        }
+        break;
+      }
     }
   }
   return nullptr;
@@ -114,15 +138,27 @@ static bNode *node_under_mouse_tweak(bNodeTree &ntree, const float2 &mouse)
   using namespace blender::math;
 
   LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
-    if (node->type == NODE_REROUTE) {
-      bNodeSocket *socket = (bNodeSocket *)node->inputs.first;
-      const float2 location{socket->locx, socket->locy};
-      if (distance(mouse, location) < 24.0f) {
-        return node;
+    switch (node->type) {
+      case NODE_REROUTE: {
+        bNodeSocket *socket = (bNodeSocket *)node->inputs.first;
+        const float2 location{socket->locx, socket->locy};
+        if (distance(mouse, location) < 24.0f) {
+          return node;
+        }
+        break;
       }
-    }
-    if (BLI_rctf_isect_pt(&node->totr, mouse.x, mouse.y)) {
-      return node;
+      case NODE_FRAME: {
+        if (node_frame_select_isect_mouse(node, mouse)) {
+          return node;
+        }
+        break;
+      }
+      default: {
+        if (BLI_rctf_isect_pt(&node->totr, mouse.x, mouse.y)) {
+          return node;
+        }
+        break;
+      }
     }
   }
   return nullptr;
@@ -687,12 +723,24 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
   }
 
   LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
-    bool is_inside;
-    if (node->type == NODE_FRAME) {
-      is_inside = BLI_rctf_inside_rctf(&rectf, &node->totr);
-    }
-    else {
-      is_inside = BLI_rctf_isect(&rectf, &node->totr, nullptr);
+    bool is_inside = false;
+
+    switch (node->type) {
+      case NODE_FRAME: {
+        /* Frame nodes are selectable by their borders (including their whole rect - as for other
+         * nodes - would prevent selection of other nodes inside that frame. */
+        const rctf frame_inside = node_frame_rect_inside(*node);
+        if (BLI_rctf_isect(&rectf, &node->totr, NULL) &&
+            !BLI_rctf_inside_rctf(&frame_inside, &rectf)) {
+          nodeSetSelected(node, select);
+          is_inside = true;
+        }
+        break;
+      }
+      default: {
+        is_inside = BLI_rctf_isect(&rectf, &node->totr, nullptr);
+        break;
+      }
     }
 
     if (is_inside) {
@@ -781,8 +829,25 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
   UI_view2d_region_to_view(&region->v2d, x, y, &offset[0], &offset[1]);
 
   for (node = (bNode *)snode->edittree->nodes.first; node; node = node->next) {
-    if (BLI_rctf_isect_circle(&node->totr, offset, radius / zoom)) {
-      nodeSetSelected(node, select);
+    switch (node->type) {
+      case NODE_FRAME: {
+        /* Frame nodes are selectable by their borders (including their whole rect - as for other
+         * nodes - would prevent selection of _only_ other nodes inside that frame. */
+        rctf frame_inside = node_frame_rect_inside(*node);
+        const float radius_adjusted = (float)radius / zoom;
+        BLI_rctf_pad(&frame_inside, -2.0f * radius_adjusted, -2.0f * radius_adjusted);
+        if (BLI_rctf_isect_circle(&node->totr, offset, radius_adjusted) &&
+            !BLI_rctf_isect_circle(&frame_inside, offset, radius_adjusted)) {
+          nodeSetSelected(node, select);
+        }
+        break;
+      }
+      default: {
+        if (BLI_rctf_isect_circle(&node->totr, offset, radius / zoom)) {
+          nodeSetSelected(node, select);
+        }
+        break;
+      }
     }
   }
 
@@ -859,16 +924,35 @@ static bool do_lasso_select_node(bContext *C,
       continue;
     }
 
-    int screen_co[2];
-    const float cent[2] = {BLI_rctf_cent_x(&node->totr), BLI_rctf_cent_y(&node->totr)};
+    switch (node->type) {
+      case NODE_FRAME: {
+        /* Frame nodes are selectable by their borders (including their whole rect - as for other
+         * nodes - would prevent selection of other nodes inside that frame. */
+        rctf rectf;
+        BLI_rctf_rcti_copy(&rectf, &rect);
+        UI_view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
+        const rctf frame_inside = node_frame_rect_inside(*node);
+        if (BLI_rctf_isect(&rectf, &node->totr, NULL) &&
+            !BLI_rctf_inside_rctf(&frame_inside, &rectf)) {
+          nodeSetSelected(node, select);
+          changed = true;
+        }
+        break;
+      }
+      default: {
+        int screen_co[2];
+        const float cent[2] = {BLI_rctf_cent_x(&node->totr), BLI_rctf_cent_y(&node->totr)};
 
-    /* marker in screen coords */
-    if (UI_view2d_view_to_region_clip(
-            &region->v2d, cent[0], cent[1], &screen_co[0], &screen_co[1]) &&
-        BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
-        BLI_lasso_is_point_inside(mcoords, mcoords_len, screen_co[0], screen_co[1], INT_MAX)) {
-      nodeSetSelected(node, select);
-      changed = true;
+        /* marker in screen coords */
+        if (UI_view2d_view_to_region_clip(
+                &region->v2d, cent[0], cent[1], &screen_co[0], &screen_co[1]) &&
+            BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
+            BLI_lasso_is_point_inside(mcoords, mcoords_len, screen_co[0], screen_co[1], INT_MAX)) {
+          nodeSetSelected(node, select);
+          changed = true;
+        }
+        break;
+      }
     }
   }
 

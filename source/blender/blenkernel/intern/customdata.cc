@@ -1,27 +1,11 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2006 Blender Foundation.
- * All rights reserved.
- * Implementation of CustomData.
- *
- * BKE_customdata.h contains the function prototypes for this file.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2006 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
+ * Implementation of CustomData.
+ *
+ * BKE_customdata.h contains the function prototypes for this file.
  */
 
 #include "MEM_guardedalloc.h"
@@ -31,7 +15,6 @@
 
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BLI_bitmap.h"
@@ -1950,16 +1933,6 @@ const CustomData_MeshMasks CD_MASK_MESH = {
     (CD_MASK_MLOOP | CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL |
      CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
 };
-const CustomData_MeshMasks CD_MASK_EDITMESH = {
-    /* vmask */ (CD_MASK_MDEFORMVERT | CD_MASK_PAINT_MASK | CD_MASK_MVERT_SKIN | CD_MASK_SHAPEKEY |
-                 CD_MASK_SHAPE_KEYINDEX | CD_MASK_PROP_ALL | CD_MASK_PROP_COLOR | CD_MASK_CREASE),
-    /* emask */ (CD_MASK_PROP_ALL),
-    /* fmask */ 0,
-    /* pmask */ (CD_MASK_FACEMAP | CD_MASK_PROP_ALL | CD_MASK_SCULPT_FACE_SETS),
-    /* lmask */
-    (CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_CUSTOMLOOPNORMAL |
-     CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
-};
 const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
     /* vmask */ (CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT | CD_MASK_SHAPEKEY | CD_MASK_MVERT_SKIN |
                  CD_MASK_PAINT_MASK | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_PROP_ALL |
@@ -1984,20 +1957,6 @@ const CustomData_MeshMasks CD_MASK_BMESH = {
     /* lmask */
     (CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_CUSTOMLOOPNORMAL |
      CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
-};
-/**
- * cover values copied by #mesh_loops_to_tessdata
- */
-const CustomData_MeshMasks CD_MASK_FACECORNERS = {
-    /* vmask */ 0,
-    /* emask */ 0,
-    /* fmask */
-    (CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_PREVIEW_MCOL | CD_MASK_ORIGSPACE |
-     CD_MASK_TESSLOOPNORMAL | CD_MASK_TANGENT),
-    /* pmask */ 0,
-    /* lmask */
-    (CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_ORIGSPACE_MLOOP |
-     CD_MASK_NORMAL | CD_MASK_MLOOPTANGENT),
 };
 const CustomData_MeshMasks CD_MASK_EVERYTHING = {
     /* vmask */ (CD_MASK_MVERT | CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_NORMAL |

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008, Blender Foundation.
- * This is a new part of Blender
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. */
 
 /** \file
  * \ingroup DNA
@@ -35,6 +19,7 @@ struct AnimData;
 struct Curve;
 struct Curve;
 struct MDeformVert;
+struct GPencilUpdateCache;
 
 #define GP_DEFAULT_PIX_FACTOR 1.0f
 #define GP_DEFAULT_GRID_LINES 4
@@ -325,6 +310,9 @@ typedef struct bGPDstroke {
   /** Curve used to edit the stroke using Bezier handlers. */
   struct bGPDcurve *editcurve;
 
+  /* NOTE: When adding new members, make sure to add them to BKE_gpencil_stroke_copy_settings as
+   * well! */
+
   bGPDstroke_Runtime runtime;
   void *_pad5;
 } bGPDstroke;
@@ -408,6 +396,9 @@ typedef struct bGPDframe {
   short flag;
   /** Keyframe type (eBezTriple_KeyframeType). */
   short key_type;
+
+  /* NOTE: When adding new members, make sure to add them to BKE_gpencil_frame_copy_settings as
+   * well! */
 
   bGPDframe_Runtime runtime;
 } bGPDframe;
@@ -532,6 +523,9 @@ typedef struct bGPDlayer {
   float layer_mat[4][4], layer_invmat[4][4];
   char _pad3[4];
 
+  /* NOTE: When adding new members, make sure to add them to BKE_gpencil_layer_copy_settings as
+   * well! */
+
   bGPDlayer_Runtime runtime;
 } bGPDlayer;
 
@@ -633,6 +627,8 @@ typedef struct bGPdata_Runtime {
   Brush *sbuffer_brush;
   struct GpencilBatchCache *gpencil_cache;
   struct LineartCache *lineart_cache;
+
+  struct GPencilUpdateCache *update_cache;
 } bGPdata_Runtime;
 
 /* grid configuration */
@@ -725,6 +721,9 @@ typedef struct bGPdata {
   int vertex_group_active_index;
 
   bGPgrid grid;
+
+  /* NOTE: When adding new members, make sure to add them to BKE_gpencil_data_copy_settings as
+   * well! */
 
   bGPdata_Runtime runtime;
 } bGPdata;

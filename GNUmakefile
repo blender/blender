@@ -1,23 +1,4 @@
-# -*- mode: gnumakefile; tab-width: 4; indent-tabs-mode: t; -*-
-# vim: tabstop=4
-#
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # This Makefile does an out-of-source CMake build in ../build_`OS`_`CPU`
 # eg:
@@ -90,6 +71,10 @@ Static Source Code Checking
    * check_sparse:          Run blenders source through sparse (C only).
    * check_smatch:          Run blenders source through smatch (C only).
    * check_descriptions:    Check for duplicate/invalid descriptions.
+   * check_licenses:        Check license headers follow the SPDX license specification,
+                            using one of the accepted licenses in 'doc/license/SPDX-license-identifiers.txt'
+                            Append with 'SHOW_HEADERS=1' to show all unique headers
+                            which can be useful for spotting license irregularities.
 
 Spell Checkers
    This runs the spell checker from the developer tools repositor.
@@ -512,6 +497,12 @@ check_spelling_osl: .FORCE
 check_descriptions: .FORCE
 	$(BLENDER_BIN) --background -noaudio --factory-startup --python \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_descriptions.py"
+
+check_licenses: .FORCE
+	PYTHONIOENCODING=utf_8 $(PYTHON) \
+	    "$(BLENDER_DIR)/source/tools/check_source/check_licenses.py" \
+	    "--show-headers=$(SHOW_HEADERS)"
+
 
 # -----------------------------------------------------------------------------
 # Utilities

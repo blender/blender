@@ -1,23 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: some of this file.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bli
@@ -2142,6 +2124,16 @@ void mat4_to_size(float size[3], const float M[4][4])
   size[0] = len_v3(M[0]);
   size[1] = len_v3(M[1]);
   size[2] = len_v3(M[2]);
+}
+
+float mat3_to_size_max_axis(const float M[3][3])
+{
+  return sqrtf(max_fff(len_squared_v3(M[0]), len_squared_v3(M[1]), len_squared_v3(M[2])));
+}
+
+float mat4_to_size_max_axis(const float M[4][4])
+{
+  return sqrtf(max_fff(len_squared_v3(M[0]), len_squared_v3(M[1]), len_squared_v3(M[2])));
 }
 
 void mat4_to_size_fix_shear(float size[3], const float M[4][4])

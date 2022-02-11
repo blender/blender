@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 #!/usr/bin/env python3
 
 import argparse
@@ -51,7 +53,7 @@ class ReleaseLogLine:
 
         self.title = ""
         self.url = f"https://developer.blender.org/{self.ref}"
-    
+
     def __format_as_html(self)-> str:
         return f"  <li>{self.title} [<a href=\"{self.url}\">{self.ref}</a>]</li>"
 

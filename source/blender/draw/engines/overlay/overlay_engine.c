@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2019, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2019 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -262,7 +247,7 @@ static bool overlay_object_is_edit_mode(const OVERLAY_PrivateData *pd, const Obj
         return pd->ctx_mode == CTX_MODE_EDIT_METABALL;
       case OB_FONT:
         return pd->ctx_mode == CTX_MODE_EDIT_TEXT;
-      case OB_HAIR:
+      case OB_CURVES:
       case OB_POINTCLOUD:
       case OB_VOLUME:
         /* No edit mode yet. */
@@ -316,7 +301,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
                                 OB_MBALL,
                                 OB_FONT,
                                 OB_GPENCIL,
-                                OB_HAIR,
+                                OB_CURVES,
                                 OB_POINTCLOUD,
                                 OB_VOLUME);
   const bool draw_surface = (ob->dt >= OB_WIRE) && (renderable || (ob->dt == OB_WIRE));

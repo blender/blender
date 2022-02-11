@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup DNA
@@ -505,7 +489,7 @@ enum {
   /** Grease Pencil object used in 3D view but not used for annotation in 2D. */
   OB_GPENCIL = 26,
 
-  OB_HAIR = 27,
+  OB_CURVES = 27,
 
   OB_POINTCLOUD = 28,
 
@@ -520,7 +504,15 @@ enum {
   (((_type) >= OB_MESH && (_type) <= OB_MBALL) || ((_type) >= OB_GPENCIL && (_type) <= OB_VOLUME))
 /** Does the object have some render-able geometry (unlike empties, cameras, etc.). */
 #define OB_TYPE_IS_GEOMETRY(_type) \
-  (ELEM(_type, OB_MESH, OB_SURF, OB_FONT, OB_MBALL, OB_GPENCIL, OB_HAIR, OB_POINTCLOUD, OB_VOLUME))
+  (ELEM(_type, \
+        OB_MESH, \
+        OB_SURF, \
+        OB_FONT, \
+        OB_MBALL, \
+        OB_GPENCIL, \
+        OB_CURVES, \
+        OB_POINTCLOUD, \
+        OB_VOLUME))
 #define OB_TYPE_SUPPORT_VGROUP(_type) (ELEM(_type, OB_MESH, OB_LATTICE, OB_GPENCIL))
 #define OB_TYPE_SUPPORT_EDITMODE(_type) \
   (ELEM(_type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE))
@@ -542,7 +534,7 @@ enum {
         ID_LT, \
         ID_GD, \
         ID_AR, \
-        ID_HA, \
+        ID_CV, \
         ID_PT, \
         ID_VO))
 
@@ -557,7 +549,7 @@ enum {
   case ID_LT: \
   case ID_GD: \
   case ID_AR: \
-  case ID_HA: \
+  case ID_CV: \
   case ID_PT: \
   case ID_VO
 

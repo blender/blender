@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -976,13 +962,6 @@ void blo_do_versions_userdef(UserDef *userdef)
    */
   {
     /* Keep this block, even when empty. */
-    if (!USER_VERSION_ATLEAST(301, 7)) {
-      /* io_scene_obj directory is gone, split into io_import_obj and io_export_obj,
-       * with io_import_obj enabled by default and io_export_obj replaced by the C++ version.
-       */
-      BKE_addon_remove_safe(&userdef->addons, "io_scene_obj");
-      BKE_addon_ensure(&userdef->addons, "io_import_obj");
-    }
   }
 
   LISTBASE_FOREACH (bTheme *, btheme, &userdef->themes) {

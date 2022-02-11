@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifndef __SESSION_H__
 #define __SESSION_H__
@@ -172,7 +159,8 @@ class Session {
     BufferParams buffer_params;
   } delayed_reset_;
 
-  void run();
+  void thread_run();
+  void thread_render();
 
   /* Update for the new iteration of the main loop in run implementation (run_cpu and run_gpu).
    *
@@ -205,10 +193,19 @@ class Session {
 
   int2 get_effective_tile_size() const;
 
-  thread *session_thread_;
+  /* Session thread that performs rendering tasks decoupled from the thread
+   * controlling the sessions. The thread is created and destroyed along with
+   * the session. */
+  thread *session_thread_ = nullptr;
+  thread_condition_variable session_thread_cond_;
+  thread_mutex session_thread_mutex_;
+  enum {
+    SESSION_THREAD_WAIT,
+    SESSION_THREAD_RENDER,
+    SESSION_THREAD_END,
+  } session_thread_state_ = SESSION_THREAD_WAIT;
 
   bool pause_ = false;
-  bool cancel_ = false;
   bool new_work_added_ = false;
 
   thread_condition_variable pause_cond_;

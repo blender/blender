@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 by the Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup modifiers
@@ -1031,7 +1015,11 @@ static void store_computed_output_attributes(
 {
   for (const OutputAttributeToStore &store : attributes_to_store) {
     GeometryComponent &component = geometry.get_component_for_write(store.component_type);
-    if (component.attribute_exists(store.name)) {
+    const CustomDataType data_type = blender::bke::cpp_type_to_custom_data_type(store.data.type());
+    const std::optional<AttributeMetaData> meta_data = component.attribute_get_meta_data(
+        store.name);
+    if (meta_data.has_value() && meta_data->domain == store.domain &&
+        meta_data->data_type == data_type) {
       /* Copy the data into an existing attribute. */
       blender::bke::WriteAttributeLookup write_attribute = component.attribute_try_get_for_write(
           store.name);
@@ -1045,6 +1033,10 @@ static void store_computed_output_attributes(
       MEM_freeN(store.data.data());
     }
     else {
+      /* Replace the existing attribute with the new data. */
+      if (meta_data.has_value()) {
+        component.attribute_try_delete(store.name);
+      }
       component.attribute_try_create(store.name,
                                      store.domain,
                                      blender::bke::cpp_type_to_custom_data_type(store.data.type()),

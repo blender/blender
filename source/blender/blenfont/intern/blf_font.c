@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup blf
@@ -1238,6 +1222,12 @@ FontBLF *blf_font_new(const char *name, const char *filename)
   font = (FontBLF *)MEM_callocN(sizeof(FontBLF), "blf_font_new");
   err = FT_New_Face(ft_lib, filename, 0, &font->face);
   if (err) {
+    if (ELEM(err, FT_Err_Unknown_File_Format, FT_Err_Unimplemented_Feature)) {
+      printf("Format of this font file is not supported\n");
+    }
+    else {
+      printf("Error encountered while opening font file\n");
+    }
     MEM_freeN(font);
     return NULL;
   }

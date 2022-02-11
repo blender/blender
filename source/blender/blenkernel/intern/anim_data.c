@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -88,7 +72,7 @@ bool id_can_have_animdata(const ID *id)
   return id_type_can_have_animdata(GS(id->name));
 }
 
-AnimData *BKE_animdata_from_id(ID *id)
+AnimData *BKE_animdata_from_id(const ID *id)
 {
   /* In order for this to work, we assume that the #AnimData pointer is stored
    * immediately after the given ID-block in the struct, as per IdAdtTemplate. */
@@ -1284,8 +1268,8 @@ void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *use
   /* cache files */
   ANIMDATA_IDS_CB(bmain->cachefiles.first);
 
-  /* hairs */
-  ANIMDATA_IDS_CB(bmain->hairs.first);
+  /* Hair Curves. */
+  ANIMDATA_IDS_CB(bmain->hair_curves.first);
 
   /* pointclouds */
   ANIMDATA_IDS_CB(bmain->pointclouds.first);
@@ -1413,8 +1397,8 @@ void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,
   /* cache files */
   RENAMEFIX_ANIM_IDS(bmain->cachefiles.first);
 
-  /* hairs */
-  RENAMEFIX_ANIM_IDS(bmain->hairs.first);
+  /* Hair Curves. */
+  RENAMEFIX_ANIM_IDS(bmain->hair_curves.first);
 
   /* pointclouds */
   RENAMEFIX_ANIM_IDS(bmain->pointclouds.first);

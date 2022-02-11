@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -90,7 +76,7 @@ typedef enum ID_Type {
   ID_CF = MAKE_ID2('C', 'F'),  /* CacheFile */
   ID_WS = MAKE_ID2('W', 'S'),  /* WorkSpace */
   ID_LP = MAKE_ID2('L', 'P'),  /* LightProbe */
-  ID_HA = MAKE_ID2('H', 'A'),  /* Hair */
+  ID_CV = MAKE_ID2('C', 'V'),  /* Curves */
   ID_PT = MAKE_ID2('P', 'T'),  /* PointCloud */
   ID_VO = MAKE_ID2('V', 'O'),  /* Volume */
   ID_SIM = MAKE_ID2('S', 'I'), /* Simulation (geometry node groups) */
