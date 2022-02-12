@@ -1810,6 +1810,12 @@ static void gpencil_sculpt_brush_apply(bContext *C, wmOperator *op, PointerRNA *
   gso->mval[0] = mouse[0] = (int)(mousef[0]);
   gso->mval[1] = mouse[1] = (int)(mousef[1]);
 
+  /* If the mouse/pen has not moved, no reason to continue. This also avoid a small
+   * drift due precision acumulation errors. */
+  if ((gso->mval[0] == gso->mval_prev[0]) && (gso->mval[1] == gso->mval_prev[1])) {
+    return;
+  }
+
   gso->pressure = RNA_float_get(itemptr, "pressure");
 
   if (RNA_boolean_get(itemptr, "pen_flip")) {
