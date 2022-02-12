@@ -644,13 +644,16 @@ static short snap_select_type_get(TransInfo *t)
       else if (!t->tsnap.snap_self) {
         r_snap_select = SNAP_NOT_ACTIVE;
       }
+      else {
+        r_snap_select = SNAP_NOT_SELECTED;
+      }
     }
     else if ((obedit_type == -1) && base_act && base_act->object &&
              (base_act->object->mode & OB_MODE_PARTICLE_EDIT)) {
       /* Particles edit mode. */
     }
     else if (obedit_type == -1) {
-      /* Object mode */
+      /* Object or pose mode. */
       r_snap_select = SNAP_NOT_SELECTED;
     }
   }
