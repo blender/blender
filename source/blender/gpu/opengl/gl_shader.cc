@@ -499,7 +499,7 @@ static std::string main_function_wrapper(std::string &pre_main, std::string &pos
 std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) const
 {
   std::stringstream ss;
-  std::string post_main = "";
+  std::string post_main;
 
   ss << "\n/* Inputs. */\n";
   for (const ShaderCreateInfo::VertIn &attr : info.vertex_inputs_) {
@@ -532,7 +532,7 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
   ss << "\n";
 
   if (post_main.empty() == false) {
-    std::string pre_main = "";
+    std::string pre_main;
     ss << main_function_wrapper(pre_main, post_main);
   }
   return ss.str();
@@ -541,7 +541,7 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
 std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) const
 {
   std::stringstream ss;
-  std::string pre_main = "";
+  std::string pre_main;
 
   ss << "\n/* Interfaces. */\n";
   const Vector<StageInterfaceInfo *> &in_interfaces = (info.geometry_source_.is_empty()) ?
@@ -595,7 +595,7 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   ss << "\n";
 
   if (pre_main.empty() == false) {
-    std::string post_main = "";
+    std::string post_main;
     ss << main_function_wrapper(pre_main, post_main);
   }
   return ss.str();
@@ -715,7 +715,7 @@ std::string GLShader::workaround_geometry_shader_source_create(
     ss << "  gl_Layer = gpu_Layer[0];\n";
   }
   for (auto i : IndexRange(3)) {
-    for (auto iface : info_modified.vertex_out_interfaces_) {
+    for (StageInterfaceInfo *iface : info_modified.vertex_out_interfaces_) {
       for (auto &inout : iface->inouts) {
         ss << "  " << iface->instance_name << "_out." << inout.name;
         ss << " = " << iface->instance_name << "_in[" << i << "]." << inout.name << ";\n";
