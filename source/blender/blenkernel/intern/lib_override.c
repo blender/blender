@@ -1696,10 +1696,12 @@ static bool lib_override_library_resync(Main *bmain,
 
   BKE_id_multi_tagged_delete(bmain);
 
-  /* At this point, `id_root` has very likely been deleted, we need to update it to its new
-   * version.
+  /* At this point, `id_root` may have been resynced, therefore deleted. In that case we need to
+   * update it to its new version.
    */
-  id_root = id_root_reference->newid;
+  if (id_root_reference->newid != NULL) {
+    id_root = id_root_reference->newid;
+  }
 
   if (user_edited_overrides_deletion_count > 0) {
     BKE_reportf(reports != NULL ? reports->reports : NULL,
