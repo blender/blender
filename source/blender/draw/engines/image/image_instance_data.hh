@@ -36,7 +36,7 @@
  *
  * 4 textures are used to reduce uploading screen space textures when translating the image.
  */
-constexpr int SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN = 4;
+constexpr int SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN = 1;
 
 struct IMAGE_InstanceData {
   struct Image *image;
