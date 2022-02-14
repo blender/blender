@@ -371,10 +371,15 @@ inline int to_component_len(eGPUTextureFormat format)
 {
   switch (format) {
     case GPU_RGBA8:
+    case GPU_RGBA8I:
     case GPU_RGBA8UI:
-    case GPU_RGBA16F:
     case GPU_RGBA16:
+    case GPU_RGBA16F:
+    case GPU_RGBA16I:
+    case GPU_RGBA16UI:
     case GPU_RGBA32F:
+    case GPU_RGBA32I:
+    case GPU_RGBA32UI:
     case GPU_SRGB8_A8:
     case GPU_RGB10_A2:
       return 4;
@@ -382,11 +387,15 @@ inline int to_component_len(eGPUTextureFormat format)
     case GPU_R11F_G11F_B10F:
       return 3;
     case GPU_RG8:
+    case GPU_RG8I:
+    case GPU_RG8UI:
     case GPU_RG16:
     case GPU_RG16F:
     case GPU_RG16I:
     case GPU_RG16UI:
     case GPU_RG32F:
+    case GPU_RG32I:
+    case GPU_RG32UI:
       return 2;
     default:
       return 1;
