@@ -204,7 +204,7 @@ endif
 # in libraries, or python 2 for running make update to get it.
 ifeq ($(OS_NCASE),darwin)
 	ifeq (, $(shell command -v $(PYTHON)))
-		PYTHON:=$(DEPS_INSTALL_DIR)/python/bin/python3.7m
+		PYTHON:=$(DEPS_INSTALL_DIR)/python/bin/python3.10
 		ifeq (, $(shell command -v $(PYTHON)))
 			PYTHON:=python
 		endif
@@ -509,14 +509,14 @@ check_licenses: .FORCE
 #
 
 source_archive: .FORCE
-	python3 ./build_files/utils/make_source_archive.py
+	$(PYTHON) ./build_files/utils/make_source_archive.py
 
 source_archive_complete: .FORCE
 	cmake \
 	    -S "$(BLENDER_DIR)/build_files/build_environment" -B"$(BUILD_DIR)/source_archive" \
 	    -DCMAKE_BUILD_TYPE_INIT:STRING=$(BUILD_TYPE) -DPACKAGE_USE_UPSTREAM_SOURCES=OFF
 # This assumes CMake is still using a default `PACKAGE_DIR` variable:
-	python3 ./build_files/utils/make_source_archive.py --include-packages "$(BUILD_DIR)/source_archive/packages"
+	$(PYTHON) ./build_files/utils/make_source_archive.py --include-packages "$(BUILD_DIR)/source_archive/packages"
 
 
 INKSCAPE_BIN?="inkscape"
