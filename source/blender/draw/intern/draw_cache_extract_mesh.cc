@@ -792,7 +792,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
 static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
                                                       MeshBufferCache *mbc,
                                                       DRWSubdivCache *subdiv_cache,
-                                                      const ToolSettings *ts)
+                                                      MeshRenderData *mr)
 {
   /* Create an array containing all the extractors that needs to be executed. */
   ExtractorRunDatas extractors;
@@ -848,10 +848,7 @@ static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
     return;
   }
 
-  MeshRenderData mr;
-  memset(&mr, 0, sizeof(MeshRenderData));
-  draw_subdiv_init_mesh_render_data(subdiv_cache, &mr, ts);
-  mesh_render_data_update_loose_geom(&mr, mbc, MR_ITER_LEDGE | MR_ITER_LVERT, MR_DATA_LOOSE_GEOM);
+  mesh_render_data_update_loose_geom(mr, mbc, MR_ITER_LEDGE | MR_ITER_LVERT, MR_DATA_LOOSE_GEOM);
 
   void *data_stack = MEM_mallocN(extractors.data_size_total(), __func__);
   uint32_t data_offset = 0;
@@ -860,17 +857,17 @@ static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
     void *buffer = mesh_extract_buffer_get(extractor, mbuflist);
     void *data = POINTER_OFFSET(data_stack, data_offset);
 
-    extractor->init_subdiv(subdiv_cache, &mr, cache, buffer, data);
+    extractor->init_subdiv(subdiv_cache, mr, cache, buffer, data);
 
     if (extractor->iter_subdiv_mesh || extractor->iter_subdiv_bm) {
       int *subdiv_loop_poly_index = subdiv_cache->subdiv_loop_poly_index;
-      if (subdiv_cache->bm) {
+      if (mr->extract_type == MR_EXTRACT_BMESH) {
         for (uint i = 0; i < subdiv_cache->num_subdiv_quads; i++) {
           /* Multiply by 4 to have the start index of the quad's loop, as subdiv_loop_poly_index is
            * based on the subdivision loops. */
           const int poly_origindex = subdiv_loop_poly_index[i * 4];
-          const BMFace *efa = bm_original_face_get(&mr, poly_origindex);
-          extractor->iter_subdiv_bm(subdiv_cache, &mr, data, i, efa);
+          const BMFace *efa = BM_face_at_index(mr->bm, poly_origindex);
+          extractor->iter_subdiv_bm(subdiv_cache, mr, data, i, efa);
         }
       }
       else {
@@ -878,18 +875,18 @@ static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
           /* Multiply by 4 to have the start index of the quad's loop, as subdiv_loop_poly_index is
            * based on the subdivision loops. */
           const int poly_origindex = subdiv_loop_poly_index[i * 4];
-          const MPoly *mp = &mr.mpoly[poly_origindex];
-          extractor->iter_subdiv_mesh(subdiv_cache, &mr, data, i, mp);
+          const MPoly *mp = &mr->mpoly[poly_origindex];
+          extractor->iter_subdiv_mesh(subdiv_cache, mr, data, i, mp);
         }
       }
     }
 
     if (extractor->iter_loose_geom_subdiv) {
-      extractor->iter_loose_geom_subdiv(subdiv_cache, &mr, &mbc->loose_geom, buffer, data);
+      extractor->iter_loose_geom_subdiv(subdiv_cache, mr, &mbc->loose_geom, buffer, data);
     }
 
     if (extractor->finish_subdiv) {
-      extractor->finish_subdiv(subdiv_cache, &mr, cache, buffer, data);
+      extractor->finish_subdiv(subdiv_cache, mr, cache, buffer, data);
     }
   }
   MEM_freeN(data_stack);
@@ -937,9 +934,9 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
 void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
                                                MeshBufferCache *mbc,
                                                DRWSubdivCache *subdiv_cache,
-                                               const ToolSettings *ts)
+                                               MeshRenderData *mr)
 {
-  blender::draw::mesh_buffer_cache_create_requested_subdiv(cache, mbc, subdiv_cache, ts);
+  blender::draw::mesh_buffer_cache_create_requested_subdiv(cache, mbc, subdiv_cache, mr);
 }
 
 }  // extern "C"

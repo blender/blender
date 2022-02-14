@@ -288,21 +288,24 @@ static void extract_edit_data_iter_subdiv_bm(const DRWSubdivCache *subdiv_cache,
     memset(edit_loop_data, 0, sizeof(EditLoopData));
 
     if (vert_origindex != -1) {
-      const BMVert *eve = bm_original_vert_get(mr, vert_origindex);
+      const BMVert *eve = mr->v_origindex ? bm_original_vert_get(mr, vert_origindex) :
+                                            BM_vert_at_index(mr->bm, vert_origindex);
       if (eve) {
         mesh_render_data_vert_flag(mr, eve, edit_loop_data);
       }
     }
 
     if (edge_origindex != -1) {
-      const BMEdge *eed = bm_original_edge_get(mr, edge_origindex);
-      if (eed) {
-        mesh_render_data_edge_flag(mr, eed, edit_loop_data);
-      }
+      /* NOTE: #subdiv_loop_edge_index already has the origindex layer baked in. */
+      const BMEdge *eed = BM_edge_at_index(mr->bm, edge_origindex);
+      mesh_render_data_edge_flag(mr, eed, edit_loop_data);
     }
 
-    /* The -1 parameter is for edit_uvs, which we don't do here. */
-    mesh_render_data_face_flag(mr, coarse_quad, -1, edit_loop_data);
+    /* coarse_quad can be null when called by the mesh iteration below. */
+    if (coarse_quad) {
+      /* The -1 parameter is for edit_uvs, which we don't do here. */
+      mesh_render_data_face_flag(mr, coarse_quad, -1, edit_loop_data);
+    }
   }
 }
 
@@ -333,7 +336,9 @@ static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache *subdiv_cac
     const int offset = subdiv_cache->num_subdiv_loops + ledge_index * 2;
     EditLoopData *data = &vbo_data[offset];
     memset(data, 0, sizeof(EditLoopData));
-    BMEdge *eed = bm_original_edge_get(mr, loose_geom->edges[ledge_index]);
+    const int edge_index = loose_geom->edges[ledge_index];
+    BMEdge *eed = mr->e_origindex ? bm_original_edge_get(mr, edge_index) :
+                                    BM_edge_at_index(mr->bm, edge_index);
     mesh_render_data_edge_flag(mr, eed, &data[0]);
     data[1] = data[0];
     mesh_render_data_vert_flag(mr, eed->v1, &data[0]);

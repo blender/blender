@@ -163,16 +163,55 @@ static void extract_points_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                        void *data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
-  /* Copy the points as the data upload will free them. */
-  elb->data = (uint *)MEM_dupallocN(subdiv_cache->point_indices);
-  elb->index_len = mr->vert_len;
-  elb->index_min = 0;
-  elb->index_max = subdiv_cache->num_subdiv_loops + mr->loop_loose_len;
-  elb->prim_type = GPU_PRIM_POINTS;
+  GPU_indexbuf_init(
+      elb, GPU_PRIM_POINTS, mr->vert_len, subdiv_cache->num_subdiv_loops + mr->loop_loose_len);
+}
+
+static void extract_points_iter_subdiv_common(GPUIndexBufBuilder *elb,
+                                              const MeshRenderData *mr,
+                                              const DRWSubdivCache *subdiv_cache,
+                                              uint subdiv_quad_index)
+{
+  int *subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(subdiv_cache->verts_orig_index);
+  uint start_loop_idx = subdiv_quad_index * 4;
+  uint end_loop_idx = (subdiv_quad_index + 1) * 4;
+  for (uint i = start_loop_idx; i < end_loop_idx; i++) {
+    int coarse_vertex_index = subdiv_loop_vert_index[i];
+
+    if (coarse_vertex_index == -1) {
+      continue;
+    }
+
+    if (mr->v_origindex && mr->v_origindex[coarse_vertex_index] == -1) {
+      continue;
+    }
+
+    GPU_indexbuf_set_point_vert(elb, coarse_vertex_index, i);
+  }
+}
+
+static void extract_points_iter_subdiv_bm(const DRWSubdivCache *subdiv_cache,
+                                          const MeshRenderData *mr,
+                                          void *_data,
+                                          uint subdiv_quad_index,
+                                          const BMFace *UNUSED(coarse_quad))
+{
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
+  extract_points_iter_subdiv_common(elb, mr, subdiv_cache, subdiv_quad_index);
+}
+
+static void extract_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cache,
+                                            const MeshRenderData *mr,
+                                            void *_data,
+                                            uint subdiv_quad_index,
+                                            const MPoly *UNUSED(coarse_quad))
+{
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
+  extract_points_iter_subdiv_common(elb, mr, subdiv_cache, subdiv_quad_index);
 }
 
 static void extract_points_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
-                                             const MeshRenderData *UNUSED(mr),
+                                             const MeshRenderData *mr,
                                              const MeshExtractLooseGeom *loose_geom,
                                              void *UNUSED(buffer),
                                              void *data)
@@ -183,28 +222,38 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
   }
 
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
-
-  const Mesh *coarse_mesh = subdiv_cache->mesh;
-  const MEdge *coarse_edges = coarse_mesh->medge;
-
   uint offset = subdiv_cache->num_subdiv_loops;
 
-  for (int i = 0; i < loose_geom->edge_len; i++) {
-    const MEdge *loose_edge = &coarse_edges[loose_geom->edges[i]];
-    if (elb->data[loose_edge->v1] == -1u) {
-      GPU_indexbuf_set_point_vert(elb, loose_edge->v1, offset);
-    }
-    if (elb->data[loose_edge->v2] == -1u) {
-      GPU_indexbuf_set_point_vert(elb, loose_edge->v2, offset + 1);
-    }
-    offset += 2;
-  }
+  if (mr->extract_type == MR_EXTRACT_MESH) {
+    const Mesh *coarse_mesh = subdiv_cache->mesh;
+    const MEdge *coarse_edges = coarse_mesh->medge;
 
-  for (int i = 0; i < loose_geom->vert_len; i++) {
-    if (elb->data[loose_geom->verts[i]] == -1u) {
-      GPU_indexbuf_set_point_vert(elb, loose_geom->verts[i], offset);
+    for (int i = 0; i < loose_geom->edge_len; i++) {
+      const MEdge *loose_edge = &coarse_edges[loose_geom->edges[i]];
+      vert_set_mesh(elb, mr, loose_edge->v1, offset);
+      vert_set_mesh(elb, mr, loose_edge->v2, offset + 1);
+      offset += 2;
     }
-    offset += 1;
+
+    for (int i = 0; i < loose_geom->vert_len; i++) {
+      vert_set_mesh(elb, mr, loose_geom->verts[i], offset);
+      offset += 1;
+    }
+  }
+  else {
+    BMesh *bm = mr->bm;
+    for (int i = 0; i < loose_geom->edge_len; i++) {
+      const BMEdge *loose_edge = BM_edge_at_index(bm, loose_geom->edges[i]);
+      vert_set_bm(elb, loose_edge->v1, offset);
+      vert_set_bm(elb, loose_edge->v2, offset + 1);
+      offset += 2;
+    }
+
+    for (int i = 0; i < loose_geom->vert_len; i++) {
+      const BMVert *loose_vert = BM_vert_at_index(bm, loose_geom->verts[i]);
+      vert_set_bm(elb, loose_vert, offset);
+      offset += 1;
+    }
   }
 }
 
@@ -232,6 +281,8 @@ constexpr MeshExtract create_extractor_points()
   extractor.task_reduce = extract_points_task_reduce;
   extractor.finish = extract_points_finish;
   extractor.init_subdiv = extract_points_init_subdiv;
+  extractor.iter_subdiv_bm = extract_points_iter_subdiv_bm;
+  extractor.iter_subdiv_mesh = extract_points_iter_subdiv_mesh;
   extractor.iter_loose_geom_subdiv = extract_points_loose_geom_subdiv;
   extractor.finish_subdiv = extract_points_finish_subdiv;
   extractor.use_threading = true;

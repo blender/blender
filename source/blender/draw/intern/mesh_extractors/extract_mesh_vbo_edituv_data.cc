@@ -159,7 +159,7 @@ static void extract_edituv_data_iter_subdiv_bm(const DRWSubdivCache *subdiv_cach
     memset(edit_loop_data, 0, sizeof(EditLoopData));
 
     if (vert_origindex != -1 && edge_origindex != -1) {
-      BMEdge *eed = bm_original_edge_get(mr, edge_origindex);
+      BMEdge *eed = BM_edge_at_index(mr->bm, edge_origindex);
       /* Loop on an edge endpoint. */
       BMLoop *l = BM_face_edge_share_loop(const_cast<BMFace *>(coarse_quad), eed);
       mesh_render_data_loop_flag(mr, l, data->cd_ofs, edit_loop_data);

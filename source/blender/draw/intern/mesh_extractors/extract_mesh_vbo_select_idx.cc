@@ -206,13 +206,28 @@ static void extract_vert_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   /* Each element points to an element in the ibo.points. */
   draw_subdiv_init_origindex_buffer(vbo,
-                                    subdiv_cache->subdiv_loop_subdiv_vert_index,
+                                    (int *)GPU_vertbuf_get_data(subdiv_cache->verts_orig_index),
                                     subdiv_cache->num_subdiv_loops,
                                     mr->loop_loose_len);
+
+  if (!mr->v_origindex) {
+    return;
+  }
+
+  /* Remap the vertex indices to those pointed by the origin indices layer. At this point, the
+   * VBO data is a copy of #verts_orig_index which contains the coarse vertices indices, so
+   * the memory can both be accessed for lookup and immediately overwritten. */
+  int *vbo_data = static_cast<int *>(GPU_vertbuf_get_data(vbo));
+  for (int i = 0; i < subdiv_cache->num_subdiv_loops; i++) {
+    if (vbo_data[i] == -1) {
+      continue;
+    }
+    vbo_data[i] = mr->v_origindex[vbo_data[i]];
+  }
 }
 
 static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
-                                               const MeshRenderData *UNUSED(mr),
+                                               const MeshRenderData *mr,
                                                const MeshExtractLooseGeom *loose_geom,
                                                void *buffer,
                                                void *UNUSED(data))
@@ -224,20 +239,37 @@ static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cach
 
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
   uint *vert_idx_data = (uint *)GPU_vertbuf_get_data(vbo);
-  const Mesh *coarse_mesh = subdiv_cache->mesh;
-  const MEdge *coarse_edges = coarse_mesh->medge;
   uint offset = subdiv_cache->num_subdiv_loops;
 
-  for (int i = 0; i < loose_geom->edge_len; i++) {
-    const MEdge *loose_edge = &coarse_edges[loose_geom->edges[i]];
-    vert_idx_data[offset] = loose_edge->v1;
-    vert_idx_data[offset + 1] = loose_edge->v2;
-    offset += 2;
-  }
+  if (mr->extract_type == MR_EXTRACT_MESH) {
+    const Mesh *coarse_mesh = subdiv_cache->mesh;
+    const MEdge *coarse_edges = coarse_mesh->medge;
+    for (int i = 0; i < loose_geom->edge_len; i++) {
+      const MEdge *loose_edge = &coarse_edges[loose_geom->edges[i]];
+      vert_idx_data[offset] = loose_edge->v1;
+      vert_idx_data[offset + 1] = loose_edge->v2;
+      offset += 2;
+    }
 
-  for (int i = 0; i < loose_geom->vert_len; i++) {
-    vert_idx_data[offset] = loose_geom->verts[i];
-    offset += 1;
+    for (int i = 0; i < loose_geom->vert_len; i++) {
+      vert_idx_data[offset] = loose_geom->verts[i];
+      offset += 1;
+    }
+  }
+  else {
+    BMesh *bm = mr->bm;
+    for (int i = 0; i < loose_geom->edge_len; i++) {
+      const BMEdge *loose_edge = BM_edge_at_index(bm, loose_geom->edges[i]);
+      vert_idx_data[offset] = BM_elem_index_get(loose_edge->v1);
+      vert_idx_data[offset + 1] = BM_elem_index_get(loose_edge->v2);
+      offset += 2;
+    }
+
+    for (int i = 0; i < loose_geom->vert_len; i++) {
+      const BMVert *loose_vert = BM_vert_at_index(bm, loose_geom->verts[i]);
+      vert_idx_data[offset] = BM_elem_index_get(loose_vert);
+      offset += 1;
+    }
   }
 }
 
@@ -278,7 +310,7 @@ static void extract_edge_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cach
 }
 
 static void extract_poly_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                         const MeshRenderData *UNUSED(mr),
+                                         const MeshRenderData *mr,
                                          MeshBatchCache *UNUSED(cache),
                                          void *buf,
                                          void *UNUSED(data))
@@ -286,6 +318,18 @@ static void extract_poly_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   draw_subdiv_init_origindex_buffer(
       vbo, subdiv_cache->subdiv_loop_poly_index, subdiv_cache->num_subdiv_loops, 0);
+
+  if (!mr->p_origindex) {
+    return;
+  }
+
+  /* Remap the polygon indices to those pointed by the origin indices layer. At this point, the
+   * VBO data is a copy of #subdiv_loop_poly_index which contains the coarse polygon indices, so
+   * the memory can both be accessed for lookup and immediately overwritten. */
+  int *vbo_data = static_cast<int *>(GPU_vertbuf_get_data(vbo));
+  for (int i = 0; i < subdiv_cache->num_subdiv_loops; i++) {
+    vbo_data[i] = mr->p_origindex[vbo_data[i]];
+  }
 }
 
 constexpr MeshExtract create_extractor_poly_idx()

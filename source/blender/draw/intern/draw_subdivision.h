@@ -143,7 +143,17 @@ void DRW_create_subdivision(const struct Scene *scene,
                             struct Mesh *mesh,
                             struct MeshBatchCache *batch_cache,
                             struct MeshBufferCache *mbc,
-                            const struct ToolSettings *toolsettings);
+                            const bool is_editmode,
+                            const bool is_paint_mode,
+                            const bool is_mode_active,
+                            const float obmat[4][4],
+                            const bool do_final,
+                            const bool do_uvedit,
+                            const bool use_subsurf_fdots,
+                            const ToolSettings *ts,
+                            const bool use_hide);
+
+void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, struct MeshBufferCache *cache);
 
 void DRW_subdiv_cache_free(struct Subdiv *subdiv);
 

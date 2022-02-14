@@ -2076,7 +2076,20 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
   }
 
   if (do_subdivision) {
-    DRW_create_subdivision(scene, ob, me, cache, &cache->final, ts);
+    DRW_create_subdivision(scene,
+                           ob,
+                           me,
+                           cache,
+                           &cache->final,
+                           is_editmode,
+                           is_paint_mode,
+                           is_mode_active,
+                           ob->obmat,
+                           true,
+                           false,
+                           use_subsurf_fdots,
+                           ts,
+                           use_hide);
   }
   else {
     /* The subsurf modifier may have been recently removed, or another modifier was added after it,
