@@ -3165,6 +3165,7 @@ void UI_interface_tag_script_reload(void);
 void UI_block_views_listen(const uiBlock *block,
                            const struct wmRegionListenerParams *listener_params);
 
+bool UI_grid_view_item_is_active(const uiGridViewItemHandle *item_handle);
 bool UI_tree_view_item_is_active(const uiTreeViewItemHandle *item);
 bool UI_grid_view_item_matches(const uiGridViewItemHandle *a, const uiGridViewItemHandle *b);
 bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a, const uiTreeViewItemHandle *b);

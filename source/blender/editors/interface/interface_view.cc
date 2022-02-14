@@ -44,6 +44,12 @@ struct ViewLink : public Link {
   std::variant<TreeViewPtr, GridViewPtr> view;
 };
 
+template<class T> constexpr void check_if_valid_view_type()
+{
+  static_assert(std::is_same_v<T, AbstractTreeView> || std::is_same_v<T, AbstractGridView>,
+                "Unsupported view type");
+}
+
 template<class T> T *get_view_from_link(ViewLink &link)
 {
   auto *t_uptr = std::get_if<std::unique_ptr<T>>(&link.view);
@@ -53,8 +59,8 @@ template<class T> T *get_view_from_link(ViewLink &link)
 template<class T>
 static T *ui_block_add_view_impl(uiBlock &block, StringRef idname, std::unique_ptr<T> view)
 {
-  static_assert(std::is_same_v<T, AbstractTreeView> || std::is_same_v<T, AbstractGridView>,
-                "Unsupported view type");
+  check_if_valid_view_type<T>();
+
   ViewLink *view_link = MEM_new<ViewLink>(__func__);
   BLI_addtail(&block.views, view_link);
 
@@ -125,11 +131,13 @@ uiTreeViewItemHandle *UI_block_tree_view_find_active_item(const ARegion *region)
   return tree_row_but->tree_item;
 }
 
-static StringRef ui_block_view_find_idname(const uiBlock &block, const AbstractTreeView &view)
+template<class T> static StringRef ui_block_view_find_idname(const uiBlock &block, const T &view)
 {
+  check_if_valid_view_type<T>();
+
   /* First get the idname the of the view we're looking for. */
   LISTBASE_FOREACH (ViewLink *, view_link, &block.views) {
-    if (get_view_from_link<AbstractTreeView>(*view_link) == &view) {
+    if (get_view_from_link<T>(*view_link) == &view) {
       return view_link->idname;
     }
   }
@@ -137,9 +145,11 @@ static StringRef ui_block_view_find_idname(const uiBlock &block, const AbstractT
   return {};
 }
 
-static AbstractTreeView *ui_block_view_find_matching_in_old_block(const uiBlock &new_block,
-                                                                  const AbstractTreeView &new_view)
+template<class T>
+static T *ui_block_view_find_matching_in_old_block(const uiBlock &new_block, const T &new_view)
 {
+  check_if_valid_view_type<T>();
+
   uiBlock *old_block = new_block.oldblock;
   if (!old_block) {
     return nullptr;
@@ -152,21 +162,31 @@ static AbstractTreeView *ui_block_view_find_matching_in_old_block(const uiBlock 
 
   LISTBASE_FOREACH (ViewLink *, old_view_link, &old_block->views) {
     if (old_view_link->idname == idname) {
-      return get_view_from_link<AbstractTreeView>(*old_view_link);
+      return get_view_from_link<T>(*old_view_link);
     }
   }
 
   return nullptr;
 }
 
-uiTreeViewHandle *ui_block_view_find_matching_in_old_block(const uiBlock *new_block,
-                                                           const uiTreeViewHandle *new_view_handle)
+uiTreeViewHandle *ui_block_tree_view_find_matching_in_old_block(
+    const uiBlock *new_block, const uiTreeViewHandle *new_view_handle)
 {
   BLI_assert(new_block && new_view_handle);
   const AbstractTreeView &new_view = reinterpret_cast<const AbstractTreeView &>(*new_view_handle);
 
   AbstractTreeView *old_view = ui_block_view_find_matching_in_old_block(*new_block, new_view);
   return reinterpret_cast<uiTreeViewHandle *>(old_view);
+}
+
+uiGridViewHandle *ui_block_grid_view_find_matching_in_old_block(
+    const uiBlock *new_block, const uiGridViewHandle *new_view_handle)
+{
+  BLI_assert(new_block && new_view_handle);
+  const AbstractGridView &new_view = reinterpret_cast<const AbstractGridView &>(*new_view_handle);
+
+  AbstractGridView *old_view = ui_block_view_find_matching_in_old_block(*new_block, new_view);
+  return reinterpret_cast<uiGridViewHandle *>(old_view);
 }
 
 uiButTreeRow *ui_block_view_find_treerow_in_old_block(const uiBlock *new_block,

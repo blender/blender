@@ -2229,6 +2229,15 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
         }
         break;
       }
+      case UI_BTYPE_GRID_TILE: {
+        uiButGridTile *grid_tile_but = (uiButGridTile *)but;
+
+        is_push = -1;
+        if (grid_tile_but->view_item) {
+          is_push = UI_grid_view_item_is_active(grid_tile_but->view_item);
+        }
+        break;
+      }
       default:
         is_push = -1;
         break;

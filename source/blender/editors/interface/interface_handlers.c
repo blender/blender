@@ -4855,7 +4855,6 @@ static int ui_do_but_GRIDTILE(bContext *C,
         case KM_DBL_CLICK:
           data->cancel = true;
           //          UI_tree_view_item_begin_rename(grid_tile_but->tree_item);
-          printf("rename\n");
           ED_region_tag_redraw(CTX_wm_region(C));
           return WM_UI_HANDLER_BREAK;
       }
@@ -4908,6 +4907,10 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
         if (ui_list && ui_list->dyn_data->custom_drag_optype) {
           ret = WM_UI_HANDLER_CONTINUE;
         }
+      }
+      const uiBut *view_but = ui_view_item_find_mouse_over(data->region, event->xy);
+      if (view_but) {
+        ret = WM_UI_HANDLER_CONTINUE;
       }
       button_activate_state(C, but, BUTTON_STATE_EXIT);
       return ret;
@@ -9720,6 +9723,21 @@ static int ui_handle_view_items_hover(const wmEvent *event, const ARegion *regio
   return WM_UI_HANDLER_CONTINUE;
 }
 
+static int ui_handle_view_item_event(bContext *C,
+                                     const wmEvent *event,
+                                     ARegion *region,
+                                     uiBut *view_but)
+{
+  BLI_assert(ui_but_is_view_item(view_but));
+  if (event->type == LEFTMOUSE) {
+    /* Will free active button if there already is one. */
+    ui_handle_button_activate(C, region, view_but, BUTTON_ACTIVATE_OVER);
+    return ui_do_button(C, view_but->block, view_but, event);
+  }
+
+  return WM_UI_HANDLER_CONTINUE;
+}
+
 static void ui_handle_button_return_submenu(bContext *C, const wmEvent *event, uiBut *but)
 {
   uiHandleButtonData *data = but->active;
@@ -11323,6 +11341,12 @@ static int ui_region_handler(bContext *C, const wmEvent *event, void *UNUSED(use
   /* Always do this, to reliably update view item highlighting, even if the mouse hovers a button
    * nested in the item (it's an overlapping layout). */
   ui_handle_view_items_hover(event, region);
+  if (retval == WM_UI_HANDLER_CONTINUE) {
+    uiBut *view_item = ui_view_item_find_mouse_over(region, event->xy);
+    if (view_item) {
+      retval = ui_handle_view_item_event(C, event, region, view_item);
+    }
+  }
 
   /* delayed apply callbacks */
   ui_apply_but_funcs_after(C);

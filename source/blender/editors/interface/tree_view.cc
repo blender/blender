@@ -88,7 +88,7 @@ void AbstractTreeView::update_from_old(uiBlock &new_block)
     return;
   }
 
-  uiTreeViewHandle *old_view_handle = ui_block_view_find_matching_in_old_block(
+  uiTreeViewHandle *old_view_handle = ui_block_tree_view_find_matching_in_old_block(
       &new_block, reinterpret_cast<uiTreeViewHandle *>(this));
   if (old_view_handle == nullptr) {
     is_reconstructed_ = true;

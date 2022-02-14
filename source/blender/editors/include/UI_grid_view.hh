@@ -49,6 +49,8 @@ class AbstractGridViewItem {
 
   const AbstractGridView *view_;
 
+  bool is_active_ = false;
+
  protected:
   /** This label is used as the default way to identifying an item in the view. */
   std::string label_{};
@@ -60,8 +62,6 @@ class AbstractGridViewItem {
 
   virtual void build_grid_tile(uiLayout &layout) const = 0;
 
-  const AbstractGridView &get_view() const;
-
   /**
    * Compare this item to \a other to check if they represent the same data.
    * Used to recognize an item from a previous redraw, to be able to keep its state (e.g. active,
@@ -70,8 +70,35 @@ class AbstractGridViewItem {
    */
   virtual bool matches(const AbstractGridViewItem &other) const;
 
+  const AbstractGridView &get_view() const;
+
+  /**
+   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise we
+   * can't be sure about the item state.
+   */
+  bool is_active() const;
+
  protected:
   AbstractGridViewItem() = default;
+
+  /** Called when the item's state changes from inactive to active. */
+  virtual void on_activate();
+
+  /**
+   * Copy persistent state (e.g. active, selection, etc.) from a matching item of
+   * the last redraw to this item. If sub-classes introduce more advanced state they should
+   * override this and make it update their state accordingly.
+   */
+  virtual void update_from_old(const AbstractGridViewItem &old);
+
+  /**
+   * Activates this item, deactivates other items, and calls the
+   * #AbstractGridViewItem::on_activate() function.
+   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise the
+   * actual item state is unknown, possibly calling state-change update functions incorrectly.
+   */
+  void activate();
+  void deactivate();
 
  private:
   static void grid_tile_click_fn(bContext *, void *but_arg1, void *);
@@ -91,12 +118,14 @@ struct GridViewStyle {
 };
 
 class AbstractGridView {
+  friend class AbstractGridViewItem;
   friend class GridViewBuilder;
   friend class GridViewLayoutBuilder;
 
  protected:
   Vector<std::unique_ptr<AbstractGridViewItem>> items_;
   GridViewStyle style_;
+  bool is_reconstructed_ = false;
 
  public:
   AbstractGridView();
@@ -128,7 +157,22 @@ class AbstractGridView {
  protected:
   virtual void build_items() = 0;
 
+  /**
+   * Check if the view is fully (re-)constructed. That means, both #build_items() and
+   * #update_from_old() have finished.
+   */
+  bool is_reconstructed() const;
+
  private:
+  /**
+   * Match the grid-view against an earlier version of itself (if any) and copy the old UI state
+   * (e.g. active, selected, renaming, etc.) to the new one. See
+   * #AbstractGridViewItem.update_from_old().
+   */
+  void update_from_old(uiBlock &new_block);
+  AbstractGridViewItem *find_matching_item(const AbstractGridViewItem &lookup_item,
+                                           const AbstractGridView &view) const;
+
   /**
    * Add an already constructed item, moving ownership to the grid-view.
    * All items must be added through this, it handles important invariants!
@@ -169,7 +213,6 @@ class GridViewBuilder {
  */
 class PreviewGridItem : public AbstractGridViewItem {
  public:
-  std::string label{};
   int preview_icon_id = ICON_NONE;
 
   PreviewGridItem(StringRef label, int preview_icon_id);

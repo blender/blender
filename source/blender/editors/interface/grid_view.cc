@@ -60,6 +60,49 @@ bool AbstractGridView::listen(const wmNotifier &) const
   return false;
 }
 
+AbstractGridViewItem *AbstractGridView::find_matching_item(const AbstractGridViewItem &lookup_item,
+                                                           const AbstractGridView &view) const
+{
+  for (const auto &iter_item_ptr : view.items_) {
+    if (lookup_item.matches(*iter_item_ptr)) {
+      /* We have a matching item! */
+      return iter_item_ptr.get();
+    }
+  }
+
+  return nullptr;
+}
+
+void AbstractGridView::update_from_old(uiBlock &new_block)
+{
+  uiGridViewHandle *old_view_handle = ui_block_grid_view_find_matching_in_old_block(
+      &new_block, reinterpret_cast<uiGridViewHandle *>(this));
+  if (!old_view_handle) {
+    /* Initial construction, nothing to update. */
+    is_reconstructed_ = true;
+    return;
+  }
+
+  AbstractGridView &old_view = reinterpret_cast<AbstractGridView &>(*old_view_handle);
+
+  foreach_item([this, &old_view](AbstractGridViewItem &new_item) {
+    const AbstractGridViewItem *matching_old_item = find_matching_item(new_item, old_view);
+    if (!matching_old_item) {
+      return;
+    }
+
+    new_item.update_from_old(*matching_old_item);
+  });
+
+  /* Finished (re-)constructing the tree. */
+  is_reconstructed_ = true;
+}
+
+bool AbstractGridView::is_reconstructed() const
+{
+  return is_reconstructed_;
+}
+
 const GridViewStyle &AbstractGridView::get_style() const
 {
   return style_;
@@ -89,7 +132,7 @@ void AbstractGridViewItem::grid_tile_click_fn(struct bContext * /*C*/,
   AbstractGridViewItem &grid_item = reinterpret_cast<AbstractGridViewItem &>(
       *grid_tile_but->view_item);
 
-  //  tree_item.activate();
+  grid_item.activate();
 }
 
 void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
@@ -112,6 +155,45 @@ void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
 
   grid_tile_but_->view_item = reinterpret_cast<uiGridViewItemHandle *>(this);
   UI_but_func_set(&grid_tile_but_->but, grid_tile_click_fn, grid_tile_but_, nullptr);
+}
+
+bool AbstractGridViewItem::is_active() const
+{
+  BLI_assert_msg(get_view().is_reconstructed(),
+                 "State can't be queried until reconstruction is completed");
+  return is_active_;
+}
+
+void AbstractGridViewItem::on_activate()
+{
+  /* Do nothing by default. */
+}
+
+void AbstractGridViewItem::update_from_old(const AbstractGridViewItem &old)
+{
+  is_active_ = old.is_active_;
+}
+
+void AbstractGridViewItem::activate()
+{
+  BLI_assert_msg(get_view().is_reconstructed(),
+                 "Item activation can't be done until reconstruction is completed");
+
+  if (is_active()) {
+    return;
+  }
+
+  /* Deactivate other items in the tree. */
+  get_view().foreach_item([](auto &item) { item.deactivate(); });
+
+  on_activate();
+
+  is_active_ = true;
+}
+
+void AbstractGridViewItem::deactivate()
+{
+  is_active_ = false;
 }
 
 const AbstractGridView &AbstractGridViewItem::get_view() const
@@ -337,6 +419,7 @@ GridViewBuilder::GridViewBuilder(uiBlock &block) : block_(block)
 void GridViewBuilder::build_grid_view(AbstractGridView &grid_view, const View2D &v2d)
 {
   grid_view.build_items();
+  grid_view.update_from_old(block_);
 
   GridViewLayoutBuilder builder(block_);
   builder.build_from_view(grid_view, v2d);
@@ -350,8 +433,9 @@ void GridViewBuilder::build_grid_view(AbstractGridView &grid_view, const View2D 
 /* ---------------------------------------------------------------------- */
 
 PreviewGridItem::PreviewGridItem(StringRef label, int preview_icon_id)
-    : label(label), preview_icon_id(preview_icon_id)
+    : preview_icon_id(preview_icon_id)
 {
+  label_ = label;
 }
 
 void PreviewGridItem::build_grid_tile(uiLayout &layout) const
@@ -362,7 +446,7 @@ void PreviewGridItem::build_grid_tile(uiLayout &layout) const
                                 UI_BTYPE_PREVIEW_TILE,
                                 0,
                                 preview_icon_id,
-                                label.c_str(),
+                                label_.c_str(),
                                 0,
                                 0,
                                 style.tile_width,
@@ -387,6 +471,12 @@ using namespace blender::ui;
 /* C-API */
 
 using namespace blender::ui;
+
+bool UI_grid_view_item_is_active(const uiGridViewItemHandle *item_handle)
+{
+  const AbstractGridViewItem &item = reinterpret_cast<const AbstractGridViewItem &>(*item_handle);
+  return item.is_active();
+}
 
 bool UI_grid_view_listen_should_redraw(const uiGridViewHandle *view_handle,
                                        const wmNotifier *notifier)
