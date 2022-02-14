@@ -1629,12 +1629,13 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
       prop, "Stroke Extension", "Strokes end extension for closing gaps, use zero to disable");
   RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
-  /* Number of pixels to dilate fill area. */
+  /* Number of pixels to dilate fill area. Negative values contract the filled area. */
   prop = RNA_def_property(srna, "dilate", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "dilate_pixels");
-  RNA_def_property_range(prop, 0, 20);
+  RNA_def_property_range(prop, -40, 40);
   RNA_def_property_int_default(prop, 1);
-  RNA_def_property_ui_text(prop, "Dilate", "Number of pixels to dilate fill area");
+  RNA_def_property_ui_text(
+      prop, "Dilate/Contract", "Number of pixels to expand or contract fill area");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
