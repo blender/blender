@@ -468,20 +468,20 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     instance_data->partial_update.ensure_image(image);
     instance_data->clear_dirty_flag();
 
-    // Step: Find out which screen space textures are needed to draw on the screen. Remove the
-    // screen space textures that aren't needed.
+    /* Step: Find out which screen space textures are needed to draw on the screen. Remove the
+     * screen space textures that aren't needed. */
     const ARegion *region = draw_ctx->region;
     method.update_screen_space_bounds(region);
     method.update_screen_uv_bounds();
 
-    // Check for changes in the image user compared to the last time.
+    /* Check for changes in the image user compared to the last time. */
     instance_data->update_image_user(iuser);
 
-    // Step: Update the GPU textures based on the changes in the image.
+    /* Step: Update the GPU textures based on the changes in the image. */
     instance_data->update_gpu_texture_allocations();
     update_textures(*instance_data, image, iuser);
 
-    // Step: Add the GPU textures to the shgroup.
+    /* Step: Add the GPU textures to the shgroup. */
     instance_data->update_batches();
     add_depth_shgroups(*instance_data, image, iuser);
     add_shgroups(instance_data);
