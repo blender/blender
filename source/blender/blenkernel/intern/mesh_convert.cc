@@ -1051,7 +1051,12 @@ static Mesh *mesh_new_from_mesh(Object *object, Mesh *mesh)
 {
   /* While we could copy this into the new mesh,
    * add the data to 'mesh' so future calls to this function don't need to re-convert the data. */
-  BKE_mesh_wrapper_ensure_mdata(mesh);
+  if (mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+    BKE_mesh_wrapper_ensure_mdata(mesh);
+  }
+  else {
+    BKE_mesh_wrapper_ensure_subdivision(object, mesh);
+  }
 
   Mesh *mesh_result = (Mesh *)BKE_id_copy_ex(
       nullptr, &mesh->id, nullptr, LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT);
@@ -1088,6 +1093,7 @@ static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph,
     mask.pmask |= CD_MASK_ORIGINDEX;
   }
   Mesh *result = mesh_create_eval_final(depsgraph, scene, &object_for_eval, &mask);
+  BKE_mesh_wrapper_ensure_subdivision(object, result);
   return result;
 }
 

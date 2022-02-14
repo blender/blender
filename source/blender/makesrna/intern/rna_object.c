@@ -345,6 +345,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_key.h"
 #  include "BKE_material.h"
 #  include "BKE_mesh.h"
+#  include "BKE_mesh_wrapper.h"
 #  include "BKE_modifier.h"
 #  include "BKE_object.h"
 #  include "BKE_particle.h"
@@ -522,6 +523,17 @@ void rna_Object_data_update(Main *bmain, Scene *scene, PointerRNA *ptr)
   }
 
   rna_Object_internal_update_data_dependency(bmain, scene, ptr);
+}
+
+static PointerRNA rna_Object_data_get(PointerRNA *ptr)
+{
+  Object *ob = (Object *)ptr->data;
+  if (ob->type == OB_MESH) {
+    Mesh *me = (Mesh *)ob->data;
+    me = BKE_mesh_wrapper_ensure_subdivision(ob, me);
+    return rna_pointer_inherit_refine(ptr, &RNA_Mesh, me);
+  }
+  return rna_pointer_inherit_refine(ptr, &RNA_ID, ob->data);
 }
 
 static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value, struct ReportList *reports)
@@ -3055,8 +3067,11 @@ static void rna_def_object(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ID");
-  RNA_def_property_pointer_funcs(
-      prop, NULL, "rna_Object_data_set", "rna_Object_data_typef", "rna_Object_data_poll");
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_Object_data_get",
+                                 "rna_Object_data_set",
+                                 "rna_Object_data_typef",
+                                 "rna_Object_data_poll");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(prop, "Data", "Object data");
   RNA_def_property_update(prop, 0, "rna_Object_data_update");
