@@ -391,7 +391,7 @@ void BKE_modifier_copydata_ex(ModifierData *md, ModifierData *target, const int 
   }
   else {
     /* In the case copyData made full byte copy force UUID to be re-generated. */
-    BKE_modifier_session_uuid_generate(md);
+    BKE_modifier_session_uuid_generate(target);
   }
 }
 
