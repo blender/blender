@@ -8,6 +8,7 @@
 #pragma once
 
 struct DRWSubdivCache;
+struct MeshRenderData;
 struct TaskGraph;
 
 #include "DNA_customdata_types.h"
@@ -332,7 +333,7 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
 void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
                                                MeshBufferCache *mbc,
                                                struct DRWSubdivCache *subdiv_cache,
-                                               const struct ToolSettings *ts);
+                                               struct MeshRenderData *mr);
 
 #ifdef __cplusplus
 }
