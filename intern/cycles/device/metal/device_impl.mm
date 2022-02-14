@@ -40,16 +40,10 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
   mtlDevId = info.num;
 
   /* select chosen device */
-  vector<MetalPlatformDevice> usable_devices;
-  MetalInfo::get_usable_devices(&usable_devices);
-  if (usable_devices.size() == 0) {
-    set_error("Metal: no devices found.");
-    return;
-  }
+  auto usable_devices = MetalInfo::get_usable_devices();
   assert(mtlDevId < usable_devices.size());
-  MetalPlatformDevice &platform_device = usable_devices[mtlDevId];
-  mtlDevice = platform_device.device_id;
-  device_name = platform_device.device_name;
+  mtlDevice = usable_devices[mtlDevId];
+  device_name = [mtlDevice.name UTF8String];
   device_vendor = MetalInfo::get_vendor_from_device_name(device_name);
   assert(device_vendor != METAL_GPU_UNKNOWN);
   metal_printf("Creating new Cycles device for Metal: %s\n", device_name.c_str());

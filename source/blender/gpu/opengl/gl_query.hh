@@ -18,7 +18,7 @@ namespace blender::gpu {
 class GLQueryPool : public QueryPool {
  private:
   /** Contains queries object handles. */
-  Vector<GLuint> query_ids_;
+  Vector<GLuint, QUERY_MIN_LEN> query_ids_;
   /** Type of this query pool. */
   GPUQueryType type_;
   /** Associated GL type. */

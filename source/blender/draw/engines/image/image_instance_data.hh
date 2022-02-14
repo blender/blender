@@ -21,10 +21,12 @@
  *
  * 4 textures are used to reduce uploading screen space textures when translating the image.
  */
-constexpr int SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN = 4;
+constexpr int SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN = 1;
 
 struct IMAGE_InstanceData {
   struct Image *image;
+  /** Copy of the last image user to detect iuser differences that require a full update. */
+  struct ImageUser last_image_user;
 
   PartialImageUpdater partial_update;
 
@@ -90,6 +92,27 @@ struct IMAGE_InstanceData {
       }
       BatchUpdater batch_updater(info);
       batch_updater.update_batch();
+    }
+  }
+
+  void update_image_user(const ImageUser *image_user)
+  {
+    short requested_pass = image_user ? image_user->pass : 0;
+    short requested_layer = image_user ? image_user->layer : 0;
+    short requested_view = image_user ? image_user->multi_index : 0;
+    /* There is room for 2 multiview textures. When a higher number is requested we should always
+     * target the first view slot. This is fine as multi view images aren't used together. */
+    if (requested_view < 2) {
+      requested_view = 0;
+    }
+
+    if (last_image_user.pass != requested_pass || last_image_user.layer != requested_layer ||
+        last_image_user.multi_index != requested_view) {
+
+      last_image_user.pass = requested_pass;
+      last_image_user.layer = requested_layer;
+      last_image_user.multi_index = requested_view;
+      reset_dirty_flag(true);
     }
   }
 

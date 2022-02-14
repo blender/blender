@@ -37,7 +37,7 @@ struct GPUSelectQueryState {
   /** GPU queries abstraction. Contains an array of queries. */
   QueryPool *queries;
   /** Array holding the id corresponding id to each query. */
-  Vector<uint> *ids;
+  Vector<uint, QUERY_MIN_LEN> *ids;
   /** Cache on initialization. */
   GPUSelectResult *buffer;
   /** The capacity of the `buffer` array. */
@@ -71,7 +71,7 @@ void gpu_select_query_begin(GPUSelectResult *buffer,
   g_query_state.index = 0;
   g_query_state.oldhits = oldhits;
 
-  g_query_state.ids = new Vector<uint>();
+  g_query_state.ids = new Vector<uint, QUERY_MIN_LEN>();
   g_query_state.queries = GPUBackend::get()->querypool_alloc();
   g_query_state.queries->init(GPU_QUERY_OCCLUSION);
 
@@ -149,7 +149,7 @@ uint gpu_select_query_end()
   }
 
   Span<uint> ids = *g_query_state.ids;
-  Vector<uint32_t> result(ids.size());
+  Vector<uint32_t, QUERY_MIN_LEN> result(ids.size());
   g_query_state.queries->get_occlusion_result(result);
 
   for (int i = 0; i < result.size(); i++) {

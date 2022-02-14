@@ -44,8 +44,6 @@ Project Files
 
 Package Targets
 
-   * package_debian:    Build a debian package.
-   * package_pacman:    Build an arch linux pacman package.
    * package_archive:   Build an archive package.
 
 Testing Targets
@@ -204,7 +202,7 @@ endif
 # in libraries, or python 2 for running make update to get it.
 ifeq ($(OS_NCASE),darwin)
 	ifeq (, $(shell command -v $(PYTHON)))
-		PYTHON:=$(DEPS_INSTALL_DIR)/python/bin/python3.7m
+		PYTHON:=$(DEPS_INSTALL_DIR)/python/bin/python3.10
 		ifeq (, $(shell command -v $(PYTHON)))
 			PYTHON:=python
 		endif
@@ -313,7 +311,7 @@ CMAKE_CONFIG = cmake $(CMAKE_CONFIG_ARGS) \
 # -----------------------------------------------------------------------------
 # Tool for 'make config'
 
-# X11 spesific
+# X11 specific.
 ifdef DISPLAY
 	CMAKE_CONFIG_TOOL = cmake-gui
 else
@@ -390,11 +388,6 @@ help: .FORCE
 # -----------------------------------------------------------------------------
 # Packages
 #
-package_debian: .FORCE
-	cd build_files/package_spec ; DEB_BUILD_OPTIONS="parallel=$(NPROCS)" sh ./build_debian.sh
-
-package_pacman: .FORCE
-	cd build_files/package_spec/pacman ; MAKEFLAGS="-j$(NPROCS)" makepkg
 
 package_archive: .FORCE
 	make -C "$(BUILD_DIR)" -s package_archive
@@ -405,21 +398,21 @@ package_archive: .FORCE
 # Tests
 #
 test: .FORCE
-	$(PYTHON) ./build_files/utils/make_test.py "$(BUILD_DIR)"
+	@$(PYTHON) ./build_files/utils/make_test.py "$(BUILD_DIR)"
 
 # run pep8 check check on scripts we distribute.
 test_pep8: .FORCE
-	$(PYTHON) tests/python/pep8.py > test_pep8.log 2>&1
+	@$(PYTHON) tests/python/pep8.py > test_pep8.log 2>&1
 	@echo "written: test_pep8.log"
 
-# run some checks on our cmakefiles.
+# run some checks on our CMAKE files.
 test_cmake: .FORCE
-	$(PYTHON) build_files/cmake/cmake_consistency_check.py > test_cmake_consistency.log 2>&1
+	@$(PYTHON) build_files/cmake/cmake_consistency_check.py > test_cmake_consistency.log 2>&1
 	@echo "written: test_cmake_consistency.log"
 
 # run deprecation tests, see if we have anything to remove.
 test_deprecated: .FORCE
-	$(PYTHON) tests/check_deprecated.py
+	@$(PYTHON) tests/check_deprecated.py
 
 
 # -----------------------------------------------------------------------------
@@ -441,44 +434,44 @@ project_eclipse: .FORCE
 #
 
 check_cppcheck: .FORCE
-	$(CMAKE_CONFIG)
-	cd "$(BUILD_DIR)" ; \
+	@$(CMAKE_CONFIG)
+	@cd "$(BUILD_DIR)" ; \
 	$(PYTHON) \
 	    "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py" 2> \
 	    "$(BLENDER_DIR)/check_cppcheck.txt"
 	@echo "written: check_cppcheck.txt"
 
 check_clang_array: .FORCE
-	$(CMAKE_CONFIG)
-	cd "$(BUILD_DIR)" ; \
+	@$(CMAKE_CONFIG)
+	@cd "$(BUILD_DIR)" ; \
 	$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_clang_array.py"
 
 check_splint: .FORCE
-	$(CMAKE_CONFIG)
-	cd "$(BUILD_DIR)" ; \
+	@$(CMAKE_CONFIG)
+	@cd "$(BUILD_DIR)" ; \
 	$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_splint.py"
 
 check_sparse: .FORCE
-	$(CMAKE_CONFIG)
-	cd "$(BUILD_DIR)" ; \
+	@$(CMAKE_CONFIG)
+	@cd "$(BUILD_DIR)" ; \
 	$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_sparse.py"
 
 check_smatch: .FORCE
-	$(CMAKE_CONFIG)
-	cd "$(BUILD_DIR)" ; \
+	@$(CMAKE_CONFIG)
+	@cd "$(BUILD_DIR)" ; \
 	$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_smatch.py"
 
 check_mypy: .FORCE
-	$(PYTHON) "$(BLENDER_DIR)/source/tools/check_source/check_mypy.py"
+	@$(PYTHON) "$(BLENDER_DIR)/source/tools/check_source/check_mypy.py"
 
 check_spelling_py: .FORCE
-	cd "$(BUILD_DIR)" ; \
+	@cd "$(BUILD_DIR)" ; \
 	PYTHONIOENCODING=utf_8 $(PYTHON) \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_spelling.py" \
 	    "$(BLENDER_DIR)/release/scripts"
 
 check_spelling_c: .FORCE
-	cd "$(BUILD_DIR)" ; \
+	@cd "$(BUILD_DIR)" ; \
 	PYTHONIOENCODING=utf_8 $(PYTHON) \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_spelling.py" \
 	    --cache-file=$(CHECK_SPELLING_CACHE) \
@@ -488,18 +481,18 @@ check_spelling_c: .FORCE
 	    "$(BLENDER_DIR)/intern/ghost" \
 
 check_spelling_osl: .FORCE
-	cd "$(BUILD_DIR)" ;\
+	@cd "$(BUILD_DIR)" ; \
 	PYTHONIOENCODING=utf_8 $(PYTHON) \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_spelling.py" \
 	    --cache-file=$(CHECK_SPELLING_CACHE) \
 	    "$(BLENDER_DIR)/intern/cycles/kernel/shaders"
 
 check_descriptions: .FORCE
-	$(BLENDER_BIN) --background -noaudio --factory-startup --python \
+	@$(BLENDER_BIN) --background -noaudio --factory-startup --python \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_descriptions.py"
 
 check_licenses: .FORCE
-	PYTHONIOENCODING=utf_8 $(PYTHON) \
+	@PYTHONIOENCODING=utf_8 $(PYTHON) \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_licenses.py" \
 	    "--show-headers=$(SHOW_HEADERS)"
 
@@ -509,37 +502,37 @@ check_licenses: .FORCE
 #
 
 source_archive: .FORCE
-	python3 ./build_files/utils/make_source_archive.py
+	@$(PYTHON) ./build_files/utils/make_source_archive.py
 
 source_archive_complete: .FORCE
-	cmake \
+	@cmake \
 	    -S "$(BLENDER_DIR)/build_files/build_environment" -B"$(BUILD_DIR)/source_archive" \
 	    -DCMAKE_BUILD_TYPE_INIT:STRING=$(BUILD_TYPE) -DPACKAGE_USE_UPSTREAM_SOURCES=OFF
 # This assumes CMake is still using a default `PACKAGE_DIR` variable:
-	python3 ./build_files/utils/make_source_archive.py --include-packages "$(BUILD_DIR)/source_archive/packages"
+	@$(PYTHON) ./build_files/utils/make_source_archive.py --include-packages "$(BUILD_DIR)/source_archive/packages"
 
 
 INKSCAPE_BIN?="inkscape"
 icons: .FORCE
-	BLENDER_BIN=$(BLENDER_BIN) INKSCAPE_BIN=$(INKSCAPE_BIN) \
+	@BLENDER_BIN=$(BLENDER_BIN) INKSCAPE_BIN=$(INKSCAPE_BIN) \
 	    "$(BLENDER_DIR)/release/datafiles/blender_icons_update.py"
-	INKSCAPE_BIN=$(INKSCAPE_BIN) \
+	@INKSCAPE_BIN=$(INKSCAPE_BIN) \
 	    "$(BLENDER_DIR)/release/datafiles/prvicons_update.py"
-	INKSCAPE_BIN=$(INKSCAPE_BIN) \
+	@INKSCAPE_BIN=$(INKSCAPE_BIN) \
 	    "$(BLENDER_DIR)/release/datafiles/alert_icons_update.py"
 
 icons_geom: .FORCE
-	BLENDER_BIN=$(BLENDER_BIN) \
+	@BLENDER_BIN=$(BLENDER_BIN) \
 	    "$(BLENDER_DIR)/release/datafiles/blender_icons_geom_update.py"
 
 update: .FORCE
-	$(PYTHON) ./build_files/utils/make_update.py
+	@$(PYTHON) ./build_files/utils/make_update.py
 
 update_code: .FORCE
-	$(PYTHON) ./build_files/utils/make_update.py --no-libraries
+	@$(PYTHON) ./build_files/utils/make_update.py --no-libraries
 
 format: .FORCE
-	PATH="../lib/${OS_NCASE}_${CPU}/llvm/bin/:../lib/${OS_NCASE}_centos7_${CPU}/llvm/bin/:../lib/${OS_NCASE}/llvm/bin/:$(PATH)" \
+	@PATH="../lib/${OS_NCASE}_${CPU}/llvm/bin/:../lib/${OS_NCASE}_centos7_${CPU}/llvm/bin/:../lib/${OS_NCASE}/llvm/bin/:$(PATH)" \
 	    $(PYTHON) source/tools/utils_maintenance/clang_format_paths.py $(PATHS)
 
 
@@ -549,25 +542,25 @@ format: .FORCE
 
 # Simple version of ./doc/python_api/sphinx_doc_gen.sh with no PDF generation.
 doc_py: .FORCE
-	ASAN_OPTIONS=halt_on_error=0:${ASAN_OPTIONS} \
+	@ASAN_OPTIONS=halt_on_error=0:${ASAN_OPTIONS} \
 	$(BLENDER_BIN) \
 	    --background -noaudio --factory-startup \
 	    --python doc/python_api/sphinx_doc_gen.py
-	sphinx-build -b html -j $(NPROCS) doc/python_api/sphinx-in doc/python_api/sphinx-out
+	@sphinx-build -b html -j $(NPROCS) doc/python_api/sphinx-in doc/python_api/sphinx-out
 	@echo "docs written into: '$(BLENDER_DIR)/doc/python_api/sphinx-out/index.html'"
 
 doc_doxy: .FORCE
-	cd doc/doxygen; doxygen Doxyfile
+	@cd doc/doxygen; doxygen Doxyfile
 	@echo "docs written into: '$(BLENDER_DIR)/doc/doxygen/html/index.html'"
 
 doc_dna: .FORCE
-	$(BLENDER_BIN) \
+	@$(BLENDER_BIN) \
 	    --background -noaudio --factory-startup \
 	    --python doc/blender_file_format/BlendFileDnaExporter_25.py
 	@echo "docs written into: '$(BLENDER_DIR)/doc/blender_file_format/dna.html'"
 
 doc_man: .FORCE
-	$(PYTHON) doc/manpage/blender.1.py $(BLENDER_BIN) blender.1
+	@$(PYTHON) doc/manpage/blender.1.py --blender="$(BLENDER_BIN)" --output=blender.1 --verbose
 
 help_features: .FORCE
 	@$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_print_build_options.py" $(BLENDER_DIR)"/CMakeLists.txt"

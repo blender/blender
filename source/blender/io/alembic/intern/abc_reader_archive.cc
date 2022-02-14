@@ -67,7 +67,7 @@ ArchiveReader *ArchiveReader::get(struct Main *bmain, const std::vector<const ch
   std::vector<ArchiveReader *> readers;
 
   for (const char *filename : filenames) {
-    auto reader = new ArchiveReader(bmain, filename);
+    ArchiveReader *reader = new ArchiveReader(bmain, filename);
 
     if (!reader->valid()) {
       delete reader;
@@ -77,7 +77,7 @@ ArchiveReader *ArchiveReader::get(struct Main *bmain, const std::vector<const ch
     readers.push_back(reader);
   }
 
-  if (readers.size() == 0) {
+  if (readers.empty()) {
     return nullptr;
   }
 
@@ -92,7 +92,7 @@ ArchiveReader::ArchiveReader(const std::vector<ArchiveReader *> &readers) : m_re
 {
   Alembic::AbcCoreLayer::ArchiveReaderPtrs archives;
 
-  for (auto &reader : readers) {
+  for (ArchiveReader *reader : readers) {
     archives.push_back(reader->m_archive.getPtr());
   }
 

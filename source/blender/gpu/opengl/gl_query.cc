@@ -37,8 +37,9 @@ void GLQueryPool::begin_query()
   /* TODO: add assert about expected usage. */
   while (query_issued_ >= query_ids_.size()) {
     int64_t prev_size = query_ids_.size();
-    query_ids_.resize(prev_size + QUERY_CHUNCK_LEN);
-    glGenQueries(QUERY_CHUNCK_LEN, &query_ids_[prev_size]);
+    int64_t chunk_size = prev_size == 0 ? query_ids_.capacity() : QUERY_CHUNCK_LEN;
+    query_ids_.resize(prev_size + chunk_size);
+    glGenQueries(chunk_size, &query_ids_[prev_size]);
   }
   glBeginQuery(gl_type_, query_ids_[query_issued_++]);
 }

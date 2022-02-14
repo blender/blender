@@ -730,7 +730,7 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
         /* Frame nodes are selectable by their borders (including their whole rect - as for other
          * nodes - would prevent selection of other nodes inside that frame. */
         const rctf frame_inside = node_frame_rect_inside(*node);
-        if (BLI_rctf_isect(&rectf, &node->totr, NULL) &&
+        if (BLI_rctf_isect(&rectf, &node->totr, nullptr) &&
             !BLI_rctf_inside_rctf(&frame_inside, &rectf)) {
           nodeSetSelected(node, select);
           is_inside = true;
@@ -932,7 +932,7 @@ static bool do_lasso_select_node(bContext *C,
         BLI_rctf_rcti_copy(&rectf, &rect);
         UI_view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
         const rctf frame_inside = node_frame_rect_inside(*node);
-        if (BLI_rctf_isect(&rectf, &node->totr, NULL) &&
+        if (BLI_rctf_isect(&rectf, &node->totr, nullptr) &&
             !BLI_rctf_inside_rctf(&frame_inside, &rectf)) {
           nodeSetSelected(node, select);
           changed = true;
