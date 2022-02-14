@@ -49,6 +49,12 @@
 
 static bool args_contain_key(PyObject *kwargs, const char *name)
 {
+  if (kwargs == NULL) {
+    /* When a function gets called without any kwargs, Python just passes NULL instead.
+     * PyDict_Contains() is not NULL-safe, though. */
+    return false;
+  }
+
   PyObject *py_key = PyUnicode_FromString(name);
   const bool result = PyDict_Contains(kwargs, py_key) == 1;
   Py_DECREF(py_key);
