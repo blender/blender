@@ -110,7 +110,10 @@ void Session::start()
   {
     /* Signal session thread to start rendering. */
     thread_scoped_lock session_thread_lock(session_thread_mutex_);
-    assert(session_thread_state_ == SESSION_THREAD_WAIT);
+    if (session_thread_state_ == SESSION_THREAD_RENDER) {
+      /* Already rendering, nothing to do. */
+      return;
+    }
     session_thread_state_ = SESSION_THREAD_RENDER;
   }
 
