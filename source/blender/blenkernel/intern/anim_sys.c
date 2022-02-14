@@ -57,6 +57,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_nla.h"
@@ -261,6 +262,15 @@ void BKE_keyingsets_copy(ListBase *newlist, const ListBase *list)
 
     for (kspn = ksn->paths.first; kspn; kspn = kspn->next) {
       kspn->rna_path = MEM_dupallocN(kspn->rna_path);
+    }
+  }
+}
+
+void BKE_keyingsets_foreach_id(LibraryForeachIDData *data, const ListBase *keyingsets)
+{
+  for (KeyingSet *ksn = keyingsets->first; ksn; ksn = ksn->next) {
+    for (KS_Path *kspn = ksn->paths.first; kspn; kspn = kspn->next) {
+      BKE_LIB_FOREACHID_PROCESS_ID(data, kspn->id, IDWALK_CB_NOP);
     }
   }
 }

@@ -816,6 +816,9 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
         data, SEQ_for_each_callback(&scene->ed->seqbase, seq_foreach_member_id_cb, data));
   }
 
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
+                                          BKE_keyingsets_foreach_id(data, &scene->keyingsets));
+
   /* This pointer can be NULL during old files reading, better be safe than sorry. */
   if (scene->master_collection != NULL) {
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
