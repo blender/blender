@@ -79,7 +79,9 @@ def blender_extract_info(blender_bin: str) -> Dict[str, str]:
     }
 
 
-def man_page_from_blender_help(fh: TextIO, blender_bin: str) -> None:
+def man_page_from_blender_help(fh: TextIO, blender_bin: str, verbose: bool) -> None:
+    if verbose:
+        print("Extracting help text:", blender_bin)
     blender_info = blender_extract_info(blender_bin)
 
     # Header Content.
@@ -178,6 +180,13 @@ def create_argparse() -> argparse.ArgumentParser:
         required=True,
         help="Path to the blender binary."
     )
+    parser.add_argument(
+        "--verbose",
+        default=False,
+        required=False,
+        action='store_true',
+        help="Print additional progress."
+    )
 
     return parser
 
@@ -188,9 +197,12 @@ def main() -> None:
 
     blender_bin = args.blender
     output_filename = args.output
+    verbose = args.verbose
 
     with open(output_filename, "w", encoding="utf-8") as fh:
-        man_page_from_blender_help(fh, blender_bin)
+        man_page_from_blender_help(fh, blender_bin, verbose)
+        if verbose:
+            print("Written:", output_filename)
 
 
 if __name__ == "__main__":
