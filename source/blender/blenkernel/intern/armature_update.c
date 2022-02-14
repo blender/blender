@@ -850,10 +850,6 @@ void BKE_pose_eval_init(struct Depsgraph *depsgraph, Scene *UNUSED(scene), Objec
   }
 
   BLI_assert(pose->chan_array != NULL || BLI_listbase_is_empty(&pose->chanbase));
-
-  if (object->proxy != NULL) {
-    object->proxy->proxy_from = object;
-  }
 }
 
 void BKE_pose_eval_init_ik(struct Depsgraph *depsgraph, Scene *scene, Object *object)
@@ -1069,58 +1065,4 @@ void BKE_pose_eval_cleanup(struct Depsgraph *depsgraph, Scene *scene, Object *ob
   /* Release the IK tree. */
   BIK_release_tree(scene, object, ctime);
   pose_eval_cleanup_common(object);
-}
-
-void BKE_pose_eval_proxy_init(struct Depsgraph *depsgraph, Object *object)
-{
-  BLI_assert(ID_IS_LINKED(object) && object->proxy_from != NULL);
-  DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
-
-  BLI_assert(object->pose->chan_array != NULL || BLI_listbase_is_empty(&object->pose->chanbase));
-}
-
-void BKE_pose_eval_proxy_done(struct Depsgraph *depsgraph, Object *object)
-{
-  BLI_assert(ID_IS_LINKED(object) && object->proxy_from != NULL);
-  DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
-}
-
-void BKE_pose_eval_proxy_cleanup(struct Depsgraph *depsgraph, Object *object)
-{
-  BLI_assert(ID_IS_LINKED(object) && object->proxy_from != NULL);
-  DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
-  pose_eval_cleanup_common(object);
-}
-
-void BKE_pose_eval_proxy_copy_bone(struct Depsgraph *depsgraph, Object *object, int pchan_index)
-{
-  const bArmature *armature = (bArmature *)object->data;
-  if (armature->edbo != NULL) {
-    return;
-  }
-  BLI_assert(ID_IS_LINKED(object) && object->proxy_from != NULL);
-  bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
-  BLI_assert(pchan != NULL);
-  DEG_debug_print_eval_subdata(
-      depsgraph, __func__, object->id.name, object, "pchan", pchan->name, pchan);
-  /* TODO(sergey): Use indexed lookup, once it's guaranteed to be kept
-   * around for the time while proxies are evaluating.
-   */
-#if 0
-  bPoseChannel *pchan_from = pose_pchan_get_indexed(object->proxy_from, pchan_index);
-#else
-  bPoseChannel *pchan_from = BKE_pose_channel_find_name(object->proxy_from->pose, pchan->name);
-#endif
-  if (pchan_from == NULL) {
-    printf(
-        "WARNING: Could not find bone %s in linked ID anymore... "
-        "You should delete and re-generate your proxy.\n",
-        pchan->name);
-    return;
-  }
-  BKE_pose_copy_pchan_result(pchan, pchan_from);
-  copy_dq_dq(&pchan->runtime.deform_dual_quat, &pchan_from->runtime.deform_dual_quat);
-  BKE_pchan_bbone_segments_cache_copy(pchan, pchan_from);
-
-  pose_channel_flush_to_orig_if_needed(depsgraph, object, pchan);
 }

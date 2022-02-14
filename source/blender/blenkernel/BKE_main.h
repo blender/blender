@@ -182,7 +182,11 @@ typedef struct Main {
   ListBase linestyles;
   ListBase cachefiles;
   ListBase workspaces;
-  ListBase hairs;
+  /**
+   * \note The name `hair_curves` is chosen to be different than `curves`,
+   * but they are generic curve data-blocks, not just for hair.
+   */
+  ListBase hair_curves;
   ListBase pointclouds;
   ListBase volumes;
   ListBase simulations;

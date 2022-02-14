@@ -2985,7 +2985,7 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 
   areas_do_frame_follow(C, false);
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
+  DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 
@@ -3046,7 +3046,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 
     areas_do_frame_follow(C, true);
 
-    DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
+    DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 
     WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
   }
@@ -3160,7 +3160,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 
   areas_do_frame_follow(C, true);
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
+  DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 
@@ -3224,7 +3224,7 @@ static int marker_jump_exec(bContext *C, wmOperator *op)
 
   areas_do_frame_follow(C, true);
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
+  DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 
@@ -4625,7 +4625,7 @@ static int screen_animation_step_invoke(bContext *C, wmOperator *UNUSED(op), con
   if (scene_eval == NULL) {
     /* Happens when undo/redo system is used during playback, nothing meaningful we can do here. */
   }
-  else if (scene_eval->id.recalc & ID_RECALC_AUDIO_SEEK) {
+  else if (scene_eval->id.recalc & ID_RECALC_FRAME_CHANGE) {
     /* Ignore seek here, the audio will be updated to the scene frame after jump during next
      * dependency graph update. */
   }
@@ -4740,7 +4740,7 @@ static int screen_animation_step_invoke(bContext *C, wmOperator *UNUSED(op), con
   }
 
   if (sad->flag & ANIMPLAY_FLAG_JUMPED) {
-    DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
+    DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 #ifdef PROFILE_AUDIO_SYNCH
     old_frame = CFRA;
 #endif

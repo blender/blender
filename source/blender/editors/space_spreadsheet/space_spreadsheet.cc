@@ -554,7 +554,7 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
                                      UI_LAYOUT_HEADER,
                                      UI_HEADER_OFFSET,
                                      region->winy - (region->winy - UI_UNIT_Y) / 2.0f,
-                                     region->sizex,
+                                     region->winx,
                                      1,
                                      0,
                                      style);

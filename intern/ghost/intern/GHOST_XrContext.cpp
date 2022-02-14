@@ -86,6 +86,7 @@ void GHOST_XrContext::initialize(const GHOST_XrContextCreateInfo *create_info)
   initApiLayers();
   initExtensions();
   if (isDebugMode()) {
+    printSDKVersion();
     printAvailableAPILayersAndExtensionsInfo();
   }
 
@@ -155,6 +156,16 @@ void GHOST_XrContext::storeInstanceProperties()
 /* -------------------------------------------------------------------- */
 /** \name Debug Printing
  * \{ */
+
+void GHOST_XrContext::printSDKVersion()
+{
+  const XrVersion sdk_version = XR_CURRENT_API_VERSION;
+
+  printf("OpenXR SDK Version: %u.%u.%u\n",
+         XR_VERSION_MAJOR(sdk_version),
+         XR_VERSION_MINOR(sdk_version),
+         XR_VERSION_PATCH(sdk_version));
+}
 
 void GHOST_XrContext::printInstanceInfo()
 {

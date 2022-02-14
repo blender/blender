@@ -23,8 +23,8 @@
  * image that are changed. These areas are organized in chunks. Changes that happen over time are
  * organized in changesets.
  *
- * A common usecase is to update GPUTexture for drawing where only that part is uploaded that only
- * changed.
+ * A common use case is to update #GPUTexture for drawing where only that part is uploaded that
+ * only changed.
  *
  * Usage:
  *
@@ -273,7 +273,8 @@ struct TileChangeset {
     const int previous_chunk_len = chunk_dirty_flags_.size();
 
     chunk_dirty_flags_.resize(chunk_len);
-    /* Fast exit. When the changeset was already empty no need to re-init the chunk_validity. */
+    /* Fast exit. When the changeset was already empty no need to
+     * re-initialize the chunk_validity. */
     if (!has_dirty_chunks()) {
       return;
     }

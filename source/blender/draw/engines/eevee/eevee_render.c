@@ -244,10 +244,10 @@ void EEVEE_render_cache(void *vedata,
         EEVEE_cryptomatte_cache_populate(data, sldata, ob);
       }
     }
-    else if (ob->type == OB_HAIR) {
+    else if (ob->type == OB_CURVES) {
       EEVEE_object_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
       if (do_cryptomatte) {
-        EEVEE_cryptomatte_object_hair_cache_populate(data, sldata, ob);
+        EEVEE_cryptomatte_object_curves_cache_populate(data, sldata, ob);
       }
     }
     else if (ob->type == OB_VOLUME) {
@@ -517,8 +517,7 @@ static void eevee_render_draw_background(EEVEE_Data *vedata)
   EEVEE_PassList *psl = vedata->psl;
 
   /* Prevent background to write to data buffers.
-   * NOTE : This also make sure the textures are bound
-   *        to the right double buffer. */
+   * NOTE: This also make sure the textures are bound to the right double buffer. */
   GPU_framebuffer_ensure_config(&fbl->main_fb,
                                 {GPU_ATTACHMENT_LEAVE,
                                  GPU_ATTACHMENT_LEAVE,

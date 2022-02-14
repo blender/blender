@@ -397,7 +397,7 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
 
     /* Round the socket location to stop it from jiggling. */
     nsock->locx = round(loc.x + NODE_WIDTH(node));
-    nsock->locy = round(0.5f * (dy + buty));
+    nsock->locy = round(dy - NODE_DYS);
 
     dy = buty;
     if (nsock->next) {
@@ -527,7 +527,7 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
 
     nsock->locx = loc.x;
     /* Round the socket vertical position to stop it from jiggling. */
-    nsock->locy = round(0.5f * (dy + buty));
+    nsock->locy = round(dy - NODE_DYS);
 
     dy = buty - multi_input_socket_offset * 0.5;
     if (nsock->next) {
@@ -626,7 +626,9 @@ static void node_update_hidden(bNode &node, uiBlock &block)
 
 static int node_get_colorid(const bNode &node)
 {
-  switch (node.typeinfo->nclass) {
+  const int nclass = (node.typeinfo->ui_class == nullptr) ? node.typeinfo->nclass :
+                                                            node.typeinfo->ui_class(&node);
+  switch (nclass) {
     case NODE_CLASS_INPUT:
       return TH_NODE_INPUT;
     case NODE_CLASS_OUTPUT:
@@ -2028,7 +2030,7 @@ static void node_draw_basis(const bContext &C,
     }
 
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    UI_draw_roundbox_4fv(&rect, false, BASIS_RAD, color_outline);
+    UI_draw_roundbox_4fv(&rect, false, BASIS_RAD + outline_width, color_outline);
   }
 
   float scale;
@@ -2270,6 +2272,13 @@ void node_set_cursor(wmWindow &win, SpaceNode &snode, const float2 &cursor)
   if (node) {
     NodeResizeDirection dir = node_get_resize_direction(node, cursor[0], cursor[1]);
     wmcursor = node_get_resize_cursor(dir);
+    /* We want to indicate that Frame nodes can be moved/selected on their borders. */
+    if (node->type == NODE_FRAME && dir == NODE_RESIZE_NONE) {
+      const rctf frame_inside = node_frame_rect_inside(*node);
+      if (!BLI_rctf_isect_pt(&frame_inside, cursor[0], cursor[1])) {
+        wmcursor = WM_CURSOR_NSEW_SCROLL;
+      }
+    }
   }
 
   WM_cursor_set(&win, wmcursor);

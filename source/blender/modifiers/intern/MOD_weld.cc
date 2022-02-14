@@ -219,7 +219,6 @@ ModifierTypeInfo modifierType_Weld = {
     /* deformVertsEM */ nullptr,
     /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
-    /* modifyHair */ nullptr,
     /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,

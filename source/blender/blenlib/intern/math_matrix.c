@@ -2144,6 +2144,16 @@ void mat4_to_size(float size[3], const float M[4][4])
   size[2] = len_v3(M[2]);
 }
 
+float mat3_to_size_max_axis(const float M[3][3])
+{
+  return sqrtf(max_fff(len_squared_v3(M[0]), len_squared_v3(M[1]), len_squared_v3(M[2])));
+}
+
+float mat4_to_size_max_axis(const float M[4][4])
+{
+  return sqrtf(max_fff(len_squared_v3(M[0]), len_squared_v3(M[1]), len_squared_v3(M[2])));
+}
+
 void mat4_to_size_fix_shear(float size[3], const float M[4][4])
 {
   mat4_to_size(size, M);

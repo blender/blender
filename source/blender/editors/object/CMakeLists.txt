@@ -1,5 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
 #
+# ***** BEGIN GPL LICENSE BLOCK *****
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -86,10 +86,6 @@ if(WITH_PYTHON)
   add_definitions(-DWITH_PYTHON)
 endif()
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 
 if(WITH_INSTANT_MESHES) 
   add_definitions(-DWITH_INSTANT_MESHES)
@@ -98,7 +94,7 @@ endif()
 if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_SIMULATION_DATABLOCK)
   add_definitions(-DWITH_POINT_CLOUD)
-  add_definitions(-DWITH_HAIR_NODES)
+  add_definitions(-DWITH_NEW_CURVES_TYPE)
 endif()
 
 blender_add_lib(bf_editor_object "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

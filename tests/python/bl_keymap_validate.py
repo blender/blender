@@ -162,7 +162,7 @@ def keymap_data_clean(keyconfig_data: typing.List, *, relaxed: bool) -> None:
                     item_prop.pop("properties")
 
             # Needed so: `{"properties": ()}` matches `None` as there is no meaningful difference.
-            # Wruting `None` makes the most sense when explicitly written, however generated properties
+            # Writing `None` makes the most sense when explicitly written, however generated properties
             # might be empty and it's not worth adding checks in the generation logic to use `None`
             # just to satisfy this check.
             if not item_prop:

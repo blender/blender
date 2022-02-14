@@ -64,7 +64,8 @@ typedef struct SeqLoadData {
   bool use_multiview;
   char views_format;
   struct Stereo3dFormat *stereo3d_format;
-  bool allow_invalid_file; /* Used by RNA API to create placeholder strips. */
+  bool allow_invalid_file;     /* Used by RNA API to create placeholder strips. */
+  double r_video_stream_start; /* For AV synchronization. Set by `SEQ_add_movie_strip`. */
 } SeqLoadData;
 
 /**
@@ -108,8 +109,7 @@ struct Sequence *SEQ_add_image_strip(struct Main *bmain,
 struct Sequence *SEQ_add_sound_strip(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ListBase *seqbase,
-                                     struct SeqLoadData *load_data,
-                                     double audio_offset);
+                                     struct SeqLoadData *load_data);
 /**
  * Add meta strip.
  *
@@ -133,8 +133,7 @@ struct Sequence *SEQ_add_meta_strip(struct Scene *scene,
 struct Sequence *SEQ_add_movie_strip(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ListBase *seqbase,
-                                     struct SeqLoadData *load_data,
-                                     double *r_start_offset);
+                                     struct SeqLoadData *load_data);
 /**
  * Add scene strip.
  *

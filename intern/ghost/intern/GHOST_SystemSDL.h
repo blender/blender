@@ -47,7 +47,7 @@ class GHOST_SystemSDL : public GHOST_System {
 
   bool processEvents(bool waitForEvent);
 
-  int toggleConsole(int action)
+  int setConsoleWindowState(GHOST_TConsoleWindowState action)
   {
     return 0;
   }

@@ -365,7 +365,6 @@ void what_does_obaction(struct Object *ob,
                         char groupname[],
                         const struct AnimationEvalContext *anim_eval_context);
 
-/* for proxy */
 void BKE_pose_copy_pchan_result(struct bPoseChannel *pchanto,
                                 const struct bPoseChannel *pchanfrom);
 /**

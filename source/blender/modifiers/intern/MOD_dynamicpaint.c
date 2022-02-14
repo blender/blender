@@ -221,7 +221,6 @@ ModifierTypeInfo modifierType_DynamicPaint = {
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ modifyMesh,
-    /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
 
     /* initData */ initData,

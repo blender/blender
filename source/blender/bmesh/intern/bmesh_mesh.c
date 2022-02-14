@@ -2169,4 +2169,37 @@ bool BM_defragment_vertex(BMesh *bm,
 
   return true;
 }
+
+static void on_vert_kill(BMesh *bm, BMVert *v, void *userdata)
+{
+}
+static void on_edge_kill(BMesh *bm, BMEdge *e, void *userdata)
+{
+}
+static void on_face_kill(BMesh *bm, BMFace *f, void *userdata)
+{
+}
+
+static void on_vert_create(BMesh *bm, BMVert *v, void *userdata)
+{
+}
+static void on_edge_create(BMesh *bm, BMEdge *v, void *userdata)
+{
+}
+static void on_face_create(BMesh *bm, BMFace *v, void *userdata)
+{
+}
+
+void BM_empty_tracer(BMTracer *tracer, void *userdata)
+{
+  tracer->userdata = userdata;
+
+  tracer->on_vert_create = on_vert_create;
+  tracer->on_edge_create = on_edge_create;
+  tracer->on_face_create = on_face_create;
+
+  tracer->on_vert_kill = on_vert_kill;
+  tracer->on_edge_kill = on_edge_kill;
+  tracer->on_face_kill = on_face_kill;
+}
 /** \} */

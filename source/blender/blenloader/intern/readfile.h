@@ -144,14 +144,6 @@ FileData *blo_filedata_from_memfile(struct MemFile *memfile,
                                     const struct BlendFileReadParams *params,
                                     struct BlendFileReadReport *reports);
 
-/**
- * Lib linked proxy objects point to our local data, we need
- * to clear that pointer before reading the undo memfile since
- * the object might be removed, it is set again in reading
- * if the local object still exists.
- * This is only valid for local proxy objects though, linked ones should not be affected here.
- */
-void blo_clear_proxy_pointers_from_lib(struct Main *oldmain);
 void blo_make_packed_pointer_map(FileData *fd, struct Main *oldmain);
 /**
  * Set old main packed data to zero if it has been restored

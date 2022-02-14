@@ -125,7 +125,7 @@ void EEVEE_cache_populate(void *vedata, Object *ob)
     if (ELEM(ob->type, OB_MESH, OB_SURF, OB_MBALL)) {
       EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
     }
-    else if (ob->type == OB_HAIR) {
+    else if (ob->type == OB_CURVES) {
       EEVEE_object_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
     }
     else if (ob->type == OB_VOLUME) {

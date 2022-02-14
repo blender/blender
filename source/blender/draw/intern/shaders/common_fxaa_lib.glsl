@@ -51,7 +51,7 @@
 /*============================================================================
                         FXAA QUALITY - TUNING KNOBS
 ------------------------------------------------------------------------------
-NOTE the other tuning knobs are now in the shader function inputs!
+NOTE: the other tuning knobs are now in the shader function inputs!
 ============================================================================*/
 #ifndef FXAA_QUALITY__PRESET
 /*

@@ -23,6 +23,20 @@
 #include "bmesh_class.h"
 #include "BLI_compiler_compat.h"
 
+typedef struct BMTracer {
+  void (*on_vert_kill)(BMesh *bm, BMVert *v, void *userdata);
+  void (*on_edge_kill)(BMesh *bm, BMEdge *e, void *userdata);
+  void (*on_face_kill)(BMesh *bm, BMFace *f, void *userdata);
+
+  void (*on_vert_create)(BMesh *bm, BMVert *v, void *userdata);
+  void (*on_edge_create)(BMesh *bm, BMEdge *v, void *userdata);
+  void (*on_face_create)(BMesh *bm, BMFace *v, void *userdata);
+
+  void *userdata;
+} BMTracer;
+
+void BM_empty_tracer(BMTracer *tracer, void *userdata);
+
 typedef enum {
   MULTIRES_SPACE_TANGENT,  // convert absolute to tangent
   MULTIRES_SPACE_ABSOLUTE  // convert tangent to absolute

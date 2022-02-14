@@ -309,7 +309,7 @@ void BLF_thumb_preview(const char *filename,
 /* blf_default.c */
 
 void BLF_default_dpi(int dpi);
-void BLF_default_size(int size);
+void BLF_default_size(float size);
 void BLF_default_set(int fontid);
 /**
  * Get default font ID so we can pass it to other functions.

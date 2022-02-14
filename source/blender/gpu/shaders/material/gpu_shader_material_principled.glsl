@@ -166,7 +166,7 @@ void node_bsdf_principled(vec4 base_color,
     float btdf = (do_multiscatter != 0.0) ?
                      1.0 :
                      btdf_lut(NV, in_Refraction_3.roughness, in_Refraction_3.ior).x;
-    /* TODO(fclem) This could be going to a transmission render pass instead. */
+    /* TODO(@fclem): This could be going to a transmission render pass instead. */
     out_Refraction_3.radiance *= btdf;
     out_Refraction_3.radiance = render_pass_glossy_mask(vec3(1), out_Refraction_3.radiance);
     out_Refraction_3.radiance *= base_color.rgb;

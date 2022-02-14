@@ -645,7 +645,6 @@ ModifierTypeInfo modifierType_Boolean = {
     /* deformVertsEM */ nullptr,
     /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
-    /* modifyHair */ nullptr,
     /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,

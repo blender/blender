@@ -39,9 +39,8 @@
 #include "BKE_global.h"
 
 #include "BLF_api.h"
-#ifdef WITH_INTERNATIONAL
-#  include "BLT_translation.h"
-#endif
+
+#include "BLT_translation.h"
 
 #include "UI_interface.h"
 
@@ -454,15 +453,6 @@ void uiStyleInit(void)
         printf("%s: error, no fonts available\n", __func__);
       }
     }
-    else {
-      /* ? just for speed to initialize?
-       * Yes, this build the glyph cache and create
-       * the texture.
-       */
-      BLF_size(font->blf_id, 11.0f * U.pixelsize, U.dpi);
-      BLF_size(font->blf_id, 12.0f * U.pixelsize, U.dpi);
-      BLF_size(font->blf_id, 14.0f * U.pixelsize, U.dpi);
-    }
   }
 
   if (style == NULL) {
@@ -485,8 +475,6 @@ void uiStyleInit(void)
     const bool unique = true;
     blf_mono_font = BLF_load_mono_default(unique);
   }
-
-  BLF_size(blf_mono_font, 12.0f * U.pixelsize, 72);
 
   /* Set default flags based on UI preferences (not render fonts) */
   {
@@ -530,8 +518,6 @@ void uiStyleInit(void)
     const bool unique = true;
     blf_mono_font_render = BLF_load_mono_default(unique);
   }
-
-  BLF_size(blf_mono_font_render, 12.0f * U.pixelsize, 72);
 }
 
 void UI_fontstyle_set(const uiFontStyle *fs)

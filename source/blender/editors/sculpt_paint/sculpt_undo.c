@@ -72,6 +72,7 @@
 
 #include "bmesh.h"
 #include "sculpt_intern.h"
+#include "bmesh_log.h"
 
 #define WHEN_GLOBAL_UNDO_WORKS
 
@@ -2843,11 +2844,6 @@ void sculpt_undo_print_nodes(void *active)
 
 #endif
 }
-
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 void BM_log_undo_single(BMesh *bm,
                         BMLog *log,

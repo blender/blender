@@ -1473,7 +1473,7 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
   return fired || (getEventManager()->getNumEvents() > 0);
 }
 
-int GHOST_SystemWayland::toggleConsole(int /*action*/)
+int GHOST_SystemWayland::setConsoleWindowState(GHOST_TConsoleWindowState /*action*/)
 {
   return 0;
 }

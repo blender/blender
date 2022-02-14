@@ -170,7 +170,6 @@ ModifierTypeInfo modifierType_Triangulate = {
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ modifyMesh,
-    /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
 
     /* initData */ initData,

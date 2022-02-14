@@ -63,7 +63,7 @@ enum {
 
   /**
    * That ID is not really used by its owner, it's just an internal hint/helper.
-   * This addresses Their Highest Ugliness the 'from' pointers: Object->from_proxy and Key->from.
+   * This marks the 'from' pointers issue, like Key->from.
    * How to handle that kind of cases totally depends on what caller code is doing... */
   IDWALK_CB_LOOPBACK = (1 << 4),
 
@@ -135,7 +135,6 @@ enum {
   /** Do not process ID pointers inside embedded IDs. Needed by depsgraph processing e.g. */
   IDWALK_IGNORE_EMBEDDED_ID = (1 << 3),
 
-  IDWALK_NO_INDIRECT_PROXY_DATA_USAGE = (1 << 8), /* Ugly special case :(((( */
   /** Also process internal ID pointers like `ID.newid` or `ID.orig_id`.
    *  WARNING: Dangerous, use with caution. */
   IDWALK_DO_INTERNAL_RUNTIME_POINTERS = (1 << 9),

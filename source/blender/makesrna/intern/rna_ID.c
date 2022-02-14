@@ -76,7 +76,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_SPK, "SPEAKER", ICON_SPEAKER, "Speaker", ""},
     {ID_TXT, "TEXT", ICON_TEXT, "Text", ""},
     {ID_TE, "TEXTURE", ICON_TEXTURE_DATA, "Texture", ""},
-    {ID_HA, "HAIR", ICON_HAIR_DATA, "Hair", ""},
+    {ID_CV, "CURVES", ICON_CURVES_DATA, "Hair Curves", ""},
     {ID_PT, "POINTCLOUD", ICON_POINTCLOUD_DATA, "Point Cloud", ""},
     {ID_VO, "VOLUME", ICON_VOLUME_DATA, "Volume", ""},
     {ID_WM, "WINDOWMANAGER", ICON_WINDOW, "Window Manager", ""},
@@ -151,7 +151,7 @@ const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
      ICON_OUTLINER_COLLECTION,
      "Collections",
      "Show Collection data-blocks"},
-    {FILTER_ID_HA, "filter_hair", ICON_HAIR_DATA, "Hairs", "Show/hide Hair data-blocks"},
+    {FILTER_ID_CV, "filter_hair", ICON_CURVES_DATA, "Hairs", "Show/hide Hair data-blocks"},
     {FILTER_ID_IM, "filter_image", ICON_IMAGE_DATA, "Images", "Show Image data-blocks"},
     {FILTER_ID_LA, "filter_light", ICON_LIGHT_DATA, "Lights", "Show Light data-blocks"},
     {FILTER_ID_LP,
@@ -385,9 +385,9 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_FreestyleLineStyle) {
     return ID_LS;
   }
-#  ifdef WITH_HAIR_NODES
-  if (base_type == &RNA_Hair) {
-    return ID_HA;
+#  ifdef WITH_NEW_CURVES_TYPE
+  if (base_type == &RNA_Curves) {
+    return ID_CV;
   }
 #  endif
   if (base_type == &RNA_Lattice) {
@@ -492,9 +492,9 @@ StructRNA *ID_code_to_RNA_type(short idcode)
       return &RNA_GreasePencil;
     case ID_GR:
       return &RNA_Collection;
-    case ID_HA:
-#  ifdef WITH_HAIR_NODES
-      return &RNA_Hair;
+    case ID_CV:
+#  ifdef WITH_NEW_CURVES_TYPE
+      return &RNA_Curves;
 #  else
       return &RNA_ID;
 #  endif
@@ -719,7 +719,8 @@ static ID *rna_ID_override_hierarchy_create(
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
   ID *id_root_override = NULL;
-  BKE_lib_override_library_create(bmain, scene, view_layer, id, id_reference, &id_root_override);
+  BKE_lib_override_library_create(
+      bmain, scene, view_layer, NULL, id, id_reference, &id_root_override);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
   WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
@@ -948,9 +949,9 @@ static void rna_ID_user_remap(ID *id, Main *bmain, ID *new_id)
   }
 }
 
-static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, bool clear_proxy)
+static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, bool UNUSED(clear_proxy))
 {
-  BKE_lib_id_make_local(bmain, self, clear_proxy ? 0 : LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING);
+  BKE_lib_id_make_local(bmain, self, 0);
 
   ID *ret_id = self->newid ? self->newid : self;
   BKE_id_newptr_and_tag_clear(self);
@@ -1821,6 +1822,13 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
       srna, "reference", "ID", "Reference ID", "Linked ID used as reference by this override");
   RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 
+  RNA_def_pointer(
+      srna,
+      "hierarchy_root",
+      "ID",
+      "Hierarchy Root ID",
+      "Library override ID used as root of the override hierarchy this ID is a member of");
+
   prop = RNA_def_boolean(srna,
                          "is_in_hierarchy",
                          true,
@@ -2088,13 +2096,7 @@ static void rna_def_ID(BlenderRNA *brna)
       "Make this datablock local, return local one "
       "(may be a copy of the original, in case it is also indirectly used)");
   RNA_def_function_flag(func, FUNC_USE_MAIN);
-  parm = RNA_def_boolean(
-      func,
-      "clear_proxy",
-      true,
-      "",
-      "Whether to clear proxies (the default behavior, "
-      "note that if object has to be duplicated to be made local, proxies are always cleared)");
+  parm = RNA_def_boolean(func, "clear_proxy", true, "", "Deprecated, has no effect");
   parm = RNA_def_pointer(func, "id", "ID", "", "This ID, or the new ID if it was copied");
   RNA_def_function_return(func, parm);
 

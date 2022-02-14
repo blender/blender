@@ -72,6 +72,7 @@
 #include "RNA_define.h"
 
 #include "bmesh.h"
+#include "bmesh_log.h"
 
 #include <math.h>
 #include <stdlib.h>

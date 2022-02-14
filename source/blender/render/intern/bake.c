@@ -512,9 +512,9 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
     triangles[i].mverts[0] = &mvert[me->mloop[lt->tri[0]].v];
     triangles[i].mverts[1] = &mvert[me->mloop[lt->tri[1]].v];
     triangles[i].mverts[2] = &mvert[me->mloop[lt->tri[2]].v];
-    triangles[i].vert_normals[0] = &vert_normals[me->mloop[lt->tri[0]].v][0];
-    triangles[i].vert_normals[1] = &vert_normals[me->mloop[lt->tri[1]].v][1];
-    triangles[i].vert_normals[2] = &vert_normals[me->mloop[lt->tri[2]].v][2];
+    triangles[i].vert_normals[0] = vert_normals[me->mloop[lt->tri[0]].v];
+    triangles[i].vert_normals[1] = vert_normals[me->mloop[lt->tri[1]].v];
+    triangles[i].vert_normals[2] = vert_normals[me->mloop[lt->tri[2]].v];
     triangles[i].is_smooth = (mp->flag & ME_SMOOTH) != 0;
 
     if (tangent) {

@@ -262,7 +262,7 @@ static bool overlay_object_is_edit_mode(const OVERLAY_PrivateData *pd, const Obj
         return pd->ctx_mode == CTX_MODE_EDIT_METABALL;
       case OB_FONT:
         return pd->ctx_mode == CTX_MODE_EDIT_TEXT;
-      case OB_HAIR:
+      case OB_CURVES:
       case OB_POINTCLOUD:
       case OB_VOLUME:
         /* No edit mode yet. */
@@ -316,7 +316,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
                                 OB_MBALL,
                                 OB_FONT,
                                 OB_GPENCIL,
-                                OB_HAIR,
+                                OB_CURVES,
                                 OB_POINTCLOUD,
                                 OB_VOLUME);
   const bool draw_surface = (ob->dt >= OB_WIRE) && (renderable || (ob->dt == OB_WIRE));

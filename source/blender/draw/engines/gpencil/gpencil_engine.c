@@ -788,7 +788,7 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL
   const float clear_col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   float clear_depth = ob->is_drawmode3d ? 1.0f : 0.0f;
   bool inverted = false;
-  /* OPTI(fclem) we could optimize by only clearing if the new mask_bits does not contain all
+  /* OPTI(@fclem): we could optimize by only clearing if the new mask_bits does not contain all
    * the masks already rendered in the buffer, and drawing only the layers not already drawn. */
   bool cleared = false;
 

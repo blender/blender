@@ -2028,6 +2028,9 @@ class SEQUENCER_PT_adjust_transform(SequencerButtonsPanel, Panel):
         layout.active = not strip.mute
 
         col = layout.column(align=True)
+        col.prop(strip.transform, "filter", text="Filter")
+
+        col = layout.column(align=True)
         col.prop(strip.transform, "offset_x", text="Position X")
         col.prop(strip.transform, "offset_y", text="Y")
 

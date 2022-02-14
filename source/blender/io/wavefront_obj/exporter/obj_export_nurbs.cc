@@ -102,4 +102,10 @@ int OBJCurve::get_nurbs_degree(const int spline_index) const
   return nurb->orderu - 1;
 }
 
+short OBJCurve::get_nurbs_flagu(const int spline_index) const
+{
+  const Nurb *const nurb = static_cast<Nurb *>(BLI_findlink(&export_curve_->nurb, spline_index));
+  return nurb->flagu;
+}
+
 }  // namespace blender::io::obj

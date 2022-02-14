@@ -60,6 +60,17 @@ static int gpu_shader_bump(GPUMaterial *mat,
                            GPUNodeStack *in,
                            GPUNodeStack *out)
 {
+  /* If there is no Height input, the node becomes a no-op. */
+  if (!in[2].link) {
+    if (!in[5].link) {
+      return GPU_link(mat, "world_normals_get", &out[0].link);
+    }
+    else {
+      /* Actually running the bump code would normalize, but Cycles handles it as total no-op. */
+      return GPU_link(mat, "vector_copy", in[5].link, &out[0].link);
+    }
+  }
+
   if (!in[5].link) {
     GPU_link(mat, "world_normals_get", &in[5].link);
   }

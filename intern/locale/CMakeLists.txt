@@ -56,7 +56,6 @@ if(WITH_INTERNATIONAL)
   list(APPEND LIB
     ${BOOST_LIBRARIES}
   )
-  add_definitions(-DWITH_INTERNATIONAL)
   add_definitions(${BOOST_DEFINITIONS})
 endif()
 

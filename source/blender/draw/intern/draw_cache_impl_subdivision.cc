@@ -999,7 +999,7 @@ static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
 
   cache->face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
 
-  // Build patch coordinates for all the face dots
+  /* Build patch coordinates for all the face dots. */
   cache->fdots_patch_coords = gpu_vertbuf_create_from_format(get_blender_patch_coords_format(),
                                                              mesh_eval->totpoly);
   CompressedPatchCoord *blender_fdots_patch_coords = (CompressedPatchCoord *)GPU_vertbuf_get_data(
@@ -1760,7 +1760,7 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache *cache,
   int *mat_start = static_cast<int *>(MEM_callocN(sizeof(int) * mat_len, "subdiv mat_start"));
   int *subdiv_polygon_offset = cache->subdiv_polygon_offset;
 
-  // TODO: parallel_reduce?
+  /* TODO: parallel_reduce? */
   for (int i = 0; i < mesh_eval->totpoly; i++) {
     const MPoly *mpoly = &mesh_eval->mpoly[i];
     const int next_offset = (i == mesh_eval->totpoly - 1) ? number_of_quads :

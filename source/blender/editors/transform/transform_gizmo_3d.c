@@ -953,32 +953,25 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *ob_iter = objects[ob_index];
-      const bool use_mat_local = (ob_iter != ob);
-      bPoseChannel *pchan;
-
+      const bool use_mat_local = params->use_local_axis && (ob_iter != ob);
       /* mislead counting bones... bah. We don't know the gizmo mode, could be mixed */
       const int mode = TFM_ROTATION;
 
-      const int totsel_iter = transform_convert_pose_transflags_update(
-          ob_iter, mode, V3D_AROUND_CENTER_BOUNDS, NULL);
+      transform_convert_pose_transflags_update(ob_iter, mode, V3D_AROUND_CENTER_BOUNDS);
 
-      if (totsel_iter) {
-        float mat_local[4][4];
-        if (params->use_local_axis) {
-          if (use_mat_local) {
-            mul_m4_m4m4(mat_local, ob->imat, ob_iter->obmat);
-          }
-        }
+      float mat_local[4][4];
+      if (use_mat_local) {
+        mul_m4_m4m4(mat_local, ob->imat, ob_iter->obmat);
+      }
 
-        /* use channels to get stats */
-        for (pchan = ob_iter->pose->chanbase.first; pchan; pchan = pchan->next) {
-          Bone *bone = pchan->bone;
-          if (bone && (bone->flag & BONE_TRANSFORM)) {
-            calc_tw_center_with_matrix(tbounds, pchan->pose_head, use_mat_local, mat_local);
-            protectflag_to_drawflags_pchan(rv3d, pchan, orient_index);
-          }
+      /* Use channels to get stats. */
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+        if (!(pchan->bone->flag & BONE_TRANSFORM)) {
+          continue;
         }
-        totsel += totsel_iter;
+        calc_tw_center_with_matrix(tbounds, pchan->pose_head, use_mat_local, mat_local);
+        protectflag_to_drawflags_pchan(rv3d, pchan, orient_index);
+        totsel++;
       }
     }
     MEM_freeN(objects);

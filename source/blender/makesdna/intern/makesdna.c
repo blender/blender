@@ -134,7 +134,7 @@ static const char *includefiles[] = {
     "DNA_lightprobe_types.h",
     "DNA_curveprofile_types.h",
     "DNA_xr_types.h",
-    "DNA_hair_types.h",
+    "DNA_curves_types.h",
     "DNA_pointcloud_types.h",
     "DNA_volume_types.h",
     "DNA_simulation_types.h",
@@ -1556,8 +1556,18 @@ int main(int argc, char **argv)
         base_directory = BASE_HEADER;
       }
 
+      /* NOTE: #init_structDNA() in dna_genfile.c expects `sdna->data` is 4-bytes aligned.
+       * `DNAstr[]` buffer written by `makesdna` is used for this data, so make `DNAstr` forcefully
+       * 4-bytes aligned. */
+#ifdef __GNUC__
+#  define FORCE_ALIGN_4 " __attribute__((aligned(4))) "
+#else
+#  define FORCE_ALIGN_4 " "
+#endif
       fprintf(file_dna, "extern const unsigned char DNAstr[];\n");
-      fprintf(file_dna, "const unsigned char DNAstr[] = {\n");
+      fprintf(file_dna, "const unsigned char" FORCE_ALIGN_4 "DNAstr[] = {\n");
+#undef FORCE_ALIGN_4
+
       if (make_structDNA(base_directory, file_dna, file_dna_offsets, file_dna_verify)) {
         /* error */
         fclose(file_dna);
@@ -1627,6 +1637,7 @@ int main(int argc, char **argv)
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_curveprofile_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_effect_types.h"
@@ -1635,7 +1646,6 @@ int main(int argc, char **argv)
 #include "DNA_freestyle_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"

@@ -58,7 +58,7 @@ typedef struct Colorband_RNAUpdateCb {
 } Colorband_RNAUpdateCb;
 
 typedef struct EyedropperColorband {
-  int last_x, last_y;
+  int event_xy_last[2];
   /* Alpha is currently fixed at 1.0, may support in future. */
   float (*color_buffer)[4];
   int color_buffer_alloc;
@@ -142,13 +142,12 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
 
 static void eyedropper_colorband_sample_point(bContext *C,
                                               EyedropperColorband *eye,
-                                              int mx,
-                                              int my)
+                                              const int m_xy[2])
 {
-  if (eye->last_x != mx || eye->last_y != my) {
+  if (eye->event_xy_last[0] != m_xy[0] || eye->event_xy_last[1] != m_xy[1]) {
     float col[4];
     col[3] = 1.0f; /* TODO: sample alpha */
-    eyedropper_color_sample_fl(C, mx, my, col);
+    eyedropper_color_sample_fl(C, m_xy, col);
     if (eye->color_buffer_len + 1 == eye->color_buffer_alloc) {
       eye->color_buffer_alloc *= 2;
       eye->color_buffer = MEM_reallocN(eye->color_buffer,
@@ -156,8 +155,7 @@ static void eyedropper_colorband_sample_point(bContext *C,
     }
     copy_v4_v4(eye->color_buffer[eye->color_buffer_len], col);
     eye->color_buffer_len += 1;
-    eye->last_x = mx;
-    eye->last_y = my;
+    copy_v2_v2_int(eye->event_xy_last, m_xy);
     eye->is_set = true;
   }
 }
@@ -167,21 +165,20 @@ static bool eyedropper_colorband_sample_callback(int mx, int my, void *userdata)
   struct EyedropperColorband_Context *data = userdata;
   bContext *C = data->context;
   EyedropperColorband *eye = data->eye;
-  eyedropper_colorband_sample_point(C, eye, mx, my);
+  const int cursor[2] = {mx, my};
+  eyedropper_colorband_sample_point(C, eye, cursor);
   return true;
 }
 
 static void eyedropper_colorband_sample_segment(bContext *C,
                                                 EyedropperColorband *eye,
-                                                int mx,
-                                                int my)
+                                                const int m_xy[2])
 {
   /* Since the mouse tends to move rather rapidly we use #BLI_bitmap_draw_2d_line_v2v2i
    * to interpolate between the reported coordinates */
   struct EyedropperColorband_Context userdata = {C, eye};
-  const int p1[2] = {eye->last_x, eye->last_y};
-  const int p2[2] = {mx, my};
-  BLI_bitmap_draw_2d_line_v2v2i(p1, p2, eyedropper_colorband_sample_callback, &userdata);
+  BLI_bitmap_draw_2d_line_v2v2i(
+      eye->event_xy_last, m_xy, eyedropper_colorband_sample_callback, &userdata);
 }
 
 static void eyedropper_colorband_exit(bContext *C, wmOperator *op)
@@ -233,7 +230,7 @@ static int eyedropper_colorband_modal(bContext *C, wmOperator *op, const wmEvent
         return OPERATOR_CANCELLED;
       case EYE_MODAL_SAMPLE_CONFIRM: {
         const bool is_undo = eye->is_undo;
-        eyedropper_colorband_sample_segment(C, eye, event->xy[0], event->xy[1]);
+        eyedropper_colorband_sample_segment(C, eye, event->xy);
         eyedropper_colorband_apply(C, op);
         eyedropper_colorband_exit(C, op);
         /* Could support finished & undo-skip. */
@@ -242,10 +239,9 @@ static int eyedropper_colorband_modal(bContext *C, wmOperator *op, const wmEvent
       case EYE_MODAL_SAMPLE_BEGIN:
         /* enable accum and make first sample */
         eye->sample_start = true;
-        eyedropper_colorband_sample_point(C, eye, event->xy[0], event->xy[1]);
+        eyedropper_colorband_sample_point(C, eye, event->xy);
         eyedropper_colorband_apply(C, op);
-        eye->last_x = event->xy[0];
-        eye->last_y = event->xy[1];
+        copy_v2_v2_int(eye->event_xy_last, event->xy);
         break;
       case EYE_MODAL_SAMPLE_RESET:
         break;
@@ -253,7 +249,7 @@ static int eyedropper_colorband_modal(bContext *C, wmOperator *op, const wmEvent
   }
   else if (event->type == MOUSEMOVE) {
     if (eye->sample_start) {
-      eyedropper_colorband_sample_segment(C, eye, event->xy[0], event->xy[1]);
+      eyedropper_colorband_sample_segment(C, eye, event->xy);
       eyedropper_colorband_apply(C, op);
     }
   }
@@ -280,7 +276,7 @@ static int eyedropper_colorband_point_modal(bContext *C, wmOperator *op, const w
         }
         break;
       case EYE_MODAL_POINT_SAMPLE:
-        eyedropper_colorband_sample_point(C, eye, event->xy[0], event->xy[1]);
+        eyedropper_colorband_sample_point(C, eye, event->xy);
         eyedropper_colorband_apply(C, op);
         if (eye->color_buffer_len == MAXCOLORBAND) {
           eyedropper_colorband_exit(C, op);

@@ -112,13 +112,24 @@ static void rna_LayerObjects_active_object_set(PointerRNA *ptr,
   }
 }
 
+size_t rna_ViewLayer_path_buffer_get(ViewLayer *view_layer,
+                                     char *r_rna_path,
+                                     const size_t rna_path_buffer_size)
+{
+  char name_esc[sizeof(view_layer->name) * 2];
+  BLI_str_escape(name_esc, view_layer->name, sizeof(name_esc));
+
+  return BLI_snprintf_rlen(r_rna_path, rna_path_buffer_size, "view_layers[\"%s\"]", name_esc);
+}
+
 static char *rna_ViewLayer_path(PointerRNA *ptr)
 {
-  ViewLayer *srl = (ViewLayer *)ptr->data;
-  char name_esc[sizeof(srl->name) * 2];
+  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  char rna_path[sizeof(view_layer->name) * 3];
 
-  BLI_str_escape(name_esc, srl->name, sizeof(name_esc));
-  return BLI_sprintfN("view_layers[\"%s\"]", name_esc);
+  rna_ViewLayer_path_buffer_get(view_layer, rna_path, sizeof(rna_path));
+
+  return BLI_strdup(rna_path);
 }
 
 static IDProperty **rna_ViewLayer_idprops(PointerRNA *ptr)

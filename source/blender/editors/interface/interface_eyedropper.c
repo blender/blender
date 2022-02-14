@@ -25,6 +25,7 @@
 #include "DNA_space_types.h"
 
 #include "BLI_math_color.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -107,7 +108,7 @@ wmKeyMap *eyedropper_colorband_modal_keymap(wmKeyConfig *keyconf)
 /** \name Generic Shared Functions
  * \{ */
 
-static void eyedropper_draw_cursor_text_ex(const int x, const int y, const char *name)
+static void eyedropper_draw_cursor_text_ex(const int xy[2], const char *name)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 
@@ -119,7 +120,7 @@ static void eyedropper_draw_cursor_text_ex(const int x, const int y, const char 
   rgba_uchar_to_float(col_fg, wcol->text);
   rgba_uchar_to_float(col_bg, wcol->inner);
 
-  UI_fontstyle_draw_simple_backdrop(fstyle, x, y + U.widget_unit, name, col_fg, col_bg);
+  UI_fontstyle_draw_simple_backdrop(fstyle, xy[0], xy[1] + U.widget_unit, name, col_fg, col_bg);
 }
 
 void eyedropper_draw_cursor_text_window(const struct wmWindow *window, const char *name)
@@ -128,19 +129,16 @@ void eyedropper_draw_cursor_text_window(const struct wmWindow *window, const cha
     return;
   }
 
-  const int x = window->eventstate->xy[0];
-  const int y = window->eventstate->xy[1];
-
-  eyedropper_draw_cursor_text_ex(x, y, name);
+  eyedropper_draw_cursor_text_ex(window->eventstate->xy, name);
 }
 
-void eyedropper_draw_cursor_text_region(const int x, const int y, const char *name)
+void eyedropper_draw_cursor_text_region(const int xy[2], const char *name)
 {
   if (name[0] == '\0') {
     return;
   }
 
-  eyedropper_draw_cursor_text_ex(x, y, name);
+  eyedropper_draw_cursor_text_ex(xy, name);
 }
 
 uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *event)
@@ -173,8 +171,7 @@ void datadropper_win_area_find(
     }
   }
   else if (mval != r_mval) {
-    r_mval[0] = mval[0];
-    r_mval[1] = mval[1];
+    copy_v2_v2_int(r_mval, mval);
   }
 }
 

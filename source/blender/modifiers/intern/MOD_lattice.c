@@ -191,7 +191,6 @@ ModifierTypeInfo modifierType_Lattice = {
     /* deformVertsEM */ deformVertsEM,
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ NULL,
-    /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
 
     /* initData */ initData,

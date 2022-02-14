@@ -431,6 +431,20 @@ void mat3_to_size(float size[3], const float M[3][3]);
 void mat4_to_size(float size[3], const float M[4][4]);
 
 /**
+ * Return the largest scale on any axis, the equivalent of calling:
+ * \code{.c}
+ * mat3_to_size(size_v3, mat);
+ * size = size_v3[max_axis_v3(size_v3)];
+ * \endcode
+ * .. without 2x unnecessary `sqrtf` calls.
+ */
+float mat3_to_size_max_axis(const float M[3][3]);
+/**
+ * Only the first 3 axes are used.
+ */
+float mat4_to_size_max_axis(const float M[4][4]);
+
+/**
  * Extract scale factors from the matrix, with correction to ensure
  * exact volume in case of a sheared matrix.
  */

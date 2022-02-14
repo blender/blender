@@ -710,9 +710,10 @@ typedef struct SculptSession {
   /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
   struct MVert *mvert;
   struct MEdge *medge;
-  const float (*vert_normals)[3];
   struct MLoop *mloop;
   struct MPoly *mpoly;
+
+  const float (*vert_normals)[3];
 
   // only assigned in PBVH_FACES and PBVH_GRIDS
   CustomData *vdata, *edata, *ldata, *pdata;

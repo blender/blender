@@ -43,7 +43,7 @@
 #include "range_tree.h"
 
 #ifdef USE_BMESH_PAGE_CUSTOMDATA
-#include "intern/bmesh_data_attr.h"
+#  include "intern/bmesh_data_attr.h"
 #endif
 
 #define SELECT 1
@@ -237,12 +237,45 @@ void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
   }
 }
 
+static unsigned char *bm_get_htype_str(int htype)
+{
+  switch (htype) {
+    case BM_VERT:
+      return "vertex";
+    case BM_EDGE:
+      return "edge";
+    case BM_LOOP:
+      return "loop";
+    case BM_FACE:
+      return "face";
+    default:
+      return "unknown type";
+  }
+}
+
 void bm_assign_id(BMesh *bm, BMElem *elem, uint id, bool check_unqiue)
 {
   if (check_unqiue && (bm->idmap.flag & BM_HAS_ID_MAP)) {
-    if (BM_ELEM_FROM_ID(bm, id)) {
+    BMElem *old;
 
-      printf("had to alloc a new id in bm_assign_id for %p; old id: %d\n", elem, (int)id);
+    if (old = (BMElem *)BM_ELEM_FROM_ID(bm, id)) {
+      printf("id conflict in bm_assign_id; elem %p (a %s) is being reassinged to id %d.\n",
+             elem,
+             bm_get_htype_str((int) elem->head.htype),
+             (int)id);
+      printf("  elem %p (a %s) will get a new id\n", old, bm_get_htype_str((int) old->head.htype));
+
+      bm_free_id(bm, old);
+
+#ifdef WITH_BM_ID_FREELIST
+      bm_id_freelist_take(bm, id);
+#else
+      range_tree_uint_retake(bm->idmap.idtree, id);
+#endif
+
+      bm_assign_id_intern(bm, elem, id);
+
+      bm_alloc_id(bm, old);
     }
   }
 

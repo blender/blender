@@ -103,7 +103,7 @@ void RE_point_density_fix_linking(void);
 typedef struct TexResult {
   float tin;
   float trgba[4];
-  /* Is acually a bool true->use alpha, false->set alpha to 1.0. */
+  /* Is actually a boolean: When true -> use alpha, false -> set alpha to 1.0. */
   int talpha;
   float *nor;
 } TexResult;

@@ -249,7 +249,8 @@ static void rna_ParticleHairKey_location_object_get(PointerRNA *ptr, float *valu
  *
  * Such trickery is needed to allow modification of hair keys in the original object using
  * evaluated particle and object to access proper hair matrix. */
-static int hair_key_index_get(/*const*/ HairKey *hair_key,
+static int hair_key_index_get(const Object *object,
+                              /*const*/ HairKey *hair_key,
                               /*const*/ ParticleSystemModifierData *modifier,
                               /*const*/ ParticleData *particle)
 {
@@ -261,7 +262,7 @@ static int hair_key_index_get(/*const*/ HairKey *hair_key,
   const int particle_index = particle - particle_system->particles;
 
   const ParticleSystemModifierData *original_modifier = (ParticleSystemModifierData *)
-      BKE_modifier_get_original(&modifier->modifier);
+      BKE_modifier_get_original(object, &modifier->modifier);
   const ParticleSystem *original_particle_system = original_modifier->psys;
   const ParticleData *original_particle = &original_particle_system->particles[particle_index];
 
@@ -288,7 +289,7 @@ static void hair_key_location_object_set(HairKey *hair_key,
                                                                   NULL;
 
   if (hair_mesh != NULL) {
-    const int hair_key_index = hair_key_index_get(hair_key, modifier, particle);
+    const int hair_key_index = hair_key_index_get(object, hair_key, modifier, particle);
     if (hair_key_index == -1) {
       return;
     }
@@ -368,7 +369,7 @@ static void rna_ParticleHairKey_co_object_set(ID *id,
   /* Mark particle system as edited, so then particle_system_update() does not reset the hair
    * keys from path. This behavior is similar to how particle edit mode sets flags. */
   ParticleSystemModifierData *orig_modifier = (ParticleSystemModifierData *)
-                                                  modifier->modifier.orig_modifier_data;
+      BKE_modifier_get_original(object, &modifier->modifier);
   orig_modifier->psys->flag |= PSYS_EDITED;
 
   hair_key_location_object_set(hair_key, object, modifier, particle, co);

@@ -2223,8 +2223,8 @@ class VIEW3D_MT_add(Menu):
         layout.menu("VIEW3D_MT_surface_add", icon='OUTLINER_OB_SURFACE')
         layout.menu("VIEW3D_MT_metaball_add", text="Metaball", icon='OUTLINER_OB_META')
         layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
-        if context.preferences.experimental.use_new_hair_type:
-            layout.operator("object.hair_add", text="Hair", icon='OUTLINER_OB_HAIR')
+        if context.preferences.experimental.use_new_curves_type:
+            layout.operator("object.hair_curves_add", text="Hair Curves", icon='OUTLINER_OB_CURVES')
         if context.preferences.experimental.use_new_point_cloud_type:
             layout.operator("object.pointcloud_add", text="Point Cloud", icon='OUTLINER_OB_POINTCLOUD')
         layout.menu("VIEW3D_MT_volume_add", text="Volume", icon='OUTLINER_OB_VOLUME')
@@ -2298,8 +2298,6 @@ class VIEW3D_MT_object_relations(Menu):
         layout = self.layout
 
         layout.operator("object.make_override_library", text="Make Library Override...")
-
-        layout.operator("object.convert_proxy_to_override")
 
         layout.operator("object.make_dupli_face")
 

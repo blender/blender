@@ -69,6 +69,7 @@ Topology rake:
 
 #include "atomic_ops.h"
 #include "bmesh.h"
+#include "bmesh_log.h"
 #include "pbvh_intern.h"
 
 #include <math.h>
@@ -607,7 +608,7 @@ void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
   BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, ni);
 
   if (!(node->flag & PBVH_Leaf)) {
-    printf("major pbvh corruption error");
+    printf("%s: major pbvh corruption error\n", __func__);
     return;
   }
 

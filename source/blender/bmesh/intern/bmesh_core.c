@@ -601,7 +601,7 @@ typedef enum {
   IS_FACE_WRONG_LENGTH = (1 << 26),
 } BMeshInternalError;
 
-#ifndef NDEBUG
+#if 1 //#ifndef NDEBUG
 
 int bmesh_elem_check(void *element, const char htype)
 {
@@ -2423,7 +2423,7 @@ static void trigger_jvke_error(int err, char *obj_text)
 
 char *_last_local_obj = NULL;
 
-//#define JVKE_DEBUG
+#define JVKE_DEBUG
 
 #ifdef JVKE_DEBUG
 #  define JVKE_CHECK_ELEMENT(elem) \
@@ -2437,8 +2437,12 @@ char *_last_local_obj = NULL;
 #  define JVKE_CHECK_ELEMENT(elem)
 #endif
 
-ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(
-    BMesh *bm, BMEdge *e, BMVert *v_kill, const bool do_del, const bool combine_flags)
+ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
+                                                     BMEdge *e,
+                                                     BMVert *v_kill,
+                                                     const bool do_del,
+                                                     const bool combine_flags,
+                                                     const BMTracer *tracer)
 {
   BMVert *v_conn = BM_edge_other_vert(e, v_kill);
 
@@ -2606,9 +2610,16 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(
     BMEdge *e2 = deles[i];
 
     if (e2->l != NULL) {
-      printf("%s: eek!\n", __func__);
+      printf("%s: e2->l was not null!\n", __func__);
+      continue;
     }
+
     e2->l = NULL;
+
+    if (tracer) {
+      tracer->on_edge_kill(bm, deles[i], tracer->userdata);
+    }
+
     BM_edge_kill(bm, deles[i]);
   }
 
@@ -2640,6 +2651,10 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(
     } while (lnext && (l = lnext) != f->l_first);
 
     if (f->len <= 2) {
+      if (tracer) {
+        tracer->on_face_kill(bm, f, tracer->userdata);
+      }
+
       /* kill face */
       while (f->l_first) {
         BMLoop *l = f->l_first;
@@ -2767,7 +2782,7 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(
 
     int eul = totv - tote + totf;
     if (eul != 1) {
-      //printf("%s: possible duplicate geometry! %d\n", __func__, eul);
+      // printf("%s: possible duplicate geometry! %d\n", __func__, eul);
       e2 = v->e;
 
       do {
@@ -2791,6 +2806,9 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(
           BMFace *f;
 
           if ((f = BM_face_find_double(l->f))) {
+            if (tracer) {
+              tracer->on_face_kill(bm, l->f, tracer->userdata);
+            }
             BM_face_kill(bm, l->f);
           }
         } while (e2->l && (l = l_next) != e2->l);
@@ -2800,6 +2818,10 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(
   // printf("v_del: %p, v_conn: %p\n", v_del->e, v_conn->e);
   if (do_del) {
     JVKE_CHECK_ELEMENT(v_del);
+    if (tracer) {
+      tracer->on_vert_kill(bm, v_del, tracer->userdata);
+    }
+
     BM_vert_kill(bm, v_del);
   }
 

@@ -43,7 +43,7 @@ void closure_Diffuse_light_eval(ClosureInputDiffuse cl_in,
                                 inout ClosureOutputDiffuse cl_out)
 {
   float radiance = light_diffuse(light.data, cl_in.N, cl_common.V, light.L);
-  /* TODO(fclem) We could try to shadow lights that are shadowless with the ambient_occlusion
+  /* TODO(@fclem): We could try to shadow lights that are shadowless with the ambient_occlusion
    * factor here. */
   cl_out.radiance += light.data.l_color *
                      (light.data.l_diff * light.vis * light.contact_shadow * radiance);

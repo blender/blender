@@ -376,10 +376,6 @@ enum {
   /** Clear asset data (in case the ID can actually be made local, in copy case asset data is never
    * copied over). */
   LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR = 1 << 3,
-
-  /* Special type-specific options. */
-  /** For Objects, do not clear the proxy pointers while making the data-block local. */
-  LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING = 1 << 16,
 };
 
 /**

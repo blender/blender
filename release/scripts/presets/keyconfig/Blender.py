@@ -318,7 +318,8 @@ def load():
             use_v3d_tab_menu=kc_prefs.use_v3d_tab_menu,
             use_v3d_shade_ex_pie=kc_prefs.use_v3d_shade_ex_pie,
             use_gizmo_drag=(is_select_left and kc_prefs.gizmo_action == 'DRAG'),
-            use_fallback_tool=(True if is_select_left else (kc_prefs.rmb_action == 'FALLBACK_TOOL')),
+            use_fallback_tool=True,
+            use_fallback_tool_rmb=(False if is_select_left else kc_prefs.rmb_action == 'FALLBACK_TOOL'),
             use_alt_tool_or_cursor=(
                 (not use_mouse_emulate_3_button) and
                 (kc_prefs.use_alt_tool if is_select_left else kc_prefs.use_alt_cursor)

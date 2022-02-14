@@ -237,7 +237,7 @@ static void rna_AssetMetaData_catalog_id_set(PointerRNA *ptr, const char *value)
   }
 
   if (!BLI_uuid_parse_string(&new_uuid, value)) {
-    // TODO(Sybren): raise ValueError exception once that's possible from an RNA setter.
+    /* TODO(@sybren): raise ValueError exception once that's possible from an RNA setter. */
     printf("UUID %s not formatted correctly, ignoring new value\n", value);
     return;
   }

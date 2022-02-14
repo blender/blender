@@ -33,7 +33,7 @@ struct ParticleSystem;
 struct TaskGraph;
 
 struct Curve;
-struct Hair;
+struct Curves;
 struct Lattice;
 struct Mesh;
 struct MetaBall;
@@ -73,9 +73,9 @@ void DRW_particle_batch_cache_free(struct ParticleSystem *psys);
 void DRW_gpencil_batch_cache_dirty_tag(struct bGPdata *gpd);
 void DRW_gpencil_batch_cache_free(struct bGPdata *gpd);
 
-void DRW_hair_batch_cache_dirty_tag(struct Hair *hair, int mode);
-void DRW_hair_batch_cache_validate(struct Hair *hair);
-void DRW_hair_batch_cache_free(struct Hair *hair);
+void DRW_curves_batch_cache_dirty_tag(struct Curves *curves, int mode);
+void DRW_curves_batch_cache_validate(struct Curves *curves);
+void DRW_curves_batch_cache_free(struct Curves *curves);
 
 void DRW_pointcloud_batch_cache_dirty_tag(struct PointCloud *pointcloud, int mode);
 void DRW_pointcloud_batch_cache_validate(struct PointCloud *pointcloud);
@@ -188,7 +188,7 @@ struct GPUBatch *DRW_lattice_batch_cache_get_edit_verts(struct Lattice *lt);
 /** \name Hair
  * \{ */
 
-int DRW_hair_material_count_get(struct Hair *hair);
+int DRW_curves_material_count_get(struct Curves *curves);
 
 /** \} */
 

@@ -28,10 +28,12 @@
 
 namespace blender::threading {
 
+#ifndef WITH_TBB
 namespace enumerable_thread_specific_utils {
 inline std::atomic<int> next_id = 0;
 inline thread_local int thread_id = next_id.fetch_add(1, std::memory_order_relaxed);
 }  // namespace enumerable_thread_specific_utils
+#endif
 
 /**
  * This is mainly a wrapper for `tbb::enumerable_thread_specific`. The wrapper is needed because we

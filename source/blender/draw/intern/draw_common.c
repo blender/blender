@@ -431,7 +431,7 @@ bool DRW_object_is_flat(Object *ob, int *r_axis)
             OB_SURF,
             OB_FONT,
             OB_MBALL,
-            OB_HAIR,
+            OB_CURVES,
             OB_POINTCLOUD,
             OB_VOLUME)) {
     /* Non-meshes object cannot be considered as flat. */

@@ -127,6 +127,7 @@ set(SRC
   intern/crazyspace.c
   intern/cryptomatte.cc
   intern/curve.cc
+  intern/curves.cc
   intern/curve_bevel.c
   intern/curve_convert.c
   intern/curve_decimate.c
@@ -166,7 +167,6 @@ set(SRC
   intern/gpencil_curve.c
   intern/gpencil_geom.cc
   intern/gpencil_modifier.c
-  intern/hair.cc
   intern/icons.cc
   intern/icons_rasterize.c
   intern/idprop.c
@@ -192,6 +192,7 @@ set(SRC
   intern/lib_id_eval.c
   intern/lib_id_remapper.cc
   intern/lib_override.c
+  intern/lib_override_proxy_conversion.c
   intern/lib_query.c
   intern/lib_remap.c
   intern/library.c
@@ -367,6 +368,7 @@ set(SRC
   BKE_cryptomatte.h
   BKE_cryptomatte.hh
   BKE_curve.h
+  BKE_curves.h
   BKE_curve_to_mesh.hh
   BKE_curveprofile.h
   BKE_customdata.h
@@ -396,7 +398,6 @@ set(SRC
   BKE_gpencil_curve.h
   BKE_gpencil_geom.h
   BKE_gpencil_modifier.h
-  BKE_hair.h
   BKE_icons.h
   BKE_idprop.h
   BKE_idprop.hh
@@ -733,10 +734,6 @@ if(WITH_FFTW3)
     ${FFTW3_LIBRARIES}
   )
   add_definitions(-DFFTW3=1)
-endif()
-
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 if(WITH_FREESTYLE)

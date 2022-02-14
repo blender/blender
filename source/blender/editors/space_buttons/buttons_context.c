@@ -273,8 +273,8 @@ static bool buttons_context_path_data(ButsContextPath *path, int type)
   if (RNA_struct_is_a(ptr->type, &RNA_GreasePencil) && (ELEM(type, -1, OB_GPENCIL))) {
     return true;
   }
-#ifdef WITH_HAIR_NODES
-  if (RNA_struct_is_a(ptr->type, &RNA_Hair) && (ELEM(type, -1, OB_HAIR))) {
+#ifdef WITH_NEW_CURVES_TYPE
+  if (RNA_struct_is_a(ptr->type, &RNA_Curves) && (ELEM(type, -1, OB_CURVES))) {
     return true;
   }
 #endif
@@ -314,7 +314,7 @@ static bool buttons_context_path_modifier(ButsContextPath *path)
              OB_SURF,
              OB_LATTICE,
              OB_GPENCIL,
-             OB_HAIR,
+             OB_CURVES,
              OB_POINTCLOUD,
              OB_VOLUME)) {
       ModifierData *md = BKE_object_active_modifier(ob);
@@ -846,8 +846,8 @@ const char *buttons_context_dir[] = {
     "line_style",
     "collection",
     "gpencil",
-#ifdef WITH_HAIR_NODES
-    "hair",
+#ifdef WITH_NEW_CURVES_TYPE
+    "curves",
 #endif
 #ifdef WITH_POINT_CLOUD
     "pointcloud",
@@ -942,9 +942,9 @@ int /*eContextResult*/ buttons_context(const bContext *C,
     set_pointer_type(path, result, &RNA_LightProbe);
     return CTX_RESULT_OK;
   }
-#ifdef WITH_HAIR_NODES
-  if (CTX_data_equals(member, "hair")) {
-    set_pointer_type(path, result, &RNA_Hair);
+#ifdef WITH_NEW_CURVES_TYPE
+  if (CTX_data_equals(member, "curves")) {
+    set_pointer_type(path, result, &RNA_Curves);
     return CTX_RESULT_OK;
   }
 #endif

@@ -437,7 +437,7 @@ void GPU_framebuffer_blit(GPUFrameBuffer *gpufb_read,
 
   fb_read->blit_to(blit_buffers, read_slot, fb_write, write_slot, 0, 0);
 
-  /* FIXME(fclem) sRGB is not saved. */
+  /* FIXME(@fclem): sRGB is not saved. */
   prev_fb->bind(true);
 }
 

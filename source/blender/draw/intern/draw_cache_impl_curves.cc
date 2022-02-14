@@ -29,13 +29,16 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
+#include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
-#include "DNA_hair_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_hair.h"
+#include "BKE_curves.h"
 
 #include "GPU_batch.h"
 #include "GPU_material.h"
@@ -44,7 +47,11 @@
 #include "draw_cache_impl.h"   /* own include */
 #include "draw_hair_private.h" /* own include */
 
-static void hair_batch_cache_clear(Hair *hair);
+using blender::float3;
+using blender::IndexRange;
+using blender::Span;
+
+static void curves_batch_cache_clear(Curves *curves);
 
 /* ---------------------------------------------------------------------- */
 /* Hair GPUBatch Cache */
@@ -58,19 +65,19 @@ struct HairBatchCache {
 
 /* GPUBatch cache management. */
 
-static bool hair_batch_cache_valid(Hair *hair)
+static bool curves_batch_cache_valid(Curves *curves)
 {
-  HairBatchCache *cache = static_cast<HairBatchCache *>(hair->batch_cache);
+  HairBatchCache *cache = static_cast<HairBatchCache *>(curves->batch_cache);
   return (cache && cache->is_dirty == false);
 }
 
-static void hair_batch_cache_init(Hair *hair)
+static void curves_batch_cache_init(Curves *curves)
 {
-  HairBatchCache *cache = static_cast<HairBatchCache *>(hair->batch_cache);
+  HairBatchCache *cache = static_cast<HairBatchCache *>(curves->batch_cache);
 
   if (!cache) {
     cache = MEM_cnew<HairBatchCache>(__func__);
-    hair->batch_cache = cache;
+    curves->batch_cache = cache;
   }
   else {
     memset(cache, 0, sizeof(*cache));
@@ -79,28 +86,28 @@ static void hair_batch_cache_init(Hair *hair)
   cache->is_dirty = false;
 }
 
-void DRW_hair_batch_cache_validate(Hair *hair)
+void DRW_curves_batch_cache_validate(Curves *curves)
 {
-  if (!hair_batch_cache_valid(hair)) {
-    hair_batch_cache_clear(hair);
-    hair_batch_cache_init(hair);
+  if (!curves_batch_cache_valid(curves)) {
+    curves_batch_cache_clear(curves);
+    curves_batch_cache_init(curves);
   }
 }
 
-static HairBatchCache *hair_batch_cache_get(Hair *hair)
+static HairBatchCache *curves_batch_cache_get(Curves *curves)
 {
-  DRW_hair_batch_cache_validate(hair);
-  return static_cast<HairBatchCache *>(hair->batch_cache);
+  DRW_curves_batch_cache_validate(curves);
+  return static_cast<HairBatchCache *>(curves->batch_cache);
 }
 
-void DRW_hair_batch_cache_dirty_tag(Hair *hair, int mode)
+void DRW_curves_batch_cache_dirty_tag(Curves *curves, int mode)
 {
-  HairBatchCache *cache = static_cast<HairBatchCache *>(hair->batch_cache);
+  HairBatchCache *cache = static_cast<HairBatchCache *>(curves->batch_cache);
   if (cache == nullptr) {
     return;
   }
   switch (mode) {
-    case BKE_HAIR_BATCH_DIRTY_ALL:
+    case BKE_CURVES_BATCH_DIRTY_ALL:
       cache->is_dirty = true;
       break;
     default:
@@ -108,9 +115,9 @@ void DRW_hair_batch_cache_dirty_tag(Hair *hair, int mode)
   }
 }
 
-static void hair_batch_cache_clear(Hair *hair)
+static void curves_batch_cache_clear(Curves *curves)
 {
-  HairBatchCache *cache = static_cast<HairBatchCache *>(hair->batch_cache);
+  HairBatchCache *cache = static_cast<HairBatchCache *>(curves->batch_cache);
   if (!cache) {
     return;
   }
@@ -118,69 +125,67 @@ static void hair_batch_cache_clear(Hair *hair)
   particle_batch_cache_clear_hair(&cache->hair);
 }
 
-void DRW_hair_batch_cache_free(Hair *hair)
+void DRW_curves_batch_cache_free(Curves *curves)
 {
-  hair_batch_cache_clear(hair);
-  MEM_SAFE_FREE(hair->batch_cache);
+  curves_batch_cache_clear(curves);
+  MEM_SAFE_FREE(curves->batch_cache);
 }
 
-static void ensure_seg_pt_count(Hair *hair, ParticleHairCache *hair_cache)
+static void ensure_seg_pt_count(Curves *curves, ParticleHairCache *curves_cache)
 {
-  if ((hair_cache->pos != nullptr && hair_cache->indices != nullptr) ||
-      (hair_cache->proc_point_buf != nullptr)) {
+  if ((curves_cache->pos != nullptr && curves_cache->indices != nullptr) ||
+      (curves_cache->proc_point_buf != nullptr)) {
     return;
   }
 
-  hair_cache->strands_len = 0;
-  hair_cache->elems_len = 0;
-  hair_cache->point_len = 0;
-
-  HairCurve *curve = hair->curves;
-  int num_curves = hair->totcurve;
-  for (int i = 0; i < num_curves; i++, curve++) {
-    hair_cache->strands_len++;
-    hair_cache->elems_len += curve->numpoints + 1;
-    hair_cache->point_len += curve->numpoints;
-  }
+  curves_cache->strands_len = curves->geometry.curve_size;
+  curves_cache->elems_len = curves->geometry.point_size + curves->geometry.curve_size;
+  curves_cache->point_len = curves->geometry.point_size;
 }
 
-static void hair_batch_cache_fill_segments_proc_pos(Hair *hair,
-                                                    GPUVertBufRaw *attr_step,
-                                                    GPUVertBufRaw *length_step)
+static void curves_batch_cache_fill_segments_proc_pos(Curves *curves,
+                                                      GPUVertBufRaw *attr_step,
+                                                      GPUVertBufRaw *length_step)
 {
   /* TODO: use hair radius layer if available. */
-  HairCurve *curve = hair->curves;
-  int num_curves = hair->totcurve;
-  for (int i = 0; i < num_curves; i++, curve++) {
-    float(*curve_co)[3] = hair->co + curve->firstpoint;
+  const int curve_size = curves->geometry.curve_size;
+  Span<int> offsets{curves->geometry.offsets, curves->geometry.curve_size + 1};
+
+  Span<float3> positions{(float3 *)curves->geometry.position, curves->geometry.point_size};
+
+  for (const int i : IndexRange(curve_size)) {
+    const IndexRange curve_range(offsets[i], offsets[i + 1] - offsets[i]);
+
+    Span<float3> spline_positions = positions.slice(curve_range);
     float total_len = 0.0f;
-    float *co_prev = nullptr, *seg_data_first;
-    for (int j = 0; j < curve->numpoints; j++) {
+    float *seg_data_first;
+    for (const int i_spline : spline_positions.index_range()) {
       float *seg_data = (float *)GPU_vertbuf_raw_step(attr_step);
-      copy_v3_v3(seg_data, curve_co[j]);
-      if (co_prev) {
-        total_len += len_v3v3(co_prev, curve_co[j]);
-      }
-      else {
+      copy_v3_v3(seg_data, spline_positions[i_spline]);
+      if (i_spline == 0) {
         seg_data_first = seg_data;
       }
+      else {
+        total_len += blender::math::distance(spline_positions[i_spline - 1],
+                                             spline_positions[i_spline]);
+      }
       seg_data[3] = total_len;
-      co_prev = curve_co[j];
     }
     /* Assign length value. */
     *(float *)GPU_vertbuf_raw_step(length_step) = total_len;
     if (total_len > 0.0f) {
       /* Divide by total length to have a [0-1] number. */
-      for (int j = 0; j < curve->numpoints; j++, seg_data_first += 4) {
+      for ([[maybe_unused]] const int i_spline : spline_positions.index_range()) {
         seg_data_first[3] /= total_len;
+        seg_data_first += 4;
       }
     }
   }
 }
 
-static void hair_batch_cache_ensure_procedural_pos(Hair *hair,
-                                                   ParticleHairCache *cache,
-                                                   GPUMaterial *gpu_material)
+static void curves_batch_cache_ensure_procedural_pos(Curves *curves,
+                                                     ParticleHairCache *cache,
+                                                     GPUMaterial *gpu_material)
 {
   if (cache->proc_point_buf == nullptr) {
     /* initialize vertex format */
@@ -203,7 +208,7 @@ static void hair_batch_cache_ensure_procedural_pos(Hair *hair,
     GPUVertBufRaw length_step;
     GPU_vertbuf_attr_get_raw_data(cache->proc_length_buf, length_id, &length_step);
 
-    hair_batch_cache_fill_segments_proc_pos(hair, &point_step, &length_step);
+    curves_batch_cache_fill_segments_proc_pos(curves, &point_step, &length_step);
 
     /* Create vbo immediately to bind to texture buffer. */
     GPU_vertbuf_use(cache->proc_point_buf);
@@ -222,19 +227,23 @@ static void hair_batch_cache_ensure_procedural_pos(Hair *hair,
   }
 }
 
-static void hair_batch_cache_fill_strands_data(Hair *hair,
-                                               GPUVertBufRaw *data_step,
-                                               GPUVertBufRaw *seg_step)
+static void curves_batch_cache_fill_strands_data(Curves *curves,
+                                                 GPUVertBufRaw *data_step,
+                                                 GPUVertBufRaw *seg_step)
 {
-  HairCurve *curve = hair->curves;
-  int num_curves = hair->totcurve;
-  for (int i = 0; i < num_curves; i++, curve++) {
-    *(uint *)GPU_vertbuf_raw_step(data_step) = curve->firstpoint;
-    *(ushort *)GPU_vertbuf_raw_step(seg_step) = curve->numpoints - 1;
+  const int curve_size = curves->geometry.curve_size;
+  Span<int> offsets{curves->geometry.offsets, curves->geometry.curve_size + 1};
+
+  for (const int i : IndexRange(curve_size)) {
+    const IndexRange curve_range(offsets[i], offsets[i + 1] - offsets[i]);
+
+    *(uint *)GPU_vertbuf_raw_step(data_step) = curve_range.start();
+    *(ushort *)GPU_vertbuf_raw_step(seg_step) = curve_range.size() - 1;
   }
 }
 
-static void hair_batch_cache_ensure_procedural_strand_data(Hair *hair, ParticleHairCache *cache)
+static void curves_batch_cache_ensure_procedural_strand_data(Curves *curves,
+                                                             ParticleHairCache *cache)
 {
   GPUVertBufRaw data_step, seg_step;
 
@@ -253,18 +262,18 @@ static void hair_batch_cache_ensure_procedural_strand_data(Hair *hair, ParticleH
   GPU_vertbuf_data_alloc(cache->proc_strand_seg_buf, cache->strands_len);
   GPU_vertbuf_attr_get_raw_data(cache->proc_strand_seg_buf, seg_id, &seg_step);
 
-  hair_batch_cache_fill_strands_data(hair, &data_step, &seg_step);
+  curves_batch_cache_fill_strands_data(curves, &data_step, &seg_step);
 
   /* Create vbo immediately to bind to texture buffer. */
   GPU_vertbuf_use(cache->proc_strand_buf);
-  cache->strand_tex = GPU_texture_create_from_vertbuf("hair_strand", cache->proc_strand_buf);
+  cache->strand_tex = GPU_texture_create_from_vertbuf("curves_strand", cache->proc_strand_buf);
 
   GPU_vertbuf_use(cache->proc_strand_seg_buf);
-  cache->strand_seg_tex = GPU_texture_create_from_vertbuf("hair_strand_seg",
+  cache->strand_seg_tex = GPU_texture_create_from_vertbuf("curves_strand_seg",
                                                           cache->proc_strand_seg_buf);
 }
 
-static void hair_batch_cache_ensure_procedural_final_points(ParticleHairCache *cache, int subdiv)
+static void curves_batch_cache_ensure_procedural_final_points(ParticleHairCache *cache, int subdiv)
 {
   /* Same format as point_tex. */
   GPUVertFormat format = {0};
@@ -285,14 +294,15 @@ static void hair_batch_cache_ensure_procedural_final_points(ParticleHairCache *c
                                                                   cache->final[subdiv].proc_buf);
 }
 
-static void hair_batch_cache_fill_segments_indices(Hair *hair,
-                                                   const int res,
-                                                   GPUIndexBufBuilder *elb)
+static void curves_batch_cache_fill_segments_indices(Curves *curves,
+                                                     const int res,
+                                                     GPUIndexBufBuilder *elb)
 {
-  HairCurve *curve = hair->curves;
-  int num_curves = hair->totcurve;
+  const int curve_size = curves->geometry.curve_size;
+
   uint curr_point = 0;
-  for (int i = 0; i < num_curves; i++, curve++) {
+
+  for ([[maybe_unused]] const int i : IndexRange(curve_size)) {
     for (int k = 0; k < res; k++) {
       GPU_indexbuf_add_generic_vert(elb, curr_point++);
     }
@@ -300,10 +310,10 @@ static void hair_batch_cache_fill_segments_indices(Hair *hair,
   }
 }
 
-static void hair_batch_cache_ensure_procedural_indices(Hair *hair,
-                                                       ParticleHairCache *cache,
-                                                       int thickness_res,
-                                                       int subdiv)
+static void curves_batch_cache_ensure_procedural_indices(Curves *curves,
+                                                         ParticleHairCache *cache,
+                                                         int thickness_res,
+                                                         int subdiv)
 {
   BLI_assert(thickness_res <= MAX_THICKRES); /* Cylinder strip not currently supported. */
 
@@ -328,7 +338,7 @@ static void hair_batch_cache_ensure_procedural_indices(Hair *hair,
   GPUIndexBufBuilder elb;
   GPU_indexbuf_init_ex(&elb, prim_type, element_count, element_count);
 
-  hair_batch_cache_fill_segments_indices(hair, verts_per_hair, &elb);
+  curves_batch_cache_fill_segments_indices(curves, verts_per_hair, &elb);
 
   cache->final[subdiv].proc_hairs[thickness_res - 1] = GPU_batch_create_ex(
       prim_type, vbo, GPU_indexbuf_build(&elb), GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
@@ -341,9 +351,9 @@ bool hair_ensure_procedural_data(Object *object,
                                  int thickness_res)
 {
   bool need_ft_update = false;
-  Hair *hair = static_cast<Hair *>(object->data);
+  Curves *curves = static_cast<Curves *>(object->data);
 
-  HairBatchCache *cache = hair_batch_cache_get(hair);
+  HairBatchCache *cache = curves_batch_cache_get(curves);
   *r_hair_cache = &cache->hair;
 
   const int steps = 2; /* TODO: don't hard-code? */
@@ -351,29 +361,29 @@ bool hair_ensure_procedural_data(Object *object,
 
   /* Refreshed on combing and simulation. */
   if ((*r_hair_cache)->proc_point_buf == nullptr) {
-    ensure_seg_pt_count(hair, &cache->hair);
-    hair_batch_cache_ensure_procedural_pos(hair, &cache->hair, gpu_material);
+    ensure_seg_pt_count(curves, &cache->hair);
+    curves_batch_cache_ensure_procedural_pos(curves, &cache->hair, gpu_material);
     need_ft_update = true;
   }
 
   /* Refreshed if active layer or custom data changes. */
   if ((*r_hair_cache)->strand_tex == nullptr) {
-    hair_batch_cache_ensure_procedural_strand_data(hair, &cache->hair);
+    curves_batch_cache_ensure_procedural_strand_data(curves, &cache->hair);
   }
 
   /* Refreshed only on subdiv count change. */
   if ((*r_hair_cache)->final[subdiv].proc_buf == nullptr) {
-    hair_batch_cache_ensure_procedural_final_points(&cache->hair, subdiv);
+    curves_batch_cache_ensure_procedural_final_points(&cache->hair, subdiv);
     need_ft_update = true;
   }
   if ((*r_hair_cache)->final[subdiv].proc_hairs[thickness_res - 1] == nullptr) {
-    hair_batch_cache_ensure_procedural_indices(hair, &cache->hair, thickness_res, subdiv);
+    curves_batch_cache_ensure_procedural_indices(curves, &cache->hair, thickness_res, subdiv);
   }
 
   return need_ft_update;
 }
 
-int DRW_hair_material_count_get(Hair *hair)
+int DRW_curves_material_count_get(Curves *curves)
 {
-  return max_ii(1, hair->totcol);
+  return max_ii(1, curves->totcol);
 }

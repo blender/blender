@@ -65,6 +65,7 @@ else()
   )
 
   add_executable(blender-thumbnailer ${SRC} ${SRC_CMD})
+  setup_platform_linker_flags(blender-thumbnailer)
   target_link_libraries(blender-thumbnailer bf_blenlib)
   target_link_libraries(blender-thumbnailer ${PTHREADS_LIBRARIES})
 endif()

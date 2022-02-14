@@ -175,7 +175,7 @@ void RNA_def_fcurve(struct BlenderRNA *brna);
 void RNA_def_gpencil(struct BlenderRNA *brna);
 void RNA_def_greasepencil_modifier(struct BlenderRNA *brna);
 void RNA_def_shader_fx(struct BlenderRNA *brna);
-void RNA_def_hair(struct BlenderRNA *brna);
+void RNA_def_curves(struct BlenderRNA *brna);
 void RNA_def_image(struct BlenderRNA *brna);
 void RNA_def_key(struct BlenderRNA *brna);
 void RNA_def_light(struct BlenderRNA *brna);
@@ -379,6 +379,14 @@ void rna_ViewLayer_active_aov_index_range(
     PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax);
 int rna_ViewLayer_active_aov_index_get(PointerRNA *ptr);
 void rna_ViewLayer_active_aov_index_set(PointerRNA *ptr, int value);
+/**
+ *  Set `r_rna_path` with the base view-layer path.
+ *  `rna_path_buffer_size` should be at least `sizeof(ViewLayer.name) * 3`.
+ *  \return actual length of the generated RNA path.
+ */
+size_t rna_ViewLayer_path_buffer_get(struct ViewLayer *view_layer,
+                                     char *r_rna_path,
+                                     const size_t rna_path_buffer_size);
 
 /* named internal so as not to conflict with obj.update() rna func */
 void rna_Object_internal_update_data(struct Main *bmain,
@@ -498,8 +506,8 @@ void RNA_def_main_cachefiles(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_paintcurves(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_workspaces(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_lightprobes(BlenderRNA *brna, PropertyRNA *cprop);
-#ifdef WITH_HAIR_NODES
-void RNA_def_main_hairs(BlenderRNA *brna, PropertyRNA *cprop);
+#ifdef WITH_NEW_CURVES_TYPE
+void RNA_def_main_hair_curves(BlenderRNA *brna, PropertyRNA *cprop);
 #endif
 void RNA_def_main_pointclouds(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_volumes(BlenderRNA *brna, PropertyRNA *cprop);

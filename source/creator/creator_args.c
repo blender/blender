@@ -970,9 +970,6 @@ static const char arg_handle_debug_mode_generic_set_doc_xr_time[] =
 static const char arg_handle_debug_mode_generic_set_doc_jobs[] =
     "\n\t"
     "Enable time profiling for background jobs.";
-static const char arg_handle_debug_mode_generic_set_doc_gpu[] =
-    "\n\t"
-    "Enable GPU debug context and information for OpenGL 4.3+.";
 static const char arg_handle_debug_mode_generic_set_doc_depsgraph[] =
     "\n\t"
     "Enable all debug messages from dependency graph.";
@@ -1094,6 +1091,20 @@ static int arg_handle_debug_value_set(int argc, const char **argv, void *UNUSED(
     return 1;
   }
   printf("\nError: you must specify debug value to set.\n");
+  return 0;
+}
+
+static const char arg_handle_debug_gpu_set_doc[] =
+    "\n"
+    "\tEnable GPU debug context and information for OpenGL 4.3+.";
+static int arg_handle_debug_gpu_set(int UNUSED(argc),
+                                    const char **UNUSED(argv),
+                                    void *UNUSED(data))
+{
+  /* Also enable logging because that how gl errors are reported. */
+  const char *gpu_filter = "gpu.*";
+  CLG_type_filter_include(gpu_filter, strlen(gpu_filter));
+  G.debug |= G_DEBUG_GPU;
   return 0;
 }
 
@@ -2155,8 +2166,8 @@ void main_args_setup(bContext *C, bArgs *ba)
                "--debug-jobs",
                CB_EX(arg_handle_debug_mode_generic_set, jobs),
                (void *)G_DEBUG_JOBS);
-  BLI_args_add(
-      ba, NULL, "--debug-gpu", CB_EX(arg_handle_debug_mode_generic_set, gpu), (void *)G_DEBUG_GPU);
+  BLI_args_add(ba, NULL, "--debug-gpu", CB(arg_handle_debug_gpu_set), NULL);
+
   BLI_args_add(ba,
                NULL,
                "--debug-depsgraph",

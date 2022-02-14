@@ -99,7 +99,6 @@ static const int deg_debug_node_type_color_map[][2] = {
 
     /* Outer Types */
     {NodeType::PARAMETERS, 2},
-    {NodeType::PROXY, 3},
     {NodeType::ANIMATION, 4},
     {NodeType::TRANSFORM, 5},
     {NodeType::GEOMETRY, 6},
@@ -404,7 +403,6 @@ static void deg_debug_graphviz_node(DotExportContext &ctx,
     case NodeType::PARAMETERS:
     case NodeType::ANIMATION:
     case NodeType::TRANSFORM:
-    case NodeType::PROXY:
     case NodeType::GEOMETRY:
     case NodeType::SEQUENCER:
     case NodeType::EVAL_POSE:

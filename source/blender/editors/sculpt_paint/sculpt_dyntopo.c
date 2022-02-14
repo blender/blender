@@ -78,6 +78,7 @@
 #include "UI_resources.h"
 
 #include "bmesh.h"
+#include "bmesh_log.h"
 #include "bmesh_tools.h"
 
 #include <math.h>

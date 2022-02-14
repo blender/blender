@@ -2480,9 +2480,6 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
       case TSE_POSE_CHANNEL:
         data.icon = ICON_BONE_DATA;
         break;
-      case TSE_PROXY:
-        data.icon = ICON_GHOST_ENABLED;
-        break;
       case TSE_R_LAYER_BASE:
         data.icon = ICON_RENDERLAYERS;
         break;
@@ -2635,8 +2632,8 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         case OB_LIGHTPROBE:
           data.icon = ICON_OUTLINER_OB_LIGHTPROBE;
           break;
-        case OB_HAIR:
-          data.icon = ICON_OUTLINER_OB_HAIR;
+        case OB_CURVES:
+          data.icon = ICON_OUTLINER_OB_CURVES;
           break;
         case OB_POINTCLOUD:
           data.icon = ICON_OUTLINER_OB_POINTCLOUD;
@@ -2749,8 +2746,8 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         case ID_GR:
           data.icon = ICON_OUTLINER_COLLECTION;
           break;
-        case ID_HA:
-          data.icon = ICON_OUTLINER_DATA_HAIR;
+        case ID_CV:
+          data.icon = ICON_OUTLINER_DATA_CURVES;
           break;
         case ID_PT:
           data.icon = ICON_OUTLINER_DATA_POINTCLOUD;

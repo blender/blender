@@ -767,7 +767,6 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ modifyMesh,
-    /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
 
     /* initData */ initData,

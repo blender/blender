@@ -483,7 +483,7 @@ static char *decimate_desc(bContext *UNUSED(C), wmOperatorType *UNUSED(op), Poin
 
   if (RNA_enum_get(ptr, "mode") == DECIM_ERROR) {
     return BLI_strdup(
-        "Decimate F-Curves by specifying how much it can deviate from the original curve");
+        TIP_("Decimate F-Curves by specifying how much they can deviate from the original curve"));
   }
 
   /* Use default description. */

@@ -1985,9 +1985,6 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             }
 
             MEM_freeN(fcolor);
-
-            /* Mark tessellated CD layers as dirty. */
-            // result->dirty |= DM_DIRTY_TESS_CDLAYERS;
           }
           /* vertex group paint */
           else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {

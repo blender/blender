@@ -1742,14 +1742,15 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
   free_bvhtree_from_mesh(&mdb->bvhdata);
 }
 
-void ED_mesh_deform_bind_callback(MeshDeformModifierData *mmd,
+void ED_mesh_deform_bind_callback(Object *object,
+                                  MeshDeformModifierData *mmd,
                                   Mesh *cagemesh,
                                   float *vertexcos,
                                   int totvert,
                                   float cagemat[4][4])
 {
   MeshDeformModifierData *mmd_orig = (MeshDeformModifierData *)BKE_modifier_get_original(
-      &mmd->modifier);
+      object, &mmd->modifier);
   MeshDeformBind mdb;
   MVert *mvert;
   int a;

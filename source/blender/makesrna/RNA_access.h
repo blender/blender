@@ -107,6 +107,8 @@ extern StructRNA RNA_BuildGpencilModifier;
 extern StructRNA RNA_BuildModifier;
 extern StructRNA RNA_ByteColorAttribute;
 extern StructRNA RNA_ByteColorAttributeValue;
+extern StructRNA RNA_ByteIntAttribute;
+extern StructRNA RNA_ByteIntAttributeValue;
 extern StructRNA RNA_CacheFile;
 extern StructRNA RNA_CacheFileLayer;
 extern StructRNA RNA_Camera;
@@ -146,6 +148,7 @@ extern StructRNA RNA_CompositorNodeCombHSVA;
 extern StructRNA RNA_CompositorNodeCombRGBA;
 extern StructRNA RNA_CompositorNodeCombYCCA;
 extern StructRNA RNA_CompositorNodeCombYUVA;
+extern StructRNA RNA_CompositorNodeCombineXYZ;
 extern StructRNA RNA_CompositorNodeComposite;
 extern StructRNA RNA_CompositorNodeCornerPin;
 extern StructRNA RNA_CompositorNodeCrop;
@@ -190,6 +193,7 @@ extern StructRNA RNA_CompositorNodeRLayers;
 extern StructRNA RNA_CompositorNodeRotate;
 extern StructRNA RNA_CompositorNodeScale;
 extern StructRNA RNA_CompositorNodeSceneTime;
+extern StructRNA RNA_CompositorNodeSeparateXYZ;
 extern StructRNA RNA_CompositorNodeSepHSVA;
 extern StructRNA RNA_CompositorNodeSepRGBA;
 extern StructRNA RNA_CompositorNodeSepYCCA;
@@ -307,7 +311,7 @@ extern StructRNA RNA_GizmoProperties;
 extern StructRNA RNA_GlowSequence;
 extern StructRNA RNA_GpencilModifier;
 extern StructRNA RNA_GreasePencil;
-extern StructRNA RNA_Hair;
+extern StructRNA RNA_Curves;
 extern StructRNA RNA_Header;
 extern StructRNA RNA_Histogram;
 extern StructRNA RNA_HookGpencilModifier;
@@ -1515,10 +1519,21 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 
 /**
  * Check if the #IDproperty exists, for operators.
+ *
+ * \param use_ghost: Internally an #IDProperty may exist,
+ * without the RNA considering it to be "set", see #IDP_FLAG_GHOST.
+ * This is used for operators, where executing an operator that has run previously
+ * will re-use the last value (unless #PROP_SKIP_SAVE property is set).
+ * In this case, the presence of the an existing value shouldn't prevent it being initialized
+ * from the context. Even though the this value will be returned if it's requested,
+ * it's not considered to be set (as it would if the menu item or key-map defined it's value).
+ * Set `use_ghost` to true for default behavior, otherwise false to check if there is a value
+ * exists internally and would be returned on request.
  */
 bool RNA_property_is_set_ex(PointerRNA *ptr, PropertyRNA *prop, bool use_ghost);
 bool RNA_property_is_set(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_unset(PointerRNA *ptr, PropertyRNA *prop);
+/** See #RNA_property_is_set_ex documentation.  */
 bool RNA_struct_property_is_set_ex(PointerRNA *ptr, const char *identifier, bool use_ghost);
 bool RNA_struct_property_is_set(PointerRNA *ptr, const char *identifier);
 bool RNA_property_is_idprop(const PropertyRNA *prop);

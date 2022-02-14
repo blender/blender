@@ -45,7 +45,7 @@ vec3 view_position_derivative_from_depth(vec2 uvs, vec2 ofs, vec3 vP, float dept
   }
 }
 
-/* TODO(fclem) port to a common place for other effects to use. */
+/* TODO(@fclem): port to a common place for other effects to use. */
 bool reconstruct_view_position_and_normal_from_depth(vec2 uvs, out vec3 vP, out vec3 vNg)
 {
   vec2 texel_size = vec2(abs(dFdx(uvs.x)), abs(dFdy(uvs.y)));

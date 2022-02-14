@@ -108,6 +108,11 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
     GPU_debug_get_groups_names(sizeof(debug_groups), debug_groups);
     CLG_Severity clog_severity;
 
+    if (GPU_debug_group_match(GPU_DEBUG_SHADER_COMPILATION_GROUP)) {
+      /** Do not duplicate shader compilation error/warnings. */
+      return;
+    }
+
     switch (type) {
       case GL_DEBUG_TYPE_ERROR:
       case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
@@ -191,6 +196,9 @@ void init_gl_callbacks()
 
 void check_gl_error(const char *info)
 {
+  if (!(G.debug & G_DEBUG_GPU)) {
+    return;
+  }
   GLenum error = glGetError();
 
 #define ERROR_CASE(err) \
@@ -339,7 +347,7 @@ void object_label(GLenum type, GLuint object, const char *name)
     char label[64];
     SNPRINTF(label, "%s%s%s", to_str_prefix(type), name, to_str_suffix(type));
     /* Small convenience for caller. */
-    if (ELEM(type, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_VERTEX_SHADER)) {
+    if (ELEM(type, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_VERTEX_SHADER, GL_COMPUTE_SHADER)) {
       type = GL_SHADER;
     }
     if (ELEM(type, GL_UNIFORM_BUFFER)) {

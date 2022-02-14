@@ -210,7 +210,6 @@ extern "C" {
 #include "intern/bmesh_edgeloop.h"
 #include "intern/bmesh_interp.h"
 #include "intern/bmesh_iterators.h"
-#include "intern/bmesh_log.h"
 #include "intern/bmesh_marking.h"
 #include "intern/bmesh_mesh.h"
 #include "intern/bmesh_mesh_convert.h"

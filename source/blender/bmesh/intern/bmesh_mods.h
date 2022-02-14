@@ -16,6 +16,8 @@
 
 #pragma once
 
+struct BMTracer;
+
 /** \file
  * \ingroup bmesh
  */
@@ -171,7 +173,8 @@ BMVert *BM_edge_collapse(BMesh *bm,
                          const bool do_del,
                          const bool kill_degenerate_faces,
                          const bool combine_flags,
-                         const bool full_non_manifold_collapse);
+                         const bool full_non_manifold_collapse,
+                         const struct BMTracer *tracer);
 
 /**
  * \brief Edge Split

@@ -336,7 +336,6 @@ ModifierTypeInfo modifierType_BassRelief = {
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ modifyMeshDebug,
 #endif
-    /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
 
     /* initData */ initData,
@@ -351,5 +350,5 @@ ModifierTypeInfo modifierType_BassRelief = {
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,
     /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+
 };

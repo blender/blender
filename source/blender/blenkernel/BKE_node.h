@@ -274,6 +274,9 @@ typedef struct bNodeType {
                     char *label,
                     int maxlen);
 
+  /** Optional override for node class, used for drawing node header. */
+  int (*ui_class)(const struct bNode *node);
+
   /** Called when the node is updated in the editor. */
   void (*updatefunc)(struct bNodeTree *ntree, struct bNode *node);
   /** Check and update if internal ID data has changed. */
@@ -1291,6 +1294,8 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define CMP_NODE_POSTERIZE 327
 #define CMP_NODE_CONVERT_COLOR_SPACE 328
 #define CMP_NODE_SCENE_TIME 329
+#define CMP_NODE_SEPARATE_XYZ 330
+#define CMP_NODE_COMBINE_XYZ 331
 
 /* channel toggles */
 #define CMP_CHAN_RGB 1

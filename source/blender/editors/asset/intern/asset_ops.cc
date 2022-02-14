@@ -39,6 +39,8 @@
 /* XXX needs access to the file list, should all be done via the asset system in future. */
 #include "ED_fileselect.h"
 
+#include "BLT_translation.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -342,8 +344,8 @@ static bool asset_clear_poll(bContext *C)
   IDVecStats ctx_stats = asset_operation_get_id_vec_stats_from_context(C);
 
   if (!ctx_stats.has_asset) {
-    const char *msg_single = "Data-block is not marked as asset";
-    const char *msg_multiple = "No data-block selected that is marked as asset";
+    const char *msg_single = TIP_("Data-block is not marked as asset");
+    const char *msg_multiple = TIP_("No data-block selected that is marked as asset");
     CTX_wm_operator_poll_msg_set(C, ctx_stats.is_single ? msg_single : msg_multiple);
     return false;
   }
@@ -365,8 +367,8 @@ static char *asset_clear_get_description(struct bContext *UNUSED(C),
   }
 
   return BLI_strdup(
-      "Delete all asset metadata, turning the selected asset data-blocks back into normal "
-      "data-blocks, and set Fake User to ensure the data-blocks will still be saved");
+      TIP_("Delete all asset metadata, turning the selected asset data-blocks back into normal "
+           "data-blocks, and set Fake User to ensure the data-blocks will still be saved"));
 }
 
 static void ASSET_OT_clear(wmOperatorType *ot)

@@ -59,7 +59,6 @@ struct GPUSource {
     /* Scan for builtins. */
     /* FIXME: This can trigger false positive caused by disabled #if blocks. */
     /* TODO(fclem): Could be made faster by scanning once. */
-    /* TODO(fclem): BARYCENTRIC_COORD. */
     if (source.find("gl_FragCoord", 0)) {
       builtins |= shader::BuiltinBits::FRAG_COORD;
     }
@@ -71,9 +70,6 @@ struct GPUSource {
     }
     if (source.find("gl_InstanceID", 0)) {
       builtins |= shader::BuiltinBits::INSTANCE_ID;
-    }
-    if (source.find("gl_Layer", 0)) {
-      builtins |= shader::BuiltinBits::LAYER;
     }
     if (source.find("gl_LocalInvocationID", 0)) {
       builtins |= shader::BuiltinBits::LOCAL_INVOCATION_ID;
@@ -336,13 +332,21 @@ struct GPUSource {
   }
 
   /* Returns the final string with all includes done. */
-  void build(std::string &str, shader::BuiltinBits &out_builtins)
+  void build(Vector<const char *> &result) const
   {
     for (auto *dep : dependencies) {
-      out_builtins |= builtins;
-      str += dep->source;
+      result.append(dep->source.c_str());
     }
-    str += source;
+    result.append(source.c_str());
+  }
+
+  shader::BuiltinBits builtins_get() const
+  {
+    shader::BuiltinBits out_builtins = shader::BuiltinBits::NONE;
+    for (auto *dep : dependencies) {
+      out_builtins |= dep->builtins;
+    }
+    return out_builtins;
   }
 };
 
@@ -377,18 +381,47 @@ void gpu_shader_dependency_exit()
   delete g_sources;
 }
 
-char *gpu_shader_dependency_get_resolved_source(const char *shader_source_name, uint32_t *builtins)
+namespace blender::gpu::shader {
+
+BuiltinBits gpu_shader_dependency_get_builtins(const StringRefNull shader_source_name)
 {
+  if (shader_source_name.is_empty()) {
+    return shader::BuiltinBits::NONE;
+  }
+  if (g_sources->contains(shader_source_name) == false) {
+    std::cout << "Error: Could not find \"" << shader_source_name
+              << "\" in the list of registered source.\n";
+    BLI_assert(0);
+    return shader::BuiltinBits::NONE;
+  }
   GPUSource *source = g_sources->lookup(shader_source_name);
-  std::string str;
-  shader::BuiltinBits out_builtins;
-  source->build(str, out_builtins);
-  *builtins |= (uint32_t)out_builtins;
-  return strdup(str.c_str());
+  return source->builtins_get();
 }
 
-char *gpu_shader_dependency_get_source(const char *shader_source_name)
+Vector<const char *> gpu_shader_dependency_get_resolved_source(
+    const StringRefNull shader_source_name)
+{
+  Vector<const char *> result;
+  GPUSource *source = g_sources->lookup(shader_source_name);
+  source->build(result);
+  return result;
+}
+
+StringRefNull gpu_shader_dependency_get_source(const StringRefNull shader_source_name)
 {
   GPUSource *src = g_sources->lookup(shader_source_name);
-  return strdup(src->source.c_str());
+  return src->source;
 }
+
+StringRefNull gpu_shader_dependency_get_filename_from_source_string(
+    const StringRefNull source_string)
+{
+  for (auto &source : g_sources->values()) {
+    if (source->source.c_str() == source_string.c_str()) {
+      return source->filename;
+    }
+  }
+  return "";
+}
+
+}  // namespace blender::gpu::shader

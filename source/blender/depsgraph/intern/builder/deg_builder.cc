@@ -125,10 +125,6 @@ bool DepsgraphBuilder::check_pchan_has_bbone(Object *object, const bPoseChannel 
 
 bool DepsgraphBuilder::check_pchan_has_bbone_segments(Object *object, const bPoseChannel *pchan)
 {
-  /* Proxies don't have BONE_SEGMENTS */
-  if (ID_IS_LINKED(object) && object->proxy_from != nullptr) {
-    return false;
-  }
   return check_pchan_has_bbone(object, pchan);
 }
 

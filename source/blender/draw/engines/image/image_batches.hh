@@ -71,7 +71,7 @@ class BatchUpdater {
     float pos[4][2];
     fill_tri_fan_from_rctf(pos, info.clipping_bounds);
     float uv[4][2];
-    fill_tri_fan_from_rctf(uv, info.uv_bounds);
+    fill_tri_fan_from_rctf(uv, info.clipping_uv_bounds);
 
     for (int i = 0; i < 4; i++) {
       GPU_vertbuf_attr_set(vbo, pos_id, i, pos[i]);

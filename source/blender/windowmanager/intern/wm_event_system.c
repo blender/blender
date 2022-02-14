@@ -1081,7 +1081,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, const bool repeat, cons
     }
   }
 
-  /* XXX(mont29) Disabled the repeat check to address part 2 of T31840.
+  /* XXX(@mont29): Disabled the repeat check to address part 2 of T31840.
    * Carefully checked all calls to wm_operator_exec and WM_operator_repeat, don't see any reason
    * why this was needed, but worth to note it in case something turns bad. */
   if (retval & (OPERATOR_FINISHED | OPERATOR_CANCELLED) /* && repeat == 0 */) {
@@ -3591,7 +3591,7 @@ void wm_event_do_handlers(bContext *C)
       if (scene_eval != NULL) {
         const int is_playing_sound = BKE_sound_scene_playing(scene_eval);
 
-        if (scene_eval->id.recalc & ID_RECALC_AUDIO_SEEK) {
+        if (scene_eval->id.recalc & ID_RECALC_FRAME_CHANGE) {
           /* Ignore seek here, the audio will be updated to the scene frame after jump during next
            * dependency graph update. */
         }

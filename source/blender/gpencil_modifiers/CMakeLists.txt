@@ -92,10 +92,6 @@ set(SRC
 set(LIB
 )
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_gpencil_modifiers "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

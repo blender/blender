@@ -90,7 +90,7 @@ struct RenderJob {
   Scene *scene;
   ViewLayer *single_layer;
   Scene *current_scene;
-  /* TODO(sergey): Should not be needed once engine will have own
+  /* TODO(sergey): Should not be needed once engine will have its own
    * depsgraph and copy-on-write will be implemented.
    */
   Depsgraph *depsgraph;
@@ -981,7 +981,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   rj->scene = scene;
   rj->current_scene = rj->scene;
   rj->single_layer = single_layer;
-  /* TODO(sergey): Render engine should be using own depsgraph.
+  /* TODO(sergey): Render engine should be using its own depsgraph.
    *
    * NOTE: Currently is only used by ED_update_for_newframe() at the end of the render, so no
    * need to ensure evaluation here. */

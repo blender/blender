@@ -4640,7 +4640,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
        * account when subdividing for instance. */
       pind.mesh = psys_in_edit_mode(sim->depsgraph, psys) ?
                       NULL :
-                      psys->hair_out_mesh; /* XXX(@sybren) EEK. */
+                      psys->hair_out_mesh; /* XXX(@sybren): EEK. */
       init_particle_interpolation(sim->ob, psys, pa, &pind);
       do_particle_interpolation(psys, p, pa, t, &pind, state);
 

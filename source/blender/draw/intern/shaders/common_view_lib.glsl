@@ -1,5 +1,5 @@
 /* Temporary until we fully make the switch. */
-#ifndef DRW_SHADER_SHARED_H
+#ifndef USE_GPU_SHADER_CREATE_INFO
 
 #  define DRW_RESOURCE_CHUNK_LEN 512
 
@@ -24,7 +24,13 @@ layout(std140) uniform viewBlock
   vec4 CameraTexCoFactors;
 };
 
-#endif /* DRW_SHADER_SHARED_H */
+#endif /* USE_GPU_SHADER_CREATE_INFO */
+
+#ifdef USE_GPU_SHADER_CREATE_INFO
+#  ifndef DRW_RESOURCE_CHUNK_LEN
+#    error "Missing draw_view additional create info on shader create info"
+#  endif
+#endif
 
 #define ViewNear (ViewVecs[0].w)
 #define ViewFar (ViewVecs[1].w)

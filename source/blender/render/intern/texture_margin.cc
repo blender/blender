@@ -48,15 +48,17 @@
 
 namespace blender::render::texturemargin {
 
-/* The map class contains both a pixel map which maps out polygon indices for all UV-polygons and
+/**
+ * The map class contains both a pixel map which maps out polygon indices for all UV-polygons and
  * adjacency tables.
  */
 class TextureMarginMap {
-  static const int directions[4][2];
+  static const int directions[8][2];
+  static const int distances[8];
 
-  /* Maps UV-edges to their corresponding UV-edge. */
+  /** Maps UV-edges to their corresponding UV-edge. */
   Vector<int> loop_adjacency_map_;
-  /* Maps UV-edges to their corresponding polygon. */
+  /** Maps UV-edges to their corresponding polygon. */
   Vector<int> loop_to_poly_map_;
 
   int w_, h_;
@@ -121,7 +123,7 @@ class TextureMarginMap {
   void rasterize_tri(float *v1, float *v2, float *v3, uint32_t value, char *mask)
   {
     /* NOTE: This is not thread safe, because the value to be written by the rasterizer is
-     * a class member. If this is ever made multi-threaded each thread needs to get it's own. */
+     * a class member. If this is ever made multi-threaded each thread needs to get its own. */
     value_to_store_ = value;
     mask_ = mask;
     zspan_scanconvert(
@@ -131,9 +133,7 @@ class TextureMarginMap {
   static void zscan_store_pixel(
       void *map, int x, int y, [[maybe_unused]] float u, [[maybe_unused]] float v)
   {
-    /* NOTE: Not thread safe, see comment above.
-     *
-     */
+    /* NOTE: Not thread safe, see comment above. */
     TextureMarginMap *m = static_cast<TextureMarginMap *>(map);
     m->set_pixel(x, y, m->value_to_store_);
     if (m->mask_) {
@@ -142,17 +142,18 @@ class TextureMarginMap {
   }
 
 /* The map contains 2 kinds of pixels: DijkstraPixels and polygon indices. The top bit determines
- * what kind it is. With the top bit set, it is a 'dijkstra' pixel. The bottom 3 bits encode the
- * direction of the shortest path and the remaining 28 bits are used to store the distance. If
+ * what kind it is. With the top bit set, it is a 'dijkstra' pixel. The bottom 4 bits encode the
+ * direction of the shortest path and the remaining 27 bits are used to store the distance. If
  * the top bit  is not set, the rest of the bits is used to store the polygon index.
  */
-#define PackDijkstraPixel(dist, dir) (0x80000000 + ((dist) << 3) + (dir))
-#define DijkstraPixelGetDistance(dp) (((dp) ^ 0x80000000) >> 3)
-#define DijkstraPixelGetDirection(dp) ((dp)&0x7)
+#define PackDijkstraPixel(dist, dir) (0x80000000 + ((dist) << 4) + (dir))
+#define DijkstraPixelGetDistance(dp) (((dp) ^ 0x80000000) >> 4)
+#define DijkstraPixelGetDirection(dp) ((dp)&0xF)
 #define IsDijkstraPixel(dp) ((dp)&0x80000000)
 #define DijkstraPixelIsUnset(dp) ((dp) == 0xFFFFFFFF)
 
-  /* Use dijkstra's algorithm to 'grow' a border around the polygons marked in the map.
+  /**
+   * Use dijkstra's algorithm to 'grow' a border around the polygons marked in the map.
    * For each pixel mark which direction is the shortest way to a polygon.
    */
   void grow_dijkstra(int margin)
@@ -173,13 +174,13 @@ class TextureMarginMap {
     for (int y = 0; y < h_; y++) {
       for (int x = 0; x < w_; x++) {
         if (DijkstraPixelIsUnset(get_pixel(x, y))) {
-          for (int i = 0; i < 4; i++) {
+          for (int i = 0; i < 8; i++) {
             int xx = x - directions[i][0];
             int yy = y - directions[i][1];
 
             if (xx >= 0 && xx < w_ && yy >= 0 && yy < w_ && !IsDijkstraPixel(get_pixel(xx, yy))) {
-              set_pixel(x, y, PackDijkstraPixel(1, i));
-              active_pixels.append(DijkstraActivePixel(1, x, y));
+              set_pixel(x, y, PackDijkstraPixel(distances[i], i));
+              active_pixels.append(DijkstraActivePixel(distances[i], x, y));
               break;
             }
           }
@@ -187,8 +188,10 @@ class TextureMarginMap {
       }
     }
 
-    //      std::make_heap(active_pixels.begin(), active_pixels.end(), cmp_dijkstrapixel_fun);
-    //      Not strictly needed because at this point it already is a heap.
+    /* Not strictly needed because at this point it already is a heap. */
+#if 0
+    std::make_heap(active_pixels.begin(), active_pixels.end(), cmp_dijkstrapixel_fun);
+#endif
 
     while (active_pixels.size()) {
       std::pop_heap(active_pixels.begin(), active_pixels.end(), cmp_dijkstrapixel_fun);
@@ -196,17 +199,16 @@ class TextureMarginMap {
 
       int dist = p.distance;
 
-      dist++;
-      if (dist < margin) {
-        for (int i = 0; i < 4; i++) {
+      if (dist < 2 * (margin + 1)) {
+        for (int i = 0; i < 8; i++) {
           int x = p.x + directions[i][0];
           int y = p.y + directions[i][1];
           if (x >= 0 && x < w_ && y >= 0 && y < h_) {
             uint32_t dp = get_pixel(x, y);
-            if (IsDijkstraPixel(dp) && (DijkstraPixelGetDistance(dp) > dist)) {
-              BLI_assert(abs((int)DijkstraPixelGetDirection(dp) - (int)i) != 2);
-              set_pixel(x, y, PackDijkstraPixel(dist, i));
-              active_pixels.append(DijkstraActivePixel(dist, x, y));
+            if (IsDijkstraPixel(dp) && (DijkstraPixelGetDistance(dp) > dist + distances[i])) {
+              BLI_assert(DijkstraPixelGetDirection(dp) != i);
+              set_pixel(x, y, PackDijkstraPixel(dist + distances[i], i));
+              active_pixels.append(DijkstraActivePixel(dist + distances[i], x, y));
               std::push_heap(active_pixels.begin(), active_pixels.end(), cmp_dijkstrapixel_fun);
             }
           }
@@ -215,7 +217,8 @@ class TextureMarginMap {
     }
   }
 
-  /* Walk over the map and for margin pixels follow the direction stored in the bottom 3
+  /**
+   * Walk over the map and for margin pixels follow the direction stored in the bottom 3
    * bits back to the polygon.
    * Then look up the pixel from the next polygon.
    */
@@ -236,7 +239,7 @@ class TextureMarginMap {
             xx -= directions[direction][0];
             yy -= directions[direction][1];
             dp = get_pixel(xx, yy);
-            dist--;
+            dist -= distances[direction];
             BLI_assert(!dist || (dist == DijkstraPixelGetDistance(dp)));
             direction = DijkstraPixelGetDirection(dp);
           }
@@ -249,7 +252,7 @@ class TextureMarginMap {
 
           int other_poly;
           bool found_pixel_in_polygon = false;
-          if (lookup_pixel(x, y, poly, &destX, &destY, &other_poly)) {
+          if (lookup_pixel_polygon_neighbourhood(x, y, &poly, &destX, &destY, &other_poly)) {
 
             for (int i = 0; i < maxPolygonSteps; i++) {
               /* Force to pixel grid. */
@@ -261,8 +264,12 @@ class TextureMarginMap {
                 break;
               }
 
+              float dist_to_edge;
               /* Look up again, but starting from the polygon we were expected to land in. */
-              lookup_pixel(nx, ny, other_poly, &destX, &destY, &other_poly);
+              if (!lookup_pixel(nx, ny, other_poly, &destX, &destY, &other_poly, &dist_to_edge)) {
+                found_pixel_in_polygon = false;
+                break;
+              }
             }
 
             if (found_pixel_in_polygon) {
@@ -320,12 +327,67 @@ class TextureMarginMap {
     }
   }
 
-  /* Find which edge of the src_poly is closest to x,y. Look up it's adjacent UV-edge and polygon.
+  /**
+   * Call lookup_pixel for the start_poly. If that fails, try the adjacent polygons as well.
+   * Because the Dijkstra is not very exact in determining which polygon is the closest, the
+   * polygon we need can be the one next to the one the Dijkstra map provides. To prevent missing
+   * pixels also check the neighboring polygons.
+   */
+  bool lookup_pixel_polygon_neighbourhood(
+      float x, float y, uint32_t *r_start_poly, float *r_destx, float *r_desty, int *r_other_poly)
+  {
+    float found_dist;
+    if (lookup_pixel(x, y, *r_start_poly, r_destx, r_desty, r_other_poly, &found_dist)) {
+      return true;
+    }
+
+    int loopstart = mpoly_[*r_start_poly].loopstart;
+    int totloop = mpoly_[*r_start_poly].totloop;
+
+    float destx, desty;
+    int foundpoly;
+
+    float mindist = -1.f;
+
+    /* Loop over all adjacent polygons and determine which edge is closest.
+     * This could be optimized by only inspecting neighbors which are on the edge of an island.
+     * But it seems fast enough for now and that would add a lot of complexity. */
+    for (int i = 0; i < totloop; i++) {
+      int otherloop = loop_adjacency_map_[i + loopstart];
+
+      if (otherloop < 0) {
+        continue;
+      }
+
+      uint32_t poly = loop_to_poly_map_[otherloop];
+
+      if (lookup_pixel(x, y, poly, &destx, &desty, &foundpoly, &found_dist)) {
+        if (mindist < 0.f || found_dist < mindist) {
+          mindist = found_dist;
+          *r_other_poly = foundpoly;
+          *r_destx = destx;
+          *r_desty = desty;
+          *r_start_poly = poly;
+        }
+      }
+    }
+
+    return mindist >= 0.f;
+  }
+
+  /**
+   * Find which edge of the src_poly is closest to x,y. Look up its adjacent UV-edge and polygon.
    * Then return the location of the equivalent pixel in the other polygon.
    * Returns true if a new pixel location was found, false if it wasn't, which can happen if the
-   * margin pixel is on a corner, or the UV-edge doesn't have an adjacent polygon. */
-  bool lookup_pixel(
-      float x, float y, int src_poly, float *r_destx, float *r_desty, int *r_other_poly)
+   * margin pixel is on a corner, or the UV-edge doesn't have an adjacent polygon.
+   */
+  bool lookup_pixel(float x,
+                    float y,
+                    int src_poly,
+                    float *r_destx,
+                    float *r_desty,
+                    int *r_other_poly,
+                    float *r_dist_to_edge)
   {
     float2 point(x, y);
 
@@ -385,6 +447,8 @@ class TextureMarginMap {
       return false;
     }
 
+    *r_dist_to_edge = found_dist;
+
     /* Get the 'other' edge. I.E. the UV edge from the neighbor polygon. */
     int other_edge = loop_adjacency_map_[found_edge];
 
@@ -406,7 +470,7 @@ class TextureMarginMap {
     float2 other_edgepoint1 = uv_to_xy(mloopuv_[other_edge]);
     float2 other_edgepoint2 = uv_to_xy(mloopuv_[other_edge2]);
 
-    /* Calculate the vector from the order edges last point to it's first point. */
+    /* Calculate the vector from the order edges last point to its first point. */
     float2 other_ab = other_edgepoint1 - other_edgepoint2;
     float2 other_reflect_point = other_edgepoint2 + (found_t * other_ab);
     float2 perpendicular_other_ab;
@@ -425,7 +489,9 @@ class TextureMarginMap {
   }
 };  // class TextureMarginMap
 
-const int TextureMarginMap::directions[4][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
+const int TextureMarginMap::directions[8][2] = {
+    {-1, 0}, {-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}};
+const int TextureMarginMap::distances[8] = {2, 3, 2, 3, 2, 3, 2, 3};
 
 static void generate_margin(ImBuf *ibuf,
                             char *mask,
@@ -470,7 +536,6 @@ static void generate_margin(ImBuf *ibuf,
   else {
     BLI_assert(dm != nullptr);
     BLI_assert(me == nullptr);
-    BLI_assert(mloopuv == nullptr);
     totpoly = dm->getNumPolys(dm);
     totedge = dm->getNumEdges(dm);
     totloop = dm->getNumLoops(dm);
@@ -510,7 +575,9 @@ static void generate_margin(ImBuf *ibuf,
       vec[a][1] = uv[1] * (float)ibuf->y - (0.5f + 0.002f);
     }
 
-    BLI_assert(lt->poly < 0x80000000);  // NOTE: we need the top bit for the dijkstra distance map
+    /* NOTE: we need the top bit for the dijkstra distance map. */
+    BLI_assert(lt->poly < 0x80000000);
+
     map.rasterize_tri(vec[0], vec[1], vec[2], lt->poly, draw_new_mask ? mask : nullptr);
   }
 

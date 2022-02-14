@@ -16,6 +16,16 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# ------------------------------------------------------------------------------
+# Developer Notes
+#
+# - This script should run without Blender (no references to the `bpy` module for example).
+# - All configuration must be passed into the `generate_keymaps` function (via `Params`).
+# - Supporting some combinations of options is becoming increasingly complex,
+#   especially `Params.select_mouse` & `Params.use_fallback_tool_rmb`.
+#   To ensure changes don't unintentionally break other configurations, see:
+#   `source/tools/utils/blender_keyconfig_export_permutations.py --help`
+#
 
 # ------------------------------------------------------------------------------
 # Configurable Parameters
@@ -46,6 +56,8 @@ class Params:
         "use_gizmo_drag",
         # Use the fallback tool instead of tweak for RMB select.
         "use_fallback_tool",
+        # Only set for RMB select.
+        "use_fallback_tool_rmb",
         # Use pie menu for tab by default (swap 'Tab/Ctrl-Tab').
         "use_v3d_tab_menu",
         # Use extended pie menu for shading.
@@ -64,17 +76,16 @@ class Params:
         "v3d_tilde_action",
         # Alt-MMB axis switching 'RELATIVE' or 'ABSOLUTE' axis switching.
         "v3d_alt_mmb_drag_action",
-
+        # File selector actions on single click.
         "use_file_single_click",
+
         # Convenience variables:
         # (derived from other settings).
         #
-        # This case needs to be checked often,
-        # Shorthand for: `(params.use_fallback_tool if params.select_mouse ==
-        # 'RIGHTMOUSE' else False)`.
-        "use_fallback_tool_rmb",
-        # Shorthand for: `('CLICK' if params.use_fallback_tool_rmb else
-        # params.select_mouse_value)`.
+        # The fallback tool is activated on the same button as selection.
+        # Shorthand for: `(True if (select_mouse == 'LEFT') else self.use_fallback_tool_rmb)`
+        "use_fallback_tool_select_mouse",
+        # Shorthand for: `('CLICK' if self.use_fallback_tool_rmb else self.select_mouse_value)`.
         "select_mouse_value_fallback",
         # Shorthand for: `{"type": params.select_tweak, "value": 'ANY'}`.
         "select_tweak_event",
@@ -106,6 +117,7 @@ class Params:
             use_select_all_toggle=False,
             use_gizmo_drag=True,
             use_fallback_tool=False,
+            use_fallback_tool_rmb=False,
             use_v3d_tab_menu=False,
             use_v3d_shade_ex_pie=False,
             use_v3d_mmb_pan=False,
@@ -148,7 +160,6 @@ class Params:
                 self.cursor_set_event = {"type": 'LEFTMOUSE', "value": 'CLICK'}
                 self.cursor_tweak_event = None
 
-            self.use_fallback_tool = use_fallback_tool
             self.tool_modifier = {}
         else:
             # Left mouse select uses Click event for selection.  This is a
@@ -173,7 +184,6 @@ class Params:
 
             self.cursor_set_event = {"type": 'RIGHTMOUSE', "value": 'PRESS', "shift": True}
             self.cursor_tweak_event = {"type": 'EVT_TWEAK_R', "value": 'ANY', "shift": True}
-            self.use_fallback_tool = True
 
             # Use the "tool" functionality for LMB select.
             if use_alt_tool_or_cursor:
@@ -201,8 +211,11 @@ class Params:
 
         self.use_file_single_click = use_file_single_click
 
+        self.use_fallback_tool = use_fallback_tool
+        self.use_fallback_tool_rmb = use_fallback_tool_rmb
+
         # Convenience variables:
-        self.use_fallback_tool_rmb = self.use_fallback_tool if select_mouse == 'RIGHT' else False
+        self.use_fallback_tool_select_mouse = True if (select_mouse == 'LEFT') else self.use_fallback_tool_rmb
         self.select_mouse_value_fallback = 'CLICK' if self.use_fallback_tool_rmb else self.select_mouse_value
         self.select_tweak_event = {"type": self.select_tweak, "value": 'ANY'}
         self.pie_value = 'CLICK_DRAG' if use_pie_click_drag else 'PRESS'
@@ -1047,9 +1060,7 @@ def km_uv_editor(params):
 
     items.extend([# Selection modes.
         *_template_items_uv_select_mode(params),
-        *_template_uv_select(type=params.select_mouse,
-            value=('CLICK' if params.use_fallback_tool_rmb else params.select_mouse_value),
-            legacy=params.legacy,),
+        *_template_uv_select(type=params.select_mouse, value=params.select_mouse_value_fallback, legacy=params.legacy),
         ("uv.mark_seam", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
         ("uv.select_loop",
          {"type": params.select_mouse, "value": params.select_mouse_value, "alt": True}, None),
@@ -5660,10 +5671,12 @@ def km_image_editor_tool_uv_select(params, *, fallback):
 def km_image_editor_tool_uv_select_box(params, *, fallback):
     return (_fallback_id("Image Editor Tool: Uv, Select Box", fallback),
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
-        {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple("uv.select_box",
-                # Don't use `tool_maybe_tweak_event`, see comment for this
-                # slot.
-                **(params.select_tweak_event if fallback else params.tool_tweak_event))),
+        {"items": [
+            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
+                "uv.select_box",
+                # Don't use `tool_maybe_tweak_event`, see comment for this slot.
+                **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
+                   params.tool_tweak_event))),
         ]},
     )
 
@@ -5671,8 +5684,11 @@ def km_image_editor_tool_uv_select_box(params, *, fallback):
 def km_image_editor_tool_uv_select_circle(params, *, fallback):
     return (_fallback_id("Image Editor Tool: Uv, Select Circle", fallback),
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
-        {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple("uv.select_circle",
-                **(params.select_tweak_event if fallback else {"type": params.tool_mouse, "value": 'PRESS'}),
+        {"items": [
+            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
+                "uv.select_circle",
+                **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
+                   {"type": params.tool_mouse, "value": 'PRESS'}),
                 properties=[("wait_for_input", False)])),
             # No selection fallback since this operates on press.
         ]},)
@@ -5682,8 +5698,11 @@ def km_image_editor_tool_uv_select_lasso(params, *, fallback):
     return (_fallback_id("Image Editor Tool: Uv, Select Lasso", fallback),
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
 
-        {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple("uv.select_lasso",
-                **(params.select_tweak_event if fallback else params.tool_tweak_event))),
+        {"items": [
+            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
+                "uv.select_lasso",
+                **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
+                   params.tool_tweak_event))),
         ]},
     )
 
@@ -5753,7 +5772,8 @@ def km_node_editor_tool_select_box(params, *, fallback):
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
                 "node.select_box",
                 # Don't use `tool_maybe_tweak_event`, see comment for this slot.
-                **(params.select_tweak_event if fallback else params.tool_tweak_event),
+                **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
+                   params.tool_tweak_event),
                 properties=[("tweak", True)],
             )),
         ]},
@@ -5765,7 +5785,9 @@ def km_node_editor_tool_select_lasso(params, *, fallback):
         {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
-                "node.select_lasso", **(params.select_tweak_event if fallback else params.tool_tweak_event),
+                "node.select_lasso",
+                **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
+                   params.tool_tweak_event),
                 properties=[("tweak", True)]))
         ]},
     )
@@ -5779,7 +5801,7 @@ def km_node_editor_tool_select_circle(params, *, fallback):
                 "node.select_circle",
                 # Why circle select should be used on tweak?
                 # So that RMB or Shift-RMB is still able to set an element as active.
-                type=params.select_tweak if fallback else params.tool_mouse,
+                type=params.select_tweak if (fallback and params.use_fallback_tool_select_mouse) else params.tool_mouse,
                 value='ANY' if fallback else 'PRESS',
                 properties=[("wait_for_input", False)])),
         ]},
@@ -5820,10 +5842,12 @@ def km_3d_view_tool_select(params, *, fallback):
 def km_3d_view_tool_select_box(params, *, fallback):
     return (_fallback_id("3D View Tool: Select Box", fallback),
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions("view3d.select_box",
-                # Don't use `tool_maybe_tweak_event`, see comment for this
-                # slot.
-                **(params.select_tweak_event if fallback else params.tool_tweak_event))),
+        {"items": [
+            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions(
+                "view3d.select_box",
+                # Don't use `tool_maybe_tweak_event`, see comment for this slot.
+                **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
+                   params.tool_tweak_event))),
         ]},
     )
 
@@ -5833,9 +5857,8 @@ def km_3d_view_tool_select_circle(params, *, fallback):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple("view3d.select_circle",
                 # Why circle select should be used on tweak?
-                # So that RMB or Shift-RMB is still able to set an element as
-                # active.
-                type=params.select_tweak if fallback else params.tool_mouse,
+                # So that RMB or Shift-RMB is still able to set an element as active.
+                type=params.select_tweak if (fallback and params.use_fallback_tool_select_mouse) else params.tool_mouse,
                 value='ANY' if fallback else 'PRESS',
                 properties=[("wait_for_input", False)])),
         ]},
@@ -5845,8 +5868,11 @@ def km_3d_view_tool_select_circle(params, *, fallback):
 def km_3d_view_tool_select_lasso(params, *, fallback):
     return (_fallback_id("3D View Tool: Select Lasso", fallback),
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions("view3d.select_lasso",
-                **(params.select_tweak_event if fallback else params.tool_tweak_event))),
+        {"items": [
+            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions(
+                "view3d.select_lasso",
+                **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
+                   params.tool_tweak_event))),
         ]}
     )
 
@@ -6471,10 +6497,12 @@ def km_3d_view_tool_edit_gpencil_select(params, *, fallback):
 def km_3d_view_tool_edit_gpencil_select_box(params, *, fallback):
     return (_fallback_id("3D View Tool: Edit Gpencil, Select Box", fallback),
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions("gpencil.select_box",
-                # Don't use `tool_maybe_tweak_event`, see comment for this
-                # slot.
-                **(params.select_tweak_event if fallback else params.tool_tweak_event))),
+        {"items": [
+            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions(
+                "gpencil.select_box",
+                # Don't use `tool_maybe_tweak_event`, see comment for this slot.
+                **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
+                   params.tool_tweak_event))),
         ]},
     )
 
@@ -6484,9 +6512,8 @@ def km_3d_view_tool_edit_gpencil_select_circle(params, *, fallback):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple("gpencil.select_circle",
                 # Why circle select should be used on tweak?
-                # So that RMB or Shift-RMB is still able to set an element as
-                # active.
-                type=params.select_tweak if fallback else params.tool_mouse,
+                # So that RMB or Shift-RMB is still able to set an element as active.
+                type=params.select_tweak if (fallback and params.use_fallback_tool_select_mouse) else params.tool_mouse,
                 value='ANY' if fallback else 'PRESS',
                 properties=[("wait_for_input", False)])),
         ]},
@@ -6496,8 +6523,11 @@ def km_3d_view_tool_edit_gpencil_select_circle(params, *, fallback):
 def km_3d_view_tool_edit_gpencil_select_lasso(params, *, fallback):
     return (_fallback_id("3D View Tool: Edit Gpencil, Select Lasso", fallback),
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": [*([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions("gpencil.select_lasso",
-                **(params.select_tweak_event if fallback else params.tool_tweak_event))),
+        {"items": [
+            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions(
+                "gpencil.select_lasso",
+                **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
+                   params.tool_tweak_event))),
         ]}
     )
 
@@ -6606,9 +6636,12 @@ def km_sequencer_editor_tool_generic_select_box(params, *, fallback):
     return (
         _fallback_id("Sequencer Tool: Select Box", fallback),
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
-        {"items": [# Don't use `tool_maybe_tweak_event`, see comment for this slot.
-            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple("sequencer.select_box",
-                **(params.select_tweak_event if fallback else params.tool_tweak_event),
+        {"items": [
+            # Don't use `tool_maybe_tweak_event`, see comment for this slot.
+            *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
+                "sequencer.select_box",
+                **(params.select_tweak_event if (fallback and params.use_fallback_tool_select_mouse) else
+                   params.tool_tweak_event),
                 properties=[("tweak", params.select_mouse == 'LEFTMOUSE')])),
 
             # RMB select can already set the frame, match the tweak tool.

@@ -58,6 +58,7 @@
 #include "DEG_depsgraph.h"
 
 #include "view3d_intern.h" /* own include */
+#include "view3d_navigate.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Modal Key-map

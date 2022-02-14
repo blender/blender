@@ -117,6 +117,7 @@
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
+#include "bmesh_log.h"
 
 #include <math.h>
 #include <stdlib.h>

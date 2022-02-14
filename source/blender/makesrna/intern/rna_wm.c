@@ -2175,7 +2175,8 @@ static void rna_def_event(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Mouse Previous Y Position", "The window relative vertical location of the mouse");
 
-  prop = RNA_def_property(srna, "pressure", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "pressure", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_float_funcs(prop, "rna_Event_pressure_get", NULL, NULL);
   RNA_def_property_ui_text(

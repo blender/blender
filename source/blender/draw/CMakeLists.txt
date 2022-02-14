@@ -45,6 +45,7 @@ set(INC
   ../../../intern/glew-mx
   ../../../intern/guardedalloc
   ../../../intern/opensubdiv
+  ../../../intern/clog
 
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
@@ -85,9 +86,9 @@ set(SRC
   intern/mesh_extractors/extract_mesh_vbo_vcol.cc
   intern/mesh_extractors/extract_mesh_vbo_weights.cc
   intern/draw_cache_impl_curve.cc
+  intern/draw_cache_impl_curves.cc
   intern/draw_cache_impl_displist.c
   intern/draw_cache_impl_gpencil.c
-  intern/draw_cache_impl_hair.cc
   intern/draw_cache_impl_lattice.c
   intern/draw_cache_impl_mesh.c
   intern/draw_cache_impl_metaball.c
@@ -518,8 +519,10 @@ set(GLSL_SRC
   engines/overlay/shaders/wireframe_frag.glsl
   engines/overlay/shaders/xray_fade_frag.glsl
 
-  engines/image/shaders/image_engine_frag.glsl
-  engines/image/shaders/image_engine_vert.glsl
+  engines/image/shaders/image_engine_color_frag.glsl
+  engines/image/shaders/image_engine_color_vert.glsl
+  engines/image/shaders/image_engine_depth_frag.glsl
+  engines/image/shaders/image_engine_depth_vert.glsl
 )
 
 set(GLSL_C)

@@ -110,8 +110,8 @@ RNA_MAIN_LISTBASE_FUNCS_DEF(collections)
 RNA_MAIN_LISTBASE_FUNCS_DEF(curves)
 RNA_MAIN_LISTBASE_FUNCS_DEF(fonts)
 RNA_MAIN_LISTBASE_FUNCS_DEF(gpencils)
-#  ifdef WITH_HAIR_NODES
-RNA_MAIN_LISTBASE_FUNCS_DEF(hairs)
+#  ifdef WITH_NEW_CURVES_TYPE
+RNA_MAIN_LISTBASE_FUNCS_DEF(hair_curves)
 #  endif
 RNA_MAIN_LISTBASE_FUNCS_DEF(images)
 RNA_MAIN_LISTBASE_FUNCS_DEF(lattices)
@@ -389,8 +389,17 @@ void RNA_def_main(BlenderRNA *brna)
        "Light Probes",
        "Light Probe data-blocks",
        RNA_def_main_lightprobes},
-#  ifdef WITH_HAIR_NODES
-      {"hairs", "Hair", "rna_Main_hairs_begin", "Hairs", "Hair data-blocks", RNA_def_main_hairs},
+#  ifdef WITH_NEW_CURVES_TYPE
+      /**
+       * \note The name `hair_curves` is chosen to be different than `curves`,
+       * but they are generic curve data-blocks, not just for hair.
+       */
+      {"hair_curves",
+       "Curves",
+       "rna_Main_hair_curves_begin",
+       "Hair Curves",
+       "Hair curve data-blocks",
+       RNA_def_main_hair_curves},
 #  endif
       {"pointclouds",
        "PointCloud",

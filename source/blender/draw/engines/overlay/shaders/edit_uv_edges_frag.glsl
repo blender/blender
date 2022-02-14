@@ -40,7 +40,7 @@ void main()
   }
   else if (lineStyle == OVERLAY_UV_LINE_STYLE_DASH) {
     if (fract(line_distance / dashLength) < 0.5) {
-      inner_color = mix(vec4(1.0), colorEdgeSelect, selectionFac_f);
+      inner_color = mix(vec4(vec3(0.35), 1.0), colorEdgeSelect, selectionFac_f);
     }
   }
   else if (lineStyle == OVERLAY_UV_LINE_STYLE_BLACK) {

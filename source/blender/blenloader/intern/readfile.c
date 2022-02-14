@@ -1580,15 +1580,6 @@ static void change_link_placeholder_to_real_ID_pointer(ListBase *mainlist,
   }
 }
 
-void blo_clear_proxy_pointers_from_lib(Main *oldmain)
-{
-  LISTBASE_FOREACH (Object *, ob, &oldmain->objects) {
-    if (ID_IS_LINKED(ob) && ob->proxy_from != NULL && !ID_IS_LINKED(ob->proxy_from)) {
-      ob->proxy_from = NULL;
-    }
-  }
-}
-
 /* XXX disabled this feature - packed files also belong in temp saves and quit.blend,
  * to make restore work. */
 
@@ -2008,6 +1999,7 @@ static void lib_link_id(BlendLibReader *reader, ID *id)
   if (id->override_library) {
     BLO_read_id_address(reader, id->lib, &id->override_library->reference);
     BLO_read_id_address(reader, id->lib, &id->override_library->storage);
+    BLO_read_id_address(reader, id->lib, &id->override_library->hierarchy_root);
   }
 
   lib_link_id_embedded_id(reader, id);
@@ -2997,7 +2989,7 @@ static const char *dataname(short id_code)
       return "Data from CF";
     case ID_WS:
       return "Data from WS";
-    case ID_HA:
+    case ID_CV:
       return "Data from HA";
     case ID_PT:
       return "Data from PT";
@@ -3207,18 +3199,8 @@ static void read_libblock_undo_restore_identical(
   id_old->recalc |= direct_link_id_restore_recalc_exceptions(id_old);
   id_old->recalc_after_undo_push = 0;
 
-  /* As usual, proxies require some special love...
-   * In `blo_clear_proxy_pointers_from_lib()` we clear all `proxy_from` pointers to local IDs, for
-   * undo. This is required since we do not re-read linked data in that case, so we also do not
-   * re-'lib_link' their pointers.
-   * Those `proxy_from` pointers are then re-defined properly when lib_linking the newly read local
-   * object. However, in case of re-used data 'as-is', we never lib_link it again, so we have to
-   * fix those backward pointers here. */
   if (GS(id_old->name) == ID_OB) {
     Object *ob = (Object *)id_old;
-    if (ob->proxy != NULL) {
-      ob->proxy->proxy_from = ob;
-    }
     /* For undo we stay in object mode during undo presses, so keep editmode disabled for re-used
      * data-blocks too. */
     ob->mode &= ~OB_MODE_EDIT;

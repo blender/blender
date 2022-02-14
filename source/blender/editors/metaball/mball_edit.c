@@ -47,6 +47,8 @@
 
 #include "DEG_depsgraph.h"
 
+#include "GPU_select.h"
+
 #include "ED_mball.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -756,15 +758,19 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
   static MetaElem *startelem = NULL;
   ViewContext vc;
   int a, hits;
-  uint buffer[MAXPICKBUF];
+  GPUSelectResult buffer[MAXPICKELEMS];
   rcti rect;
 
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   BLI_rcti_init_pt_radius(&rect, mval, 12);
 
-  hits = view3d_opengl_select(
-      &vc, buffer, MAXPICKBUF, &rect, VIEW3D_SELECT_PICK_NEAREST, VIEW3D_SELECT_FILTER_NOP);
+  hits = view3d_opengl_select(&vc,
+                              buffer,
+                              ARRAY_SIZE(buffer),
+                              &rect,
+                              VIEW3D_SELECT_PICK_NEAREST,
+                              VIEW3D_SELECT_FILTER_NOP);
 
   FOREACH_BASE_IN_EDIT_MODE_BEGIN (vc.view_layer, vc.v3d, base) {
     ED_view3d_viewcontext_init_object(&vc, base->object);
@@ -789,7 +795,7 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
       ml = startelem;
       while (ml) {
         for (a = 0; a < hits; a++) {
-          int hitresult = buffer[(4 * a) + 3];
+          const int hitresult = buffer[a].id;
           if (hitresult == -1) {
             continue;
           }

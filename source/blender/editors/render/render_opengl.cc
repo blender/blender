@@ -72,7 +72,10 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+
 #include "RE_pipeline.h"
+
+#include "BLT_translation.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -632,7 +635,7 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
     case ID_MC:  /* MovieClip */
     case ID_MSK: /* Mask */
     case ID_LP:  /* LightProbe */
-    case ID_HA:  /* Hair */
+    case ID_CV:  /* Curves */
     case ID_PT:  /* PointCloud */
     case ID_VO:  /* Volume */
     case ID_SIM: /* Simulation */
@@ -1326,12 +1329,12 @@ static char *screen_opengl_render_description(struct bContext *UNUSED(C),
   }
 
   if (RNA_boolean_get(ptr, "render_keyed_only")) {
-    return BLI_strdup(
+    return BLI_strdup(TIP_(
         "Render the viewport for the animation range of this scene, but only render keyframes of "
-        "selected objects");
+        "selected objects"));
   }
 
-  return BLI_strdup("Render the viewport for the animation range of this scene");
+  return BLI_strdup(TIP_("Render the viewport for the animation range of this scene"));
 }
 
 void RENDER_OT_opengl(wmOperatorType *ot)

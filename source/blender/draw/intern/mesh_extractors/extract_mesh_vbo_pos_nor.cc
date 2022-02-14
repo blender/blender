@@ -270,7 +270,7 @@ static void extract_pos_nor_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache
   const MVert *coarse_verts = coarse_mesh->mvert;
   uint offset = subdiv_cache->num_subdiv_loops;
 
-  /* TODO(kevindietrich) : replace this when compressed normals are supported. */
+  /* TODO(@kevindietrich): replace this when compressed normals are supported. */
   struct SubdivPosNorLoop {
     float pos[3];
     float nor[3];

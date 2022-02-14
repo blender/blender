@@ -58,7 +58,6 @@ ModifierTypeInfo modifierType_None = {
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ NULL,
-    /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
 
     /* initData */ NULL,

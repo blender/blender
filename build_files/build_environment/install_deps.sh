@@ -4036,13 +4036,13 @@ install_DEB() {
     INFO "Forced Python building, as requested..."
     _do_compile_python=true
   else
-    check_package_version_ge_lt_DEB python3-dev $PYTHON_VERSION_MIN $PYTHON_VERSION_MEX
+    check_package_version_ge_lt_DEB python${PYTHON_VERSION_SHORT}-dev $PYTHON_VERSION_MIN $PYTHON_VERSION_MEX
     if [ $? -eq 0 ]; then
-      PYTHON_VERSION_INSTALLED=$(echo `get_package_version_DEB python3-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
-
-      install_packages_DEB python3-dev
+      install_packages_DEB python${PYTHON_VERSION_SHORT}-dev
       clean_Python
       PRINT ""
+
+      PYTHON_VERSION_INSTALLED=$(echo `get_package_version_DEB python${PYTHON_VERSION_SHORT}-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
 
       for module in "${PYTHON_MODULES_PACKAGES[@]}"
       do
@@ -4681,10 +4681,10 @@ install_RPM() {
   else
     check_package_version_ge_lt_RPM python3-devel $PYTHON_VERSION_MIN $PYTHON_VERSION_MEX
     if [ $? -eq 0 ]; then
-      PYTHON_VERSION_INSTALLED=$(echo `get_package_version_RPM python3-devel` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
-
       install_packages_RPM python3-devel
       clean_Python
+
+      PYTHON_VERSION_INSTALLED=$(echo `get_package_version_RPM python3-devel` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
 
       for module in "${PYTHON_MODULES_PACKAGES[@]}"
       do
@@ -5224,11 +5224,11 @@ install_ARCH() {
   else
     check_package_version_ge_lt_ARCH python $PYTHON_VERSION_MIN $PYTHON_VERSION_MEX
     if [ $? -eq 0 ]; then
-      PYTHON_VERSION_INSTALLED=$(echo `get_package_version_ARCH python` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
-
       install_packages_ARCH python
       clean_Python
       PRINT ""
+
+      PYTHON_VERSION_INSTALLED=$(echo `get_package_version_ARCH python` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
 
       for module in "${PYTHON_MODULES_PACKAGES[@]}"
       do

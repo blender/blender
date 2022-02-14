@@ -417,7 +417,8 @@ MODULE_GROUPING = {
 BLENDER_REVISION = str(bpy.app.build_hash, 'utf_8')
 
 # '2.83.0 Beta' or '2.83.0' or '2.83.1'
-BLENDER_VERSION_DOTS = bpy.app.version_string
+BLENDER_VERSION_STRING = bpy.app.version_string
+BLENDER_VERSION_DOTS = "%d.%d" % (bpy.app.version[0], bpy.app.version[1])
 
 if BLENDER_REVISION != "Unknown":
     # SHA1 Git hash
@@ -1724,11 +1725,11 @@ def write_sphinx_conf_py(basepath):
     fw("import sys, os\n\n")
     fw("extensions = ['sphinx.ext.intersphinx']\n\n")
     fw("intersphinx_mapping = {'blender_manual': ('https://docs.blender.org/manual/en/dev/', None)}\n\n")
-    fw("project = 'Blender %s Python API'\n" % BLENDER_VERSION_DOTS)
+    fw("project = 'Blender %s Python API'\n" % BLENDER_VERSION_STRING)
     fw("master_doc = 'index'\n")
     fw("copyright = u'Blender Foundation'\n")
-    fw("version = '%s'\n" % BLENDER_VERSION_HASH)
-    fw("release = '%s'\n" % BLENDER_VERSION_HASH)
+    fw("version = '%s'\n" % BLENDER_VERSION_DOTS)
+    fw("release = '%s'\n" % BLENDER_VERSION_DOTS)
 
     # Quiet file not in table-of-contents warnings.
     fw("exclude_patterns = [\n")
@@ -1749,6 +1750,7 @@ except ModuleNotFoundError:
 
     fw("if html_theme == 'sphinx_rtd_theme':\n")
     fw("    html_theme_options = {\n")
+    fw("        'display_version': False,\n")
     # fw("        'analytics_id': '',\n")
     # fw("        'collapse_navigation': True,\n")
     fw("        'sticky_navigation': False,\n")
@@ -1765,10 +1767,15 @@ except ModuleNotFoundError:
     fw("html_show_search_summary = True\n")
     fw("html_split_index = True\n")
     fw("html_static_path = ['static']\n")
+    fw("templates_path = ['templates']\n")
+    fw("html_context = {'commit': '%s'}\n" % BLENDER_VERSION_HASH)
     fw("html_extra_path = ['static/favicon.ico', 'static/blender_logo.svg']\n")
     fw("html_favicon = 'static/favicon.ico'\n")
     fw("html_logo = 'static/blender_logo.svg'\n")
     fw("html_last_updated_fmt = '%m/%d/%Y'\n\n")
+    fw("if html_theme == 'sphinx_rtd_theme':\n")
+    fw("    html_css_files = ['css/version_switch.css']\n")
+    fw("    html_js_files = ['js/version_switch.js']\n")
 
     # needed for latex, pdf gen
     fw("latex_elements = {\n")
@@ -2124,6 +2131,9 @@ def copy_handwritten_extra(basepath):
 def copy_theme_assets(basepath):
     shutil.copytree(os.path.join(SCRIPT_DIR, "static"),
                     os.path.join(basepath, "static"),
+                    copy_function=shutil.copy)
+    shutil.copytree(os.path.join(SCRIPT_DIR, "templates"),
+                    os.path.join(basepath, "templates"),
                     copy_function=shutil.copy)
 
 

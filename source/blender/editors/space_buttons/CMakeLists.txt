@@ -41,10 +41,6 @@ set(SRC
 set(LIB
 )
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 
 if(WITH_FREESTYLE)
   add_definitions(-DWITH_FREESTYLE)
@@ -53,7 +49,7 @@ endif()
 if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_SIMULATION_DATABLOCK)
   add_definitions(-DWITH_POINT_CLOUD)
-  add_definitions(-DWITH_HAIR_NODES)
+  add_definitions(-DWITH_NEW_CURVES_TYPE)
 endif()
 
 blender_add_lib(bf_editor_space_buttons "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

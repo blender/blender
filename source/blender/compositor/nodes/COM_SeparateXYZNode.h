@@ -12,26 +12,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
-
-/** \file
- * \ingroup DNA
+ *
+ * Copyright 2021, Blender Foundation.
  */
 
 #pragma once
 
-/* Struct members on own line. */
-/* clang-format off */
+#include "COM_Node.h"
 
-/* -------------------------------------------------------------------- */
-/** \name Hair Struct
- * \{ */
+namespace blender::compositor {
 
-#define _DNA_DEFAULT_Hair \
-  { \
-    .flag = 0, \
-  }
+/**
+ * \brief SeparateXYZNode
+ * \ingroup Node
+ */
+class SeparateXYZNode : public Node {
+ public:
+  SeparateXYZNode(bNode *editor_node);
+  void convert_to_operations(NodeConverter &converter,
+                             const CompositorContext &context) const override;
+};
 
-/** \} */
-
-/* clang-format on */
+}  // namespace blender::compositor

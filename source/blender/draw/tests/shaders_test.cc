@@ -183,9 +183,8 @@ DRAW_TEST(gpencil_glsl_shaders)
 
 static void test_image_glsl_shaders()
 {
-  IMAGE_shader_library_ensure();
-
   EXPECT_NE(IMAGE_shader_image_get(), nullptr);
+  EXPECT_NE(IMAGE_shader_depth_get(), nullptr);
 
   IMAGE_shader_free();
 }

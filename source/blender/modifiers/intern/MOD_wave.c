@@ -494,7 +494,6 @@ ModifierTypeInfo modifierType_Wave = {
     /* deformVertsEM */ deformVertsEM,
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ NULL,
-    /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
 
     /* initData */ initData,

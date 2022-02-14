@@ -129,15 +129,11 @@ typedef struct ModifierData {
 
   char *error;
 
-  /** Pointer to a #ModifierData in the original domain. */
-  struct ModifierData *orig_modifier_data;
-
   /** Runtime field which contains unique identifier of the modifier. */
   SessionUUID session_uuid;
 
   /** Runtime field which contains runtime data which is specific to a modifier type. */
   void *runtime;
-  void *_pad1;
 } ModifierData;
 
 typedef enum {
@@ -1013,7 +1009,8 @@ typedef struct MeshDeformModifierData {
   float *bindcos;
 
   /* runtime */
-  void (*bindfunc)(struct MeshDeformModifierData *mmd,
+  void (*bindfunc)(struct Object *object,
+                   struct MeshDeformModifierData *mmd,
                    struct Mesh *cagemesh,
                    float *vertexcos,
                    int totvert,

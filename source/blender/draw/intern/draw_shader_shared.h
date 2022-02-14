@@ -1,6 +1,6 @@
 
 #ifndef GPU_SHADER
-#  include "gpu_shader_shared_utils.h"
+#  include "GPU_shader_shared_utils.h"
 #endif
 
 #define DRW_SHADER_SHARED_H
@@ -23,7 +23,7 @@ struct ViewInfos {
 };
 BLI_STATIC_ASSERT_ALIGN(ViewInfos, 16)
 
-/* TODO(fclem) Mass rename. */
+/* TODO(@fclem): Mass rename. */
 #define ViewProjectionMatrix drw_view.persmat
 #define ViewProjectionMatrixInverse drw_view.persinv
 #define ViewMatrix drw_view.viewmat

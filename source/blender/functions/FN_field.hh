@@ -87,8 +87,7 @@ class FieldNode {
 
  public:
   FieldNode(FieldNodeType node_type);
-
-  virtual ~FieldNode() = default;
+  virtual ~FieldNode();
 
   virtual const CPPType &output_cpp_type(int output_index) const = 0;
 
@@ -230,6 +229,7 @@ class FieldOperation : public FieldNode {
  public:
   FieldOperation(std::shared_ptr<const MultiFunction> function, Vector<GField> inputs = {});
   FieldOperation(const MultiFunction &function, Vector<GField> inputs = {});
+  ~FieldOperation();
 
   Span<GField> inputs() const;
   const MultiFunction &multi_function() const;
@@ -259,6 +259,7 @@ class FieldInput : public FieldNode {
 
  public:
   FieldInput(const CPPType &type, std::string debug_name = "");
+  ~FieldInput();
 
   /**
    * Get the value of this specific input based on the given context. The returned virtual array,

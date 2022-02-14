@@ -323,6 +323,8 @@ static bool library_foreach_ID_link(Main *bmain,
                          IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
       CALLBACK_INVOKE_ID(id->override_library->storage,
                          IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
+
+      CALLBACK_INVOKE_ID(id->override_library->hierarchy_root, IDWALK_CB_LOOPBACK);
     }
 
     IDP_foreach_property(id->properties,
@@ -471,7 +473,7 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
       return ELEM(id_type_used, ID_MA);
     case ID_WS:
       return ELEM(id_type_used, ID_SCR, ID_SCE);
-    case ID_HA:
+    case ID_CV:
       return ELEM(id_type_used, ID_MA);
     case ID_PT:
       return ELEM(id_type_used, ID_MA);
@@ -517,7 +519,7 @@ static int foreach_libblock_id_users_callback(LibraryIDLinkCallbackData *cb_data
   IDUsersIter *iter = cb_data->user_data;
 
   if (*id_p) {
-    /* 'Loopback' ID pointers (the ugly 'from' ones, Object->proxy_from and Key->from).
+    /* 'Loopback' ID pointers (the ugly 'from' ones, like Key->from).
      * Those are not actually ID usage, we can ignore them here.
      */
     if (cb_flag & IDWALK_CB_LOOPBACK) {
@@ -768,7 +770,7 @@ static int foreach_libblock_used_linked_data_tag_clear_cb(LibraryIDLinkCallbackD
   bool *is_changed = cb_data->user_data;
 
   if (*id_p) {
-    /* The infamous 'from' pointers (Key.from, Object.proxy_from, ...).
+    /* The infamous 'from' pointers (Key.from, ...).
      * those are not actually ID usage, so we ignore them here. */
     if (cb_flag & IDWALK_CB_LOOPBACK) {
       return IDWALK_RET_NOP;

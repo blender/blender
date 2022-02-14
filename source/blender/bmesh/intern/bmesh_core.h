@@ -20,6 +20,8 @@
  * \ingroup bmesh
  */
 
+struct BMTracer;
+
 BMFace *BM_face_copy(BMesh *bm_dst, BMesh *bm_src, BMFace *f, bool copy_verts, bool copy_edges);
 
 typedef enum eBMCreateFlag {
@@ -349,8 +351,13 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
  * +-+-+-+    +-+-+-+
  * </pre>
  */
-BMVert *bmesh_kernel_join_vert_kill_edge(
-    BMesh *bm, BMEdge *e_kill, BMVert *v_kill, const bool do_del, const bool combine_flags);
+BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
+                                         BMEdge *e_kill,
+                                         BMVert *v_kill,
+                                         const bool do_del,
+                                         const bool combine_flags,
+                                         const struct BMTracer *tracer);
+
 BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
                                               BMEdge *e_kill,
                                               BMVert *v_kill,

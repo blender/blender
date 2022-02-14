@@ -3278,7 +3278,7 @@ static struct IDFilterEnumPropertyItem rna_enum_space_file_id_filter_categories[
      ICON_OUTLINER_COLLECTION,
      "Objects & Collections",
      "Show objects and collections"},
-    {FILTER_ID_AR | FILTER_ID_CU | FILTER_ID_LT | FILTER_ID_MB | FILTER_ID_ME | FILTER_ID_HA |
+    {FILTER_ID_AR | FILTER_ID_CU | FILTER_ID_LT | FILTER_ID_MB | FILTER_ID_ME | FILTER_ID_CV |
          FILTER_ID_PT | FILTER_ID_VO,
      "category_geometry",
      ICON_NODETREE,
@@ -4310,7 +4310,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   prop = RNA_def_property(srna, "bone_wire_alpha", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "overlay.bone_wire_alpha");
   RNA_def_property_ui_text(
-      prop, "Bone Wireframe Opacity", "Maximim opacity of bones in wireframe display mode");
+      prop, "Bone Wireframe Opacity", "Maximum opacity of bones in wireframe display mode");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 1, 2);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -5023,7 +5023,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
         {"Surface", (1 << OB_SURF), {"show_object_viewport_surf", "show_object_select_surf"}},
         {"Meta", (1 << OB_MBALL), {"show_object_viewport_meta", "show_object_select_meta"}},
         {"Font", (1 << OB_FONT), {"show_object_viewport_font", "show_object_select_font"}},
-        {"Hair", (1 << OB_HAIR), {"show_object_viewport_hair", "show_object_select_hair"}},
+        {"Hair", (1 << OB_CURVES), {"show_object_viewport_hair", "show_object_select_hair"}},
         {"Point Cloud",
          (1 << OB_POINTCLOUD),
          {"show_object_viewport_pointcloud", "show_object_select_pointcloud"}},

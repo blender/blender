@@ -65,7 +65,6 @@ void OBJECT_OT_track_set(struct wmOperatorType *ot);
 void OBJECT_OT_track_clear(struct wmOperatorType *ot);
 void OBJECT_OT_make_local(struct wmOperatorType *ot);
 void OBJECT_OT_make_override_library(struct wmOperatorType *ot);
-void OBJECT_OT_convert_proxy_to_override(struct wmOperatorType *ot);
 void OBJECT_OT_make_single_user(struct wmOperatorType *ot);
 void OBJECT_OT_make_links_scene(struct wmOperatorType *ot);
 void OBJECT_OT_make_links_data(struct wmOperatorType *ot);
@@ -130,7 +129,7 @@ void OBJECT_OT_light_add(struct wmOperatorType *ot);
 void OBJECT_OT_effector_add(struct wmOperatorType *ot);
 void OBJECT_OT_camera_add(struct wmOperatorType *ot);
 void OBJECT_OT_speaker_add(struct wmOperatorType *ot);
-void OBJECT_OT_hair_add(struct wmOperatorType *ot);
+void OBJECT_OT_hair_curves_add(struct wmOperatorType *ot);
 void OBJECT_OT_pointcloud_add(struct wmOperatorType *ot);
 /**
  * Only used as menu.

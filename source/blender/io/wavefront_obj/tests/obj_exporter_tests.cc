@@ -193,7 +193,7 @@ static std::string read_temp_file_in_string(const std::string &file_path)
   std::string res;
   size_t buffer_len;
   void *buffer = BLI_file_read_text_as_mem(file_path.c_str(), 0, &buffer_len);
-  if (buffer != NULL) {
+  if (buffer != nullptr) {
     res.assign((const char *)buffer, buffer_len);
     MEM_freeN(buffer);
   }
@@ -236,6 +236,38 @@ TEST(obj_exporter_writer, mtllib)
   const std::string result = read_temp_file_in_string(out_file_path);
   ASSERT_EQ(result, "mtllib blah.mtl\nmtllib blah.mtl\n");
   BLI_delete(out_file_path.c_str(), false, false);
+}
+
+TEST(obj_exporter_writer, format_handler_buffer_chunking)
+{
+  /* Use a tiny buffer chunk size, so that the test below ends up creating several blocks. */
+  FormatHandler<eFileType::OBJ, 16, 8> h;
+  h.write<eOBJSyntaxElement::object_name>("abc");
+  h.write<eOBJSyntaxElement::object_name>("abcd");
+  h.write<eOBJSyntaxElement::object_name>("abcde");
+  h.write<eOBJSyntaxElement::object_name>("abcdef");
+  h.write<eOBJSyntaxElement::object_name>("012345678901234567890123456789abcd");
+  h.write<eOBJSyntaxElement::object_name>("123");
+  h.write<eOBJSyntaxElement::curve_element_begin>();
+  h.write<eOBJSyntaxElement::new_line>();
+  h.write<eOBJSyntaxElement::nurbs_parameter_begin>();
+  h.write<eOBJSyntaxElement::new_line>();
+
+  size_t got_blocks = h.get_block_count();
+  ASSERT_EQ(got_blocks, 7);
+
+  std::string got_string = h.get_as_string();
+  using namespace std::string_literals;
+  const char *expected = R"(o abc
+o abcd
+o abcde
+o abcdef
+o 012345678901234567890123456789abcd
+o 123
+curv 0.0 1.0
+parm u 0.0
+)";
+  ASSERT_EQ(got_string, expected);
 }
 
 /* Return true if string #a and string #b are equal after their first newline. */
@@ -313,8 +345,14 @@ class obj_exporter_regression_test : public obj_exporter_test {
       std::string output_mtl_str = read_temp_file_in_string(out_mtl_file_path);
       std::string golden_mtl_file_path = blender::tests::flags_test_asset_dir() + "/" + golden_mtl;
       std::string golden_mtl_str = read_temp_file_in_string(golden_mtl_file_path);
-      ASSERT_TRUE(strings_equal_after_first_lines(output_mtl_str, golden_mtl_str));
-      BLI_delete(out_mtl_file_path.c_str(), false, false);
+      are_equal = strings_equal_after_first_lines(output_mtl_str, golden_mtl_str);
+      if (save_failing_test_output && !are_equal) {
+        printf("failing test output in %s\n", out_mtl_file_path.c_str());
+      }
+      ASSERT_TRUE(are_equal);
+      if (!save_failing_test_output || are_equal) {
+        BLI_delete(out_mtl_file_path.c_str(), false, false);
+      }
     }
   }
 };
@@ -378,6 +416,19 @@ TEST_F(obj_exporter_regression_test, nurbs_as_nurbs)
       "io_tests/blend_geometry/nurbs.blend", "io_tests/obj/nurbs.obj", "", _export.params);
 }
 
+TEST_F(obj_exporter_regression_test, nurbs_curves_as_nurbs)
+{
+  OBJExportParamsDefault _export;
+  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
+  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.export_materials = false;
+  _export.params.export_curves_as_nurbs = true;
+  compare_obj_export_to_golden("io_tests/blend_geometry/nurbs_curves.blend",
+                               "io_tests/obj/nurbs_curves.obj",
+                               "",
+                               _export.params);
+}
+
 TEST_F(obj_exporter_regression_test, nurbs_as_mesh)
 {
   OBJExportParamsDefault _export;
@@ -398,6 +449,18 @@ TEST_F(obj_exporter_regression_test, cube_all_data_triangulated)
   _export.params.export_triangulated_mesh = true;
   compare_obj_export_to_golden("io_tests/blend_geometry/cube_all_data.blend",
                                "io_tests/obj/cube_all_data_triangulated.obj",
+                               "",
+                               _export.params);
+}
+
+TEST_F(obj_exporter_regression_test, cube_normal_edit)
+{
+  OBJExportParamsDefault _export;
+  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
+  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.export_materials = false;
+  compare_obj_export_to_golden("io_tests/blend_geometry/cube_normal_edit.blend",
+                               "io_tests/obj/cube_normal_edit.obj",
                                "",
                                _export.params);
 }

@@ -37,7 +37,6 @@ void OVERLAY_volume_cache_init(OVERLAY_Data *vedata)
     GPUShader *sh = OVERLAY_shader_depth_only();
     DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->volume_ps);
     pd->volume_selection_surface_grp = grp;
-    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   }
   else {
     psl->volume_ps = NULL;

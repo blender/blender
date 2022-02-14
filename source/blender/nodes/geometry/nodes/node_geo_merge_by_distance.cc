@@ -26,7 +26,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>(N_("Geometry"))
       .supported_type({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_MESH});
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Float>(N_("Distance")).default_value(0.1f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>(N_("Distance")).default_value(0.001f).min(0.0f).subtype(PROP_DISTANCE);
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
@@ -60,7 +60,7 @@ static std::optional<Mesh *> mesh_merge_by_distance(const MeshComponent &mesh_co
 
   const IndexMask selection = evaluator.get_evaluated_as_mask(0);
   if (selection.is_empty()) {
-    return nullptr;
+    return std::nullopt;
   }
 
   const Mesh &mesh = *mesh_component.get_for_read();
@@ -78,7 +78,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry_set.has_pointcloud()) {
       PointCloud *result = pointcloud_merge_by_distance(
           *geometry_set.get_component_for_read<PointCloudComponent>(), merge_distance, selection);
-      geometry_set.replace_pointcloud(result);
+      if (result) {
+        geometry_set.replace_pointcloud(result);
+      }
     }
     if (geometry_set.has_mesh()) {
       std::optional<Mesh *> result = mesh_merge_by_distance(

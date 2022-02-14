@@ -165,8 +165,8 @@ typedef enum CustomDataType {
 
   /* CD_LOCATION = 43, */ /* UNUSED */
   /* CD_RADIUS = 44, */   /* UNUSED */
-  CD_HAIRCURVE = 45,
-  CD_HAIRMAPPING = 46,
+  CD_PROP_INT8 = 45,
+  /* CD_HAIRMAPPING = 46, */ /* UNUSED, can be reused. */
 
   CD_PROP_COLOR = 47,
   CD_PROP_FLOAT3 = 48,
@@ -228,6 +228,7 @@ typedef enum CustomDataType {
 #define CD_MASK_PROP_FLOAT3 (1ULL << CD_PROP_FLOAT3)
 #define CD_MASK_PROP_FLOAT2 (1ULL << CD_PROP_FLOAT2)
 #define CD_MASK_PROP_BOOL (1ULL << CD_PROP_BOOL)
+#define CD_MASK_PROP_INT8 (1ULL << CD_PROP_INT8)
 
 #define CD_MASK_DYNTOPO_VERT (1ULL << CD_DYNTOPO_VERT)
 #define CD_MASK_MESH_ID (1ULL << CD_MESH_ID)
@@ -243,7 +244,8 @@ typedef enum CustomDataType {
 /* All generic attributes. */
 #define CD_MASK_PROP_ALL \
   (CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_FLOAT3 | CD_MASK_PROP_INT32 | \
-   CD_MASK_PROP_COLOR | CD_MASK_PROP_STRING | CD_MASK_MLOOPCOL | CD_MASK_PROP_BOOL)
+   CD_MASK_PROP_COLOR | CD_MASK_PROP_STRING | CD_MASK_MLOOPCOL | CD_MASK_PROP_BOOL | \
+   CD_MASK_PROP_INT8)
 
 typedef struct CustomData_MeshMasks {
   uint64_t vmask;

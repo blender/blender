@@ -193,17 +193,24 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   const uint16_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce);
   uint32_t shadow_flag = INTEGRATOR_STATE(state, path, flag);
   shadow_flag |= (is_light) ? PATH_RAY_SHADOW_FOR_LIGHT : 0;
-  shadow_flag |= (shadow_flag & PATH_RAY_ANY_PASS) ? 0 : PATH_RAY_SURFACE_PASS;
   const float3 throughput = INTEGRATOR_STATE(state, path, throughput) * bsdf_eval_sum(&bsdf_eval);
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
-    const packed_float3 pass_diffuse_weight =
-        (bounce == 0) ? packed_float3(bsdf_eval_pass_diffuse_weight(&bsdf_eval)) :
-                        INTEGRATOR_STATE(state, path, pass_diffuse_weight);
-    const packed_float3 pass_glossy_weight = (bounce == 0) ?
-                                                 packed_float3(
-                                                     bsdf_eval_pass_glossy_weight(&bsdf_eval)) :
-                                                 INTEGRATOR_STATE(state, path, pass_glossy_weight);
+    packed_float3 pass_diffuse_weight;
+    packed_float3 pass_glossy_weight;
+
+    if (shadow_flag & PATH_RAY_ANY_PASS) {
+      /* Indirect bounce, use weights from earlier surface or volume bounce. */
+      pass_diffuse_weight = INTEGRATOR_STATE(state, path, pass_diffuse_weight);
+      pass_glossy_weight = INTEGRATOR_STATE(state, path, pass_glossy_weight);
+    }
+    else {
+      /* Direct light, use BSDFs at this bounce. */
+      shadow_flag |= PATH_RAY_SURFACE_PASS;
+      pass_diffuse_weight = packed_float3(bsdf_eval_pass_diffuse_weight(&bsdf_eval));
+      pass_glossy_weight = packed_float3(bsdf_eval_pass_glossy_weight(&bsdf_eval));
+    }
+
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_diffuse_weight) = pass_diffuse_weight;
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_glossy_weight) = pass_glossy_weight;
   }

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <optional>
+
 #include "blender/sync.h"
 #include "blender/util.h"
 
@@ -624,15 +626,36 @@ void BlenderSync::sync_particle_hair(
   }
 }
 
-#ifdef WITH_HAIR_NODES
-static float4 hair_point_as_float4(BL::HairPoint b_point)
+#ifdef WITH_NEW_CURVES_TYPE
+
+static std::optional<BL::FloatAttribute> find_curves_radius_attribute(BL::Curves b_curves)
 {
-  float4 mP = float3_to_float4(get_float3(b_point.co()));
-  mP.w = b_point.radius();
+  for (BL::Attribute &b_attribute : b_curves.attributes) {
+    if (b_attribute.name() != "radius") {
+      continue;
+    }
+    if (b_attribute.domain() != BL::Attribute::domain_POINT) {
+      continue;
+    }
+    if (b_attribute.data_type() != BL::Attribute::data_type_FLOAT) {
+      continue;
+    }
+    return BL::FloatAttribute{b_attribute};
+  }
+  return std::nullopt;
+}
+
+static float4 hair_point_as_float4(BL::Curves b_curves,
+                                   std::optional<BL::FloatAttribute> b_attr_radius,
+                                   const int index)
+{
+  float4 mP = float3_to_float4(get_float3(b_curves.position_data[index].vector()));
+  mP.w = b_attr_radius ? b_attr_radius->data[index].value() : 0.0f;
   return mP;
 }
 
-static float4 interpolate_hair_points(BL::Hair b_hair,
+static float4 interpolate_hair_points(BL::Curves b_curves,
+                                      std::optional<BL::FloatAttribute> b_attr_radius,
                                       const int first_point_index,
                                       const int num_points,
                                       const float step)
@@ -641,12 +664,12 @@ static float4 interpolate_hair_points(BL::Hair b_hair,
   const int point_a = clamp((int)curve_t, 0, num_points - 1);
   const int point_b = min(point_a + 1, num_points - 1);
   const float t = curve_t - (float)point_a;
-  return lerp(hair_point_as_float4(b_hair.points[first_point_index + point_a]),
-              hair_point_as_float4(b_hair.points[first_point_index + point_b]),
+  return lerp(hair_point_as_float4(b_curves, b_attr_radius, first_point_index + point_a),
+              hair_point_as_float4(b_curves, b_attr_radius, first_point_index + point_b),
               t);
 }
 
-static void export_hair_curves(Scene *scene, Hair *hair, BL::Hair b_hair)
+static void export_hair_curves(Scene *scene, Hair *hair, BL::Curves b_curves)
 {
   /* TODO: optimize so we can straight memcpy arrays from Blender? */
 
@@ -666,17 +689,19 @@ static void export_hair_curves(Scene *scene, Hair *hair, BL::Hair b_hair)
   }
 
   /* Reserve memory. */
-  const int num_keys = b_hair.points.length();
-  const int num_curves = b_hair.curves.length();
+  const int num_keys = b_curves.points.length();
+  const int num_curves = b_curves.curves.length();
 
   hair->reserve_curves(num_curves, num_keys);
+
+  std::optional<BL::FloatAttribute> b_attr_radius = find_curves_radius_attribute(b_curves);
 
   /* Export curves and points. */
   vector<float> points_length;
 
-  for (BL::HairCurve &b_curve : b_hair.curves) {
-    const int first_point_index = b_curve.first_point_index();
-    const int num_points = b_curve.num_points();
+  for (int i = 0; i < num_curves; i++) {
+    const int first_point_index = b_curves.curve_offset_data[i].value();
+    const int num_points = b_curves.curve_offset_data[i + 1].value() - first_point_index;
 
     float3 prev_co = zero_float3();
     float length = 0.0f;
@@ -687,10 +712,9 @@ static void export_hair_curves(Scene *scene, Hair *hair, BL::Hair b_hair)
 
     /* Position and radius. */
     for (int i = 0; i < num_points; i++) {
-      BL::HairPoint b_point = b_hair.points[first_point_index + i];
-
-      const float3 co = get_float3(b_point.co());
-      const float radius = b_point.radius();
+      const float3 co = get_float3(b_curves.position_data[first_point_index + i].vector());
+      const float radius = b_attr_radius ? b_attr_radius->data[first_point_index + i].value() :
+                                           0.0f;
       hair->add_curve_key(co, radius);
 
       if (attr_intercept) {
@@ -715,7 +739,7 @@ static void export_hair_curves(Scene *scene, Hair *hair, BL::Hair b_hair)
 
     /* Random number per curve. */
     if (attr_random != NULL) {
-      attr_random->add(hash_uint2_to_float(b_curve.index(), 0));
+      attr_random->add(hash_uint2_to_float(i, 0));
     }
 
     /* Curve. */
@@ -724,7 +748,7 @@ static void export_hair_curves(Scene *scene, Hair *hair, BL::Hair b_hair)
   }
 }
 
-static void export_hair_curves_motion(Hair *hair, BL::Hair b_hair, int motion_step)
+static void export_hair_curves_motion(Hair *hair, BL::Curves b_curves, int motion_step)
 {
   /* Find or add attribute. */
   Attribute *attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -737,14 +761,17 @@ static void export_hair_curves_motion(Hair *hair, BL::Hair b_hair, int motion_st
 
   /* Export motion keys. */
   const int num_keys = hair->get_curve_keys().size();
+  const int num_curves = b_curves.curves.length();
   float4 *mP = attr_mP->data_float4() + motion_step * num_keys;
   bool have_motion = false;
   int num_motion_keys = 0;
   int curve_index = 0;
 
-  for (BL::HairCurve &b_curve : b_hair.curves) {
-    const int first_point_index = b_curve.first_point_index();
-    const int num_points = b_curve.num_points();
+  std::optional<BL::FloatAttribute> b_attr_radius = find_curves_radius_attribute(b_curves);
+
+  for (int i = 0; i < num_curves; i++) {
+    const int first_point_index = b_curves.curve_offset_data[i].value();
+    const int num_points = b_curves.curve_offset_data[i + 1].value() - first_point_index;
 
     Hair::Curve curve = hair->get_curve(curve_index);
     curve_index++;
@@ -755,7 +782,7 @@ static void export_hair_curves_motion(Hair *hair, BL::Hair b_hair, int motion_st
         int point_index = first_point_index + i;
 
         if (point_index < num_keys) {
-          mP[num_motion_keys] = hair_point_as_float4(b_hair.points[point_index]);
+          mP[num_motion_keys] = hair_point_as_float4(b_curves, b_attr_radius, point_index);
           num_motion_keys++;
 
           if (!have_motion) {
@@ -774,7 +801,8 @@ static void export_hair_curves_motion(Hair *hair, BL::Hair b_hair, int motion_st
       const float step_size = curve.num_keys > 1 ? 1.0f / (curve.num_keys - 1) : 0.0f;
       for (int i = 0; i < curve.num_keys; i++) {
         const float step = i * step_size;
-        mP[num_motion_keys] = interpolate_hair_points(b_hair, first_point_index, num_points, step);
+        mP[num_motion_keys] = interpolate_hair_points(
+            b_curves, b_attr_radius, first_point_index, num_points, step);
         num_motion_keys++;
       }
       have_motion = true;
@@ -791,12 +819,12 @@ static void export_hair_curves_motion(Hair *hair, BL::Hair b_hair, int motion_st
 void BlenderSync::sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, int motion_step)
 {
   /* Convert Blender hair to Cycles curves. */
-  BL::Hair b_hair(b_ob_info.object_data);
+  BL::Curves b_curves(b_ob_info.object_data);
   if (motion) {
-    export_hair_curves_motion(hair, b_hair, motion_step);
+    export_hair_curves_motion(hair, b_curves, motion_step);
   }
   else {
-    export_hair_curves(scene, hair, b_hair);
+    export_hair_curves(scene, hair, b_curves);
   }
 }
 #else
@@ -819,8 +847,8 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, H
   new_hair.set_used_shaders(used_shaders);
 
   if (view_layer.use_hair) {
-#ifdef WITH_HAIR_NODES
-    if (b_ob_info.object_data.is_a(&RNA_Hair)) {
+#ifdef WITH_NEW_CURVES_TYPE
+    if (b_ob_info.object_data.is_a(&RNA_Curves)) {
       /* Hair object. */
       sync_hair(&new_hair, b_ob_info, false);
     }
@@ -873,8 +901,8 @@ void BlenderSync::sync_hair_motion(BL::Depsgraph b_depsgraph,
 
   /* Export deformed coordinates. */
   if (ccl::BKE_object_is_deform_modified(b_ob_info, b_scene, preview)) {
-#ifdef WITH_HAIR_NODES
-    if (b_ob_info.object_data.is_a(&RNA_Hair)) {
+#ifdef WITH_NEW_CURVES_TYPE
+    if (b_ob_info.object_data.is_a(&RNA_Curves)) {
       /* Hair object. */
       sync_hair(hair, b_ob_info, true, motion_step);
       return;

@@ -219,7 +219,7 @@ static void stats_object(Object *ob,
       }
       break;
     }
-    case OB_HAIR:
+    case OB_CURVES:
     case OB_POINTCLOUD:
     case OB_VOLUME: {
       break;

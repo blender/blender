@@ -22,7 +22,7 @@ void node_subsurface_scattering(vec4 color,
 
   closure_load_sss_data(scale, out_Diffuse_0.radiance, color.rgb, int(sss_id), result);
 
-  /* TODO(fclem) Try to not use this. */
+  /* TODO(@fclem): Try to not use this. */
   closure_load_ssr_data(vec3(0.0), 0.0, in_Diffuse_0.N, -1.0, result);
 }
 

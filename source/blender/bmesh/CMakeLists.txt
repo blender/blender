@@ -95,7 +95,7 @@ set(SRC
   intern/bmesh_iterators.h
   intern/bmesh_iterators_inline.h
   intern/bmesh_log.c
-  intern/bmesh_log.h
+  intern/bmesh_log_intern.h
   intern/bmesh_marking.c
   intern/bmesh_marking.h
   intern/bmesh_mesh.c
@@ -181,6 +181,7 @@ set(SRC
   tools/bmesh_wireframe.h
 
   bmesh_class.h
+  bmesh_log.h
 
   # public includes
   bmesh.h
@@ -208,10 +209,6 @@ if(WITH_BULLET)
     ${BULLET_LIBRARIES}
   )
   add_definitions(-DWITH_BULLET)
-endif()
-
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 if(WITH_FREESTYLE)

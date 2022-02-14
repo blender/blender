@@ -651,7 +651,6 @@ typedef struct UserDef_Experimental {
   /* Debug options, always available. */
   char use_undo_legacy;
   char no_override_auto_resync;
-  char no_proxy_to_override_conversion;
   char use_cycles_debug;
   char use_geometry_nodes_legacy;
   char show_asset_debug_info;
@@ -659,7 +658,7 @@ typedef struct UserDef_Experimental {
   char SANITIZE_AFTER_HERE;
   /* The following options are automatically sanitized (set to 0)
    * when the release cycle is not alpha. */
-  char use_new_hair_type;
+  char use_new_curves_type;
   char use_new_point_cloud_type;
   char use_full_frame_compositor;
   char use_sculpt_vertex_colors;
@@ -669,6 +668,7 @@ typedef struct UserDef_Experimental {
 
   char use_sculpt_uvsmooth;
 
+  char _pad[1];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -1255,7 +1255,7 @@ typedef enum eDupli_ID_Flags {
   USER_DUP_PSYS = (1 << 11),
   USER_DUP_LIGHTPROBE = (1 << 12),
   USER_DUP_GPENCIL = (1 << 13),
-  USER_DUP_HAIR = (1 << 14),
+  USER_DUP_CURVES = (1 << 14),
   USER_DUP_POINTCLOUD = (1 << 15),
   USER_DUP_VOLUME = (1 << 16),
   USER_DUP_LATTICE = (1 << 17),

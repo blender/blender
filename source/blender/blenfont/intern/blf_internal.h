@@ -56,7 +56,11 @@ struct FontBLF *blf_font_new(const char *name, const char *filename);
 struct FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, int mem_size);
 void blf_font_attach_from_mem(struct FontBLF *font, const unsigned char *mem, int mem_size);
 
-void blf_font_size(struct FontBLF *font, float size, unsigned int dpi);
+/**
+ * Change font's output size. Returns true if successful in changing the size.
+ */
+bool blf_font_size(struct FontBLF *font, float size, unsigned int dpi);
+
 void blf_font_draw(struct FontBLF *font,
                    const char *str,
                    size_t str_len,
@@ -65,10 +69,7 @@ void blf_font_draw__wrap(struct FontBLF *font,
                          const char *str,
                          size_t str_len,
                          struct ResultBLF *r_info);
-void blf_font_draw_ascii(struct FontBLF *font,
-                         const char *str,
-                         size_t str_len,
-                         struct ResultBLF *r_info);
+
 /**
  * Use fixed column width, but an utf8 character may occupy multiple columns.
  */
@@ -137,18 +138,9 @@ int blf_font_count_missing_chars(struct FontBLF *font,
 
 void blf_font_free(struct FontBLF *font);
 
-/**
- * Find a glyph cache that matches a size, DPI & styles.
- */
-struct GlyphCacheBLF *blf_glyph_cache_find(struct FontBLF *font, float size, unsigned int dpi);
-/**
- * Create a new glyph cache for the current size, DPI & styles.
- */
-struct GlyphCacheBLF *blf_glyph_cache_new(struct FontBLF *font);
 struct GlyphCacheBLF *blf_glyph_cache_acquire(struct FontBLF *font);
 void blf_glyph_cache_release(struct FontBLF *font);
 void blf_glyph_cache_clear(struct FontBLF *font);
-void blf_glyph_cache_free(struct GlyphCacheBLF *gc);
 
 /**
  * Create (or load from cache) a fully-rendered bitmap glyph.

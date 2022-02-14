@@ -85,6 +85,7 @@ static Strip *seq_strip_alloc(int type)
     strip->transform->scale_y = 1;
     strip->transform->origin[0] = 0.5f;
     strip->transform->origin[1] = 0.5f;
+    strip->transform->filter = SEQ_TRANSFORM_FILTER_BILINEAR;
     strip->crop = MEM_callocN(sizeof(struct StripCrop), "StripCrop");
   }
 

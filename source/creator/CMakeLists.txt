@@ -1082,6 +1082,13 @@ elseif(APPLE)
     Blender.app/Contents/
   )
 
+  if(WITH_BLENDER_THUMBNAILER)
+      install(
+        TARGETS blender-thumbnailer
+        DESTINATION Blender.app/Contents/MacOS/
+      )
+  endif()
+
   if(WITH_OPENMP AND OPENMP_CUSTOM)
     install(
       FILES "${OpenMP_LIBRARY}"
@@ -1104,9 +1111,9 @@ elseif(APPLE)
       ${TARGETDIR_VER}/python/lib
     )
 
-    install(DIRECTORY ${LIBDIR}/python/bin
-      DESTINATION ${TARGETDIR_VER}/python
-      USE_SOURCE_PERMISSIONS
+    install(
+      PROGRAMS ${PYTHON_EXECUTABLE}
+      DESTINATION ${TARGETDIR_VER}/python/bin
     )
 
     # Needed for distutils/pip

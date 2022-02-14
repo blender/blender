@@ -25,7 +25,7 @@
 
 GPU_SHADER_CREATE_INFO(draw_hair_refine_compute)
     .local_group_size(1, 1)
-    .storage_buf(0, Qualifier::WRITE_ONLY, "vec4", "posTime[]")
+    .storage_buf(0, Qualifier::WRITE, "vec4", "posTime[]")
     .sampler(0, ImageType::FLOAT_BUFFER, "hairPointBuffer")
     .sampler(1, ImageType::UINT_BUFFER, "hairStrandBuffer")
     .sampler(2, ImageType::UINT_BUFFER, "hairStrandSegBuffer")

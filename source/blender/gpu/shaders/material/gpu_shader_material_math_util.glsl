@@ -109,6 +109,11 @@ void vector_normalize(vec3 normal, out vec3 outnormal)
   outnormal = normalize(normal);
 }
 
+void vector_copy(vec3 normal, out vec3 outnormal)
+{
+  outnormal = normal;
+}
+
 /* Matirx Math */
 
 mat3 euler_to_mat3(vec3 euler)

@@ -75,7 +75,6 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_track_clear);
   WM_operatortype_append(OBJECT_OT_make_local);
   WM_operatortype_append(OBJECT_OT_make_override_library);
-  WM_operatortype_append(OBJECT_OT_convert_proxy_to_override);
   WM_operatortype_append(OBJECT_OT_make_single_user);
   WM_operatortype_append(OBJECT_OT_make_links_scene);
   WM_operatortype_append(OBJECT_OT_make_links_data);
@@ -106,7 +105,7 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_light_add);
   WM_operatortype_append(OBJECT_OT_camera_add);
   WM_operatortype_append(OBJECT_OT_speaker_add);
-  WM_operatortype_append(OBJECT_OT_hair_add);
+  WM_operatortype_append(OBJECT_OT_hair_curves_add);
   WM_operatortype_append(OBJECT_OT_pointcloud_add);
   WM_operatortype_append(OBJECT_OT_volume_add);
   WM_operatortype_append(OBJECT_OT_volume_import);

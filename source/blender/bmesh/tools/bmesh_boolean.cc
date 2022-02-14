@@ -192,12 +192,12 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out, bool keep_hidden
       BM_elem_flag_enable(bmv, KEEP_FLAG);
     }
     else {
-      new_bmvs[v] = NULL;
+      new_bmvs[v] = nullptr;
     }
   }
   for (int v : m_out.vert_index_range()) {
     const Vert *vertp = m_out.vert(v);
-    if (new_bmvs[v] == NULL) {
+    if (new_bmvs[v] == nullptr) {
       float co[3];
       const double3 &d_co = vertp->co;
       for (int i = 0; i < 3; ++i) {

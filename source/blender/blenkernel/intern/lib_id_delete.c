@@ -265,8 +265,8 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
       }
       for (id = last_remapped_id->next; id; id = id->next) {
         /* Will tag 'never NULL' users of this ID too.
-         * Note that we cannot use BKE_libblock_unlink() here,
-         * since it would ignore indirect (and proxy!)
+         *
+         * NOTE: #BKE_libblock_unlink() cannot be used here, since it would ignore indirect
          * links, this can lead to nasty crashing here in second, actual deleting loop.
          * Also, this will also flag users of deleted data that cannot be unlinked
          * (object using deleted obdata, etc.), so that they also get deleted. */
@@ -315,9 +315,9 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
       }
 
       /* Will tag 'never NULL' users of this ID too.
-       * Note that we cannot use BKE_libblock_unlink() here, since it would ignore indirect
-       * (and proxy!) links, this can lead to nasty crashing here in second,
-       * actual deleting loop.
+       *
+       * NOTE: #BKE_libblock_unlink() cannot be used here, since it would ignore indirect
+       * links, this can lead to nasty crashing here in second, actual deleting loop.
        * Also, this will also flag users of deleted data that cannot be unlinked
        * (object using deleted obdata, etc.), so that they also get deleted. */
       BKE_libblock_remap_multiple_locked(bmain,

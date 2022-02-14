@@ -34,6 +34,7 @@
 
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_create_info_private.hh"
+#include "gpu_shader_dependency_private.h"
 #include "gpu_shader_private.hh"
 
 #undef GPU_SHADER_INTERFACE_INFO
@@ -54,17 +55,14 @@ void ShaderCreateInfo::finalize()
   }
   finalized_ = true;
 
+  Set<StringRefNull> deps_merged;
+
   for (auto &info_name : additional_infos_) {
     const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(
         gpu_shader_create_info_get(info_name.c_str()));
 
     /* Recursive. */
     const_cast<ShaderCreateInfo &>(info).finalize();
-
-#if 0 /* Enabled for debugging merging. TODO(fclem) exception handling and error reporting in \
-         console. */
-    std::cout << "Merging : " << info_name << " > " << name_ << std::endl;
-#endif
 
     interface_names_size_ += info.interface_names_size_;
 
@@ -82,37 +80,76 @@ void ShaderCreateInfo::finalize()
 
     validate(info);
 
+    auto assert_no_overlap = [&](const bool test, const StringRefNull error) {
+      if (!test) {
+        std::cout << name_ << ": Validation failed while merging " << info.name_ << " : ";
+        std::cout << error << std::endl;
+        BLI_assert(0);
+      }
+    };
+
+    if (!deps_merged.add(info.name_)) {
+      assert_no_overlap(false, "additional info already merged via another info");
+    }
+
     if (info.compute_layout_.local_size_x != -1) {
-      compute_layout_.local_size_x = info.compute_layout_.local_size_x;
-      compute_layout_.local_size_y = info.compute_layout_.local_size_y;
-      compute_layout_.local_size_z = info.compute_layout_.local_size_z;
+      assert_no_overlap(compute_layout_.local_size_x == -1, "Compute layout already defined");
+      compute_layout_ = info.compute_layout_;
     }
 
     if (!info.vertex_source_.is_empty()) {
-      BLI_assert(vertex_source_.is_empty());
+      assert_no_overlap(vertex_source_.is_empty(), "Vertex source already existing");
       vertex_source_ = info.vertex_source_;
     }
     if (!info.geometry_source_.is_empty()) {
-      BLI_assert(geometry_source_.is_empty());
+      assert_no_overlap(geometry_source_.is_empty(), "Geometry source already existing");
       geometry_source_ = info.geometry_source_;
       geometry_layout_ = info.geometry_layout_;
     }
     if (!info.fragment_source_.is_empty()) {
-      BLI_assert(fragment_source_.is_empty());
+      assert_no_overlap(fragment_source_.is_empty(), "Fragment source already existing");
       fragment_source_ = info.fragment_source_;
     }
     if (!info.compute_source_.is_empty()) {
-      BLI_assert(compute_source_.is_empty());
+      assert_no_overlap(compute_source_.is_empty(), "Compute source already existing");
       compute_source_ = info.compute_source_;
     }
 
     do_static_compilation_ = do_static_compilation_ || info.do_static_compilation_;
   }
+
+  if (auto_resource_location_) {
+    int images = 0, samplers = 0, ubos = 0, ssbos = 0;
+
+    auto set_resource_slot = [&](Resource &res) {
+      switch (res.bind_type) {
+        case Resource::BindType::UNIFORM_BUFFER:
+          res.slot = ubos++;
+          break;
+        case Resource::BindType::STORAGE_BUFFER:
+          res.slot = ssbos++;
+          break;
+        case Resource::BindType::SAMPLER:
+          res.slot = samplers++;
+          break;
+        case Resource::BindType::IMAGE:
+          res.slot = images++;
+          break;
+      }
+    };
+
+    for (auto &res : batch_resources_) {
+      set_resource_slot(res);
+    }
+    for (auto &res : pass_resources_) {
+      set_resource_slot(res);
+    }
+  }
 }
 
 void ShaderCreateInfo::validate(const ShaderCreateInfo &other_info)
 {
-  {
+  if (!auto_resource_location_) {
     /* Check same bind-points usage in OGL. */
     Set<int> images, samplers, ubos, ssbos;
 
@@ -132,26 +169,26 @@ void ShaderCreateInfo::validate(const ShaderCreateInfo &other_info)
     };
 
     auto print_error_msg = [&](const Resource &res) {
-      std::cerr << name_ << ": Validation failed : Overlapping ";
+      std::cout << name_ << ": Validation failed : Overlapping ";
 
       switch (res.bind_type) {
         case Resource::BindType::UNIFORM_BUFFER:
-          std::cerr << "Uniform Buffer " << res.uniformbuf.name;
+          std::cout << "Uniform Buffer " << res.uniformbuf.name;
           break;
         case Resource::BindType::STORAGE_BUFFER:
-          std::cerr << "Storage Buffer " << res.storagebuf.name;
+          std::cout << "Storage Buffer " << res.storagebuf.name;
           break;
         case Resource::BindType::SAMPLER:
-          std::cerr << "Sampler " << res.sampler.name;
+          std::cout << "Sampler " << res.sampler.name;
           break;
         case Resource::BindType::IMAGE:
-          std::cerr << "Image " << res.image.name;
+          std::cout << "Image " << res.image.name;
           break;
         default:
-          std::cerr << "Unknown Type";
+          std::cout << "Unknown Type";
           break;
       }
-      std::cerr << " (" << res.slot << ") while merging " << other_info.name_ << std::endl;
+      std::cout << " (" << res.slot << ") while merging " << other_info.name_ << std::endl;
     };
 
     for (auto &res : batch_resources_) {
@@ -167,7 +204,7 @@ void ShaderCreateInfo::validate(const ShaderCreateInfo &other_info)
     }
   }
   {
-    /* TODO(fclem) Push constant validation. */
+    /* TODO(@fclem): Push constant validation. */
   }
 }
 
@@ -207,6 +244,15 @@ void gpu_shader_create_info_init()
   if (GPU_type_matches(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD, GPU_OS_ANY, GPU_DRIVER_ANY) ||
       GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY) || GPU_crappy_amd_driver()) {
     draw_modelmat = draw_modelmat_legacy;
+  }
+
+  for (ShaderCreateInfo *info : g_create_infos->values()) {
+    if (info->do_static_compilation_) {
+      info->builtins_ |= gpu_shader_dependency_get_builtins(info->vertex_source_);
+      info->builtins_ |= gpu_shader_dependency_get_builtins(info->fragment_source_);
+      info->builtins_ |= gpu_shader_dependency_get_builtins(info->geometry_source_);
+      info->builtins_ |= gpu_shader_dependency_get_builtins(info->compute_source_);
+    }
   }
 
   /* TEST */
@@ -302,6 +348,7 @@ const GPUShaderCreateInfo *gpu_shader_create_info_get(const char *info_name)
 {
   if (g_create_infos->contains(info_name) == false) {
     printf("Error: Cannot find shader create info named \"%s\"\n", info_name);
+    return nullptr;
   }
   ShaderCreateInfo *info = g_create_infos->lookup(info_name);
   return reinterpret_cast<const GPUShaderCreateInfo *>(info);

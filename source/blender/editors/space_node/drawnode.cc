@@ -231,7 +231,6 @@ static void node_buts_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *pt
 NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, const int y)
 {
   if (node->type == NODE_FRAME) {
-    const float size = 10.0f;
     NodeFrame *data = (NodeFrame *)node->storage;
 
     /* shrinking frame size is determined by child nodes */
@@ -242,7 +241,9 @@ NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, co
     NodeResizeDirection dir = NODE_RESIZE_NONE;
 
     const rctf &totr = node->totr;
-    if (x >= totr.xmax - size && x < totr.xmax && y >= totr.ymin && y < totr.ymax) {
+    const float size = NODE_RESIZE_MARGIN;
+
+    if (x > totr.xmax - size && x <= totr.xmax && y >= totr.ymin && y < totr.ymax) {
       dir |= NODE_RESIZE_RIGHT;
     }
     if (x >= totr.xmin && x < totr.xmin + size && y >= totr.ymin && y < totr.ymax) {

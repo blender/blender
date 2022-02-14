@@ -46,9 +46,9 @@
 #  include "BKE_camera.h"
 #  include "BKE_collection.h"
 #  include "BKE_curve.h"
+#  include "BKE_curves.h"
 #  include "BKE_displist.h"
 #  include "BKE_gpencil.h"
-#  include "BKE_hair.h"
 #  include "BKE_icons.h"
 #  include "BKE_idtype.h"
 #  include "BKE_image.h"
@@ -86,8 +86,8 @@
 #  include "DNA_camera_types.h"
 #  include "DNA_collection_types.h"
 #  include "DNA_curve_types.h"
+#  include "DNA_curves_types.h"
 #  include "DNA_gpencil_types.h"
-#  include "DNA_hair_types.h"
 #  include "DNA_lattice_types.h"
 #  include "DNA_light_types.h"
 #  include "DNA_lightprobe_types.h"
@@ -763,18 +763,18 @@ static bGPdata *rna_Main_gpencils_new(Main *bmain, const char *name)
   return gpd;
 }
 
-#  ifdef WITH_HAIR_NODES
-static Hair *rna_Main_hairs_new(Main *bmain, const char *name)
+#  ifdef WITH_NEW_CURVES_TYPE
+static Curves *rna_Main_hair_curves_new(Main *bmain, const char *name)
 {
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  Hair *hair = BKE_hair_add(bmain, safe_name);
-  id_us_min(&hair->id);
+  Curves *curves = BKE_curves_add(bmain, safe_name);
+  id_us_min(&curves->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
 
-  return hair;
+  return curves;
 }
 #  endif
 
@@ -861,8 +861,8 @@ RNA_MAIN_ID_TAG_FUNCS_DEF(cachefiles, cachefiles, ID_CF)
 RNA_MAIN_ID_TAG_FUNCS_DEF(paintcurves, paintcurves, ID_PC)
 RNA_MAIN_ID_TAG_FUNCS_DEF(workspaces, workspaces, ID_WS)
 RNA_MAIN_ID_TAG_FUNCS_DEF(lightprobes, lightprobes, ID_LP)
-#  ifdef WITH_HAIR_NODES
-RNA_MAIN_ID_TAG_FUNCS_DEF(hairs, hairs, ID_HA)
+#  ifdef WITH_NEW_CURVES_TYPE
+RNA_MAIN_ID_TAG_FUNCS_DEF(hair_curves, hair_curves, ID_CV)
 #  endif
 RNA_MAIN_ID_TAG_FUNCS_DEF(pointclouds, pointclouds, ID_PT)
 RNA_MAIN_ID_TAG_FUNCS_DEF(volumes, volumes, ID_VO)
@@ -2269,47 +2269,47 @@ void RNA_def_main_lightprobes(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
-#  ifdef WITH_HAIR_NODES
-void RNA_def_main_hairs(BlenderRNA *brna, PropertyRNA *cprop)
+#  ifdef WITH_NEW_CURVES_TYPE
+void RNA_def_main_hair_curves(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  RNA_def_property_srna(cprop, "BlendDataHairs");
-  srna = RNA_def_struct(brna, "BlendDataHairs", NULL);
+  RNA_def_property_srna(cprop, "BlendDataHairCurves");
+  srna = RNA_def_struct(brna, "BlendDataHairCurves", NULL);
   RNA_def_struct_sdna(srna, "Main");
-  RNA_def_struct_ui_text(srna, "Main Hairs", "Collection of hairs");
+  RNA_def_struct_ui_text(srna, "Main Hair Curves", "Collection of hair curves");
 
-  func = RNA_def_function(srna, "new", "rna_Main_hairs_new");
+  func = RNA_def_function(srna, "new", "rna_Main_hair_curves_new");
   RNA_def_function_ui_description(func, "Add a new hair to the main database");
-  parm = RNA_def_string(func, "name", "Hair", 0, "", "New name for the data-block");
+  parm = RNA_def_string(func, "name", "Curves", 0, "", "New name for the data-block");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   /* return type */
-  parm = RNA_def_pointer(func, "hair", "Hair", "", "New hair data-block");
+  parm = RNA_def_pointer(func, "curves", "Curves", "", "New curves data-block");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
-  RNA_def_function_ui_description(func, "Remove a hair from the current blendfile");
-  parm = RNA_def_pointer(func, "hair", "Hair", "", "Hair to remove");
+  RNA_def_function_ui_description(func, "Remove a curves data-block from the current blendfile");
+  parm = RNA_def_pointer(func, "curves", "Curves", "", "Curves data-block to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
   RNA_def_boolean(func,
                   "do_unlink",
                   true,
                   "",
-                  "Unlink all usages of this hair before deleting it "
-                  "(WARNING: will also delete objects instancing that hair data)");
+                  "Unlink all usages of this curves before deleting it "
+                  "(WARNING: will also delete objects instancing that curves data)");
   RNA_def_boolean(func,
                   "do_id_user",
                   true,
                   "",
-                  "Decrement user counter of all datablocks used by this hair data");
+                  "Decrement user counter of all datablocks used by this curves data");
   RNA_def_boolean(
-      func, "do_ui_user", true, "", "Make sure interface does not reference this hair data");
+      func, "do_ui_user", true, "", "Make sure interface does not reference this curves data");
 
-  func = RNA_def_function(srna, "tag", "rna_Main_hairs_tag");
+  func = RNA_def_function(srna, "tag", "rna_Main_hair_curves_tag");
   parm = RNA_def_boolean(func, "value", 0, "Value", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
