@@ -1239,7 +1239,7 @@ static bool contract_shape(ImBuf *ibuf)
   const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   const int max_size = (ibuf->x * ibuf->y) - 1;
 
-  /* detect pixels and expand into red areas */
+  /* Detect if pixel is near of no green pixels and mark green to be cleared. */
   for (int row = 0; row < ibuf->y; row++) {
     if (!is_row_filled(ibuf, row)) {
       continue;
