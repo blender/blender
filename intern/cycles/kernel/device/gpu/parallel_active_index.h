@@ -35,19 +35,20 @@ CCL_NAMESPACE_BEGIN
 template<uint blocksize, typename IsActiveOp>
 __device__
 #endif
-void gpu_parallel_active_index_array_impl(const uint num_states,
-                                          ccl_global int *indices,
-                                          ccl_global int *num_indices,
+    void
+    gpu_parallel_active_index_array_impl(const uint num_states,
+                                         ccl_global int *indices,
+                                         ccl_global int *num_indices,
 #ifdef __KERNEL_METAL__
-                                          const uint is_active,
-                                          const uint blocksize,
-                                          const int thread_index,
-                                          const uint state_index,
-                                          const int ccl_gpu_warp_size,
-                                          const int thread_warp,
-                                          const int warp_index,
-                                          const int num_warps,
-                                          threadgroup int *warp_offset)
+                                         const uint is_active,
+                                         const uint blocksize,
+                                         const int thread_index,
+                                         const uint state_index,
+                                         const int ccl_gpu_warp_size,
+                                         const int thread_warp,
+                                         const int warp_index,
+                                         const int num_warps,
+                                         threadgroup int *warp_offset)
 {
 #else
                                           IsActiveOp is_active_op)
@@ -78,7 +79,7 @@ void gpu_parallel_active_index_array_impl(const uint num_states,
   ccl_gpu_syncthreads();
 
   /* Last thread in block converts per-warp sizes to offsets, increments global size of
-    * index array and gets offset to write to. */
+   * index array and gets offset to write to. */
   if (thread_index == blocksize - 1) {
     /* TODO: parallelize this. */
     int offset = 0;
@@ -104,15 +105,27 @@ void gpu_parallel_active_index_array_impl(const uint num_states,
 #ifdef __KERNEL_METAL__
 
 #  define gpu_parallel_active_index_array(dummy, num_states, indices, num_indices, is_active_op) \
-  const uint is_active = (ccl_gpu_global_id_x() < num_states) ? is_active_op(ccl_gpu_global_id_x()) : 0; \
-  gpu_parallel_active_index_array_impl(num_states, indices, num_indices, is_active, \
-    metal_local_size, metal_local_id, metal_global_id, simdgroup_size, simd_lane_index, \
-    simd_group_index, num_simd_groups, simdgroup_offset)
+    const uint is_active = (ccl_gpu_global_id_x() < num_states) ? \
+                               is_active_op(ccl_gpu_global_id_x()) : \
+                               0; \
+    gpu_parallel_active_index_array_impl(num_states, \
+                                         indices, \
+                                         num_indices, \
+                                         is_active, \
+                                         metal_local_size, \
+                                         metal_local_id, \
+                                         metal_global_id, \
+                                         simdgroup_size, \
+                                         simd_lane_index, \
+                                         simd_group_index, \
+                                         num_simd_groups, \
+                                         simdgroup_offset)
 
 #else
 
-#  define gpu_parallel_active_index_array(blocksize, num_states, indices, num_indices, is_active_op) \
-  gpu_parallel_active_index_array_impl<blocksize>(num_states, indices, num_indices, is_active_op)
+#  define gpu_parallel_active_index_array( \
+      blocksize, num_states, indices, num_indices, is_active_op) \
+    gpu_parallel_active_index_array_impl<blocksize>(num_states, indices, num_indices, is_active_op)
 
 #endif
 
