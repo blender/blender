@@ -184,9 +184,10 @@ IndexRange BuildOnlyVisibleButtonsHelper::get_visible_range() const
   }
 
   const float view_height = BLI_rctf_size_y(&v2d_.cur);
-  const int count_rows_in_view = round_fl_to_int(view_height / style_.tile_height);
+  const int count_rows_in_view = std::max(round_fl_to_int(view_height / style_.tile_height), 1);
   max_items_in_view = (count_rows_in_view + 1) * cols_per_row_;
 
+  BLI_assert(max_items_in_view > 0);
   return IndexRange(first_idx_in_view, max_items_in_view);
 }
 
@@ -285,7 +286,7 @@ void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view,
   uiLayout &layout = *uiLayoutColumn(current_layout(), false);
   const GridViewStyle &style = grid_view.get_style();
 
-  const int cols_per_row = uiLayoutGetWidth(&layout) / style.tile_width;
+  const int cols_per_row = std::max(uiLayoutGetWidth(&layout) / style.tile_width, 1);
 
   BuildOnlyVisibleButtonsHelper build_visible_helper(v2d, grid_view, cols_per_row);
 
