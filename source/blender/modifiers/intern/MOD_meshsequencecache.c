@@ -343,10 +343,6 @@ static void velocity_panel_draw(const bContext *UNUSED(C), Panel *panel)
     return;
   }
 
-  if (RNA_pointer_is_null(&fileptr)) {
-    return;
-  }
-
   uiLayoutSetPropSep(layout, true);
   uiTemplateCacheFileVelocity(layout, &fileptr);
   uiItemR(layout, ptr, "velocity_scale", 0, NULL, ICON_NONE);
@@ -361,10 +357,6 @@ static void time_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   PointerRNA fileptr;
   if (!uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
-    return;
-  }
-
-  if (RNA_pointer_is_null(&fileptr)) {
     return;
   }
 
@@ -384,10 +376,6 @@ static void render_procedural_panel_draw(const bContext *C, Panel *panel)
     return;
   }
 
-  if (RNA_pointer_is_null(&fileptr)) {
-    return;
-  }
-
   uiLayoutSetPropSep(layout, true);
   uiTemplateCacheFileProcedural(layout, C, &fileptr);
 }
@@ -401,10 +389,6 @@ static void override_layers_panel_draw(const bContext *C, Panel *panel)
 
   PointerRNA fileptr;
   if (!uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
-    return;
-  }
-
-  if (RNA_pointer_is_null(&fileptr)) {
     return;
   }
 
