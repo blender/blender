@@ -608,7 +608,7 @@ static void rna_render_slots_active_set(PointerRNA *ptr,
     int index = BLI_findindex(&image->renderslots, slot);
     if (index != -1) {
       image->render_slot = index;
-      image->gpuflag |= IMA_GPU_REFRESH;
+      BKE_image_partial_update_mark_full_update(image);
     }
   }
 }
@@ -624,7 +624,7 @@ static void rna_render_slots_active_index_set(PointerRNA *ptr, int value)
   Image *image = (Image *)ptr->owner_id;
   int num_slots = BLI_listbase_count(&image->renderslots);
   image->render_slot = value;
-  image->gpuflag |= IMA_GPU_REFRESH;
+  BKE_image_partial_update_mark_full_update(image);
   CLAMP(image->render_slot, 0, num_slots - 1);
 }
 

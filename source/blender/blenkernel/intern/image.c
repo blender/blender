@@ -4377,7 +4377,7 @@ RenderResult *BKE_image_acquire_renderresult(Scene *scene, Image *ima)
     }
     else {
       rr = BKE_image_get_renderslot(ima, ima->render_slot)->render;
-      ima->gpuflag |= IMA_GPU_REFRESH;
+      BKE_image_partial_update_mark_full_update(ima);
     }
 
     /* set proper views */
@@ -5745,7 +5745,7 @@ void BKE_image_user_frame_calc(Image *ima, ImageUser *iuser, int cfra)
       /* NOTE: a single texture and refresh doesn't really work when
        * multiple image users may use different frames, this is to
        * be improved with perhaps a GPU texture cache. */
-      ima->gpuflag |= IMA_GPU_REFRESH;
+      BKE_image_partial_update_mark_full_update(ima);
       ima->gpuframenr = iuser->framenr;
     }
 

@@ -253,15 +253,13 @@ enum {
 
 /* Image.gpuflag */
 enum {
-  /** GPU texture needs to be refreshed. */
-  IMA_GPU_REFRESH = (1 << 0),
   /** All mipmap levels in OpenGL texture set? */
-  IMA_GPU_MIPMAP_COMPLETE = (1 << 1),
+  IMA_GPU_MIPMAP_COMPLETE = (1 << 0),
   /* Reuse the max resolution textures as they fit in the limited scale. */
-  IMA_GPU_REUSE_MAX_RESOLUTION = (1 << 2),
+  IMA_GPU_REUSE_MAX_RESOLUTION = (1 << 1),
   /* Has any limited scale textures been allocated.
    * Adds additional checks to reuse max resolution images when they fit inside limited scale. */
-  IMA_GPU_HAS_LIMITED_SCALE_TEXTURES = (1 << 3),
+  IMA_GPU_HAS_LIMITED_SCALE_TEXTURES = (1 << 2),
 };
 
 /* Image.source, where the image comes from */

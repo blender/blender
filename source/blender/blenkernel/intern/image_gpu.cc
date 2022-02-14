@@ -405,17 +405,8 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
     ima->gpu_pass = requested_pass;
     ima->gpu_layer = requested_layer;
     ima->gpu_view = requested_view;
-    ima->gpuflag |= IMA_GPU_REFRESH;
   }
 #undef GPU_FLAGS_TO_CHECK
-
-  /* TODO(jbakker): We should replace the IMA_GPU_REFRESH flag with a call to
-   * BKE_image-partial_update_mark_full_update. Although the flag is quicker it leads to double
-   * administration. */
-  if ((ima->gpuflag & IMA_GPU_REFRESH) != 0) {
-    BKE_image_partial_update_mark_full_update(ima);
-    ima->gpuflag &= ~IMA_GPU_REFRESH;
-  }
 
   if (ima->runtime.partial_update_user == nullptr) {
     ima->runtime.partial_update_user = BKE_image_partial_update_create(ima);

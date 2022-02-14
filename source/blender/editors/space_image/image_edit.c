@@ -404,7 +404,7 @@ bool ED_image_slot_cycle(struct Image *image, int direction)
   }
 
   if ((cur != image->render_slot)) {
-    image->gpuflag |= IMA_GPU_REFRESH;
+    BKE_image_partial_update_mark_full_update(image);
   }
   return (cur != image->render_slot);
 }
