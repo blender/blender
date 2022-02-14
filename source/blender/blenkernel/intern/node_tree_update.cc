@@ -1482,7 +1482,8 @@ class NodeTreeMainUpdater {
 
     while (!sockets_to_check.is_empty()) {
       const SocketRef &in_out_socket = *sockets_to_check.pop();
-      const bNode &bnode = *in_out_socket.node().bnode();
+      const NodeRef &node = in_out_socket.node();
+      const bNode &bnode = *node.bnode();
       const bNodeSocket &bsocket = *in_out_socket.bsocket();
       if (bsocket.changed_flag != NTREE_CHANGED_NOTHING) {
         return true;
@@ -1507,13 +1508,25 @@ class NodeTreeMainUpdater {
       }
       else {
         const OutputSocketRef &socket = in_out_socket.as_output();
-        for (const InputSocketRef *input_socket : socket.node().inputs()) {
+        for (const InputSocketRef *input_socket : node.inputs()) {
           if (input_socket->is_available()) {
             bool &pushed = pushed_by_socket_id[input_socket->id()];
             if (!pushed) {
               sockets_to_check.push(input_socket);
               pushed = true;
             }
+          }
+        }
+        /* The Normal node has a special case, because the value stored in the first output socket
+         * is used as input in the node. */
+        if (bnode.type == SH_NODE_NORMAL && socket.index() == 1) {
+          BLI_assert(socket.name() == "Dot");
+          const OutputSocketRef &normal_output = node.output(0);
+          BLI_assert(normal_output.name() == "Normal");
+          bool &pushed = pushed_by_socket_id[normal_output.id()];
+          if (!pushed) {
+            sockets_to_check.push(&normal_output);
+            pushed = true;
           }
         }
       }
