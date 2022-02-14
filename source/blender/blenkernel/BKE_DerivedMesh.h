@@ -299,22 +299,22 @@ void mesh_get_mapped_verts_coords(struct Mesh *me_eval, float (*r_cos)[3], int t
  * Same as above but won't use render settings.
  */
 struct Mesh *editbmesh_get_eval_cage(struct Depsgraph *depsgraph,
-                                     struct Scene *scene,
-                                     struct Object *,
+                                     const struct Scene *scene,
+                                     struct Object *obedit,
                                      struct BMEditMesh *em,
                                      const struct CustomData_MeshMasks *dataMask);
 struct Mesh *editbmesh_get_eval_cage_from_orig(struct Depsgraph *depsgraph,
-                                               struct Scene *scene,
+                                               const struct Scene *scene,
                                                struct Object *obedit,
                                                const struct CustomData_MeshMasks *dataMask);
 
 float (*editbmesh_vert_coords_alloc(struct BMEditMesh *em, int *r_vert_len))[3];
-bool editbmesh_modifier_is_enabled(struct Scene *scene,
+bool editbmesh_modifier_is_enabled(const struct Scene *scene,
                                    const struct Object *ob,
                                    struct ModifierData *md,
                                    bool has_prev_mesh);
 void makeDerivedMesh(struct Depsgraph *depsgraph,
-                     struct Scene *scene,
+                     const struct Scene *scene,
                      struct Object *ob,
                      const struct CustomData_MeshMasks *dataMask);
 

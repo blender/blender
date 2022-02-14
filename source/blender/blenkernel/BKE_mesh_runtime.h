@@ -72,26 +72,26 @@ void BKE_mesh_runtime_verttri_from_looptri(struct MVertTri *r_verttri,
  * For now keep the names similar to avoid confusion. */
 
 struct Mesh *mesh_get_eval_final(struct Depsgraph *depsgraph,
-                                 struct Scene *scene,
+                                 const struct Scene *scene,
                                  struct Object *ob,
                                  const struct CustomData_MeshMasks *dataMask);
 
 struct Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph,
-                                  struct Scene *scene,
+                                  const struct Scene *scene,
                                   struct Object *ob,
                                   const struct CustomData_MeshMasks *dataMask);
 
 struct Mesh *mesh_create_eval_final(struct Depsgraph *depsgraph,
-                                    struct Scene *scene,
+                                    const struct Scene *scene,
                                     struct Object *ob,
                                     const struct CustomData_MeshMasks *dataMask);
 
 struct Mesh *mesh_create_eval_no_deform(struct Depsgraph *depsgraph,
-                                        struct Scene *scene,
+                                        const struct Scene *scene,
                                         struct Object *ob,
                                         const struct CustomData_MeshMasks *dataMask);
 struct Mesh *mesh_create_eval_no_deform_render(struct Depsgraph *depsgraph,
-                                               struct Scene *scene,
+                                               const struct Scene *scene,
                                                struct Object *ob,
                                                const struct CustomData_MeshMasks *dataMask);
 
