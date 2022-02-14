@@ -44,8 +44,6 @@ Project Files
 
 Package Targets
 
-   * package_debian:    Build a debian package.
-   * package_pacman:    Build an arch linux pacman package.
    * package_archive:   Build an archive package.
 
 Testing Targets
@@ -313,7 +311,7 @@ CMAKE_CONFIG = cmake $(CMAKE_CONFIG_ARGS) \
 # -----------------------------------------------------------------------------
 # Tool for 'make config'
 
-# X11 spesific
+# X11 specific.
 ifdef DISPLAY
 	CMAKE_CONFIG_TOOL = cmake-gui
 else
@@ -390,11 +388,6 @@ help: .FORCE
 # -----------------------------------------------------------------------------
 # Packages
 #
-package_debian: .FORCE
-	cd build_files/package_spec ; DEB_BUILD_OPTIONS="parallel=$(NPROCS)" sh ./build_debian.sh
-
-package_pacman: .FORCE
-	cd build_files/package_spec/pacman ; MAKEFLAGS="-j$(NPROCS)" makepkg
 
 package_archive: .FORCE
 	make -C "$(BUILD_DIR)" -s package_archive
@@ -412,7 +405,7 @@ test_pep8: .FORCE
 	@$(PYTHON) tests/python/pep8.py > test_pep8.log 2>&1
 	@echo "written: test_pep8.log"
 
-# run some checks on our cmakefiles.
+# run some checks on our CMAKE files.
 test_cmake: .FORCE
 	@$(PYTHON) build_files/cmake/cmake_consistency_check.py > test_cmake_consistency.log 2>&1
 	@echo "written: test_cmake_consistency.log"
