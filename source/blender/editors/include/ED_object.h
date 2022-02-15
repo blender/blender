@@ -9,6 +9,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "DNA_object_enums.h"
+#include "DNA_userdef_enums.h"
 
 #ifdef __cplusplus
 extern "C" {
