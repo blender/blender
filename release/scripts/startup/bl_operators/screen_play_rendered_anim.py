@@ -50,16 +50,19 @@ class PlayRenderedAnim(Operator):
 
         # NOTE: make an api call for this would be nice, however this isn't needed in many places.
         file_a = rd.frame_path(frame=0, **kwargs)
+        file_b = rd.frame_path(frame=-1, **kwargs)
+        assert len(file_b) == len(file_a) + 1
 
-        frame_tmp = 9
-        file_b = rd.frame_path(frame=frame_tmp, **kwargs)
+        for number_beg in range(len(file_a)):
+            if file_a[number_beg] != file_b[number_beg]:
+                break
 
-        while len(file_a) == len(file_b):
-            frame_tmp = (frame_tmp * 10) + 9
-            file_b = rd.frame_path(frame=frame_tmp, **kwargs)
-        file_b = rd.frame_path(frame=int(frame_tmp / 10), **kwargs)
+        for number_end in range(-1, -(len(file_a) + 1), -1):
+            if file_a[number_end] != file_b[number_end]:
+                break
 
-        return ("".join((c if file_b[i] == c else ch) for i, c in enumerate(file_a)))
+        number_end += len(file_a) + 1
+        return file_a[:number_beg] + (ch * (number_end - number_beg)) + file_a[number_end:]
 
     def execute(self, context):
         import os
