@@ -216,6 +216,16 @@ static GPUVertFormat *get_normals_format()
   return &format;
 }
 
+static GPUVertFormat *get_custom_normals_format()
+{
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    GPU_vertformat_alias_add(&format, "lnor");
+  }
+  return &format;
+}
+
 static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                         const MeshRenderData *mr,
                                         struct MeshBatchCache *UNUSED(cache),
@@ -223,7 +233,8 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                         void *UNUSED(data))
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
-  const bool do_limit_normals = subdiv_cache->do_limit_normals;
+  const bool do_limit_normals = subdiv_cache->do_limit_normals &&
+                                !subdiv_cache->use_custom_loop_normals;
 
   /* Initialize the vertex buffer, it was already allocated. */
   GPU_vertbuf_init_build_on_device(
@@ -231,7 +242,31 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
 
   draw_subdiv_extract_pos_nor(subdiv_cache, vbo, do_limit_normals);
 
-  if (!do_limit_normals) {
+  if (subdiv_cache->use_custom_loop_normals) {
+    Mesh *coarse_mesh = subdiv_cache->mesh;
+    float(*lnors)[3] = static_cast<float(*)[3]>(
+        CustomData_get_layer(&coarse_mesh->ldata, CD_NORMAL));
+    BLI_assert(lnors != NULL);
+
+    GPUVertBuf *src_custom_normals = GPU_vertbuf_calloc();
+    GPU_vertbuf_init_with_format(src_custom_normals, get_custom_normals_format());
+    GPU_vertbuf_data_alloc(src_custom_normals, coarse_mesh->totloop);
+
+    memcpy(
+        GPU_vertbuf_get_data(src_custom_normals), lnors, sizeof(float[3]) * coarse_mesh->totloop);
+
+    GPUVertBuf *dst_custom_normals = GPU_vertbuf_calloc();
+    GPU_vertbuf_init_build_on_device(
+        dst_custom_normals, get_custom_normals_format(), subdiv_cache->num_subdiv_loops);
+
+    draw_subdiv_interp_custom_data(subdiv_cache, src_custom_normals, dst_custom_normals, 3, 0);
+
+    draw_subdiv_finalize_custom_normals(subdiv_cache, dst_custom_normals, vbo);
+
+    GPU_vertbuf_discard(src_custom_normals);
+    GPU_vertbuf_discard(dst_custom_normals);
+  }
+  else if (!do_limit_normals) {
     /* We cannot evaluate vertex normals using the limit surface, so compute them manually. */
     GPUVertBuf *subdiv_loop_subdiv_vert_index = draw_subdiv_build_origindex_buffer(
         subdiv_cache->subdiv_loop_subdiv_vert_index, subdiv_cache->num_subdiv_loops);

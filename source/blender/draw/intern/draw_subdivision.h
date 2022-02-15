@@ -67,6 +67,7 @@ typedef struct DRWSubdivCache {
   struct Subdiv *subdiv;
   bool optimal_display;
   bool do_limit_normals;
+  bool use_custom_loop_normals;
 
   /* Coordinates used to evaluate patches for UVs, positions, and normals. */
   struct GPUVertBuf *patch_coords;
@@ -185,6 +186,10 @@ void draw_subdiv_finalize_normals(const DRWSubdivCache *cache,
                                   struct GPUVertBuf *vertex_normals,
                                   struct GPUVertBuf *subdiv_loop_subdiv_vert_index,
                                   struct GPUVertBuf *pos_nor);
+
+void draw_subdiv_finalize_custom_normals(const DRWSubdivCache *cache,
+                                         GPUVertBuf *src_custom_normals,
+                                         GPUVertBuf *pos_nor);
 
 void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
                                  struct GPUVertBuf *pos_nor,
