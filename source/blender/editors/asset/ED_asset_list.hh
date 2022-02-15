@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 
 #include "BLI_function_ref.hh"
@@ -19,8 +20,11 @@ std::string ED_assetlist_asset_filepath_get(const bContext *C,
                                             const AssetLibraryReference &library_reference,
                                             const AssetHandle &asset_handle);
 
+AssetHandle *ED_assetlist_asset_get_from_index(const AssetLibraryReference *library_reference,
+                                               int index);
+
 /* Can return false to stop iterating. */
-using AssetListIterFn = blender::FunctionRef<bool(AssetHandle)>;
+using AssetListIterFn = blender::FunctionRef<bool(AssetHandle &)>;
 /**
  * Iterate the currently loaded assets for the referenced asset library, calling \a fn for each
  * asset. This may be executed while the asset list is loading asynchronously. Assets will then be

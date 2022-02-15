@@ -51,7 +51,7 @@ static void assets_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pa
   uiLayout *row = uiLayoutRow(col, true);
 
   PointerRNA assets_space_ptr;
-  RNA_pointer_create(&screen->id, &RNA_SpaceAssets, assets_space, &assets_space_ptr);
+  RNA_pointer_create(&screen->id, &RNA_SpaceAssetBrowser, assets_space, &assets_space_ptr);
 
   uiItemR(row, &assets_space_ptr, "asset_library_ref", 0, "", ICON_NONE);
   if (assets_space->asset_library_ref.type == ASSET_LIBRARY_LOCAL) {

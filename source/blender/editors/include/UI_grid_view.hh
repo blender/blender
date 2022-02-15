@@ -83,6 +83,11 @@ class AbstractGridViewItem {
 
   /** Called when the item's state changes from inactive to active. */
   virtual void on_activate();
+  /**
+   * If the result is not empty, it controls whether the item should be active or not,
+   * usually depending on the data that the view represents.
+   */
+  virtual std::optional<bool> should_be_active() const;
 
   /**
    * Copy persistent state (e.g. active, selection, etc.) from a matching item of
@@ -101,6 +106,8 @@ class AbstractGridViewItem {
   void deactivate();
 
  private:
+  /** See #AbstractTreeView::change_state_delayed() */
+  void change_state_delayed();
   static void grid_tile_click_fn(bContext *, void *but_arg1, void *);
   void add_grid_tile_button(uiBlock &block);
 };
@@ -172,6 +179,12 @@ class AbstractGridView {
   void update_from_old(uiBlock &new_block);
   AbstractGridViewItem *find_matching_item(const AbstractGridViewItem &lookup_item,
                                            const AbstractGridView &view) const;
+  /**
+   * Items may want to do additional work when state changes. But these state changes can only be
+   * reliably detected after the view has completed reconstruction (see #is_reconstructed()). So
+   * the actual state changes are done in a delayed manner through this function.
+   */
+  void change_state_delayed();
 
   /**
    * Add an already constructed item, moving ownership to the grid-view.
@@ -213,11 +226,36 @@ class GridViewBuilder {
  */
 class PreviewGridItem : public AbstractGridViewItem {
  public:
+  using IsActiveFn = std::function<bool()>;
+  using ActivateFn = std::function<void(PreviewGridItem &new_active)>;
+
+ protected:
+  /** See #set_on_activate_fn() */
+  ActivateFn activate_fn_;
+  /** See #set_is_active_fn() */
+  IsActiveFn is_active_fn_;
+
+ public:
   int preview_icon_id = ICON_NONE;
 
   PreviewGridItem(StringRef label, int preview_icon_id);
 
   void build_grid_tile(uiLayout &layout) const override;
+
+  /**
+   * Set a custom callback to execute when activating this view item. This way users don't have to
+   * sub-class #PreviewGridItem, just to implement custom activation behavior (a common thing to
+   * do).
+   */
+  void set_on_activate_fn(ActivateFn fn);
+  /**
+   * Set a custom callback to check if this item should be active.
+   */
+  void set_is_active_fn(IsActiveFn fn);
+
+ private:
+  std::optional<bool> should_be_active() const override;
+  void on_activate() override;
 };
 
 /** \} */

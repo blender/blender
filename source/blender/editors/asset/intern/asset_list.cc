@@ -99,6 +99,8 @@ class PreviewTimer {
 
 class AssetList : NonCopyable {
   FileListWrapper filelist_;
+  /** Storage for asset handles, items are lazy-created on request. */
+  mutable Map<const FileDirEntry *, AssetHandle> asset_handle_map_;
   AssetLibraryReference library_ref_;
   PreviewTimer previews_timer_;
 
@@ -115,6 +117,7 @@ class AssetList : NonCopyable {
   void clear(bContext *C);
 
   bool needsRefetch() const;
+  AssetHandle &asset_handle_from_file(const FileDirEntry &) const;
   void iterate(AssetListIterFn fn) const;
   bool listen(const wmNotifier &notifier) const;
   int size() const;
@@ -179,6 +182,7 @@ void AssetList::fetch(const bContext &C)
   if (filelist_needs_force_reset(files)) {
     filelist_readjob_stop(files, CTX_wm_manager(&C));
     filelist_clear_from_reset_tag(files);
+    asset_handle_map_.clear();
   }
 
   if (filelist_needs_reading(files)) {
@@ -201,6 +205,11 @@ bool AssetList::needsRefetch() const
   return filelist_needs_force_reset(filelist_) || filelist_needs_reading(filelist_);
 }
 
+AssetHandle &AssetList::asset_handle_from_file(const FileDirEntry &file) const
+{
+  return asset_handle_map_.lookup_or_add(&file, AssetHandle{&file});
+}
+
 void AssetList::iterate(AssetListIterFn fn) const
 {
   FileList *files = filelist_;
@@ -212,7 +221,7 @@ void AssetList::iterate(AssetListIterFn fn) const
       continue;
     }
 
-    AssetHandle asset_handle = {file};
+    AssetHandle &asset_handle = asset_handle_from_file(*file);
     if (!fn(asset_handle)) {
       /* If the callback returns false, we stop iterating. */
       break;
@@ -252,6 +261,7 @@ void AssetList::clear(bContext *C)
   filelist_readjob_stop(files, CTX_wm_manager(C));
   filelist_freelib(files);
   filelist_clear(files);
+  asset_handle_map_.clear();
 
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST, nullptr);
 }
@@ -349,7 +359,6 @@ class AssetListStorage {
       const AssetLibraryReference &library_reference, eFileSelectType filesel_type);
 
   static AssetListMap &global_storage();
-  static bool &global_storage_is_destructed();
 };
 
 void AssetListStorage::fetch_library(const AssetLibraryReference &library_reference,
@@ -369,8 +378,7 @@ void AssetListStorage::fetch_library(const AssetLibraryReference &library_refere
 
 void AssetListStorage::destruct()
 {
-  global_storage().~AssetListMap();
-  global_storage_is_destructed() = true;
+  global_storage().clear();
 }
 
 AssetList *AssetListStorage::lookup_list(const AssetLibraryReference &library_ref)
@@ -423,17 +431,7 @@ std::tuple<AssetList &, AssetListStorage::is_new_t> AssetListStorage::ensure_lis
 AssetListStorage::AssetListMap &AssetListStorage::global_storage()
 {
   static AssetListMap global_storage_;
-  if (global_storage_is_destructed()) {
-    global_storage_ = AssetListMap();
-    global_storage_is_destructed() = false;
-  }
   return global_storage_;
-}
-
-bool &AssetListStorage::global_storage_is_destructed()
-{
-  static bool is_destructed = false;
-  return is_destructed;
 }
 
 /** \} */
@@ -539,6 +537,29 @@ ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)
   }
 
   return filelist_geticon_image_ex(asset_handle->file_data);
+}
+
+AssetHandle *ED_assetlist_asset_get_from_index(const AssetLibraryReference *library_reference,
+                                               const int index)
+{
+  AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  if (!list) {
+    return nullptr;
+  }
+
+  AssetHandle *asset = nullptr;
+
+  int i = 0;
+  list->iterate([&](AssetHandle &iter_asset) {
+    if (i == index) {
+      asset = &iter_asset;
+      return false;
+    }
+    i++;
+    return true;
+  });
+
+  return asset;
 }
 
 const char *ED_assetlist_library_path(const AssetLibraryReference *library_reference)

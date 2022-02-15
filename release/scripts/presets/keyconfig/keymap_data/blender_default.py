@@ -2288,6 +2288,9 @@ def km_asset_browser(params):
     items.extend([
         ("wm.context_toggle", {"type": 'T', "value": 'PRESS'},
          {"properties": [("data_path", 'space_data.show_region_nav_bar')]}),
+        *_template_space_region_type_toggle(
+            sidebar_key={"type": 'N', "value": 'PRESS'},
+        ),
     ])
 
     return keymap

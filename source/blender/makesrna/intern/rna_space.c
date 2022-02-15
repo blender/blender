@@ -611,7 +611,7 @@ static StructRNA *rna_Space_refine(struct PointerRNA *ptr)
     case SPACE_SPREADSHEET:
       return &RNA_SpaceSpreadsheet;
     case SPACE_ASSETS:
-      return &RNA_SpaceAssets;
+      return &RNA_SpaceAssetBrowser;
 
       /* Currently no type info. */
     case SPACE_SCRIPT:
@@ -3265,13 +3265,13 @@ static int rna_FileAssetSelectParams_catalog_id_length(PointerRNA *UNUSED(ptr))
   return UUID_STRING_LEN - 1;
 }
 
-static int rna_SpaceAssets_asset_library_get(PointerRNA *ptr)
+static int RNA_SpaceAssetBrowser_asset_library_get(PointerRNA *ptr)
 {
   SpaceAssets *asset_space = ptr->data;
   return ED_asset_library_reference_to_enum_value(&asset_space->asset_library_ref);
 }
 
-static void rna_SpaceAssets_asset_library_set(PointerRNA *ptr, int value)
+static void RNA_SpaceAssetBrowser_asset_library_set(PointerRNA *ptr, int value)
 {
   SpaceAssets *asset_space = ptr->data;
   asset_space->asset_library_ref = ED_asset_library_reference_from_enum_value(value);
@@ -8057,13 +8057,14 @@ static void rna_def_space_assets(BlenderRNA *brna)
 
   rna_def_asset_catalog_filter_settings(brna);
 
-  srna = RNA_def_struct(brna, "SpaceAssets", "Space");
+  srna = RNA_def_struct(brna, "SpaceAssetBrowser", "Space");
+  RNA_def_struct_sdna(srna, "SpaceAssets");
   RNA_def_struct_ui_text(srna, "Space Asset Browser", "Asset browser space data");
 
-  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_NAV_BAR));
+  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_NAV_BAR) | (1 << RGN_TYPE_UI));
 
   prop = rna_def_asset_library_reference_common(
-      srna, "rna_SpaceAssets_asset_library_get", "rna_SpaceAssets_asset_library_set");
+      srna, "RNA_SpaceAssetBrowser_asset_library_get", "RNA_SpaceAssetBrowser_asset_library_set");
   RNA_def_property_ui_text(prop, "Asset Library", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
 
@@ -8074,6 +8075,9 @@ static void rna_def_space_assets(BlenderRNA *brna)
                            "Asset Catalog Filter",
                            "Parameters to set up rules for filtering assets based on the catalogs "
                            "they are assigned to");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
+
+  prop = RNA_def_property(srna, "active_asset_idx", PROP_INT, PROP_NONE);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
 }
 

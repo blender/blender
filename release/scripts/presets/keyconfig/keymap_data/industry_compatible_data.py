@@ -4102,6 +4102,7 @@ def generate_keymaps_impl(params=None):
         km_clip_editor(params),
         km_clip_graph_editor(params),
         km_clip_dopesheet_editor(params),
+        # TODO asset browser
 
         # Animation.
         km_frames(params),

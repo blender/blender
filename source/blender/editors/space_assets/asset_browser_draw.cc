@@ -23,6 +23,8 @@
 
 #include "BKE_context.h"
 
+#include "RNA_access.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -38,7 +40,8 @@ using namespace blender::ed::asset_browser;
 
 void asset_browser_main_region_draw(const bContext *C, ARegion *region)
 {
-  const SpaceAssets *asset_space = CTX_wm_space_assets(C);
+  SpaceAssets *asset_space = CTX_wm_space_assets(C);
+  bScreen *screen = CTX_wm_screen(C);
   View2D *v2d = &region->v2d;
 
   UI_ThemeClearColor(TH_BACK);
@@ -60,8 +63,18 @@ void asset_browser_main_region_draw(const bContext *C, ARegion *region)
       0,
       style);
 
-  asset_view_create_in_layout(
-      *C, asset_space->asset_library_ref, asset_space->catalog_filter, *v2d, *layout);
+  PointerRNA asset_space_ptr;
+  RNA_pointer_create(&screen->id, &RNA_SpaceAssetBrowser, asset_space, &asset_space_ptr);
+  PropertyRNA *active_asset_idx_prop = RNA_struct_find_property(&asset_space_ptr,
+                                                                "active_asset_idx");
+
+  asset_view_create_in_layout(*C,
+                              asset_space->asset_library_ref,
+                              asset_space->catalog_filter,
+                              asset_space_ptr,
+                              active_asset_idx_prop,
+                              *v2d,
+                              *layout);
 
   /* Update main region View2d dimensions. */
   int layout_width, layout_height;

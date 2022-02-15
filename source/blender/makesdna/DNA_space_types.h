@@ -812,8 +812,8 @@ typedef struct FileAssetSelectParams {
   AssetLibraryReference asset_library_ref;
   short asset_catalog_visibility; /* AssetCatalogFilterMode */
   char _pad[6];
-  /** If #asset_catalog_visibility is #ASSET_CATALOG_SHOW_ASSETS_FROM_CATALOG, this sets the ID of the
-   * catalog to show. */
+  /** If #asset_catalog_visibility is #ASSET_CATALOG_SHOW_ASSETS_FROM_CATALOG, this sets the ID of
+   * the catalog to show. */
   bUUID catalog_id;
 
   short import_type; /* eFileAssetImportType */
@@ -2042,6 +2042,9 @@ typedef struct SpaceAssets {
 
   AssetLibraryReference asset_library_ref;
   AssetCatalogFilterSettings catalog_filter;
+  /** For now store active asset as index. In future, this could store an #AssetIdentifier. */
+  int active_asset_idx;
+  char _pad1[4];
 } SpaceAssets;
 
 /** \} */

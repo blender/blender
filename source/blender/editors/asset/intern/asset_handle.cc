@@ -18,6 +18,11 @@ const char *ED_asset_handle_get_name(const AssetHandle *asset)
   return asset->file_data->name;
 }
 
+const char *ED_asset_handle_get_identifier(const AssetHandle *asset)
+{
+  return asset->file_data->relpath;
+}
+
 AssetMetaData *ED_asset_handle_get_metadata(const AssetHandle *asset)
 {
   return asset->file_data->asset_data;

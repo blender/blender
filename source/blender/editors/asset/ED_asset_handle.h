@@ -23,6 +23,7 @@ struct AssetLibraryReference;
 struct bContext;
 
 const char *ED_asset_handle_get_name(const struct AssetHandle *asset);
+const char *ED_asset_handle_get_identifier(const struct AssetHandle *asset);
 struct AssetMetaData *ED_asset_handle_get_metadata(const struct AssetHandle *asset);
 struct ID *ED_asset_handle_get_local_id(const struct AssetHandle *asset);
 ID_Type ED_asset_handle_get_id_type(const struct AssetHandle *asset);

@@ -73,6 +73,14 @@ AbstractGridViewItem *AbstractGridView::find_matching_item(const AbstractGridVie
   return nullptr;
 }
 
+void AbstractGridView::change_state_delayed()
+{
+  BLI_assert_msg(
+      is_reconstructed(),
+      "These state changes are supposed to be delayed until reconstruction is completed");
+  foreach_item([](AbstractGridViewItem &item) { item.change_state_delayed(); });
+}
+
 void AbstractGridView::update_from_old(uiBlock &new_block)
 {
   uiGridViewHandle *old_view_handle = ui_block_grid_view_find_matching_in_old_block(
@@ -167,6 +175,19 @@ bool AbstractGridViewItem::is_active() const
 void AbstractGridViewItem::on_activate()
 {
   /* Do nothing by default. */
+}
+
+std::optional<bool> AbstractGridViewItem::should_be_active() const
+{
+  return std::nullopt;
+}
+
+void AbstractGridViewItem::change_state_delayed()
+{
+  const std::optional<bool> should_be_active = this->should_be_active();
+  if (should_be_active.has_value() && *should_be_active) {
+    activate();
+  }
 }
 
 void AbstractGridViewItem::update_from_old(const AbstractGridViewItem &old)
@@ -334,7 +355,7 @@ void BuildOnlyVisibleButtonsHelper::add_spacer_button(uiBlock &block, const int 
 class GridViewLayoutBuilder {
   uiBlock &block_;
 
-  friend GridViewBuilder;
+  friend class GridViewBuilder;
 
  public:
   GridViewLayoutBuilder(uiBlock &block);
@@ -420,14 +441,10 @@ void GridViewBuilder::build_grid_view(AbstractGridView &grid_view, const View2D 
 {
   grid_view.build_items();
   grid_view.update_from_old(block_);
+  grid_view.change_state_delayed();
 
   GridViewLayoutBuilder builder(block_);
   builder.build_from_view(grid_view, v2d);
-  //  grid_view.update_from_old(block_);
-  //  grid_view.change_state_delayed();
-
-  //  TreeViewLayoutBuilder builder(block_);
-  //  builder.build_from_tree(tree_view);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -461,6 +478,31 @@ void PreviewGridItem::build_grid_tile(uiLayout &layout) const
                   preview_icon_id,
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
                   UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+}
+
+void PreviewGridItem::set_on_activate_fn(ActivateFn fn)
+{
+  activate_fn_ = fn;
+}
+
+void PreviewGridItem::set_is_active_fn(IsActiveFn fn)
+{
+  is_active_fn_ = fn;
+}
+
+void PreviewGridItem::on_activate()
+{
+  if (activate_fn_) {
+    activate_fn_(*this);
+  }
+}
+
+std::optional<bool> PreviewGridItem::should_be_active() const
+{
+  if (is_active_fn_) {
+    return is_active_fn_();
+  }
+  return std::nullopt;
 }
 
 }  // namespace blender::ui

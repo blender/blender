@@ -1473,6 +1473,16 @@ AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid)
   return (AssetHandle){0};
 }
 
+/**
+ * \note Only works in the new Asset Browser and the asset view template (not in the old File
+ * Browser based Asset Browser).
+ * TODO Replace #CTX_wm_asset_handle() with this.
+ */
+AssetHandle *CTX_wm_asset_handle_ptr(const bContext *C)
+{
+  return CTX_data_pointer_get_type(C, "asset_handle", &RNA_AssetHandle).data;
+}
+
 Depsgraph *CTX_data_depsgraph_pointer(const bContext *C)
 {
   Main *bmain = CTX_data_main(C);

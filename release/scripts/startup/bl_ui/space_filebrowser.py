@@ -680,7 +680,7 @@ class ASSETBROWSEROLD_MT_edit(AssetBrowserMenu, Menu):
         layout.operator("asset.catalog_redo", text="Redo")
 
 
-class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
+class ASSETBROWSEROLD_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
     bl_region_type = 'TOOL_PROPS'
     bl_label = "Asset Metadata"
     bl_options = {'HIDE_HEADER'}
@@ -730,7 +730,7 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
         layout.prop(asset_file_handle.asset_data, "author")
 
 
-class ASSETBROWSER_PT_metadata_preview(asset_utils.AssetMetaDataPanel, Panel):
+class ASSETBROWSEROLD_PT_metadata_preview(asset_utils.AssetMetaDataPanel, Panel):
     bl_label = "Preview"
 
     def draw(self, context):
@@ -745,10 +745,10 @@ class ASSETBROWSER_PT_metadata_preview(asset_utils.AssetMetaDataPanel, Panel):
         col.operator("ed.lib_id_load_custom_preview", icon='FILEBROWSER', text="")
         col.separator()
         col.operator("ed.lib_id_generate_preview", icon='FILE_REFRESH', text="")
-        col.menu("ASSETBROWSER_MT_metadata_preview_menu", icon='DOWNARROW_HLT', text="")
+        col.menu("ASSETBROWSEROLD_MT_metadata_preview_menu", icon='DOWNARROW_HLT', text="")
 
 
-class ASSETBROWSER_MT_metadata_preview_menu(bpy.types.Menu):
+class ASSETBROWSEROLD_MT_metadata_preview_menu(bpy.types.Menu):
     bl_label = "Preview"
 
     def draw(self, context):
@@ -756,7 +756,7 @@ class ASSETBROWSER_MT_metadata_preview_menu(bpy.types.Menu):
         layout.operator("ed.lib_id_generate_preview_from_object", text="Render Active Object")
 
 
-class ASSETBROWSER_PT_metadata_tags(asset_utils.AssetMetaDataPanel, Panel):
+class ASSETBROWSEROLD_PT_metadata_tags(asset_utils.AssetMetaDataPanel, Panel):
     bl_label = "Tags"
 
     def draw(self, context):
@@ -764,7 +764,7 @@ class ASSETBROWSER_PT_metadata_tags(asset_utils.AssetMetaDataPanel, Panel):
         asset_data = asset_utils.SpaceAssetInfo.get_active_asset(context)
 
         row = layout.row()
-        row.template_list("ASSETBROWSER_UL_metadata_tags", "asset_tags", asset_data, "tags",
+        row.template_list("ASSETBROWSEROLD_UL_metadata_tags", "asset_tags", asset_data, "tags",
                           asset_data, "active_tag", rows=4)
 
         col = row.column(align=True)
@@ -772,7 +772,7 @@ class ASSETBROWSER_PT_metadata_tags(asset_utils.AssetMetaDataPanel, Panel):
         col.operator("asset.tag_remove", icon='REMOVE', text="")
 
 
-class ASSETBROWSER_UL_metadata_tags(UIList):
+class ASSETBROWSEROLD_UL_metadata_tags(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         tag = item
 
@@ -833,11 +833,11 @@ classes = (
     ASSETBROWSEROLD_MT_view,
     ASSETBROWSEROLD_MT_select,
     ASSETBROWSEROLD_MT_edit,
-    ASSETBROWSER_MT_metadata_preview_menu,
-    ASSETBROWSER_PT_metadata,
-    ASSETBROWSER_PT_metadata_preview,
-    ASSETBROWSER_PT_metadata_tags,
-    ASSETBROWSER_UL_metadata_tags,
+    ASSETBROWSEROLD_MT_metadata_preview_menu,
+    ASSETBROWSEROLD_PT_metadata,
+    ASSETBROWSEROLD_PT_metadata_preview,
+    ASSETBROWSEROLD_PT_metadata_tags,
+    ASSETBROWSEROLD_UL_metadata_tags,
     ASSETBROWSER_MT_context_menu,
 )
 

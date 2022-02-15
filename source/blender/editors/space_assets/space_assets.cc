@@ -28,6 +28,7 @@
 
 #include "BLI_listbase.h"
 
+#include "ED_asset.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 
@@ -64,12 +65,22 @@ static SpaceLink *asset_browser_create(const ScrArea *UNUSED(area), const Scene 
   }
 
   {
-    /* navigation region */
+    /* Navigation region */
     ARegion *region = MEM_cnew<ARegion>("asset browser navigation region");
 
     BLI_addtail(&assets_space->regionbase, region);
     region->regiontype = RGN_TYPE_NAV_BAR;
     region->alignment = RGN_ALIGN_LEFT;
+  }
+
+  {
+    /* Sidebar region */
+    ARegion *region = MEM_cnew<ARegion>("asset browser sidebar region");
+
+    BLI_addtail(&assets_space->regionbase, region);
+    region->regiontype = RGN_TYPE_UI;
+    region->alignment = RGN_ALIGN_RIGHT;
+    region->flag = RGN_FLAG_HIDDEN;
   }
 
   {
@@ -112,6 +123,7 @@ static void asset_browser_keymap(wmKeyConfig *keyconf)
 }
 
 const char *asset_browser_context_dir[] = {
+    "asset_handle",
     "asset_library_ref",
     NULL,
 };
@@ -131,6 +143,17 @@ static int /*eContextResult*/ asset_browser_context(const bContext *C,
   if (CTX_data_equals(member, "asset_library_ref")) {
     CTX_data_pointer_set(
         result, &screen->id, &RNA_AssetLibraryReference, &assets_space->asset_library_ref);
+    return CTX_RESULT_OK;
+  }
+
+  if (CTX_data_equals(member, "asset_handle")) {
+    AssetHandle *asset = ED_assetlist_asset_get_from_index(&assets_space->asset_library_ref,
+                                                           assets_space->active_asset_idx);
+    if (!asset) {
+      return CTX_RESULT_NO_DATA;
+    }
+
+    CTX_data_pointer_set(result, &screen->id, &RNA_AssetHandle, asset);
     return CTX_RESULT_OK;
   }
 
@@ -171,7 +194,7 @@ static void asset_browser_main_region_message_subscribe(
   WM_msg_subscribe_rna_prop(mbus,
                             &screen->id,
                             assets_space,
-                            SpaceAssets,
+                            SpaceAssetBrowser,
                             catalog_filter,
                             &msg_sub_value_region_tag_redraw);
 }
@@ -209,6 +232,30 @@ static void asset_browser_navigation_region_draw(const bContext *C, ARegion *reg
 }
 
 static void asset_browser_navigation_region_listener(
+    const wmRegionListenerParams *UNUSED(listener_params))
+{
+}
+
+/* ---------------------------------------------------------------------- */
+/* Sidebar Region */
+
+static void asset_browser_sidebar_region_init(wmWindowManager *wm, ARegion *region)
+{
+  region->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
+  ED_region_panels_init(wm, region);
+
+  {
+    wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Asset Browser", SPACE_ASSETS, 0);
+    WM_event_add_keymap_handler(&region->handlers, keymap);
+  }
+}
+
+static void asset_browser_sidebar_region_draw(const bContext *C, ARegion *region)
+{
+  ED_region_panels(C, region);
+}
+
+static void asset_browser_sidebar_region_listener(
     const wmRegionListenerParams *UNUSED(listener_params))
 {
 }
@@ -262,7 +309,16 @@ void ED_spacetype_assets(void)
   art->listener = asset_browser_navigation_region_listener;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_NAVBAR;
   asset_browser_navigation_region_panels_register(art);
+  BLI_addhead(&st->regiontypes, art);
 
+  /* Sidebar region */
+  art = MEM_cnew<ARegionType>("spacetype asset browser sidebar region");
+  art->regionid = RGN_TYPE_UI;
+  art->prefsizex = 240;
+  art->init = asset_browser_sidebar_region_init;
+  art->draw = asset_browser_sidebar_region_draw;
+  art->listener = asset_browser_sidebar_region_listener;
+  art->keymapflag = ED_KEYMAP_UI;
   BLI_addhead(&st->regiontypes, art);
 
   BKE_spacetype_register(st);
