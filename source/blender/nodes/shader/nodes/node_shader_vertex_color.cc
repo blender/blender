@@ -23,7 +23,7 @@ static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, Pointer
     PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
 
     if (U.experimental.use_sculpt_vertex_colors &&
-        RNA_collection_length(&dataptr, "sculpt_vertex_colors")) {
+        !RNA_collection_is_empty(&dataptr, "sculpt_vertex_colors")) {
       uiItemPointerR(
           layout, ptr, "layer_name", &dataptr, "sculpt_vertex_colors", "", ICON_GROUP_VCOL);
     }

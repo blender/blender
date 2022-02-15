@@ -186,7 +186,7 @@ static int open_exec(bContext *C, wmOperator *op)
   MovieClip *clip = NULL;
   char str[FILE_MAX];
 
-  if (RNA_collection_length(op->ptr, "files")) {
+  if (!RNA_collection_is_empty(op->ptr, "files")) {
     PointerRNA fileptr;
     PropertyRNA *prop;
     char dir_only[FILE_MAX], file_only[FILE_MAX];

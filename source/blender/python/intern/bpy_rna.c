@@ -2192,16 +2192,9 @@ static int pyrna_prop_array_bool(BPy_PropertyRNA *self)
 
 static int pyrna_prop_collection_bool(BPy_PropertyRNA *self)
 {
-  /* No callback defined, just iterate and find the nth item. */
-  CollectionPropertyIterator iter;
-  int test;
-
   PYRNA_PROP_CHECK_INT(self);
 
-  RNA_property_collection_begin(&self->ptr, self->prop, &iter);
-  test = iter.valid;
-  RNA_property_collection_end(&iter);
-  return test;
+  return !RNA_property_collection_is_empty(&self->ptr, self->prop);
 }
 
 /* notice getting the length of the collection is avoided unless negative
