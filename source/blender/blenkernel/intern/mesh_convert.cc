@@ -1041,7 +1041,7 @@ static Mesh *mesh_new_from_mesh(Object *object, Mesh *mesh)
     BKE_mesh_wrapper_ensure_mdata(mesh);
   }
   else {
-    BKE_mesh_wrapper_ensure_subdivision(object, mesh);
+    mesh = BKE_mesh_wrapper_ensure_subdivision(object, mesh);
   }
 
   Mesh *mesh_result = (Mesh *)BKE_id_copy_ex(
@@ -1079,8 +1079,7 @@ static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph,
     mask.pmask |= CD_MASK_ORIGINDEX;
   }
   Mesh *result = mesh_create_eval_final(depsgraph, scene, &object_for_eval, &mask);
-  BKE_mesh_wrapper_ensure_subdivision(object, result);
-  return result;
+  return BKE_mesh_wrapper_ensure_subdivision(object, result);
 }
 
 static Mesh *mesh_new_from_mesh_object(Depsgraph *depsgraph,
