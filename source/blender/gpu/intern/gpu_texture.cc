@@ -507,6 +507,25 @@ void GPU_texture_ref(GPUTexture *tex)
   reinterpret_cast<Texture *>(tex)->refcount++;
 }
 
+int GPU_texture_dimensions(const GPUTexture *tex_)
+{
+  eGPUTextureType type = reinterpret_cast<const Texture *>(tex_)->type_get();
+  if (type & GPU_TEXTURE_1D) {
+    return 1;
+  }
+  else if (type & GPU_TEXTURE_2D) {
+    return 2;
+  }
+  else if (type & GPU_TEXTURE_3D) {
+    return 3;
+  }
+  else if (type & GPU_TEXTURE_CUBE) {
+    return 2;
+  }
+  /* GPU_TEXTURE_BUFFER */
+  return 1;
+}
+
 int GPU_texture_width(const GPUTexture *tex)
 {
   return reinterpret_cast<const Texture *>(tex)->width_get();
