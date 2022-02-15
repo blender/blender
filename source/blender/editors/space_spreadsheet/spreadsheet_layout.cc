@@ -247,6 +247,23 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
         }
       }
     }
+    else if (data.type().is<std::string>()) {
+      uiDefIconTextBut(params.block,
+                       UI_BTYPE_LABEL,
+                       0,
+                       ICON_NONE,
+                       data.get<std::string>(real_index).c_str(),
+                       params.xmin,
+                       params.ymin,
+                       params.width,
+                       params.height,
+                       nullptr,
+                       0,
+                       0,
+                       0,
+                       0,
+                       nullptr);
+    }
   }
 
   void draw_float_vector(const CellDrawParams &params, const Span<float> values) const
