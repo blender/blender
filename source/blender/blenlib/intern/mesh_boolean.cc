@@ -22,7 +22,7 @@
 #  include "BLI_math_geom.h"
 #  include "BLI_math_mpq.hh"
 #  include "BLI_math_vec_mpq_types.hh"
-#  include "BLI_math_vec_types.hh"
+#  include "BLI_math_vector.hh"
 #  include "BLI_mesh_intersect.hh"
 #  include "BLI_set.hh"
 #  include "BLI_span.hh"

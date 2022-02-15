@@ -6,7 +6,7 @@
 
 #include "BLI_math_base_safe.h"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_string_ref.hh"
 
 namespace blender::nodes {

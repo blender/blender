@@ -11,7 +11,7 @@
 #include <type_traits>
 
 #include "BLI_math_base_safe.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
@@ -53,16 +53,6 @@ template<typename T> inline bool is_zero(const T &a)
     }
   }
   return true;
-}
-
-template<typename T> inline bool is_any_zero(const T &a)
-{
-  for (int i = 0; i < T::type_length; i++) {
-    if (a[i] == bT(0)) {
-      return true;
-    }
-  }
-  return false;
 }
 
 template<typename T> inline T abs(const T &a)
@@ -239,24 +229,6 @@ template<typename T, BLI_ENABLE_IF_FLT_VEC(T)> inline bT distance_squared(const 
 template<typename T, BLI_ENABLE_IF_FLT_VEC(T)> inline bT distance(const T &a, const T &b)
 {
   return length(a - b);
-}
-
-template<typename T> uint64_t vector_hash(const T &vec)
-{
-  BLI_STATIC_ASSERT(T::type_length <= 4, "Longer types need to implement vector_hash themself.");
-  const typename T::uint_type &uvec = *reinterpret_cast<const typename T::uint_type *>(&vec);
-  uint64_t result;
-  result = uvec[0] * uint64_t(435109);
-  if constexpr (T::type_length > 1) {
-    result ^= uvec[1] * uint64_t(380867);
-  }
-  if constexpr (T::type_length > 2) {
-    result ^= uvec[2] * uint64_t(1059217);
-  }
-  if constexpr (T::type_length > 3) {
-    result ^= uvec[3] * uint64_t(2002613);
-  }
-  return result;
 }
 
 template<typename T, BLI_ENABLE_IF_FLT_VEC(T)> inline T reflect(const T &incident, const T &normal)

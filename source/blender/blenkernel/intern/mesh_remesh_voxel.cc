@@ -17,6 +17,7 @@
 #include "BLI_array.hh"
 #include "BLI_index_range.hh"
 #include "BLI_math_vec_types.hh"
+#include "BLI_math_vector.h"
 #include "BLI_span.hh"
 
 #include "DNA_mesh_types.h"

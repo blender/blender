@@ -5,7 +5,7 @@
 #include "FN_multi_function_builder.hh"
 
 #include "BLI_color.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector.hh"
 
 namespace blender::bke {
 
@@ -72,7 +72,7 @@ static int float2_to_int(const float2 &a)
 }
 static bool float2_to_bool(const float2 &a)
 {
-  return !is_zero_v2(a);
+  return !math::is_zero(a);
 }
 static int8_t float2_to_int8(const float2 &a)
 {
@@ -85,7 +85,7 @@ static ColorGeometry4f float2_to_color(const float2 &a)
 
 static bool float3_to_bool(const float3 &a)
 {
-  return !is_zero_v3(a);
+  return !math::is_zero(a);
 }
 static int8_t float3_to_int8(const float3 &a)
 {
