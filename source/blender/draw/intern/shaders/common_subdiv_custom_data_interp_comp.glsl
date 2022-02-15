@@ -185,7 +185,7 @@ void main()
   }
   else {
     /* Interpolate the src data for the center. */
-    uint loop_end = loop_start + number_of_vertices - 1;
+    uint loop_end = loop_start + number_of_vertices;
     Vertex center_value;
     clear(center_value);
 
@@ -202,7 +202,7 @@ void main()
     uint prev_coarse_corner = (current_coarse_corner + number_of_vertices - 1) %
                               number_of_vertices;
 
-    v0 = read_vertex(loop_start);
+    v0 = read_vertex(loop_start + current_coarse_corner);
     v1 = average(v0, read_vertex(loop_start + next_coarse_corner));
     v3 = average(v0, read_vertex(loop_start + prev_coarse_corner));
 
