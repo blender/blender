@@ -7,10 +7,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-
-#include "BLI_edgehash.h"
 #include "BLI_map.hh"
-#include "BLI_math_base.h"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_timeit.hh"

@@ -183,6 +183,7 @@ set(SRC
   intern/mball_tessellate.c
   intern/mesh.cc
   intern/mesh_boolean_convert.cc
+  intern/mesh_calc_edges.cc
   intern/mesh_convert.cc
   intern/mesh_debug.cc
   intern/mesh_evaluate.cc
@@ -199,7 +200,6 @@ set(SRC
   intern/mesh_tangent.c
   intern/mesh_tessellate.c
   intern/mesh_validate.c
-  intern/mesh_validate.cc
   intern/mesh_wrapper.c
   intern/modifier.c
   intern/movieclip.c
