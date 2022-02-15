@@ -397,7 +397,9 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
     else {
       input->location = input->binding = attr.index;
     }
-    enabled_attr_mask_ |= (1 << input->location);
+    if (input->location != -1) {
+      enabled_attr_mask_ |= (1 << input->location);
+    }
     input++;
   }
 
