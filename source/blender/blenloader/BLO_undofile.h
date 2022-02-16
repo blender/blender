@@ -5,7 +5,7 @@
 
 /** \file
  * \ingroup blenloader
- * External writefile function prototypes.
+ * External write-file function prototypes.
  */
 
 #include "BLI_filereader.h"
