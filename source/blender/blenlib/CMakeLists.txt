@@ -220,6 +220,7 @@ set(SRC
   BLI_map.hh
   BLI_map_slots.hh
   BLI_math.h
+  BLI_math_base.hh
   BLI_math_base.h
   BLI_math_base_safe.h
   BLI_math_bits.h
