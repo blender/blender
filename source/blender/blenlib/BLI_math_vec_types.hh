@@ -63,7 +63,7 @@ template<typename T> uint64_t vector_hash(const T &vec)
 template<typename T> inline bool is_any_zero(const T &a)
 {
   for (int i = 0; i < T::type_length; i++) {
-    if (a[i] == T::base_type(0)) {
+    if (a[i] == typename T::base_type(0)) {
       return true;
     }
   }
