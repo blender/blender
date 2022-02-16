@@ -447,7 +447,8 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   if (ibuf_intern == nullptr) {
     ibuf_intern = BKE_image_acquire_ibuf(ima, iuser, nullptr);
     if (ibuf_intern == nullptr) {
-      return image_gpu_texture_error_create(textarget);
+      *tex = image_gpu_texture_error_create(textarget);
+      return *tex;
     }
   }
 
