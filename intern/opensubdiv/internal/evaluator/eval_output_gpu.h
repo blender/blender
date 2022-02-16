@@ -20,13 +20,11 @@
 #define OPENSUBDIV_EVAL_OUTPUT_GPU_H_
 
 #include "internal/evaluator/eval_output.h"
+#include "internal/evaluator/gl_compute_evaluator.h"
 
-#include <opensubdiv/osd/glComputeEvaluator.h>
 #include <opensubdiv/osd/glPatchTable.h>
 #include <opensubdiv/osd/glVertexBuffer.h>
 
-using OpenSubdiv::Osd::GLComputeEvaluator;
-using OpenSubdiv::Osd::GLStencilTableSSBO;
 using OpenSubdiv::Osd::GLVertexBuffer;
 
 namespace blender {
