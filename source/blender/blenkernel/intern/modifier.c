@@ -348,7 +348,7 @@ static void modifier_copy_data_id_us_cb(void *UNUSED(userData),
   }
 }
 
-void BKE_modifier_copydata_ex(ModifierData *md, ModifierData *target, const int flag)
+void BKE_modifier_copydata_ex(const ModifierData *md, ModifierData *target, const int flag)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
@@ -378,7 +378,7 @@ void BKE_modifier_copydata_ex(ModifierData *md, ModifierData *target, const int 
   }
 }
 
-void BKE_modifier_copydata(ModifierData *md, ModifierData *target)
+void BKE_modifier_copydata(const ModifierData *md, ModifierData *target)
 {
   BKE_modifier_copydata_ex(md, target, 0);
 }
