@@ -68,10 +68,9 @@ void filelist_setindexer(struct FileList *filelist, const struct FileIndexerType
  * \param catalog_id: The catalog that should be filtered by if \a catalog_visibility is
  * #ASSET_CATALOG_SHOW_ASSETS_FROM_CATALOG. May be NULL otherwise.
  */
-void filelist_set_asset_catalog_filter_options(
-    struct FileList *filelist,
-    AssetCatalogFilterMode catalog_visibility,
-    const struct bUUID *catalog_id);
+void filelist_set_asset_catalog_filter_options(struct FileList *filelist,
+                                               AssetCatalogFilterMode catalog_visibility,
+                                               const struct bUUID *catalog_id);
 void filelist_tag_needs_filtering(struct FileList *filelist);
 void filelist_filter(struct FileList *filelist);
 /**
@@ -87,6 +86,7 @@ struct ImBuf *filelist_file_getimage(const FileDirEntry *file);
 struct ImBuf *filelist_geticon_image_ex(const FileDirEntry *file);
 struct ImBuf *filelist_geticon_image(struct FileList *filelist, int index);
 int filelist_geticon(struct FileList *filelist, int index, bool is_main);
+int /* ThumbSource */ filelist_preview_source_get(int /* eFileSel_File_Types */ file_type);
 
 struct FileList *filelist_new(short type);
 void filelist_settype(struct FileList *filelist, short type);

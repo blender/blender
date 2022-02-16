@@ -19,8 +19,6 @@
  */
 #include "BKE_context.h"
 
-#include <iostream>
-
 #include "DNA_asset_types.h"
 
 #include "RNA_access.h"
@@ -52,7 +50,7 @@ void AssetGridView::build_items()
 {
   int idx = 0;
   ED_assetlist_iterate(asset_library_ref_, [this, &idx](AssetHandle &asset) {
-    AssetGridViewItem &item = add_item<AssetGridViewItem>(asset);
+    AssetGridViewItem &item = add_item<AssetGridViewItem>(asset_library_ref_, asset);
 
     item.set_is_active_fn([this, idx]() -> bool {
       return idx == RNA_property_int_get(&active_asset_idx_owner_, &active_asset_idx_prop_);
@@ -74,18 +72,19 @@ bool AssetGridView::listen(const wmNotifier &notifier) const
 
 /* ---------------------------------------------------------------------- */
 
-AssetGridViewItem::AssetGridViewItem(AssetHandle &asset)
+AssetGridViewItem::AssetGridViewItem(const AssetLibraryReference &asset_library_ref,
+                                     AssetHandle &asset)
     : ui::PreviewGridItem(ED_asset_handle_get_name(&asset),
-                          ED_asset_handle_get_preview_icon_id(&asset)),
-      asset_(asset),
-      asset_identifier(ED_asset_handle_get_identifier(&asset))
+                          ED_assetlist_asset_preview_icon_id_request(&asset_library_ref, &asset)),
+      asset_(asset)
 {
 }
 
 bool AssetGridViewItem::matches(const ui::AbstractGridViewItem &other) const
 {
   const AssetGridViewItem &other_item = dynamic_cast<const AssetGridViewItem &>(other);
-  return StringRef(asset_identifier) == StringRef(other_item.asset_identifier);
+  return StringRef(ED_asset_handle_get_identifier(&asset_)) ==
+         StringRef(ED_asset_handle_get_identifier(&other_item.asset_));
 }
 
 AssetHandle &AssetGridViewItem::get_asset()

@@ -122,6 +122,7 @@ typedef struct AssetLibraryReference {
 #
 typedef struct AssetHandle {
   const struct FileDirEntry *file_data;
+  struct PreviewImage *preview;
 } AssetHandle;
 
 #ifdef __cplusplus

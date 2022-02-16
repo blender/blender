@@ -51,6 +51,10 @@ void ED_assetlist_storage_id_remap(struct ID *id_old, struct ID *id_new);
  */
 void ED_assetlist_storage_exit(void);
 
+struct PreviewImage *ED_assetlist_asset_preview_request(
+    const struct AssetLibraryReference *library_reference, AssetHandle *asset_handle);
+int ED_assetlist_asset_preview_icon_id_request(const AssetLibraryReference *library_reference,
+                                               AssetHandle *asset_handle);
 struct ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle);
 const char *ED_assetlist_library_path(const struct AssetLibraryReference *library_reference);
 

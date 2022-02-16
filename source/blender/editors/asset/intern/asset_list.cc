@@ -20,6 +20,7 @@
 
 #include "DNA_space_types.h"
 
+#include "BKE_icons.h"
 #include "BKE_preferences.h"
 
 #include "ED_fileselect.h"
@@ -99,8 +100,10 @@ class PreviewTimer {
 
 class AssetList : NonCopyable {
   FileListWrapper filelist_;
-  /** Storage for asset handles, items are lazy-created on request. */
-  mutable Map<const FileDirEntry *, AssetHandle> asset_handle_map_;
+  /** Storage for asset handles, items are lazy-created on request.
+   *  Asset handles are stored as a pointer here, to ensure a consistent memory address (address
+   * inside the map changes as the map changes). */
+  mutable Map<const FileDirEntry *, std::unique_ptr<AssetHandle>> asset_handle_map_;
   AssetLibraryReference library_ref_;
   PreviewTimer previews_timer_;
 
@@ -207,7 +210,8 @@ bool AssetList::needsRefetch() const
 
 AssetHandle &AssetList::asset_handle_from_file(const FileDirEntry &file) const
 {
-  return asset_handle_map_.lookup_or_add(&file, AssetHandle{&file});
+  return *asset_handle_map_.lookup_or_add(&file,
+                                          std::make_unique<AssetHandle>(AssetHandle{&file}));
 }
 
 void AssetList::iterate(AssetListIterFn fn) const
@@ -527,6 +531,37 @@ std::string ED_assetlist_asset_filepath_get(const bContext *C,
   BLI_join_dirfile(path, sizeof(path), library_path, asset_relpath);
 
   return path;
+}
+
+PreviewImage *ED_assetlist_asset_preview_request(const AssetLibraryReference *library_reference,
+                                                 AssetHandle *asset_handle)
+{
+  if (asset_handle->preview) {
+    return asset_handle->preview;
+  }
+
+  if (ID *local_id = ED_asset_handle_get_local_id(asset_handle)) {
+    asset_handle->preview = BKE_previewimg_id_get(local_id);
+  }
+  else {
+    const char *asset_identifier = ED_asset_handle_get_identifier(asset_handle);
+    const int source = filelist_preview_source_get(asset_handle->file_data->typeflag);
+    const std::string asset_path = ED_assetlist_asset_filepath_get(
+        nullptr, *library_reference, *asset_handle);
+
+    asset_handle->preview = BKE_previewimg_cached_thumbnail_read(
+        asset_identifier, asset_path.c_str(), source, false);
+  }
+
+  return asset_handle->preview;
+}
+
+int ED_assetlist_asset_preview_icon_id_request(const AssetLibraryReference *library_reference,
+                                               AssetHandle *asset_handle)
+{
+  PreviewImage *preview = ED_assetlist_asset_preview_request(library_reference, asset_handle);
+  ID *local_id = ED_asset_handle_get_local_id(asset_handle);
+  return BKE_icon_preview_ensure(local_id, preview);
 }
 
 ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)

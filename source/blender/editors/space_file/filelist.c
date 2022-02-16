@@ -1159,10 +1159,9 @@ void filelist_setindexer(FileList *filelist, const FileIndexerType *indexer)
   filelist->indexer = indexer;
 }
 
-void filelist_set_asset_catalog_filter_options(
-    FileList *filelist,
-    AssetCatalogFilterMode catalog_visibility,
-    const bUUID *catalog_id)
+void filelist_set_asset_catalog_filter_options(FileList *filelist,
+                                               AssetCatalogFilterMode catalog_visibility,
+                                               const bUUID *catalog_id)
 {
   if (!filelist->filter_data.asset_catalog_filter) {
     /* There's no filter data yet. */
@@ -1594,34 +1593,37 @@ static int filelist_intern_free_main_files(FileListIntern *filelist_intern)
   return removed_counter;
 }
 
+int /* ThumbSource */ filelist_preview_source_get(int /* eFileSel_File_Types */ file_type)
+{
+  if (file_type & FILE_TYPE_IMAGE) {
+    return THB_SOURCE_IMAGE;
+  }
+  else if (file_type & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB)) {
+    return THB_SOURCE_BLEND;
+  }
+  else if (file_type & FILE_TYPE_MOVIE) {
+    return THB_SOURCE_MOVIE;
+  }
+  else if (file_type & FILE_TYPE_FTFONT) {
+    return THB_SOURCE_FONT;
+  }
+  else {
+    BLI_assert_unreachable();
+    return 0;
+  }
+}
+
 static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdata)
 {
   FileListEntryCache *cache = BLI_task_pool_user_data(pool);
   FileListEntryPreviewTaskData *preview_taskdata = taskdata;
   FileListEntryPreview *preview = preview_taskdata->preview;
 
-  ThumbSource source = 0;
+  ThumbSource source = filelist_preview_source_get(preview->flags);
 
   //  printf("%s: Start (%d)...\n", __func__, threadid);
 
   //  printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
-  BLI_assert(preview->flags &
-             (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT | FILE_TYPE_BLENDER |
-              FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB));
-
-  if (preview->flags & FILE_TYPE_IMAGE) {
-    source = THB_SOURCE_IMAGE;
-  }
-  else if (preview->flags &
-           (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB)) {
-    source = THB_SOURCE_BLEND;
-  }
-  else if (preview->flags & FILE_TYPE_MOVIE) {
-    source = THB_SOURCE_MOVIE;
-  }
-  else if (preview->flags & FILE_TYPE_FTFONT) {
-    source = THB_SOURCE_FONT;
-  }
 
   IMB_thumb_path_lock(preview->path);
   /* Always generate biggest preview size for now, it's simpler and avoids having to re-generate

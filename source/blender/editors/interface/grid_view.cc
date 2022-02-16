@@ -459,21 +459,21 @@ void PreviewGridItem::build_grid_tile(uiLayout &layout) const
 {
   const GridViewStyle &style = get_view().get_style();
   uiBlock *block = uiLayoutGetBlock(&layout);
-  uiBut *but = uiDefIconTextBut(block,
-                                UI_BTYPE_PREVIEW_TILE,
-                                0,
-                                preview_icon_id,
-                                label_.c_str(),
-                                0,
-                                0,
-                                style.tile_width,
-                                style.tile_height,
-                                nullptr,
-                                0,
-                                0,
-                                0,
-                                0,
-                                "");
+
+  uiBut *but = uiDefBut(block,
+                        UI_BTYPE_PREVIEW_TILE,
+                        0,
+                        label_.c_str(),
+                        0,
+                        0,
+                        style.tile_width,
+                        style.tile_height,
+                        nullptr,
+                        0,
+                        0,
+                        0,
+                        0,
+                        "");
   ui_def_but_icon(but,
                   preview_icon_id,
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */

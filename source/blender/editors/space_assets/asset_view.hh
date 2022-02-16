@@ -54,10 +54,9 @@ class AssetGridView : public blender::ui::AbstractGridView {
 
 class AssetGridViewItem : public ui::PreviewGridItem {
   AssetHandle &asset_;
-  std::string asset_identifier;
 
  public:
-  AssetGridViewItem(AssetHandle &);
+  AssetGridViewItem(const AssetLibraryReference &asset_library_ref, AssetHandle &);
 
   bool matches(const AbstractGridViewItem &other) const override;
 
