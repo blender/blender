@@ -334,6 +334,8 @@ elseif(APPLE)
   else()
     set(TARGETDIR_VER Blender.app/Contents/Resources/${BLENDER_VERSION})
   endif()
+  # License, copyright, readme files.
+  set(BLENDER_TEXT_FILES_DESTINATION "${TARGETDIR_VER}/../text")
   set(MAC_BLENDER_TARGET_DYLIBS_DIR "${TARGETDIR_VER}/lib")
   # Skip relinking on cpack / install
   set_target_properties(blender PROPERTIES BUILD_WITH_INSTALL_RPATH true)
@@ -1056,9 +1058,6 @@ elseif(APPLE)
     TARGETS blender
     DESTINATION "."
   )
-
-  # install release and app files
-  set(BLENDER_TEXT_FILES_DESTINATION Blender.app/Contents/Resources/text)
 
   install(
     FILES ${OSX_APP_SOURCEDIR}/Contents/PkgInfo
