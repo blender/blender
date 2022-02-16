@@ -448,9 +448,6 @@ typedef struct wmNotifier {
 /* Denote that something in the contents of an AssetList may have changed. Triggers re-filtering of
  * items. */
 #define ND_ASSET_LIST (1 << 16)
-/* Denotes that the AssetList is done reading some previews. NOT that the preview generation of
- * assets is done. */
-#define ND_ASSET_LIST_PREVIEW (2 << 16)
 #define ND_ASSET_LIST_READING (3 << 16)
 /* Catalog data changed, requiring a redraw of catalog UIs. Note that this doesn't denote a
  * reloading of asset libraries & their catalogs should happen. That only happens on explicit user

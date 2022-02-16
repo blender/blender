@@ -106,7 +106,6 @@ void asset_view_create_in_layout(const bContext &C,
   UI_block_layout_set_current(block, &layout);
 
   ED_assetlist_storage_fetch(&asset_library_ref, &C);
-  ED_assetlist_ensure_previews_job(&asset_library_ref, &C);
   ED_assetlist_catalog_filter_set(&asset_library_ref, &catalog_filter_settings);
 
   ui::AbstractGridView *grid_view = UI_block_add_view(

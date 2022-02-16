@@ -25,8 +25,6 @@ struct wmNotifier;
  */
 void ED_assetlist_storage_fetch(const struct AssetLibraryReference *library_reference,
                                 const struct bContext *C);
-void ED_assetlist_ensure_previews_job(const struct AssetLibraryReference *library_reference,
-                                      const struct bContext *C);
 void ED_assetlist_catalog_filter_set(const struct AssetLibraryReference *,
                                      const struct AssetCatalogFilterSettings *catalog_filter);
 void ED_assetlist_clear(const struct AssetLibraryReference *library_reference, struct bContext *C);
