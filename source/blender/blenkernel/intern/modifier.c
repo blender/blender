@@ -131,7 +131,7 @@ void BKE_modifier_panel_expand(ModifierData *md)
 
 /***/
 
-ModifierData *BKE_modifier_new(int type)
+static ModifierData *modifier_allocate_and_init(int type)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(type);
   ModifierData *md = MEM_callocN(mti->structSize, mti->structName);
@@ -151,6 +151,13 @@ ModifierData *BKE_modifier_new(int type)
   if (mti->initData) {
     mti->initData(md);
   }
+
+  return md;
+}
+
+ModifierData *BKE_modifier_new(int type)
+{
+  ModifierData *md = modifier_allocate_and_init(type);
 
   BKE_modifier_session_uuid_generate(md);
 
@@ -313,6 +320,16 @@ void BKE_modifiers_foreach_tex_link(Object *ob, TexWalkFunc walk, void *userData
       mti->foreachTexLink(md, ob, walk, userData);
     }
   }
+}
+
+ModifierData *BKE_modifier_copy_ex(const ModifierData *md, int flag)
+{
+  ModifierData *md_dst = modifier_allocate_and_init(md->type);
+
+  BLI_strncpy(md_dst->name, md->name, sizeof(md_dst->name));
+  BKE_modifier_copydata_ex(md, md_dst, flag);
+
+  return md_dst;
 }
 
 void BKE_modifier_copydata_generic(const ModifierData *md_src,

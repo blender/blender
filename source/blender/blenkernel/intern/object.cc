@@ -1599,9 +1599,7 @@ bool BKE_object_modifier_stack_copy(Object *ob_dst,
       continue;
     }
 
-    ModifierData *md_dst = BKE_modifier_new(md_src->type);
-    BLI_strncpy(md_dst->name, md_src->name, sizeof(md_dst->name));
-    BKE_modifier_copydata_ex(md_src, md_dst, flag_subdata);
+    ModifierData *md_dst = BKE_modifier_copy_ex(md_src, flag_subdata);
     BLI_addtail(&ob_dst->modifiers, md_dst);
   }
 
