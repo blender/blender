@@ -319,11 +319,16 @@ elseif(WIN32)
 elseif(APPLE)
   if(WITH_PYTHON_MODULE)
     if(WITH_INSTALL_PORTABLE)
+      set(BPY_INSTALL_DIR)
       set(TARGETDIR_VER $<TARGET_FILE_DIR:blender>/../Resources/${BLENDER_VERSION})
       # Keep the `BLENDER_VERSION` folder and bpy.so in the build folder.
       set(INSTALL_BPY_TO_SITE_PACKAGES OFF)
     else()
-      set(TARGETDIR_VER "${PYTHON_LIBPATH}/Resources/${BLENDER_VERSION}")
+      # Parent directory of bpy.so for installation.
+      set(BPY_INSTALL_DIR ${PYTHON_LIBPATH}/site-packages)
+      # Defined in terms of site-packages since the site-packages
+      # directory can be a symlink (brew for example).
+      set(TARGETDIR_VER "${BPY_INSTALL_DIR}/../Resources/${BLENDER_VERSION}")
       set(INSTALL_BPY_TO_SITE_PACKAGES ON)
     endif()
   else()
@@ -1108,11 +1113,12 @@ elseif(APPLE)
     )
     unset(_py_inc_suffix)
   endif()
+
   if(WITH_PYTHON_MODULE)
     if(INSTALL_BPY_TO_SITE_PACKAGES)
       install(
         TARGETS blender
-        LIBRARY DESTINATION ${PYTHON_LIBPATH}/site-packages
+        LIBRARY DESTINATION ${BPY_INSTALL_DIR}
       )
     endif()
   endif()
