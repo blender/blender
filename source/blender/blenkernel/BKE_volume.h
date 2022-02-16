@@ -104,7 +104,6 @@ typedef enum VolumeGridType {
   VOLUME_GRID_INT,
   VOLUME_GRID_INT64,
   VOLUME_GRID_MASK,
-  VOLUME_GRID_STRING,
   VOLUME_GRID_VECTOR_FLOAT,
   VOLUME_GRID_VECTOR_DOUBLE,
   VOLUME_GRID_VECTOR_INT,
@@ -218,8 +217,6 @@ auto BKE_volume_grid_type_operation(const VolumeGridType grid_type, OpType &&op)
       return op.template operator()<openvdb::Vec3IGrid>();
     case VOLUME_GRID_VECTOR_DOUBLE:
       return op.template operator()<openvdb::Vec3dGrid>();
-    case VOLUME_GRID_STRING:
-      return op.template operator()<openvdb::StringGrid>();
     case VOLUME_GRID_MASK:
       return op.template operator()<openvdb::MaskGrid>();
     case VOLUME_GRID_POINTS:

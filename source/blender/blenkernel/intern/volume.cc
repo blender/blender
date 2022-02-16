@@ -1345,9 +1345,6 @@ VolumeGridType BKE_volume_grid_type_openvdb(const openvdb::GridBase &grid)
   if (grid.isType<openvdb::Vec3dGrid>()) {
     return VOLUME_GRID_VECTOR_DOUBLE;
   }
-  if (grid.isType<openvdb::StringGrid>()) {
-    return VOLUME_GRID_STRING;
-  }
   if (grid.isType<openvdb::MaskGrid>()) {
     return VOLUME_GRID_MASK;
   }
@@ -1383,7 +1380,6 @@ int BKE_volume_grid_channels(const VolumeGrid *grid)
     case VOLUME_GRID_VECTOR_DOUBLE:
     case VOLUME_GRID_VECTOR_INT:
       return 3;
-    case VOLUME_GRID_STRING:
     case VOLUME_GRID_POINTS:
     case VOLUME_GRID_UNKNOWN:
       return 0;
@@ -1624,13 +1620,8 @@ struct CreateGridWithChangedResolutionOp {
 
   template<typename GridType> typename openvdb::GridBase::Ptr operator()()
   {
-    if constexpr (std::is_same_v<GridType, openvdb::StringGrid>) {
-      return {};
-    }
-    else {
-      return create_grid_with_changed_resolution(static_cast<const GridType &>(grid),
-                                                 resolution_factor);
-    }
+    return create_grid_with_changed_resolution(static_cast<const GridType &>(grid),
+                                               resolution_factor);
   }
 };
 
