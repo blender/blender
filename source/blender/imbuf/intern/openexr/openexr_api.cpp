@@ -32,30 +32,46 @@
 #include <stdexcept>
 #include <string>
 
-#include <Iex.h>
-#include <ImathBox.h>
-#include <ImfArray.h>
-#include <ImfChannelList.h>
-#include <ImfCompression.h>
-#include <ImfCompressionAttribute.h>
-#include <ImfIO.h>
-#include <ImfInputFile.h>
-#include <ImfOutputFile.h>
-#include <ImfPixelType.h>
-#include <ImfStandardAttributes.h>
-#include <ImfStringAttribute.h>
-#include <ImfVersion.h>
-#include <half.h>
+/* The OpenEXR version can reliably be found in this header file from OpenEXR,
+ * for both 2.x and 3.x:
+ */
+#include <OpenEXR/OpenEXRConfig.h>
+#define COMBINED_OPENEXR_VERSION \
+  ((10000 * OPENEXR_VERSION_MAJOR) + (100 * OPENEXR_VERSION_MINOR) + OPENEXR_VERSION_PATCH)
+
+#if COMBINED_OPENEXR_VERSION >= 20599
+/* >=2.5.99 -> OpenEXR >=3.0 */
+#  include <Imath/half.h>
+#  include <OpenEXR/ImfFrameBuffer.h>
+#  define exr_file_offset_t uint64_t
+#else
+/* OpenEXR 2.x, use the old locations. */
+#  include <OpenEXR/half.h>
+#  define exr_file_offset_t Int64
+#endif
+
+#include <OpenEXR/Iex.h>
+#include <OpenEXR/ImfArray.h>
+#include <OpenEXR/ImfChannelList.h>
+#include <OpenEXR/ImfCompression.h>
+#include <OpenEXR/ImfCompressionAttribute.h>
+#include <OpenEXR/ImfIO.h>
+#include <OpenEXR/ImfInputFile.h>
+#include <OpenEXR/ImfOutputFile.h>
+#include <OpenEXR/ImfPixelType.h>
+#include <OpenEXR/ImfStandardAttributes.h>
+#include <OpenEXR/ImfStringAttribute.h>
+#include <OpenEXR/ImfVersion.h>
 
 /* multiview/multipart */
-#include <ImfInputPart.h>
-#include <ImfMultiPartInputFile.h>
-#include <ImfMultiPartOutputFile.h>
-#include <ImfMultiView.h>
-#include <ImfOutputPart.h>
-#include <ImfPartHelper.h>
-#include <ImfPartType.h>
-#include <ImfTiledOutputPart.h>
+#include <OpenEXR/ImfInputPart.h>
+#include <OpenEXR/ImfMultiPartInputFile.h>
+#include <OpenEXR/ImfMultiPartOutputFile.h>
+#include <OpenEXR/ImfMultiView.h>
+#include <OpenEXR/ImfOutputPart.h>
+#include <OpenEXR/ImfPartHelper.h>
+#include <OpenEXR/ImfPartType.h>
+#include <OpenEXR/ImfTiledOutputPart.h>
 
 #include "DNA_scene_types.h" /* For OpenEXR compression constants */
 
@@ -131,12 +147,12 @@ class IMemStream : public Imf::IStream {
     return false;
   }
 
-  Int64 tellg() override
+  exr_file_offset_t tellg() override
   {
     return _exrpos;
   }
 
-  void seekg(Int64 pos) override
+  void seekg(exr_file_offset_t pos) override
   {
     _exrpos = pos;
   }
@@ -146,8 +162,8 @@ class IMemStream : public Imf::IStream {
   }
 
  private:
-  Int64 _exrpos;
-  Int64 _exrsize;
+  exr_file_offset_t _exrpos;
+  exr_file_offset_t _exrsize;
   unsigned char *_exrbuf;
 };
 
@@ -182,12 +198,12 @@ class IFileStream : public Imf::IStream {
     return check_error();
   }
 
-  Int64 tellg() override
+  exr_file_offset_t tellg() override
   {
     return std::streamoff(ifs.tellg());
   }
 
-  void seekg(Int64 pos) override
+  void seekg(exr_file_offset_t pos) override
   {
     ifs.seekg(pos);
     check_error();
@@ -231,19 +247,19 @@ class OMemStream : public OStream {
     ibuf->encodedsize += n;
   }
 
-  Int64 tellp() override
+  exr_file_offset_t tellp() override
   {
     return offset;
   }
 
-  void seekp(Int64 pos) override
+  void seekp(exr_file_offset_t pos) override
   {
     offset = pos;
     ensure_size(offset);
   }
 
  private:
-  void ensure_size(Int64 size)
+  void ensure_size(exr_file_offset_t size)
   {
     /* if buffer is too small increase it. */
     while (size > ibuf->encodedbuffersize) {
@@ -254,7 +270,7 @@ class OMemStream : public OStream {
   }
 
   ImBuf *ibuf;
-  Int64 offset;
+  exr_file_offset_t offset;
 };
 
 /* File Output Stream */
@@ -284,12 +300,12 @@ class OFileStream : public OStream {
     check_error();
   }
 
-  Int64 tellp() override
+  exr_file_offset_t tellp() override
   {
     return std::streamoff(ofs.tellp());
   }
 
-  void seekp(Int64 pos) override
+  void seekp(exr_file_offset_t pos) override
   {
     ofs.seekp(pos);
     check_error();
