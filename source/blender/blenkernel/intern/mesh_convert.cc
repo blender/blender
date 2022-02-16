@@ -1222,6 +1222,9 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
 
   BKE_mesh_nomain_to_mesh(mesh, mesh_in_bmain, nullptr, &CD_MASK_MESH, true);
 
+  /* Anonymous attributes shouldn't exist on original data. */
+  BKE_mesh_anonymous_attributes_remove(mesh_in_bmain);
+
   /* User-count is required because so far mesh was in a limbo, where library management does
    * not perform any user management (i.e. copy of a mesh will not increase users of materials). */
   BKE_library_foreach_ID_link(
