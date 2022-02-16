@@ -1214,11 +1214,10 @@ typedef struct SpaceImage {
   /** UV draw type. */
   char dt_uv;
   /** Sticky selection type. */
-  char sticky;
   char dt_uvstretch;
   char around;
 
-  char _pad1[3];
+  char _pad1[4];
 
   int flag;
 
@@ -1264,15 +1263,6 @@ typedef enum eSpaceImage_Mode {
   SI_MODE_MASK = 2,
   SI_MODE_UV = 3,
 } eSpaceImage_Mode;
-
-/* SpaceImage.sticky
- * Note DISABLE should be 0, however would also need to re-arrange icon order,
- * also, sticky loc is the default mode so this means we don't need to 'do_versions' */
-typedef enum eSpaceImage_Sticky {
-  SI_STICKY_LOC = 0,
-  SI_STICKY_DISABLE = 1,
-  SI_STICKY_VERTEX = 2,
-} eSpaceImage_Sticky;
 
 /** #SpaceImage.flag */
 typedef enum eSpaceImage_Flag {

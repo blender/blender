@@ -1572,7 +1572,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
   const ToolSettings *ts = scene->toolsettings;
 
   const bool use_face_center = (ts->uv_selectmode == UV_SELECT_FACE);
-  const bool stickymode = sima ? (sima->sticky != SI_STICKY_DISABLE) : 1;
+  const bool stickymode = sima ? (ts->uv_sticky != SI_STICKY_DISABLE) : 1;
   const bool select = RNA_boolean_get(op->ptr, "select");
 
   uint objects_len = 0;

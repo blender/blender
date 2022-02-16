@@ -780,7 +780,7 @@ class IMAGE_HT_header(Header):
                 layout.template_edit_mode_selection()
             else:
                 layout.prop(tool_settings, "uv_select_mode", text="", expand=True)
-                layout.prop(uvedit, "sticky_select_mode", icon_only=True)
+                layout.prop(tool_settings, "uv_sticky_select_mode", icon_only=True)
 
         IMAGE_MT_editor_menus.draw_collapsible(context, layout)
 
