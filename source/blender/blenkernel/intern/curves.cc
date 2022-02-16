@@ -17,7 +17,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_rand.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"

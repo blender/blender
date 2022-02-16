@@ -39,6 +39,7 @@ const EnumPropertyItem rna_enum_context_mode_items[] = {
     {CTX_MODE_SCULPT_GPENCIL, "SCULPT_GPENCIL", 0, "Grease Pencil Sculpt", ""},
     {CTX_MODE_WEIGHT_GPENCIL, "WEIGHT_GPENCIL", 0, "Grease Pencil Weight Paint", ""},
     {CTX_MODE_VERTEX_GPENCIL, "VERTEX_GPENCIL", 0, "Grease Pencil Vertex Paint", ""},
+    {CTX_MODE_SCULPT_CURVES, "SCULPT_CURVES", 0, "Curves Sculpt", ""},
     {0, NULL, 0, NULL, NULL},
 };
 

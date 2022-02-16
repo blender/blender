@@ -7,7 +7,7 @@
 #include <cstdint>
 
 #include "BLI_math_base_safe.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_noise.hh"
 #include "BLI_utildefines.h"
 
@@ -581,7 +581,7 @@ float perlin_fractal(float4 position, float octaves, float roughness)
  * positions to act as a seed since the noise functions don't have seed values.
  * The offset's components are in the range [100, 200], not too high to cause
  * bad precision and not too small to be noticeable. We use float seed because
- * OSL only support float hashes and we need to maintain compatibility with it.
+ * OSL only supports float hashes and we need to maintain compatibility with it.
  */
 
 BLI_INLINE float random_float_offset(float seed)
@@ -727,7 +727,7 @@ float musgrave_fBm(const float co,
   float p = co;
   float value = 0.0f;
   float pwr = 1.0f;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 0; i < (int)octaves; i++) {
@@ -752,7 +752,7 @@ float musgrave_multi_fractal(const float co,
   float p = co;
   float value = 1.0f;
   float pwr = 1.0f;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 0; i < (int)octaves; i++) {
@@ -776,11 +776,11 @@ float musgrave_hetero_terrain(const float co,
                               const float offset)
 {
   float p = co;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   float pwr = pwHL;
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  /* first unscaled octave of function; later octaves are scaled */
+  /* First unscaled octave of function; later octaves are scaled. */
   float value = offset + perlin_signed(p);
   p *= lacunarity;
 
@@ -808,7 +808,7 @@ float musgrave_hybrid_multi_fractal(const float co,
                                     const float gain)
 {
   float p = co;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   float pwr = pwHL;
 
   float value = perlin_signed(p) + offset;
@@ -845,10 +845,10 @@ float musgrave_ridged_multi_fractal(const float co,
                                     const float gain)
 {
   float p = co;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   float pwr = pwHL;
 
-  float signal = offset - fabsf(perlin_signed(p));
+  float signal = offset - std::abs(perlin_signed(p));
   signal *= signal;
   float value = signal;
   float weight = 1.0f;
@@ -858,7 +858,7 @@ float musgrave_ridged_multi_fractal(const float co,
   for (int i = 1; i < (int)octaves; i++) {
     p *= lacunarity;
     weight = CLAMPIS(signal * gain, 0.0f, 1.0f);
-    signal = offset - fabsf(perlin_signed(p));
+    signal = offset - std::abs(perlin_signed(p));
     signal *= signal;
     signal *= weight;
     value += signal * pwr;
@@ -878,7 +878,7 @@ float musgrave_fBm(const float2 co,
   float2 p = co;
   float value = 0.0f;
   float pwr = 1.0f;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 0; i < (int)octaves; i++) {
@@ -903,7 +903,7 @@ float musgrave_multi_fractal(const float2 co,
   float2 p = co;
   float value = 1.0f;
   float pwr = 1.0f;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
   for (int i = 0; i < (int)octaves; i++) {
@@ -927,10 +927,10 @@ float musgrave_hetero_terrain(const float2 co,
                               const float offset)
 {
   float2 p = co;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   float pwr = pwHL;
 
-  /* first unscaled octave of function; later octaves are scaled */
+  /* First unscaled octave of function; later octaves are scaled. */
   float value = offset + perlin_signed(p);
   p *= lacunarity;
 
@@ -960,7 +960,7 @@ float musgrave_hybrid_multi_fractal(const float2 co,
                                     const float gain)
 {
   float2 p = co;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   float pwr = pwHL;
 
   float value = perlin_signed(p) + offset;
@@ -997,10 +997,10 @@ float musgrave_ridged_multi_fractal(const float2 co,
                                     const float gain)
 {
   float2 p = co;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   float pwr = pwHL;
 
-  float signal = offset - fabsf(perlin_signed(p));
+  float signal = offset - std::abs(perlin_signed(p));
   signal *= signal;
   float value = signal;
   float weight = 1.0f;
@@ -1010,7 +1010,7 @@ float musgrave_ridged_multi_fractal(const float2 co,
   for (int i = 1; i < (int)octaves; i++) {
     p *= lacunarity;
     weight = CLAMPIS(signal * gain, 0.0f, 1.0f);
-    signal = offset - fabsf(perlin_signed(p));
+    signal = offset - std::abs(perlin_signed(p));
     signal *= signal;
     signal *= weight;
     value += signal * pwr;
@@ -1030,7 +1030,7 @@ float musgrave_fBm(const float3 co,
   float3 p = co;
   float value = 0.0f;
   float pwr = 1.0f;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
@@ -1056,7 +1056,7 @@ float musgrave_multi_fractal(const float3 co,
   float3 p = co;
   float value = 1.0f;
   float pwr = 1.0f;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
@@ -1081,7 +1081,7 @@ float musgrave_hetero_terrain(const float3 co,
                               const float offset)
 {
   float3 p = co;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   float pwr = pwHL;
 
   /* first unscaled octave of function; later octaves are scaled */
@@ -1114,7 +1114,7 @@ float musgrave_hybrid_multi_fractal(const float3 co,
                                     const float gain)
 {
   float3 p = co;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   float pwr = pwHL;
 
   float value = perlin_signed(p) + offset;
@@ -1151,10 +1151,10 @@ float musgrave_ridged_multi_fractal(const float3 co,
                                     const float gain)
 {
   float3 p = co;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   float pwr = pwHL;
 
-  float signal = offset - fabsf(perlin_signed(p));
+  float signal = offset - std::abs(perlin_signed(p));
   signal *= signal;
   float value = signal;
   float weight = 1.0f;
@@ -1164,7 +1164,7 @@ float musgrave_ridged_multi_fractal(const float3 co,
   for (int i = 1; i < (int)octaves; i++) {
     p *= lacunarity;
     weight = CLAMPIS(signal * gain, 0.0f, 1.0f);
-    signal = offset - fabsf(perlin_signed(p));
+    signal = offset - std::abs(perlin_signed(p));
     signal *= signal;
     signal *= weight;
     value += signal * pwr;
@@ -1184,7 +1184,7 @@ float musgrave_fBm(const float4 co,
   float4 p = co;
   float value = 0.0f;
   float pwr = 1.0f;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
@@ -1210,7 +1210,7 @@ float musgrave_multi_fractal(const float4 co,
   float4 p = co;
   float value = 1.0f;
   float pwr = 1.0f;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
@@ -1235,7 +1235,7 @@ float musgrave_hetero_terrain(const float4 co,
                               const float offset)
 {
   float4 p = co;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   float pwr = pwHL;
 
   /* first unscaled octave of function; later octaves are scaled */
@@ -1268,7 +1268,7 @@ float musgrave_hybrid_multi_fractal(const float4 co,
                                     const float gain)
 {
   float4 p = co;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   float pwr = pwHL;
 
   float value = perlin_signed(p) + offset;
@@ -1305,10 +1305,10 @@ float musgrave_ridged_multi_fractal(const float4 co,
                                     const float gain)
 {
   float4 p = co;
-  const float pwHL = powf(lacunarity, -H);
+  const float pwHL = std::pow(lacunarity, -H);
   float pwr = pwHL;
 
-  float signal = offset - fabsf(perlin_signed(p));
+  float signal = offset - std::abs(perlin_signed(p));
   signal *= signal;
   float value = signal;
   float weight = 1.0f;
@@ -1318,7 +1318,7 @@ float musgrave_ridged_multi_fractal(const float4 co,
   for (int i = 1; i < (int)octaves; i++) {
     p *= lacunarity;
     weight = CLAMPIS(signal * gain, 0.0f, 1.0f);
-    signal = offset - fabsf(perlin_signed(p));
+    signal = offset - std::abs(perlin_signed(p));
     signal *= signal;
     signal *= weight;
     value += signal * pwr;
@@ -1362,7 +1362,7 @@ enum {
 
 BLI_INLINE float voronoi_distance(const float a, const float b)
 {
-  return fabsf(b - a);
+  return std::abs(b - a);
 }
 
 void voronoi_f1(
@@ -1491,10 +1491,10 @@ void voronoi_distance_to_edge(const float w, const float randomness, float *r_di
   const float midPointPosition = hash_float_to_float(cellPosition) * randomness;
   const float leftPointPosition = -1.0f + hash_float_to_float(cellPosition - 1.0f) * randomness;
   const float rightPointPosition = 1.0f + hash_float_to_float(cellPosition + 1.0f) * randomness;
-  const float distanceToMidLeft = fabsf((midPointPosition + leftPointPosition) / 2.0f -
-                                        localPosition);
-  const float distanceToMidRight = fabsf((midPointPosition + rightPointPosition) / 2.0f -
-                                         localPosition);
+  const float distanceToMidLeft = std::abs((midPointPosition + leftPointPosition) / 2.0f -
+                                           localPosition);
+  const float distanceToMidRight = std::abs((midPointPosition + rightPointPosition) / 2.0f -
+                                            localPosition);
 
   *r_distance = std::min(distanceToMidLeft, distanceToMidRight);
 }
@@ -1511,7 +1511,7 @@ void voronoi_n_sphere_radius(const float w, const float randomness, float *r_rad
     const float cellOffset = i;
     const float pointPosition = cellOffset +
                                 hash_float_to_float(cellPosition + cellOffset) * randomness;
-    const float distanceToPoint = fabsf(pointPosition - localPosition);
+    const float distanceToPoint = std::abs(pointPosition - localPosition);
     if (distanceToPoint < minDistance) {
       minDistance = distanceToPoint;
       closestPoint = pointPosition;
@@ -1528,13 +1528,13 @@ void voronoi_n_sphere_radius(const float w, const float randomness, float *r_rad
     const float cellOffset = i + closestPointOffset;
     const float pointPosition = cellOffset +
                                 hash_float_to_float(cellPosition + cellOffset) * randomness;
-    const float distanceToPoint = fabsf(closestPoint - pointPosition);
+    const float distanceToPoint = std::abs(closestPoint - pointPosition);
     if (distanceToPoint < minDistance) {
       minDistance = distanceToPoint;
       closestPointToClosestPoint = pointPosition;
     }
   }
-  *r_radius = fabsf(closestPointToClosestPoint - closestPoint) / 2.0f;
+  *r_radius = std::abs(closestPointToClosestPoint - closestPoint) / 2.0f;
 }
 
 /* **** 2D Voronoi **** */
@@ -1548,12 +1548,13 @@ static float voronoi_distance(const float2 a,
     case NOISE_SHD_VORONOI_EUCLIDEAN:
       return math::distance(a, b);
     case NOISE_SHD_VORONOI_MANHATTAN:
-      return fabsf(a.x - b.x) + fabsf(a.y - b.y);
+      return std::abs(a.x - b.x) + std::abs(a.y - b.y);
     case NOISE_SHD_VORONOI_CHEBYCHEV:
-      return std::max(fabsf(a.x - b.x), fabsf(a.y - b.y));
+      return std::max(std::abs(a.x - b.x), std::abs(a.y - b.y));
     case NOISE_SHD_VORONOI_MINKOWSKI:
-      return powf(powf(fabsf(a.x - b.x), exponent) + powf(fabsf(a.y - b.y), exponent),
-                  1.0f / exponent);
+      return std::pow(std::pow(std::abs(a.x - b.x), exponent) +
+                          std::pow(std::abs(a.y - b.y), exponent),
+                      1.0f / exponent);
     default:
       BLI_assert_unreachable();
       break;
@@ -1712,7 +1713,7 @@ void voronoi_distance_to_edge(const float2 coord, const float randomness, float 
       const float2 vectorToPoint = cellOffset +
                                    hash_float_to_float2(cellPosition + cellOffset) * randomness -
                                    localPosition;
-      const float distanceToPoint = dot_v2v2(vectorToPoint, vectorToPoint);
+      const float distanceToPoint = math::dot(vectorToPoint, vectorToPoint);
       if (distanceToPoint < minDistance) {
         minDistance = distanceToPoint;
         vectorToClosest = vectorToPoint;
@@ -1728,9 +1729,9 @@ void voronoi_distance_to_edge(const float2 coord, const float randomness, float 
                                    hash_float_to_float2(cellPosition + cellOffset) * randomness -
                                    localPosition;
       const float2 perpendicularToEdge = vectorToPoint - vectorToClosest;
-      if (dot_v2v2(perpendicularToEdge, perpendicularToEdge) > 0.0001f) {
-        const float distanceToEdge = dot_v2v2((vectorToClosest + vectorToPoint) / 2.0f,
-                                              math::normalize(perpendicularToEdge));
+      if (math::dot(perpendicularToEdge, perpendicularToEdge) > 0.0001f) {
+        const float distanceToEdge = math::dot((vectorToClosest + vectorToPoint) / 2.0f,
+                                               math::normalize(perpendicularToEdge));
         minDistance = std::min(minDistance, distanceToEdge);
       }
     }
@@ -1791,13 +1792,14 @@ static float voronoi_distance(const float3 a,
     case NOISE_SHD_VORONOI_EUCLIDEAN:
       return math::distance(a, b);
     case NOISE_SHD_VORONOI_MANHATTAN:
-      return fabsf(a.x - b.x) + fabsf(a.y - b.y) + fabsf(a.z - b.z);
+      return std::abs(a.x - b.x) + std::abs(a.y - b.y) + std::abs(a.z - b.z);
     case NOISE_SHD_VORONOI_CHEBYCHEV:
-      return std::max(fabsf(a.x - b.x), std::max(fabsf(a.y - b.y), fabsf(a.z - b.z)));
+      return std::max(std::abs(a.x - b.x), std::max(std::abs(a.y - b.y), std::abs(a.z - b.z)));
     case NOISE_SHD_VORONOI_MINKOWSKI:
-      return powf(powf(fabsf(a.x - b.x), exponent) + powf(fabsf(a.y - b.y), exponent) +
-                      powf(fabsf(a.z - b.z), exponent),
-                  1.0f / exponent);
+      return std::pow(std::pow(std::abs(a.x - b.x), exponent) +
+                          std::pow(std::abs(a.y - b.y), exponent) +
+                          std::pow(std::abs(a.z - b.z), exponent),
+                      1.0f / exponent);
     default:
       BLI_assert_unreachable();
       break;
@@ -1965,7 +1967,7 @@ void voronoi_distance_to_edge(const float3 coord, const float randomness, float 
         const float3 vectorToPoint = cellOffset +
                                      hash_float_to_float3(cellPosition + cellOffset) * randomness -
                                      localPosition;
-        const float distanceToPoint = dot_v3v3(vectorToPoint, vectorToPoint);
+        const float distanceToPoint = math::dot(vectorToPoint, vectorToPoint);
         if (distanceToPoint < minDistance) {
           minDistance = distanceToPoint;
           vectorToClosest = vectorToPoint;
@@ -1983,9 +1985,9 @@ void voronoi_distance_to_edge(const float3 coord, const float randomness, float 
                                      hash_float_to_float3(cellPosition + cellOffset) * randomness -
                                      localPosition;
         const float3 perpendicularToEdge = vectorToPoint - vectorToClosest;
-        if (dot_v3v3(perpendicularToEdge, perpendicularToEdge) > 0.0001f) {
-          const float distanceToEdge = dot_v3v3((vectorToClosest + vectorToPoint) / 2.0f,
-                                                math::normalize(perpendicularToEdge));
+        if (math::dot(perpendicularToEdge, perpendicularToEdge) > 0.0001f) {
+          const float distanceToEdge = math::dot((vectorToClosest + vectorToPoint) / 2.0f,
+                                                 math::normalize(perpendicularToEdge));
           minDistance = std::min(minDistance, distanceToEdge);
         }
       }
@@ -2051,14 +2053,16 @@ static float voronoi_distance(const float4 a,
     case NOISE_SHD_VORONOI_EUCLIDEAN:
       return math::distance(a, b);
     case NOISE_SHD_VORONOI_MANHATTAN:
-      return fabsf(a.x - b.x) + fabsf(a.y - b.y) + fabsf(a.z - b.z) + fabsf(a.w - b.w);
+      return std::abs(a.x - b.x) + std::abs(a.y - b.y) + std::abs(a.z - b.z) + std::abs(a.w - b.w);
     case NOISE_SHD_VORONOI_CHEBYCHEV:
-      return std::max(fabsf(a.x - b.x),
-                      std::max(fabsf(a.y - b.y), std::max(fabsf(a.z - b.z), fabsf(a.w - b.w))));
+      return std::max(
+          std::abs(a.x - b.x),
+          std::max(std::abs(a.y - b.y), std::max(std::abs(a.z - b.z), std::abs(a.w - b.w))));
     case NOISE_SHD_VORONOI_MINKOWSKI:
-      return powf(powf(fabsf(a.x - b.x), exponent) + powf(fabsf(a.y - b.y), exponent) +
-                      powf(fabsf(a.z - b.z), exponent) + powf(fabsf(a.w - b.w), exponent),
-                  1.0f / exponent);
+      return std::pow(
+          std::pow(std::abs(a.x - b.x), exponent) + std::pow(std::abs(a.y - b.y), exponent) +
+              std::pow(std::abs(a.z - b.z), exponent) + std::pow(std::abs(a.w - b.w), exponent),
+          1.0f / exponent);
     default:
       BLI_assert_unreachable();
       break;
@@ -2237,7 +2241,7 @@ void voronoi_distance_to_edge(const float4 coord, const float randomness, float 
                                        hash_float_to_float4(cellPosition + cellOffset) *
                                            randomness -
                                        localPosition;
-          const float distanceToPoint = dot_v4v4(vectorToPoint, vectorToPoint);
+          const float distanceToPoint = math::dot(vectorToPoint, vectorToPoint);
           if (distanceToPoint < minDistance) {
             minDistance = distanceToPoint;
             vectorToClosest = vectorToPoint;
@@ -2258,9 +2262,9 @@ void voronoi_distance_to_edge(const float4 coord, const float randomness, float 
                                            randomness -
                                        localPosition;
           const float4 perpendicularToEdge = vectorToPoint - vectorToClosest;
-          if (dot_v4v4(perpendicularToEdge, perpendicularToEdge) > 0.0001f) {
-            const float distanceToEdge = dot_v4v4((vectorToClosest + vectorToPoint) / 2.0f,
-                                                  math::normalize(perpendicularToEdge));
+          if (math::dot(perpendicularToEdge, perpendicularToEdge) > 0.0001f) {
+            const float distanceToEdge = math::dot((vectorToClosest + vectorToPoint) / 2.0f,
+                                                   math::normalize(perpendicularToEdge));
             minDistance = std::min(minDistance, distanceToEdge);
           }
         }

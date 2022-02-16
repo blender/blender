@@ -7,7 +7,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${GLEW_INCLUDE_DIR}
 )
 
 set(SRC
@@ -33,14 +32,6 @@ set(SRC
 set(LIB
   ${TBB_LIBRARIES}
 )
-
-if(WITH_CYCLES_STANDALONE)
-  if(WITH_CYCLES_STANDALONE_GUI)
-    list(APPEND SRC
-      view.cpp
-    )
-  endif()
-endif()
 
 set(SRC_HEADERS
   algorithm.h
@@ -142,7 +133,6 @@ set(SRC_HEADERS
   unique_ptr.h
   vector.h
   version.h
-  view.h
   windows.h
   xml.h
 )

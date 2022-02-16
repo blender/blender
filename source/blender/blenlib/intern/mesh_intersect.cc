@@ -23,6 +23,7 @@
 #  include "BLI_math_mpq.hh"
 #  include "BLI_math_vec_mpq_types.hh"
 #  include "BLI_math_vec_types.hh"
+#  include "BLI_math_vector.h"
 #  include "BLI_polyfill_2d.h"
 #  include "BLI_set.hh"
 #  include "BLI_span.hh"

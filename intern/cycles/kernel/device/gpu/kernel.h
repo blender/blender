@@ -283,7 +283,10 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
   ccl_gpu_kernel_lambda_pass.kernel_index = kernel_index;
 
   gpu_parallel_active_index_array(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE,
-      num_states, indices, num_indices, ccl_gpu_kernel_lambda_pass);
+                                  num_states,
+                                  indices,
+                                  num_indices,
+                                  ccl_gpu_kernel_lambda_pass);
 }
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
@@ -298,7 +301,10 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
   ccl_gpu_kernel_lambda_pass.kernel_index = kernel_index;
 
   gpu_parallel_active_index_array(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE,
-      num_states, indices, num_indices, ccl_gpu_kernel_lambda_pass);
+                                  num_states,
+                                  indices,
+                                  num_indices,
+                                  ccl_gpu_kernel_lambda_pass);
 }
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
@@ -310,7 +316,10 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
   ccl_gpu_kernel_lambda(INTEGRATOR_STATE(state, path, queued_kernel) != 0);
 
   gpu_parallel_active_index_array(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE,
-      num_states, indices, num_indices, ccl_gpu_kernel_lambda_pass);
+                                  num_states,
+                                  indices,
+                                  num_indices,
+                                  ccl_gpu_kernel_lambda_pass);
 }
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
@@ -323,7 +332,10 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
   ccl_gpu_kernel_lambda(INTEGRATOR_STATE(state, path, queued_kernel) == 0);
 
   gpu_parallel_active_index_array(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE,
-      num_states, indices + indices_offset, num_indices, ccl_gpu_kernel_lambda_pass);
+                                  num_states,
+                                  indices + indices_offset,
+                                  num_indices,
+                                  ccl_gpu_kernel_lambda_pass);
 }
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
@@ -336,7 +348,10 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
   ccl_gpu_kernel_lambda(INTEGRATOR_STATE(state, shadow_path, queued_kernel) == 0);
 
   gpu_parallel_active_index_array(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE,
-      num_states, indices + indices_offset, num_indices, ccl_gpu_kernel_lambda_pass);
+                                  num_states,
+                                  indices + indices_offset,
+                                  num_indices,
+                                  ccl_gpu_kernel_lambda_pass);
 }
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE)
@@ -379,7 +394,10 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
   ccl_gpu_kernel_lambda_pass.num_active_paths = num_active_paths;
 
   gpu_parallel_active_index_array(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE,
-      num_states, indices, num_indices, ccl_gpu_kernel_lambda_pass);
+                                  num_states,
+                                  indices,
+                                  num_indices,
+                                  ccl_gpu_kernel_lambda_pass);
 }
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE)
@@ -412,7 +430,10 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
   ccl_gpu_kernel_lambda_pass.num_active_paths = num_active_paths;
 
   gpu_parallel_active_index_array(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE,
-      num_states, indices, num_indices, ccl_gpu_kernel_lambda_pass);
+                                  num_states,
+                                  indices,
+                                  num_indices,
+                                  ccl_gpu_kernel_lambda_pass);
 }
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE)

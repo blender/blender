@@ -99,7 +99,7 @@ static void update_cache_node_create_ex(GPencilUpdateCache *root_cache,
                                         bool full_copy)
 {
   if (root_cache->flag == GP_UPDATE_NODE_FULL_COPY) {
-    /* Entire data-block has to be recaculated, e.g. nothing else needs to be added to the cache.
+    /* Entire data-block has to be recalculated, e.g. nothing else needs to be added to the cache.
      */
     return;
   }
@@ -110,14 +110,14 @@ static void update_cache_node_create_ex(GPencilUpdateCache *root_cache,
     root_cache->data = (bGPdata *)data;
     root_cache->flag = node_flag;
     if (full_copy) {
-      /* Entire data-block has to be recaculated, remove all caches of "lower" elements. */
+      /* Entire data-block has to be recalculated, remove all caches of "lower" elements. */
       BLI_dlrbTree_free(root_cache->children, cache_node_free);
     }
     return;
   }
 
   const bool is_layer_update_node = (gpf_index == -1);
-  /* If the data pointer in GPencilUpdateCache is NULL, this element is not actually cached
+  /* If the data pointer in #GPencilUpdateCache is NULL, this element is not actually cached
    * and does not need to be updated, but we do need the index to find elements that are in
    * levels below. E.g. if a stroke needs to be updated, the frame it is in would not hold a
    * pointer to it's data. */
@@ -174,7 +174,7 @@ static void update_cache_node_create(
   }
 
   if (root_cache->flag == GP_UPDATE_NODE_FULL_COPY) {
-    /* Entire data-block has to be recaculated, e.g. nothing else needs to be added to the cache.
+    /* Entire data-block has to be recalculated, e.g. nothing else needs to be added to the cache.
      */
     return;
   }

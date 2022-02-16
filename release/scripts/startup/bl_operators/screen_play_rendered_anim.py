@@ -44,6 +44,26 @@ class PlayRenderedAnim(Operator):
     bl_label = "Play Rendered Animation"
     bl_options = {'REGISTER'}
 
+    @staticmethod
+    def _frame_path_with_number_char(rd, ch, **kwargs):
+        # Replace the number with `ch`.
+
+        # NOTE: make an api call for this would be nice, however this isn't needed in many places.
+        file_a = rd.frame_path(frame=0, **kwargs)
+        file_b = rd.frame_path(frame=-1, **kwargs)
+        assert len(file_b) == len(file_a) + 1
+
+        for number_beg in range(len(file_a)):
+            if file_a[number_beg] != file_b[number_beg]:
+                break
+
+        for number_end in range(-1, -(len(file_a) + 1), -1):
+            if file_a[number_end] != file_b[number_end]:
+                break
+
+        number_end += len(file_a) + 1
+        return file_a[:number_beg] + (ch * (number_end - number_beg)) + file_a[number_end:]
+
     def execute(self, context):
         import os
         import subprocess
@@ -71,21 +91,7 @@ class PlayRenderedAnim(Operator):
             player_path = guess_player_path(preset)
 
         if is_movie is False and preset in {'FRAMECYCLER', 'RV', 'MPLAYER'}:
-            # replace the number with '#'
-            file_a = rd.frame_path(frame=0, view=view_suffix)
-
-            # TODO, make an api call for this
-            frame_tmp = 9
-            file_b = rd.frame_path(frame=frame_tmp, view=view_suffix)
-
-            while len(file_a) == len(file_b):
-                frame_tmp = (frame_tmp * 10) + 9
-                file_b = rd.frame_path(frame=frame_tmp, view=view_suffix)
-            file_b = rd.frame_path(frame=int(frame_tmp / 10), view=view_suffix)
-
-            file = ("".join((c if file_b[i] == c else "#")
-                            for i, c in enumerate(file_a)))
-            del file_a, file_b, frame_tmp
+            file = PlayRenderedAnim._frame_path_with_number_char(rd, "#", view=view_suffix)
             file = bpy.path.abspath(file)  # expand '//'
         else:
             path_valid = True

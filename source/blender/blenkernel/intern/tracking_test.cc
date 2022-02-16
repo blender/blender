@@ -6,6 +6,7 @@
 
 #include "BKE_tracking.h"
 #include "BLI_math_vec_types.hh"
+#include "BLI_math_vector.h"
 
 namespace blender {
 

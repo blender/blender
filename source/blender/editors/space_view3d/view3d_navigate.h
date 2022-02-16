@@ -14,15 +14,15 @@
 #define V3D_OP_TRACKBALLSIZE (1.1f)
 
 struct ARegion;
-struct bContext;
 struct Depsgraph;
 struct Dial;
 struct Main;
-struct rcti;
 struct RegionView3D;
 struct Scene;
 struct ScrArea;
 struct View3D;
+struct bContext;
+struct rcti;
 struct wmEvent;
 struct wmOperator;
 

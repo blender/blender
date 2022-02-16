@@ -360,8 +360,9 @@ USE_CXX11=true
 # XXX_VERSION_SHORT is used for various things, like preferred version (when distribution provides several of them),
 #                   and to name shortcuts to built libraries' installation directories...
 
+CLANG_FORMAT_VERSION="10.0"
 CLANG_FORMAT_VERSION_MIN="6.0"
-CLANG_FORMAT_VERSION_MEX="10.0"
+CLANG_FORMAT_VERSION_MEX="14.0"
 
 PYTHON_VERSION="3.10.2"
 PYTHON_VERSION_SHORT="3.10"

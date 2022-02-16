@@ -5,6 +5,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_rotation.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 

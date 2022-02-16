@@ -2823,7 +2823,7 @@ void BKE_gpencil_frame_selected_hash(bGPdata *gpd, struct GHash *r_list)
 
 bool BKE_gpencil_can_avoid_full_copy_on_write(const Depsgraph *depsgraph, bGPdata *gpd)
 {
-  /* For now, we only use the update cache in the active depsgraph. Othwerwise we might access the
+  /* For now, we only use the update cache in the active depsgraph. Otherwise we might access the
    * cache while another depsgraph frees it. */
   if (!DEG_is_active(depsgraph)) {
     return false;

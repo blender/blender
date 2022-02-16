@@ -18,8 +18,8 @@ extern "C" {
 struct AnimData;
 struct Curve;
 struct Curve;
-struct MDeformVert;
 struct GPencilUpdateCache;
+struct MDeformVert;
 
 #define GP_DEFAULT_PIX_FACTOR 1.0f
 #define GP_DEFAULT_GRID_LINES 4

@@ -1691,7 +1691,7 @@ void fill_crossdata_for_intersect(const FatCo<T> &curco,
   BLI_assert(se_vcva->vert == vc && se_vcva->next->vert == va);
   BLI_assert(se_vcvb->vert == vc && se_vcvb->next->vert == vb);
   UNUSED_VARS_NDEBUG(vc);
-  auto isect = isect_seg_seg<vec2<T>>(va->co.exact, vb->co.exact, curco.exact, v2->co.exact);
+  auto isect = isect_seg_seg(va->co.exact, vb->co.exact, curco.exact, v2->co.exact);
   T &lambda = isect.lambda;
   switch (isect.kind) {
     case isect_result<vec2<T>>::LINE_LINE_CROSS: {
@@ -2556,7 +2556,7 @@ template<typename T> void detect_holes(CDT_state<T> *cdt_state)
           if (e->symedges[0].face->visit_index == e->symedges[1].face->visit_index) {
             continue; /* Don't count hits on edges between faces in same region. */
           }
-          auto isect = isect_seg_seg<vec2<T>>(ray_end.exact,
+          auto isect = isect_seg_seg(ray_end.exact,
                                               mid.exact,
                                               e->symedges[0].vert->co.exact,
                                               e->symedges[1].vert->co.exact);

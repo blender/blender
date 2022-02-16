@@ -1811,7 +1811,7 @@ static void gpencil_sculpt_brush_apply(bContext *C, wmOperator *op, PointerRNA *
   gso->mval[1] = mouse[1] = (int)(mousef[1]);
 
   /* If the mouse/pen has not moved, no reason to continue. This also avoid a small
-   * drift due precision acumulation errors. */
+   * drift due precision accumulation errors. */
   if ((gso->mval[0] == gso->mval_prev[0]) && (gso->mval[1] == gso->mval_prev[1])) {
     return;
   }

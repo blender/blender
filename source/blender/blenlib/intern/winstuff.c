@@ -3,7 +3,7 @@
 
 /** \file
  * \ingroup bli
- * Windows-posix compatibility layer, windows-specific functions.
+ * WIN32-POSIX compatibility layer, MS-Windows-specific functions.
  */
 
 #ifdef WIN32

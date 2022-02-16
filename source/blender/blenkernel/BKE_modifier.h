@@ -409,14 +409,18 @@ void BKE_modifier_session_uuid_generate(struct ModifierData *md);
 
 bool BKE_modifier_unique_name(struct ListBase *modifiers, struct ModifierData *md);
 
+struct ModifierData *BKE_modifier_copy_ex(const struct ModifierData *md, int flag);
+
 /**
  * Callback's can use this to avoid copying every member.
  */
 void BKE_modifier_copydata_generic(const struct ModifierData *md,
                                    struct ModifierData *md_dst,
                                    int flag);
-void BKE_modifier_copydata(struct ModifierData *md, struct ModifierData *target);
-void BKE_modifier_copydata_ex(struct ModifierData *md, struct ModifierData *target, int flag);
+void BKE_modifier_copydata(const struct ModifierData *md, struct ModifierData *target);
+void BKE_modifier_copydata_ex(const struct ModifierData *md,
+                              struct ModifierData *target,
+                              int flag);
 bool BKE_modifier_depends_ontime(struct Scene *scene, struct ModifierData *md, int dag_eval_mode);
 bool BKE_modifier_supports_mapping(struct ModifierData *md);
 bool BKE_modifier_supports_cage(struct Scene *scene, struct ModifierData *md);

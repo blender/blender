@@ -4,7 +4,8 @@
 
 #include "BLI_array.hh"
 #include "BLI_color.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 
 #include "DNA_customdata_types.h"
 

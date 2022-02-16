@@ -1207,6 +1207,9 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
       if (object_mode & OB_MODE_VERTEX_GPENCIL) {
         return CTX_MODE_VERTEX_GPENCIL;
       }
+      if (object_mode & OB_MODE_SCULPT_CURVES) {
+        return CTX_MODE_SCULPT_CURVES;
+      }
     }
   }
 
@@ -1226,11 +1229,27 @@ enum eContextObjectMode CTX_data_mode_enum(const bContext *C)
  * \note Must be aligned with above enum.
  */
 static const char *data_mode_strings[] = {
-    "mesh_edit",           "curve_edit",          "surface_edit",        "text_edit",
-    "armature_edit",       "mball_edit",          "lattice_edit",        "posemode",
-    "sculpt_mode",         "weightpaint",         "vertexpaint",         "imagepaint",
-    "particlemode",        "objectmode",          "greasepencil_paint",  "greasepencil_edit",
-    "greasepencil_sculpt", "greasepencil_weight", "greasepencil_vertex", NULL,
+    "mesh_edit",
+    "curve_edit",
+    "surface_edit",
+    "text_edit",
+    "armature_edit",
+    "mball_edit",
+    "lattice_edit",
+    "posemode",
+    "sculpt_mode",
+    "weightpaint",
+    "vertexpaint",
+    "imagepaint",
+    "particlemode",
+    "objectmode",
+    "greasepencil_paint",
+    "greasepencil_edit",
+    "greasepencil_sculpt",
+    "greasepencil_weight",
+    "greasepencil_vertex",
+    "curves_sculpt",
+    NULL,
 };
 BLI_STATIC_ASSERT(ARRAY_SIZE(data_mode_strings) == CTX_MODE_NUM + 1,
                   "Must have a string for each context mode")

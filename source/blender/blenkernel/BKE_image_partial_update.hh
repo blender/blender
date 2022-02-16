@@ -21,8 +21,8 @@
 #include "DNA_image_types.h"
 
 extern "C" {
-struct PartialUpdateUser;
 struct PartialUpdateRegister;
+struct PartialUpdateUser;
 }
 
 namespace blender::bke::image {

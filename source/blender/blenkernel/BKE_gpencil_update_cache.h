@@ -14,11 +14,11 @@ extern "C" {
 #include "BLI_sys_types.h" /* for bool */
 
 struct DLRBT_Tree;
-struct bGPdata;
-struct bGPDlayer;
-struct bGPDframe;
-struct bGPDstroke;
 struct GPencilUpdateCache;
+struct bGPDframe;
+struct bGPDlayer;
+struct bGPDstroke;
+struct bGPdata;
 
 /* GPencilUpdateCache.flag */
 typedef enum eGPUpdateCacheNodeFlag {

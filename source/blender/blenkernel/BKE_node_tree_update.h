@@ -7,12 +7,12 @@
  */
 
 struct ID;
+struct ImageUser;
 struct Main;
 struct bNode;
 struct bNodeLink;
 struct bNodeSocket;
 struct bNodeTree;
-struct ImageUser;
 
 #ifdef __cplusplus
 extern "C" {

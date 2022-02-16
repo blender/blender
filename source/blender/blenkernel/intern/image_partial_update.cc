@@ -90,8 +90,8 @@ static int chunk_number_for_pixel(int pixel_offset)
   return chunk_offset;
 }
 
-struct PartialUpdateUserImpl;
 struct PartialUpdateRegisterImpl;
+struct PartialUpdateUserImpl;
 
 /**
  * Wrap PartialUpdateUserImpl to its C-struct (PartialUpdateUser).

@@ -11,11 +11,11 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
+struct ImBuf;
 struct Image;
 struct ImageFormatData;
 struct Main;
 struct Object;
-struct ImBuf;
 struct RenderData;
 struct RenderResult;
 struct ReportList;

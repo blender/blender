@@ -2354,6 +2354,7 @@ int UI_icon_from_object_mode(const int mode)
       return ICON_EDITMODE_HLT;
     case OB_MODE_SCULPT:
     case OB_MODE_SCULPT_GPENCIL:
+    case OB_MODE_SCULPT_CURVES:
       return ICON_SCULPTMODE_HLT;
     case OB_MODE_VERTEX_PAINT:
     case OB_MODE_VERTEX_GPENCIL:

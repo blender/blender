@@ -1391,13 +1391,14 @@ typedef struct ToolSettings {
   char object_flag;
 
   /* Selection Mode for Mesh */
-  short selectmode;
+  char selectmode;
 
   /* UV Calculation */
   char unwrapper;
   char uvcalc_flag;
   char uv_flag;
   char uv_selectmode;
+  char uv_sticky;
 
   float uvcalc_margin;
 
@@ -2299,6 +2300,13 @@ enum {
 #define UV_SELECT_EDGE 2
 #define UV_SELECT_FACE 4
 #define UV_SELECT_ISLAND 8
+
+/** #ToolSettings.uv_sticky */
+enum {
+  SI_STICKY_LOC = 0,
+  SI_STICKY_DISABLE = 1,
+  SI_STICKY_VERTEX = 2,
+};
 
 /** #ToolSettings.gpencil_flags */
 typedef enum eGPencil_Flags {

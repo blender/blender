@@ -1130,15 +1130,9 @@ endif()
 
 if(DEFINED BLENDER_TEXT_FILES_DESTINATION)
 
-  install(
-    CODE
-    "
-    file(READ \"${CMAKE_SOURCE_DIR}/release/text/readme.html\" DATA_SRC)
-    string(REGEX REPLACE \"BLENDER_VERSION\" \"${BLENDER_VERSION}\" DATA_DST \"\${DATA_SRC}\")
-    file(WRITE \"${CMAKE_BINARY_DIR}/release/text/readme.html\" \"\${DATA_DST}\")
-    unset(DATA_SRC)
-    unset(DATA_DST)
-    "
+  configure_file(${CMAKE_SOURCE_DIR}/release/text/readme.html
+                 ${CMAKE_BINARY_DIR}/release/text/readme.html
+                 @ONLY
   )
   list(APPEND BLENDER_TEXT_FILES
     ${CMAKE_BINARY_DIR}/release/text/readme.html

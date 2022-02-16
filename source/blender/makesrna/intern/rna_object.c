@@ -84,6 +84,7 @@ const EnumPropertyItem rna_enum_object_mode_items[] = {
      ICON_VPAINT_HLT,
      "Vertex Paint",
      "Grease Pencil Vertex Paint Strokes"},
+    {OB_MODE_SCULPT_CURVES, "SCULPT_CURVES", ICON_SCULPTMODE_HLT, "Sculpt Mode", ""},
     {0, NULL, 0, NULL, NULL},
 };
 

@@ -1340,8 +1340,9 @@ void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
 
   drw_subdiv_compute_dispatch(cache, shader, 0, dst_offset, cache->num_subdiv_quads);
 
-  /* This generates a vertex buffer, so we need to put a barrier on the vertex attribute array. */
-  GPU_memory_barrier(GPU_BARRIER_VERTEX_ATTRIB_ARRAY);
+  /* This generates a vertex buffer, so we need to put a barrier on the vertex attribute array. Put
+   * a barrier on the shader storage as we may use the result in another compute shader. */
+  GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE | GPU_BARRIER_VERTEX_ATTRIB_ARRAY);
 
   /* Cleanup. */
   GPU_shader_unbind();
@@ -1410,6 +1411,28 @@ void draw_subdiv_finalize_normals(const DRWSubdivCache *cache,
   GPU_vertbuf_bind_as_ssbo(vertex_normals, binding_point++);
   GPU_vertbuf_bind_as_ssbo(subdiv_loop_subdiv_vert_index, binding_point++);
   GPU_vertbuf_bind_as_ssbo(pos_nor, binding_point++);
+
+  drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache->num_subdiv_quads);
+
+  /* This generates a vertex buffer, so we need to put a barrier on the vertex attribute array.
+   * We also need it for subsequent compute shaders, so a barrier on the shader storage is also
+   * needed. */
+  GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE | GPU_BARRIER_VERTEX_ATTRIB_ARRAY);
+
+  /* Cleanup. */
+  GPU_shader_unbind();
+}
+
+void draw_subdiv_finalize_custom_normals(const DRWSubdivCache *cache,
+                                         GPUVertBuf *src_custom_normals,
+                                         GPUVertBuf *pos_nor)
+{
+  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_NORMALS_FINALIZE, "#define CUSTOM_NORMALS");
+  GPU_shader_bind(shader);
+
+  GPU_vertbuf_bind_as_ssbo(src_custom_normals, 0);
+  /* outputPosNor is bound at index 2 in the base shader. */
+  GPU_vertbuf_bind_as_ssbo(pos_nor, 2);
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache->num_subdiv_quads);
 
@@ -1762,9 +1785,9 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
                                                  const float obmat[4][4],
                                                  const bool do_final,
                                                  const bool do_uvedit,
-                                                 const bool use_subsurf_fdots,
+                                                 const bool UNUSED(use_subsurf_fdots),
                                                  const ToolSettings *ts,
-                                                 const bool use_hide,
+                                                 const bool UNUSED(use_hide),
                                                  OpenSubdiv_EvaluatorCache *evaluator_cache)
 {
   SubsurfModifierData *smd = BKE_object_get_last_subsurf_modifier(ob);
@@ -1812,6 +1835,11 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
   draw_cache->num_subdiv_triangles = tris_count_from_number_of_loops(draw_cache->num_subdiv_loops);
   /* We can only evaluate limit normals if the patches are adaptive. */
   draw_cache->do_limit_normals = settings.is_adaptive;
+
+  draw_cache->use_custom_loop_normals = (smd->flags & eSubsurfModifierFlag_UseCustomNormals) &&
+                                        (mesh_eval->flag & ME_AUTOSMOOTH) &&
+                                        CustomData_has_layer(&mesh_eval->ldata,
+                                                             CD_CUSTOMLOOPNORMAL);
 
   if (DRW_ibo_requested(mbc->buff.ibo.tris)) {
     draw_subdiv_cache_ensure_mat_offsets(draw_cache, mesh_eval, batch_cache->mat_len);

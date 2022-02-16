@@ -102,7 +102,7 @@ struct IMAGE_InstanceData {
     short requested_view = image_user ? image_user->multi_index : 0;
     /* There is room for 2 multiview textures. When a higher number is requested we should always
      * target the first view slot. This is fine as multi view images aren't used together. */
-    if (requested_view < 2) {
+    if (requested_view > 1) {
       requested_view = 0;
     }
 

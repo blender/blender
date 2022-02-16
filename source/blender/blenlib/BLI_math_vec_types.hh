@@ -12,8 +12,11 @@
 #include <iostream>
 #include <type_traits>
 
-#include "BLI_math_vector.hh"
 #include "BLI_utildefines.h"
+
+#ifdef WITH_GMP
+#  include "BLI_math_mpq.hh"
+#endif
 
 namespace blender {
 
@@ -40,6 +43,38 @@ template<typename T> struct vec_struct_base<T, 3> {
 template<typename T> struct vec_struct_base<T, 4> {
   T x, y, z, w;
 };
+
+namespace math {
+
+template<typename T> uint64_t vector_hash(const T &vec)
+{
+  BLI_STATIC_ASSERT(T::type_length <= 4, "Longer types need to implement vector_hash themself.");
+  const typename T::uint_type &uvec = *reinterpret_cast<const typename T::uint_type *>(&vec);
+  uint64_t result;
+  result = uvec[0] * uint64_t(435109);
+  if constexpr (T::type_length > 1) {
+    result ^= uvec[1] * uint64_t(380867);
+  }
+  if constexpr (T::type_length > 2) {
+    result ^= uvec[2] * uint64_t(1059217);
+  }
+  if constexpr (T::type_length > 3) {
+    result ^= uvec[3] * uint64_t(2002613);
+  }
+  return result;
+}
+
+template<typename T, int Size> inline bool is_any_zero(const vec_struct_base<T, Size> &a)
+{
+  for (int i = 0; i < Size; i++) {
+    if (a[i] == T(0)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+}  // namespace math
 
 template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size> {
 
@@ -342,7 +377,7 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
 
   vec_base &operator/=(const vec_base &b)
   {
-    BLI_assert(!math::is_any_zero(b));
+    BLI_assert(b != T(0));
     BLI_VEC_OP_IMPL_SELF(i, (*this)[i] /= b[i]);
   }
 
@@ -486,7 +521,7 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
 
   BLI_INT_OP(T) friend vec_base operator%(T a, const vec_base &b)
   {
-    BLI_assert(!math::is_any_zero(b));
+    BLI_assert(b != T(0));
     BLI_VEC_OP_IMPL(ret, i, ret[i] = a % b[i]);
   }
 
@@ -547,5 +582,14 @@ using float4 = vec_base<float, 4>;
 using double2 = vec_base<double, 2>;
 using double3 = vec_base<double, 3>;
 using double4 = vec_base<double, 4>;
+
+template<typename T>
+inline constexpr bool is_math_float_type = (std::is_floating_point_v<T>
+#ifdef WITH_GMP
+                                            || std::is_same_v<T, mpq_class>
+#endif
+);
+
+template<typename T> inline constexpr bool is_math_integral_type = std::is_integral_v<T>;
 
 }  // namespace blender

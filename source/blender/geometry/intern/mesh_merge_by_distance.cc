@@ -3,6 +3,7 @@
 #include "BLI_array.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_kdtree.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_vector.hh"
 

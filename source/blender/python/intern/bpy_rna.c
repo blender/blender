@@ -2192,16 +2192,9 @@ static int pyrna_prop_array_bool(BPy_PropertyRNA *self)
 
 static int pyrna_prop_collection_bool(BPy_PropertyRNA *self)
 {
-  /* No callback defined, just iterate and find the nth item. */
-  CollectionPropertyIterator iter;
-  int test;
-
   PYRNA_PROP_CHECK_INT(self);
 
-  RNA_property_collection_begin(&self->ptr, self->prop, &iter);
-  test = iter.valid;
-  RNA_property_collection_end(&iter);
-  return test;
+  return !RNA_property_collection_is_empty(&self->ptr, self->prop);
 }
 
 /* notice getting the length of the collection is avoided unless negative
@@ -6017,6 +6010,36 @@ static PyObject *small_dict_get_item_string(PyObject *dict, const char *key_look
   return NULL;
 }
 
+/**
+ * \param parm_index: The argument index or -1 for keyword arguments.
+ */
+static void pyrna_func_error_prefix(BPy_FunctionRNA *self,
+                                    PropertyRNA *parm,
+                                    const int parm_index,
+                                    char *error,
+                                    const size_t error_size)
+{
+  PointerRNA *self_ptr = &self->ptr;
+  FunctionRNA *self_func = self->func;
+  if (parm_index == -1) {
+    BLI_snprintf(error,
+                 error_size,
+                 "%.200s.%.200s(): error with keyword argument \"%.200s\" - ",
+                 RNA_struct_identifier(self_ptr->type),
+                 RNA_function_identifier(self_func),
+                 RNA_property_identifier(parm));
+  }
+  else {
+    BLI_snprintf(error,
+                 error_size,
+                 "%.200s.%.200s(): error with argument %d, \"%.200s\" - ",
+                 RNA_struct_identifier(self_ptr->type),
+                 RNA_function_identifier(self_func),
+                 parm_index + 1,
+                 RNA_property_identifier(parm));
+  }
+}
+
 static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject *kw)
 {
   /* NOTE: both BPy_StructRNA and BPy_PropertyRNA can be used here. */
@@ -6143,8 +6166,6 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
       kw_arg = true;
     }
 
-    i++; /* Current argument. */
-
     if (item == NULL) {
       if (flag_parameter & PARM_REQUIRED) {
         PyErr_Format(PyExc_TypeError,
@@ -6156,46 +6177,33 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
         break;
       }
       /* PyDict_GetItemString won't raise an error. */
-      continue;
     }
+    else {
 
 #ifdef DEBUG_STRING_FREE
-    if (item) {
-      if (PyUnicode_Check(item)) {
-        PyList_APPEND(string_free_ls, PyUnicode_FromString(PyUnicode_AsUTF8(item)));
+      if (item) {
+        if (PyUnicode_Check(item)) {
+          PyList_APPEND(string_free_ls, PyUnicode_FromString(PyUnicode_AsUTF8(item)));
+        }
       }
-    }
 #endif
-    err = pyrna_py_to_prop(&funcptr, parm, iter.data, item, "");
 
-    if (err != 0) {
       /* the error generated isn't that useful, so generate it again with a useful prefix
        * could also write a function to prepend to error messages */
       char error_prefix[512];
-      PyErr_Clear(); /* Re-raise. */
 
-      if (kw_arg == true) {
-        BLI_snprintf(error_prefix,
-                     sizeof(error_prefix),
-                     "%.200s.%.200s(): error with keyword argument \"%.200s\" - ",
-                     RNA_struct_identifier(self_ptr->type),
-                     RNA_function_identifier(self_func),
-                     RNA_property_identifier(parm));
+      err = pyrna_py_to_prop(&funcptr, parm, iter.data, item, "");
+
+      if (err != 0) {
+        PyErr_Clear(); /* Re-raise. */
+        pyrna_func_error_prefix(self, parm, kw_arg ? -1 : i, error_prefix, sizeof(error_prefix));
+        pyrna_py_to_prop(&funcptr, parm, iter.data, item, error_prefix);
+
+        break;
       }
-      else {
-        BLI_snprintf(error_prefix,
-                     sizeof(error_prefix),
-                     "%.200s.%.200s(): error with argument %d, \"%.200s\" - ",
-                     RNA_struct_identifier(self_ptr->type),
-                     RNA_function_identifier(self_func),
-                     i,
-                     RNA_property_identifier(parm));
-      }
-
-      pyrna_py_to_prop(&funcptr, parm, iter.data, item, error_prefix);
-
-      break;
     }
+
+    i++; /* Current argument. */
   }
 
   RNA_parameter_list_end(&iter);
