@@ -8,10 +8,10 @@
 
 #include <string>
 
-struct bNode;
-struct bNodeTree;
 struct Material;
 struct USDExportParams;
+struct bNode;
+struct bNodeTree;
 
 namespace blender::io::usd {
 

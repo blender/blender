@@ -12,9 +12,9 @@ extern "C" {
 #endif
 
 struct BoundBox;
+struct Curves;
 struct CustomDataLayer;
 struct Depsgraph;
-struct Curves;
 struct Main;
 struct Object;
 struct Scene;
