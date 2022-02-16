@@ -117,18 +117,6 @@ int PointCloudComponent::attribute_domain_size(const AttributeDomain domain) con
 
 namespace blender::bke {
 
-template<typename T>
-static GVArray make_array_read_attribute(const void *data, const int domain_size)
-{
-  return VArray<T>::ForSpan(Span<T>((const T *)data, domain_size));
-}
-
-template<typename T>
-static GVMutableArray make_array_write_attribute(void *data, const int domain_size)
-{
-  return VMutableArray<T>::ForSpan(MutableSpan<T>((T *)data, domain_size));
-}
-
 /**
  * In this function all the attribute providers for a point cloud component are created. Most data
  * in this function is statically allocated, because it does not change over time.

@@ -854,18 +854,6 @@ static GVMutableArray make_derived_write_attribute(void *data, const int domain_
       MutableSpan<StructT>((StructT *)data, domain_size));
 }
 
-template<typename T>
-static GVArray make_array_read_attribute(const void *data, const int domain_size)
-{
-  return VArray<T>::ForSpan(Span<T>((const T *)data, domain_size));
-}
-
-template<typename T>
-static GVMutableArray make_array_write_attribute(void *data, const int domain_size)
-{
-  return VMutableArray<T>::ForSpan(MutableSpan<T>((T *)data, domain_size));
-}
-
 static float3 get_vertex_position(const MVert &vert)
 {
   return float3(vert.co);
