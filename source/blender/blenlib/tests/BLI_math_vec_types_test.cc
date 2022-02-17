@@ -146,4 +146,29 @@ TEST(math_vec_types, VectorTypeConversion)
   EXPECT_EQ(d[1], -1.0);
 }
 
+TEST(math_vec_types, Divide)
+{
+  float2 a(1.0f, 2.0f);
+  float2 b(0.5f, 2.0f);
+  float2 result = a / b;
+  EXPECT_FLOAT_EQ(result.x, 2.0f);
+  EXPECT_FLOAT_EQ(result.y, 1.0f);
+}
+
+TEST(math_vec_types, DivideFloatByVector)
+{
+  float a = 2.0f;
+  float2 b(0.5f, 2.0f);
+  float2 result = a / b;
+  EXPECT_FLOAT_EQ(result.x, 4.0f);
+  EXPECT_FLOAT_EQ(result.y, 1.0f);
+}
+
+TEST(math_vec_types, DivideFloatByVectorSmall)
+{
+  float2 result = 2.0f / float2(2.0f);
+  EXPECT_FLOAT_EQ(result.x, 1.0f);
+  EXPECT_FLOAT_EQ(result.y, 1.0f);
+}
+
 }  // namespace blender::tests
