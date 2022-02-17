@@ -1188,8 +1188,9 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
         &state->viewer_pose, settings->base_scale * state->nav_scale, state->viewer_viewmat);
   }
 
-  int ret = GHOST_XrSyncActions(xr_context, active_action_set ? active_action_set->name : NULL);
-  if (!ret) {
+  const bool synced = GHOST_XrSyncActions(xr_context,
+                                          active_action_set ? active_action_set->name : NULL);
+  if (!synced) {
     return;
   }
 
