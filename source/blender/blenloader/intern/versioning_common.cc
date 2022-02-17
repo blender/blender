@@ -56,7 +56,7 @@ ID *do_versions_rename_id(Main *bmain,
   ListBase *lb = which_libbase(bmain, id_type);
   ID *id = nullptr;
   LISTBASE_FOREACH (ID *, idtest, lb) {
-    if (idtest->lib == nullptr) {
+    if (!ID_IS_LINKED(idtest)) {
       if (STREQ(idtest->name + 2, name_src)) {
         id = idtest;
       }

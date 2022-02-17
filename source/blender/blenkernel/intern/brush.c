@@ -147,7 +147,7 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
     /* NOTE: assert below ensures that the comment above is valid, and that that exception is
      * acceptable for the time being. */
     BKE_lib_id_make_local(bmain, &brush->clone.image->id, 0);
-    BLI_assert(brush->clone.image->id.lib == NULL && brush->clone.image->id.newid == NULL);
+    BLI_assert(!ID_IS_LINKED(brush->clone.image) && brush->clone.image->id.newid == NULL);
   }
 
   if (force_local) {
