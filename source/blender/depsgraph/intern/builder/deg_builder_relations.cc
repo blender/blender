@@ -2420,8 +2420,9 @@ void DepsgraphRelationBuilder::build_light(Light *lamp)
   /* light's nodetree */
   if (lamp->nodetree != nullptr) {
     build_nodetree(lamp->nodetree);
-    ComponentKey nodetree_key(&lamp->nodetree->id, NodeType::NTREE_OUTPUT);
-    add_relation(nodetree_key, shading_key, "NTree->Light Parameters");
+    OperationKey ntree_key(
+        &lamp->nodetree->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
+    add_relation(ntree_key, shading_key, "NTree->Light Parameters");
     build_nested_nodetree(&lamp->id, lamp->nodetree);
   }
 }
