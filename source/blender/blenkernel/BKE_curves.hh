@@ -50,7 +50,7 @@ class CurvesGeometryRuntime {
 
 /**
  * A C++ class that wraps the DNA struct for better encapsulation and ease of use. It inherits
- * directly from the struct rather than storing a pointer to avoid more complcated ownership
+ * directly from the struct rather than storing a pointer to avoid more complicated ownership
  * handling.
  */
 class CurvesGeometry : public ::CurvesGeometry {

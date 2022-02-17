@@ -163,9 +163,11 @@ static void reset_bezts(tGraphSliderOp *gso)
   ANIM_animdata_freelist(&anim_data);
 }
 
-/* Get factor value and store it in RNA property. Custom data of wmOperator needs to contain
- * tGraphSliderOp. */
-const float slider_factor_get_and_remember(wmOperator *op)
+/**
+ * Get factor value and store it in RNA property.
+ * Custom data of #wmOperator needs to contain #tGraphSliderOp.
+ */
+static float slider_factor_get_and_remember(wmOperator *op)
 {
   tGraphSliderOp *gso = op->customdata;
   const float factor = ED_slider_factor_get(gso->slider);
