@@ -60,8 +60,6 @@ class AssetGridViewItem : public ui::PreviewGridItem {
 
  public:
   AssetGridViewItem(const AssetLibraryReference &asset_library_ref, AssetHandle &);
-
-  bool matches(const AbstractGridViewItem &other) const override;
 };
 
 void asset_view_create_in_layout(const bContext &C,

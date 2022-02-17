@@ -74,16 +74,15 @@ bool AssetGridView::listen(const wmNotifier &notifier) const
 
 AssetGridViewItem::AssetGridViewItem(const AssetLibraryReference &asset_library_ref,
                                      AssetHandle &asset)
-    : ui::PreviewGridItem(ED_asset_handle_get_name(&asset),
+    : ui::PreviewGridItem(ED_asset_handle_get_identifier(&asset),
+                          ED_asset_handle_get_name(&asset),
                           ED_assetlist_asset_preview_icon_id_request(&asset_library_ref, &asset)),
-      asset_identifier_(ED_asset_handle_get_identifier(&asset))
+      /* Get a copy so the identifier is always available (the file data wrapped by the handle may
+       * be freed). */
+      asset_identifier_(identifier_)
 {
-}
-
-bool AssetGridViewItem::matches(const ui::AbstractGridViewItem &other) const
-{
-  const AssetGridViewItem &other_item = dynamic_cast<const AssetGridViewItem &>(other);
-  return asset_identifier_ == other_item.asset_identifier_;
+  /* Update reference so we don't point into the possibly freed file data. */
+  identifier_ = asset_identifier_;
 }
 
 /* ---------------------------------------------------------------------- */

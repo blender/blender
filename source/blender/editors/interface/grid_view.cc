@@ -44,6 +44,9 @@ AbstractGridViewItem &AbstractGridView::add_item(std::unique_ptr<AbstractGridVie
 
   AbstractGridViewItem &added_item = *items_.last();
   added_item.view_ = this;
+
+  item_map_.add(added_item.identifier_, &added_item);
+
   return added_item;
 }
 
@@ -60,17 +63,14 @@ bool AbstractGridView::listen(const wmNotifier &) const
   return false;
 }
 
-AbstractGridViewItem *AbstractGridView::find_matching_item(const AbstractGridViewItem &lookup_item,
-                                                           const AbstractGridView &view) const
+AbstractGridViewItem *AbstractGridView::find_matching_item(
+    const AbstractGridViewItem &item_to_match, const AbstractGridView &view_to_search_in) const
 {
-  for (const auto &iter_item_ptr : view.items_) {
-    if (lookup_item.matches(*iter_item_ptr)) {
-      /* We have a matching item! */
-      return iter_item_ptr.get();
-    }
-  }
+  AbstractGridViewItem *const *match = view_to_search_in.item_map_.lookup_ptr(
+      item_to_match.identifier_);
+  BLI_assert(!match || item_to_match.matches(**match));
 
-  return nullptr;
+  return match ? *match : nullptr;
 }
 
 void AbstractGridView::change_state_delayed()
@@ -127,9 +127,13 @@ GridViewStyle::GridViewStyle(int width, int height) : tile_width(width), tile_he
 
 /* ---------------------------------------------------------------------- */
 
+AbstractGridViewItem::AbstractGridViewItem(StringRef identifier) : identifier_(identifier)
+{
+}
+
 bool AbstractGridViewItem::matches(const AbstractGridViewItem &other) const
 {
-  return label_ == other.label_;
+  return identifier_ == other.identifier_;
 }
 
 void AbstractGridViewItem::grid_tile_click_fn(struct bContext * /*C*/,
@@ -449,10 +453,9 @@ void GridViewBuilder::build_grid_view(AbstractGridView &grid_view, const View2D 
 
 /* ---------------------------------------------------------------------- */
 
-PreviewGridItem::PreviewGridItem(StringRef label, int preview_icon_id)
-    : preview_icon_id(preview_icon_id)
+PreviewGridItem::PreviewGridItem(StringRef identifier, StringRef label, int preview_icon_id)
+    : AbstractGridViewItem(identifier), label(label), preview_icon_id(preview_icon_id)
 {
-  label_ = label;
 }
 
 void PreviewGridItem::build_grid_tile(uiLayout &layout) const
@@ -463,7 +466,7 @@ void PreviewGridItem::build_grid_tile(uiLayout &layout) const
   uiBut *but = uiDefBut(block,
                         UI_BTYPE_PREVIEW_TILE,
                         0,
-                        label_.c_str(),
+                        label.c_str(),
                         0,
                         0,
                         style.tile_width,

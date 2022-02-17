@@ -24,7 +24,9 @@
 #pragma once
 
 #include "BLI_function_ref.hh"
+#include "BLI_map.hh"
 #include "BLI_vector.hh"
+
 #include "UI_resources.h"
 
 struct bContext;
@@ -52,8 +54,8 @@ class AbstractGridViewItem {
   bool is_active_ = false;
 
  protected:
-  /** This label is used as the default way to identifying an item in the view. */
-  std::string label_{};
+  /** Reference to a string that uniquely identifies this item in the view. */
+  StringRef identifier_{};
   /** Every visible item gets a button of type #UI_BTYPE_GRID_TILE during the layout building. */
   uiButGridTile *grid_tile_but_ = nullptr;
 
@@ -63,12 +65,11 @@ class AbstractGridViewItem {
   virtual void build_grid_tile(uiLayout &layout) const = 0;
 
   /**
-   * Compare this item to \a other to check if they represent the same data.
+   * Compare this item's identifier to \a other to check if they represent the same data.
    * Used to recognize an item from a previous redraw, to be able to keep its state (e.g. active,
-   * renaming, etc.). By default this just matches the item's label. If that isn't good enough for
-   * a sub-class, that can override it.
+   * renaming, etc.).
    */
-  virtual bool matches(const AbstractGridViewItem &other) const;
+  bool matches(const AbstractGridViewItem &other) const;
 
   const AbstractGridView &get_view() const;
 
@@ -79,7 +80,7 @@ class AbstractGridViewItem {
   bool is_active() const;
 
  protected:
-  AbstractGridViewItem() = default;
+  AbstractGridViewItem(StringRef identifier);
 
   /** Called when the item's state changes from inactive to active. */
   virtual void on_activate();
@@ -131,6 +132,9 @@ class AbstractGridView {
 
  protected:
   Vector<std::unique_ptr<AbstractGridViewItem>> items_;
+  /** <identifier, item> map to lookup items by identifier, used for efficient lookups in
+   * #update_from_old(). */
+  Map<StringRef, AbstractGridViewItem *> item_map_;
   GridViewStyle style_;
   bool is_reconstructed_ = false;
 
@@ -177,8 +181,8 @@ class AbstractGridView {
    * #AbstractGridViewItem.update_from_old().
    */
   void update_from_old(uiBlock &new_block);
-  AbstractGridViewItem *find_matching_item(const AbstractGridViewItem &lookup_item,
-                                           const AbstractGridView &view) const;
+  AbstractGridViewItem *find_matching_item(const AbstractGridViewItem &item_to_match,
+                                           const AbstractGridView &view_to_search_in) const;
   /**
    * Items may want to do additional work when state changes. But these state changes can only be
    * reliably detected after the view has completed reconstruction (see #is_reconstructed()). So
@@ -236,9 +240,10 @@ class PreviewGridItem : public AbstractGridViewItem {
   IsActiveFn is_active_fn_;
 
  public:
+  std::string label{};
   int preview_icon_id = ICON_NONE;
 
-  PreviewGridItem(StringRef label, int preview_icon_id);
+  PreviewGridItem(StringRef identifier, StringRef label, int preview_icon_id);
 
   void build_grid_tile(uiLayout &layout) const override;
 
