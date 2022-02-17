@@ -169,10 +169,10 @@ static void extract_weights_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_weights_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                        const MeshRenderData *UNUSED(mr),
+                                        const MeshRenderData *mr,
                                         struct MeshBatchCache *cache,
                                         void *buffer,
-                                        void *UNUSED(data))
+                                        void *_data)
 {
   Mesh *coarse_mesh = subdiv_cache->mesh;
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
@@ -184,28 +184,20 @@ static void extract_weights_init_subdiv(const DRWSubdivCache *subdiv_cache,
   GPU_vertbuf_init_build_on_device(vbo, &format, subdiv_cache->num_subdiv_loops);
 
   GPUVertBuf *coarse_weights = GPU_vertbuf_calloc();
-  GPU_vertbuf_init_with_format(coarse_weights, &format);
-  GPU_vertbuf_data_alloc(coarse_weights, coarse_mesh->totloop);
-  float *coarse_weights_data = static_cast<float *>(GPU_vertbuf_get_data(coarse_weights));
+  extract_weights_init(mr, cache, coarse_weights, _data);
 
-  const DRW_MeshWeightState *wstate = &cache->weight_state;
-  const MDeformVert *dverts = static_cast<const MDeformVert *>(
-      CustomData_get_layer(&coarse_mesh->vdata, CD_MDEFORMVERT));
-
-  for (int i = 0; i < coarse_mesh->totpoly; i++) {
-    const MPoly *mpoly = &coarse_mesh->mpoly[i];
-
-    for (int loop_index = mpoly->loopstart; loop_index < mpoly->loopstart + mpoly->totloop;
-         loop_index++) {
-      const MLoop *ml = &coarse_mesh->mloop[loop_index];
-
-      if (dverts != nullptr) {
-        const MDeformVert *dvert = &dverts[ml->v];
-        coarse_weights_data[loop_index] = evaluate_vertex_weight(dvert, wstate);
-      }
-      else {
-        coarse_weights_data[loop_index] = evaluate_vertex_weight(nullptr, wstate);
-      }
+  if (mr->extract_type != MR_EXTRACT_BMESH) {
+    for (int i = 0; i < coarse_mesh->totpoly; i++) {
+      const MPoly *mpoly = &coarse_mesh->mpoly[i];
+      extract_weights_iter_poly_mesh(mr, mpoly, i, _data);
+    }
+  }
+  else {
+    BMIter f_iter;
+    BMFace *efa;
+    int face_index = 0;
+    BM_ITER_MESH_INDEX (efa, &f_iter, mr->bm, BM_FACES_OF_MESH, face_index) {
+      extract_weights_iter_poly_bm(mr, efa, face_index, _data);
     }
   }
 
