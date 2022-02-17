@@ -82,4 +82,6 @@ mark_as_advanced(
 
 unset(_ffmpeg_SEARCH_DIRS)
 unset(_ffmpeg_LIBRARIES)
-unset(_ffmpeg_INCLUDE_DIR)
+# In cmake version 3.21 and up, we can instead use the NO_CACHE option for
+# find_path so we don't need to clear it from the cache here.
+unset(_ffmpeg_INCLUDE_DIR CACHE)

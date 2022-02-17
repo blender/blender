@@ -362,6 +362,7 @@ if(WITH_BOOST)
       find_package(IcuLinux)
     endif()
     mark_as_advanced(Boost_DIR)  # why doesn't boost do this?
+    mark_as_advanced(Boost_INCLUDE_DIR)  # why doesn't boost do this?
   endif()
 
   set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})

@@ -31,6 +31,10 @@ if(OPENCOLLADA_ANIMATION_CLIP)
   add_definitions(-DWITH_OPENCOLLADA_ANIMATION_CLIP)
 endif()
 
+# In cmake version 3.21 and up, we can instead use the NO_CACHE option for
+# find_file so we don't need to clear it from the cache here.
+unset(OPENCOLLADA_ANIMATION_CLIP CACHE)
+
 set(INC
   .
   ../../blenkernel

@@ -76,6 +76,7 @@ FIND_PATH(OSL_SHADER_DIR
     /usr/include/OSL/
   PATH_SUFFIXES
     share/OSL/shaders
+    shaders
 )
 
 # handle the QUIETLY and REQUIRED arguments and set OSL_FOUND to TRUE if
@@ -99,6 +100,7 @@ ENDIF()
 
 MARK_AS_ADVANCED(
   OSL_INCLUDE_DIR
+  OSL_SHADER_DIR
 )
 FOREACH(COMPONENT ${_osl_FIND_COMPONENTS})
   STRING(TOUPPER ${COMPONENT} UPPERCOMPONENT)
