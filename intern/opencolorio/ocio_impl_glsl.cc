@@ -21,14 +21,14 @@
 #include "GPU_shader.h"
 #include "GPU_uniform_buffer.h"
 
+#include "gpu_shader_create_info.hh"
+
 using namespace OCIO_NAMESPACE;
 
 #include "MEM_guardedalloc.h"
 
 #include "ocio_impl.h"
-
-extern "C" char datatoc_gpu_shader_display_transform_glsl[];
-extern "C" char datatoc_gpu_shader_display_transform_vertex_glsl[];
+#include "ocio_shader_shared.hh"
 
 /* **** OpenGL drawing routines using GLSL for color space transform ***** */
 
@@ -39,47 +39,28 @@ enum OCIO_GPUTextureSlots {
   TEXTURE_SLOT_LUTS_OFFSET = 3,
 };
 
-/* Curve mapping parameters
- *
- * See documentation for OCIO_CurveMappingSettings to get fields descriptions.
- * (this ones pretty much copies stuff from C structure.)
- */
-struct OCIO_GPUCurveMappingParameters {
-  float curve_mapping_mintable[4];
-  float curve_mapping_range[4];
-  float curve_mapping_ext_in_x[4];
-  float curve_mapping_ext_in_y[4];
-  float curve_mapping_ext_out_x[4];
-  float curve_mapping_ext_out_y[4];
-  float curve_mapping_first_x[4];
-  float curve_mapping_first_y[4];
-  float curve_mapping_last_x[4];
-  float curve_mapping_last_y[4];
-  float curve_mapping_black[4];
-  float curve_mapping_bwmul[4];
-  int curve_mapping_lut_size;
-  int curve_mapping_use_extend_extrapolate;
-  int _pad[2];
-  /** WARNING: Needs to be 16byte aligned. Used as UBO data. */
+enum OCIO_GPUUniformBufSlots {
+  UNIFORMBUF_SLOT_DISPLAY = 0,
+  UNIFORMBUF_SLOT_CURVEMAP = 1,
+  UNIFORMBUF_SLOT_LUTS = 2,
 };
 
 struct OCIO_GPUShader {
   /* GPU shader. */
   struct GPUShader *shader = nullptr;
 
-  /** Uniform locations. */
-  int scale_loc = 0;
-  int exponent_loc = 0;
-  int dither_loc = 0;
-  int overlay_loc = 0;
-  int predivide_loc = 0;
-  int ubo_bind = 0;
+  /** Uniform parameters. */
+  OCIO_GPUParameters parameters = {};
+  GPUUniformBuf *parameters_buffer = nullptr;
 
   /* Destructor. */
   ~OCIO_GPUShader()
   {
     if (shader) {
       GPU_shader_free(shader);
+    }
+    if (parameters_buffer) {
+      GPU_uniformbuf_free(parameters_buffer);
     }
   }
 };
@@ -103,6 +84,7 @@ struct OCIO_GPUTextures {
 
   /* Uniforms */
   std::vector<OCIO_GPUUniform> uniforms;
+  GPUUniformBuf *uniforms_buffer = nullptr;
 
   /* Destructor. */
   ~OCIO_GPUTextures()
@@ -112,6 +94,9 @@ struct OCIO_GPUTextures {
     }
     if (dummy) {
       GPU_texture_free(dummy);
+    }
+    if (uniforms_buffer) {
+      GPU_uniformbuf_free(uniforms_buffer);
     }
   }
 };
@@ -165,97 +150,134 @@ static bool createGPUShader(OCIO_GPUShader &shader,
                             const GpuShaderDescRcPtr &shaderdesc_to_display,
                             const bool use_curve_mapping)
 {
-  std::ostringstream os;
+  using namespace blender::gpu::shader;
+
+  std::string source;
+  source += shaderdesc_to_scene_linear->getShaderText();
+  source += "\n";
+  source += shaderdesc_to_display->getShaderText();
+  source += "\n";
+
   {
-    /* Fragment shader */
-
-    /* Work around OpenColorIO not supporting latest GLSL yet. */
-    os << "#define texture2D texture\n";
-    os << "#define texture3D texture\n";
-
-    if (use_curve_mapping) {
-      os << "#define USE_CURVE_MAPPING\n";
+    /* Replace all uniform declarations by a comment.
+     * This avoids double declarations from the backend. */
+    size_t index = 0;
+    while (true) {
+      index = source.find("uniform ", index);
+      if (index == -1) {
+        break;
+      }
+      source.replace(index, 2, "//");
+      index += 2;
     }
-
-    os << shaderdesc_to_scene_linear->getShaderText() << "\n";
-    os << shaderdesc_to_display->getShaderText() << "\n";
-
-    os << datatoc_gpu_shader_display_transform_glsl;
   }
 
-  shader.shader = GPU_shader_create(datatoc_gpu_shader_display_transform_vertex_glsl,
-                                    os.str().c_str(),
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
-                                    "OCIOShader");
+  StageInterfaceInfo iface("OCIO_Interface", "");
+  iface.smooth(Type::VEC2, "texCoord_interp");
 
-  if (shader.shader == nullptr) {
-    return false;
-  }
-
-  shader.scale_loc = GPU_shader_get_uniform(shader.shader, "scale");
-  shader.exponent_loc = GPU_shader_get_uniform(shader.shader, "exponent");
-  shader.dither_loc = GPU_shader_get_uniform(shader.shader, "dither");
-  shader.overlay_loc = GPU_shader_get_uniform(shader.shader, "overlay");
-  shader.predivide_loc = GPU_shader_get_uniform(shader.shader, "predivide");
-  shader.ubo_bind = GPU_shader_get_uniform_block_binding(shader.shader,
-                                                         "OCIO_GPUCurveMappingParameters");
-
-  GPU_shader_bind(shader.shader);
-
-  /* Set texture bind point uniform once. This is saved by the shader. */
-  GPUShader *sh = shader.shader;
-  GPU_shader_uniform_int(sh, GPU_shader_get_uniform(sh, "image_texture"), TEXTURE_SLOT_IMAGE);
-  GPU_shader_uniform_int(sh, GPU_shader_get_uniform(sh, "overlay_texture"), TEXTURE_SLOT_OVERLAY);
+  ShaderCreateInfo info("OCIO_Display");
+  /* Work around OpenColorIO not supporting latest GLSL yet. */
+  info.define("texture2D", "texture");
+  info.define("texture3D", "texture");
+  info.typedef_source("ocio_shader_shared.hh");
+  info.sampler(TEXTURE_SLOT_IMAGE, ImageType::FLOAT_2D, "image_texture");
+  info.sampler(TEXTURE_SLOT_OVERLAY, ImageType::FLOAT_2D, "overlay_texture");
+  info.uniform_buf(UNIFORMBUF_SLOT_DISPLAY, "OCIO_GPUParameters", "parameters");
+  info.push_constant(Type::MAT4, "ModelViewProjectionMatrix");
+  info.vertex_in(0, Type::VEC2, "pos");
+  info.vertex_in(1, Type::VEC2, "texCoord");
+  info.vertex_out(iface);
+  info.fragment_out(0, Type::VEC4, "fragColor");
+  info.vertex_source("gpu_shader_display_transform_vert.glsl");
+  info.fragment_source("gpu_shader_display_transform_frag.glsl");
+  info.fragment_source_generated = source;
 
   if (use_curve_mapping) {
-    GPU_shader_uniform_int(
-        sh, GPU_shader_get_uniform(sh, "curve_mapping_texture"), TEXTURE_SLOT_CURVE_MAPPING);
+    info.define("USE_CURVE_MAPPING");
+    info.uniform_buf(UNIFORMBUF_SLOT_CURVEMAP, "OCIO_GPUCurveMappingParameters", "curve_mapping");
+    info.sampler(TEXTURE_SLOT_CURVE_MAPPING, ImageType::FLOAT_1D, "curve_mapping_texture");
   }
 
   /* Set LUT textures. */
-  for (int i = 0; i < textures.luts.size(); i++) {
-    GPU_shader_uniform_int(sh,
-                           GPU_shader_get_uniform(sh, textures.luts[i].sampler_name.c_str()),
-                           TEXTURE_SLOT_LUTS_OFFSET + i);
+  int slot = TEXTURE_SLOT_LUTS_OFFSET;
+  for (OCIO_GPULutTexture &texture : textures.luts) {
+    ImageType type = GPU_texture_dimensions(texture.texture) == 2 ? ImageType::FLOAT_2D :
+                                                                    ImageType::FLOAT_3D;
+    info.sampler(slot++, type, texture.sampler_name.c_str());
   }
 
-  /* Set uniforms. */
-  for (OCIO_GPUUniform &uniform : textures.uniforms) {
-    const GpuShaderDesc::UniformData &data = uniform.data;
-    const char *name = uniform.name.c_str();
+  /* Set LUT uniforms. */
+  if (!textures.uniforms.empty()) {
+    /* NOTE: For simplicity, we pad everything to size of vec4 avoiding sorting and alignment
+     * issues. It is unlikely that this becomes a real issue. */
+    size_t ubo_size = textures.uniforms.size() * sizeof(float) * 4;
+    void *ubo_data_buf = malloc(ubo_size);
 
-    if (data.m_getDouble) {
-      GPU_shader_uniform_1f(sh, name, (float)data.m_getDouble());
+    uint32_t *ubo_data = reinterpret_cast<uint32_t *>(ubo_data_buf);
+
+    std::stringstream ss;
+    ss << "struct OCIO_GPULutParameters {\n";
+
+    int index = 0;
+    for (OCIO_GPUUniform &uniform : textures.uniforms) {
+      index += 1;
+      const GpuShaderDesc::UniformData &data = uniform.data;
+      const char *name = uniform.name.c_str();
+      char prefix = ' ';
+      int vec_len;
+      switch (data.m_type) {
+        case UNIFORM_DOUBLE: {
+          vec_len = 1;
+          float value = float(data.m_getDouble());
+          memcpy(ubo_data, &value, sizeof(float));
+          break;
+        }
+        case UNIFORM_BOOL: {
+          prefix = 'b';
+          vec_len = 1;
+          int value = int(data.m_getBool());
+          memcpy(ubo_data, &value, sizeof(int));
+          break;
+        }
+        case UNIFORM_FLOAT3:
+          vec_len = 3;
+          memcpy(ubo_data, data.m_getFloat3().data(), sizeof(float) * 3);
+          break;
+        case UNIFORM_VECTOR_FLOAT:
+          vec_len = data.m_vectorFloat.m_getSize();
+          memcpy(ubo_data, data.m_vectorFloat.m_getVector(), sizeof(float) * vec_len);
+          break;
+        case UNIFORM_VECTOR_INT:
+          prefix = 'i';
+          vec_len = data.m_vectorInt.m_getSize();
+          memcpy(ubo_data, data.m_vectorInt.m_getVector(), sizeof(int) * vec_len);
+          break;
+        default:
+          continue;
+      }
+      /* Align every member to 16bytes. */
+      ubo_data += 4;
+      /* Use a generic variable name because some GLSL compilers can interpret the preprocessor
+       * define as recursive. */
+      ss << "  " << prefix << "vec4 var" << index << ";\n";
+      /* Use a define to keep the generated code working. */
+      blender::StringRef suffix = blender::StringRefNull("xyzw").substr(0, vec_len);
+      ss << "#define " << name << " lut_parameters.var" << index << "." << suffix << "\n";
     }
-    else if (data.m_getBool) {
-      GPU_shader_uniform_1f(sh, name, (float)(data.m_getBool() ? 1.0f : 0.0f));
-    }
-    else if (data.m_getFloat3) {
-      GPU_shader_uniform_3f(sh,
-                            name,
-                            (float)data.m_getFloat3()[0],
-                            (float)data.m_getFloat3()[1],
-                            (float)data.m_getFloat3()[2]);
-    }
-    else if (data.m_vectorFloat.m_getSize && data.m_vectorFloat.m_getVector) {
-      GPU_shader_uniform_vector(sh,
-                                GPU_shader_get_uniform(sh, name),
-                                (int)data.m_vectorFloat.m_getSize(),
-                                1,
-                                (float *)data.m_vectorFloat.m_getVector());
-    }
-    else if (data.m_vectorInt.m_getSize && data.m_vectorInt.m_getVector) {
-      GPU_shader_uniform_vector_int(sh,
-                                    GPU_shader_get_uniform(sh, name),
-                                    (int)data.m_vectorInt.m_getSize(),
-                                    1,
-                                    (int *)data.m_vectorInt.m_getVector());
-    }
+    ss << "};\n";
+    info.typedef_source_generated = ss.str();
+
+    info.uniform_buf(UNIFORMBUF_SLOT_LUTS, "OCIO_GPULutParameters", "lut_parameters");
+
+    textures.uniforms_buffer = GPU_uniformbuf_create_ex(
+        ubo_size, ubo_data_buf, "OCIO_LutParameters");
+
+    free(ubo_data_buf);
   }
 
-  return true;
+  shader.shader = GPU_shader_create_from_info(reinterpret_cast<GPUShaderCreateInfo *>(&info));
+
+  return (shader.shader != nullptr);
 }
 
 /** \} */
@@ -438,25 +460,63 @@ static void updateGPUCurveMapping(OCIO_GPUCurveMappping &curvemap,
   /* Update uniforms. */
   OCIO_GPUCurveMappingParameters data;
   for (int i = 0; i < 4; i++) {
-    data.curve_mapping_range[i] = curve_mapping_settings->range[i];
-    data.curve_mapping_mintable[i] = curve_mapping_settings->mintable[i];
-    data.curve_mapping_ext_in_x[i] = curve_mapping_settings->ext_in_x[i];
-    data.curve_mapping_ext_in_y[i] = curve_mapping_settings->ext_in_y[i];
-    data.curve_mapping_ext_out_x[i] = curve_mapping_settings->ext_out_x[i];
-    data.curve_mapping_ext_out_y[i] = curve_mapping_settings->ext_out_y[i];
-    data.curve_mapping_first_x[i] = curve_mapping_settings->first_x[i];
-    data.curve_mapping_first_y[i] = curve_mapping_settings->first_y[i];
-    data.curve_mapping_last_x[i] = curve_mapping_settings->last_x[i];
-    data.curve_mapping_last_y[i] = curve_mapping_settings->last_y[i];
+    data.range[i] = curve_mapping_settings->range[i];
+    data.mintable[i] = curve_mapping_settings->mintable[i];
+    data.ext_in_x[i] = curve_mapping_settings->ext_in_x[i];
+    data.ext_in_y[i] = curve_mapping_settings->ext_in_y[i];
+    data.ext_out_x[i] = curve_mapping_settings->ext_out_x[i];
+    data.ext_out_y[i] = curve_mapping_settings->ext_out_y[i];
+    data.first_x[i] = curve_mapping_settings->first_x[i];
+    data.first_y[i] = curve_mapping_settings->first_y[i];
+    data.last_x[i] = curve_mapping_settings->last_x[i];
+    data.last_y[i] = curve_mapping_settings->last_y[i];
   }
   for (int i = 0; i < 3; i++) {
-    data.curve_mapping_black[i] = curve_mapping_settings->black[i];
-    data.curve_mapping_bwmul[i] = curve_mapping_settings->bwmul[i];
+    data.black[i] = curve_mapping_settings->black[i];
+    data.bwmul[i] = curve_mapping_settings->bwmul[i];
   }
-  data.curve_mapping_lut_size = curve_mapping_settings->lut_size;
-  data.curve_mapping_use_extend_extrapolate = curve_mapping_settings->use_extend_extrapolate;
+  data.lut_size = curve_mapping_settings->lut_size;
+  data.use_extend_extrapolate = curve_mapping_settings->use_extend_extrapolate;
 
   GPU_uniformbuf_update(curvemap.buffer, &data);
+}
+
+static void updateGPUDisplayParameters(OCIO_GPUShader &shader,
+                                       float scale,
+                                       float exponent,
+                                       float dither,
+                                       bool use_predivide,
+                                       bool use_overlay)
+{
+  bool do_update = false;
+  if (shader.parameters_buffer == nullptr) {
+    shader.parameters_buffer = GPU_uniformbuf_create(sizeof(OCIO_GPUParameters));
+    do_update = true;
+  }
+  OCIO_GPUParameters &data = shader.parameters;
+  if (data.scale != scale) {
+    data.scale = scale;
+    do_update = true;
+  }
+  if (data.exponent != exponent) {
+    data.exponent = exponent;
+    do_update = true;
+  }
+  if (data.dither != dither) {
+    data.dither = dither;
+    do_update = true;
+  }
+  if (data.use_predivide != use_predivide) {
+    data.use_predivide = use_predivide;
+    do_update = true;
+  }
+  if (data.use_overlay != use_overlay) {
+    data.use_overlay = use_overlay;
+    do_update = true;
+  }
+  if (do_update) {
+    GPU_uniformbuf_update(shader.parameters_buffer, &data);
+  }
 }
 
 /** \} */
@@ -609,7 +669,7 @@ bool OCIOImpl::gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
   /* Update and bind curve mapping data. */
   if (curve_mapping_settings) {
     updateGPUCurveMapping(curvemap, curve_mapping_settings);
-    GPU_uniformbuf_bind(curvemap.buffer, shader.ubo_bind);
+    GPU_uniformbuf_bind(curvemap.buffer, UNIFORMBUF_SLOT_CURVEMAP);
     GPU_texture_bind(curvemap.texture, TEXTURE_SLOT_CURVE_MAPPING);
   }
 
@@ -623,16 +683,15 @@ bool OCIOImpl::gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
     GPU_texture_bind(textures.luts[i].texture, TEXTURE_SLOT_LUTS_OFFSET + i);
   }
 
+  if (textures.uniforms_buffer) {
+    GPU_uniformbuf_bind(textures.uniforms_buffer, UNIFORMBUF_SLOT_LUTS);
+  }
+
+  updateGPUDisplayParameters(shader, scale, exponent, dither, use_predivide, use_overlay);
+  GPU_uniformbuf_bind(shader.parameters_buffer, UNIFORMBUF_SLOT_DISPLAY);
+
   /* TODO(fclem): remove remains of IMM. */
   immBindShader(shader.shader);
-
-  /* Bind Shader and set uniforms. */
-  // GPU_shader_bind(shader.shader);
-  GPU_shader_uniform_float(shader.shader, shader.scale_loc, scale);
-  GPU_shader_uniform_float(shader.shader, shader.exponent_loc, exponent);
-  GPU_shader_uniform_float(shader.shader, shader.dither_loc, dither);
-  GPU_shader_uniform_int(shader.shader, shader.overlay_loc, use_overlay);
-  GPU_shader_uniform_int(shader.shader, shader.predivide_loc, use_predivide);
 
   return true;
 }

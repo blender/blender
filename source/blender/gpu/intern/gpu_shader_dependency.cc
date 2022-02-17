@@ -21,6 +21,9 @@ extern "C" {
 #define SHADER_SOURCE(datatoc, filename, filepath) extern char datatoc[];
 #include "glsl_draw_source_list.h"
 #include "glsl_gpu_source_list.h"
+#ifdef WITH_OCIO
+#  include "glsl_ocio_source_list.h"
+#endif
 #undef SHADER_SOURCE
 }
 
@@ -348,6 +351,9 @@ void gpu_shader_dependency_init()
   g_sources->add_new(filename, new GPUSource(filepath, filename, datatoc));
 #include "glsl_draw_source_list.h"
 #include "glsl_gpu_source_list.h"
+#ifdef WITH_OCIO
+#  include "glsl_ocio_source_list.h"
+#endif
 #undef SHADER_SOURCE
 
   int errors = 0;
