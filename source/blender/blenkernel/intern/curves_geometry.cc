@@ -48,8 +48,13 @@ CurvesGeometry::CurvesGeometry(const int point_size, const int curve_size)
   this->runtime = MEM_new<CurvesGeometryRuntime>(__func__);
 }
 
+/**
+ * \note Expects `dst` to be initialized, since the original attributes must be freed.
+ */
 static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
 {
+  CustomData_free(&dst.point_data, dst.point_size);
+  CustomData_free(&dst.curve_data, dst.curve_size);
   dst.point_size = src.point_size;
   dst.curve_size = src.curve_size;
   CustomData_copy(&src.point_data, &dst.point_data, CD_MASK_ALL, CD_DUPLICATE, dst.point_size);
