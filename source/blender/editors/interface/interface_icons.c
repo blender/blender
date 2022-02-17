@@ -1399,19 +1399,17 @@ static void icon_set_image(const bContext *C,
 
   const bool delay = prv_img->rect[size] != NULL;
   icon_create_rect(prv_img, size);
-  prv_img->flag[size] |= PRV_RENDERING;
 
   if (use_job && (!id || BKE_previewimg_id_supports_jobs(id))) {
     /* Job (background) version */
-    ED_preview_icon_job(
-        C, prv_img, id, prv_img->rect[size], prv_img->w[size], prv_img->h[size], delay);
+    ED_preview_icon_job(C, prv_img, id, size, delay);
   }
   else {
     if (!scene) {
       scene = CTX_data_scene(C);
     }
     /* Immediate version */
-    ED_preview_icon_render(C, scene, id, prv_img->rect[size], prv_img->w[size], prv_img->h[size]);
+    ED_preview_icon_render(C, scene, prv_img, id, size);
   }
 }
 

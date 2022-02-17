@@ -1247,6 +1247,8 @@ enum {
   WM_JOB_TYPE_COMPOSITE,
   WM_JOB_TYPE_RENDER,
   WM_JOB_TYPE_RENDER_PREVIEW, /* UI preview */
+  /** Job for the UI to load previews from the file system (uses OS thumbnail cache). */
+  WM_JOB_TYPE_LOAD_PREVIEW, /* UI preview */
   WM_JOB_TYPE_OBJECT_SIM_OCEAN,
   WM_JOB_TYPE_OBJECT_SIM_FLUID,
   WM_JOB_TYPE_OBJECT_BAKE_TEXTURE,
