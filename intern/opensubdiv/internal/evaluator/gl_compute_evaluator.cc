@@ -267,11 +267,11 @@ void GLComputeEvaluator::DispatchCompute(int totalDispatchSize) const
   glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &maxWorkGroupCount[0]);
   glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &maxWorkGroupCount[1]);
 
-  const uint maxResX = static_cast<uint>(maxWorkGroupCount[0]);
+  const GLuint maxResX = static_cast<GLuint>(maxWorkGroupCount[0]);
 
   const int dispatchSize = GetDispatchSize(totalDispatchSize);
-  uint dispatchRX = static_cast<uint>(dispatchSize);
-  uint dispatchRY = 1u;
+  GLuint dispatchRX = static_cast<GLuint>(dispatchSize);
+  GLuint dispatchRY = 1u;
   if (dispatchRX > maxResX) {
     /* Since there are some limitations with regards to the maximum work group size (could be as
      * low as 64k elements per call), we split the number elements into a "2d" number, with the
@@ -290,7 +290,7 @@ void GLComputeEvaluator::DispatchCompute(int totalDispatchSize) const
   /* X and Y dimensions may have different limits so the above computation may not be right, but
    * even with the standard 64k minimum on all dimensions we still have a lot of room. Therefore,
    * we presume it all fits. */
-  assert(dispatchRY < static_cast<uint>(maxWorkGroupCount[1]));
+  assert(dispatchRY < static_cast<GLuint>(maxWorkGroupCount[1]));
 
   glDispatchCompute(dispatchRX, dispatchRY, 1);
 }
