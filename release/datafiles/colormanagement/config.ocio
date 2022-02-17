@@ -9,7 +9,7 @@
 #
 # See ocio-license.txt for details.
 
-ocio_profile_version: 1
+ocio_profile_version: 2
 
 search_path: "luts:filmic"
 strictparsing: true
@@ -100,8 +100,7 @@ colorspaces:
     from_reference: !<GroupTransform>
       children:
         - !<FileTransform> {src: srgb_to_xyz.spimtx, interpolation: linear}
-        - !<FileTransform> {src: xyz_D65_to_E.spimtx, interpolation: linear}
-        - !<FileTransform> {src: xyz_to_aces.spimtx, interpolation: linear}
+        - !<BuiltinTransform> {style: "UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD", direction: inverse}
 
   - !<ColorSpace>
     name: nuke_rec709
