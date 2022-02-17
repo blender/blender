@@ -124,8 +124,10 @@ class GHOST_SharedOpenGLResource {
   struct SharedData {
     HANDLE device;
     GLuint fbo;
-    HANDLE render_buf{nullptr};
+    HANDLE render_target{nullptr};
   } m_shared;
+
+  enum RenderTarget { TARGET_RENDERBUF, TARGET_TEX2D };
 
  public:
   GHOST_SharedOpenGLResource(ID3D11Device *device,
@@ -193,37 +195,64 @@ class GHOST_SharedOpenGLResource {
     }
 
     if (m_is_initialized) {
-      if (m_shared.render_buf) {
-        wglDXUnregisterObjectNV(m_shared.device, m_shared.render_buf);
+      if (m_shared.render_target
+#if 1
+          /* TODO: #wglDXUnregisterObjectNV() causes an access violation on AMD when the shared
+           * resource is a GL texture. Since there is currently no good alternative, just skip
+           * unregistering the shared resource. */
+          && !m_use_gl_texture2d
+#endif
+      ) {
+        wglDXUnregisterObjectNV(m_shared.device, m_shared.render_target);
       }
       if (m_shared.device) {
         wglDXCloseDeviceNV(m_shared.device);
       }
       glDeleteFramebuffers(1, &m_shared.fbo);
-      glDeleteRenderbuffers(1, &m_gl_render_buf);
+      if (m_use_gl_texture2d) {
+        glDeleteTextures(1, &m_gl_render_target);
+      }
+      else {
+        glDeleteRenderbuffers(1, &m_gl_render_target);
+      }
     }
   }
 
-  void reregisterSharedObject()
+  /* Returns true if the shared object was successfully registered, false otherwise. */
+  bool reregisterSharedObject(RenderTarget target)
   {
-    if (m_shared.render_buf) {
-      wglDXUnregisterObjectNV(m_shared.device, m_shared.render_buf);
+    if (m_shared.render_target) {
+      wglDXUnregisterObjectNV(m_shared.device, m_shared.render_target);
     }
 
     if (!m_render_target_tex) {
-      return;
+      return false;
     }
 
-    m_shared.render_buf = wglDXRegisterObjectNV(m_shared.device,
-                                                m_render_target_tex,
-                                                m_gl_render_buf,
-                                                GL_RENDERBUFFER,
-                                                WGL_ACCESS_READ_WRITE_NV);
+    if (target == TARGET_TEX2D) {
+      glTexImage2D(GL_TEXTURE_2D,
+                   0,
+                   GL_RGBA8,
+                   m_cur_width,
+                   m_cur_height,
+                   0,
+                   GL_RGBA,
+                   GL_UNSIGNED_BYTE,
+                   nullptr);
+    }
 
-    if (!m_shared.render_buf) {
+    m_shared.render_target = wglDXRegisterObjectNV(m_shared.device,
+                                                   m_render_target_tex,
+                                                   m_gl_render_target,
+                                                   (target == TARGET_TEX2D) ? GL_TEXTURE_2D :
+                                                                              GL_RENDERBUFFER,
+                                                   WGL_ACCESS_READ_WRITE_NV);
+    if (!m_shared.render_target) {
       fprintf(stderr, "Error registering shared object using wglDXRegisterObjectNV()\n");
-      return;
+      return false;
     }
+
+    return true;
   }
 
   GHOST_TSuccess initialize()
@@ -235,16 +264,33 @@ class GHOST_SharedOpenGLResource {
     }
 
     /* Build the renderbuffer. */
-    glGenRenderbuffers(1, &m_gl_render_buf);
-    glBindRenderbuffer(GL_RENDERBUFFER, m_gl_render_buf);
+    glGenRenderbuffers(1, &m_gl_render_target);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_gl_render_target);
 
-    reregisterSharedObject();
+    if (!reregisterSharedObject(TARGET_RENDERBUF)) {
+      glBindRenderbuffer(GL_RENDERBUFFER, 0);
+      if (m_gl_render_target) {
+        glDeleteRenderbuffers(1, &m_gl_render_target);
+      }
+      /* Fall back to texture 2d. */
+      m_use_gl_texture2d = true;
+      glGenTextures(1, &m_gl_render_target);
+      glBindTexture(GL_TEXTURE_2D, m_gl_render_target);
+
+      reregisterSharedObject(TARGET_TEX2D);
+    }
 
     /* Build the framebuffer */
     glGenFramebuffers(1, &m_shared.fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, m_shared.fbo);
-    glFramebufferRenderbuffer(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_gl_render_buf);
+    if (m_use_gl_texture2d) {
+      glFramebufferTexture2D(
+          GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_gl_render_target, 0);
+    }
+    else {
+      glFramebufferRenderbuffer(
+          GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_gl_render_target);
+    }
     m_is_initialized = true;
 
     return GHOST_kSuccess;
@@ -259,7 +305,7 @@ class GHOST_SharedOpenGLResource {
     if ((m_cur_width != width) || (m_cur_height != height)) {
       m_cur_width = width;
       m_cur_height = height;
-      reregisterSharedObject();
+      reregisterSharedObject(m_use_gl_texture2d ? TARGET_TEX2D : TARGET_RENDERBUF);
     }
   }
 
@@ -307,18 +353,19 @@ class GHOST_SharedOpenGLResource {
  private:
   void beginGLOnly()
   {
-    wglDXLockObjectsNV(m_shared.device, 1, &m_shared.render_buf);
+    wglDXLockObjectsNV(m_shared.device, 1, &m_shared.render_target);
   }
   void endGLOnly()
   {
-    wglDXUnlockObjectsNV(m_shared.device, 1, &m_shared.render_buf);
+    wglDXUnlockObjectsNV(m_shared.device, 1, &m_shared.render_target);
   }
 
   ID3D11Device *m_device;
   ID3D11DeviceContext *m_device_ctx;
-  GLuint m_gl_render_buf;
+  GLuint m_gl_render_target;
   unsigned int m_cur_width, m_cur_height;
   bool m_is_initialized{false};
+  bool m_use_gl_texture2d{false};
 };
 
 GHOST_SharedOpenGLResource *GHOST_ContextD3D::createSharedOpenGLResource(
