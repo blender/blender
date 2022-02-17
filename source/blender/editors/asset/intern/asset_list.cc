@@ -80,8 +80,8 @@ class AssetList : NonCopyable {
   FileListWrapper filelist_;
   /** Storage for asset handles, items are lazy-created on request.
    *  Asset handles are stored as a pointer here, to ensure a consistent memory address (address
-   * inside the map changes as the map changes). */
-  mutable Map<const FileDirEntry *, std::unique_ptr<AssetHandle>> asset_handle_map_;
+   *  inside the map changes as the map changes). */
+  mutable Map<uint32_t, std::unique_ptr<AssetHandle>> asset_handle_map_;
   AssetLibraryReference library_ref_;
 
  public:
@@ -186,8 +186,11 @@ bool AssetList::needsRefetch() const
 
 AssetHandle &AssetList::asset_handle_from_file(const FileDirEntry &file) const
 {
-  return *asset_handle_map_.lookup_or_add(&file,
-                                          std::make_unique<AssetHandle>(AssetHandle{&file}));
+  AssetHandle &asset = *asset_handle_map_.lookup_or_add(
+      file.uid, std::make_unique<AssetHandle>(AssetHandle{&file}));
+  /* The file is recreated while loading, update the pointer here. */
+  asset.file_data = &file;
+  return asset;
 }
 
 void AssetList::iterate(AssetListIterFn fn) const

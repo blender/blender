@@ -76,20 +76,14 @@ AssetGridViewItem::AssetGridViewItem(const AssetLibraryReference &asset_library_
                                      AssetHandle &asset)
     : ui::PreviewGridItem(ED_asset_handle_get_name(&asset),
                           ED_assetlist_asset_preview_icon_id_request(&asset_library_ref, &asset)),
-      asset_(asset)
+      asset_identifier_(ED_asset_handle_get_identifier(&asset))
 {
 }
 
 bool AssetGridViewItem::matches(const ui::AbstractGridViewItem &other) const
 {
   const AssetGridViewItem &other_item = dynamic_cast<const AssetGridViewItem &>(other);
-  return StringRef(ED_asset_handle_get_identifier(&asset_)) ==
-         StringRef(ED_asset_handle_get_identifier(&other_item.asset_));
-}
-
-AssetHandle &AssetGridViewItem::get_asset()
-{
-  return asset_;
+  return asset_identifier_ == other_item.asset_identifier_;
 }
 
 /* ---------------------------------------------------------------------- */

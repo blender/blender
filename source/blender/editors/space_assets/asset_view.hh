@@ -53,14 +53,15 @@ class AssetGridView : public blender::ui::AbstractGridView {
 };
 
 class AssetGridViewItem : public ui::PreviewGridItem {
-  AssetHandle &asset_;
+  /* Can't store this here, since the wrapped FileDirEntry will be freed while progressively
+   * loading items. */
+  // AssetHandle &asset_;
+  std::string asset_identifier_;
 
  public:
   AssetGridViewItem(const AssetLibraryReference &asset_library_ref, AssetHandle &);
 
   bool matches(const AbstractGridViewItem &other) const override;
-
-  AssetHandle &get_asset();
 };
 
 void asset_view_create_in_layout(const bContext &C,
