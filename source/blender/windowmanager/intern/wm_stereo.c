@@ -67,7 +67,7 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
   const float halfx = GLA_PIXEL_OFS / sizex;
   const float halfy = GLA_PIXEL_OFS / sizex;
 
-  immUniform1i("image", 0); /* texture is already bound to GL_TEXTURE0 unit */
+  /* Texture is already bound to GL_TEXTURE0 unit. */
 
   immBegin(GPU_PRIM_TRI_FAN, 4);
 
@@ -111,7 +111,7 @@ void wm_stereo3d_draw_topbottom(wmWindow *win, int view)
   const float halfx = GLA_PIXEL_OFS / sizex;
   const float halfy = GLA_PIXEL_OFS / sizex;
 
-  immUniform1i("image", 0); /* texture is already bound to GL_TEXTURE0 unit */
+  /* Texture is already bound to GL_TEXTURE0 unit. */
 
   immBegin(GPU_PRIM_TRI_FAN, 4);
 

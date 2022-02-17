@@ -817,28 +817,28 @@ void ShaderManager::init_xyz_transforms()
   Transform xyz_to_rgb;
 
   if (config->hasRole("aces_interchange")) {
-    /* Standard OpenColorIO role, defined as ACES2065-1. */
-    const Transform xyz_E_to_aces = make_transform(1.0498110175f,
-                                                   0.0f,
-                                                   -0.0000974845f,
-                                                   0.0f,
-                                                   -0.4959030231f,
-                                                   1.3733130458f,
-                                                   0.0982400361f,
-                                                   0.0f,
-                                                   0.0f,
-                                                   0.0f,
-                                                   0.9912520182f,
-                                                   0.0f);
-    const Transform xyz_D65_to_E = make_transform(
-        1.0521111f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.9184170f, 0.0f);
-
+    /* Standard OpenColorIO role, defined as ACES AP0 (ACES2065-1). */
     Transform aces_to_rgb;
     if (!to_scene_linear_transform(config, "aces_interchange", aces_to_rgb)) {
       return;
     }
 
-    xyz_to_rgb = aces_to_rgb * xyz_E_to_aces * xyz_D65_to_E;
+    /* This is the OpenColorIO builtin transform:
+     * UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD. */
+    const Transform ACES_AP0_to_xyz_D65 = make_transform(0.938280f,
+                                                         -0.004451f,
+                                                         0.016628f,
+                                                         0.000000f,
+                                                         0.337369f,
+                                                         0.729522f,
+                                                         -0.066890f,
+                                                         0.000000f,
+                                                         0.001174f,
+                                                         -0.003711f,
+                                                         1.091595f,
+                                                         0.000000f);
+    const Transform xyz_to_aces = transform_inverse(ACES_AP0_to_xyz_D65);
+    xyz_to_rgb = aces_to_rgb * xyz_to_aces;
   }
   else if (config->hasRole("XYZ")) {
     /* Custom role used before the standard existed. */

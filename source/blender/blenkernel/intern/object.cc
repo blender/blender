@@ -73,7 +73,7 @@
 #include "BKE_constraint.h"
 #include "BKE_crazyspace.h"
 #include "BKE_curve.h"
-#include "BKE_curves.h"
+#include "BKE_curves.hh"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_duplilist.h"
@@ -3936,7 +3936,7 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
 
   ListBase *lb = object_duplilist(depsgraph, scene, ob);
   LISTBASE_FOREACH (DupliObject *, dob, lb) {
-    if ((use_hidden == false) && (dob->no_draw != 0)) {
+    if (((use_hidden == false) && (dob->no_draw != 0)) || dob->ob_data == nullptr) {
       /* pass */
     }
     else {

@@ -2,6 +2,8 @@
 
 #include "node_function_util.hh"
 
+#include "BLI_math_vector.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 

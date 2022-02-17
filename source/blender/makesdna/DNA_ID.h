@@ -330,7 +330,7 @@ enum {
 /* 2 characters for ID code and 64 for actual name */
 #define MAX_ID_NAME 66
 
-/* ID_Runtime.remapping_status */
+/* ID_Runtime_Remap.status */
 enum {
   /** new_id is directly linked in current .blend. */
   ID_REMAP_IS_LINKED_DIRECT = 1 << 0,

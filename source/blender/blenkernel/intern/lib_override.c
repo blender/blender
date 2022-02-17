@@ -2127,7 +2127,7 @@ static void lib_override_library_main_resync_on_library_indirect_level(
                  "ID override %s from library level %d still found as needing resync, when all "
                  "IDs from that level should have been processed after tackling library level %d",
                  id->name,
-                 id->lib != NULL ? id->lib->temp_index : 0,
+                 ID_IS_LINKED(id) ? id->lib->temp_index : 0,
                  library_indirect_level);
       id->tag &= ~LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
     }

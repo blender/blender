@@ -1926,7 +1926,6 @@ static void sequencer_draw_display_buffer(const bContext *C,
   if (!glsl_used) {
     immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
     immUniformColor3f(1.0f, 1.0f, 1.0f);
-    immUniform1i("image", 0);
   }
 
   immBegin(GPU_PRIM_TRI_FAN, 4);

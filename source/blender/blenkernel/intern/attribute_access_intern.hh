@@ -207,6 +207,16 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
   void foreach_domain(const FunctionRef<void(AttributeDomain)> callback) const final;
 };
 
+template<typename T> GVArray make_array_read_attribute(const void *data, const int domain_size)
+{
+  return VArray<T>::ForSpan(Span<T>((const T *)data, domain_size));
+}
+
+template<typename T> GVMutableArray make_array_write_attribute(void *data, const int domain_size)
+{
+  return VMutableArray<T>::ForSpan(MutableSpan<T>((T *)data, domain_size));
+}
+
 /**
  * This provider is used to provide access to builtin attributes. It supports making internal types
  * available as different types. For example, the vertex position attribute is stored as part of

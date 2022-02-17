@@ -16,6 +16,7 @@ GPU_SHADER_CREATE_INFO(gpu_shader_2D_image_overlays_merge)
     .push_constant(Type::MAT4, "ModelViewProjectionMatrix")
     .push_constant(Type::BOOL, "display_transform")
     .push_constant(Type::BOOL, "overlay")
+    /* Sampler slots should match OCIO's. */
     .sampler(0, ImageType::FLOAT_2D, "image_texture")
     .sampler(1, ImageType::FLOAT_2D, "overlays_texture")
     .vertex_source("gpu_shader_2D_image_vert.glsl")

@@ -10,6 +10,7 @@
 #include "BLI_assert.h"
 #include "BLI_dynstr.h"
 #include "BLI_hash_mm3.h"
+#include "BLI_math_vector.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 

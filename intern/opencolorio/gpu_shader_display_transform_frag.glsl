@@ -1,39 +1,10 @@
 /* Blender OpenColorIO implementation */
 
-uniform sampler2D image_texture;
-uniform sampler2D overlay_texture;
-
-uniform float dither;
-uniform float scale;
-uniform float exponent;
-uniform bool predivide;
-uniform bool overlay;
+/* -------------------------------------------------------------------- */
+/** \name Curve Mapping Implementation
+ * \{ */
 
 #ifdef USE_CURVE_MAPPING
-uniform sampler1D curve_mapping_texture;
-
-layout(std140) uniform OCIO_GPUCurveMappingParameters
-{
-  /* Curve mapping parameters
-   *
-   * See documentation for OCIO_CurveMappingSettings to get fields descriptions.
-   * (this ones pretty much copies stuff from C structure.)
-   */
-  vec4 curve_mapping_mintable;
-  vec4 curve_mapping_range;
-  vec4 curve_mapping_ext_in_x;
-  vec4 curve_mapping_ext_in_y;
-  vec4 curve_mapping_ext_out_x;
-  vec4 curve_mapping_ext_out_y;
-  vec4 curve_mapping_first_x;
-  vec4 curve_mapping_first_y;
-  vec4 curve_mapping_last_x;
-  vec4 curve_mapping_last_y;
-  vec4 curve_mapping_black;
-  vec4 curve_mapping_bwmul;
-  int curve_mapping_lut_size;
-  int curve_mapping_use_extend_extrapolate;
-};
 
 float read_curve_mapping(int table, int index)
 {
@@ -43,27 +14,27 @@ float read_curve_mapping(int table, int index)
 float curvemap_calc_extend(int table, float x, vec2 first, vec2 last)
 {
   if (x <= first[0]) {
-    if (curve_mapping_use_extend_extrapolate == 0) {
+    if (curve_mapping.use_extend_extrapolate == 0) {
       /* horizontal extrapolation */
       return first[1];
     }
     else {
-      float fac = (curve_mapping_ext_in_x[table] != 0.0) ?
-                      ((x - first[0]) / curve_mapping_ext_in_x[table]) :
+      float fac = (curve_mapping.ext_in_x[table] != 0.0) ?
+                      ((x - first[0]) / curve_mapping.ext_in_x[table]) :
                       10000.0;
-      return first[1] + curve_mapping_ext_in_y[table] * fac;
+      return first[1] + curve_mapping.ext_in_y[table] * fac;
     }
   }
   else if (x >= last[0]) {
-    if (curve_mapping_use_extend_extrapolate == 0) {
+    if (curve_mapping.use_extend_extrapolate == 0) {
       /* horizontal extrapolation */
       return last[1];
     }
     else {
-      float fac = (curve_mapping_ext_out_x[table] != 0.0) ?
-                      ((x - last[0]) / curve_mapping_ext_out_x[table]) :
+      float fac = (curve_mapping.ext_out_x[table] != 0.0) ?
+                      ((x - last[0]) / curve_mapping.ext_out_x[table]) :
                       -10000.0;
-      return last[1] + curve_mapping_ext_out_y[table] * fac;
+      return last[1] + curve_mapping.ext_out_y[table] * fac;
     }
   }
   return 0.0;
@@ -71,10 +42,10 @@ float curvemap_calc_extend(int table, float x, vec2 first, vec2 last)
 
 float curvemap_evaluateF(int table, float value)
 {
-  float mintable_ = curve_mapping_mintable[table];
-  float range = curve_mapping_range[table];
+  float mintable_ = curve_mapping.mintable[table];
+  float range = curve_mapping.range[table];
   float mintable = 0.0;
-  int CM_TABLE = curve_mapping_lut_size - 1;
+  int CM_TABLE = curve_mapping.lut_size - 1;
 
   float fi;
   int i;
@@ -87,8 +58,8 @@ float curvemap_evaluateF(int table, float value)
   if (fi < 0.0 || fi > float(CM_TABLE)) {
     return curvemap_calc_extend(table,
                                 value,
-                                vec2(curve_mapping_first_x[table], curve_mapping_first_y[table]),
-                                vec2(curve_mapping_last_x[table], curve_mapping_last_y[table]));
+                                vec2(curve_mapping.first_x[table], curve_mapping.first_y[table]),
+                                vec2(curve_mapping.last_x[table], curve_mapping.last_y[table]));
   }
   else {
     if (i < 0) {
@@ -106,7 +77,7 @@ float curvemap_evaluateF(int table, float value)
 
 vec4 curvemapping_evaluate_premulRGBF(vec4 col)
 {
-  col.rgb = (col.rgb - curve_mapping_black.rgb) * curve_mapping_bwmul.rgb;
+  col.rgb = (col.rgb - curve_mapping.black.rgb) * curve_mapping.bwmul.rgb;
 
   vec4 result;
   result.r = curvemap_evaluateF(0, col.r);
@@ -115,7 +86,14 @@ vec4 curvemapping_evaluate_premulRGBF(vec4 col)
   result.a = col.a;
   return result;
 }
+
 #endif /* USE_CURVE_MAPPING */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Dithering
+ * \{ */
 
 /* Using a triangle distribution which gives a more final uniform noise.
  * See Banding in Games:A Noisy Rant(revision 5) Mikkel Gjøl, Playdead (slide 27) */
@@ -135,23 +113,33 @@ float dither_random_value(vec2 co)
 
 vec2 round_to_pixel(sampler2D tex, vec2 uv)
 {
-  vec2 size = textureSize(tex, 0);
-  return vec2(ivec2(uv * size)) / size;
+  vec2 size = vec2(textureSize(tex, 0));
+  return floor(uv * size) / size;
 }
 
 vec4 apply_dither(vec4 col, vec2 uv)
 {
-  col.rgb += dither_random_value(uv) * 0.0033 * dither;
+  col.rgb += dither_random_value(uv) * 0.0033 * parameters.dither;
   return col;
 }
 
-vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay, vec2 noise_uv)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Main Processing
+ * \{ */
+
+/* Prototypes: Implementation is generaterd and defined after. */
+vec4 OCIO_to_scene_linear(vec4 pixel);
+vec4 OCIO_to_display(vec4 pixel);
+
+vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay)
 {
 #ifdef USE_CURVE_MAPPING
   col = curvemapping_evaluate_premulRGBF(col);
 #endif
 
-  if (predivide) {
+  if (parameters.use_predivide) {
     if (col.a > 0.0 && col.a < 1.0) {
       col.rgb *= 1.0 / col.a;
     }
@@ -166,7 +154,7 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay, vec2 noise_uv)
   col = OCIO_to_scene_linear(col);
 
   /* Apply exposure in scene linear. */
-  col.rgb *= scale;
+  col.rgb *= parameters.scale;
 
   /* Convert to display space. */
   col = OCIO_to_display(col);
@@ -177,34 +165,31 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay, vec2 noise_uv)
    * i.e: The linear color space w.r.t. display chromaticity and radiometry.
    * We separate the colormanagement process into two steps to be able to
    * merge UI using alpha blending in the correct color space. */
-  if (overlay) {
-    col.rgb = pow(col.rgb, vec3(exponent * 2.2));
+  if (parameters.use_overlay) {
+    col.rgb = pow(col.rgb, vec3(parameters.exponent * 2.2));
     col = clamp(col, 0.0, 1.0);
     col *= 1.0 - col_overlay.a;
     col += col_overlay; /* Assumed unassociated alpha. */
     col.rgb = pow(col.rgb, vec3(1.0 / 2.2));
   }
   else {
-    col.rgb = pow(col.rgb, vec3(exponent));
+    col.rgb = pow(col.rgb, vec3(parameters.exponent));
   }
 
-  if (dither > 0.0) {
+  if (parameters.dither > 0.0) {
+    vec2 noise_uv = round_to_pixel(image_texture, texCoord_interp.st);
     col = apply_dither(col, noise_uv);
   }
 
   return col;
 }
 
-/* ------------------------------------------------------------------------ */
-
-in vec2 texCoord_interp;
-out vec4 fragColor;
+/** \} */
 
 void main()
 {
   vec4 col = texture(image_texture, texCoord_interp.st);
   vec4 col_overlay = texture(overlay_texture, texCoord_interp.st);
-  vec2 noise_uv = round_to_pixel(image_texture, texCoord_interp.st);
 
-  fragColor = OCIO_ProcessColor(col, col_overlay, noise_uv);
+  fragColor = OCIO_ProcessColor(col, col_overlay);
 }

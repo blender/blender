@@ -2,9 +2,11 @@
 
 #pragma once
 
+#include "DNA_curves_types.h"
+
 /** \file
  * \ingroup bke
- * \brief Low-level operations for curves.
+ * \brief Low-level operations for curves that cannot be defined in the C++ header yet.
  */
 
 #ifdef __cplusplus
@@ -23,14 +25,10 @@ void *BKE_curves_add(struct Main *bmain, const char *name);
 
 struct BoundBox *BKE_curves_boundbox_get(struct Object *ob);
 
-void BKE_curves_update_customdata_pointers(struct Curves *curves);
 bool BKE_curves_customdata_required(struct Curves *curves, struct CustomDataLayer *layer);
 
 /* Depsgraph */
 
-struct Curves *BKE_curves_new_for_eval(const struct Curves *curves_src,
-                                       int totpoint,
-                                       int totcurve);
 struct Curves *BKE_curves_copy_for_eval(struct Curves *curves_src, bool reference);
 
 void BKE_curves_data_update(struct Depsgraph *depsgraph,

@@ -592,6 +592,67 @@ void draw_subdiv_cache_free(DRWSubdivCache *cache)
      SUBDIV_COARSE_FACE_FLAG_ACTIVE) \
     << SUBDIV_COARSE_FACE_FLAG_OFFSET)
 
+static uint32_t compute_coarse_face_flag(BMFace *f, BMFace *efa_act)
+{
+  if (f == nullptr) {
+    /* May happen during mapped extraction. */
+    return 0;
+  }
+
+  uint32_t flag = 0;
+  if (BM_elem_flag_test(f, BM_ELEM_SMOOTH)) {
+    flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
+  }
+  if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+    flag |= SUBDIV_COARSE_FACE_FLAG_SELECT;
+  }
+  if (f == efa_act) {
+    flag |= SUBDIV_COARSE_FACE_FLAG_ACTIVE;
+  }
+  const int loopstart = BM_elem_index_get(f->l_first);
+  return (uint)(loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
+}
+
+static void draw_subdiv_cache_extra_coarse_face_data_bm(BMesh *bm,
+                                                        BMFace *efa_act,
+                                                        uint32_t *flags_data)
+{
+  BMFace *f;
+  BMIter iter;
+
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    const int index = BM_elem_index_get(f);
+    flags_data[index] = compute_coarse_face_flag(f, efa_act);
+  }
+}
+
+static void draw_subdiv_cache_extra_coarse_face_data_mesh(Mesh *mesh, uint32_t *flags_data)
+{
+  for (int i = 0; i < mesh->totpoly; i++) {
+    uint32_t flag = 0;
+    if ((mesh->mpoly[i].flag & ME_SMOOTH) != 0) {
+      flag = SUBDIV_COARSE_FACE_FLAG_SMOOTH;
+    }
+    flags_data[i] = (uint)(mesh->mpoly[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
+  }
+}
+
+static void draw_subdiv_cache_extra_coarse_face_data_mapped(Mesh *mesh,
+                                                            BMesh *bm,
+                                                            MeshRenderData *mr,
+                                                            uint32_t *flags_data)
+{
+  if (bm == nullptr) {
+    draw_subdiv_cache_extra_coarse_face_data_mesh(mesh, flags_data);
+    return;
+  }
+
+  for (int i = 0; i < mesh->totpoly; i++) {
+    BMFace *f = bm_original_face_get(mr, i);
+    flags_data[i] = compute_coarse_face_flag(f, mr->efa_act);
+  }
+}
+
 static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache *cache,
                                                             Mesh *mesh,
                                                             MeshRenderData *mr)
@@ -611,56 +672,13 @@ static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache *cach
   uint32_t *flags_data = (uint32_t *)(GPU_vertbuf_get_data(cache->extra_coarse_face_data));
 
   if (mr->extract_type == MR_EXTRACT_BMESH) {
-    BMesh *bm = cache->bm;
-    BMFace *f;
-    BMIter iter;
-
-    /* Ensure all current elements follow new customdata layout. */
-    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-      const int index = BM_elem_index_get(f);
-      uint32_t flag = 0;
-      if (BM_elem_flag_test(f, BM_ELEM_SMOOTH)) {
-        flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
-      }
-      if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-        flag |= SUBDIV_COARSE_FACE_FLAG_SELECT;
-      }
-      if (f == mr->efa_act) {
-        flag |= SUBDIV_COARSE_FACE_FLAG_ACTIVE;
-      }
-      const int loopstart = BM_elem_index_get(f->l_first);
-      flags_data[index] = (uint)(loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
-    }
+    draw_subdiv_cache_extra_coarse_face_data_bm(cache->bm, mr->efa_act, flags_data);
   }
   else if (mr->extract_type == MR_EXTRACT_MAPPED) {
-    for (int i = 0; i < mesh->totpoly; i++) {
-      BMFace *f = bm_original_face_get(mr, i);
-      uint32_t flag = 0;
-
-      if (f) {
-        if (BM_elem_flag_test(f, BM_ELEM_SMOOTH)) {
-          flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
-        }
-        if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-          flag |= SUBDIV_COARSE_FACE_FLAG_SELECT;
-        }
-        if (f == mr->efa_act) {
-          flag |= SUBDIV_COARSE_FACE_FLAG_ACTIVE;
-        }
-        const int loopstart = BM_elem_index_get(f->l_first);
-        flag = (uint)(loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
-      }
-      flags_data[i] = flag;
-    }
+    draw_subdiv_cache_extra_coarse_face_data_mapped(mesh, cache->bm, mr, flags_data);
   }
   else {
-    for (int i = 0; i < mesh->totpoly; i++) {
-      uint32_t flag = 0;
-      if ((mesh->mpoly[i].flag & ME_SMOOTH) != 0) {
-        flag = SUBDIV_COARSE_FACE_FLAG_SMOOTH;
-      }
-      flags_data[i] = (uint)(mesh->mpoly[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
-    }
+    draw_subdiv_cache_extra_coarse_face_data_mesh(mesh, flags_data);
   }
 
   /* Make sure updated data is re-uploaded. */

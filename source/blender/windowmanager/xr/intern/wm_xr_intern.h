@@ -114,12 +114,8 @@ typedef struct wmXrDrawData {
 
 typedef struct wmXrController {
   struct wmXrController *next, *prev;
-  /** OpenXR path identifier. Length is dependent on OpenXR's XR_MAX_PATH_LENGTH (256).
-  This subaction path will later be combined with a component path, and that combined path should
-  also have a max of XR_MAX_PATH_LENGTH (e.g. subaction_path = /user/hand/left, component_path =
-  /input/trigger/value, interaction_path = /user/hand/left/input/trigger/value).
-  */
-  char subaction_path[64];
+  /** OpenXR user path identifier. */
+  char subaction_path[64]; /* XR_MAX_USER_PATH_LENGTH */
 
   /** Pose (in world space) that represents the user's hand when holding the controller. */
   GHOST_XrPose grip_pose;

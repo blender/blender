@@ -39,6 +39,16 @@ template<typename T, int Size> inline bool is_zero(const vec_base<T, Size> &a)
   return true;
 }
 
+template<typename T, int Size> inline bool is_any_zero(const vec_base<T, Size> &a)
+{
+  for (int i = 0; i < Size; i++) {
+    if (a[i] == T(0)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 template<typename T, int Size> inline vec_base<T, Size> abs(const vec_base<T, Size> &a)
 {
   vec_base<T, Size> result;

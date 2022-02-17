@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "BLI_listbase.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 
 #include "UI_interface.h"
