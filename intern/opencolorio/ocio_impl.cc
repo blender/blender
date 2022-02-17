@@ -341,9 +341,9 @@ void OCIOImpl::configGetXYZtoRGB(OCIO_ConstConfigRcPtr *config_, float xyz_to_rg
     if (to_scene_linear_matrix(config, "aces_interchange", aces_to_rgb)) {
       /* This is the OpenColorIO builtin transform:
        * UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD. */
-      const float ACES_AP0_to_xyz_D65[3][3] = {{0.938280, 0.337369, 0.001174},
-                                               {-0.004451, 0.729522, -0.003711},
-                                               {0.016628, -0.066890, 1.091595}};
+      const float ACES_AP0_to_xyz_D65[3][3] = {{0.938280f, 0.337369f, 0.001174f},
+                                               {-0.004451f, 0.729522f, -0.003711f},
+                                               {0.016628f, -0.066890f, 1.091595f}};
       float xyz_to_aces[3][3];
       invert_m3_m3(xyz_to_aces, ACES_AP0_to_xyz_D65);
 

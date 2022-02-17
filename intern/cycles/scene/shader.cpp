@@ -838,18 +838,18 @@ void ShaderManager::init_xyz_transforms()
 
     /* This is the OpenColorIO builtin transform:
      * UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD. */
-    const Transform ACES_AP0_to_xyz_D65 = make_transform(0.938280,
-                                                         -0.004451,
-                                                         0.016628,
-                                                         0.000000,
-                                                         0.337369,
-                                                         0.729522,
-                                                         -0.066890,
-                                                         0.000000,
-                                                         0.001174,
-                                                         -0.003711,
-                                                         1.091595,
-                                                         0.000000);
+    const Transform ACES_AP0_to_xyz_D65 = make_transform(0.938280f,
+                                                         -0.004451f,
+                                                         0.016628f,
+                                                         0.000000f,
+                                                         0.337369f,
+                                                         0.729522f,
+                                                         -0.066890f,
+                                                         0.000000f,
+                                                         0.001174f,
+                                                         -0.003711f,
+                                                         1.091595f,
+                                                         0.000000f);
     const Transform xyz_to_aces = transform_inverse(ACES_AP0_to_xyz_D65);
     xyz_to_rgb = aces_to_rgb * xyz_to_aces;
   }
