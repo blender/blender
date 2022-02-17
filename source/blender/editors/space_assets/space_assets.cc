@@ -173,8 +173,18 @@ static void asset_browser_main_region_init(wmWindowManager *wm, ARegion *region)
   }
 }
 
-static void asset_browser_main_region_listener(const wmRegionListenerParams *UNUSED(params))
+static void asset_browser_main_region_listener(const wmRegionListenerParams *params)
 {
+  wmNotifier *notifier = params->notifier;
+  ARegion *region = params->region;
+
+  switch (notifier->category) {
+    case NC_ASSET:
+      if (ELEM(notifier->data, ND_SPACE_ASSET_PARAMS)) {
+        ED_region_tag_redraw(region);
+      }
+      break;
+  }
 }
 
 /* FIXME: See comment above #WM_msg_publish_rna_prop(). */
