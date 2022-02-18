@@ -1818,9 +1818,9 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
                                                  const float obmat[4][4],
                                                  const bool do_final,
                                                  const bool do_uvedit,
-                                                 const bool use_subsurf_fdots,
+                                                 const bool /*use_subsurf_fdots*/,
                                                  const ToolSettings *ts,
-                                                 const bool use_hide,
+                                                 const bool /*use_hide*/,
                                                  OpenSubdiv_EvaluatorCache *evaluator_cache)
 {
   SubsurfModifierData *smd = BKE_object_get_last_subsurf_modifier(ob);
