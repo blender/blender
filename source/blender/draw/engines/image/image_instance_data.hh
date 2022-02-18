@@ -113,7 +113,7 @@ struct IMAGE_InstanceData {
 
   void update_image_usage(const ImageUser *image_user)
   {
-    ImageUsage usage(image_user);
+    ImageUsage usage(image, image_user);
     if (last_usage != usage) {
       last_usage = usage;
       reset_dirty_flag(true);
