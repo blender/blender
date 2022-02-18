@@ -239,6 +239,9 @@ class PathTrace {
 
   void progress_set_status(const string &status, const string &substatus = "");
 
+  /* Destroy GPU resources (such as graphics interop) used by work. */
+  void destroy_gpu_resources();
+
   /* Pointer to a device which is configured to be used for path tracing. If multiple devices
    * are configured this is a `MultiDevice`. */
   Device *device_ = nullptr;

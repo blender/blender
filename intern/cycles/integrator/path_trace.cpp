@@ -67,14 +67,7 @@ PathTrace::PathTrace(Device *device,
 
 PathTrace::~PathTrace()
 {
-  /* Destroy any GPU resource which was used for graphics interop.
-   * Need to have access to the PathTraceDisplay as it is the only source of drawing context which
-   * is used for interop. */
-  if (display_) {
-    for (auto &&path_trace_work : path_trace_works_) {
-      path_trace_work->destroy_gpu_resources(display_.get());
-    }
-  }
+  destroy_gpu_resources();
 }
 
 void PathTrace::load_kernels()
@@ -572,6 +565,11 @@ void PathTrace::set_output_driver(unique_ptr<OutputDriver> driver)
 
 void PathTrace::set_display_driver(unique_ptr<DisplayDriver> driver)
 {
+  /* The display driver is the source of the drawing context which might be used by
+   * path trace works. Make sure there is no graphics interop using resources from
+   * the old display, as it might no longer be available after this call. */
+  destroy_gpu_resources();
+
   if (driver) {
     display_ = make_unique<PathTraceDisplay>(move(driver));
   }
@@ -1086,6 +1084,18 @@ const BufferParams &PathTrace::get_render_tile_params() const
 bool PathTrace::has_denoised_result() const
 {
   return render_state_.has_denoised_result;
+}
+
+void PathTrace::destroy_gpu_resources()
+{
+  /* Destroy any GPU resource which was used for graphics interop.
+   * Need to have access to the PathTraceDisplay as it is the only source of drawing context which
+   * is used for interop. */
+  if (display_) {
+    for (auto &&path_trace_work : path_trace_works_) {
+      path_trace_work->destroy_gpu_resources(display_.get());
+    }
+  }
 }
 
 /* --------------------------------------------------------------------
