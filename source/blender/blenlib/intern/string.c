@@ -323,8 +323,9 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
 {
   size_t len = 0;
   bool is_complete = true;
+  const size_t max_strlen = dst_maxncpy - 1; /* Account for trailing zero byte. */
   for (const char *src_end = src + src_maxncpy; (src < src_end) && *src; src++) {
-    if (UNLIKELY(len == dst_maxncpy)) {
+    if (UNLIKELY(len == max_strlen)) {
       is_complete = false;
       break;
     }
