@@ -348,8 +348,7 @@ int BKE_mesh_tessface_calc_ex(struct CustomData *fdata,
                               struct MVert *mvert,
                               int totface,
                               int totloop,
-                              int totpoly,
-                              bool do_face_nor_copy);
+                              int totpoly);
 void BKE_mesh_tessface_calc(struct Mesh *mesh);
 
 /**
