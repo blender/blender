@@ -5450,6 +5450,21 @@ def km_font(params):
     return keymap
 
 
+def km_sculpt_curves(params):
+    items = []
+    keymap = (
+        "Sculpt Curves",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        ("sculpt_curves.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+    ])
+
+    return keymap
+
+
 def km_object_non_modal(params):
     items = []
     keymap = (
@@ -7771,6 +7786,7 @@ def generate_keymaps(params=None):
         km_lattice(params),
         km_particle(params),
         km_font(params),
+        km_sculpt_curves(params),
         km_object_non_modal(params),
 
         # Modal maps.

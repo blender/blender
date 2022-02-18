@@ -352,6 +352,12 @@ static bool rna_Brush_mode_with_tool_poll(PointerRNA *ptr, PointerRNA value)
     }
     mode = OB_MODE_WEIGHT_GPENCIL;
   }
+  else if (paint_contains_brush_slot(&ts->curves_sculpt->paint, tslot, &slot_index)) {
+    if (slot_index != brush->curves_sculpt_tool) {
+      return false;
+    }
+    mode = OB_MODE_SCULPT_CURVES;
+  }
 
   return brush->ob_mode & mode;
 }

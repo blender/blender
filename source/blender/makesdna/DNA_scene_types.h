@@ -995,6 +995,10 @@ typedef struct Sculpt {
   struct Object *gravity_object;
 } Sculpt;
 
+typedef struct CurvesSculpt {
+  Paint paint;
+} CurvesSculpt;
+
 typedef struct UvSculpt {
   Paint paint;
 } UvSculpt;
@@ -1380,6 +1384,8 @@ typedef struct ToolSettings {
   GpSculptPaint *gp_sculptpaint;
   /** Gpencil weight paint. */
   GpWeightPaint *gp_weightpaint;
+  /** Curves sculpt. */
+  CurvesSculpt *curves_sculpt;
 
   /* Vertex group weight - used only for editmode, not weight
    * paint */

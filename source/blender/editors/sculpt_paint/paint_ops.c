@@ -39,6 +39,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "curves_sculpt_intern.h"
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
@@ -758,6 +759,7 @@ static const ePaintMode brush_select_paint_modes[] = {
     PAINT_MODE_VERTEX_GPENCIL,
     PAINT_MODE_SCULPT_GPENCIL,
     PAINT_MODE_WEIGHT_GPENCIL,
+    PAINT_MODE_SCULPT_CURVES,
 };
 
 static int brush_select_exec(bContext *C, wmOperator *op)
@@ -1387,6 +1389,10 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
   /* paint stroke */
   keymap = paint_stroke_modal_keymap(keyconf);
   WM_modalkeymap_assign(keymap, "SCULPT_OT_brush_stroke");
+
+  /* Curves Sculpt mode. */
+  keymap = WM_keymap_ensure(keyconf, "Sculpt Curves", 0, 0);
+  keymap->poll = CURVES_SCULPT_mode_poll;
 
   /* sculpt expand. */
   sculpt_expand_modal_keymap(keyconf);

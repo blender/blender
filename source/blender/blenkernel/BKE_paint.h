@@ -74,9 +74,11 @@ typedef enum ePaintMode {
   PAINT_MODE_VERTEX_GPENCIL = 7,
   PAINT_MODE_SCULPT_GPENCIL = 8,
   PAINT_MODE_WEIGHT_GPENCIL = 9,
+  /** Curves. */
+  PAINT_MODE_SCULPT_CURVES = 10,
 
   /** Keep last. */
-  PAINT_MODE_INVALID = 10,
+  PAINT_MODE_INVALID = 11,
 } ePaintMode;
 
 #define PAINT_MODE_HAS_BRUSH(mode) !ELEM(mode, PAINT_MODE_SCULPT_UV)

@@ -718,6 +718,16 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
                             reader,
                             &toolsett_old->gp_weightpaint->paint));
   }
+  if (toolsett->curves_sculpt) {
+    BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_FUNCTION_CALL(
+        data,
+        do_undo_restore,
+        scene_foreach_paint(data,
+                            &toolsett->curves_sculpt->paint,
+                            do_undo_restore,
+                            reader,
+                            &toolsett_old->curves_sculpt->paint));
+  }
 
   BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER(data,
                                                   toolsett->gp_sculpt.guide.reference_object,
@@ -972,6 +982,10 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     BLO_write_struct(writer, GpWeightPaint, tos->gp_weightpaint);
     BKE_paint_blend_write(writer, &tos->gp_weightpaint->paint);
   }
+  if (tos->curves_sculpt) {
+    BLO_write_struct(writer, CurvesSculpt, tos->curves_sculpt);
+    BKE_paint_blend_write(writer, &tos->curves_sculpt->paint);
+  }
   /* write grease-pencil custom ipo curve to file */
   if (tos->gp_interpolate.custom_ipo) {
     BKE_curvemapping_blend_write(writer, tos->gp_interpolate.custom_ipo);
@@ -1148,6 +1162,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_vertexpaint);
     direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_sculptpaint);
     direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_weightpaint);
+    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->curves_sculpt);
 
     BKE_paint_blend_read_data(reader, sce, &sce->toolsettings->imapaint.paint);
 
@@ -1405,6 +1420,9 @@ static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
   }
   if (sce->toolsettings->gp_weightpaint) {
     BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->gp_weightpaint->paint);
+  }
+  if (sce->toolsettings->curves_sculpt) {
+    BKE_paint_blend_read_lib(reader, sce, &sce->toolsettings->curves_sculpt->paint);
   }
 
   if (sce->toolsettings->sculpt) {
@@ -1726,6 +1744,10 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
     ts->gp_weightpaint = MEM_dupallocN(ts->gp_weightpaint);
     BKE_paint_copy(&ts->gp_weightpaint->paint, &ts->gp_weightpaint->paint, flag);
   }
+  if (ts->curves_sculpt) {
+    ts->curves_sculpt = MEM_dupallocN(ts->curves_sculpt);
+    BKE_paint_copy(&ts->curves_sculpt->paint, &ts->curves_sculpt->paint, flag);
+  }
 
   BKE_paint_copy(&ts->imapaint.paint, &ts->imapaint.paint, flag);
   ts->particle.paintcursor = NULL;
@@ -1780,6 +1802,10 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
   if (toolsettings->gp_weightpaint) {
     BKE_paint_free(&toolsettings->gp_weightpaint->paint);
     MEM_freeN(toolsettings->gp_weightpaint);
+  }
+  if (toolsettings->curves_sculpt) {
+    BKE_paint_free(&toolsettings->curves_sculpt->paint);
+    MEM_freeN(toolsettings->curves_sculpt);
   }
   BKE_paint_free(&toolsettings->imapaint.paint);
 

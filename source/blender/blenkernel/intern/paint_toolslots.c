@@ -98,6 +98,9 @@ void BKE_paint_toolslots_init_from_main(struct Main *bmain)
     if (ts->gp_weightpaint) {
       paint_toolslots_init_with_runtime(bmain, ts, &ts->gp_weightpaint->paint);
     }
+    if (ts->curves_sculpt) {
+      paint_toolslots_init_with_runtime(bmain, ts, &ts->curves_sculpt->paint);
+    }
   }
 }
 

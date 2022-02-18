@@ -24,6 +24,7 @@ set(INC
 )
 
 set(SRC
+  curves_sculpt_ops.cc
   paint_cursor.c
   paint_curve.c
   paint_curve_undo.c
@@ -66,6 +67,7 @@ set(SRC
   sculpt_undo.c
   sculpt_uv.c
 
+  curves_sculpt_intern.h
   paint_intern.h
   sculpt_intern.h
 )

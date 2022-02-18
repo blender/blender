@@ -182,6 +182,7 @@ static void OVERLAY_cache_init(void *vedata)
     case CTX_MODE_WEIGHT_GPENCIL:
       OVERLAY_edit_gpencil_cache_init(vedata);
       break;
+    case CTX_MODE_SCULPT_CURVES:
     case CTX_MODE_OBJECT:
       break;
     default:
@@ -660,6 +661,8 @@ static void OVERLAY_draw_scene(void *vedata)
     case CTX_MODE_VERTEX_GPENCIL:
     case CTX_MODE_WEIGHT_GPENCIL:
       OVERLAY_edit_gpencil_draw(vedata);
+      break;
+    case CTX_MODE_SCULPT_CURVES:
       break;
     default:
       break;

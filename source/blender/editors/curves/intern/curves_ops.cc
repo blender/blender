@@ -10,9 +10,13 @@
 #include "ED_object.h"
 
 #include "WM_api.h"
+#include "WM_toolsystem.h"
 #include "WM_types.h"
 
 #include "BKE_context.h"
+#include "BKE_paint.h"
+
+#include "DNA_scene_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -32,6 +36,7 @@ static bool curves_sculptmode_toggle_poll(bContext *C)
 
 static int curves_sculptmode_toggle_exec(bContext *C, wmOperator *op)
 {
+  Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   const bool is_mode_set = ob->mode == OB_MODE_SCULPT_CURVES;
 
@@ -45,9 +50,11 @@ static int curves_sculptmode_toggle_exec(bContext *C, wmOperator *op)
     ob->mode = OB_MODE_OBJECT;
   }
   else {
+    BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->curves_sculpt);
     ob->mode = OB_MODE_SCULPT_CURVES;
   }
 
+  WM_toolsystem_update_from_context_view3d(C);
   WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);
   return OPERATOR_CANCELLED;
 }

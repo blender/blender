@@ -455,6 +455,12 @@ typedef enum eBrushUVSculptTool {
   UV_SCULPT_TOOL_PINCH = 2,
 } eBrushUVSculptTool;
 
+/* Brush.curves_sculpt_tool. */
+typedef enum eBrushCurvesSculptTool {
+  CURVES_SCULPT_TOOL_TEST1 = 0,
+  CURVES_SCULPT_TOOL_TEST2 = 1,
+} eBrushCurvesSculptTool;
+
 /** When #BRUSH_ACCUMULATE is used */
 #define SCULPT_TOOL_HAS_ACCUMULATE(t) \
   ELEM(t, \
