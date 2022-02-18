@@ -1204,6 +1204,23 @@ Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm,
   return mesh;
 }
 
+static void ensure_orig_index_layer(CustomData &data, const int size)
+{
+  if (CustomData_has_layer(&data, CD_ORIGINDEX)) {
+    return;
+  }
+  int *indices = (int *)CustomData_add_layer(&data, CD_ORIGINDEX, CD_DEFAULT, nullptr, size);
+  range_vn_i(indices, size, 0);
+}
+
+void BKE_mesh_ensure_default_orig_index_customdata(Mesh *mesh)
+{
+  BLI_assert(mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA);
+  ensure_orig_index_layer(mesh->vdata, mesh->totvert);
+  ensure_orig_index_layer(mesh->edata, mesh->totedge);
+  ensure_orig_index_layer(mesh->pdata, mesh->totpoly);
+}
+
 BoundBox *BKE_mesh_boundbox_get(Object *ob)
 {
   /* This is Object-level data access,

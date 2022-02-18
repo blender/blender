@@ -1028,10 +1028,6 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   me->totloop = bm->totloop;
   me->totpoly = bm->totface;
 
-  CustomData_add_layer(&me->vdata, CD_ORIGINDEX, CD_CALLOC, nullptr, bm->totvert);
-  CustomData_add_layer(&me->edata, CD_ORIGINDEX, CD_CALLOC, nullptr, bm->totedge);
-  CustomData_add_layer(&me->pdata, CD_ORIGINDEX, CD_CALLOC, nullptr, bm->totface);
-
   CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, nullptr, bm->totvert);
   CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, nullptr, bm->totedge);
   CustomData_add_layer(&me->ldata, CD_MLOOP, CD_CALLOC, nullptr, bm->totloop);
@@ -1059,7 +1055,6 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   MEdge *medge = me->medge;
   MLoop *mloop = me->mloop;
   MPoly *mpoly = me->mpoly;
-  int *index, add_orig;
   unsigned int i, j;
 
   const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
@@ -1069,11 +1064,6 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   BKE_mesh_normals_tag_dirty(me);
 
   me->runtime.deformed_only = true;
-
-  /* Don't add origindex layer if one already exists. */
-  add_orig = !CustomData_has_layer(&bm->pdata, CD_ORIGINDEX);
-
-  index = (int *)CustomData_get_layer(&me->vdata, CD_ORIGINDEX);
 
   BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
     MVert *mv = &mvert[i];
@@ -1088,15 +1078,10 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
       mv->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset);
     }
 
-    if (add_orig) {
-      *index++ = i;
-    }
-
     CustomData_from_bmesh_block(&bm->vdata, &me->vdata, eve->head.data, i);
   }
   bm->elem_index_dirty &= ~BM_VERT;
 
-  index = (int *)CustomData_get_layer(&me->edata, CD_ORIGINDEX);
   BM_ITER_MESH_INDEX (eed, &iter, bm, BM_EDGES_OF_MESH, i) {
     MEdge *med = &medge[i];
 
@@ -1123,13 +1108,9 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
     }
 
     CustomData_from_bmesh_block(&bm->edata, &me->edata, eed->head.data, i);
-    if (add_orig) {
-      *index++ = i;
-    }
   }
   bm->elem_index_dirty &= ~BM_EDGE;
 
-  index = (int *)CustomData_get_layer(&me->pdata, CD_ORIGINDEX);
   j = 0;
   BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
     BMLoop *l_iter;
@@ -1156,10 +1137,6 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
     } while ((l_iter = l_iter->next) != l_first);
 
     CustomData_from_bmesh_block(&bm->pdata, &me->pdata, efa->head.data, i);
-
-    if (add_orig) {
-      *index++ = i;
-    }
   }
   bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
 

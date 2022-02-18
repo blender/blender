@@ -70,6 +70,13 @@ struct Mesh *BKE_mesh_from_bmesh_for_eval_nomain(struct BMesh *bm,
                                                  const struct Mesh *me_settings);
 
 /**
+ * Add original index (#CD_ORIGINDEX) layers if they don't already exist. This is meant to be used
+ * when creating an evaluated mesh from an original edit mode mesh, to allow mapping from the
+ * evaluated vertices to the originals.
+ */
+void BKE_mesh_ensure_default_orig_index_customdata(struct Mesh *mesh);
+
+/**
  * Find the index of the loop in 'poly' which references vertex,
  * returns -1 if not found
  */

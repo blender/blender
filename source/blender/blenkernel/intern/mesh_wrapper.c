@@ -115,6 +115,16 @@ static void mesh_wrapper_ensure_mdata_isolated(void *userdata)
       BMEditMesh *em = me->edit_mesh;
       BM_mesh_bm_to_me_for_eval(em->bm, me, &me->runtime.cd_mask_extra);
 
+      /* Adding original index layers assumes that all BMesh mesh wrappers are created from
+       * original edit mode meshes (the only case where adding original indices makes sense).
+       * If that assumption is broken, the layers might be incorrect in that they might not
+       * actually be "original".
+       *
+       * There is also a performance aspect, where this also assumes that original indices are
+       * always needed when converting an edit mesh to a mesh. That might be wrong, but it's not
+       * harmful. */
+      BKE_mesh_ensure_default_orig_index_customdata(me);
+
       EditMeshData *edit_data = me->runtime.edit_data;
       if (edit_data->vertexCos) {
         BKE_mesh_vert_coords_apply(me, edit_data->vertexCos);
