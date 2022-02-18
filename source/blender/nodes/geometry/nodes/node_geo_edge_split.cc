@@ -39,6 +39,9 @@ static Mesh *mesh_edge_split(const Mesh &mesh, const IndexMask selection)
   BMesh *bm = BM_mesh_create(&allocsize, &bmesh_create_params);
 
   BMeshFromMeshParams bmesh_from_mesh_params{};
+  bmesh_from_mesh_params.cd_mask_extra.vmask = CD_MASK_ORIGINDEX;
+  bmesh_from_mesh_params.cd_mask_extra.emask = CD_MASK_ORIGINDEX;
+  bmesh_from_mesh_params.cd_mask_extra.pmask = CD_MASK_ORIGINDEX;
   BM_mesh_bm_from_me(bm, &mesh, &bmesh_from_mesh_params);
 
   BM_mesh_elem_table_ensure(bm, BM_EDGE);
