@@ -1562,13 +1562,15 @@ static void socket_id_user_increment(bNodeSocket *sock)
   }
 }
 
-static void socket_id_user_decrement(bNodeSocket *sock)
+/** \return True if the socket had an ID default value. */
+static bool socket_id_user_decrement(bNodeSocket *sock)
 {
   switch ((eNodeSocketDatatype)sock->type) {
     case SOCK_OBJECT: {
       bNodeSocketValueObject *default_value = (bNodeSocketValueObject *)sock->default_value;
       if (default_value->value != nullptr) {
         id_us_min(&default_value->value->id);
+        return true;
       }
       break;
     }
@@ -1576,6 +1578,7 @@ static void socket_id_user_decrement(bNodeSocket *sock)
       bNodeSocketValueImage *default_value = (bNodeSocketValueImage *)sock->default_value;
       if (default_value->value != nullptr) {
         id_us_min(&default_value->value->id);
+        return true;
       }
       break;
     }
@@ -1584,6 +1587,7 @@ static void socket_id_user_decrement(bNodeSocket *sock)
                                                       sock->default_value;
       if (default_value->value != nullptr) {
         id_us_min(&default_value->value->id);
+        return true;
       }
       break;
     }
@@ -1591,6 +1595,7 @@ static void socket_id_user_decrement(bNodeSocket *sock)
       bNodeSocketValueTexture *default_value = (bNodeSocketValueTexture *)sock->default_value;
       if (default_value->value != nullptr) {
         id_us_min(&default_value->value->id);
+        return true;
       }
       break;
     }
@@ -1598,6 +1603,7 @@ static void socket_id_user_decrement(bNodeSocket *sock)
       bNodeSocketValueMaterial *default_value = (bNodeSocketValueMaterial *)sock->default_value;
       if (default_value->value != nullptr) {
         id_us_min(&default_value->value->id);
+        return true;
       }
       break;
     }
@@ -1613,6 +1619,7 @@ static void socket_id_user_decrement(bNodeSocket *sock)
     case SOCK_GEOMETRY:
       break;
   }
+  return false;
 }
 
 void nodeModifySocketType(bNodeTree *ntree,
@@ -2972,6 +2979,8 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
    * do to ID user refcounting and removal of animdation data then. */
   BLI_assert((ntree->id.tag & LIB_TAG_LOCALIZED) == 0);
 
+  bool node_has_id = false;
+
   if (do_id_user) {
     /* Free callback for NodeCustomGroup. */
     if (node->typeinfo->freefunc_api) {
@@ -2984,13 +2993,14 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
     /* Do user counting. */
     if (node->id) {
       id_us_min(node->id);
+      node_has_id = true;
     }
 
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      socket_id_user_decrement(sock);
+      node_has_id |= socket_id_user_decrement(sock);
     }
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      socket_id_user_decrement(sock);
+      node_has_id |= socket_id_user_decrement(sock);
     }
   }
 
@@ -3002,6 +3012,12 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
   BLI_snprintf(prefix, sizeof(prefix), "nodes[\"%s\"]", propname_esc);
 
   if (BKE_animdata_fix_paths_remove((ID *)ntree, prefix)) {
+    if (bmain != nullptr) {
+      DEG_relations_tag_update(bmain);
+    }
+  }
+
+  if (node_has_id) {
     if (bmain != nullptr) {
       DEG_relations_tag_update(bmain);
     }
