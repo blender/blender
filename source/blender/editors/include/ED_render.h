@@ -24,6 +24,7 @@ struct Scene;
 struct ScrArea;
 struct bContext;
 struct bScreen;
+struct PreviewImage;
 struct wmWindow;
 struct wmWindowManager;
 
@@ -87,16 +88,13 @@ void ED_preview_shader_job(const struct bContext *C,
                            ePreviewRenderMethod method);
 void ED_preview_icon_render(const struct bContext *C,
                             struct Scene *scene,
+                            struct PreviewImage *prv_img,
                             struct ID *id,
-                            unsigned int *rect,
-                            int sizex,
-                            int sizey);
+                            enum eIconSizes icon_size);
 void ED_preview_icon_job(const struct bContext *C,
-                         void *owner,
+                         struct PreviewImage *prv_img,
                          struct ID *id,
-                         unsigned int *rect,
-                         int sizex,
-                         int sizey,
+                         enum eIconSizes icon_size,
                          bool delay);
 
 void ED_preview_restart_queue_free(void);
