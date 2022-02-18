@@ -195,5 +195,20 @@ bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports)
 
   BKE_main_unlock(bmain);
 
+  /* NOTE: #BKE_id_delete also locks `bmain`, so we need to do this loop outside of the lock here.
+   */
+  LISTBASE_FOREACH_MUTABLE (Key *, shapekey, &bmain->shapekeys) {
+    if (shapekey->from != NULL) {
+      continue;
+    }
+
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Shapekey %s has an invalid 'from' pointer (%p), it will be deleted",
+                shapekey->id.name,
+                shapekey->from);
+    BKE_id_delete(bmain, shapekey);
+  }
+
   return is_valid;
 }
