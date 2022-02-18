@@ -88,6 +88,9 @@ static void subdiv_mesh_ctx_cache_custom_data_layers(SubdivMeshContext *ctx)
 
 static void subdiv_mesh_prepare_accumulator(SubdivMeshContext *ctx, int num_vertices)
 {
+  if (!ctx->have_displacement) {
+    return;
+  }
   ctx->accumulated_counters = MEM_calloc_arrayN(
       num_vertices, sizeof(*ctx->accumulated_counters), "subdiv accumulated counters");
 }
@@ -440,18 +443,17 @@ static void subdiv_accumulate_vertex_displacement(SubdivMeshContext *ctx,
                                                   const float v,
                                                   MVert *subdiv_vert)
 {
+  /* Accumulate displacement. */
   Subdiv *subdiv = ctx->subdiv;
   const int subdiv_vertex_index = subdiv_vert - ctx->subdiv_mesh->mvert;
   float dummy_P[3], dPdu[3], dPdv[3], D[3];
   BKE_subdiv_eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, dummy_P, dPdu, dPdv);
 
-  /* Accumulate displacement if needed. */
-  if (ctx->have_displacement) {
-    /* NOTE: The subdivided mesh is allocated in this module, and its vertices are kept at zero
-     * locations as a default calloc(). */
-    BKE_subdiv_eval_displacement(subdiv, ptex_face_index, u, v, dPdu, dPdv, D);
-    add_v3_v3(subdiv_vert->co, D);
-  }
+  /* NOTE: The subdivided mesh is allocated in this module, and its vertices are kept at zero
+   * locations as a default calloc(). */
+  BKE_subdiv_eval_displacement(subdiv, ptex_face_index, u, v, dPdu, dPdv, D);
+  add_v3_v3(subdiv_vert->co, D);
+
   if (ctx->accumulated_counters) {
     ++ctx->accumulated_counters[subdiv_vertex_index];
   }
@@ -570,12 +572,13 @@ static void evaluate_vertex_and_apply_displacement_interpolate(
   add_v3_v3(subdiv_vert->co, D);
 }
 
-static void subdiv_mesh_vertex_every_corner_or_edge(const SubdivForeachContext *foreach_context,
-                                                    void *UNUSED(tls),
-                                                    const int ptex_face_index,
-                                                    const float u,
-                                                    const float v,
-                                                    const int subdiv_vertex_index)
+static void subdiv_mesh_vertex_displacement_every_corner_or_edge(
+    const SubdivForeachContext *foreach_context,
+    void *UNUSED(tls),
+    const int ptex_face_index,
+    const float u,
+    const float v,
+    const int subdiv_vertex_index)
 {
   SubdivMeshContext *ctx = foreach_context->user_data;
   Mesh *subdiv_mesh = ctx->subdiv_mesh;
@@ -584,31 +587,32 @@ static void subdiv_mesh_vertex_every_corner_or_edge(const SubdivForeachContext *
   subdiv_accumulate_vertex_displacement(ctx, ptex_face_index, u, v, subdiv_vert);
 }
 
-static void subdiv_mesh_vertex_every_corner(const SubdivForeachContext *foreach_context,
-                                            void *tls,
-                                            const int ptex_face_index,
-                                            const float u,
-                                            const float v,
-                                            const int UNUSED(coarse_vertex_index),
-                                            const int UNUSED(coarse_poly_index),
-                                            const int UNUSED(coarse_corner),
-                                            const int subdiv_vertex_index)
+static void subdiv_mesh_vertex_displacement_every_corner(
+    const SubdivForeachContext *foreach_context,
+    void *tls,
+    const int ptex_face_index,
+    const float u,
+    const float v,
+    const int UNUSED(coarse_vertex_index),
+    const int UNUSED(coarse_poly_index),
+    const int UNUSED(coarse_corner),
+    const int subdiv_vertex_index)
 {
-  subdiv_mesh_vertex_every_corner_or_edge(
+  subdiv_mesh_vertex_displacement_every_corner_or_edge(
       foreach_context, tls, ptex_face_index, u, v, subdiv_vertex_index);
 }
 
-static void subdiv_mesh_vertex_every_edge(const SubdivForeachContext *foreach_context,
-                                          void *tls,
-                                          const int ptex_face_index,
-                                          const float u,
-                                          const float v,
-                                          const int UNUSED(coarse_edge_index),
-                                          const int UNUSED(coarse_poly_index),
-                                          const int UNUSED(coarse_corner),
-                                          const int subdiv_vertex_index)
+static void subdiv_mesh_vertex_displacement_every_edge(const SubdivForeachContext *foreach_context,
+                                                       void *tls,
+                                                       const int ptex_face_index,
+                                                       const float u,
+                                                       const float v,
+                                                       const int UNUSED(coarse_edge_index),
+                                                       const int UNUSED(coarse_poly_index),
+                                                       const int UNUSED(coarse_corner),
+                                                       const int subdiv_vertex_index)
 {
-  subdiv_mesh_vertex_every_corner_or_edge(
+  subdiv_mesh_vertex_displacement_every_corner_or_edge(
       foreach_context, tls, ptex_face_index, u, v, subdiv_vertex_index);
 }
 
@@ -1094,12 +1098,8 @@ static void setup_foreach_callbacks(const SubdivMeshContext *subdiv_context,
   foreach_context->topology_info = subdiv_mesh_topology_info;
   /* Every boundary geometry. Used for displacement averaging. */
   if (subdiv_context->have_displacement) {
-    foreach_context->vertex_every_corner = subdiv_mesh_vertex_every_corner;
-    foreach_context->vertex_every_edge = subdiv_mesh_vertex_every_edge;
-  }
-  else {
-    foreach_context->vertex_every_corner = subdiv_mesh_vertex_every_corner;
-    foreach_context->vertex_every_edge = subdiv_mesh_vertex_every_edge;
+    foreach_context->vertex_every_corner = subdiv_mesh_vertex_displacement_every_corner;
+    foreach_context->vertex_every_edge = subdiv_mesh_vertex_displacement_every_edge;
   }
   foreach_context->vertex_corner = subdiv_mesh_vertex_corner;
   foreach_context->vertex_edge = subdiv_mesh_vertex_edge;
