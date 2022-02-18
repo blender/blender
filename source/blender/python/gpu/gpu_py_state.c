@@ -326,7 +326,7 @@ static PyObject *pygpu_state_front_facing_set(PyObject *UNUSED(self), PyObject *
 }
 
 PyDoc_STRVAR(pygpu_state_program_point_size_set_doc,
-             ".. function:: use_program_point_size(enable)\n"
+             ".. function:: program_point_size_set(enable)\n"
              "\n"
              "   If enabled, the derived point size is taken from the (potentially clipped) "
              "shader builtin gl_PointSize.\n"
