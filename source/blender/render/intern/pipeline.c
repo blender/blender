@@ -1122,6 +1122,8 @@ static void do_render_compositor_scenes(Render *re)
     return;
   }
 
+  bool changed_scene = false;
+
   /* now foreach render-result node we do a full render */
   /* results are stored in a way compositor will find it */
   GSet *scenes_rendered = BLI_gset_ptr_new(__func__);
@@ -1134,11 +1136,20 @@ static void do_render_compositor_scenes(Render *re)
           do_render_compositor_scene(re, scene, cfra);
           BLI_gset_add(scenes_rendered, scene);
           node->typeinfo->updatefunc(restore_scene->nodetree, node);
+
+          if (scene != re->scene) {
+            changed_scene = true;
+          }
         }
       }
     }
   }
   BLI_gset_free(scenes_rendered, NULL);
+
+  if (changed_scene) {
+    /* If rendered another scene, switch back to the current scene with compositing nodes. */
+    re->current_scene_update(re->suh, re->scene);
+  }
 }
 
 /* bad call... need to think over proper method still */

@@ -634,6 +634,12 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 static void current_scene_update(void *rjv, Scene *scene)
 {
   RenderJob *rj = static_cast<RenderJob *>(rjv);
+
+  if (rj->current_scene != scene) {
+    /* Image must be updated when rendered scene changes. */
+    BKE_image_partial_update_mark_full_update(rj->image);
+  }
+
   rj->current_scene = scene;
   rj->iuser.scene = scene;
 }
