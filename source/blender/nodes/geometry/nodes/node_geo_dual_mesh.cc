@@ -286,7 +286,7 @@ static void create_vertex_poly_map(const Mesh &mesh,
  * boundary vertex, the first and last polygon have a boundary edge connected to the vertex. The
  * `r_shared_edges` array at index i is set to the index of the shared edge between the i-th and
  * `(i+1)-th` sorted polygon. Similarly the `r_sorted_corners` array at index i is set to the
- * corner in the i-th sorted polygon.
+ * corner in the i-th sorted polygon. If the polygons couldn't be sorted, `false` is returned.
  *
  * How the faces are sorted (see diagrams below):
  * (For this explanation we'll assume all faces are oriented clockwise)
@@ -335,7 +335,7 @@ static void create_vertex_poly_map(const Mesh &mesh,
  * - Finally if we are in the normal case we also need to add the last "shared edge" to close the
  *   loop.
  */
-static void sort_vertex_polys(const Mesh &mesh,
+static bool sort_vertex_polys(const Mesh &mesh,
                               const int vertex_index,
                               const bool boundary_vertex,
                               const Span<EdgeType> edge_types,
@@ -344,7 +344,7 @@ static void sort_vertex_polys(const Mesh &mesh,
                               MutableSpan<int> r_sorted_corners)
 {
   if (connected_polygons.size() <= 2 && (!boundary_vertex || connected_polygons.size() == 0)) {
-    return;
+    return true;
   }
 
   /* For each polygon store the two corners whose edge contains the vertex. */
@@ -448,8 +448,11 @@ static void sort_vertex_polys(const Mesh &mesh,
         break;
       }
     }
-
-    BLI_assert(j != connected_polygons.size());
+    if (j == connected_polygons.size()) {
+      /* The vertex is not manifold because the polygons around the vertex don't form a loop, and
+       * hence can't be sorted. */
+      return false;
+    }
 
     std::swap(connected_polygons[i + 1], connected_polygons[j]);
     std::swap(poly_vertex_corners[i + 1], poly_vertex_corners[j]);
@@ -459,6 +462,7 @@ static void sort_vertex_polys(const Mesh &mesh,
     /* Shared edge between first and last polygon. */
     r_shared_edges.last() = shared_edge_i;
   }
+  return true;
 }
 
 /**
@@ -651,17 +655,24 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
       }
       MutableSpan<int> loop_indices = vertex_poly_indices[i];
       Array<int> sorted_corners(loop_indices.size());
+      bool vertex_ok = true;
       if (vertex_types[i] == VertexType::Normal) {
         Array<int> shared_edges(loop_indices.size());
-        sort_vertex_polys(
+        vertex_ok = sort_vertex_polys(
             mesh_in, i, false, edge_types, loop_indices, shared_edges, sorted_corners);
         vertex_shared_edges[i] = shared_edges;
       }
       else {
         Array<int> shared_edges(loop_indices.size() - 1);
-        sort_vertex_polys(
+        vertex_ok = sort_vertex_polys(
             mesh_in, i, true, edge_types, loop_indices, shared_edges, sorted_corners);
         vertex_shared_edges[i] = shared_edges;
+      }
+      if (!vertex_ok) {
+        /* The sorting failed which means that the vertex is non-manifold and should be ignored
+         * further on. */
+        vertex_types[i] = VertexType::NonManifold;
+        continue;
       }
       vertex_corners[i] = sorted_corners;
     }
