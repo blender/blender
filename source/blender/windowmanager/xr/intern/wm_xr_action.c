@@ -254,7 +254,7 @@ bool WM_xr_action_create(wmXrData *xr,
   GHOST_XrActionInfo info = {
       .name = action_name,
       .count_subaction_paths = count,
-      .subaction_paths = subaction_paths,
+      .subaction_paths = (const char **)subaction_paths,
       .states = action->states,
       .float_thresholds = action->float_thresholds,
       .axis_flags = (int16_t *)action->axis_flags,
@@ -369,7 +369,7 @@ bool WM_xr_action_binding_create(wmXrData *xr,
       .action_name = action_name,
       .profile_path = profile_path,
       .count_subaction_paths = count,
-      .subaction_paths = subaction_paths,
+      .subaction_paths = (const char **)subaction_paths,
       .bindings = binding_infos,
   };
 
