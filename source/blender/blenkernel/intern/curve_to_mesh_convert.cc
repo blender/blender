@@ -186,7 +186,8 @@ static void spline_extrude_to_mesh_data(const ResultInfo &info,
     }
   }
 
-  if (fill_caps && profile.is_cyclic()) {
+  const bool has_caps = fill_caps && profile.is_cyclic() && !spline.is_cyclic();
+  if (has_caps) {
     const int poly_size = info.spline_edge_len * info.profile_edge_len;
     const int cap_loop_offset = info.loop_offset + poly_size * 4;
     const int cap_poly_offset = info.poly_offset + poly_size;
@@ -270,7 +271,8 @@ static inline int spline_extrude_loop_size(const Spline &curve,
                                            const bool fill_caps)
 {
   const int tube = curve.evaluated_edges_size() * profile.evaluated_edges_size() * 4;
-  const int caps = (fill_caps && profile.is_cyclic()) ? profile.evaluated_edges_size() * 2 : 0;
+  const bool has_caps = fill_caps && profile.is_cyclic() && !curve.is_cyclic();
+  const int caps = has_caps ? profile.evaluated_edges_size() * 2 : 0;
   return tube + caps;
 }
 
@@ -279,7 +281,8 @@ static inline int spline_extrude_poly_size(const Spline &curve,
                                            const bool fill_caps)
 {
   const int tube = curve.evaluated_edges_size() * profile.evaluated_edges_size();
-  const int caps = (fill_caps && profile.is_cyclic()) ? 2 : 0;
+  const bool has_caps = fill_caps && profile.is_cyclic() && !curve.is_cyclic();
+  const int caps = has_caps ? 2 : 0;
   return tube + caps;
 }
 
