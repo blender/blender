@@ -1480,18 +1480,6 @@ static void rna_FFmpegSettings_lossless_output_set(PointerRNA *ptr, bool value)
   else {
     rd->ffcodecdata.flags &= ~FFMPEG_LOSSLESS_OUTPUT;
   }
-
-  BKE_ffmpeg_codec_settings_verify(rd);
-}
-
-static void rna_FFmpegSettings_codec_settings_update(Main *UNUSED(bmain),
-                                                     Scene *UNUSED(scene_unused),
-                                                     PointerRNA *ptr)
-{
-  Scene *scene = (Scene *)ptr->owner_id;
-  RenderData *rd = &scene->r;
-
-  BKE_ffmpeg_codec_settings_verify(rd);
 }
 #  endif
 
@@ -5715,8 +5703,6 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, ffmpeg_format_items);
   RNA_def_property_enum_default(prop, FFMPEG_MKV);
   RNA_def_property_ui_text(prop, "Container", "Output file container");
-  RNA_def_property_update(
-      prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_FFmpegSettings_codec_settings_update");
 
   prop = RNA_def_property(srna, "codec", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "codec");
@@ -5724,8 +5710,6 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, ffmpeg_codec_items);
   RNA_def_property_enum_default(prop, AV_CODEC_ID_H264);
   RNA_def_property_ui_text(prop, "Video Codec", "FFmpeg codec to use for video output");
-  RNA_def_property_update(
-      prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_FFmpegSettings_codec_settings_update");
 
   prop = RNA_def_property(srna, "video_bitrate", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "video_bitrate");

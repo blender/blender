@@ -85,11 +85,7 @@ void BKE_ffmpeg_filepath_get(char *string,
 
 void BKE_ffmpeg_preset_set(struct RenderData *rd, int preset);
 void BKE_ffmpeg_image_type_verify(struct RenderData *rd, struct ImageFormatData *imf);
-void BKE_ffmpeg_codec_settings_verify(struct RenderData *rd);
 bool BKE_ffmpeg_alpha_channel_is_supported(const struct RenderData *rd);
-
-int BKE_ffmpeg_property_add_string(struct RenderData *rd, const char *type, const char *str);
-void BKE_ffmpeg_property_del(struct RenderData *rd, void *type, void *prop_);
 
 void *BKE_ffmpeg_context_create(void);
 void BKE_ffmpeg_context_free(void *context_v);

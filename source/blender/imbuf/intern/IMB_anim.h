@@ -124,7 +124,7 @@ struct anim {
 #ifdef WITH_FFMPEG
   AVFormatContext *pFormatCtx;
   AVCodecContext *pCodecCtx;
-  AVCodec *pCodec;
+  const AVCodec *pCodec;
   AVFrame *pFrame;
   int pFrameComplete;
   AVFrame *pFrameRGB;

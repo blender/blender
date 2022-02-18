@@ -267,7 +267,7 @@ static int isffmpeg(const char *filepath)
   AVFormatContext *pFormatCtx = NULL;
   unsigned int i;
   int videoStream;
-  AVCodec *pCodec;
+  const AVCodec *pCodec;
 
   if (BLI_path_extension_check_n(filepath,
                                  ".swf",

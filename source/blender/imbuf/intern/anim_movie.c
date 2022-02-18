@@ -508,7 +508,7 @@ static int startffmpeg(struct anim *anim)
 {
   int i, video_stream_index;
 
-  AVCodec *pCodec;
+  const AVCodec *pCodec;
   AVFormatContext *pFormatCtx = NULL;
   AVCodecContext *pCodecCtx;
   AVRational frame_rate;
