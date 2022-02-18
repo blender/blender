@@ -475,7 +475,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     method.update_screen_uv_bounds();
 
     /* Check for changes in the image user compared to the last time. */
-    instance_data->update_image_user(iuser);
+    instance_data->update_image_usage(iuser);
 
     /* Step: Update the GPU textures based on the changes in the image. */
     instance_data->update_gpu_texture_allocations();
