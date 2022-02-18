@@ -110,7 +110,7 @@ static void object_force_modifier_update_for_bind(Depsgraph *depsgraph, Object *
   else if (ob->type == OB_MBALL) {
     BKE_displist_make_mball(depsgraph, scene_eval, ob_eval);
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
     BKE_displist_make_curveTypes(depsgraph, scene_eval, ob_eval, false);
   }
   else if (ob->type == OB_GPENCIL) {
@@ -757,7 +757,7 @@ static bool modifier_apply_obdata(
       }
     }
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
     Curve *curve = ob->data;
     Curve *curve_eval = (Curve *)object_eval->data;

@@ -70,7 +70,7 @@ static void splineik_init_tree_from_pchan(Scene *UNUSED(scene),
       ik_data = con->data;
 
       /* Target can only be a curve. */
-      if ((ik_data->tar == NULL) || (ik_data->tar->type != OB_CURVE)) {
+      if ((ik_data->tar == NULL) || (ik_data->tar->type != OB_CURVES_LEGACY)) {
         continue;
       }
       /* Skip if disabled. */

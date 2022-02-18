@@ -668,7 +668,7 @@ static int acf_object_icon(bAnimListElem *ale)
       return ICON_OUTLINER_OB_MESH;
     case OB_CAMERA:
       return ICON_OUTLINER_OB_CAMERA;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
       return ICON_OUTLINER_OB_CURVE;
     case OB_MBALL:
       return ICON_OUTLINER_OB_META;

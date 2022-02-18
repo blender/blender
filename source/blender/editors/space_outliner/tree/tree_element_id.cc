@@ -34,7 +34,7 @@ std::unique_ptr<TreeElementID> TreeElementID::createFromID(TreeElement &legacy_t
       return std::make_unique<TreeElementIDScene>(legacy_te, (Scene &)id);
     case ID_OB:
     case ID_ME:
-    case ID_CU:
+    case ID_CU_LEGACY:
     case ID_MB:
     case ID_MA:
     case ID_TE:

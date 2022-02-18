@@ -380,7 +380,7 @@ static void libblock_remap_data_postprocess_obdata_relink(Main *bmain, Object *o
       case ID_ME:
         multires_force_sculpt_rebuild(ob);
         break;
-      case ID_CU:
+      case ID_CU_LEGACY:
         BKE_curve_type_test(ob);
         break;
       default:
@@ -573,7 +573,7 @@ static void libblock_remap_foreach_idpair_cb(ID *old_id, ID *new_id, void *user_
           bmain, NULL, (Collection *)old_id, (Collection *)new_id);
       break;
     case ID_ME:
-    case ID_CU:
+    case ID_CU_LEGACY:
     case ID_MB:
     case ID_CV:
     case ID_PT:

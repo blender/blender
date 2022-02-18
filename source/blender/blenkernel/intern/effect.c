@@ -143,7 +143,7 @@ static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *ef
     BLI_rng_srandom(eff->pd->rng, eff->pd->seed + cfra);
   }
 
-  if (eff->pd->forcefield == PFIELD_GUIDE && eff->ob->type == OB_CURVE) {
+  if (eff->pd->forcefield == PFIELD_GUIDE && eff->ob->type == OB_CURVES_LEGACY) {
     Curve *cu = eff->ob->data;
     if (cu->flag & CU_PATH) {
       if (eff->ob->runtime.curve_cache == NULL ||
@@ -161,7 +161,7 @@ static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *ef
   }
   else if (eff->pd->shape == PFIELD_SHAPE_SURFACE) {
     eff->surmd = (SurfaceModifierData *)BKE_modifiers_findby_type(eff->ob, eModifierType_Surface);
-    if (eff->ob->type == OB_CURVE) {
+    if (eff->ob->type == OB_CURVES_LEGACY) {
       eff->flag |= PE_USE_NORMAL_DATA;
     }
   }

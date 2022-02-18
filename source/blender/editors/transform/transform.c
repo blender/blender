@@ -1967,7 +1967,7 @@ bool checkUseAxisMatrix(TransInfo *t)
   /* currently only checks for editmode */
   if (t->flag & T_EDIT) {
     if ((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
-        (ELEM(t->obedit_type, OB_MESH, OB_CURVE, OB_MBALL, OB_ARMATURE))) {
+        (ELEM(t->obedit_type, OB_MESH, OB_CURVES_LEGACY, OB_MBALL, OB_ARMATURE))) {
       /* not all editmode supports axis-matrix */
       return true;
     }

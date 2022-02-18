@@ -162,7 +162,7 @@ static Object *editcurve_object_from_context(bContext *C)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
-  if (obedit && ELEM(obedit->type, OB_CURVE, OB_SURF)) {
+  if (obedit && ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = obedit->data;
     if (BKE_curve_editNurbs_get(cu) != NULL) {
       return obedit;

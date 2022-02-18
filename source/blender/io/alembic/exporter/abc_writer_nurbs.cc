@@ -84,7 +84,7 @@ bool ABCNurbsWriter::check_is_animated(const HierarchyContext &context) const
 
 bool ABCNurbsWriter::is_supported(const HierarchyContext *context) const
 {
-  return ELEM(context->object->type, OB_SURF, OB_CURVE);
+  return ELEM(context->object->type, OB_SURF, OB_CURVES_LEGACY);
 }
 
 static void get_knots(std::vector<float> &knots, const int num_knots, float *nu_knots)

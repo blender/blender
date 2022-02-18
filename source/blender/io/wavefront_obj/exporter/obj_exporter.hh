@@ -64,11 +64,12 @@ void export_frame(Depsgraph *depsgraph,
  * Find the objects to be exported in the `view_layer` of the dependency graph`depsgraph`,
  * and return them in vectors `unique_ptr`s of `OBJMesh` and `OBJCurve`.
  * If `export_params.export_selected_objects` is set, then only selected objects are to be
- * exported, else all objects are to be exported. But only objects of type `OB_MESH`, `OB_CURVE`,
- * and `OB_SURF` are supported; the rest will be ignored. If `export_params.export_curves_as_nurbs`
- * is set, then curves of type `CU_NURBS` are exported in curve form in the .obj file, otherwise
- * they are converted to mesh and returned in the `OBJMesh` vector. All other exportable types are
- * always converted to mesh and returned in the `OBJMesh` vector.
+ * exported, else all objects are to be exported. But only objects of type `OB_MESH`,
+ * `OB_CURVES_LEGACY`, and `OB_SURF` are supported; the rest will be ignored. If
+ * `export_params.export_curves_as_nurbs` is set, then curves of type `CU_NURBS` are exported in
+ * curve form in the .obj file, otherwise they are converted to mesh and returned in the `OBJMesh`
+ * vector. All other exportable types are always converted to mesh and returned in the `OBJMesh`
+ * vector.
  */
 std::pair<Vector<std::unique_ptr<OBJMesh>>, Vector<std::unique_ptr<OBJCurve>>>
 filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_params);

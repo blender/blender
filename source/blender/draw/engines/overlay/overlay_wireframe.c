@@ -196,14 +196,14 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     }
   }
 
-  if (ELEM(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
+  if (ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
     OVERLAY_ExtraCallBuffers *cb = OVERLAY_extra_call_buffer_get(vedata, ob);
     float *color;
     DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
     struct GPUBatch *geom = NULL;
     switch (ob->type) {
-      case OB_CURVE:
+      case OB_CURVES_LEGACY:
         geom = DRW_cache_curve_edge_wire_get(ob);
         break;
       case OB_FONT:

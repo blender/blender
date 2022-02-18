@@ -1090,7 +1090,7 @@ static char *get_rna_access(ID *id,
       propname = particle_adrcodes_to_paths(adrcode, &dummy_index);
       break;
 
-    case ID_CU: /* curve */
+    case ID_CU_LEGACY: /* curve */
       /* this used to be a 'dummy' curve which got evaluated on the fly...
        * now we've got real var for this!
        */

@@ -69,7 +69,7 @@ bool AbcNurbsReader::accepts_object_type(
     return false;
   }
 
-  if (ob->type != OB_CURVE) {
+  if (ob->type != OB_CURVES_LEGACY) {
     *err_str = "Object type mismatch, Alembic object path points to NURBS.";
     return false;
   }

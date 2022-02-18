@@ -668,7 +668,7 @@ ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
       virtualModifierData->amd.deformflag = ((bArmature *)(ob->parent->data))->deformflag;
       md = &virtualModifierData->amd.modifier;
     }
-    else if (ob->parent->type == OB_CURVE && ob->partype == PARSKEL) {
+    else if (ob->parent->type == OB_CURVES_LEGACY && ob->partype == PARSKEL) {
       virtualModifierData->cmd.object = ob->parent;
       virtualModifierData->cmd.defaxis = ob->trackflag + 1;
       virtualModifierData->cmd.modifier.next = md;

@@ -2592,7 +2592,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         case OB_CAMERA:
           data.icon = ICON_OUTLINER_OB_CAMERA;
           break;
-        case OB_CURVE:
+        case OB_CURVES_LEGACY:
           data.icon = ICON_OUTLINER_OB_CURVE;
           break;
         case OB_MBALL:
@@ -2655,7 +2655,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         case ID_ME:
           data.icon = ICON_OUTLINER_DATA_MESH;
           break;
-        case ID_CU:
+        case ID_CU_LEGACY:
           data.icon = ICON_OUTLINER_DATA_CURVE;
           break;
         case ID_MB:

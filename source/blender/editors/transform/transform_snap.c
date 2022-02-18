@@ -86,7 +86,7 @@ int BIF_snappingSupported(Object *obedit)
   int status = 0;
 
   /* only support object mesh, armature, curves */
-  if (obedit == NULL || ELEM(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL)) {
+  if (obedit == NULL || ELEM(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVES_LEGACY, OB_LATTICE, OB_MBALL)) {
     status = 1;
   }
 
@@ -583,7 +583,7 @@ static short snap_mode_from_scene(TransInfo *t)
     /* All obedit types will match. */
     const int obedit_type = t->obedit_type;
     if ((t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR | CTX_OBMODE_XFORM_OBDATA)) ||
-        ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL, -1)) {
+        ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVES_LEGACY, OB_LATTICE, OB_MBALL, -1)) {
       r_snap_mode = ts->snap_mode;
       if ((r_snap_mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_flag & SCE_SNAP_ABS_GRID) &&
           (t->mode == TFM_TRANSLATION)) {
@@ -617,7 +617,7 @@ static short snap_select_type_get(TransInfo *t)
        * When we're moving the origins, allow snapping onto our own geometry (see T69132). */
     }
     else if ((obedit_type != -1) &&
-             ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL)) {
+             ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVES_LEGACY, OB_LATTICE, OB_MBALL)) {
       /* Edit mode */
       /* Temporary limited to edit mode meshes, armature, curves, metaballs. */
 

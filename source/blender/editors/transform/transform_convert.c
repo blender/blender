@@ -1040,7 +1040,7 @@ static void init_proportional_edit(TransInfo *t)
       /* Already calculated by uv_set_connectivity_distance. */
     }
     else if (convert_type == TC_CURVE_VERTS) {
-      BLI_assert(t->obedit_type == OB_CURVE);
+      BLI_assert(t->obedit_type == OB_CURVES_LEGACY);
       set_prop_dist(t, false);
     }
     else {
@@ -1049,7 +1049,7 @@ static void init_proportional_edit(TransInfo *t)
 
     sort_trans_data_dist(t);
   }
-  else if (ELEM(t->obedit_type, OB_CURVE)) {
+  else if (ELEM(t->obedit_type, OB_CURVES_LEGACY)) {
     /* Needed because bezier handles can be partially selected
      * and are still added into transform data. */
     sort_trans_data_selected_first(t);
@@ -1286,7 +1286,7 @@ static eTConvertType convert_type_get(const TransInfo *t, Object **r_obj_armatur
         convert_type = TC_MESH_VERTS;
       }
     }
-    else if (ELEM(t->obedit_type, OB_CURVE, OB_SURF)) {
+    else if (ELEM(t->obedit_type, OB_CURVES_LEGACY, OB_SURF)) {
       convert_type = TC_CURVE_VERTS;
     }
     else if (t->obedit_type == OB_LATTICE) {

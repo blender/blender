@@ -117,7 +117,7 @@ static void get_element_operation_type(
           break;
 
         case ID_ME:
-        case ID_CU:
+        case ID_CU_LEGACY:
         case ID_MB:
         case ID_LT:
         case ID_LA:
@@ -236,7 +236,7 @@ static void unlink_material_fn(bContext *UNUSED(C),
     totcol = me->totcol;
     matar = me->mat;
   }
-  else if (GS(tsep->id->name) == ID_CU) {
+  else if (GS(tsep->id->name) == ID_CU_LEGACY) {
     Curve *cu = (Curve *)tsep->id;
     totcol = cu->totcol;
     matar = cu->mat;

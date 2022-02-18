@@ -47,7 +47,7 @@ static void context_path_add_object_data(Vector<ui::ContextPathItem> &path, Obje
     Light *light = (Light *)object.data;
     ui::context_path_add_generic(path, RNA_Light, light);
   }
-  if (ELEM(object.type, OB_CURVE, OB_FONT, OB_SURF) && object.data) {
+  if (ELEM(object.type, OB_CURVES_LEGACY, OB_FONT, OB_SURF) && object.data) {
     Curve *curve = (Curve *)object.data;
     ui::context_path_add_generic(path, RNA_Curve, curve);
   }

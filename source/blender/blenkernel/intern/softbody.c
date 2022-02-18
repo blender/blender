@@ -2967,7 +2967,7 @@ static void curve_surf_to_softbody(Object *ob)
   totvert = BKE_nurbList_verts_count(&cu->nurb);
 
   if (ob->softflag & OB_SB_EDGES) {
-    if (ob->type == OB_CURVE) {
+    if (ob->type == OB_CURVES_LEGACY) {
       totspring = totvert - BLI_listbase_count(&cu->nurb);
     }
   }
@@ -3320,7 +3320,7 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
       break;
     case OB_LATTICE:
       break;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
       break;
     default:
@@ -3537,7 +3537,7 @@ void sbObjectStep(struct Depsgraph *depsgraph,
       case OB_LATTICE:
         lattice_to_softbody(ob);
         break;
-      case OB_CURVE:
+      case OB_CURVES_LEGACY:
       case OB_SURF:
         curve_surf_to_softbody(ob);
         break;

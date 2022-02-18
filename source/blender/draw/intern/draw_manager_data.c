@@ -514,7 +514,7 @@ static void drw_call_calc_orco(Object *ob, float (*r_orcofacs)[4])
       case ID_ME:
         BKE_mesh_texspace_get_reference((Mesh *)ob_data, NULL, &texcoloc, &texcosize);
         break;
-      case ID_CU: {
+      case ID_CU_LEGACY: {
         Curve *cu = (Curve *)ob_data;
         BKE_curve_texspace_ensure(cu);
         texcoloc = cu->loc;
@@ -566,7 +566,7 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
   drw_call_calc_orco(ob, ob_infos->orcotexfac);
   /* Random float value. */
   uint random = (DST.dupli_source) ?
-                     DST.dupli_source->random_id :
+                    DST.dupli_source->random_id :
                      /* TODO(fclem): this is rather costly to do at runtime. Maybe we can
                       * put it in ob->runtime and make depsgraph ensure it is up to date. */
                      BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);

@@ -230,7 +230,7 @@ static bool buttons_context_path_data(ButsContextPath *path, int type)
     return true;
   }
   if (RNA_struct_is_a(ptr->type, &RNA_Curve) &&
-      (type == -1 || ELEM(type, OB_CURVE, OB_SURF, OB_FONT))) {
+      (type == -1 || ELEM(type, OB_CURVES_LEGACY, OB_SURF, OB_FONT))) {
     return true;
   }
   if (RNA_struct_is_a(ptr->type, &RNA_Armature) && (ELEM(type, -1, OB_ARMATURE))) {
@@ -293,7 +293,7 @@ static bool buttons_context_path_modifier(ButsContextPath *path)
 
     if (ELEM(ob->type,
              OB_MESH,
-             OB_CURVE,
+             OB_CURVES_LEGACY,
              OB_FONT,
              OB_SURF,
              OB_LATTICE,

@@ -53,25 +53,25 @@ static const char *get_curve_defname(int type)
   if ((type & CU_TYPE) == CU_BEZIER) {
     switch (stype) {
       case CU_PRIM_CURVE:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "BezierCurve");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "BezierCurve");
       case CU_PRIM_CIRCLE:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "BezierCircle");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "BezierCircle");
       case CU_PRIM_PATH:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "CurvePath");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "CurvePath");
       default:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "Curve");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "Curve");
     }
   }
   else {
     switch (stype) {
       case CU_PRIM_CURVE:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "NurbsCurve");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "NurbsCurve");
       case CU_PRIM_CIRCLE:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "NurbsCircle");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "NurbsCircle");
       case CU_PRIM_PATH:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "NurbsPath");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "NurbsPath");
       default:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "Curve");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "Curve");
     }
   }
 }
@@ -82,17 +82,17 @@ static const char *get_surf_defname(int type)
 
   switch (stype) {
     case CU_PRIM_CURVE:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "SurfCurve");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "SurfCurve");
     case CU_PRIM_CIRCLE:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "SurfCircle");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "SurfCircle");
     case CU_PRIM_PATCH:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "SurfPatch");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "SurfPatch");
     case CU_PRIM_SPHERE:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "SurfSphere");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "SurfSphere");
     case CU_PRIM_DONUT:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "SurfTorus");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "SurfTorus");
     default:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "Surface");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "Surface");
   }
 }
 
@@ -510,11 +510,11 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
   }
 
   if (!isSurf) { /* adding curve */
-    if (obedit == NULL || obedit->type != OB_CURVE) {
+    if (obedit == NULL || obedit->type != OB_CURVES_LEGACY) {
       const char *name = get_curve_defname(type);
       Curve *cu;
 
-      obedit = ED_object_add_type(C, OB_CURVE, name, loc, rot, true, local_view_bits);
+      obedit = ED_object_add_type(C, OB_CURVES_LEGACY, name, loc, rot, true, local_view_bits);
       newob = true;
 
       cu = (Curve *)obedit->data;

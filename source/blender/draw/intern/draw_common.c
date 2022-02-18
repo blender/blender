@@ -412,7 +412,7 @@ bool DRW_object_is_flat(Object *ob, int *r_axis)
 
   if (!ELEM(ob->type,
             OB_MESH,
-            OB_CURVE,
+            OB_CURVES_LEGACY,
             OB_SURF,
             OB_FONT,
             OB_MBALL,

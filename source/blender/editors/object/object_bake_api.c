@@ -605,7 +605,7 @@ static bool bake_objects_check(Main *bmain,
         continue;
       }
 
-      if (ELEM(ob_iter->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL) == false) {
+      if (ELEM(ob_iter->type, OB_MESH, OB_FONT, OB_CURVES_LEGACY, OB_SURF, OB_MBALL) == false) {
         BKE_reportf(reports,
                     RPT_ERROR,
                     "Object \"%s\" is not a mesh or can't be converted to a mesh (Curve, Text, "

@@ -456,7 +456,7 @@ static void OVERLAY_texture_space(OVERLAY_ExtraCallBuffers *cb, Object *ob, cons
     case ID_ME:
       BKE_mesh_texspace_get_reference((Mesh *)ob_data, NULL, &texcoloc, &texcosize);
       break;
-    case ID_CU: {
+    case ID_CU_LEGACY: {
       Curve *cu = (Curve *)ob_data;
       BKE_curve_texspace_ensure(cu);
       texcoloc = cu->loc;
@@ -499,7 +499,7 @@ static void OVERLAY_forcefield(OVERLAY_ExtraCallBuffers *cb, Object *ob, ViewLay
   int theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
   float *color = DRW_color_background_blend_get(theme_id);
   PartDeflect *pd = ob->pd;
-  Curve *cu = (ob->type == OB_CURVE) ? ob->data : NULL;
+  Curve *cu = (ob->type == OB_CURVES_LEGACY) ? ob->data : NULL;
 
   union {
     float mat[4][4];

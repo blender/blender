@@ -212,7 +212,7 @@ BLI_INLINE OVERLAY_DupliData *OVERLAY_duplidata_get(Object *ob, void *vedata, bo
 {
   OVERLAY_DupliData **dupli_data = (OVERLAY_DupliData **)DRW_duplidata_get(vedata);
   *do_init = false;
-  if (!ELEM(ob->type, OB_MESH, OB_SURF, OB_LATTICE, OB_CURVE, OB_FONT)) {
+  if (!ELEM(ob->type, OB_MESH, OB_SURF, OB_LATTICE, OB_CURVES_LEGACY, OB_FONT)) {
     return NULL;
   }
 
@@ -239,7 +239,7 @@ static bool overlay_object_is_edit_mode(const OVERLAY_PrivateData *pd, const Obj
         return pd->ctx_mode == CTX_MODE_EDIT_MESH;
       case OB_ARMATURE:
         return pd->ctx_mode == CTX_MODE_EDIT_ARMATURE;
-      case OB_CURVE:
+      case OB_CURVES_LEGACY:
         return pd->ctx_mode == CTX_MODE_EDIT_CURVE;
       case OB_SURF:
         return pd->ctx_mode == CTX_MODE_EDIT_SURFACE;
@@ -298,7 +298,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
                               (ob->sculpt->mode_type == OB_MODE_SCULPT);
   const bool has_surface = ELEM(ob->type,
                                 OB_MESH,
-                                OB_CURVE,
+                                OB_CURVES_LEGACY,
                                 OB_SURF,
                                 OB_MBALL,
                                 OB_FONT,
@@ -368,7 +368,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
           OVERLAY_edit_armature_cache_populate(vedata, ob);
         }
         break;
-      case OB_CURVE:
+      case OB_CURVES_LEGACY:
         OVERLAY_edit_curve_cache_populate(vedata, ob);
         break;
       case OB_SURF:

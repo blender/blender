@@ -816,7 +816,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
       }
       FOREACH_EDIT_OBJECT_END();
     }
-    else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
+    else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
         Curve *cu = ob_iter->data;
         Nurb *nu;

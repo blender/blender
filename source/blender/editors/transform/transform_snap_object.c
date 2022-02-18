@@ -1054,7 +1054,7 @@ static void raycast_obj_fn(SnapObjectContext *sctx,
                            dt->r_hit_list);
       break;
     }
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_FONT: {
       if (!is_object_active) {
@@ -2743,7 +2743,7 @@ static void snap_obj_fn(SnapObjectContext *sctx,
                             dt->r_no,
                             dt->r_index);
       break;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
       retval = snapCurve(
           sctx, params, ob_eval, obmat, dt->dist_px, dt->r_loc, dt->r_no, dt->r_index);
       break; /* Use ATTR_FALLTHROUGH if we want to snap to the generated mesh. */
@@ -3117,7 +3117,7 @@ static short transform_snap_context_project_view3d_mixed_impl(
     sctx->runtime.has_occlusion_plane = false;
 
     /* By convention we only snap to the original elements of a curve. */
-    if (has_hit && ob_eval->type != OB_CURVE) {
+    if (has_hit && ob_eval->type != OB_CURVES_LEGACY) {
       /* Compute the new clip_pane but do not add it yet. */
       float new_clipplane[4];
       BLI_ASSERT_UNIT_V3(no);

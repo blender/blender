@@ -813,7 +813,7 @@ GPUBatch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold)
   switch (ob->type) {
     case OB_MESH:
       return DRW_cache_mesh_edge_detection_get(ob, r_is_manifold);
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
       return NULL;
     case OB_SURF:
       return DRW_cache_surf_edge_detection_get(ob, r_is_manifold);
@@ -837,7 +837,7 @@ GPUBatch *DRW_cache_object_face_wireframe_get(Object *ob)
   switch (ob->type) {
     case OB_MESH:
       return DRW_cache_mesh_face_wireframe_get(ob);
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
       return NULL;
     case OB_SURF:
       return DRW_cache_surf_face_wireframe_get(ob);
@@ -864,7 +864,7 @@ GPUBatch *DRW_cache_object_loose_edges_get(struct Object *ob)
   switch (ob->type) {
     case OB_MESH:
       return DRW_cache_mesh_loose_edges_get(ob);
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
       return NULL;
     case OB_SURF:
       return DRW_cache_surf_loose_edges_get(ob);
@@ -888,7 +888,7 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
   switch (ob->type) {
     case OB_MESH:
       return DRW_cache_mesh_surface_get(ob);
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
       return NULL;
     case OB_SURF:
       return DRW_cache_surf_surface_get(ob);
@@ -915,7 +915,7 @@ GPUVertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
   switch (type) {
     case OB_MESH:
       return DRW_mesh_batch_cache_pos_vertbuf_get((me != NULL) ? me : ob->data);
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_FONT:
       return DRW_curve_batch_cache_pos_vertbuf_get(ob->data);
@@ -947,7 +947,7 @@ int DRW_cache_object_material_count_get(struct Object *ob)
   switch (type) {
     case OB_MESH:
       return DRW_mesh_material_count_get(ob, (me != NULL) ? me : ob->data);
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_FONT:
       return DRW_curve_material_count_get(ob->data);
@@ -972,7 +972,7 @@ GPUBatch **DRW_cache_object_surface_material_get(struct Object *ob,
   switch (ob->type) {
     case OB_MESH:
       return DRW_cache_mesh_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
       return NULL;
     case OB_SURF:
       return DRW_cache_surf_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
@@ -2922,21 +2922,21 @@ GPUBatch *DRW_cache_mesh_surface_mesh_analysis_get(Object *ob)
 
 GPUBatch *DRW_cache_curve_edge_wire_get(Object *ob)
 {
-  BLI_assert(ob->type == OB_CURVE);
+  BLI_assert(ob->type == OB_CURVES_LEGACY);
   struct Curve *cu = ob->data;
   return DRW_curve_batch_cache_get_wire_edge(cu);
 }
 
 GPUBatch *DRW_cache_curve_edge_normal_get(Object *ob)
 {
-  BLI_assert(ob->type == OB_CURVE);
+  BLI_assert(ob->type == OB_CURVES_LEGACY);
   struct Curve *cu = ob->data;
   return DRW_curve_batch_cache_get_normal_edge(cu);
 }
 
 GPUBatch *DRW_cache_curve_edge_overlay_get(Object *ob)
 {
-  BLI_assert(ELEM(ob->type, OB_CURVE, OB_SURF));
+  BLI_assert(ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF));
 
   struct Curve *cu = ob->data;
   return DRW_curve_batch_cache_get_edit_edges(cu);
@@ -2944,7 +2944,7 @@ GPUBatch *DRW_cache_curve_edge_overlay_get(Object *ob)
 
 GPUBatch *DRW_cache_curve_vert_overlay_get(Object *ob)
 {
-  BLI_assert(ELEM(ob->type, OB_CURVE, OB_SURF));
+  BLI_assert(ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF));
 
   struct Curve *cu = ob->data;
   return DRW_curve_batch_cache_get_edit_verts(cu);
@@ -3373,7 +3373,7 @@ void drw_batch_cache_validate(Object *ob)
     case OB_MESH:
       DRW_mesh_batch_cache_validate(ob, (Mesh *)ob->data);
       break;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_FONT:
       DRW_curve_batch_cache_validate((Curve *)ob->data);
       break;
@@ -3423,7 +3423,7 @@ void drw_batch_cache_generate_requested(Object *ob)
       DRW_mesh_batch_cache_create_requested(
           DST.task_graph, ob, (Mesh *)ob->data, scene, is_paint_mode, use_hide);
       break;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_FONT:
       DRW_curve_batch_cache_create_requested(ob, scene);
       break;

@@ -47,7 +47,7 @@
 static Key *rna_ShapeKey_find_key(ID *id)
 {
   switch (GS(id->name)) {
-    case ID_CU:
+    case ID_CU_LEGACY:
       return ((Curve *)id)->key;
     case ID_KE:
       return (Key *)id;
@@ -556,7 +556,7 @@ static void rna_ShapeKey_data_begin(CollectionPropertyIterator *iter, PointerRNA
   KeyBlock *kb = (KeyBlock *)ptr->data;
   int tot = kb->totelem, size = key->elemsize;
 
-  if (GS(key->from->name) == ID_CU && tot > 0) {
+  if (GS(key->from->name) == ID_CU_LEGACY && tot > 0) {
     Curve *cu = (Curve *)key->from;
     StructRNA *type = NULL;
     NurbInfo info = {0};
@@ -593,7 +593,7 @@ static int rna_ShapeKey_data_length(PointerRNA *ptr)
   KeyBlock *kb = (KeyBlock *)ptr->data;
   int tot = kb->totelem;
 
-  if (GS(key->from->name) == ID_CU) {
+  if (GS(key->from->name) == ID_CU_LEGACY) {
     tot = rna_ShapeKey_curve_find_index(key, tot);
   }
 
@@ -613,7 +613,7 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
     return rna_pointer_inherit_refine(&iter->parent, point->type, point->data);
   }
 
-  if (GS(key->from->name) == ID_CU) {
+  if (GS(key->from->name) == ID_CU_LEGACY) {
     Curve *cu = (Curve *)key->from;
 
     type = rna_ShapeKey_curve_point_type(cu->nurb.first);
@@ -635,7 +635,7 @@ int rna_ShapeKey_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
     return false;
   }
 
-  if (GS(key->from->name) == ID_CU) {
+  if (GS(key->from->name) == ID_CU_LEGACY) {
     NurbInfo info;
     rna_ShapeKey_NurbInfo_find_index(key, index, false, &info);
 

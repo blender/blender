@@ -27,7 +27,7 @@ static Curve *curve_from_font_object(Object *object, Depsgraph *depsgraph)
   Object *evaluated_object = DEG_get_evaluated_object(depsgraph, object);
   BKE_vfont_to_curve_nubase(evaluated_object, FO_EDIT, &new_curve->nurb);
 
-  new_curve->type = OB_CURVE;
+  new_curve->type = OB_CURVES_LEGACY;
 
   new_curve->flag &= ~CU_3D;
   BKE_curve_dimension_update(new_curve);
@@ -55,7 +55,7 @@ static Curve *curve_from_curve_object(Object *object, Depsgraph *depsgraph, bool
 
 Curve *BKE_curve_new_from_object(Object *object, Depsgraph *depsgraph, bool apply_modifiers)
 {
-  if (!ELEM(object->type, OB_FONT, OB_CURVE)) {
+  if (!ELEM(object->type, OB_FONT, OB_CURVES_LEGACY)) {
     return NULL;
   }
 

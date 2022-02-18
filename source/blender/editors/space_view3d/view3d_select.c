@@ -1313,7 +1313,7 @@ static bool view3d_lasso_select(bContext *C,
         case OB_MESH:
           changed = do_lasso_select_mesh(vc, wm_userdata, mcoords, mcoords_len, sel_op);
           break;
-        case OB_CURVE:
+        case OB_CURVES_LEGACY:
         case OB_SURF:
           changed = do_lasso_select_curve(vc, mcoords, mcoords_len, sel_op);
           break;
@@ -2695,7 +2695,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
         retval = ED_lattice_deselect_all_multi(C);
       }
     }
-    else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
+    else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
       retval = ED_curve_editnurb_select_pick(C, location, extend, deselect, toggle);
       if (!retval && deselect_all) {
         retval = ED_curve_deselect_all_multi(C);
@@ -3586,7 +3586,7 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
             WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
           }
           break;
-        case OB_CURVE:
+        case OB_CURVES_LEGACY:
         case OB_SURF:
           changed = do_nurbs_box_select(&vc, &rect, sel_op);
           if (changed) {
@@ -4342,7 +4342,7 @@ static bool obedit_circle_select(bContext *C,
     case OB_MESH:
       changed = mesh_circle_select(vc, wm_userdata, sel_op, mval, rad);
       break;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
       changed = nurbscurve_circle_select(vc, sel_op, mval, rad);
       break;

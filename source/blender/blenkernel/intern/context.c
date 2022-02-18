@@ -1148,7 +1148,7 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
     switch (obedit->type) {
       case OB_MESH:
         return CTX_MODE_EDIT_MESH;
-      case OB_CURVE:
+      case OB_CURVES_LEGACY:
         return CTX_MODE_EDIT_CURVE;
       case OB_SURF:
         return CTX_MODE_EDIT_SURFACE;

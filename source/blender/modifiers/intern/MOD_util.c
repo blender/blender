@@ -204,7 +204,7 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
       BKE_mesh_orco_ensure(ob, mesh);
     }
   }
-  else if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_FONT, OB_CURVES_LEGACY, OB_SURF)) {
     /* TODO(sybren): get evaluated mesh from depsgraph once
      * that's properly generated for curves. */
     mesh = BKE_mesh_new_nomain_from_curve(ob);

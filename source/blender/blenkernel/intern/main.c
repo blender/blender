@@ -563,7 +563,7 @@ ListBase *which_libbase(Main *bmain, short type)
       return &(bmain->objects);
     case ID_ME:
       return &(bmain->meshes);
-    case ID_CU:
+    case ID_CU_LEGACY:
       return &(bmain->curves);
     case ID_MB:
       return &(bmain->metaballs);
@@ -670,7 +670,7 @@ int set_listbasepointers(Main *bmain, ListBase *lb[/*INDEX_ID_MAX*/])
 
   lb[INDEX_ID_CF] = &(bmain->cachefiles);
   lb[INDEX_ID_ME] = &(bmain->meshes);
-  lb[INDEX_ID_CU] = &(bmain->curves);
+  lb[INDEX_ID_CU_LEGACY] = &(bmain->curves);
   lb[INDEX_ID_MB] = &(bmain->metaballs);
   lb[INDEX_ID_CV] = &(bmain->hair_curves);
   lb[INDEX_ID_PT] = &(bmain->pointclouds);

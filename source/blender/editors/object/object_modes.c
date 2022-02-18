@@ -118,7 +118,7 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
         }
       }
       break;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_FONT:
     case OB_MBALL:

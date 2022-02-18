@@ -613,7 +613,7 @@ static int apply_objects_internal(bContext *C,
              OB_ARMATURE,
              OB_LATTICE,
              OB_MBALL,
-             OB_CURVE,
+             OB_CURVES_LEGACY,
              OB_SURF,
              OB_FONT,
              OB_GPENCIL)) {
@@ -639,13 +639,13 @@ static int apply_objects_internal(bContext *C,
       }
     }
 
-    if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+    if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
       ID *obdata = ob->data;
       Curve *cu;
 
       cu = ob->data;
 
-      if (((ob->type == OB_CURVE) && !(cu->flag & CU_3D)) && (apply_rot || apply_loc)) {
+      if (((ob->type == OB_CURVES_LEGACY) && !(cu->flag & CU_3D)) && (apply_rot || apply_loc)) {
         BKE_reportf(
             reports,
             RPT_ERROR,
@@ -811,7 +811,7 @@ static int apply_objects_internal(bContext *C,
       MetaBall *mb = ob->data;
       BKE_mball_transform(mb, mat, do_props);
     }
-    else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+    else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
       Curve *cu = ob->data;
       scale = mat3_to_scale(rsmat);
       BKE_curve_transform_ex(cu, mat, true, do_props, scale);
@@ -1209,7 +1209,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         do_inverse_offset = true;
       }
     }
-    else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+    else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
       Curve *cu = ob->data;
 
       if (centermode == ORIGIN_TO_CURSOR) {
@@ -1223,7 +1223,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       }
 
       /* don't allow Z change if curve is 2D */
-      if ((ob->type == OB_CURVE) && !(cu->flag & CU_3D)) {
+      if ((ob->type == OB_CURVES_LEGACY) && !(cu->flag & CU_3D)) {
         cent[2] = 0.0;
       }
 

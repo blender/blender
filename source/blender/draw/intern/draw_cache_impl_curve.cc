@@ -945,7 +945,7 @@ int DRW_curve_material_count_get(Curve *cu)
 
 void DRW_curve_batch_cache_create_requested(Object *ob, const struct Scene *scene)
 {
-  BLI_assert(ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT));
+  BLI_assert(ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT));
 
   Curve *cu = (Curve *)ob->data;
   CurveBatchCache *cache = curve_batch_cache_get(cu);

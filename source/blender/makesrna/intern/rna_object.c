@@ -241,7 +241,7 @@ const EnumPropertyItem rna_enum_lightprobes_type_items[] = {
 /* used for 2 enums */
 #define OBTYPE_CU_CURVE \
   { \
-    OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve", "" \
+    OB_CURVES_LEGACY, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve", "" \
   }
 #define OBTYPE_CU_SURF \
   { \
@@ -479,7 +479,7 @@ static void rna_Object_active_shape_update(Main *bmain, Scene *UNUSED(scene), Po
         BKE_editmesh_looptri_and_normals_calc(em);
         break;
       }
-      case OB_CURVE:
+      case OB_CURVES_LEGACY:
       case OB_SURF:
         ED_curve_editnurb_load(bmain, ob);
         ED_curve_editnurb_make(ob);
@@ -571,7 +571,7 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value, struct Report
     ob->data = id;
     BKE_object_materials_test(G_MAIN, ob, id);
 
-    if (GS(id->name) == ID_CU) {
+    if (GS(id->name) == ID_CU_LEGACY) {
       BKE_curve_type_test(ob);
     }
     else if (ob->type == OB_ARMATURE) {
@@ -590,7 +590,7 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
       return &RNA_Image;
     case OB_MESH:
       return &RNA_Mesh;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
       return &RNA_Curve;
     case OB_SURF:
       return &RNA_Curve;
@@ -2182,7 +2182,7 @@ bool rna_Lattice_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 
 bool rna_Curve_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
-  return ((Object *)value.owner_id)->type == OB_CURVE;
+  return ((Object *)value.owner_id)->type == OB_CURVES_LEGACY;
 }
 
 bool rna_Armature_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
