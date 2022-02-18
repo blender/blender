@@ -1078,6 +1078,20 @@ bool ED_view3d_persp_ensure(const struct Depsgraph *depsgraph,
                             struct View3D *v3d,
                             struct ARegion *region);
 
+/* Camera view functions. */
+
+/**
+ * Utility to scale zoom level when in camera-view #RegionView3D.camzoom and apply limits.
+ * \return true a change was made.
+ */
+bool ED_view3d_camera_view_zoom_scale(struct RegionView3D *rv3d, const float scale);
+/**
+ * Utility to pan when in camera view.
+ * \param event_ofs: The offset the pan in screen (pixel) coordinates.
+ * \return true when a change was made.
+ */
+bool ED_view3d_camera_view_pan(struct ARegion *region, const float event_ofs[2]);
+
 /* Camera lock functions */
 
 /**
