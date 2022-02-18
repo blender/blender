@@ -347,6 +347,70 @@ void view3d_ndof_fly(const wmNDOFMotionData *ndof,
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name NDOF Camera View Support
+ * \{ */
+
+/**
+ * 2D orthographic style NDOF navigation within the camera view.
+ * Support navigating the camera view instead of leaving the camera-view and navigating in 3D.
+ */
+static int view3d_ndof_cameraview_pan_zoom(bContext *C, const wmEvent *event)
+{
+  const wmNDOFMotionData *ndof = event->customdata;
+  View3D *v3d = CTX_wm_view3d(C);
+  ARegion *region = CTX_wm_region(C);
+  RegionView3D *rv3d = region->regiondata;
+
+  ED_view3d_smooth_view_force_finish(C, v3d, region);
+
+  if ((v3d->camera && (rv3d->persp == RV3D_CAMOB) && (v3d->flag2 & V3D_LOCK_CAMERA) == 0)) {
+    /* pass */
+  }
+  else {
+    return OPERATOR_PASS_THROUGH;
+  }
+
+  const bool has_translate = !is_zero_v2(ndof->tvec);
+  const bool has_zoom = ndof->tvec[2] != 0.0f;
+
+  /* NOTE(@campbellbarton): In principle rotating could pass through to regular
+   * non-camera NDOF behavior (exiting the camera-view and rotating).
+   * Disabled this block since in practice it's difficult to control NDOF devices
+   * to perform some rotation with absolutely no translation. Causing rotation to
+   * randomly exit from the user perspective. Adjusting the dead-zone could avoid
+   * the motion feeling *glitchy* although in my own tests even then it didn't work reliably.
+   * Leave rotating out of camera-view disabled unless it can be made to work reliably. */
+  if (!(has_translate || has_zoom)) {
+    // return OPERATOR_PASS_THROUGH;
+  }
+
+  bool changed = false;
+
+  if (has_translate) {
+    const float speed = ndof->dt * NDOF_PIXELS_PER_SECOND;
+    float event_ofs[2] = {ndof->tvec[0] * speed, ndof->tvec[1] * speed};
+    if (ED_view3d_camera_view_pan(region, event_ofs)) {
+      changed = true;
+    }
+  }
+
+  if (has_zoom) {
+    const float scale = 1.0f + (ndof->dt * ndof->tvec[2]);
+    if (ED_view3d_camera_view_zoom_scale(rv3d, scale)) {
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    ED_region_tag_redraw(region);
+    return OPERATOR_FINISHED;
+  }
+  return OPERATOR_CANCELLED;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name NDOF Orbit/Translate Operator
  * \{ */
 
@@ -434,6 +498,11 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 {
   if (event->type != NDOF_MOTION) {
     return OPERATOR_CANCELLED;
+  }
+
+  const int camera_retval = view3d_ndof_cameraview_pan_zoom(C, event);
+  if (camera_retval != OPERATOR_PASS_THROUGH) {
+    return camera_retval;
   }
 
   const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -548,6 +617,11 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *e
 {
   if (event->type != NDOF_MOTION) {
     return OPERATOR_CANCELLED;
+  }
+
+  const int camera_retval = view3d_ndof_cameraview_pan_zoom(C, event);
+  if (camera_retval != OPERATOR_PASS_THROUGH) {
+    return camera_retval;
   }
 
   const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
