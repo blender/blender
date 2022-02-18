@@ -1116,11 +1116,9 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
 
   /* Ensure that when no normal layers exist, they are marked dirty, because
    * normals might not have been included in the mask of copied layers. */
-  if (!CustomData_has_layer(&me_dst->vdata, CD_NORMAL)) {
-    me_dst->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-  }
-  if (!CustomData_has_layer(&me_dst->pdata, CD_NORMAL)) {
-    me_dst->runtime.cd_dirty_poly |= CD_MASK_NORMAL;
+  if (!CustomData_has_layer(&me_dst->vdata, CD_NORMAL) ||
+      !CustomData_has_layer(&me_dst->pdata, CD_NORMAL)) {
+    BKE_mesh_normals_tag_dirty(me_dst);
   }
 
   /* The destination mesh should at least have valid primary CD layers,

@@ -1500,11 +1500,9 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
 
   /* Ensure that when no normal layers exist, they are marked dirty, because
    * normals might not have been included in the mask of copied layers. */
-  if (!CustomData_has_layer(&tmp.vdata, CD_NORMAL)) {
-    tmp.runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-  }
-  if (!CustomData_has_layer(&tmp.pdata, CD_NORMAL)) {
-    tmp.runtime.cd_dirty_poly |= CD_MASK_NORMAL;
+  if (!CustomData_has_layer(&tmp.vdata, CD_NORMAL) ||
+      !CustomData_has_layer(&tmp.pdata, CD_NORMAL)) {
+    BKE_mesh_normals_tag_dirty(&tmp);
   }
 
   if (CustomData_has_layer(&mesh_src->vdata, CD_SHAPEKEY)) {

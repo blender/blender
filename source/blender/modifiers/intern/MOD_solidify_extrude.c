@@ -967,7 +967,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   }
 
   /* must recalculate normals with vgroups since they can displace unevenly T26888. */
-  if ((mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) || do_rim || dvert) {
+  if (BKE_mesh_vertex_normals_are_dirty(mesh) || do_rim || dvert) {
     BKE_mesh_normals_tag_dirty(result);
   }
   else if (do_shell) {
@@ -1023,9 +1023,9 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 #define SOLIDIFY_SIDE_NORMALS
 
 #ifdef SOLIDIFY_SIDE_NORMALS
-    /* NOTE(@sybren): due to the code setting cd_dirty_vert a few lines above,
+    /* NOTE(@sybren): due to the code setting normals dirty a few lines above,
      * do_side_normals is always false. */
-    const bool do_side_normals = !(result->runtime.cd_dirty_vert & CD_MASK_NORMAL);
+    const bool do_side_normals = !BKE_mesh_vertex_normals_are_dirty(result);
     /* annoying to allocate these since we only need the edge verts, */
     float(*edge_vert_nos)[3] = do_side_normals ?
                                    MEM_calloc_arrayN(numVerts, sizeof(float[3]), __func__) :
