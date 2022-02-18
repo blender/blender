@@ -2160,6 +2160,10 @@ static void lib_override_library_main_resync_on_library_indirect_level(
 
   BLI_ghash_free(id_roots, NULL, MEM_freeN);
 
+  /* In some fairly rare (and degenerate) cases, some root ID from other liboverrides may have been
+   * freed, and therefore set to NULL. Attempt to fix this as best as possible. */
+  BKE_lib_override_library_main_hierarchy_root_ensure(bmain);
+
   if (do_reports_recursive_resync_timing) {
     reports->duration.lib_overrides_recursive_resync += PIL_check_seconds_timer() - init_time;
   }
