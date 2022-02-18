@@ -2,7 +2,7 @@
  * Copyright 2022 Blender Foundation. All rights reserved. */
 
 #ifndef GPU_SHADER
-#  include "gpu_shader_shared_utils.h"
+#  include "GPU_shader_shared_utils.h"
 #endif
 
 struct OCIO_GPUCurveMappingParameters {
