@@ -184,6 +184,7 @@ static void OVERLAY_cache_init(void *vedata)
       break;
     case CTX_MODE_SCULPT_CURVES:
     case CTX_MODE_OBJECT:
+    case CTX_MODE_EDIT_CURVES:
       break;
     default:
       BLI_assert_msg(0, "Draw mode invalid");

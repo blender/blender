@@ -1478,6 +1478,9 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
     case CTX_MODE_EDIT_CURVE:
       ARRAY_SET_ITEMS(contexts, ".curve_edit");
       break;
+    case CTX_MODE_EDIT_CURVES:
+      ARRAY_SET_ITEMS(contexts, ".curves_edit");
+      break;
     case CTX_MODE_EDIT_SURFACE:
       ARRAY_SET_ITEMS(contexts, ".curve_edit");
       break;

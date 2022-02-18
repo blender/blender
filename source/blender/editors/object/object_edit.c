@@ -805,6 +805,10 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 
     WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_CURVE, scene);
   }
+  else if (ob->type == OB_CURVES) {
+    ok = true;
+    WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_CURVES, scene);
+  }
 
   if (ok) {
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

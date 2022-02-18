@@ -1160,6 +1160,8 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
         return CTX_MODE_EDIT_METABALL;
       case OB_LATTICE:
         return CTX_MODE_EDIT_LATTICE;
+      case OB_CURVES:
+        return CTX_MODE_EDIT_CURVES;
     }
   }
   else {
@@ -1227,6 +1229,7 @@ static const char *data_mode_strings[] = {
     "armature_edit",
     "mball_edit",
     "lattice_edit",
+    "curves_edit",
     "posemode",
     "sculpt_mode",
     "weightpaint",

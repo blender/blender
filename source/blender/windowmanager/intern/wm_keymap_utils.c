@@ -106,6 +106,9 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
       case CTX_MODE_EDIT_CURVE:
         km_id = "Curve";
         break;
+      case CTX_MODE_EDIT_CURVES:
+        km_id = "Curves";
+        break;
       case CTX_MODE_EDIT_SURFACE:
         km_id = "Curve";
         break;

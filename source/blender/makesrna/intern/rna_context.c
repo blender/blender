@@ -21,6 +21,7 @@
 const EnumPropertyItem rna_enum_context_mode_items[] = {
     {CTX_MODE_EDIT_MESH, "EDIT_MESH", 0, "Mesh Edit", ""},
     {CTX_MODE_EDIT_CURVE, "EDIT_CURVE", 0, "Curve Edit", ""},
+    {CTX_MODE_EDIT_CURVES, "EDIT_CURVES", 0, "Curves Edit", ""},
     {CTX_MODE_EDIT_SURFACE, "EDIT_SURFACE", 0, "Surface Edit", ""},
     {CTX_MODE_EDIT_TEXT, "EDIT_TEXT", 0, "Text Edit", ""},
     /* PARSKEL reuse will give issues */
