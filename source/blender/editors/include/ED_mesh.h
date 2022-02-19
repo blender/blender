@@ -425,6 +425,9 @@ void paintvert_select_ungrouped(struct Object *ob, bool extend, bool flush_flags
 void paintvert_flush_flags(struct Object *ob);
 void paintvert_tag_select_update(struct bContext *C, struct Object *ob);
 
+void paintvert_hide(struct bContext *C, struct Object *ob, bool unselected);
+void paintvert_reveal(struct bContext *C, struct Object *ob, bool select);
+
 /* mirrtopo */
 typedef struct MirrTopoStore_t {
   intptr_t *index_lookup;
