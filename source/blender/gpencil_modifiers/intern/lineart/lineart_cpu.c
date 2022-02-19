@@ -2221,7 +2221,7 @@ static void lineart_main_load_geometries(
     }
 
     if (use_ob->type == OB_MESH) {
-      use_mesh = use_ob->data;
+      use_mesh = BKE_object_get_evaluated_mesh(use_ob);
     }
     else {
       /* If DEG_ITER_OBJECT_FLAG_DUPLI is set, some curve objects may also have an evaluated mesh
@@ -4469,7 +4469,7 @@ static void lineart_gpencil_generate(LineartCache *cache,
       if ((match_output || (gpdg = BKE_object_defgroup_name_index(gpencil_object, vgname)) >= 0)) {
         if (eval_ob && eval_ob->type == OB_MESH) {
           int dindex = 0;
-          Mesh *me = (Mesh *)eval_ob->data;
+          Mesh *me = BKE_object_get_evaluated_mesh(eval_ob);
           if (me->dvert) {
             LISTBASE_FOREACH (bDeformGroup *, db, &me->vertex_group_names) {
               if ((!source_vgname) || strstr(db->name, source_vgname) == db->name) {
