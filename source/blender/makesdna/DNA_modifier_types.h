@@ -1604,6 +1604,10 @@ enum {
   MOD_WVG_MIX_DIF = 6,
   /** Average of both weights. */
   MOD_WVG_MIX_AVG = 7,
+  /** Minimum of both weights. */
+  MOD_WVG_MIX_MIN = 8,
+  /** Maximum of both weights. */
+  MOD_WVG_MIX_MAX = 9,
 };
 
 /** #WeightVGMixModifierData.mix_set (what vertices to affect). */

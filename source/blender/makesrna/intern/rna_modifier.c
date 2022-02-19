@@ -5169,6 +5169,8 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
        "Difference",
        "Difference between VGroup A's and VGroup B's weights"},
       {MOD_WVG_MIX_AVG, "AVG", 0, "Average", "Average value of VGroup A's and VGroup B's weights"},
+      {MOD_WVG_MIX_MIN, "MIN", 0, "Minimum", "Minimum of VGroup A's and VGroup B's weights"},
+      {MOD_WVG_MIX_MAX, "MAX", 0, "Maximum", "Maximum of VGroup A's and VGroup B's weights"},
       {0, NULL, 0, NULL, NULL},
   };
 
