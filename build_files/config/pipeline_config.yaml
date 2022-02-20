@@ -5,7 +5,7 @@
 update-code:
     git:
         submodules:
-        -   branch: master
+        -   branch: xr-dev
             commit_id: HEAD
             path: release/scripts/addons
         -   branch: master
