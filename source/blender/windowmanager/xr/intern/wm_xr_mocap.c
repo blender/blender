@@ -196,7 +196,7 @@ void wm_xr_mocap_object_autokey(
   }
 
   if (ED_transform_motionpath_need_update_object(scene, ob)) {
-    ListBase lb = { NULL, NULL };
+    ListBase lb = {NULL, NULL};
     BLI_addtail(&lb, BLI_genericNodeN(ob));
 
     ED_objects_recalculate_paths(C, scene, OBJECT_PATH_CALC_RANGE_CURRENT_FRAME, &lb);

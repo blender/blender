@@ -1224,6 +1224,7 @@ void wm_xr_session_actions_update(const bContext *C)
     Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     bScreen *screen_anim = ED_screen_animation_playing(wm);
+    bool notify = true;
     wm_xr_mocap_objects_update(XR_HEADSET_PATH,
                                &state->viewer_pose,
                                (bContext *)C,
@@ -1232,7 +1233,7 @@ void wm_xr_session_actions_update(const bContext *C)
                                view_layer,
                                win,
                                screen_anim,
-                               true);
+                               &notify);
   }
 
   const bool synced = GHOST_XrSyncActions(xr_context,
@@ -1243,8 +1244,6 @@ void wm_xr_session_actions_update(const bContext *C)
 
   /* Only update controller data and dispatch events for active action set. */
   if (active_action_set) {
-    wmWindow *win = wm_xr_session_root_window_or_fallback_get(wm, xr->runtime);
-
     if (active_action_set->controller_grip_action && active_action_set->controller_aim_action) {
       wm_xr_session_controller_data_update(active_action_set->controller_grip_action,
                                            active_action_set->controller_aim_action,
