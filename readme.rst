@@ -39,3 +39,10 @@ Blender as a whole is licensed under the GNU General Public License, Version 3.
 Individual files may have a different, but compatible license.
 
 See `blender.org/about/license <https://www.blender.org/about/license>`__ for details.
+
+Download Links:
+---------------
+
+Blender website: <https://www.blender.org/download/>
+Microsoft Store: <https://www.microsoft.com/store/productId/9PP3C07GTVRH>
+
