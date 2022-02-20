@@ -224,7 +224,7 @@ static void rna_XrActionMapBinding_name_update(Main *bmain, Scene *UNUSED(scene)
   wmWindowManager *wm = bmain->wm.first;
   if (wm) {
     XrActionMap *actionmap = BLI_findlink(&wm->xr.session_settings.actionmaps,
-                                          wm->xr.session_settings.selactionmap);
+                                          wm->xr.session_settings.sel_actionmap);
     if (actionmap) {
       XrActionMapItem *ami = BLI_findlink(&actionmap->items, actionmap->sel_item);
       if (ami) {
@@ -550,7 +550,7 @@ static void rna_XrActionMapItem_name_update(Main *bmain, Scene *UNUSED(scene), P
   wmWindowManager *wm = bmain->wm.first;
   if (wm) {
     XrActionMap *actionmap = BLI_findlink(&wm->xr.session_settings.actionmaps,
-                                          wm->xr.session_settings.selactionmap);
+                                          wm->xr.session_settings.sel_actionmap);
     if (actionmap) {
       XrActionMapItem *ami = ptr->data;
       WM_xr_actionmap_item_ensure_unique(actionmap, ami);
@@ -657,6 +657,126 @@ static void rna_XrActionMap_name_update(Main *bmain, Scene *UNUSED(scene), Point
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name XR Motion Capture
+ * \{ */
+
+static XrMotionCaptureObject *rna_XrMotionCaptureObject_new(XrSessionSettings *settings,
+                                                            PointerRNA *ob_ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  Object *ob = ob_ptr->data;
+  return WM_xr_mocap_object_new(settings, ob);
+#  else
+  UNUSED_VARS(settings, ob_ptr);
+  return NULL;
+#  endif
+}
+
+static void rna_XrMotionCaptureObject_remove(XrSessionSettings *settings, PointerRNA *mocap_ob_ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  XrMotionCaptureObject *mocap_ob = mocap_ob_ptr->data;
+  WM_xr_mocap_object_remove(settings, mocap_ob);
+  RNA_POINTER_INVALIDATE(mocap_ob_ptr);
+#  else
+  UNUSED_VARS(settings, mocap_ob_ptr);
+#  endif
+}
+
+static XrMotionCaptureObject *rna_XrMotionCaptureObject_find(XrSessionSettings *settings,
+                                                             PointerRNA *ob_ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  Object *ob = ob_ptr->data;
+  return WM_xr_mocap_object_find(settings, ob);
+#  else
+  UNUSED_VARS(settings, ob_ptr);
+  return NULL;
+#  endif
+}
+
+static void rna_XrMotionCaptureObject_object_update(Main *bmain,
+                                                    Scene *UNUSED(scene),
+                                                    PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  wmWindowManager *wm = bmain->wm.first;
+  if (wm) {
+    XrMotionCaptureObject *mocap_ob = ptr->data;
+    WM_xr_mocap_object_ensure_unique(&wm->xr.session_settings, mocap_ob);
+  }
+#  else
+  UNUSED_VARS(bmain, ptr);
+#  endif
+}
+
+static bool rna_XrMotionCaptureObject_enable_get(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  const XrMotionCaptureObject *mocap_ob = ptr->data;
+  return (mocap_ob->flag & XR_MOCAP_OBJECT_ENABLE) != 0;
+#  else
+  UNUSED_VARS(ptr);
+  return false;
+#  endif
+}
+
+static void rna_XrMotionCaptureObject_enable_set(PointerRNA *ptr, bool value)
+{
+#  ifdef WITH_XR_OPENXR
+  XrMotionCaptureObject *mocap_ob = ptr->data;
+  SET_FLAG_FROM_TEST(mocap_ob->flag, value, XR_MOCAP_OBJECT_ENABLE);
+#  else
+  UNUSED_VARS(ptr, value);
+#  endif
+}
+
+static void rna_XrMotionCaptureObject_enable_update(Main *bmain,
+                                                    Scene *UNUSED(scene),
+                                                    PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  wmWindowManager *wm = bmain->wm.first;
+  if (wm) {
+    XrMotionCaptureObject *mocap_ob = ptr->data;
+    if ((mocap_ob->flag & XR_MOCAP_OBJECT_ENABLE) != 0) {
+      /* Store object's original pose. */
+      WM_xr_session_state_mocap_pose_set(&wm->xr, mocap_ob);
+    }
+    else {
+      /* Restore object's original pose. */
+      WM_xr_session_state_mocap_pose_get(&wm->xr, mocap_ob);
+    }
+  }
+#  else
+  UNUSED_VARS(bmain, ptr);
+#  endif
+}
+
+static bool rna_XrMotionCaptureObject_autokey_get(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  const XrMotionCaptureObject *mocap_ob = ptr->data;
+  return (mocap_ob->flag & XR_MOCAP_OBJECT_AUTOKEY) != 0;
+#  else
+  UNUSED_VARS(ptr);
+  return false;
+#  endif
+}
+
+static void rna_XrMotionCaptureObject_autokey_set(PointerRNA *ptr, bool value)
+{
+#  ifdef WITH_XR_OPENXR
+  XrMotionCaptureObject *mocap_ob = ptr->data;
+  SET_FLAG_FROM_TEST(mocap_ob->flag, value, XR_MOCAP_OBJECT_AUTOKEY);
+#  else
+  UNUSED_VARS(ptr, value);
+#  endif
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name XR Session Settings
  * \{ */
 
@@ -718,6 +838,28 @@ static int rna_XrSessionSettings_actionmaps_length(PointerRNA *ptr)
 #  ifdef WITH_XR_OPENXR
   wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
   return BLI_listbase_count(&xr->session_settings.actionmaps);
+#  else
+  UNUSED_VARS(ptr);
+  return 0;
+#  endif
+}
+
+static void rna_XrSessionSettings_mocap_objects_begin(CollectionPropertyIterator *iter,
+                                                      PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
+  rna_iterator_listbase_begin(iter, &xr->session_settings.mocap_objects, NULL);
+#  else
+  UNUSED_VARS(iter, ptr);
+#  endif
+}
+
+static int rna_XrSessionSettings_mocap_objects_length(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
+  return BLI_listbase_count(&xr->session_settings.mocap_objects);
 #  else
   UNUSED_VARS(ptr);
   return 0;
@@ -1794,6 +1936,97 @@ static void rna_def_xr_actionmap(BlenderRNA *brna)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name XR Motion Capture
+ * \{ */
+
+static void rna_def_xr_motioncapture_objects(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  RNA_def_property_srna(cprop, "XrMotionCaptureObjects");
+  srna = RNA_def_struct(brna, "XrMotionCaptureObjects", NULL);
+  RNA_def_struct_sdna(srna, "XrSessionSettings");
+  RNA_def_struct_ui_text(
+      srna, "XR Motion Capture Objects", "Collection of XR motion capture objects");
+
+  func = RNA_def_function(srna, "new", "rna_XrMotionCaptureObject_new");
+  parm = RNA_def_pointer(func,
+                         "object",
+                         "Object",
+                         "Object",
+                         "Blender object used to identify the motion capture object");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED | PARM_RNAPTR);
+  parm = RNA_def_pointer(func,
+                         "mocap_object",
+                         "XrMotionCaptureObject",
+                         "Motion Capture Object",
+                         "Added motion capture object");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "rna_XrMotionCaptureObject_remove");
+  parm = RNA_def_pointer(func,
+                         "mocap_object",
+                         "XrMotionCaptureObject",
+                         "Motion Capture Object",
+                         "Removed motion capture object");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+
+  func = RNA_def_function(srna, "find", "rna_XrMotionCaptureObject_find");
+  parm = RNA_def_pointer(
+      func, "object", "Object", "Object", "Blender object identifying the motion capture object");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED | PARM_RNAPTR);
+  parm = RNA_def_pointer(func,
+                         "mocap_object",
+                         "XrMotionCaptureObject",
+                         "Motion Capture Object",
+                         "The motion capture object with the given name");
+  RNA_def_function_return(func, parm);
+}
+
+static void rna_def_xr_motioncapture_object(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "XrMotionCaptureObject", NULL);
+  RNA_def_struct_sdna(srna, "XrMotionCaptureObject");
+  RNA_def_struct_ui_text(srna, "XR Motion Capture Object", "");
+
+  prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "ob");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Object", "Object to bind to a VR device");
+  RNA_def_property_update(prop, 0, "rna_XrMotionCaptureObject_object_update");
+
+  prop = RNA_def_property(srna, "user_path", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_maxlength(prop, 64);
+  RNA_def_property_ui_text(prop, "User Path", "OpenXR user path identifying the target VR device");
+
+  prop = RNA_def_property(srna, "location_offset", PROP_FLOAT, PROP_TRANSLATION);
+  RNA_def_property_ui_text(prop, "Location Offset", "Location offset in device space");
+
+  prop = RNA_def_property(srna, "rotation_offset", PROP_FLOAT, PROP_EULER);
+  RNA_def_property_ui_text(prop, "Rotation Offset", "Rotation offset in device space");
+
+  prop = RNA_def_property(srna, "enable", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_XrMotionCaptureObject_enable_get", "rna_XrMotionCaptureObject_enable_set");
+  RNA_def_property_ui_text(prop, "Enable", "Bind object to target VR device");
+  RNA_def_property_update(prop, 0, "rna_XrMotionCaptureObject_enable_update");
+
+  prop = RNA_def_property(srna, "autokey", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_XrMotionCaptureObject_autokey_get", "rna_XrMotionCaptureObject_autokey_set");
+  RNA_def_property_ui_text(prop, "Auto Key", "Auto-insert keyframes on animation playback");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name XR Session Settings
  * \{ */
 
@@ -1964,12 +2197,32 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
   rna_def_xr_actionmaps(brna, prop);
 
   prop = RNA_def_property(srna, "active_actionmap", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "actactionmap");
+  RNA_def_property_int_sdna(prop, NULL, "act_actionmap");
   RNA_def_property_ui_text(prop, "Active Action Map", "");
 
   prop = RNA_def_property(srna, "selected_actionmap", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "selactionmap");
+  RNA_def_property_int_sdna(prop, NULL, "sel_actionmap");
   RNA_def_property_ui_text(prop, "Selected Action Map", "");
+
+  prop = RNA_def_property(srna, "mocap_objects", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "XrMotionCaptureObject");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_XrSessionSettings_mocap_objects_begin",
+                                    "rna_iterator_listbase_next",
+                                    "rna_iterator_listbase_end",
+                                    "rna_iterator_listbase_get",
+                                    "rna_XrSessionSettings_mocap_objects_length",
+                                    NULL,
+                                    NULL,
+                                    NULL);
+  RNA_def_property_ui_text(
+      prop, "XR Motion Capture Objects", "Objects to bind to headset/controller poses");
+  rna_def_xr_motioncapture_objects(brna, prop);
+
+  prop = RNA_def_property(srna, "selected_mocap_object", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "sel_mocap_object");
+  RNA_def_property_ui_text(
+      prop, "Selected Motion Capture Object", "Currently selected motion capture object");
 }
 
 /** \} */
@@ -2397,6 +2650,7 @@ void RNA_def_xr(BlenderRNA *brna)
   RNA_define_animate_sdna(false);
 
   rna_def_xr_actionmap(brna);
+  rna_def_xr_motioncapture_object(brna);
   rna_def_xr_session_settings(brna);
   rna_def_xr_session_state(brna);
   rna_def_xr_eventdata(brna);

@@ -38,9 +38,13 @@ typedef struct XrSessionSettings {
   int flag;
 
   ListBase actionmaps; /* XrActionMap */
-  short actactionmap;
-  short selactionmap;
-  char _pad3[4];
+  short act_actionmap;
+  short sel_actionmap;
+  char _pad3[2];
+
+  /** Objects to bind to headset/controller poses. */
+  short sel_mocap_object;
+  ListBase mocap_objects; /* #XrMotionCaptureObject */
 } XrSessionSettings;
 
 typedef enum eXrSessionFlag {
@@ -110,6 +114,11 @@ typedef enum eXrPoseFlag {
   XR_POSE_GRIP = (1 << 0),
   XR_POSE_AIM = (1 << 1),
 } eXrPoseFlag;
+
+typedef enum eXrMotionCaptureFlag {
+  XR_MOCAP_OBJECT_ENABLE = (1 << 0),
+  XR_MOCAP_OBJECT_AUTOKEY = (1 << 1),
+} eXrMotionCaptureFlag;
 
 /**
  * The following user and component path lengths are dependent on OpenXR's XR_MAX_PATH_LENGTH
@@ -206,6 +215,24 @@ typedef struct XrActionMap {
   short sel_item;
   char _pad[6];
 } XrActionMap;
+
+/* -------------------------------------------------------------------- */
+
+typedef struct XrMotionCaptureObject {
+  struct XrMotionCaptureObject *next, *prev;
+
+  /** Object to bind to a VR device. Used as struct identifier. */
+  Object *ob;
+  /** OpenXR user path, identifies the target headset/controller. */
+  char user_path[64]; /* XR_MAX_USER_PATH_LENGTH */
+
+  /** Location/rotation offsets. */
+  float location_offset[3];
+  float rotation_offset[3];
+
+  short flag; /* eXrMotionCaptureFlag */
+  char _pad[6];
+} XrMotionCaptureObject;
 
 /* -------------------------------------------------------------------- */
 

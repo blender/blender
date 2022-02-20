@@ -15,8 +15,10 @@ extern "C" {
 
 struct Object;
 struct bContext;
+struct ViewLayer;
 struct wmKeyConfig;
 struct wmOperatorType;
+struct wmTimer;
 
 void ED_keymap_transform(struct wmKeyConfig *keyconf);
 void transform_operatortypes(void);
@@ -201,6 +203,19 @@ struct TransformCalcParams {
 int ED_transform_calc_gizmo_stats(const struct bContext *C,
                                   const struct TransformCalcParams *params,
                                   struct TransformBounds *tbounds);
+
+/* transform_convert.c */
+void ED_transform_animrecord_check_state(struct Scene *scene,
+                                         struct wmTimer *animtimer,
+                                         struct Object *ob);
+
+/* transform_convert_object.c */
+void ED_transform_autokeyframe_object(struct bContext *C,
+                                      struct Scene *scene,
+                                      struct ViewLayer *view_layer,
+                                      struct Object *ob,
+                                      int tmode);
+bool ED_transform_motionpath_need_update_object(struct Scene *scene, struct Object *ob);
 
 #ifdef __cplusplus
 }

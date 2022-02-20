@@ -486,14 +486,14 @@ bool WM_xr_actionmap_remove(XrSessionSettings *settings, XrActionMap *actionmap)
     wm_xr_actionmap_clear(actionmap);
     BLI_freelinkN(&settings->actionmaps, actionmap);
 
-    if (idx <= settings->actactionmap) {
-      if (--settings->actactionmap < 0) {
-        settings->actactionmap = 0;
+    if (idx <= settings->act_actionmap) {
+      if (--settings->act_actionmap < 0) {
+        settings->act_actionmap = 0;
       }
     }
-    if (idx <= settings->selactionmap) {
-      if (--settings->selactionmap < 0) {
-        settings->selactionmap = 0;
+    if (idx <= settings->sel_actionmap) {
+      if (--settings->sel_actionmap < 0) {
+        settings->sel_actionmap = 0;
       }
     }
 
@@ -519,7 +519,7 @@ void WM_xr_actionmaps_free(XrSessionSettings *settings)
     wm_xr_actionmap_clear(am);
   }
   BLI_freelistN(&settings->actionmaps);
-  settings->actactionmap = settings->selactionmap = 0;
+  settings->act_actionmap = settings->sel_actionmap = 0;
 }
 
 /** \} */

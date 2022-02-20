@@ -43,6 +43,9 @@
 #include "wm_window.h"
 #include "wm_xr_intern.h"
 
+/* OpenXR user path identifying the headset. Used for motion capture objects. */
+#define XR_HEADSET_PATH "/user/head"
+
 static wmSurface *g_xr_surface = NULL;
 static CLG_LogRef LOG = {"wm.xr"};
 
@@ -67,6 +70,9 @@ static void wm_xr_session_create_cb(void)
     settings->base_scale = 1.0f;
   }
   state->prev_base_scale = settings->base_scale;
+
+  /* Store motion capture object poses. */
+  wm_xr_mocap_orig_poses_store(settings, state);
 }
 
 static void wm_xr_session_controller_data_free(wmXrSessionState *state)
@@ -85,6 +91,7 @@ static void wm_xr_session_controller_data_free(wmXrSessionState *state)
 void wm_xr_session_data_free(wmXrSessionState *state)
 {
   wm_xr_session_controller_data_free(state);
+  BLI_freelistN(&state->mocap_orig_poses);
 }
 
 static void wm_xr_session_exit_cb(void *customdata)
@@ -95,6 +102,9 @@ static void wm_xr_session_exit_cb(void *customdata)
   }
 
   xr_data->runtime->session_state.is_started = false;
+
+  /* Restore motion capture object poses. */
+  wm_xr_mocap_orig_poses_restore(&xr_data->runtime->session_state, &xr_data->session_settings);
 
   if (xr_data->runtime->exit_fn) {
     xr_data->runtime->exit_fn(xr_data);
@@ -606,15 +616,22 @@ static void wm_xr_session_controller_pose_calc(const GHOST_XrPose *raw_pose,
   mat4_to_loc_quat(r_pose->position, r_pose->orientation_quat, r_mat);
 }
 
-static void wm_xr_session_controller_data_update(const XrSessionSettings *settings,
-                                                 const wmXrAction *grip_action,
+static void wm_xr_session_controller_data_update(const wmXrAction *grip_action,
                                                  const wmXrAction *aim_action,
+                                                 bContext *C,
+                                                 XrSessionSettings *settings,
                                                  GHOST_XrContextHandle xr_context,
-                                                 wmXrSessionState *state)
+                                                 wmXrSessionState *state,
+                                                 wmWindow *win)
 {
   BLI_assert(grip_action->count_subaction_paths == aim_action->count_subaction_paths);
   BLI_assert(grip_action->count_subaction_paths == BLI_listbase_count(&state->controllers));
 
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  wmWindowManager *wm = CTX_wm_manager(C);
+  bScreen *screen_anim = ED_screen_animation_playing(wm);
+  bool notify = true;
   unsigned int subaction_idx = 0;
   float view_ofs[3], base_mat[4][4], nav_mat[4][4];
 
@@ -647,6 +664,18 @@ static void wm_xr_session_controller_data_update(const XrSessionSettings *settin
                                        controller->aim_mat,
                                        controller->aim_mat_base);
 
+    /* Update motion capture objects. */
+    wm_xr_mocap_objects_update(controller->subaction_path,
+                               &controller->grip_pose,
+                               C,
+                               settings,
+                               scene,
+                               view_layer,
+                               win,
+                               screen_anim,
+                               &notify);
+
+    /* Update controller model. */
     if (!controller->model) {
       /* Notify GHOST to load/continue loading the controller model data. This can be called more
        * than once since the model may not be available from the runtime yet. The batch itself will
@@ -1161,8 +1190,9 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
   MEM_freeN(actions);
 }
 
-void wm_xr_session_actions_update(wmWindowManager *wm)
+void wm_xr_session_actions_update(const bContext *C)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   wmXrData *xr = &wm->xr;
   if (!xr->runtime) {
     return;
@@ -1172,6 +1202,7 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
   GHOST_XrContextHandle xr_context = xr->runtime->context;
   wmXrSessionState *state = &xr->runtime->session_state;
   wmXrActionSet *active_action_set = state->active_action_set;
+  wmWindow *win = wm_xr_session_root_window_or_fallback_get(wm, xr->runtime);
 
   if (state->is_navigation_dirty) {
     memcpy(&state->nav_pose_prev, &state->nav_pose, sizeof(state->nav_pose_prev));
@@ -1188,6 +1219,22 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
         &state->viewer_pose, settings->base_scale * state->nav_scale, state->viewer_viewmat);
   }
 
+  /* Update headset motion capture objects. */
+  {
+    Scene *scene = CTX_data_scene(C);
+    ViewLayer *view_layer = CTX_data_view_layer(C);
+    bScreen *screen_anim = ED_screen_animation_playing(wm);
+    wm_xr_mocap_objects_update(XR_HEADSET_PATH,
+                               &state->viewer_pose,
+                               (bContext *)C,
+                               settings,
+                               scene,
+                               view_layer,
+                               win,
+                               screen_anim,
+                               true);
+  }
+
   const bool synced = GHOST_XrSyncActions(xr_context,
                                           active_action_set ? active_action_set->name : NULL);
   if (!synced) {
@@ -1199,11 +1246,13 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
     wmWindow *win = wm_xr_session_root_window_or_fallback_get(wm, xr->runtime);
 
     if (active_action_set->controller_grip_action && active_action_set->controller_aim_action) {
-      wm_xr_session_controller_data_update(settings,
-                                           active_action_set->controller_grip_action,
+      wm_xr_session_controller_data_update(active_action_set->controller_grip_action,
                                            active_action_set->controller_aim_action,
+                                           (bContext *)C,
+                                           settings,
                                            xr_context,
-                                           state);
+                                           state,
+                                           win);
     }
 
     if (win) {

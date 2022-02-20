@@ -203,8 +203,9 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
     }
 
 #ifdef WITH_XR_OPENXR
-    /* Free XR action maps. */
+    /* Free XR action maps and motion capture objects. */
     WM_xr_actionmaps_free(&wm->xr.session_settings);
+    BLI_freelistN(&wm->xr.session_settings.mocap_objects);
 #endif
   }
 

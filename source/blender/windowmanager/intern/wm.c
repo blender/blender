@@ -118,6 +118,10 @@ static void write_wm_xr_data(BlendWriter *writer, wmXrData *xr_data)
       }
     }
   }
+
+  LISTBASE_FOREACH (XrMotionCaptureObject *, mocap_ob, &xr_data->session_settings.mocap_objects) {
+    BLO_write_struct(writer, XrMotionCaptureObject, mocap_ob);
+  }
 }
 
 static void window_manager_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -174,6 +178,8 @@ static void direct_link_wm_xr_data(BlendDataReader *reader, wmXrData *xr_data)
       }
     }
   }
+
+  BLO_read_list(reader, &xr_data->session_settings.mocap_objects);
 }
 
 static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
@@ -267,6 +273,10 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
 static void lib_link_wm_xr_data(BlendLibReader *reader, ID *parent_id, wmXrData *xr_data)
 {
   BLO_read_id_address(reader, parent_id->lib, &xr_data->session_settings.base_pose_object);
+
+  LISTBASE_FOREACH (XrMotionCaptureObject *, mocap_ob, &xr_data->session_settings.mocap_objects) {
+    BLO_read_id_address(reader, parent_id->lib, &mocap_ob->ob);
+  }
 }
 
 static void lib_link_workspace_instance_hook(BlendLibReader *reader,

@@ -1681,6 +1681,18 @@ XrActionMapBinding *WM_xr_actionmap_binding_add_copy(XrActionMapItem *ami,
                                                      XrActionMapBinding *amb_src);
 bool WM_xr_actionmap_binding_remove(XrActionMapItem *ami, XrActionMapBinding *amb);
 XrActionMapBinding *WM_xr_actionmap_binding_find(XrActionMapItem *ami, const char *name);
+
+/* wm_xr_mocap.c */
+
+XrMotionCaptureObject *WM_xr_mocap_object_new(XrSessionSettings *settings, Object *ob);
+void WM_xr_mocap_object_ensure_unique(XrSessionSettings *settings,
+                                      XrMotionCaptureObject *mocap_ob);
+void WM_xr_mocap_object_remove(XrSessionSettings *settings, XrMotionCaptureObject *mocap_ob);
+XrMotionCaptureObject *WM_xr_mocap_object_find(const XrSessionSettings *settings,
+                                               const Object *ob);
+
+bool WM_xr_session_state_mocap_pose_get(const wmXrData *xr, XrMotionCaptureObject *mocap_ob);
+void WM_xr_session_state_mocap_pose_set(wmXrData *xr, const XrMotionCaptureObject *mocap_ob);
 #endif /* WITH_XR_OPENXR */
 
 #ifdef __cplusplus

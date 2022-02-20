@@ -2421,6 +2421,10 @@ static void lib_link_wm_xr_data_restore(struct IDNameLib_Map *id_map, wmXrData *
 {
   xr_data->session_settings.base_pose_object = restore_pointer_by_name(
       id_map, (ID *)xr_data->session_settings.base_pose_object, USER_REAL);
+
+  LISTBASE_FOREACH (XrMotionCaptureObject *, mocap_ob, &xr_data->session_settings.mocap_objects) {
+    mocap_ob->ob = restore_pointer_by_name(id_map, (ID *)mocap_ob->ob, USER_REAL);
+  }
 }
 
 static void lib_link_window_scene_data_restore(wmWindow *win, Scene *scene, ViewLayer *view_layer)
