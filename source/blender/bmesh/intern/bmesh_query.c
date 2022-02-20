@@ -2234,7 +2234,9 @@ int BM_mesh_calc_face_groups(BMesh *bm,
   MEM_freeN(stack);
 
   /* reduce alloc to required size */
-  group_index = MEM_reallocN(group_index, sizeof(*group_index) * group_curr);
+  if (group_index_len != group_curr) {
+    group_index = MEM_reallocN(group_index, sizeof(*group_index) * group_curr);
+  }
   *r_group_index = group_index;
 
   return group_curr;
@@ -2354,7 +2356,9 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
   MEM_freeN(stack);
 
   /* reduce alloc to required size */
-  group_index = MEM_reallocN(group_index, sizeof(*group_index) * group_curr);
+  if (group_index_len != group_curr) {
+    group_index = MEM_reallocN(group_index, sizeof(*group_index) * group_curr);
+  }
   *r_group_index = group_index;
 
   return group_curr;
