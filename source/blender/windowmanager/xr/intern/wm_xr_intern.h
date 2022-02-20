@@ -72,10 +72,6 @@ typedef struct wmXrRuntimeData {
   /** Although this struct is internal, RNA gets a handle to this for state information queries. */
   wmXrSessionState session_state;
   wmXrSessionExitFn exit_fn;
-
-  ListBase actionmaps; /* #XrActionMap */
-  short actactionmap;
-  short selactionmap;
 } wmXrRuntimeData;
 
 typedef struct wmXrViewportPair {

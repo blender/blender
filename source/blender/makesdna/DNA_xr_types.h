@@ -36,6 +36,11 @@ typedef struct XrSessionSettings {
   float clip_start, clip_end;
 
   int flag;
+
+  ListBase actionmaps; /* XrActionMap */
+  short actactionmap;
+  short selactionmap;
+  char _pad3[4];
 } XrSessionSettings;
 
 typedef enum eXrSessionFlag {
@@ -137,7 +142,8 @@ typedef struct XrActionMapBinding {
   /** Input threshold/region. */
   float float_threshold;
   short axis_flag; /* eXrAxisFlag */
-  char _pad[2];
+
+  short sel_component_path;
 
   /** Pose action properties. */
   float pose_location[3];
@@ -183,8 +189,8 @@ typedef struct XrActionMapItem {
   float haptic_frequency;
   float haptic_amplitude;
 
-  short selbinding;
-  char _pad3[2];
+  short sel_user_path;
+  short sel_binding;
   ListBase bindings; /* XrActionMapBinding */
 } XrActionMapItem;
 
@@ -197,7 +203,7 @@ typedef struct XrActionMap {
   char name[64]; /* MAX_NAME */
 
   ListBase items; /* XrActionMapItem */
-  short selitem;
+  short sel_item;
   char _pad[6];
 } XrActionMap;
 

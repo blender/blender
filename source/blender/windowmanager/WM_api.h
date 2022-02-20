@@ -1642,23 +1642,17 @@ void WM_xr_haptic_action_stop(wmXrData *xr,
 
 /* wm_xr_actionmap.c */
 
-XrActionMap *WM_xr_actionmap_new(struct wmXrRuntimeData *runtime,
+XrActionMap *WM_xr_actionmap_new(XrSessionSettings *settings,
                                  const char *name,
                                  bool replace_existing);
 /**
  * Ensure unique name among all action maps.
  */
-void WM_xr_actionmap_ensure_unique(struct wmXrRuntimeData *runtime, XrActionMap *actionmap);
-XrActionMap *WM_xr_actionmap_add_copy(struct wmXrRuntimeData *runtime, XrActionMap *am_src);
-bool WM_xr_actionmap_remove(struct wmXrRuntimeData *runtime, XrActionMap *actionmap);
-XrActionMap *WM_xr_actionmap_find(struct wmXrRuntimeData *runtime, const char *name);
-void WM_xr_actionmap_clear(XrActionMap *actionmap);
-void WM_xr_actionmaps_clear(struct wmXrRuntimeData *runtime);
-ListBase *WM_xr_actionmaps_get(struct wmXrRuntimeData *runtime);
-short WM_xr_actionmap_active_index_get(const struct wmXrRuntimeData *runtime);
-void WM_xr_actionmap_active_index_set(struct wmXrRuntimeData *runtime, short idx);
-short WM_xr_actionmap_selected_index_get(const struct wmXrRuntimeData *runtime);
-void WM_xr_actionmap_selected_index_set(struct wmXrRuntimeData *runtime, short idx);
+void WM_xr_actionmap_ensure_unique(XrSessionSettings *settings, XrActionMap *actionmap);
+XrActionMap *WM_xr_actionmap_add_copy(XrSessionSettings *settings, XrActionMap *am_src);
+bool WM_xr_actionmap_remove(XrSessionSettings *settings, XrActionMap *actionmap);
+XrActionMap *WM_xr_actionmap_find(XrSessionSettings *settings, const char *name);
+void WM_xr_actionmaps_free(XrSessionSettings *settings);
 
 XrActionMapItem *WM_xr_actionmap_item_new(XrActionMap *actionmap,
                                           const char *name,

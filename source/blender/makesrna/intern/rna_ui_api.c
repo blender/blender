@@ -1789,6 +1789,11 @@ void RNA_api_ui_layout(StructRNA *srna)
   parm = RNA_def_pointer(func, "item", "KeyMapItem", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 
+  func = RNA_def_function(
+      srna, "template_xr_actionmap_item_properties", "uiTemplateXrActionmapItemProperties");
+  parm = RNA_def_pointer(func, "item", "XrActionMapItem", "", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+
   func = RNA_def_function(srna, "template_component_menu", "uiTemplateComponentMenu");
   RNA_def_function_ui_description(func, "Item. Display expanded property in a popup menu");
   parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property");

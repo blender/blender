@@ -95,6 +95,29 @@ static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
 static void write_wm_xr_data(BlendWriter *writer, wmXrData *xr_data)
 {
   BKE_screen_view3d_shading_blend_write(writer, &xr_data->session_settings.shading);
+
+  LISTBASE_FOREACH (XrActionMap *, am, &xr_data->session_settings.actionmaps) {
+    BLO_write_struct(writer, XrActionMap, am);
+
+    LISTBASE_FOREACH (XrActionMapItem *, ami, &am->items) {
+      BLO_write_struct(writer, XrActionMapItem, ami);
+      if (ami->op[0] && ami->op_properties) {
+        IDP_BlendWrite(writer, ami->op_properties);
+      }
+
+      LISTBASE_FOREACH (XrUserPath *, user_path, &ami->user_paths) {
+        BLO_write_struct(writer, XrUserPath, user_path);
+      }
+
+      LISTBASE_FOREACH (XrActionMapBinding *, amb, &ami->bindings) {
+        BLO_write_struct(writer, XrActionMapBinding, amb);
+
+        LISTBASE_FOREACH (XrComponentPath *, component_path, &amb->component_paths) {
+          BLO_write_struct(writer, XrComponentPath, component_path);
+        }
+      }
+    }
+  }
 }
 
 static void window_manager_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -123,6 +146,34 @@ static void window_manager_blend_write(BlendWriter *writer, ID *id, const void *
 static void direct_link_wm_xr_data(BlendDataReader *reader, wmXrData *xr_data)
 {
   BKE_screen_view3d_shading_blend_read_data(reader, &xr_data->session_settings.shading);
+
+  BLO_read_list(reader, &xr_data->session_settings.actionmaps);
+
+  LISTBASE_FOREACH (XrActionMap *, am, &xr_data->session_settings.actionmaps) {
+    BLO_read_list(reader, &am->items);
+
+    LISTBASE_FOREACH (XrActionMapItem *, ami, &am->items) {
+      if (ami->op[0] && ami->op_properties) {
+        BLO_read_data_address(reader, &ami->op_properties);
+        IDP_BlendDataRead(reader, &ami->op_properties);
+
+        ami->op_properties_ptr = MEM_callocN(sizeof(PointerRNA), "wmOpItemPtr");
+        WM_operator_properties_create(ami->op_properties_ptr, ami->op);
+        ami->op_properties_ptr->data = ami->op_properties;
+      }
+      else {
+        ami->op_properties = NULL;
+        ami->op_properties_ptr = NULL;
+      }
+
+      BLO_read_list(reader, &ami->user_paths);
+      BLO_read_list(reader, &ami->bindings);
+
+      LISTBASE_FOREACH (XrActionMapBinding *, amb, &ami->bindings) {
+        BLO_read_list(reader, &amb->component_paths);
+      }
+    }
+  }
 }
 
 static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)

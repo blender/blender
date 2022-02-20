@@ -117,6 +117,7 @@ void wm_xr_exit(wmWindowManager *wm)
     IDP_FreeProperty(wm->xr.session_settings.shading.prop);
     wm->xr.session_settings.shading.prop = NULL;
   }
+  WM_xr_actionmaps_free(&wm->xr.session_settings);
 }
 
 bool wm_xr_events_handle(wmWindowManager *wm)
@@ -168,7 +169,6 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
       (*runtime)->area = NULL;
     }
     wm_xr_session_data_free(&(*runtime)->session_state);
-    WM_xr_actionmaps_clear(*runtime);
 
     GHOST_XrContextDestroy(context);
   }

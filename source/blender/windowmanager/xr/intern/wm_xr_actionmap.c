@@ -127,6 +127,7 @@ XrActionMapBinding *WM_xr_actionmap_binding_add_copy(XrActionMapItem *ami,
 static void wm_xr_actionmap_binding_clear(XrActionMapBinding *amb)
 {
   BLI_freelistN(&amb->component_paths);
+  amb->sel_component_path = 0;
 }
 
 bool WM_xr_actionmap_binding_remove(XrActionMapItem *ami, XrActionMapBinding *amb)
@@ -137,9 +138,9 @@ bool WM_xr_actionmap_binding_remove(XrActionMapItem *ami, XrActionMapBinding *am
     wm_xr_actionmap_binding_clear(amb);
     BLI_freelinkN(&ami->bindings, amb);
 
-    if (idx <= ami->selbinding) {
-      if (--ami->selbinding < 0) {
-        ami->selbinding = 0;
+    if (idx <= ami->sel_binding) {
+      if (--ami->sel_binding < 0) {
+        ami->sel_binding = 0;
       }
     }
 
@@ -192,11 +193,12 @@ static void wm_xr_actionmap_item_clear(XrActionMapItem *ami)
     wm_xr_actionmap_binding_clear(amb);
   }
   BLI_freelistN(&ami->bindings);
-  ami->selbinding = 0;
-
-  wm_xr_actionmap_item_properties_free(ami);
+  ami->sel_binding = 0;
 
   BLI_freelistN(&ami->user_paths);
+  ami->sel_user_path = 0;
+
+  wm_xr_actionmap_item_properties_free(ami);
 }
 
 void WM_xr_actionmap_item_properties_update_ot(XrActionMapItem *ami)
@@ -313,6 +315,12 @@ static XrActionMapItem *wm_xr_actionmap_item_copy(XrActionMapItem *ami_src)
     BLI_addtail(&ami_dst->bindings, amb_new);
   }
 
+  BLI_listbase_clear(&ami_dst->user_paths);
+  LISTBASE_FOREACH (XrUserPath *, path, &ami_src->user_paths) {
+    XrUserPath *path_new = MEM_dupallocN(path);
+    BLI_addtail(&ami_dst->user_paths, path_new);
+  }
+
   if (ami_dst->op_properties) {
     ami_dst->op_properties_ptr = MEM_callocN(sizeof(PointerRNA), "wmOpItemPtr");
     WM_operator_properties_create(ami_dst->op_properties_ptr, ami_dst->op);
@@ -322,12 +330,6 @@ static XrActionMapItem *wm_xr_actionmap_item_copy(XrActionMapItem *ami_src)
   else {
     ami_dst->op_properties = NULL;
     ami_dst->op_properties_ptr = NULL;
-  }
-
-  BLI_listbase_clear(&ami_dst->user_paths);
-  LISTBASE_FOREACH (XrUserPath *, path, &ami_src->user_paths) {
-    XrUserPath *path_new = MEM_dupallocN(path);
-    BLI_addtail(&ami_dst->user_paths, path_new);
   }
 
   return ami_dst;
@@ -352,9 +354,9 @@ bool WM_xr_actionmap_item_remove(XrActionMap *actionmap, XrActionMapItem *ami)
     wm_xr_actionmap_item_clear(ami);
     BLI_freelinkN(&actionmap->items, ami);
 
-    if (idx <= actionmap->selitem) {
-      if (--actionmap->selitem < 0) {
-        actionmap->selitem = 0;
+    if (idx <= actionmap->sel_item) {
+      if (--actionmap->sel_item < 0) {
+        actionmap->sel_item = 0;
       }
     }
 
@@ -382,39 +384,49 @@ XrActionMapItem *WM_xr_actionmap_item_find(XrActionMap *actionmap, const char *n
  * List of XR action map items.
  * \{ */
 
-XrActionMap *WM_xr_actionmap_new(wmXrRuntimeData *runtime, const char *name, bool replace_existing)
+static void wm_xr_actionmap_clear(XrActionMap *actionmap)
 {
-  XrActionMap *am_prev = WM_xr_actionmap_find(runtime, name);
+  LISTBASE_FOREACH (XrActionMapItem *, ami, &actionmap->items) {
+    wm_xr_actionmap_item_clear(ami);
+  }
+  BLI_freelistN(&actionmap->items);
+  actionmap->sel_item = 0;
+}
+
+XrActionMap *WM_xr_actionmap_new(XrSessionSettings *settings,
+                                 const char *name,
+                                 bool replace_existing)
+{
+  XrActionMap *am_prev = WM_xr_actionmap_find(settings, name);
   if (am_prev && replace_existing) {
-    WM_xr_actionmap_clear(am_prev);
+    wm_xr_actionmap_clear(am_prev);
     return am_prev;
   }
 
   XrActionMap *am = MEM_callocN(sizeof(struct XrActionMap), __func__);
   BLI_strncpy(am->name, name, MAX_NAME);
   if (am_prev) {
-    WM_xr_actionmap_ensure_unique(runtime, am);
+    WM_xr_actionmap_ensure_unique(settings, am);
   }
 
-  BLI_addtail(&runtime->actionmaps, am);
+  BLI_addtail(&settings->actionmaps, am);
 
   return am;
 }
 
-static XrActionMap *wm_xr_actionmap_find_except(wmXrRuntimeData *runtime,
+static XrActionMap *wm_xr_actionmap_find_except(XrSessionSettings *settings,
                                                 const char *name,
                                                 const XrActionMap *am_except)
 {
-  LISTBASE_FOREACH (XrActionMap *, am, &runtime->actionmaps) {
+  LISTBASE_FOREACH (XrActionMap *, am, &settings->actionmaps) {
     if (STREQLEN(name, am->name, MAX_NAME) && (am != am_except)) {
       return am;
     }
   }
-
   return NULL;
 }
 
-void WM_xr_actionmap_ensure_unique(wmXrRuntimeData *runtime, XrActionMap *actionmap)
+void WM_xr_actionmap_ensure_unique(XrSessionSettings *settings, XrActionMap *actionmap)
 {
   char name[MAX_NAME];
   char *suffix;
@@ -425,7 +437,7 @@ void WM_xr_actionmap_ensure_unique(wmXrRuntimeData *runtime, XrActionMap *action
   baselen = BLI_strnlen(name, MAX_NAME);
   suffix = &name[baselen];
 
-  while (wm_xr_actionmap_find_except(runtime, name, actionmap)) {
+  while (wm_xr_actionmap_find_except(settings, name, actionmap)) {
     if ((baselen + 1) + (log10(++idx) + 1) > MAX_NAME) {
       /* Use default base name. */
       BLI_strncpy(name, WM_XR_ACTIONMAP_STR_DEFAULT, MAX_NAME);
@@ -455,33 +467,33 @@ static XrActionMap *wm_xr_actionmap_copy(XrActionMap *am_src)
   return am_dst;
 }
 
-XrActionMap *WM_xr_actionmap_add_copy(wmXrRuntimeData *runtime, XrActionMap *am_src)
+XrActionMap *WM_xr_actionmap_add_copy(XrSessionSettings *settings, XrActionMap *am_src)
 {
   XrActionMap *am_dst = wm_xr_actionmap_copy(am_src);
 
-  WM_xr_actionmap_ensure_unique(runtime, am_dst);
+  WM_xr_actionmap_ensure_unique(settings, am_dst);
 
-  BLI_addtail(&runtime->actionmaps, am_dst);
+  BLI_addtail(&settings->actionmaps, am_dst);
 
   return am_dst;
 }
 
-bool WM_xr_actionmap_remove(wmXrRuntimeData *runtime, XrActionMap *actionmap)
+bool WM_xr_actionmap_remove(XrSessionSettings *settings, XrActionMap *actionmap)
 {
-  int idx = BLI_findindex(&runtime->actionmaps, actionmap);
+  int idx = BLI_findindex(&settings->actionmaps, actionmap);
 
   if (idx != -1) {
-    WM_xr_actionmap_clear(actionmap);
-    BLI_freelinkN(&runtime->actionmaps, actionmap);
+    wm_xr_actionmap_clear(actionmap);
+    BLI_freelinkN(&settings->actionmaps, actionmap);
 
-    if (idx <= runtime->actactionmap) {
-      if (--runtime->actactionmap < 0) {
-        runtime->actactionmap = 0;
+    if (idx <= settings->actactionmap) {
+      if (--settings->actactionmap < 0) {
+        settings->actactionmap = 0;
       }
     }
-    if (idx <= runtime->selactionmap) {
-      if (--runtime->selactionmap < 0) {
-        runtime->selactionmap = 0;
+    if (idx <= settings->selactionmap) {
+      if (--settings->selactionmap < 0) {
+        settings->selactionmap = 0;
       }
     }
 
@@ -491,9 +503,9 @@ bool WM_xr_actionmap_remove(wmXrRuntimeData *runtime, XrActionMap *actionmap)
   return false;
 }
 
-XrActionMap *WM_xr_actionmap_find(wmXrRuntimeData *runtime, const char *name)
+XrActionMap *WM_xr_actionmap_find(XrSessionSettings *settings, const char *name)
 {
-  LISTBASE_FOREACH (XrActionMap *, am, &runtime->actionmaps) {
+  LISTBASE_FOREACH (XrActionMap *, am, &settings->actionmaps) {
     if (STREQLEN(name, am->name, MAX_NAME)) {
       return am;
     }
@@ -501,47 +513,13 @@ XrActionMap *WM_xr_actionmap_find(wmXrRuntimeData *runtime, const char *name)
   return NULL;
 }
 
-void WM_xr_actionmap_clear(XrActionMap *actionmap)
+void WM_xr_actionmaps_free(XrSessionSettings *settings)
 {
-  LISTBASE_FOREACH (XrActionMapItem *, ami, &actionmap->items) {
-    wm_xr_actionmap_item_clear(ami);
+  LISTBASE_FOREACH (XrActionMap *, am, &settings->actionmaps) {
+    wm_xr_actionmap_clear(am);
   }
-  BLI_freelistN(&actionmap->items);
-  actionmap->selitem = 0;
-}
-
-void WM_xr_actionmaps_clear(wmXrRuntimeData *runtime)
-{
-  LISTBASE_FOREACH (XrActionMap *, am, &runtime->actionmaps) {
-    WM_xr_actionmap_clear(am);
-  }
-  BLI_freelistN(&runtime->actionmaps);
-  runtime->actactionmap = runtime->selactionmap = 0;
-}
-
-ListBase *WM_xr_actionmaps_get(wmXrRuntimeData *runtime)
-{
-  return &runtime->actionmaps;
-}
-
-short WM_xr_actionmap_active_index_get(const wmXrRuntimeData *runtime)
-{
-  return runtime->actactionmap;
-}
-
-void WM_xr_actionmap_active_index_set(wmXrRuntimeData *runtime, short idx)
-{
-  runtime->actactionmap = idx;
-}
-
-short WM_xr_actionmap_selected_index_get(const wmXrRuntimeData *runtime)
-{
-  return runtime->selactionmap;
-}
-
-void WM_xr_actionmap_selected_index_set(wmXrRuntimeData *runtime, short idx)
-{
-  runtime->selactionmap = idx;
+  BLI_freelistN(&settings->actionmaps);
+  settings->actactionmap = settings->selactionmap = 0;
 }
 
 /** \} */

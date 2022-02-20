@@ -201,6 +201,11 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
       WM_msgbus_destroy(wm->message_bus);
       wm->message_bus = NULL;
     }
+
+#ifdef WITH_XR_OPENXR
+    /* Free XR action maps. */
+    WM_xr_actionmaps_free(&wm->xr.session_settings);
+#endif
   }
 
   BLI_listbase_clear(&G_MAIN->wm);
