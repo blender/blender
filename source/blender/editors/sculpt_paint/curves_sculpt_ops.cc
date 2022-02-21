@@ -59,9 +59,14 @@ static int sculpt_curves_stroke_invoke(bContext *C, wmOperator *op, const wmEven
   return OPERATOR_RUNNING_MODAL;
 }
 
+static int sculpt_curves_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  return paint_stroke_modal(C, op, event, static_cast<PaintStroke *>(op->customdata));
+}
+
 static void sculpt_curves_stroke_cancel(bContext *C, wmOperator *op)
 {
-  paint_stroke_cancel(C, op);
+  paint_stroke_cancel(C, op, static_cast<PaintStroke *>(op->customdata));
 }
 
 static void SCULPT_CURVES_OT_brush_stroke(struct wmOperatorType *ot)
@@ -71,7 +76,7 @@ static void SCULPT_CURVES_OT_brush_stroke(struct wmOperatorType *ot)
   ot->description = "Sculpt curves using a brush";
 
   ot->invoke = sculpt_curves_stroke_invoke;
-  ot->modal = paint_stroke_modal;
+  ot->modal = sculpt_curves_stroke_modal;
   ot->cancel = sculpt_curves_stroke_cancel;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

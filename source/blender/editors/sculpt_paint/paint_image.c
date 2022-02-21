@@ -685,7 +685,7 @@ static int paint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                                     event->type);
 
   if ((retval = op->type->modal(C, op, event)) == OPERATOR_FINISHED) {
-    paint_stroke_free(C, op);
+    paint_stroke_free(C, op, op->customdata);
     return OPERATOR_FINISHED;
   }
   /* add modal handler */
@@ -720,7 +720,17 @@ static int paint_exec(bContext *C, wmOperator *op)
                                     paint_stroke_done,
                                     0);
   /* frees op->customdata */
-  return paint_stroke_exec(C, op);
+  return paint_stroke_exec(C, op, op->customdata);
+}
+
+static int paint_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  return paint_stroke_modal(C, op, event, op->customdata);
+}
+
+static void paint_cancel(bContext *C, wmOperator *op)
+{
+  paint_stroke_cancel(C, op, op->customdata);
 }
 
 void PAINT_OT_image_paint(wmOperatorType *ot)
@@ -732,10 +742,10 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = paint_invoke;
-  ot->modal = paint_stroke_modal;
+  ot->modal = paint_modal;
   ot->exec = paint_exec;
   ot->poll = image_paint_poll;
-  ot->cancel = paint_stroke_cancel;
+  ot->cancel = paint_cancel;
 
   /* flags */
   ot->flag = OPTYPE_BLOCKING;
