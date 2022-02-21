@@ -54,7 +54,7 @@ static int node_shader_gpu_ambient_occlusion(GPUMaterial *mat,
 
   GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE);
 
-  float inverted = node->custom2 ? 1.0f : 0.0f;
+  float inverted = (node->custom2 & SHD_AO_INSIDE) ? 1.0f : 0.0f;
   float f_samples = divide_ceil_u(node->custom1, 4);
 
   return GPU_stack_link(mat,
