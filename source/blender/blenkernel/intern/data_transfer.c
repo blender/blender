@@ -1396,7 +1396,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
   BLI_assert((ob_src != ob_dst) && (ob_src->type == OB_MESH) && (ob_dst->type == OB_MESH));
 
   if (me_dst) {
-    dirty_nors_dst = (me_dst->runtime.cd_dirty_vert & CD_NORMAL) != 0;
+    dirty_nors_dst = BKE_mesh_vertex_normals_are_dirty(me_dst);
     /* Never create needed custom layers on passed destination mesh
      * (assumed to *not* be ob_dst->data, aka modifier case). */
     use_create = false;
