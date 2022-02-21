@@ -502,7 +502,10 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
   return pop;
 }
 
-static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
+static void paint_stroke_update_step(bContext *C,
+                                     wmOperator *UNUSED(op),
+                                     struct PaintStroke *stroke,
+                                     PointerRNA *itemptr)
 {
   PaintOperation *pop = paint_stroke_mode_data(stroke);
   Scene *scene = CTX_data_scene(C);

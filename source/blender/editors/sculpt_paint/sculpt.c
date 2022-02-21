@@ -5186,6 +5186,7 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
 }
 
 static void sculpt_stroke_update_step(bContext *C,
+                                      wmOperator *UNUSED(op),
                                       struct PaintStroke *UNUSED(stroke),
                                       PointerRNA *itemptr)
 {

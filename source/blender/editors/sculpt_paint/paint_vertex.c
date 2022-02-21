@@ -2370,7 +2370,10 @@ static void wpaint_do_symmetrical_brush_actions(
   cache->is_last_valid = true;
 }
 
-static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
+static void wpaint_stroke_update_step(bContext *C,
+                                      wmOperator *UNUSED(op),
+                                      struct PaintStroke *stroke,
+                                      PointerRNA *itemptr)
 {
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -3400,7 +3403,10 @@ static void vpaint_do_symmetrical_brush_actions(
   cache->is_last_valid = true;
 }
 
-static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
+static void vpaint_stroke_update_step(bContext *C,
+                                      wmOperator *UNUSED(op),
+                                      struct PaintStroke *stroke,
+                                      PointerRNA *itemptr)
 {
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = CTX_data_tool_settings(C);

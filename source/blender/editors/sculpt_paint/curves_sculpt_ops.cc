@@ -52,9 +52,12 @@ static bool stroke_test_start(bContext *C, struct wmOperator *op, const float mo
   return true;
 }
 
-static void stroke_update_step(bContext *C, PaintStroke *stroke, PointerRNA *itemptr)
+static void stroke_update_step(bContext *C,
+                               wmOperator *op,
+                               PaintStroke *stroke,
+                               PointerRNA *itemptr)
 {
-  UNUSED_VARS(C, stroke, itemptr);
+  UNUSED_VARS(C, op, stroke, itemptr);
 }
 
 static void stroke_done(const bContext *C, PaintStroke *stroke)

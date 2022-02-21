@@ -611,7 +611,7 @@ static void paint_brush_stroke_add_step(
     RNA_float_set(&itemptr, "x_tilt", stroke->x_tilt);
     RNA_float_set(&itemptr, "y_tilt", stroke->y_tilt);
 
-    stroke->update_step(C, stroke, &itemptr);
+    stroke->update_step(C, op, stroke, &itemptr);
 
     /* don't record this for now, it takes up a lot of memory when doing long
      * strokes with small brush size, and operators have register disabled */
@@ -1584,7 +1584,7 @@ int paint_stroke_exec(bContext *C, wmOperator *op, PaintStroke *stroke)
 
   if (stroke->stroke_started) {
     RNA_BEGIN (op->ptr, itemptr, "stroke") {
-      stroke->update_step(C, stroke, &itemptr);
+      stroke->update_step(C, op, stroke, &itemptr);
     }
     RNA_END;
   }
