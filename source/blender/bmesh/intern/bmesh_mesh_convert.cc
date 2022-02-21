@@ -54,6 +54,19 @@
  *
  * This has the effect from the users POV of leaving the mesh un-touched,
  * and only editing the active shape key-block.
+ *
+ * \subsection other_notes Other Notes
+ *
+ * Other details noted here which might not be so obvious:
+ *
+ * - The #CD_SHAPEKEY layer is only used in edit-mode,
+ *   and the #Mesh.key is only used in object-mode.
+ *   Although the #CD_SHAPEKEY custom-data layer is converted into #Key data-blocks for each
+ *   undo-step while in edit-mode.
+ * - The #CD_SHAPE_KEYINDEX layer is used to check if vertices existed when entering edit-mode.
+ *   Values of the indices are only used for shape-keys when the #CD_SHAPEKEY layer can't be found,
+ *   allowing coordinates from the #Key to be used to prevent data-loss.
+ *   These indices are also used to maintain correct indices for hook modifiers and vertex parents.
  */
 
 #include "DNA_key_types.h"
@@ -83,6 +96,10 @@
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h" /* For element checking. */
+
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"bmesh.mesh.convert"};
 
 using blender::Array;
 using blender::IndexRange;
@@ -553,8 +570,89 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
   return vertMap;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Edit-Mesh to Shape Key Conversion
+ *
+ * There are some details relating to using data from shape keys that need to be
+ * considered carefully for shape key synchronization logic.
+ *
+ * Key Block Usage
+ * ***************
+ *
+ * Key blocks (data in #Mesh.key must be used carefully).
+ *
+ * They can be used to query which key blocks are relative to the basis
+ * since it's not possible to add/remove/reorder key blocks while in edit-mode.
+ *
+ * Key Block Coordinates
+ * =====================
+ *
+ * Key blocks locations must *not* be used. This was done from v2.67 to 3.0,
+ * causing bugs T35170 & T44415.
+ *
+ * Shape key synchronizing could work under the assumption that the key-block is
+ * fixed-in-place when entering edit-mode allowing them to be used as a reference when exiting.
+ * It often does work but isn't reliable since for e.g. rendering may flush changes
+ * from the edit-mesh to the key-block (there are a handful of other situations where
+ * changes may be flushed, see #ED_editors_flush_edits and related functions).
+ * When using undo, it's not known if the data in key-block is from the past or future,
+ * so just don't use this data as it causes pain and suffering for users and developers alike.
+ *
+ * Instead, use the shape-key values stored in #CD_SHAPEKEY since they are reliably
+ * based on the original locations, unless explicitly manipulated.
+ * It's important to write the final shape-key values back to the #CD_SHAPEKEY so applying
+ * the difference between the original-basis and the new coordinates isn't done multiple times.
+ * Therefore #ED_editors_flush_edits and other flushing calls will update both the #Mesh.key
+ * and the edit-mode #CD_SHAPEKEY custom-data layers.
+ *
+ * WARNING: There is an exception to the rule of ignoring coordinates in the destination:
+ * that is when shape-key data in `bm` can't be found (which is itself an error/exception).
+ * In this case our own rule is violated as the alternative is loosing the shape-data entirely.
+ *
+ * Flushing Coordinates Back to the #BMesh
+ * ---------------------------------------
+ *
+ * The edit-mesh may be flushed back to the #Mesh and #Key used to generate it.
+ * When this is done, the new values are written back to the #BMesh's #CD_SHAPEKEY as well.
+ * This is necessary when editing basis-shapes so the difference in shape keys
+ * is not applied multiple times. If it were important to avoid it could be skipped while
+ * exiting edit-mode (as the entire #BMesh is freed in that case), however it's just copying
+ * back a `float[3]` so the work to check if it's necessary isn't worth the overhead.
+ *
+ * In general updating the #BMesh's #CD_SHAPEKEY makes shake-key logic easier to reason about
+ * since it means flushing data back to the mesh has the same behavior as exiting and entering
+ * edit-mode (a more common operation). Meaning there is one less corner-case to have to consider.
+ *
+ * Exceptional Cases
+ * *****************
+ *
+ * There are some situations that should not happen in typical usage but are
+ * still handled in this code, since failure to handle them could loose user-data.
+ * These could be investigated further since if they never happen in practice,
+ * we might consider removing them. However, the possibility of an mesh directly
+ * being modified by Python or some other low level logic that changes key-blocks
+ * means there is a potential this to happen so keeping code to these cases remain supported.
+ *
+ * - Custom Data & Mesh Key Block Synchronization.
+ *   Key blocks in `me->key->block` should always have an associated
+ *   #CD_SHAPEKEY layer in `bm->vdata`.
+ *   If they don't there are two fall-backs for setting the location,
+ *   - Use the value from the original shape key
+ *     WARNING: this is technically incorrect! (see note on "Key Block Usage").
+ *   - Use the current vertex location,
+ *     Also not correct but it's better then having it zeroed for e.g.
+ *
+ * - Missing key-index layer.
+ *   In this case the basis key wont apply it's deltas to other keys and in the case
+ *   a shape-key layer is missing, its coordinates will be initialized from the edit-mesh
+ *   vertex locations instead of attempting to remap the shape-keys coordinates.
+ *
+ * \note These cases are considered abnormal and shouldn't occur in typical usage.
+ * A warning is logged in this case to help troubleshooting bugs with shape-keys.
+ * \{ */
+
 /**
- * Returns custom-data shapekey index from a keyblock or -1
+ * Returns custom-data shape-key index from a key-block or -1
  * \note could split this out into a more generic function.
  */
 static int bm_to_mesh_shape_layer_index_from_kb(BMesh *bm, KeyBlock *currkey)
@@ -572,6 +670,196 @@ static int bm_to_mesh_shape_layer_index_from_kb(BMesh *bm, KeyBlock *currkey)
   }
   return -1;
 }
+
+/**
+ * Update `key` with shape key data stored in `bm`.
+ *
+ * \param bm: The source BMesh.
+ * \param key: The destination key.
+ * \param mvert: The destination vertex array (in some situations it's coordinates are updated).
+ */
+static void bm_to_mesh_shape(BMesh *bm, Key *key, MVert *mvert)
+{
+  KeyBlock *actkey = static_cast<KeyBlock *>(BLI_findlink(&key->block, bm->shapenr - 1));
+
+  /* It's unlikely this ever remains false, check for correctness. */
+  bool actkey_has_layer = false;
+
+  /* Go through and find any shape-key custom-data layers
+   * that might not have corresponding KeyBlocks, and add them if necessary. */
+  for (int i = 0; i < bm->vdata.totlayer; i++) {
+    if (bm->vdata.layers[i].type != CD_SHAPEKEY) {
+      continue;
+    }
+
+    KeyBlock *currkey;
+    for (currkey = (KeyBlock *)key->block.first; currkey; currkey = currkey->next) {
+      if (currkey->uid == bm->vdata.layers[i].uid) {
+        break;
+      }
+    }
+
+    if (currkey) {
+      if (currkey == actkey) {
+        actkey_has_layer = true;
+      }
+    }
+    else {
+      currkey = BKE_keyblock_add(key, bm->vdata.layers[i].name);
+      currkey->uid = bm->vdata.layers[i].uid;
+    }
+  }
+
+  const int cd_shape_keyindex_offset = CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX);
+  BMIter iter;
+  BMVert *eve;
+  float(*ofs)[3] = nullptr;
+
+  /* Editing the basis key updates others. */
+  if ((key->type == KEY_RELATIVE) &&
+      /* The shape-key coordinates used from entering edit-mode are used. */
+      (actkey_has_layer == true) &&
+      /* Original key-indices are only used to check the vertex existed when entering edit-mode. */
+      (cd_shape_keyindex_offset != -1) &&
+      /* Offsets are only needed if the current shape is a basis for others. */
+      BKE_keyblock_is_basis(key, bm->shapenr - 1)) {
+
+    BLI_assert(actkey != nullptr); /* Assured by `actkey_has_layer` check. */
+    const int actkey_uuid = bm_to_mesh_shape_layer_index_from_kb(bm, actkey);
+
+    /* Since `actkey_has_layer == true`, this must never fail. */
+    BLI_assert(actkey_uuid != -1);
+
+    const int cd_shape_offset = CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, actkey_uuid);
+
+    ofs = static_cast<float(*)[3]>(MEM_mallocN(sizeof(float[3]) * bm->totvert, __func__));
+    int i;
+    BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
+      const int keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
+      /* Check the vertex existed when entering edit-mode (otherwise don't apply an offset). */
+      if (keyi != ORIGINDEX_NONE) {
+        float *co_orig = (float *)BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset);
+        /* Could use 'eve->co' or the destination #MVert.co, they're the same at this point. */
+        sub_v3_v3v3(ofs[i], eve->co, co_orig);
+      }
+      else {
+        /* If there are new vertices in the mesh, we can't propagate the offset
+         * because it will only work for the existing vertices and not the new
+         * ones, creating a mess when doing e.g. subdivide + translate. */
+        MEM_freeN(ofs);
+        ofs = nullptr;
+        break;
+      }
+    }
+  }
+
+  LISTBASE_FOREACH (KeyBlock *, currkey, &key->block) {
+    int keyi;
+    float(*currkey_data)[3];
+
+    const int currkey_uuid = bm_to_mesh_shape_layer_index_from_kb(bm, currkey);
+    const int cd_shape_offset = (currkey_uuid == -1) ?
+                                    -1 :
+                                    CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, currkey_uuid);
+
+    /* Common case, the layer data is available, use it where possible. */
+    if (cd_shape_offset != -1) {
+      const bool apply_offset = (ofs != nullptr) && (currkey != actkey) &&
+                                (bm->shapenr - 1 == currkey->relative);
+
+      if (currkey->data && (currkey->totelem == bm->totvert)) {
+        /* Use memory in-place. */
+      }
+      else {
+        currkey->data = MEM_reallocN(currkey->data, key->elemsize * bm->totvert);
+        currkey->totelem = bm->totvert;
+      }
+      currkey_data = (float(*)[3])currkey->data;
+
+      int i;
+      BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
+        float *co_orig = (float *)BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset);
+
+        if (currkey == actkey) {
+          copy_v3_v3(currkey_data[i], eve->co);
+
+          if (actkey != key->refkey) {
+            /* Without this, the real mesh coordinates (uneditable) as soon as you create
+             * the Basis shape, see: T30771 for details. */
+            if (cd_shape_keyindex_offset != -1) {
+              keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
+              if (keyi != ORIGINDEX_NONE) {
+                copy_v3_v3(mvert[i].co, co_orig);
+              }
+            }
+          }
+        }
+        else {
+          copy_v3_v3(currkey_data[i], co_orig);
+        }
+
+        /* Propagate edited basis offsets to other shapes. */
+        if (apply_offset) {
+          add_v3_v3(currkey_data[i], ofs[i]);
+        }
+
+        /* Apply back new coordinates shape-keys that have offset into #BMesh.
+         * Otherwise, in case we call again #BM_mesh_bm_to_me on same #BMesh,
+         * we'll apply diff from previous call to #BM_mesh_bm_to_me,
+         * to shape-key values from original creation of the #BMesh. See T50524. */
+        copy_v3_v3(co_orig, currkey_data[i]);
+      }
+    }
+    else {
+      /* No original layer data, use fallback information. */
+      if (currkey->data && (cd_shape_keyindex_offset != -1)) {
+        CLOG_WARN(&LOG,
+                  "Found shape-key but no CD_SHAPEKEY layers to read from, "
+                  "using existing shake-key data where possible");
+      }
+      else {
+        CLOG_WARN(&LOG,
+                  "Found shape-key but no CD_SHAPEKEY layers to read from, "
+                  "using basis shape-key data");
+      }
+
+      currkey_data = static_cast<float(*)[3]>(
+          MEM_mallocN(key->elemsize * bm->totvert, "currkey->data"));
+
+      int i;
+      BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
+
+        if ((currkey->data != nullptr) && (cd_shape_keyindex_offset != -1) &&
+            ((keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset)) != ORIGINDEX_NONE) &&
+            (keyi < currkey->totelem)) {
+          /* Reconstruct keys via vertices original key indices.
+           * WARNING(@campbellbarton): `currkey->data` is known to be unreliable as the edit-mesh
+           * coordinates may be flushed back to the shape-key when exporting or rendering.
+           * This is a last resort! If this branch is running as part of regular usage
+           * it can be considered a bug. */
+          const float(*oldkey)[3] = static_cast<const float(*)[3]>(currkey->data);
+          copy_v3_v3(currkey_data[i], oldkey[keyi]);
+        }
+        else {
+          /* Fail! fill in with dummy value. */
+          copy_v3_v3(currkey_data[i], eve->co);
+        }
+      }
+
+      currkey->totelem = bm->totvert;
+      if (currkey->data) {
+        MEM_freeN(currkey->data);
+      }
+      currkey->data = currkey_data;
+    }
+  }
+
+  if (ofs) {
+    MEM_freeN(ofs);
+  }
+}
+
+/** \} */
 
 BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 {
@@ -604,22 +892,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
   const int cd_shape_keyindex_offset = CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX);
 
-  MVert *oldverts = nullptr;
   const int ototvert = me->totvert;
-
-  if (me->key && (cd_shape_keyindex_offset != -1)) {
-    /* Keep the old verts in case we are working on* a key, which is done at the end. */
-
-    /* Use the array in-place instead of duplicating the array. */
-#if 0
-  oldverts = MEM_dupallocN(me->mvert);
-#else
-    oldverts = me->mvert;
-    me->mvert = nullptr;
-    CustomData_update_typemap(&me->vdata);
-    CustomData_set_layer(&me->vdata, CD_MVERT, nullptr);
-#endif
-  }
 
   /* Free custom data. */
   CustomData_free(&me->vdata, me->totvert);
@@ -846,152 +1119,8 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     }
   }
 
-  /* See comment below, this logic is in twice. */
-
   if (me->key) {
-    KeyBlock *currkey;
-    KeyBlock *actkey = static_cast<KeyBlock *>(BLI_findlink(&me->key->block, bm->shapenr - 1));
-
-    float(*ofs)[3] = nullptr;
-
-    /* Go through and find any shape-key custom-data layers
-     * that might not have corresponding KeyBlocks, and add them if necessary. */
-    for (i = 0; i < bm->vdata.totlayer; i++) {
-      if (bm->vdata.layers[i].type != CD_SHAPEKEY) {
-        continue;
-      }
-
-      for (currkey = (KeyBlock *)me->key->block.first; currkey; currkey = currkey->next) {
-        if (currkey->uid == bm->vdata.layers[i].uid) {
-          break;
-        }
-      }
-
-      if (!currkey) {
-        currkey = BKE_keyblock_add(me->key, bm->vdata.layers[i].name);
-        currkey->uid = bm->vdata.layers[i].uid;
-      }
-    }
-
-    /* Editing the base key should update others. */
-    if (/* Only need offsets for relative shape keys. */
-        (me->key->type == KEY_RELATIVE) &&
-
-        /* Unlikely, but the active key may not be valid if the
-         * BMesh and the mesh are out of sync. */
-        (actkey != nullptr) &&
-
-        /* Not used here, but 'oldverts' is used later for applying 'ofs'. */
-        (oldverts != nullptr) &&
-
-        /* Needed for referencing oldverts. */
-        (cd_shape_keyindex_offset != -1)) {
-
-      const bool act_is_basis = BKE_keyblock_is_basis(me->key, bm->shapenr - 1);
-
-      /* Active key is a base. */
-      if (act_is_basis) {
-        const float(*fp)[3] = static_cast<const float(*)[3]>(actkey->data);
-
-        ofs = static_cast<float(*)[3]>(
-            MEM_callocN(sizeof(float[3]) * bm->totvert, "currkey->data"));
-        mvert = me->mvert;
-        BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-          const int keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
-
-          /* Could use 'eve->co' or 'mvert->co', they're the same at this point. */
-          if (keyi != ORIGINDEX_NONE && keyi < actkey->totelem) {
-            sub_v3_v3v3(ofs[i], mvert->co, fp[keyi]);
-          }
-          else {
-            /* If there are new vertices in the mesh, we can't propagate the offset
-             * because it will only work for the existing vertices and not the new
-             * ones, creating a mess when doing e.g. subdivide + translate. */
-            MEM_freeN(ofs);
-            ofs = nullptr;
-            break;
-          }
-
-          mvert++;
-        }
-      }
-    }
-
-    LISTBASE_FOREACH (KeyBlock *, currkey, &me->key->block) {
-      int keyi;
-      const float(*ofs_pt)[3] = ofs;
-      float *newkey, (*oldkey)[3], *fp;
-
-      const int currkey_uuid = bm_to_mesh_shape_layer_index_from_kb(bm, currkey);
-      const int cd_shape_offset = (currkey_uuid == -1) ? -1 :
-                                                         CustomData_get_n_offset(&bm->vdata,
-                                                                                 CD_SHAPEKEY,
-                                                                                 currkey_uuid);
-      const bool apply_offset = (cd_shape_offset != -1) && (ofs != nullptr) &&
-                                (currkey != actkey) && (bm->shapenr - 1 == currkey->relative);
-
-      fp = newkey = static_cast<float *>(
-          MEM_callocN(me->key->elemsize * bm->totvert, "currkey->data"));
-      oldkey = static_cast<float(*)[3]>(currkey->data);
-
-      mvert = me->mvert;
-      BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-
-        if (currkey == actkey) {
-          copy_v3_v3(fp, eve->co);
-
-          if (actkey != me->key->refkey) { /* Important see bug T30771. */
-            if (cd_shape_keyindex_offset != -1) {
-              if (oldverts) {
-                keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
-                if (keyi != ORIGINDEX_NONE && keyi < currkey->totelem) { /* Valid old vertex. */
-                  copy_v3_v3(mvert->co, oldverts[keyi].co);
-                }
-              }
-            }
-          }
-        }
-        else if (cd_shape_offset != -1) {
-          /* In most cases this runs. */
-          copy_v3_v3(fp, (const float *)BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset));
-        }
-        else if ((oldkey != nullptr) && (cd_shape_keyindex_offset != -1) &&
-                 ((keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset)) != ORIGINDEX_NONE) &&
-                 (keyi < currkey->totelem)) {
-          /* Old method of reconstructing keys via vertices original key indices,
-           * currently used if the new method above fails
-           * (which is theoretically possible in certain cases of undo). */
-          copy_v3_v3(fp, oldkey[keyi]);
-        }
-        else {
-          /* Fail! fill in with dummy value. */
-          copy_v3_v3(fp, mvert->co);
-        }
-
-        /* Propagate edited basis offsets to other shapes. */
-        if (apply_offset) {
-          add_v3_v3(fp, *ofs_pt++);
-          /* Apply back new coordinates shape-keys that have offset into BMesh.
-           * Otherwise, in case we call again #BM_mesh_bm_to_me on same BMesh,
-           * we'll apply diff from previous call to #BM_mesh_bm_to_me,
-           * to shape-key values from *original creation of the BMesh*. See T50524. */
-          copy_v3_v3((float *)BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset), fp);
-        }
-
-        fp += 3;
-        mvert++;
-      }
-
-      currkey->totelem = bm->totvert;
-      if (currkey->data) {
-        MEM_freeN(currkey->data);
-      }
-      currkey->data = newkey;
-    }
-
-    if (ofs) {
-      MEM_freeN(ofs);
-    }
+    bm_to_mesh_shape(bm, me->key, me->mvert);
   }
 
   /* Run this even when shape keys aren't used since it may be used for hooks or vertex parents. */
@@ -1003,10 +1132,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
         BM_ELEM_CD_SET_INT(eve, cd_shape_keyindex_offset, i);
       }
     }
-  }
-
-  if (oldverts != nullptr) {
-    MEM_freeN(oldverts);
   }
 
   /* Topology could be changed, ensure #CD_MDISPS are ok. */
