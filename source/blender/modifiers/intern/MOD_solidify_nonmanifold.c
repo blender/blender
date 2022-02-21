@@ -1405,21 +1405,26 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
         for (uint j = 0; g->valid; j++, g++) {
           if (!g->is_singularity) {
             float *nor = g->no;
+            /* During vertex position calculation, the algorithm decides if it wants to disable the
+             * boundary fix to maintain correct thickness. If the used algorithm does not produce a
+             * free move direction (move_nor), it can use approximate_free_direction to decide on
+             * a movement direction based on the connected edges. */
             float move_nor[3] = {0, 0, 0};
             bool disable_boundary_fix = (smd->nonmanifold_boundary_mode ==
                                              MOD_SOLIDIFY_NONMANIFOLD_BOUNDARY_MODE_NONE ||
                                          (g->is_orig_closed || g->split));
+            bool approximate_free_direction = false;
             /* Constraints Method. */
             if (smd->nonmanifold_offset_mode == MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_CONSTRAINTS) {
               NewEdgeRef *first_edge = NULL;
               NewEdgeRef **edge_ptr = g->edges;
               /* Contains normal and offset [nx, ny, nz, ofs]. */
-              float(*normals_queue)[4] = MEM_malloc_arrayN(
-                  g->edges_len + 1, sizeof(*normals_queue), "normals_queue in solidify");
+              float(*planes_queue)[4] = MEM_malloc_arrayN(
+                  g->edges_len + 1, sizeof(*planes_queue), "planes_queue in solidify");
               uint queue_index = 0;
 
-              float face_nors[3][3];
-              float nor_ofs[3];
+              float fallback_nor[3];
+              float fallback_ofs = 0.0f;
 
               const bool cycle = (g->is_orig_closed && !g->split) || g->is_even_split;
               for (uint k = 0; k < g->edges_len; k++, edge_ptr++) {
@@ -1436,17 +1441,17 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                       }
 
                       if (!null_faces[face->index]) {
-                        /* And normal to the queue. */
-                        mul_v3_v3fl(normals_queue[queue_index],
+                        /* And plane to the queue. */
+                        mul_v3_v3fl(planes_queue[queue_index],
                                     poly_nors[face->index],
                                     face->reversed ? -1 : 1);
-                        normals_queue[queue_index++][3] = ofs;
+                        planes_queue[queue_index++][3] = ofs;
                       }
                       else {
                         /* Just use this approximate normal of the null face if there is no other
                          * normal to use. */
-                        mul_v3_v3fl(face_nors[0], poly_nors[face->index], face->reversed ? -1 : 1);
-                        nor_ofs[0] = ofs;
+                        mul_v3_v3fl(fallback_nor, poly_nors[face->index], face->reversed ? -1 : 1);
+                        fallback_ofs = ofs;
                       }
                     }
                   }
@@ -1455,131 +1460,170 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                   }
                 }
               }
-              uint face_nors_len = 0;
-              const float stop_explosion = 0.999f - fabsf(smd->offset_fac) * 0.05f;
-              while (queue_index > 0) {
-                if (face_nors_len == 0) {
-                  if (queue_index <= 2) {
-                    for (uint k = 0; k < queue_index; k++) {
-                      copy_v3_v3(face_nors[k], normals_queue[k]);
-                      nor_ofs[k] = normals_queue[k][3];
-                    }
-                    face_nors_len = queue_index;
-                    queue_index = 0;
-                  }
-                  else {
-                    /* Find most different two normals. */
-                    float min_p = 2;
-                    uint min_n0 = 0;
-                    uint min_n1 = 0;
-                    for (uint k = 0; k < queue_index; k++) {
-                      for (uint m = k + 1; m < queue_index; m++) {
-                        float p = dot_v3v3(normals_queue[k], normals_queue[m]);
-                        if (p <= min_p + FLT_EPSILON) {
-                          min_p = p;
-                          min_n0 = m;
-                          min_n1 = k;
-                        }
-                      }
-                    }
-                    copy_v3_v3(face_nors[0], normals_queue[min_n0]);
-                    copy_v3_v3(face_nors[1], normals_queue[min_n1]);
-                    nor_ofs[0] = normals_queue[min_n0][3];
-                    nor_ofs[1] = normals_queue[min_n1][3];
-                    face_nors_len = 2;
-                    queue_index--;
-                    memmove(normals_queue + min_n0,
-                            normals_queue + min_n0 + 1,
-                            (queue_index - min_n0) * sizeof(*normals_queue));
-                    queue_index--;
-                    memmove(normals_queue + min_n1,
-                            normals_queue + min_n1 + 1,
-                            (queue_index - min_n1) * sizeof(*normals_queue));
-                    min_p = 1;
-                    min_n1 = 0;
-                    float max_p = -1;
-                    for (uint k = 0; k < queue_index; k++) {
-                      max_p = -1;
-                      for (uint m = 0; m < face_nors_len; m++) {
-                        float p = dot_v3v3(face_nors[m], normals_queue[k]);
-                        if (p > max_p + FLT_EPSILON) {
-                          max_p = p;
-                        }
-                      }
-                      if (max_p <= min_p + FLT_EPSILON) {
-                        min_p = max_p;
-                        min_n1 = k;
-                      }
-                    }
-                    if (min_p < 0.8) {
-                      copy_v3_v3(face_nors[2], normals_queue[min_n1]);
-                      nor_ofs[2] = normals_queue[min_n1][3];
-                      face_nors_len++;
-                      queue_index--;
-                      memmove(normals_queue + min_n1,
-                              normals_queue + min_n1 + 1,
-                              (queue_index - min_n1) * sizeof(*normals_queue));
+              if (queue_index > 2) {
+                /* Find the two most different normals. */
+                float min_p = 2.0f;
+                uint min_n0 = 0;
+                uint min_n1 = 0;
+                for (uint k = 0; k < queue_index; k++) {
+                  for (uint m = k + 1; m < queue_index; m++) {
+                    float p = dot_v3v3(planes_queue[k], planes_queue[m]);
+                    if (p <= min_p + FLT_EPSILON) {
+                      min_p = p;
+                      min_n0 = m;
+                      min_n1 = k;
                     }
                   }
+                }
+                /* Put the two found normals, first in the array queue. */
+                if (min_n1 != 0) {
+                  swap_v4_v4(planes_queue[min_n0], planes_queue[0]);
+                  swap_v4_v4(planes_queue[min_n1], planes_queue[1]);
                 }
                 else {
-                  uint best = 0;
-                  uint best_group = 0;
-                  float best_p = -1.0f;
-                  for (uint k = 0; k < queue_index; k++) {
-                    for (uint m = 0; m < face_nors_len; m++) {
-                      float p = dot_v3v3(face_nors[m], normals_queue[k]);
-                      if (p > best_p + FLT_EPSILON) {
-                        best_p = p;
-                        best = m;
-                        best_group = k;
+                  swap_v4_v4(planes_queue[min_n0], planes_queue[1]);
+                }
+                /* Find the third most important/different normal. */
+                min_p = 1;
+                min_n1 = 0;
+                float max_p = -1;
+                for (uint k = 2; k < queue_index; k++) {
+                  max_p = -1;
+                  for (uint m = 0; m < 2; m++) {
+                    float p = dot_v3v3(planes_queue[m], planes_queue[k]);
+                    if (p > max_p + FLT_EPSILON) {
+                      max_p = p;
+                    }
+                  }
+                  if (max_p <= min_p + FLT_EPSILON) {
+                    min_p = max_p;
+                    min_n1 = k;
+                  }
+                }
+                swap_v4_v4(planes_queue[min_n1], planes_queue[2]);
+              }
+              /* Remove/average duplicate normals in planes_queue. */
+              while (queue_index > 0) {
+                uint best_n0 = 0;
+                uint best_n1 = 0;
+                float best_p = -1.0f;
+                float best_ofs_diff = 0.0f;
+                for (uint k = 0; k < queue_index; k++) {
+                  for (uint m = k + 1; m < queue_index; m++) {
+                    float p = dot_v3v3(planes_queue[m], planes_queue[k]);
+                    float ofs_diff = fabsf(planes_queue[m][3] - planes_queue[k][3]);
+                    if (p > best_p + FLT_EPSILON || (p >= best_p && ofs_diff < best_ofs_diff)) {
+                      best_p = p;
+                      best_ofs_diff = ofs_diff;
+                      best_n0 = m;
+                      best_n1 = k;
+                    }
+                  }
+                }
+                if (best_p < 0.999f) {
+                  break;
+                }
+                add_v3_v3(planes_queue[best_n0], planes_queue[best_n1]);
+                normalize_v3(planes_queue[best_n0]);
+                planes_queue[best_n0][3] = (planes_queue[best_n0][3] + planes_queue[best_n1][3]) *
+                                           0.5f;
+                queue_index--;
+                memmove(planes_queue + best_n1,
+                        planes_queue + best_n1 + 1,
+                        (queue_index - best_n1) * sizeof(*planes_queue));
+              }
+              const uint size = queue_index;
+              /* If there is more than 2 planes at this vertex, the boundary fix should be disabled
+               * to stay at the correct thickness for all the faces. This is not very good in
+               * practice though, since that will almost always disable the boundary fix. Instead
+               * introduce a threshold which decides whether the boundary fix can be used without
+               * major thickness changes. If the following constant is 1.0, it would always
+               * prioritize correct thickness. At 0.7 the thickness is allowed to change a bit if
+               * necessary for the fix (~10%). Note this only applies if a boundary fix is used. */
+              const float boundary_fix_threshold = 0.7f;
+              if (size > 3) {
+                /* Use the most general least squares method to find the best position. */
+                float mat[3][3];
+                zero_m3(mat);
+                for (int k = 0; k < 3; k++) {
+                  for (int m = 0; m < size; m++) {
+                    madd_v3_v3fl(mat[k], planes_queue[m], planes_queue[m][k]);
+                  }
+                }
+                /* NOTE: this matrix invert fails if there is less than 3 different normals. */
+                invert_m3(mat);
+                zero_v3(nor);
+                for (int k = 0; k < size; k++) {
+                  madd_v3_v3fl(nor, planes_queue[k], planes_queue[k][3]);
+                }
+                mul_v3_m3v3(nor, mat, nor);
+
+                if (!disable_boundary_fix) {
+                  /* Figure out if the approximate boundary fix can get use here. */
+                  float greatest_angle_cos = 1.0f;
+                  for (uint k = 0; k < 2; k++) {
+                    for (uint m = 2; m < size; m++) {
+                      float p = dot_v3v3(planes_queue[m], planes_queue[k]);
+                      if (p < greatest_angle_cos) {
+                        greatest_angle_cos = p;
                       }
                     }
                   }
-                  add_v3_v3(face_nors[best], normals_queue[best_group]);
-                  normalize_v3(face_nors[best]);
-                  nor_ofs[best] = (nor_ofs[best] + normals_queue[best_group][3]) * 0.5f;
-                  queue_index--;
-                  memmove(normals_queue + best_group,
-                          normals_queue + best_group + 1,
-                          (queue_index - best_group) * sizeof(*normals_queue));
+                  if (greatest_angle_cos > boundary_fix_threshold) {
+                    approximate_free_direction = true;
+                  }
+                  else {
+                    disable_boundary_fix = true;
+                  }
                 }
               }
-              MEM_freeN(normals_queue);
-
-              /* When up to 3 constraint normals are found. */
-              if (ELEM(face_nors_len, 2, 3)) {
-                const float q = dot_v3v3(face_nors[0], face_nors[1]);
+              else if (size > 1) {
+                /* When up to 3 constraint normals are found, there is a simple solution. */
+                const float stop_explosion = 0.999f - fabsf(smd->offset_fac) * 0.05f;
+                const float q = dot_v3v3(planes_queue[0], planes_queue[1]);
                 float d = 1.0f - q * q;
-                cross_v3_v3v3(move_nor, face_nors[0], face_nors[1]);
+                cross_v3_v3v3(move_nor, planes_queue[0], planes_queue[1]);
+                normalize_v3(move_nor);
                 if (d > FLT_EPSILON * 10 && q < stop_explosion) {
                   d = 1.0f / d;
-                  mul_v3_fl(face_nors[0], (nor_ofs[0] - nor_ofs[1] * q) * d);
-                  mul_v3_fl(face_nors[1], (nor_ofs[1] - nor_ofs[0] * q) * d);
+                  mul_v3_fl(planes_queue[0], (planes_queue[0][3] - planes_queue[1][3] * q) * d);
+                  mul_v3_fl(planes_queue[1], (planes_queue[1][3] - planes_queue[0][3] * q) * d);
                 }
                 else {
                   d = 1.0f / (fabsf(q) + 1.0f);
-                  mul_v3_fl(face_nors[0], nor_ofs[0] * d);
-                  mul_v3_fl(face_nors[1], nor_ofs[1] * d);
+                  mul_v3_fl(planes_queue[0], planes_queue[0][3] * d);
+                  mul_v3_fl(planes_queue[1], planes_queue[1][3] * d);
                 }
-                add_v3_v3v3(nor, face_nors[0], face_nors[1]);
-                if (face_nors_len == 3) {
-                  float *free_nor = move_nor;
-                  mul_v3_fl(face_nors[2], nor_ofs[2]);
-                  d = dot_v3v3(face_nors[2], free_nor);
+                add_v3_v3v3(nor, planes_queue[0], planes_queue[1]);
+                if (size == 3) {
+                  d = dot_v3v3(planes_queue[2], move_nor);
                   if (LIKELY(fabsf(d) > FLT_EPSILON)) {
-                    sub_v3_v3v3(face_nors[0], nor, face_nors[2]); /* Override face_nor[0]. */
-                    mul_v3_fl(free_nor, dot_v3v3(face_nors[2], face_nors[0]) / d);
-                    sub_v3_v3(nor, free_nor);
+                    float tmp[3];
+                    madd_v3_v3v3fl(tmp, nor, planes_queue[2], -planes_queue[2][3]);
+                    mul_v3_v3fl(tmp, move_nor, dot_v3v3(planes_queue[2], tmp) / d);
+                    sub_v3_v3(nor, tmp);
+                    /* Disable boundary fix if the constraints would be majorly unsatisfied. */
+                    if (fabsf(d) > 1.0f - boundary_fix_threshold) {
+                      disable_boundary_fix = true;
+                    }
                   }
+                }
+                approximate_free_direction = false;
+              }
+              else if (size == 1) {
+                /* Face corner case. */
+                mul_v3_v3fl(nor, planes_queue[0], planes_queue[0][3]);
+                if (g->edges_len > 2) {
                   disable_boundary_fix = true;
+                  approximate_free_direction = true;
                 }
               }
               else {
-                BLI_assert(face_nors_len < 2);
-                mul_v3_v3fl(nor, face_nors[0], nor_ofs[0]);
+                /* Fallback case for null faces. */
+                mul_v3_v3fl(nor, fallback_nor, fallback_ofs);
                 disable_boundary_fix = true;
               }
+              MEM_freeN(planes_queue);
             }
             /* Fixed/Even Method. */
             else {
@@ -1707,24 +1751,27 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               }
               /* Set move_nor for boundary fix. */
               if (!disable_boundary_fix && g->edges_len > 2) {
-                edge_ptr = g->edges + 1;
-                float tmp[3];
-                uint k;
-                for (k = 1; k + 1 < g->edges_len; k++, edge_ptr++) {
-                  MEdge *e = orig_medge + (*edge_ptr)->old_edge;
-                  sub_v3_v3v3(
-                      tmp, orig_mvert_co[vm[e->v1] == i ? e->v2 : e->v1], orig_mvert_co[i]);
-                  add_v3_v3(move_nor, tmp);
-                }
-                if (k == 1) {
-                  disable_boundary_fix = true;
-                }
-                else {
-                  disable_boundary_fix = normalize_v3(move_nor) == 0.0f;
-                }
+                approximate_free_direction = true;
               }
               else {
                 disable_boundary_fix = true;
+              }
+            }
+            if (approximate_free_direction) {
+              /* Set move_nor for boundary fix. */
+              NewEdgeRef **edge_ptr = g->edges + 1;
+              float tmp[3];
+              int k;
+              for (k = 1; k + 1 < g->edges_len; k++, edge_ptr++) {
+                MEdge *e = orig_medge + (*edge_ptr)->old_edge;
+                sub_v3_v3v3(tmp, orig_mvert_co[vm[e->v1] == i ? e->v2 : e->v1], orig_mvert_co[i]);
+                add_v3_v3(move_nor, tmp);
+              }
+              if (k == 1) {
+                disable_boundary_fix = true;
+              }
+              else {
+                disable_boundary_fix = normalize_v3(move_nor) == 0.0f;
               }
             }
             /* Fix boundary verts. */
@@ -1743,8 +1790,11 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                           orig_mvert_co[i]);
               if (smd->nonmanifold_boundary_mode == MOD_SOLIDIFY_NONMANIFOLD_BOUNDARY_MODE_FLAT) {
                 cross_v3_v3v3(constr_nor, e0, e1);
+                normalize_v3(constr_nor);
               }
               else {
+                BLI_assert(smd->nonmanifold_boundary_mode ==
+                           MOD_SOLIDIFY_NONMANIFOLD_BOUNDARY_MODE_ROUND);
                 float f0[3];
                 float f1[3];
                 if (g->edges[0]->faces[0]->reversed) {
@@ -1766,9 +1816,11 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                 normalize_v3(n0);
                 normalize_v3(n1);
                 add_v3_v3v3(constr_nor, n0, n1);
+                normalize_v3(constr_nor);
               }
               float d = dot_v3v3(constr_nor, move_nor);
-              if (LIKELY(fabsf(d) > FLT_EPSILON)) {
+              /* Only allow the thickness to increase about 10 times. */
+              if (fabsf(d) > 0.1f) {
                 mul_v3_fl(move_nor, dot_v3v3(constr_nor, nor) / d);
                 sub_v3_v3(nor, move_nor);
               }
