@@ -14,10 +14,21 @@
 #include "curves_sculpt_intern.h"
 #include "paint_intern.h"
 
-bool CURVES_SCULPT_mode_poll(struct bContext *C)
+bool CURVES_SCULPT_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   return ob && ob->mode & OB_MODE_SCULPT_CURVES;
+}
+
+bool CURVES_SCULPT_mode_poll_view3d(bContext *C)
+{
+  if (!CURVES_SCULPT_mode_poll(C)) {
+    return false;
+  }
+  if (CTX_wm_region_view3d(C) == nullptr) {
+    return false;
+  }
+  return true;
 }
 
 namespace blender::ed::sculpt_paint {
@@ -108,9 +119,26 @@ static bool curves_sculptmode_toggle_poll(bContext *C)
   return true;
 }
 
-static int curves_sculptmode_toggle_exec(bContext *C, wmOperator *op)
+static void curves_sculptmode_enter(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
+  Object *ob = CTX_data_active_object(C);
+  BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->curves_sculpt);
+  CurvesSculpt *curves_sculpt = scene->toolsettings->curves_sculpt;
+
+  ob->mode = OB_MODE_SCULPT_CURVES;
+
+  paint_cursor_start(&curves_sculpt->paint, CURVES_SCULPT_mode_poll_view3d);
+}
+
+static void curves_sculptmode_exit(bContext *C)
+{
+  Object *ob = CTX_data_active_object(C);
+  ob->mode = OB_MODE_OBJECT;
+}
+
+static int curves_sculptmode_toggle_exec(bContext *C, wmOperator *op)
+{
   Object *ob = CTX_data_active_object(C);
   const bool is_mode_set = ob->mode == OB_MODE_SCULPT_CURVES;
 
@@ -121,11 +149,10 @@ static int curves_sculptmode_toggle_exec(bContext *C, wmOperator *op)
   }
 
   if (is_mode_set) {
-    ob->mode = OB_MODE_OBJECT;
+    curves_sculptmode_exit(C);
   }
   else {
-    BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->curves_sculpt);
-    ob->mode = OB_MODE_SCULPT_CURVES;
+    curves_sculptmode_enter(C);
   }
 
   WM_toolsystem_update_from_context_view3d(C);

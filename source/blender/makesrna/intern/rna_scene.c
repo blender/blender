@@ -2898,6 +2898,10 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "Sculpt");
   RNA_def_property_ui_text(prop, "Sculpt", "");
 
+  prop = RNA_def_property(srna, "curves_sculpt", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "CurvesSculpt");
+  RNA_def_property_ui_text(prop, "Curves Sculpt", "");
+
   prop = RNA_def_property(srna, "use_auto_normalize", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_boolean_sdna(prop, NULL, "auto_normalize", 1);
