@@ -869,7 +869,7 @@ static int start_ffmpeg_impl(FFMpegContext *context,
 {
   /* Handle to the output file */
   AVFormatContext *of;
-  AVOutputFormat *fmt;
+  const AVOutputFormat *fmt;
   char name[FILE_MAX], error[1024];
   const char **exts;
 
