@@ -4668,7 +4668,9 @@ def _template_paint_radial_control(paint, rotation=False, secondary_rotation=Fal
     return items
 
 
-def _template_view3d_select(*, type, value, legacy):
+def _template_view3d_select(*, type, value, legacy, exclude_mod=None):
+    # NOTE: `exclude_mod` is needed since we don't want this tool to exclude Control-RMB actions when this is used
+    # as a tool key-map with RMB-select and `use_fallback_tool_rmb` is enabled. See T92467.
     return [(
         "view3d.select",
         {"type": type, "value": value, **{m: True for m in mods}},
@@ -4682,7 +4684,7 @@ def _template_view3d_select(*, type, value, legacy):
         (("center", "enumerate"), ("ctrl", "alt")),
         (("toggle", "enumerate"), ("shift", "alt")),
         (("toggle", "center", "enumerate"), ("shift", "ctrl", "alt")),
-    )]
+    ) if exclude_mod is None or exclude_mod not in mods]
 
 
 def _template_view3d_gpencil_select(*, type, value, legacy, use_select_mouse=True):
@@ -6490,7 +6492,7 @@ def km_3d_view_tool_select(params, *, fallback):
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
                 params, "view3d.select", "view3d.cursor3d", extend="toggle")),
             *([] if (not params.use_fallback_tool_rmb) else _template_view3d_select(
-                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
+                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy, exclude_mod="ctrl")),
         ]},
     )
 
