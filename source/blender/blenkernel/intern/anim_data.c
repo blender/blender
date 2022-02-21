@@ -779,7 +779,7 @@ static bool fcurves_path_rename_fix(ID *owner_id,
     if (fcu->rna_path != old_path) {
       bActionGroup *agrp = fcu->grp;
       is_changed = true;
-      if ((agrp != NULL) && STREQ(oldName, agrp->name)) {
+      if (oldName != NULL && (agrp != NULL) && STREQ(oldName, agrp->name)) {
         BLI_strncpy(agrp->name, newName, sizeof(agrp->name));
       }
     }
