@@ -646,7 +646,7 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key, Undo
   return um;
 }
 
-static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em, Key *key)
+static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em)
 {
   BMEditMesh *em_tmp;
   BMesh *bm;
@@ -701,29 +701,6 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em, Key *
   bm->selectmode = um->selectmode;
 
   bm->spacearr_dirty = BM_SPACEARR_DIRTY_ALL;
-
-  /* T35170: Restore the active key on the RealMesh. Otherwise 'fake' offset propagation happens
-   *         if the active is a basis for any other. */
-  if (key && (key->type == KEY_RELATIVE)) {
-    /* Since we can't add, remove or reorder keyblocks in editmode, it's safe to assume
-     * shapenr from restored bmesh and keyblock indices are in sync. */
-    const int kb_act_idx = ob->shapenr - 1;
-
-    /* If it is, let's patch the current mesh key block to its restored value.
-     * Else, the offsets won't be computed and it won't matter. */
-    if (BKE_keyblock_is_basis(key, kb_act_idx)) {
-      KeyBlock *kb_act = BLI_findlink(&key->block, kb_act_idx);
-
-      if (kb_act->totelem != um->me.totvert) {
-        /* The current mesh has some extra/missing verts compared to the undo, adjust. */
-        MEM_SAFE_FREE(kb_act->data);
-        kb_act->data = MEM_mallocN((size_t)(key->elemsize) * bm->totvert, __func__);
-        kb_act->totelem = um->me.totvert;
-      }
-
-      BKE_keyblock_update_from_mesh(&um->me, kb_act);
-    }
-  }
 
   ob->shapenr = um->shapenr;
 
@@ -872,7 +849,7 @@ static void mesh_undosys_step_decode(struct bContext *C,
       continue;
     }
     BMEditMesh *em = me->edit_mesh;
-    undomesh_to_editmesh(&elem->data, obedit, em, me->key);
+    undomesh_to_editmesh(&elem->data, obedit, em);
     em->needs_flush_to_id = 1;
     DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
   }

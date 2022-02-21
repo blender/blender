@@ -26,6 +26,7 @@ set(INC
   ../depsgraph
   ../makesdna
   ../../../intern/atomic
+  ../../../intern/clog
   ../../../intern/eigen
   ../../../intern/guardedalloc
   ../../../extern/rangetree
