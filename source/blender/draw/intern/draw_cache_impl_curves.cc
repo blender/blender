@@ -133,12 +133,12 @@ static void curves_batch_cache_fill_segments_proc_pos(Curves *curves,
 {
   /* TODO: use hair radius layer if available. */
   const int curve_size = curves->geometry.curve_size;
-  Span<int> offsets{curves->geometry.curve_offsets, curves->geometry.curve_size + 1};
-
-  Span<float3> positions{(float3 *)curves->geometry.position, curves->geometry.point_size};
+  const blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(
+      curves->geometry);
+  Span<float3> positions = geometry.positions();
 
   for (const int i : IndexRange(curve_size)) {
-    const IndexRange curve_range(offsets[i], offsets[i + 1] - offsets[i]);
+    const IndexRange curve_range = geometry.range_for_curve(i);
 
     Span<float3> spline_positions = positions.slice(curve_range);
     float total_len = 0.0f;
@@ -215,11 +215,11 @@ static void curves_batch_cache_fill_strands_data(Curves *curves,
                                                  GPUVertBufRaw *data_step,
                                                  GPUVertBufRaw *seg_step)
 {
-  const int curve_size = curves->geometry.curve_size;
-  Span<int> offsets{curves->geometry.curve_offsets, curves->geometry.curve_size + 1};
+  const blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(
+      curves->geometry);
 
-  for (const int i : IndexRange(curve_size)) {
-    const IndexRange curve_range(offsets[i], offsets[i + 1] - offsets[i]);
+  for (const int i : IndexRange(geometry.curves_size())) {
+    const IndexRange curve_range = geometry.range_for_curve(i);
 
     *(uint *)GPU_vertbuf_raw_step(data_step) = curve_range.start();
     *(ushort *)GPU_vertbuf_raw_step(seg_step) = curve_range.size() - 1;
