@@ -734,6 +734,8 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
     SEQ_ALL_END;
   }
 
+  BKE_keyingsets_foreach_id(data, &scene->keyingsets);
+
   /* This pointer can be NULL during old files reading, better be safe than sorry. */
   if (scene->master_collection != NULL) {
     BKE_library_foreach_ID_embedded(data, (ID **)&scene->master_collection);
