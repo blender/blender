@@ -387,6 +387,11 @@ def _template_items_uv_select_mode(params):
         ]
     else:
         return [
+            # TODO(@campbellbarton): should this be kept?
+            # Seems it was included in the new key-map by accident, check on removing
+            # although it's not currently used for anything else.
+            op_menu("IMAGE_MT_uvs_select_mode", {"type": 'TAB', "value": 'PRESS', "ctrl": True}),
+
             *_template_items_editmode_mesh_select_mode(params),
             # Hack to prevent fall-through, when sync select isn't enabled (and the island button isn't visible).
             ("mesh.select_mode", {"type": 'FOUR', "value": 'PRESS'}, None),
@@ -861,7 +866,6 @@ def km_mask_editing(params):
         items.extend([
             ("mask.select", {"type": 'RIGHTMOUSE', "value": 'PRESS'},
              {"properties": [("deselect_all", not params.legacy)]}),
-            ("transform.translate", {"type": 'EVT_TWEAK_R', "value": 'ANY'}, None),
         ])
 
     items.extend([
@@ -1205,7 +1209,6 @@ def km_uv_editor(params):
             if not params.legacy else
             op_menu("IMAGE_MT_uvs_snap", {"type": 'S', "value": 'PRESS', "shift": True})
         ),
-        op_menu("IMAGE_MT_uvs_select_mode", {"type": 'TAB', "value": 'PRESS', "ctrl": True}),
         *_template_items_proportional_editing(
             params, connected=False, toggle_data_path='tool_settings.use_proportional_edit'),
         ("transform.translate", {"type": params.select_tweak, "value": 'ANY'}, None),
@@ -1369,7 +1372,6 @@ def km_view3d(params):
         ),
         *(() if not params.use_pie_click_drag else
           (("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'CLICK'}, None),)),
-        ("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "shift": True}, None),
         ("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "shift": True}, None),
         # Numpad views.
         ("view3d.view_camera", {"type": 'NUMPAD_0', "value": 'PRESS'}, None),
@@ -2062,14 +2064,19 @@ def km_node_editor(params):
         ("node.translate_attach",
          {"type": 'EVT_TWEAK_L', "value": 'ANY'},
          {"properties": [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])]}),
-        ("node.translate_attach",
-         {"type": params.select_tweak, "value": 'ANY'},
-         {"properties": [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])]}),
+        # Avoid duplicating the previous item.
+        *([] if params.select_tweak == 'EVT_TWEAK_L' else (
+            ("node.translate_attach", {"type": params.select_tweak, "value": 'ANY'},
+             {"properties": [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])]}),
+        )),
         ("transform.translate", {"type": 'G', "value": 'PRESS'}, {"properties": [("view2d_edge_pan", True)]}),
         ("transform.translate", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
          {"properties": [("release_confirm", True), ("view2d_edge_pan", True)]}),
-        ("transform.translate", {"type": params.select_tweak, "value": 'ANY'},
-         {"properties": [("release_confirm", True), ("view2d_edge_pan", True)]}),
+        # Avoid duplicating the previous item.
+        *([] if params.select_tweak == 'EVT_TWEAK_L' else (
+            ("transform.translate", {"type": params.select_tweak, "value": 'ANY'},
+             {"properties": [("release_confirm", True), ("view2d_edge_pan", True)]}),
+        )),
         ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
         ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
         ("node.move_detach_links",
