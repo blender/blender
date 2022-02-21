@@ -482,7 +482,9 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
   looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
   triangles = MEM_callocN(sizeof(TriTessFace) * tottri, __func__);
 
-  const float(*precomputed_normals)[3] = CustomData_get_layer(&me->pdata, CD_NORMAL);
+  const float(*precomputed_normals)[3] = BKE_mesh_poly_normals_are_dirty(me) ?
+                                             NULL :
+                                             BKE_mesh_poly_normals_ensure(me);
   const bool calculate_normal = precomputed_normals ? false : true;
 
   if (precomputed_normals != NULL) {

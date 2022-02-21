@@ -1180,10 +1180,8 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
     tree = BLI_bvhtree_new((int)tris_len, epsilon, PY_BVH_TREE_TYPE_DEFAULT, PY_BVH_AXIS_DEFAULT);
     if (tree) {
       orig_index = MEM_mallocN(sizeof(*orig_index) * (size_t)tris_len, __func__);
-      CustomData *pdata = &mesh->pdata;
-      orig_normal = CustomData_get_layer(pdata, CD_NORMAL); /* can be NULL */
-      if (orig_normal) {
-        orig_normal = MEM_dupallocN(orig_normal);
+      if (!BKE_mesh_poly_normals_are_dirty(mesh)) {
+        orig_normal = MEM_dupallocN(BKE_mesh_poly_normals_ensure(mesh));
       }
 
       for (i = 0; i < tris_len; i++, lt++) {

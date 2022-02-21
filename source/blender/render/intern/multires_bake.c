@@ -483,7 +483,6 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     MPoly *mpoly = dm->getPolyArray(dm);
     MLoop *mloop = dm->getLoopArray(dm);
     MLoopUV *mloopuv = dm->getLoopDataArray(dm, CD_MLOOPUV);
-    const float *precomputed_normals = dm->getPolyDataArray(dm, CD_NORMAL);
     float *pvtangent = NULL;
 
     ListBase threads;
@@ -498,6 +497,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     memcpy(temp_mesh->mpoly, dm->getPolyArray(dm), temp_mesh->totpoly * sizeof(*temp_mesh->mpoly));
     memcpy(temp_mesh->mloop, dm->getLoopArray(dm), temp_mesh->totloop * sizeof(*temp_mesh->mloop));
     const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(temp_mesh);
+    const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(temp_mesh);
 
     if (require_tangent) {
       if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1) {
@@ -513,7 +513,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
             NULL,
             0,
             vert_normals,
-            (const float(*)[3])CustomData_get_layer(&dm->polyData, CD_NORMAL),
+            poly_normals,
             (const float(*)[3])dm->getLoopDataArray(dm, CD_NORMAL),
             (const float(*)[3])dm->getVertDataArray(dm, CD_ORCO), /* may be nullptr */
             /* result */
@@ -558,7 +558,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
       handle->data.mlooptri = mlooptri;
       handle->data.mloop = mloop;
       handle->data.pvtangent = pvtangent;
-      handle->data.precomputed_normals = precomputed_normals; /* don't strictly need this */
+      handle->data.precomputed_normals = (float *)poly_normals; /* don't strictly need this */
       handle->data.w = ibuf->x;
       handle->data.h = ibuf->y;
       handle->data.lores_dm = dm;
