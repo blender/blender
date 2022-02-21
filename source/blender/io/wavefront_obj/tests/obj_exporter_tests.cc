@@ -391,8 +391,10 @@ TEST_F(obj_exporter_regression_test, nurbs_curves_as_nurbs)
   _export.params.up_axis = OBJ_AXIS_Z_UP;
   _export.params.export_materials = false;
   _export.params.export_curves_as_nurbs = true;
-  compare_obj_export_to_golden(
-      "io_tests/blend_geometry/nurbs_curves.blend", "io_tests/obj/nurbs_curves.obj", "", _export.params);
+  compare_obj_export_to_golden("io_tests/blend_geometry/nurbs_curves.blend",
+                               "io_tests/obj/nurbs_curves.obj",
+                               "",
+                               _export.params);
 }
 
 TEST_F(obj_exporter_regression_test, nurbs_as_mesh)

@@ -381,7 +381,8 @@ static void gizmo_cage3d_draw_intern(
       }
 
       if (show) {
-        cage3d_draw_box_interaction(rv3d, matrix_final, gz->color, gz->highlight_part, size_real, margin);
+        cage3d_draw_box_interaction(
+            rv3d, matrix_final, gz->color, gz->highlight_part, size_real, margin);
       }
     }
     else if (draw_style == ED_GIZMO_CAGE2D_STYLE_CIRCLE) {
