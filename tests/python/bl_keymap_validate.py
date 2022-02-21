@@ -28,7 +28,17 @@ NOTE:
 """
 
 import types
-import typing
+from typing import (
+    Any,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+)
+
+KeyConfigData = List[Tuple[str, Tuple[Any], Dict[str, Any]]]
 
 import os
 import contextlib
@@ -60,7 +70,7 @@ PRESET_PREFS = {
 def temp_fn_argument_extractor(
         mod: types.ModuleType,
         mod_attr: str,
-) -> typing.Iterator[typing.List[typing.Tuple[list, dict]]]:
+) -> Generator[List[Tuple[Tuple[Tuple[Any], ...], Dict[str, Dict[str, Any]]]], None, None]:
     """
     Temporarily intercept a function, so it's arguments can be extracted.
     The context manager gives us a list where each item is a tuple of
@@ -69,7 +79,7 @@ def temp_fn_argument_extractor(
     args_collected = []
     real_fn = getattr(mod, mod_attr)
 
-    def wrap_fn(*args, **kw):
+    def wrap_fn(*args: Tuple[Any], **kw: Dict[str, Any]) -> Any:
         args_collected.append((args, kw))
         return real_fn(*args, **kw)
     setattr(mod, mod_attr, wrap_fn)
@@ -81,10 +91,10 @@ def temp_fn_argument_extractor(
 
 def round_float_32(f: float) -> float:
     from struct import pack, unpack
-    return unpack("f", pack("f", f))[0]
+    return unpack("f", pack("f", f))[0]  # type: ignore
 
 
-def report_humanly_readable_difference(a: typing.Any, b: typing.Any) -> typing.Optional[str]:
+def report_humanly_readable_difference(a: Any, b: Any) -> Optional[str]:
     """
     Compare strings, return None whrn they match,
     otherwise a humanly readable difference message.
@@ -101,7 +111,7 @@ def report_humanly_readable_difference(a: typing.Any, b: typing.Any) -> typing.O
 # -----------------------------------------------------------------------------
 # Keymap Utilities.
 
-def keyconfig_preset_scan() -> typing.List[str]:
+def keyconfig_preset_scan() -> List[str]:
     """
     Return all bundled presets (keymaps), not user presets.
     """
@@ -119,7 +129,7 @@ def keyconfig_preset_scan() -> typing.List[str]:
     ]
 
 
-def keymap_item_property_clean(value: typing.Any) -> typing.Any:
+def keymap_item_property_clean(value: Any) -> Any:
     """
     Recursive property sanitize.
 
@@ -133,12 +143,13 @@ def keymap_item_property_clean(value: typing.Any) -> typing.Any:
         return sorted(
             # Convert to `dict` to de-duplicate.
             dict([(k, keymap_item_property_clean(v)) for k, v in value]).items(),
-            key=lambda item: item[0],
+            # Ignore type checking, these are strings which we know can be sorted.
+            key=lambda item: item[0],  # type: ignore
         )
     return value
 
 
-def keymap_data_clean(keyconfig_data: typing.List, *, relaxed: bool) -> None:
+def keymap_data_clean(keyconfig_data: KeyConfigData, *, relaxed: bool) -> None:
     """
     Order & sanitize keymap data so the result
     from the hand written Python script is comparable with data exported & imported.
@@ -168,7 +179,7 @@ def keymap_data_clean(keyconfig_data: typing.List, *, relaxed: bool) -> None:
                 items[i] = item_op, item_event, None
 
 
-def keyconfig_config_as_filename_component(values: typing.Sequence[typing.Tuple[str, typing.Any]]):
+def keyconfig_config_as_filename_component(values: Sequence[Tuple[str, Any]]) -> str:
     """
     Takes a configuration, eg:
 
@@ -194,8 +205,8 @@ def keyconfig_activate_and_extract_data(
         filepath: str,
         *,
         relaxed: bool,
-        config: typing.Sequence[typing.Tuple[str, typing.Any]],
-) -> typing.List:
+        config: Sequence[Tuple[str, Any]],
+) -> KeyConfigData:
     """
     Activate the key-map by filepath,
     return the key-config data (cleaned for comparison).
@@ -214,12 +225,14 @@ def keyconfig_activate_and_extract_data(
         # If called multiple times, something strange is happening.
         assert(len(args_collected) == 1)
         args, _kw = args_collected[0]
-        keyconfig_data = args[1]
+        # Ignore the type check as `temp_fn_argument_extractor` is a generic function
+        # which doesn't contain type information of the function being wrapped.
+        keyconfig_data: KeyConfigData = args[1]  # type: ignore
         keymap_data_clean(keyconfig_data, relaxed=relaxed)
         return keyconfig_data
 
 
-def keyconfig_report_duplicates(keyconfig_data: typing.List) -> str:
+def keyconfig_report_duplicates(keyconfig_data: KeyConfigData) -> str:
     """
     Return true if any of the key-maps have duplicate items.
 
@@ -228,7 +241,7 @@ def keyconfig_report_duplicates(keyconfig_data: typing.List) -> str:
     error_text = []
     for km_idname, km_args, km_items_data in keyconfig_data:
         items = tuple(km_items_data["items"])
-        unique: typing.Dict[str, typing.List[int]] = {}
+        unique: Dict[str, List[int]] = {}
         for i, (item_op, item_event, item_prop) in enumerate(items):
             # Ensure stable order as `repr` will use order of definition.
             item_event = {key: item_event[key] for key in sorted(item_event.keys())}
