@@ -161,6 +161,8 @@ void BKE_lib_override_library_copy(ID *dst_id, const ID *src_id, const bool do_f
                                             (ID *)src_id;
   id_us_plus(dst_id->override_library->reference);
 
+  dst_id->override_library->flag = src_id->override_library->flag;
+
   if (do_full_copy) {
     BLI_duplicatelist(&dst_id->override_library->properties,
                       &src_id->override_library->properties);
