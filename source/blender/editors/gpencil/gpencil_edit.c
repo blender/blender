@@ -4356,6 +4356,7 @@ static int gpencil_stroke_sample_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   const float length = RNA_float_get(op->ptr, "length");
+  const float sharp_threshold = RNA_float_get(op->ptr, "sharp_threshold");
 
   /* sanity checks */
   if (ELEM(NULL, gpd)) {
@@ -4365,7 +4366,7 @@ static int gpencil_stroke_sample_exec(bContext *C, wmOperator *op)
   /* Go through each editable + selected stroke */
   GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
     if (gps->flag & GP_STROKE_SELECT) {
-      BKE_gpencil_stroke_sample(gpd, gps, length, true);
+      BKE_gpencil_stroke_sample(gpd, gps, length, true, sharp_threshold);
     }
   }
   GP_EDITABLE_STROKES_END(gpstroke_iter);

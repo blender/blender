@@ -208,11 +208,13 @@ void BKE_gpencil_point_coords_apply_with_mat4(struct bGPdata *gpd,
  * \param gpd: Grease pencil data-block
  * \param gps: Stroke to sample
  * \param dist: Distance of one segment
+ * \param sharp_threshold: Threshold for preserving sharp corners
  */
 bool BKE_gpencil_stroke_sample(struct bGPdata *gpd,
                                struct bGPDstroke *gps,
-                               float dist,
-                               bool select);
+                               const float dist,
+                               const bool select,
+                               const float sharp_threshold);
 /**
  * Apply smooth position to stroke point.
  * \param gps: Stroke to smooth

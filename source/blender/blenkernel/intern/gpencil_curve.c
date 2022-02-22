@@ -443,7 +443,7 @@ static void gpencil_convert_spline(Main *bmain,
   }
 
   if (sample > 0.0f) {
-    BKE_gpencil_stroke_sample(gpd, gps, sample, false);
+    BKE_gpencil_stroke_sample(gpd, gps, sample, false, 0);
   }
 
   /* Recalc fill geometry. */

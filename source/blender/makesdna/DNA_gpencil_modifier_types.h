@@ -649,9 +649,10 @@ typedef struct SimplifyGpencilModifierData {
   int layer_pass;
   /** Sample length */
   float length;
+  /** Sample sharp threshold */
+  float sharp_threshold;
   /** Merge distance */
   float distance;
-  char _pad[4];
 } SimplifyGpencilModifierData;
 
 typedef enum eSimplifyGpencil_Flag {
