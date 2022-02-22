@@ -57,8 +57,6 @@ Testing Targets
    * test_pep8:
      Checks all python script are pep8
      which are tagged to use the stricter formatting
-   * test_deprecated:
-     Checks for deprecation tags in our code which may need to be removed
 
 Static Source Code Checking
    Not associated with building Blender.
