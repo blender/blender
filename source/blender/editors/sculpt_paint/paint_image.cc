@@ -67,6 +67,8 @@
 
 #include "paint_intern.h"
 
+extern "C" {
+
 /**
  * This is a static resource for non-global access.
  * Maybe it should be exposed as part of the paint operation,
@@ -1239,11 +1241,11 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
-  const eObjectMode mode_flag = OB_MODE_TEXTURE_PAINT;
+  const int mode_flag = OB_MODE_TEXTURE_PAINT;
   const bool is_mode_set = (ob->mode & mode_flag) != 0;
 
   if (!is_mode_set) {
-    if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
+    if (!ED_object_mode_compat_set(C, ob, static_cast<eObjectMode>(mode_flag), op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -1384,4 +1386,5 @@ bool vert_paint_poll(bContext *C)
 bool mask_paint_poll(bContext *C)
 {
   return BKE_paint_select_elem_test(CTX_data_active_object(C));
+}
 }
