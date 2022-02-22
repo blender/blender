@@ -65,6 +65,11 @@ void BKE_lib_override_library_free(struct IDOverrideLibrary **override, bool do_
 bool BKE_lib_override_library_is_user_edited(struct ID *id);
 
 /**
+ * Check if given ID is a system override.
+ */
+bool BKE_lib_override_library_is_system_defined(struct Main *bmain, struct ID *id);
+
+/**
  * Create an overridden local copy of linked reference.
  *
  * \note This function is very basic, low-level. It does not consider any hierarchical dependency,

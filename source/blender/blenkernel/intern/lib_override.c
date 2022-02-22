@@ -276,6 +276,18 @@ bool BKE_lib_override_library_is_user_edited(struct ID *id)
   return false;
 }
 
+bool BKE_lib_override_library_is_system_defined(Main *bmain, ID *id)
+{
+
+  if (ID_IS_OVERRIDE_LIBRARY(id)) {
+    ID *override_owner_id;
+    lib_override_get(bmain, id, &override_owner_id);
+    return (override_owner_id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) !=
+           0;
+  }
+  return false;
+}
+
 ID *BKE_lib_override_library_create_from_id(Main *bmain,
                                             ID *reference_id,
                                             const bool do_tagged_remap)

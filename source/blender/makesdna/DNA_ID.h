@@ -319,6 +319,11 @@ enum {
    * because it was created as an single override, outside of any hierarchy consideration).
    */
   IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY = 1 << 0,
+  /**
+   * The override ID is required for the system to work (because of ID dependencies), but is not
+   * seen as editable by the user.
+   */
+  IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED = 1 << 1,
 };
 
 /* watch it: Sequence has identical beginning. */
