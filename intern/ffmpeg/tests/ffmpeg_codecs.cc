@@ -2,12 +2,13 @@
 
 extern "C" {
 #include <libavcodec/avcodec.h>
+#include <libavutil/channel_layout.h>
 #include <libavutil/log.h>
 }
 
 namespace {
 
-bool test_vcodec(AVCodec *codec, AVPixelFormat pixelformat)
+bool test_vcodec(const AVCodec *codec, AVPixelFormat pixelformat)
 {
   av_log_set_level(AV_LOG_QUIET);
   bool result = false;
@@ -28,7 +29,7 @@ bool test_vcodec(AVCodec *codec, AVPixelFormat pixelformat)
   }
   return result;
 }
-bool test_acodec(AVCodec *codec, AVSampleFormat fmt)
+bool test_acodec(const AVCodec *codec, AVSampleFormat fmt)
 {
   av_log_set_level(AV_LOG_QUIET);
   bool result = false;
@@ -52,7 +53,7 @@ bool test_acodec(AVCodec *codec, AVSampleFormat fmt)
 bool test_codec_video_by_codecid(AVCodecID codec_id, AVPixelFormat pixelformat)
 {
   bool result = false;
-  AVCodec *codec = avcodec_find_encoder(codec_id);
+  const AVCodec *codec = avcodec_find_encoder(codec_id);
   if (codec)
     result = test_vcodec(codec, pixelformat);
   return result;
@@ -61,7 +62,7 @@ bool test_codec_video_by_codecid(AVCodecID codec_id, AVPixelFormat pixelformat)
 bool test_codec_video_by_name(const char *codecname, AVPixelFormat pixelformat)
 {
   bool result = false;
-  AVCodec *codec = avcodec_find_encoder_by_name(codecname);
+  const AVCodec *codec = avcodec_find_encoder_by_name(codecname);
   if (codec)
     result = test_vcodec(codec, pixelformat);
   return result;
@@ -70,7 +71,7 @@ bool test_codec_video_by_name(const char *codecname, AVPixelFormat pixelformat)
 bool test_codec_audio_by_codecid(AVCodecID codec_id, AVSampleFormat fmt)
 {
   bool result = false;
-  AVCodec *codec = avcodec_find_encoder(codec_id);
+  const AVCodec *codec = avcodec_find_encoder(codec_id);
   if (codec)
     result = test_acodec(codec, fmt);
   return result;
@@ -79,7 +80,7 @@ bool test_codec_audio_by_codecid(AVCodecID codec_id, AVSampleFormat fmt)
 bool test_codec_audio_by_name(const char *codecname, AVSampleFormat fmt)
 {
   bool result = false;
-  AVCodec *codec = avcodec_find_encoder_by_name(codecname);
+  const AVCodec *codec = avcodec_find_encoder_by_name(codecname);
   if (codec)
     result = test_acodec(codec, fmt);
   return result;
