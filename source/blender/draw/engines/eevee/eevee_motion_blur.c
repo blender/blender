@@ -241,15 +241,14 @@ void EEVEE_motion_blur_hair_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
   }
 
   /* For now we assume hair objects are always moving. */
-  EEVEE_ObjectMotionData *mb_data = EEVEE_motion_blur_object_data_get(
-      &effects->motion_blur, ob, true);
+  EEVEE_ObjectMotionData *mb_data = EEVEE_motion_blur_object_data_get(&effects->motion_blur, ob);
 
   if (mb_data) {
     int mb_step = effects->motion_blur_step;
     /* Store transform. */
     DRW_hair_duplimat_get(ob, psys, md, mb_data->obmat[mb_step]);
 
-    EEVEE_HairMotionData *mb_hair = EEVEE_motion_blur_hair_data_get(&effects->motion_blur, ob);
+    EEVEE_HairMotionData *mb_hair = EEVEE_motion_blur_hair_data_get(mb_data, ob);
     int psys_id = (md != NULL) ? BLI_findindex(&ob->modifiers, md) : 0;
 
     if (psys_id >= mb_hair->psys_len) {
@@ -267,8 +266,8 @@ void EEVEE_motion_blur_hair_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
         copy_m4_m4(mb_data->obmat[MB_NEXT], mb_data->obmat[MB_CURR]);
       }
 
-      GPUTexture *tex_prev = mb_hair->psys[psys_id].hair_pos_tx[MB_PREV];
-      GPUTexture *tex_next = mb_hair->psys[psys_id].hair_pos_tx[MB_NEXT];
+      GPUTexture *tex_prev = mb_hair->psys[psys_id].step_data[MB_PREV].hair_pos_tx;
+      GPUTexture *tex_next = mb_hair->psys[psys_id].step_data[MB_NEXT].hair_pos_tx;
 
       grp = DRW_shgroup_hair_create_sub(ob, psys, md, effects->motion_blur.hair_grp, NULL);
       DRW_shgroup_uniform_mat4(grp, "prevModelMatrix", mb_data->obmat[MB_PREV]);
@@ -280,7 +279,7 @@ void EEVEE_motion_blur_hair_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
     }
     else {
       /* Store vertex position buffer. */
-      mb_hair->psys[psys_id].hair_pos[mb_step] = DRW_hair_pos_buffer_get(ob, psys, md);
+      mb_hair->psys[psys_id].step_data[mb_step].hair_pos = DRW_hair_pos_buffer_get(ob, psys, md);
       mb_hair->use_deform = true;
     }
   }
@@ -319,24 +318,14 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
     return;
   }
 
-  const DupliObject *dup = DRW_object_get_dupli(ob);
-  if (dup != NULL && dup->ob->data != dup->ob_data) {
-    /* Geometry instances do not support motion blur correctly yet. The #key used in
-     * #motion_blur_deform_data_get has to take ids of instances (#DupliObject.persistent_id) into
-     * account. Otherwise it can't find matching geometry instances at different points in time. */
-    return;
-  }
-
-  EEVEE_ObjectMotionData *mb_data = EEVEE_motion_blur_object_data_get(
-      &effects->motion_blur, ob, false);
+  EEVEE_ObjectMotionData *mb_data = EEVEE_motion_blur_object_data_get(&effects->motion_blur, ob);
 
   if (mb_data) {
     int mb_step = effects->motion_blur_step;
     /* Store transform. */
     copy_m4_m4(mb_data->obmat[mb_step], ob->obmat);
 
-    EEVEE_GeometryMotionData *mb_geom = EEVEE_motion_blur_geometry_data_get(&effects->motion_blur,
-                                                                            ob);
+    EEVEE_GeometryMotionData *mb_geom = EEVEE_motion_blur_geometry_data_get(mb_data);
 
     if (mb_step == MB_CURR) {
       GPUBatch *batch = DRW_cache_object_surface_get(ob);
@@ -422,86 +411,93 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
     DRW_cache_restart();
   }
 
-  for (BLI_ghashIterator_init(&ghi, effects->motion_blur.geom);
+  for (BLI_ghashIterator_init(&ghi, effects->motion_blur.object);
        BLI_ghashIterator_done(&ghi) == false;
        BLI_ghashIterator_step(&ghi)) {
-    EEVEE_GeometryMotionData *mb_geom = BLI_ghashIterator_getValue(&ghi);
-    EEVEE_HairMotionData *mb_hair = (EEVEE_HairMotionData *)mb_geom;
-
-    if (!mb_geom->use_deform) {
-      continue;
-    }
-
-    switch (mb_geom->type) {
-      case EEVEE_MOTION_DATA_HAIR:
-        if (mb_step == MB_CURR) {
-          /* TODO(fclem): Check if vertex count mismatch. */
-          mb_hair->use_deform = true;
-        }
-        else {
-          for (int i = 0; i < mb_hair->psys_len; i++) {
-            if (mb_hair->psys[i].hair_pos[mb_step] == NULL) {
-              continue;
-            }
-            mb_hair->psys[i].hair_pos[mb_step] = GPU_vertbuf_duplicate(
-                mb_hair->psys[i].hair_pos[mb_step]);
-
-            /* Create vbo immediately to bind to texture buffer. */
-            GPU_vertbuf_use(mb_hair->psys[i].hair_pos[mb_step]);
-
-            mb_hair->psys[i].hair_pos_tx[mb_step] = GPU_texture_create_from_vertbuf(
-                "hair_pos_motion_blur", mb_hair->psys[i].hair_pos[mb_step]);
+    EEVEE_ObjectMotionData *mb_data = BLI_ghashIterator_getValue(&ghi);
+    EEVEE_HairMotionData *mb_hair = mb_data->hair_data;
+    EEVEE_GeometryMotionData *mb_geom = mb_data->geometry_data;
+    if (mb_hair != NULL && mb_hair->use_deform) {
+      if (mb_step == MB_CURR) {
+        /* TODO(fclem): Check if vertex count mismatch. */
+        mb_hair->use_deform = true;
+      }
+      else {
+        for (int i = 0; i < mb_hair->psys_len; i++) {
+          GPUVertBuf *vbo = mb_hair->psys[i].step_data[mb_step].hair_pos;
+          if (vbo == NULL) {
+            continue;
           }
+          EEVEE_HairMotionStepData **step_data_cache_ptr;
+          if (!BLI_ghash_ensure_p(effects->motion_blur.hair_motion_step_cache[mb_step],
+                                  vbo,
+                                  (void ***)&step_data_cache_ptr)) {
+            EEVEE_HairMotionStepData *new_step_data = MEM_callocN(sizeof(EEVEE_HairMotionStepData),
+                                                                  __func__);
+            /* Duplicate the vbo, otherwise it would be lost when evaluating another frame. */
+            new_step_data->hair_pos = GPU_vertbuf_duplicate(vbo);
+            /* Create vbo immediately to bind to texture buffer. */
+            GPU_vertbuf_use(new_step_data->hair_pos);
+            new_step_data->hair_pos_tx = GPU_texture_create_from_vertbuf("hair_pos_motion_blur",
+                                                                         new_step_data->hair_pos);
+            *step_data_cache_ptr = new_step_data;
+          }
+          mb_hair->psys[i].step_data[mb_step] = **step_data_cache_ptr;
         }
-        break;
+      }
+    }
+    if (mb_geom != NULL && mb_geom->use_deform) {
+      if (mb_step == MB_CURR) {
+        /* Modify batch to have data from adjacent frames. */
+        GPUBatch *batch = mb_geom->batch;
+        for (int i = 0; i < MB_CURR; i++) {
+          GPUVertBuf *vbo = mb_geom->vbo[i];
+          if (vbo && batch) {
+            if (GPU_vertbuf_get_vertex_len(vbo) != GPU_vertbuf_get_vertex_len(batch->verts[0])) {
+              /* Vertex count mismatch, disable deform motion blur. */
+              mb_geom->use_deform = false;
+            }
 
-      case EEVEE_MOTION_DATA_MESH:
-        if (mb_step == MB_CURR) {
-          /* Modify batch to have data from adjacent frames. */
-          GPUBatch *batch = mb_geom->batch;
-          for (int i = 0; i < MB_CURR; i++) {
-            GPUVertBuf *vbo = mb_geom->vbo[i];
-            if (vbo && batch) {
-              if (GPU_vertbuf_get_vertex_len(vbo) != GPU_vertbuf_get_vertex_len(batch->verts[0])) {
-                /* Vertex count mismatch, disable deform motion blur. */
-                mb_geom->use_deform = false;
-              }
-
-              if (mb_geom->use_deform == false) {
-                motion_blur_remove_vbo_reference_from_batch(
-                    batch, mb_geom->vbo[MB_PREV], mb_geom->vbo[MB_NEXT]);
-
-                GPU_VERTBUF_DISCARD_SAFE(mb_geom->vbo[MB_PREV]);
-                GPU_VERTBUF_DISCARD_SAFE(mb_geom->vbo[MB_NEXT]);
-                break;
-              }
-
+            if (mb_geom->use_deform == false) {
+              motion_blur_remove_vbo_reference_from_batch(
+                  batch, mb_geom->vbo[MB_PREV], mb_geom->vbo[MB_NEXT]);
+              break;
+            }
+            /* Avoid adding the same vbo more than once when the batch is used by multiple
+             * instances. */
+            if (!GPU_batch_vertbuf_has(batch, vbo)) {
+              /* Currently, the code assumes that all objects that share the same mesh in the
+               * current frame also share the same mesh on other frames. */
               GPU_batch_vertbuf_add_ex(batch, vbo, false);
             }
           }
         }
-        else {
-          GPUVertBuf *vbo = mb_geom->vbo[mb_step];
-          if (vbo) {
-            /* Use the vbo to perform the copy on the GPU. */
-            GPU_vertbuf_use(vbo);
-            /* Perform a copy to avoid losing it after RE_engine_frame_set(). */
-            mb_geom->vbo[mb_step] = vbo = GPU_vertbuf_duplicate(vbo);
+      }
+      else {
+        GPUVertBuf *vbo = mb_geom->vbo[mb_step];
+        if (vbo) {
+          /* Use the vbo to perform the copy on the GPU. */
+          GPU_vertbuf_use(vbo);
+          /* Perform a copy to avoid losing it after RE_engine_frame_set(). */
+          GPUVertBuf **vbo_cache_ptr;
+          if (!BLI_ghash_ensure_p(effects->motion_blur.position_vbo_cache[mb_step],
+                                  vbo,
+                                  (void ***)&vbo_cache_ptr)) {
+            /* Duplicate the vbo, otherwise it would be lost when evaluating another frame. */
+            GPUVertBuf *duplicated_vbo = GPU_vertbuf_duplicate(vbo);
+            *vbo_cache_ptr = duplicated_vbo;
             /* Find and replace "pos" attrib name. */
-            GPUVertFormat *format = (GPUVertFormat *)GPU_vertbuf_get_format(vbo);
+            GPUVertFormat *format = (GPUVertFormat *)GPU_vertbuf_get_format(duplicated_vbo);
             int attrib_id = GPU_vertformat_attr_id_get(format, "pos");
             GPU_vertformat_attr_rename(format, attrib_id, (mb_step == MB_PREV) ? "prv" : "nxt");
           }
-          else {
-            /* This might happen if the object visibility has been animated. */
-            mb_geom->use_deform = false;
-          }
+          mb_geom->vbo[mb_step] = vbo = *vbo_cache_ptr;
         }
-        break;
-
-      default:
-        BLI_assert(0);
-        break;
+        else {
+          /* This might happen if the object visibility has been animated. */
+          mb_geom->use_deform = false;
+        }
+      }
     }
   }
 }
@@ -518,54 +514,62 @@ void EEVEE_motion_blur_swap_data(EEVEE_Data *vedata)
   /* Camera Data. */
   effects->motion_blur.camera[MB_PREV] = effects->motion_blur.camera[MB_NEXT];
 
-  /* Object Data. */
-  for (BLI_ghashIterator_init(&ghi, effects->motion_blur.object);
-       BLI_ghashIterator_done(&ghi) == false;
-       BLI_ghashIterator_step(&ghi)) {
-    EEVEE_ObjectMotionData *mb_data = BLI_ghashIterator_getValue(&ghi);
+  /* Swap #position_vbo_cache pointers. */
+  if (effects->motion_blur.position_vbo_cache[MB_PREV]) {
+    BLI_ghash_free(effects->motion_blur.position_vbo_cache[MB_PREV],
+                   NULL,
+                   (GHashValFreeFP)GPU_vertbuf_discard);
+  }
+  effects->motion_blur.position_vbo_cache[MB_PREV] =
+      effects->motion_blur.position_vbo_cache[MB_NEXT];
+  effects->motion_blur.position_vbo_cache[MB_NEXT] = NULL;
 
-    copy_m4_m4(mb_data->obmat[MB_PREV], mb_data->obmat[MB_NEXT]);
+  /* Swap #hair_motion_step_cache pointers. */
+  if (effects->motion_blur.hair_motion_step_cache[MB_PREV]) {
+    BLI_ghash_free(effects->motion_blur.hair_motion_step_cache[MB_PREV],
+                   NULL,
+                   (GHashValFreeFP)EEVEE_motion_hair_step_free);
+  }
+  effects->motion_blur.hair_motion_step_cache[MB_PREV] =
+      effects->motion_blur.hair_motion_step_cache[MB_NEXT];
+  effects->motion_blur.hair_motion_step_cache[MB_NEXT] = NULL;
+
+  /* Rename attributes in #position_vbo_cache. */
+  for (BLI_ghashIterator_init(&ghi, effects->motion_blur.position_vbo_cache[MB_PREV]);
+       !BLI_ghashIterator_done(&ghi);
+       BLI_ghashIterator_step(&ghi)) {
+    GPUVertBuf *vbo = BLI_ghashIterator_getValue(&ghi);
+    GPUVertFormat *format = (GPUVertFormat *)GPU_vertbuf_get_format(vbo);
+    int attrib_id = GPU_vertformat_attr_id_get(format, "nxt");
+    GPU_vertformat_attr_rename(format, attrib_id, "prv");
   }
 
-  /* Deformation Data. */
-  for (BLI_ghashIterator_init(&ghi, effects->motion_blur.geom);
-       BLI_ghashIterator_done(&ghi) == false;
+  /* Object Data. */
+  for (BLI_ghashIterator_init(&ghi, effects->motion_blur.object); !BLI_ghashIterator_done(&ghi);
        BLI_ghashIterator_step(&ghi)) {
-    EEVEE_GeometryMotionData *mb_geom = BLI_ghashIterator_getValue(&ghi);
-    EEVEE_HairMotionData *mb_hair = (EEVEE_HairMotionData *)mb_geom;
+    EEVEE_ObjectMotionData *mb_data = BLI_ghashIterator_getValue(&ghi);
+    EEVEE_GeometryMotionData *mb_geom = mb_data->geometry_data;
+    EEVEE_HairMotionData *mb_hair = mb_data->hair_data;
 
-    switch (mb_geom->type) {
-      case EEVEE_MOTION_DATA_HAIR:
-        for (int i = 0; i < mb_hair->psys_len; i++) {
-          GPU_VERTBUF_DISCARD_SAFE(mb_hair->psys[i].hair_pos[MB_PREV]);
-          DRW_TEXTURE_FREE_SAFE(mb_hair->psys[i].hair_pos_tx[MB_PREV]);
-          mb_hair->psys[i].hair_pos[MB_PREV] = mb_hair->psys[i].hair_pos[MB_NEXT];
-          mb_hair->psys[i].hair_pos_tx[MB_PREV] = mb_hair->psys[i].hair_pos_tx[MB_NEXT];
-          mb_hair->psys[i].hair_pos[MB_NEXT] = NULL;
-          mb_hair->psys[i].hair_pos_tx[MB_NEXT] = NULL;
-        }
-        break;
+    copy_m4_m4(mb_data->obmat[MB_PREV], mb_data->obmat[MB_NEXT]);
 
-      case EEVEE_MOTION_DATA_MESH:
-        if (mb_geom->batch != NULL) {
-          motion_blur_remove_vbo_reference_from_batch(
-              mb_geom->batch, mb_geom->vbo[MB_PREV], mb_geom->vbo[MB_NEXT]);
-        }
-        GPU_VERTBUF_DISCARD_SAFE(mb_geom->vbo[MB_PREV]);
-        mb_geom->vbo[MB_PREV] = mb_geom->vbo[MB_NEXT];
-        mb_geom->vbo[MB_NEXT] = NULL;
-
-        if (mb_geom->vbo[MB_PREV]) {
-          GPUVertBuf *vbo = mb_geom->vbo[MB_PREV];
-          GPUVertFormat *format = (GPUVertFormat *)GPU_vertbuf_get_format(vbo);
-          int attrib_id = GPU_vertformat_attr_id_get(format, "nxt");
-          GPU_vertformat_attr_rename(format, attrib_id, "prv");
-        }
-        break;
-
-      default:
-        BLI_assert(0);
-        break;
+    if (mb_hair != NULL) {
+      for (int i = 0; i < mb_hair->psys_len; i++) {
+        mb_hair->psys[i].step_data[MB_PREV].hair_pos =
+            mb_hair->psys[i].step_data[MB_NEXT].hair_pos;
+        mb_hair->psys[i].step_data[MB_PREV].hair_pos_tx =
+            mb_hair->psys[i].step_data[MB_NEXT].hair_pos_tx;
+        mb_hair->psys[i].step_data[MB_NEXT].hair_pos = NULL;
+        mb_hair->psys[i].step_data[MB_NEXT].hair_pos_tx = NULL;
+      }
+    }
+    if (mb_geom != NULL) {
+      if (mb_geom->batch != NULL) {
+        motion_blur_remove_vbo_reference_from_batch(
+            mb_geom->batch, mb_geom->vbo[MB_PREV], mb_geom->vbo[MB_NEXT]);
+      }
+      mb_geom->vbo[MB_PREV] = mb_geom->vbo[MB_NEXT];
+      mb_geom->vbo[MB_NEXT] = NULL;
     }
   }
 }

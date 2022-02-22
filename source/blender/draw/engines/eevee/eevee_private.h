@@ -633,8 +633,23 @@ enum {
 #define MB_CURR 2
 
 typedef struct EEVEE_MotionBlurData {
+  /**
+   * Maps #EEVEE_ObjectKey to #EEVEE_ObjectMotionData.
+   */
   struct GHash *object;
-  struct GHash *geom;
+  /**
+   * Maps original #GPUVertBuf to duplicated #GPUVertBuf.
+   * There are two maps for #MB_PREV and #MB_NEXT.
+   * Only the values are owned.
+   */
+  struct GHash *position_vbo_cache[2];
+  /**
+   * Maps original #GPUVertBuf to #EEVEE_HairMotionStepData.
+   * There are two maps for #MB_PREV and #MB_NEXT.
+   * Only the values are owned.
+   */
+  struct GHash *hair_motion_step_cache[2];
+
   struct {
     float viewmat[4][4];
     float persmat[4][4];
@@ -652,14 +667,15 @@ typedef struct EEVEE_ObjectKey {
   int id[8]; /* MAX_DUPLI_RECUR */
 } EEVEE_ObjectKey;
 
-typedef struct EEVEE_ObjectMotionData {
-  float obmat[3][4][4];
-} EEVEE_ObjectMotionData;
-
 typedef enum eEEVEEMotionData {
   EEVEE_MOTION_DATA_MESH = 0,
   EEVEE_MOTION_DATA_HAIR,
 } eEEVEEMotionData;
+
+typedef struct EEVEE_HairMotionStepData {
+  struct GPUVertBuf *hair_pos;
+  struct GPUTexture *hair_pos_tx;
+} EEVEE_HairMotionStepData;
 
 typedef struct EEVEE_HairMotionData {
   /** Needs to be first to ensure casting. */
@@ -668,8 +684,8 @@ typedef struct EEVEE_HairMotionData {
   /** Allocator will alloc enough slot for all particle systems. Or 1 if it's a hair object. */
   int psys_len;
   struct {
-    struct GPUVertBuf *hair_pos[2];    /* Position buffer for time = t +/- step. */
-    struct GPUTexture *hair_pos_tx[2]; /* Buffer Texture of the corresponding VBO. */
+    /* The vbos and textures are not owned. */
+    EEVEE_HairMotionStepData step_data[2]; /* Data for time = t +/- step. */
   } psys[0];
 } EEVEE_HairMotionData;
 
@@ -679,9 +695,17 @@ typedef struct EEVEE_GeometryMotionData {
   /** To disable deform mb if vertcount mismatch. */
   int use_deform;
 
+  /* The batch and vbos are not owned. */
   struct GPUBatch *batch;    /* Batch for time = t. */
   struct GPUVertBuf *vbo[2]; /* VBO for time = t +/- step. */
 } EEVEE_GeometryMotionData;
+
+typedef struct EEVEE_ObjectMotionData {
+  float obmat[3][4][4];
+
+  EEVEE_GeometryMotionData *geometry_data;
+  EEVEE_HairMotionData *hair_data;
+} EEVEE_ObjectMotionData;
 
 /* ************ EFFECTS DATA ************* */
 
@@ -1077,17 +1101,15 @@ typedef struct EEVEE_PrivateData {
 void EEVEE_motion_blur_data_init(EEVEE_MotionBlurData *mb);
 void EEVEE_motion_blur_data_free(EEVEE_MotionBlurData *mb);
 void EEVEE_view_layer_data_free(void *storage);
+void EEVEE_motion_hair_step_free(EEVEE_HairMotionStepData *step_data);
 EEVEE_ViewLayerData *EEVEE_view_layer_data_get(void);
 EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure_ex(struct ViewLayer *view_layer);
 EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure(void);
 EEVEE_ObjectEngineData *EEVEE_object_data_get(Object *ob);
 EEVEE_ObjectEngineData *EEVEE_object_data_ensure(Object *ob);
-EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *mb,
-                                                          Object *ob,
-                                                          bool hair);
-EEVEE_GeometryMotionData *EEVEE_motion_blur_geometry_data_get(EEVEE_MotionBlurData *mb,
-                                                              Object *ob);
-EEVEE_HairMotionData *EEVEE_motion_blur_hair_data_get(EEVEE_MotionBlurData *mb, Object *ob);
+EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *mb, Object *ob);
+EEVEE_GeometryMotionData *EEVEE_motion_blur_geometry_data_get(EEVEE_ObjectMotionData *mb_data);
+EEVEE_HairMotionData *EEVEE_motion_blur_hair_data_get(EEVEE_ObjectMotionData *mb_data, Object *ob);
 EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_get(Object *ob);
 EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_ensure(Object *ob);
 EEVEE_LightEngineData *EEVEE_light_data_get(Object *ob);

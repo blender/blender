@@ -42,25 +42,12 @@
 
 static void eevee_motion_blur_mesh_data_free(void *val)
 {
-  EEVEE_GeometryMotionData *geom_mb = (EEVEE_GeometryMotionData *)val;
-  EEVEE_HairMotionData *hair_mb = (EEVEE_HairMotionData *)val;
-  switch (geom_mb->type) {
-    case EEVEE_MOTION_DATA_HAIR:
-      for (int j = 0; j < hair_mb->psys_len; j++) {
-        for (int i = 0; i < ARRAY_SIZE(hair_mb->psys[0].hair_pos); i++) {
-          GPU_VERTBUF_DISCARD_SAFE(hair_mb->psys[j].hair_pos[i]);
-        }
-        for (int i = 0; i < ARRAY_SIZE(hair_mb->psys[0].hair_pos); i++) {
-          DRW_TEXTURE_FREE_SAFE(hair_mb->psys[j].hair_pos_tx[i]);
-        }
-      }
-      break;
-
-    case EEVEE_MOTION_DATA_MESH:
-      for (int i = 0; i < ARRAY_SIZE(geom_mb->vbo); i++) {
-        GPU_VERTBUF_DISCARD_SAFE(geom_mb->vbo[i]);
-      }
-      break;
+  EEVEE_ObjectMotionData *mb_data = (EEVEE_ObjectMotionData *)val;
+  if (mb_data->hair_data != NULL) {
+    MEM_freeN(mb_data->hair_data);
+  }
+  if (mb_data->geometry_data != NULL) {
+    MEM_freeN(mb_data->geometry_data);
   }
   MEM_freeN(val);
 }
@@ -99,39 +86,57 @@ static bool eevee_object_key_cmp(const void *a, const void *b)
   return false;
 }
 
+void EEVEE_motion_hair_step_free(EEVEE_HairMotionStepData *step_data)
+{
+  GPU_vertbuf_discard(step_data->hair_pos);
+  DRW_texture_free(step_data->hair_pos_tx);
+  MEM_freeN(step_data);
+}
+
 void EEVEE_motion_blur_data_init(EEVEE_MotionBlurData *mb)
 {
   if (mb->object == NULL) {
     mb->object = BLI_ghash_new(eevee_object_key_hash, eevee_object_key_cmp, "EEVEE Object Motion");
   }
-  if (mb->geom == NULL) {
-    mb->geom = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "EEVEE Mesh Motion");
+  for (int i = 0; i < 2; i++) {
+    if (mb->position_vbo_cache[i] == NULL) {
+      mb->position_vbo_cache[i] = BLI_ghash_new(
+          BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "EEVEE duplicate vbo cache");
+    }
+    if (mb->hair_motion_step_cache[i] == NULL) {
+      mb->hair_motion_step_cache[i] = BLI_ghash_new(
+          BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "EEVEE hair motion step cache");
+    }
   }
 }
 
 void EEVEE_motion_blur_data_free(EEVEE_MotionBlurData *mb)
 {
   if (mb->object) {
-    BLI_ghash_free(mb->object, MEM_freeN, MEM_freeN);
+    BLI_ghash_free(mb->object, MEM_freeN, eevee_motion_blur_mesh_data_free);
     mb->object = NULL;
   }
-  if (mb->geom) {
-    BLI_ghash_free(mb->geom, NULL, eevee_motion_blur_mesh_data_free);
-    mb->geom = NULL;
+  for (int i = 0; i < 2; i++) {
+    if (mb->position_vbo_cache[i]) {
+      BLI_ghash_free(mb->position_vbo_cache[i], NULL, (GHashValFreeFP)GPU_vertbuf_discard);
+    }
+    if (mb->hair_motion_step_cache[i]) {
+      BLI_ghash_free(
+          mb->hair_motion_step_cache[i], NULL, (GHashValFreeFP)EEVEE_motion_hair_step_free);
+    }
   }
 }
 
-EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *mb,
-                                                          Object *ob,
-                                                          bool hair)
+EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *mb, Object *ob)
 {
   if (mb->object == NULL) {
     return NULL;
   }
 
   EEVEE_ObjectKey key, *key_p;
-  /* Small hack to avoid another comparison. */
-  key.ob = (Object *)((char *)ob + hair);
+  /* Assumes that all instances have the same object pointer. This is currently the case because
+   * instance objects are temporary objects on the stack. */
+  key.ob = ob;
   DupliObject *dup = DRW_object_get_dupli(ob);
   if (dup) {
     key.parent = DRW_object_get_dupli_parent(ob);
@@ -154,53 +159,28 @@ EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *
   return ob_step;
 }
 
-static void *motion_blur_deform_data_get(EEVEE_MotionBlurData *mb, Object *ob, bool hair)
+EEVEE_GeometryMotionData *EEVEE_motion_blur_geometry_data_get(EEVEE_ObjectMotionData *mb_data)
 {
-  if (mb->geom == NULL) {
-    return NULL;
+  if (mb_data->geometry_data == NULL) {
+    EEVEE_GeometryMotionData *geom_step = MEM_callocN(sizeof(EEVEE_GeometryMotionData), __func__);
+    geom_step->type = EEVEE_MOTION_DATA_MESH;
+    mb_data->geometry_data = geom_step;
   }
-  DupliObject *dup = DRW_object_get_dupli(ob);
-  void *key;
-  if (dup) {
-    key = dup->ob;
-  }
-  else {
-    key = ob;
-  }
-  /* Only use data for object that have no modifiers. */
-  if (!BKE_object_is_modified(DRW_context_state_get()->scene, ob)) {
-    key = ob->data;
-  }
-  key = (char *)key + (int)hair;
-  EEVEE_GeometryMotionData *geom_step = BLI_ghash_lookup(mb->geom, key);
-  if (geom_step == NULL) {
-    if (hair) {
-      EEVEE_HairMotionData *hair_step;
-      /* Ugly, we allocate for each modifiers and just fill based on modifier index in the list. */
-      int psys_len = (ob->type != OB_HAIR) ? BLI_listbase_count(&ob->modifiers) : 1;
-      hair_step = MEM_callocN(sizeof(EEVEE_HairMotionData) + sizeof(hair_step->psys[0]) * psys_len,
-                              __func__);
-      hair_step->psys_len = psys_len;
-      geom_step = (EEVEE_GeometryMotionData *)hair_step;
-      geom_step->type = EEVEE_MOTION_DATA_HAIR;
-    }
-    else {
-      geom_step = MEM_callocN(sizeof(EEVEE_GeometryMotionData), __func__);
-      geom_step->type = EEVEE_MOTION_DATA_MESH;
-    }
-    BLI_ghash_insert(mb->geom, key, geom_step);
-  }
-  return geom_step;
+  return mb_data->geometry_data;
 }
 
-EEVEE_GeometryMotionData *EEVEE_motion_blur_geometry_data_get(EEVEE_MotionBlurData *mb, Object *ob)
+EEVEE_HairMotionData *EEVEE_motion_blur_hair_data_get(EEVEE_ObjectMotionData *mb_data, Object *ob)
 {
-  return motion_blur_deform_data_get(mb, ob, false);
-}
-
-EEVEE_HairMotionData *EEVEE_motion_blur_hair_data_get(EEVEE_MotionBlurData *mb, Object *ob)
-{
-  return motion_blur_deform_data_get(mb, ob, true);
+  if (mb_data->hair_data == NULL) {
+    /* Ugly, we allocate for each modifiers and just fill based on modifier index in the list. */
+    int psys_len = (ob->type != OB_HAIR) ? BLI_listbase_count(&ob->modifiers) : 1;
+    EEVEE_HairMotionData *hair_step = MEM_callocN(
+        sizeof(EEVEE_HairMotionData) + sizeof(hair_step->psys[0]) * psys_len, __func__);
+    hair_step->psys_len = psys_len;
+    hair_step->type = EEVEE_MOTION_DATA_HAIR;
+    mb_data->hair_data = hair_step;
+  }
+  return mb_data->hair_data;
 }
 
 /* View Layer data. */

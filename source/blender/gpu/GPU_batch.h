@@ -135,6 +135,7 @@ int GPU_batch_instbuf_add_ex(GPUBatch *, GPUVertBuf *, bool own_vbo);
  * Returns the index of verts in the batch.
  */
 int GPU_batch_vertbuf_add_ex(GPUBatch *, GPUVertBuf *, bool own_vbo);
+bool GPU_batch_vertbuf_has(GPUBatch *, GPUVertBuf *);
 
 #define GPU_batch_vertbuf_add(batch, verts) GPU_batch_vertbuf_add_ex(batch, verts, false)
 

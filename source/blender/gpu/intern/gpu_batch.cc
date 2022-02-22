@@ -207,6 +207,16 @@ int GPU_batch_vertbuf_add_ex(GPUBatch *batch, GPUVertBuf *verts, bool own_vbo)
   return -1;
 }
 
+bool GPU_batch_vertbuf_has(GPUBatch *batch, GPUVertBuf *verts)
+{
+  for (uint v = 0; v < GPU_BATCH_VBO_MAX_LEN; v++) {
+    if (batch->verts[v] == verts) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
