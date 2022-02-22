@@ -315,7 +315,7 @@ typedef enum eTexPaintMode {
 typedef struct PaintOperation {
   eTexPaintMode mode;
 
-  void *custom_paint;
+  void *stroke_handle;
 
   float prevmouse[2];
   float startmouse[2];
@@ -479,14 +479,14 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
       return NULL;
     }
     pop->mode = PAINT_MODE_3D_PROJECT;
-    pop->custom_paint = paint_proj_new_stroke(C, ob, mouse, mode);
+    pop->stroke_handle = paint_proj_new_stroke(C, ob, mouse, mode);
   }
   else {
     pop->mode = PAINT_MODE_2D;
-    pop->custom_paint = paint_2d_new_stroke(C, op, mode);
+    pop->stroke_handle = paint_2d_new_stroke(C, op, mode);
   }
 
-  if (!pop->custom_paint) {
+  if (!pop->stroke_handle) {
     MEM_freeN(pop);
     return NULL;
   }
@@ -549,12 +549,12 @@ static void paint_stroke_update_step(bContext *C,
 
   switch (pop->mode) {
     case PAINT_MODE_2D:
-      paint_2d_stroke(pop->custom_paint, pop->prevmouse, mouse, eraser, pressure, distance, size);
+      paint_2d_stroke(pop->stroke_handle, pop->prevmouse, mouse, eraser, pressure, distance, size);
       break;
 
     case PAINT_MODE_3D_PROJECT:
       paint_proj_stroke(
-          C, pop->custom_paint, pop->prevmouse, mouse, eraser, pressure, distance, size);
+          C, pop->stroke_handle, pop->prevmouse, mouse, eraser, pressure, distance, size);
       break;
   }
 
@@ -570,11 +570,11 @@ static void paint_stroke_redraw(const bContext *C, struct PaintStroke *stroke, b
 
   switch (pop->mode) {
     case PAINT_MODE_2D:
-      paint_2d_redraw(C, pop->custom_paint, final);
+      paint_2d_redraw(C, pop->stroke_handle, final);
       break;
 
     case PAINT_MODE_3D_PROJECT:
-      paint_proj_redraw(C, pop->custom_paint, final);
+      paint_proj_redraw(C, pop->stroke_handle, final);
       break;
   }
 }
@@ -592,12 +592,12 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
     if (brush->flag & BRUSH_USE_GRADIENT) {
       switch (pop->mode) {
         case PAINT_MODE_2D:
-          paint_2d_gradient_fill(C, brush, pop->startmouse, pop->prevmouse, pop->custom_paint);
+          paint_2d_gradient_fill(C, brush, pop->startmouse, pop->prevmouse, pop->stroke_handle);
           break;
 
         case PAINT_MODE_3D_PROJECT:
           paint_proj_stroke(C,
-                            pop->custom_paint,
+                            pop->stroke_handle,
                             pop->startmouse,
                             pop->prevmouse,
                             paint_stroke_flipped(stroke),
@@ -605,8 +605,8 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
                             0.0,
                             BKE_brush_size_get(scene, brush));
           /* two redraws, one for GPU update, one for notification */
-          paint_proj_redraw(C, pop->custom_paint, false);
-          paint_proj_redraw(C, pop->custom_paint, true);
+          paint_proj_redraw(C, pop->stroke_handle, false);
+          paint_proj_redraw(C, pop->stroke_handle, true);
           break;
       }
     }
@@ -621,12 +621,12 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
             srgb_to_linearrgb_v3_v3(color, BKE_brush_color_get(scene, brush));
           }
           paint_2d_bucket_fill(
-              C, color, brush, pop->startmouse, pop->prevmouse, pop->custom_paint);
+              C, color, brush, pop->startmouse, pop->prevmouse, pop->stroke_handle);
           break;
 
         case PAINT_MODE_3D_PROJECT:
           paint_proj_stroke(C,
-                            pop->custom_paint,
+                            pop->stroke_handle,
                             pop->startmouse,
                             pop->prevmouse,
                             paint_stroke_flipped(stroke),
@@ -634,8 +634,8 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
                             0.0,
                             BKE_brush_size_get(scene, brush));
           /* two redraws, one for GPU update, one for notification */
-          paint_proj_redraw(C, pop->custom_paint, false);
-          paint_proj_redraw(C, pop->custom_paint, true);
+          paint_proj_redraw(C, pop->stroke_handle, false);
+          paint_proj_redraw(C, pop->stroke_handle, true);
           break;
       }
     }
@@ -643,11 +643,11 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 
   switch (pop->mode) {
     case PAINT_MODE_2D:
-      paint_2d_stroke_done(pop->custom_paint);
+      paint_2d_stroke_done(pop->stroke_handle);
       break;
 
     case PAINT_MODE_3D_PROJECT:
-      paint_proj_stroke_done(pop->custom_paint);
+      paint_proj_stroke_done(pop->stroke_handle);
       break;
   }
 
