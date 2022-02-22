@@ -174,6 +174,8 @@ if(WITH_XR_OPENXR)
 
   list(APPEND INC
     xr
+    # For wm_xr_operators.c: BKE_editmesh.h
+    ../bmesh
   )
 
   list(APPEND SRC

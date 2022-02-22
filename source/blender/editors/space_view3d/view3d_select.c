@@ -134,6 +134,20 @@ void ED_view3d_viewcontext_init_object(ViewContext *vc, Object *obact)
   }
 }
 
+bool ED_view3d_object_deselect_all_except(ViewLayer *view_layer, Base *b)
+{
+  bool changed = false;
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    if (base->flag & BASE_SELECTED) {
+      if (b != base) {
+        ED_object_base_select(base, BA_DESELECT);
+        changed = true;
+      }
+    }
+  }
+  return changed;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -146,21 +160,6 @@ static bool object_deselect_all_visible(ViewLayer *view_layer, View3D *v3d)
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (base->flag & BASE_SELECTED) {
       if (BASE_SELECTABLE(v3d, base)) {
-        ED_object_base_select(base, BA_DESELECT);
-        changed = true;
-      }
-    }
-  }
-  return changed;
-}
-
-/* deselect all except b */
-static bool object_deselect_all_except(ViewLayer *view_layer, Base *b)
-{
-  bool changed = false;
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
-    if (base->flag & BASE_SELECTED) {
-      if (b != base) {
         ED_object_base_select(base, BA_DESELECT);
         changed = true;
       }
@@ -1494,7 +1493,7 @@ static int object_select_menu_exec(bContext *C, wmOperator *op)
     }
   }
   else {
-    object_deselect_all_except(view_layer, basact);
+    ED_view3d_object_deselect_all_except(view_layer, basact);
     ED_object_base_select(basact, BA_SELECT);
     changed = true;
   }
@@ -2508,7 +2507,7 @@ static bool ed_object_select_pick(bContext *C,
 
     if (vc.obedit) {
       /* only do select */
-      object_deselect_all_except(view_layer, basact);
+      ED_view3d_object_deselect_all_except(view_layer, basact);
       ED_object_base_select(basact, BA_SELECT);
     }
     /* also prevent making it active on mouse selection */
@@ -2534,7 +2533,7 @@ static bool ed_object_select_pick(bContext *C,
       else {
         /* When enabled, this puts other objects out of multi pose-mode. */
         if (is_pose_mode == false || (basact->object->mode & OB_MODE_POSE) == 0) {
-          object_deselect_all_except(view_layer, basact);
+          ED_view3d_object_deselect_all_except(view_layer, basact);
           ED_object_base_select(basact, BA_SELECT);
         }
       }

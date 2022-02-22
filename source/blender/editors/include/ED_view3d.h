@@ -929,6 +929,10 @@ void ED_view3d_viewcontext_init(struct bContext *C,
                                 struct Depsgraph *depsgraph);
 void ED_view3d_viewcontext_init_object(struct ViewContext *vc, struct Object *obact);
 /**
+ * Deselect all except b.
+ */
+bool ED_view3d_object_deselect_all_except(struct ViewLayer *view_layer, struct Base *b);
+/**
  * Use this call when executing an operator,
  * event system doesn't set for each event the OpenGL drawing context.
  */

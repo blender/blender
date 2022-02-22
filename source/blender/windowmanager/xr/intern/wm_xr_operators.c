@@ -13,14 +13,20 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
+#include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
+#include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_space_api.h"
 #include "ED_transform_snap_object_context.h"
 #include "ED_view3d.h"
@@ -714,10 +720,10 @@ static void wm_xr_raycast_update(wmOperator *op,
 
 static void wm_xr_raycast(Scene *scene,
                           Depsgraph *depsgraph,
+                          eSnapSelect snap_select,
                           const float origin[3],
                           const float direction[3],
                           float *ray_dist,
-                          bool selectable_only,
                           float r_location[3],
                           float r_normal[3],
                           int *r_index,
@@ -731,8 +737,7 @@ static void wm_xr_raycast(Scene *scene,
       sctx,
       depsgraph,
       NULL,
-      &(const struct SnapObjectParams){
-          .snap_select = (selectable_only ? SNAP_SELECTABLE : SNAP_ALL)},
+      &(const struct SnapObjectParams){.snap_select = snap_select},
       origin,
       direction,
       ray_dist,
@@ -1224,10 +1229,10 @@ static void wm_xr_navigation_teleport(bContext *C,
 
   wm_xr_raycast(scene,
                 depsgraph,
+                selectable_only ? SNAP_SELECTABLE : SNAP_ALL,
                 origin,
                 direction,
                 ray_dist,
-                selectable_only,
                 location,
                 normal,
                 &index,
@@ -1276,7 +1281,7 @@ static int wm_xr_navigation_teleport_invoke(bContext *C, wmOperator *op, const w
 
   wm_xr_raycast_init(op);
 
-  int retval = op->type->modal(C, op, event);
+  const int retval = op->type->modal(C, op, event);
 
   if ((retval & OPERATOR_RUNNING_MODAL) != 0) {
     WM_event_add_modal_handler(C, op);
@@ -1508,6 +1513,397 @@ static void WM_OT_xr_navigation_reset(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name XR Raycast Select
+ *
+ * Casts a ray from an XR controller's pose and selects any hit geometry.
+ * \{ */
+
+typedef enum eXrSelectElem {
+  XR_SEL_BASE = 0,
+  XR_SEL_VERTEX = 1,
+  XR_SEL_EDGE = 2,
+  XR_SEL_FACE = 3,
+} eXrSelectElem;
+
+static void wm_xr_select_op_apply(void *elem,
+                                  BMesh *bm,
+                                  eXrSelectElem select_elem,
+                                  eSelectOp select_op,
+                                  bool *r_changed,
+                                  bool *r_set)
+{
+  const bool selected_prev = (select_elem == XR_SEL_BASE) ?
+                                 (((Base *)elem)->flag & BASE_SELECTED) != 0 :
+                                 (((BMElem *)elem)->head.hflag & BM_ELEM_SELECT) != 0;
+
+  if (selected_prev) {
+    switch (select_op) {
+      case SEL_OP_SUB:
+      case SEL_OP_XOR: {
+        switch (select_elem) {
+          case XR_SEL_BASE:
+            ED_object_base_select((Base *)elem, BA_DESELECT);
+            *r_changed = true;
+            break;
+          case XR_SEL_VERTEX:
+            BM_vert_select_set(bm, (BMVert *)elem, false);
+            *r_changed = true;
+            break;
+          case XR_SEL_EDGE:
+            BM_edge_select_set(bm, (BMEdge *)elem, false);
+            *r_changed = true;
+            break;
+          case XR_SEL_FACE:
+            BM_face_select_set(bm, (BMFace *)elem, false);
+            *r_changed = true;
+            break;
+        }
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  }
+  else {
+    switch (select_op) {
+      case SEL_OP_SET:
+      case SEL_OP_ADD:
+      case SEL_OP_XOR: {
+        switch (select_elem) {
+          case XR_SEL_BASE:
+            ED_object_base_select((Base *)elem, BA_SELECT);
+            *r_changed = true;
+            break;
+          case XR_SEL_VERTEX:
+            BM_vert_select_set(bm, (BMVert *)elem, true);
+            *r_changed = true;
+            break;
+          case XR_SEL_EDGE:
+            BM_edge_select_set(bm, (BMEdge *)elem, true);
+            *r_changed = true;
+            break;
+          case XR_SEL_FACE:
+            BM_face_select_set(bm, (BMFace *)elem, true);
+            *r_changed = true;
+            break;
+        }
+      }
+      default: {
+        break;
+      }
+    }
+
+    if (select_op == SEL_OP_SET) {
+      *r_set = true;
+    }
+  }
+}
+
+static bool wm_xr_select_raycast(bContext *C,
+                                 const float origin[3],
+                                 const float direction[3],
+                                 float *ray_dist,
+                                 bool selectable_only,
+                                 eSelectOp select_op,
+                                 bool deselect_all)
+{
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ViewContext vc;
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  vc.em = (vc.obedit && (vc.obedit->type == OB_MESH)) ? BKE_editmesh_from_object(vc.obedit) : NULL;
+
+  float location[3];
+  float normal[3];
+  int index;
+  Object *ob = NULL;
+  float obmat[4][4];
+
+  wm_xr_raycast(vc.scene,
+                depsgraph,
+                vc.em ? SNAP_ONLY_ACTIVE : (selectable_only ? SNAP_SELECTABLE : SNAP_ALL),
+                origin,
+                direction,
+                ray_dist,
+                location,
+                normal,
+                &index,
+                &ob,
+                obmat);
+
+  /* Select. */
+  bool hit = false;
+  bool changed = false;
+
+  if (ob && vc.em &&
+      ((ob == vc.obedit) || (ob->id.orig_id == &vc.obedit->id))) { /* TODO_XR: Non-mesh objects. */
+    BMesh *bm = vc.em->bm;
+    BMFace *f = NULL;
+    BMEdge *e = NULL;
+    BMVert *v = NULL;
+
+    if (index != -1) {
+      ToolSettings *ts = vc.scene->toolsettings;
+      float co[3];
+      f = BM_face_at_index(bm, index);
+
+      if ((ts->selectmode & SCE_SELECT_VERTEX) != 0) {
+        /* Find nearest vertex. */
+        float dist_max = *ray_dist;
+        float dist;
+        BMLoop *l = f->l_first;
+        for (int i = 0; i < f->len; ++i, l = l->next) {
+          mul_v3_m4v3(co, obmat, l->v->co);
+          if ((dist = len_manhattan_v3v3(location, co)) < dist_max) {
+            v = l->v;
+            dist_max = dist;
+          }
+        }
+        if (v) {
+          hit = true;
+        }
+      }
+      if ((ts->selectmode & SCE_SELECT_EDGE) != 0) {
+        /* Find nearest edge. */
+        float dist_max = *ray_dist;
+        float dist;
+        BMLoop *l = f->l_first;
+        for (int i = 0; i < f->len; ++i, l = l->next) {
+          add_v3_v3v3(co, l->e->v1->co, l->e->v2->co);
+          mul_v3_fl(co, 0.5f);
+          mul_m4_v3(obmat, co);
+          if ((dist = len_manhattan_v3v3(location, co)) < dist_max) {
+            e = l->e;
+            dist_max = dist;
+          }
+        }
+        if (e) {
+          hit = true;
+        }
+      }
+      if ((ts->selectmode & SCE_SELECT_FACE) != 0) {
+        hit = true;
+      }
+      else {
+        f = NULL;
+      }
+    }
+
+    if (!hit) {
+      if (deselect_all) {
+        changed = EDBM_mesh_deselect_all_multi(C);
+      }
+    }
+    else {
+      bool set_v = false;
+      bool set_e = false;
+      bool set_f = false;
+
+      if (v) {
+        wm_xr_select_op_apply(v, bm, XR_SEL_VERTEX, select_op, &changed, &set_v);
+      }
+      if (e) {
+        wm_xr_select_op_apply(e, bm, XR_SEL_EDGE, select_op, &changed, &set_e);
+      }
+      if (f) {
+        wm_xr_select_op_apply(f, bm, XR_SEL_FACE, select_op, &changed, &set_f);
+      }
+
+      if (set_v || set_e || set_f) {
+        EDBM_mesh_deselect_all_multi(C);
+        if (set_v) {
+          BM_vert_select_set(bm, v, true);
+        }
+        if (set_e) {
+          BM_edge_select_set(bm, e, true);
+        }
+        if (set_f) {
+          BM_face_select_set(bm, f, true);
+        }
+      }
+    }
+
+    if (changed) {
+      DEG_id_tag_update((ID *)vc.obedit->data, ID_RECALC_SELECT);
+      WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
+    }
+  }
+  else if (vc.em) {
+    if (deselect_all) {
+      changed = EDBM_mesh_deselect_all_multi(C);
+    }
+
+    if (changed) {
+      DEG_id_tag_update((ID *)vc.obedit->data, ID_RECALC_SELECT);
+      WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
+    }
+  }
+  else {
+    if (ob) {
+      hit = true;
+    }
+
+    if (!hit) {
+      if (deselect_all) {
+        changed = ED_view3d_object_deselect_all_except(vc.view_layer, NULL);
+      }
+    }
+    else {
+      Base *base = BKE_view_layer_base_find(vc.view_layer, DEG_get_original_object(ob));
+      if (base && BASE_SELECTABLE(vc.v3d, base)) {
+        bool set = false;
+        wm_xr_select_op_apply(base, NULL, XR_SEL_BASE, select_op, &changed, &set);
+        if (set) {
+          ED_view3d_object_deselect_all_except(vc.view_layer, base);
+        }
+      }
+    }
+
+    if (changed) {
+      DEG_id_tag_update(&vc.scene->id, ID_RECALC_SELECT);
+      WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, vc.scene);
+    }
+  }
+
+  return changed;
+}
+
+static int wm_xr_select_raycast_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  if (!wm_xr_operator_test_event(op, event)) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
+  wm_xr_raycast_init(op);
+
+  const int retval = op->type->modal(C, op, event);
+
+  if ((retval & OPERATOR_RUNNING_MODAL) != 0) {
+    WM_event_add_modal_handler(C, op);
+  }
+
+  return retval;
+}
+
+static int wm_xr_select_raycast_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+{
+  return OPERATOR_CANCELLED;
+}
+
+static int wm_xr_select_raycast_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  if (!wm_xr_operator_test_event(op, event)) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
+  const wmXrActionData *actiondata = event->customdata;
+  wmWindowManager *wm = CTX_wm_manager(C);
+  wmXrData *xr = &wm->xr;
+
+  wm_xr_raycast_update(op, xr, actiondata);
+
+  switch (event->val) {
+    case KM_PRESS:
+      return OPERATOR_RUNNING_MODAL;
+    case KM_RELEASE: {
+      XrRaycastData *data = op->customdata;
+      eSelectOp select_op = SEL_OP_SET;
+      bool deselect_all, selectable_only;
+      float ray_dist;
+
+      if (RNA_boolean_get(op->ptr, "toggle")) {
+        select_op = SEL_OP_XOR;
+      }
+      if (RNA_boolean_get(op->ptr, "deselect")) {
+        select_op = SEL_OP_SUB;
+      }
+      if (RNA_boolean_get(op->ptr, "extend")) {
+        select_op = SEL_OP_ADD;
+      }
+      deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
+      selectable_only = RNA_boolean_get(op->ptr, "selectable_only");
+      ray_dist = RNA_float_get(op->ptr, "distance");
+
+      const bool changed = wm_xr_select_raycast(
+          C, data->origin, data->direction, &ray_dist, selectable_only, select_op, deselect_all);
+
+      wm_xr_raycast_uninit(op);
+
+      return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+    }
+    default:
+      /* XR events currently only support press and release. */
+      BLI_assert_unreachable();
+      wm_xr_raycast_uninit(op);
+      return OPERATOR_CANCELLED;
+  }
+}
+
+static void WM_OT_xr_select_raycast(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "XR Raycast Select";
+  ot->idname = "WM_OT_xr_select_raycast";
+  ot->description = "Raycast select with a VR controller";
+
+  /* callbacks */
+  ot->invoke = wm_xr_select_raycast_invoke;
+  ot->exec = wm_xr_select_raycast_exec;
+  ot->modal = wm_xr_select_raycast_modal;
+  ot->poll = wm_xr_operator_sessionactive;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO;
+
+  /* properties */
+  WM_operator_properties_mouse_select(ot);
+
+  /* Override "deselect_all" default value. */
+  PropertyRNA *prop = RNA_struct_type_find_property(ot->srna, "deselect_all");
+  BLI_assert(prop != NULL);
+  RNA_def_property_boolean_default(prop, true);
+
+  RNA_def_boolean(ot->srna,
+                  "selectable_only",
+                  true,
+                  "Selectable Only",
+                  "Only allow selectable objects to influence raycast result");
+  RNA_def_float(ot->srna,
+                "distance",
+                BVH_RAYCAST_DIST_MAX,
+                0.0,
+                BVH_RAYCAST_DIST_MAX,
+                "",
+                "Maximum raycast distance",
+                0.0,
+                BVH_RAYCAST_DIST_MAX);
+  RNA_def_boolean(
+      ot->srna, "from_viewer", false, "From Viewer", "Use viewer pose as raycast origin");
+  RNA_def_float_vector(ot->srna,
+                       "axis",
+                       3,
+                       g_xr_default_raycast_axis,
+                       -1.0f,
+                       1.0f,
+                       "Axis",
+                       "Raycast axis in controller/viewer space",
+                       -1.0f,
+                       1.0f);
+  RNA_def_float_color(ot->srna,
+                      "color",
+                      4,
+                      g_xr_default_raycast_color,
+                      0.0f,
+                      1.0f,
+                      "Color",
+                      "Raycast color",
+                      0.0f,
+                      1.0f);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Operator Registration
  * \{ */
 
@@ -1518,6 +1914,7 @@ void wm_xr_operatortypes_register(void)
   WM_operatortype_append(WM_OT_xr_navigation_fly);
   WM_operatortype_append(WM_OT_xr_navigation_teleport);
   WM_operatortype_append(WM_OT_xr_navigation_reset);
+  WM_operatortype_append(WM_OT_xr_select_raycast);
 }
 
 /** \} */
