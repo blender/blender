@@ -664,6 +664,12 @@ static void library_foreach_ID_link(Main *bmain,
           SEQ_END;
         }
 
+        for (KeyingSet *ksn = scene->keyingsets.first; ksn; ksn = ksn->next) {
+          for (KS_Path *kspn = ksn->paths.first; kspn; kspn = kspn->next) {
+            CALLBACK_INVOKE_ID(kspn->id, IDWALK_CB_NOP);
+          }
+        }
+
         /* This pointer can be NULL during old files reading, better be safe than sorry. */
         if (scene->master_collection != NULL) {
           library_foreach_collection(&data, scene->master_collection);
