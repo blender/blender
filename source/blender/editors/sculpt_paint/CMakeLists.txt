@@ -29,7 +29,7 @@ set(SRC
   paint_curve.c
   paint_curve_undo.c
   paint_hide.c
-  paint_image.c
+  paint_image.cc
   paint_image_2d.c
   paint_image_2d_curve_mask.cc
   paint_image_proj.c
