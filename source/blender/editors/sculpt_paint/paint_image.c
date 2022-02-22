@@ -547,12 +547,15 @@ static void paint_stroke_update_step(bContext *C,
     ED_image_undo_restore(ustack->step_init);
   }
 
-  if (pop->mode == PAINT_MODE_3D_PROJECT) {
-    paint_proj_stroke(
-        C, pop->custom_paint, pop->prevmouse, mouse, eraser, pressure, distance, size);
-  }
-  else {
-    paint_2d_stroke(pop->custom_paint, pop->prevmouse, mouse, eraser, pressure, distance, size);
+  switch (pop->mode) {
+    case PAINT_MODE_2D:
+      paint_2d_stroke(pop->custom_paint, pop->prevmouse, mouse, eraser, pressure, distance, size);
+      break;
+
+    case PAINT_MODE_3D_PROJECT:
+      paint_proj_stroke(
+          C, pop->custom_paint, pop->prevmouse, mouse, eraser, pressure, distance, size);
+      break;
   }
 
   copy_v2_v2(pop->prevmouse, mouse);
@@ -565,11 +568,14 @@ static void paint_stroke_redraw(const bContext *C, struct PaintStroke *stroke, b
 {
   PaintOperation *pop = paint_stroke_mode_data(stroke);
 
-  if (pop->mode == PAINT_MODE_3D_PROJECT) {
-    paint_proj_redraw(C, pop->custom_paint, final);
-  }
-  else {
-    paint_2d_redraw(C, pop->custom_paint, final);
+  switch (pop->mode) {
+    case PAINT_MODE_2D:
+      paint_2d_redraw(C, pop->custom_paint, final);
+      break;
+
+    case PAINT_MODE_3D_PROJECT:
+      paint_proj_redraw(C, pop->custom_paint, final);
+      break;
   }
 }
 
@@ -584,54 +590,65 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 
   if (brush->imagepaint_tool == PAINT_TOOL_FILL) {
     if (brush->flag & BRUSH_USE_GRADIENT) {
-      if (pop->mode == PAINT_MODE_2D) {
-        paint_2d_gradient_fill(C, brush, pop->startmouse, pop->prevmouse, pop->custom_paint);
-      }
-      else {
-        paint_proj_stroke(C,
-                          pop->custom_paint,
-                          pop->startmouse,
-                          pop->prevmouse,
-                          paint_stroke_flipped(stroke),
-                          1.0,
-                          0.0,
-                          BKE_brush_size_get(scene, brush));
-        /* two redraws, one for GPU update, one for notification */
-        paint_proj_redraw(C, pop->custom_paint, false);
-        paint_proj_redraw(C, pop->custom_paint, true);
+      switch (pop->mode) {
+        case PAINT_MODE_2D:
+          paint_2d_gradient_fill(C, brush, pop->startmouse, pop->prevmouse, pop->custom_paint);
+          break;
+
+        case PAINT_MODE_3D_PROJECT:
+          paint_proj_stroke(C,
+                            pop->custom_paint,
+                            pop->startmouse,
+                            pop->prevmouse,
+                            paint_stroke_flipped(stroke),
+                            1.0,
+                            0.0,
+                            BKE_brush_size_get(scene, brush));
+          /* two redraws, one for GPU update, one for notification */
+          paint_proj_redraw(C, pop->custom_paint, false);
+          paint_proj_redraw(C, pop->custom_paint, true);
+          break;
       }
     }
     else {
-      if (pop->mode == PAINT_MODE_2D) {
-        float color[3];
-        if (paint_stroke_inverted(stroke)) {
-          srgb_to_linearrgb_v3_v3(color, BKE_brush_secondary_color_get(scene, brush));
-        }
-        else {
-          srgb_to_linearrgb_v3_v3(color, BKE_brush_color_get(scene, brush));
-        }
-        paint_2d_bucket_fill(C, color, brush, pop->startmouse, pop->prevmouse, pop->custom_paint);
-      }
-      else {
-        paint_proj_stroke(C,
-                          pop->custom_paint,
-                          pop->startmouse,
-                          pop->prevmouse,
-                          paint_stroke_flipped(stroke),
-                          1.0,
-                          0.0,
-                          BKE_brush_size_get(scene, brush));
-        /* two redraws, one for GPU update, one for notification */
-        paint_proj_redraw(C, pop->custom_paint, false);
-        paint_proj_redraw(C, pop->custom_paint, true);
+      switch (pop->mode) {
+        case PAINT_MODE_2D:
+          float color[3];
+          if (paint_stroke_inverted(stroke)) {
+            srgb_to_linearrgb_v3_v3(color, BKE_brush_secondary_color_get(scene, brush));
+          }
+          else {
+            srgb_to_linearrgb_v3_v3(color, BKE_brush_color_get(scene, brush));
+          }
+          paint_2d_bucket_fill(
+              C, color, brush, pop->startmouse, pop->prevmouse, pop->custom_paint);
+          break;
+
+        case PAINT_MODE_3D_PROJECT:
+          paint_proj_stroke(C,
+                            pop->custom_paint,
+                            pop->startmouse,
+                            pop->prevmouse,
+                            paint_stroke_flipped(stroke),
+                            1.0,
+                            0.0,
+                            BKE_brush_size_get(scene, brush));
+          /* two redraws, one for GPU update, one for notification */
+          paint_proj_redraw(C, pop->custom_paint, false);
+          paint_proj_redraw(C, pop->custom_paint, true);
+          break;
       }
     }
   }
-  if (pop->mode == PAINT_MODE_3D_PROJECT) {
-    paint_proj_stroke_done(pop->custom_paint);
-  }
-  else {
-    paint_2d_stroke_done(pop->custom_paint);
+
+  switch (pop->mode) {
+    case PAINT_MODE_2D:
+      paint_2d_stroke_done(pop->custom_paint);
+      break;
+
+    case PAINT_MODE_3D_PROJECT:
+      paint_proj_stroke_done(pop->custom_paint);
+      break;
   }
 
   if (pop->cursor) {
