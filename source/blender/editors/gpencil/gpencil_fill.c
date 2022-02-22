@@ -1113,7 +1113,7 @@ static void gpencil_erase_processed_area(tGPDfill *tgpf)
 /**
  * Naive dilate
  *
- * Expand green areas into enclosing red areas.
+ * Expand green areas into enclosing red or transparent areas.
  * Using stack prevents creep when replacing colors directly.
  * <pre>
  * -----------
@@ -1126,8 +1126,8 @@ static void gpencil_erase_processed_area(tGPDfill *tgpf)
  */
 static bool dilate_shape(ImBuf *ibuf)
 {
-#define IS_RED (color[0] == 1.0f)
 #define IS_GREEN (color[1] == 1.0f)
+#define IS_NOT_GREEN (color[1] != 1.0f)
 
   bool done = false;
 
@@ -1156,7 +1156,7 @@ static bool dilate_shape(ImBuf *ibuf)
         if (v - 1 >= 0) {
           index = v - 1;
           get_pixel(ibuf, index, color);
-          if (IS_RED) {
+          if (IS_NOT_GREEN) {
             BLI_stack_push(stack, &index);
             lt = index;
           }
@@ -1165,7 +1165,7 @@ static bool dilate_shape(ImBuf *ibuf)
         if (v + 1 <= maxpixel) {
           index = v + 1;
           get_pixel(ibuf, index, color);
-          if (IS_RED) {
+          if (IS_NOT_GREEN) {
             BLI_stack_push(stack, &index);
             rt = index;
           }
@@ -1174,7 +1174,7 @@ static bool dilate_shape(ImBuf *ibuf)
         if (v + ibuf->x <= max_size) {
           index = v + ibuf->x;
           get_pixel(ibuf, index, color);
-          if (IS_RED) {
+          if (IS_NOT_GREEN) {
             BLI_stack_push(stack, &index);
             tp = index;
           }
@@ -1183,7 +1183,7 @@ static bool dilate_shape(ImBuf *ibuf)
         if (v - ibuf->x >= 0) {
           index = v - ibuf->x;
           get_pixel(ibuf, index, color);
-          if (IS_RED) {
+          if (IS_NOT_GREEN) {
             BLI_stack_push(stack, &index);
             bm = index;
           }
@@ -1192,7 +1192,7 @@ static bool dilate_shape(ImBuf *ibuf)
         if (tp && lt) {
           index = tp - 1;
           get_pixel(ibuf, index, color);
-          if (IS_RED) {
+          if (IS_NOT_GREEN) {
             BLI_stack_push(stack, &index);
           }
         }
@@ -1200,7 +1200,7 @@ static bool dilate_shape(ImBuf *ibuf)
         if (tp && rt) {
           index = tp + 1;
           get_pixel(ibuf, index, color);
-          if (IS_RED) {
+          if (IS_NOT_GREEN) {
             BLI_stack_push(stack, &index);
           }
         }
@@ -1208,7 +1208,7 @@ static bool dilate_shape(ImBuf *ibuf)
         if (bm && lt) {
           index = bm - 1;
           get_pixel(ibuf, index, color);
-          if (IS_RED) {
+          if (IS_NOT_GREEN) {
             BLI_stack_push(stack, &index);
           }
         }
@@ -1216,7 +1216,7 @@ static bool dilate_shape(ImBuf *ibuf)
         if (bm && rt) {
           index = bm + 1;
           get_pixel(ibuf, index, color);
-          if (IS_RED) {
+          if (IS_NOT_GREEN) {
             BLI_stack_push(stack, &index);
           }
         }
@@ -1234,8 +1234,8 @@ static bool dilate_shape(ImBuf *ibuf)
 
   return done;
 
-#undef IS_RED
 #undef IS_GREEN
+#undef IS_NOT_GREEN
 }
 
 /**
