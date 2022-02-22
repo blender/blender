@@ -204,7 +204,7 @@ device_ptr CPUDevice::mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_
 
 void CPUDevice::const_copy_to(const char *name, void *host, size_t size)
 {
-#if WITH_EMBREE
+#ifdef WITH_EMBREE
   if (strcmp(name, "__data") == 0) {
     assert(size <= sizeof(KernelData));
 
