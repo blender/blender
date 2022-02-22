@@ -470,7 +470,18 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 static int console_indent_or_autocomplete_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ConsoleLine *ci = console_history_verify(C);
-  bool text_before_cursor = ci->cursor != 0 && !ELEM(ci->line[ci->cursor - 1], ' ', '\t');
+  bool text_before_cursor = false;
+
+  /* Check any text before cursor (not just the previous character) as is done for
+   * #TEXT_OT_indent_or_autocomplete because Python auto-complete operates on import
+   * statements such as completing possible sub-modules: `from bpy import `. */
+  for (int i = 0; i < ci->cursor; i += BLI_str_utf8_size_safe(&ci->line[i])) {
+    if (!ELEM(ci->line[i], ' ', '\t')) {
+      text_before_cursor = true;
+      break;
+    }
+  }
+
   if (text_before_cursor) {
     WM_operator_name_call(C, "CONSOLE_OT_autocomplete", WM_OP_INVOKE_DEFAULT, NULL);
   }
