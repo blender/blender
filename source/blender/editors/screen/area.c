@@ -3438,6 +3438,38 @@ bool ED_area_is_global(const ScrArea *area)
   return area->global != NULL;
 }
 
+ScrArea *ED_area_find_under_cursor(const bContext *C, int spacetype, const int xy[2])
+{
+  bScreen *screen = CTX_wm_screen(C);
+  wmWindow *win = CTX_wm_window(C);
+  wmWindowManager *wm = CTX_wm_manager(C);
+
+  ScrArea *area = NULL;
+
+  if (win->parent) {
+    /* If active window is a child, check itself first. */
+    area = BKE_screen_find_area_xy(screen, spacetype, xy);
+  }
+
+  if (!area) {
+    /* Check all windows except the active one. */
+    int scr_pos[2];
+    wmWindow *r_win = WM_window_find_under_cursor(wm, win, win, xy, scr_pos);
+    if (r_win) {
+      win = r_win;
+      screen = WM_window_get_active_screen(win);
+      area = BKE_screen_find_area_xy(screen, spacetype, scr_pos);
+    }
+  }
+
+  if (!area && !win->parent) {
+    /* If active window is a parent window, check itself last. */
+    area = BKE_screen_find_area_xy(screen, spacetype, xy);
+  }
+
+  return area;
+}
+
 ScrArea *ED_screen_areas_iter_first(const wmWindow *win, const bScreen *screen)
 {
   ScrArea *global_area = win->global_areas.areabase.first;
