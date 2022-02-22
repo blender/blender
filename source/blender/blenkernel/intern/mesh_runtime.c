@@ -88,6 +88,11 @@ void BKE_mesh_runtime_reset_on_copy(Mesh *mesh, const int UNUSED(flag))
   runtime->bvh_cache = NULL;
   runtime->shrinkwrap_data = NULL;
 
+  runtime->vert_normals_dirty = true;
+  runtime->poly_normals_dirty = true;
+  runtime->vert_normals = NULL;
+  runtime->poly_normals = NULL;
+
   mesh_runtime_init_mutexes(mesh);
 }
 
@@ -101,6 +106,7 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
   BKE_mesh_runtime_clear_geometry(mesh);
   BKE_mesh_batch_cache_free(mesh);
   BKE_mesh_runtime_clear_edit_data(mesh);
+  BKE_mesh_clear_derived_normals(mesh);
 }
 
 /**

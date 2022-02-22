@@ -302,7 +302,6 @@ static void extrude_mesh_vertices(MeshComponent &component,
   }
 
   BKE_mesh_runtime_clear_cache(&mesh);
-  BKE_mesh_normals_tag_dirty(&mesh);
 }
 
 static Array<Vector<int, 2>> mesh_calculate_polys_of_edge(const Mesh &mesh)
@@ -626,7 +625,6 @@ static void extrude_mesh_edges(MeshComponent &component,
   }
 
   BKE_mesh_runtime_clear_cache(&mesh);
-  BKE_mesh_normals_tag_dirty(&mesh);
 }
 
 /**
@@ -995,7 +993,6 @@ static void extrude_mesh_face_regions(MeshComponent &component,
   }
 
   BKE_mesh_runtime_clear_cache(&mesh);
-  BKE_mesh_normals_tag_dirty(&mesh);
 }
 
 /* Get the range into an array of extruded corners, edges, or vertices for a particular polygon. */
@@ -1263,7 +1260,6 @@ static void extrude_individual_mesh_faces(MeshComponent &component,
   }
 
   BKE_mesh_runtime_clear_cache(&mesh);
-  BKE_mesh_normals_tag_dirty(&mesh);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
