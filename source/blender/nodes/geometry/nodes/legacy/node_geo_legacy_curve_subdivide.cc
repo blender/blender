@@ -111,8 +111,8 @@ static void subdivide_bezier_segment(const BezierSpline &src,
                                      MutableSpan<float3> dst_positions,
                                      MutableSpan<float3> dst_handles_left,
                                      MutableSpan<float3> dst_handles_right,
-                                     MutableSpan<BezierSpline::HandleType> dst_type_left,
-                                     MutableSpan<BezierSpline::HandleType> dst_type_right)
+                                     MutableSpan<int8_t> dst_type_left,
+                                     MutableSpan<int8_t> dst_type_right)
 {
   const bool is_last_cyclic_segment = index == (src.size() - 1);
   const int next_index = is_last_cyclic_segment ? 0 : index + 1;
@@ -122,10 +122,10 @@ static void subdivide_bezier_segment(const BezierSpline &src,
 
   if (src.segment_is_vector(index)) {
     if (is_last_cyclic_segment) {
-      dst_type_left.first() = BezierSpline::HandleType::Vector;
+      dst_type_left.first() = BEZIER_HANDLE_VECTOR;
     }
-    dst_type_left.slice(offset + 1, result_size).fill(BezierSpline::HandleType::Vector);
-    dst_type_right.slice(offset, result_size).fill(BezierSpline::HandleType::Vector);
+    dst_type_left.slice(offset + 1, result_size).fill(BEZIER_HANDLE_VECTOR);
+    dst_type_right.slice(offset, result_size).fill(BEZIER_HANDLE_VECTOR);
 
     const float factor_delta = 1.0f / result_size;
     for (const int cut : IndexRange(result_size)) {
@@ -136,10 +136,10 @@ static void subdivide_bezier_segment(const BezierSpline &src,
   }
   else {
     if (is_last_cyclic_segment) {
-      dst_type_left.first() = BezierSpline::HandleType::Free;
+      dst_type_left.first() = BEZIER_HANDLE_FREE;
     }
-    dst_type_left.slice(offset + 1, result_size).fill(BezierSpline::HandleType::Free);
-    dst_type_right.slice(offset, result_size).fill(BezierSpline::HandleType::Free);
+    dst_type_left.slice(offset + 1, result_size).fill(BEZIER_HANDLE_FREE);
+    dst_type_right.slice(offset, result_size).fill(BEZIER_HANDLE_FREE);
 
     const int i_segment_last = is_last_cyclic_segment ? 0 : offset + result_size;
 
@@ -187,8 +187,8 @@ static void subdivide_bezier_spline(const BezierSpline &src,
   MutableSpan<float3> dst_positions = dst.positions();
   MutableSpan<float3> dst_handles_left = dst.handle_positions_left();
   MutableSpan<float3> dst_handles_right = dst.handle_positions_right();
-  MutableSpan<BezierSpline::HandleType> dst_type_left = dst.handle_types_left();
-  MutableSpan<BezierSpline::HandleType> dst_type_right = dst.handle_types_right();
+  MutableSpan<int8_t> dst_type_left = dst.handle_types_left();
+  MutableSpan<int8_t> dst_type_right = dst.handle_types_right();
 
   threading::parallel_for(IndexRange(src.size() - 1), 512, [&](IndexRange range) {
     for (const int i : range) {

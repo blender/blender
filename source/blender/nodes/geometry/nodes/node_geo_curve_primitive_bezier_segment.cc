@@ -69,8 +69,8 @@ static std::unique_ptr<CurveEval> create_bezier_segment_curve(
 
   spline->resize(2);
   MutableSpan<float3> positions = spline->positions();
-  spline->handle_types_left().fill(BezierSpline::HandleType::Align);
-  spline->handle_types_right().fill(BezierSpline::HandleType::Align);
+  spline->handle_types_left().fill(BEZIER_HANDLE_ALIGN);
+  spline->handle_types_right().fill(BEZIER_HANDLE_ALIGN);
   spline->radii().fill(1.0f);
   spline->tilts().fill(0.0f);
 

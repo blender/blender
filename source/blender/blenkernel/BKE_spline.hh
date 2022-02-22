@@ -10,6 +10,8 @@
 
 #include "FN_generic_virtual_array.hh"
 
+#include "DNA_curves_types.h"
+
 #include "BLI_float4x4.hh"
 #include "BLI_math_vec_types.hh"
 #include "BLI_vector.hh"
@@ -252,26 +254,13 @@ class Spline {
  * factors and indices in a list of floats, which is then used to interpolate any other data.
  */
 class BezierSpline final : public Spline {
- public:
-  enum class HandleType {
-    /** The handle can be moved anywhere, and doesn't influence the point's other handle. */
-    Free,
-    /** The location is automatically calculated to be smooth. */
-    Auto,
-    /** The location is calculated to point to the next/previous control point. */
-    Vector,
-    /** The location is constrained to point in the opposite direction as the other handle. */
-    Align,
-  };
-
- private:
   blender::Vector<blender::float3> positions_;
   blender::Vector<float> radii_;
   blender::Vector<float> tilts_;
   int resolution_;
 
-  blender::Vector<HandleType> handle_types_left_;
-  blender::Vector<HandleType> handle_types_right_;
+  blender::Vector<int8_t> handle_types_left_;
+  blender::Vector<int8_t> handle_types_right_;
 
   /* These are mutable to allow lazy recalculation of #Auto and #Vector handle positions. */
   mutable blender::Vector<blender::float3> handle_positions_left_;
@@ -323,8 +312,8 @@ class BezierSpline final : public Spline {
   blender::Span<float> radii() const final;
   blender::MutableSpan<float> tilts() final;
   blender::Span<float> tilts() const final;
-  blender::Span<HandleType> handle_types_left() const;
-  blender::MutableSpan<HandleType> handle_types_left();
+  blender::Span<int8_t> handle_types_left() const;
+  blender::MutableSpan<int8_t> handle_types_left();
   blender::Span<blender::float3> handle_positions_left() const;
   /**
    * Get writable access to the handle position.
@@ -333,8 +322,8 @@ class BezierSpline final : public Spline {
    * uninitialized memory while auto-generating handles.
    */
   blender::MutableSpan<blender::float3> handle_positions_left(bool write_only = false);
-  blender::Span<HandleType> handle_types_right() const;
-  blender::MutableSpan<HandleType> handle_types_right();
+  blender::Span<int8_t> handle_types_right() const;
+  blender::MutableSpan<int8_t> handle_types_right();
   blender::Span<blender::float3> handle_positions_right() const;
   /**
    * Get writable access to the handle position.

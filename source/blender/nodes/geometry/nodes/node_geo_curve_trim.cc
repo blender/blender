@@ -400,8 +400,8 @@ static void to_single_point_bezier(Spline &spline, const Spline::LookupResult &l
   const BezierSpline::InsertResult new_point = bezier.calculate_segment_insertion(
       trim.left_index, trim.right_index, trim.factor);
   bezier.positions().first() = new_point.position;
-  bezier.handle_types_left().first() = BezierSpline::HandleType::Free;
-  bezier.handle_types_right().first() = BezierSpline::HandleType::Free;
+  bezier.handle_types_left().first() = BEZIER_HANDLE_FREE;
+  bezier.handle_types_right().first() = BEZIER_HANDLE_FREE;
   bezier.handle_positions_left().first() = new_point.left_handle;
   bezier.handle_positions_right().first() = new_point.right_handle;
 

@@ -93,11 +93,11 @@ Span<float> BezierSpline::tilts() const
 {
   return tilts_;
 }
-Span<BezierSpline::HandleType> BezierSpline::handle_types_left() const
+Span<int8_t> BezierSpline::handle_types_left() const
 {
   return handle_types_left_;
 }
-MutableSpan<BezierSpline::HandleType> BezierSpline::handle_types_left()
+MutableSpan<int8_t> BezierSpline::handle_types_left()
 {
   return handle_types_left_;
 }
@@ -114,11 +114,11 @@ MutableSpan<float3> BezierSpline::handle_positions_left(const bool write_only)
   return handle_positions_left_;
 }
 
-Span<BezierSpline::HandleType> BezierSpline::handle_types_right() const
+Span<int8_t> BezierSpline::handle_types_right() const
 {
   return handle_types_right_;
 }
-MutableSpan<BezierSpline::HandleType> BezierSpline::handle_types_right()
+MutableSpan<int8_t> BezierSpline::handle_types_right()
 {
   return handle_types_right_;
 }
@@ -187,7 +187,7 @@ void BezierSpline::ensure_auto_handles() const
   for (const int i : IndexRange(this->size())) {
     using namespace blender;
 
-    if (ELEM(HandleType::Auto, handle_types_left_[i], handle_types_right_[i])) {
+    if (ELEM(BEZIER_HANDLE_AUTO, handle_types_left_[i], handle_types_right_[i])) {
       const float3 prev_diff = positions_[i] - previous_position(positions_, is_cyclic_, i);
       const float3 next_diff = next_position(positions_, is_cyclic_, i) - positions_[i];
       float prev_len = math::length(prev_diff);
@@ -203,23 +203,23 @@ void BezierSpline::ensure_auto_handles() const
       /* This magic number is unfortunate, but comes from elsewhere in Blender. */
       const float len = math::length(dir) * 2.5614f;
       if (len != 0.0f) {
-        if (handle_types_left_[i] == HandleType::Auto) {
+        if (handle_types_left_[i] == BEZIER_HANDLE_AUTO) {
           const float prev_len_clamped = std::min(prev_len, next_len * 5.0f);
           handle_positions_left_[i] = positions_[i] + dir * -(prev_len_clamped / len);
         }
-        if (handle_types_right_[i] == HandleType::Auto) {
+        if (handle_types_right_[i] == BEZIER_HANDLE_AUTO) {
           const float next_len_clamped = std::min(next_len, prev_len * 5.0f);
           handle_positions_right_[i] = positions_[i] + dir * (next_len_clamped / len);
         }
       }
     }
 
-    if (handle_types_left_[i] == HandleType::Vector) {
+    if (handle_types_left_[i] == BEZIER_HANDLE_VECTOR) {
       const float3 prev = previous_position(positions_, is_cyclic_, i);
       handle_positions_left_[i] = math::interpolate(positions_[i], prev, 1.0f / 3.0f);
     }
 
-    if (handle_types_right_[i] == HandleType::Vector) {
+    if (handle_types_right_[i] == BEZIER_HANDLE_VECTOR) {
       const float3 next = next_position(positions_, is_cyclic_, i);
       handle_positions_right_[i] = math::interpolate(positions_[i], next, 1.0f / 3.0f);
     }
@@ -257,8 +257,8 @@ void BezierSpline::transform(const blender::float4x4 &matrix)
 }
 
 static void set_handle_position(const float3 &position,
-                                const BezierSpline::HandleType type,
-                                const BezierSpline::HandleType type_other,
+                                const HandleType type,
+                                const HandleType type_other,
                                 const float3 &new_value,
                                 float3 &handle,
                                 float3 &handle_other)
@@ -266,12 +266,12 @@ static void set_handle_position(const float3 &position,
   using namespace blender::math;
 
   /* Don't bother when the handle positions are calculated automatically anyway. */
-  if (ELEM(type, BezierSpline::HandleType::Auto, BezierSpline::HandleType::Vector)) {
+  if (ELEM(type, BEZIER_HANDLE_AUTO, BEZIER_HANDLE_VECTOR)) {
     return;
   }
 
   handle = new_value;
-  if (type_other == BezierSpline::HandleType::Align) {
+  if (type_other == BEZIER_HANDLE_ALIGN) {
     /* Keep track of the old length of the opposite handle. */
     const float length = distance(handle_other, position);
     /* Set the other handle to directly opposite from the current handle. */
@@ -283,8 +283,8 @@ static void set_handle_position(const float3 &position,
 void BezierSpline::set_handle_position_right(const int index, const blender::float3 &value)
 {
   set_handle_position(positions_[index],
-                      handle_types_right_[index],
-                      handle_types_left_[index],
+                      static_cast<HandleType>(handle_types_right_[index]),
+                      static_cast<HandleType>(handle_types_left_[index]),
                       value,
                       handle_positions_right_[index],
                       handle_positions_left_[index]);
@@ -293,8 +293,8 @@ void BezierSpline::set_handle_position_right(const int index, const blender::flo
 void BezierSpline::set_handle_position_left(const int index, const blender::float3 &value)
 {
   set_handle_position(positions_[index],
-                      handle_types_left_[index],
-                      handle_types_right_[index],
+                      static_cast<HandleType>(handle_types_right_[index]),
+                      static_cast<HandleType>(handle_types_left_[index]),
                       value,
                       handle_positions_left_[index],
                       handle_positions_right_[index]);
@@ -302,8 +302,8 @@ void BezierSpline::set_handle_position_left(const int index, const blender::floa
 
 bool BezierSpline::point_is_sharp(const int index) const
 {
-  return ELEM(handle_types_left_[index], HandleType::Vector, HandleType::Free) ||
-         ELEM(handle_types_right_[index], HandleType::Vector, HandleType::Free);
+  return ELEM(handle_types_left_[index], BEZIER_HANDLE_VECTOR, BEZIER_HANDLE_FREE) ||
+         ELEM(handle_types_right_[index], BEZIER_HANDLE_VECTOR, BEZIER_HANDLE_FREE);
 }
 
 bool BezierSpline::segment_is_vector(const int index) const
@@ -313,15 +313,15 @@ bool BezierSpline::segment_is_vector(const int index) const
 
   if (index == this->size() - 1) {
     if (is_cyclic_) {
-      return handle_types_right_.last() == HandleType::Vector &&
-             handle_types_left_.first() == HandleType::Vector;
+      return handle_types_right_.last() == BEZIER_HANDLE_VECTOR &&
+             handle_types_left_.first() == BEZIER_HANDLE_VECTOR;
     }
     /* There is actually no segment in this case, but it's nice to avoid
      * having a special case for the last segment in calling code. */
     return true;
   }
-  return handle_types_right_[index] == HandleType::Vector &&
-         handle_types_left_[index + 1] == HandleType::Vector;
+  return handle_types_right_[index] == BEZIER_HANDLE_VECTOR &&
+         handle_types_left_[index + 1] == BEZIER_HANDLE_VECTOR;
 }
 
 void BezierSpline::mark_cache_invalid()

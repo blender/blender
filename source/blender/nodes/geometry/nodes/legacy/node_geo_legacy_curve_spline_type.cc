@@ -148,8 +148,8 @@ static SplinePtr poly_to_bezier(const Spline &input)
   output->positions().copy_from(input.positions());
   output->radii().copy_from(input.radii());
   output->tilts().copy_from(input.tilts());
-  output->handle_types_left().fill(BezierSpline::HandleType::Vector);
-  output->handle_types_right().fill(BezierSpline::HandleType::Vector);
+  output->handle_types_left().fill(BEZIER_HANDLE_VECTOR);
+  output->handle_types_right().fill(BEZIER_HANDLE_VECTOR);
   output->set_resolution(12);
   Spline::copy_base_settings(input, *output);
   output->attributes = input.attributes;
@@ -166,8 +166,8 @@ static SplinePtr nurbs_to_bezier(const Spline &input)
   scale_input_assign<float3>(input.positions(), 3, 2, output->handle_positions_right());
   scale_input_assign<float>(input.radii(), 3, 2, output->radii());
   scale_input_assign<float>(input.tilts(), 3, 2, output->tilts());
-  output->handle_types_left().fill(BezierSpline::HandleType::Align);
-  output->handle_types_right().fill(BezierSpline::HandleType::Align);
+  output->handle_types_left().fill(BEZIER_HANDLE_ALIGN);
+  output->handle_types_right().fill(BEZIER_HANDLE_ALIGN);
   output->set_resolution(nurbs_spline.resolution());
   Spline::copy_base_settings(input, *output);
   output->attributes.reallocate(output->size());

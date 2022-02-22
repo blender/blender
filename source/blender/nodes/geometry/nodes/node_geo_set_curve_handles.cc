@@ -67,23 +67,23 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
       for (int i : bezier.positions().index_range()) {
         if (current_mask < selection.size() && selection[current_mask] == current_point) {
           if (mode & GEO_NODE_CURVE_HANDLE_LEFT) {
-            if (bezier.handle_types_left()[i] == BezierSpline::HandleType::Vector) {
+            if (bezier.handle_types_left()[i] == BEZIER_HANDLE_VECTOR) {
               bezier.ensure_auto_handles();
-              bezier.handle_types_left()[i] = BezierSpline::HandleType::Free;
+              bezier.handle_types_left()[i] = BEZIER_HANDLE_FREE;
             }
-            else if (bezier.handle_types_left()[i] == BezierSpline::HandleType::Auto) {
+            else if (bezier.handle_types_left()[i] == BEZIER_HANDLE_AUTO) {
               bezier.ensure_auto_handles();
-              bezier.handle_types_left()[i] = BezierSpline::HandleType::Align;
+              bezier.handle_types_left()[i] = BEZIER_HANDLE_ALIGN;
             }
           }
           else {
-            if (bezier.handle_types_right()[i] == BezierSpline::HandleType::Vector) {
+            if (bezier.handle_types_right()[i] == BEZIER_HANDLE_VECTOR) {
               bezier.ensure_auto_handles();
-              bezier.handle_types_right()[i] = BezierSpline::HandleType::Free;
+              bezier.handle_types_right()[i] = BEZIER_HANDLE_FREE;
             }
-            else if (bezier.handle_types_right()[i] == BezierSpline::HandleType::Auto) {
+            else if (bezier.handle_types_right()[i] == BEZIER_HANDLE_AUTO) {
               bezier.ensure_auto_handles();
-              bezier.handle_types_right()[i] = BezierSpline::HandleType::Align;
+              bezier.handle_types_right()[i] = BEZIER_HANDLE_ALIGN;
             }
           }
           current_mask++;

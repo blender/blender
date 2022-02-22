@@ -394,9 +394,9 @@ static void update_bezier_positions(const FilletData &fd,
     dst_spline.handle_positions_left()[end_i] = dst_spline.positions()[end_i] -
                                                 handle_length * next_dir;
     dst_spline.handle_types_right()[i_dst] = dst_spline.handle_types_left()[end_i] =
-        BezierSpline::HandleType::Align;
+        BEZIER_HANDLE_ALIGN;
     dst_spline.handle_types_left()[i_dst] = dst_spline.handle_types_right()[end_i] =
-        BezierSpline::HandleType::Vector;
+        BEZIER_HANDLE_VECTOR;
     dst_spline.mark_cache_invalid();
 
     /* Calculate the center of the radius to be formed. */
@@ -406,8 +406,8 @@ static void update_bezier_positions(const FilletData &fd,
     float radius;
     radius_vec = math::normalize_and_get_length(radius_vec, radius);
 
-    dst_spline.handle_types_right().slice(1, count - 2).fill(BezierSpline::HandleType::Align);
-    dst_spline.handle_types_left().slice(1, count - 2).fill(BezierSpline::HandleType::Align);
+    dst_spline.handle_types_right().slice(1, count - 2).fill(BEZIER_HANDLE_ALIGN);
+    dst_spline.handle_types_left().slice(1, count - 2).fill(BEZIER_HANDLE_ALIGN);
 
     /* For each of the vertices in between the end points. */
     for (const int j : IndexRange(1, count - 2)) {
@@ -516,8 +516,8 @@ static SplinePtr fillet_spline(const Spline &spline,
       const BezierSpline &src_spline = static_cast<const BezierSpline &>(spline);
       BezierSpline &dst_spline = static_cast<BezierSpline &>(*dst_spline_ptr);
       if (fillet_param.mode == GEO_NODE_CURVE_FILLET_POLY) {
-        dst_spline.handle_types_left().fill(BezierSpline::HandleType::Vector);
-        dst_spline.handle_types_right().fill(BezierSpline::HandleType::Vector);
+        dst_spline.handle_types_left().fill(BEZIER_HANDLE_VECTOR);
+        dst_spline.handle_types_right().fill(BEZIER_HANDLE_VECTOR);
         update_poly_positions(fd, dst_spline, src_spline, point_counts);
       }
       else {
