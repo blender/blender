@@ -615,7 +615,7 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
     }
     else {
       switch (pop->mode) {
-        case eTexPaintMode::_2D:
+        case eTexPaintMode::_2D: {
           float color[3];
           if (paint_stroke_inverted(stroke)) {
             srgb_to_linearrgb_v3_v3(color, BKE_brush_secondary_color_get(scene, brush));
@@ -626,6 +626,7 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
           paint_2d_bucket_fill(
               C, color, brush, pop->startmouse, pop->prevmouse, pop->stroke_handle);
           break;
+        }
 
         case eTexPaintMode::_3D_PROJECT:
           paint_proj_stroke(C,
