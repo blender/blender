@@ -974,9 +974,14 @@ static int start_ffmpeg_impl(FFMpegContext *context,
       break;
   }
 
-  /* Returns after this must 'goto fail;' */
+    /* Returns after this must 'goto fail;' */
 
+#  if LIBAVFORMAT_VERSION_MAJOR >= 59
   of->oformat = fmt;
+#  else
+  /* *DEPRECATED* 2022/08/01 For FFMPEG (<5.0) remove this else branch and the `ifdef` above. */
+  of->oformat = (AVOutputFormat *)fmt;
+#  endif
 
   if (video_codec == AV_CODEC_ID_DVVIDEO) {
     if (rectx != 720) {
