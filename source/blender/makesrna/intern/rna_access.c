@@ -1980,29 +1980,40 @@ bool RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop)
   return (flag & PROP_EDITABLE) != 0;
 }
 
-bool RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index)
+bool RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop_orig, int index)
 {
-  ID *id;
-  int flag;
-
   BLI_assert(index >= 0);
 
-  prop = rna_ensure_property(prop);
+  ID *id = ptr->owner_id;
+  const char *dummy_info;
 
-  flag = prop->flag;
+  PropertyRNA *prop = rna_ensure_property(prop_orig);
 
-  if (prop->editable) {
-    const char *dummy_info;
-    flag &= prop->editable(ptr, &dummy_info);
+  const int flag = prop->itemeditable != NULL ?
+                       prop->itemeditable(ptr, index) :
+                       (prop->editable != NULL ? prop->editable(ptr, &dummy_info) : prop->flag);
+
+  /* Early return if the property itself is not editable. */
+  if ((flag & PROP_EDITABLE) == 0 || (flag & PROP_REGISTER) != 0) {
+    return false;
   }
 
-  if (prop->itemeditable) {
-    flag &= prop->itemeditable(ptr, index);
+  /* If there is no owning ID, the property is editable at this point. */
+  if (id == NULL) {
+    return true;
   }
 
-  id = ptr->owner_id;
+  /* Handle linked or liboverride ID cases. */
+  const bool is_linked_prop_exception = (prop->flag & PROP_LIB_EXCEPTION) != 0;
+  if (ID_IS_LINKED(id)) {
+    return is_linked_prop_exception;
+  }
+  if (ID_IS_OVERRIDE_LIBRARY(id)) {
+    return RNA_property_overridable_get(ptr, prop_orig);
+  }
 
-  return (flag & PROP_EDITABLE) && (!id || !ID_IS_LINKED(id) || (prop->flag & PROP_LIB_EXCEPTION));
+  /* At this point, property is owned by a local ID and therefore fully editable. */
+  return true;
 }
 
 bool RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
