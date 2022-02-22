@@ -4391,24 +4391,21 @@ void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, const EnumPropert
 
   if (tot == 0) {
     *items = MEM_callocN(sizeof(EnumPropertyItem[8]), __func__);
+    /* Ensure we get crashes on missing calls to 'RNA_enum_item_end', see T74227. */
+#ifdef DEBUG
+    memset(*items, 0xff, sizeof(EnumPropertyItem[8]));
+#endif
   }
   else if (tot >= 8 && (tot & (tot - 1)) == 0) {
     /* power of two > 8 */
     *items = MEM_recallocN_id(*items, sizeof(EnumPropertyItem) * tot * 2, __func__);
+#ifdef DEBUG
+    memset((*items) + tot, 0xff, sizeof(EnumPropertyItem) * tot);
+#endif
   }
 
   (*items)[tot] = *item;
   *totitem = tot + 1;
-
-  /* Ensure we get crashes on missing calls to 'RNA_enum_item_end', see T74227. */
-#ifdef DEBUG
-  static const EnumPropertyItem item_error = {
-      -1, POINTER_FROM_INT(-1), -1, POINTER_FROM_INT(-1), POINTER_FROM_INT(-1)};
-  if (item != &item_error) {
-    RNA_enum_item_add(items, totitem, &item_error);
-    *totitem -= 1;
-  }
-#endif
 }
 
 void RNA_enum_item_add_separator(EnumPropertyItem **items, int *totitem)

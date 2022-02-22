@@ -1604,6 +1604,10 @@ enum {
   MOD_WVG_MIX_DIF = 6,
   /** Average of both weights. */
   MOD_WVG_MIX_AVG = 7,
+  /** Minimum of both weights. */
+  MOD_WVG_MIX_MIN = 8,
+  /** Maximum of both weights. */
+  MOD_WVG_MIX_MAX = 9,
 };
 
 /** #WeightVGMixModifierData.mix_set (what vertices to affect). */
@@ -1694,7 +1698,7 @@ enum {
   MOD_WVG_PROXIMITY_GEOM_FACES = (1 << 2),
   MOD_WVG_PROXIMITY_INVERT_VGROUP_MASK = (1 << 3),
   MOD_WVG_PROXIMITY_INVERT_FALLOFF = (1 << 4),
-  MOD_WVG_PROXIMITY_WEIGHTS_NORMALIZE = (1 << 3),
+  MOD_WVG_PROXIMITY_WEIGHTS_NORMALIZE = (1 << 5),
 };
 
 /* Defines common to all WeightVG modifiers. */

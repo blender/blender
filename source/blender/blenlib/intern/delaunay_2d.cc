@@ -2557,9 +2557,9 @@ template<typename T> void detect_holes(CDT_state<T> *cdt_state)
             continue; /* Don't count hits on edges between faces in same region. */
           }
           auto isect = isect_seg_seg(ray_end.exact,
-                                              mid.exact,
-                                              e->symedges[0].vert->co.exact,
-                                              e->symedges[1].vert->co.exact);
+                                     mid.exact,
+                                     e->symedges[0].vert->co.exact,
+                                     e->symedges[1].vert->co.exact);
           switch (isect.kind) {
             case isect_result<vec2<T>>::LINE_LINE_CROSS: {
               hits++;

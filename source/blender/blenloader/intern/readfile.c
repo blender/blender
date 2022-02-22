@@ -320,15 +320,22 @@ static void oldnewmap_increase_size(OldNewMap *onm)
 
 /* Public OldNewMap API */
 
-static OldNewMap *oldnewmap_new(void)
+static void oldnewmap_init_data(OldNewMap *onm, const int capacity_exp)
 {
-  OldNewMap *onm = MEM_callocN(sizeof(*onm), "OldNewMap");
+  memset(onm, 0x0, sizeof(*onm));
 
-  onm->capacity_exp = DEFAULT_SIZE_EXP;
+  onm->capacity_exp = capacity_exp;
   onm->entries = MEM_malloc_arrayN(
       ENTRIES_CAPACITY(onm), sizeof(*onm->entries), "OldNewMap.entries");
   onm->map = MEM_malloc_arrayN(MAP_CAPACITY(onm), sizeof(*onm->map), "OldNewMap.map");
   oldnewmap_clear_map(onm);
+}
+
+static OldNewMap *oldnewmap_new(void)
+{
+  OldNewMap *onm = MEM_mallocN(sizeof(*onm), "OldNewMap");
+
+  oldnewmap_init_data(onm, DEFAULT_SIZE_EXP);
 
   return onm;
 }
@@ -395,9 +402,10 @@ static void oldnewmap_clear(OldNewMap *onm)
     }
   }
 
-  onm->capacity_exp = DEFAULT_SIZE_EXP;
-  oldnewmap_clear_map(onm);
-  onm->nentries = 0;
+  MEM_freeN(onm->entries);
+  MEM_freeN(onm->map);
+
+  oldnewmap_init_data(onm, DEFAULT_SIZE_EXP);
 }
 
 static void oldnewmap_free(OldNewMap *onm)

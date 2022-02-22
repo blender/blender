@@ -468,6 +468,38 @@ class _draw_tool_settings_context_mode:
 
         return True
 
+    @staticmethod
+    def SCULPT_CURVES(context, layout, tool):
+        if (tool is None) or (not tool.has_datablock):
+            return False
+
+        paint = context.tool_settings.curves_sculpt
+        layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
+
+        brush = paint.brush
+        if brush is None:
+            return False
+
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "size",
+            unified_name="use_unified_size",
+            text="Radius",
+            slider=True,
+            header=True
+        )
+
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "strength",
+            unified_name="use_unified_strength",
+            header=True
+        )
+
 
 class VIEW3D_HT_header(Header):
     bl_space_type = 'VIEW_3D'

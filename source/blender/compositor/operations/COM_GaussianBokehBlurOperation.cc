@@ -29,8 +29,10 @@ void GaussianBokehBlurOperation::init_data()
   const float width = this->get_width();
   const float height = this->get_height();
 
-  if (!sizeavailable_) {
-    update_size();
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    if (!sizeavailable_) {
+      update_size();
+    }
   }
 
   radxf_ = size_ * (float)data_.sizex;
@@ -96,6 +98,22 @@ void GaussianBokehBlurOperation::update_gauss()
 
 void GaussianBokehBlurOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
+  float result[4];
+  input_size_->read_sampled(result, 0, 0, PixelSampler::Nearest);
+  size_ = result[0];
+
+  const float width = this->get_width();
+  const float height = this->get_height();
+
+  radxf_ = size_ * (float)data_.sizex;
+  CLAMP(radxf_, 0.0f, width / 2.0f);
+
+  radyf_ = size_ * (float)data_.sizey;
+  CLAMP(radyf_, 0.0f, height / 2.0f);
+
+  radx_ = ceil(radxf_);
+  rady_ = ceil(radyf_);
+
   float temp_color[4];
   temp_color[0] = 0;
   temp_color[1] = 0;

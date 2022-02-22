@@ -5186,6 +5186,7 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
 }
 
 static void sculpt_stroke_update_step(bContext *C,
+                                      wmOperator *UNUSED(op),
                                       struct PaintStroke *UNUSED(stroke),
                                       PointerRNA *itemptr)
 {
@@ -5333,12 +5334,12 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   ignore_background_click = RNA_boolean_get(op->ptr, "ignore_background_click");
 
   if (ignore_background_click && !over_mesh(C, op, event->xy[0], event->xy[1])) {
-    paint_stroke_free(C, op);
+    paint_stroke_free(C, op, op->customdata);
     return OPERATOR_PASS_THROUGH;
   }
 
   if ((retval = op->type->modal(C, op, event)) == OPERATOR_FINISHED) {
-    paint_stroke_free(C, op);
+    paint_stroke_free(C, op, op->customdata);
     return OPERATOR_FINISHED;
   }
   /* Add modal handler. */
@@ -5364,7 +5365,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
                                     0);
 
   /* Frees op->customdata. */
-  paint_stroke_exec(C, op);
+  paint_stroke_exec(C, op, op->customdata);
 
   return OPERATOR_FINISHED;
 }
@@ -5382,7 +5383,7 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
     paint_mesh_restore_co(sd, ob);
   }
 
-  paint_stroke_cancel(C, op);
+  paint_stroke_cancel(C, op, op->customdata);
 
   if (ss->cache) {
     SCULPT_cache_free(ss->cache);
@@ -5390,6 +5391,11 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
   }
 
   sculpt_brush_exit_tex(sd);
+}
+
+static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  return paint_stroke_modal(C, op, event, op->customdata);
 }
 
 void SCULPT_OT_brush_stroke(wmOperatorType *ot)
@@ -5401,7 +5407,7 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->invoke = sculpt_brush_stroke_invoke;
-  ot->modal = paint_stroke_modal;
+  ot->modal = sculpt_brush_stroke_modal;
   ot->exec = sculpt_brush_stroke_exec;
   ot->poll = SCULPT_poll;
   ot->cancel = sculpt_brush_stroke_cancel;

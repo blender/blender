@@ -88,7 +88,7 @@ static void deformStroke(GpencilModifierData *md,
       break;
     }
     case GP_SIMPLIFY_SAMPLE: {
-      BKE_gpencil_stroke_sample(gpd, gps, mmd->length, false);
+      BKE_gpencil_stroke_sample(gpd, gps, mmd->length, false, mmd->sharp_threshold);
       break;
     }
     case GP_SIMPLIFY_MERGE: {
@@ -143,6 +143,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
   else if (mode == GP_SIMPLIFY_SAMPLE) {
     uiItemR(layout, ptr, "length", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "sharp_threshold", 0, NULL, ICON_NONE);
   }
   else if (mode == GP_SIMPLIFY_MERGE) {
     uiItemR(layout, ptr, "distance", 0, NULL, ICON_NONE);

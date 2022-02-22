@@ -343,6 +343,7 @@ typedef enum eLineartTriangleFlags {
   LRT_CULL_GENERATED = (1 << 2),
   LRT_TRIANGLE_INTERSECTION_ONLY = (1 << 3),
   LRT_TRIANGLE_NO_INTERSECTION = (1 << 4),
+  LRT_TRIANGLE_MAT_BACK_FACE_CULLING = (1 << 5),
 } eLineartTriangleFlags;
 
 /**

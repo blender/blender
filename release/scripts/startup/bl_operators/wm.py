@@ -963,21 +963,19 @@ class WM_OT_url_open(Operator):
         return {'FINISHED'}
 
 
-# NOTE: needed for Python 3.10 since there are name-space issues with annotations.
-# This can be moved into the class as a static-method once Python 3.9x is dropped.
-def _wm_url_open_preset_type_items(_self, _context):
-    return [item for (item, _) in WM_OT_url_open_preset.preset_items]
-
-
 class WM_OT_url_open_preset(Operator):
     """Open a preset website in the web browser"""
     bl_idname = "wm.url_open_preset"
     bl_label = "Open Preset Website"
     bl_options = {'INTERNAL'}
 
+    @staticmethod
+    def _wm_url_open_preset_type_items(_self, _context):
+        return [item for (item, _) in WM_OT_url_open_preset.preset_items]
+
     type: EnumProperty(
         name="Site",
-        items=_wm_url_open_preset_type_items,
+        items=WM_OT_url_open_preset._wm_url_open_preset_type_items,
     )
 
     id: StringProperty(
@@ -1283,12 +1281,6 @@ rna_vector_subtype_items = (
 )
 
 
-# NOTE: needed for Python 3.10 since there are name-space issues with annotations.
-# This can be moved into the class as a static-method once Python 3.9x is dropped.
-def _wm_properties_edit_subtype_items(_self, _context):
-    return WM_OT_properties_edit.subtype_items
-
-
 class WM_OT_properties_edit(Operator):
     """Change a custom property's type, or adjust how it is displayed in the interface"""
     bl_idname = "wm.properties_edit"
@@ -1395,7 +1387,7 @@ class WM_OT_properties_edit(Operator):
     )
     subtype: EnumProperty(
         name="Subtype",
-        items=_wm_properties_edit_subtype_items,
+        items=WM_OT_properties_edit.subtype_items,
     )
 
     # String properties.

@@ -2544,6 +2544,21 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 301, 7) ||
+      (bmain->versionfile == 302 && !MAIN_VERSION_ATLEAST(bmain, 302, 4))) {
+    /* Duplicate value for two flags that mistakenly had the same numeric value. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_WeightVGProximity) {
+          WeightVGProximityModifierData *wpmd = (WeightVGProximityModifierData *)md;
+          if (wpmd->proximity_flags & MOD_WVG_PROXIMITY_INVERT_VGROUP_MASK) {
+            wpmd->proximity_flags |= MOD_WVG_PROXIMITY_WEIGHTS_NORMALIZE;
+          }
+        }
+      }
+    }
+  }
+
   if (!MAIN_VERSION_ATLEAST(bmain, 302, 2)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != NULL) {

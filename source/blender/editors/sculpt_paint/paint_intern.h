@@ -49,6 +49,7 @@ typedef struct CoNo {
 typedef bool (*StrokeGetLocation)(struct bContext *C, float location[3], const float mouse[2]);
 typedef bool (*StrokeTestStart)(struct bContext *C, struct wmOperator *op, const float mouse[2]);
 typedef void (*StrokeUpdateStep)(struct bContext *C,
+                                 struct wmOperator *op,
                                  struct PaintStroke *stroke,
                                  struct PointerRNA *itemptr);
 typedef void (*StrokeRedraw)(const struct bContext *C, struct PaintStroke *stroke, bool final);
@@ -62,7 +63,7 @@ struct PaintStroke *paint_stroke_new(struct bContext *C,
                                      StrokeRedraw redraw,
                                      StrokeDone done,
                                      int event_type);
-void paint_stroke_free(struct bContext *C, struct wmOperator *op);
+void paint_stroke_free(struct bContext *C, struct wmOperator *op, struct PaintStroke *stroke);
 
 /**
  * Returns zero if the stroke dots should not be spaced, non-zero otherwise.
@@ -84,9 +85,12 @@ bool paint_supports_jitter(enum ePaintMode mode);
  * Called in paint_ops.c, on each regeneration of key-maps.
  */
 struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf);
-int paint_stroke_modal(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
-int paint_stroke_exec(struct bContext *C, struct wmOperator *op);
-void paint_stroke_cancel(struct bContext *C, struct wmOperator *op);
+int paint_stroke_modal(struct bContext *C,
+                       struct wmOperator *op,
+                       const struct wmEvent *event,
+                       struct PaintStroke *stroke);
+int paint_stroke_exec(struct bContext *C, struct wmOperator *op, struct PaintStroke *stroke);
+void paint_stroke_cancel(struct bContext *C, struct wmOperator *op, struct PaintStroke *stroke);
 bool paint_stroke_flipped(struct PaintStroke *stroke);
 bool paint_stroke_inverted(struct PaintStroke *stroke);
 struct ViewContext *paint_stroke_view_context(struct PaintStroke *stroke);

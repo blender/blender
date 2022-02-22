@@ -314,7 +314,7 @@ void ED_gpencil_trace_data_to_strokes(Main *bmain,
       if (sample > 0.0f) {
         /* Resample stroke. Don't need to call to BKE_gpencil_stroke_geometry_update() because
          * the sample function already call that. */
-        BKE_gpencil_stroke_sample(gpd, gps, sample, false);
+        BKE_gpencil_stroke_sample(gpd, gps, sample, false, 0);
       }
       else {
         BKE_gpencil_stroke_geometry_update(gpd, gps);

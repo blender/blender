@@ -151,7 +151,7 @@ static PyObject *pygpu_state_depth_test_set(PyObject *UNUSED(self), PyObject *va
 }
 
 PyDoc_STRVAR(pygpu_state_depth_test_get_doc,
-             ".. function:: blend_depth_test_get()\n"
+             ".. function:: depth_test_get()\n"
              "\n"
              "    Current depth_test equation.\n"
              "\n");
@@ -179,7 +179,7 @@ static PyObject *pygpu_state_depth_mask_set(PyObject *UNUSED(self), PyObject *va
 }
 
 PyDoc_STRVAR(pygpu_state_depth_mask_get_doc,
-             ".. function:: depth_mask_set_get()\n"
+             ".. function:: depth_mask_get()\n"
              "\n"
              "   Writing status in the depth component.\n");
 static PyObject *pygpu_state_depth_mask_get(PyObject *UNUSED(self))

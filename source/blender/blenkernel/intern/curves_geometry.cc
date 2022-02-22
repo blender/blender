@@ -142,8 +142,8 @@ MutableSpan<int8_t> CurvesGeometry::curve_types()
 
 MutableSpan<float3> CurvesGeometry::positions()
 {
-  CustomData_duplicate_referenced_layer(&this->point_data, CD_PROP_FLOAT3, this->point_size);
-  this->update_customdata_pointers();
+  this->position = (float(*)[3])CustomData_duplicate_referenced_layer_named(
+      &this->point_data, CD_PROP_FLOAT3, ATTR_POSITION.c_str(), this->point_size);
   return {(float3 *)this->position, this->point_size};
 }
 Span<float3> CurvesGeometry::positions() const

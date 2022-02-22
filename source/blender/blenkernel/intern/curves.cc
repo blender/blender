@@ -358,16 +358,16 @@ static Curves *curves_evaluate_modifiers(struct Depsgraph *depsgraph,
         curves = BKE_curves_copy_for_eval(curves, true);
       }
 
-      /* Ensure we are not overwriting referenced data. */
-      CustomData_duplicate_referenced_layer_named(&curves->geometry.point_data,
-                                                  CD_PROP_FLOAT3,
-                                                  ATTR_POSITION,
-                                                  curves->geometry.point_size);
-      update_custom_data_pointers(*curves);
-
       /* Created deformed coordinates array on demand. */
-      mti->deformVerts(
-          md, &mectx, nullptr, curves->geometry.position, curves->geometry.point_size);
+      blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(
+          curves->geometry);
+      MutableSpan<float3> positions = geometry.positions();
+
+      mti->deformVerts(md,
+                       &mectx,
+                       nullptr,
+                       reinterpret_cast<float(*)[3]>(positions.data()),
+                       curves->geometry.point_size);
     }
   }
 
