@@ -506,11 +506,11 @@ static void updateGPUDisplayParameters(OCIO_GPUShader &shader,
     data.dither = dither;
     do_update = true;
   }
-  if (data.use_predivide != use_predivide) {
+  if (bool(data.use_predivide) != use_predivide) {
     data.use_predivide = use_predivide;
     do_update = true;
   }
-  if (data.use_overlay != use_overlay) {
+  if (bool(data.use_overlay) != use_overlay) {
     data.use_overlay = use_overlay;
     do_update = true;
   }
