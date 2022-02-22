@@ -114,6 +114,10 @@ typedef enum CustomDataType {
   CD_MTFACE = 5,
   CD_MCOL = 6,
   CD_ORIGINDEX = 7,
+  /**
+   * Used for derived face corner normals on mesh `ldata`, since currently they are not computed
+   * lazily. Derived vertex and polygon normals are stored in #Mesh_Runtime.
+   */
   CD_NORMAL = 8,
   CD_FACEMAP = 9, /* exclusive face group, each face can only be part of one */
   CD_PROP_FLOAT = 10,

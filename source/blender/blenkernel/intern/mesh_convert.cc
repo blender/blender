@@ -1495,15 +1495,8 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
   tmp.cd_flag = mesh_src->cd_flag;
   tmp.runtime.deformed_only = mesh_src->runtime.deformed_only;
 
-  tmp.runtime.cd_dirty_poly = mesh_src->runtime.cd_dirty_poly;
-  tmp.runtime.cd_dirty_vert = mesh_src->runtime.cd_dirty_vert;
-
-  /* Ensure that when no normal layers exist, they are marked dirty, because
-   * normals might not have been included in the mask of copied layers. */
-  if (!CustomData_has_layer(&tmp.vdata, CD_NORMAL) ||
-      !CustomData_has_layer(&tmp.pdata, CD_NORMAL)) {
-    BKE_mesh_normals_tag_dirty(&tmp);
-  }
+  /* Clear the normals completely, since the new vertex / polygon count might be different. */
+  BKE_mesh_clear_derived_normals(&tmp);
 
   if (CustomData_has_layer(&mesh_src->vdata, CD_SHAPEKEY)) {
     KeyBlock *kb;
