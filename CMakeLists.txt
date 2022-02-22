@@ -1886,7 +1886,6 @@ elseif(WITH_CYCLES_STANDALONE)
   add_subdirectory(intern/glew-mx)
   add_subdirectory(intern/guardedalloc)
   add_subdirectory(intern/libc_compat)
-  add_subdirectory(intern/numaapi)
   add_subdirectory(intern/sky)
 
   add_subdirectory(intern/cycles)
