@@ -135,17 +135,6 @@ typedef struct Mesh_Runtime {
   float (*poly_normals)[3];
 
   void *_pad2;
-
-  /**
-   * Used to mark when derived data needs to be recalculated for a certain layer.
-   * Currently only normals.
-   */
-
-  int64_t cd_dirty_vert;
-  int64_t cd_dirty_edge;
-  int64_t cd_dirty_loop;
-  int64_t cd_dirty_poly;
-
 } Mesh_Runtime;
 
 typedef struct Mesh {

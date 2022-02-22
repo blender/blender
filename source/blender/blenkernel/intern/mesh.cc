@@ -1975,8 +1975,6 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
                               nullptr);
 
   BKE_mesh_assert_normals_dirty_or_calculated(mesh);
-
-  mesh->runtime.cd_dirty_loop &= ~CD_MASK_NORMAL;
 }
 
 void BKE_mesh_calc_normals_split(Mesh *mesh)
