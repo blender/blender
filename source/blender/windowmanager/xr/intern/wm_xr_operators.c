@@ -23,6 +23,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -200,6 +201,30 @@ static void wm_xr_grab_update(wmOperator *op, const wmXrActionData *actiondata)
   }
 }
 
+static bool wm_xr_grab_can_do_bimanual(const wmXrActionData *actiondata, const XrGrabData *data)
+{
+  /* Returns true if: 1) Bimanual interaction is currently occurring (i.e. inputs on both
+   * controllers are pressed) and 2) bimanual interaction occurred on the last update. This second
+   * part is needed to avoid "jumpy" navigation/transform changes when transitioning from
+   * one-handed to two-handed interaction (see #wm_xr_grab_compute/compute_bimanual() for how
+   * navigation/transform deltas are calculated). */
+  return (actiondata->bimanual && data->bimanual_prev);
+}
+
+static bool wm_xr_grab_is_bimanual_ending(const wmXrActionData *actiondata, const XrGrabData *data)
+{
+  return (!actiondata->bimanual && data->bimanual_prev);
+}
+
+static bool wm_xr_grab_is_locked(const XrGrabData *data, const bool bimanual)
+{
+  if (bimanual) {
+    return data->loc_lock && data->rot_lock && data->scale_lock;
+  }
+  /* Ignore scale lock, as one-handed interaction cannot change navigation/transform scale. */
+  return data->loc_lock && data->rot_lock;
+}
+
 static void orient_mat_z_normalized(float R[4][4], const float z_axis[3])
 {
   const float scale = len_v3(R[0]);
@@ -260,6 +285,7 @@ static void wm_xr_grab_compute(const wmXrActionData *actiondata,
                                const XrGrabData *data,
                                const float nav_mat[4][4],
                                const float nav_inv[4][4],
+                               const float ob_inv[4][4],
                                bool reverse,
                                float r_delta[4][4])
 {
@@ -284,6 +310,11 @@ static void wm_xr_grab_compute(const wmXrActionData *actiondata,
   if (nav_lock) {
     wm_xr_navlocks_apply(
         nav_mat, nav_inv, data->loc_lock, data->locz_lock, data->rotz_lock, prev, curr);
+  }
+
+  if (ob_inv) {
+    mul_m4_m4m4(prev, ob_inv, prev);
+    mul_m4_m4m4(curr, ob_inv, curr);
   }
 
   if (reverse) {
@@ -312,6 +343,7 @@ static void wm_xr_grab_compute_bimanual(const wmXrActionData *actiondata,
                                         const XrGrabData *data,
                                         const float nav_mat[4][4],
                                         const float nav_inv[4][4],
+                                        const float ob_inv[4][4],
                                         bool reverse,
                                         float r_delta[4][4])
 {
@@ -381,6 +413,11 @@ static void wm_xr_grab_compute_bimanual(const wmXrActionData *actiondata,
         nav_mat, nav_inv, data->loc_lock, data->locz_lock, data->rotz_lock, prev, curr);
   }
 
+  if (ob_inv) {
+    mul_m4_m4m4(prev, ob_inv, prev);
+    mul_m4_m4m4(curr, ob_inv, curr);
+  }
+
   if (reverse) {
     invert_m4(curr);
     mul_m4_m4m4(r_delta, prev, curr);
@@ -420,32 +457,6 @@ static int wm_xr_navigation_grab_exec(bContext *UNUSED(C), wmOperator *UNUSED(op
   return OPERATOR_CANCELLED;
 }
 
-static bool wm_xr_navigation_grab_can_do_bimanual(const wmXrActionData *actiondata,
-                                                  const XrGrabData *data)
-{
-  /* Returns true if: 1) Bimanual interaction is currently occurring (i.e. inputs on both
-   * controllers are pressed) and 2) bimanual interaction occurred on the last update. This second
-   * part is needed to avoid "jumpy" navigation changes when transitioning from one-handed to
-   * two-handed interaction (see #wm_xr_grab_compute/compute_bimanual() for how navigation deltas
-   * are calculated). */
-  return (actiondata->bimanual && data->bimanual_prev);
-}
-
-static bool wm_xr_navigation_grab_is_bimanual_ending(const wmXrActionData *actiondata,
-                                                     const XrGrabData *data)
-{
-  return (!actiondata->bimanual && data->bimanual_prev);
-}
-
-static bool wm_xr_navigation_grab_is_locked(const XrGrabData *data, const bool bimanual)
-{
-  if (bimanual) {
-    return data->loc_lock && data->rot_lock && data->scale_lock;
-  }
-  /* Ignore scale lock, as one-handed interaction cannot change navigation scale. */
-  return data->loc_lock && data->rot_lock;
-}
-
 static void wm_xr_navigation_grab_apply(wmXrData *xr,
                                         const wmXrActionData *actiondata,
                                         const XrGrabData *data,
@@ -467,12 +478,22 @@ static void wm_xr_navigation_grab_apply(wmXrData *xr,
   }
 
   if (bimanual) {
-    wm_xr_grab_compute_bimanual(
-        actiondata, data, need_navinv ? nav_mat : NULL, need_navinv ? nav_inv : NULL, true, delta);
+    wm_xr_grab_compute_bimanual(actiondata,
+                                data,
+                                need_navinv ? nav_mat : NULL,
+                                need_navinv ? nav_inv : NULL,
+                                NULL,
+                                true,
+                                delta);
   }
   else {
-    wm_xr_grab_compute(
-        actiondata, data, need_navinv ? nav_mat : NULL, need_navinv ? nav_inv : NULL, true, delta);
+    wm_xr_grab_compute(actiondata,
+                       data,
+                       need_navinv ? nav_mat : NULL,
+                       need_navinv ? nav_inv : NULL,
+                       NULL,
+                       true,
+                       delta);
   }
 
   mul_m4_m4m4(out, delta, nav_mat);
@@ -526,7 +547,7 @@ static int wm_xr_navigation_grab_modal(bContext *C, wmOperator *op, const wmEven
   wmWindowManager *wm = CTX_wm_manager(C);
   wmXrData *xr = &wm->xr;
 
-  const bool do_bimanual = wm_xr_navigation_grab_can_do_bimanual(actiondata, data);
+  const bool do_bimanual = wm_xr_grab_can_do_bimanual(actiondata, data);
 
   data->loc_lock = RNA_boolean_get(op->ptr, "lock_location");
   data->locz_lock = RNA_boolean_get(op->ptr, "lock_location_z");
@@ -535,10 +556,10 @@ static int wm_xr_navigation_grab_modal(bContext *C, wmOperator *op, const wmEven
   data->scale_lock = RNA_boolean_get(op->ptr, "lock_scale");
 
   /* Check if navigation is locked. */
-  if (!wm_xr_navigation_grab_is_locked(data, do_bimanual)) {
+  if (!wm_xr_grab_is_locked(data, do_bimanual)) {
     /* Prevent unwanted snapping (i.e. "jumpy" navigation changes when transitioning from
      * two-handed to one-handed interaction) at the end of a bimanual interaction. */
-    if (!wm_xr_navigation_grab_is_bimanual_ending(actiondata, data)) {
+    if (!wm_xr_grab_is_bimanual_ending(actiondata, data)) {
       wm_xr_navigation_grab_apply(xr, actiondata, data, do_bimanual);
     }
   }
@@ -1904,6 +1925,454 @@ static void WM_OT_xr_select_raycast(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name XR Transform Grab
+ *
+ * Transforms selected objects relative to an XR controller's pose.
+ * \{ */
+
+static int wm_xr_transform_grab_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  if (!wm_xr_operator_test_event(op, event)) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
+  bool loc_lock, rot_lock, scale_lock;
+  float loc_t, rot_t, loc_ofs_orig[3], rot_ofs_orig[4];
+  bool loc_ofs_set = false;
+  bool rot_ofs_set = false;
+
+  loc_lock = RNA_boolean_get(op->ptr, "location_lock");
+  if (!loc_lock) {
+    loc_t = RNA_float_get(op->ptr, "location_interpolation");
+    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "location_offset");
+    if (prop && RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_float_get_array(op->ptr, prop, loc_ofs_orig);
+      loc_ofs_set = true;
+    }
+  }
+
+  rot_lock = RNA_boolean_get(op->ptr, "rotation_lock");
+  if (!rot_lock) {
+    rot_t = RNA_float_get(op->ptr, "rotation_interpolation");
+    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "rotation_offset");
+    if (prop && RNA_property_is_set(op->ptr, prop)) {
+      float eul[3];
+      RNA_property_float_get_array(op->ptr, prop, eul);
+      eul_to_quat(rot_ofs_orig, eul);
+      normalize_qt(rot_ofs_orig);
+      rot_ofs_set = true;
+    }
+  }
+
+  scale_lock = RNA_boolean_get(op->ptr, "scale_lock");
+
+  if (loc_lock && rot_lock && scale_lock) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const wmXrActionData *actiondata = event->customdata;
+  Object *obedit = CTX_data_edit_object(C);
+  BMEditMesh *em = (obedit && (obedit->type == OB_MESH)) ? BKE_editmesh_from_object(obedit) : NULL;
+  bool selected = false;
+
+  if (em) { /* TODO_XR: Non-mesh objects. */
+    /* Check for selection. */
+    Scene *scene = CTX_data_scene(C);
+    ToolSettings *ts = scene->toolsettings;
+    BMesh *bm = em->bm;
+    BMIter iter;
+    if ((ts->selectmode & SCE_SELECT_FACE) != 0) {
+      BMFace *f;
+      BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+        if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+          selected = true;
+          break;
+        }
+      }
+    }
+    if (!selected) {
+      if ((ts->selectmode & SCE_SELECT_EDGE) != 0) {
+        BMEdge *e;
+        BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+          if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+            selected = true;
+            break;
+          }
+        }
+      }
+      if (!selected) {
+        if ((ts->selectmode & SCE_SELECT_VERTEX) != 0) {
+          BMVert *v;
+          BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+            if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+              selected = true;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  else {
+    float controller_loc[3], controller_rot[4], controller_mat[4][4];
+    float loc_ofs[3], loc_ofs_controller[3], rot_ofs[4], rot_ofs_controller[4],
+        rot_ofs_orig_inv[4];
+    float q0[4], q1[4], q2[4], m0[4][4], m1[4][4], m2[4][4];
+
+    quat_to_mat4(controller_mat, actiondata->controller_rot);
+    copy_v3_v3(controller_mat[3], actiondata->controller_loc);
+
+    /* Convert offsets to controller space. */
+    if (loc_ofs_set) {
+      copy_v3_v3(loc_ofs_controller, loc_ofs_orig);
+      mul_qt_v3(actiondata->controller_rot, loc_ofs_controller);
+    }
+    if (rot_ofs_set) {
+      invert_qt_qt_normalized(rot_ofs_orig_inv, rot_ofs_orig);
+      mul_qt_qtqt(rot_ofs_controller, actiondata->controller_rot, rot_ofs_orig_inv);
+      normalize_qt(rot_ofs_controller);
+    }
+
+    /* Apply interpolation and offsets. */
+    CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
+      bool update = false;
+
+      if (ob->parent) {
+        invert_m4_m4(m0, ob->parentinv);
+        mul_m4_m4m4(m1, ob->parent->imat, controller_mat);
+        mul_m4_m4m4(m2, m0, m1);
+        mat4_to_loc_quat(controller_loc, controller_rot, m2);
+
+        if (loc_ofs_set) {
+          copy_v3_v3(loc_ofs, loc_ofs_orig);
+          mul_qt_v3(controller_rot, loc_ofs);
+        }
+        if (rot_ofs_set) {
+          mul_qt_qtqt(rot_ofs, controller_rot, rot_ofs_orig_inv);
+          normalize_qt(rot_ofs);
+        }
+      }
+      else {
+        copy_v3_v3(controller_loc, actiondata->controller_loc);
+        copy_qt_qt(controller_rot, actiondata->controller_rot);
+
+        if (loc_ofs_set) {
+          copy_v3_v3(loc_ofs, loc_ofs_controller);
+        }
+        if (rot_ofs_set) {
+          copy_qt_qt(rot_ofs, rot_ofs_controller);
+        }
+      }
+
+      if (!loc_lock) {
+        if (loc_t > 0.0f) {
+          ob->loc[0] += loc_t * (controller_loc[0] - ob->loc[0]);
+          ob->loc[1] += loc_t * (controller_loc[1] - ob->loc[1]);
+          ob->loc[2] += loc_t * (controller_loc[2] - ob->loc[2]);
+          update = true;
+        }
+        if (loc_ofs_set) {
+          add_v3_v3(ob->loc, loc_ofs);
+          update = true;
+        }
+      }
+
+      if (!rot_lock) {
+        if (rot_t > 0.0f) {
+          eul_to_quat(q1, ob->rot);
+          interp_qt_qtqt(q0, q1, controller_rot, rot_t);
+          if (!rot_ofs_set) {
+            quat_to_eul(ob->rot, q0);
+          }
+          update = true;
+        }
+        else if (rot_ofs_set) {
+          eul_to_quat(q0, ob->rot);
+        }
+        if (rot_ofs_set) {
+          rotation_between_quats_to_quat(q1, rot_ofs, q0);
+          mul_qt_qtqt(q0, rot_ofs, q1);
+          normalize_qt(q0);
+          mul_qt_qtqt(q2, controller_rot, q1);
+          normalize_qt(q2);
+          rotation_between_quats_to_quat(q1, q0, q2);
+
+          mul_qt_qtqt(q2, q0, q1);
+          normalize_qt(q2);
+          quat_to_eul(ob->rot, q2);
+          update = true;
+        }
+      }
+
+      if (update) {
+        DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+      }
+
+      selected = true;
+    }
+    CTX_DATA_END;
+  }
+
+  if (!selected) {
+    return OPERATOR_CANCELLED;
+  }
+
+  wm_xr_grab_init(op);
+  wm_xr_grab_update(op, actiondata);
+
+  WM_event_add_modal_handler(C, op);
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static int wm_xr_transform_grab_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+{
+  return OPERATOR_CANCELLED;
+}
+
+static void wm_xr_transform_grab_apply(bContext *C,
+                                       Scene *scene,
+                                       Object *obedit,
+                                       BMEditMesh *em,
+                                       const wmXrActionData *actiondata,
+                                       const XrGrabData *data,
+                                       bool bimanual,
+                                       bool apply_transform,
+                                       bool *r_selected)
+{
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  wmWindowManager *wm = CTX_wm_manager(C);
+  bScreen *screen_anim = ED_screen_animation_playing(wm);
+  float delta[4][4];
+
+  if (em) { /* TODO_XR: Non-mesh objects. */
+    if (apply_transform) {
+      ToolSettings *ts = scene->toolsettings;
+      BMesh *bm = em->bm;
+      BMIter iter;
+
+      if (bimanual) {
+        wm_xr_grab_compute_bimanual(actiondata, data, NULL, NULL, obedit->imat, false, delta);
+      }
+      else {
+        wm_xr_grab_compute(actiondata, data, NULL, NULL, obedit->imat, false, delta);
+      }
+
+      if ((ts->selectmode & SCE_SELECT_VERTEX) != 0) {
+        BMVert *v;
+        BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+          if (BM_elem_flag_test(v, BM_ELEM_SELECT) &&
+              !BM_elem_flag_test(v, BM_ELEM_INTERNAL_TAG)) {
+            mul_m4_v3(delta, v->co);
+            BM_elem_flag_enable(v, BM_ELEM_INTERNAL_TAG);
+          }
+        }
+      }
+      if ((ts->selectmode & SCE_SELECT_EDGE) != 0) {
+        BMEdge *e;
+        BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+          if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+            if (!BM_elem_flag_test(e->v1, BM_ELEM_INTERNAL_TAG)) {
+              mul_m4_v3(delta, e->v1->co);
+              BM_elem_flag_enable(e->v1, BM_ELEM_INTERNAL_TAG);
+            }
+            if (!BM_elem_flag_test(e->v2, BM_ELEM_INTERNAL_TAG)) {
+              mul_m4_v3(delta, e->v2->co);
+              BM_elem_flag_enable(e->v2, BM_ELEM_INTERNAL_TAG);
+            }
+          }
+        }
+      }
+      if ((ts->selectmode & SCE_SELECT_FACE) != 0) {
+        BMFace *f;
+        BMLoop *l;
+        BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+          if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+            l = f->l_first;
+            for (int i = 0; i < f->len; ++i, l = l->next) {
+              if (!BM_elem_flag_test(l->v, BM_ELEM_INTERNAL_TAG)) {
+                mul_m4_v3(delta, l->v->co);
+                BM_elem_flag_enable(l->v, BM_ELEM_INTERNAL_TAG);
+              }
+            }
+          }
+        }
+      }
+
+      BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_INTERNAL_TAG, false);
+      EDBM_mesh_normals_update(em);
+      DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
+    }
+
+    *r_selected = true;
+  }
+  else {
+    float out[4][4], m0[4][4], m1[4][4];
+
+    if (apply_transform) {
+      if (bimanual) {
+        wm_xr_grab_compute_bimanual(actiondata, data, NULL, NULL, NULL, false, delta);
+      }
+      else {
+        wm_xr_grab_compute(actiondata, data, NULL, NULL, NULL, false, delta);
+      }
+    }
+
+    CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
+      if (apply_transform) {
+        mul_m4_m4m4(out, delta, ob->obmat);
+
+        if (ob->parent) {
+          invert_m4_m4(m0, ob->parentinv);
+          mul_m4_m4m4(m1, ob->parent->imat, out);
+          mul_m4_m4m4(out, m0, m1);
+        }
+
+        if (!data->loc_lock) {
+          copy_v3_v3(ob->loc, out[3]);
+        }
+        if (!data->rot_lock) {
+          mat4_to_eul(ob->rot, out);
+        }
+        if (!data->scale_lock && bimanual) {
+          mat4_to_size(ob->scale, out);
+        }
+
+        DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+      }
+
+      if (screen_anim && autokeyframe_cfra_can_key(scene, &ob->id)) {
+        wm_xr_mocap_object_autokey(C, scene, view_layer, NULL, ob, true);
+      }
+
+      *r_selected = true;
+    }
+    CTX_DATA_END;
+  }
+}
+
+static int wm_xr_transform_grab_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  if (!wm_xr_operator_test_event(op, event)) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
+  const wmXrActionData *actiondata = event->customdata;
+  XrGrabData *data = op->customdata;
+  Scene *scene = CTX_data_scene(C);
+  Object *obedit = CTX_data_edit_object(C);
+  BMEditMesh *em = (obedit && (obedit->type == OB_MESH)) ? BKE_editmesh_from_object(obedit) : NULL;
+  bool apply_transform = false;
+  bool selected = false;
+
+  const bool do_bimanual = wm_xr_grab_can_do_bimanual(actiondata, data);
+
+  data->loc_lock = RNA_boolean_get(op->ptr, "location_lock");
+  data->rot_lock = RNA_boolean_get(op->ptr, "rotation_lock");
+  data->scale_lock = RNA_boolean_get(op->ptr, "scale_lock");
+
+  /* Check if navigation is locked. */
+  if (!wm_xr_grab_is_locked(data, do_bimanual)) {
+    /* Prevent unwanted snapping (i.e. "jumpy" transform changes when transitioning from
+     * two-handed to one-handed interaction) at the end of a bimanual interaction. */
+    if (!wm_xr_grab_is_bimanual_ending(actiondata, data)) {
+      apply_transform = true;
+    }
+  }
+
+  wm_xr_transform_grab_apply(
+      C, scene, obedit, em, actiondata, data, do_bimanual, apply_transform, &selected);
+
+  wm_xr_grab_update(op, actiondata);
+
+  if (!selected || (event->val == KM_RELEASE)) {
+    wm_xr_grab_uninit(op);
+
+    if (obedit && em) {
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+    }
+    else {
+      WM_event_add_notifier(C, NC_SCENE | ND_TRANSFORM_DONE, scene);
+    }
+    return OPERATOR_FINISHED;
+  }
+  else if (event->val == KM_PRESS) {
+    return OPERATOR_RUNNING_MODAL;
+  }
+
+  /* XR events currently only support press and release. */
+  BLI_assert_unreachable();
+  wm_xr_grab_uninit(op);
+  return OPERATOR_CANCELLED;
+}
+
+static void WM_OT_xr_transform_grab(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "XR Transform Grab";
+  ot->idname = "WM_OT_xr_transform_grab";
+  ot->description = "Transform selected objects relative to a VR controller's pose";
+
+  /* callbacks */
+  ot->invoke = wm_xr_transform_grab_invoke;
+  ot->exec = wm_xr_transform_grab_exec;
+  ot->modal = wm_xr_transform_grab_modal;
+  ot->poll = wm_xr_operator_sessionactive;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO;
+
+  /* properties */
+  static const float default_offset[3] = {0};
+
+  RNA_def_boolean(
+      ot->srna, "location_lock", false, "Lock Location", "Preserve objects' original location");
+  RNA_def_float(ot->srna,
+                "location_interpolation",
+                0.0f,
+                0.0f,
+                1.0f,
+                "Location Interpolation",
+                "Interpolation factor between object and controller locations",
+                0.0f,
+                1.0f);
+  RNA_def_float_translation(ot->srna,
+                            "location_offset",
+                            3,
+                            default_offset,
+                            -FLT_MAX,
+                            FLT_MAX,
+                            "Location Offset",
+                            "Additional location offset in controller space",
+                            -FLT_MAX,
+                            FLT_MAX);
+  RNA_def_boolean(
+      ot->srna, "rotation_lock", false, "Lock Rotation", "Preserve objects' original rotation");
+  RNA_def_float(ot->srna,
+                "rotation_interpolation",
+                0.0f,
+                0.0f,
+                1.0f,
+                "Rotation Interpolation",
+                "Interpolation factor between object and controller rotations",
+                0.0f,
+                1.0f);
+  RNA_def_float_rotation(ot->srna,
+                         "rotation_offset",
+                         3,
+                         default_offset,
+                         -2 * M_PI,
+                         2 * M_PI,
+                         "Rotation Offset",
+                         "Additional rotation offset in controller space",
+                         -2 * M_PI,
+                         2 * M_PI);
+  RNA_def_boolean(ot->srna, "scale_lock", false, "Lock Scale", "Preserve objects' original scale");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Operator Registration
  * \{ */
 
@@ -1915,6 +2384,7 @@ void wm_xr_operatortypes_register(void)
   WM_operatortype_append(WM_OT_xr_navigation_teleport);
   WM_operatortype_append(WM_OT_xr_navigation_reset);
   WM_operatortype_append(WM_OT_xr_select_raycast);
+  WM_operatortype_append(WM_OT_xr_transform_grab);
 }
 
 /** \} */
