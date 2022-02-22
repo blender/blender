@@ -90,11 +90,11 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     }
     case METAL_GPU_APPLE: {
       max_threads_per_threadgroup = 512;
+      use_metalrt = info.use_metalrt;
       break;
     }
   }
 
-  use_metalrt = info.use_metalrt;
   if (auto metalrt = getenv("CYCLES_METALRT")) {
     use_metalrt = (atoi(metalrt) != 0);
   }

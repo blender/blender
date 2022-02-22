@@ -1527,9 +1527,12 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             row.prop(self, "peer_memory")
 
         if compute_device_type == 'METAL':
-            row = layout.row()
-            row.use_property_split = True
-            row.prop(self, "use_metalrt")
+            import platform
+            # MetalRT only works on Apple Silicon at present, pending argument encoding fixes on AMD
+            if platform.machine() == 'arm64':
+                row = layout.row()
+                row.use_property_split = True
+                row.prop(self, "use_metalrt")
 
 
     def draw(self, context):
