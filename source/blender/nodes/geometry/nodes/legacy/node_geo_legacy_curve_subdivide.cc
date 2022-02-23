@@ -255,6 +255,10 @@ static void subdivide_builtin_attributes(const Spline &src_spline,
       subdivide_attribute<float>(src.weights(), offsets, is_cyclic, dst.weights());
       break;
     }
+    case CURVE_TYPE_CATMULL_ROM: {
+      BLI_assert_unreachable();
+      break;
+    }
   }
 }
 

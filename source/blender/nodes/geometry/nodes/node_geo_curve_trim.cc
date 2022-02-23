@@ -376,6 +376,9 @@ static void trim_spline(SplinePtr &spline,
     case CURVE_TYPE_NURBS:
       spline = std::make_unique<PolySpline>(trim_nurbs_spline(*spline, start, end));
       break;
+    case CURVE_TYPE_CATMULL_ROM:
+      BLI_assert_unreachable();
+      spline = {};
   }
   spline->mark_cache_invalid();
 }
@@ -486,6 +489,9 @@ static void to_single_point_spline(SplinePtr &spline, const Spline::LookupResult
     case CURVE_TYPE_NURBS:
       spline = std::make_unique<PolySpline>(to_single_point_nurbs(*spline, lookup));
       break;
+    case CURVE_TYPE_CATMULL_ROM:
+      BLI_assert_unreachable();
+      spline = {};
   }
 }
 

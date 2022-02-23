@@ -64,6 +64,10 @@ static Array<float3> curve_tangent_point_domain(const CurveEval &curve)
           calculate_nurbs_tangents(static_cast<const NURBSpline &>(spline), spline_tangents);
           break;
         }
+        case CURVE_TYPE_CATMULL_ROM: {
+          BLI_assert_unreachable();
+          break;
+        }
       }
     }
   });

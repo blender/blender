@@ -327,6 +327,10 @@ static SplinePtr convert_to_bezier(const Spline &input, GeoNodeExecParams params
         return input.copy();
       }
       return nurbs_to_bezier(input);
+    case CURVE_TYPE_CATMULL_ROM: {
+      BLI_assert_unreachable();
+      return {};
+    }
   }
   BLI_assert_unreachable();
   return {};
@@ -341,6 +345,9 @@ static SplinePtr convert_to_nurbs(const Spline &input)
       return bezier_to_nurbs(input);
     case CURVE_TYPE_POLY:
       return poly_to_nurbs(input);
+    case CURVE_TYPE_CATMULL_ROM:
+      BLI_assert_unreachable();
+      return {};
   }
   BLI_assert_unreachable();
   return {};

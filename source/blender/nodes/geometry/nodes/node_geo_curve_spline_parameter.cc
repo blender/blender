@@ -112,6 +112,10 @@ static Array<float> curve_length_point_domain(const CurveEval &curve)
           calculate_nurbs_lengths(static_cast<const NURBSpline &>(spline), spline_factors);
           break;
         }
+        case CURVE_TYPE_CATMULL_ROM: {
+          BLI_assert_unreachable();
+          break;
+        }
       }
     }
   });

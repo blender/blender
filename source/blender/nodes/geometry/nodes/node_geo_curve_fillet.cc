@@ -536,6 +536,10 @@ static SplinePtr fillet_spline(const Spline &spline,
       update_poly_positions(fd, dst_spline, src_spline, point_counts);
       break;
     }
+    case CURVE_TYPE_CATMULL_ROM: {
+      BLI_assert_unreachable();
+      break;
+    }
   }
 
   return dst_spline_ptr;

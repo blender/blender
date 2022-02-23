@@ -128,6 +128,10 @@ static void spline_copy_builtin_attributes(const Spline &spline,
       copy_data(src.weights(), dst.weights(), mask);
       break;
     }
+    case CURVE_TYPE_CATMULL_ROM: {
+      BLI_assert_unreachable();
+      break;
+    }
   }
 }
 
