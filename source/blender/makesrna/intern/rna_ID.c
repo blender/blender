@@ -1832,6 +1832,7 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
                          "hierarchy, or as a single, isolated and autonomous override");
   RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_boolean(srna,
                          "is_system_override",
@@ -1841,6 +1842,7 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
                          "or if it is actually editable by the user");
   RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_collection(srna,
                             "properties",
@@ -1996,6 +1998,8 @@ static void rna_def_ID(BlenderRNA *brna)
   prop = RNA_def_pointer(
       srna, "override_library", "IDOverrideLibrary", "Library Override", "Library override data");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop,
+                                 PROPOVERRIDE_NO_COMPARISON | PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_pointer(srna,
                          "preview",
