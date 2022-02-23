@@ -1515,6 +1515,8 @@ struct TexResult;
 #define GEO_NODE_EXTRUDE_MESH 1152
 #define GEO_NODE_MERGE_BY_DISTANCE 1153
 
+#define GEO_NODE_DUPLICATE_ELEMENTS 1160
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
