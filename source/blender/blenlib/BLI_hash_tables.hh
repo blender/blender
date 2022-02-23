@@ -8,6 +8,7 @@
  * This file contains code that can be shared between different hash table implementations.
  */
 
+#include <algorithm>
 #include <cmath>
 
 #include "BLI_allocator.hh"
