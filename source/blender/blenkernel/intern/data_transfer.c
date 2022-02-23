@@ -280,7 +280,6 @@ static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
 
     /* This should be ensured by cddata_masks we pass to code generating/giving us me_src now. */
     BLI_assert(CustomData_get_layer(&me_src->ldata, CD_NORMAL) != NULL);
-    BLI_assert(CustomData_get_layer(&me_src->pdata, CD_NORMAL) != NULL);
     (void)me_src;
 
     float(*loop_nors_dst)[3];
@@ -335,14 +334,11 @@ static void data_transfer_dtdata_type_postprocess(Object *UNUSED(ob_src),
     const int num_polys_dst = me_dst->totpoly;
     MLoop *loops_dst = me_dst->mloop;
     const int num_loops_dst = me_dst->totloop;
-    CustomData *pdata_dst = &me_dst->pdata;
     CustomData *ldata_dst = &me_dst->ldata;
 
-    const float(*poly_nors_dst)[3] = CustomData_get_layer(pdata_dst, CD_NORMAL);
+    const float(*poly_nors_dst)[3] = BKE_mesh_poly_normals_ensure(me_dst);
     float(*loop_nors_dst)[3] = CustomData_get_layer(ldata_dst, CD_NORMAL);
     short(*custom_nors_dst)[2] = CustomData_get_layer(ldata_dst, CD_CUSTOMLOOPNORMAL);
-
-    BLI_assert(poly_nors_dst);
 
     if (!custom_nors_dst) {
       custom_nors_dst = CustomData_add_layer(
