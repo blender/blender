@@ -14,6 +14,10 @@
 #include "curves_sculpt_intern.h"
 #include "paint_intern.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Poll Functions
+ * \{ */
+
 bool CURVES_SCULPT_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
@@ -33,9 +37,11 @@ bool CURVES_SCULPT_mode_poll_view3d(bContext *C)
 
 namespace blender::ed::sculpt_paint {
 
-/* --------------------------------------------------------------------
- * SCULPT_CURVES_OT_brush_stroke.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name * SCULPT_CURVES_OT_brush_stroke
+ * \{ */
 
 static bool stroke_get_location(bContext *C, float out[3], const float mouse[2])
 {
@@ -106,9 +112,11 @@ static void SCULPT_CURVES_OT_brush_stroke(struct wmOperatorType *ot)
   paint_stroke_operator_properties(ot);
 }
 
-/* --------------------------------------------------------------------
- * CURVES_OT_sculptmode_toggle.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name * CURVES_OT_sculptmode_toggle
+ * \{ */
 
 static bool curves_sculptmode_toggle_poll(bContext *C)
 {
@@ -177,9 +185,11 @@ static void CURVES_OT_sculptmode_toggle(wmOperatorType *ot)
 
 }  // namespace blender::ed::sculpt_paint
 
-/* --------------------------------------------------------------------
- * Registration.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name * Registration
+ * \{ */
 
 void ED_operatortypes_sculpt_curves()
 {
@@ -187,3 +197,5 @@ void ED_operatortypes_sculpt_curves()
   WM_operatortype_append(SCULPT_CURVES_OT_brush_stroke);
   WM_operatortype_append(CURVES_OT_sculptmode_toggle);
 }
+
+/** \} */

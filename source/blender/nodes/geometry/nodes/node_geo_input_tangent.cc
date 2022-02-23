@@ -52,16 +52,20 @@ static Array<float3> curve_tangent_point_domain(const CurveEval &curve)
       const Spline &spline = *splines[i];
       MutableSpan spline_tangents{tangents.as_mutable_span().slice(offsets[i], spline.size())};
       switch (splines[i]->type()) {
-        case Spline::Type::Bezier: {
+        case CURVE_TYPE_BEZIER: {
           calculate_bezier_tangents(static_cast<const BezierSpline &>(spline), spline_tangents);
           break;
         }
-        case Spline::Type::Poly: {
+        case CURVE_TYPE_POLY: {
           calculate_poly_tangents(static_cast<const PolySpline &>(spline), spline_tangents);
           break;
         }
-        case Spline::Type::NURBS: {
+        case CURVE_TYPE_NURBS: {
           calculate_nurbs_tangents(static_cast<const NURBSpline &>(spline), spline_tangents);
+          break;
+        }
+        case CURVE_TYPE_CATMULL_ROM: {
+          BLI_assert_unreachable();
           break;
         }
       }
@@ -83,7 +87,7 @@ static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &comp
 
     /* Use a reference to evaluated tangents if possible to avoid an allocation and a copy.
      * This is only possible when there is only one poly spline. */
-    if (splines.size() == 1 && splines.first()->type() == Spline::Type::Poly) {
+    if (splines.size() == 1 && splines.first()->type() == CURVE_TYPE_POLY) {
       const PolySpline &spline = static_cast<PolySpline &>(*splines.first());
       return VArray<float3>::ForSpan(spline.evaluated_tangents());
     }

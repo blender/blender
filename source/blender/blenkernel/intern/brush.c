@@ -144,7 +144,7 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
     /* FIXME: Recursive calls affecting other non-embedded IDs are really bad and should be avoided
      * in IDType callbacks. Higher-level ID management code usually does not expect such things and
      * does not deal properly with it. */
-    /* NOTE: assert below ensures that the comment above is valid, and that that exception is
+    /* NOTE: assert below ensures that the comment above is valid, and that exception is
      * acceptable for the time being. */
     BKE_lib_id_make_local(bmain, &brush->clone.image->id, 0);
     BLI_assert(!ID_IS_LINKED(brush->clone.image) && brush->clone.image->id.newid == NULL);

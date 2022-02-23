@@ -147,6 +147,7 @@ set(SRC
   intern/gpu_select_private.h
   intern/gpu_shader_create_info.hh
   intern/gpu_shader_create_info_private.hh
+  intern/gpu_shader_dependency_private.h
   intern/gpu_shader_interface.hh
   intern/gpu_shader_private.hh
   intern/gpu_state_private.hh
@@ -384,7 +385,7 @@ file(GENERATE OUTPUT ${glsl_source_list_file} CONTENT "${GLSL_SOURCE_CONTENT}")
 list(APPEND SRC ${glsl_source_list_file})
 list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 
-set(SHADER_CREATE_INFOS
+set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/workbench/shaders/infos/workbench_composite_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_effect_antialiasing_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_effect_cavity_info.hh
@@ -435,7 +436,7 @@ set(SHADER_CREATE_INFOS
 )
 
 set(SHADER_CREATE_INFOS_CONTENT "")
-foreach(DESCRIPTOR_FILE ${SHADER_CREATE_INFOS})
+foreach(DESCRIPTOR_FILE ${SRC_SHADER_CREATE_INFOS})
   string(APPEND SHADER_CREATE_INFOS_CONTENT "#include \"${DESCRIPTOR_FILE}\"\n")
 endforeach()
 
@@ -486,18 +487,22 @@ if(WITH_GPU_SHADER_BUILDER)
   )
   target_include_directories(shader_builder PRIVATE ${INC} ${CMAKE_CURRENT_BINARY_DIR})
 
-  set(BAKED_CREATE_INFOS_FILE ${CMAKE_CURRENT_BINARY_DIR}/shader_baked.hh)
+  set(SRC_BAKED_CREATE_INFOS_FILE ${CMAKE_CURRENT_BINARY_DIR}/shader_baked.hh)
 
   add_custom_command(
     OUTPUT
-    ${BAKED_CREATE_INFOS_FILE}
+    ${SRC_BAKED_CREATE_INFOS_FILE}
     COMMAND
-      "$<TARGET_FILE:shader_builder>" ${BAKED_CREATE_INFOS_FILE}
+      "$<TARGET_FILE:shader_builder>" ${SRC_BAKED_CREATE_INFOS_FILE}
     DEPENDS shader_builder
   )
   set(GPU_SHADER_INFO_SRC
     intern/gpu_shader_info_baked.cc
-    ${BAKED_CREATE_INFOS_FILE}
+    ${SRC_BAKED_CREATE_INFOS_FILE}
+
+    # For project files to be aware of these headers.
+    ${SRC_SHADER_CREATE_INFOS}
+    shaders/infos/gpu_interface_info.hh
   )
 
   blender_add_lib(bf_gpu_shader_infos "${GPU_SHADER_INFO_SRC}" "" "" "")

@@ -1186,7 +1186,9 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
   const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
 
-  BKE_mesh_normals_tag_dirty(me);
+  /* Clear normals on the mesh completely, since the original vertex and polygon count might be
+   * different than the BMesh's. */
+  BKE_mesh_clear_derived_normals(me);
 
   me->runtime.deformed_only = true;
 

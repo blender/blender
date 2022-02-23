@@ -332,9 +332,9 @@ static void spline_copy_builtin_attributes(const Spline &spline,
   copy_data_based_on_mask(spline.radii(), r_spline.radii(), mask);
   copy_data_based_on_mask(spline.tilts(), r_spline.tilts(), mask);
   switch (spline.type()) {
-    case Spline::Type::Poly:
+    case CURVE_TYPE_POLY:
       break;
-    case Spline::Type::Bezier: {
+    case CURVE_TYPE_BEZIER: {
       const BezierSpline &src = static_cast<const BezierSpline &>(spline);
       BezierSpline &dst = static_cast<BezierSpline &>(r_spline);
       copy_data_based_on_mask(src.handle_positions_left(), dst.handle_positions_left(), mask);
@@ -343,10 +343,14 @@ static void spline_copy_builtin_attributes(const Spline &spline,
       copy_data_based_on_mask(src.handle_types_right(), dst.handle_types_right(), mask);
       break;
     }
-    case Spline::Type::NURBS: {
+    case CURVE_TYPE_NURBS: {
       const NURBSpline &src = static_cast<const NURBSpline &>(spline);
       NURBSpline &dst = static_cast<NURBSpline &>(r_spline);
       copy_data_based_on_mask(src.weights(), dst.weights(), mask);
+      break;
+    }
+    case CURVE_TYPE_CATMULL_ROM: {
+      BLI_assert_unreachable();
       break;
     }
   }

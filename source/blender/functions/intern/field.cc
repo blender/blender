@@ -26,7 +26,7 @@ struct FieldTreeInfo {
    */
   MultiValueMap<GFieldRef, GFieldRef> field_users;
   /**
-   * The same field input may exist in the field tree as as separate nodes due to the way
+   * The same field input may exist in the field tree as separate nodes due to the way
    * the tree is constructed. This set contains every different input only once.
    */
   VectorSet<std::reference_wrapper<const FieldInput>> deduplicated_field_inputs;
@@ -137,7 +137,7 @@ static Set<GFieldRef> find_varying_fields(const FieldTreeInfo &field_tree_info,
 }
 
 /**
- * Builds the #procedure so that it computes the the fields.
+ * Builds the #procedure so that it computes the fields.
  */
 static void build_multi_function_procedure_for_fields(MFProcedure &procedure,
                                                       ResourceScope &scope,

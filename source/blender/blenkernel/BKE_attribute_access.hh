@@ -227,7 +227,7 @@ struct WriteAttributeLookup {
  * - An output attribute can live side by side with an existing attribute with a different domain
  *   or data type. The old attribute will only be overwritten when the #save function is called.
  *
- * \note The lifetime of an output attribute should not be longer than the the lifetime of the
+ * \note The lifetime of an output attribute should not be longer than the lifetime of the
  * geometry component it comes from, since it can keep a reference to the component for use in
  * the #save method.
  */

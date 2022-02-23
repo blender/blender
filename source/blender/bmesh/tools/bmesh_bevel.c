@@ -532,7 +532,7 @@ static BevVert *find_bevvert(BevelParams *bp, BMVert *bmv)
 
 /**
  * Find the EdgeHalf representing the other end of e->e.
- * \return Return other end's BevVert in *r_bvother, if r_bvother is provided. That may not have
+ * \return other end's BevVert in *r_bvother, if r_bvother is provided. That may not have
  * been constructed yet, in which case return NULL.
  */
 static EdgeHalf *find_other_end_edge_half(BevelParams *bp, EdgeHalf *e, BevVert **r_bvother)

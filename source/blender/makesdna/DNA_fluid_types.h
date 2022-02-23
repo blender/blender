@@ -611,7 +611,7 @@ typedef struct FluidDomainSettings {
 
   /* Fluid guiding options. */
   float guide_alpha;      /* Guiding weight scalar (determines strength). */
-  int guide_beta;         /* Guiding blur radius (affects size of vortices vortices). */
+  int guide_beta;         /* Guiding blur radius (affects size of vortices). */
   float guide_vel_factor; /* Multiply guiding velocity by this factor. */
   int guide_res[3];       /* Res for velocity guide grids - independent from base res. */
   short guide_source;

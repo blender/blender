@@ -2579,7 +2579,7 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag, eUIEmbossTyp
  *
  * A lot of places of the UI like the Node Editor or panels are zoomable. In most cases we can
  * get the zoom factor from the aspect, but in some cases like popups we need to fall back to
- * using the the size of the element. The latter method relies on the element always being the same
+ * using the size of the element. The latter method relies on the element always being the same
  * size.
  * \{ */
 

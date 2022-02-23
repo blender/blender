@@ -1049,7 +1049,7 @@ static void node_socket_draw_nested(const bContext &C,
       },
       data,
       MEM_freeN);
-  /* Disable the button so that clicks on it are ignored the the link operator still works. */
+  /* Disable the button so that clicks on it are ignored the link operator still works. */
   UI_but_flag_enable(but, UI_BUT_DISABLED);
   UI_block_emboss_set(&block, old_emboss);
 }

@@ -62,28 +62,28 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
   int current_mask = 0;
 
   for (const SplinePtr &spline : curve->splines()) {
-    if (spline->type() == Spline::Type::Bezier) {
+    if (spline->type() == CURVE_TYPE_BEZIER) {
       BezierSpline &bezier = static_cast<BezierSpline &>(*spline);
       for (int i : bezier.positions().index_range()) {
         if (current_mask < selection.size() && selection[current_mask] == current_point) {
           if (mode & GEO_NODE_CURVE_HANDLE_LEFT) {
-            if (bezier.handle_types_left()[i] == BezierSpline::HandleType::Vector) {
+            if (bezier.handle_types_left()[i] == BEZIER_HANDLE_VECTOR) {
               bezier.ensure_auto_handles();
-              bezier.handle_types_left()[i] = BezierSpline::HandleType::Free;
+              bezier.handle_types_left()[i] = BEZIER_HANDLE_FREE;
             }
-            else if (bezier.handle_types_left()[i] == BezierSpline::HandleType::Auto) {
+            else if (bezier.handle_types_left()[i] == BEZIER_HANDLE_AUTO) {
               bezier.ensure_auto_handles();
-              bezier.handle_types_left()[i] = BezierSpline::HandleType::Align;
+              bezier.handle_types_left()[i] = BEZIER_HANDLE_ALIGN;
             }
           }
           else {
-            if (bezier.handle_types_right()[i] == BezierSpline::HandleType::Vector) {
+            if (bezier.handle_types_right()[i] == BEZIER_HANDLE_VECTOR) {
               bezier.ensure_auto_handles();
-              bezier.handle_types_right()[i] = BezierSpline::HandleType::Free;
+              bezier.handle_types_right()[i] = BEZIER_HANDLE_FREE;
             }
-            else if (bezier.handle_types_right()[i] == BezierSpline::HandleType::Auto) {
+            else if (bezier.handle_types_right()[i] == BEZIER_HANDLE_AUTO) {
               bezier.ensure_auto_handles();
-              bezier.handle_types_right()[i] = BezierSpline::HandleType::Align;
+              bezier.handle_types_right()[i] = BEZIER_HANDLE_ALIGN;
             }
           }
           current_mask++;
@@ -128,7 +128,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   bool has_bezier = false;
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (geometry_set.has_curve() &&
-        geometry_set.get_curve_for_read()->has_spline_with_type(Spline::Type::Bezier)) {
+        geometry_set.get_curve_for_read()->has_spline_with_type(CURVE_TYPE_BEZIER)) {
       has_bezier = true;
       set_position_in_component(mode,
                                 geometry_set.get_component_for_write<CurveComponent>(),

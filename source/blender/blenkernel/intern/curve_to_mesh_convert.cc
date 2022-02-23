@@ -226,7 +226,7 @@ static void spline_extrude_to_mesh_data(const ResultInfo &info,
   }
 
   /* Mark edge loops from sharp vector control points sharp. */
-  if (profile.type() == Spline::Type::Bezier) {
+  if (profile.type() == CURVE_TYPE_BEZIER) {
     const BezierSpline &bezier_spline = static_cast<const BezierSpline &>(profile);
     Span<int> control_point_offsets = bezier_spline.control_point_offsets();
     for (const int i : IndexRange(bezier_spline.size())) {

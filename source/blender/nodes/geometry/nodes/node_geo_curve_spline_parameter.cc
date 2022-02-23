@@ -100,16 +100,20 @@ static Array<float> curve_length_point_domain(const CurveEval &curve)
       MutableSpan spline_factors{lengths.as_mutable_span().slice(offsets[i], spline.size())};
       spline_factors.first() = 0.0f;
       switch (splines[i]->type()) {
-        case Spline::Type::Bezier: {
+        case CURVE_TYPE_BEZIER: {
           calculate_bezier_lengths(static_cast<const BezierSpline &>(spline), spline_factors);
           break;
         }
-        case Spline::Type::Poly: {
+        case CURVE_TYPE_POLY: {
           calculate_poly_length(static_cast<const PolySpline &>(spline), spline_factors);
           break;
         }
-        case Spline::Type::NURBS: {
+        case CURVE_TYPE_NURBS: {
           calculate_nurbs_lengths(static_cast<const NURBSpline &>(spline), spline_factors);
+          break;
+        }
+        case CURVE_TYPE_CATMULL_ROM: {
+          BLI_assert_unreachable();
           break;
         }
       }
