@@ -683,6 +683,7 @@ static void gizmo2d_xform_invoke_prepare(const bContext *C,
   float c[3] = {mid[0], mid[1], 0.0f};
 
   float orient_matrix[3][3];
+  unit_m3(orient_matrix);
 
   ScrArea *area = CTX_wm_area(C);
 
