@@ -866,7 +866,7 @@ if(WITH_CYCLES_DEVICE_HIP)
 endif()
 
 #-----------------------------------------------------------------------------
-# Check check if submodules are cloned
+# Check if submodules are cloned.
 
 if(WITH_INTERNATIONAL)
   file(GLOB RESULT "${CMAKE_SOURCE_DIR}/release/datafiles/locale")
