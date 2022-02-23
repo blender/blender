@@ -1718,6 +1718,7 @@ class USERPREF_PT_ndof_settings(Panel):
         if show_3dview_settings:
             col.prop(props, "ndof_show_guide")
         col.prop(props, "ndof_zoom_invert")
+        col.prop(props, "ndof_lock_camera_pan_zoom")
         row = col.row(heading="Pan")
         row.prop(props, "ndof_pan_yz_swap_axis", text="Swap Y and Z Axes")
 
