@@ -122,6 +122,9 @@ IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
   local_id->override_library->reference = reference_id;
   id_us_plus(local_id->override_library->reference);
   local_id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_REFOK;
+  /* By default initialized libioverrides are 'system overrides', higher-level code is responsible
+   * to unset this flag for specific IDs. */
+  local_id->override_library->flag |= IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
   /* TODO: do we want to add tag or flag to referee to mark it as such? */
   return local_id->override_library;
 }
@@ -300,6 +303,7 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
    * mess in case there are a lot of hidden, non-instantiated, non-properly organized dependencies.
    * Ref T94650. */
   local_id->override_library->flag |= IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY;
+  local_id->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
   local_id->override_library->hierarchy_root = local_id;
 
   if (do_tagged_remap) {
@@ -1646,6 +1650,8 @@ static bool lib_override_library_resync(Main *bmain,
 
           if (ID_IS_OVERRIDE_LIBRARY_REAL(id_override_new)) {
             BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_override_old));
+
+            id_override_new->override_library->flag = id_override_old->override_library->flag;
 
             /* Copy over overrides rules from old override ID to new one. */
             BLI_duplicatelist(&id_override_new->override_library->properties,
