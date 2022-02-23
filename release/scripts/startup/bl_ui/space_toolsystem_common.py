@@ -1054,9 +1054,6 @@ def _activate_by_item(context, space_type, item, index, *, as_fallback=False):
         if props is None:
             print("Error:", gizmo_group, "could not access properties!")
         else:
-            for key in props.bl_rna.properties.keys():
-                props.property_unset(key)
-
             gizmo_properties = item.widget_properties
             if gizmo_properties is not None:
                 if not isinstance(gizmo_properties, list):
