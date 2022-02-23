@@ -3,10 +3,7 @@
 
 import bpy
 
-if bpy.app.version_cycle in {'rc', 'release'}:
-    manual_version = '%d.%d' % bpy.app.version[:2]
-else:
-    manual_version = 'dev'
+manual_version = '%d.%d' % bpy.app.version[:2]
 
 url_manual_prefix = "https://docs.blender.org/manual/en/" + manual_version + "/"
 

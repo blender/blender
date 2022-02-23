@@ -489,12 +489,7 @@ def disable_all():
 
 
 def _blender_manual_url_prefix():
-    if _bpy.app.version_cycle in {"rc", "release"}:
-        manual_version = "%d.%d" % _bpy.app.version[:2]
-    else:
-        manual_version = "dev"
-
-    return "https://docs.blender.org/manual/en/" + manual_version
+    return "https://docs.blender.org/manual/en/%d.%d" % _bpy.app.version[:2]
 
 
 def module_bl_info(mod, *, info_basis=None):

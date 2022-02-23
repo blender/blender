@@ -689,7 +689,7 @@ class TOPBAR_MT_help(Menu):
 
         layout.operator(
             "wm.url_open", text="Python API Reference", icon='URL',
-        ).url = bpy.types.WM_OT_doc_view._prefix
+        ).type = 'API'
 
         if show_developer:
             layout.operator(
