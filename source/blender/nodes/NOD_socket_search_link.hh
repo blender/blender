@@ -16,7 +16,7 @@ struct bContext;
 namespace blender::nodes {
 
 /**
- * Parameters for the operation operation of adding a node after the link drag search menu closes.
+ * Parameters for the operation of adding a node after the link drag search menu closes.
  */
 class LinkSearchOpParams {
  private:

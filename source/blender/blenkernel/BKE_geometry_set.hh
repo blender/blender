@@ -693,7 +693,7 @@ class CurveComponent : public GeometryComponent {
 
 /**
  * Holds a reference to conceptually unique geometry or a pointer to object/collection data
- * that is is instanced with a transform in #InstancesComponent.
+ * that is instanced with a transform in #InstancesComponent.
  */
 class InstanceReference {
  public:

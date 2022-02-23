@@ -1636,7 +1636,9 @@ static void sequencer_draw_gpencil_overlay(const bContext *C)
   ED_annotation_draw_view2d(C, 0);
 }
 
-/* Draw content and safety borders borders. */
+/**
+ * Draw content and safety borders.
+ */
 static void sequencer_draw_borders_overlay(const SpaceSeq *sseq,
                                            const View2D *v2d,
                                            const Scene *scene)

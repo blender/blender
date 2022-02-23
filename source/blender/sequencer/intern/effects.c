@@ -1918,7 +1918,7 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
    * I changed the math around to implement an actual Gaussian distribution.
    *
    * Watch out though, it tends to misbehave with large blur values on
-   * a small bitmap. Avoid avoid! */
+   * a small bitmap. Avoid! */
 
   float *temp = NULL, *swap;
   float *filter = NULL;

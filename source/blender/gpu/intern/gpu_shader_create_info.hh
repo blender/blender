@@ -497,9 +497,9 @@ struct ShaderCreateInfo {
 
   /**
    * IMPORTANT: invocations count is only used if GL_ARB_gpu_shader5 is supported. On
-   * implementations that do not supports it, the max_vertices will be be multiplied by
-   * invocations. Your shader needs to account for this fact. Use `#ifdef GPU_ARB_gpu_shader5`
-   * and make a code path that does not rely on gl_InvocationID.
+   * implementations that do not supports it, the max_vertices will be multiplied by invocations.
+   * Your shader needs to account for this fact. Use `#ifdef GPU_ARB_gpu_shader5` and make a code
+   * path that does not rely on #gl_InvocationID.
    */
   Self &geometry_layout(PrimitiveIn prim_in,
                         PrimitiveOut prim_out,

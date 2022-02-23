@@ -298,7 +298,7 @@ bool BLI_path_parent_dir_until_exists(char *path) ATTR_NONNULL();
 bool BLI_path_abs(char *path, const char *basepath) ATTR_NONNULL();
 /**
  * Replaces "#" character sequence in last slash-separated component of `path`
- * with frame as decimal integer, with leading zeroes as necessary, to make digits digits.
+ * with frame as decimal integer, with leading zeroes as necessary, to make digits.
  */
 bool BLI_path_frame(char *path, int frame, int digits) ATTR_NONNULL();
 /**

@@ -4904,7 +4904,7 @@ static char *rna_path_token_in_brackets(const char **path,
 }
 
 /**
- * \return true when when the key in the path is correctly parsed and found in the collection
+ * \return true when the key in the path is correctly parsed and found in the collection
  * or when the path is empty.
  */
 static bool rna_path_parse_collection_key(const char **path,

@@ -124,7 +124,7 @@ class RenderScheduler {
   /* Get sample up to which rendering has been done.
    * This is an absolute 0-based value.
    *
-   * For example, if start sample is 10 and and 5 samples were rendered, then this call will
+   * For example, if start sample is 10 and 5 samples were rendered, then this call will
    * return 14.
    *
    * If there were no samples rendered, then the behavior is undefined. */
@@ -132,7 +132,7 @@ class RenderScheduler {
 
   /* Get number of samples rendered within the current scheduling session.
    *
-   * For example, if start sample is 10 and and 5 samples were rendered, then this call will
+   * For example, if start sample is 10 and 5 samples were rendered, then this call will
    * return 5.
    *
    * Note that this is based on the scheduling information. In practice this means that if someone

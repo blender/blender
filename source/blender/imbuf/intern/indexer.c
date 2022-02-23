@@ -1162,7 +1162,7 @@ static int indexer_performance_get_max_gop_size(FFmpegIndexBuilderContext *conte
 }
 
 /* Assess scrubbing performance of provided file. This function is not meant to be very exact.
- * It compares number number of frames decoded in reasonable time with largest detected GOP size.
+ * It compares number of frames decoded in reasonable time with largest detected GOP size.
  * Because seeking happens in single GOP, it means, that maximum seek time can be detected this
  * way.
  * Since proxies use GOP size of 10 frames, skip building if detected GOP size is less or

@@ -726,7 +726,7 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
      * - First, don't use the depth buffer at all, use occlusion queries to detect any gizmos.
      *   If there are no gizmos or only one - early exit, otherwise.
      *
-     * - Bind the depth buffer and and use selection picking logic.
+     * - Bind the depth buffer and use selection picking logic.
      *   This is much slower than occlusion queries (since it's reading depths while drawing).
      *   When there is a single gizmo under the cursor (quite common), early exit, otherwise.
      *

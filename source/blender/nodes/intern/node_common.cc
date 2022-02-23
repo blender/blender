@@ -326,7 +326,7 @@ void ntree_update_reroute_nodes(bNodeTree *ntree)
   }
 
   /* Propagate socket types from right to left. This affects reroute nodes that haven't been
-   * changed in the the loop above. */
+   * changed in the loop above. */
   for (bNode *start_node : nodes_linked_with_reroutes) {
     LISTBASE_FOREACH (bNodeSocket *, input_socket, &start_node->inputs) {
       propagate_reroute_type_from_start_socket(input_socket, links_map, reroute_types);

@@ -169,7 +169,7 @@ struct IDProperty *IDP_GetPropertyTypeFromGroup(const struct IDProperty *prop,
 
 /*-------- Main Functions --------*/
 /**
- * Get the Group property that contains the id properties for ID id.
+ * Get the Group property that contains the id properties for ID `id`.
  *
  * \param create_if_needed: Set to create the group property and attach it to id if it doesn't
  * exist; otherwise the function will return NULL if there's no Group property attached to the ID.

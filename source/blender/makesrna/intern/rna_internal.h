@@ -649,7 +649,7 @@ const char *rna_translate_ui_text(const char *text,
                                   struct PropertyRNA *prop,
                                   bool translate);
 
-/* Internal functions that cycles uses so we need to declare (tsk tsk) */
+/* Internal functions that cycles uses so we need to declare (tsk!). */
 void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
 
 #ifdef RNA_RUNTIME

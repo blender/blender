@@ -1418,7 +1418,7 @@ static bool ui_but_event_property_operator_string(const bContext *C,
   }
 
   /* This version is only for finding hotkeys for properties.
-   * These are set set via a data-path which is appended to the context,
+   * These are set via a data-path which is appended to the context,
    * manipulated using operators (see #ctx_toggle_opnames). */
 
   if (ptr->owner_id) {

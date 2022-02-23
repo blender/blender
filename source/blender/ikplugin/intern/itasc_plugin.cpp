@@ -244,9 +244,9 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
     }
 
     if (BLI_listbase_is_empty(&curchan->iktree) == false) {
-      /* Oh oh, there is already a chain starting from this channel and our chain is longer...
+      /* Oh, there is already a chain starting from this channel and our chain is longer.
        * Should handle this by moving the previous chain up to the beginning of our chain
-       * For now we just stop here */
+       * For now we just stop here. */
       break;
     }
   }

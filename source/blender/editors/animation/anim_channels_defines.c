@@ -4601,7 +4601,7 @@ void ANIM_channel_draw(
     /* Draw slider:
      * - Even if we can draw sliders for this view,
      *   we must also check that the channel-type supports them
-     *   (only only F-Curves really can support them for now).
+     *   (only F-Curves really can support them for now).
      * - Slider should start before the toggles (if they're visible)
      *   to keep a clean line down the side.
      */
@@ -5336,7 +5336,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
 
     /* Draw slider:
      * - Even if we can draw sliders for this view, we must also check that the channel-type
-     *   supports them (only only F-Curves really can support them for now).
+     *   supports them (only F-Curves really can support them for now).
      * - To make things easier, we use RNA-autobuts for this so that changes are
      *   reflected immediately, wherever they occurred.
      *   BUT, we don't use the layout engine, otherwise we'd get wrong alignment,
