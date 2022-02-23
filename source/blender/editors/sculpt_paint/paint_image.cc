@@ -86,7 +86,7 @@ void set_imapaintpartial(struct ImagePaintPartialRedraw *ippr)
   imapaintpartial = *ippr;
 }
 
-/* Imagepaint Partial Redraw & Dirty Region */
+/* Image paint Partial Redraw & Dirty Region. */
 
 void ED_imapaint_clear_partial_redraw(void)
 {
@@ -356,7 +356,7 @@ void paint_brush_color_get(struct Scene *scene,
           break;
         }
       }
-      /* Gradient / Colorband colors are not considered PROP_COLOR_GAMMA.
+      /* Gradient / Color-band colors are not considered #PROP_COLOR_GAMMA.
        * Brush colors are expected to be in sRGB though. */
       IMB_colormanagement_scene_linear_to_srgb_v3(color_gr);
 
