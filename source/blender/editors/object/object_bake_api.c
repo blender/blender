@@ -1054,19 +1054,18 @@ static void bake_targets_populate_pixels_vertex_colors(BakeTargets *targets,
        * materials and UVs. */
       pixel->seed = v;
 
-      /* Barycentric coordinates, nudged a bit to avoid precision issues that
-       * may happen when exactly at the vertex coordinate. */
+      /* Barycentric coordinates. */
       if (j == 0) {
-        pixel->uv[0] = 1.0f - FLT_EPSILON;
-        pixel->uv[1] = FLT_EPSILON / 2.0f;
+        pixel->uv[0] = 1.0f;
+        pixel->uv[1] = 0.0f;
       }
       else if (j == 1) {
-        pixel->uv[0] = FLT_EPSILON / 2.0f;
-        pixel->uv[1] = 1.0f - FLT_EPSILON;
+        pixel->uv[0] = 0.0f;
+        pixel->uv[1] = 1.0f;
       }
       else if (j == 2) {
-        pixel->uv[0] = FLT_EPSILON / 2.0f;
-        pixel->uv[1] = FLT_EPSILON / 2.0f;
+        pixel->uv[0] = 0.0f;
+        pixel->uv[1] = 0.0f;
       }
     }
   }

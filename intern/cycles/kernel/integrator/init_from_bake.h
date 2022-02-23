@@ -43,6 +43,50 @@ ccl_device_inline float bake_clamp_mirror_repeat(float u, float max)
   return ((((int)fu) & 1) ? 1.0f - u : u) * max;
 }
 
+/* Offset towards center of triangle to avoid ray-tracing precision issues. */
+ccl_device const float2 bake_offset_towards_center(KernelGlobals kg,
+                                                   const int prim,
+                                                   const float u,
+                                                   const float v)
+{
+  float3 tri_verts[3];
+  triangle_vertices(kg, prim, tri_verts);
+
+  /* Empirically determined values, by no means perfect. */
+  const float position_offset = 1e-4f;
+  const float uv_offset = 1e-5f;
+
+  /* Offset position towards center, amount relative to absolute size of position coordinates. */
+  const float3 P = u * tri_verts[0] + v * tri_verts[1] + (1.0f - u - v) * tri_verts[2];
+  const float3 center = (tri_verts[0] + tri_verts[1] + tri_verts[2]) / 3.0f;
+  const float3 to_center = center - P;
+
+  const float3 offset_P = P + normalize(to_center) *
+                                  min(len(to_center), max(max3(fabs(P)), 1.0f) * position_offset);
+
+  /* Compute barycentric coordinates at new position. */
+  const float3 v1 = tri_verts[1] - tri_verts[0];
+  const float3 v2 = tri_verts[2] - tri_verts[0];
+  const float3 vP = offset_P - tri_verts[0];
+
+  const float d11 = dot(v1, v1);
+  const float d12 = dot(v1, v2);
+  const float d22 = dot(v2, v2);
+  const float dP1 = dot(vP, v1);
+  const float dP2 = dot(vP, v2);
+
+  const float denom = d11 * d22 - d12 * d12;
+  if (denom == 0.0f) {
+    return make_float2(0.0f, 0.0f);
+  }
+
+  const float offset_v = clamp((d22 * dP1 - d12 * dP2) / denom, uv_offset, 1.0f - uv_offset);
+  const float offset_w = clamp((d11 * dP2 - d12 * dP1) / denom, uv_offset, 1.0f - uv_offset);
+  const float offset_u = clamp(1.0f - offset_v - offset_w, uv_offset, 1.0f - uv_offset);
+
+  return make_float2(offset_u, offset_v);
+}
+
 /* Return false to indicate that this pixel is finished.
  * Used by CPU implementation to not attempt to sample pixel for multiple samples once its known
  * that the pixel did converge. */
@@ -100,7 +144,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   /* Initialize path state for path integration. */
   path_state_init_integrator(kg, state, sample, rng_hash);
 
-  /* Barycentric UV with sub-pixel offset. */
+  /* Barycentric UV. */
   float u = primitive[2];
   float v = primitive[3];
 
@@ -109,6 +153,14 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   float dvdx = differential[2];
   float dvdy = differential[3];
 
+  /* Exactly at vertex? Nudge inwards to avoid self-intersection. */
+  if ((u == 0.0f || u == 1.0f) && (v == 0.0f || v == 1.0f)) {
+    const float2 uv = bake_offset_towards_center(kg, prim, u, v);
+    u = uv.x;
+    v = uv.y;
+  }
+
+  /* Sub-pixel offset. */
   if (sample > 0) {
     u = bake_clamp_mirror_repeat(u + dudx * (filter_x - 0.5f) + dudy * (filter_y - 0.5f), 1.0f);
     v = bake_clamp_mirror_repeat(v + dvdx * (filter_x - 0.5f) + dvdy * (filter_y - 0.5f),
