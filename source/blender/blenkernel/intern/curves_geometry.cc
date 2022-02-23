@@ -106,6 +106,15 @@ int CurvesGeometry::curves_size() const
 {
   return this->curve_size;
 }
+IndexRange CurvesGeometry::points_range() const
+{
+  return IndexRange(this->points_size());
+}
+IndexRange CurvesGeometry::curves_range() const
+{
+  return IndexRange(this->curves_size());
+}
+
 int CurvesGeometry::evaluated_points_size() const
 {
   /* TODO: Implement when there are evaluated points. */
