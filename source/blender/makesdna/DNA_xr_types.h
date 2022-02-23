@@ -50,6 +50,8 @@ typedef struct XrSessionSettings {
 typedef enum eXrSessionFlag {
   XR_SESSION_USE_POSITION_TRACKING = (1 << 0),
   XR_SESSION_USE_ABSOLUTE_TRACKING = (1 << 1),
+  XR_SESSION_ENABLE_VIVE_TRACKER_EXTENSION =
+      (1 << 2), /* See #GHOST_kXrContextEnableViveTrackerExtension. */
 } eXrSessionFlag;
 
 typedef enum eXRSessionBasePoseType {

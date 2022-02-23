@@ -90,6 +90,9 @@ bool wm_xr_init(wmWindowManager *wm)
       create_info.context_flag |= GHOST_kXrContextGpuNVIDIA;
     }
 #endif
+    if ((wm->xr.session_settings.flag & XR_SESSION_ENABLE_VIVE_TRACKER_EXTENSION) != 0) {
+      create_info.context_flag |= GHOST_kXrContextEnableViveTrackerExtension;
+    }
 
     if (!(context = GHOST_XrContextCreate(&create_info))) {
       return false;

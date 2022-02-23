@@ -647,6 +647,10 @@ enum {
    * (use DirectX fallback instead). */
   GHOST_kXrContextGpuNVIDIA = (1 << 2),
 #  endif
+  /* Needed to selectively enable the #XR_HTCX_vive_tracker_interaction extension, as it causes
+     incorrect controller poses with SteamVR (1.21). Although not ideal, either trackers or
+     controllers (but not both) can be used during a given session. */
+  GHOST_kXrContextEnableViveTrackerExtension = (1 << 3),
 };
 
 typedef struct {

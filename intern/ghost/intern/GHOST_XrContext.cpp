@@ -82,7 +82,7 @@ void GHOST_XrContext::initialize(const GHOST_XrContextCreateInfo *create_info)
       determineGraphicsBindingTypesToEnable(create_info);
 
   assert(m_oxr->instance == XR_NULL_HANDLE);
-  createOpenXRInstance(graphics_binding_types);
+  createOpenXRInstance(graphics_binding_types, create_info);
   storeInstanceProperties();
 
   /* Multiple bindings may be enabled. Now that we know the runtime in use, settle for one. */
@@ -95,7 +95,8 @@ void GHOST_XrContext::initialize(const GHOST_XrContextCreateInfo *create_info)
 }
 
 void GHOST_XrContext::createOpenXRInstance(
-    const std::vector<GHOST_TXrGraphicsBinding> &graphics_binding_types)
+    const std::vector<GHOST_TXrGraphicsBinding> &graphics_binding_types,
+    const GHOST_XrContextCreateInfo *ctx_create_info)
 {
   XrInstanceCreateInfo create_info = {XR_TYPE_INSTANCE_CREATE_INFO};
 
@@ -104,7 +105,7 @@ void GHOST_XrContext::createOpenXRInstance(
   create_info.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
 
   getAPILayersToEnable(m_enabled_layers);
-  getExtensionsToEnable(graphics_binding_types, m_enabled_extensions);
+  getExtensionsToEnable(graphics_binding_types, ctx_create_info, m_enabled_extensions);
   create_info.enabledApiLayerCount = m_enabled_layers.size();
   create_info.enabledApiLayerNames = m_enabled_layers.data();
   create_info.enabledExtensionCount = m_enabled_extensions.size();
@@ -400,6 +401,7 @@ static const char *openxr_ext_name_from_wm_gpu_binding(GHOST_TXrGraphicsBinding 
  */
 void GHOST_XrContext::getExtensionsToEnable(
     const std::vector<GHOST_TXrGraphicsBinding> &graphics_binding_types,
+    const GHOST_XrContextCreateInfo *create_info,
     std::vector<const char *> &r_ext_names)
 {
   std::vector<std::string_view> try_ext;
@@ -412,7 +414,14 @@ void GHOST_XrContext::getExtensionsToEnable(
   /* Interaction profile extensions. */
   try_ext.push_back(XR_EXT_HP_MIXED_REALITY_CONTROLLER_EXTENSION_NAME);
   try_ext.push_back(XR_HTC_VIVE_COSMOS_CONTROLLER_INTERACTION_EXTENSION_NAME);
+#ifdef XR_HTC_VIVE_FOCUS3_CONTROLLER_INTERACTION_EXTENSION_NAME
   try_ext.push_back(XR_HTC_VIVE_FOCUS3_CONTROLLER_INTERACTION_EXTENSION_NAME);
+#endif
+  if ((create_info->context_flag & GHOST_kXrContextEnableViveTrackerExtension) != 0) {
+#ifdef XR_HTCX_VIVE_TRACKER_INTERACTION_EXTENSION_NAME
+    try_ext.push_back(XR_HTCX_VIVE_TRACKER_INTERACTION_EXTENSION_NAME);
+#endif
+  }
   try_ext.push_back(XR_HUAWEI_CONTROLLER_INTERACTION_EXTENSION_NAME);
 
   /* Controller model extension. */

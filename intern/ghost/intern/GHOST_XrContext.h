@@ -108,7 +108,8 @@ class GHOST_XrContext : public GHOST_IXrContext {
   bool m_debug = false;
   bool m_debug_time = false;
 
-  void createOpenXRInstance(const std::vector<GHOST_TXrGraphicsBinding> &graphics_binding_types);
+  void createOpenXRInstance(const std::vector<GHOST_TXrGraphicsBinding> &graphics_binding_types,
+                            const GHOST_XrContextCreateInfo *create_info);
   void storeInstanceProperties();
   void initDebugMessenger();
 
@@ -122,6 +123,7 @@ class GHOST_XrContext : public GHOST_IXrContext {
   void initExtensionsEx(std::vector<XrExtensionProperties> &extensions, const char *layer_name);
   void getAPILayersToEnable(std::vector<const char *> &r_ext_names);
   void getExtensionsToEnable(const std::vector<GHOST_TXrGraphicsBinding> &graphics_binding_types,
+                             const GHOST_XrContextCreateInfo *create_info,
                              std::vector<const char *> &r_ext_names);
   std::vector<GHOST_TXrGraphicsBinding> determineGraphicsBindingTypesToEnable(
       const GHOST_XrContextCreateInfo *create_info);

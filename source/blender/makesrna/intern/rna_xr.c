@@ -822,6 +822,27 @@ static void rna_XrSessionSettings_use_absolute_tracking_set(PointerRNA *ptr, boo
 #  endif
 }
 
+static bool rna_XrSessionSettings_enable_vive_tracker_extension_get(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
+  return (xr->session_settings.flag & XR_SESSION_ENABLE_VIVE_TRACKER_EXTENSION) != 0;
+#  else
+  UNUSED_VARS(ptr);
+  return false;
+#  endif
+}
+
+static void rna_XrSessionSettings_enable_vive_tracker_extension_set(PointerRNA *ptr, bool value)
+{
+#  ifdef WITH_XR_OPENXR
+  wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
+  SET_FLAG_FROM_TEST(xr->session_settings.flag, value, XR_SESSION_ENABLE_VIVE_TRACKER_EXTENSION);
+#  else
+  UNUSED_VARS(ptr, value);
+#  endif
+}
+
 static void rna_XrSessionSettings_actionmaps_begin(CollectionPropertyIterator *iter,
                                                    PointerRNA *ptr)
 {
@@ -2180,6 +2201,16 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
       prop,
       "Absolute Tracking",
       "Allow the VR tracking origin to be defined independently of the headset location");
+  RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+  prop = RNA_def_property(srna, "enable_vive_tracker_extension", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_XrSessionSettings_enable_vive_tracker_extension_get",
+                                 "rna_XrSessionSettings_enable_vive_tracker_extension_set");
+  RNA_def_property_ui_text(prop,
+                           "Enable Vive Tracker Extension",
+                           "Enable bindings for the HTC Vive Trackers. Note that this may not be "
+                           "supported by all OpenXR runtimes");
   RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
 
   prop = RNA_def_property(srna, "actionmaps", PROP_COLLECTION, PROP_NONE);
