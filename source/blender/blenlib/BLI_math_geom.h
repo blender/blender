@@ -303,6 +303,9 @@ float dist_squared_to_projected_aabb_simple(const float projmat[4][4],
                                             const float bbmin[3],
                                             const float bbmax[3]);
 
+/** Returns the distance between two 2D line segments. */
+float dist_seg_seg_v2(const float a1[3], const float a2[3], const float b1[3], const float b2[3]);
+
 float closest_to_ray_v3(float r_close[3],
                         const float p[3],
                         const float ray_orig[3],
