@@ -81,7 +81,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     int point_index = 0;
 
     for (SplinePtr &spline : splines) {
-      if (spline->type() != Spline::Type::Bezier) {
+      if (spline->type() != CURVE_TYPE_BEZIER) {
         point_index += spline->positions().size();
         continue;
       }

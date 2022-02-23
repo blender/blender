@@ -59,7 +59,7 @@ static void select_curve_by_handle_type(const CurveEval &curve,
   threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
     for (const int i_spline : range) {
       const Spline &spline = *splines[i_spline];
-      if (spline.type() == Spline::Type::Bezier) {
+      if (spline.type() == CURVE_TYPE_BEZIER) {
         const BezierSpline &bezier_spline = static_cast<const BezierSpline &>(spline);
         Span<int8_t> types_left = bezier_spline.handle_types_left();
         Span<int8_t> types_right = bezier_spline.handle_types_right();

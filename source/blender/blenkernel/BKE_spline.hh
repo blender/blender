@@ -51,12 +51,6 @@ using SplinePtr = std::unique_ptr<Spline>;
  */
 class Spline {
  public:
-  enum class Type {
-    Bezier,
-    NURBS,
-    Poly,
-  };
-
   enum NormalCalculationMode {
     ZUp,
     Minimum,
@@ -67,7 +61,7 @@ class Spline {
   blender::bke::CustomDataAttributes attributes;
 
  protected:
-  Type type_;
+  CurveType type_;
   bool is_cyclic_ = false;
 
   /** Direction of the spline at each evaluated point. */
@@ -87,7 +81,7 @@ class Spline {
 
  public:
   virtual ~Spline() = default;
-  Spline(const Type type) : type_(type)
+  Spline(const CurveType type) : type_(type)
   {
   }
   Spline(Spline &other) : attributes(other.attributes), type_(other.type_)
@@ -109,7 +103,7 @@ class Spline {
   SplinePtr copy_without_attributes() const;
   static void copy_base_settings(const Spline &src, Spline &dst);
 
-  Spline::Type type() const;
+  CurveType type() const;
 
   /** Return the number of control points. */
   virtual int size() const = 0;
@@ -285,7 +279,7 @@ class BezierSpline final : public Spline {
   mutable bool mapping_cache_dirty_ = true;
 
  public:
-  BezierSpline() : Spline(Type::Bezier)
+  BezierSpline() : Spline(CURVE_TYPE_BEZIER)
   {
   }
   BezierSpline(const BezierSpline &other)
@@ -508,7 +502,7 @@ class NURBSpline final : public Spline {
   mutable bool position_cache_dirty_ = true;
 
  public:
-  NURBSpline() : Spline(Type::NURBS)
+  NURBSpline() : Spline(CURVE_TYPE_NURBS)
   {
   }
   NURBSpline(const NURBSpline &other)
@@ -575,7 +569,7 @@ class PolySpline final : public Spline {
   blender::Vector<float> tilts_;
 
  public:
-  PolySpline() : Spline(Type::Poly)
+  PolySpline() : Spline(CURVE_TYPE_POLY)
   {
   }
   PolySpline(const PolySpline &other)
@@ -647,7 +641,7 @@ struct CurveEval {
    * \note If you are looping over all of the splines in the same scope anyway,
    * it's better to avoid calling this function, in case there are many splines.
    */
-  bool has_spline_with_type(const Spline::Type type) const;
+  bool has_spline_with_type(const CurveType type) const;
 
   void resize(int size);
   /**

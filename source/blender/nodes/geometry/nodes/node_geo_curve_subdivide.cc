@@ -217,20 +217,20 @@ static void subdivide_builtin_attributes(const Spline &src_spline,
   subdivide_attribute<float>(src_spline.radii(), offsets, is_cyclic, dst_spline.radii());
   subdivide_attribute<float>(src_spline.tilts(), offsets, is_cyclic, dst_spline.tilts());
   switch (src_spline.type()) {
-    case Spline::Type::Poly: {
+    case CURVE_TYPE_POLY: {
       const PolySpline &src = static_cast<const PolySpline &>(src_spline);
       PolySpline &dst = static_cast<PolySpline &>(dst_spline);
       subdivide_attribute<float3>(src.positions(), offsets, is_cyclic, dst.positions());
       break;
     }
-    case Spline::Type::Bezier: {
+    case CURVE_TYPE_BEZIER: {
       const BezierSpline &src = static_cast<const BezierSpline &>(src_spline);
       BezierSpline &dst = static_cast<BezierSpline &>(dst_spline);
       subdivide_bezier_spline(src, offsets, dst);
       dst.mark_cache_invalid();
       break;
     }
-    case Spline::Type::NURBS: {
+    case CURVE_TYPE_NURBS: {
       const NURBSpline &src = static_cast<const NURBSpline &>(src_spline);
       NURBSpline &dst = static_cast<NURBSpline &>(dst_spline);
       subdivide_attribute<float3>(src.positions(), offsets, is_cyclic, dst.positions());

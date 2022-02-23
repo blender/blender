@@ -420,14 +420,17 @@ static Array<float3> curve_normal_point_domain(const CurveEval &curve)
       const Spline &spline = *splines[i];
       MutableSpan spline_normals{normals.as_mutable_span().slice(offsets[i], spline.size())};
       switch (splines[i]->type()) {
-        case Spline::Type::Bezier:
+        case CURVE_TYPE_BEZIER:
           calculate_bezier_normals(static_cast<const BezierSpline &>(spline), spline_normals);
           break;
-        case Spline::Type::Poly:
+        case CURVE_TYPE_POLY:
           calculate_poly_normals(static_cast<const PolySpline &>(spline), spline_normals);
           break;
-        case Spline::Type::NURBS:
+        case CURVE_TYPE_NURBS:
           calculate_nurbs_normals(static_cast<const NURBSpline &>(spline), spline_normals);
+          break;
+        case CURVE_TYPE_CATMULL_ROM:
+          BLI_assert_unreachable();
           break;
       }
     }
@@ -447,7 +450,7 @@ VArray<float3> curve_normals_varray(const CurveComponent &component, const Attri
 
     /* Use a reference to evaluated normals if possible to avoid an allocation and a copy.
      * This is only possible when there is only one poly spline. */
-    if (splines.size() == 1 && splines.first()->type() == Spline::Type::Poly) {
+    if (splines.size() == 1 && splines.first()->type() == CURVE_TYPE_POLY) {
       const PolySpline &spline = static_cast<PolySpline &>(*splines.first());
       return VArray<float3>::ForSpan(spline.evaluated_normals());
     }
@@ -955,7 +958,7 @@ class VArrayImpl_For_BezierHandles final : public VMutableArrayImpl<float3> {
   {
     const PointIndices indices = lookup_point_indices(offsets_, index);
     const Spline &spline = *splines_[indices.spline_index];
-    if (spline.type() == Spline::Type::Bezier) {
+    if (spline.type() == CURVE_TYPE_BEZIER) {
       const BezierSpline &bezier_spline = static_cast<const BezierSpline &>(spline);
       return is_right_ ? bezier_spline.handle_positions_right()[indices.point_index] :
                          bezier_spline.handle_positions_left()[indices.point_index];
@@ -967,7 +970,7 @@ class VArrayImpl_For_BezierHandles final : public VMutableArrayImpl<float3> {
   {
     const PointIndices indices = lookup_point_indices(offsets_, index);
     Spline &spline = *splines_[indices.spline_index];
-    if (spline.type() == Spline::Type::Bezier) {
+    if (spline.type() == CURVE_TYPE_BEZIER) {
       BezierSpline &bezier_spline = static_cast<BezierSpline &>(spline);
       if (is_right_) {
         bezier_spline.set_handle_position_right(indices.point_index, value);
@@ -983,7 +986,7 @@ class VArrayImpl_For_BezierHandles final : public VMutableArrayImpl<float3> {
   {
     for (const int spline_index : splines_.index_range()) {
       Spline &spline = *splines_[spline_index];
-      if (spline.type() == Spline::Type::Bezier) {
+      if (spline.type() == CURVE_TYPE_BEZIER) {
         const int offset = offsets_[spline_index];
 
         BezierSpline &bezier_spline = static_cast<BezierSpline &>(spline);
@@ -1024,7 +1027,7 @@ class VArrayImpl_For_BezierHandles final : public VMutableArrayImpl<float3> {
   {
     Array<Span<float3>> spans(splines.size());
     for (const int i : spans.index_range()) {
-      if (splines[i]->type() == Spline::Type::Bezier) {
+      if (splines[i]->type() == CURVE_TYPE_BEZIER) {
         BezierSpline &bezier_spline = static_cast<BezierSpline &>(*splines[i]);
         spans[i] = is_right ? bezier_spline.handle_positions_right() :
                               bezier_spline.handle_positions_left();
@@ -1214,7 +1217,7 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
 
     /* Use the regular position virtual array when there aren't any Bezier splines
      * to avoid the overhead of checking the spline type for every point. */
-    if (!curve->has_spline_with_type(Spline::Type::Bezier)) {
+    if (!curve->has_spline_with_type(CURVE_TYPE_BEZIER)) {
       return BuiltinPointAttributeProvider<float3>::try_get_for_write(component);
     }
 
@@ -1255,7 +1258,7 @@ class BezierHandleAttributeProvider : public BuiltinAttributeProvider {
       return {};
     }
 
-    if (!curve->has_spline_with_type(Spline::Type::Bezier)) {
+    if (!curve->has_spline_with_type(CURVE_TYPE_BEZIER)) {
       return {};
     }
 
@@ -1273,7 +1276,7 @@ class BezierHandleAttributeProvider : public BuiltinAttributeProvider {
       return {};
     }
 
-    if (!curve->has_spline_with_type(Spline::Type::Bezier)) {
+    if (!curve->has_spline_with_type(CURVE_TYPE_BEZIER)) {
       return {};
     }
 
@@ -1304,7 +1307,7 @@ class BezierHandleAttributeProvider : public BuiltinAttributeProvider {
       return false;
     }
 
-    return curve->has_spline_with_type(Spline::Type::Bezier) &&
+    return curve->has_spline_with_type(CURVE_TYPE_BEZIER) &&
            component.attribute_domain_size(ATTR_DOMAIN_POINT) != 0;
   }
 };

@@ -367,13 +367,13 @@ static void trim_spline(SplinePtr &spline,
                         const Spline::LookupResult end)
 {
   switch (spline->type()) {
-    case Spline::Type::Bezier:
+    case CURVE_TYPE_BEZIER:
       trim_bezier_spline(*spline, start, end);
       break;
-    case Spline::Type::Poly:
+    case CURVE_TYPE_POLY:
       trim_poly_spline(*spline, start, end);
       break;
-    case Spline::Type::NURBS:
+    case CURVE_TYPE_NURBS:
       spline = std::make_unique<PolySpline>(trim_nurbs_spline(*spline, start, end));
       break;
   }
@@ -477,13 +477,13 @@ static PolySpline to_single_point_nurbs(const Spline &spline, const Spline::Look
 static void to_single_point_spline(SplinePtr &spline, const Spline::LookupResult &lookup)
 {
   switch (spline->type()) {
-    case Spline::Type::Bezier:
+    case CURVE_TYPE_BEZIER:
       to_single_point_bezier(*spline, lookup);
       break;
-    case Spline::Type::Poly:
+    case CURVE_TYPE_POLY:
       to_single_point_poly(*spline, lookup);
       break;
-    case Spline::Type::NURBS:
+    case CURVE_TYPE_NURBS:
       spline = std::make_unique<PolySpline>(to_single_point_nurbs(*spline, lookup));
       break;
   }

@@ -54,7 +54,7 @@ static void select_by_handle_type(const CurveEval &curve,
 {
   int offset = 0;
   for (const SplinePtr &spline : curve.splines()) {
-    if (spline->type() != Spline::Type::Bezier) {
+    if (spline->type() != CURVE_TYPE_BEZIER) {
       r_selection.slice(offset, spline->size()).fill(false);
       offset += spline->size();
     }

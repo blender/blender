@@ -36,7 +36,7 @@ blender::MutableSpan<SplinePtr> CurveEval::splines()
   return splines_;
 }
 
-bool CurveEval::has_spline_with_type(const Spline::Type type) const
+bool CurveEval::has_spline_with_type(const CurveType type) const
 {
   for (const SplinePtr &spline : this->splines()) {
     if (spline->type() == type) {

@@ -512,7 +512,7 @@ static SplinePtr fillet_spline(const Spline &spline,
   copy_common_attributes_by_mapping(spline, *dst_spline_ptr, dst_to_src);
 
   switch (spline.type()) {
-    case Spline::Type::Bezier: {
+    case CURVE_TYPE_BEZIER: {
       const BezierSpline &src_spline = static_cast<const BezierSpline &>(spline);
       BezierSpline &dst_spline = static_cast<BezierSpline &>(*dst_spline_ptr);
       if (fillet_param.mode == GEO_NODE_CURVE_FILLET_POLY) {
@@ -525,11 +525,11 @@ static SplinePtr fillet_spline(const Spline &spline,
       }
       break;
     }
-    case Spline::Type::Poly: {
+    case CURVE_TYPE_POLY: {
       update_poly_positions(fd, *dst_spline_ptr, spline, point_counts);
       break;
     }
-    case Spline::Type::NURBS: {
+    case CURVE_TYPE_NURBS: {
       const NURBSpline &src_spline = static_cast<const NURBSpline &>(spline);
       NURBSpline &dst_spline = static_cast<NURBSpline &>(*dst_spline_ptr);
       copy_attribute_by_mapping(src_spline.weights(), dst_spline.weights(), dst_to_src);

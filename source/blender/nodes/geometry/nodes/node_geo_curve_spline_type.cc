@@ -315,11 +315,11 @@ static SplinePtr nurbs_to_bezier(const Spline &input)
 static SplinePtr convert_to_bezier(const Spline &input, GeoNodeExecParams params)
 {
   switch (input.type()) {
-    case Spline::Type::Bezier:
+    case CURVE_TYPE_BEZIER:
       return input.copy();
-    case Spline::Type::Poly:
+    case CURVE_TYPE_POLY:
       return poly_to_bezier(input);
-    case Spline::Type::NURBS:
+    case CURVE_TYPE_NURBS:
       if (input.size() < 4) {
         params.error_message_add(
             NodeWarningType::Info,
@@ -335,11 +335,11 @@ static SplinePtr convert_to_bezier(const Spline &input, GeoNodeExecParams params
 static SplinePtr convert_to_nurbs(const Spline &input)
 {
   switch (input.type()) {
-    case Spline::Type::NURBS:
+    case CURVE_TYPE_NURBS:
       return input.copy();
-    case Spline::Type::Bezier:
+    case CURVE_TYPE_BEZIER:
       return bezier_to_nurbs(input);
-    case Spline::Type::Poly:
+    case CURVE_TYPE_POLY:
       return poly_to_nurbs(input);
   }
   BLI_assert_unreachable();
