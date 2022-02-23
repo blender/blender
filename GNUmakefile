@@ -489,7 +489,7 @@ check_pep8: .FORCE
 
 check_cmake: .FORCE
 	@PYTHONIOENCODING=utf_8 $(PYTHON) \
-	    build_files/cmake/cmake_consistency_check.py
+	    source/tools/check_source/check_cmake_consistency.py
 
 
 # -----------------------------------------------------------------------------
