@@ -973,10 +973,10 @@ class VArrayImpl_For_BezierHandles final : public VMutableArrayImpl<float3> {
     if (spline.type() == CURVE_TYPE_BEZIER) {
       BezierSpline &bezier_spline = static_cast<BezierSpline &>(spline);
       if (is_right_) {
-        bezier_spline.set_handle_position_right(indices.point_index, value);
+        bezier_spline.handle_positions_right()[indices.point_index] = value;
       }
       else {
-        bezier_spline.set_handle_position_left(indices.point_index, value);
+        bezier_spline.handle_positions_left()[indices.point_index] = value;
       }
       bezier_spline.mark_cache_invalid();
     }
@@ -992,12 +992,12 @@ class VArrayImpl_For_BezierHandles final : public VMutableArrayImpl<float3> {
         BezierSpline &bezier_spline = static_cast<BezierSpline &>(spline);
         if (is_right_) {
           for (const int i : IndexRange(bezier_spline.size())) {
-            bezier_spline.set_handle_position_right(i, src[offset + i]);
+            bezier_spline.handle_positions_right()[i] = src[offset + i];
           }
         }
         else {
           for (const int i : IndexRange(bezier_spline.size())) {
-            bezier_spline.set_handle_position_left(i, src[offset + i]);
+            bezier_spline.handle_positions_left()[i] = src[offset + i];
           }
         }
         bezier_spline.mark_cache_invalid();
