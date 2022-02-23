@@ -91,13 +91,22 @@ static std::unique_ptr<CurveEval> create_bezier_segment_curve(
   positions.first() = start;
   positions.last() = end;
 
+  MutableSpan<float3> handles_right = spline->handle_positions_right();
+  MutableSpan<float3> handles_left = spline->handle_positions_left();
+
   if (mode == GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_POSITION) {
-    spline->set_handle_position_right(0, start_handle_right);
-    spline->set_handle_position_left(1, end_handle_left);
+    handles_left.first() = 2.0f * start - start_handle_right;
+    handles_right.first() = start_handle_right;
+
+    handles_left.last() = end_handle_left;
+    handles_right.last() = 2.0f * end - end_handle_left;
   }
   else {
-    spline->set_handle_position_right(0, start + start_handle_right);
-    spline->set_handle_position_left(1, end + end_handle_left);
+    handles_left.first() = start - start_handle_right;
+    handles_right.first() = start + start_handle_right;
+
+    handles_left.last() = end + end_handle_left;
+    handles_right.last() = end - end_handle_left;
   }
 
   curve->add_spline(std::move(spline));
