@@ -1651,12 +1651,16 @@ bool OSLRenderServices::trace(TraceOpt &options,
   ray.D = TO_FLOAT3(R);
   ray.t = (options.maxdist == 1.0e30f) ? FLT_MAX : options.maxdist - options.mindist;
   ray.time = sd->time;
+  ray.self.object = OBJECT_NONE;
+  ray.self.prim = PRIM_NONE;
+  ray.self.light_object = OBJECT_NONE;
+  ray.self.light_prim = PRIM_NONE;
 
   if (options.mindist == 0.0f) {
     /* avoid self-intersections */
     if (ray.P == sd->P) {
-      bool transmit = (dot(sd->Ng, ray.D) < 0.0f);
-      ray.P = ray_offset(sd->P, (transmit) ? -sd->Ng : sd->Ng);
+      ray.self.object = sd->object;
+      ray.self.prim = sd->prim;
     }
   }
   else {
