@@ -240,6 +240,7 @@ set(SRC
   BLI_math_vec_mpq_types.hh
   BLI_math_vec_types.hh
   BLI_math_vector.h
+  BLI_math_vector.hh
   BLI_memarena.h
   BLI_memblock.h
   BLI_memiter.h
@@ -308,6 +309,9 @@ set(SRC
   BLI_winstuff.h
   PIL_time.h
   PIL_time_utildefines.h
+
+  # Without these files listed, they aren't known to CMake.
+  ../../../extern/json/include/json.hpp
 )
 
 set(LIB
