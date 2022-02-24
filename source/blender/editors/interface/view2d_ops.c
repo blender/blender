@@ -1465,7 +1465,7 @@ static int view2d_ndof_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   /* tune these until it feels right */
   const float zoom_sensitivity = 0.5f;
   const float speed = 10.0f; /* match view3d ortho */
-  const bool has_translate = (ndof->tvec[0] && ndof->tvec[1]) && view_pan_poll(C);
+  const bool has_translate = !is_zero_v2(ndof->tvec) && view_pan_poll(C);
   const bool has_zoom = (ndof->tvec[2] != 0.0f) && view_zoom_poll(C);
 
   if (has_translate) {
