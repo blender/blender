@@ -4,6 +4,8 @@
 #include "DNA_meshdata_types.h"
 #include "node_geometry_util.hh"
 
+#include "BKE_mesh.h"
+
 namespace blender::nodes::node_geo_input_mesh_face_is_planar_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
