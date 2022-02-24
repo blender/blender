@@ -1001,7 +1001,22 @@ static bool vfont_to_curve(Object *ob,
       }
       else if (x_used > x_available) {
         // CLOG_WARN(&LOG, "linewidth exceeded: %c%c%c...", mem[i], mem[i+1], mem[i+2]);
-        for (j = i; j && (mem[j] != '\n') && (chartransdata[j].dobreak == 0); j--) {
+        for (j = i; (mem[j] != '\n') && (chartransdata[j].dobreak == 0); j--) {
+
+          /* Special case when there are no breaks possible. */
+          if (UNLIKELY(j == 0)) {
+            if (i == slen) {
+              /* Use the behavior of zero a height text-box when a break cannot be inserted.
+               *
+               * Typically when a text-box has any height and overflow is set to scale
+               * the text will wrap to fit the width as necessary. When wrapping isn't
+               * possible it's important to use the same code-path as zero-height lines.
+               * Without this exception a single word will not scale-to-fit (see: T95116). */
+              tb_scale.h = 0.0f;
+            }
+            break;
+          }
+
           bool dobreak = false;
           if (ELEM(mem[j], ' ', '-')) {
             ct -= (i - (j - 1));
