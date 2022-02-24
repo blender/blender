@@ -226,10 +226,10 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
 
   if (!me || !me->totvert) {
     if (me && is_new) { /* No verts? still copy custom-data layout. */
-      CustomData_copy(&me->vdata, &bm->vdata, mask.vmask, CD_ASSIGN, 0);
-      CustomData_copy(&me->edata, &bm->edata, mask.emask, CD_ASSIGN, 0);
-      CustomData_copy(&me->ldata, &bm->ldata, mask.lmask, CD_ASSIGN, 0);
-      CustomData_copy(&me->pdata, &bm->pdata, mask.pmask, CD_ASSIGN, 0);
+      CustomData_copy(&me->vdata, &bm->vdata, mask.vmask, CD_DEFAULT, 0);
+      CustomData_copy(&me->edata, &bm->edata, mask.emask, CD_DEFAULT, 0);
+      CustomData_copy(&me->ldata, &bm->ldata, mask.lmask, CD_DEFAULT, 0);
+      CustomData_copy(&me->pdata, &bm->pdata, mask.pmask, CD_DEFAULT, 0);
 
       CustomData_bmesh_init_pool(&bm->vdata, me->totvert, BM_VERT);
       CustomData_bmesh_init_pool(&bm->edata, me->totedge, BM_EDGE);
