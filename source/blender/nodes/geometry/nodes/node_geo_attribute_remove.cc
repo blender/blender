@@ -33,25 +33,18 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   Vector<std::string> attribute_names = params.extract_multi_input<std::string>("Attribute");
 
-  if (geometry_set.has<MeshComponent>()) {
-    remove_attribute(
-        geometry_set.get_component_for_write<MeshComponent>(), params, attribute_names);
-  }
-  if (geometry_set.has<PointCloudComponent>()) {
-    remove_attribute(
-        geometry_set.get_component_for_write<PointCloudComponent>(), params, attribute_names);
-  }
-  if (geometry_set.has<CurveComponent>()) {
-    remove_attribute(
-        geometry_set.get_component_for_write<CurveComponent>(), params, attribute_names);
-  }
-  if (geometry_set.has<InstancesComponent>()) {
-    remove_attribute(
-        geometry_set.get_component_for_write<InstancesComponent>(), params, attribute_names);
+  for (const GeometryComponentType type : {GEO_COMPONENT_TYPE_MESH,
+                                           GEO_COMPONENT_TYPE_POINT_CLOUD,
+                                           GEO_COMPONENT_TYPE_CURVE,
+                                           GEO_COMPONENT_TYPE_INSTANCES}) {
+    if (geometry_set.has(type)) {
+      remove_attribute(geometry_set.get_component_for_write(type), params, attribute_names);
+    }
   }
 
   params.set_output("Geometry", geometry_set);
 }
+
 }  // namespace blender::nodes::node_geo_attribute_remove_cc
 
 void register_node_type_geo_attribute_remove()
