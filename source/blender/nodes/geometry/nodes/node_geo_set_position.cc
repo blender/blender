@@ -61,6 +61,41 @@ static void set_computed_position_and_offset(GeometryComponent &component,
       }
       break;
     }
+    case GEO_COMPONENT_TYPE_CURVE: {
+      if (component.attribute_exists("handle_right") &&
+          component.attribute_exists("handle_left")) {
+        OutputAttribute_Typed<float3> handle_right_attribute =
+            component.attribute_try_get_for_output<float3>(
+                "handle_right", ATTR_DOMAIN_POINT, {0, 0, 0});
+        OutputAttribute_Typed<float3> handle_left_attribute =
+            component.attribute_try_get_for_output<float3>(
+                "handle_left", ATTR_DOMAIN_POINT, {0, 0, 0});
+        MutableSpan<float3> handle_right = handle_right_attribute.as_span();
+        MutableSpan<float3> handle_left = handle_left_attribute.as_span();
+
+        MutableSpan<float3> out_positions_span = positions.as_span();
+        devirtualize_varray2(
+            in_positions, in_offsets, [&](const auto in_positions, const auto in_offsets) {
+              threading::parallel_for(
+                  selection.index_range(), grain_size, [&](const IndexRange range) {
+                    for (const int i : selection.slice(range)) {
+                      const float3 new_position = in_positions[i] + in_offsets[i];
+                      const float3 delta = new_position - out_positions_span[i];
+                      handle_right[i] += delta;
+                      handle_left[i] += delta;
+                      out_positions_span[i] = new_position;
+                    }
+                  });
+            });
+
+        handle_right_attribute.save();
+        handle_left_attribute.save();
+        break;
+      }
+      else {
+        ATTR_FALLTHROUGH;
+      }
+    }
     default: {
       MutableSpan<float3> out_positions_span = positions.as_span();
       if (in_positions.is_same(positions.varray())) {
