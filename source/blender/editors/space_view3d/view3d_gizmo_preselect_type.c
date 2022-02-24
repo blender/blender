@@ -105,8 +105,8 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
   MeshElemGizmo3D *gz_ele = (MeshElemGizmo3D *)gz;
 
   /* Hack: Switch action mode based on key input */
-  const bool is_ctrl_pressed = WM_event_modifier_flag(event) & KM_CTRL;
-  const bool is_shift_pressed = WM_event_modifier_flag(event) & KM_SHIFT;
+  const bool is_ctrl_pressed = (event->modifier & KM_CTRL) != 0;
+  const bool is_shift_pressed = (event->modifier & KM_SHIFT) != 0;
   EDBM_preselect_action_set(gz_ele->psel, PRESELECT_ACTION_TRANSFORM);
   if (is_ctrl_pressed && !is_shift_pressed) {
     EDBM_preselect_action_set(gz_ele->psel, PRESELECT_ACTION_CREATE);

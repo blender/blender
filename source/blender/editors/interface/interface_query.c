@@ -310,7 +310,7 @@ uiBut *ui_but_find_mouse_over_ex(const ARegion *region,
 
 uiBut *ui_but_find_mouse_over(const ARegion *region, const wmEvent *event)
 {
-  return ui_but_find_mouse_over_ex(region, event->xy, event->ctrl != 0, NULL, NULL);
+  return ui_but_find_mouse_over_ex(region, event->xy, event->modifier & KM_CTRL, NULL, NULL);
 }
 
 uiBut *ui_but_find_rect_over(const struct ARegion *region, const rcti *rect_px)

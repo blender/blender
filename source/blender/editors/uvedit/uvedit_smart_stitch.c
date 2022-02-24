@@ -2598,7 +2598,7 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
       /* Increase limit */
     case EVT_PADPLUSKEY:
     case WHEELUPMOUSE:
-      if (event->val == KM_PRESS && event->alt) {
+      if ((event->val == KM_PRESS) && (event->modifier & KM_ALT)) {
         ssc->limit_dist += 0.01f;
         if (!stitch_process_data(ssc, active_state, scene, false)) {
           stitch_cancel(C, op);
@@ -2612,7 +2612,7 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
       /* Decrease limit */
     case EVT_PADMINUS:
     case WHEELDOWNMOUSE:
-      if (event->val == KM_PRESS && event->alt) {
+      if ((event->val == KM_PRESS) && (event->modifier & KM_ALT)) {
         ssc->limit_dist -= 0.01f;
         ssc->limit_dist = MAX2(0.01f, ssc->limit_dist);
         if (!stitch_process_data(ssc, active_state, scene, false)) {
@@ -2673,7 +2673,7 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
       /* Select geometry */
     case RIGHTMOUSE:
-      if (!event->shift) {
+      if ((event->modifier & KM_SHIFT) == 0) {
         stitch_cancel(C, op);
         return OPERATOR_CANCELLED;
       }

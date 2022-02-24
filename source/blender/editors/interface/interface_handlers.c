@@ -275,7 +275,7 @@ static void ui_selectcontext_apply(bContext *C,
                                    const double value,
                                    const double value_orig);
 
-#  define IS_ALLSELECT_EVENT(event) ((event)->alt != 0)
+#  define IS_ALLSELECT_EVENT(event) (((event)->modifier & KM_ALT) != 0)
 
 /** just show a tinted color so users know its activated */
 #  define UI_BUT_IS_SELECT_CONTEXT UI_BUT_NODE_ACTIVE
@@ -708,7 +708,8 @@ enum eSnapType {
 
 static enum eSnapType ui_event_to_snap(const wmEvent *event)
 {
-  return (event->ctrl) ? (event->shift) ? SNAP_ON_SMALL : SNAP_ON : SNAP_OFF;
+  return (event->modifier & KM_CTRL) ? (event->modifier & KM_SHIFT) ? SNAP_ON_SMALL : SNAP_ON :
+                                       SNAP_OFF;
 }
 
 static bool ui_event_is_snap(const wmEvent *event)
@@ -1937,7 +1938,7 @@ static void ui_selectcontext_apply(bContext *C,
           /* could check for 'handle_layer_buttons' */
           but->func) {
         wmWindow *win = CTX_wm_window(C);
-        if (!win->eventstate->shift) {
+        if ((win->eventstate->modifier & KM_SHIFT) == 0) {
           const int len = RNA_property_array_length(&but->rnapoin, prop);
           bool *tmparray = MEM_callocN(sizeof(bool) * len, __func__);
 
@@ -3747,11 +3748,11 @@ static void ui_do_but_textedit(
       case EVT_XKEY:
       case EVT_CKEY:
 #if defined(__APPLE__)
-        if ((event->oskey && !IS_EVENT_MOD(event, shift, alt, ctrl)) ||
-            (event->ctrl && !IS_EVENT_MOD(event, shift, alt, oskey))) {
+        if (ELEM(event->modifier, KM_OSKEY, KM_CTRL))
 #else
-        if (event->ctrl && !IS_EVENT_MOD(event, shift, alt, oskey)) {
+        if (event->modifier == KM_CTRL)
 #endif
+        {
           if (event->type == EVT_VKEY) {
             changed = ui_textedit_copypaste(but, data, UI_TEXTEDIT_PASTE);
           }
@@ -3769,16 +3770,16 @@ static void ui_do_but_textedit(
         ui_textedit_move(but,
                          data,
                          STRCUR_DIR_NEXT,
-                         event->shift != 0,
-                         event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
+                         event->modifier & KM_SHIFT,
+                         (event->modifier & KM_CTRL) ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
         retval = WM_UI_HANDLER_BREAK;
         break;
       case EVT_LEFTARROWKEY:
         ui_textedit_move(but,
                          data,
                          STRCUR_DIR_PREV,
-                         event->shift != 0,
-                         event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
+                         event->modifier & KM_SHIFT,
+                         (event->modifier & KM_CTRL) ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
         retval = WM_UI_HANDLER_BREAK;
         break;
       case WHEELDOWNMOUSE:
@@ -3795,7 +3796,7 @@ static void ui_do_but_textedit(
         }
         ATTR_FALLTHROUGH;
       case EVT_ENDKEY:
-        ui_textedit_move(but, data, STRCUR_DIR_NEXT, event->shift != 0, STRCUR_JUMP_ALL);
+        ui_textedit_move(but, data, STRCUR_DIR_NEXT, event->modifier & KM_SHIFT, STRCUR_JUMP_ALL);
         retval = WM_UI_HANDLER_BREAK;
         break;
       case WHEELUPMOUSE:
@@ -3812,7 +3813,7 @@ static void ui_do_but_textedit(
         }
         ATTR_FALLTHROUGH;
       case EVT_HOMEKEY:
-        ui_textedit_move(but, data, STRCUR_DIR_PREV, event->shift != 0, STRCUR_JUMP_ALL);
+        ui_textedit_move(but, data, STRCUR_DIR_PREV, event->modifier & KM_SHIFT, STRCUR_JUMP_ALL);
         retval = WM_UI_HANDLER_BREAK;
         break;
       case EVT_PADENTER:
@@ -3822,13 +3823,13 @@ static void ui_do_but_textedit(
         break;
       case EVT_DELKEY:
         changed = ui_textedit_delete(
-            but, data, 1, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
+            but, data, 1, (event->modifier & KM_CTRL) ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
         retval = WM_UI_HANDLER_BREAK;
         break;
 
       case EVT_BACKSPACEKEY:
         changed = ui_textedit_delete(
-            but, data, 0, event->ctrl ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
+            but, data, 0, (event->modifier & KM_CTRL) ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
         retval = WM_UI_HANDLER_BREAK;
         break;
 
@@ -3837,10 +3838,9 @@ static void ui_do_but_textedit(
         /* Ctrl-A: Select all. */
 #if defined(__APPLE__)
         /* OSX uses Command-A system-wide, so add it. */
-        if ((event->oskey && !IS_EVENT_MOD(event, shift, alt, ctrl)) ||
-            (event->ctrl && !IS_EVENT_MOD(event, shift, alt, oskey)))
+        if (ELEM(event->modifier, KM_OSKEY, KM_CTRL))
 #else
-        if (event->ctrl && !IS_EVENT_MOD(event, shift, alt, oskey))
+        if (event->modifier == KM_CTRL)
 #endif
         {
           ui_textedit_move(but, data, STRCUR_DIR_PREV, false, STRCUR_JUMP_ALL);
@@ -3859,9 +3859,9 @@ static void ui_do_but_textedit(
             button_activate_state(C, but, BUTTON_STATE_EXIT);
           }
         }
-        else if (!IS_EVENT_MOD(event, ctrl, alt, oskey)) {
+        else if ((event->modifier & (KM_CTRL | KM_ALT | KM_OSKEY)) == 0) {
           /* Use standard keys for cycling through buttons Tab, Shift-Tab to reverse. */
-          if (event->shift) {
+          if (event->modifier & KM_SHIFT) {
             ui_textedit_prev_but(block, but, data);
           }
           else {
@@ -3874,12 +3874,12 @@ static void ui_do_but_textedit(
       case EVT_ZKEY: {
         /* Ctrl-Z or Ctrl-Shift-Z: Undo/Redo (allowing for OS-Key on Apple). */
 
-        const bool is_redo = (event->shift != 0);
+        const bool is_redo = (event->modifier & KM_SHIFT);
         if (
 #if defined(__APPLE__)
-            (event->oskey && !IS_EVENT_MOD(event, alt, ctrl)) ||
+            ((event->modifier & KM_OSKEY) && ((event->modifier & (KM_ALT | KM_CTRL)) == 0)) ||
 #endif
-            (event->ctrl && !IS_EVENT_MOD(event, alt, oskey))) {
+            ((event->modifier & KM_CTRL) && ((event->modifier & (KM_ALT | KM_OSKEY)) == 0))) {
           int undo_pos;
           const char *undo_str = ui_textedit_undo(
               data->undo_stack_text, is_redo ? 1 : -1, &undo_pos);
@@ -4542,19 +4542,7 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
     }
 
     /* always set */
-    but->modifier_key = 0;
-    if (event->shift) {
-      but->modifier_key |= KM_SHIFT;
-    }
-    if (event->alt) {
-      but->modifier_key |= KM_ALT;
-    }
-    if (event->ctrl) {
-      but->modifier_key |= KM_CTRL;
-    }
-    if (event->oskey) {
-      but->modifier_key |= KM_OSKEY;
-    }
+    but->modifier_key = event->modifier;
 
     ui_but_update(but);
     ED_region_tag_redraw(data->region);
@@ -4633,7 +4621,8 @@ static int ui_do_but_TAB(
     const int rna_type = but->rnaprop ? RNA_property_type(but->rnaprop) : 0;
 
     if (is_property && ELEM(rna_type, PROP_POINTER, PROP_STRING) && (but->custom_data != NULL) &&
-        (event->type == LEFTMOUSE) && ((event->val == KM_DBL_CLICK) || event->ctrl)) {
+        (event->type == LEFTMOUSE) &&
+        ((event->val == KM_DBL_CLICK) || (event->modifier & KM_CTRL))) {
       button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
       return WM_UI_HANDLER_BREAK;
     }
@@ -4666,7 +4655,8 @@ static int ui_do_but_TEX(
       if (ELEM(event->type, EVT_PADENTER, EVT_RETKEY) && (!UI_but_is_utf8(but))) {
         /* pass - allow filesel, enter to execute */
       }
-      else if (ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS) && !event->ctrl) {
+      else if (ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS) &&
+               ((event->modifier & KM_CTRL) == 0)) {
         /* pass */
       }
       else {
@@ -4735,7 +4725,7 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
       button_activate_state(C, but, BUTTON_STATE_EXIT);
       return WM_UI_HANDLER_BREAK;
     }
-    if (ELEM(event->type, MOUSEPAN, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->ctrl) {
+    if (ELEM(event->type, MOUSEPAN, WHEELDOWNMOUSE, WHEELUPMOUSE) && (event->modifier & KM_CTRL)) {
       /* Support Ctrl-Wheel to cycle values on expanded enum rows. */
       if (but->type == UI_BTYPE_ROW) {
         int type = event->type;
@@ -5325,24 +5315,24 @@ static int ui_do_but_NUM(
     }
 
     /* XXX hardcoded keymap check.... */
-    if (type == MOUSEPAN && event->ctrl) {
+    if (type == MOUSEPAN && (event->modifier & KM_CTRL)) {
       /* allow accumulating values, otherwise scrolling gets preference */
       retval = WM_UI_HANDLER_BREAK;
     }
-    else if (type == WHEELDOWNMOUSE && event->ctrl) {
+    else if (type == WHEELDOWNMOUSE && (event->modifier & KM_CTRL)) {
       mx = but->rect.xmin;
       but->drawflag &= ~UI_BUT_ACTIVE_RIGHT;
       but->drawflag |= UI_BUT_ACTIVE_LEFT;
       click = 1;
     }
-    else if (type == WHEELUPMOUSE && event->ctrl) {
+    else if ((type == WHEELUPMOUSE) && (event->modifier & KM_CTRL)) {
       mx = but->rect.xmax;
       but->drawflag &= ~UI_BUT_ACTIVE_LEFT;
       but->drawflag |= UI_BUT_ACTIVE_RIGHT;
       click = 1;
     }
     else if (event->val == KM_PRESS) {
-      if (ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY) && event->ctrl) {
+      if (ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY) && (event->modifier & KM_CTRL)) {
         button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
         retval = WM_UI_HANDLER_BREAK;
       }
@@ -5402,7 +5392,7 @@ static int ui_do_but_NUM(
 #endif
 
       fac = 1.0f;
-      if (event->shift) {
+      if (event->modifier & KM_SHIFT) {
         fac /= 10.0f;
       }
 
@@ -5668,27 +5658,27 @@ static int ui_do_but_SLI(
     }
 
     /* XXX hardcoded keymap check.... */
-    if (type == MOUSEPAN && event->ctrl) {
+    if ((type == MOUSEPAN) && (event->modifier & KM_CTRL)) {
       /* allow accumulating values, otherwise scrolling gets preference */
       retval = WM_UI_HANDLER_BREAK;
     }
-    else if (type == WHEELDOWNMOUSE && event->ctrl) {
+    else if ((type == WHEELDOWNMOUSE) && (event->modifier & KM_CTRL)) {
       mx = but->rect.xmin;
       click = 2;
     }
-    else if (type == WHEELUPMOUSE && event->ctrl) {
+    else if ((type == WHEELUPMOUSE) && (event->modifier & KM_CTRL)) {
       mx = but->rect.xmax;
       click = 2;
     }
     else if (event->val == KM_PRESS) {
-      if (ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY) && event->ctrl) {
+      if (ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY) && (event->modifier & KM_CTRL)) {
         button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
         retval = WM_UI_HANDLER_BREAK;
       }
 #ifndef USE_ALLSELECT
       /* alt-click on sides to get "arrows" like in UI_BTYPE_NUM buttons,
        * and match wheel usage above */
-      else if (event->type == LEFTMOUSE && event->alt) {
+      else if ((event->type == LEFTMOUSE) && (event->modifier & KM_ALT)) {
         int halfpos = BLI_rctf_cent_x(&but->rect);
         click = 2;
         if (mx < halfpos) {
@@ -5754,8 +5744,13 @@ static int ui_do_but_SLI(
       data->multi_data.drag_dir[0] += abs(data->draglastx - mx);
       data->multi_data.drag_dir[1] += abs(data->draglasty - my);
 #endif
-      if (ui_numedit_but_SLI(
-              but, data, mx, true, is_motion, event->ctrl != 0, event->shift != 0)) {
+      if (ui_numedit_but_SLI(but,
+                             data,
+                             mx,
+                             true,
+                             is_motion,
+                             event->modifier & KM_CTRL,
+                             event->modifier & KM_SHIFT)) {
         ui_numedit_apply(C, block, but, data);
       }
 
@@ -5981,8 +5976,8 @@ static int ui_do_but_LISTROW(bContext *C,
     /* hack to pass on ctrl+click and double click to overlapping text
      * editing field for editing list item names
      */
-    if ((ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY) && event->val == KM_PRESS &&
-         event->ctrl) ||
+    if ((ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY) && (event->val == KM_PRESS) &&
+         (event->modifier & KM_CTRL)) ||
         (event->type == LEFTMOUSE && event->val == KM_DBL_CLICK)) {
       uiBut *labelbut = ui_but_list_row_text_activate(
           C, but, data, event, BUTTON_ACTIVATE_TEXT_EDITING);
@@ -6023,7 +6018,8 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
       return WM_UI_HANDLER_BREAK;
     }
     if (ui_but_supports_cycling(but)) {
-      if (ELEM(event->type, MOUSEPAN, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->ctrl) {
+      if (ELEM(event->type, MOUSEPAN, WHEELDOWNMOUSE, WHEELUPMOUSE) &&
+          (event->modifier & KM_CTRL)) {
         int type = event->type;
         int val = event->val;
 
@@ -6210,7 +6206,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
       button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
       return WM_UI_HANDLER_BREAK;
     }
-    if (ELEM(event->type, MOUSEPAN, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->ctrl) {
+    if (ELEM(event->type, MOUSEPAN, WHEELDOWNMOUSE, WHEELUPMOUSE) && (event->modifier & KM_CTRL)) {
       ColorPicker *cpicker = but->custom_data;
       float hsv_static[3] = {0.0f};
       float *hsv = cpicker ? cpicker->hsv_perceptual : hsv_static;
@@ -6269,7 +6265,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
 
     if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
       if (color_but->is_pallete_color) {
-        if (!event->ctrl) {
+        if ((event->modifier & KM_CTRL) == 0) {
           float color[3];
           Paint *paint = BKE_paint_get_active_from_context(C);
           Brush *brush = BKE_paint_brush(paint);
@@ -6639,7 +6635,7 @@ static int ui_do_but_HSVCUBE(
       button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
       /* also do drag the first time */
-      if (ui_numedit_but_HSVCUBE(but, data, mx, my, snap, event->shift != 0)) {
+      if (ui_numedit_but_HSVCUBE(but, data, mx, my, snap, event->modifier & KM_SHIFT)) {
         ui_numedit_apply(C, block, but, data);
       }
 
@@ -6650,7 +6646,7 @@ static int ui_do_but_HSVCUBE(
       const wmNDOFMotionData *ndof = event->customdata;
       const enum eSnapType snap = ui_event_to_snap(event);
 
-      ui_ndofedit_but_HSVCUBE(hsv_but, data, ndof, snap, event->shift != 0);
+      ui_ndofedit_but_HSVCUBE(hsv_but, data, ndof, snap, event->modifier & KM_SHIFT);
 
       button_activate_state(C, but, BUTTON_STATE_EXIT);
       ui_apply_but(C, but->block, but, data, true);
@@ -6702,7 +6698,7 @@ static int ui_do_but_HSVCUBE(
       if (mx != data->draglastx || my != data->draglasty || event->type != MOUSEMOVE) {
         const enum eSnapType snap = ui_event_to_snap(event);
 
-        if (ui_numedit_but_HSVCUBE(but, data, mx, my, snap, event->shift != 0)) {
+        if (ui_numedit_but_HSVCUBE(but, data, mx, my, snap, event->modifier & KM_SHIFT)) {
           ui_numedit_apply(C, block, but, data);
         }
       }
@@ -6914,7 +6910,7 @@ static int ui_do_but_HSVCIRCLE(
       button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
       /* also do drag the first time */
-      if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, snap, event->shift != 0)) {
+      if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, snap, event->modifier & KM_SHIFT)) {
         ui_numedit_apply(C, block, but, data);
       }
 
@@ -6925,7 +6921,7 @@ static int ui_do_but_HSVCIRCLE(
       const enum eSnapType snap = ui_event_to_snap(event);
       const wmNDOFMotionData *ndof = event->customdata;
 
-      ui_ndofedit_but_HSVCIRCLE(but, data, ndof, snap, event->shift != 0);
+      ui_ndofedit_but_HSVCIRCLE(but, data, ndof, snap, event->modifier & KM_SHIFT);
 
       button_activate_state(C, but, BUTTON_STATE_EXIT);
       ui_apply_but(C, but->block, but, data, true);
@@ -6987,7 +6983,7 @@ static int ui_do_but_HSVCIRCLE(
       if (mx != data->draglastx || my != data->draglasty || event->type != MOUSEMOVE) {
         const enum eSnapType snap = ui_event_to_snap(event);
 
-        if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, snap, event->shift != 0)) {
+        if (ui_numedit_but_HSVCIRCLE(but, data, mx, my, snap, event->modifier & KM_SHIFT)) {
           ui_numedit_apply(C, block, but, data);
         }
       }
@@ -7037,7 +7033,7 @@ static int ui_do_but_COLORBAND(
     if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
       ColorBand *coba = (ColorBand *)but->poin;
 
-      if (event->ctrl) {
+      if (event->modifier & KM_CTRL) {
         /* insert new key on mouse location */
         const float pos = ((float)(mx - but->rect.xmin)) / BLI_rctf_size_x(&but->rect);
         BKE_colorband_element_add(coba, pos);
@@ -7237,7 +7233,7 @@ static int ui_do_but_CURVE(
       float dist_min_sq = square_f(U.dpi_fac * 14.0f); /* 14 pixels radius */
       int sel = -1;
 
-      if (event->ctrl) {
+      if (event->modifier & KM_CTRL) {
         float f_xy[2];
         BLI_rctf_transform_pt_v(&cumap->curr, &but->rect, f_xy, m_xy);
 
@@ -7301,7 +7297,7 @@ static int ui_do_but_CURVE(
       if (sel != -1) {
         /* ok, we move a point */
         /* deselect all if this one is deselect. except if we hold shift */
-        if (!event->shift) {
+        if ((event->modifier & KM_SHIFT) == 0) {
           for (int a = 0; a < cuma->totpoint; a++) {
             cmp[a].flag &= ~CUMA_SELECT;
           }
@@ -7336,8 +7332,8 @@ static int ui_do_but_CURVE(
                                  data,
                                  event->xy[0],
                                  event->xy[1],
-                                 event->ctrl != 0,
-                                 event->shift != 0)) {
+                                 event->modifier & KM_CTRL,
+                                 event->modifier & KM_SHIFT)) {
           ui_numedit_apply(C, block, but, data);
         }
       }
@@ -7350,7 +7346,7 @@ static int ui_do_but_CURVE(
 
         if (data->dragchange == false) {
           /* deselect all, select one */
-          if (!event->shift) {
+          if ((event->modifier & KM_SHIFT) == 0) {
             for (int a = 0; a < cuma->totpoint; a++) {
               cmp[a].flag &= ~CUMA_SELECT;
             }
@@ -7539,7 +7535,7 @@ static int ui_do_but_CURVEPROFILE(
     if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
       const float m_xy[2] = {mx, my};
 
-      if (event->ctrl) {
+      if (event->modifier & KM_CTRL) {
         float f_xy[2];
         BLI_rctf_transform_pt_v(&profile->view_rect, &but->rect, f_xy, m_xy);
 
@@ -7616,7 +7612,7 @@ static int ui_do_but_CURVEPROFILE(
       /* Change the flag for the point(s) if one was selected or added. */
       if (i_selected != -1) {
         /* Deselect all if this one is deselected, except if we hold shift. */
-        if (event->shift) {
+        if (event->modifier & KM_SHIFT) {
           pts[i_selected].flag ^= selection_type;
         }
         else {
@@ -7647,7 +7643,7 @@ static int ui_do_but_CURVEPROFILE(
     if (event->type == MOUSEMOVE) {
       if (mx != data->draglastx || my != data->draglasty) {
         if (ui_numedit_but_CURVEPROFILE(
-                block, but, data, mx, my, event->ctrl != 0, event->shift != 0)) {
+                block, but, data, mx, my, event->modifier & KM_CTRL, event->modifier & KM_SHIFT)) {
           ui_numedit_apply(C, block, but, data);
         }
       }
@@ -7871,7 +7867,7 @@ static int ui_do_but_TRACKPREVIEW(
       button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
       /* also do drag the first time */
-      if (ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my, event->shift != 0)) {
+      if (ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my, event->modifier & KM_SHIFT)) {
         ui_numedit_apply(C, block, but, data);
       }
 
@@ -7888,7 +7884,7 @@ static int ui_do_but_TRACKPREVIEW(
     }
     else if (event->type == MOUSEMOVE) {
       if (mx != data->draglastx || my != data->draglasty) {
-        if (ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my, event->shift != 0)) {
+        if (ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my, event->modifier & KM_SHIFT)) {
           ui_numedit_apply(C, block, but, data);
         }
       }
@@ -7918,8 +7914,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
 
     /* handle copy and paste */
-    bool is_press_ctrl_but_no_shift = event->val == KM_PRESS && IS_EVENT_MOD(event, ctrl, oskey) &&
-                                      !event->shift;
+    bool is_press_ctrl_but_no_shift = (event->val == KM_PRESS) &&
+                                      (event->modifier & (KM_CTRL | KM_OSKEY)) &&
+                                      (event->modifier & KM_SHIFT) == 0;
     const bool do_copy = event->type == EVT_CKEY && is_press_ctrl_but_no_shift;
     const bool do_paste = event->type == EVT_VKEY && is_press_ctrl_but_no_shift;
 
@@ -7934,12 +7931,14 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 
     /* do copy first, because it is the only allowed operator when disabled */
     if (do_copy) {
-      ui_but_copy(C, but, event->alt);
+      ui_but_copy(C, but, event->modifier & KM_ALT);
       return WM_UI_HANDLER_BREAK;
     }
 
     /* handle menu */
-    if ((event->type == RIGHTMOUSE) && !IS_EVENT_MOD(event, shift, ctrl, alt, oskey) &&
+
+    if ((event->type == RIGHTMOUSE) &&
+        (event->modifier & (KM_SHIFT | KM_CTRL | KM_ALT | KM_OSKEY)) == 0 &&
         (event->val == KM_PRESS)) {
       /* For some button types that are typically representing entire sets of data, right-clicking
        * to spawn the context menu should also activate the item. This makes it clear which item
@@ -7960,7 +7959,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
     }
 
     if (do_paste) {
-      ui_but_paste(C, but, data, event->alt);
+      ui_but_paste(C, but, data, event->modifier & KM_ALT);
       return WM_UI_HANDLER_BREAK;
     }
 
@@ -8947,7 +8946,7 @@ static int ui_handle_button_over(bContext *C, const wmEvent *event, ARegion *reg
     if (but) {
       button_activate_init(C, region, but, BUTTON_ACTIVATE_OVER);
 
-      if (event->alt && but->active) {
+      if ((event->modifier & KM_ALT) && but->active) {
         /* Display tool-tips if holding Alt on mouse-over when tool-tips are disabled in the
          * preferences. */
         but->active->tooltip_force = true;
@@ -9555,9 +9554,9 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
   }
   else if (val == KM_PRESS) {
     if ((ELEM(type, EVT_UPARROWKEY, EVT_DOWNARROWKEY, EVT_LEFTARROWKEY, EVT_RIGHTARROWKEY) &&
-         !IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) ||
-        ((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->ctrl &&
-          !IS_EVENT_MOD(event, shift, alt, oskey)))) {
+         (event->modifier & (KM_SHIFT | KM_CTRL | KM_ALT | KM_OSKEY)) == 0) ||
+        ((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && (event->modifier & KM_CTRL) &&
+          (event->modifier & (KM_SHIFT | KM_ALT | KM_OSKEY)) == 0))) {
       const int value_orig = RNA_property_int_get(&listbox->rnapoin, listbox->rnaprop);
       int value, min, max;
 
@@ -9614,7 +9613,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
       }
       retval = WM_UI_HANDLER_BREAK;
     }
-    else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->shift) {
+    else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && (event->modifier & KM_SHIFT)) {
       /* We now have proper grip, but keep this anyway! */
       if (ui_list->list_grip < (dyn_data->visual_height_min - UI_LIST_AUTO_SIZE_THRESHOLD)) {
         ui_list->list_grip = dyn_data->visual_height;
@@ -10268,7 +10267,7 @@ static int ui_handle_menu_event(bContext *C,
 
         /* Smooth scrolling for popovers. */
         case MOUSEPAN: {
-          if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
+          if (event->modifier & (KM_SHIFT | KM_CTRL | KM_ALT | KM_OSKEY)) {
             /* pass */
           }
           else if (!ui_block_is_menu(block)) {
@@ -10290,7 +10289,7 @@ static int ui_handle_menu_event(bContext *C,
         }
         case WHEELUPMOUSE:
         case WHEELDOWNMOUSE: {
-          if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
+          if (event->modifier & (KM_SHIFT | KM_CTRL | KM_ALT | KM_OSKEY)) {
             /* pass */
           }
           else if (!ui_block_is_menu(block)) {
@@ -10313,7 +10312,7 @@ static int ui_handle_menu_event(bContext *C,
         case EVT_HOMEKEY:
         case EVT_ENDKEY:
           /* Arrow-keys: only handle for block_loop blocks. */
-          if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
+          if (event->modifier & (KM_SHIFT | KM_CTRL | KM_ALT | KM_OSKEY)) {
             /* pass */
           }
           else if (inside || (block->flag & UI_BLOCK_LOOP)) {
@@ -10464,7 +10463,7 @@ static int ui_handle_menu_event(bContext *C,
               break;
             }
 
-            if (event->alt) {
+            if (event->modifier & KM_ALT) {
               act += 10;
             }
 
@@ -10544,7 +10543,7 @@ static int ui_handle_menu_event(bContext *C,
         case EVT_YKEY:
         case EVT_ZKEY: {
           if (ELEM(event->val, KM_PRESS, KM_DBL_CLICK) &&
-              !IS_EVENT_MOD(event, shift, ctrl, oskey) &&
+              ((event->modifier & (KM_SHIFT | KM_CTRL | KM_OSKEY)) == 0) &&
               /* Only respond to explicit press to avoid the event that opened the menu
                * activating an item when the key is held. */
               !event->is_repeat) {
@@ -11071,7 +11070,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
         case EVT_YKEY:
         case EVT_ZKEY: {
           if ((ELEM(event->val, KM_PRESS, KM_DBL_CLICK)) &&
-              !IS_EVENT_MOD(event, shift, ctrl, oskey)) {
+              ((event->modifier & (KM_SHIFT | KM_CTRL | KM_OSKEY)) == 0)) {
             LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
               if (but->menu_key == event->type) {
                 ui_but_pie_button_activate(C, but, menu);

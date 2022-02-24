@@ -1104,10 +1104,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         win->active = 0; /* XXX */
 
         /* clear modifiers for inactive windows */
-        win->eventstate->alt = 0;
-        win->eventstate->ctrl = 0;
-        win->eventstate->shift = 0;
-        win->eventstate->oskey = 0;
+        win->eventstate->modifier = 0;
         win->eventstate->keymodifier = 0;
 
         break;
@@ -1138,7 +1135,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         kdata.ascii = '\0';
         kdata.utf8_buf[0] = '\0';
 
-        if (win->eventstate->shift) {
+        if (win->eventstate->modifier & KM_SHIFT) {
           if ((keymodifier & KM_SHIFT) == 0) {
             kdata.key = GHOST_kKeyLeftShift;
             wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
@@ -1147,11 +1144,11 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 #ifdef USE_WIN_ACTIVATE
         else {
           if (keymodifier & KM_SHIFT) {
-            win->eventstate->shift = KM_MOD_HELD;
+            win->eventstate->modifier |= KM_SHIFT;
           }
         }
 #endif
-        if (win->eventstate->ctrl) {
+        if (win->eventstate->modifier & KM_CTRL) {
           if ((keymodifier & KM_CTRL) == 0) {
             kdata.key = GHOST_kKeyLeftControl;
             wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
@@ -1160,11 +1157,11 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 #ifdef USE_WIN_ACTIVATE
         else {
           if (keymodifier & KM_CTRL) {
-            win->eventstate->ctrl = KM_MOD_HELD;
+            win->eventstate->modifier |= KM_CTRL;
           }
         }
 #endif
-        if (win->eventstate->alt) {
+        if (win->eventstate->modifier & KM_ALT) {
           if ((keymodifier & KM_ALT) == 0) {
             kdata.key = GHOST_kKeyLeftAlt;
             wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
@@ -1173,11 +1170,11 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 #ifdef USE_WIN_ACTIVATE
         else {
           if (keymodifier & KM_ALT) {
-            win->eventstate->alt = KM_MOD_HELD;
+            win->eventstate->modifier |= KM_ALT;
           }
         }
 #endif
-        if (win->eventstate->oskey) {
+        if (win->eventstate->modifier & KM_OSKEY) {
           if ((keymodifier & KM_OSKEY) == 0) {
             kdata.key = GHOST_kKeyOS;
             wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
@@ -1186,7 +1183,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 #ifdef USE_WIN_ACTIVATE
         else {
           if (keymodifier & KM_OSKEY) {
-            win->eventstate->oskey = KM_MOD_HELD;
+            win->eventstate->modifier |= KM_OSKEY;
           }
         }
 #endif

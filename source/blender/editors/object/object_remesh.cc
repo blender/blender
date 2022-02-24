@@ -406,7 +406,7 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
     d = cd->slow_mval[0] - mval[0];
   }
 
-  if (event->ctrl) {
+  if (event->modifier & KM_CTRL) {
     /* Linear mode, enables jumping to any voxel size. */
     d = d * 0.0005f;
   }

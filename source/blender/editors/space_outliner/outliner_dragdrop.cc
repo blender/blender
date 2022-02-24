@@ -319,7 +319,7 @@ static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   }
 
   if (!allow_parenting_without_modifier_key(space_outliner)) {
-    if (!event->shift) {
+    if ((event->modifier & KM_SHIFT) == 0) {
       return false;
     }
   }
@@ -417,8 +417,12 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   ListBase *lb = reinterpret_cast<ListBase *>(event->customdata);
   wmDrag *drag = reinterpret_cast<wmDrag *>(lb->first);
 
-  parent_drop_set_parents(
-      C, op->reports, reinterpret_cast<wmDragID *>(drag->ids.first), par, PAR_OBJECT, event->alt);
+  parent_drop_set_parents(C,
+                          op->reports,
+                          reinterpret_cast<wmDragID *>(drag->ids.first),
+                          par,
+                          PAR_OBJECT,
+                          event->modifier & KM_ALT);
 
   return OPERATOR_FINISHED;
 }
@@ -446,7 +450,7 @@ static bool parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
   if (!allow_parenting_without_modifier_key(space_outliner)) {
-    if (!event->shift) {
+    if ((event->modifier & KM_SHIFT) == 0) {
       return false;
     }
   }
@@ -471,7 +475,7 @@ static bool parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *event)
       case ID_OB:
         return ELEM(tselem->type, TSE_MODIFIER_BASE, TSE_CONSTRAINT_BASE);
       case ID_GR:
-        return event->shift || ELEM(tselem->type, TSE_LIBRARY_OVERRIDE_BASE);
+        return (event->modifier & KM_SHIFT) || ELEM(tselem->type, TSE_LIBRARY_OVERRIDE_BASE);
       default:
         return true;
     }
@@ -496,7 +500,8 @@ static int parent_clear_invoke(bContext *C, wmOperator *UNUSED(op), const wmEven
     if (GS(drag_id->id->name) == ID_OB) {
       Object *object = (Object *)drag_id->id;
 
-      ED_object_parent_clear(object, event->alt ? CLEAR_PARENT_KEEP_TRANSFORM : CLEAR_PARENT_ALL);
+      ED_object_parent_clear(
+          object, (event->modifier & KM_ALT) ? CLEAR_PARENT_KEEP_TRANSFORM : CLEAR_PARENT_ALL);
     }
   }
 
@@ -1166,10 +1171,11 @@ static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
       &space_outliner->tree, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
 
   CollectionDrop data;
-  if (!event->shift && collection_drop_init(C, drag, event->xy, event->ctrl, &data)) {
+  if (((event->modifier & KM_SHIFT) == 0) &&
+      collection_drop_init(C, drag, event->xy, event->modifier & KM_CTRL, &data)) {
     TreeElement *te = data.te;
     TreeStoreElem *tselem = TREESTORE(te);
-    if (!data.from || event->ctrl) {
+    if (!data.from || event->modifier & KM_CTRL) {
       tselem->flag |= TSE_DRAG_INTO;
       changed = true;
     }
@@ -1210,9 +1216,10 @@ static char *collection_drop_tooltip(bContext *C,
   const wmEvent *event = win ? win->eventstate : nullptr;
 
   CollectionDrop data;
-  if (event && !event->shift && collection_drop_init(C, drag, xy, event->ctrl, &data)) {
+  if (event && ((event->modifier & KM_SHIFT) == 0) &&
+      collection_drop_init(C, drag, xy, event->modifier & KM_CTRL, &data)) {
     TreeElement *te = data.te;
-    if (!data.from || event->ctrl) {
+    if (!data.from || event->modifier & KM_CTRL) {
       return BLI_strdup(TIP_("Link inside Collection"));
     }
     switch (data.insert_type) {
@@ -1263,7 +1270,7 @@ static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
   wmDrag *drag = reinterpret_cast<wmDrag *>(lb->first);
 
   CollectionDrop data;
-  if (!collection_drop_init(C, drag, event->xy, event->ctrl, &data)) {
+  if (!collection_drop_init(C, drag, event->xy, event->modifier & KM_CTRL, &data)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1291,7 +1298,9 @@ static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
 
   LISTBASE_FOREACH (wmDragID *, drag_id, &drag->ids) {
     /* Ctrl enables linking, so we don't need a from collection then. */
-    Collection *from = (event->ctrl) ? nullptr : collection_parent_from_ID(drag_id->from_parent);
+    Collection *from = (event->modifier & KM_CTRL) ?
+                           nullptr :
+                           collection_parent_from_ID(drag_id->from_parent);
 
     if (GS(drag_id->id->name) == ID_OB) {
       /* Move/link object into collection. */

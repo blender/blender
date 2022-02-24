@@ -245,7 +245,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
 
   /* When pressing Ctrl, expand directly to the max number of iterations. This allows to flood fill
    * mask and face sets by connectivity directly. */
-  if (event->ctrl) {
+  if (event->modifier & KM_CTRL) {
     mask_expand_update_it = ss->filter_cache->mask_update_last_it - 1;
   }
 

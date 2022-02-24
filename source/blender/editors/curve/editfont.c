@@ -1640,7 +1640,9 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   EditFont *ef = cu->editfont;
   static int accentcode = 0;
   uintptr_t ascii = event->ascii;
-  int alt = event->alt, shift = event->shift, ctrl = event->ctrl;
+  const bool alt = event->modifier & KM_ALT;
+  const bool shift = event->modifier & KM_SHIFT;
+  const bool ctrl = event->modifier & KM_CTRL;
   int event_type = event->type, event_val = event->val;
   char32_t inserted_text[2] = {0};
 

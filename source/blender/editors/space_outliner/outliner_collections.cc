@@ -1071,7 +1071,7 @@ static int collection_isolate_exec(bContext *C, wmOperator *op)
 static int collection_isolate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "extend");
-  if (!RNA_property_is_set(op->ptr, prop) && (event->shift)) {
+  if (!RNA_property_is_set(op->ptr, prop) && (event->modifier & KM_SHIFT)) {
     RNA_property_boolean_set(op->ptr, prop, true);
   }
   return collection_isolate_exec(C, op);

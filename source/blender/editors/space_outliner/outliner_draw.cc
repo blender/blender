@@ -166,7 +166,7 @@ static void restrictbutton_bone_visibility_fn(bContext *C, void *poin, void *UNU
 {
   Bone *bone = (Bone *)poin;
 
-  if (CTX_wm_window(C)->eventstate->shift) {
+  if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
     restrictbutton_recursive_bone(bone, BONE_HIDDEN_P, (bone->flag & BONE_HIDDEN_P) != 0);
   }
 }
@@ -178,7 +178,7 @@ static void restrictbutton_bone_select_fn(bContext *C, void *UNUSED(poin), void 
     bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
   }
 
-  if (CTX_wm_window(C)->eventstate->shift) {
+  if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
     restrictbutton_recursive_bone(bone, BONE_UNSELECTABLE, (bone->flag & BONE_UNSELECTABLE) != 0);
   }
 
@@ -194,7 +194,7 @@ static void restrictbutton_ebone_select_fn(bContext *C, void *poin, void *poin2)
     ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
   }
 
-  if (CTX_wm_window(C)->eventstate->shift) {
+  if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
     restrictbutton_recursive_ebone(
         arm, ebone, BONE_UNSELECTABLE, (ebone->flag & BONE_UNSELECTABLE) != 0);
   }
@@ -210,7 +210,7 @@ static void restrictbutton_ebone_visibility_fn(bContext *C, void *poin, void *po
     ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
   }
 
-  if (CTX_wm_window(C)->eventstate->shift) {
+  if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
     restrictbutton_recursive_ebone(arm, ebone, BONE_HIDDEN_A, (ebone->flag & BONE_HIDDEN_A) != 0);
   }
 
@@ -250,7 +250,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   PointerRNA ptr;
 
-  bool extend = (win->eventstate->shift != 0);
+  bool extend = (win->eventstate->modifier & KM_SHIFT);
 
   if (!extend) {
     return;
@@ -571,8 +571,8 @@ static void outliner_collection_set_flag_recursive_fn(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   PointerRNA ptr;
 
-  bool do_isolate = (win->eventstate->ctrl != 0);
-  bool extend = (win->eventstate->shift != 0);
+  bool do_isolate = (win->eventstate->modifier & KM_CTRL);
+  bool extend = (win->eventstate->modifier & KM_SHIFT);
 
   if (!ELEM(true, do_isolate, extend)) {
     return;
@@ -2043,7 +2043,7 @@ static void outliner_mode_toggle_fn(bContext *C, void *tselem_poin, void *UNUSED
   const bool object_data_shared = (ob->data == tvc.obact->data);
 
   wmWindow *win = CTX_wm_window(C);
-  const bool do_extend = win->eventstate->ctrl != 0 && !object_data_shared;
+  const bool do_extend = (win->eventstate->modifier & KM_CTRL) && !object_data_shared;
   outliner_item_mode_toggle(C, &tvc, te, do_extend);
 }
 

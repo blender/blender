@@ -321,7 +321,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
   if (U.flag & USER_FLAG_NUMINPUT_ADVANCED)
 #endif
   {
-    if ((event->ctrl == 0) && (event->alt == 0) && (event->ascii != '\0') &&
+    if (((event->modifier & (KM_CTRL | KM_ALT)) == 0) && (event->ascii != '\0') &&
         strchr("01234567890@%^&*-+/{}()[]<>.|", event->ascii)) {
       if (!(n->flag & NUM_EDIT_FULL)) {
         n->flag |= NUM_EDITED;
@@ -339,7 +339,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
       n->val_flag[idx] |= NUM_EDITED;
       return true;
     }
-    if (event->ctrl) {
+    if (event->modifier & KM_CTRL) {
       n->flag &= ~NUM_EDIT_FULL;
       return true;
     }
@@ -375,7 +375,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
         updated = true;
         break;
       }
-      else if (event->shift || !n->str[0]) {
+      else if ((event->modifier & KM_SHIFT) || !n->str[0]) {
         n->val[idx] = n->val_org[idx];
         n->val_flag[idx] &= ~NUM_EDITED;
         n->str[0] = '\0';
@@ -390,7 +390,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
     case EVT_DELKEY:
       if ((n->val_flag[idx] & NUM_EDITED) && n->str[0]) {
         int t_cur = cur = n->str_cur;
-        if (event->ctrl) {
+        if (event->modifier & KM_CTRL) {
           mode = STRCUR_JUMP_DELIM;
         }
         BLI_str_cursor_step_utf8(n->str, strlen(n->str), &t_cur, dir, mode, true);
@@ -416,7 +416,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
       ATTR_FALLTHROUGH;
     case EVT_RIGHTARROWKEY:
       cur = n->str_cur;
-      if (event->ctrl) {
+      if (event->modifier & KM_CTRL) {
         mode = STRCUR_JUMP_DELIM;
       }
       BLI_str_cursor_step_utf8(n->str, strlen(n->str), &cur, dir, mode, true);
@@ -442,7 +442,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
       n->val_flag[idx] &= ~(NUM_NEGATE | NUM_INVERSE);
 #endif
 
-      idx = (idx + idx_max + (event->ctrl ? 0 : 2)) % (idx_max + 1);
+      idx = (idx + idx_max + ((event->modifier & KM_CTRL) ? 0 : 2)) % (idx_max + 1);
       n->idx = idx;
       if (n->val_flag[idx] & NUM_EDITED) {
         value_to_editstr(n, idx);
@@ -470,7 +470,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
         n->val_flag[idx] |= NUM_EDITED;
         return true;
       }
-      else if (event->ctrl) {
+      else if (event->modifier & KM_CTRL) {
         n->flag &= ~NUM_EDIT_FULL;
         return true;
       }
@@ -480,28 +480,28 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 #ifdef USE_FAKE_EDIT
     case EVT_PADMINUS:
     case EVT_MINUSKEY:
-      if (event->ctrl || !(n->flag & NUM_EDIT_FULL)) {
+      if ((event->modifier & KM_CTRL) || !(n->flag & NUM_EDIT_FULL)) {
         n->val_flag[idx] ^= NUM_NEGATE;
         updated = true;
       }
       break;
     case EVT_PADSLASHKEY:
     case EVT_SLASHKEY:
-      if (event->ctrl || !(n->flag & NUM_EDIT_FULL)) {
+      if ((event->modifier & KM_CTRL) || !(n->flag & NUM_EDIT_FULL)) {
         n->val_flag[idx] ^= NUM_INVERSE;
         updated = true;
       }
       break;
 #endif
     case EVT_CKEY:
-      if (event->ctrl) {
+      if (event->modifier & KM_CTRL) {
         /* Copy current `str` to the copy/paste buffer. */
         WM_clipboard_text_set(n->str, 0);
         updated = true;
       }
       break;
     case EVT_VKEY:
-      if (event->ctrl) {
+      if (event->modifier & KM_CTRL) {
         /* extract the first line from the clipboard */
         int pbuf_len;
         char *pbuf = WM_clipboard_text_get_firstline(false, &pbuf_len);
@@ -531,7 +531,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
   /* Up to this point, if we have a ctrl modifier, skip.
    * This allows to still access most of modals' shortcuts even in numinput mode.
    */
-  if (!updated && event->ctrl) {
+  if (!updated && (event->modifier & KM_CTRL)) {
     return false;
   }
 
