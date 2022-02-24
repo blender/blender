@@ -6,6 +6,8 @@
 
 #include "BKE_mesh.h"
 
+#include "node_geometry_util.hh"
+
 namespace blender::nodes::node_geo_input_mesh_face_is_planar_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
