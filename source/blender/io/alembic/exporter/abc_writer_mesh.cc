@@ -323,7 +323,7 @@ void ABCGenericMeshWriter::write_subd(HierarchyContext &context, struct Mesh *me
   }
 
   if (args_.export_params->orcos) {
-    write_generated_coordinates(abc_poly_mesh_schema_.getArbGeomParams(), m_custom_data_config);
+    write_generated_coordinates(abc_subdiv_schema_.getArbGeomParams(), m_custom_data_config);
   }
 
   if (!edge_crease_indices.empty()) {
