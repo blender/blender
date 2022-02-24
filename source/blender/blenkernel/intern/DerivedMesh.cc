@@ -1667,7 +1667,9 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
       }
       else {
         Mesh *me_orig = mesh_input;
-        if (me_orig->id.tag & LIB_TAG_COPIED_ON_WRITE) {
+        /* Modifying the input mesh is weak, however as there can only be one object in edit mode
+         * even if multiple are sharing the same mesh this should be thread safe. */
+        if ((me_orig->id.tag & LIB_TAG_COPIED_ON_WRITE) && (ob->mode & OB_MODE_EDIT)) {
           if (!BKE_mesh_runtime_ensure_edit_data(me_orig)) {
             BKE_mesh_runtime_reset_edit_data(me_orig);
           }
