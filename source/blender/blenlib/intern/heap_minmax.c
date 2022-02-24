@@ -65,6 +65,7 @@ void BLI_mm_heap_clear(MinMaxHeap *heap, MinMaxHeapFreeFP ptrfreefp)
     }
   }
 
+  MEM_SAFE_FREE(heap->nodes);
   heap->totnode = 0;
 }
 

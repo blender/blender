@@ -2620,6 +2620,8 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
     modified = true;
   }
 
+  BLI_array_free(nodes);
+
   return modified;
 }
 
@@ -3828,6 +3830,7 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
   MEM_SAFE_FREE(overlaps);
   BLI_array_free(stack);
   BLI_array_free(substack);
+  MEM_SAFE_FREE(depthmap);
 }
 
 static void pbvh_bmesh_join_nodes(PBVH *bvh)
