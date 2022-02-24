@@ -352,12 +352,8 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   float ao_pdf;
   sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
 
-  if (!(dot(sd->Ng, ao_D) > 0.0f && ao_pdf != 0.0f)) {
-    return;
-  }
-
   Ray ray ccl_optional_struct_init;
-  ray.P = sd->P;
+  ray.P = shadow_ray_offset(kg, sd, ao_D);
   ray.D = ao_D;
   ray.t = kernel_data.integrator.ao_bounces_distance;
   ray.time = sd->time;
