@@ -428,6 +428,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
    * Even though this mesh wont typically have run-time data, the Python API can for e.g.
    * create loop-triangle cache here, which is confusing when left in the mesh, see: T90798. */
   BKE_mesh_runtime_clear_geometry(me);
+  BKE_mesh_clear_derived_normals(me);
 
   /* new material indices and material array */
   if (totmat) {

@@ -470,6 +470,7 @@ static void rna_MeshPolygon_flip(ID *id, MPoly *mp)
   BKE_mesh_polygon_flip(mp, me->mloop, &me->ldata);
   BKE_mesh_tessface_clear(me);
   BKE_mesh_runtime_clear_geometry(me);
+  BKE_mesh_normals_tag_dirty(me);
 }
 
 static void rna_MeshLoopTriangle_verts_get(PointerRNA *ptr, int *values)
