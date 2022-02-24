@@ -18,27 +18,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Ray offset to avoid self intersection.
- *
- * This function should be used to compute a modified ray start position for
- * rays leaving from a surface. This is from "A Fast and Robust Method for Avoiding
- * Self-Intersection" see https://research.nvidia.com/publication/2019-03_A-Fast-and
- */
-ccl_device_inline float3 ray_offset(float3 P, float3 Ng)
-{
-  const float int_scale = 256.0f;
-  int3 of_i = make_int3((int)(int_scale * Ng.x), (int)(int_scale * Ng.y), (int)(int_scale * Ng.z));
-
-  float3 p_i = make_float3(__int_as_float(__float_as_int(P.x) + ((P.x < 0) ? -of_i.x : of_i.x)),
-                           __int_as_float(__float_as_int(P.y) + ((P.y < 0) ? -of_i.y : of_i.y)),
-                           __int_as_float(__float_as_int(P.z) + ((P.z < 0) ? -of_i.z : of_i.z)));
-  const float origin = 1.0f / 32.0f;
-  const float float_scale = 1.0f / 65536.0f;
-  return make_float3(fabsf(P.x) < origin ? P.x + float_scale * Ng.x : p_i.x,
-                     fabsf(P.y) < origin ? P.y + float_scale * Ng.y : p_i.y,
-                     fabsf(P.z) < origin ? P.z + float_scale * Ng.z : p_i.z);
-}
-
 #if defined(__KERNEL_CPU__)
 ccl_device int intersections_compare(const void *a, const void *b)
 {
