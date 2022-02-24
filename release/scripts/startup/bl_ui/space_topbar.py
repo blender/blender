@@ -688,7 +688,7 @@ class TOPBAR_MT_help(Menu):
         layout.separator()
 
         layout.operator(
-            "wm.url_open", text="Python API Reference", icon='URL',
+            "wm.url_open_preset", text="Python API Reference", icon='URL',
         ).type = 'API'
 
         if show_developer:
