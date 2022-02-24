@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edutil
@@ -61,7 +45,7 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BM_mesh_normals_update(em->bm);
   }
-  else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = obedit->data;
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);
     Nurb *nu = nurbs->first;
@@ -197,7 +181,8 @@ static void set_mapped_co(void *vuserdata, int index, const float co[3], const f
 
 bool ED_transverts_check_obedit(const Object *obedit)
 {
-  return (ELEM(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL));
+  return (
+      ELEM(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVES_LEGACY, OB_MBALL));
 }
 
 void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit, const int mode)
@@ -367,7 +352,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
       }
     }
   }
-  else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = obedit->data;
     int totmalloc = 0;
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);

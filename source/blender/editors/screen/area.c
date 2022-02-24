@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edscr
@@ -3452,6 +3436,38 @@ int ED_area_global_max_size_y(const ScrArea *area)
 bool ED_area_is_global(const ScrArea *area)
 {
   return area->global != NULL;
+}
+
+ScrArea *ED_area_find_under_cursor(const bContext *C, int spacetype, const int xy[2])
+{
+  bScreen *screen = CTX_wm_screen(C);
+  wmWindow *win = CTX_wm_window(C);
+  wmWindowManager *wm = CTX_wm_manager(C);
+
+  ScrArea *area = NULL;
+
+  if (win->parent) {
+    /* If active window is a child, check itself first. */
+    area = BKE_screen_find_area_xy(screen, spacetype, xy);
+  }
+
+  if (!area) {
+    /* Check all windows except the active one. */
+    int scr_pos[2];
+    wmWindow *r_win = WM_window_find_under_cursor(wm, win, win, xy, scr_pos);
+    if (r_win) {
+      win = r_win;
+      screen = WM_window_get_active_screen(win);
+      area = BKE_screen_find_area_xy(screen, spacetype, scr_pos);
+    }
+  }
+
+  if (!area && !win->parent) {
+    /* If active window is a parent window, check itself last. */
+    area = BKE_screen_find_area_xy(screen, spacetype, xy);
+  }
+
+  return area;
 }
 
 ScrArea *ED_screen_areas_iter_first(const wmWindow *win, const bScreen *screen)

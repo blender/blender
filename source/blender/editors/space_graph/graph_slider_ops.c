@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spgraph
@@ -177,6 +161,18 @@ static void reset_bezts(tGraphSliderOp *gso)
   }
 
   ANIM_animdata_freelist(&anim_data);
+}
+
+/**
+ * Get factor value and store it in RNA property.
+ * Custom data of #wmOperator needs to contain #tGraphSliderOp.
+ */
+static float slider_factor_get_and_remember(wmOperator *op)
+{
+  tGraphSliderOp *gso = op->customdata;
+  const float factor = ED_slider_factor_get(gso->slider);
+  RNA_property_float_set(op->ptr, gso->factor_prop, factor);
+  return factor;
 }
 
 /** \} */
@@ -394,8 +390,7 @@ static void decimate_modal_update(bContext *C, wmOperator *op)
   reset_bezts(gso);
 
   /* Apply... */
-  float factor = ED_slider_factor_get(gso->slider);
-  RNA_property_float_set(op->ptr, gso->factor_prop, factor);
+  const float factor = slider_factor_get_and_remember(op);
   /* We don't want to limit the decimation to a certain error margin. */
   const float error_sq_max = FLT_MAX;
   decimate_graph_keys(&gso->ac, factor, error_sq_max);
@@ -614,8 +609,7 @@ static void blend_to_neighbor_modal_update(bContext *C, wmOperator *op)
   /* Reset keyframe data to the state at invoke. */
   reset_bezts(gso);
 
-  const float factor = ED_slider_factor_get(gso->slider);
-  RNA_property_float_set(op->ptr, gso->factor_prop, factor);
+  const float factor = slider_factor_get_and_remember(op);
   blend_to_neighbor_graph_keys(&gso->ac, factor);
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
@@ -741,7 +735,8 @@ static void breakdown_modal_update(bContext *C, wmOperator *op)
 
   /* Reset keyframe data to the state at invoke. */
   reset_bezts(gso);
-  breakdown_graph_keys(&gso->ac, ED_slider_factor_get(gso->slider));
+  const float factor = slider_factor_get_and_remember(op);
+  breakdown_graph_keys(&gso->ac, factor);
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 }
 
@@ -755,6 +750,7 @@ static int breakdown_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   tGraphSliderOp *gso = op->customdata;
   gso->modal_update = breakdown_modal_update;
+  gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
   breakdown_draw_status_header(C, gso);
 
   return invoke_result;

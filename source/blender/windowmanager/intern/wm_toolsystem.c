@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -681,6 +667,8 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
           return "builtin_brush.Weight";
         case CTX_MODE_VERTEX_GPENCIL:
           return "builtin_brush.Draw";
+        case CTX_MODE_SCULPT_CURVES:
+          return "builtin_brush.Test 1";
           /* end temporary hack. */
 
         case CTX_MODE_PARTICLE:
@@ -822,13 +810,25 @@ void WM_toolsystem_do_msg_notify_tag_refresh(bContext *C,
   WM_toolsystem_refresh_screen_area(workspace, view_layer, area);
 }
 
+static IDProperty *idprops_ensure_named_group(IDProperty *group, const char *idname)
+{
+  IDProperty *prop = IDP_GetPropertyFromGroup(group, idname);
+  if ((prop == NULL) || (prop->type != IDP_GROUP)) {
+    IDPropertyTemplate val = {0};
+    prop = IDP_New(IDP_GROUP, &val, __func__);
+    STRNCPY(prop->name, idname);
+    IDP_ReplaceInGroup_ex(group, prop, NULL);
+  }
+  return prop;
+}
+
 IDProperty *WM_toolsystem_ref_properties_ensure_idprops(bToolRef *tref)
 {
   if (tref->properties == NULL) {
     IDPropertyTemplate val = {0};
-    tref->properties = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
+    tref->properties = IDP_New(IDP_GROUP, &val, __func__);
   }
-  return tref->properties;
+  return idprops_ensure_named_group(tref->properties, tref->idname);
 }
 
 bool WM_toolsystem_ref_properties_get_ex(bToolRef *tref,
@@ -848,17 +848,7 @@ void WM_toolsystem_ref_properties_ensure_ex(bToolRef *tref,
                                             PointerRNA *r_ptr)
 {
   IDProperty *group = WM_toolsystem_ref_properties_ensure_idprops(tref);
-  IDProperty *prop = IDP_GetPropertyFromGroup(group, idname);
-  if (prop == NULL) {
-    IDPropertyTemplate val = {0};
-    prop = IDP_New(IDP_GROUP, &val, "wmGenericProperties");
-    STRNCPY(prop->name, idname);
-    IDP_ReplaceInGroup_ex(group, prop, NULL);
-  }
-  else {
-    BLI_assert(prop->type == IDP_GROUP);
-  }
-
+  IDProperty *prop = idprops_ensure_named_group(group, idname);
   RNA_pointer_create(NULL, type, prop, r_ptr);
 }
 

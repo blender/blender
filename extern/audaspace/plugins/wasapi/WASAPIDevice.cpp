@@ -71,7 +71,7 @@ void WASAPIDevice::runMixingThread()
 
 	IAudioRenderClient* render_client = nullptr;
 
-	std::chrono::milliseconds sleep_duration;
+	std::chrono::milliseconds sleep_duration(0);
 
 	bool run_init = true;
 

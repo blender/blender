@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -70,8 +56,7 @@ static wmXrActionSet *action_set_find(wmXrData *xr, const char *action_set_name)
 
 static wmXrAction *action_create(const char *action_name,
                                  eXrActionType type,
-                                 unsigned int count_subaction_paths,
-                                 const char **subaction_paths,
+                                 const ListBase *user_paths,
                                  wmOperatorType *ot,
                                  IDProperty *op_properties,
                                  const char *haptic_name,
@@ -87,15 +72,16 @@ static wmXrAction *action_create(const char *action_name,
   strcpy(action->name, action_name);
   action->type = type;
 
-  const unsigned int count = count_subaction_paths;
+  const unsigned int count = (unsigned int)BLI_listbase_count(user_paths);
+  unsigned int subaction_idx = 0;
   action->count_subaction_paths = count;
 
   action->subaction_paths = MEM_mallocN(sizeof(*action->subaction_paths) * count,
                                         "XrAction_SubactionPaths");
-  for (unsigned int i = 0; i < count; ++i) {
-    action->subaction_paths[i] = MEM_mallocN(strlen(subaction_paths[i]) + 1,
-                                             "XrAction_SubactionPath");
-    strcpy(action->subaction_paths[i], subaction_paths[i]);
+  LISTBASE_FOREACH_INDEX (XrUserPath *, user_path, user_paths, subaction_idx) {
+    action->subaction_paths[subaction_idx] = MEM_mallocN(strlen(user_path->path) + 1,
+                                                         "XrAction_SubactionPath");
+    strcpy(action->subaction_paths[subaction_idx], user_path->path);
   }
 
   size_t size;
@@ -154,10 +140,9 @@ static void action_destroy(void *val)
 
   MEM_SAFE_FREE(action->name);
 
-  const unsigned int count = action->count_subaction_paths;
   char **subaction_paths = action->subaction_paths;
   if (subaction_paths) {
-    for (unsigned int i = 0; i < count; ++i) {
+    for (unsigned int i = 0; i < action->count_subaction_paths; ++i) {
       MEM_SAFE_FREE(subaction_paths[i]);
     }
     MEM_freeN(subaction_paths);
@@ -228,8 +213,7 @@ bool WM_xr_action_create(wmXrData *xr,
                          const char *action_set_name,
                          const char *action_name,
                          eXrActionType type,
-                         unsigned int count_subaction_paths,
-                         const char **subaction_paths,
+                         const ListBase *user_paths,
                          wmOperatorType *ot,
                          IDProperty *op_properties,
                          const char *haptic_name,
@@ -246,8 +230,7 @@ bool WM_xr_action_create(wmXrData *xr,
 
   wmXrAction *action = action_create(action_name,
                                      type,
-                                     count_subaction_paths,
-                                     subaction_paths,
+                                     user_paths,
                                      ot,
                                      op_properties,
                                      haptic_name,
@@ -258,10 +241,20 @@ bool WM_xr_action_create(wmXrData *xr,
                                      action_flag,
                                      haptic_flag);
 
+  const unsigned int count = (unsigned int)BLI_listbase_count(user_paths);
+  unsigned int subaction_idx = 0;
+
+  char **subaction_paths = MEM_calloc_arrayN(
+      count, sizeof(*subaction_paths), "XrAction_SubactionPathPointers");
+
+  LISTBASE_FOREACH_INDEX (XrUserPath *, user_path, user_paths, subaction_idx) {
+    subaction_paths[subaction_idx] = (char *)user_path->path;
+  }
+
   GHOST_XrActionInfo info = {
       .name = action_name,
-      .count_subaction_paths = count_subaction_paths,
-      .subaction_paths = subaction_paths,
+      .count_subaction_paths = count,
+      .subaction_paths = (const char **)subaction_paths,
       .states = action->states,
       .float_thresholds = action->float_thresholds,
       .axis_flags = (int16_t *)action->axis_flags,
@@ -287,11 +280,11 @@ bool WM_xr_action_create(wmXrData *xr,
       break;
   }
 
-  if (!GHOST_XrCreateActions(xr->runtime->context, action_set_name, 1, &info)) {
-    return false;
-  }
+  const bool success = GHOST_XrCreateActions(xr->runtime->context, action_set_name, 1, &info);
 
-  return true;
+  MEM_freeN(subaction_paths);
+
+  return success;
 }
 
 void WM_xr_action_destroy(wmXrData *xr, const char *action_set_name, const char *action_name)
@@ -337,19 +330,29 @@ bool WM_xr_action_binding_create(wmXrData *xr,
                                  const char *action_set_name,
                                  const char *action_name,
                                  const char *profile_path,
-                                 unsigned int count_subaction_paths,
-                                 const char **subaction_paths,
-                                 const char **component_paths,
+                                 const ListBase *user_paths,
+                                 const ListBase *component_paths,
                                  const float *float_thresholds,
                                  const eXrAxisFlag *axis_flags,
                                  const struct wmXrPose *poses)
 {
-  GHOST_XrActionBindingInfo *binding_infos = MEM_calloc_arrayN(
-      count_subaction_paths, sizeof(*binding_infos), __func__);
+  const unsigned int count = (unsigned int)BLI_listbase_count(user_paths);
+  BLI_assert(count == (unsigned int)BLI_listbase_count(component_paths));
 
-  for (unsigned int i = 0; i < count_subaction_paths; ++i) {
+  GHOST_XrActionBindingInfo *binding_infos = MEM_calloc_arrayN(
+      count, sizeof(*binding_infos), "XrActionBinding_Infos");
+
+  char **subaction_paths = MEM_calloc_arrayN(
+      count, sizeof(*subaction_paths), "XrActionBinding_SubactionPathPointers");
+
+  for (unsigned int i = 0; i < count; ++i) {
     GHOST_XrActionBindingInfo *binding_info = &binding_infos[i];
-    binding_info->component_path = component_paths[i];
+    const XrUserPath *user_path = BLI_findlink(user_paths, i);
+    const XrComponentPath *component_path = BLI_findlink(component_paths, i);
+
+    subaction_paths[i] = (char *)user_path->path;
+
+    binding_info->component_path = component_path->path;
     if (float_thresholds) {
       binding_info->float_threshold = float_thresholds[i];
     }
@@ -365,15 +368,18 @@ bool WM_xr_action_binding_create(wmXrData *xr,
   GHOST_XrActionProfileInfo profile_info = {
       .action_name = action_name,
       .profile_path = profile_path,
-      .count_subaction_paths = count_subaction_paths,
-      .subaction_paths = subaction_paths,
+      .count_subaction_paths = count,
+      .subaction_paths = (const char **)subaction_paths,
       .bindings = binding_infos,
   };
 
-  bool ret = GHOST_XrCreateActionBindings(xr->runtime->context, action_set_name, 1, &profile_info);
+  const bool success = GHOST_XrCreateActionBindings(
+      xr->runtime->context, action_set_name, 1, &profile_info);
 
+  MEM_freeN(subaction_paths);
   MEM_freeN(binding_infos);
-  return ret;
+
+  return success;
 }
 
 void WM_xr_action_binding_destroy(wmXrData *xr,

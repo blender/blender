@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edinterface
@@ -330,7 +314,7 @@ static int operator_button_property_finish(bContext *C, PointerRNA *ptr, Propert
   RNA_property_update(C, ptr, prop);
 
   /* as if we pressed the button */
-  UI_context_active_but_prop_handle(C);
+  UI_context_active_but_prop_handle(C, false);
 
   /* Since we don't want to undo _all_ edits to settings, eg window
    * edits on the screen or on operator settings.
@@ -340,6 +324,19 @@ static int operator_button_property_finish(bContext *C, PointerRNA *ptr, Propert
     return OPERATOR_FINISHED;
   }
   return OPERATOR_CANCELLED;
+}
+
+static int operator_button_property_finish_with_undo(bContext *C,
+                                                     PointerRNA *ptr,
+                                                     PropertyRNA *prop)
+{
+  /* Perform updates required for this property. */
+  RNA_property_update(C, ptr, prop);
+
+  /* As if we pressed the button. */
+  UI_context_active_but_prop_handle(C, true);
+
+  return OPERATOR_FINISHED;
 }
 
 static bool reset_default_button_poll(bContext *C)
@@ -366,7 +363,7 @@ static int reset_default_button_exec(bContext *C, wmOperator *op)
   /* if there is a valid property that is editable... */
   if (ptr.data && prop && RNA_property_editable(&ptr, prop)) {
     if (RNA_property_reset(&ptr, prop, (all) ? -1 : index)) {
-      return operator_button_property_finish(C, &ptr, prop);
+      return operator_button_property_finish_with_undo(C, &ptr, prop);
     }
   }
 
@@ -385,7 +382,9 @@ static void UI_OT_reset_default_button(wmOperatorType *ot)
   ot->exec = reset_default_button_exec;
 
   /* flags */
-  ot->flag = OPTYPE_UNDO;
+  /* Don't set #OPTYPE_UNDO because #operator_button_property_finish_with_undo
+   * is responsible for the undo push. */
+  ot->flag = 0;
 
   /* properties */
   RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array");

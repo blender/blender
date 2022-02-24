@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup bli
@@ -45,7 +29,7 @@ void BLI_dlrbTree_init(DLRBT_Tree *tree)
 }
 
 /* Helper for traversing tree and freeing sub-nodes */
-static void recursive_tree_free_nodes(DLRBT_Node *node)
+static void recursive_tree_free_nodes(DLRBT_Node *node, DLRBT_NFree_FP free_cb)
 {
   /* sanity check */
   if (node == NULL) {
@@ -53,14 +37,16 @@ static void recursive_tree_free_nodes(DLRBT_Node *node)
   }
 
   /* free child nodes + subtrees */
-  recursive_tree_free_nodes(node->left);
-  recursive_tree_free_nodes(node->right);
+  recursive_tree_free_nodes(node->left, free_cb);
+  recursive_tree_free_nodes(node->right, free_cb);
 
   /* free self */
-  MEM_freeN(node);
+  if (free_cb) {
+    free_cb(node);
+  }
 }
 
-void BLI_dlrbTree_free(DLRBT_Tree *tree)
+void BLI_dlrbTree_free(DLRBT_Tree *tree, DLRBT_NFree_FP free_cb)
 {
   if (tree == NULL) {
     return;
@@ -71,11 +57,19 @@ void BLI_dlrbTree_free(DLRBT_Tree *tree)
    */
   if (tree->first) {
     /* free list */
-    BLI_freelistN((ListBase *)tree);
+    if (free_cb) {
+      LISTBASE_FOREACH_MUTABLE (DLRBT_Node *, node, tree) {
+        free_cb(node);
+      }
+      BLI_listbase_clear((ListBase *)tree);
+    }
+    else {
+      BLI_freelistN((ListBase *)tree);
+    }
   }
   else {
     /* traverse tree, freeing sub-nodes */
-    recursive_tree_free_nodes(tree->root);
+    recursive_tree_free_nodes(tree->root, free_cb);
   }
 
   /* clear pointers */
@@ -584,8 +578,10 @@ DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree,
       }
       default: /* update the duplicate node as appropriate */
       {
+        /* Return the updated node after calling the callback.  */
+        node = parNode;
         if (update_cb) {
-          update_cb(parNode, data);
+          update_cb(node, data);
         }
         break;
       }

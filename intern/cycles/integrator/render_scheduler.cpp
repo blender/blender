@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "integrator/render_scheduler.h"
 
@@ -257,7 +244,7 @@ void RenderScheduler::render_work_reschedule_on_cancel(RenderWork &render_work)
   render_work.tile.write = tile_write;
   render_work.full.write = full_write;
 
-  /* Do not write tile if it has zero samples it it, treat it similarly to all other tiles which
+  /* Do not write tile if it has zero samples in it, treat it similarly to all other tiles which
    * got canceled. */
   if (!state_.tile_result_was_written && has_rendered_samples) {
     render_work.tile.write = true;

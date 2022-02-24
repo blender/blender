@@ -1,5 +1,6 @@
 /* Override RTD theme */
 .rst-versions {
+	display: none;
 	border-top: 0px;
 	overflow: visible;
 }

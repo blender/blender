@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
 #include "BLI_set.hh"
@@ -186,7 +172,8 @@ static void spline_extrude_to_mesh_data(const ResultInfo &info,
     }
   }
 
-  if (fill_caps && profile.is_cyclic()) {
+  const bool has_caps = fill_caps && profile.is_cyclic() && !spline.is_cyclic();
+  if (has_caps) {
     const int poly_size = info.spline_edge_len * info.profile_edge_len;
     const int cap_loop_offset = info.loop_offset + poly_size * 4;
     const int cap_poly_offset = info.poly_offset + poly_size;
@@ -239,7 +226,7 @@ static void spline_extrude_to_mesh_data(const ResultInfo &info,
   }
 
   /* Mark edge loops from sharp vector control points sharp. */
-  if (profile.type() == Spline::Type::Bezier) {
+  if (profile.type() == CURVE_TYPE_BEZIER) {
     const BezierSpline &bezier_spline = static_cast<const BezierSpline &>(profile);
     Span<int> control_point_offsets = bezier_spline.control_point_offsets();
     for (const int i : IndexRange(bezier_spline.size())) {
@@ -270,7 +257,8 @@ static inline int spline_extrude_loop_size(const Spline &curve,
                                            const bool fill_caps)
 {
   const int tube = curve.evaluated_edges_size() * profile.evaluated_edges_size() * 4;
-  const int caps = (fill_caps && profile.is_cyclic()) ? profile.evaluated_edges_size() * 2 : 0;
+  const bool has_caps = fill_caps && profile.is_cyclic() && !curve.is_cyclic();
+  const int caps = has_caps ? profile.evaluated_edges_size() * 2 : 0;
   return tube + caps;
 }
 
@@ -279,7 +267,8 @@ static inline int spline_extrude_poly_size(const Spline &curve,
                                            const bool fill_caps)
 {
   const int tube = curve.evaluated_edges_size() * profile.evaluated_edges_size();
-  const int caps = (fill_caps && profile.is_cyclic()) ? 2 : 0;
+  const bool has_caps = fill_caps && profile.is_cyclic() && !curve.is_cyclic();
+  const int caps = has_caps ? 2 : 0;
   return tube + caps;
 }
 

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -184,10 +170,10 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
     /* FIXME: Recursive calls affecting other non-embedded IDs are really bad and should be avoided
      * in IDType callbacks. Higher-level ID management code usually does not expect such things and
      * does not deal properly with it. */
-    /* NOTE: assert below ensures that the comment above is valid, and that that exception is
+    /* NOTE: assert below ensures that the comment above is valid, and that exception is
      * acceptable for the time being. */
     BKE_lib_id_make_local(bmain, &brush->clone.image->id, 0);
-    BLI_assert(brush->clone.image->id.lib == NULL && brush->clone.image->id.newid == NULL);
+    BLI_assert(!ID_IS_LINKED(brush->clone.image) && brush->clone.image->id.newid == NULL);
   }
 
   if (force_local) {

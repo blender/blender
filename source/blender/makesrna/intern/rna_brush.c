@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -264,6 +250,12 @@ const EnumPropertyItem rna_enum_brush_gpencil_weight_types_items[] = {
      ICON_GPBRUSH_WEIGHT,
      "Weight",
      "Weight Paint for Vertex Groups"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_brush_curves_sculpt_tool_items[] = {
+    {CURVES_SCULPT_TOOL_TEST1, "TEST1", ICON_NONE, "Test 1", ""},
+    {CURVES_SCULPT_TOOL_TEST2, "TEST2", ICON_NONE, "Test 2", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1821,12 +1813,13 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
       prop, "Stroke Extension", "Strokes end extension for closing gaps, use zero to disable");
   RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
-  /* Number of pixels to dilate fill area. */
+  /* Number of pixels to dilate fill area. Negative values contract the filled area. */
   prop = RNA_def_property(srna, "dilate", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "dilate_pixels");
-  RNA_def_property_range(prop, 0, 20);
+  RNA_def_property_range(prop, -40, 40);
   RNA_def_property_int_default(prop, 1);
-  RNA_def_property_ui_text(prop, "Dilate", "Number of pixels to dilate fill area");
+  RNA_def_property_ui_text(
+      prop, "Dilate/Contract", "Number of pixels to expand or contract fill area");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
@@ -2542,6 +2535,11 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "gpencil_weight_tool");
   RNA_def_property_enum_items(prop, rna_enum_brush_gpencil_weight_types_items);
   RNA_def_property_ui_text(prop, "Grease Pencil Weight Paint Tool", "");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "curves_sculpt_tool", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_brush_curves_sculpt_tool_items);
+  RNA_def_property_ui_text(prop, "Curves Sculpt Tool", "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   /** End per mode tool properties. */

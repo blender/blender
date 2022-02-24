@@ -1,22 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2006, Blender Foundation
-# All rights reserved.
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright 2006 Blender Foundation. All rights reserved.
 
 # WITH_OPENGL limits the visibility of the opengl headers to just GPU and bg_gpu,
 # to more easily highlight codepadths in other libraries that need to be refactored,
@@ -165,6 +148,7 @@ set(SRC
   intern/gpu_select_private.h
   intern/gpu_shader_create_info.hh
   intern/gpu_shader_create_info_private.hh
+  intern/gpu_shader_dependency_private.h
   intern/gpu_shader_interface.hh
   intern/gpu_shader_private.hh
   intern/gpu_state_private.hh
@@ -402,7 +386,7 @@ file(GENERATE OUTPUT ${glsl_source_list_file} CONTENT "${GLSL_SOURCE_CONTENT}")
 list(APPEND SRC ${glsl_source_list_file})
 list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 
-set(SHADER_CREATE_INFOS
+set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/workbench/shaders/infos/workbench_composite_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_effect_antialiasing_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_effect_cavity_info.hh
@@ -453,7 +437,7 @@ set(SHADER_CREATE_INFOS
 )
 
 set(SHADER_CREATE_INFOS_CONTENT "")
-foreach(DESCRIPTOR_FILE ${SHADER_CREATE_INFOS})
+foreach(DESCRIPTOR_FILE ${SRC_SHADER_CREATE_INFOS})
   string(APPEND SHADER_CREATE_INFOS_CONTENT "#include \"${DESCRIPTOR_FILE}\"\n")
 endforeach()
 
@@ -470,11 +454,20 @@ if(WITH_IMAGE_DDS)
   add_definitions(-DWITH_DDS)
 endif()
 
+if(WITH_OPENCOLORIO)
+  add_definitions(-DWITH_OCIO)
+endif()
+
 blender_add_lib(bf_gpu "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 target_link_libraries(bf_gpu PUBLIC
   bf_draw_shaders
   bf_gpu_shaders
 )
+
+if(WITH_OPENCOLORIO)
+  target_link_libraries(bf_gpu PUBLIC bf_ocio_shaders)
+endif()
+
 
 if(CXX_WARN_NO_SUGGEST_OVERRIDE)
   target_compile_options(bf_gpu PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wsuggest-override>)
@@ -495,18 +488,22 @@ if(WITH_GPU_SHADER_BUILDER)
   )
   target_include_directories(shader_builder PRIVATE ${INC} ${CMAKE_CURRENT_BINARY_DIR})
 
-  set(BAKED_CREATE_INFOS_FILE ${CMAKE_CURRENT_BINARY_DIR}/shader_baked.hh)
+  set(SRC_BAKED_CREATE_INFOS_FILE ${CMAKE_CURRENT_BINARY_DIR}/shader_baked.hh)
 
   add_custom_command(
     OUTPUT
-    ${BAKED_CREATE_INFOS_FILE}
+    ${SRC_BAKED_CREATE_INFOS_FILE}
     COMMAND
-      "$<TARGET_FILE:shader_builder>" ${BAKED_CREATE_INFOS_FILE}
+      "$<TARGET_FILE:shader_builder>" ${SRC_BAKED_CREATE_INFOS_FILE}
     DEPENDS shader_builder
   )
   set(GPU_SHADER_INFO_SRC
     intern/gpu_shader_info_baked.cc
-    ${BAKED_CREATE_INFOS_FILE}
+    ${SRC_BAKED_CREATE_INFOS_FILE}
+
+    # For project files to be aware of these headers.
+    ${SRC_SHADER_CREATE_INFOS}
+    shaders/infos/gpu_interface_info.hh
   )
 
   blender_add_lib(bf_gpu_shader_infos "${GPU_SHADER_INFO_SRC}" "" "" "")

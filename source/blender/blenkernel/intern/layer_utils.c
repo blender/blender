@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -81,9 +67,11 @@ Object **BKE_view_layer_array_selected_objects_params(
   }
   FOREACH_SELECTED_OBJECT_END;
 
-  object_array = MEM_reallocN(object_array, sizeof(*object_array) * BLI_array_len(object_array));
-  /* We always need a valid allocation (prevent crash on free). */
-  if (object_array == NULL) {
+  if (object_array != NULL) {
+    BLI_array_trim(object_array);
+  }
+  else {
+    /* We always need a valid allocation (prevent crash on free). */
     object_array = MEM_mallocN(0, __func__);
   }
   *r_len = BLI_array_len(object_array);
@@ -135,9 +123,11 @@ Base **BKE_view_layer_array_from_bases_in_mode_params(ViewLayer *view_layer,
   }
   FOREACH_BASE_IN_MODE_END;
 
-  base_array = MEM_reallocN(base_array, sizeof(*base_array) * BLI_array_len(base_array));
   /* We always need a valid allocation (prevent crash on free). */
-  if (base_array == NULL) {
+  if (base_array != NULL) {
+    BLI_array_trim(base_array);
+  }
+  else {
     base_array = MEM_mallocN(0, __func__);
   }
   *r_len = BLI_array_len(base_array);

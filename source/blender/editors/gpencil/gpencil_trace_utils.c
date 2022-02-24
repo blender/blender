@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edgpencil
@@ -330,7 +314,7 @@ void ED_gpencil_trace_data_to_strokes(Main *bmain,
       if (sample > 0.0f) {
         /* Resample stroke. Don't need to call to BKE_gpencil_stroke_geometry_update() because
          * the sample function already call that. */
-        BKE_gpencil_stroke_sample(gpd, gps, sample, false);
+        BKE_gpencil_stroke_sample(gpd, gps, sample, false, 0);
       }
       else {
         BKE_gpencil_stroke_geometry_update(gpd, gps);

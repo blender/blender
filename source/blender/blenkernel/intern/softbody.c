@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -2983,7 +2967,7 @@ static void curve_surf_to_softbody(Object *ob)
   totvert = BKE_nurbList_verts_count(&cu->nurb);
 
   if (ob->softflag & OB_SB_EDGES) {
-    if (ob->type == OB_CURVE) {
+    if (ob->type == OB_CURVES_LEGACY) {
       totspring = totvert - BLI_listbase_count(&cu->nurb);
     }
   }
@@ -3336,7 +3320,7 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
       break;
     case OB_LATTICE:
       break;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
       break;
     default:
@@ -3553,7 +3537,7 @@ void sbObjectStep(struct Depsgraph *depsgraph,
       case OB_LATTICE:
         lattice_to_softbody(ob);
         break;
-      case OB_CURVE:
+      case OB_CURVES_LEGACY:
       case OB_SURF:
         curve_surf_to_softbody(ob);
         break;

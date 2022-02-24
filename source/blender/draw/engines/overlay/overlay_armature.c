@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2019, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2019 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -2117,6 +2102,7 @@ static bool pchan_culling_test_envelope(const DRWView *view,
 {
   const bArmature *arm = ob->data;
   BLI_assert(arm->drawtype == ARM_ENVELOPE);
+  UNUSED_VARS_NDEBUG(arm);
   BoundSphere bsphere;
   pchan_culling_calc_bsphere(ob, pchan, &bsphere);
   bsphere.radius += max_ff(pchan->bone->rad_head, pchan->bone->rad_tail) *
@@ -2130,6 +2116,7 @@ static bool pchan_culling_test_bbone(const DRWView *view,
 {
   const bArmature *arm = ob->data;
   BLI_assert(arm->drawtype == ARM_B_BONE);
+  UNUSED_VARS_NDEBUG(arm);
   const float ob_scale = mat4_to_size_max_axis(ob->obmat);
   const Mat4 *bbones_mat = (const Mat4 *)pchan->draw_data->bbone_matrix;
   for (int i = pchan->bone->segments; i--; bbones_mat++) {

@@ -1,22 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * Original author: Benoit Bolsee
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup ikplugin
@@ -261,9 +244,9 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
     }
 
     if (BLI_listbase_is_empty(&curchan->iktree) == false) {
-      /* Oh oh, there is already a chain starting from this channel and our chain is longer...
+      /* Oh, there is already a chain starting from this channel and our chain is longer.
        * Should handle this by moving the previous chain up to the beginning of our chain
-       * For now we just stop here */
+       * For now we just stop here. */
       break;
     }
   }

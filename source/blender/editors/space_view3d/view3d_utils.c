@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spview3d
@@ -521,6 +505,39 @@ bool ED_view3d_persp_ensure(const Depsgraph *depsgraph, View3D *v3d, ARegion *re
   }
 
   return false;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Camera View Utilities
+ *
+ * Utilities for manipulating the camera-view.
+ * \{ */
+
+bool ED_view3d_camera_view_zoom_scale(RegionView3D *rv3d, const float scale)
+{
+  const float camzoom_init = rv3d->camzoom;
+  float zoomfac = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom);
+  /* Clamp both before and after conversion to prevent NAN on negative values. */
+
+  zoomfac = zoomfac * scale;
+  CLAMP(zoomfac, RV3D_CAMZOOM_MIN_FACTOR, RV3D_CAMZOOM_MAX_FACTOR);
+  rv3d->camzoom = BKE_screen_view3d_zoom_from_fac(zoomfac);
+  CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
+  return (rv3d->camzoom != camzoom_init);
+}
+
+bool ED_view3d_camera_view_pan(ARegion *region, const float event_ofs[2])
+{
+  RegionView3D *rv3d = region->regiondata;
+  const float camdxy_init[2] = {rv3d->camdx, rv3d->camdy};
+  const float zoomfac = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom) * 2.0f;
+  rv3d->camdx += event_ofs[0] / (region->winx * zoomfac);
+  rv3d->camdy += event_ofs[1] / (region->winy * zoomfac);
+  CLAMP(rv3d->camdx, -1.0f, 1.0f);
+  CLAMP(rv3d->camdy, -1.0f, 1.0f);
+  return (camdxy_init[0] != rv3d->camdx) || (camdxy_init[1] != rv3d->camdy);
 }
 
 /** \} */

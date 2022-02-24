@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edtransform
@@ -102,7 +86,7 @@ int BIF_snappingSupported(Object *obedit)
   int status = 0;
 
   /* only support object mesh, armature, curves */
-  if (obedit == NULL || ELEM(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL)) {
+  if (obedit == NULL || ELEM(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVES_LEGACY, OB_LATTICE, OB_MBALL)) {
     status = 1;
   }
 
@@ -599,7 +583,7 @@ static short snap_mode_from_scene(TransInfo *t)
     /* All obedit types will match. */
     const int obedit_type = t->obedit_type;
     if ((t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR | CTX_OBMODE_XFORM_OBDATA)) ||
-        ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL, -1)) {
+        ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVES_LEGACY, OB_LATTICE, OB_MBALL, -1)) {
       r_snap_mode = ts->snap_mode;
       if ((r_snap_mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_flag & SCE_SNAP_ABS_GRID) &&
           (t->mode == TFM_TRANSLATION)) {
@@ -633,7 +617,7 @@ static short snap_select_type_get(TransInfo *t)
        * When we're moving the origins, allow snapping onto our own geometry (see T69132). */
     }
     else if ((obedit_type != -1) &&
-             ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL)) {
+             ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVES_LEGACY, OB_LATTICE, OB_MBALL)) {
       /* Edit mode */
       /* Temporary limited to edit mode meshes, armature, curves, metaballs. */
 
@@ -644,13 +628,16 @@ static short snap_select_type_get(TransInfo *t)
       else if (!t->tsnap.snap_self) {
         r_snap_select = SNAP_NOT_ACTIVE;
       }
+      else {
+        r_snap_select = SNAP_NOT_SELECTED;
+      }
     }
     else if ((obedit_type == -1) && base_act && base_act->object &&
              (base_act->object->mode & OB_MODE_PARTICLE_EDIT)) {
       /* Particles edit mode. */
     }
     else if (obedit_type == -1) {
-      /* Object mode */
+      /* Object or pose mode. */
       r_snap_select = SNAP_NOT_SELECTED;
     }
   }

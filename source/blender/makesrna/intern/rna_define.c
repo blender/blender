@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -4405,24 +4391,21 @@ void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, const EnumPropert
 
   if (tot == 0) {
     *items = MEM_callocN(sizeof(EnumPropertyItem[8]), __func__);
+    /* Ensure we get crashes on missing calls to 'RNA_enum_item_end', see T74227. */
+#ifdef DEBUG
+    memset(*items, 0xff, sizeof(EnumPropertyItem[8]));
+#endif
   }
   else if (tot >= 8 && (tot & (tot - 1)) == 0) {
     /* power of two > 8 */
     *items = MEM_recallocN_id(*items, sizeof(EnumPropertyItem) * tot * 2, __func__);
+#ifdef DEBUG
+    memset((*items) + tot, 0xff, sizeof(EnumPropertyItem) * tot);
+#endif
   }
 
   (*items)[tot] = *item;
   *totitem = tot + 1;
-
-  /* Ensure we get crashes on missing calls to 'RNA_enum_item_end', see T74227. */
-#ifdef DEBUG
-  static const EnumPropertyItem item_error = {
-      -1, POINTER_FROM_INT(-1), -1, POINTER_FROM_INT(-1), POINTER_FROM_INT(-1)};
-  if (item != &item_error) {
-    RNA_enum_item_add(items, totitem, &item_error);
-    *totitem -= 1;
-  }
-#endif
 }
 
 void RNA_enum_item_add_separator(EnumPropertyItem **items, int *totitem)

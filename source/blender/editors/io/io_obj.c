@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editor/io
@@ -52,12 +38,12 @@ static const EnumPropertyItem io_obj_transform_axis_forward[] = {
     {OBJ_AXIS_Z_FORWARD, "Z_FORWARD", 0, "Z", "Positive Z axis"},
     {OBJ_AXIS_NEGATIVE_X_FORWARD, "NEGATIVE_X_FORWARD", 0, "-X", "Negative X axis"},
     {OBJ_AXIS_NEGATIVE_Y_FORWARD, "NEGATIVE_Y_FORWARD", 0, "-Y", "Negative Y axis"},
-    {OBJ_AXIS_NEGATIVE_Z_FORWARD, "NEGATIVE_Z_FORWARD", 0, "-Z (Default)", "Negative Z axis"},
+    {OBJ_AXIS_NEGATIVE_Z_FORWARD, "NEGATIVE_Z_FORWARD", 0, "-Z", "Negative Z axis"},
     {0, NULL, 0, NULL, NULL}};
 
 static const EnumPropertyItem io_obj_transform_axis_up[] = {
     {OBJ_AXIS_X_UP, "X_UP", 0, "X", "Positive X axis"},
-    {OBJ_AXIS_Y_UP, "Y_UP", 0, "Y (Default)", "Positive Y axis"},
+    {OBJ_AXIS_Y_UP, "Y_UP", 0, "Y", "Positive Y axis"},
     {OBJ_AXIS_Z_UP, "Z_UP", 0, "Z", "Positive Z axis"},
     {OBJ_AXIS_NEGATIVE_X_UP, "NEGATIVE_X_UP", 0, "-X", "Negative X axis"},
     {OBJ_AXIS_NEGATIVE_Y_UP, "NEGATIVE_Y_UP", 0, "-Y", "Negative Y axis"},
@@ -69,7 +55,7 @@ static const EnumPropertyItem io_obj_export_evaluation_mode[] = {
     {DAG_EVAL_VIEWPORT,
      "DAG_EVAL_VIEWPORT",
      0,
-     "Viewport (Default)",
+     "Viewport",
      "Export objects as they appear in the viewport"},
     {0, NULL, 0, NULL, NULL}};
 

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -57,7 +43,7 @@ static void rna_Curves_curve_offset_data_begin(CollectionPropertyIterator *iter,
 {
   const Curves *curves = rna_curves(ptr);
   rna_iterator_array_begin(iter,
-                           (void *)curves->geometry.offsets,
+                           (void *)curves->geometry.curve_offsets,
                            sizeof(int),
                            curves->geometry.curve_size + 1,
                            false,
@@ -109,7 +95,7 @@ static char *rna_CurvePoint_path(PointerRNA *ptr)
 static int rna_CurveSlice_index_get(PointerRNA *ptr)
 {
   Curves *curves = rna_curves(ptr);
-  return (int)((int *)ptr->data - curves->geometry.offsets);
+  return (int)((int *)ptr->data - curves->geometry.curve_offsets);
 }
 
 static char *rna_CurveSlice_path(PointerRNA *ptr)
@@ -234,7 +220,7 @@ static void rna_def_curves(BlenderRNA *brna)
   /* Point and Curve RNA API helpers. */
 
   prop = RNA_def_property(srna, "curves", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "geometry.offsets", "geometry.curve_size");
+  RNA_def_property_collection_sdna(prop, NULL, "geometry.curve_offsets", "geometry.curve_size");
   RNA_def_property_struct_type(prop, "CurveSlice");
   RNA_def_property_ui_text(prop, "Curves", "All curves in the data-block");
 
@@ -257,7 +243,7 @@ static void rna_def_curves(BlenderRNA *brna)
   RNA_define_verify_sdna(1);
 
   prop = RNA_def_property(srna, "curve_offset_data", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "geometry.offsets", NULL);
+  RNA_def_property_collection_sdna(prop, NULL, "geometry.curve_offsets", NULL);
   RNA_def_property_struct_type(prop, "IntAttributeValue");
   RNA_def_property_collection_funcs(prop,
                                     "rna_Curves_curve_offset_data_begin",

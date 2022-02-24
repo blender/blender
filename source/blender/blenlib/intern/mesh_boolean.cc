@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -36,7 +22,7 @@
 #  include "BLI_math_geom.h"
 #  include "BLI_math_mpq.hh"
 #  include "BLI_math_vec_mpq_types.hh"
-#  include "BLI_math_vec_types.hh"
+#  include "BLI_math_vector.hh"
 #  include "BLI_mesh_intersect.hh"
 #  include "BLI_set.hh"
 #  include "BLI_span.hh"
@@ -2199,7 +2185,7 @@ static void finish_patch_cell_graph(const IMesh &tm,
  * There will be a vector of \a nshapes winding numbers in each cell, one per
  * input shape.
  * As one crosses a patch into a new cell, the original shape (mesh part)
- * that that patch was part of dictates which winding number changes.
+ * that patch was part of dictates which winding number changes.
  * The shape_fn(triangle_number) function should return the shape that the
  * triangle is part of.
  * Also, as soon as the winding numbers for a cell are set, use bool_optype

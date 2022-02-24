@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_map.hh"
 #include "BLI_multi_value_map.hh"
@@ -1482,7 +1468,8 @@ class NodeTreeMainUpdater {
 
     while (!sockets_to_check.is_empty()) {
       const SocketRef &in_out_socket = *sockets_to_check.pop();
-      const bNode &bnode = *in_out_socket.node().bnode();
+      const NodeRef &node = in_out_socket.node();
+      const bNode &bnode = *node.bnode();
       const bNodeSocket &bsocket = *in_out_socket.bsocket();
       if (bsocket.changed_flag != NTREE_CHANGED_NOTHING) {
         return true;
@@ -1507,13 +1494,25 @@ class NodeTreeMainUpdater {
       }
       else {
         const OutputSocketRef &socket = in_out_socket.as_output();
-        for (const InputSocketRef *input_socket : socket.node().inputs()) {
+        for (const InputSocketRef *input_socket : node.inputs()) {
           if (input_socket->is_available()) {
             bool &pushed = pushed_by_socket_id[input_socket->id()];
             if (!pushed) {
               sockets_to_check.push(input_socket);
               pushed = true;
             }
+          }
+        }
+        /* The Normal node has a special case, because the value stored in the first output socket
+         * is used as input in the node. */
+        if (bnode.type == SH_NODE_NORMAL && socket.index() == 1) {
+          BLI_assert(socket.name() == "Dot");
+          const OutputSocketRef &normal_output = node.output(0);
+          BLI_assert(normal_output.name() == "Normal");
+          bool &pushed = pushed_by_socket_id[normal_output.id()];
+          if (!pushed) {
+            sockets_to_check.push(&normal_output);
+            pushed = true;
           }
         }
       }
@@ -1614,6 +1613,11 @@ void BKE_ntree_update_tag_link_mute(bNodeTree *ntree, bNodeLink *UNUSED(link))
   add_tree_tag(ntree, NTREE_CHANGED_LINK);
 }
 
+void BKE_ntree_update_tag_active_output_changed(bNodeTree *ntree)
+{
+  add_tree_tag(ntree, NTREE_CHANGED_ANY);
+}
+
 void BKE_ntree_update_tag_missing_runtime_data(bNodeTree *ntree)
 {
   add_tree_tag(ntree, NTREE_CHANGED_ALL);
@@ -1635,6 +1639,12 @@ void BKE_ntree_update_tag_id_changed(Main *bmain, ID *id)
     }
   }
   FOREACH_NODETREE_END;
+}
+
+void BKE_ntree_update_tag_image_user_changed(bNodeTree *ntree, ImageUser *UNUSED(iuser))
+{
+  /* Would have to search for the node that uses the image user for a more detailed tag. */
+  add_tree_tag(ntree, NTREE_CHANGED_ANY);
 }
 
 /**

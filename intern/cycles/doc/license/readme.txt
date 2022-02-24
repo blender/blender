@@ -1,15 +1,7 @@
+The default license for Cycles source code is Apache 2.0.
 
-This program uses code from various sources, the default license is Apache 2.0
-for all code, with the following exceptions.
+There is also code adapted from other sources with different but compatible
+licenses. This is marked with appropriate SPDX license identifiers and
+copyright notices in source files.
 
-Modified BSD License
-* Code adapted from Open Shading Language
-* Sobol direction vectors
-* Matrix inversion code from OpenEXR
-* MD5 Hash code
-
-MIT license
-* Approximate Catmull Clark subdivision code
-
-Boost License
-* Boost and OpenCL dynamic loading
+See SPDX-license-identifiers.txt for a list of licenses used in the code.

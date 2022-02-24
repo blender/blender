@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Blender Foundation. All rights reserved. */
 
 #pragma once
 
@@ -103,8 +87,12 @@ struct ID *BKE_lib_override_library_create_from_id(struct Main *bmain,
  * \param owner_library: the library in which the overrides should be created. Besides versioning
  * and resync code path, this should always be NULL (i.e. the local .blend file).
  *
- * \param reference_library: the library from which the linked data being overridden come from
- * (i.e. the library of the linked reference ID).
+ * \param id_root_reference: the linked ID that is considered as the root of the overridden
+ * hierarchy.
+ *
+ * \param id_hierarchy_root: the override ID that is the root of the hierarchy. May be NULL, in
+ * which case it is assumed that the given `id_root_reference` is tagged for override, and its
+ * newly created override will be used as hierarchy root.
  *
  * \param do_no_main: Create the new override data outside of Main database.
  * Used for resyncing of linked overrides.
@@ -114,6 +102,7 @@ struct ID *BKE_lib_override_library_create_from_id(struct Main *bmain,
 bool BKE_lib_override_library_create_from_tag(struct Main *bmain,
                                               struct Library *owner_library,
                                               const struct ID *id_root_reference,
+                                              struct ID *id_hierarchy_root,
                                               bool do_no_main);
 /**
  * Advanced 'smart' function to create fully functional overrides.

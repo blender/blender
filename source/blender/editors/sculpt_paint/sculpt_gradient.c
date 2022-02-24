@@ -129,7 +129,7 @@ static void sculpt_gradient_apply_task_cb(void *__restrict userdata,
     gradient_value = clamp_f(gradient_value, 0.0f, 1.0f);
     gcontext->sculpt_gradient_apply_for_element(sd, ss, &orig_data, &vd, gradient_value, fade);
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;

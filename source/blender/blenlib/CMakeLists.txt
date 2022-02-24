@@ -1,22 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2006, Blender Foundation
-# All rights reserved.
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright 2006 Blender Foundation. All rights reserved.
 
 set(INC
   .
@@ -183,6 +166,7 @@ set(SRC
   BLI_bitmap_draw_2d.h
   BLI_blenlib.h
   BLI_boxpack_2d.h
+  BLI_bounds.hh
   BLI_buffer.h
   BLI_color.hh
   BLI_compiler_attrs.h
@@ -224,6 +208,7 @@ set(SRC
   BLI_heap_simple.h
   BLI_heap_minmax.h
   BLI_index_mask.hh
+  BLI_index_mask_ops.hh
   BLI_index_range.hh
   BLI_inplace_priority_queue.hh
   BLI_iterator.h
@@ -242,6 +227,7 @@ set(SRC
   BLI_map.hh
   BLI_map_slots.hh
   BLI_math.h
+  BLI_math_base.hh
   BLI_math_base.h
   BLI_math_base_safe.h
   BLI_math_bits.h
@@ -260,6 +246,7 @@ set(SRC
   BLI_math_vec_mpq_types.hh
   BLI_math_vec_types.hh
   BLI_math_vector.h
+  BLI_math_vector.hh
   BLI_memarena.h
   BLI_memblock.h
   BLI_memiter.h
@@ -330,6 +317,9 @@ set(SRC
   BLI_winstuff.h
   PIL_time.h
   PIL_time_utildefines.h
+
+  # Without these files listed, they aren't known to CMake.
+  ../../../extern/json/include/json.hpp
 )
 
 set(LIB
@@ -418,6 +408,7 @@ if(WITH_GTESTS)
     tests/BLI_array_store_test.cc
     tests/BLI_array_test.cc
     tests/BLI_array_utils_test.cc
+    tests/BLI_bounds_test.cc
     tests/BLI_color_test.cc
     tests/BLI_delaunay_2d_test.cc
     tests/BLI_disjoint_set_test.cc

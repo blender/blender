@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 
@@ -2264,6 +2248,19 @@ class _defs_gpencil_weight:
             tooldef_keywords=dict(operator="gpencil.weight_paint",),)
 
 
+class _defs_curves_sculpt:
+
+    @staticmethod
+    def generate_from_brushes(context):
+        return generate_from_enum_ex(
+            context,
+            idname_prefix="builtin_brush.",
+            icon_prefix="ops.curves.sculpt_",
+            type= bpy.types.Brush,
+            attr="curves_sculpt_tool",
+        )
+
+
 class _defs_gpencil_vertex:
 
     @staticmethod
@@ -2843,7 +2840,12 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             lambda context: (VIEW3D_PT_tools_active._tools_gpencil_select
                 if _defs_gpencil_vertex.poll_select_mask(context)
-                else ()),],
+                else ()
+            ),
+        ],
+        'SCULPT_CURVES': [
+            _defs_curves_sculpt.generate_from_brushes,
+        ],
     }
 
 

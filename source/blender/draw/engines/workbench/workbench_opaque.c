@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2020, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -88,11 +73,13 @@ void workbench_opaque_cache_init(WORKBENCH_Data *vedata)
         sh = workbench_shader_opaque_get(wpd, data);
 
         wpd->prepass[opaque][infront][data].common_shgrp = grp = DRW_shgroup_create(sh, pass);
+        DRW_shgroup_uniform_block(grp, "world_data", wpd->world_ubo);
         DRW_shgroup_uniform_block(grp, "materials_data", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", -1);
         DRW_shgroup_uniform_bool_copy(grp, "useMatcap", use_matcap);
 
         wpd->prepass[opaque][infront][data].vcol_shgrp = grp = DRW_shgroup_create(sh, pass);
+        DRW_shgroup_uniform_block(grp, "world_data", wpd->world_ubo);
         DRW_shgroup_uniform_block(grp, "materials_data", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", 0); /* Default material. (uses vcol) */
         DRW_shgroup_uniform_bool_copy(grp, "useMatcap", use_matcap);
@@ -100,6 +87,7 @@ void workbench_opaque_cache_init(WORKBENCH_Data *vedata)
         sh = workbench_shader_opaque_image_get(wpd, data, false);
 
         wpd->prepass[opaque][infront][data].image_shgrp = grp = DRW_shgroup_create(sh, pass);
+        DRW_shgroup_uniform_block(grp, "world_data", wpd->world_ubo);
         DRW_shgroup_uniform_block(grp, "materials_data", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", 0); /* Default material. */
         DRW_shgroup_uniform_bool_copy(grp, "useMatcap", use_matcap);
@@ -107,6 +95,7 @@ void workbench_opaque_cache_init(WORKBENCH_Data *vedata)
         sh = workbench_shader_opaque_image_get(wpd, data, true);
 
         wpd->prepass[opaque][infront][data].image_tiled_shgrp = grp = DRW_shgroup_create(sh, pass);
+        DRW_shgroup_uniform_block(grp, "world_data", wpd->world_ubo);
         DRW_shgroup_uniform_block(grp, "materials_data", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", 0); /* Default material. */
         DRW_shgroup_uniform_bool_copy(grp, "useMatcap", use_matcap);

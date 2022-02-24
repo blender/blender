@@ -1,25 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2015, Blender Foundation
- * This is a new part of Blender
- * Brush based operators for editing Grease Pencil strokes
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2015 Blender Foundation. */
 
 /** \file
  * \ingroup edgpencil
+ * Brush based operators for editing Grease Pencil strokes.
  */
 
 #include <math.h>
@@ -56,6 +40,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_update_cache.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_object_deform.h"
@@ -297,6 +282,8 @@ static void gpencil_update_geometry(bGPdata *gpd)
     return;
   }
 
+  bool changed = false;
+
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
       if ((gpl->actframe != gpf) && ((gpf->flag & GP_FRAME_SELECT) == 0)) {
@@ -306,13 +293,17 @@ static void gpencil_update_geometry(bGPdata *gpd)
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
         if (gps->flag & GP_STROKE_TAG) {
           BKE_gpencil_stroke_geometry_update(gpd, gps);
+          BKE_gpencil_tag_full_update(gpd, gpl, gpf, gps);
           gps->flag &= ~GP_STROKE_TAG;
+          changed = true;
         }
       }
     }
   }
-  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
-  WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  if (changed) {
+    DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  }
 }
 
 /* ************************************************ */
@@ -1351,8 +1342,9 @@ static void gpencil_sculpt_brush_init_stroke(bContext *C, tGP_BrushEditData *gso
        */
       if (IS_AUTOKEY_ON(scene) && (gpf->framenum != cfra)) {
         BKE_gpencil_frame_addcopy(gpl, cfra);
+        BKE_gpencil_tag_full_update(gpd, gpl, NULL, NULL);
         /* Need tag to recalculate evaluated data to avoid crashes. */
-        DEG_id_tag_update(&gso->gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(&gso->gpd->id, ID_RECALC_GEOMETRY);
         WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
       }
     }
@@ -1696,6 +1688,9 @@ static bool gpencil_sculpt_brush_do_frame(bContext *C,
         /* Delay a full recalculation for other frames. */
         gpencil_recalc_geometry_tag(gps_active);
       }
+      bGPDlayer *gpl_active = (gpl->runtime.gpl_orig) ? gpl->runtime.gpl_orig : gpl;
+      bGPDframe *gpf_active = (gpf->runtime.gpf_orig) ? gpf->runtime.gpf_orig : gpf;
+      BKE_gpencil_tag_full_update(gpd, gpl_active, gpf_active, gps_active);
     }
   }
 
@@ -1814,6 +1809,12 @@ static void gpencil_sculpt_brush_apply(bContext *C, wmOperator *op, PointerRNA *
   RNA_float_get_array(itemptr, "mouse", mousef);
   gso->mval[0] = mouse[0] = (int)(mousef[0]);
   gso->mval[1] = mouse[1] = (int)(mousef[1]);
+
+  /* If the mouse/pen has not moved, no reason to continue. This also avoid a small
+   * drift due precision accumulation errors. */
+  if ((gso->mval[0] == gso->mval_prev[0]) && (gso->mval[1] == gso->mval_prev[1])) {
+    return;
+  }
 
   gso->pressure = RNA_float_get(itemptr, "pressure");
 

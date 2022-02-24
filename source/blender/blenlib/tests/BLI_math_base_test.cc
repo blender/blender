@@ -1,8 +1,12 @@
-/* Apache License, Version 2.0 */
+/* SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
 #include "BLI_math.h"
+#include "BLI_math_base.hh"
+#include "BLI_math_vector.hh"
+
+namespace blender::tests {
 
 /* In tests below, when we are using -1.0f as max_diff value, we actually turn the function into a
  * pure-ULP one. */
@@ -131,3 +135,20 @@ TEST(math_base, FloorPowerOf10)
   EXPECT_NEAR(floor_power_of_10(100.1f), 100.0f, 1e-4f);
   EXPECT_NEAR(floor_power_of_10(99.9f), 10.0f, 1e-4f);
 }
+
+TEST(math_base, MinVectorAndFloat)
+{
+  EXPECT_EQ(math::min(1.0f, 2.0f), 1.0f);
+}
+
+TEST(math_base, ClampInt)
+{
+  EXPECT_EQ(math::clamp(111, -50, 101), 101);
+}
+
+TEST(math_base, Midpoint)
+{
+  EXPECT_NEAR(math::midpoint(100.0f, 200.0f), 150.0f, 1e-4f);
+}
+
+}  // namespace blender::tests

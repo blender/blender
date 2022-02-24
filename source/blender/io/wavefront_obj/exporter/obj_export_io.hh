@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup obj
@@ -129,7 +115,7 @@ constexpr bool is_type_string_related = (... && std::is_constructible_v<std::str
  * results in "obj_export_io.hh:205:18: warning: ‘%s’ directive output truncated writing 34 bytes
  * into a region of size 6" and similar warnings. Yes the output is truncated, and that is covered
  * as an edge case by tests on purpose. */
-#if defined __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wformat-truncation"
 #endif
@@ -273,7 +259,7 @@ constexpr FormattingSyntax syntax_elem_to_formatting(const eMTLSyntaxElement key
     }
   }
 }
-#if defined __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
 #  pragma GCC diagnostic pop
 #endif
 

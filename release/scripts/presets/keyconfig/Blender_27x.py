@@ -1,4 +1,5 @@
-#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # Notes on this key-map:
 #
 # This uses Blender's key-map, running with `legacy=True`.

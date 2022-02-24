@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup DNA
@@ -25,6 +9,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_texture_types.h" /* ColorBand */
+#include "DNA_userdef_enums.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1239,39 +1224,6 @@ typedef enum eUserpref_Translation_Flags {
   USER_TR_NEWDATANAME = (1 << 8),
 } eUserpref_Translation_Flags;
 
-/** #UserDef.dupflag */
-typedef enum eDupli_ID_Flags {
-  USER_DUP_MESH = (1 << 0),
-  USER_DUP_CURVE = (1 << 1),
-  USER_DUP_SURF = (1 << 2),
-  USER_DUP_FONT = (1 << 3),
-  USER_DUP_MBALL = (1 << 4),
-  USER_DUP_LAMP = (1 << 5),
-  /* USER_DUP_FCURVE = (1 << 6), */ /* UNUSED, keep because we may implement. */
-  USER_DUP_MAT = (1 << 7),
-  /* USER_DUP_TEX = (1 << 8), */ /* UNUSED, keep because we may implement. */
-  USER_DUP_ARM = (1 << 9),
-  USER_DUP_ACT = (1 << 10),
-  USER_DUP_PSYS = (1 << 11),
-  USER_DUP_LIGHTPROBE = (1 << 12),
-  USER_DUP_GPENCIL = (1 << 13),
-  USER_DUP_CURVES = (1 << 14),
-  USER_DUP_POINTCLOUD = (1 << 15),
-  USER_DUP_VOLUME = (1 << 16),
-  USER_DUP_LATTICE = (1 << 17),
-  USER_DUP_CAMERA = (1 << 18),
-  USER_DUP_SPEAKER = (1 << 19),
-
-  USER_DUP_OBDATA = (~0) & ((1 << 24) - 1),
-
-  /* Those are not exposed as user preferences, only used internally. */
-  USER_DUP_OBJECT = (1 << 24),
-  /* USER_DUP_COLLECTION = (1 << 25), */ /* UNUSED, keep because we may implement. */
-
-  /* Duplicate (and hence make local) linked data. */
-  USER_DUP_LINKED_ID = (1 << 30),
-} eDupli_ID_Flags;
-
 /**
  * Text Editor options
  * #UserDef.text_flag
@@ -1369,6 +1321,7 @@ typedef enum eNdof_Flag {
   NDOF_PANY_INVERT_AXIS = (1 << 13),
   NDOF_PANZ_INVERT_AXIS = (1 << 14),
   NDOF_TURNTABLE = (1 << 15),
+  NDOF_CAMERA_PAN_ZOOM = (1 << 16),
 } eNdof_Flag;
 
 #define NDOF_PIXELS_PER_SECOND 600.0f

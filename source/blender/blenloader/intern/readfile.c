@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup blenloader
@@ -336,15 +320,22 @@ static void oldnewmap_increase_size(OldNewMap *onm)
 
 /* Public OldNewMap API */
 
-static OldNewMap *oldnewmap_new(void)
+static void oldnewmap_init_data(OldNewMap *onm, const int capacity_exp)
 {
-  OldNewMap *onm = MEM_callocN(sizeof(*onm), "OldNewMap");
+  memset(onm, 0x0, sizeof(*onm));
 
-  onm->capacity_exp = DEFAULT_SIZE_EXP;
+  onm->capacity_exp = capacity_exp;
   onm->entries = MEM_malloc_arrayN(
       ENTRIES_CAPACITY(onm), sizeof(*onm->entries), "OldNewMap.entries");
   onm->map = MEM_malloc_arrayN(MAP_CAPACITY(onm), sizeof(*onm->map), "OldNewMap.map");
   oldnewmap_clear_map(onm);
+}
+
+static OldNewMap *oldnewmap_new(void)
+{
+  OldNewMap *onm = MEM_mallocN(sizeof(*onm), "OldNewMap");
+
+  oldnewmap_init_data(onm, DEFAULT_SIZE_EXP);
 
   return onm;
 }
@@ -411,9 +402,10 @@ static void oldnewmap_clear(OldNewMap *onm)
     }
   }
 
-  onm->capacity_exp = DEFAULT_SIZE_EXP;
-  oldnewmap_clear_map(onm);
-  onm->nentries = 0;
+  MEM_freeN(onm->entries);
+  MEM_freeN(onm->map);
+
+  oldnewmap_init_data(onm, DEFAULT_SIZE_EXP);
 }
 
 static void oldnewmap_free(OldNewMap *onm)
@@ -2929,7 +2921,7 @@ static const char *dataname(short id_code)
       return "Data from MA";
     case ID_TE:
       return "Data from TE";
-    case ID_CU:
+    case ID_CU_LEGACY:
       return "Data from CU";
     case ID_GR:
       return "Data from GR";

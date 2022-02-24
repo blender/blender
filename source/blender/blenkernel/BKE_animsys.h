@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 #pragma once
 
@@ -39,6 +23,7 @@ struct FCurve;
 struct ID;
 struct KS_Path;
 struct KeyingSet;
+struct LibraryForeachIDData;
 struct ListBase;
 struct Main;
 struct NlaKeyframingContext;
@@ -101,6 +86,10 @@ struct KS_Path *BKE_keyingset_find_path(struct KeyingSet *ks,
 
 /* Copy all KeyingSets in the given list */
 void BKE_keyingsets_copy(struct ListBase *newlist, const struct ListBase *list);
+
+/** Process the ID pointers inside a scene's keyingsets, in see `BKE_lib_query.h` for details. */
+void BKE_keyingsets_foreach_id(struct LibraryForeachIDData *data,
+                               const struct ListBase *keyingsets);
 
 /* Free the given Keying Set path */
 void BKE_keyingset_free_path(struct KeyingSet *ks, struct KS_Path *ksp);

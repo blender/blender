@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -524,7 +508,7 @@ static std::string main_function_wrapper(std::string &pre_main, std::string &pos
 std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) const
 {
   std::stringstream ss;
-  std::string post_main = "";
+  std::string post_main;
 
   ss << "\n/* Inputs. */\n";
   for (const ShaderCreateInfo::VertIn &attr : info.vertex_inputs_) {
@@ -557,7 +541,7 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
   ss << "\n";
 
   if (post_main.empty() == false) {
-    std::string pre_main = "";
+    std::string pre_main;
     ss << main_function_wrapper(pre_main, post_main);
   }
   return ss.str();
@@ -566,7 +550,7 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
 std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) const
 {
   std::stringstream ss;
-  std::string pre_main = "";
+  std::string pre_main;
 
   ss << "\n/* Interfaces. */\n";
   const Vector<StageInterfaceInfo *> &in_interfaces = (info.geometry_source_.is_empty()) ?
@@ -620,7 +604,7 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   ss << "\n";
 
   if (pre_main.empty() == false) {
-    std::string post_main = "";
+    std::string post_main;
     ss << main_function_wrapper(pre_main, post_main);
   }
   return ss.str();
@@ -740,7 +724,7 @@ std::string GLShader::workaround_geometry_shader_source_create(
     ss << "  gl_Layer = gpu_Layer[0];\n";
   }
   for (auto i : IndexRange(3)) {
-    for (auto iface : info_modified.vertex_out_interfaces_) {
+    for (StageInterfaceInfo *iface : info_modified.vertex_out_interfaces_) {
       for (auto &inout : iface->inouts) {
         ss << "  " << iface->instance_name << "_out." << inout.name;
         ss << " = " << iface->instance_name << "_in[" << i << "]." << inout.name << ";\n";

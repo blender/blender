@@ -1,25 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2006 by Nicholas Bishop
- * All rights reserved.
- * Implements the Sculpt Mode tools
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2006 by Nicholas Bishop. All rights reserved. */
 
 /** \file
  * \ingroup edsculpt
+ * Implements the Sculpt Mode tools.
  */
 
 #include "MEM_guardedalloc.h"
@@ -975,15 +959,15 @@ int SCULPT_active_face_set_get(SculptSession *ss)
   return SCULPT_FACE_SET_NONE;
 }
 
-void SCULPT_vertex_visible_set(SculptSession *ss, SculptVertRef index, bool visible)
+void SCULPT_vertex_visible_set(SculptSession *ss, SculptVertRef vertex, bool visible)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      SET_FLAG_FROM_TEST(ss->mvert[index.i].flag, !visible, ME_HIDE);
-      ss->mvert[index.i].flag |= ME_VERT_PBVH_UPDATE;
+      SET_FLAG_FROM_TEST(ss->mvert[vertex.i].flag, !visible, ME_HIDE);
+      BKE_pbvh_vert_mark_update(ss->pbvh, vertex);
       break;
     case PBVH_BMESH:
-      BM_elem_flag_set((BMVert *)index.i, BM_ELEM_HIDDEN, !visible);
+      BM_elem_flag_set((BMVert *)vertex.i, BM_ELEM_HIDDEN, !visible);
       break;
     case PBVH_GRIDS:
       break;
@@ -1531,7 +1515,7 @@ static void UNUSED_FUNCTION(sculpt_visibility_sync_vertex_to_face_sets)(SculptSe
       ss->face_sets[vert_map->indices[i]] = -abs(ss->face_sets[vert_map->indices[i]]);
     }
   }
-  ss->mvert[index].flag |= ME_VERT_PBVH_UPDATE;
+  BKE_pbvh_vert_mark_update(ss->pbvh, vertex);
 }
 
 void SCULPT_visibility_sync_all_vertex_to_face_sets(SculptSession *ss)
@@ -3151,7 +3135,7 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
     }
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -4773,7 +4757,7 @@ static void do_gravity_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], offset, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -8540,7 +8524,11 @@ static void sculpt_cache_dyntopo_settings(BrushChannelSet *chset,
   r_settings->constant_detail = BRUSHSET_GET_FLOAT(chset, dyntopo_constant_detail, input_data);
 };
 
-void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
+static void sculpt_stroke_update_step(bContext *C,
+                                      wmOperator *UNUSED(op),
+                                      struct PaintStroke *stroke,
+                                      PointerRNA *itemptr)
+
 {
 
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
@@ -8877,12 +8865,12 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   ignore_background_click = RNA_boolean_get(op->ptr, "ignore_background_click");
 
   if (ignore_background_click && !over_mesh(C, op, event->xy[0], event->xy[1])) {
-    paint_stroke_free(C, op);
+    paint_stroke_free(C, op, op->customdata);
     return OPERATOR_PASS_THROUGH;
   }
 
   if ((retval = op->type->modal(C, op, event)) == OPERATOR_FINISHED) {
-    paint_stroke_free(C, op);
+    paint_stroke_free(C, op, op->customdata);
     return OPERATOR_FINISHED;
   }
   /* Add modal handler. */
@@ -8908,7 +8896,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
                                     0);
 
   /* Frees op->customdata. */
-  paint_stroke_exec(C, op);
+  paint_stroke_exec(C, op, op->customdata);
 
   return OPERATOR_FINISHED;
 }
@@ -8926,7 +8914,7 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
     paint_mesh_restore_co(sd, ob);
   }
 
-  paint_stroke_cancel(C, op);
+  paint_stroke_cancel(C, op, op->customdata);
 
   if (ss->cache) {
     SCULPT_cache_free(ss, ob, ss->cache);
@@ -8939,6 +8927,11 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
 extern const EnumPropertyItem rna_enum_brush_sculpt_tool_items[];
 static EnumPropertyItem *stroke_tool_items = NULL;
 
+static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  return paint_stroke_modal(C, op, event, op->customdata);
+}
+
 void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -8948,7 +8941,7 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->invoke = sculpt_brush_stroke_invoke;
-  ot->modal = paint_stroke_modal;
+  ot->modal = sculpt_brush_stroke_modal;
   ot->exec = sculpt_brush_stroke_exec;
   ot->poll = SCULPT_poll;
   ot->cancel = sculpt_brush_stroke_cancel;
@@ -9278,6 +9271,7 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
 
   ss->preview_vert_index_count = totpoints;
 }
+
 
 /* Fake Neighbors. */
 /* This allows the sculpt tools to work on meshes with multiple connected components as they had

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -1578,13 +1562,15 @@ static void socket_id_user_increment(bNodeSocket *sock)
   }
 }
 
-static void socket_id_user_decrement(bNodeSocket *sock)
+/** \return True if the socket had an ID default value. */
+static bool socket_id_user_decrement(bNodeSocket *sock)
 {
   switch ((eNodeSocketDatatype)sock->type) {
     case SOCK_OBJECT: {
       bNodeSocketValueObject *default_value = (bNodeSocketValueObject *)sock->default_value;
       if (default_value->value != nullptr) {
         id_us_min(&default_value->value->id);
+        return true;
       }
       break;
     }
@@ -1592,6 +1578,7 @@ static void socket_id_user_decrement(bNodeSocket *sock)
       bNodeSocketValueImage *default_value = (bNodeSocketValueImage *)sock->default_value;
       if (default_value->value != nullptr) {
         id_us_min(&default_value->value->id);
+        return true;
       }
       break;
     }
@@ -1600,6 +1587,7 @@ static void socket_id_user_decrement(bNodeSocket *sock)
                                                       sock->default_value;
       if (default_value->value != nullptr) {
         id_us_min(&default_value->value->id);
+        return true;
       }
       break;
     }
@@ -1607,6 +1595,7 @@ static void socket_id_user_decrement(bNodeSocket *sock)
       bNodeSocketValueTexture *default_value = (bNodeSocketValueTexture *)sock->default_value;
       if (default_value->value != nullptr) {
         id_us_min(&default_value->value->id);
+        return true;
       }
       break;
     }
@@ -1614,6 +1603,7 @@ static void socket_id_user_decrement(bNodeSocket *sock)
       bNodeSocketValueMaterial *default_value = (bNodeSocketValueMaterial *)sock->default_value;
       if (default_value->value != nullptr) {
         id_us_min(&default_value->value->id);
+        return true;
       }
       break;
     }
@@ -1629,6 +1619,7 @@ static void socket_id_user_decrement(bNodeSocket *sock)
     case SOCK_GEOMETRY:
       break;
   }
+  return false;
 }
 
 void nodeModifySocketType(bNodeTree *ntree,
@@ -2988,6 +2979,8 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
    * do to ID user refcounting and removal of animdation data then. */
   BLI_assert((ntree->id.tag & LIB_TAG_LOCALIZED) == 0);
 
+  bool node_has_id = false;
+
   if (do_id_user) {
     /* Free callback for NodeCustomGroup. */
     if (node->typeinfo->freefunc_api) {
@@ -3000,13 +2993,14 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
     /* Do user counting. */
     if (node->id) {
       id_us_min(node->id);
+      node_has_id = true;
     }
 
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      socket_id_user_decrement(sock);
+      node_has_id |= socket_id_user_decrement(sock);
     }
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      socket_id_user_decrement(sock);
+      node_has_id |= socket_id_user_decrement(sock);
     }
   }
 
@@ -3018,6 +3012,12 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
   BLI_snprintf(prefix, sizeof(prefix), "nodes[\"%s\"]", propname_esc);
 
   if (BKE_animdata_fix_paths_remove((ID *)ntree, prefix)) {
+    if (bmain != nullptr) {
+      DEG_relations_tag_update(bmain);
+    }
+  }
+
+  if (node_has_id) {
     if (bmain != nullptr) {
       DEG_relations_tag_update(bmain);
     }
@@ -4751,6 +4751,7 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_to_points();
   register_node_type_geo_curve_trim();
   register_node_type_geo_delete_geometry();
+  register_node_type_geo_duplicate_elements();
   register_node_type_geo_distribute_points_on_faces();
   register_node_type_geo_dual_mesh();
   register_node_type_geo_edge_split();
@@ -4768,6 +4769,7 @@ static void registerGeometryNodes()
   register_node_type_geo_input_mesh_edge_neighbors();
   register_node_type_geo_input_mesh_edge_vertices();
   register_node_type_geo_input_mesh_face_area();
+  register_node_type_geo_input_mesh_face_is_planar();
   register_node_type_geo_input_mesh_face_neighbors();
   register_node_type_geo_input_mesh_island();
   register_node_type_geo_input_mesh_vertex_neighbors();

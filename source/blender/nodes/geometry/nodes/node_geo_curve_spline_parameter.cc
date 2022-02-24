@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_task.hh"
 
@@ -114,16 +100,20 @@ static Array<float> curve_length_point_domain(const CurveEval &curve)
       MutableSpan spline_factors{lengths.as_mutable_span().slice(offsets[i], spline.size())};
       spline_factors.first() = 0.0f;
       switch (splines[i]->type()) {
-        case Spline::Type::Bezier: {
+        case CURVE_TYPE_BEZIER: {
           calculate_bezier_lengths(static_cast<const BezierSpline &>(spline), spline_factors);
           break;
         }
-        case Spline::Type::Poly: {
+        case CURVE_TYPE_POLY: {
           calculate_poly_length(static_cast<const PolySpline &>(spline), spline_factors);
           break;
         }
-        case Spline::Type::NURBS: {
+        case CURVE_TYPE_NURBS: {
           calculate_nurbs_lengths(static_cast<const NURBSpline &>(spline), spline_factors);
+          break;
+        }
+        case CURVE_TYPE_CATMULL_ROM: {
+          BLI_assert_unreachable();
           break;
         }
       }

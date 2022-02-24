@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -26,6 +12,33 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#ifdef __cplusplus
+namespace blender::bke {
+class CurvesGeometryRuntime;
+}  // namespace blender::bke
+using CurvesGeometryRuntimeHandle = blender::bke::CurvesGeometryRuntime;
+#else
+typedef struct CurvesGeometryRuntimeHandle CurvesGeometryRuntimeHandle;
+#endif
+
+typedef enum CurveType {
+  CURVE_TYPE_CATMULL_ROM = 0,
+  CURVE_TYPE_POLY = 1,
+  CURVE_TYPE_BEZIER = 2,
+  CURVE_TYPE_NURBS = 3,
+} CurveType;
+
+typedef enum HandleType {
+  /** The handle can be moved anywhere, and doesn't influence the point's other handle. */
+  BEZIER_HANDLE_FREE = 0,
+  /** The location is automatically calculated to be smooth. */
+  BEZIER_HANDLE_AUTO = 1,
+  /** The location is calculated to point to the next/previous control point. */
+  BEZIER_HANDLE_VECTOR = 2,
+  /** The location is constrained to point in the opposite direction as the other handle. */
+  BEZIER_HANDLE_ALIGN = 3,
+} HandleType;
 
 /**
  * A reusable data structure for geometry consisting of many curves. All control point data is
@@ -48,13 +61,19 @@ typedef struct CurvesGeometry {
   float *radius;
 
   /**
+   * The type of each curve. #CurveType.
+   * \note This data is owned by #curve_data.
+   */
+  int8_t *curve_type;
+
+  /**
    * The start index of each curve in the point data. The size of each curve can be calculated by
    * subtracting the offset from the next offset. That is valid even for the last curve because
    * this array is allocated with a length one larger than the number of splines.
    *
    * \note This is *not* stored in #CustomData because its size is one larger than #curve_data.
    */
-  int *offsets;
+  int *curve_offsets;
 
   /**
    * All attributes stored on control points (#ATTR_DOMAIN_POINT).
@@ -74,6 +93,11 @@ typedef struct CurvesGeometry {
    * The number of curves in the data-block.
    */
   int curve_size;
+
+  /**
+   * Runtime data for curves, stored as a pointer to allow defining this as a C++ class.
+   */
+  CurvesGeometryRuntimeHandle *runtime;
 } CurvesGeometry;
 
 typedef struct Curves {

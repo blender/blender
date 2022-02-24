@@ -1,5 +1,4 @@
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
+# SPDX-License-Identifier: BSD-3-Clause
 
 #[=======================================================================[.rst:
 GoogleTest

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -241,7 +227,7 @@ struct WriteAttributeLookup {
  * - An output attribute can live side by side with an existing attribute with a different domain
  *   or data type. The old attribute will only be overwritten when the #save function is called.
  *
- * \note The lifetime of an output attribute should not be longer than the the lifetime of the
+ * \note The lifetime of an output attribute should not be longer than the lifetime of the
  * geometry component it comes from, since it can keep a reference to the component for use in
  * the #save method.
  */

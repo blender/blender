@@ -1,23 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: some of this file.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bli
@@ -920,6 +902,18 @@ float dist_squared_to_projected_aabb_simple(const float projmat[4][4],
 }
 
 /** \} */
+
+float dist_seg_seg_v2(const float a1[3], const float a2[3], const float b1[3], const float b2[3])
+{
+  if (isect_seg_seg_v2_simple(a1, a2, b1, b2)) {
+    return 0.0f;
+  }
+  const float d1 = dist_squared_to_line_segment_v2(a1, b1, b2);
+  const float d2 = dist_squared_to_line_segment_v2(a2, b1, b2);
+  const float d3 = dist_squared_to_line_segment_v2(b1, a1, a2);
+  const float d4 = dist_squared_to_line_segment_v2(b2, a1, a2);
+  return sqrtf(min_ffff(d1, d2, d3, d4));
+}
 
 void closest_on_tri_to_point_v3(
     float r[3], const float p[3], const float v1[3], const float v2[3], const float v3[3])

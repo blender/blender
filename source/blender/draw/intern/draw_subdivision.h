@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2021, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Blender Foundation. */
 
 #pragma once
 
@@ -67,6 +52,7 @@ typedef struct DRWSubdivCache {
   struct Subdiv *subdiv;
   bool optimal_display;
   bool do_limit_normals;
+  bool use_custom_loop_normals;
 
   /* Coordinates used to evaluate patches for UVs, positions, and normals. */
   struct GPUVertBuf *patch_coords;
@@ -143,7 +129,17 @@ void DRW_create_subdivision(const struct Scene *scene,
                             struct Mesh *mesh,
                             struct MeshBatchCache *batch_cache,
                             struct MeshBufferCache *mbc,
-                            const struct ToolSettings *toolsettings);
+                            const bool is_editmode,
+                            const bool is_paint_mode,
+                            const bool is_mode_active,
+                            const float obmat[4][4],
+                            const bool do_final,
+                            const bool do_uvedit,
+                            const bool use_subsurf_fdots,
+                            const ToolSettings *ts,
+                            const bool use_hide);
+
+void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, struct MeshBufferCache *cache);
 
 void DRW_subdiv_cache_free(struct Subdiv *subdiv);
 
@@ -175,6 +171,10 @@ void draw_subdiv_finalize_normals(const DRWSubdivCache *cache,
                                   struct GPUVertBuf *vertex_normals,
                                   struct GPUVertBuf *subdiv_loop_subdiv_vert_index,
                                   struct GPUVertBuf *pos_nor);
+
+void draw_subdiv_finalize_custom_normals(const DRWSubdivCache *cache,
+                                         GPUVertBuf *src_custom_normals,
+                                         GPUVertBuf *pos_nor);
 
 void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
                                  struct GPUVertBuf *pos_nor,

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2017 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2017 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup depsgraph
@@ -43,6 +27,7 @@
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_update_cache.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -140,7 +125,7 @@ void nested_id_hack_discard_pointers(ID *id_cow)
     SPECIAL_CASE(ID_WO, World, nodetree)
     SPECIAL_CASE(ID_SIM, Simulation, nodetree)
 
-    SPECIAL_CASE(ID_CU, Curve, key)
+    SPECIAL_CASE(ID_CU_LEGACY, Curve, key)
     SPECIAL_CASE(ID_LT, Lattice, key)
     SPECIAL_CASE(ID_ME, Mesh, key)
 
@@ -189,7 +174,7 @@ const ID *nested_id_hack_get_discarded_pointers(NestedIDHackTempStorage *storage
     SPECIAL_CASE(ID_WO, World, nodetree, world)
     SPECIAL_CASE(ID_SIM, Simulation, nodetree, simulation)
 
-    SPECIAL_CASE(ID_CU, Curve, key, curve)
+    SPECIAL_CASE(ID_CU_LEGACY, Curve, key, curve)
     SPECIAL_CASE(ID_LT, Lattice, key, lattice)
     SPECIAL_CASE(ID_ME, Mesh, key, mesh)
 
@@ -229,7 +214,7 @@ void nested_id_hack_restore_pointers(const ID *old_id, ID *new_id)
     SPECIAL_CASE(ID_WO, World, nodetree)
     SPECIAL_CASE(ID_SIM, Simulation, nodetree)
 
-    SPECIAL_CASE(ID_CU, Curve, key)
+    SPECIAL_CASE(ID_CU_LEGACY, Curve, key)
     SPECIAL_CASE(ID_LT, Lattice, key)
     SPECIAL_CASE(ID_ME, Mesh, key)
 
@@ -267,7 +252,7 @@ void ntree_hack_remap_pointers(const Depsgraph *depsgraph, ID *id_cow)
     SPECIAL_CASE(ID_WO, World, nodetree, bNodeTree)
     SPECIAL_CASE(ID_SIM, Simulation, nodetree, bNodeTree)
 
-    SPECIAL_CASE(ID_CU, Curve, key, Key)
+    SPECIAL_CASE(ID_CU_LEGACY, Curve, key, Key)
     SPECIAL_CASE(ID_LT, Lattice, key, Key)
     SPECIAL_CASE(ID_ME, Mesh, key, Key)
 
@@ -593,7 +578,7 @@ void update_edit_mode_pointers(const Depsgraph *depsgraph, const ID *id_orig, ID
     case ID_ME:
       update_mesh_edit_mode_pointers(id_orig, id_cow);
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       update_curve_edit_mode_pointers(depsgraph, id_orig, id_cow);
       break;
     case ID_MB:
@@ -736,9 +721,6 @@ void update_id_after_copy(const Depsgraph *depsgraph,
           update_pose_orig_pointers(object_orig->pose, object_cow->pose);
         }
         BKE_pose_pchan_index_rebuild(object_cow->pose);
-      }
-      if (object_cow->type == OB_GPENCIL) {
-        BKE_gpencil_update_orig_pointers(object_orig, object_cow);
       }
       update_particles_after_copy(depsgraph, object_orig, object_cow);
       break;
@@ -892,6 +874,13 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph, const IDNode 
       update_edit_mode_pointers(depsgraph, id_orig, id_cow);
       return id_cow;
     }
+    /* In case we don't need to do a copy-on-write, we can use the update cache of the grease
+     * pencil data to do an update-on-write.*/
+    if (id_type == ID_GD && BKE_gpencil_can_avoid_full_copy_on_write(
+                                (const ::Depsgraph *)depsgraph, (bGPdata *)id_orig)) {
+      BKE_gpencil_update_on_write((bGPdata *)id_orig, (bGPdata *)id_cow);
+      return id_cow;
+    }
   }
 
   RuntimeBackup backup(depsgraph);
@@ -964,7 +953,7 @@ void discard_edit_mode_pointers(ID *id_cow)
     case ID_ME:
       discard_mesh_edit_mode_pointers(id_cow);
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       discard_curve_edit_mode_pointers(id_cow);
       break;
     case ID_MB:

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edcurve
@@ -88,7 +72,7 @@ static bool curve_delete_vertices(Object *obedit, View3D *v3d);
 
 ListBase *object_editcurve_get(Object *ob)
 {
-  if (ob && ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  if (ob && ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = ob->data;
     return &cu->editnurb->nurbs;
   }
@@ -1254,7 +1238,7 @@ void ED_curve_editnurb_load(Main *bmain, Object *obedit)
     return;
   }
 
-  if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
+  if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = obedit->data;
     ListBase newnurb = {NULL, NULL}, oldnurb = cu->nurb;
 
@@ -1289,7 +1273,7 @@ void ED_curve_editnurb_make(Object *obedit)
   EditNurb *editnurb = cu->editnurb;
   KeyBlock *actkey;
 
-  if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
+  if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
     actkey = BKE_keyblock_from_object(obedit);
 
     if (actkey) {
@@ -5653,7 +5637,7 @@ static int curve_extrude_exec(bContext *C, wmOperator *UNUSED(op))
     }
 
     /* First test: curve? */
-    if (obedit->type != OB_CURVE) {
+    if (obedit->type != OB_CURVES_LEGACY) {
       LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
         if ((nu->pntsv == 1) && (ED_curve_nurb_select_count(v3d, nu) < nu->pntsu)) {
           as_curve = true;
@@ -5662,7 +5646,7 @@ static int curve_extrude_exec(bContext *C, wmOperator *UNUSED(op))
       }
     }
 
-    if (obedit->type == OB_CURVE || as_curve) {
+    if (obedit->type == OB_CURVES_LEGACY || as_curve) {
       changed = ed_editcurve_extrude(cu, editnurb, v3d);
     }
     else {
@@ -6731,7 +6715,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
     Object *obedit = objects[ob_index];
     ListBase *editnurb = object_editcurve_get(obedit);
 
-    if (obedit->type != OB_CURVE) {
+    if (obedit->type != OB_CURVES_LEGACY) {
       continue;
     }
 
@@ -6890,7 +6874,7 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
   cu = ob_active->data;
   BLI_movelisttolist(&cu->nurb, &tempbase);
 
-  if (ob_active->type == OB_CURVE && CU_IS_2D(cu)) {
+  if (ob_active->type == OB_CURVES_LEGACY && CU_IS_2D(cu)) {
     /* Account for mixed 2D/3D curves when joining */
     BKE_curve_dimension_update(cu);
   }
@@ -7000,7 +6984,7 @@ static bool match_texture_space_poll(bContext *C)
 {
   Object *object = CTX_data_active_object(C);
 
-  return object && ELEM(object->type, OB_CURVE, OB_SURF, OB_FONT);
+  return object && ELEM(object->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT);
 }
 
 static int match_texture_space_exec(bContext *C, wmOperator *UNUSED(op))

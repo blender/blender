@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -558,26 +544,24 @@ static void axis_set_view(bContext *C,
 
 void viewmove_apply(ViewOpsData *vod, int x, int y)
 {
-  if (ED_view3d_offset_lock_check(vod->v3d, vod->rv3d)) {
-    vod->rv3d->ofs_lock[0] -= ((vod->prev.event_xy[0] - x) * 2.0f) / (float)vod->region->winx;
-    vod->rv3d->ofs_lock[1] -= ((vod->prev.event_xy[1] - y) * 2.0f) / (float)vod->region->winy;
+  const float event_ofs[2] = {
+      vod->prev.event_xy[0] - x,
+      vod->prev.event_xy[1] - y,
+  };
+
+  if ((vod->rv3d->persp == RV3D_CAMOB) && !ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
+    ED_view3d_camera_view_pan(vod->region, event_ofs);
   }
-  else if ((vod->rv3d->persp == RV3D_CAMOB) && !ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
-    const float zoomfac = BKE_screen_view3d_zoom_to_fac(vod->rv3d->camzoom) * 2.0f;
-    vod->rv3d->camdx += (vod->prev.event_xy[0] - x) / (vod->region->winx * zoomfac);
-    vod->rv3d->camdy += (vod->prev.event_xy[1] - y) / (vod->region->winy * zoomfac);
-    CLAMP(vod->rv3d->camdx, -1.0f, 1.0f);
-    CLAMP(vod->rv3d->camdy, -1.0f, 1.0f);
+  else if (ED_view3d_offset_lock_check(vod->v3d, vod->rv3d)) {
+    vod->rv3d->ofs_lock[0] -= (event_ofs[0] * 2.0f) / (float)vod->region->winx;
+    vod->rv3d->ofs_lock[1] -= (event_ofs[1] * 2.0f) / (float)vod->region->winy;
   }
   else {
     float dvec[3];
-    float mval_f[2];
 
-    mval_f[0] = x - vod->prev.event_xy[0];
-    mval_f[1] = y - vod->prev.event_xy[1];
-    ED_view3d_win_to_delta(vod->region, mval_f, dvec, vod->init.zfac);
+    ED_view3d_win_to_delta(vod->region, event_ofs, dvec, vod->init.zfac);
 
-    add_v3_v3(vod->rv3d->ofs, dvec);
+    sub_v3_v3(vod->rv3d->ofs, dvec);
 
     if (RV3D_LOCK_FLAGS(vod->rv3d) & RV3D_BOXVIEW) {
       view3d_boxview_sync(vod->area, vod->region);

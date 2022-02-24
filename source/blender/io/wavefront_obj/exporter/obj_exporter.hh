@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup obj
@@ -78,11 +64,12 @@ void export_frame(Depsgraph *depsgraph,
  * Find the objects to be exported in the `view_layer` of the dependency graph`depsgraph`,
  * and return them in vectors `unique_ptr`s of `OBJMesh` and `OBJCurve`.
  * If `export_params.export_selected_objects` is set, then only selected objects are to be
- * exported, else all objects are to be exported. But only objects of type `OB_MESH`, `OB_CURVE`,
- * and `OB_SURF` are supported; the rest will be ignored. If `export_params.export_curves_as_nurbs`
- * is set, then curves of type `CU_NURBS` are exported in curve form in the .obj file, otherwise
- * they are converted to mesh and returned in the `OBJMesh` vector. All other exportable types are
- * always converted to mesh and returned in the `OBJMesh` vector.
+ * exported, else all objects are to be exported. But only objects of type `OB_MESH`,
+ * `OB_CURVES_LEGACY`, and `OB_SURF` are supported; the rest will be ignored. If
+ * `export_params.export_curves_as_nurbs` is set, then curves of type `CU_NURBS` are exported in
+ * curve form in the .obj file, otherwise they are converted to mesh and returned in the `OBJMesh`
+ * vector. All other exportable types are always converted to mesh and returned in the `OBJMesh`
+ * vector.
  */
 std::pair<Vector<std::unique_ptr<OBJMesh>>, Vector<std::unique_ptr<OBJCurve>>>
 filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_params);

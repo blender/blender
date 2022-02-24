@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup editors
@@ -40,6 +24,7 @@ struct Scene;
 struct ScrArea;
 struct bContext;
 struct bScreen;
+struct PreviewImage;
 struct wmWindow;
 struct wmWindowManager;
 
@@ -103,16 +88,13 @@ void ED_preview_shader_job(const struct bContext *C,
                            ePreviewRenderMethod method);
 void ED_preview_icon_render(const struct bContext *C,
                             struct Scene *scene,
+                            struct PreviewImage *prv_img,
                             struct ID *id,
-                            unsigned int *rect,
-                            int sizex,
-                            int sizey);
+                            enum eIconSizes icon_size);
 void ED_preview_icon_job(const struct bContext *C,
-                         void *owner,
+                         struct PreviewImage *prv_img,
                          struct ID *id,
-                         unsigned int *rect,
-                         int sizex,
-                         int sizey,
+                         enum eIconSizes icon_size,
                          bool delay);
 
 void ED_preview_restart_queue_free(void);

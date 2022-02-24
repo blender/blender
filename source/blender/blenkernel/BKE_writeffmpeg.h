@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 #pragma once
 
@@ -85,11 +69,7 @@ void BKE_ffmpeg_filepath_get(char *string,
 
 void BKE_ffmpeg_preset_set(struct RenderData *rd, int preset);
 void BKE_ffmpeg_image_type_verify(struct RenderData *rd, struct ImageFormatData *imf);
-void BKE_ffmpeg_codec_settings_verify(struct RenderData *rd);
 bool BKE_ffmpeg_alpha_channel_is_supported(const struct RenderData *rd);
-
-int BKE_ffmpeg_property_add_string(struct RenderData *rd, const char *type, const char *str);
-void BKE_ffmpeg_property_del(struct RenderData *rd, void *type, void *prop_);
 
 void *BKE_ffmpeg_context_create(void);
 void BKE_ffmpeg_context_free(void *context_v);

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -128,6 +114,16 @@ static void mesh_wrapper_ensure_mdata_isolated(void *userdata)
 
       BMEditMesh *em = me->edit_mesh;
       BM_mesh_bm_to_me_for_eval(em->bm, me, &me->runtime.cd_mask_extra);
+
+      /* Adding original index layers assumes that all BMesh mesh wrappers are created from
+       * original edit mode meshes (the only case where adding original indices makes sense).
+       * If that assumption is broken, the layers might be incorrect in that they might not
+       * actually be "original".
+       *
+       * There is also a performance aspect, where this also assumes that original indices are
+       * always needed when converting an edit mesh to a mesh. That might be wrong, but it's not
+       * harmful. */
+      BKE_mesh_ensure_default_orig_index_customdata(me);
 
       EditMeshData *edit_data = me->runtime.edit_data;
       if (edit_data->vertexCos) {
@@ -315,19 +311,10 @@ int BKE_mesh_wrapper_poly_len(const Mesh *me)
 /** \name CPU Subdivision Evaluation
  * \{ */
 
-Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
+static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
 {
-  ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime.eval_mutex;
-  BLI_mutex_lock(mesh_eval_mutex);
-
-  if (me->runtime.wrapper_type == ME_WRAPPER_TYPE_SUBD) {
-    BLI_mutex_unlock(mesh_eval_mutex);
-    return me->runtime.mesh_eval;
-  }
-
   SubsurfModifierData *smd = BKE_object_get_last_subsurf_modifier(ob);
   if (!smd) {
-    BLI_mutex_unlock(mesh_eval_mutex);
     return me;
   }
 
@@ -339,7 +326,6 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   mesh_settings.use_optimal_display = me->runtime.subsurf_use_optimal_display;
 
   if (mesh_settings.resolution < 3) {
-    BLI_mutex_unlock(mesh_eval_mutex);
     return me;
   }
 
@@ -348,7 +334,6 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   SubdivSettings subdiv_settings;
   BKE_subsurf_modifier_subdiv_settings_init(&subdiv_settings, smd, apply_render);
   if (subdiv_settings.level == 0) {
-    BLI_mutex_unlock(mesh_eval_mutex);
     return me;
   }
 
@@ -357,7 +342,6 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(smd, &subdiv_settings, me, false);
   if (subdiv == NULL) {
     /* Happens on bad topology, but also on empty input mesh. */
-    BLI_mutex_unlock(mesh_eval_mutex);
     return me;
   }
 
@@ -375,8 +359,42 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
     me->runtime.wrapper_type = ME_WRAPPER_TYPE_SUBD;
   }
 
-  BLI_mutex_unlock(mesh_eval_mutex);
   return me->runtime.mesh_eval;
+}
+
+typedef struct SubdivisionWrapperIsolatedTaskData {
+  const Object *ob;
+  Mesh *me;
+  Mesh *result;
+} SubdivisionWrapperIsolatedTaskData;
+
+static void mesh_wrapper_ensure_subdivision_isolated(void *userdata)
+{
+  SubdivisionWrapperIsolatedTaskData *task_data = (SubdivisionWrapperIsolatedTaskData *)userdata;
+  const Object *ob = task_data->ob;
+  Mesh *me = task_data->me;
+  task_data->result = mesh_wrapper_ensure_subdivision(ob, me);
+}
+
+Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
+{
+  ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime.eval_mutex;
+  BLI_mutex_lock(mesh_eval_mutex);
+
+  if (me->runtime.wrapper_type == ME_WRAPPER_TYPE_SUBD) {
+    BLI_mutex_unlock(mesh_eval_mutex);
+    return me->runtime.mesh_eval;
+  }
+
+  SubdivisionWrapperIsolatedTaskData task_data;
+  task_data.ob = ob;
+  task_data.me = me;
+
+  /* Must isolate multithreaded tasks while holding a mutex lock. */
+  BLI_task_isolate(mesh_wrapper_ensure_subdivision_isolated, &task_data);
+
+  BLI_mutex_unlock(mesh_eval_mutex);
+  return task_data.result;
 }
 
 /** \} */

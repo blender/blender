@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -120,6 +106,9 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
       case CTX_MODE_EDIT_CURVE:
         km_id = "Curve";
         break;
+      case CTX_MODE_EDIT_CURVES:
+        km_id = "Curves";
+        break;
       case CTX_MODE_EDIT_SURFACE:
         km_id = "Curve";
         break;
@@ -170,6 +159,9 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
         break;
       case CTX_MODE_VERTEX_GPENCIL:
         km_id = "Grease Pencil Stroke Vertex Mode";
+        break;
+      case CTX_MODE_SCULPT_CURVES:
+        km_id = "Curves Sculpt";
         break;
     }
   }

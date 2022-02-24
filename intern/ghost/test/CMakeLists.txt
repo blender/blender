@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # see "cmake --help-policy CMP0003"
 # So library linking is more sane

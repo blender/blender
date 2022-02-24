@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_map.hh"
 #include "BLI_span.hh"
@@ -220,6 +206,16 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
                          const AttributeForeachCallback callback) const final;
   void foreach_domain(const FunctionRef<void(AttributeDomain)> callback) const final;
 };
+
+template<typename T> GVArray make_array_read_attribute(const void *data, const int domain_size)
+{
+  return VArray<T>::ForSpan(Span<T>((const T *)data, domain_size));
+}
+
+template<typename T> GVMutableArray make_array_write_attribute(void *data, const int domain_size)
+{
+  return VMutableArray<T>::ForSpan(MutableSpan<T>((T *)data, domain_size));
+}
 
 /**
  * This provider is used to provide access to builtin attributes. It supports making internal types

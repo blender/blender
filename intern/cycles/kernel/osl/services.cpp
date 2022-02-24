@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 /* TODO(sergey): There is a bit of headers dependency hell going on
  * here, so for now we just put here. In the future it might be better
@@ -1651,12 +1638,16 @@ bool OSLRenderServices::trace(TraceOpt &options,
   ray.D = TO_FLOAT3(R);
   ray.t = (options.maxdist == 1.0e30f) ? FLT_MAX : options.maxdist - options.mindist;
   ray.time = sd->time;
+  ray.self.object = OBJECT_NONE;
+  ray.self.prim = PRIM_NONE;
+  ray.self.light_object = OBJECT_NONE;
+  ray.self.light_prim = PRIM_NONE;
 
   if (options.mindist == 0.0f) {
     /* avoid self-intersections */
     if (ray.P == sd->P) {
-      bool transmit = (dot(sd->Ng, ray.D) < 0.0f);
-      ray.P = ray_offset(sd->P, (transmit) ? -sd->Ng : sd->Ng);
+      ray.self.object = sd->object;
+      ray.self.prim = sd->prim;
     }
   }
   else {

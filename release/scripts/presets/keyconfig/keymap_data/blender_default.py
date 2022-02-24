@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # ------------------------------------------------------------------------------
 # Developer Notes
@@ -375,9 +359,14 @@ def _template_items_uv_select_mode(params):
     if params.legacy:
         return [op_menu("IMAGE_MT_uvs_select_mode", {"type": 'TAB', "value": 'PRESS', "ctrl": True}),]
     else:
-        return [*_template_items_editmode_mesh_select_mode(params),
-            # Hack to prevent fall-through, when sync select isn't enabled (and
-            # the island button isn't visible).
+        return [
+            # TODO(@campbellbarton): should this be kept?
+            # Seems it was included in the new key-map by accident, check on removing
+            # although it's not currently used for anything else.
+            op_menu("IMAGE_MT_uvs_select_mode", {"type": 'TAB', "value": 'PRESS', "ctrl": True}),
+
+            *_template_items_editmode_mesh_select_mode(params),
+            # Hack to prevent fall-through, when sync select isn't enabled (and the island button isn't visible).
             ("mesh.select_mode", {"type": 'FOUR', "value": 'PRESS'}, None),
             *(("wm.context_set_enum", {"type": NUMBERS_1[i], "value": 'PRESS'},
                {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", ty)]})
@@ -783,7 +772,6 @@ def km_mask_editing(params):
         items.extend([
             ("mask.select", {"type": 'RIGHTMOUSE', "value": 'PRESS'},
              {"properties": [("deselect_all", not params.legacy)]}),
-            ("transform.translate", {"type": 'EVT_TWEAK_R', "value": 'ANY'}, None),
         ])
 
     items.extend([
@@ -1112,9 +1100,10 @@ def km_uv_editor(params):
         op_menu("IMAGE_MT_uvs_unwrap", {"type": 'U', "value": 'PRESS'}),
         (op_menu_pie("IMAGE_MT_uvs_snap_pie", {"type": 'S', "value": 'PRESS', "shift": True})
             if not params.legacy else
-            op_menu("IMAGE_MT_uvs_snap", {"type": 'S', "value": 'PRESS', "shift": True})),
-        op_menu("IMAGE_MT_uvs_select_mode", {"type": 'TAB', "value": 'PRESS', "ctrl": True}),
-        *_template_items_proportional_editing(params, connected=False, toggle_data_path='tool_settings.use_proportional_edit'),
+            op_menu("IMAGE_MT_uvs_snap", {"type": 'S', "value": 'PRESS', "shift": True})
+        ),
+        *_template_items_proportional_editing(
+            params, connected=False, toggle_data_path='tool_settings.use_proportional_edit'),
         ("transform.translate", {"type": params.select_tweak, "value": 'ANY'}, None),
         op_tool_optional(("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
             (op_tool_cycle, "builtin.move"), params),
@@ -1243,7 +1232,6 @@ def km_view3d(params):
             {"type": 'ACCENT_GRAVE', "value": params.pie_value},),
         *(() if not params.use_pie_click_drag else
           (("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'CLICK'}, None),)),
-        ("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "shift": True}, None),
         ("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "shift": True}, None),
         # Numpad views.
         ("view3d.view_camera", {"type": 'NUMPAD_0', "value": 'PRESS'}, None),
@@ -1923,8 +1911,10 @@ def km_node_editor(params):
         ("node.link_make", {"type": 'F', "value": 'PRESS', "shift": True},
          {"properties": [("replace", True)]}),
         op_menu("NODE_MT_add", {"type": 'A', "value": 'PRESS', "shift": True}),
-        ("node.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
-        ("node.duplicate_move_keep_inputs", {"type": 'D', "value": 'PRESS', "shift": True, "ctrl": True}, None),
+        ("node.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True},
+         {"properties": [("NODE_OT_translate_attach", [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])])]}),
+        ("node.duplicate_move_keep_inputs", {"type": 'D', "value": 'PRESS', "shift": True, "ctrl": True},
+         {"properties": [("NODE_OT_translate_attach", [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])])]}),
         ("node.parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
         ("node.detach", {"type": 'P', "value": 'PRESS', "alt": True}, None),
         ("node.join", {"type": 'J', "value": 'PRESS', "ctrl": True}, None),
@@ -1970,14 +1960,19 @@ def km_node_editor(params):
         ("node.translate_attach",
          {"type": 'EVT_TWEAK_L', "value": 'ANY'},
          {"properties": [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])]}),
-        ("node.translate_attach",
-         {"type": params.select_tweak, "value": 'ANY'},
-         {"properties": [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])]}),
+        # Avoid duplicating the previous item.
+        *([] if params.select_tweak == 'EVT_TWEAK_L' else (
+            ("node.translate_attach", {"type": params.select_tweak, "value": 'ANY'},
+             {"properties": [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])]}),
+        )),
         ("transform.translate", {"type": 'G', "value": 'PRESS'}, {"properties": [("view2d_edge_pan", True)]}),
         ("transform.translate", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
          {"properties": [("release_confirm", True), ("view2d_edge_pan", True)]}),
-        ("transform.translate", {"type": params.select_tweak, "value": 'ANY'},
-         {"properties": [("release_confirm", True), ("view2d_edge_pan", True)]}),
+        # Avoid duplicating the previous item.
+        *([] if params.select_tweak == 'EVT_TWEAK_L' else (
+            ("transform.translate", {"type": params.select_tweak, "value": 'ANY'},
+             {"properties": [("release_confirm", True), ("view2d_edge_pan", True)]}),
+        )),
         ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
         ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
         ("node.move_detach_links",
@@ -4252,33 +4247,36 @@ def _template_paint_radial_control(paint, rotation=False, secondary_rotation=Fal
 
     return items
 
-
+# Radial controls for the paint and sculpt modes.
 def _template_paint_radial_control_channels(paint, rotation=False, secondary_rotation=False, color=False, zoom=False):
-    items = []
+     items = []
 
-    items.extend([("wm.radial_control", {"type": 'F', "value": 'PRESS'},
-         radial_control_properties_channels(paint, 'radius', 'use_unified_size', type="float", secondary_rotation=secondary_rotation, color=color, zoom=zoom)),
-        ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
-         radial_control_properties_channels(paint, 'strength', 'use_unified_strength', type="factor", secondary_rotation=secondary_rotation, color=color)),])
+     items.extend([("wm.radial_control", {"type": 'F', "value": 'PRESS'},
+          radial_control_properties_channels(paint, 'radius', 'use_unified_size', type="float", secondary_rotation=secondary_rotation, color=color, zoom=zoom)),
+         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
+          radial_control_properties_channels(paint, 'strength', 'use_unified_strength', type="factor", secondary_rotation=secondary_rotation, color=color)),])
 
-    """
-    if rotation:
-        items.extend([
-            ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
-             radial_control_properties_channels(paint, 'texture_slot_angle', None, color=color)),
-        ])
+     """
+     if rotation:
+         items.extend([
+             ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
+              radial_control_properties_channels(paint, 'texture_slot_angle', None, color=color)),
+         ])
 
-    if secondary_rotation:
-        items.extend([
-            ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True, "alt": True},
-             radial_control_properties_channels(paint, 'mask_texture_slot_angle', None, secondary_rotation=secondary_rotation, color=color)),
-        ])
-    """
+     if secondary_rotation:
+         items.extend([
+             ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True, "alt": True},
+              radial_control_properties_channels(paint, 'mask_texture_slot_angle', None, secondary_rotation=secondary_rotation, color=color)),
+         ])
+     """
 
-    return items
+     return items
 
-def _template_view3d_select(*, type, value, legacy):
-    return [("view3d.select",
+def _template_view3d_select(*, type, value, legacy, exclude_mod=None):
+    # NOTE: `exclude_mod` is needed since we don't want this tool to exclude Control-RMB actions when this is used
+    # as a tool key-map with RMB-select and `use_fallback_tool_rmb` is enabled. See T92467.
+    return [(
+        "view3d.select",
         {"type": type, "value": value, **{m: True for m in mods}},
         {"properties": [(c, True) for c in props]},) for props, mods in ((("deselect_all",) if not legacy else (), ()),
         (("toggle",), ("shift",)),
@@ -4287,7 +4285,8 @@ def _template_view3d_select(*, type, value, legacy):
         (("toggle", "center"), ("shift", "ctrl")),
         (("center", "enumerate"), ("ctrl", "alt")),
         (("toggle", "enumerate"), ("shift", "alt")),
-        (("toggle", "center", "enumerate"), ("shift", "ctrl", "alt")),)]
+        (("toggle", "center", "enumerate"), ("shift", "ctrl", "alt")),
+    ) if exclude_mod is None or exclude_mod not in mods]
 
 
 def _template_view3d_gpencil_select(*, type, value, legacy, use_select_mouse=True):
@@ -4978,6 +4977,22 @@ def km_font(params):
         ("font.text_insert", {"type": 'BACK_SPACE', "value": 'PRESS', "alt": True, "repeat": True},
          {"properties": [("accent", True)]}),
         *_template_items_context_menu("VIEW3D_MT_edit_font_context_menu", params.context_menu_event),])
+
+    return keymap
+
+
+def km_sculpt_curves(params):
+    items = []
+    keymap = (
+        "Sculpt Curves",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        ("sculpt_curves.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        *_template_paint_radial_control("curves_sculpt"),
+    ])
 
     return keymap
 
@@ -5834,7 +5849,7 @@ def km_3d_view_tool_select(params, *, fallback):
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
                 params, "view3d.select", "view3d.cursor3d", extend="toggle")),
             *([] if (not params.use_fallback_tool_rmb) else _template_view3d_select(
-                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
+                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy, exclude_mod="ctrl")),
         ]},
     )
 
@@ -6818,6 +6833,7 @@ def generate_keymaps(params=None):
         km_lattice(params),
         km_particle(params),
         km_font(params),
+        km_sculpt_curves(params),
         km_object_non_modal(params),
 
         # Modal maps.

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 #pragma once
 
@@ -161,6 +145,17 @@ void _bli_array_grow_func(void **arr_p,
  * Only to prevent unused warnings.
  */
 #define BLI_array_fake_user(arr) ((void)_##arr##_len, (void)_##arr##_static)
+
+/**
+ * Trim excess items from the array (when they exist).
+ */
+#define BLI_array_trim(arr) \
+  { \
+    if (_bli_array_totalsize_dynamic(arr) != _##arr##_len) { \
+      arr = MEM_reallocN(arr, sizeof(*arr) * _##arr##_len); \
+    } \
+  } \
+  ((void)0)
 
 /** \} */
 

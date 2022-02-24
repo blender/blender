@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spinfo
@@ -166,7 +152,7 @@ static void stats_object(Object *ob,
       }
       break;
     case OB_SURF:
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_FONT: {
       const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
       if ((me_eval != nullptr) && !BLI_gset_add(objects_gset, (void *)me_eval)) {
@@ -274,7 +260,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
       stats->totvert += 2;
     }
   }
-  else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) { /* OB_FONT has no cu->editnurb */
+  else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) { /* OB_FONT has no cu->editnurb */
     /* Curve Edit */
     Curve *cu = static_cast<Curve *>(obedit->data);
     BezTriple *bezt;

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edmesh
@@ -38,6 +22,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
@@ -1193,6 +1178,8 @@ static void mesh_add_verts(Mesh *mesh, int len)
   mesh->vdata = vdata;
   BKE_mesh_update_customdata_pointers(mesh, false);
 
+  BKE_mesh_runtime_clear_cache(mesh);
+
   /* scan the input list and insert the new vertices */
 
   /* set default flags */
@@ -1229,6 +1216,8 @@ static void mesh_add_edges(Mesh *mesh, int len)
   mesh->edata = edata;
   BKE_mesh_update_customdata_pointers(mesh, false); /* new edges don't change tessellation */
 
+  BKE_mesh_runtime_clear_cache(mesh);
+
   /* set default flags */
   medge = &mesh->medge[mesh->totedge];
   for (i = 0; i < len; i++, medge++) {
@@ -1256,6 +1245,8 @@ static void mesh_add_loops(Mesh *mesh, int len)
   if (!CustomData_has_layer(&ldata, CD_MLOOP)) {
     CustomData_add_layer(&ldata, CD_MLOOP, CD_CALLOC, NULL, totloop);
   }
+
+  BKE_mesh_runtime_clear_cache(mesh);
 
   CustomData_free(&mesh->ldata, mesh->totloop);
   mesh->ldata = ldata;
@@ -1287,6 +1278,8 @@ static void mesh_add_polys(Mesh *mesh, int len)
   CustomData_free(&mesh->pdata, mesh->totpoly);
   mesh->pdata = pdata;
   BKE_mesh_update_customdata_pointers(mesh, true);
+
+  BKE_mesh_runtime_clear_cache(mesh);
 
   /* set default flags */
   mpoly = &mesh->mpoly[mesh->totpoly];

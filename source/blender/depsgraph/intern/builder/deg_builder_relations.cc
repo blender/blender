@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2013 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2013 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup depsgraph
@@ -237,7 +221,8 @@ OperationCode bone_target_opcode(ID *target,
 
 bool object_have_geometry_component(const Object *object)
 {
-  return ELEM(object->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_MBALL, OB_LATTICE, OB_GPENCIL);
+  return ELEM(
+      object->type, OB_MESH, OB_CURVES_LEGACY, OB_FONT, OB_SURF, OB_MBALL, OB_LATTICE, OB_GPENCIL);
 }
 
 }  // namespace
@@ -553,7 +538,7 @@ void DepsgraphRelationBuilder::build_id(ID *id)
       break;
     case ID_ME:
     case ID_MB:
-    case ID_CU:
+    case ID_CU_LEGACY:
     case ID_LT:
     case ID_CV:
     case ID_PT:
@@ -843,7 +828,7 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
   /* type-specific data. */
   switch (object->type) {
     case OB_MESH:
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_FONT:
     case OB_SURF:
     case OB_MBALL:
@@ -999,7 +984,7 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
         add_relation(parent_key, object_transform_key, "Lattice Deform Parent");
         add_relation(geom_key, object_transform_key, "Lattice Deform Parent Geom");
       }
-      else if (object->parent->type == OB_CURVE) {
+      else if (object->parent->type == OB_CURVES_LEGACY) {
         Curve *cu = (Curve *)object->parent->data;
 
         if (cu->flag & CU_PATH) {
@@ -1452,6 +1437,10 @@ void DepsgraphRelationBuilder::build_animation_images(ID *id)
     else if (GS(id->name) == ID_WO) {
       OperationKey world_update_key(id, NodeType::SHADING, OperationCode::WORLD_UPDATE);
       add_relation(world_update_key, image_animation_key, "World Update -> Image Animation");
+    }
+    else if (GS(id->name) == ID_NT) {
+      OperationKey ntree_output_key(id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
+      add_relation(ntree_output_key, image_animation_key, "NTree Output -> Image Animation");
     }
   }
 }
@@ -2052,7 +2041,7 @@ void DepsgraphRelationBuilder::build_shapekeys(Key *key)
  *   Therefore, each user of a piece of shared geometry data ends up evaluating
  *   its own version of the stuff, complete with whatever modifiers it may use.
  *
- * - The data-blocks for the geometry data - "obdata" (e.g. ID_ME, ID_CU, ID_LT.)
+ * - The data-blocks for the geometry data - "obdata" (e.g. ID_ME, ID_CU_LEGACY, ID_LT.)
  *   are used for
  *     1) calculating the bounding boxes of the geometry data,
  *     2) aggregating inward links from other objects (e.g. for text on curve)
@@ -2137,7 +2126,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
   /* Materials. */
   build_materials(object->mat, object->totcol);
   /* Geometry collision. */
-  if (ELEM(object->type, OB_MESH, OB_CURVE, OB_LATTICE)) {
+  if (ELEM(object->type, OB_MESH, OB_CURVES_LEGACY, OB_LATTICE)) {
     // add geometry collider relations
   }
   /* Make sure uber update is the last in the dependencies. */
@@ -2232,7 +2221,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
       break;
     case ID_MB:
       break;
-    case ID_CU: {
+    case ID_CU_LEGACY: {
       Curve *cu = (Curve *)obdata;
       if (cu->bevobj != nullptr) {
         ComponentKey bevob_geom_key(&cu->bevobj->id, NodeType::GEOMETRY);
@@ -2374,8 +2363,9 @@ void DepsgraphRelationBuilder::build_light(Light *lamp)
   /* light's nodetree */
   if (lamp->nodetree != nullptr) {
     build_nodetree(lamp->nodetree);
-    ComponentKey nodetree_key(&lamp->nodetree->id, NodeType::NTREE_OUTPUT);
-    add_relation(nodetree_key, shading_key, "NTree->Light Parameters");
+    OperationKey ntree_key(
+        &lamp->nodetree->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
+    add_relation(ntree_key, shading_key, "NTree->Light Parameters");
     build_nested_nodetree(&lamp->id, lamp->nodetree);
   }
 }

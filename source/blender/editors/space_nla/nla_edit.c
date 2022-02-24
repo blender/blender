@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup spnla
@@ -1397,8 +1381,11 @@ static void nlaedit_split_strip_actclip(
     nstrip->actstart = splitaframe;
   }
 
-  /* clear the active flag from the copy */
-  nstrip->flag &= ~NLASTRIP_FLAG_ACTIVE;
+  /* Make sure Sync Length is off. With that setting on, entering and exiting tweak mode would
+   * effectively undo the split, because both the old and the new strip will be at the length of
+   * the Action again. */
+  strip->flag &= ~NLASTRIP_FLAG_SYNC_LENGTH;
+  nstrip->flag &= ~(NLASTRIP_FLAG_SYNC_LENGTH | NLASTRIP_FLAG_ACTIVE);
 
   /* auto-name the new strip */
   BKE_nlastrip_validate_name(adt, nstrip);

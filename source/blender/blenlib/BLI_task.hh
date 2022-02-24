@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -31,6 +17,7 @@
 #  include <tbb/blocked_range.h>
 #  include <tbb/parallel_for.h>
 #  include <tbb/parallel_for_each.h>
+#  include <tbb/parallel_invoke.h>
 #  include <tbb/parallel_reduce.h>
 #  include <tbb/task_arena.h>
 #  ifdef WIN32
@@ -100,6 +87,19 @@ Value parallel_reduce(IndexRange range,
 #else
   UNUSED_VARS(grain_size, reduction);
   return function(range, identity);
+#endif
+}
+
+/**
+ * Execute all of the provided functions. The functions might be executed in parallel or in serial
+ * or some combination of both.
+ */
+template<typename... Functions> void parallel_invoke(Functions &&...functions)
+{
+#ifdef WITH_TBB
+  tbb::parallel_invoke(std::forward<Functions>(functions)...);
+#else
+  (functions(), ...);
 #endif
 }
 

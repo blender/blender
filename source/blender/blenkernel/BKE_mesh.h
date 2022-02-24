@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 #pragma once
 
 /** \file
@@ -87,6 +71,13 @@ struct Mesh *BKE_mesh_from_bmesh_nomain(struct BMesh *bm,
 struct Mesh *BKE_mesh_from_bmesh_for_eval_nomain(struct BMesh *bm,
                                                  const struct CustomData_MeshMasks *cd_mask_extra,
                                                  const struct Mesh *me_settings);
+
+/**
+ * Add original index (#CD_ORIGINDEX) layers if they don't already exist. This is meant to be used
+ * when creating an evaluated mesh from an original edit mode mesh, to allow mapping from the
+ * evaluated vertices to the originals.
+ */
+void BKE_mesh_ensure_default_orig_index_customdata(struct Mesh *mesh);
 
 /**
  * Find the index of the loop in 'poly' which references vertex,
@@ -330,6 +321,8 @@ void BKE_mesh_vert_coords_apply_with_mat4(struct Mesh *mesh,
                                           const float mat[4][4]);
 void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]);
 
+void BKE_mesh_anonymous_attributes_remove(struct Mesh *mesh);
+
 /* *** mesh_tessellate.c *** */
 
 /**
@@ -349,8 +342,7 @@ int BKE_mesh_tessface_calc_ex(struct CustomData *fdata,
                               struct MVert *mvert,
                               int totface,
                               int totloop,
-                              int totpoly,
-                              bool do_face_nor_copy);
+                              int totpoly);
 void BKE_mesh_tessface_calc(struct Mesh *mesh);
 
 /**
@@ -428,6 +420,17 @@ float (*BKE_mesh_vertex_normals_for_write(struct Mesh *mesh))[3];
  * while they are being assigned.
  */
 float (*BKE_mesh_poly_normals_for_write(struct Mesh *mesh))[3];
+
+/**
+ * Free any cached vertex or poly normals. Face corner (loop) normals are also derived data,
+ * but are not handled with the same method yet, so they are not included. It's important that this
+ * is called after the mesh changes size, since otherwise cached normal arrays might not be large
+ * enough (though it may be called indirectly by other functions).
+ *
+ * \note Normally it's preferred to call #BKE_mesh_normals_tag_dirty instead,
+ * but this can be used in specific situations to reset a mesh or reduce memory usage.
+ */
+void BKE_mesh_clear_derived_normals(struct Mesh *mesh);
 
 /**
  * Mark the mesh's vertex normals non-dirty, for when they are calculated or assigned manually.

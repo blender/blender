@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_map.hh"
 #include "BLI_multi_value_map.hh"
@@ -40,7 +26,7 @@ struct FieldTreeInfo {
    */
   MultiValueMap<GFieldRef, GFieldRef> field_users;
   /**
-   * The same field input may exist in the field tree as as separate nodes due to the way
+   * The same field input may exist in the field tree as separate nodes due to the way
    * the tree is constructed. This set contains every different input only once.
    */
   VectorSet<std::reference_wrapper<const FieldInput>> deduplicated_field_inputs;
@@ -151,7 +137,7 @@ static Set<GFieldRef> find_varying_fields(const FieldTreeInfo &field_tree_info,
 }
 
 /**
- * Builds the #procedure so that it computes the the fields.
+ * Builds the #procedure so that it computes the fields.
  */
 static void build_multi_function_procedure_for_fields(MFProcedure &procedure,
                                                       ResourceScope &scope,

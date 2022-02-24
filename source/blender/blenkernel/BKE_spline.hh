@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -23,6 +9,8 @@
 #include <mutex>
 
 #include "FN_generic_virtual_array.hh"
+
+#include "DNA_curves_types.h"
 
 #include "BLI_float4x4.hh"
 #include "BLI_math_vec_types.hh"
@@ -63,12 +51,6 @@ using SplinePtr = std::unique_ptr<Spline>;
  */
 class Spline {
  public:
-  enum class Type {
-    Bezier,
-    NURBS,
-    Poly,
-  };
-
   enum NormalCalculationMode {
     ZUp,
     Minimum,
@@ -79,7 +61,7 @@ class Spline {
   blender::bke::CustomDataAttributes attributes;
 
  protected:
-  Type type_;
+  CurveType type_;
   bool is_cyclic_ = false;
 
   /** Direction of the spline at each evaluated point. */
@@ -99,7 +81,7 @@ class Spline {
 
  public:
   virtual ~Spline() = default;
-  Spline(const Type type) : type_(type)
+  Spline(const CurveType type) : type_(type)
   {
   }
   Spline(Spline &other) : attributes(other.attributes), type_(other.type_)
@@ -121,7 +103,7 @@ class Spline {
   SplinePtr copy_without_attributes() const;
   static void copy_base_settings(const Spline &src, Spline &dst);
 
-  Spline::Type type() const;
+  CurveType type() const;
 
   /** Return the number of control points. */
   virtual int size() const = 0;
@@ -266,26 +248,13 @@ class Spline {
  * factors and indices in a list of floats, which is then used to interpolate any other data.
  */
 class BezierSpline final : public Spline {
- public:
-  enum class HandleType {
-    /** The handle can be moved anywhere, and doesn't influence the point's other handle. */
-    Free,
-    /** The location is automatically calculated to be smooth. */
-    Auto,
-    /** The location is calculated to point to the next/previous control point. */
-    Vector,
-    /** The location is constrained to point in the opposite direction as the other handle. */
-    Align,
-  };
-
- private:
   blender::Vector<blender::float3> positions_;
   blender::Vector<float> radii_;
   blender::Vector<float> tilts_;
   int resolution_;
 
-  blender::Vector<HandleType> handle_types_left_;
-  blender::Vector<HandleType> handle_types_right_;
+  blender::Vector<int8_t> handle_types_left_;
+  blender::Vector<int8_t> handle_types_right_;
 
   /* These are mutable to allow lazy recalculation of #Auto and #Vector handle positions. */
   mutable blender::Vector<blender::float3> handle_positions_left_;
@@ -310,7 +279,7 @@ class BezierSpline final : public Spline {
   mutable bool mapping_cache_dirty_ = true;
 
  public:
-  BezierSpline() : Spline(Type::Bezier)
+  BezierSpline() : Spline(CURVE_TYPE_BEZIER)
   {
   }
   BezierSpline(const BezierSpline &other)
@@ -337,8 +306,8 @@ class BezierSpline final : public Spline {
   blender::Span<float> radii() const final;
   blender::MutableSpan<float> tilts() final;
   blender::Span<float> tilts() const final;
-  blender::Span<HandleType> handle_types_left() const;
-  blender::MutableSpan<HandleType> handle_types_left();
+  blender::Span<int8_t> handle_types_left() const;
+  blender::MutableSpan<int8_t> handle_types_left();
   blender::Span<blender::float3> handle_positions_left() const;
   /**
    * Get writable access to the handle position.
@@ -347,8 +316,8 @@ class BezierSpline final : public Spline {
    * uninitialized memory while auto-generating handles.
    */
   blender::MutableSpan<blender::float3> handle_positions_left(bool write_only = false);
-  blender::Span<HandleType> handle_types_right() const;
-  blender::MutableSpan<HandleType> handle_types_right();
+  blender::Span<int8_t> handle_types_right() const;
+  blender::MutableSpan<int8_t> handle_types_right();
   blender::Span<blender::float3> handle_positions_right() const;
   /**
    * Get writable access to the handle position.
@@ -533,7 +502,7 @@ class NURBSpline final : public Spline {
   mutable bool position_cache_dirty_ = true;
 
  public:
-  NURBSpline() : Spline(Type::NURBS)
+  NURBSpline() : Spline(CURVE_TYPE_NURBS)
   {
   }
   NURBSpline(const NURBSpline &other)
@@ -600,7 +569,7 @@ class PolySpline final : public Spline {
   blender::Vector<float> tilts_;
 
  public:
-  PolySpline() : Spline(Type::Poly)
+  PolySpline() : Spline(CURVE_TYPE_POLY)
   {
   }
   PolySpline(const PolySpline &other)
@@ -672,7 +641,7 @@ struct CurveEval {
    * \note If you are looping over all of the splines in the same scope anyway,
    * it's better to avoid calling this function, in case there are many splines.
    */
-  bool has_spline_with_type(const Spline::Type type) const;
+  bool has_spline_with_type(const CurveType type) const;
 
   void resize(int size);
   /**

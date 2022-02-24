@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edsculpt
@@ -694,7 +678,7 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
     SCULPT_relax_vertex(
         ss, &vd, fade * bstrength, SCULPT_BOUNDARY_DEFAULT | SCULPT_BOUNDARY_FACE_SET, vd.co);
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
     if (do_reproject) {
       SCULPT_reproject_cdata(ss, vd.vertex, oldco, oldno);
@@ -2893,7 +2877,7 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
       int idx = fsecd->verts[i];
 
       madd_v3_v3v3fl(mvert[idx].co, fsecd->orig_co[i], fsecd->orig_no[i], extrude_disp);
-      mvert[idx].flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, BKE_pbvh_make_vref(idx));
     }
 
     PBVHNode **nodes;

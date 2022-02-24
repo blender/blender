@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 /** \mainpage Blender
  *
  * \section intro Introduction
@@ -16,4 +18,7 @@
  */
 
 /** \defgroup undoc Undocumented
- *  \brief Modules and libraries that are still undocumented, or lacking proper integration into the doxygen system, are marked in this group. */
+ *
+ * \brief Modules and libraries that are still undocumented,
+ * or lacking proper integration into the doxygen system, are marked in this group.
+ */

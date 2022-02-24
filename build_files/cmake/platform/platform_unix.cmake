@@ -1,22 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2016, Blender Foundation
-# All rights reserved.
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright 2016 Blender Foundation. All rights reserved.
 
 # Libraries configuration for any *nix system including Linux and Unix (excluding APPLE).
 
@@ -362,6 +345,7 @@ if(WITH_BOOST)
       find_package(IcuLinux)
     endif()
     mark_as_advanced(Boost_DIR)  # why doesn't boost do this?
+    mark_as_advanced(Boost_INCLUDE_DIR)  # why doesn't boost do this?
   endif()
 
   set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
@@ -865,3 +849,45 @@ if(WITH_COMPILER_CCACHE)
     set(WITH_COMPILER_CCACHE OFF)
   endif()
 endif()
+
+# On some platforms certain atomic operations are not possible with assembly and/or intrinsics and
+# they are emulated in software with locks. For example, on armel there is no intrinsics to grant
+# 64 bit atomic operations and STL library uses libatomic to offload software emulation of atomics
+# to.
+# This function will check whether libatomic is required and if so will configure linker flags.
+# If atomic operations are possible without libatomic then linker flags are left as-is.
+function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
+  # Source which is used to enforce situation when software emulation of atomics is required.
+  # Assume that using 64bit integer gives a definitive asnwer (as in, if 64bit atomic operations
+  # are possible using assembly/intrinsics 8, 16, and 32 bit operations will also be possible.
+  set(_source
+      "#include <atomic>
+      #include <cstdint>
+      int main(int argc, char **argv) {
+        std::atomic<uint64_t> uint64; uint64++;
+        return 0;
+      }")
+
+  include(CheckCXXSourceCompiles)
+  check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITHOUT_LIBATOMIC)
+
+  if(NOT ATOMIC_OPS_WITHOUT_LIBATOMIC)
+    # Compilation of the test program has failed.
+    # Try it again with -latomic to see if this is what is needed, or whether something else is
+    # going on.
+
+    set(CMAKE_REQUIRED_LIBRARIES atomic)
+    check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITH_LIBATOMIC)
+
+    if(ATOMIC_OPS_WITH_LIBATOMIC)
+      set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -latomic" PARENT_SCOPE)
+    else()
+      # Atomic operations are required part of Blender and it is not possible to process forward.
+      # We expect that either standard library or libatomic will make atomics to work. If both
+      # cases has failed something fishy o na bigger scope is going on.
+      message(FATAL_ERROR "Failed to detect required configuration for atomic operations")
+    endif()
+  endif()
+endfunction()
+
+CONFIGURE_ATOMIC_LIB_IF_NEEDED()

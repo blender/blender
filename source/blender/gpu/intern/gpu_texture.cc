@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -521,6 +505,25 @@ void GPU_texture_free(GPUTexture *tex_)
 void GPU_texture_ref(GPUTexture *tex)
 {
   reinterpret_cast<Texture *>(tex)->refcount++;
+}
+
+int GPU_texture_dimensions(const GPUTexture *tex_)
+{
+  eGPUTextureType type = reinterpret_cast<const Texture *>(tex_)->type_get();
+  if (type & GPU_TEXTURE_1D) {
+    return 1;
+  }
+  else if (type & GPU_TEXTURE_2D) {
+    return 2;
+  }
+  else if (type & GPU_TEXTURE_3D) {
+    return 3;
+  }
+  else if (type & GPU_TEXTURE_CUBE) {
+    return 2;
+  }
+  /* GPU_TEXTURE_BUFFER */
+  return 1;
 }
 
 int GPU_texture_width(const GPUTexture *tex)

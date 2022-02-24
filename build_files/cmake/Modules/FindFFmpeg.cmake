@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2020 Blender Foundation.
+
 # - Find FFmpeg library and includes.
 # Set FFMPEG_FIND_COMPONENTS to the canonical names of the libraries
 # before using the module.
@@ -8,12 +11,6 @@
 #                        This can also be an environment variable.
 #  FFMPEG_FOUND, If false, do not try to use FFmpeg.
 #  FFMPEG_<COMPONENT>_LIBRARY, the given individual component libraries.
-#=============================================================================
-# Copyright 2020 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If FFMPEG_ROOT_DIR was defined in the environment, use it.
 if(NOT FFMPEG_ROOT_DIR AND NOT $ENV{FFMPEG_ROOT_DIR} STREQUAL "")
@@ -82,4 +79,6 @@ mark_as_advanced(
 
 unset(_ffmpeg_SEARCH_DIRS)
 unset(_ffmpeg_LIBRARIES)
-unset(_ffmpeg_INCLUDE_DIR)
+# In cmake version 3.21 and up, we can instead use the NO_CACHE option for
+# find_path so we don't need to clear it from the cache here.
+unset(_ffmpeg_INCLUDE_DIR CACHE)

@@ -1,25 +1,11 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_type_conversions.hh"
 
 #include "FN_multi_function_builder.hh"
 
 #include "BLI_color.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector.hh"
 
 namespace blender::bke {
 
@@ -86,7 +72,7 @@ static int float2_to_int(const float2 &a)
 }
 static bool float2_to_bool(const float2 &a)
 {
-  return !is_zero_v2(a);
+  return !math::is_zero(a);
 }
 static int8_t float2_to_int8(const float2 &a)
 {
@@ -99,7 +85,7 @@ static ColorGeometry4f float2_to_color(const float2 &a)
 
 static bool float3_to_bool(const float3 &a)
 {
-  return !is_zero_v3(a);
+  return !math::is_zero(a);
 }
 static int8_t float3_to_int8(const float3 &a)
 {

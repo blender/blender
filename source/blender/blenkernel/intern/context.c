@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1162,7 +1148,7 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
     switch (obedit->type) {
       case OB_MESH:
         return CTX_MODE_EDIT_MESH;
-      case OB_CURVE:
+      case OB_CURVES_LEGACY:
         return CTX_MODE_EDIT_CURVE;
       case OB_SURF:
         return CTX_MODE_EDIT_SURFACE;
@@ -1174,6 +1160,8 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
         return CTX_MODE_EDIT_METABALL;
       case OB_LATTICE:
         return CTX_MODE_EDIT_LATTICE;
+      case OB_CURVES:
+        return CTX_MODE_EDIT_CURVES;
     }
   }
   else {
@@ -1212,6 +1200,9 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
       if (object_mode & OB_MODE_VERTEX_GPENCIL) {
         return CTX_MODE_VERTEX_GPENCIL;
       }
+      if (object_mode & OB_MODE_SCULPT_CURVES) {
+        return CTX_MODE_SCULPT_CURVES;
+      }
     }
   }
 
@@ -1231,11 +1222,28 @@ enum eContextObjectMode CTX_data_mode_enum(const bContext *C)
  * \note Must be aligned with above enum.
  */
 static const char *data_mode_strings[] = {
-    "mesh_edit",           "curve_edit",          "surface_edit",        "text_edit",
-    "armature_edit",       "mball_edit",          "lattice_edit",        "posemode",
-    "sculpt_mode",         "weightpaint",         "vertexpaint",         "imagepaint",
-    "particlemode",        "objectmode",          "greasepencil_paint",  "greasepencil_edit",
-    "greasepencil_sculpt", "greasepencil_weight", "greasepencil_vertex", NULL,
+    "mesh_edit",
+    "curve_edit",
+    "surface_edit",
+    "text_edit",
+    "armature_edit",
+    "mball_edit",
+    "lattice_edit",
+    "curves_edit",
+    "posemode",
+    "sculpt_mode",
+    "weightpaint",
+    "vertexpaint",
+    "imagepaint",
+    "particlemode",
+    "objectmode",
+    "greasepencil_paint",
+    "greasepencil_edit",
+    "greasepencil_sculpt",
+    "greasepencil_weight",
+    "greasepencil_vertex",
+    "curves_sculpt",
+    NULL,
 };
 BLI_STATIC_ASSERT(ARRAY_SIZE(data_mode_strings) == CTX_MODE_NUM + 1,
                   "Must have a string for each context mode")

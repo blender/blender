@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -104,7 +90,6 @@ typedef enum VolumeGridType {
   VOLUME_GRID_INT,
   VOLUME_GRID_INT64,
   VOLUME_GRID_MASK,
-  VOLUME_GRID_STRING,
   VOLUME_GRID_VECTOR_FLOAT,
   VOLUME_GRID_VECTOR_DOUBLE,
   VOLUME_GRID_VECTOR_INT,
@@ -218,8 +203,6 @@ auto BKE_volume_grid_type_operation(const VolumeGridType grid_type, OpType &&op)
       return op.template operator()<openvdb::Vec3IGrid>();
     case VOLUME_GRID_VECTOR_DOUBLE:
       return op.template operator()<openvdb::Vec3dGrid>();
-    case VOLUME_GRID_STRING:
-      return op.template operator()<openvdb::StringGrid>();
     case VOLUME_GRID_MASK:
       return op.template operator()<openvdb::MaskGrid>();
     case VOLUME_GRID_POINTS:

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_task.hh"
 
@@ -66,16 +52,20 @@ static Array<float3> curve_tangent_point_domain(const CurveEval &curve)
       const Spline &spline = *splines[i];
       MutableSpan spline_tangents{tangents.as_mutable_span().slice(offsets[i], spline.size())};
       switch (splines[i]->type()) {
-        case Spline::Type::Bezier: {
+        case CURVE_TYPE_BEZIER: {
           calculate_bezier_tangents(static_cast<const BezierSpline &>(spline), spline_tangents);
           break;
         }
-        case Spline::Type::Poly: {
+        case CURVE_TYPE_POLY: {
           calculate_poly_tangents(static_cast<const PolySpline &>(spline), spline_tangents);
           break;
         }
-        case Spline::Type::NURBS: {
+        case CURVE_TYPE_NURBS: {
           calculate_nurbs_tangents(static_cast<const NURBSpline &>(spline), spline_tangents);
+          break;
+        }
+        case CURVE_TYPE_CATMULL_ROM: {
+          BLI_assert_unreachable();
           break;
         }
       }
@@ -97,7 +87,7 @@ static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &comp
 
     /* Use a reference to evaluated tangents if possible to avoid an allocation and a copy.
      * This is only possible when there is only one poly spline. */
-    if (splines.size() == 1 && splines.first()->type() == Spline::Type::Poly) {
+    if (splines.size() == 1 && splines.first()->type() == CURVE_TYPE_POLY) {
       const PolySpline &spline = static_cast<PolySpline &>(*splines.first());
       return VArray<float3>::ForSpan(spline.evaluated_tangents());
     }

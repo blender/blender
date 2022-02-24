@@ -4381,10 +4381,13 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                                 bool disable_surface_relax,
                                                 bool is_snake_hook)
 {
-  /* disable surface smooth if uv layers are present, to avoid expensive reprojection operation */
+  /* Disable surface smooth if uv layers are present, to avoid expensive reprojection operation. */
   if (!is_snake_hook && CustomData_has_layer(&pbvh->bm->ldata, CD_MLOOPUV)) {
     disable_surface_relax = true;
   }
+
+  /* Push a subentry. */
+  BM_log_entry_add_ex(pbvh->bm, pbvh->bm_log, true);
 
   /* 2 is enough for edge faces - manifold edge */
   BLI_buffer_declare_static(BMLoop *, edge_loops, BLI_BUFFER_NOP, 2);
@@ -4713,6 +4716,9 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
       //  BKE_pbvh_bmesh_check_tris(pbvh, node);
     }
   }
+
+  /* Push a subentry. */
+  BM_log_entry_add_ex(pbvh->bm, pbvh->bm_log, true);
 
   return modified;
 }

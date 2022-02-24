@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup DNA
@@ -253,15 +237,13 @@ enum {
 
 /* Image.gpuflag */
 enum {
-  /** GPU texture needs to be refreshed. */
-  IMA_GPU_REFRESH = (1 << 0),
   /** All mipmap levels in OpenGL texture set? */
-  IMA_GPU_MIPMAP_COMPLETE = (1 << 1),
+  IMA_GPU_MIPMAP_COMPLETE = (1 << 0),
   /* Reuse the max resolution textures as they fit in the limited scale. */
-  IMA_GPU_REUSE_MAX_RESOLUTION = (1 << 2),
+  IMA_GPU_REUSE_MAX_RESOLUTION = (1 << 1),
   /* Has any limited scale textures been allocated.
    * Adds additional checks to reuse max resolution images when they fit inside limited scale. */
-  IMA_GPU_HAS_LIMITED_SCALE_TEXTURES = (1 << 3),
+  IMA_GPU_HAS_LIMITED_SCALE_TEXTURES = (1 << 2),
 };
 
 /* Image.source, where the image comes from */

@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2021, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -27,6 +12,7 @@
 #include "image_private.hh"
 #include "image_shader_params.hh"
 #include "image_texture_info.hh"
+#include "image_usage.hh"
 #include "image_wrappers.hh"
 
 #include "DRW_render.h"
@@ -36,10 +22,12 @@
  *
  * 4 textures are used to reduce uploading screen space textures when translating the image.
  */
-constexpr int SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN = 4;
+constexpr int SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN = 1;
 
 struct IMAGE_InstanceData {
   struct Image *image;
+  /** Usage data of the previous time, to identify changes that require a full update. */
+  ImageUsage last_usage;
 
   PartialImageUpdater partial_update;
 
@@ -105,6 +93,15 @@ struct IMAGE_InstanceData {
       }
       BatchUpdater batch_updater(info);
       batch_updater.update_batch();
+    }
+  }
+
+  void update_image_usage(const ImageUser *image_user)
+  {
+    ImageUsage usage(image, image_user);
+    if (last_usage != usage) {
+      last_usage = usage;
+      reset_dirty_flag(true);
     }
   }
 

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 #pragma once
 
@@ -1303,12 +1287,13 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 
 /* filter types */
 #define CMP_FILT_SOFT 0
-#define CMP_FILT_SHARP 1
+#define CMP_FILT_SHARP_BOX 1
 #define CMP_FILT_LAPLACE 2
 #define CMP_FILT_SOBEL 3
 #define CMP_FILT_PREWITT 4
 #define CMP_FILT_KIRSCH 5
 #define CMP_FILT_SHADOW 6
+#define CMP_FILT_SHARP_DIAMOND 7
 
 /* scale node type, in custom1 */
 #define CMP_SCALE_RELATIVE 0
@@ -1529,6 +1514,8 @@ struct TexResult;
 #define GEO_NODE_SCALE_ELEMENTS 1151
 #define GEO_NODE_EXTRUDE_MESH 1152
 #define GEO_NODE_MERGE_BY_DISTANCE 1153
+#define GEO_NODE_DUPLICATE_ELEMENTS 1154
+#define GEO_NODE_INPUT_MESH_FACE_IS_PLANAR 1155
 
 /** \} */
 

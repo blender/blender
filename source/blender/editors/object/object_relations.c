@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edobj
@@ -190,7 +174,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
       }
     }
   }
-  else if (ELEM(obedit->type, OB_SURF, OB_CURVE)) {
+  else if (ELEM(obedit->type, OB_SURF, OB_CURVES_LEGACY)) {
     ListBase *editnurb = object_editcurve_get(obedit);
 
     for (Nurb *nu = editnurb->first; nu != NULL; nu = nu->next) {
@@ -362,7 +346,7 @@ EnumPropertyItem prop_clear_parent_types[] = {
 /* Helper for ED_object_parent_clear() - Remove deform-modifiers associated with parent */
 static void object_remove_parent_deform_modifiers(Object *ob, const Object *par)
 {
-  if (ELEM(par->type, OB_ARMATURE, OB_LATTICE, OB_CURVE)) {
+  if (ELEM(par->type, OB_ARMATURE, OB_LATTICE, OB_CURVES_LEGACY)) {
     ModifierData *md, *mdn;
 
     /* assume that we only need to remove the first instance of matching deform modifier here */
@@ -384,7 +368,7 @@ static void object_remove_parent_deform_modifiers(Object *ob, const Object *par)
           free = true;
         }
       }
-      else if ((md->type == eModifierType_Curve) && (par->type == OB_CURVE)) {
+      else if ((md->type == eModifierType_Curve) && (par->type == OB_CURVES_LEGACY)) {
         CurveModifierData *cmd = (CurveModifierData *)md;
         if (cmd->object == par) {
           free = true;
@@ -552,7 +536,7 @@ bool ED_object_parent_set(ReportList *reports,
   switch (partype) {
     case PAR_FOLLOW:
     case PAR_PATH_CONST: {
-      if (par->type != OB_CURVE) {
+      if (par->type != OB_CURVES_LEGACY) {
         return false;
       }
       Curve *cu = par->data;
@@ -647,7 +631,7 @@ bool ED_object_parent_set(ReportList *reports,
        */
       /* XXX currently this should only happen for meshes, curves, surfaces,
        * and lattices - this stuff isn't available for meta-balls yet. */
-      if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
+      if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_FONT, OB_LATTICE)) {
         ModifierData *md;
 
         switch (partype) {
@@ -989,7 +973,7 @@ static int parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
     uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_BONE);
     uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_BONE_RELATIVE);
   }
-  else if (parent->type == OB_CURVE) {
+  else if (parent->type == OB_CURVES_LEGACY) {
     uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_CURVE);
     uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_FOLLOW);
     uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_PATH_CONST);
@@ -1841,7 +1825,7 @@ static void single_obdata_users(
                 ob->data,
                 BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
-          case OB_CURVE:
+          case OB_CURVES_LEGACY:
           case OB_SURF:
           case OB_FONT:
             ob->data = cu = ID_NEW_SET(

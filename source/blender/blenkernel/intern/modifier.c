@@ -1,27 +1,10 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 by the Blender Foundation.
- * All rights reserved.
- * Modifier stack implementation.
- *
- * BKE_modifier.h contains the function prototypes for this file.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
+ * Modifier stack implementation.
+ * BKE_modifier.h contains the function prototypes for this file.
  */
 
 /* Allow using deprecated functionality for .blend file I/O. */
@@ -148,7 +131,7 @@ void BKE_modifier_panel_expand(ModifierData *md)
 
 /***/
 
-ModifierData *BKE_modifier_new(int type)
+static ModifierData *modifier_allocate_and_init(int type)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(type);
   ModifierData *md = MEM_callocN(mti->structSize, mti->structName);
@@ -168,6 +151,13 @@ ModifierData *BKE_modifier_new(int type)
   if (mti->initData) {
     mti->initData(md);
   }
+
+  return md;
+}
+
+ModifierData *BKE_modifier_new(int type)
+{
+  ModifierData *md = modifier_allocate_and_init(type);
 
   BKE_modifier_session_uuid_generate(md);
 
@@ -332,6 +322,16 @@ void BKE_modifiers_foreach_tex_link(Object *ob, TexWalkFunc walk, void *userData
   }
 }
 
+ModifierData *BKE_modifier_copy_ex(const ModifierData *md, int flag)
+{
+  ModifierData *md_dst = modifier_allocate_and_init(md->type);
+
+  BLI_strncpy(md_dst->name, md->name, sizeof(md_dst->name));
+  BKE_modifier_copydata_ex(md, md_dst, flag);
+
+  return md_dst;
+}
+
 void BKE_modifier_copydata_generic(const ModifierData *md_src,
                                    ModifierData *md_dst,
                                    const int UNUSED(flag))
@@ -365,7 +365,7 @@ static void modifier_copy_data_id_us_cb(void *UNUSED(userData),
   }
 }
 
-void BKE_modifier_copydata_ex(ModifierData *md, ModifierData *target, const int flag)
+void BKE_modifier_copydata_ex(const ModifierData *md, ModifierData *target, const int flag)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
@@ -391,11 +391,11 @@ void BKE_modifier_copydata_ex(ModifierData *md, ModifierData *target, const int 
   }
   else {
     /* In the case copyData made full byte copy force UUID to be re-generated. */
-    BKE_modifier_session_uuid_generate(md);
+    BKE_modifier_session_uuid_generate(target);
   }
 }
 
-void BKE_modifier_copydata(ModifierData *md, ModifierData *target)
+void BKE_modifier_copydata(const ModifierData *md, ModifierData *target)
 {
   BKE_modifier_copydata_ex(md, target, 0);
 }
@@ -668,7 +668,7 @@ ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
       virtualModifierData->amd.deformflag = ((bArmature *)(ob->parent->data))->deformflag;
       md = &virtualModifierData->amd.modifier;
     }
-    else if (ob->parent->type == OB_CURVE && ob->partype == PARSKEL) {
+    else if (ob->parent->type == OB_CURVES_LEGACY && ob->partype == PARSKEL) {
       virtualModifierData->cmd.object = ob->parent;
       virtualModifierData->cmd.defaxis = ob->trackflag + 1;
       virtualModifierData->cmd.modifier.next = md;

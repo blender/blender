@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_disjoint_set.hh"
 #include "BLI_task.hh"
@@ -316,7 +302,6 @@ static void extrude_mesh_vertices(MeshComponent &component,
   }
 
   BKE_mesh_runtime_clear_cache(&mesh);
-  BKE_mesh_normals_tag_dirty(&mesh);
 }
 
 static Array<Vector<int, 2>> mesh_calculate_polys_of_edge(const Mesh &mesh)
@@ -640,7 +625,6 @@ static void extrude_mesh_edges(MeshComponent &component,
   }
 
   BKE_mesh_runtime_clear_cache(&mesh);
-  BKE_mesh_normals_tag_dirty(&mesh);
 }
 
 /**
@@ -1009,7 +993,6 @@ static void extrude_mesh_face_regions(MeshComponent &component,
   }
 
   BKE_mesh_runtime_clear_cache(&mesh);
-  BKE_mesh_normals_tag_dirty(&mesh);
 }
 
 /* Get the range into an array of extruded corners, edges, or vertices for a particular polygon. */
@@ -1277,7 +1260,6 @@ static void extrude_individual_mesh_faces(MeshComponent &component,
   }
 
   BKE_mesh_runtime_clear_cache(&mesh);
-  BKE_mesh_normals_tag_dirty(&mesh);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

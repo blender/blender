@@ -1,19 +1,4 @@
-
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -53,7 +38,7 @@
 
 //#include "BLI_strict_flags.h"
 #include "bmesh.h"
-#include "bmesh_log.h"
+#include "bmesh_log_intern.h"
 #include "bmesh_private.h"
 #include "range_tree.h"
 
@@ -69,12 +54,6 @@
 
 void CustomData_bmesh_asan_unpoison(const CustomData *data, void *block);
 void CustomData_bmesh_asan_poison(const CustomData *data, void *block);
-
-#ifdef BM_LOG_TRACE
-#  define BMLOG_DEBUG_ARGS , const char *func, int line
-#else
-#  define BMLOG_DEBUG_ARGS
-#endif
 
 //#define DEBUG_LOG_TO_FILE
 //#define DO_LOG_PRINT
@@ -807,10 +786,7 @@ static void bm_log_vert_bmvert_copy(
 }
 
 /* Allocate and initialize a BMLogVert */
-static BMLogVert *bm_log_vert_alloc(BMLog *log,
-                                    BMVert *v,
-                                    const int cd_vert_mask_offset,
-                                    bool log_customdata)
+static BMLogVert *bm_log_vert_alloc(BMLog *log, BMVert *v, bool log_customdata)
 {
   BMLogEntry *entry = log->current_entry;
   BMLogVert *lv = BLI_mempool_alloc(entry->pool_verts);
@@ -1008,8 +984,7 @@ static void bm_log_verts_unmake_pre(
     /* Ensure the log has the final values of the vertex before
      * deleting it */
 
-    // XXXX
-    // bm_log_vert_bmvert_copy(log, entry, lv, v, true);
+    bm_log_vert_bmvert_copy(log, entry, lv, v, true);
 
     if (callbacks) {
       callbacks->on_vert_kill(v, callbacks->userdata);
@@ -2907,6 +2882,14 @@ void BM_log_vert_before_modified(BMLog *log,
 
   // LOGPRINT("key %d\n", (int)key);
 
+  if (!log_ghash_ensure_p(log, entry->modified_verts, key, &val_p)) {
+    lv = bm_log_vert_alloc(log, v, true);
+    *val_p = lv;
+  }
+
+  bm_logstack_pop();
+  return;
+
   /* Find or create the BMLogVert entry */
   if ((lv = log_ghash_lookup(log, entry->topo_modified_verts_pre, key))) {
     bm_log_vert_bmvert_copy(log, entry, lv, v, log_customdata);
@@ -2915,7 +2898,7 @@ void BM_log_vert_before_modified(BMLog *log,
     bm_log_vert_bmvert_copy(log, entry, lv, v, log_customdata);
   }
   else if (!log_ghash_ensure_p(log, entry->modified_verts, key, &val_p)) {
-    lv = bm_log_vert_alloc(log, v, -1, true);
+    lv = bm_log_vert_alloc(log, v, true);
     *val_p = lv;
   }
 
@@ -2942,23 +2925,22 @@ void BM_log_edge_before_modified(BMLog *log, BMEdge *e, bool log_customdata)
 
 /* Log a new edge as added to the BMesh
  */
-void _BM_log_edge_added(BMLog *log, BMEdge *e, const char *func, int line)
+void _BM_log_edge_added(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS)
 {
   bm_logstack_push();
 
-  _BM_log_edge_topo_post(log, e, func, line);
+  _BM_log_edge_topo_post(log, e BMLOG_DEBUG_ARGS_VALUES);
 
   bm_logstack_pop();
 }
 
 /* Log a new vertex as added to the BMesh
  */
-void _BM_log_vert_added(
-    BMLog *log, BMVert *v, const int cd_vert_mask_offset, const char *func, int line)
+void _BM_log_vert_added(BMLog *log, BMVert *v, const int cd_vert_mask_offset BMLOG_DEBUG_ARGS)
 {
   bm_logstack_push();
 
-  _BM_log_vert_topo_post(log, v, func, line);
+  _BM_log_vert_topo_post(log, v BMLOG_DEBUG_ARGS_VALUES);
 
   bm_logstack_pop();
 }
@@ -2967,7 +2949,7 @@ void _BM_log_vert_added(
  *
  * We always assume face has been added before
  */
-void _BM_log_face_modified(BMLog *log, BMFace *f, const char *func, int line)
+void _BM_log_face_modified(BMLog *log, BMFace *f BMLOG_DEBUG_ARGS)
 {
   BMLogFace *lf;
   uint f_id = (uint)get_face_id(log->bm, f);
@@ -3032,7 +3014,7 @@ void _BM_log_face_added(BMLog *log, BMFace *f BMLOG_DEBUG_ARGS)
 {
   bm_logstack_push();
 
-  _BM_log_face_topo_post(log, f, func, line);
+  _BM_log_face_topo_post(log, f BMLOG_DEBUG_ARGS_VALUES);
 
   bm_logstack_pop();
 }
@@ -3078,7 +3060,7 @@ void _BM_log_face_topo_pre(BMLog *log, BMFace *f BMLOG_DEBUG_ARGS)
   bm_logstack_pop();
 }
 
-void _BM_log_face_topo_post(BMLog *log, BMFace *f, const char *func, int line)
+void _BM_log_face_topo_post(BMLog *log, BMFace *f BMLOG_DEBUG_ARGS)
 {
   bm_logstack_push();
 
@@ -3118,7 +3100,7 @@ void _BM_log_face_topo_post(BMLog *log, BMFace *f, const char *func, int line)
   bm_logstack_pop();
 }
 
-void _BM_log_edge_topo_pre(BMLog *log, BMEdge *e, const char *func, int line)
+void _BM_log_edge_topo_pre(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS)
 {
   bm_logstack_push();
 
@@ -3164,7 +3146,7 @@ void _BM_log_edge_topo_pre(BMLog *log, BMEdge *e, const char *func, int line)
   bm_logstack_pop();
 }
 
-void _BM_log_edge_topo_post(BMLog *log, BMEdge *e, const char *func, int line)
+void _BM_log_edge_topo_post(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS)
 {
   bm_logstack_push();
 
@@ -3203,7 +3185,7 @@ void _BM_log_edge_topo_post(BMLog *log, BMEdge *e, const char *func, int line)
   bm_logstack_pop();
 }
 
-void _BM_log_vert_topo_pre(BMLog *log, BMVert *v, const char *func, int line)
+void _BM_log_vert_topo_pre(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS)
 {
   bm_logstack_push();
 
@@ -3224,7 +3206,7 @@ void _BM_log_vert_topo_pre(BMLog *log, BMVert *v, const char *func, int line)
 
     LOGPRINT(entry, "key %d\n", POINTER_AS_UINT(key));
 
-    lv = bm_log_vert_alloc(log, v, -1, true);
+    lv = bm_log_vert_alloc(log, v, true);
 
     BMLogVert *old = (BMLogVert *)BLI_ghash_popkey(entry->modified_verts, key, keyfree);
 
@@ -3232,8 +3214,10 @@ void _BM_log_vert_topo_pre(BMLog *log, BMVert *v, const char *func, int line)
       bm_log_vert_copydata(entry, lv, old, true);
     }
 
+#ifdef BM_LOG_TRACE
     lv->head.line = line;
     lv->head.func = func;
+#endif
 
     *val = (void *)lv;
   }
@@ -3242,7 +3226,7 @@ void _BM_log_vert_topo_pre(BMLog *log, BMVert *v, const char *func, int line)
   bm_logstack_pop();
 }
 
-void _BM_log_vert_topo_post(BMLog *log, BMVert *v, const char *func, int line)
+void _BM_log_vert_topo_post(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS)
 {
   bm_logstack_push();
 
@@ -3253,7 +3237,7 @@ void _BM_log_vert_topo_post(BMLog *log, BMVert *v, const char *func, int line)
 
   LOGPRINT(entry, "key %d\n", POINTER_AS_UINT(key));
 
-  lv = bm_log_vert_alloc(log, v, -1, true);
+  lv = bm_log_vert_alloc(log, v, true);
 
   void **val = NULL;
 
@@ -3261,8 +3245,10 @@ void _BM_log_vert_topo_post(BMLog *log, BMVert *v, const char *func, int line)
     BMLogVert *lv_old = (BMLogVert *)*val;
     *lv_old = *lv;
 
+#ifdef BM_LOG_TRACE
     lv_old->head.func = func;
     lv_old->head.line = line;
+#endif
 
     if (lv_old->customdata) {
       BLI_mempool_free(entry->vdata.pool, lv_old->customdata);
@@ -3277,8 +3263,11 @@ void _BM_log_vert_topo_post(BMLog *log, BMVert *v, const char *func, int line)
 
     if (old) {
       bm_log_vert_copydata(entry, lv, old, true);
+
+#ifdef BM_LOG_TRACE
       lv->head.func = func;
       lv->head.line = line;
+#endif
     }
   }
 
@@ -3303,8 +3292,7 @@ void _BM_log_vert_topo_post(BMLog *log, BMVert *v, const char *func, int line)
  * vertices original location, then the move record is deleted.
  */
 
-void _BM_log_vert_removed(
-    BMLog *log, BMVert *v, int UNUSED(cd_vert_mask_offset), char *func, int line)
+void _BM_log_vert_removed(BMLog *log, BMVert *v, int UNUSED(cd_vert_mask_offset) BMLOG_DEBUG_ARGS)
 {
   bm_logstack_push();
 
@@ -3314,7 +3302,7 @@ void _BM_log_vert_removed(
     return;
   }
 
-  _BM_log_vert_topo_pre(log, v, func, line);
+  _BM_log_vert_topo_pre(log, v BMLOG_DEBUG_ARGS_VALUES);
 
   bm_logstack_pop();
 }
@@ -3397,7 +3385,7 @@ BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, fl
 #endif
 }
 
-void _BM_log_edge_removed(BMLog *log, BMEdge *e, const char *func, int line)
+void _BM_log_edge_removed(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS)
 {
   bm_logstack_push();
 
@@ -3419,7 +3407,7 @@ void _BM_log_edge_removed(BMLog *log, BMEdge *e, const char *func, int line)
   ok = ok && ok2;
 
   if (ok) {
-    _BM_log_edge_topo_pre(log, e, func, line);
+    _BM_log_edge_topo_pre(log, e BMLOG_DEBUG_ARGS_VALUES);
     bm_logstack_pop();
     return;
   }
@@ -3429,7 +3417,7 @@ void _BM_log_edge_removed(BMLog *log, BMEdge *e, const char *func, int line)
 
 /* Log a face as removed from the BMesh
  */
-void _BM_log_face_removed(BMLog *log, BMFace *f, const char *func, int line)
+void _BM_log_face_removed(BMLog *log, BMFace *f BMLOG_DEBUG_ARGS)
 {
   bm_logstack_push();
 
@@ -3445,7 +3433,7 @@ void _BM_log_face_removed(BMLog *log, BMFace *f, const char *func, int line)
   ok = ok && ok2;
 
   if (ok) {
-    _BM_log_face_topo_pre(log, f, func, line);
+    _BM_log_face_topo_pre(log, f BMLOG_DEBUG_ARGS_VALUES);
     bm_logstack_pop();
     return;
   }
@@ -4028,7 +4016,8 @@ bool BM_log_has_face_pre(BMLog *log, BMFace *f)
 
 bool BM_log_has_vert_post(BMLog *log, BMVert *v)
 {
-  return BLI_ghash_haskey(log->current_entry->topo_modified_verts_post, POINTER_FROM_UINT(BM_ELEM_GET_ID(log->bm, v)));
+  return BLI_ghash_haskey(log->current_entry->topo_modified_verts_post,
+                          POINTER_FROM_UINT(BM_ELEM_GET_ID(log->bm, v)));
 }
 
 bool BM_log_has_edge_post(BMLog *log, BMEdge *e)

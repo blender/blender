@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2021, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -62,20 +47,6 @@ struct OneTextureMethod {
     }
   }
 
-  void update_region_uv_bounds(const ARegion *region)
-  {
-    TextureInfo &info = instance_data->texture_infos[0];
-    if (!BLI_rctf_compare(&info.region_uv_bounds, &region->v2d.cur, EPSILON_UV_BOUNDS)) {
-      info.region_uv_bounds = region->v2d.cur;
-      info.dirty = true;
-    }
-
-    /* Mark the other textures as invalid. */
-    for (int i = 1; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
-      BLI_rctf_init_minmax(&instance_data->texture_infos[i].clipping_bounds);
-    }
-  }
-
   void update_screen_uv_bounds()
   {
     for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
@@ -92,7 +63,13 @@ struct OneTextureMethod {
     float4x4 mat_inv = mat.inverted();
     float3 min_uv = mat_inv * float3(0.0f, 0.0f, 0.0f);
     float3 max_uv = mat_inv * float3(1.0f, 1.0f, 0.0f);
-    BLI_rctf_init(&info.clipping_uv_bounds, min_uv[0], max_uv[0], min_uv[1], max_uv[1]);
+    rctf new_clipping_bounds;
+    BLI_rctf_init(&new_clipping_bounds, min_uv[0], max_uv[0], min_uv[1], max_uv[1]);
+
+    if (!BLI_rctf_compare(&info.clipping_uv_bounds, &new_clipping_bounds, EPSILON_UV_BOUNDS)) {
+      info.clipping_uv_bounds = new_clipping_bounds;
+      info.dirty = true;
+    }
   }
 };
 
@@ -231,7 +208,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       if (iterator.tile_data.tile_buffer == nullptr) {
         continue;
       }
-      ensure_float_buffer(*iterator.tile_data.tile_buffer);
+      const bool do_free_float_buffer = ensure_float_buffer(*iterator.tile_data.tile_buffer);
       const float tile_width = static_cast<float>(iterator.tile_data.tile_buffer->x);
       const float tile_height = static_cast<float>(iterator.tile_data.tile_buffer->y);
 
@@ -267,7 +244,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                               static_cast<float>(iterator.tile_data.tile_buffer->y) +
                           tile_offset_y);
         rctf changed_overlapping_region_in_uv_space;
-        const bool region_overlap = BLI_rctf_isect(&info.region_uv_bounds,
+        const bool region_overlap = BLI_rctf_isect(&info.clipping_uv_bounds,
                                                    &changed_region_in_uv_space,
                                                    &changed_overlapping_region_in_uv_space);
         if (!region_overlap) {
@@ -279,14 +256,14 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
         rcti gpu_texture_region_to_update;
         BLI_rcti_init(
             &gpu_texture_region_to_update,
-            floor((changed_overlapping_region_in_uv_space.xmin - info.region_uv_bounds.xmin) *
-                  texture_width / BLI_rctf_size_x(&info.region_uv_bounds)),
-            floor((changed_overlapping_region_in_uv_space.xmax - info.region_uv_bounds.xmin) *
-                  texture_width / BLI_rctf_size_x(&info.region_uv_bounds)),
-            ceil((changed_overlapping_region_in_uv_space.ymin - info.region_uv_bounds.ymin) *
-                 texture_height / BLI_rctf_size_y(&info.region_uv_bounds)),
-            ceil((changed_overlapping_region_in_uv_space.ymax - info.region_uv_bounds.ymin) *
-                 texture_height / BLI_rctf_size_y(&info.region_uv_bounds)));
+            floor((changed_overlapping_region_in_uv_space.xmin - info.clipping_uv_bounds.xmin) *
+                  texture_width / BLI_rctf_size_x(&info.clipping_uv_bounds)),
+            floor((changed_overlapping_region_in_uv_space.xmax - info.clipping_uv_bounds.xmin) *
+                  texture_width / BLI_rctf_size_x(&info.clipping_uv_bounds)),
+            ceil((changed_overlapping_region_in_uv_space.ymin - info.clipping_uv_bounds.ymin) *
+                 texture_height / BLI_rctf_size_y(&info.clipping_uv_bounds)),
+            ceil((changed_overlapping_region_in_uv_space.ymax - info.clipping_uv_bounds.ymin) *
+                 texture_height / BLI_rctf_size_y(&info.clipping_uv_bounds)));
 
         rcti tile_region_to_extract;
         BLI_rcti_init(
@@ -310,13 +287,13 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
         for (int y = gpu_texture_region_to_update.ymin; y < gpu_texture_region_to_update.ymax;
              y++) {
           float yf = y / (float)texture_height;
-          float v = info.region_uv_bounds.ymax * yf + info.region_uv_bounds.ymin * (1.0 - yf) -
+          float v = info.clipping_uv_bounds.ymax * yf + info.clipping_uv_bounds.ymin * (1.0 - yf) -
                     tile_offset_y;
           for (int x = gpu_texture_region_to_update.xmin; x < gpu_texture_region_to_update.xmax;
                x++) {
             float xf = x / (float)texture_width;
-            float u = info.region_uv_bounds.xmax * xf + info.region_uv_bounds.xmin * (1.0 - xf) -
-                      tile_offset_x;
+            float u = info.clipping_uv_bounds.xmax * xf +
+                      info.clipping_uv_bounds.xmin * (1.0 - xf) - tile_offset_x;
             nearest_interpolation_color(tile_buffer,
                                         nullptr,
                                         &extracted_buffer.rect_float[offset * 4],
@@ -336,6 +313,10 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                                extracted_buffer.y,
                                0);
         imb_freerectImbuf_all(&extracted_buffer);
+      }
+
+      if (do_free_float_buffer) {
+        imb_freerectfloatImBuf(iterator.tile_data.tile_buffer);
       }
     }
   }
@@ -359,7 +340,6 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                                   IMAGE_InstanceData &instance_data,
                                   const ImageUser *image_user) const
   {
-
     ImBuf texture_buffer;
     const int texture_width = GPU_texture_width(info.texture);
     const int texture_height = GPU_texture_height(info.texture);
@@ -413,10 +393,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
   {
     const int texture_width = texture_buffer.x;
     const int texture_height = texture_buffer.y;
-    const bool float_buffer_created = ensure_float_buffer(tile_buffer);
-    /* TODO(jbakker): Find leak when rendering VSE and don't free here. */
-    const bool do_free_float_buffer = float_buffer_created &&
-                                      instance_data.image->type == IMA_TYPE_R_RESULT;
+    const bool do_free_float_buffer = ensure_float_buffer(tile_buffer);
 
     /* IMB_transform works in a non-consistent space. This should be documented or fixed!.
      * Construct a variant of the info_uv_to_texture that adds the texel space
@@ -428,9 +405,9 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                       1.0f};
     rescale_m4(uv_to_texel, scale);
     uv_to_texel[3][0] += image_tile.get_tile_x_offset() /
-                         BLI_rctf_size_x(&texture_info.region_uv_bounds);
+                         BLI_rctf_size_x(&texture_info.clipping_uv_bounds);
     uv_to_texel[3][1] += image_tile.get_tile_y_offset() /
-                         BLI_rctf_size_y(&texture_info.region_uv_bounds);
+                         BLI_rctf_size_y(&texture_info.clipping_uv_bounds);
     uv_to_texel[3][0] *= texture_width;
     uv_to_texel[3][1] *= texture_height;
     invert_m4(uv_to_texel);
@@ -480,8 +457,10 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
      * screen space textures that aren't needed. */
     const ARegion *region = draw_ctx->region;
     method.update_screen_space_bounds(region);
-    method.update_region_uv_bounds(region);
     method.update_screen_uv_bounds();
+
+    /* Check for changes in the image user compared to the last time. */
+    instance_data->update_image_usage(iuser);
 
     /* Step: Update the GPU textures based on the changes in the image. */
     instance_data->update_gpu_texture_allocations();

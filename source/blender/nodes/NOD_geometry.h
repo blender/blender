@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -96,6 +82,7 @@ void register_node_type_geo_curve_to_mesh(void);
 void register_node_type_geo_curve_to_points(void);
 void register_node_type_geo_curve_trim(void);
 void register_node_type_geo_delete_geometry(void);
+void register_node_type_geo_duplicate_elements(void);
 void register_node_type_geo_distribute_points_on_faces(void);
 void register_node_type_geo_dual_mesh(void);
 void register_node_type_geo_edge_split(void);
@@ -114,6 +101,7 @@ void register_node_type_geo_input_mesh_edge_angle(void);
 void register_node_type_geo_input_mesh_edge_neighbors(void);
 void register_node_type_geo_input_mesh_edge_vertices(void);
 void register_node_type_geo_input_mesh_face_area(void);
+void register_node_type_geo_input_mesh_face_is_planar(void);
 void register_node_type_geo_input_mesh_face_neighbors(void);
 void register_node_type_geo_input_mesh_island(void);
 void register_node_type_geo_input_mesh_vertex_neighbors(void);

@@ -260,7 +260,7 @@ static void do_shape_symmetrize_brush_task_cb(void *__restrict userdata,
     madd_v3_v3v3fl(vd.co, vd.co, disp, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
 
     BKE_pbvh_vertex_iter_end;

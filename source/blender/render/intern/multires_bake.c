@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2012 by Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2012 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup render
@@ -483,7 +467,6 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     MPoly *mpoly = dm->getPolyArray(dm);
     MLoop *mloop = dm->getLoopArray(dm);
     MLoopUV *mloopuv = dm->getLoopDataArray(dm, CD_MLOOPUV);
-    const float *precomputed_normals = dm->getPolyDataArray(dm, CD_NORMAL);
     float *pvtangent = NULL;
 
     ListBase threads;
@@ -498,6 +481,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     memcpy(temp_mesh->mpoly, dm->getPolyArray(dm), temp_mesh->totpoly * sizeof(*temp_mesh->mpoly));
     memcpy(temp_mesh->mloop, dm->getLoopArray(dm), temp_mesh->totloop * sizeof(*temp_mesh->mloop));
     const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(temp_mesh);
+    const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(temp_mesh);
 
     if (require_tangent) {
       if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1) {
@@ -513,7 +497,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
             NULL,
             0,
             vert_normals,
-            (const float(*)[3])CustomData_get_layer(&dm->polyData, CD_NORMAL),
+            poly_normals,
             (const float(*)[3])dm->getLoopDataArray(dm, CD_NORMAL),
             (const float(*)[3])dm->getVertDataArray(dm, CD_ORCO), /* may be nullptr */
             /* result */
@@ -558,7 +542,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
       handle->data.mlooptri = mlooptri;
       handle->data.mloop = mloop;
       handle->data.pvtangent = pvtangent;
-      handle->data.precomputed_normals = precomputed_normals; /* don't strictly need this */
+      handle->data.precomputed_normals = (float *)poly_normals; /* don't strictly need this */
       handle->data.w = ibuf->x;
       handle->data.h = ibuf->y;
       handle->data.lores_dm = dm;

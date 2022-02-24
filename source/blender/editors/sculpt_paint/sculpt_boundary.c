@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edsculpt
@@ -1656,7 +1640,7 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
     add_v3_v3(target_co, boundary->bend.pivot_positions[vd.index]);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1701,7 +1685,7 @@ static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
                        strength);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1749,7 +1733,7 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
                        strength);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1791,7 +1775,7 @@ static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
                    boundary->edit_info[vd.index].strength_factor * mask * automask * strength);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1844,7 +1828,7 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
     add_v3_v3(target_co, boundary->twist.pivot_position);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1902,7 +1886,7 @@ static void do_boundary_brush_smooth_task_cb_ex(void *__restrict userdata,
         target_co, vd.co, disp, boundary->edit_info[vd.index].strength_factor * mask * strength);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1955,7 +1939,7 @@ static void do_boundary_brush_circle_task_cb_ex(void *__restrict userdata,
                    boundary->edit_info[vd.index].strength_factor * mask * automask * strength);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;

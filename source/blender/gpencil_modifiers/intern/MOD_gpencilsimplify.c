@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2017, Blender Foundation
- * This is a new part of Blender
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2017 Blender Foundation. */
 
 /** \file
  * \ingroup modifiers
@@ -104,7 +88,7 @@ static void deformStroke(GpencilModifierData *md,
       break;
     }
     case GP_SIMPLIFY_SAMPLE: {
-      BKE_gpencil_stroke_sample(gpd, gps, mmd->length, false);
+      BKE_gpencil_stroke_sample(gpd, gps, mmd->length, false, mmd->sharp_threshold);
       break;
     }
     case GP_SIMPLIFY_MERGE: {
@@ -159,6 +143,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
   else if (mode == GP_SIMPLIFY_SAMPLE) {
     uiItemR(layout, ptr, "length", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "sharp_threshold", 0, NULL, ICON_NONE);
   }
   else if (mode == GP_SIMPLIFY_MERGE) {
     uiItemR(layout, ptr, "distance", 0, NULL, ICON_NONE);

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2021 Blender Foundation.
+
 # - Find HIP compiler
 #
 # This module defines
@@ -5,13 +8,6 @@
 #  HIP_VERSION, the HIP compiler version
 #
 #  HIP_FOUND, if the HIP toolkit is found.
-
-#=============================================================================
-# Copyright 2021 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If HIP_ROOT_DIR was defined in the environment, use it.
 if(NOT HIP_ROOT_DIR AND NOT $ENV{HIP_ROOT_DIR} STREQUAL "")

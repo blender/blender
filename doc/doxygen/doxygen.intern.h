@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 /** \defgroup intern Internal libraries
  *  \section internabout Internal libraries
  *  Blender comes with some of its dependencies

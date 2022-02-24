@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
 #include "BLI_index_range.hh"
@@ -50,7 +36,7 @@ blender::MutableSpan<SplinePtr> CurveEval::splines()
   return splines_;
 }
 
-bool CurveEval::has_spline_with_type(const Spline::Type type) const
+bool CurveEval::has_spline_with_type(const CurveType type) const
 {
   for (const SplinePtr &spline : this->splines()) {
     if (spline->type() == type) {
@@ -174,24 +160,24 @@ void CurveEval::mark_cache_invalid()
   }
 }
 
-static BezierSpline::HandleType handle_type_from_dna_bezt(const eBezTriple_Handle dna_handle_type)
+static HandleType handle_type_from_dna_bezt(const eBezTriple_Handle dna_handle_type)
 {
   switch (dna_handle_type) {
     case HD_FREE:
-      return BezierSpline::HandleType::Free;
+      return BEZIER_HANDLE_FREE;
     case HD_AUTO:
-      return BezierSpline::HandleType::Auto;
+      return BEZIER_HANDLE_AUTO;
     case HD_VECT:
-      return BezierSpline::HandleType::Vector;
+      return BEZIER_HANDLE_VECTOR;
     case HD_ALIGN:
-      return BezierSpline::HandleType::Align;
+      return BEZIER_HANDLE_ALIGN;
     case HD_AUTO_ANIM:
-      return BezierSpline::HandleType::Auto;
+      return BEZIER_HANDLE_AUTO;
     case HD_ALIGN_DOUBLESIDE:
-      return BezierSpline::HandleType::Align;
+      return BEZIER_HANDLE_ALIGN;
   }
   BLI_assert_unreachable();
-  return BezierSpline::HandleType::Auto;
+  return BEZIER_HANDLE_AUTO;
 }
 
 static Spline::NormalCalculationMode normal_mode_from_dna_curve(const int twist_mode)
@@ -234,8 +220,8 @@ static SplinePtr spline_from_dna_bezier(const Nurb &nurb)
   MutableSpan<float3> positions = spline->positions();
   MutableSpan<float3> handle_positions_left = spline->handle_positions_left(true);
   MutableSpan<float3> handle_positions_right = spline->handle_positions_right(true);
-  MutableSpan<BezierSpline::HandleType> handle_types_left = spline->handle_types_left();
-  MutableSpan<BezierSpline::HandleType> handle_types_right = spline->handle_types_right();
+  MutableSpan<int8_t> handle_types_left = spline->handle_types_left();
+  MutableSpan<int8_t> handle_types_right = spline->handle_types_right();
   MutableSpan<float> radii = spline->radii();
   MutableSpan<float> tilts = spline->tilts();
 

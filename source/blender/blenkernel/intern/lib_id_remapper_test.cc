@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2022 by Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2022 Blender Foundation. */
 
 #include "testing/testing.h"
 
@@ -77,6 +62,46 @@ TEST(lib_id_remapper, unassigned)
   EXPECT_EQ(result, ID_REMAP_RESULT_SOURCE_UNASSIGNED);
   EXPECT_EQ(idp, nullptr);
 
+  BKE_id_remapper_free(remapper);
+}
+
+TEST(lib_id_remapper, unassign_when_mapped_to_self)
+{
+  ID id_self;
+  ID id1;
+  ID id2;
+  ID *idp;
+
+  BLI_strncpy(id_self.name, "OBSelf", sizeof(id1.name));
+  BLI_strncpy(id1.name, "OB1", sizeof(id1.name));
+  BLI_strncpy(id2.name, "OB2", sizeof(id2.name));
+
+  /* Default mapping behavior. Should just remap to id2. */
+  idp = &id1;
+  IDRemapper *remapper = BKE_id_remapper_create();
+  BKE_id_remapper_add(remapper, &id1, &id2);
+  IDRemapperApplyResult result = BKE_id_remapper_apply_ex(
+      remapper, &idp, ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF, &id_self);
+  EXPECT_EQ(result, ID_REMAP_RESULT_SOURCE_REMAPPED);
+  EXPECT_EQ(idp, &id2);
+
+  /* Default mapping behavior. Should unassign. */
+  idp = &id1;
+  BKE_id_remapper_clear(remapper);
+  BKE_id_remapper_add(remapper, &id1, nullptr);
+  result = BKE_id_remapper_apply_ex(
+      remapper, &idp, ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF, &id_self);
+  EXPECT_EQ(result, ID_REMAP_RESULT_SOURCE_UNASSIGNED);
+  EXPECT_EQ(idp, nullptr);
+
+  /* Unmap when remapping to self behavior. Should unassign. */
+  idp = &id1;
+  BKE_id_remapper_clear(remapper);
+  BKE_id_remapper_add(remapper, &id1, &id_self);
+  result = BKE_id_remapper_apply_ex(
+      remapper, &idp, ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF, &id_self);
+  EXPECT_EQ(result, ID_REMAP_RESULT_SOURCE_UNASSIGNED);
+  EXPECT_EQ(idp, nullptr);
   BKE_id_remapper_free(remapper);
 }
 

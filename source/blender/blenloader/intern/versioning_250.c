@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -1658,7 +1644,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
             BLI_addtail((ListBase *)&ob->modifiers, lmd);
             ob->partype = PAROBJECT;
           }
-          else if (parent->type == OB_CURVE && ob->partype == PARCURVE) {
+          else if (parent->type == OB_CURVES_LEGACY && ob->partype == PARCURVE) {
             CurveModifierData *cmd;
 
             cmd = (CurveModifierData *)BKE_modifier_new(eModifierType_Curve);

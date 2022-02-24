@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # Configuration for developers, with faster builds, error checking and tests.
 #
 # Example usage:

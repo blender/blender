@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edobj
@@ -105,7 +89,7 @@
 
 #include "CLG_log.h"
 
-/* For menu/popup icons etc etc. */
+/* For menu/popup icons etc. */
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -584,7 +568,7 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
      */
     DEG_relations_tag_update(bmain);
   }
-  else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
     const Curve *cu = obedit->data;
     if (cu->editnurb == NULL) {
       return false;
@@ -815,11 +799,15 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 
     WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_LATTICE, scene);
   }
-  else if (ELEM(ob->type, OB_SURF, OB_CURVE)) {
+  else if (ELEM(ob->type, OB_SURF, OB_CURVES_LEGACY)) {
     ok = true;
     ED_curve_editnurb_make(ob);
 
     WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_CURVE, scene);
+  }
+  else if (ob->type == OB_CURVES) {
+    ok = true;
+    WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_CURVES, scene);
   }
 
   if (ok) {
@@ -1035,7 +1023,7 @@ void ED_object_check_force_modifiers(Main *bmain, Scene *scene, Object *object)
   if (!md) {
     if (pd && (pd->shape == PFIELD_SHAPE_SURFACE) &&
         !ELEM(pd->forcefield, 0, PFIELD_GUIDE, PFIELD_TEXTURE)) {
-      if (ELEM(object->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE)) {
+      if (ELEM(object->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVES_LEGACY)) {
         ED_object_modifier_add(NULL, bmain, scene, object, NULL, eModifierType_Surface);
       }
     }
@@ -1564,7 +1552,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
       BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
       changed = true;
     }
-    else if (ELEM(ob->type, OB_SURF, OB_CURVE)) {
+    else if (ELEM(ob->type, OB_SURF, OB_CURVES_LEGACY)) {
       BKE_curve_smooth_flag_set(ob->data, use_smooth);
       changed = true;
     }

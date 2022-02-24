@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -128,12 +114,8 @@ typedef struct wmXrDrawData {
 
 typedef struct wmXrController {
   struct wmXrController *next, *prev;
-  /** OpenXR path identifier. Length is dependent on OpenXR's XR_MAX_PATH_LENGTH (256).
-  This subaction path will later be combined with a component path, and that combined path should
-  also have a max of XR_MAX_PATH_LENGTH (e.g. subaction_path = /user/hand/left, component_path =
-  /input/trigger/value, interaction_path = /user/hand/left/input/trigger/value).
-  */
-  char subaction_path[64];
+  /** OpenXR user path identifier. */
+  char subaction_path[64]; /* XR_MAX_USER_PATH_LENGTH */
 
   /** Pose (in world space) that represents the user's hand when holding the controller. */
   GHOST_XrPose grip_pose;

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edscr
@@ -601,7 +585,7 @@ bool ED_operator_uvmap(bContext *C)
 bool ED_operator_editsurfcurve(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
-  if (obedit && ELEM(obedit->type, OB_CURVE, OB_SURF)) {
+  if (obedit && ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
     return NULL != ((Curve *)obedit->data)->editnurb;
   }
   return false;
@@ -620,7 +604,7 @@ bool ED_operator_editsurfcurve_region_view3d(bContext *C)
 bool ED_operator_editcurve(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
-  if (obedit && obedit->type == OB_CURVE) {
+  if (obedit && obedit->type == OB_CURVES_LEGACY) {
     return NULL != ((Curve *)obedit->data)->editnurb;
   }
   return false;
@@ -629,7 +613,7 @@ bool ED_operator_editcurve(bContext *C)
 bool ED_operator_editcurve_3d(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
-  if (obedit && obedit->type == OB_CURVE) {
+  if (obedit && obedit->type == OB_CURVES_LEGACY) {
     Curve *cu = (Curve *)obedit->data;
 
     return (cu->flag & CU_3D) && (NULL != cu->editnurb);
@@ -1024,9 +1008,6 @@ static void actionzone_exit(wmOperator *op)
 static void actionzone_apply(bContext *C, wmOperator *op, int type)
 {
   wmWindow *win = CTX_wm_window(C);
-  sActionzoneData *sad = op->customdata;
-
-  sad->modifier = RNA_int_get(op->ptr, "modifier");
 
   wmEvent event;
   wm_event_init_from_window(win, &event);
@@ -1067,6 +1048,7 @@ static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   sad->az = az;
   sad->x = event->xy[0];
   sad->y = event->xy[1];
+  sad->modifier = RNA_int_get(op->ptr, "modifier");
 
   /* region azone directly reacts on mouse clicks */
   if (ELEM(sad->az->type, AZONE_REGION, AZONE_FULLSCREEN)) {
@@ -1130,7 +1112,17 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
           /* What area are we now in? */
           ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy);
 
-          if (area == sad->sa1) {
+          if (sad->modifier == 1) {
+            /* Duplicate area into new window. */
+            WM_cursor_set(win, WM_CURSOR_EDIT);
+            is_gesture = (delta_max > area_threshold);
+          }
+          else if (sad->modifier == 2) {
+            /* Swap areas. */
+            WM_cursor_set(win, WM_CURSOR_SWAP_AREA);
+            is_gesture = true;
+          }
+          else if (area == sad->sa1) {
             /* Same area, so possible split. */
             WM_cursor_set(win,
                           SCREEN_DIR_IS_VERTICAL(sad->gesture_dir) ? WM_CURSOR_H_SPLIT :
@@ -1336,8 +1328,9 @@ static int area_swap_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   switch (event->type) {
     case MOUSEMOVE:
-      /* second area, for join */
-      sad->sa2 = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, event->xy);
+      /* Second area to swap with. */
+      sad->sa2 = ED_area_find_under_cursor(C, SPACE_TYPE_ANY, event->xy);
+      WM_cursor_set(CTX_wm_window(C), (sad->sa2) ? WM_CURSOR_SWAP_AREA : WM_CURSOR_STOP);
       break;
     case LEFTMOUSE: /* release LMB */
       if (event->val == KM_RELEASE) {

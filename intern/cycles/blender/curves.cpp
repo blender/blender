@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include <optional>
 
@@ -645,6 +632,169 @@ static std::optional<BL::FloatAttribute> find_curves_radius_attribute(BL::Curves
   return std::nullopt;
 }
 
+template<typename TypeInCycles, typename GetValueAtIndex>
+static void fill_generic_attribute(BL::Curves &b_curves,
+                                   TypeInCycles *data,
+                                   const AttributeElement element,
+                                   const GetValueAtIndex &get_value_at_index)
+{
+  switch (element) {
+    case ATTR_ELEMENT_CURVE_KEY: {
+      const int num_points = b_curves.points.length();
+      for (int i = 0; i < num_points; i++) {
+        data[i] = get_value_at_index(i);
+      }
+      break;
+    }
+    case ATTR_ELEMENT_CURVE: {
+      const int num_verts = b_curves.curves.length();
+      for (int i = 0; i < num_verts; i++) {
+        data[i] = get_value_at_index(i);
+      }
+      break;
+    }
+    default: {
+      assert(false);
+      break;
+    }
+  }
+}
+
+static void attr_create_motion(Hair *hair, BL::Attribute &b_attribute, const float motion_scale)
+{
+  if (!(b_attribute.domain() == BL::Attribute::domain_POINT) &&
+      (b_attribute.data_type() == BL::Attribute::data_type_FLOAT_VECTOR)) {
+    return;
+  }
+
+  BL::FloatVectorAttribute b_vector_attribute(b_attribute);
+  const int num_curve_keys = hair->get_curve_keys().size();
+
+  /* Find or add attribute */
+  float3 *P = &hair->get_curve_keys()[0];
+  Attribute *attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
+  if (!attr_mP) {
+    attr_mP = hair->attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
+  }
+
+  /* Only export previous and next frame, we don't have any in between data. */
+  float motion_times[2] = {-1.0f, 1.0f};
+  for (int step = 0; step < 2; step++) {
+    const float relative_time = motion_times[step] * 0.5f * motion_scale;
+    float3 *mP = attr_mP->data_float3() + step * num_curve_keys;
+
+    for (int i = 0; i < num_curve_keys; i++) {
+      mP[i] = P[i] + get_float3(b_vector_attribute.data[i].vector()) * relative_time;
+    }
+  }
+}
+
+static void attr_create_generic(Scene *scene,
+                                Hair *hair,
+                                BL::Curves &b_curves,
+                                const bool need_motion,
+                                const float motion_scale)
+{
+  AttributeSet &attributes = hair->attributes;
+  static const ustring u_velocity("velocity");
+
+  for (BL::Attribute &b_attribute : b_curves.attributes) {
+    const ustring name{b_attribute.name().c_str()};
+
+    if (need_motion && name == u_velocity) {
+      attr_create_motion(hair, b_attribute, motion_scale);
+    }
+
+    if (!hair->need_attribute(scene, name)) {
+      continue;
+    }
+    if (attributes.find(name)) {
+      continue;
+    }
+
+    const BL::Attribute::domain_enum b_domain = b_attribute.domain();
+    const BL::Attribute::data_type_enum b_data_type = b_attribute.data_type();
+
+    AttributeElement element = ATTR_ELEMENT_NONE;
+    switch (b_domain) {
+      case BL::Attribute::domain_POINT:
+        element = ATTR_ELEMENT_CURVE_KEY;
+        break;
+      case BL::Attribute::domain_CURVE:
+        element = ATTR_ELEMENT_CURVE;
+        break;
+      default:
+        break;
+    }
+    if (element == ATTR_ELEMENT_NONE) {
+      /* Not supported. */
+      continue;
+    }
+    switch (b_data_type) {
+      case BL::Attribute::data_type_FLOAT: {
+        BL::FloatAttribute b_float_attribute{b_attribute};
+        Attribute *attr = attributes.add(name, TypeFloat, element);
+        float *data = attr->data_float();
+        fill_generic_attribute(
+            b_curves, data, element, [&](int i) { return b_float_attribute.data[i].value(); });
+        break;
+      }
+      case BL::Attribute::data_type_BOOLEAN: {
+        BL::BoolAttribute b_bool_attribute{b_attribute};
+        Attribute *attr = attributes.add(name, TypeFloat, element);
+        float *data = attr->data_float();
+        fill_generic_attribute(b_curves, data, element, [&](int i) {
+          return (float)b_bool_attribute.data[i].value();
+        });
+        break;
+      }
+      case BL::Attribute::data_type_INT: {
+        BL::IntAttribute b_int_attribute{b_attribute};
+        Attribute *attr = attributes.add(name, TypeFloat, element);
+        float *data = attr->data_float();
+        fill_generic_attribute(b_curves, data, element, [&](int i) {
+          return (float)b_int_attribute.data[i].value();
+        });
+        break;
+      }
+      case BL::Attribute::data_type_FLOAT_VECTOR: {
+        BL::FloatVectorAttribute b_vector_attribute{b_attribute};
+        Attribute *attr = attributes.add(name, TypeVector, element);
+        float3 *data = attr->data_float3();
+        fill_generic_attribute(b_curves, data, element, [&](int i) {
+          BL::Array<float, 3> v = b_vector_attribute.data[i].vector();
+          return make_float3(v[0], v[1], v[2]);
+        });
+        break;
+      }
+      case BL::Attribute::data_type_FLOAT_COLOR: {
+        BL::FloatColorAttribute b_color_attribute{b_attribute};
+        Attribute *attr = attributes.add(name, TypeRGBA, element);
+        float4 *data = attr->data_float4();
+        fill_generic_attribute(b_curves, data, element, [&](int i) {
+          BL::Array<float, 4> v = b_color_attribute.data[i].color();
+          return make_float4(v[0], v[1], v[2], v[3]);
+        });
+        break;
+      }
+      case BL::Attribute::data_type_FLOAT2: {
+        BL::Float2Attribute b_float2_attribute{b_attribute};
+        Attribute *attr = attributes.add(name, TypeFloat2, element);
+        float2 *data = attr->data_float2();
+        fill_generic_attribute(b_curves, data, element, [&](int i) {
+          BL::Array<float, 2> v = b_float2_attribute.data[i].vector();
+          return make_float2(v[0], v[1]);
+        });
+        break;
+      }
+      default:
+        /* Not supported. */
+        break;
+    }
+  }
+}
+
 static float4 hair_point_as_float4(BL::Curves b_curves,
                                    std::optional<BL::FloatAttribute> b_attr_radius,
                                    const int index)
@@ -669,7 +819,11 @@ static float4 interpolate_hair_points(BL::Curves b_curves,
               t);
 }
 
-static void export_hair_curves(Scene *scene, Hair *hair, BL::Curves b_curves)
+static void export_hair_curves(Scene *scene,
+                               Hair *hair,
+                               BL::Curves b_curves,
+                               const bool need_motion,
+                               const float motion_scale)
 {
   /* TODO: optimize so we can straight memcpy arrays from Blender? */
 
@@ -746,6 +900,8 @@ static void export_hair_curves(Scene *scene, Hair *hair, BL::Curves b_curves)
     const int shader_index = 0;
     hair->add_curve(first_point_index, shader_index);
   }
+
+  attr_create_generic(scene, hair, b_curves, need_motion, motion_scale);
 }
 
 static void export_hair_curves_motion(Hair *hair, BL::Curves b_curves, int motion_step)
@@ -818,13 +974,20 @@ static void export_hair_curves_motion(Hair *hair, BL::Curves b_curves, int motio
 /* Hair object. */
 void BlenderSync::sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, int motion_step)
 {
+  /* Motion blur attribute is relative to seconds, we need it relative to frames. */
+  const bool need_motion = object_need_motion_attribute(b_ob_info, scene);
+  const float motion_scale = (need_motion) ?
+                                 scene->motion_shutter_time() /
+                                     (b_scene.render().fps() / b_scene.render().fps_base()) :
+                                 0.0f;
+
   /* Convert Blender hair to Cycles curves. */
   BL::Curves b_curves(b_ob_info.object_data);
   if (motion) {
     export_hair_curves_motion(hair, b_curves, motion_step);
   }
   else {
-    export_hair_curves(scene, hair, b_curves);
+    export_hair_curves(scene, hair, b_curves, need_motion, motion_scale);
   }
 }
 #else

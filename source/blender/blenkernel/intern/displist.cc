@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -606,7 +590,7 @@ static float displist_calc_taper(Depsgraph *depsgraph,
                                  Object *taperobj,
                                  float fac)
 {
-  if (taperobj == nullptr || taperobj->type != OB_CURVE) {
+  if (taperobj == nullptr || taperobj->type != OB_CURVES_LEGACY) {
     return 1.0;
   }
 
@@ -1279,7 +1263,7 @@ static GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
                                               const bool for_render,
                                               ListBase *r_dispbase)
 {
-  BLI_assert(ELEM(ob->type, OB_CURVE, OB_FONT));
+  BLI_assert(ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT));
   const Curve *cu = (const Curve *)ob->data;
 
   ListBase *deformed_nurbs = &ob->runtime.curve_cache->deformed_nurbs;
@@ -1489,7 +1473,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
                                   Object *ob,
                                   const bool for_render)
 {
-  BLI_assert(ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT));
+  BLI_assert(ELEM(ob->type, OB_SURF, OB_CURVES_LEGACY, OB_FONT));
   Curve &cow_curve = *(Curve *)ob->data;
 
   BKE_object_free_derived_caches(ob);

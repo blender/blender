@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup edanimation
@@ -684,7 +668,7 @@ static int acf_object_icon(bAnimListElem *ale)
       return ICON_OUTLINER_OB_MESH;
     case OB_CAMERA:
       return ICON_OUTLINER_OB_CAMERA;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
       return ICON_OUTLINER_OB_CURVE;
     case OB_MBALL:
       return ICON_OUTLINER_OB_META;
@@ -4617,7 +4601,7 @@ void ANIM_channel_draw(
     /* Draw slider:
      * - Even if we can draw sliders for this view,
      *   we must also check that the channel-type supports them
-     *   (only only F-Curves really can support them for now).
+     *   (only F-Curves really can support them for now).
      * - Slider should start before the toggles (if they're visible)
      *   to keep a clean line down the side.
      */
@@ -5352,7 +5336,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
 
     /* Draw slider:
      * - Even if we can draw sliders for this view, we must also check that the channel-type
-     *   supports them (only only F-Curves really can support them for now).
+     *   supports them (only F-Curves really can support them for now).
      * - To make things easier, we use RNA-autobuts for this so that changes are
      *   reflected immediately, wherever they occurred.
      *   BUT, we don't use the layout engine, otherwise we'd get wrong alignment,

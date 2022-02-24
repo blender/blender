@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_INTERFACE_INFO(image_engine_color_iface, "").smooth(Type::VEC2, "uv_screen");

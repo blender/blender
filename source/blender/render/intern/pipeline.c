@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2006 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2006 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup render
@@ -1122,6 +1106,8 @@ static void do_render_compositor_scenes(Render *re)
     return;
   }
 
+  bool changed_scene = false;
+
   /* now foreach render-result node we do a full render */
   /* results are stored in a way compositor will find it */
   GSet *scenes_rendered = BLI_gset_ptr_new(__func__);
@@ -1134,11 +1120,20 @@ static void do_render_compositor_scenes(Render *re)
           do_render_compositor_scene(re, scene, cfra);
           BLI_gset_add(scenes_rendered, scene);
           node->typeinfo->updatefunc(restore_scene->nodetree, node);
+
+          if (scene != re->scene) {
+            changed_scene = true;
+          }
         }
       }
     }
   }
   BLI_gset_free(scenes_rendered, NULL);
+
+  if (changed_scene) {
+    /* If rendered another scene, switch back to the current scene with compositing nodes. */
+    re->current_scene_update(re->suh, re->scene);
+  }
 }
 
 /* bad call... need to think over proper method still */

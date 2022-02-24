@@ -328,7 +328,7 @@ static void sculpt_array_final_mesh_write(Object *ob, BMesh *final_mesh)
   SculptSession *ss = ob->sculpt;
   Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
   Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(final_mesh, NULL, sculpt_mesh);
-  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  result->runtime.vert_normals_dirty = true;
   BKE_mesh_nomain_to_mesh(result, ob->data, ob, &CD_MASK_MESH, true);
   BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 
@@ -713,7 +713,7 @@ static void do_array_deform_task_cb_ex(void *__restrict userdata,
     any_modified = true;
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -795,7 +795,7 @@ static void do_array_smooth_task_cb_ex(void *__restrict userdata,
     any_modified = true;
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;

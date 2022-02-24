@@ -1,4 +1,4 @@
-/* Apache License, Version 2.0 */
+/* SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
@@ -80,18 +80,26 @@ TEST(listbase, FindLinkOrIndex)
   EXPECT_EQ(BLI_rfindlink(&lb, 0), (void *)nullptr);
   EXPECT_EQ(BLI_rfindlink(&lb, 1), (void *)nullptr);
   EXPECT_EQ(BLI_findindex(&lb, link1), -1);
+  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, -1), (void *)nullptr);
+  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, 0), (void *)nullptr);
+  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, 1), (void *)nullptr);
 
   /* One link */
   BLI_addtail(&lb, link1);
   EXPECT_EQ(BLI_findlink(&lb, 0), link1);
   EXPECT_EQ(BLI_rfindlink(&lb, 0), link1);
   EXPECT_EQ(BLI_findindex(&lb, link1), 0);
+  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, 0), link1);
 
   /* Two links */
   BLI_addtail(&lb, link2);
   EXPECT_EQ(BLI_findlink(&lb, 1), link2);
   EXPECT_EQ(BLI_rfindlink(&lb, 0), link2);
   EXPECT_EQ(BLI_findindex(&lb, link2), 1);
+  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, 1), link2);
+
+  /* After end of list */
+  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, 2), (void *)nullptr);
 
   BLI_freelistN(&lb);
 }

@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "scene/shader.h"
 #include "scene/background.h"
@@ -45,7 +32,8 @@ typedef map<string, ConvertNode *> ProxyMap;
 
 void BlenderSync::find_shader(BL::ID &id, array<Node *> &used_shaders, Shader *default_shader)
 {
-  Shader *shader = (id) ? shader_map.find(id) : default_shader;
+  Shader *synced_shader = (id) ? shader_map.find(id) : nullptr;
+  Shader *shader = (synced_shader) ? synced_shader : default_shader;
 
   used_shaders.push_back_slow(shader);
   shader->tag_used(scene);

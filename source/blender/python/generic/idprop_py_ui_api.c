@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pygen
@@ -49,6 +35,12 @@
 
 static bool args_contain_key(PyObject *kwargs, const char *name)
 {
+  if (kwargs == NULL) {
+    /* When a function gets called without any kwargs, Python just passes NULL instead.
+     * PyDict_Contains() is not NULL-safe, though. */
+    return false;
+  }
+
   PyObject *py_key = PyUnicode_FromString(name);
   const bool result = PyDict_Contains(kwargs, py_key) == 1;
   Py_DECREF(py_key);

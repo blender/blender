@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2016 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 /* Evaluate the BSDF from wi to wo.
  * Evaluation is split into the analytical single-scattering BSDF and the multi-scattering BSDF,
@@ -206,9 +193,6 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi,
   bool outside = true;
 
   float F0 = fresnel_dielectric_cos(1.0f, eta);
-  if (use_fresnel) {
-    throughput = interpolate_fresnel_color(wi, normalize(wi + wr), eta, F0, cspec0);
-  }
 
   int order;
   for (order = 0; order < 10; order++) {

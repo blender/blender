@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 20014 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2014 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -197,7 +181,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
       BKE_displist_make_mball(depsgraph, scene, ob);
       break;
 
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_FONT: {
       bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
@@ -304,7 +288,6 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
 
 void BKE_object_eval_uber_transform(Depsgraph *UNUSED(depsgraph), Object *UNUSED(object))
 {
-  return;
 }
 
 void BKE_object_data_batch_cache_dirty_tag(ID *object_data)
@@ -317,7 +300,7 @@ void BKE_object_data_batch_cache_dirty_tag(ID *object_data)
       BKE_lattice_batch_cache_dirty_tag((struct Lattice *)object_data,
                                         BKE_LATTICE_BATCH_DIRTY_ALL);
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       BKE_curve_batch_cache_dirty_tag((struct Curve *)object_data, BKE_CURVE_BATCH_DIRTY_ALL);
       break;
     case ID_MB:
@@ -381,7 +364,7 @@ void BKE_object_data_select_update(Depsgraph *depsgraph, ID *object_data)
     case ID_ME:
       BKE_mesh_batch_cache_dirty_tag((Mesh *)object_data, BKE_MESH_BATCH_DIRTY_SELECT);
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       BKE_curve_batch_cache_dirty_tag((Curve *)object_data, BKE_CURVE_BATCH_DIRTY_SELECT);
       break;
     case ID_LT:

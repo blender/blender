@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
-#
-# Utility functions for make update and make tests.
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+"""
+Utility functions for make update and make tests.
+"""
 
 import re
 import shutil

@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 from __future__ import annotations
@@ -979,21 +963,19 @@ class WM_OT_url_open(Operator):
         return {'FINISHED'}
 
 
-# NOTE: needed for Python 3.10 since there are name-space issues with annotations.
-# This can be moved into the class as a static-method once Python 3.9x is dropped.
-def _wm_url_open_preset_type_items(_self, _context):
-    return [item for (item, _) in WM_OT_url_open_preset.preset_items]
-
-
 class WM_OT_url_open_preset(Operator):
     """Open a preset website in the web browser"""
     bl_idname = "wm.url_open_preset"
     bl_label = "Open Preset Website"
     bl_options = {'INTERNAL'}
 
+    @staticmethod
+    def _wm_url_open_preset_type_items(_self, _context):
+        return [item for (item, _) in WM_OT_url_open_preset.preset_items]
+
     type: EnumProperty(
         name="Site",
-        items=_wm_url_open_preset_type_items,
+        items=WM_OT_url_open_preset._wm_url_open_preset_type_items,
     )
 
     id: StringProperty(
@@ -1013,11 +995,10 @@ class WM_OT_url_open_preset(Operator):
         return "https://www.blender.org/download/releases/%d-%d/" % bpy.app.version[:2]
 
     def _url_from_manual(self, _context):
-        if bpy.app.version_cycle in {"rc", "release"}:
-            manual_version = "%d.%d" % bpy.app.version[:2]
-        else:
-            manual_version = "dev"
-        return "https://docs.blender.org/manual/en/" + manual_version + "/"
+        return "https://docs.blender.org/manual/en/%d.%d/" % bpy.app.version[:2]
+
+    def _url_from_api(self, _context):
+        return "https://docs.blender.org/api/%d.%d/" % bpy.app.version[:2]
 
     # This list is: (enum_item, url) pairs.
     # Allow dynamically extending.
@@ -1032,9 +1013,12 @@ class WM_OT_url_open_preset(Operator):
         (('RELEASE_NOTES', "Release Notes",
           "Read about what's new in this version of Blender"),
          _url_from_release_notes),
-        (('MANUAL', "Manual",
+        (('MANUAL', "User Manual",
           "The reference manual for this version of Blender"),
          _url_from_manual),
+        (('API', "Python API Reference",
+          "The API reference manual for this version of Blender"),
+         _url_from_api),
 
         # Static URL's.
         (('FUND', "Development Fund",
@@ -1249,11 +1233,7 @@ class WM_OT_doc_view(Operator):
     bl_label = "View Documentation"
 
     doc_id: doc_id
-    if bpy.app.version_cycle in {"release", "rc", "beta"}:
-        _prefix = ("https://docs.blender.org/api/%d.%d" %
-                   (bpy.app.version[0], bpy.app.version[1]))
-    else:
-        _prefix = ("https://docs.blender.org/api/master")
+    _prefix = "https://docs.blender.org/api/%d.%d" % bpy.app.version[:2]
 
     def execute(self, _context):
         url = _wm_doc_get_id(self.doc_id, do_url=True, url_prefix=self._prefix, report=self.report)
@@ -1297,12 +1277,6 @@ rna_vector_subtype_items = (
     ('EULER', "Euler Angles", "Euler rotation angles in radians"),
     ('QUATERNION', "Quaternion Rotation", "Quaternion rotation (affects NLA blending)"),
 )
-
-
-# NOTE: needed for Python 3.10 since there are name-space issues with annotations.
-# This can be moved into the class as a static-method once Python 3.9x is dropped.
-def _wm_properties_edit_subtype_items(_self, _context):
-    return WM_OT_properties_edit.subtype_items
 
 
 class WM_OT_properties_edit(Operator):
@@ -1411,7 +1385,7 @@ class WM_OT_properties_edit(Operator):
     )
     subtype: EnumProperty(
         name="Subtype",
-        items=_wm_properties_edit_subtype_items,
+        items=WM_OT_properties_edit.subtype_items,
     )
 
     # String properties.

@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include <stdlib.h>
 #include <string.h>
@@ -328,6 +315,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
   info.has_osl = true;
   info.has_profiling = true;
   info.has_peer_memory = false;
+  info.use_metalrt = false;
   info.denoisers = DENOISER_ALL;
 
   foreach (const DeviceInfo &device, subdevices) {
@@ -335,7 +323,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
     if (device.type == DEVICE_CPU && subdevices.size() > 1) {
       if (background) {
         int orig_cpu_threads = (threads) ? threads : TaskScheduler::max_concurrency();
-        int cpu_threads = max(orig_cpu_threads - (subdevices.size() - 1), 0);
+        int cpu_threads = max(orig_cpu_threads - (subdevices.size() - 1), size_t(0));
 
         VLOG(1) << "CPU render threads reduced from " << orig_cpu_threads << " to " << cpu_threads
                 << ", to dedicate to GPU.";
@@ -374,6 +362,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
     info.has_osl &= device.has_osl;
     info.has_profiling &= device.has_profiling;
     info.has_peer_memory |= device.has_peer_memory;
+    info.use_metalrt |= device.use_metalrt;
     info.denoisers &= device.denoisers;
   }
 

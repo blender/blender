@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 #pragma once
 
@@ -99,6 +83,12 @@ typedef DLRBT_Node *(*DLRBT_NAlloc_FP)(void *data);
  */
 typedef void (*DLRBT_NUpdate_FP)(void *node, void *data);
 
+/**
+ * Free a node and the wrapped data.
+ * \param node: <DLRBT_Node> the node to free.
+ */
+typedef void (*DLRBT_NFree_FP)(void *node);
+
 /* ********************************************** */
 /* Public API */
 
@@ -122,7 +112,7 @@ void BLI_dlrbTree_init(DLRBT_Tree *tree);
 /**
  * Free the given tree's data but not the tree itself.
  */
-void BLI_dlrbTree_free(DLRBT_Tree *tree);
+void BLI_dlrbTree_free(DLRBT_Tree *tree, DLRBT_NFree_FP free_cb);
 
 /**
  * Make sure the tree's Double-Linked list representation is valid.

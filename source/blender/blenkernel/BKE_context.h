@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 #pragma once
 
@@ -122,6 +106,7 @@ typedef enum eContextObjectMode {
   CTX_MODE_EDIT_ARMATURE,
   CTX_MODE_EDIT_METABALL,
   CTX_MODE_EDIT_LATTICE,
+  CTX_MODE_EDIT_CURVES,
   CTX_MODE_POSE,
   CTX_MODE_SCULPT,
   CTX_MODE_PAINT_WEIGHT,
@@ -134,8 +119,9 @@ typedef enum eContextObjectMode {
   CTX_MODE_SCULPT_GPENCIL,
   CTX_MODE_WEIGHT_GPENCIL,
   CTX_MODE_VERTEX_GPENCIL,
+  CTX_MODE_SCULPT_CURVES,
 } eContextObjectMode;
-#define CTX_MODE_NUM (CTX_MODE_VERTEX_GPENCIL + 1)
+#define CTX_MODE_NUM (CTX_MODE_SCULPT_CURVES + 1)
 
 /* Context */
 

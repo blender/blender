@@ -882,7 +882,9 @@ void SCULPT_replay(struct bContext *C)
     ss->cache->stroke = &samp->stroke;
 
     ss->cache->last_dyntopo_t = last_dyntopo_t;
-    sculpt_stroke_update_step(C, ss->cache->stroke, NULL);
+
+    //XXX
+    //sculpt_stroke_update_step(C, ss->cache->stroke, NULL);
     last_dyntopo_t = ss->cache->last_dyntopo_t;
     continue;
     do_brush_action(sd, ob, brush, &scene->toolsettings->unified_paint_settings);

@@ -1,25 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2006 by Nicholas Bishop
- * All rights reserved.
- * Implements the Sculpt Mode tools
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2006 by Nicholas Bishop. All rights reserved. */
 
 /** \file
  * \ingroup edsculpt
+ * Implements the Sculpt Mode tools.
  */
 
 #include "MEM_guardedalloc.h"
@@ -360,7 +344,7 @@ static void do_draw_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], offset, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -486,7 +470,7 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
     add_v3_v3(vd.co, disp);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -569,7 +553,7 @@ static void do_twist_brush_post_smooth_task_cb_ex(void *__restrict userdata,
     add_v3_v3(vd.co, disp);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -735,7 +719,7 @@ static void do_fill_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], val, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -833,7 +817,7 @@ static void do_scrape_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], val, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -949,7 +933,7 @@ static void do_clay_thumb_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], val, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1097,7 +1081,7 @@ static void do_flatten_brush_task_cb_ex(void *__restrict userdata,
       mul_v3_v3fl(proxy[vd.i], val, fade);
 
       if (vd.mvert) {
-        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+        BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
       }
     }
   }
@@ -1254,7 +1238,7 @@ static void do_clay_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], val, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1389,7 +1373,7 @@ static void do_clay_strips_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], val, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1591,7 +1575,7 @@ static void do_snake_hook_brush_task_cb_ex(void *__restrict userdata,
     }
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1678,7 +1662,7 @@ static void do_thumb_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], cono, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1757,7 +1741,7 @@ static void do_rotate_brush_task_cb_ex(void *__restrict userdata,
     sub_v3_v3(proxy[vd.i], co);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1922,7 +1906,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     SCULPT_clip(sd, ss, vd.co, final_co);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -2149,7 +2133,7 @@ static void do_inflate_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3v3(proxy[vd.i], val, ss->cache->scale);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -2208,7 +2192,7 @@ static void do_nudge_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], cono, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -2297,7 +2281,7 @@ static void do_crease_brush_task_cb_ex(void *__restrict userdata,
     add_v3_v3v3(proxy[vd.i], val1, val2);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -2418,7 +2402,7 @@ static void do_pinch_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], disp_center, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -2537,7 +2521,7 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -2673,7 +2657,7 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
 
     if (dot_v3v3(final_disp, final_disp) > 0.0000001) {
       if (vd.mvert) {
-        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
       }
     }
 
@@ -2769,7 +2753,7 @@ static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], offset, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -2840,7 +2824,7 @@ static void do_draw_sharp_brush_task_cb_ex_plane(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], vec, fade * fade * bstrength);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -3100,7 +3084,7 @@ static void do_scene_project_brush_task_cb_ex(void *__restrict userdata,
     add_v3_v3(vd.co, disp);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -3200,7 +3184,7 @@ static void do_topology_slide_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], final_disp, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -3355,7 +3339,7 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
     }
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -3569,7 +3553,7 @@ static void do_fairing_brush_displace_task_cb_ex(void *__restrict userdata,
                SCULPT_attr_vertex_data(vd.vertex, ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]));
     add_v3_v3(vd.co, disp);
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -3747,7 +3731,7 @@ static void do_displacement_eraser_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], disp, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -3856,7 +3840,7 @@ static void do_displacement_smear_brush_task_cb_ex(void *__restrict userdata,
     interp_v3_v3v3(vd.co, vd.co, new_co, fade);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -4062,7 +4046,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     }
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -4200,7 +4184,7 @@ static void do_mask_brush_draw_task_cb_ex(void *__restrict userdata,
     *vd.mask = clamp_f(*vd.mask, 0.0f, 1.0f);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
     BKE_pbvh_vertex_iter_end;
   }

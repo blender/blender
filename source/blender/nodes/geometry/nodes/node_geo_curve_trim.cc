@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_spline.hh"
 #include "BLI_task.hh"
@@ -381,15 +367,18 @@ static void trim_spline(SplinePtr &spline,
                         const Spline::LookupResult end)
 {
   switch (spline->type()) {
-    case Spline::Type::Bezier:
+    case CURVE_TYPE_BEZIER:
       trim_bezier_spline(*spline, start, end);
       break;
-    case Spline::Type::Poly:
+    case CURVE_TYPE_POLY:
       trim_poly_spline(*spline, start, end);
       break;
-    case Spline::Type::NURBS:
+    case CURVE_TYPE_NURBS:
       spline = std::make_unique<PolySpline>(trim_nurbs_spline(*spline, start, end));
       break;
+    case CURVE_TYPE_CATMULL_ROM:
+      BLI_assert_unreachable();
+      spline = {};
   }
   spline->mark_cache_invalid();
 }
@@ -414,8 +403,8 @@ static void to_single_point_bezier(Spline &spline, const Spline::LookupResult &l
   const BezierSpline::InsertResult new_point = bezier.calculate_segment_insertion(
       trim.left_index, trim.right_index, trim.factor);
   bezier.positions().first() = new_point.position;
-  bezier.handle_types_left().first() = BezierSpline::HandleType::Free;
-  bezier.handle_types_right().first() = BezierSpline::HandleType::Free;
+  bezier.handle_types_left().first() = BEZIER_HANDLE_FREE;
+  bezier.handle_types_right().first() = BEZIER_HANDLE_FREE;
   bezier.handle_positions_left().first() = new_point.left_handle;
   bezier.handle_positions_right().first() = new_point.right_handle;
 
@@ -491,15 +480,18 @@ static PolySpline to_single_point_nurbs(const Spline &spline, const Spline::Look
 static void to_single_point_spline(SplinePtr &spline, const Spline::LookupResult &lookup)
 {
   switch (spline->type()) {
-    case Spline::Type::Bezier:
+    case CURVE_TYPE_BEZIER:
       to_single_point_bezier(*spline, lookup);
       break;
-    case Spline::Type::Poly:
+    case CURVE_TYPE_POLY:
       to_single_point_poly(*spline, lookup);
       break;
-    case Spline::Type::NURBS:
+    case CURVE_TYPE_NURBS:
       spline = std::make_unique<PolySpline>(to_single_point_nurbs(*spline, lookup));
       break;
+    case CURVE_TYPE_CATMULL_ROM:
+      BLI_assert_unreachable();
+      spline = {};
   }
 }
 

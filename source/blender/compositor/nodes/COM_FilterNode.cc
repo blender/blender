@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. */
 
 #include "COM_FilterNode.h"
 #include "BKE_node.h"
@@ -48,7 +33,7 @@ void FilterNode::convert_to_operations(NodeConverter &converter,
                               2 / 16.0f,
                               1 / 16.0f);
       break;
-    case CMP_FILT_SHARP:
+    case CMP_FILT_SHARP_BOX:
       operation = new ConvolutionFilterOperation();
       operation->set3x3Filter(-1, -1, -1, -1, 9, -1, -1, -1, -1);
       break;
@@ -79,6 +64,10 @@ void FilterNode::convert_to_operations(NodeConverter &converter,
     case CMP_FILT_SHADOW:
       operation = new ConvolutionFilterOperation();
       operation->set3x3Filter(1, 2, 1, 0, 1, 0, -1, -2, -1);
+      break;
+    case CMP_FILT_SHARP_DIAMOND:
+      operation = new ConvolutionFilterOperation();
+      operation->set3x3Filter(0, -1, 0, -1, 5, -1, 0, -1, 0);
       break;
     default:
       operation = new ConvolutionFilterOperation();

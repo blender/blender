@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spnode
@@ -667,6 +651,7 @@ void ED_node_set_active(
       node->flag |= NODE_DO_OUTPUT;
       if (!was_output) {
         do_update = true;
+        BKE_ntree_update_tag_active_output_changed(ntree);
       }
     }
 
@@ -684,6 +669,7 @@ void ED_node_set_active(
         }
 
         node->flag |= NODE_DO_OUTPUT;
+        BKE_ntree_update_tag_active_output_changed(ntree);
       }
 
       ED_node_tree_propagate_change(nullptr, bmain, ntree);
@@ -750,6 +736,7 @@ void ED_node_set_active(
 
         node->flag |= NODE_DO_OUTPUT;
         if (was_output == 0) {
+          BKE_ntree_update_tag_active_output_changed(ntree);
           ED_node_tree_propagate_change(nullptr, bmain, ntree);
         }
 
@@ -765,6 +752,7 @@ void ED_node_set_active(
           }
 
           node->flag |= NODE_DO_OUTPUT;
+          BKE_ntree_update_tag_active_output_changed(ntree);
           ED_node_tree_propagate_change(nullptr, bmain, ntree);
         }
       }
@@ -1172,12 +1160,16 @@ bool node_find_indicated_socket(SpaceNode &snode,
 {
   rctf rect;
 
+  const float size_sock_padded = NODE_SOCKSIZE + 4;
+
   *nodep = nullptr;
   *sockp = nullptr;
 
   /* check if we click in a socket */
   LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
-    BLI_rctf_init_pt_radius(&rect, cursor, NODE_SOCKSIZE + 4);
+    BLI_rctf_init_pt_radius(&rect, cursor, size_sock_padded);
+    rctf node_visible;
+    BLI_rctf_init_pt_radius(&node_visible, cursor, size_sock_padded);
 
     if (!(node->flag & NODE_HIDDEN)) {
       /* extra padding inside and out - allow dragging on the text areas too */
@@ -1196,7 +1188,7 @@ bool node_find_indicated_socket(SpaceNode &snode,
         if (!nodeSocketIsHidden(sock)) {
           if (sock->flag & SOCK_MULTI_INPUT && !(node->flag & NODE_HIDDEN)) {
             if (cursor_isect_multi_input_socket(cursor, *sock)) {
-              if (node == visible_node(snode, rect)) {
+              if (node == visible_node(snode, node_visible)) {
                 *nodep = node;
                 *sockp = sock;
                 return true;
@@ -1204,7 +1196,7 @@ bool node_find_indicated_socket(SpaceNode &snode,
             }
           }
           else if (BLI_rctf_isect_pt(&rect, sock->locx, sock->locy)) {
-            if (node == visible_node(snode, rect)) {
+            if (node == visible_node(snode, node_visible)) {
               *nodep = node;
               *sockp = sock;
               return true;
@@ -1217,7 +1209,7 @@ bool node_find_indicated_socket(SpaceNode &snode,
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
         if (!nodeSocketIsHidden(sock)) {
           if (BLI_rctf_isect_pt(&rect, sock->locx, sock->locy)) {
-            if (node == visible_node(snode, rect)) {
+            if (node == visible_node(snode, node_visible)) {
               *nodep = node;
               *sockp = sock;
               return true;

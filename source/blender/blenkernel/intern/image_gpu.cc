@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -405,17 +389,8 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
     ima->gpu_pass = requested_pass;
     ima->gpu_layer = requested_layer;
     ima->gpu_view = requested_view;
-    ima->gpuflag |= IMA_GPU_REFRESH;
   }
 #undef GPU_FLAGS_TO_CHECK
-
-  /* TODO(jbakker): We should replace the IMA_GPU_REFRESH flag with a call to
-   * BKE_image-partial_update_mark_full_update. Although the flag is quicker it leads to double
-   * administration. */
-  if ((ima->gpuflag & IMA_GPU_REFRESH) != 0) {
-    BKE_image_partial_update_mark_full_update(ima);
-    ima->gpuflag &= ~IMA_GPU_REFRESH;
-  }
 
   if (ima->runtime.partial_update_user == nullptr) {
     ima->runtime.partial_update_user = BKE_image_partial_update_create(ima);
@@ -456,7 +431,8 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   if (ibuf_intern == nullptr) {
     ibuf_intern = BKE_image_acquire_ibuf(ima, iuser, nullptr);
     if (ibuf_intern == nullptr) {
-      return image_gpu_texture_error_create(textarget);
+      *tex = image_gpu_texture_error_create(textarget);
+      return *tex;
     }
   }
 
