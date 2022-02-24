@@ -101,10 +101,10 @@ class Texture {
   virtual ~Texture();
 
   /* Return true on success. */
-  bool init_1D(int w, int layers, eGPUTextureFormat format);
-  bool init_2D(int w, int h, int layers, eGPUTextureFormat format);
-  bool init_3D(int w, int h, int d, eGPUTextureFormat format);
-  bool init_cubemap(int w, int layers, eGPUTextureFormat format);
+  bool init_1D(int w, int layers, int mips, eGPUTextureFormat format);
+  bool init_2D(int w, int h, int layers, int mips, eGPUTextureFormat format);
+  bool init_3D(int w, int h, int d, int mips, eGPUTextureFormat format);
+  bool init_cubemap(int w, int layers, int mips, eGPUTextureFormat format);
   bool init_buffer(GPUVertBuf *vbo, eGPUTextureFormat format);
 
   virtual void generate_mipmap() = 0;
