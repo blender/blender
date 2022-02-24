@@ -934,9 +934,9 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, mloop, me->totloop);
   CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
 
-  /* There is no way to tell if BMesh normals are dirty or not. Instead of calculating the normals
-   * on the BMesh possibly unnecessarily, just tag them dirty on the resulting mesh. */
-  BKE_mesh_normals_tag_dirty(me);
+  /* Clear normals on the mesh completely, since the original vertex and polygon count might be
+   * different than the BMesh's. */
+  BKE_mesh_clear_derived_normals(me);
 
   me->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
 
