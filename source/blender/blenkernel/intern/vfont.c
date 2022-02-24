@@ -811,8 +811,8 @@ static bool vfont_to_curve(Object *ob,
 #define MARGIN_X_MIN (xof_scale + tb_scale.x)
 #define MARGIN_Y_MIN (yof_scale + tb_scale.y)
 
-  /* remark: do calculations including the trailing '\0' of a string
-   * because the cursor can be at that location */
+  /* NOTE: do calculations including the trailing '\0' of a string
+   * because the cursor can be at that location. */
 
   BLI_assert(ob == NULL || ob->type == OB_FONT);
 
@@ -941,19 +941,16 @@ static bool vfont_to_curve(Object *ob,
       che = find_vfont_char(vfd, ascii);
       BLI_rw_mutex_unlock(&vfont_rwlock);
 
-      /*
-       * The character wasn't in the current curve base so load it
+      /* The character wasn't in the current curve base so load it.
        * But if the font is built-in then do not try loading since
-       * whole font is in the memory already
-       */
+       * whole font is in the memory already. */
       if (che == NULL && BKE_vfont_is_builtin(vfont) == false) {
         BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_WRITE);
         /* Check it once again, char might have been already load
-         * between previous BLI_rw_mutex_unlock() and this BLI_rw_mutex_lock().
+         * between previous #BLI_rw_mutex_unlock() and this #BLI_rw_mutex_lock().
          *
          * Such a check should not be a bottleneck since it wouldn't
-         * happen often once all the chars are load.
-         */
+         * happen often once all the chars are load. */
         if ((che = find_vfont_char(vfd, ascii)) == NULL) {
           che = BKE_vfontdata_char_from_freetypefont(vfont, ascii);
         }
@@ -1113,7 +1110,7 @@ static bool vfont_to_curve(Object *ob,
         wsfac = 1.0f;
       }
 
-      /* Set the width of the character */
+      /* Set the width of the character. */
       twidth = char_width(cu, che, info);
 
       xof += (twidth * wsfac * (1.0f + (info->kern / 40.0f))) + xtrax;
@@ -1214,7 +1211,7 @@ static bool vfont_to_curve(Object *ob,
     }
   }
 
-  /* top-baseline is default, in this case, do nothing */
+  /* Top-baseline is default, in this case, do nothing. */
   if (cu->align_y != CU_ALIGN_Y_TOP_BASELINE) {
     if (tb_scale.h != 0.0f) {
       /* We need to loop all the text-boxes even the "full" ones.
@@ -1239,7 +1236,7 @@ static bool vfont_to_curve(Object *ob,
         }
 
         textbox_scale(&tb_scale, &cu->tb[tb_index], 1.0f / font_size);
-        /* The initial Y origin of the textbox is hardcoded to 1.0f * text scale. */
+        /* The initial Y origin of the text-box is hard-coded to 1.0f * text scale. */
         const float textbox_y_origin = 1.0f;
         float yoff = 0.0f;
 
@@ -1303,7 +1300,7 @@ static bool vfont_to_curve(Object *ob,
   MEM_freeN(i_textbox_array);
 
   /* TEXT ON CURVE */
-  /* NOTE: Only OB_CURVES_LEGACY objects could have a path. */
+  /* NOTE: Only #OB_CURVES_LEGACY objects could have a path. */
   if (cu->textoncurve && cu->textoncurve->type == OB_CURVES_LEGACY) {
     BLI_assert(cu->textoncurve->runtime.curve_cache != NULL);
     if (cu->textoncurve->runtime.curve_cache != NULL &&
@@ -1394,8 +1391,8 @@ static bool vfont_to_curve(Object *ob,
         ctime = timeofs + distfac * (ct->xof - minx);
         CLAMP(ctime, 0.0f, 1.0f);
 
-        /* calc the right loc AND the right rot separately */
-        /* vec, tvec need 4 items */
+        /* Calculate the right loc AND the right rot separately. */
+        /* `vec`, `tvec` need 4 items. */
         BKE_where_on_path(cu->textoncurve, ctime, vec, tvec, NULL, NULL, NULL);
         BKE_where_on_path(cu->textoncurve, ctime + dtime, tvec, rotvec, NULL, NULL, NULL);
 
@@ -1456,7 +1453,7 @@ static bool vfont_to_curve(Object *ob,
           break;
       }
       cnr = ct->charnr;
-      /* seek for char with lnr en cnr */
+      /* Seek for char with `lnr` & `cnr`. */
       ef->pos = 0;
       ct = chartransdata;
       for (i = 0; i < slen; i++) {
@@ -1474,7 +1471,7 @@ static bool vfont_to_curve(Object *ob,
     }
   }
 
-  /* cursor first */
+  /* Cursor first. */
   if (ef) {
     float si, co;
 
@@ -1520,13 +1517,13 @@ static bool vfont_to_curve(Object *ob,
       }
 
       /* Only do that check in case we do have an object, otherwise all materials get erased every
-       * time that code is called without an object... */
+       * time that code is called without an object. */
       if (ob != NULL && (info->mat_nr > (ob->totcol))) {
         // CLOG_ERROR(
         //     &LOG, "Illegal material index (%d) in text object, setting to 0", info->mat_nr);
         info->mat_nr = 0;
       }
-      /* We do not want to see any character for \n or \r */
+      /* We don't want to see any character for '\n'. */
       if (cha != '\n') {
         BKE_vfont_build_char(cu, r_nubase, cha, info, ct->xof, ct->yof, ct->rot, i, font_size);
       }
@@ -1602,8 +1599,7 @@ static bool vfont_to_curve(Object *ob,
        *
        * Keep in mind that there is no single number that will make all fit to the end.
        * In a way, our ultimate goal is to get the highest scale that still leads to the
-       * number of extra lines to zero.
-       */
+       * number of extra lines to zero. */
       if (iter_data->status == VFONT_TO_CURVE_INIT) {
         bool valid = true;
 
@@ -1636,7 +1632,7 @@ static bool vfont_to_curve(Object *ob,
           iter_data->bisect.max = iter_data->scale_to_fit;
         }
         else {
-          /* It fits inside the textbox, scale it up. */
+          /* It fits inside the text-box, scale it up. */
           iter_data->bisect.min = iter_data->scale_to_fit;
           valid = true;
         }
@@ -1698,7 +1694,7 @@ finally:
     }
   }
 
-  /* Store the effective scale, to use for the textbox lines. */
+  /* Store the effective scale, to use for the text-box lines. */
   cu->fsize_realtime = font_size;
 
   return ok;
