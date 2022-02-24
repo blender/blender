@@ -1072,22 +1072,12 @@ static bool vfont_to_curve(Object *ob,
         current_line_length = 0.0f;
       }
 
-      /* XXX(campbell): has been unused for years, need to check if this is useful, r4613 r5282. */
-#if 0
-      if (ascii == '\n') {
-        xof = xof_scale;
-      }
-      else {
-        xof = MARGIN_X_MIN;
-      }
-#else
       xof = MARGIN_X_MIN;
-#endif
       lnr++;
       cnr = 0;
       wsnr = 0;
     }
-    else if (ascii == 9) { /* TAB */
+    else if (ascii == '\t') { /* Tab character. */
       float tabfac;
 
       ct->xof = xof;
@@ -1115,7 +1105,7 @@ static bool vfont_to_curve(Object *ob,
         sb->w = xof * font_size;
       }
 
-      if (ascii == 32) {
+      if (ascii == ' ') { /* Space character. */
         wsfac = cu->wordspace;
         wsnr++;
       }
