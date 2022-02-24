@@ -187,7 +187,7 @@ static inline GPUTexture *gpu_texture_create(const char *name,
                                              const int h,
                                              const int d,
                                              const eGPUTextureType type,
-                                             int UNUSED(mips),
+                                             int mips,
                                              eGPUTextureFormat tex_format,
                                              eGPUDataFormat data_format,
                                              const void *pixels)
