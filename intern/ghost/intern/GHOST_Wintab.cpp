@@ -216,7 +216,7 @@ GHOST_Wintab::GHOST_Wintab(unique_hmodule handle,
       m_context{std::move(hctx)},
       m_tabletCoord{tablet},
       m_systemCoord{system},
-      m_pkts{queueSize}
+      m_pkts{(size_t)queueSize}
 {
   m_fpInfo(WTI_INTERFACE, IFC_NDEVICES, &m_numDevices);
   updateCursorInfo();

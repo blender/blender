@@ -32,9 +32,18 @@
 
 #include "bmesh.h"
 #include "bmesh_log.h"
+
 #include "pbvh_intern.h"
 
 #include <stdio.h>
+
+//#define DYNTOPO_VALIDATE_LOG
+
+#ifdef DYNTOPO_VALIDATE_LOG
+#  define VALIDATE_LOG(log) BM_log_validate_cur(log)
+#else
+#  define VALIDATE_LOG(log)
+#endif
 
 //#define DYNTOPO_REPORT
 //#define WITH_ADAPTIVE_CURVATURE
@@ -295,7 +304,7 @@ static void fix_mesh(PBVH *pbvh, BMesh *bm)
   printf("done fixing mesh.\n");
 }
 
-#define CHECKMESH
+//#define CHECKMESH
 //#define TEST_INVALID_NORMALS
 
 #ifndef CHECKMESH
@@ -1276,7 +1285,7 @@ static void pbvh_bmesh_face_remove(
   PBVHNode *f_node = pbvh_bmesh_node_from_face(pbvh, f);
 
   if (!f_node || !(f_node->flag & PBVH_Leaf)) {
-    printf("%s: pbvh corruption\n", __func__);
+    printf("pbvh corruption\n");
     fflush(stdout);
     return;
   }
@@ -2182,7 +2191,6 @@ static bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 
 static bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
 {
-  return false;  // XXXX
   bm_logstack_push();
 
   static int max_faces = 64;
@@ -3025,6 +3033,7 @@ static bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
 typedef struct TraceData {
   PBVH *pbvh;
   SmallHash visit;
+  BMEdge *e;
 } TraceData;
 
 ATTR_NO_OPT void col_on_vert_kill(BMesh *bm, BMVert *v, void *userdata)
@@ -3033,13 +3042,14 @@ ATTR_NO_OPT void col_on_vert_kill(BMesh *bm, BMVert *v, void *userdata)
   PBVH *pbvh = data->pbvh;
 
   if (BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
-    printf("vert pbvh remove!\n");
+    // printf("vert pbvh remove!\n");
     pbvh_bmesh_vert_remove(pbvh, v);
   }
 
   if (!BLI_smallhash_haskey(&data->visit, (uintptr_t)v)) {
-    printf("vert kill!\n");
+    // printf("vert kill!\n");
     BM_log_vert_topo_pre(pbvh->bm_log, v);
+    BLI_smallhash_insert(&data->visit, (uintptr_t)v, NULL);
   }
 }
 
@@ -3049,8 +3059,9 @@ ATTR_NO_OPT void col_on_edge_kill(BMesh *bm, BMEdge *e, void *userdata)
   PBVH *pbvh = data->pbvh;
 
   if (!BLI_smallhash_haskey(&data->visit, (uintptr_t)e)) {
-    printf("edge kill!\n");
+    // printf("edge kill!\n");
     BM_log_edge_topo_pre(pbvh->bm_log, e);
+    BLI_smallhash_insert(&data->visit, (uintptr_t)e, NULL);
   }
 }
 
@@ -3064,25 +3075,61 @@ ATTR_NO_OPT void col_on_face_kill(BMesh *bm, BMFace *f, void *userdata)
   }
 
   if (!BLI_smallhash_haskey(&data->visit, (uintptr_t)f)) {
-    printf("face kill!\n");
     BM_log_face_topo_pre(pbvh->bm_log, f);
+    BLI_smallhash_insert(&data->visit, (uintptr_t)f, NULL);
   }
 }
 
-ATTR_NO_OPT static void vert_ring_do(BMVert *v,
-                                     void (*callback)(BMElem *elem, void *userdata),
-                                     void *userdata,
-                                     int tag)
+ATTR_NO_OPT void col_on_vert_add(BMesh *bm, BMVert *v, void *userdata)
 {
-  if (!v->e) {
-    v->head.hflag &= ~tag;
-    callback((BMElem *)v, userdata);
+  TraceData *data = (TraceData *)userdata;
+  PBVH *pbvh = data->pbvh;
+
+  MSculptVert *mv = BM_ELEM_CD_GET_VOID_P(v, data->pbvh->cd_sculpt_vert);
+  mv->flag |= SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_DISK_SORT;
+
+  BM_log_vert_topo_post(pbvh->bm_log, v);
+}
+
+ATTR_NO_OPT void col_on_edge_add(BMesh *bm, BMEdge *e, void *userdata)
+{
+  TraceData *data = (TraceData *)userdata;
+  PBVH *pbvh = data->pbvh;
+
+  BM_log_edge_topo_post(pbvh->bm_log, e);
+}
+
+ATTR_NO_OPT void col_on_face_add(BMesh *bm, BMFace *f, void *userdata)
+{
+  TraceData *data = (TraceData *)userdata;
+  PBVH *pbvh = data->pbvh;
+
+  if (bm_elem_is_free((BMElem *)f, BM_FACE)) {
+    printf("%s: error, f was freed!\n", __func__);
     return;
   }
+
+  if (BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset) != DYNTOPO_NODE_NONE) {
+    pbvh_bmesh_face_remove(pbvh, f, false, false, false);
+  }
+
+  BM_log_face_topo_post(pbvh->bm_log, f);
+  BKE_pbvh_bmesh_add_face(pbvh, f, false, false);
+}
+
+/* Faces *outside* the ring region are tagged with facetag, used to detect
+ * border edges.
+ */
+static void vert_ring_do_tag(BMVert *v, int tag, int facetag, int depth)
+{
 
   BMEdge *e = v->e;
   do {
     BMVert *v2 = BM_edge_other_vert(e, v);
+
+    if (depth > 0) {
+      vert_ring_do_tag(v2, tag, facetag, depth - 1);
+    }
 
     e->head.hflag |= tag;
     v2->head.hflag |= tag;
@@ -3093,19 +3140,72 @@ ATTR_NO_OPT static void vert_ring_do(BMVert *v,
 
     BMLoop *l = e->l;
     do {
-      BMLoop *l2 = l;
+      l->f->head.hflag |= tag;
 
+      BMLoop *l2 = l;
       do {
         l2->v->head.hflag |= tag;
         l2->e->head.hflag |= tag;
         l2->f->head.hflag |= tag;
+
+        /*set up face tags for faces outside this region*/
+        BMLoop *l3 = l2->radial_next;
+
+        do {
+          l3->f->head.hflag |= facetag;
+        } while ((l3 = l3->radial_next) != l2);
+
       } while ((l2 = l2->next) != l);
     } while ((l = l->radial_next) != e->l);
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+}
+
+static void vert_ring_untag_inner_faces(BMVert *v, int tag, int facetag, int depth)
+{
+  if (!v->e) {
+    return;
+  }
+
+  BMEdge *e = v->e;
+
+  /* untag faces inside this region with facetag */
+  do {
+    BMLoop *l = e->l;
+
+    if (depth > 0) {
+      BMVert *v2 = BM_edge_other_vert(e, v);
+      vert_ring_untag_inner_faces(v2, tag, facetag, depth - 1);
+    }
+
+    if (!l) {
+      continue;
+    }
+
+    do {
+      l->f->head.hflag &= ~facetag;
+    } while ((l = l->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+}
+
+void vert_ring_do_apply(BMVert *v,
+                        void (*callback)(BMElem *elem, void *userdata),
+                        void *userdata,
+                        int tag,
+                        int facetag,
+                        int depth)
+{
+  BMEdge *e = v->e;
+
+  callback((BMElem *)v, userdata);
+  v->head.hflag &= ~tag;
 
   e = v->e;
   do {
     BMVert *v2 = BM_edge_other_vert(e, v);
+
+    if (depth > 0) {
+      vert_ring_do_apply(v2, callback, userdata, tag, facetag, depth - 1);
+    }
 
     if (v2->head.hflag & tag) {
       v2->head.hflag &= ~tag;
@@ -3129,10 +3229,12 @@ ATTR_NO_OPT static void vert_ring_do(BMVert *v,
           l2->v->head.hflag &= ~tag;
           callback((BMElem *)l2->v, userdata);
         }
+
         if (l2->e->head.hflag & tag) {
           l2->e->head.hflag &= ~tag;
           callback((BMElem *)l2->e, userdata);
         }
+
         if (l2->f->head.hflag & tag) {
           l2->f->head.hflag &= ~tag;
           callback((BMElem *)l2->f, userdata);
@@ -3142,11 +3244,45 @@ ATTR_NO_OPT static void vert_ring_do(BMVert *v,
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 }
 
+const int COLLAPSE_TAG = BM_ELEM_INTERNAL_TAG;
+const int COLLAPSE_FACE_TAG = BM_ELEM_TAG_ALT;
+
+ATTR_NO_OPT static void vert_ring_do(BMVert *v,
+                                     void (*callback)(BMElem *elem, void *userdata),
+                                     void *userdata,
+                                     int tag,
+                                     int facetag,
+                                     int depth)
+{
+  if (!v->e) {
+    v->head.hflag &= ~tag;
+    callback((BMElem *)v, userdata);
+    return;
+  }
+
+  vert_ring_do_tag(v, tag, facetag, depth);
+  vert_ring_untag_inner_faces(v, tag, facetag, depth);
+  vert_ring_do_apply(v, callback, userdata, tag, facetag, depth);
+}
+
 ATTR_NO_OPT static void edge_ring_do(BMEdge *e,
                                      void (*callback)(BMElem *elem, void *userdata),
                                      void *userdata,
-                                     int tag)
+                                     int tag,
+                                     int facetag,
+                                     int depth)
 {
+
+  vert_ring_do_tag(e->v1, tag, facetag, depth);
+  vert_ring_do_tag(e->v2, tag, facetag, depth);
+
+  vert_ring_untag_inner_faces(e->v1, tag, facetag, depth);
+  vert_ring_untag_inner_faces(e->v2, tag, facetag, depth);
+
+  vert_ring_do_apply(e->v1, callback, userdata, tag, facetag, depth);
+  vert_ring_do_apply(e->v2, callback, userdata, tag, facetag, depth);
+
+  return;
   for (int i = 0; i < 2; i++) {
     BMVert *v2 = i ? e->v2 : e->v1;
     BMEdge *e2 = v2->e;
@@ -3217,6 +3353,27 @@ ATTR_NO_OPT static void edge_ring_do(BMEdge *e,
   }
 }
 
+ATTR_NO_OPT static void collapse_ring_callback_pre2(BMElem *elem, void *userdata)
+{
+  TraceData *data = (TraceData *)userdata;
+  PBVH *pbvh = data->pbvh;
+
+  if (elem->head.htype != BM_FACE) {
+    return;
+  }
+  BMFace *f = (BMFace *)elem;
+
+  if (BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset) != DYNTOPO_NODE_NONE) {
+    pbvh_bmesh_face_remove(pbvh, f, false, false, false);
+  }
+
+  void **item;
+  if (!BLI_smallhash_ensure_p(&data->visit, (uintptr_t)f, &item)) {
+    *item = NULL;
+    BM_log_face_topo_pre(pbvh->bm_log, f);
+  }
+}
+
 ATTR_NO_OPT static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
 {
   bm_logstack_push();
@@ -3239,8 +3396,28 @@ ATTR_NO_OPT static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
     }
     case BM_EDGE: {
       BMEdge *e = (BMEdge *)elem;
+
+      if (e == data->e || !e->l) {
+        return;
+      }
+
+      BMLoop *l = e->l;
+      do {
+        if (l->f->head.hflag & COLLAPSE_FACE_TAG) {
+          /* do not log boundary edges */
+          // return;
+        }
+
+        void **item;
+        if (!BLI_smallhash_ensure_p(&data->visit, (uintptr_t)l->f, &item)) {
+          *item = NULL;
+          BM_log_face_topo_pre(pbvh->bm_log, l->f);
+        }
+      } while ((l = l->radial_next) != e->l);
+
       BLI_smallhash_reinsert(&data->visit, (uintptr_t)e, NULL);
       BM_log_edge_topo_pre(pbvh->bm_log, e);
+
       break;
     }
     case BM_LOOP:  // shouldn't happen
@@ -3251,14 +3428,12 @@ ATTR_NO_OPT static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
 
       if (BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset) != DYNTOPO_NODE_NONE) {
         pbvh_bmesh_face_remove(pbvh, f, false, false, false);
+        // BM_log_face_removed(pbvh->bm_log, f);
+        BM_log_face_topo_pre(pbvh->bm_log, f);
       }
       else {
-        //printf("%s: error, face not in pbvh\n", __func__);
+        // printf("%s: error, face not in pbvh\n", __func__);
       }
-
-      //BM_log_face_removed(pbvh->bm_log, f);
-      BM_log_face_topo_pre(pbvh->bm_log, f);
-
       break;
     }
   }
@@ -3284,8 +3459,9 @@ ATTR_NO_OPT static void collapse_ring_callback_post(BMElem *elem, void *userdata
       break;
     }
     case BM_EDGE: {
-      BMEdge *e = (BMEdge *)elem;
-      BM_log_edge_topo_post(pbvh->bm_log, e);
+      // BMEdge *e = (BMEdge *)elem;
+      // now logged elsewhere
+      // BM_log_edge_topo_post(pbvh->bm_log, e);
       break;
     }
     case BM_LOOP:  // shouldn't happen
@@ -3298,8 +3474,9 @@ ATTR_NO_OPT static void collapse_ring_callback_post(BMElem *elem, void *userdata
       }
 
       BKE_pbvh_bmesh_add_face(pbvh, f, false, false);
-      //BM_log_face_added(pbvh->bm_log, f);
-      BM_log_face_topo_post(pbvh->bm_log, f);
+
+      // now logged elsewhere
+      // BM_log_face_topo_post(pbvh->bm_log, f);
 
       break;
     }
@@ -3318,18 +3495,6 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 {
   bm_logstack_push();
 
-  TraceData tdata;
-  BLI_smallhash_init(&tdata.visit);
-
-  tdata.pbvh = pbvh;
-
-  BMTracer tracer;
-  BM_empty_tracer(&tracer, &tdata);
-
-  tracer.on_vert_kill = col_on_vert_kill;
-  tracer.on_edge_kill = col_on_edge_kill;
-  tracer.on_face_kill = col_on_face_kill;
-
   BMVert *v_del, *v_conn;
 
   if (pbvh->dyntopo_stop) {
@@ -3340,17 +3505,27 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   pbvh_check_vert_boundary(pbvh, v1);
   pbvh_check_vert_boundary(pbvh, v2);
 
-  // const int mupdateflag = SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_BOUNDARY |
-  //                        SCULPTVERT_NEED_DISK_SORT;
+  TraceData tdata;
+  BLI_smallhash_init(&tdata.visit);
+
+  tdata.pbvh = pbvh;
+  tdata.e = e;
+
+  BMTracer tracer;
+  BM_empty_tracer(&tracer, &tdata);
+
+  tracer.on_vert_kill = col_on_vert_kill;
+  tracer.on_edge_kill = col_on_edge_kill;
+  tracer.on_face_kill = col_on_face_kill;
+
+  const int mupdateflag = SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_BOUNDARY |
+                          SCULPTVERT_NEED_DISK_SORT;
   // updateflag |= SCULPTVERT_NEED_TRIANGULATE;  // to check for non-manifold flaps
 
   validate_edge(pbvh, pbvh->bm, e, true, true);
 
   check_vert_fan_are_tris(pbvh, e->v1);
   check_vert_fan_are_tris(pbvh, e->v2);
-
-  const int tag = BM_ELEM_TAG_ALT;
-  //edge_ring_do(e, collapse_ring_callback_pre, &tdata, tag);
 
   MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v1);
   MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v2);
@@ -3370,8 +3545,6 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   if ((mv1->flag & SCULPTVERT_ALL_CORNER) ||
       (mv1->flag & SCULPTVERT_ALL_BOUNDARY) != (mv2->flag & SCULPTVERT_ALL_BOUNDARY)) {
-
-    BLI_smallhash_release(&tdata.visit);
     bm_logstack_pop();
     return NULL;
   }
@@ -3393,12 +3566,10 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   /*have to check edge flags directly, vertex flag test above isn't specific enough and
     can sometimes let bad edges through*/
   if ((mv1->flag & SCULPTVERT_SHARP_BOUNDARY) && (e->head.hflag & BM_ELEM_SMOOTH)) {
-    BLI_smallhash_release(&tdata.visit);
     bm_logstack_pop();
     return NULL;
   }
   if ((mv1->flag & SCULPTVERT_SEAM_BOUNDARY) && !(e->head.hflag & BM_ELEM_SEAM)) {
-    BLI_smallhash_release(&tdata.visit);
     bm_logstack_pop();
     return NULL;
   }
@@ -3520,11 +3691,36 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   validate_vert_faces(pbvh, pbvh->bm, v_conn, false, true);
 
-  BLI_smallhash_reinsert(&tdata.visit, (uintptr_t)v_del, NULL);
+  BMEdge *e2;
+
+  const int tag = COLLAPSE_TAG;
+  const int facetag = COLLAPSE_FACE_TAG;
+  const int log_rings = 1;
+
+  edge_ring_do(e, collapse_ring_callback_pre2, &tdata, tag, facetag, log_rings - 1);
+  // edge_ring_do(e, collapse_ring_callback_pre, &tdata, tag, facetag, log_rings - 1);
+
+  pbvh_bmesh_vert_remove(pbvh, v_del);
+
+  BM_log_edge_topo_pre(pbvh->bm_log, e);
+
+  BLI_smallhash_reinsert(&tdata.visit, (uintptr_t)e, NULL);
+
   BM_log_vert_removed(pbvh->bm_log, v_del, pbvh->cd_vert_mask_offset);
+  BLI_smallhash_reinsert(&tdata.visit, (uintptr_t)v_del, NULL);
+
+  if (deleted_verts) {
+    BLI_ghash_insert(deleted_verts, (void *)v_del, NULL);
+  }
 
   pbvh_bmesh_check_nodes(pbvh);
   validate_vert_faces(pbvh, pbvh->bm, v_conn, false, true);
+
+#if 1
+  tracer.on_vert_create = col_on_vert_add;
+  tracer.on_edge_create = col_on_edge_add;
+  tracer.on_face_create = col_on_face_add;
+#endif
 
   if (!snap) {
     float co[3];
@@ -3548,39 +3744,8 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   if (!v_conn->e) {
     printf("%s: pbvh error, v_conn->e was null\n", __func__);
-    BLI_smallhash_release(&tdata.visit);
     return v_conn;
   }
-
-  validate_vert_faces(pbvh, pbvh->bm, v_conn, false, true);
-
-  BMEdge *e2 = v_conn->e, *e2next;
-  do {
-    e2next = BM_DISK_EDGE_NEXT(e2, v_conn);
-
-    if (!e2->l) {
-      /* wire edge, should have been added to log already */
-      BM_edge_kill(pbvh->bm, e2);
-    }
-  } while (e2next && (e2 = e2next) != v_conn->e);
-
-  if (!v_conn->e) {
-    if (BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
-      pbvh_bmesh_vert_remove(pbvh, v_conn);
-    }
-
-    BM_log_vert_removed(pbvh->bm_log, v_conn, -1);
-    BM_vert_kill(pbvh->bm, v_conn);
-  }
-  else {
-    pbvh_bmesh_check_nodes(pbvh);
-    //vert_ring_do(v_conn, collapse_ring_callback_post, &tdata, tag);
-    pbvh_bmesh_check_nodes(pbvh);
-  }
-
-#if 1
-  const int mupdateflag = SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_DISK_SORT |
-                          SCULPTVERT_NEED_VALENCE;
 
   validate_vert_faces(pbvh, pbvh->bm, v_conn, false, true);
 
@@ -3605,15 +3770,13 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   if (!v_conn) {
     bm_logstack_pop();
-    BLI_smallhash_release(&tdata.visit);
     return NULL;
   }
 
   MSculptVert *mv_conn = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v_conn);
   MV_ADD_FLAG(mv_conn, mupdateflag);
 
-  bool wasbad = false;
-
+#if 1
   e2 = v_conn->e;
   BMEdge *enext;
   do {
@@ -3622,63 +3785,47 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     }
 
     enext = BM_DISK_EDGE_NEXT(e2, v_conn);
-    BMLoop *l = e2->l;
-
-    BMVert *v2 = BM_edge_other_vert(e2, v_conn);
-    MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v2);
-    MV_ADD_FLAG(mv2, mupdateflag);
 
     // kill wire edge
-    if (!l) {
-      // edge should have been marked as removed earlier in the function
-      BM_log_edge_removed(pbvh->bm_log, e2);
+    if (!e2->l) {
+      BM_log_edge_topo_pre(pbvh->bm_log, e2);
       BM_edge_kill(pbvh->bm, e2);
-      continue;
     }
-
-    if (e2->head.hflag & tag) {
-      e2->head.hflag &= ~tag;
-      BM_log_edge_topo_post(pbvh->bm_log, e2);
-    }
-
-    BMLoop *lnext;
-
-    do {
-      lnext = l->radial_next;
-
-      bool fbad = false;
-#  if 0
-      do {
-
-        if (l2->v == l2->next->v) {
-          int ni = BM_ELEM_CD_GET_INT(l2->f, pbvh->cd_face_node_offset);
-
-          if (ni >= 0 && ni < pbvh->totnode && (pbvh->nodes[ni].flag & PBVH_Leaf)) {
-            BLI_table_gset_remove(pbvh->nodes[ni].bm_faces, l2->f, NULL);
-          }
-
-          printf("duplicate verts in face!! %s\n", __func__);
-          wasbad = true;
-          BM_face_kill(pbvh->bm, l2->f);
-          fbad = true;
-
-          lnext = e2->l ? e2->l->radial_next : NULL;
-          break;
-        }
-      } while ((l2 = l2->next) != l->f->l_first);
-#  endif
-
-      if (!fbad && BM_ELEM_CD_GET_INT(l->f, pbvh->cd_face_node_offset) == DYNTOPO_NODE_NONE) {
-        BKE_pbvh_bmesh_add_face(pbvh, l->f, false, false);
-        BM_log_face_topo_post(pbvh->bm_log, l->f);
-      }
-
-      if (!lnext) {
-        break;
-      }
-    } while ((l = lnext) != e2->l);
   } while (v_conn->e && (e2 = enext) != v_conn->e);
-  // BM_vert_splice(pbvh->bm, v_del, v_conn);
+#endif
+
+  // vert_ring_do(v_conn, collapse_ring_callback_post, &tdata, tag, facetag, log_rings - 1);
+
+  {
+    BMElem *elem = NULL;
+    SmallHashIter siter;
+    void **val = BLI_smallhash_iternew_p(&tdata.visit, &siter, (uintptr_t *)&elem);
+
+    for (; val; val = BLI_smallhash_iternext_p(&siter, (uintptr_t *)&elem)) {
+      if (bm_elem_is_free(elem, BM_EDGE) && bm_elem_is_free(elem, BM_VERT) &&
+          bm_elem_is_free(elem, BM_FACE)) {
+        continue;
+      }
+
+      switch (elem->head.htype) {
+        case BM_VERT:
+          if (!BM_log_has_vert_post(pbvh->bm_log, (BMVert *)elem)) {
+            BM_log_vert_added(pbvh->bm_log, (BMVert *)elem, -1);
+          }
+          break;
+        case BM_EDGE:
+          if (!BM_log_has_edge_post(pbvh->bm_log, (BMEdge *)elem)) {
+            BM_log_edge_added(pbvh->bm_log, (BMEdge *)elem);
+          }
+          break;
+        case BM_FACE:
+          if (!BM_log_has_face_post(pbvh->bm_log, (BMFace *)elem)) {
+            BM_log_face_added(pbvh->bm_log, (BMFace *)elem);
+          }
+          break;
+      }
+    }
+  }
 
   MSculptVert *mv3 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v_conn);
   MV_ADD_FLAG(mv3, mupdateflag);
@@ -3693,22 +3840,14 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     BM_vert_kill(pbvh->bm, v_conn);
 
     bm_logstack_pop();
-    BLI_smallhash_release(&tdata.visit);
     return NULL;
   }
 
   if (BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset) == DYNTOPO_NODE_NONE) {
-    //printf("%s: error: failed to remove vert from pbvh?\n", __func__);
+    printf("%s: error: failed to remove vert from pbvh?\n", __func__);
   }
 
-  if (wasbad) {
-    fix_mesh(pbvh, pbvh->bm);
-    bm_logstack_pop();
-    BLI_smallhash_release(&tdata.visit);
-    return NULL;
-  }
-
-#  if 0
+#if 0
 
   e = v_conn->e;
   if (e) {
@@ -3720,15 +3859,17 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
     } while ((e = enext) != v_conn->e);
   }
-#  endif
+#endif
+
+  if (v_conn) {
+    check_for_fins(pbvh, v_conn);
+  }
 
   validate_vert_faces(pbvh, pbvh->bm, v_conn, false, true);
-#endif
 
   bm_logstack_pop();
   PBVH_CHECK_NAN(v_conn->co);
 
-  BLI_smallhash_release(&tdata.visit);
   return v_conn;
 }
 
@@ -3746,8 +3887,6 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
                     const bool use_frontface,
                     const bool use_projected)
 {
-  return false; //XXXX
-
   bool modified = false;
 
   bm_logstack_push();
@@ -4372,22 +4511,21 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   // ratio = 1.0f;
 #endif
 
-  BM_log_entry_add_ex(pbvh->bm, pbvh->bm_log, true);
-
   int steps[2] = {0, 0};
 
   if ((mode & PBVH_Subdivide) && (mode & PBVH_Collapse)) {
-    steps[0] = 32;
-    steps[1] = 32;
+    steps[0] = 1024;
+    steps[1] = 128;
   }
   else if (mode & PBVH_Subdivide) {
-    steps[0] = 512;
+    steps[0] = 2048;
   }
   else if (mode & PBVH_Collapse) {
-    steps[0] = 512;
+    steps[0] = 2048;
   }
 
-  BMEdge **edges = MEM_malloc_arrayN(steps[0], sizeof(void *), __func__);
+  int edges_size = steps[0];
+  BMEdge **edges = MEM_malloc_arrayN(edges_size, sizeof(void *), __func__);
   int etot = 0;
 
   PBVHTopologyUpdateMode ops[2];
@@ -4409,7 +4547,10 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   float limit_len_cold = pbvh->bm_min_edge_len * pbvh->bm_min_edge_len;
   // limit_len_cold = limit_len_cold * limit_len_cold;
 
-  printf(" minmax queue size: %d\n", BLI_mm_heap_len(eq_ctx.heap_mm));
+  // printf(" minmax queue size: %d\n", BLI_mm_heap_len(eq_ctx.heap_mm));
+
+  SmallHash subd_edges;
+  BLI_smallhash_init(&subd_edges);
 
   while (totop > 0 && !BLI_mm_heap_is_empty(eq_ctx.heap_mm) && i < max_steps) {
     BMEdge *e = NULL;
@@ -4417,7 +4558,9 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
     if (count >= steps[curop]) {
       if (ops[curop] == PBVH_Subdivide) {
         modified = true;
+        BLI_smallhash_clear(&subd_edges, 0);
         pbvh_split_edges(&eq_ctx, pbvh, pbvh->bm, edges, etot, false);
+        VALIDATE_LOG(pbvh->bm_log);
         etot = 0;
       }
 
@@ -4442,7 +4585,27 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
           break;
         }
 
-        edges[etot++] = e;
+        /* add complete triangles */
+        BMLoop *l = e->l;
+        if (l) {
+          do {
+            BMLoop *l2 = l;
+            do {
+              if (etot >= edges_size) {
+                break;
+              }
+
+              void **val = NULL;
+
+              if (!BLI_smallhash_ensure_p(&subd_edges, (uintptr_t)l->e, &val)) {
+                *val = NULL;
+                edges[etot++] = e;
+              }
+            } while ((l2 = l2->next) != l);
+          } while ((l = l->radial_next) != e->l);
+        }
+
+        //edges[etot++] = e;
         break;
       }
       case PBVH_Collapse: {
@@ -4463,21 +4626,34 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
         modified = true;
         pbvh_bmesh_collapse_edge(pbvh, e, e->v1, e->v2, NULL, NULL, &eq_ctx);
+        VALIDATE_LOG(pbvh->bm_log);
 
         break;
       }
       default:
         break;
     }
+
     count++;
     i++;
   }
 
+  if (etot > 0) {
+    modified = true;
+    BLI_smallhash_clear(&subd_edges, 0);
+    pbvh_split_edges(&eq_ctx, pbvh, pbvh->bm, edges, etot, false);
+    VALIDATE_LOG(pbvh->bm_log);
+    etot = 0;
+  }
+
   MEM_SAFE_FREE(edges);
+  BLI_smallhash_release(&subd_edges);
 
   if (mode & PBVH_Cleanup) {
     modified |= do_cleanup_3_4(
         &eq_ctx, pbvh, center, view_normal, radius, use_frontface, use_projected);
+
+    VALIDATE_LOG(pbvh->bm_log);
   }
 
   if (modified) {
@@ -4734,11 +4910,6 @@ ATTR_NO_OPT static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
   }
 
   // BM_log_entry_add_ex(pbvh->bm, pbvh->bm_log, true);
-
-#if 0
-  bm_logstack_pop();
-  return;  // XXX
-#endif
 
   for (int i = 0; i < totedge; i++) {
     BMEdge *e = edges[i];

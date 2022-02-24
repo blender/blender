@@ -4566,13 +4566,10 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, SculptVertRef vertex, float *r_are
         SubdivCCGCoord *coord2 = neighbors.coords + i;
 
         int vertex_index2 = coord2->y * key->grid_size + coord2->x;
-        int index2 = coord2->grid_index * key->grid_area + vertex_index2;
 
         float *co2 = CCG_elem_co(
             key, CCG_elem_offset(key, pbvh->grids[coord2->grid_index], vertex_index2));
         float w = len_v3v3(co1, co2);
-        // w = sqrtf(w);
-        // w *= w;
 
         r_areas[i] = w;
         totw += w;

@@ -33,7 +33,7 @@ extern "C" {
 
 /* returns positive nonzero on error */
 
-#if 1//def NDEBUG
+#ifdef NDEBUG
 /* No error checking for release,
  * it can take most of the CPU time when running some tools. */
 #  define BM_CHECK_ELEMENT(el) (void)(el)

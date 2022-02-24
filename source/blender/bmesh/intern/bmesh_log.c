@@ -51,11 +51,19 @@
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
 
-#include "BLI_strict_flags.h"
+//#include "BLI_strict_flags.h"
 #include "bmesh.h"
 #include "bmesh_log.h"
 #include "bmesh_private.h"
 #include "range_tree.h"
+
+//#define BM_VALIDATE_LOG
+
+#ifdef BM_VALIDATE_LOG
+#  define VALIDATE_LOG(bm, emtry) BM_log_validate(bm, entry, false)
+#else
+#  define VALIDATE_LOG(bm, entry)
+#endif
 
 #define CUSTOMDATA
 
@@ -515,7 +523,7 @@ BLI_INLINE int get_face_id(BMesh *bm, BMFace *f)
 #if 0
   int id = BM_ELEM_GET_ID(bm, f);
   int id2 = 0;
-  BMLoop *l = f->l_first;
+  BMLoop* l = f->l_first;
 
   do {
     id2 ^= BM_ELEM_GET_ID(bm, l->v);
@@ -626,6 +634,16 @@ static bool log_ghash_ensure_p(BMLog *log, GHash *gh, void *key, void ***val)
 static uint bm_log_vert_id_get(BMLog *log, BMVert *v)
 {
   return (uint)BM_ELEM_GET_ID(log->bm, v);
+}
+
+/*Get a vertex from its unique ID */
+ATTR_NO_OPT static BMElem *bm_log_elem_from_id(BMLog *log, uint id)
+{
+  if (log->bm->idmap.map && id >= ((unsigned int)log->bm->idmap.map_size)) {
+    return NULL;
+  }
+
+  return (BMElem *)BM_ELEM_FROM_ID(log->bm, id);
 }
 
 /* Get a vertex from its unique ID */
@@ -1403,8 +1421,8 @@ static void bm_log_faces_restore(
 
 #if 0
     for (size_t j = 0; j < lf->len; j++) {
-      BMVert *v1 = bm_log_vert_from_id(log, lf->v_ids[j]);
-      BMVert *v2 = bm_log_vert_from_id(log, lf->v_ids[(j + 1) % lf->len]);
+      BMVert* v1 = bm_log_vert_from_id(log, lf->v_ids[j]);
+      BMVert* v2 = bm_log_vert_from_id(log, lf->v_ids[(j + 1) % lf->len]);
 
       if (!v1 || !v2) {
         continue;
@@ -1894,7 +1912,7 @@ BMLog *BM_log_unfreeze(BMesh *bm, BMLogEntry *entry)
   }
 
 #if 0
-  BMLogEntry *frozen = entry->log->frozen_full_mesh;
+  BMLogEntry* frozen = entry->log->frozen_full_mesh;
   if (!frozen && entry->type == LOG_ENTRY_FULL_MESH) {
     frozen = entry;
   }
@@ -2018,45 +2036,45 @@ void BM_log_print_entry(BMLog *log, BMLogEntry *entry)
 void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
 {
 #if 0  // TODO: make sure no edge cases relying on this function still exist
-  uint *varr;
-  uint *farr;
+  uint* varr;
+  uint* farr;
 
-  GHash *id_to_idx;
+  GHash* id_to_idx;
 
   BMIter bm_iter;
-  BMVert *v;
-  BMFace *f;
+  BMVert* v;
+  BMFace* f;
 
   uint i;
 
   /* Put all vertex IDs into an array */
   varr = MEM_mallocN(sizeof(int) * (size_t)bm->totvert, __func__);
-  BM_ITER_MESH_INDEX (v, &bm_iter, bm, BM_VERTS_OF_MESH, i) {
+  BM_ITER_MESH_INDEX(v, &bm_iter, bm, BM_VERTS_OF_MESH, i) {
     varr[i] = bm_log_vert_id_get(log, v);
   }
 
   /* Put all face IDs into an array */
   farr = MEM_mallocN(sizeof(int) * (size_t)bm->totface, __func__);
-  BM_ITER_MESH_INDEX (f, &bm_iter, bm, BM_FACES_OF_MESH, i) {
+  BM_ITER_MESH_INDEX(f, &bm_iter, bm, BM_FACES_OF_MESH, i) {
     farr[i] = bm_log_face_id_get(log, f);
   }
 
   /* Create BMVert index remap array */
   id_to_idx = bm_log_compress_ids_to_indices(varr, (uint)bm->totvert);
-  BM_ITER_MESH_INDEX (v, &bm_iter, bm, BM_VERTS_OF_MESH, i) {
+  BM_ITER_MESH_INDEX(v, &bm_iter, bm, BM_VERTS_OF_MESH, i) {
     const uint id = bm_log_vert_id_get(log, v);
-    const void *key = POINTER_FROM_UINT(id);
-    const void *val = log_ghash_lookup(log, id_to_idx, key);
+    const void* key = POINTER_FROM_UINT(id);
+    const void* val = log_ghash_lookup(log, id_to_idx, key);
     varr[i] = POINTER_AS_UINT(val);
   }
   BLI_ghash_free(id_to_idx, NULL, NULL);
 
   /* Create BMFace index remap array */
   id_to_idx = bm_log_compress_ids_to_indices(farr, (uint)bm->totface);
-  BM_ITER_MESH_INDEX (f, &bm_iter, bm, BM_FACES_OF_MESH, i) {
+  BM_ITER_MESH_INDEX(f, &bm_iter, bm, BM_FACES_OF_MESH, i) {
     const uint id = bm_log_face_id_get(log, f);
-    const void *key = POINTER_FROM_UINT(id);
-    const void *val = log_ghash_lookup(log, id_to_idx, key);
+    const void* key = POINTER_FROM_UINT(id);
+    const void* val = log_ghash_lookup(log, id_to_idx, key);
     farr[i] = POINTER_AS_UINT(val);
   }
   BLI_ghash_free(id_to_idx, NULL, NULL);
@@ -2134,7 +2152,7 @@ BMLogEntry *bm_log_entry_add_ex(
   /* Delete any entries after the current one */
   entry = log->current_entry;
   if (entry) {
-    BMLogEntry *next;
+    BMLogEntry* next;
     for (entry = entry->next; entry; entry = next) {
       next = entry->next;
       bm_log_entry_free(entry);
@@ -3056,6 +3074,7 @@ void _BM_log_face_topo_pre(BMLog *log, BMFace *f BMLOG_DEBUG_ARGS)
     *val = (void *)lf;
   }
 
+  VALIDATE_LOG(log->bm, log->current_entry);
   bm_logstack_pop();
 }
 
@@ -3095,6 +3114,7 @@ void _BM_log_face_topo_post(BMLog *log, BMFace *f, const char *func, int line)
     }
   }
 
+  VALIDATE_LOG(log->bm, log->current_entry);
   bm_logstack_pop();
 }
 
@@ -3140,6 +3160,7 @@ void _BM_log_edge_topo_pre(BMLog *log, BMEdge *e, const char *func, int line)
     *val = (void *)le;
   }
 
+  VALIDATE_LOG(log->bm, log->current_entry);
   bm_logstack_pop();
 }
 
@@ -3178,6 +3199,7 @@ void _BM_log_edge_topo_post(BMLog *log, BMEdge *e, const char *func, int line)
     *val = (void *)le;
   }
 
+  VALIDATE_LOG(log->bm, log->current_entry);
   bm_logstack_pop();
 }
 
@@ -3216,6 +3238,7 @@ void _BM_log_vert_topo_pre(BMLog *log, BMVert *v, const char *func, int line)
     *val = (void *)lv;
   }
 
+  VALIDATE_LOG(log->bm, log->current_entry);
   bm_logstack_pop();
 }
 
@@ -3258,6 +3281,8 @@ void _BM_log_vert_topo_post(BMLog *log, BMVert *v, const char *func, int line)
       lv->head.line = line;
     }
   }
+
+  VALIDATE_LOG(log->bm, log->current_entry);
 
   bm_logstack_pop();
 }
@@ -3322,12 +3347,12 @@ BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, fl
   return newv;
 
 #if 0
-  BMEdge *tmp = NULL;
+  BMEdge* tmp = NULL;
   if (!newe) {
     newe = &tmp;
   }
 
-  BMesh *bm = log->bm;
+  BMesh* bm = log->bm;
 
   int eid0 = BM_ELEM_GET_ID(bm, e);
 
@@ -3335,12 +3360,12 @@ BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, fl
   bm_log_message(" esplit: remove edge %d", eid0);
   BM_log_edge_removed(log, e);
 
-  BMVert *v1 = e->v1, *v2 = e->v2;
+  BMVert* v1 = e->v1, * v2 = e->v2;
   uint id1 = (uint)BM_ELEM_GET_ID(bm, v1);
   uint id2 = (uint)BM_ELEM_GET_ID(bm, v2);
 
   bm_log_message(" esplit: split edge %d (v1=%d v2=%d)", eid0, id1, id2);
-  BMVert *newv = BM_edge_split(log->bm, e, v, newe, t);
+  BMVert* newv = BM_edge_split(log->bm, e, v, newe, t);
 
   uint id3 = (uint)BM_ELEM_GET_ID(bm, newv);
   uint nid = (uint)BM_ELEM_GET_ID(bm, (*newe));
@@ -3348,11 +3373,11 @@ BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, fl
   // get a new id
 #  ifndef WITH_BM_ID_FREELIST
   uint id = range_tree_uint_take_any(log->bm->idmap.idtree);
-  bm_free_id(log->bm, (BMElem *)e);
-  bm_assign_id(log->bm, (BMElem *)e, id, true);
+  bm_free_id(log->bm, (BMElem*)e);
+  bm_assign_id(log->bm, (BMElem*)e, id, true);
 #  else
-  bm_free_id(log->bm, (BMElem *)e);
-  bm_alloc_id(log->bm, (BMElem *)e);
+  bm_free_id(log->bm, (BMElem*)e);
+  bm_alloc_id(log->bm, (BMElem*)e);
 
   uint id = BM_ELEM_GET_ID(bm, e);
 #  endif
@@ -3534,10 +3559,10 @@ BMLogEntry *BM_log_current_entry(BMLog *log)
 /* Print the list of entries, marking the current one
  *
  * Keep around for debugging */
-void bm_log_print(const BMLog *log, const char *description)
+void bm_log_print(const BMLog* log, const char* description)
 {
-  const BMLogEntry *entry;
-  const char *current = " <-- current";
+  const BMLogEntry* entry;
+  const char* current = " <-- current";
   int i;
 
   fprintf(DEBUG_FILE, "%s:\n", description);
@@ -3598,4 +3623,421 @@ int BM_log_entry_size(BMLogEntry *entry)
   }
 
   return ret;
+}
+
+BMesh *BM_mesh_copy_ex(BMesh *bm_old, struct BMeshCreateParams *params);
+
+int type_idx_map[] = {
+    0,  // 0
+    0,  // 1 BM_VERT
+    1,  // 2 BM_EDGE
+    0,  // 3
+    2,  // 4 BM_LOOP
+    0,  // 5
+    0,  // 6
+    0,  // 7
+    3,  // 8 BM_FACE
+};
+
+ATTR_NO_OPT static GHash *bm_clone_ghash(BMLogEntry *entry, GHash *ghash, int type)
+{
+  GHash *ghash2 = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
+
+  GHashIterator gh_iter;
+  GHASH_ITER (gh_iter, ghash) {
+    void *key = BLI_ghashIterator_getKey(&gh_iter);
+    void *newval = NULL;
+
+    switch (type) {
+      case BM_VERT: {
+        BMLogVert *lv = BLI_ghashIterator_getValue(&gh_iter);
+        BMLogVert *lv2 = BLI_mempool_alloc(entry->pool_verts);
+
+        *lv2 = *lv;
+        if (lv2->customdata) {
+          void *cdata = BLI_mempool_alloc(entry->vdata.pool);
+          memcpy(cdata, lv->customdata, entry->vdata.totsize);
+          lv2->customdata = cdata;
+        }
+
+        newval = (void *)lv2;
+        break;
+      }
+      case BM_EDGE: {
+        BMLogEdge *le = BLI_ghashIterator_getValue(&gh_iter);
+        BMLogEdge *le2 = BLI_mempool_alloc(entry->pool_edges);
+
+        *le2 = *le;
+        if (le2->customdata) {
+          void *cdata = BLI_mempool_alloc(entry->edata.pool);
+          memcpy(cdata, le->customdata, entry->edata.totsize);
+          le2->customdata = cdata;
+        }
+
+        newval = (void *)le2;
+        break;
+      }
+      case BM_FACE: {
+        BMLogFace *lf = BLI_ghashIterator_getValue(&gh_iter);
+        BMLogFace *lf2 = BLI_mempool_alloc(entry->pool_faces);
+
+        *lf2 = *lf;
+        if (lf2->customdata_f) {
+          void *cdata = BLI_mempool_alloc(entry->pdata.pool);
+          memcpy(cdata, lf->customdata_f, entry->pdata.totsize);
+          lf2->customdata_f = cdata;
+        }
+
+        for (int i = 0; i < lf->len; i++) {
+          if (lf->customdata[i]) {
+            lf2->customdata[i] = BLI_mempool_alloc(entry->ldata.pool);
+            memcpy(lf2->customdata[i], lf->customdata[i], entry->ldata.totsize);
+          }
+        }
+
+        newval = (void *)lf2;
+        break;
+      }
+    }
+
+    BLI_ghash_insert(ghash2, key, newval);
+  }
+
+  return ghash2;
+}
+
+ATTR_NO_OPT static BMLogEntry *bm_log_entry_clone_intern(BMLogEntry *entry, BMLog *newlog)
+{
+  BMLogEntry *newentry = MEM_callocN(sizeof(*entry), "BMLogEntry cloned");
+
+  *newentry = *entry;
+
+  newentry->combined_next = newentry->combined_prev = newentry->next = newentry->prev = NULL;
+
+  if (entry->type == LOG_ENTRY_PARTIAL) {
+    newentry->pool_verts = BLI_mempool_create(sizeof(BMLogVert), 0, 64, BLI_MEMPOOL_NOP);
+    newentry->pool_edges = BLI_mempool_create(sizeof(BMLogEdge), 0, 64, BLI_MEMPOOL_NOP);
+    newentry->pool_faces = BLI_mempool_create(sizeof(BMLogFace), 0, 64, BLI_MEMPOOL_NOP);
+
+    CustomData *cdata = &newentry->vdata;
+    for (int i = 0; i < 4; i++) {
+      cdata->pool = NULL;
+      CustomData_bmesh_init_pool(cdata, 0, 1 << i);
+    }
+
+    entry->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "bmlog arena");
+
+    newentry->modified_verts = bm_clone_ghash(newentry, entry->modified_verts, BM_VERT);
+    newentry->topo_modified_verts_pre = bm_clone_ghash(
+        newentry, entry->topo_modified_verts_pre, BM_VERT);
+    newentry->topo_modified_verts_post = bm_clone_ghash(
+        newentry, entry->topo_modified_verts_post, BM_VERT);
+
+    newentry->modified_edges = bm_clone_ghash(newentry, entry->modified_edges, BM_EDGE);
+    newentry->topo_modified_edges_pre = bm_clone_ghash(
+        newentry, entry->topo_modified_edges_pre, BM_EDGE);
+    newentry->topo_modified_edges_post = bm_clone_ghash(
+        newentry, entry->topo_modified_edges_post, BM_EDGE);
+
+    newentry->modified_faces = bm_clone_ghash(newentry, entry->modified_faces, BM_FACE);
+    newentry->topo_modified_faces_pre = bm_clone_ghash(
+        newentry, entry->topo_modified_faces_pre, BM_FACE);
+    newentry->topo_modified_faces_post = bm_clone_ghash(
+        newentry, entry->topo_modified_faces_post, BM_FACE);
+
+    newentry->log = newlog;
+  }
+
+  return newentry;
+}
+
+ATTR_NO_OPT static BMLogEntry *bm_log_entry_clone(BMLogEntry *entry, BMLog *newlog)
+{
+  BMLogEntry *cur = entry;
+  BMLogEntry *ret = NULL;
+  BMLogEntry *last = NULL;
+
+  while (cur) {
+    BMLogEntry *cpy = bm_log_entry_clone_intern(cur, newlog);
+
+    if (!ret) {
+      ret = cpy;
+    }
+
+    if (last) {
+      last->combined_prev = cpy;
+      cpy->combined_next = last;
+    }
+
+    last = cpy;
+    cur = cur->combined_prev;
+  }
+
+  return ret;
+}
+
+#include <stdarg.h>
+
+ATTR_NO_OPT static void debuglog(const char *fmt, ...)
+{
+  va_list args;
+  va_start(args, fmt);
+  vprintf(fmt, args);
+  va_end(args);
+}
+
+static const char *elem_type_to_str(int type)
+{
+  switch (type) {
+    case BM_VERT:
+      return "vertex";
+    case BM_EDGE:
+      return "edge";
+    case BM_LOOP:
+      return "loop";
+    case BM_FACE:
+      return "face";
+    default:
+      return "(error)";
+  }
+}
+
+static bool check_log_elem(BMesh *bm, BMLog *newlog, int id, int type, bool expected)
+{
+  /* id should be in mesh and of right type */
+  BMElem *elem = bm_log_elem_from_id(newlog, id);
+
+  if (!!elem != expected) {
+    debuglog("Missing %s %d\n", elem_type_to_str(type), id);
+    return false;
+  }
+  else if (elem && (elem->head.htype == type) != expected) {
+    debuglog("Expected %s at id %d; got %s instead\n",
+             elem_type_to_str(type),
+             id,
+             elem_type_to_str(elem->head.htype));
+    return false;
+  }
+
+  return true;
+}
+
+static bool bm_check_ghash_set(
+    GHash *ghashes[4], BMesh *bm, BMLog *newlog, BMLogEntry *entry, bool shouldExist)
+{
+  bool ok = true;
+
+  for (int i = 0; i < 4; i++) {
+    if (!ghashes[i]) {
+      continue;
+    }
+
+    int type = 1 << i;
+    GHashIterator gh_iter;
+
+    GHASH_ITER (gh_iter, ghashes[i]) {
+      void *key = BLI_ghashIterator_getKey(&gh_iter);
+      uint id = POINTER_AS_UINT(key);
+
+      if (!check_log_elem(bm, newlog, id, type, shouldExist)) {
+        ok = false;
+        continue;
+      }
+
+      if (type == BM_EDGE) {
+        BMLogEdge *le = (BMLogEdge *)BLI_ghashIterator_getValue(&gh_iter);
+
+        ok = ok && check_log_elem(bm, newlog, le->v1, BM_VERT, shouldExist);
+      }
+      else if (type == BM_FACE) {
+        BMLogFace *lf = (BMLogFace *)BLI_ghashIterator_getValue(&gh_iter);
+
+        for (int i = 0; i < lf->len; i++) {
+          ok = ok && check_log_elem(bm, newlog, lf->v_ids[i], BM_VERT, shouldExist);
+        }
+      }
+    }
+  }
+
+  return ok;
+}
+
+ATTR_NO_OPT static bool bm_log_validate_intern(
+    BMesh *bm, BMLog *newlog, BMLogEntry *srcEntry, bool is_applied, bool do_apply)
+{
+  bool precopy = do_apply;
+
+  if (srcEntry->type != LOG_ENTRY_PARTIAL) {
+    printf("%s: not a partial log entry!\n", __func__);
+    return true;
+  }
+
+  BMLogEntry *entry = precopy ? bm_log_entry_clone(srcEntry, newlog) : srcEntry;
+  bool ok = true;
+
+  GHash *ghashes1[] = {entry->topo_modified_verts_pre,
+                       entry->topo_modified_edges_pre,
+                       NULL,
+                       entry->topo_modified_faces_pre};
+
+  GHash *ghashes2[] = {entry->topo_modified_verts_post,
+                       entry->topo_modified_edges_post,
+                       NULL,
+                       entry->topo_modified_faces_post};
+
+  if (!is_applied) {
+    ok = ok && bm_check_ghash_set(ghashes2, bm, newlog, entry, true);
+  }
+  else {
+    ok = ok && bm_check_ghash_set(ghashes1, bm, newlog, entry, true);
+  }
+
+  int iters[4] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, -1, BM_FACES_OF_MESH};
+
+  for (int i = 0; i < 4; i++) {
+    // int type = 1 << i;
+    BMIter iter;
+    BMElem *elem;
+
+    if (i == 2) {  // skip loops
+      continue;
+    }
+
+    BM_ITER_MESH (elem, &iter, bm, iters[i]) {
+      uint id = BM_ELEM_GET_ID(bm, elem);
+      void *key = POINTER_FROM_UINT(id);
+
+      bool exist1 = BLI_ghash_haskey(ghashes1[i], POINTER_FROM_UINT(id));
+      bool exist2 = BLI_ghash_haskey(ghashes2[i], POINTER_FROM_UINT(id));
+
+      for (int j = 0; j < 4; j++) {
+        if (j != i && ghashes1[j] && BLI_ghash_haskey(ghashes1[j], key) && exist1) {
+          int type1 = 1 << i;
+          int type2 = 1 << j;
+          debuglog("pre:  id %d used by multiple element types: %s and %s\n",
+                   elem_type_to_str(type1),
+                   elem_type_to_str(type2));
+        }
+        if (j != i && ghashes2[j] && BLI_ghash_haskey(ghashes2[j], key) && exist2) {
+          int type1 = 1 << i;
+          int type2 = 1 << j;
+          debuglog("post: id %d used by multiple element types: %s and %s\n",
+                   elem_type_to_str(type1),
+                   elem_type_to_str(type2));
+        }
+      }
+
+      if (is_applied) {
+      }
+      else {
+        /*element should exist in post but not in pre, or in neither*/
+        if (exist1 && !exist2) {
+          debuglog("element %u:%s should not exist\n", id, elem_type_to_str(1 << i));
+
+          // debuglog("%s %u existes in both pre and post log sets!\n", elem_type_to_str(type),
+          // id); ok = false;
+        }
+      }
+    }
+  }
+
+  if (do_apply) {
+    if (!is_applied) {
+      bm_log_undo_intern(bm, newlog, entry, NULL, "_dyntopo_node_id");
+    }
+    else {
+      bm_log_redo_intern(bm, newlog, entry, NULL, "_dyntopo_node_id");
+    }
+  }
+
+  if (precopy) {
+    bm_log_entry_free_direct(entry);
+    MEM_freeN(entry);
+  }
+
+  return ok;
+}
+
+ATTR_NO_OPT bool BM_log_validate_cur(BMLog *log)
+{
+  return BM_log_validate(log->bm, log->current_entry, false);
+}
+
+ATTR_NO_OPT bool BM_log_validate(BMesh *inbm, BMLogEntry *entry, bool is_applied)
+{
+  return bm_log_validate_intern(inbm, entry->log, entry, is_applied, false);
+
+  BMLogEntry *cur;
+  bool ret = true;
+
+  BMLog newlog = {0};
+
+  struct BMeshCreateParams params = {.create_unique_ids = true,
+                                     .id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
+                                     .no_reuse_ids = false,
+                                     .temporary_ids = false,
+                                     .copy_all_layers = true,
+                                     .id_map = true};
+
+  BMesh *bm = BM_mesh_copy_ex(inbm, &params);
+
+  newlog.bm = bm;
+  newlog.has_edges = true;
+  newlog.refcount = 1;
+  newlog.cd_sculpt_vert = entry->log->cd_sculpt_vert;
+
+  if (!is_applied) {
+    cur = entry;
+    while (cur) {
+      ret &= bm_log_validate_intern(bm, &newlog, cur, is_applied, true);
+      cur = cur->combined_prev;
+    }
+  }
+  else {
+    cur = entry;
+    while (cur->combined_prev) {
+      cur = cur->combined_prev;
+    }
+
+    while (cur) {
+      ret &= bm_log_validate_intern(bm, &newlog, cur, is_applied, true);
+      cur = cur->combined_next;
+    }
+  }
+
+  BM_mesh_free(bm);
+
+  return ret;
+}
+
+bool BM_log_has_vert_pre(BMLog *log, BMVert *v)
+{
+  return BLI_ghash_haskey(log->current_entry->topo_modified_verts_pre,
+                          POINTER_FROM_UINT(BM_ELEM_GET_ID(log->bm, v)));
+}
+bool BM_log_has_edge_pre(BMLog *log, BMEdge *e)
+{
+  return BLI_ghash_haskey(log->current_entry->topo_modified_edges_pre,
+                          POINTER_FROM_UINT(BM_ELEM_GET_ID(log->bm, e)));
+}
+bool BM_log_has_face_pre(BMLog *log, BMFace *f)
+{
+  return BLI_ghash_haskey(log->current_entry->topo_modified_faces_pre,
+                          POINTER_FROM_UINT(BM_ELEM_GET_ID(log->bm, f)));
+}
+
+bool BM_log_has_vert_post(BMLog *log, BMVert *v)
+{
+  return BLI_ghash_haskey(log->current_entry->topo_modified_verts_post, POINTER_FROM_UINT(BM_ELEM_GET_ID(log->bm, v)));
+}
+
+bool BM_log_has_edge_post(BMLog *log, BMEdge *e)
+{
+  return BLI_ghash_haskey(log->current_entry->topo_modified_edges_post,
+                          POINTER_FROM_UINT(BM_ELEM_GET_ID(log->bm, e)));
+}
+bool BM_log_has_face_post(BMLog *log, BMFace *f)
+{
+  return BLI_ghash_haskey(log->current_entry->topo_modified_faces_post,
+                          POINTER_FROM_UINT(BM_ELEM_GET_ID(log->bm, f)));
 }

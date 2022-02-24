@@ -601,7 +601,7 @@ typedef enum {
   IS_FACE_WRONG_LENGTH = (1 << 26),
 } BMeshInternalError;
 
-#if 1 //#ifndef NDEBUG
+#ifndef NDEBUG
 
 int bmesh_elem_check(void *element, const char htype)
 {
@@ -2367,6 +2367,18 @@ ATTR_NO_OPT static char *bm_save_local_obj_text(
     str = obj_append_line(line, str, buf, &size, &stri);
   }
 
+  /* save wire edges */
+  for (int i = 0; i < BLI_array_len(es); i++) {
+    BMEdge *e = es[i];
+
+    if (e->l) {
+      continue;
+    }
+
+    sprintf(line, "l %d %d\n", e->v1->head.index, e->v2->head.index);
+    str = obj_append_line(line, str, buf, &size, &stri);
+  }
+
   for (int i = 0; i < BLI_array_len(fs); i++) {
     BMFace *f = fs[i];
     BMLoop *l = f->l_first;
@@ -2423,7 +2435,7 @@ static void trigger_jvke_error(int err, char *obj_text)
 
 char *_last_local_obj = NULL;
 
-#define JVKE_DEBUG
+//#define JVKE_DEBUG
 
 #ifdef JVKE_DEBUG
 #  define JVKE_CHECK_ELEMENT(elem) \
@@ -2437,6 +2449,99 @@ char *_last_local_obj = NULL;
 #  define JVKE_CHECK_ELEMENT(elem)
 #endif
 
+ATTR_NO_OPT static bool cleanup_vert(BMesh *bm, BMVert *v, const BMTracer *tracer)
+{
+  BMEdge *e = v->e;
+
+  if (!e->l || e->l->f == e->l->radial_next->f) {
+    return false;
+  }
+
+  BMFace *f_example = NULL;
+
+  do {
+    if (tracer) {
+      tracer->on_edge_kill(bm, e, tracer->userdata);
+    }
+
+    BMLoop *l = e->l;
+    if (!l) {
+      continue;
+    }
+
+    f_example = l->f;
+
+    BMLoop *lnext;
+
+    do {
+      if (tracer) {
+        tracer->on_face_kill(bm, l->f, tracer->userdata);
+      }
+    } while ((l = l->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  if (tracer) {
+    tracer->on_vert_kill(bm, v, tracer->userdata);
+  }
+
+  BMVert *v1 = BM_edge_other_vert(v->e, v);
+  BMVert *v2 = BM_edge_other_vert(BM_DISK_EDGE_NEXT(v->e, v), v);
+  BMVert *v3 = BM_edge_other_vert(BM_DISK_EDGE_NEXT(BM_DISK_EDGE_NEXT(v->e, v), v), v);
+
+  BMFace *f = BM_face_create_quad_tri(bm, v1, v2, v3, NULL, f_example, BM_CREATE_NOP);
+  BMLoop *l = f->l_first;
+
+  //ensure correct winding
+  do {
+    if (l->radial_next != l && l->radial_next->v == l->v) {
+      BM_face_normal_flip(bm, f);
+      break;
+    }
+  } while ((l = l->next) != f->l_first);
+
+  BM_vert_kill(bm, v);
+
+  if (tracer) {
+    tracer->on_face_create(bm, f, tracer->userdata);
+  }
+
+  return true;
+}
+
+ATTR_NO_OPT static void bmesh_kernel_check_val3_vert(BMesh *bm, BMEdge *e, const BMTracer *tracer)
+{
+  if (!e->l) {
+    return;
+  }
+
+  bool stop;
+
+  do {
+    stop = true;
+
+    BMLoop *l = e->l;
+
+    if (!l) {
+      break;
+    }
+
+    do {
+      BMLoop *l2 = l->prev;
+
+      if (l2 == l2->radial_next) {
+        continue;
+      }
+
+      if (BM_vert_edge_count(l2->v) == 3) {
+        if (cleanup_vert(bm, l2->v, tracer)) {
+          stop = false;
+          break;
+        }
+      }
+    } while ((l = l->radial_next) != e->l);
+  } while (!stop);
+}
+
 ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
                                                      BMEdge *e,
                                                      BMVert *v_kill,
@@ -2449,24 +2554,30 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
 #ifdef JVKE_DEBUG
   char buf[LOCAL_OBJ_SIZE];
 
+  bool have_boundary = false;
+
   if (_last_local_obj) {
     free(_last_local_obj);
   }
 
   char *saved_obj = bm_save_local_obj_text(bm, 2, buf, "e", e);
   _last_local_obj = strdup(saved_obj);
-
-  bm_local_obj_free(saved_obj, buf);
 #endif
+
+  bmesh_kernel_check_val3_vert(bm, e, tracer);
 
   BMFace **fs = NULL;
   BMEdge **deles = NULL;
   BLI_array_staticdeclare(fs, 32);
   BLI_array_staticdeclare(deles, 32);
 
+  BMEdge **es = NULL;
+  BLI_array_staticdeclare(es, 32);
+
   BMVert *v_del = BM_edge_other_vert(e, v_conn);
   const int tag = _FLAG_WALK_ALT;  // using bmhead.api_flag here
   const int dup_tag = _FLAG_OVERLAP;
+  const int final_tag = _FLAG_JF;
 
   JVKE_CHECK_ELEMENT(v_conn);
   JVKE_CHECK_ELEMENT(v_del);
@@ -2476,6 +2587,22 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
     BMVert *v = i ? v_del : v_conn;
     BMEdge *e2 = v->e;
     do {
+      /* build list of edges if needed for tracing */
+      if (tracer) {
+        bool ok = true;
+
+        for (int j = 0; j < BLI_array_len(es); j++) {
+          if (es[j] == e2) {
+            ok = false;
+            break;
+          }
+        }
+
+        if (ok) {
+          BLI_array_append(es, e2);
+        }
+      }
+
       if (!e2->l) {
         continue;
       }
@@ -2483,6 +2610,12 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
       BMLoop *l = e2->l;
       do {
         BM_ELEM_API_FLAG_DISABLE(l->f, tag);
+
+#ifdef JVKE_DEBUG
+        if (l->radial_next == l) {
+          have_boundary = true;
+        }
+#endif
 
         BM_ELEM_API_FLAG_DISABLE(l->f, dup_tag);
         BM_ELEM_API_FLAG_DISABLE(l->e, dup_tag);
@@ -2520,6 +2653,18 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
         }
       } while ((l = l->radial_next) != e2->l);
     } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
+  }
+
+  if (tracer) {
+    for (int i = 0; i < BLI_array_len(fs); i++) {
+      tracer->on_face_kill(bm, fs[i], tracer->userdata);
+    }
+  }
+
+  if (tracer) {
+    for (int i = 0; i < BLI_array_len(es); i++) {
+      tracer->on_edge_kill(bm, es[i], tracer->userdata);
+    }
   }
 
   /* unlink loops */
@@ -2616,9 +2761,9 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
 
     e2->l = NULL;
 
-    if (tracer) {
-      tracer->on_edge_kill(bm, deles[i], tracer->userdata);
-    }
+    // if (tracer) {
+    //  tracer->on_edge_kill(bm, deles[i], tracer->userdata);
+    //}
 
     BM_edge_kill(bm, deles[i]);
   }
@@ -2651,9 +2796,9 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
     } while (lnext && (l = lnext) != f->l_first);
 
     if (f->len <= 2) {
-      if (tracer) {
-        tracer->on_face_kill(bm, f, tracer->userdata);
-      }
+      // if (tracer) {
+      //  tracer->on_face_kill(bm, f, tracer->userdata);
+      //}
 
       /* kill face */
       while (f->l_first) {
@@ -2685,6 +2830,8 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
       continue;
     }
 
+    BM_ELEM_API_FLAG_ENABLE(f, final_tag);
+
     BMLoop *l = f->l_first;
     do {
       l->e = BM_edge_exists(l->v, l->next->v);
@@ -2714,6 +2861,16 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
         JVKE_CHECK_ELEMENT(e1);
 
         BMLoop *l = e1->l;
+
+        if (!l) {
+          continue;
+        }
+
+        /* boundary? */
+        if (l == l->radial_next && !have_boundary) {
+          trigger_jvke_error(IS_LOOP_WRONG_RADIAL_LENGTH, saved_obj);
+        }
+
         if (!l) {
           continue;
         }
@@ -2824,6 +2981,46 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
 
     BM_vert_kill(bm, v_del);
   }
+
+  if (tracer && v_conn->e) {
+    e = v_conn->e;
+    do {
+      tracer->on_edge_create(bm, e, tracer->userdata);
+
+      BMLoop *l = e->l;
+      if (!l) {
+        continue;
+      }
+
+      do {
+        if (BM_ELEM_API_FLAG_TEST(l->f, final_tag)) {
+          BM_ELEM_API_FLAG_DISABLE(l->f, final_tag);
+
+          tracer->on_face_create(bm, l->f, tracer->userdata);
+        }
+      } while ((l = l->radial_next) != e->l);
+    } while ((e = BM_DISK_EDGE_NEXT(e, v_conn)) != v_conn->e);
+  }
+
+#ifdef JVKE_DEBUG
+  if (v_conn && v_conn->e) {
+    BMEdge *e = v_conn->e;
+    do {
+      BMLoop *l = e->l;
+
+      if (!l) {
+        continue;
+      }
+
+      /* boundary? */
+      if (l == l->radial_next && !have_boundary) {
+        trigger_jvke_error(IS_LOOP_WRONG_RADIAL_LENGTH, saved_obj);
+      }
+    } while ((e = BM_DISK_EDGE_NEXT(e, v_conn)) != v_conn->e);
+  }
+
+  bm_local_obj_free(saved_obj, buf);
+#endif
 
   BLI_array_free(deles);
   BLI_array_free(fs);

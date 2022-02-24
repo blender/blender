@@ -275,6 +275,14 @@ bool BM_log_has_vert(BMLog *log, BMVert *v);
 bool BM_log_has_edge(BMLog *log, BMEdge *e);
 bool BM_log_has_face(BMLog *log, BMFace *f);
 
+bool BM_log_has_vert_post(BMLog *log, BMVert *v);
+bool BM_log_has_edge_post(BMLog *log, BMEdge *e);
+bool BM_log_has_face_post(BMLog *log, BMFace *f);
+
+bool BM_log_has_vert_pre(BMLog *log, BMVert *v);
+bool BM_log_has_edge_pre(BMLog *log, BMEdge *e);
+bool BM_log_has_face_pre(BMLog *log, BMFace *f);
+
 /*Log an edge before changing its topological connections*/
 void _BM_log_edge_topo_pre(BMLog *log, BMEdge *e, const char *func, int line);
 #define BM_log_edge_topo_pre(log, e) _BM_log_edge_topo_pre(log, e, __func__, __LINE__)
@@ -296,3 +304,6 @@ void _BM_log_vert_topo_pre(BMLog *log, BMVert *v, const char *func, int line);
 
 void _BM_log_vert_topo_post(BMLog *log, BMVert *v, const char *func, int line);
 #define BM_log_vert_topo_post(log, v) _BM_log_vert_topo_post(log, v, __func__, __LINE__)
+
+bool BM_log_validate(BMesh *inbm, BMLogEntry *entry, bool is_applied);
+bool BM_log_validate_cur(BMLog *log);
