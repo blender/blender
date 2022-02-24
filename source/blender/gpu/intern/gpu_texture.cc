@@ -192,6 +192,7 @@ static inline GPUTexture *gpu_texture_create(const char *name,
                                              eGPUDataFormat data_format,
                                              const void *pixels)
 {
+  BLI_assert(mips > 0);
   Texture *tex = GPUBackend::get()->texture_alloc(name);
   bool success = false;
   switch (type) {
