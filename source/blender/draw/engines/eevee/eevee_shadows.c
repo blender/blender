@@ -288,11 +288,9 @@ void EEVEE_shadows_update(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   /* Resize shcasters buffers if too big. */
   if (frontbuffer->alloc_count - frontbuffer->count > SH_CASTER_ALLOC_CHUNK) {
-    frontbuffer->alloc_count = (frontbuffer->count / SH_CASTER_ALLOC_CHUNK) *
+    frontbuffer->alloc_count = divide_ceil_u(max_ii(1, frontbuffer->count),
+                                             SH_CASTER_ALLOC_CHUNK) *
                                SH_CASTER_ALLOC_CHUNK;
-    frontbuffer->alloc_count += (frontbuffer->count % SH_CASTER_ALLOC_CHUNK != 0) ?
-                                    SH_CASTER_ALLOC_CHUNK :
-                                    0;
     frontbuffer->bbox = MEM_reallocN(frontbuffer->bbox,
                                      sizeof(EEVEE_BoundBox) * frontbuffer->alloc_count);
     BLI_BITMAP_RESIZE(frontbuffer->update, frontbuffer->alloc_count);
