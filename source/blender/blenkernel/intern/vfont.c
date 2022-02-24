@@ -905,8 +905,8 @@ static bool vfont_to_curve(Object *ob,
     custrinfo[i].flag &= ~(CU_CHINFO_WRAP | CU_CHINFO_SMALLCAPS_CHECK | CU_CHINFO_OVERFLOW);
   }
 
-  for (i = 0; i <= slen; i++) {
-  makebreak:
+  i = 0;
+  while (i <= slen) {
     /* Characters in the list */
     info = &custrinfo[i];
     ascii = mem[i];
@@ -985,6 +985,7 @@ static bool vfont_to_curve(Object *ob,
       }
       else if (x_used > x_available) {
         // CLOG_WARN(&LOG, "linewidth exceeded: %c%c%c...", mem[i], mem[i+1], mem[i+2]);
+        bool dobreak = false;
         for (j = i; (mem[j] != '\n') && (chartransdata[j].dobreak == 0); j--) {
 
           /* Special case when there are no breaks possible. */
@@ -1001,7 +1002,6 @@ static bool vfont_to_curve(Object *ob,
             break;
           }
 
-          bool dobreak = false;
           if (ELEM(mem[j], ' ', '-')) {
             ct -= (i - (j - 1));
             cnr -= (i - (j - 1));
@@ -1016,8 +1016,9 @@ static bool vfont_to_curve(Object *ob,
             ct[1].dobreak = 1;
             custrinfo[i + 1].flag |= CU_CHINFO_WRAP;
             dobreak = true;
+            break;
           }
-          else if (chartransdata[j].dobreak) {
+          if (chartransdata[j].dobreak) {
             // CLOG_WARN(&LOG, "word too long: %c%c%c...", mem[j], mem[j+1], mem[j+2]);
             ct->dobreak = 1;
             custrinfo[i + 1].flag |= CU_CHINFO_WRAP;
@@ -1026,14 +1027,17 @@ static bool vfont_to_curve(Object *ob,
             i--;
             xof = ct->xof;
             dobreak = true;
+            break;
           }
-          if (dobreak) {
-            if (tb_scale.h == 0.0f) {
-              /* NOTE: If underlined text is truncated away, the extra space is also truncated. */
-              custrinfo[i + 1].flag |= CU_CHINFO_OVERFLOW;
-            }
-            goto makebreak;
+        }
+
+        if (dobreak) {
+          if (tb_scale.h == 0.0f) {
+            /* NOTE: If underlined text is truncated away, the extra space is also truncated. */
+            custrinfo[i + 1].flag |= CU_CHINFO_OVERFLOW;
           }
+          /* Since a break was added, re-run this loop with `i` at it's new value. */
+          continue;
         }
       }
     }
@@ -1139,7 +1143,9 @@ static bool vfont_to_curve(Object *ob,
       }
     }
     ct++;
+    i++;
   }
+
   current_line_length += xof + twidth - MARGIN_X_MIN;
   longest_line_length = MAX2(current_line_length, longest_line_length);
 
