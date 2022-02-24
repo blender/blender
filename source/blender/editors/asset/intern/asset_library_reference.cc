@@ -17,9 +17,9 @@ AssetLibraryReferenceWrapper::AssetLibraryReferenceWrapper(const AssetLibraryRef
 
 bool operator==(const AssetLibraryReferenceWrapper &a, const AssetLibraryReferenceWrapper &b)
 {
-  return (a.type == b.type) && (a.type == ASSET_LIBRARY_CUSTOM) ?
-             (a.custom_library_index == b.custom_library_index) :
-             true;
+  return (a.type == b.type) &&
+         ((a.type == ASSET_LIBRARY_CUSTOM) ? (a.custom_library_index == b.custom_library_index) :
+                                             true);
 }
 
 uint64_t AssetLibraryReferenceWrapper::hash() const
