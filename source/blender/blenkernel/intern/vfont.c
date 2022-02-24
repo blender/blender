@@ -1018,17 +1018,7 @@ static bool vfont_to_curve(Object *ob,
             dobreak = true;
             break;
           }
-          if (chartransdata[j].dobreak) {
-            // CLOG_WARN(&LOG, "word too long: %c%c%c...", mem[j], mem[j+1], mem[j+2]);
-            ct->dobreak = 1;
-            custrinfo[i + 1].flag |= CU_CHINFO_WRAP;
-            ct -= 1;
-            cnr -= 1;
-            i--;
-            xof = ct->xof;
-            dobreak = true;
-            break;
-          }
+          BLI_assert(chartransdata[j].dobreak == 0);
         }
 
         if (dobreak) {
