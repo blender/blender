@@ -175,6 +175,28 @@ bool GLTexture::init_internal(GPUVertBuf *vbo)
   return true;
 }
 
+bool GLTexture::init_internal(const GPUTexture *src, int mip_offset, int layer_offset)
+{
+  BLI_assert(GLContext::texture_storage_support);
+
+  const GLTexture *gl_src = static_cast<const GLTexture *>(unwrap(src));
+  GLenum internal_format = to_gl_internal_format(format_);
+  target_ = to_gl_target(type_);
+
+  glTextureView(tex_id_,
+                target_,
+                gl_src->tex_id_,
+                internal_format,
+                mip_offset,
+                mipmaps_,
+                layer_offset,
+                this->layer_count());
+
+  debug::object_label(GL_TEXTURE, tex_id_, name_);
+
+  return true;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

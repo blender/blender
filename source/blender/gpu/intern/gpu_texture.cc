@@ -131,6 +131,42 @@ bool Texture::init_buffer(GPUVertBuf *vbo, eGPUTextureFormat format)
   return this->init_internal(vbo);
 }
 
+bool Texture::init_view(const GPUTexture *src_,
+                        eGPUTextureFormat format,
+                        int mip_start,
+                        int mip_len,
+                        int layer_start,
+                        int layer_len)
+{
+  const Texture *src = unwrap(src_);
+  w_ = src->w_;
+  h_ = src->h_;
+  d_ = src->d_;
+  switch (type_) {
+    case GPU_TEXTURE_1D_ARRAY:
+      h_ = layer_len;
+      break;
+    case GPU_TEXTURE_CUBE_ARRAY:
+      BLI_assert(layer_len % 6 == 0);
+      ATTR_FALLTHROUGH;
+    case GPU_TEXTURE_2D_ARRAY:
+      d_ = layer_len;
+      break;
+    default:
+      BLI_assert(layer_len == 1 && layer_start == 0);
+      break;
+  }
+  mip_start = min_ii(mip_start, src->mipmaps_ - 1);
+  mip_len = min_ii(mip_len, (src->mipmaps_ - mip_start));
+  mipmaps_ = mip_len;
+  format_ = format;
+  format_flag_ = to_format_flag(format);
+  /* For now always copy the target. Target aliasing could be exposed later. */
+  type_ = src->type_;
+  sampler_state = src->sampler_state;
+  return this->init_internal(src_, mip_start, layer_start);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -341,6 +377,21 @@ GPUTexture *GPU_texture_create_error(int dimension, bool is_array)
   type = (dimension == 1) ? (is_array ? GPU_TEXTURE_1D_ARRAY : GPU_TEXTURE_1D) : type;
 
   return gpu_texture_create("invalid_tex", w, h, d, type, 1, GPU_RGBA8, GPU_DATA_FLOAT, pixel);
+}
+
+GPUTexture *GPU_texture_create_view(const char *name,
+                                    const GPUTexture *src,
+                                    eGPUTextureFormat format,
+                                    int mip_start,
+                                    int mip_len,
+                                    int layer_start,
+                                    int layer_len)
+{
+  BLI_assert(mip_len > 0);
+  BLI_assert(layer_len > 0);
+  Texture *view = GPUBackend::get()->texture_alloc(name);
+  view->init_view(src, format, mip_start, mip_len, layer_start, layer_len);
+  return wrap(view);
 }
 
 /* ------ Update ------ */

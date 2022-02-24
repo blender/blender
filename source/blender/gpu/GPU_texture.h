@@ -226,6 +226,19 @@ GPUTexture *GPU_texture_create_compressed_2d(
  * Create an error texture that will bind an invalid texture (pink) at draw time.
  */
 GPUTexture *GPU_texture_create_error(int dimension, bool array);
+/**
+ * Create an alias of the source texture data.
+ * If \a src is freed, the texture view will continue to be valid.
+ * If \a mip_start or \a mip_len is bigger than available mips they will be clamped.
+ * TODO(@fclem): Target conversion is not implemented yet.
+ */
+GPUTexture *GPU_texture_create_view(const char *name,
+                                    const GPUTexture *src,
+                                    eGPUTextureFormat format,
+                                    int mip_start,
+                                    int mip_len,
+                                    int layer_start,
+                                    int layer_len);
 
 void GPU_texture_update_mipmap(GPUTexture *tex,
                                int miplvl,
