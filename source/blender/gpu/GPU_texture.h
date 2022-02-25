@@ -308,6 +308,8 @@ int GPU_texture_dimensions(const GPUTexture *tex);
 
 int GPU_texture_width(const GPUTexture *tex);
 int GPU_texture_height(const GPUTexture *tex);
+int GPU_texture_layer_count(const GPUTexture *tex);
+int GPU_texture_mip_count(const GPUTexture *tex);
 int GPU_texture_orig_width(const GPUTexture *tex);
 int GPU_texture_orig_height(const GPUTexture *tex);
 void GPU_texture_orig_size_set(GPUTexture *tex, int w, int h);

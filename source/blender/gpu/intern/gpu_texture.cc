@@ -142,6 +142,8 @@ bool Texture::init_view(const GPUTexture *src_,
   w_ = src->w_;
   h_ = src->h_;
   d_ = src->d_;
+  layer_start = min_ii(layer_start, src->layer_count() - 1);
+  layer_len = min_ii(layer_len, (src->layer_count() - layer_start));
   switch (type_) {
     case GPU_TEXTURE_1D_ARRAY:
       h_ = layer_len;
@@ -594,6 +596,16 @@ int GPU_texture_width(const GPUTexture *tex)
 int GPU_texture_height(const GPUTexture *tex)
 {
   return reinterpret_cast<const Texture *>(tex)->height_get();
+}
+
+int GPU_texture_layer_count(const GPUTexture *tex)
+{
+  return reinterpret_cast<const Texture *>(tex)->layer_count();
+}
+
+int GPU_texture_mip_count(const GPUTexture *tex)
+{
+  return reinterpret_cast<const Texture *>(tex)->mip_count();
 }
 
 int GPU_texture_orig_width(const GPUTexture *tex)

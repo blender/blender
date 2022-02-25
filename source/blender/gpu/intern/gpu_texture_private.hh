@@ -208,6 +208,11 @@ class Texture {
     }
   }
 
+  int mip_count() const
+  {
+    return mipmaps_;
+  }
+
   eGPUTextureFormat format_get() const
   {
     return format_;
