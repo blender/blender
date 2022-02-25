@@ -620,8 +620,12 @@ void WM_drag_free_imported_drag_ID(struct Main *bmain, wmDrag *drag, wmDropBox *
   }
 
   ID *id = BKE_libblock_find_name(bmain, asset_drag->id_type, name);
-  if (id) {
-    BKE_id_delete(bmain, id);
+  if (id != NULL) {
+    /* Do not delete the dragged ID if it has any user, otherwise if it is a 're-used' ID it will
+     * cause T95636. Note that we need first to add the user that we want to remove in
+     * #BKE_id_free_us. */
+    id_us_plus(id);
+    BKE_id_free_us(bmain, id);
   }
 }
 
