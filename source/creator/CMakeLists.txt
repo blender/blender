@@ -389,6 +389,12 @@ if(WITH_PYTHON)
     PATTERN "__pycache__" EXCLUDE
     PATTERN "${ADDON_EXCLUDE_CONDITIONAL}" EXCLUDE
     PATTERN "${FREESTYLE_EXCLUDE_CONDITIONAL}" EXCLUDE
+
+	  # Disable add-ons that don't conform to distribution requirements, see: T95442.
+	  PATTERN "addons/amaranth" EXCLUDE
+	  PATTERN "addons/mesh_tiny_cad" EXCLUDE
+	  PATTERN "addons/mesh_tissue" EXCLUDE
+	  PATTERN "addons/real_snow.py" EXCLUDE
   )
 
   unset(ADDON_EXCLUDE_CONDITIONAL)
