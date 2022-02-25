@@ -358,6 +358,8 @@ class StorageBuffer : public T, public detail::StorageCommon<T, 1, device_only> 
 class Texture : NonCopyable {
  protected:
   GPUTexture *tx_ = nullptr;
+  Vector<GPUTexture *, 0> mip_views_;
+  Vector<GPUTexture *, 0> layer_views_;
   const char *name_;
 
  public:
@@ -508,6 +510,56 @@ class Texture : NonCopyable {
   }
 
   /**
+   * Ensure the availability of mipmap views.
+   * Mip view covers all layers of array textures.
+   */
+  bool ensure_mip_views()
+  {
+    int mip_len = GPU_texture_mip_count(tx_);
+    if (mip_views_.size() != mip_len) {
+      for (GPUTexture *&view : mip_views_) {
+        GPU_TEXTURE_FREE_SAFE(view);
+      }
+      eGPUTextureFormat format = GPU_texture_format(tx_);
+      for (auto i : IndexRange(mip_len)) {
+        mip_views_.append(GPU_texture_create_view(name_, tx_, format, i, 1, 0, 9999));
+      }
+      return true;
+    }
+    return false;
+  }
+
+  GPUTexture *mip_view(int miplvl)
+  {
+    return mip_views_[miplvl];
+  }
+
+  /**
+   * Ensure the availability of mipmap views.
+   * Layer views covers all layers of array textures.
+   */
+  bool ensure_layer_views()
+  {
+    int layer_len = GPU_texture_layer_count(tx_);
+    if (layer_views_.size() != layer_len) {
+      for (GPUTexture *&view : layer_views_) {
+        GPU_TEXTURE_FREE_SAFE(view);
+      }
+      eGPUTextureFormat format = GPU_texture_format(tx_);
+      for (auto i : IndexRange(layer_len)) {
+        layer_views_.append(GPU_texture_create_view(name_, tx_, format, 0, 9999, i, 1));
+      }
+      return true;
+    }
+    return false;
+  }
+
+  GPUTexture *layer_view(int layer)
+  {
+    return layer_views_[layer];
+  }
+
+  /**
    * Returns true if the texture has been allocated or acquired from the pool.
    */
   bool is_valid(void) const
@@ -601,6 +653,13 @@ class Texture : NonCopyable {
   void free()
   {
     GPU_TEXTURE_FREE_SAFE(tx_);
+    for (GPUTexture *&view : mip_views_) {
+      GPU_TEXTURE_FREE_SAFE(view);
+    }
+    for (GPUTexture *&view : layer_views_) {
+      GPU_TEXTURE_FREE_SAFE(view);
+    }
+    mip_views_.clear();
   }
 
   /**
