@@ -814,6 +814,13 @@ static void id_override_library_create_fn(bContext *C,
                                           void *user_data)
 {
   BLI_assert(TSE_IS_REAL_ID(tselem));
+
+  /* We can only safely apply this operation on one item at a time, so only do it on the active
+   * one. */
+  if ((tselem->flag & TSE_ACTIVE) == 0) {
+    return;
+  }
+
   ID *id_root = tselem->id;
   OutlinerLibOverrideData *data = reinterpret_cast<OutlinerLibOverrideData *>(user_data);
   const bool do_hierarchy = data->do_hierarchy;
@@ -1829,13 +1836,15 @@ static const EnumPropertyItem prop_id_op_types[] = {
     {OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE,
      "OVERRIDE_LIBRARY_CREATE",
      0,
-     "Make Library Override",
-     "Make a local override of this linked data-block"},
+     "Make Library Override Single",
+     "Make a single, out-of-hierarchy local override of this linked data-block - only applies to "
+     "active Outliner item"},
     {OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY,
      "OVERRIDE_LIBRARY_CREATE_HIERARCHY",
      0,
      "Make Library Override Hierarchy",
-     "Make a local override of this linked data-block, and its hierarchy of dependencies"},
+     "Make a local override of this linked data-block, and its hierarchy of dependencies - only "
+     "applies to active Outliner item"},
     {OUTLINER_IDOP_OVERRIDE_LIBRARY_PROXY_CONVERT,
      "OVERRIDE_LIBRARY_PROXY_CONVERT",
      0,
