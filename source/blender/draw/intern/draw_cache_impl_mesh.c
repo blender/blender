@@ -339,11 +339,7 @@ static void drw_mesh_attributes_merge(DRW_MeshAttributes *dst,
 /* Return true if all requests in b are in a. */
 static bool drw_mesh_attributes_overlap(DRW_MeshAttributes *a, DRW_MeshAttributes *b)
 {
-  if (a->num_requests != b->num_requests) {
-    return false;
-  }
-
-  for (int i = 0; i < a->num_requests; i++) {
+  for (int i = 0; i < b->num_requests; i++) {
     if (!has_request(a, b->requests[i])) {
       return false;
     }

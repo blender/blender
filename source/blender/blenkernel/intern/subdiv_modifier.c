@@ -60,8 +60,8 @@ bool BKE_subsurf_modifier_use_custom_loop_normals(const SubsurfModifierData *smd
          CustomData_has_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
 }
 
-bool subsurf_modifier_use_autosmooth_or_split_normals(const SubsurfModifierData *smd,
-                                                      const Mesh *mesh)
+static bool subsurf_modifier_use_autosmooth_or_split_normals(const SubsurfModifierData *smd,
+                                                             const Mesh *mesh)
 {
   return (mesh->flag & ME_AUTOSMOOTH) || BKE_subsurf_modifier_use_custom_loop_normals(smd, mesh);
 }
