@@ -16,10 +16,32 @@ layout(std430, binding = 2) readonly buffer faceAdjacencyLists
   uint face_adjacency_lists[];
 };
 
-layout(std430, binding = 3) writeonly buffer vertexNormals
+layout(std430, binding = 3) readonly buffer vertexLoopMap
+{
+  uint vert_loop_map[];
+};
+
+layout(std430, binding = 4) writeonly buffer vertexNormals
 {
   vec3 normals[];
 };
+
+void find_prev_and_next_vertex_on_face(
+    uint face_index, uint vertex_index, out uint curr, out uint next, out uint prev)
+{
+  uint start_loop_index = face_index * 4;
+
+  for (uint i = 0; i < 4; i++) {
+    uint subdiv_vert_index = vert_loop_map[start_loop_index + i];
+
+    if (subdiv_vert_index == vertex_index) {
+      curr = i;
+      next = (i + 1) % 4;
+      prev = (i + 4 - 1) % 4;
+      break;
+    }
+  }
+}
 
 void main()
 {
@@ -39,18 +61,37 @@ void main()
     uint adjacent_face = face_adjacency_lists[first_adjacent_face_offset + i];
     uint start_loop_index = adjacent_face * 4;
 
-    /* Compute face normal. */
-    vec3 adjacent_verts[3];
-    for (uint j = 0; j < 3; j++) {
-      adjacent_verts[j] = get_vertex_pos(pos_nor[start_loop_index + j]);
+    /* Compute the face normal using Newell's method. */
+    vec3 verts[4];
+    for (uint j = 0; j < 4; j++) {
+      verts[j] = get_vertex_pos(pos_nor[start_loop_index + j]);
     }
 
-    vec3 face_normal = normalize(
-        cross(adjacent_verts[1] - adjacent_verts[0], adjacent_verts[2] - adjacent_verts[0]));
-    accumulated_normal += face_normal;
+    vec3 face_normal = vec3(0.0);
+    add_newell_cross_v3_v3v3(face_normal, verts[0], verts[1]);
+    add_newell_cross_v3_v3v3(face_normal, verts[1], verts[2]);
+    add_newell_cross_v3_v3v3(face_normal, verts[2], verts[3]);
+    add_newell_cross_v3_v3v3(face_normal, verts[3], verts[0]);
+
+    /* Accumulate angle weighted normal. */
+    uint curr_vert = 0;
+    uint next_vert = 0;
+    uint prev_vert = 0;
+    find_prev_and_next_vertex_on_face(
+        adjacent_face, vertex_index, curr_vert, next_vert, prev_vert);
+
+    vec3 curr_co = verts[curr_vert];
+    vec3 prev_co = verts[next_vert];
+    vec3 next_co = verts[prev_vert];
+
+    vec3 edvec_prev = normalize(prev_co - curr_co);
+    vec3 edvec_next = normalize(curr_co - next_co);
+
+    float fac = acos(-dot(edvec_prev, edvec_next));
+
+    accumulated_normal += face_normal * fac;
   }
 
-  float weight = 1.0 / float(number_of_adjacent_faces);
   vec3 normal = normalize(accumulated_normal);
   normals[vertex_index] = normal;
 }
