@@ -35,6 +35,17 @@ class DATA_PT_context_curves(DataButtonsPanel, Panel):
             layout.template_ID(space, "pin_id")
 
 
+class DATA_PT_curves_surface(DataButtonsPanel, Panel):
+    bl_label = "Surface"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw(self, context):
+        layout = self.layout
+        ob = context.object
+
+        layout.prop(ob.data, "surface")
+
+
 class CURVES_MT_add_attribute(Menu):
     bl_label = "Add Attribute"
 
@@ -115,6 +126,7 @@ class DATA_PT_custom_props_curves(DataButtonsPanel, PropertyPanel, Panel):
 classes = (
     DATA_PT_context_curves,
     DATA_PT_CURVES_attributes,
+    DATA_PT_curves_surface,
     DATA_PT_custom_props_curves,
     CURVES_MT_add_attribute,
     CURVES_UL_attributes,

@@ -115,6 +115,15 @@ typedef struct Curves {
   short totcol;
   short _pad2[3];
 
+  /**
+   * Used as base mesh when curves represent e.g. hair or fur. This surface is used in edit modes.
+   * When set, the curves will have attributes that indicate a position on this surface. This is
+   * used for deforming the curves when the surface is deformed dynamically.
+   *
+   * This is expected to be a mesh object.
+   */
+  struct Object *surface;
+
   /* Draw Cache. */
   void *batch_cache;
 } Curves;
