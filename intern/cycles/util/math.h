@@ -80,6 +80,9 @@ CCL_NAMESPACE_BEGIN
 #ifndef M_SQRT2_F
 #  define M_SQRT2_F (1.4142135623730950f) /* sqrt(2) */
 #endif
+#ifndef M_SQRT3_F
+#  define M_SQRT3_F (1.7320508075688772f) /* sqrt(3) */
+#endif
 #ifndef M_LN2_F
 #  define M_LN2_F (0.6931471805599453f) /* ln(2) */
 #endif

@@ -141,9 +141,10 @@ ccl_device float point_radius(KernelGlobals kg, ccl_private const ShaderData *sd
       return r;
     }
     else {
-      float3 dir = make_float3(r, r, r);
+      const float normalized_r = r * (1.0f / M_SQRT3_F);
+      float3 dir = make_float3(normalized_r, normalized_r, normalized_r);
       object_dir_transform(kg, sd, &dir);
-      return average(dir);
+      return len(dir);
     }
   }
 
