@@ -551,8 +551,8 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   CustomData *ldata = &result->ldata;
 
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
-  const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(mesh);
+  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(result);
+  const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(result);
 
   clnors = CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL);
   if (use_current_clnors) {
