@@ -250,7 +250,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
      * assigned at this stage of modifier stack evaluation. */
     const bool is_editmode = (mesh->edit_mesh != NULL);
     const int required_mode = BKE_subsurf_modifier_eval_required_mode(is_render_mode, is_editmode);
-    if (BKE_subsurf_modifier_can_do_gpu_subdiv_ex(scene, ctx->object, smd, required_mode, false)) {
+    if (BKE_subsurf_modifier_can_do_gpu_subdiv_ex(
+            scene, ctx->object, mesh, smd, required_mode, false)) {
       subdiv_cache_cpu_evaluation_settings(ctx, mesh, smd);
       return result;
     }
@@ -262,9 +263,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* Happens on bad topology, but also on empty input mesh. */
     return result;
   }
-  const bool use_clnors = (smd->flags & eSubsurfModifierFlag_UseCustomNormals) &&
-                          (mesh->flag & ME_AUTOSMOOTH) &&
-                          CustomData_has_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
+  const bool use_clnors = BKE_subsurf_modifier_use_custom_loop_normals(smd, mesh);
   if (use_clnors) {
     /* If custom normals are present and the option is turned on calculate the split
      * normals and clear flag so the normals get interpolated to the result mesh. */
@@ -427,6 +426,13 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   uiItemR(layout, ptr, "show_only_control_edges", 0, NULL, ICON_NONE);
+
+  SubsurfModifierData *smd = ptr->data;
+  Object *ob = ob_ptr.data;
+  Mesh *mesh = ob->data;
+  if (BKE_subsurf_modifier_force_disable_gpu_evaluation_for_mesh(smd, mesh)) {
+    uiItemL(layout, "Autosmooth or custom normals detected, disabling GPU subdivision", ICON_INFO);
+  }
 
   modifier_panel_end(layout, ptr);
 }
