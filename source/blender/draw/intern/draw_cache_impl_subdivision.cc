@@ -82,7 +82,6 @@ enum {
   SHADER_BUFFER_NORMALS_ACCUMULATE,
   SHADER_BUFFER_NORMALS_FINALIZE,
   SHADER_PATCH_EVALUATION,
-  SHADER_PATCH_EVALUATION_LIMIT_NORMALS,
   SHADER_PATCH_EVALUATION_FVAR,
   SHADER_PATCH_EVALUATION_FACE_DOTS,
   SHADER_COMP_CUSTOM_DATA_INTERP_1D,
@@ -122,7 +121,6 @@ static const char *get_shader_code(int shader_type)
       return datatoc_common_subdiv_normals_finalize_comp_glsl;
     }
     case SHADER_PATCH_EVALUATION:
-    case SHADER_PATCH_EVALUATION_LIMIT_NORMALS:
     case SHADER_PATCH_EVALUATION_FVAR:
     case SHADER_PATCH_EVALUATION_FACE_DOTS: {
       return datatoc_common_subdiv_patch_evaluation_comp_glsl;
@@ -174,9 +172,6 @@ static const char *get_shader_name(int shader_type)
     case SHADER_PATCH_EVALUATION: {
       return "subdiv patch evaluation";
     }
-    case SHADER_PATCH_EVALUATION_LIMIT_NORMALS: {
-      return "subdiv patch evaluation limit normals";
-    }
     case SHADER_PATCH_EVALUATION_FVAR: {
       return "subdiv patch evaluation face-varying";
     }
@@ -214,13 +209,7 @@ static GPUShader *get_patch_evaluation_shader(int shader_type)
     const char *compute_code = get_shader_code(shader_type);
 
     const char *defines = nullptr;
-    if (shader_type == SHADER_PATCH_EVALUATION_LIMIT_NORMALS) {
-      defines =
-          "#define OSD_PATCH_BASIS_GLSL\n"
-          "#define OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES\n"
-          "#define LIMIT_NORMALS\n";
-    }
-    else if (shader_type == SHADER_PATCH_EVALUATION_FVAR) {
+    if (shader_type == SHADER_PATCH_EVALUATION_FVAR) {
       defines =
           "#define OSD_PATCH_BASIS_GLSL\n"
           "#define OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES\n"
@@ -261,7 +250,6 @@ static GPUShader *get_subdiv_shader(int shader_type, const char *defines)
 {
   if (ELEM(shader_type,
            SHADER_PATCH_EVALUATION,
-           SHADER_PATCH_EVALUATION_LIMIT_NORMALS,
            SHADER_PATCH_EVALUATION_FVAR,
            SHADER_PATCH_EVALUATION_FACE_DOTS)) {
     return get_patch_evaluation_shader(shader_type);
@@ -1209,9 +1197,7 @@ static void drw_subdiv_compute_dispatch(const DRWSubdivCache *cache,
   GPU_compute_dispatch(shader, dispatch_rx, dispatch_ry, 1);
 }
 
-void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
-                                 GPUVertBuf *pos_nor,
-                                 const bool do_limit_normals)
+void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache, GPUVertBuf *pos_nor)
 {
   Subdiv *subdiv = cache->subdiv;
   OpenSubdiv_Evaluator *evaluator = subdiv->evaluator;
@@ -1236,8 +1222,7 @@ void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
                                                                get_patch_param_format());
   evaluator->wrapPatchParamBuffer(evaluator, &patch_param_buffer_interface);
 
-  GPUShader *shader = get_patch_evaluation_shader(
-      do_limit_normals ? SHADER_PATCH_EVALUATION_LIMIT_NORMALS : SHADER_PATCH_EVALUATION);
+  GPUShader *shader = get_patch_evaluation_shader(SHADER_PATCH_EVALUATION);
   GPU_shader_bind(shader);
 
   GPU_vertbuf_bind_as_ssbo(src_buffer, 0);
@@ -1409,6 +1394,7 @@ void draw_subdiv_accumulate_normals(const DRWSubdivCache *cache,
                                     GPUVertBuf *pos_nor,
                                     GPUVertBuf *face_adjacency_offsets,
                                     GPUVertBuf *face_adjacency_lists,
+                                    GPUVertBuf *vertex_loop_map,
                                     GPUVertBuf *vertex_normals)
 {
   GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_NORMALS_ACCUMULATE, nullptr);
@@ -1419,6 +1405,7 @@ void draw_subdiv_accumulate_normals(const DRWSubdivCache *cache,
   GPU_vertbuf_bind_as_ssbo(pos_nor, binding_point++);
   GPU_vertbuf_bind_as_ssbo(face_adjacency_offsets, binding_point++);
   GPU_vertbuf_bind_as_ssbo(face_adjacency_lists, binding_point++);
+  GPU_vertbuf_bind_as_ssbo(vertex_loop_map, binding_point++);
   GPU_vertbuf_bind_as_ssbo(vertex_normals, binding_point++);
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache->num_subdiv_verts);
@@ -1866,8 +1853,6 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
   draw_cache->subdiv = subdiv;
   draw_cache->optimal_display = optimal_display;
   draw_cache->num_subdiv_triangles = tris_count_from_number_of_loops(draw_cache->num_subdiv_loops);
-  /* We can only evaluate limit normals if the patches are adaptive. */
-  draw_cache->do_limit_normals = settings.is_adaptive;
 
   draw_cache->use_custom_loop_normals = (smd->flags & eSubsurfModifierFlag_UseCustomNormals) &&
                                         (mesh_eval->flag & ME_AUTOSMOOTH) &&

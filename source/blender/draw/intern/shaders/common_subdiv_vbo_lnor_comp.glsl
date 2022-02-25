@@ -38,13 +38,18 @@ void main()
     }
   }
   else {
-    /* Face is flat shaded, compute flat face normal from an inscribed triangle. */
-    vec3 verts[3];
-    for (int i = 0; i < 3; i++) {
-      verts[i] = get_vertex_pos(pos_nor[start_loop_index + i]);
-    }
+    vec3 v0 = get_vertex_pos(pos_nor[start_loop_index + 0]);
+    vec3 v1 = get_vertex_pos(pos_nor[start_loop_index + 1]);
+    vec3 v2 = get_vertex_pos(pos_nor[start_loop_index + 2]);
+    vec3 v3 = get_vertex_pos(pos_nor[start_loop_index + 3]);
 
-    vec3 face_normal = normalize(cross(verts[1] - verts[0], verts[2] - verts[0]));
+    vec3 face_normal = vec3(0.0);
+    add_newell_cross_v3_v3v3(face_normal, v0, v1);
+    add_newell_cross_v3_v3v3(face_normal, v1, v2);
+    add_newell_cross_v3_v3v3(face_normal, v2, v3);
+    add_newell_cross_v3_v3v3(face_normal, v3, v0);
+
+    face_normal = normalize(face_normal);
     for (int i = 0; i < 4; i++) {
       output_lnor[start_loop_index + i] = face_normal;
     }

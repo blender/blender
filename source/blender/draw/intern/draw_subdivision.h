@@ -66,7 +66,6 @@ typedef struct DRWSubdivCache {
   struct BMesh *bm;
   struct Subdiv *subdiv;
   bool optimal_display;
-  bool do_limit_normals;
   bool use_custom_loop_normals;
 
   /* Coordinates used to evaluate patches for UVs, positions, and normals. */
@@ -180,6 +179,7 @@ void draw_subdiv_accumulate_normals(const DRWSubdivCache *cache,
                                     struct GPUVertBuf *pos_nor,
                                     struct GPUVertBuf *face_adjacency_offsets,
                                     struct GPUVertBuf *face_adjacency_lists,
+                                    struct GPUVertBuf *vertex_loop_map,
                                     struct GPUVertBuf *vertex_normals);
 
 void draw_subdiv_finalize_normals(const DRWSubdivCache *cache,
@@ -191,9 +191,7 @@ void draw_subdiv_finalize_custom_normals(const DRWSubdivCache *cache,
                                          GPUVertBuf *src_custom_normals,
                                          GPUVertBuf *pos_nor);
 
-void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
-                                 struct GPUVertBuf *pos_nor,
-                                 bool do_limit_normals);
+void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache, struct GPUVertBuf *pos_nor);
 
 void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
                                     struct GPUVertBuf *src_data,

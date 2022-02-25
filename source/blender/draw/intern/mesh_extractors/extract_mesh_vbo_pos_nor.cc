@@ -233,14 +233,12 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                         void *UNUSED(data))
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
-  const bool do_limit_normals = subdiv_cache->do_limit_normals &&
-                                !subdiv_cache->use_custom_loop_normals;
 
   /* Initialize the vertex buffer, it was already allocated. */
   GPU_vertbuf_init_build_on_device(
       vbo, get_pos_nor_format(), subdiv_cache->num_subdiv_loops + mr->loop_loose_len);
 
-  draw_subdiv_extract_pos_nor(subdiv_cache, vbo, do_limit_normals);
+  draw_subdiv_extract_pos_nor(subdiv_cache, vbo);
 
   if (subdiv_cache->use_custom_loop_normals) {
     Mesh *coarse_mesh = subdiv_cache->mesh;
@@ -266,7 +264,7 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
     GPU_vertbuf_discard(src_custom_normals);
     GPU_vertbuf_discard(dst_custom_normals);
   }
-  else if (!do_limit_normals) {
+  else {
     /* We cannot evaluate vertex normals using the limit surface, so compute them manually. */
     GPUVertBuf *subdiv_loop_subdiv_vert_index = draw_subdiv_build_origindex_buffer(
         subdiv_cache->subdiv_loop_subdiv_vert_index, subdiv_cache->num_subdiv_loops);
@@ -279,6 +277,7 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                    vbo,
                                    subdiv_cache->subdiv_vertex_face_adjacency_offsets,
                                    subdiv_cache->subdiv_vertex_face_adjacency,
+                                   subdiv_loop_subdiv_vert_index,
                                    vertex_normals);
 
     draw_subdiv_finalize_normals(subdiv_cache, vertex_normals, subdiv_loop_subdiv_vert_index, vbo);
