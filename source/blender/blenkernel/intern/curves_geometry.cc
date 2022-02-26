@@ -145,7 +145,6 @@ MutableSpan<int8_t> CurvesGeometry::curve_types()
                                                       nullptr,
                                                       this->curve_size,
                                                       ATTR_CURVE_TYPE.c_str());
-  BLI_assert(data != nullptr);
   return {data, this->curve_size};
 }
 
