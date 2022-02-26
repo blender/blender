@@ -69,9 +69,6 @@
 #ifndef VK_COMMA
 #  define VK_COMMA 0xBC
 #endif  // VK_COMMA
-#ifndef VK_QUOTE
-#  define VK_QUOTE 0xDE
-#endif  // VK_QUOTE
 #ifndef VK_BACK_QUOTE
 #  define VK_BACK_QUOTE 0xC0
 #endif  // VK_BACK_QUOTE
@@ -646,14 +643,32 @@ GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw,
 GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short scanCode) const
 {
   GHOST_TKey key = GHOST_kKeyUnknown;
-  switch (PRIMARYLANGID(m_langId)) {
-    case LANG_FRENCH:
-      if (vKey == VK_OEM_8)
-        key = GHOST_kKeyF13;  // oem key; used purely for shortcuts .
+  char ch = (char)MapVirtualKeyA(vKey, MAPVK_VK_TO_CHAR);
+  switch (ch) {
+    case u'\"':
+    case u'\'':
+      key = GHOST_kKeyQuote;
       break;
-    case LANG_ENGLISH:
-      if (SUBLANGID(m_langId) == SUBLANG_ENGLISH_UK && vKey == VK_OEM_8)  // "`¬"
-        key = GHOST_kKeyAccentGrave;
+    case u'.':
+      key = GHOST_kKeyNumpadPeriod;
+      break;
+    case u'/':
+      key = GHOST_kKeySlash;
+      break;
+    case u'`':
+    case u'²':
+      key = GHOST_kKeyAccentGrave;
+      break;
+    default:
+      if (vKey == VK_OEM_7) {
+        key = GHOST_kKeyQuote;
+      }
+      else if (vKey == VK_OEM_8) {
+        if (PRIMARYLANGID(m_langId) == LANG_FRENCH) {
+          /* oem key; used purely for shortcuts. */
+          key = GHOST_kKeyF13;
+        }
+      }
       break;
   }
 
@@ -788,9 +803,6 @@ GHOST_TKey GHOST_SystemWin32::convertKey(short vKey, short scanCode, short exten
       case VK_CLOSE_BRACKET:
         key = GHOST_kKeyRightBracket;
         break;
-      case VK_QUOTE:
-        key = GHOST_kKeyQuote;
-        break;
       case VK_GR_LESS:
         key = GHOST_kKeyGrLess;
         break;
@@ -832,9 +844,6 @@ GHOST_TKey GHOST_SystemWin32::convertKey(short vKey, short scanCode, short exten
       case VK_CAPITAL:
         key = GHOST_kKeyCapsLock;
         break;
-      case VK_OEM_8:
-        key = ((GHOST_SystemWin32 *)getSystem())->processSpecialKey(vKey, scanCode);
-        break;
       case VK_MEDIA_PLAY_PAUSE:
         key = GHOST_kKeyMediaPlay;
         break;
@@ -847,8 +856,10 @@ GHOST_TKey GHOST_SystemWin32::convertKey(short vKey, short scanCode, short exten
       case VK_MEDIA_NEXT_TRACK:
         key = GHOST_kKeyMediaLast;
         break;
+      case VK_OEM_7:
+      case VK_OEM_8:
       default:
-        key = GHOST_kKeyUnknown;
+        key = ((GHOST_SystemWin32 *)getSystem())->processSpecialKey(vKey, scanCode);
         break;
     }
   }
