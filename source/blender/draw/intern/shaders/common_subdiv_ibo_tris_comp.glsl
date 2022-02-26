@@ -1,5 +1,5 @@
 
-/* To be compile with common_subdiv_lib.glsl */
+/* To be compiled with common_subdiv_lib.glsl */
 
 /* Generate triangles from subdivision quads indices. */
 

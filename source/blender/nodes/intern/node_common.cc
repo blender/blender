@@ -171,7 +171,7 @@ static void group_verify_socket_list(bNodeTree &node_tree,
       BLI_addtail(&verify_lb, matching_socket);
     }
     else {
-      /* If there was no socket withe the same identifier already, simply create a new socket
+      /* If there was no socket with the same identifier already, simply create a new socket
        * based on the interface socket, which will already add it to the new list. */
       add_new_socket_from_interface(node_tree, node, *interface_socket, in_out);
     }
