@@ -447,6 +447,9 @@ TEST(vector, Last)
 {
   Vector<int> a{3, 5, 7};
   EXPECT_EQ(a.last(), 7);
+  EXPECT_EQ(a.last(0), 7);
+  EXPECT_EQ(a.last(1), 5);
+  EXPECT_EQ(a.last(2), 3);
 }
 
 TEST(vector, AppendNTimes)

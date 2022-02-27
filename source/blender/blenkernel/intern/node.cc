@@ -4751,6 +4751,7 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_to_points();
   register_node_type_geo_curve_trim();
   register_node_type_geo_delete_geometry();
+  register_node_type_geo_duplicate_elements();
   register_node_type_geo_distribute_points_on_faces();
   register_node_type_geo_dual_mesh();
   register_node_type_geo_edge_split();
@@ -4769,6 +4770,7 @@ static void registerGeometryNodes()
   register_node_type_geo_input_mesh_edge_neighbors();
   register_node_type_geo_input_mesh_edge_vertices();
   register_node_type_geo_input_mesh_face_area();
+  register_node_type_geo_input_mesh_face_is_planar();
   register_node_type_geo_input_mesh_face_neighbors();
   register_node_type_geo_input_mesh_island();
   register_node_type_geo_input_mesh_vertex_neighbors();

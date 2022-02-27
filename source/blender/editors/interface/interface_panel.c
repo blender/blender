@@ -2061,8 +2061,8 @@ static void ui_handle_panel_header(const bContext *C,
                                    const uiBlock *block,
                                    const int mx,
                                    const int event_type,
-                                   const short ctrl,
-                                   const short shift)
+                                   const bool ctrl,
+                                   const bool shift)
 {
   Panel *panel = block->panel;
   ARegion *region = CTX_wm_region(C);
@@ -2274,7 +2274,7 @@ static int ui_handle_panel_category_cycling(const wmEvent *event,
            (event->mval[0] > ((PanelCategoryDyn *)region->panels_category.first)->rect.xmin));
 
   /* If mouse is inside non-tab region, ctrl key is required. */
-  if (is_mousewheel && !event->ctrl && !inside_tabregion) {
+  if (is_mousewheel && (event->modifier & KM_CTRL) == 0 && !inside_tabregion) {
     return WM_UI_HANDLER_CONTINUE;
   }
 
@@ -2291,7 +2291,7 @@ static int ui_handle_panel_category_cycling(const wmEvent *event,
           pc_dyn = (event->type == WHEELDOWNMOUSE) ? pc_dyn->next : pc_dyn->prev;
         }
         else {
-          const bool backwards = event->shift;
+          const bool backwards = event->modifier & KM_SHIFT;
           pc_dyn = backwards ? pc_dyn->prev : pc_dyn->next;
           if (!pc_dyn) {
             /* Proper cyclic behavior, back to first/last category (only used for ctrl+tab). */
@@ -2349,7 +2349,7 @@ int ui_handler_panel_region(bContext *C,
         retval = WM_UI_HANDLER_BREAK;
       }
     }
-    else if ((event->type == EVT_TABKEY && event->ctrl) ||
+    else if (((event->type == EVT_TABKEY) && (event->modifier & KM_CTRL)) ||
              ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
       /* Cycle tabs. */
       retval = ui_handle_panel_category_cycling(event, region, active_but);
@@ -2386,9 +2386,11 @@ int ui_handler_panel_region(bContext *C,
 
       /* The panel collapse / expand key "A" is special as it takes priority over
        * active button handling. */
-      if (event->type == EVT_AKEY && !IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
+      if (event->type == EVT_AKEY &&
+          ((event->modifier & (KM_SHIFT | KM_CTRL | KM_ALT | KM_OSKEY)) == 0)) {
         retval = WM_UI_HANDLER_BREAK;
-        ui_handle_panel_header(C, block, mx, event->type, event->ctrl, event->shift);
+        ui_handle_panel_header(
+            C, block, mx, event->type, event->modifier & KM_CTRL, event->modifier & KM_SHIFT);
         break;
       }
     }
@@ -2402,7 +2404,8 @@ int ui_handler_panel_region(bContext *C,
       /* All mouse clicks inside panel headers should return in break. */
       if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER, LEFTMOUSE)) {
         retval = WM_UI_HANDLER_BREAK;
-        ui_handle_panel_header(C, block, mx, event->type, event->ctrl, event->shift);
+        ui_handle_panel_header(
+            C, block, mx, event->type, event->modifier & KM_CTRL, event->modifier & KM_SHIFT);
       }
       else if (event->type == RIGHTMOUSE) {
         retval = WM_UI_HANDLER_BREAK;

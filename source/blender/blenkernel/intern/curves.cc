@@ -114,6 +114,7 @@ static void curves_foreach_id(ID *id, LibraryForeachIDData *data)
   for (int i = 0; i < curves->totcol; i++) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, curves->mat[i], IDWALK_CB_USER);
   }
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, curves->surface, IDWALK_CB_NOP);
 }
 
 static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -186,6 +187,7 @@ static void curves_blend_read_lib(BlendLibReader *reader, ID *id)
   for (int a = 0; a < curves->totcol; a++) {
     BLO_read_id_address(reader, curves->id.lib, &curves->mat[a]);
   }
+  BLO_read_id_address(reader, curves->id.lib, &curves->surface);
 }
 
 static void curves_blend_read_expand(BlendExpander *expander, ID *id)
@@ -194,6 +196,7 @@ static void curves_blend_read_expand(BlendExpander *expander, ID *id)
   for (int a = 0; a < curves->totcol; a++) {
     BLO_expand(expander, curves->mat[a]);
   }
+  BLO_expand(expander, curves->surface);
 }
 
 IDTypeInfo IDType_ID_CV = {

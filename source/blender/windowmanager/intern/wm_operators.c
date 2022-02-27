@@ -2822,7 +2822,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
   float numValue;
   /* TODO: fix hardcoded events */
 
-  bool snap = event->ctrl != 0;
+  bool snap = (event->modifier & KM_CTRL) != 0;
 
   /* Modal numinput active, try to handle numeric inputs first... */
   if (event->val == KM_PRESS && has_numInput && handleNumInput(C, &rc->num_input, event)) {

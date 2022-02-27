@@ -880,15 +880,7 @@ class VArrayImpl_For_SplinePosition final : public VMutableArrayImpl<float3> {
   {
     const PointIndices indices = lookup_point_indices(offsets_, index);
     Spline &spline = *splines_[indices.spline_index];
-    if (BezierSpline *bezier_spline = dynamic_cast<BezierSpline *>(&spline)) {
-      const float3 delta = value - bezier_spline->positions()[indices.point_index];
-      bezier_spline->handle_positions_left()[indices.point_index] += delta;
-      bezier_spline->handle_positions_right()[indices.point_index] += delta;
-      bezier_spline->positions()[indices.point_index] = value;
-    }
-    else {
-      spline.positions()[indices.point_index] = value;
-    }
+    spline.positions()[indices.point_index] = value;
   }
 
   void set_all(Span<float3> src) final
@@ -897,20 +889,7 @@ class VArrayImpl_For_SplinePosition final : public VMutableArrayImpl<float3> {
       Spline &spline = *splines_[spline_index];
       const int offset = offsets_[spline_index];
       const int next_offset = offsets_[spline_index + 1];
-      if (BezierSpline *bezier_spline = dynamic_cast<BezierSpline *>(&spline)) {
-        MutableSpan<float3> positions = bezier_spline->positions();
-        MutableSpan<float3> handle_positions_left = bezier_spline->handle_positions_left();
-        MutableSpan<float3> handle_positions_right = bezier_spline->handle_positions_right();
-        for (const int i : IndexRange(next_offset - offset)) {
-          const float3 delta = src[offset + i] - positions[i];
-          handle_positions_left[i] += delta;
-          handle_positions_right[i] += delta;
-          positions[i] = src[offset + i];
-        }
-      }
-      else {
-        spline.positions().copy_from(src.slice(offset, next_offset - offset));
-      }
+      spline.positions().copy_from(src.slice(offset, next_offset - offset));
     }
   }
 
@@ -973,10 +952,10 @@ class VArrayImpl_For_BezierHandles final : public VMutableArrayImpl<float3> {
     if (spline.type() == CURVE_TYPE_BEZIER) {
       BezierSpline &bezier_spline = static_cast<BezierSpline &>(spline);
       if (is_right_) {
-        bezier_spline.set_handle_position_right(indices.point_index, value);
+        bezier_spline.handle_positions_right()[indices.point_index] = value;
       }
       else {
-        bezier_spline.set_handle_position_left(indices.point_index, value);
+        bezier_spline.handle_positions_left()[indices.point_index] = value;
       }
       bezier_spline.mark_cache_invalid();
     }
@@ -992,12 +971,12 @@ class VArrayImpl_For_BezierHandles final : public VMutableArrayImpl<float3> {
         BezierSpline &bezier_spline = static_cast<BezierSpline &>(spline);
         if (is_right_) {
           for (const int i : IndexRange(bezier_spline.size())) {
-            bezier_spline.set_handle_position_right(i, src[offset + i]);
+            bezier_spline.handle_positions_right()[i] = src[offset + i];
           }
         }
         else {
           for (const int i : IndexRange(bezier_spline.size())) {
-            bezier_spline.set_handle_position_left(i, src[offset + i]);
+            bezier_spline.handle_positions_left()[i] = src[offset + i];
           }
         }
         bezier_spline.mark_cache_invalid();

@@ -500,9 +500,11 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
     return OPERATOR_CANCELLED;
   }
 
-  const int camera_retval = view3d_ndof_cameraview_pan_zoom(C, event);
-  if (camera_retval != OPERATOR_PASS_THROUGH) {
-    return camera_retval;
+  if (U.ndof_flag & NDOF_CAMERA_PAN_ZOOM) {
+    const int camera_retval = view3d_ndof_cameraview_pan_zoom(C, event);
+    if (camera_retval != OPERATOR_PASS_THROUGH) {
+      return camera_retval;
+    }
   }
 
   const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -619,9 +621,11 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *e
     return OPERATOR_CANCELLED;
   }
 
-  const int camera_retval = view3d_ndof_cameraview_pan_zoom(C, event);
-  if (camera_retval != OPERATOR_PASS_THROUGH) {
-    return camera_retval;
+  if (U.ndof_flag & NDOF_CAMERA_PAN_ZOOM) {
+    const int camera_retval = view3d_ndof_cameraview_pan_zoom(C, event);
+    if (camera_retval != OPERATOR_PASS_THROUGH) {
+      return camera_retval;
+    }
   }
 
   const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);

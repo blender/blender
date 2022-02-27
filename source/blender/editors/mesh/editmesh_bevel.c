@@ -546,7 +546,7 @@ static void edbm_bevel_mouse_set_value(wmOperator *op, const wmEvent *event)
   value = value_start[vmode] + value * opdata->scale[vmode];
 
   /* Fake shift-transform... */
-  if (event->shift) {
+  if (event->modifier & KM_SHIFT) {
     if (opdata->shift_value[vmode] < 0.0f) {
       opdata->shift_value[vmode] = (vmode == SEGMENTS_VALUE) ?
                                        opdata->segments :

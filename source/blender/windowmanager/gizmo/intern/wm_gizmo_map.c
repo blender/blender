@@ -819,8 +819,6 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
     do_step[i] = WM_gizmo_context_check_drawstep(C, i);
   }
 
-  const int event_modifier = WM_event_modifier_flag(event);
-
   LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
 
     /* If it were important we could initialize here,
@@ -839,11 +837,11 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
         }
         if (step == WM_GIZMOMAP_DRAWSTEP_3D) {
           wm_gizmogroup_intersectable_gizmos_to_list(
-              wm, gzgroup, event_modifier, &visible_3d_gizmos);
+              wm, gzgroup, event->modifier, &visible_3d_gizmos);
         }
         else if (step == WM_GIZMOMAP_DRAWSTEP_2D) {
           if ((gz = wm_gizmogroup_find_intersected_gizmo(
-                   wm, gzgroup, C, event_modifier, event->mval, r_part))) {
+                   wm, gzgroup, C, event->modifier, event->mval, r_part))) {
             break;
           }
         }

@@ -1153,7 +1153,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         if (event->is_repeat) {
           break;
         }
-        if (event->alt) {
+        if (event->modifier & KM_ALT) {
           if (!(t->options & CTX_NO_PET)) {
             t->flag ^= T_PROP_CONNECTED;
             sort_trans_data_dist(t);
@@ -1167,7 +1167,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         if (event->is_repeat) {
           break;
         }
-        if (t->flag & T_PROP_EDIT && event->shift) {
+        if ((t->flag & T_PROP_EDIT) && (event->modifier & KM_SHIFT)) {
           t->prop_mode = (t->prop_mode + 1) % PROP_MODE_MAX;
           calculatePropRatio(t);
           t->redraw |= TREDRAW_HARD;
@@ -1175,7 +1175,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case EVT_PADPLUSKEY:
-        if (event->alt && t->flag & T_PROP_EDIT) {
+        if ((event->modifier & KM_ALT) && (t->flag & T_PROP_EDIT)) {
           t->prop_size *= (t->modifiers & MOD_PRECISION) ? 1.01f : 1.1f;
           if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO) {
             t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->clip_end);
@@ -1186,7 +1186,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case EVT_PADMINUS:
-        if (event->alt && t->flag & T_PROP_EDIT) {
+        if ((event->modifier & KM_ALT) && (t->flag & T_PROP_EDIT)) {
           t->prop_size /= (t->modifiers & MOD_PRECISION) ? 1.01f : 1.1f;
           calculatePropRatio(t);
           t->redraw = TREDRAW_HARD;
@@ -1780,10 +1780,12 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         }
 
         if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS) {
-          if ((ELEM(kmi->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY) && event->ctrl) ||
-              (ELEM(kmi->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) && event->shift) ||
-              (ELEM(kmi->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && event->alt) ||
-              ((kmi->type == EVT_OSKEY) && event->oskey)) {
+          if ((ELEM(kmi->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY) &&
+               (event->modifier & KM_CTRL)) ||
+              (ELEM(kmi->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) &&
+               (event->modifier & KM_SHIFT)) ||
+              (ELEM(kmi->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && (event->modifier & KM_ALT)) ||
+              ((kmi->type == EVT_OSKEY) && (event->modifier & KM_OSKEY))) {
             t->modifiers |= MOD_SNAP_INVERT;
           }
           break;

@@ -82,6 +82,8 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   int points_size() const;
   int curves_size() const;
+  IndexRange points_range() const;
+  IndexRange curves_range() const;
 
   /**
    * The total number of points in the evaluated poly curve.

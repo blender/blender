@@ -766,29 +766,37 @@ static void id_override_library_create_fn(bContext *C,
                                           void *user_data)
 {
   BLI_assert(TSE_IS_REAL_ID(tselem));
-  ID *id_root = tselem->id;
+
+  /* We can only safely apply this operation on one item at a time, so only do it on the active
+   * one. */
+  if ((tselem->flag & TSE_ACTIVE) == 0) {
+    return;
+  }
+
+  ID *id_root_reference = tselem->id;
   OutlinerLibOverrideData *data = reinterpret_cast<OutlinerLibOverrideData *>(user_data);
   const bool do_hierarchy = data->do_hierarchy;
   bool success = false;
 
-  ID *id_reference = nullptr;
+  ID *id_instance_hint = nullptr;
   bool is_override_instancing_object = false;
   if (tsep != nullptr && tsep->type == TSE_SOME_ID && tsep->id != nullptr &&
       GS(tsep->id->name) == ID_OB && !ID_IS_OVERRIDE_LIBRARY(tsep->id)) {
     Object *ob = (Object *)tsep->id;
-    if (ob->type == OB_EMPTY && &ob->instance_collection->id == id_root) {
-      BLI_assert(GS(id_root->name) == ID_GR);
+    if (ob->type == OB_EMPTY && &ob->instance_collection->id == id_root_reference) {
+      BLI_assert(GS(id_root_reference->name) == ID_GR);
       /* Empty instantiating the collection we override, we need to pass it to BKE overriding code
        * for proper handling. */
-      id_reference = tsep->id;
+      id_instance_hint = tsep->id;
       is_override_instancing_object = true;
     }
   }
 
-  if (ID_IS_OVERRIDABLE_LIBRARY(id_root) || (ID_IS_LINKED(id_root) && do_hierarchy)) {
+  if (ID_IS_OVERRIDABLE_LIBRARY(id_root_reference) ||
+      (ID_IS_LINKED(id_root_reference) && do_hierarchy)) {
     Main *bmain = CTX_data_main(C);
 
-    id_root->tag |= LIB_TAG_DOIT;
+    id_root_reference->tag |= LIB_TAG_DOIT;
 
     /* For now, remap all local usages of linked ID to local override one here. */
     ID *id_iter;
@@ -804,38 +812,100 @@ static void id_override_library_create_fn(bContext *C,
 
     if (do_hierarchy) {
       /* Tag all linked parents in tree hierarchy to be also overridden. */
+      ID *id_hierarchy_root_reference = id_root_reference;
       while ((te = te->parent) != nullptr) {
         if (!TSE_IS_REAL_ID(te->store_elem)) {
           continue;
         }
-        if (!ID_IS_LINKED(te->store_elem->id)) {
+
+        /* Tentative hierarchy root. */
+        ID *id_current_hierarchy_root = te->store_elem->id;
+
+        /* If the parent ID is from a different library than the reference root one, we are done
+         * with upwards tree processing in any case. */
+        if (id_current_hierarchy_root->lib != id_root_reference->lib) {
+          if (ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id_current_hierarchy_root)) {
+            /* Virtual overrides (i.e. embedded IDs), we can simply keep processing their parent to
+             * get an actual real override. */
+            continue;
+          }
+
+          /* If the parent ID is already an override, and is valid (i.e. local override), we can
+           * access its hierarchy root directly. */
+          if (!ID_IS_LINKED(id_current_hierarchy_root) &&
+              ID_IS_OVERRIDE_LIBRARY_REAL(id_current_hierarchy_root) &&
+              id_current_hierarchy_root->override_library->reference->lib ==
+                  id_root_reference->lib) {
+            id_hierarchy_root_reference =
+                id_current_hierarchy_root->override_library->hierarchy_root;
+            BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root_reference));
+            break;
+          }
+
+          if (ID_IS_LINKED(id_current_hierarchy_root)) {
+            /* No local 'anchor' was found for the hierarchy to override, do not proceed, as this
+             * would most likely generate invisible/confusing/hard to use and manage overrides. */
+            BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+            BKE_reportf(reports,
+                        RPT_WARNING,
+                        "Invalid anchor ('%s') found, needed to create library override from "
+                        "data-block '%s'",
+                        id_current_hierarchy_root->name,
+                        id_root_reference->name);
+            return;
+          }
+
+          /* In all other cases, `id_current_hierarchy_root` cannot be a valid hierarchy root, so
+           * current `id_hierarchy_root_reference` is our best candidate. */
+
           break;
         }
+
         /* If some element in the tree needs to be overridden, but its ID is not overridable,
          * abort. */
-        if (!ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(te->store_elem->id)) {
+        if (!ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(id_current_hierarchy_root)) {
           BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
           BKE_reportf(reports,
                       RPT_WARNING,
                       "Could not create library override from data-block '%s', one of its parents "
                       "is not overridable ('%s')",
-                      id_root->name,
-                      te->store_elem->id->name);
+                      id_root_reference->name,
+                      id_current_hierarchy_root->name);
           return;
         }
-        te->store_elem->id->tag |= LIB_TAG_DOIT;
+        id_current_hierarchy_root->tag |= LIB_TAG_DOIT;
+        id_hierarchy_root_reference = id_current_hierarchy_root;
+      }
+
+      /* That case can happen when linked data is a complex mix involving several libraries and/or
+       * linked overrides. E.g. a mix of overrides from one library, and indirectly linked data
+       * from another library. Do not try to support such cases for now. */
+      if (!((id_hierarchy_root_reference->lib == id_root_reference->lib) ||
+            (!ID_IS_LINKED(id_hierarchy_root_reference) &&
+             ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root_reference) &&
+             id_hierarchy_root_reference->override_library->reference->lib ==
+                 id_root_reference->lib))) {
+        BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+        BKE_reportf(reports,
+                    RPT_WARNING,
+                    "Invalid hierarchy root ('%s') found, needed to create library override from "
+                    "data-block '%s'",
+                    id_hierarchy_root_reference->name,
+                    id_root_reference->name);
+        return;
       }
 
       success = BKE_lib_override_library_create(bmain,
                                                 CTX_data_scene(C),
                                                 CTX_data_view_layer(C),
                                                 nullptr,
-                                                id_root,
-                                                id_reference,
+                                                id_root_reference,
+                                                id_hierarchy_root_reference,
+                                                id_instance_hint,
                                                 nullptr);
     }
-    else if (ID_IS_OVERRIDABLE_LIBRARY(id_root)) {
-      success = BKE_lib_override_library_create_from_id(bmain, id_root, true) != nullptr;
+    else if (ID_IS_OVERRIDABLE_LIBRARY(id_root_reference)) {
+      success = BKE_lib_override_library_create_from_id(bmain, id_root_reference, true) != nullptr;
 
       /* Cleanup. */
       BKE_main_id_newptr_and_tag_clear(bmain);
@@ -845,14 +915,14 @@ static void id_override_library_create_fn(bContext *C,
     /* Remove the instance empty from this scene, the items now have an overridden collection
      * instead. */
     if (success && is_override_instancing_object) {
-      ED_object_base_free_and_unlink(bmain, scene, (Object *)id_reference);
+      ED_object_base_free_and_unlink(bmain, scene, (Object *)id_instance_hint);
     }
   }
   if (!success) {
     BKE_reportf(reports,
                 RPT_WARNING,
                 "Could not create library override from data-block '%s'",
-                id_root->name);
+                id_root_reference->name);
   }
 }
 
@@ -1770,13 +1840,15 @@ static const EnumPropertyItem prop_id_op_types[] = {
     {OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE,
      "OVERRIDE_LIBRARY_CREATE",
      0,
-     "Make Library Override",
-     "Make a local override of this linked data-block"},
+     "Make Library Override Single",
+     "Make a single, out-of-hierarchy local override of this linked data-block - only applies to "
+     "active Outliner item"},
     {OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY,
      "OVERRIDE_LIBRARY_CREATE_HIERARCHY",
      0,
      "Make Library Override Hierarchy",
-     "Make a local override of this linked data-block, and its hierarchy of dependencies"},
+     "Make a local override of this linked data-block, and its hierarchy of dependencies - only "
+     "applies to active Outliner item"},
     {OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET,
      "OVERRIDE_LIBRARY_RESET",
      0,

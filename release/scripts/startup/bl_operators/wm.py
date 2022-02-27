@@ -995,11 +995,10 @@ class WM_OT_url_open_preset(Operator):
         return "https://www.blender.org/download/releases/%d-%d/" % bpy.app.version[:2]
 
     def _url_from_manual(self, _context):
-        if bpy.app.version_cycle in {"rc", "release"}:
-            manual_version = "%d.%d" % bpy.app.version[:2]
-        else:
-            manual_version = "dev"
-        return "https://docs.blender.org/manual/en/" + manual_version + "/"
+        return "https://docs.blender.org/manual/en/%d.%d/" % bpy.app.version[:2]
+
+    def _url_from_api(self, _context):
+        return "https://docs.blender.org/api/%d.%d/" % bpy.app.version[:2]
 
     # This list is: (enum_item, url) pairs.
     # Allow dynamically extending.
@@ -1014,9 +1013,12 @@ class WM_OT_url_open_preset(Operator):
         (('RELEASE_NOTES', "Release Notes",
           "Read about what's new in this version of Blender"),
          _url_from_release_notes),
-        (('MANUAL', "Manual",
+        (('MANUAL', "User Manual",
           "The reference manual for this version of Blender"),
          _url_from_manual),
+        (('API', "Python API Reference",
+          "The API reference manual for this version of Blender"),
+         _url_from_api),
 
         # Static URL's.
         (('FUND', "Development Fund",
@@ -1231,11 +1233,7 @@ class WM_OT_doc_view(Operator):
     bl_label = "View Documentation"
 
     doc_id: doc_id
-    if bpy.app.version_cycle in {"release", "rc", "beta"}:
-        _prefix = ("https://docs.blender.org/api/%d.%d" %
-                   (bpy.app.version[0], bpy.app.version[1]))
-    else:
-        _prefix = ("https://docs.blender.org/api/master")
+    _prefix = "https://docs.blender.org/api/%d.%d" % bpy.app.version[:2]
 
     def execute(self, _context):
         url = _wm_doc_get_id(self.doc_id, do_url=True, url_prefix=self._prefix, report=self.report)

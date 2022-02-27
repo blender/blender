@@ -340,10 +340,10 @@ static int object_hide_collection_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
 
   int index = RNA_int_get(op->ptr, "collection_index");
-  const bool extend = (win->eventstate->shift != 0);
+  const bool extend = (win->eventstate->modifier & KM_SHIFT) != 0;
   const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 
-  if (win->eventstate->alt != 0) {
+  if (win->eventstate->modifier & KM_ALT) {
     index += 10;
   }
 
@@ -1427,7 +1427,7 @@ static int object_clear_paths_exec(bContext *C, wmOperator *op)
 /* operator callback/wrapper */
 static int object_clear_paths_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if ((event->shift) && !RNA_struct_property_is_set(op->ptr, "only_selected")) {
+  if ((event->modifier & KM_SHIFT) && !RNA_struct_property_is_set(op->ptr, "only_selected")) {
     RNA_boolean_set(op->ptr, "only_selected", true);
   }
   return object_clear_paths_exec(C, op);

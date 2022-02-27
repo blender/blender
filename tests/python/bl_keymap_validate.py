@@ -47,7 +47,7 @@ import bpy  # type: ignore
 
 # Useful for diffing the output to see what changed in context.
 # this writes keymaps into the current directory with `.orig.py` & `.rewrite.py` extensions.
-WRITE_OUTPUT_DIR = "/tmp/test"  # "/tmp", defaults to the systems temp directory.
+WRITE_OUTPUT_DIR = ""  # "/tmp", defaults to the systems temp directory.
 
 # For each preset, test all of these options.
 # The key is the preset name, containing a sequence of (attribute, value) pairs to test.

@@ -635,9 +635,12 @@ typedef struct wmEvent {
    */
   int prev_xy[2];
 
-  /** Modifier states. */
-  /** 'oskey' is apple or windows-key, value denotes order of pressed. */
-  short shift, ctrl, alt, oskey;
+  /**
+   * Modifier states.
+   * #KM_SHIFT, #KM_CTRL, #KM_ALT & #KM_OSKEY is apple or windows-key.
+   */
+  uint8_t modifier;
+
   /** Raw-key modifier (allow using any key as a modifier). */
   short keymodifier;
 

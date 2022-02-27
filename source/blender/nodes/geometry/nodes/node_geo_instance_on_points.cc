@@ -195,35 +195,24 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
 
+    const Array<GeometryComponentType> types{
+        GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE};
+
     Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
     geometry_set.gather_attributes_for_propagation(
-        {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE},
-        GEO_COMPONENT_TYPE_INSTANCES,
-        false,
-        attributes_to_propagate);
+        types, GEO_COMPONENT_TYPE_INSTANCES, false, attributes_to_propagate);
     attributes_to_propagate.remove("position");
 
-    if (geometry_set.has<MeshComponent>()) {
-      add_instances_from_component(instances,
-                                   *geometry_set.get_component_for_read<MeshComponent>(),
-                                   instance,
-                                   params,
-                                   attributes_to_propagate);
+    for (const GeometryComponentType type : types) {
+      if (geometry_set.has(type)) {
+        add_instances_from_component(instances,
+                                     *geometry_set.get_component_for_read(type),
+                                     instance,
+                                     params,
+                                     attributes_to_propagate);
+      }
     }
-    if (geometry_set.has<PointCloudComponent>()) {
-      add_instances_from_component(instances,
-                                   *geometry_set.get_component_for_read<PointCloudComponent>(),
-                                   instance,
-                                   params,
-                                   attributes_to_propagate);
-    }
-    if (geometry_set.has<CurveComponent>()) {
-      add_instances_from_component(instances,
-                                   *geometry_set.get_component_for_read<CurveComponent>(),
-                                   instance,
-                                   params,
-                                   attributes_to_propagate);
-    }
+
     geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
   });
 

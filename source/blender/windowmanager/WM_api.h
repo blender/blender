@@ -1427,8 +1427,6 @@ bool WM_window_modal_keymap_status_draw(struct bContext *C,
  */
 void WM_event_print(const struct wmEvent *event);
 
-int WM_event_modifier_flag(const struct wmEvent *event);
-
 /**
  * For modal callbacks, check configuration for how to interpret exit with tweaks.
  */

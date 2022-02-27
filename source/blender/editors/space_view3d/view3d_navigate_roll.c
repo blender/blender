@@ -24,8 +24,12 @@
 /** \name View Roll Operator
  * \{ */
 
-static void view_roll_angle(
-    ARegion *region, float quat[4], const float orig_quat[4], const float dvec[3], float angle)
+static void view_roll_angle(ARegion *region,
+                            float quat[4],
+                            const float orig_quat[4],
+                            const float dvec[3],
+                            float angle,
+                            bool use_axis_view)
 {
   RegionView3D *rv3d = region->regiondata;
   float quat_mul[4];
@@ -38,7 +42,16 @@ static void view_roll_angle(
   /* avoid precision loss over time */
   normalize_qt(quat);
 
-  rv3d->view = RV3D_VIEW_USER;
+  if (use_axis_view && RV3D_VIEW_IS_AXIS(rv3d->view) && (fabsf(angle) == (float)M_PI_2)) {
+    if (ED_view3d_quat_to_axis_view(quat, 0.01f, &rv3d->view, &rv3d->view_axis_roll)) {
+      if (rv3d->view != RV3D_VIEW_USER) {
+        ED_view3d_quat_from_axis_view(rv3d->view, rv3d->view_axis_roll, quat_mul);
+      }
+    }
+  }
+  else {
+    rv3d->view = RV3D_VIEW_USER;
+  }
 }
 
 static void viewroll_apply(ViewOpsData *vod, int x, int y)
@@ -46,7 +59,8 @@ static void viewroll_apply(ViewOpsData *vod, int x, int y)
   float angle = BLI_dial_angle(vod->init.dial, (const float[2]){x, y});
 
   if (angle != 0.0f) {
-    view_roll_angle(vod->region, vod->rv3d->viewquat, vod->init.quat, vod->init.mousevec, angle);
+    view_roll_angle(
+        vod->region, vod->rv3d->viewquat, vod->init.quat, vod->init.mousevec, angle, false);
   }
 
   if (vod->use_dyn_ofs) {
@@ -169,7 +183,7 @@ static int viewroll_exec(bContext *C, wmOperator *op)
 
     normalize_v3_v3(mousevec, rv3d->viewinv[2]);
     negate_v3(mousevec);
-    view_roll_angle(region, quat_new, rv3d->viewquat, mousevec, angle);
+    view_roll_angle(region, quat_new, rv3d->viewquat, mousevec, angle, true);
 
     const float *dyn_ofs_pt = NULL;
     float dyn_ofs[3];

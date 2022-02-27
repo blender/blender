@@ -2060,7 +2060,7 @@ static void annotation_draw_apply_event(
   p->mval[1] = (float)event->mval[1] - y;
 
   /* Key to toggle stabilization. */
-  if (event->shift && p->paintmode == GP_PAINTMODE_DRAW) {
+  if ((event->modifier & KM_SHIFT) && (p->paintmode == GP_PAINTMODE_DRAW)) {
     /* Using permanent stabilization, shift will deactivate the flag. */
     if (p->flags & GP_PAINTFLAG_USE_STABILIZER) {
       if (p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) {
@@ -2075,7 +2075,7 @@ static void annotation_draw_apply_event(
     }
   }
   /* verify key status for straight lines */
-  else if (event->ctrl || event->alt) {
+  else if (event->modifier & (KM_CTRL | KM_ALT)) {
     if (p->straight[0] == 0) {
       int dx = abs((int)(p->mval[0] - p->mvalo[0]));
       int dy = abs((int)(p->mval[1] - p->mvalo[1]));
@@ -2299,7 +2299,7 @@ static int annotation_draw_invoke(bContext *C, wmOperator *op, const wmEvent *ev
       p->flags |= GP_PAINTFLAG_USE_STABILIZER | GP_PAINTFLAG_USE_STABILIZER_TEMP;
       annotation_draw_toggle_stabilizer_cursor(p, true);
     }
-    else if (event->shift) {
+    else if (event->modifier & KM_SHIFT) {
       p->flags |= GP_PAINTFLAG_USE_STABILIZER_TEMP;
       annotation_draw_toggle_stabilizer_cursor(p, true);
     }

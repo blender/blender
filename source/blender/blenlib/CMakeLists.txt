@@ -203,6 +203,7 @@ set(SRC
   BLI_heap.h
   BLI_heap_simple.h
   BLI_index_mask.hh
+  BLI_index_mask_ops.hh
   BLI_index_range.hh
   BLI_inplace_priority_queue.hh
   BLI_iterator.h

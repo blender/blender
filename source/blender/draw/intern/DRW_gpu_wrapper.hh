@@ -641,11 +641,6 @@ class Texture : NonCopyable {
     }
     if (tx_ == nullptr) {
       tx_ = create(w, h, d, mips, format, data, layered, cubemap);
-      if (mips > 1) {
-        /* TODO(@fclem): Remove once we have immutable storage or when mips are
-         * generated on creation. */
-        GPU_texture_generate_mipmap(tx_);
-      }
       return true;
     }
     return false;

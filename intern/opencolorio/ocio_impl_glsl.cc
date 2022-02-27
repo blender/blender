@@ -324,7 +324,7 @@ static bool addGPULut2D(OCIO_GPUTextures &textures,
                                                                                   GPU_R16F;
 
   OCIO_GPULutTexture lut;
-  lut.texture = GPU_texture_create_2d(texture_name, width, height, 0, format, values);
+  lut.texture = GPU_texture_create_2d(texture_name, width, height, 1, format, values);
   if (lut.texture == nullptr) {
     return false;
   }
@@ -356,7 +356,7 @@ static bool addGPULut3D(OCIO_GPUTextures &textures,
 
   OCIO_GPULutTexture lut;
   lut.texture = GPU_texture_create_3d(
-      texture_name, edgelen, edgelen, edgelen, 0, GPU_RGB16F, GPU_DATA_FLOAT, values);
+      texture_name, edgelen, edgelen, edgelen, 1, GPU_RGB16F, GPU_DATA_FLOAT, values);
   if (lut.texture == nullptr) {
     return false;
   }

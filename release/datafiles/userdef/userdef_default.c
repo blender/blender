@@ -144,7 +144,7 @@ const UserDef U_default = {
                    * so invert this by default, see: T67579. */
                   NDOF_ROTX_INVERT_AXIS | NDOF_ROTY_INVERT_AXIS | NDOF_ROTZ_INVERT_AXIS |
                   NDOF_PANX_INVERT_AXIS | NDOF_PANY_INVERT_AXIS | NDOF_PANZ_INVERT_AXIS |
-                  NDOF_ZOOM_INVERT),
+                  NDOF_ZOOM_INVERT | NDOF_CAMERA_PAN_ZOOM),
     .image_draw_method = IMAGE_DRAW_METHOD_AUTO,
     .glalphaclip = 0.004,
     .autokey_mode = (AUTOKEY_MODE_NORMAL & ~AUTOKEY_ON),

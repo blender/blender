@@ -2659,7 +2659,7 @@ static int gpencil_select_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   RNA_int_set_array(op->ptr, "location", event->mval);
 
   if (!RNA_struct_property_is_set(op->ptr, "use_shift_extend")) {
-    RNA_boolean_set(op->ptr, "use_shift_extend", event->shift);
+    RNA_boolean_set(op->ptr, "use_shift_extend", event->modifier & KM_SHIFT);
   }
 
   return gpencil_select_exec(C, op);

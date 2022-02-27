@@ -101,11 +101,17 @@ class Texture {
   virtual ~Texture();
 
   /* Return true on success. */
-  bool init_1D(int w, int layers, eGPUTextureFormat format);
-  bool init_2D(int w, int h, int layers, eGPUTextureFormat format);
-  bool init_3D(int w, int h, int d, eGPUTextureFormat format);
-  bool init_cubemap(int w, int layers, eGPUTextureFormat format);
+  bool init_1D(int w, int layers, int mips, eGPUTextureFormat format);
+  bool init_2D(int w, int h, int layers, int mips, eGPUTextureFormat format);
+  bool init_3D(int w, int h, int d, int mips, eGPUTextureFormat format);
+  bool init_cubemap(int w, int layers, int mips, eGPUTextureFormat format);
   bool init_buffer(GPUVertBuf *vbo, eGPUTextureFormat format);
+  bool init_view(const GPUTexture *src,
+                 eGPUTextureFormat format,
+                 int mip_start,
+                 int mip_len,
+                 int layer_start,
+                 int layer_len);
 
   virtual void generate_mipmap() = 0;
   virtual void copy_to(Texture *tex) = 0;
@@ -234,6 +240,7 @@ class Texture {
  protected:
   virtual bool init_internal() = 0;
   virtual bool init_internal(GPUVertBuf *vbo) = 0;
+  virtual bool init_internal(const GPUTexture *src, int mip_offset, int layer_offset) = 0;
 };
 
 /* Syntactic sugar. */

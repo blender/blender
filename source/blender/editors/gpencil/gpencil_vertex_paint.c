@@ -1241,7 +1241,7 @@ static void gpencil_vertexpaint_brush_apply_event(bContext *C,
   RNA_collection_add(op->ptr, "stroke", &itemptr);
 
   RNA_float_set_array(&itemptr, "mouse", mouse);
-  RNA_boolean_set(&itemptr, "pen_flip", event->ctrl != false);
+  RNA_boolean_set(&itemptr, "pen_flip", event->modifier & KM_CTRL);
   RNA_boolean_set(&itemptr, "is_start", gso->first);
 
   /* Handle pressure sensitivity (which is supplied by tablets). */

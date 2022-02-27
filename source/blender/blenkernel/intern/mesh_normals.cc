@@ -220,14 +220,13 @@ void BKE_mesh_calc_normals_poly(const MVert *mvert,
  * \{ */
 
 struct MeshCalcNormalsData_PolyAndVertex {
-  /** Write into vertex normals #MVert.no. */
-  MVert *mvert;
+  const MVert *mvert;
   const MLoop *mloop;
   const MPoly *mpoly;
 
   /** Polygon normal output. */
   float (*pnors)[3];
-  /** Vertex normal output (may be freed, copied into #MVert.no). */
+  /** Vertex normal output. */
   float (*vnors)[3];
 };
 
@@ -298,7 +297,7 @@ static void mesh_calc_normals_poly_and_vertex_finalize_fn(
 {
   MeshCalcNormalsData_PolyAndVertex *data = (MeshCalcNormalsData_PolyAndVertex *)userdata;
 
-  MVert *mv = &data->mvert[vidx];
+  const MVert *mv = &data->mvert[vidx];
   float *no = data->vnors[vidx];
 
   if (UNLIKELY(normalize_v3(no) == 0.0f)) {
@@ -307,7 +306,7 @@ static void mesh_calc_normals_poly_and_vertex_finalize_fn(
   }
 }
 
-static void mesh_calc_normals_poly_and_vertex(MVert *mvert,
+static void mesh_calc_normals_poly_and_vertex(const MVert *mvert,
                                               const int mvert_len,
                                               const MLoop *mloop,
                                               const int UNUSED(mloop_len),
@@ -320,36 +319,22 @@ static void mesh_calc_normals_poly_and_vertex(MVert *mvert,
   BLI_parallel_range_settings_defaults(&settings);
   settings.min_iter_per_thread = 1024;
 
-  float(*vnors)[3] = r_vert_normals;
-  bool free_vnors = false;
-
-  /* First go through and calculate normals for all the polys. */
-  if (vnors == nullptr) {
-    vnors = (float(*)[3])MEM_calloc_arrayN((size_t)mvert_len, sizeof(*vnors), __func__);
-    free_vnors = true;
-  }
-  else {
-    memset(vnors, 0, sizeof(*vnors) * (size_t)mvert_len);
-  }
+  memset(r_vert_normals, 0, sizeof(*r_vert_normals) * (size_t)mvert_len);
 
   MeshCalcNormalsData_PolyAndVertex data = {};
   data.mpoly = mpoly;
   data.mloop = mloop;
   data.mvert = mvert;
   data.pnors = r_poly_normals;
-  data.vnors = vnors;
+  data.vnors = r_vert_normals;
 
-  /* Compute poly normals (`pnors`), accumulating them into vertex normals (`vnors`). */
+  /* Compute poly normals, accumulating them into vertex normals. */
   BLI_task_parallel_range(
       0, mpoly_len, &data, mesh_calc_normals_poly_and_vertex_accum_fn, &settings);
 
-  /* Normalize and validate computed vertex normals (`vnors`). */
+  /* Normalize and validate computed vertex normals. */
   BLI_task_parallel_range(
       0, mvert_len, &data, mesh_calc_normals_poly_and_vertex_finalize_fn, &settings);
-
-  if (free_vnors) {
-    MEM_freeN(vnors);
-  }
 }
 
 /** \} */

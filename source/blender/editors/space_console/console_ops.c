@@ -408,7 +408,7 @@ static int console_insert_invoke(bContext *C, wmOperator *op, const wmEvent *eve
      * (when input method are used for utf8 inputs, the user may assign key event
      * including alt/ctrl/super like ctrl+m to commit utf8 string.  in such case,
      * the modifiers in the utf8 character event make no sense.) */
-    if ((event->ctrl || event->oskey) && !event->utf8_buf[0]) {
+    if ((event->modifier & (KM_CTRL | KM_OSKEY)) && !event->utf8_buf[0]) {
       return OPERATOR_PASS_THROUGH;
     }
 

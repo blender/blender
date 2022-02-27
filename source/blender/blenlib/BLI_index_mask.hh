@@ -209,6 +209,18 @@ class IndexMask {
     return indices_.is_empty();
   }
 
+  bool contained_in(const IndexRange range) const
+  {
+    if (indices_.is_empty()) {
+      return true;
+    }
+    if (range.size() < indices_.size()) {
+      return false;
+    }
+    return indices_.first() >= range.first() && indices_.last() <= range.last();
+  }
+
+  IndexMask slice(int64_t start, int64_t size) const;
   IndexMask slice(IndexRange slice) const;
   /**
    * Create a sub-mask that is also shifted to the beginning.
@@ -229,6 +241,30 @@ class IndexMask {
    * so that the first index in the output is zero.
    */
   IndexMask slice_and_offset(IndexRange slice, Vector<int64_t> &r_new_indices) const;
+
+  /**
+   * Get a new mask that contains all the indices that are not in the current mask.
+   * If necessary, the indices referenced by the new mask are inserted in #r_new_indices.
+   */
+  IndexMask invert(const IndexRange full_range, Vector<int64_t> &r_new_indices) const;
+
+  /**
+   * Get all contiguous index ranges within the mask.
+   */
+  Vector<IndexRange> extract_ranges() const;
+
+  /**
+   * Similar to #extract ranges, but works on the inverted mask. So the returned ranges are
+   * in-between the indices in the mask.
+   *
+   * Using this method is generally more efficient than first inverting the index mask and then
+   * extracting the ranges.
+   *
+   * If #r_skip_amounts is passed in, it will contain the number of indices that have been skipped
+   * before each range in the return value starts.
+   */
+  Vector<IndexRange> extract_ranges_invert(const IndexRange full_range,
+                                           Vector<int64_t> *r_skip_amounts) const;
 };
 
 }  // namespace blender

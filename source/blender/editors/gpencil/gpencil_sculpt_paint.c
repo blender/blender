@@ -1883,7 +1883,7 @@ static void gpencil_sculpt_brush_apply_event(bContext *C, wmOperator *op, const 
   RNA_collection_add(op->ptr, "stroke", &itemptr);
 
   RNA_float_set_array(&itemptr, "mouse", mouse);
-  RNA_boolean_set(&itemptr, "pen_flip", event->ctrl != false);
+  RNA_boolean_set(&itemptr, "pen_flip", (event->modifier & KM_CTRL) != 0);
   RNA_boolean_set(&itemptr, "is_start", gso->first);
 
   /* handle pressure sensitivity (which is supplied by tablets and otherwise 1.0) */
@@ -1895,7 +1895,7 @@ static void gpencil_sculpt_brush_apply_event(bContext *C, wmOperator *op, const 
   }
   RNA_float_set(&itemptr, "pressure", pressure);
 
-  if (event->shift) {
+  if (event->modifier & KM_SHIFT) {
     gso->brush_prev = gso->brush;
 
     gso->brush = gpencil_sculpt_get_smooth_brush(gso);

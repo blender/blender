@@ -208,6 +208,9 @@ class Params:
 # ------------------------------------------------------------------------------
 # Constants
 
+from math import pi
+pi_2 = pi / 2.0
+
 # Physical layout.
 NUMBERS_1 = ('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'ZERO')
 # Numeric order.
@@ -1409,7 +1412,7 @@ def km_view3d(params):
         ("view3d.view_roll", {"type": 'NUMPAD_6', "value": 'PRESS', "shift": True, "repeat": True},
          {"properties": [("type", 'RIGHT')]}),
         ("view3d.view_orbit", {"type": 'NUMPAD_9', "value": 'PRESS'},
-         {"properties": [("angle", 3.1415927), ("type", 'ORBITRIGHT')]}),
+         {"properties": [("angle", pi), ("type", 'ORBITRIGHT')]}),
         ("view3d.view_axis", {"type": 'NUMPAD_1', "value": 'PRESS', "shift": True},
          {"properties": [("type", 'FRONT'), ("align_active", True)]}),
         ("view3d.view_axis", {"type": 'NUMPAD_3', "value": 'PRESS', "shift": True},
@@ -1453,10 +1456,10 @@ def km_view3d(params):
         ("view3d.ndof_all", {"type": 'NDOF_MOTION', "value": 'ANY', "shift": True, "ctrl": True}, None),
         ("view3d.view_selected", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'},
          {"properties": [("use_all_regions", False)]}),
+        ("view3d.view_roll", {"type": 'NDOF_BUTTON_ROLL_CW', "value": 'PRESS'},
+         {"properties": [("angle", pi_2)]}),
         ("view3d.view_roll", {"type": 'NDOF_BUTTON_ROLL_CCW', "value": 'PRESS'},
-         {"properties": [("type", 'LEFT')]}),
-        ("view3d.view_roll", {"type": 'NDOF_BUTTON_ROLL_CCW', "value": 'PRESS'},
-         {"properties": [("type", 'RIGHT')]}),
+         {"properties": [("angle", -pi_2)]}),
         ("view3d.view_axis", {"type": 'NDOF_BUTTON_FRONT', "value": 'PRESS'},
          {"properties": [("type", 'FRONT')]}),
         ("view3d.view_axis", {"type": 'NDOF_BUTTON_BACK', "value": 'PRESS'},

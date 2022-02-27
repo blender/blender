@@ -2318,7 +2318,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
   const bool success = BKE_lib_override_library_create(
-      bmain, scene, view_layer, NULL, id_root, &obact->id, NULL);
+      bmain, scene, view_layer, NULL, id_root, id_root, &obact->id, NULL);
 
   /* Remove the instance empty from this scene, the items now have an overridden collection
    * instead. */

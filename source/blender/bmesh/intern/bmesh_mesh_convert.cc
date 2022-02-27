@@ -212,10 +212,10 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
 
   if (!me || !me->totvert) {
     if (me && is_new) { /* No verts? still copy custom-data layout. */
-      CustomData_copy(&me->vdata, &bm->vdata, mask.vmask, CD_ASSIGN, 0);
-      CustomData_copy(&me->edata, &bm->edata, mask.emask, CD_ASSIGN, 0);
-      CustomData_copy(&me->ldata, &bm->ldata, mask.lmask, CD_ASSIGN, 0);
-      CustomData_copy(&me->pdata, &bm->pdata, mask.pmask, CD_ASSIGN, 0);
+      CustomData_copy(&me->vdata, &bm->vdata, mask.vmask, CD_DEFAULT, 0);
+      CustomData_copy(&me->edata, &bm->edata, mask.emask, CD_DEFAULT, 0);
+      CustomData_copy(&me->ldata, &bm->ldata, mask.lmask, CD_DEFAULT, 0);
+      CustomData_copy(&me->pdata, &bm->pdata, mask.pmask, CD_DEFAULT, 0);
 
       CustomData_bmesh_init_pool(&bm->vdata, me->totvert, BM_VERT);
       CustomData_bmesh_init_pool(&bm->edata, me->totedge, BM_EDGE);
@@ -934,9 +934,9 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, mloop, me->totloop);
   CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
 
-  /* There is no way to tell if BMesh normals are dirty or not. Instead of calculating the normals
-   * on the BMesh possibly unnecessarily, just tag them dirty on the resulting mesh. */
-  BKE_mesh_normals_tag_dirty(me);
+  /* Clear normals on the mesh completely, since the original vertex and polygon count might be
+   * different than the BMesh's. */
+  BKE_mesh_clear_derived_normals(me);
 
   me->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
 

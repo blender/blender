@@ -58,8 +58,8 @@ ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
         info = (float)integrator_state_bounce(state, path_flag);
       }
 
-      /* For background, light emission and shadow evaluation we from a
-       * surface or volume we are effective one bounce further. */
+      /* For background, light emission and shadow evaluation from a
+       * surface or volume we are effectively one bounce further. */
       if (path_flag & (PATH_RAY_SHADOW | PATH_RAY_EMISSION)) {
         info += 1.0f;
       }

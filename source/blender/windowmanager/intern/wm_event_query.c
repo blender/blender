@@ -80,10 +80,10 @@ void WM_event_print(const wmEvent *event)
         prev_type_id,
         event->prev_val,
         prev_val_id,
-        event->shift,
-        event->ctrl,
-        event->alt,
-        event->oskey,
+        (event->modifier & KM_SHIFT) != 0,
+        (event->modifier & KM_CTRL) != 0,
+        (event->modifier & KM_ALT) != 0,
+        (event->modifier & KM_OSKEY) != 0,
         event->keymodifier,
         event->is_repeat,
         event->xy[0],
@@ -128,24 +128,6 @@ void WM_event_print(const wmEvent *event)
 /* -------------------------------------------------------------------- */
 /** \name Event Modifier/Type Queries
  * \{ */
-
-int WM_event_modifier_flag(const wmEvent *event)
-{
-  int flag = 0;
-  if (event->ctrl) {
-    flag |= KM_CTRL;
-  }
-  if (event->alt) {
-    flag |= KM_ALT;
-  }
-  if (event->shift) {
-    flag |= KM_SHIFT;
-  }
-  if (event->oskey) {
-    flag |= KM_OSKEY;
-  }
-  return flag;
-}
 
 bool WM_event_type_mask_test(const int event_type, const enum eEventType_Mask mask)
 {
@@ -491,8 +473,8 @@ int WM_event_absolute_delta_y(const struct wmEvent *event)
  */
 bool WM_event_is_ime_switch(const struct wmEvent *event)
 {
-  return event->val == KM_PRESS && event->type == EVT_SPACEKEY &&
-         (event->ctrl || event->oskey || event->alt);
+  return (event->val == KM_PRESS) && (event->type == EVT_SPACEKEY) &&
+         (event->modifier & (KM_CTRL | KM_OSKEY | KM_ALT));
 }
 #endif
 

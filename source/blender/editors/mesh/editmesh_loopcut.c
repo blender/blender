@@ -581,7 +581,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
         handled = true;
         break;
       case MOUSEPAN:
-        if (event->alt == 0) {
+        if ((event->modifier & KM_ALT) == 0) {
           cuts += 0.02f * (event->xy[1] - event->prev_xy[1]);
           if (cuts < 1 && lcd->cuts >= 1) {
             cuts = 1;
@@ -598,7 +598,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
         if (event->val == KM_RELEASE) {
           break;
         }
-        if (event->alt == 0) {
+        if ((event->modifier & KM_ALT) == 0) {
           cuts += 1;
         }
         else {
@@ -612,7 +612,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
         if (event->val == KM_RELEASE) {
           break;
         }
-        if (event->alt == 0) {
+        if ((event->modifier & KM_ALT) == 0) {
           cuts = max_ff(cuts - 1, 1);
         }
         else {

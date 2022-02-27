@@ -6040,6 +6040,13 @@ static void rna_def_userdef_input(BlenderRNA *brna)
                            "Helicopter Mode",
                            "Device up/down directly controls the Z position of the 3D viewport");
 
+  prop = RNA_def_property(srna, "ndof_lock_camera_pan_zoom", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_CAMERA_PAN_ZOOM);
+  RNA_def_property_ui_text(
+      prop,
+      "Lock Camera Pan/Zoom",
+      "Pan/zoom the camera view instead of leaving the camera view when orbiting");
+
   /* let Python know whether NDOF is enabled */
   prop = RNA_def_boolean(srna, "use_ndof", true, "", "");
 #  else
