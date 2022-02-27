@@ -1972,6 +1972,7 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
 
 static void area_offscreen_init(ScrArea *area)
 {
+  area->flag |= AREA_FLAG_OFFSCREEN;
   area->type = BKE_spacetype_from_id(area->spacetype);
 
   if (area->type == NULL) {
