@@ -771,6 +771,9 @@ static void duplicate_points_curve(const GeometryComponentType component_type,
 {
   const GeometryComponent &src_component = *geometry_set.get_component_for_read(component_type);
   const int domain_size = src_component.attribute_domain_size(ATTR_DOMAIN_POINT);
+  if (domain_size == 0) {
+    return;
+  }
 
   GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_POINT};
   FieldEvaluator evaluator{field_context, domain_size};
