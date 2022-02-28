@@ -432,7 +432,7 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
     }
     spline->positions().fill(float3(0));
     spline->tilts().fill(0.0f);
-    spline->radii().fill(0.0f);
+    spline->radii().fill(1.0f);
     curve_eval->add_spline(std::move(spline));
   }
 
