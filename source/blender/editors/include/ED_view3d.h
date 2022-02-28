@@ -507,9 +507,18 @@ float ED_view3d_pixel_size(const struct RegionView3D *rv3d, const float co[3]);
 float ED_view3d_pixel_size_no_ui_scale(const struct RegionView3D *rv3d, const float co[3]);
 
 /**
- * Calculate a depth value from \a co, use with #ED_view3d_win_to_delta
+ * Calculate a depth value from \a co, use with #ED_view3d_win_to_delta.
+ *
+ * \param r_flip: Set to `zfac < 0.0` before the value is made signed.
+ * Since it's important in some cases to know if the value was flipped.
+ *
+ * \return The unsigned depth component of `co` multiplied by `rv3d->persmat` matrix,
+ * with additional sanitation to ensure the result is never negative
+ * as this isn't useful for tool-code.
  */
-float ED_view3d_calc_zfac(const struct RegionView3D *rv3d, const float co[3], bool *r_flip);
+float ED_view3d_calc_zfac_ex(const struct RegionView3D *rv3d, const float co[3], bool *r_flip);
+/** See #ED_view3d_calc_zfac_ex doc-string. */
+float ED_view3d_calc_zfac(const struct RegionView3D *rv3d, const float co[3]);
 /**
  * Calculate a depth value from `co` (result should only be used for comparison).
  */
@@ -627,16 +636,24 @@ bool ED_view3d_win_to_3d_on_plane_int(const struct ARegion *region,
                                       float r_out[3]);
 /**
  * Calculate a 3d difference vector from 2d window offset.
- * note that #ED_view3d_calc_zfac() must be called first to determine
+ *
+ * \note that #ED_view3d_calc_zfac() must be called first to determine
  * the depth used to calculate the delta.
+ *
+ * When the `zfac` is calculated based on a world-space location directly under the cursor,
+ * the value of `r_out` can be subtracted from #RegionView3D.ofs to pan the view
+ * with the contents following the cursor perfectly (without sliding).
+ *
  * \param region: The region (used for the window width and height).
- * \param mval: The area relative 2d difference (such as `event->mval[0] - other_x`).
- * \param out: The resulting world-space delta.
+ * \param xy_delta: 2D difference (in pixels) such as `event->mval[0] - other_x`.
+ * \param zfac: The depth result typically calculated by by #ED_view3d_calc_zfac
+ * (see it's doc-string for details).
+ * \param r_out: The resulting world-space delta.
  */
 void ED_view3d_win_to_delta(const struct ARegion *region,
-                            const float mval[2],
-                            float out[3],
-                            float zfac);
+                            const float xy_delta[2],
+                            float zfac,
+                            float r_out[3]);
 /**
  * Calculate a 3d origin from 2d window coordinates.
  * \note Orthographic views have a less obvious origin,
@@ -645,23 +662,23 @@ void ED_view3d_win_to_delta(const struct ARegion *region,
  *
  * \param region: The region (used for the window width and height).
  * \param mval: The area relative 2d location (such as event->mval converted to floats).
- * \param out: The resulting normalized world-space direction vector.
+ * \param r_out: The resulting normalized world-space direction vector.
  */
-void ED_view3d_win_to_origin(const struct ARegion *region, const float mval[2], float out[3]);
+void ED_view3d_win_to_origin(const struct ARegion *region, const float mval[2], float r_out[3]);
 /**
  * Calculate a 3d direction vector from 2d window coordinates.
  * This direction vector starts and the view in the direction of the 2d window coordinates.
  * In orthographic view all window coordinates yield the same vector.
  *
- * \note doesn't rely on ED_view3d_calc_zfac
+ * \note doesn't rely on #ED_view3d_calc_zfac
  * for perspective view, get the vector direction to
  * the mouse cursor as a normalized vector.
  *
  * \param region: The region (used for the window width and height).
  * \param mval: The area relative 2d location (such as event->mval converted to floats).
- * \param out: The resulting normalized world-space direction vector.
+ * \param r_out: The resulting normalized world-space direction vector.
  */
-void ED_view3d_win_to_vector(const struct ARegion *region, const float mval[2], float out[3]);
+void ED_view3d_win_to_vector(const struct ARegion *region, const float mval[2], float r_out[3]);
 /**
  * Calculate a 3d segment from 2d window coordinates.
  * This ray_start is located at the viewpoint, ray_end is a far point.

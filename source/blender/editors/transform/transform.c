@@ -177,8 +177,8 @@ void convertViewVec(TransInfo *t, float r_vec[3], double dx, double dy)
       r_vec[1] = dy;
     }
     else {
-      const float mval_f[2] = {(float)dx, (float)dy};
-      ED_view3d_win_to_delta(t->region, mval_f, r_vec, t->zfac);
+      const float xy_delta[2] = {(float)dx, (float)dy};
+      ED_view3d_win_to_delta(t->region, xy_delta, t->zfac, r_vec);
     }
   }
   else if (t->spacetype == SPACE_IMAGE) {

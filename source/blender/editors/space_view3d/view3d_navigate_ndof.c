@@ -48,7 +48,7 @@ static float view3d_ndof_pan_speed_calc_ex(RegionView3D *rv3d, const float depth
   float speed = rv3d->pixsize * NDOF_PIXELS_PER_SECOND;
 
   if (rv3d->is_persp) {
-    speed *= ED_view3d_calc_zfac(rv3d, depth_pt, NULL);
+    speed *= ED_view3d_calc_zfac(rv3d, depth_pt);
   }
 
   return speed;

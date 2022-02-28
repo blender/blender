@@ -822,17 +822,16 @@ bool gpencil_point_xy_to_3d(const GP_SpaceConversion *gsc,
 
   ED_gpencil_drawing_reference_get(scene, gsc->ob, scene->toolsettings->gpencil_v3d_align, rvec);
 
-  float zfac = ED_view3d_calc_zfac(rv3d, rvec, NULL);
+  float zfac = ED_view3d_calc_zfac(rv3d, rvec);
 
-  float mval_f[2], mval_prj[2];
-  float dvec[3];
-
-  copy_v2_v2(mval_f, screen_co);
+  float mval_prj[2];
 
   if (ED_view3d_project_float_global(gsc->region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
       V3D_PROJ_RET_OK) {
-    sub_v2_v2v2(mval_f, mval_prj, mval_f);
-    ED_view3d_win_to_delta(gsc->region, mval_f, dvec, zfac);
+    float dvec[3];
+    float xy_delta[2];
+    sub_v2_v2v2(xy_delta, mval_prj, screen_co);
+    ED_view3d_win_to_delta(gsc->region, xy_delta, zfac, dvec);
     sub_v3_v3v3(r_out, rvec, dvec);
 
     return true;
@@ -863,21 +862,21 @@ void gpencil_stroke_convertcoords_tpoint(Scene *scene,
      */
   }
   else {
-    float mval_f[2] = {UNPACK2(point2D->m_xy)};
     float mval_prj[2];
-    float rvec[3], dvec[3];
-    float zfac;
+    float rvec[3];
 
     /* Current method just converts each point in screen-coordinates to
      * 3D-coordinates using the 3D-cursor as reference.
      */
     ED_gpencil_drawing_reference_get(scene, ob, ts->gpencil_v3d_align, rvec);
-    zfac = ED_view3d_calc_zfac(region->regiondata, rvec, NULL);
+    const float zfac = ED_view3d_calc_zfac(region->regiondata, rvec);
 
     if (ED_view3d_project_float_global(region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
         V3D_PROJ_RET_OK) {
-      sub_v2_v2v2(mval_f, mval_prj, mval_f);
-      ED_view3d_win_to_delta(region, mval_f, dvec, zfac);
+      float dvec[3];
+      float xy_delta[2];
+      sub_v2_v2v2(xy_delta, mval_prj, point2D->m_xy);
+      ED_view3d_win_to_delta(region, xy_delta, zfac, dvec);
       sub_v3_v3v3(r_out, rvec, dvec);
     }
     else {
@@ -2005,19 +2004,19 @@ static void gpencil_stroke_convertcoords(ARegion *region,
                                          const float origin[3],
                                          float out[3])
 {
-  float mval_f[2] = {UNPACK2(point2D->m_xy)};
   float mval_prj[2];
-  float rvec[3], dvec[3];
-  float zfac;
+  float rvec[3];
 
   copy_v3_v3(rvec, origin);
 
-  zfac = ED_view3d_calc_zfac(region->regiondata, rvec, NULL);
+  const float zfac = ED_view3d_calc_zfac(region->regiondata, rvec);
 
   if (ED_view3d_project_float_global(region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
       V3D_PROJ_RET_OK) {
-    sub_v2_v2v2(mval_f, mval_prj, mval_f);
-    ED_view3d_win_to_delta(region, mval_f, dvec, zfac);
+    float dvec[3];
+    float xy_delta[2];
+    sub_v2_v2v2(xy_delta, mval_prj, point2D->m_xy);
+    ED_view3d_win_to_delta(region, xy_delta, zfac, dvec);
     sub_v3_v3v3(out, rvec, dvec);
   }
   else {
