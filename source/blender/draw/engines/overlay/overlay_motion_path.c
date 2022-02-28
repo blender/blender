@@ -90,8 +90,8 @@ static void motion_path_get_frame_range_to_draw(bAnimVizSettings *avs,
     end = current_frame + avs->path_ac + 1;
   }
   else {
-    start = avs->path_sf;
-    end = avs->path_ef;
+    start = mpath->start_frame;
+    end = mpath->end_frame;
   }
 
   if (start > end) {
