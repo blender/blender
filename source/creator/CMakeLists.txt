@@ -394,7 +394,6 @@ if(WITH_PYTHON)
 	  PATTERN "addons/amaranth" EXCLUDE
 	  PATTERN "addons/mesh_tiny_cad" EXCLUDE
 	  PATTERN "addons/mesh_tissue" EXCLUDE
-	  PATTERN "addons/real_snow.py" EXCLUDE
   )
 
   unset(ADDON_EXCLUDE_CONDITIONAL)
