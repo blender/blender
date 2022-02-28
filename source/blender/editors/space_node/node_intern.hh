@@ -196,7 +196,8 @@ void nodelink_batch_end(SpaceNode &snode);
 void node_draw_link(const bContext &C,
                     const View2D &v2d,
                     const SpaceNode &snode,
-                    const bNodeLink &link);
+                    const bNodeLink &link,
+                    bool selected);
 /**
  * Don't do shadows if th_col3 is -1.
  */
@@ -206,7 +207,8 @@ void node_draw_link_bezier(const bContext &C,
                            const bNodeLink &link,
                            int th_col1,
                            int th_col2,
-                           int th_col3);
+                           int th_col3,
+                           bool selected);
 /** If v2d not nullptr, it clips and returns 0 if not visible. */
 bool node_link_bezier_points(const View2D *v2d,
                              const SpaceNode *snode,

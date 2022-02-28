@@ -2438,6 +2438,11 @@ bool nodeLinkIsHidden(const bNodeLink *link)
   return nodeSocketIsHidden(link->fromsock) || nodeSocketIsHidden(link->tosock);
 }
 
+bool nodeLinkIsSelected(const bNodeLink *link)
+{
+  return (link->fromnode->flag & NODE_SELECT) || (link->tonode->flag & NODE_SELECT);
+}
+
 /* Adjust the indices of links connected to the given multi input socket after deleting the link at
  * `deleted_index`. This function also works if the link has not yet been deleted. */
 static void adjust_multi_input_indices_after_removed_link(bNodeTree *ntree,

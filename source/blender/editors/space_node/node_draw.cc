@@ -660,7 +660,7 @@ static void node_draw_mute_line(const bContext &C,
   GPU_blend(GPU_BLEND_ALPHA);
 
   LISTBASE_FOREACH (const bNodeLink *, link, &node.internal_links) {
-    node_draw_link_bezier(C, v2d, snode, *link, TH_WIRE_INNER, TH_WIRE_INNER, TH_WIRE);
+    node_draw_link_bezier(C, v2d, snode, *link, TH_WIRE_INNER, TH_WIRE_INNER, TH_WIRE, false);
   }
 
   GPU_blend(GPU_BLEND_NONE);
@@ -2650,10 +2650,18 @@ static void node_draw_nodetree(const bContext &C,
   nodelink_batch_start(snode);
 
   LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
-    if (!nodeLinkIsHidden(link)) {
-      node_draw_link(C, region.v2d, snode, *link);
+    if (!nodeLinkIsHidden(link) && !nodeLinkIsSelected(link)) {
+      node_draw_link(C, region.v2d, snode, *link, false);
     }
   }
+
+  /* Draw selected node links after the unselected ones, so they are shown on top. */
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+    if (!nodeLinkIsHidden(link) && nodeLinkIsSelected(link)) {
+      node_draw_link(C, region.v2d, snode, *link, true);
+    }
+  }
+  
   nodelink_batch_end(snode);
   GPU_blend(GPU_BLEND_NONE);
 
@@ -2838,7 +2846,7 @@ void node_draw_space(const bContext &C, ARegion &region)
     GPU_line_smooth(true);
     if (snode.runtime->linkdrag) {
       for (const bNodeLink *link : snode.runtime->linkdrag->links) {
-        node_draw_link(C, v2d, snode, *link);
+        node_draw_link(C, v2d, snode, *link, true);
       }
     }
     GPU_line_smooth(false);
