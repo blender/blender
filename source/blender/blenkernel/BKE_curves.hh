@@ -119,6 +119,9 @@ class CurvesGeometry : public ::CurvesGeometry {
   Span<int> offsets() const;
   MutableSpan<int> offsets();
 
+  VArray<bool> cyclic() const;
+  MutableSpan<bool> cyclic();
+
   /* --------------------------------------------------------------------
    * Operations.
    */
