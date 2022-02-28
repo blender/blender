@@ -44,6 +44,7 @@ namespace blender::ed::sculpt_paint::image::ops::paint {
  */
 class AbstractPaintMode {
  public:
+  virtual ~AbstractPaintMode() = default;
   virtual void *paint_new_stroke(
       bContext *C, wmOperator *op, Object *ob, const float mouse[2], int mode) = 0;
   virtual void paint_stroke(bContext *C,
