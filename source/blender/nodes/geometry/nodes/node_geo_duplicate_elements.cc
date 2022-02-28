@@ -57,9 +57,9 @@ struct IndexAttributes {
   StrongAnonymousAttributeID duplicate_index;
 };
 
-/* --------------------------------------------------------------------
- * Attribute Copy/Creation Functions.
- */
+/* -------------------------------------------------------------------- */
+/** \name Attribute Copy/Creation Functions
+ * \{ */
 
 static void gather_attributes_without_id(const GeometrySet &geometry_set,
                                          const GeometryComponentType component_type,
@@ -131,7 +131,7 @@ static void threaded_id_offset_copy(const Span<int> offsets,
   });
 }
 
-/* Create the copy indices for the duplication domain. */
+/** Create the copy indices for the duplication domain. */
 static void create_duplicate_index_attribute(GeometryComponent &component,
                                              const AttributeDomain output_domain,
                                              const IndexMask selection,
@@ -151,8 +151,10 @@ static void create_duplicate_index_attribute(GeometryComponent &component,
   copy_attribute.save();
 }
 
-/* Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
- * and the duplicate number. This function is used for the point domain elements. */
+/**
+ * Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
+ * and the duplicate number. This function is used for the point domain elements.
+ */
 static void copy_stable_id_point(const Span<int> offsets,
                                  const GeometryComponent &src_component,
                                  GeometryComponent &dst_component)
@@ -173,7 +175,8 @@ static void copy_stable_id_point(const Span<int> offsets,
   dst_attribute.save();
 }
 
-/* Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
+/**
+ * Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
  * and the duplicate number. This function is used for points when duplicating the edge domain.
  */
 static void copy_stable_id_edges(const Mesh &mesh,
@@ -216,11 +219,12 @@ static void copy_stable_id_edges(const Mesh &mesh,
   dst_attribute.save();
 }
 
-/* Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
+/**
+ * Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
  * and the duplicate number. This function is used for points when duplicating the face domain.
  *
  * This function could be threaded in the future, but since it is only 1 attribute and the
- * face->edge->vert mapping would mean creating a 1/1 mapping to allow for it, is it worth it?
+ * `face->edge->vert` mapping would mean creating a 1/1 mapping to allow for it, is it worth it?
  */
 static void copy_stable_id_faces(const Mesh &mesh,
                                  const IndexMask selection,
@@ -266,10 +270,12 @@ static void copy_stable_id_faces(const Mesh &mesh,
   dst_attribute.save();
 }
 
-/* Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
+/**
+ * Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
  * and the duplicate number. In the spline case, copy the entire spline's points to the
  * destination,
- * then loop over the remaining ones point by point, hashing their ids to the new ids. */
+ * then loop over the remaining ones point by point, hashing their ids to the new ids.
+ */
 static void copy_stable_id_splines(const CurveEval &curve,
                                    const IndexMask selection,
                                    const Span<int> curve_offsets,
@@ -359,8 +365,10 @@ static void copy_point_attributes_without_id(GeometrySet &geometry_set,
   }
 }
 
-/* Copies the attributes for spline duplciates. If copying the spline domain, the attributes are
- * copied with an offset fill, otherwise a mapping is used. */
+/**
+ * Copies the attributes for spline duplicates. If copying the spline domain, the attributes are
+ * copied with an offset fill, otherwise a mapping is used.
+ */
 static void copy_spline_attributes_without_id(const GeometrySet &geometry_set,
                                               const Span<int> point_mapping,
                                               const Span<int> offsets,
@@ -409,8 +417,10 @@ static void copy_spline_attributes_without_id(const GeometrySet &geometry_set,
   }
 }
 
-/* Copies the attributes for edge duplciates. If copying the edge domain, the attributes are
- * copied with an offset fill, for point domain a mapping is used. */
+/**
+ * Copies the attributes for edge duplicates. If copying the edge domain, the attributes are
+ * copied with an offset fill, for point domain a mapping is used.
+ */
 static void copy_edge_attributes_without_id(GeometrySet &geometry_set,
                                             const Span<int> point_mapping,
                                             const Span<int> offsets,
@@ -456,8 +466,10 @@ static void copy_edge_attributes_without_id(GeometrySet &geometry_set,
   }
 }
 
-/* Copies the attributes for face duplciates. If copying the face domain, the attributes are
- * copied with an offset fill, otherwise a mapping is used. */
+/**
+ * Copies the attributes for face duplicates. If copying the face domain, the attributes are
+ * copied with an offset fill, otherwise a mapping is used.
+ */
 static void copy_face_attributes_without_id(GeometrySet &geometry_set,
                                             const Span<int> edge_mapping,
                                             const Span<int> vert_mapping,
@@ -512,9 +524,11 @@ static void copy_face_attributes_without_id(GeometrySet &geometry_set,
   }
 }
 
-/* --------------------------------------------------------------------
- * Duplication Functions.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Duplication Functions
+ * \{ */
 
 static void duplicate_splines(GeometrySet &geometry_set,
                               const Field<int> &count_field,
@@ -1101,3 +1115,5 @@ void register_node_type_geo_duplicate_elements()
   ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }
+
+/** \} */

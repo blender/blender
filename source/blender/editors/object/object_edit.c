@@ -1460,8 +1460,6 @@ void OBJECT_OT_paths_clear(wmOperatorType *ot)
 
 /** \} */
 
-/** \} */
-
 /* -------------------------------------------------------------------- */
 /** \name Object Shade Smooth/Flat Operator
  * \{ */

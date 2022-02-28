@@ -4293,7 +4293,7 @@ static void widget_tab(
   const bool is_active = (state & UI_SELECT);
 
   /* Draw shaded outline - Disabled for now,
-   * seems incorrect and also looks nicer without it imho ;) */
+   * seems incorrect and also looks nicer without it IMHO ;). */
   // #define USE_TAB_SHADED_HIGHLIGHT
 
   uchar theme_col_tab_highlight[3];

@@ -1437,7 +1437,7 @@ static void mesh_calc_edges_mdata(MVert *UNUSED(allvert),
       med++;
     }
     else {
-      /* equal edge, we merge the drawflag */
+      /* Equal edge, merge the draw-flag. */
       (ed + 1)->is_draw |= ed->is_draw;
     }
   }

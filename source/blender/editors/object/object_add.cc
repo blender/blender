@@ -2573,7 +2573,7 @@ static void object_data_convert_ensure_curve_cache(Depsgraph *depsgraph, Scene *
      * (all its caches have been nuked then).
      */
     if (ELEM(ob->type, OB_SURF, OB_CURVES_LEGACY, OB_FONT)) {
-      /* We need 'for render' ON here, to enable computing bevel dipslist if needed.
+      /* We need 'for render' ON here, to enable computing bevel #DispList if needed.
        * Also makes sense anyway, we would not want e.g. to lose hidden parts etc. */
       BKE_displist_make_curveTypes(depsgraph, scene, ob, true);
     }
@@ -2650,8 +2650,8 @@ static Base *duplibase_for_convert(
 
   /* XXX: An ugly hack needed because if we re-run depsgraph with some new meta-ball objects
    * having same 'family name' as orig ones, they will affect end result of meta-ball computation.
-   * For until we get rid of that name-based thingy in MBalls, that should do the trick
-   * (this is weak, but other solution (to change name of `obn`) is even worse imho).
+   * For until we get rid of that name-based thingy in meta-balls, that should do the trick
+   * (this is weak, but other solution (to change name of `obn`) is even worse IMHO).
    * See T65996. */
   const bool is_meta_ball = (obn->type == OB_MBALL);
   void *obdata = obn->data;
@@ -3204,7 +3204,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
   }
 
   // XXX  ED_object_editmode_enter(C, 0);
-  // XXX  exit_editmode(C, EM_FREEDATA|); /* freedata, but no undo */
+  // XXX  exit_editmode(C, EM_FREEDATA|); /* free data, but no undo */
 
   if (basact) {
     /* active base was changed */
@@ -3302,16 +3302,11 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 /** \name Duplicate Object Operator
  * \{ */
 
-/*
- * dupflag: a flag made from constants declared in DNA_userdef_types.h
- * The flag tells adduplicate() whether to copy data linked to the object,
- * or to reference the existing data.
- * U.dupflag for default operations or you can construct a flag as python does
- * if the dupflag is 0 then no data will be copied (linked duplicate). */
-
-/* used below, assumes id.new is correct */
-/* leaves selection of base/object unaltered */
-/* Does set ID->newid pointers. */
+/**
+ * - Assumes `id.new` is correct.
+ * - Leaves selection of base/object unaltered.
+ * - Sets #ID.newid pointers.
+ */
 static Base *object_add_duplicate_internal(Main *bmain,
                                            Scene *scene,
                                            ViewLayer *view_layer,

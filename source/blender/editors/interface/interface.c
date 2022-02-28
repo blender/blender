@@ -3087,11 +3087,11 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
         PointerRNA rptr;
 
         /* This is kind of hackish, in theory think we could only ever use the second member of
-         * this if/else, since ui_searchbox_apply() is supposed to always set that pointer when
+         * this if/else, since #ui_searchbox_apply() is supposed to always set that pointer when
          * we are storing pointers... But keeping str search first for now,
          * to try to break as little as possible existing code. All this is band-aids anyway.
-         * Fact remains, using editstr as main 'reference' over whole search button thingy
-         * is utterly weak and should be redesigned imho, but that's not a simple task. */
+         * Fact remains, using `editstr` as main 'reference' over whole search button thingy
+         * is utterly weak and should be redesigned IMHO, but that's not a simple task. */
         if (search_but && search_but->rnasearchprop &&
             RNA_property_collection_lookup_string(
                 &search_but->rnasearchpoin, search_but->rnasearchprop, str, &rptr)) {
