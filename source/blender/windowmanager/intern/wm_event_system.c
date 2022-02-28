@@ -3161,21 +3161,27 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         if (WM_event_drag_test(event, event->prev_click_xy)) {
           win->event_queue_check_drag_handled = true;
 
-          int xy[2] = {UNPACK2(event->xy)};
-          short val = event->val;
-          short type = event->type;
+          const int prev_xy[2] = {UNPACK2(event->xy)};
+          const short prev_val = event->val;
+          const short prev_type = event->type;
+          const uint8_t prev_modifier = event->modifier;
+          const short prev_keymodifier = event->keymodifier;
 
           copy_v2_v2_int(event->xy, event->prev_click_xy);
           event->val = KM_CLICK_DRAG;
           event->type = event->prev_type;
+          event->modifier = event->prev_click_modifier;
+          event->keymodifier = event->prev_click_keymodifier;
 
           CLOG_INFO(WM_LOG_HANDLERS, 1, "handling PRESS_DRAG");
 
           action |= wm_handlers_do_intern(C, win, event, handlers);
 
-          event->val = val;
-          event->type = type;
-          copy_v2_v2_int(event->xy, xy);
+          event->keymodifier = prev_keymodifier;
+          event->modifier = prev_modifier;
+          event->val = prev_val;
+          event->type = prev_type;
+          copy_v2_v2_int(event->xy, prev_xy);
 
           win->event_queue_check_click = false;
           if (!wm_action_not_handled(action)) {
@@ -3205,7 +3211,16 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         }
       }
       else if (event->val == KM_RELEASE) {
-        win->event_queue_check_drag = false;
+        if (win->event_queue_check_drag) {
+          if ((event->prev_type != event->type) &&
+              (ISKEYMODIFIER(event->type) || (event->type == event->prev_click_keymodifier))) {
+            /* Support releasing modifier keys without canceling the drag event, see T89989.
+             * NOTE: this logic is replicated for tweak gestures. */
+          }
+          else {
+            win->event_queue_check_drag = false;
+          }
+        }
       }
 
       if (event->prev_type == event->type) {
@@ -4692,6 +4707,8 @@ static void wm_event_prev_click_set(wmEvent *event, wmEvent *event_state)
   event->prev_click_time = event_state->prev_click_time = PIL_check_seconds_timer();
   event->prev_click_xy[0] = event_state->prev_click_xy[0] = event_state->xy[0];
   event->prev_click_xy[1] = event_state->prev_click_xy[1] = event_state->xy[1];
+  event->prev_click_modifier = event_state->prev_click_modifier = event_state->modifier;
+  event->prev_click_keymodifier = event_state->prev_click_keymodifier = event_state->keymodifier;
 }
 
 static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)

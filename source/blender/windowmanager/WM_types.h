@@ -510,6 +510,10 @@ typedef struct wmGesture {
   struct wmGesture *next, *prev;
   /** #wmEvent.type */
   int event_type;
+  /** #wmEvent.modifier */
+  uint8_t event_modifier;
+  /** #wmEvent.keymodifier */
+  short event_keymodifier;
   /** Gesture type define. */
   int type;
   /** bounds of region to draw gesture within. */
@@ -628,6 +632,11 @@ typedef struct wmEvent {
   double prev_click_time;
   /** The location when the key is pressed (used to enforce drag thresholds). */
   int prev_click_xy[2];
+  /** The `modifier` at the point of the click action. */
+  uint8_t prev_click_modifier;
+  /** The `keymodifier` at the point of the click action. */
+  short prev_click_keymodifier;
+
   /**
    * The previous value of #wmEvent.xy,
    * Unlike other previous state variables, this is set on any mouse motion.
