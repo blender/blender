@@ -283,7 +283,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set = geometry::realize_instances_legacy(geometry_set);
 
-  if (!geometry_set.has_curve()) {
+  if (!geometry_set.has_curves()) {
     params.set_output("Geometry", GeometrySet());
     return;
   }

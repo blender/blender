@@ -141,9 +141,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   bool has_bezier = false;
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (geometry_set.has_curve()) {
+    if (geometry_set.has_curves()) {
       const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
-          *geometry_set.get_curve_for_read());
+          *geometry_set.get_curves_for_read());
       has_bezier = curve->has_spline_with_type(CURVE_TYPE_BEZIER);
 
       set_position_in_component(mode,

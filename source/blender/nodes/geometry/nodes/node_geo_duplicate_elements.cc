@@ -521,7 +521,7 @@ static void duplicate_splines(GeometrySet &geometry_set,
                               const Field<bool> &selection_field,
                               IndexAttributes &attributes)
 {
-  if (!geometry_set.has_curve()) {
+  if (!geometry_set.has_curves()) {
     geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
     return;
   }
@@ -530,7 +530,7 @@ static void duplicate_splines(GeometrySet &geometry_set,
   const GeometryComponent &src_component = *geometry_set.get_component_for_read(
       GEO_COMPONENT_TYPE_CURVE);
   const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
-      *geometry_set.get_curve_for_read());
+      *geometry_set.get_curves_for_read());
   const int domain_size = src_component.attribute_domain_size(ATTR_DOMAIN_CURVE);
   GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_CURVE};
   FieldEvaluator evaluator{field_context, domain_size};
@@ -788,7 +788,7 @@ static void duplicate_points_curve(const GeometryComponentType component_type,
 
   CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
   const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
-      *geometry_set.get_curve_for_read());
+      *geometry_set.get_curves_for_read());
   Array<int> control_point_offsets = curve->control_point_offsets();
   std::unique_ptr<CurveEval> new_curve = std::make_unique<CurveEval>();
 
@@ -933,7 +933,7 @@ static void duplicate_points(GeometrySet &geometry_set,
                              const Field<bool> &selection_field,
                              IndexAttributes &attributes)
 {
-  if (!geometry_set.has_mesh() && !geometry_set.has_curve() && !geometry_set.has_pointcloud()) {
+  if (!geometry_set.has_mesh() && !geometry_set.has_curves() && !geometry_set.has_pointcloud()) {
     geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
     return;
   }

@@ -83,7 +83,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       std::max(params.extract_input<float>("Outer Radius"), 0.0f),
       params.extract_input<float>("Twist"),
       std::max(params.extract_input<int>("Points"), 3));
-  GeometrySet output = GeometrySet::create_with_curve(curve_eval_to_curves(*curve));
+  GeometrySet output = GeometrySet::create_with_curves(curve_eval_to_curves(*curve));
 
   if (params.output_is_required("Outer Points")) {
     StrongAnonymousAttributeID attribute_output("Outer Points");

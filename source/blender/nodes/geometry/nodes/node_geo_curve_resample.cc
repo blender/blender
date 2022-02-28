@@ -235,7 +235,7 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveComponent *component
 static void geometry_set_curve_resample(GeometrySet &geometry_set,
                                         const SampleModeParam &mode_param)
 {
-  if (!geometry_set.has_curve()) {
+  if (!geometry_set.has_curves()) {
     return;
   }
 

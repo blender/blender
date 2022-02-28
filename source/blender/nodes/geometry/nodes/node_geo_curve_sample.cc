@@ -122,7 +122,7 @@ class SampleCurveFunction : public fn::MultiFunction {
       }
     };
 
-    if (!geometry_set_.has_curve()) {
+    if (!geometry_set_.has_curves()) {
       return return_default();
     }
 

@@ -342,7 +342,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set = geometry::realize_instances_legacy(geometry_set);
 
-  if (!geometry_set.has_curve()) {
+  if (!geometry_set.has_curves()) {
     params.set_output("Geometry", geometry_set);
     return;
   }
@@ -358,7 +358,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       *curves_to_curve_eval(*component.get_for_read()), cuts);
 
   params.set_output("Geometry",
-                    GeometrySet::create_with_curve(curve_eval_to_curves(*output_curve)));
+                    GeometrySet::create_with_curves(curve_eval_to_curves(*output_curve)));
 }
 
 }  // namespace blender::nodes::node_geo_legacy_curve_subdivide_cc

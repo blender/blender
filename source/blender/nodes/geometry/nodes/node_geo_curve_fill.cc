@@ -113,12 +113,12 @@ static Mesh *cdt_to_mesh(const blender::meshintersect::CDT_result<double> &resul
 
 static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCurveFillMode mode)
 {
-  if (!geometry_set.has_curve()) {
+  if (!geometry_set.has_curves()) {
     return;
   }
 
   const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
-      *geometry_set.get_curve_for_read());
+      *geometry_set.get_curves_for_read());
   if (curve->splines().is_empty()) {
     geometry_set.replace_curve(nullptr);
     return;

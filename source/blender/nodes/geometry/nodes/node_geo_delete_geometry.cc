@@ -1286,7 +1286,7 @@ void separate_geometry(GeometrySet &geometry_set,
       some_valid_domain = true;
     }
   }
-  if (geometry_set.has_curve()) {
+  if (geometry_set.has_curves()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
       file_ns::separate_curve_selection(geometry_set, selection_field, domain, invert);
       some_valid_domain = true;

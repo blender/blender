@@ -44,7 +44,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float> radii_field = params.extract_input<Field<float>>("Radius");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (geometry_set.has_curve()) {
+    if (geometry_set.has_curves()) {
       set_radius_in_component(
           geometry_set.get_component_for_write<CurveComponent>(), selection_field, radii_field);
     }

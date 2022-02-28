@@ -572,7 +572,7 @@ static void calculate_curve_fillet(GeometrySet &geometry_set,
                                    const std::optional<Field<int>> &count_field,
                                    const bool limit_radius)
 {
-  if (!geometry_set.has_curve()) {
+  if (!geometry_set.has_curves()) {
     return;
   }
 

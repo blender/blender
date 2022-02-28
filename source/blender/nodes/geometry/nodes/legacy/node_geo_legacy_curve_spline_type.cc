@@ -236,7 +236,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   geometry_set = geometry::realize_instances_legacy(geometry_set);
-  if (!geometry_set.has_curve()) {
+  if (!geometry_set.has_curves()) {
     params.set_output("Curve", geometry_set);
     return;
   }
@@ -269,7 +269,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   new_curve->attributes = curve->attributes;
-  params.set_output("Curve", GeometrySet::create_with_curve(curve_eval_to_curves(*new_curve)));
+  params.set_output("Curve", GeometrySet::create_with_curves(curve_eval_to_curves(*new_curve)));
 }
 
 }  // namespace blender::nodes::node_geo_legacy_curve_spline_type_cc

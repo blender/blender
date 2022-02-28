@@ -957,7 +957,7 @@ static const Curves *get_evaluated_curves_from_object(const Object *object)
 {
   GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval;
   if (geometry_set_eval) {
-    return geometry_set_eval->get_curve_for_read();
+    return geometry_set_eval->get_curves_for_read();
   }
   return nullptr;
 }

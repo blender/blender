@@ -126,7 +126,7 @@ static void translate_geometry_set(GeometrySet &geometry,
                                    const float3 translation,
                                    const Depsgraph &depsgraph)
 {
-  if (Curves *curves = geometry.get_curve_for_write()) {
+  if (Curves *curves = geometry.get_curves_for_write()) {
     std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curves);
     curve->translate(translation);
     geometry.replace_curve(curve_eval_to_curves(*curve));
@@ -149,7 +149,7 @@ void transform_geometry_set(GeometrySet &geometry,
                             const float4x4 &transform,
                             const Depsgraph &depsgraph)
 {
-  if (Curves *curves = geometry.get_curve_for_write()) {
+  if (Curves *curves = geometry.get_curves_for_write()) {
     std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curves);
     curve->transform(transform);
     geometry.replace_curve(curve_eval_to_curves(*curve));

@@ -1041,7 +1041,7 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
 static void gather_curves_to_realize(const GeometrySet &geometry_set,
                                      VectorSet<const Curves *> &r_curves)
 {
-  if (const Curves *curves = geometry_set.get_curve_for_read()) {
+  if (const Curves *curves = geometry_set.get_curves_for_read()) {
     if (curves->geometry.curve_size != 0) {
       r_curves.add(curves);
     }

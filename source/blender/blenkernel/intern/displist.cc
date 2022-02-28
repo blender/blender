@@ -1490,7 +1490,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
   else {
     GeometrySet geometry = evaluate_curve_type_object(depsgraph, scene, ob, for_render, dispbase);
 
-    if (geometry.has_curve()) {
+    if (geometry.has_curves()) {
       /* Assign the evaluated curve to the object's "data_eval". In addition to the curve_eval
        * added to the curve here, it will also contain a copy of the original curve's data. This is
        * essential, because it maintains the expected behavior for evaluated curve data from before

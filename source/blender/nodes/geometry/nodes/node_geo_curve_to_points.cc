@@ -321,12 +321,12 @@ static void node_geo_exec(GeoNodeExecParams params)
   attribute_outputs.rotation_id = StrongAnonymousAttributeID("Rotation");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (!geometry_set.has_curve()) {
+    if (!geometry_set.has_curves()) {
       geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
       return;
     }
     const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
-        *geometry_set.get_curve_for_read());
+        *geometry_set.get_curves_for_read());
     const Span<SplinePtr> splines = curve->splines();
     curve->assert_valid_point_attributes();
 

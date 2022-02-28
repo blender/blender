@@ -43,10 +43,10 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   bool only_poly = true;
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (geometry_set.has_curve()) {
+    if (geometry_set.has_curves()) {
       if (only_poly) {
         const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
-            *geometry_set.get_curve_for_read());
+            *geometry_set.get_curves_for_read());
         for (const SplinePtr &spline : curve->splines()) {
           if (ELEM(spline->type(), CURVE_TYPE_BEZIER, CURVE_TYPE_NURBS)) {
             only_poly = false;

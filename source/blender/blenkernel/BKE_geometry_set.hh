@@ -413,9 +413,9 @@ struct GeometrySet {
   static GeometrySet create_with_pointcloud(
       PointCloud *pointcloud, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
   /**
-   * Create a new geometry set that only contains the given curve.
+   * Create a new geometry set that only contains the given curves.
    */
-  static GeometrySet create_with_curve(
+  static GeometrySet create_with_curves(
       Curves *curves, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
 
   /* Utility methods for access. */
@@ -436,9 +436,9 @@ struct GeometrySet {
    */
   bool has_volume() const;
   /**
-   * Returns true when the geometry set has a curve component that has a curve.
+   * Returns true when the geometry set has a curves component that has a curves data-block.
    */
-  bool has_curve() const;
+  bool has_curves() const;
   /**
    * Returns true when the geometry set has any data that is not an instance.
    */
@@ -461,9 +461,9 @@ struct GeometrySet {
    */
   const Volume *get_volume_for_read() const;
   /**
-   * Returns a read-only curve or null.
+   * Returns a read-only curves data-block or null.
    */
-  const Curves *get_curve_for_read() const;
+  const Curves *get_curves_for_read() const;
 
   /**
    * Returns a mutable mesh or null. No ownership is transferred.
@@ -478,9 +478,9 @@ struct GeometrySet {
    */
   Volume *get_volume_for_write();
   /**
-   * Returns a mutable curve or null. No ownership is transferred.
+   * Returns a mutable curves data-block or null. No ownership is transferred.
    */
-  Curves *get_curve_for_write();
+  Curves *get_curves_for_write();
 
   /* Utility methods for replacement. */
   /**
@@ -498,7 +498,7 @@ struct GeometrySet {
   void replace_volume(Volume *volume,
                       GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
   /**
-   * Clear the existing curve and replace it with the given one.
+   * Clear the existing curves data-block and replace it with the given one.
    */
   void replace_curve(Curves *curves,
                      GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
