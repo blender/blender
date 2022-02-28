@@ -499,6 +499,10 @@ void deg_graph_node_tag_zero(Main *bmain,
     if (comp_node->type == NodeType::ANIMATION) {
       continue;
     }
+    else if (comp_node->type == NodeType::COPY_ON_WRITE) {
+      id_node->is_cow_explicitly_tagged = true;
+    }
+
     comp_node->tag_update(graph, update_source);
   }
   deg_graph_id_tag_legacy_compat(bmain, graph, id, (IDRecalcFlag)0, update_source);
