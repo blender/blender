@@ -96,7 +96,7 @@ void OBJECT_OT_select_more(struct wmOperatorType *ot);
 void OBJECT_OT_select_less(struct wmOperatorType *ot);
 void OBJECT_OT_select_same_collection(struct wmOperatorType *ot);
 
-/* object_add.c */
+/* object_add.cc */
 
 void OBJECT_OT_add(struct wmOperatorType *ot);
 void OBJECT_OT_add_named(struct wmOperatorType *ot);
