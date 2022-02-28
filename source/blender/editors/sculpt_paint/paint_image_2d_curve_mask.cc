@@ -69,6 +69,7 @@ static void update_curve_mask(CurveMaskCache *curve_mask_cache,
 {
   BLI_assert(curve_mask_cache->curve_mask != nullptr);
   int offset = (int)floorf(diameter / 2.0f);
+  int clamped_radius = max_ff(radius, 1.0);
 
   unsigned short *m = curve_mask_cache->curve_mask;
 
@@ -92,7 +93,7 @@ static void update_curve_mask(CurveMaskCache *curve_mask_cache,
         pixel_xy[1] = static_cast<float>(y) + aa_offset;
         for (int j = 0; j < aa_samples; j++) {
           const float len = len_v2v2(pixel_xy, bpos);
-          const int sample_index = min_ii((len / radius) * CurveSamplesBaseLen,
+          const int sample_index = min_ii((len / clamped_radius) * CurveSamplesBaseLen,
                                           CurveSamplesLen - 1);
           const float sample_weight = curve_mask_cache->sampled_curve[sample_index];
 
