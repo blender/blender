@@ -357,7 +357,7 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                point_access,
                                                make_array_read_attribute<float>,
                                                make_array_write_attribute<float>,
-                                               tag_component_normals_changed);
+                                               nullptr);
 
   static BuiltinCustomDataLayerProvider id("id",
                                            ATTR_DOMAIN_POINT,
