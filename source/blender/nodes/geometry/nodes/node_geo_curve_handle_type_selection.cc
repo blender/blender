@@ -92,14 +92,14 @@ class HandleTypeFieldInput final : public GeometryFieldInput {
     }
 
     const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-    const CurveEval *curve = curve_component.get_for_read();
+    const Curves *curve = curve_component.get_for_read();
     if (curve == nullptr) {
       return {};
     }
 
     if (domain == ATTR_DOMAIN_POINT) {
       Array<bool> selection(mask.min_array_size());
-      select_by_handle_type(*curve, type_, mode_, selection);
+      select_by_handle_type(*curves_to_curve_eval(*curve), type_, mode_, selection);
       return VArray<bool>::ForContainer(std::move(selection));
     }
     return {};

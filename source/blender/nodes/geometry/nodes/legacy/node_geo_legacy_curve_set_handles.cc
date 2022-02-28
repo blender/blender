@@ -63,8 +63,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   /* Retrieve data for write access so we can avoid new allocations for the handles data. */
   CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
-  CurveEval &curve = *curve_component.get_for_write();
-  MutableSpan<SplinePtr> splines = curve.splines();
+  std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curve_component.get_for_read());
+  MutableSpan<SplinePtr> splines = curve->splines();
 
   const std::string selection_name = params.extract_input<std::string>("Selection");
   VArray<bool> selection = curve_component.attribute_get_for_read(
@@ -100,6 +100,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     bezier_spline.mark_cache_invalid();
   }
+
+  geometry_set.replace_curve(curve_eval_to_curves(*curve));
 
   if (!has_bezier_spline) {
     params.error_message_add(NodeWarningType::Info, TIP_("No Bezier splines in input curve"));

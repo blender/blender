@@ -66,8 +66,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 
     /* Retrieve data for write access so we can avoid new allocations for the handles data. */
     CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
-    CurveEval &curve = *curve_component.get_for_write();
-    MutableSpan<SplinePtr> splines = curve.splines();
+    std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curve_component.get_for_read());
+    MutableSpan<SplinePtr> splines = curve->splines();
 
     GeometryComponentFieldContext field_context{curve_component, ATTR_DOMAIN_POINT};
     const int domain_size = curve_component.attribute_domain_size(ATTR_DOMAIN_POINT);
@@ -108,6 +108,8 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
       bezier_spline.mark_cache_invalid();
     }
+
+    curve_component.replace(curve_eval_to_curves(*curve));
   });
   if (!has_bezier_spline) {
     params.error_message_add(NodeWarningType::Info, TIP_("No Bezier splines in input curve"));

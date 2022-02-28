@@ -162,8 +162,9 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
   }
 
   if (geometry_set.has_curve()) {
-    const CurveEval &curve = *geometry_set.get_curve_for_read();
-    for (const SplinePtr &spline : curve.splines()) {
+    const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
+        *geometry_set.get_curve_for_read());
+    for (const SplinePtr &spline : curve->splines()) {
       positions_span = spline->evaluated_positions();
       total_size += positions_span.size();
       count++;
@@ -202,8 +203,9 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
   }
 
   if (geometry_set.has_curve()) {
-    const CurveEval &curve = *geometry_set.get_curve_for_read();
-    for (const SplinePtr &spline : curve.splines()) {
+    const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
+        *geometry_set.get_curve_for_read());
+    for (const SplinePtr &spline : curve->splines()) {
       Span<float3> array = spline->evaluated_positions();
       positions.as_mutable_span().slice(offset, array.size()).copy_from(array);
       offset += array.size();
@@ -273,7 +275,7 @@ static Mesh *convex_hull_from_instances(const GeometrySet &geometry_set)
       read_positions(*set.get_component_for_read<MeshComponent>(), transforms, &coords);
     }
     if (set.has_curve()) {
-      read_curve_positions(*set.get_curve_for_read(), transforms, &coords);
+      read_curve_positions(*curves_to_curve_eval(*set.get_curve_for_read()), transforms, &coords);
     }
   }
   return hull_from_bullet(nullptr, coords);

@@ -27,14 +27,16 @@ static void geometry_set_curve_to_mesh(GeometrySet &geometry_set,
                                        const GeometrySet &profile_set,
                                        const bool fill_caps)
 {
-  const CurveEval *curve = geometry_set.get_curve_for_read();
-  const CurveEval *profile_curve = profile_set.get_curve_for_read();
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
+      *geometry_set.get_curve_for_read());
+  const Curves *profile_curves = profile_set.get_curve_for_read();
 
-  if (profile_curve == nullptr) {
+  if (profile_curves == nullptr) {
     Mesh *mesh = bke::curve_to_wire_mesh(*curve);
     geometry_set.replace_mesh(mesh);
   }
   else {
+    const std::unique_ptr<CurveEval> profile_curve = curves_to_curve_eval(*profile_curves);
     Mesh *mesh = bke::curve_to_mesh_sweep(*curve, *profile_curve, fill_caps);
     geometry_set.replace_mesh(mesh);
   }

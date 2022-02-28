@@ -35,7 +35,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
 
     std::unique_ptr<CurveEval> curve = geometry::mesh_to_curve_convert(component, selection);
-    geometry_set.replace_curve(curve.release());
+    geometry_set.replace_curve(curve_eval_to_curves(*curve));
     geometry_set.keep_only({GEO_COMPONENT_TYPE_CURVE, GEO_COMPONENT_TYPE_INSTANCES});
   });
 

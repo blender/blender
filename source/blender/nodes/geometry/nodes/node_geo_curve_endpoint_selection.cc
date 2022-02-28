@@ -59,10 +59,13 @@ class EndpointFieldInput final : public GeometryFieldInput {
     }
 
     const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-    const CurveEval *curve = curve_component.get_for_read();
+    if (!curve_component.has_curves()) {
+      return nullptr;
+    }
+
+    const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curve_component.get_for_read());
 
     Array<int> control_point_offsets = curve->control_point_offsets();
-
     if (curve == nullptr || control_point_offsets.last() == 0) {
       return nullptr;
     }

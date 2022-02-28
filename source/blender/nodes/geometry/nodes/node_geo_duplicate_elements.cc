@@ -529,7 +529,8 @@ static void duplicate_splines(GeometrySet &geometry_set,
 
   const GeometryComponent &src_component = *geometry_set.get_component_for_read(
       GEO_COMPONENT_TYPE_CURVE);
-  const CurveEval &curve = *geometry_set.get_curve_for_read();
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
+      *geometry_set.get_curve_for_read());
   const int domain_size = src_component.attribute_domain_size(ATTR_DOMAIN_CURVE);
   GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_CURVE};
   FieldEvaluator evaluator{field_context, domain_size};
@@ -547,11 +548,11 @@ static void duplicate_splines(GeometrySet &geometry_set,
     int count = std::max(counts[selection[i_spline]], 0);
     curve_offsets[i_spline] = dst_splines_size;
     dst_splines_size += count;
-    dst_points_size += count * curve.splines()[selection[i_spline]]->size();
+    dst_points_size += count * curve->splines()[selection[i_spline]]->size();
   }
   curve_offsets.last() = dst_splines_size;
 
-  Array<int> control_point_offsets = curve.control_point_offsets();
+  Array<int> control_point_offsets = curve->control_point_offsets();
   Array<int> point_mapping(dst_points_size);
 
   std::unique_ptr<CurveEval> new_curve = std::make_unique<CurveEval>();
@@ -559,8 +560,8 @@ static void duplicate_splines(GeometrySet &geometry_set,
   for (const int i_spline : selection.index_range()) {
     const IndexRange spline_range = range_for_offsets_index(curve_offsets, i_spline);
     for ([[maybe_unused]] const int i_duplicate : IndexRange(spline_range.size())) {
-      SplinePtr spline = curve.splines()[selection[i_spline]]->copy();
-      for (const int i_point : IndexRange(curve.splines()[selection[i_spline]]->size())) {
+      SplinePtr spline = curve->splines()[selection[i_spline]]->copy();
+      for (const int i_point : IndexRange(curve->splines()[selection[i_spline]]->size())) {
         point_mapping[point_index++] = control_point_offsets[selection[i_spline]] + i_point;
       }
       new_curve->add_spline(std::move(spline));
@@ -569,7 +570,7 @@ static void duplicate_splines(GeometrySet &geometry_set,
   new_curve->attributes.reallocate(new_curve->splines().size());
 
   CurveComponent dst_component;
-  dst_component.replace(new_curve.release(), GeometryOwnershipType::Editable);
+  dst_component.replace(curve_eval_to_curves(*new_curve), GeometryOwnershipType::Editable);
 
   Vector<std::string> skip(
       {"position", "radius", "resolution", "cyclic", "tilt", "handle_left", "handle_right"});
@@ -577,7 +578,7 @@ static void duplicate_splines(GeometrySet &geometry_set,
   copy_spline_attributes_without_id(
       geometry_set, point_mapping, curve_offsets, skip, src_component, dst_component);
 
-  copy_stable_id_splines(curve, selection, curve_offsets, src_component, dst_component);
+  copy_stable_id_splines(*curve, selection, curve_offsets, src_component, dst_component);
 
   if (attributes.duplicate_index) {
     create_duplicate_index_attribute(
@@ -786,8 +787,9 @@ static void duplicate_points_curve(const GeometryComponentType component_type,
   Array<int> offsets = accumulate_counts_to_offsets(selection, counts);
 
   CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
-  const CurveEval &curve = *geometry_set.get_curve_for_read();
-  Array<int> control_point_offsets = curve.control_point_offsets();
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
+      *geometry_set.get_curve_for_read());
+  Array<int> control_point_offsets = curve->control_point_offsets();
   std::unique_ptr<CurveEval> new_curve = std::make_unique<CurveEval>();
 
   Array<int> parent(domain_size);
@@ -802,7 +804,7 @@ static void duplicate_points_curve(const GeometryComponentType component_type,
   for (const int i_point : selection) {
     const IndexRange point_range = range_for_offsets_index(offsets, i_point);
     for ([[maybe_unused]] const int i_duplicate : IndexRange(point_range.size())) {
-      const SplinePtr &parent_spline = curve.splines()[parent[i_point]];
+      const SplinePtr &parent_spline = curve->splines()[parent[i_point]];
       switch (parent_spline->type()) {
         case CurveType::CURVE_TYPE_BEZIER: {
           std::unique_ptr<BezierSpline> spline = std::make_unique<BezierSpline>();
@@ -833,7 +835,7 @@ static void duplicate_points_curve(const GeometryComponentType component_type,
   }
   new_curve->attributes.reallocate(new_curve->splines().size());
   CurveComponent dst_component;
-  dst_component.replace(new_curve.release(), GeometryOwnershipType::Editable);
+  dst_component.replace(curve_eval_to_curves(*new_curve), GeometryOwnershipType::Editable);
 
   copy_point_attributes_without_id(
       geometry_set, GEO_COMPONENT_TYPE_CURVE, false, offsets, src_component, dst_component);

@@ -18,9 +18,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_default_remaining_outputs();
     return;
   }
-  const CurveEval &curve = *curve_set.get_curve_for_read();
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curve_set.get_curve_for_read());
   float length = 0.0f;
-  for (const SplinePtr &spline : curve.splines()) {
+  for (const SplinePtr &spline : curve->splines()) {
     length += spline->length();
   }
   params.set_output("Length", length);

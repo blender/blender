@@ -475,9 +475,9 @@ static void separate_curve_selection(GeometrySet &geometry_set,
   selection_evaluator.evaluate();
   const VArray_Span<bool> &selection = selection_evaluator.get_evaluated<bool>(0);
   std::unique_ptr<CurveEval> r_curve = curve_separate(
-      *src_component.get_for_read(), selection, selection_domain, invert);
+      *curves_to_curve_eval(*src_component.get_for_read()), selection, selection_domain, invert);
   if (r_curve) {
-    geometry_set.replace_curve(r_curve.release());
+    geometry_set.replace_curve(curve_eval_to_curves(*r_curve));
   }
   else {
     geometry_set.replace_curve(nullptr);

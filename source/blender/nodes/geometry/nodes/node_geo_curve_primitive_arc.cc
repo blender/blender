@@ -335,7 +335,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                            r_center,
                                            r_normal,
                                            r_radius);
-      params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
+      params.set_output("Curve", GeometrySet::create_with_curve(curve_eval_to_curves(*curve)));
       params.set_output("Center", r_center);
       params.set_output("Normal", r_normal);
       params.set_output("Radius", r_radius);
@@ -350,7 +350,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                            params.extract_input<bool>("Connect Center"),
                                            params.extract_input<bool>("Invert Arc"));
 
-      params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
+      params.set_output("Curve", GeometrySet::create_with_curve(curve_eval_to_curves(*curve)));
       break;
     }
   }

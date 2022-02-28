@@ -235,9 +235,9 @@ static void delete_curve_selection(const CurveComponent &in_component,
                                    const bool invert)
 {
   std::unique_ptr<CurveEval> r_curve = curve_delete(
-      *in_component.get_for_read(), selection_name, invert);
+      *curves_to_curve_eval(*in_component.get_for_read()), selection_name, invert);
   if (r_curve) {
-    r_component.replace(r_curve.release());
+    r_component.replace(curve_eval_to_curves(*r_curve));
   }
   else {
     r_component.clear();

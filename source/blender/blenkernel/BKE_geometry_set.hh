@@ -24,6 +24,7 @@
 
 #include "FN_field.hh"
 
+struct Curves;
 struct Collection;
 struct Curve;
 struct CurveEval;
@@ -415,7 +416,7 @@ struct GeometrySet {
    * Create a new geometry set that only contains the given curve.
    */
   static GeometrySet create_with_curve(
-      CurveEval *curve, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+      Curves *curves, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
 
   /* Utility methods for access. */
   /**
@@ -462,7 +463,7 @@ struct GeometrySet {
   /**
    * Returns a read-only curve or null.
    */
-  const CurveEval *get_curve_for_read() const;
+  const Curves *get_curve_for_read() const;
 
   /**
    * Returns a mutable mesh or null. No ownership is transferred.
@@ -479,7 +480,7 @@ struct GeometrySet {
   /**
    * Returns a mutable curve or null. No ownership is transferred.
    */
-  CurveEval *get_curve_for_write();
+  Curves *get_curve_for_write();
 
   /* Utility methods for replacement. */
   /**
@@ -499,7 +500,7 @@ struct GeometrySet {
   /**
    * Clear the existing curve and replace it with the given one.
    */
-  void replace_curve(CurveEval *curve,
+  void replace_curve(Curves *curves,
                      GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
 
  private:
@@ -632,15 +633,57 @@ class PointCloudComponent : public GeometryComponent {
 };
 
 /**
- * A geometry component that stores curve data, in other words, a group of splines.
- * Curves are stored differently than other geometry components, because the data structure used
- * here does not correspond exactly to the #Curve DNA data structure. A #CurveEval is stored here
- * instead, though the component does give access to a #Curve for interfacing with render engines
- * and other areas of Blender that expect to use a data-block with an #ID.
+ * Legacy runtime-only curves type.
+ * These curves are stored differently than other geometry components, because the data structure
+ * used here does not correspond exactly to the #Curve DNA data structure. A #CurveEval is stored
+ * here instead, though the component does give access to a #Curve for interfacing with render
+ * engines and other areas of Blender that expect to use a data-block with an #ID.
+ */
+class CurveComponentLegacy : public GeometryComponent {
+ private:
+  CurveEval *curve_ = nullptr;
+  GeometryOwnershipType ownership_ = GeometryOwnershipType::Owned;
+
+ public:
+  CurveComponentLegacy();
+  ~CurveComponentLegacy();
+  GeometryComponent *copy() const override;
+
+  void clear();
+  bool has_curve() const;
+  /**
+   * Clear the component and replace it with the new curve.
+   */
+  void replace(CurveEval *curve, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  CurveEval *release();
+
+  const CurveEval *get_for_read() const;
+  CurveEval *get_for_write();
+
+  int attribute_domain_size(AttributeDomain domain) const final;
+
+  bool is_empty() const final;
+
+  bool owns_direct_data() const override;
+  void ensure_owns_direct_data() override;
+
+  static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_CURVE;
+
+ private:
+  const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
+
+  blender::fn::GVArray attribute_try_adapt_domain_impl(const blender::fn::GVArray &varray,
+                                                       AttributeDomain from_domain,
+                                                       AttributeDomain to_domain) const final;
+};
+
+/**
+ * A geometry component that stores a group of curves, corresponding the the #Curves and
+ * #CurvesGeometry types.
  */
 class CurveComponent : public GeometryComponent {
  private:
-  CurveEval *curve_ = nullptr;
+  Curves *curves_ = nullptr;
   GeometryOwnershipType ownership_ = GeometryOwnershipType::Owned;
 
   /**
@@ -658,15 +701,15 @@ class CurveComponent : public GeometryComponent {
   GeometryComponent *copy() const override;
 
   void clear();
-  bool has_curve() const;
+  bool has_curves() const;
   /**
    * Clear the component and replace it with the new curve.
    */
-  void replace(CurveEval *curve, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
-  CurveEval *release();
+  void replace(Curves *curve, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  Curves *release();
 
-  const CurveEval *get_for_read() const;
-  CurveEval *get_for_write();
+  const Curves *get_for_read() const;
+  Curves *get_for_write();
 
   int attribute_domain_size(AttributeDomain domain) const final;
 
