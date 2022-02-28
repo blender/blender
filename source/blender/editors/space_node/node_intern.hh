@@ -104,6 +104,8 @@ ENUM_OPERATORS(NodeResizeDirection, NODE_RESIZE_LEFT);
 #define NODE_HEIGHT(node) (node.height * UI_DPI_FAC)
 #define NODE_MARGIN_X (1.2f * U.widget_unit)
 #define NODE_SOCKSIZE (0.25f * U.widget_unit)
+#define NODE_SOCKSIZE_DRAW_MULIPLIER 2.25f
+#define NODE_SOCK_OUTLINE_SCALE 1.0f
 #define NODE_MULTI_INPUT_LINK_GAP (0.25f * U.widget_unit)
 #define NODE_RESIZE_MARGIN (0.20f * U.widget_unit)
 #define NODE_LINK_RESOL 12
