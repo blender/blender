@@ -941,8 +941,13 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
      * processed, so we need to recursively deal with them here. */
     /* NOTE: Since we are by-passing checks in `BKE_library_foreach_ID_link` by manually calling it
      * recursively, we need to take care of potential recursion cases ourselves (e.g.animdata of
-     * shape-key referencing the shape-key itself). */
-    if (id != cb_data->id_self) {
+     * shape-key referencing the shape-key itself).
+     * NOTE: in case both IDs (owner and 'used' ones) are non-linkable, we can assume we can break
+     * the dependency here. Indeed, either they are both linked in another way (through their own
+     * meshes for shape keys e.g.), or this is an unsupported case (two shapekeys depending on
+     * each-other need to be also 'linked' in by their respective meshes, independant shapekeys are
+     * not allowed). ref T96048. */
+    if (id != cb_data->id_self && BKE_idtype_idcode_is_linkable(GS(cb_data->id_self->name))) {
       BKE_library_foreach_ID_link(
           cb_data->bmain, id, foreach_libblock_link_append_callback, data, IDWALK_NOP);
     }
