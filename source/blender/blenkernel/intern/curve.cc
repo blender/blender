@@ -293,14 +293,14 @@ static void curve_blend_read_expand(BlendExpander *expander, ID *id)
   BLO_expand(expander, cu->textoncurve);
 }
 
-IDTypeInfo IDType_ID_CU = {
-    /* id_code */ ID_CU,
-    /* id_filter */ FILTER_ID_CU,
-    /* main_listbase_index */ INDEX_ID_CU,
+IDTypeInfo IDType_ID_CU_LEGACY = {
+    /* id_code */ ID_CU_LEGACY,
+    /* id_filter */ FILTER_ID_CU_LEGACY,
+    /* main_listbase_index */ INDEX_ID_CU_LEGACY,
     /* struct_size */ sizeof(Curve),
     /* name */ "Curve",
     /* name_plural */ "curves",
-    /* translation_context */ BLT_I18NCONTEXT_ID_CURVE,
+    /* translation_context */ BLT_I18NCONTEXT_ID_CURVE_LEGACY,
     /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /* asset_type_info */ nullptr,
 
@@ -406,7 +406,7 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
   Curve *cu;
 
   /* We cannot use #BKE_id_new here as we need some custom initialization code. */
-  cu = (Curve *)BKE_libblock_alloc(bmain, ID_CU, name, 0);
+  cu = (Curve *)BKE_libblock_alloc(bmain, ID_CU_LEGACY, name, 0);
 
   BKE_curve_init(cu, type);
 
@@ -440,7 +440,7 @@ short BKE_curve_type_get(const Curve *cu)
   }
 
   if (!cu->type) {
-    type = OB_CURVE;
+    type = OB_CURVES_LEGACY;
 
     LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
       if (nu->pntsv > 1) {
@@ -473,7 +473,7 @@ void BKE_curve_type_test(Object *ob)
 {
   ob->type = BKE_curve_type_get((Curve *)ob->data);
 
-  if (ob->type == OB_CURVE) {
+  if (ob->type == OB_CURVES_LEGACY) {
     Curve *cu = (Curve *)ob->data;
     if (CU_IS_2D(cu)) {
       BKE_curve_dimension_update(cu);

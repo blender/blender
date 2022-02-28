@@ -583,7 +583,7 @@ static int nla_action_unlink_invoke(bContext *C, wmOperator *op, const wmEvent *
 {
   /* NOTE: this is hardcoded to match the behavior for the unlink button
    * (in interface_templates.c) */
-  RNA_boolean_set(op->ptr, "force_delete", event->shift != 0);
+  RNA_boolean_set(op->ptr, "force_delete", event->modifier & KM_SHIFT);
   return nla_action_unlink_exec(C, op);
 }
 

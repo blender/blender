@@ -282,11 +282,11 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* Useful yet irritating feature, Shift+Click to open the file
    * Alt+Click to browse a folder in the OS's browser. */
-  if (event->shift || event->alt) {
+  if (event->modifier & (KM_SHIFT | KM_ALT)) {
     wmOperatorType *ot = WM_operatortype_find("WM_OT_path_open", true);
     PointerRNA props_ptr;
 
-    if (event->alt) {
+    if (event->modifier & KM_ALT) {
       char *lslash = (char *)BLI_path_slash_rfind(str);
       if (lslash) {
         *lslash = '\0';

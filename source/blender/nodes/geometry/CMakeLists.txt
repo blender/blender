@@ -98,6 +98,7 @@ set(SRC
   nodes/node_geo_curve_to_points.cc
   nodes/node_geo_curve_trim.cc
   nodes/node_geo_delete_geometry.cc
+  nodes/node_geo_duplicate_elements.cc
   nodes/node_geo_distribute_points_on_faces.cc
   nodes/node_geo_dual_mesh.cc
   nodes/node_geo_edge_split.cc
@@ -116,6 +117,7 @@ set(SRC
   nodes/node_geo_input_mesh_edge_neighbors.cc
   nodes/node_geo_input_mesh_edge_vertices.cc
   nodes/node_geo_input_mesh_face_area.cc
+  nodes/node_geo_input_mesh_face_is_planar.cc
   nodes/node_geo_input_mesh_face_neighbors.cc
   nodes/node_geo_input_mesh_island.cc
   nodes/node_geo_input_mesh_vertex_neighbors.cc

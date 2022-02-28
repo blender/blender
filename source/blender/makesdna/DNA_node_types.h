@@ -1610,6 +1610,11 @@ typedef struct NodeGeometryDeleteGeometry {
   int8_t mode;
 } NodeGeometryDeleteGeometry;
 
+typedef struct NodeGeometryDuplicateElements {
+  /* AttributeDomain. */
+  int8_t domain;
+} NodeGeometryDuplicateElements;
+
 typedef struct NodeGeometrySeparateGeometry {
   /* AttributeDomain. */
   int8_t domain;

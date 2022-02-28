@@ -546,6 +546,7 @@ static Mesh *create_orco_mesh(Object *ob, Mesh *me, BMEditMesh *em, int layer)
 
   if (em) {
     mesh = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, nullptr, me);
+    BKE_mesh_ensure_default_orig_index_customdata(mesh);
   }
   else {
     mesh = BKE_mesh_copy_for_eval(me, true);
@@ -1364,6 +1365,12 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
         em_input, &final_datamask, nullptr, mesh_input);
   }
 
+  /* The mesh from edit mode should not have any original index layers already, since those
+   * are added during evaluation when necessary and are redundant on an original mesh. */
+  BLI_assert(CustomData_get_layer(&em_input->bm->pdata, CD_ORIGINDEX) == nullptr &&
+             CustomData_get_layer(&em_input->bm->edata, CD_ORIGINDEX) == nullptr &&
+             CustomData_get_layer(&em_input->bm->pdata, CD_ORIGINDEX) == nullptr);
+
   /* Clear errors before evaluation. */
   BKE_modifiers_clear_errors(ob);
 
@@ -1402,6 +1409,7 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
       else if (isPrevDeform && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
         if (mesh_final == nullptr) {
           mesh_final = BKE_mesh_from_bmesh_for_eval_nomain(em_input->bm, nullptr, mesh_input);
+          BKE_mesh_ensure_default_orig_index_customdata(mesh_final);
           ASSERT_IS_VALID_MESH(mesh_final);
         }
         BLI_assert(deformed_verts != nullptr);
@@ -1819,9 +1827,8 @@ Mesh *mesh_get_eval_final(struct Depsgraph *depsgraph,
     mesh_eval = BKE_object_get_evaluated_mesh(ob);
   }
 
-  if (mesh_eval != nullptr) {
-    BLI_assert(!(mesh_eval->runtime.cd_dirty_vert & CD_MASK_NORMAL));
-  }
+  BKE_mesh_assert_normals_dirty_or_calculated(mesh_eval);
+
   return mesh_eval;
 }
 

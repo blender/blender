@@ -225,7 +225,7 @@ void select_id_draw_object(void *vedata,
             stl, ob, select_mode, initial_offset, r_vert_offset, r_edge_offset, r_face_offset);
       }
       break;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
       break;
   }

@@ -263,7 +263,6 @@ static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
 
     /* This should be ensured by cddata_masks we pass to code generating/giving us me_src now. */
     BLI_assert(CustomData_get_layer(&me_src->ldata, CD_NORMAL) != NULL);
-    BLI_assert(CustomData_get_layer(&me_src->pdata, CD_NORMAL) != NULL);
     (void)me_src;
 
     float(*loop_nors_dst)[3];
@@ -318,14 +317,11 @@ static void data_transfer_dtdata_type_postprocess(Object *UNUSED(ob_src),
     const int num_polys_dst = me_dst->totpoly;
     MLoop *loops_dst = me_dst->mloop;
     const int num_loops_dst = me_dst->totloop;
-    CustomData *pdata_dst = &me_dst->pdata;
     CustomData *ldata_dst = &me_dst->ldata;
 
-    const float(*poly_nors_dst)[3] = CustomData_get_layer(pdata_dst, CD_NORMAL);
+    const float(*poly_nors_dst)[3] = BKE_mesh_poly_normals_ensure(me_dst);
     float(*loop_nors_dst)[3] = CustomData_get_layer(ldata_dst, CD_NORMAL);
     short(*custom_nors_dst)[2] = CustomData_get_layer(ldata_dst, CD_CUSTOMLOOPNORMAL);
-
-    BLI_assert(poly_nors_dst);
 
     if (!custom_nors_dst) {
       custom_nors_dst = CustomData_add_layer(
@@ -1379,7 +1375,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
   BLI_assert((ob_src != ob_dst) && (ob_src->type == OB_MESH) && (ob_dst->type == OB_MESH));
 
   if (me_dst) {
-    dirty_nors_dst = (me_dst->runtime.cd_dirty_vert & CD_NORMAL) != 0;
+    dirty_nors_dst = BKE_mesh_vertex_normals_are_dirty(me_dst);
     /* Never create needed custom layers on passed destination mesh
      * (assumed to *not* be ob_dst->data, aka modifier case). */
     use_create = false;

@@ -377,6 +377,7 @@ set(SRC
   BKE_idprop.hh
   BKE_idtype.h
   BKE_image.h
+  BKE_image_partial_update.hh
   BKE_image_save.h
   BKE_ipo.h
   BKE_kelvinlet.h

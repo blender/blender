@@ -15,7 +15,7 @@ void main()
   if (maskInvertStencil) {
     mask.rgb = 1.0 - mask.rgb;
   }
-  float mask_step = smoothstep(0, 3.0, mask.r + mask.g + mask.b);
+  float mask_step = smoothstep(0.0, 3.0, mask.r + mask.g + mask.b);
   mask.rgb *= maskColor;
   mask.a = mask_step * opacity;
 

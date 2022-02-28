@@ -95,7 +95,7 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
       break;
 
     case OB_EMPTY:
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_FONT:
     case OB_SPEAKER:

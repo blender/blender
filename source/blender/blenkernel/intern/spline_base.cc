@@ -23,7 +23,7 @@ using blender::fn::GMutableSpan;
 using blender::fn::GSpan;
 using blender::fn::GVArray;
 
-Spline::Type Spline::type() const
+CurveType Spline::type() const
 {
   return type_;
 }
@@ -34,15 +34,18 @@ void Spline::copy_base_settings(const Spline &src, Spline &dst)
   dst.is_cyclic_ = src.is_cyclic_;
 }
 
-static SplinePtr create_spline(const Spline::Type type)
+static SplinePtr create_spline(const CurveType type)
 {
   switch (type) {
-    case Spline::Type::Poly:
+    case CURVE_TYPE_POLY:
       return std::make_unique<PolySpline>();
-    case Spline::Type::Bezier:
+    case CURVE_TYPE_BEZIER:
       return std::make_unique<BezierSpline>();
-    case Spline::Type::NURBS:
+    case CURVE_TYPE_NURBS:
       return std::make_unique<NURBSpline>();
+    case CURVE_TYPE_CATMULL_ROM:
+      BLI_assert_unreachable();
+      return {};
   }
   BLI_assert_unreachable();
   return {};

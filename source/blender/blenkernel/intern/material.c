@@ -313,7 +313,7 @@ Material ***BKE_object_material_array_p(Object *ob)
     Mesh *me = ob->data;
     return &(me->mat);
   }
-  if (ELEM(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
+  if (ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
     Curve *cu = ob->data;
     return &(cu->mat);
   }
@@ -346,7 +346,7 @@ short *BKE_object_material_len_p(Object *ob)
     Mesh *me = ob->data;
     return &(me->totcol);
   }
-  if (ELEM(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
+  if (ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
     Curve *cu = ob->data;
     return &(cu->totcol);
   }
@@ -381,7 +381,7 @@ Material ***BKE_id_material_array_p(ID *id)
   switch (GS(id->name)) {
     case ID_ME:
       return &(((Mesh *)id)->mat);
-    case ID_CU:
+    case ID_CU_LEGACY:
       return &(((Curve *)id)->mat);
     case ID_MB:
       return &(((MetaBall *)id)->mat);
@@ -407,7 +407,7 @@ short *BKE_id_material_len_p(ID *id)
   switch (GS(id->name)) {
     case ID_ME:
       return &(((Mesh *)id)->totcol);
-    case ID_CU:
+    case ID_CU_LEGACY:
       return &(((Curve *)id)->totcol);
     case ID_MB:
       return &(((MetaBall *)id)->totcol);
@@ -434,7 +434,7 @@ static void material_data_index_remove_id(ID *id, short index)
     case ID_ME:
       BKE_mesh_material_index_remove((Mesh *)id, index);
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       BKE_curve_material_index_remove((Curve *)id, index);
       break;
     case ID_MB:
@@ -468,7 +468,7 @@ bool BKE_object_material_slot_used(Object *object, short actcol)
   switch (GS(ob_data->name)) {
     case ID_ME:
       return BKE_mesh_material_index_used((Mesh *)ob_data, actcol - 1);
-    case ID_CU:
+    case ID_CU_LEGACY:
       return BKE_curve_material_index_used((Curve *)ob_data, actcol - 1);
     case ID_MB:
       /* Meta-elements don't support materials at the moment. */
@@ -489,7 +489,7 @@ static void material_data_index_clear_id(ID *id)
     case ID_ME:
       BKE_mesh_material_index_clear((Mesh *)id);
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       BKE_curve_material_index_clear((Curve *)id);
       break;
     case ID_MB:
@@ -1062,7 +1062,7 @@ void BKE_object_material_remap(Object *ob, const unsigned int *remap)
   if (ob->type == OB_MESH) {
     BKE_mesh_material_remap(ob->data, remap, ob->totcol);
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
     BKE_curve_material_remap(ob->data, remap, ob->totcol);
   }
   else if (ob->type == OB_GPENCIL) {
@@ -1314,7 +1314,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
   }
 
   /* check indices from mesh */
-  if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
+  if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
     material_data_index_remove_id((ID *)ob->data, actcol - 1);
     if (ob->runtime.curve_cache) {
       BKE_displist_free(&ob->runtime.curve_cache->disp);

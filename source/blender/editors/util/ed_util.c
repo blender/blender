@@ -306,7 +306,7 @@ bool ED_editors_flush_edits(Main *bmain)
 /* ***** XXX: functions are using old blender names, cleanup later ***** */
 
 void apply_keyb_grid(
-    int shift, int ctrl, float *val, float fac1, float fac2, float fac3, int invert)
+    bool shift, bool ctrl, float *val, float fac1, float fac2, float fac3, int invert)
 {
   /* fac1 is for 'nothing', fac2 for CTRL, fac3 for SHIFT */
   if (invert) {

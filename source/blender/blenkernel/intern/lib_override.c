@@ -72,12 +72,19 @@ static void lib_override_library_property_operation_clear(
     IDOverrideLibraryPropertyOperation *opop);
 
 /** Get override data for a given ID. Needed because of our beloved shape keys snowflake. */
-BLI_INLINE IDOverrideLibrary *lib_override_get(Main *bmain, ID *id)
+BLI_INLINE IDOverrideLibrary *lib_override_get(Main *bmain, ID *id, ID **r_owner_id)
 {
+  if (r_owner_id != NULL) {
+    *r_owner_id = id;
+  }
   if (id->flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE) {
     const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
     if (id_type->owner_get != NULL) {
-      return id_type->owner_get(bmain, id)->override_library;
+      ID *owner_id = id_type->owner_get(bmain, id);
+      if (r_owner_id != NULL) {
+        *r_owner_id = owner_id;
+      }
+      return owner_id->override_library;
     }
     BLI_assert_msg(0, "IDTypeInfo of liboverride-embedded ID with no owner getter");
   }
@@ -146,6 +153,7 @@ void BKE_lib_override_library_copy(ID *dst_id, const ID *src_id, const bool do_f
   id_us_plus(dst_id->override_library->reference);
 
   dst_id->override_library->hierarchy_root = src_id->override_library->hierarchy_root;
+  dst_id->override_library->flag = src_id->override_library->flag;
 
   if (do_full_copy) {
     BLI_duplicatelist(&dst_id->override_library->properties,
@@ -313,17 +321,36 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
   return local_id;
 }
 
+/* TODO: Make this static local function instead? API is becoming complex, and it's not used
+ * outside of this file anyway. */
 bool BKE_lib_override_library_create_from_tag(Main *bmain,
                                               Library *owner_library,
                                               const ID *id_root_reference,
                                               ID *id_hierarchy_root,
+                                              const ID *id_hierarchy_root_reference,
                                               const bool do_no_main)
 {
-  BLI_assert(id_root_reference != NULL);
-  BLI_assert(id_hierarchy_root != NULL || (id_root_reference->tag & LIB_TAG_DOIT) != 0);
-  BLI_assert(id_hierarchy_root == NULL ||
-             (ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root) &&
-              id_hierarchy_root->override_library->reference == id_root_reference));
+  BLI_assert(id_root_reference != NULL && ID_IS_LINKED(id_root_reference));
+  /* If we do not have any hierarchy root given, then the root reference must be tagged for
+   * override. */
+  BLI_assert(id_hierarchy_root != NULL || id_hierarchy_root_reference != NULL ||
+             (id_root_reference->tag & LIB_TAG_DOIT) != 0);
+  /* At least one of the hierarchy root pointers must be NULL, passing both is useless and can
+   * create confusion. */
+  BLI_assert(ELEM(NULL, id_hierarchy_root, id_hierarchy_root_reference));
+
+  if (id_hierarchy_root != NULL) {
+    /* If the hierarchy root is given, it must be a valid existing override (used during partial
+     * resync process mainly). */
+    BLI_assert((ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root) &&
+                id_hierarchy_root->override_library->reference->lib == id_root_reference->lib));
+  }
+  if (!ELEM(id_hierarchy_root_reference, NULL, id_root_reference)) {
+    /* If the reference hierarchy root is given, it must be from the same library as the reference
+     * root, and also tagged for override. */
+    BLI_assert((id_hierarchy_root_reference->lib == id_root_reference->lib &&
+                (id_hierarchy_root_reference->tag & LIB_TAG_DOIT) != 0));
+  }
 
   const Library *reference_library = id_root_reference->lib;
 
@@ -379,7 +406,12 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
   /* Only remap new local ID's pointers, we don't want to force our new overrides onto our whole
    * existing linked IDs usages. */
   if (success) {
-    if (id_root_reference->newid != NULL) {
+    if (id_hierarchy_root_reference != NULL) {
+      id_hierarchy_root = id_hierarchy_root_reference->newid;
+    }
+    else if (id_root_reference->newid != NULL &&
+             (id_hierarchy_root == NULL ||
+              id_hierarchy_root->override_library->reference == id_root_reference)) {
       id_hierarchy_root = id_root_reference->newid;
     }
     BLI_assert(id_hierarchy_root != NULL);
@@ -832,8 +864,8 @@ static void lib_override_overrides_group_tag_recursive(LibOverrideGroupTagData *
       continue;
     }
 
-    Library *reference_lib = lib_override_get(bmain, id_owner)->reference->lib;
-    ID *to_id_reference = lib_override_get(bmain, to_id)->reference;
+    Library *reference_lib = lib_override_get(bmain, id_owner, NULL)->reference->lib;
+    ID *to_id_reference = lib_override_get(bmain, to_id, NULL)->reference;
     if (to_id_reference->lib != reference_lib) {
       /* We do not override data-blocks from other libraries, nor do we process them. */
       continue;
@@ -879,12 +911,13 @@ static void lib_override_overrides_group_tag(LibOverrideGroupTagData *data)
 static bool lib_override_library_create_do(Main *bmain,
                                            Scene *scene,
                                            Library *owner_library,
-                                           ID *id_root)
+                                           ID *id_root_reference,
+                                           ID *id_hierarchy_root_reference)
 {
   BKE_main_relations_create(bmain, 0);
   LibOverrideGroupTagData data = {.bmain = bmain,
                                   .scene = scene,
-                                  .id_root = id_root,
+                                  .id_root = id_root_reference,
                                   .tag = LIB_TAG_DOIT,
                                   .missing_tag = LIB_TAG_MISSING,
                                   .is_override = false,
@@ -898,8 +931,18 @@ static bool lib_override_library_create_do(Main *bmain,
   BKE_main_relations_free(bmain);
   lib_override_group_tag_data_clear(&data);
 
-  const bool success = BKE_lib_override_library_create_from_tag(
-      bmain, owner_library, id_root, NULL, false);
+  bool success = false;
+  if (id_hierarchy_root_reference->lib != id_root_reference->lib) {
+    BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root_reference));
+    BLI_assert(id_hierarchy_root_reference->override_library->reference->lib ==
+               id_root_reference->lib);
+    success = BKE_lib_override_library_create_from_tag(
+        bmain, owner_library, id_root_reference, id_hierarchy_root_reference, NULL, false);
+  }
+  else {
+    success = BKE_lib_override_library_create_from_tag(
+        bmain, owner_library, id_root_reference, NULL, id_hierarchy_root_reference, false);
+  }
 
   return success;
 }
@@ -909,7 +952,7 @@ static void lib_override_library_create_post_process(Main *bmain,
                                                      ViewLayer *view_layer,
                                                      const Library *owner_library,
                                                      ID *id_root,
-                                                     ID *id_reference,
+                                                     ID *id_instance_hint,
                                                      Collection *residual_storage,
                                                      const bool is_resync)
 {
@@ -933,8 +976,8 @@ static void lib_override_library_create_post_process(Main *bmain,
       (!ID_IS_LINKED(id_root->newid) || id_root->newid->lib == owner_library)) {
     switch (GS(id_root->name)) {
       case ID_GR: {
-        Object *ob_reference = id_reference != NULL && GS(id_reference->name) == ID_OB ?
-                                   (Object *)id_reference :
+        Object *ob_reference = id_instance_hint != NULL && GS(id_instance_hint->name) == ID_OB ?
+                                   (Object *)id_instance_hint :
                                    NULL;
         Collection *collection_new = ((Collection *)id_root->newid);
         if (is_resync && BKE_collection_is_in_scene(collection_new)) {
@@ -943,10 +986,10 @@ static void lib_override_library_create_post_process(Main *bmain,
         if (ob_reference != NULL) {
           BKE_collection_add_from_object(bmain, scene, ob_reference, collection_new);
         }
-        else if (id_reference != NULL) {
-          BLI_assert(GS(id_reference->name) == ID_GR);
+        else if (id_instance_hint != NULL) {
+          BLI_assert(GS(id_instance_hint->name) == ID_GR);
           BKE_collection_add_from_collection(
-              bmain, scene, ((Collection *)id_reference), collection_new);
+              bmain, scene, ((Collection *)id_instance_hint), collection_new);
         }
         else {
           BKE_collection_add_from_collection(
@@ -1039,26 +1082,32 @@ bool BKE_lib_override_library_create(Main *bmain,
                                      Scene *scene,
                                      ViewLayer *view_layer,
                                      Library *owner_library,
-                                     ID *id_root,
-                                     ID *id_reference,
+                                     ID *id_root_reference,
+                                     ID *id_hierarchy_root_reference,
+                                     ID *id_instance_hint,
                                      ID **r_id_root_override)
 {
   if (r_id_root_override != NULL) {
     *r_id_root_override = NULL;
   }
 
-  const bool success = lib_override_library_create_do(bmain, scene, owner_library, id_root);
+  if (id_hierarchy_root_reference == NULL) {
+    id_hierarchy_root_reference = id_root_reference;
+  }
+
+  const bool success = lib_override_library_create_do(
+      bmain, scene, owner_library, id_root_reference, id_hierarchy_root_reference);
 
   if (!success) {
     return success;
   }
 
   if (r_id_root_override != NULL) {
-    *r_id_root_override = id_root->newid;
+    *r_id_root_override = id_root_reference->newid;
   }
 
   lib_override_library_create_post_process(
-      bmain, scene, view_layer, owner_library, id_root, id_reference, NULL, false);
+      bmain, scene, view_layer, owner_library, id_root_reference, id_instance_hint, NULL, false);
 
   /* Cleanup. */
   BKE_main_id_newptr_and_tag_clear(bmain);
@@ -1102,11 +1151,18 @@ static ID *lib_override_root_find(Main *bmain, ID *id, const int curr_level, int
   MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->relations_from_pointers, id);
   BLI_assert(entry != NULL);
 
-  if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED && ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
-    /* This ID has already been processed. */
-    BLI_assert(id->override_library != NULL);
-    *r_best_level = curr_level;
-    return id->override_library->hierarchy_root;
+  if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) {
+    if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      /* This ID has already been processed. */
+      *r_best_level = curr_level;
+      return id->override_library->hierarchy_root;
+    }
+
+    BLI_assert(id->flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE);
+    ID *id_owner;
+    int best_level_placeholder = 0;
+    lib_override_get(bmain, id, &id_owner);
+    return lib_override_root_find(bmain, id_owner, curr_level + 1, &best_level_placeholder);
   }
   /* This way we won't process again that ID, should we encounter it again through another
    * relationship hierarchy. */
@@ -1140,7 +1196,17 @@ static ID *lib_override_root_find(Main *bmain, ID *id, const int curr_level, int
     }
   }
 
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(best_root_id_candidate)) {
+    BLI_assert(id->flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE);
+    ID *id_owner;
+    int best_level_placeholder = 0;
+    lib_override_get(bmain, best_root_id_candidate, &id_owner);
+    best_root_id_candidate = lib_override_root_find(
+        bmain, id_owner, curr_level + 1, &best_level_placeholder);
+  }
+
   BLI_assert(best_root_id_candidate != NULL);
+  BLI_assert((best_root_id_candidate->flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE) == 0);
 
   *r_best_level = best_level_candidate;
   return best_root_id_candidate;
@@ -1430,7 +1496,7 @@ static bool lib_override_library_resync(Main *bmain,
         /* While this should not happen in typical cases (and won't be properly supported here),
          * user is free to do all kind of very bad things, including having different local
          * overrides of a same linked ID in a same hierarchy. */
-        IDOverrideLibrary *id_override_library = lib_override_get(bmain, id);
+        IDOverrideLibrary *id_override_library = lib_override_get(bmain, id, NULL);
         ID *reference_id = id_override_library->reference;
         if (GS(reference_id->name) != GS(id->name)) {
           switch (GS(id->name)) {
@@ -1502,7 +1568,7 @@ static bool lib_override_library_resync(Main *bmain,
    * override IDs (including within the old overrides themselves, since those are tagged too
    * above). */
   const bool success = BKE_lib_override_library_create_from_tag(
-      bmain, NULL, id_root_reference, id_root->override_library->hierarchy_root, true);
+      bmain, NULL, id_root_reference, id_root->override_library->hierarchy_root, NULL, true);
 
   if (!success) {
     BLI_ghash_free(linkedref_to_old_override, NULL, NULL);
@@ -2135,6 +2201,10 @@ static void lib_override_library_main_resync_on_library_indirect_level(
   FOREACH_MAIN_ID_END;
 
   BLI_ghash_free(id_roots, NULL, MEM_freeN);
+
+  /* In some fairly rare (and degenerate) cases, some root ID from other liboverrides may have been
+   * freed, and therefore set to NULL. Attempt to fix this as best as possible. */
+  BKE_lib_override_library_main_hierarchy_root_ensure(bmain);
 
   if (do_reports_recursive_resync_timing) {
     reports->duration.lib_overrides_recursive_resync += PIL_check_seconds_timer() - init_time;

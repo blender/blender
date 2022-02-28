@@ -31,30 +31,30 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static BezierSpline::HandleType handle_type_from_input_type(const GeometryNodeCurveHandleType type)
+static HandleType handle_type_from_input_type(const GeometryNodeCurveHandleType type)
 {
   switch (type) {
     case GEO_NODE_CURVE_HANDLE_AUTO:
-      return BezierSpline::HandleType::Auto;
+      return BEZIER_HANDLE_AUTO;
     case GEO_NODE_CURVE_HANDLE_ALIGN:
-      return BezierSpline::HandleType::Align;
+      return BEZIER_HANDLE_ALIGN;
     case GEO_NODE_CURVE_HANDLE_FREE:
-      return BezierSpline::HandleType::Free;
+      return BEZIER_HANDLE_FREE;
     case GEO_NODE_CURVE_HANDLE_VECTOR:
-      return BezierSpline::HandleType::Vector;
+      return BEZIER_HANDLE_VECTOR;
   }
   BLI_assert_unreachable();
-  return BezierSpline::HandleType::Auto;
+  return BEZIER_HANDLE_AUTO;
 }
 
 static void select_by_handle_type(const CurveEval &curve,
-                                  const BezierSpline::HandleType type,
+                                  const HandleType type,
                                   const GeometryNodeCurveHandleMode mode,
                                   const MutableSpan<bool> r_selection)
 {
   int offset = 0;
   for (const SplinePtr &spline : curve.splines()) {
-    if (spline->type() != Spline::Type::Bezier) {
+    if (spline->type() != CURVE_TYPE_BEZIER) {
       r_selection.slice(offset, spline->size()).fill(false);
       offset += spline->size();
     }
@@ -71,11 +71,11 @@ static void select_by_handle_type(const CurveEval &curve,
 }
 
 class HandleTypeFieldInput final : public GeometryFieldInput {
-  BezierSpline::HandleType type_;
+  HandleType type_;
   GeometryNodeCurveHandleMode mode_;
 
  public:
-  HandleTypeFieldInput(BezierSpline::HandleType type, GeometryNodeCurveHandleMode mode)
+  HandleTypeFieldInput(HandleType type, GeometryNodeCurveHandleMode mode)
       : GeometryFieldInput(CPPType::get<bool>(), "Handle Type Selection node"),
         type_(type),
         mode_(mode)
@@ -124,7 +124,7 @@ class HandleTypeFieldInput final : public GeometryFieldInput {
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurveSelectHandles &storage = node_storage(params.node());
-  const BezierSpline::HandleType handle_type = handle_type_from_input_type(
+  const HandleType handle_type = handle_type_from_input_type(
       (GeometryNodeCurveHandleType)storage.handle_type);
   const GeometryNodeCurveHandleMode mode = (GeometryNodeCurveHandleMode)storage.mode;
 

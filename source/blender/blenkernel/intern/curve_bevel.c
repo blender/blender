@@ -228,7 +228,7 @@ static void curve_bevel_make_from_object(const Curve *cu, ListBase *disp)
   if (cu->bevobj == NULL) {
     return;
   }
-  if (cu->bevobj->type != OB_CURVE) {
+  if (cu->bevobj->type != OB_CURVES_LEGACY) {
     return;
   }
 

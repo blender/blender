@@ -529,8 +529,8 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   float vec[3] = {0.0f, 0.0f, 0.0f};
   float normal[3] = {0.0f, 0.0f, 0.0f};
   float weightsum = 0.0f;
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me_eval);
   if (me_eval) {
+    const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me_eval);
     const MDeformVert *dvert = CustomData_get_layer(&me_eval->vdata, CD_MDEFORMVERT);
     int numVerts = me_eval->totvert;
 
@@ -1493,7 +1493,7 @@ static void followpath_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
 {
   bFollowPathConstraint *data = con->data;
 
-  if (VALID_CONS_TARGET(ct) && (ct->tar->type == OB_CURVE)) {
+  if (VALID_CONS_TARGET(ct) && (ct->tar->type == OB_CURVES_LEGACY)) {
     Curve *cu = ct->tar->data;
     float vec[4], dir[3], radius;
     float curvetime;
@@ -2479,7 +2479,7 @@ static void pycon_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
 #endif
 
   if (VALID_CONS_TARGET(ct)) {
-    if (ct->tar->type == OB_CURVE && ct->tar->runtime.curve_cache == NULL) {
+    if (ct->tar->type == OB_CURVES_LEGACY && ct->tar->runtime.curve_cache == NULL) {
       unit_m4(ct->matrix);
       return;
     }
@@ -3867,7 +3867,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
   bConstraintTarget *ct = targets->first;
 
   /* only evaluate if there is a target and it is a curve */
-  if (VALID_CONS_TARGET(ct) && (ct->tar->type == OB_CURVE)) {
+  if (VALID_CONS_TARGET(ct) && (ct->tar->type == OB_CURVES_LEGACY)) {
     float obmat[4][4], ownLoc[3];
     float curveMin[3], curveMax[3];
     float targetMatrix[4][4];

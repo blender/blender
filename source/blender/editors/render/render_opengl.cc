@@ -599,30 +599,30 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
   const ID_Type id_type = GS(id->name);
   switch (id_type) {
     /* Whitelist: */
-    case ID_ME:  /* Mesh */
-    case ID_CU:  /* Curve */
-    case ID_MB:  /* MetaBall */
-    case ID_MA:  /* Material */
-    case ID_TE:  /* Tex (Texture) */
-    case ID_IM:  /* Image */
-    case ID_LT:  /* Lattice */
-    case ID_LA:  /* Light */
-    case ID_CA:  /* Camera */
-    case ID_KE:  /* Key (shape key) */
-    case ID_VF:  /* VFont (Vector Font) */
-    case ID_TXT: /* Text */
-    case ID_SPK: /* Speaker */
-    case ID_SO:  /* Sound */
-    case ID_AR:  /* bArmature */
-    case ID_NT:  /* bNodeTree */
-    case ID_PA:  /* ParticleSettings */
-    case ID_MC:  /* MovieClip */
-    case ID_MSK: /* Mask */
-    case ID_LP:  /* LightProbe */
-    case ID_CV:  /* Curves */
-    case ID_PT:  /* PointCloud */
-    case ID_VO:  /* Volume */
-    case ID_SIM: /* Simulation */
+    case ID_ME:        /* Mesh */
+    case ID_CU_LEGACY: /* Curve */
+    case ID_MB:        /* MetaBall */
+    case ID_MA:        /* Material */
+    case ID_TE:        /* Tex (Texture) */
+    case ID_IM:        /* Image */
+    case ID_LT:        /* Lattice */
+    case ID_LA:        /* Light */
+    case ID_CA:        /* Camera */
+    case ID_KE:        /* Key (shape key) */
+    case ID_VF:        /* VFont (Vector Font) */
+    case ID_TXT:       /* Text */
+    case ID_SPK:       /* Speaker */
+    case ID_SO:        /* Sound */
+    case ID_AR:        /* bArmature */
+    case ID_NT:        /* bNodeTree */
+    case ID_PA:        /* ParticleSettings */
+    case ID_MC:        /* MovieClip */
+    case ID_MSK:       /* Mask */
+    case ID_LP:        /* LightProbe */
+    case ID_CV:        /* Curves */
+    case ID_PT:        /* PointCloud */
+    case ID_VO:        /* Volume */
+    case ID_SIM:       /* Simulation */
       break;
 
       /* Blacklist: */

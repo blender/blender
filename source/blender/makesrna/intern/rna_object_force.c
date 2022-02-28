@@ -691,7 +691,7 @@ static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, Point
 
     rna_FieldSettings_shape_update(bmain, scene, ptr);
 
-    if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE) {
+    if (ob->type == OB_CURVES_LEGACY && ob->pd->forcefield == PFIELD_GUIDE) {
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
     }
     else {
@@ -899,7 +899,7 @@ static const EnumPropertyItem *rna_Effector_shape_itemf(bContext *UNUSED(C),
 
   ob = (Object *)ptr->owner_id;
 
-  if (ob->type == OB_CURVE) {
+  if (ob->type == OB_CURVES_LEGACY) {
     if (ob->pd->forcefield == PFIELD_VORTEX) {
       return curve_vortex_shape_items;
     }

@@ -79,6 +79,8 @@ class UnifiedPaintPanel:
             return tool_settings.gpencil_weight_paint
         elif mode == 'VERTEX_GPENCIL':
             return tool_settings.gpencil_vertex_paint
+        elif mode == 'SCULPT_CURVES':
+            return tool_settings.curves_sculpt
         return None
 
     @staticmethod

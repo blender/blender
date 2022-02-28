@@ -211,7 +211,7 @@ static void curve_deform_coords_impl(const Object *ob_curve,
   bool use_dverts = false;
   int cd_dvert_offset;
 
-  if (ob_curve->type != OB_CURVE) {
+  if (ob_curve->type != OB_CURVES_LEGACY) {
     return;
   }
 
@@ -404,7 +404,7 @@ void BKE_curve_deform_co(const Object *ob_curve,
   CurveDeform cd;
   float quat[4];
 
-  if (ob_curve->type != OB_CURVE) {
+  if (ob_curve->type != OB_CURVES_LEGACY) {
     unit_m3(r_mat);
     return;
   }

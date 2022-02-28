@@ -342,7 +342,7 @@ static bool object_hook_index_array(Main *bmain,
       }
       return true;
     }
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
       ED_curve_editnurb_load(bmain, obedit);
       ED_curve_editnurb_make(obedit);
@@ -447,7 +447,7 @@ static void object_hook_select(Object *ob, HookModifierData *hmd)
   else if (ob->type == OB_LATTICE) {
     select_editlattice_hook(ob, hmd);
   }
-  else if (ob->type == OB_CURVE) {
+  else if (ob->type == OB_CURVES_LEGACY) {
     select_editcurve_hook(ob, hmd);
   }
   else if (ob->type == OB_SURF) {

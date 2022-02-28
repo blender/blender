@@ -639,10 +639,19 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
   e.xy[0] = x;
   e.xy[1] = y;
 
-  e.shift = shift;
-  e.ctrl = ctrl;
-  e.alt = alt;
-  e.oskey = oskey;
+  e.modifier = 0;
+  if (shift) {
+    e.modifier |= KM_SHIFT;
+  }
+  if (ctrl) {
+    e.modifier |= KM_CTRL;
+  }
+  if (alt) {
+    e.modifier |= KM_ALT;
+  }
+  if (oskey) {
+    e.modifier |= KM_OSKEY;
+  }
 
   e.ascii = '\0';
   e.utf8_buf[0] = '\0';

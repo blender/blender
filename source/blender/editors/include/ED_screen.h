@@ -250,6 +250,12 @@ void ED_area_offscreen_free(struct wmWindowManager *wm,
                             struct wmWindow *win,
                             struct ScrArea *area);
 
+/**
+ * Search all screens, even non-active or overlapping (multiple windows), return the most-likely
+ * area of interest. xy is relative to active window, like all similar functions.
+ */
+ScrArea *ED_area_find_under_cursor(const struct bContext *C, int spacetype, const int xy[2]);
+
 ScrArea *ED_screen_areas_iter_first(const struct wmWindow *win, const bScreen *screen);
 ScrArea *ED_screen_areas_iter_next(const bScreen *screen, const ScrArea *area);
 /**

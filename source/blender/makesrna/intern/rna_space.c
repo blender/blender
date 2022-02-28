@@ -3307,8 +3307,8 @@ static struct IDFilterEnumPropertyItem rna_enum_space_file_id_filter_categories[
      ICON_OUTLINER_COLLECTION,
      "Objects & Collections",
      "Show objects and collections"},
-    {FILTER_ID_AR | FILTER_ID_CU | FILTER_ID_LT | FILTER_ID_MB | FILTER_ID_ME | FILTER_ID_CV |
-         FILTER_ID_PT | FILTER_ID_VO,
+    {FILTER_ID_AR | FILTER_ID_CU_LEGACY | FILTER_ID_LT | FILTER_ID_MB | FILTER_ID_ME |
+         FILTER_ID_CV | FILTER_ID_PT | FILTER_ID_VO,
      "category_geometry",
      ICON_NODETREE,
      "Geometry",
@@ -5007,7 +5007,9 @@ static void rna_def_space_view3d(BlenderRNA *brna)
       const char *identifier[2];
     } info[] = {
         {"Mesh", (1 << OB_MESH), {"show_object_viewport_mesh", "show_object_select_mesh"}},
-        {"Curve", (1 << OB_CURVE), {"show_object_viewport_curve", "show_object_select_curve"}},
+        {"Curve",
+         (1 << OB_CURVES_LEGACY),
+         {"show_object_viewport_curve", "show_object_select_curve"}},
         {"Surface", (1 << OB_SURF), {"show_object_viewport_surf", "show_object_select_surf"}},
         {"Meta", (1 << OB_MBALL), {"show_object_viewport_meta", "show_object_select_meta"}},
         {"Font", (1 << OB_FONT), {"show_object_viewport_font", "show_object_select_font"}},
@@ -5515,7 +5517,7 @@ static void rna_def_space_sequencer_preview_overlay(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "show_cursor", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_PREVIEW_SHOW_2D_CURSOR);
-  RNA_def_property_ui_text(prop, "2D cursor", "");
+  RNA_def_property_ui_text(prop, "2D Cursor", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 }
 

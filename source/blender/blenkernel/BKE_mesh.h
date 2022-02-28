@@ -70,6 +70,13 @@ struct Mesh *BKE_mesh_from_bmesh_for_eval_nomain(struct BMesh *bm,
                                                  const struct Mesh *me_settings);
 
 /**
+ * Add original index (#CD_ORIGINDEX) layers if they don't already exist. This is meant to be used
+ * when creating an evaluated mesh from an original edit mode mesh, to allow mapping from the
+ * evaluated vertices to the originals.
+ */
+void BKE_mesh_ensure_default_orig_index_customdata(struct Mesh *mesh);
+
+/**
  * Find the index of the loop in 'poly' which references vertex,
  * returns -1 if not found
  */
@@ -332,8 +339,7 @@ int BKE_mesh_tessface_calc_ex(struct CustomData *fdata,
                               struct MVert *mvert,
                               int totface,
                               int totloop,
-                              int totpoly,
-                              bool do_face_nor_copy);
+                              int totpoly);
 void BKE_mesh_tessface_calc(struct Mesh *mesh);
 
 /**
@@ -399,6 +405,9 @@ void BKE_mesh_assert_normals_dirty_or_calculated(const struct Mesh *mesh);
  * \note In order to clear the dirty flag, this function should be followed by a call to
  * #BKE_mesh_vertex_normals_clear_dirty. This is separate so that normals are still tagged dirty
  * while they are being assigned.
+ *
+ * \warning The memory returned by this function is not initialized if it was not previously
+ * allocated.
  */
 float (*BKE_mesh_vertex_normals_for_write(struct Mesh *mesh))[3];
 
@@ -409,8 +418,22 @@ float (*BKE_mesh_vertex_normals_for_write(struct Mesh *mesh))[3];
  * \note In order to clear the dirty flag, this function should be followed by a call to
  * #BKE_mesh_poly_normals_clear_dirty. This is separate so that normals are still tagged dirty
  * while they are being assigned.
+ *
+ * \warning The memory returned by this function is not initialized if it was not previously
+ * allocated.
  */
 float (*BKE_mesh_poly_normals_for_write(struct Mesh *mesh))[3];
+
+/**
+ * Free any cached vertex or poly normals. Face corner (loop) normals are also derived data,
+ * but are not handled with the same method yet, so they are not included. It's important that this
+ * is called after the mesh changes size, since otherwise cached normal arrays might not be large
+ * enough (though it may be called indirectly by other functions).
+ *
+ * \note Normally it's preferred to call #BKE_mesh_normals_tag_dirty instead,
+ * but this can be used in specific situations to reset a mesh or reduce memory usage.
+ */
+void BKE_mesh_clear_derived_normals(struct Mesh *mesh);
 
 /**
  * Mark the mesh's vertex normals non-dirty, for when they are calculated or assigned manually.

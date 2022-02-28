@@ -408,15 +408,6 @@ enum {
   ((ISKEYBOARD(event_type) || ISMOUSE(event_type) || ISNDOF(event_type)) && \
    (ISKEYMODIFIER(event_type) == false))
 
-/* Internal helpers. */
-#define _VA_IS_EVENT_MOD2(v, a) (CHECK_TYPE_INLINE(v, wmEvent *), ((v)->a))
-#define _VA_IS_EVENT_MOD3(v, a, b) (_VA_IS_EVENT_MOD2(v, a) || ((v)->b))
-#define _VA_IS_EVENT_MOD4(v, a, b, c) (_VA_IS_EVENT_MOD3(v, a, b) || ((v)->c))
-#define _VA_IS_EVENT_MOD5(v, a, b, c, d) (_VA_IS_EVENT_MOD4(v, a, b, c) || ((v)->d))
-
-/** Reusable `IS_EVENT_MOD(event, shift, ctrl, alt, oskey)` macro. */
-#define IS_EVENT_MOD(...) VA_NARGS_CALL_OVERLOAD(_VA_IS_EVENT_MOD, __VA_ARGS__)
-
 enum eEventType_Mask {
   /** #ISKEYMODIFIER */
   EVT_TYPE_MASK_KEYBOARD_MODIFIER = (1 << 0),

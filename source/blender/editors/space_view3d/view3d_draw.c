@@ -1351,7 +1351,7 @@ static void draw_selected_name(
         }
       }
     }
-    else if (ELEM(ob->type, OB_MESH, OB_LATTICE, OB_CURVE)) {
+    else if (ELEM(ob->type, OB_MESH, OB_LATTICE, OB_CURVES_LEGACY)) {
       /* try to display active bone and active shapekey too (if they exist) */
 
       if (ob->type == OB_MESH && ob->mode & OB_MODE_WEIGHT_PAINT) {

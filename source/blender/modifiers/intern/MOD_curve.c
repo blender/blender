@@ -71,7 +71,7 @@ static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED
    *
    * In other cases it should be impossible to have a type mismatch.
    */
-  return !cmd->object || cmd->object->type != OB_CURVE;
+  return !cmd->object || cmd->object->type != OB_CURVES_LEGACY;
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)

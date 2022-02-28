@@ -235,7 +235,7 @@ typedef struct tGPsdata {
   /** key used for invoking the operator */
   short keymodifier;
   /** shift modifier flag */
-  short shift;
+  bool shift;
   /** size in pixels for uv calculation */
   float totpixlen;
   /** Special mode for fill brush. */
@@ -2841,11 +2841,11 @@ static void gpencil_draw_apply_event(bContext *C,
    * add any x,y override position
    */
   copy_v2fl_v2i(p->mval, event->mval);
-  p->shift = event->shift;
+  p->shift = (event->modifier & KM_SHIFT) != 0;
 
   /* verify direction for straight lines and guides */
   if ((is_speed_guide) ||
-      (event->alt && (RNA_boolean_get(op->ptr, "disable_straight") == false))) {
+      ((event->modifier & KM_ALT) && (RNA_boolean_get(op->ptr, "disable_straight") == false))) {
     if (p->straight == 0) {
       int dx = (int)fabsf(p->mval[0] - p->mvali[0]);
       int dy = (int)fabsf(p->mval[1] - p->mvali[1]);
@@ -2886,13 +2886,13 @@ static void gpencil_draw_apply_event(bContext *C,
 
   /* special eraser modes */
   if (p->paintmode == GP_PAINTMODE_ERASER) {
-    if (event->shift) {
+    if (event->modifier & KM_SHIFT) {
       p->flags |= GP_PAINTFLAG_HARD_ERASER;
     }
     else {
       p->flags &= ~GP_PAINTFLAG_HARD_ERASER;
     }
-    if (event->alt) {
+    if (event->modifier & KM_ALT) {
       p->flags |= GP_PAINTFLAG_STROKE_ERASER;
     }
     else {
@@ -3116,11 +3116,11 @@ static void gpencil_guide_event_handling(bContext *C,
   else if ((event->type == EVT_LKEY) && (event->val == KM_RELEASE)) {
     add_notifier = true;
     guide->use_guide = true;
-    if (event->ctrl) {
+    if (event->modifier & KM_CTRL) {
       guide->angle = 0.0f;
       guide->type = GP_GUIDE_PARALLEL;
     }
-    else if (event->alt) {
+    else if (event->modifier & KM_ALT) {
       guide->type = GP_GUIDE_PARALLEL;
       guide->angle = RNA_float_get(op->ptr, "guide_last_angle");
     }
@@ -3150,10 +3150,10 @@ static void gpencil_guide_event_handling(bContext *C,
     add_notifier = true;
     float angle = guide->angle;
     float adjust = (float)M_PI / 180.0f;
-    if (event->alt) {
+    if (event->modifier & KM_ALT) {
       adjust *= 45.0f;
     }
-    else if (!event->shift) {
+    else if ((event->modifier & KM_SHIFT) == 0) {
       adjust *= 15.0f;
     }
     angle += (event->type == EVT_JKEY) ? adjust : -adjust;
@@ -3633,7 +3633,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
        */
     }
     else if (event->type == EVT_ZKEY) {
-      if (event->ctrl) {
+      if (event->modifier & KM_CTRL) {
         p->status = GP_STATUS_DONE;
         estate = OPERATOR_FINISHED;
       }

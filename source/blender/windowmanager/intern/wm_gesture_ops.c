@@ -507,6 +507,8 @@ static void gesture_tweak_modal(bContext *C, const wmEvent *event)
           tevent.type = EVT_TWEAK_M;
         }
         tevent.val = val;
+        tevent.modifier = gesture->event_modifier;
+        tevent.keymodifier = gesture->event_keymodifier;
         tevent.is_repeat = false;
         /* mouse coords! */
 
@@ -533,7 +535,18 @@ static void gesture_tweak_modal(bContext *C, const wmEvent *event)
       }
       break;
     default:
-      if (!ISTIMER(event->type) && event->type != EVENT_NONE) {
+      if (ISTIMER(event->type)) {
+        /* Ignore timers. */
+      }
+      else if (event->type == EVENT_NONE) {
+        /* Ignore none events. */
+      }
+      else if ((event->val == KM_RELEASE) &&
+               (ISKEYMODIFIER(event->type) || (event->type == event->prev_click_keymodifier))) {
+        /* Support releasing modifier keys without canceling the drag event, see T89989.
+         * NOTE: this logic is replicated for drag events. */
+      }
+      else {
         gesture_end = true;
       }
       break;

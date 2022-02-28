@@ -367,15 +367,18 @@ static void trim_spline(SplinePtr &spline,
                         const Spline::LookupResult end)
 {
   switch (spline->type()) {
-    case Spline::Type::Bezier:
+    case CURVE_TYPE_BEZIER:
       trim_bezier_spline(*spline, start, end);
       break;
-    case Spline::Type::Poly:
+    case CURVE_TYPE_POLY:
       trim_poly_spline(*spline, start, end);
       break;
-    case Spline::Type::NURBS:
+    case CURVE_TYPE_NURBS:
       spline = std::make_unique<PolySpline>(trim_nurbs_spline(*spline, start, end));
       break;
+    case CURVE_TYPE_CATMULL_ROM:
+      BLI_assert_unreachable();
+      spline = {};
   }
   spline->mark_cache_invalid();
 }
@@ -400,8 +403,8 @@ static void to_single_point_bezier(Spline &spline, const Spline::LookupResult &l
   const BezierSpline::InsertResult new_point = bezier.calculate_segment_insertion(
       trim.left_index, trim.right_index, trim.factor);
   bezier.positions().first() = new_point.position;
-  bezier.handle_types_left().first() = BezierSpline::HandleType::Free;
-  bezier.handle_types_right().first() = BezierSpline::HandleType::Free;
+  bezier.handle_types_left().first() = BEZIER_HANDLE_FREE;
+  bezier.handle_types_right().first() = BEZIER_HANDLE_FREE;
   bezier.handle_positions_left().first() = new_point.left_handle;
   bezier.handle_positions_right().first() = new_point.right_handle;
 
@@ -477,15 +480,18 @@ static PolySpline to_single_point_nurbs(const Spline &spline, const Spline::Look
 static void to_single_point_spline(SplinePtr &spline, const Spline::LookupResult &lookup)
 {
   switch (spline->type()) {
-    case Spline::Type::Bezier:
+    case CURVE_TYPE_BEZIER:
       to_single_point_bezier(*spline, lookup);
       break;
-    case Spline::Type::Poly:
+    case CURVE_TYPE_POLY:
       to_single_point_poly(*spline, lookup);
       break;
-    case Spline::Type::NURBS:
+    case CURVE_TYPE_NURBS:
       spline = std::make_unique<PolySpline>(to_single_point_nurbs(*spline, lookup));
       break;
+    case CURVE_TYPE_CATMULL_ROM:
+      BLI_assert_unreachable();
+      spline = {};
   }
 }
 

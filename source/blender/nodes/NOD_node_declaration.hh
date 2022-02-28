@@ -110,7 +110,7 @@ class SocketDeclaration {
   /**
    * Change the node such that the socket will become visible. The node type's update method
    * should be called afterwards.
-   * \note Note that this is not necessarily implemented for all node types.
+   * \note this is not necessarily implemented for all node types.
    */
   void make_available(bNode &node) const;
 

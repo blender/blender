@@ -960,7 +960,13 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
             mm->evtx = event->xy[0];
             fac = ((float)(event->xy[0] - mm->firstx) * dx);
 
-            apply_keyb_grid(event->shift, event->ctrl, &fac, 0.0, FPS, 0.1 * FPS, 0);
+            apply_keyb_grid((event->modifier & KM_SHIFT) != 0,
+                            (event->modifier & KM_CTRL) != 0,
+                            &fac,
+                            0.0,
+                            FPS,
+                            0.1 * FPS,
+                            0);
 
             RNA_int_set(op->ptr, "frames", (int)fac);
             ed_marker_move_apply(C, op);

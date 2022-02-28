@@ -3292,7 +3292,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   mpolys = me->mpoly;
   mloops = me->mloop;
 
-  /* Get size (dimension) but considering scaling scaling. */
+  /* Get size (dimension) but considering scaling. */
   copy_v3_v3(cell_size_scaled, fds->cell_size);
   mul_v3_v3(cell_size_scaled, ob->scale);
   madd_v3fl_v3fl_v3fl_v3i(min, fds->p0, cell_size_scaled, fds->res_min);

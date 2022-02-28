@@ -632,7 +632,7 @@ bool BKE_object_has_geometry_set_instances(const Object *ob)
         is_instance = ob->type != OB_VOLUME;
         break;
       case GEO_COMPONENT_TYPE_CURVE:
-        is_instance = !ELEM(ob->type, OB_CURVE, OB_FONT);
+        is_instance = !ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT);
         break;
     }
     if (is_instance) {

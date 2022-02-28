@@ -579,7 +579,7 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
        * would require going over all tfaces, sort images in use. etc... */
       break;
     }
-    case ID_CU: {
+    case ID_CU_LEGACY: {
       Curve *cu = (Curve *)id;
 
       if (outliner_animdata_test(cu->adt)) {

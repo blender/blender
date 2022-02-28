@@ -152,7 +152,7 @@ static void stats_object(Object *ob,
       }
       break;
     case OB_SURF:
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_FONT: {
       const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
       if ((me_eval != nullptr) && !BLI_gset_add(objects_gset, (void *)me_eval)) {
@@ -260,7 +260,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
       stats->totvert += 2;
     }
   }
-  else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) { /* OB_FONT has no cu->editnurb */
+  else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) { /* OB_FONT has no cu->editnurb */
     /* Curve Edit */
     Curve *cu = static_cast<Curve *>(obedit->data);
     BezTriple *bezt;

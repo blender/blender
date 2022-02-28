@@ -639,18 +639,20 @@ class Vector {
   }
 
   /**
-   * Return a reference to the last element in the vector.
-   * This invokes undefined behavior when the vector is empty.
+   * Return a reference to the nth last element.
+   * This invokes undefined behavior when the vector is too short.
    */
-  const T &last() const
+  const T &last(const int64_t n = 0) const
   {
-    BLI_assert(this->size() > 0);
-    return *(end_ - 1);
+    BLI_assert(n >= 0);
+    BLI_assert(n < this->size());
+    return *(end_ - 1 - n);
   }
-  T &last()
+  T &last(const int64_t n = 0)
   {
-    BLI_assert(this->size() > 0);
-    return *(end_ - 1);
+    BLI_assert(n >= 0);
+    BLI_assert(n < this->size());
+    return *(end_ - 1 - n);
   }
 
   /**

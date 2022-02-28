@@ -402,7 +402,7 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
       return FILTER_ID_ALL;
     case ID_ME:
       return FILTER_ID_ME | FILTER_ID_MA | FILTER_ID_IM;
-    case ID_CU:
+    case ID_CU_LEGACY:
       return FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_VF;
     case ID_MB:
       return FILTER_ID_MA;
@@ -418,7 +418,7 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
       return FILTER_ID_OB | FILTER_ID_IM;
     case ID_KE:
       /* Warning! key->from, could be more types in future? */
-      return FILTER_ID_ME | FILTER_ID_CU | FILTER_ID_LT;
+      return FILTER_ID_ME | FILTER_ID_CU_LEGACY | FILTER_ID_LT;
     case ID_SCR:
       return FILTER_ID_SCE;
     case ID_WO:
@@ -448,7 +448,7 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
     case ID_WS:
       return FILTER_ID_SCE;
     case ID_CV:
-      return FILTER_ID_MA;
+      return FILTER_ID_MA | FILTER_ID_OB;
     case ID_PT:
       return FILTER_ID_MA;
     case ID_VO:
@@ -490,7 +490,7 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
 
   /* Exception: ID_KE aren't available as filter_id. */
   if (id_type_used == ID_KE) {
-    return ELEM(id_type_owner, ID_ME, ID_CU, ID_LT);
+    return ELEM(id_type_owner, ID_ME, ID_CU_LEGACY, ID_LT);
   }
 
   /* Exception: ID_SCR aren't available as filter_id. */

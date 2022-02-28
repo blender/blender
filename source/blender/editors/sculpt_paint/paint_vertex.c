@@ -2370,7 +2370,10 @@ static void wpaint_do_symmetrical_brush_actions(
   cache->is_last_valid = true;
 }
 
-static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
+static void wpaint_stroke_update_step(bContext *C,
+                                      wmOperator *UNUSED(op),
+                                      struct PaintStroke *stroke,
+                                      PointerRNA *itemptr)
 {
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -2551,7 +2554,7 @@ static int wpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                                     event->type);
 
   if ((retval = op->type->modal(C, op, event)) == OPERATOR_FINISHED) {
-    paint_stroke_free(C, op);
+    paint_stroke_free(C, op, op->customdata);
     return OPERATOR_FINISHED;
   }
   /* add modal handler */
@@ -2575,7 +2578,7 @@ static int wpaint_exec(bContext *C, wmOperator *op)
                                     0);
 
   /* frees op->customdata */
-  paint_stroke_exec(C, op);
+  paint_stroke_exec(C, op, op->customdata);
 
   return OPERATOR_FINISHED;
 }
@@ -2588,7 +2591,12 @@ static void wpaint_cancel(bContext *C, wmOperator *op)
     ob->sculpt->cache = NULL;
   }
 
-  paint_stroke_cancel(C, op);
+  paint_stroke_cancel(C, op, op->customdata);
+}
+
+static int wpaint_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  return paint_stroke_modal(C, op, event, op->customdata);
 }
 
 void PAINT_OT_weight_paint(wmOperatorType *ot)
@@ -2600,7 +2608,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = wpaint_invoke;
-  ot->modal = paint_stroke_modal;
+  ot->modal = wpaint_modal;
   ot->exec = wpaint_exec;
   ot->poll = weight_paint_poll;
   ot->cancel = wpaint_cancel;
@@ -3395,7 +3403,10 @@ static void vpaint_do_symmetrical_brush_actions(
   cache->is_last_valid = true;
 }
 
-static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
+static void vpaint_stroke_update_step(bContext *C,
+                                      wmOperator *UNUSED(op),
+                                      struct PaintStroke *stroke,
+                                      PointerRNA *itemptr)
 {
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -3497,7 +3508,7 @@ static int vpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                                     event->type);
 
   if ((retval = op->type->modal(C, op, event)) == OPERATOR_FINISHED) {
-    paint_stroke_free(C, op);
+    paint_stroke_free(C, op, op->customdata);
     return OPERATOR_FINISHED;
   }
 
@@ -3522,7 +3533,7 @@ static int vpaint_exec(bContext *C, wmOperator *op)
                                     0);
 
   /* frees op->customdata */
-  paint_stroke_exec(C, op);
+  paint_stroke_exec(C, op, op->customdata);
 
   return OPERATOR_FINISHED;
 }
@@ -3535,7 +3546,12 @@ static void vpaint_cancel(bContext *C, wmOperator *op)
     ob->sculpt->cache = NULL;
   }
 
-  paint_stroke_cancel(C, op);
+  paint_stroke_cancel(C, op, op->customdata);
+}
+
+static int vpaint_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  return paint_stroke_modal(C, op, event, op->customdata);
 }
 
 void PAINT_OT_vertex_paint(wmOperatorType *ot)
@@ -3547,7 +3563,7 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = vpaint_invoke;
-  ot->modal = paint_stroke_modal;
+  ot->modal = vpaint_modal;
   ot->exec = vpaint_exec;
   ot->poll = vertex_paint_poll;
   ot->cancel = vpaint_cancel;

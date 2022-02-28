@@ -103,6 +103,12 @@ static XrActionMapBinding *wm_xr_actionmap_binding_copy(XrActionMapBinding *amb_
   XrActionMapBinding *amb_dst = MEM_dupallocN(amb_src);
   amb_dst->prev = amb_dst->next = NULL;
 
+  BLI_listbase_clear(&amb_dst->component_paths);
+  LISTBASE_FOREACH (XrComponentPath *, path, &amb_src->component_paths) {
+    XrComponentPath *path_new = MEM_dupallocN(path);
+    BLI_addtail(&amb_dst->component_paths, path_new);
+  }
+
   return amb_dst;
 }
 
@@ -316,6 +322,12 @@ static XrActionMapItem *wm_xr_actionmap_item_copy(XrActionMapItem *ami_src)
   else {
     ami_dst->op_properties = NULL;
     ami_dst->op_properties_ptr = NULL;
+  }
+
+  BLI_listbase_clear(&ami_dst->user_paths);
+  LISTBASE_FOREACH (XrUserPath *, path, &ami_src->user_paths) {
+    XrUserPath *path_new = MEM_dupallocN(path);
+    BLI_addtail(&ami_dst->user_paths, path_new);
   }
 
   return ami_dst;

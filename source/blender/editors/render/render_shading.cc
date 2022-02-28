@@ -310,7 +310,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
         }
       }
     }
-    else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+    else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
       Nurb *nu;
       ListBase *nurbs = BKE_curve_editNurbs_get((Curve *)ob->data);
 
@@ -411,7 +411,7 @@ static int material_slot_de_select(bContext *C, bool select)
         changed = EDBM_deselect_by_material(em, mat_nr_active, select);
       }
     }
-    else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+    else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
       ListBase *nurbs = BKE_curve_editNurbs_get((Curve *)ob->data);
       Nurb *nu;
       BPoint *bp;

@@ -382,7 +382,7 @@ struct XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode
 
       break;
     }
-    case ID_CU: {
+    case ID_CU_LEGACY: {
       Curve *cu = (Curve *)id;
       struct Key *key = cu->key;
 
@@ -505,7 +505,7 @@ void ED_object_data_xform_destroy(struct XFormObjectData *xod_base)
       }
       break;
     }
-    case ID_CU: {
+    case ID_CU_LEGACY: {
       struct XFormObjectData_Curve *xod = (struct XFormObjectData_Curve *)xod_base;
       if (xod->key_data != NULL) {
         MEM_freeN(xod->key_data);
@@ -565,7 +565,7 @@ void ED_object_data_xform_by_mat4(struct XFormObjectData *xod_base, const float 
 
       break;
     }
-    case ID_CU: {
+    case ID_CU_LEGACY: {
       BLI_assert(xod_base->is_edit_mode == false); /* Not used currently. */
       Curve *cu = (Curve *)xod_base->id;
 
@@ -670,7 +670,7 @@ void ED_object_data_xform_restore(struct XFormObjectData *xod_base)
 
       break;
     }
-    case ID_CU: {
+    case ID_CU_LEGACY: {
       Curve *cu = (Curve *)xod_base->id;
 
       struct Key *key = cu->key;
@@ -745,7 +745,7 @@ void ED_object_data_xform_tag_update(struct XFormObjectData *xod_base)
       DEG_id_tag_update(&lt->id, ID_RECALC_GEOMETRY);
       break;
     }
-    case ID_CU: {
+    case ID_CU_LEGACY: {
       /* Generic update. */
       Curve *cu = (Curve *)xod_base->id;
       DEG_id_tag_update(&cu->id, ID_RECALC_GEOMETRY);

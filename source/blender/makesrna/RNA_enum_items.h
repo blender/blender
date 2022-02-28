@@ -87,6 +87,8 @@ DEF_ENUM(rna_enum_keying_flag_items_api)
 DEF_ENUM(rna_enum_fmodifier_type_items)
 
 DEF_ENUM(rna_enum_motionpath_bake_location_items)
+DEF_ENUM(rna_enum_motionpath_display_type_items)
+DEF_ENUM(rna_enum_motionpath_range_items)
 
 DEF_ENUM(rna_enum_event_value_all_items)
 DEF_ENUM(rna_enum_event_value_keymouse_items)
@@ -107,6 +109,7 @@ DEF_ENUM(rna_enum_brush_gpencil_types_items)
 DEF_ENUM(rna_enum_brush_gpencil_vertex_types_items)
 DEF_ENUM(rna_enum_brush_gpencil_sculpt_types_items)
 DEF_ENUM(rna_enum_brush_gpencil_weight_types_items)
+DEF_ENUM(rna_enum_brush_curves_sculpt_tool_items);
 DEF_ENUM(rna_enum_brush_image_tool_items)
 
 DEF_ENUM(rna_enum_axis_xy_items)

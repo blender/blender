@@ -93,7 +93,7 @@ filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_par
       case OB_MESH:
         r_exportable_meshes.append(std::make_unique<OBJMesh>(depsgraph, export_params, object));
         break;
-      case OB_CURVE: {
+      case OB_CURVES_LEGACY: {
         Curve *curve = static_cast<Curve *>(object->data);
         Nurb *nurb{static_cast<Nurb *>(curve->nurb.first)};
         if (!nurb) {

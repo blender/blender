@@ -468,6 +468,38 @@ class _draw_tool_settings_context_mode:
 
         return True
 
+    @staticmethod
+    def SCULPT_CURVES(context, layout, tool):
+        if (tool is None) or (not tool.has_datablock):
+            return False
+
+        paint = context.tool_settings.curves_sculpt
+        layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
+
+        brush = paint.brush
+        if brush is None:
+            return False
+
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "size",
+            unified_name="use_unified_size",
+            text="Radius",
+            slider=True,
+            header=True
+        )
+
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "strength",
+            unified_name="use_unified_strength",
+            header=True
+        )
+
 
 class VIEW3D_HT_header(Header):
     bl_space_type = 'VIEW_3D'
@@ -1899,6 +1931,13 @@ class VIEW3D_MT_select_paint_mask_vertex(Menu):
         layout.operator("paint.vert_select_ungrouped", text="Ungrouped Vertices")
 
 
+class VIEW3D_MT_select_edit_curves(Menu):
+    bl_label = "Select"
+
+    def draw(self, _context):
+        pass
+
+
 class VIEW3D_MT_angle_control(Menu):
     bl_label = "Angle Control"
 
@@ -2344,6 +2383,25 @@ class VIEW3D_MT_object_clear(Menu):
         layout.operator("object.origin_clear", text="Origin")
 
 
+class VIEW3D_MT_motion_path(Menu):
+    bl_label = "Motion Paths"
+
+    def draw(self, _context):
+        layout = self.layout
+        ob = _context.object
+        if ob.mode == 'OBJECT':
+            layout.operator("object.paths_calculate")
+            layout.operator("object.paths_update")
+            layout.operator("object.paths_update_visible")
+            layout.operator("object.paths_clear", text="Clear all").only_selected = False
+            layout.operator("object.paths_clear", text="Clear selected").only_selected = True
+        elif ob.mode == 'POSE':
+            layout.operator("pose.paths_calculate")
+            layout.operator("pose.paths_update")
+            layout.operator("pose.paths_clear", text="Clear all").only_selected = False
+            layout.operator("pose.paths_clear", text="Clear selected").only_selected = True
+
+
 class VIEW3D_MT_object_context_menu(Menu):
     bl_label = "Object Context Menu"
 
@@ -2545,6 +2603,7 @@ class VIEW3D_MT_object_context_menu(Menu):
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_snap")
         layout.menu("VIEW3D_MT_object_parent")
+        layout.menu("VIEW3D_MT_motion_path")
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         if view and view.local_view:
@@ -3592,10 +3651,10 @@ class VIEW3D_MT_pose_context_menu(Menu):
 
         layout.separator()
 
-        layout.operator("pose.paths_calculate", text="Calculate Motion Paths")
-        layout.operator("pose.paths_clear", text="Clear Motion Paths")
-        layout.operator("pose.paths_update", text="Update Armature Motion Paths")
-        layout.operator("object.paths_update_visible", text="Update All Motion Paths")
+        layout.operator("pose.paths_calculate")
+        layout.operator("pose.paths_update")
+        layout.operator("pose.paths_clear", text="Clear all").only_selected = False
+        layout.operator("pose.paths_clear", text="Clear selected").only_selected = True
 
         layout.separator()
 
@@ -5121,6 +5180,13 @@ class VIEW3D_MT_edit_gpencil_showhide(Menu):
 
         layout.operator("gpencil.hide", text="Hide Active Layer").unselected = False
         layout.operator("gpencil.hide", text="Hide Inactive Layers").unselected = True
+
+
+class VIEW3D_MT_edit_curves(Menu):
+    bl_label = "Curves"
+
+    def draw(self, _context):
+        pass
 
 
 class VIEW3D_MT_object_mode_pie(Menu):
@@ -7544,6 +7610,7 @@ classes = (
     VIEW3D_MT_select_gpencil,
     VIEW3D_MT_select_paint_mask,
     VIEW3D_MT_select_paint_mask_vertex,
+    VIEW3D_MT_select_edit_curves,
     VIEW3D_MT_angle_control,
     VIEW3D_MT_mesh_add,
     VIEW3D_MT_curve_add,
@@ -7576,6 +7643,7 @@ classes = (
     VIEW3D_MT_object_quick_effects,
     VIEW3D_MT_object_showhide,
     VIEW3D_MT_object_cleanup,
+    VIEW3D_MT_motion_path,
     VIEW3D_MT_make_single_user,
     VIEW3D_MT_make_links,
     VIEW3D_MT_brush_paint_modes,
@@ -7666,6 +7734,7 @@ classes = (
     VIEW3D_MT_edit_armature_names,
     VIEW3D_MT_edit_armature_delete,
     VIEW3D_MT_edit_gpencil_transform,
+    VIEW3D_MT_edit_curves,
     VIEW3D_MT_object_mode_pie,
     VIEW3D_MT_view_pie,
     VIEW3D_MT_transform_gizmo_pie,

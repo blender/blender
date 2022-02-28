@@ -1223,6 +1223,14 @@ static void rna_def_modifier_gpencilsimplify(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Length", "Length of each segment");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+  prop = RNA_def_property(srna, "sharp_threshold", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, NULL, "sharp_threshold");
+  RNA_def_property_range(prop, 0, M_PI);
+  RNA_def_property_ui_range(prop, 0, M_PI, 1.0, 1);
+  RNA_def_property_ui_text(
+      prop, "Sharp Threshold", "Preserve corners that have sharper angle than this threshold");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
   /* Merge */
   prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "distance");
@@ -2482,7 +2490,8 @@ static void rna_def_modifier_gpencilhook(BlenderRNA *brna)
   prop = RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, modifier_gphook_falloff_items); /* share the enum */
   RNA_def_property_ui_text(prop, "Falloff Type", "");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
+  RNA_def_property_translation_context(prop,
+                                       BLT_I18NCONTEXT_ID_CURVE_LEGACY); /* Abusing id_curve :/ */
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "falloff_radius", PROP_FLOAT, PROP_DISTANCE);

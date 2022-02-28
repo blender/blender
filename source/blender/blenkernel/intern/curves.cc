@@ -114,6 +114,7 @@ static void curves_foreach_id(ID *id, LibraryForeachIDData *data)
   for (int i = 0; i < curves->totcol; i++) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, curves->mat[i], IDWALK_CB_USER);
   }
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, curves->surface, IDWALK_CB_NOP);
 }
 
 static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -186,6 +187,7 @@ static void curves_blend_read_lib(BlendLibReader *reader, ID *id)
   for (int a = 0; a < curves->totcol; a++) {
     BLO_read_id_address(reader, curves->id.lib, &curves->mat[a]);
   }
+  BLO_read_id_address(reader, curves->id.lib, &curves->surface);
 }
 
 static void curves_blend_read_expand(BlendExpander *expander, ID *id)
@@ -194,6 +196,7 @@ static void curves_blend_read_expand(BlendExpander *expander, ID *id)
   for (int a = 0; a < curves->totcol; a++) {
     BLO_expand(expander, curves->mat[a]);
   }
+  BLO_expand(expander, curves->surface);
 }
 
 IDTypeInfo IDType_ID_CV = {
@@ -358,16 +361,16 @@ static Curves *curves_evaluate_modifiers(struct Depsgraph *depsgraph,
         curves = BKE_curves_copy_for_eval(curves, true);
       }
 
-      /* Ensure we are not overwriting referenced data. */
-      CustomData_duplicate_referenced_layer_named(&curves->geometry.point_data,
-                                                  CD_PROP_FLOAT3,
-                                                  ATTR_POSITION,
-                                                  curves->geometry.point_size);
-      update_custom_data_pointers(*curves);
-
       /* Created deformed coordinates array on demand. */
-      mti->deformVerts(
-          md, &mectx, nullptr, curves->geometry.position, curves->geometry.point_size);
+      blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(
+          curves->geometry);
+      MutableSpan<float3> positions = geometry.positions();
+
+      mti->deformVerts(md,
+                       &mectx,
+                       nullptr,
+                       reinterpret_cast<float(*)[3]>(positions.data()),
+                       curves->geometry.point_size);
     }
   }
 

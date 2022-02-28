@@ -1,5 +1,5 @@
 
-/* To be compile with common_subdiv_lib.glsl */
+/* To be compiled with common_subdiv_lib.glsl */
 
 /* Source buffer. */
 layout(std430, binding = 0) buffer src_buffer
@@ -394,12 +394,8 @@ void main()
 
     evaluate_patches_limits(patch_co.patch_index, uv.x, uv.y, pos, du, dv);
 
-#  if defined(LIMIT_NORMALS)
-    vec3 nor = normalize(cross(du, dv));
-#  else
     /* This will be computed later. */
     vec3 nor = vec3(0.0);
-#  endif
 
     int origindex = input_vert_origindex[loop_index];
     uint flag = 0;

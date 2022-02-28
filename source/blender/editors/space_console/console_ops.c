@@ -408,7 +408,7 @@ static int console_insert_invoke(bContext *C, wmOperator *op, const wmEvent *eve
      * (when input method are used for utf8 inputs, the user may assign key event
      * including alt/ctrl/super like ctrl+m to commit utf8 string.  in such case,
      * the modifiers in the utf8 character event make no sense.) */
-    if ((event->ctrl || event->oskey) && !event->utf8_buf[0]) {
+    if ((event->modifier & (KM_CTRL | KM_OSKEY)) && !event->utf8_buf[0]) {
       return OPERATOR_PASS_THROUGH;
     }
 
@@ -456,7 +456,18 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 static int console_indent_or_autocomplete_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ConsoleLine *ci = console_history_verify(C);
-  bool text_before_cursor = ci->cursor != 0 && !ELEM(ci->line[ci->cursor - 1], ' ', '\t');
+  bool text_before_cursor = false;
+
+  /* Check any text before cursor (not just the previous character) as is done for
+   * #TEXT_OT_indent_or_autocomplete because Python auto-complete operates on import
+   * statements such as completing possible sub-modules: `from bpy import `. */
+  for (int i = 0; i < ci->cursor; i += BLI_str_utf8_size_safe(&ci->line[i])) {
+    if (!ELEM(ci->line[i], ' ', '\t')) {
+      text_before_cursor = true;
+      break;
+    }
+  }
+
   if (text_before_cursor) {
     WM_operator_name_call(C, "CONSOLE_OT_autocomplete", WM_OP_INVOKE_DEFAULT, NULL);
   }

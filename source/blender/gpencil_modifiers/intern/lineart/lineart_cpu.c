@@ -1388,21 +1388,20 @@ static void lineart_main_perspective_division(LineartRenderBuffer *rb)
   LineartVert *vt;
   int i;
 
-  if (!rb->cam_is_persp) {
-    return;
-  }
-
   LISTBASE_FOREACH (LineartElementLinkNode *, eln, &rb->vertex_buffer_pointers) {
     vt = eln->pointer;
     for (i = 0; i < eln->element_count; i++) {
-      /* Do not divide Z, we use Z to back transform cut points in later chaining process. */
-      vt[i].fbcoord[0] /= vt[i].fbcoord[3];
-      vt[i].fbcoord[1] /= vt[i].fbcoord[3];
-      /* Re-map z into (0-1) range, because we no longer need NDC (Normalized Device Coordinates)
-       * at the moment.
-       * The algorithm currently doesn't need Z for operation, we use W instead. If Z is needed in
-       * the future, the line below correctly transforms it to view space coordinates. */
-      // `vt[i].fbcoord[2] = -2 * vt[i].fbcoord[2] / (far - near) - (far + near) / (far - near);
+      if (rb->cam_is_persp) {
+        /* Do not divide Z, we use Z to back transform cut points in later chaining process. */
+        vt[i].fbcoord[0] /= vt[i].fbcoord[3];
+        vt[i].fbcoord[1] /= vt[i].fbcoord[3];
+        /* Re-map z into (0-1) range, because we no longer need NDC (Normalized Device Coordinates)
+         * at the moment.
+         * The algorithm currently doesn't need Z for operation, we use W instead. If Z is needed
+         * in the future, the line below correctly transforms it to view space coordinates. */
+        // `vt[i].fbcoord[2] = -2 * vt[i].fbcoord[2] / (far - near) - (far + near) / (far - near);
+      }
+      /* Shifting is always needed. */
       vt[i].fbcoord[0] -= rb->shift_x * 2;
       vt[i].fbcoord[1] -= rb->shift_y * 2;
     }
@@ -1529,8 +1528,9 @@ static uint16_t lineart_identify_feature_line(LineartRenderBuffer *rb,
   double *view_vector = vv;
   double dot_1 = 0, dot_2 = 0;
   double result;
+  bool material_back_face = ((tri1->flags | tri2->flags) & LRT_TRIANGLE_MAT_BACK_FACE_CULLING);
 
-  if (rb->use_contour || rb->use_back_face_culling) {
+  if (rb->use_contour || rb->use_back_face_culling || material_back_face) {
 
     if (rb->cam_is_persp) {
       sub_v3_v3v3_db(view_vector, rb->camera_pos, l->gloc);
@@ -1555,13 +1555,18 @@ static uint16_t lineart_identify_feature_line(LineartRenderBuffer *rb,
         tri2->flags |= LRT_CULL_DISCARD;
       }
     }
+    if (material_back_face) {
+      if (tri1->flags & LRT_TRIANGLE_MAT_BACK_FACE_CULLING && dot_1 < 0) {
+        tri1->flags |= LRT_CULL_DISCARD;
+      }
+      if (tri2->flags & LRT_TRIANGLE_MAT_BACK_FACE_CULLING && dot_2 < 0) {
+        tri2->flags |= LRT_CULL_DISCARD;
+      }
+    }
   }
   else {
     view_vector = rb->view_vector;
   }
-
-  dot_1 = dot_v3v3_db(view_vector, tri1->gn);
-  dot_2 = dot_v3v3_db(view_vector, tri2->gn);
 
   if ((result = dot_1 * dot_2) <= 0 && (fabs(dot_1) + fabs(dot_2))) {
     edge_flag_result |= LRT_EDGE_FLAG_CONTOUR;
@@ -1571,6 +1576,16 @@ static uint16_t lineart_identify_feature_line(LineartRenderBuffer *rb,
    * so we still have correct full contour around the object. */
   if (only_contour) {
     return edge_flag_result;
+  }
+
+  /* Do not show lines other than contour on back face (because contour has one adjacent face that
+   * isn't a back face).
+   * TODO(Yiming): Do we need separate option for this? */
+  if (rb->use_back_face_culling ||
+      ((tri1->flags & tri2->flags) & LRT_TRIANGLE_MAT_BACK_FACE_CULLING)) {
+    if (dot_1 < 0 && dot_2 < 0) {
+      return edge_flag_result;
+    }
   }
 
   if (rb->use_crease) {
@@ -1859,6 +1874,9 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
                                     mat->lineart.material_mask_bits :
                                     0);
     tri->mat_occlusion |= (mat ? mat->lineart.mat_occlusion : 1);
+    tri->flags |= (mat && (mat->blend_flag & MA_BL_CULL_BACKFACE)) ?
+                      LRT_TRIANGLE_MAT_BACK_FACE_CULLING :
+                      0;
 
     tri->intersection_mask = obi->override_intersection_mask;
 
@@ -2193,7 +2211,7 @@ static void lineart_main_load_geometries(
     mul_m4db_m4db_m4fl_uniq(obi->model_view_proj, rb->view_projection, ob->obmat);
     mul_m4db_m4db_m4fl_uniq(obi->model_view, rb->view, ob->obmat);
 
-    if (!ELEM(use_ob->type, OB_MESH, OB_MBALL, OB_CURVE, OB_SURF, OB_FONT)) {
+    if (!ELEM(use_ob->type, OB_MESH, OB_MBALL, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
       continue;
     }
 
@@ -2205,7 +2223,7 @@ static void lineart_main_load_geometries(
     }
 
     if (use_ob->type == OB_MESH) {
-      use_mesh = use_ob->data;
+      use_mesh = BKE_object_get_evaluated_mesh(use_ob);
     }
     else {
       /* If DEG_ITER_OBJECT_FLAG_DUPLI is set, some curve objects may also have an evaluated mesh
@@ -2502,19 +2520,16 @@ static bool lineart_triangle_edge_image_space_occlusion(SpinLock *UNUSED(spl),
     interp_v3_v3v3_db(gloc, e->v1->gloc, e->v2->gloc, cut);
     mul_v4_m4v3_db(trans, vp, gloc);
     mul_v3db_db(trans, (1 / trans[3]));
-  }
-  else {
-    interp_v3_v3v3_db(trans, e->v1->fbcoord, e->v2->fbcoord, cut);
-  }
-  trans[0] -= cam_shift_x * 2;
-  trans[1] -= cam_shift_y * 2;
-
-  /* To accommodate `k=0` and `k=inf` (vertical) lines. here the cut is in image space. */
-  if (fabs(e->v1->fbcoord[0] - e->v2->fbcoord[0]) > fabs(e->v1->fbcoord[1] - e->v2->fbcoord[1])) {
-    cut = ratiod(e->v1->fbcoord[0], e->v2->fbcoord[0], trans[0]);
-  }
-  else {
-    cut = ratiod(e->v1->fbcoord[1], e->v2->fbcoord[1], trans[1]);
+    trans[0] -= cam_shift_x * 2;
+    trans[1] -= cam_shift_y * 2;
+    /* To accommodate `k=0` and `k=inf` (vertical) lines. here the cut is in image space. */
+    if (fabs(e->v1->fbcoord[0] - e->v2->fbcoord[0]) >
+        fabs(e->v1->fbcoord[1] - e->v2->fbcoord[1])) {
+      cut = ratiod(e->v1->fbcoord[0], e->v2->fbcoord[0], trans[0]);
+    }
+    else {
+      cut = ratiod(e->v1->fbcoord[1], e->v2->fbcoord[1], trans[1]);
+    }
   }
 
 #define LRT_GUARD_NOT_FOUND \
@@ -2940,9 +2955,10 @@ static LineartEdge *lineart_triangle_intersect(LineartRenderBuffer *rb,
    * them as well. */
   mul_v4_m4v3_db(v1->fbcoord, rb->view_projection, v1->gloc);
   mul_v4_m4v3_db(v2->fbcoord, rb->view_projection, v2->gloc);
-  mul_v3db_db(v1->fbcoord, (1 / v1->fbcoord[3]));
-  mul_v3db_db(v2->fbcoord, (1 / v2->fbcoord[3]));
-
+  if (rb->cam_is_persp) {
+    mul_v3db_db(v1->fbcoord, (1 / v1->fbcoord[3]));
+    mul_v3db_db(v2->fbcoord, (1 / v2->fbcoord[3]));
+  }
   v1->fbcoord[0] -= rb->shift_x * 2;
   v1->fbcoord[1] -= rb->shift_y * 2;
   v2->fbcoord[0] -= rb->shift_x * 2;
@@ -4453,7 +4469,7 @@ static void lineart_gpencil_generate(LineartCache *cache,
       if ((match_output || (gpdg = BKE_object_defgroup_name_index(gpencil_object, vgname)) >= 0)) {
         if (eval_ob && eval_ob->type == OB_MESH) {
           int dindex = 0;
-          Mesh *me = (Mesh *)eval_ob->data;
+          Mesh *me = BKE_object_get_evaluated_mesh(eval_ob);
           if (me->dvert) {
             LISTBASE_FOREACH (bDeformGroup *, db, &me->vertex_group_names) {
               if ((!source_vgname) || strstr(db->name, source_vgname) == db->name) {

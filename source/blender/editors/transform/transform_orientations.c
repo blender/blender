@@ -350,7 +350,7 @@ bool BIF_createTransformOrientation(bContext *C,
       else if (obedit->type == OB_ARMATURE) {
         ts = createBoneSpace(C, reports, name, overwrite);
       }
-      else if (obedit->type == OB_CURVE) {
+      else if (obedit->type == OB_CURVES_LEGACY) {
         ts = createCurveSpace(C, reports, name, overwrite);
       }
     }
@@ -984,7 +984,7 @@ int getTransformOrientation_ex(ViewLayer *view_layer,
       negate_v3(plane);
 
     } /* end editmesh */
-    else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
+    else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
       Curve *cu = obedit->data;
       Nurb *nu = NULL;
       int a;

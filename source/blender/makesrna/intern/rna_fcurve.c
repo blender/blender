@@ -1880,7 +1880,7 @@ static void rna_def_drivervar(BlenderRNA *brna)
        "SINGLE_PROP",
        ICON_RNA,
        "Single Property",
-       "Use the value from some RNA property (Default)"},
+       "Use the value from some RNA property"},
       {DVAR_TYPE_TRANSFORM_CHAN,
        "TRANSFORMS",
        ICON_DRIVER_TRANSFORM,

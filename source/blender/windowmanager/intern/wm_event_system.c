@@ -2029,29 +2029,33 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
     }
   }
 
+  const bool shift = (winevent->modifier & KM_SHIFT) != 0;
+  const bool ctrl = (winevent->modifier & KM_CTRL) != 0;
+  const bool alt = (winevent->modifier & KM_ALT) != 0;
+  const bool oskey = (winevent->modifier & KM_OSKEY) != 0;
+
   /* Modifiers also check bits, so it allows modifier order.
    * Account for rare case of when these keys are used as the 'type' not as modifiers. */
   if (kmi->shift != KM_ANY) {
-    if ((winevent->shift != kmi->shift) && !(winevent->shift & kmi->shift) &&
+    if ((shift != kmi->shift) && !(shift & kmi->shift) &&
         !ELEM(winevent->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY)) {
       return false;
     }
   }
   if (kmi->ctrl != KM_ANY) {
-    if (winevent->ctrl != kmi->ctrl && !(winevent->ctrl & kmi->ctrl) &&
+    if (ctrl != kmi->ctrl && !(ctrl & kmi->ctrl) &&
         !ELEM(winevent->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
       return false;
     }
   }
   if (kmi->alt != KM_ANY) {
-    if (winevent->alt != kmi->alt && !(winevent->alt & kmi->alt) &&
+    if (alt != kmi->alt && !(alt & kmi->alt) &&
         !ELEM(winevent->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY)) {
       return false;
     }
   }
   if (kmi->oskey != KM_ANY) {
-    if (winevent->oskey != kmi->oskey && !(winevent->oskey & kmi->oskey) &&
-        (winevent->type != EVT_OSKEY)) {
+    if (oskey != kmi->oskey && !(oskey & kmi->oskey) && (winevent->type != EVT_OSKEY)) {
       return false;
     }
   }
@@ -3157,21 +3161,27 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         if (WM_event_drag_test(event, event->prev_click_xy)) {
           win->event_queue_check_drag_handled = true;
 
-          int xy[2] = {UNPACK2(event->xy)};
-          short val = event->val;
-          short type = event->type;
+          const int prev_xy[2] = {UNPACK2(event->xy)};
+          const short prev_val = event->val;
+          const short prev_type = event->type;
+          const uint8_t prev_modifier = event->modifier;
+          const short prev_keymodifier = event->keymodifier;
 
           copy_v2_v2_int(event->xy, event->prev_click_xy);
           event->val = KM_CLICK_DRAG;
           event->type = event->prev_type;
+          event->modifier = event->prev_click_modifier;
+          event->keymodifier = event->prev_click_keymodifier;
 
           CLOG_INFO(WM_LOG_HANDLERS, 1, "handling PRESS_DRAG");
 
           action |= wm_handlers_do_intern(C, win, event, handlers);
 
-          event->val = val;
-          event->type = type;
-          copy_v2_v2_int(event->xy, xy);
+          event->keymodifier = prev_keymodifier;
+          event->modifier = prev_modifier;
+          event->val = prev_val;
+          event->type = prev_type;
+          copy_v2_v2_int(event->xy, prev_xy);
 
           win->event_queue_check_click = false;
           if (!wm_action_not_handled(action)) {
@@ -3201,7 +3211,16 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         }
       }
       else if (event->val == KM_RELEASE) {
-        win->event_queue_check_drag = false;
+        if (win->event_queue_check_drag) {
+          if ((event->prev_type != event->type) &&
+              (ISKEYMODIFIER(event->type) || (event->type == event->prev_click_keymodifier))) {
+            /* Support releasing modifier keys without canceling the drag event, see T89989.
+             * NOTE: this logic is replicated for tweak gestures. */
+          }
+          else {
+            win->event_queue_check_drag = false;
+          }
+        }
       }
 
       if (event->prev_type == event->type) {
@@ -4487,19 +4506,18 @@ static void wm_eventemulation(wmEvent *event, bool test_only)
   if (U.flag & USER_TWOBUTTONMOUSE) {
 
     if (event->type == LEFTMOUSE) {
-      short *mod = (
+      const uint8_t mod_test = (
 #if !defined(WIN32)
-          (U.mouse_emulate_3_button_modifier == USER_EMU_MMB_MOD_OSKEY) ? &event->oskey :
-                                                                          &event->alt
+          (U.mouse_emulate_3_button_modifier == USER_EMU_MMB_MOD_OSKEY) ? KM_OSKEY : KM_ALT
 #else
           /* Disable for WIN32 for now because it accesses the start menu. */
-          &event->alt
+          KM_ALT
 #endif
       );
 
       if (event->val == KM_PRESS) {
-        if (*mod) {
-          *mod = 0;
+        if (event->modifier & mod_test) {
+          event->modifier &= ~mod_test;
           event->type = MIDDLEMOUSE;
 
           if (!test_only) {
@@ -4511,7 +4529,7 @@ static void wm_eventemulation(wmEvent *event, bool test_only)
         /* Only send middle-mouse release if emulated. */
         if (emulating_event == MIDDLEMOUSE) {
           event->type = MIDDLEMOUSE;
-          *mod = 0;
+          event->modifier &= ~mod_test;
         }
 
         if (!test_only) {
@@ -4689,6 +4707,8 @@ static void wm_event_prev_click_set(wmEvent *event, wmEvent *event_state)
   event->prev_click_time = event_state->prev_click_time = PIL_check_seconds_timer();
   event->prev_click_xy[0] = event_state->prev_click_xy[0] = event_state->xy[0];
   event->prev_click_xy[1] = event_state->prev_click_xy[1] = event_state->xy[1];
+  event->prev_click_modifier = event_state->prev_click_modifier = event_state->modifier;
+  event->prev_click_keymodifier = event_state->prev_click_keymodifier = event_state->keymodifier;
 }
 
 static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
@@ -4931,7 +4951,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
     case GHOST_kEventKeyDown:
     case GHOST_kEventKeyUp: {
       GHOST_TEventKeyData *kd = customdata;
-      short keymodifier = KM_NOTHING;
+      bool keymodifier = 0;
       event.type = convert_key(kd->key);
       event.ascii = kd->ascii;
       /* Might be not NULL terminated. */
@@ -4981,29 +5001,57 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         case EVT_LEFTSHIFTKEY:
         case EVT_RIGHTSHIFTKEY:
           if (event.val == KM_PRESS) {
-            keymodifier = KM_MOD_HELD;
+            keymodifier = true;
           }
-          event.shift = event_state->shift = keymodifier;
+          if (keymodifier) {
+            event.modifier |= KM_SHIFT;
+            event_state->modifier |= KM_SHIFT;
+          }
+          else {
+            event.modifier &= ~KM_SHIFT;
+            event_state->modifier &= ~KM_SHIFT;
+          }
           break;
         case EVT_LEFTCTRLKEY:
         case EVT_RIGHTCTRLKEY:
           if (event.val == KM_PRESS) {
-            keymodifier = KM_MOD_HELD;
+            keymodifier = true;
           }
-          event.ctrl = event_state->ctrl = keymodifier;
+          if (keymodifier) {
+            event.modifier |= KM_CTRL;
+            event_state->modifier |= KM_CTRL;
+          }
+          else {
+            event.modifier &= ~KM_CTRL;
+            event_state->modifier &= ~KM_CTRL;
+          }
           break;
         case EVT_LEFTALTKEY:
         case EVT_RIGHTALTKEY:
           if (event.val == KM_PRESS) {
-            keymodifier = KM_MOD_HELD;
+            keymodifier = true;
           }
-          event.alt = event_state->alt = keymodifier;
+          if (keymodifier) {
+            event.modifier |= KM_ALT;
+            event_state->modifier |= KM_ALT;
+          }
+          else {
+            event.modifier &= ~KM_ALT;
+            event_state->modifier &= ~KM_ALT;
+          }
           break;
         case EVT_OSKEY:
           if (event.val == KM_PRESS) {
-            keymodifier = KM_MOD_HELD;
+            keymodifier = true;
           }
-          event.oskey = event_state->oskey = keymodifier;
+          if (keymodifier) {
+            event.modifier |= KM_OSKEY;
+            event_state->modifier |= KM_OSKEY;
+          }
+          else {
+            event.modifier &= ~KM_OSKEY;
+            event_state->modifier &= ~KM_OSKEY;
+          }
           break;
         default:
           if (event.val == KM_PRESS && event.keymodifier == 0) {
@@ -5041,7 +5089,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
        * XXX Keep global for now? */
       if ((event.type == EVT_ESCKEY && event.val == KM_PRESS) &&
           /* Check other modifiers because ms-windows uses these to bring up the task manager. */
-          (event.shift == 0 && event.ctrl == 0 && event.alt == 0)) {
+          ((event.modifier & (KM_SHIFT | KM_CTRL | KM_ALT)) == 0)) {
         G.is_break = true;
       }
 
@@ -5301,9 +5349,7 @@ wmKeyMapItem *WM_event_match_keymap_item_from_handlers(
 
 /** State storage to detect changes between calls to refresh the information. */
 struct CursorKeymapInfo_State {
-  struct {
-    short shift, ctrl, alt, oskey;
-  } modifiers;
+  uint8_t modifier;
   short space_type;
   short region_type;
   /* Never use, just compare memory for changes. */
@@ -5326,10 +5372,7 @@ static void wm_event_cursor_store(struct CursorKeymapInfo_State *state,
                                   short region_type,
                                   const bToolRef *tref)
 {
-  state->modifiers.shift = event->shift;
-  state->modifiers.ctrl = event->ctrl;
-  state->modifiers.alt = event->alt;
-  state->modifiers.oskey = event->oskey;
+  state->modifier = event->modifier;
   state->space_type = space_type;
   state->region_type = region_type;
   state->tref = tref ? *tref : (bToolRef){0};

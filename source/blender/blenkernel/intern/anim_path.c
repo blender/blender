@@ -55,7 +55,7 @@ float BKE_anim_path_get_length(const CurveCache *curve_cache)
 
 void BKE_anim_path_calc_data(Object *ob)
 {
-  if (ob == NULL || ob->type != OB_CURVE) {
+  if (ob == NULL || ob->type != OB_CURVES_LEGACY) {
     return;
   }
   if (ob->runtime.curve_cache == NULL) {
@@ -222,7 +222,7 @@ bool BKE_where_on_path(const Object *ob,
                        float *r_radius,
                        float *r_weight)
 {
-  if (ob == NULL || ob->type != OB_CURVE) {
+  if (ob == NULL || ob->type != OB_CURVES_LEGACY) {
     return false;
   }
   Curve *cu = ob->data;

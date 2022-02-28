@@ -181,7 +181,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
       BKE_displist_make_mball(depsgraph, scene, ob);
       break;
 
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_FONT: {
       bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
@@ -300,7 +300,7 @@ void BKE_object_data_batch_cache_dirty_tag(ID *object_data)
       BKE_lattice_batch_cache_dirty_tag((struct Lattice *)object_data,
                                         BKE_LATTICE_BATCH_DIRTY_ALL);
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       BKE_curve_batch_cache_dirty_tag((struct Curve *)object_data, BKE_CURVE_BATCH_DIRTY_ALL);
       break;
     case ID_MB:
@@ -364,7 +364,7 @@ void BKE_object_data_select_update(Depsgraph *depsgraph, ID *object_data)
     case ID_ME:
       BKE_mesh_batch_cache_dirty_tag((Mesh *)object_data, BKE_MESH_BATCH_DIRTY_SELECT);
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       BKE_curve_batch_cache_dirty_tag((Curve *)object_data, BKE_CURVE_BATCH_DIRTY_SELECT);
       break;
     case ID_LT:

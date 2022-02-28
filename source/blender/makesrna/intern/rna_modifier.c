@@ -869,10 +869,10 @@ static void modifier_object_set(Object *self, Object **ob_p, int type, PointerRN
 RNA_MOD_OBJECT_SET(Armature, object, OB_ARMATURE);
 RNA_MOD_OBJECT_SET(Array, start_cap, OB_MESH);
 RNA_MOD_OBJECT_SET(Array, end_cap, OB_MESH);
-RNA_MOD_OBJECT_SET(Array, curve_ob, OB_CURVE);
+RNA_MOD_OBJECT_SET(Array, curve_ob, OB_CURVES_LEGACY);
 RNA_MOD_OBJECT_SET(Boolean, object, OB_MESH);
 RNA_MOD_OBJECT_SET(Cast, object, OB_EMPTY);
-RNA_MOD_OBJECT_SET(Curve, object, OB_CURVE);
+RNA_MOD_OBJECT_SET(Curve, object, OB_CURVES_LEGACY);
 RNA_MOD_OBJECT_SET(DataTransfer, ob_source, OB_MESH);
 RNA_MOD_OBJECT_SET(Lattice, object, OB_LATTICE);
 RNA_MOD_OBJECT_SET(Mask, ob_arm, OB_ARMATURE);
@@ -1849,7 +1849,8 @@ static void rna_def_modifier_warp(BlenderRNA *brna)
   prop = RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, modifier_warp_falloff_items);
   RNA_def_property_ui_text(prop, "Falloff Type", "");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
+  RNA_def_property_translation_context(prop,
+                                       BLT_I18NCONTEXT_ID_CURVE_LEGACY); /* Abusing id_curve :/ */
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "falloff_radius", PROP_FLOAT, PROP_DISTANCE);
@@ -2567,7 +2568,8 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
   prop = RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, modifier_warp_falloff_items); /* share the enum */
   RNA_def_property_ui_text(prop, "Falloff Type", "");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
+  RNA_def_property_translation_context(prop,
+                                       BLT_I18NCONTEXT_ID_CURVE_LEGACY); /* Abusing id_curve :/ */
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "falloff_radius", PROP_FLOAT, PROP_DISTANCE);
@@ -4947,6 +4949,7 @@ static void rna_def_modifier_uvwarp(BlenderRNA *brna)
 static void rna_def_modifier_weightvg_mask(BlenderRNA *UNUSED(brna),
                                            StructRNA *srna,
                                            const char *mask_flags,
+                                           const int invert_vgroup_mask_flag,
                                            const char *mask_vgroup_setter,
                                            const char *mask_uvlayer_setter)
 {
@@ -4992,7 +4995,7 @@ static void rna_def_modifier_weightvg_mask(BlenderRNA *UNUSED(brna),
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "invert_mask_vertex_group", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, mask_flags, MOD_WVG_EDIT_INVERT_VGROUP_MASK);
+  RNA_def_property_boolean_sdna(prop, NULL, mask_flags, invert_vgroup_mask_flag);
   RNA_def_property_ui_text(prop, "Invert", "Invert vertex group mask influence");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -5076,7 +5079,8 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
   prop = RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, weightvg_edit_falloff_type_items);
   RNA_def_property_ui_text(prop, "Falloff Type", "How weights are mapped to their new values");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
+  RNA_def_property_translation_context(prop,
+                                       BLT_I18NCONTEXT_ID_CURVE_LEGACY); /* Abusing id_curve :/ */
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "invert_falloff", PROP_BOOLEAN, PROP_NONE);
@@ -5148,6 +5152,7 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
   rna_def_modifier_weightvg_mask(brna,
                                  srna,
                                  "edit_flags",
+                                 MOD_WVG_EDIT_INVERT_VGROUP_MASK,
                                  "rna_WeightVGEditModifier_mask_defgrp_name_set",
                                  "rna_WeightVGEditModifier_mask_tex_uvlayer_name_set");
 }
@@ -5166,6 +5171,8 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
        "Difference",
        "Difference between VGroup A's and VGroup B's weights"},
       {MOD_WVG_MIX_AVG, "AVG", 0, "Average", "Average value of VGroup A's and VGroup B's weights"},
+      {MOD_WVG_MIX_MIN, "MIN", 0, "Minimum", "Minimum of VGroup A's and VGroup B's weights"},
+      {MOD_WVG_MIX_MAX, "MAX", 0, "Maximum", "Maximum of VGroup A's and VGroup B's weights"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -5263,6 +5270,7 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
   rna_def_modifier_weightvg_mask(brna,
                                  srna,
                                  "flag",
+                                 MOD_WVG_MIX_INVERT_VGROUP_MASK,
                                  "rna_WeightVGMixModifier_mask_defgrp_name_set",
                                  "rna_WeightVGMixModifier_mask_tex_uvlayer_name_set");
 }
@@ -5364,7 +5372,8 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
   prop = RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, weightvg_proximity_falloff_type_items);
   RNA_def_property_ui_text(prop, "Falloff Type", "How weights are mapped to their new values");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
+  RNA_def_property_translation_context(prop,
+                                       BLT_I18NCONTEXT_ID_CURVE_LEGACY); /* Abusing id_curve :/ */
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "invert_falloff", PROP_BOOLEAN, PROP_NONE);
@@ -5392,6 +5401,7 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
   rna_def_modifier_weightvg_mask(brna,
                                  srna,
                                  "proximity_flags",
+                                 MOD_WVG_PROXIMITY_INVERT_VGROUP_MASK,
                                  "rna_WeightVGProximityModifier_mask_defgrp_name_set",
                                  "rna_WeightVGProximityModifier_mask_tex_uvlayer_name_set");
 }

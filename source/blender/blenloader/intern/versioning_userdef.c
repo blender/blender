@@ -951,6 +951,10 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
+  if (!USER_VERSION_ATLEAST(300, 43)) {
+    userdef->ndof_flag |= NDOF_CAMERA_PAN_ZOOM;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

@@ -407,7 +407,7 @@ static Mesh *rna_Object_to_mesh(Object *object,
    * rna_Main_meshes_new_from_object. */
   switch (object->type) {
     case OB_FONT:
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_MBALL:
     case OB_MESH:
@@ -430,7 +430,7 @@ static Curve *rna_Object_to_curve(Object *object,
                                   Depsgraph *depsgraph,
                                   bool apply_modifiers)
 {
-  if (!ELEM(object->type, OB_FONT, OB_CURVE)) {
+  if (!ELEM(object->type, OB_FONT, OB_CURVES_LEGACY)) {
     BKE_report(reports, RPT_ERROR, "Object is not a curve or a text");
     return NULL;
   }
@@ -785,7 +785,7 @@ bool rna_Object_generate_gpencil_strokes(Object *ob,
                                          float scale_thickness,
                                          float sample)
 {
-  if (ob->type != OB_CURVE) {
+  if (ob->type != OB_CURVES_LEGACY) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Object '%s' is not valid for this operation! Only curves are supported",

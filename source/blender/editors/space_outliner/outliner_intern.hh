@@ -108,7 +108,7 @@ typedef struct TreeElementIcon {
         ID_LI, \
         ID_OB, \
         ID_ME, \
-        ID_CU, \
+        ID_CU_LEGACY, \
         ID_MB, \
         ID_NT, \
         ID_MA, \

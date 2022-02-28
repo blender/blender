@@ -285,9 +285,6 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
   mesh->runtime.is_original = false;
 
-  /* Mark tessellated CD layers as dirty. */
-  mesh->runtime.cd_dirty_vert |= CD_MASK_TESSLOOPNORMAL;
-
   return mesh;
 }
 

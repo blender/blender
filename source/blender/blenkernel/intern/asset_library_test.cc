@@ -52,7 +52,7 @@ TEST_F(AssetLibraryTest, bke_asset_library_load)
   ASSERT_NE(nullptr, service);
 
   /* Check that the catalogs defined in the library are actually loaded. This just tests one single
-   * catalog, as that indicates the file has been loaded. Testing that that loading went OK is for
+   * catalog, as that indicates the file has been loaded. Testing that loading went OK is for
    * the asset catalog service tests. */
   const bUUID uuid_poses_ellie("df60e1f6-2259-475b-93d9-69a1b4a8db78");
   AssetCatalog *poses_ellie = service->find_catalog(uuid_poses_ellie);

@@ -352,6 +352,12 @@ static bool rna_Brush_mode_with_tool_poll(PointerRNA *ptr, PointerRNA value)
     }
     mode = OB_MODE_WEIGHT_GPENCIL;
   }
+  else if (paint_contains_brush_slot(&ts->curves_sculpt->paint, tslot, &slot_index)) {
+    if (slot_index != brush->curves_sculpt_tool) {
+      return false;
+    }
+    mode = OB_MODE_SCULPT_CURVES;
+  }
 
   return brush->ob_mode & mode;
 }
@@ -415,6 +421,11 @@ static char *rna_ImagePaintSettings_path(PointerRNA *UNUSED(ptr))
 static char *rna_UvSculpt_path(PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.uv_sculpt");
+}
+
+static char *rna_CurvesSculpt_path(PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("tool_settings.curves_sculpt");
 }
 
 static char *rna_GpPaint_path(PointerRNA *UNUSED(ptr))
@@ -1492,6 +1503,15 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 }
 
+static void rna_def_curves_sculpt(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "CurvesSculpt", "Paint");
+  RNA_def_struct_path_func(srna, "rna_CurvesSculpt_path");
+  RNA_def_struct_ui_text(srna, "Curves Sculpt Paint", "");
+}
+
 void RNA_def_sculpt_paint(BlenderRNA *brna)
 {
   /* *** Non-Animated *** */
@@ -1510,6 +1530,7 @@ void RNA_def_sculpt_paint(BlenderRNA *brna)
   rna_def_particle_edit(brna);
   rna_def_gpencil_guides(brna);
   rna_def_gpencil_sculpt(brna);
+  rna_def_curves_sculpt(brna);
   RNA_define_animate_sdna(true);
 }
 

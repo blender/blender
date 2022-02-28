@@ -51,20 +51,13 @@ Testing Targets
 
    * test:
      Run automated tests with ctest.
-   * test_cmake:
-     Runs our own cmake file checker
-     which detects errors in the cmake file list definitions
-   * test_pep8:
-     Checks all python script are pep8
-     which are tagged to use the stricter formatting
-   * test_deprecated:
-     Checks for deprecation tags in our code which may need to be removed
 
 Static Source Code Checking
    Not associated with building Blender.
 
    * check_cppcheck:        Run blender source through cppcheck (C & C++).
    * check_clang_array:     Run blender source through clang array checking script (C & C++).
+   * check_deprecated:      Check if there is any deprecated code to remove.
    * check_splint:          Run blenders source through splint (C only).
    * check_sparse:          Run blenders source through sparse (C only).
    * check_smatch:          Run blenders source through smatch (C only).
@@ -73,6 +66,10 @@ Static Source Code Checking
                             using one of the accepted licenses in 'doc/license/SPDX-license-identifiers.txt'
                             Append with 'SHOW_HEADERS=1' to show all unique headers
                             which can be useful for spotting license irregularities.
+   * check_cmake:           Runs our own cmake file checker which detects errors in the cmake file list definitions.
+   * check_pep8:            Checks all Python script are pep8 which are tagged to use the stricter formatting.
+   * check_mypy:            Checks all Python scripts using mypy,
+                            see: source/tools/check_source/check_mypy_config.py scripts which are included.
 
 Spell Checkers
    This runs the spell checker from the developer tools repositor.
@@ -400,20 +397,6 @@ package_archive: .FORCE
 test: .FORCE
 	@$(PYTHON) ./build_files/utils/make_test.py "$(BUILD_DIR)"
 
-# run pep8 check check on scripts we distribute.
-test_pep8: .FORCE
-	@$(PYTHON) tests/python/pep8.py > test_pep8.log 2>&1
-	@echo "written: test_pep8.log"
-
-# run some checks on our CMAKE files.
-test_cmake: .FORCE
-	@$(PYTHON) build_files/cmake/cmake_consistency_check.py > test_cmake_consistency.log 2>&1
-	@echo "written: test_cmake_consistency.log"
-
-# run deprecation tests, see if we have anything to remove.
-test_deprecated: .FORCE
-	@$(PYTHON) tests/check_deprecated.py
-
 
 # -----------------------------------------------------------------------------
 # Project Files
@@ -491,10 +474,22 @@ check_descriptions: .FORCE
 	@$(BLENDER_BIN) --background -noaudio --factory-startup --python \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_descriptions.py"
 
+check_deprecated: .FORCE
+	@PYTHONIOENCODING=utf_8 $(PYTHON) \
+	    source/tools/check_source/check_deprecated.py
+
 check_licenses: .FORCE
 	@PYTHONIOENCODING=utf_8 $(PYTHON) \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_licenses.py" \
 	    "--show-headers=$(SHOW_HEADERS)"
+
+check_pep8: .FORCE
+	@PYTHONIOENCODING=utf_8 $(PYTHON) \
+	    tests/python/pep8.py
+
+check_cmake: .FORCE
+	@PYTHONIOENCODING=utf_8 $(PYTHON) \
+	    source/tools/check_source/check_cmake_consistency.py
 
 
 # -----------------------------------------------------------------------------

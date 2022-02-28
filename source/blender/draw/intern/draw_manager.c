@@ -2774,7 +2774,7 @@ void DRW_draw_depth_object(
       GPU_uniformbuf_free(ubo);
 
     } break;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
       break;
   }

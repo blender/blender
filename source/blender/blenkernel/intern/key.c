@@ -281,7 +281,7 @@ Key *BKE_key_add(Main *bmain, ID *id) /* common function */
       key->elemsize = sizeof(float[KEYELEM_FLOAT_LEN_COORD]);
 
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       el = key->elemstr;
 
       el[0] = KEYELEM_ELEM_SIZE_CURVE;
@@ -659,7 +659,7 @@ static bool key_pointer_size(const Key *key, const int mode, int *poinsize, int 
       *ofs = sizeof(float[KEYELEM_FLOAT_LEN_COORD]);
       *poinsize = *ofs;
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       if (mode == KEY_MODE_BPOINT) {
         *ofs = sizeof(float[KEYELEM_FLOAT_LEN_BPOINT]);
         *step = KEYELEM_ELEM_LEN_BPOINT;
@@ -1524,7 +1524,7 @@ float *BKE_key_evaluate_object_ex(Object *ob, int *r_totelem, float *arr, size_t
     tot = lt->pntsu * lt->pntsv * lt->pntsw;
     size = tot * sizeof(float[KEYELEM_FLOAT_LEN_COORD]);
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = ob->data;
 
     tot = BKE_keyblock_curve_element_count(&cu->nurb);
@@ -1570,7 +1570,7 @@ float *BKE_key_evaluate_object_ex(Object *ob, int *r_totelem, float *arr, size_t
         MEM_freeN(weights);
       }
     }
-    else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+    else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
       cp_cu_key(ob->data, key, actkb, kb, 0, tot, out, tot);
     }
   }
@@ -1582,7 +1582,7 @@ float *BKE_key_evaluate_object_ex(Object *ob, int *r_totelem, float *arr, size_t
     else if (ob->type == OB_LATTICE) {
       do_latt_key(ob, key, out, tot);
     }
-    else if (ob->type == OB_CURVE) {
+    else if (ob->type == OB_CURVES_LEGACY) {
       do_curve_key(ob, key, out, tot);
     }
     else if (ob->type == OB_SURF) {
@@ -1714,7 +1714,7 @@ bool BKE_key_idtype_support(const short id_type)
 {
   switch (id_type) {
     case ID_ME:
-    case ID_CU:
+    case ID_CU_LEGACY:
     case ID_LT:
       return true;
     default:
@@ -1729,7 +1729,7 @@ Key **BKE_key_from_id_p(ID *id)
       Mesh *me = (Mesh *)id;
       return &me->key;
     }
-    case ID_CU: {
+    case ID_CU_LEGACY: {
       Curve *cu = (Curve *)id;
       if (cu->vfont == NULL) {
         return &cu->key;
@@ -2269,7 +2269,7 @@ void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, const float (*ve
     Lattice *lt = ob->data;
     BLI_assert((lt->pntsu * lt->pntsv * lt->pntsw) == kb->totelem);
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = ob->data;
     BLI_assert(BKE_keyblock_curve_element_count(&cu->nurb) == kb->totelem);
   }
@@ -2293,7 +2293,7 @@ void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, const float (*ve
       copy_v3_v3(fp, *co);
     }
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = (Curve *)ob->data;
     Nurb *nu;
     BezTriple *bezt;
@@ -2335,7 +2335,7 @@ void BKE_keyblock_convert_from_vertcos(Object *ob, KeyBlock *kb, const float (*v
     tot = lt->pntsu * lt->pntsv * lt->pntsw;
     elemsize = lt->key->elemsize;
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = (Curve *)ob->data;
     elemsize = cu->key->elemsize;
     tot = BKE_keyblock_curve_element_count(&cu->nurb);
@@ -2366,7 +2366,7 @@ float (*BKE_keyblock_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
     Lattice *lt = (Lattice *)ob->data;
     tot = lt->pntsu * lt->pntsv * lt->pntsw;
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = (Curve *)ob->data;
     tot = BKE_nurbList_verts_count(&cu->nurb);
   }
@@ -2383,7 +2383,7 @@ float (*BKE_keyblock_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
       copy_v3_v3(*co, fp);
     }
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = (Curve *)ob->data;
     Nurb *nu;
     BezTriple *bezt;
@@ -2422,7 +2422,7 @@ void BKE_keyblock_update_from_offset(Object *ob, KeyBlock *kb, const float (*ofs
       add_v3_v3(fp, *ofs);
     }
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = (Curve *)ob->data;
     Nurb *nu;
     BezTriple *bezt;

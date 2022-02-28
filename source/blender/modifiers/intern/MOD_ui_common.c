@@ -324,7 +324,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
       buttons_number++;
     }
   } /* Tessellation point for curve-typed objects. */
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
     /* Some modifiers can work with pre-tessellated curves only. */
     if (ELEM(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
       /* Add button (appearing to be ON) and add tip why this can't be changed. */

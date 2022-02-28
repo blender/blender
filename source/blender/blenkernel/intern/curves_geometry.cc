@@ -106,6 +106,15 @@ int CurvesGeometry::curves_size() const
 {
   return this->curve_size;
 }
+IndexRange CurvesGeometry::points_range() const
+{
+  return IndexRange(this->points_size());
+}
+IndexRange CurvesGeometry::curves_range() const
+{
+  return IndexRange(this->curves_size());
+}
+
 int CurvesGeometry::evaluated_points_size() const
 {
   /* TODO: Implement when there are evaluated points. */
@@ -136,14 +145,13 @@ MutableSpan<int8_t> CurvesGeometry::curve_types()
                                                       nullptr,
                                                       this->curve_size,
                                                       ATTR_CURVE_TYPE.c_str());
-  BLI_assert(data != nullptr);
   return {data, this->curve_size};
 }
 
 MutableSpan<float3> CurvesGeometry::positions()
 {
-  CustomData_duplicate_referenced_layer(&this->point_data, CD_PROP_FLOAT3, this->point_size);
-  this->update_customdata_pointers();
+  this->position = (float(*)[3])CustomData_duplicate_referenced_layer_named(
+      &this->point_data, CD_PROP_FLOAT3, ATTR_POSITION.c_str(), this->point_size);
   return {(float3 *)this->position, this->point_size};
 }
 Span<float3> CurvesGeometry::positions() const

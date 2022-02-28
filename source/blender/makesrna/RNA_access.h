@@ -999,7 +999,7 @@ bool RNA_property_editable_info(PointerRNA *ptr, PropertyRNA *prop, const char *
 /**
  * Same as RNA_property_editable(), except this checks individual items in an array.
  */
-bool RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index);
+bool RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, const int index);
 
 /**
  * Without lib check, only checks the flag.

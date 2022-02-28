@@ -125,7 +125,7 @@ void nested_id_hack_discard_pointers(ID *id_cow)
     SPECIAL_CASE(ID_WO, World, nodetree)
     SPECIAL_CASE(ID_SIM, Simulation, nodetree)
 
-    SPECIAL_CASE(ID_CU, Curve, key)
+    SPECIAL_CASE(ID_CU_LEGACY, Curve, key)
     SPECIAL_CASE(ID_LT, Lattice, key)
     SPECIAL_CASE(ID_ME, Mesh, key)
 
@@ -174,7 +174,7 @@ const ID *nested_id_hack_get_discarded_pointers(NestedIDHackTempStorage *storage
     SPECIAL_CASE(ID_WO, World, nodetree, world)
     SPECIAL_CASE(ID_SIM, Simulation, nodetree, simulation)
 
-    SPECIAL_CASE(ID_CU, Curve, key, curve)
+    SPECIAL_CASE(ID_CU_LEGACY, Curve, key, curve)
     SPECIAL_CASE(ID_LT, Lattice, key, lattice)
     SPECIAL_CASE(ID_ME, Mesh, key, mesh)
 
@@ -214,7 +214,7 @@ void nested_id_hack_restore_pointers(const ID *old_id, ID *new_id)
     SPECIAL_CASE(ID_WO, World, nodetree)
     SPECIAL_CASE(ID_SIM, Simulation, nodetree)
 
-    SPECIAL_CASE(ID_CU, Curve, key)
+    SPECIAL_CASE(ID_CU_LEGACY, Curve, key)
     SPECIAL_CASE(ID_LT, Lattice, key)
     SPECIAL_CASE(ID_ME, Mesh, key)
 
@@ -252,7 +252,7 @@ void ntree_hack_remap_pointers(const Depsgraph *depsgraph, ID *id_cow)
     SPECIAL_CASE(ID_WO, World, nodetree, bNodeTree)
     SPECIAL_CASE(ID_SIM, Simulation, nodetree, bNodeTree)
 
-    SPECIAL_CASE(ID_CU, Curve, key, Key)
+    SPECIAL_CASE(ID_CU_LEGACY, Curve, key, Key)
     SPECIAL_CASE(ID_LT, Lattice, key, Key)
     SPECIAL_CASE(ID_ME, Mesh, key, Key)
 
@@ -578,7 +578,7 @@ void update_edit_mode_pointers(const Depsgraph *depsgraph, const ID *id_orig, ID
     case ID_ME:
       update_mesh_edit_mode_pointers(id_orig, id_cow);
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       update_curve_edit_mode_pointers(depsgraph, id_orig, id_cow);
       break;
     case ID_MB:
@@ -953,7 +953,7 @@ void discard_edit_mode_pointers(ID *id_cow)
     case ID_ME:
       discard_mesh_edit_mode_pointers(id_cow);
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       discard_curve_edit_mode_pointers(id_cow);
       break;
     case ID_MB:

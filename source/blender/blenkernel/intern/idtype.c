@@ -59,7 +59,7 @@ static void id_type_init(void)
   INIT_TYPE(ID_LI);
   INIT_TYPE(ID_OB);
   INIT_TYPE(ID_ME);
-  INIT_TYPE(ID_CU);
+  INIT_TYPE(ID_CU_LEGACY);
   INIT_TYPE(ID_MB);
   INIT_TYPE(ID_MA);
   INIT_TYPE(ID_TE);
@@ -215,7 +215,7 @@ uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
     CASE_IDFILTER(BR);
     CASE_IDFILTER(CA);
     CASE_IDFILTER(CF);
-    CASE_IDFILTER(CU);
+    CASE_IDFILTER(CU_LEGACY);
     CASE_IDFILTER(GD);
     CASE_IDFILTER(GR);
     CASE_IDFILTER(CV);
@@ -264,7 +264,7 @@ short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
     CASE_IDFILTER(BR);
     CASE_IDFILTER(CA);
     CASE_IDFILTER(CF);
-    CASE_IDFILTER(CU);
+    CASE_IDFILTER(CU_LEGACY);
     CASE_IDFILTER(GD);
     CASE_IDFILTER(GR);
     CASE_IDFILTER(CV);
@@ -312,7 +312,7 @@ int BKE_idtype_idcode_to_index(const short idcode)
     CASE_IDINDEX(BR);
     CASE_IDINDEX(CA);
     CASE_IDINDEX(CF);
-    CASE_IDINDEX(CU);
+    CASE_IDINDEX(CU_LEGACY);
     CASE_IDINDEX(GD);
     CASE_IDINDEX(GR);
     CASE_IDINDEX(CV);
@@ -371,7 +371,7 @@ short BKE_idtype_idcode_from_index(const int index)
     CASE_IDCODE(BR);
     CASE_IDCODE(CA);
     CASE_IDCODE(CF);
-    CASE_IDCODE(CU);
+    CASE_IDCODE(CU_LEGACY);
     CASE_IDCODE(GD);
     CASE_IDCODE(GR);
     CASE_IDCODE(CV);

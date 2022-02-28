@@ -59,6 +59,8 @@
 
 #include "BLO_read_write.h"
 
+using blender::float3;
+
 static void mesh_clear_geometry(Mesh *mesh);
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata);
 
@@ -1106,18 +1108,6 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
     mesh_tessface_clear_intern(me_dst, false);
   }
 
-  me_dst->runtime.cd_dirty_poly = me_src->runtime.cd_dirty_poly;
-  me_dst->runtime.cd_dirty_vert = me_src->runtime.cd_dirty_vert;
-
-  /* Ensure that when no normal layers exist, they are marked dirty, because
-   * normals might not have been included in the mask of copied layers. */
-  if (!CustomData_has_layer(&me_dst->vdata, CD_NORMAL)) {
-    me_dst->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-  }
-  if (!CustomData_has_layer(&me_dst->pdata, CD_NORMAL)) {
-    me_dst->runtime.cd_dirty_poly |= CD_MASK_NORMAL;
-  }
-
   /* The destination mesh should at least have valid primary CD layers,
    * even in cases where the source mesh does not. */
   mesh_ensure_cdlayers_primary(me_dst, do_tessface);
@@ -1202,6 +1192,23 @@ Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm,
   BM_mesh_bm_to_me_for_eval(bm, mesh, cd_mask_extra);
   BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
   return mesh;
+}
+
+static void ensure_orig_index_layer(CustomData &data, const int size)
+{
+  if (CustomData_has_layer(&data, CD_ORIGINDEX)) {
+    return;
+  }
+  int *indices = (int *)CustomData_add_layer(&data, CD_ORIGINDEX, CD_DEFAULT, nullptr, size);
+  range_vn_i(indices, size, 0);
+}
+
+void BKE_mesh_ensure_default_orig_index_customdata(Mesh *mesh)
+{
+  BLI_assert(mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA);
+  ensure_orig_index_layer(mesh->vdata, mesh->totvert);
+  ensure_orig_index_layer(mesh->edata, mesh->totedge);
+  ensure_orig_index_layer(mesh->pdata, mesh->totpoly);
 }
 
 BoundBox *BKE_mesh_boundbox_get(Object *ob)
@@ -1968,8 +1975,6 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
                               nullptr);
 
   BKE_mesh_assert_normals_dirty_or_calculated(mesh);
-
-  mesh->runtime.cd_dirty_loop &= ~CD_MASK_NORMAL;
 }
 
 void BKE_mesh_calc_normals_split(Mesh *mesh)
@@ -2147,6 +2152,10 @@ static void split_faces_split_new_verts(Mesh *mesh,
   MVert *mvert = mesh->mvert;
   float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(mesh);
 
+  /* Normals were already calculated at the beginning of this operation, we rely on that to update
+   * them partially here. */
+  BLI_assert(!BKE_mesh_vertex_normals_are_dirty(mesh));
+
   /* Remember new_verts is a single linklist, so its items are in reversed order... */
   MVert *new_mv = &mvert[mesh->totvert - 1];
   for (int i = mesh->totvert - 1; i >= verts_len; i--, new_mv--, new_verts = new_verts->next) {
@@ -2157,7 +2166,6 @@ static void split_faces_split_new_verts(Mesh *mesh,
       copy_v3_v3(vert_normals[i], new_verts->vnor);
     }
   }
-  BKE_mesh_vertex_normals_clear_dirty(mesh);
 }
 
 /* Perform actual split of edges. */
@@ -2227,6 +2235,10 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
     }
     /* Update pointers to a newly allocated memory. */
     BKE_mesh_update_customdata_pointers(mesh, false);
+
+    /* Update normals manually to avoid recalculation after this operation. */
+    mesh->runtime.vert_normals = (float(*)[3])MEM_reallocN(mesh->runtime.vert_normals,
+                                                           sizeof(float[3]) * mesh->totvert);
 
     /* Perform actual split of vertices and edges. */
     split_faces_split_new_verts(mesh, new_verts, num_new_verts);

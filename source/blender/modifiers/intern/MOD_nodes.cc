@@ -454,6 +454,10 @@ static IDProperty *id_property_create_from_socket(const bNodeSocket &socket)
       ui_data->base.rna_subtype = PROP_COLOR;
       ui_data->default_array = (double *)MEM_mallocN(sizeof(double[4]), __func__);
       ui_data->default_array_len = 4;
+      ui_data->min = 0.0;
+      ui_data->max = FLT_MAX;
+      ui_data->soft_min = 0.0;
+      ui_data->soft_max = 1.0;
       for (const int i : IndexRange(4)) {
         ui_data->default_array[i] = double(value->value[i]);
       }
@@ -1381,7 +1385,7 @@ static void add_attribute_search_button(const bContext &C,
                                  0.0f,
                                  0.0f,
                                  0.0f,
-                                 "");
+                                 socket.description);
 
   const Object *object = ED_object_context(&C);
   BLI_assert(object != nullptr);

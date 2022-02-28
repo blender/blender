@@ -590,7 +590,7 @@ static float displist_calc_taper(Depsgraph *depsgraph,
                                  Object *taperobj,
                                  float fac)
 {
-  if (taperobj == nullptr || taperobj->type != OB_CURVE) {
+  if (taperobj == nullptr || taperobj->type != OB_CURVES_LEGACY) {
     return 1.0;
   }
 
@@ -1263,7 +1263,7 @@ static GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
                                               const bool for_render,
                                               ListBase *r_dispbase)
 {
-  BLI_assert(ELEM(ob->type, OB_CURVE, OB_FONT));
+  BLI_assert(ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT));
   const Curve *cu = (const Curve *)ob->data;
 
   ListBase *deformed_nurbs = &ob->runtime.curve_cache->deformed_nurbs;
@@ -1473,7 +1473,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
                                   Object *ob,
                                   const bool for_render)
 {
-  BLI_assert(ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT));
+  BLI_assert(ELEM(ob->type, OB_SURF, OB_CURVES_LEGACY, OB_FONT));
   Curve &cow_curve = *(Curve *)ob->data;
 
   BKE_object_free_derived_caches(ob);

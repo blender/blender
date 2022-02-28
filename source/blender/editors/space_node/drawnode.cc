@@ -147,7 +147,7 @@ static void node_buts_curvefloat(uiLayout *layout, bContext *UNUSED(C), PointerR
 }  // namespace blender::ed::space_node
 
 #define SAMPLE_FLT_ISNONE FLT_MAX
-/* Bad bad, 2.5 will do better? ... no it won't! */
+/* Bad! 2.5 will do better? ... no it won't! */
 static float _sample_col[4] = {SAMPLE_FLT_ISNONE};
 void ED_node_sample_set(const float col[4])
 {

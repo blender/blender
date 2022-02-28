@@ -67,9 +67,11 @@ Object **BKE_view_layer_array_selected_objects_params(
   }
   FOREACH_SELECTED_OBJECT_END;
 
-  object_array = MEM_reallocN(object_array, sizeof(*object_array) * BLI_array_len(object_array));
-  /* We always need a valid allocation (prevent crash on free). */
-  if (object_array == NULL) {
+  if (object_array != NULL) {
+    BLI_array_trim(object_array);
+  }
+  else {
+    /* We always need a valid allocation (prevent crash on free). */
     object_array = MEM_mallocN(0, __func__);
   }
   *r_len = BLI_array_len(object_array);
@@ -121,9 +123,11 @@ Base **BKE_view_layer_array_from_bases_in_mode_params(ViewLayer *view_layer,
   }
   FOREACH_BASE_IN_MODE_END;
 
-  base_array = MEM_reallocN(base_array, sizeof(*base_array) * BLI_array_len(base_array));
   /* We always need a valid allocation (prevent crash on free). */
-  if (base_array == NULL) {
+  if (base_array != NULL) {
+    BLI_array_trim(base_array);
+  }
+  else {
     base_array = MEM_mallocN(0, __func__);
   }
   *r_len = BLI_array_len(base_array);

@@ -441,7 +441,7 @@ static void rna_Curve_bevelObject_set(PointerRNA *ptr,
   if (ob) {
     /* If bevel object has got the save curve, as object, for which it's set as bevobj,
      * there could be infinity loop in #DispList calculation. */
-    if (ob->type == OB_CURVE && ob->data != cu) {
+    if (ob->type == OB_CURVES_LEGACY && ob->data != cu) {
       cu->bevobj = ob;
       id_lib_extern((ID *)ob);
     }
@@ -486,7 +486,7 @@ static bool rna_Curve_otherObject_poll(PointerRNA *ptr, PointerRNA value)
   Object *ob = (Object *)value.data;
 
   if (ob) {
-    if (ob->type == OB_CURVE && ob->data != cu) {
+    if (ob->type == OB_CURVES_LEGACY && ob->data != cu) {
       return 1;
     }
   }
@@ -516,7 +516,7 @@ static void rna_Curve_taperObject_set(PointerRNA *ptr,
   if (ob) {
     /* If taper object has got the save curve, as object, for which it's set as bevobj,
      * there could be infinity loop in #DispList calculation. */
-    if (ob->type == OB_CURVE && ob->data != cu) {
+    if (ob->type == OB_CURVES_LEGACY && ob->data != cu) {
       cu->taperobj = ob;
       id_lib_extern((ID *)ob);
     }

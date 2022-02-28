@@ -618,6 +618,12 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 static void current_scene_update(void *rjv, Scene *scene)
 {
   RenderJob *rj = static_cast<RenderJob *>(rjv);
+
+  if (rj->current_scene != scene) {
+    /* Image must be updated when rendered scene changes. */
+    BKE_image_partial_update_mark_full_update(rj->image);
+  }
+
   rj->current_scene = scene;
   rj->iuser.scene = scene;
 }
@@ -1188,5 +1194,6 @@ void RENDER_OT_shutter_curve_preset(wmOperatorType *ot)
   ot->exec = render_shutter_curve_preset_exec;
 
   prop = RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
+  RNA_def_property_translation_context(prop,
+                                       BLT_I18NCONTEXT_ID_CURVE_LEGACY); /* Abusing id_curve :/ */
 }

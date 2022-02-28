@@ -38,7 +38,7 @@ StringRefNull gpu_shader_dependency_get_source(const StringRefNull source_name);
 
 /**
  * \brief Find the name of the file from which the given string was generated.
- * \return Return filename or empty string.
+ * \return filename or empty string.
  * \note source_string needs to be identical to the one given by gpu_shader_dependency_get_source()
  */
 StringRefNull gpu_shader_dependency_get_filename_from_source_string(

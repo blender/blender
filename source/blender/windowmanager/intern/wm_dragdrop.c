@@ -318,6 +318,10 @@ static wmDropBox *dropbox_active(bContext *C,
       wmEventHandler_Dropbox *handler = (wmEventHandler_Dropbox *)handler_base;
       if (handler->dropboxes) {
         LISTBASE_FOREACH (wmDropBox *, drop, handler->dropboxes) {
+          if (drag->drop_state.ui_context) {
+            CTX_store_set(C, drag->drop_state.ui_context);
+          }
+
           if (!drop->poll(C, drag, event)) {
             /* If the drop's poll fails, don't set the disabled-info. This would be too aggressive.
              * Instead show it only if the drop box could be used in principle, but the operator
@@ -326,10 +330,6 @@ static wmDropBox *dropbox_active(bContext *C,
           }
 
           const wmOperatorCallContext opcontext = wm_drop_operator_context_get(drop);
-          if (drag->drop_state.ui_context) {
-            CTX_store_set(C, drag->drop_state.ui_context);
-          }
-
           if (WM_operator_poll_context(C, drop->ot, opcontext)) {
             return drop;
           }
@@ -651,8 +651,12 @@ void WM_drag_free_imported_drag_ID(struct Main *bmain, wmDrag *drag, wmDropBox *
   }
 
   ID *id = BKE_libblock_find_name(bmain, asset_drag->id_type, name);
-  if (id) {
-    BKE_id_delete(bmain, id);
+  if (id != NULL) {
+    /* Do not delete the dragged ID if it has any user, otherwise if it is a 're-used' ID it will
+     * cause T95636. Note that we need first to add the user that we want to remove in
+     * #BKE_id_free_us. */
+    id_us_plus(id);
+    BKE_id_free_us(bmain, id);
   }
 }
 

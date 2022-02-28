@@ -242,7 +242,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
 
     GPU_blend(GPU_BLEND_NONE);
 
-    /* Vertical component of of the cursor. */
+    /* Vertical component of the cursor. */
     if (sipo->mode == SIPO_MODE_DRIVERS) {
       /* cursor x-value */
       float x = sipo->cursorTime;

@@ -502,6 +502,9 @@ CacheArchiveHandle *USD_create_handle(struct Main * /*bmain*/,
                                       const char *filename,
                                       ListBase *object_paths)
 {
+  /* Must call this so that USD file format plugins are loaded. */
+  ensure_usd_plugin_path_registered();
+
   pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(filename);
 
   if (!stage) {

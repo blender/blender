@@ -35,7 +35,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_BR, "BRUSH", ICON_BRUSH_DATA, "Brush", ""},
     {ID_CA, "CAMERA", ICON_CAMERA_DATA, "Camera", ""},
     {ID_CF, "CACHEFILE", ICON_FILE, "Cache File", ""},
-    {ID_CU, "CURVE", ICON_CURVE_DATA, "Curve", ""},
+    {ID_CU_LEGACY, "CURVE", ICON_CURVE_DATA, "Curve", ""},
     {ID_VF, "FONT", ICON_FONT_DATA, "Font", ""},
     {ID_GD, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil", ""},
     {ID_GR, "COLLECTION", ICON_OUTLINER_COLLECTION, "Collection", ""},
@@ -126,7 +126,7 @@ const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
     {FILTER_ID_BR, "filter_brush", ICON_BRUSH_DATA, "Brushes", "Show Brushes data-blocks"},
     {FILTER_ID_CA, "filter_camera", ICON_CAMERA_DATA, "Cameras", "Show Camera data-blocks"},
     {FILTER_ID_CF, "filter_cachefile", ICON_FILE, "Cache Files", "Show Cache File data-blocks"},
-    {FILTER_ID_CU, "filter_curve", ICON_CURVE_DATA, "Curves", "Show Curve data-blocks"},
+    {FILTER_ID_CU_LEGACY, "filter_curve", ICON_CURVE_DATA, "Curves", "Show Curve data-blocks"},
     {FILTER_ID_GD,
      "filter_grease_pencil",
      ICON_GREASEPENCIL,
@@ -348,7 +348,7 @@ short RNA_type_to_ID_code(const StructRNA *type)
     return ID_CA;
   }
   if (base_type == &RNA_Curve) {
-    return ID_CU;
+    return ID_CU_LEGACY;
   }
   if (base_type == &RNA_GreasePencil) {
     return ID_GD;
@@ -472,7 +472,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
       return &RNA_Camera;
     case ID_CF:
       return &RNA_CacheFile;
-    case ID_CU:
+    case ID_CU_LEGACY:
       return &RNA_Curve;
     case ID_GD:
       return &RNA_GreasePencil;
@@ -696,7 +696,7 @@ static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
 }
 
 static ID *rna_ID_override_hierarchy_create(
-    ID *id, Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_reference)
+    ID *id, Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_instance_hint)
 {
   if (!ID_IS_OVERRIDABLE_LIBRARY(id)) {
     return NULL;
@@ -706,7 +706,7 @@ static ID *rna_ID_override_hierarchy_create(
 
   ID *id_root_override = NULL;
   BKE_lib_override_library_create(
-      bmain, scene, view_layer, NULL, id, id_reference, &id_root_override);
+      bmain, scene, view_layer, NULL, id, id, id_instance_hint, &id_root_override);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
   WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
@@ -2057,7 +2057,7 @@ static void rna_def_ID(BlenderRNA *brna)
                   "reference",
                   "ID",
                   "",
-                  "Another ID (usually an Object or Collection) used to decide where to "
+                  "Another ID (usually an Object or Collection) used as a hint to decide where to "
                   "instantiate the new overrides");
 
   func = RNA_def_function(srna, "override_template_create", "rna_ID_override_template_create");

@@ -339,11 +339,7 @@ static void drw_mesh_attributes_merge(DRW_MeshAttributes *dst,
 /* Return true if all requests in b are in a. */
 static bool drw_mesh_attributes_overlap(DRW_MeshAttributes *a, DRW_MeshAttributes *b)
 {
-  if (a->num_requests != b->num_requests) {
-    return false;
-  }
-
-  for (int i = 0; i < a->num_requests; i++) {
+  for (int i = 0; i < b->num_requests; i++) {
     if (!has_request(a, b->requests[i])) {
       return false;
     }
@@ -1712,7 +1708,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
 
   const int required_mode = BKE_subsurf_modifier_eval_required_mode(DRW_state_is_scene_render(),
                                                                     is_editmode);
-  const bool do_subdivision = BKE_subsurf_modifier_can_do_gpu_subdiv(scene, ob, required_mode);
+  const bool do_subdivision = BKE_subsurf_modifier_can_do_gpu_subdiv(scene, ob, me, required_mode);
 
   MeshBufferList *mbuflist = &cache->final.buff;
 

@@ -2530,9 +2530,9 @@ static size_t animdata_filter_ds_obdata(
       expanded = FILTER_LAM_OBJD(la);
       break;
     }
-    case OB_CURVE: /* ------- Curve ---------- */
-    case OB_SURF:  /* ------- Nurbs Surface ---------- */
-    case OB_FONT:  /* ------- Text Curve ---------- */
+    case OB_CURVES_LEGACY: /* ------- Curve ---------- */
+    case OB_SURF:          /* ------- Nurbs Surface ---------- */
+    case OB_FONT:          /* ------- Text Curve ---------- */
     {
       Curve *cu = (Curve *)ob->data;
 

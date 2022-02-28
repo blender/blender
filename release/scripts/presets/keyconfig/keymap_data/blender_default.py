@@ -208,6 +208,9 @@ class Params:
 # ------------------------------------------------------------------------------
 # Constants
 
+from math import pi
+pi_2 = pi / 2.0
+
 # Physical layout.
 NUMBERS_1 = ('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'ZERO')
 # Numeric order.
@@ -387,6 +390,11 @@ def _template_items_uv_select_mode(params):
         ]
     else:
         return [
+            # TODO(@campbellbarton): should this be kept?
+            # Seems it was included in the new key-map by accident, check on removing
+            # although it's not currently used for anything else.
+            op_menu("IMAGE_MT_uvs_select_mode", {"type": 'TAB', "value": 'PRESS', "ctrl": True}),
+
             *_template_items_editmode_mesh_select_mode(params),
             # Hack to prevent fall-through, when sync select isn't enabled (and the island button isn't visible).
             ("mesh.select_mode", {"type": 'FOUR', "value": 'PRESS'}, None),
@@ -861,7 +869,6 @@ def km_mask_editing(params):
         items.extend([
             ("mask.select", {"type": 'RIGHTMOUSE', "value": 'PRESS'},
              {"properties": [("deselect_all", not params.legacy)]}),
-            ("transform.translate", {"type": 'EVT_TWEAK_R', "value": 'ANY'}, None),
         ])
 
     items.extend([
@@ -1205,7 +1212,6 @@ def km_uv_editor(params):
             if not params.legacy else
             op_menu("IMAGE_MT_uvs_snap", {"type": 'S', "value": 'PRESS', "shift": True})
         ),
-        op_menu("IMAGE_MT_uvs_select_mode", {"type": 'TAB', "value": 'PRESS', "ctrl": True}),
         *_template_items_proportional_editing(
             params, connected=False, toggle_data_path='tool_settings.use_proportional_edit'),
         ("transform.translate", {"type": params.select_tweak, "value": 'ANY'}, None),
@@ -1370,7 +1376,6 @@ def km_view3d(params):
         *(() if not params.use_pie_click_drag else
           (("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'CLICK'}, None),)),
         ("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "shift": True}, None),
-        ("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "shift": True}, None),
         # Numpad views.
         ("view3d.view_camera", {"type": 'NUMPAD_0', "value": 'PRESS'}, None),
         ("view3d.view_axis", {"type": 'NUMPAD_1', "value": 'PRESS'},
@@ -1407,7 +1412,7 @@ def km_view3d(params):
         ("view3d.view_roll", {"type": 'NUMPAD_6', "value": 'PRESS', "shift": True, "repeat": True},
          {"properties": [("type", 'RIGHT')]}),
         ("view3d.view_orbit", {"type": 'NUMPAD_9', "value": 'PRESS'},
-         {"properties": [("angle", 3.1415927), ("type", 'ORBITRIGHT')]}),
+         {"properties": [("angle", pi), ("type", 'ORBITRIGHT')]}),
         ("view3d.view_axis", {"type": 'NUMPAD_1', "value": 'PRESS', "shift": True},
          {"properties": [("type", 'FRONT'), ("align_active", True)]}),
         ("view3d.view_axis", {"type": 'NUMPAD_3', "value": 'PRESS', "shift": True},
@@ -1451,10 +1456,10 @@ def km_view3d(params):
         ("view3d.ndof_all", {"type": 'NDOF_MOTION', "value": 'ANY', "shift": True, "ctrl": True}, None),
         ("view3d.view_selected", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'},
          {"properties": [("use_all_regions", False)]}),
+        ("view3d.view_roll", {"type": 'NDOF_BUTTON_ROLL_CW', "value": 'PRESS'},
+         {"properties": [("angle", pi_2)]}),
         ("view3d.view_roll", {"type": 'NDOF_BUTTON_ROLL_CCW', "value": 'PRESS'},
-         {"properties": [("type", 'LEFT')]}),
-        ("view3d.view_roll", {"type": 'NDOF_BUTTON_ROLL_CCW', "value": 'PRESS'},
-         {"properties": [("type", 'RIGHT')]}),
+         {"properties": [("angle", -pi_2)]}),
         ("view3d.view_axis", {"type": 'NDOF_BUTTON_FRONT', "value": 'PRESS'},
          {"properties": [("type", 'FRONT')]}),
         ("view3d.view_axis", {"type": 'NDOF_BUTTON_BACK', "value": 'PRESS'},
@@ -2062,14 +2067,19 @@ def km_node_editor(params):
         ("node.translate_attach",
          {"type": 'EVT_TWEAK_L', "value": 'ANY'},
          {"properties": [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])]}),
-        ("node.translate_attach",
-         {"type": params.select_tweak, "value": 'ANY'},
-         {"properties": [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])]}),
+        # Avoid duplicating the previous item.
+        *([] if params.select_tweak == 'EVT_TWEAK_L' else (
+            ("node.translate_attach", {"type": params.select_tweak, "value": 'ANY'},
+             {"properties": [("TRANSFORM_OT_translate", [("view2d_edge_pan", True)])]}),
+        )),
         ("transform.translate", {"type": 'G', "value": 'PRESS'}, {"properties": [("view2d_edge_pan", True)]}),
         ("transform.translate", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
          {"properties": [("release_confirm", True), ("view2d_edge_pan", True)]}),
-        ("transform.translate", {"type": params.select_tweak, "value": 'ANY'},
-         {"properties": [("release_confirm", True), ("view2d_edge_pan", True)]}),
+        # Avoid duplicating the previous item.
+        *([] if params.select_tweak == 'EVT_TWEAK_L' else (
+            ("transform.translate", {"type": params.select_tweak, "value": 'ANY'},
+             {"properties": [("release_confirm", True), ("view2d_edge_pan", True)]}),
+        )),
         ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
         ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
         ("node.move_detach_links",
@@ -4673,7 +4683,9 @@ def _template_paint_radial_control(paint, rotation=False, secondary_rotation=Fal
     return items
 
 
-def _template_view3d_select(*, type, value, legacy):
+def _template_view3d_select(*, type, value, legacy, exclude_mod=None):
+    # NOTE: `exclude_mod` is needed since we don't want this tool to exclude Control-RMB actions when this is used
+    # as a tool key-map with RMB-select and `use_fallback_tool_rmb` is enabled. See T92467.
     return [(
         "view3d.select",
         {"type": type, "value": value, **{m: True for m in mods}},
@@ -4687,7 +4699,7 @@ def _template_view3d_select(*, type, value, legacy):
         (("center", "enumerate"), ("ctrl", "alt")),
         (("toggle", "enumerate"), ("shift", "alt")),
         (("toggle", "center", "enumerate"), ("shift", "ctrl", "alt")),
-    )]
+    ) if exclude_mod is None or exclude_mod not in mods]
 
 
 def _template_view3d_gpencil_select(*, type, value, legacy, use_select_mouse=True):
@@ -5466,6 +5478,22 @@ def km_font(params):
         ("font.text_insert", {"type": 'BACK_SPACE', "value": 'PRESS', "alt": True, "repeat": True},
          {"properties": [("accent", True)]}),
         *_template_items_context_menu("VIEW3D_MT_edit_font_context_menu", params.context_menu_event),
+    ])
+
+    return keymap
+
+
+def km_sculpt_curves(params):
+    items = []
+    keymap = (
+        "Sculpt Curves",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        ("sculpt_curves.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        *_template_paint_radial_control("curves_sculpt"),
     ])
 
     return keymap
@@ -6495,7 +6523,7 @@ def km_3d_view_tool_select(params, *, fallback):
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
                 params, "view3d.select", "view3d.cursor3d", extend="toggle")),
             *([] if (not params.use_fallback_tool_rmb) else _template_view3d_select(
-                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
+                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy, exclude_mod="ctrl")),
         ]},
     )
 
@@ -7793,6 +7821,7 @@ def generate_keymaps(params=None):
         km_lattice(params),
         km_particle(params),
         km_font(params),
+        km_sculpt_curves(params),
         km_object_non_modal(params),
 
         # Modal maps.

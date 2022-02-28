@@ -44,7 +44,7 @@ void createTransTexspace(TransInfo *t)
   }
 
   id = ob->data;
-  if (id == NULL || !ELEM(GS(id->name), ID_ME, ID_CU, ID_MB)) {
+  if (id == NULL || !ELEM(GS(id->name), ID_ME, ID_CU_LEGACY, ID_MB)) {
     BKE_report(t->reports, RPT_ERROR, "Unsupported object type for text-space transform");
     return;
   }

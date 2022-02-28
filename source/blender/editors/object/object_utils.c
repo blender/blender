@@ -64,7 +64,7 @@ bool ED_object_calc_active_center_for_editmode(Object *obedit,
 
       break;
     }
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF: {
       Curve *cu = obedit->data;
 

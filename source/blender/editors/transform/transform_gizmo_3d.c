@@ -816,7 +816,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
       }
       FOREACH_EDIT_OBJECT_END();
     }
-    else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
+    else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
         Curve *cu = ob_iter->data;
         Nurb *nu;
@@ -1869,7 +1869,7 @@ static void WIDGETGROUP_gizmo_invoke_prepare(const bContext *C,
   if (axis != -1) {
     wmWindow *win = CTX_wm_window(C);
     /* Swap single axis for two-axis constraint. */
-    bool flip = win->eventstate->shift;
+    bool flip = (win->eventstate->modifier & KM_SHIFT) != 0;
     BLI_assert(axis_idx != -1);
     const short axis_type = gizmo_get_axis_type(axis_idx);
     if (axis_type != MAN_AXES_ROTATE) {

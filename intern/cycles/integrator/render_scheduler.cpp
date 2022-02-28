@@ -244,7 +244,7 @@ void RenderScheduler::render_work_reschedule_on_cancel(RenderWork &render_work)
   render_work.tile.write = tile_write;
   render_work.full.write = full_write;
 
-  /* Do not write tile if it has zero samples it it, treat it similarly to all other tiles which
+  /* Do not write tile if it has zero samples in it, treat it similarly to all other tiles which
    * got canceled. */
   if (!state_.tile_result_was_written && has_rendered_samples) {
     render_work.tile.write = true;

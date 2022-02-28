@@ -371,7 +371,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   int tot_doubles;
 
   const bool use_merge = (amd->flags & MOD_ARR_MERGE) != 0;
-  const bool use_recalc_normals = (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) || use_merge;
+  const bool use_recalc_normals = BKE_mesh_vertex_normals_are_dirty(mesh) || use_merge;
   const bool use_offset_ob = ((amd->offset_type & MOD_ARR_OFF_OBJ) && amd->offset_ob != NULL);
 
   int start_cap_nverts = 0, start_cap_nedges = 0, start_cap_npolys = 0, start_cap_nloops = 0;
@@ -819,7 +819,7 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
    * In other cases it should be impossible to have a type mismatch.
    */
 
-  if (amd->curve_ob && amd->curve_ob->type != OB_CURVE) {
+  if (amd->curve_ob && amd->curve_ob->type != OB_CURVES_LEGACY) {
     return true;
   }
   if (amd->start_cap && amd->start_cap->type != OB_MESH) {

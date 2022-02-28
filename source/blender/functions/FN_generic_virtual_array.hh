@@ -139,7 +139,7 @@ class GVArrayCommon {
    */
   bool is_span() const;
   /**
-   * Returns the internally used span of the virtual array. This invokes undefined behavior is the
+   * Returns the internally used span of the virtual array. This invokes undefined behavior if the
    * virtual array is not stored as a span internally.
    */
   GSpan get_internal_span() const;

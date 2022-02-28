@@ -355,7 +355,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
     has_meshdata = (tot || totedgedata);
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     TransformMedian_Curve *median = &median_basis.curve;
     Curve *cu = ob->data;
     BPoint *bp;
@@ -1089,7 +1089,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
         }
       }
     }
-    else if (ELEM(ob->type, OB_CURVE, OB_SURF) &&
+    else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF) &&
              (apply_vcos || median_basis.curve.b_weight || median_basis.curve.weight ||
               median_basis.curve.radius || median_basis.curve.tilt)) {
       const TransformMedian_Curve *median = &median_basis.curve,

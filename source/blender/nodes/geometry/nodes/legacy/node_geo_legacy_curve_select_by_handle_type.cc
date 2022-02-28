@@ -33,24 +33,24 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static BezierSpline::HandleType handle_type_from_input_type(const GeometryNodeCurveHandleType type)
+static HandleType handle_type_from_input_type(const GeometryNodeCurveHandleType type)
 {
   switch (type) {
     case GEO_NODE_CURVE_HANDLE_AUTO:
-      return BezierSpline::HandleType::Auto;
+      return BEZIER_HANDLE_AUTO;
     case GEO_NODE_CURVE_HANDLE_ALIGN:
-      return BezierSpline::HandleType::Align;
+      return BEZIER_HANDLE_ALIGN;
     case GEO_NODE_CURVE_HANDLE_FREE:
-      return BezierSpline::HandleType::Free;
+      return BEZIER_HANDLE_FREE;
     case GEO_NODE_CURVE_HANDLE_VECTOR:
-      return BezierSpline::HandleType::Vector;
+      return BEZIER_HANDLE_VECTOR;
   }
   BLI_assert_unreachable();
-  return BezierSpline::HandleType::Auto;
+  return BEZIER_HANDLE_AUTO;
 }
 
 static void select_curve_by_handle_type(const CurveEval &curve,
-                                        const BezierSpline::HandleType type,
+                                        const HandleType type,
                                         const GeometryNodeCurveHandleMode mode,
                                         const MutableSpan<bool> r_selection)
 {
@@ -59,10 +59,10 @@ static void select_curve_by_handle_type(const CurveEval &curve,
   threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
     for (const int i_spline : range) {
       const Spline &spline = *splines[i_spline];
-      if (spline.type() == Spline::Type::Bezier) {
+      if (spline.type() == CURVE_TYPE_BEZIER) {
         const BezierSpline &bezier_spline = static_cast<const BezierSpline &>(spline);
-        Span<BezierSpline::HandleType> types_left = bezier_spline.handle_types_left();
-        Span<BezierSpline::HandleType> types_right = bezier_spline.handle_types_right();
+        Span<int8_t> types_left = bezier_spline.handle_types_left();
+        Span<int8_t> types_right = bezier_spline.handle_types_right();
         for (const int i_point : IndexRange(bezier_spline.size())) {
           r_selection[offsets[i_spline] + i_point] = (mode & GEO_NODE_CURVE_HANDLE_LEFT &&
                                                       types_left[i_point] == type) ||
@@ -81,7 +81,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurveSelectHandles *storage =
       (const NodeGeometryCurveSelectHandles *)params.node().storage;
-  const BezierSpline::HandleType handle_type = handle_type_from_input_type(
+  const HandleType handle_type = handle_type_from_input_type(
       (GeometryNodeCurveHandleType)storage->handle_type);
   const GeometryNodeCurveHandleMode mode = (GeometryNodeCurveHandleMode)storage->mode;
 

@@ -1658,12 +1658,11 @@ static void icon_preview_endjob(void *customdata)
 /**
  * Background job to manage requests for deferred loading of previews from the hard drive.
  *
- * Launches a single job to manage all incoming preview requests as tasks (so possibly using
- * further threads). The job is kept running until all preview requests are done loading (or it's
- * otherwise aborted, e.g. by closing Blender).
+ * Launches a single job to manage all incoming preview requests. The job is kept running until all
+ * preview requests are done loading (or it's otherwise aborted, e.g. by closing Blender).
  *
  * Note that this will use the OS thumbnail cache, i.e. load a preview from there or add it if not
- * there yet. These to cases may lead to different performance.
+ * there yet. These two cases may lead to different performance.
  */
 class PreviewLoadJob {
   struct RequestedPreview {

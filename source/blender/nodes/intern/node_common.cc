@@ -171,7 +171,7 @@ static void group_verify_socket_list(bNodeTree &node_tree,
       BLI_addtail(&verify_lb, matching_socket);
     }
     else {
-      /* If there was no socket withe the same identifier already, simply create a new socket
+      /* If there was no socket with the same identifier already, simply create a new socket
        * based on the interface socket, which will already add it to the new list. */
       add_new_socket_from_interface(node_tree, node, *interface_socket, in_out);
     }
@@ -326,7 +326,7 @@ void ntree_update_reroute_nodes(bNodeTree *ntree)
   }
 
   /* Propagate socket types from right to left. This affects reroute nodes that haven't been
-   * changed in the the loop above. */
+   * changed in the loop above. */
   for (bNode *start_node : nodes_linked_with_reroutes) {
     LISTBASE_FOREACH (bNodeSocket *, input_socket, &start_node->inputs) {
       propagate_reroute_type_from_start_socket(input_socket, links_map, reroute_types);

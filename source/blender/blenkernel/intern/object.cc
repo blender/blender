@@ -1385,8 +1385,14 @@ ModifierData *BKE_object_active_modifier(const Object *ob)
 
 bool BKE_object_supports_modifiers(const Object *ob)
 {
-  return (
-      ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE, OB_POINTCLOUD, OB_VOLUME));
+  return (ELEM(ob->type,
+               OB_MESH,
+               OB_CURVES_LEGACY,
+               OB_SURF,
+               OB_FONT,
+               OB_LATTICE,
+               OB_POINTCLOUD,
+               OB_VOLUME));
 }
 
 bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
@@ -1402,7 +1408,7 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
   if (ELEM(ob->type, OB_POINTCLOUD, OB_VOLUME, OB_CURVES)) {
     return (mti->modifyGeometrySet != nullptr);
   }
-  if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
+  if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_FONT, OB_LATTICE)) {
     if (ob->type == OB_LATTICE && (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly) == 0) {
       return false;
     }
@@ -1871,7 +1877,7 @@ bool BKE_object_is_in_editmode(const Object *ob)
     case OB_LATTICE:
       return ((Lattice *)ob->data)->editlatt != nullptr;
     case OB_SURF:
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
       return ((Curve *)ob->data)->editnurb != nullptr;
     case OB_GPENCIL:
       /* Grease Pencil object has no edit mode data. */
@@ -1893,7 +1899,7 @@ bool BKE_object_data_is_in_editmode(const ID *id)
   switch (type) {
     case ID_ME:
       return ((const Mesh *)id)->edit_mesh != nullptr;
-    case ID_CU:
+    case ID_CU_LEGACY:
       return ((((const Curve *)id)->editnurb != nullptr) ||
               (((const Curve *)id)->editfont != nullptr));
     case ID_MB:
@@ -1919,7 +1925,7 @@ char *BKE_object_data_editmode_flush_ptr_get(struct ID *id)
       }
       break;
     }
-    case ID_CU: {
+    case ID_CU_LEGACY: {
       if (((Curve *)id)->vfont != nullptr) {
         EditFont *ef = ((Curve *)id)->editfont;
         if (ef != nullptr) {
@@ -2062,7 +2068,7 @@ static const char *get_obdata_defname(int type)
   switch (type) {
     case OB_MESH:
       return DATA_("Mesh");
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
       return DATA_("Curve");
     case OB_SURF:
       return DATA_("Surf");
@@ -2133,8 +2139,8 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
   switch (type) {
     case OB_MESH:
       return BKE_mesh_add(bmain, name);
-    case OB_CURVE:
-      return BKE_curve_add(bmain, name, OB_CURVE);
+    case OB_CURVES_LEGACY:
+      return BKE_curve_add(bmain, name, OB_CURVES_LEGACY);
     case OB_SURF:
       return BKE_curve_add(bmain, name, OB_SURF);
     case OB_FONT:
@@ -2175,7 +2181,7 @@ int BKE_object_obdata_to_type(const ID *id)
   switch (GS(id->name)) {
     case ID_ME:
       return OB_MESH;
-    case ID_CU:
+    case ID_CU_LEGACY:
       return BKE_curve_type_get((const Curve *)id);
     case ID_MB:
       return OB_MBALL;
@@ -2656,7 +2662,7 @@ Object *BKE_object_duplicate(Main *bmain, Object *ob, uint dupflag, uint duplica
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
       if (dupflag & USER_DUP_CURVE) {
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
@@ -3220,7 +3226,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
                  "object position can be wrong now");
     }
   }
-  else if (ELEM(par->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(par->type, OB_CURVES_LEGACY, OB_SURF)) {
     ListBase *nurb;
 
     /* Unless there's some weird depsgraph failure the cache should exist. */
@@ -3293,7 +3299,7 @@ void BKE_object_get_parent_matrix(Object *ob, Object *par, float r_parentmat[4][
   switch (ob->partype & PARTYPE) {
     case PAROBJECT: {
       bool ok = false;
-      if (par->type == OB_CURVE) {
+      if (par->type == OB_CURVES_LEGACY) {
         if ((((Curve *)par->data)->flag & CU_PATH) && (ob_parcurve(ob, par, tmat))) {
           ok = true;
         }
@@ -3589,7 +3595,7 @@ BoundBox *BKE_object_boundbox_get(Object *ob)
     case OB_MESH:
       bb = BKE_mesh_boundbox_get(ob);
       break;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_FONT:
       bb = BKE_curve_boundbox_get(ob);
@@ -3758,7 +3764,7 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
   bool changed = false;
 
   switch (ob->type) {
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_FONT:
     case OB_SURF: {
       BoundBox bb = *BKE_curve_boundbox_get(ob);
@@ -4187,7 +4193,7 @@ bool BKE_object_obdata_texspace_get(Object *ob, char **r_texflag, float **r_loc,
       BKE_mesh_texspace_get_reference((Mesh *)ob->data, r_texflag, r_loc, r_size);
       break;
     }
-    case ID_CU: {
+    case ID_CU_LEGACY: {
       Curve *cu = (Curve *)ob->data;
       BKE_curve_texspace_ensure(cu);
       if (r_texflag) {
@@ -4555,7 +4561,7 @@ KeyBlock *BKE_object_shapekey_insert(Main *bmain,
     case OB_MESH:
       key = insert_meshkey(bmain, ob, name, from_mix);
       break;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
       key = insert_curvekey(bmain, ob, name, from_mix);
       break;
@@ -4627,7 +4633,7 @@ bool BKE_object_shapekey_remove(Main *bmain, Object *ob, KeyBlock *kb)
         case OB_MESH:
           BKE_keyblock_convert_to_mesh(key->refkey, (Mesh *)ob->data);
           break;
-        case OB_CURVE:
+        case OB_CURVES_LEGACY:
         case OB_SURF:
           BKE_keyblock_convert_to_curve(
               key->refkey, (Curve *)ob->data, BKE_curve_nurbs_get((Curve *)ob->data));
@@ -4842,7 +4848,7 @@ int BKE_object_is_deform_modified(Scene *scene, Object *ob)
     flag |= eModifierMode_Realtime | eModifierMode_Render;
   }
 
-  if (ob->type == OB_CURVE) {
+  if (ob->type == OB_CURVES_LEGACY) {
     Curve *cu = (Curve *)ob->data;
     if (cu->taperobj != nullptr && object_deforms_in_time(cu->taperobj)) {
       flag |= eModifierMode_Realtime | eModifierMode_Render;
@@ -4919,7 +4925,7 @@ bool BKE_object_supports_material_slots(struct Object *ob)
 {
   return ELEM(ob->type,
               OB_MESH,
-              OB_CURVE,
+              OB_CURVES_LEGACY,
               OB_SURF,
               OB_FONT,
               OB_MBALL,
@@ -5153,7 +5159,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
       BLI_kdtree_3d_balance(tree);
       break;
     }
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF: {
       /* TODO: take deformation into account */
       Curve *cu = (Curve *)ob->data;
@@ -5460,7 +5466,7 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
   }
 
   /* for curve following objects, parented curve has to be updated too */
-  if (ob->type == OB_CURVE) {
+  if (ob->type == OB_CURVES_LEGACY) {
     Curve *cu = (Curve *)ob->data;
     BKE_animsys_evaluate_animdata(
         &cu->id, cu->adt, &anim_eval_context, ADT_RECALC_ANIM, flush_to_original);

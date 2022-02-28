@@ -116,27 +116,25 @@ typedef struct Mesh_Runtime {
    */
   char wrapper_type_finalize;
 
+  int subsurf_resolution;
   /**
    * Settings for lazily evaluating the subdivision on the CPU if needed. These are
    * set in the modifier when GPU subdivision can be performed.
    */
   char subsurf_apply_render;
   char subsurf_use_optimal_display;
-  char _pad[2];
-  int subsurf_resolution;
-
-  void *_pad2;
 
   /**
-   * Used to mark when derived data needs to be recalculated for a certain layer.
-   * Currently only normals.
+   * Caches for lazily computed vertex and polygon normals. These are stored here rather than in
+   * #CustomData because they can be calculated on a const mesh, and adding custom data layers on a
+   * const mesh is not thread-safe.
    */
+  char vert_normals_dirty;
+  char poly_normals_dirty;
+  float (*vert_normals)[3];
+  float (*poly_normals)[3];
 
-  int64_t cd_dirty_vert;
-  int64_t cd_dirty_edge;
-  int64_t cd_dirty_loop;
-  int64_t cd_dirty_poly;
-
+  void *_pad2;
 } Mesh_Runtime;
 
 typedef struct Mesh {

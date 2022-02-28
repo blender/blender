@@ -626,11 +626,6 @@ static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
         "dof_reduced_color", UNPACK2(res), mip_count, GPU_RGBA16F, NULL);
     txl->dof_reduced_coc = GPU_texture_create_2d(
         "dof_reduced_coc", UNPACK2(res), mip_count, GPU_R16F, NULL);
-
-    /* TODO(@fclem): Remove once we have immutable storage or when mips are generated on creation.
-     */
-    GPU_texture_generate_mipmap(txl->dof_reduced_color);
-    GPU_texture_generate_mipmap(txl->dof_reduced_coc);
   }
 
   GPU_framebuffer_ensure_config(&fbl->dof_reduce_fb,

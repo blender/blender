@@ -66,7 +66,7 @@ bool AbcCurveReader::accepts_object_type(
     return false;
   }
 
-  if (ob->type != OB_CURVE) {
+  if (ob->type != OB_CURVES_LEGACY) {
     *err_str = "Object type mismatch, Alembic object path points to Curves.";
     return false;
   }
@@ -76,7 +76,7 @@ bool AbcCurveReader::accepts_object_type(
 
 void AbcCurveReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
-  Curve *cu = BKE_curve_add(bmain, m_data_name.c_str(), OB_CURVE);
+  Curve *cu = BKE_curve_add(bmain, m_data_name.c_str(), OB_CURVES_LEGACY);
 
   cu->flag |= CU_3D;
   cu->actvert = CU_ACT_NONE;
@@ -91,7 +91,7 @@ void AbcCurveReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
     }
   }
 
-  m_object = BKE_object_add_only_object(bmain, OB_CURVE, m_object_name.c_str());
+  m_object = BKE_object_add_only_object(bmain, OB_CURVES_LEGACY, m_object_name.c_str());
   m_object->data = cu;
 
   read_curve_sample(cu, m_curves_schema, sample_sel);

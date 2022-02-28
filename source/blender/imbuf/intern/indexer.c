@@ -478,7 +478,7 @@ struct proxy_output_ctx {
   AVFormatContext *of;
   AVStream *st;
   AVCodecContext *c;
-  AVCodec *codec;
+  const AVCodec *codec;
   struct SwsContext *sws_ctx;
   AVFrame *frame;
   int cfra;
@@ -510,12 +510,9 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   rv->st = avformat_new_stream(rv->of, NULL);
   rv->st->id = 0;
 
-  rv->c = avcodec_alloc_context3(NULL);
-  rv->c->codec_type = AVMEDIA_TYPE_VIDEO;
-  rv->c->codec_id = AV_CODEC_ID_H264;
+  rv->codec = avcodec_find_encoder(AV_CODEC_ID_H264);
 
-  rv->of->oformat->video_codec = rv->c->codec_id;
-  rv->codec = avcodec_find_encoder(rv->c->codec_id);
+  rv->c = avcodec_alloc_context3(rv->codec);
 
   if (!rv->codec) {
     fprintf(stderr,
@@ -526,8 +523,6 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
     MEM_freeN(rv);
     return NULL;
   }
-
-  avcodec_get_context_defaults3(rv->c, rv->codec);
 
   rv->c->width = width;
   rv->c->height = height;
@@ -779,7 +774,7 @@ typedef struct FFmpegIndexBuilderContext {
 
   AVFormatContext *iFormatCtx;
   AVCodecContext *iCodecCtx;
-  AVCodec *iCodec;
+  const AVCodec *iCodec;
   AVStream *iStream;
   int videoStream;
 
@@ -1167,7 +1162,7 @@ static int indexer_performance_get_max_gop_size(FFmpegIndexBuilderContext *conte
 }
 
 /* Assess scrubbing performance of provided file. This function is not meant to be very exact.
- * It compares number number of frames decoded in reasonable time with largest detected GOP size.
+ * It compares number of frames decoded in reasonable time with largest detected GOP size.
  * Because seeking happens in single GOP, it means, that maximum seek time can be detected this
  * way.
  * Since proxies use GOP size of 10 frames, skip building if detected GOP size is less or

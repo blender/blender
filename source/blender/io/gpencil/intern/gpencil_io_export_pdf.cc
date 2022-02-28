@@ -196,7 +196,7 @@ void GpencilExporterPDF::export_gpencil_layers()
 
             /* Sample stroke. */
             if (params_.stroke_sample > 0.0f) {
-              BKE_gpencil_stroke_sample(gpd_eval, gps_perimeter, params_.stroke_sample, false);
+              BKE_gpencil_stroke_sample(gpd_eval, gps_perimeter, params_.stroke_sample, false, 0);
             }
 
             export_stroke_to_polyline(gpl, gps_perimeter, is_stroke, false, false);
