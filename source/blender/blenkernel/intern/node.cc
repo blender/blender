@@ -1973,6 +1973,8 @@ void nodeRemoveAllSockets(bNodeTree *ntree, bNode *node)
     }
   }
 
+  BLI_freelistN(&node->internal_links);
+
   LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->inputs) {
     node_socket_free(sock, true);
     MEM_freeN(sock);
