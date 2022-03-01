@@ -383,7 +383,6 @@ if(WITH_PYTHON)
 	  # Disable add-ons that don't conform to distribution requirements, see: T95442.
 	  PATTERN "addons/amaranth" EXCLUDE
 	  PATTERN "addons/mesh_tiny_cad" EXCLUDE
-	  PATTERN "addons/mesh_tissue" EXCLUDE
   )
 
   unset(ADDON_EXCLUDE_CONDITIONAL)
