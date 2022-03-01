@@ -249,6 +249,16 @@ int GHOST_GetFullScreen(GHOST_SystemHandle systemhandle)
   return (int)system->getFullScreen();
 }
 
+GHOST_WindowHandle GHOST_GetWindowUnderCursor(GHOST_SystemHandle systemhandle,
+                                              int32_t x,
+                                              int32_t y)
+{
+  GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
+  GHOST_IWindow *window = system->getWindowUnderCursor(x, y);
+
+  return (GHOST_WindowHandle)window;
+}
+
 bool GHOST_ProcessEvents(GHOST_SystemHandle systemhandle, bool waitForEvent)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;

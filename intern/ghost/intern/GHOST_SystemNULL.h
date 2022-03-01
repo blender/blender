@@ -128,4 +128,9 @@ class GHOST_SystemNULL : public GHOST_System {
                                 type,
                                 ((glSettings.flags & GHOST_glStereoVisual) != 0));
   }
+
+  GHOST_IWindow *getWindowUnderCursor(int32_t x, int32_t y)
+  {
+    return NULL;
+  }
 };

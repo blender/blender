@@ -1855,56 +1855,23 @@ bool wm_window_get_swap_interval(wmWindow *win, int *intervalOut)
 /** \name Find Window Utility
  * \{ */
 
-static void wm_window_desktop_pos_get(const wmWindow *win,
-                                      const int screen_pos[2],
-                                      int r_desk_pos[2])
+wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mval[2])
 {
-  /* To desktop space. */
-  r_desk_pos[0] = screen_pos[0] + (int)(U.pixelsize * win->posx);
-  r_desk_pos[1] = screen_pos[1] + (int)(U.pixelsize * win->posy);
-}
+  int tmp[2];
+  copy_v2_v2_int(tmp, mval);
+  wm_cursor_position_to_ghost(win, &tmp[0], &tmp[1]);
 
-static void wm_window_screen_pos_get(const wmWindow *win,
-                                     const int desktop_pos[2],
-                                     int r_scr_pos[2])
-{
-  /* To window space. */
-  r_scr_pos[0] = desktop_pos[0] - (int)(U.pixelsize * win->posx);
-  r_scr_pos[1] = desktop_pos[1] - (int)(U.pixelsize * win->posy);
-}
+  GHOST_WindowHandle ghostwin = GHOST_GetWindowUnderCursor(g_system, tmp[0], tmp[1]);
 
-wmWindow *WM_window_find_under_cursor(const wmWindowManager *wm,
-                                      const wmWindow *win_ignore,
-                                      const wmWindow *win,
-                                      const int mval[2],
-                                      int r_mval[2])
-{
-  int desk_pos[2];
-  wm_window_desktop_pos_get(win, mval, desk_pos);
-
-  /* TODO: This should follow the order of the activated windows.
-   * The current solution is imperfect but usable in most cases. */
-  LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
-    if (win_iter == win_ignore) {
-      continue;
-    }
-
-    if (win_iter->windowstate == GHOST_kWindowStateMinimized) {
-      continue;
-    }
-
-    int scr_pos[2];
-    wm_window_screen_pos_get(win_iter, desk_pos, scr_pos);
-
-    if (scr_pos[0] >= 0 && scr_pos[1] >= 0 && scr_pos[0] <= WM_window_pixels_x(win_iter) &&
-        scr_pos[1] <= WM_window_pixels_y(win_iter)) {
-
-      copy_v2_v2_int(r_mval, scr_pos);
-      return win_iter;
-    }
+  if (!ghostwin) {
+    return NULL;
   }
 
-  return NULL;
+  wmWindow *r_win = GHOST_GetWindowUserData(ghostwin);
+  wm_cursor_position_from_ghost(r_win, &tmp[0], &tmp[1]);
+  copy_v2_v2_int(r_mval, tmp);
+
+  return r_win;
 }
 
 void WM_window_pixel_sample_read(const wmWindowManager *wm,

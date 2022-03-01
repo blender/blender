@@ -265,6 +265,16 @@ extern GHOST_TSuccess GHOST_EndFullScreen(GHOST_SystemHandle systemhandle);
  */
 extern int GHOST_GetFullScreen(GHOST_SystemHandle systemhandle);
 
+/**
+ * Get the Window under the cursor.
+ * \param x: The x-coordinate of the cursor.
+ * \param y: The y-coordinate of the cursor.
+ * @return The window under the cursor or nullptr in none.
+ */
+extern GHOST_WindowHandle GHOST_GetWindowUnderCursor(GHOST_SystemHandle systemhandle,
+                                                     int32_t x,
+                                                     int32_t y);
+
 /***************************************************************************************
  * Event management functionality
  ***************************************************************************************/

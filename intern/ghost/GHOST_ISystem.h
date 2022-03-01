@@ -325,6 +325,14 @@ class GHOST_ISystem {
    */
   virtual void useWindowFocus(const bool use_focus) = 0;
 
+  /**
+   * Get the Window under the cursor.
+   * \param x: The x-coordinate of the cursor.
+   * \param y: The y-coordinate of the cursor.
+   * @return The window under the cursor or nullptr if none.
+   */
+  virtual GHOST_IWindow *getWindowUnderCursor(int32_t x, int32_t y) = 0;
+
   /***************************************************************************************
    * Event management functionality
    ***************************************************************************************/

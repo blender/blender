@@ -788,6 +788,20 @@ GHOST_TSuccess GHOST_SystemCocoa::disposeContext(GHOST_IContext *context)
   return GHOST_kSuccess;
 }
 
+GHOST_IWindow *GHOST_SystemCocoa::getWindowUnderCursor(int32_t x, int32_t y)
+{
+  NSPoint scr_co = NSMakePoint(x, y);
+
+  int windowNumberAtPoint = [NSWindow windowNumberAtPoint:scr_co belowWindowWithWindowNumber:0];
+  NSWindow *nswindow = [NSApp windowWithWindowNumber:windowNumberAtPoint];
+
+  if (nswindow == nil) {
+    return nil;
+  }
+
+  return m_windowManager->getWindowAssociatedWithOSWindow((void *)nswindow);
+}
+
 /**
  * \note : returns coordinates in Cocoa screen coordinates
  */

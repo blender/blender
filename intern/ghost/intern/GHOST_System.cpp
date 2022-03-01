@@ -205,6 +205,25 @@ bool GHOST_System::getFullScreen(void)
   return fullScreen;
 }
 
+GHOST_IWindow *GHOST_System::getWindowUnderCursor(int32_t x, int32_t y)
+{
+  /* TODO: This solution should follow the order of the activated windows (Z-order).
+   * It is imperfect but usable in most cases. */
+  for (GHOST_IWindow *iwindow : m_windowManager->getWindows()) {
+    if (iwindow->getState() == GHOST_kWindowStateMinimized) {
+      continue;
+    }
+
+    GHOST_Rect bounds;
+    iwindow->getClientBounds(bounds);
+    if (bounds.isInside(x, y)) {
+      return iwindow;
+    }
+  }
+
+  return NULL;
+}
+
 void GHOST_System::dispatchEvents()
 {
 #ifdef WITH_INPUT_NDOF
