@@ -8,6 +8,7 @@ set(INC
   ../../blentranslation
   ../../bmesh
   ../../depsgraph
+  ../../functions
   ../../gpencil_modifiers
   ../../gpu
   ../../ikplugin

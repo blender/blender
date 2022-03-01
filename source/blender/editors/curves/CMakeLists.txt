@@ -14,6 +14,7 @@ set(INC
 )
 
 set(SRC
+  intern/curves_add.cc
   intern/curves_ops.cc
 )
 

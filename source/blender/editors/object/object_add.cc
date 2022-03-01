@@ -93,6 +93,7 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
+#include "ED_curves.h"
 #include "ED_gpencil.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
@@ -1899,6 +1900,8 @@ static bool object_hair_curves_add_poll(bContext *C)
 
 static int object_hair_curves_add_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
+
   ushort local_view_bits;
   float loc[3], rot[3];
   if (!ED_object_add_generic_get_opts(
@@ -1908,6 +1911,9 @@ static int object_hair_curves_add_exec(bContext *C, wmOperator *op)
 
   Object *object = ED_object_add_type(C, OB_CURVES, nullptr, loc, rot, false, local_view_bits);
   object->dtx |= OB_DRAWBOUNDOX; /* TODO: remove once there is actual drawing. */
+
+  Curves *curves_id = static_cast<Curves *>(object->data);
+  bke::CurvesGeometry::wrap(curves_id->geometry) = ed::curves::primitive_random_sphere(500, 8);
 
   return OPERATOR_FINISHED;
 }
