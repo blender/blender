@@ -157,6 +157,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
         if (tile_buffer == nullptr) {
           continue;
         }
+        instance_data.float_buffers.mark_used(tile_buffer);
         BKE_image_release_ibuf(image, tile_buffer, lock);
 
         DRWShadingGroup *shsub = DRW_shgroup_create_sub(shgrp);
@@ -184,12 +185,14 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     switch (changes.get_result_code()) {
       case ePartialUpdateCollectResult::FullUpdateNeeded:
         instance_data.mark_all_texture_slots_dirty();
+        instance_data.float_buffers.clear();
         break;
       case ePartialUpdateCollectResult::NoChangesDetected:
         break;
       case ePartialUpdateCollectResult::PartialChangesDetected:
         /* Partial update when wrap repeat is enabled is not supported. */
         if (instance_data.flags.do_tile_drawing) {
+          instance_data.float_buffers.clear();
           instance_data.mark_all_texture_slots_dirty();
         }
         else {
@@ -200,6 +203,34 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     do_full_update_for_dirty_textures(instance_data, image_user);
   }
 
+  /**
+   * Update the float buffer in the region given by the partial update checker.
+   */
+  void do_partial_update_float_buffer(
+      ImBuf *float_buffer, PartialUpdateChecker<ImageTileData>::CollectResult &iterator) const
+  {
+    ImBuf *src = iterator.tile_data.tile_buffer;
+    BLI_assert(float_buffer->rect_float != nullptr);
+    BLI_assert(float_buffer->rect == nullptr);
+    BLI_assert(src->rect_float == nullptr);
+    BLI_assert(src->rect != nullptr);
+
+    /* Calculate the overlap between the updated region and the buffer size. Partial Update Checker
+     * always returns a tile (256x256). Which could lay partially outside the buffer when using
+     * different resolutions.
+     */
+    rcti buffer_rect;
+    BLI_rcti_init(&buffer_rect, 0, float_buffer->x, 0, float_buffer->y);
+    rcti clipped_update_region;
+    const bool has_overlap = BLI_rcti_isect(
+        &buffer_rect, &iterator.changed_region.region, &clipped_update_region);
+    if (!has_overlap) {
+      return;
+    }
+
+    IMB_float_from_rect_ex(float_buffer, src, &clipped_update_region);
+  }
+
   void do_partial_update(PartialUpdateChecker<ImageTileData>::CollectResult &iterator,
                          IMAGE_InstanceData &instance_data) const
   {
@@ -208,7 +239,11 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       if (iterator.tile_data.tile_buffer == nullptr) {
         continue;
       }
-      const bool do_free_float_buffer = ensure_float_buffer(*iterator.tile_data.tile_buffer);
+      ImBuf *tile_buffer = ensure_float_buffer(instance_data, iterator.tile_data.tile_buffer);
+      if (tile_buffer != iterator.tile_data.tile_buffer) {
+        do_partial_update_float_buffer(tile_buffer, iterator);
+      }
+
       const float tile_width = static_cast<float>(iterator.tile_data.tile_buffer->x);
       const float tile_height = static_cast<float>(iterator.tile_data.tile_buffer->y);
 
@@ -283,7 +318,6 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
             &extracted_buffer, texture_region_width, texture_region_height, 32, IB_rectfloat);
 
         int offset = 0;
-        ImBuf *tile_buffer = iterator.tile_data.tile_buffer;
         for (int y = gpu_texture_region_to_update.ymin; y < gpu_texture_region_to_update.ymax;
              y++) {
           float yf = y / (float)texture_height;
@@ -313,10 +347,6 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                                extracted_buffer.y,
                                0);
         imb_freerectImbuf_all(&extracted_buffer);
-      }
-
-      if (do_free_float_buffer) {
-        imb_freerectfloatImBuf(iterator.tile_data.tile_buffer);
       }
     }
   }
@@ -376,16 +406,12 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
    * rect_float as the reference-counter isn't 0. To work around this we destruct any created local
    * buffers ourself.
    */
-  bool ensure_float_buffer(ImBuf &image_buffer) const
+  ImBuf *ensure_float_buffer(IMAGE_InstanceData &instance_data, ImBuf *image_buffer) const
   {
-    if (image_buffer.rect_float == nullptr) {
-      IMB_float_from_rect(&image_buffer);
-      return true;
-    }
-    return false;
+    return instance_data.float_buffers.ensure_float_buffer(image_buffer);
   }
 
-  void do_full_update_texture_slot(const IMAGE_InstanceData &instance_data,
+  void do_full_update_texture_slot(IMAGE_InstanceData &instance_data,
                                    const TextureInfo &texture_info,
                                    ImBuf &texture_buffer,
                                    ImBuf &tile_buffer,
@@ -393,7 +419,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
   {
     const int texture_width = texture_buffer.x;
     const int texture_height = texture_buffer.y;
-    const bool do_free_float_buffer = ensure_float_buffer(tile_buffer);
+    ImBuf *float_tile_buffer = ensure_float_buffer(instance_data, &tile_buffer);
 
     /* IMB_transform works in a non-consistent space. This should be documented or fixed!.
      * Construct a variant of the info_uv_to_texture that adds the texel space
@@ -424,16 +450,12 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       transform_mode = IMB_TRANSFORM_MODE_CROP_SRC;
     }
 
-    IMB_transform(&tile_buffer,
+    IMB_transform(float_tile_buffer,
                   &texture_buffer,
                   transform_mode,
                   IMB_FILTER_NEAREST,
                   uv_to_texel,
                   crop_rect_ptr);
-
-    if (do_free_float_buffer) {
-      imb_freerectfloatImBuf(&tile_buffer);
-    }
   }
 
  public:
@@ -452,6 +474,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
 
     instance_data->partial_update.ensure_image(image);
     instance_data->clear_dirty_flag();
+    instance_data->float_buffers.reset_usage_flags();
 
     /* Step: Find out which screen space textures are needed to draw on the screen. Remove the
      * screen space textures that aren't needed. */
@@ -472,8 +495,10 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     add_shgroups(instance_data);
   }
 
-  void draw_finish(IMAGE_Data *UNUSED(vedata)) const override
+  void draw_finish(IMAGE_Data *vedata) const override
   {
+    IMAGE_InstanceData *instance_data = vedata->instance_data;
+    instance_data->float_buffers.remove_unused_buffers();
   }
 
   void draw_scene(IMAGE_Data *vedata) const override
