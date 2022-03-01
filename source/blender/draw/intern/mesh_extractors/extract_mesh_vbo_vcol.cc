@@ -180,7 +180,7 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
 
       /* Ensure data is uploaded properly. */
       GPU_vertbuf_tag_dirty(src_data);
-      draw_subdiv_interp_custom_data(subdiv_cache, src_data, dst_buffer, 4, dst_offset);
+      draw_subdiv_interp_custom_data(subdiv_cache, src_data, dst_buffer, 4, dst_offset, true);
     }
   }
 

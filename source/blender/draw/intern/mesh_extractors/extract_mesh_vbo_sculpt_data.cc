@@ -167,7 +167,7 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
     GPU_vertbuf_init_build_on_device(
         subdiv_mask_vbo, &mask_format, subdiv_cache->num_subdiv_loops);
 
-    draw_subdiv_interp_custom_data(subdiv_cache, mask_vbo, subdiv_mask_vbo, 1, 0);
+    draw_subdiv_interp_custom_data(subdiv_cache, mask_vbo, subdiv_mask_vbo, 1, 0, false);
   }
 
   /* Then, gather face sets. */

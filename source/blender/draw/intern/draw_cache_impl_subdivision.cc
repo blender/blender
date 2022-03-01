@@ -1317,7 +1317,8 @@ void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
                                     GPUVertBuf *src_data,
                                     GPUVertBuf *dst_data,
                                     int dimensions,
-                                    int dst_offset)
+                                    int dst_offset,
+                                    bool compress_to_u16)
 {
   GPUShader *shader = nullptr;
 
@@ -1337,10 +1338,17 @@ void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
                                "#define DIMENSIONS 3\n");
   }
   else if (dimensions == 4) {
-    shader = get_subdiv_shader(SHADER_COMP_CUSTOM_DATA_INTERP_4D,
-                               "#define SUBDIV_POLYGON_OFFSET\n"
-                               "#define DIMENSIONS 4\n"
-                               "#define GPU_FETCH_U16_TO_FLOAT\n");
+    if (compress_to_u16) {
+      shader = get_subdiv_shader(SHADER_COMP_CUSTOM_DATA_INTERP_4D,
+                                 "#define SUBDIV_POLYGON_OFFSET\n"
+                                 "#define DIMENSIONS 4\n"
+                                 "#define GPU_FETCH_U16_TO_FLOAT\n");
+    }
+    else {
+      shader = get_subdiv_shader(SHADER_COMP_CUSTOM_DATA_INTERP_4D,
+                                 "#define SUBDIV_POLYGON_OFFSET\n"
+                                 "#define DIMENSIONS 4\n");
+    }
   }
   else {
     /* Crash if dimensions are not supported. */

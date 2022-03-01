@@ -201,7 +201,7 @@ static void extract_weights_init_subdiv(const DRWSubdivCache *subdiv_cache,
     }
   }
 
-  draw_subdiv_interp_custom_data(subdiv_cache, coarse_weights, vbo, 1, 0);
+  draw_subdiv_interp_custom_data(subdiv_cache, coarse_weights, vbo, 1, 0, false);
 
   GPU_vertbuf_discard(coarse_weights);
 }
