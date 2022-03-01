@@ -374,4 +374,13 @@ Curves *curves_new_nomain(const int point_size, const int curves_size)
   return curves;
 }
 
+Curves *curves_new_nomain_single(const int point_size, const CurveType type)
+{
+  Curves *curves = curves_new_nomain(point_size, 1);
+  CurvesGeometry &geometry = CurvesGeometry::wrap(curves->geometry);
+  geometry.offsets().last() = point_size;
+  geometry.curve_types().first() = type;
+  return curves;
+}
+
 }  // namespace blender::bke
