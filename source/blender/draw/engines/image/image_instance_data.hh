@@ -23,6 +23,7 @@
 #pragma once
 
 #include "image_batches.hh"
+#include "image_buffer_cache.hh"
 #include "image_partial_updater.hh"
 #include "image_private.hh"
 #include "image_shader_params.hh"
@@ -63,11 +64,18 @@ struct IMAGE_InstanceData {
     DRWPass *depth_pass;
   } passes;
 
+  /**
+   * Cache containing the float buffers when drawing byte images.
+   */
+  FloatBufferCache float_buffers;
+
   /** \brief Transform matrix to convert a normalized screen space coordinates to texture space. */
   float ss_to_texture[4][4];
   TextureInfo texture_infos[SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN];
 
  public:
+  virtual ~IMAGE_InstanceData() = default;
+
   void clear_dirty_flag()
   {
     reset_dirty_flag(false);
@@ -117,6 +125,7 @@ struct IMAGE_InstanceData {
     if (last_usage != usage) {
       last_usage = usage;
       reset_dirty_flag(true);
+      float_buffers.clear();
     }
   }
 

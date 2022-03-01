@@ -576,6 +576,9 @@ bool IMB_alpha_affects_rgb(const struct ImBuf *ibuf);
  * Create char buffer, color corrected if necessary, for ImBufs that lack one.
  */
 void IMB_rect_from_float(struct ImBuf *ibuf);
+void IMB_float_from_rect_ex(struct ImBuf *dst,
+                            const struct ImBuf *src,
+                            const struct rcti *region_to_update);
 void IMB_float_from_rect(struct ImBuf *ibuf);
 /**
  * No profile conversion.

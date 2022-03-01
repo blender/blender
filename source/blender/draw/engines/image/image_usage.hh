@@ -38,6 +38,8 @@ struct ImageUsage {
   /** IMA_ALPHA_* */
   char alpha_mode;
 
+  const void *last_image = nullptr;
+
   ImageUsage() = default;
   ImageUsage(const struct Image *image, const struct ImageUser *image_user)
   {
@@ -46,6 +48,7 @@ struct ImageUsage {
     view = image_user ? image_user->multi_index : 0;
     colorspace_settings = image->colorspace_settings;
     alpha_mode = image->alpha_mode;
+    last_image = static_cast<const void *>(image);
   }
 
   bool operator==(const ImageUsage &other) const
