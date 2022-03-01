@@ -117,6 +117,7 @@ static void rna_Image_generated_update(Main *bmain, Scene *UNUSED(scene), Pointe
 {
   Image *ima = (Image *)ptr->owner_id;
   BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_FREE);
+  BKE_image_partial_update_mark_full_update(ima);
 }
 
 static void rna_Image_colormanage_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -155,6 +156,7 @@ static void rna_Image_views_format_update(Main *bmain, Scene *scene, PointerRNA 
   }
 
   BKE_image_release_ibuf(ima, ibuf, lock);
+  BKE_image_partial_update_mark_full_update(ima);
 }
 
 static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
