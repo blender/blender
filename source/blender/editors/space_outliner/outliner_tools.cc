@@ -31,6 +31,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_set.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.h"
@@ -86,6 +87,8 @@
 static CLG_LogRef LOG = {"ed.outliner.tools"};
 
 using namespace blender::ed::outliner;
+
+using blender::Set;
 
 /* -------------------------------------------------------------------- */
 /** \name ID/Library/Data Set/Un-link Utilities
@@ -755,7 +758,49 @@ struct OutlinerLibOverrideData {
    * instead of re-applying relevant existing ID pointer property override operations. Helps
    * solving broken overrides while not losing *all* of your overrides. */
   bool do_resync_hierarchy_enforce;
+
+  /** The override hierarchy root, when known/created. */
+  ID *id_hierarchy_root_override;
+
+  /** A hash of the selected tree elements' ID 'uuid'. Used to clear 'system override' flags on
+   * their newly-created liboverrides in post-process step of override hierarchy creation. */
+  Set<uint> selected_id_uid;
 };
+
+/* Store 'UUID' of IDs of selected elements in the Outliner tree, before generating the override
+ * hierarchy. */
+static void id_override_library_create_hierarchy_pre_process_fn(bContext *UNUSED(C),
+                                                                ReportList *UNUSED(reports),
+                                                                Scene *UNUSED(scene),
+                                                                TreeElement *UNUSED(te),
+                                                                TreeStoreElem *UNUSED(tsep),
+                                                                TreeStoreElem *tselem,
+                                                                void *user_data)
+{
+  BLI_assert(TSE_IS_REAL_ID(tselem));
+
+  OutlinerLibOverrideData *data = reinterpret_cast<OutlinerLibOverrideData *>(user_data);
+  const bool do_hierarchy = data->do_hierarchy;
+  ID *id_root_reference = tselem->id;
+
+  BLI_assert(do_hierarchy);
+  UNUSED_VARS_NDEBUG(do_hierarchy);
+
+  data->selected_id_uid.add(id_root_reference->session_uuid);
+
+  if (GS(id_root_reference->name) == ID_GR && (tselem->flag & TSE_CLOSED) != 0) {
+    /* If selected element is a (closed) collection, check all of its objects recursively, and also
+     * consider the armature ones as 'selected' (i.e. to not become system overrides). */
+    Collection *root_collection = reinterpret_cast<Collection *>(id_root_reference);
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (root_collection, object_iter) {
+      if (id_root_reference->lib == object_iter->id.lib && object_iter->type == OB_ARMATURE) {
+        printf("Foooo\n");
+        data->selected_id_uid.add(object_iter->id.session_uuid);
+      }
+    }
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+  }
+}
 
 static void id_override_library_create_fn(bContext *C,
                                           ReportList *reports,
@@ -782,7 +827,7 @@ static void id_override_library_create_fn(bContext *C,
   bool is_override_instancing_object = false;
   if (tsep != nullptr && tsep->type == TSE_SOME_ID && tsep->id != nullptr &&
       GS(tsep->id->name) == ID_OB && !ID_IS_OVERRIDE_LIBRARY(tsep->id)) {
-    Object *ob = (Object *)tsep->id;
+    Object *ob = reinterpret_cast<Object *>(tsep->id);
     if (ob->type == OB_EMPTY && &ob->instance_collection->id == id_root_reference) {
       BLI_assert(GS(id_root_reference->name) == ID_GR);
       /* Empty instantiating the collection we override, we need to pass it to BKE overriding code
@@ -895,6 +940,7 @@ static void id_override_library_create_fn(bContext *C,
         return;
       }
 
+      ID *id_root_override = nullptr;
       success = BKE_lib_override_library_create(bmain,
                                                 CTX_data_scene(C),
                                                 CTX_data_view_layer(C),
@@ -902,7 +948,22 @@ static void id_override_library_create_fn(bContext *C,
                                                 id_root_reference,
                                                 id_hierarchy_root_reference,
                                                 id_instance_hint,
-                                                nullptr);
+                                                &id_root_override);
+
+      BLI_assert(id_root_override != nullptr);
+      BLI_assert(!ID_IS_LINKED(id_root_override));
+      BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root_override));
+      if (ID_IS_LINKED(id_hierarchy_root_reference)) {
+        BLI_assert(
+            id_root_override->override_library->hierarchy_root->override_library->reference ==
+            id_hierarchy_root_reference);
+        data->id_hierarchy_root_override = id_root_override->override_library->hierarchy_root;
+      }
+      else {
+        BLI_assert(id_root_override->override_library->hierarchy_root ==
+                   id_hierarchy_root_reference);
+        data->id_hierarchy_root_override = id_root_override->override_library->hierarchy_root;
+      }
     }
     else if (ID_IS_OVERRIDABLE_LIBRARY(id_root_reference)) {
       success = BKE_lib_override_library_create_from_id(bmain, id_root_reference, true) != nullptr;
@@ -924,6 +985,27 @@ static void id_override_library_create_fn(bContext *C,
                 "Could not create library override from data-block '%s'",
                 id_root_reference->name);
   }
+}
+
+/* Clear system override flag from newly created overrides which linked reference were previously
+ * selected in the Outliner tree. */
+static void id_override_library_create_hierarchy_post_process(bContext *C,
+                                                              OutlinerLibOverrideData *data)
+{
+  Main *bmain = CTX_data_main(C);
+  ID *id_hierarchy_root_override = data->id_hierarchy_root_override;
+
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (ID_IS_LINKED(id_iter) || !ID_IS_OVERRIDE_LIBRARY_REAL(id_iter) ||
+        id_iter->override_library->hierarchy_root != id_hierarchy_root_override) {
+      continue;
+    }
+    if (data->selected_id_uid.contains(id_iter->override_library->reference->session_uuid)) {
+      id_iter->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+    }
+  }
+  FOREACH_MAIN_ID_END;
 }
 
 static void id_override_library_reset_fn(bContext *C,
@@ -2115,8 +2197,17 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
                                     scene,
                                     space_outliner,
                                     &space_outliner->tree,
+                                    id_override_library_create_hierarchy_pre_process_fn,
+                                    &override_data);
+      outliner_do_libdata_operation(C,
+                                    op->reports,
+                                    scene,
+                                    space_outliner,
+                                    &space_outliner->tree,
                                     id_override_library_create_fn,
                                     &override_data);
+      id_override_library_create_hierarchy_post_process(C, &override_data);
+
       ED_undo_push(C, "Overridden Data Hierarchy");
       break;
     }

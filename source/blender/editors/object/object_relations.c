@@ -2273,6 +2273,10 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
   ID *id_root = NULL;
   bool is_override_instancing_object = false;
 
+  GSet *user_overrides_objects_uids = BLI_gset_new(
+      BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);
+  bool user_overrides_from_selected_objects = false;
+
   if (!ID_IS_LINKED(obact) && obact->instance_collection != NULL &&
       ID_IS_LINKED(obact->instance_collection)) {
     if (!ID_IS_OVERRIDABLE_LIBRARY(obact->instance_collection)) {
@@ -2285,6 +2289,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
 
     id_root = &obact->instance_collection->id;
     is_override_instancing_object = true;
+    user_overrides_from_selected_objects = false;
   }
   else if (!make_override_library_object_overridable_check(bmain, obact)) {
     const int i = RNA_property_enum_get(op->ptr, op->type->prop);
@@ -2309,16 +2314,53 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
     id_root = &collection->id;
+    user_overrides_from_selected_objects = true;
   }
   /* Else, poll func ensures us that ID_IS_LINKED(obact) is true. */
   else {
     id_root = &obact->id;
+    user_overrides_from_selected_objects = true;
+  }
+
+  if (user_overrides_from_selected_objects) {
+    /* Only selected objects can be 'user overrides'. */
+    FOREACH_SELECTED_OBJECT_BEGIN (view_layer, CTX_wm_view3d(C), ob_iter) {
+      BLI_gset_add(user_overrides_objects_uids, POINTER_FROM_UINT(ob_iter->id.session_uuid));
+    }
+    FOREACH_SELECTED_OBJECT_END;
+  }
+  else {
+    /* Only armatures inside the root collection (and their children) can be 'user overrides'. */
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN ((Collection *)id_root, ob_iter) {
+      if (ob_iter->type == OB_ARMATURE) {
+        BLI_gset_add(user_overrides_objects_uids, POINTER_FROM_UINT(ob_iter->id.session_uuid));
+      }
+    }
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
 
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
+  ID *id_root_override;
   const bool success = BKE_lib_override_library_create(
-      bmain, scene, view_layer, NULL, id_root, id_root, &obact->id, NULL);
+      bmain, scene, view_layer, NULL, id_root, id_root, &obact->id, &id_root_override);
+
+  /* Define liboverrides from selected/validated objects as user defined. */
+  ID *id_hierarchy_root_override = id_root_override->override_library->hierarchy_root;
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (ID_IS_LINKED(id_iter) || !ID_IS_OVERRIDE_LIBRARY_REAL(id_iter) ||
+        id_iter->override_library->hierarchy_root != id_hierarchy_root_override) {
+      continue;
+    }
+    if (BLI_gset_haskey(user_overrides_objects_uids,
+                        POINTER_FROM_UINT(id_iter->override_library->reference->session_uuid))) {
+      id_iter->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  BLI_gset_free(user_overrides_objects_uids, NULL);
 
   /* Remove the instance empty from this scene, the items now have an overridden collection
    * instead. */
