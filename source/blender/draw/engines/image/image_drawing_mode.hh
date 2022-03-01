@@ -219,30 +219,17 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
   }
 
   /**
-   * Update the float buffer.
-   *
-   * TODO(jbakker): This is a very expensive operation and should be optimized to perform the
-   * color space conversion + alpha premultiplication on a part of the buffer.
-   * Basically perform a float_from_rect on a given rectangle.
+   * Update the float buffer in the region given by the partial update checker.
    */
   void do_partial_update_float_buffer(
       ImBuf *float_buffer, PartialUpdateChecker<ImageTileData>::CollectResult &iterator) const
   {
-#if 0
     ImBuf *src = iterator.tile_data.tile_buffer;
-    src->rect_float = float_buffer->rect_float;
-    IMB_float_from_rect(src);
-
-    src->rect_float = nullptr;
-#else
-    ImBuf *src = iterator.tile_data.tile_buffer;
-    BLI_assert(float_buffer->float_rect != nullptr);
+    BLI_assert(float_buffer->rect_float != nullptr);
     BLI_assert(float_buffer->rect == nullptr);
-    BLI_assert(src->float_rect == nullptr);
+    BLI_assert(src->rect_float == nullptr);
     BLI_assert(src->rect != nullptr);
     IMB_float_from_rect_ex(float_buffer, src, &iterator.changed_region.region);
-
-#endif
   }
 
   void do_partial_update(PartialUpdateChecker<ImageTileData>::CollectResult &iterator,
