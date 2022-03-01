@@ -229,7 +229,21 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     BLI_assert(float_buffer->rect == nullptr);
     BLI_assert(src->rect_float == nullptr);
     BLI_assert(src->rect != nullptr);
-    IMB_float_from_rect_ex(float_buffer, src, &iterator.changed_region.region);
+
+    /* Calculate the overlap between the updated region and the buffer size. Partial Update Checker
+     * always returns a tile (256x256). Which could lay partially outside the buffer when using
+     * different resolutions.
+     */
+    rcti buffer_rect;
+    BLI_rcti_init(&buffer_rect, 0, float_buffer->x, 0, float_buffer->y);
+    rcti clipped_update_region;
+    const bool has_overlap = BLI_rcti_isect(
+        &buffer_rect, &iterator.changed_region.region, &clipped_update_region);
+    if (!has_overlap) {
+      return;
+    }
+
+    IMB_float_from_rect_ex(float_buffer, src, &clipped_update_region);
   }
 
   void do_partial_update(PartialUpdateChecker<ImageTileData>::CollectResult &iterator,
