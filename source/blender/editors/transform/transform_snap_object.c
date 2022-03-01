@@ -491,7 +491,7 @@ static void iter_snap_objects(SnapObjectContext *sctx,
       }
     }
     else if (snap_select == SNAP_NOT_SELECTED) {
-      if (is_object_active && !(base->object->mode & OB_MODE_OBJECT)) {
+      if (is_object_active && base->object->mode != OB_MODE_OBJECT) {
         /* Pass. Consider the selection of elements being edited. */
       }
       else if ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL)) {
