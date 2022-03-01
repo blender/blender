@@ -636,6 +636,15 @@ typedef struct wmEvent {
   short prev_type;
   /** The previous value of `val`. */
   short prev_val;
+  /**
+   * The previous value of #wmEvent.xy,
+   * Unlike other previous state variables, this is set on any mouse motion.
+   * Use `prev_click` for the value at time of pressing.
+   */
+  int prev_xy[2];
+
+  /** The `type` at the point of the click action. */
+  short prev_click_type;
   /** The time when the key is pressed, see #PIL_check_seconds_timer. */
   double prev_click_time;
   /** The location when the key is pressed (used to enforce drag thresholds). */
@@ -644,13 +653,6 @@ typedef struct wmEvent {
   uint8_t prev_click_modifier;
   /** The `keymodifier` at the point of the click action. */
   short prev_click_keymodifier;
-
-  /**
-   * The previous value of #wmEvent.xy,
-   * Unlike other previous state variables, this is set on any mouse motion.
-   * Use `prev_click` for the value at time of pressing.
-   */
-  int prev_xy[2];
 
   /**
    * Modifier states.
