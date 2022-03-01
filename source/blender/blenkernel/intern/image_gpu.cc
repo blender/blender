@@ -338,19 +338,25 @@ static void image_gpu_texture_partial_update_changes_available(
     Image *image, PartialUpdateChecker<ImageTileData>::CollectResult &changes)
 {
   while (changes.get_next_change() == ePartialUpdateIterResult::ChangeAvailable) {
-    const int tile_offset_x = changes.changed_region.region.xmin;
-    const int tile_offset_y = changes.changed_region.region.ymin;
-    const int tile_width = min_ii(changes.tile_data.tile_buffer->x,
-                                  BLI_rcti_size_x(&changes.changed_region.region));
-    const int tile_height = min_ii(changes.tile_data.tile_buffer->y,
-                                   BLI_rcti_size_y(&changes.changed_region.region));
+    /* Calculate the clipping region with the tile buffer.
+     * TODO(jbakker): should become part of ImageTileData to deduplicate with image engine. */
+    rcti buffer_rect;
+    BLI_rcti_init(
+        &buffer_rect, 0, changes.tile_data.tile_buffer->x, 0, changes.tile_data.tile_buffer->y);
+    rcti clipped_update_region;
+    const bool has_overlap = BLI_rcti_isect(
+        &buffer_rect, &changes.changed_region.region, &clipped_update_region);
+    if (!has_overlap) {
+      continue;
+    }
+
     image_update_gputexture_ex(image,
                                changes.tile_data.tile,
                                changes.tile_data.tile_buffer,
-                               tile_offset_x,
-                               tile_offset_y,
-                               tile_width,
-                               tile_height);
+                               clipped_update_region.xmin,
+                               clipped_update_region.ymin,
+                               BLI_rcti_size_x(&clipped_update_region),
+                               BLI_rcti_size_y(&clipped_update_region));
   }
 }
 
