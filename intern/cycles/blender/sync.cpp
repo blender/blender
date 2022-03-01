@@ -259,7 +259,12 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
                             int height,
                             void **python_thread_state)
 {
-  if (!has_updates_) {
+  /* For auto refresh images. */
+  ImageManager *image_manager = scene->image_manager;
+  const int frame = b_scene.frame_current();
+  const bool auto_refresh_update = image_manager->set_animation_frame_update(frame);
+
+  if (!has_updates_ && !auto_refresh_update) {
     return;
   }
 
@@ -274,7 +279,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
   sync_view_layer(b_view_layer);
   sync_integrator(b_view_layer, background);
   sync_film(b_view_layer, b_v3d);
-  sync_shaders(b_depsgraph, b_v3d);
+  sync_shaders(b_depsgraph, b_v3d, auto_refresh_update);
   sync_images();
 
   geometry_synced.clear(); /* use for objects and motion sync */

@@ -127,7 +127,7 @@ class BlenderSync {
   /* Shader */
   array<Node *> find_used_shaders(BL::Object &b_ob);
   void sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, bool update_all);
-  void sync_shaders(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d);
+  void sync_shaders(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, bool update_all);
   void sync_nodes(Shader *shader, BL::ShaderNodeTree &b_ntree);
 
   /* Object */
