@@ -1150,7 +1150,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   else if (event->val == KM_PRESS) {
     switch (event->type) {
       case EVT_CKEY:
-        if (event->is_repeat) {
+        if (event->flag & WM_EVENT_IS_REPEAT) {
           break;
         }
         if (event->modifier & KM_ALT) {
@@ -1164,7 +1164,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case EVT_OKEY:
-        if (event->is_repeat) {
+        if (event->flag & WM_EVENT_IS_REPEAT) {
           break;
         }
         if ((t->flag & T_PROP_EDIT) && (event->modifier & KM_SHIFT)) {
@@ -1202,7 +1202,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case EVT_NKEY:
-        if (event->is_repeat) {
+        if (event->flag & WM_EVENT_IS_REPEAT) {
           break;
         }
         if (ELEM(t->mode, TFM_ROTATION)) {

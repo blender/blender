@@ -153,7 +153,7 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
     win->eventstate->type = event->type;
 
     if (event->val == KM_PRESS) {
-      if (event->is_repeat == false) {
+      if ((event->flag & WM_EVENT_IS_REPEAT) == 0) {
         copy_v2_v2_int(win->eventstate->prev_click_xy, event->xy);
       }
     }
@@ -166,7 +166,7 @@ void wm_event_free(wmEvent *event)
 #ifndef NDEBUG
   /* Don't use assert here because it's fairly harmless in most cases,
    * more an issue of correctness, something we should avoid in general. */
-  if (event->is_repeat && !ISKEYBOARD(event->type)) {
+  if ((event->flag & WM_EVENT_IS_REPEAT) && !ISKEYBOARD(event->type)) {
     printf("%s: 'is_repeat=true' for non-keyboard event, this should not happen.\n", __func__);
     WM_event_print(event);
   }
@@ -739,7 +739,7 @@ void wm_event_handler_ui_cancel_ex(bContext *C,
       wm_event_init_from_window(win, &event);
       event.type = EVT_BUT_CANCEL;
       event.val = reactivate_button ? 0 : 1;
-      event.is_repeat = false;
+      event.flag = 0;
       handler->handle_fn(C, &event, handler->user_data);
     }
   }
@@ -1982,7 +1982,7 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
     return false;
   }
 
-  if (winevent->is_repeat) {
+  if (winevent->flag & WM_EVENT_IS_REPEAT) {
     if (kmi->flag & KMI_REPEAT_IGNORE) {
       return false;
     }
@@ -3204,7 +3204,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
        * wasn't handled, the KM_RELEASE will become a KM_CLICK */
 
       if (event->val == KM_PRESS) {
-        if (event->is_repeat == false) {
+        if ((event->flag & WM_EVENT_IS_REPEAT) == 0) {
           win->event_queue_check_click = true;
           win->event_queue_check_drag = true;
           win->event_queue_check_drag_handled = false;
@@ -3814,7 +3814,7 @@ void wm_event_do_handlers(bContext *C)
       tevent.type = MOUSEMOVE;
       tevent.prev_xy[0] = tevent.xy[0];
       tevent.prev_xy[1] = tevent.xy[1];
-      tevent.is_repeat = false;
+      tevent.flag = 0;
       wm_event_add(win, &tevent);
       win->addmousemove = 0;
     }
@@ -4720,7 +4720,7 @@ static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
    * them for better performance. */
   if (event_last && event_last->type == MOUSEMOVE) {
     event_last->type = INBETWEEN_MOUSEMOVE;
-    event_last->is_repeat = false;
+    event_last->flag = 0;
   }
 
   wmEvent *event_new = wm_event_add(win, event);
@@ -4772,7 +4772,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 
   /* Initialize and copy state (only mouse x y and modifiers). */
   event = *event_state;
-  event.is_repeat = false;
+  event.flag = 0;
 
   /**
    * Always support accessing the last key press/release. This is set from `win->eventstate`,
@@ -4870,7 +4870,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       event.val = KM_NOTHING;
 
       /* The direction is inverted from the device due to system preferences. */
-      event.is_direction_inverted = pd->isDirectionInverted;
+      if (pd->isDirectionInverted) {
+        event.flag |= WM_EVENT_SCROLL_INVERT;
+      }
 
       wm_event_add_trackpad(win, &event, pd->deltaX, -pd->deltaY);
       break;
@@ -4951,12 +4953,16 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
     case GHOST_kEventKeyDown:
     case GHOST_kEventKeyUp: {
       GHOST_TEventKeyData *kd = customdata;
+      /* Only copy these flags into the `event_state`. */
+      const eWM_EventFlag event_state_flag_mask = WM_EVENT_IS_REPEAT;
       bool keymodifier = 0;
       event.type = convert_key(kd->key);
       event.ascii = kd->ascii;
       /* Might be not NULL terminated. */
       memcpy(event.utf8_buf, kd->utf8_buf, sizeof(event.utf8_buf));
-      event.is_repeat = kd->is_repeat;
+      if (kd->is_repeat) {
+        event.flag |= WM_EVENT_IS_REPEAT;
+      }
       event.val = (type == GHOST_kEventKeyDown) ? KM_PRESS : KM_RELEASE;
 
       wm_eventemulation(&event, false);
@@ -4965,7 +4971,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       /* Copy to event state. */
       event_state->val = event.val;
       event_state->type = event.type;
-      event_state->is_repeat = event.is_repeat;
+      event_state->flag = (event.flag & event_state_flag_mask);
 
       /* Exclude arrow keys, esc, etc from text input. */
       if (type == GHOST_kEventKeyUp) {
@@ -5096,7 +5102,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       /* Double click test - only for press. */
       if (event.val == KM_PRESS) {
         /* Don't reset timer & location when holding the key generates repeat events. */
-        if (event.is_repeat == false) {
+        if ((event.flag & WM_EVENT_IS_REPEAT) == 0) {
           wm_event_prev_click_set(&event, event_state);
         }
       }
@@ -5217,7 +5223,7 @@ void wm_event_add_xrevent(wmWindow *win, wmXrActionData *actiondata, short val)
   wmEvent event = {
       .type = EVT_XR_ACTION,
       .val = val,
-      .is_repeat = false,
+      .flag = 0,
       .custom = EVT_DATA_XR,
       .customdata = actiondata,
       .customdata_free = true,

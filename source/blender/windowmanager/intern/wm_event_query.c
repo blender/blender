@@ -85,7 +85,7 @@ void WM_event_print(const wmEvent *event)
         (event->modifier & KM_ALT) != 0,
         (event->modifier & KM_OSKEY) != 0,
         event->keymodifier,
-        event->is_repeat,
+        (event->flag & WM_EVENT_IS_REPEAT) != 0,
         event->xy[0],
         event->xy[1],
         event->ascii,
@@ -440,7 +440,7 @@ int WM_event_absolute_delta_x(const struct wmEvent *event)
 {
   int dx = event->xy[0] - event->prev_xy[0];
 
-  if (!event->is_direction_inverted) {
+  if ((event->flag & WM_EVENT_SCROLL_INVERT) == 0) {
     dx = -dx;
   }
 
@@ -451,7 +451,7 @@ int WM_event_absolute_delta_y(const struct wmEvent *event)
 {
   int dy = event->xy[1] - event->prev_xy[1];
 
-  if (!event->is_direction_inverted) {
+  if ((event->flag & WM_EVENT_SCROLL_INVERT) == 0) {
     dy = -dy;
   }
 

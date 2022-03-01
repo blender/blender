@@ -509,7 +509,7 @@ static void gesture_tweak_modal(bContext *C, const wmEvent *event)
         tevent.val = val;
         tevent.modifier = gesture->event_modifier;
         tevent.keymodifier = gesture->event_keymodifier;
-        tevent.is_repeat = false;
+        tevent.flag = 0;
         /* mouse coords! */
 
         /* important we add immediately after this event, so future mouse releases

@@ -1213,7 +1213,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         wm_event_init_from_window(win, &event);
         event.type = MOUSEMOVE;
         copy_v2_v2_int(event.prev_xy, event.xy);
-        event.is_repeat = false;
+        event.flag = 0;
 
         wm_event_add(win, &event);
 
@@ -1344,7 +1344,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         /* activate region */
         event.type = MOUSEMOVE;
         copy_v2_v2_int(event.prev_xy, event.xy);
-        event.is_repeat = false;
+        event.flag = 0;
 
         /* No context change! C->wm->windrawable is drawable, or for area queues. */
         wm->winactive = win;
@@ -1485,7 +1485,7 @@ static bool wm_window_timer(const bContext *C)
         event.type = wt->event_type;
         event.val = KM_NOTHING;
         event.keymodifier = 0;
-        event.is_repeat = false;
+        event.flag = 0;
         event.custom = EVT_DATA_TIMER;
         event.customdata = wt;
         wm_event_add(win, &event);

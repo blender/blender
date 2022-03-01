@@ -383,7 +383,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     int event_xy[2];
 
     if (event->type == MOUSEPAN) {
-      if (event->is_direction_inverted) {
+      if (event->flag & WM_EVENT_SCROLL_INVERT) {
         event_xy[0] = 2 * event->xy[0] - event->prev_xy[0];
         event_xy[1] = 2 * event->xy[1] - event->prev_xy[1];
       }

@@ -8974,7 +8974,7 @@ void ui_but_activate_event(bContext *C, ARegion *region, uiBut *but)
   wm_event_init_from_window(win, &event);
   event.type = EVT_BUT_OPEN;
   event.val = KM_PRESS;
-  event.is_repeat = false;
+  event.flag = 0;
   event.customdata = but;
   event.customdata_free = false;
 
@@ -9538,7 +9538,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
     ui_pan_to_scroll(event, &type, &val);
 
     /* 'ui_pan_to_scroll' gives the absolute direction. */
-    if (event->is_direction_inverted) {
+    if (event->flag & WM_EVENT_SCROLL_INVERT) {
       scroll_dir = -1;
     }
 
@@ -10459,7 +10459,7 @@ static int ui_handle_menu_event(bContext *C,
 
             /* Only respond to explicit press to avoid the event that opened the menu
              * activating an item when the key is held. */
-            if (event->is_repeat) {
+            if (event->flag & WM_EVENT_IS_REPEAT) {
               break;
             }
 
@@ -10546,7 +10546,7 @@ static int ui_handle_menu_event(bContext *C,
               ((event->modifier & (KM_SHIFT | KM_CTRL | KM_OSKEY)) == 0) &&
               /* Only respond to explicit press to avoid the event that opened the menu
                * activating an item when the key is held. */
-              !event->is_repeat) {
+              (event->flag & WM_EVENT_IS_REPEAT) == 0) {
             if (ui_menu_pass_event_to_parent_if_nonactive(menu, but, level, retval)) {
               break;
             }

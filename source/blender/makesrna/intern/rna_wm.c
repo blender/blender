@@ -668,7 +668,7 @@ static int rna_Event_unicode_length(PointerRNA *ptr)
 static bool rna_Event_is_repeat_get(PointerRNA *ptr)
 {
   const wmEvent *event = ptr->data;
-  return event->is_repeat;
+  return (event->flag & WM_EVENT_IS_REPEAT) != 0;
 }
 
 static float rna_Event_pressure_get(PointerRNA *ptr)
