@@ -491,7 +491,9 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
 
     /* Step: Add the GPU textures to the shgroup. */
     instance_data->update_batches();
-    add_depth_shgroups(*instance_data, image, iuser);
+    if (!instance_data->flags.do_tile_drawing) {
+      add_depth_shgroups(*instance_data, image, iuser);
+    }
     add_shgroups(instance_data);
   }
 
@@ -507,8 +509,10 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
 
     DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
     GPU_framebuffer_bind(dfbl->default_fb);
+
     static float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    GPU_framebuffer_clear_color_depth(dfbl->default_fb, clear_col, 1.0);
+    float clear_depth = instance_data->flags.do_tile_drawing ? 0.75 : 1.0f;
+    GPU_framebuffer_clear_color_depth(dfbl->default_fb, clear_col, clear_depth);
 
     DRW_view_set_active(instance_data->view);
     DRW_draw_pass(instance_data->passes.depth_pass);

@@ -106,7 +106,7 @@ struct IMAGE_InstanceData {
 
   void update_image_usage(const ImageUser *image_user)
   {
-    ImageUsage usage(image, image_user);
+    ImageUsage usage(image, image_user, flags.do_tile_drawing);
     if (last_usage != usage) {
       last_usage = usage;
       reset_dirty_flag(true);
