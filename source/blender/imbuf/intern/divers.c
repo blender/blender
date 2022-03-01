@@ -784,9 +784,9 @@ void IMB_float_from_rect_ex(struct ImBuf *dst,
                  "Region to update should be clipped to the given buffers.");
   BLI_assert_msg(region_to_update->ymin >= 0,
                  "Region to update should be clipped to the given buffers.");
-  BLI_assert_msg(region_to_update->xmax < dst->x,
+  BLI_assert_msg(region_to_update->xmax <= dst->x,
                  "Region to update should be clipped to the given buffers.");
-  BLI_assert_msg(region_to_update->ymax < dst->y,
+  BLI_assert_msg(region_to_update->ymax <= dst->y,
                  "Region to update should be clipped to the given buffers.");
 
   float *rect_float = dst->rect_float;
