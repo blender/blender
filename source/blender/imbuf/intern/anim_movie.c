@@ -870,11 +870,12 @@ static void ffmpeg_decode_store_frame_pts(struct anim *anim)
 static int ffmpeg_read_video_frame(struct anim *anim, AVPacket *packet)
 {
   int ret = 0;
-  while (ret = av_read_frame(anim->pFormatCtx, packet) >= 0) {
+  while ((ret = av_read_frame(anim->pFormatCtx, packet)) >= 0) {
     if (packet->stream_index == anim->videoStream) {
       break;
     }
   }
+
   return ret;
 }
 
@@ -1174,7 +1175,7 @@ static int ffmpeg_generic_seek_workaround(struct anim *anim,
 static void ffmpeg_seek_recover_stream_position(struct anim *anim)
 {
   AVPacket *temp_packet = av_packet_alloc();
-  while (ffmpeg_read_video_frame(anim, temp_packet)) {
+  while (ffmpeg_read_video_frame(anim, temp_packet) >= 0) {
     int64_t current_pts = timestamp_from_pts_or_dts(anim->cur_packet->pts, anim->cur_packet->dts);
     int64_t temp_pts = timestamp_from_pts_or_dts(temp_packet->pts, temp_packet->dts);
     av_packet_unref(temp_packet);
