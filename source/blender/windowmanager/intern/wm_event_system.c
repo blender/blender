@@ -3155,8 +3155,14 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
   }
 
   if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-    /* Test for CLICK_DRAG events. */
-    if (wm_action_not_handled(action)) {
+    /* Test for #WM_CLICK_DRAG events. */
+
+    /* NOTE(@campbellbarton): Needed so drag can be used for editors that support both click
+     * selection and passing through the drag action to box select. See #WM_generic_select_modal.
+     * Unlike click, accept `action` when break isn't set.
+     * Operators can return `OPERATOR_FINISHED | OPERATOR_PASS_THROUGH` which results
+     * in `action` setting #WM_HANDLER_HANDLED, but not #WM_HANDLER_BREAK. */
+    if ((action & WM_HANDLER_BREAK) == 0 || wm_action_not_handled(action)) {
       if (win->event_queue_check_drag) {
         if (WM_event_drag_test(event, event->prev_click_xy)) {
           win->event_queue_check_drag_handled = true;
@@ -3184,7 +3190,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
           copy_v2_v2_int(event->xy, prev_xy);
 
           win->event_queue_check_click = false;
-          if (!wm_action_not_handled(action)) {
+          if (!((action & WM_HANDLER_BREAK) == 0 || wm_action_not_handled(action))) {
             /* Only disable when handled as other handlers may use this drag event. */
             win->event_queue_check_drag = false;
           }
