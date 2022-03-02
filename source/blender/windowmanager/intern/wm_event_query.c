@@ -183,34 +183,37 @@ bool WM_event_type_mask_test(const int event_type, const enum eEventType_Mask ma
 /** \name Event Motion Queries
  * \{ */
 
-bool WM_event_is_modal_tweak_exit(const wmEvent *event, int tweak_event)
+bool WM_event_is_modal_drag_exit(const wmEvent *event,
+                                 const short init_event_type,
+                                 const short init_event_val)
 {
-  /* if the release-confirm userpref setting is enabled,
-   * tweak events can be canceled when mouse is released
-   */
+  /* If the release-confirm preference setting is enabled,
+   * drag events can be canceled when mouse is released. */
   if (U.flag & USER_RELEASECONFIRM) {
     /* option on, so can exit with km-release */
     if (event->val == KM_RELEASE) {
-      switch (tweak_event) {
+      switch (init_event_type) {
         case EVT_TWEAK_L:
         case EVT_TWEAK_M:
         case EVT_TWEAK_R:
           return 1;
       }
+      if ((init_event_val == KM_CLICK_DRAG) && (event->type == init_event_type)) {
+        return 1;
+      }
     }
     else {
-      /* if the initial event wasn't a tweak event then
-       * ignore USER_RELEASECONFIRM setting: see T26756. */
-      if (ELEM(tweak_event, EVT_TWEAK_L, EVT_TWEAK_M, EVT_TWEAK_R) == 0) {
+      /* If the initial event wasn't a drag event then
+       * ignore #USER_RELEASECONFIRM setting: see T26756. */
+      if ((ELEM(init_event_type, EVT_TWEAK_L, EVT_TWEAK_M, EVT_TWEAK_R) ||
+           init_event_val == KM_CLICK_DRAG) == 0) {
         return 1;
       }
     }
   }
   else {
-    /* this is fine as long as not doing km-release, otherwise
-     * some items (i.e. markers) being tweaked may end up getting
-     * dropped all over
-     */
+    /* This is fine as long as not doing km-release, otherwise some items (i.e. markers)
+     * being tweaked may end up getting dropped all over. */
     if (event->val != KM_RELEASE) {
       return 1;
     }
