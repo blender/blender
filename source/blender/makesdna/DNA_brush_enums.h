@@ -459,6 +459,7 @@ typedef enum eBrushUVSculptTool {
 typedef enum eBrushCurvesSculptTool {
   CURVES_SCULPT_TOOL_TEST1 = 0,
   CURVES_SCULPT_TOOL_TEST2 = 1,
+  CURVES_SCULPT_TOOL_TEST3 = 2,
 } eBrushCurvesSculptTool;
 
 /** When #BRUSH_ACCUMULATE is used */

@@ -246,6 +246,7 @@ const EnumPropertyItem rna_enum_brush_gpencil_weight_types_items[] = {
 const EnumPropertyItem rna_enum_brush_curves_sculpt_tool_items[] = {
     {CURVES_SCULPT_TOOL_TEST1, "TEST1", ICON_NONE, "Test 1", ""},
     {CURVES_SCULPT_TOOL_TEST2, "TEST2", ICON_NONE, "Test 2", ""},
+    {CURVES_SCULPT_TOOL_TEST3, "TEST3", ICON_NONE, "Test 3", ""},
     {0, NULL, 0, NULL, NULL},
 };
 

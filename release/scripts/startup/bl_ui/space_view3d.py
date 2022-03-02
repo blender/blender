@@ -473,7 +473,8 @@ class _draw_tool_settings_context_mode:
         if (tool is None) or (not tool.has_datablock):
             return False
 
-        paint = context.tool_settings.curves_sculpt
+        tool_settings = context.tool_settings
+        paint = tool_settings.curves_sculpt
         layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
 
         brush = paint.brush
@@ -499,6 +500,10 @@ class _draw_tool_settings_context_mode:
             unified_name="use_unified_strength",
             header=True
         )
+
+        if brush.curves_sculpt_tool == "TEST3":
+            layout.prop(tool_settings.curves_sculpt, "distance")
+
 
 
 class VIEW3D_HT_header(Header):

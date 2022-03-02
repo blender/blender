@@ -994,6 +994,9 @@ typedef struct Sculpt {
 
 typedef struct CurvesSculpt {
   Paint paint;
+  /** Minimum distance between newly added curves on a surface. */
+  float distance;
+  char _pad1[4];
 } CurvesSculpt;
 
 typedef struct UvSculpt {
