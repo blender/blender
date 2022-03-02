@@ -249,20 +249,6 @@ def _init_properties_from_data(base_props, base_value):
 def keymap_init_from_data(km, km_items, is_modal=False):
     new_fn = getattr(km.keymap_items, "new_modal" if is_modal else "new")
     for (kmi_idname, kmi_args, kmi_data) in km_items:
-
-        # TODO(@campbellbarton): Temporary workaround keep until our
-        # key-maps have been updated to remove tweak events.
-        if ty_new := {
-                'EVT_TWEAK_L': 'LEFTMOUSE',
-                'EVT_TWEAK_M': 'MIDDLEMOUSE',
-                'EVT_TWEAK_R': 'RIGHTMOUSE',
-        }.get(kmi_args["type"]):
-            kmi_args["type"] = ty_new
-            if (value := kmi_args["value"]) != 'ANY':
-                kmi_args["direction"] = value
-            kmi_args["value"] = 'CLICK_DRAG'
-        # End workaround.
-
         kmi = new_fn(kmi_idname, **kmi_args)
         if kmi_data is not None:
             if not kmi_data.get("active", True):

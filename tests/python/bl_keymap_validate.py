@@ -63,6 +63,12 @@ PRESET_PREFS = {
     ),
 }
 
+# Don't report duplicates for these presets.
+ALLOW_DUPLICATES = {
+    # This key-map manipulates the default key-map, making it difficult to avoid duplicates entirely.
+    "Industry_Compatible"
+}
+
 # -----------------------------------------------------------------------------
 # Generic Utilities
 
@@ -271,7 +277,6 @@ def main() -> None:
     presets = keyconfig_preset_scan()
     for filepath in presets:
         name_only = os.path.splitext(os.path.basename(filepath))[0]
-
         for config in PRESET_PREFS.get(name_only, ((),)):
             name_only_with_config = name_only + keyconfig_config_as_filename_component(config)
             print("KeyMap Validate:", name_only_with_config, end=" ... ")
@@ -307,7 +312,10 @@ def main() -> None:
 
             # Perform an additional sanity check:
             # That there are no identical key-map items.
-            error_text_duplicates = keyconfig_report_duplicates(data_orig)
+            if name_only not in ALLOW_DUPLICATES:
+                error_text_duplicates = keyconfig_report_duplicates(data_orig)
+            else:
+                error_text_duplicates = ""
 
             if error_text_consistency or error_text_duplicates:
                 print("FAILED!")
