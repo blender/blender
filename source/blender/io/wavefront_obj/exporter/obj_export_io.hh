@@ -310,7 +310,7 @@ class FormatHandler : NonCopyable, NonMovable {
   /**
    * Example invocation: `writer->write<eMTLSyntaxElement::newmtl>("foo")`.
    *
-   * \param key Must match what the instance's filetype expects; i.e., `eMTLSyntaxElement` for
+   * \param key: Must match what the instance's filetype expects; i.e., `eMTLSyntaxElement` for
    * `eFileType::MTL`.
    */
   template<typename FileTypeTraits<filetype>::SyntaxType key, typename... T>

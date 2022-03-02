@@ -113,7 +113,7 @@ class GHOST_SystemCocoa : public GHOST_System {
    * Get the Window under the cursor.
    * \param x: The x-coordinate of the cursor.
    * \param y: The y-coordinate of the cursor.
-   * @return The window under the cursor or nullptr if none.
+   * \return The window under the cursor or nullptr if none.
    */
   GHOST_IWindow *getWindowUnderCursor(int32_t x, int32_t y);
 

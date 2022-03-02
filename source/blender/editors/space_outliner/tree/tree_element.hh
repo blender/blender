@@ -89,8 +89,8 @@ void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner 
 /**
  * Get actual warning data of a tree element, if any.
  *
- * \param r_icon The icon to display as warning.
- * \param r_message The message to display as warning.
+ * \param r_icon: The icon to display as warning.
+ * \param r_message: The message to display as warning.
  * \return true if there is a warning, false otherwise.
  */
 bool tree_element_warnings_get(struct TreeElement *te, int *r_icon, const char **r_message);
