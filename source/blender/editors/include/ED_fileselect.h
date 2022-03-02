@@ -136,7 +136,7 @@ bool ED_fileselect_layout_isect_rect(const FileLayout *layout,
                                      const struct View2D *v2d,
                                      const struct rcti *rect,
                                      struct rcti *r_dst);
-void ED_fileselect_layout_tilepos(FileLayout *layout, int tile, int *x, int *y);
+void ED_fileselect_layout_tilepos(const FileLayout *layout, int tile, int *x, int *y);
 
 void ED_operatormacros_file(void);
 

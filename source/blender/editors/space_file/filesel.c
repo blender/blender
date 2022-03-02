@@ -812,7 +812,7 @@ bool ED_fileselect_layout_isect_rect(const FileLayout *layout,
   return BLI_rcti_isect(&maskrect, rect, r_dst);
 }
 
-void ED_fileselect_layout_tilepos(FileLayout *layout, int tile, int *x, int *y)
+void ED_fileselect_layout_tilepos(const FileLayout *layout, int tile, int *x, int *y)
 {
   if (layout->flag == FILE_LAYOUT_HOR) {
     *x = layout->tile_border_x +
