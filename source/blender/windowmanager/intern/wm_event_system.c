@@ -3185,8 +3185,6 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
         CLOG_INFO(WM_LOG_HANDLERS, 1, "handling PRESS_DRAG");
 
-        WM_event_print(event);
-
         action |= wm_handlers_do_intern(C, win, event, handlers);
 
         event->direction = 0;
