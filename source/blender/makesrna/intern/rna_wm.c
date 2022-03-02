@@ -365,14 +365,14 @@ const EnumPropertyItem rna_enum_event_value_items[] = {
 
 const EnumPropertyItem rna_enum_event_direction_items[] = {
     {KM_ANY, "ANY", 0, "Any", ""},
-    {EVT_GESTURE_N, "NORTH", 0, "North", ""},
-    {EVT_GESTURE_NE, "NORTH_EAST", 0, "North-East", ""},
-    {EVT_GESTURE_E, "EAST", 0, "East", ""},
-    {EVT_GESTURE_SE, "SOUTH_EAST", 0, "South-East", ""},
-    {EVT_GESTURE_S, "SOUTH", 0, "South", ""},
-    {EVT_GESTURE_SW, "SOUTH_WEST", 0, "South-West", ""},
-    {EVT_GESTURE_W, "WEST", 0, "West", ""},
-    {EVT_GESTURE_NW, "NORTH_WEST", 0, "North-West", ""},
+    {KM_DIRECTION_N, "NORTH", 0, "North", ""},
+    {KM_DIRECTION_NE, "NORTH_EAST", 0, "North-East", ""},
+    {KM_DIRECTION_E, "EAST", 0, "East", ""},
+    {KM_DIRECTION_SE, "SOUTH_EAST", 0, "South-East", ""},
+    {KM_DIRECTION_S, "SOUTH", 0, "South", ""},
+    {KM_DIRECTION_SW, "SOUTH_WEST", 0, "South-West", ""},
+    {KM_DIRECTION_W, "WEST", 0, "West", ""},
+    {KM_DIRECTION_NW, "NORTH_WEST", 0, "North-West", ""},
     {0, NULL, 0, NULL, NULL},
 };
 

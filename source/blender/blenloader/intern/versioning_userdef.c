@@ -411,7 +411,7 @@ static bool keymap_item_update_tweak_event(wmKeyMapItem *kmi, void *UNUSED(user_
       return false;
   }
 
-  if (kmi->val >= EVT_GESTURE_N && kmi->val <= EVT_GESTURE_NW) {
+  if (kmi->val >= KM_DIRECTION_N && kmi->val <= KM_DIRECTION_NW) {
     kmi->direction = kmi->val;
   }
   else {

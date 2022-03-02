@@ -232,28 +232,28 @@ int WM_event_drag_direction(const wmEvent *event)
   };
 
   int theta = round_fl_to_int(4.0f * atan2f((float)delta[1], (float)delta[0]) / (float)M_PI);
-  int val = EVT_GESTURE_W;
+  int val = KM_DIRECTION_W;
 
   if (theta == 0) {
-    val = EVT_GESTURE_E;
+    val = KM_DIRECTION_E;
   }
   else if (theta == 1) {
-    val = EVT_GESTURE_NE;
+    val = KM_DIRECTION_NE;
   }
   else if (theta == 2) {
-    val = EVT_GESTURE_N;
+    val = KM_DIRECTION_N;
   }
   else if (theta == 3) {
-    val = EVT_GESTURE_NW;
+    val = KM_DIRECTION_NW;
   }
   else if (theta == -1) {
-    val = EVT_GESTURE_SE;
+    val = KM_DIRECTION_SE;
   }
   else if (theta == -2) {
-    val = EVT_GESTURE_S;
+    val = KM_DIRECTION_S;
   }
   else if (theta == -3) {
-    val = EVT_GESTURE_SW;
+    val = KM_DIRECTION_SW;
   }
 
 #if 0

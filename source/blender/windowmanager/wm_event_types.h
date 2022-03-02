@@ -429,18 +429,6 @@ bool WM_event_type_mask_test(int event_type, enum eEventType_Mask mask);
  * \{ */
 
 /* Gestures */
-/* NOTE: these values are saved in keymap files, do not change them but just add new ones */
-enum {
-  /* Value of tweaks and line gestures. #KM_ANY (-1) works for this case too. */
-  EVT_GESTURE_N = 1,
-  EVT_GESTURE_NE = 2,
-  EVT_GESTURE_E = 3,
-  EVT_GESTURE_SE = 4,
-  EVT_GESTURE_S = 5,
-  EVT_GESTURE_SW = 6,
-  EVT_GESTURE_W = 7,
-  EVT_GESTURE_NW = 8,
-};
 
 /* File select */
 enum {

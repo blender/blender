@@ -225,35 +225,68 @@ typedef enum eOperatorPropTags {
 } eOperatorPropTags;
 #define OP_PROP_TAG_ADVANCED ((eOperatorPropTags)OP_PROP_TAG_ADVANCED)
 
-/* ************** wmKeyMap ************************ */
+/* -------------------------------------------------------------------- */
+/** \name #wmKeyMapItem
+ * \{ */
 
-/* modifier */
-#define KM_SHIFT 1
-#define KM_CTRL 2
-#define KM_ALT 4
-#define KM_OSKEY 8
+/**
+ * Modifier keys, not actually used for #wmKeyMapItem (never stored in DNA), used for:
+ * - #wmEvent.modifier without the `KM_*_ANY` flags.
+ * - #WM_keymap_add_item & #WM_modalkeymap_add_item
+ */
+enum {
+  KM_SHIFT = (1 << 0),
+  KM_CTRL = (1 << 1),
+  KM_ALT = (1 << 2),
+  KM_OSKEY = (1 << 3),
 
-/* Used for key-map item creation function arguments (never stored in DNA). */
-#define KM_SHIFT_ANY 16
-#define KM_CTRL_ANY 32
-#define KM_ALT_ANY 64
-#define KM_OSKEY_ANY 128
+  /* Used for key-map item creation function arguments. */
+  KM_SHIFT_ANY = (1 << 4),
+  KM_CTRL_ANY = (1 << 5),
+  KM_ALT_ANY = (1 << 6),
+  KM_OSKEY_ANY = (1 << 7),
+};
 
-/* KM_MOD_ flags for `wmKeyMapItem` and `wmEvent.alt/shift/oskey/ctrl`. */
-/* note that KM_ANY and KM_NOTHING are used with these defines too */
+/* `KM_MOD_*` flags for #wmKeyMapItem and `wmEvent.alt/shift/oskey/ctrl`. */
+/* Note that #KM_ANY and #KM_NOTHING are used with these defines too. */
 #define KM_MOD_HELD 1
 
-/* type: defined in wm_event_types.c */
-#define KM_TEXTINPUT -2
+/**
+ * #wmKeyMapItem.type
+ * NOTE: most types are defined in `wm_event_types.h`.
+ */
+enum {
+  KM_TEXTINPUT = -2,
+};
 
-/* val */
-#define KM_ANY -1
-#define KM_NOTHING 0
-#define KM_PRESS 1
-#define KM_RELEASE 2
-#define KM_CLICK 3
-#define KM_DBL_CLICK 4
-#define KM_CLICK_DRAG 5
+/** #wmKeyMapItem.val */
+enum {
+  KM_ANY = -1,
+  KM_NOTHING = 0,
+  KM_PRESS = 1,
+  KM_RELEASE = 2,
+  KM_CLICK = 3,
+  KM_DBL_CLICK = 4,
+  KM_CLICK_DRAG = 5,
+};
+
+/**
+ * #wmKeyMapItem.direction
+ *
+ * Value of tweaks and line gestures. #KM_ANY (-1) works for this case too.
+ */
+enum {
+  KM_DIRECTION_N = 1,
+  KM_DIRECTION_NE = 2,
+  KM_DIRECTION_E = 3,
+  KM_DIRECTION_SE = 4,
+  KM_DIRECTION_S = 5,
+  KM_DIRECTION_SW = 6,
+  KM_DIRECTION_W = 7,
+  KM_DIRECTION_NW = 8,
+};
+
+/** \} */
 
 /* ************** UI Handler ***************** */
 
