@@ -162,6 +162,13 @@ static bool gesture_box_apply(bContext *C, wmOperator *op)
 
 int WM_gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  /* FIXME(@campbellbarton): This is a temporary workaround T96120. As events
+   * are handled while dragging we should resolve this in a more general way. */
+  wmWindowManager *wm = CTX_wm_manager(C);
+  if (wm->drags.first) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
   wmWindow *win = CTX_wm_window(C);
   const ARegion *region = CTX_wm_region(C);
   const bool wait_for_input = !WM_event_is_mouse_drag_or_press(event) &&
