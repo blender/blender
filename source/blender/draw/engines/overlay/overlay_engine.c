@@ -303,6 +303,11 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   const bool renderable = DRW_object_is_renderable(ob);
   const bool in_pose_mode = ob->type == OB_ARMATURE && OVERLAY_armature_is_pose_mode(ob, draw_ctx);
   const bool in_edit_mode = overlay_object_is_edit_mode(pd, ob);
+  const bool is_instance = (ob->base_flag & BASE_FROM_DUPLI);
+  const bool instance_parent_in_edit_mode = is_instance ?
+                                                overlay_object_is_edit_mode(
+                                                    pd, DRW_object_get_dupli_parent(ob)) :
+                                                false;
   const bool in_particle_edit_mode = (ob->mode == OB_MODE_PARTICLE_EDIT) &&
                                      (pd->ctx_mode == CTX_MODE_PARTICLE);
   const bool in_paint_mode = (ob == draw_ctx->obact) &&
@@ -329,6 +334,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   const bool draw_wires = draw_surface && has_surface &&
                           (pd->wireframe_mode || !pd->hide_overlays);
   const bool draw_outlines = !in_edit_mode && !in_paint_mode && renderable && has_surface &&
+                             !instance_parent_in_edit_mode &&
                              (pd->v3d_flag & V3D_SELECT_OUTLINE) &&
                              (ob->base_flag & BASE_SELECTED);
   const bool draw_bone_selection = (ob->type == OB_MESH) && pd->armature.do_pose_fade_geom &&
