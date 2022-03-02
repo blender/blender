@@ -28,6 +28,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_context.h"
+#include "BKE_curve.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
 #include "BKE_idtype.h"
@@ -2655,9 +2656,23 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         case ID_ME:
           data.icon = ICON_OUTLINER_DATA_MESH;
           break;
-        case ID_CU_LEGACY:
-          data.icon = ICON_OUTLINER_DATA_CURVE;
+        case ID_CU_LEGACY: {
+          const Curve *cu = (Curve *)tselem->id;
+          const short obtype = BKE_curve_type_get(cu);
+
+          switch (obtype) {
+            case OB_FONT:
+              data.icon = ICON_OUTLINER_DATA_FONT;
+              break;
+            case OB_SURF:
+              data.icon = ICON_OUTLINER_DATA_SURFACE;
+              break;
+            default:
+              data.icon = ICON_OUTLINER_DATA_CURVE;
+              break;
+          }
           break;
+        }
         case ID_MB:
           data.icon = ICON_OUTLINER_DATA_META;
           break;
