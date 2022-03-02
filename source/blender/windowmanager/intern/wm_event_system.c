@@ -3197,9 +3197,6 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         win->event_queue_check_click = false;
       }
     }
-    else {
-      win->event_queue_check_drag = false;
-    }
   }
   else if (ISMOUSE_BUTTON(event->type) || ISKEYBOARD(event->type)) {
     /* All events that don't set wmEvent.prev_type must be ignored. */
