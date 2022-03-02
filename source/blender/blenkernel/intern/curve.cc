@@ -4843,7 +4843,7 @@ bool BKE_nurb_type_convert(Nurb *nu,
       while (a--) {
         if ((type == CU_POLY && bezt->h1 == HD_VECT && bezt->h2 == HD_VECT) ||
             (use_handles == false)) {
-          /* vector handle becomes 1 poly vertice */
+          /* vector handle becomes one poly vertex */
           copy_v3_v3(bp->vec, bezt->vec[1]);
           bp->vec[3] = 1.0;
           bp->f1 = bezt->f2;

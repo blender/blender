@@ -3325,7 +3325,7 @@ static void gpencil_brush_angle_segment(tGPsdata *p, tGPspoint *pt_prev, tGPspoi
   CLAMP(pt->pressure, GPENCIL_ALPHA_OPACITY_THRESH, 1.0f);
 }
 
-/* Add arc points between two mouse events using the previous segment to determine the vertice of
+/* Add arc points between two mouse events using the previous segment to determine the vertex of
  * the arc.
  *        /+ CTL
  *       / |
@@ -3335,7 +3335,7 @@ static void gpencil_brush_angle_segment(tGPsdata *p, tGPspoint *pt_prev, tGPspoi
  *   /
  *  + PtA - 1
  * /
- * CTL is the vertice of the triangle created between PtA and PtB */
+ * CTL is the vertex of the triangle created between PtA and PtB */
 static void gpencil_add_arc_points(tGPsdata *p, const float mval[2], int segments)
 {
   bGPdata *gpd = p->gpd;

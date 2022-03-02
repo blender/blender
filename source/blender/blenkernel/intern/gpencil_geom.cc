@@ -2340,7 +2340,7 @@ static int gpencil_walk_edge(GHash *v_table,
       gped_init = &gp_edges[edge];
       idx++;
 
-      /* Avoid to follow already visited vertice. */
+      /* Avoid following already visited vertices. */
       if (reverse) {
         if (BLI_ghash_haskey(v_table, POINTER_FROM_INT(gped->v1))) {
           edge = -1;

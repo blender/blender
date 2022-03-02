@@ -226,7 +226,7 @@ typedef struct ParticleCollision {
 } ParticleCollision;
 
 typedef struct ParticleDrawData {
-  float *vdata, *vd;   /* vertice data */
+  float *vdata, *vd;   /* vertex data */
   float *ndata, *nd;   /* normal data */
   float *cdata, *cd;   /* color data */
   float *vedata, *ved; /* velocity data */
