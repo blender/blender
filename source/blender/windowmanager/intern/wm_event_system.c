@@ -3160,41 +3160,46 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
   if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
     /* Test for #WM_CLICK_DRAG events. */
 
-    /* NOTE(@campbellbarton): Ignore `action` so drag can be used for editors that use both click
+    /* NOTE(@campbellbarton): Needed so drag can be used for editors that support both click
      * selection and passing through the drag action to box select. See #WM_generic_select_modal.
-     * In the case of marker select-drag the combinations of (pass-through / finished / modal)
-     * can accumulate to have flags set that they can't be properly interpreted here.
-     * Instead `win->event_queue_check_drag` is cleared in `wm_event_do_handlers`. */
-    if (win->event_queue_check_drag) {
-      if (WM_event_drag_test(event, event->prev_click_xy)) {
-        win->event_queue_check_drag_handled = true;
-        const int direction = WM_event_drag_direction(event);
+     * Unlike click, accept `action` when break isn't set.
+     * Operators can return `OPERATOR_FINISHED | OPERATOR_PASS_THROUGH` which results
+     * in `action` setting #WM_HANDLER_HANDLED, but not #WM_HANDLER_BREAK. */
+    if ((action & WM_HANDLER_BREAK) == 0 || wm_action_not_handled(action)) {
+      if (win->event_queue_check_drag) {
+        if (WM_event_drag_test(event, event->prev_click_xy)) {
+          win->event_queue_check_drag_handled = true;
+          const int direction = WM_event_drag_direction(event);
 
-        const int prev_xy[2] = {UNPACK2(event->xy)};
-        const short prev_val = event->val;
-        const short prev_type = event->type;
-        const uint8_t prev_modifier = event->modifier;
-        const short prev_keymodifier = event->keymodifier;
+          const int prev_xy[2] = {UNPACK2(event->xy)};
+          const short prev_val = event->val;
+          const short prev_type = event->type;
+          const uint8_t prev_modifier = event->modifier;
+          const short prev_keymodifier = event->keymodifier;
 
-        copy_v2_v2_int(event->xy, event->prev_click_xy);
-        event->val = KM_CLICK_DRAG;
-        event->type = event->prev_click_type;
-        event->modifier = event->prev_click_modifier;
-        event->keymodifier = event->prev_click_keymodifier;
-        event->direction = direction;
+          copy_v2_v2_int(event->xy, event->prev_click_xy);
+          event->val = KM_CLICK_DRAG;
+          event->type = event->prev_click_type;
+          event->modifier = event->prev_click_modifier;
+          event->keymodifier = event->prev_click_keymodifier;
+          event->direction = direction;
 
-        CLOG_INFO(WM_LOG_HANDLERS, 1, "handling PRESS_DRAG");
+          CLOG_INFO(WM_LOG_HANDLERS, 1, "handling PRESS_DRAG");
 
-        action |= wm_handlers_do_intern(C, win, event, handlers);
+          action |= wm_handlers_do_intern(C, win, event, handlers);
 
-        event->direction = 0;
-        event->keymodifier = prev_keymodifier;
-        event->modifier = prev_modifier;
-        event->val = prev_val;
-        event->type = prev_type;
-        copy_v2_v2_int(event->xy, prev_xy);
+          event->direction = 0;
+          event->keymodifier = prev_keymodifier;
+          event->modifier = prev_modifier;
+          event->val = prev_val;
+          event->type = prev_type;
+          copy_v2_v2_int(event->xy, prev_xy);
 
-        win->event_queue_check_click = false;
+          win->event_queue_check_click = false;
+        }
+      }
+      else {
+        win->event_queue_check_drag = false;
       }
     }
   }
