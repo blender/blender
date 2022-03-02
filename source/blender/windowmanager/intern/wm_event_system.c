@@ -3178,7 +3178,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
         copy_v2_v2_int(event->xy, event->prev_click_xy);
         event->val = KM_CLICK_DRAG;
-        event->type = event->prev_type;
+        event->type = event->prev_click_type;
         event->modifier = event->prev_click_modifier;
         event->keymodifier = event->prev_click_keymodifier;
         event->direction = direction;
@@ -3215,7 +3215,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
       }
       else if (event->val == KM_RELEASE) {
         if (win->event_queue_check_drag) {
-          if ((event->prev_type != event->type) &&
+          if ((event->prev_click_type != event->type) &&
               (ISKEYMODIFIER(event->type) || (event->type == event->prev_click_keymodifier))) {
             /* Support releasing modifier keys without canceling the drag event, see T89989.
              * NOTE: this logic is replicated for tweak gestures. */
@@ -3226,7 +3226,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         }
       }
 
-      if (event->prev_type == event->type) {
+      if (event->prev_click_type == event->type) {
 
         if (event->val == KM_RELEASE) {
           if (event->prev_val == KM_PRESS) {
