@@ -1952,6 +1952,8 @@ void nodeRemoveAllSockets(bNodeTree *ntree, bNode *node)
     }
   }
 
+  BLI_freelistN(&node->internal_links);
+
   LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->inputs) {
     node_socket_free(sock, true);
     MEM_freeN(sock);
@@ -2436,6 +2438,11 @@ void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
 bool nodeLinkIsHidden(const bNodeLink *link)
 {
   return nodeSocketIsHidden(link->fromsock) || nodeSocketIsHidden(link->tosock);
+}
+
+bool nodeLinkIsSelected(const bNodeLink *link)
+{
+  return (link->fromnode->flag & NODE_SELECT) || (link->tonode->flag & NODE_SELECT);
 }
 
 /* Adjust the indices of links connected to the given multi input socket after deleting the link at

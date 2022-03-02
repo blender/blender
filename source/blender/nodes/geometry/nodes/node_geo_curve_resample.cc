@@ -158,7 +158,7 @@ static SplinePtr resample_spline_evaluated(const Spline &src)
 static std::unique_ptr<CurveEval> resample_curve(const CurveComponent *component,
                                                  const SampleModeParam &mode_param)
 {
-  const CurveEval *input_curve = component->get_for_read();
+  const std::unique_ptr<CurveEval> input_curve = curves_to_curve_eval(*component->get_for_read());
   GeometryComponentFieldContext field_context{*component, ATTR_DOMAIN_CURVE};
   const int domain_size = component->attribute_domain_size(ATTR_DOMAIN_CURVE);
 
@@ -235,14 +235,14 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveComponent *component
 static void geometry_set_curve_resample(GeometrySet &geometry_set,
                                         const SampleModeParam &mode_param)
 {
-  if (!geometry_set.has_curve()) {
+  if (!geometry_set.has_curves()) {
     return;
   }
 
   std::unique_ptr<CurveEval> output_curve = resample_curve(
       geometry_set.get_component_for_read<CurveComponent>(), mode_param);
 
-  geometry_set.replace_curve(output_curve.release());
+  geometry_set.replace_curve(curve_eval_to_curves(*output_curve));
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

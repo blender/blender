@@ -819,6 +819,7 @@ static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
   EXTRACT_ADD_REQUESTED(vbo, edituv_data);
   /* Make sure UVs are computed before edituv stuffs. */
   EXTRACT_ADD_REQUESTED(vbo, uv);
+  EXTRACT_ADD_REQUESTED(vbo, tan);
   EXTRACT_ADD_REQUESTED(vbo, edituv_stretch_area);
   EXTRACT_ADD_REQUESTED(vbo, edituv_stretch_angle);
   EXTRACT_ADD_REQUESTED(ibo, lines_adjacency);
@@ -832,6 +833,7 @@ static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
     return;
   }
 
+  mesh_render_data_update_looptris(mr, MR_ITER_LOOPTRI, MR_DATA_LOOPTRI);
   mesh_render_data_update_loose_geom(mr, mbc, MR_ITER_LEDGE | MR_ITER_LVERT, MR_DATA_LOOSE_GEOM);
 
   void *data_stack = MEM_mallocN(extractors.data_size_total(), __func__);

@@ -255,7 +255,7 @@ struct StageInterfaceInfo {
 };
 
 /**
- * @brief Describe inputs & outputs, stage interfaces, resources and sources of a shader.
+ * \brief Describe inputs & outputs, stage interfaces, resources and sources of a shader.
  *        If all data is correctly provided, this is all that is needed to create and compile
  *        a GPUShader.
  *

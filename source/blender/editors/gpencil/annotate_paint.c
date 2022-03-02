@@ -326,8 +326,7 @@ static void annotation_stroke_convertcoords(tGPsdata *p,
     }
     else {
       float mval_prj[2];
-      float rvec[3], dvec[3];
-      float zfac;
+      float rvec[3];
 
       /* Current method just converts each point in screen-coordinates to
        * 3D-coordinates using the 3D-cursor as reference. In general, this
@@ -339,13 +338,14 @@ static void annotation_stroke_convertcoords(tGPsdata *p,
        */
 
       annotation_get_3d_reference(p, rvec);
-      zfac = ED_view3d_calc_zfac(p->region->regiondata, rvec, NULL);
+      const float zfac = ED_view3d_calc_zfac(p->region->regiondata, rvec);
 
       if (ED_view3d_project_float_global(p->region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
           V3D_PROJ_RET_OK) {
-        float mval_f[2];
-        sub_v2_v2v2(mval_f, mval_prj, mval);
-        ED_view3d_win_to_delta(p->region, mval_f, dvec, zfac);
+        float dvec[3];
+        float xy_delta[2];
+        sub_v2_v2v2(xy_delta, mval_prj, mval);
+        ED_view3d_win_to_delta(p->region, xy_delta, zfac, dvec);
         sub_v3_v3v3(out, rvec, dvec);
       }
       else {

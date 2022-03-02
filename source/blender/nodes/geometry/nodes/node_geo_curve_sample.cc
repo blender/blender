@@ -122,12 +122,13 @@ class SampleCurveFunction : public fn::MultiFunction {
       }
     };
 
-    if (!geometry_set_.has_curve()) {
+    if (!geometry_set_.has_curves()) {
       return return_default();
     }
 
     const CurveComponent *curve_component = geometry_set_.get_component_for_read<CurveComponent>();
-    const CurveEval *curve = curve_component->get_for_read();
+    const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
+        *curve_component->get_for_read());
     Span<SplinePtr> splines = curve->splines();
     if (splines.is_empty()) {
       return return_default();
@@ -234,11 +235,12 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const CurveEval *curve = component->get_for_read();
-  if (curve == nullptr) {
+  if (!component->has_curves()) {
     params.set_default_remaining_outputs();
     return;
   }
+
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*component->get_for_read());
 
   if (curve->splines().is_empty()) {
     params.set_default_remaining_outputs();

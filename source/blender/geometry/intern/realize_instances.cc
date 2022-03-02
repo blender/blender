@@ -13,6 +13,7 @@
 #include "BLI_task.hh"
 
 #include "BKE_collection.h"
+#include "BKE_curves.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -118,7 +119,7 @@ struct RealizeMeshTask {
 };
 
 struct RealizeCurveInfo {
-  const CurveEval *curve = nullptr;
+  const Curves *curves;
   /**
    * Matches the order in #AllCurvesInfo.attributes. For point attributes, the `std::optional`
    * will be empty.
@@ -163,7 +164,7 @@ struct AllCurvesInfo {
   /** Ordering of all attributes that are propagated to the output curve generically. */
   OrderedAttributes attributes;
   /** Ordering of the original curves that are joined. */
-  VectorSet<const CurveEval *> order;
+  VectorSet<const Curves *> order;
   /** Preprocessed data about every original curve. This is ordered by #order. */
   Array<RealizeCurveInfo> realize_info;
   bool create_id_attribute = false;
@@ -443,16 +444,16 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
       }
       case GEO_COMPONENT_TYPE_CURVE: {
         const CurveComponent &curve_component = *static_cast<const CurveComponent *>(component);
-        const CurveEval *curve = curve_component.get_for_read();
-        if (curve != nullptr && !curve->splines().is_empty()) {
-          const int curve_index = gather_info.curves.order.index_of(curve);
+        const Curves *curves = curve_component.get_for_read();
+        if (curves != nullptr && curves->geometry.curve_size > 0) {
+          const int curve_index = gather_info.curves.order.index_of(curves);
           const RealizeCurveInfo &curve_info = gather_info.curves.realize_info[curve_index];
           gather_info.r_tasks.curve_tasks.append({gather_info.r_offsets.spline_offset,
                                                   &curve_info,
                                                   base_transform,
                                                   base_instance_context.curves,
                                                   base_instance_context.id});
-          gather_info.r_offsets.spline_offset += curve->splines().size();
+          gather_info.r_offsets.spline_offset += curves->geometry.curve_size;
         }
         break;
       }
@@ -1038,11 +1039,11 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
 }
 
 static void gather_curves_to_realize(const GeometrySet &geometry_set,
-                                     VectorSet<const CurveEval *> &r_curves)
+                                     VectorSet<const Curves *> &r_curves)
 {
-  if (const CurveEval *curve = geometry_set.get_curve_for_read()) {
-    if (!curve->splines().is_empty()) {
-      r_curves.add(curve);
+  if (const Curves *curves = geometry_set.get_curves_for_read()) {
+    if (curves->geometry.curve_size != 0) {
+      r_curves.add(curves);
     }
   }
   if (const InstancesComponent *instances =
@@ -1064,12 +1065,12 @@ static AllCurvesInfo preprocess_curves(const GeometrySet &geometry_set,
   info.realize_info.reinitialize(info.order.size());
   for (const int curve_index : info.realize_info.index_range()) {
     RealizeCurveInfo &curve_info = info.realize_info[curve_index];
-    const CurveEval *curve = info.order[curve_index];
-    curve_info.curve = curve;
+    const Curves *curves = info.order[curve_index];
+    curve_info.curves = curves;
 
     /* Access attributes. */
     CurveComponent component;
-    component.replace(const_cast<CurveEval *>(curve), GeometryOwnershipType::ReadOnly);
+    component.replace(const_cast<Curves *>(curves), GeometryOwnershipType::ReadOnly);
     curve_info.spline_attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
       const AttributeDomain domain = info.attributes.kinds[attribute_index].domain;
@@ -1095,9 +1096,9 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
                                        MutableSpan<GMutableSpan> dst_spline_attributes)
 {
   const RealizeCurveInfo &curve_info = *task.curve_info;
-  const CurveEval &curve = *curve_info.curve;
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curve_info.curves);
 
-  const Span<SplinePtr> src_splines = curve.splines();
+  const Span<SplinePtr> src_splines = curve->splines();
 
   /* Initialize point attributes. */
   threading::parallel_for(src_splines.index_range(), 100, [&](const IndexRange src_spline_range) {
@@ -1206,12 +1207,12 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   }
 
   const RealizeCurveTask &last_task = tasks.last();
-  const CurveEval &last_curve = *last_task.curve_info->curve;
-  const int tot_splines = last_task.start_spline_index + last_curve.splines().size();
+  const Curves &last_curves = *last_task.curve_info->curves;
+  const int tot_splines = last_task.start_spline_index + last_curves.geometry.curve_size;
 
   Array<SplinePtr> dst_splines(tot_splines);
 
-  CurveEval *dst_curve = new CurveEval();
+  std::unique_ptr<CurveEval> dst_curve = std::make_unique<CurveEval>();
   dst_curve->attributes.reallocate(tot_splines);
   CustomDataAttributes &spline_attributes = dst_curve->attributes;
 
@@ -1242,7 +1243,7 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   dst_curve->add_splines(dst_splines);
 
   CurveComponent &dst_component = r_realized_geometry.get_component_for_write<CurveComponent>();
-  dst_component.replace(dst_curve);
+  dst_component.replace(curve_eval_to_curves(*dst_curve));
 }
 
 /** \} */

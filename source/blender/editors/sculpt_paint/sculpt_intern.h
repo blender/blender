@@ -1105,10 +1105,10 @@ bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v);
 bool SCULPT_search_circle_cb(PBVHNode *node, void *data_v);
 
 /**
- * Initialize a point-in-brush test with a given falloff shape
+ * Initialize a point-in-brush test with a given falloff shape.
  *
- * \param falloff_shape PAINT_FALLOFF_SHAPE_SPHERE or PAINT_FALLOFF_SHAPE_TUBE
- * \return The brush falloff function
+ * \param falloff_shape: #PAINT_FALLOFF_SHAPE_SPHERE or #PAINT_FALLOFF_SHAPE_TUBE.
+ * \return The brush falloff function.
  */
 SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(SculptSession *ss,
                                                             SculptBrushTest *test,

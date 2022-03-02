@@ -79,11 +79,6 @@ static void deformStroke(GpencilModifierData *md,
   short type = gps->totpoints < 3 ? GP_SUBDIV_SIMPLE : mmd->type;
 
   BKE_gpencil_stroke_subdivide(gpd, gps, mmd->level, type);
-
-  /* If the stroke is cyclic, must generate the closing geometry. */
-  if (gps->flag & GP_STROKE_CYCLIC) {
-    BKE_gpencil_stroke_close(gps);
-  }
 }
 
 static void bakeModifier(struct Main *UNUSED(bmain),

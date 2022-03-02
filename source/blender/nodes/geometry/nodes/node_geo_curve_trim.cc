@@ -500,7 +500,7 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
                                     Field<float> &start_field,
                                     Field<float> &end_field)
 {
-  if (!geometry_set.has_curve()) {
+  if (!geometry_set.has_curves()) {
     return;
   }
 
@@ -515,8 +515,8 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
   const blender::VArray<float> &starts = evaluator.get_evaluated<float>(0);
   const blender::VArray<float> &ends = evaluator.get_evaluated<float>(1);
 
-  CurveEval &curve = *geometry_set.get_curve_for_write();
-  MutableSpan<SplinePtr> splines = curve.splines();
+  std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*geometry_set.get_curves_for_read());
+  MutableSpan<SplinePtr> splines = curve->splines();
 
   threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
     for (const int i : range) {
@@ -565,6 +565,8 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
       }
     }
   });
+
+  geometry_set.replace_curve(curve_eval_to_curves(*curve));
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

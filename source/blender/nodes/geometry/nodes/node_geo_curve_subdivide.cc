@@ -324,7 +324,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<int> cuts_field = params.extract_input<Field<int>>("Cuts");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (!geometry_set.has_curve()) {
+    if (!geometry_set.has_curves()) {
       return;
     }
 
@@ -340,9 +340,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (cuts.is_single() && cuts.get_internal_single() < 1) {
       return;
     }
-
-    std::unique_ptr<CurveEval> output_curve = subdivide_curve(*component.get_for_read(), cuts);
-    geometry_set.replace_curve(output_curve.release());
+    std::unique_ptr<CurveEval> output_curve = subdivide_curve(
+        *curves_to_curve_eval(*component.get_for_read()), cuts);
+    geometry_set.replace_curve(curve_eval_to_curves(*output_curve));
   });
   params.set_output("Curve", geometry_set);
 }

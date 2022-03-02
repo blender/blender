@@ -24,6 +24,11 @@
 /** \name View Roll Operator
  * \{ */
 
+/**
+ * \param use_axis_view: When true, keep axis-aligned orthographic views
+ * (when rotating in 90 degree increments). While this may seem obscure some NDOF
+ * devices have key shortcuts to do this (see #NDOF_BUTTON_ROLL_CW & #NDOF_BUTTON_ROLL_CCW).
+ */
 static void view_roll_angle(ARegion *region,
                             float quat[4],
                             const float orig_quat[4],

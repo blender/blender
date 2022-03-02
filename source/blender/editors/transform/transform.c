@@ -177,8 +177,8 @@ void convertViewVec(TransInfo *t, float r_vec[3], double dx, double dy)
       r_vec[1] = dy;
     }
     else {
-      const float mval_f[2] = {(float)dx, (float)dy};
-      ED_view3d_win_to_delta(t->region, mval_f, r_vec, t->zfac);
+      const float xy_delta[2] = {(float)dx, (float)dy};
+      ED_view3d_win_to_delta(t->region, xy_delta, t->zfac, r_vec);
     }
   }
   else if (t->spacetype == SPACE_IMAGE) {
@@ -1150,7 +1150,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   else if (event->val == KM_PRESS) {
     switch (event->type) {
       case EVT_CKEY:
-        if (event->is_repeat) {
+        if (event->flag & WM_EVENT_IS_REPEAT) {
           break;
         }
         if (event->modifier & KM_ALT) {
@@ -1164,7 +1164,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case EVT_OKEY:
-        if (event->is_repeat) {
+        if (event->flag & WM_EVENT_IS_REPEAT) {
           break;
         }
         if ((t->flag & T_PROP_EDIT) && (event->modifier & KM_SHIFT)) {
@@ -1202,7 +1202,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case EVT_NKEY:
-        if (event->is_repeat) {
+        if (event->flag & WM_EVENT_IS_REPEAT) {
           break;
         }
         if (ELEM(t->mode, TFM_ROTATION)) {
@@ -1697,7 +1697,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   /* Needed to translate tweak events to mouse buttons. */
   t->launch_event = event ? WM_userdef_event_type_from_keymap_type(event->type) : -1;
-  t->is_launch_event_tweak = event ? ISTWEAK(event->type) : false;
+  t->is_launch_event_drag = event ? (event->val == KM_CLICK_DRAG) : false;
 
   /* XXX Remove this when wm_operator_call_internal doesn't use window->eventstate
    * (which can have type = 0) */

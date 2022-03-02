@@ -127,11 +127,7 @@ void WM_reinit_gizmomap_all(struct Main *bmain);
  */
 void WM_script_tag_reload(void);
 
-wmWindow *WM_window_find_under_cursor(const wmWindowManager *wm,
-                                      const wmWindow *win_ignore,
-                                      const wmWindow *win,
-                                      const int mval[2],
-                                      int r_mval[2]);
+wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mval[2]);
 void WM_window_pixel_sample_read(const wmWindowManager *wm,
                                  const wmWindow *win,
                                  const int pos[2],
@@ -1428,12 +1424,16 @@ bool WM_window_modal_keymap_status_draw(struct bContext *C,
 void WM_event_print(const struct wmEvent *event);
 
 /**
- * For modal callbacks, check configuration for how to interpret exit with tweaks.
+ * For modal callbacks, check configuration for how to interpret exit when dragging.
  */
-bool WM_event_is_modal_tweak_exit(const struct wmEvent *event, int tweak_event);
+bool WM_event_is_modal_drag_exit(const struct wmEvent *event,
+                                 short init_event_type,
+                                 short init_event_val);
 bool WM_event_is_last_mousemove(const struct wmEvent *event);
 bool WM_event_is_mouse_drag(const struct wmEvent *event);
 bool WM_event_is_mouse_drag_or_press(const wmEvent *event);
+int WM_event_drag_direction(const wmEvent *event);
+
 /**
  * Detect motion between selection (callers should only use this for selection picking),
  * typically mouse press/click events.

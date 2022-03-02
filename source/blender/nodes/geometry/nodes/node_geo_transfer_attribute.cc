@@ -778,7 +778,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
     }
     case GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST: {
-      if (geometry.has_curve() && !geometry.has_mesh() && !geometry.has_pointcloud()) {
+      if (geometry.has_curves() && !geometry.has_mesh() && !geometry.has_pointcloud()) {
         params.error_message_add(NodeWarningType::Error,
                                  TIP_("The source geometry must contain a mesh or a point cloud"));
         return return_default();

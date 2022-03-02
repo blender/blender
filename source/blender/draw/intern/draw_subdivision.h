@@ -182,7 +182,8 @@ void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
                                     struct GPUVertBuf *src_data,
                                     struct GPUVertBuf *dst_data,
                                     int dimensions,
-                                    int dst_offset);
+                                    int dst_offset,
+                                    bool compress_to_u16);
 
 void draw_subdiv_extract_uvs(const DRWSubdivCache *cache,
                              struct GPUVertBuf *uvs,

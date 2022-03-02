@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_spline.hh"
+#include "BKE_curves.hh"
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_curve_primitive_quadratic_bezier_cc {
@@ -28,18 +28,15 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static std::unique_ptr<CurveEval> create_quadratic_bezier_curve(const float3 p1,
-                                                                const float3 p2,
-                                                                const float3 p3,
-                                                                const int resolution)
+static Curves *create_quadratic_bezier_curve(const float3 p1,
+                                             const float3 p2,
+                                             const float3 p3,
+                                             const int resolution)
 {
-  std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
-  std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
+  Curves *curves_id = bke::curves_new_nomain_single(resolution + 1, CURVE_TYPE_POLY);
+  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
 
-  spline->resize(resolution + 1);
-  MutableSpan<float3> positions = spline->positions();
-  spline->radii().fill(1.0f);
-  spline->tilts().fill(0.0f);
+  MutableSpan<float3> positions = curves.positions();
 
   const float step = 1.0f / resolution;
   for (const int i : IndexRange(resolution + 1)) {
@@ -49,19 +46,17 @@ static std::unique_ptr<CurveEval> create_quadratic_bezier_curve(const float3 p1,
     positions[i] = math::interpolate(q1, q2, factor);
   }
 
-  curve->add_spline(std::move(spline));
-  curve->attributes.reallocate(curve->splines().size());
-  return curve;
+  return curves_id;
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  std::unique_ptr<CurveEval> curve = create_quadratic_bezier_curve(
+  Curves *curves = create_quadratic_bezier_curve(
       params.extract_input<float3>("Start"),
       params.extract_input<float3>("Middle"),
       params.extract_input<float3>("End"),
       std::max(params.extract_input<int>("Resolution"), 3));
-  params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
+  params.set_output("Curve", GeometrySet::create_with_curves(curves));
 }
 
 }  // namespace blender::nodes::node_geo_curve_primitive_quadratic_bezier_cc

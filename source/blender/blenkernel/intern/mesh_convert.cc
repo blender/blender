@@ -953,11 +953,11 @@ static const Mesh *get_evaluated_mesh_from_object(const Object *object)
   return nullptr;
 }
 
-static const CurveEval *get_evaluated_curve_from_object(const Object *object)
+static const Curves *get_evaluated_curves_from_object(const Object *object)
 {
   GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval;
   if (geometry_set_eval) {
-    return geometry_set_eval->get_curve_for_read();
+    return geometry_set_eval->get_curves_for_read();
   }
   return nullptr;
 }
@@ -968,8 +968,9 @@ static Mesh *mesh_new_from_evaluated_curve_type_object(const Object *evaluated_o
   if (mesh) {
     return BKE_mesh_copy_for_eval(mesh, false);
   }
-  const CurveEval *curve = get_evaluated_curve_from_object(evaluated_object);
-  if (curve) {
+  const Curves *curves = get_evaluated_curves_from_object(evaluated_object);
+  if (curves) {
+    std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curves);
     return blender::bke::curve_to_wire_mesh(*curve);
   }
   return nullptr;

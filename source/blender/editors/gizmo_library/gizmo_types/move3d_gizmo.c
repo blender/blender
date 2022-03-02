@@ -147,7 +147,7 @@ static void move3d_get_translate(const wmGizmo *gz,
                                  float co_delta[3])
 {
   MoveInteraction *inter = gz->interaction_data;
-  const float mval_delta[2] = {
+  const float xy_delta[2] = {
       event->mval[0] - inter->init.mval[0],
       event->mval[1] - inter->init.mval[1],
   };
@@ -155,9 +155,9 @@ static void move3d_get_translate(const wmGizmo *gz,
   RegionView3D *rv3d = region->regiondata;
   float co_ref[3];
   mul_v3_mat3_m4v3(co_ref, gz->matrix_space, inter->init.prop_co);
-  const float zfac = ED_view3d_calc_zfac(rv3d, co_ref, NULL);
+  const float zfac = ED_view3d_calc_zfac(rv3d, co_ref);
 
-  ED_view3d_win_to_delta(region, mval_delta, co_delta, zfac);
+  ED_view3d_win_to_delta(region, xy_delta, zfac, co_delta);
 
   float matrix_space_inv[3][3];
   copy_m3_m4(matrix_space_inv, gz->matrix_space);

@@ -23,18 +23,18 @@ using blender::fn::GVArray_GSpan;
 /** \name Geometry Component Implementation
  * \{ */
 
-CurveComponent::CurveComponent() : GeometryComponent(GEO_COMPONENT_TYPE_CURVE)
+CurveComponentLegacy::CurveComponentLegacy() : GeometryComponent(GEO_COMPONENT_TYPE_CURVE)
 {
 }
 
-CurveComponent::~CurveComponent()
+CurveComponentLegacy::~CurveComponentLegacy()
 {
   this->clear();
 }
 
-GeometryComponent *CurveComponent::copy() const
+GeometryComponent *CurveComponentLegacy::copy() const
 {
-  CurveComponent *new_component = new CurveComponent();
+  CurveComponentLegacy *new_component = new CurveComponentLegacy();
   if (curve_ != nullptr) {
     new_component->curve_ = new CurveEval(*curve_);
     new_component->ownership_ = GeometryOwnershipType::Owned;
@@ -42,30 +42,23 @@ GeometryComponent *CurveComponent::copy() const
   return new_component;
 }
 
-void CurveComponent::clear()
+void CurveComponentLegacy::clear()
 {
   BLI_assert(this->is_mutable());
   if (curve_ != nullptr) {
     if (ownership_ == GeometryOwnershipType::Owned) {
       delete curve_;
     }
-    if (curve_for_render_ != nullptr) {
-      /* The curve created by this component should not have any edit mode data. */
-      BLI_assert(curve_for_render_->editfont == nullptr && curve_for_render_->editnurb == nullptr);
-      BKE_id_free(nullptr, curve_for_render_);
-      curve_for_render_ = nullptr;
-    }
-
     curve_ = nullptr;
   }
 }
 
-bool CurveComponent::has_curve() const
+bool CurveComponentLegacy::has_curve() const
 {
   return curve_ != nullptr;
 }
 
-void CurveComponent::replace(CurveEval *curve, GeometryOwnershipType ownership)
+void CurveComponentLegacy::replace(CurveEval *curve, GeometryOwnershipType ownership)
 {
   BLI_assert(this->is_mutable());
   this->clear();
@@ -73,7 +66,7 @@ void CurveComponent::replace(CurveEval *curve, GeometryOwnershipType ownership)
   ownership_ = ownership;
 }
 
-CurveEval *CurveComponent::release()
+CurveEval *CurveComponentLegacy::release()
 {
   BLI_assert(this->is_mutable());
   CurveEval *curve = curve_;
@@ -81,12 +74,12 @@ CurveEval *CurveComponent::release()
   return curve;
 }
 
-const CurveEval *CurveComponent::get_for_read() const
+const CurveEval *CurveComponentLegacy::get_for_read() const
 {
   return curve_;
 }
 
-CurveEval *CurveComponent::get_for_write()
+CurveEval *CurveComponentLegacy::get_for_write()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ == GeometryOwnershipType::ReadOnly) {
@@ -96,17 +89,17 @@ CurveEval *CurveComponent::get_for_write()
   return curve_;
 }
 
-bool CurveComponent::is_empty() const
+bool CurveComponentLegacy::is_empty() const
 {
   return curve_ == nullptr;
 }
 
-bool CurveComponent::owns_direct_data() const
+bool CurveComponentLegacy::owns_direct_data() const
 {
   return ownership_ == GeometryOwnershipType::Owned;
 }
 
-void CurveComponent::ensure_owns_direct_data()
+void CurveComponentLegacy::ensure_owns_direct_data()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ != GeometryOwnershipType::Owned) {
@@ -115,32 +108,13 @@ void CurveComponent::ensure_owns_direct_data()
   }
 }
 
-const Curve *CurveComponent::get_curve_for_render() const
-{
-  if (curve_ == nullptr) {
-    return nullptr;
-  }
-  if (curve_for_render_ != nullptr) {
-    return curve_for_render_;
-  }
-  std::lock_guard lock{curve_for_render_mutex_};
-  if (curve_for_render_ != nullptr) {
-    return curve_for_render_;
-  }
-
-  curve_for_render_ = (Curve *)BKE_id_new_nomain(ID_CU_LEGACY, nullptr);
-  curve_for_render_->curve_eval = curve_;
-
-  return curve_for_render_;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Attribute Access Helper Functions
  * \{ */
 
-int CurveComponent::attribute_domain_size(const AttributeDomain domain) const
+int CurveComponentLegacy::attribute_domain_size(const AttributeDomain domain) const
 {
   if (curve_ == nullptr) {
     return 0;
@@ -334,9 +308,10 @@ static GVArray adapt_curve_domain_spline_to_point(const CurveEval &curve, GVArra
 
 }  // namespace blender::bke
 
-GVArray CurveComponent::attribute_try_adapt_domain_impl(const GVArray &varray,
-                                                        const AttributeDomain from_domain,
-                                                        const AttributeDomain to_domain) const
+GVArray CurveComponentLegacy::attribute_try_adapt_domain_impl(
+    const GVArray &varray,
+    const AttributeDomain from_domain,
+    const AttributeDomain to_domain) const
 {
   if (!varray) {
     return {};
@@ -361,115 +336,21 @@ GVArray CurveComponent::attribute_try_adapt_domain_impl(const GVArray &varray,
 static CurveEval *get_curve_from_component_for_write(GeometryComponent &component)
 {
   BLI_assert(component.type() == GEO_COMPONENT_TYPE_CURVE);
-  CurveComponent &curve_component = static_cast<CurveComponent &>(component);
+  CurveComponentLegacy &curve_component = static_cast<CurveComponentLegacy &>(component);
   return curve_component.get_for_write();
 }
 
 static const CurveEval *get_curve_from_component_for_read(const GeometryComponent &component)
 {
   BLI_assert(component.type() == GEO_COMPONENT_TYPE_CURVE);
-  const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+  const CurveComponentLegacy &curve_component = static_cast<const CurveComponentLegacy &>(
+      component);
   return curve_component.get_for_read();
 }
 
 /** \} */
 
 namespace blender::bke {
-
-/* -------------------------------------------------------------------- */
-/** \name Curve Normals Access
- * \{ */
-
-static void calculate_bezier_normals(const BezierSpline &spline, MutableSpan<float3> normals)
-{
-  Span<int> offsets = spline.control_point_offsets();
-  Span<float3> evaluated_normals = spline.evaluated_normals();
-  for (const int i : IndexRange(spline.size())) {
-    normals[i] = evaluated_normals[offsets[i]];
-  }
-}
-
-static void calculate_poly_normals(const PolySpline &spline, MutableSpan<float3> normals)
-{
-  normals.copy_from(spline.evaluated_normals());
-}
-
-/**
- * Because NURBS control points are not necessarily on the path, the normal at the control points
- * is not well defined, so create a temporary poly spline to find the normals. This requires extra
- * copying currently, but may be more efficient in the future if attributes have some form of CoW.
- */
-static void calculate_nurbs_normals(const NURBSpline &spline, MutableSpan<float3> normals)
-{
-  PolySpline poly_spline;
-  poly_spline.resize(spline.size());
-  poly_spline.positions().copy_from(spline.positions());
-  poly_spline.tilts().copy_from(spline.tilts());
-  normals.copy_from(poly_spline.evaluated_normals());
-}
-
-static Array<float3> curve_normal_point_domain(const CurveEval &curve)
-{
-  Span<SplinePtr> splines = curve.splines();
-  Array<int> offsets = curve.control_point_offsets();
-  const int total_size = offsets.last();
-  Array<float3> normals(total_size);
-
-  threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
-    for (const int i : range) {
-      const Spline &spline = *splines[i];
-      MutableSpan spline_normals{normals.as_mutable_span().slice(offsets[i], spline.size())};
-      switch (splines[i]->type()) {
-        case CURVE_TYPE_BEZIER:
-          calculate_bezier_normals(static_cast<const BezierSpline &>(spline), spline_normals);
-          break;
-        case CURVE_TYPE_POLY:
-          calculate_poly_normals(static_cast<const PolySpline &>(spline), spline_normals);
-          break;
-        case CURVE_TYPE_NURBS:
-          calculate_nurbs_normals(static_cast<const NURBSpline &>(spline), spline_normals);
-          break;
-        case CURVE_TYPE_CATMULL_ROM:
-          BLI_assert_unreachable();
-          break;
-      }
-    }
-  });
-  return normals;
-}
-
-VArray<float3> curve_normals_varray(const CurveComponent &component, const AttributeDomain domain)
-{
-  const CurveEval *curve = component.get_for_read();
-  if (curve == nullptr) {
-    return nullptr;
-  }
-
-  if (domain == ATTR_DOMAIN_POINT) {
-    const Span<SplinePtr> splines = curve->splines();
-
-    /* Use a reference to evaluated normals if possible to avoid an allocation and a copy.
-     * This is only possible when there is only one poly spline. */
-    if (splines.size() == 1 && splines.first()->type() == CURVE_TYPE_POLY) {
-      const PolySpline &spline = static_cast<PolySpline &>(*splines.first());
-      return VArray<float3>::ForSpan(spline.evaluated_normals());
-    }
-
-    Array<float3> normals = curve_normal_point_domain(*curve);
-    return VArray<float3>::ForContainer(std::move(normals));
-  }
-
-  if (domain == ATTR_DOMAIN_CURVE) {
-    Array<float3> point_normals = curve_normal_point_domain(*curve);
-    VArray<float3> varray = VArray<float3>::ForContainer(std::move(point_normals));
-    return component.attribute_try_adapt_domain<float3>(
-        std::move(varray), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
-  }
-
-  return nullptr;
-}
-
-/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Builtin Spline Attributes
@@ -1306,7 +1187,8 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
  private:
   static constexpr uint64_t supported_types_mask = CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 |
                                                    CD_MASK_PROP_FLOAT3 | CD_MASK_PROP_INT32 |
-                                                   CD_MASK_PROP_COLOR | CD_MASK_PROP_BOOL;
+                                                   CD_MASK_PROP_COLOR | CD_MASK_PROP_BOOL |
+                                                   CD_MASK_PROP_INT8;
 
  public:
   ReadAttributeLookup try_get_for_read(const GeometryComponent &component,
@@ -1551,7 +1433,8 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
 
 }  // namespace blender::bke
 
-const blender::bke::ComponentAttributeProviders *CurveComponent::get_attribute_providers() const
+const blender::bke::ComponentAttributeProviders *CurveComponentLegacy::get_attribute_providers()
+    const
 {
   static blender::bke::ComponentAttributeProviders providers =
       blender::bke::create_attribute_providers_for_curve();

@@ -42,8 +42,13 @@ void WM_keymap_clear(struct wmKeyMap *keymap);
 /**
  * Always add item.
  */
-wmKeyMapItem *WM_keymap_add_item(
-    struct wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier);
+wmKeyMapItem *WM_keymap_add_item(struct wmKeyMap *keymap,
+                                 const char *idname,
+                                 int type,
+                                 int val,
+                                 int modifier,
+                                 int keymodifier,
+                                 int direction);
 wmKeyMapItem *WM_keymap_add_item_copy(struct wmKeyMap *keymap, wmKeyMapItem *kmi_src);
 
 bool WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
@@ -80,32 +85,43 @@ bool WM_keymap_item_compare(const struct wmKeyMapItem *k1, const struct wmKeyMap
 /**
  * Menu wrapper for #WM_keymap_add_item.
  */
-wmKeyMapItem *WM_keymap_add_menu(
-    struct wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier);
+wmKeyMapItem *WM_keymap_add_menu(struct wmKeyMap *keymap,
+                                 const char *idname,
+                                 int type,
+                                 int val,
+                                 int modifier,
+                                 int keymodifier,
+                                 int direction);
 /**
  * Pie-menu wrapper for #WM_keymap_add_item.
  */
-wmKeyMapItem *WM_keymap_add_menu_pie(
-    struct wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier);
+wmKeyMapItem *WM_keymap_add_menu_pie(struct wmKeyMap *keymap,
+                                     const char *idname,
+                                     int type,
+                                     int val,
+                                     int modifier,
+                                     int keymodifier,
+                                     int direction);
 /**
  * Panel (popover) wrapper for #WM_keymap_add_item.
  */
-wmKeyMapItem *WM_keymap_add_panel(
-    struct wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier);
+wmKeyMapItem *WM_keymap_add_panel(struct wmKeyMap *keymap,
+                                  const char *idname,
+                                  int type,
+                                  int val,
+                                  int modifier,
+                                  int keymodifier,
+                                  int direction);
 /**
  * Tool wrapper for #WM_keymap_add_item.
  */
-wmKeyMapItem *WM_keymap_add_tool(
-    struct wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier);
-
-/** Useful for mapping numbers to an enum. */
-void WM_keymap_add_context_enum_set_items(wmKeyMap *keymap,
-                                          const struct EnumPropertyItem *items,
-                                          const char *data_path,
-                                          int type_start,
-                                          int val,
-                                          int modifier,
-                                          int keymodifier);
+wmKeyMapItem *WM_keymap_add_tool(struct wmKeyMap *keymap,
+                                 const char *idname,
+                                 int type,
+                                 int val,
+                                 int modifier,
+                                 int keymodifier,
+                                 int direction);
 
 wmKeyMap *WM_keymap_guess_from_context(const struct bContext *C);
 
@@ -137,10 +153,20 @@ wmKeyMap *WM_modalkeymap_ensure(struct wmKeyConfig *keyconf,
                                 const char *idname,
                                 const struct EnumPropertyItem *items);
 wmKeyMap *WM_modalkeymap_find(struct wmKeyConfig *keyconf, const char *idname);
-wmKeyMapItem *WM_modalkeymap_add_item(
-    struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value);
-wmKeyMapItem *WM_modalkeymap_add_item_str(
-    struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, const char *value);
+wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km,
+                                      int type,
+                                      int val,
+                                      int modifier,
+                                      int keymodifier,
+                                      int direction,
+                                      int value);
+wmKeyMapItem *WM_modalkeymap_add_item_str(struct wmKeyMap *km,
+                                          int type,
+                                          int val,
+                                          int modifier,
+                                          int keymodifier,
+                                          int direction,
+                                          const char *value);
 const wmKeyMapItem *WM_modalkeymap_find_propvalue(const wmKeyMap *km, int propvalue);
 void WM_modalkeymap_assign(struct wmKeyMap *km, const char *opname);
 

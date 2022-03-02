@@ -2648,13 +2648,13 @@ static void update_sculpt_normal(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 static void calc_local_y(ViewContext *vc, const float center[3], float y[3])
 {
   Object *ob = vc->obact;
-  float loc[3], mval_f[2] = {0.0f, 1.0f};
-  float zfac;
+  float loc[3];
+  const float xy_delta[2] = {0.0f, 1.0f};
 
   mul_v3_m4v3(loc, ob->imat, center);
-  zfac = ED_view3d_calc_zfac(vc->rv3d, loc, NULL);
+  const float zfac = ED_view3d_calc_zfac(vc->rv3d, loc);
 
-  ED_view3d_win_to_delta(vc->region, mval_f, y, zfac);
+  ED_view3d_win_to_delta(vc->region, xy_delta, zfac, y);
   normalize_v3(y);
 
   add_v3_v3(y, ob->loc);

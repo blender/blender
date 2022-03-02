@@ -4684,7 +4684,7 @@ static int brush_edit_init(bContext *C, wmOperator *op)
   bedit->ob = ob;
   bedit->edit = edit;
 
-  bedit->zfac = ED_view3d_calc_zfac(region->regiondata, min, NULL);
+  bedit->zfac = ED_view3d_calc_zfac(region->regiondata, min);
 
   /* cache view depths and settings for re-use */
   PE_set_view3d_data(C, &bedit->data);
@@ -4757,7 +4757,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
       switch (pset->brushtype) {
         case PE_BRUSH_COMB: {
-          const float mval_f[2] = {dx, dy};
+          const float xy_delta[2] = {dx, dy};
           data.mval = mval;
           data.rad = pe_brush_size_get(scene, brush);
 
@@ -4771,7 +4771,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
           invert_m4_m4(ob->imat, ob->obmat);
 
-          ED_view3d_win_to_delta(region, mval_f, vec, bedit->zfac);
+          ED_view3d_win_to_delta(region, xy_delta, bedit->zfac, vec);
           data.dvec = vec;
 
           foreach_mouse_hit_key(&data, brush_comb, selected);

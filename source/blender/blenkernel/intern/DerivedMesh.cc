@@ -1143,12 +1143,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
    * we need to apply these back onto the Mesh. If we have no
    * Mesh then we need to build one. */
   if (mesh_final == nullptr) {
-    /* NOTE: this check on cdmask is a bit dodgy, it handles the issue at stake here (see T68211),
-     * but other cases might require similar handling?
-     * Could be a good idea to define a proper CustomData_MeshMask for that then. */
-    if (deformed_verts == nullptr && allow_shared_mesh &&
-        (final_datamask.lmask & CD_MASK_NORMAL) == 0 &&
-        (final_datamask.pmask & CD_MASK_NORMAL) == 0) {
+    if (deformed_verts == nullptr && allow_shared_mesh) {
       mesh_final = mesh_input;
     }
     else {
@@ -1518,7 +1513,9 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
       }
       else {
         Mesh *me_orig = mesh_input;
-        if (me_orig->id.tag & LIB_TAG_COPIED_ON_WRITE) {
+        /* Modifying the input mesh is weak, however as there can only be one object in edit mode
+         * even if multiple are sharing the same mesh this should be thread safe. */
+        if ((me_orig->id.tag & LIB_TAG_COPIED_ON_WRITE) && (ob->mode & OB_MODE_EDIT)) {
           if (!BKE_mesh_runtime_ensure_edit_data(me_orig)) {
             BKE_mesh_runtime_reset_edit_data(me_orig);
           }

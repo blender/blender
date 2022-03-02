@@ -3569,6 +3569,7 @@ static void image_tag_reload(Image *ima, ID *iuser_id, ImageUser *iuser, void *c
       /* Must copy image user changes to CoW data-block. */
       DEG_id_tag_update(iuser_id, ID_RECALC_COPY_ON_WRITE);
     }
+    BKE_image_partial_update_mark_full_update(ima);
   }
 }
 
@@ -3609,6 +3610,7 @@ static void image_free_tile(Image *ima, ImageTile *tile)
       }
     }
   }
+  BKE_image_partial_update_mark_full_update(ima);
 
   if (BKE_image_is_multiview(ima)) {
     const int totviews = BLI_listbase_count(&ima->views);
@@ -3949,6 +3951,7 @@ ImageTile *BKE_image_add_tile(struct Image *ima, int tile_number, const char *la
       }
     }
   }
+  BKE_image_partial_update_mark_full_update(ima);
 
   return tile;
 }
@@ -4014,6 +4017,7 @@ void BKE_image_reassign_tile(struct Image *ima, ImageTile *tile, int new_tile_nu
       }
     }
   }
+  BKE_image_partial_update_mark_full_update(ima);
 }
 
 static int tile_sort_cb(const void *a, const void *b)

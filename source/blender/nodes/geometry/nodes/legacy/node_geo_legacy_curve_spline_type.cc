@@ -236,40 +236,40 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   geometry_set = geometry::realize_instances_legacy(geometry_set);
-  if (!geometry_set.has_curve()) {
+  if (!geometry_set.has_curves()) {
     params.set_output("Curve", geometry_set);
     return;
   }
 
   const CurveComponent *curve_component = geometry_set.get_component_for_read<CurveComponent>();
-  const CurveEval &curve = *curve_component->get_for_read();
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curve_component->get_for_read());
 
   const std::string selection_name = params.extract_input<std::string>("Selection");
   VArray<bool> selection = curve_component->attribute_get_for_read(
       selection_name, ATTR_DOMAIN_CURVE, true);
 
   std::unique_ptr<CurveEval> new_curve = std::make_unique<CurveEval>();
-  for (const int i : curve.splines().index_range()) {
+  for (const int i : curve->splines().index_range()) {
     if (selection[i]) {
       switch (output_type) {
         case GEO_NODE_SPLINE_TYPE_POLY:
-          new_curve->add_spline(convert_to_poly_spline(*curve.splines()[i]));
+          new_curve->add_spline(convert_to_poly_spline(*curve->splines()[i]));
           break;
         case GEO_NODE_SPLINE_TYPE_BEZIER:
-          new_curve->add_spline(convert_to_bezier(*curve.splines()[i], params));
+          new_curve->add_spline(convert_to_bezier(*curve->splines()[i], params));
           break;
         case GEO_NODE_SPLINE_TYPE_NURBS:
-          new_curve->add_spline(convert_to_nurbs(*curve.splines()[i]));
+          new_curve->add_spline(convert_to_nurbs(*curve->splines()[i]));
           break;
       }
     }
     else {
-      new_curve->add_spline(curve.splines()[i]->copy());
+      new_curve->add_spline(curve->splines()[i]->copy());
     }
   }
 
-  new_curve->attributes = curve.attributes;
-  params.set_output("Curve", GeometrySet::create_with_curve(new_curve.release()));
+  new_curve->attributes = curve->attributes;
+  params.set_output("Curve", GeometrySet::create_with_curves(curve_eval_to_curves(*new_curve)));
 }
 
 }  // namespace blender::nodes::node_geo_legacy_curve_spline_type_cc

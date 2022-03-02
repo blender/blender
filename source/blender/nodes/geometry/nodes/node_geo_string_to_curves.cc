@@ -298,7 +298,8 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
       layout.pivot_points.add_new(layout.char_codes[i], pivot_point);
     }
 
-    GeometrySet geometry_set_curve = GeometrySet::create_with_curve(curve_eval.release());
+    GeometrySet geometry_set_curve = GeometrySet::create_with_curves(
+        curve_eval_to_curves(*curve_eval));
     handles.add_new(layout.char_codes[i],
                     instance_component.add_reference(std::move(geometry_set_curve)));
   }

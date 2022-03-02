@@ -38,9 +38,9 @@ namespace blender::fn::procedure_optimization {
  * For simplicity, and because this is the most common use case, this optimization currently only
  * works on a single chain of instructions. Destruct instructions are not moved across branches.
  *
- * \param procedure The procedure that should be optimized.
- * \param block_end_instr The instruction that points to the last instruction within a linear chain
- *   of instructions. The algorithm moves instructions backward starting at this instruction.
+ * \param procedure: The procedure that should be optimized.
+ * \param block_end_instr: The instruction that points to the last instruction within a linear
+ * chain of instructions. The algorithm moves instructions backward starting at this instruction.
  */
 void move_destructs_up(MFProcedure &procedure, MFInstruction &block_end_instr);
 

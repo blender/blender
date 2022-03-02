@@ -927,8 +927,13 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
      * processed, so we need to recursively deal with them here. */
     /* NOTE: Since we are by-passing checks in `BKE_library_foreach_ID_link` by manually calling it
      * recursively, we need to take care of potential recursion cases ourselves (e.g.animdata of
-     * shape-key referencing the shape-key itself). */
-    if (id != cb_data->id_self) {
+     * shape-key referencing the shape-key itself).
+     * NOTE: in case both IDs (owner and 'used' ones) are non-linkable, we can assume we can break
+     * the dependency here. Indeed, either they are both linked in another way (through their own
+     * meshes for shape keys e.g.), or this is an unsupported case (two shape-keys depending on
+     * each-other need to be also 'linked' in by their respective meshes, independent shape-keys
+     * are not allowed). ref T96048. */
+    if (id != cb_data->id_self && BKE_idtype_idcode_is_linkable(GS(cb_data->id_self->name))) {
       BKE_library_foreach_ID_link(
           cb_data->bmain, id, foreach_libblock_link_append_callback, data, IDWALK_NOP);
     }
@@ -1449,7 +1454,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
         BlendfileLinkAppendContextItem *item;
 
         /* We remove it from current Main, and add it to items to link... */
-        /* Note that non-linkable IDs (like e.g. shapekeys) are also explicitly linked here... */
+        /* Note that non-linkable IDs (like e.g. shape-keys) are also explicitly linked here... */
         BLI_remlink(lbarray[lba_idx], id);
         /* Usual special code for ShapeKeys snowflakes... */
         Key *old_key = BKE_key_from_id(id);

@@ -30,4 +30,22 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                     # Setting repeat true on other kinds of events is harmless.
                     item_event["repeat"] = True
 
+    if keyconfig_version <= (3, 2, 5):
+        # Only copy once.
+        if not has_copy:
+            keyconfig_data = copy.deepcopy(keyconfig_data)
+            has_copy = True
+
+        for _km_name, _km_parms, km_items_data in keyconfig_data:
+            for (_item_op, item_event, _item_prop) in km_items_data["items"]:
+                if ty_new := {
+                        'EVT_TWEAK_L': 'LEFTMOUSE',
+                        'EVT_TWEAK_M': 'MIDDLEMOUSE',
+                        'EVT_TWEAK_R': 'RIGHTMOUSE',
+                }.get(item_event.get("type")):
+                    item_event["type"] = ty_new
+                    if (value := item_event["value"]) != 'ANY':
+                        item_event["direction"] = value
+                    item_event["value"] = 'CLICK_DRAG'
+
     return keyconfig_data

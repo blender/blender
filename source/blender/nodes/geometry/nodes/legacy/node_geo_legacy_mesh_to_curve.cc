@@ -48,7 +48,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   std::unique_ptr<CurveEval> curve = geometry::mesh_to_curve_convert(
       component, IndexMask(selected_edge_indices));
 
-  params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
+  params.set_output("Curve", GeometrySet::create_with_curves(curve_eval_to_curves(*curve)));
 }
 
 }  // namespace blender::nodes::node_geo_legacy_mesh_to_curve_cc

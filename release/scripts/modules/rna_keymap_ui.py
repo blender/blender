@@ -180,6 +180,10 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
                 subrow.prop(kmi, "type", text="")
                 subrow.prop(kmi, "value", text="")
 
+            if map_type in {'KEYBOARD', 'MOUSE'} and kmi.value == 'CLICK_DRAG':
+                subrow = sub.row()
+                subrow.prop(kmi, "direction")
+
             subrow = sub.row()
             subrow.scale_x = 0.75
             subrow.prop(kmi, "any", toggle=True)

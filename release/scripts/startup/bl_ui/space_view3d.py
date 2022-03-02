@@ -1197,23 +1197,24 @@ class VIEW3D_MT_view_viewpoint(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        i18n_text_ctxt = bpy.app.translations.contexts_C_to_py['BLT_I18NCONTEXT_EDITOR_VIEW3D']
 
-        layout.operator("view3d.view_camera", text="Camera")
-
-        layout.separator()
-
-        layout.operator("view3d.view_axis", text="Top").type = 'TOP'
-        layout.operator("view3d.view_axis", text="Bottom").type = 'BOTTOM'
+        layout.operator("view3d.view_camera", text="Camera", text_ctxt=i18n_text_ctxt)
 
         layout.separator()
 
-        layout.operator("view3d.view_axis", text="Front").type = 'FRONT'
-        layout.operator("view3d.view_axis", text="Back").type = 'BACK'
+        layout.operator("view3d.view_axis", text="Top", text_ctxt=i18n_text_ctxt).type = 'TOP'
+        layout.operator("view3d.view_axis", text="Bottom", text_ctxt=i18n_text_ctxt).type = 'BOTTOM'
 
         layout.separator()
 
-        layout.operator("view3d.view_axis", text="Right").type = 'RIGHT'
-        layout.operator("view3d.view_axis", text="Left").type = 'LEFT'
+        layout.operator("view3d.view_axis", text="Front", text_ctxt=i18n_text_ctxt).type = 'FRONT'
+        layout.operator("view3d.view_axis", text="Back", text_ctxt=i18n_text_ctxt).type = 'BACK'
+
+        layout.separator()
+
+        layout.operator("view3d.view_axis", text="Right", text_ctxt=i18n_text_ctxt).type = 'RIGHT'
+        layout.operator("view3d.view_axis", text="Left", text_ctxt=i18n_text_ctxt).type = 'LEFT'
 
 
 class VIEW3D_MT_view_navigation(Menu):
@@ -1280,31 +1281,31 @@ class VIEW3D_MT_view_align_selected(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        props = layout.operator("view3d.view_axis", text="Top")
+        props = layout.operator("view3d.view_axis", text="Top", text_ctxt=i18n_text_ctxt)
         props.align_active = True
         props.type = 'TOP'
 
-        props = layout.operator("view3d.view_axis", text="Bottom")
+        props = layout.operator("view3d.view_axis", text="Bottom", text_ctxt=i18n_text_ctxt)
         props.align_active = True
         props.type = 'BOTTOM'
 
         layout.separator()
 
-        props = layout.operator("view3d.view_axis", text="Front")
+        props = layout.operator("view3d.view_axis", text="Front", text_ctxt=i18n_text_ctxt)
         props.align_active = True
         props.type = 'FRONT'
 
-        props = layout.operator("view3d.view_axis", text="Back")
+        props = layout.operator("view3d.view_axis", text="Back", text_ctxt=i18n_text_ctxt)
         props.align_active = True
         props.type = 'BACK'
 
         layout.separator()
 
-        props = layout.operator("view3d.view_axis", text="Right")
+        props = layout.operator("view3d.view_axis", text="Right", text_ctxt=i18n_text_ctxt)
         props.align_active = True
         props.type = 'RIGHT'
 
-        props = layout.operator("view3d.view_axis", text="Left")
+        props = layout.operator("view3d.view_axis", text="Left", text_ctxt=i18n_text_ctxt)
         props.align_active = True
         props.type = 'LEFT'
 

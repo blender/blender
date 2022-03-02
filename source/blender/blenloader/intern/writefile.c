@@ -580,7 +580,7 @@ static WriteData *mywrite_begin(WriteWrap *ww, MemFile *compare, MemFile *curren
 
 /**
  * END the mywrite wrapper
- * \return 1 if write failed
+ * \return True if write failed
  * \return unknown global variable otherwise
  * \warning Talks to other functions with global parameters
  */
@@ -1256,12 +1256,12 @@ static bool do_history(const char *name, ReportList *reports)
   int hisnr = U.versions;
 
   if (U.versions == 0) {
-    return 0;
+    return false;
   }
 
   if (strlen(name) < 2) {
     BKE_report(reports, RPT_ERROR, "Unable to make version backup: filename too short");
-    return 1;
+    return true;
   }
 
   while (hisnr > 1) {
@@ -1287,7 +1287,7 @@ static bool do_history(const char *name, ReportList *reports)
     }
   }
 
-  return 0;
+  return false;
 }
 
 /** \} */
@@ -1334,7 +1334,7 @@ bool BLO_write_file(Main *mainvar,
   if (ww.open(&ww, tempname) == false) {
     BKE_reportf(
         reports, RPT_ERROR, "Cannot open file %s for writing: %s", tempname, strerror(errno));
-    return 0;
+    return false;
   }
 
   if (remap_mode == BLO_WRITE_PATH_REMAP_ABSOLUTE) {
@@ -1426,7 +1426,7 @@ bool BLO_write_file(Main *mainvar,
     BKE_report(reports, RPT_ERROR, strerror(errno));
     remove(tempname);
 
-    return 0;
+    return false;
   }
 
   /* file save to temporary file was successful */
@@ -1435,13 +1435,13 @@ bool BLO_write_file(Main *mainvar,
     const bool err_hist = do_history(filepath, reports);
     if (err_hist) {
       BKE_report(reports, RPT_ERROR, "Version backup failed (file saved with @)");
-      return 0;
+      return false;
     }
   }
 
   if (BLI_rename(tempname, filepath) != 0) {
     BKE_report(reports, RPT_ERROR, "Cannot change old file (file saved with @)");
-    return 0;
+    return false;
   }
 
   if (G.debug & G_DEBUG_IO && mainvar->lock != NULL) {
@@ -1449,7 +1449,7 @@ bool BLO_write_file(Main *mainvar,
     BLO_main_validate_libraries(mainvar, reports);
   }
 
-  return 1;
+  return true;
 }
 
 bool BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int write_flags)

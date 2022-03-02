@@ -35,7 +35,7 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 }
 
 static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
-                                      GeometryComponent &component,
+                                      CurveComponent &component,
                                       const Field<bool> &selection_field,
                                       const Field<float3> &position_field,
                                       const Field<float3> &offset_field)
@@ -53,8 +53,7 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
-  CurveComponent &curve_component = *static_cast<CurveComponent *>(&component);
-  CurveEval *curve = curve_component.get_for_write();
+  std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*component.get_for_read());
 
   int current_point = 0;
   int current_mask = 0;
@@ -126,6 +125,8 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
       }
     }
   }
+
+  component.replace(curve_eval_to_curves(*curve), GeometryOwnershipType::Owned);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -140,9 +141,11 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   bool has_bezier = false;
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (geometry_set.has_curve() &&
-        geometry_set.get_curve_for_read()->has_spline_with_type(CURVE_TYPE_BEZIER)) {
-      has_bezier = true;
+    if (geometry_set.has_curves()) {
+      const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
+          *geometry_set.get_curves_for_read());
+      has_bezier = curve->has_spline_with_type(CURVE_TYPE_BEZIER);
+
       set_position_in_component(mode,
                                 geometry_set.get_component_for_write<CurveComponent>(),
                                 selection_field,

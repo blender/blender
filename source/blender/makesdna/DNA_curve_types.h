@@ -306,14 +306,6 @@ enum {
   CU_AUTOSPACE_EVALUATED = 2,
 };
 
-#if 0 /* Moved to overlay options in 2.8 */
-/* Curve.drawflag */
-enum {
-  CU_HIDE_HANDLES = 1 << 0,
-  CU_HIDE_NORMALS = 1 << 1,
-};
-#endif
-
 /* Curve.flag */
 enum {
   CU_3D = 1 << 0,

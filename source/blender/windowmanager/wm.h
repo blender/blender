@@ -74,15 +74,7 @@ void wm_gesture_draw(struct wmWindow *win);
 /**
  * Tweak and line gestures.
  */
-int wm_gesture_evaluate(wmGesture *gesture, const struct wmEvent *event);
 void wm_gesture_tag_redraw(struct wmWindow *win);
-
-/* wm_gesture_ops.c */
-
-/**
- * Standard tweak, called after window handlers passed on event.
- */
-void wm_tweakevent_test(bContext *C, const wmEvent *event, int action);
 
 /* wm_jobs.c */
 

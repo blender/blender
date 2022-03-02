@@ -153,7 +153,7 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
     win->eventstate->type = event->type;
 
     if (event->val == KM_PRESS) {
-      if (event->is_repeat == false) {
+      if ((event->flag & WM_EVENT_IS_REPEAT) == 0) {
         copy_v2_v2_int(win->eventstate->prev_click_xy, event->xy);
       }
     }
@@ -166,7 +166,7 @@ void wm_event_free(wmEvent *event)
 #ifndef NDEBUG
   /* Don't use assert here because it's fairly harmless in most cases,
    * more an issue of correctness, something we should avoid in general. */
-  if (event->is_repeat && !ISKEYBOARD(event->type)) {
+  if ((event->flag & WM_EVENT_IS_REPEAT) && !ISKEYBOARD(event->type)) {
     printf("%s: 'is_repeat=true' for non-keyboard event, this should not happen.\n", __func__);
     WM_event_print(event);
   }
@@ -739,7 +739,7 @@ void wm_event_handler_ui_cancel_ex(bContext *C,
       wm_event_init_from_window(win, &event);
       event.type = EVT_BUT_CANCEL;
       event.val = reactivate_button ? 0 : 1;
-      event.is_repeat = false;
+      event.flag = 0;
       handler->handle_fn(C, &event, handler->user_data);
     }
   }
@@ -1982,7 +1982,7 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
     return false;
   }
 
-  if (winevent->is_repeat) {
+  if (winevent->flag & WM_EVENT_IS_REPEAT) {
     if (kmi->flag & KMI_REPEAT_IGNORE) {
       return false;
     }
@@ -2026,6 +2026,14 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
   if (kmi->val != KM_ANY) {
     if (winevent->val != kmi->val) {
       return false;
+    }
+  }
+
+  if (kmi->val == KM_CLICK_DRAG) {
+    if (kmi->direction != KM_ANY) {
+      if (kmi->direction != winevent->direction) {
+        return false;
+      }
     }
   }
 
@@ -2775,7 +2783,7 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
 {
   /* Drag events use the previous click location to highlight the gizmos,
    * Get the highlight again in case the user dragged off the gizmo. */
-  const bool is_event_drag = ISTWEAK(event->type) || (event->val == KM_CLICK_DRAG);
+  const bool is_event_drag = (event->val == KM_CLICK_DRAG);
   const bool is_event_modifier = ISKEYMODIFIER(event->type);
   /* Only keep the highlight if the gizmo becomes modal as result of event handling.
    * Without this check, even un-handled drag events will set the highlight if the drag
@@ -2886,15 +2894,10 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
           wmEvent event_test_click_drag = *event;
           event_test_click_drag.val = KM_CLICK_DRAG;
 
-          wmEvent event_test_tweak = *event;
-          event_test_tweak.type = EVT_TWEAK_L + (event->type - LEFTMOUSE);
-          event_test_tweak.val = KM_ANY;
-
           LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
             if ((kmi->flag & KMI_INACTIVE) == 0) {
               if (wm_eventmatch(&event_test_click, kmi) ||
-                  wm_eventmatch(&event_test_click_drag, kmi) ||
-                  wm_eventmatch(&event_test_tweak, kmi)) {
+                  wm_eventmatch(&event_test_click_drag, kmi)) {
                 wmOperatorType *ot = WM_operatortype_find(kmi->idname, 0);
                 if (WM_operator_poll_context(C, ot, WM_OP_INVOKE_DEFAULT)) {
                   is_event_handle_all = true;
@@ -3155,44 +3158,44 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
   }
 
   if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-    /* Test for CLICK_DRAG events. */
-    if (wm_action_not_handled(action)) {
-      if (win->event_queue_check_drag) {
-        if (WM_event_drag_test(event, event->prev_click_xy)) {
-          win->event_queue_check_drag_handled = true;
+    /* Test for #WM_CLICK_DRAG events. */
 
-          const int prev_xy[2] = {UNPACK2(event->xy)};
-          const short prev_val = event->val;
-          const short prev_type = event->type;
-          const uint8_t prev_modifier = event->modifier;
-          const short prev_keymodifier = event->keymodifier;
+    /* NOTE(@campbellbarton): Ignore `action` so drag can be used for editors that use both click
+     * selection and passing through the drag action to box select. See #WM_generic_select_modal.
+     * In the case of marker select-drag the combinations of (pass-through / finished / modal)
+     * can accumulate to have flags set that they can't be properly interpreted here.
+     * Instead `win->event_queue_check_drag` is cleared in `wm_event_do_handlers`. */
+    if (win->event_queue_check_drag) {
+      if (WM_event_drag_test(event, event->prev_click_xy)) {
+        win->event_queue_check_drag_handled = true;
+        const int direction = WM_event_drag_direction(event);
 
-          copy_v2_v2_int(event->xy, event->prev_click_xy);
-          event->val = KM_CLICK_DRAG;
-          event->type = event->prev_type;
-          event->modifier = event->prev_click_modifier;
-          event->keymodifier = event->prev_click_keymodifier;
+        const int prev_xy[2] = {UNPACK2(event->xy)};
+        const short prev_val = event->val;
+        const short prev_type = event->type;
+        const uint8_t prev_modifier = event->modifier;
+        const short prev_keymodifier = event->keymodifier;
 
-          CLOG_INFO(WM_LOG_HANDLERS, 1, "handling PRESS_DRAG");
+        copy_v2_v2_int(event->xy, event->prev_click_xy);
+        event->val = KM_CLICK_DRAG;
+        event->type = event->prev_click_type;
+        event->modifier = event->prev_click_modifier;
+        event->keymodifier = event->prev_click_keymodifier;
+        event->direction = direction;
 
-          action |= wm_handlers_do_intern(C, win, event, handlers);
+        CLOG_INFO(WM_LOG_HANDLERS, 1, "handling PRESS_DRAG");
 
-          event->keymodifier = prev_keymodifier;
-          event->modifier = prev_modifier;
-          event->val = prev_val;
-          event->type = prev_type;
-          copy_v2_v2_int(event->xy, prev_xy);
+        action |= wm_handlers_do_intern(C, win, event, handlers);
 
-          win->event_queue_check_click = false;
-          if (!wm_action_not_handled(action)) {
-            /* Only disable when handled as other handlers may use this drag event. */
-            win->event_queue_check_drag = false;
-          }
-        }
+        event->direction = 0;
+        event->keymodifier = prev_keymodifier;
+        event->modifier = prev_modifier;
+        event->val = prev_val;
+        event->type = prev_type;
+        copy_v2_v2_int(event->xy, prev_xy);
+
+        win->event_queue_check_click = false;
       }
-    }
-    else {
-      win->event_queue_check_drag = false;
     }
   }
   else if (ISMOUSE_BUTTON(event->type) || ISKEYBOARD(event->type)) {
@@ -3204,7 +3207,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
        * wasn't handled, the KM_RELEASE will become a KM_CLICK */
 
       if (event->val == KM_PRESS) {
-        if (event->is_repeat == false) {
+        if ((event->flag & WM_EVENT_IS_REPEAT) == 0) {
           win->event_queue_check_click = true;
           win->event_queue_check_drag = true;
           win->event_queue_check_drag_handled = false;
@@ -3212,7 +3215,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
       }
       else if (event->val == KM_RELEASE) {
         if (win->event_queue_check_drag) {
-          if ((event->prev_type != event->type) &&
+          if ((event->prev_click_type != event->type) &&
               (ISKEYMODIFIER(event->type) || (event->type == event->prev_click_keymodifier))) {
             /* Support releasing modifier keys without canceling the drag event, see T89989.
              * NOTE: this logic is replicated for tweak gestures. */
@@ -3223,7 +3226,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         }
       }
 
-      if (event->prev_type == event->type) {
+      if (event->prev_click_type == event->type) {
 
         if (event->val == KM_RELEASE) {
           if (event->prev_val == KM_PRESS) {
@@ -3264,7 +3267,6 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
     }
     else {
       win->event_queue_check_click = false;
-      win->event_queue_check_drag = false;
     }
   }
   else if (ISMOUSE_WHEEL(event->type) || ISMOUSE_GESTURE(event->type)) {
@@ -3711,8 +3713,10 @@ void wm_event_do_handlers(bContext *C)
       /* Check dragging, creates new event or frees, adds draw tag. */
       wm_event_drag_and_drop_test(wm, win, event);
 
-      /* Builtin tweak, if action is break it removes tweak. */
-      wm_tweakevent_test(C, event, action);
+      /* Builtin drag: #KM_CLICK_DRAG. */
+      if (action & WM_HANDLER_BREAK) {
+        win->event_queue_check_drag = false;
+      }
 
       if ((action & WM_HANDLER_BREAK) == 0) {
         /* NOTE: setting subwin active should be done here, after modal handlers have been done. */
@@ -3814,7 +3818,7 @@ void wm_event_do_handlers(bContext *C)
       tevent.type = MOUSEMOVE;
       tevent.prev_xy[0] = tevent.xy[0];
       tevent.prev_xy[1] = tevent.xy[1];
-      tevent.is_repeat = false;
+      tevent.flag = 0;
       wm_event_add(win, &tevent);
       win->addmousemove = 0;
     }
@@ -4667,8 +4671,8 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
       }
     }
 
-    wmWindow *win_other = WM_window_find_under_cursor(wm, win, win, mval, mval);
-    if (win_other) {
+    wmWindow *win_other = WM_window_find_under_cursor(win, mval, mval);
+    if (win_other && win_other != win) {
       copy_v2_v2_int(event->xy, mval);
       return win_other;
     }
@@ -4705,10 +4709,11 @@ static void wm_event_prev_values_set(wmEvent *event, wmEvent *event_state)
 static void wm_event_prev_click_set(wmEvent *event, wmEvent *event_state)
 {
   event->prev_click_time = event_state->prev_click_time = PIL_check_seconds_timer();
-  event->prev_click_xy[0] = event_state->prev_click_xy[0] = event_state->xy[0];
-  event->prev_click_xy[1] = event_state->prev_click_xy[1] = event_state->xy[1];
+  event->prev_click_type = event_state->prev_click_type = event_state->type;
   event->prev_click_modifier = event_state->prev_click_modifier = event_state->modifier;
   event->prev_click_keymodifier = event_state->prev_click_keymodifier = event_state->keymodifier;
+  event->prev_click_xy[0] = event_state->prev_click_xy[0] = event_state->xy[0];
+  event->prev_click_xy[1] = event_state->prev_click_xy[1] = event_state->xy[1];
 }
 
 static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
@@ -4720,7 +4725,7 @@ static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
    * them for better performance. */
   if (event_last && event_last->type == MOUSEMOVE) {
     event_last->type = INBETWEEN_MOUSEMOVE;
-    event_last->is_repeat = false;
+    event_last->flag = 0;
   }
 
   wmEvent *event_new = wm_event_add(win, event);
@@ -4772,7 +4777,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 
   /* Initialize and copy state (only mouse x y and modifiers). */
   event = *event_state;
-  event.is_repeat = false;
+  event.flag = 0;
 
   /**
    * Always support accessing the last key press/release. This is set from `win->eventstate`,
@@ -4870,7 +4875,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       event.val = KM_NOTHING;
 
       /* The direction is inverted from the device due to system preferences. */
-      event.is_direction_inverted = pd->isDirectionInverted;
+      if (pd->isDirectionInverted) {
+        event.flag |= WM_EVENT_SCROLL_INVERT;
+      }
 
       wm_event_add_trackpad(win, &event, pd->deltaX, -pd->deltaY);
       break;
@@ -4951,12 +4958,16 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
     case GHOST_kEventKeyDown:
     case GHOST_kEventKeyUp: {
       GHOST_TEventKeyData *kd = customdata;
+      /* Only copy these flags into the `event_state`. */
+      const eWM_EventFlag event_state_flag_mask = WM_EVENT_IS_REPEAT;
       bool keymodifier = 0;
       event.type = convert_key(kd->key);
       event.ascii = kd->ascii;
       /* Might be not NULL terminated. */
       memcpy(event.utf8_buf, kd->utf8_buf, sizeof(event.utf8_buf));
-      event.is_repeat = kd->is_repeat;
+      if (kd->is_repeat) {
+        event.flag |= WM_EVENT_IS_REPEAT;
+      }
       event.val = (type == GHOST_kEventKeyDown) ? KM_PRESS : KM_RELEASE;
 
       wm_eventemulation(&event, false);
@@ -4965,7 +4976,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       /* Copy to event state. */
       event_state->val = event.val;
       event_state->type = event.type;
-      event_state->is_repeat = event.is_repeat;
+      event_state->flag = (event.flag & event_state_flag_mask);
 
       /* Exclude arrow keys, esc, etc from text input. */
       if (type == GHOST_kEventKeyUp) {
@@ -5096,7 +5107,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       /* Double click test - only for press. */
       if (event.val == KM_PRESS) {
         /* Don't reset timer & location when holding the key generates repeat events. */
-        if (event.is_repeat == false) {
+        if ((event.flag & WM_EVENT_IS_REPEAT) == 0) {
           wm_event_prev_click_set(&event, event_state);
         }
       }
@@ -5217,7 +5228,7 @@ void wm_event_add_xrevent(wmWindow *win, wmXrActionData *actiondata, short val)
   wmEvent event = {
       .type = EVT_XR_ACTION,
       .val = val,
-      .is_repeat = false,
+      .flag = 0,
       .custom = EVT_DATA_XR,
       .customdata = actiondata,
       .customdata_free = true,
@@ -5503,15 +5514,15 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
   } event_data[] = {
       {0, 0, LEFTMOUSE, KM_PRESS},
       {0, 0, LEFTMOUSE, KM_CLICK},
-      {0, 1, EVT_TWEAK_L, KM_ANY},
+      {0, 0, LEFTMOUSE, KM_CLICK_DRAG},
 
       {1, 0, MIDDLEMOUSE, KM_PRESS},
       {1, 0, MIDDLEMOUSE, KM_CLICK},
-      {1, 1, EVT_TWEAK_M, KM_ANY},
+      {1, 0, MIDDLEMOUSE, KM_CLICK_DRAG},
 
       {2, 0, RIGHTMOUSE, KM_PRESS},
       {2, 0, RIGHTMOUSE, KM_CLICK},
-      {2, 1, EVT_TWEAK_R, KM_ANY},
+      {2, 0, RIGHTMOUSE, KM_CLICK_DRAG},
   };
 
   for (int button_index = 0; button_index < 3; button_index++) {

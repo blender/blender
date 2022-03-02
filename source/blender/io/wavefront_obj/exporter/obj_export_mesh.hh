@@ -189,7 +189,7 @@ class OBJMesh : NonCopyable {
   }
   /**
    * Calculate a polygon's polygon/loop normal indices.
-   * \param poly_index Index of the polygon to calculate indices for.
+   * \param poly_index: Index of the polygon to calculate indices for.
    * \return Vector of normal indices, aligned with vertices of polygon.
    */
   Vector<int> calc_poly_normal_indices(int poly_index) const;

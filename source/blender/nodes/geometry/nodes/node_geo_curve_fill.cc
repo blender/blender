@@ -113,12 +113,13 @@ static Mesh *cdt_to_mesh(const blender::meshintersect::CDT_result<double> &resul
 
 static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCurveFillMode mode)
 {
-  if (!geometry_set.has_curve()) {
+  if (!geometry_set.has_curves()) {
     return;
   }
 
-  const CurveEval &curve = *geometry_set.get_curve_for_read();
-  if (curve.splines().is_empty()) {
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
+      *geometry_set.get_curves_for_read());
+  if (curve->splines().is_empty()) {
     geometry_set.replace_curve(nullptr);
     return;
   }
@@ -127,7 +128,7 @@ static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCu
                                           CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES :
                                           CDT_INSIDE_WITH_HOLES;
 
-  const blender::meshintersect::CDT_result<double> results = do_cdt(curve, output_type);
+  const blender::meshintersect::CDT_result<double> results = do_cdt(*curve, output_type);
   Mesh *mesh = cdt_to_mesh(results);
 
   geometry_set.replace_mesh(mesh);

@@ -660,7 +660,7 @@ static void node_draw_mute_line(const bContext &C,
   GPU_blend(GPU_BLEND_ALPHA);
 
   LISTBASE_FOREACH (const bNodeLink *, link, &node.internal_links) {
-    node_draw_link_bezier(C, v2d, snode, *link, TH_WIRE_INNER, TH_WIRE_INNER, TH_WIRE);
+    node_draw_link_bezier(C, v2d, snode, *link, TH_WIRE_INNER, TH_WIRE_INNER, TH_WIRE, false);
   }
 
   GPU_blend(GPU_BLEND_NONE);
@@ -718,7 +718,12 @@ static void node_socket_draw_multi_input(const float color[4],
                                          const int locx,
                                          const int locy)
 {
-  const float outline_width = 1.0f;
+  /* The other sockets are drawn with the keyframe shader. There, the outline has a base thickness
+   * that can be varied but always scales with the size the socket is drawn at. Using `U.dpi_fac`
+   * has the the same effect here. It scales the outline correctly across different screen DPIs
+   * and UI scales without being affected by the 'line-width'. */
+  const float outline_width = NODE_SOCK_OUTLINE_SCALE * U.dpi_fac;
+
   /* UI_draw_roundbox draws the outline on the outer side, so compensate for the outline width. */
   const rctf rect = {
       locx - width + outline_width * 0.5f,
@@ -1060,7 +1065,7 @@ void ED_node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[
 {
   using namespace blender::ed::space_node;
 
-  const float size = 2.25f * NODE_SOCKSIZE * scale;
+  const float size = NODE_SOCKSIZE_DRAW_MULIPLIER * NODE_SOCKSIZE * scale;
   rcti draw_rect = *rect;
   float outline_color[4] = {0};
 
@@ -1081,7 +1086,7 @@ void ED_node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[
   GPU_program_point_size(true);
 
   immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
-  immUniform1f("outline_scale", 1.0f);
+  immUniform1f("outline_scale", NODE_SOCK_OUTLINE_SCALE);
   immUniform2f("ViewportSize", -1.0f, -1.0f);
 
   /* Single point. */
@@ -1232,13 +1237,14 @@ static void node_draw_sockets(const View2D &v2d,
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_program_point_size(true);
   immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
-  immUniform1f("outline_scale", 1.0f);
+  immUniform1f("outline_scale", NODE_SOCK_OUTLINE_SCALE);
   immUniform2f("ViewportSize", -1.0f, -1.0f);
 
   /* Set handle size. */
+  const float socket_draw_size = NODE_SOCKSIZE * NODE_SOCKSIZE_DRAW_MULIPLIER;
   float scale;
   UI_view2d_scale_get(&v2d, &scale, nullptr);
-  scale *= 2.25f * NODE_SOCKSIZE;
+  scale *= socket_draw_size;
 
   if (!select_all) {
     immBeginAtMost(GPU_PRIM_POINTS, total_input_len + total_output_len);
@@ -1251,7 +1257,10 @@ static void node_draw_sockets(const View2D &v2d,
       continue;
     }
     if (select_all || (sock->flag & SELECT)) {
-      selected_input_len++;
+      if (!(sock->flag & SOCK_MULTI_INPUT)) {
+        /* Don't add multi-input sockets here since they are drawn in a different batch. */
+        selected_input_len++;
+      }
       continue;
     }
     /* Don't draw multi-input sockets here since they are drawn in a different batch. */
@@ -1316,6 +1325,10 @@ static void node_draw_sockets(const View2D &v2d,
       /* Socket inputs. */
       LISTBASE_FOREACH (bNodeSocket *, sock, &node.inputs) {
         if (nodeSocketIsHidden(sock)) {
+          continue;
+        }
+        /* Don't draw multi-input sockets here since they are drawn in a different batch. */
+        if (sock->flag & SOCK_MULTI_INPUT) {
           continue;
         }
         if (select_all || (sock->flag & SELECT)) {
@@ -1383,13 +1396,13 @@ static void node_draw_sockets(const View2D &v2d,
     }
 
     const bool is_node_hidden = (node.flag & NODE_HIDDEN);
-    const float width = NODE_SOCKSIZE;
+    const float width = 0.5f * socket_draw_size;
     float height = is_node_hidden ? width : node_socket_calculate_height(*socket) - width;
 
     float color[4];
     float outline_color[4];
     node_socket_color_get(C, ntree, node_ptr, *socket, color);
-    node_socket_outline_color_get(selected, socket->type, outline_color);
+    node_socket_outline_color_get(socket->flag & SELECT, socket->type, outline_color);
 
     node_socket_draw_multi_input(color, outline_color, width, height, socket->locx, socket->locy);
   }
@@ -2650,10 +2663,18 @@ static void node_draw_nodetree(const bContext &C,
   nodelink_batch_start(snode);
 
   LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
-    if (!nodeLinkIsHidden(link)) {
-      node_draw_link(C, region.v2d, snode, *link);
+    if (!nodeLinkIsHidden(link) && !nodeLinkIsSelected(link)) {
+      node_draw_link(C, region.v2d, snode, *link, false);
     }
   }
+
+  /* Draw selected node links after the unselected ones, so they are shown on top. */
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+    if (!nodeLinkIsHidden(link) && nodeLinkIsSelected(link)) {
+      node_draw_link(C, region.v2d, snode, *link, true);
+    }
+  }
+
   nodelink_batch_end(snode);
   GPU_blend(GPU_BLEND_NONE);
 
@@ -2838,7 +2859,7 @@ void node_draw_space(const bContext &C, ARegion &region)
     GPU_line_smooth(true);
     if (snode.runtime->linkdrag) {
       for (const bNodeLink *link : snode.runtime->linkdrag->links) {
-        node_draw_link(C, v2d, snode, *link);
+        node_draw_link(C, v2d, snode, *link, true);
       }
     }
     GPU_line_smooth(false);

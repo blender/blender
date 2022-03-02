@@ -911,7 +911,6 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
       ret_value = op->type->exec(C, op);
       OPERATOR_RETVAL_CHECK(ret_value);
-
       op->customdata = POINTER_FROM_INT((int)event->type);
       if (ret_value & OPERATOR_RUNNING_MODAL) {
         WM_event_add_modal_handler(C, op);

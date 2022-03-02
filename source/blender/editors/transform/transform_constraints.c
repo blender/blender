@@ -1041,8 +1041,7 @@ static void setNearestAxis3d(TransInfo *t)
    * and to overflow the short integers.
    * The formula used is a bit stupid, just a simplification of the subtraction
    * of two 2D points 30 pixels apart (that's the last factor in the formula) after
-   * projecting them with ED_view3d_win_to_delta and then get the length of that vector.
-   */
+   * projecting them with #ED_view3d_win_to_delta and then get the length of that vector. */
   zfac = mul_project_m4_v3_zfac(t->persmat, t->center_global);
   zfac = len_v3(t->persinv[0]) * 2.0f / t->region->winx * zfac * 30.0f;
 

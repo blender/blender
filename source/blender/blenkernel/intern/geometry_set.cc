@@ -7,6 +7,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_attribute_access.hh"
+#include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
@@ -186,8 +187,9 @@ bool GeometrySet::compute_boundbox_without_instances(float3 *r_min, float3 *r_ma
   if (volume != nullptr) {
     have_minmax |= BKE_volume_min_max(volume, *r_min, *r_max);
   }
-  const CurveEval *curve = this->get_curve_for_read();
-  if (curve != nullptr) {
+  const Curves *curves = this->get_curves_for_read();
+  if (curves != nullptr) {
+    std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curves);
     /* Using the evaluated positions is somewhat arbitrary, but it is probably expected. */
     have_minmax |= curve->bounds_min_max(*r_min, *r_max, true);
   }
@@ -258,7 +260,7 @@ const Volume *GeometrySet::get_volume_for_read() const
   return (component == nullptr) ? nullptr : component->get_for_read();
 }
 
-const CurveEval *GeometrySet::get_curve_for_read() const
+const Curves *GeometrySet::get_curves_for_read() const
 {
   const CurveComponent *component = this->get_component_for_read<CurveComponent>();
   return (component == nullptr) ? nullptr : component->get_for_read();
@@ -282,10 +284,10 @@ bool GeometrySet::has_volume() const
   return component != nullptr && component->has_volume();
 }
 
-bool GeometrySet::has_curve() const
+bool GeometrySet::has_curves() const
 {
   const CurveComponent *component = this->get_component_for_read<CurveComponent>();
-  return component != nullptr && component->has_curve();
+  return component != nullptr && component->has_curves();
 }
 
 bool GeometrySet::has_realized_data() const
@@ -302,8 +304,8 @@ bool GeometrySet::has_realized_data() const
 
 bool GeometrySet::is_empty() const
 {
-  return !(this->has_mesh() || this->has_curve() || this->has_pointcloud() || this->has_volume() ||
-           this->has_instances());
+  return !(this->has_mesh() || this->has_curves() || this->has_pointcloud() ||
+           this->has_volume() || this->has_instances());
 }
 
 GeometrySet GeometrySet::create_with_mesh(Mesh *mesh, GeometryOwnershipType ownership)
@@ -327,12 +329,12 @@ GeometrySet GeometrySet::create_with_pointcloud(PointCloud *pointcloud,
   return geometry_set;
 }
 
-GeometrySet GeometrySet::create_with_curve(CurveEval *curve, GeometryOwnershipType ownership)
+GeometrySet GeometrySet::create_with_curves(Curves *curves, GeometryOwnershipType ownership)
 {
   GeometrySet geometry_set;
-  if (curve != nullptr) {
+  if (curves != nullptr) {
     CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
-    component.replace(curve, ownership);
+    component.replace(curves, ownership);
   }
   return geometry_set;
 }
@@ -351,18 +353,18 @@ void GeometrySet::replace_mesh(Mesh *mesh, GeometryOwnershipType ownership)
   component.replace(mesh, ownership);
 }
 
-void GeometrySet::replace_curve(CurveEval *curve, GeometryOwnershipType ownership)
+void GeometrySet::replace_curve(Curves *curves, GeometryOwnershipType ownership)
 {
-  if (curve == nullptr) {
+  if (curves == nullptr) {
     this->remove<CurveComponent>();
     return;
   }
-  if (curve == this->get_curve_for_read()) {
+  if (curves == this->get_curves_for_read()) {
     return;
   }
   this->remove<CurveComponent>();
   CurveComponent &component = this->get_component_for_write<CurveComponent>();
-  component.replace(curve, ownership);
+  component.replace(curves, ownership);
 }
 
 void GeometrySet::replace_pointcloud(PointCloud *pointcloud, GeometryOwnershipType ownership)
@@ -411,7 +413,7 @@ Volume *GeometrySet::get_volume_for_write()
   return component == nullptr ? nullptr : component->get_for_write();
 }
 
-CurveEval *GeometrySet::get_curve_for_write()
+Curves *GeometrySet::get_curves_for_write()
 {
   CurveComponent *component = this->get_component_ptr<CurveComponent>();
   return component == nullptr ? nullptr : component->get_for_write();

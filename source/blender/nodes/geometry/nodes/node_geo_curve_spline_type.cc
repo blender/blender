@@ -362,14 +362,17 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (!geometry_set.has_curve()) {
+    if (!geometry_set.has_curves()) {
       return;
     }
 
     const CurveComponent *curve_component = geometry_set.get_component_for_read<CurveComponent>();
-    const CurveEval &curve = *curve_component->get_for_read();
+    const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
+        *curve_component->get_for_read());
     GeometryComponentFieldContext field_context{*curve_component, ATTR_DOMAIN_CURVE};
     const int domain_size = curve_component->attribute_domain_size(ATTR_DOMAIN_CURVE);
+
+    Span<SplinePtr> src_splines = curve->splines();
 
     fn::FieldEvaluator selection_evaluator{field_context, domain_size};
     selection_evaluator.add(selection_field);
@@ -377,30 +380,30 @@ static void node_geo_exec(GeoNodeExecParams params)
     const VArray<bool> &selection = selection_evaluator.get_evaluated<bool>(0);
 
     std::unique_ptr<CurveEval> new_curve = std::make_unique<CurveEval>();
-    new_curve->resize(curve.splines().size());
+    new_curve->resize(src_splines.size());
 
-    threading::parallel_for(curve.splines().index_range(), 512, [&](IndexRange range) {
+    threading::parallel_for(src_splines.index_range(), 512, [&](IndexRange range) {
       for (const int i : range) {
         if (selection[i]) {
           switch (output_type) {
             case GEO_NODE_SPLINE_TYPE_POLY:
-              new_curve->splines()[i] = convert_to_poly_spline(*curve.splines()[i]);
+              new_curve->splines()[i] = convert_to_poly_spline(*src_splines[i]);
               break;
             case GEO_NODE_SPLINE_TYPE_BEZIER:
-              new_curve->splines()[i] = convert_to_bezier(*curve.splines()[i], params);
+              new_curve->splines()[i] = convert_to_bezier(*src_splines[i], params);
               break;
             case GEO_NODE_SPLINE_TYPE_NURBS:
-              new_curve->splines()[i] = convert_to_nurbs(*curve.splines()[i]);
+              new_curve->splines()[i] = convert_to_nurbs(*src_splines[i]);
               break;
           }
         }
         else {
-          new_curve->splines()[i] = curve.splines()[i]->copy();
+          new_curve->splines()[i] = src_splines[i]->copy();
         }
       }
     });
-    new_curve->attributes = curve.attributes;
-    geometry_set.replace_curve(new_curve.release());
+    new_curve->attributes = curve->attributes;
+    geometry_set.replace_curve(curve_eval_to_curves(*new_curve));
   });
 
   params.set_output("Curve", std::move(geometry_set));

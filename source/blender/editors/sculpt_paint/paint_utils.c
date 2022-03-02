@@ -130,13 +130,12 @@ float paint_calc_object_space_radius(ViewContext *vc, const float center[3], flo
 {
   Object *ob = vc->obact;
   float delta[3], scale, loc[3];
-  const float mval_f[2] = {pixel_radius, 0.0f};
-  float zfac;
+  const float xy_delta[2] = {pixel_radius, 0.0f};
 
   mul_v3_m4v3(loc, ob->obmat, center);
 
-  zfac = ED_view3d_calc_zfac(vc->rv3d, loc, NULL);
-  ED_view3d_win_to_delta(vc->region, mval_f, delta, zfac);
+  const float zfac = ED_view3d_calc_zfac(vc->rv3d, loc);
+  ED_view3d_win_to_delta(vc->region, xy_delta, zfac, delta);
 
   scale = fabsf(mat4_to_scale(ob->obmat));
   scale = (scale == 0.0f) ? 1.0f : scale;

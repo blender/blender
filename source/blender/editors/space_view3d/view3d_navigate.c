@@ -396,7 +396,7 @@ ViewOpsData *viewops_data_create(bContext *C, const wmEvent *event, enum eViewOp
   {
     float tvec[3];
     negate_v3_v3(tvec, rv3d->ofs);
-    vod->init.zfac = ED_view3d_calc_zfac(rv3d, tvec, NULL);
+    vod->init.zfac = ED_view3d_calc_zfac(rv3d, tvec);
   }
 
   vod->reverse = 1.0f;
@@ -559,7 +559,7 @@ void viewmove_apply(ViewOpsData *vod, int x, int y)
   else {
     float dvec[3];
 
-    ED_view3d_win_to_delta(vod->region, event_ofs, dvec, vod->init.zfac);
+    ED_view3d_win_to_delta(vod->region, event_ofs, vod->init.zfac, dvec);
 
     sub_v3_v3(vod->rv3d->ofs, dvec);
 

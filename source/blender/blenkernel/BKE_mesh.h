@@ -942,7 +942,7 @@ void BKE_mesh_calc_relative_deform(const struct MPoly *mpoly,
                                    const float (*vert_cos_org)[3],
                                    float (*vert_cos_new)[3]);
 
-/* *** mesh_validate.c *** */
+/* *** mesh_validate.cc *** */
 
 /**
  * Validates and corrects a Mesh.

@@ -727,6 +727,17 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
   V3DSnapCursorState *snap_state_new = ED_view3d_cursor_snap_active();
   if (snap_state_new) {
     ipd->snap_state = snap_state = snap_state_new;
+
+    /* For drag events, update the location since it will be set from the drag-start.
+     * This is needed as cursor-drawing doesn't deal with drag events and will use
+     * the current cursor location instead of the drag-start. */
+    if (event->val == KM_CLICK_DRAG) {
+      /* Set this flag so snapping always updated. */
+      int flag_orig = snap_state_new->flag;
+      snap_state_new->flag |= V3D_SNAPCURSOR_TOGGLE_ALWAYS_TRUE;
+      ED_view3d_cursor_snap_data_get(snap_state_new, C, event->mval[0], event->mval[1]);
+      snap_state_new->flag = flag_orig;
+    }
   }
 
   snap_state->draw_point = true;

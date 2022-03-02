@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_spline.hh"
+#include "BKE_curves.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -60,39 +60,28 @@ static void node_update(bNodeTree *ntree, bNode *node)
       ntree, length_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
 }
 
-static std::unique_ptr<CurveEval> create_point_line_curve(const float3 start, const float3 end)
+static Curves *create_point_line_curve(const float3 start, const float3 end)
 {
-  std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
-  std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
+  Curves *curves_id = bke::curves_new_nomain_single(2, CURVE_TYPE_POLY);
+  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
 
-  spline->resize(2);
-  MutableSpan<float3> positions = spline->positions();
-  positions[0] = start;
-  positions[1] = end;
-  spline->radii().fill(1.0f);
-  spline->tilts().fill(0.0f);
-  curve->add_spline(std::move(spline));
-  curve->attributes.reallocate(curve->splines().size());
-  return curve;
+  curves.positions().first() = start;
+  curves.positions().last() = end;
+
+  return curves_id;
 }
 
-static std::unique_ptr<CurveEval> create_direction_line_curve(const float3 start,
-                                                              const float3 direction,
-                                                              const float length)
+static Curves *create_direction_line_curve(const float3 start,
+                                           const float3 direction,
+                                           const float length)
 {
-  std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
-  std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
+  Curves *curves_id = bke::curves_new_nomain_single(2, CURVE_TYPE_POLY);
+  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
 
-  spline->resize(2);
-  MutableSpan<float3> positions = spline->positions();
-  positions[0] = start;
-  positions[1] = math::normalize(direction) * length + start;
+  curves.positions().first() = start;
+  curves.positions().last() = math::normalize(direction) * length + start;
 
-  spline->radii().fill(1.0f);
-  spline->tilts().fill(0.0f);
-  curve->add_spline(std::move(spline));
-  curve->attributes.reallocate(curve->splines().size());
-  return curve;
+  return curves_id;
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -100,18 +89,18 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometryCurvePrimitiveLine &storage = node_storage(params.node());
   const GeometryNodeCurvePrimitiveLineMode mode = (GeometryNodeCurvePrimitiveLineMode)storage.mode;
 
-  std::unique_ptr<CurveEval> curve;
+  Curves *curves = nullptr;
   if (mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS) {
-    curve = create_point_line_curve(params.extract_input<float3>("Start"),
-                                    params.extract_input<float3>("End"));
+    curves = create_point_line_curve(params.extract_input<float3>("Start"),
+                                     params.extract_input<float3>("End"));
   }
   else if (mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION) {
-    curve = create_direction_line_curve(params.extract_input<float3>("Start"),
-                                        params.extract_input<float3>("Direction"),
-                                        params.extract_input<float>("Length"));
+    curves = create_direction_line_curve(params.extract_input<float3>("Start"),
+                                         params.extract_input<float3>("Direction"),
+                                         params.extract_input<float>("Length"));
   }
 
-  params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
+  params.set_output("Curve", GeometrySet::create_with_curves(curves));
 }
 
 }  // namespace blender::nodes::node_geo_curve_primitive_line_cc

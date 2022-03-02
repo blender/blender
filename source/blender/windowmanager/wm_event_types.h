@@ -325,16 +325,6 @@ enum {
 
   /* NOTE: these values are saved in key-map files, do not change them but just add new ones. */
 
-  /* Tweak events:
-   * Sent as additional event with the mouse coordinates
-   * from where the initial click was placed. */
-
-  /* Tweak events for L M R mouse-buttons. */
-  EVT_TWEAK_L = 0x5002, /* 20482 */
-  EVT_TWEAK_M = 0x5003, /* 20483 */
-  EVT_TWEAK_R = 0x5004, /* 20484 */
-  /* 0x5010 (and lower) should be left to add other tweak types in the future. */
-
   /* 0x5011 is taken, see EVT_ACTIONZONE_FULLSCREEN */
 
   /* Misc Blender internals: 0x502x */
@@ -394,9 +384,6 @@ enum {
         BUTTON6MOUSE, \
         BUTTON7MOUSE))
 
-/** Test whether the event is tweak event. */
-#define ISTWEAK(event_type) ((event_type) >= EVT_TWEAK_L && (event_type) <= EVT_TWEAK_R)
-
 /** Test whether the event is a NDOF event. */
 #define ISNDOF(event_type) ((event_type) >= _NDOF_MIN && (event_type) <= _NDOF_MAX)
 
@@ -423,14 +410,11 @@ enum eEventType_Mask {
   EVT_TYPE_MASK_MOUSE = (1 << 5),
   /** #ISNDOF */
   EVT_TYPE_MASK_NDOF = (1 << 6),
-  /** #ISTWEAK */
-  EVT_TYPE_MASK_TWEAK = (1 << 7),
   /** #IS_EVENT_ACTIONZONE */
-  EVT_TYPE_MASK_ACTIONZONE = (1 << 8),
+  EVT_TYPE_MASK_ACTIONZONE = (1 << 7),
 };
 #define EVT_TYPE_MASK_ALL \
-  (EVT_TYPE_MASK_KEYBOARD | EVT_TYPE_MASK_MOUSE | EVT_TYPE_MASK_NDOF | EVT_TYPE_MASK_TWEAK | \
-   EVT_TYPE_MASK_ACTIONZONE)
+  (EVT_TYPE_MASK_KEYBOARD | EVT_TYPE_MASK_MOUSE | EVT_TYPE_MASK_NDOF | EVT_TYPE_MASK_ACTIONZONE)
 
 #define EVT_TYPE_MASK_HOTKEY_INCLUDE \
   (EVT_TYPE_MASK_KEYBOARD | EVT_TYPE_MASK_MOUSE | EVT_TYPE_MASK_NDOF)
@@ -445,18 +429,6 @@ bool WM_event_type_mask_test(int event_type, enum eEventType_Mask mask);
  * \{ */
 
 /* Gestures */
-/* NOTE: these values are saved in keymap files, do not change them but just add new ones */
-enum {
-  /* Value of tweaks and line gestures. #KM_ANY (-1) works for this case too. */
-  EVT_GESTURE_N = 1,
-  EVT_GESTURE_NE = 2,
-  EVT_GESTURE_E = 3,
-  EVT_GESTURE_SE = 4,
-  EVT_GESTURE_S = 5,
-  EVT_GESTURE_SW = 6,
-  EVT_GESTURE_W = 7,
-  EVT_GESTURE_NW = 8,
-};
 
 /* File select */
 enum {

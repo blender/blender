@@ -865,7 +865,7 @@ static GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
   else {
     std::unique_ptr<CurveEval> curve_eval = curve_eval_from_dna_curve(
         *cu, ob->runtime.curve_cache->deformed_nurbs);
-    geometry_set.replace_curve(curve_eval.release());
+    geometry_set.replace_curve(curve_eval_to_curves(*curve_eval));
   }
 
   for (; md; md = md->next) {
@@ -1490,14 +1490,14 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
   else {
     GeometrySet geometry = evaluate_curve_type_object(depsgraph, scene, ob, for_render, dispbase);
 
-    if (geometry.has_curve()) {
+    if (geometry.has_curves()) {
       /* Assign the evaluated curve to the object's "data_eval". In addition to the curve_eval
        * added to the curve here, it will also contain a copy of the original curve's data. This is
        * essential, because it maintains the expected behavior for evaluated curve data from before
        * the CurveEval data type was introduced, when an evaluated object's curve data was just a
        * copy of the original curve and everything else ended up in #CurveCache. */
       CurveComponent &curve_component = geometry.get_component_for_write<CurveComponent>();
-      cow_curve.curve_eval = curve_component.get_for_write();
+      cow_curve.curve_eval = curves_to_curve_eval(*curve_component.get_for_read()).release();
       BKE_object_eval_assign_data(ob, &cow_curve.id, false);
     }
 

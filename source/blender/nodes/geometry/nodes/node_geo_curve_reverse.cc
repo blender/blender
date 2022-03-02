@@ -20,7 +20,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (!geometry_set.has_curve()) {
+    if (!geometry_set.has_curves()) {
       return;
     }
 
@@ -34,13 +34,15 @@ static void node_geo_exec(GeoNodeExecParams params)
     selection_evaluator.evaluate();
     const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
 
-    CurveEval &curve = *component.get_for_write();
-    MutableSpan<SplinePtr> splines = curve.splines();
+    std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*component.get_for_write());
+    MutableSpan<SplinePtr> splines = curve->splines();
     threading::parallel_for(selection.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
         splines[selection[i]]->reverse();
       }
     });
+
+    component.replace(curve_eval_to_curves(*curve));
   });
 
   params.set_output("Curve", std::move(geometry_set));

@@ -19,15 +19,15 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   geometry_set = geometry::realize_instances_legacy(geometry_set);
-  if (!geometry_set.has_curve()) {
+  if (!geometry_set.has_curves()) {
     params.set_output("Curve", geometry_set);
     return;
   }
 
   /* Retrieve data for write access so we can avoid new allocations for the reversed data. */
   CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
-  CurveEval &curve = *curve_component.get_for_write();
-  MutableSpan<SplinePtr> splines = curve.splines();
+  std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curve_component.get_for_read());
+  MutableSpan<SplinePtr> splines = curve->splines();
 
   const std::string selection_name = params.extract_input<std::string>("Selection");
   VArray<bool> selection = curve_component.attribute_get_for_read(
@@ -40,6 +40,8 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
     }
   });
+
+  geometry_set.replace_curve(curve_eval_to_curves(*curve));
 
   params.set_output("Curve", geometry_set);
 }

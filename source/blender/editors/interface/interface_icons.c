@@ -573,18 +573,6 @@ int UI_icon_from_event_type(short event_type, short event_value)
   else if (event_type == EVT_RIGHTALTKEY) {
     event_type = EVT_LEFTALTKEY;
   }
-  else if (event_type == EVT_TWEAK_L) {
-    event_type = LEFTMOUSE;
-    event_value = KM_CLICK_DRAG;
-  }
-  else if (event_type == EVT_TWEAK_M) {
-    event_type = MIDDLEMOUSE;
-    event_value = KM_CLICK_DRAG;
-  }
-  else if (event_type == EVT_TWEAK_R) {
-    event_type = RIGHTMOUSE;
-    event_value = KM_CLICK_DRAG;
-  }
 
   DrawInfo *di = g_di_event_list;
   do {

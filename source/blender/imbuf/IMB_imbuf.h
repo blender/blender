@@ -560,6 +560,9 @@ bool IMB_alpha_affects_rgb(const struct ImBuf *ibuf);
  * Create char buffer, color corrected if necessary, for ImBufs that lack one.
  */
 void IMB_rect_from_float(struct ImBuf *ibuf);
+void IMB_float_from_rect_ex(struct ImBuf *dst,
+                            const struct ImBuf *src,
+                            const struct rcti *region_to_update);
 void IMB_float_from_rect(struct ImBuf *ibuf);
 /**
  * No profile conversion.
@@ -897,16 +900,16 @@ typedef enum eIMBTransformMode {
 /**
  * \brief Transform source image buffer onto destination image buffer using a transform matrix.
  *
- * \param src Image buffer to read from.
- * \param dst Image buffer to write to. rect or rect_float must already be initialized.
+ * \param src: Image buffer to read from.
+ * \param dst: Image buffer to write to. rect or rect_float must already be initialized.
  * - dst buffer must be a 4 channel buffers.
  * - Only one data type buffer will be used (rect_float has priority over rect)
- * \param mode Cropping/Wrap repeat effect to apply during transformation.
- * \param filter Interpolation to use during sampling.
- * \param transform_matrix Transformation matrix to use.
+ * \param mode: Cropping/Wrap repeat effect to apply during transformation.
+ * \param filter: Interpolation to use during sampling.
+ * \param transform_matrix: Transformation matrix to use.
  * The given matrix should transform between dst pixel space to src pixel space.
  * One unit is one pixel.
- * \param src_crop cropping region how to crop the source buffer. Should only be passed when mode
+ * \param src_crop: Cropping region how to crop the source buffer. Should only be passed when mode
  * is set to #IMB_TRANSFORM_MODE_CROP_SRC. For any other mode this should be empty.
  *
  * During transformation no data/color conversion will happens.
