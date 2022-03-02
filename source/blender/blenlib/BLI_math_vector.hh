@@ -79,13 +79,13 @@ inline vec_base<T, Size> max(const vec_base<T, Size> &a, const vec_base<T, Size>
 }
 
 template<typename T, int Size>
-inline T clamp(const vec_base<T, Size> &a,
-               const vec_base<T, Size> &min,
-               const vec_base<T, Size> &max)
+inline vec_base<T, Size> clamp(const vec_base<T, Size> &a,
+                               const vec_base<T, Size> &min,
+                               const vec_base<T, Size> &max)
 {
   vec_base<T, Size> result = a;
   for (int i = 0; i < Size; i++) {
-    std::clamp(result[i], min[i], max[i]);
+    result[i] = std::clamp(result[i], min[i], max[i]);
   }
   return result;
 }
@@ -95,7 +95,7 @@ inline vec_base<T, Size> clamp(const vec_base<T, Size> &a, const T &min, const T
 {
   vec_base<T, Size> result = a;
   for (int i = 0; i < Size; i++) {
-    std::clamp(result[i], min, max);
+    result[i] = std::clamp(result[i], min, max);
   }
   return result;
 }
