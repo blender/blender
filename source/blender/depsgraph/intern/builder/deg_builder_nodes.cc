@@ -351,16 +351,10 @@ void DepsgraphNodeBuilder::begin_build()
      * same as id_orig. Additionally, such ID might have been removed, which makes the check
      * for whether id_cow is expanded to access freed memory. In order to deal with this we
      * check whether CoW is needed based on a scalar value which does not lead to access of
-     * possibly deleted memory.
-     * Additionally, this saves some space in the map by skipping mapping for datablocks which
-     * do not need CoW, */
-    if (!deg_copy_on_write_is_needed(id_node->id_type)) {
-      id_node->id_cow = nullptr;
-      continue;
-    }
-
+     * possibly deleted memory. */
     IDInfo *id_info = (IDInfo *)MEM_mallocN(sizeof(IDInfo), "depsgraph id info");
-    if (deg_copy_on_write_is_expanded(id_node->id_cow) && id_node->id_orig != id_node->id_cow) {
+    if (deg_copy_on_write_is_needed(id_node->id_type) &&
+        deg_copy_on_write_is_expanded(id_node->id_cow) && id_node->id_orig != id_node->id_cow) {
       id_info->id_cow = id_node->id_cow;
     }
     else {
