@@ -10064,7 +10064,7 @@ static void def_geo_curve_spline_type(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
-static void def_geo_curve_set_handles(StructRNA *srna)
+static void def_geo_curve_set_handle_type(StructRNA *srna)
 {
   PropertyRNA *prop;
 

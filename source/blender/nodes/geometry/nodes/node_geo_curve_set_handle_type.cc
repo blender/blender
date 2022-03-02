@@ -7,7 +7,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes::node_geo_curve_set_handles_cc {
+namespace blender::nodes::node_geo_curve_set_handle_type_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryCurveSetHandles)
 
@@ -116,14 +116,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   params.set_output("Curve", std::move(geometry_set));
 }
-}  // namespace blender::nodes::node_geo_curve_set_handles_cc
+}  // namespace blender::nodes::node_geo_curve_set_handle_type_cc
 
-void register_node_type_geo_curve_set_handles()
+void register_node_type_geo_curve_set_handle_type()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_set_handles_cc;
+  namespace file_ns = blender::nodes::node_geo_curve_set_handle_type_cc;
 
   static bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_SET_HANDLES, "Set Handle Type", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, GEO_NODE_CURVE_SET_HANDLE_TYPE, "Set Handle Type", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   node_type_init(&ntype, file_ns::node_init);

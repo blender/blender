@@ -4750,7 +4750,7 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_resample();
   register_node_type_geo_curve_reverse();
   register_node_type_geo_curve_sample();
-  register_node_type_geo_curve_set_handles();
+  register_node_type_geo_curve_set_handle_type();
   register_node_type_geo_curve_spline_parameter();
   register_node_type_geo_curve_spline_type();
   register_node_type_geo_curve_subdivide();
