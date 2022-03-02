@@ -204,12 +204,12 @@ static void extract_vert_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                          void *UNUSED(data))
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
   /* Each element points to an element in the ibo.points. */
   draw_subdiv_init_origindex_buffer(vbo,
                                     (int *)GPU_vertbuf_get_data(subdiv_cache->verts_orig_index),
                                     subdiv_cache->num_subdiv_loops,
-                                    mr->loop_loose_len);
-
+                                    loose_geom.loop_len);
   if (!mr->v_origindex) {
     return;
   }
@@ -228,12 +228,11 @@ static void extract_vert_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
 
 static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
                                                const MeshRenderData *mr,
-                                               const MeshExtractLooseGeom *loose_geom,
                                                void *buffer,
                                                void *UNUSED(data))
 {
-  const int loop_loose_len = loose_geom->edge_len + loose_geom->vert_len;
-  if (loop_loose_len == 0) {
+  const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
+  if (loose_geom.loop_len == 0) {
     return;
   }
 
@@ -241,60 +240,57 @@ static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cach
   uint *vert_idx_data = (uint *)GPU_vertbuf_get_data(vbo);
   uint offset = subdiv_cache->num_subdiv_loops;
 
-  if (mr->extract_type == MR_EXTRACT_MESH) {
-    const Mesh *coarse_mesh = subdiv_cache->mesh;
-    const MEdge *coarse_edges = coarse_mesh->medge;
-    for (int i = 0; i < loose_geom->edge_len; i++) {
-      const MEdge *loose_edge = &coarse_edges[loose_geom->edges[i]];
-      vert_idx_data[offset] = loose_edge->v1;
-      vert_idx_data[offset + 1] = loose_edge->v2;
-      offset += 2;
+  blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
+
+  for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
+    const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
+    const DRWSubdivLooseVertex &v2 = loose_geom.verts[loose_edge.loose_subdiv_v2_index];
+
+    if (v1.coarse_vertex_index != -1u) {
+      vert_idx_data[offset] = mr->v_origindex ? mr->v_origindex[v1.coarse_vertex_index] :
+                                                v1.coarse_vertex_index;
     }
 
-    for (int i = 0; i < loose_geom->vert_len; i++) {
-      vert_idx_data[offset] = loose_geom->verts[i];
-      offset += 1;
+    if (v2.coarse_vertex_index != -1u) {
+      vert_idx_data[offset + 1] = mr->v_origindex ? mr->v_origindex[v2.coarse_vertex_index] :
+                                                    v2.coarse_vertex_index;
     }
+
+    offset += 2;
   }
-  else {
-    BMesh *bm = mr->bm;
-    for (int i = 0; i < loose_geom->edge_len; i++) {
-      const BMEdge *loose_edge = BM_edge_at_index(bm, loose_geom->edges[i]);
-      vert_idx_data[offset] = BM_elem_index_get(loose_edge->v1);
-      vert_idx_data[offset + 1] = BM_elem_index_get(loose_edge->v2);
-      offset += 2;
-    }
 
-    for (int i = 0; i < loose_geom->vert_len; i++) {
-      const BMVert *loose_vert = BM_vert_at_index(bm, loose_geom->verts[i]);
-      vert_idx_data[offset] = BM_elem_index_get(loose_vert);
-      offset += 1;
-    }
+  blender::Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(
+      subdiv_cache);
+
+  for (const DRWSubdivLooseVertex &loose_vert : loose_verts) {
+    vert_idx_data[offset] = mr->v_origindex ? mr->v_origindex[loose_vert.coarse_vertex_index] :
+                                              loose_vert.coarse_vertex_index;
+    offset += 1;
   }
 }
 
 static void extract_edge_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                         const MeshRenderData *mr,
+                                         const MeshRenderData *UNUSED(mr),
                                          MeshBatchCache *UNUSED(cache),
                                          void *buf,
                                          void *UNUSED(data))
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
   draw_subdiv_init_origindex_buffer(
       vbo,
       static_cast<int *>(GPU_vertbuf_get_data(subdiv_cache->edges_orig_index)),
       subdiv_cache->num_subdiv_loops,
-      mr->edge_loose_len * 2);
+      loose_geom.edge_len * 2);
 }
 
 static void extract_edge_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
-                                               const MeshRenderData *UNUSED(mr),
-                                               const MeshExtractLooseGeom *loose_geom,
+                                               const MeshRenderData *mr,
                                                void *buffer,
                                                void *UNUSED(data))
 {
-  const int loop_loose_len = loose_geom->edge_len + loose_geom->vert_len;
-  if (loop_loose_len == 0) {
+  const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
+  if (loose_geom.edge_len == 0) {
     return;
   }
 
@@ -302,9 +298,12 @@ static void extract_edge_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cach
   uint *vert_idx_data = (uint *)GPU_vertbuf_get_data(vbo);
   uint offset = subdiv_cache->num_subdiv_loops;
 
-  for (int i = 0; i < loose_geom->edge_len; i++) {
-    vert_idx_data[offset] = loose_geom->edges[i];
-    vert_idx_data[offset + 1] = loose_geom->edges[i];
+  blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
+  for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
+    const int coarse_edge_index = mr->e_origindex ? mr->e_origindex[loose_edge.coarse_edge_index] :
+                                                    loose_edge.coarse_edge_index;
+    vert_idx_data[offset] = coarse_edge_index;
+    vert_idx_data[offset + 1] = coarse_edge_index;
     offset += 2;
   }
 }

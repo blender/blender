@@ -163,8 +163,10 @@ static void extract_points_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                        void *data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
-  GPU_indexbuf_init(
-      elb, GPU_PRIM_POINTS, mr->vert_len, subdiv_cache->num_subdiv_loops + mr->loop_loose_len);
+  GPU_indexbuf_init(elb,
+                    GPU_PRIM_POINTS,
+                    mr->vert_len,
+                    subdiv_cache->num_subdiv_loops + subdiv_cache->loose_geom.loop_len);
 }
 
 static void extract_points_iter_subdiv_common(GPUIndexBufBuilder *elb,
@@ -212,46 +214,70 @@ static void extract_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cache,
 
 static void extract_points_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
                                              const MeshRenderData *mr,
-                                             const MeshExtractLooseGeom *loose_geom,
                                              void *UNUSED(buffer),
                                              void *data)
 {
-  const int loop_loose_len = loose_geom->edge_len + loose_geom->vert_len;
+  const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
+  const int loop_loose_len = loose_geom.loop_len;
   if (loop_loose_len == 0) {
     return;
   }
 
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
+
   uint offset = subdiv_cache->num_subdiv_loops;
 
-  if (mr->extract_type == MR_EXTRACT_MESH) {
-    const Mesh *coarse_mesh = subdiv_cache->mesh;
-    const MEdge *coarse_edges = coarse_mesh->medge;
+  if (mr->extract_type != MR_EXTRACT_BMESH) {
+    blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(
+        subdiv_cache);
 
-    for (int i = 0; i < loose_geom->edge_len; i++) {
-      const MEdge *loose_edge = &coarse_edges[loose_geom->edges[i]];
-      vert_set_mesh(elb, mr, loose_edge->v1, offset);
-      vert_set_mesh(elb, mr, loose_edge->v2, offset + 1);
+    for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
+      const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
+      const DRWSubdivLooseVertex &v2 = loose_geom.verts[loose_edge.loose_subdiv_v2_index];
+      if (v1.coarse_vertex_index != -1u) {
+        vert_set_mesh(elb, mr, v1.coarse_vertex_index, offset);
+      }
+      if (v2.coarse_vertex_index != -1u) {
+        vert_set_mesh(elb, mr, v2.coarse_vertex_index, offset + 1);
+      }
+
       offset += 2;
     }
+    blender::Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(
+        subdiv_cache);
 
-    for (int i = 0; i < loose_geom->vert_len; i++) {
-      vert_set_mesh(elb, mr, loose_geom->verts[i], offset);
+    for (const DRWSubdivLooseVertex &loose_vert : loose_verts) {
+      vert_set_mesh(elb, mr, loose_vert.coarse_vertex_index, offset);
       offset += 1;
     }
   }
   else {
-    BMesh *bm = mr->bm;
-    for (int i = 0; i < loose_geom->edge_len; i++) {
-      const BMEdge *loose_edge = BM_edge_at_index(bm, loose_geom->edges[i]);
-      vert_set_bm(elb, loose_edge->v1, offset);
-      vert_set_bm(elb, loose_edge->v2, offset + 1);
+    blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(
+        subdiv_cache);
+
+    for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
+      const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
+      const DRWSubdivLooseVertex &v2 = loose_geom.verts[loose_edge.loose_subdiv_v2_index];
+      if (v1.coarse_vertex_index != -1u) {
+        BMVert *eve = mr->v_origindex ? bm_original_vert_get(mr, v1.coarse_vertex_index) :
+                                        BM_vert_at_index(mr->bm, v1.coarse_vertex_index);
+        vert_set_bm(elb, eve, offset);
+      }
+      if (v2.coarse_vertex_index != -1u) {
+        BMVert *eve = mr->v_origindex ? bm_original_vert_get(mr, v2.coarse_vertex_index) :
+                                        BM_vert_at_index(mr->bm, v2.coarse_vertex_index);
+        vert_set_bm(elb, eve, offset + 1);
+      }
+
       offset += 2;
     }
+    blender::Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(
+        subdiv_cache);
 
-    for (int i = 0; i < loose_geom->vert_len; i++) {
-      const BMVert *loose_vert = BM_vert_at_index(bm, loose_geom->verts[i]);
-      vert_set_bm(elb, loose_vert, offset);
+    for (const DRWSubdivLooseVertex &loose_vert : loose_verts) {
+      BMVert *eve = mr->v_origindex ? bm_original_vert_get(mr, loose_vert.coarse_vertex_index) :
+                                      BM_vert_at_index(mr->bm, loose_vert.coarse_vertex_index);
+      vert_set_bm(elb, eve, offset);
       offset += 1;
     }
   }

@@ -206,7 +206,6 @@ typedef void(ExtractLVertMeshFn)(const MeshRenderData *mr,
                                  void *data);
 typedef void(ExtractLooseGeomSubdivFn)(const struct DRWSubdivCache *subdiv_cache,
                                        const MeshRenderData *mr,
-                                       const MeshExtractLooseGeom *loose_geom,
                                        void *buffer,
                                        void *data);
 typedef void(ExtractInitFn)(const MeshRenderData *mr,

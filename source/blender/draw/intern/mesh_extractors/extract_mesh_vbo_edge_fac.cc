@@ -233,16 +233,17 @@ static GPUVertFormat *get_subdiv_edge_fac_format()
 }
 
 static void extract_edge_fac_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                         const MeshRenderData *mr,
+                                         const MeshRenderData *UNUSED(mr),
                                          struct MeshBatchCache *cache,
                                          void *buffer,
                                          void *UNUSED(data))
 {
+  const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
   GPUVertBuf *edge_idx = cache->final.buff.vbo.edge_idx;
   GPUVertBuf *pos_nor = cache->final.buff.vbo.pos_nor;
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
   GPU_vertbuf_init_build_on_device(
-      vbo, get_subdiv_edge_fac_format(), subdiv_cache->num_subdiv_loops + mr->loop_loose_len);
+      vbo, get_subdiv_edge_fac_format(), subdiv_cache->num_subdiv_loops + loose_geom.loop_len);
 
   /* Create a temporary buffer for the edge original indices if it was not requested. */
   const bool has_edge_idx = edge_idx != nullptr;
@@ -268,11 +269,11 @@ static void extract_edge_fac_init_subdiv(const DRWSubdivCache *subdiv_cache,
 
 static void extract_edge_fac_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
                                                const MeshRenderData *UNUSED(mr),
-                                               const MeshExtractLooseGeom *loose_geom,
                                                void *buffer,
                                                void *UNUSED(data))
 {
-  if (loose_geom->edge_len == 0) {
+  const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
+  if (loose_geom.edge_len == 0) {
     return;
   }
 
@@ -282,7 +283,7 @@ static void extract_edge_fac_loose_geom_subdiv(const DRWSubdivCache *subdiv_cach
   GPU_vertbuf_use(vbo);
 
   uint offset = subdiv_cache->num_subdiv_loops;
-  for (int i = 0; i < loose_geom->edge_len; i++) {
+  for (int i = 0; i < loose_geom.edge_len; i++) {
     if (GPU_crappy_amd_driver()) {
       float loose_edge_fac[2] = {1.0f, 1.0f};
       GPU_vertbuf_update_sub(vbo, offset * sizeof(float), sizeof(loose_edge_fac), loose_edge_fac);

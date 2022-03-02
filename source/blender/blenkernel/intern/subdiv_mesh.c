@@ -946,11 +946,10 @@ static void subdiv_mesh_vertex_loose(const SubdivForeachContext *foreach_context
 /* Get neighbor edges of the given one.
  * - neighbors[0] is an edge adjacent to edge->v1.
  * - neighbors[1] is an edge adjacent to edge->v2. */
-static void find_edge_neighbors(const SubdivMeshContext *ctx,
+static void find_edge_neighbors(const Mesh *coarse_mesh,
                                 const MEdge *edge,
                                 const MEdge *neighbors[2])
 {
-  const Mesh *coarse_mesh = ctx->coarse_mesh;
   const MEdge *coarse_medge = coarse_mesh->medge;
   neighbors[0] = NULL;
   neighbors[1] = NULL;
@@ -980,12 +979,11 @@ static void find_edge_neighbors(const SubdivMeshContext *ctx,
   }
 }
 
-static void points_for_loose_edges_interpolation_get(SubdivMeshContext *ctx,
+static void points_for_loose_edges_interpolation_get(const Mesh *coarse_mesh,
                                                      const MEdge *coarse_edge,
                                                      const MEdge *neighbors[2],
                                                      float points_r[4][3])
 {
-  const Mesh *coarse_mesh = ctx->coarse_mesh;
   const MVert *coarse_mvert = coarse_mesh->mvert;
   /* Middle points corresponds to the edge. */
   copy_v3_v3(points_r[1], coarse_mvert[coarse_edge->v1].co);
@@ -1015,6 +1013,30 @@ static void points_for_loose_edges_interpolation_get(SubdivMeshContext *ctx,
   else {
     sub_v3_v3v3(points_r[3], points_r[2], points_r[1]);
     add_v3_v3(points_r[3], points_r[2]);
+  }
+}
+
+void BKE_subdiv_mesh_interpolate_position_on_edge(const Mesh *coarse_mesh,
+                                                  const MEdge *coarse_edge,
+                                                  const bool is_simple,
+                                                  const float u,
+                                                  float pos_r[3])
+{
+  if (is_simple) {
+    const MVert *coarse_mvert = coarse_mesh->mvert;
+    const MVert *vert_1 = &coarse_mvert[coarse_edge->v1];
+    const MVert *vert_2 = &coarse_mvert[coarse_edge->v2];
+    interp_v3_v3v3(pos_r, vert_1->co, vert_2->co, u);
+  }
+  else {
+    /* Find neighbors of the coarse edge. */
+    const MEdge *neighbors[2];
+    find_edge_neighbors(coarse_mesh, coarse_edge, neighbors);
+    float points[4][3];
+    points_for_loose_edges_interpolation_get(coarse_mesh, coarse_edge, neighbors, points);
+    float weights[4];
+    key_curve_position_weights(u, weights, KEY_BSPLINE);
+    interp_v3_v3v3v3v3(pos_r, points[0], points[1], points[2], points[3], weights);
   }
 }
 
@@ -1054,9 +1076,6 @@ static void subdiv_mesh_vertex_of_loose_edge(const struct SubdivForeachContext *
   Mesh *subdiv_mesh = ctx->subdiv_mesh;
   MVert *subdiv_mvert = subdiv_mesh->mvert;
   const bool is_simple = ctx->subdiv->settings.is_simple;
-  /* Find neighbors of the current loose edge. */
-  const MEdge *neighbors[2];
-  find_edge_neighbors(ctx, coarse_edge, neighbors);
   /* Interpolate custom data when not an end point.
    * This data has already been copied from the original vertex by #subdiv_mesh_vertex_loose. */
   if (!ELEM(u, 0.0, 1.0)) {
@@ -1064,19 +1083,8 @@ static void subdiv_mesh_vertex_of_loose_edge(const struct SubdivForeachContext *
   }
   /* Interpolate coordinate. */
   MVert *subdiv_vertex = &subdiv_mvert[subdiv_vertex_index];
-  if (is_simple) {
-    const MVert *coarse_mvert = coarse_mesh->mvert;
-    const MVert *vert_1 = &coarse_mvert[coarse_edge->v1];
-    const MVert *vert_2 = &coarse_mvert[coarse_edge->v2];
-    interp_v3_v3v3(subdiv_vertex->co, vert_1->co, vert_2->co, u);
-  }
-  else {
-    float points[4][3];
-    points_for_loose_edges_interpolation_get(ctx, coarse_edge, neighbors, points);
-    float weights[4];
-    key_curve_position_weights(u, weights, KEY_BSPLINE);
-    interp_v3_v3v3v3v3(subdiv_vertex->co, points[0], points[1], points[2], points[3], weights);
-  }
+  BKE_subdiv_mesh_interpolate_position_on_edge(
+      coarse_mesh, coarse_edge, is_simple, u, subdiv_vertex->co);
   /* Reset flags and such. */
   subdiv_vertex->flag = 0;
   /* TODO(sergey): This matches old behavior, but we can as well interpolate

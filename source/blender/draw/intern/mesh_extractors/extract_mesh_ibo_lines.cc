@@ -158,30 +158,35 @@ static void extract_lines_finish(const MeshRenderData *UNUSED(mr),
 }
 
 static void extract_lines_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                      const MeshRenderData *mr,
+                                      const MeshRenderData *UNUSED(mr),
                                       struct MeshBatchCache *UNUSED(cache),
                                       void *buffer,
                                       void *UNUSED(data))
 {
+  const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buffer);
   GPU_indexbuf_init_build_on_device(ibo,
-                                    subdiv_cache->num_subdiv_loops * 2 + mr->edge_loose_len * 2);
+                                    subdiv_cache->num_subdiv_loops * 2 + loose_geom.edge_len * 2);
+
+  if (subdiv_cache->num_subdiv_loops == 0) {
+    return;
+  }
 
   draw_subdiv_build_lines_buffer(subdiv_cache, ibo);
 }
 
 static void extract_lines_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
                                             const MeshRenderData *UNUSED(mr),
-                                            const MeshExtractLooseGeom *loose_geom,
                                             void *buffer,
                                             void *UNUSED(data))
 {
-  if (loose_geom->edge_len == 0) {
+  const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
+  if (loose_geom.edge_len == 0) {
     return;
   }
 
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buffer);
-  draw_subdiv_build_lines_loose_buffer(subdiv_cache, ibo, static_cast<uint>(loose_geom->edge_len));
+  draw_subdiv_build_lines_loose_buffer(subdiv_cache, ibo, static_cast<uint>(loose_geom.edge_len));
 }
 
 constexpr MeshExtract create_extractor_lines()
@@ -231,6 +236,20 @@ static void extract_lines_with_lines_loose_finish(const MeshRenderData *mr,
   extract_lines_loose_subbuffer(mr, cache);
 }
 
+static void extract_lines_with_lines_loose_finish_subdiv(const struct DRWSubdivCache *subdiv_cache,
+                                                         const MeshRenderData *UNUSED(mr),
+                                                         struct MeshBatchCache *cache,
+                                                         void *UNUSED(buf),
+                                                         void *UNUSED(_data))
+{
+  /* Multiply by 2 because these are edges indices. */
+  const int start = subdiv_cache->num_subdiv_loops * 2;
+  const int len = subdiv_cache->loose_geom.edge_len * 2;
+  GPU_indexbuf_create_subrange_in_place(
+      cache->final.buff.ibo.lines_loose, cache->final.buff.ibo.lines, start, len);
+  cache->no_loose_wire = (len == 0);
+}
+
 constexpr MeshExtract create_extractor_lines_with_lines_loose()
 {
   MeshExtract extractor = {nullptr};
@@ -241,6 +260,9 @@ constexpr MeshExtract create_extractor_lines_with_lines_loose()
   extractor.iter_ledge_mesh = extract_lines_iter_ledge_mesh;
   extractor.task_reduce = extract_lines_task_reduce;
   extractor.finish = extract_lines_with_lines_loose_finish;
+  extractor.init_subdiv = extract_lines_init_subdiv;
+  extractor.iter_loose_geom_subdiv = extract_lines_loose_geom_subdiv;
+  extractor.finish_subdiv = extract_lines_with_lines_loose_finish_subdiv;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(GPUIndexBufBuilder);
   extractor.use_threading = true;
@@ -264,10 +286,22 @@ static void extract_lines_loose_only_init(const MeshRenderData *mr,
   extract_lines_loose_subbuffer(mr, cache);
 }
 
+static void extract_lines_loose_only_init_subdiv(const DRWSubdivCache *UNUSED(subdiv_cache),
+                                                 const MeshRenderData *mr,
+                                                 struct MeshBatchCache *cache,
+                                                 void *buffer,
+                                                 void *UNUSED(data))
+{
+  BLI_assert(buffer == cache->final.buff.ibo.lines_loose);
+  UNUSED_VARS_NDEBUG(buffer);
+  extract_lines_loose_subbuffer(mr, cache);
+}
+
 constexpr MeshExtract create_extractor_lines_loose_only()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_lines_loose_only_init;
+  extractor.init_subdiv = extract_lines_loose_only_init_subdiv;
   extractor.data_type = MR_DATA_LOOSE_GEOM;
   extractor.data_size = 0;
   extractor.use_threading = false;
