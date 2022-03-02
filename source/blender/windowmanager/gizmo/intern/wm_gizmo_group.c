@@ -640,24 +640,29 @@ wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf)
   keymap = WM_modalkeymap_ensure(keyconf, name, modal_items);
 
   /* items for modal map */
-  WM_modalkeymap_add_item(keymap, EVT_ESCKEY, KM_PRESS, KM_ANY, 0, TWEAK_MODAL_CANCEL);
-  WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, TWEAK_MODAL_CANCEL);
+  WM_modalkeymap_add_item(keymap, EVT_ESCKEY, KM_PRESS, KM_ANY, 0, KM_ANY, TWEAK_MODAL_CANCEL);
+  WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, KM_ANY, TWEAK_MODAL_CANCEL);
 
-  WM_modalkeymap_add_item(keymap, EVT_RETKEY, KM_PRESS, KM_ANY, 0, TWEAK_MODAL_CONFIRM);
-  WM_modalkeymap_add_item(keymap, EVT_PADENTER, KM_PRESS, KM_ANY, 0, TWEAK_MODAL_CONFIRM);
+  WM_modalkeymap_add_item(keymap, EVT_RETKEY, KM_PRESS, KM_ANY, 0, KM_ANY, TWEAK_MODAL_CONFIRM);
+  WM_modalkeymap_add_item(keymap, EVT_PADENTER, KM_PRESS, KM_ANY, 0, KM_ANY, TWEAK_MODAL_CONFIRM);
 
   WM_modalkeymap_add_item(
-      keymap, EVT_RIGHTSHIFTKEY, KM_PRESS, KM_ANY, 0, TWEAK_MODAL_PRECISION_ON);
+      keymap, EVT_RIGHTSHIFTKEY, KM_PRESS, KM_ANY, 0, KM_ANY, TWEAK_MODAL_PRECISION_ON);
   WM_modalkeymap_add_item(
-      keymap, EVT_RIGHTSHIFTKEY, KM_RELEASE, KM_ANY, 0, TWEAK_MODAL_PRECISION_OFF);
-  WM_modalkeymap_add_item(keymap, EVT_LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, TWEAK_MODAL_PRECISION_ON);
+      keymap, EVT_RIGHTSHIFTKEY, KM_RELEASE, KM_ANY, 0, KM_ANY, TWEAK_MODAL_PRECISION_OFF);
   WM_modalkeymap_add_item(
-      keymap, EVT_LEFTSHIFTKEY, KM_RELEASE, KM_ANY, 0, TWEAK_MODAL_PRECISION_OFF);
+      keymap, EVT_LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, KM_ANY, TWEAK_MODAL_PRECISION_ON);
+  WM_modalkeymap_add_item(
+      keymap, EVT_LEFTSHIFTKEY, KM_RELEASE, KM_ANY, 0, KM_ANY, TWEAK_MODAL_PRECISION_OFF);
 
-  WM_modalkeymap_add_item(keymap, EVT_RIGHTCTRLKEY, KM_PRESS, KM_ANY, 0, TWEAK_MODAL_SNAP_ON);
-  WM_modalkeymap_add_item(keymap, EVT_RIGHTCTRLKEY, KM_RELEASE, KM_ANY, 0, TWEAK_MODAL_SNAP_OFF);
-  WM_modalkeymap_add_item(keymap, EVT_LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, TWEAK_MODAL_SNAP_ON);
-  WM_modalkeymap_add_item(keymap, EVT_LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, TWEAK_MODAL_SNAP_OFF);
+  WM_modalkeymap_add_item(
+      keymap, EVT_RIGHTCTRLKEY, KM_PRESS, KM_ANY, 0, KM_ANY, TWEAK_MODAL_SNAP_ON);
+  WM_modalkeymap_add_item(
+      keymap, EVT_RIGHTCTRLKEY, KM_RELEASE, KM_ANY, 0, KM_ANY, TWEAK_MODAL_SNAP_OFF);
+  WM_modalkeymap_add_item(
+      keymap, EVT_LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, KM_ANY, TWEAK_MODAL_SNAP_ON);
+  WM_modalkeymap_add_item(
+      keymap, EVT_LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, KM_ANY, TWEAK_MODAL_SNAP_OFF);
 
   WM_modalkeymap_assign(keymap, "GIZMOGROUP_OT_gizmo_tweak");
 
@@ -709,24 +714,26 @@ static wmKeyMap *WM_gizmogroup_keymap_template_select_ex(
   const int select_tweak = (U.flag & USER_LMOUSESELECT) ? EVT_TWEAK_L : EVT_TWEAK_R;
   const int action_mouse = (U.flag & USER_LMOUSESELECT) ? RIGHTMOUSE : LEFTMOUSE;
 #else
-  const int select_mouse = RIGHTMOUSE;
-  const int select_tweak = EVT_TWEAK_R;
-  const int action_mouse = LEFTMOUSE;
+  const int select_mouse = RIGHTMOUSE, select_mouse_val = KM_PRESS;
+  const int select_tweak = RIGHTMOUSE, select_tweak_val = KM_CLICK_DRAG;
+  const int action_mouse = LEFTMOUSE, action_mouse_val = KM_PRESS;
 #endif
 
   if (do_init) {
-    WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", action_mouse, KM_PRESS, KM_ANY, 0);
-    WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", select_tweak, KM_ANY, 0, 0);
+    WM_keymap_add_item(
+        km, "GIZMOGROUP_OT_gizmo_tweak", action_mouse, action_mouse_val, KM_ANY, 0, KM_ANY);
+    WM_keymap_add_item(
+        km, "GIZMOGROUP_OT_gizmo_tweak", select_tweak, select_tweak_val, 0, 0, KM_ANY);
   }
 
   if (do_init) {
     wmKeyMapItem *kmi = WM_keymap_add_item(
-        km, "GIZMOGROUP_OT_gizmo_select", select_mouse, KM_PRESS, 0, 0);
+        km, "GIZMOGROUP_OT_gizmo_select", select_mouse, select_mouse_val, 0, 0, KM_ANY);
     RNA_boolean_set(kmi->ptr, "extend", false);
     RNA_boolean_set(kmi->ptr, "deselect", false);
     RNA_boolean_set(kmi->ptr, "toggle", false);
     kmi = WM_keymap_add_item(
-        km, "GIZMOGROUP_OT_gizmo_select", select_mouse, KM_PRESS, KM_SHIFT, 0);
+        km, "GIZMOGROUP_OT_gizmo_select", select_mouse, select_mouse_val, KM_SHIFT, 0, KM_ANY);
     RNA_boolean_set(kmi->ptr, "extend", false);
     RNA_boolean_set(kmi->ptr, "deselect", false);
     RNA_boolean_set(kmi->ptr, "toggle", true);
@@ -1129,7 +1136,8 @@ void WM_gizmo_group_refresh(const bContext *C, wmGizmoGroup *gzgroup)
       ARegion *region = CTX_wm_region(C);
       BLI_assert(region->gizmo_map == gzmap);
       /* Check if the tweak event originated from this region. */
-      if ((win->tweak != NULL) && BLI_rcti_compare(&region->winrct, &win->tweak->winrct)) {
+      if ((win->eventstate != NULL) && (win->event_queue_check_drag) &&
+          BLI_rcti_isect_pt_v(&region->winrct, win->eventstate->prev_click_xy)) {
         /* We need to run refresh again. */
         gzgroup->init_flag &= ~WM_GIZMOGROUP_INIT_REFRESH;
         WM_gizmomap_tag_refresh_drawstep(gzmap, WM_gizmomap_drawstep_from_gizmo_group(gzgroup));

@@ -295,9 +295,6 @@ typedef struct wmWindow {
   /** Storage for event system. */
   struct wmEvent *eventstate;
 
-  /** Internal for wm_operators.c. */
-  struct wmGesture *tweak;
-
   /* Input Method Editor data - complex character input (especially for Asian character input)
    * Currently WIN32 and APPLE, runtime-only data. */
   struct wmIMEData *ime_data;
@@ -364,7 +361,9 @@ typedef struct wmKeyMapItem {
   /** Event code itself. */
   short type;
   /** KM_ANY, KM_PRESS, KM_NOTHING etc. */
-  short val;
+  int8_t val;
+  /** Use when `val == WM_CLICK_DRAG`,  */
+  int8_t direction;
   /** `oskey` also known as apple, windows-key or super, value denotes order of pressed. */
   short shift, ctrl, alt, oskey;
   /** Raw-key modifier. */
@@ -422,7 +421,7 @@ enum {
 enum {
   KMI_TYPE_KEYBOARD = 0,
   KMI_TYPE_MOUSE = 1,
-  KMI_TYPE_TWEAK = 2,
+  /* 2 is deprecated, was tweak. */
   KMI_TYPE_TEXTINPUT = 3,
   KMI_TYPE_TIMER = 4,
   KMI_TYPE_NDOF = 5,

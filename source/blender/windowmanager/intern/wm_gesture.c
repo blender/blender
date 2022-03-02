@@ -52,7 +52,6 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent
   if (ELEM(type,
            WM_GESTURE_RECT,
            WM_GESTURE_CROSS_RECT,
-           WM_GESTURE_TWEAK,
            WM_GESTURE_CIRCLE,
            WM_GESTURE_STRAIGHTLINE)) {
     rcti *rect = MEM_callocN(sizeof(rcti), "gesture rect new");
@@ -83,9 +82,6 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent
 
 void WM_gesture_end(wmWindow *win, wmGesture *gesture)
 {
-  if (win->tweak == gesture) {
-    win->tweak = NULL;
-  }
   BLI_remlink(&win->gesture, gesture);
   MEM_freeN(gesture->customdata);
   WM_generic_user_data_free(&gesture->user_data);
@@ -112,74 +108,6 @@ bool WM_gesture_is_modal_first(const wmGesture *gesture)
     return true;
   }
   return (gesture->is_active_prev == false);
-}
-
-int wm_gesture_evaluate(wmGesture *gesture, const wmEvent *event)
-{
-  if (gesture->type == WM_GESTURE_TWEAK) {
-    rcti *rect = gesture->customdata;
-    const int delta[2] = {
-        BLI_rcti_size_x(rect),
-        BLI_rcti_size_y(rect),
-    };
-
-    if (WM_event_drag_test_with_delta(event, delta)) {
-      int theta = round_fl_to_int(4.0f * atan2f((float)delta[1], (float)delta[0]) / (float)M_PI);
-      int val = EVT_GESTURE_W;
-
-      if (theta == 0) {
-        val = EVT_GESTURE_E;
-      }
-      else if (theta == 1) {
-        val = EVT_GESTURE_NE;
-      }
-      else if (theta == 2) {
-        val = EVT_GESTURE_N;
-      }
-      else if (theta == 3) {
-        val = EVT_GESTURE_NW;
-      }
-      else if (theta == -1) {
-        val = EVT_GESTURE_SE;
-      }
-      else if (theta == -2) {
-        val = EVT_GESTURE_S;
-      }
-      else if (theta == -3) {
-        val = EVT_GESTURE_SW;
-      }
-
-#if 0
-      /* debug */
-      if (val == 1) {
-        printf("tweak north\n");
-      }
-      if (val == 2) {
-        printf("tweak north-east\n");
-      }
-      if (val == 3) {
-        printf("tweak east\n");
-      }
-      if (val == 4) {
-        printf("tweak south-east\n");
-      }
-      if (val == 5) {
-        printf("tweak south\n");
-      }
-      if (val == 6) {
-        printf("tweak south-west\n");
-      }
-      if (val == 7) {
-        printf("tweak west\n");
-      }
-      if (val == 8) {
-        printf("tweak north-west\n");
-      }
-#endif
-      return val;
-    }
-  }
-  return 0;
 }
 
 /* ******************* gesture draw ******************* */
@@ -511,11 +439,6 @@ void wm_gesture_draw(wmWindow *win)
     if (gt->type == WM_GESTURE_RECT) {
       wm_gesture_draw_rect(gt);
     }
-#if 0
-    else if (gt->type == WM_GESTURE_TWEAK) {
-      wm_gesture_draw_line(gt);
-    }
-#endif
     else if (gt->type == WM_GESTURE_CIRCLE) {
       wm_gesture_draw_circle(gt);
     }

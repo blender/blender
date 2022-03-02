@@ -494,7 +494,6 @@ typedef struct wmNotifier {
 /* ************** Gesture Manager data ************** */
 
 /* wmGesture->type */
-#define WM_GESTURE_TWEAK 0
 #define WM_GESTURE_LINES 1
 #define WM_GESTURE_RECT 2
 #define WM_GESTURE_CROSS_RECT 3
@@ -504,7 +503,6 @@ typedef struct wmNotifier {
 
 /**
  * wmGesture is registered to #wmWindow.gesture, handled by operator callbacks.
- * Tweak gesture is builtin feature.
  */
 typedef struct wmGesture {
   struct wmGesture *next, *prev;
@@ -659,6 +657,9 @@ typedef struct wmEvent {
    * #KM_SHIFT, #KM_CTRL, #KM_ALT & #KM_OSKEY is apple or windows-key.
    */
   uint8_t modifier;
+
+  /** The direction (for #KM_CLICK_DRAG events only). */
+  int8_t direction;
 
   /** Raw-key modifier (allow using any key as a modifier). */
   short keymodifier;

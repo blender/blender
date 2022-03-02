@@ -156,7 +156,6 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
     win->gpuctx = NULL;
     win->eventstate = NULL;
     win->cursor_keymap_status = NULL;
-    win->tweak = NULL;
 #if defined(WIN32) || defined(__APPLE__)
     win->ime_data = NULL;
 #endif

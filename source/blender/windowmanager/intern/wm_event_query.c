@@ -47,12 +47,7 @@ static void event_ids_from_type_and_value(const short type,
   RNA_enum_identifier(rna_enum_event_type_items, type, r_type_id);
 
   /* Value. */
-  if (ISTWEAK(type)) {
-    RNA_enum_identifier(rna_enum_event_value_tweak_items, val, r_val_id);
-  }
-  else {
-    RNA_enum_identifier(rna_enum_event_value_all_items, val, r_val_id);
-  }
+  RNA_enum_identifier(rna_enum_event_value_items, val, r_val_id);
 }
 
 void WM_event_print(const wmEvent *event)
@@ -160,13 +155,6 @@ bool WM_event_type_mask_test(const int event_type, const enum eEventType_Mask ma
     }
   }
 
-  /* Tweak. */
-  if (mask & EVT_TYPE_MASK_TWEAK) {
-    if (ISTWEAK(event_type)) {
-      return true;
-    }
-  }
-
   /* Action Zone. */
   if (mask & EVT_TYPE_MASK_ACTIONZONE) {
     if (IS_EVENT_ACTIONZONE(event_type)) {
@@ -192,12 +180,6 @@ bool WM_event_is_modal_drag_exit(const wmEvent *event,
   if (U.flag & USER_RELEASECONFIRM) {
     /* option on, so can exit with km-release */
     if (event->val == KM_RELEASE) {
-      switch (init_event_type) {
-        case EVT_TWEAK_L:
-        case EVT_TWEAK_M:
-        case EVT_TWEAK_R:
-          return 1;
-      }
       if ((init_event_val == KM_CLICK_DRAG) && (event->type == init_event_type)) {
         return 1;
       }
@@ -205,8 +187,7 @@ bool WM_event_is_modal_drag_exit(const wmEvent *event,
     else {
       /* If the initial event wasn't a drag event then
        * ignore #USER_RELEASECONFIRM setting: see T26756. */
-      if ((ELEM(init_event_type, EVT_TWEAK_L, EVT_TWEAK_M, EVT_TWEAK_R) ||
-           init_event_val == KM_CLICK_DRAG) == 0) {
+      if (init_event_val != KM_CLICK_DRAG) {
         return 1;
       }
     }
@@ -234,13 +215,75 @@ bool WM_event_is_last_mousemove(const wmEvent *event)
 
 bool WM_event_is_mouse_drag(const wmEvent *event)
 {
-  return ISTWEAK(event->type) || (ISMOUSE_BUTTON(event->type) && (event->val == KM_CLICK_DRAG));
+  return (ISMOUSE_BUTTON(event->type) && (event->val == KM_CLICK_DRAG));
 }
 
 bool WM_event_is_mouse_drag_or_press(const wmEvent *event)
 {
   return WM_event_is_mouse_drag(event) ||
          (ISMOUSE_BUTTON(event->type) && (event->val == KM_PRESS));
+}
+
+int WM_event_drag_direction(const wmEvent *event)
+{
+  const int delta[2] = {
+      event->xy[0] - event->prev_click_xy[0],
+      event->xy[1] - event->prev_click_xy[1],
+  };
+
+  int theta = round_fl_to_int(4.0f * atan2f((float)delta[1], (float)delta[0]) / (float)M_PI);
+  int val = EVT_GESTURE_W;
+
+  if (theta == 0) {
+    val = EVT_GESTURE_E;
+  }
+  else if (theta == 1) {
+    val = EVT_GESTURE_NE;
+  }
+  else if (theta == 2) {
+    val = EVT_GESTURE_N;
+  }
+  else if (theta == 3) {
+    val = EVT_GESTURE_NW;
+  }
+  else if (theta == -1) {
+    val = EVT_GESTURE_SE;
+  }
+  else if (theta == -2) {
+    val = EVT_GESTURE_S;
+  }
+  else if (theta == -3) {
+    val = EVT_GESTURE_SW;
+  }
+
+#if 0
+  /* debug */
+  if (val == 1) {
+    printf("tweak north\n");
+  }
+  if (val == 2) {
+    printf("tweak north-east\n");
+  }
+  if (val == 3) {
+    printf("tweak east\n");
+  }
+  if (val == 4) {
+    printf("tweak south-east\n");
+  }
+  if (val == 5) {
+    printf("tweak south\n");
+  }
+  if (val == 6) {
+    printf("tweak south-west\n");
+  }
+  if (val == 7) {
+    printf("tweak west\n");
+  }
+  if (val == 8) {
+    printf("tweak north-west\n");
+  }
+#endif
+  return val;
 }
 
 bool WM_cursor_test_motion_and_update(const int mval[2])
@@ -316,12 +359,6 @@ int WM_userdef_event_map(int kmitype)
 int WM_userdef_event_type_from_keymap_type(int kmitype)
 {
   switch (kmitype) {
-    case EVT_TWEAK_L:
-      return LEFTMOUSE;
-    case EVT_TWEAK_M:
-      return MIDDLEMOUSE;
-    case EVT_TWEAK_R:
-      return RIGHTMOUSE;
     case WHEELOUTMOUSE:
       return (U.uiflag & USER_WHEELZOOMDIR) ? WHEELUPMOUSE : WHEELDOWNMOUSE;
     case WHEELINMOUSE:

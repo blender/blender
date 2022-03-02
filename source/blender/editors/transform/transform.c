@@ -1697,7 +1697,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   /* Needed to translate tweak events to mouse buttons. */
   t->launch_event = event ? WM_userdef_event_type_from_keymap_type(event->type) : -1;
-  t->is_launch_event_drag = event ? (ISTWEAK(event->type) || event->val == KM_CLICK_DRAG) : false;
+  t->is_launch_event_drag = event ? (event->val == KM_CLICK_DRAG) : false;
 
   /* XXX Remove this when wm_operator_call_internal doesn't use window->eventstate
    * (which can have type = 0) */
