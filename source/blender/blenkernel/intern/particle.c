@@ -1673,7 +1673,8 @@ static void interpolate_pathcache(ParticleCacheKey *first, float t, ParticleCach
 /*          Particles on a dm                   */
 /************************************************/
 
-void psys_interpolate_face(MVert *mvert,
+void psys_interpolate_face(Mesh *mesh,
+                           MVert *mvert,
                            const float (*vert_normals)[3],
                            MFace *mface,
                            MTFace *tface,
@@ -1793,6 +1794,7 @@ void psys_interpolate_face(MVert *mvert,
       else {
         interp_v3_v3v3v3(orco, o1, o2, o3, w);
       }
+      BKE_mesh_orco_verts_transform(mesh, (float(*)[3])orco, 1, true);
     }
     else {
       copy_v3_v3(orco, vec);
@@ -2137,6 +2139,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
     if (orco) {
       if (orcodata) {
         copy_v3_v3(orco, orcodata[mapindex]);
+        BKE_mesh_orco_verts_transform(mesh_final, (float(*)[3])orco, 1, true);
       }
       else {
         copy_v3_v3(orco, vec);
@@ -2162,8 +2165,18 @@ void psys_particle_on_dm(Mesh *mesh_final,
     }
 
     if (from == PART_FROM_VOLUME) {
-      psys_interpolate_face(
-          mvert, vert_normals, mface, mtface, orcodata, mapfw, vec, tmpnor, utan, vtan, orco);
+      psys_interpolate_face(mesh_final,
+                            mvert,
+                            vert_normals,
+                            mface,
+                            mtface,
+                            orcodata,
+                            mapfw,
+                            vec,
+                            tmpnor,
+                            utan,
+                            vtan,
+                            orco);
       if (nor) {
         copy_v3_v3(nor, tmpnor);
       }
@@ -2175,8 +2188,18 @@ void psys_particle_on_dm(Mesh *mesh_final,
       add_v3_v3(vec, tmpnor);
     }
     else {
-      psys_interpolate_face(
-          mvert, vert_normals, mface, mtface, orcodata, mapfw, vec, nor, utan, vtan, orco);
+      psys_interpolate_face(mesh_final,
+                            mvert,
+                            vert_normals,
+                            mface,
+                            mtface,
+                            orcodata,
+                            mapfw,
+                            vec,
+                            nor,
+                            utan,
+                            vtan,
+                            orco);
     }
   }
 }

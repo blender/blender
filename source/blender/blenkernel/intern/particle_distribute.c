@@ -627,7 +627,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
   tot = mesh->totface;
 
   psys_interpolate_face(
-      mvert, BKE_mesh_vertex_normals_ensure(mesh), mface, 0, 0, pa->fuv, co, nor, 0, 0, 0);
+      mesh, mvert, BKE_mesh_vertex_normals_ensure(mesh), mface, 0, 0, pa->fuv, co, nor, 0, 0, 0);
 
   normalize_v3(nor);
   negate_v3(nor);
@@ -957,6 +957,9 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
       return 0;
     }
   }
+
+  /* After this #BKE_mesh_orco_verts_transform can be used safely from multiple threads. */
+  BKE_mesh_texspace_ensure(final_mesh);
 
   /* Create trees and original coordinates if needed */
   if (from == PART_FROM_CHILD) {
