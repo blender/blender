@@ -1285,6 +1285,7 @@ class VIEW3D_MT_view_align_selected(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        i18n_text_ctxt = bpy.app.translations.contexts_C_to_py['BLT_I18NCONTEXT_EDITOR_VIEW3D']
 
         props = layout.operator("view3d.view_axis", text="Top", text_ctxt=i18n_text_ctxt)
         props.align_active = True
