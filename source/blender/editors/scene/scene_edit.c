@@ -42,7 +42,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-static Scene *scene_add(Main *bmain, wmWindow *win, Scene *scene_old, eSceneCopyMethod method)
+static Scene *scene_add(Main *bmain, Scene *scene_old, eSceneCopyMethod method)
 {
   Scene *scene_new = NULL;
   if (method == SCE_COPY_NEW) {
@@ -61,13 +61,13 @@ static Scene *scene_add(Main *bmain, wmWindow *win, Scene *scene_old, eSceneCopy
   return scene_new;
 }
 
-/* Add a new scene in the sequence editor. */
-Scene *ED_scene_vse_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod method)
+/** Add a new scene in the sequence editor. */
+static Scene *ED_scene_sequencer_add(Main *bmain, bContext *C, eSceneCopyMethod method)
 {
   Sequence *seq = NULL;
   Scene *scene_active = CTX_data_scene(C);
   Scene *scene_strip = NULL;
-  /* VSE need to use as base the scene defined in the strip, not the main scene. */
+  /* Sequencer need to use as base the scene defined in the strip, not the main scene. */
   Editing *ed = scene_active->ed;
   if (ed) {
     seq = ed->act_seq;
@@ -81,10 +81,10 @@ Scene *ED_scene_vse_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMetho
     method = SCE_COPY_NEW;
   }
 
-  Scene *scene_new = scene_add(bmain, win, scene_strip, method);
+  Scene *scene_new = scene_add(bmain, scene_strip, method);
 
-  /* As the scene is created in VSE, do not set the new scene as active. This is useful
-   * for storyboarding where we want to keep actual scene active.
+  /* As the scene is created in sequencer, do not set the new scene as active.
+   * This is useful for story-boarding where we want to keep actual scene active.
    * The new scene is linked to the active strip and the viewport updated. */
   if (scene_new && seq) {
     seq->scene = scene_new;
@@ -103,7 +103,7 @@ Scene *ED_scene_vse_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMetho
 Scene *ED_scene_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod method)
 {
   Scene *scene_old = WM_window_get_active_scene(win);
-  Scene *scene_new = scene_add(bmain, win, scene_old, method);
+  Scene *scene_new = scene_add(bmain, scene_old, method);
 
   WM_window_set_active_scene(bmain, C, win, scene_new);
 
@@ -268,23 +268,22 @@ static void SCENE_OT_new(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
 
-static int scene_new_vse_exec(bContext *C, wmOperator *op)
+static int scene_new_sequencer_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  wmWindow *win = CTX_wm_window(C);
   int type = RNA_enum_get(op->ptr, "type");
 
-  if (ED_scene_vse_add(bmain, C, win, type) == NULL) {
+  if (ED_scene_sequencer_add(bmain, C, type) == NULL) {
     return OPERATOR_CANCELLED;
   }
 
   return OPERATOR_FINISHED;
 }
 
-static const EnumPropertyItem *scene_new_vse_enum_itemf(bContext *C,
-                                                        PointerRNA *UNUSED(ptr),
-                                                        PropertyRNA *UNUSED(prop),
-                                                        bool *r_free)
+static const EnumPropertyItem *scene_new_sequencer_enum_itemf(bContext *C,
+                                                              PointerRNA *UNUSED(ptr),
+                                                              PropertyRNA *UNUSED(prop),
+                                                              bool *r_free)
 {
   EnumPropertyItem *item = NULL, item_tmp = {0};
   int totitem = 0;
@@ -323,8 +322,6 @@ static const EnumPropertyItem *scene_new_vse_enum_itemf(bContext *C,
   RNA_enum_item_end(&item, &totitem);
   *r_free = true;
   return item;
-
-  return DummyRNA_NULL_items;
 }
 
 static void SCENE_OT_new_sequencer(wmOperatorType *ot)
@@ -336,7 +333,7 @@ static void SCENE_OT_new_sequencer(wmOperatorType *ot)
   ot->idname = "SCENE_OT_new_sequencer";
 
   /* api callbacks */
-  ot->exec = scene_new_vse_exec;
+  ot->exec = scene_new_sequencer_exec;
   ot->invoke = WM_menu_invoke;
 
   /* flags */
@@ -344,7 +341,7 @@ static void SCENE_OT_new_sequencer(wmOperatorType *ot)
 
   /* properties */
   ot->prop = RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
-  RNA_def_enum_funcs(ot->prop, scene_new_vse_enum_itemf);
+  RNA_def_enum_funcs(ot->prop, scene_new_sequencer_enum_itemf);
   RNA_def_property_flag(ot->prop, PROP_ENUM_NO_TRANSLATE);
 }
 
