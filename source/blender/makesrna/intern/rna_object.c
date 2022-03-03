@@ -2454,6 +2454,10 @@ static void rna_def_material_slot(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Material", "Material data-block used by this material slot");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_MaterialSlot_update");
 
+  prop = RNA_def_property(srna, "slot_index", PROP_INT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_int_funcs(prop, "rna_MaterialSlot_index", NULL, NULL);
+
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(
       prop, "rna_MaterialSlot_name_get", "rna_MaterialSlot_name_length", NULL);
