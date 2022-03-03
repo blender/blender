@@ -682,31 +682,41 @@ void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *o
     }
   }
 
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd_eval);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd_eval);
+  DEG_debug_print_eval(depsgraph, __func__, gpd_eval->id.name, gpd_eval);
+
+  /* Delete any previously created runtime copy. */
+  if (ob->runtime.gpd_eval != NULL) {
+    /* Make sure to clear the pointer in case the runtime eval data points to the same data block.
+     * This can happen when the gpencil data block was not tagged for a depsgraph update after last
+     * call to this function. */
+    if (gpd_eval == ob->runtime.gpd_eval) {
+      gpd_eval = NULL;
+    }
+    BKE_gpencil_eval_delete(ob->runtime.gpd_eval);
+    ob->runtime.gpd_eval = NULL;
+    ob->data = gpd_eval;
+  }
+
+  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd_orig);
+  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd_orig);
   const bool do_modifiers = (bool)((!is_multiedit) && (!is_curve_edit) &&
-                                   (ob->greasepencil_modifiers.first != NULL) &&
+                                   (ob_orig->greasepencil_modifiers.first != NULL) &&
                                    (!GPENCIL_SIMPLIFY_MODIF(scene)));
   if ((!do_modifiers) && (!do_parent) && (!do_transform)) {
+    BLI_assert(ob->data != NULL);
     return;
   }
-  DEG_debug_print_eval(depsgraph, __func__, gpd_eval->id.name, gpd_eval);
 
   /* If only one user, don't need a new copy, just update data of the frame. */
   if (gpd_orig->id.us == 1) {
-    ob->runtime.gpd_eval = NULL;
+    BLI_assert(ob->data != NULL);
     gpencil_copy_activeframe_to_eval(depsgraph, scene, ob, ob_orig->data, gpd_eval);
     return;
   }
 
-  /* Copy full Datablock to evaluated version. */
-  ob->runtime.gpd_orig = gpd_orig;
-  if (ob->runtime.gpd_eval != NULL) {
-    BKE_gpencil_eval_delete(ob->runtime.gpd_eval);
-    ob->runtime.gpd_eval = NULL;
-    ob->data = ob->runtime.gpd_orig;
-  }
-  ob->runtime.gpd_eval = gpencil_copy_for_eval(ob->runtime.gpd_orig);
+  /* Copy full datablock to evaluated version. */
+  ob->runtime.gpd_eval = gpencil_copy_for_eval(gpd_orig);
+  /* Overwrite ob->data with gpd_eval here. */
   gpencil_assign_object_eval(ob);
   BKE_gpencil_update_orig_pointers(ob_orig, ob);
 }
