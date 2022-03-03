@@ -71,11 +71,9 @@
 
 using namespace blender::ed::outliner;
 
-/* Disable - this is far too slow - campbell. */
-/* #define USE_GROUP_SELECT */
-
-/* ****************************************************** */
-/* Tree Size Functions */
+/* -------------------------------------------------------------------- */
+/** \name Tree Size Functions
+ * \{ */
 
 static void outliner_tree_dimensions_impl(SpaceOutliner *space_outliner,
                                           ListBase *lb,
@@ -125,7 +123,11 @@ static bool is_object_data_in_editmode(const ID *id, const Object *obact)
           (GS(((ID *)obact->data)->name) == id_type) && BKE_object_data_is_in_editmode(id));
 }
 
-/* ****************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Button Callbacks
+ * \{ */
 
 static void restrictbutton_recursive_ebone(bArmature *arm,
                                            EditBone *ebone_parent,
@@ -2220,8 +2222,11 @@ static void outliner_draw_warning_column(const bContext *C,
   }
 }
 
-/* ****************************************************** */
-/* Normal Drawing... */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Normal Drawing
+ * \{ */
 
 static BIFIconID tree_element_get_icon_from_id(const ID *id)
 {
@@ -3778,8 +3783,13 @@ static void outliner_update_viewable_area(ARegion *region,
   UI_view2d_totRect_set(&region->v2d, sizex, sizey);
 }
 
-/* ****************************************************** */
-/* Main Entry-point - Draw contents of Outliner editor */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Main Entry-point
+ *
+ * Draw contents of Outliner editor.
+ * \{ */
 
 void draw_outliner(const bContext *C)
 {
@@ -3899,3 +3909,5 @@ void draw_outliner(const bContext *C)
   outliner_update_viewable_area(
       region, space_outliner, tree_width, tree_height, restrict_column_width);
 }
+
+/** \} */
