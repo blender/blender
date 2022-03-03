@@ -1129,7 +1129,7 @@ int WM_operator_flag_only_pass_through_on_press(int retval, const struct wmEvent
  */
 struct wmDrag *WM_event_start_drag(
     struct bContext *C, int icon, int type, void *poin, double value, unsigned int flags);
-void WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale, int sx, int sy);
+void WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale);
 void WM_drag_free(struct wmDrag *drag);
 void WM_drag_data_free(int dragtype, void *poin);
 void WM_drag_free_list(struct ListBase *lb);

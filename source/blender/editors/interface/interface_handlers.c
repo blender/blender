@@ -2132,11 +2132,7 @@ static bool ui_but_drag_init(bContext *C,
       but->dragpoin = NULL;
 
       if (but->imb) {
-        WM_event_drag_image(drag,
-                            but->imb,
-                            but->imb_scale,
-                            BLI_rctf_size_x(&but->rect),
-                            BLI_rctf_size_y(&but->rect));
+        WM_event_drag_image(drag, but->imb, but->imb_scale);
       }
 
       /* Special feature for assets: We add another drag item that supports multiple assets. It

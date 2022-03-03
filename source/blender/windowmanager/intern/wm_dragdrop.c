@@ -234,12 +234,10 @@ static void wm_drop_ui_context_free(bContextStore **context_store)
   *context_store = NULL;
 }
 
-void WM_event_drag_image(wmDrag *drag, ImBuf *imb, float scale, int sx, int sy)
+void WM_event_drag_image(wmDrag *drag, ImBuf *imb, float scale)
 {
   drag->imb = imb;
-  drag->scale = scale;
-  drag->sx = sx;
-  drag->sy = sy;
+  drag->imbuf_scale = scale;
 }
 
 void WM_drag_data_free(int dragtype, void *poin)
@@ -767,6 +765,16 @@ const char *WM_drag_get_item_name(wmDrag *drag)
   return "";
 }
 
+static int wm_drag_imbuf_icon_width_get(const wmDrag *drag)
+{
+  return round_fl_to_int(drag->imb->x * drag->imbuf_scale);
+}
+
+static int wm_drag_imbuf_icon_height_get(const wmDrag *drag)
+{
+  return round_fl_to_int(drag->imb->y * drag->imbuf_scale);
+}
+
 static void wm_drag_draw_icon(bContext *UNUSED(C),
                               wmWindow *UNUSED(win),
                               wmDrag *drag,
@@ -780,8 +788,8 @@ static void wm_drag_draw_icon(bContext *UNUSED(C),
    * #UI_but_drag_attach_image()). */
 
   if (drag->imb) {
-    x = xy[0] - drag->sx / 2;
-    y = xy[1] - drag->sy / 2;
+    x = xy[0] - (wm_drag_imbuf_icon_width_get(drag) / 2);
+    y = xy[1] - (wm_drag_imbuf_icon_height_get(drag) / 2);
 
     float col[4] = {1.0f, 1.0f, 1.0f, 0.65f}; /* this blends texture */
     IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
@@ -793,8 +801,8 @@ static void wm_drag_draw_icon(bContext *UNUSED(C),
                                   GPU_RGBA8,
                                   false,
                                   drag->imb->rect,
-                                  drag->scale,
-                                  drag->scale,
+                                  drag->imbuf_scale,
+                                  drag->imbuf_scale,
                                   1.0f,
                                   1.0f,
                                   col);
@@ -850,13 +858,16 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
   const int winsize_y = WM_window_pixels_y(win);
   int x, y;
   if (drag->imb) {
-    x = xy[0] - drag->sx / 2;
+    const int icon_width = wm_drag_imbuf_icon_width_get(drag);
+    const int icon_height = wm_drag_imbuf_icon_height_get(drag);
 
-    if (xy[1] + drag->sy / 2 + padding + iconsize < winsize_y) {
-      y = xy[1] + drag->sy / 2 + padding;
+    x = xy[0] - (icon_width / 2);
+
+    if (xy[1] + (icon_height / 2) + padding + iconsize < winsize_y) {
+      y = xy[1] + (icon_height / 2) + padding;
     }
     else {
-      y = xy[1] - drag->sy / 2 - padding - iconsize - padding - iconsize;
+      y = xy[1] - (icon_height / 2) - padding - iconsize - padding - iconsize;
     }
   }
   else {
@@ -889,8 +900,8 @@ static void wm_drag_draw_default(bContext *C, wmWindow *win, wmDrag *drag, const
   /* Item name. */
   if (drag->imb) {
     int iconsize = UI_DPI_ICON_SIZE;
-    xy_tmp[0] = xy[0] - (drag->sx / 2);
-    xy_tmp[1] = xy[1] - (drag->sy / 2) - iconsize;
+    xy_tmp[0] = xy[0] - (wm_drag_imbuf_icon_width_get(drag) / 2);
+    xy_tmp[1] = xy[1] - (wm_drag_imbuf_icon_height_get(drag) / 2) - iconsize;
   }
   else {
     xy_tmp[0] = xy[0] + 10 * UI_DPI_FAC;
