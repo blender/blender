@@ -245,23 +245,24 @@ static int scene_new_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static EnumPropertyItem scene_new_items[] = {
+    {SCE_COPY_NEW, "NEW", 0, "New", "Add a new, empty scene with default settings"},
+    {SCE_COPY_EMPTY,
+     "EMPTY",
+     0,
+     "Copy Settings",
+     "Add a new, empty scene, and copy settings from the current scene"},
+    {SCE_COPY_LINK_COLLECTION,
+     "LINK_COPY",
+     0,
+     "Linked Copy",
+     "Link in the collections from the current scene (shallow copy)"},
+    {SCE_COPY_FULL, "FULL_COPY", 0, "Full Copy", "Make a full copy of the current scene"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static void SCENE_OT_new(wmOperatorType *ot)
 {
-  static EnumPropertyItem type_items[] = {
-      {SCE_COPY_NEW, "NEW", 0, "New", "Add a new, empty scene with default settings"},
-      {SCE_COPY_EMPTY,
-       "EMPTY",
-       0,
-       "Copy Settings",
-       "Add a new, empty scene, and copy settings from the current scene"},
-      {SCE_COPY_LINK_COLLECTION,
-       "LINK_COPY",
-       0,
-       "Linked Copy",
-       "Link in the collections from the current scene (shallow copy)"},
-      {SCE_COPY_FULL, "FULL_COPY", 0, "Full Copy", "Make a full copy of the current scene"},
-      {0, NULL, 0, NULL, NULL},
-  };
 
   /* identifiers */
   ot->name = "New Scene";
@@ -276,7 +277,7 @@ static void SCENE_OT_new(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+  ot->prop = RNA_def_enum(ot->srna, "type", scene_new_items, SCE_COPY_NEW, "Type", "");
 }
 
 /** \} */
@@ -309,37 +310,31 @@ static const EnumPropertyItem *scene_new_sequencer_enum_itemf(bContext *C,
                                                               PropertyRNA *UNUSED(prop),
                                                               bool *r_free)
 {
-  EnumPropertyItem *item = NULL, item_tmp = {0};
+  EnumPropertyItem *item = NULL;
   int totitem = 0;
+  uint item_index;
 
-  item_tmp.identifier = "NEW";
-  item_tmp.name = "New";
-  item_tmp.value = SCE_COPY_NEW;
-  item_tmp.description = "Add a new, empty scene with default settings";
-  RNA_enum_item_add(&item, &totitem, &item_tmp);
+  item_index = RNA_enum_from_value(scene_new_items, SCE_COPY_NEW);
+  RNA_enum_item_add(&item, &totitem, &scene_new_items[item_index]);
 
-  Scene *scene_active = CTX_data_scene(C);
-  Editing *ed = scene_active ? scene_active->ed : NULL;
-  if (ed) {
-    Sequence *seq = ed->act_seq;
-    if (seq && seq->scene) {
-      item_tmp.identifier = "EMPTY";
-      item_tmp.name = "Copy Settings";
-      item_tmp.value = SCE_COPY_EMPTY;
-      item_tmp.description = "Add a new, empty scene, and copy settings from the current scene";
-      RNA_enum_item_add(&item, &totitem, &item_tmp);
+  bool has_scene_or_no_context = false;
+  if (C == NULL) {
+    /* For documentation generation. */
+    has_scene_or_no_context = true;
+  }
+  else {
+    Scene *scene = CTX_data_scene(C);
+    Sequence *seq = SEQ_select_active_get(scene);
+    if ((seq && (seq->type == SEQ_TYPE_SCENE) && (seq->scene != NULL))) {
+      has_scene_or_no_context = true;
+    }
+  }
 
-      item_tmp.identifier = "LINK_COPY";
-      item_tmp.name = "Linked Copy";
-      item_tmp.value = SCE_COPY_LINK_COLLECTION;
-      item_tmp.description = "Link in the collections from the current scene (shallow copy)";
-      RNA_enum_item_add(&item, &totitem, &item_tmp);
-
-      item_tmp.identifier = "FULL_COPY";
-      item_tmp.name = "Full Copy";
-      item_tmp.value = SCE_COPY_FULL;
-      item_tmp.description = "Make a full copy of the current scene";
-      RNA_enum_item_add(&item, &totitem, &item_tmp);
+  if (has_scene_or_no_context) {
+    int values[] = {SCE_COPY_EMPTY, SCE_COPY_LINK_COLLECTION, SCE_COPY_FULL};
+    for (int i = 0; i < ARRAY_SIZE(values); i++) {
+      item_index = RNA_enum_from_value(scene_new_items, values[i]);
+      RNA_enum_item_add(&item, &totitem, &scene_new_items[item_index]);
     }
   }
 
@@ -365,7 +360,7 @@ static void SCENE_OT_new_sequencer(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  ot->prop = RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+  ot->prop = RNA_def_enum(ot->srna, "type", scene_new_items, SCE_COPY_NEW, "Type", "");
   RNA_def_enum_funcs(ot->prop, scene_new_sequencer_enum_itemf);
   RNA_def_property_flag(ot->prop, PROP_ENUM_NO_TRANSLATE);
 }
