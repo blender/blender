@@ -1574,6 +1574,8 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
       {0, NULL, 0, NULL, NULL},
   };
 
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Interpolate Sequence";
   ot->idname = "GPENCIL_OT_interpolate_sequence";
@@ -1634,14 +1636,15 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
                 0.0f,
                 2.0f);
 
-  RNA_def_enum(ot->srna,
-               "type",
-               gpencil_interpolation_type_items,
-               0,
-               "Type",
-               "Interpolation method to use the next time 'Interpolate Sequence' is run");
+  prop = RNA_def_enum(ot->srna,
+                      "type",
+                      gpencil_interpolation_type_items,
+                      0,
+                      "Type",
+                      "Interpolation method to use the next time 'Interpolate Sequence' is run");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
 
-  RNA_def_enum(
+  prop = RNA_def_enum(
       ot->srna,
       "easing",
       gpencil_interpolation_easing_items,
@@ -1649,6 +1652,7 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
       "Easing",
       "Which ends of the segment between the preceding and following grease pencil frames "
       "easing interpolation is applied to");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
 
   RNA_def_float(ot->srna,
                 "back",

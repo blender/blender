@@ -5134,6 +5134,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
                            "New Interpolation Type",
                            "Interpolation mode used for first keyframe on newly added F-Curves "
                            "(subsequent keyframes take interpolation from preceding keyframe)");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ACTION);
 
   prop = RNA_def_property(srna, "keyframe_new_handle_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_keyframe_handle_type_items);

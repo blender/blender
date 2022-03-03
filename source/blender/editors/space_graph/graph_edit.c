@@ -1524,6 +1524,7 @@ void GRAPH_OT_interpolation_type(wmOperatorType *ot)
   /* Id-props */
   ot->prop = RNA_def_enum(
       ot->srna, "type", rna_enum_beztriple_interpolation_mode_items, 0, "Type", "");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_ACTION);
 }
 
 /** \} */

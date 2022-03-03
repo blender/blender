@@ -12,6 +12,8 @@
 #include "BLI_math.h"
 #include "BLI_rect.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_gpencil_geom.h"
@@ -1239,6 +1241,8 @@ void VIEW3D_OT_view_axis(wmOperatorType *ot)
 
   ot->prop = RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "Preset viewpoint to use");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_EDITOR_VIEW3D);
+
   prop = RNA_def_boolean(
       ot->srna, "align_active", 0, "Align Active", "Align to the active object's axis");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
