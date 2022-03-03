@@ -34,6 +34,7 @@
 #include "ED_util.h"
 
 #include "SEQ_relations.h"
+#include "SEQ_select.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -296,6 +297,13 @@ static int scene_new_sequencer_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static bool scene_new_sequencer_poll(bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  const Sequence *seq = SEQ_select_active_get(scene);
+  return (seq && (seq->type == SEQ_TYPE_SCENE));
+}
+
 static const EnumPropertyItem *scene_new_sequencer_enum_itemf(bContext *C,
                                                               PointerRNA *UNUSED(ptr),
                                                               PropertyRNA *UNUSED(prop),
@@ -351,6 +359,7 @@ static void SCENE_OT_new_sequencer(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = scene_new_sequencer_exec;
   ot->invoke = WM_menu_invoke;
+  ot->poll = scene_new_sequencer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
