@@ -3191,11 +3191,15 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
           copy_v2_v2_int(event->xy, prev_xy);
 
           win->event_queue_check_click = false;
+          if (!((action & WM_HANDLER_BREAK) == 0 || wm_action_not_handled(action))) {
+            /* Only disable when handled as other handlers may use this drag event. */
+            win->event_queue_check_drag = false;
+          }
         }
       }
-      else {
-        win->event_queue_check_drag = false;
-      }
+    }
+    else {
+      win->event_queue_check_drag = false;
     }
   }
   else if (ISMOUSE_BUTTON(event->type) || ISKEYBOARD(event->type)) {
@@ -3267,6 +3271,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
     }
     else {
       win->event_queue_check_click = false;
+      win->event_queue_check_drag = false;
     }
   }
   else if (ISMOUSE_WHEEL(event->type) || ISMOUSE_GESTURE(event->type)) {
@@ -3712,11 +3717,6 @@ void wm_event_do_handlers(bContext *C)
 
       /* Check dragging, creates new event or frees, adds draw tag. */
       wm_event_drag_and_drop_test(wm, win, event);
-
-      /* Builtin drag: #KM_CLICK_DRAG. */
-      if (action & WM_HANDLER_BREAK) {
-        win->event_queue_check_drag = false;
-      }
 
       if ((action & WM_HANDLER_BREAK) == 0) {
         /* NOTE: setting subwin active should be done here, after modal handlers have been done. */
