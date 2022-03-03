@@ -331,6 +331,7 @@ static wmDropBox *dropbox_active(bContext *C,
 
           const wmOperatorCallContext opcontext = wm_drop_operator_context_get(drop);
           if (WM_operator_poll_context(C, drop->ot, opcontext)) {
+            CTX_store_set(C, NULL);
             return drop;
           }
 
@@ -346,6 +347,7 @@ static wmDropBox *dropbox_active(bContext *C,
       }
     }
   }
+  CTX_store_set(C, NULL);
   return NULL;
 }
 
