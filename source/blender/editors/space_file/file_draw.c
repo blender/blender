@@ -476,7 +476,26 @@ static void file_draw_preview(const SpaceFile *sfile,
     immUnbindProgram();
   }
 
-  but = uiDefBut(block, UI_BTYPE_LABEL, 0, "", xco, yco, ex, ey, NULL, 0.0, 0.0, 0, 0, NULL);
+  /* Invisible button for dragging. */
+  rcti drag_rect = *tile_draw_rect;
+  /* A bit smaller than the full tile, to increase the gap between items that users can drag from
+   * for box select. */
+  BLI_rcti_pad(&drag_rect, -layout->tile_border_x, -layout->tile_border_y);
+
+  but = uiDefBut(block,
+                 UI_BTYPE_LABEL,
+                 0,
+                 "",
+                 drag_rect.xmin,
+                 drag_rect.ymin,
+                 BLI_rcti_size_x(&drag_rect),
+                 BLI_rcti_size_y(&drag_rect),
+                 NULL,
+                 0.0,
+                 0.0,
+                 0,
+                 0,
+                 NULL);
 
   /* Drag-region. */
   if (drag) {
