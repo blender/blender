@@ -1135,7 +1135,7 @@ static int select_timeline_marker_frame(ListBase *markers,
                                         bool extend,
                                         bool wait_to_deselect_others)
 {
-  TimeMarker *marker, *marker_selected = NULL;
+  TimeMarker *marker, *marker_cycle_selected = NULL;
   int ret_val = OPERATOR_FINISHED;
 
   if (extend) {
@@ -1146,13 +1146,13 @@ static int select_timeline_marker_frame(ListBase *markers,
   for (marker = markers->first; marker; marker = marker->next) {
     if (marker->frame == frame) {
       if (marker->flag & SELECT) {
-        marker_selected = marker->next ? marker->next : markers->first;
+        marker_cycle_selected = marker->next ? marker->next : markers->first;
         break;
       }
     }
   }
 
-  if (wait_to_deselect_others && marker_selected) {
+  if (wait_to_deselect_others && marker_cycle_selected) {
     ret_val = OPERATOR_RUNNING_MODAL;
   }
   /* if extend is not set, then deselect markers */
@@ -1161,14 +1161,14 @@ static int select_timeline_marker_frame(ListBase *markers,
       deselect_markers(markers);
     }
 
-    LISTBASE_CIRCULAR_FORWARD_BEGIN (markers, marker, marker_selected) {
+    LISTBASE_CIRCULAR_FORWARD_BEGIN (markers, marker, marker_cycle_selected) {
       /* this way a not-extend select will always give 1 selected marker */
       if (marker->frame == frame) {
         marker->flag ^= SELECT;
         break;
       }
     }
-    LISTBASE_CIRCULAR_FORWARD_END(markers, marker, marker_selected);
+    LISTBASE_CIRCULAR_FORWARD_END(markers, marker, marker_cycle_selected);
   }
 
   return ret_val;
