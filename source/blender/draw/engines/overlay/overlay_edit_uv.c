@@ -113,6 +113,11 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
   const bool do_uv_overlay = is_image_type && is_uv_editor && has_edit_object;
   const bool show_modified_uvs = sima->flag & SI_DRAWSHADOW;
   const bool is_tiled_image = image && (image->source == IMA_SRC_TILED);
+  const bool do_edges_only = (ts->uv_flag & UV_SYNC_SELECTION) ?
+                                  /* NOTE: Ignore #SCE_SELECT_EDGE because a single selected edge
+                                   * on the mesh may cause singe UV vertices to be selected. */
+                                  false :
+                                  (ts->uv_selectmode == UV_SELECT_EDGE);
   const bool do_faces = ((sima->flag & SI_NO_DRAWFACES) == 0);
   const bool do_face_dots = (ts->uv_flag & UV_SYNC_SELECTION) ?
                                 (ts->selectmode & SCE_SELECT_FACE) != 0 :
@@ -124,6 +129,7 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
                                   (brush->imagepaint_tool == PAINT_TOOL_CLONE) &&
                                   brush->clone.image;
 
+  pd->edit_uv.do_verts = show_overlays && (!do_edges_only);
   pd->edit_uv.do_faces = show_overlays && do_faces && !do_uvstretching_overlay;
   pd->edit_uv.do_face_dots = show_overlays && do_faces && do_face_dots;
   pd->edit_uv.do_uv_overlay = show_overlays && do_uv_overlay;
@@ -183,7 +189,11 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       DRW_PASS_CREATE(psl->edit_uv_edges_ps,
                       DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
                           DRW_STATE_BLEND_ALPHA);
-      GPUShader *sh = OVERLAY_shader_edit_uv_edges_get();
+      const bool do_edges_only = (ts->uv_flag & UV_SYNC_SELECTION) ?
+                                     false :
+                                     (ts->uv_selectmode & UV_SELECT_EDGE);
+      GPUShader *sh = do_edges_only ? OVERLAY_shader_edit_uv_edges_for_edge_select_get() :
+                                      OVERLAY_shader_edit_uv_edges_get();
       if (pd->edit_uv.do_uv_shadow_overlay) {
         pd->edit_uv_shadow_edges_grp = DRW_shgroup_create(sh, psl->edit_uv_edges_ps);
         DRW_shgroup_uniform_block(pd->edit_uv_shadow_edges_grp, "globalsBlock", G_draw.block_ubo);
@@ -211,11 +221,14 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
   }
 
   if (pd->edit_uv.do_uv_overlay) {
-    /* uv verts */
-    {
+    if (pd->edit_uv.do_verts || pd->edit_uv.do_face_dots) {
       DRW_PASS_CREATE(psl->edit_uv_verts_ps,
                       DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
                           DRW_STATE_BLEND_ALPHA);
+    }
+
+    /* uv verts */
+    if (pd->edit_uv.do_verts) {
       GPUShader *sh = OVERLAY_shader_edit_uv_verts_get();
       pd->edit_uv_verts_grp = DRW_shgroup_create(sh, psl->edit_uv_verts_ps);
 
@@ -430,9 +443,11 @@ static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
       if (geom) {
         DRW_shgroup_call_obmat(pd->edit_uv_edges_grp, geom, NULL);
       }
-      geom = DRW_mesh_batch_cache_get_edituv_verts(ob, ob->data);
-      if (geom) {
-        DRW_shgroup_call_obmat(pd->edit_uv_verts_grp, geom, NULL);
+      if (pd->edit_uv.do_verts) {
+        geom = DRW_mesh_batch_cache_get_edituv_verts(ob, ob->data);
+        if (geom) {
+          DRW_shgroup_call_obmat(pd->edit_uv_verts_grp, geom, NULL);
+        }
       }
       if (pd->edit_uv.do_faces) {
         geom = DRW_mesh_batch_cache_get_edituv_faces(ob, ob->data);

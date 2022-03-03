@@ -779,7 +779,17 @@ class IMAGE_HT_header(Header):
             if tool_settings.use_uv_select_sync:
                 layout.template_edit_mode_selection()
             else:
-                layout.prop(tool_settings, "uv_select_mode", text="", expand=True)
+                row = layout.row(align=True)
+                uv_select_mode = tool_settings.uv_select_mode[:]
+                row.operator("uv.select_mode", text="", icon='UV_VERTEXSEL', 
+                             depress=(uv_select_mode == 'VERTEX')).type = 'VERTEX'
+                row.operator("uv.select_mode", text="", icon='UV_EDGESEL', 
+                             depress=(uv_select_mode == 'EDGE')).type = 'EDGE'
+                row.operator("uv.select_mode", text="", icon='UV_FACESEL', 
+                             depress=(uv_select_mode == 'FACE')).type = 'FACE'
+                row.operator("uv.select_mode", text="", icon='UV_ISLANDSEL', 
+                             depress=(uv_select_mode == 'ISLAND')).type = 'ISLAND'
+                
                 layout.prop(tool_settings, "uv_sticky_select_mode", icon_only=True)
 
         IMAGE_MT_editor_menus.draw_collapsible(context, layout)

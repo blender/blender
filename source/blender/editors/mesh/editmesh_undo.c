@@ -88,6 +88,7 @@ typedef struct UndoMesh {
 
   Mesh me;
   int selectmode;
+  char uv_selectmode;
 
   /** \note
    * This isn't a perfect solution, if you edit keys and change shapes this works well
@@ -769,6 +770,7 @@ static bool mesh_undosys_step_encode(struct bContext *C, struct Main *bmain, Und
   /* Important not to use the 3D view when getting objects because all objects
    * outside of this list will be moved out of edit-mode when reading back undo steps. */
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  ToolSettings *ts = CTX_data_tool_settings(C);
   uint objects_len = 0;
   Object **objects = ED_undo_editmode_objects_from_view_layer(view_layer, &objects_len);
 
@@ -792,6 +794,7 @@ static bool mesh_undosys_step_encode(struct bContext *C, struct Main *bmain, Und
         &elem->data, me->edit_mesh, me->key, um_references ? um_references[i] : NULL);
     em->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
+    elem->data.uv_selectmode = ts->uv_selectmode;
 
 #ifdef USE_ARRAY_STORE
     /** As this is only data storage it is safe to set the session ID here. */
@@ -849,6 +852,7 @@ static void mesh_undosys_step_decode(struct bContext *C,
 
   Scene *scene = CTX_data_scene(C);
   scene->toolsettings->selectmode = us->elems[0].data.selectmode;
+  scene->toolsettings->uv_selectmode = us->elems[0].data.uv_selectmode;
 
   bmain->is_memfile_undo_flush_needed = true;
 
