@@ -123,11 +123,7 @@ void Session::start()
 void Session::cancel(bool quick)
 {
   /* Check if session thread is rendering. */
-  bool rendering;
-  {
-    thread_scoped_lock session_thread_lock(session_thread_mutex_);
-    rendering = (session_thread_state_ == SESSION_THREAD_RENDER);
-  }
+  const bool rendering = is_session_thread_rendering();
 
   if (rendering) {
     /* Cancel path trace operations. */
@@ -286,6 +282,12 @@ void Session::thread_render()
     progress.set_status(progress.get_cancel_message());
   else
     progress.set_update();
+}
+
+bool Session::is_session_thread_rendering()
+{
+  thread_scoped_lock session_thread_lock(session_thread_mutex_);
+  return (session_thread_state_ == SESSION_THREAD_RENDER);
 }
 
 RenderWork Session::run_update_for_next_iteration()
@@ -570,7 +572,7 @@ void Session::set_pause(bool pause)
     }
   }
 
-  if (session_thread_) {
+  if (is_session_thread_rendering()) {
     if (notify) {
       pause_cond_.notify_all();
     }

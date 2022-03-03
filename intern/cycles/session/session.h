@@ -175,6 +175,10 @@ class Session {
   void thread_run();
   void thread_render();
 
+  /* Check whether the session thread is in `SESSION_THREAD_RENDER` state.
+   * Returns true if it is so. */
+  bool is_session_thread_rendering();
+
   /* Update for the new iteration of the main loop in run implementation (run_cpu and run_gpu).
    *
    * Will take care of the following things:
