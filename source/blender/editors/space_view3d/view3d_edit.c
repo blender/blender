@@ -1063,7 +1063,8 @@ static int view3d_cursor3d_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   const enum eV3DCursorOrient orientation = RNA_enum_get(op->ptr, "orientation");
   ED_view3d_cursor3d_update(C, event->mval, use_depth, orientation);
 
-  return OPERATOR_FINISHED;
+  /* Use pass-through to allow click-drag to transform the cursor. */
+  return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 }
 
 void VIEW3D_OT_cursor3d(wmOperatorType *ot)
