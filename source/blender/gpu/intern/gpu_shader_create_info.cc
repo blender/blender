@@ -62,6 +62,10 @@ void ShaderCreateInfo::finalize()
     pass_resources_.extend(info.pass_resources_);
     typedef_sources_.extend_non_duplicates(info.typedef_sources_);
 
+    if (info.early_fragment_test_) {
+      early_fragment_test_ = true;
+    }
+
     validate(info);
 
     auto assert_no_overlap = [&](const bool test, const StringRefNull error) {

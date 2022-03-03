@@ -271,6 +271,8 @@ struct ShaderCreateInfo {
   bool finalized_ = false;
   /** If true, all resources will have an automatic location assigned. */
   bool auto_resource_location_ = false;
+  /** If true, force depth and stencil tests to always happen before fragment shader invocation. */
+  bool early_fragment_test_ = false;
   /**
    * Maximum length of all the resource names including each null terminator.
    * Only for names used by gpu::ShaderInterface.
@@ -518,6 +520,16 @@ struct ShaderCreateInfo {
     compute_layout_.local_size_x = local_size_x;
     compute_layout_.local_size_y = local_size_y;
     compute_layout_.local_size_z = local_size_z;
+    return *(Self *)this;
+  }
+
+  /**
+   * Force fragment tests before fragment shader invocation.
+   * IMPORTANT: This is incompatible with using the gl_FragDepth output.
+   */
+  Self &early_fragment_test(bool enable)
+  {
+    early_fragment_test_ = enable;
     return *(Self *)this;
   }
 

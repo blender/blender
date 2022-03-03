@@ -576,6 +576,9 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
       pre_main += "  gpu_BaryCoordNoPersp = stable_bary_(gl_BaryCoordNoPerspAMD);\n";
     }
   }
+  if (info.early_fragment_test_) {
+    ss << "layout(early_fragment_tests) in;\n";
+  }
   ss << "\n/* Outputs. */\n";
   for (const ShaderCreateInfo::FragOut &output : info.fragment_outputs_) {
     ss << "layout(location = " << output.index;
