@@ -9,8 +9,8 @@
 #include "BLI_string.h"
 #include "BLT_translation.h"
 
-#include "DNA_space_types.h"
 #include "DNA_material_types.h"
+#include "DNA_space_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -19,6 +19,10 @@
 #include "WM_api.h"
 
 #include "UI_interface.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Tree View Drag/Drop Callbacks
+ * \{ */
 
 static bool ui_tree_view_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
@@ -51,7 +55,11 @@ static char *ui_tree_view_drop_tooltip(bContext *C,
   return UI_tree_view_item_drop_tooltip(hovered_tree_item, drag);
 }
 
-/* ---------------------------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Name Drag/Drop Callbacks
+ * \{ */
 
 static bool ui_drop_name_poll(struct bContext *C, wmDrag *drag, const wmEvent *UNUSED(event))
 {
@@ -64,8 +72,9 @@ static void ui_drop_name_copy(wmDrag *drag, wmDropBox *drop)
   RNA_string_set(drop->ptr, "string", id->name + 2);
 }
 
-/* ---------------------------------------------------------------------- */
-/* Material Drag/Drop Operators */
+/* -------------------------------------------------------------------- */
+/** \name Material Drag/Drop Callbacks
+ * \{ */
 
 static bool ui_drop_material_poll(bContext *C, wmDrag *drag, const wmEvent *UNUSED(event))
 {
@@ -118,7 +127,11 @@ static char *ui_drop_material_tooltip(bContext *C,
   return result;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
+/** \name Add User Interface Drop Boxes
+ * \{ */
 
 void ED_dropboxes_ui()
 {
@@ -143,3 +156,5 @@ void ED_dropboxes_ui()
                  WM_drag_free_imported_drag_ID,
                  ui_drop_material_tooltip);
 }
+
+/** \} */
