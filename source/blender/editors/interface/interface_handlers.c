@@ -3903,8 +3903,8 @@ static void ui_do_but_textedit(
       char ascii = event->ascii;
       const char *utf8_buf = event->utf8_buf;
 
-      /* exception that's useful for number buttons, some keyboard
-       * numpads have a comma instead of a period */
+      /* Exception that's useful for number buttons, some keyboard
+       * numpads have a comma instead of a period. */
       if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER)) { /* Could use `data->min`. */
         if (event->type == EVT_PADPERIOD && ascii == ',') {
           ascii = '.';

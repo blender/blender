@@ -123,7 +123,7 @@ static void bake_progress_update(void *bjv, float progress)
   }
 }
 
-/* catch esc */
+/** Catch escape key to cancel. */
 static int bake_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   /* no running blender, remove handler and pass through */

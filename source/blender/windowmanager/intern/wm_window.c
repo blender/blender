@@ -614,10 +614,10 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
   }
 
   if (win->ghostwin != NULL) {
-    /* If we have no ghostwin this is a buggy window that should be removed.
+    /* If we have no `ghostwin` this is a buggy window that should be removed.
      * However we still need to initialize it correctly so the screen doesn't hang. */
 
-    /* happens after fileread */
+    /* Happens after file-read. */
     wm_window_ensure_eventstate(win);
 
     WM_window_set_dpi(win);

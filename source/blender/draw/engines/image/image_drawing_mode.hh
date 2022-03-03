@@ -401,7 +401,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
   /**
    * \brief Ensure that the float buffer of the given image buffer is available.
    *
-   * Returns true when a float buffer was created. Somehow the VSE cache increases the ref
+   * Returns true when a float buffer was created. Somehow the sequencer cache increases the ref
    * counter, but might use a different mechanism for destructing the image, that doesn't free the
    * rect_float as the reference-counter isn't 0. To work around this we destruct any created local
    * buffers ourself.

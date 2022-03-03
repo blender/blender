@@ -3552,7 +3552,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
     return edbm_select_linked_pick_exec(C, op);
   }
 
-  /* unified_finednearest needs ogl */
+  /* #unified_findnearest needs OpenGL. */
   view3d_operator_needs_opengl(C);
 
   /* setup view context for argument to callbacks */

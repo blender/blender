@@ -548,12 +548,14 @@ enum {
   OPERATOR_RUNNING_MODAL = (1 << 0),
   OPERATOR_CANCELLED = (1 << 1),
   OPERATOR_FINISHED = (1 << 2),
-  /* add this flag if the event should pass through */
+  /** Add this flag if the event should pass through. */
   OPERATOR_PASS_THROUGH = (1 << 3),
-  /* in case operator got executed outside WM code... like via fileselect */
+  /** In case operator got executed outside WM code (like via file-select). */
   OPERATOR_HANDLED = (1 << 4),
-  /* used for operators that act indirectly (eg. popup menu)
-   * NOTE: this isn't great design (using operators to trigger UI) avoid where possible. */
+  /**
+   * Used for operators that act indirectly (eg. popup menu).
+   * \note this isn't great design (using operators to trigger UI) avoid where possible.
+   */
   OPERATOR_INTERFACE = (1 << 5),
 };
 #define OPERATOR_FLAGS_ALL \
@@ -566,9 +568,10 @@ enum {
 
 /** #wmOperator.flag */
 enum {
-  /** low level flag so exec() operators can tell if they were invoked, use with care.
-   * Typically this shouldn't make any difference, but it rare cases its needed
-   * (see smooth-view) */
+  /**
+   * Low level flag so exec() operators can tell if they were invoked, use with care.
+   * Typically this shouldn't make any difference, but it rare cases its needed (see smooth-view).
+   */
   OP_IS_INVOKE = (1 << 0),
   /** So we can detect if an operators exec() call is activated by adjusting the last action. */
   OP_IS_REPEAT = (1 << 1),
@@ -585,8 +588,10 @@ enum {
   /** When the cursor is grabbed */
   OP_IS_MODAL_GRAB_CURSOR = (1 << 2),
 
-  /** Allow modal operators to have the region under the cursor for their context
-   * (the regiontype is maintained to prevent errors) */
+  /**
+   * Allow modal operators to have the region under the cursor for their context
+   * (the region-type is maintained to prevent errors).
+   */
   OP_IS_MODAL_CURSOR_REGION = (1 << 3),
 };
 

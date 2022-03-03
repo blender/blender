@@ -818,7 +818,7 @@ static void render_drawlock(void *rjv, bool lock)
   }
 }
 
-/* catch esc */
+/** Catch escape key to cancel. */
 static int screen_render_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Scene *scene = (Scene *)op->customdata;

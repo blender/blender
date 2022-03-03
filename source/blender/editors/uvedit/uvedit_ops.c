@@ -1625,7 +1625,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
     /* NOTE: Selecting faces is delayed so that it doesn't select verts/edges and confuse certain
      * UV selection checks.
      * This creates a temporary state which breaks certain UV selection functions that do face
-     * visibilty checks internally. Current implementation handles each case separately. */
+     * visibility checks internally. Current implementation handles each case separately. */
 
     /* call the mesh function if we are in mesh sync sel */
     if (ts->uv_flag & UV_SYNC_SELECTION) {
@@ -1641,7 +1641,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
     }
 
     /* NOTE(@sidd017): Supporting selections in all cases is quite difficult considering there are
-     * at least 12 cases to look into (3 mesh selectmodes + 4 uv selectmodes + sticky modes).
+     * at least 12 cases to look into (3 mesh select-modes + 4 uv select-modes + sticky modes).
      * For now we select all UV faces as sticky disabled to ensure proper UV selection states (vert
      * + edge flags) */
     if (use_face_center) {

@@ -481,7 +481,7 @@ void WM_check(bContext *C)
   }
 
   if (!G.background) {
-    /* Case: fileread. */
+    /* Case: file-read. */
     if ((wm->initialized & WM_WINDOW_IS_INIT) == 0) {
       WM_keyconfig_init(C);
       WM_autosave_init(wm);
@@ -491,7 +491,7 @@ void WM_check(bContext *C)
     wm_window_ghostwindows_ensure(wm);
   }
 
-  /* Case: fileread. */
+  /* Case: file-read. */
   /* NOTE: this runs in background mode to set the screen context cb. */
   if ((wm->initialized & WM_WINDOW_IS_INIT) == 0) {
     ED_screens_init(bmain, wm);
