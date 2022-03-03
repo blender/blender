@@ -1146,7 +1146,7 @@ static int select_timeline_marker_frame(ListBase *markers,
   for (marker = markers->first; marker; marker = marker->next) {
     if (marker->frame == frame) {
       if (marker->flag & SELECT) {
-        marker_selected = marker->next;
+        marker_selected = marker->next ? marker->next : markers->first;
         break;
       }
     }
