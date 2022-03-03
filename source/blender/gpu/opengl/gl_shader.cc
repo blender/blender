@@ -174,6 +174,10 @@ static const char *to_string(const eGPUTextureFormat &type)
       return "r16f";
     case GPU_R16:
       return "r16";
+    case GPU_R11F_G11F_B10F:
+      return "r11f_g11f_b10f";
+    case GPU_RGB10_A2:
+      return "rgb10_a2";
     default:
       return "unknown";
   }
