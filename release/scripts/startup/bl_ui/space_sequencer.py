@@ -1682,7 +1682,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
         layout.use_property_decorate = False
         layout.active = not strip.mute
 
-        layout.template_ID(strip, "scene", text="Scene")
+        layout.template_ID(strip, "scene", text="Scene", new="scene.new_sequencer")
         layout.prop(strip, "scene_input", text="Input")
 
         if strip.scene_input == 'CAMERA':

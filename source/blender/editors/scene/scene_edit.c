@@ -11,6 +11,8 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
+#include "DNA_sequence_types.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
@@ -31,22 +33,22 @@
 #include "ED_screen.h"
 #include "ED_util.h"
 
+#include "SEQ_relations.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-Scene *ED_scene_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod method)
+static Scene *scene_add(Main *bmain, wmWindow *win, Scene *scene_old, eSceneCopyMethod method)
 {
-  Scene *scene_new;
-
+  Scene *scene_new = NULL;
   if (method == SCE_COPY_NEW) {
     scene_new = BKE_scene_add(bmain, DATA_("Scene"));
   }
   else { /* different kinds of copying */
-    Scene *scene_old = WM_window_get_active_scene(win);
-
     /* We are going to deep-copy collections, objects and various object data, we need to have
      * up-to-date obdata for that. */
     if (method == SCE_COPY_FULL) {
@@ -55,6 +57,53 @@ Scene *ED_scene_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod me
 
     scene_new = BKE_scene_duplicate(bmain, scene_old, method);
   }
+
+  return scene_new;
+}
+
+/* Add a new scene in the sequence editor. */
+Scene *ED_scene_vse_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod method)
+{
+  Sequence *seq = NULL;
+  Scene *scene_active = CTX_data_scene(C);
+  Scene *scene_strip = NULL;
+  /* VSE need to use as base the scene defined in the strip, not the main scene. */
+  Editing *ed = scene_active->ed;
+  if (ed) {
+    seq = ed->act_seq;
+    if (seq && seq->scene) {
+      scene_strip = seq->scene;
+    }
+  }
+
+  /* If no scene assigned to the strip, only NEW scene mode is logic. */
+  if (scene_strip == NULL) {
+    method = SCE_COPY_NEW;
+  }
+
+  Scene *scene_new = scene_add(bmain, win, scene_strip, method);
+
+  /* As the scene is created in VSE, do not set the new scene as active. This is useful
+   * for storyboarding where we want to keep actual scene active.
+   * The new scene is linked to the active strip and the viewport updated. */
+  if (scene_new && seq) {
+    seq->scene = scene_new;
+    /* Do a refresh of the sequencer data. */
+    SEQ_relations_invalidate_cache_raw(scene_active, seq);
+    DEG_id_tag_update(&scene_active->id, ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS);
+    DEG_relations_tag_update(bmain);
+  }
+
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene_active);
+  WM_event_add_notifier(C, NC_SCENE | ND_SCENEBROWSE, scene_active);
+
+  return scene_new;
+}
+
+Scene *ED_scene_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod method)
+{
+  Scene *scene_old = WM_window_get_active_scene(win);
+  Scene *scene_new = scene_add(bmain, win, scene_old, method);
 
   WM_window_set_active_scene(bmain, C, win, scene_new);
 
@@ -219,6 +268,86 @@ static void SCENE_OT_new(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
 
+static int scene_new_vse_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  wmWindow *win = CTX_wm_window(C);
+  int type = RNA_enum_get(op->ptr, "type");
+
+  if (ED_scene_vse_add(bmain, C, win, type) == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static const EnumPropertyItem *scene_new_vse_enum_itemf(bContext *C,
+                                                        PointerRNA *UNUSED(ptr),
+                                                        PropertyRNA *UNUSED(prop),
+                                                        bool *r_free)
+{
+  EnumPropertyItem *item = NULL, item_tmp = {0};
+  int totitem = 0;
+
+  item_tmp.identifier = "NEW";
+  item_tmp.name = "New";
+  item_tmp.value = SCE_COPY_NEW;
+  item_tmp.description = "Add a new, empty scene with default settings";
+  RNA_enum_item_add(&item, &totitem, &item_tmp);
+
+  Scene *scene_active = CTX_data_scene(C);
+  Editing *ed = scene_active ? scene_active->ed : NULL;
+  if (ed) {
+    Sequence *seq = ed->act_seq;
+    if (seq && seq->scene) {
+      item_tmp.identifier = "EMPTY";
+      item_tmp.name = "Copy Settings";
+      item_tmp.value = SCE_COPY_EMPTY;
+      item_tmp.description = "Add a new, empty scene, and copy settings from the current scene";
+      RNA_enum_item_add(&item, &totitem, &item_tmp);
+
+      item_tmp.identifier = "LINK_COPY";
+      item_tmp.name = "Linked Copy";
+      item_tmp.value = SCE_COPY_LINK_COLLECTION;
+      item_tmp.description = "Link in the collections from the current scene (shallow copy)";
+      RNA_enum_item_add(&item, &totitem, &item_tmp);
+
+      item_tmp.identifier = "FULL_COPY";
+      item_tmp.name = "Full Copy";
+      item_tmp.value = SCE_COPY_FULL;
+      item_tmp.description = "Make a full copy of the current scene";
+      RNA_enum_item_add(&item, &totitem, &item_tmp);
+    }
+  }
+
+  RNA_enum_item_end(&item, &totitem);
+  *r_free = true;
+  return item;
+
+  return DummyRNA_NULL_items;
+}
+
+static void SCENE_OT_new_sequencer(wmOperatorType *ot)
+{
+
+  /* identifiers */
+  ot->name = "New Scene";
+  ot->description = "Add new scene by type in the sequence editor and assign to active strip";
+  ot->idname = "SCENE_OT_new_sequencer";
+
+  /* api callbacks */
+  ot->exec = scene_new_vse_exec;
+  ot->invoke = WM_menu_invoke;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  ot->prop = RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+  RNA_def_enum_funcs(ot->prop, scene_new_vse_enum_itemf);
+  RNA_def_property_flag(ot->prop, PROP_ENUM_NO_TRANSLATE);
+}
+
 static bool scene_delete_poll(bContext *C)
 {
   Main *bmain = CTX_data_main(C);
@@ -262,4 +391,5 @@ void ED_operatortypes_scene(void)
 {
   WM_operatortype_append(SCENE_OT_new);
   WM_operatortype_append(SCENE_OT_delete);
+  WM_operatortype_append(SCENE_OT_new_sequencer);
 }
