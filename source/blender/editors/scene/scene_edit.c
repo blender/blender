@@ -42,6 +42,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Scene Utilities
+ * \{ */
+
 static Scene *scene_add(Main *bmain, Scene *scene_old, eSceneCopyMethod method)
 {
   Scene *scene_new = NULL;
@@ -223,6 +227,12 @@ bool ED_scene_view_layer_delete(Main *bmain, Scene *scene, ViewLayer *layer, Rep
   return true;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scene New Operator
+ * \{ */
+
 static int scene_new_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -267,6 +277,12 @@ static void SCENE_OT_new(wmOperatorType *ot)
   /* properties */
   ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scene New Sequencer Operator
+ * \{ */
 
 static int scene_new_sequencer_exec(bContext *C, wmOperator *op)
 {
@@ -345,6 +361,12 @@ static void SCENE_OT_new_sequencer(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_ENUM_NO_TRANSLATE);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scene Delete Operator
+ * \{ */
+
 static bool scene_delete_poll(bContext *C)
 {
   Main *bmain = CTX_data_main(C);
@@ -384,9 +406,17 @@ static void SCENE_OT_delete(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Registration
+ * \{ */
+
 void ED_operatortypes_scene(void)
 {
   WM_operatortype_append(SCENE_OT_new);
   WM_operatortype_append(SCENE_OT_delete);
   WM_operatortype_append(SCENE_OT_new_sequencer);
 }
+
+/** \} */
