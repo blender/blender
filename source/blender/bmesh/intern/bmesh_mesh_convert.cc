@@ -767,6 +767,25 @@ static void bm_to_mesh_shape(BMesh *bm, Key *key, MVert *mvert)
     }
   }
 
+  /* Without this, the real mesh coordinates (uneditable) as soon as you create the Basis shape.
+   * while users might not notice since the shape-key is applied in the viewport,
+   * exporters for example may still use the underlying coordinates, see: T30771 & T96135.
+   *
+   * Needed when editing any shape that isn't the (`key->refkey`), the vertices in `me->mvert`
+   * currently have vertex coordinates set from the current-shape (initialized from #BMVert.co).
+   * In this case it's important to overwrite these coordinates with the basis-keys coordinates. */
+  bool update_vertex_coords_from_refkey = false;
+  int cd_shape_offset_refkey = -1;
+  if ((actkey != key->refkey) && (cd_shape_keyindex_offset != -1)) {
+    const int refkey_uuid = bm_to_mesh_shape_layer_index_from_kb(bm, key->refkey);
+    if (refkey_uuid != -1) {
+      cd_shape_offset_refkey = CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, refkey_uuid);
+      if (cd_shape_offset_refkey != -1) {
+        update_vertex_coords_from_refkey = true;
+      }
+    }
+  }
+
   LISTBASE_FOREACH (KeyBlock *, currkey, &key->block) {
     int keyi;
     float(*currkey_data)[3];
@@ -797,14 +816,12 @@ static void bm_to_mesh_shape(BMesh *bm, Key *key, MVert *mvert)
         if (currkey == actkey) {
           copy_v3_v3(currkey_data[i], eve->co);
 
-          if (actkey != key->refkey) {
-            /* Without this, the real mesh coordinates (uneditable) as soon as you create
-             * the Basis shape, see: T30771 for details. */
-            if (cd_shape_keyindex_offset != -1) {
-              keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
-              if (keyi != ORIGINDEX_NONE) {
-                copy_v3_v3(mvert[i].co, co_orig);
-              }
+          if (update_vertex_coords_from_refkey) {
+            BLI_assert(actkey != key->refkey);
+            keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
+            if (keyi != ORIGINDEX_NONE) {
+              float *co_refkey = (float *)BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset_refkey);
+              copy_v3_v3(mvert[i].co, co_refkey);
             }
           }
         }
