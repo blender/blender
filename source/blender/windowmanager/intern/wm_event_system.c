@@ -2037,33 +2037,28 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
     }
   }
 
-  const bool shift = (winevent->modifier & KM_SHIFT) != 0;
-  const bool ctrl = (winevent->modifier & KM_CTRL) != 0;
-  const bool alt = (winevent->modifier & KM_ALT) != 0;
-  const bool oskey = (winevent->modifier & KM_OSKEY) != 0;
-
-  /* Modifiers also check bits, so it allows modifier order.
-   * Account for rare case of when these keys are used as the 'type' not as modifiers. */
+  /* Account for rare case of when these keys are used as the 'type' not as modifiers. */
   if (kmi->shift != KM_ANY) {
-    if ((shift != kmi->shift) && !(shift & kmi->shift) &&
-        !ELEM(winevent->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY)) {
+    const bool shift = (winevent->modifier & KM_SHIFT) != 0;
+    if ((shift != kmi->shift) && !ELEM(winevent->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY)) {
       return false;
     }
   }
   if (kmi->ctrl != KM_ANY) {
-    if (ctrl != kmi->ctrl && !(ctrl & kmi->ctrl) &&
-        !ELEM(winevent->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
+    const bool ctrl = (winevent->modifier & KM_CTRL) != 0;
+    if (ctrl != kmi->ctrl && !ELEM(winevent->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
       return false;
     }
   }
   if (kmi->alt != KM_ANY) {
-    if (alt != kmi->alt && !(alt & kmi->alt) &&
-        !ELEM(winevent->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY)) {
+    const bool alt = (winevent->modifier & KM_ALT) != 0;
+    if (alt != kmi->alt && !ELEM(winevent->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY)) {
       return false;
     }
   }
   if (kmi->oskey != KM_ANY) {
-    if (oskey != kmi->oskey && !(oskey & kmi->oskey) && (winevent->type != EVT_OSKEY)) {
+    const bool oskey = (winevent->modifier & KM_OSKEY) != 0;
+    if ((oskey != kmi->oskey) && (winevent->type != EVT_OSKEY)) {
       return false;
     }
   }

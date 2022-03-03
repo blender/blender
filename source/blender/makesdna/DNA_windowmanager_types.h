@@ -364,7 +364,7 @@ typedef struct wmKeyMapItem {
   int8_t val;
   /** Use when `val == WM_CLICK_DRAG`,  */
   int8_t direction;
-  /** `oskey` also known as apple, windows-key or super, value denotes order of pressed. */
+  /** `oskey` also known as apple, windows-key or super. */
   short shift, ctrl, alt, oskey;
   /** Raw-key modifier. */
   short keymodifier;
