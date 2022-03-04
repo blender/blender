@@ -1042,7 +1042,7 @@ static void MARKER_OT_move(wmOperatorType *ot)
   /* rna storage */
   RNA_def_int(ot->srna, "frames", 0, INT_MIN, INT_MAX, "Frames", "", INT_MIN, INT_MAX);
   PropertyRNA *prop = RNA_def_boolean(
-      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a tweak event");
+      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a click-drag event");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -1418,7 +1418,7 @@ static void MARKER_OT_select_box(wmOperatorType *ot)
   WM_operator_properties_select_operation_simple(ot);
 
   PropertyRNA *prop = RNA_def_boolean(
-      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a tweak event");
+      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a click-drag event");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

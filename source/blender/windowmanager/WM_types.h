@@ -273,7 +273,7 @@ enum {
 /**
  * #wmKeyMapItem.direction
  *
- * Value of tweaks and line gestures. #KM_ANY (-1) works for this case too.
+ * Direction set for #KM_CLICK_DRAG key-map items. #KM_ANY (-1) to ignore direction.
  */
 enum {
   KM_DIRECTION_N = 1,

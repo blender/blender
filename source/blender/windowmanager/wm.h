@@ -72,7 +72,7 @@ void wm_operatortypes_register(void);
 
 void wm_gesture_draw(struct wmWindow *win);
 /**
- * Tweak and line gestures.
+ * Use for line gesture.
  */
 void wm_gesture_tag_redraw(struct wmWindow *win);
 

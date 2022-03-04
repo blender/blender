@@ -388,6 +388,7 @@ static bool keymap_item_has_invalid_wm_context_data_path(wmKeyMapItem *kmi,
   return false;
 }
 
+/** Tweak event types have been removed, replace with click-drag. */
 static bool keymap_item_update_tweak_event(wmKeyMapItem *kmi, void *UNUSED(user_data))
 {
   /* Tweak events for L M R mouse-buttons. */

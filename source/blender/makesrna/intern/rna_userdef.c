@@ -5899,20 +5899,20 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.1f, 2.0f, 0.01f, 2);
   RNA_def_property_ui_text(prop, "Orbit Sensitivity", "Scale trackball orbit sensitivity");
 
-  /* tweak tablet & mouse preset */
+  /* Click-drag threshold for tablet & mouse. */
   prop = RNA_def_property(srna, "drag_threshold_mouse", PROP_INT, PROP_PIXEL);
   RNA_def_property_range(prop, 1, 255);
   RNA_def_property_ui_text(prop,
                            "Mouse Drag Threshold",
-                           "Number of pixels to drag before a tweak/drag event is triggered "
-                           "for mouse/trackpad input "
+                           "Number of pixels to drag before a drag event is triggered "
+                           "for mouse/track-pad input "
                            "(otherwise click events are detected)");
 
   prop = RNA_def_property(srna, "drag_threshold_tablet", PROP_INT, PROP_PIXEL);
   RNA_def_property_range(prop, 1, 255);
   RNA_def_property_ui_text(prop,
                            "Tablet Drag Threshold",
-                           "Number of pixels to drag before a tweak/drag event is triggered "
+                           "Number of pixels to drag before a drag event is triggered "
                            "for tablet input "
                            "(otherwise click events are detected)");
 

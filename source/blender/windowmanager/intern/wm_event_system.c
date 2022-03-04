@@ -3156,7 +3156,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
   }
 
   if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-    /* Test for #WM_CLICK_DRAG events. */
+    /* Test for #KM_CLICK_DRAG events. */
 
     /* NOTE(@campbellbarton): Needed so drag can be used for editors that support both click
      * selection and passing through the drag action to box select. See #WM_generic_select_modal.
@@ -3224,8 +3224,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         if (win->event_queue_check_drag) {
           if ((event->prev_click_type != event->type) &&
               (ISKEYMODIFIER(event->type) || (event->type == event->prev_click_keymodifier))) {
-            /* Support releasing modifier keys without canceling the drag event, see T89989.
-             * NOTE: this logic is replicated for tweak gestures. */
+            /* Support releasing modifier keys without canceling the drag event, see T89989. */
           }
           else {
             win->event_queue_check_drag = false;

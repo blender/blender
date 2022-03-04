@@ -947,7 +947,7 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
       return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
     }
     /* Important not to return anything other than PASS_THROUGH here,
-     * otherwise it prevents underlying tweak detection code to work properly. */
+     * otherwise it prevents underlying drag detection code to work properly. */
     return OPERATOR_PASS_THROUGH;
   }
 
