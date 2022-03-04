@@ -344,7 +344,6 @@ def create_derived_objects(depsgraph, objects):
     :rtype: dict
     """
     result = {}
-    has_instancer = False
     for ob in objects:
         ob_parent = ob.parent
         if ob_parent and ob_parent.instance_type in {'VERTS', 'FACES'}:

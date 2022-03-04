@@ -694,9 +694,6 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
             layout.label(text="No active asset", icon='INFO')
             return
 
-        asset_library_ref = context.asset_library_ref
-        asset_lib_path = bpy.types.AssetHandle.get_full_library_path(asset_file_handle, asset_library_ref)
-
         prefs = context.preferences
         show_asset_debug_info = prefs.view.show_developer_ui and prefs.experimental.show_asset_debug_info
 

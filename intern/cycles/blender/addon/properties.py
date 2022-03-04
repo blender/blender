@@ -216,7 +216,6 @@ enum_direct_light_sampling_type = (
 )
 
 def update_render_passes(self, context):
-    scene = context.scene
     view_layer = context.view_layer
     view_layer.update_render_passes()
 
@@ -1353,7 +1352,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         items=CyclesPreferences.get_device_types,
     )
 
-    devices: bpy.props.CollectionProperty(type=CyclesDeviceSettings)
+    devices: CollectionProperty(type=CyclesDeviceSettings)
 
     peer_memory: BoolProperty(
         name="Distribute memory across devices",

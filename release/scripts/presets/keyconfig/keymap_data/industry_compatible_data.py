@@ -4173,7 +4173,7 @@ def keymap_transform_tool_mmb(keymap):
         r".*\bSelect Lasso$|"
         r".*\bTweak$)",
     )
-    for km_name, km_args, km_content in keymap:
+    for km_name, _km_args, km_content in keymap:
         if re_fallback_tool.match(km_name):
             km_items = km_content["items"]
             km_items_new = []
