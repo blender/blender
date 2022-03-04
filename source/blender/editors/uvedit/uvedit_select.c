@@ -1229,6 +1229,7 @@ void ED_uvedit_selectmode_flush(Scene *scene, BMEditMesh *em)
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
   BLI_assert((ts->uv_flag & UV_SYNC_SELECTION) == 0);
+  UNUSED_VARS_NDEBUG(ts);
 
   /* Vertex Mode only. */
   if (ts->uv_selectmode & UV_SELECT_VERTEX) {
@@ -1295,6 +1296,7 @@ void uvedit_deselect_flush(Scene *scene, BMEditMesh *em)
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
   BLI_assert((ts->uv_flag & UV_SYNC_SELECTION) == 0);
+  UNUSED_VARS_NDEBUG(ts);
 
   BMFace *efa;
   BMLoop *l;
