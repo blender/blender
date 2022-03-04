@@ -436,6 +436,8 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
     curve_eval->add_spline(std::move(spline));
   }
 
+  curve_eval->attributes.reallocate(curve_eval->splines().size());
+
   CurveComponentLegacy dst_component;
   dst_component.replace(curve_eval.get(), GeometryOwnershipType::Editable);
 
