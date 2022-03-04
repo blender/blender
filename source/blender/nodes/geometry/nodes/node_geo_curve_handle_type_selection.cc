@@ -126,7 +126,6 @@ class HandleTypeFieldInput final : public GeometryFieldInput {
 
   bool is_equal_to(const fn::FieldNode &other) const override
   {
-    return dynamic_cast<const HandleTypeFieldInput *>(&other) != nullptr;
     if (const HandleTypeFieldInput *other_handle_selection =
             dynamic_cast<const HandleTypeFieldInput *>(&other)) {
       return mode_ == other_handle_selection->mode_ && type_ == other_handle_selection->type_;
