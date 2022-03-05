@@ -467,6 +467,18 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                          make_array_write_attribute<int8_t>,
                                                          tag_component_topology_changed);
 
+  static BuiltinCustomDataLayerProvider curve_type("curve_type",
+                                                   ATTR_DOMAIN_CURVE,
+                                                   CD_PROP_INT8,
+                                                   CD_PROP_INT8,
+                                                   BuiltinAttributeProvider::Creatable,
+                                                   BuiltinAttributeProvider::Writable,
+                                                   BuiltinAttributeProvider::Deletable,
+                                                   curve_access,
+                                                   make_array_read_attribute<int8_t>,
+                                                   make_array_write_attribute<int8_t>,
+                                                   tag_component_topology_changed);
+
   static BuiltinCustomDataLayerProvider resolution("resolution",
                                                    ATTR_DOMAIN_CURVE,
                                                    CD_PROP_INT32,
@@ -504,6 +516,7 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                       &handle_type_left,
                                       &nurbs_order,
                                       &nurbs_weight,
+                                      &curve_type,
                                       &resolution,
                                       &cyclic},
                                      {&curve_custom_data, &point_custom_data});
