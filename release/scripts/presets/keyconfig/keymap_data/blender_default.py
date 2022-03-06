@@ -1,5 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "generate_keymaps",
+    "Params",
+)
+
 # ------------------------------------------------------------------------------
 # Developer Notes
 #
@@ -361,12 +366,12 @@ def _template_items_editmode_mesh_select_mode(params):
         return [
             (
                 "mesh.select_mode",
-                {"type": k, "value": 'PRESS', **key_expand, **key_extend},
+                {"type": NUMBERS_1[i], "value": 'PRESS', **key_expand, **key_extend},
                 {"properties": [*prop_extend, *prop_expand, ("type", e)]}
             )
             for key_expand, prop_expand in (({}, ()), ({"ctrl": True}, (("use_expand", True),)))
             for key_extend, prop_extend in (({}, ()), ({"shift": True}, (("use_extend", True),)))
-            for k, e in (('ONE', 'VERT'), ('TWO', 'EDGE'), ('THREE', 'FACE'))
+            for i, e in enumerate(('VERT', 'EDGE', 'FACE'))
         ]
 
 
@@ -385,9 +390,9 @@ def _template_items_uv_select_mode(params):
             *_template_items_editmode_mesh_select_mode(params),
             # Hack to prevent fall-through, when sync select isn't enabled (and the island button isn't visible).
             ("mesh.select_mode", {"type": 'FOUR', "value": 'PRESS'}, None),
-            *(("uv.select_mode", {"type": k, "value": 'PRESS'},
+            *(("uv.select_mode", {"type": NUMBERS_1[i], "value": 'PRESS'},
                {"properties": [("type", e)]})
-              for k, e in (('ONE', 'VERTEX'), ('TWO', 'EDGE'), ('THREE', 'FACE'), ('FOUR', 'ISLAND')))
+              for i, e in enumerate(('VERTEX', 'EDGE', 'FACE', 'ISLAND')))
         ]
 
 
@@ -3627,12 +3632,9 @@ def km_grease_pencil_stroke_edit_mode(params):
         # Vertex group menu
         op_menu("GPENCIL_MT_gpencil_vertex_group", {"type": 'G', "value": 'PRESS', "ctrl": True}),
         # Select mode
-        ("gpencil.selectmode_toggle", {"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("mode", 0)]}),
-        ("gpencil.selectmode_toggle", {"type": 'TWO', "value": 'PRESS'},
-         {"properties": [("mode", 1)]}),
-        ("gpencil.selectmode_toggle", {"type": 'THREE', "value": 'PRESS'},
-         {"properties": [("mode", 2)]}),
+        *(("gpencil.selectmode_toggle", {"type": NUMBERS_1[i], "value": 'PRESS'},
+           {"properties": [("mode", i)]})
+          for i in range(3)),
         # Active layer
         op_menu("GPENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
         # Keyframe menu
@@ -6082,10 +6084,8 @@ def km_sculpt_expand_modal(_params):
         ("RECURSION_STEP_GEODESIC", {"type": 'R', "value": 'PRESS'}, None),
         ("RECURSION_STEP_TOPOLOGY", {"type": 'R', "value": 'PRESS', "alt": True}, None),
         ("MOVE_TOGGLE", {"type": 'SPACE', "value": 'ANY', "any": True}, None),
-        ("FALLOFF_GEODESICS", {"type": 'ONE', "value": 'PRESS', "any": True}, None),
-        ("FALLOFF_TOPOLOGY", {"type": 'TWO', "value": 'PRESS', "any": True}, None),
-        ("FALLOFF_TOPOLOGY_DIAGONALS", {"type": 'THREE', "value": 'PRESS', "any": True}, None),
-        ("FALLOFF_SPHERICAL", {"type": 'FOUR', "value": 'PRESS', "any": True}, None),
+        *((e, {"type": NUMBERS_1[i], "value": 'PRESS', "any": True}, None) for i, e in enumerate(
+            ("FALLOFF_GEODESICS", "FALLOFF_TOPOLOGY", "FALLOFF_TOPOLOGY_DIAGONALS", "FALLOFF_SPHERICAL"))),
         ("SNAP_TOGGLE", {"type": 'LEFT_CTRL', "value": 'ANY'}, None),
         ("LOOP_COUNT_INCREASE", {"type": 'W', "value": 'PRESS', "any": True, "repeat": True}, None),
         ("LOOP_COUNT_DECREASE", {"type": 'Q', "value": 'PRESS', "any": True, "repeat": True}, None),
