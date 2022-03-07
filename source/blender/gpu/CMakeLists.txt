@@ -458,6 +458,9 @@ if(WITH_OPENCOLORIO)
   add_definitions(-DWITH_OCIO)
 endif()
 
+remove_cc_flag("-fsanitize=address")
+remove_cc_flag("/fsanitize=address")
+
 blender_add_lib(bf_gpu "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 target_link_libraries(bf_gpu PUBLIC
   bf_draw_shaders

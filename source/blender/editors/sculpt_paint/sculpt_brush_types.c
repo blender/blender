@@ -2657,7 +2657,7 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
 
     if (dot_v3v3(final_disp, final_disp) > 0.0000001) {
       if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+        BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
       }
     }
 
@@ -3409,7 +3409,11 @@ static void do_fairing_brush_tag_store_task_cb_ex(void *__restrict userdata,
   const Brush *brush = data->brush;
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
-  const int boundflag = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP;
+  int boundflag = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP;
+
+  if (BRUSHSET_GET_BOOL(ss->cache->channels_final, hard_edge_mode, &ss->cache->input_mapping)) {
+    boundflag |= SCULPT_BOUNDARY_FACE_SET;
+  }
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -3440,7 +3444,7 @@ static void do_fairing_brush_tag_store_task_cb_ex(void *__restrict userdata,
     float *fairing_fade = SCULPT_attr_vertex_data(vd.vertex,
                                                   ss->custom_layers[SCULPT_SCL_FAIRING_FADE]);
     uchar *fairing_mask = SCULPT_attr_vertex_data(vd.vertex,
-                                                 ss->custom_layers[SCULPT_SCL_FAIRING_MASK]);
+                                                  ss->custom_layers[SCULPT_SCL_FAIRING_MASK]);
 
     *fairing_fade = max_ff(fade, *fairing_fade);
     *fairing_mask = true;
@@ -3508,7 +3512,8 @@ void SCULPT_do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
     for (int i = 0; i < totvert; i++) {
       SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
-      *(uchar *)SCULPT_attr_vertex_data(vertex, ss->custom_layers[SCULPT_SCL_FAIRING_MASK]) = false;
+      *(uchar *)SCULPT_attr_vertex_data(vertex,
+                                        ss->custom_layers[SCULPT_SCL_FAIRING_MASK]) = false;
       *(float *)SCULPT_attr_vertex_data(vertex, ss->custom_layers[SCULPT_SCL_FAIRING_FADE]) = 0.0f;
       copy_v3_v3(
           (float *)SCULPT_attr_vertex_data(vertex, ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]),
@@ -3539,7 +3544,8 @@ static void do_fairing_brush_displace_task_cb_ex(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    if (!*(uchar *)SCULPT_attr_vertex_data(vd.vertex, ss->custom_layers[SCULPT_SCL_FAIRING_MASK])) {
+    if (!*(uchar *)SCULPT_attr_vertex_data(vd.vertex,
+                                           ss->custom_layers[SCULPT_SCL_FAIRING_MASK])) {
       continue;
     }
     float disp[3];
@@ -4274,7 +4280,7 @@ static void do_displacement_heal_cb(void *__restrict userdata,
         copy_m3_m3(mats[locali], mat);
 
         invert_m3(mat);
-        
+
         float disp[3];
         copy_v3_v3(disp, SCULPT_vertex_co_get(ss, vertex));
         sub_v3_v3(disp, p);

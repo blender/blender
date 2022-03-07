@@ -520,4 +520,7 @@ endif()
 
 add_definitions(${GL_DEFINITIONS})
 
+remove_cc_flag("-fsanitize=address")
+remove_cc_flag("/fsanitize=address")
+
 blender_add_lib(bf_intern_ghost "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

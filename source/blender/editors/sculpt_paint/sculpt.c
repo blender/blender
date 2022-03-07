@@ -106,8 +106,8 @@
 #include "UI_resources.h"
 
 #include "bmesh.h"
-#include "bmesh_tools.h"
 #include "bmesh_log.h"
+#include "bmesh_tools.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -3058,7 +3058,7 @@ bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *bru
 
       /* Requires mesh restore, which doesn't work with
        * dynamic-topology. */
-      !(brush->flag & BRUSH_ANCHORED) && !(brush->flag & BRUSH_DRAG_DOT) &&
+      //!(brush->flag & BRUSH_ANCHORED) && !(brush->flag & BRUSH_DRAG_DOT) &&
       (brush->cached_dyntopo.flag & (DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE | DYNTOPO_CLEANUP)) &&
       !(brush->cached_dyntopo.flag & DYNTOPO_DISABLED) &&
       SCULPT_TOOL_HAS_DYNTOPO(SCULPT_get_tool(ss, brush)));
@@ -4405,10 +4405,12 @@ static void update_sculpt_normal(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 
   /* Grab brush does not update the sculpt normal during a stroke. */
   const bool update_normal = !(brush->flag & BRUSH_ORIGINAL_NORMAL) &&
-                             !(tool == SCULPT_TOOL_GRAB) &&
-                             !(tool == SCULPT_TOOL_THUMB && !(brush->flag & BRUSH_ANCHORED)) &&
-                             !(tool == SCULPT_TOOL_ELASTIC_DEFORM) &&
-                             !(tool == SCULPT_TOOL_SNAKE_HOOK && cache->normal_weight > 0.0f);
+                                 !(tool == SCULPT_TOOL_GRAB) &&
+                                 !(tool == SCULPT_TOOL_THUMB && !(brush->flag & BRUSH_ANCHORED)) &&
+                                 !(tool == SCULPT_TOOL_ELASTIC_DEFORM) &&
+                                 !(tool == SCULPT_TOOL_SNAKE_HOOK &&
+                                   cache->normal_weight > 0.0f) ||
+                             dot_v3v3(cache->sculpt_normal, cache->sculpt_normal) == 0.0f;
 
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0 &&
       (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(cache) || update_normal)) {
@@ -5129,511 +5131,6 @@ static void do_brush_action_task_cb(void *__restrict userdata,
   }
 }
 
-static bool brush_uses_commandlist(Brush *brush, int tool)
-{
-  bool ok = false;
-
-  switch (tool) {
-    case SCULPT_TOOL_DRAW:
-    case SCULPT_TOOL_DRAW_SHARP:
-    case SCULPT_TOOL_CLAY_STRIPS:
-    case SCULPT_TOOL_CLAY:
-    case SCULPT_TOOL_CREASE:
-    case SCULPT_TOOL_ROTATE:
-    case SCULPT_TOOL_ELASTIC_DEFORM:
-    case SCULPT_TOOL_FAIRING:
-    case SCULPT_TOOL_FILL:
-    case SCULPT_TOOL_BLOB:
-    case SCULPT_TOOL_FLATTEN:
-    case SCULPT_TOOL_SCRAPE:
-    case SCULPT_TOOL_GRAB:
-    case SCULPT_TOOL_LAYER:
-    case SCULPT_TOOL_DRAW_FACE_SETS:
-    case SCULPT_TOOL_CLOTH:
-    case SCULPT_TOOL_SMOOTH:
-    case SCULPT_TOOL_PINCH:
-    case SCULPT_TOOL_SIMPLIFY:
-    case SCULPT_TOOL_SNAKE_HOOK:
-    case SCULPT_TOOL_SLIDE_RELAX:
-    case SCULPT_TOOL_RELAX:
-    case SCULPT_TOOL_INFLATE:
-    case SCULPT_TOOL_PAINT:
-    case SCULPT_TOOL_TWIST:
-    case SCULPT_TOOL_SMEAR:
-      ok = true;
-      break;
-  }
-
-  ok = ok && !(brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT));
-
-  return ok;
-}
-
-void do_brush_action(
-    Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups, void *UNUSED(userdata))
-{
-  SculptSession *ss = ob->sculpt;
-
-  int totnode;
-  PBVHNode **nodes;
-
-  float radius_scale = 1.0f;
-
-  if (!ELEM(SCULPT_get_tool(ss, brush), SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
-      brush->autosmooth_factor > 0 && brush->autosmooth_radius_factor != 1.0f) {
-    radius_scale = MAX2(radius_scale, brush->autosmooth_radius_factor);
-  }
-
-  if (sculpt_brush_use_topology_rake(ss, brush)) {
-    radius_scale = MAX2(radius_scale, brush->topology_rake_radius_factor);
-  }
-
-  /* Check for unsupported features. */
-  PBVHType type = BKE_pbvh_type(ss->pbvh);
-  if (ELEM(SCULPT_get_tool(ss, brush), SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR) &&
-      !ELEM(type, PBVH_BMESH, PBVH_FACES)) {
-    return;
-  }
-
-  if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_ARRAY && !ELEM(type, PBVH_FACES, PBVH_BMESH)) {
-    return;
-  }
-
-  /* Build a list of all nodes that are potentially within the brush's area of influence */
-  const bool use_original = sculpt_tool_needs_original(SCULPT_get_tool(ss, brush)) ?
-                                true :
-                                ss->cache->original;
-
-  if (SCULPT_tool_needs_all_pbvh_nodes(brush)) {
-    /* These brushes need to update all nodes as they are not constrained by the brush radius */
-    BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
-  }
-  else if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_CLOTH) {
-    nodes = SCULPT_cloth_brush_affected_nodes_gather(ss, brush, &totnode);
-  }
-  else {
-    /* With these options enabled not all required nodes are inside the original brush radius, so
-     * the brush can produce artifacts in some situations. */
-    if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_DRAW && brush->flag & BRUSH_ORIGINAL_NORMAL) {
-      radius_scale = MAX2(radius_scale, 2.0f);
-    }
-    nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale * 1.2, &totnode);
-  }
-
-  /* Draw Face Sets in draw mode makes a single undo push, in alt-smooth mode deforms the
-   * vertices and uses regular coords undo. */
-  /* It also assigns the paint_face_set here as it needs to be done regardless of the stroke type
-   * and the number of nodes under the brush influence. */
-  if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_DRAW_FACE_SETS &&
-      SCULPT_stroke_is_first_brush_step(ss->cache) && !ss->cache->alt_smooth) {
-
-    // faceset undo node is created below for pbvh_bmesh
-    if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
-      SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_FACE_SETS);
-    }
-
-    if (ss->cache->invert) {
-      /* When inverting the brush, pick the paint face mask ID from the mesh. */
-      ss->cache->paint_face_set = SCULPT_active_face_set_get(ss);
-    }
-    else {
-      /* By default create a new Face Sets. */
-      ss->cache->paint_face_set = SCULPT_face_set_next_available_get(ss);
-    }
-  }
-
-  /*
-   * Check that original data is for anchored and drag dot modes
-   */
-  if (brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT)) {
-    if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
-        SCULPT_get_tool(ss, brush) == SCULPT_TOOL_DRAW_FACE_SETS) {
-
-      SCULPT_face_ensure_original(ss, ob);
-
-      for (int i = 0; i < ss->totfaces; i++) {
-        SculptFaceRef face = BKE_pbvh_table_index_to_face(ss->pbvh, i);
-        SCULPT_face_check_origdata(ss, face);
-      }
-    }
-
-    for (int i = 0; i < totnode; i++) {
-      PBVHVertexIter vd;
-
-      BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
-        SCULPT_vertex_check_origdata(ss, vd.vertex);
-      }
-      BKE_pbvh_vertex_iter_end;
-    }
-  }
-
-  /* Initialize automasking cache. For anchored brushes with spherical falloff, we start off with
-   * zero radius, thus we have no pbvh nodes on the first brush step. */
-  if (totnode ||
-      ((brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) && (brush->flag & BRUSH_ANCHORED))) {
-    if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-      if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
-        ss->cache->automasking = SCULPT_automasking_cache_init(sd, brush, ob);
-      }
-    }
-  }
-
-  /* Only act if some verts are inside the brush area. */
-  if (totnode == 0) {
-    return;
-  }
-  float location[3];
-
-  // dyntopo can't push undo nodes inside a thread
-  if (ss->bm) {
-    if (ELEM(SCULPT_get_tool(ss, brush), SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
-      for (int i = 0; i < totnode; i++) {
-        int other = brush->vcol_boundary_factor > 0.0f ? SCULPT_UNDO_COORDS : -1;
-
-        SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COLOR, other);
-        BKE_pbvh_node_mark_update_color(nodes[i]);
-      }
-    }
-    else if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_DRAW_FACE_SETS) {
-      for (int i = 0; i < totnode; i++) {
-        if (ss->cache->alt_smooth) {
-          SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_FACE_SETS, SCULPT_UNDO_COORDS);
-        }
-        else {
-          SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_FACE_SETS, -1);
-        }
-
-        BKE_pbvh_node_mark_update(nodes[i]);
-      }
-    }
-    else if (SCULPT_get_tool(ss, brush) != SCULPT_TOOL_ARRAY) {
-      for (int i = 0; i < totnode; i++) {
-        SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COORDS, -1);
-
-        BKE_pbvh_node_mark_update(nodes[i]);
-      }
-    }
-  }
-  else {
-    SculptThreadedTaskData task_data = {
-        .sd = sd,
-        .ob = ob,
-        .brush = brush,
-        .nodes = nodes,
-    };
-
-    TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-    BLI_task_parallel_range(0, totnode, &task_data, do_brush_action_task_cb, &settings);
-  }
-
-  if (sculpt_brush_needs_normal(ss, brush)) {
-    update_sculpt_normal(sd, ob, nodes, totnode);
-  }
-
-  if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA) {
-    update_brush_local_mat(sd, ob);
-  }
-
-  if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_POSE &&
-      SCULPT_stroke_is_first_brush_step(ss->cache)) {
-    SCULPT_pose_brush_init(sd, ob, ss, brush);
-  }
-
-  if (SCULPT_get_int(ss, deform_target, sd, brush) == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
-    if (!ss->cache->cloth_sim) {
-      ss->cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
-          ss,
-          ob,
-          1.0f,
-          1.0f,
-          0.0f,
-          SCULPT_get_bool(ss, cloth_use_collision, sd, brush),
-          true,
-          SCULPT_get_bool(ss, cloth_solve_bending, sd, brush));
-      ss->cache->cloth_sim->bend_stiffness = SCULPT_get_float(
-          ss, cloth_bending_stiffness, sd, brush);
-      SCULPT_cloth_brush_simulation_init(ss, ss->cache->cloth_sim);
-    }
-    SCULPT_cloth_brush_store_simulation_state(ss, ss->cache->cloth_sim);
-    SCULPT_cloth_brush_ensure_nodes_constraints(
-        sd, ob, nodes, totnode, ss->cache->cloth_sim, ss->cache->location, FLT_MAX);
-  }
-
-  bool invert = ss->cache->pen_flip || ss->cache->invert || brush->flag & BRUSH_DIR_IN;
-
-  SCULPT_replay_log_append(sd, ss, ob);
-
-  /* Apply one type of brush action. */
-  switch (SCULPT_get_tool(ss, brush)) {
-    case SCULPT_TOOL_DRAW:
-      SCULPT_do_draw_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_SMOOTH:
-      if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_LAPLACIAN) {
-        SCULPT_do_smooth_brush(
-            sd,
-            ob,
-            nodes,
-            totnode,
-            brush->autosmooth_projection,
-            SCULPT_stroke_needs_original(
-                brush));  // TODO: extract need original from commandlist and not parent brush
-      }
-      else if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE) {
-        SCULPT_do_surface_smooth_brush(sd, ob, nodes, totnode);
-      }
-      else if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_DIRECTIONAL) {
-        SCULPT_do_directional_smooth_brush(sd, ob, nodes, totnode);
-      }
-      else if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_UNIFORM_WEIGHTS) {
-        SCULPT_do_uniform_weights_smooth_brush(sd, ob, nodes, totnode);
-      }
-      break;
-    case SCULPT_TOOL_CREASE:
-      SCULPT_do_crease_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_BLOB:
-      SCULPT_do_crease_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_PINCH:
-      SCULPT_do_pinch_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_INFLATE:
-      SCULPT_do_inflate_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_GRAB:
-      SCULPT_do_grab_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_ROTATE:
-      SCULPT_do_rotate_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_SNAKE_HOOK:
-      SCULPT_do_snake_hook_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_NUDGE:
-      SCULPT_do_nudge_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_THUMB:
-      SCULPT_do_thumb_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_LAYER:
-      SCULPT_do_layer_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_FLATTEN:
-      SCULPT_do_flatten_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_CLAY:
-      SCULPT_do_clay_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_CLAY_STRIPS:
-      SCULPT_do_clay_strips_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_TWIST:
-      SCULPT_do_twist_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_MULTIPLANE_SCRAPE:
-      SCULPT_do_multiplane_scrape_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_CLAY_THUMB:
-      SCULPT_do_clay_thumb_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_FILL:
-      if (invert && brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
-        SCULPT_do_scrape_brush(sd, ob, nodes, totnode);
-      }
-      else {
-        SCULPT_do_fill_brush(sd, ob, nodes, totnode);
-      }
-      break;
-    case SCULPT_TOOL_SCRAPE:
-      if (invert && brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
-        SCULPT_do_fill_brush(sd, ob, nodes, totnode);
-      }
-      else {
-        SCULPT_do_scrape_brush(sd, ob, nodes, totnode);
-      }
-      break;
-    case SCULPT_TOOL_MASK:
-      SCULPT_do_mask_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_POSE:
-      SCULPT_do_pose_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_DRAW_SHARP:
-      SCULPT_do_draw_sharp_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_ELASTIC_DEFORM:
-      SCULPT_do_elastic_deform_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_SLIDE_RELAX:
-      SCULPT_do_slide_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_RELAX:
-      SCULPT_do_relax_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_BOUNDARY:
-      SCULPT_do_boundary_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_CLOTH:
-      SCULPT_do_cloth_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_DRAW_FACE_SETS:
-      SCULPT_do_draw_face_sets_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_DISPLACEMENT_ERASER:
-      SCULPT_do_displacement_eraser_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_DISPLACEMENT_SMEAR:
-      SCULPT_do_displacement_smear_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_PAINT:
-      SCULPT_do_paint_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_SMEAR:
-      SCULPT_do_smear_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_FAIRING:
-      SCULPT_do_fairing_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_SCENE_PROJECT:
-      SCULPT_do_scene_project_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_SYMMETRIZE:
-      SCULPT_do_symmetrize_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_ARRAY:
-      SCULPT_do_array_brush(sd, ob, nodes, totnode);
-    case SCULPT_TOOL_VCOL_BOUNDARY:
-      SCULPT_smooth_vcol_boundary(sd, ob, nodes, totnode, ss->cache->bstrength);
-      break;
-    case SCULPT_TOOL_UV_SMOOTH:
-      SCULPT_uv_brush(sd, ob, nodes, totnode);
-      break;
-    case SCULPT_TOOL_ENHANCE_DETAILS:
-      SCULPT_enhance_details_brush(
-          sd, ob, nodes, totnode, SCULPT_get_int(ss, enhance_detail_presteps, sd, brush));
-      break;
-    case SCULPT_TOOL_DISPLACEMENT_HEAL:
-      SCULPT_do_displacement_heal_brush(sd, ob, nodes, totnode);
-      break;
-  }
-
-  bool apply_autosmooth = !ELEM(SCULPT_get_tool(ss, brush),
-                                SCULPT_TOOL_BOUNDARY,
-                                SCULPT_TOOL_SMOOTH,
-                                SCULPT_TOOL_MASK) &&
-                          brush->autosmooth_factor > 0;
-
-  if (brush->flag2 & BRUSH_CUSTOM_AUTOSMOOTH_SPACING) {
-    float spacing = (float)brush->autosmooth_spacing / 100.0f;
-
-    apply_autosmooth = apply_autosmooth &&
-                       paint_stroke_apply_subspacing(
-                           ss->cache->stroke,
-                           spacing,
-                           PAINT_MODE_SCULPT,
-                           &ss->cache->last_smooth_t[SCULPT_get_symmetry_pass(ss)]);
-  }
-
-  if (apply_autosmooth) {
-    float start_radius = ss->cache->radius;
-
-    if (brush->autosmooth_radius_factor != 1.0f) {
-      // note that we expanded the pbvh node search radius earlier in this function
-      // so we just have to adjust the brush radius that's inside ss->cache
-
-      ss->cache->radius *= brush->autosmooth_radius_factor;
-      ss->cache->radius_squared = ss->cache->radius * ss->cache->radius;
-    }
-
-    if (brush->flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
-      SCULPT_smooth(sd,
-                    ob,
-                    nodes,
-                    totnode,
-                    brush->autosmooth_factor * (1.0f - ss->cache->pressure),
-                    false,
-                    brush->autosmooth_projection,
-                    false);
-    }
-    else {
-      SCULPT_smooth(sd,
-                    ob,
-                    nodes,
-                    totnode,
-                    brush->autosmooth_factor,
-                    false,
-                    brush->autosmooth_projection,
-                    false);
-    }
-
-    if (brush->autosmooth_radius_factor != 1.0f) {
-      ss->cache->radius = start_radius;
-      ss->cache->radius_squared = ss->cache->radius * ss->cache->radius;
-    }
-  }
-
-  bool use_topology_rake = sculpt_brush_use_topology_rake(ss, brush);
-
-  if (brush->flag2 & BRUSH_CUSTOM_TOPOLOGY_RAKE_SPACING) {
-    float spacing = (float)brush->topology_rake_spacing / 100.0f;
-
-    use_topology_rake = use_topology_rake &&
-                        paint_stroke_apply_subspacing(
-                            ss->cache->stroke,
-                            spacing,
-                            PAINT_MODE_SCULPT,
-                            &ss->cache->last_rake_t[SCULPT_get_symmetry_pass(ss)]);
-  }
-
-  if (use_topology_rake) {
-    float start_radius = ss->cache->radius;
-
-    if (brush->topology_rake_radius_factor != 1.0f) {
-      // note that we expanded the pbvh node search radius earlier in this function
-      // so we just have to adjust the brush radius that's inside ss->cache
-
-      ss->cache->radius *= brush->topology_rake_radius_factor;
-      ss->cache->radius_squared = ss->cache->radius * ss->cache->radius;
-    }
-
-    SCULPT_bmesh_topology_rake(
-        sd, ob, nodes, totnode, brush->topology_rake_factor, SCULPT_stroke_needs_original(brush));
-
-    if (brush->topology_rake_radius_factor != 1.0f) {
-      ss->cache->radius = start_radius;
-      ss->cache->radius_squared = ss->cache->radius * ss->cache->radius;
-    }
-  }
-
-  /* The cloth brush adds the gravity as a regular force and it is processed in the solver. */
-  if (ss->cache->supports_gravity && !ELEM(SCULPT_get_tool(ss, brush),
-                                           SCULPT_TOOL_CLOTH,
-                                           SCULPT_TOOL_DRAW_FACE_SETS,
-                                           SCULPT_TOOL_BOUNDARY)) {
-    do_gravity(sd, ob, nodes, totnode, sd->gravity_factor);
-  }
-
-  if (SCULPT_get_int(ss, deform_target, sd, brush) == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
-    if (SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
-      SCULPT_cloth_sim_activate_nodes(ss->cache->cloth_sim, nodes, totnode);
-      SCULPT_cloth_brush_do_simulation_step(sd, ob, ss->cache->cloth_sim, nodes, totnode);
-    }
-  }
-
-  MEM_SAFE_FREE(nodes);
-
-  /* Update average stroke position. */
-  copy_v3_v3(location, ss->cache->true_location);
-  mul_m4_v3(ob->obmat, location);
-
-  add_v3_v3(ups->average_stroke_accum, location);
-  ups->average_stroke_counter++;
-  /* Update last stroke position. */
-  ups->last_stroke_valid = true;
-}
-
 typedef struct BrushRunCommandData {
   BrushCommand *cmd;
   PBVHNode **nodes;
@@ -5832,6 +5329,20 @@ static void SCULPT_run_command(
 
   Brush _brush2, *brush2 = &_brush2;
   float radius_scale;
+
+  /*
+   * Check that original data is for anchored and drag dot modes
+   */
+  if (brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT)) {
+    for (int i = 0; i < totnode; i++) {
+      PBVHVertexIter vd;
+
+      BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+        SCULPT_vertex_check_origdata(ss, vd.vertex);
+      }
+      BKE_pbvh_vertex_iter_end;
+    }
+  }
 
   /*create final, input mapped parameter list*/
 
@@ -6129,24 +5640,40 @@ static void SCULPT_run_commandlist(
     sculpt_apply_alt_smmoth_settings(ss, sd, brush);
   }
 
+  /*
+   * Check that original data is up to date for anchored and drag dot modes
+   */
+  if (brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT)) {
+    if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
+        SCULPT_get_tool(ss, brush) == SCULPT_TOOL_DRAW_FACE_SETS) {
+
+      SCULPT_face_ensure_original(ss, ob);
+
+      for (int i = 0; i < ss->totfaces; i++) {
+        SculptFaceRef face = BKE_pbvh_table_index_to_face(ss->pbvh, i);
+        SCULPT_face_check_origdata(ss, face);
+      }
+    }
+  }
+
   BKE_brush_commandlist_start(list, brush, ss->cache->channels_final);
 
-  // this does a more high-level check then SCULPT_TOOL_HAS_DYNTOPO;
+  /* This does a more high-level check then SCULPT_TOOL_HAS_DYNTOPO. */
   bool has_dyntopo = ss->bm && SCULPT_stroke_is_dynamic_topology(ss, brush);
   bool all_nodes_undo = false;
   bool cloth_nodes_undo = false;
 
-  // get maximum radius
+  /* Get maximum radius. */
   for (int i = 0; i < list->totcommand; i++) {
     BrushCommand *cmd = list->commands + i;
 
     Brush brush2 = *brush;
     brush2.sculpt_tool = cmd->tool;
 
-    /* prevent auto freeing of brush2->curve in BKE_brush_channelset_compat_load */
+    /* Prevent auto freeing of brush2->curve in BKE_brush_channelset_compat_load. */
     brush2.curve = NULL;
 
-    // Load parameters into brush2 for compatibility with old code
+    /* Load parameters into brush2 for compatibility with old code. */
     BKE_brush_channelset_compat_load(cmd->params_final, &brush2, false);
 
     /* With these options enabled not all required nodes are inside the original brush radius, so
@@ -8234,6 +7761,8 @@ static void sculpt_restore_mesh(Scene *scene, Sculpt *sd, Object *ob)
        BKE_brush_use_size_pressure(scene->toolsettings, brush, true)) ||
       (brush->flag & BRUSH_DRAG_DOT)) {
 
+    SCULPT_face_random_access_ensure(ss);
+
     for (int i = 0; i < ss->totfaces; i++) {
       SculptFaceRef face = BKE_pbvh_table_index_to_face(ss->pbvh, i);
       int origf = SCULPT_face_set_original_get(ss, face);
@@ -8660,48 +8189,45 @@ static void sculpt_stroke_update_step(bContext *C,
                                    detail_range);
   }
 
-  bool run_commandlist = brush_uses_commandlist(brush, SCULPT_get_tool(ss, brush));
-
-  if (run_commandlist) {
-    if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-      if (ss->cache->commandlist) {
-        BKE_brush_commandlist_free(ss->cache->commandlist);
-      }
-
-      BrushCommandList *list = ss->cache->commandlist = BKE_brush_commandlist_create();
-      int tool = ss->cache && ss->cache->tool_override ? ss->cache->tool_override :
-                                                         brush->sculpt_tool;
-
-      if (tool == SCULPT_TOOL_SLIDE_RELAX && ss->cache->alt_smooth) {
-        tool = SCULPT_TOOL_RELAX;
-      }
-
-      if (ss->cache->alt_smooth && ss->cache->tool_override == SCULPT_TOOL_SMOOTH) {
-        sculpt_apply_alt_smmoth_settings(ss, sd, brush);
-      }
-
-      BKE_builtin_commandlist_create(
-          brush, ss->cache->channels_final, list, tool, &ss->cache->input_mapping);
+  if (SCULPT_stroke_is_first_brush_step(ss->cache) || (brush->flag & BRUSH_ANCHORED)) {
+    if (ss->cache->commandlist) {
+      BKE_brush_commandlist_free(ss->cache->commandlist);
     }
 
-    SCULPT_run_commandlist(sd, ob, brush, ss->cache->commandlist, ups);
+    BrushCommandList *list = ss->cache->commandlist = BKE_brush_commandlist_create();
+    int tool = ss->cache && ss->cache->tool_override ? ss->cache->tool_override :
+                                                       brush->sculpt_tool;
 
-    float location[3];
+    if (tool == SCULPT_TOOL_SLIDE_RELAX && ss->cache->alt_smooth) {
+      tool = SCULPT_TOOL_RELAX;
+    }
 
-    /* Update average stroke position. */
-    copy_v3_v3(location, ss->cache->true_location);
-    mul_m4_v3(ob->obmat, location);
+    if (ss->cache->alt_smooth && ss->cache->tool_override == SCULPT_TOOL_SMOOTH) {
+      sculpt_apply_alt_smmoth_settings(ss, sd, brush);
+    }
 
-    add_v3_v3(ups->average_stroke_accum, location);
-    ups->average_stroke_counter++;
-    /* Update last stroke position. */
-    ups->last_stroke_valid = true;
+    if ((brush->flag & BRUSH_ANCHORED)) {
+      BRUSHSET_SET_FLOAT(ss->cache->channels_final, radius, ups->anchored_size);
+    }
 
-    // copy_v3_v3(ss->cache->true_last_location, ss->cache->true_location);
+    BKE_builtin_commandlist_create(
+        brush, ss->cache->channels_final, list, tool, &ss->cache->input_mapping);
   }
-  else {
-    do_symmetrical_brush_actions(sd, ob, do_brush_action, ups, NULL);
-  }
+
+  SCULPT_run_commandlist(sd, ob, brush, ss->cache->commandlist, ups);
+
+  float location[3];
+
+  /* Update average stroke position. */
+  copy_v3_v3(location, ss->cache->true_location);
+  mul_m4_v3(ob->obmat, location);
+
+  add_v3_v3(ups->average_stroke_accum, location);
+  ups->average_stroke_counter++;
+  /* Update last stroke position. */
+  ups->last_stroke_valid = true;
+
+  // copy_v3_v3(ss->cache->true_last_location, ss->cache->true_location);
 
   if (ss->needs_pbvh_rebuild) {
     /* The mesh was modified, rebuild the PBVH. */
@@ -8718,10 +8244,6 @@ static void sculpt_stroke_update_step(bContext *C,
       SCULPT_tag_update_overlays(C);
     }
     ss->needs_pbvh_rebuild = false;
-  }
-
-  if (!run_commandlist) {
-    sculpt_combine_proxies(sd, ob);
   }
 
   if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_FAIRING) {
@@ -9271,7 +8793,6 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
 
   ss->preview_vert_index_count = totpoints;
 }
-
 
 /* Fake Neighbors. */
 /* This allows the sculpt tools to work on meshes with multiple connected components as they had

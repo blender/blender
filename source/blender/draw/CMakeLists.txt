@@ -566,6 +566,8 @@ if(WITH_GTESTS)
   endif()
 endif()
 
+remove_cc_flag("-fsanitize=address")
+remove_cc_flag("/fsanitize=address")
 
 blender_add_lib(bf_draw "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
