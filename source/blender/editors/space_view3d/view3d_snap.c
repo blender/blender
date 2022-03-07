@@ -616,9 +616,9 @@ static int snap_selected_to_cursor_exec(bContext *C, wmOperator *op)
   const int pivot_point = scene->toolsettings->transform_pivot_point;
 
   if (snap_selected_to_location(C, snap_target_global, use_offset, pivot_point, true)) {
-    return OPERATOR_CANCELLED;
+    return OPERATOR_FINISHED;
   }
-  return OPERATOR_FINISHED;
+  return OPERATOR_CANCELLED;
 }
 
 void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
