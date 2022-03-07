@@ -59,7 +59,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .subtype(PROP_FACTOR);
   b.add_input<decl::Float>(N_("Specular Tint"))
-      .default_value(0.5f)
+      .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
