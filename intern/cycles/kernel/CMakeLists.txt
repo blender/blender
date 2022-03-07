@@ -407,6 +407,11 @@ if(WITH_CYCLES_CUDA_BINARIES)
       -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_file}
       -Wno-deprecated-gpu-targets)
 
+    if(CUDA_HOST_COMPILER)
+      set(cuda_flags ${cuda_flags}
+        -ccbin="${CUDA_HOST_COMPILER}")
+    endif()
+
     if(WITH_NANOVDB)
       set(cuda_flags ${cuda_flags}
         -D WITH_NANOVDB
