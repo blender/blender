@@ -618,48 +618,65 @@ static void gpencil_assign_object_eval(Object *object)
   }
 }
 
-/* Helper: Copy active frame from original datablock to evaluated datablock for modifiers. */
-static void gpencil_copy_activeframe_to_eval(
-    Depsgraph *depsgraph, Scene *scene, Object *ob, bGPdata *gpd_orig, bGPdata *gpd_eval)
+static bGPdata *gpencil_copy_structure_for_eval(bGPdata *gpd)
 {
+  /* Create a temporary copy gpd. */
+  ID *newid = NULL;
+  BKE_libblock_copy_ex(NULL, &gpd->id, &newid, LIB_ID_COPY_LOCALIZE);
+  bGPdata *gpd_eval = (bGPdata *)newid;
+  BLI_listbase_clear(&gpd_eval->layers);
 
-  bGPDlayer *gpl_eval = gpd_eval->layers.first;
-  LISTBASE_FOREACH (bGPDlayer *, gpl_orig, &gpd_orig->layers) {
-
-    if (gpl_eval != NULL) {
-      bGPDframe *gpf_orig = gpl_orig->actframe;
-
-      int remap_cfra = gpencil_remap_time_get(depsgraph, scene, ob, gpl_orig);
-      if ((gpf_orig == NULL) || (gpf_orig && gpf_orig->framenum != remap_cfra)) {
-        gpf_orig = BKE_gpencil_layer_frame_get(gpl_orig, remap_cfra, GP_GETFRAME_USE_PREV);
-      }
-
-      if (gpf_orig != NULL) {
-        int gpf_index = BLI_findindex(&gpl_orig->frames, gpf_orig);
-        bGPDframe *gpf_eval = BLI_findlink(&gpl_eval->frames, gpf_index);
-
-        if (gpf_eval != NULL) {
-          /* Delete old strokes. */
-          BKE_gpencil_free_strokes(gpf_eval);
-          /* Copy again strokes. */
-          BKE_gpencil_frame_copy_strokes(gpf_orig, gpf_eval);
-
-          gpf_eval->runtime.gpf_orig = (bGPDframe *)gpf_orig;
-          BKE_gpencil_frame_original_pointers_update(gpf_orig, gpf_eval);
-        }
-      }
-
-      gpl_eval = gpl_eval->next;
-    }
+  if (gpd->mat != NULL) {
+    gpd_eval->mat = MEM_dupallocN(gpd->mat);
   }
+
+  /* Duplicate structure: layers and frames without strokes. */
+  LISTBASE_FOREACH (bGPDlayer *, gpl_orig, &gpd->layers) {
+    bGPDlayer *gpl_eval = BKE_gpencil_layer_duplicate(gpl_orig, true, false);
+    BLI_addtail(&gpd_eval->layers, gpl_eval);
+    gpl_eval->runtime.gpl_orig = gpl_orig;
+    /* Update frames orig pointers (helps for faster lookup in copy_frame_to_eval_cb). */
+    BKE_gpencil_layer_original_pointers_update(gpl_orig, gpl_eval);
+  }
+
+  return gpd_eval;
 }
 
-static bGPdata *gpencil_copy_for_eval(bGPdata *gpd)
+void copy_frame_to_eval_cb(bGPDlayer *gpl, bGPDframe *gpf, bGPDstroke *gps, void *thunk)
 {
-  const int flags = LIB_ID_COPY_LOCALIZE;
+  /* Early return when callback is not provided with a frame. */
+  if (gpf == NULL) {
+    return;
+  }
 
-  bGPdata *result = (bGPdata *)BKE_id_copy_ex(NULL, &gpd->id, NULL, flags);
-  return result;
+  /* Free any existing eval stroke data. This happens in case we have a single user on the data
+   * block and the strokes have not been deleted. */
+  if (!BLI_listbase_is_empty(&gpf->strokes)) {
+    BKE_gpencil_free_strokes(gpf);
+  }
+
+  /* Get original frame. */
+  bGPDframe *gpf_orig = gpf->runtime.gpf_orig;
+  /* Copy strokes to eval frame and update internal orig pointers. */
+  BKE_gpencil_frame_copy_strokes(gpf_orig, gpf);
+  BKE_gpencil_frame_original_pointers_update(gpf_orig, gpf);
+}
+
+void gpencil_copy_visible_frames_to_eval(Depsgraph *depsgraph, Scene *scene, Object *ob)
+{
+  /* Remap layers' active frame with time modifiers applied. */
+  bGPdata *gpd_eval = ob->data;
+  LISTBASE_FOREACH (bGPDlayer *, gpl_eval, &gpd_eval->layers) {
+    bGPDframe *gpf_eval = gpl_eval->actframe;
+    int remap_cfra = gpencil_remap_time_get(depsgraph, scene, ob, gpl_eval);
+    if (gpf_eval == NULL || gpf_eval->framenum != remap_cfra) {
+      gpl_eval->actframe = BKE_gpencil_layer_frame_get(gpl_eval, remap_cfra, GP_GETFRAME_USE_PREV);
+    }
+  }
+
+  /* Copy only visible frames to evaluated version. */
+  BKE_gpencil_visible_stroke_advanced_iter(
+      NULL, ob, copy_frame_to_eval_cb, NULL, NULL, true, scene->r.cfra);
 }
 
 void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *ob)
@@ -688,7 +705,7 @@ void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *o
   if (ob->runtime.gpd_eval != NULL) {
     /* Make sure to clear the pointer in case the runtime eval data points to the same data block.
      * This can happen when the gpencil data block was not tagged for a depsgraph update after last
-     * call to this function. */
+     * call to this function (e.g. a frame change). */
     if (gpd_eval == ob->runtime.gpd_eval) {
       gpd_eval = NULL;
     }
@@ -707,18 +724,19 @@ void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *o
     return;
   }
 
-  /* If only one user, don't need a new copy, just update data of the frame. */
-  if (gpd_orig->id.us == 1) {
-    BLI_assert(ob->data != NULL);
-    gpencil_copy_activeframe_to_eval(depsgraph, scene, ob, ob_orig->data, gpd_eval);
-    return;
+  /* If datablock has only one user, we can update its eval data directly.
+   * Otherwise, we need to have distinct copies for each instance, since applied transformations
+   * may differ. */
+  if (gpd_orig->id.us > 1) {
+    /* Copy of the original datablock's structure (layers and empty frames). */
+    ob->runtime.gpd_eval = gpencil_copy_structure_for_eval(gpd_orig);
+    /* Overwrite ob->data with gpd_eval here. */
+    gpencil_assign_object_eval(ob);
   }
 
-  /* Copy full datablock to evaluated version. */
-  ob->runtime.gpd_eval = gpencil_copy_for_eval(gpd_orig);
-  /* Overwrite ob->data with gpd_eval here. */
-  gpencil_assign_object_eval(ob);
-  BKE_gpencil_update_orig_pointers(ob_orig, ob);
+  BLI_assert(ob->data != NULL);
+  /* Only copy strokes from visible frames to evaluated data.*/
+  gpencil_copy_visible_frames_to_eval(depsgraph, scene, ob);
 }
 
 void BKE_gpencil_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
