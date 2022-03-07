@@ -607,7 +607,7 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
  *
  * WARNING: There is an exception to the rule of ignoring coordinates in the destination:
  * that is when shape-key data in `bm` can't be found (which is itself an error/exception).
- * In this case our own rule is violated as the alternative is loosing the shape-data entirely.
+ * In this case our own rule is violated as the alternative is losing the shape-data entirely.
  *
  * Flushing Coordinates Back to the #BMesh
  * ---------------------------------------
