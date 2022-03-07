@@ -642,7 +642,10 @@ static bGPdata *gpencil_copy_structure_for_eval(bGPdata *gpd)
   return gpd_eval;
 }
 
-void copy_frame_to_eval_cb(bGPDlayer *gpl, bGPDframe *gpf, bGPDstroke *gps, void *thunk)
+static void copy_frame_to_eval_cb(bGPDlayer *UNUSED(gpl),
+                                  bGPDframe *gpf,
+                                  bGPDstroke *UNUSED(gps),
+                                  void *UNUSED(thunk))
 {
   /* Early return when callback is not provided with a frame. */
   if (gpf == NULL) {
@@ -662,7 +665,7 @@ void copy_frame_to_eval_cb(bGPDlayer *gpl, bGPDframe *gpf, bGPDstroke *gps, void
   BKE_gpencil_frame_original_pointers_update(gpf_orig, gpf);
 }
 
-void gpencil_copy_visible_frames_to_eval(Depsgraph *depsgraph, Scene *scene, Object *ob)
+static void gpencil_copy_visible_frames_to_eval(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   /* Remap layers' active frame with time modifiers applied. */
   bGPdata *gpd_eval = ob->data;
