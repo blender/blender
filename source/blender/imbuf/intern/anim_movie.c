@@ -874,6 +874,8 @@ static int ffmpeg_read_video_frame(struct anim *anim, AVPacket *packet)
     if (packet->stream_index == anim->videoStream) {
       break;
     }
+    av_packet_unref(packet);
+    packet->stream_index = -1;
   }
 
   return ret;
