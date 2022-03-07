@@ -1266,10 +1266,12 @@ void ED_uvedit_selectmode_flush(Scene *scene, BMEditMesh *em)
  * For face selections with sticky mode enabled, this can create invalid selection states. */
 void uvedit_select_flush(Scene *scene, BMEditMesh *em)
 {
-  ToolSettings *ts = scene->toolsettings;
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
+#ifndef NDEBUG
+  ToolSettings *ts = scene->toolsettings;
   BLI_assert((ts->uv_flag & UV_SYNC_SELECTION) == 0);
+#endif
 
   BMFace *efa;
   BMLoop *l;
