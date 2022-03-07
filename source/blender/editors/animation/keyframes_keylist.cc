@@ -807,8 +807,11 @@ static void add_bezt_to_keyblocks_list(AnimKeylist *keylist, BezTriple *bezt, co
         continue;
       }
 
-      /* Normal sequence */
-      BLI_assert(is_cfra_eq(col->cfra, bezt[0].vec[1][0]));
+      /* In normal situations all keyframes are sorted. However, while keys are transformed, they
+       * may change order and then this assertion no longer holds. The effect is that the drawing
+       * isn't perfect during the transform; the "constant value" bars aren't updated until the
+       * transformation is confirmed. */
+      /* BLI_assert(is_cfra_eq(col->cfra, bezt[0].vec[1][0])); */
 
       compute_keyblock_data(&block, bezt, bezt + 1);
 
