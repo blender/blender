@@ -691,8 +691,16 @@ static int bm_to_mesh_shape_layer_index_from_kb(BMesh *bm, KeyBlock *currkey)
  * \param bm: The source BMesh.
  * \param key: The destination key.
  * \param mvert: The destination vertex array (in some situations it's coordinates are updated).
+ * \param active_shapekey_to_mvert: When editing a non-basis shape key, the coordinates for the
+ * basis are typically copied into the `mvert` array since it makes sense for the meshes
+ * vertex coordinates to match the "Basis" key.
+ * When enabled, skip this step and copy #BMVert.co directly to #MVert.co,
+ * See #BMeshToMeshParams.active_shapekey_to_mvert doc-string.
  */
-static void bm_to_mesh_shape(BMesh *bm, Key *key, MVert *mvert)
+static void bm_to_mesh_shape(BMesh *bm,
+                             Key *key,
+                             MVert *mvert,
+                             const bool active_shapekey_to_mvert)
 {
   KeyBlock *actkey = static_cast<KeyBlock *>(BLI_findlink(&key->block, bm->shapenr - 1));
 
@@ -776,12 +784,14 @@ static void bm_to_mesh_shape(BMesh *bm, Key *key, MVert *mvert)
    * In this case it's important to overwrite these coordinates with the basis-keys coordinates. */
   bool update_vertex_coords_from_refkey = false;
   int cd_shape_offset_refkey = -1;
-  if ((actkey != key->refkey) && (cd_shape_keyindex_offset != -1)) {
-    const int refkey_uuid = bm_to_mesh_shape_layer_index_from_kb(bm, key->refkey);
-    if (refkey_uuid != -1) {
-      cd_shape_offset_refkey = CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, refkey_uuid);
-      if (cd_shape_offset_refkey != -1) {
-        update_vertex_coords_from_refkey = true;
+  if (active_shapekey_to_mvert == false) {
+    if ((actkey != key->refkey) && (cd_shape_keyindex_offset != -1)) {
+      const int refkey_uuid = bm_to_mesh_shape_layer_index_from_kb(bm, key->refkey);
+      if (refkey_uuid != -1) {
+        cd_shape_offset_refkey = CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, refkey_uuid);
+        if (cd_shape_offset_refkey != -1) {
+          update_vertex_coords_from_refkey = true;
+        }
       }
     }
   }
@@ -1151,7 +1161,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   }
 
   if (me->key) {
-    bm_to_mesh_shape(bm, me->key, me->mvert);
+    bm_to_mesh_shape(bm, me->key, me->mvert, params->active_shapekey_to_mvert);
   }
 
   /* Run this even when shape keys aren't used since it may be used for hooks or vertex parents. */

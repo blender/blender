@@ -615,6 +615,7 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key, Undo
           .calc_object_remap = false,
           .update_shapekey_indices = false,
           .cd_mask_extra = {.vmask = CD_MASK_SHAPE_KEYINDEX},
+          .active_shapekey_to_mvert = true,
       }));
 
   um->selectmode = em->selectmode;

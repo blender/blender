@@ -69,6 +69,11 @@ struct BMeshToMeshParams {
    * that have become invalid from updating the shape-key, see T71865.
    */
   uint update_shapekey_indices : 1;
+  /**
+   * Instead of copying the basis shape-key into the #MVert array,
+   * copy the #BMVert.co directly to #MVert.co (used for reading undo data).
+   */
+  uint active_shapekey_to_mvert : 1;
   struct CustomData_MeshMasks cd_mask_extra;
 };
 /**
