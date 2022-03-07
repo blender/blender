@@ -531,18 +531,14 @@ void ED_fileselect_activate_by_id(SpaceFile *sfile, ID *asset_id, const bool def
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   struct FileList *files = sfile->files;
 
-  const int num_files_filtered = filelist_files_ensure(files);
-  for (int file_index = 0; file_index < num_files_filtered; ++file_index) {
-    const FileDirEntry *file = filelist_file_ex(files, file_index, false);
-
-    if (filelist_file_get_id(file) != asset_id) {
-      continue;
-    }
-
-    params->active_file = file_index;
-    filelist_entry_select_set(files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
-    break;
+  const int file_index = filelist_file_find_id(files, asset_id);
+  const FileDirEntry *file = filelist_file_ex(files, file_index, true);
+  if (file == NULL) {
+    return;
   }
+
+  params->active_file = file_index;
+  filelist_entry_select_set(files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
 
   WM_main_add_notifier(NC_ASSET | NA_ACTIVATED, NULL);
   WM_main_add_notifier(NC_ASSET | NA_SELECTED, NULL);
