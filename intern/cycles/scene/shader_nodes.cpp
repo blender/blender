@@ -4216,6 +4216,7 @@ NODE_DEFINE(ObjectInfoNode)
 
   SOCKET_OUT_VECTOR(location, "Location");
   SOCKET_OUT_COLOR(color, "Color");
+  SOCKET_OUT_FLOAT(alpha, "Alpha");
   SOCKET_OUT_FLOAT(object_index, "Object Index");
   SOCKET_OUT_FLOAT(material_index, "Material Index");
   SOCKET_OUT_FLOAT(random, "Random");
@@ -4237,6 +4238,11 @@ void ObjectInfoNode::compile(SVMCompiler &compiler)
   out = output("Color");
   if (!out->links.empty()) {
     compiler.add_node(NODE_OBJECT_INFO, NODE_INFO_OB_COLOR, compiler.stack_assign(out));
+  }
+
+  out = output("Alpha");
+  if (!out->links.empty()) {
+    compiler.add_node(NODE_OBJECT_INFO, NODE_INFO_OB_ALPHA, compiler.stack_assign(out));
   }
 
   out = output("Object Index");

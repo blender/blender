@@ -319,7 +319,9 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
       (object->get_geometry() && object->get_geometry()->is_modified())) {
     object->name = b_ob.name().c_str();
     object->set_pass_id(b_ob.pass_index());
-    object->set_color(get_float3(b_ob.color()));
+    const BL::Array<float, 4> object_color = b_ob.color();
+    object->set_color(get_float3(object_color));
+    object->set_alpha(object_color[3]);
     object->set_tfm(tfm);
 
     /* dupli texture coordinates and random_id */

@@ -259,6 +259,7 @@ class OSLRenderServices : public OSL::RendererServices {
   static ustring u_ndc;
   static ustring u_object_location;
   static ustring u_object_color;
+  static ustring u_object_alpha;
   static ustring u_object_index;
   static ustring u_geom_dupli_generated;
   static ustring u_geom_dupli_uv;
