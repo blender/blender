@@ -304,9 +304,11 @@ static void node_buts_image_user(uiLayout *layout,
                                  const bool show_layer_selection,
                                  const bool show_color_management)
 {
-  if (!imaptr->data) {
+  Image *image = (Image *)imaptr->data;
+  if (!image) {
     return;
   }
+  ImageUser *iuser = (ImageUser *)iuserptr->data;
 
   uiLayout *col = uiLayoutColumn(layout, false);
 
@@ -318,8 +320,6 @@ static void node_buts_image_user(uiLayout *layout,
     /* don't use iuser->framenr directly
      * because it may not be updated if auto-refresh is off */
     Scene *scene = CTX_data_scene(C);
-    ImageUser *iuser = (ImageUser *)iuserptr->data;
-    /* Image *ima = imaptr->data; */ /* UNUSED */
 
     char numstr[32];
     const int framenr = BKE_image_user_frame_get(iuser, CFRA, nullptr);
@@ -343,10 +343,19 @@ static void node_buts_image_user(uiLayout *layout,
   }
 
   if (show_color_management) {
-    uiLayout *split = uiLayoutSplit(layout, 0.5f, true);
+    uiLayout *split = uiLayoutSplit(layout, 0.33f, true);
     PointerRNA colorspace_settings_ptr = RNA_pointer_get(imaptr, "colorspace_settings");
     uiItemL(split, IFACE_("Color Space"), ICON_NONE);
     uiItemR(split, &colorspace_settings_ptr, "name", DEFAULT_FLAGS, "", ICON_NONE);
+
+    if (image->source != IMA_SRC_GENERATED) {
+      split = uiLayoutSplit(layout, 0.33f, true);
+      uiItemL(split, IFACE_("Alpha"), ICON_NONE);
+      uiItemR(split, imaptr, "alpha_mode", DEFAULT_FLAGS, "", ICON_NONE);
+
+      bool is_data = IMB_colormanagement_space_name_is_data(image->colorspace_settings.name);
+      uiLayoutSetActive(split, !is_data);
+    }
 
     /* Avoid losing changes image is painted. */
     if (BKE_image_is_dirty((Image *)imaptr->data)) {
