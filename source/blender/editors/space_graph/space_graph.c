@@ -311,16 +311,14 @@ static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
   /* draw entirely, view changes should be handled here */
   const SpaceGraph *sipo = CTX_wm_space_graph(C);
 
-  /* Driver Editor's X axis is not time. */
-  if (sipo->mode == SIPO_MODE_DRIVERS) {
-    return;
-  }
-
   const Scene *scene = CTX_data_scene(C);
   View2D *v2d = &region->v2d;
 
-  /* scrubbing region */
-  ED_time_scrub_draw_current_frame(region, scene, sipo->flag & SIPO_DRAWTIME);
+  /* Driver Editor's X axis is not time. */
+  if (sipo->mode != SIPO_MODE_DRIVERS) {
+    /* scrubbing region */
+    ED_time_scrub_draw_current_frame(region, scene, sipo->flag & SIPO_DRAWTIME);
+  }
 
   /* scrollers */
   /* FIXME: args for scrollers depend on the type of data being shown. */
