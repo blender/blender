@@ -469,6 +469,19 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
   return false;
 }
 
+/**
+ * When the gizmo-group has been created immediately before running an operator
+ * to manipulate rulers, it's possible the new gizmo-group has not yet been initialized.
+ * in 3.0 this happened because left-click drag would both select and add a new ruler,
+ * significantly increasing the likelihood of this happening.
+ * Workaround this crash by checking the gizmo's custom-data has not been cleared.
+ * The key-map has also been modified not to trigger this bug, see T95591.
+ */
+static bool gizmo_ruler_check_for_operator(const wmGizmoGroup *gzgroup)
+{
+  return gzgroup->customdata != NULL;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1308,6 +1321,10 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
   wmGizmoGroup *gzgroup = WM_gizmomap_group_find(gzmap, view3d_gzgt_ruler_id);
   const bool use_depth = (v3d->shading.type >= OB_SOLID);
 
+  if (!gizmo_ruler_check_for_operator(gzgroup)) {
+    return OPERATOR_CANCELLED;
+  }
+
   /* Create new line */
   RulerItem *ruler_item;
   ruler_item = ruler_item_add(gzgroup);
@@ -1383,6 +1400,9 @@ static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent
   wmGizmoMap *gzmap = region->gizmo_map;
   wmGizmoGroup *gzgroup = WM_gizmomap_group_find(gzmap, view3d_gzgt_ruler_id);
   if (gzgroup) {
+    if (!gizmo_ruler_check_for_operator(gzgroup)) {
+      return OPERATOR_CANCELLED;
+    }
     RulerInfo *ruler_info = gzgroup->customdata;
     if (ruler_info->item_active) {
       RulerItem *ruler_item = ruler_info->item_active;

@@ -442,13 +442,18 @@ def _template_items_change_frame(params):
 
 # Tool System Templates
 
-def _template_items_tool_select(params, operator, cursor_operator, *, extend):
+def _template_items_tool_select(params, operator, cursor_operator, fallback, *, extend):
     if params.select_mouse == 'LEFTMOUSE':
-        # Immediate select without quick delay.
+        # By default use 'PRESS' for immediate select without quick delay.
+        # Fallback key-maps 'CLICK' since 'PRESS' events passes through (allowing either click or drag).
+        #
+        # NOTE: When the active (non-fallback) tool uses a key-map that activates it's primary tool on drag,
+        # it's important that this key-map uses click and not press. Otherwise it becomes impossible to use
+        # the tool without selecting elements under the cursor.
         return [
-            (operator, {"type": 'LEFTMOUSE', "value": 'PRESS'},
+            (operator, {"type": 'LEFTMOUSE', "value": 'CLICK' if fallback else 'PRESS'},
              {"properties": [("deselect_all", True)]}),
-            (operator, {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+            (operator, {"type": 'LEFTMOUSE', "value": 'CLICK' if fallback else 'PRESS', "shift": True},
              {"properties": [(extend, True)]}),
         ]
     else:
@@ -6283,7 +6288,7 @@ def km_image_editor_tool_uv_select(params, *, fallback):
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
-                params, "uv.select", "uv.cursor_set", extend="extend")),
+                params, "uv.select", "uv.cursor_set", fallback, extend="extend")),
             *([] if (not params.use_fallback_tool_rmb) else _template_uv_select(
                 type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
         ]},
@@ -6490,7 +6495,7 @@ def km_3d_view_tool_select(params, *, fallback):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
-                params, "view3d.select", "view3d.cursor3d", extend="toggle")),
+                params, "view3d.select", "view3d.cursor3d", fallback, extend="toggle")),
             *([] if (not params.use_fallback_tool_rmb) else _template_view3d_select(
                 type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy, exclude_mod="ctrl")),
         ]},
@@ -7402,7 +7407,7 @@ def km_3d_view_tool_edit_gpencil_select(params, *, fallback):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
-                params, "gpencil.select", "view3d.cursor3d", extend="toggle")),
+                params, "gpencil.select", "view3d.cursor3d", fallback, extend="toggle")),
             *([] if (not params.use_fallback_tool_rmb) else _template_view3d_gpencil_select(
                 type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
         ]},
@@ -7540,7 +7545,7 @@ def km_3d_view_tool_sculpt_gpencil_select(params):
     return (
         "3D View Tool: Sculpt Gpencil, Tweak",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": _template_items_tool_select(params, "gpencil.select", "view3d.cursor3d", extend="toggle")},
+        {"items": _template_items_tool_select(params, "gpencil.select", "view3d.cursor3d", False, extend="toggle")},
     )
 
 
@@ -7580,7 +7585,7 @@ def km_sequencer_editor_tool_generic_select(params, *, fallback):
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
-                params, "sequencer.select", "sequencer.cursor_set", extend="toggle")),
+                params, "sequencer.select", "sequencer.cursor_set", fallback, extend="toggle")),
 
             *([] if (not params.use_fallback_tool_rmb) else _template_sequencer_preview_select(
                 type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
