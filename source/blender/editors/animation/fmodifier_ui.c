@@ -427,7 +427,7 @@ static void generator_panel_draw(const bContext *C, Panel *panel)
       uiLayout *first_row = uiLayoutRow(col, true);
       uiItemFullR(first_row, ptr, prop, 0, 0, 0, IFACE_("y = (Ax + B)"), ICON_NONE);
       uiItemFullR(first_row, ptr, prop, 1, 0, 0, "", ICON_NONE);
-      for (int i = 2; i < data->arraysize - 1; i++) {
+      for (int i = 2; i < data->arraysize - 1; i += 2) {
         /* \u2715 is the multiplication symbol. */
         uiLayout *row = uiLayoutRow(col, true);
         uiItemFullR(row, ptr, prop, i, 0, 0, IFACE_("\u2715 (Ax + B)"), ICON_NONE);
