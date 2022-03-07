@@ -22,6 +22,7 @@
 
 #include "PIL_time.h"
 
+#include "BKE_callbacks.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -1509,6 +1510,9 @@ static void annotation_paint_initstroke(tGPsdata *p,
   Scene *scene = p->scene;
   ToolSettings *ts = scene->toolsettings;
 
+  /* Call to the annotation pre handler to notify python the annotation starts. */
+  BKE_callback_exec_id_depsgraph(p->bmain, &p->gpd->id, p->depsgraph, BKE_CB_EVT_ANNOTATION_PRE);
+
   /* get active layer (or add a new one if non-existent) */
   p->gpl = BKE_gpencil_layer_active_get(p->gpd);
   if (p->gpl == NULL) {
@@ -1674,6 +1678,9 @@ static void annotation_paint_strokeend(tGPsdata *p)
     /* transfer stroke to frame */
     annotation_stroke_newfrombuffer(p);
   }
+
+  /* Call to the annotation post handler to notify python the annotation is done. */
+  BKE_callback_exec_id_depsgraph(p->bmain, &p->gpd->id, p->depsgraph, BKE_CB_EVT_ANNOTATION_POST);
 
   /* clean up buffer now */
   annotation_session_validatebuffer(p);
