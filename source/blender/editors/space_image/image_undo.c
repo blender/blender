@@ -570,7 +570,8 @@ static void uhandle_restore_list(ListBase *undo_handles, bool use_init)
 
     if (changed) {
       BKE_image_mark_dirty(image, ibuf);
-      BKE_image_free_gputextures(image); /* force OpenGL reload */
+      /* TODO(jbakker): only mark areas that are actually updated to improve performance. */
+      BKE_image_partial_update_mark_full_update(image);
 
       if (ibuf->rect_float) {
         ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
