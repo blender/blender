@@ -566,7 +566,7 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
     }
   });
 
-  geometry_set.replace_curve(curve_eval_to_curves(*curve));
+  geometry_set.replace_curves(curve_eval_to_curves(*curve));
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

@@ -865,7 +865,7 @@ static GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
   else {
     std::unique_ptr<CurveEval> curve_eval = curve_eval_from_dna_curve(
         *cu, ob->runtime.curve_cache->deformed_nurbs);
-    geometry_set.replace_curve(curve_eval_to_curves(*curve_eval));
+    geometry_set.replace_curves(curve_eval_to_curves(*curve_eval));
   }
 
   for (; md; md = md->next) {

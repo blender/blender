@@ -606,7 +606,7 @@ static void calculate_curve_fillet(GeometrySet &geometry_set,
   const std::unique_ptr<CurveEval> input_curve = curves_to_curve_eval(*component.get_for_read());
   std::unique_ptr<CurveEval> output_curve = fillet_curve(*input_curve, fillet_param);
 
-  geometry_set.replace_curve(curve_eval_to_curves(*output_curve));
+  geometry_set.replace_curves(curve_eval_to_curves(*output_curve));
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

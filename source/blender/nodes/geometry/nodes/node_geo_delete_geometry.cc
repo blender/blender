@@ -477,10 +477,10 @@ static void separate_curve_selection(GeometrySet &geometry_set,
   std::unique_ptr<CurveEval> r_curve = curve_separate(
       *curves_to_curve_eval(*src_component.get_for_read()), selection, selection_domain, invert);
   if (r_curve) {
-    geometry_set.replace_curve(curve_eval_to_curves(*r_curve));
+    geometry_set.replace_curves(curve_eval_to_curves(*r_curve));
   }
   else {
-    geometry_set.replace_curve(nullptr);
+    geometry_set.replace_curves(nullptr);
   }
 }
 

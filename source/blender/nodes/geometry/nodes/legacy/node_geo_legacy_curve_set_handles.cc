@@ -101,7 +101,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     bezier_spline.mark_cache_invalid();
   }
 
-  geometry_set.replace_curve(curve_eval_to_curves(*curve));
+  geometry_set.replace_curves(curve_eval_to_curves(*curve));
 
   if (!has_bezier_spline) {
     params.error_message_add(NodeWarningType::Info, TIP_("No Bezier splines in input curve"));

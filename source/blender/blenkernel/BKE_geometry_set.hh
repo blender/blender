@@ -500,8 +500,8 @@ struct GeometrySet {
   /**
    * Clear the existing curves data-block and replace it with the given one.
    */
-  void replace_curve(Curves *curves,
-                     GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  void replace_curves(Curves *curves,
+                      GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
 
  private:
   /**

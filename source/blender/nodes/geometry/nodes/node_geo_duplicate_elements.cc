@@ -599,7 +599,7 @@ static void duplicate_splines(GeometrySet &geometry_set,
         dst_component, ATTR_DOMAIN_CURVE, selection, attributes, curve_offsets);
   }
 
-  geometry_set.replace_curve(dst_component.get_for_write());
+  geometry_set.replace_curves(dst_component.get_for_write());
 }
 
 static void duplicate_faces(GeometrySet &geometry_set,

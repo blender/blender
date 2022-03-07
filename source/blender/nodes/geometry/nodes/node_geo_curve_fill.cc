@@ -120,7 +120,7 @@ static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCu
   const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
       *geometry_set.get_curves_for_read());
   if (curve->splines().is_empty()) {
-    geometry_set.replace_curve(nullptr);
+    geometry_set.replace_curves(nullptr);
     return;
   }
 
@@ -132,7 +132,7 @@ static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCu
   Mesh *mesh = cdt_to_mesh(results);
 
   geometry_set.replace_mesh(mesh);
-  geometry_set.replace_curve(nullptr);
+  geometry_set.replace_curves(nullptr);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

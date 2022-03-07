@@ -403,7 +403,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
     });
     new_curve->attributes = curve->attributes;
-    geometry_set.replace_curve(curve_eval_to_curves(*new_curve));
+    geometry_set.replace_curves(curve_eval_to_curves(*new_curve));
   });
 
   params.set_output("Curve", std::move(geometry_set));
