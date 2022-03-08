@@ -571,7 +571,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiItemS(layout);
 
-  if (mode == GP_BUILD_MODE_SEQUENTIAL || mode == GP_BUILD_MODE_CONCURRENT) {
+  if (ELEM(mode, GP_BUILD_MODE_SEQUENTIAL, GP_BUILD_MODE_CONCURRENT)) {
     uiItemR(layout, ptr, "transition", 0, NULL, ICON_NONE);
   }
   row = uiLayoutRow(layout, true);
