@@ -212,7 +212,7 @@ template<typename TileData = NoTileData> struct PartialUpdateChecker {
     ePartialUpdateCollectResult result_code;
 
    private:
-    TileNumber last_tile_number;
+    TileNumber last_tile_number = 0;
 
    public:
     CollectResult(PartialUpdateChecker<TileData> *checker, ePartialUpdateCollectResult result_code)
