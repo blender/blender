@@ -206,6 +206,10 @@ static void subdivide_bezier_spline(const BezierSpline &src,
   }
   else {
     dst_positions.last() = src_positions.last();
+    dst_type_left.first() = src.handle_types_left().first();
+    dst_type_right.last() = src.handle_types_right().last();
+    dst_handles_left.first() = src_handles_left.first();
+    dst_handles_right.last() = src_handles_right.last();
   }
 }
 
