@@ -181,11 +181,8 @@ typedef struct tStrokeBuildDetails {
 } tStrokeBuildDetails;
 
 /* Sequential and additive - Show strokes one after the other. */
-static void build_sequential(BuildGpencilModifierData *mmd,
-                             bGPdata *gpd,
-                             bGPDframe *gpf,
-                             float fac,
-                             bool additive)
+static void build_sequential(
+    BuildGpencilModifierData *mmd, bGPdata *gpd, bGPDframe *gpf, float fac, bool additive)
 {
   size_t tot_strokes = BLI_listbase_count(&gpf->strokes);
   size_t start_stroke;
@@ -197,15 +194,18 @@ static void build_sequential(BuildGpencilModifierData *mmd,
   if (additive) {
     if (gpf->prev) {
       start_stroke = BLI_listbase_count(&gpf->prev->strokes);
-    } else {
+    }
+    else {
       start_stroke = 0;
     }
     if (start_stroke <= tot_strokes) {
       tot_strokes = tot_strokes - start_stroke;
-    } else {
+    }
+    else {
       start_stroke = 0;
     }
-  } else {
+  }
+  else {
     start_stroke = 0;
   }
 
