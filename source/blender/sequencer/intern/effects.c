@@ -2396,7 +2396,7 @@ static ImBuf *do_solid_color(const SeqRenderData *context,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Mulit-Camera Effect
+/** \name Multi-Camera Effect
  * \{ */
 
 /** No effect inputs for multi-camera, we use #give_ibuf_seq. */

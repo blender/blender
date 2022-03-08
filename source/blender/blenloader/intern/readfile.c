@@ -161,7 +161,7 @@
  * which keeps large arrays in memory from data-blocks we may not even use.
  *
  * \note This is disabled when using compression,
- * while zlib supports seek it's unusably slow, see: T61880.
+ * while zlib supports seek it's unusable slow, see: T61880.
  */
 #define USE_BHEAD_READ_ON_DEMAND
 
@@ -4711,9 +4711,9 @@ static void read_library_linked_ids(FileData *basefd,
           read_library_linked_id(basefd, fd, mainvar, id, realid);
         }
 
-        /* realid shall never be NULL - unless some source file/lib is broken
+        /* `realid` shall never be NULL - unless some source file/lib is broken
          * (known case: some directly linked shapekey from a missing lib...). */
-        /* BLI_assert(*realid != NULL); */
+        // BLI_assert(*realid != NULL);
 
         /* Now that we have a real ID, replace all pointers to placeholders in
          * fd->libmap with pointers to the real data-blocks. We do this for all

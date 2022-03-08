@@ -811,7 +811,7 @@ static void add_bezt_to_keyblocks_list(AnimKeylist *keylist, BezTriple *bezt, co
        * may change order and then this assertion no longer holds. The effect is that the drawing
        * isn't perfect during the transform; the "constant value" bars aren't updated until the
        * transformation is confirmed. */
-      /* BLI_assert(is_cfra_eq(col->cfra, bezt[0].vec[1][0])); */
+      // BLI_assert(is_cfra_eq(col->cfra, bezt[0].vec[1][0]));
 
       compute_keyblock_data(&block, bezt, bezt + 1);
 

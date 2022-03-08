@@ -278,7 +278,7 @@ void BPY_app_handlers_reset(const short do_all)
         }
         else {
           /* remove */
-          /* PySequence_DelItem(ls, i); */ /* more obvious but slower */
+          // PySequence_DelItem(ls, i); /* more obvious but slower */
           PyList_SetSlice(ls, i, i + 1, NULL);
         }
       }

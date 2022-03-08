@@ -4349,7 +4349,7 @@ static Base *mesh_separate_tagged(
   Base *base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, dupflag);
 
   /* normally would call directly after but in this case delay recalc */
-  /* DAG_relations_tag_update(bmain); */
+  // DAG_relations_tag_update(bmain);
 
   /* new in 2.5 */
   BKE_object_material_array_assign(bmain,
@@ -4423,7 +4423,7 @@ static Base *mesh_separate_arrays(Main *bmain,
   Base *base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, dupflag);
 
   /* normally would call directly after but in this case delay recalc */
-  /* DAG_relations_tag_update(bmain); */
+  // DAG_relations_tag_update(bmain);
 
   /* new in 2.5 */
   BKE_object_material_array_assign(bmain,

@@ -2618,7 +2618,7 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
                                  nullptr);
 
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
-      /* ED_undo_push(C, "Refresh Drivers"); No undo needed - shouldn't have any impact? */
+      // ED_undo_push(C, "Refresh Drivers"); /* No undo needed - shouldn't have any impact? */
       break;
 
     case OUTLINER_ANIMOP_CLEAR_DRV:

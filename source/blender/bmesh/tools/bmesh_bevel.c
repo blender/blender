@@ -5571,7 +5571,7 @@ static void bevel_build_cutoff(BevelParams *bp, BMesh *bm, BevVert *bv)
       /* Add verts from each cutoff face. */
       face_bmverts[i] = mesh_vert(bv->vmesh, i, 1, 0)->v;
     }
-    /* BLI_array_append(bmfaces, repface); */
+    // BLI_array_append(bmfaces, repface);
     bev_create_ngon(bm, face_bmverts, n_bndv, bmfaces, NULL, bmedges, bp->mat_nr, true);
 
     BLI_array_free(bmedges);
