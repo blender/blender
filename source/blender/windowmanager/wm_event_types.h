@@ -244,6 +244,7 @@ enum {
   NDOF_MOTION = 0x0190, /* 400 */
 
 #define _NDOF_MIN NDOF_MOTION
+#define _NDOF_BUTTON_MIN NDOF_BUTTON_MENU
 
   /* used internally, never sent */
   NDOF_BUTTON_NONE = NDOF_MOTION,
@@ -296,6 +297,7 @@ enum {
   NDOF_BUTTON_C = 0x01b6, /* 438 */
 
 #define _NDOF_MAX NDOF_BUTTON_C
+#define _NDOF_BUTTON_MAX NDOF_BUTTON_C
 
   /* ********** End of Input devices. ********** */
 
@@ -386,13 +388,16 @@ enum {
 
 /** Test whether the event is a NDOF event. */
 #define ISNDOF(event_type) ((event_type) >= _NDOF_MIN && (event_type) <= _NDOF_MAX)
+#define ISNDOF_BUTTON(event_type) \
+  ((event_type) >= _NDOF_BUTTON_MIN && (event_type) <= _NDOF_BUTTON_MAX)
 
 #define IS_EVENT_ACTIONZONE(event_type) \
   ELEM(event_type, EVT_ACTIONZONE_AREA, EVT_ACTIONZONE_REGION, EVT_ACTIONZONE_FULLSCREEN)
 
 /** Test whether event type is acceptable as hotkey (excluding modifiers). */
 #define ISHOTKEY(event_type) \
-  ((ISKEYBOARD(event_type) || ISMOUSE(event_type) || ISNDOF(event_type)) && \
+  ((ISKEYBOARD(event_type) || ISMOUSE_BUTTON(event_type) || ISMOUSE_WHEEL(event_type) || \
+    ISNDOF_BUTTON(event_type)) && \
    (ISKEYMODIFIER(event_type) == false))
 
 enum eEventType_Mask {
