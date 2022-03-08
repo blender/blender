@@ -223,7 +223,7 @@ void uvedit_edge_select_set_noflush(const struct Scene *scene,
  * Updates selection state for UVs based on the select mode and sticky mode. Similar to
  * #EDBM_selectmode_set.
  */
-void ED_uvedit_selectmode_clean(struct Scene *scene, struct Object *obedit);
+void ED_uvedit_selectmode_clean(const struct Scene *scene, struct Object *obedit);
 void ED_uvedit_selectmode_clean_multi(struct bContext *C);
 
 /**
@@ -231,16 +231,16 @@ void ED_uvedit_selectmode_clean_multi(struct bContext *C);
  *
  * Flushes selections upwards as dictated by the UV select mode.
  */
-void ED_uvedit_selectmode_flush(struct Scene *scene, struct BMEditMesh *em);
+void ED_uvedit_selectmode_flush(const struct Scene *scene, struct BMEditMesh *em);
 
 /**
  * Mode independent UV de-selection flush.
  */
-void uvedit_deselect_flush(struct Scene *scene, struct BMEditMesh *em);
+void uvedit_deselect_flush(const struct Scene *scene, struct BMEditMesh *em);
 /**
  * Mode independent UV selection flush.
  */
-void uvedit_select_flush(struct Scene *scene, struct BMEditMesh *em);
+void uvedit_select_flush(const struct Scene *scene, struct BMEditMesh *em);
 
 bool ED_uvedit_nearest_uv(const struct Scene *scene,
                           struct Object *obedit,
@@ -254,15 +254,15 @@ bool ED_uvedit_nearest_uv_multi(const struct Scene *scene,
                                 float *dist_sq,
                                 float r_uv[2]);
 
-struct BMFace **ED_uvedit_selected_faces(struct Scene *scene,
+struct BMFace **ED_uvedit_selected_faces(const struct Scene *scene,
                                          struct BMesh *bm,
                                          int len_max,
                                          int *r_faces_len);
-struct BMLoop **ED_uvedit_selected_edges(struct Scene *scene,
+struct BMLoop **ED_uvedit_selected_edges(const struct Scene *scene,
                                          struct BMesh *bm,
                                          int len_max,
                                          int *r_edges_len);
-struct BMLoop **ED_uvedit_selected_verts(struct Scene *scene,
+struct BMLoop **ED_uvedit_selected_verts(const struct Scene *scene,
                                          struct BMesh *bm,
                                          int len_max,
                                          int *r_verts_len);

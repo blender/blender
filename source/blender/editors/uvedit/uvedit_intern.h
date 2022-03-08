@@ -155,8 +155,8 @@ void UV_OT_shortest_path_select(struct wmOperatorType *ot);
 
 /* uvedit_select.c */
 
-bool uvedit_select_is_any_selected(struct Scene *scene, struct Object *obedit);
-bool uvedit_select_is_any_selected_multi(struct Scene *scene,
+bool uvedit_select_is_any_selected(const struct Scene *scene, struct Object *obedit);
+bool uvedit_select_is_any_selected_multi(const struct Scene *scene,
                                          struct Object **objects,
                                          uint objects_len);
 /**

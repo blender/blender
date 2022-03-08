@@ -55,18 +55,21 @@
 
 #include "uvedit_intern.h"
 
-static void uv_select_all_perform(Scene *scene, Object *obedit, int action);
+static void uv_select_all_perform(const Scene *scene, Object *obedit, int action);
 
-static void uv_select_all_perform_multi_ex(
-    Scene *scene, Object **objects, const uint objects_len, int action, const Object *ob_exclude);
-static void uv_select_all_perform_multi(Scene *scene,
+static void uv_select_all_perform_multi_ex(const Scene *scene,
+                                           Object **objects,
+                                           const uint objects_len,
+                                           int action,
+                                           const Object *ob_exclude);
+static void uv_select_all_perform_multi(const Scene *scene,
                                         Object **objects,
                                         const uint objects_len,
                                         int action);
 
-static void uv_select_flush_from_tag_face(Scene *scene, Object *obedit, const bool select);
-static void uv_select_flush_from_tag_loop(Scene *scene, Object *obedit, const bool select);
-static void uv_select_flush_from_loop_edge_flag(Scene *scene, BMEditMesh *em);
+static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, const bool select);
+static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, const bool select);
+static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMEditMesh *em);
 
 static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
                                             const ToolSettings *ts,
@@ -1200,7 +1203,10 @@ bool uvedit_vert_is_all_other_faces_selected(const Scene *scene,
 /**
  * Clear specified UV flag (vert/edge/pinned).
  */
-static void bm_uv_flag_clear(Scene *scene, BMesh *bm, const int flag, const int cd_loop_uv_offset)
+static void bm_uv_flag_clear(const Scene *scene,
+                             BMesh *bm,
+                             const int flag,
+                             const int cd_loop_uv_offset)
 {
   BMFace *efa;
   BMLoop *l;
@@ -1223,9 +1229,9 @@ static void bm_uv_flag_clear(Scene *scene, BMesh *bm, const int flag, const int 
  *
  * \{ */
 
-void ED_uvedit_selectmode_flush(Scene *scene, BMEditMesh *em)
+void ED_uvedit_selectmode_flush(const Scene *scene, BMEditMesh *em)
 {
-  ToolSettings *ts = scene->toolsettings;
+  const ToolSettings *ts = scene->toolsettings;
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
   BLI_assert((ts->uv_flag & UV_SYNC_SELECTION) == 0);
@@ -1262,11 +1268,11 @@ void ED_uvedit_selectmode_flush(Scene *scene, BMEditMesh *em)
 /** \name UV Flush selection (up/down)
  * \{ */
 
-/* Careful when using this in face select mode.
- * For face selections with sticky mode enabled, this can create invalid selection states. */
-void uvedit_select_flush(Scene *scene, BMEditMesh *em)
+void uvedit_select_flush(const Scene *scene, BMEditMesh *em)
 {
-  ToolSettings *ts = scene->toolsettings;
+  /* Careful when using this in face select mode.
+   * For face selections with sticky mode enabled, this can create invalid selection states. */
+  const ToolSettings *ts = scene->toolsettings;
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
   BLI_assert((ts->uv_flag & UV_SYNC_SELECTION) == 0);
@@ -1291,9 +1297,9 @@ void uvedit_select_flush(Scene *scene, BMEditMesh *em)
   }
 }
 
-void uvedit_deselect_flush(Scene *scene, BMEditMesh *em)
+void uvedit_deselect_flush(const Scene *scene, BMEditMesh *em)
 {
-  ToolSettings *ts = scene->toolsettings;
+  const ToolSettings *ts = scene->toolsettings;
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
   BLI_assert((ts->uv_flag & UV_SYNC_SELECTION) == 0);
@@ -2166,7 +2172,7 @@ void UV_OT_select_less(wmOperatorType *ot)
 /** \name (De)Select All Operator
  * \{ */
 
-bool uvedit_select_is_any_selected(Scene *scene, Object *obedit)
+bool uvedit_select_is_any_selected(const Scene *scene, Object *obedit)
 {
   const ToolSettings *ts = scene->toolsettings;
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -2194,7 +2200,9 @@ bool uvedit_select_is_any_selected(Scene *scene, Object *obedit)
   return false;
 }
 
-bool uvedit_select_is_any_selected_multi(Scene *scene, Object **objects, const uint objects_len)
+bool uvedit_select_is_any_selected_multi(const Scene *scene,
+                                         Object **objects,
+                                         const uint objects_len)
 {
   bool found = false;
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -2207,7 +2215,7 @@ bool uvedit_select_is_any_selected_multi(Scene *scene, Object **objects, const u
   return found;
 }
 
-static void uv_select_all(Scene *scene, BMEditMesh *em, bool select_all)
+static void uv_select_all(const Scene *scene, BMEditMesh *em, bool select_all)
 {
   BMFace *efa;
   BMLoop *l;
@@ -2226,7 +2234,7 @@ static void uv_select_all(Scene *scene, BMEditMesh *em, bool select_all)
   }
 }
 
-static void uv_select_invert(Scene *scene, BMEditMesh *em)
+static void uv_select_invert(const Scene *scene, BMEditMesh *em)
 {
   const ToolSettings *ts = scene->toolsettings;
   BLI_assert((ts->uv_flag & UV_SYNC_SELECTION) == 0);
@@ -2265,7 +2273,7 @@ static void uv_select_invert(Scene *scene, BMEditMesh *em)
   }
 }
 
-static void uv_select_all_perform(Scene *scene, Object *obedit, int action)
+static void uv_select_all_perform(const Scene *scene, Object *obedit, int action)
 {
   const ToolSettings *ts = scene->toolsettings;
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -2306,8 +2314,11 @@ static void uv_select_all_perform(Scene *scene, Object *obedit, int action)
   }
 }
 
-static void uv_select_all_perform_multi_ex(
-    Scene *scene, Object **objects, const uint objects_len, int action, const Object *ob_exclude)
+static void uv_select_all_perform_multi_ex(const Scene *scene,
+                                           Object **objects,
+                                           const uint objects_len,
+                                           int action,
+                                           const Object *ob_exclude)
 {
   if (action == SEL_TOGGLE) {
     action = uvedit_select_is_any_selected_multi(scene, objects, objects_len) ? SEL_DESELECT :
@@ -2323,7 +2334,7 @@ static void uv_select_all_perform_multi_ex(
   }
 }
 
-static void uv_select_all_perform_multi(Scene *scene,
+static void uv_select_all_perform_multi(const Scene *scene,
                                         Object **objects,
                                         const uint objects_len,
                                         int action)
@@ -3136,7 +3147,7 @@ static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
 /**
  * helper function for #uv_select_flush_from_tag_loop and uv_select_flush_from_tag_face
  */
-static void uv_select_flush_from_tag_sticky_loc_internal(Scene *scene,
+static void uv_select_flush_from_tag_sticky_loc_internal(const Scene *scene,
                                                          BMEditMesh *em,
                                                          UvVertMap *vmap,
                                                          const uint efa_index,
@@ -3194,7 +3205,7 @@ static void uv_select_flush_from_tag_sticky_loc_internal(Scene *scene,
  * \note This function is very similar to #uv_select_flush_from_tag_loop,
  * be sure to update both upon changing.
  */
-static void uv_select_flush_from_tag_face(Scene *scene, Object *obedit, const bool select)
+static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, const bool select)
 {
   /* Selecting UV Faces with some modes requires us to change
    * the selection in other faces (depending on the sticky mode).
@@ -3263,7 +3274,7 @@ static void uv_select_flush_from_tag_face(Scene *scene, Object *obedit, const bo
  * \note This function is very similar to #uv_select_flush_from_tag_face,
  * be sure to update both upon changing.
  */
-static void uv_select_flush_from_tag_loop(Scene *scene, Object *obedit, const bool select)
+static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, const bool select)
 {
   /* Selecting UV Loops with some modes requires us to change
    * the selection in other faces (depending on the sticky mode).
@@ -3345,7 +3356,7 @@ static void uv_select_flush_from_tag_loop(Scene *scene, Object *obedit, const bo
  *
  * \note Current behavior is selecting only; deselecting can be added but the behavior isn't
  * required anywhere.*/
-static void uv_select_flush_from_loop_edge_flag(Scene *scene, BMEditMesh *em)
+static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMEditMesh *em)
 {
   const ToolSettings *ts = scene->toolsettings;
   BMFace *efa;
@@ -4358,7 +4369,7 @@ void UV_OT_select_overlap(wmOperatorType *ot)
  * So an edge that has two connected edge loops only assigns one loop in the array.
  * \{ */
 
-BMFace **ED_uvedit_selected_faces(Scene *scene, BMesh *bm, int len_max, int *r_faces_len)
+BMFace **ED_uvedit_selected_faces(const Scene *scene, BMesh *bm, int len_max, int *r_faces_len)
 {
   const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
   CLAMP_MAX(len_max, bm->totface);
@@ -4386,7 +4397,7 @@ finally:
   return faces;
 }
 
-BMLoop **ED_uvedit_selected_edges(Scene *scene, BMesh *bm, int len_max, int *r_edges_len)
+BMLoop **ED_uvedit_selected_edges(const Scene *scene, BMesh *bm, int len_max, int *r_edges_len)
 {
   const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
   CLAMP_MAX(len_max, bm->totloop);
@@ -4442,7 +4453,7 @@ finally:
   return edges;
 }
 
-BMLoop **ED_uvedit_selected_verts(Scene *scene, BMesh *bm, int len_max, int *r_verts_len)
+BMLoop **ED_uvedit_selected_verts(const Scene *scene, BMesh *bm, int len_max, int *r_verts_len)
 {
   const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
   CLAMP_MAX(len_max, bm->totloop);
@@ -4508,7 +4519,9 @@ finally:
  *
  * Use only when sync select disabled.
  */
-static void uv_isolate_selected_islands(Scene *scene, BMEditMesh *em, const int cd_loop_uv_offset)
+static void uv_isolate_selected_islands(const Scene *scene,
+                                        BMEditMesh *em,
+                                        const int cd_loop_uv_offset)
 {
   BLI_assert((scene->toolsettings->uv_flag & UV_SYNC_SELECTION) == 0);
   BMFace *efa;
@@ -4556,9 +4569,9 @@ static void uv_isolate_selected_islands(Scene *scene, BMEditMesh *em, const int 
   MEM_freeN(is_island_not_selected);
 }
 
-void ED_uvedit_selectmode_clean(Scene *scene, Object *obedit)
+void ED_uvedit_selectmode_clean(const Scene *scene, Object *obedit)
 {
-  ToolSettings *ts = scene->toolsettings;
+  const ToolSettings *ts = scene->toolsettings;
   BLI_assert((ts->uv_flag & UV_SYNC_SELECTION) == 0);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   char sticky = ts->uv_sticky;
