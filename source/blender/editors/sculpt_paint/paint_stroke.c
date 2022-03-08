@@ -1000,6 +1000,10 @@ bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
     return true;
   }
 
+  if (mode == PAINT_MODE_SCULPT_CURVES) {
+    return false;
+  }
+
   return paint_supports_dynamic_size(br, mode);
 }
 
