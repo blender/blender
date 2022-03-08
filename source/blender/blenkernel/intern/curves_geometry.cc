@@ -181,7 +181,12 @@ VArray<bool> CurvesGeometry::cyclic() const
 
 MutableSpan<bool> CurvesGeometry::cyclic()
 {
-  bool *data = (bool *)CustomData_add_layer_named(
+  bool *data = (bool *)CustomData_duplicate_referenced_layer_named(
+      &this->curve_data, CD_PROP_BOOL, ATTR_CYCLIC.c_str(), this->curve_size);
+  if (data != nullptr) {
+    return {data, this->curve_size};
+  }
+  data = (bool *)CustomData_add_layer_named(
       &this->curve_data, CD_PROP_BOOL, CD_CALLOC, nullptr, this->curve_size, ATTR_CYCLIC.c_str());
   return {data, this->curve_size};
 }
