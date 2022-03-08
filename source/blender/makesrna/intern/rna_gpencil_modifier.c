@@ -2074,7 +2074,7 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
        "ADDITIVE",
        ICON_PARTICLE_PATH,
        "Additive",
-       "Builds only new strokes (assuming 'additive' drawing)."},
+       "Builds only new strokes (assuming 'additive' drawing)"},
       {0, NULL, 0, NULL, NULL},
   };
 
