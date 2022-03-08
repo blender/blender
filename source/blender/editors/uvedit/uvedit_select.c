@@ -1720,7 +1720,7 @@ static int uv_select_edgering(Scene *scene, Object *obedit, UvNearestHit *hit, c
         if (select && uvedit_edge_select_test(scene, l_step, cd_loop_uv_offset)) {
           break;
         }
-        else if (!select && !uvedit_edge_select_test(scene, l_step, cd_loop_uv_offset)) {
+        if (!select && !uvedit_edge_select_test(scene, l_step, cd_loop_uv_offset)) {
           break;
         }
       }

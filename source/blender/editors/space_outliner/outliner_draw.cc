@@ -2348,10 +2348,8 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
       if (text->filepath == nullptr || (text->flags & TXT_ISMEM)) {
         return ICON_FILE_TEXT;
       }
-      else {
-        /* Helps distinguish text-based formats like the file-browser does. */
-        return (BIFIconID)ED_file_extension_icon(text->filepath);
-      }
+      /* Helps distinguish text-based formats like the file-browser does. */
+      return (BIFIconID)ED_file_extension_icon(text->filepath);
     }
     case ID_GR:
       return ICON_OUTLINER_COLLECTION;

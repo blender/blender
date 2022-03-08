@@ -739,7 +739,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
     case ID_GD: {
       bGPdata *gpd_cow = (bGPdata *)id_cow;
       bGPDlayer *gpl = (bGPDlayer *)(gpd_cow->layers.first);
-      if (gpl != NULL && gpl->runtime.gpl_orig == NULL) {
+      if (gpl != nullptr && gpl->runtime.gpl_orig == nullptr) {
         BKE_gpencil_data_update_orig_pointers((bGPdata *)id_orig, gpd_cow);
       }
       break;

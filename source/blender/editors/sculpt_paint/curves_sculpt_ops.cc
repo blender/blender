@@ -518,7 +518,7 @@ class AddOperation : public CurvesSculptStrokeOperation {
   };
 
  public:
-  ~AddOperation()
+  ~AddOperation() override
   {
     if (old_kdtree_ != nullptr) {
       BLI_kdtree_3d_free(old_kdtree_);

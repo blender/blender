@@ -1518,11 +1518,11 @@ static int uv_hide_exec(bContext *C, wmOperator *op)
               BM_face_select_set(em->bm, efa, false);
               break;
             }
-            else if (UV_VERT_SEL_TEST(luv, !swap) && (ts->uv_selectmode == UV_SELECT_VERTEX)) {
+            if (UV_VERT_SEL_TEST(luv, !swap) && (ts->uv_selectmode == UV_SELECT_VERTEX)) {
               BM_face_select_set(em->bm, efa, false);
               break;
             }
-            else if (ts->uv_selectmode == UV_SELECT_ISLAND) {
+            if (ts->uv_selectmode == UV_SELECT_ISLAND) {
               BM_face_select_set(em->bm, efa, false);
               break;
             }
@@ -1533,18 +1533,21 @@ static int uv_hide_exec(bContext *C, wmOperator *op)
           BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
             luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
             if (UV_EDGE_SEL_TEST(luv, !swap) && (ts->uv_selectmode == UV_SELECT_EDGE)) {
-              if (em->selectmode == SCE_SELECT_EDGE)
+              if (em->selectmode == SCE_SELECT_EDGE) {
                 BM_edge_select_set(em->bm, l->e, false);
+              }
               else {
                 BM_vert_select_set(em->bm, l->v, false);
                 BM_vert_select_set(em->bm, l->next->v, false);
               }
             }
             else if (UV_VERT_SEL_TEST(luv, !swap) && (ts->uv_selectmode != UV_SELECT_EDGE)) {
-              if (em->selectmode == SCE_SELECT_EDGE)
+              if (em->selectmode == SCE_SELECT_EDGE) {
                 BM_edge_select_set(em->bm, l->e, false);
-              else
+              }
+              else {
                 BM_vert_select_set(em->bm, l->v, false);
+              }
             }
           }
           if (!swap) {
