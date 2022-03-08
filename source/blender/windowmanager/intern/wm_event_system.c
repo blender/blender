@@ -5142,10 +5142,14 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         case GHOST_kRelease:
           event.val = KM_RELEASE;
           break;
+        default:
+          BLI_assert_unreachable();
       }
 
       event.custom = 0;
       event.customdata = NULL;
+
+      wm_event_state_update_and_click_set(&event, event_state);
 
       wm_event_add(win, &event);
 

@@ -371,7 +371,8 @@ enum {
  * \note Mouse wheel events are excluded from this macro, while they do generate press events it
  * doesn't make sense to have click & click-drag events for a mouse-wheel as it can't be held down.
  */
-#define ISKEYBOARD_OR_BUTTON(event_type) (ISMOUSE_BUTTON(event_type) || ISKEYBOARD(event_type))
+#define ISKEYBOARD_OR_BUTTON(event_type) \
+  (ISMOUSE_BUTTON(event_type) || ISKEYBOARD(event_type) || ISNDOF_BUTTON(event_type))
 
 /** Test whether the event is a modifier key. */
 #define ISKEYMODIFIER(event_type) \
