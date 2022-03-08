@@ -40,6 +40,27 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="3.1" date="2022-03-09">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>GPU acceleration for the Subdivision modifier</li>
+                    <li>Cycles Metal GPU backend, contributed by Apple</li>
+                    <li>Point Cloud rendering</li>
+                    <li>More Geometry Nodes, including extrude mesh</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Faster and less memory usage in geometry nodes</li>
+                    <li>Grease Pencil Dilate/Contract fill</li>
+                    <li>Vertex Creasing support</li>
+                    <li>Faster .obj and .fbx export</li>
+                    <li>Image editor is able to handle large images</li>
+                    <li>Python 3.10</li>
+                    <li>User Interface updates</li>
+                </ul>
+            </description>
+        </release>
         <release version="3.0" date="2021-12-03">
             <description>
                 <p>New features:</p>
