@@ -1453,6 +1453,9 @@ bool WM_cursor_test_motion_and_update(const int mval[2]) ATTR_NONNULL(1) ATTR_WA
 int WM_event_drag_threshold(const struct wmEvent *event);
 bool WM_event_drag_test(const struct wmEvent *event, const int prev_xy[2]);
 bool WM_event_drag_test_with_delta(const struct wmEvent *event, const int delta[2]);
+void WM_event_drag_start_mval(const wmEvent *event, const ARegion *region, int r_mval[2]);
+void WM_event_drag_start_mval_fl(const wmEvent *event, const ARegion *region, float r_mval[2]);
+void WM_event_drag_start_xy(const wmEvent *event, int r_xy[2]);
 
 /**
  * Event map that takes preferences into account.

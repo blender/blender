@@ -338,6 +338,25 @@ bool WM_event_drag_test(const wmEvent *event, const int prev_xy[2])
   return WM_event_drag_test_with_delta(event, drag_delta);
 }
 
+void WM_event_drag_start_mval(const wmEvent *event, const ARegion *region, int r_mval[2])
+{
+  const int *xy = (event->val == KM_CLICK_DRAG) ? event->prev_click_xy : event->xy;
+  r_mval[0] = xy[0] - region->winrct.xmin;
+  r_mval[1] = xy[1] - region->winrct.ymin;
+}
+
+void WM_event_drag_start_mval_fl(const wmEvent *event, const ARegion *region, float r_mval[2])
+{
+  const int *xy = (event->val == KM_CLICK_DRAG) ? event->prev_click_xy : event->xy;
+  r_mval[0] = xy[0] - region->winrct.xmin;
+  r_mval[1] = xy[1] - region->winrct.ymin;
+}
+
+void WM_event_drag_start_xy(const wmEvent *event, int r_xy[2])
+{
+  copy_v2_v2_int(r_xy, (event->val == KM_CLICK_DRAG) ? event->prev_click_xy : event->xy);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -733,9 +733,11 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
      * the current cursor location instead of the drag-start. */
     if (event->val == KM_CLICK_DRAG) {
       /* Set this flag so snapping always updated. */
+      int mval[2];
+      WM_event_drag_start_mval(event, ipd->region, mval);
       int flag_orig = snap_state_new->flag;
       snap_state_new->flag |= V3D_SNAPCURSOR_TOGGLE_ALWAYS_TRUE;
-      ED_view3d_cursor_snap_data_get(snap_state_new, C, event->mval[0], event->mval[1]);
+      ED_view3d_cursor_snap_data_get(snap_state_new, C, mval[0], mval[1]);
       snap_state_new->flag = flag_orig;
     }
   }
@@ -1168,7 +1170,8 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
   }
 
   if (do_cursor_update) {
-    const float mval_fl[2] = {UNPACK2(event->mval)};
+    float mval_fl[2];
+    WM_event_drag_start_mval_fl(event, region, mval_fl);
 
     /* Calculate the snap location on mouse-move or when toggling snap. */
     ipd->is_snap_found = false;

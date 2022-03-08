@@ -955,8 +955,10 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   switch (event->type) {
     case MOUSEMOVE: {
+      int mval[2];
+      WM_event_drag_start_mval(event, region, mval);
       float mx, my;
-      UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &mx, &my);
+      UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &mx, &my);
       float dx = (mx - nsw->mxstart) / UI_DPI_FAC;
       float dy = (my - nsw->mystart) / UI_DPI_FAC;
 
@@ -1057,7 +1059,9 @@ static int node_resize_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* convert mouse coordinates to v2d space */
   float cursor[2];
-  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
+  int mval[2];
+  WM_event_drag_start_mval(event, region, mval);
+  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &cursor[0], &cursor[1]);
   const NodeResizeDirection dir = node_get_resize_direction(node, cursor[0], cursor[1]);
   if (dir == NODE_RESIZE_NONE) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;

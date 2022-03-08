@@ -511,8 +511,12 @@ static int actkeys_box_select_invoke(bContext *C, wmOperator *op, const wmEvent 
   }
 
   bool tweak = RNA_boolean_get(op->ptr, "tweak");
-  if (tweak && actkeys_is_key_at_position(&ac, event->mval[0], event->mval[1])) {
-    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  if (tweak) {
+    int mval[2];
+    WM_event_drag_start_mval(event, ac.region, mval);
+    if (actkeys_is_key_at_position(&ac, mval[0], mval[1])) {
+      return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+    }
   }
 
   return WM_gesture_box_invoke(C, op, event);

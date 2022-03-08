@@ -1082,7 +1082,8 @@ static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
 
   ARegion *region = ruler_info->region;
 
-  const float mval_fl[2] = {UNPACK2(event->mval)};
+  float mval_fl[2];
+  WM_event_drag_start_mval_fl(event, region, mval_fl);
 
 #ifdef USE_AXIS_CONSTRAINTS
   ruler_info->constrain_axis = CONSTRAIN_AXIS_NONE;
@@ -1311,6 +1312,9 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
     return OPERATOR_CANCELLED;
   }
 
+  int mval[2];
+  WM_event_drag_start_mval(event, region, mval);
+
   /* Create new line */
   RulerItem *ruler_item;
   ruler_item = ruler_item_add(gzgroup);
@@ -1329,7 +1333,7 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
                                   depsgraph,
                                   ruler_info,
                                   ruler_item,
-                                  event->mval,
+                                  mval,
                                   false
 #ifndef USE_SNAP_DETECT_FROM_KEYMAP_HACK
                                   ,
@@ -1344,7 +1348,7 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
     else {
       negate_v3_v3(inter->drag_start_co, rv3d->ofs);
       copy_v3_v3(ruler_item->co[0], inter->drag_start_co);
-      view3d_ruler_item_project(ruler_info, ruler_item->co[0], event->mval);
+      view3d_ruler_item_project(ruler_info, ruler_item->co[0], mval);
     }
 
     copy_v3_v3(ruler_item->co[2], ruler_item->co[0]);

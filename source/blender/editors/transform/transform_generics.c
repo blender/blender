@@ -216,7 +216,12 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   int mval[2];
   if (event) {
-    copy_v2_v2_int(mval, event->mval);
+    if (t->flag & T_EVENT_DRAG_START) {
+      WM_event_drag_start_mval(event, region, mval);
+    }
+    else {
+      copy_v2_v2_int(mval, event->mval);
+    }
   }
   else {
     zero_v2_int(mval);

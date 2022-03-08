@@ -267,6 +267,10 @@ enum {
   KM_RELEASE = 2,
   KM_CLICK = 3,
   KM_DBL_CLICK = 4,
+  /**
+   * \note The cursor location at the point dragging starts is set to #wmEvent.prev_click_xy
+   * some operators such as box selection should use this location instead of #wmEvent.xy.
+   */
   KM_CLICK_DRAG = 5,
 };
 

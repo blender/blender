@@ -799,7 +799,9 @@ static int graphkeys_box_select_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   if (RNA_boolean_get(op->ptr, "tweak")) {
-    tNearestVertInfo *under_mouse = find_nearest_fcurve_vert(&ac, event->mval);
+    int mval[2];
+    WM_event_drag_start_mval(event, ac.region, mval);
+    tNearestVertInfo *under_mouse = find_nearest_fcurve_vert(&ac, mval);
     bool mouse_is_over_element = under_mouse != NULL;
     if (under_mouse) {
       MEM_freeN(under_mouse);

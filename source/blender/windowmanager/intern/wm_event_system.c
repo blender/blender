@@ -3169,13 +3169,13 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
           win->event_queue_check_drag_handled = true;
           const int direction = WM_event_drag_direction(event);
 
-          const int prev_xy[2] = {UNPACK2(event->xy)};
+          /* Intentionally leave `event->xy` as-is, event users are expected to use
+           * `event->prev_click_xy` if they need to access the drag start location. */
           const short prev_val = event->val;
           const short prev_type = event->type;
           const uint8_t prev_modifier = event->modifier;
           const short prev_keymodifier = event->keymodifier;
 
-          copy_v2_v2_int(event->xy, event->prev_click_xy);
           event->val = KM_CLICK_DRAG;
           event->type = event->prev_click_type;
           event->modifier = event->prev_click_modifier;
@@ -3191,7 +3191,6 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
           event->modifier = prev_modifier;
           event->val = prev_val;
           event->type = prev_type;
-          copy_v2_v2_int(event->xy, prev_xy);
 
           win->event_queue_check_click = false;
           if (!((action & WM_HANDLER_BREAK) == 0 || wm_action_not_handled(action))) {

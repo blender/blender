@@ -1177,8 +1177,11 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   bool detach = RNA_boolean_get(op->ptr, "detach");
 
+  int mval[2];
+  WM_event_drag_start_mval(event, &region, mval);
+
   float2 cursor;
-  UI_view2d_region_to_view(&region.v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
+  UI_view2d_region_to_view(&region.v2d, mval[0], mval[1], &cursor[0], &cursor[1]);
   RNA_float_set_array(op->ptr, "drag_start", cursor);
   RNA_boolean_set(op->ptr, "has_link_picked", false);
 
