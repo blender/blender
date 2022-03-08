@@ -870,6 +870,7 @@ static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
   }
 
   mesh_render_data_update_looptris(mr, MR_ITER_LOOPTRI, MR_DATA_LOOPTRI);
+  mesh_render_data_update_normals(mr, MR_DATA_TAN_LOOP_NOR);
   mesh_render_data_update_loose_geom(mr, mbc, MR_ITER_LEDGE | MR_ITER_LVERT, MR_DATA_LOOSE_GEOM);
   DRW_subdivide_loose_geom(subdiv_cache, mbc);
 
