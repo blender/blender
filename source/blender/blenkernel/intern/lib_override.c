@@ -1063,7 +1063,7 @@ static void lib_override_library_create_post_process(Main *bmain,
             break;
           }
           default:
-            BLI_assert(0);
+            break;
         }
       }
       if (default_instantiating_collection == NULL) {
