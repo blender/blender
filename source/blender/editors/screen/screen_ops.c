@@ -1421,7 +1421,7 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                                     area->winy,
                                     SPACE_EMPTY,
                                     false,
-                                    true,
+                                    false,
                                     false,
                                     WIN_ALIGN_ABSOLUTE);
 
