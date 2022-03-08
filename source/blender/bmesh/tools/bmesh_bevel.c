@@ -1859,7 +1859,7 @@ static void move_weld_profile_planes(BevVert *bv, BoundVert *bndv1, BoundVert *b
   float l1 = normalize_v3(no);
 
   /* "no" is new normal projection plane, but don't move if it is coplanar with both of the
-   * projection dirs. */
+   * projection directions. */
   float no2[3], no3[3];
   cross_v3_v3v3(no2, d1, bndv1->profile.proj_dir);
   float l2 = normalize_v3(no2);

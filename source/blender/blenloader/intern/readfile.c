@@ -161,14 +161,14 @@
  * which keeps large arrays in memory from data-blocks we may not even use.
  *
  * \note This is disabled when using compression,
- * while zlib supports seek it's unusable slow, see: T61880.
+ * while ZLIB supports seek it's unusably slow, see: T61880.
  */
 #define USE_BHEAD_READ_ON_DEMAND
 
-/* use GHash for BHead name-based lookups (speeds up linking) */
+/** Use #GHash for #BHead name-based lookups (speeds up linking). */
 #define USE_GHASH_BHEAD
 
-/* Use GHash for restoring pointers by name */
+/** Use #GHash for restoring pointers by name. */
 #define USE_GHASH_RESTORE_POINTER
 
 static CLG_LogRef LOG = {"blo.readfile"};
@@ -194,8 +194,10 @@ typedef struct BHeadN {
 
 #define BHEADN_FROM_BHEAD(bh) ((BHeadN *)POINTER_OFFSET(bh, -(int)offsetof(BHeadN, bhead)))
 
-/* We could change this in the future, for now it's simplest if only data is delayed
- * because ID names are used in lookup tables. */
+/**
+ * We could change this in the future, for now it's simplest if only data is delayed
+ * because ID names are used in lookup tables.
+ */
 #define BHEAD_USE_READ_ON_DEMAND(bhead) ((bhead)->code == DATA)
 
 void BLO_reportf_wrap(BlendFileReadReport *reports, eReportType type, const char *format, ...)

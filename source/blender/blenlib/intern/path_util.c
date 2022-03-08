@@ -629,7 +629,7 @@ bool BLI_path_parent_dir(char *path)
   BLI_path_normalize(NULL, tmp); /* does all the work of normalizing the path for us */
 
   if (!BLI_path_extension_check(tmp, parent_dir)) {
-    strcpy(path, tmp); /* We assume pardir is always shorter... */
+    strcpy(path, tmp); /* We assume the parent directory is always shorter. */
     return true;
   }
 
