@@ -2979,6 +2979,12 @@ bool BKE_lib_override_library_main_operations_create(Main *bmain, const bool for
             id->override_library, IDOVERRIDE_LIBRARY_TAG_UNUSED, false);
       }
     }
+    else {
+      /* Clear 'unused' tag for un-processed IDs, otherwise e.g. linked overrides will loose their
+       * list of overridden properties. */
+      BKE_lib_override_library_properties_tag(
+          id->override_library, IDOVERRIDE_LIBRARY_TAG_UNUSED, false);
+    }
     id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
   }
   FOREACH_MAIN_ID_END;
