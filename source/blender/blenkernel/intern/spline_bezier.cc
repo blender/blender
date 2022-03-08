@@ -365,7 +365,7 @@ BezierSpline::InsertResult BezierSpline::calculate_segment_insertion(const int i
   using namespace blender::math;
 
   BLI_assert(parameter <= 1.0f && parameter >= 0.0f);
-  BLI_assert(next_index == 0 || next_index == index + 1);
+  BLI_assert(ELEM(next_index, 0, index + 1));
   const float3 &point_prev = positions_[index];
   const float3 &handle_prev = handle_positions_right_[index];
   const float3 &handle_next = handle_positions_left_[next_index];

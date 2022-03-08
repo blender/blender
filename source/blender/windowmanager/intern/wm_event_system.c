@@ -5202,7 +5202,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 #ifdef WITH_XR_OPENXR
 void wm_event_add_xrevent(wmWindow *win, wmXrActionData *actiondata, short val)
 {
-  BLI_assert(val == KM_PRESS || val == KM_RELEASE);
+  BLI_assert(ELEM(val, KM_PRESS, KM_RELEASE));
 
   wmEvent event = {
       .type = EVT_XR_ACTION,

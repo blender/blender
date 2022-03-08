@@ -438,8 +438,7 @@ static void rna_ParticleSystem_co_hair(
     return;
   }
 
-  if (part->ren_as == PART_DRAW_OB || part->ren_as == PART_DRAW_GR ||
-      part->ren_as == PART_DRAW_NOT) {
+  if (ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR, PART_DRAW_NOT)) {
     return;
   }
 
@@ -836,7 +835,7 @@ static void rna_Particle_target_reset(Main *bmain, Scene *UNUSED(scene), Pointer
     ParticleTarget *pt = (ParticleTarget *)ptr->data;
     ParticleSystem *kpsys = NULL, *psys = rna_particle_system_for_target(ob, pt);
 
-    if (pt->ob == ob || pt->ob == NULL) {
+    if (ELEM(pt->ob, ob, NULL)) {
       kpsys = BLI_findlink(&ob->particlesystem, pt->psys - 1);
 
       if (kpsys) {
@@ -1334,7 +1333,7 @@ static const EnumPropertyItem *rna_Particle_type_itemf(bContext *UNUSED(C),
 {
   ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
 
-  if (part->type == PART_HAIR || part->type == PART_EMITTER) {
+  if (ELEM(part->type, PART_HAIR, PART_EMITTER)) {
     return part_type_items;
   }
   else {

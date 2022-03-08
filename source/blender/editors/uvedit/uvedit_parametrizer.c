@@ -2039,7 +2039,7 @@ static float p_collapse_cost(PEdge *edge, PEdge *pair)
     float *co1 = e->next->vert->co;
     float *co2 = e->next->next->vert->co;
 
-    if ((e->face != oldf1) && (e->face != oldf2)) {
+    if (!ELEM(e->face, oldf1, oldf2)) {
       float tetrav2[3], tetrav3[3];
 
       /* tetrahedron volume = (1/3!)*|a.(b x c)| */

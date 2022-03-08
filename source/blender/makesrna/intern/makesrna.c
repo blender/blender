@@ -724,10 +724,10 @@ static char *rna_def_property_get_func(
       }
       else {
         const PropertySubType subtype = prop->subtype;
-        const char *string_copy_func = (subtype == PROP_FILEPATH || subtype == PROP_DIRPATH ||
-                                        subtype == PROP_FILENAME || subtype == PROP_BYTESTRING) ?
-                                           "BLI_strncpy" :
-                                           "BLI_strncpy_utf8";
+        const char *string_copy_func =
+            ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME, PROP_BYTESTRING) ?
+                "BLI_strncpy" :
+                "BLI_strncpy_utf8";
 
         rna_print_data_get(f, dp);
 
@@ -1073,10 +1073,10 @@ static char *rna_def_property_set_func(
       }
       else {
         const PropertySubType subtype = prop->subtype;
-        const char *string_copy_func = (subtype == PROP_FILEPATH || subtype == PROP_DIRPATH ||
-                                        subtype == PROP_FILENAME || subtype == PROP_BYTESTRING) ?
-                                           "BLI_strncpy" :
-                                           "BLI_strncpy_utf8";
+        const char *string_copy_func =
+            ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME, PROP_BYTESTRING) ?
+                "BLI_strncpy" :
+                "BLI_strncpy_utf8";
 
         rna_print_data_get(f, dp);
 

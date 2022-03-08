@@ -3462,8 +3462,7 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
           //                  files->entry->nr = totbl + 1;
           files->entry->poin = id;
           fake = id->flag & LIB_FAKEUSER;
-          if (idcode == ID_MA || idcode == ID_TE || idcode == ID_LA || idcode == ID_WO ||
-              idcode == ID_IM) {
+          if (ELEM(idcode, ID_MA, ID_TE, ID_LA, ID_WO, ID_IM)) {
             files->typeflag |= FILE_TYPE_IMAGE;
           }
 #  if 0

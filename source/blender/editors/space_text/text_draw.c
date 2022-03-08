@@ -1108,7 +1108,7 @@ static void draw_documentation(const SpaceText *st, ARegion *region)
     if (*p == '\r' && *(++p) != '\n') {
       *(--p) = '\n'; /* Fix line endings */
     }
-    if (*p == ' ' || *p == '\t') {
+    if (ELEM(*p, ' ', '\t')) {
       br = i;
     }
     else if (*p == '\n') {

@@ -903,8 +903,7 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
       break;
     case IDP_ARRAY: {
       /* for now, we only support float and int and double arrays */
-      if ((val->array.type == IDP_FLOAT) || (val->array.type == IDP_INT) ||
-          (val->array.type == IDP_DOUBLE) || (val->array.type == IDP_GROUP)) {
+      if (ELEM(val->array.type, IDP_FLOAT, IDP_INT, IDP_DOUBLE, IDP_GROUP)) {
         prop = MEM_callocN(sizeof(IDProperty), "IDProperty array");
         prop->subtype = val->array.type;
         if (val->array.len) {

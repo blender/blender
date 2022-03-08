@@ -136,7 +136,7 @@ static void rna_CameraDOFSettings_aperture_blades_set(PointerRNA *ptr, const int
 {
   CameraDOFSettings *dofsettings = (CameraDOFSettings *)ptr->data;
 
-  if (value == 1 || value == 2) {
+  if (ELEM(value, 1, 2)) {
     if (dofsettings->aperture_blades == 0) {
       dofsettings->aperture_blades = 3;
     }

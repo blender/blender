@@ -196,9 +196,11 @@ bool BKE_gpencil_has_transform_modifiers(Object *ob)
   LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
     /* Only if enabled in edit mode. */
     if (!GPENCIL_MODIFIER_EDIT(md, true) && GPENCIL_MODIFIER_ACTIVE(md, false)) {
-      if ((md->type == eGpencilModifierType_Armature) || (md->type == eGpencilModifierType_Hook) ||
-          (md->type == eGpencilModifierType_Lattice) ||
-          (md->type == eGpencilModifierType_Offset)) {
+      if (ELEM(md->type,
+               eGpencilModifierType_Armature,
+               eGpencilModifierType_Hook,
+               eGpencilModifierType_Lattice,
+               eGpencilModifierType_Offset)) {
         return true;
       }
     }

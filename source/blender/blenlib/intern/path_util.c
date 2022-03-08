@@ -470,7 +470,7 @@ void BLI_path_rel(char *file, const char *relfile)
      * can happen with old recent-files.txt files */
     BLI_windows_get_default_root_dir(temp);
     ptemp = &temp[2];
-    if (relfile[0] != '\\' && relfile[0] != '/') {
+    if (!ELEM(relfile[0], '\\', '/')) {
       ptemp++;
     }
     BLI_strncpy(ptemp, relfile, FILE_MAX - 3);

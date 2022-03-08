@@ -262,7 +262,7 @@ static int *parse_int_relative_clamp_n(
   int i = 0;
   while (true) {
     const char *str_end = strchr(str, sep);
-    if ((*str == sep) || (*str == '\0')) {
+    if (ELEM(*str, sep, '\0')) {
       static const char *msg = "incorrect comma use";
       *r_err_msg = msg;
       goto fail;

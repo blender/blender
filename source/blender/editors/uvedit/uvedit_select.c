@@ -438,7 +438,7 @@ void uvedit_edge_select_shared_vert(const Scene *scene,
                                     const bool do_history,
                                     const int cd_loop_uv_offset)
 {
-  BLI_assert((sticky_flag == SI_STICKY_LOC) || (sticky_flag == SI_STICKY_VERTEX));
+  BLI_assert(ELEM(sticky_flag, SI_STICKY_LOC, SI_STICKY_VERTEX));
   /* Set edge flags. Rely on this for face visibility checks */
   uvedit_edge_select_set_noflush(scene, l, select, sticky_flag, cd_loop_uv_offset);
 
@@ -647,7 +647,7 @@ void uvedit_uv_select_shared_vert(const Scene *scene,
                                   const bool do_history,
                                   const int cd_loop_uv_offset)
 {
-  BLI_assert((sticky_flag == SI_STICKY_LOC) || (sticky_flag == SI_STICKY_VERTEX));
+  BLI_assert(ELEM(sticky_flag, SI_STICKY_LOC, SI_STICKY_VERTEX));
 
   BMEdge *e_first, *e_iter;
   e_first = e_iter = l->e;
@@ -2251,13 +2251,13 @@ static void uv_select_invert(const Scene *scene, BMEditMesh *em)
     }
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
       luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-      if ((uv_selectmode == UV_SELECT_EDGE) || (uv_selectmode == UV_SELECT_FACE)) {
+      if (ELEM(uv_selectmode, UV_SELECT_EDGE, UV_SELECT_FACE)) {
         /* Use #MLOOPUV_EDGESEL to flag edges that must be selected. */
         luv->flag ^= MLOOPUV_EDGESEL;
         luv->flag &= ~MLOOPUV_VERTSEL;
       }
       /* Use #MLOOPUV_VERTSEL to flag verts that must be selected. */
-      else if ((uv_selectmode == UV_SELECT_VERTEX) || (uv_selectmode == UV_SELECT_ISLAND)) {
+      else if (ELEM(uv_selectmode, UV_SELECT_VERTEX, UV_SELECT_ISLAND)) {
         luv->flag ^= MLOOPUV_VERTSEL;
         luv->flag &= ~MLOOPUV_EDGESEL;
       }
@@ -2265,10 +2265,10 @@ static void uv_select_invert(const Scene *scene, BMEditMesh *em)
   }
 
   /* Flush based on uv vert/edge flags and current UV select mode */
-  if ((uv_selectmode == UV_SELECT_EDGE) || (uv_selectmode == UV_SELECT_FACE)) {
+  if (ELEM(uv_selectmode, UV_SELECT_EDGE, UV_SELECT_FACE)) {
     uv_select_flush_from_loop_edge_flag(scene, em);
   }
-  else if ((uv_selectmode == UV_SELECT_VERTEX) || (uv_selectmode == UV_SELECT_ISLAND)) {
+  else if (ELEM(uv_selectmode, UV_SELECT_VERTEX, UV_SELECT_ISLAND)) {
     uvedit_select_flush(scene, em);
   }
 }
@@ -3221,7 +3221,7 @@ static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, co
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
   if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 &&
-      ((ts->uv_sticky == SI_STICKY_VERTEX) || (ts->uv_sticky == SI_STICKY_LOC))) {
+      ELEM(ts->uv_sticky, SI_STICKY_VERTEX, SI_STICKY_LOC)) {
 
     struct UvVertMap *vmap;
     uint efa_index;
@@ -3366,7 +3366,7 @@ static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMEditMesh *
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
   if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 &&
-      ((ts->uv_sticky == SI_STICKY_LOC) || (ts->uv_sticky == SI_STICKY_VERTEX))) {
+      ELEM(ts->uv_sticky, SI_STICKY_LOC, SI_STICKY_VERTEX)) {
     /* Use the #MLOOPUV_EDGESEL flag to identify which verts must to be selected */
     struct UvVertMap *vmap;
     uint efa_index;
