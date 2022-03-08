@@ -469,7 +469,7 @@ static void add_subd_edge_creases(CachedData &cached_data,
                                   const SubDSchemaData &data,
                                   chrono_t time)
 {
-  if (!(data.crease_indices.valid() && data.crease_indices.valid() &&
+  if (!(data.crease_indices.valid() && data.crease_lengths.valid() &&
         data.crease_sharpnesses.valid())) {
     return;
   }
