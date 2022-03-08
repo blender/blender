@@ -2854,6 +2854,7 @@ bool BKE_lib_override_library_status_check_reference(Main *bmain, ID *local)
 
 bool BKE_lib_override_library_operations_create(Main *bmain, ID *local)
 {
+  BLI_assert(!ID_IS_LINKED(local));
   BLI_assert(local->override_library != NULL);
   const bool is_template = (local->override_library->reference == NULL);
   bool created = false;
