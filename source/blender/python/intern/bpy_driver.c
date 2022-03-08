@@ -415,6 +415,7 @@ static void bpy_pydriver_namespace_add_depsgraph(PyObject *driver_vars,
     PyErr_Print();
     PyErr_Clear();
   }
+  Py_DECREF(py_depsgraph);
 }
 
 float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
