@@ -635,7 +635,7 @@ typedef struct wmTabletData {
  * Notes:
  *
  * - The previous values are only set for mouse button and keyboard events.
- *   See: #ISMOUSE_BUTTON & #ISKEYBOARD macros.
+ *   See: #ISKEYBOARD_OR_BUTTON macro.
  *
  * - Previous x/y are exceptions: #wmEvent.prev
  *   these are set on mouse motion, see #MOUSEMOVE & track-pad events.
