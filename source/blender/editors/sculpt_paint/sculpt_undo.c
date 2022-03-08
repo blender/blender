@@ -47,6 +47,7 @@
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -547,6 +548,8 @@ static void sculpt_undo_geometry_restore_data(SculptUndoNodeGeometry *geometry, 
       &geometry->pdata, &mesh->pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, geometry->totpoly);
 
   BKE_mesh_update_customdata_pointers(mesh, false);
+
+  BKE_mesh_runtime_clear_cache(mesh);
 }
 
 static void sculpt_undo_geometry_free_data(SculptUndoNodeGeometry *geometry)
