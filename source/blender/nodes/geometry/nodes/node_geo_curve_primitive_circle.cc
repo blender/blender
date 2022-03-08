@@ -176,7 +176,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const GeometryNodeCurvePrimitiveCircleMode mode = (GeometryNodeCurvePrimitiveCircleMode)
                                                         storage.mode;
 
-  Curves *curves;
+  Curves *curves = nullptr;
   if (mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS) {
     float3 center_point;
     curves = create_point_circle_curve(params.extract_input<float3>("Point 1"),
