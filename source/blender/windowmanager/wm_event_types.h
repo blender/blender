@@ -275,11 +275,17 @@ enum {
   NDOF_BUTTON_DOMINANT = 0x01a3, /* 419 */
   NDOF_BUTTON_PLUS = 0x01a4,     /* 420 */
   NDOF_BUTTON_MINUS = 0x01a5,    /* 421 */
+
+/* Disabled as GHOST converts these to keyboard events
+ * which use regular keyboard event handling logic. */
+#if 0
   /* keyboard emulation */
   NDOF_BUTTON_ESC = 0x01a6,   /* 422 */
   NDOF_BUTTON_ALT = 0x01a7,   /* 423 */
   NDOF_BUTTON_SHIFT = 0x01a8, /* 424 */
   NDOF_BUTTON_CTRL = 0x01a9,  /* 425 */
+#endif
+
   /* general-purpose buttons */
   NDOF_BUTTON_1 = 0x01aa,  /* 426 */
   NDOF_BUTTON_2 = 0x01ab,  /* 427 */
