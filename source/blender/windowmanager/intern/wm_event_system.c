@@ -154,7 +154,7 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
 
     if (event->val == KM_PRESS) {
       if ((event->flag & WM_EVENT_IS_REPEAT) == 0) {
-        copy_v2_v2_int(win->eventstate->prev_click_xy, event->xy);
+        copy_v2_v2_int(win->eventstate->prev_press_xy, event->xy);
       }
     }
   }
@@ -3165,21 +3165,21 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
      * in `action` setting #WM_HANDLER_HANDLED, but not #WM_HANDLER_BREAK. */
     if ((action & WM_HANDLER_BREAK) == 0 || wm_action_not_handled(action)) {
       if (win->event_queue_check_drag) {
-        if (WM_event_drag_test(event, event->prev_click_xy)) {
+        if (WM_event_drag_test(event, event->prev_press_xy)) {
           win->event_queue_check_drag_handled = true;
           const int direction = WM_event_drag_direction(event);
 
           /* Intentionally leave `event->xy` as-is, event users are expected to use
-           * `event->prev_click_xy` if they need to access the drag start location. */
+           * `event->prev_press_xy` if they need to access the drag start location. */
           const short prev_val = event->val;
           const short prev_type = event->type;
           const uint8_t prev_modifier = event->modifier;
           const short prev_keymodifier = event->keymodifier;
 
           event->val = KM_CLICK_DRAG;
-          event->type = event->prev_click_type;
-          event->modifier = event->prev_click_modifier;
-          event->keymodifier = event->prev_click_keymodifier;
+          event->type = event->prev_press_type;
+          event->modifier = event->prev_press_modifier;
+          event->keymodifier = event->prev_press_keymodifier;
           event->direction = direction;
 
           CLOG_INFO(WM_LOG_HANDLERS, 1, "handling PRESS_DRAG");
@@ -3221,8 +3221,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
       }
       else if (event->val == KM_RELEASE) {
         if (win->event_queue_check_drag) {
-          if ((event->prev_click_type != event->type) &&
-              (ISKEYMODIFIER(event->type) || (event->type == event->prev_click_keymodifier))) {
+          if ((event->prev_press_type != event->type) &&
+              (ISKEYMODIFIER(event->type) || (event->type == event->prev_press_keymodifier))) {
             /* Support releasing modifier keys without canceling the drag event, see T89989. */
           }
           else {
@@ -3231,12 +3231,12 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         }
       }
 
-      if (event->prev_click_type == event->type) {
+      if (event->prev_press_type == event->type) {
 
         if (event->val == KM_RELEASE) {
           if (event->prev_val == KM_PRESS) {
             if (win->event_queue_check_click == true) {
-              if (WM_event_drag_test(event, event->prev_click_xy)) {
+              if (WM_event_drag_test(event, event->prev_press_xy)) {
                 win->event_queue_check_click = false;
                 win->event_queue_check_drag = false;
               }
@@ -3245,7 +3245,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
                  * accurate selecting in case the mouse drifts a little. */
                 int xy[2] = {UNPACK2(event->xy)};
 
-                copy_v2_v2_int(event->xy, event->prev_click_xy);
+                copy_v2_v2_int(event->xy, event->prev_press_xy);
                 event->val = KM_CLICK;
 
                 CLOG_INFO(WM_LOG_HANDLERS, 1, "handling CLICK");
@@ -4691,11 +4691,11 @@ static bool wm_event_is_double_click(const wmEvent *event)
 {
   if ((event->type == event->prev_type) && (event->prev_val == KM_RELEASE) &&
       (event->val == KM_PRESS)) {
-    if (ISMOUSE(event->type) && WM_event_drag_test(event, event->prev_click_xy)) {
+    if (ISMOUSE(event->type) && WM_event_drag_test(event, event->prev_press_xy)) {
       /* Pass. */
     }
     else {
-      if ((PIL_check_seconds_timer() - event->prev_click_time) * 1000 < U.dbl_click_time) {
+      if ((PIL_check_seconds_timer() - event->prev_press_time) * 1000 < U.dbl_click_time) {
         return true;
       }
     }
@@ -4715,12 +4715,12 @@ static void wm_event_prev_values_set(wmEvent *event, wmEvent *event_state)
 
 static void wm_event_prev_click_set(wmEvent *event, wmEvent *event_state)
 {
-  event->prev_click_time = event_state->prev_click_time = PIL_check_seconds_timer();
-  event->prev_click_type = event_state->prev_click_type = event_state->type;
-  event->prev_click_modifier = event_state->prev_click_modifier = event_state->modifier;
-  event->prev_click_keymodifier = event_state->prev_click_keymodifier = event_state->keymodifier;
-  event->prev_click_xy[0] = event_state->prev_click_xy[0] = event_state->xy[0];
-  event->prev_click_xy[1] = event_state->prev_click_xy[1] = event_state->xy[1];
+  event->prev_press_time = event_state->prev_press_time = PIL_check_seconds_timer();
+  event->prev_press_type = event_state->prev_press_type = event_state->type;
+  event->prev_press_modifier = event_state->prev_press_modifier = event_state->modifier;
+  event->prev_press_keymodifier = event_state->prev_press_keymodifier = event_state->keymodifier;
+  event->prev_press_xy[0] = event_state->prev_press_xy[0] = event_state->xy[0];
+  event->prev_press_xy[1] = event_state->prev_press_xy[1] = event_state->xy[1];
 }
 
 static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)

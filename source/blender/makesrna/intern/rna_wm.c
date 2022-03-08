@@ -2103,14 +2103,14 @@ static void rna_def_event(BlenderRNA *brna)
       prop, "Mouse Previous Y Position", "The window relative vertical location of the mouse");
 
   prop = RNA_def_property(srna, "mouse_prev_press_x", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "prev_click_xy[0]");
+  RNA_def_property_int_sdna(prop, NULL, "prev_press_xy[0]");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Mouse Previous X Press Position",
                            "The window relative horizontal location of the last press event");
 
   prop = RNA_def_property(srna, "mouse_prev_press_y", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "prev_click_xy[1]");
+  RNA_def_property_int_sdna(prop, NULL, "prev_press_xy[1]");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Mouse Previous Y Press Position",

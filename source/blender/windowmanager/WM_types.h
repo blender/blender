@@ -238,6 +238,7 @@ enum {
   KM_SHIFT = (1 << 0),
   KM_CTRL = (1 << 1),
   KM_ALT = (1 << 2),
+  /** Use for Windows-Key on MS-Windows, Command-key on macOS and Super on Linux. */
   KM_OSKEY = (1 << 3),
 
   /* Used for key-map item creation function arguments. */
@@ -268,7 +269,7 @@ enum {
   KM_CLICK = 3,
   KM_DBL_CLICK = 4,
   /**
-   * \note The cursor location at the point dragging starts is set to #wmEvent.prev_click_xy
+   * \note The cursor location at the point dragging starts is set to #wmEvent.prev_press_xy
    * some operators such as box selection should use this location instead of #wmEvent.xy.
    */
   KM_CLICK_DRAG = 5,
@@ -629,23 +630,39 @@ typedef struct wmTabletData {
  * event comes from event manager and from keymap.
  *
  *
- * Previous State
- * ==============
+ * Previous State (`prev_*`)
+ * =========================
  *
- * Events hold information about the previous event,
- * this is used for detecting click and double-click events (the timer is needed for double-click).
- * See #wm_event_add_ghostevent for implementation details.
+ * Events hold information about the previous event.
  *
- * Notes:
- *
- * - The previous values are only set for mouse button and keyboard events.
- *   See: #ISKEYBOARD_OR_BUTTON macro.
+ * - Previous values are only set for events types that generate #KM_PRESS.
+ *   See: #ISKEYBOARD_OR_BUTTON.
  *
  * - Previous x/y are exceptions: #wmEvent.prev
  *   these are set on mouse motion, see #MOUSEMOVE & track-pad events.
  *
  * - Modal key-map handling sets `prev_val` & `prev_type` to `val` & `type`,
  *   this allows modal keys-maps to check the original values (needed in some cases).
+ *
+ *
+ * Press State (`prev_press_*`)
+ * ============================
+ *
+ * Events hold information about the state when the last #KM_PRESS event was added.
+ * This is used for generating #KM_CLICK, #KM_DBL_CLICK & #KM_CLICK_DRAG events.
+ * See #wm_handlers_do for the implementation.
+ *
+ * - Previous values are only set when a #KM_PRESS event is detected.
+ *   See: #ISKEYBOARD_OR_BUTTON.
+ *
+ * - The reason to differentiate between "press" and the previous event state is
+ *   the previous event may be set by key-release events. In the case of a single key click
+ *   this isn't a problem however releasing other keys such as modifiers prevents click/click-drag
+ *   events from being detected, see: T89989.
+ *
+ * - Mouse-wheel events are excluded even though they generate #KM_PRESS
+ *   as clicking and dragging don't make sense for mouse wheel events.
+ *
  */
 typedef struct wmEvent {
   struct wmEvent *next, *prev;
@@ -667,38 +684,16 @@ typedef struct wmEvent {
   /** From ghost, fallback if utf8 isn't set. */
   char ascii;
 
-  /** The previous value of `type`. */
-  short prev_type;
-  /** The previous value of `val`. */
-  short prev_val;
-  /**
-   * The previous value of #wmEvent.xy,
-   * Unlike other previous state variables, this is set on any mouse motion.
-   * Use `prev_click` for the value at time of pressing.
-   */
-  int prev_xy[2];
-
-  /** The `type` at the point of the click action. */
-  short prev_click_type;
-  /** The time when the key is pressed, see #PIL_check_seconds_timer. */
-  double prev_click_time;
-  /** The location when the key is pressed (used to enforce drag thresholds). */
-  int prev_click_xy[2];
-  /** The `modifier` at the point of the click action. */
-  uint8_t prev_click_modifier;
-  /** The `keymodifier` at the point of the click action. */
-  short prev_click_keymodifier;
-
-  /**
-   * Modifier states.
-   * #KM_SHIFT, #KM_CTRL, #KM_ALT & #KM_OSKEY is apple or windows-key.
-   */
+  /** Modifier states: #KM_SHIFT, #KM_CTRL, #KM_ALT & #KM_OSKEY. */
   uint8_t modifier;
 
   /** The direction (for #KM_CLICK_DRAG events only). */
   int8_t direction;
 
-  /** Raw-key modifier (allow using any key as a modifier). */
+  /**
+   * Raw-key modifier (allow using any key as a modifier).
+   * Compatible with values in `type`.
+   */
   short keymodifier;
 
   /** Tablet info, available for mouse move and button events. */
@@ -707,11 +702,44 @@ typedef struct wmEvent {
   eWM_EventFlag flag;
 
   /* Custom data. */
-  /** Custom data type, stylus, 6dof, see wm_event_types.h */
+
+  /** Custom data type, stylus, 6-DOF, see `wm_event_types.h`. */
   short custom;
   short customdata_free;
   /** Ascii, unicode, mouse-coords, angles, vectors, NDOF data, drag-drop info. */
   void *customdata;
+
+  /* Previous State. */
+
+  /** The previous value of `type`. */
+  short prev_type;
+  /** The previous value of `val`. */
+  short prev_val;
+  /**
+   * The previous value of #wmEvent.xy,
+   * Unlike other previous state variables, this is set on any mouse motion.
+   * Use `prev_press_*` for the value at time of pressing.
+   */
+  int prev_xy[2];
+
+  /* Previous Press State (when `val == KM_PRESS`). */
+
+  /** The `type` at the point of the press action. */
+  short prev_press_type;
+  /**
+   * The location when the key is pressed.
+   * used to enforce drag threshold & calculate the `direction`.
+   */
+  int prev_press_xy[2];
+  /** The `modifier` at the point of the press action. */
+  uint8_t prev_press_modifier;
+  /** The `keymodifier` at the point of the press action. */
+  short prev_press_keymodifier;
+  /**
+   * The time when the key is pressed, see #PIL_check_seconds_timer.
+   * Used to detect double-click events.
+   */
+  double prev_press_time;
 } wmEvent;
 
 /**
