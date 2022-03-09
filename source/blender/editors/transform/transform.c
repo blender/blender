@@ -1706,12 +1706,6 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->launch_event = LEFTMOUSE;
   }
 
-  if (options & CTX_CURSOR) {
-    /* Cursor should always use the drag start as the combination of click-drag to place & move
-     * doesn't work well if the click location isn't used when transforming. */
-    t->flag |= T_EVENT_DRAG_START;
-  }
-
   unit_m3(t->spacemtx);
 
   initTransInfo(C, t, op, event);

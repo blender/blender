@@ -206,6 +206,12 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->obedit_type = -1;
   }
 
+  if (t->options & CTX_CURSOR) {
+    /* Cursor should always use the drag start as the combination of click-drag to place & move
+     * doesn't work well if the click location isn't used when transforming. */
+    t->flag |= T_EVENT_DRAG_START;
+  }
+
   /* Many kinds of transform only use a single handle. */
   if (t->data_container == NULL) {
     t->data_container = MEM_callocN(sizeof(*t->data_container), __func__);
