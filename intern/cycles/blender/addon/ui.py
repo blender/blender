@@ -11,6 +11,7 @@ from bl_ui.utils import PresetPanel
 from bpy.types import Panel
 
 from bl_ui.properties_grease_pencil_common import GreasePencilSimplifyPanel
+from bl_ui.properties_render import draw_hair_settings
 from bl_ui.properties_view_layer import ViewLayerCryptomattePanel, ViewLayerAOVPanel
 
 class CyclesPresetPanel(PresetPanel, Panel):
@@ -355,6 +356,13 @@ class CYCLES_RENDER_PT_hair(CyclesButtonsPanel, Panel):
         if ccscene.shape == 'RIBBONS':
             col.prop(ccscene, "subdivisions", text="Curve Subdivisions")
 
+class CYCLES_RENDER_PT_hair_viewport_display(CyclesButtonsPanel, Panel):
+    bl_label = "Viewport Display"
+    bl_parent_id = "CYCLES_RENDER_PT_hair"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        draw_hair_settings(self, context)
 
 class CYCLES_RENDER_PT_volumes(CyclesButtonsPanel, Panel):
     bl_label = "Volumes"
@@ -2153,6 +2161,7 @@ classes = (
     CYCLES_RENDER_PT_volumes,
     CYCLES_RENDER_PT_subdivision,
     CYCLES_RENDER_PT_hair,
+    CYCLES_RENDER_PT_hair_viewport_display,
     CYCLES_RENDER_PT_simplify,
     CYCLES_RENDER_PT_simplify_viewport,
     CYCLES_RENDER_PT_simplify_render,
