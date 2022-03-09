@@ -28,6 +28,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_colortools.h"
+#include "BKE_deform.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
@@ -631,6 +632,8 @@ static bGPdata *gpencil_copy_structure_for_eval(bGPdata *gpd)
   if (gpd->mat != NULL) {
     gpd_eval->mat = MEM_dupallocN(gpd->mat);
   }
+
+  BKE_defgroup_copy_list(&gpd_eval->vertex_group_names, &gpd->vertex_group_names);
 
   /* Duplicate structure: layers and frames without strokes. */
   LISTBASE_FOREACH (bGPDlayer *, gpl_orig, &gpd->layers) {
