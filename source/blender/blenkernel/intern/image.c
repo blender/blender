@@ -5853,17 +5853,14 @@ void BKE_image_user_file_path_ex(ImageUser *iuser, Image *ima, char *filepath, b
   BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
 }
 
-bool BKE_image_has_alpha(struct Image *image)
+bool BKE_image_has_alpha(Image *image)
 {
-  ImBuf *ibuf;
   void *lock;
-  int planes;
-
-  ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
-  planes = (ibuf ? ibuf->planes : 0);
+  ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
+  const int planes = (ibuf ? ibuf->planes : 0);
   BKE_image_release_ibuf(image, ibuf, lock);
 
-  if (planes == 32) {
+  if (planes == 32 || planes == 16) {
     return true;
   }
 

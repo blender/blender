@@ -371,7 +371,7 @@ void BKE_image_merge(struct Main *bmain, struct Image *dest, struct Image *sourc
 bool BKE_image_scale(struct Image *image, int width, int height);
 
 /**
- * Check if texture has alpha (depth=32).
+ * Check if texture has alpha (planes == 32 || planes == 16).
  */
 bool BKE_image_has_alpha(struct Image *image);
 
