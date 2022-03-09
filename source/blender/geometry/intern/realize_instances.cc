@@ -646,7 +646,7 @@ static void execute_realize_pointcloud_task(const RealizeInstancesOptions &optio
             const GSpan src_span = *pointcloud_info.attributes[attribute_index];
             threading::parallel_for(
                 IndexRange(pointcloud.totpoint), 1024, [&](const IndexRange range) {
-                  cpp_type.copy_assign_n(
+                  cpp_type.copy_construct_n(
                       src_span.slice(range).data(), dst_span.slice(range).data(), range.size());
                 });
           }
@@ -657,7 +657,7 @@ static void execute_realize_pointcloud_task(const RealizeInstancesOptions &optio
             /* As the fallback value for the attribute. */
             threading::parallel_for(
                 IndexRange(pointcloud.totpoint), 1024, [&](const IndexRange range) {
-                  cpp_type.fill_assign_n(
+                  cpp_type.fill_construct_n(
                       attribute_fallback, dst_span.slice(range).data(), range.size());
                 });
           }
@@ -943,9 +943,9 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
             const GSpan src_span = *mesh_info.attributes[attribute_index];
             threading::parallel_for(
                 IndexRange(element_slice.size()), 1024, [&](const IndexRange sub_range) {
-                  cpp_type.copy_assign_n(src_span.slice(sub_range).data(),
-                                         dst_span.slice(sub_range).data(),
-                                         sub_range.size());
+                  cpp_type.copy_construct_n(src_span.slice(sub_range).data(),
+                                            dst_span.slice(sub_range).data(),
+                                            sub_range.size());
                 });
           }
           else {
@@ -954,7 +954,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
             }
             threading::parallel_for(
                 IndexRange(element_slice.size()), 1024, [&](const IndexRange sub_range) {
-                  cpp_type.fill_assign_n(
+                  cpp_type.fill_construct_n(
                       attribute_fallback, dst_span.slice(sub_range).data(), sub_range.size());
                 });
           }
@@ -1251,9 +1251,9 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
             const GSpan src_span = *curves_info.attributes[attribute_index];
             threading::parallel_for(
                 IndexRange(element_slice.size()), 1024, [&](const IndexRange sub_range) {
-                  cpp_type.copy_assign_n(src_span.slice(sub_range).data(),
-                                         dst_span.slice(sub_range).data(),
-                                         sub_range.size());
+                  cpp_type.copy_construct_n(src_span.slice(sub_range).data(),
+                                            dst_span.slice(sub_range).data(),
+                                            sub_range.size());
                 });
           }
           else {
@@ -1262,7 +1262,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
             }
             threading::parallel_for(
                 IndexRange(element_slice.size()), 1024, [&](const IndexRange sub_range) {
-                  cpp_type.fill_assign_n(
+                  cpp_type.fill_construct_n(
                       attribute_fallback, dst_span.slice(sub_range).data(), sub_range.size());
                 });
           }
