@@ -1979,23 +1979,57 @@ static int insert_key_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UN
 {
   Scene *scene = CTX_data_scene(C);
 
-  /* if prompting or no active Keying Set, show the menu */
-  if ((scene->active_keyingset == 0) || RNA_boolean_get(op->ptr, "always_prompt")) {
-    uiPopupMenu *pup;
-    uiLayout *layout;
-
-    /* call the menu, which will call this operator again, hence the canceled */
-    pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
-    layout = UI_popup_menu_layout(pup);
-    uiItemsEnumO(layout, "ANIM_OT_keyframe_insert_menu", "type");
-    UI_popup_menu_end(C, pup);
-
-    return OPERATOR_INTERFACE;
+  /* When there is an active keying set and no request to prompt, keyframe immediately. */
+  if ((scene->active_keyingset != 0) && !RNA_boolean_get(op->ptr, "always_prompt")) {
+    /* Just call the exec() on the active keying-set. */
+    RNA_enum_set(op->ptr, "type", 0);
+    return op->type->exec(C, op);
   }
 
-  /* just call the exec() on the active keyingset */
-  RNA_enum_set(op->ptr, "type", 0);
-  return op->type->exec(C, op);
+  /* Show a menu listing all keying-sets, the enum is expanded here to make use of the
+   * operator that accesses the keying-set by name. This is important for the ability
+   * to assign shortcuts to arbitrarily named keying sets. See T89560.
+   * These menu items perform the key-frame insertion (not this operator)
+   * hence the #OPERATOR_INTERFACE return. */
+  uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
+  uiLayout *layout = UI_popup_menu_layout(pup);
+
+  /* Even though `ANIM_OT_keyframe_insert_menu` can show a menu in one line,
+   * prefer `ANIM_OT_keyframe_insert_by_name` so users can bind keys to specific
+   * keying sets by name in the key-map instead of the index which isn't stable. */
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "type");
+  const EnumPropertyItem *item_array = NULL;
+  int totitem;
+  bool free;
+
+  RNA_property_enum_items_gettexted(C, op->ptr, prop, &item_array, &totitem, &free);
+
+  for (int i = 0; i < totitem; i++) {
+    const EnumPropertyItem *item = &item_array[i];
+    if (item->identifier[0] != '\0') {
+      uiItemStringO(layout,
+                    item->name,
+                    item->icon,
+                    "ANIM_OT_keyframe_insert_by_name",
+                    "type",
+                    item->identifier);
+    }
+    else {
+      /* This enum shouldn't contain headings, assert there are none.
+       * NOTE: If in the future the enum includes them, additional layout code can be
+       * added to show them - although that doesn't seem likely. */
+      BLI_assert(item->name == NULL);
+      uiItemS(layout);
+    }
+  }
+
+  if (free) {
+    MEM_freeN((void *)item_array);
+  }
+
+  UI_popup_menu_end(C, pup);
+
+  return OPERATOR_INTERFACE;
 }
 
 void ANIM_OT_keyframe_insert_menu(wmOperatorType *ot)
