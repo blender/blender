@@ -545,7 +545,7 @@ void outliner_collection_delete(struct bContext *C,
                                 struct Main *bmain,
                                 struct Scene *scene,
                                 struct ReportList *reports,
-                                bool hierarchy);
+                                bool do_hierarchy);
 
 void OUTLINER_OT_collection_new(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_duplicate_linked(struct wmOperatorType *ot);
