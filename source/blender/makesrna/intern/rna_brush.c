@@ -244,11 +244,11 @@ const EnumPropertyItem rna_enum_brush_gpencil_weight_types_items[] = {
 };
 
 const EnumPropertyItem rna_enum_brush_curves_sculpt_tool_items[] = {
+    {CURVES_SCULPT_TOOL_COMB, "COMB", ICON_NONE, "Comb", ""},
+    {CURVES_SCULPT_TOOL_DELETE, "DELETE", ICON_NONE, "Delete", ""},
+    {CURVES_SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_NONE, "Snake Hook", ""},
     {CURVES_SCULPT_TOOL_TEST1, "TEST1", ICON_NONE, "Test 1", ""},
     {CURVES_SCULPT_TOOL_TEST2, "TEST2", ICON_NONE, "Test 2", ""},
-    {CURVES_SCULPT_TOOL_TEST3, "TEST3", ICON_NONE, "Test 3", ""},
-    {CURVES_SCULPT_TOOL_TEST4, "TEST4", ICON_NONE, "Test 4", ""},
-    {CURVES_SCULPT_TOOL_TEST5, "TEST5", ICON_NONE, "Test 5", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
