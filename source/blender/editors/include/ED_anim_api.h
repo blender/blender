@@ -577,7 +577,7 @@ typedef struct bAnimChannelType {
   void (*get_backdrop_color)(bAnimContext *ac, bAnimListElem *ale, float r_color[3]);
   /** Draw backdrop strip for channel. */
   void (*draw_backdrop)(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
-  /** Get depth of indention (relative to the depth channel is nested at). */
+  /** Get depth of indentation (relative to the depth channel is nested at). */
   short (*get_indent_level)(bAnimContext *ac, bAnimListElem *ale);
   /** Get offset in pixels for the start of the channel (in addition to the indent depth). */
   short (*get_offset)(bAnimContext *ac, bAnimListElem *ale);

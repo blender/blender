@@ -203,7 +203,7 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
     rgb_uchar_to_float(r_color, cp);
   }
   else {
-    /* FIXME: what happens when the indention is 1 greater than what it should be
+    /* FIXME: what happens when the indentation is 1 greater than what it should be
      * (due to grouping)? */
     int colOfs = 10 - 10 * indent;
     UI_GetThemeColorShade3fv(TH_SHADE2, colOfs, r_color);
@@ -252,44 +252,44 @@ static void acf_generic_channel_backdrop(bAnimContext *ac,
   immUnbindProgram();
 }
 
-/* Indention + Offset ------------------------------------------- */
+/* Indentation + Offset ------------------------------------------- */
 
-/* indention level is always the value in the name */
-static short acf_generic_indention_0(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale))
+/* indentation level is always the value in the name */
+static short acf_generic_indentation_0(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale))
 {
   return 0;
 }
-static short acf_generic_indention_1(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale))
+static short acf_generic_indentation_1(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale))
 {
   return 1;
 }
 #if 0 /* XXX not used */
-static short acf_generic_indention_2(bAnimContext *ac, bAnimListElem *ale)
+static short acf_generic_indentation_2(bAnimContext *ac, bAnimListElem *ale)
 {
   return 2;
 }
 #endif
 
-/* indention which varies with the grouping status */
-static short acf_generic_indention_flexible(bAnimContext *UNUSED(ac), bAnimListElem *ale)
+/* indentation which varies with the grouping status */
+static short acf_generic_indentation_flexible(bAnimContext *UNUSED(ac), bAnimListElem *ale)
 {
   short indent = 0;
 
-  /* grouped F-Curves need extra level of indention */
+  /* grouped F-Curves need extra level of indentation */
   if (ale->type == ANIMTYPE_FCURVE) {
     FCurve *fcu = (FCurve *)ale->data;
 
-    /* TODO: we need some way of specifying that the indention color should be one less. */
+    /* TODO: we need some way of specifying that the indentation color should be one less. */
     if (fcu->grp) {
       indent++;
     }
   }
 
-  /* no indention */
+  /* no indentation */
   return indent;
 }
 
-/* basic offset for channels derived from indention */
+/* basic offset for channels derived from indentation */
 static short acf_generic_basic_offset(bAnimContext *ac, bAnimListElem *ale)
 {
   const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
@@ -352,7 +352,7 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
     }
   }
 
-  /* offset is just the normal type - i.e. based on indention */
+  /* offset is just the normal type - i.e. based on indentation */
   return offset;
 }
 
@@ -530,10 +530,10 @@ static bAnimChannelType ACF_SUMMARY = {
     "Summary",              /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
-    acf_summary_color,       /* backdrop color */
-    acf_summary_backdrop,    /* backdrop */
-    acf_generic_indention_0, /* indent level */
-    NULL,                    /* offset */
+    acf_summary_color,         /* backdrop color */
+    acf_summary_backdrop,      /* backdrop */
+    acf_generic_indentation_0, /* indent level */
+    NULL,                      /* offset */
 
     acf_summary_name, /* name */
     NULL,             /* name prop */
@@ -641,7 +641,7 @@ static bAnimChannelType ACF_SCENE = {
 
     acf_generic_root_color,    /* backdrop color */
     acf_generic_root_backdrop, /* backdrop */
-    acf_generic_indention_0,   /* indent level */
+    acf_generic_indentation_0, /* indent level */
     NULL,                      /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -817,7 +817,7 @@ static bAnimChannelType ACF_OBJECT = {
 
     acf_generic_root_color,    /* backdrop color */
     acf_generic_root_backdrop, /* backdrop */
-    acf_generic_indention_0,   /* indent level */
+    acf_generic_indentation_0, /* indent level */
     NULL,                      /* offset */
 
     acf_object_name,      /* name */
@@ -992,10 +992,10 @@ static bAnimChannelType ACF_GROUP = {
     "Group",               /* type name */
     ACHANNEL_ROLE_CHANNEL, /* role */
 
-    acf_group_color,          /* backdrop color */
-    acf_group_backdrop,       /* backdrop */
-    acf_generic_indention_0,  /* indent level */
-    acf_generic_group_offset, /* offset */
+    acf_group_color,           /* backdrop color */
+    acf_group_backdrop,        /* backdrop */
+    acf_generic_indentation_0, /* indent level */
+    acf_generic_group_offset,  /* offset */
 
     acf_group_name,      /* name */
     acf_group_name_prop, /* name prop */
@@ -1118,7 +1118,7 @@ static bAnimChannelType ACF_FCURVE = {
 
     acf_generic_channel_color,    /* backdrop color */
     acf_generic_channel_backdrop, /* backdrop */
-    acf_generic_indention_flexible,
+    acf_generic_indentation_flexible,
     /* indent level */        /* XXX rename this to f-curves only? */
     acf_generic_group_offset, /* offset */
 
@@ -1238,7 +1238,7 @@ static bAnimChannelType ACF_NLACONTROLS = {
 
     acf_nla_controls_color,    /* backdrop color */
     acf_nla_controls_backdrop, /* backdrop */
-    acf_generic_indention_0,   /* indent level */
+    acf_generic_indentation_0, /* indent level */
     acf_generic_group_offset,  /* offset */
 
     acf_nla_controls_name, /* name */
@@ -1278,7 +1278,7 @@ static bAnimChannelType ACF_NLACURVE = {
 
     acf_generic_channel_color,    /* backdrop color */
     acf_generic_channel_backdrop, /* backdrop */
-    acf_generic_indention_1,      /* indent level */
+    acf_generic_indentation_1,    /* indent level */
     acf_generic_group_offset,     /* offset */
 
     acf_nla_curve_name,   /* name */
@@ -1368,7 +1368,7 @@ static bAnimChannelType ACF_FILLACTD = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,     /* name */
@@ -1453,7 +1453,7 @@ static bAnimChannelType ACF_FILLDRIVERS = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_filldrivers_name, /* name */
@@ -1532,7 +1532,7 @@ static bAnimChannelType ACF_DSMAT = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -1613,7 +1613,7 @@ static bAnimChannelType ACF_DSLIGHT = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -1637,7 +1637,7 @@ static int acf_dstex_icon(bAnimListElem *UNUSED(ale))
 /* FIXME: soon to be obsolete? */
 static short acf_dstex_offset(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale))
 {
-  return 14; /* XXX: simply include this in indention instead? */
+  return 14; /* XXX: simply include this in indentation instead? */
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
@@ -1699,7 +1699,7 @@ static bAnimChannelType ACF_DSTEX = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_dstex_offset,                /* offset */
 
     acf_generic_idblock_name,     /* name */
@@ -1782,7 +1782,7 @@ static bAnimChannelType ACF_DSCACHEFILE = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,     /* name */
@@ -1865,7 +1865,7 @@ static bAnimChannelType ACF_DSCAM = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,     /* name */
@@ -1954,7 +1954,7 @@ static bAnimChannelType ACF_DSCUR = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2052,7 +2052,7 @@ static bAnimChannelType ACF_DSSKEY = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2131,7 +2131,7 @@ static bAnimChannelType ACF_DSWOR = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,     /* name */
@@ -2210,7 +2210,7 @@ static bAnimChannelType ACF_DSPART = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2291,7 +2291,7 @@ static bAnimChannelType ACF_DSMBALL = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2370,7 +2370,7 @@ static bAnimChannelType ACF_DSARM = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2462,7 +2462,7 @@ static bAnimChannelType ACF_DSNTREE = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_dsntree_offset,              /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2543,7 +2543,7 @@ static bAnimChannelType ACF_DSLINESTYLE = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2622,7 +2622,7 @@ static bAnimChannelType ACF_DSMESH = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,
+    acf_generic_indentation_1,
     /* indent level */        /* XXX this only works for compositing */
     acf_generic_basic_offset, /* offset */
 
@@ -2702,7 +2702,7 @@ static bAnimChannelType ACF_DSLAT = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,
+    acf_generic_indentation_1,
     /* indent level */        /* XXX this only works for compositing */
     acf_generic_basic_offset, /* offset */
 
@@ -2782,7 +2782,7 @@ static bAnimChannelType ACF_DSSPK = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2863,7 +2863,7 @@ static bAnimChannelType ACF_DSHAIR = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2944,7 +2944,7 @@ static bAnimChannelType ACF_DSPOINTCLOUD = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -3025,7 +3025,7 @@ static bAnimChannelType ACF_DSVOLUME = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -3103,7 +3103,7 @@ static bAnimChannelType ACF_DSSIMULATION = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -3184,7 +3184,7 @@ static bAnimChannelType ACF_DSGPENCIL = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -3265,7 +3265,7 @@ static bAnimChannelType ACF_DSMCLIP = {
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,     /* name */
@@ -3380,7 +3380,7 @@ static bAnimChannelType ACF_SHAPEKEY = {
 
     acf_generic_channel_color,    /* backdrop color */
     acf_generic_channel_backdrop, /* backdrop */
-    acf_generic_indention_0,      /* indent level */
+    acf_generic_indentation_0,    /* indent level */
     acf_generic_basic_offset,     /* offset */
 
     acf_shapekey_name,      /* name */
@@ -3458,10 +3458,10 @@ static bAnimChannelType ACF_GPD = {
     "GPencil Datablock",    /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
-    acf_gpd_color,            /* backdrop color */
-    acf_group_backdrop,       /* backdrop */
-    acf_generic_indention_0,  /* indent level */
-    acf_generic_group_offset, /* offset */
+    acf_gpd_color,             /* backdrop color */
+    acf_group_backdrop,        /* backdrop */
+    acf_generic_indentation_0, /* indent level */
+    acf_generic_group_offset,  /* offset */
 
     acf_generic_idblock_name,     /* name */
     acf_generic_idfill_name_prop, /* name prop */
@@ -3557,10 +3557,10 @@ static bAnimChannelType ACF_GPL = {
     "GPencil Layer",       /* type name */
     ACHANNEL_ROLE_CHANNEL, /* role */
 
-    acf_gpencil_channel_color,      /* backdrop color */
-    acf_generic_channel_backdrop,   /* backdrop */
-    acf_generic_indention_flexible, /* indent level */
-    acf_generic_group_offset,       /* offset */
+    acf_gpencil_channel_color,        /* backdrop color */
+    acf_generic_channel_backdrop,     /* backdrop */
+    acf_generic_indentation_flexible, /* indent level */
+    acf_generic_group_offset,         /* offset */
 
     acf_gpl_name,      /* name */
     acf_gpl_name_prop, /* name prop */
@@ -3639,10 +3639,10 @@ static bAnimChannelType ACF_MASKDATA = {
     "Mask Datablock",       /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
-    acf_mask_color,           /* backdrop color */
-    acf_group_backdrop,       /* backdrop */
-    acf_generic_indention_0,  /* indent level */
-    acf_generic_group_offset, /* offset */
+    acf_mask_color,            /* backdrop color */
+    acf_group_backdrop,        /* backdrop */
+    acf_generic_indentation_0, /* indent level */
+    acf_generic_group_offset,  /* offset */
 
     acf_generic_idblock_name,     /* name */
     acf_generic_idfill_name_prop, /* name prop */
@@ -3735,10 +3735,10 @@ static bAnimChannelType ACF_MASKLAYER = {
     "Mask Layer",          /* type name */
     ACHANNEL_ROLE_CHANNEL, /* role */
 
-    acf_generic_channel_color,      /* backdrop color */
-    acf_generic_channel_backdrop,   /* backdrop */
-    acf_generic_indention_flexible, /* indent level */
-    acf_generic_group_offset,       /* offset */
+    acf_generic_channel_color,        /* backdrop color */
+    acf_generic_channel_backdrop,     /* backdrop */
+    acf_generic_indentation_flexible, /* indent level */
+    acf_generic_group_offset,         /* offset */
 
     acf_masklay_name,      /* name */
     acf_masklay_name_prop, /* name prop */
@@ -3875,9 +3875,9 @@ static bAnimChannelType ACF_NLATRACK = {
     "NLA Track",           /* type name */
     ACHANNEL_ROLE_CHANNEL, /* role */
 
-    acf_nlatrack_color,             /* backdrop color */
-    acf_generic_channel_backdrop,   /* backdrop */
-    acf_generic_indention_flexible, /* indent level */
+    acf_nlatrack_color,               /* backdrop color */
+    acf_generic_channel_backdrop,     /* backdrop */
+    acf_generic_indentation_flexible, /* indent level */
     acf_generic_group_offset,
     /* offset */ /* XXX? */
 
@@ -4056,10 +4056,10 @@ static bAnimChannelType ACF_NLAACTION = {
     "NLA Active Action",   /* type name */
     ACHANNEL_ROLE_CHANNEL, /* role */
 
-    acf_nlaaction_color,            /* backdrop color (NOTE: the backdrop handles this too,
-                                     * since it needs special hacks). */
-    acf_nlaaction_backdrop,         /* backdrop */
-    acf_generic_indention_flexible, /* indent level */
+    acf_nlaaction_color,              /* backdrop color (NOTE: the backdrop handles this too,
+                                       * since it needs special hacks). */
+    acf_nlaaction_backdrop,           /* backdrop */
+    acf_generic_indentation_flexible, /* indent level */
     acf_generic_group_offset,
     /* offset */ /* XXX? */
 

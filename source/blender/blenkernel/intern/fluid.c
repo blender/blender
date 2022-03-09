@@ -1937,7 +1937,7 @@ static void sample_mesh(FluidFlowSettings *ffs,
 
           interp_v2_v2v2v2(tex_co, UNPACK3(uv), weights);
 
-          /* Map texure coord between -1.0f and 1.0f. */
+          /* Map texture coord between -1.0f and 1.0f. */
           tex_co[0] = tex_co[0] * 2.0f - 1.0f;
           tex_co[1] = tex_co[1] * 2.0f - 1.0f;
           tex_co[2] = ffs->texture_offset;
