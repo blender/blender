@@ -47,7 +47,7 @@ bool BKE_image_save(struct ReportList *reports,
                     struct ImageUser *iuser,
                     struct ImageSaveOptions *opts);
 
-/* Lower level image writing. */
+/* Render saving. */
 
 /* Save single or multilayer OpenEXR files from the render result.
  * Optionally saves only a specific view or layer. */
@@ -55,6 +55,7 @@ bool BKE_image_render_write_exr(struct ReportList *reports,
                                 const struct RenderResult *rr,
                                 const char *filename,
                                 const struct ImageFormatData *imf,
+                                const bool save_as_render,
                                 const char *view,
                                 int layer);
 

@@ -429,6 +429,8 @@ typedef struct ImageFormatData {
   Stereo3dFormat stereo3d_format;
 
   /* color management */
+  char color_management;
+  char _pad1[7];
   ColorManagedViewSettings view_settings;
   ColorManagedDisplaySettings display_settings;
   ColorManagedColorspaceSettings linear_colorspace_settings;
@@ -526,6 +528,10 @@ enum {
   R_IMF_TIFF_CODEC_PACKBITS = 2,
   R_IMF_TIFF_CODEC_NONE = 3,
 };
+
+/** #ImageFormatData.color_management */
+#define R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE 0
+#define R_IMF_COLOR_MANAGEMENT_OVERRIDE 1
 
 typedef struct BakeData {
   struct ImageFormatData im_format;

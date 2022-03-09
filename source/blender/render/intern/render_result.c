@@ -993,7 +993,7 @@ void render_result_exr_file_cache_write(Render *re)
   render_result_exr_file_cache_path(re->scene, root, str);
   printf("Caching exr file, %dx%d, %s\n", rr->rectx, rr->recty, str);
 
-  BKE_image_render_write_exr(NULL, rr, str, NULL, NULL, -1);
+  BKE_image_render_write_exr(NULL, rr, str, NULL, true, NULL, -1);
 }
 
 bool render_result_exr_file_cache_read(Render *re)

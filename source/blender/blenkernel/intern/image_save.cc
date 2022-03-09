@@ -11,6 +11,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_vector.hh"
 
 #include "DNA_image_types.h"
 
@@ -30,6 +31,8 @@
 #include "BKE_scene.h"
 
 #include "RE_pipeline.h"
+
+using blender::Vector;
 
 void BKE_image_save_options_init(ImageSaveOptions *opts, Main *bmain, Scene *scene)
 {
@@ -220,14 +223,16 @@ static bool image_save_single(ReportList *reports,
   /* fancy multiview OpenEXR */
   if (imf->views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr) {
     /* save render result */
-    ok = BKE_image_render_write_exr(reports, rr, opts->filepath, imf, nullptr, layer);
+    ok = BKE_image_render_write_exr(
+        reports, rr, opts->filepath, imf, save_as_render, nullptr, layer);
     image_save_post(reports, ima, ibuf, ok, opts, true, opts->filepath, r_colorspace_changed);
     BKE_image_release_ibuf(ima, ibuf, lock);
   }
   /* regular mono pipeline */
   else if (is_mono) {
     if (is_exr_rr) {
-      ok = BKE_image_render_write_exr(reports, rr, opts->filepath, imf, nullptr, layer);
+      ok = BKE_image_render_write_exr(
+          reports, rr, opts->filepath, imf, save_as_render, nullptr, layer);
     }
     else {
       colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, save_as_render, true, imf);
@@ -261,7 +266,8 @@ static bool image_save_single(ReportList *reports,
 
       if (is_exr_rr) {
         BKE_scene_multiview_view_filepath_get(&opts->scene->r, opts->filepath, view, filepath);
-        ok_view = BKE_image_render_write_exr(reports, rr, filepath, imf, view, layer);
+        ok_view = BKE_image_render_write_exr(
+            reports, rr, filepath, imf, save_as_render, view, layer);
         image_save_post(reports, ima, ibuf, ok_view, opts, true, filepath, r_colorspace_changed);
       }
       else {
@@ -307,7 +313,8 @@ static bool image_save_single(ReportList *reports,
   /* stereo (multiview) images */
   else if (opts->im_format.views_format == R_IMF_VIEWS_STEREO_3D) {
     if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
-      ok = BKE_image_render_write_exr(reports, rr, opts->filepath, imf, nullptr, layer);
+      ok = BKE_image_render_write_exr(
+          reports, rr, opts->filepath, imf, save_as_render, nullptr, layer);
       image_save_post(reports, ima, ibuf, ok, opts, true, opts->filepath, r_colorspace_changed);
       BKE_image_release_ibuf(ima, ibuf, lock);
     }
@@ -450,10 +457,38 @@ bool BKE_image_save(
 
 /* OpenEXR saving, single and multilayer. */
 
+static float *image_exr_from_scene_linear_to_output(float *rect,
+                                                    const int width,
+                                                    const int height,
+                                                    const int channels,
+                                                    const ImageFormatData *imf,
+                                                    Vector<float *> &tmp_output_rects)
+{
+  if (imf == nullptr) {
+    return rect;
+  }
+
+  const char *to_colorspace = imf->linear_colorspace_settings.name;
+  if (to_colorspace[0] == '\0' || IMB_colormanagement_space_name_is_scene_linear(to_colorspace)) {
+    return rect;
+  }
+
+  float *output_rect = (float *)MEM_dupallocN(rect);
+  tmp_output_rects.append(output_rect);
+
+  const char *from_colorspace = IMB_colormanagement_role_colorspace_name_get(
+      COLOR_ROLE_SCENE_LINEAR);
+  IMB_colormanagement_transform(
+      output_rect, width, height, channels, from_colorspace, to_colorspace, false);
+
+  return output_rect;
+}
+
 bool BKE_image_render_write_exr(ReportList *reports,
                                 const RenderResult *rr,
-                                const char *filename,
+                                const char *filepath,
                                 const ImageFormatData *imf,
+                                const bool save_as_render,
                                 const char *view,
                                 int layer)
 {
@@ -461,6 +496,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
   const bool half_float = (imf && imf->depth == R_IMF_CHAN_DEPTH_16);
   const bool multi_layer = !(imf && imf->imtype == R_IMF_IMTYPE_OPENEXR);
   const bool write_z = !multi_layer && (imf && (imf->flag & R_IMF_FLAG_ZBUF));
+  Vector<float *> tmp_output_rects;
 
   /* Write first layer if not multilayer and no layer was specified. */
   if (!multi_layer && layer == -1) {
@@ -498,7 +534,10 @@ bool BKE_image_render_write_exr(ReportList *reports,
         continue;
       }
 
-      float *output_rect = rview->rectf;
+      float *output_rect = (save_as_render) ?
+                               image_exr_from_scene_linear_to_output(
+                                   rview->rectf, rr->rectx, rr->recty, 4, imf, tmp_output_rects) :
+                               rview->rectf;
 
       for (int a = 0; a < 4; a++) {
         char passname[EXR_PASS_MAXNAME];
@@ -556,7 +595,11 @@ bool BKE_image_render_write_exr(ReportList *reports,
       const bool pass_RGBA = (STR_ELEM(rp->chan_id, "RGB", "RGBA", "R", "G", "B", "A"));
       const bool pass_half_float = half_float && pass_RGBA;
 
-      float *output_rect = rp->rect;
+      /* Colorspace conversion only happens on RGBA passes. */
+      float *output_rect = (save_as_render && pass_RGBA) ?
+                               image_exr_from_scene_linear_to_output(
+                                   rp->rect, rr->rectx, rr->recty, 4, imf, tmp_output_rects) :
+                               rp->rect;
 
       for (int a = 0; a < rp->channels; a++) {
         /* Save Combined as RGBA if single layer save. */
@@ -587,11 +630,11 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
   errno = 0;
 
-  BLI_make_existing_file(filename);
+  BLI_make_existing_file(filepath);
 
   int compress = (imf ? imf->exr_codec : 0);
   bool success = IMB_exr_begin_write(
-      exrhandle, filename, rr->rectx, rr->recty, compress, rr->stamp_data);
+      exrhandle, filepath, rr->rectx, rr->recty, compress, rr->stamp_data);
   if (success) {
     IMB_exr_write_channels(exrhandle);
   }
@@ -599,6 +642,10 @@ bool BKE_image_render_write_exr(ReportList *reports,
     /* TODO: get the error from openexr's exception. */
     BKE_reportf(
         reports, RPT_ERROR, "Error writing render result, %s (see console)", strerror(errno));
+  }
+
+  for (float *rect : tmp_output_rects) {
+    MEM_freeN(rect);
   }
 
   IMB_exr_close(exrhandle);
@@ -664,7 +711,7 @@ bool BKE_image_render_write(ReportList *reports,
   const float dither = scene->r.dither_intensity;
 
   if (image_format.views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr) {
-    ok = BKE_image_render_write_exr(reports, rr, filename, &image_format, nullptr, -1);
+    ok = BKE_image_render_write_exr(reports, rr, filename, &image_format, true, nullptr, -1);
     image_render_print_save_message(reports, filename, ok, errno);
   }
 
@@ -682,7 +729,7 @@ bool BKE_image_render_write(ReportList *reports,
       }
 
       if (is_exr_rr) {
-        ok = BKE_image_render_write_exr(reports, rr, filepath, &image_format, rv->name, -1);
+        ok = BKE_image_render_write_exr(reports, rr, filepath, &image_format, true, rv->name, -1);
         image_render_print_save_message(reports, filepath, ok, errno);
 
         /* optional preview images for exr */

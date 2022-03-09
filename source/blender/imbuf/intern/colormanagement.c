@@ -1394,6 +1394,12 @@ bool IMB_colormanagement_space_name_is_data(const char *name)
   return (colorspace && colorspace->is_data);
 }
 
+bool IMB_colormanagement_space_name_is_scene_linear(const char *name)
+{
+  ColorSpace *colorspace = colormanage_colorspace_get_named(name);
+  return (colorspace && IMB_colormanagement_space_is_scene_linear(colorspace));
+}
+
 const float *IMB_colormanagement_get_xyz_to_rgb()
 {
   return &imbuf_xyz_to_rgb[0][0];
@@ -2444,9 +2450,13 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
     ibuf->userflags &= ~(IB_RECT_INVALID | IB_DISPLAY_BUFFER_INVALID);
   }
 
-  const bool do_colormanagement = save_as_render && (is_movie || !requires_linear_float);
+  const bool do_colormanagement_display = save_as_render && (is_movie || !requires_linear_float);
+  const bool do_colormanagement_linear = save_as_render && requires_linear_float &&
+                                         imf->linear_colorspace_settings.name[0] &&
+                                         !IMB_colormanagement_space_name_is_scene_linear(
+                                             imf->linear_colorspace_settings.name);
 
-  if (do_colormanagement || do_alpha_under) {
+  if (do_colormanagement_display || do_colormanagement_linear || do_alpha_under) {
     if (allocate_result) {
       colormanaged_ibuf = IMB_dupImBuf(ibuf);
     }
@@ -2499,7 +2509,8 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
     }
   }
 
-  if (do_colormanagement) {
+  if (do_colormanagement_display) {
+    /* Color management with display and view transform. */
     bool make_byte = false;
 
     /* for proper check whether byte buffer is required by a format or not
@@ -2530,6 +2541,27 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
        */
       colormanaged_ibuf->float_colorspace = display_transform_get_colorspace(
           &imf->view_settings, &imf->display_settings);
+    }
+  }
+  else if (do_colormanagement_linear) {
+    /* Color management transform to another linear color space. */
+    if (!colormanaged_ibuf->rect_float) {
+      IMB_float_from_rect(colormanaged_ibuf);
+      imb_freerectImBuf(colormanaged_ibuf);
+    }
+
+    if (colormanaged_ibuf->rect_float) {
+      const char *from_colorspace = (ibuf->float_colorspace) ? ibuf->float_colorspace->name :
+                                                               global_role_scene_linear;
+      const char *to_colorspace = imf->linear_colorspace_settings.name;
+
+      IMB_colormanagement_transform(colormanaged_ibuf->rect_float,
+                                    colormanaged_ibuf->x,
+                                    colormanaged_ibuf->y,
+                                    colormanaged_ibuf->channels,
+                                    from_colorspace,
+                                    to_colorspace,
+                                    false);
     }
   }
 

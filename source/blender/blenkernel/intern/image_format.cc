@@ -904,8 +904,27 @@ void BKE_image_format_init_for_write(ImageFormatData *imf,
 {
   *imf = (imf_src) ? *imf_src : scene_src->r.im_format;
 
-  /* Use general scene settings also used for display. */
-  BKE_color_managed_display_settings_copy(&imf->display_settings, &scene_src->display_settings);
-  BKE_color_managed_view_settings_copy(&imf->view_settings, &scene_src->view_settings);
-  BKE_color_managed_colorspace_settings_init(&imf->linear_colorspace_settings);
+  if (imf_src && imf_src->color_management == R_IMF_COLOR_MANAGEMENT_OVERRIDE) {
+    /* Use settings specific to one node, image save operation, etc. */
+    BKE_color_managed_display_settings_copy(&imf->display_settings, &imf_src->display_settings);
+    BKE_color_managed_view_settings_copy(&imf->view_settings, &imf_src->view_settings);
+    BKE_color_managed_colorspace_settings_copy(&imf->linear_colorspace_settings,
+                                               &imf_src->linear_colorspace_settings);
+  }
+  else if (scene_src->r.im_format.color_management == R_IMF_COLOR_MANAGEMENT_OVERRIDE) {
+    /* Use scene settings specific to render output. */
+    BKE_color_managed_display_settings_copy(&imf->display_settings,
+                                            &scene_src->r.im_format.display_settings);
+    BKE_color_managed_view_settings_copy(&imf->view_settings,
+                                         &scene_src->r.im_format.view_settings);
+    BKE_color_managed_colorspace_settings_copy(&imf->linear_colorspace_settings,
+                                               &scene_src->r.im_format.linear_colorspace_settings);
+  }
+  else {
+    /* Use general scene settings also used for display. */
+    BKE_color_managed_display_settings_copy(&imf->display_settings, &scene_src->display_settings);
+    BKE_color_managed_view_settings_copy(&imf->view_settings, &scene_src->view_settings);
+    STRNCPY(imf->linear_colorspace_settings.name,
+            IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
+  }
 }

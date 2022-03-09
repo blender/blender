@@ -958,14 +958,11 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
 {
   ImageFormatData *imf = imfptr->data;
   ID *id = imfptr->owner_id;
-  PointerRNA display_settings_ptr;
-  PropertyRNA *prop;
   const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
   /* some settings depend on this being a scene that's rendered */
   const bool is_render_out = (id && GS(id->name) == ID_SCE);
 
   uiLayout *col;
-  bool show_preview = false;
 
   col = uiLayoutColumn(layout, false);
 
@@ -1005,7 +1002,6 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
   }
 
   if (is_render_out && ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
-    show_preview = true;
     uiItemR(col, imfptr, "use_preview", 0, NULL, ICON_NONE);
   }
 
@@ -1037,18 +1033,22 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
     uiItemR(col, imfptr, "tiff_codec", 0, NULL, ICON_NONE);
   }
 
-  /* color management */
-  if (color_management && (!BKE_imtype_requires_linear_float(imf->imtype) ||
-                           (show_preview && imf->flag & R_IMF_FLAG_PREVIEW_JPG))) {
-    prop = RNA_struct_find_property(imfptr, "display_settings");
-    display_settings_ptr = RNA_property_pointer_get(imfptr, prop);
+  /* Override color management */
+  if (color_management) {
+    uiItemS(col);
+    uiItemR(col, imfptr, "color_management", 0, NULL, ICON_NONE);
 
-    col = uiLayoutColumn(layout, false);
-    uiItemL(col, IFACE_("Color Management"), ICON_NONE);
-
-    uiItemR(col, &display_settings_ptr, "display_device", 0, NULL, ICON_NONE);
-
-    uiTemplateColormanagedViewSettings(col, NULL, imfptr, "view_settings");
+    if (imf->color_management == R_IMF_COLOR_MANAGEMENT_OVERRIDE) {
+      if (BKE_imtype_requires_linear_float(imf->imtype)) {
+        PointerRNA linear_settings_ptr = RNA_pointer_get(imfptr, "linear_colorspace_settings");
+        uiItemR(col, &linear_settings_ptr, "name", 0, IFACE_("Color Space"), ICON_NONE);
+      }
+      else {
+        PointerRNA display_settings_ptr = RNA_pointer_get(imfptr, "display_settings");
+        uiItemR(col, &display_settings_ptr, "display_device", 0, NULL, ICON_NONE);
+        uiTemplateColormanagedViewSettings(col, NULL, imfptr, "view_settings");
+      }
+    }
   }
 }
 

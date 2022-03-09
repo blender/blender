@@ -6223,15 +6223,12 @@ void uiTemplateColormanagedViewSettings(uiLayout *layout,
   ColorManagedViewSettings *view_settings = view_transform_ptr.data;
 
   uiLayout *col = uiLayoutColumn(layout, false);
-
-  uiLayout *row = uiLayoutRow(col, false);
-  uiItemR(row, &view_transform_ptr, "view_transform", 0, IFACE_("View"), ICON_NONE);
+  uiItemR(col, &view_transform_ptr, "view_transform", 0, IFACE_("View"), ICON_NONE);
+  uiItemR(col, &view_transform_ptr, "look", 0, IFACE_("Look"), ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
   uiItemR(col, &view_transform_ptr, "exposure", 0, NULL, ICON_NONE);
   uiItemR(col, &view_transform_ptr, "gamma", 0, NULL, ICON_NONE);
-
-  uiItemR(col, &view_transform_ptr, "look", 0, IFACE_("Look"), ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
   uiItemR(col, &view_transform_ptr, "use_curve_mapping", 0, NULL, ICON_NONE);
