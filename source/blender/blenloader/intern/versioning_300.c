@@ -2578,5 +2578,12 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+      if (ts->uv_relax_method == 0) {
+        ts->uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN;
+      }
+    }
   }
 }
