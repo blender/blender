@@ -573,6 +573,10 @@ typedef struct PreviewImage {
 #define ID_IS_OVERRIDE_LIBRARY(_id) \
   (ID_IS_OVERRIDE_LIBRARY_REAL(_id) || ID_IS_OVERRIDE_LIBRARY_VIRTUAL(_id))
 
+#define ID_IS_OVERRIDE_LIBRARY_HIERARCHY_ROOT(_id) \
+  (!ID_IS_OVERRIDE_LIBRARY_REAL(_id) || \
+   ((ID *)(_id))->override_library->hierarchy_root == ((ID *)(_id)))
+
 #define ID_IS_OVERRIDE_LIBRARY_TEMPLATE(_id) \
   (((ID *)(_id))->override_library != NULL && ((ID *)(_id))->override_library->reference == NULL)
 
