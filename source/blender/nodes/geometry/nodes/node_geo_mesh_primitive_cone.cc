@@ -510,11 +510,11 @@ static void calculate_selection_outputs(Mesh *mesh,
     if (config.bottom_is_point) {
       selection[config.last_vert] = true;
     }
+    else if (face) {
+      selection.slice(config.bottom_faces_start, config.bottom_faces_len).fill(true);
+    }
     else {
-      selection
-          .slice(config.bottom_faces_start,
-                 face ? config.bottom_faces_len : config.circle_segments)
-          .fill(true);
+      selection.slice(config.last_ring_verts_start + 1, config.circle_segments).fill(true);
     }
     attribute.save();
   }
