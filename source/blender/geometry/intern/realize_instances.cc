@@ -935,6 +935,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
               break;
             default:
               BLI_assert_unreachable();
+              break;
           }
           GMutableSpan dst_span = dst_attribute_spans[attribute_index].slice(element_slice);
           const CPPType &cpp_type = dst_span.type();
