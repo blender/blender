@@ -33,6 +33,7 @@ struct ViewLayer;
 struct bContext;
 struct bContextDataResult;
 struct bPoseChannel;
+struct View2D;
 struct wmKeyConfig;
 struct wmOperatorType;
 
@@ -642,9 +643,15 @@ float outliner_restrict_columns_width(const struct SpaceOutliner *space_outliner
  */
 TreeElement *outliner_find_element_with_flag(const ListBase *lb, short flag);
 /**
- * Find if element is visible in the outliner tree.
+ * Find if element is visible in the outliner tree, i.e. if all of its parents are expanded.
+ * Doesn't check if the item is in view-bounds, for that use #outliner_is_element_in_view().
  */
 bool outliner_is_element_visible(const TreeElement *te);
+/**
+ * Check if the element is displayed within the view bounds. Doesn't check if all parents are
+ * open/uncollapsed.
+ */
+bool outliner_is_element_in_view(const TreeElement *te, const struct View2D *v2d);
 /**
  * Scroll view vertically while keeping within total bounds.
  */
