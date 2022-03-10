@@ -109,7 +109,11 @@ static void image_init(Image *ima, short source, short type);
 static void image_free_packedfiles(Image *ima);
 static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src);
 
-/* Reset runtime image fields when data-block is being initialized. */
+/* -------------------------------------------------------------------- */
+/** \name Image #IDTypeInfo API
+ * \{ */
+
+/** Reset runtime image fields when data-block is being initialized. */
 static void image_runtime_reset(struct Image *image)
 {
   memset(&image->runtime, 0, sizeof(image->runtime));
@@ -117,7 +121,7 @@ static void image_runtime_reset(struct Image *image)
   BLI_mutex_init(static_cast<ThreadMutex *>(image->runtime.cache_mutex));
 }
 
-/* Reset runtime image fields when data-block is being copied. */
+/** Reset runtime image fields when data-block is being copied. */
 static void image_runtime_reset_on_copy(struct Image *image)
 {
   image->runtime.cache_mutex = MEM_mallocN(sizeof(ThreadMutex), "image runtime cache_mutex");
@@ -479,7 +483,11 @@ static void image_add_view(Image *ima, const char *viewname, const char *filepat
 #  define IMA_INDEX_PASS(index) (index & ~1023)
 #endif
 
-/* ******** IMAGE CACHE ************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Image Cache
+ * \{ */
 
 typedef struct ImageCacheKey {
   int index;
@@ -548,7 +556,11 @@ static struct ImBuf *imagecache_get(Image *image, int index, bool *r_is_cached_e
   return nullptr;
 }
 
-/* ***************** ALLOC & FREE, DATA MANAGING *************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Allocate & Free, Data Managing
+ * \{ */
 
 static void image_free_cached_frames(Image *image)
 {
@@ -666,12 +678,12 @@ static Image *image_alloc(Main *bmain, const char *name, short source, short typ
   return ima;
 }
 
-/* Get the ibuf from an image cache by its index and entry.
+/**
+ * Get the ibuf from an image cache by its index and entry.
  * Local use here only.
  *
- * Returns referenced image buffer if it exists, callee is to
- * call IMB_freeImBuf to de-reference the image buffer after
- * it's done handling it.
+ * \returns referenced image buffer if it exists, callee is to call #IMB_freeImBuf
+ * to de-reference the image buffer after it's done handling it.
  */
 static ImBuf *image_get_cached_ibuf_for_index_entry(Image *ima,
                                                     int index,
@@ -1127,7 +1139,8 @@ Image *BKE_image_add_generated(Main *bmain,
   int view_id;
   const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
 
-  // STRNCPY(ima->filepath, name); /* don't do this, this writes in ain invalid filepath! */
+  /* NOTE: leave `ima->filepath` unset,
+   * setting it to a dummy value may write to an invalid file-path. */
   ima->gen_x = width;
   ima->gen_y = height;
   ima->gen_type = gen_type;
@@ -1179,7 +1192,7 @@ Image *BKE_image_add_from_imbuf(Main *bmain, ImBuf *ibuf, const char *name)
   return ima;
 }
 
-/* Pack image buffer to memory as PNG or EXR. */
+/** Pack image buffer to memory as PNG or EXR. */
 static bool image_memorypack_imbuf(Image *ima, ImBuf *ibuf, const char *filepath)
 {
   ibuf->ftype = (ibuf->rect_float) ? IMB_FTYPE_OPENEXR : IMB_FTYPE_PNG;
@@ -1472,7 +1485,11 @@ void BKE_image_all_free_anim_ibufs(Main *bmain, int cfra)
   }
 }
 
-/* *********** READ AND WRITE ************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Read and Write
+ * \{ */
 
 int BKE_image_imtype_to_ftype(const char imtype, ImbFormatOptions *r_options)
 {
@@ -1607,7 +1624,7 @@ bool BKE_imtype_supports_zbuf(const char imtype)
 {
   switch (imtype) {
     case R_IMF_IMTYPE_IRIZ:
-    case R_IMF_IMTYPE_OPENEXR: /* but not R_IMF_IMTYPE_MULTILAYER */
+    case R_IMF_IMTYPE_OPENEXR: /* But not #R_IMF_IMTYPE_MULTILAYER. */
       return true;
   }
   return false;
@@ -3131,7 +3148,7 @@ void BKE_imbuf_write_prepare(ImBuf *ibuf, const ImageFormatData *imf)
   }
 #endif
   else {
-    /* R_IMF_IMTYPE_JPEG90, etc. default we save jpegs */
+    /* #R_IMF_IMTYPE_JPEG90, etc. fallback to JPEG image. */
     if (quality < 10) {
       quality = 90;
     }
@@ -3278,7 +3295,11 @@ struct anim *openanim(const char *name, int flags, int streamindex, char colorsp
   return anim;
 }
 
-/* ************************* New Image API *************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name New Image API
+ * \{ */
 
 /* Notes about Image storage
  * - packedfile
@@ -3290,8 +3311,8 @@ struct anim *openanim(const char *name, int flags, int streamindex, char colorsp
  * - renderresult
  *   -> comes from packedfile or filename
  * - listbase
- *   -> ibufs from exrhandle
- * - flipbook array
+ *   -> ibufs from EXR-handle.
+ * - flip-book array
  *   -> ibufs come from movie, temporary renderresult or sequence
  * - ibuf
  *   -> comes from packedfile or filename or generated
@@ -3834,8 +3855,10 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
   BKE_ntree_update_main(bmain, nullptr);
 }
 
-/* return renderpass for a given pass index and active view */
-/* fallback to available if there are missing passes for active view */
+/**
+ * \return render-pass for a given pass index and active view.
+ * fallback to available if there are missing passes for active view.
+ */
 static RenderPass *image_render_pass_get(RenderLayer *rl,
                                          const int pass,
                                          const int view,
@@ -4477,7 +4500,11 @@ void BKE_image_backup_render(Scene *scene, Image *ima, bool free_current_slot)
   ima->last_render_slot = ima->render_slot;
 }
 
-/**************************** multiview load openexr *********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Multiview Load OpenEXR
+ * \{ */
 
 static void image_add_view(Image *ima, const char *viewname, const char *filepath)
 {
@@ -4510,8 +4537,8 @@ static void image_add_view(Image *ima, const char *viewname, const char *filepat
   }
 }
 
-/* after imbuf load, openexr type can return with a exrhandle open */
-/* in that case we have to build a render-result */
+/* After imbuf load, OpenEXR type can return with a EXR-handle open
+ * in that case we have to build a render-result. */
 #ifdef WITH_OPENEXR
 static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
 {
@@ -4536,7 +4563,7 @@ static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
 }
 #endif /* WITH_OPENEXR */
 
-/* common stuff to do with images after loading */
+/** Common stuff to do with images after loading. */
 static void image_init_after_load(Image *ima, ImageUser *iuser, ImBuf *UNUSED(ibuf))
 {
   /* Preview is null when it has never been used as an icon before.
@@ -4571,7 +4598,9 @@ static int imbuf_alpha_flags_for_image(Image *ima)
   return 0;
 }
 
-/* the number of files will vary according to the stereo format */
+/**
+ * \return the number of files will vary according to the stereo format.
+ */
 static int image_num_files(Image *ima)
 {
   const bool is_multiview = BKE_image_is_multiview(ima);
@@ -5402,30 +5431,30 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
   }
 
   if (ibuf == nullptr) {
-    /* we are sure we have to load the ibuf, using source and type */
+    /* We are sure we have to load the ibuf, using source and type. */
     if (ima->source == IMA_SRC_MOVIE) {
-      /* source is from single file, use flipbook to store ibuf */
+      /* Source is from single file, use flip-book to store ibuf. */
       ibuf = image_load_movie_file(ima, iuser, entry);
     }
     else if (ima->source == IMA_SRC_SEQUENCE) {
       if (ima->type == IMA_TYPE_IMAGE) {
-        /* regular files, ibufs in flipbook, allows saving */
+        /* Regular files, ibufs in flip-book, allows saving. */
         ibuf = image_load_sequence_file(ima, iuser, entry, entry);
       }
       /* no else; on load the ima type can change */
       if (ima->type == IMA_TYPE_MULTILAYER) {
-        /* only 1 layer/pass stored in imbufs, no exrhandle anim storage, no saving */
+        /* Only 1 layer/pass stored in imbufs, no EXR-handle anim storage, no saving. */
         ibuf = image_load_sequence_multilayer(ima, iuser, entry, entry);
       }
     }
     else if (ima->source == IMA_SRC_TILED) {
       if (ima->type == IMA_TYPE_IMAGE) {
-        /* regular files, ibufs in flipbook, allows saving */
+        /* Regular files, ibufs in flip-book, allows saving */
         ibuf = image_load_sequence_file(ima, iuser, entry, 0);
       }
       /* no else; on load the ima type can change */
       if (ima->type == IMA_TYPE_MULTILAYER) {
-        /* only 1 layer/pass stored in imbufs, no exrhandle anim storage, no saving */
+        /* Only 1 layer/pass stored in imbufs, no EXR-handle anim storage, no saving. */
         ibuf = image_load_sequence_multilayer(ima, iuser, entry, 0);
       }
     }
@@ -5441,8 +5470,8 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
       }
     }
     else if (ima->source == IMA_SRC_GENERATED) {
-      /* generated is: ibuf is allocated dynamically */
-      /* UV testgrid or black or solid etc */
+      /* Generated is: `ibuf` is allocated dynamically. */
+      /* UV test-grid or black or solid etc. */
       if (ima->gen_x == 0) {
         ima->gen_x = 1024;
       }
@@ -5564,7 +5593,11 @@ bool BKE_image_has_ibuf(Image *ima, ImageUser *iuser)
   return ibuf != nullptr;
 }
 
-/* ******** Pool for image buffers ******** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pool for Image Buffers
+ * \{ */
 
 struct ImagePoolItem {
   struct ImagePoolItem *next, *prev;
@@ -6274,7 +6307,11 @@ static void image_update_views_format(Image *ima, ImageUser *iuser)
   }
 }
 
-/**************************** Render Slots ***************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Render Slots
+ * \{ */
 
 RenderSlot *BKE_image_add_renderslot(Image *ima, const char *name)
 {
@@ -6392,3 +6429,5 @@ RenderSlot *BKE_image_get_renderslot(Image *ima, int index)
   /* Can be null for images without render slots. */
   return static_cast<RenderSlot *>(BLI_findlink(&ima->renderslots, index));
 }
+
+/** \} */
