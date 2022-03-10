@@ -129,24 +129,67 @@ IndexRange CurvesGeometry::range_for_curve(const int index) const
   return {offset, offset_next - offset};
 }
 
+static int domain_size(const CurvesGeometry &curves, const AttributeDomain domain)
+{
+  return domain == ATTR_DOMAIN_POINT ? curves.points_size() : curves.curves_size();
+}
+
+static CustomData &domain_custom_data(CurvesGeometry &curves, const AttributeDomain domain)
+{
+  return domain == ATTR_DOMAIN_POINT ? curves.point_data : curves.curve_data;
+}
+
+static const CustomData &domain_custom_data(const CurvesGeometry &curves,
+                                            const AttributeDomain domain)
+{
+  return domain == ATTR_DOMAIN_POINT ? curves.point_data : curves.curve_data;
+}
+
+template<typename T>
+static VArray<T> get_varray_attribute(const CurvesGeometry &curves,
+                                      const AttributeDomain domain,
+                                      const StringRefNull name,
+                                      const T default_value)
+{
+  const int size = domain_size(curves, domain);
+  const CustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
+  const CustomData &custom_data = domain_custom_data(curves, domain);
+
+  const T *data = (const T *)CustomData_get_layer_named(&custom_data, type, name.c_str());
+  if (data != nullptr) {
+    return VArray<T>::ForSpan(Span<T>(data, size));
+  }
+  return VArray<T>::ForSingle(default_value, size);
+}
+
+template<typename T>
+static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
+                                            const AttributeDomain domain,
+                                            const StringRefNull name)
+{
+  const int size = domain_size(curves, domain);
+  const CustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
+  CustomData &custom_data = domain_custom_data(curves, domain);
+
+  T *data = (T *)CustomData_duplicate_referenced_layer_named(
+      &custom_data, type, name.c_str(), size);
+  if (data != nullptr) {
+    return {data, size};
+  }
+  data = (T *)CustomData_add_layer_named(
+      &custom_data, type, CD_CALLOC, nullptr, size, name.c_str());
+  return {data, size};
+}
+
 VArray<int8_t> CurvesGeometry::curve_types() const
 {
-  if (const int8_t *data = (const int8_t *)CustomData_get_layer_named(
-          &this->curve_data, CD_PROP_INT8, ATTR_CURVE_TYPE.c_str())) {
-    return VArray<int8_t>::ForSpan({data, this->curve_size});
-  }
-  return VArray<int8_t>::ForSingle(CURVE_TYPE_CATMULL_ROM, this->curve_size);
+  return get_varray_attribute<int8_t>(
+      *this, ATTR_DOMAIN_CURVE, ATTR_CURVE_TYPE, CURVE_TYPE_CATMULL_ROM);
 }
 
 MutableSpan<int8_t> CurvesGeometry::curve_types()
 {
-  int8_t *data = (int8_t *)CustomData_add_layer_named(&this->curve_data,
-                                                      CD_PROP_INT8,
-                                                      CD_CALLOC,
-                                                      nullptr,
-                                                      this->curve_size,
-                                                      ATTR_CURVE_TYPE.c_str());
-  return {data, this->curve_size};
+  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_CURVE_TYPE);
 }
 
 MutableSpan<float3> CurvesGeometry::positions()
@@ -171,24 +214,12 @@ Span<int> CurvesGeometry::offsets() const
 
 VArray<bool> CurvesGeometry::cyclic() const
 {
-  const bool *data = (const bool *)CustomData_get_layer_named(
-      &this->curve_data, CD_PROP_INT8, ATTR_CURVE_TYPE.c_str());
-  if (data != nullptr) {
-    return VArray<bool>::ForSpan(Span(data, this->curve_size));
-  }
-  return VArray<bool>::ForSingle(false, this->curve_size);
+  return get_varray_attribute<bool>(*this, ATTR_DOMAIN_CURVE, ATTR_CYCLIC, false);
 }
 
 MutableSpan<bool> CurvesGeometry::cyclic()
 {
-  bool *data = (bool *)CustomData_duplicate_referenced_layer_named(
-      &this->curve_data, CD_PROP_BOOL, ATTR_CYCLIC.c_str(), this->curve_size);
-  if (data != nullptr) {
-    return {data, this->curve_size};
-  }
-  data = (bool *)CustomData_add_layer_named(
-      &this->curve_data, CD_PROP_BOOL, CD_CALLOC, nullptr, this->curve_size, ATTR_CYCLIC.c_str());
-  return {data, this->curve_size};
+  return get_mutable_attribute<bool>(*this, ATTR_DOMAIN_CURVE, ATTR_CYCLIC);
 }
 
 void CurvesGeometry::resize(const int point_size, const int curve_size)
