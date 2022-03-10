@@ -129,6 +129,13 @@ IndexRange CurvesGeometry::range_for_curve(const int index) const
   return {offset, offset_next - offset};
 }
 
+IndexRange CurvesGeometry::range_for_curves(const IndexRange curves) const
+{
+  const int offset = this->curve_offsets[curves.start()];
+  const int offset_next = this->curve_offsets[curves.one_after_last()];
+  return {offset, offset_next - offset};
+}
+
 static int domain_size(const CurvesGeometry &curves, const AttributeDomain domain)
 {
   return domain == ATTR_DOMAIN_POINT ? curves.points_size() : curves.curves_size();
@@ -303,6 +310,134 @@ void CurvesGeometry::update_customdata_pointers()
       &this->point_data, CD_PROP_FLOAT, ATTR_RADIUS.c_str());
   this->curve_type = (int8_t *)CustomData_get_layer_named(
       &this->point_data, CD_PROP_INT8, ATTR_CURVE_TYPE.c_str());
+}
+
+static void *ensure_customdata_layer(CustomData &custom_data,
+                                     const StringRefNull name,
+                                     const CustomDataType data_type,
+                                     const int tot_elements)
+{
+  for (const int other_layer_i : IndexRange(custom_data.totlayer)) {
+    CustomDataLayer &new_layer = custom_data.layers[other_layer_i];
+    if (name == StringRef(new_layer.name)) {
+      return new_layer.data;
+    }
+  }
+  return CustomData_add_layer_named(
+      &custom_data, data_type, CD_DEFAULT, nullptr, tot_elements, name.c_str());
+}
+
+static CurvesGeometry copy_with_removed_curves(const CurvesGeometry &curves,
+                                               const IndexMask curves_to_delete)
+{
+  const Span<int> old_offsets = curves.offsets();
+  const Vector<IndexRange> old_curve_ranges = curves_to_delete.extract_ranges_invert(
+      curves.curves_range(), nullptr);
+  Vector<IndexRange> new_curve_ranges;
+  Vector<IndexRange> old_point_ranges;
+  Vector<IndexRange> new_point_ranges;
+  int new_tot_points = 0;
+  int new_tot_curves = 0;
+  for (const IndexRange &curve_range : old_curve_ranges) {
+    new_curve_ranges.append(IndexRange(new_tot_curves, curve_range.size()));
+    new_tot_curves += curve_range.size();
+
+    const IndexRange old_point_range = curves.range_for_curves(curve_range);
+    old_point_ranges.append(old_point_range);
+    new_point_ranges.append(IndexRange(new_tot_points, old_point_range.size()));
+    new_tot_points += old_point_range.size();
+  }
+
+  CurvesGeometry new_curves{new_tot_points, new_tot_curves};
+
+  threading::parallel_invoke(
+      /* Initialize curve offsets. */
+      [&]() {
+        MutableSpan<int> new_offsets = new_curves.offsets();
+        new_offsets.last() = new_tot_points;
+        threading::parallel_for(
+            old_curve_ranges.index_range(), 128, [&](const IndexRange ranges_range) {
+              for (const int range_i : ranges_range) {
+                const IndexRange old_curve_range = old_curve_ranges[range_i];
+                const IndexRange new_curve_range = new_curve_ranges[range_i];
+                const IndexRange old_point_range = old_point_ranges[range_i];
+                const IndexRange new_point_range = new_point_ranges[range_i];
+                const int offset_shift = new_point_range.start() - old_point_range.start();
+                const int curves_in_range = old_curve_range.size();
+                threading::parallel_for(
+                    IndexRange(curves_in_range), 512, [&](const IndexRange range) {
+                      for (const int i : range) {
+                        const int old_curve_i = old_curve_range[i];
+                        const int new_curve_i = new_curve_range[i];
+                        const int old_offset = old_offsets[old_curve_i];
+                        const int new_offset = old_offset + offset_shift;
+                        new_offsets[new_curve_i] = new_offset;
+                      }
+                    });
+              }
+            });
+      },
+      /* Copy over point attributes. */
+      [&]() {
+        const CustomData &old_point_data = curves.point_data;
+        CustomData &new_point_data = new_curves.point_data;
+        for (const int layer_i : IndexRange(old_point_data.totlayer)) {
+          const CustomDataLayer &old_layer = old_point_data.layers[layer_i];
+          const CustomDataType data_type = static_cast<CustomDataType>(old_layer.type);
+          const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
+
+          const void *src_buffer = old_layer.data;
+          void *dst_buffer = ensure_customdata_layer(
+              new_point_data, old_layer.name, data_type, new_tot_points);
+
+          threading::parallel_for(
+              old_curve_ranges.index_range(), 128, [&](const IndexRange ranges_range) {
+                for (const int range_i : ranges_range) {
+                  const IndexRange old_point_range = old_point_ranges[range_i];
+                  const IndexRange new_point_range = new_point_ranges[range_i];
+
+                  type.copy_construct_n(
+                      POINTER_OFFSET(src_buffer, type.size() * old_point_range.start()),
+                      POINTER_OFFSET(dst_buffer, type.size() * new_point_range.start()),
+                      old_point_range.size());
+                }
+              });
+        }
+      },
+      /* Copy over curve attributes. */
+      [&]() {
+        const CustomData &old_curve_data = curves.curve_data;
+        CustomData &new_curve_data = new_curves.curve_data;
+        for (const int layer_i : IndexRange(old_curve_data.totlayer)) {
+          const CustomDataLayer &old_layer = old_curve_data.layers[layer_i];
+          const CustomDataType data_type = static_cast<CustomDataType>(old_layer.type);
+          const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
+
+          const void *src_buffer = old_layer.data;
+          void *dst_buffer = ensure_customdata_layer(
+              new_curve_data, old_layer.name, data_type, new_tot_points);
+
+          threading::parallel_for(
+              old_curve_ranges.index_range(), 128, [&](const IndexRange ranges_range) {
+                for (const int range_i : ranges_range) {
+                  const IndexRange old_curve_range = old_curve_ranges[range_i];
+                  const IndexRange new_curve_range = new_curve_ranges[range_i];
+
+                  type.copy_construct_n(
+                      POINTER_OFFSET(src_buffer, type.size() * old_curve_range.start()),
+                      POINTER_OFFSET(dst_buffer, type.size() * new_curve_range.start()),
+                      old_curve_range.size());
+                }
+              });
+        }
+      });
+
+  return new_curves;
+}
+
+void CurvesGeometry::remove_curves(const IndexMask curves_to_delete)
+{
+  *this = copy_with_removed_curves(*this, curves_to_delete);
 }
 
 /** \} */
