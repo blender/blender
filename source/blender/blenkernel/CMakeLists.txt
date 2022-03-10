@@ -150,7 +150,7 @@ set(SRC
   intern/idprop_serialize.cc
   intern/idprop_utils.c
   intern/idtype.c
-  intern/image.c
+  intern/image.cc
   intern/image_partial_update.cc
   intern/image_gen.c
   intern/image_gpu.cc
