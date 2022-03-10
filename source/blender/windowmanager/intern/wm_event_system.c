@@ -4775,7 +4775,9 @@ static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int d
 /**
  * Update the event-state for any kind of event that supports #KM_PRESS / #KM_RELEASE.
  */
-static void wm_event_state_update_and_click_set(wmEvent *event, wmEvent *event_state)
+static void wm_event_state_update_and_click_set(const GHOST_TEventType type,
+                                                wmEvent *event,
+                                                wmEvent *event_state)
 {
   BLI_assert(ISKEYBOARD_OR_BUTTON(event->type));
   BLI_assert(ELEM(event->val, KM_PRESS, KM_RELEASE));
@@ -4788,7 +4790,12 @@ static void wm_event_state_update_and_click_set(wmEvent *event, wmEvent *event_s
   /* Copy to event state. */
   event_state->val = event->val;
   event_state->type = event->type;
-  event_state->modifier = event->modifier;
+  /* It's important only to write into the `event_state` modifier for keyboard
+   * events because emulate MMB clears one of the modifiers in `event->modifier`,
+   * making the second press not behave as if the modifier is pressed, see T96279. */
+  if (ELEM(type, GHOST_kEventKeyDown, GHOST_kEventKeyUp)) {
+    event_state->modifier = event->modifier;
+  }
   event_state->flag = (event->flag & event_state_flag_mask);
   /* NOTE: It's important that `keymodifier` is handled in the keyboard event handling logic
    * since the `event_state` and the `event` are not kept in sync. */
@@ -4962,7 +4969,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       wm_tablet_data_from_ghost(&bd->tablet, &event.tablet);
 
       wm_eventemulation(&event, false);
-      wm_event_state_update_and_click_set(&event, event_state);
+      wm_event_state_update_and_click_set(type, &event, event_state);
 
       /* Add to other window if event is there (not to both!). */
       wmWindow *win_other = wm_event_cursor_other_windows(wm, win, &event);
@@ -5082,7 +5089,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       }
 
       /* It's important `event.modifier` has been initialized first. */
-      wm_event_state_update_and_click_set(&event, event_state);
+      wm_event_state_update_and_click_set(type, &event, event_state);
 
       /* If test_break set, it catches this. Do not set with modifier presses.
        * Exclude modifiers because MS-Windows uses these to bring up the task manager.
@@ -5156,7 +5163,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       event.custom = 0;
       event.customdata = NULL;
 
-      wm_event_state_update_and_click_set(&event, event_state);
+      wm_event_state_update_and_click_set(type, &event, event_state);
 
       wm_event_add(win, &event);
 
