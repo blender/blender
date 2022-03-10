@@ -246,7 +246,9 @@ static void wm_window_substitute_old(wmWindowManager *oldwm,
   oldwin->gpuctx = NULL;
 
   win->eventstate = oldwin->eventstate;
+  win->event_last_handled = oldwin->event_last_handled;
   oldwin->eventstate = NULL;
+  oldwin->event_last_handled = NULL;
 
   /* Ensure proper screen re-scaling. */
   win->sizex = oldwin->sizex;

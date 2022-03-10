@@ -610,6 +610,11 @@ typedef enum eWM_EventFlag {
    * See #KMI_REPEAT_IGNORE for details on how key-map handling uses this.
    */
   WM_EVENT_IS_REPEAT = (1 << 1),
+  /**
+   * Mouse-move events may have this flag set to force creating a click-drag event
+   * even when the threshold has not been met.
+   */
+  WM_EVENT_FORCE_DRAG_THRESHOLD = (1 << 2),
 } eWM_EventFlag;
 
 typedef struct wmTabletData {

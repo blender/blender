@@ -557,6 +557,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 
 #ifdef DEBUG
   wmEvent *event_back = window->eventstate;
+  wmEvent *event_last_back = window->event_last_handled;
 #endif
 
   /* create ui block */
@@ -740,6 +741,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 
 #ifdef DEBUG
   window->eventstate = event_back;
+  window->event_last_handled = event_last_back;
 #endif
 
   return block;

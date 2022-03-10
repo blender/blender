@@ -294,6 +294,8 @@ typedef struct wmWindow {
 
   /** Storage for event system. */
   struct wmEvent *eventstate;
+  /** Keep the last handled event in `event_queue` here (owned and must be freed). */
+  struct wmEvent *event_last_handled;
 
   /* Input Method Editor data - complex character input (especially for Asian character input)
    * Currently WIN32 and APPLE, runtime-only data. */

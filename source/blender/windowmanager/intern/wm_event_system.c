@@ -100,6 +100,7 @@ static int wm_operator_call_internal(bContext *C,
                                      wmEvent *event);
 
 static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot);
+static wmEvent *wm_event_add_mousemove_to_head(wmWindow *win);
 
 /* -------------------------------------------------------------------- */
 /** \name Event Management
@@ -198,6 +199,30 @@ void wm_event_free(wmEvent *event)
   wm_event_custom_free(event);
 
   MEM_freeN(event);
+}
+
+/** A version of #wm_event_free that holds the last handled event. */
+static void wm_event_free_last_handled(wmWindow *win, wmEvent *event)
+{
+  /* Don't rely on this pointer being valid,
+   * callers should behave as if the memory has been freed.
+   * As this function should be interchangeable with #wm_event_free. */
+#ifndef NDEBUG
+  {
+    wmEvent *event_copy = MEM_dupallocN(event);
+    MEM_freeN(event);
+    event = event_copy;
+  }
+#endif
+
+  if (win->event_last_handled) {
+    wm_event_free(win->event_last_handled);
+  }
+  /* Don't store custom data in the last handled event as we don't have control how long this event
+   * will be stored and the referenced data may become invalid (also it's not needed currently). */
+  wm_event_custom_free(event);
+  wm_event_custom_clear(event);
+  win->event_last_handled = event;
 }
 
 static void wm_event_free_last(wmWindow *win)
@@ -3176,7 +3201,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
      * in `action` setting #WM_HANDLER_HANDLED, but not #WM_HANDLER_BREAK. */
     if ((action & WM_HANDLER_BREAK) == 0 || wm_action_not_handled(action)) {
       if (win->event_queue_check_drag) {
-        if (WM_event_drag_test(event, event->prev_press_xy)) {
+        if ((event->flag & WM_EVENT_FORCE_DRAG_THRESHOLD) ||
+            WM_event_drag_test(event, event->prev_press_xy)) {
           win->event_queue_check_drag_handled = true;
           const int direction = WM_event_drag_direction(event);
 
@@ -3660,6 +3686,17 @@ void wm_event_do_handlers(bContext *C)
     while ((event = win->event_queue.first)) {
       int action = WM_HANDLER_CONTINUE;
 
+      /* Force handling drag if a key is pressed even if the drag threshold has not been met.
+       * Needed so tablet actions (which typically use a larger threshold) can click-drag
+       * then press keys - activating the drag action early. */
+      if (win->event_queue_check_drag) {
+        if ((event->val == KM_PRESS) && ((event->flag & WM_EVENT_IS_REPEAT) == 0) &&
+            ISKEYBOARD_OR_BUTTON(event->type)) {
+          event = wm_event_add_mousemove_to_head(win);
+          event->flag |= WM_EVENT_FORCE_DRAG_THRESHOLD;
+        }
+      }
+
       /* Active screen might change during handlers, update pointer. */
       screen = WM_window_get_active_screen(win);
 
@@ -3675,7 +3712,7 @@ void wm_event_do_handlers(bContext *C)
           CLOG_INFO(WM_LOG_HANDLERS, 1, "event filtered due to pie button pressed");
         }
         BLI_remlink(&win->event_queue, event);
-        wm_event_free(event);
+        wm_event_free_last_handled(win, event);
         continue;
       }
 
@@ -3685,7 +3722,7 @@ void wm_event_do_handlers(bContext *C)
       if (event->type == EVT_XR_ACTION) {
         wm_event_handle_xrevent(C, wm, win, event);
         BLI_remlink(&win->event_queue, event);
-        wm_event_free(event);
+        wm_event_free_last_handled(win, event);
         /* Skip mouse event handling below, which is unnecessary for XR events. */
         continue;
       }
@@ -3823,7 +3860,7 @@ void wm_event_do_handlers(bContext *C)
 
       /* Un-link and free here, Blender-quit then frees all. */
       BLI_remlink(&win->event_queue, event);
-      wm_event_free(event);
+      wm_event_free_last_handled(win, event);
     }
 
     /* Only add mouse-move when the event queue was read entirely. */
@@ -4747,6 +4784,38 @@ static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
   if (event_last == NULL) {
     event_last = win->eventstate;
   }
+
+  copy_v2_v2_int(event_new->prev_xy, event_last->xy);
+  return event_new;
+}
+
+static wmEvent *wm_event_add_mousemove_to_head(wmWindow *win)
+{
+  /* Use the last handled event instead of `win->eventstate` because the state of the modifiers
+   * and previous values should be set based on the last state, not using values from the future.
+   * So this gives an accurate simulation of mouse motion before the next event is handled. */
+  const wmEvent *event_last = win->event_last_handled;
+
+  wmEvent tevent;
+  if (event_last) {
+    tevent = *event_last;
+
+    tevent.flag = 0;
+    tevent.ascii = '\0';
+    tevent.utf8_buf[0] = '\0';
+
+    wm_event_custom_clear(&tevent);
+  }
+  else {
+    memset(&tevent, 0x0, sizeof(tevent));
+  }
+
+  tevent.type = MOUSEMOVE;
+  copy_v2_v2_int(tevent.prev_xy, tevent.xy);
+
+  wmEvent *event_new = wm_event_add(win, &tevent);
+  BLI_remlink(&win->event_queue, event_new);
+  BLI_addhead(&win->event_queue, event_new);
 
   copy_v2_v2_int(event_new->prev_xy, event_last->xy);
   return event_new;
