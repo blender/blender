@@ -1662,10 +1662,15 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
 /* Event can enter-key, then it opens/closes. */
 static int outliner_item_activate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  ARegion *region = CTX_wm_region(C);
+
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   const bool use_range = RNA_boolean_get(op->ptr, "extend_range");
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
-  return outliner_item_do_activate_from_cursor(C, event->mval, extend, use_range, deselect_all);
+
+  int mval[2];
+  WM_event_drag_start_mval(event, region, mval);
+  return outliner_item_do_activate_from_cursor(C, mval, extend, use_range, deselect_all);
 }
 
 void OUTLINER_OT_item_activate(wmOperatorType *ot)
@@ -1756,8 +1761,9 @@ static int outliner_box_select_invoke(bContext *C, wmOperator *op, const wmEvent
   float view_mval[2];
   const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 
-  UI_view2d_region_to_view(
-      &region->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
+  int mval[2];
+  WM_event_drag_start_mval(event, region, mval);
+  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
 
   /* Find element clicked on */
   TreeElement *te = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
