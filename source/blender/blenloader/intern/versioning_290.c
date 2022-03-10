@@ -701,8 +701,10 @@ static void panels_remove_x_closed_flag_recursive(Panel *panel)
 static void do_versions_point_attributes(CustomData *pdata)
 {
   /* Change to generic named float/float3 attributes. */
-  const int CD_LOCATION = 43;
-  const int CD_RADIUS = 44;
+  enum {
+    CD_LOCATION = 43,
+    CD_RADIUS = 44,
+  };
 
   for (int i = 0; i < pdata->totlayer; i++) {
     CustomDataLayer *layer = &pdata->layers[i];

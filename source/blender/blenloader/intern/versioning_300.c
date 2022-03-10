@@ -1483,7 +1483,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
   /* The #SCE_SNAP_SEQ flag has been removed in favor of the #SCE_SNAP which can be used for each
    * snap_flag member individually. */
-  const int SCE_SNAP_SEQ = (1 << 7);
+  enum { SCE_SNAP_SEQ = (1 << 7) };
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 1)) {
     /* Set default value for the new bisect_threshold parameter in the mirror modifier. */
