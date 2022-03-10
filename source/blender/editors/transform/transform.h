@@ -295,7 +295,8 @@ typedef struct TransSnapPoint {
 } TransSnapPoint;
 
 typedef struct TransSnap {
-  short mode;
+  char flag;
+  char mode;
   short target;
   short modePoint;
   short modeSelect;

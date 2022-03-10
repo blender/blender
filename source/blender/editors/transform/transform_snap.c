@@ -561,7 +561,22 @@ static bool bm_face_is_snap_target(BMFace *f, void *UNUSED(user_data))
   return true;
 }
 
-static short snap_mode_from_scene(TransInfo *t)
+static char snap_flag_from_spacetype(TransInfo *t)
+{
+  ToolSettings *ts = t->settings;
+  if (t->spacetype == SPACE_NODE) {
+    return ts->snap_flag_node;
+  }
+  else if (t->spacetype == SPACE_IMAGE) {
+    return ts->snap_uv_flag;
+  }
+  else if (t->spacetype == SPACE_SEQ) {
+    return ts->snap_flag_seq;
+  }
+  return ts->snap_flag;
+}
+
+static short snap_mode_from_spacetype(TransInfo *t)
 {
   ToolSettings *ts = t->settings;
   short r_snap_mode = SCE_SNAP_MODE_INCREMENT;
@@ -580,7 +595,7 @@ static short snap_mode_from_scene(TransInfo *t)
   else if (t->spacetype == SPACE_SEQ) {
     r_snap_mode = SEQ_tool_settings_snap_mode_get(t->scene);
   }
-  else if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE) && !(t->options & CTX_CAMERA)) {
+  else if ((t->spacetype == SPACE_VIEW3D) && !(t->options & CTX_CAMERA)) {
     /* All obedit types will match. */
     const int obedit_type = t->obedit_type;
     if ((t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR | CTX_OBMODE_XFORM_OBDATA)) ||
@@ -652,7 +667,7 @@ static short snap_select_type_get(TransInfo *t)
 static void initSnappingMode(TransInfo *t)
 {
   ToolSettings *ts = t->settings;
-  t->tsnap.mode = snap_mode_from_scene(t);
+  t->tsnap.mode = snap_mode_from_spacetype(t);
   t->tsnap.modeSelect = snap_select_type_get(t);
 
   if ((t->spacetype != SPACE_VIEW3D) || !(ts->snap_mode & SCE_SNAP_MODE_FACE)) {
@@ -701,10 +716,9 @@ static void initSnappingMode(TransInfo *t)
 
 void initSnapping(TransInfo *t, wmOperator *op)
 {
-  ToolSettings *ts = t->settings;
-  short snap_target = t->settings->snap_target;
-
   resetSnapping(t);
+  t->tsnap.flag = snap_flag_from_spacetype(t);
+  short snap_target = t->settings->snap_target;
 
   /* if snap property exists */
   PropertyRNA *prop;
@@ -745,19 +759,14 @@ void initSnapping(TransInfo *t, wmOperator *op)
   }
   /* use scene defaults only when transform is modal */
   else if (t->flag & T_MODAL) {
-    if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE, SPACE_NODE)) {
-      if (transformModeUseSnap(t) && (ts->snap_flag & SCE_SNAP)) {
-        t->modifiers |= MOD_SNAP;
-      }
-
-      t->tsnap.align = ((t->settings->snap_flag & SCE_SNAP_ROTATE) != 0);
-      t->tsnap.project = ((t->settings->snap_flag & SCE_SNAP_PROJECT) != 0);
-      t->tsnap.snap_self = !((t->settings->snap_flag & SCE_SNAP_NO_SELF) != 0);
-      t->tsnap.peel = ((t->settings->snap_flag & SCE_SNAP_PROJECT) != 0);
-    }
-    else if ((t->spacetype == SPACE_SEQ) && (ts->snap_flag & SCE_SNAP_SEQ)) {
+    if (transformModeUseSnap(t) && (t->tsnap.flag & SCE_SNAP)) {
       t->modifiers |= MOD_SNAP;
     }
+
+    t->tsnap.align = ((t->tsnap.flag & SCE_SNAP_ROTATE) != 0);
+    t->tsnap.project = ((t->tsnap.flag & SCE_SNAP_PROJECT) != 0);
+    t->tsnap.snap_self = !((t->tsnap.flag & SCE_SNAP_NO_SELF) != 0);
+    t->tsnap.peel = ((t->tsnap.flag & SCE_SNAP_PROJECT) != 0);
   }
 
   t->tsnap.target = snap_target;

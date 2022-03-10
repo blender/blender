@@ -1481,6 +1481,10 @@ static void version_liboverride_rnacollections_insertion_animdata(ID *id)
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
+  /* The #SCE_SNAP_SEQ flag has been removed in favor of the #SCE_SNAP which can be used for each
+   * snap_flag member individually. */
+  const int SCE_SNAP_SEQ = (1 << 7);
+
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 1)) {
     /* Set default value for the new bisect_threshold parameter in the mirror modifier. */
     if (!DNA_struct_elem_find(fd->filesdna, "MirrorModifierData", "float", "bisect_threshold")) {
@@ -2584,6 +2588,17 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (ts->uv_relax_method == 0) {
         ts->uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN;
       }
+    }
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *tool_settings = scene->toolsettings;
+      tool_settings->snap_flag_seq = tool_settings->snap_flag & ~(SCE_SNAP | SCE_SNAP_SEQ);
+      if (tool_settings->snap_flag & SCE_SNAP_SEQ) {
+        tool_settings->snap_flag_seq |= SCE_SNAP;
+        tool_settings->snap_flag &= ~SCE_SNAP_SEQ;
+      }
+
+      tool_settings->snap_flag_node = tool_settings->snap_flag;
+      tool_settings->snap_uv_flag |= tool_settings->snap_flag & SCE_SNAP;
     }
   }
 }
