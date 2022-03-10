@@ -161,6 +161,29 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
   return event;
 }
 
+static void wm_event_custom_free(wmEvent *event)
+{
+  if ((event->customdata && event->customdata_free) == 0) {
+    return;
+  }
+
+  /* NOTE: pointer to #ListBase struct elsewhere. */
+  if (event->custom == EVT_DATA_DRAGDROP) {
+    ListBase *lb = event->customdata;
+    WM_drag_free_list(lb);
+  }
+  else {
+    MEM_freeN(event->customdata);
+  }
+}
+
+static void wm_event_custom_clear(wmEvent *event)
+{
+  event->custom = 0;
+  event->customdata = NULL;
+  event->customdata_free = false;
+}
+
 void wm_event_free(wmEvent *event)
 {
 #ifndef NDEBUG
@@ -172,18 +195,7 @@ void wm_event_free(wmEvent *event)
   }
 #endif
 
-  if (event->customdata) {
-    if (event->customdata_free) {
-      /* NOTE: pointer to #ListBase struct elsewhere. */
-      if (event->custom == EVT_DATA_DRAGDROP) {
-        ListBase *lb = event->customdata;
-        WM_drag_free_list(lb);
-      }
-      else {
-        MEM_freeN(event->customdata);
-      }
-    }
-  }
+  wm_event_custom_free(event);
 
   MEM_freeN(event);
 }
@@ -3062,8 +3074,7 @@ static int wm_handlers_do_intern(bContext *C, wmWindow *win, wmEvent *event, Lis
                   WM_drag_free_list(lb);
                   WM_drag_free_list(&single_lb);
 
-                  event->customdata = NULL;
-                  event->custom = 0;
+                  wm_event_custom_clear(event);
 
                   wm_drop_end(C, drag, drop);
 
@@ -3405,11 +3416,8 @@ static void wm_event_drag_and_drop_test(wmWindowManager *wm, wmWindow *win, wmEv
     event->type = EVT_DROP;
 
     /* Create custom-data, first free existing. */
-    if (event->customdata) {
-      if (event->customdata_free) {
-        MEM_freeN(event->customdata);
-      }
-    }
+    wm_event_custom_free(event);
+    wm_event_custom_clear(event);
 
     event->custom = EVT_DATA_DRAGDROP;
     event->customdata = &wm->drags;
