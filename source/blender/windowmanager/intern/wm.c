@@ -484,7 +484,7 @@ void WM_check(bContext *C)
     /* Case: file-read. */
     if ((wm->initialized & WM_WINDOW_IS_INIT) == 0) {
       WM_keyconfig_init(C);
-      WM_autosave_init(wm);
+      WM_file_autosave_init(wm);
     }
 
     /* Case: no open windows at all, for old file reads. */

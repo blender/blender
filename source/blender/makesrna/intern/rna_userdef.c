@@ -638,7 +638,7 @@ static void rna_userdef_autosave_update(Main *bmain, Scene *scene, PointerRNA *p
   wmWindowManager *wm = bmain->wm.first;
 
   if (wm) {
-    WM_autosave_init(wm);
+    WM_file_autosave_init(wm);
   }
   rna_userdef_update(bmain, scene, ptr);
 }
