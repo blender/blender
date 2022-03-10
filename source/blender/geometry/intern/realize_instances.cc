@@ -265,6 +265,81 @@ static void copy_transformed_positions(const Span<float3> src,
   });
 }
 
+static void threaded_copy(const GSpan src, GMutableSpan dst)
+{
+  BLI_assert(src.size() == dst.size());
+  BLI_assert(src.type() == dst.type());
+  threading::parallel_for(IndexRange(src.size()), 1024, [&](const IndexRange range) {
+    src.type().copy_construct_n(src.slice(range).data(), dst.slice(range).data(), range.size());
+  });
+}
+
+static void threaded_fill(const fn::GPointer value, GMutableSpan dst)
+{
+  BLI_assert(*value.type() == dst.type());
+  threading::parallel_for(IndexRange(dst.size()), 1024, [&](const IndexRange range) {
+    value.type()->fill_construct_n(value.get(), dst.slice(range).data(), range.size());
+  });
+}
+
+static void copy_generic_attributes_to_result(
+    const Span<std::optional<GVArray_GSpan>> src_attributes,
+    const AttributeFallbacksArray &attribute_fallbacks,
+    const OrderedAttributes &ordered_attributes,
+    const FunctionRef<IndexRange(AttributeDomain)> &range_fn,
+    MutableSpan<GMutableSpan> dst_attributes)
+{
+  threading::parallel_for(dst_attributes.index_range(), 10, [&](const IndexRange attribute_range) {
+    for (const int attribute_index : attribute_range) {
+      const AttributeDomain domain = ordered_attributes.kinds[attribute_index].domain;
+      const IndexRange element_slice = range_fn(domain);
+
+      GMutableSpan dst_span = dst_attributes[attribute_index].slice(element_slice);
+      if (src_attributes[attribute_index].has_value()) {
+        threaded_copy(*src_attributes[attribute_index], dst_span);
+      }
+      else {
+        const CPPType &cpp_type = dst_span.type();
+        const void *fallback = attribute_fallbacks.array[attribute_index] == nullptr ?
+                                   cpp_type.default_value() :
+                                   attribute_fallbacks.array[attribute_index];
+        threaded_fill({cpp_type, fallback}, dst_span);
+      }
+    }
+  });
+}
+
+static void create_result_ids(const RealizeInstancesOptions &options,
+                              Span<int> stored_ids,
+                              const int task_id,
+                              MutableSpan<int> dst_ids)
+{
+  if (options.keep_original_ids) {
+    if (stored_ids.is_empty()) {
+      dst_ids.fill(0);
+    }
+    else {
+      dst_ids.copy_from(stored_ids);
+    }
+  }
+  else {
+    if (stored_ids.is_empty()) {
+      threading::parallel_for(dst_ids.index_range(), 1024, [&](const IndexRange range) {
+        for (const int i : range) {
+          dst_ids[i] = noise::hash(task_id, i);
+        }
+      });
+    }
+    else {
+      threading::parallel_for(dst_ids.index_range(), 1024, [&](const IndexRange range) {
+        for (const int i : range) {
+          dst_ids[i] = noise::hash(task_id, stored_ids[i]);
+        }
+      });
+    }
+  }
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Gather Realize Tasks
  * \{ */
@@ -595,6 +670,7 @@ static AllPointCloudsInfo preprocess_pointclouds(const GeometrySet &geometry_set
 
 static void execute_realize_pointcloud_task(const RealizeInstancesOptions &options,
                                             const RealizePointCloudTask &task,
+                                            const OrderedAttributes &ordered_attributes,
                                             PointCloud &dst_pointcloud,
                                             MutableSpan<GMutableSpan> dst_attribute_spans,
                                             MutableSpan<int> all_dst_ids)
@@ -605,64 +681,25 @@ static void execute_realize_pointcloud_task(const RealizeInstancesOptions &optio
   const IndexRange point_slice{task.start_index, pointcloud.totpoint};
   MutableSpan<float3> dst_positions{(float3 *)dst_pointcloud.co + task.start_index,
                                     pointcloud.totpoint};
-  MutableSpan<int> dst_ids = all_dst_ids.slice(task.start_index, pointcloud.totpoint);
 
   copy_transformed_positions(src_positions, task.transform, dst_positions);
 
   /* Create point ids. */
   if (!all_dst_ids.is_empty()) {
-    if (options.keep_original_ids) {
-      if (pointcloud_info.stored_ids.is_empty()) {
-        dst_ids.fill(0);
-      }
-      else {
-        dst_ids.copy_from(pointcloud_info.stored_ids);
-      }
-    }
-    else {
-      threading::parallel_for(IndexRange(pointcloud.totpoint), 1024, [&](const IndexRange range) {
-        if (pointcloud_info.stored_ids.is_empty()) {
-          for (const int i : range) {
-            dst_ids[i] = noise::hash(task.id, i);
-          }
-        }
-        else {
-          for (const int i : range) {
-            dst_ids[i] = noise::hash(task.id, pointcloud_info.stored_ids[i]);
-          }
-        }
-      });
-    }
+    create_result_ids(
+        options, pointcloud_info.stored_ids, task.id, all_dst_ids.slice(point_slice));
   }
-  /* Copy generic attributes. */
-  threading::parallel_for(
-      dst_attribute_spans.index_range(), 10, [&](const IndexRange attribute_range) {
-        for (const int attribute_index : attribute_range) {
-          GMutableSpan dst_span = dst_attribute_spans[attribute_index].slice(point_slice);
-          const CPPType &cpp_type = dst_span.type();
-          const void *attribute_fallback = task.attribute_fallbacks.array[attribute_index];
-          if (pointcloud_info.attributes[attribute_index].has_value()) {
-            /* Copy attribute from the original point cloud. */
-            const GSpan src_span = *pointcloud_info.attributes[attribute_index];
-            threading::parallel_for(
-                IndexRange(pointcloud.totpoint), 1024, [&](const IndexRange range) {
-                  cpp_type.copy_construct_n(
-                      src_span.slice(range).data(), dst_span.slice(range).data(), range.size());
-                });
-          }
-          else {
-            if (attribute_fallback == nullptr) {
-              attribute_fallback = cpp_type.default_value();
-            }
-            /* As the fallback value for the attribute. */
-            threading::parallel_for(
-                IndexRange(pointcloud.totpoint), 1024, [&](const IndexRange range) {
-                  cpp_type.fill_construct_n(
-                      attribute_fallback, dst_span.slice(range).data(), range.size());
-                });
-          }
-        }
-      });
+
+  copy_generic_attributes_to_result(
+      pointcloud_info.attributes,
+      task.attribute_fallbacks,
+      ordered_attributes,
+      [&](const AttributeDomain domain) {
+        BLI_assert(domain == ATTR_DOMAIN_POINT);
+        UNUSED_VARS_NDEBUG(domain);
+        return point_slice;
+      },
+      dst_attribute_spans);
 }
 
 static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &options,
@@ -710,7 +747,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
     for (const int task_index : task_range) {
       const RealizePointCloudTask &task = tasks[task_index];
       execute_realize_pointcloud_task(
-          options, task, *dst_pointcloud, dst_attribute_spans, point_ids_span);
+          options, task, ordered_attributes, *dst_pointcloud, dst_attribute_spans, point_ids_span);
     }
   });
 
@@ -842,9 +879,6 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
   MutableSpan<MLoop> dst_loops{dst_mesh.mloop + task.start_indices.loop, mesh.totloop};
   MutableSpan<MPoly> dst_polys{dst_mesh.mpoly + task.start_indices.poly, mesh.totpoly};
 
-  MutableSpan<int> dst_vertex_ids = all_dst_vertex_ids.slice(task.start_indices.vertex,
-                                                             mesh.totvert);
-
   const Span<int> material_index_map = mesh_info.material_index_map;
 
   threading::parallel_for(IndexRange(mesh.totvert), 1024, [&](const IndexRange vert_range) {
@@ -888,79 +922,34 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       }
     }
   });
-  /* Create id attribute. */
+
   if (!all_dst_vertex_ids.is_empty()) {
-    if (options.keep_original_ids) {
-      if (mesh_info.stored_vertex_ids.is_empty()) {
-        dst_vertex_ids.fill(0);
-      }
-      else {
-        dst_vertex_ids.copy_from(mesh_info.stored_vertex_ids);
-      }
-    }
-    else {
-      threading::parallel_for(IndexRange(mesh.totvert), 1024, [&](const IndexRange vert_range) {
-        if (mesh_info.stored_vertex_ids.is_empty()) {
-          for (const int i : vert_range) {
-            dst_vertex_ids[i] = noise::hash(task.id, i);
-          }
-        }
-        else {
-          for (const int i : vert_range) {
-            const int original_id = mesh_info.stored_vertex_ids[i];
-            dst_vertex_ids[i] = noise::hash(task.id, original_id);
-          }
-        }
-      });
-    }
+    create_result_ids(options,
+                      mesh_info.stored_vertex_ids,
+                      task.id,
+                      all_dst_vertex_ids.slice(task.start_indices.vertex, mesh.totvert));
   }
-  /* Copy generic attributes. */
-  threading::parallel_for(
-      dst_attribute_spans.index_range(), 10, [&](const IndexRange attribute_range) {
-        for (const int attribute_index : attribute_range) {
-          const AttributeDomain domain = ordered_attributes.kinds[attribute_index].domain;
-          IndexRange element_slice;
-          switch (domain) {
-            case ATTR_DOMAIN_POINT:
-              element_slice = IndexRange(task.start_indices.vertex, mesh.totvert);
-              break;
-            case ATTR_DOMAIN_EDGE:
-              element_slice = IndexRange(task.start_indices.edge, mesh.totedge);
-              break;
-            case ATTR_DOMAIN_CORNER:
-              element_slice = IndexRange(task.start_indices.loop, mesh.totloop);
-              break;
-            case ATTR_DOMAIN_FACE:
-              element_slice = IndexRange(task.start_indices.poly, mesh.totpoly);
-              break;
-            default:
-              BLI_assert_unreachable();
-              break;
-          }
-          GMutableSpan dst_span = dst_attribute_spans[attribute_index].slice(element_slice);
-          const CPPType &cpp_type = dst_span.type();
-          const void *attribute_fallback = task.attribute_fallbacks.array[attribute_index];
-          if (mesh_info.attributes[attribute_index].has_value()) {
-            const GSpan src_span = *mesh_info.attributes[attribute_index];
-            threading::parallel_for(
-                IndexRange(element_slice.size()), 1024, [&](const IndexRange sub_range) {
-                  cpp_type.copy_construct_n(src_span.slice(sub_range).data(),
-                                            dst_span.slice(sub_range).data(),
-                                            sub_range.size());
-                });
-          }
-          else {
-            if (attribute_fallback == nullptr) {
-              attribute_fallback = cpp_type.default_value();
-            }
-            threading::parallel_for(
-                IndexRange(element_slice.size()), 1024, [&](const IndexRange sub_range) {
-                  cpp_type.fill_construct_n(
-                      attribute_fallback, dst_span.slice(sub_range).data(), sub_range.size());
-                });
-          }
+
+  copy_generic_attributes_to_result(
+      mesh_info.attributes,
+      task.attribute_fallbacks,
+      ordered_attributes,
+      [&](const AttributeDomain domain) {
+        switch (domain) {
+          case ATTR_DOMAIN_POINT:
+            return IndexRange(task.start_indices.vertex, mesh.totvert);
+          case ATTR_DOMAIN_EDGE:
+            return IndexRange(task.start_indices.edge, mesh.totedge);
+          case ATTR_DOMAIN_CORNER:
+            return IndexRange(task.start_indices.loop, mesh.totloop);
+          case ATTR_DOMAIN_FACE:
+            return IndexRange(task.start_indices.poly, mesh.totpoly);
+          default:
+            BLI_assert_unreachable();
+            return IndexRange();
         }
-      });
+      },
+      dst_attribute_spans);
 }
 
 static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
@@ -1200,75 +1189,27 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
     }
   });
 
-  /* Create id attribute. */
   if (!all_dst_ids.is_empty()) {
-    MutableSpan<int> dst_ids = all_dst_ids.slice(task.start_indices.point, curves.points_size());
-    if (options.keep_original_ids) {
-      if (curves_info.stored_ids.is_empty()) {
-        dst_ids.fill(0);
-      }
-      else {
-        dst_ids.copy_from(curves_info.stored_ids);
-      }
-    }
-    else {
-      threading::parallel_for(curves.points_range(), 1024, [&](const IndexRange vert_range) {
-        if (curves_info.stored_ids.is_empty()) {
-          for (const int i : vert_range) {
-            dst_ids[i] = noise::hash(task.id, i);
-          }
-        }
-        else {
-          for (const int i : vert_range) {
-            const int original_id = curves_info.stored_ids[i];
-            dst_ids[i] = noise::hash(task.id, original_id);
-          }
-        }
-      });
-    }
+    create_result_ids(
+        options, curves_info.stored_ids, task.id, all_dst_ids.slice(dst_point_range));
   }
 
-  /* Copy generic attributes. */
-  threading::parallel_for(
-      dst_attribute_spans.index_range(), 10, [&](const IndexRange attribute_range) {
-        for (const int attribute_index : attribute_range) {
-          const AttributeDomain domain = ordered_attributes.kinds[attribute_index].domain;
-          IndexRange element_slice;
-          switch (domain) {
-            case ATTR_DOMAIN_POINT:
-              element_slice = IndexRange(task.start_indices.point, curves.points_size());
-              break;
-            case ATTR_DOMAIN_CURVE:
-              element_slice = IndexRange(task.start_indices.curve, curves.curves_size());
-              break;
-            default:
-              BLI_assert_unreachable();
-              break;
-          }
-          GMutableSpan dst_span = dst_attribute_spans[attribute_index].slice(element_slice);
-          const CPPType &cpp_type = dst_span.type();
-          const void *attribute_fallback = task.attribute_fallbacks.array[attribute_index];
-          if (curves_info.attributes[attribute_index].has_value()) {
-            const GSpan src_span = *curves_info.attributes[attribute_index];
-            threading::parallel_for(
-                IndexRange(element_slice.size()), 1024, [&](const IndexRange sub_range) {
-                  cpp_type.copy_construct_n(src_span.slice(sub_range).data(),
-                                            dst_span.slice(sub_range).data(),
-                                            sub_range.size());
-                });
-          }
-          else {
-            if (attribute_fallback == nullptr) {
-              attribute_fallback = cpp_type.default_value();
-            }
-            threading::parallel_for(
-                IndexRange(element_slice.size()), 1024, [&](const IndexRange sub_range) {
-                  cpp_type.fill_construct_n(
-                      attribute_fallback, dst_span.slice(sub_range).data(), sub_range.size());
-                });
-          }
+  copy_generic_attributes_to_result(
+      curves_info.attributes,
+      task.attribute_fallbacks,
+      ordered_attributes,
+      [&](const AttributeDomain domain) {
+        switch (domain) {
+          case ATTR_DOMAIN_POINT:
+            return IndexRange(task.start_indices.point, curves.points_size());
+          case ATTR_DOMAIN_CURVE:
+            return IndexRange(task.start_indices.curve, curves.curves_size());
+          default:
+            BLI_assert_unreachable();
+            return IndexRange();
         }
-      });
+      },
+      dst_attribute_spans);
 }
 
 static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
