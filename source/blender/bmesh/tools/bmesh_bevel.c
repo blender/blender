@@ -1859,7 +1859,7 @@ static void move_weld_profile_planes(BevVert *bv, BoundVert *bndv1, BoundVert *b
   float l1 = normalize_v3(no);
 
   /* "no" is new normal projection plane, but don't move if it is coplanar with both of the
-   * projection dirs. */
+   * projection directions. */
   float no2[3], no3[3];
   cross_v3_v3v3(no2, d1, bndv1->profile.proj_dir);
   float l2 = normalize_v3(no2);
@@ -5571,7 +5571,7 @@ static void bevel_build_cutoff(BevelParams *bp, BMesh *bm, BevVert *bv)
       /* Add verts from each cutoff face. */
       face_bmverts[i] = mesh_vert(bv->vmesh, i, 1, 0)->v;
     }
-    /* BLI_array_append(bmfaces, repface); */
+    // BLI_array_append(bmfaces, repface);
     bev_create_ngon(bm, face_bmverts, n_bndv, bmfaces, NULL, bmedges, bp->mat_nr, true);
 
     BLI_array_free(bmedges);

@@ -244,6 +244,9 @@ const EnumPropertyItem rna_enum_brush_gpencil_weight_types_items[] = {
 };
 
 const EnumPropertyItem rna_enum_brush_curves_sculpt_tool_items[] = {
+    {CURVES_SCULPT_TOOL_COMB, "COMB", ICON_NONE, "Comb", ""},
+    {CURVES_SCULPT_TOOL_DELETE, "DELETE", ICON_NONE, "Delete", ""},
+    {CURVES_SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_NONE, "Snake Hook", ""},
     {CURVES_SCULPT_TOOL_TEST1, "TEST1", ICON_NONE, "Test 1", ""},
     {CURVES_SCULPT_TOOL_TEST2, "TEST2", ICON_NONE, "Test 2", ""},
     {0, NULL, 0, NULL, NULL},
@@ -2704,7 +2707,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 0);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(
-      prop, "Normal Weight", "How much grab will pull vertexes out of surface during a grab");
+      prop, "Normal Weight", "How much grab will pull vertices out of surface during a grab");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "elastic_deform_volume_preservation", PROP_FLOAT, PROP_NONE);
@@ -3180,7 +3183,7 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_frontface", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_FRONTFACE);
   RNA_def_property_ui_text(
-      prop, "Use Front-Face", "Brush only affects vertexes that face the viewer");
+      prop, "Use Front-Face", "Brush only affects vertices that face the viewer");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_frontface_falloff", PROP_BOOLEAN, PROP_NONE);

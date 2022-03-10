@@ -304,9 +304,11 @@ static void node_buts_image_user(uiLayout *layout,
                                  const bool show_layer_selection,
                                  const bool show_color_management)
 {
-  if (!imaptr->data) {
+  Image *image = (Image *)imaptr->data;
+  if (!image) {
     return;
   }
+  ImageUser *iuser = (ImageUser *)iuserptr->data;
 
   uiLayout *col = uiLayoutColumn(layout, false);
 
@@ -318,8 +320,6 @@ static void node_buts_image_user(uiLayout *layout,
     /* don't use iuser->framenr directly
      * because it may not be updated if auto-refresh is off */
     Scene *scene = CTX_data_scene(C);
-    ImageUser *iuser = (ImageUser *)iuserptr->data;
-    /* Image *ima = imaptr->data; */ /* UNUSED */
 
     char numstr[32];
     const int framenr = BKE_image_user_frame_get(iuser, CFRA, nullptr);
@@ -343,10 +343,19 @@ static void node_buts_image_user(uiLayout *layout,
   }
 
   if (show_color_management) {
-    uiLayout *split = uiLayoutSplit(layout, 0.5f, true);
+    uiLayout *split = uiLayoutSplit(layout, 0.33f, true);
     PointerRNA colorspace_settings_ptr = RNA_pointer_get(imaptr, "colorspace_settings");
     uiItemL(split, IFACE_("Color Space"), ICON_NONE);
     uiItemR(split, &colorspace_settings_ptr, "name", DEFAULT_FLAGS, "", ICON_NONE);
+
+    if (image->source != IMA_SRC_GENERATED) {
+      split = uiLayoutSplit(layout, 0.33f, true);
+      uiItemL(split, IFACE_("Alpha"), ICON_NONE);
+      uiItemR(split, imaptr, "alpha_mode", DEFAULT_FLAGS, "", ICON_NONE);
+
+      bool is_data = IMB_colormanagement_space_name_is_data(image->colorspace_settings.name);
+      uiLayoutSetActive(split, !is_data);
+    }
 
     /* Avoid losing changes image is painted. */
     if (BKE_image_is_dirty((Image *)imaptr->data)) {
@@ -1967,9 +1976,10 @@ void node_draw_link_bezier(const bContext &C,
                            const bNodeLink &link,
                            const int th_col1,
                            const int th_col2,
-                           const int th_col3)
+                           const int th_col3,
+                           const bool selected)
 {
-  const float dim_factor = node_link_dim_factor(v2d, link);
+  const float dim_factor = selected ? 1.0f : node_link_dim_factor(v2d, link);
   float thickness = 1.5f;
   float dash_factor = 1.0f;
 
@@ -2025,19 +2035,17 @@ void node_draw_link_bezier(const bContext &C,
     }
 
     /* Highlight links connected to selected nodes. */
-    const bool is_fromnode_selected = link.fromnode && link.fromnode->flag & SELECT;
-    const bool is_tonode_selected = link.tonode && link.tonode->flag & SELECT;
-    if (is_fromnode_selected || is_tonode_selected) {
+    if (selected) {
       float color_selected[4];
       UI_GetThemeColor4fv(TH_EDGE_SELECT, color_selected);
       const float alpha = color_selected[3];
 
       /* Interpolate color if highlight color is not fully transparent. */
       if (alpha != 0.0) {
-        if (is_fromnode_selected) {
+        if (link.fromsock) {
           interp_v3_v3v3(colors[1], colors[1], color_selected, alpha);
         }
-        if (is_tonode_selected) {
+        if (link.tosock) {
           interp_v3_v3v3(colors[2], colors[2], color_selected, alpha);
         }
       }
@@ -2102,7 +2110,8 @@ void node_draw_link_bezier(const bContext &C,
 void node_draw_link(const bContext &C,
                     const View2D &v2d,
                     const SpaceNode &snode,
-                    const bNodeLink &link)
+                    const bNodeLink &link,
+                    const bool selected)
 {
   int th_col1 = TH_WIRE_INNER, th_col2 = TH_WIRE_INNER, th_col3 = TH_WIRE;
 
@@ -2146,7 +2155,7 @@ void node_draw_link(const bContext &C,
     }
   }
 
-  node_draw_link_bezier(C, v2d, snode, link, th_col1, th_col2, th_col3);
+  node_draw_link_bezier(C, v2d, snode, link, th_col1, th_col2, th_col3, selected);
 }
 
 }  // namespace blender::ed::space_node

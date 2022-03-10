@@ -226,7 +226,7 @@ typedef struct ParticleCollision {
 } ParticleCollision;
 
 typedef struct ParticleDrawData {
-  float *vdata, *vd;   /* vertice data */
+  float *vdata, *vd;   /* vertex data */
   float *ndata, *nd;   /* normal data */
   float *cdata, *cd;   /* color data */
   float *vedata, *ved; /* velocity data */
@@ -578,7 +578,8 @@ void psys_get_texture(struct ParticleSimulationData *sim,
 /**
  * Interpolate a location on a face based on face coordinates.
  */
-void psys_interpolate_face(struct MVert *mvert,
+void psys_interpolate_face(struct Mesh *mesh,
+                           struct MVert *mvert,
                            const float (*vert_normals)[3],
                            struct MFace *mface,
                            struct MTFace *tface,

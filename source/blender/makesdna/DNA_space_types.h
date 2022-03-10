@@ -894,10 +894,9 @@ typedef struct SpaceFile {
    */
   ListBase folder_histories; /* FileFolderHistory */
 
-  /* operator that is invoking fileselect
-   * op->exec() will be called on the 'Load' button.
-   * if operator provides op->cancel(), then this will be invoked
-   * on the cancel button.
+  /**
+   * The operator that is invoking file-select `op->exec()` will be called on the 'Load' button.
+   * if operator provides op->cancel(), then this will be invoked on the cancel button.
    */
   struct wmOperator *op;
 

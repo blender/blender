@@ -1468,10 +1468,10 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                 for (uint k = 0; k < queue_index; k++) {
                   for (uint m = k + 1; m < queue_index; m++) {
                     float p = dot_v3v3(planes_queue[k], planes_queue[m]);
-                    if (p <= min_p + FLT_EPSILON) {
+                    if (p < min_p) {
                       min_p = p;
-                      min_n0 = m;
-                      min_n1 = k;
+                      min_n0 = k;
+                      min_n1 = m;
                     }
                   }
                 }
@@ -1484,18 +1484,13 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                   swap_v4_v4(planes_queue[min_n0], planes_queue[1]);
                 }
                 /* Find the third most important/different normal. */
-                min_p = 1;
-                min_n1 = 0;
-                float max_p = -1;
+                min_p = 1.0f;
+                min_n1 = 2;
+                float max_p = -1.0f;
                 for (uint k = 2; k < queue_index; k++) {
-                  max_p = -1;
-                  for (uint m = 0; m < 2; m++) {
-                    float p = dot_v3v3(planes_queue[m], planes_queue[k]);
-                    if (p > max_p + FLT_EPSILON) {
-                      max_p = p;
-                    }
-                  }
-                  if (max_p <= min_p + FLT_EPSILON) {
+                  max_p = max_ff(dot_v3v3(planes_queue[0], planes_queue[k]),
+                                 dot_v3v3(planes_queue[1], planes_queue[k]));
+                  if (max_p <= min_p) {
                     min_p = max_p;
                     min_n1 = k;
                   }
@@ -1503,7 +1498,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                 swap_v4_v4(planes_queue[min_n1], planes_queue[2]);
               }
               /* Remove/average duplicate normals in planes_queue. */
-              while (queue_index > 0) {
+              while (queue_index > 2) {
                 uint best_n0 = 0;
                 uint best_n1 = 0;
                 float best_p = -1.0f;
@@ -1515,12 +1510,14 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                     if (p > best_p + FLT_EPSILON || (p >= best_p && ofs_diff < best_ofs_diff)) {
                       best_p = p;
                       best_ofs_diff = ofs_diff;
-                      best_n0 = m;
-                      best_n1 = k;
+                      best_n0 = k;
+                      best_n1 = m;
                     }
                   }
                 }
-                if (best_p < 0.999f) {
+                /* Make sure there are no equal planes. This threshold is crucial for the
+                 * methods below to work without numerical issues. */
+                if (best_p < 0.98f) {
                   break;
                 }
                 add_v3_v3(planes_queue[best_n0], planes_queue[best_n1]);
@@ -1549,6 +1546,10 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                   for (int m = 0; m < size; m++) {
                     madd_v3_v3fl(mat[k], planes_queue[m], planes_queue[m][k]);
                   }
+                  /* Add a small epsilon to ensure the invert is going to work.
+                   * This addition makes the inverse more stable and the results
+                   * seem to get more precise. */
+                  mat[k][k] += 5e-5f;
                 }
                 /* NOTE: this matrix invert fails if there is less than 3 different normals. */
                 invert_m3(mat);
@@ -1597,7 +1598,9 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                 add_v3_v3v3(nor, planes_queue[0], planes_queue[1]);
                 if (size == 3) {
                   d = dot_v3v3(planes_queue[2], move_nor);
-                  if (LIKELY(fabsf(d) > FLT_EPSILON)) {
+                  /* The following threshold ignores the third plane if it is almost orthogonal to
+                   * the still free direction. */
+                  if (fabsf(d) > 0.02f) {
                     float tmp[3];
                     madd_v3_v3v3fl(tmp, nor, planes_queue[2], -planes_queue[2][3]);
                     mul_v3_v3fl(tmp, move_nor, dot_v3v3(planes_queue[2], tmp) / d);

@@ -716,7 +716,7 @@ void CustomData_data_transfer(const struct MeshPairRemap *me_remap,
  * \param write_layers_buff: An optional buffer for r_write_layers (to avoid allocating it).
  * \param write_layers_size: The size of pre-allocated \a write_layer_buff.
  *
- * \warning After this funcion has ran, given custom data is no more valid from Blender POV
+ * \warning After this function has ran, given custom data is no more valid from Blender POV
  * (its `totlayer` is invalid). This function shall always be called with localized data
  * (as it is in write_meshes()).
  *

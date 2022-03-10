@@ -6142,7 +6142,7 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
 
   /* generate surface space partitioning grid */
   surfaceGenerateGrid(surface);
-  /* calculate current frame adjacency point distances and global dirs */
+  /* Calculate current frame adjacency point distances and global directions. */
   dynamicPaint_prepareAdjacencyData(surface, false);
 
   /* Copy current frame vertices to check against in next frame */

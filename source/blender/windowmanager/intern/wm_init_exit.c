@@ -163,15 +163,15 @@ static bool opengl_is_init = false;
 
 void WM_init_opengl(void)
 {
-  /* must be called only once */
+  /* Must be called only once. */
   BLI_assert(opengl_is_init == false);
 
   if (G.background) {
-    /* Ghost is still not init elsewhere in background mode. */
+    /* Ghost is still not initialized elsewhere in background mode. */
     wm_ghost_init(NULL);
   }
 
-  /* Needs to be first to have an ogl context bound. */
+  /* Needs to be first to have an OpenGL context bound. */
   DRW_opengl_context_create();
 
   GPU_init();

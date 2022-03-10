@@ -381,11 +381,19 @@ ccl_device bool light_sample_from_distant_ray(KernelGlobals kg,
   float costheta = dot(-lightD, ray_D);
   float cosangle = klight->distant.cosangle;
 
+  /* Workaround to prevent a hang in the classroom scene with AMD HIP drivers 22.10,
+   * Remove when a compiler fix is available. */
+#ifdef __HIP__
+  ls->shader = klight->shader_id;
+#endif
+
   if (costheta < cosangle)
     return false;
 
   ls->type = type;
+#ifndef __HIP__
   ls->shader = klight->shader_id;
+#endif
   ls->object = PRIM_NONE;
   ls->prim = PRIM_NONE;
   ls->lamp = lamp;

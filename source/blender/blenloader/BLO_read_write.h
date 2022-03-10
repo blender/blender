@@ -286,8 +286,8 @@ void BLO_expand_id(BlendExpander *expander, struct ID *id);
  * This function ensures that reports are printed,
  * in the case of library linking errors this is important!
  *
- * bit kludge but better than doubling up on prints,
- * we could alternatively have a versions of a report function which forces printing - campbell
+ * NOTE(@campbellbarton) a kludge but better than doubling up on prints,
+ * we could alternatively have a versions of a report function which forces printing.
  */
 void BLO_reportf_wrap(struct BlendFileReadReport *reports,
                       eReportType type,

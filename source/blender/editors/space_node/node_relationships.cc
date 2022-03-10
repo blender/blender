@@ -1177,8 +1177,11 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   bool detach = RNA_boolean_get(op->ptr, "detach");
 
+  int mval[2];
+  WM_event_drag_start_mval(event, &region, mval);
+
   float2 cursor;
-  UI_view2d_region_to_view(&region.v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
+  UI_view2d_region_to_view(&region.v2d, mval[0], mval[1], &cursor[0], &cursor[1]);
   RNA_float_set_array(op->ptr, "drag_start", cursor);
   RNA_boolean_set(op->ptr, "has_link_picked", false);
 
@@ -2436,16 +2439,18 @@ void ED_node_link_insert(Main *bmain, ScrArea *area)
   bNodeSocket *best_input = get_main_socket(ntree, *node_to_insert, SOCK_IN);
   bNodeSocket *best_output = get_main_socket(ntree, *node_to_insert, SOCK_OUT);
 
-  /* Ignore main sockets when the types don't match. */
-  if (best_input != nullptr && ntree.typeinfo->validate_link != nullptr &&
-      !ntree.typeinfo->validate_link(static_cast<eNodeSocketDatatype>(old_link->fromsock->type),
-                                     static_cast<eNodeSocketDatatype>(best_input->type))) {
-    best_input = nullptr;
-  }
-  if (best_output != nullptr && ntree.typeinfo->validate_link != nullptr &&
-      !ntree.typeinfo->validate_link(static_cast<eNodeSocketDatatype>(best_output->type),
-                                     static_cast<eNodeSocketDatatype>(old_link->tosock->type))) {
-    best_output = nullptr;
+  if (node_to_insert->type != NODE_REROUTE) {
+    /* Ignore main sockets when the types don't match. */
+    if (best_input != nullptr && ntree.typeinfo->validate_link != nullptr &&
+        !ntree.typeinfo->validate_link(static_cast<eNodeSocketDatatype>(old_link->fromsock->type),
+                                       static_cast<eNodeSocketDatatype>(best_input->type))) {
+      best_input = nullptr;
+    }
+    if (best_output != nullptr && ntree.typeinfo->validate_link != nullptr &&
+        !ntree.typeinfo->validate_link(static_cast<eNodeSocketDatatype>(best_output->type),
+                                       static_cast<eNodeSocketDatatype>(old_link->tosock->type))) {
+      best_output = nullptr;
+    }
   }
 
   bNode *from_node = old_link->fromnode;

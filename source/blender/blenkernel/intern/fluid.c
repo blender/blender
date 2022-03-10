@@ -1845,8 +1845,8 @@ static void sample_mesh(FluidFlowSettings *ffs,
   const float surface_distance = 1.732;
   nearest.dist_sq = surface_distance * surface_distance; /* find_nearest uses squared distance. */
 
-  bool is_gas_flow = (ffs->type == FLUID_FLOW_TYPE_SMOKE || ffs->type == FLUID_FLOW_TYPE_FIRE ||
-                      ffs->type == FLUID_FLOW_TYPE_SMOKEFIRE);
+  bool is_gas_flow = ELEM(
+      ffs->type, FLUID_FLOW_TYPE_SMOKE, FLUID_FLOW_TYPE_FIRE, FLUID_FLOW_TYPE_SMOKEFIRE);
 
   /* Emission strength for gases will be computed below.
    * For liquids it's not needed. Just set to non zero value
@@ -1937,7 +1937,7 @@ static void sample_mesh(FluidFlowSettings *ffs,
 
           interp_v2_v2v2v2(tex_co, UNPACK3(uv), weights);
 
-          /* Map texure coord between -1.0f and 1.0f. */
+          /* Map texture coord between -1.0f and 1.0f. */
           tex_co[0] = tex_co[0] * 2.0f - 1.0f;
           tex_co[1] = tex_co[1] * 2.0f - 1.0f;
           tex_co[2] = ffs->texture_offset;
@@ -2035,8 +2035,7 @@ static void emit_from_mesh_task_cb(void *__restrict userdata,
 
       /* Compute emission only for flow objects that produce fluid (i.e. skip outflow objects).
        * Result in bb->influence. Also computes initial velocities. Result in bb->velocity. */
-      if ((data->ffs->behavior == FLUID_FLOW_BEHAVIOR_GEOMETRY) ||
-          (data->ffs->behavior == FLUID_FLOW_BEHAVIOR_INFLOW)) {
+      if (ELEM(data->ffs->behavior, FLUID_FLOW_BEHAVIOR_GEOMETRY, FLUID_FLOW_BEHAVIOR_INFLOW)) {
         sample_mesh(data->ffs,
                     data->mvert,
                     data->vert_normals,
@@ -2697,8 +2696,8 @@ static bool escape_flowsobject(Object *flowobj,
   bool is_static = is_static_object(flowobj);
 
   bool liquid_flow = ffs->type == FLUID_FLOW_TYPE_LIQUID;
-  bool gas_flow = (ffs->type == FLUID_FLOW_TYPE_SMOKE || ffs->type == FLUID_FLOW_TYPE_FIRE ||
-                   ffs->type == FLUID_FLOW_TYPE_SMOKEFIRE);
+  bool gas_flow = ELEM(
+      ffs->type, FLUID_FLOW_TYPE_SMOKE, FLUID_FLOW_TYPE_FIRE, FLUID_FLOW_TYPE_SMOKEFIRE);
   bool is_geometry = (ffs->behavior == FLUID_FLOW_BEHAVIOR_GEOMETRY);
 
   bool liquid_domain = fds->type == FLUID_DOMAIN_TYPE_LIQUID;

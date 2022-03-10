@@ -102,10 +102,10 @@ static int blend(const Tex *tex, const float texvec[3], TexResult *texres)
     y = texvec[1];
   }
 
-  if (tex->stype == TEX_LIN) { /* lin */
+  if (tex->stype == TEX_LIN) { /* Linear. */
     texres->tin = (1.0f + x) / 2.0f;
   }
-  else if (tex->stype == TEX_QUAD) { /* quad */
+  else if (tex->stype == TEX_QUAD) { /* Quadratic. */
     texres->tin = (1.0f + x) / 2.0f;
     if (texres->tin < 0.0f) {
       texres->tin = 0.0f;
@@ -114,7 +114,7 @@ static int blend(const Tex *tex, const float texvec[3], TexResult *texres)
       texres->tin *= texres->tin;
     }
   }
-  else if (tex->stype == TEX_EASE) { /* ease */
+  else if (tex->stype == TEX_EASE) { /* Ease. */
     texres->tin = (1.0f + x) / 2.0f;
     if (texres->tin <= 0.0f) {
       texres->tin = 0.0f;
@@ -127,10 +127,10 @@ static int blend(const Tex *tex, const float texvec[3], TexResult *texres)
       texres->tin = (3.0f * t - 2.0f * t * texres->tin);
     }
   }
-  else if (tex->stype == TEX_DIAG) { /* diag */
+  else if (tex->stype == TEX_DIAG) { /* Diagonal. */
     texres->tin = (2.0f + x + y) / 4.0f;
   }
-  else if (tex->stype == TEX_RAD) { /* radial */
+  else if (tex->stype == TEX_RAD) { /* Radial. */
     texres->tin = (atan2f(y, x) / (float)(2 * M_PI) + 0.5f);
   }
   else { /* sphere TEX_SPHERE */
@@ -139,7 +139,7 @@ static int blend(const Tex *tex, const float texvec[3], TexResult *texres)
       texres->tin = 0.0f;
     }
     if (tex->stype == TEX_HALO) {
-      texres->tin *= texres->tin; /* halo */
+      texres->tin *= texres->tin; /* Halo. */
     }
   }
 

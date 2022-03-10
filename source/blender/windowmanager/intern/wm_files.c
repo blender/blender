@@ -252,7 +252,9 @@ static void wm_window_substitute_old(wmWindowManager *oldwm,
   oldwin->gpuctx = NULL;
 
   win->eventstate = oldwin->eventstate;
+  win->event_last_handled = oldwin->event_last_handled;
   oldwin->eventstate = NULL;
+  oldwin->event_last_handled = NULL;
 
   /* Ensure proper screen re-scaling. */
   win->sizex = oldwin->sizex;
@@ -1972,7 +1974,7 @@ void wm_autosave_timer_end(wmWindowManager *wm)
   }
 }
 
-void WM_autosave_init(wmWindowManager *wm)
+void WM_file_autosave_init(wmWindowManager *wm)
 {
   wm_autosave_timer_begin(wm);
 }
@@ -2866,7 +2868,7 @@ void WM_OT_revert_mainfile(wmOperatorType *ot)
 /** \name Recover Last Session Operator
  * \{ */
 
-bool WM_recover_last_session(bContext *C, ReportList *reports)
+bool WM_file_recover_last_session(bContext *C, ReportList *reports)
 {
   char filepath[FILE_MAX];
   BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
@@ -2880,7 +2882,7 @@ static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
 {
   wm_open_init_use_scripts(op, true);
   SET_FLAG_FROM_TEST(G.f, RNA_boolean_get(op->ptr, "use_scripts"), G_FLAG_SCRIPT_AUTOEXEC);
-  if (WM_recover_last_session(C, op->reports)) {
+  if (WM_file_recover_last_session(C, op->reports)) {
     if (!G.background) {
       wmOperatorType *ot = op->type;
       PointerRNA *props_ptr = MEM_callocN(sizeof(PointerRNA), __func__);

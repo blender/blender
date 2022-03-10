@@ -1506,10 +1506,18 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
 static void rna_def_curves_sculpt(BlenderRNA *brna)
 {
   StructRNA *srna;
+  PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "CurvesSculpt", "Paint");
   RNA_def_struct_path_func(srna, "rna_CurvesSculpt_path");
   RNA_def_struct_ui_text(srna, "Curves Sculpt Paint", "");
+
+  prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0f, FLT_MAX, 1, 6);
+  RNA_def_property_ui_text(
+      prop, "Distance", "Radius around curves roots in which no new curves can be added");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 }
 
 void RNA_def_sculpt_paint(BlenderRNA *brna)

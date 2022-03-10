@@ -401,6 +401,8 @@ typedef enum eBuildGpencil_Mode {
   GP_BUILD_MODE_SEQUENTIAL = 0,
   /* All strokes start at the same time */
   GP_BUILD_MODE_CONCURRENT = 1,
+  /* Only the new strokes are built */
+  GP_BUILD_MODE_ADDITIVE = 2,
 } eBuildGpencil_Mode;
 
 typedef enum eBuildGpencil_Transition {

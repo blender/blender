@@ -911,7 +911,6 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
       ret_value = op->type->exec(C, op);
       OPERATOR_RETVAL_CHECK(ret_value);
-
       op->customdata = POINTER_FROM_INT((int)event->type);
       if (ret_value & OPERATOR_RUNNING_MODAL) {
         WM_event_add_modal_handler(C, op);
@@ -948,7 +947,7 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
       return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
     }
     /* Important not to return anything other than PASS_THROUGH here,
-     * otherwise it prevents underlying tweak detection code to work properly. */
+     * otherwise it prevents underlying drag detection code to work properly. */
     return OPERATOR_PASS_THROUGH;
   }
 
@@ -957,8 +956,13 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 int WM_generic_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  RNA_int_set(op->ptr, "mouse_x", event->mval[0]);
-  RNA_int_set(op->ptr, "mouse_y", event->mval[1]);
+  ARegion *region = CTX_wm_region(C);
+
+  int mval[2];
+  WM_event_drag_start_mval(event, region, mval);
+
+  RNA_int_set(op->ptr, "mouse_x", mval[0]);
+  RNA_int_set(op->ptr, "mouse_y", mval[1]);
 
   op->customdata = POINTER_FROM_INT(0);
 

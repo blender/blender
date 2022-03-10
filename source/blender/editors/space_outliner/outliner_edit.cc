@@ -225,8 +225,11 @@ static int outliner_item_openclose_invoke(bContext *C, wmOperator *op, const wmE
   const bool toggle_all = RNA_boolean_get(op->ptr, "all");
 
   float view_mval[2];
-  UI_view2d_region_to_view(
-      &region->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
+
+  int mval[2];
+  WM_event_drag_start_mval(event, region, mval);
+
+  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
 
   TreeElement *te = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
 
@@ -240,7 +243,7 @@ static int outliner_item_openclose_invoke(bContext *C, wmOperator *op, const wmE
     outliner_tag_redraw_avoid_rebuild_on_open_change(space_outliner, region);
 
     /* Only toggle once for single click toggling */
-    if (event->type == LEFTMOUSE) {
+    if ((event->type == LEFTMOUSE) && (event->val != KM_CLICK_DRAG)) {
       return OPERATOR_FINISHED;
     }
 

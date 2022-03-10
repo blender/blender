@@ -6,6 +6,7 @@
  */
 
 #include "BLI_math.h"
+#include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_filter.h"
@@ -752,6 +753,61 @@ void IMB_rect_from_float(ImBuf *ibuf)
   ibuf->userflags &= ~IB_RECT_INVALID;
 }
 
+void IMB_float_from_rect_ex(struct ImBuf *dst,
+                            const struct ImBuf *src,
+                            const rcti *region_to_update)
+{
+  BLI_assert_msg(dst->rect_float != NULL,
+                 "Destination buffer should have a float buffer assigned.");
+  BLI_assert_msg(src->rect != NULL, "Source buffer should have a byte buffer assigned.");
+  BLI_assert_msg(dst->x == src->x, "Source and destination buffer should have the same dimension");
+  BLI_assert_msg(dst->y == src->y, "Source and destination buffer should have the same dimension");
+  BLI_assert_msg(dst->channels = 4, "Destination buffer should have 4 channels.");
+  BLI_assert_msg(region_to_update->xmin >= 0,
+                 "Region to update should be clipped to the given buffers.");
+  BLI_assert_msg(region_to_update->ymin >= 0,
+                 "Region to update should be clipped to the given buffers.");
+  BLI_assert_msg(region_to_update->xmax <= dst->x,
+                 "Region to update should be clipped to the given buffers.");
+  BLI_assert_msg(region_to_update->ymax <= dst->y,
+                 "Region to update should be clipped to the given buffers.");
+
+  float *rect_float = dst->rect_float;
+  rect_float += (region_to_update->xmin + region_to_update->ymin * dst->x) * 4;
+  unsigned char *rect = (unsigned char *)src->rect;
+  rect += (region_to_update->xmin + region_to_update->ymin * dst->x) * 4;
+  const int region_width = BLI_rcti_size_x(region_to_update);
+  const int region_height = BLI_rcti_size_y(region_to_update);
+
+  /* Convert byte buffer to float buffer without color or alpha conversion. */
+  IMB_buffer_float_from_byte(rect_float,
+                             rect,
+                             IB_PROFILE_SRGB,
+                             IB_PROFILE_SRGB,
+                             false,
+                             region_width,
+                             region_height,
+                             src->x,
+                             dst->x);
+
+  /* Perform color space conversion from rect color space to linear. */
+  float *float_ptr = rect_float;
+  for (int i = 0; i < region_height; i++) {
+    IMB_colormanagement_colorspace_to_scene_linear(
+        float_ptr, region_width, 1, dst->channels, src->rect_colorspace, false);
+    float_ptr += 4 * dst->x;
+  }
+
+  /* Perform alpha conversion. */
+  if (IMB_alpha_affects_rgb(src)) {
+    float_ptr = rect_float;
+    for (int i = 0; i < region_height; i++) {
+      IMB_premultiply_rect_float(float_ptr, dst->channels, region_width, 1);
+      float_ptr += 4 * dst->x;
+    }
+  }
+}
+
 void IMB_float_from_rect(ImBuf *ibuf)
 {
   float *rect_float;
@@ -775,33 +831,14 @@ void IMB_float_from_rect(ImBuf *ibuf)
     }
 
     ibuf->channels = 4;
-  }
-
-  /* first, create float buffer in non-linear space */
-  IMB_buffer_float_from_byte(rect_float,
-                             (unsigned char *)ibuf->rect,
-                             IB_PROFILE_SRGB,
-                             IB_PROFILE_SRGB,
-                             false,
-                             ibuf->x,
-                             ibuf->y,
-                             ibuf->x,
-                             ibuf->x);
-
-  /* then make float be in linear space */
-  IMB_colormanagement_colorspace_to_scene_linear(
-      rect_float, ibuf->x, ibuf->y, ibuf->channels, ibuf->rect_colorspace, false);
-
-  /* byte buffer is straight alpha, float should always be premul */
-  if (IMB_alpha_affects_rgb(ibuf)) {
-    IMB_premultiply_rect_float(rect_float, ibuf->channels, ibuf->x, ibuf->y);
-  }
-
-  if (ibuf->rect_float == NULL) {
     ibuf->rect_float = rect_float;
     ibuf->mall |= IB_rectfloat;
     ibuf->flags |= IB_rectfloat;
   }
+
+  rcti region_to_update;
+  BLI_rcti_init(&region_to_update, 0, ibuf->x, 0, ibuf->y);
+  IMB_float_from_rect_ex(ibuf, ibuf, &region_to_update);
 }
 
 /** \} */

@@ -2132,11 +2132,7 @@ static bool ui_but_drag_init(bContext *C,
       but->dragpoin = NULL;
 
       if (but->imb) {
-        WM_event_drag_image(drag,
-                            but->imb,
-                            but->imb_scale,
-                            BLI_rctf_size_x(&but->rect),
-                            BLI_rctf_size_y(&but->rect));
+        WM_event_drag_image(drag, but->imb, but->imb_scale);
       }
 
       /* Special feature for assets: We add another drag item that supports multiple assets. It
@@ -3907,8 +3903,8 @@ static void ui_do_but_textedit(
       char ascii = event->ascii;
       const char *utf8_buf = event->utf8_buf;
 
-      /* exception that's useful for number buttons, some keyboard
-       * numpads have a comma instead of a period */
+      /* Exception that's useful for number buttons, some keyboard
+       * numpads have a comma instead of a period. */
       if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER)) { /* Could use `data->min`. */
         if (event->type == EVT_PADPERIOD && ascii == ',') {
           ascii = '.';
@@ -3934,7 +3930,7 @@ static void ui_do_but_textedit(
   }
 
 #ifdef WITH_INPUT_IME
-  if (event->type == WM_IME_COMPOSITE_START || event->type == WM_IME_COMPOSITE_EVENT) {
+  if (ELEM(event->type, WM_IME_COMPOSITE_START, WM_IME_COMPOSITE_EVENT)) {
     changed = true;
 
     if (event->type == WM_IME_COMPOSITE_START && but->selend > but->selsta) {
@@ -8974,7 +8970,7 @@ void ui_but_activate_event(bContext *C, ARegion *region, uiBut *but)
   wm_event_init_from_window(win, &event);
   event.type = EVT_BUT_OPEN;
   event.val = KM_PRESS;
-  event.is_repeat = false;
+  event.flag = 0;
   event.customdata = but;
   event.customdata_free = false;
 
@@ -9377,7 +9373,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 /**
  * Activate the underlying list-row button, so the row is highlighted.
  * Early exits if \a activate_dragging is true, but the custom drag operator fails to execute.
- * Gives the wanted behavior where the item is activated on a tweak event when the custom drag
+ * Gives the wanted behavior where the item is activated on a click-drag event when the custom drag
  * operator is executed.
  */
 static int ui_list_activate_hovered_row(bContext *C,
@@ -9398,7 +9394,9 @@ static int ui_list_activate_hovered_row(bContext *C,
     }
   }
 
-  const int *mouse_xy = ISTWEAK(event->type) ? event->prev_click_xy : event->xy;
+  int mouse_xy[2];
+  WM_event_drag_start_xy(event, mouse_xy);
+
   uiBut *listrow = ui_list_row_find_mouse_over(region, mouse_xy);
   if (listrow) {
     wmOperatorType *custom_activate_optype = ui_list->dyn_data->custom_activate_optype;
@@ -9425,7 +9423,9 @@ static bool ui_list_is_hovering_draggable_but(bContext *C,
                                               const wmEvent *event)
 {
   /* On a tweak event, uses the coordinates from where tweaking was started. */
-  const int *mouse_xy = ISTWEAK(event->type) ? event->prev_click_xy : event->xy;
+  int mouse_xy[2];
+  WM_event_drag_start_xy(event, mouse_xy);
+
   const uiBut *hovered_but = ui_but_find_mouse_over_ex(region, mouse_xy, false, NULL, NULL);
 
   if (list->dyn_data->custom_drag_optype) {
@@ -9442,7 +9442,7 @@ static int ui_list_handle_click_drag(bContext *C,
                                      ARegion *region,
                                      const wmEvent *event)
 {
-  if (!ELEM(event->type, LEFTMOUSE, EVT_TWEAK_L)) {
+  if (event->type != LEFTMOUSE) {
     return WM_HANDLER_CONTINUE;
   }
 
@@ -9452,7 +9452,7 @@ static int ui_list_handle_click_drag(bContext *C,
   bool activate = false;
   bool activate_dragging = false;
 
-  if (event->type == EVT_TWEAK_L) {
+  if (event->val == KM_CLICK_DRAG) {
     if (is_draggable) {
       activate_dragging = true;
       activate = true;
@@ -9462,7 +9462,7 @@ static int ui_list_handle_click_drag(bContext *C,
    * regular events (including mouse presses to start dragging) and this part only kicks in if it
    * hasn't handled the release event. Note that if there's no overlaid button, the row selects
    * on the press event already via regular #UI_BTYPE_LISTROW handling. */
-  else if ((event->type == LEFTMOUSE) && (event->val == KM_CLICK)) {
+  else if (event->val == KM_CLICK) {
     activate = true;
   }
 
@@ -9538,7 +9538,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
     ui_pan_to_scroll(event, &type, &val);
 
     /* 'ui_pan_to_scroll' gives the absolute direction. */
-    if (event->is_direction_inverted) {
+    if (event->flag & WM_EVENT_SCROLL_INVERT) {
       scroll_dir = -1;
     }
 
@@ -9549,7 +9549,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
     }
   }
 
-  if (ELEM(event->type, LEFTMOUSE, EVT_TWEAK_L)) {
+  if (event->type == LEFTMOUSE) {
     retval = ui_list_handle_click_drag(C, ui_list, region, event);
   }
   else if (val == KM_PRESS) {
@@ -10459,7 +10459,7 @@ static int ui_handle_menu_event(bContext *C,
 
             /* Only respond to explicit press to avoid the event that opened the menu
              * activating an item when the key is held. */
-            if (event->is_repeat) {
+            if (event->flag & WM_EVENT_IS_REPEAT) {
               break;
             }
 
@@ -10546,7 +10546,7 @@ static int ui_handle_menu_event(bContext *C,
               ((event->modifier & (KM_SHIFT | KM_CTRL | KM_OSKEY)) == 0) &&
               /* Only respond to explicit press to avoid the event that opened the menu
                * activating an item when the key is held. */
-              !event->is_repeat) {
+              (event->flag & WM_EVENT_IS_REPEAT) == 0) {
             if (ui_menu_pass_event_to_parent_if_nonactive(menu, but, level, retval)) {
               break;
             }

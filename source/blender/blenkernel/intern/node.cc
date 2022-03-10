@@ -553,7 +553,7 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
         BKE_curvemapping_blend_write(writer, (const CurveMapping *)node->storage);
       }
       else if ((ntree->type == NTREE_TEXTURE) &&
-               (node->type == TEX_NODE_CURVE_RGB || node->type == TEX_NODE_CURVE_TIME)) {
+               ELEM(node->type, TEX_NODE_CURVE_RGB, TEX_NODE_CURVE_TIME)) {
         BKE_curvemapping_blend_write(writer, (const CurveMapping *)node->storage);
       }
       else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_MOVIEDISTORTION)) {
@@ -579,7 +579,7 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
         BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
       }
       else if ((ntree->type == NTREE_COMPOSIT) &&
-               (ELEM(node->type, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY))) {
+               ELEM(node->type, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY)) {
         NodeCryptomatte *nc = (NodeCryptomatte *)node->storage;
         BLO_write_string(writer, nc->matte_id);
         LISTBASE_FOREACH (CryptomatteEntry *, entry, &nc->entries) {
@@ -1952,6 +1952,8 @@ void nodeRemoveAllSockets(bNodeTree *ntree, bNode *node)
     }
   }
 
+  BLI_freelistN(&node->internal_links);
+
   LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->inputs) {
     node_socket_free(sock, true);
     MEM_freeN(sock);
@@ -2436,6 +2438,11 @@ void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
 bool nodeLinkIsHidden(const bNodeLink *link)
 {
   return nodeSocketIsHidden(link->fromsock) || nodeSocketIsHidden(link->tosock);
+}
+
+bool nodeLinkIsSelected(const bNodeLink *link)
+{
+  return (link->fromnode->flag & NODE_SELECT) || (link->tonode->flag & NODE_SELECT);
 }
 
 /* Adjust the indices of links connected to the given multi input socket after deleting the link at
@@ -4743,7 +4750,7 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_resample();
   register_node_type_geo_curve_reverse();
   register_node_type_geo_curve_sample();
-  register_node_type_geo_curve_set_handles();
+  register_node_type_geo_curve_set_handle_type();
   register_node_type_geo_curve_spline_parameter();
   register_node_type_geo_curve_spline_type();
   register_node_type_geo_curve_subdivide();

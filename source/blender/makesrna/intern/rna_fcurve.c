@@ -2111,6 +2111,7 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
                            "Interpolation",
                            "Interpolation method to use for segment of the F-Curve from "
                            "this Keyframe until the next Keyframe");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ACTION);
   RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME_PROP, "rna_Keyframe_update");
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -2131,6 +2132,7 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
   prop = RNA_def_property(srna, "back", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "back");
   RNA_def_property_ui_text(prop, "Back", "Amount of overshoot for 'back' easing");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ACTION);
   RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME_PROP, "rna_Keyframe_update");
 
   prop = RNA_def_property(srna, "amplitude", PROP_FLOAT, PROP_NONE);

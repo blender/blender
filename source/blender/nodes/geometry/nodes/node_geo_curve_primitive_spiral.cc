@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_spline.hh"
+#include "BKE_curves.hh"
 
 #include "node_geometry_util.hh"
 
@@ -35,26 +35,23 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static std::unique_ptr<CurveEval> create_spiral_curve(const float rotations,
-                                                      const int resolution,
-                                                      const float start_radius,
-                                                      const float end_radius,
-                                                      const float height,
-                                                      const bool direction)
+static Curves *create_spiral_curve(const float rotations,
+                                   const int resolution,
+                                   const float start_radius,
+                                   const float end_radius,
+                                   const float height,
+                                   const bool direction)
 {
-  std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
-  std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
-
   const int totalpoints = std::max(int(resolution * rotations), 1);
   const float delta_radius = (end_radius - start_radius) / (float)totalpoints;
   const float delta_height = height / (float)totalpoints;
   const float delta_theta = (M_PI * 2 * rotations) / (float)totalpoints *
                             (direction ? 1.0f : -1.0f);
 
-  spline->resize(totalpoints + 1);
-  MutableSpan<float3> positions = spline->positions();
-  spline->radii().fill(1.0f);
-  spline->tilts().fill(0.0f);
+  Curves *curves_id = bke::curves_new_nomain_single(totalpoints + 1, CURVE_TYPE_POLY);
+  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+
+  MutableSpan<float3> positions = curves.positions();
 
   for (const int i : IndexRange(totalpoints + 1)) {
     const float theta = i * delta_theta;
@@ -66,9 +63,7 @@ static std::unique_ptr<CurveEval> create_spiral_curve(const float rotations,
     positions[i] = {x, y, z};
   }
 
-  curve->add_spline(std::move(spline));
-  curve->attributes.reallocate(curve->splines().size());
-  return curve;
+  return curves_id;
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -79,14 +74,13 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  std::unique_ptr<CurveEval> curve = create_spiral_curve(
-      rotations,
-      std::max(params.extract_input<int>("Resolution"), 1),
-      params.extract_input<float>("Start Radius"),
-      params.extract_input<float>("End Radius"),
-      params.extract_input<float>("Height"),
-      params.extract_input<bool>("Reverse"));
-  params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
+  Curves *curves = create_spiral_curve(rotations,
+                                       std::max(params.extract_input<int>("Resolution"), 1),
+                                       params.extract_input<float>("Start Radius"),
+                                       params.extract_input<float>("End Radius"),
+                                       params.extract_input<float>("Height"),
+                                       params.extract_input<bool>("Reverse"));
+  params.set_output("Curve", GeometrySet::create_with_curves(curves));
 }
 
 }  // namespace blender::nodes::node_geo_curve_primitive_spiral_cc

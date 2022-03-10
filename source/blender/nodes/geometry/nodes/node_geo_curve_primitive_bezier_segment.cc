@@ -113,7 +113,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       params.extract_input<float3>("End Handle"),
       std::max(params.extract_input<int>("Resolution"), 1),
       mode);
-  params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
+  params.set_output("Curve", GeometrySet::create_with_curves(curve_eval_to_curves(*curve)));
 }
 
 }  // namespace blender::nodes::node_geo_curve_primitive_bezier_segment_cc

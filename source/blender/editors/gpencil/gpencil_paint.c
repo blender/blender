@@ -447,21 +447,21 @@ static void gpencil_stroke_convertcoords(tGPsdata *p,
     }
 
     float mval_prj[2];
-    float rvec[3], dvec[3];
-    float mval_f[2];
-    float zfac;
+    float rvec[3];
 
     /* Current method just converts each point in screen-coordinates to
      * 3D-coordinates using the 3D-cursor as reference. In general, this
      * works OK, but it could of course be improved. */
 
     gpencil_get_3d_reference(p, rvec);
-    zfac = ED_view3d_calc_zfac(p->region->regiondata, rvec, NULL);
+    const float zfac = ED_view3d_calc_zfac(p->region->regiondata, rvec);
 
     if (ED_view3d_project_float_global(p->region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
         V3D_PROJ_RET_OK) {
-      sub_v2_v2v2(mval_f, mval_prj, mval);
-      ED_view3d_win_to_delta(p->region, mval_f, dvec, zfac);
+      float dvec[3];
+      float xy_delta[2];
+      sub_v2_v2v2(xy_delta, mval_prj, mval);
+      ED_view3d_win_to_delta(p->region, xy_delta, zfac, dvec);
       sub_v3_v3v3(out, rvec, dvec);
     }
     else {
@@ -3325,7 +3325,7 @@ static void gpencil_brush_angle_segment(tGPsdata *p, tGPspoint *pt_prev, tGPspoi
   CLAMP(pt->pressure, GPENCIL_ALPHA_OPACITY_THRESH, 1.0f);
 }
 
-/* Add arc points between two mouse events using the previous segment to determine the vertice of
+/* Add arc points between two mouse events using the previous segment to determine the vertex of
  * the arc.
  *        /+ CTL
  *       / |
@@ -3335,7 +3335,7 @@ static void gpencil_brush_angle_segment(tGPsdata *p, tGPspoint *pt_prev, tGPspoi
  *   /
  *  + PtA - 1
  * /
- * CTL is the vertice of the triangle created between PtA and PtB */
+ * CTL is the vertex of the triangle created between PtA and PtB */
 static void gpencil_add_arc_points(tGPsdata *p, const float mval[2], int segments)
 {
   bGPdata *gpd = p->gpd;
@@ -3649,10 +3649,10 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
                   EVT_PAD7,
                   EVT_PAD8,
                   EVT_PAD9)) {
-      /* allow numpad keys so that camera/view manipulations can still take place
-       * - PAD0 in particular is really important for Grease Pencil drawing,
+      /* Allow numpad keys so that camera/view manipulations can still take place
+       * - #EVT_PAD0 in particular is really important for Grease Pencil drawing,
        *   as animators may be working "to camera", so having this working
-       *   is essential for ensuring that they can quickly return to that view
+       *   is essential for ensuring that they can quickly return to that view.
        */
     }
     else if ((!ELEM(p->paintmode, GP_PAINTMODE_ERASER, GP_PAINTMODE_SET_CP))) {

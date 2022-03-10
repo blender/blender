@@ -255,8 +255,10 @@ static void where_is_ik_bone(bPoseChannel *pchan,
   pchan->flag |= POSE_DONE;
 }
 
-/* called from within the core BKE_pose_where_is loop, all animsystems and constraints
- * were executed & assigned. Now as last we do an IK pass */
+/**
+ * Called from within the core #BKE_pose_where_is loop, all animation-systems and constraints
+ * were executed & assigned. Now as last we do an IK pass.
+ */
 static void execute_posetree(struct Depsgraph *depsgraph,
                              struct Scene *scene,
                              Object *ob,

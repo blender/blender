@@ -654,7 +654,7 @@ GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short scanCode) cons
       }
       else if (vKey == VK_OEM_8) {
         if (PRIMARYLANGID(m_langId) == LANG_FRENCH) {
-          /* oem key; used purely for shortcuts. */
+          /* OEM key; used purely for shortcuts. */
           key = GHOST_kKeyF13;
         }
       }

@@ -2070,6 +2070,11 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
        ICON_PARTICLE_TIP,
        "Concurrent",
        "Multiple strokes appear/disappear at once"},
+      {GP_BUILD_MODE_ADDITIVE,
+       "ADDITIVE",
+       ICON_PARTICLE_PATH,
+       "Additive",
+       "Builds only new strokes (assuming 'additive' drawing)"},
       {0, NULL, 0, NULL, NULL},
   };
 

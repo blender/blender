@@ -77,14 +77,14 @@ static void mesh_bisect_interactive_calc(bContext *C,
   const float *co_ref = rv3d->ofs;
   float co_a_ss[2] = {x_start, y_start}, co_b_ss[2] = {x_end, y_end}, co_delta_ss[2];
   float co_a[3], co_b[3];
-  const float zfac = ED_view3d_calc_zfac(rv3d, co_ref, NULL);
+  const float zfac = ED_view3d_calc_zfac(rv3d, co_ref);
 
   /* view vector */
   ED_view3d_win_to_vector(region, co_a_ss, co_a);
 
   /* view delta */
   sub_v2_v2v2(co_delta_ss, co_a_ss, co_b_ss);
-  ED_view3d_win_to_delta(region, co_delta_ss, co_b, zfac);
+  ED_view3d_win_to_delta(region, co_delta_ss, zfac, co_b);
 
   /* cross both to get a normal */
   cross_v3_v3v3(plane_no, co_a, co_b);

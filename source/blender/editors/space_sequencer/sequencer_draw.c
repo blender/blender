@@ -476,7 +476,7 @@ static void draw_seq_waveform_overlay(View2D *v2d,
 
       bool is_line_strip = (value_max - value_min < 0.05f);
 
-      if (was_line_strip != -1 && is_line_strip != was_line_strip) {
+      if (!ELEM(was_line_strip, -1, is_line_strip)) {
         /* If the previously added strip type isn't the same as the current one,
          * add transition areas so they transition smoothly between each other. */
         if (is_line_strip) {

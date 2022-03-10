@@ -571,7 +571,7 @@ static int multiresbake_image_exec(bContext *C, wmOperator *op)
 
 /* ****************** render BAKING ********************** */
 
-/* catch esc */
+/** Catch escape key to cancel. */
 static int objects_bake_render_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   /* no running blender, remove handler and pass through */

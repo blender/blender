@@ -832,13 +832,13 @@ void ED_view3d_cursor3d_position(bContext *C,
     return;
   }
 
-  ED_view3d_calc_zfac(rv3d, cursor_co, &flip);
+  ED_view3d_calc_zfac_ex(rv3d, cursor_co, &flip);
 
   /* Reset the depth based on the view offset (we _know_ the offset is in front of us). */
   if (flip) {
     negate_v3_v3(cursor_co, rv3d->ofs);
     /* re initialize, no need to check flip again */
-    ED_view3d_calc_zfac(rv3d, cursor_co, NULL /* &flip */);
+    ED_view3d_calc_zfac(rv3d, cursor_co);
   }
 
   if (use_depth) { /* maybe this should be accessed some other way */
@@ -1063,7 +1063,8 @@ static int view3d_cursor3d_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   const enum eV3DCursorOrient orientation = RNA_enum_get(op->ptr, "orientation");
   ED_view3d_cursor3d_update(C, event->mval, use_depth, orientation);
 
-  return OPERATOR_FINISHED;
+  /* Use pass-through to allow click-drag to transform the cursor. */
+  return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 }
 
 void VIEW3D_OT_cursor3d(wmOperatorType *ot)

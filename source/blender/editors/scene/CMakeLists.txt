@@ -9,6 +9,7 @@ set(INC
   ../../makesdna
   ../../makesrna
   ../../windowmanager
+  ../../sequencer
 )
 
 set(INC_SYS

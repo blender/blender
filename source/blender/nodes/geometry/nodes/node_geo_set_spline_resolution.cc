@@ -41,27 +41,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   Field<int> resolution_field = params.extract_input<Field<int>>("Resolution");
 
-  bool only_poly = true;
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (geometry_set.has_curve()) {
-      if (only_poly) {
-        for (const SplinePtr &spline : geometry_set.get_curve_for_read()->splines()) {
-          if (ELEM(spline->type(), CURVE_TYPE_BEZIER, CURVE_TYPE_NURBS)) {
-            only_poly = false;
-            break;
-          }
-        }
-      }
-      set_resolution_in_component(geometry_set.get_component_for_write<CurveComponent>(),
-                                  selection_field,
-                                  resolution_field);
-    }
+    set_resolution_in_component(
+        geometry_set.get_component_for_write<CurveComponent>(), selection_field, resolution_field);
   });
 
-  if (only_poly) {
-    params.error_message_add(NodeWarningType::Warning,
-                             TIP_("Input geometry does not contain a Bezier or NURB spline"));
-  }
   params.set_output("Geometry", std::move(geometry_set));
 }
 

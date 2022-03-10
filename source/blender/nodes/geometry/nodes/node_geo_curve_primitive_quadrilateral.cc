@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_spline.hh"
+#include "BKE_curves.hh"
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -216,13 +216,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometryCurvePrimitiveQuad &storage = node_storage(params.node());
   const GeometryNodeCurvePrimitiveQuadMode mode = (GeometryNodeCurvePrimitiveQuadMode)storage.mode;
 
-  std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
-  std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
-  spline->resize(4);
-  spline->radii().fill(1.0f);
-  spline->tilts().fill(0.0f);
-  spline->set_cyclic(true);
-  MutableSpan<float3> positions = spline->positions();
+  Curves *curves_id = bke::curves_new_nomain_single(4, CURVE_TYPE_POLY);
+  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+  curves.cyclic().first() = true;
+
+  MutableSpan<float3> positions = curves.positions();
 
   switch (mode) {
     case GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE:
@@ -262,9 +260,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
   }
 
-  curve->add_spline(std::move(spline));
-  curve->attributes.reallocate(curve->splines().size());
-  params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
+  params.set_output("Curve", GeometrySet::create_with_curves(curves_id));
 }
 
 }  // namespace blender::nodes::node_geo_curve_primitive_quadrilateral_cc

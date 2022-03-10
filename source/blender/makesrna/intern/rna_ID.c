@@ -744,6 +744,11 @@ static void rna_ID_override_library_operations_update(ID *id,
     return;
   }
 
+  if (ID_IS_LINKED(id)) {
+    BKE_reportf(reports, RPT_ERROR, "ID '%s' is linked, cannot edit its overrides", id->name);
+    return;
+  }
+
   BKE_lib_override_library_operations_create(bmain, id);
 
   WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);

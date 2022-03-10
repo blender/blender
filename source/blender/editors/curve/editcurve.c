@@ -4863,6 +4863,12 @@ bool ED_curve_editnurb_select_pick(
       BKE_curve_nurb_active_set(cu, nu);
     }
 
+    /* Change active material on object. */
+    if (nu->mat_nr != obedit->actcol - 1) {
+      obedit->actcol = nu->mat_nr + 1;
+      WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, NULL);
+    }
+
     if (vc.view_layer->basact != basact) {
       ED_object_base_activate(C, basact);
     }

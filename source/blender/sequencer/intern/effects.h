@@ -15,13 +15,6 @@ struct Scene;
 struct SeqRenderData;
 struct Sequence;
 
-/* **********************************************************************
- * sequencer.c
- *
- * Sequencer editing functions
- * **********************************************************************
- */
-
 struct SeqEffectHandle seq_effect_get_sequence_blend(struct Sequence *seq);
 /**
  * Build frame map when speed in mode #SEQ_SPEED_MULTIPLY is animated.

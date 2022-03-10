@@ -123,7 +123,7 @@ static void bake_progress_update(void *bjv, float progress)
   }
 }
 
-/* catch esc */
+/** Catch escape key to cancel. */
 static int bake_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   /* no running blender, remove handler and pass through */
@@ -301,6 +301,7 @@ static void bake_targets_refresh(BakeTargets *targets)
     Image *ima = targets->images[i].image;
 
     if (ima) {
+      BKE_image_partial_update_mark_full_update(ima);
       LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
         BKE_image_free_gputextures(ima);
         DEG_id_tag_update(&ima->id, 0);

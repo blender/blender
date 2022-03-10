@@ -129,17 +129,17 @@ void initTimeTranslate(TransInfo *t)
 
   initMouseInputMode(t, &t->mouse, INPUT_NONE);
 
-  /* num-input has max of (n-1) */
+  /* Numeric-input has max of (n-1). */
   t->idx_max = 0;
   t->num.flag = 0;
   t->num.idx_max = t->idx_max;
 
-  /* initialize snap like for everything else */
+  /* Initialize snap like for everything else. */
   t->snap[0] = t->snap[1] = 1.0f;
 
   copy_v3_fl(t->num.val_inc, t->snap[0]);
   t->num.unit_sys = t->scene->unit.system;
-  /* No time unit supporting frames currently... */
+  /* No time unit supporting frames currently. */
   t->num.unit_type[0] = B_UNIT_NONE;
 }
 

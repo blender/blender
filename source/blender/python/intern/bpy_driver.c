@@ -162,9 +162,11 @@ static struct {
   /* borrowed reference to the 'self' in 'bpy_pydriver_Dict'
    * keep for as long as the same self is used. */
   PyObject *self;
+  BPy_StructRNA *depsgraph;
 } g_pydriver_state_prev = {
     .evaltime = FLT_MAX,
     .self = NULL,
+    .depsgraph = NULL,
 };
 
 static void bpy_pydriver_namespace_update_frame(const float evaltime)
@@ -199,6 +201,38 @@ static void bpy_pydriver_namespace_clear_self(void)
   }
 }
 
+static PyObject *bpy_pydriver_depsgraph_as_pyobject(struct Depsgraph *depsgraph)
+{
+  struct PointerRNA depsgraph_ptr;
+  RNA_pointer_create(NULL, &RNA_Depsgraph, depsgraph, &depsgraph_ptr);
+  return pyrna_struct_CreatePyObject(&depsgraph_ptr);
+}
+
+/**
+ * Adds a variable 'depsgraph' to the name-space. This can then be used to obtain evaluated
+ * data-blocks, and the current view layer and scene. See T75553.
+ */
+static void bpy_pydriver_namespace_update_depsgraph(struct Depsgraph *depsgraph)
+{
+  /* This should never happen, but it's probably better to have None in Python
+   * than a NULL-wrapping Depsgraph Python struct. */
+  BLI_assert(depsgraph != NULL);
+  if (UNLIKELY(depsgraph == NULL)) {
+    PyDict_SetItem(bpy_pydriver_Dict, bpy_intern_str_depsgraph, Py_None);
+    g_pydriver_state_prev.depsgraph = NULL;
+    return;
+  }
+
+  if ((g_pydriver_state_prev.depsgraph == NULL) ||
+      ((depsgraph != g_pydriver_state_prev.depsgraph->ptr.data))) {
+    PyObject *item = bpy_pydriver_depsgraph_as_pyobject(depsgraph);
+    PyDict_SetItem(bpy_pydriver_Dict, bpy_intern_str_depsgraph, item);
+    Py_DECREF(item);
+
+    g_pydriver_state_prev.depsgraph = (BPy_StructRNA *)item;
+  }
+}
+
 void BPY_driver_reset(void)
 {
   PyGILState_STATE gilstate;
@@ -226,6 +260,7 @@ void BPY_driver_reset(void)
 
   /* freed when clearing driver dict */
   g_pydriver_state_prev.self = NULL;
+  g_pydriver_state_prev.depsgraph = NULL;
 
   if (use_gil) {
     PyGILState_Release(gilstate);
@@ -369,40 +404,6 @@ static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code, PyObject *d
 }
 
 #endif /* USE_BYTECODE_WHITELIST */
-
-static PyObject *bpy_pydriver_depsgraph_as_pyobject(struct Depsgraph *depsgraph)
-{
-  /* This should never happen, but it's probably better to have None in Python
-   * than a NULL-wrapping Depsgraph py struct. */
-  BLI_assert(depsgraph != NULL);
-  if (depsgraph == NULL) {
-    Py_RETURN_NONE;
-  }
-
-  struct PointerRNA depsgraph_ptr;
-  RNA_pointer_create(NULL, &RNA_Depsgraph, depsgraph, &depsgraph_ptr);
-  return pyrna_struct_CreatePyObject(&depsgraph_ptr);
-}
-
-/**
- * Adds a variable 'depsgraph' to the driver variables. This can then be used to obtain evaluated
- * data-blocks, and the current view layer and scene. See T75553.
- */
-static void bpy_pydriver_namespace_add_depsgraph(PyObject *driver_vars,
-                                                 struct Depsgraph *depsgraph)
-{
-  PyObject *py_depsgraph = bpy_pydriver_depsgraph_as_pyobject(depsgraph);
-  const char *depsgraph_variable_name = "depsgraph";
-
-  if (PyDict_SetItemString(driver_vars, depsgraph_variable_name, py_depsgraph) == -1) {
-    fprintf(stderr,
-            "\tBPY_driver_eval() - couldn't add variable '%s' to namespace\n",
-            depsgraph_variable_name);
-    PyErr_Print();
-    PyErr_Clear();
-  }
-}
-
 float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
                       ChannelDriver *driver,
                       ChannelDriver *driver_orig,
@@ -487,6 +488,8 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   else {
     bpy_pydriver_namespace_clear_self();
   }
+
+  bpy_pydriver_namespace_update_depsgraph(anim_eval_context->depsgraph);
 
   if (driver_orig->expr_comp == NULL) {
     driver_orig->flag |= DRIVER_FLAG_RECOMPILE;
@@ -611,8 +614,6 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
     }
   }
 #endif /* USE_BYTECODE_WHITELIST */
-
-  bpy_pydriver_namespace_add_depsgraph(driver_vars, anim_eval_context->depsgraph);
 
 #if 0 /* slow, with this can avoid all Py_CompileString above. */
   /* execute expression to get a value */

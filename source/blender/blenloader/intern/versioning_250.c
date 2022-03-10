@@ -1723,7 +1723,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
         brush->crease_pinch_factor = 0.5f;
       }
 
-      /* will sculpt no vertexes */
+      /* will sculpt no vertices */
       if (brush->plane_trim == 0) {
         brush->plane_trim = 0.5f;
       }

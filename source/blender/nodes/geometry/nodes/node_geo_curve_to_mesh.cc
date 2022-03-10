@@ -27,14 +27,16 @@ static void geometry_set_curve_to_mesh(GeometrySet &geometry_set,
                                        const GeometrySet &profile_set,
                                        const bool fill_caps)
 {
-  const CurveEval *curve = geometry_set.get_curve_for_read();
-  const CurveEval *profile_curve = profile_set.get_curve_for_read();
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
+      *geometry_set.get_curves_for_read());
+  const Curves *profile_curves = profile_set.get_curves_for_read();
 
-  if (profile_curve == nullptr) {
+  if (profile_curves == nullptr) {
     Mesh *mesh = bke::curve_to_wire_mesh(*curve);
     geometry_set.replace_mesh(mesh);
   }
   else {
+    const std::unique_ptr<CurveEval> profile_curve = curves_to_curve_eval(*profile_curves);
     Mesh *mesh = bke::curve_to_mesh_sweep(*curve, *profile_curve, fill_caps);
     geometry_set.replace_mesh(mesh);
   }
@@ -46,10 +48,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet profile_set = params.extract_input<GeometrySet>("Profile Curve");
   const bool fill_caps = params.extract_input<bool>("Fill Caps");
 
-  bool has_curve = false;
+  bool has_curves = false;
   curve_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (geometry_set.has_curve()) {
-      has_curve = true;
+    if (geometry_set.has_curves()) {
+      has_curves = true;
       geometry_set_curve_to_mesh(geometry_set, profile_set, fill_caps);
     }
     geometry_set.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});

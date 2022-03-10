@@ -119,7 +119,7 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
 
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
       MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-      luv->flag |= MLOOPUV_VERTSEL;
+      luv->flag |= (MLOOPUV_VERTSEL | MLOOPUV_EDGESEL);
     }
   }
 

@@ -473,7 +473,8 @@ class _draw_tool_settings_context_mode:
         if (tool is None) or (not tool.has_datablock):
             return False
 
-        paint = context.tool_settings.curves_sculpt
+        tool_settings = context.tool_settings
+        paint = tool_settings.curves_sculpt
         layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
 
         brush = paint.brush
@@ -499,6 +500,10 @@ class _draw_tool_settings_context_mode:
             unified_name="use_unified_strength",
             header=True
         )
+
+        if brush.curves_sculpt_tool == "TEST3":
+            layout.prop(tool_settings.curves_sculpt, "distance")
+
 
 
 class VIEW3D_HT_header(Header):
@@ -1197,23 +1202,24 @@ class VIEW3D_MT_view_viewpoint(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        i18n_text_ctxt = bpy.app.translations.contexts_C_to_py['BLT_I18NCONTEXT_EDITOR_VIEW3D']
 
-        layout.operator("view3d.view_camera", text="Camera")
-
-        layout.separator()
-
-        layout.operator("view3d.view_axis", text="Top").type = 'TOP'
-        layout.operator("view3d.view_axis", text="Bottom").type = 'BOTTOM'
+        layout.operator("view3d.view_camera", text="Camera", text_ctxt=i18n_text_ctxt)
 
         layout.separator()
 
-        layout.operator("view3d.view_axis", text="Front").type = 'FRONT'
-        layout.operator("view3d.view_axis", text="Back").type = 'BACK'
+        layout.operator("view3d.view_axis", text="Top", text_ctxt=i18n_text_ctxt).type = 'TOP'
+        layout.operator("view3d.view_axis", text="Bottom", text_ctxt=i18n_text_ctxt).type = 'BOTTOM'
 
         layout.separator()
 
-        layout.operator("view3d.view_axis", text="Right").type = 'RIGHT'
-        layout.operator("view3d.view_axis", text="Left").type = 'LEFT'
+        layout.operator("view3d.view_axis", text="Front", text_ctxt=i18n_text_ctxt).type = 'FRONT'
+        layout.operator("view3d.view_axis", text="Back", text_ctxt=i18n_text_ctxt).type = 'BACK'
+
+        layout.separator()
+
+        layout.operator("view3d.view_axis", text="Right", text_ctxt=i18n_text_ctxt).type = 'RIGHT'
+        layout.operator("view3d.view_axis", text="Left", text_ctxt=i18n_text_ctxt).type = 'LEFT'
 
 
 class VIEW3D_MT_view_navigation(Menu):
@@ -1279,32 +1285,33 @@ class VIEW3D_MT_view_align_selected(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        i18n_text_ctxt = bpy.app.translations.contexts_C_to_py['BLT_I18NCONTEXT_EDITOR_VIEW3D']
 
-        props = layout.operator("view3d.view_axis", text="Top")
+        props = layout.operator("view3d.view_axis", text="Top", text_ctxt=i18n_text_ctxt)
         props.align_active = True
         props.type = 'TOP'
 
-        props = layout.operator("view3d.view_axis", text="Bottom")
+        props = layout.operator("view3d.view_axis", text="Bottom", text_ctxt=i18n_text_ctxt)
         props.align_active = True
         props.type = 'BOTTOM'
 
         layout.separator()
 
-        props = layout.operator("view3d.view_axis", text="Front")
+        props = layout.operator("view3d.view_axis", text="Front", text_ctxt=i18n_text_ctxt)
         props.align_active = True
         props.type = 'FRONT'
 
-        props = layout.operator("view3d.view_axis", text="Back")
+        props = layout.operator("view3d.view_axis", text="Back", text_ctxt=i18n_text_ctxt)
         props.align_active = True
         props.type = 'BACK'
 
         layout.separator()
 
-        props = layout.operator("view3d.view_axis", text="Right")
+        props = layout.operator("view3d.view_axis", text="Right", text_ctxt=i18n_text_ctxt)
         props.align_active = True
         props.type = 'RIGHT'
 
-        props = layout.operator("view3d.view_axis", text="Left")
+        props = layout.operator("view3d.view_axis", text="Left", text_ctxt=i18n_text_ctxt)
         props.align_active = True
         props.type = 'LEFT'
 
@@ -2383,6 +2390,25 @@ class VIEW3D_MT_object_clear(Menu):
         layout.operator("object.origin_clear", text="Origin")
 
 
+class VIEW3D_MT_motion_path(Menu):
+    bl_label = "Motion Paths"
+
+    def draw(self, _context):
+        layout = self.layout
+        ob = _context.object
+        if ob.mode == 'OBJECT':
+            layout.operator("object.paths_calculate")
+            layout.operator("object.paths_update")
+            layout.operator("object.paths_update_visible")
+            layout.operator("object.paths_clear", text="Clear all").only_selected = False
+            layout.operator("object.paths_clear", text="Clear selected").only_selected = True
+        elif ob.mode == 'POSE':
+            layout.operator("pose.paths_calculate")
+            layout.operator("pose.paths_update")
+            layout.operator("pose.paths_clear", text="Clear all").only_selected = False
+            layout.operator("pose.paths_clear", text="Clear selected").only_selected = True
+
+
 class VIEW3D_MT_object_context_menu(Menu):
     bl_label = "Object Context Menu"
 
@@ -2584,6 +2610,7 @@ class VIEW3D_MT_object_context_menu(Menu):
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_snap")
         layout.menu("VIEW3D_MT_object_parent")
+        layout.menu("VIEW3D_MT_motion_path")
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         if view and view.local_view:
@@ -3631,10 +3658,10 @@ class VIEW3D_MT_pose_context_menu(Menu):
 
         layout.separator()
 
-        layout.operator("pose.paths_calculate", text="Calculate Motion Paths")
-        layout.operator("pose.paths_clear", text="Clear Motion Paths")
-        layout.operator("pose.paths_update", text="Update Armature Motion Paths")
-        layout.operator("object.paths_update_visible", text="Update All Motion Paths")
+        layout.operator("pose.paths_calculate")
+        layout.operator("pose.paths_update")
+        layout.operator("pose.paths_clear", text="Clear all").only_selected = False
+        layout.operator("pose.paths_clear", text="Clear selected").only_selected = True
 
         layout.separator()
 
@@ -7623,6 +7650,7 @@ classes = (
     VIEW3D_MT_object_quick_effects,
     VIEW3D_MT_object_showhide,
     VIEW3D_MT_object_cleanup,
+    VIEW3D_MT_motion_path,
     VIEW3D_MT_make_single_user,
     VIEW3D_MT_make_links,
     VIEW3D_MT_brush_paint_modes,

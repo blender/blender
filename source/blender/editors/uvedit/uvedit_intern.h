@@ -70,11 +70,13 @@ bool uv_find_nearest_vert_multi(struct Scene *scene,
 bool uv_find_nearest_edge(struct Scene *scene,
                           struct Object *obedit,
                           const float co[2],
+                          float penalty,
                           struct UvNearestHit *hit);
 bool uv_find_nearest_edge_multi(struct Scene *scene,
                                 struct Object **objects,
                                 uint objects_len,
                                 const float co[2],
+                                float penalty,
                                 struct UvNearestHit *hit);
 
 /**
@@ -116,6 +118,16 @@ BMLoop *uv_find_nearest_loop_from_edge(struct Scene *scene,
                                        struct BMEdge *e,
                                        const float co[2]);
 
+bool uvedit_vert_is_edge_select_any_other(const struct Scene *scene,
+                                          struct BMLoop *l,
+                                          const int cd_loop_uv_offset);
+bool uvedit_vert_is_face_select_any_other(const struct Scene *scene,
+                                          struct BMLoop *l,
+                                          const int cd_loop_uv_offset);
+bool uvedit_vert_is_all_other_faces_selected(const struct Scene *scene,
+                                             struct BMLoop *l,
+                                             const int cd_loop_uv_offset);
+
 /* utility tool functions */
 
 void uvedit_live_unwrap_update(struct SpaceImage *sima,
@@ -143,8 +155,8 @@ void UV_OT_shortest_path_select(struct wmOperatorType *ot);
 
 /* uvedit_select.c */
 
-bool uvedit_select_is_any_selected(struct Scene *scene, struct Object *obedit);
-bool uvedit_select_is_any_selected_multi(struct Scene *scene,
+bool uvedit_select_is_any_selected(const struct Scene *scene, struct Object *obedit);
+bool uvedit_select_is_any_selected_multi(const struct Scene *scene,
                                          struct Object **objects,
                                          uint objects_len);
 /**
@@ -169,3 +181,5 @@ void UV_OT_select_circle(struct wmOperatorType *ot);
 void UV_OT_select_more(struct wmOperatorType *ot);
 void UV_OT_select_less(struct wmOperatorType *ot);
 void UV_OT_select_overlap(struct wmOperatorType *ot);
+/* Used only when UV sync select is disabled. */
+void UV_OT_select_mode(struct wmOperatorType *ot);

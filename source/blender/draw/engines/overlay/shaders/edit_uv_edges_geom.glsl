@@ -53,11 +53,19 @@ void main()
   vec2 line_dir = normalize(line);
   vec2 line_perp = vec2(-line_dir.y, line_dir.x);
   vec2 edge_ofs = line_perp * sizeViewportInv * ceil(half_size);
+#ifdef USE_EDGE_SELECT
+  /* No blending with edge selection. */
+  float selectFac0 = selectionFac[0];
+  float selectFac1 = selectionFac[0];
+#else
+  float selectFac0 = selectionFac[0];
+  float selectFac1 = selectionFac[1];
+#endif
 
-  do_vertex(pos0, selectionFac[0], stippleStart[0], stipplePos[0], half_size, edge_ofs.xy);
-  do_vertex(pos0, selectionFac[0], stippleStart[0], stipplePos[0], -half_size, -edge_ofs.xy);
-  do_vertex(pos1, selectionFac[1], stippleStart[1], stipplePos[1], half_size, edge_ofs.xy);
-  do_vertex(pos1, selectionFac[1], stippleStart[1], stipplePos[1], -half_size, -edge_ofs.xy);
+  do_vertex(pos0, selectFac0, stippleStart[0], stipplePos[0], half_size, edge_ofs.xy);
+  do_vertex(pos0, selectFac0, stippleStart[0], stipplePos[0], -half_size, -edge_ofs.xy);
+  do_vertex(pos1, selectFac1, stippleStart[1], stipplePos[1], half_size, edge_ofs.xy);
+  do_vertex(pos1, selectFac1, stippleStart[1], stipplePos[1], -half_size, -edge_ofs.xy);
 
   EndPrimitive();
 }

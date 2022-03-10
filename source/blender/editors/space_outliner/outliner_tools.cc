@@ -1705,7 +1705,16 @@ static TreeTraversalAction outliner_find_objects_to_delete(TreeElement *te, void
     return TRAVERSE_SKIP_CHILDS;
   }
 
-  BLI_gset_add(objects_to_delete, tselem->id);
+  ID *id = tselem->id;
+
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    if (!ID_IS_OVERRIDE_LIBRARY_HIERARCHY_ROOT(id)) {
+      /* Only allow deletion of liboverride objects if they are root overrides. */
+      return TRAVERSE_SKIP_CHILDS;
+    }
+  }
+
+  BLI_gset_add(objects_to_delete, id);
 
   return TRAVERSE_CONTINUE;
 }
@@ -2618,7 +2627,7 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
                                  nullptr);
 
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
-      /* ED_undo_push(C, "Refresh Drivers"); No undo needed - shouldn't have any impact? */
+      // ED_undo_push(C, "Refresh Drivers"); /* No undo needed - shouldn't have any impact? */
       break;
 
     case OUTLINER_ANIMOP_CLEAR_DRV:

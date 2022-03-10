@@ -174,7 +174,7 @@ static void GPENCIL_render_result_z(struct RenderLayer *rl,
 
     int pix_ct = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
 
-    /* Convert ogl depth [0..1] to view Z [near..far] */
+    /* Convert GPU depth [0..1] to view Z [near..far] */
     if (DRW_view_is_persp_get(NULL)) {
       for (int i = 0; i < pix_ct; i++) {
         if (rp->rect[i] == 1.0f) {

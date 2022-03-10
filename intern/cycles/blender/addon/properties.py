@@ -216,7 +216,6 @@ enum_direct_light_sampling_type = (
 )
 
 def update_render_passes(self, context):
-    scene = context.scene
     view_layer = context.view_layer
     view_layer.update_render_passes()
 
@@ -1353,7 +1352,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         items=CyclesPreferences.get_device_types,
     )
 
-    devices: bpy.props.CollectionProperty(type=CyclesDeviceSettings)
+    devices: CollectionProperty(type=CyclesDeviceSettings)
 
     peer_memory: BoolProperty(
         name="Distribute memory across devices",
@@ -1514,9 +1513,12 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             row.prop(self, "peer_memory")
 
         if compute_device_type == 'METAL':
-            row = layout.row()
-            row.use_property_split = True
-            row.prop(self, "use_metalrt")
+            import platform
+            # MetalRT only works on Apple Silicon at present, pending argument encoding fixes on AMD
+            if platform.machine() == 'arm64':
+                row = layout.row()
+                row.use_property_split = True
+                row.prop(self, "use_metalrt")
 
 
     def draw(self, context):

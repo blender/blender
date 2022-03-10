@@ -116,14 +116,20 @@
  * - save file or append in movie
  */
 
-/* ********* globals ******** */
+/* -------------------------------------------------------------------- */
+/** \name Globals
+ * \{ */
 
 /* here we store all renders */
 static struct {
   ListBase renderlist;
 } RenderGlobal = {{NULL, NULL}};
 
-/* ********* callbacks ******** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks
+ * \{ */
 
 static void render_callback_exec_null(Render *re, Main *bmain, eCbEvent evt)
 {
@@ -141,7 +147,11 @@ static void render_callback_exec_id(Render *re, Main *bmain, ID *id, eCbEvent ev
   BKE_callback_exec_id(bmain, id, evt);
 }
 
-/* ********* alloc and free ******** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Allocation & Free
+ * \{ */
 
 static int do_write_image_or_movie(Render *re,
                                    Main *bmain,
@@ -308,7 +318,11 @@ static bool render_scene_has_layers_to_render(Scene *scene, ViewLayer *single_la
   return false;
 }
 
-/* *************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public Render API
+ * \{ */
 
 Render *RE_GetRender(const char *name)
 {
@@ -686,7 +700,11 @@ void RE_FreePersistentData(const Scene *scene)
   }
 }
 
-/* ********* initialize state ******** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Initialize State
+ * \{ */
 
 static void re_init_resolution(Render *re, Render *source, int winx, int winy, rcti *disprect)
 {
@@ -905,7 +923,11 @@ void RE_test_break_cb(Render *re, void *handle, int (*f)(void *handle))
   re->tbh = handle;
 }
 
-/* ********* GL Context ******** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name OpenGL Context
+ * \{ */
 
 void RE_gl_context_create(Render *re)
 {
@@ -943,6 +965,16 @@ void *RE_gpu_context_get(Render *re)
   }
   return re->gpu_context;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Render & Composite Scenes (Implementation & Public API)
+ *
+ * Main high-level functions defined here are:
+ * - #RE_RenderFrame
+ * - #RE_RenderAnim
+ * \{ */
 
 /* ************  This part uses API, for rendering Blender scenes ********** */
 
@@ -1940,6 +1972,12 @@ void RE_RenderFreestyleExternal(Render *re)
 }
 #endif
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Read/Write Render Result (Images & Movies)
+ * \{ */
+
 bool RE_WriteRenderViewsImage(
     ReportList *reports, RenderResult *rr, Scene *scene, const bool stamp, char *name)
 {
@@ -2600,11 +2638,6 @@ bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
   return success;
 }
 
-void RE_init_threadcount(Render *re)
-{
-  re->r.threads = BKE_render_num_threads(&re->r);
-}
-
 void RE_layer_load_from_file(
     RenderLayer *layer, ReportList *reports, const char *filename, int x, int y)
 {
@@ -2785,6 +2818,12 @@ RenderPass *RE_create_gp_pass(RenderResult *rr, const char *layername, const cha
   return render_layer_add_pass(rr, rl, 4, RE_PASSNAME_COMBINED, viewname, "RGBA", true);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Miscellaneous Public Render API
+ * \{ */
+
 bool RE_allow_render_generic_object(Object *ob)
 {
   /* override not showing object when duplis are used with particles */
@@ -2796,3 +2835,10 @@ bool RE_allow_render_generic_object(Object *ob)
   }
   return true;
 }
+
+void RE_init_threadcount(Render *re)
+{
+  re->r.threads = BKE_render_num_threads(&re->r);
+}
+
+/** \} */

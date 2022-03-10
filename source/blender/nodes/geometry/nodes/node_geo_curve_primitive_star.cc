@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_spline.hh"
+#include "BKE_curves.hh"
 
 #include "node_geometry_util.hh"
 
@@ -33,19 +33,16 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_("An attribute field with a selection of the outer points"));
 }
 
-static std::unique_ptr<CurveEval> create_star_curve(const float inner_radius,
-                                                    const float outer_radius,
-                                                    const float twist,
-                                                    const int points)
+static Curves *create_star_curve(const float inner_radius,
+                                 const float outer_radius,
+                                 const float twist,
+                                 const int points)
 {
-  std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
-  std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
-  spline->set_cyclic(true);
+  Curves *curves_id = bke::curves_new_nomain_single(points * 2, CURVE_TYPE_POLY);
+  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+  curves.cyclic().first() = true;
 
-  spline->resize(points * 2);
-  MutableSpan<float3> positions = spline->positions();
-  spline->radii().fill(1.0f);
-  spline->tilts().fill(0.0f);
+  MutableSpan<float3> positions = curves.positions();
 
   const float theta_step = (2.0f * M_PI) / float(points);
   for (const int i : IndexRange(points)) {
@@ -58,10 +55,7 @@ static std::unique_ptr<CurveEval> create_star_curve(const float inner_radius,
     positions[i * 2 + 1] = {inner_x, inner_y, 0.0f};
   }
 
-  curve->add_spline(std::move(spline));
-  curve->attributes.reallocate(curve->splines().size());
-
-  return curve;
+  return curves_id;
 }
 
 static void create_selection_output(CurveComponent &component,
@@ -78,12 +72,11 @@ static void create_selection_output(CurveComponent &component,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  std::unique_ptr<CurveEval> curve = create_star_curve(
-      std::max(params.extract_input<float>("Inner Radius"), 0.0f),
-      std::max(params.extract_input<float>("Outer Radius"), 0.0f),
-      params.extract_input<float>("Twist"),
-      std::max(params.extract_input<int>("Points"), 3));
-  GeometrySet output = GeometrySet::create_with_curve(curve.release());
+  Curves *curves = create_star_curve(std::max(params.extract_input<float>("Inner Radius"), 0.0f),
+                                     std::max(params.extract_input<float>("Outer Radius"), 0.0f),
+                                     params.extract_input<float>("Twist"),
+                                     std::max(params.extract_input<int>("Points"), 3));
+  GeometrySet output = GeometrySet::create_with_curves(curves);
 
   if (params.output_is_required("Outer Points")) {
     StrongAnonymousAttributeID attribute_output("Outer Points");

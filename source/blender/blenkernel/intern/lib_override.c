@@ -1063,7 +1063,7 @@ static void lib_override_library_create_post_process(Main *bmain,
             break;
           }
           default:
-            BLI_assert(0);
+            break;
         }
       }
       if (default_instantiating_collection == NULL) {
@@ -2854,6 +2854,7 @@ bool BKE_lib_override_library_status_check_reference(Main *bmain, ID *local)
 
 bool BKE_lib_override_library_operations_create(Main *bmain, ID *local)
 {
+  BLI_assert(!ID_IS_LINKED(local));
   BLI_assert(local->override_library != NULL);
   const bool is_template = (local->override_library->reference == NULL);
   bool created = false;
@@ -2977,6 +2978,12 @@ bool BKE_lib_override_library_main_operations_create(Main *bmain, const bool for
         BKE_lib_override_library_properties_tag(
             id->override_library, IDOVERRIDE_LIBRARY_TAG_UNUSED, false);
       }
+    }
+    else {
+      /* Clear 'unused' tag for un-processed IDs, otherwise e.g. linked overrides will loose their
+       * list of overridden properties. */
+      BKE_lib_override_library_properties_tag(
+          id->override_library, IDOVERRIDE_LIBRARY_TAG_UNUSED, false);
     }
     id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
   }
@@ -3413,7 +3420,7 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
 {
   if (ID_IS_OVERRIDE_LIBRARY_TEMPLATE(local) || ID_IS_OVERRIDE_LIBRARY_VIRTUAL(local)) {
     /* This is actually purely local data with an override template, or one of those embedded IDs
-     * (root node trees, master collections or shapekeys) that cannot have their own override.
+     * (root node trees, master collections or shape-keys) that cannot have their own override.
      * Nothing to do here! */
     return NULL;
   }

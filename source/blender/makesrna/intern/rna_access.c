@@ -2437,7 +2437,7 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
   BLI_assert(RNA_property_type(prop) == PROP_INT);
   BLI_assert(RNA_property_array_check(prop) == false);
   /* useful to check on bad values but set function should clamp */
-  /* BLI_assert(RNA_property_int_clamp(ptr, prop, &value) == 0); */
+  // BLI_assert(RNA_property_int_clamp(ptr, prop, &value) == 0);
 
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
     RNA_property_int_clamp(ptr, prop, &value);
@@ -3812,7 +3812,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
     }
     IDP_AppendArray(idprop, item);
     /* IDP_AppendArray does a shallow copy (memcpy), only free memory. */
-    /* IDP_FreePropertyContent(item); */
+    // IDP_FreePropertyContent(item);
     MEM_freeN(item);
     rna_idproperty_touch(idprop);
   }

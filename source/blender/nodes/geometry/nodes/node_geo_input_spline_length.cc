@@ -19,19 +19,22 @@ static void node_declare(NodeDeclarationBuilder &b)
 static VArray<float> construct_spline_length_gvarray(const CurveComponent &component,
                                                      const AttributeDomain domain)
 {
-  const CurveEval *curve = component.get_for_read();
-  if (curve == nullptr) {
+  if (!component.has_curves()) {
     return {};
   }
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*component.get_for_read());
 
   Span<SplinePtr> splines = curve->splines();
-  auto length_fn = [splines](int i) { return splines[i]->length(); };
+  Array<float> spline_lenghts(splines.size());
+  for (const int i : splines.index_range()) {
+    spline_lenghts[i] = splines[i]->length();
+  }
 
   if (domain == ATTR_DOMAIN_CURVE) {
-    return VArray<float>::ForFunc(splines.size(), length_fn);
+    return VArray<float>::ForContainer(std::move(spline_lenghts));
   }
   if (domain == ATTR_DOMAIN_POINT) {
-    VArray<float> length = VArray<float>::ForFunc(splines.size(), length_fn);
+    VArray<float> length = VArray<float>::ForContainer(std::move(spline_lenghts));
     return component.attribute_try_adapt_domain<float>(
         std::move(length), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
   }
@@ -76,10 +79,10 @@ class SplineLengthFieldInput final : public GeometryFieldInput {
 static VArray<int> construct_spline_count_gvarray(const CurveComponent &component,
                                                   const AttributeDomain domain)
 {
-  const CurveEval *curve = component.get_for_read();
-  if (curve == nullptr) {
+  if (!component.has_curves()) {
     return {};
   }
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*component.get_for_read());
 
   Span<SplinePtr> splines = curve->splines();
   auto count_fn = [splines](int i) { return splines[i]->size(); };

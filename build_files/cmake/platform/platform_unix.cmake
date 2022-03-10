@@ -858,7 +858,7 @@ endif()
 # If atomic operations are possible without libatomic then linker flags are left as-is.
 function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
   # Source which is used to enforce situation when software emulation of atomics is required.
-  # Assume that using 64bit integer gives a definitive asnwer (as in, if 64bit atomic operations
+  # Assume that using 64bit integer gives a definitive answer (as in, if 64bit atomic operations
   # are possible using assembly/intrinsics 8, 16, and 32 bit operations will also be possible.
   set(_source
       "#include <atomic>

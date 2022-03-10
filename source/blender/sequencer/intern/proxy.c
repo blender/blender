@@ -549,18 +549,6 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context,
   }
 }
 
-static bool seq_orig_free_anims(Sequence *seq_iter, void *data)
-{
-  SessionUUID orig_seq_uuid = ((SeqIndexBuildContext *)data)->orig_seq_uuid;
-
-  if (BLI_session_uuid_is_equal(&seq_iter->runtime.session_uuid, &orig_seq_uuid)) {
-    for (StripAnim *sanim = seq_iter->anims.first; sanim; sanim = sanim->next) {
-      IMB_close_anim_proxies(sanim->anim);
-    }
-  }
-  return true;
-}
-
 void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop)
 {
   if (context->index_context) {
@@ -569,9 +557,6 @@ void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop)
     for (sanim = context->seq->anims.first; sanim; sanim = sanim->next) {
       IMB_close_anim_proxies(sanim->anim);
     }
-
-    /* `context->seq_orig` may have been removed during building. */
-    SEQ_for_each_callback(&context->scene->ed->seqbase, seq_orig_free_anims, context);
 
     IMB_anim_index_rebuild_finish(context->index_context, stop);
   }

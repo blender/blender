@@ -7,11 +7,8 @@ class Params:
     __slots__ = (
         "select_mouse",
         "select_mouse_value",
-        "select_tweak",
         "action_mouse",
-        "action_tweak",
         "tool_mouse",
-        "tool_tweak",
         "use_mouse_emulate_3_button",
 
     )
@@ -24,9 +21,7 @@ class Params:
         self.tool_mouse = 'LEFTMOUSE'
         self.select_mouse = 'LEFTMOUSE'
         self.select_mouse_value = 'CLICK'
-        self.select_tweak = 'EVT_TWEAK_L'
-        self.tool_tweak = 'EVT_TWEAK_L'
-        self.action_tweak = 'EVT_TWEAK_R'
+        self.action_mouse = 'RIGHTMOUSE'
         self.use_mouse_emulate_3_button = use_mouse_emulate_3_button
 
 
@@ -103,7 +98,7 @@ def _template_items_animation():
 
 def _template_items_gizmo_tweak_value_drag():
     return [
-        ("gizmogroup.gizmo_tweak", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
+        ("gizmogroup.gizmo_tweak", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
     ]
 
 
@@ -479,10 +474,10 @@ def km_outliner(params):
          {"properties": [("extend", False), ("extend_range", True), ("deselect_all", True)]}),
         ("outliner.item_activate", {"type": 'LEFTMOUSE', "value": 'CLICK', "ctrl": True, "shift": True},
          {"properties": [("extend", True), ("extend_range", True), ("deselect_all", True)]}),
-        ("outliner.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, {"properties": [("tweak", True)]}),
-        ("outliner.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "shift": True},
+        ("outliner.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, {"properties": [("tweak", True)]}),
+        ("outliner.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "shift": True},
          {"properties": [("tweak", True), ("mode", 'ADD')]}),
-        ("outliner.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "ctrl": True},
+        ("outliner.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "ctrl": True},
          {"properties": [("tweak", True), ("mode", 'SUB')]}),
         ("outliner.select_walk", {"type": 'UP_ARROW', "value": 'PRESS', "repeat": True},
          {"properties": [("direction", 'UP')]}),
@@ -504,13 +499,13 @@ def km_outliner(params):
          {"properties": [("all", False)]}),
         ("outliner.item_openclose", {"type": 'LEFTMOUSE', "value": 'CLICK', "shift": True},
          {"properties": [("all", True)]}),
-        ("outliner.item_openclose", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
+        ("outliner.item_openclose", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
          {"properties": [("all", False)]}),
         # Fall through to generic context menu if the item(s) selected have no type specific actions.
         ("outliner.operation", {"type": 'RIGHTMOUSE', "value": 'PRESS'}, None),
         op_menu("OUTLINER_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
-        ("outliner.item_drag_drop", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
-        ("outliner.item_drag_drop", {"type": 'EVT_TWEAK_L', "value": 'ANY', "shift": True}, None),
+        ("outliner.item_drag_drop", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
+        ("outliner.item_drag_drop", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "shift": True}, None),
         ("outliner.show_hierarchy", {"type": 'A', "value": 'PRESS'}, None),
         ("outliner.show_active", {"type": 'PERIOD', "value": 'PRESS'}, None),
         ("outliner.show_active", {"type": 'F', "value": 'PRESS'}, None),
@@ -559,21 +554,21 @@ def km_uv_editor(params):
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         # Selection modes.
         *_template_items_editmode_mesh_select_mode(params),
-        ("wm.context_set_enum", {"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'VERTEX')]}),
-        ("wm.context_set_enum", {"type": 'TWO', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'EDGE')]}),
-        ("wm.context_set_enum", {"type": 'THREE', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'FACE')]}),
-        ("wm.context_set_enum", {"type": 'FOUR', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'ISLAND')]}),
+        ("uv.select_mode", {"type": 'ONE', "value": 'PRESS'},
+         {"properties": [("type", 'VERTEX')]}),
+        ("uv.select_mode", {"type": 'TWO', "value": 'PRESS'},
+         {"properties": [("type", 'EDGE')]}),
+        ("uv.select_mode", {"type": 'THREE', "value": 'PRESS'},
+         {"properties": [("type", 'FACE')]}),
+        ("uv.select_mode", {"type": 'FOUR', "value": 'PRESS'},
+         {"properties": [("type", 'ISLAND')]}),
 
         ("uv.select", {"type": 'LEFTMOUSE', "value": 'CLICK'},
          {"properties": [("extend", False), ("deselect_all", True)]}),
         ("uv.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "shift": True},
          {"properties": [("extend", True), ("deselect_all", False)]}),
 
-        ("transform.translate", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
+        ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         ("uv.select_loop", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK', "shift": True},
          {"properties": [("extend", True)]}),
         ("uv.select_loop", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'},
@@ -742,7 +737,7 @@ def km_view3d(params):
         # Menus.
         op_menu_pie("VIEW3D_MT_snap_pie", {"type": 'X', "value": 'PRESS', "shift": True}),
         # Transform.
-        ("transform.translate", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
+        ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         op_menu_pie("VIEW3D_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
         op_menu_pie("VIEW3D_MT_orientations_pie", {"type": 'COMMA', "value": 'PRESS'}),
         ("view3d.toggle_xray", {"type": 'X', "value": 'PRESS', "alt": True}, None),
@@ -782,9 +777,9 @@ def km_mask_editing(params):
          {"properties": [("deselect", True)]}),
         ("mask.select_box", {"type": 'Q', "value": 'PRESS'}, None),
         ("mask.select_circle", {"type": 'C', "value": 'PRESS'}, None),
-        ("mask.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True, "alt": True},
+        ("mask.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True},
          {"properties": [("mode", 'ADD')]}),
-        ("mask.select_lasso", {"type": params.action_tweak, "value": 'ANY', "shift": True, "ctrl": True, "alt": True},
+        ("mask.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True, "alt": True},
          {"properties": [("mode", 'SUB')]}),
         ("mask.select_more", {"type": 'UP_ARROW', "value": 'PRESS', "repeat": True}, None),
         ("mask.select_less", {"type": 'DOWN_ARROW', "value": 'PRESS', "repeat": True}, None),
@@ -826,7 +821,7 @@ def km_markers(params):
     items.extend([
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
-        ("marker.move", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
+        ("marker.move", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         ("marker.duplicate", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
         ("marker.select", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("marker.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
@@ -906,11 +901,11 @@ def km_graph_editor(params):
          {"properties": [("axis_range", False)]}),
         ("graph.select_box", {"type": 'Q', "value": 'PRESS', "alt": True},
          {"properties": [("axis_range", True)]}),
-        ("graph.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
+        ("graph.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
          {"properties":[("tweak", True), ("axis_range", False), ("mode", 'SET')]}),
-        ("graph.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "shift": True},
+        ("graph.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "shift": True},
          {"properties":[("tweak", True), ("axis_range", False), ("mode", 'ADD')]}),
-        ("graph.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "ctrl": True},
+        ("graph.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "ctrl": True},
          {"properties":[("tweak", True), ("axis_range", False), ("mode", 'SUB')]}),
         ("graph.select_more", {"type": 'UP_ARROW', "value": 'PRESS', "repeat": True}, None),
         ("graph.select_less", {"type": 'DOWN_ARROW', "value": 'PRESS', "repeat": True}, None),
@@ -931,8 +926,8 @@ def km_graph_editor(params):
         ("graph.view_frame", {"type": 'A', "value": 'PRESS', "shift": True}, None),
         ("anim.channels_editable_toggle", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'}, None),
         ("transform.translate", {"type": 'W', "value": 'PRESS'}, None),
-        ("transform.translate", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
-        ("transform.translate", {"type": 'EVT_TWEAK_M', "value": 'ANY'}, None),
+        ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
+        ("transform.translate", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG'}, None),
         ("transform.transform", {"type": 'Y', "value": 'PRESS'},
          {"properties": [("mode", 'TIME_EXTEND')]}),
         ("transform.rotate", {"type": 'E', "value": 'PRESS'}, None),
@@ -1087,20 +1082,20 @@ def km_node_editor(params):
     items.extend(node_select_ops('LEFTMOUSE'))
 
     items.extend([
-        ("node.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
+        ("node.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
          {"properties": [("tweak", True)]}),
-        ("node.select_lasso", {"type": 'EVT_TWEAK_L', "value": 'ANY', "ctrl": True, "alt": True},
+        ("node.select_lasso", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "ctrl": True, "alt": True},
          {"properties": [("mode", 'ADD')]}),
-        ("node.select_lasso", {"type": 'EVT_TWEAK_L', "value": 'ANY', "shift": True, "ctrl": True, "alt": True},
+        ("node.select_lasso", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "shift": True, "ctrl": True, "alt": True},
          {"properties": [("mode", 'SUB')]}),
-        ("node.link", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
+        ("node.link", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
          {"properties": [("detach", False)]}),
-        ("node.link", {"type": 'EVT_TWEAK_L', "value": 'ANY', "ctrl": True},
+        ("node.link", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "ctrl": True},
          {"properties": [("detach", True)]}),
-        ("node.resize", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
-        ("node.add_reroute", {"type": params.action_tweak, "value": 'ANY', "shift": True}, None),
-        ("node.links_cut", {"type": params.action_tweak, "value": 'ANY', "ctrl": True}, None),
-        ("node.links_mute", {"type": params.action_tweak, "value": 'ANY', "ctrl": True, "alt": True}, None),
+        ("node.resize", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
+        ("node.add_reroute", {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True}, None),
+        ("node.links_cut", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True}, None),
+        ("node.links_mute", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
         ("node.select_link_viewer", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         ("node.backimage_fit", {"type": 'A', "value": 'PRESS', "alt": True}, None),
         ("node.backimage_sample", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True}, None),
@@ -1147,15 +1142,15 @@ def km_node_editor(params):
         ("node.viewer_border", {"type": 'Z', "value": 'PRESS'}, None),
         ("node.clear_viewer_border", {"type": 'Z', "value": 'PRESS', "alt": True}, None),
         ("node.translate_attach", {"type": 'W', "value": 'PRESS'}, None),
-        ("node.translate_attach", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
-        ("node.translate_attach", {"type": 'EVT_TWEAK_M', "value": 'ANY'}, None),
+        ("node.translate_attach", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
+        ("node.translate_attach", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG'}, None),
         ("transform.translate", {"type": 'W', "value": 'PRESS'}, None),
-        ("transform.translate", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
+        ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
          {"properties": [("release_confirm", True)]}),
         ("transform.rotate", {"type": 'E', "value": 'PRESS'}, None),
         ("transform.resize", {"type": 'R', "value": 'PRESS'}, None),
-        ("node.move_detach_links_release", {"type": params.action_tweak, "value": 'ANY', "alt": True}, None),
-        ("node.move_detach_links", {"type": 'EVT_TWEAK_L', "value": 'ANY', "alt": True}, None),
+        ("node.move_detach_links_release", {"type": params.action_mouse, "value": 'CLICK_DRAG', "alt": True}, None),
+        ("node.move_detach_links", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "alt": True}, None),
         ("wm.context_toggle", {"type": 'X', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.use_snap')]}),
     ])
@@ -1177,7 +1172,7 @@ def km_info(params):
         ("info.select_pick", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("info.select_pick", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("extend", True)]}),
-        ("info.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
+        ("info.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
          {"properties": [("wait_for_input", False)]}),
         ("info.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True},
          {"properties": [("action", 'SELECT')]}),
@@ -1300,8 +1295,8 @@ def km_file_browser_main(params):
         ("file.next", {"type": 'BUTTON5MOUSE', "value": 'CLICK'}, None),
         ("file.select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, None),
         ("file.select_box", {"type": 'Q', "value": 'PRESS'}, None),
-        ("file.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
-        ("file.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "shift": True},
+        ("file.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
+        ("file.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "shift": True},
          {"properties": [("mode", 'ADD')]}),
         ("file.highlight", {"type": 'MOUSEMOVE', "value": 'ANY', "any": True}, None),
         ("file.sort_column_ui_context", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
@@ -1391,11 +1386,11 @@ def km_dopesheet(params):
          {"properties": [("axis_range", False)]}),
         ("action.select_box", {"type": 'Q', "value": 'PRESS', "alt": True},
          {"properties": [("axis_range", True)]}),
-        ("action.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
+        ("action.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
          {"properties":[("tweak", True), ("axis_range", False), ("wait_for_input", False), ("mode", 'SET')]}),
-        ("action.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "shift": True},
+        ("action.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "shift": True},
          {"properties":[("tweak", True), ("axis_range", False), ("wait_for_input", False), ("mode", 'ADD')]}),
-        ("action.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "ctrl": True},
+        ("action.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "ctrl": True},
          {"properties":[("tweak", True), ("axis_range", False), ("wait_for_input", False), ("mode", 'SUB')]}),
         ("action.select_column", {"type": 'K', "value": 'PRESS'},
          {"properties": [("mode", 'KEYS')]}),
@@ -1430,9 +1425,9 @@ def km_dopesheet(params):
         ("anim.channels_select_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
         ("transform.transform", {"type": 'W', "value": 'PRESS'},
          {"properties": [("mode", 'TIME_TRANSLATE')]}),
-        ("transform.transform", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
+        ("transform.transform", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
          {"properties": [("mode", 'TIME_TRANSLATE')]}),
-        ("transform.transform", {"type": 'EVT_TWEAK_M', "value": 'ANY'},
+        ("transform.transform", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG'},
          {"properties": [("mode", 'TIME_TRANSLATE')]}),
         ("transform.transform", {"type": 'E', "value": 'PRESS'},
          {"properties": [("mode", 'TIME_EXTEND')]}),
@@ -1518,11 +1513,11 @@ def km_nla_editor(params):
          {"properties": [("axis_range", False)]}),
         ("nla.select_box", {"type": 'Q', "value": 'PRESS', "alt": True},
          {"properties": [("axis_range", True)]}),
-        ("nla.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
+        ("nla.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
          {"properties":[("tweak", True), ("mode", 'SET')]}),
-        ("nla.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "shift": True},
+        ("nla.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "shift": True},
          {"properties":[("tweak", True), ("mode", 'ADD')]}),
-        ("nla.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "ctrl": True},
+        ("nla.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "ctrl": True},
          {"properties":[("tweak", True), ("mode", 'SUB')]}),
         ("nla.view_all", {"type": 'A', "value": 'PRESS'}, None),
         ("nla.view_all", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
@@ -1542,9 +1537,9 @@ def km_nla_editor(params):
         ("nla.move_down", {"type": 'PAGE_DOWN', "value": 'PRESS'}, None),
         ("transform.transform", {"type": 'W', "value": 'PRESS'},
          {"properties": [("mode", 'TRANSLATION')]}),
-        ("transform.transform", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
+        ("transform.transform", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
          {"properties": [("mode", 'TRANSLATION')]}),
-        ("transform.transform", {"type": 'EVT_TWEAK_M', "value": 'ANY'},
+        ("transform.transform", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG'},
          {"properties": [("mode", 'TRANSLATION')]}),
         ("transform.transform", {"type": 'E', "value": 'PRESS'},
          {"properties": [("mode", 'TIME_EXTEND')]}),
@@ -1701,7 +1696,7 @@ def km_text(params):
         ("text.scroll_bar", {"type": 'MIDDLEMOUSE', "value": 'PRESS'}, None),
         ("text.scroll", {"type": 'MIDDLEMOUSE', "value": 'PRESS'}, None),
         ("text.scroll", {"type": 'TRACKPADPAN', "value": 'ANY'}, None),
-        ("text.selection_set", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
+        ("text.selection_set", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         ("text.cursor_set", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("text.selection_set", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True}, None),
         ("text.scroll", {"type": 'WHEELUPMOUSE', "value": 'PRESS'},
@@ -1823,19 +1818,19 @@ def km_sequencer(params):
         ("sequencer.select_linked_pick", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "shift": True},
          {"properties": [("extend", True)]}),
         ("sequencer.select_linked", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "ctrl": True}, None),
-        ("sequencer.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY'},
+        ("sequencer.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
          {"properties":[("tweak", True), ("mode", 'SET')]}),
-        ("sequencer.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "shift": True},
+        ("sequencer.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "shift": True},
          {"properties":[("tweak", True), ("mode", 'ADD')]}),
-        ("sequencer.select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "ctrl": True},
+        ("sequencer.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "ctrl": True},
          {"properties":[("tweak", True), ("mode", 'SUB')]}),
         ("sequencer.select_grouped", {"type": 'G', "value": 'PRESS', "shift": True}, None),
         ("sequencer.slip", {"type": 'R', "value": 'PRESS'}, None),
         ("wm.context_set_int", {"type": 'O', "value": 'PRESS'},
          {"properties": [("data_path", 'scene.sequence_editor.overlay_frame'), ("value", 0)]}),
         ("transform.seq_slide", {"type": 'W', "value": 'PRESS'}, None),
-        ("transform.seq_slide", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
-        ("transform.seq_slide", {"type": 'EVT_TWEAK_M', "value": 'ANY'}, None),
+        ("transform.seq_slide", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
+        ("transform.seq_slide", {"type": 'MIDDLEMOUSE', "value": 'CLICK_DRAG'}, None),
         ("transform.transform", {"type": 'E', "value": 'PRESS'},
          {"properties": [("mode", 'TIME_EXTEND')]}),
         *_template_items_context_menu("SEQUENCER_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
@@ -2059,7 +2054,7 @@ def km_clip_editor(params):
         ("wm.context_toggle", {"type": 'M', "value": 'PRESS'},
          {"properties": [("data_path", 'space_data.use_mute_footage')]}),
         ("transform.translate", {"type": 'W', "value": 'PRESS'}, None),
-        ("transform.translate", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
+        ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         ("transform.resize", {"type": 'R', "value": 'PRESS'}, None),
         ("transform.rotate", {"type": 'E', "value": 'PRESS'}, None),
         ("clip.clear_track_path", {"type": 'T', "value": 'PRESS', "alt": True},
@@ -2113,7 +2108,7 @@ def km_clip_graph_editor(params):
         ("clip.graph_disable_markers", {"type": 'D', "value": 'PRESS', "shift": True},
          {"properties": [("action", 'TOGGLE')]}),
         ("transform.translate", {"type": 'W', "value": 'PRESS'}, None),
-        ("transform.translate", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
+        ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         ("transform.resize", {"type": 'R', "value": 'PRESS'}, None),
         ("transform.rotate", {"type": 'E', "value": 'PRESS'}, None),
     ])
@@ -2227,10 +2222,10 @@ def km_animation_channels(params):
         ("anim.channels_select_all", {"type": 'A', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'SELECT')]}),
         ("anim.channels_select_all", {"type": 'A', "value": 'PRESS', "ctrl": True, "shift": True}, {"properties": [("action", 'DESELECT')]}),
         ("anim.channels_select_all", {"type": 'I', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
-        ("anim.channels_select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
-        ("anim.channels_select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "shift": True,},
+        ("anim.channels_select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
+        ("anim.channels_select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "shift": True,},
          {"properties": [("extend", True)]}),
-        ("anim.channels_select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY', "ctrl": True,},
+        ("anim.channels_select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "ctrl": True,},
          {"properties": [("deselect", True)]}),
         # Delete.
         ("anim.channels_delete", {"type": 'BACK_SPACE', "value": 'PRESS'}, None),
@@ -2359,7 +2354,7 @@ def km_grease_pencil_stroke_edit_mode(params):
         # Isolate layer
         ("gpencil.layer_isolate", {"type": 'NUMPAD_ASTERIX', "value": 'PRESS'}, None),
         # Transform tools
-        ("transform.translate", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
+        ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         ("wm.context_toggle", {"type": 'B', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.use_proportional_edit')]}),
         # Vertex group menu
@@ -2482,7 +2477,7 @@ def km_grease_pencil_stroke_paint_erase(params):
         # Box select (used by eraser)
         ("gpencil.select_box", {"type": 'B', "value": 'PRESS'}, None),
         # Lasso select
-        ("gpencil.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True, "alt": True}, None),
+        ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
     ])
 
     return keymap
@@ -3125,7 +3120,7 @@ def km_paint_curve(params):
         ("paintcurve.draw", {"type": 'RET', "value": 'PRESS'}, None),
         ("paintcurve.draw", {"type": 'NUMPAD_ENTER', "value": 'PRESS'}, None),
         ("transform.translate", {"type": 'W', "value": 'PRESS'}, None),
-        ("transform.translate", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
+        ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         ("transform.rotate", {"type": 'E', "value": 'PRESS'}, None),
         ("transform.resize", {"type": 'R', "value": 'PRESS'}, None),
     ])
@@ -4018,9 +4013,9 @@ def km_3d_view_tool_interactive_add(params):
         "3D View Tool: Object, Add Primitive",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("view3d.interactive_add", {"type": params.tool_tweak, "value": 'ANY'},
+            ("view3d.interactive_add", {"type": params.tool_mouse, "value": 'CLICK_DRAG'},
              {"properties": [("wait_for_input", False)]}),
-            ("view3d.interactive_add", {"type": params.tool_tweak, "value": 'ANY', "ctrl": True},
+            ("view3d.interactive_add", {"type": params.tool_mouse, "value": 'CLICK_DRAG', "ctrl": True},
              {"properties": [("wait_for_input", False)]}),
         ]},
     )
@@ -4178,35 +4173,34 @@ def keymap_transform_tool_mmb(keymap):
         r".*\bSelect Lasso$|"
         r".*\bTweak$)",
     )
-    for km_name, km_args, km_content in keymap:
+    for km_name, _km_args, km_content in keymap:
         if re_fallback_tool.match(km_name):
             km_items = km_content["items"]
             km_items_new = []
             for kmi in km_items:
                 ty = kmi[1]["type"]
+                value = kmi[1]["value"]
                 if km_name.endswith(" (fallback)"):
                     if ty == 'RIGHTMOUSE':
                         kmi = (kmi[0], kmi[1].copy(), kmi[2])
                         kmi[1]["type"] = 'LEFTMOUSE'
                         km_items_new.append(kmi)
-                    elif ty == 'EVT_TWEAK_R':
-                        kmi = (kmi[0], kmi[1].copy(), kmi[2])
-                        kmi[1]["type"] = 'EVT_TWEAK_L'
-                        km_items_new.append(kmi)
                 else:
                     if ty == 'LEFTMOUSE':
-                        kmi = (kmi[0], kmi[1].copy(), kmi[2])
-                        kmi[1]["type"] = 'MIDDLEMOUSE'
-                        km_items_new.append(kmi)
-                    elif ty == 'EVT_TWEAK_L':
-                        kmi = (kmi[0], kmi[1].copy(), kmi[2])
-                        if kmi[1]["value"] == 'ANY':
+                        if value == 'CLICK_DRAG':
+                            kmi = (kmi[0], kmi[1].copy(), kmi[2])
+                            if kmi[1].get("direction", 'ANY') == 'ANY':
+                                kmi[1]["type"] = 'MIDDLEMOUSE'
+                                kmi[1]["value"] = 'PRESS'
+                            else:
+                                # Directional tweaking can't be replaced by middle-mouse.
+                                kmi[1]["type"] = 'MIDDLEMOUSE'
+                            km_items_new.append(kmi)
+                        else:
+                            kmi = (kmi[0], kmi[1].copy(), kmi[2])
                             kmi[1]["type"] = 'MIDDLEMOUSE'
                             kmi[1]["value"] = 'PRESS'
-                        else:
-                            # Directional tweaking can't be replaced by middle-mouse.
-                            kmi[1]["type"] = 'EVT_TWEAK_M'
-                        km_items_new.append(kmi)
+                            km_items_new.append(kmi)
             km_items.extend(km_items_new)
 
 

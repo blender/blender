@@ -718,22 +718,6 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
   RNA_property_update(C, &cb->ptr, cb->prop);
 }
 
-static bool image_has_alpha(Image *ima, ImageUser *iuser)
-{
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
-  if (ibuf == NULL) {
-    return false;
-  }
-
-  int imtype = BKE_image_ftype_to_imtype(ibuf->ftype, &ibuf->foptions);
-  char valid_channels = BKE_imtype_valid_channels(imtype, false);
-  bool has_alpha = (valid_channels & IMA_CHAN_FLAG_ALPHA) != 0;
-
-  BKE_image_release_ibuf(ima, ibuf, NULL);
-
-  return has_alpha;
-}
-
 void uiTemplateImage(uiLayout *layout,
                      bContext *C,
                      PointerRNA *ptr,
@@ -943,7 +927,7 @@ void uiTemplateImage(uiLayout *layout,
 
     if (compact == 0) {
       if (ima->source != IMA_SRC_GENERATED) {
-        if (image_has_alpha(ima, iuser)) {
+        if (BKE_image_has_alpha(ima)) {
           uiLayout *sub = uiLayoutColumn(col, false);
           uiItemR(sub, &imaptr, "alpha_mode", 0, IFACE_("Alpha"), ICON_NONE);
 

@@ -22,6 +22,7 @@
 
 #include "PIL_time.h"
 
+#include "BKE_callbacks.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -326,8 +327,7 @@ static void annotation_stroke_convertcoords(tGPsdata *p,
     }
     else {
       float mval_prj[2];
-      float rvec[3], dvec[3];
-      float zfac;
+      float rvec[3];
 
       /* Current method just converts each point in screen-coordinates to
        * 3D-coordinates using the 3D-cursor as reference. In general, this
@@ -339,13 +339,14 @@ static void annotation_stroke_convertcoords(tGPsdata *p,
        */
 
       annotation_get_3d_reference(p, rvec);
-      zfac = ED_view3d_calc_zfac(p->region->regiondata, rvec, NULL);
+      const float zfac = ED_view3d_calc_zfac(p->region->regiondata, rvec);
 
       if (ED_view3d_project_float_global(p->region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
           V3D_PROJ_RET_OK) {
-        float mval_f[2];
-        sub_v2_v2v2(mval_f, mval_prj, mval);
-        ED_view3d_win_to_delta(p->region, mval_f, dvec, zfac);
+        float dvec[3];
+        float xy_delta[2];
+        sub_v2_v2v2(xy_delta, mval_prj, mval);
+        ED_view3d_win_to_delta(p->region, xy_delta, zfac, dvec);
         sub_v3_v3v3(out, rvec, dvec);
       }
       else {
@@ -1509,6 +1510,9 @@ static void annotation_paint_initstroke(tGPsdata *p,
   Scene *scene = p->scene;
   ToolSettings *ts = scene->toolsettings;
 
+  /* Call to the annotation pre handler to notify python the annotation starts. */
+  BKE_callback_exec_id_depsgraph(p->bmain, &p->gpd->id, p->depsgraph, BKE_CB_EVT_ANNOTATION_PRE);
+
   /* get active layer (or add a new one if non-existent) */
   p->gpl = BKE_gpencil_layer_active_get(p->gpd);
   if (p->gpl == NULL) {
@@ -1674,6 +1678,9 @@ static void annotation_paint_strokeend(tGPsdata *p)
     /* transfer stroke to frame */
     annotation_stroke_newfrombuffer(p);
   }
+
+  /* Call to the annotation post handler to notify python the annotation is done. */
+  BKE_callback_exec_id_depsgraph(p->bmain, &p->gpd->id, p->depsgraph, BKE_CB_EVT_ANNOTATION_POST);
 
   /* clean up buffer now */
   annotation_session_validatebuffer(p);
@@ -2466,10 +2473,10 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
                   EVT_PAD7,
                   EVT_PAD8,
                   EVT_PAD9)) {
-      /* allow numpad keys so that camera/view manipulations can still take place
-       * - PAD0 in particular is really important for Grease Pencil drawing,
+      /* Allow numpad keys so that camera/view manipulations can still take place
+       * - #EVT_PAD0 in particular is really important for Grease Pencil drawing,
        *   as animators may be working "to camera", so having this working
-       *   is essential for ensuring that they can quickly return to that view
+       *   is essential for ensuring that they can quickly return to that view.
        */
     }
     else if ((event->type == EVT_BKEY) && (event->val == KM_RELEASE)) {

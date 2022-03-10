@@ -759,7 +759,6 @@ class IMAGE_HT_header(Header):
         ima = sima.image
         iuser = sima.image_user
         tool_settings = context.tool_settings
-        show_region_tool_header = sima.show_region_tool_header
 
         show_render = sima.show_render
         show_uvedit = sima.show_uvedit
@@ -772,14 +771,22 @@ class IMAGE_HT_header(Header):
 
         # UV editing.
         if show_uvedit:
-            uvedit = sima.uv_editor
-
             layout.prop(tool_settings, "use_uv_select_sync", text="")
 
             if tool_settings.use_uv_select_sync:
                 layout.template_edit_mode_selection()
             else:
-                layout.prop(tool_settings, "uv_select_mode", text="", expand=True)
+                row = layout.row(align=True)
+                uv_select_mode = tool_settings.uv_select_mode[:]
+                row.operator("uv.select_mode", text="", icon='UV_VERTEXSEL',
+                             depress=(uv_select_mode == 'VERTEX')).type = 'VERTEX'
+                row.operator("uv.select_mode", text="", icon='UV_EDGESEL',
+                             depress=(uv_select_mode == 'EDGE')).type = 'EDGE'
+                row.operator("uv.select_mode", text="", icon='UV_FACESEL',
+                             depress=(uv_select_mode == 'FACE')).type = 'FACE'
+                row.operator("uv.select_mode", text="", icon='UV_ISLANDSEL',
+                             depress=(uv_select_mode == 'ISLAND')).type = 'ISLAND'
+
                 layout.prop(tool_settings, "uv_sticky_select_mode", icon_only=True)
 
         IMAGE_MT_editor_menus.draw_collapsible(context, layout)
@@ -807,8 +814,6 @@ class IMAGE_HT_header(Header):
         sub.popover(panel="IMAGE_PT_overlay", text="")
 
         if show_uvedit:
-            uvedit = sima.uv_editor
-
             mesh = context.edit_object.data
             layout.prop_search(mesh.uv_layers, "active", mesh, "uv_layers", text="")
 

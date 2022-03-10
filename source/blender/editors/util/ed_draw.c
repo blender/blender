@@ -760,7 +760,7 @@ void ED_region_image_metadata_draw(
   /* find window pixel coordinates of origin */
   GPU_matrix_push();
 
-  /* offset and zoom using ogl */
+  /* Offset and zoom using GPU viewport. */
   GPU_matrix_translate_2f(x, y);
   GPU_matrix_scale_2f(zoomx, zoomy);
 

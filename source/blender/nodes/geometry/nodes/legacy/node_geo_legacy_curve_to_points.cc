@@ -283,19 +283,19 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set = geometry::realize_instances_legacy(geometry_set);
 
-  if (!geometry_set.has_curve()) {
+  if (!geometry_set.has_curves()) {
     params.set_output("Geometry", GeometrySet());
     return;
   }
 
   const CurveComponent &curve_component = *geometry_set.get_component_for_read<CurveComponent>();
-  const CurveEval &curve = *curve_component.get_for_read();
-  const Span<SplinePtr> splines = curve.splines();
-  curve.assert_valid_point_attributes();
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curve_component.get_for_read());
+  const Span<SplinePtr> splines = curve->splines();
+  curve->assert_valid_point_attributes();
 
   evaluate_splines(splines);
 
-  const Array<int> offsets = calculate_spline_point_offsets(params, mode, curve, splines);
+  const Array<int> offsets = calculate_spline_point_offsets(params, mode, *curve, splines);
   const int total_size = offsets.last();
   if (total_size == 0) {
     params.set_output("Geometry", GeometrySet());
@@ -306,7 +306,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   PointCloudComponent &point_component = result.get_component_for_write<PointCloudComponent>();
 
   CurveToPointsResults new_attributes = curve_to_points_create_result_attributes(point_component,
-                                                                                 curve);
+                                                                                 *curve);
   switch (mode) {
     case GEO_NODE_CURVE_RESAMPLE_COUNT:
     case GEO_NODE_CURVE_RESAMPLE_LENGTH:

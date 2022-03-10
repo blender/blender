@@ -244,7 +244,7 @@ FCurve *ED_action_fcurve_ensure(struct Main *bmain,
   return fcu;
 }
 
-/* Helper for update_autoflags_fcurve() */
+/** Helper for #update_autoflags_fcurve(). */
 static void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop)
 {
   /* set additional flags for the F-Curve (i.e. only integer values) */
@@ -304,7 +304,8 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
 /* ************************************************** */
 /* KEYFRAME INSERTION */
 
-/* Move the point where a key is about to be inserted to be inside the main cycle range.
+/**
+ * Move the point where a key is about to be inserted to be inside the main cycle range.
  * Returns the type of the cycle if it is enabled and valid.
  */
 static eFCU_Cycle_Type remap_cyclic_keyframe_location(FCurve *fcu, float *px, float *py)
@@ -345,7 +346,7 @@ static eFCU_Cycle_Type remap_cyclic_keyframe_location(FCurve *fcu, float *px, fl
   return type;
 }
 
-/* Used to make curves newly added to a cyclic Action cycle with the correct period. */
+/** Used to make curves newly added to a cyclic Action cycle with the correct period. */
 static void make_new_fcurve_cyclic(const bAction *act, FCurve *fcu)
 {
   /* The curve must contain one (newly-added) keyframe. */
@@ -652,11 +653,13 @@ enum {
   KEYNEEDED_DELNEXT,
 } /*eKeyNeededStatus*/;
 
-/* This helper function determines whether a new keyframe is needed */
-/* Cases where keyframes should not be added:
- * 1. Keyframe to be added between two keyframes with similar values
- * 2. Keyframe to be added on frame where two keyframes are already situated
- * 3. Keyframe lies at point that intersects the linear line between two keyframes
+/**
+ * This helper function determines whether a new keyframe is needed.
+ *
+ * Cases where keyframes should not be added:
+ * 1. Keyframe to be added between two keyframes with similar values.
+ * 2. Keyframe to be added on frame where two keyframes are already situated.
+ * 3. Keyframe lies at point that intersects the linear line between two keyframes.
  */
 static short new_key_needed(FCurve *fcu, float cFrame, float nValue)
 {
@@ -769,7 +772,7 @@ static short new_key_needed(FCurve *fcu, float cFrame, float nValue)
 
 /* ------------------ RNA Data-Access Functions ------------------ */
 
-/* Try to read value using RNA-properties obtained already */
+/** Try to read value using RNA-properties obtained already. */
 static float *setting_get_rna_values(
     PointerRNA *ptr, PropertyRNA *prop, float *buffer, int buffer_size, int *r_count)
 {
@@ -844,7 +847,8 @@ enum {
   VISUALKEY_SCA,
 };
 
-/* This helper function determines if visual-keyframing should be used when
+/**
+ * This helper function determines if visual-keyframing should be used when
  * inserting keyframes for the given channel. As visual-keyframing only works
  * on Object and Pose-Channel blocks, this should only get called for those
  * blocktypes, when using "standard" keying but 'Visual Keying' option in Auto-Keying
@@ -1012,7 +1016,8 @@ static bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
   return false;
 }
 
-/* This helper function extracts the value to use for visual-keyframing
+/**
+ * This helper function extracts the value to use for visual-keyframing
  * In the event that it is not possible to perform visual keying, try to fall-back
  * to using the default method. Assumes that all data it has been passed is valid.
  */
@@ -1305,7 +1310,7 @@ bool insert_keyframe_direct(ReportList *reports,
   return insert_keyframe_value(reports, &ptr, prop, fcu, anim_eval_context, curval, keytype, flag);
 }
 
-/* Find or create the FCurve based on the given path, and insert the specified value into it. */
+/** Find or create the #FCurve based on the given path, and insert the specified value into it. */
 static bool insert_keyframe_fcurve_value(Main *bmain,
                                          ReportList *reports,
                                          PointerRNA *ptr,
@@ -1829,9 +1834,10 @@ enum {
   COMMONKEY_MODE_DELETE,
 } /*eCommonModifyKey_Modes*/;
 
-/* Polling callback for use with ANIM_*_keyframe() operators
+/**
+ * Polling callback for use with `ANIM_*_keyframe()` operators
  * This is based on the standard ED_operator_areaactive callback,
- * except that it does special checks for a few spacetypes too...
+ * except that it does special checks for a few space-types too.
  */
 static bool modify_key_op_poll(bContext *C)
 {
@@ -1957,7 +1963,8 @@ void ANIM_OT_keyframe_insert_by_name(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* keyingset to use (idname) */
-  prop = RNA_def_string_file_path(ot->srna, "type", "Type", MAX_ID_NAME - 2, "", "");
+  prop = RNA_def_string(
+      ot->srna, "type", NULL, MAX_ID_NAME - 2, "Keying Set", "The Keying Set to use");
   RNA_def_property_flag(prop, PROP_HIDDEN);
   ot->prop = prop;
 }
@@ -2117,7 +2124,8 @@ void ANIM_OT_keyframe_delete_by_name(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* keyingset to use (idname) */
-  prop = RNA_def_string_file_path(ot->srna, "type", "Type", MAX_ID_NAME - 2, "", "");
+  prop = RNA_def_string(
+      ot->srna, "type", NULL, MAX_ID_NAME - 2, "Keying Set", "The Keying Set to use");
   RNA_def_property_flag(prop, PROP_HIDDEN);
   ot->prop = prop;
 }
@@ -2840,13 +2848,12 @@ static bool object_frame_has_keyframe(Object *ob, float frame, short filter)
     }
   }
 
-  /* try shapekey keyframes (if available, and allowed by filter) */
+  /* Try shape-key keyframes (if available, and allowed by filter). */
   if (!(filter & ANIMFILTER_KEYS_LOCAL) && !(filter & ANIMFILTER_KEYS_NOSKEY)) {
     Key *key = BKE_key_from_object(ob);
 
-    /* shapekeys can have keyframes ('Relative Shape Keys')
-     * or depend on time (old 'Absolute Shape Keys')
-     */
+    /* Shape-keys can have keyframes ('Relative Shape Keys')
+     * or depend on time (old 'Absolute Shape Keys'). */
 
     /* 1. test for relative (with keyframes) */
     if (id_frame_has_keyframe((ID *)key, frame, filter)) {

@@ -8,6 +8,7 @@ set(INC
   ../../blentranslation
   ../../bmesh
   ../../depsgraph
+  ../../functions
   ../../gpencil_modifiers
   ../../gpu
   ../../ikplugin
@@ -28,7 +29,7 @@ set(INC
 )
 
 set(SRC
-  object_add.c
+  object_add.cc
   object_bake.c
   object_bake_api.c
   object_collection.c

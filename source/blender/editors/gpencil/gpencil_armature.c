@@ -453,7 +453,7 @@ static void gpencil_object_vgroup_calc_from_armature(const bContext *C,
 
   if (mode == GP_ARMATURE_AUTO) {
     /* Traverse the bone list, trying to fill vertex groups
-     * with the corresponding vertice weights for which the
+     * with the corresponding vertex weights for which the
      * bone is closest.
      */
     gpencil_add_verts_to_dgroups(C, ob, ob_arm, ratio, decay);

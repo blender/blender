@@ -68,7 +68,7 @@ void Mesh::Triangle::verts_for_step(const float3 *verts,
     r_verts[2] = verts[v[2]];
   }
   else {
-    /* Center step not stored in the attribute array array. */
+    /* Center step not stored in the attribute array. */
     if (step > center_step) {
       step--;
     }

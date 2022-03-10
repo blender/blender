@@ -115,6 +115,8 @@ static void curve_free_data(ID *id)
   MEM_SAFE_FREE(curve->str);
   MEM_SAFE_FREE(curve->strinfo);
   MEM_SAFE_FREE(curve->tb);
+
+  delete curve->curve_eval;
 }
 
 static void curve_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -4841,7 +4843,7 @@ bool BKE_nurb_type_convert(Nurb *nu,
       while (a--) {
         if ((type == CU_POLY && bezt->h1 == HD_VECT && bezt->h2 == HD_VECT) ||
             (use_handles == false)) {
-          /* vector handle becomes 1 poly vertice */
+          /* vector handle becomes one poly vertex */
           copy_v3_v3(bp->vec, bezt->vec[1]);
           bp->vec[3] = 1.0;
           bp->f1 = bezt->f2;

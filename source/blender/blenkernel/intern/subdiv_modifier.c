@@ -89,7 +89,7 @@ bool BKE_subsurf_modifier_force_disable_gpu_evaluation_for_mesh(const SubsurfMod
                                                                 const Mesh *mesh)
 {
   if ((U.gpu_flag & USER_GPU_FLAG_SUBDIVISION_EVALUATION) == 0) {
-    /* GPU subdivision is explicitely disabled, so we don't force it. */
+    /* GPU subdivision is explicitly disabled, so we don't force it. */
     return false;
   }
 

@@ -686,7 +686,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
         RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, NULL);
         RNA_property_update(C, &template_ui->ptr, template_ui->prop);
-        undo_push_label = "Override Data-Block";
+        undo_push_label = "Make Local";
       }
       break;
     case UI_ID_ALONE:
@@ -1004,7 +1004,7 @@ static void template_ID(const bContext *C,
       UI_but_flag_enable(but, UI_BUT_REDALERT);
     }
 
-    if (id->lib) {
+    if (ID_IS_LINKED(id)) {
       if (id->tag & LIB_TAG_INDIRECT) {
         but = uiDefIconBut(block,
                            UI_BTYPE_BUT,

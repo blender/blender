@@ -2098,27 +2098,30 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
   MDeformVert *dvert_final = nullptr;
   MDeformVert *dvert_next = nullptr;
   int totnewpoints, oldtotpoints;
-  int i2;
+
+  bool cyclic = (gps->flag & GP_STROKE_CYCLIC) != 0;
 
   for (int s = 0; s < level; s++) {
-    totnewpoints = gps->totpoints - 1;
+    totnewpoints = gps->totpoints;
+    if (!cyclic) {
+      totnewpoints--;
+    }
     /* duplicate points in a temp area */
-    temp_points = (bGPDspoint *)MEM_dupallocN(gps->points);
+    temp_points = gps->points;
     oldtotpoints = gps->totpoints;
 
     /* resize the points arrays */
     gps->totpoints += totnewpoints;
-    gps->points = (bGPDspoint *)MEM_recallocN(gps->points, sizeof(*gps->points) * gps->totpoints);
+    gps->points = (bGPDspoint *)MEM_malloc_arrayN(gps->totpoints, sizeof(*gps->points), __func__);
     if (gps->dvert != nullptr) {
-      temp_dverts = (MDeformVert *)MEM_dupallocN(gps->dvert);
-      gps->dvert = (MDeformVert *)MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * gps->totpoints);
+      temp_dverts = gps->dvert;
+      gps->dvert = (MDeformVert *)MEM_malloc_arrayN(gps->totpoints, sizeof(*gps->dvert), __func__);
     }
 
     /* move points from last to first to new place */
-    i2 = gps->totpoints - 1;
-    for (int i = oldtotpoints - 1; i > 0; i--) {
+    for (int i = 0; i < oldtotpoints; i++) {
       bGPDspoint *pt = &temp_points[i];
-      bGPDspoint *pt_final = &gps->points[i2];
+      bGPDspoint *pt_final = &gps->points[i * 2];
 
       copy_v3_v3(&pt_final->x, &pt->x);
       pt_final->pressure = pt->pressure;
@@ -2131,18 +2134,16 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
 
       if (gps->dvert != nullptr) {
         dvert = &temp_dverts[i];
-        dvert_final = &gps->dvert[i2];
+        dvert_final = &gps->dvert[i * 2];
         dvert_final->totweight = dvert->totweight;
         dvert_final->dw = dvert->dw;
       }
-      i2 -= 2;
     }
     /* interpolate mid points */
-    i2 = 1;
-    for (int i = 0; i < oldtotpoints - 1; i++) {
-      bGPDspoint *pt = &temp_points[i];
-      bGPDspoint *next = &temp_points[i + 1];
-      bGPDspoint *pt_final = &gps->points[i2];
+    for (int i = cyclic ? 0 : 1, j = cyclic ? oldtotpoints - 1 : 0; i < oldtotpoints; j = i, i++) {
+      bGPDspoint *pt = &temp_points[j];
+      bGPDspoint *next = &temp_points[i];
+      bGPDspoint *pt_final = &gps->points[j * 2 + 1];
 
       /* add a half way point */
       interp_v3_v3v3(&pt_final->x, &pt->x, &next->x, 0.5f);
@@ -2155,9 +2156,9 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
       interp_v4_v4v4(pt_final->vert_color, pt->vert_color, next->vert_color, 0.5f);
 
       if (gps->dvert != nullptr) {
-        dvert = &temp_dverts[i];
-        dvert_next = &temp_dverts[i + 1];
-        dvert_final = &gps->dvert[i2];
+        dvert = &temp_dverts[j];
+        dvert_next = &temp_dverts[i];
+        dvert_final = &gps->dvert[j * 2 + 1];
 
         dvert_final->totweight = dvert->totweight;
         dvert_final->dw = (MDeformWeight *)MEM_dupallocN(dvert->dw);
@@ -2172,8 +2173,6 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
           }
         }
       }
-
-      i2 += 2;
     }
 
     MEM_SAFE_FREE(temp_points);
@@ -2181,20 +2180,18 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
 
     /* Move points to smooth stroke (not simple type). */
     if (type != GP_SUBDIV_SIMPLE) {
-      /* duplicate points in a temp area with the new subdivide data */
-      temp_points = (bGPDspoint *)MEM_dupallocN(gps->points);
-
+      float mid[3];
       /* extreme points are not changed */
-      for (int i = 0; i < gps->totpoints - 2; i++) {
-        bGPDspoint *pt = &temp_points[i];
-        bGPDspoint *next = &temp_points[i + 1];
-        bGPDspoint *pt_final = &gps->points[i + 1];
+      for (int i = cyclic ? 0 : 2, j = cyclic ? gps->totpoints - 2 : 0; i < gps->totpoints - 2;
+           j = i, i += 2) {
+        bGPDspoint *prev = &gps->points[j + 1];
+        bGPDspoint *pt = &gps->points[i];
+        bGPDspoint *next = &gps->points[i + 1];
 
         /* move point */
-        interp_v3_v3v3(&pt_final->x, &pt->x, &next->x, 0.5f);
+        interp_v3_v3v3(mid, &prev->x, &next->x, 0.5f);
+        interp_v3_v3v3(&pt->x, mid, &pt->x, 0.5f);
       }
-      /* free temp memory */
-      MEM_SAFE_FREE(temp_points);
     }
   }
 
@@ -2343,7 +2340,7 @@ static int gpencil_walk_edge(GHash *v_table,
       gped_init = &gp_edges[edge];
       idx++;
 
-      /* Avoid to follow already visited vertice. */
+      /* Avoid following already visited vertices. */
       if (reverse) {
         if (BLI_ghash_haskey(v_table, POINTER_FROM_INT(gped->v1))) {
           edge = -1;

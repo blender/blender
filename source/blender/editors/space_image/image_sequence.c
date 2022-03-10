@@ -33,9 +33,8 @@ typedef struct ImageFrame {
 } ImageFrame;
 
 /**
- * Get a list of frames from the list of image files matching the first file
- * name sequence pattern. The files and directory are read from standard
- * fileselect operator properties.
+ * Get a list of frames from the list of image files matching the first file name sequence pattern.
+ * The files and directory are read from standard file-select operator properties.
  *
  * The output is a list of frame ranges, each containing a list of frames with matching names.
  */

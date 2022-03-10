@@ -263,6 +263,16 @@ ccl_device_inline float3 object_color(KernelGlobals kg, int object)
   return make_float3(kobject->color[0], kobject->color[1], kobject->color[2]);
 }
 
+/* Alpha of the object */
+
+ccl_device_inline float object_alpha(KernelGlobals kg, int object)
+{
+  if (object == OBJECT_NONE)
+    return 0.0f;
+
+  return kernel_tex_fetch(__objects, object).alpha;
+}
+
 /* Pass ID number of object */
 
 ccl_device_inline float object_pass_id(KernelGlobals kg, int object)
