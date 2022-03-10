@@ -6229,7 +6229,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
       arg_name = PyUnicode_AsUTF8(key);
       found = false;
 
-      if (arg_name == NULL) { /* Unlikely the argname is not a string, but ignore if it is. */
+      if (arg_name == NULL) { /* Unlikely the `arg_name` is not a string, but ignore if it is. */
         PyErr_Clear();
       }
       else {

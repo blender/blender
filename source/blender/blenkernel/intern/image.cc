@@ -198,7 +198,7 @@ static void image_free_data(ID *id)
 {
   Image *image = (Image *)id;
 
-  /* Also frees animdata. */
+  /* Also frees animations (#Image.anims list). */
   BKE_image_free_buffers(image);
 
   image_free_packedfiles(image);

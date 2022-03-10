@@ -87,7 +87,7 @@ static void sound_free_data(ID *id)
 {
   bSound *sound = (bSound *)id;
 
-  /* No animdata here. */
+  /* No animation-data here. */
 
   if (sound->packedfile) {
     BKE_packedfile_free(sound->packedfile);

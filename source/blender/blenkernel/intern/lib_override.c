@@ -3420,7 +3420,7 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
 {
   if (ID_IS_OVERRIDE_LIBRARY_TEMPLATE(local) || ID_IS_OVERRIDE_LIBRARY_VIRTUAL(local)) {
     /* This is actually purely local data with an override template, or one of those embedded IDs
-     * (root node trees, master collections or shapekeys) that cannot have their own override.
+     * (root node trees, master collections or shape-keys) that cannot have their own override.
      * Nothing to do here! */
     return NULL;
   }

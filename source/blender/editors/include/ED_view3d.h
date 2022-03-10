@@ -646,7 +646,7 @@ bool ED_view3d_win_to_3d_on_plane_int(const struct ARegion *region,
  *
  * \param region: The region (used for the window width and height).
  * \param xy_delta: 2D difference (in pixels) such as `event->mval[0] - other_x`.
- * \param zfac: The depth result typically calculated by by #ED_view3d_calc_zfac
+ * \param zfac: The depth result typically calculated by #ED_view3d_calc_zfac
  * (see it's doc-string for details).
  * \param r_out: The resulting world-space delta.
  */
@@ -661,7 +661,7 @@ void ED_view3d_win_to_delta(const struct ARegion *region,
  * the origin in this case is close to zero coordinate.
  *
  * \param region: The region (used for the window width and height).
- * \param mval: The area relative 2d location (such as event->mval converted to floats).
+ * \param mval: The area relative 2d location (such as `event->mval` converted to float).
  * \param r_out: The resulting normalized world-space direction vector.
  */
 void ED_view3d_win_to_origin(const struct ARegion *region, const float mval[2], float r_out[3]);
@@ -675,7 +675,7 @@ void ED_view3d_win_to_origin(const struct ARegion *region, const float mval[2], 
  * the mouse cursor as a normalized vector.
  *
  * \param region: The region (used for the window width and height).
- * \param mval: The area relative 2d location (such as event->mval converted to floats).
+ * \param mval: The area relative 2d location (such as `event->mval` converted to float).
  * \param r_out: The resulting normalized world-space direction vector.
  */
 void ED_view3d_win_to_vector(const struct ARegion *region, const float mval[2], float r_out[3]);

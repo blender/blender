@@ -615,7 +615,8 @@ bool WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, sho
 /**
  * For running operators with frozen context (modal handlers, menus).
  *
- * \param store: Store settings for re-use.
+ * \param store: Store properties for re-use when an operator has finished
+ * (unless #PROP_SKIP_SAVE is set).
  *
  * \warning do not use this within an operator to call itself! T29537.
  */

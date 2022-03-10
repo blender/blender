@@ -678,7 +678,7 @@ class CurveComponentLegacy : public GeometryComponent {
 };
 
 /**
- * A geometry component that stores a group of curves, corresponding the the #Curves and
+ * A geometry component that stores a group of curves, corresponding the #Curves and
  * #CurvesGeometry types.
  */
 class CurveComponent : public GeometryComponent {

@@ -926,7 +926,7 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
      * unfortunately they can use fully linkable valid IDs too, like actions. Those need to be
      * processed, so we need to recursively deal with them here. */
     /* NOTE: Since we are by-passing checks in `BKE_library_foreach_ID_link` by manually calling it
-     * recursively, we need to take care of potential recursion cases ourselves (e.g.animdata of
+     * recursively, we need to take care of potential recursion cases ourselves (e.g.anim-data of
      * shape-key referencing the shape-key itself).
      * NOTE: in case both IDs (owner and 'used' ones) are non-linkable, we can assume we can break
      * the dependency here. Indeed, either they are both linked in another way (through their own

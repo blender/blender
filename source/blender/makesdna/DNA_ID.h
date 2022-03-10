@@ -609,7 +609,7 @@ typedef struct PreviewImage {
 
 /** id->flag (persistent). */
 enum {
-  /** Don't delete the datablock even if unused. */
+  /** Don't delete the data-block even if unused. */
   LIB_FAKEUSER = 1 << 9,
   /**
    * The data-block is a sub-data of another one.
@@ -617,14 +617,14 @@ enum {
    */
   LIB_EMBEDDED_DATA = 1 << 10,
   /**
-   * Datablock is from a library and linked indirectly, with LIB_TAG_INDIRECT
+   * Data-block is from a library and linked indirectly, with LIB_TAG_INDIRECT
    * tag set. But the current .blend file also has a weak pointer to it that
    * we want to restore if possible, and silently drop if it's missing.
    */
   LIB_INDIRECT_WEAK_LINK = 1 << 11,
   /**
    * The data-block is a sub-data of another one, which is an override.
-   * Note that this also applies to shapekeys, even though they are not 100% embedded data...
+   * Note that this also applies to shape-keys, even though they are not 100% embedded data.
    */
   LIB_EMBEDDED_DATA_LIB_OVERRIDE = 1 << 12,
   /**

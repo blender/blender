@@ -1408,7 +1408,7 @@ void DepsgraphNodeBuilder::build_particle_settings(ParticleSettings *particle_se
   }
 }
 
-/* Shapekeys */
+/* Shape-keys. */
 void DepsgraphNodeBuilder::build_shapekeys(Key *key)
 {
   if (built_map_.checkIsBuiltAndTag(key)) {

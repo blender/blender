@@ -720,7 +720,7 @@ static void node_socket_draw_multi_input(const float color[4],
 {
   /* The other sockets are drawn with the keyframe shader. There, the outline has a base thickness
    * that can be varied but always scales with the size the socket is drawn at. Using `U.dpi_fac`
-   * has the the same effect here. It scales the outline correctly across different screen DPIs
+   * has the same effect here. It scales the outline correctly across different screen DPI's
    * and UI scales without being affected by the 'line-width'. */
   const float outline_width = NODE_SOCK_OUTLINE_SCALE * U.dpi_fac;
 

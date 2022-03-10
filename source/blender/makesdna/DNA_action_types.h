@@ -875,27 +875,27 @@ typedef enum eSAction_Flag {
   SACTION_SHOW_MARKERS = (1 << 14),
 } eSAction_Flag;
 
-/* SpaceAction_Runtime.flag */
+/** #SpaceAction_Runtime.flag */
 typedef enum eSAction_Runtime_Flag {
   /** Temporary flag to force channel selections to be synced with main */
   SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC = (1 << 0),
 } eSAction_Runtime_Flag;
 
-/* SpaceAction Mode Settings */
+/** #SpaceAction.mode */
 typedef enum eAnimEdit_Context {
-  /* action on the active object */
+  /** Action on the active object. */
   SACTCONT_ACTION = 0,
-  /* list of all shapekeys on the active object, linked with their F-Curves */
+  /** List of all shape-keys on the active object, linked with their F-Curves. */
   SACTCONT_SHAPEKEY = 1,
-  /* editing of gpencil data */
+  /** Editing of grease-pencil data. */
   SACTCONT_GPENCIL = 2,
-  /* dopesheet (default) */
+  /** Dope-sheet (default). */
   SACTCONT_DOPESHEET = 3,
-  /* mask */
+  /** Mask. */
   SACTCONT_MASK = 4,
-  /* cache file */
+  /** Cache file */
   SACTCONT_CACHEFILE = 5,
-  /* timeline - replacement for the standalone "timeline editor" */
+  /** Timeline - replacement for the standalone "timeline editor". */
   SACTCONT_TIMELINE = 6,
 } eAnimEdit_Context;
 
