@@ -1155,14 +1155,14 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
   /* Copy and transform handle positions if necessary. */
   if (all_curves_info.create_handle_postion_attributes) {
     if (curves_info.handle_left.is_empty()) {
-      all_handle_left.fill(float3(0));
+      all_handle_left.slice(dst_point_range).fill(float3(0));
     }
     else {
       copy_transformed_positions(
           curves_info.handle_left, task.transform, all_handle_left.slice(dst_point_range));
     }
     if (curves_info.handle_right.is_empty()) {
-      all_handle_right.fill(float3(0));
+      all_handle_right.slice(dst_point_range).fill(float3(0));
     }
     else {
       copy_transformed_positions(
