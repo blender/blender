@@ -4767,14 +4767,14 @@ static void wm_event_prev_values_set(wmEvent *event, wmEvent *event_state)
   event->prev_type = event_state->prev_type = event_state->type;
 }
 
-static void wm_event_prev_click_set(wmEvent *event, wmEvent *event_state)
+static void wm_event_prev_click_set(wmEvent *event_state)
 {
-  event->prev_press_time = event_state->prev_press_time = PIL_check_seconds_timer();
-  event->prev_press_type = event_state->prev_press_type = event_state->type;
-  event->prev_press_modifier = event_state->prev_press_modifier = event_state->modifier;
-  event->prev_press_keymodifier = event_state->prev_press_keymodifier = event_state->keymodifier;
-  event->prev_press_xy[0] = event_state->prev_press_xy[0] = event_state->xy[0];
-  event->prev_press_xy[1] = event_state->prev_press_xy[1] = event_state->xy[1];
+  event_state->prev_press_time = PIL_check_seconds_timer();
+  event_state->prev_press_type = event_state->type;
+  event_state->prev_press_modifier = event_state->modifier;
+  event_state->prev_press_keymodifier = event_state->keymodifier;
+  event_state->prev_press_xy[0] = event_state->xy[0];
+  event_state->prev_press_xy[1] = event_state->xy[1];
 }
 
 static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
@@ -4885,7 +4885,7 @@ static void wm_event_state_update_and_click_set(const GHOST_TEventType type,
   }
   else if (event->val == KM_PRESS) {
     if ((event->flag & WM_EVENT_IS_REPEAT) == 0) {
-      wm_event_prev_click_set(event, event_state);
+      wm_event_prev_click_set(event_state);
     }
   }
 }
