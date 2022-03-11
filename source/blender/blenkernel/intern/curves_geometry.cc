@@ -84,6 +84,42 @@ CurvesGeometry &CurvesGeometry::operator=(const CurvesGeometry &other)
   return *this;
 }
 
+/* The source should be empty, but in a valid state so that using it further will work. */
+static void move_curves_geometry(CurvesGeometry &dst, CurvesGeometry &src)
+{
+  dst.point_size = src.point_size;
+  std::swap(dst.point_data, src.point_data);
+  CustomData_free(&src.point_data, src.point_size);
+  src.point_size = 0;
+
+  dst.curve_size = src.curve_size;
+  std::swap(dst.curve_data, dst.curve_data);
+  CustomData_free(&src.curve_data, src.curve_size);
+  src.curve_size = 0;
+
+  std::swap(dst.curve_offsets, src.curve_offsets);
+  MEM_SAFE_FREE(src.curve_offsets);
+
+  std::swap(dst.runtime, src.runtime);
+
+  src.update_customdata_pointers();
+  dst.update_customdata_pointers();
+}
+
+CurvesGeometry::CurvesGeometry(CurvesGeometry &&other)
+    : CurvesGeometry(other.point_size, other.curve_size)
+{
+  move_curves_geometry(*this, other);
+}
+
+CurvesGeometry &CurvesGeometry::operator=(CurvesGeometry &&other)
+{
+  if (this != &other) {
+    move_curves_geometry(*this, other);
+  }
+  return *this;
+}
+
 CurvesGeometry::~CurvesGeometry()
 {
   CustomData_free(&this->point_data, this->point_size);
@@ -124,6 +160,8 @@ int CurvesGeometry::evaluated_points_size() const
 
 IndexRange CurvesGeometry::range_for_curve(const int index) const
 {
+  BLI_assert(this->curve_size > 0);
+  BLI_assert(this->curve_offsets != nullptr);
   const int offset = this->curve_offsets[index];
   const int offset_next = this->curve_offsets[index + 1];
   return {offset, offset_next - offset};
@@ -131,6 +169,8 @@ IndexRange CurvesGeometry::range_for_curve(const int index) const
 
 IndexRange CurvesGeometry::range_for_curves(const IndexRange curves) const
 {
+  BLI_assert(this->curve_size > 0);
+  BLI_assert(this->curve_offsets != nullptr);
   const int offset = this->curve_offsets[curves.start()];
   const int offset_next = this->curve_offsets[curves.one_after_last()];
   return {offset, offset_next - offset};

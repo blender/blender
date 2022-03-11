@@ -62,7 +62,9 @@ class CurvesGeometry : public ::CurvesGeometry {
    */
   CurvesGeometry(int point_size, int curve_size);
   CurvesGeometry(const CurvesGeometry &other);
+  CurvesGeometry(CurvesGeometry &&other);
   CurvesGeometry &operator=(const CurvesGeometry &other);
+  CurvesGeometry &operator=(CurvesGeometry &&other);
   ~CurvesGeometry();
 
   static CurvesGeometry &wrap(::CurvesGeometry &dna_struct)
