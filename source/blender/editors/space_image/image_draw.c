@@ -541,7 +541,10 @@ void draw_image_cache(const bContext *C, ARegion *region)
     int num_segments = 0;
     int *points = NULL;
 
+    BLI_mutex_lock(image->runtime.cache_mutex);
     IMB_moviecache_get_cache_segments(image->cache, IMB_PROXY_NONE, 0, &num_segments, &points);
+    BLI_mutex_unlock(image->runtime.cache_mutex);
+
     ED_region_cache_draw_cached_segments(
         region, num_segments, points, sfra + sima->iuser.offset, efra + sima->iuser.offset);
   }

@@ -1609,8 +1609,10 @@ void BKE_movieclip_get_cache_segments(MovieClip *clip,
   if (clip->cache) {
     int proxy = rendersize_to_proxy(user, clip->flag);
 
+    BLI_thread_lock(LOCK_MOVIECLIP);
     IMB_moviecache_get_cache_segments(
         clip->cache->moviecache, proxy, user->render_flag, r_totseg, r_points);
+    BLI_thread_unlock(LOCK_MOVIECLIP);
   }
 }
 
