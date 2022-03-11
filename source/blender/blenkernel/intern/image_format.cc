@@ -14,6 +14,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -871,4 +872,40 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
 
   /* planes */
   im_format->planes = imbuf->planes;
+}
+
+/* Color Management */
+
+void BKE_image_format_color_management_copy(ImageFormatData *imf, const ImageFormatData *imf_src)
+{
+  BKE_color_managed_view_settings_free(&imf->view_settings);
+
+  BKE_color_managed_display_settings_copy(&imf->display_settings, &imf_src->display_settings);
+  BKE_color_managed_view_settings_copy(&imf->view_settings, &imf_src->view_settings);
+  BKE_color_managed_colorspace_settings_copy(&imf->linear_colorspace_settings,
+                                             &imf_src->linear_colorspace_settings);
+}
+
+void BKE_image_format_color_management_copy_from_scene(ImageFormatData *imf, const Scene *scene)
+{
+  BKE_color_managed_view_settings_free(&imf->view_settings);
+
+  BKE_color_managed_display_settings_copy(&imf->display_settings, &scene->display_settings);
+  BKE_color_managed_view_settings_copy(&imf->view_settings, &scene->view_settings);
+  STRNCPY(imf->linear_colorspace_settings.name,
+          IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
+}
+
+/* Output */
+
+void BKE_image_format_init_for_write(ImageFormatData *imf,
+                                     const Scene *scene_src,
+                                     const ImageFormatData *imf_src)
+{
+  *imf = (imf_src) ? *imf_src : scene_src->r.im_format;
+
+  /* Use general scene settings also used for display. */
+  BKE_color_managed_display_settings_copy(&imf->display_settings, &scene_src->display_settings);
+  BKE_color_managed_view_settings_copy(&imf->view_settings, &scene_src->view_settings);
+  BKE_color_managed_colorspace_settings_init(&imf->linear_colorspace_settings);
 }

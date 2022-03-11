@@ -49,8 +49,6 @@ void COM_execute(RenderData *render_data,
                  Scene *scene,
                  bNodeTree *node_tree,
                  int rendering,
-                 const ColorManagedViewSettings *view_settings,
-                 const ColorManagedDisplaySettings *display_settings,
                  const char *view_name)
 {
   /* Initialize mutex, TODO: this mutex init is actually not thread safe and
@@ -80,14 +78,8 @@ void COM_execute(RenderData *render_data,
   /* Execute. */
   const bool twopass = (node_tree->flag & NTREE_TWO_PASS) && !rendering;
   if (twopass) {
-    blender::compositor::ExecutionSystem fast_pass(render_data,
-                                                   scene,
-                                                   node_tree,
-                                                   rendering,
-                                                   true,
-                                                   view_settings,
-                                                   display_settings,
-                                                   view_name);
+    blender::compositor::ExecutionSystem fast_pass(
+        render_data, scene, node_tree, rendering, true, view_name);
     fast_pass.execute();
 
     if (node_tree->test_break(node_tree->tbh)) {
@@ -97,7 +89,7 @@ void COM_execute(RenderData *render_data,
   }
 
   blender::compositor::ExecutionSystem system(
-      render_data, scene, node_tree, rendering, false, view_settings, display_settings, view_name);
+      render_data, scene, node_tree, rendering, false, view_name);
   system.execute();
 
   BLI_mutex_unlock(&g_compositor.mutex);

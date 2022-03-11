@@ -19,6 +19,7 @@ extern "C" {
 struct ColorManagedColorspaceSettings;
 struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
+struct ColorManagedOutputSettings;
 struct ColormanageProcessor;
 struct EnumPropertyItem;
 struct ImBuf;
@@ -238,23 +239,10 @@ void IMB_colormanagement_imbuf_make_display_space(
  * in image format write callback and if float_colorspace is not NULL, no color
  * space transformation should be applied on this buffer.
  */
-struct ImBuf *IMB_colormanagement_imbuf_for_write(
-    struct ImBuf *ibuf,
-    bool save_as_render,
-    bool allocate_result,
-    const struct ColorManagedViewSettings *view_settings,
-    const struct ColorManagedDisplaySettings *display_settings,
-    const struct ImageFormatData *image_format_data);
-
-void IMB_colormanagement_buffer_make_display_space(
-    float *buffer,
-    unsigned char *display_buffer,
-    int width,
-    int height,
-    int channels,
-    float dither,
-    const struct ColorManagedViewSettings *view_settings,
-    const struct ColorManagedDisplaySettings *display_settings);
+struct ImBuf *IMB_colormanagement_imbuf_for_write(struct ImBuf *ibuf,
+                                                  bool save_as_render,
+                                                  bool allocate_result,
+                                                  const struct ImageFormatData *image_format);
 
 /** \} */
 

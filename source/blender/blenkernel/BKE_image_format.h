@@ -16,6 +16,7 @@ struct BlendWriter;
 struct ImbFormatOptions;
 struct ImageFormatData;
 struct ImBuf;
+struct Scene;
 
 /* Init/Copy/Free */
 
@@ -74,6 +75,22 @@ char BKE_imtype_from_arg(const char *arg);
 
 void BKE_image_format_from_imbuf(struct ImageFormatData *im_format, const struct ImBuf *imbuf);
 void BKE_image_format_to_imbuf(struct ImBuf *ibuf, const struct ImageFormatData *imf);
+
+/* Color Management */
+
+void BKE_image_format_color_management_copy(struct ImageFormatData *imf,
+                                            const struct ImageFormatData *imf_src);
+void BKE_image_format_color_management_copy_from_scene(struct ImageFormatData *imf,
+                                                       const struct Scene *scene);
+
+/* Image Output
+ *
+ * Initialize an image format that can be used for file writing, including
+ * color management settings from the scene. */
+
+void BKE_image_format_init_for_write(struct ImageFormatData *imf,
+                                     const struct Scene *scene_src,
+                                     const struct ImageFormatData *imf_src);
 
 #ifdef __cplusplus
 }

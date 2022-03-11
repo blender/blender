@@ -2431,15 +2431,12 @@ void IMB_colormanagement_imbuf_make_display_space(
 ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
                                            bool save_as_render,
                                            bool allocate_result,
-                                           const ColorManagedViewSettings *view_settings,
-                                           const ColorManagedDisplaySettings *display_settings,
-                                           const ImageFormatData *image_format_data)
+                                           const ImageFormatData *imf)
 {
   ImBuf *colormanaged_ibuf = ibuf;
-  bool do_colormanagement;
-  bool is_movie = BKE_imtype_is_movie(image_format_data->imtype);
-  bool requires_linear_float = BKE_imtype_requires_linear_float(image_format_data->imtype);
-  bool do_alpha_under = image_format_data->planes != R_IMF_PLANES_RGBA;
+  const bool is_movie = BKE_imtype_is_movie(imf->imtype);
+  const bool requires_linear_float = BKE_imtype_requires_linear_float(imf->imtype);
+  const bool do_alpha_under = imf->planes != R_IMF_PLANES_RGBA;
 
   if (ibuf->rect_float && ibuf->rect &&
       (ibuf->userflags & (IB_DISPLAY_BUFFER_INVALID | IB_RECT_INVALID)) != 0) {
@@ -2447,7 +2444,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
     ibuf->userflags &= ~(IB_RECT_INVALID | IB_DISPLAY_BUFFER_INVALID);
   }
 
-  do_colormanagement = save_as_render && (is_movie || !requires_linear_float);
+  const bool do_colormanagement = save_as_render && (is_movie || !requires_linear_float);
 
   if (do_colormanagement || do_alpha_under) {
     if (allocate_result) {
@@ -2509,8 +2506,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
      * should be pretty safe since this image buffer is supposed to be used for
      * saving only and ftype would be overwritten a bit later by BKE_imbuf_write
      */
-    colormanaged_ibuf->ftype = BKE_imtype_to_ftype(image_format_data->imtype,
-                                                   &colormanaged_ibuf->foptions);
+    colormanaged_ibuf->ftype = BKE_imtype_to_ftype(imf->imtype, &colormanaged_ibuf->foptions);
 
     /* if file format isn't able to handle float buffer itself,
      * we need to allocate byte buffer and store color managed
@@ -2525,15 +2521,15 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
 
     /* perform color space conversions */
     colormanagement_imbuf_make_display_space(
-        colormanaged_ibuf, view_settings, display_settings, make_byte);
+        colormanaged_ibuf, &imf->view_settings, &imf->display_settings, make_byte);
 
     if (colormanaged_ibuf->rect_float) {
       /* float buffer isn't linear anymore,
        * image format write callback should check for this flag and assume
        * no space conversion should happen if ibuf->float_colorspace != NULL
        */
-      colormanaged_ibuf->float_colorspace = display_transform_get_colorspace(view_settings,
-                                                                             display_settings);
+      colormanaged_ibuf->float_colorspace = display_transform_get_colorspace(
+          &imf->view_settings, &imf->display_settings);
     }
   }
 
@@ -2542,45 +2538,6 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
   }
 
   return colormanaged_ibuf;
-}
-
-void IMB_colormanagement_buffer_make_display_space(
-    float *buffer,
-    unsigned char *display_buffer,
-    int width,
-    int height,
-    int channels,
-    float dither,
-    const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings)
-{
-  ColormanageProcessor *cm_processor;
-  size_t float_buffer_size = ((size_t)width) * height * channels * sizeof(float);
-  float *display_buffer_float = MEM_mallocN(float_buffer_size, "byte_buffer_make_display_space");
-
-  /* TODO(sergey): Convert float directly to byte buffer. */
-
-  memcpy(display_buffer_float, buffer, float_buffer_size);
-
-  cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
-
-  processor_transform_apply_threaded(
-      NULL, display_buffer_float, width, height, channels, cm_processor, true, false);
-
-  IMB_buffer_byte_from_float(display_buffer,
-                             display_buffer_float,
-                             channels,
-                             dither,
-                             IB_PROFILE_SRGB,
-                             IB_PROFILE_SRGB,
-                             true,
-                             width,
-                             height,
-                             width,
-                             width);
-
-  MEM_freeN(display_buffer_float);
-  IMB_colormanagement_processor_free(cm_processor);
 }
 
 /** \} */

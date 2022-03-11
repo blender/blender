@@ -1812,11 +1812,7 @@ static int image_save_options_init(Main *bmain,
     }
 
     /* color management */
-    BKE_color_managed_display_settings_copy(&opts->im_format.display_settings,
-                                            &scene->display_settings);
-
-    BKE_color_managed_view_settings_free(&opts->im_format.view_settings);
-    BKE_color_managed_view_settings_copy(&opts->im_format.view_settings, &scene->view_settings);
+    BKE_image_format_color_management_copy_from_scene(&opts->im_format, scene);
   }
 
   BKE_image_release_ibuf(ima, ibuf, lock);

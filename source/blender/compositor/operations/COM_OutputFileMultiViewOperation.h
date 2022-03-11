@@ -18,13 +18,12 @@ namespace blender::compositor {
 class OutputOpenExrSingleLayerMultiViewOperation : public OutputSingleLayerOperation {
  private:
  public:
-  OutputOpenExrSingleLayerMultiViewOperation(const RenderData *rd,
+  OutputOpenExrSingleLayerMultiViewOperation(const Scene *scene,
+                                             const RenderData *rd,
                                              const bNodeTree *tree,
                                              DataType datatype,
                                              ImageFormatData *format,
                                              const char *path,
-                                             const ColorManagedViewSettings *view_settings,
-                                             const ColorManagedDisplaySettings *display_settings,
                                              const char *view_name,
                                              bool save_as_render);
 
@@ -54,14 +53,13 @@ class OutputStereoOperation : public OutputSingleLayerOperation {
   size_t channels_;
 
  public:
-  OutputStereoOperation(const RenderData *rd,
+  OutputStereoOperation(const Scene *scene,
+                        const RenderData *rd,
                         const bNodeTree *tree,
                         DataType datatype,
                         struct ImageFormatData *format,
                         const char *path,
                         const char *name,
-                        const ColorManagedViewSettings *view_settings,
-                        const ColorManagedDisplaySettings *display_settings,
                         const char *view_name,
                         bool save_as_render);
   void *get_handle(const char *filename);

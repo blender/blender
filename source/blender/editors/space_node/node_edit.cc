@@ -18,6 +18,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -274,28 +275,14 @@ static void compo_startjob(void *cjv,
   /* 1 is do_previews */
 
   if ((cj->scene->r.scemode & R_MULTIVIEW) == 0) {
-    ntreeCompositExecTree(cj->scene,
-                          ntree,
-                          &cj->scene->r,
-                          false,
-                          true,
-                          &scene->view_settings,
-                          &scene->display_settings,
-                          "");
+    ntreeCompositExecTree(cj->scene, ntree, &cj->scene->r, false, true, "");
   }
   else {
     LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
       if (BKE_scene_multiview_is_render_view_active(&scene->r, srv) == false) {
         continue;
       }
-      ntreeCompositExecTree(cj->scene,
-                            ntree,
-                            &cj->scene->r,
-                            false,
-                            true,
-                            &scene->view_settings,
-                            &scene->display_settings,
-                            srv->name);
+      ntreeCompositExecTree(cj->scene, ntree, &cj->scene->r, false, true, srv->name);
     }
   }
 

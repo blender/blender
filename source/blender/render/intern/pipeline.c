@@ -1212,14 +1212,8 @@ static void do_render_compositor(Render *re)
 
         RenderView *rv;
         for (rv = re->result->views.first; rv; rv = rv->next) {
-          ntreeCompositExecTree(re->pipeline_scene_eval,
-                                ntree,
-                                &re->r,
-                                true,
-                                G.background == 0,
-                                &re->scene->view_settings,
-                                &re->scene->display_settings,
-                                rv->name);
+          ntreeCompositExecTree(
+              re->pipeline_scene_eval, ntree, &re->r, true, G.background == 0, rv->name);
         }
 
         ntree->stats_draw = NULL;
@@ -1960,17 +1954,19 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
     return false;
   }
 
+  ImageFormatData image_format;
+  BKE_image_format_init_for_write(&image_format, scene, NULL);
+
   const bool is_mono = BLI_listbase_count_at_most(&rr->views, 2) < 2;
   const float dither = scene->r.dither_intensity;
 
-  if (is_mono || (scene->r.im_format.views_format == R_IMF_VIEWS_INDIVIDUAL)) {
+  if (is_mono || (image_format.views_format == R_IMF_VIEWS_INDIVIDUAL)) {
     int view_id;
     for (view_id = 0; view_id < totvideos; view_id++) {
       const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, view_id);
       ImBuf *ibuf = RE_render_result_rect_to_ibuf(rr, &rd->im_format, dither, view_id);
 
-      IMB_colormanagement_imbuf_for_write(
-          ibuf, true, false, &scene->view_settings, &scene->display_settings, &scene->r.im_format);
+      IMB_colormanagement_imbuf_for_write(ibuf, true, false, &image_format);
 
       ok &= mh->append_movie(movie_ctx_arr[view_id],
                              rd,
@@ -1992,21 +1988,16 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
     ImBuf *ibuf_arr[3] = {NULL};
     int i;
 
-    BLI_assert((totvideos == 1) && (scene->r.im_format.views_format == R_IMF_VIEWS_STEREO_3D));
+    BLI_assert((totvideos == 1) && (image_format.views_format == R_IMF_VIEWS_STEREO_3D));
 
     for (i = 0; i < 2; i++) {
       int view_id = BLI_findstringindex(&rr->views, names[i], offsetof(RenderView, name));
       ibuf_arr[i] = RE_render_result_rect_to_ibuf(rr, &rd->im_format, dither, view_id);
 
-      IMB_colormanagement_imbuf_for_write(ibuf_arr[i],
-                                          true,
-                                          false,
-                                          &scene->view_settings,
-                                          &scene->display_settings,
-                                          &scene->r.im_format);
+      IMB_colormanagement_imbuf_for_write(ibuf_arr[i], true, false, &image_format);
     }
 
-    ibuf_arr[2] = IMB_stereo3d_ImBuf(&scene->r.im_format, ibuf_arr[0], ibuf_arr[1]);
+    ibuf_arr[2] = IMB_stereo3d_ImBuf(&image_format, ibuf_arr[0], ibuf_arr[1]);
 
     ok = mh->append_movie(movie_ctx_arr[0],
                           rd,
@@ -2023,6 +2014,8 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
       IMB_freeImBuf(ibuf_arr[i]);
     }
   }
+
+  BKE_image_format_free(&image_format);
 
   return ok;
 }
