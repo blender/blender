@@ -392,13 +392,13 @@ static void rna_def_camera_stereo_data(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
   prop = RNA_def_property(srna, "pole_merge_angle_from", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_range(prop, 0.0f, M_PI / 2.0);
+  RNA_def_property_range(prop, 0.0f, M_PI_2);
   RNA_def_property_ui_text(
       prop, "Pole Merge Start Angle", "Angle at which interocular distance starts to fade to 0");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
   prop = RNA_def_property(srna, "pole_merge_angle_to", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_range(prop, 0.0f, M_PI / 2.0);
+  RNA_def_property_range(prop, 0.0f, M_PI_2);
   RNA_def_property_ui_text(
       prop, "Pole Merge End Angle", "Angle at which interocular distance is 0");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);

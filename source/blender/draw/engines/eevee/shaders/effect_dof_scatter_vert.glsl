@@ -103,7 +103,7 @@ void main()
   color4 = colors[3] * weights[3];
 
   /* Extend to cover at least the unit circle */
-  const float extend = (cos(M_PI / 4.0) + 1.0) * 2.0;
+  const float extend = (cos(M_PI_4) + 1.0) * 2.0;
   /* Crappy diagram
    * ex 1
    *    | \

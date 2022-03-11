@@ -2984,7 +2984,7 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "falloff_angle", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "falloff_angle");
-  RNA_def_property_range(prop, 0, M_PI / 2);
+  RNA_def_property_range(prop, 0, M_PI_2);
   RNA_def_property_ui_text(
       prop,
       "Falloff Angle",

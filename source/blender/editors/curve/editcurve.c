@@ -4906,7 +4906,7 @@ bool ed_editnurb_spin(
   copy_m3_m4(bmat, obedit->obmat);
   invert_m3_m3(imat, bmat);
 
-  axis_angle_to_mat3(cmat, axis, M_PI / 4.0);
+  axis_angle_to_mat3(cmat, axis, M_PI_4);
   mul_m3_m3m3(tmat, cmat, bmat);
   mul_m3_m3m3(rotmat, imat, tmat);
 

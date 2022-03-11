@@ -1153,16 +1153,16 @@ static int view_axis_exec(bContext *C, wmOperator *op)
     float quat_test[4];
 
     if (viewnum == RV3D_VIEW_LEFT) {
-      axis_angle_to_quat(quat_rotate, rv3d->viewinv[1], -M_PI / 2.0f);
+      axis_angle_to_quat(quat_rotate, rv3d->viewinv[1], -M_PI_2);
     }
     else if (viewnum == RV3D_VIEW_RIGHT) {
-      axis_angle_to_quat(quat_rotate, rv3d->viewinv[1], M_PI / 2.0f);
+      axis_angle_to_quat(quat_rotate, rv3d->viewinv[1], M_PI_2);
     }
     else if (viewnum == RV3D_VIEW_TOP) {
-      axis_angle_to_quat(quat_rotate, rv3d->viewinv[0], -M_PI / 2.0f);
+      axis_angle_to_quat(quat_rotate, rv3d->viewinv[0], -M_PI_2);
     }
     else if (viewnum == RV3D_VIEW_BOTTOM) {
-      axis_angle_to_quat(quat_rotate, rv3d->viewinv[0], M_PI / 2.0f);
+      axis_angle_to_quat(quat_rotate, rv3d->viewinv[0], M_PI_2);
     }
     else if (viewnum == RV3D_VIEW_FRONT) {
       unit_qt(quat_rotate);

@@ -7106,7 +7106,7 @@ static void find_even_superellipse_chords(int n, float r, double *xvals, double 
     return;
   }
   if (r == PRO_CIRCLE_R) {
-    double temp = (M_PI / 2) / n;
+    double temp = M_PI_2 / n;
     /* Angle spacing. */
     for (int i = 0; i <= n; i++) {
       xvals[i] = sin(i * temp);

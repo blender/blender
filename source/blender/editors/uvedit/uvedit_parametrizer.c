@@ -2059,7 +2059,7 @@ static float p_collapse_cost(PEdge *edge, PEdge *pair)
       a1 = a1 - M_PI / 3.0;
       a2 = a2 - M_PI / 3.0;
       a3 = a3 - M_PI / 3.0;
-      shapeold = (a1 * a1 + a2 * a2 + a3 * a3) / ((M_PI / 2) * (M_PI / 2));
+      shapeold = (a1 * a1 + a2 * a2 + a3 * a3) / (M_PI_2 * M_PI_2);
 
       nshapeold++;
     }
@@ -2068,7 +2068,7 @@ static float p_collapse_cost(PEdge *edge, PEdge *pair)
       a1 = a1 - M_PI / 3.0;
       a2 = a2 - M_PI / 3.0;
       a3 = a3 - M_PI / 3.0;
-      shapenew = (a1 * a1 + a2 * a2 + a3 * a3) / ((M_PI / 2) * (M_PI / 2));
+      shapenew = (a1 * a1 + a2 * a2 + a3 * a3) / (M_PI_2 * M_PI_2);
 
       nshapenew++;
     }
@@ -3730,7 +3730,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
   minarea = 1e10;
   minangle = 0.0;
 
-  while (rotated <= (float)(M_PI / 2.0)) { /* INVESTIGATE: how far to rotate? */
+  while (rotated <= (float)M_PI_2) { /* INVESTIGATE: how far to rotate? */
     /* rotate with the smallest angle */
     i_min = 0;
     mina = 1e10;
@@ -3777,8 +3777,8 @@ static float p_chart_minimum_area_angle(PChart *chart)
   }
 
   /* try keeping rotation as small as possible */
-  if (minangle > (float)(M_PI / 4)) {
-    minangle -= (float)(M_PI / 2.0);
+  if (minangle > (float)M_PI_4) {
+    minangle -= (float)M_PI_2;
   }
 
   MEM_freeN(angles);

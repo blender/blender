@@ -4497,7 +4497,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           clmd->sim_parms->max_internal_tension = 15.0f;
           clmd->sim_parms->internal_compression = 15.0f;
           clmd->sim_parms->max_internal_compression = 15.0f;
-          clmd->sim_parms->internal_spring_max_diversion = M_PI / 4.0f;
+          clmd->sim_parms->internal_spring_max_diversion = M_PI_4;
         }
       }
     }

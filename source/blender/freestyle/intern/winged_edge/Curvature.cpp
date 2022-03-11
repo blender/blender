@@ -474,10 +474,10 @@ inline static real angle(WOEdge *h)
   const Vec3r v = h->GetVec();
   real sine = (n1 ^ n2) * v / v.norm();
   if (sine >= 1.0) {
-    return M_PI / 2.0;
+    return M_PI_2;
   }
   if (sine <= -1.0) {
-    return -M_PI / 2.0;
+    return -M_PI_2;
   }
   return ::asin(sine);
 }
