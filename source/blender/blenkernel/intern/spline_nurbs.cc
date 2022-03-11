@@ -247,35 +247,34 @@ static void calculate_basis_for_point(const float parameter,
   }
   basis_buffer[size + degree] = 0.0f;
 
+  MutableSpan<float> weights = basis_buffer.slice(start, degree + 1);
+
   for (const int i_order : IndexRange(2, degree)) {
-    if (end + i_order >= size + degree + 1) {
+    if (end + i_order >= knots.size()) {
       end = size + degree - i_order;
     }
-    for (const int i : IndexRange(start, end - start + 1)) {
+    for (const int i : IndexRange(end - start + 1)) {
+      const int knot_index = start + i;
+
       float new_basis = 0.0f;
-      if (basis_buffer[i] != 0.0f) {
-        new_basis += ((t - knots[i]) * basis_buffer[i]) / (knots[i + i_order - 1] - knots[i]);
+      if (weights[i] != 0.0f) {
+        new_basis += ((t - knots[knot_index]) * basis_buffer[knot_index]) /
+                     (knots[knot_index + i_order - 1] - knots[knot_index]);
       }
 
-      if (basis_buffer[i + 1] != 0.0f) {
-        new_basis += ((knots[i + i_order] - t) * basis_buffer[i + 1]) /
-                     (knots[i + i_order] - knots[i + 1]);
+      if (basis_buffer[knot_index + 1] != 0.0f) {
+        new_basis += ((knots[knot_index + i_order] - t) * basis_buffer[knot_index + 1]) /
+                     (knots[knot_index + i_order] - knots[knot_index + 1]);
       }
 
-      basis_buffer[i] = new_basis;
+      weights[i] = new_basis;
     }
   }
 
-  /* Shrink the range of calculated values to avoid storing unnecessary zeros. */
-  while (basis_buffer[start] == 0.0f && start < end) {
-    start++;
-  }
-  while (basis_buffer[end] == 0.0f && end > start) {
-    end--;
-  }
+  weights.drop_front(end - start + 1).fill(0.0f);
 
   basis_cache.weights.clear();
-  basis_cache.weights.extend(basis_buffer.slice(start, end - start + 1));
+  basis_cache.weights.extend(weights);
   basis_cache.start_index = start;
 }
 
@@ -317,7 +316,7 @@ Span<NURBSpline::BasisCache> NURBSpline::calculate_basis_cache() const
     BasisCache &basis = basis_cache[i];
     calculate_basis_for_point(
         parameter, size + (is_cyclic_ ? degree : 0), degree, knots, basis_buffer, basis);
-    BLI_assert(basis.weights.size() <= order);
+    BLI_assert(basis.weights.size() == order);
 
     for (const int j : basis.weights.index_range()) {
       const int point_index = (basis.start_index + j) % size;
