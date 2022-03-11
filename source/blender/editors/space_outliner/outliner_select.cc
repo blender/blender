@@ -68,6 +68,10 @@
 
 using namespace blender::ed::outliner;
 
+/* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
+
 /**
  * \note changes to selection are by convention and not essential.
  *
@@ -199,8 +203,11 @@ void outliner_item_mode_toggle(bContext *C,
   }
 }
 
-/* ****************************************************** */
-/* Outliner Element Selection/Activation on Click */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Outliner Element Selection/Activation on Click Operator
+ * \{ */
 
 static void tree_element_viewlayer_activate(bContext *C, TreeElement *te)
 {
@@ -1700,9 +1707,12 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* ****************************************************** */
+/** \} */
 
-/* **************** Box Select Tool ****************** */
+/* -------------------------------------------------------------------- */
+/** \name Box Select Operator
+ * \{ */
+
 static void outliner_item_box_select(bContext *C,
                                      SpaceOutliner *space_outliner,
                                      Scene *scene,
@@ -1809,9 +1819,11 @@ void OUTLINER_OT_select_box(wmOperatorType *ot)
   WM_operator_properties_select_operation_simple(ot);
 }
 
-/* ****************************************************** */
+/** \} */
 
-/* **************** Walk Select Tool ****************** */
+/* -------------------------------------------------------------------- */
+/** \name Walk Select Operator
+ * \{ */
 
 /* Given a tree element return the rightmost child that is visible in the outliner */
 static TreeElement *outliner_find_rightmost_visible_child(SpaceOutliner *space_outliner,
@@ -2036,4 +2048,4 @@ void OUTLINER_OT_select_walk(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* ****************************************************** */
+/** \} */

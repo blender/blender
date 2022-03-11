@@ -46,7 +46,9 @@
 
 static Collection *collection_parent_from_ID(ID *id);
 
-/* ******************** Drop Target Find *********************** */
+/* -------------------------------------------------------------------- */
+/** \name Drop Target Find
+ * \{ */
 
 static TreeElement *outliner_dropzone_element(TreeElement *te,
                                               const float fmval[2],
@@ -254,7 +256,11 @@ static int outliner_get_insert_index(TreeElement *drag_te,
   return BLI_findindex(listbase, drop_te->directdata);
 }
 
-/* ******************** Parent Drop Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Parent Drop Operator
+ * \{ */
 
 static bool parent_drop_allowed(TreeElement *te, Object *potential_child)
 {
@@ -443,7 +449,11 @@ void OUTLINER_OT_parent_drop(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/* ******************** Parent Clear Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Parent Clear Operator
+ * \{ */
 
 static bool parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
@@ -527,7 +537,11 @@ void OUTLINER_OT_parent_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/* ******************** Scene Drop Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scene Drop Operator
+ * \{ */
 
 static bool scene_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
@@ -592,7 +606,11 @@ void OUTLINER_OT_scene_drop(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/* ******************** Material Drop Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Material Drop Operator
+ * \{ */
 
 static bool material_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
@@ -641,15 +659,19 @@ void OUTLINER_OT_material_drop(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/* ******************** Data Stack Drop Operator *********************** */
+/** \} */
 
-/* A generic operator to allow drag and drop for modifiers, constraints,
+/* -------------------------------------------------------------------- */
+/** \name Data Stack Drop Operator
+ *
+ * A generic operator to allow drag and drop for modifiers, constraints,
  * and shader effects which all share the same UI stack layout.
  *
  * The following operations are allowed:
  * - Reordering within an object.
  * - Copying a single modifier/constraint/effect to another object.
- * - Copying (linking) an object's modifiers/constraints/effects to another. */
+ * - Copying (linking) an object's modifiers/constraints/effects to another.
+ * \{ */
 
 enum eDataStackDropAction {
   DATA_STACK_DROP_REORDER,
@@ -1069,7 +1091,11 @@ void OUTLINER_OT_datastack_drop(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/* ******************** Collection Drop Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collection Drop Operator
+ * \{ */
 
 struct CollectionDrop {
   Collection *from;
@@ -1350,7 +1376,11 @@ void OUTLINER_OT_collection_drop(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/* ********************* Outliner Drag Operator ******************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Outliner Drag Operator
+ * \{ */
 
 #define OUTLINER_DRAG_SCOLL_OUTSIDE_PAD 7 /* In UI units */
 
@@ -1528,7 +1558,11 @@ void OUTLINER_OT_item_drag_drop(wmOperatorType *ot)
 
 #undef OUTLINER_DRAG_SCOLL_OUTSIDE_PAD
 
-/* *************************** Drop Boxes ************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Drop Boxes
+ * \{ */
 
 void outliner_dropboxes(void)
 {
@@ -1551,3 +1585,5 @@ void outliner_dropboxes(void)
                  nullptr,
                  collection_drop_tooltip);
 }
+
+/** \} */
