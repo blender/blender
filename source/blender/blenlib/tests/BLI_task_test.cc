@@ -91,7 +91,7 @@ TEST(task, MempoolIter)
 
   int i;
 
-  /* 'Randomly' add and remove some items from mempool, to create a non-homogenous one. */
+  /* 'Randomly' add and remove some items from mempool, to create a non-homogeneous one. */
   int num_items = 0;
   for (i = 0; i < NUM_ITEMS; i++) {
     data[i] = (int *)BLI_mempool_alloc(mempool);
