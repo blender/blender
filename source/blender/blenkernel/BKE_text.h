@@ -14,6 +14,8 @@ struct Main;
 struct Text;
 struct TextLine;
 
+#include "BLI_compiler_attrs.h"
+
 /**
  * \note caller must handle `compiled` member.
  */
@@ -55,7 +57,8 @@ void BKE_text_write(struct Text *text, const char *str);
 int BKE_text_file_modified_check(struct Text *text);
 void BKE_text_file_modified_ignore(struct Text *text);
 
-char *txt_to_buf(struct Text *text, int *r_buf_strlen);
+char *txt_to_buf(struct Text *text, int *r_buf_strlen)
+    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 void txt_clean_text(struct Text *text);
 void txt_order_cursors(struct Text *text, bool reverse);
 int txt_find_string(struct Text *text, const char *findstr, int wrap, int match_case);
@@ -135,11 +138,12 @@ enum {
 /**
  * Create a buffer, the only requirement is #txt_from_buf_for_undo can decode it.
  */
-char *txt_to_buf_for_undo(struct Text *text, int *r_buf_len);
+char *txt_to_buf_for_undo(struct Text *text, int *r_buf_len)
+    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 /**
  * Decode a buffer from #txt_to_buf_for_undo.
  */
-void txt_from_buf_for_undo(struct Text *text, const char *buf, int buf_len);
+void txt_from_buf_for_undo(struct Text *text, const char *buf, int buf_len) ATTR_NONNULL(1, 2);
 
 #ifdef __cplusplus
 }
