@@ -3697,10 +3697,12 @@ void wm_event_do_handlers(bContext *C)
 
       /* Force handling drag if a key is pressed even if the drag threshold has not been met.
        * Needed so tablet actions (which typically use a larger threshold) can click-drag
-       * then press keys - activating the drag action early. */
+       * then press keys - activating the drag action early.
+       * Limit to mouse-buttons drag actions interrupted by pressing any non-mouse button.
+       * Otherwise pressing two keys on the keyboard will interpret this as a drag action. */
       if (win->event_queue_check_drag) {
         if ((event->val == KM_PRESS) && ((event->flag & WM_EVENT_IS_REPEAT) == 0) &&
-            ISKEYBOARD_OR_BUTTON(event->type)) {
+            ISKEYBOARD_OR_BUTTON(event->type) && ISMOUSE_BUTTON(event->prev_press_type)) {
           event = wm_event_add_mousemove_to_head(win);
           event->flag |= WM_EVENT_FORCE_DRAG_THRESHOLD;
         }
