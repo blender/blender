@@ -224,17 +224,17 @@ Span<float> NURBSpline::knots() const
 
 static void calculate_basis_for_point(const float parameter,
                                       const int size,
-                                      const int order,
+                                      const int degree,
                                       Span<float> knots,
                                       MutableSpan<float> basis_buffer,
                                       NURBSpline::BasisCache &basis_cache)
 {
   /* Clamp parameter due to floating point inaccuracy. */
-  const float t = std::clamp(parameter, knots[0], knots[size + order - 1]);
+  const float t = std::clamp(parameter, knots[0], knots[size + degree]);
 
   int start = 0;
   int end = 0;
-  for (const int i : IndexRange(size + order - 1)) {
+  for (const int i : IndexRange(size + degree)) {
     const bool knots_equal = knots[i] == knots[i + 1];
     if (knots_equal || t < knots[i] || t > knots[i + 1]) {
       basis_buffer[i] = 0.0f;
@@ -242,16 +242,16 @@ static void calculate_basis_for_point(const float parameter,
     }
 
     basis_buffer[i] = 1.0f;
-    start = std::max(i - order - 1, 0);
+    start = std::max(i - degree, 0);
     end = i;
-    basis_buffer.slice(i + 1, size + order - 1 - i).fill(0.0f);
+    basis_buffer.slice(i + 1, size + degree - i).fill(0.0f);
     break;
   }
-  basis_buffer[size + order - 1] = 0.0f;
+  basis_buffer[size + degree] = 0.0f;
 
-  for (const int i_order : IndexRange(2, order - 1)) {
-    if (end + i_order >= size + order) {
-      end = size + order - 1 - i_order;
+  for (const int i_order : IndexRange(2, degree)) {
+    if (end + i_order >= size + degree + 1) {
+      end = size + degree - i_order;
     }
     for (const int i : IndexRange(start, end - start + 1)) {
       float new_basis = 0.0f;
@@ -301,6 +301,7 @@ Span<NURBSpline::BasisCache> NURBSpline::calculate_basis_cache() const
   basis_cache_.resize(eval_size);
 
   const int order = this->order();
+  const int degree = order - 1;
   Span<float> control_weights = this->weights();
   Span<float> knots = this->knots();
 
@@ -310,14 +311,14 @@ Span<NURBSpline::BasisCache> NURBSpline::calculate_basis_cache() const
    * Theoretically it could be optimized away in the future. */
   Array<float> basis_buffer(this->knots_size());
 
-  const float start = knots[order - 1];
-  const float end = is_cyclic_ ? knots[size + order - 1] : knots[size];
+  const float start = knots[degree];
+  const float end = is_cyclic_ ? knots[size + degree] : knots[size];
   const float step = (end - start) / this->evaluated_edges_size();
   float parameter = start;
   for (const int i : IndexRange(eval_size)) {
     BasisCache &basis = basis_cache[i];
     calculate_basis_for_point(
-        parameter, size + (is_cyclic_ ? order - 1 : 0), order, knots, basis_buffer, basis);
+        parameter, size + (is_cyclic_ ? degree : 0), degree, knots, basis_buffer, basis);
     BLI_assert(basis.weights.size() <= order);
 
     for (const int j : basis.weights.index_range()) {
