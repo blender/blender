@@ -40,6 +40,14 @@ typedef enum HandleType {
   BEZIER_HANDLE_ALIGN = 3,
 } HandleType;
 
+/** Method used to calculate a NURBS curve's knot vector. */
+typedef enum KnotsMode {
+  NURBS_KNOT_MODE_NORMAL = 0,
+  NURBS_KNOT_MODE_ENDPOINT = 1,
+  NURBS_KNOT_MODE_BEZIER = 2,
+  NURBS_KNOT_MODE_ENDPOINT_BEZIER = 3,
+} KnotsMode;
+
 /**
  * A reusable data structure for geometry consisting of many curves. All control point data is
  * stored contiguously for better efficiency. Data for each curve is stored as a slice of the

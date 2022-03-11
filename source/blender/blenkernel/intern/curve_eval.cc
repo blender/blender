@@ -203,21 +203,21 @@ static Spline::NormalCalculationMode normal_mode_from_dna_curve(const int twist_
   return Spline::NormalCalculationMode::Minimum;
 }
 
-static NURBSpline::KnotsMode knots_mode_from_dna_nurb(const short flag)
+static KnotsMode knots_mode_from_dna_nurb(const short flag)
 {
   switch (flag & (CU_NURB_ENDPOINT | CU_NURB_BEZIER)) {
     case CU_NURB_ENDPOINT:
-      return NURBSpline::KnotsMode::EndPoint;
+      return NURBS_KNOT_MODE_ENDPOINT;
     case CU_NURB_BEZIER:
-      return NURBSpline::KnotsMode::Bezier;
+      return NURBS_KNOT_MODE_BEZIER;
     case CU_NURB_ENDPOINT | CU_NURB_BEZIER:
-      return NURBSpline::KnotsMode::EndPointBezier;
+      return NURBS_KNOT_MODE_ENDPOINT_BEZIER;
     default:
-      return NURBSpline::KnotsMode::Normal;
+      return NURBS_KNOT_MODE_NORMAL;
   }
 
   BLI_assert_unreachable();
-  return NURBSpline::KnotsMode::Normal;
+  return NURBS_KNOT_MODE_NORMAL;
 }
 
 static SplinePtr spline_from_dna_bezier(const Nurb &nurb)
@@ -421,8 +421,7 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
         nurb_spline->resize(point_range.size());
         nurb_spline->weights().copy_from(nurbs_weights.slice(point_range));
         nurb_spline->set_order(nurbs_orders[curve_index]);
-        nurb_spline->knots_mode = static_cast<NURBSpline::KnotsMode>(
-            nurbs_knots_modes[curve_index]);
+        nurb_spline->knots_mode = static_cast<KnotsMode>(nurbs_knots_modes[curve_index]);
 
         spline = std::move(nurb_spline);
         break;

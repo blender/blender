@@ -142,8 +142,8 @@ bool NURBSpline::check_valid_size_and_order() const
     return false;
   }
 
-  if (ELEM(this->knots_mode, KnotsMode::Bezier, KnotsMode::EndPointBezier)) {
-    if (this->knots_mode == KnotsMode::Bezier && this->size() <= order_) {
+  if (ELEM(this->knots_mode, NURBS_KNOT_MODE_BEZIER, NURBS_KNOT_MODE_ENDPOINT_BEZIER)) {
+    if (this->knots_mode == NURBS_KNOT_MODE_BEZIER && this->size() <= order_) {
       return false;
     }
     return (!is_cyclic_ || this->size() % (order_ - 1) == 0);
@@ -162,10 +162,8 @@ void NURBSpline::calculate_knots() const
 {
   const KnotsMode mode = this->knots_mode;
   const int order = order_;
-  const bool is_bezier = ELEM(
-      mode, NURBSpline::KnotsMode::Bezier, NURBSpline::KnotsMode::EndPointBezier);
-  const bool is_end_point = ELEM(
-      mode, NURBSpline::KnotsMode::EndPoint, NURBSpline::KnotsMode::EndPointBezier);
+  const bool is_bezier = ELEM(mode, NURBS_KNOT_MODE_BEZIER, NURBS_KNOT_MODE_ENDPOINT_BEZIER);
+  const bool is_end_point = ELEM(mode, NURBS_KNOT_MODE_ENDPOINT, NURBS_KNOT_MODE_ENDPOINT_BEZIER);
   /* Inner knots are always repeated once except on Bezier case. */
   const int repeat_inner = is_bezier ? order - 1 : 1;
   /* How many times to repeat 0.0 at the beginning of knot. */
