@@ -29,6 +29,7 @@
  * because 'near' is disabled through BLI_windstuff. */
 #  include "BLI_winstuff.h"
 #  include <shlobj.h>
+#  include <shlwapi.h>
 #endif
 
 #include "UI_interface_icons.h"
@@ -642,14 +643,29 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
         tmps[3] = '\0';
         name = NULL;
 
-        /* Flee from horrible win querying hover floppy drives! */
+        /* Skip over floppy disks A & B. */
         if (i > 1) {
-          /* Try to get a friendly drive description. */
-          SHFILEINFOW shFile = {0};
+          /* Friendly volume descriptions without using SHGetFileInfoW (T85689). */
           BLI_strncpy_wchar_from_utf8(wline, tmps, 4);
-          if (SHGetFileInfoW(wline, 0, &shFile, sizeof(SHFILEINFOW), SHGFI_DISPLAYNAME)) {
-            BLI_strncpy_wchar_as_utf8(line, shFile.szDisplayName, FILE_MAXDIR);
-            name = line;
+          IShellFolder *desktop;
+          if (SHGetDesktopFolder(&desktop) == S_OK) {
+            PIDLIST_RELATIVE volume;
+            if (desktop->lpVtbl->ParseDisplayName(
+                    desktop, NULL, NULL, wline, NULL, &volume, NULL) == S_OK) {
+              STRRET volume_name;
+              volume_name.uType = STRRET_WSTR;
+              if (desktop->lpVtbl->GetDisplayNameOf(
+                      desktop, volume, SHGDN_FORADDRESSBAR, &volume_name) == S_OK) {
+                wchar_t *volume_name_wchar;
+                if (StrRetToStrW(&volume_name, volume, &volume_name_wchar) == S_OK) {
+                  BLI_strncpy_wchar_as_utf8(line, volume_name_wchar, FILE_MAXDIR);
+                  name = line;
+                  CoTaskMemFree(volume_name_wchar);
+                }
+              }
+              CoTaskMemFree(volume);
+            }
+            desktop->lpVtbl->Release(desktop);
           }
         }
         if (name == NULL) {
