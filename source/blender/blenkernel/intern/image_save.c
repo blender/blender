@@ -22,6 +22,7 @@
 
 #include "BKE_colortools.h"
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_image_save.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -36,7 +37,12 @@ void BKE_image_save_options_init(ImageSaveOptions *opts, Main *bmain, Scene *sce
   opts->bmain = bmain;
   opts->scene = scene;
 
-  BKE_imformat_defaults(&opts->im_format);
+  BKE_image_format_init(&opts->im_format, false);
+}
+
+void BKE_image_save_options_free(ImageSaveOptions *opts)
+{
+  BKE_image_format_free(&opts->im_format);
 }
 
 static void image_save_post(ReportList *reports,
@@ -349,7 +355,7 @@ static bool image_save_single(ReportList *reports,
         colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(
             ibuf, save_as_render, true, &imf->view_settings, &imf->display_settings, imf);
 
-        BKE_imbuf_write_prepare(colormanaged_ibuf, imf);
+        BKE_image_format_to_imbuf(colormanaged_ibuf, imf);
         IMB_prepare_write_ImBuf(IMB_isfloat(colormanaged_ibuf), colormanaged_ibuf);
 
         /* duplicate buffer to prevent locker issue when using render result */

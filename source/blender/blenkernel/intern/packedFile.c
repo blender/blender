@@ -28,6 +28,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
@@ -503,7 +504,7 @@ static void unpack_generate_paths(const char *name,
         const PackedFile *pf = imapf->packedfile;
         enum eImbFileType ftype = IMB_ispic_type_from_memory((const uchar *)pf->data, pf->size);
         if (ftype != IMB_FTYPE_NONE) {
-          const int imtype = BKE_image_ftype_to_imtype(ftype, NULL);
+          const int imtype = BKE_ftype_to_imtype(ftype, NULL);
           BKE_image_path_ensure_ext_from_imtype(tempname, imtype);
         }
       }

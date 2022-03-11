@@ -633,6 +633,7 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
 #  include "BKE_gpencil.h"
 #  include "BKE_idprop.h"
 #  include "BKE_image.h"
+#  include "BKE_image_format.h"
 #  include "BKE_layer.h"
 #  include "BKE_main.h"
 #  include "BKE_mesh.h"

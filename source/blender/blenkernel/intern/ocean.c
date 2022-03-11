@@ -25,6 +25,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_ocean.h"
 #include "ocean_intern.h"
 

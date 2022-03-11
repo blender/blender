@@ -55,6 +55,7 @@
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
+#include "BKE_image_format.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
@@ -595,8 +596,13 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
 
     if (node->type == CMP_NODE_OUTPUT_FILE) {
       /* Inputs have their own storage data. */
+      NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
+      BKE_image_format_blend_write(writer, &nimf->format);
+
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-        BLO_write_struct(writer, NodeImageMultiFileSocket, sock->storage);
+        NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
+        BLO_write_struct(writer, NodeImageMultiFileSocket, sockdata);
+        BKE_image_format_blend_write(writer, &sockdata->format);
       }
     }
     if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
@@ -749,6 +755,11 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
           iuser->scene = nullptr;
           break;
         }
+        case CMP_NODE_OUTPUT_FILE: {
+          NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
+          BKE_image_format_blend_read_data(reader, &nimf->format);
+          break;
+        }
         case FN_NODE_INPUT_STRING: {
           NodeInputString *storage = (NodeInputString *)node->storage;
           BLO_read_data_address(reader, &storage->string);
@@ -770,6 +781,14 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
     }
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
       direct_link_node_socket(reader, sock);
+    }
+
+    /* Socket storage. */
+    if (node->type == CMP_NODE_OUTPUT_FILE) {
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+        NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
+        BKE_image_format_blend_read_data(reader, &sockdata->format);
+      }
     }
   }
 

@@ -36,6 +36,8 @@ typedef struct ImageSaveOptions {
 void BKE_image_save_options_init(struct ImageSaveOptions *opts,
                                  struct Main *bmain,
                                  struct Scene *scene);
+void BKE_image_save_options_free(struct ImageSaveOptions *opts);
+
 bool BKE_image_save(struct ReportList *reports,
                     struct Main *bmain,
                     struct Image *ima,

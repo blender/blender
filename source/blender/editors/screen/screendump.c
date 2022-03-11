@@ -24,6 +24,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
@@ -71,7 +72,7 @@ static int screenshot_data_create(bContext *C, wmOperator *op, ScrArea *area)
       scd->crop = area->totrct;
     }
 
-    BKE_imformat_defaults(&scd->im_format);
+    BKE_image_format_init(&scd->im_format, false);
 
     op->customdata = scd;
 

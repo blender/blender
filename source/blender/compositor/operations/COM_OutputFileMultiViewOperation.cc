@@ -4,6 +4,7 @@
 #include "COM_OutputFileMultiViewOperation.h"
 
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
 

@@ -37,6 +37,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_main.h"
 
 #include "RNA_define.h"
@@ -2508,8 +2509,8 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
      * should be pretty safe since this image buffer is supposed to be used for
      * saving only and ftype would be overwritten a bit later by BKE_imbuf_write
      */
-    colormanaged_ibuf->ftype = BKE_image_imtype_to_ftype(image_format_data->imtype,
-                                                         &colormanaged_ibuf->foptions);
+    colormanaged_ibuf->ftype = BKE_imtype_to_ftype(image_format_data->imtype,
+                                                   &colormanaged_ibuf->foptions);
 
     /* if file format isn't able to handle float buffer itself,
      * we need to allocate byte buffer and store color managed

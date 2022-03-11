@@ -12,6 +12,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_image_format.h"
 
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
@@ -135,7 +136,7 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
     }
   }
   else {
-    BKE_imformat_defaults(&sockdata->format);
+    BKE_image_format_init(&sockdata->format, false);
   }
   /* use node data format by default */
   sockdata->use_node_format = true;
@@ -205,7 +206,7 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
     format = &nimf->format;
   }
   else {
-    BKE_imformat_defaults(&nimf->format);
+    BKE_image_format_init(&nimf->format, false);
   }
 
   /* add one socket by default */
@@ -216,9 +217,13 @@ static void free_output_file(bNode *node)
 {
   /* free storage data in sockets */
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+    NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
+    BKE_image_format_free(&sockdata->format);
     MEM_freeN(sock->storage);
   }
 
+  NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
+  BKE_image_format_free(&nimf->format);
   MEM_freeN(node->storage);
 }
 
@@ -229,6 +234,9 @@ static void copy_output_file(bNodeTree *UNUSED(dest_ntree),
   bNodeSocket *src_sock, *dest_sock;
 
   dest_node->storage = MEM_dupallocN(src_node->storage);
+  NodeImageMultiFile *dest_nimf = (NodeImageMultiFile *)dest_node->storage;
+  NodeImageMultiFile *src_nimf = (NodeImageMultiFile *)src_node->storage;
+  BKE_image_format_copy(&dest_nimf->format, &src_nimf->format);
 
   /* duplicate storage data in sockets */
   for (src_sock = (bNodeSocket *)src_node->inputs.first,
@@ -236,6 +244,9 @@ static void copy_output_file(bNodeTree *UNUSED(dest_ntree),
        src_sock && dest_sock;
        src_sock = src_sock->next, dest_sock = (bNodeSocket *)dest_sock->next) {
     dest_sock->storage = MEM_dupallocN(src_sock->storage);
+    NodeImageMultiFileSocket *dest_sockdata = (NodeImageMultiFileSocket *)dest_sock->storage;
+    NodeImageMultiFileSocket *src_sockdata = (NodeImageMultiFileSocket *)src_sock->storage;
+    BKE_image_format_copy(&dest_sockdata->format, &src_sockdata->format);
   }
 }
 

@@ -20,6 +20,7 @@
 
 #include "BKE_context.h"
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
