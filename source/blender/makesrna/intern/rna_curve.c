@@ -562,38 +562,6 @@ static void rna_Curve_offset_set(PointerRNA *ptr, float value)
   cu->offset = 1.0f + value;
 }
 
-static int rna_Nurb_valid_message_u_length(PointerRNA *ptr)
-{
-  char buff[64];
-  Nurb *nu = (Nurb *)ptr->data;
-  BKE_nurb_valid_message(
-      nu->pntsu, nu->orderu, nu->flagu, nu->type, nu->pntsv > 1, "U", buff, sizeof(buff));
-  return strlen(buff);
-}
-
-static void rna_Nurb_valid_message_u(PointerRNA *ptr, char *value)
-{
-  Nurb *nu = (Nurb *)ptr->data;
-  BKE_nurb_valid_message(
-      nu->pntsu, nu->orderu, nu->flagu, nu->type, nu->pntsv > 1, "U", value, 64);
-}
-
-static int rna_Nurb_valid_message_v_length(PointerRNA *ptr)
-{
-  char buff[64];
-  Nurb *nu = (Nurb *)ptr->data;
-  BKE_nurb_valid_message(
-      nu->pntsv, nu->orderv, nu->flagv, nu->type, nu->pntsv > 1, "V", buff, sizeof(buff));
-  return strlen(buff);
-}
-
-static void rna_Nurb_valid_message_v(PointerRNA *ptr, char *value)
-{
-  Nurb *nu = (Nurb *)ptr->data;
-  BKE_nurb_valid_message(
-      nu->pntsv, nu->orderv, nu->flagv, nu->type, nu->pntsv > 1, "V", value, 64);
-}
-
 static int rna_Curve_body_length(PointerRNA *ptr);
 static void rna_Curve_body_get(PointerRNA *ptr, char *value)
 {
@@ -2058,18 +2026,6 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Bezier V", "Make this nurbs surface act like a Bezier spline in the V direction");
   RNA_def_property_update(prop, 0, "rna_Nurb_update_knot_v");
-
-  prop = RNA_def_property(srna, "valid_message_u", PROP_STRING, PROP_NONE);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_string_funcs(
-      prop, "rna_Nurb_valid_message_u", "rna_Nurb_valid_message_u_length", NULL);
-  RNA_def_property_ui_text(prop, "Valid U", "Validation message for NURBS definition in U");
-
-  prop = RNA_def_property(srna, "valid_message_v", PROP_STRING, PROP_NONE);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_string_funcs(
-      prop, "rna_Nurb_valid_message_v", "rna_Nurb_valid_message_v_length", NULL);
-  RNA_def_property_ui_text(prop, "Valid V", "Validation message for NURBS definition in V");
 
   prop = RNA_def_property(srna, "use_smooth", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_SMOOTH);

@@ -321,17 +321,16 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
 
             layout.prop(act_spline, "use_smooth")
             if act_spline.type == 'NURBS':
-                messages = [act_spline.valid_message_u]
-                if is_surf and act_spline.point_count_v > 1:
-                    messages.append(act_spline.valid_message_v)
-
-                messages = list(filter(None, messages))
-
-                if len(messages) > 0:
-                    layout.separator()
-                    col = layout.column(align=True)
-                    for message in messages:
-                        col.label(text=message, icon='INFO')
+                col = None
+                for direction in range(2):
+                    message = act_spline.valid_message(direction)
+                    if not message:
+                        continue
+                    if col is None:
+                        layout.separator()
+                        col = layout.column(align=True)
+                    col.label(text=message, icon='INFO')
+                del col
 
 
 class DATA_PT_font(CurveButtonsPanelText, Panel):
