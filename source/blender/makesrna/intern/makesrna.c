@@ -2362,7 +2362,12 @@ static void rna_def_struct_function_prototype_cpp(FILE *f,
     pout = (flag_parameter & PARM_OUTPUT);
 
     if (flag & PROP_DYNAMIC) {
-      ptrstr = pout ? "**" : "*";
+      if (type == PROP_STRING) {
+        ptrstr = pout ? "*" : "";
+      }
+      else {
+        ptrstr = pout ? "**" : "*";
+      }
     }
     else if (type == PROP_POINTER) {
       ptrstr = pout ? "*" : "";
@@ -2853,7 +2858,12 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
       /* XXX only arrays and strings are allowed to be dynamic, is this checked anywhere? */
     }
     else if (cptr || (flag & PROP_DYNAMIC)) {
-      ptrstr = pout ? "**" : "*";
+      if (type == PROP_STRING) {
+        ptrstr = pout ? "*" : "";
+      }
+      else {
+        ptrstr = pout ? "**" : "*";
+      }
       /* Fixed size arrays and RNA pointers are pre-allocated on the ParameterList stack,
        * pass a pointer to it. */
     }
@@ -2933,8 +2943,14 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
     else {
       const char *data_str;
       if (cptr || (flag & PROP_DYNAMIC)) {
-        ptrstr = "**";
-        valstr = "*";
+        if (type == PROP_STRING) {
+          ptrstr = "*";
+          valstr = "";
+        }
+        else {
+          ptrstr = "**";
+          valstr = "*";
+        }
       }
       else if ((type == PROP_POINTER) && !(flag & PROP_THICK_WRAP)) {
         ptrstr = "**";
@@ -3531,7 +3547,12 @@ static void rna_generate_static_parameter_prototypes(FILE *f,
     }
 
     if (cptr || (flag & PROP_DYNAMIC)) {
-      ptrstr = pout ? "**" : "*";
+      if (type == PROP_STRING) {
+        ptrstr = pout ? "*" : "";
+      }
+      else {
+        ptrstr = pout ? "**" : "*";
+      }
     }
     else if (type == PROP_POINTER || dparm->prop->arraydimension) {
       ptrstr = "*";
