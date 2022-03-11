@@ -44,7 +44,7 @@ static void rna_Nurb_valid_message(Nurb *nu, int direction, int *result_len, con
   int pnts;
   short order, flag;
   const char *dir;
-  if (direction) {
+  if (direction == 0) {
     pnts = nu->pntsu;
     order = nu->orderu;
     flag = nu->flagu;
