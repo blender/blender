@@ -144,7 +144,7 @@ bool Texture::init_view(const GPUTexture *src_,
   d_ = src->d_;
   layer_start = min_ii(layer_start, src->layer_count() - 1);
   layer_len = min_ii(layer_len, (src->layer_count() - layer_start));
-  switch (type_) {
+  switch (src->type_) {
     case GPU_TEXTURE_1D_ARRAY:
       h_ = layer_len;
       break;
