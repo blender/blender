@@ -1049,6 +1049,11 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
     if (mesh->dvert == nullptr) {
       return true;
     }
+
+    /* Copy the data layer if it is shared with some other mesh. */
+    mesh->dvert = (MDeformVert *)CustomData_duplicate_referenced_layer(
+        &mesh->vdata, CD_MDEFORMVERT, mesh->totvert);
+
     for (MDeformVert &dvert : MutableSpan(mesh->dvert, mesh->totvert)) {
       MDeformWeight *weight = BKE_defvert_find_index(&dvert, index);
       BKE_defvert_remove_group(&dvert, weight);
