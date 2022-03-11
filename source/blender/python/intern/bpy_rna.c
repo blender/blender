@@ -5908,7 +5908,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
         }
         else {
           data_ch = (flag & PROP_THICK_WRAP) ? (char *)data : *(char **)data;
-          data_ch_len = data_ch ? 0 : strlen(data_ch);
+          data_ch_len = data_ch ? strlen(data_ch) : 0;
         }
 
         if (UNLIKELY(data_ch == NULL)) {
