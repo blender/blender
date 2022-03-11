@@ -313,7 +313,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
         return NULL;
       }
 
-      WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL);
+      WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL, NULL);
     }
 #endif
   }

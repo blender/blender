@@ -2221,7 +2221,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
   RNA_int_set(&op_ptr, "deltax", deltax);
   RNA_int_set(&op_ptr, "deltay", deltay);
 
-  WM_operator_name_call(C, "VIEW2D_OT_pan", WM_OP_EXEC_DEFAULT, &op_ptr);
+  WM_operator_name_call(C, "VIEW2D_OT_pan", WM_OP_EXEC_DEFAULT, &op_ptr, event);
   WM_operator_properties_free(&op_ptr);
 
   ED_region_tag_redraw(region);
@@ -2580,7 +2580,7 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
           BLI_strncpy(params->dir, lastdir, sizeof(params->dir));
         }
 
-        WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
+        WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, NULL);
         WM_operator_properties_free(&ptr);
       }
     }

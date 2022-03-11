@@ -649,13 +649,13 @@ static int text_save_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int text_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int text_save_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Text *text = CTX_data_edit_text(C);
 
   /* Internal and texts without a filepath will go to "Save As". */
   if (text->filepath == NULL || (text->flags & TXT_ISMEM)) {
-    WM_operator_name_call(C, "TEXT_OT_save_as", WM_OP_INVOKE_DEFAULT, NULL);
+    WM_operator_name_call(C, "TEXT_OT_save_as", WM_OP_INVOKE_DEFAULT, NULL, event);
     return OPERATOR_CANCELLED;
   }
   return text_save_exec(C, op);
@@ -1098,10 +1098,10 @@ static int text_indent_or_autocomplete_exec(bContext *C, wmOperator *UNUSED(op))
   TextLine *line = text->curl;
   bool text_before_cursor = text->curc != 0 && !ELEM(line->line[text->curc - 1], ' ', '\t');
   if (text_before_cursor && (txt_has_sel(text) == false)) {
-    WM_operator_name_call(C, "TEXT_OT_autocomplete", WM_OP_INVOKE_DEFAULT, NULL);
+    WM_operator_name_call(C, "TEXT_OT_autocomplete", WM_OP_INVOKE_DEFAULT, NULL, NULL);
   }
   else {
-    WM_operator_name_call(C, "TEXT_OT_indent", WM_OP_EXEC_DEFAULT, NULL);
+    WM_operator_name_call(C, "TEXT_OT_indent", WM_OP_EXEC_DEFAULT, NULL, NULL);
   }
   return OPERATOR_FINISHED;
 }

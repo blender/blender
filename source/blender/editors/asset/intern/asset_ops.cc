@@ -754,7 +754,7 @@ static int asset_bundle_install_exec(bContext *C, wmOperator *op)
   cat_service->prepare_to_merge_on_write();
 
   const int operator_result = WM_operator_name_call(
-      C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, op->ptr);
+      C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, op->ptr, nullptr);
   WM_cursor_wait(false);
 
   if (operator_result != OPERATOR_FINISHED) {

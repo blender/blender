@@ -2424,7 +2424,7 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 static void wm_homefile_read_after_dialog_callback(bContext *C, void *user_data)
 {
   WM_operator_name_call_with_properties(
-      C, "WM_OT_read_homefile", WM_OP_EXEC_DEFAULT, (IDProperty *)user_data);
+      C, "WM_OT_read_homefile", WM_OP_EXEC_DEFAULT, (IDProperty *)user_data, NULL);
 }
 
 static int wm_homefile_read_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
@@ -2577,7 +2577,7 @@ static int wm_open_mainfile_dispatch(bContext *C, wmOperator *op);
 static void wm_open_mainfile_after_dialog_callback(bContext *C, void *user_data)
 {
   WM_operator_name_call_with_properties(
-      C, "WM_OT_open_mainfile", WM_OP_INVOKE_DEFAULT, (IDProperty *)user_data);
+      C, "WM_OT_open_mainfile", WM_OP_INVOKE_DEFAULT, (IDProperty *)user_data, NULL);
 }
 
 static int wm_open_mainfile__discard_changes(bContext *C, wmOperator *op)
@@ -2892,7 +2892,7 @@ static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
 static void wm_recover_last_session_after_dialog_callback(bContext *C, void *user_data)
 {
   WM_operator_name_call_with_properties(
-      C, "WM_OT_recover_last_session", WM_OP_EXEC_DEFAULT, (IDProperty *)user_data);
+      C, "WM_OT_recover_last_session", WM_OP_EXEC_DEFAULT, (IDProperty *)user_data, NULL);
 }
 
 static int wm_recover_last_session_invoke(bContext *C,
@@ -3290,7 +3290,7 @@ static void wm_block_autorun_warning_reload_with_scripts(bContext *C,
 
   /* Save user preferences for permanent execution. */
   if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) {
-    WM_operator_name_call(C, "WM_OT_save_userpref", WM_OP_EXEC_DEFAULT, NULL);
+    WM_operator_name_call(C, "WM_OT_save_userpref", WM_OP_EXEC_DEFAULT, NULL, NULL);
   }
 
   /* Load file again with scripts enabled.
@@ -3309,7 +3309,7 @@ static void wm_block_autorun_warning_enable_scripts(bContext *C,
 
   /* Save user preferences for permanent execution. */
   if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) {
-    WM_operator_name_call(C, "WM_OT_save_userpref", WM_OP_EXEC_DEFAULT, NULL);
+    WM_operator_name_call(C, "WM_OT_save_userpref", WM_OP_EXEC_DEFAULT, NULL, NULL);
   }
 
   /* Force a full refresh, but without reloading the file. */
@@ -3478,7 +3478,7 @@ void wm_test_autorun_revert_action_exec(bContext *C)
     wm_test_autorun_revert_action_set(ot, ptr);
   }
 
-  WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, ptr);
+  WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, ptr, NULL);
   wm_test_autorun_revert_action_set(NULL, NULL);
 }
 
@@ -3559,13 +3559,13 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
   bool file_has_been_saved_before = BKE_main_blendfile_path(bmain)[0] != '\0';
 
   if (file_has_been_saved_before) {
-    if (WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, NULL) &
+    if (WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, NULL, NULL) &
         OPERATOR_CANCELLED) {
       execute_callback = false;
     }
   }
   else {
-    WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_INVOKE_DEFAULT, NULL);
+    WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_INVOKE_DEFAULT, NULL, NULL);
     execute_callback = false;
   }
 

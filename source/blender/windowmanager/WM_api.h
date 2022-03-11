@@ -646,19 +646,29 @@ bool WM_operator_is_repeat(const struct bContext *C, const struct wmOperator *op
 bool WM_operator_name_poll(struct bContext *C, const char *opstring);
 /**
  * Invokes operator in context.
+ *
+ * \param event: Optionally pass in an event to use when context uses one of the
+ * `WM_OP_INVOKE_*` values. When left unset the #wmWindow.eventstate will be used,
+ * this can cause problems for operators that read the events type - for example,
+ * storing the key that was pressed so as to be able to detect it's release.
+ * In these cases it's necessary to forward the current event being handled.
  */
 int WM_operator_name_call_ptr(struct bContext *C,
                               struct wmOperatorType *ot,
                               wmOperatorCallContext context,
-                              struct PointerRNA *properties);
+                              struct PointerRNA *properties,
+                              const wmEvent *event);
+/** See #WM_operator_name_call_ptr */
 int WM_operator_name_call(struct bContext *C,
                           const char *opstring,
                           wmOperatorCallContext context,
-                          struct PointerRNA *properties);
+                          struct PointerRNA *properties,
+                          const wmEvent *event);
 int WM_operator_name_call_with_properties(struct bContext *C,
                                           const char *opstring,
                                           wmOperatorCallContext context,
-                                          struct IDProperty *properties);
+                                          struct IDProperty *properties,
+                                          const wmEvent *event);
 /**
  * Similar to #WM_operator_name_call called with #WM_OP_EXEC_DEFAULT context.
  *
@@ -677,6 +687,7 @@ void WM_operator_name_call_ptr_with_depends_on_cursor(struct bContext *C,
                                                       wmOperatorType *ot,
                                                       wmOperatorCallContext opcontext,
                                                       PointerRNA *properties,
+                                                      const wmEvent *event,
                                                       const char *drawstr);
 
 /**

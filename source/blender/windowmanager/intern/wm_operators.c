@@ -3597,8 +3597,11 @@ static int doc_view_manual_ui_context_exec(bContext *C, wmOperator *UNUSED(op))
     WM_operator_properties_create(&ptr_props, "WM_OT_doc_view_manual");
     RNA_string_set(&ptr_props, "doc_id", buf);
 
-    retval = WM_operator_name_call_ptr(
-        C, WM_operatortype_find("WM_OT_doc_view_manual", false), WM_OP_EXEC_DEFAULT, &ptr_props);
+    retval = WM_operator_name_call_ptr(C,
+                                       WM_operatortype_find("WM_OT_doc_view_manual", false),
+                                       WM_OP_EXEC_DEFAULT,
+                                       &ptr_props,
+                                       NULL);
 
     WM_operator_properties_free(&ptr_props);
   }

@@ -1673,7 +1673,7 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
   RNA_string_set(&ptr, "rna_prop", rna_prop.strinfo);
   RNA_string_set(&ptr, "rna_enum", rna_enum.strinfo);
   RNA_string_set(&ptr, "rna_ctxt", rna_ctxt.strinfo);
-  const int ret = WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
+  const int ret = WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, NULL);
 
   /* Clean up */
   if (but_label.strinfo) {

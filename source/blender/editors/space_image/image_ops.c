@@ -2155,7 +2155,7 @@ static int image_save_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-static int image_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int image_save_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Image *ima = image_from_context(C);
   ImageUser *iuser = image_user_from_context(C);
@@ -2163,7 +2163,7 @@ static int image_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
   /* Not writable formats or images without a file-path will go to "Save As". */
   if (!BKE_image_has_packedfile(ima) &&
       (!BKE_image_has_filepath(ima) || !image_file_format_writable(ima, iuser))) {
-    WM_operator_name_call(C, "IMAGE_OT_save_as", WM_OP_INVOKE_DEFAULT, NULL);
+    WM_operator_name_call(C, "IMAGE_OT_save_as", WM_OP_INVOKE_DEFAULT, NULL, event);
     return OPERATOR_CANCELLED;
   }
   return image_save_exec(C, op);

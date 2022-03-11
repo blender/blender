@@ -2013,7 +2013,7 @@ static void constraint_reorder(bContext *C, Panel *panel, int new_index)
   RNA_int_set(&props_ptr, "index", new_index);
   /* Set owner to #EDIT_CONSTRAINT_OWNER_OBJECT or #EDIT_CONSTRAINT_OWNER_BONE. */
   RNA_enum_set(&props_ptr, "owner", constraint_from_bone ? 1 : 0);
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, NULL);
   WM_operator_properties_free(&props_ptr);
 }
 
@@ -5653,7 +5653,7 @@ static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
       WM_jobs_stop(CTX_wm_manager(C), CTX_wm_screen(C), NULL);
       break;
     case B_STOPANIM:
-      WM_operator_name_call(C, "SCREEN_OT_animation_play", WM_OP_INVOKE_SCREEN, NULL);
+      WM_operator_name_call(C, "SCREEN_OT_animation_play", WM_OP_INVOKE_SCREEN, NULL, NULL);
       break;
     case B_STOPCOMPO:
       WM_jobs_stop(CTX_wm_manager(C), CTX_data_scene(C), NULL);

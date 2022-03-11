@@ -1928,7 +1928,7 @@ static int gpencil_blank_frame_add_exec(bContext *C, wmOperator *op)
   if (ELEM(NULL, gpd, active_gpl)) {
     /* Let's just be lazy, and call the "Add New Layer" operator,
      * which sets everything up as required. */
-    WM_operator_name_call(C, "GPENCIL_OT_layer_add", WM_OP_EXEC_DEFAULT, NULL);
+    WM_operator_name_call(C, "GPENCIL_OT_layer_add", WM_OP_EXEC_DEFAULT, NULL, NULL);
   }
 
   /* Go through each layer, adding a frame after the active one

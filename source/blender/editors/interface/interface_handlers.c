@@ -1007,7 +1007,7 @@ static void ui_apply_but_funcs_after(bContext *C)
 
     if (after.optype) {
       WM_operator_name_call_ptr_with_depends_on_cursor(
-          C, after.optype, after.opcontext, (after.opptr) ? &opptr : NULL, after.drawstr);
+          C, after.optype, after.opcontext, (after.opptr) ? &opptr : NULL, NULL, after.drawstr);
     }
 
     if (after.opptr) {
@@ -4190,6 +4190,7 @@ static void ui_but_extra_operator_icon_apply(bContext *C, uiBut *but, uiButExtra
                                                    op_icon->optype_params->optype,
                                                    op_icon->optype_params->opcontext,
                                                    op_icon->optype_params->opptr,
+                                                   NULL,
                                                    NULL);
 
   /* Force recreation of extra operator icons (pseudo update). */
