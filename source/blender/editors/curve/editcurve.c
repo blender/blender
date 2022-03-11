@@ -4958,7 +4958,7 @@ bool ed_editnurb_spin(
         /* It is challenging to create a good approximation of a circle with uniform knots vector
          * (which is forced in Blender for cyclic NURBS curves). Here a NURBS circle is constructed
          * by connecting four Bezier arcs. */
-        nu->flagv |= CU_NURB_CYCLIC | CU_NURB_BEZIER;
+        nu->flagv |= CU_NURB_CYCLIC | CU_NURB_BEZIER | CU_NURB_ENDPOINT;
         BKE_nurb_knot_calc_v(nu);
       }
     }

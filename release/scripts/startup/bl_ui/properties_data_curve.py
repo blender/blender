@@ -289,7 +289,6 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
 
                 if is_surf:
                     subsub = sub.column()
-                    subsub.active = (not act_spline.use_cyclic_v)
                     subsub.prop(act_spline, "use_bezier_v", text="V")
 
                 sub = col.column(heading="Endpoint", align=True)
@@ -297,7 +296,6 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
 
                 if is_surf:
                     subsub = sub.column()
-                    subsub.active = (not act_spline.use_cyclic_v)
                     subsub.prop(act_spline, "use_endpoint_v", text="V")
 
                 sub = col.column(align=True)
@@ -322,6 +320,18 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
                 col.prop(act_spline, "radius_interpolation", text="Radius")
 
             layout.prop(act_spline, "use_smooth")
+            if act_spline.type == 'NURBS':
+                messages = [act_spline.valid_message_u]
+                if is_surf and act_spline.point_count_v > 1:
+                    messages.append(act_spline.valid_message_v)
+
+                messages = list(filter(None, messages))
+
+                if len(messages) > 0:
+                    layout.separator()
+                    col = layout.column(align=True)
+                    for message in messages:
+                        col.label(text=message, icon='INFO')
 
 
 class DATA_PT_font(CurveButtonsPanelText, Panel):

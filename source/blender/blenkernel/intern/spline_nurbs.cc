@@ -142,15 +142,11 @@ bool NURBSpline::check_valid_size_and_order() const
     return false;
   }
 
-  if (!is_cyclic_ && this->knots_mode == KnotsMode::Bezier) {
-    if (order_ == 4) {
-      if (this->size() < 5) {
-        return false;
-      }
-    }
-    else if (order_ != 3) {
+  if (ELEM(this->knots_mode, KnotsMode::Bezier, KnotsMode::EndPointBezier)) {
+    if (this->knots_mode == KnotsMode::Bezier && this->size() <= order_) {
       return false;
     }
+    return (!is_cyclic_ || this->size() % (order_ - 1) == 0);
   }
 
   return true;
@@ -166,12 +162,15 @@ void NURBSpline::calculate_knots() const
 {
   const KnotsMode mode = this->knots_mode;
   const int order = order_;
-  const bool is_bezier = mode == NURBSpline::KnotsMode::Bezier;
-  const bool is_end_point = mode == NURBSpline::KnotsMode::EndPoint;
+  const bool is_bezier = ELEM(
+      mode, NURBSpline::KnotsMode::Bezier, NURBSpline::KnotsMode::EndPointBezier);
+  const bool is_end_point = ELEM(
+      mode, NURBSpline::KnotsMode::EndPoint, NURBSpline::KnotsMode::EndPointBezier);
   /* Inner knots are always repeated once except on Bezier case. */
   const int repeat_inner = is_bezier ? order - 1 : 1;
   /* How many times to repeat 0.0 at the beginning of knot. */
-  const int head = is_end_point && !is_cyclic_ ? order : (is_bezier ? order / 2 : 1);
+  const int head = is_end_point ? (order - (is_cyclic_ ? 1 : 0)) :
+                                  (is_bezier ? min_ii(2, repeat_inner) : 1);
   /* Number of knots replicating widths of the starting knots.
    * Covers both Cyclic and EndPoint cases. */
   const int tail = is_cyclic_ ? 2 * order - 1 : (is_end_point ? order : 0);
@@ -182,7 +181,13 @@ void NURBSpline::calculate_knots() const
   int r = head;
   float current = 0.0f;
 
-  for (const int i : IndexRange(knots.size() - tail)) {
+  const int offset = is_end_point && is_cyclic_ ? 1 : 0;
+  if (offset) {
+    knots[0] = current;
+    current += 1.0f;
+  }
+
+  for (const int i : IndexRange(offset, knots.size() - offset - tail)) {
     knots[i] = current;
     r--;
     if (r == 0) {

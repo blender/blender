@@ -42,6 +42,7 @@
 #include "BKE_armature.h"
 #include "BKE_asset.h"
 #include "BKE_collection.h"
+#include "BKE_curve.h"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
@@ -2571,18 +2572,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 6)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *ts = scene->toolsettings;
       if (ts->uv_relax_method == 0) {
@@ -2600,5 +2590,51 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       tool_settings->snap_flag_node = tool_settings->snap_flag;
       tool_settings->snap_uv_flag |= tool_settings->snap_flag & SCE_SNAP;
     }
+
+    /* Alter NURBS knot mode flags to fit new modes. */
+    LISTBASE_FOREACH (Curve *, curve, &bmain->curves) {
+      LISTBASE_FOREACH (Nurb *, nurb, &curve->nurb) {
+        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
+        if (nurb->flagu & CU_NURB_CYCLIC) {
+          nurb->flagu = CU_NURB_CYCLIC;
+        }
+        /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if combined. */
+        else if (nurb->flagu & CU_NURB_BEZIER && nurb->flagu & CU_NURB_ENDPOINT) {
+          nurb->flagu &= ~(CU_NURB_BEZIER | CU_NURB_ENDPOINT);
+          BKE_nurb_knot_calc_u(nurb);
+        }
+        /* Bezier NURBS of order 3 were clamped to first control point. */
+        else if (nurb->orderu == 3 && (nurb->flagu & CU_NURB_BEZIER)) {
+          nurb->flagu |= CU_NURB_ENDPOINT;
+        }
+
+        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
+        if (nurb->flagv & CU_NURB_CYCLIC) {
+          nurb->flagv = CU_NURB_CYCLIC;
+        }
+        /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if used together. */
+        else if (nurb->flagv & CU_NURB_BEZIER && nurb->flagv & CU_NURB_ENDPOINT) {
+          nurb->flagv &= ~(CU_NURB_BEZIER | CU_NURB_ENDPOINT);
+          BKE_nurb_knot_calc_v(nurb);
+        }
+        /* Bezier NURBS of order 3 were clamped to first control point. */
+        else if (nurb->orderv == 3 && (nurb->flagv & CU_NURB_BEZIER)) {
+          nurb->flagv |= CU_NURB_ENDPOINT;
+        }
+      }
+    }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

@@ -292,7 +292,7 @@ Nurb *ED_curve_add_nurbs_primitive(
         nu->pntsv = 1;
         nu->orderu = 3;
         nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * nu->pntsu, "addNurbprim6");
-        nu->flagu = CU_NURB_CYCLIC | CU_NURB_BEZIER;
+        nu->flagu = CU_NURB_CYCLIC | CU_NURB_BEZIER | CU_NURB_ENDPOINT;
         bp = nu->bp;
 
         for (a = 0; a < 8; a++) {
@@ -407,7 +407,7 @@ Nurb *ED_curve_add_nurbs_primitive(
           mul_m4_v3(mat, bp->vec);
           bp++;
         }
-        nu->flagu = CU_NURB_BEZIER;
+        nu->flagu = CU_NURB_BEZIER | CU_NURB_ENDPOINT;
         BKE_nurb_knot_calc_u(nu);
 
         BLI_addtail(editnurb, nu); /* temporal for spin */

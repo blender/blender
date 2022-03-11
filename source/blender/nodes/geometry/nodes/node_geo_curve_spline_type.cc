@@ -65,6 +65,7 @@ static void nurbs_to_bezier_assign(const Span<T> input,
 
   switch (knotsMode) {
     case NURBSpline::KnotsMode::Bezier:
+    case NURBSpline::KnotsMode::EndPointBezier:
       scale_input_assign<T>(input, 3, 1, r_output);
       break;
     case NURBSpline::KnotsMode::Normal:

@@ -210,6 +210,8 @@ static NURBSpline::KnotsMode knots_mode_from_dna_nurb(const short flag)
       return NURBSpline::KnotsMode::EndPoint;
     case CU_NURB_BEZIER:
       return NURBSpline::KnotsMode::Bezier;
+    case CU_NURB_ENDPOINT | CU_NURB_BEZIER:
+      return NURBSpline::KnotsMode::EndPointBezier;
     default:
       return NURBSpline::KnotsMode::Normal;
   }

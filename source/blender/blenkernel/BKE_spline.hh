@@ -453,6 +453,7 @@ class NURBSpline final : public Spline {
     Normal,
     EndPoint,
     Bezier,
+    EndPointBezier,
   };
 
   /** Method used to recalculate the knots vector when points are added or removed. */
