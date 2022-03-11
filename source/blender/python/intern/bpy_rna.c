@@ -5897,7 +5897,6 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
         break;
       case PROP_STRING: {
         const char *data_ch;
-        PyObject *value_coerce = NULL;
         const int subtype = RNA_property_subtype(prop);
 
         if (flag & PROP_THICK_WRAP) {
@@ -5924,10 +5923,6 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
         else {
           ret = PyUnicode_FromString(data_ch);
         }
-#endif
-
-#ifdef USE_STRING_COERCE
-        Py_XDECREF(value_coerce);
 #endif
 
         break;
