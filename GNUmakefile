@@ -32,7 +32,7 @@ Other Convenience Targets
    * config:        Run cmake configuration tool to set build options.
    * deps:          Build library dependencies (intended only for platform maintainers).
 
-                    The existance of locally build dependencies overrides the pre-built dependencies from subversion.
+                    The existence of locally build dependencies overrides the pre-built dependencies from subversion.
                     These must be manually removed from '../lib/' to go back to using the pre-compiled libraries.
 
 Project Files

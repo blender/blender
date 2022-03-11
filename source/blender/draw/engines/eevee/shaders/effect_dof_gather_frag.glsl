@@ -12,7 +12,7 @@
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 
-/* Mipmapped input buffers, halfres but with padding to ensure mipmap alignement. */
+/* Mipmapped input buffers, halfres but with padding to ensure mipmap alignment. */
 uniform sampler2D colorBuffer;
 uniform sampler2D cocBuffer;
 

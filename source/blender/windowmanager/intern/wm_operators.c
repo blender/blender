@@ -383,7 +383,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
  *   since there is no convenient way to calculate partial RNA paths.
  *
  * \note While the path to the ID is typically sufficient to calculate the remainder of the path,
- * in practice this would cause #WM_context_path_resolve_property_full to crate a path such as:
+ * in practice this would cause #WM_context_path_resolve_property_full to create a path such as:
  * `object.data.bones["Bones"].use_deform` such paths are not useful for key-shortcuts,
  * so this function supports returning data-paths directly to context members that aren't ID types.
  */
