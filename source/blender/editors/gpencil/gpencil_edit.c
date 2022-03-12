@@ -5432,7 +5432,7 @@ static int gpencil_stroke_normalize_exec(bContext *C, wmOperator *op)
           }
           bool is_curve_ready = (gps->editcurve != NULL);
           bool selected = (is_curve_edit && is_curve_ready) ?
-                              gps->editcurve->flag |= GP_CURVE_SELECT :
+                              (gps->editcurve->flag & GP_CURVE_SELECT) :
                               (gps->flag & GP_STROKE_SELECT);
           if (!selected) {
             continue;
