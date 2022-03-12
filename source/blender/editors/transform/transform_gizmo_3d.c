@@ -1824,7 +1824,7 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
 static void WIDGETGROUP_gizmo_invoke_prepare(const bContext *C,
                                              wmGizmoGroup *gzgroup,
                                              wmGizmo *gz,
-                                             const wmEvent *UNUSED(event))
+                                             const wmEvent *event)
 {
 
   GizmoGroup *ggd = gzgroup->customdata;
@@ -1867,9 +1867,8 @@ static void WIDGETGROUP_gizmo_invoke_prepare(const bContext *C,
   }
 
   if (axis != -1) {
-    wmWindow *win = CTX_wm_window(C);
     /* Swap single axis for two-axis constraint. */
-    bool flip = (win->eventstate->modifier & KM_SHIFT) != 0;
+    const bool flip = (event->modifier & KM_SHIFT) != 0;
     BLI_assert(axis_idx != -1);
     const short axis_type = gizmo_get_axis_type(axis_idx);
     if (axis_type != MAN_AXES_ROTATE) {
