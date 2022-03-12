@@ -3442,7 +3442,6 @@ ScrArea *ED_area_find_under_cursor(const bContext *C, int spacetype, const int x
 {
   bScreen *screen = CTX_wm_screen(C);
   wmWindow *win = CTX_wm_window(C);
-  wmWindowManager *wm = CTX_wm_manager(C);
 
   ScrArea *area = NULL;
 
@@ -3454,8 +3453,8 @@ ScrArea *ED_area_find_under_cursor(const bContext *C, int spacetype, const int x
   if (!area) {
     /* Check all windows except the active one. */
     int scr_pos[2];
-    wmWindow *r_win = WM_window_find_under_cursor(wm, win, win, xy, scr_pos);
-    if (r_win) {
+    wmWindow *r_win = WM_window_find_under_cursor(win, xy, scr_pos);
+    if (r_win && r_win != win) {
       win = r_win;
       screen = WM_window_get_active_screen(win);
       area = BKE_screen_find_area_xy(screen, spacetype, scr_pos);

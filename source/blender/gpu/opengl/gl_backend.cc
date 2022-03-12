@@ -240,6 +240,7 @@ static void detect_workarounds()
     GLContext::texture_cube_map_array_support = false;
     GLContext::texture_filter_anisotropic_support = false;
     GLContext::texture_gather_support = false;
+    GLContext::texture_storage_support = false;
     GLContext::vertex_attrib_binding_support = false;
     return;
   }
@@ -268,6 +269,11 @@ static void detect_workarounds()
     GCaps.mip_render_workaround = true;
     GCaps.shader_image_load_store_support = false;
     GCaps.broken_amd_driver = true;
+  }
+  /* Compute shaders have some issues with those versions (see T94936). */
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) &&
+      (strstr(version, "4.5.14831") || strstr(version, "4.5.14760"))) {
+    GCaps.compute_shader_support = false;
   }
   /* We have issues with this specific renderer. (see T74024) */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
@@ -439,6 +445,7 @@ bool GLContext::shader_draw_parameters_support = false;
 bool GLContext::texture_cube_map_array_support = false;
 bool GLContext::texture_filter_anisotropic_support = false;
 bool GLContext::texture_gather_support = false;
+bool GLContext::texture_storage_support = false;
 bool GLContext::vertex_attrib_binding_support = false;
 
 /** Workarounds. */
@@ -501,6 +508,7 @@ void GLBackend::capabilities_init()
   GLContext::texture_cube_map_array_support = GLEW_ARB_texture_cube_map_array;
   GLContext::texture_filter_anisotropic_support = GLEW_EXT_texture_filter_anisotropic;
   GLContext::texture_gather_support = GLEW_ARB_texture_gather;
+  GLContext::texture_storage_support = GLEW_VERSION_4_3;
   GLContext::vertex_attrib_binding_support = GLEW_ARB_vertex_attrib_binding;
 
   detect_workarounds();

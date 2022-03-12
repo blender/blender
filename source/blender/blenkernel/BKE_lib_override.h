@@ -92,7 +92,13 @@ struct ID *BKE_lib_override_library_create_from_id(struct Main *bmain,
  *
  * \param id_hierarchy_root: the override ID that is the root of the hierarchy. May be NULL, in
  * which case it is assumed that the given `id_root_reference` is tagged for override, and its
- * newly created override will be used as hierarchy root.
+ * newly created override will be used as hierarchy root. Must be NULL if
+ * `id_hierarchy_root_reference` is not NULL.
+ *
+ * \param id_hierarchy_root_reference: the linked ID that is the root of the hierarchy. Must be
+ * tagged for override. May be NULL, in which case it is assumed that the given `id_root_reference`
+ * is tagged for override, and its newly created override will be used as hierarchy root. Must be
+ * NULL if `id_hierarchy_root` is not NULL.
  *
  * \param do_no_main: Create the new override data outside of Main database.
  * Used for resyncing of linked overrides.
@@ -103,6 +109,7 @@ bool BKE_lib_override_library_create_from_tag(struct Main *bmain,
                                               struct Library *owner_library,
                                               const struct ID *id_root_reference,
                                               struct ID *id_hierarchy_root,
+                                              const struct ID *id_hierarchy_root_reference,
                                               bool do_no_main);
 /**
  * Advanced 'smart' function to create fully functional overrides.
@@ -119,11 +126,18 @@ bool BKE_lib_override_library_create_from_tag(struct Main *bmain,
  * \param owner_library: the library in which the overrides should be created. Besides versioning
  * and resync code path, this should always be NULL (i.e. the local .blend file).
  *
- * \param id_root: The root ID to create an override from.
+ * \param id_root_reference: The linked root ID to create an override from. May be a sub-root of
+ * the overall hierarchy, in which case calling code is expected to have already tagged required
+ * 'path' of IDs leading from the given `id_hierarchy_root` to the given `id_root`.
  *
- * \param id_reference: Some reference ID used to do some post-processing after overrides have been
- * created, may be NULL. Typically, the Empty object instantiating the linked collection we
- * override, currently.
+ * \param id_hierarchy_root_reference: The ID to be used a hierarchy root of the overrides to be
+ * created. Can be either the linked root ID of the whole override hierarchy, (typically the same
+ * as `id_root`, unless a sub-part only of the hierarchy is overridden), or the already existing
+ * override hierarchy root if part of the hierarchy is already overridden.
+ *
+ * \param id_instance_hint: Some ID used as hint/reference to do some post-processing after
+ * overrides have been created, may be NULL. Typically, the Empty object instantiating the linked
+ * collection we override, currently.
  *
  * \param r_id_root_override: if not NULL, the override generated for the given \a id_root.
  *
@@ -133,8 +147,9 @@ bool BKE_lib_override_library_create(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ViewLayer *view_layer,
                                      struct Library *owner_library,
-                                     struct ID *id_root,
-                                     struct ID *id_reference,
+                                     struct ID *id_root_reference,
+                                     struct ID *id_hierarchy_root_reference,
+                                     struct ID *id_instance_hint,
                                      struct ID **r_id_root_override);
 /**
  * Create a library override template.

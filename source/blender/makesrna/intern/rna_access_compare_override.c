@@ -218,7 +218,7 @@ bool RNA_property_copy(
 
   /* IDprops: destination may not exist, if source does and is set, try to create it. */
   /* NOTE: this is sort of quick hack/bandage to fix the issue,
-   * we need to rethink how IDProps are handled in 'diff' RNA code completely, imho... */
+   * we need to rethink how IDProps are handled in 'diff' RNA code completely, IMHO. */
   if (prop_src != NULL && prop_dst == NULL && RNA_property_is_set(fromptr, prop)) {
     BLI_assert(prop_src->magic != RNA_MAGIC);
     IDProperty *idp_dst = RNA_struct_idprops(ptr, true);

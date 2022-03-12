@@ -16,9 +16,9 @@ out vec4 FragColor;
 vec3 background_transform_to_world(vec3 viewvec)
 {
   vec4 v = (ProjectionMatrix[3][3] == 0.0) ? vec4(viewvec, 1.0) : vec4(0.0, 0.0, 1.0, 1.0);
-  vec4 co_homogenous = (ProjectionMatrixInverse * v);
+  vec4 co_homogeneous = (ProjectionMatrixInverse * v);
 
-  vec4 co = vec4(co_homogenous.xyz / co_homogenous.w, 0.0);
+  vec4 co = vec4(co_homogeneous.xyz / co_homogeneous.w, 0.0);
   return (ViewMatrixInverse * co).xyz;
 }
 

@@ -74,11 +74,11 @@ class GLTexture : public Texture {
   bool init_internal() override;
   /** Return true on success. */
   bool init_internal(GPUVertBuf *vbo) override;
+  /** Return true on success. */
+  bool init_internal(const GPUTexture *src, int mip_offset, int layer_offset) override;
 
  private:
   bool proxy_check(int mip);
-  /** Will create enough mipmaps up to get to the given level. */
-  void ensure_mipmaps(int mip);
   void update_sub_direct_state_access(
       int mip, int offset[3], int extent[3], GLenum gl_format, GLenum gl_type, const void *data);
   GPUFrameBuffer *framebuffer_get();

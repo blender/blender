@@ -16,7 +16,6 @@ and <output-filename> is where to write the generated man page.
 import argparse
 import os
 import subprocess
-import sys
 import time
 
 from typing import (

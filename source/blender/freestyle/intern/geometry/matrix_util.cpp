@@ -106,7 +106,7 @@ void semi_definite_symmetric_eigen(const double *mat, int n, double *eigen_vec, 
           delta = a_ll - a_mm;
 
           if (delta == 0.0) {
-            x = -M_PI / 4;
+            x = -M_PI_4;
           }
           else {
             x = -atan((a_lm + a_lm) / delta) / 2.0;

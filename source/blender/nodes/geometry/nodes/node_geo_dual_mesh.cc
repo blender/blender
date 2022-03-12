@@ -646,13 +646,13 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
         Array<int> shared_edges(loop_indices.size());
         vertex_ok = sort_vertex_polys(
             mesh_in, i, false, edge_types, loop_indices, shared_edges, sorted_corners);
-        vertex_shared_edges[i] = shared_edges;
+        vertex_shared_edges[i] = std::move(shared_edges);
       }
       else {
         Array<int> shared_edges(loop_indices.size() - 1);
         vertex_ok = sort_vertex_polys(
             mesh_in, i, true, edge_types, loop_indices, shared_edges, sorted_corners);
-        vertex_shared_edges[i] = shared_edges;
+        vertex_shared_edges[i] = std::move(shared_edges);
       }
       if (!vertex_ok) {
         /* The sorting failed which means that the vertex is non-manifold and should be ignored
@@ -660,7 +660,7 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
         vertex_types[i] = VertexType::NonManifold;
         continue;
       }
-      vertex_corners[i] = sorted_corners;
+      vertex_corners[i] = std::move(sorted_corners);
     }
   });
 

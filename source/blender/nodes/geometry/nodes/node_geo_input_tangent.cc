@@ -77,21 +77,12 @@ static Array<float3> curve_tangent_point_domain(const CurveEval &curve)
 static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &component,
                                                       const AttributeDomain domain)
 {
-  const CurveEval *curve = component.get_for_read();
-  if (curve == nullptr) {
-    return nullptr;
+  if (!component.has_curves()) {
+    return {};
   }
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*component.get_for_read());
 
   if (domain == ATTR_DOMAIN_POINT) {
-    const Span<SplinePtr> splines = curve->splines();
-
-    /* Use a reference to evaluated tangents if possible to avoid an allocation and a copy.
-     * This is only possible when there is only one poly spline. */
-    if (splines.size() == 1 && splines.first()->type() == CURVE_TYPE_POLY) {
-      const PolySpline &spline = static_cast<PolySpline &>(*splines.first());
-      return VArray<float3>::ForSpan(spline.evaluated_tangents());
-    }
-
     Array<float3> tangents = curve_tangent_point_domain(*curve);
     return VArray<float3>::ForContainer(std::move(tangents));
   }

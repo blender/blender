@@ -20,6 +20,7 @@
 #include "BKE_attribute_math.hh"
 
 struct Curve;
+struct Curves;
 struct ListBase;
 
 class Spline;
@@ -448,12 +449,6 @@ class BezierSpline final : public Spline {
  */
 class NURBSpline final : public Spline {
  public:
-  enum class KnotsMode {
-    Normal,
-    EndPoint,
-    Bezier,
-  };
-
   /** Method used to recalculate the knots vector when points are added or removed. */
   KnotsMode knots_mode;
 
@@ -691,3 +686,5 @@ struct CurveEval {
 std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &curve,
                                                      const ListBase &nurbs_list);
 std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve);
+std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves);
+Curves *curve_eval_to_curves(const CurveEval &curve_eval);

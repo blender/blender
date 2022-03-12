@@ -234,6 +234,9 @@ static int mouse_mesh_uv_shortest_path_vert(Scene *scene,
                                             const int cd_loop_uv_offset)
 {
   const char uv_selectmode = ED_uvedit_select_mode_get(scene);
+  /* TODO(@sidd017): Implement logic to calculate shortest path for UV edges, since we now support
+   * proper edge selection for UVs (D12028).
+   * Till then continue using vertex path to fake shortest path calculation for edges. */
   const bool use_fake_edge_select = (uv_selectmode & UV_SELECT_EDGE);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
@@ -377,7 +380,7 @@ static bool facetag_test_cb(BMFace *f, void *user_data_v)
   BMIter iter;
   BMLoop *l_iter;
   BM_ITER_ELEM (l_iter, &iter, f, BM_LOOPS_OF_FACE) {
-    if (!uvedit_uv_select_test(scene, l_iter, cd_loop_uv_offset)) {
+    if (!uvedit_edge_select_test(scene, l_iter, cd_loop_uv_offset)) {
       return false;
     }
   }
@@ -531,8 +534,21 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
            * flush the selection from the vertices. */
           BM_mesh_select_mode_flush_ex(em->bm, SCE_SELECT_VERTEX, BM_SELECT_LEN_FLUSH_RECALC_ALL);
         }
+        ED_uvedit_select_sync_flush(scene->toolsettings, em, select);
       }
-      ED_uvedit_select_sync_flush(scene->toolsettings, em, select);
+      else {
+        if (uv_selectmode & UV_SELECT_EDGE) {
+          /* TODO(@sidd017): Remove this case when adding proper uv edge support for this operator.
+           * In the meantime, this case helps ensures proper UV selection states for edge mode. */
+          if (select) {
+            uvedit_select_flush(scene, em);
+          }
+          else {
+            uvedit_deselect_flush(scene, em);
+          }
+        }
+        ED_uvedit_selectmode_flush(scene, em);
+      }
     }
 
     if (ts->uv_flag & UV_SYNC_SELECTION) {
@@ -603,7 +619,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
 
   else if (uv_selectmode & UV_SELECT_EDGE) {
     UvNearestHit hit = UV_NEAREST_HIT_INIT_MAX(&region->v2d);
-    if (!uv_find_nearest_edge(scene, obedit, co, &hit)) {
+    if (!uv_find_nearest_edge(scene, obedit, co, 0.0f, &hit)) {
       return OPERATOR_CANCELLED;
     }
 

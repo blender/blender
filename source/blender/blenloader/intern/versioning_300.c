@@ -46,6 +46,7 @@
 #include "BKE_brush.h"
 #include "BKE_brush_engine.h"
 #include "BKE_collection.h"
+#include "BKE_curve.h"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
@@ -1496,6 +1497,10 @@ static void version_liboverride_rnacollections_insertion_animdata(ID *id)
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
+  /* The #SCE_SNAP_SEQ flag has been removed in favor of the #SCE_SNAP which can be used for each
+   * snap_flag member individually. */
+  enum { SCE_SNAP_SEQ = (1 << 7) };
+
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 1)) {
     /* Set default value for the new bisect_threshold parameter in the mirror modifier. */
     if (!DNA_struct_elem_find(fd->filesdna, "MirrorModifierData", "float", "bisect_threshold")) {
@@ -3131,6 +3136,59 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != NULL) {
         SEQ_for_each_callback(&scene->ed->seqbase, seq_transform_filter_set, NULL);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 6)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+      if (ts->uv_relax_method == 0) {
+        ts->uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN;
+      }
+    }
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *tool_settings = scene->toolsettings;
+      tool_settings->snap_flag_seq = tool_settings->snap_flag & ~(SCE_SNAP | SCE_SNAP_SEQ);
+      if (tool_settings->snap_flag & SCE_SNAP_SEQ) {
+        tool_settings->snap_flag_seq |= SCE_SNAP;
+        tool_settings->snap_flag &= ~SCE_SNAP_SEQ;
+      }
+
+      tool_settings->snap_flag_node = tool_settings->snap_flag;
+      tool_settings->snap_uv_flag |= tool_settings->snap_flag & SCE_SNAP;
+    }
+
+    /* Alter NURBS knot mode flags to fit new modes. */
+    LISTBASE_FOREACH (Curve *, curve, &bmain->curves) {
+      LISTBASE_FOREACH (Nurb *, nurb, &curve->nurb) {
+        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
+        if (nurb->flagu & CU_NURB_CYCLIC) {
+          nurb->flagu = CU_NURB_CYCLIC;
+        }
+        /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if combined. */
+        else if (nurb->flagu & CU_NURB_BEZIER && nurb->flagu & CU_NURB_ENDPOINT) {
+          nurb->flagu &= ~(CU_NURB_BEZIER | CU_NURB_ENDPOINT);
+          BKE_nurb_knot_calc_u(nurb);
+        }
+        /* Bezier NURBS of order 3 were clamped to first control point. */
+        else if (nurb->orderu == 3 && (nurb->flagu & CU_NURB_BEZIER)) {
+          nurb->flagu |= CU_NURB_ENDPOINT;
+        }
+
+        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
+        if (nurb->flagv & CU_NURB_CYCLIC) {
+          nurb->flagv = CU_NURB_CYCLIC;
+        }
+        /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if used together. */
+        else if (nurb->flagv & CU_NURB_BEZIER && nurb->flagv & CU_NURB_ENDPOINT) {
+          nurb->flagv &= ~(CU_NURB_BEZIER | CU_NURB_ENDPOINT);
+          BKE_nurb_knot_calc_v(nurb);
+        }
+        /* Bezier NURBS of order 3 were clamped to first control point. */
+        else if (nurb->orderv == 3 && (nurb->flagv & CU_NURB_BEZIER)) {
+          nurb->flagv |= CU_NURB_ENDPOINT;
+        }
       }
     }
   }

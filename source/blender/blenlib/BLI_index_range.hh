@@ -149,6 +149,14 @@ class IndexRange {
   }
 
   /**
+   * Returns true if the size is zero.
+   */
+  constexpr bool is_empty() const
+  {
+    return size_ == 0;
+  }
+
+  /**
    * Create a new range starting at the end of the current one.
    */
   constexpr IndexRange after(int64_t n) const
@@ -224,6 +232,50 @@ class IndexRange {
   constexpr IndexRange slice(IndexRange range) const
   {
     return this->slice(range.start(), range.size());
+  }
+
+  /**
+   * Returns a new IndexRange with n elements removed from the beginning. This invokes undefined
+   * behavior when n is negative.
+   */
+  constexpr IndexRange drop_front(int64_t n) const
+  {
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::max<int64_t>(0, size_ - n);
+    return IndexRange(start_ + n, new_size);
+  }
+
+  /**
+   * Returns a new IndexRange with n elements removed from the beginning. This invokes undefined
+   * behavior when n is negative.
+   */
+  constexpr IndexRange drop_back(int64_t n) const
+  {
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::max<int64_t>(0, size_ - n);
+    return IndexRange(start_, new_size);
+  }
+
+  /**
+   * Returns a new IndexRange that only contains the first n elements. This invokes undefined
+   * behavior when n is negative.
+   */
+  constexpr IndexRange take_front(int64_t n) const
+  {
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::min<int64_t>(size_, n);
+    return IndexRange(start_, new_size);
+  }
+
+  /**
+   * Returns a new IndexRange that only contains the last n elements. This invokes undefined
+   * behavior when n is negative.
+   */
+  constexpr IndexRange take_back(int64_t n) const
+  {
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::min<int64_t>(size_, n);
+    return IndexRange(start_ + size_ - new_size, new_size);
   }
 
   /**

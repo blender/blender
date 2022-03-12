@@ -696,7 +696,7 @@ static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
 }
 
 static ID *rna_ID_override_hierarchy_create(
-    ID *id, Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_reference)
+    ID *id, Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_instance_hint)
 {
   if (!ID_IS_OVERRIDABLE_LIBRARY(id)) {
     return NULL;
@@ -706,7 +706,7 @@ static ID *rna_ID_override_hierarchy_create(
 
   ID *id_root_override = NULL;
   BKE_lib_override_library_create(
-      bmain, scene, view_layer, NULL, id, id_reference, &id_root_override);
+      bmain, scene, view_layer, NULL, id, id, id_instance_hint, &id_root_override);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
   WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
@@ -741,6 +741,11 @@ static void rna_ID_override_library_operations_update(ID *id,
 {
   if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
     BKE_reportf(reports, RPT_ERROR, "ID '%s' isn't an override", id->name);
+    return;
+  }
+
+  if (ID_IS_LINKED(id)) {
+    BKE_reportf(reports, RPT_ERROR, "ID '%s' is linked, cannot edit its overrides", id->name);
     return;
   }
 
@@ -2057,7 +2062,7 @@ static void rna_def_ID(BlenderRNA *brna)
                   "reference",
                   "ID",
                   "",
-                  "Another ID (usually an Object or Collection) used to decide where to "
+                  "Another ID (usually an Object or Collection) used as a hint to decide where to "
                   "instantiate the new overrides");
 
   func = RNA_def_function(srna, "override_template_create", "rna_ID_override_template_create");

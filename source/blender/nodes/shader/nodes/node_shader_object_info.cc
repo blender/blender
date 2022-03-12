@@ -9,6 +9,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Vector>(N_("Location"));
   b.add_output<decl::Color>(N_("Color"));
+  b.add_output<decl::Float>(N_("Alpha"));
   b.add_output<decl::Float>(N_("Object Index"));
   b.add_output<decl::Float>(N_("Material Index"));
   b.add_output<decl::Float>(N_("Random"));

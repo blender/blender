@@ -1212,8 +1212,8 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
   }
 
   /* TODO(germano): Some of these operations change the `t->mode`.
-   * This can be bad for Redo.
-   * BLI_assert(t->mode == mode); */
+   * This can be bad for Redo. */
+  // BLI_assert(t->mode == mode);
 }
 
 void transform_mode_default_modal_orientation_set(TransInfo *t, int type)

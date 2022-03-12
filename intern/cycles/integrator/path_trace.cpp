@@ -466,7 +466,7 @@ void PathTrace::set_denoiser_params(const DenoiseParams &params)
   denoiser_ = Denoiser::create(device_, params);
 
   /* Only take into account the "immediate" cancel to have interactive rendering responding to
-   * navigation as quickly as possible, but allow to run denoiser after user hit Esc button while
+   * navigation as quickly as possible, but allow to run denoiser after user hit Escape key while
    * doing offline rendering. */
   denoiser_->is_cancelled_cb = [this]() { return render_cancel_.is_requested; };
 }

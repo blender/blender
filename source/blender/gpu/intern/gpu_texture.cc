@@ -52,11 +52,13 @@ Texture::~Texture()
 #endif
 }
 
-bool Texture::init_1D(int w, int layers, eGPUTextureFormat format)
+bool Texture::init_1D(int w, int layers, int mips, eGPUTextureFormat format)
 {
   w_ = w;
   h_ = layers;
   d_ = 0;
+  int mips_max = 1 + floorf(log2f(w));
+  mipmaps_ = min_ii(mips, mips_max);
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = (layers > 0) ? GPU_TEXTURE_1D_ARRAY : GPU_TEXTURE_1D;
@@ -66,11 +68,13 @@ bool Texture::init_1D(int w, int layers, eGPUTextureFormat format)
   return this->init_internal();
 }
 
-bool Texture::init_2D(int w, int h, int layers, eGPUTextureFormat format)
+bool Texture::init_2D(int w, int h, int layers, int mips, eGPUTextureFormat format)
 {
   w_ = w;
   h_ = h;
   d_ = layers;
+  int mips_max = 1 + floorf(log2f(max_ii(w, h)));
+  mipmaps_ = min_ii(mips, mips_max);
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = (layers > 0) ? GPU_TEXTURE_2D_ARRAY : GPU_TEXTURE_2D;
@@ -80,11 +84,13 @@ bool Texture::init_2D(int w, int h, int layers, eGPUTextureFormat format)
   return this->init_internal();
 }
 
-bool Texture::init_3D(int w, int h, int d, eGPUTextureFormat format)
+bool Texture::init_3D(int w, int h, int d, int mips, eGPUTextureFormat format)
 {
   w_ = w;
   h_ = h;
   d_ = d;
+  int mips_max = 1 + floorf(log2f(max_iii(w, h, d)));
+  mipmaps_ = min_ii(mips, mips_max);
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = GPU_TEXTURE_3D;
@@ -94,11 +100,13 @@ bool Texture::init_3D(int w, int h, int d, eGPUTextureFormat format)
   return this->init_internal();
 }
 
-bool Texture::init_cubemap(int w, int layers, eGPUTextureFormat format)
+bool Texture::init_cubemap(int w, int layers, int mips, eGPUTextureFormat format)
 {
   w_ = w;
   h_ = w;
   d_ = max_ii(1, layers) * 6;
+  int mips_max = 1 + floorf(log2f(w));
+  mipmaps_ = min_ii(mips, mips_max);
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = (layers > 0) ? GPU_TEXTURE_CUBE_ARRAY : GPU_TEXTURE_CUBE;
@@ -121,6 +129,42 @@ bool Texture::init_buffer(GPUVertBuf *vbo, eGPUTextureFormat format)
   format_flag_ = to_format_flag(format);
   type_ = GPU_TEXTURE_BUFFER;
   return this->init_internal(vbo);
+}
+
+bool Texture::init_view(const GPUTexture *src_,
+                        eGPUTextureFormat format,
+                        int mip_start,
+                        int mip_len,
+                        int layer_start,
+                        int layer_len)
+{
+  const Texture *src = unwrap(src_);
+  w_ = src->w_;
+  h_ = src->h_;
+  d_ = src->d_;
+  switch (type_) {
+    case GPU_TEXTURE_1D_ARRAY:
+      h_ = layer_len;
+      break;
+    case GPU_TEXTURE_CUBE_ARRAY:
+      BLI_assert(layer_len % 6 == 0);
+      ATTR_FALLTHROUGH;
+    case GPU_TEXTURE_2D_ARRAY:
+      d_ = layer_len;
+      break;
+    default:
+      BLI_assert(layer_len == 1 && layer_start == 0);
+      break;
+  }
+  mip_start = min_ii(mip_start, src->mipmaps_ - 1);
+  mip_len = min_ii(mip_len, (src->mipmaps_ - mip_start));
+  mipmaps_ = mip_len;
+  format_ = format;
+  format_flag_ = to_format_flag(format);
+  /* For now always copy the target. Target aliasing could be exposed later. */
+  type_ = src->type_;
+  sampler_state = src->sampler_state;
+  return this->init_internal(src_, mip_start, layer_start);
 }
 
 /** \} */
@@ -187,28 +231,29 @@ static inline GPUTexture *gpu_texture_create(const char *name,
                                              const int h,
                                              const int d,
                                              const eGPUTextureType type,
-                                             int UNUSED(mips),
+                                             int mips,
                                              eGPUTextureFormat tex_format,
                                              eGPUDataFormat data_format,
                                              const void *pixels)
 {
+  BLI_assert(mips > 0);
   Texture *tex = GPUBackend::get()->texture_alloc(name);
   bool success = false;
   switch (type) {
     case GPU_TEXTURE_1D:
     case GPU_TEXTURE_1D_ARRAY:
-      success = tex->init_1D(w, h, tex_format);
+      success = tex->init_1D(w, h, mips, tex_format);
       break;
     case GPU_TEXTURE_2D:
     case GPU_TEXTURE_2D_ARRAY:
-      success = tex->init_2D(w, h, d, tex_format);
+      success = tex->init_2D(w, h, d, mips, tex_format);
       break;
     case GPU_TEXTURE_3D:
-      success = tex->init_3D(w, h, d, tex_format);
+      success = tex->init_3D(w, h, d, mips, tex_format);
       break;
     case GPU_TEXTURE_CUBE:
     case GPU_TEXTURE_CUBE_ARRAY:
-      success = tex->init_cubemap(w, d, tex_format);
+      success = tex->init_cubemap(w, d, mips, tex_format);
       break;
     default:
       break;
@@ -286,7 +331,7 @@ GPUTexture *GPU_texture_create_compressed_2d(
     const char *name, int w, int h, int miplen, eGPUTextureFormat tex_format, const void *data)
 {
   Texture *tex = GPUBackend::get()->texture_alloc(name);
-  bool success = tex->init_2D(w, h, 0, tex_format);
+  bool success = tex->init_2D(w, h, 0, miplen, tex_format);
 
   if (!success) {
     delete tex;
@@ -332,6 +377,21 @@ GPUTexture *GPU_texture_create_error(int dimension, bool is_array)
   type = (dimension == 1) ? (is_array ? GPU_TEXTURE_1D_ARRAY : GPU_TEXTURE_1D) : type;
 
   return gpu_texture_create("invalid_tex", w, h, d, type, 1, GPU_RGBA8, GPU_DATA_FLOAT, pixel);
+}
+
+GPUTexture *GPU_texture_create_view(const char *name,
+                                    const GPUTexture *src,
+                                    eGPUTextureFormat format,
+                                    int mip_start,
+                                    int mip_len,
+                                    int layer_start,
+                                    int layer_len)
+{
+  BLI_assert(mip_len > 0);
+  BLI_assert(layer_len > 0);
+  Texture *view = GPUBackend::get()->texture_alloc(name);
+  view->init_view(src, format, mip_start, mip_len, layer_start, layer_len);
+  return wrap(view);
 }
 
 /* ------ Update ------ */

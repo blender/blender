@@ -21,6 +21,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
@@ -73,6 +74,7 @@
 #include "ED_curve.h"
 #include "ED_gpencil.h"
 #include "ED_image.h"
+#include "ED_keyframes_keylist.h"
 #include "ED_lattice.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
@@ -340,10 +342,10 @@ static int object_hide_collection_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
 
   int index = RNA_int_get(op->ptr, "collection_index");
-  const bool extend = (win->eventstate->shift != 0);
+  const bool extend = (win->eventstate->modifier & KM_SHIFT) != 0;
   const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 
-  if (win->eventstate->alt != 0) {
+  if (win->eventstate->modifier & KM_ALT) {
     index += 10;
   }
 
@@ -1209,30 +1211,32 @@ static int object_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEv
   /* set default settings from existing/stored settings */
   {
     bAnimVizSettings *avs = &ob->avs;
-
-    RNA_int_set(op->ptr, "start_frame", avs->path_sf);
-    RNA_int_set(op->ptr, "end_frame", avs->path_ef);
+    RNA_enum_set(op->ptr, "display_type", avs->path_type);
+    RNA_enum_set(op->ptr, "range", avs->path_range);
   }
 
   /* show popup dialog to allow editing of range... */
   /* FIXME: hard-coded dimensions here are just arbitrary. */
-  return WM_operator_props_dialog_popup(C, op, 200);
+  return WM_operator_props_dialog_popup(C, op, 270);
 }
 
 /* Calculate/recalculate whole paths (avs.path_sf to avs.path_ef) */
 static int object_calculate_paths_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  int start = RNA_int_get(op->ptr, "start_frame");
-  int end = RNA_int_get(op->ptr, "end_frame");
+  short path_type = RNA_enum_get(op->ptr, "display_type");
+  short path_range = RNA_enum_get(op->ptr, "range");
 
-  /* set up path data for bones being calculated */
+  /* set up path data for objects being calculated */
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
-    bAnimVizSettings *avs = &ob->avs;
-
-    /* grab baking settings from operator settings */
-    avs->path_sf = start;
-    avs->path_ef = end;
+    /* When operator is not invoked, dismiss the operator settings */
+    if (op->flag & OP_IS_INVOKE) {
+      bAnimVizSettings *avs = &ob->avs;
+      /* grab baking settings from operator settings */
+      avs->path_type = path_type;
+      avs->path_range = path_range;
+    }
+    animviz_motionpath_compute_range(ob, scene);
 
     /* verify that the selected object has the appropriate settings */
     animviz_verify_motionpaths(op->reports, scene, ob, NULL);
@@ -1251,9 +1255,9 @@ static int object_calculate_paths_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_paths_calculate(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Calculate Object Paths";
+  ot->name = "Calculate Object Motion Paths";
   ot->idname = "OBJECT_OT_paths_calculate";
-  ot->description = "Calculate motion paths for the selected objects";
+  ot->description = "Generate motion paths for the selected objects";
 
   /* api callbacks */
   ot->invoke = object_calculate_paths_invoke;
@@ -1264,24 +1268,18 @@ void OBJECT_OT_paths_calculate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_int(ot->srna,
-              "start_frame",
-              1,
-              MINAFRAME,
-              MAXFRAME,
-              "Start",
-              "First frame to calculate object paths on",
-              MINFRAME,
-              MAXFRAME / 2.0);
-  RNA_def_int(ot->srna,
-              "end_frame",
-              250,
-              MINAFRAME,
-              MAXFRAME,
-              "End",
-              "Last frame to calculate object paths on",
-              MINFRAME,
-              MAXFRAME / 2.0);
+  RNA_def_enum(ot->srna,
+               "display_type",
+               rna_enum_motionpath_display_type_items,
+               MOTIONPATH_TYPE_RANGE,
+               "Display type",
+               "");
+  RNA_def_enum(ot->srna,
+               "range",
+               rna_enum_motionpath_range_items,
+               MOTIONPATH_RANGE_SCENE,
+               "Computation Range",
+               "");
 }
 
 /** \} */
@@ -1300,13 +1298,19 @@ static bool object_update_paths_poll(bContext *C)
   return false;
 }
 
-static int object_update_paths_exec(bContext *C, wmOperator *UNUSED(op))
+static int object_update_paths_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
 
   if (scene == NULL) {
     return OPERATOR_CANCELLED;
   }
+  CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
+    animviz_motionpath_compute_range(ob, scene);
+    /* verify that the selected object has the appropriate settings */
+    animviz_verify_motionpaths(op->reports, scene, ob, NULL);
+  }
+  CTX_DATA_END;
 
   /* calculate the paths for objects that have them (and are tagged to get refreshed) */
   ED_objects_recalculate_paths_selected(C, scene, OBJECT_PATH_CALC_RANGE_FULL);
@@ -1427,7 +1431,7 @@ static int object_clear_paths_exec(bContext *C, wmOperator *op)
 /* operator callback/wrapper */
 static int object_clear_paths_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if ((event->shift) && !RNA_struct_property_is_set(op->ptr, "only_selected")) {
+  if ((event->modifier & KM_SHIFT) && !RNA_struct_property_is_set(op->ptr, "only_selected")) {
     RNA_boolean_set(op->ptr, "only_selected", true);
   }
   return object_clear_paths_exec(C, op);
@@ -1452,46 +1456,6 @@ void OBJECT_OT_paths_clear(wmOperatorType *ot)
   ot->prop = RNA_def_boolean(
       ot->srna, "only_selected", false, "Only Selected", "Only clear paths from selected objects");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Update Motion Paths Range from Scene Operator
- * \{ */
-
-static int object_update_paths_range_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  Scene *scene = CTX_data_scene(C);
-
-  /* Loop over all editable objects in scene. */
-  CTX_DATA_BEGIN (C, Object *, ob, editable_objects) {
-    /* use Preview Range or Full Frame Range - whichever is in use */
-    ob->avs.path_sf = PSFRA;
-    ob->avs.path_ef = PEFRA;
-
-    /* tag for updates */
-    DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
-    WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-  }
-  CTX_DATA_END;
-
-  return OPERATOR_FINISHED;
-}
-
-void OBJECT_OT_paths_range_update(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Update Range from Scene";
-  ot->idname = "OBJECT_OT_paths_range_update";
-  ot->description = "Update frame range for motion paths from the Scene's current frame range";
-
-  /* callbacks */
-  ot->exec = object_update_paths_range_exec;
-  ot->poll = ED_operator_object_active_editable;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */

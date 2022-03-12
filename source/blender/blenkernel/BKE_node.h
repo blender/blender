@@ -681,6 +681,7 @@ void nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
 void nodeRemSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
 void nodeMuteLinkToggle(struct bNodeTree *ntree, struct bNodeLink *link);
 bool nodeLinkIsHidden(const struct bNodeLink *link);
+bool nodeLinkIsSelected(const struct bNodeLink *link);
 void nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);
 
 void nodeToView(const struct bNode *node, float x, float y, float *rx, float *ry);
@@ -1461,7 +1462,7 @@ struct TexResult;
 #define GEO_NODE_SUBDIVIDE_CURVE 1097
 #define GEO_NODE_INPUT_SPLINE_LENGTH 1098
 #define GEO_NODE_CURVE_SPLINE_TYPE 1099
-#define GEO_NODE_CURVE_SET_HANDLES 1100
+#define GEO_NODE_CURVE_SET_HANDLE_TYPE 1100
 #define GEO_NODE_POINTS_TO_VOLUME 1101
 #define GEO_NODE_CURVE_HANDLE_TYPE_SELECTION 1102
 #define GEO_NODE_DELETE_GEOMETRY 1103

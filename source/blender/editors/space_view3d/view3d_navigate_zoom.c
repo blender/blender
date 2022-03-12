@@ -125,18 +125,18 @@ static void view_zoom_to_window_xy_3d(ARegion *region, float dfac, const int zoo
     float dvec[3];
     float tvec[3];
     float tpos[3];
-    float mval_f[2];
+    float xy_delta[2];
 
     float zfac;
 
     negate_v3_v3(tpos, rv3d->ofs);
 
-    mval_f[0] = (float)(((zoom_xy[0] - region->winrct.xmin) * 2) - region->winx) / 2.0f;
-    mval_f[1] = (float)(((zoom_xy[1] - region->winrct.ymin) * 2) - region->winy) / 2.0f;
+    xy_delta[0] = (float)(((zoom_xy[0] - region->winrct.xmin) * 2) - region->winx) / 2.0f;
+    xy_delta[1] = (float)(((zoom_xy[1] - region->winrct.ymin) * 2) - region->winy) / 2.0f;
 
     /* Project cursor position into 3D space */
-    zfac = ED_view3d_calc_zfac(rv3d, tpos, NULL);
-    ED_view3d_win_to_delta(region, mval_f, dvec, zfac);
+    zfac = ED_view3d_calc_zfac(rv3d, tpos);
+    ED_view3d_win_to_delta(region, xy_delta, zfac, dvec);
 
     /* Calculate view target position for dolly */
     add_v3_v3v3(tvec, tpos, dvec);
@@ -370,11 +370,11 @@ static int viewzoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
         event_code = VIEW_CONFIRM;
         break;
       case VIEWROT_MODAL_SWITCH_MOVE:
-        WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL);
+        WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL, event);
         event_code = VIEW_CONFIRM;
         break;
       case VIEWROT_MODAL_SWITCH_ROTATE:
-        WM_operator_name_call(C, "VIEW3D_OT_rotate", WM_OP_INVOKE_DEFAULT, NULL);
+        WM_operator_name_call(C, "VIEW3D_OT_rotate", WM_OP_INVOKE_DEFAULT, NULL, event);
         event_code = VIEW_CONFIRM;
         break;
     }

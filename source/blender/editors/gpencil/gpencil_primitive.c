@@ -1494,7 +1494,7 @@ static void gpencil_primitive_edit_event_handling(
           float dy = (tgpi->mval[1] - tgpi->mvalo[1]);
           tgpi->cp1[0] += dx;
           tgpi->cp1[1] += dy;
-          if (event->shift) {
+          if (event->modifier & KM_SHIFT) {
             copy_v2_v2(tgpi->cp2, tgpi->cp1);
           }
         }
@@ -1503,7 +1503,7 @@ static void gpencil_primitive_edit_event_handling(
           float dy = (tgpi->mval[1] - tgpi->mvalo[1]);
           tgpi->cp2[0] += dx;
           tgpi->cp2[1] += dy;
-          if (event->shift) {
+          if (event->modifier & KM_SHIFT) {
             copy_v2_v2(tgpi->cp1, tgpi->cp2);
           }
         }
@@ -1692,7 +1692,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
         WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
         copy_v2_v2(tgpi->end, tgpi->mval);
 
-        if (event->shift) {
+        if (event->modifier & KM_SHIFT) {
           gpencil_primitive_constrain(tgpi, true);
         }
 
@@ -1722,7 +1722,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
       case EVT_FKEY: /* brush thickness/ brush strength */
       {
         if ((event->val == KM_PRESS)) {
-          if (event->shift) {
+          if (event->modifier & KM_SHIFT) {
             tgpi->prev_flag = tgpi->flag;
             tgpi->flag = IN_BRUSH_STRENGTH;
           }
@@ -1900,7 +1900,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     case EVT_FKEY: /* brush thickness/ brush strength */
     {
       if ((event->val == KM_PRESS)) {
-        if (event->shift) {
+        if (event->modifier & KM_SHIFT) {
           tgpi->prev_flag = tgpi->flag;
           tgpi->flag = IN_BRUSH_STRENGTH;
         }
@@ -1954,12 +1954,12 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
           copy_v2_v2(tgpi->origin, tgpi->mval);
         }
         /* Keep square if shift key */
-        if (event->shift) {
+        if (event->modifier & KM_SHIFT) {
           gpencil_primitive_constrain(
               tgpi, (ELEM(tgpi->type, GP_STROKE_LINE, GP_STROKE_POLYLINE) || tgpi->curve));
         }
         /* Center primitive if alt key */
-        if (event->alt && !ELEM(tgpi->type, GP_STROKE_POLYLINE)) {
+        if ((event->modifier & KM_ALT) && !ELEM(tgpi->type, GP_STROKE_POLYLINE)) {
           tgpi->start[0] = tgpi->origin[0] - (tgpi->end[0] - tgpi->origin[0]);
           tgpi->start[1] = tgpi->origin[1] - (tgpi->end[1] - tgpi->origin[1]);
         }

@@ -129,6 +129,9 @@ bool BLT_lang_is_ime_supported(void);
 #define BLT_I18NCONTEXT_ID_MOVIECLIP "MovieClip"
 #define BLT_I18NCONTEXT_ID_MASK "Mask"
 
+/* Editors-types contexts. */
+#define BLT_I18NCONTEXT_EDITOR_VIEW3D "View3D"
+
 /* Helper for bpy.app.i18n object... */
 typedef struct {
   const char *c_id;
@@ -191,6 +194,7 @@ typedef struct {
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WORLD, "id_world"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WORKSPACE, "id_workspace"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "id_windowmanager"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_EDITOR_VIEW3D, "editor_view3d"), \
     { \
       NULL, NULL, NULL \
     } \

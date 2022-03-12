@@ -141,10 +141,13 @@ static void raycast_to_mesh(IndexMask mask,
 {
   BVHTreeFromMesh tree_data;
   BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_LOOPTRI, 4);
+  BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&tree_data); });
+
   if (tree_data.tree == nullptr) {
-    free_bvhtree_from_mesh(&tree_data);
     return;
   }
+  /* We shouldn't be rebuilding the BVH tree when calling this function in parallel. */
+  BLI_assert(tree_data.cached);
 
   for (const int i : mask) {
     const float ray_length = ray_lengths[i];
@@ -197,10 +200,6 @@ static void raycast_to_mesh(IndexMask mask,
       }
     }
   }
-
-  /* We shouldn't be rebuilding the BVH tree when calling this function in parallel. */
-  BLI_assert(tree_data.cached);
-  free_bvhtree_from_mesh(&tree_data);
 }
 
 class RaycastFunction : public fn::MultiFunction {

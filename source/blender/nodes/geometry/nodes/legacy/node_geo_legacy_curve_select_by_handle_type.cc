@@ -89,9 +89,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set = geometry::realize_instances_legacy(geometry_set);
 
   CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
-  const CurveEval *curve = curve_component.get_for_read();
-
-  if (curve != nullptr) {
+  if (curve_component.has_curves()) {
+    const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curve_component.get_for_read());
     const std::string selection_name = params.extract_input<std::string>("Selection");
     OutputAttribute_Typed<bool> selection =
         curve_component.attribute_try_get_for_output_only<bool>(selection_name, ATTR_DOMAIN_POINT);

@@ -136,7 +136,7 @@ typedef enum eWM_GizmoFlagGroupTypeFlag {
    *
    * The result for the user is tweak events delay the gizmo from flashing under the users cursor,
    * for selection operations. This means gizmos that use this check don't interfere
-   * with click drag events by popping up under the cursor and catching the tweak event.
+   * with click-drag events by popping up under the cursor and catching the drag-drag event.
    */
   WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK = (1 << 9),
 

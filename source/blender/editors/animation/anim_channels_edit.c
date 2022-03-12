@@ -490,7 +490,7 @@ static void anim_flush_channel_setting_up(bAnimContext *ac,
   }
 
   /* Go backwards in the list, until the highest-ranking element
-   * (by indention has been covered). */
+   * (by indentation has been covered). */
   int prevLevel = matchLevel;
   for (bAnimListElem *ale = match->prev; ale; ale = ale->prev) {
     const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
@@ -539,7 +539,7 @@ static void anim_flush_channel_setting_down(bAnimContext *ac,
                                             bAnimListElem *const match,
                                             const int matchLevel)
 {
-  /* go forwards in the list, until the lowest-ranking element (by indention has been covered) */
+  /* go forwards in the list, until the lowest-ranking element (by indentation has been covered) */
   for (bAnimListElem *ale = match->next; ale; ale = ale->next) {
     const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 

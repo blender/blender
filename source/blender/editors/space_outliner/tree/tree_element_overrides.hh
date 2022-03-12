@@ -17,7 +17,8 @@ struct TreeElementOverridesData {
 };
 
 class TreeElementOverridesBase final : public AbstractTreeElement {
-  ID &id_;
+ public:
+  ID &id;
 
  public:
   TreeElementOverridesBase(TreeElement &legacy_te, ID &id);

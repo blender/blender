@@ -507,7 +507,7 @@ static void gpencil_brush_grab_calc_dvec(tGP_BrushEditData *gso)
   /* Convert mouse-movements to movement vector */
   RegionView3D *rv3d = gso->region->regiondata;
   float *rvec = gso->object->loc;
-  float zfac = ED_view3d_calc_zfac(rv3d, rvec, NULL);
+  const float zfac = ED_view3d_calc_zfac(rv3d, rvec);
 
   float mval_f[2];
 
@@ -525,7 +525,7 @@ static void gpencil_brush_grab_calc_dvec(tGP_BrushEditData *gso)
     copy_v2_v2(mval_f, r);
   }
 
-  ED_view3d_win_to_delta(gso->region, mval_f, gso->dvec, zfac);
+  ED_view3d_win_to_delta(gso->region, mval_f, zfac, gso->dvec);
 }
 
 /* Apply grab transform to all relevant points of the affected strokes */
@@ -624,17 +624,16 @@ static void gpencil_brush_calc_midpoint(tGP_BrushEditData *gso)
    */
   RegionView3D *rv3d = gso->region->regiondata;
   const float *rvec = gso->object->loc;
-  float zfac = ED_view3d_calc_zfac(rv3d, rvec, NULL);
+  const float zfac = ED_view3d_calc_zfac(rv3d, rvec);
 
-  float mval_f[2];
-  copy_v2_v2(mval_f, gso->mval);
   float mval_prj[2];
-  float dvec[3];
 
   if (ED_view3d_project_float_global(gso->region, rvec, mval_prj, V3D_PROJ_TEST_NOP) ==
       V3D_PROJ_RET_OK) {
-    sub_v2_v2v2(mval_f, mval_prj, mval_f);
-    ED_view3d_win_to_delta(gso->region, mval_f, dvec, zfac);
+    float dvec[3];
+    float xy_delta[2];
+    sub_v2_v2v2(xy_delta, mval_prj, gso->mval);
+    ED_view3d_win_to_delta(gso->region, xy_delta, zfac, dvec);
     sub_v3_v3v3(gso->dvec, rvec, dvec);
   }
   else {
@@ -830,10 +829,10 @@ static bool gpencil_brush_randomize_apply(tGP_BrushEditData *gso,
       /* 3D: Project to 3D space */
       bool flip;
       RegionView3D *rv3d = gso->region->regiondata;
-      float zfac = ED_view3d_calc_zfac(rv3d, &pt->x, &flip);
+      const float zfac = ED_view3d_calc_zfac_ex(rv3d, &pt->x, &flip);
       if (flip == false) {
         float dvec[3];
-        ED_view3d_win_to_delta(gso->gsc.region, svec, dvec, zfac);
+        ED_view3d_win_to_delta(gso->gsc.region, svec, zfac, dvec);
         add_v3_v3(&pt->x, dvec);
         /* compute lock axis */
         gpencil_sculpt_compute_lock_axis(gso, pt, save_pt);
@@ -1883,7 +1882,7 @@ static void gpencil_sculpt_brush_apply_event(bContext *C, wmOperator *op, const 
   RNA_collection_add(op->ptr, "stroke", &itemptr);
 
   RNA_float_set_array(&itemptr, "mouse", mouse);
-  RNA_boolean_set(&itemptr, "pen_flip", event->ctrl != false);
+  RNA_boolean_set(&itemptr, "pen_flip", (event->modifier & KM_CTRL) != 0);
   RNA_boolean_set(&itemptr, "is_start", gso->first);
 
   /* handle pressure sensitivity (which is supplied by tablets and otherwise 1.0) */
@@ -1895,7 +1894,7 @@ static void gpencil_sculpt_brush_apply_event(bContext *C, wmOperator *op, const 
   }
   RNA_float_set(&itemptr, "pressure", pressure);
 
-  if (event->shift) {
+  if (event->modifier & KM_SHIFT) {
     gso->brush_prev = gso->brush;
 
     gso->brush = gpencil_sculpt_get_smooth_brush(gso);

@@ -135,7 +135,7 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numLoops, in
 }
 
 /**
- * Compute weight between vertice v_i and all your neighbors
+ * Compute weight between vertex v_i and all your neighbors
  * weight between v_i and v_neighbor
  * <pre>
  * Wij = cot(alpha) + cot(beta) / (4.0 * total area of all faces  * sum all weight)

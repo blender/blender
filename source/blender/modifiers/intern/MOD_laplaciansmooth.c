@@ -48,8 +48,8 @@ struct BLaplacianSystem {
   int numLoops;         /* Number of edges. */
   int numPolys;         /* Number of faces. */
   int numVerts;         /* Number of verts. */
-  short *numNeFa;       /* Number of neighbors faces around vertice. */
-  short *numNeEd;       /* Number of neighbors Edges around vertice. */
+  short *numNeFa;       /* Number of neighbors faces around vertex. */
+  short *numNeEd;       /* Number of neighbors Edges around vertex. */
   bool *zerola;         /* Is zero area or length. */
 
   /* Pointers to data. */
@@ -283,7 +283,7 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
     for (; l_next != l_term; l_prev = l_curr, l_curr = l_next, l_next++) {
       const uint l_curr_index = l_curr - sys->mloop;
 
-      /* Is ring if number of faces == number of edges around vertice. */
+      /* Is ring if number of faces == number of edges around vertex. */
       if (sys->numNeEd[l_curr->v] == sys->numNeFa[l_curr->v] && sys->zerola[l_curr->v] == false) {
         EIG_linear_solver_matrix_add(sys->context,
                                      l_curr->v,

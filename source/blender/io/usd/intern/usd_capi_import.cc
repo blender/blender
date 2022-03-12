@@ -102,7 +102,7 @@ static void convert_to_z_up(pxr::UsdStageRefPtr stage, ImportSettings *r_setting
   /* Rotate 90 degrees about the X-axis. */
   float rmat[3][3];
   float axis[3] = {1.0f, 0.0f, 0.0f};
-  axis_angle_normalized_to_mat3(rmat, axis, M_PI / 2.0f);
+  axis_angle_normalized_to_mat3(rmat, axis, M_PI_2);
 
   unit_m4(r_settings->conversion_mat);
   copy_m4_m3(r_settings->conversion_mat, rmat);
@@ -502,6 +502,9 @@ CacheArchiveHandle *USD_create_handle(struct Main * /*bmain*/,
                                       const char *filename,
                                       ListBase *object_paths)
 {
+  /* Must call this so that USD file format plugins are loaded. */
+  ensure_usd_plugin_path_registered();
+
   pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(filename);
 
   if (!stage) {

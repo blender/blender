@@ -84,7 +84,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
     }
     case GEO_COMPONENT_TYPE_CURVE: {
-      if (geometry_set.has_curve()) {
+      if (geometry_set.has_curves()) {
         const CurveComponent *component = geometry_set.get_component_for_read<CurveComponent>();
         params.set_output("Point Count", component->attribute_domain_size(ATTR_DOMAIN_POINT));
         params.set_output("Spline Count", component->attribute_domain_size(ATTR_DOMAIN_CURVE));

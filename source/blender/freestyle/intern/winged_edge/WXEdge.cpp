@@ -74,7 +74,7 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
     //-----------------------------
     // We retrieve the 2 edges for which we have opposite signs for each extremity
     RetrieveCuspEdgesIndices(cuspEdgesIndices);
-    if (cuspEdgesIndices.size() != 2) {  // we necessarly have 2 cusp edges
+    if (cuspEdgesIndices.size() != 2) {  // we necessarily have 2 cusp edges
       return nullptr;
     }
 

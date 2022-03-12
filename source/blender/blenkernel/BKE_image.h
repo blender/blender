@@ -371,7 +371,7 @@ void BKE_image_merge(struct Main *bmain, struct Image *dest, struct Image *sourc
 bool BKE_image_scale(struct Image *image, int width, int height);
 
 /**
- * Check if texture has alpha (depth=32).
+ * Check if texture has alpha (planes == 32 || planes == 16).
  */
 bool BKE_image_has_alpha(struct Image *image);
 
@@ -486,7 +486,7 @@ bool BKE_image_is_dirty(struct Image *image);
 void BKE_image_mark_dirty(struct Image *image, struct ImBuf *ibuf);
 bool BKE_image_buffer_format_writable(struct ImBuf *ibuf);
 
-bool BKE_image_is_dirty_writable(struct Image *image, bool *is_format_writable);
+bool BKE_image_is_dirty_writable(struct Image *image, bool *r_is_writable);
 
 /**
  * Guess offset for the first frame in the sequence.

@@ -7,6 +7,8 @@
 #include "DNA_listBase.h"
 #include "DNA_space_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "tree_display.hh"
 
 using namespace blender::ed::outliner;
@@ -30,11 +32,11 @@ std::unique_ptr<AbstractTreeDisplay> AbstractTreeDisplay::createFromDisplayMode(
     case SO_OVERRIDES_LIBRARY:
       return std::make_unique<TreeDisplayOverrideLibrary>(space_outliner);
     case SO_VIEW_LAYER:
-      /* FIXME(Julian): this should not be the default! Return nullptr and handle that as valid
-       * case. */
-    default:
       return std::make_unique<TreeDisplayViewLayer>(space_outliner);
   }
+
+  BLI_assert_unreachable();
+  return nullptr;
 }
 
 bool AbstractTreeDisplay::hasWarnings() const

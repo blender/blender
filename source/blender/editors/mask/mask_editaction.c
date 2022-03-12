@@ -30,8 +30,8 @@
 /* ***************************************** */
 /* NOTE ABOUT THIS FILE:
  * This file contains code for editing Mask data in the Action Editor
- * as a 'keyframes', so that a user can adjust the timing of Mask shapekeys.
- * Therefore, this file mostly contains functions for selecting Mask frames (shapekeys).
+ * as a 'keyframes', so that a user can adjust the timing of Mask shape-keys.
+ * Therefore, this file mostly contains functions for selecting Mask frames (shape-keys).
  */
 /* ***************************************** */
 /* Generics - Loopers */

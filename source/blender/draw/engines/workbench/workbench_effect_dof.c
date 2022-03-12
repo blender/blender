@@ -31,22 +31,22 @@ static void square_to_circle(float x, float y, float *r, float *T)
   if (x > -y) {
     if (x > y) {
       *r = x;
-      *T = (M_PI / 4.0f) * (y / x);
+      *T = M_PI_4 * (y / x);
     }
     else {
       *r = y;
-      *T = (M_PI / 4.0f) * (2 - (x / y));
+      *T = M_PI_4 * (2 - (x / y));
     }
   }
   else {
     if (x < y) {
       *r = -x;
-      *T = (M_PI / 4.0f) * (4 + (y / x));
+      *T = M_PI_4 * (4 + (y / x));
     }
     else {
       *r = -y;
       if (y != 0) {
-        *T = (M_PI / 4.0f) * (6 - (x / y));
+        *T = M_PI_4 * (6 - (x / y));
       }
       else {
         *T = 0.0f;

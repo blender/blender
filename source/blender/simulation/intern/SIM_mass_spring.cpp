@@ -788,7 +788,7 @@ static void cloth_calc_force(
   }
 }
 
-/* returns vertexes' motion state */
+/* returns vertices' motion state */
 BLI_INLINE void cloth_get_grid_location(Implicit_Data *data,
                                         float cell_scale,
                                         const float cell_offset[3],

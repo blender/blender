@@ -217,7 +217,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
       float x_rot_matrix[3][3];
       DRW_view_viewmat_get(NULL, view_matrix, false);
       copy_m3_m4(view_rot_matrix, view_matrix);
-      axis_angle_to_mat3_single(x_rot_matrix, 'X', M_PI / 2.0f);
+      axis_angle_to_mat3_single(x_rot_matrix, 'X', M_PI_2);
       mul_m3_m3m3(view_rot_matrix, x_rot_matrix, view_rot_matrix);
       mul_m3_m3m3(view_rot_matrix, g_data->studiolight_matrix, view_rot_matrix);
       copy_m3_m3(studiolight_matrix, view_rot_matrix);

@@ -106,7 +106,7 @@ void ED_slider_allow_overshoot_set(struct tSlider *slider, bool value);
  * \note Shift/Control are not configurable key-bindings.
  */
 void apply_keyb_grid(
-    int shift, int ctrl, float *val, float fac1, float fac2, float fac3, int invert);
+    bool shift, bool ctrl, float *val, float fac1, float fac2, float fac3, int invert);
 
 /* where else to go ? */
 void unpack_menu(struct bContext *C,

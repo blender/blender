@@ -51,8 +51,8 @@ struct PanelType *modifier_panel_register(struct ARegionType *region_type,
 /**
  * Add a child panel to the parent.
  *
- * \note To create the panel type's idname, it appends the \a name argument to the \a parent's
- * idname.
+ * \note To create the panel type's #PanelType.idname,
+ * it appends the \a name argument to the \a parent's `idname`.
  */
 struct PanelType *modifier_subpanel_register(struct ARegionType *region_type,
                                              const char *name,

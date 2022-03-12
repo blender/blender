@@ -58,7 +58,7 @@ static void screen_free_data(ID *id)
 {
   bScreen *screen = (bScreen *)id;
 
-  /* No animdata here. */
+  /* No animation-data here. */
 
   LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
     BKE_area_region_free(NULL, region);

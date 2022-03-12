@@ -1628,7 +1628,7 @@ static Base *object_mouse_select_menu(bContext *C,
   RNA_boolean_set(&ptr, "extend", extend);
   RNA_boolean_set(&ptr, "deselect", deselect);
   RNA_boolean_set(&ptr, "toggle", toggle);
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, NULL);
   WM_operator_properties_free(&ptr);
 
   BLI_linklist_free(linklist.list, NULL);
@@ -1851,7 +1851,7 @@ static bool bone_mouse_select_menu(bContext *C,
   RNA_boolean_set(&ptr, "extend", extend);
   RNA_boolean_set(&ptr, "deselect", deselect);
   RNA_boolean_set(&ptr, "toggle", toggle);
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, NULL);
   WM_operator_properties_free(&ptr);
 
   BLI_linklist_free(base_list.list, NULL);

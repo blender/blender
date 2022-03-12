@@ -158,7 +158,7 @@ void GpencilIO::create_object_list()
       float zdepth = 0;
       if (rv3d_) {
         if (rv3d_->is_persp) {
-          zdepth = ED_view3d_calc_zfac(rv3d_, object->obmat[3], nullptr);
+          zdepth = ED_view3d_calc_zfac(rv3d_, object->obmat[3]);
         }
         else {
           zdepth = -dot_v3v3(rv3d_->viewinv[2], object->obmat[3]);

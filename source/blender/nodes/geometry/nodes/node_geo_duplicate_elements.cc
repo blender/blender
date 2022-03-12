@@ -57,9 +57,9 @@ struct IndexAttributes {
   StrongAnonymousAttributeID duplicate_index;
 };
 
-/* --------------------------------------------------------------------
- * Attribute Copy/Creation Functions.
- */
+/* -------------------------------------------------------------------- */
+/** \name Attribute Copy/Creation Functions
+ * \{ */
 
 static void gather_attributes_without_id(const GeometrySet &geometry_set,
                                          const GeometryComponentType component_type,
@@ -131,7 +131,7 @@ static void threaded_id_offset_copy(const Span<int> offsets,
   });
 }
 
-/* Create the copy indices for the duplication domain. */
+/** Create the copy indices for the duplication domain. */
 static void create_duplicate_index_attribute(GeometryComponent &component,
                                              const AttributeDomain output_domain,
                                              const IndexMask selection,
@@ -151,8 +151,10 @@ static void create_duplicate_index_attribute(GeometryComponent &component,
   copy_attribute.save();
 }
 
-/* Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
- * and the duplicate number. This function is used for the point domain elements. */
+/**
+ * Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
+ * and the duplicate number. This function is used for the point domain elements.
+ */
 static void copy_stable_id_point(const Span<int> offsets,
                                  const GeometryComponent &src_component,
                                  GeometryComponent &dst_component)
@@ -173,7 +175,8 @@ static void copy_stable_id_point(const Span<int> offsets,
   dst_attribute.save();
 }
 
-/* Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
+/**
+ * Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
  * and the duplicate number. This function is used for points when duplicating the edge domain.
  */
 static void copy_stable_id_edges(const Mesh &mesh,
@@ -216,11 +219,12 @@ static void copy_stable_id_edges(const Mesh &mesh,
   dst_attribute.save();
 }
 
-/* Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
+/**
+ * Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
  * and the duplicate number. This function is used for points when duplicating the face domain.
  *
  * This function could be threaded in the future, but since it is only 1 attribute and the
- * face->edge->vert mapping would mean creating a 1/1 mapping to allow for it, is it worth it?
+ * `face->edge->vert` mapping would mean creating a 1/1 mapping to allow for it, is it worth it?
  */
 static void copy_stable_id_faces(const Mesh &mesh,
                                  const IndexMask selection,
@@ -266,10 +270,12 @@ static void copy_stable_id_faces(const Mesh &mesh,
   dst_attribute.save();
 }
 
-/* Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
+/**
+ * Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
  * and the duplicate number. In the spline case, copy the entire spline's points to the
  * destination,
- * then loop over the remaining ones point by point, hashing their ids to the new ids. */
+ * then loop over the remaining ones point by point, hashing their ids to the new ids.
+ */
 static void copy_stable_id_splines(const CurveEval &curve,
                                    const IndexMask selection,
                                    const Span<int> curve_offsets,
@@ -359,8 +365,10 @@ static void copy_point_attributes_without_id(GeometrySet &geometry_set,
   }
 }
 
-/* Copies the attributes for spline duplciates. If copying the spline domain, the attributes are
- * copied with an offset fill, otherwise a mapping is used. */
+/**
+ * Copies the attributes for spline duplicates. If copying the spline domain, the attributes are
+ * copied with an offset fill, otherwise a mapping is used.
+ */
 static void copy_spline_attributes_without_id(const GeometrySet &geometry_set,
                                               const Span<int> point_mapping,
                                               const Span<int> offsets,
@@ -409,8 +417,10 @@ static void copy_spline_attributes_without_id(const GeometrySet &geometry_set,
   }
 }
 
-/* Copies the attributes for edge duplciates. If copying the edge domain, the attributes are
- * copied with an offset fill, for point domain a mapping is used. */
+/**
+ * Copies the attributes for edge duplicates. If copying the edge domain, the attributes are
+ * copied with an offset fill, for point domain a mapping is used.
+ */
 static void copy_edge_attributes_without_id(GeometrySet &geometry_set,
                                             const Span<int> point_mapping,
                                             const Span<int> offsets,
@@ -456,8 +466,10 @@ static void copy_edge_attributes_without_id(GeometrySet &geometry_set,
   }
 }
 
-/* Copies the attributes for face duplciates. If copying the face domain, the attributes are
- * copied with an offset fill, otherwise a mapping is used. */
+/**
+ * Copies the attributes for face duplicates. If copying the face domain, the attributes are
+ * copied with an offset fill, otherwise a mapping is used.
+ */
 static void copy_face_attributes_without_id(GeometrySet &geometry_set,
                                             const Span<int> edge_mapping,
                                             const Span<int> vert_mapping,
@@ -512,16 +524,18 @@ static void copy_face_attributes_without_id(GeometrySet &geometry_set,
   }
 }
 
-/* --------------------------------------------------------------------
- * Duplication Functions.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Duplication Functions
+ * \{ */
 
 static void duplicate_splines(GeometrySet &geometry_set,
                               const Field<int> &count_field,
                               const Field<bool> &selection_field,
                               IndexAttributes &attributes)
 {
-  if (!geometry_set.has_curve()) {
+  if (!geometry_set.has_curves()) {
     geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
     return;
   }
@@ -529,7 +543,8 @@ static void duplicate_splines(GeometrySet &geometry_set,
 
   const GeometryComponent &src_component = *geometry_set.get_component_for_read(
       GEO_COMPONENT_TYPE_CURVE);
-  const CurveEval &curve = *geometry_set.get_curve_for_read();
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
+      *geometry_set.get_curves_for_read());
   const int domain_size = src_component.attribute_domain_size(ATTR_DOMAIN_CURVE);
   GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_CURVE};
   FieldEvaluator evaluator{field_context, domain_size};
@@ -547,11 +562,11 @@ static void duplicate_splines(GeometrySet &geometry_set,
     int count = std::max(counts[selection[i_spline]], 0);
     curve_offsets[i_spline] = dst_splines_size;
     dst_splines_size += count;
-    dst_points_size += count * curve.splines()[selection[i_spline]]->size();
+    dst_points_size += count * curve->splines()[selection[i_spline]]->size();
   }
   curve_offsets.last() = dst_splines_size;
 
-  Array<int> control_point_offsets = curve.control_point_offsets();
+  Array<int> control_point_offsets = curve->control_point_offsets();
   Array<int> point_mapping(dst_points_size);
 
   std::unique_ptr<CurveEval> new_curve = std::make_unique<CurveEval>();
@@ -559,8 +574,8 @@ static void duplicate_splines(GeometrySet &geometry_set,
   for (const int i_spline : selection.index_range()) {
     const IndexRange spline_range = range_for_offsets_index(curve_offsets, i_spline);
     for ([[maybe_unused]] const int i_duplicate : IndexRange(spline_range.size())) {
-      SplinePtr spline = curve.splines()[selection[i_spline]]->copy();
-      for (const int i_point : IndexRange(curve.splines()[selection[i_spline]]->size())) {
+      SplinePtr spline = curve->splines()[selection[i_spline]]->copy();
+      for (const int i_point : IndexRange(curve->splines()[selection[i_spline]]->size())) {
         point_mapping[point_index++] = control_point_offsets[selection[i_spline]] + i_point;
       }
       new_curve->add_spline(std::move(spline));
@@ -569,7 +584,7 @@ static void duplicate_splines(GeometrySet &geometry_set,
   new_curve->attributes.reallocate(new_curve->splines().size());
 
   CurveComponent dst_component;
-  dst_component.replace(new_curve.release(), GeometryOwnershipType::Editable);
+  dst_component.replace(curve_eval_to_curves(*new_curve), GeometryOwnershipType::Editable);
 
   Vector<std::string> skip(
       {"position", "radius", "resolution", "cyclic", "tilt", "handle_left", "handle_right"});
@@ -577,14 +592,14 @@ static void duplicate_splines(GeometrySet &geometry_set,
   copy_spline_attributes_without_id(
       geometry_set, point_mapping, curve_offsets, skip, src_component, dst_component);
 
-  copy_stable_id_splines(curve, selection, curve_offsets, src_component, dst_component);
+  copy_stable_id_splines(*curve, selection, curve_offsets, src_component, dst_component);
 
   if (attributes.duplicate_index) {
     create_duplicate_index_attribute(
         dst_component, ATTR_DOMAIN_CURVE, selection, attributes, curve_offsets);
   }
 
-  geometry_set.replace_curve(dst_component.get_for_write());
+  geometry_set.replace_curves(dst_component.get_for_write());
 }
 
 static void duplicate_faces(GeometrySet &geometry_set,
@@ -771,6 +786,9 @@ static void duplicate_points_curve(const GeometryComponentType component_type,
 {
   const GeometryComponent &src_component = *geometry_set.get_component_for_read(component_type);
   const int domain_size = src_component.attribute_domain_size(ATTR_DOMAIN_POINT);
+  if (domain_size == 0) {
+    return;
+  }
 
   GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_POINT};
   FieldEvaluator evaluator{field_context, domain_size};
@@ -783,8 +801,9 @@ static void duplicate_points_curve(const GeometryComponentType component_type,
   Array<int> offsets = accumulate_counts_to_offsets(selection, counts);
 
   CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
-  const CurveEval &curve = *geometry_set.get_curve_for_read();
-  Array<int> control_point_offsets = curve.control_point_offsets();
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
+      *geometry_set.get_curves_for_read());
+  Array<int> control_point_offsets = curve->control_point_offsets();
   std::unique_ptr<CurveEval> new_curve = std::make_unique<CurveEval>();
 
   Array<int> parent(domain_size);
@@ -799,7 +818,7 @@ static void duplicate_points_curve(const GeometryComponentType component_type,
   for (const int i_point : selection) {
     const IndexRange point_range = range_for_offsets_index(offsets, i_point);
     for ([[maybe_unused]] const int i_duplicate : IndexRange(point_range.size())) {
-      const SplinePtr &parent_spline = curve.splines()[parent[i_point]];
+      const SplinePtr &parent_spline = curve->splines()[parent[i_point]];
       switch (parent_spline->type()) {
         case CurveType::CURVE_TYPE_BEZIER: {
           std::unique_ptr<BezierSpline> spline = std::make_unique<BezierSpline>();
@@ -830,7 +849,7 @@ static void duplicate_points_curve(const GeometryComponentType component_type,
   }
   new_curve->attributes.reallocate(new_curve->splines().size());
   CurveComponent dst_component;
-  dst_component.replace(new_curve.release(), GeometryOwnershipType::Editable);
+  dst_component.replace(curve_eval_to_curves(*new_curve), GeometryOwnershipType::Editable);
 
   copy_point_attributes_without_id(
       geometry_set, GEO_COMPONENT_TYPE_CURVE, false, offsets, src_component, dst_component);
@@ -928,7 +947,7 @@ static void duplicate_points(GeometrySet &geometry_set,
                              const Field<bool> &selection_field,
                              IndexAttributes &attributes)
 {
-  if (!geometry_set.has_mesh() && !geometry_set.has_curve() && !geometry_set.has_pointcloud()) {
+  if (!geometry_set.has_mesh() && !geometry_set.has_curves() && !geometry_set.has_pointcloud()) {
     geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
     return;
   }
@@ -1096,3 +1115,5 @@ void register_node_type_geo_duplicate_elements()
   ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }
+
+/** \} */

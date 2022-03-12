@@ -14,7 +14,7 @@
 
 #include "BLI_utildefines.h"
 
-static PyObject *bpy_intern_str_arr[16];
+static PyObject *bpy_intern_str_arr[17];
 
 PyObject *bpy_intern_str___annotations__;
 PyObject *bpy_intern_str___doc__;
@@ -31,6 +31,7 @@ PyObject *bpy_intern_str_frame;
 PyObject *bpy_intern_str_properties;
 PyObject *bpy_intern_str_register;
 PyObject *bpy_intern_str_self;
+PyObject *bpy_intern_str_depsgraph;
 PyObject *bpy_intern_str_unregister;
 
 void bpy_intern_string_init(void)
@@ -58,6 +59,7 @@ void bpy_intern_string_init(void)
   BPY_INTERN_STR(bpy_intern_str_properties, "properties");
   BPY_INTERN_STR(bpy_intern_str_register, "register");
   BPY_INTERN_STR(bpy_intern_str_self, "self");
+  BPY_INTERN_STR(bpy_intern_str_depsgraph, "depsgraph");
   BPY_INTERN_STR(bpy_intern_str_unregister, "unregister");
 
 #undef BPY_INTERN_STR

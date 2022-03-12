@@ -203,7 +203,7 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
     rgb_uchar_to_float(r_color, cp);
   }
   else {
-    /* FIXME: what happens when the indention is 1 greater than what it should be
+    /* FIXME: what happens when the indentation is 1 greater than what it should be
      * (due to grouping)? */
     int colOfs = 10 - 10 * indent;
     UI_GetThemeColorShade3fv(TH_SHADE2, colOfs, r_color);
@@ -252,44 +252,44 @@ static void acf_generic_channel_backdrop(bAnimContext *ac,
   immUnbindProgram();
 }
 
-/* Indention + Offset ------------------------------------------- */
+/* Indentation + Offset ------------------------------------------- */
 
-/* indention level is always the value in the name */
-static short acf_generic_indention_0(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale))
+/* indentation level is always the value in the name */
+static short acf_generic_indentation_0(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale))
 {
   return 0;
 }
-static short acf_generic_indention_1(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale))
+static short acf_generic_indentation_1(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale))
 {
   return 1;
 }
 #if 0 /* XXX not used */
-static short acf_generic_indention_2(bAnimContext *ac, bAnimListElem *ale)
+static short acf_generic_indentation_2(bAnimContext *ac, bAnimListElem *ale)
 {
   return 2;
 }
 #endif
 
-/* indention which varies with the grouping status */
-static short acf_generic_indention_flexible(bAnimContext *UNUSED(ac), bAnimListElem *ale)
+/* indentation which varies with the grouping status */
+static short acf_generic_indentation_flexible(bAnimContext *UNUSED(ac), bAnimListElem *ale)
 {
   short indent = 0;
 
-  /* grouped F-Curves need extra level of indention */
+  /* grouped F-Curves need extra level of indentation */
   if (ale->type == ANIMTYPE_FCURVE) {
     FCurve *fcu = (FCurve *)ale->data;
 
-    /* TODO: we need some way of specifying that the indention color should be one less. */
+    /* TODO: we need some way of specifying that the indentation color should be one less. */
     if (fcu->grp) {
       indent++;
     }
   }
 
-  /* no indention */
+  /* no indentation */
   return indent;
 }
 
-/* basic offset for channels derived from indention */
+/* basic offset for channels derived from indentation */
 static short acf_generic_basic_offset(bAnimContext *ac, bAnimListElem *ale)
 {
   const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
@@ -352,7 +352,7 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
     }
   }
 
-  /* offset is just the normal type - i.e. based on indention */
+  /* offset is just the normal type - i.e. based on indentation */
   return offset;
 }
 
@@ -525,15 +525,15 @@ static void *acf_summary_setting_ptr(bAnimListElem *ale,
   return NULL;
 }
 
-/* all animation summary (DopeSheet only) type define */
+/** All animation summary (dope-sheet only) type define. */
 static bAnimChannelType ACF_SUMMARY = {
     "Summary",              /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
-    acf_summary_color,       /* backdrop color */
-    acf_summary_backdrop,    /* backdrop */
-    acf_generic_indention_0, /* indent level */
-    NULL,                    /* offset */
+    acf_summary_color,         /* backdrop color */
+    acf_summary_backdrop,      /* backdrop */
+    acf_generic_indentation_0, /* indent level */
+    NULL,                      /* offset */
 
     acf_summary_name, /* name */
     NULL,             /* name prop */
@@ -634,14 +634,14 @@ static void *acf_scene_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
   }
 }
 
-/* scene type define */
+/** Scene type define. */
 static bAnimChannelType ACF_SCENE = {
     "Scene",                /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_root_color,    /* backdrop color */
     acf_generic_root_backdrop, /* backdrop */
-    acf_generic_indention_0,   /* indent level */
+    acf_generic_indentation_0, /* indent level */
     NULL,                      /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -810,14 +810,14 @@ static void *acf_object_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
   }
 }
 
-/* object type define */
+/** Object type define. */
 static bAnimChannelType ACF_OBJECT = {
     "Object",               /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_root_color,    /* backdrop color */
     acf_generic_root_backdrop, /* backdrop */
-    acf_generic_indention_0,   /* indent level */
+    acf_generic_indentation_0, /* indent level */
     NULL,                      /* offset */
 
     acf_object_name,      /* name */
@@ -987,15 +987,15 @@ static void *acf_group_setting_ptr(bAnimListElem *ale,
   return GET_ACF_FLAG_PTR(agrp->flag, type);
 }
 
-/* group type define */
+/** Group type define. */
 static bAnimChannelType ACF_GROUP = {
     "Group",               /* type name */
     ACHANNEL_ROLE_CHANNEL, /* role */
 
-    acf_group_color,          /* backdrop color */
-    acf_group_backdrop,       /* backdrop */
-    acf_generic_indention_0,  /* indent level */
-    acf_generic_group_offset, /* offset */
+    acf_group_color,           /* backdrop color */
+    acf_group_backdrop,        /* backdrop */
+    acf_generic_indentation_0, /* indent level */
+    acf_generic_group_offset,  /* offset */
 
     acf_group_name,      /* name */
     acf_group_name_prop, /* name prop */
@@ -1111,14 +1111,14 @@ static void *acf_fcurve_setting_ptr(bAnimListElem *ale,
   return GET_ACF_FLAG_PTR(fcu->flag, type);
 }
 
-/* fcurve type define */
+/** F-Curve type define. */
 static bAnimChannelType ACF_FCURVE = {
     "F-Curve",             /* type name */
     ACHANNEL_ROLE_CHANNEL, /* role */
 
     acf_generic_channel_color,    /* backdrop color */
     acf_generic_channel_backdrop, /* backdrop */
-    acf_generic_indention_flexible,
+    acf_generic_indentation_flexible,
     /* indent level */        /* XXX rename this to f-curves only? */
     acf_generic_group_offset, /* offset */
 
@@ -1231,14 +1231,14 @@ static int acf_nla_controls_icon(bAnimListElem *UNUSED(ale))
   return ICON_NLA;
 }
 
-/* NLA Control FCurves Expander type define */
+/** NLA Control F-Curves expander type define. */
 static bAnimChannelType ACF_NLACONTROLS = {
     "NLA Controls Expander", /* type name */
     ACHANNEL_ROLE_EXPANDER,  /* role */
 
     acf_nla_controls_color,    /* backdrop color */
     acf_nla_controls_backdrop, /* backdrop */
-    acf_generic_indention_0,   /* indent level */
+    acf_generic_indentation_0, /* indent level */
     acf_generic_group_offset,  /* offset */
 
     acf_nla_controls_name, /* name */
@@ -1271,14 +1271,14 @@ static void acf_nla_curve_name(bAnimListElem *ale, char *name)
   }
 }
 
-/* NLA Control F-Curve type define */
+/** NLA Control F-Curve type define. */
 static bAnimChannelType ACF_NLACURVE = {
     "NLA Control F-Curve", /* type name */
     ACHANNEL_ROLE_CHANNEL, /* role */
 
     acf_generic_channel_color,    /* backdrop color */
     acf_generic_channel_backdrop, /* backdrop */
-    acf_generic_indention_1,      /* indent level */
+    acf_generic_indentation_1,    /* indent level */
     acf_generic_group_offset,     /* offset */
 
     acf_nla_curve_name,   /* name */
@@ -1361,14 +1361,14 @@ static void *acf_fillactd_setting_ptr(bAnimListElem *ale,
   }
 }
 
-/* object action expander type define */
+/** Object action expander type define. */
 static bAnimChannelType ACF_FILLACTD = {
     "Ob-Action Filler",     /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,     /* name */
@@ -1446,14 +1446,14 @@ static void *acf_filldrivers_setting_ptr(bAnimListElem *ale,
   }
 }
 
-/* drivers expander type define */
+/** Drivers expander type define. */
 static bAnimChannelType ACF_FILLDRIVERS = {
     "Drivers Filler",       /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_filldrivers_name, /* name */
@@ -1525,14 +1525,14 @@ static void *acf_dsmat_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
   }
 }
 
-/* material expander type define */
+/** Material expander type define. */
 static bAnimChannelType ACF_DSMAT = {
     "Material Data Expander", /* type name */
     ACHANNEL_ROLE_EXPANDER,   /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -1606,14 +1606,14 @@ static void *acf_dslight_setting_ptr(bAnimListElem *ale,
   }
 }
 
-/* light expander type define */
+/** Light expander type define. */
 static bAnimChannelType ACF_DSLIGHT = {
     "Light Expander",       /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -1637,7 +1637,7 @@ static int acf_dstex_icon(bAnimListElem *UNUSED(ale))
 /* FIXME: soon to be obsolete? */
 static short acf_dstex_offset(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale))
 {
-  return 14; /* XXX: simply include this in indention instead? */
+  return 14; /* XXX: simply include this in indentation instead? */
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
@@ -1692,14 +1692,14 @@ static void *acf_dstex_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
   }
 }
 
-/* texture expander type define */
+/** Texture expander type define. */
 static bAnimChannelType ACF_DSTEX = {
     "Texture Data Expander", /* type name */
     ACHANNEL_ROLE_EXPANDER,  /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_dstex_offset,                /* offset */
 
     acf_generic_idblock_name,     /* name */
@@ -1775,14 +1775,14 @@ static void *acf_dscachefile_setting_ptr(bAnimListElem *ale,
   }
 }
 
-/* CacheFile expander type define. */
+/** CacheFile expander type define.. */
 static bAnimChannelType ACF_DSCACHEFILE = {
     "Cache File Expander",  /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,     /* name */
@@ -1858,14 +1858,14 @@ static void *acf_dscam_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
   }
 }
 
-/* camera expander type define */
+/** Camera expander type define. */
 static bAnimChannelType ACF_DSCAM = {
     "Camera Expander",      /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,     /* name */
@@ -1947,14 +1947,14 @@ static void *acf_dscur_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
   }
 }
 
-/* curve expander type define */
+/** Curve expander type define. */
 static bAnimChannelType ACF_DSCUR = {
     "Curve Expander",       /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2045,14 +2045,14 @@ static void *acf_dsskey_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
   }
 }
 
-/* shapekey expander type define */
+/** Shape-key expander type define. */
 static bAnimChannelType ACF_DSSKEY = {
     "Shape Key Expander",   /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2124,14 +2124,14 @@ static void *acf_dswor_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
   }
 }
 
-/* world expander type define */
+/** World expander type define. */
 static bAnimChannelType ACF_DSWOR = {
     "World Expander",       /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,     /* name */
@@ -2203,14 +2203,14 @@ static void *acf_dspart_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
   }
 }
 
-/* particle expander type define */
+/** Particle expander type define. */
 static bAnimChannelType ACF_DSPART = {
     "Particle Data Expander", /* type name */
     ACHANNEL_ROLE_EXPANDER,   /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2284,14 +2284,14 @@ static void *acf_dsmball_setting_ptr(bAnimListElem *ale,
   }
 }
 
-/* metaball expander type define */
+/** Meta-ball expander type define. */
 static bAnimChannelType ACF_DSMBALL = {
     "Metaball Expander",    /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2363,14 +2363,14 @@ static void *acf_dsarm_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
   }
 }
 
-/* metaball expander type define */
+/** Armature expander type define. */
 static bAnimChannelType ACF_DSARM = {
     "Armature Expander",    /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2455,14 +2455,14 @@ static void *acf_dsntree_setting_ptr(bAnimListElem *ale,
   }
 }
 
-/* node tree expander type define */
+/** Node tree expander type define. */
 static bAnimChannelType ACF_DSNTREE = {
     "Node Tree Expander",   /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_dsntree_offset,              /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2536,14 +2536,14 @@ static void *acf_dslinestyle_setting_ptr(bAnimListElem *ale,
   }
 }
 
-/* node tree expander type define */
+/** Line Style expander type define. */
 static bAnimChannelType ACF_DSLINESTYLE = {
     "Line Style Expander",  /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2615,14 +2615,14 @@ static void *acf_dsmesh_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
   }
 }
 
-/* node tree expander type define */
+/** Mesh expander type define. */
 static bAnimChannelType ACF_DSMESH = {
     "Mesh Expander",        /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,
+    acf_generic_indentation_1,
     /* indent level */        /* XXX this only works for compositing */
     acf_generic_basic_offset, /* offset */
 
@@ -2695,14 +2695,14 @@ static void *acf_dslat_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
   }
 }
 
-/* node tree expander type define */
+/** Lattice expander type define. */
 static bAnimChannelType ACF_DSLAT = {
     "Lattice Expander",     /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,
+    acf_generic_indentation_1,
     /* indent level */        /* XXX this only works for compositing */
     acf_generic_basic_offset, /* offset */
 
@@ -2775,14 +2775,14 @@ static void *acf_dsspk_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
   }
 }
 
-/* speaker expander type define */
+/** Speaker expander type define. */
 static bAnimChannelType ACF_DSSPK = {
     "Speaker Expander",     /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2856,14 +2856,14 @@ static void *acf_dscurves_setting_ptr(bAnimListElem *ale,
   }
 }
 
-/* Curves expander type define */
+/** Curves expander type define. */
 static bAnimChannelType ACF_DSHAIR = {
     "Curves Expander",      /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -2937,14 +2937,14 @@ static void *acf_dspointcloud_setting_ptr(bAnimListElem *ale,
   }
 }
 
-/* pointcloud expander type define */
+/** Point-cloud expander type define. */
 static bAnimChannelType ACF_DSPOINTCLOUD = {
     "PointCloud Expander",  /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -3018,14 +3018,14 @@ static void *acf_dsvolume_setting_ptr(bAnimListElem *ale,
   }
 }
 
-/* volume expander type define */
+/** Volume expander type define. */
 static bAnimChannelType ACF_DSVOLUME = {
     "Volume Expander",      /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -3097,13 +3097,14 @@ static void *acf_dssimulation_setting_ptr(bAnimListElem *ale,
   }
 }
 
+/** Simulation expander type define. */
 static bAnimChannelType ACF_DSSIMULATION = {
     "Simulation Expander",  /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -3177,14 +3178,14 @@ static void *acf_dsgpencil_setting_ptr(bAnimListElem *ale,
   }
 }
 
-/* grease pencil expander type define */
+/** Grease-pencil expander type define. */
 static bAnimChannelType ACF_DSGPENCIL = {
     "GPencil DS Expander",  /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,      /* name */
@@ -3258,14 +3259,14 @@ static void *acf_dsmclip_setting_ptr(bAnimListElem *ale,
   }
 }
 
-/* world expander type define */
+/** Movie-clip expander type define. */
 static bAnimChannelType ACF_DSMCLIP = {
     "Movieclip Expander",   /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
     acf_generic_dataexpand_color,    /* backdrop color */
     acf_generic_dataexpand_backdrop, /* backdrop */
-    acf_generic_indention_1,         /* indent level */
+    acf_generic_indentation_1,       /* indent level */
     acf_generic_basic_offset,        /* offset */
 
     acf_generic_idblock_name,     /* name */
@@ -3373,14 +3374,14 @@ static void *acf_shapekey_setting_ptr(bAnimListElem *ale,
   }
 }
 
-/* shapekey expander type define */
+/** Shape-key expander type define. */
 static bAnimChannelType ACF_SHAPEKEY = {
     "Shape Key",           /* type name */
     ACHANNEL_ROLE_CHANNEL, /* role */
 
     acf_generic_channel_color,    /* backdrop color */
     acf_generic_channel_backdrop, /* backdrop */
-    acf_generic_indention_0,      /* indent level */
+    acf_generic_indentation_0,    /* indent level */
     acf_generic_basic_offset,     /* offset */
 
     acf_shapekey_name,      /* name */
@@ -3453,15 +3454,15 @@ static void *acf_gpd_setting_ptr(bAnimListElem *ale,
   return GET_ACF_FLAG_PTR(gpd->flag, type);
 }
 
-/* gpencil datablock type define */
+/** Grease-pencil data-block type define. */
 static bAnimChannelType ACF_GPD = {
     "GPencil Datablock",    /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
-    acf_gpd_color,            /* backdrop color */
-    acf_group_backdrop,       /* backdrop */
-    acf_generic_indention_0,  /* indent level */
-    acf_generic_group_offset, /* offset */
+    acf_gpd_color,             /* backdrop color */
+    acf_group_backdrop,        /* backdrop */
+    acf_generic_indentation_0, /* indent level */
+    acf_generic_group_offset,  /* offset */
 
     acf_generic_idblock_name,     /* name */
     acf_generic_idfill_name_prop, /* name prop */
@@ -3552,15 +3553,15 @@ static void *acf_gpl_setting_ptr(bAnimListElem *ale,
   return GET_ACF_FLAG_PTR(gpl->flag, type);
 }
 
-/* grease pencil layer type define */
+/** Grease-pencil layer type define. */
 static bAnimChannelType ACF_GPL = {
     "GPencil Layer",       /* type name */
     ACHANNEL_ROLE_CHANNEL, /* role */
 
-    acf_gpencil_channel_color,      /* backdrop color */
-    acf_generic_channel_backdrop,   /* backdrop */
-    acf_generic_indention_flexible, /* indent level */
-    acf_generic_group_offset,       /* offset */
+    acf_gpencil_channel_color,        /* backdrop color */
+    acf_generic_channel_backdrop,     /* backdrop */
+    acf_generic_indentation_flexible, /* indent level */
+    acf_generic_group_offset,         /* offset */
 
     acf_gpl_name,      /* name */
     acf_gpl_name_prop, /* name prop */
@@ -3634,15 +3635,15 @@ static void *acf_mask_setting_ptr(bAnimListElem *ale,
   return GET_ACF_FLAG_PTR(mask->flag, type);
 }
 
-/* mask datablock type define */
+/** Mask data-block type define. */
 static bAnimChannelType ACF_MASKDATA = {
     "Mask Datablock",       /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
-    acf_mask_color,           /* backdrop color */
-    acf_group_backdrop,       /* backdrop */
-    acf_generic_indention_0,  /* indent level */
-    acf_generic_group_offset, /* offset */
+    acf_mask_color,            /* backdrop color */
+    acf_group_backdrop,        /* backdrop */
+    acf_generic_indentation_0, /* indent level */
+    acf_generic_group_offset,  /* offset */
 
     acf_generic_idblock_name,     /* name */
     acf_generic_idfill_name_prop, /* name prop */
@@ -3730,15 +3731,15 @@ static void *acf_masklay_setting_ptr(bAnimListElem *ale,
   return GET_ACF_FLAG_PTR(masklay->flag, type);
 }
 
-/* grease pencil layer type define */
+/** Mask layer type define. */
 static bAnimChannelType ACF_MASKLAYER = {
     "Mask Layer",          /* type name */
     ACHANNEL_ROLE_CHANNEL, /* role */
 
-    acf_generic_channel_color,      /* backdrop color */
-    acf_generic_channel_backdrop,   /* backdrop */
-    acf_generic_indention_flexible, /* indent level */
-    acf_generic_group_offset,       /* offset */
+    acf_generic_channel_color,        /* backdrop color */
+    acf_generic_channel_backdrop,     /* backdrop */
+    acf_generic_indentation_flexible, /* indent level */
+    acf_generic_group_offset,         /* offset */
 
     acf_masklay_name,      /* name */
     acf_masklay_name_prop, /* name prop */
@@ -3870,14 +3871,14 @@ static void *acf_nlatrack_setting_ptr(bAnimListElem *ale,
   return GET_ACF_FLAG_PTR(nlt->flag, type);
 }
 
-/* nla track type define */
+/** NLA track type define. */
 static bAnimChannelType ACF_NLATRACK = {
     "NLA Track",           /* type name */
     ACHANNEL_ROLE_CHANNEL, /* role */
 
-    acf_nlatrack_color,             /* backdrop color */
-    acf_generic_channel_backdrop,   /* backdrop */
-    acf_generic_indention_flexible, /* indent level */
+    acf_nlatrack_color,               /* backdrop color */
+    acf_generic_channel_backdrop,     /* backdrop */
+    acf_generic_indentation_flexible, /* indent level */
     acf_generic_group_offset,
     /* offset */ /* XXX? */
 
@@ -4056,10 +4057,10 @@ static bAnimChannelType ACF_NLAACTION = {
     "NLA Active Action",   /* type name */
     ACHANNEL_ROLE_CHANNEL, /* role */
 
-    acf_nlaaction_color,            /* backdrop color (NOTE: the backdrop handles this too,
-                                     * since it needs special hacks). */
-    acf_nlaaction_backdrop,         /* backdrop */
-    acf_generic_indention_flexible, /* indent level */
+    acf_nlaaction_color,              /* backdrop color (NOTE: the backdrop handles this too,
+                                       * since it needs special hacks). */
+    acf_nlaaction_backdrop,           /* backdrop */
+    acf_generic_indentation_flexible, /* indent level */
     acf_generic_group_offset,
     /* offset */ /* XXX? */
 

@@ -3510,7 +3510,8 @@ static int sequencer_set_2d_cursor_exec(bContext *C, wmOperator *op)
 
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
-  return OPERATOR_FINISHED;
+  /* Use pass-through to allow click-drag to transform the cursor. */
+  return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 }
 
 static int sequencer_set_2d_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)

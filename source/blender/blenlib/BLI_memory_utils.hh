@@ -544,3 +544,31 @@ Container &move_assign_container(Container &dst, Container &&src) noexcept(
 }
 
 }  // namespace blender
+
+namespace blender::detail {
+
+template<typename Func> struct ScopedDeferHelper {
+  Func func;
+
+  ~ScopedDeferHelper()
+  {
+    func();
+  }
+};
+
+}  // namespace blender::detail
+
+#define BLI_SCOPED_DEFER_NAME1(a, b) a##b
+#define BLI_SCOPED_DEFER_NAME2(a, b) BLI_SCOPED_DEFER_NAME1(a, b)
+#define BLI_SCOPED_DEFER_NAME(a) BLI_SCOPED_DEFER_NAME2(_scoped_defer_##a##_, __LINE__)
+
+/**
+ * Execute the given function when the current scope ends. This can be used to cheaply implement
+ * some RAII-like behavior for C types that don't support it. Long term, the types we want to use
+ * this with should either be converted to C++ or get a proper C++ API. Until then, this function
+ * can help avoid common resource leakages.
+ */
+#define BLI_SCOPED_DEFER(function_to_defer) \
+  auto BLI_SCOPED_DEFER_NAME(func) = (function_to_defer); \
+  blender::detail::ScopedDeferHelper<decltype(BLI_SCOPED_DEFER_NAME(func))> \
+      BLI_SCOPED_DEFER_NAME(helper){std::move(BLI_SCOPED_DEFER_NAME(func))};

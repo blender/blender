@@ -180,23 +180,42 @@ typedef struct tStrokeBuildDetails {
   int totpoints;
 } tStrokeBuildDetails;
 
-/* Sequential - Show strokes one after the other */
-static void build_sequential(BuildGpencilModifierData *mmd,
-                             bGPdata *gpd,
-                             bGPDframe *gpf,
-                             float fac)
+/* Sequential and additive - Show strokes one after the other. */
+static void build_sequential(
+    BuildGpencilModifierData *mmd, bGPdata *gpd, bGPDframe *gpf, float fac, bool additive)
 {
-  const size_t tot_strokes = BLI_listbase_count(&gpf->strokes);
+  size_t tot_strokes = BLI_listbase_count(&gpf->strokes);
+  size_t start_stroke;
   bGPDstroke *gps;
   size_t i;
 
-  /* 1) Compute proportion of time each stroke should occupy */
+  /* 1) Determine which strokes to start with & total strokes to build. */
+
+  if (additive) {
+    if (gpf->prev) {
+      start_stroke = BLI_listbase_count(&gpf->prev->strokes);
+    }
+    else {
+      start_stroke = 0;
+    }
+    if (start_stroke <= tot_strokes) {
+      tot_strokes = tot_strokes - start_stroke;
+    }
+    else {
+      start_stroke = 0;
+    }
+  }
+  else {
+    start_stroke = 0;
+  }
+
+  /* 2) Compute proportion of time each stroke should occupy */
   /* NOTE: This assumes that the total number of points won't overflow! */
   tStrokeBuildDetails *table = MEM_callocN(sizeof(tStrokeBuildDetails) * tot_strokes, __func__);
   size_t totpoints = 0;
 
-  /* 1.1) First pass - Tally up points */
-  for (gps = gpf->strokes.first, i = 0; gps; gps = gps->next, i++) {
+  /* 2.1) First pass - Tally up points */
+  for (gps = BLI_findlink(&gpf->strokes, start_stroke), i = 0; gps; gps = gps->next, i++) {
     tStrokeBuildDetails *cell = &table[i];
 
     cell->gps = gps;
@@ -205,7 +224,7 @@ static void build_sequential(BuildGpencilModifierData *mmd,
     totpoints += cell->totpoints;
   }
 
-  /* 1.2) Second pass - Compute the overall indices for points */
+  /* 2.2) Second pass - Compute the overall indices for points */
   for (i = 0; i < tot_strokes; i++) {
     tStrokeBuildDetails *cell = &table[i];
 
@@ -218,7 +237,7 @@ static void build_sequential(BuildGpencilModifierData *mmd,
     cell->end_idx = cell->start_idx + cell->totpoints - 1;
   }
 
-  /* 2) Determine the global indices for points that should be visible */
+  /* 3) Determine the global indices for points that should be visible */
   size_t first_visible = 0;
   size_t last_visible = 0;
 
@@ -248,7 +267,7 @@ static void build_sequential(BuildGpencilModifierData *mmd,
       break;
   }
 
-  /* 3) Go through all strokes, deciding which to keep, and/or how much of each to keep */
+  /* 4) Go through all strokes, deciding which to keep, and/or how much of each to keep */
   for (i = 0; i < tot_strokes; i++) {
     tStrokeBuildDetails *cell = &table[i];
 
@@ -386,10 +405,14 @@ static void build_concurrent(BuildGpencilModifierData *mmd,
 }
 
 /* --------------------------------------------- */
+
 static void generate_geometry(
     GpencilModifierData *md, Depsgraph *depsgraph, bGPdata *gpd, bGPDlayer *gpl, bGPDframe *gpf)
 {
   BuildGpencilModifierData *mmd = (BuildGpencilModifierData *)md;
+  if (mmd->mode == GP_BUILD_MODE_ADDITIVE) {
+    mmd->transition = GP_BUILD_TRANSITION_GROW;
+  }
   const bool reverse = (mmd->transition != GP_BUILD_TRANSITION_GROW);
   const bool is_percentage = (mmd->flag & GP_BUILD_PERCENTAGE);
 
@@ -494,11 +517,15 @@ static void generate_geometry(
   /* Time management mode */
   switch (mmd->mode) {
     case GP_BUILD_MODE_SEQUENTIAL:
-      build_sequential(mmd, gpd, gpf, fac);
+      build_sequential(mmd, gpd, gpf, fac, false);
       break;
 
     case GP_BUILD_MODE_CONCURRENT:
       build_concurrent(mmd, gpd, gpf, fac);
+      break;
+
+    case GP_BUILD_MODE_ADDITIVE:
+      build_sequential(mmd, gpd, gpf, fac, true);
       break;
 
     default:
@@ -544,7 +571,9 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiItemS(layout);
 
-  uiItemR(layout, ptr, "transition", 0, NULL, ICON_NONE);
+  if (ELEM(mode, GP_BUILD_MODE_SEQUENTIAL, GP_BUILD_MODE_CONCURRENT)) {
+    uiItemR(layout, ptr, "transition", 0, NULL, ICON_NONE);
+  }
   row = uiLayoutRow(layout, true);
   uiLayoutSetActive(row, !use_percentage);
   uiItemR(row, ptr, "start_delay", 0, NULL, ICON_NONE);

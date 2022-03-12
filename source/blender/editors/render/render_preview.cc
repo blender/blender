@@ -259,7 +259,7 @@ static bool render_engine_supports_ray_visibility(const Scene *sce)
   return !STREQ(sce->r.engine, RE_engine_id_BLENDER_EEVEE);
 }
 
-static void switch_preview_collection_visibilty(ViewLayer *view_layer, const ePreviewType pr_type)
+static void switch_preview_collection_visibility(ViewLayer *view_layer, const ePreviewType pr_type)
 {
   /* Set appropriate layer as visible. */
   LayerCollection *lc = static_cast<LayerCollection *>(view_layer->layer_collections.first);
@@ -329,7 +329,7 @@ static void set_preview_visibility(Main *pr_main,
                                    const ePreviewType pr_type,
                                    const ePreviewRenderMethod pr_method)
 {
-  switch_preview_collection_visibilty(view_layer, pr_type);
+  switch_preview_collection_visibility(view_layer, pr_type);
   switch_preview_floor_visibility(pr_main, scene, view_layer, pr_method);
   BKE_layer_collection_sync(scene, view_layer);
 }

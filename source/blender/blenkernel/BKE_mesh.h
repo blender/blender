@@ -408,6 +408,9 @@ void BKE_mesh_assert_normals_dirty_or_calculated(const struct Mesh *mesh);
  * \note In order to clear the dirty flag, this function should be followed by a call to
  * #BKE_mesh_vertex_normals_clear_dirty. This is separate so that normals are still tagged dirty
  * while they are being assigned.
+ *
+ * \warning The memory returned by this function is not initialized if it was not previously
+ * allocated.
  */
 float (*BKE_mesh_vertex_normals_for_write(struct Mesh *mesh))[3];
 
@@ -418,6 +421,9 @@ float (*BKE_mesh_vertex_normals_for_write(struct Mesh *mesh))[3];
  * \note In order to clear the dirty flag, this function should be followed by a call to
  * #BKE_mesh_poly_normals_clear_dirty. This is separate so that normals are still tagged dirty
  * while they are being assigned.
+ *
+ * \warning The memory returned by this function is not initialized if it was not previously
+ * allocated.
  */
 float (*BKE_mesh_poly_normals_for_write(struct Mesh *mesh))[3];
 
@@ -939,7 +945,7 @@ void BKE_mesh_calc_relative_deform(const struct MPoly *mpoly,
                                    const float (*vert_cos_org)[3],
                                    float (*vert_cos_new)[3]);
 
-/* *** mesh_validate.c *** */
+/* *** mesh_validate.cc *** */
 
 /**
  * Validates and corrects a Mesh.

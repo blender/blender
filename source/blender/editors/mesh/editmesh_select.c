@@ -1367,10 +1367,10 @@ static int edbm_select_mode_invoke(bContext *C, wmOperator *op, const wmEvent *e
   /* detecting these options based on shift/ctrl here is weak, but it's done
    * to make this work when clicking buttons or menus */
   if (!RNA_struct_property_is_set(op->ptr, "use_extend")) {
-    RNA_boolean_set(op->ptr, "use_extend", event->shift);
+    RNA_boolean_set(op->ptr, "use_extend", event->modifier & KM_SHIFT);
   }
   if (!RNA_struct_property_is_set(op->ptr, "use_expand")) {
-    RNA_boolean_set(op->ptr, "use_expand", event->ctrl);
+    RNA_boolean_set(op->ptr, "use_expand", event->modifier & KM_CTRL);
   }
 
   return edbm_select_mode_exec(C, op);
@@ -3552,7 +3552,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
     return edbm_select_linked_pick_exec(C, op);
   }
 
-  /* unified_finednearest needs ogl */
+  /* #unified_findnearest needs OpenGL. */
   view3d_operator_needs_opengl(C);
 
   /* setup view context for argument to callbacks */

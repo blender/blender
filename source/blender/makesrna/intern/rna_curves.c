@@ -16,6 +16,8 @@
 #include "BLI_math_base.h"
 #include "BLI_string.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math_vector.h"
@@ -264,6 +266,13 @@ static void rna_def_curves(BlenderRNA *brna)
   RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */
   RNA_def_property_collection_funcs(
       prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "rna_IDMaterials_assign_int");
+
+  prop = RNA_def_property(srna, "surface", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Object");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Mesh_object_poll");
+  RNA_def_property_ui_text(prop, "Surface", "Mesh object that the curves can be attached to");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
   /* attributes */
   rna_def_attributes_common(srna);

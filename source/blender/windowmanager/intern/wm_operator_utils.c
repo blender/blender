@@ -115,11 +115,11 @@ static bool interactive_value_update(ValueInteraction *inter,
                        (((float)(mval_curr - mval_init) / inter->context_vars.region->winx) *
                         value_range)) *
                       value_scale;
-  if (event->ctrl) {
+  if (event->modifier & KM_CTRL) {
     const double snap = 0.1;
     value_delta = (float)roundf((double)value_delta / snap) * snap;
   }
-  if (event->shift) {
+  if (event->modifier & KM_SHIFT) {
     value_delta *= 0.1f;
   }
   const float value_final = inter->init.prop_value + value_delta;
@@ -133,8 +133,8 @@ static bool interactive_value_update(ValueInteraction *inter,
   }
 
   inter->prev.prop_value = value_final;
-  inter->prev.is_snap = event->ctrl;
-  inter->prev.is_precise = event->shift;
+  inter->prev.is_snap = (event->modifier & KM_CTRL) != 0;
+  inter->prev.is_precise = (event->modifier & KM_SHIFT) != 0;
 
   *r_value_final = value_final;
   return changed;

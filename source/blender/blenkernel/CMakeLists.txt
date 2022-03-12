@@ -141,6 +141,7 @@ set(SRC
   intern/fmodifier.c
   intern/freestyle.c
   intern/geometry_component_curve.cc
+  intern/geometry_component_curves.cc
   intern/geometry_component_instances.cc
   intern/geometry_component_mesh.cc
   intern/geometry_component_pointcloud.cc
@@ -159,7 +160,7 @@ set(SRC
   intern/idprop_serialize.cc
   intern/idprop_utils.c
   intern/idtype.c
-  intern/image.c
+  intern/image.cc
   intern/image_partial_update.cc
   intern/image_gen.c
   intern/image_gpu.cc
@@ -210,7 +211,7 @@ set(SRC
   intern/mesh_sample.cc
   intern/mesh_tangent.c
   intern/mesh_tessellate.c
-  intern/mesh_validate.c
+  intern/mesh_validate.cc
   intern/mesh_wrapper.c
   intern/modifier.c
   intern/movieclip.c
@@ -832,6 +833,7 @@ if(WITH_GTESTS)
     intern/asset_test.cc
     intern/bpath_test.cc
     intern/cryptomatte_test.cc
+    intern/curves_geometry_test.cc
     intern/fcurve_test.cc
     intern/idprop_serialize_test.cc
     intern/image_partial_update_test.cc

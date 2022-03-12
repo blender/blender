@@ -35,7 +35,13 @@ void main()
   float line_distance = distance(stipplePos_f, stippleStart_f) / max(dd.x, dd.y);
 
   if (lineStyle == OVERLAY_UV_LINE_STYLE_OUTLINE) {
+#ifdef USE_EDGE_SELECT
+    /* TODO(@campbellbarton): The current wire-edit color contrast enough against the selection.
+     * Look into changing the default theme color instead of reducing contrast with edge-select. */
+    inner_color = (selectionFac_f != 0.0) ? colorEdgeSelect : (colorWireEdit * 0.5);
+#else
     inner_color = mix(colorWireEdit, colorEdgeSelect, selectionFac_f);
+#endif
     outer_color = vec4(vec3(0.0), 1.0);
   }
   else if (lineStyle == OVERLAY_UV_LINE_STYLE_DASH) {

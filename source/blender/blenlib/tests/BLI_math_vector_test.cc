@@ -4,6 +4,10 @@
 
 #include "BLI_math.h"
 
+#include "BLI_math_vector.hh"
+
+namespace blender::tests {
+
 TEST(math_vector, ClampVecWithFloats)
 {
   const float min = 0.0f;
@@ -63,3 +67,22 @@ TEST(math_vector, test_invert_v3_safe)
   EXPECT_FLOAT_EQ(inverted_unsafe[1], v3_without_zeroes[1]);
   EXPECT_FLOAT_EQ(inverted_unsafe[2], v3_without_zeroes[2]);
 }
+
+TEST(math_vector, Clamp)
+{
+  const int3 value(0, 100, -100);
+  const int3 min(5, 40, -95);
+  const int3 max(7, 45, 5);
+
+  const int3 result = math::clamp(value, min, max);
+  EXPECT_EQ(result.x, 5);
+  EXPECT_EQ(result.y, 45);
+  EXPECT_EQ(result.z, -95);
+
+  const int3 result_2 = math::clamp(value, -50, 50);
+  EXPECT_EQ(result_2.x, 0);
+  EXPECT_EQ(result_2.y, 50);
+  EXPECT_EQ(result_2.z, -50);
+}
+
+}  // namespace blender::tests

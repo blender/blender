@@ -62,7 +62,7 @@ static float circle_to_polygon_radius(float sides_count, float theta)
          cosf(theta - side_angle * floorf((sides_count * theta + M_PI) / (2.0f * M_PI)));
 }
 
-/* Remap input angle to have homogenous spacing of points along a polygon edge.
+/* Remap input angle to have homogeneous spacing of points along a polygon edge.
  * Expect theta to be in [0..2pi] range. */
 static float circle_to_polygon_angle(float sides_count, float theta)
 {
@@ -626,11 +626,6 @@ static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
         "dof_reduced_color", UNPACK2(res), mip_count, GPU_RGBA16F, NULL);
     txl->dof_reduced_coc = GPU_texture_create_2d(
         "dof_reduced_coc", UNPACK2(res), mip_count, GPU_R16F, NULL);
-
-    /* TODO(@fclem): Remove once we have immutable storage or when mips are generated on creation.
-     */
-    GPU_texture_generate_mipmap(txl->dof_reduced_color);
-    GPU_texture_generate_mipmap(txl->dof_reduced_coc);
   }
 
   GPU_framebuffer_ensure_config(&fbl->dof_reduce_fb,

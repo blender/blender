@@ -167,6 +167,7 @@ typedef struct OVERLAY_Shaders {
   GPUShader *edit_uv_verts;
   GPUShader *edit_uv_faces;
   GPUShader *edit_uv_edges;
+  GPUShader *edit_uv_edges_for_edge_select;
   GPUShader *edit_uv_face_dots;
   GPUShader *edit_uv_stretching_angle;
   GPUShader *edit_uv_stretching_area;
@@ -1603,6 +1604,20 @@ GPUShader *OVERLAY_shader_edit_uv_edges_get(void)
                                                               NULL);
   }
   return sh_data->edit_uv_edges;
+}
+
+GPUShader *OVERLAY_shader_edit_uv_edges_for_edge_select_get(void)
+{
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
+  if (!sh_data->edit_uv_edges_for_edge_select) {
+    sh_data->edit_uv_edges_for_edge_select = DRW_shader_create_with_shaderlib(
+        datatoc_edit_uv_edges_vert_glsl,
+        datatoc_edit_uv_edges_geom_glsl,
+        datatoc_edit_uv_edges_frag_glsl,
+        e_data.lib,
+        "#define USE_EDGE_SELECT\n");
+  }
+  return sh_data->edit_uv_edges_for_edge_select;
 }
 
 GPUShader *OVERLAY_shader_edit_uv_face_get(void)

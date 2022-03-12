@@ -327,11 +327,11 @@ static int viewrotate_modal(bContext *C, wmOperator *op, const wmEvent *event)
         event_code = VIEW_APPLY;
         break;
       case VIEWROT_MODAL_SWITCH_ZOOM:
-        WM_operator_name_call(C, "VIEW3D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL);
+        WM_operator_name_call(C, "VIEW3D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL, event);
         event_code = VIEW_CONFIRM;
         break;
       case VIEWROT_MODAL_SWITCH_MOVE:
-        WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL);
+        WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL, event);
         event_code = VIEW_CONFIRM;
         break;
     }
@@ -383,7 +383,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     int event_xy[2];
 
     if (event->type == MOUSEPAN) {
-      if (event->is_direction_inverted) {
+      if (event->flag & WM_EVENT_SCROLL_INVERT) {
         event_xy[0] = 2 * event->xy[0] - event->prev_xy[0];
         event_xy[1] = 2 * event->xy[1] - event->prev_xy[1];
       }

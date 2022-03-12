@@ -189,7 +189,7 @@ void SceneExporter::writeNode(Object *ob)
               "blender", con_tag, "lin_error", con->lin_error);
 
           /* not ideal: add the target object name as another parameter.
-           * No real mapping in the .dae
+           * No real mapping in the `.dae`.
            * Need support for multiple target objects also. */
           const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
           ListBase targets = {nullptr, nullptr};

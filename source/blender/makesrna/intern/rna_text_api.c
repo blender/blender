@@ -32,6 +32,17 @@ static void rna_Text_write(Text *text, const char *str)
   WM_main_add_notifier(NC_TEXT | NA_EDITED, text);
 }
 
+static void rna_Text_from_string(Text *text, const char *str)
+{
+  BKE_text_clear(text);
+  BKE_text_write(text, str);
+}
+
+static void rna_Text_as_string(Text *text, int *r_result_len, const char **result)
+{
+  *result = txt_to_buf(text, r_result_len);
+}
+
 static void rna_Text_select_set(Text *text, int startl, int startc, int endl, int endc)
 {
   txt_sel_set(text, startl, startc, endl, endc);
@@ -59,6 +70,16 @@ void RNA_api_text(StructRNA *srna)
       func, "write text at the cursor location and advance to the end of the text block");
   parm = RNA_def_string(func, "text", "Text", 0, "", "New text for this data-block");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "from_string", "rna_Text_from_string");
+  RNA_def_function_ui_description(func, "Replace text with this string.");
+  parm = RNA_def_string(func, "text", "Text", 0, "", "");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "as_string", "rna_Text_as_string");
+  RNA_def_function_ui_description(func, "Return the text as a string");
+  parm = RNA_def_string(func, "text", "Text", 0, "", "");
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_OUTPUT);
 
   func = RNA_def_function(
       srna, "is_syntax_highlight_supported", "ED_text_is_syntax_highlight_supported");

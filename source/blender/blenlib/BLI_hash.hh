@@ -148,6 +148,13 @@ template<> struct DefaultHash<float> {
   }
 };
 
+template<> struct DefaultHash<double> {
+  uint64_t operator()(double value) const
+  {
+    return *reinterpret_cast<uint64_t *>(&value);
+  }
+};
+
 template<> struct DefaultHash<bool> {
   uint64_t operator()(bool value) const
   {

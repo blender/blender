@@ -1,11 +1,15 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_spline.hh"
+#include <numeric>
+
 #include "BLI_math_base_safe.h"
+
+#include "BKE_curves.hh"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
+
 #include "node_geometry_util.hh"
-#include <numeric>
 
 namespace blender::nodes::node_geo_curve_primitive_arc_cc {
 
@@ -139,32 +143,24 @@ static bool colinear_f3_f3_f3(const float3 p1, const float3 p2, const float3 p3)
   return (ELEM(a, b, b * -1.0f));
 }
 
-static std::unique_ptr<CurveEval> create_arc_curve_from_points(const int resolution,
-                                                               const float3 a,
-                                                               const float3 b,
-                                                               const float3 c,
-                                                               float angle_offset,
-                                                               const bool connect_center,
-                                                               const bool invert_arc,
-                                                               float3 &r_center,
-                                                               float3 &r_normal,
-                                                               float &r_radius)
+static Curves *create_arc_curve_from_points(const int resolution,
+                                            const float3 a,
+                                            const float3 b,
+                                            const float3 c,
+                                            float angle_offset,
+                                            const bool connect_center,
+                                            const bool invert_arc,
+                                            float3 &r_center,
+                                            float3 &r_normal,
+                                            float &r_radius)
 {
-  std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
-  std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
-
-  if (connect_center) {
-    spline->resize(resolution + 1);
-  }
-  else {
-    spline->resize(resolution);
-  }
+  const int size = connect_center ? resolution + 1 : resolution;
+  Curves *curves_id = bke::curves_new_nomain_single(size, CURVE_TYPE_POLY);
+  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
 
   const int stepcount = resolution - 1;
   const int centerpoint = resolution;
-  MutableSpan<float3> positions = spline->positions();
-  spline->radii().fill(1.0f);
-  spline->tilts().fill(0.0f);
+  MutableSpan<float3> positions = curves.positions();
 
   const bool is_colinear = colinear_f3_f3_f3(a, b, c);
 
@@ -254,7 +250,7 @@ static std::unique_ptr<CurveEval> create_arc_curve_from_points(const int resolut
   }
 
   if (connect_center) {
-    spline->set_cyclic(true);
+    curves.cyclic().first() = true;
     positions[centerpoint] = center;
   }
 
@@ -263,36 +259,26 @@ static std::unique_ptr<CurveEval> create_arc_curve_from_points(const int resolut
     normal = -normal;
   }
 
-  curve->add_spline(std::move(spline));
-  curve->attributes.reallocate(curve->splines().size());
   r_center = center;
   r_radius = radius;
   r_normal = normal;
-  return curve;
+  return curves_id;
 }
 
-static std::unique_ptr<CurveEval> create_arc_curve_from_radius(const int resolution,
-                                                               const float radius,
-                                                               const float start_angle,
-                                                               const float sweep_angle,
-                                                               const bool connect_center,
-                                                               const bool invert_arc)
+static Curves *create_arc_curve_from_radius(const int resolution,
+                                            const float radius,
+                                            const float start_angle,
+                                            const float sweep_angle,
+                                            const bool connect_center,
+                                            const bool invert_arc)
 {
-  std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
-  std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
-
-  if (connect_center) {
-    spline->resize(resolution + 1);
-  }
-  else {
-    spline->resize(resolution);
-  }
+  const int size = connect_center ? resolution + 1 : resolution;
+  Curves *curves_id = bke::curves_new_nomain_single(size, CURVE_TYPE_POLY);
+  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
 
   const int stepcount = resolution - 1;
   const int centerpoint = resolution;
-  MutableSpan<float3> positions = spline->positions();
-  spline->radii().fill(1.0f);
-  spline->tilts().fill(0.0f);
+  MutableSpan<float3> positions = curves.positions();
 
   const float sweep = (invert_arc) ? -(2.0f * M_PI - sweep_angle) : sweep_angle;
 
@@ -305,13 +291,11 @@ static std::unique_ptr<CurveEval> create_arc_curve_from_radius(const int resolut
   }
 
   if (connect_center) {
-    spline->set_cyclic(true);
+    curves.cyclic().first() = true;
     positions[centerpoint] = float3(0.0f, 0.0f, 0.0f);
   }
 
-  curve->add_spline(std::move(spline));
-  curve->attributes.reallocate(curve->splines().size());
-  return curve;
+  return curves_id;
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -322,35 +306,35 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   switch (mode) {
     case GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_POINTS: {
-      std::unique_ptr<CurveEval> curve;
       float3 r_center, r_normal;
       float r_radius;
-      curve = create_arc_curve_from_points(std::max(params.extract_input<int>("Resolution"), 2),
-                                           params.extract_input<float3>("Start"),
-                                           params.extract_input<float3>("Middle"),
-                                           params.extract_input<float3>("End"),
-                                           params.extract_input<float>("Offset Angle"),
-                                           params.extract_input<bool>("Connect Center"),
-                                           params.extract_input<bool>("Invert Arc"),
-                                           r_center,
-                                           r_normal,
-                                           r_radius);
-      params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
+      Curves *curves = create_arc_curve_from_points(
+          std::max(params.extract_input<int>("Resolution"), 2),
+          params.extract_input<float3>("Start"),
+          params.extract_input<float3>("Middle"),
+          params.extract_input<float3>("End"),
+          params.extract_input<float>("Offset Angle"),
+          params.extract_input<bool>("Connect Center"),
+          params.extract_input<bool>("Invert Arc"),
+          r_center,
+          r_normal,
+          r_radius);
+      params.set_output("Curve", GeometrySet::create_with_curves(curves));
       params.set_output("Center", r_center);
       params.set_output("Normal", r_normal);
       params.set_output("Radius", r_radius);
       break;
     }
     case GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_RADIUS: {
-      std::unique_ptr<CurveEval> curve;
-      curve = create_arc_curve_from_radius(std::max(params.extract_input<int>("Resolution"), 2),
-                                           params.extract_input<float>("Radius"),
-                                           params.extract_input<float>("Start Angle"),
-                                           params.extract_input<float>("Sweep Angle"),
-                                           params.extract_input<bool>("Connect Center"),
-                                           params.extract_input<bool>("Invert Arc"));
+      Curves *curves = create_arc_curve_from_radius(
+          std::max(params.extract_input<int>("Resolution"), 2),
+          params.extract_input<float>("Radius"),
+          params.extract_input<float>("Start Angle"),
+          params.extract_input<float>("Sweep Angle"),
+          params.extract_input<bool>("Connect Center"),
+          params.extract_input<bool>("Invert Arc"));
 
-      params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
+      params.set_output("Curve", GeometrySet::create_with_curves(curves));
       break;
     }
   }

@@ -1566,6 +1566,21 @@ static void layerDefault_mesh_id(void *data, int count)
   }
 }
 
+static void layerInterp_propbool(const void **sources,
+                                 const float *weights,
+                                 const float *UNUSED(sub_weights),
+                                 int count,
+                                 void *dest)
+{
+  bool result = false;
+  for (int i = 0; i < count; i++) {
+    const float interp_weight = weights[i];
+    const bool src = *(const bool *)sources[i];
+    result |= src && (interp_weight > 0.0f);
+  }
+  *(bool *)dest = result;
+}
+
 static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     /* 0: CD_MVERT */
     {sizeof(MVert), "MVert", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
@@ -1893,7 +1908,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     /* 44: CD_RADIUS */
     {sizeof(float), "MFloatProperty", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 45: CD_PROP_INT8 */
-    {sizeof(int8_t), "MInt8Property", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
+    {sizeof(int8_t), "MInt8Property", 1, N_("Int8"), nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 46: CD_HAIRMAPPING */ /* UNUSED */
     {-1, "", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 47: CD_PROP_COLOR */
@@ -1954,7 +1969,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      N_("Boolean"),
      nullptr,
      nullptr,
-     nullptr,
+     layerInterp_propbool,
      nullptr,
      nullptr,
      nullptr,
@@ -1992,78 +2007,76 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      layerInterp_noop},
 };
 
-static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
-    /*   0-4 */
-    "CDMVert",
-    "CDMSticky",
-    "CDMDeformVert",
-    "CDMEdge",
-    "CDMFace",
-    /*   5-9 */
-    "CDMTFace",
-    "CDMCol",
-    "CDOrigIndex",
-    "CDNormal",
-    "CDFaceMap",
-    /* 10-14 */
-    "CDMFloatProperty",
-    "CDMIntProperty",
-    "CDMStringProperty",
-    "CDOrigSpace",
-    "CDOrco",
-    /* 15-19 */
-    "CDMTexPoly",
-    "CDMLoopUV",
-    "CDMloopCol",
-    "CDTangent",
-    "CDMDisps",
-    /* 20-24 */
-    "CDPreviewMCol",
-    "CDIDMCol",
-    "CDTextureMCol",
-    "CDClothOrco",
-    "CDMRecast",
+static const char *LAYERTYPENAMES[CD_NUMTYPES] = {/*   0-4 */
+                                                  "CDMVert",
+                                                  "CDMSticky",
+                                                  "CDMDeformVert",
+                                                  "CDMEdge",
+                                                  "CDMFace",
+                                                  /*   5-9 */
+                                                  "CDMTFace",
+                                                  "CDMCol",
+                                                  "CDOrigIndex",
+                                                  "CDNormal",
+                                                  "CDFaceMap",
+                                                  /* 10-14 */
+                                                  "CDMFloatProperty",
+                                                  "CDMIntProperty",
+                                                  "CDMStringProperty",
+                                                  "CDOrigSpace",
+                                                  "CDOrco",
+                                                  /* 15-19 */
+                                                  "CDMTexPoly",
+                                                  "CDMLoopUV",
+                                                  "CDMloopCol",
+                                                  "CDTangent",
+                                                  "CDMDisps",
+                                                  /* 20-24 */
+                                                  "CDPreviewMCol",
+                                                  "CDIDMCol",
+                                                  "CDTextureMCol",
+                                                  "CDClothOrco",
+                                                  "CDMRecast",
 
-    /* BMESH ONLY */
-    /* 25-29 */
-    "CDMPoly",
-    "CDMLoop",
-    "CDShapeKeyIndex",
-    "CDShapeKey",
-    "CDBevelWeight",
-    /* 30-34 */
-    "CDSubSurfCrease",
-    "CDOrigSpaceLoop",
-    "CDPreviewLoopCol",
-    "CDBMElemPyPtr",
-    "CDPaintMask",
-    /* 35-36 */
-    "CDGridPaintMask",
-    "CDMVertSkin",
-    /* 37-38 */
-    "CDFreestyleEdge",
-    "CDFreestyleFace",
-    /* 39-42 */
-    "CDMLoopTangent",
-    "CDTessLoopNormal",
-    "CDCustomLoopNormal",
-    "CDSculptFaceGroups",
-    /* 43-46 */ 
-    "CDHairPoint",
-    "CDHairMapping",
-    "CDPropInt8",
-    "CDPoint",
-    /* 47-50 */
-    "CDPropCol",
-    "CDPropFloat3",
-    "CDPropFloat2",
-    "CDPropBoolean",
-    /*51-53*/
-    "CDHairLength",
-    "CDMeshID",
-    "CDDyntopoVert",
-    "CDPropInt16"
-};
+                                                  /* BMESH ONLY */
+                                                  /* 25-29 */
+                                                  "CDMPoly",
+                                                  "CDMLoop",
+                                                  "CDShapeKeyIndex",
+                                                  "CDShapeKey",
+                                                  "CDBevelWeight",
+                                                  /* 30-34 */
+                                                  "CDSubSurfCrease",
+                                                  "CDOrigSpaceLoop",
+                                                  "CDPreviewLoopCol",
+                                                  "CDBMElemPyPtr",
+                                                  "CDPaintMask",
+                                                  /* 35-36 */
+                                                  "CDGridPaintMask",
+                                                  "CDMVertSkin",
+                                                  /* 37-38 */
+                                                  "CDFreestyleEdge",
+                                                  "CDFreestyleFace",
+                                                  /* 39-42 */
+                                                  "CDMLoopTangent",
+                                                  "CDTessLoopNormal",
+                                                  "CDCustomLoopNormal",
+                                                  "CDSculptFaceGroups",
+                                                  /* 43-46 */
+                                                  "CDHairPoint",
+                                                  "CDHairMapping",
+                                                  "CDPropInt8",
+                                                  "CDPoint",
+                                                  /* 47-50 */
+                                                  "CDPropCol",
+                                                  "CDPropFloat3",
+                                                  "CDPropFloat2",
+                                                  "CDPropBoolean",
+                                                  /*51-53*/
+                                                  "CDHairLength",
+                                                  "CDMeshID",
+                                                  "CDDyntopoVert",
+                                                  "CDPropInt16"};
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {
     /* vmask */ CD_MASK_MVERT | CD_MASK_BWEIGHT | CD_MASK_MESH_ID,
@@ -2096,7 +2109,8 @@ const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
     /* vmask */ (CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT | CD_MASK_SHAPEKEY | CD_MASK_MVERT_SKIN |
                  CD_MASK_PAINT_MASK | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_PROP_ALL |
                  CD_MASK_PROP_COLOR | CD_MASK_CREASE | CD_MASK_MESH_ID),
-    /* emask */ (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
+    /* emask */
+    (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
     /* fmask */ (CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_PREVIEW_MCOL | CD_MASK_TANGENT),
     /* pmask */
     (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL |
@@ -4834,7 +4848,6 @@ void CustomData_from_bmesh_block(const CustomData *source,
   }
 }
 #endif
-
 
 void CustomData_file_write_info(int type, const char **r_struct_name, int *r_struct_num)
 {

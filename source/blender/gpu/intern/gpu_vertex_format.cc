@@ -133,7 +133,7 @@ uint GPU_vertformat_attr_add(GPUVertFormat *format,
     case GPU_COMP_I10:
       /* 10_10_10 format intended for normals (xyz) or colors (rgb)
        * extra component packed.w can be manually set to { -2, -1, 0, 1 } */
-      assert(comp_len == 3 || comp_len == 4);
+      assert(ELEM(comp_len, 3, 4));
 
       /* Not strictly required, may relax later. */
       assert(fetch_mode == GPU_FETCH_INT_TO_FLOAT_UNIT);
@@ -143,7 +143,7 @@ uint GPU_vertformat_attr_add(GPUVertFormat *format,
       /* integer types can be kept as int or converted/normalized to float */
       assert(fetch_mode != GPU_FETCH_FLOAT);
       /* only support float matrices (see Batch_update_program_bindings) */
-      assert(comp_len != 8 && comp_len != 12 && comp_len != 16);
+      assert(!ELEM(comp_len, 8, 12, 16));
   }
 #endif
   format->name_len++; /* Multi-name support. */

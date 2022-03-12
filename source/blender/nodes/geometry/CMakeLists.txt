@@ -90,7 +90,7 @@ set(SRC
   nodes/node_geo_curve_resample.cc
   nodes/node_geo_curve_reverse.cc
   nodes/node_geo_curve_sample.cc
-  nodes/node_geo_curve_set_handles.cc
+  nodes/node_geo_curve_set_handle_type.cc
   nodes/node_geo_curve_spline_parameter.cc
   nodes/node_geo_curve_spline_type.cc
   nodes/node_geo_curve_subdivide.cc

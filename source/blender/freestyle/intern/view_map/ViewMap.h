@@ -938,7 +938,7 @@ class ViewEdge : public Interface1D {
   FEdge *_FEdgeB;              // last edge of the embedded fedges chain
   Id _Id;
   unsigned _ChainingTimeStamp;
-  // The silhouette view edge separates 2 2D spaces. The one on the left is necessarly the Shape
+  // The silhouette view edge separates two 2D spaces. The one on the left is necessarily the Shape
   // _Shape (the one to which this edge belongs to) and _aShape is the one on its right NOT HANDLED
   // BY THE COPY CONSTRUCTOR
   ViewShape *_aShape;

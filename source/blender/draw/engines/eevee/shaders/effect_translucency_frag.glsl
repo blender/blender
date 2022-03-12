@@ -40,7 +40,7 @@ float light_translucent_power_with_falloff(LightData ld, vec3 N, vec4 l_vector)
   if (ld.l_type >= AREA_RECT) {
     power = (ld.l_sizex * ld.l_sizey * 4.0 * M_PI) * (1.0 / 80.0);
     if (ld.l_type == AREA_ELLIPSE) {
-      power *= M_PI * 0.25;
+      power *= M_PI_4;
     }
     power *= 0.3 * 20.0 *
              max(0.0, dot(-ld.l_forward, l_vector.xyz / l_vector.w)); /* XXX ad hoc, empirical */

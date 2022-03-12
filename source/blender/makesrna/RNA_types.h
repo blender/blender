@@ -258,7 +258,7 @@ typedef enum PropertyFlag {
 
   /**
    * flag contains multiple enums.
-   * NOTE: not to be confused with prop->enumbitflags
+   * NOTE: not to be confused with `prop->enumbitflags`
    * this exposes the flag as multiple options in python and the UI.
    *
    * \note These can't be animated so use with care.

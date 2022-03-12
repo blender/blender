@@ -396,8 +396,7 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
     anim_importer.read_node_transform(instance_node, obn);
     /* if we also have a source_node (always ;), take its
      * transformation matrix and apply it to the newly instantiated
-     * object to account for node hierarchy transforms in
-     * .dae */
+     * object to account for node hierarchy transforms in `.dae`. */
     if (source_node) {
       COLLADABU::Math::Matrix4 mat4 = source_node->getTransformationMatrix();
       COLLADABU::Math::Matrix4 bmat4 =

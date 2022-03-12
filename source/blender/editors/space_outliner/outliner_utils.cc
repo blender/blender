@@ -386,6 +386,11 @@ bool outliner_is_element_visible(const TreeElement *te)
   return true;
 }
 
+bool outliner_is_element_in_view(const TreeElement *te, const View2D *v2d)
+{
+  return ((te->ys + UI_UNIT_Y) >= v2d->cur.ymin) && (te->ys <= v2d->cur.ymax);
+}
+
 bool outliner_item_is_co_over_name_icons(const TreeElement *te, float view_co_x)
 {
   /* Special case: count area left of Scene Collection as empty space */

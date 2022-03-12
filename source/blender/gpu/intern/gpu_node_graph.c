@@ -165,7 +165,7 @@ static const char *gpu_uniform_set_function_from_type(eNodeSocketDatatype type)
 
 /**
  * Link stack uniform buffer.
- * This is called for the input/output sockets that are note connected.
+ * This is called for the input/output sockets that are not connected.
  */
 static GPUNodeLink *gpu_uniformbuffer_link(GPUMaterial *mat,
                                            bNode *node,

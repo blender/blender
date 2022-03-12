@@ -1861,7 +1861,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
 
   view3d_operator_needs_opengl(C);
 
-  const bool is_translate = (event->ctrl != 0);
+  const bool is_translate = event->modifier & KM_CTRL;
   const bool is_translate_init = is_translate && (xfd->is_translate != is_translate);
 
   if (event->type == MOUSEMOVE || is_translate_init) {

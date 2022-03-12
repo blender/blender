@@ -50,8 +50,8 @@
 static int gpencil_check_same_material_color(Object *ob_gp,
                                              const float color_stroke[4],
                                              const float color_fill[4],
-                                             const bool do_fill,
                                              const bool do_stroke,
+                                             const bool do_fill,
                                              Material **r_mat)
 {
   int index = -1;

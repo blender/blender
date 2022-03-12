@@ -359,6 +359,7 @@ typedef struct OVERLAY_PrivateData {
     bool do_stencil_overlay;
     bool do_mask_overlay;
 
+    bool do_verts;
     bool do_faces;
     bool do_face_dots;
 
@@ -699,6 +700,7 @@ GPUShader *OVERLAY_shader_edit_mesh_vert(void);
 GPUShader *OVERLAY_shader_edit_particle_strand(void);
 GPUShader *OVERLAY_shader_edit_particle_point(void);
 GPUShader *OVERLAY_shader_edit_uv_edges_get(void);
+GPUShader *OVERLAY_shader_edit_uv_edges_for_edge_select_get(void);
 GPUShader *OVERLAY_shader_edit_uv_face_get(void);
 GPUShader *OVERLAY_shader_edit_uv_face_dots_get(void);
 GPUShader *OVERLAY_shader_edit_uv_verts_get(void);

@@ -125,7 +125,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
       negate_v3_v3(new_ofs, p);
     }
     else {
-      float mval_f[2];
+      float xy_delta[2];
       float zfac;
 
       /* We can't use the depth, fallback to the old way that doesn't set the center depth */
@@ -134,12 +134,12 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
       {
         float tvec[3];
         negate_v3_v3(tvec, new_ofs);
-        zfac = ED_view3d_calc_zfac(rv3d, tvec, NULL);
+        zfac = ED_view3d_calc_zfac(rv3d, tvec);
       }
 
-      mval_f[0] = (rect.xmin + rect.xmax - vb[0]) / 2.0f;
-      mval_f[1] = (rect.ymin + rect.ymax - vb[1]) / 2.0f;
-      ED_view3d_win_to_delta(region, mval_f, dvec, zfac);
+      xy_delta[0] = (rect.xmin + rect.xmax - vb[0]) / 2.0f;
+      xy_delta[1] = (rect.ymin + rect.ymax - vb[1]) / 2.0f;
+      ED_view3d_win_to_delta(region, xy_delta, zfac, dvec);
       /* center the view to the center of the rectangle */
       sub_v3_v3(new_ofs, dvec);
     }

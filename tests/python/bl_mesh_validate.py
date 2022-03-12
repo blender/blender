@@ -7,7 +7,6 @@
 
 import bpy
 
-import sys
 import random
 
 

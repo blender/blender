@@ -688,7 +688,7 @@ class TOPBAR_MT_help(Menu):
         layout.separator()
 
         layout.operator(
-            "wm.url_open", text="Python API Reference", icon='URL',
+            "wm.url_open_preset", text="Python API Reference", icon='URL',
         ).type = 'API'
 
         if show_developer:
@@ -796,7 +796,6 @@ class TOPBAR_PT_name(Panel):
             return row
 
         mode = context.mode
-        scene = context.scene
         space = context.space_data
         space_type = None if (space is None) else space.type
         found = False

@@ -815,11 +815,17 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
   BLI_buffer_declare_static(wmGizmo *, visible_3d_gizmos, BLI_BUFFER_NOP, 128);
   bool do_step[WM_GIZMOMAP_DRAWSTEP_MAX];
 
+  int mval[2];
+  if (event->val == KM_CLICK_DRAG) {
+    WM_event_drag_start_mval(event, CTX_wm_region(C), mval);
+  }
+  else {
+    copy_v2_v2_int(mval, event->mval);
+  }
+
   for (int i = 0; i < ARRAY_SIZE(do_step); i++) {
     do_step[i] = WM_gizmo_context_check_drawstep(C, i);
   }
-
-  const int event_modifier = WM_event_modifier_flag(event);
 
   LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
 
@@ -839,11 +845,11 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
         }
         if (step == WM_GIZMOMAP_DRAWSTEP_3D) {
           wm_gizmogroup_intersectable_gizmos_to_list(
-              wm, gzgroup, event_modifier, &visible_3d_gizmos);
+              wm, gzgroup, event->modifier, &visible_3d_gizmos);
         }
         else if (step == WM_GIZMOMAP_DRAWSTEP_2D) {
           if ((gz = wm_gizmogroup_find_intersected_gizmo(
-                   wm, gzgroup, C, event_modifier, event->mval, r_part))) {
+                   wm, gzgroup, C, event->modifier, mval, r_part))) {
             break;
           }
         }
@@ -855,7 +861,7 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
     /* 2D gizmos get priority. */
     if (gz == NULL) {
       gz = gizmo_find_intersected_3d(
-          C, event->mval, visible_3d_gizmos.data, visible_3d_gizmos.count, r_part);
+          C, mval, visible_3d_gizmos.data, visible_3d_gizmos.count, r_part);
     }
   }
   BLI_buffer_free(&visible_3d_gizmos);
@@ -1151,7 +1157,7 @@ void wm_gizmomap_modal_set(
 
     struct wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, gz->highlight_part);
     if (gzop && gzop->type) {
-      const int retval = WM_gizmo_operator_invoke(C, gz, gzop);
+      const int retval = WM_gizmo_operator_invoke(C, gz, gzop, event);
       if ((retval & OPERATOR_RUNNING_MODAL) == 0) {
         wm_gizmomap_modal_set(gzmap, C, gz, event, false);
       }

@@ -50,9 +50,12 @@ void viewdolly_modal_keymap(wmKeyConfig *keyconf)
 
   /* disabled mode switching for now, can re-implement better, later on */
 #if 0
-  WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
-  WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
-  WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_MOVE);
+  WM_modalkeymap_add_item(
+      keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, KM_ANY, VIEWROT_MODAL_SWITCH_ROTATE);
+  WM_modalkeymap_add_item(
+      keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, KM_ANY, VIEWROT_MODAL_SWITCH_ROTATE);
+  WM_modalkeymap_add_item(
+      keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, KM_ANY, VIEWROT_MODAL_SWITCH_MOVE);
 #endif
 
   /* assign map to operators */
@@ -131,11 +134,11 @@ static int viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
         event_code = VIEW_CONFIRM;
         break;
       case VIEWROT_MODAL_SWITCH_MOVE:
-        WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL);
+        WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL, event);
         event_code = VIEW_CONFIRM;
         break;
       case VIEWROT_MODAL_SWITCH_ROTATE:
-        WM_operator_name_call(C, "VIEW3D_OT_rotate", WM_OP_INVOKE_DEFAULT, NULL);
+        WM_operator_name_call(C, "VIEW3D_OT_rotate", WM_OP_INVOKE_DEFAULT, NULL, event);
         event_code = VIEW_CONFIRM;
         break;
     }

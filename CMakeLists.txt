@@ -502,7 +502,7 @@ else()
   set(WITH_EXPERIMENTAL_FEATURES OFF)
 endif()
 
-# Unit testsing
+# Unit testing
 option(WITH_GTESTS "Enable GTest unit testing" OFF)
 option(WITH_OPENGL_RENDER_TESTS "Enable OpenGL render related unit testing (Experimental)" OFF)
 option(WITH_OPENGL_DRAW_TESTS "Enable OpenGL UI drawing related unit testing (Experimental)" OFF)

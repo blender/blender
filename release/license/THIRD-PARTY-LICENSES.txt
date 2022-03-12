@@ -318,7 +318,7 @@ Copyright (c) 2006, Google Inc.
 All rights reserved.
 ** ISPC; version 1.16.0 -- https://github.com/ispc/ispc
 Copyright Intel Corporation
-** NumPy; version 1.21.2 -- https://numpy.org/
+** NumPy; version 1.22.0 -- https://numpy.org/
 Copyright (c) 2005-2021, NumPy Developers.
 ** Open Shading Language; version 1.11.14.1 --
 https://github.com/imageworks/OpenShadingLanguage
@@ -822,7 +822,7 @@ Yoyodyne, Inc., hereby disclaims all copyright interest in the program
 ** FFTW; version 3.3.8 -- http://www.fftw.org/
 Copyright (c) 2003, 2007-14 Matteo Frigo
 Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
-** GMP; version 6.2.0 -- https://gmplib.org/
+** GMP; version 6.2.1 -- https://gmplib.org/
 Copyright 1996-2020 Free Software Foundation, Inc.
 ** OpenAL; version 1.20.1 -- http://openal-soft.org
 Copyright (c) 2015, Archontis Politis
@@ -1162,7 +1162,7 @@ Copyright (C) 2003-2021 x264 project
 ** miniLZO; version 2.08 -- http://www.oberhumer.com/opensource/lzo/
 LZO and miniLZO are Copyright (C) 1996-2014 Markus Franz Xaver Oberhumer
 All Rights Reserved.
-** The FreeType Project; version 2.10.2 --
+** The FreeType Project; version 2.11.1 --
 https://sourceforge.net/projects/freetype
 Copyright (C) 1996-2020 by David Turner, Robert Wilhelm, and Werner Lemberg.
 ** X Drag and Drop; version 2000-08-08 --
@@ -1174,7 +1174,7 @@ Project initiators:
 Christoph Lampert <gruel@web.de>
 Michael Militzer <isibaar@xvid.org>
 Peter Ross <pross@xvid.org>
-** Zstandard; version 1.5.0 -- https://github.com/facebook/zstd
+** Zstandard; version 1.6.0 -- https://github.com/facebook/zstd
 Copyright (c) 2016-present, Facebook, Inc. All rights reserved.
 
 GNU GENERAL PUBLIC LICENSE
@@ -2956,6 +2956,8 @@ December 9, 2010
 
 ------
 
+** Brotli; version 1.0.9 -- https://github.com/google/brotli
+Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors.
 ** Expat; version 2.2.10 -- https://github.com/libexpat/libexpat/
 Copyright (c) 1998-2000 Thai Open Source Software Center Ltd and Clark Cooper
 Copyright (c) 2001-2019 Expat maintainers
@@ -3627,7 +3629,7 @@ disclaims all warranties with regard to this software.
 
 ------
 
-** Python; version 3.9.7 -- https://www.python.org
+** Python; version 3.10.2 -- https://www.python.org
 Copyright (c) 2001-2021 Python Software Foundation. All rights reserved.
 
 A. HISTORY OF THE SOFTWARE

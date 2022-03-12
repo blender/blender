@@ -205,8 +205,9 @@ class CurveParameterFieldInput final : public GeometryFieldInput {
   {
     if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
       const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      const CurveEval *curve = curve_component.get_for_read();
-      if (curve) {
+      if (curve_component.has_curves()) {
+        const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
+            *curve_component.get_for_read());
         return construct_curve_parameter_varray(*curve, mask, domain);
       }
     }
@@ -238,8 +239,8 @@ class CurveLengthFieldInput final : public GeometryFieldInput {
   {
     if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
       const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      const CurveEval *curve = curve_component.get_for_read();
-      if (curve) {
+      if (curve_component.has_curves()) {
+        std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curve_component.get_for_read());
         return construct_curve_length_varray(*curve, mask, domain);
       }
     }
@@ -271,8 +272,9 @@ class IndexOnSplineFieldInput final : public GeometryFieldInput {
   {
     if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
       const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      const CurveEval *curve = curve_component.get_for_read();
-      if (curve) {
+      if (curve_component.has_curves()) {
+        const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
+            *curve_component.get_for_read());
         return construct_index_on_spline_varray(*curve, mask, domain);
       }
     }

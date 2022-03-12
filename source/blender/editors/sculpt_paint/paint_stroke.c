@@ -1060,6 +1060,10 @@ bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
     return true;
   }
 
+  if (mode == PAINT_MODE_SCULPT_CURVES) {
+    return false;
+  }
+
   return paint_supports_dynamic_size(br, mode);
 }
 
@@ -1565,7 +1569,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
     return OPERATOR_FINISHED;
   }
   else if (br->flag & BRUSH_LINE) {
-    if (event->alt) {
+    if (event->modifier & KM_ALT) {
       stroke->constrain_line = true;
     }
     else {

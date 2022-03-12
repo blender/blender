@@ -149,10 +149,10 @@ eFileAttributes BLI_file_attributes(const char *path);
  * \{ */
 
 /**
- * Scans the contents of the directory named *dirname, and allocates and fills in an
- * array of entries describing them in *filelist.
+ * Scans the contents of the directory named `dir`, and allocates and fills in an
+ * array of entries describing them in `r_filelist`.
  *
- * \return The length of filelist array.
+ * \return The length of `r_filelist` array.
  */
 unsigned int BLI_filelist_dir_contents(const char *dir, struct direntry **r_filelist);
 /**

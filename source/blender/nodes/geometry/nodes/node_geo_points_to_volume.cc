@@ -198,17 +198,12 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
   Vector<float3> positions;
   Vector<float> radii;
 
-  if (r_geometry_set.has<MeshComponent>()) {
-    gather_point_data_from_component(
-        params, *r_geometry_set.get_component_for_read<MeshComponent>(), positions, radii);
-  }
-  if (r_geometry_set.has<PointCloudComponent>()) {
-    gather_point_data_from_component(
-        params, *r_geometry_set.get_component_for_read<PointCloudComponent>(), positions, radii);
-  }
-  if (r_geometry_set.has<CurveComponent>()) {
-    gather_point_data_from_component(
-        params, *r_geometry_set.get_component_for_read<CurveComponent>(), positions, radii);
+  for (const GeometryComponentType type :
+       {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE}) {
+    if (r_geometry_set.has(type)) {
+      gather_point_data_from_component(
+          params, *r_geometry_set.get_component_for_read(type), positions, radii);
+    }
   }
 
   const float max_radius = *std::max_element(radii.begin(), radii.end());

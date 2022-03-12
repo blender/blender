@@ -41,6 +41,56 @@ typedef struct DRWPatchMap {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name DRWSubdivLooseEdge
+ *
+ * This stores information about a subdivided loose edge.
+ * \{ */
+
+typedef struct DRWSubdivLooseEdge {
+  /* The corresponding coarse edge, this is always valid. */
+  int coarse_edge_index;
+  /* Pointers into #DRWSubdivLooseGeom.verts. */
+  int loose_subdiv_v1_index;
+  int loose_subdiv_v2_index;
+} DRWSubdivLooseEdge;
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name DRWSubdivLooseVertex
+ *
+ * This stores information about a subdivided loose vertex, that may or may not come from a loose
+ * edge.
+ * \{ */
+
+typedef struct DRWSubdivLooseVertex {
+  /* The corresponding coarse vertex, or -1 if this vertex is the result
+   * of subdivision. */
+  unsigned int coarse_vertex_index;
+  /* Position and normal of the vertex. */
+  float co[3];
+  float nor[3];
+} DRWSubdivLooseVertex;
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name DRWSubdivLooseGeom
+ *
+ * This stores the subdivided vertices and edges of loose geometry from #MeshExtractLooseGeom.
+ * \{ */
+
+typedef struct DRWSubdivLooseGeom {
+  DRWSubdivLooseEdge *edges;
+  DRWSubdivLooseVertex *verts;
+  int edge_len;
+  int vert_len;
+  int loop_len;
+} DRWSubdivLooseGeom;
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name DRWSubdivCache
  *
  * This holds the various buffers used to evaluate and render subdivision through OpenGL.
@@ -51,7 +101,6 @@ typedef struct DRWSubdivCache {
   struct BMesh *bm;
   struct Subdiv *subdiv;
   bool optimal_display;
-  bool do_limit_normals;
   bool use_custom_loop_normals;
 
   /* Coordinates used to evaluate patches for UVs, positions, and normals. */
@@ -69,6 +118,11 @@ typedef struct DRWSubdivCache {
   uint num_subdiv_triangles;
   uint num_subdiv_verts;
   uint num_subdiv_quads;
+
+  /* We only do the subdivision traversal for full faces, however we may have geometries that only
+   * have loose edges (e.g. a custom bone shape). This flag is used to detect those cases, as the
+   * counters above will all be set to zero if we do not have subdivision loops. */
+  bool may_have_loose_geom;
 
   /* Number of polygons in the coarse mesh, notably used to compute a coarse polygon index given a
    * subdivision loop index. */
@@ -113,6 +167,8 @@ typedef struct DRWSubdivCache {
   struct GPUVertBuf *polygon_mat_offset;
 
   DRWPatchMap gpu_patch_map;
+
+  DRWSubdivLooseGeom loose_geom;
 
   /* UBO to store settings for the various compute shaders. */
   struct GPUUniformBuf *ubo;
@@ -165,6 +221,7 @@ void draw_subdiv_accumulate_normals(const DRWSubdivCache *cache,
                                     struct GPUVertBuf *pos_nor,
                                     struct GPUVertBuf *face_adjacency_offsets,
                                     struct GPUVertBuf *face_adjacency_lists,
+                                    struct GPUVertBuf *vertex_loop_map,
                                     struct GPUVertBuf *vertex_normals);
 
 void draw_subdiv_finalize_normals(const DRWSubdivCache *cache,
@@ -176,15 +233,14 @@ void draw_subdiv_finalize_custom_normals(const DRWSubdivCache *cache,
                                          GPUVertBuf *src_custom_normals,
                                          GPUVertBuf *pos_nor);
 
-void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
-                                 struct GPUVertBuf *pos_nor,
-                                 bool do_limit_normals);
+void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache, struct GPUVertBuf *pos_nor);
 
 void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
                                     struct GPUVertBuf *src_data,
                                     struct GPUVertBuf *dst_data,
                                     int dimensions,
-                                    int dst_offset);
+                                    int dst_offset,
+                                    bool compress_to_u16);
 
 void draw_subdiv_extract_uvs(const DRWSubdivCache *cache,
                              struct GPUVertBuf *uvs,
@@ -228,4 +284,16 @@ void draw_subdiv_build_edituv_stretch_angle_buffer(const DRWSubdivCache *cache,
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+#  include "BLI_span.hh"
+
+/* Helper to access the loose edges. */
+blender::Span<DRWSubdivLooseEdge> draw_subdiv_cache_get_loose_edges(const DRWSubdivCache *cache);
+
+/* Helper to access only the loose vertices, i.e. not the ones attached to loose edges. To access
+ * loose vertices of loose edges #draw_subdiv_cache_get_loose_edges should be used. */
+blender::Span<DRWSubdivLooseVertex> draw_subdiv_cache_get_loose_verts(const DRWSubdivCache *cache);
+
 #endif

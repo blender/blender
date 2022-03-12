@@ -24,7 +24,7 @@
 namespace blender::ed::outliner {
 
 TreeElementOverridesBase::TreeElementOverridesBase(TreeElement &legacy_te, ID &id)
-    : AbstractTreeElement(legacy_te), id_(id)
+    : AbstractTreeElement(legacy_te), id(id)
 {
   BLI_assert(legacy_te.store_elem->type == TSE_LIBRARY_OVERRIDE_BASE);
   if (legacy_te.parent != nullptr &&
@@ -40,20 +40,20 @@ TreeElementOverridesBase::TreeElementOverridesBase(TreeElement &legacy_te, ID &i
 
 void TreeElementOverridesBase::expand(SpaceOutliner &space_outliner) const
 {
-  BLI_assert(id_.override_library != nullptr);
+  BLI_assert(id.override_library != nullptr);
 
   const bool show_system_overrides = (SUPPORT_FILTER_OUTLINER(&space_outliner) &&
                                       (space_outliner.filter & SO_FILTER_SHOW_SYSTEM_OVERRIDES) !=
                                           0);
   PointerRNA idpoin;
-  RNA_id_pointer_create(&id_, &idpoin);
+  RNA_id_pointer_create(&id, &idpoin);
 
   PointerRNA override_rna_ptr;
   PropertyRNA *override_rna_prop;
   short index = 0;
 
   for (auto *override_prop :
-       ListBaseWrapper<IDOverrideLibraryProperty>(id_.override_library->properties)) {
+       ListBaseWrapper<IDOverrideLibraryProperty>(id.override_library->properties)) {
     const bool is_rna_path_valid = BKE_lib_override_rna_property_find(
         &idpoin, override_prop, &override_rna_ptr, &override_rna_prop);
     if (is_rna_path_valid && !show_system_overrides &&
@@ -73,7 +73,7 @@ void TreeElementOverridesBase::expand(SpaceOutliner &space_outliner) const
       }
     }
 
-    TreeElementOverridesData data = {id_, *override_prop, is_rna_path_valid};
+    TreeElementOverridesData data = {id, *override_prop, is_rna_path_valid};
     outliner_add_element(
         &space_outliner, &legacy_te_.subtree, &data, &legacy_te_, TSE_LIBRARY_OVERRIDE, index++);
   }

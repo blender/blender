@@ -408,7 +408,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
     case EVT_BACKSPACEKEY:
       if (event->val == KM_PRESS) {
         if (tools & TOOL_SUGG_LIST) {
-          if (event->ctrl) {
+          if (event->modifier & KM_CTRL) {
             texttool_suggest_clear();
             retval = OPERATOR_CANCELLED;
             draw = 1;
@@ -445,7 +445,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
     case EVT_RIGHTARROWKEY:
       if (event->val == KM_PRESS) {
         if (tools & TOOL_SUGG_LIST) {
-          if (event->ctrl) {
+          if (event->modifier & KM_CTRL) {
             texttool_suggest_clear();
             retval = OPERATOR_CANCELLED;
             draw = 1;

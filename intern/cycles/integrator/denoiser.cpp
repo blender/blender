@@ -80,7 +80,7 @@ static bool is_single_supported_device(Device *device, DenoiserType type)
 
   if (!device->info.multi_devices.empty()) {
     /* Some configurations will use multi_devices, but keep the type of an individual device.
-     * This does simplify checks for homogenous setups, but here we really need a single device. */
+     * This does simplify checks for homogeneous setups, but here we really need a single device. */
     return false;
   }
 

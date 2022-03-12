@@ -1141,7 +1141,7 @@ static void light_cache_bake_tag_cache(Scene *scene, wmOperator *op)
   }
 }
 
-/* catch esc */
+/** Catch escape key to cancel. */
 static int light_cache_bake_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Scene *scene = (Scene *)op->customdata;

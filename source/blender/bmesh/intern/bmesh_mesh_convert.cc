@@ -371,10 +371,10 @@ void BM_mesh_bm_from_me(Object *ob,
     if (me && is_new) { /* No verts? still copy custom-data layout. */
       bm_free_cd_pools(bm);
 
-      CustomData_copy(&me->vdata, &bm->vdata, mask.vmask, CD_ASSIGN, 0);
-      CustomData_copy(&me->edata, &bm->edata, mask.emask, CD_ASSIGN, 0);
-      CustomData_copy(&me->ldata, &bm->ldata, mask.lmask, CD_ASSIGN, 0);
-      CustomData_copy(&me->pdata, &bm->pdata, mask.pmask, CD_ASSIGN, 0);
+      CustomData_copy(&me->vdata, &bm->vdata, mask.vmask, CD_DEFAULT, 0);
+      CustomData_copy(&me->edata, &bm->edata, mask.emask, CD_DEFAULT, 0);
+      CustomData_copy(&me->ldata, &bm->ldata, mask.lmask, CD_DEFAULT, 0);
+      CustomData_copy(&me->pdata, &bm->pdata, mask.pmask, CD_DEFAULT, 0);
 
       CustomData_bmesh_init_pool_ex(&bm->vdata, me->totvert, BM_VERT, __func__);
       CustomData_bmesh_init_pool_ex(&bm->edata, me->totedge, BM_EDGE, __func__);
@@ -1077,7 +1077,7 @@ BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
  *
  * WARNING: There is an exception to the rule of ignoring coordinates in the destination:
  * that is when shape-key data in `bm` can't be found (which is itself an error/exception).
- * In this case our own rule is violated as the alternative is loosing the shape-data entirely.
+ * In this case our own rule is violated as the alternative is losing the shape-data entirely.
  *
  * Flushing Coordinates Back to the #BMesh
  * ---------------------------------------
@@ -1147,8 +1147,16 @@ int bm_to_mesh_shape_layer_index_from_kb(BMesh *bm, KeyBlock *currkey)
  * \param bm: The source BMesh.
  * \param key: The destination key.
  * \param mvert: The destination vertex array (in some situations it's coordinates are updated).
+ * \param active_shapekey_to_mvert: When editing a non-basis shape key, the coordinates for the
+ * basis are typically copied into the `mvert` array since it makes sense for the meshes
+ * vertex coordinates to match the "Basis" key.
+ * When enabled, skip this step and copy #BMVert.co directly to #MVert.co,
+ * See #BMeshToMeshParams.active_shapekey_to_mvert doc-string.
  */
-static void bm_to_mesh_shape(BMesh *bm, Key *key, MVert *mvert)
+static void bm_to_mesh_shape(BMesh *bm,
+                             Key *key,
+                             MVert *mvert,
+                             const bool active_shapekey_to_mvert)
 {
   KeyBlock *actkey = static_cast<KeyBlock *>(BLI_findlink(&key->block, bm->shapenr - 1));
 
@@ -1223,6 +1231,27 @@ static void bm_to_mesh_shape(BMesh *bm, Key *key, MVert *mvert)
     }
   }
 
+  /* Without this, the real mesh coordinates (uneditable) as soon as you create the Basis shape.
+   * while users might not notice since the shape-key is applied in the viewport,
+   * exporters for example may still use the underlying coordinates, see: T30771 & T96135.
+   *
+   * Needed when editing any shape that isn't the (`key->refkey`), the vertices in `me->mvert`
+   * currently have vertex coordinates set from the current-shape (initialized from #BMVert.co).
+   * In this case it's important to overwrite these coordinates with the basis-keys coordinates. */
+  bool update_vertex_coords_from_refkey = false;
+  int cd_shape_offset_refkey = -1;
+  if (active_shapekey_to_mvert == false) {
+    if ((actkey != key->refkey) && (cd_shape_keyindex_offset != -1)) {
+      const int refkey_uuid = bm_to_mesh_shape_layer_index_from_kb(bm, key->refkey);
+      if (refkey_uuid != -1) {
+        cd_shape_offset_refkey = CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, refkey_uuid);
+        if (cd_shape_offset_refkey != -1) {
+          update_vertex_coords_from_refkey = true;
+        }
+      }
+    }
+  }
+
   LISTBASE_FOREACH (KeyBlock *, currkey, &key->block) {
     int keyi;
     float(*currkey_data)[3];
@@ -1253,14 +1282,12 @@ static void bm_to_mesh_shape(BMesh *bm, Key *key, MVert *mvert)
         if (currkey == actkey) {
           copy_v3_v3(currkey_data[i], eve->co);
 
-          if (actkey != key->refkey) {
-            /* Without this, the real mesh coordinates (uneditable) as soon as you create
-             * the Basis shape, see: T30771 for details. */
-            if (cd_shape_keyindex_offset != -1) {
-              keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
-              if (keyi != ORIGINDEX_NONE) {
-                copy_v3_v3(mvert[i].co, co_orig);
-              }
+          if (update_vertex_coords_from_refkey) {
+            BLI_assert(actkey != key->refkey);
+            keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
+            if (keyi != ORIGINDEX_NONE) {
+              float *co_refkey = (float *)BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset_refkey);
+              copy_v3_v3(mvert[i].co, co_refkey);
             }
           }
         }
@@ -1460,9 +1487,9 @@ void BM_mesh_bm_to_me(
   CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, mloop, me->totloop);
   CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
 
-  /* There is no way to tell if BMesh normals are dirty or not. Instead of calculating the normals
-   * on the BMesh possibly unnecessarily, just tag them dirty on the resulting mesh. */
-  BKE_mesh_normals_tag_dirty(me);
+  /* Clear normals on the mesh completely, since the original vertex and polygon count might be
+   * different than the BMesh's. */
+  BKE_mesh_clear_derived_normals(me);
 
   me->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
 
@@ -1646,7 +1673,7 @@ void BM_mesh_bm_to_me(
   }
 
   if (me->key) {
-    bm_to_mesh_shape(bm, me->key, me->mvert);
+    bm_to_mesh_shape(bm, me->key, me->mvert, params->active_shapekey_to_mvert);
   }
 
   /* Run this even when shape keys aren't used since it may be used for hooks or vertex parents. */

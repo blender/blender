@@ -10,7 +10,14 @@
 extern "C" {
 #endif
 
-/** #UserDef.dupflag */
+/**
+ * #UserDef.dupflag
+ *
+ * The flag tells #BKE_object_duplicate() whether to copy data linked to the object,
+ * or to reference the existing data.
+ * #U.dupflag should be used for default operations or you can construct a flag as Python does.
+ * If #eDupli_ID_Flags is 0 then no data will be copied (linked duplicate).
+ */
 typedef enum eDupli_ID_Flags {
   USER_DUP_MESH = (1 << 0),
   USER_DUP_CURVE = (1 << 1),

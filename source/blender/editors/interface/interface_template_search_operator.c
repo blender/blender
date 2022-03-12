@@ -38,7 +38,7 @@ static void operator_search_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
   wmOperatorType *ot = arg2;
 
   if (ot) {
-    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, NULL);
+    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, NULL, NULL);
   }
 }
 

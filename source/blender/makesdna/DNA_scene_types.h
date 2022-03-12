@@ -1008,6 +1008,9 @@ typedef struct Sculpt {
 
 typedef struct CurvesSculpt {
   Paint paint;
+  /** Minimum distance between newly added curves on a surface. */
+  float distance;
+  char _pad1[4];
 } CurvesSculpt;
 
 typedef struct UvSculpt {
@@ -1481,13 +1484,18 @@ typedef struct ToolSettings {
   /* Transform */
   char transform_pivot_point;
   char transform_flag;
+  /** Snap elements (per spacetype). */
   char snap_mode;
   char snap_node_mode;
   char snap_uv_mode;
+  /** Generic flags (per spacetype). */
   char snap_flag;
-  /** UV equivalent of `snap_flag`, limited to: #SCE_SNAP_ABS_GRID. */
+  char snap_flag_node;
+  char snap_flag_seq;
   char snap_uv_flag;
+  /** Default snap source. */
   char snap_target;
+  /** Snap mask for transform modes. */
   char snap_transform_mode_flag;
 
   char proportional_edit, prop_mode;
@@ -1517,16 +1525,14 @@ typedef struct ToolSettings {
   char gpencil_selectmode_vertex;
 
   /* UV painting */
-  char _pad2[1];
   char uv_sculpt_settings;
   char uv_relax_method;
-  /* XXX: these sculpt_paint_* fields are deprecated, use the
-   * unified_paint_settings field instead! */
-  short sculpt_paint_settings DNA_DEPRECATED;
 
   char workspace_tool_type;
 
-  char _pad5[1];
+  /* XXX: these sculpt_paint_* fields are deprecated, use the
+   * unified_paint_settings field instead! */
+  short sculpt_paint_settings DNA_DEPRECATED;
   int sculpt_paint_unified_size DNA_DEPRECATED;
   float sculpt_paint_unified_unprojected_radius DNA_DEPRECATED;
   float sculpt_paint_unified_alpha DNA_DEPRECATED;
@@ -2067,7 +2073,6 @@ enum {
 #define SCE_SNAP_NO_SELF (1 << 4)
 #define SCE_SNAP_ABS_GRID (1 << 5)
 #define SCE_SNAP_BACKFACE_CULLING (1 << 6)
-#define SCE_SNAP_SEQ (1 << 7)
 
 /** #ToolSettings.snap_target */
 #define SCE_SNAP_TARGET_CLOSEST 0

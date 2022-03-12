@@ -46,7 +46,9 @@
 
 static Collection *collection_parent_from_ID(ID *id);
 
-/* ******************** Drop Target Find *********************** */
+/* -------------------------------------------------------------------- */
+/** \name Drop Target Find
+ * \{ */
 
 static TreeElement *outliner_dropzone_element(TreeElement *te,
                                               const float fmval[2],
@@ -254,7 +256,11 @@ static int outliner_get_insert_index(TreeElement *drag_te,
   return BLI_findindex(listbase, drop_te->directdata);
 }
 
-/* ******************** Parent Drop Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Parent Drop Operator
+ * \{ */
 
 static bool parent_drop_allowed(TreeElement *te, Object *potential_child)
 {
@@ -319,7 +325,7 @@ static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   }
 
   if (!allow_parenting_without_modifier_key(space_outliner)) {
-    if (!event->shift) {
+    if ((event->modifier & KM_SHIFT) == 0) {
       return false;
     }
   }
@@ -417,8 +423,12 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   ListBase *lb = reinterpret_cast<ListBase *>(event->customdata);
   wmDrag *drag = reinterpret_cast<wmDrag *>(lb->first);
 
-  parent_drop_set_parents(
-      C, op->reports, reinterpret_cast<wmDragID *>(drag->ids.first), par, PAR_OBJECT, event->alt);
+  parent_drop_set_parents(C,
+                          op->reports,
+                          reinterpret_cast<wmDragID *>(drag->ids.first),
+                          par,
+                          PAR_OBJECT,
+                          event->modifier & KM_ALT);
 
   return OPERATOR_FINISHED;
 }
@@ -439,14 +449,18 @@ void OUTLINER_OT_parent_drop(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/* ******************** Parent Clear Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Parent Clear Operator
+ * \{ */
 
 static bool parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
   if (!allow_parenting_without_modifier_key(space_outliner)) {
-    if (!event->shift) {
+    if ((event->modifier & KM_SHIFT) == 0) {
       return false;
     }
   }
@@ -471,7 +485,7 @@ static bool parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *event)
       case ID_OB:
         return ELEM(tselem->type, TSE_MODIFIER_BASE, TSE_CONSTRAINT_BASE);
       case ID_GR:
-        return event->shift || ELEM(tselem->type, TSE_LIBRARY_OVERRIDE_BASE);
+        return (event->modifier & KM_SHIFT) || ELEM(tselem->type, TSE_LIBRARY_OVERRIDE_BASE);
       default:
         return true;
     }
@@ -496,7 +510,8 @@ static int parent_clear_invoke(bContext *C, wmOperator *UNUSED(op), const wmEven
     if (GS(drag_id->id->name) == ID_OB) {
       Object *object = (Object *)drag_id->id;
 
-      ED_object_parent_clear(object, event->alt ? CLEAR_PARENT_KEEP_TRANSFORM : CLEAR_PARENT_ALL);
+      ED_object_parent_clear(
+          object, (event->modifier & KM_ALT) ? CLEAR_PARENT_KEEP_TRANSFORM : CLEAR_PARENT_ALL);
     }
   }
 
@@ -522,7 +537,11 @@ void OUTLINER_OT_parent_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/* ******************** Scene Drop Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scene Drop Operator
+ * \{ */
 
 static bool scene_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
@@ -587,7 +606,11 @@ void OUTLINER_OT_scene_drop(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/* ******************** Material Drop Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Material Drop Operator
+ * \{ */
 
 static bool material_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
@@ -636,15 +659,19 @@ void OUTLINER_OT_material_drop(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/* ******************** Data Stack Drop Operator *********************** */
+/** \} */
 
-/* A generic operator to allow drag and drop for modifiers, constraints,
+/* -------------------------------------------------------------------- */
+/** \name Data Stack Drop Operator
+ *
+ * A generic operator to allow drag and drop for modifiers, constraints,
  * and shader effects which all share the same UI stack layout.
  *
  * The following operations are allowed:
  * - Reordering within an object.
  * - Copying a single modifier/constraint/effect to another object.
- * - Copying (linking) an object's modifiers/constraints/effects to another. */
+ * - Copying (linking) an object's modifiers/constraints/effects to another.
+ * \{ */
 
 enum eDataStackDropAction {
   DATA_STACK_DROP_REORDER,
@@ -1064,7 +1091,11 @@ void OUTLINER_OT_datastack_drop(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/* ******************** Collection Drop Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collection Drop Operator
+ * \{ */
 
 struct CollectionDrop {
   Collection *from;
@@ -1166,10 +1197,11 @@ static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
       &space_outliner->tree, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
 
   CollectionDrop data;
-  if (!event->shift && collection_drop_init(C, drag, event->xy, event->ctrl, &data)) {
+  if (((event->modifier & KM_SHIFT) == 0) &&
+      collection_drop_init(C, drag, event->xy, event->modifier & KM_CTRL, &data)) {
     TreeElement *te = data.te;
     TreeStoreElem *tselem = TREESTORE(te);
-    if (!data.from || event->ctrl) {
+    if (!data.from || event->modifier & KM_CTRL) {
       tselem->flag |= TSE_DRAG_INTO;
       changed = true;
     }
@@ -1210,9 +1242,10 @@ static char *collection_drop_tooltip(bContext *C,
   const wmEvent *event = win ? win->eventstate : nullptr;
 
   CollectionDrop data;
-  if (event && !event->shift && collection_drop_init(C, drag, xy, event->ctrl, &data)) {
+  if (event && ((event->modifier & KM_SHIFT) == 0) &&
+      collection_drop_init(C, drag, xy, event->modifier & KM_CTRL, &data)) {
     TreeElement *te = data.te;
-    if (!data.from || event->ctrl) {
+    if (!data.from || event->modifier & KM_CTRL) {
       return BLI_strdup(TIP_("Link inside Collection"));
     }
     switch (data.insert_type) {
@@ -1263,7 +1296,7 @@ static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
   wmDrag *drag = reinterpret_cast<wmDrag *>(lb->first);
 
   CollectionDrop data;
-  if (!collection_drop_init(C, drag, event->xy, event->ctrl, &data)) {
+  if (!collection_drop_init(C, drag, event->xy, event->modifier & KM_CTRL, &data)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1291,7 +1324,9 @@ static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
 
   LISTBASE_FOREACH (wmDragID *, drag_id, &drag->ids) {
     /* Ctrl enables linking, so we don't need a from collection then. */
-    Collection *from = (event->ctrl) ? nullptr : collection_parent_from_ID(drag_id->from_parent);
+    Collection *from = (event->modifier & KM_CTRL) ?
+                           nullptr :
+                           collection_parent_from_ID(drag_id->from_parent);
 
     if (GS(drag_id->id->name) == ID_OB) {
       /* Move/link object into collection. */
@@ -1341,7 +1376,11 @@ void OUTLINER_OT_collection_drop(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/* ********************* Outliner Drag Operator ******************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Outliner Drag Operator
+ * \{ */
 
 #define OUTLINER_DRAG_SCOLL_OUTSIDE_PAD 7 /* In UI units */
 
@@ -1349,9 +1388,12 @@ static TreeElement *outliner_item_drag_element_find(SpaceOutliner *space_outline
                                                     ARegion *region,
                                                     const wmEvent *event)
 {
-  /* NOTE: using EVT_TWEAK_ events to trigger dragging is fine,
+  /* NOTE: using click-drag events to trigger dragging is fine,
    * it sends coordinates from where dragging was started */
-  const float my = UI_view2d_region_to_view_y(&region->v2d, event->mval[1]);
+  int mval[2];
+  WM_event_drag_start_mval(event, region, mval);
+
+  const float my = UI_view2d_region_to_view_y(&region->v2d, mval[1]);
   return outliner_find_item_at_y(space_outliner, &space_outliner->tree, my);
 }
 
@@ -1362,6 +1404,9 @@ static int outliner_item_drag_drop_invoke(bContext *C,
   ARegion *region = CTX_wm_region(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   TreeElement *te = outliner_item_drag_element_find(space_outliner, region, event);
+
+  int mval[2];
+  WM_event_drag_start_mval(event, region, mval);
 
   if (!te) {
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
@@ -1374,8 +1419,7 @@ static int outliner_item_drag_drop_invoke(bContext *C,
   }
 
   float view_mval[2];
-  UI_view2d_region_to_view(
-      &region->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
+  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
   if (outliner_item_is_co_within_close_toggle(te, view_mval[0])) {
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
@@ -1390,7 +1434,7 @@ static int outliner_item_drag_drop_invoke(bContext *C,
     PointerRNA op_ptr;
     WM_operator_properties_create_ptr(&op_ptr, ot);
     RNA_float_set(&op_ptr, "outside_padding", OUTLINER_DRAG_SCOLL_OUTSIDE_PAD);
-    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &op_ptr);
+    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &op_ptr, event);
     WM_operator_properties_free(&op_ptr);
   }
 
@@ -1514,7 +1558,11 @@ void OUTLINER_OT_item_drag_drop(wmOperatorType *ot)
 
 #undef OUTLINER_DRAG_SCOLL_OUTSIDE_PAD
 
-/* *************************** Drop Boxes ************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Drop Boxes
+ * \{ */
 
 void outliner_dropboxes(void)
 {
@@ -1537,3 +1585,5 @@ void outliner_dropboxes(void)
                  nullptr,
                  collection_drop_tooltip);
 }
+
+/** \} */

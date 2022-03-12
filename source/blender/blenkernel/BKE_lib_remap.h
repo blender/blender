@@ -220,7 +220,7 @@ IDRemapperApplyResult BKE_id_remapper_apply(const struct IDRemapper *id_remapper
  * Use this function when `ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF`. In this case
  * the #id_self parameter is required. Otherwise the #BKE_id_remapper_apply can be used.
  *
- * \param id_self required for ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF.
+ * \param id_self: required for ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF.
  *     When remapping to id_self it will then be remapped to NULL.
  */
 IDRemapperApplyResult BKE_id_remapper_apply_ex(const struct IDRemapper *id_remapper,

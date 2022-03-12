@@ -387,7 +387,7 @@ void gpencil_light_pool_populate(GPENCIL_LightPool *lightpool, Object *ob)
     normalize_m4_m4(mat, ob->obmat);
     invert_m4(mat);
     gp_light->type = GP_LIGHT_TYPE_SPOT;
-    gp_light->spotsize = cosf(M_PI * 0.5f);
+    gp_light->spotsize = cosf(M_PI_2);
     gp_light->spotblend = (1.0f - gp_light->spotsize) * 1.0f;
   }
   else if (la->type == LA_SUN) {

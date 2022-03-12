@@ -114,29 +114,22 @@ static char *file_draw_tooltip_func(bContext *UNUSED(C), void *argN, const char 
   return BLI_strdup(dyn_tooltip);
 }
 
-static void draw_tile(int sx, int sy, int width, int height, int colorid, int shade)
+static void draw_tile_background(const rcti *draw_rect, int colorid, int shade)
 {
   float color[4];
+  rctf draw_rect_fl;
+  BLI_rctf_rcti_copy(&draw_rect_fl, draw_rect);
+
   UI_GetThemeColorShade4fv(colorid, shade, color);
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_aa(
-      &(const rctf){
-          .xmin = (float)sx,
-          .xmax = (float)(sx + width),
-          .ymin = (float)(sy - height),
-          .ymax = (float)sy,
-      },
-      true,
-      5.0f,
-      color);
+  UI_draw_roundbox_aa(&draw_rect_fl, true, 5.0f, color);
 }
 
 static void file_draw_icon(const SpaceFile *sfile,
                            uiBlock *block,
                            const FileDirEntry *file,
                            const char *path,
-                           int sx,
-                           int sy,
+                           const rcti *tile_draw_rect,
                            int icon,
                            int width,
                            int height,
@@ -144,10 +137,9 @@ static void file_draw_icon(const SpaceFile *sfile,
                            bool dimmed)
 {
   uiBut *but;
-  int x, y;
 
-  x = sx;
-  y = sy - height;
+  const int x = tile_draw_rect->xmin;
+  const int y = tile_draw_rect->ymax - sfile->layout->tile_border_y - height;
 
   /* For uiDefIconBut(), if a1==1.0 then a2 is alpha 0.0 - 1.0 */
   const float a1 = dimmed ? 1.0f : 0.0f;
@@ -304,8 +296,7 @@ static void file_draw_preview(const SpaceFile *sfile,
                               uiBlock *block,
                               const FileDirEntry *file,
                               const char *path,
-                              int sx,
-                              int sy,
+                              const rcti *tile_draw_rect,
                               const float icon_aspect,
                               ImBuf *imb,
                               const int icon,
@@ -357,8 +348,8 @@ static void file_draw_preview(const SpaceFile *sfile,
   fy = ((float)layout->prv_h - (float)ey) / 2.0f;
   dx = (fx + 0.5f + layout->prv_border_x);
   dy = (fy + 0.5f - layout->prv_border_y);
-  xco = sx + (int)dx;
-  yco = sy - layout->prv_h + (int)dy;
+  xco = tile_draw_rect->xmin + (int)dx;
+  yco = tile_draw_rect->ymax - layout->prv_h + (int)dy;
 
   GPU_blend(GPU_BLEND_ALPHA);
 
@@ -485,7 +476,26 @@ static void file_draw_preview(const SpaceFile *sfile,
     immUnbindProgram();
   }
 
-  but = uiDefBut(block, UI_BTYPE_LABEL, 0, "", xco, yco, ex, ey, NULL, 0.0, 0.0, 0, 0, NULL);
+  /* Invisible button for dragging. */
+  rcti drag_rect = *tile_draw_rect;
+  /* A bit smaller than the full tile, to increase the gap between items that users can drag from
+   * for box select. */
+  BLI_rcti_pad(&drag_rect, -layout->tile_border_x, -layout->tile_border_y);
+
+  but = uiDefBut(block,
+                 UI_BTYPE_LABEL,
+                 0,
+                 "",
+                 drag_rect.xmin,
+                 drag_rect.ymin,
+                 BLI_rcti_size_x(&drag_rect),
+                 BLI_rcti_size_y(&drag_rect),
+                 NULL,
+                 0.0,
+                 0.0,
+                 0,
+                 0,
+                 NULL);
 
   /* Drag-region. */
   if (drag) {
@@ -782,13 +792,12 @@ static const char *filelist_get_details_column_string(
 static void draw_details_columns(const FileSelectParams *params,
                                  const FileLayout *layout,
                                  FileDirEntry *file,
-                                 const int pos_x,
-                                 const int pos_y,
+                                 const rcti *tile_draw_rect,
                                  const uchar text_col[4])
 {
   const bool small_size = SMALL_SIZE_CHECK(params->thumbnail_size);
   const bool update_stat_strings = small_size != SMALL_SIZE_CHECK(layout->curr_size);
-  int sx = pos_x - layout->tile_border_x - (UI_UNIT_X * 0.1f), sy = pos_y;
+  int sx = tile_draw_rect->xmin - layout->tile_border_x - (UI_UNIT_X * 0.1f);
 
   for (FileAttributeColumnType column_type = 0; column_type < ATTRIBUTE_COLUMN_MAX;
        column_type++) {
@@ -808,7 +817,7 @@ static void draw_details_columns(const FileSelectParams *params,
 
     if (str) {
       file_draw_string(sx + ATTRIBUTE_COLUMN_PADDING,
-                       sy - layout->tile_border_y,
+                       tile_draw_rect->ymax - layout->tile_border_y,
                        IFACE_(str),
                        column->width - 2 * ATTRIBUTE_COLUMN_PADDING,
                        layout->tile_h,
@@ -818,6 +827,28 @@ static void draw_details_columns(const FileSelectParams *params,
 
     sx += column->width;
   }
+}
+
+static rcti tile_draw_rect_get(const View2D *v2d,
+                               const FileLayout *layout,
+                               const enum eFileDisplayType display,
+                               const int file_idx,
+                               const int padx)
+{
+  int tile_pos_x, tile_pos_y;
+  ED_fileselect_layout_tilepos(layout, file_idx, &tile_pos_x, &tile_pos_y);
+  tile_pos_x += (int)(v2d->tot.xmin);
+  tile_pos_y = (int)(v2d->tot.ymax - tile_pos_y);
+
+  rcti rect;
+  rect.xmin = tile_pos_x + padx;
+  rect.xmax = rect.xmin + (ELEM(display, FILE_VERTICALDISPLAY, FILE_HORIZONTALDISPLAY) ?
+                               layout->tile_w - (2 * padx) :
+                               layout->tile_w);
+  rect.ymax = tile_pos_y;
+  rect.ymin = rect.ymax - layout->tile_h - layout->tile_border_y;
+
+  return rect;
 }
 
 void file_draw_list(const bContext *C, ARegion *region)
@@ -835,7 +866,6 @@ void file_draw_list(const bContext *C, ARegion *region)
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   int numfiles;
   int numfiles_layout;
-  int sx, sy;
   int offset;
   int textwidth, textheight;
   int i;
@@ -913,12 +943,10 @@ void file_draw_list(const bContext *C, ARegion *region)
   for (i = offset; (i < numfiles) && (i < offset + numfiles_layout); i++) {
     uint file_selflag;
     char path[FILE_MAX_LIBEXTRA];
-    int padx = 0.1f * UI_UNIT_X;
+    const int padx = 0.1f * UI_UNIT_X;
     int icon_ofs = 0;
 
-    ED_fileselect_layout_tilepos(layout, i, &sx, &sy);
-    sx += (int)(v2d->tot.xmin + padx);
-    sy = (int)(v2d->tot.ymax - sy);
+    const rcti tile_draw_rect = tile_draw_rect_get(v2d, layout, params->display, i, padx);
 
     file = filelist_file(files, i);
     file_selflag = filelist_entry_select_get(sfile->files, file, CHECK_ALL);
@@ -931,14 +959,12 @@ void file_draw_list(const bContext *C, ARegion *region)
         int colorid = (file_selflag & FILE_SEL_SELECTED) ? TH_HILITE : TH_BACK;
         int shade = (params->highlight_file == i) || (file_selflag & FILE_SEL_HIGHLIGHTED) ? 35 :
                                                                                              0;
-        const short width = ELEM(params->display, FILE_VERTICALDISPLAY, FILE_HORIZONTALDISPLAY) ?
-                                layout->tile_w - (2 * padx) :
-                                layout->tile_w;
-
         BLI_assert(i == 0 || !FILENAME_IS_CURRPAR(file->relpath));
 
-        draw_tile(
-            sx, sy - 1, width, sfile->layout->tile_h + layout->tile_border_y, colorid, shade);
+        rcti tile_bg_rect = tile_draw_rect;
+        /* One pixel downwards, places it more in the center. */
+        BLI_rcti_translate(&tile_bg_rect, 0, -1);
+        draw_tile_background(&tile_bg_rect, colorid, shade);
       }
     }
     UI_draw_roundbox_corner_set(UI_CNR_NONE);
@@ -961,8 +987,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                         block,
                         file,
                         path,
-                        sx,
-                        sy,
+                        &tile_draw_rect,
                         thumb_icon_aspect,
                         imb,
                         icon,
@@ -977,8 +1002,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                      block,
                      file,
                      path,
-                     sx,
-                     sy - layout->tile_border_y,
+                     &tile_draw_rect,
                      filelist_geticon(files, i, true),
                      ICON_DEFAULT_WIDTH_SCALE,
                      ICON_DEFAULT_HEIGHT_SCALE,
@@ -997,8 +1021,8 @@ void file_draw_list(const bContext *C, ARegion *region)
                             UI_BTYPE_TEXT,
                             1,
                             "",
-                            sx + icon_ofs,
-                            sy - layout->tile_h - 0.15f * UI_UNIT_X,
+                            tile_draw_rect.xmin + icon_ofs,
+                            tile_draw_rect.ymin + layout->tile_border_y - 0.15f * UI_UNIT_X,
                             width - icon_ofs,
                             textheight,
                             params->renamefile,
@@ -1029,10 +1053,11 @@ void file_draw_list(const bContext *C, ARegion *region)
 
     /* file_selflag might have been modified by branch above. */
     if ((file_selflag & FILE_SEL_EDITING) == 0) {
-      const int txpos = (params->display == FILE_IMGDISPLAY) ? sx : sx + 1 + icon_ofs;
+      const int txpos = (params->display == FILE_IMGDISPLAY) ? tile_draw_rect.xmin :
+                                                               tile_draw_rect.xmin + 1 + icon_ofs;
       const int typos = (params->display == FILE_IMGDISPLAY) ?
-                            sy - layout->tile_h + layout->textheight :
-                            sy - layout->tile_border_y;
+                            tile_draw_rect.ymin + layout->tile_border_y + layout->textheight :
+                            tile_draw_rect.ymax - layout->tile_border_y;
       const int twidth = (params->display == FILE_IMGDISPLAY) ?
                              textwidth :
                              textwidth - 1 - icon_ofs - padx - layout->tile_border_x;
@@ -1040,7 +1065,7 @@ void file_draw_list(const bContext *C, ARegion *region)
     }
 
     if (params->display != FILE_IMGDISPLAY) {
-      draw_details_columns(params, layout, file, sx, sy, text_col);
+      draw_details_columns(params, layout, file, &tile_draw_rect, text_col);
     }
   }
 

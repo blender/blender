@@ -1023,7 +1023,7 @@ static void actionzone_apply(bContext *C, wmOperator *op, int type)
   }
 
   event.val = KM_NOTHING;
-  event.is_repeat = false;
+  event.flag = 0;
   event.customdata = op->customdata;
   event.customdata_free = true;
   op->customdata = NULL;
@@ -1421,7 +1421,7 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                                     area->winy,
                                     SPACE_EMPTY,
                                     false,
-                                    true,
+                                    false,
                                     false,
                                     WIN_ALIGN_ABSOLUTE);
 

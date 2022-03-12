@@ -1449,7 +1449,7 @@ static void VertsToTransData(TransInfo *t,
   td->ext = NULL;
   td->val = NULL;
   td->extra = eve;
-  if (t->mode == TFM_BWEIGHT || t->mode == TFM_VERT_CREASE) {
+  if (ELEM(t->mode, TFM_BWEIGHT, TFM_VERT_CREASE)) {
     td->val = bweight;
     td->ival = *bweight;
   }

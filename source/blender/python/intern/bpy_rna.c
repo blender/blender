@@ -5897,37 +5897,42 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
         break;
       case PROP_STRING: {
         const char *data_ch;
-        PyObject *value_coerce = NULL;
         const int subtype = RNA_property_subtype(prop);
+        size_t data_ch_len;
 
-        if (flag & PROP_THICK_WRAP) {
-          data_ch = (char *)data;
+        if (flag & PROP_DYNAMIC) {
+          ParameterDynAlloc *data_alloc = data;
+          data_ch = data_alloc->array;
+          data_ch_len = data_alloc->array_tot;
+          BLI_assert((data_ch == NULL) || strlen(data_ch) == data_ch_len);
         }
         else {
-          data_ch = *(char **)data;
+          data_ch = (flag & PROP_THICK_WRAP) ? (char *)data : *(char **)data;
+          data_ch_len = data_ch ? strlen(data_ch) : 0;
         }
 
+        if (UNLIKELY(data_ch == NULL)) {
+          BLI_assert((flag & PROP_NEVER_NULL) == 0);
+          ret = Py_None;
+          Py_INCREF(ret);
+        }
 #ifdef USE_STRING_COERCE
-        if (subtype == PROP_BYTESTRING) {
-          ret = PyBytes_FromString(data_ch);
+        else if (subtype == PROP_BYTESTRING) {
+          ret = PyBytes_FromStringAndSize(data_ch, data_ch_len);
         }
         else if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
-          ret = PyC_UnicodeFromByte(data_ch);
+          ret = PyC_UnicodeFromByteAndSize(data_ch, data_ch_len);
         }
         else {
-          ret = PyUnicode_FromString(data_ch);
+          ret = PyUnicode_FromStringAndSize(data_ch, data_ch_len);
         }
 #else
-        if (subtype == PROP_BYTESTRING) {
+        else if (subtype == PROP_BYTESTRING) {
           ret = PyBytes_FromString(buf);
         }
         else {
           ret = PyUnicode_FromString(data_ch);
         }
-#endif
-
-#ifdef USE_STRING_COERCE
-        Py_XDECREF(value_coerce);
 #endif
 
         break;
@@ -6229,7 +6234,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
       arg_name = PyUnicode_AsUTF8(key);
       found = false;
 
-      if (arg_name == NULL) { /* Unlikely the argname is not a string, but ignore if it is. */
+      if (arg_name == NULL) { /* Unlikely the `arg_name` is not a string, but ignore if it is. */
         PyErr_Clear();
       }
       else {

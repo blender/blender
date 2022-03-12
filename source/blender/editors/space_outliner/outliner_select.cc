@@ -68,6 +68,10 @@
 
 using namespace blender::ed::outliner;
 
+/* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
+
 /**
  * \note changes to selection are by convention and not essential.
  *
@@ -199,8 +203,11 @@ void outliner_item_mode_toggle(bContext *C,
   }
 }
 
-/* ****************************************************** */
-/* Outliner Element Selection/Activation on Click */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Outliner Element Selection/Activation on Click Operator
+ * \{ */
 
 static void tree_element_viewlayer_activate(bContext *C, TreeElement *te)
 {
@@ -1662,10 +1669,15 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
 /* Event can enter-key, then it opens/closes. */
 static int outliner_item_activate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  ARegion *region = CTX_wm_region(C);
+
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   const bool use_range = RNA_boolean_get(op->ptr, "extend_range");
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
-  return outliner_item_do_activate_from_cursor(C, event->mval, extend, use_range, deselect_all);
+
+  int mval[2];
+  WM_event_drag_start_mval(event, region, mval);
+  return outliner_item_do_activate_from_cursor(C, mval, extend, use_range, deselect_all);
 }
 
 void OUTLINER_OT_item_activate(wmOperatorType *ot)
@@ -1695,9 +1707,12 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* ****************************************************** */
+/** \} */
 
-/* **************** Box Select Tool ****************** */
+/* -------------------------------------------------------------------- */
+/** \name Box Select Operator
+ * \{ */
+
 static void outliner_item_box_select(bContext *C,
                                      SpaceOutliner *space_outliner,
                                      Scene *scene,
@@ -1756,8 +1771,9 @@ static int outliner_box_select_invoke(bContext *C, wmOperator *op, const wmEvent
   float view_mval[2];
   const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 
-  UI_view2d_region_to_view(
-      &region->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
+  int mval[2];
+  WM_event_drag_start_mval(event, region, mval);
+  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
 
   /* Find element clicked on */
   TreeElement *te = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
@@ -1803,9 +1819,11 @@ void OUTLINER_OT_select_box(wmOperatorType *ot)
   WM_operator_properties_select_operation_simple(ot);
 }
 
-/* ****************************************************** */
+/** \} */
 
-/* **************** Walk Select Tool ****************** */
+/* -------------------------------------------------------------------- */
+/** \name Walk Select Operator
+ * \{ */
 
 /* Given a tree element return the rightmost child that is visible in the outliner */
 static TreeElement *outliner_find_rightmost_visible_child(SpaceOutliner *space_outliner,
@@ -2030,4 +2048,4 @@ void OUTLINER_OT_select_walk(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* ****************************************************** */
+/** \} */

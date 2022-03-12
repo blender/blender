@@ -17,7 +17,7 @@ namespace iTaSC {
 #define CACHE_CHANNEL_EXTEND_SIZE			10
 #define CACHE_MAX_ITEM_SIZE					0x3FFF0
 
-/* macro to get the alignement gap after an item header */
+/* macro to get the alignment gap after an item header */
 #define CACHE_ITEM_GAPB(item)				(unsigned int)(((size_t)item+sizeof(CacheItem))&(sizeof(void*)-1))
 /* macro to get item data position, item=CacheItem pointer */
 #define CACHE_ITEM_DATA_POINTER(item)		(void*)((unsigned char*)item+sizeof(CacheItem)+CACHE_ITEM_GAPB(item))

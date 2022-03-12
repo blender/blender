@@ -922,7 +922,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "internal_spring_max_diversion", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "internal_spring_max_diversion");
-  RNA_def_property_range(prop, 0.0f, M_PI / 4.0f);
+  RNA_def_property_range(prop, 0.0f, M_PI_4);
   RNA_def_property_ui_text(prop,
                            "Internal Spring Max Diversion",
                            "How much the rays used to connect the internal points can diverge "

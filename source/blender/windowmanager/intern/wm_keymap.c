@@ -169,6 +169,7 @@ static bool wm_keymap_item_equals(wmKeyMapItem *a, wmKeyMapItem *b)
   return (wm_keymap_item_equals_result(a, b) && a->type == b->type && a->val == b->val &&
           a->shift == b->shift && a->ctrl == b->ctrl && a->alt == b->alt && a->oskey == b->oskey &&
           a->keymodifier == b->keymodifier && a->maptype == b->maptype &&
+          ((a->val != KM_CLICK_DRAG) || (a->direction == b->direction)) &&
           ((ISKEYBOARD(a->type) == 0) ||
            (a->flag & KMI_REPEAT_IGNORE) == (b->flag & KMI_REPEAT_IGNORE)));
 }
@@ -194,9 +195,6 @@ int WM_keymap_item_map_type_get(const wmKeyMapItem *kmi)
   }
   if (ISKEYBOARD(kmi->type)) {
     return KMI_TYPE_KEYBOARD;
-  }
-  if (ISTWEAK(kmi->type)) {
-    return KMI_TYPE_TWEAK;
   }
   if (ISMOUSE(kmi->type)) {
     return KMI_TYPE_MOUSE;
@@ -459,11 +457,12 @@ bool WM_keymap_poll(bContext *C, wmKeyMap *keymap)
 }
 
 static void keymap_event_set(
-    wmKeyMapItem *kmi, short type, short val, int modifier, short keymodifier)
+    wmKeyMapItem *kmi, short type, short val, int modifier, short keymodifier, int direction)
 {
   kmi->type = type;
   kmi->val = val;
   kmi->keymodifier = keymodifier;
+  kmi->direction = direction;
 
   if (modifier == KM_ANY) {
     kmi->shift = kmi->ctrl = kmi->alt = kmi->oskey = KM_ANY;
@@ -497,15 +496,20 @@ static void keymap_item_set_id(wmKeyMap *keymap, wmKeyMapItem *kmi)
   }
 }
 
-wmKeyMapItem *WM_keymap_add_item(
-    wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier)
+wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap,
+                                 const char *idname,
+                                 int type,
+                                 int val,
+                                 int modifier,
+                                 int keymodifier,
+                                 int direction)
 {
   wmKeyMapItem *kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 
   BLI_addtail(&keymap->items, kmi);
   BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 
-  keymap_event_set(kmi, type, val, modifier, keymodifier);
+  keymap_event_set(kmi, type, val, modifier, keymodifier, direction);
   wm_keymap_item_properties_set(kmi);
 
   keymap_item_set_id(keymap, kmi);
@@ -919,14 +923,14 @@ wmKeyMap *WM_modalkeymap_find(wmKeyConfig *keyconf, const char *idname)
 }
 
 wmKeyMapItem *WM_modalkeymap_add_item(
-    wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value)
+    wmKeyMap *km, int type, int val, int modifier, int keymodifier, int direction, int value)
 {
   wmKeyMapItem *kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 
   BLI_addtail(&km->items, kmi);
   kmi->propvalue = value;
 
-  keymap_event_set(kmi, type, val, modifier, keymodifier);
+  keymap_event_set(kmi, type, val, modifier, keymodifier, direction);
 
   keymap_item_set_id(km, kmi);
 
@@ -935,15 +939,20 @@ wmKeyMapItem *WM_modalkeymap_add_item(
   return kmi;
 }
 
-wmKeyMapItem *WM_modalkeymap_add_item_str(
-    wmKeyMap *km, int type, int val, int modifier, int keymodifier, const char *value)
+wmKeyMapItem *WM_modalkeymap_add_item_str(wmKeyMap *km,
+                                          int type,
+                                          int val,
+                                          int modifier,
+                                          int keymodifier,
+                                          int direction,
+                                          const char *value)
 {
   wmKeyMapItem *kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 
   BLI_addtail(&km->items, kmi);
   BLI_strncpy(kmi->propvalue_str, value, sizeof(kmi->propvalue_str));
 
-  keymap_event_set(kmi, type, val, modifier, keymodifier);
+  keymap_event_set(kmi, type, val, modifier, keymodifier, direction);
 
   keymap_item_set_id(km, kmi);
 
@@ -1728,6 +1737,9 @@ bool WM_keymap_item_compare(const wmKeyMapItem *k1, const wmKeyMapItem *k2)
       return 0;
     }
     if (k1->val != k2->val) {
+      return 0;
+    }
+    if (k1->val == KM_CLICK_DRAG && (k1->direction != k2->direction)) {
       return 0;
     }
   }

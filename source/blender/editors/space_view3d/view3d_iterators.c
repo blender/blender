@@ -25,6 +25,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 
 #include "DEG_depsgraph.h"
@@ -334,6 +335,7 @@ void mesh_foreachScreenVert(
 
   Mesh *me = editbmesh_get_eval_cage_from_orig(
       vc->depsgraph, vc->scene, vc->obedit, &CD_MASK_BAREMESH);
+  me = BKE_mesh_wrapper_ensure_subdivision(vc->obedit, me);
 
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
@@ -396,6 +398,7 @@ void mesh_foreachScreenEdge(ViewContext *vc,
 
   Mesh *me = editbmesh_get_eval_cage_from_orig(
       vc->depsgraph, vc->scene, vc->obedit, &CD_MASK_BAREMESH);
+  me = BKE_mesh_wrapper_ensure_subdivision(vc->obedit, me);
 
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
@@ -483,6 +486,7 @@ void mesh_foreachScreenEdge_clip_bb_segment(ViewContext *vc,
 
   Mesh *me = editbmesh_get_eval_cage_from_orig(
       vc->depsgraph, vc->scene, vc->obedit, &CD_MASK_BAREMESH);
+  me = BKE_mesh_wrapper_ensure_subdivision(vc->obedit, me);
 
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
@@ -554,6 +558,7 @@ void mesh_foreachScreenFace(
 
   Mesh *me = editbmesh_get_eval_cage_from_orig(
       vc->depsgraph, vc->scene, vc->obedit, &CD_MASK_BAREMESH);
+  me = BKE_mesh_wrapper_ensure_subdivision(vc->obedit, me);
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
   data.vc = *vc;

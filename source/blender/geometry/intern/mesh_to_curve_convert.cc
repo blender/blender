@@ -2,7 +2,6 @@
 
 #include "BLI_array.hh"
 #include "BLI_set.hh"
-#include "BLI_string_ref.hh"
 #include "BLI_task.hh"
 
 #include "DNA_mesh_types.h"
@@ -10,85 +9,48 @@
 
 #include "BKE_attribute_access.hh"
 #include "BKE_attribute_math.hh"
+#include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_spline.hh"
 
 #include "GEO_mesh_to_curve.hh"
 
 namespace blender::geometry {
 
 template<typename T>
-static void copy_attribute_to_points(const VArray<T> &source_data,
-                                     Span<int> map,
-                                     MutableSpan<T> dest_data)
+static void copy_with_map(const VArray<T> &src, Span<int> map, MutableSpan<T> dst)
 {
-  for (const int point_index : map.index_range()) {
-    const int vert_index = map[point_index];
-    dest_data[point_index] = source_data[vert_index];
-  }
+  devirtualize_varray(src, [&](const auto &src) {
+    threading::parallel_for(map.index_range(), 1024, [&](const IndexRange range) {
+      for (const int i : range) {
+        const int vert_index = map[i];
+        dst[i] = src[vert_index];
+      }
+    });
+  });
 }
 
-static std::unique_ptr<CurveEval> create_curve_from_vert_indices(
-    const MeshComponent &mesh_component, Span<Vector<int>> vert_indices, IndexRange cyclic_splines)
+static Curves *create_curve_from_vert_indices(const MeshComponent &mesh_component,
+                                              const Span<int> vert_indices,
+                                              const Span<int> curve_offsets,
+                                              const IndexRange cyclic_splines)
 {
-  std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
-  curve->resize(vert_indices.size());
+  Curves *curves_id = bke::curves_new_nomain(vert_indices.size(), curve_offsets.size());
+  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+  curves.offsets().drop_back(1).copy_from(curve_offsets);
+  curves.offsets().last() = vert_indices.size();
+  curves.curve_types().fill(CURVE_TYPE_POLY);
 
-  MutableSpan<SplinePtr> splines = curve->splines();
-
-  for (const int i : vert_indices.index_range()) {
-    splines[i] = std::make_unique<PolySpline>();
-    splines[i]->resize(vert_indices[i].size());
-  }
-  for (const int i : cyclic_splines) {
-    splines[i]->set_cyclic(true);
-  }
+  curves.cyclic().fill(false);
+  curves.cyclic().slice(cyclic_splines).fill(true);
 
   Set<bke::AttributeIDRef> source_attribute_ids = mesh_component.attribute_ids();
 
-  /* Copy builtin control point attributes. */
-  if (source_attribute_ids.contains("tilt")) {
-    const VArray<float> tilt_attribute = mesh_component.attribute_get_for_read<float>(
-        "tilt", ATTR_DOMAIN_POINT, 0.0f);
-    threading::parallel_for(splines.index_range(), 256, [&](IndexRange range) {
-      for (const int i : range) {
-        copy_attribute_to_points<float>(tilt_attribute, vert_indices[i], splines[i]->tilts());
-      }
-    });
-    source_attribute_ids.remove_contained("tilt");
-  }
-  else {
-    for (SplinePtr &spline : splines) {
-      spline->tilts().fill(0.0f);
-    }
-  }
-
-  if (source_attribute_ids.contains("radius")) {
-    const VArray<float> radius_attribute = mesh_component.attribute_get_for_read<float>(
-        "radius", ATTR_DOMAIN_POINT, 1.0f);
-    threading::parallel_for(splines.index_range(), 256, [&](IndexRange range) {
-      for (const int i : range) {
-        copy_attribute_to_points<float>(radius_attribute, vert_indices[i], splines[i]->radii());
-      }
-    });
-    source_attribute_ids.remove_contained("radius");
-  }
-  else {
-    for (SplinePtr &spline : splines) {
-      spline->radii().fill(1.0f);
-    }
-  }
-
-  VArray<float3> mesh_positions = mesh_component.attribute_get_for_read(
-      "position", ATTR_DOMAIN_POINT, float3(0));
-  threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
-    for (const int i : range) {
-      copy_attribute_to_points(mesh_positions, vert_indices[i], splines[i]->positions());
-    }
-  });
+  CurveComponent curves_component;
+  curves_component.replace(curves_id, GeometryOwnershipType::Editable);
 
   for (const bke::AttributeIDRef &attribute_id : source_attribute_ids) {
-    if (mesh_component.attribute_is_builtin(attribute_id)) {
+    if (mesh_component.attribute_is_builtin(attribute_id) &&
+        !curves_component.attribute_is_builtin(attribute_id)) {
       /* Don't copy attributes that are built-in on meshes but not on curves. */
       continue;
     }
@@ -105,33 +67,24 @@ static std::unique_ptr<CurveEval> create_curve_from_vert_indices(
       continue;
     }
 
-    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(mesh_attribute.type());
-
-    threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
-      for (const int i : range) {
-        /* Create attribute on the spline points. */
-        splines[i]->attributes.create(attribute_id, data_type);
-        std::optional<fn::GMutableSpan> spline_attribute = splines[i]->attributes.get_for_write(
-            attribute_id);
-        BLI_assert(spline_attribute);
-
-        /* Copy attribute based on the map for this spline. */
-        attribute_math::convert_to_static_type(mesh_attribute.type(), [&](auto dummy) {
-          using T = decltype(dummy);
-          copy_attribute_to_points<T>(
-              mesh_attribute.typed<T>(), vert_indices[i], spline_attribute->typed<T>());
-        });
-      }
+    /* Copy attribute based on the map for this spline. */
+    attribute_math::convert_to_static_type(mesh_attribute.type(), [&](auto dummy) {
+      using T = decltype(dummy);
+      bke::OutputAttribute_Typed<T> attribute =
+          curves_component.attribute_try_get_for_output_only<T>(attribute_id, ATTR_DOMAIN_POINT);
+      copy_with_map<T>(mesh_attribute.typed<T>(), vert_indices, attribute.as_span());
+      attribute.save();
     });
   }
 
-  curve->assert_valid_point_attributes();
-  return curve;
+  return curves_id;
 }
 
 struct CurveFromEdgesOutput {
   /** The indices in the mesh for each control point of each result splines. */
-  Vector<Vector<int>> vert_indices;
+  Vector<int> vert_indices;
+  /** The first index of each curve in the result. */
+  Vector<int> curve_offsets;
   /** A subset of splines that should be set cyclic. */
   IndexRange cyclic_splines;
 };
@@ -139,7 +92,9 @@ struct CurveFromEdgesOutput {
 static CurveFromEdgesOutput edges_to_curve_point_indices(Span<MVert> verts,
                                                          Span<std::pair<int, int>> edges)
 {
-  Vector<Vector<int>> vert_indices;
+  Vector<int> vert_indices;
+  vert_indices.reserve(edges.size());
+  Vector<int> curve_offsets;
 
   /* Compute the number of edges connecting to each vertex. */
   Array<int> neighbor_count(verts.size(), 0);
@@ -191,15 +146,16 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(Span<MVert> verts,
         continue;
       }
 
-      Vector<int> spline_indices;
-      spline_indices.append(current_vert);
+      /* Start a new curve in the output. */
+      curve_offsets.append(vert_indices.size());
+      vert_indices.append(current_vert);
 
       /* Follow connected edges until we read a vertex with more than two connected edges. */
       while (true) {
         int last_vert = current_vert;
         current_vert = next_vert;
 
-        spline_indices.append(current_vert);
+        vert_indices.append(current_vert);
         unused_edges[current_vert]--;
         unused_edges[last_vert]--;
 
@@ -212,13 +168,11 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(Span<MVert> verts,
         const int next_b = neighbors[offset + 1];
         next_vert = (last_vert == next_a) ? next_b : next_a;
       }
-
-      vert_indices.append(std::move(spline_indices));
     }
   }
 
   /* All splines added after this are cyclic. */
-  const int cyclic_start = vert_indices.size();
+  const int cyclic_start = curve_offsets.size();
 
   /* All remaining edges are part of cyclic splines (we skipped vertices with two edges before). */
   for (const int start_vert : verts.index_range()) {
@@ -229,16 +183,15 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(Span<MVert> verts,
     int current_vert = start_vert;
     int next_vert = neighbors[neighbor_offsets[current_vert]];
 
-    Vector<int> spline_indices;
-
-    spline_indices.append(current_vert);
+    curve_offsets.append(vert_indices.size());
+    vert_indices.append(current_vert);
 
     /* Follow connected edges until we loop back to the start vertex. */
     while (next_vert != start_vert) {
       const int last_vert = current_vert;
       current_vert = next_vert;
 
-      spline_indices.append(current_vert);
+      vert_indices.append(current_vert);
       unused_edges[current_vert]--;
       unused_edges[last_vert]--;
 
@@ -247,13 +200,11 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(Span<MVert> verts,
       const int next_b = neighbors[offset + 1];
       next_vert = (last_vert == next_a) ? next_b : next_a;
     }
-
-    vert_indices.append(std::move(spline_indices));
   }
 
-  const int final_size = vert_indices.size();
+  const IndexRange cyclic_curves = curve_offsets.index_range().drop_front(cyclic_start);
 
-  return {std::move(vert_indices), IndexRange(cyclic_start, final_size - cyclic_start)};
+  return {std::move(vert_indices), std::move(curve_offsets), cyclic_curves};
 }
 
 /**
@@ -270,8 +221,7 @@ static Vector<std::pair<int, int>> get_selected_edges(const Mesh &mesh, const In
   return selected_edges;
 }
 
-std::unique_ptr<CurveEval> mesh_to_curve_convert(const MeshComponent &mesh_component,
-                                                 const IndexMask selection)
+Curves *mesh_to_curve_convert(const MeshComponent &mesh_component, const IndexMask selection)
 {
   const Mesh &mesh = *mesh_component.get_for_read();
   Vector<std::pair<int, int>> selected_edges = get_selected_edges(*mesh_component.get_for_read(),
@@ -280,7 +230,7 @@ std::unique_ptr<CurveEval> mesh_to_curve_convert(const MeshComponent &mesh_compo
                                                              selected_edges);
 
   return create_curve_from_vert_indices(
-      mesh_component, output.vert_indices, output.cyclic_splines);
+      mesh_component, output.vert_indices, output.curve_offsets, output.cyclic_splines);
 }
 
 }  // namespace blender::geometry

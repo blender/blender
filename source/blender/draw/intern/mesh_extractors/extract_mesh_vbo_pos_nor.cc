@@ -211,20 +211,23 @@ static GPUVertFormat *get_custom_normals_format()
 }
 
 static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                        const MeshRenderData *mr,
+                                        const MeshRenderData *UNUSED(mr),
                                         struct MeshBatchCache *UNUSED(cache),
                                         void *buffer,
                                         void *UNUSED(data))
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
-  const bool do_limit_normals = subdiv_cache->do_limit_normals &&
-                                !subdiv_cache->use_custom_loop_normals;
+  const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
 
   /* Initialize the vertex buffer, it was already allocated. */
   GPU_vertbuf_init_build_on_device(
-      vbo, get_pos_nor_format(), subdiv_cache->num_subdiv_loops + mr->loop_loose_len);
+      vbo, get_pos_nor_format(), subdiv_cache->num_subdiv_loops + loose_geom.loop_len);
 
-  draw_subdiv_extract_pos_nor(subdiv_cache, vbo, do_limit_normals);
+  if (subdiv_cache->num_subdiv_loops == 0) {
+    return;
+  }
+
+  draw_subdiv_extract_pos_nor(subdiv_cache, vbo);
 
   if (subdiv_cache->use_custom_loop_normals) {
     Mesh *coarse_mesh = subdiv_cache->mesh;
@@ -243,14 +246,15 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
     GPU_vertbuf_init_build_on_device(
         dst_custom_normals, get_custom_normals_format(), subdiv_cache->num_subdiv_loops);
 
-    draw_subdiv_interp_custom_data(subdiv_cache, src_custom_normals, dst_custom_normals, 3, 0);
+    draw_subdiv_interp_custom_data(
+        subdiv_cache, src_custom_normals, dst_custom_normals, 3, 0, false);
 
     draw_subdiv_finalize_custom_normals(subdiv_cache, dst_custom_normals, vbo);
 
     GPU_vertbuf_discard(src_custom_normals);
     GPU_vertbuf_discard(dst_custom_normals);
   }
-  else if (!do_limit_normals) {
+  else {
     /* We cannot evaluate vertex normals using the limit surface, so compute them manually. */
     GPUVertBuf *subdiv_loop_subdiv_vert_index = draw_subdiv_build_origindex_buffer(
         subdiv_cache->subdiv_loop_subdiv_vert_index, subdiv_cache->num_subdiv_loops);
@@ -263,6 +267,7 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                    vbo,
                                    subdiv_cache->subdiv_vertex_face_adjacency_offsets,
                                    subdiv_cache->subdiv_vertex_face_adjacency,
+                                   subdiv_loop_subdiv_vert_index,
                                    vertex_normals);
 
     draw_subdiv_finalize_normals(subdiv_cache, vertex_normals, subdiv_loop_subdiv_vert_index, vbo);
@@ -273,13 +278,12 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
 }
 
 static void extract_pos_nor_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
-                                              const MeshRenderData *mr,
-                                              const MeshExtractLooseGeom *loose_geom,
+                                              const MeshRenderData *UNUSED(mr),
                                               void *buffer,
                                               void *UNUSED(data))
 {
-  const int loop_loose_len = loose_geom->edge_len + loose_geom->vert_len;
-  if (loop_loose_len == 0) {
+  const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
+  if (loose_geom.loop_len == 0) {
     return;
   }
 
@@ -293,75 +297,38 @@ static void extract_pos_nor_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache
     float flag;
   };
 
-  if (mr->extract_type == MR_EXTRACT_MESH) {
-    const Mesh *coarse_mesh = subdiv_cache->mesh;
-    const MEdge *coarse_edges = coarse_mesh->medge;
-    const MVert *coarse_verts = coarse_mesh->mvert;
+  /* Make sure buffer is active for sending loose data. */
+  GPU_vertbuf_use(vbo);
 
-    SubdivPosNorLoop edge_data[2];
-    memset(&edge_data, 0, sizeof(SubdivPosNorLoop) * 2);
-    for (int i = 0; i < loose_geom->edge_len; i++) {
-      const MEdge *loose_edge = &coarse_edges[loose_geom->edges[i]];
-      const MVert *loose_vert1 = &coarse_verts[loose_edge->v1];
-      const MVert *loose_vert2 = &coarse_verts[loose_edge->v2];
+  blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
 
-      copy_v3_v3(edge_data[0].pos, loose_vert1->co);
-      copy_v3_v3(edge_data[1].pos, loose_vert2->co);
+  SubdivPosNorLoop edge_data[2];
+  memset(edge_data, 0, sizeof(SubdivPosNorLoop) * 2);
+  for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
+    const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
+    const DRWSubdivLooseVertex &v2 = loose_geom.verts[loose_edge.loose_subdiv_v2_index];
 
-      GPU_vertbuf_update_sub(
-          vbo, offset * sizeof(SubdivPosNorLoop), sizeof(SubdivPosNorLoop) * 2, &edge_data);
+    copy_v3_v3(edge_data[0].pos, v1.co);
+    copy_v3_v3(edge_data[1].pos, v2.co);
 
-      offset += 2;
-    }
+    GPU_vertbuf_update_sub(
+        vbo, offset * sizeof(SubdivPosNorLoop), sizeof(SubdivPosNorLoop) * 2, &edge_data);
 
-    SubdivPosNorLoop vert_data;
-    memset(&vert_data, 0, sizeof(SubdivPosNorLoop));
-    for (int i = 0; i < loose_geom->vert_len; i++) {
-      const MVert *loose_vertex = &coarse_verts[loose_geom->verts[i]];
-
-      copy_v3_v3(vert_data.pos, loose_vertex->co);
-
-      GPU_vertbuf_update_sub(
-          vbo, offset * sizeof(SubdivPosNorLoop), sizeof(SubdivPosNorLoop), &vert_data);
-
-      offset += 1;
-    }
+    offset += 2;
   }
-  else {
-    BMesh *bm = subdiv_cache->bm;
 
-    SubdivPosNorLoop edge_data[2];
-    memset(&edge_data, 0, sizeof(SubdivPosNorLoop) * 2);
-    for (int i = 0; i < loose_geom->edge_len; i++) {
-      const BMEdge *loose_edge = BM_edge_at_index(bm, loose_geom->edges[i]);
-      const BMVert *loose_vert1 = loose_edge->v1;
-      const BMVert *loose_vert2 = loose_edge->v2;
+  SubdivPosNorLoop vert_data;
+  memset(&vert_data, 0, sizeof(SubdivPosNorLoop));
+  blender::Span<DRWSubdivLooseVertex> loose_verts = draw_subdiv_cache_get_loose_verts(
+      subdiv_cache);
 
-      copy_v3_v3(edge_data[0].pos, loose_vert1->co);
-      copy_v3_v3(edge_data[0].nor, loose_vert1->no);
+  for (const DRWSubdivLooseVertex &loose_vert : loose_verts) {
+    copy_v3_v3(vert_data.pos, loose_vert.co);
 
-      copy_v3_v3(edge_data[1].pos, loose_vert2->co);
-      copy_v3_v3(edge_data[1].nor, loose_vert2->no);
+    GPU_vertbuf_update_sub(
+        vbo, offset * sizeof(SubdivPosNorLoop), sizeof(SubdivPosNorLoop), &vert_data);
 
-      GPU_vertbuf_update_sub(
-          vbo, offset * sizeof(SubdivPosNorLoop), sizeof(SubdivPosNorLoop) * 2, &edge_data);
-
-      offset += 2;
-    }
-
-    SubdivPosNorLoop vert_data;
-    memset(&vert_data, 0, sizeof(SubdivPosNorLoop));
-    for (int i = 0; i < loose_geom->vert_len; i++) {
-      const BMVert *loose_vertex = BM_vert_at_index(bm, loose_geom->verts[i]);
-
-      copy_v3_v3(vert_data.pos, loose_vertex->co);
-      copy_v3_v3(vert_data.nor, loose_vertex->no);
-
-      GPU_vertbuf_update_sub(
-          vbo, offset * sizeof(SubdivPosNorLoop), sizeof(SubdivPosNorLoop), &vert_data);
-
-      offset += 1;
-    }
+    offset += 1;
   }
 }
 

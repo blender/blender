@@ -28,6 +28,7 @@ class MATERIAL_UL_matslots(UIList):
         ma = slot.material
 
         layout.context_pointer_set("id", ma)
+        layout.context_pointer_set("material_slot", slot)
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             if ma:

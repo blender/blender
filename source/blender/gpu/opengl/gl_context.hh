@@ -64,6 +64,7 @@ class GLContext : public Context {
   static bool texture_cube_map_array_support;
   static bool texture_filter_anisotropic_support;
   static bool texture_gather_support;
+  static bool texture_storage_support;
   static bool vertex_attrib_binding_support;
 
   /** Workarounds. */

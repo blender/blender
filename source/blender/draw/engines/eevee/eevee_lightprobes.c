@@ -613,7 +613,7 @@ void EEVEE_lightprobes_planar_data_from_object(Object *ob,
   eplanar->clip_edge_y_neg = dot_v3v3(eplanar->clip_vec_y, vec);
 
   /* Facing factors */
-  float max_angle = max_ff(1e-2f, 1.0f - probe->falloff) * M_PI * 0.5f;
+  float max_angle = max_ff(1e-2f, 1.0f - probe->falloff) * M_PI_2;
   float min_angle = 0.0f;
   eplanar->facing_scale = 1.0f / max_ff(1e-8f, cosf(min_angle) - cosf(max_angle));
   eplanar->facing_bias = -min_ff(1.0f - 1e-8f, cosf(max_angle)) * eplanar->facing_scale;

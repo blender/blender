@@ -7,7 +7,7 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes::node_geo_curve_set_handles_cc {
+namespace blender::nodes::node_geo_curve_set_handle_type_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryCurveSetHandles)
 
@@ -60,14 +60,14 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   bool has_bezier_spline = false;
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (!geometry_set.has_curve()) {
+    if (!geometry_set.has_curves()) {
       return;
     }
 
     /* Retrieve data for write access so we can avoid new allocations for the handles data. */
     CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
-    CurveEval &curve = *curve_component.get_for_write();
-    MutableSpan<SplinePtr> splines = curve.splines();
+    std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curve_component.get_for_read());
+    MutableSpan<SplinePtr> splines = curve->splines();
 
     GeometryComponentFieldContext field_context{curve_component, ATTR_DOMAIN_POINT};
     const int domain_size = curve_component.attribute_domain_size(ATTR_DOMAIN_POINT);
@@ -108,20 +108,23 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
       bezier_spline.mark_cache_invalid();
     }
+
+    curve_component.replace(curve_eval_to_curves(*curve));
   });
   if (!has_bezier_spline) {
     params.error_message_add(NodeWarningType::Info, TIP_("No Bezier splines in input curve"));
   }
   params.set_output("Curve", std::move(geometry_set));
 }
-}  // namespace blender::nodes::node_geo_curve_set_handles_cc
+}  // namespace blender::nodes::node_geo_curve_set_handle_type_cc
 
-void register_node_type_geo_curve_set_handles()
+void register_node_type_geo_curve_set_handle_type()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_set_handles_cc;
+  namespace file_ns = blender::nodes::node_geo_curve_set_handle_type_cc;
 
   static bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_SET_HANDLES, "Set Handle Type", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, GEO_NODE_CURVE_SET_HANDLE_TYPE, "Set Handle Type", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   node_type_init(&ntype, file_ns::node_init);

@@ -184,7 +184,7 @@ static const char *to_string(const eGPUTextureFormat &type)
     case GPU_R16:
       return "r16";
     default:
-      return "unkown";
+      return "unknown";
   }
 }
 
