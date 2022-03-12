@@ -5430,9 +5430,10 @@ static int gpencil_stroke_normalize_exec(bContext *C, wmOperator *op)
           if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
           }
-
-          bool selected = (is_curve_edit) ? gps->editcurve->flag |= GP_CURVE_SELECT :
-                                            (gps->flag & GP_STROKE_SELECT);
+          bool is_curve_ready = (gps->editcurve != NULL);
+          bool selected = (is_curve_edit && is_curve_ready) ?
+                              gps->editcurve->flag |= GP_CURVE_SELECT :
+                              (gps->flag & GP_STROKE_SELECT);
           if (!selected) {
             continue;
           }
@@ -5445,7 +5446,7 @@ static int gpencil_stroke_normalize_exec(bContext *C, wmOperator *op)
           }
 
           /* Loop all Polyline points. */
-          if (!is_curve_edit) {
+          if (!is_curve_edit || !is_curve_ready) {
             for (int i = 0; i < gps->totpoints; i++) {
               bGPDspoint *pt = &gps->points[i];
               if (mode == GP_NORMALIZE_THICKNESS) {
