@@ -4517,14 +4517,14 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   int steps[2] = {0, 0};
 
   if ((mode & PBVH_Subdivide) && (mode & PBVH_Collapse)) {
-    steps[0] = 1024;
-    steps[1] = 128;
+    steps[0] = 4096;
+    steps[1] = 1024;
   }
   else if (mode & PBVH_Subdivide) {
-    steps[0] = 2048;
+    steps[0] = 4096;
   }
   else if (mode & PBVH_Collapse) {
-    steps[0] = 2048;
+    steps[0] = 4096;
   }
 
   int edges_size = steps[0];
@@ -4608,7 +4608,7 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
           } while ((l = l->radial_next) != e->l);
         }
 
-        //edges[etot++] = e;
+        // edges[etot++] = e;
         break;
       }
       case PBVH_Collapse: {

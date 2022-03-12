@@ -2572,11 +2572,6 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
   bool modified = false;
   PBVHNode **nodes = NULL;
   BLI_array_declare(nodes);
-  int steps = is_snake_hook ? 1 : 1;
-
-  if (is_snake_hook) {
-    //radius *= 1.25;
-  }
 
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = pbvh->nodes + i;
@@ -2592,33 +2587,25 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
     }
   }
 
-  for (int i = 0; i < steps; i++) {
-    for (int j = 0; j < BLI_array_len(nodes); j++) {
-      nodes[j]->flag |= PBVH_UpdateCurvatureDir;
-      BKE_pbvh_node_mark_topology_update(nodes[j]);
-    }
-
-    bool modified2 = BKE_pbvh_bmesh_update_topology(pbvh,
-                                               mode,
-                                               center,
-                                               view_normal,
-                                               radius,
-                                               use_frontface,
-                                               use_projected,
-                                               sym_axis,
-                                               updatePBVH && i == steps - 1,
-                                               mask_cb,
-                                               mask_cb_data,
-                                               is_snake_hook ? 40960 : 0,
-                                               disable_surface_relax,
-                                               is_snake_hook);
-
-    if (!modified2) {
-      break;
-    }
-
-    modified = true;
+  for (int j = 0; j < BLI_array_len(nodes); j++) {
+    nodes[j]->flag |= PBVH_UpdateCurvatureDir;
+    BKE_pbvh_node_mark_topology_update(nodes[j]);
   }
+
+  modified = BKE_pbvh_bmesh_update_topology(pbvh,
+                                            mode,
+                                            center,
+                                            view_normal,
+                                            radius,
+                                            use_frontface,
+                                            use_projected,
+                                            sym_axis,
+                                            updatePBVH,
+                                            mask_cb,
+                                            mask_cb_data,
+                                            0, //is_snake_hook ? 40960 : 0,
+                                            disable_surface_relax,
+                                            is_snake_hook);
 
   BLI_array_free(nodes);
 

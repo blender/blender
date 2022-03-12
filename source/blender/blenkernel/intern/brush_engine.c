@@ -1196,8 +1196,8 @@ void BKE_brush_channel_apply_mapping_flags(BrushChannel *dst,
 {
   for (int i = 0; i < BRUSH_MAPPING_MAX; i++) {
     BrushMapping *mp = dst->mappings + i;
-    BrushMapping *cmp = child ? child->mappings + i : NULL;
-    BrushMapping *pmp = parent ? parent->mappings + i : NULL;
+    const BrushMapping *cmp = child ? child->mappings + i : NULL;
+    const BrushMapping *pmp = parent ? parent->mappings + i : NULL;
 
     if (!cmp) {
       if (pmp) {
@@ -1290,9 +1290,9 @@ void BKE_brush_channelset_set_final_int(BrushChannelSet *child,
 }
 
 float old_BKE_brush_channelset_get_final_float(BrushChannelSet *child,
-                                           BrushChannelSet *parent,
-                                           const char *idname,
-                                           BrushMappingData *mapdata)
+                                               BrushChannelSet *parent,
+                                               const char *idname,
+                                               BrushMappingData *mapdata)
 {
   BrushChannel *parentch, *childch;
   BrushChannel *ch = brush_channel_final(child, parent, idname, &childch, &parentch);
@@ -1389,10 +1389,10 @@ int BKE_brush_channel_get_vector(BrushChannel *ch, float out[4], BrushMappingDat
 }
 
 int old_BKE_brush_channelset_get_final_vector(BrushChannelSet *child,
-                                          BrushChannelSet *parent,
-                                          const char *idname,
-                                          float r_vec[4],
-                                          BrushMappingData *mapdata)
+                                              BrushChannelSet *parent,
+                                              const char *idname,
+                                              float r_vec[4],
+                                              BrushMappingData *mapdata)
 {
   BrushChannel *parentch, *childch;
   BrushChannel *ch = brush_channel_final(child, parent, idname, &childch, &parentch);
@@ -1851,8 +1851,15 @@ void BKE_builtin_commandlist_create(Brush *brush,
 
   float radius = BKE_brush_channelset_get_float(chset, "radius", NULL);
 
-  /* build dyntopo command */
-  commandlist_add_dyntopo(chset, cl, brush, tool, hard_edge_mode, radius);
+  /* Build dyntopo command. */
+  if (tool == SCULPT_TOOL_SNAKE_HOOK) {
+    /* Add twice for snake hook. */
+    commandlist_add_dyntopo(chset, cl, brush, tool, hard_edge_mode, radius*1.25);
+    commandlist_add_dyntopo(chset, cl, brush, tool, hard_edge_mode, radius * 1.25);
+  }
+  else {
+    commandlist_add_dyntopo(chset, cl, brush, tool, hard_edge_mode, radius);
+  }
 
   /* build main brush command */
   cmd = BKE_brush_commandlist_add(cl, chset, true);
