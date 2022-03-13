@@ -110,6 +110,7 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
   export_params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
   export_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
   export_params.scaling_factor = RNA_float_get(op->ptr, "scaling_factor");
+  export_params.apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
   export_params.export_eval_mode = RNA_enum_get(op->ptr, "export_eval_mode");
 
   export_params.export_selected_objects = RNA_boolean_get(op->ptr, "export_selected_objects");
@@ -161,6 +162,7 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "scaling_factor", 0, NULL, ICON_NONE);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Objects"));
   uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
+  uiItemR(sub, imfptr, "apply_modifiers", 0, IFACE_("Apply Modifiers"), ICON_NONE);
   uiItemR(sub, imfptr, "export_eval_mode", 0, IFACE_("Properties"), ICON_NONE);
 
   /* Options for what to write. */
@@ -253,6 +255,8 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
   ot->ui = wm_obj_export_draw;
   ot->check = wm_obj_export_check;
 
+  ot->flag |= OPTYPE_PRESET;
+
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_OBJECT_IO,
                                  FILE_BLENDER,
@@ -303,6 +307,11 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
                 0.01,
                 1000.0f);
   /* File Writer options. */
+  RNA_def_boolean(ot->srna,
+                  "apply_modifiers",
+                  true,
+                  "Apply Modifiers",
+                  "Apply modifiers to exported meshes");
   RNA_def_enum(ot->srna,
                "export_eval_mode",
                io_obj_export_evaluation_mode,
