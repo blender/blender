@@ -223,7 +223,7 @@ Span<float> NURBSpline::knots() const
 static void calculate_basis_for_point(const float parameter,
                                       const int size,
                                       const int degree,
-                                      Span<float> knots,
+                                      const Span<float> knots,
                                       MutableSpan<float> r_weights,
                                       int &r_start_index)
 {
@@ -303,8 +303,10 @@ const NURBSpline::BasisCache &NURBSpline::calculate_basis_cache() const
   const Span<float> control_weights = this->weights();
   const Span<float> knots = this->knots();
 
+  const int last_control_point_index = is_cyclic_ ? size + degree : size;
+
   const float start = knots[degree];
-  const float end = is_cyclic_ ? knots[size + degree] : knots[size];
+  const float end = knots[last_control_point_index];
   const float step = (end - start) / this->evaluated_edges_size();
   for (const int i : IndexRange(eval_size)) {
     /* Clamp parameter due to floating point inaccuracy. */
@@ -312,12 +314,8 @@ const NURBSpline::BasisCache &NURBSpline::calculate_basis_cache() const
 
     MutableSpan<float> point_weights = basis_weights.slice(i * order, order);
 
-    calculate_basis_for_point(parameter,
-                              size + (is_cyclic_ ? degree : 0),
-                              degree,
-                              knots,
-                              point_weights,
-                              basis_start_indices[i]);
+    calculate_basis_for_point(
+        parameter, last_control_point_index, degree, knots, point_weights, basis_start_indices[i]);
 
     for (const int j : point_weights.index_range()) {
       const int point_index = (basis_start_indices[i] + j) % size;
