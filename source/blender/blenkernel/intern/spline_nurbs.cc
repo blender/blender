@@ -273,7 +273,7 @@ static void calculate_basis_for_point(const float parameter,
   r_start_index = start;
 }
 
-Span<NURBSpline::BasisCache> NURBSpline::calculate_basis_cache() const
+const NURBSpline::BasisCache &NURBSpline::calculate_basis_cache() const
 {
   if (!basis_cache_dirty_) {
     return basis_cache_;
@@ -286,18 +286,22 @@ Span<NURBSpline::BasisCache> NURBSpline::calculate_basis_cache() const
 
   const int size = this->size();
   const int eval_size = this->evaluated_points_size();
-  if (eval_size == 0) {
-    return {};
-  }
-
-  basis_cache_.resize(eval_size);
 
   const int order = this->order();
   const int degree = order - 1;
-  Span<float> control_weights = this->weights();
-  Span<float> knots = this->knots();
 
-  MutableSpan<BasisCache> basis_cache(basis_cache_);
+  basis_cache_.weights.resize(eval_size * order);
+  basis_cache_.start_indices.resize(eval_size);
+
+  if (eval_size == 0) {
+    return basis_cache_;
+  }
+
+  MutableSpan<float> basis_weights(basis_cache_.weights);
+  MutableSpan<int> basis_start_indices(basis_cache_.start_indices);
+
+  const Span<float> control_weights = this->weights();
+  const Span<float> knots = this->knots();
 
   const float start = knots[degree];
   const float end = is_cyclic_ ? knots[size + degree] : knots[size];
@@ -306,18 +310,18 @@ Span<NURBSpline::BasisCache> NURBSpline::calculate_basis_cache() const
     /* Clamp parameter due to floating point inaccuracy. */
     const float parameter = std::clamp(start + step * i, knots[0], knots[size + degree]);
 
-    BasisCache &basis = basis_cache[i];
-    basis.weights.resize(order);
+    MutableSpan<float> point_weights = basis_weights.slice(i * order, order);
+
     calculate_basis_for_point(parameter,
                               size + (is_cyclic_ ? degree : 0),
                               degree,
                               knots,
-                              basis.weights,
-                              basis.start_index);
+                              point_weights,
+                              basis_start_indices[i]);
 
-    for (const int j : basis.weights.index_range()) {
-      const int point_index = (basis.start_index + j) % size;
-      basis.weights[j] *= control_weights[point_index];
+    for (const int j : point_weights.index_range()) {
+      const int point_index = (basis_start_indices[i] + j) % size;
+      point_weights[j] *= control_weights[point_index];
     }
   }
 
@@ -326,17 +330,18 @@ Span<NURBSpline::BasisCache> NURBSpline::calculate_basis_cache() const
 }
 
 template<typename T>
-void interpolate_to_evaluated_impl(Span<NURBSpline::BasisCache> weights,
+void interpolate_to_evaluated_impl(const NURBSpline::BasisCache &basis_cache,
+                                   const int order,
                                    const blender::VArray<T> &src,
                                    MutableSpan<T> dst)
 {
   const int size = src.size();
-  BLI_assert(dst.size() == weights.size());
   blender::attribute_math::DefaultMixer<T> mixer(dst);
 
   for (const int i : dst.index_range()) {
-    Span<float> point_weights = weights[i].weights;
-    const int start_index = weights[i].start_index;
+    Span<float> point_weights = basis_cache.weights.as_span().slice(i * order, order);
+    const int start_index = basis_cache.start_indices[i];
+
     for (const int j : point_weights.index_range()) {
       const int point_index = (start_index + j) % size;
       mixer.mix_in(i, src[point_index], point_weights[j]);
@@ -354,14 +359,14 @@ GVArray NURBSpline::interpolate_to_evaluated(const GVArray &src) const
     return src;
   }
 
-  Span<BasisCache> basis_cache = this->calculate_basis_cache();
+  const BasisCache &basis_cache = this->calculate_basis_cache();
 
   GVArray new_varray;
   blender::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<blender::attribute_math::DefaultMixer<T>>) {
       Array<T> values(this->evaluated_points_size());
-      interpolate_to_evaluated_impl<T>(basis_cache, src.typed<T>(), values);
+      interpolate_to_evaluated_impl<T>(basis_cache, this->order(), src.typed<T>(), values);
       new_varray = VArray<T>::ForContainer(std::move(values));
     }
   });

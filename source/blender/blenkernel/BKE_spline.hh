@@ -453,12 +453,15 @@ class NURBSpline final : public Spline {
   KnotsMode knots_mode;
 
   struct BasisCache {
-    /** The influence at each control point `i + #start_index`. */
+    /**
+     * For each evaluated point, the weight for alls control points that influences it.
+     * The vector's size is the evaluated point count multiplied by the spline's order.
+     */
     blender::Vector<float> weights;
     /**
      * An offset for the start of #weights: the first control point index with a non-zero weight.
      */
-    int start_index;
+    blender::Vector<int> start_indices;
   };
 
  private:
@@ -484,7 +487,7 @@ class NURBSpline final : public Spline {
   mutable bool knots_dirty_ = true;
 
   /** Cache of control point influences on each evaluated point. */
-  mutable blender::Vector<BasisCache> basis_cache_;
+  mutable BasisCache basis_cache_;
   mutable std::mutex basis_cache_mutex_;
   mutable bool basis_cache_dirty_ = true;
 
@@ -547,7 +550,7 @@ class NURBSpline final : public Spline {
   void reverse_impl() override;
 
   void calculate_knots() const;
-  blender::Span<BasisCache> calculate_basis_cache() const;
+  const BasisCache &calculate_basis_cache() const;
 };
 
 /**
