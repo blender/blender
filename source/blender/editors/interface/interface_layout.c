@@ -1026,10 +1026,10 @@ static uiBut *ui_item_with_label(uiLayout *layout,
     {
       int w_label;
       if (ui_layout_variable_size(layout)) {
-        /* w_hint is width for label in this case.
-         * Use a default width for property button(s) */
+        /* In this case, a pure label without additional padding.
+         * Use a default width for property button(s). */
         prop_but_width = UI_UNIT_X * 5;
-        w_label = w_hint;
+        w_label = ui_text_icon_width_ex(layout, name, ICON_NONE, &ui_text_pad_none);
       }
       else {
         w_label = w_hint / 3;
