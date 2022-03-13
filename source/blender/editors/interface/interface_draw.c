@@ -411,7 +411,7 @@ static void histogram_draw_one(float r,
       immVertex2f(pos_attr, x2, y + (data[i] * h));
     }
     immEnd();
-  
+
     GPU_line_width(1.0f);
   }
   else {
