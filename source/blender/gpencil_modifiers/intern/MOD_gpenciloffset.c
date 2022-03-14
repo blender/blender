@@ -152,7 +152,7 @@ static void deformStroke(GpencilModifierData *md,
     loc_eul_size_to_mat4(mat, loc, rot, scale);
 
     /* Apply scale to thickness. */
-    float unit_scale = (scale[0] + scale[1] + scale[2]) / 3.0f;
+    float unit_scale = (fabsf(scale[0]) + fabsf(scale[1]) + fabsf(scale[2])) / 3.0f;
     pt->pressure *= unit_scale;
 
     mul_m4_v3(mat, &pt->x);
