@@ -102,7 +102,7 @@ static bool python_script_exec(
 
       fn_dummy_py = PyC_UnicodeFromByte(fn_dummy);
 
-      int buf_len_dummy;
+      size_t buf_len_dummy;
       buf = txt_to_buf(text, &buf_len_dummy);
       text->compiled = Py_CompileStringObject(buf, fn_dummy_py, Py_file_input, NULL, -1);
       MEM_freeN(buf);

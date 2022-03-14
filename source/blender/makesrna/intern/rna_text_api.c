@@ -40,7 +40,9 @@ static void rna_Text_from_string(Text *text, const char *str)
 
 static void rna_Text_as_string(Text *text, int *r_result_len, const char **result)
 {
-  *result = txt_to_buf(text, r_result_len);
+  size_t result_len;
+  *result = txt_to_buf(text, &result_len);
+  *r_result_len = result_len;
 }
 
 static void rna_Text_select_set(Text *text, int startl, int startc, int endl, int endc)

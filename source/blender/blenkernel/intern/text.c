@@ -1349,7 +1349,7 @@ void txt_sel_set(Text *text, int startl, int startc, int endl, int endc)
  * - Are not null terminated.
  * \{ */
 
-char *txt_to_buf_for_undo(Text *text, int *r_buf_len)
+char *txt_to_buf_for_undo(Text *text, size_t *r_buf_len)
 {
   int buf_len = 0;
   LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
@@ -1366,7 +1366,7 @@ char *txt_to_buf_for_undo(Text *text, int *r_buf_len)
   return buf;
 }
 
-void txt_from_buf_for_undo(Text *text, const char *buf, int buf_len)
+void txt_from_buf_for_undo(Text *text, const char *buf, size_t buf_len)
 {
   const char *buf_end = buf + buf_len;
   const char *buf_step = buf;
@@ -1434,10 +1434,10 @@ void txt_from_buf_for_undo(Text *text, const char *buf, int buf_len)
 /** \name Cut and Paste Functions
  * \{ */
 
-char *txt_to_buf(Text *text, int *r_buf_strlen)
+char *txt_to_buf(Text *text, size_t *r_buf_strlen)
 {
   /* Identical to #txt_to_buf_for_undo except that the string is nil terminated. */
-  int buf_len = 0;
+  size_t buf_len = 0;
   LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
     buf_len += l->len + 1;
   }
@@ -1453,10 +1453,10 @@ char *txt_to_buf(Text *text, int *r_buf_strlen)
   return buf;
 }
 
-char *txt_sel_to_buf(Text *text, int *r_buf_strlen)
+char *txt_sel_to_buf(Text *text, size_t *r_buf_strlen)
 {
   char *buf;
-  int length = 0;
+  size_t length = 0;
   TextLine *tmp, *linef, *linel;
   int charf, charl;
 
@@ -1500,42 +1500,32 @@ char *txt_sel_to_buf(Text *text, int *r_buf_strlen)
 
   if (linef == linel) {
     length = charl - charf;
-
     buf = MEM_mallocN(length + 1, "sel buffer");
-
-    BLI_strncpy(buf, linef->line + charf, length + 1);
+    memcpy(buf, linef->line + charf, length + 1);
   }
   else {
-    length += linef->len - charf;
-    length += charl;
-    length++; /* For the '\n' */
+    /* Add 1 for the '\n' */
+    length = (linef->len - charf) + charl + 1;
 
-    tmp = linef->next;
-    while (tmp && tmp != linel) {
+    for (tmp = linef->next; tmp && tmp != linel; tmp = tmp->next) {
       length += tmp->len + 1;
-      tmp = tmp->next;
     }
 
     buf = MEM_mallocN(length + 1, "sel buffer");
 
-    strncpy(buf, linef->line + charf, linef->len - charf);
+    memcpy(buf, linef->line + charf, linef->len - charf);
     length = linef->len - charf;
-
     buf[length++] = '\n';
 
-    tmp = linef->next;
-    while (tmp && tmp != linel) {
-      strncpy(buf + length, tmp->line, tmp->len);
+    for (tmp = linef->next; tmp && tmp != linel; tmp = tmp->next) {
+      memcpy(buf + length, tmp->line, tmp->len);
       length += tmp->len;
-
       buf[length++] = '\n';
-
-      tmp = tmp->next;
     }
-    strncpy(buf + length, linel->line, charl);
-    length += charl;
 
-    buf[length] = 0;
+    memcpy(buf + length, linel->line, charl);
+    length += charl;
+    buf[length] = '\0';
   }
 
   if (r_buf_strlen) {
