@@ -2435,7 +2435,7 @@ char *_last_local_obj = NULL;
 #  define JVKE_CHECK_ELEMENT(elem)
 #endif
 
-ATTR_NO_OPT static bool cleanup_vert(BMesh *bm, BMVert *v, const BMTracer *tracer)
+static bool cleanup_vert(BMesh *bm, BMVert *v, const BMTracer *tracer)
 {
   BMEdge *e = v->e;
 
@@ -2477,7 +2477,7 @@ ATTR_NO_OPT static bool cleanup_vert(BMesh *bm, BMVert *v, const BMTracer *trace
   BMFace *f = BM_face_create_quad_tri(bm, v1, v2, v3, NULL, f_example, BM_CREATE_NOP);
   BMLoop *l = f->l_first;
 
-  //ensure correct winding
+  // ensure correct winding
   do {
     if (l->radial_next != l && l->radial_next->v == l->v) {
       BM_face_normal_flip(bm, f);
@@ -2494,7 +2494,7 @@ ATTR_NO_OPT static bool cleanup_vert(BMesh *bm, BMVert *v, const BMTracer *trace
   return true;
 }
 
-ATTR_NO_OPT static void bmesh_kernel_check_val3_vert(BMesh *bm, BMEdge *e, const BMTracer *tracer)
+static void bmesh_kernel_check_val3_vert(BMesh *bm, BMEdge *e, const BMTracer *tracer)
 {
   if (!e->l) {
     return;
@@ -2528,12 +2528,12 @@ ATTR_NO_OPT static void bmesh_kernel_check_val3_vert(BMesh *bm, BMEdge *e, const
   } while (!stop);
 }
 
-ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
-                                                     BMEdge *e,
-                                                     BMVert *v_kill,
-                                                     const bool do_del,
-                                                     const bool combine_flags,
-                                                     const BMTracer *tracer)
+BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
+                                         BMEdge *e,
+                                         BMVert *v_kill,
+                                         const bool do_del,
+                                         const bool combine_flags,
+                                         const BMTracer *tracer)
 {
   BMVert *v_conn = BM_edge_other_vert(e, v_kill);
 
@@ -3015,13 +3015,13 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
 }
 
 /*original version of bmesh_kernel_join_vert_kill_edge*/
-ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
-                                                          BMEdge *e_kill,
-                                                          BMVert *v_kill,
-                                                          const bool do_del,
-                                                          const bool check_edge_exists,
-                                                          const bool kill_degenerate_faces,
-                                                          const bool combine_flags)
+BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
+                                              BMEdge *e_kill,
+                                              BMVert *v_kill,
+                                              const bool do_del,
+                                              const bool check_edge_exists,
+                                              const bool kill_degenerate_faces,
+                                              const bool combine_flags)
 {
   BLI_SMALLSTACK_DECLARE(faces_degenerate, BMFace *);
   BMVert *v_target = BM_edge_other_vert(e_kill, v_kill);
@@ -3102,7 +3102,7 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
   return v_target;
 }
 
-ATTR_NO_OPT BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
+BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 {
   BMLoop *l_iter, *l_f1 = NULL, *l_f2 = NULL;
   int newlen = 0, i, f1len = 0, f2len = 0;

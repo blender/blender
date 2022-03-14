@@ -205,7 +205,7 @@ void bmesh_radial_loop_append(BMEdge *e, BMLoop *l);
 void bm_kill_only_edge(BMesh *bm, BMEdge *e);
 void bm_kill_only_loop(BMesh *bm, BMLoop *l);
 void bm_kill_only_face(BMesh *bm, BMFace *f);
-bool edge_queue_test(struct EdgeQueueContext *eq_ctx, PBVH *pbvh, BMEdge *e);
+static bool edge_queue_test(struct EdgeQueueContext *eq_ctx, PBVH *pbvh, BMEdge *e);
 
 static void fix_mesh(PBVH *pbvh, BMesh *bm)
 {

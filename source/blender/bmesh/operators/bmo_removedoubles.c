@@ -443,7 +443,7 @@ void bmo_pointmerge_exec(BMesh *bm, BMOperator *op)
 
 #define USE_BM_EDGE_COLLAPSE
 
-ATTR_NO_OPT void bmo_collapse_exec(BMesh *bm, BMOperator *op)
+void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 {
   BMOperator weldop;
   BMWalker walker;

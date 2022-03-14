@@ -616,7 +616,7 @@ static uint bm_log_vert_id_get(BMLog *log, BMVert *v)
 }
 
 /*Get a vertex from its unique ID */
-ATTR_NO_OPT static BMElem *bm_log_elem_from_id(BMLog *log, uint id)
+static BMElem *bm_log_elem_from_id(BMLog *log, uint id)
 {
   if (log->bm->idmap.map && id >= ((unsigned int)log->bm->idmap.map_size)) {
     return NULL;
@@ -626,7 +626,7 @@ ATTR_NO_OPT static BMElem *bm_log_elem_from_id(BMLog *log, uint id)
 }
 
 /* Get a vertex from its unique ID */
-ATTR_NO_OPT static BMVert *bm_log_vert_from_id(BMLog *log, uint id)
+static BMVert *bm_log_vert_from_id(BMLog *log, uint id)
 {
   if (log->bm->idmap.map && id >= ((unsigned int)log->bm->idmap.map_size)) {
     return NULL;
@@ -3627,7 +3627,7 @@ int type_idx_map[] = {
     3,  // 8 BM_FACE
 };
 
-ATTR_NO_OPT static GHash *bm_clone_ghash(BMLogEntry *entry, GHash *ghash, int type)
+static GHash *bm_clone_ghash(BMLogEntry *entry, GHash *ghash, int type)
 {
   GHash *ghash2 = BLI_ghash_new(logkey_hash, logkey_cmp, __func__);
 
@@ -3694,7 +3694,7 @@ ATTR_NO_OPT static GHash *bm_clone_ghash(BMLogEntry *entry, GHash *ghash, int ty
   return ghash2;
 }
 
-ATTR_NO_OPT static BMLogEntry *bm_log_entry_clone_intern(BMLogEntry *entry, BMLog *newlog)
+static BMLogEntry *bm_log_entry_clone_intern(BMLogEntry *entry, BMLog *newlog)
 {
   BMLogEntry *newentry = MEM_callocN(sizeof(*entry), "BMLogEntry cloned");
 
@@ -3739,7 +3739,7 @@ ATTR_NO_OPT static BMLogEntry *bm_log_entry_clone_intern(BMLogEntry *entry, BMLo
   return newentry;
 }
 
-ATTR_NO_OPT static BMLogEntry *bm_log_entry_clone(BMLogEntry *entry, BMLog *newlog)
+static BMLogEntry *bm_log_entry_clone(BMLogEntry *entry, BMLog *newlog)
 {
   BMLogEntry *cur = entry;
   BMLogEntry *ret = NULL;
@@ -3766,7 +3766,7 @@ ATTR_NO_OPT static BMLogEntry *bm_log_entry_clone(BMLogEntry *entry, BMLog *newl
 
 #include <stdarg.h>
 
-ATTR_NO_OPT static void debuglog(const char *fmt, ...)
+static void debuglog(const char *fmt, ...)
 {
   va_list args;
   va_start(args, fmt);
@@ -3850,7 +3850,7 @@ static bool bm_check_ghash_set(
   return ok;
 }
 
-ATTR_NO_OPT static bool bm_log_validate_intern(
+static bool bm_log_validate_intern(
     BMesh *bm, BMLog *newlog, BMLogEntry *srcEntry, bool is_applied, bool do_apply)
 {
   bool precopy = do_apply;
@@ -3946,12 +3946,12 @@ ATTR_NO_OPT static bool bm_log_validate_intern(
   return ok;
 }
 
-ATTR_NO_OPT bool BM_log_validate_cur(BMLog *log)
+bool BM_log_validate_cur(BMLog *log)
 {
   return BM_log_validate(log->bm, log->current_entry, false);
 }
 
-ATTR_NO_OPT bool BM_log_validate(BMesh *inbm, BMLogEntry *entry, bool is_applied)
+bool BM_log_validate(BMesh *inbm, BMLogEntry *entry, bool is_applied)
 {
   return bm_log_validate_intern(inbm, entry->log, entry, is_applied, false);
 
