@@ -14,11 +14,11 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
 
     # Version the key-map.
     import copy
+    # Only copy once.
     has_copy = False
 
     # Default repeat to false.
     if keyconfig_version <= (2, 92, 0):
-        # Only copy once.
         if not has_copy:
             keyconfig_data = copy.deepcopy(keyconfig_data)
             has_copy = True
@@ -31,7 +31,6 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                     item_event["repeat"] = True
 
     if keyconfig_version <= (3, 2, 5):
-        # Only copy once.
         if not has_copy:
             keyconfig_data = copy.deepcopy(keyconfig_data)
             has_copy = True
@@ -47,5 +46,20 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                     if (value := item_event["value"]) != 'ANY':
                         item_event["direction"] = value
                     item_event["value"] = 'CLICK_DRAG'
+
+    if keyconfig_version <= (3, 2, 6):
+        if not has_copy:
+            keyconfig_data = copy.deepcopy(keyconfig_data)
+            has_copy = True
+
+        for _km_name, _km_parms, km_items_data in keyconfig_data:
+            for (_item_op, item_event, _item_prop) in km_items_data["items"]:
+                if ty_new := {
+                        'NDOF_BUTTON_ESC': 'ESC',
+                        'NDOF_BUTTON_ALT': 'LEFT_ALT',
+                        'NDOF_BUTTON_SHIFT': 'LEFT_SHIFT',
+                        'NDOF_BUTTON_CTRL': 'LEFT_CTRL',
+                }.get(item_event.get("type")):
+                    item_event["type"] = ty_new
 
     return keyconfig_data
