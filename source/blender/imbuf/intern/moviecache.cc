@@ -7,9 +7,9 @@
 
 #undef DEBUG_MESSAGES
 
+#include <cstdlib> /* for qsort */
 #include <memory.h>
 #include <mutex>
-#include <stdlib.h> /* for qsort */
 
 #include "MEM_CacheLimiterC-Api.h"
 #include "MEM_guardedalloc.h"
@@ -35,7 +35,7 @@
 #  define PRINT(format, ...)
 #endif
 
-static MEM_CacheLimiterC *limitor = NULL;
+static MEM_CacheLimiterC *limitor = nullptr;
 
 /* Image buffers managed by a moviecache might be using their own movie caches (used by color
  * management). In practice this means that, for example, freeing MovieCache used by MovieClip
@@ -43,7 +43,7 @@ static MEM_CacheLimiterC *limitor = NULL;
  * so regular mutex will not work here, hence the recursive lock. */
 static std::recursive_mutex limitor_lock;
 
-typedef struct MovieCache {
+struct MovieCache {
   char name[64];
 
   GHash *hash;
@@ -65,21 +65,21 @@ typedef struct MovieCache {
 
   int totseg, *points, proxy, render_flags; /* for visual statistics optimization */
   int pad;
-} MovieCache;
+};
 
-typedef struct MovieCacheKey {
+struct MovieCacheKey {
   MovieCache *cache_owner;
   void *userkey;
-} MovieCacheKey;
+};
 
-typedef struct MovieCacheItem {
+struct MovieCacheItem {
   MovieCache *cache_owner;
   ImBuf *ibuf;
   MEM_CacheLimiterHandleC *c_handle;
   void *priority_data;
   /* Indicates that #ibuf is null, because there was an error during load. */
   bool added_empty;
-} MovieCacheItem;
+};
 
 static unsigned int moviecache_hashhash(const void *keyv)
 {
@@ -177,8 +177,8 @@ static void moviecache_destructor(void *p)
 
     IMB_freeImBuf(item->ibuf);
 
-    item->ibuf = NULL;
-    item->c_handle = NULL;
+    item->ibuf = nullptr;
+    item->c_handle = nullptr;
 
     /* force cached segments to be updated */
     MEM_SAFE_FREE(cache->points);
@@ -232,7 +232,7 @@ static int get_item_priority(void *item_v, int default_priority)
 static bool get_item_destroyable(void *item_v)
 {
   MovieCacheItem *item = (MovieCacheItem *)item_v;
-  if (item->ibuf == NULL) {
+  if (item->ibuf == nullptr) {
     return true;
   }
   /* IB_BITMAPDIRTY means image was modified from inside blender and
@@ -258,7 +258,7 @@ void IMB_moviecache_destruct(void)
 {
   if (limitor) {
     delete_MEM_CacheLimiter(limitor);
-    limitor = NULL;
+    limitor = nullptr;
   }
 }
 
@@ -315,7 +315,7 @@ static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, boo
     IMB_moviecache_init();
   }
 
-  if (ibuf != NULL) {
+  if (ibuf != nullptr) {
     IMB_refImBuf(ibuf);
   }
 
@@ -330,9 +330,9 @@ static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, boo
 
   item->ibuf = ibuf;
   item->cache_owner = cache;
-  item->c_handle = NULL;
-  item->priority_data = NULL;
-  item->added_empty = ibuf == NULL;
+  item->c_handle = nullptr;
+  item->priority_data = nullptr;
+  item->added_empty = ibuf == nullptr;
 
   if (cache->getprioritydatafp) {
     item->priority_data = cache->getprioritydatafp(userkey);
@@ -374,7 +374,7 @@ bool IMB_moviecache_put_if_possible(MovieCache *cache, void *userkey, ImBuf *ibu
   size_t mem_in_use, mem_limit, elem_size;
   bool result = false;
 
-  elem_size = (ibuf == NULL) ? 0 : get_size_in_memory(ibuf);
+  elem_size = (ibuf == nullptr) ? 0 : get_size_in_memory(ibuf);
   mem_limit = MEM_CacheLimiter_get_maximum();
 
   limitor_lock.lock();
@@ -426,7 +426,7 @@ ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey, bool *r_is_cached_em
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 bool IMB_moviecache_has_frame(MovieCache *cache, void *userkey)
@@ -438,7 +438,7 @@ bool IMB_moviecache_has_frame(MovieCache *cache, void *userkey)
   key.userkey = userkey;
   item = (MovieCacheItem *)BLI_ghash_lookup(cache->hash, &key);
 
-  return item != NULL;
+  return item != nullptr;
 }
 
 void IMB_moviecache_free(MovieCache *cache)
@@ -490,7 +490,7 @@ void IMB_moviecache_get_cache_segments(
     MovieCache *cache, int proxy, int render_flags, int *r_totseg, int **r_points)
 {
   *r_totseg = 0;
-  *r_points = NULL;
+  *r_points = nullptr;
 
   if (!cache->getdatafp) {
     return;
