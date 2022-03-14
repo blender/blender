@@ -1353,8 +1353,7 @@ class NodeTreeMainUpdater {
   {
     Vector<const SocketRef *> sockets;
     for (const NodeRef *node : tree.nodes()) {
-      const bNode *bnode = node->bnode();
-      if (bnode->typeinfo->nclass != NODE_CLASS_OUTPUT && bnode->type != NODE_GROUP_OUTPUT) {
+      if (!this->is_output_node(*node)) {
         continue;
       }
       for (const InputSocketRef *socket : node->inputs()) {
@@ -1364,6 +1363,24 @@ class NodeTreeMainUpdater {
       }
     }
     return sockets;
+  }
+
+  bool is_output_node(const NodeRef &node) const
+  {
+    const bNode &bnode = *node.bnode();
+    if (bnode.typeinfo->nclass == NODE_CLASS_OUTPUT) {
+      return true;
+    }
+    if (bnode.type == NODE_GROUP_OUTPUT) {
+      return true;
+    }
+    /* Assume node groups without output sockets are outputs. */
+    /* TODO: Store whether a node group contains a top-level output node (e.g. Material Output) in
+     * run-time information on the node group itself. */
+    if (bnode.type == NODE_GROUP && node.outputs().is_empty()) {
+      return true;
+    }
+    return false;
   }
 
   /**
