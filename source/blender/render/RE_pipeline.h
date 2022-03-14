@@ -335,7 +335,8 @@ void RE_RenderFrame(struct Render *re,
                     struct Scene *scene,
                     struct ViewLayer *single_layer,
                     struct Object *camera_override,
-                    int frame,
+                    const int frame,
+                    const float subframe,
                     bool write_still);
 /**
  * A version of #RE_RenderFrame that saves images to disk.

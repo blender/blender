@@ -355,7 +355,14 @@ static int screen_render_exec(bContext *C, wmOperator *op)
                   scene->r.frame_step);
   }
   else {
-    RE_RenderFrame(re, mainp, scene, single_layer, camera_override, scene->r.cfra, is_write_still);
+    RE_RenderFrame(re,
+                   mainp,
+                   scene,
+                   single_layer,
+                   camera_override,
+                   scene->r.cfra,
+                   scene->r.subframe,
+                   is_write_still);
   }
 
   RE_SetReports(re, nullptr);
@@ -655,6 +662,7 @@ static void render_startjob(void *rjv, short *stop, short *do_update, float *pro
                    rj->single_layer,
                    rj->camera_override,
                    rj->scene->r.cfra,
+                   rj->scene->r.subframe,
                    rj->write_still);
   }
 

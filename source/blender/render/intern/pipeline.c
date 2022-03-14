@@ -1844,7 +1844,8 @@ void RE_RenderFrame(Render *re,
                     Scene *scene,
                     ViewLayer *single_layer,
                     Object *camera_override,
-                    int frame,
+                    const int frame,
+                    const float subframe,
                     const bool write_still)
 {
   render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_INIT);
@@ -1854,6 +1855,7 @@ void RE_RenderFrame(Render *re,
   G.is_rendering = true;
 
   scene->r.cfra = frame;
+  scene->r.subframe = subframe;
 
   if (render_init_from_main(re, &scene->r, bmain, scene, single_layer, camera_override, 0, 0)) {
     const RenderData rd = scene->r;
@@ -2305,7 +2307,8 @@ void RE_RenderAnim(Render *re,
 
   const RenderData rd = scene->r;
   bMovieHandle *mh = NULL;
-  const int cfrao = rd.cfra;
+  const int cfra_old = rd.cfra;
+  const float subframe_old = rd.subframe;
   int nfra, totrendered = 0, totskipped = 0;
   const int totvideos = BKE_scene_multiview_num_videos_get(&rd);
   const bool is_movie = BKE_imtype_is_movie(rd.im_format.imtype);
@@ -2373,6 +2376,7 @@ void RE_RenderAnim(Render *re,
   re->flag |= R_ANIMATION;
 
   {
+    scene->r.subframe = 0.0f;
     for (nfra = sfra, scene->r.cfra = sfra; scene->r.cfra <= efra; scene->r.cfra++) {
       char name[FILE_MAX];
 
@@ -2481,6 +2485,7 @@ void RE_RenderAnim(Render *re,
       }
 
       re->r.cfra = scene->r.cfra; /* weak.... */
+      re->r.subframe = scene->r.subframe;
 
       /* run callbacks before rendering, before the scene is updated */
       render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_PRE);
@@ -2549,7 +2554,8 @@ void RE_RenderAnim(Render *re,
     BKE_report(re->reports, RPT_INFO, "No frames rendered, skipped to not overwrite");
   }
 
-  scene->r.cfra = cfrao;
+  scene->r.cfra = cfra_old;
+  scene->r.subframe = subframe_old;
 
   re->flag &= ~R_ANIMATION;
 
