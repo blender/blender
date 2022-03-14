@@ -223,7 +223,7 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject *UNUSED(self), PyObject *arg
                                   1,
                                   pygpu_textureformat.value_found,
                                   GPU_DATA_FLOAT,
-                                  NULL);
+                                  data);
     }
     else if (len == 2) {
       tex = GPU_texture_create_2d(
