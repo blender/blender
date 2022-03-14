@@ -7,10 +7,13 @@
 
 #pragma once
 
+struct Depsgraph;
+struct GpencilModifierData;
 struct MDeformVert;
 struct Material;
 struct Object;
 struct bGPDlayer;
+struct bGPDframe;
 struct bGPDstroke;
 
 /**
@@ -33,3 +36,18 @@ bool is_stroke_affected_by_modifier(struct Object *ob,
  * Verify if valid vertex group *and return weight.
  */
 float get_modifier_point_weight(struct MDeformVert *dvert, bool inverse, int def_nr);
+/**
+ * Generic bake function for deformStroke.
+ */
+typedef void (*gpBakeCb)(struct GpencilModifierData *md_,
+                         struct Depsgraph *depsgraph_,
+                         struct Object *ob_,
+                         struct bGPDlayer *gpl_,
+                         struct bGPDframe *gpf_,
+                         struct bGPDstroke *gps_);
+
+void generic_bake_deform_stroke(struct Depsgraph *depsgraph,
+                                struct GpencilModifierData *md,
+                                struct Object *ob,
+                                const bool retime,
+                                gpBakeCb bake_cb);
