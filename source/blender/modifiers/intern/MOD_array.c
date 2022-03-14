@@ -38,6 +38,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "MOD_ui_common.h"
 #include "MOD_util.h"

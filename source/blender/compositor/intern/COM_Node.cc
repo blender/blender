@@ -4,6 +4,7 @@
 #include "BKE_node.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "COM_Node.h" /* own include */
 

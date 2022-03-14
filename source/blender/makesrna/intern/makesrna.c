@@ -3304,12 +3304,12 @@ static const char *rna_property_subtype_unit(PropertySubType type)
   }
 }
 
-static void rna_generate_internal_struct_prototypes(BlenderRNA *brna, FILE *f)
+static void rna_generate_struct_rna_prototypes(BlenderRNA *brna, FILE *f)
 {
   StructRNA *srna;
 
   for (srna = brna->structs.first; srna; srna = srna->cont.next) {
-    fprintf(f, "extern StructRNA RNA_%s;\n", srna->identifier);
+    fprintf(f, "extern struct StructRNA RNA_%s;\n", srna->identifier);
   }
   fprintf(f, "\n");
 }
@@ -3345,6 +3345,8 @@ static void rna_generate_blender(BlenderRNA *brna, FILE *f)
 
 static void rna_generate_external_property_prototypes(BlenderRNA *brna, FILE *f)
 {
+  rna_generate_struct_rna_prototypes(brna, f);
+
   for (StructRNA *srna = brna->structs.first; srna; srna = srna->cont.next) {
     for (PropertyRNA *prop = srna->cont.properties.first; prop; prop = prop->next) {
       fprintf(f, "extern struct PropertyRNA rna_%s_%s;\n", srna->identifier, prop->identifier);
@@ -5225,7 +5227,7 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
     fprintf(file,
             "/* Automatically generated function declarations for the Data API.\n"
             " * Do not edit manually, changes will be overwritten.              */\n\n");
-    rna_generate_internal_struct_prototypes(brna, file);
+    rna_generate_struct_rna_prototypes(brna, file);
     fclose(file);
     status = (DefRNA.error != 0);
   }

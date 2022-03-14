@@ -27,6 +27,7 @@
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "transform.h"
 #include "transform_convert.h"

@@ -40,6 +40,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 #include "RNA_types.h"
 
 #include "UI_interface.h"

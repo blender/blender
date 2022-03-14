@@ -25,6 +25,7 @@
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 #include "RNA_types.h"
 
 #include "bpy_rna.h"

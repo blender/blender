@@ -26,6 +26,7 @@
 #include "node_util.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "NOD_composite.h"
 #include "node_composite_util.hh"

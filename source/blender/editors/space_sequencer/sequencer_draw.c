@@ -54,6 +54,8 @@
 
 #include "BIF_glutil.h"
 
+#include "RNA_prototypes.h"
+
 #include "SEQ_effects.h"
 #include "SEQ_iterator.h"
 #include "SEQ_prefetch.h"

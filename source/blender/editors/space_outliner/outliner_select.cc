@@ -62,6 +62,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "outliner_intern.hh"
 #include "tree/tree_element_seq.hh"

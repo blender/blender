@@ -19,6 +19,8 @@ set(INC
   ../../render
   ../../windowmanager
   ../../../../intern/guardedalloc
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 
@@ -270,3 +272,6 @@ if(WITH_UNITY_BUILD)
   set_target_properties(bf_nodes_geometry PROPERTIES UNITY_BUILD ON)
   set_target_properties(bf_nodes_geometry PROPERTIES UNITY_BUILD_BATCH_SIZE 10)
 endif()
+
+# RNA_prototypes.h
+add_dependencies(bf_nodes_geometry bf_rna)

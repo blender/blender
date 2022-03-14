@@ -41,6 +41,8 @@
 #include "BLO_read_write.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
+
 #include "nla_private.h"
 
 static CLG_LogRef LOG = {"bke.nla"};

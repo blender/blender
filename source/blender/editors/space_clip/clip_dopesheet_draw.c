@@ -27,6 +27,7 @@
 #include "BLF_api.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "GPU_immediate.h"
 #include "GPU_state.h"

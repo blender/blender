@@ -24,6 +24,7 @@
 #include "BKE_global.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 #include "RNA_types.h"
 
 #include "bpy_rna_driver.h" /* for pyrna_driver_get_variable_value */

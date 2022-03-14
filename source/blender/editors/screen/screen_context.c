@@ -36,6 +36,7 @@
 #include "BKE_tracking.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"

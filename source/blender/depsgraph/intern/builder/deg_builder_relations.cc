@@ -82,6 +82,7 @@
 #include "BKE_world.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 #include "RNA_types.h"
 
 #include "SEQ_iterator.h"

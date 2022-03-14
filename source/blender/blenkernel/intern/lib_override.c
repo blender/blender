@@ -49,6 +49,7 @@
 #include "PIL_time.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 #include "RNA_types.h"
 
 #include "atomic_ops.h"

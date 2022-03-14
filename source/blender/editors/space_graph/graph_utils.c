@@ -27,6 +27,7 @@
 #include "UI_interface.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "graph_intern.h" /* own include */
 

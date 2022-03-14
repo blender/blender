@@ -33,6 +33,7 @@
 #include "interface_intern.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"

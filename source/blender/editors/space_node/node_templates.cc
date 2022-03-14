@@ -26,6 +26,7 @@
 #include "BKE_node_tree_update.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.h"

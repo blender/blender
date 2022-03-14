@@ -63,6 +63,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "NOD_common.h"
 #include "NOD_composite.h"
