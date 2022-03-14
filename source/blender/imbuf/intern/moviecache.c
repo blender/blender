@@ -160,7 +160,7 @@ static int compare_int(const void *av, const void *bv)
   return *a - *b;
 }
 
-static void IMB_moviecache_destructor(void *p)
+static void moviecache_destructor(void *p)
 {
   MovieCacheItem *item = (MovieCacheItem *)p;
 
@@ -242,7 +242,7 @@ static bool get_item_destroyable(void *item_v)
 
 void IMB_moviecache_init(void)
 {
-  limitor = new_MEM_CacheLimiter(IMB_moviecache_destructor, get_item_size);
+  limitor = new_MEM_CacheLimiter(moviecache_destructor, get_item_size);
 
   MEM_CacheLimiter_ItemPriority_Func_set(limitor, get_item_priority);
   MEM_CacheLimiter_ItemDestroyable_Func_set(limitor, get_item_destroyable);
