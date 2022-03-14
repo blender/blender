@@ -26,6 +26,7 @@
 #include "BKE_context.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 
@@ -98,7 +99,6 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
       band = ptr.data;
 
       /* Set this to a sub-member of the property to trigger an update. */
-      extern PropertyRNA rna_ColorRamp_color_mode;
       rna_update_ptr = ptr;
       rna_update_prop = &rna_ColorRamp_color_mode;
       is_undo = RNA_struct_undo_check(ptr.type);
