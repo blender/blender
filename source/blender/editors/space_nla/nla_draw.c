@@ -110,7 +110,7 @@ static void nla_action_draw_keyframes(
    */
 
   Range2f frame_range;
-  ED_keylist_all_keys_frame_range(keylist, &frame_range);
+  ED_keylist_frame_range(keylist, &frame_range);
   immRectf(pos_id, frame_range.min, ymin + 2, frame_range.max, ymax - 2);
   immUnbindProgram();
 

@@ -220,8 +220,8 @@ static int pose_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEven
     bAnimVizSettings *avs = &ob->pose->avs;
     PointerRNA avs_ptr;
 
-    RNA_enum_set(op->ptr, "display_type", avs->path_type);
-    RNA_enum_set(op->ptr, "range", avs->path_range);
+    RNA_int_set(op->ptr, "start_frame", avs->path_sf);
+    RNA_int_set(op->ptr, "end_frame", avs->path_ef);
 
     RNA_pointer_create(NULL, &RNA_AnimVizMotionPaths, avs, &avs_ptr);
     RNA_enum_set(op->ptr, "bake_location", RNA_enum_get(&avs_ptr, "bake_location"));
@@ -229,7 +229,7 @@ static int pose_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEven
 
   /* show popup dialog to allow editing of range... */
   /* FIXME: hard-coded dimensions here are just arbitrary. */
-  return WM_operator_props_dialog_popup(C, op, 270);
+  return WM_operator_props_dialog_popup(C, op, 200);
 }
 
 /* For the object with pose/action: create path curves for selected bones
@@ -249,9 +249,8 @@ static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
     bAnimVizSettings *avs = &ob->pose->avs;
     PointerRNA avs_ptr;
 
-    avs->path_type = RNA_enum_get(op->ptr, "display_type");
-    avs->path_range = RNA_enum_get(op->ptr, "range");
-    animviz_motionpath_compute_range(ob, scene);
+    avs->path_sf = RNA_int_get(op->ptr, "start_frame");
+    avs->path_ef = RNA_int_get(op->ptr, "end_frame");
 
     RNA_pointer_create(NULL, &RNA_AnimVizMotionPaths, avs, &avs_ptr);
     RNA_enum_set(&avs_ptr, "bake_location", RNA_enum_get(op->ptr, "bake_location"));
@@ -259,6 +258,7 @@ static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
 
   /* set up path data for bones being calculated */
   CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones_from_active_object) {
+    /* verify makes sure that the selected bone has a bone with the appropriate settings */
     animviz_verify_motionpaths(op->reports, scene, ob, pchan);
   }
   CTX_DATA_END;
@@ -281,19 +281,6 @@ static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static bool pose_calculate_paths_poll(bContext *C)
-{
-  if (!ED_operator_posemode_exclusive(C)) {
-    return false;
-  }
-  Object *ob = CTX_data_active_object(C);
-  bArmature *arm = ob->data;
-  if (ELEM(NULL, ob, arm, ob->pose)) {
-    return false;
-  }
-  return true;
-}
-
 void POSE_OT_paths_calculate(wmOperatorType *ot)
 {
   /* identifiers */
@@ -304,24 +291,30 @@ void POSE_OT_paths_calculate(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = pose_calculate_paths_invoke;
   ot->exec = pose_calculate_paths_exec;
-  ot->poll = pose_calculate_paths_poll;
+  ot->poll = ED_operator_posemode_exclusive;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_enum(ot->srna,
-               "display_type",
-               rna_enum_motionpath_display_type_items,
-               MOTIONPATH_TYPE_RANGE,
-               "Display type",
-               "");
-  RNA_def_enum(ot->srna,
-               "range",
-               rna_enum_motionpath_range_items,
-               MOTIONPATH_RANGE_SCENE,
-               "Computation Range",
-               "");
+  RNA_def_int(ot->srna,
+              "start_frame",
+              1,
+              MINAFRAME,
+              MAXFRAME,
+              "Start",
+              "First frame to calculate bone paths on",
+              MINFRAME,
+              MAXFRAME / 2.0);
+  RNA_def_int(ot->srna,
+              "end_frame",
+              250,
+              MINAFRAME,
+              MAXFRAME,
+              "End",
+              "Last frame to calculate bone paths on",
+              MINFRAME,
+              MAXFRAME / 2.0);
 
   RNA_def_enum(ot->srna,
                "bake_location",
@@ -343,7 +336,7 @@ static bool pose_update_paths_poll(bContext *C)
   return false;
 }
 
-static int pose_update_paths_exec(bContext *C, wmOperator *op)
+static int pose_update_paths_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
   Scene *scene = CTX_data_scene(C);
@@ -351,13 +344,6 @@ static int pose_update_paths_exec(bContext *C, wmOperator *op)
   if (ELEM(NULL, ob, scene)) {
     return OPERATOR_CANCELLED;
   }
-  animviz_motionpath_compute_range(ob, scene);
-
-  /* set up path data for bones being calculated */
-  CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones_from_active_object) {
-    animviz_verify_motionpaths(op->reports, scene, ob, pchan);
-  }
-  CTX_DATA_END;
 
   /* Calculate the bones that now have motion-paths. */
   /* TODO: only make for the selected bones? */

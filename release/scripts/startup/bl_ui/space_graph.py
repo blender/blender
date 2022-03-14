@@ -390,9 +390,6 @@ class GRAPH_MT_context_menu(Menu):
         layout.operator_menu_enum("graph.mirror", "type", text="Mirror")
         layout.operator_menu_enum("graph.snap", "type", text="Snap")
 
-        layout.separator()
-        layout.menu("VIEW3D_MT_motion_path")
-
 
 class GRAPH_MT_pivot_pie(Menu):
     bl_label = "Pivot Point"

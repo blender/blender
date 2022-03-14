@@ -304,57 +304,23 @@ const struct ListBase *ED_keylist_listbase(const AnimKeylist *keylist)
   return &keylist->key_columns;
 }
 
-static void keylist_first_last(const struct AnimKeylist *keylist,
-                               const struct ActKeyColumn **first_column,
-                               const struct ActKeyColumn **last_column)
+bool ED_keylist_frame_range(const struct AnimKeylist *keylist, Range2f *r_frame_range)
 {
+  BLI_assert(r_frame_range);
+
+  if (ED_keylist_is_empty(keylist)) {
+    return false;
+  }
+
+  const ActKeyColumn *first_column;
+  const ActKeyColumn *last_column;
   if (keylist->is_runtime_initialized) {
-    *first_column = &keylist->runtime.key_columns[0];
-    *last_column = &keylist->runtime.key_columns[keylist->column_len - 1];
+    first_column = &keylist->runtime.key_columns[0];
+    last_column = &keylist->runtime.key_columns[keylist->column_len - 1];
   }
   else {
-    *first_column = static_cast<const ActKeyColumn *>(keylist->key_columns.first);
-    *last_column = static_cast<const ActKeyColumn *>(keylist->key_columns.last);
-  }
-}
-
-bool ED_keylist_all_keys_frame_range(const struct AnimKeylist *keylist, Range2f *r_frame_range)
-{
-  BLI_assert(r_frame_range);
-
-  if (ED_keylist_is_empty(keylist)) {
-    return false;
-  }
-
-  const ActKeyColumn *first_column;
-  const ActKeyColumn *last_column;
-  keylist_first_last(keylist, &first_column, &last_column);
-  r_frame_range->min = first_column->cfra;
-  r_frame_range->max = last_column->cfra;
-
-  return true;
-}
-
-bool ED_keylist_selected_keys_frame_range(const struct AnimKeylist *keylist,
-                                          Range2f *r_frame_range)
-{
-  BLI_assert(r_frame_range);
-
-  if (ED_keylist_is_empty(keylist)) {
-    return false;
-  }
-
-  const ActKeyColumn *first_column;
-  const ActKeyColumn *last_column;
-  keylist_first_last(keylist, &first_column, &last_column);
-  while (first_column && !(first_column->sel & SELECT)) {
-    first_column = first_column->next;
-  }
-  while (last_column && !(last_column->sel & SELECT)) {
-    last_column = last_column->prev;
-  }
-  if (!first_column || !last_column || first_column == last_column) {
-    return false;
+    first_column = static_cast<const ActKeyColumn *>(keylist->key_columns.first);
+    last_column = static_cast<const ActKeyColumn *>(keylist->key_columns.last);
   }
   r_frame_range->min = first_column->cfra;
   r_frame_range->max = last_column->cfra;
