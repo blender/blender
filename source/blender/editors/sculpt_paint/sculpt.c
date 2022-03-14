@@ -8571,7 +8571,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
         reports, RPT_WARNING, "Object has non-uniform scale, sculpting may be unpredictable");
   }
   else if (is_negative_m4(ob->obmat)) {
-    BKE_report(reports, RPT_ERROR, "Object has negative scale, \nsculpting may be unpredictable.\nApply scale in object mode with Ctrl A->Scale.");
+    BKE_report(reports, RPT_ERROR, "Object has negative scale. \nSculpting may be unpredictable.\nApply scale in object mode with Ctrl A->Scale.");
   }
 
   Paint *paint = BKE_paint_get_active_from_paintmode(scene, PAINT_MODE_SCULPT);

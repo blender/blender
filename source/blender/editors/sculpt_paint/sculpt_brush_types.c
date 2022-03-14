@@ -4260,7 +4260,7 @@ static void do_displacement_heal_cb(void *__restrict userdata,
   BKE_pbvh_node_get_grids(ss->pbvh, node, &grid_indices, &totgrid, &maxgrid, &gridsize, &grids);
 
   float(*disps)[3] = MEM_calloc_arrayN(gridsize * gridsize, sizeof(float) * 3, __func__);
-  float(*mats)[16] = MEM_calloc_arrayN(gridsize * gridsize, sizeof(float) * 16, __func__);
+  float(*mats)[3][3] = MEM_calloc_arrayN(gridsize * gridsize, sizeof(float) * 16, __func__);
   float(*limits)[3] = MEM_calloc_arrayN(gridsize * gridsize, sizeof(float) * 3, __func__);
 
   bool modified = false;
@@ -4277,7 +4277,7 @@ static void do_displacement_heal_cb(void *__restrict userdata,
         float mat[3][3], p[3];
 
         BKE_subdiv_ccg_get_tangent_matrix(ss->subdiv_ccg, &coord, mat, p);
-        copy_m3_m3(mats[locali], mat);
+        memcpy((void *)mats[locali], (void*)mat, sizeof(mat));
 
         invert_m3(mat);
 
