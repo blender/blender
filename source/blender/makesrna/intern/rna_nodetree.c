@@ -4539,6 +4539,24 @@ static void rna_ShaderNode_is_active_output_set(PointerRNA *ptr, bool value)
   }
 }
 
+static void rna_GroupOutput_is_active_output_set(PointerRNA *ptr, bool value)
+{
+  bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
+  bNode *node = ptr->data;
+  if (value) {
+    /* Make sure that no other group output is active at the same time. */
+    LISTBASE_FOREACH (bNode *, other_node, &ntree->nodes) {
+      if (other_node->type == NODE_GROUP_OUTPUT) {
+        other_node->flag &= ~NODE_DO_OUTPUT;
+      }
+    }
+    node->flag |= NODE_DO_OUTPUT;
+  }
+  else {
+    node->flag &= ~NODE_DO_OUTPUT;
+  }
+}
+
 static PointerRNA rna_ShaderNodePointDensity_psys_get(PointerRNA *ptr)
 {
   bNode *node = ptr->data;
@@ -4917,6 +4935,7 @@ static void def_group_output(StructRNA *srna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_DO_OUTPUT);
   RNA_def_property_ui_text(
       prop, "Active Output", "True if this node is used as the active group output");
+  RNA_def_property_boolean_funcs(prop, NULL, "rna_GroupOutput_is_active_output_set");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
