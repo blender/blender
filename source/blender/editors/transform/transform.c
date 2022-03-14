@@ -1519,12 +1519,6 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
         wmMsgParams_RNA msg_key_params = {{0}};
         RNA_pointer_create(&t->scene->id, &RNA_ToolSettings, ts, &msg_key_params.ptr);
 
-        _WM_MESSAGE_EXTERN_BEGIN;
-        extern PropertyRNA rna_ToolSettings_use_snap;
-        extern PropertyRNA rna_ToolSettings_use_snap_node;
-        extern PropertyRNA rna_ToolSettings_use_snap_sequencer;
-        extern PropertyRNA rna_ToolSettings_use_snap_uv;
-        _WM_MESSAGE_EXTERN_END;
         if (t->spacetype == SPACE_NODE) {
           snap_flag_ptr = &ts->snap_flag_node;
           msg_key_params.prop = &rna_ToolSettings_use_snap_node;
