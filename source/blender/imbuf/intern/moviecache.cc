@@ -77,22 +77,22 @@ typedef struct MovieCacheItem {
 
 static unsigned int moviecache_hashhash(const void *keyv)
 {
-  const MovieCacheKey *key = keyv;
+  const MovieCacheKey *key = (const MovieCacheKey *)keyv;
 
   return key->cache_owner->hashfp(key->userkey);
 }
 
 static bool moviecache_hashcmp(const void *av, const void *bv)
 {
-  const MovieCacheKey *a = av;
-  const MovieCacheKey *b = bv;
+  const MovieCacheKey *a = (const MovieCacheKey *)av;
+  const MovieCacheKey *b = (const MovieCacheKey *)bv;
 
   return a->cache_owner->cmpfp(a->userkey, b->userkey);
 }
 
 static void moviecache_keyfree(void *val)
 {
-  MovieCacheKey *key = val;
+  MovieCacheKey *key = (MovieCacheKey *)val;
 
   BLI_mempool_free(key->cache_owner->userkeys_pool, key->userkey);
 
@@ -130,8 +130,8 @@ static void check_unused_keys(MovieCache *cache)
   BLI_ghashIterator_init(&gh_iter, cache->hash);
 
   while (!BLI_ghashIterator_done(&gh_iter)) {
-    const MovieCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
-    const MovieCacheItem *item = BLI_ghashIterator_getValue(&gh_iter);
+    const MovieCacheKey *key = (const MovieCacheKey *)BLI_ghashIterator_getKey(&gh_iter);
+    const MovieCacheItem *item = (const MovieCacheItem *)BLI_ghashIterator_getValue(&gh_iter);
 
     BLI_ghashIterator_step(&gh_iter);
 
@@ -155,8 +155,8 @@ static void check_unused_keys(MovieCache *cache)
 
 static int compare_int(const void *av, const void *bv)
 {
-  const int *a = av;
-  const int *b = bv;
+  const int *a = (int *)av;
+  const int *b = (int *)bv;
   return *a - *b;
 }
 
@@ -265,7 +265,7 @@ MovieCache *IMB_moviecache_create(const char *name,
 
   PRINT("%s: cache '%s' create\n", __func__, name);
 
-  cache = MEM_callocN(sizeof(MovieCache), "MovieCache");
+  cache = (MovieCache *)MEM_callocN(sizeof(MovieCache), "MovieCache");
 
   BLI_strncpy(cache->name, name, sizeof(cache->name));
 
@@ -313,12 +313,12 @@ static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, boo
     IMB_refImBuf(ibuf);
   }
 
-  key = BLI_mempool_alloc(cache->keys_pool);
+  key = (MovieCacheKey *)BLI_mempool_alloc(cache->keys_pool);
   key->cache_owner = cache;
   key->userkey = BLI_mempool_alloc(cache->userkeys_pool);
   memcpy(key->userkey, userkey, cache->keysize);
 
-  item = BLI_mempool_alloc(cache->items_pool);
+  item = (MovieCacheItem *)BLI_mempool_alloc(cache->items_pool);
 
   PRINT("%s: cache '%s' put %p, item %p\n", __func__, cache->name, ibuf, item);
 
@@ -467,8 +467,8 @@ void IMB_moviecache_cleanup(MovieCache *cache,
   BLI_ghashIterator_init(&gh_iter, cache->hash);
 
   while (!BLI_ghashIterator_done(&gh_iter)) {
-    MovieCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
-    MovieCacheItem *item = BLI_ghashIterator_getValue(&gh_iter);
+    MovieCacheKey *key = (MovieCacheKey *)BLI_ghashIterator_getKey(&gh_iter);
+    MovieCacheItem *item = (MovieCacheItem *)BLI_ghashIterator_getValue(&gh_iter);
 
     BLI_ghashIterator_step(&gh_iter);
 
@@ -500,14 +500,14 @@ void IMB_moviecache_get_cache_segments(
   }
   else {
     int totframe = BLI_ghash_len(cache->hash);
-    int *frames = MEM_callocN(totframe * sizeof(int), "movieclip cache frames");
+    int *frames = (int *)MEM_callocN(totframe * sizeof(int), "movieclip cache frames");
     int a, totseg = 0;
     GHashIterator gh_iter;
 
     a = 0;
     GHASH_ITER (gh_iter, cache->hash) {
-      MovieCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
-      MovieCacheItem *item = BLI_ghashIterator_getValue(&gh_iter);
+      MovieCacheKey *key = (MovieCacheKey *)BLI_ghashIterator_getKey(&gh_iter);
+      MovieCacheItem *item = (MovieCacheItem *)BLI_ghashIterator_getValue(&gh_iter);
       int framenr, curproxy, curflags;
 
       if (item->ibuf) {
@@ -535,7 +535,7 @@ void IMB_moviecache_get_cache_segments(
     if (totseg) {
       int b, *points;
 
-      points = MEM_callocN(sizeof(int[2]) * totseg, "movieclip cache segments");
+      points = (int *)MEM_callocN(sizeof(int[2]) * totseg, "movieclip cache segments");
 
       /* fill */
       for (a = 0, b = 0; a < totframe; a++) {
@@ -593,12 +593,12 @@ void IMB_moviecacheIter_step(struct MovieCacheIter *iter)
 
 ImBuf *IMB_moviecacheIter_getImBuf(struct MovieCacheIter *iter)
 {
-  MovieCacheItem *item = BLI_ghashIterator_getValue((GHashIterator *)iter);
+  MovieCacheItem *item = (MovieCacheItem *)BLI_ghashIterator_getValue((GHashIterator *)iter);
   return item->ibuf;
 }
 
 void *IMB_moviecacheIter_getUserKey(struct MovieCacheIter *iter)
 {
-  MovieCacheKey *key = BLI_ghashIterator_getKey((GHashIterator *)iter);
+  MovieCacheKey *key = (MovieCacheKey *)BLI_ghashIterator_getKey((GHashIterator *)iter);
   return key->userkey;
 }
