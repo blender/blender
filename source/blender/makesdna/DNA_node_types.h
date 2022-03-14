@@ -1592,6 +1592,18 @@ typedef struct NodeGeometryAttributeCapture {
   int8_t domain;
 } NodeGeometryAttributeCapture;
 
+typedef struct NodeGeometryStoreNamedAttribute {
+  /* CustomDataType. */
+  int8_t data_type;
+  /* AttributeDomain. */
+  int8_t domain;
+} NodeGeometryStoreNamedAttribute;
+
+typedef struct NodeGeometryInputNamedAttribute {
+  /* CustomDataType. */
+  int8_t data_type;
+} NodeGeometryInputNamedAttribute;
+
 typedef struct NodeGeometryStringToCurves {
   /* GeometryNodeStringToCurvesOverflowMode */
   uint8_t overflow;

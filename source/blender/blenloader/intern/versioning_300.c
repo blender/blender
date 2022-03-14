@@ -527,7 +527,7 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
              GEO_NODE_TRIM_CURVE,
              GEO_NODE_REPLACE_MATERIAL,
              GEO_NODE_SUBDIVIDE_MESH,
-             GEO_NODE_ATTRIBUTE_REMOVE,
+             GEO_NODE_LEGACY_ATTRIBUTE_REMOVE,
              GEO_NODE_TRIANGULATE)) {
       bNodeSocket *geometry_socket = node->inputs.first;
       add_realize_instances_before_socket(ntree, node, geometry_socket);
@@ -999,7 +999,7 @@ static bool geometry_node_is_293_legacy(const short node_type)
     /* Maybe legacy: Might need special attribute handling, depending on design. */
     case GEO_NODE_SWITCH:
     case GEO_NODE_JOIN_GEOMETRY:
-    case GEO_NODE_ATTRIBUTE_REMOVE:
+    case GEO_NODE_LEGACY_ATTRIBUTE_REMOVE:
     case GEO_NODE_OBJECT_INFO:
     case GEO_NODE_COLLECTION_INFO:
       return false;
@@ -2637,5 +2637,14 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Deprecate the attribute remove node. It was hidden and is replaced by a version without a
+     * multi-input socket. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_id(
+            ntree, GEO_NODE_LEGACY_ATTRIBUTE_REMOVE, "GeometryNodeLegacyAttributeRemove");
+      }
+    }
   }
 }
