@@ -1489,7 +1489,7 @@ def km_mask_editing(params):
         # click select keymap it's fine to have the context menu instead.
         items.extend([("mask.select", {"type": 'RIGHTMOUSE', "value": 'PRESS'},
              {"properties": [("deselect_all", not params.legacy)]}),
-            ("transform.translate", {"type": 'EVT_TWEAK_R', "value": 'ANY'}, None),])
+            ("transform.translate", {"type": params.action_mouse, "value": 'CLICK_DRAG'}, None),])
 
     items.extend([("mask.new", {"type": 'N', "value": 'PRESS', "alt": True}, None),
         op_menu("MASK_MT_add", {"type": 'A', "value": 'PRESS', "shift": True}),
