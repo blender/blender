@@ -244,7 +244,7 @@ class Spline {
 };
 
 /**
- * A Bézier spline is made up of a many curve segments, possibly achieving continuity of curvature
+ * A Bezier spline is made up of a many curve segments, possibly achieving continuity of curvature
  * by constraining the alignment of curve handles. Evaluation stores the positions and a map of
  * factors and indices in a list of floats, which is then used to interpolate any other data.
  */
@@ -454,7 +454,7 @@ class NURBSpline final : public Spline {
 
   struct BasisCache {
     /**
-     * For each evaluated point, the weight for alls control points that influences it.
+     * For each evaluated point, the weight for all control points that influences it.
      * The vector's size is the evaluated point count multiplied by the spline's order.
      */
     blender::Vector<float> weights;
@@ -554,7 +554,7 @@ class NURBSpline final : public Spline {
 };
 
 /**
- * A Poly spline is like a Bézier spline with a resolution of one. The main reason to distinguish
+ * A Poly spline is like a Bezier spline with a resolution of one. The main reason to distinguish
  * the two is for reduced complexity and increased performance, since interpolating data to control
  * points does not change it.
  *
