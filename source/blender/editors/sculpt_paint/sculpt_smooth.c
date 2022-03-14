@@ -1908,6 +1908,11 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
         copy_v3_v3(startco, vd.co);
         SCULPT_vertex_normal_get(ss, vd.vertex, startno);
 
+        /* Ensure we have a valid normal. */
+        if (fabsf(dot_v3v3(startno, startno) - 1.0f) > 0.001) {
+          normalize_v3(startno);
+        }
+
         int steps = data->do_origco ? 2 : 1;
 
         for (int step = 0; step < steps; step++) {
@@ -1953,16 +1958,14 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
             float veltmp[3];
             copy_v3_v3(veltmp, vel);
 
-            /* remove tangental component */
+            /* Remove tangental component. */
             float fac = dot_v3v3(vel, startno);
             mul_v3_v3fl(vel, startno, fac);
 
-            /* note that "off" is interpreted here
-               as a force to update vel */
             madd_v3_v3fl(vel, off, 0.2f);
             mul_v3_fl(vel, 0.8f);
 
-            /* apply velocity */
+            /* Apply velocity. */
             add_v3_v3(off, veltmp);
           }
 
