@@ -8,6 +8,7 @@
 #undef DEBUG_MESSAGES
 
 #include <memory.h>
+#include <mutex>
 #include <stdlib.h> /* for qsort */
 
 #include "MEM_CacheLimiterC-Api.h"
@@ -35,7 +36,12 @@
 #endif
 
 static MEM_CacheLimiterC *limitor = NULL;
-static pthread_mutex_t limitor_lock = BLI_MUTEX_INITIALIZER;
+
+/* Image buffers managed by a moviecache might be using their own movie caches (used by color
+ * management). In practice this means that, for example, freeing MovieCache used by MovieClip
+ * will request freeing MovieCache owned by ImBuf. Freeing MovieCache needs to be thread-safe,
+ * so regular mutex will not work here, hence the recursive lock. */
+static std::recursive_mutex limitor_lock;
 
 typedef struct MovieCache {
   char name[64];
@@ -107,9 +113,9 @@ static void moviecache_valfree(void *val)
   PRINT("%s: cache '%s' free item %p buffer %p\n", __func__, cache->name, item, item->ibuf);
 
   if (item->c_handle) {
-    BLI_mutex_lock(&limitor_lock);
+    limitor_lock.lock();
     MEM_CacheLimiter_unmanage(item->c_handle);
-    BLI_mutex_unlock(&limitor_lock);
+    limitor_lock.unlock();
   }
 
   if (item->ibuf) {
@@ -339,7 +345,7 @@ static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, boo
   }
 
   if (need_lock) {
-    BLI_mutex_lock(&limitor_lock);
+    limitor_lock.lock();
   }
 
   item->c_handle = MEM_CacheLimiter_insert(limitor, item);
@@ -349,7 +355,7 @@ static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, boo
   MEM_CacheLimiter_unref(item->c_handle);
 
   if (need_lock) {
-    BLI_mutex_unlock(&limitor_lock);
+    limitor_lock.unlock();
   }
 
   /* cache limiter can't remove unused keys which points to destroyed values */
@@ -371,7 +377,7 @@ bool IMB_moviecache_put_if_possible(MovieCache *cache, void *userkey, ImBuf *ibu
   elem_size = (ibuf == NULL) ? 0 : get_size_in_memory(ibuf);
   mem_limit = MEM_CacheLimiter_get_maximum();
 
-  BLI_mutex_lock(&limitor_lock);
+  limitor_lock.lock();
   mem_in_use = MEM_CacheLimiter_get_memory_in_use(limitor);
 
   if (mem_in_use + elem_size <= mem_limit) {
@@ -379,7 +385,7 @@ bool IMB_moviecache_put_if_possible(MovieCache *cache, void *userkey, ImBuf *ibu
     result = true;
   }
 
-  BLI_mutex_unlock(&limitor_lock);
+  limitor_lock.unlock();
 
   return result;
 }
@@ -407,9 +413,9 @@ ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey, bool *r_is_cached_em
 
   if (item) {
     if (item->ibuf) {
-      BLI_mutex_lock(&limitor_lock);
+      limitor_lock.lock();
       MEM_CacheLimiter_touch(item->c_handle);
-      BLI_mutex_unlock(&limitor_lock);
+      limitor_lock.unlock();
 
       IMB_refImBuf(item->ibuf);
 
