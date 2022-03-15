@@ -352,13 +352,15 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   float ao_pdf;
   sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
 
+  bool skip_self = true;
+
   Ray ray ccl_optional_struct_init;
-  ray.P = shadow_ray_offset(kg, sd, ao_D);
+  ray.P = shadow_ray_offset(kg, sd, ao_D, &skip_self);
   ray.D = ao_D;
   ray.t = kernel_data.integrator.ao_bounces_distance;
   ray.time = sd->time;
-  ray.self.object = sd->object;
-  ray.self.prim = sd->prim;
+  ray.self.object = (skip_self) ? sd->object : OBJECT_NONE;
+  ray.self.prim = (skip_self) ? sd->prim : PRIM_NONE;
   ray.self.light_object = OBJECT_NONE;
   ray.self.light_prim = PRIM_NONE;
   ray.dP = differential_zero_compact();
