@@ -50,6 +50,11 @@
 /* to use custom arrows exported to geom_arrow_gizmo.c */
 //#define USE_GIZMO_CUSTOM_ARROWS
 
+/** Margins to add when selecting the arrow stem. */
+#define ARROW_SELECT_THRESHOLD_PX_STEM (5 * UI_DPI_FAC)
+/** Margins to add when selecting the arrow head. */
+#define ARROW_SELECT_THRESHOLD_PX_HEAD (12 * UI_DPI_FAC)
+
 typedef struct ArrowGizmo3D {
   wmGizmo gizmo;
   GizmoCommonData data;
@@ -72,8 +77,7 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
   const int draw_style = RNA_enum_get(arrow->gizmo.ptr, "draw_style");
   const int draw_options = RNA_enum_get(arrow->gizmo.ptr, "draw_options");
 
-  immBindBuiltinProgram(select ? GPU_SHADER_3D_UNIFORM_COLOR :
-                                 GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
   float viewport[4];
   GPU_viewport_size_get_f(viewport);
@@ -117,7 +121,9 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
     };
 
     if (draw_options & ED_GIZMO_ARROW_DRAW_FLAG_STEM) {
-      immUniform1f("lineWidth", arrow->gizmo.line_width * U.pixelsize);
+      const float stem_width = (arrow->gizmo.line_width * U.pixelsize) +
+                               (select ? ARROW_SELECT_THRESHOLD_PX_STEM : 0);
+      immUniform1f("lineWidth", stem_width);
       wm_gizmo_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GPU_PRIM_LINE_STRIP);
     }
     else {
@@ -128,6 +134,8 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
 
     GPU_matrix_push();
 
+    /* NOTE: ideally #ARROW_SELECT_THRESHOLD_PX_HEAD would be added here, however adding a
+     * margin in pixel space isn't so simple, nor is it as important as for the arrow stem. */
     if (draw_style == ED_GIZMO_ARROW_STYLE_BOX) {
       const float size = 0.05f;
 
@@ -232,8 +240,8 @@ static int gizmo_arrow_test_select(bContext *UNUSED(C), wmGizmo *gz, const int m
   }
 
   const float mval_fl[2] = {UNPACK2(mval)};
-  const float arrow_stem_threshold_px = 5 * UI_DPI_FAC;
-  const float arrow_head_threshold_px = 12 * UI_DPI_FAC;
+  const float arrow_stem_threshold_px = ARROW_SELECT_THRESHOLD_PX_STEM;
+  const float arrow_head_threshold_px = ARROW_SELECT_THRESHOLD_PX_HEAD;
 
   /* Distance to arrow head. */
   if (len_squared_v2v2(mval_fl, arrow_end) < square_f(arrow_head_threshold_px)) {
