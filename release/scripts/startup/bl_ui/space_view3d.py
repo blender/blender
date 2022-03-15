@@ -1248,6 +1248,7 @@ class VIEW3D_MT_view_navigation(Menu):
         layout.operator("view3d.zoom", text="Zoom In").delta = 1
         layout.operator("view3d.zoom", text="Zoom Out").delta = -1
         layout.operator("view3d.zoom_border", text="Zoom Region...")
+        layout.operator("view3d.dolly", text="Dolly View...")
         layout.operator("view3d.zoom_camera_1_to_1", text="Zoom Camera 1:1")
 
         layout.separator()
@@ -7498,7 +7499,7 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
         size_owner = ups if ups.use_unified_size else brush
         if size_owner.use_locked_size == 'SCENE':
             size = "unprojected_radius"
-        
+
         UnifiedPaintPanel.prop_unified(
             layout,
             context,
