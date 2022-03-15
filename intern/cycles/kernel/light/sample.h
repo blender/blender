@@ -181,7 +181,7 @@ ccl_device_inline float3 shadow_ray_smooth_surface_offset(
 ccl_device_inline float3 shadow_ray_offset(KernelGlobals kg,
                                            ccl_private const ShaderData *ccl_restrict sd,
                                            float3 L,
-                                           bool *r_skip_self)
+                                           ccl_private bool *r_skip_self)
 {
   float3 P = sd->P;
 
