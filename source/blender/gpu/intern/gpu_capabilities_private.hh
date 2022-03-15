@@ -33,6 +33,7 @@ struct GPUCapabilities {
   int max_batch_vertices = 0;
   int max_vertex_attribs = 0;
   int max_varying_floats = 0;
+  int max_shader_storage_buffer_bindings = 0;
   int extensions_len = 0;
   const char *(*extension_get)(int);
 

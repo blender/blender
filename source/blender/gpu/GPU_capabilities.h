@@ -29,6 +29,7 @@ int GPU_max_batch_indices(void);
 int GPU_max_batch_vertices(void);
 int GPU_max_vertex_attribs(void);
 int GPU_max_varying_floats(void);
+int GPU_max_shader_storage_buffer_bindings(void);
 
 int GPU_extensions_len(void);
 const char *GPU_extension_get(int i);
