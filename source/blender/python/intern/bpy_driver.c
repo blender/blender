@@ -634,14 +634,15 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   if (retval == NULL) {
     pydriver_error(driver);
   }
-  else if ((result = PyFloat_AsDouble(retval)) == -1.0 && PyErr_Occurred()) {
-    pydriver_error(driver);
-    Py_DECREF(retval);
-    result = 0.0;
-  }
   else {
-    /* all fine, make sure the "invalid expression" flag is cleared */
-    driver->flag &= ~DRIVER_FLAG_INVALID;
+    if ((result = PyFloat_AsDouble(retval)) == -1.0 && PyErr_Occurred()) {
+      pydriver_error(driver);
+      result = 0.0;
+    }
+    else {
+      /* all fine, make sure the "invalid expression" flag is cleared */
+      driver->flag &= ~DRIVER_FLAG_INVALID;
+    }
     Py_DECREF(retval);
   }
 
